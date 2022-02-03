@@ -34,7 +34,8 @@ import {
 	byteLength,
 	contains,
 	defer,
-	downcast, isNotNull,
+	downcast,
+	isNotNull,
 	isSameTypeRefByAttr,
 	neverNull,
 	noOp,
@@ -91,6 +92,36 @@ import {FileReference} from "../../common/utils/FileUtils";
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
 
+
+interface CreateDraftParams {
+	subject: string;
+	bodyText: string;
+	senderMailAddress: string;
+	senderName: string;
+	toRecipients: Array<DraftRecipient>;
+	ccRecipients: Array<DraftRecipient>;
+	bccRecipients: Array<DraftRecipient>;
+	conversationType: ConversationType;
+	previousMessageId: Id | null;
+	attachments: Attachments | null;
+	confidential: boolean;
+	replyTos: Array<EncryptedMailAddress>;
+	method: MailMethod;
+}
+
+interface UpdateDraftParams {
+	subject: string;
+	body: string;
+	senderMailAddress: string;
+	senderName: string;
+	toRecipients: Array<DraftRecipient>;
+	ccRecipients: Array<DraftRecipient>;
+	bccRecipients: Array<DraftRecipient>;
+	attachments: Attachments | null;
+	confidential: boolean;
+	draft: Mail;
+}
+
 export class MailFacade {
 	_login: LoginFacadeImpl
 	_file: FileFacade
@@ -131,19 +162,21 @@ export class MailFacade {
 	 * @param confidential True if the mail shall be sent end-to-end encrypted, false otherwise.
 	 */
 	async createDraft(
-		subject: string,
-		bodyText: string,
-		senderMailAddress: string,
-		senderName: string,
-		toRecipients: Array<DraftRecipient>,
-		ccRecipients: Array<DraftRecipient>,
-		bccRecipients: Array<DraftRecipient>,
-		conversationType: ConversationType,
-		previousMessageId: Id | null,
-		attachments: Attachments | null,
-		confidential: boolean,
-		replyTos: Array<EncryptedMailAddress>,
-		method: MailMethod,
+		{
+			subject,
+			bodyText,
+			senderMailAddress,
+			senderName,
+			toRecipients,
+			ccRecipients,
+			bccRecipients,
+			conversationType,
+			previousMessageId,
+			attachments,
+			confidential,
+			replyTos,
+			method
+		}: CreateDraftParams,
 	): Promise<Mail> {
 		if (byteLength(bodyText) > UNCOMPRESSED_MAX_SIZE) {
 			throw new MailBodyTooLargeError(`Can't update draft, mail body too large (${byteLength(bodyText)})`)
@@ -194,16 +227,18 @@ export class MailFacade {
 	 * @return The updated draft. Rejected with TooManyRequestsError if the number allowed mails was exceeded, AccessBlockedError if the customer is not allowed to send emails currently because he is marked for approval.
 	 */
 	async updateDraft(
-		subject: string,
-		body: string,
-		senderMailAddress: string,
-		senderName: string,
-		toRecipients: Array<DraftRecipient>,
-		ccRecipients: Array<DraftRecipient>,
-		bccRecipients: Array<DraftRecipient>,
-		attachments: Attachments | null,
-		confidential: boolean,
-		draft: Mail,
+		{
+			subject,
+			body,
+			senderMailAddress,
+			senderName,
+			toRecipients,
+			ccRecipients,
+			bccRecipients,
+			attachments,
+			confidential,
+			draft
+		}: UpdateDraftParams,
 	): Promise<Mail> {
 		if (byteLength(body) > UNCOMPRESSED_MAX_SIZE) {
 			throw new MailBodyTooLargeError(`Can't update draft, mail body too large (${byteLength(body)})`)

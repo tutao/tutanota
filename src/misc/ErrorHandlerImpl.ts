@@ -19,6 +19,7 @@ import {errorToString, neverNull, noOp, ofClass, typedKeys} from "@tutao/tutanot
 import {logins, SessionType} from "../api/main/LoginController"
 import {OutOfSyncError} from "../api/common/error/OutOfSyncError"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import {windowFacade} from "./WindowFacade"
@@ -33,7 +34,6 @@ import {px} from "../gui/size"
 import {UserError} from "../api/main/UserError"
 import {showMoreStorageNeededOrderDialog} from "./SubscriptionDialogs"
 import {createDraftRecipient} from "../api/entities/tutanota/DraftRecipient"
-import Stream from "mithril/stream";
 
 assertMainOrNode()
 type FeedbackContent = {
@@ -333,24 +333,26 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 	const name = ""
 	const mailAddress = "reports@tutao.de"
 	const draft = await locator.mailFacade.createDraft(
-		content.subject,
-		content.message.split("\n").join("<br>"),
-		neverNull(logins.getUserController().userGroupInfo.mailAddress),
-		"",
-		[
-			createDraftRecipient({
-				name,
-				mailAddress,
-			}),
-		],
-		[],
-		[],
-		ConversationType.NEW,
-		null,
-		[],
-		true,
-		[],
-		MailMethod.NONE,
+		{
+			subject: content.subject,
+			bodyText: content.message.split("\n").join("<br>"),
+			senderMailAddress: neverNull(logins.getUserController().userGroupInfo.mailAddress),
+			senderName: "",
+			toRecipients: [
+				createDraftRecipient({
+					name,
+					mailAddress,
+				}),
+			],
+			ccRecipients: [],
+			bccRecipients: [],
+			conversationType: ConversationType.NEW,
+			previousMessageId: null,
+			attachments: [],
+			confidential: true,
+			replyTos: [],
+			method: MailMethod.NONE
+		},
 	)
 	await locator.mailFacade.sendDraft(
 		draft,

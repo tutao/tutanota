@@ -3,13 +3,11 @@ import o from "ospec"
 import en from "../../../src/translations/en"
 import type {IUserController} from "../../../src/api/main/UserController"
 import type {LoginController} from "../../../src/api/main/LoginController"
-import type {MailboxDetail, MailModel} from "../../../src/mail/model/MailModel"
-import type {Contact} from "../../../src/api/entities/tutanota/Contact"
-import {ContactTypeRef, createContact} from "../../../src/api/entities/tutanota/Contact"
-import type {ContactModel} from "../../../src/contacts/model/ContactModel"
-import {assertThrows, mockAttribute, unmockAttribute} from "@tutao/tutanota-test-utils"
-import {downcast, isSameTypeRef, neverNull, TypeRef} from "@tutao/tutanota-utils"
-import type {TutanotaProperties} from "../../../src/api/entities/tutanota/TutanotaProperties"
+import {MailboxDetail, MailModel} from "../../../src/mail/model/MailModel"
+import {Contact, ContactTypeRef, createContact} from "../../../src/api/entities/tutanota/Contact"
+import {ContactModel} from "../../../src/contacts/model/ContactModel"
+import {assertThrows} from "@tutao/tutanota-test-utils"
+import {downcast, isSameTypeRef} from "@tutao/tutanota-utils"
 import {createTutanotaProperties} from "../../../src/api/entities/tutanota/TutanotaProperties"
 import {SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS} from "../../../src/mail/editor/SendMailModel"
 import {createGroupInfo} from "../../../src/api/entities/sys/GroupInfo"
@@ -17,31 +15,29 @@ import {createMailboxGroupRoot} from "../../../src/api/entities/tutanota/Mailbox
 import {createGroup} from "../../../src/api/entities/sys/Group"
 import {createMailBox} from "../../../src/api/entities/tutanota/MailBox"
 import {ConversationType, GroupType, MailMethod, OperationType} from "../../../src/api/common/TutanotaConstants"
-import {lang, TranslationText} from "../../../src/misc/LanguageViewModel"
-import type {Customer} from "../../../src/api/entities/sys/Customer"
-import {CustomerTypeRef} from "../../../src/api/entities/sys/Customer"
-import type {User} from "../../../src/api/entities/sys/User"
+import {lang} from "../../../src/misc/LanguageViewModel"
+import {createCustomer, CustomerTypeRef} from "../../../src/api/entities/sys/Customer"
 import {createUser, UserTypeRef} from "../../../src/api/entities/sys/User"
 import type {RecipientInfo} from "../../../src/api/common/RecipientInfo"
 import {isTutanotaMailAddress, RecipientInfoType} from "../../../src/api/common/RecipientInfo"
 import {createMail, MailTypeRef} from "../../../src/api/entities/tutanota/Mail"
-import type {EventController} from "../../../src/api/main/EventController"
+import {EventController} from "../../../src/api/main/EventController"
 import {createMailAddress} from "../../../src/api/entities/tutanota/MailAddress"
 import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
 import {UserError} from "../../../src/api/main/UserError"
 import {ContactListTypeRef} from "../../../src/api/entities/tutanota/ContactList"
-import {NotFoundError} from "../../../src/api/common/error/RestError"
 import {EntityClient} from "../../../src/api/common/EntityClient"
 import {CustomerAccountCreateDataTypeRef} from "../../../src/api/entities/tutanota/CustomerAccountCreateData"
 import {NotificationMailTypeRef} from "../../../src/api/entities/tutanota/NotificationMail"
 import {ChallengeTypeRef} from "../../../src/api/entities/sys/Challenge"
 import {getContactDisplayName} from "../../../src/contacts/model/ContactUtils"
-import {createConversationEntry} from "../../../src/api/entities/tutanota/ConversationEntry"
+import {ConversationEntryTypeRef, createConversationEntry} from "../../../src/api/entities/tutanota/ConversationEntry"
 import {isSameId} from "../../../src/api/common/utils/EntityUtils"
 import {MailFacade} from "../../../src/api/worker/facades/MailFacade"
-import {createInternalRecipientKeyData} from "../../../src/api/entities/tutanota/InternalRecipientKeyData"
-import type {EntityRestInterface} from "../../../src/api/worker/rest/EntityRestClient"
 import {RecipientField} from "../../../src/mail/model/MailUtils"
+import {func, instance, matchers, object, replace, verify, when} from "testdouble"
+
+const {anything, argThat} = matchers
 
 type TestIdGenerator = {
 	currentIdValue: number,
@@ -51,112 +47,6 @@ type TestIdGenerator = {
 	newIdTuple: () => IdTuple
 }
 let testIdGenerator: TestIdGenerator
-let internalAddresses: string[] = []
-
-function mockRestClient(): EntityRestInterface {
-	return downcast({
-		load(...args): Promise<any> {
-			return Promise.resolve()
-		},
-
-		loadRange(...args): Promise<any> {
-			return Promise.resolve()
-		},
-
-		loadMultiple(...args): Promise<any> {
-			return Promise.resolve()
-		},
-
-		setup(...args): Promise<any> {
-			return Promise.resolve()
-		},
-
-		setupMultiple(...args): Promise<any> {
-			return Promise.resolve()
-		},
-
-		update(...args): Promise<any> {
-			return Promise.resolve()
-		},
-
-		erase(...args): Promise<any> {
-			return Promise.resolve()
-		},
-	})
-}
-
-function mockMailFacade(): MailFacade {
-	return downcast({
-		async createDraft() {
-			return createMail()
-		},
-
-		async updateDraft() {
-			return createMail()
-		},
-
-		async sendDraft() {
-		},
-
-		async getRecipientKeyData(mailAddress: string) {
-			return internalAddresses.includes(mailAddress) ? createInternalRecipientKeyData() : null
-		},
-	})
-}
-
-function mockLoginController(userController: IUserController, internalLoggedIn: boolean = true): LoginController {
-	return downcast({
-		userController,
-		isInternalUserLoggedIn: () => internalLoggedIn,
-
-		getUserController() {
-			return this.userController
-		},
-	})
-}
-
-function mockUserController(user: User, props: TutanotaProperties, customer: Customer): IUserController {
-	return downcast({
-		user,
-		loadCustomer: () => Promise.resolve(customer),
-		props,
-	})
-}
-
-class ContactModelMock implements ContactModel {
-	contacts: Array<Contact>
-
-	constructor(contacts: Array<Contact>) {
-		this.contacts = contacts
-	}
-
-	searchForContact(mailAddress: string): Promise<Contact | null> {
-		const contact = this.contacts.find(contact => contact.mailAddresses.find(m => m.address === mailAddress)) ?? null
-		return Promise.resolve(contact)
-	}
-
-	contactListId(): Promise<Id> {
-		return Promise.resolve("contactListId")
-	}
-
-	searchForContacts(query: string, field: string, minSuggestionCount: number): Promise<Contact[]> {
-		throw new Error("stub!")
-	}
-
-	searchForContactByMailAddress(mailAddress: string): Promise<Contact | null | undefined> {
-		throw new Error("stub!")
-	}
-}
-
-function mockEntity<T>(typeRef: TypeRef<T>, id: Id | IdTuple, attrs: Record<string, any>): any {
-	return Object.assign(
-		{
-			_type: typeRef,
-			_id: id,
-		},
-		attrs,
-	)
-}
 
 const EXTERNAL_ADDRESS_1 = "address1@test.com"
 const EXTERNAL_ADDRESS_2 = "address2@test.com"
@@ -170,23 +60,20 @@ const BODY_TEXT_1 = "lorem ipsum dolor yaddah yaddah"
 const SUBJECT_LINE_1 = "Did you get that thing I sent ya"
 const STRONG_PASSWORD = "@()IE!)(@FME)0-123jfDSA32SDACmmnvnvddEW"
 const WEAK_PASSWORD = "123"
+
 o.spec("SendMailModel", function () {
+
 	o.before(function () {
 		// we need lang initialized because the SendMailModel constructor requires some translation
 		lang.init(en)
 	})
-	// the global worker is used in various other places silently, like in call to update from _updateContacts
-	let mailFacade: MailFacade,
-		logins: LoginController,
-		eventController: EventController,
-		mailModel: MailModel,
-		contactModel: ContactModel,
-		mailboxDetails: MailboxDetail,
-		userController: IUserController,
+
+	let mailModel: MailModel,
 		entity: EntityClient,
-		model: SendMailModel
-	let customer: Customer
-	let mockedAttributeReferences: any[] = []
+		mailFacade: MailFacade
+
+	let model: SendMailModel
+
 	o.beforeEach(function () {
 		testIdGenerator = {
 			currentIdValue: 0,
@@ -204,44 +91,36 @@ o.spec("SendMailModel", function () {
 				return [this.newListId(), this.newId()]
 			},
 		}
-		const restClientMock = mockRestClient()
-		mailFacade = mockMailFacade()
-		entity = new EntityClient(restClientMock)
-		mockedAttributeReferences.push(
-			mockAttribute(entity, entity.loadRoot, <T>(typeRef: TypeRef<T>, groupId: Id) => {
-				if (isSameTypeRef(typeRef, ContactListTypeRef)) {
-					return Promise.resolve(
-						downcast({
-							contacts: testIdGenerator.newId(),
-						}),
-					)
-				} else {
-					throw new NotFoundError("entity not found: " + typeRef.type + " " + groupId)
-				}
-			}),
-		)
-		mockedAttributeReferences.push(
-			mockAttribute(entity, entity.setup, <T>(typeRef: TypeRef<T>, groupId: Id) => {
-				return Promise.resolve({})
-			}),
-		)
-		mockedAttributeReferences.push(
-			mockAttribute(entity, entity.update, <T>(typeRef: TypeRef<T>, groupId: Id) => {
-				return Promise.resolve({})
-			}),
-		)
-		customer = downcast({})
+
+		entity = instance(EntityClient)
+		when(entity.loadRoot(argThat(typeRef => isSameTypeRef(typeRef, ContactListTypeRef)), anything()))
+			.thenDo(
+				() => ({contacts: testIdGenerator.newId()})
+			)
+		when(entity.load(anything(), anything(), anything()))
+			.thenDo((typeRef, id, params) => ({_type: typeRef, _id: id}))
+
+
+		mailModel = instance(MailModel)
+
+		const contactModel = object<ContactModel>()
+		when(contactModel.contactListId()).thenResolve("contactListId")
+		when(contactModel.searchForContact(anything())).thenResolve(null)
+
+		mailFacade = instance(MailFacade)
+		when(mailFacade.createDraft(anything())).thenDo(() => createMail())
+		when(mailFacade.updateDraft(anything())).thenDo(() => createMail())
+		when(mailFacade.getRecipientKeyData(anything())).thenResolve(null)
+
 		const tutanotaProperties = createTutanotaProperties(
-			downcast({
+			{
 				defaultSender: DEFAULT_SENDER_FOR_TESTING,
 				defaultUnconfidential: true,
 				notificationMailLanguage: "en",
 				noAutomaticContacts: false,
-				userGroupInfo: createGroupInfo({}), // emailSignatureType: EmailSignatureType.EMAIL_SIGNATURE_TYPE_DEFAULT,
-				// customEmailSignature: "CUSTOM TEST SIGNATURE"
-			}),
+			},
 		)
-		const mockUser = createUser({
+		const user = createUser({
 			userGroup: createGroupMembership({
 				_id: testIdGenerator.newId(),
 				group: testIdGenerator.newId(),
@@ -253,53 +132,42 @@ o.spec("SendMailModel", function () {
 				}),
 			],
 		})
-		userController = mockUserController(mockUser, tutanotaProperties, customer)
-		logins = mockLoginController(userController)
-		eventController = downcast({
-			addEntityListener: o.spy(() => {
-			}),
-			removeEntityListener: o.spy(() => {
-			}),
-		})
-		mailModel = downcast({})
-		contactModel = new ContactModelMock([])
-		mailboxDetails = {
+
+		const userController = object<IUserController>()
+		replace(userController, "user", user)
+		replace(userController, "props", tutanotaProperties)
+		when(userController.loadCustomer()).thenResolve(createCustomer())
+
+		const loginController = object<LoginController>()
+		when(loginController.isInternalUserLoggedIn()).thenReturn(true)
+		when(loginController.getUserController()).thenReturn(userController)
+
+		const eventController = instance(EventController)
+
+		const mailboxDetails = {
 			mailbox: createMailBox(),
 			folders: [],
 			mailGroupInfo: createGroupInfo(),
 			mailGroup: createGroup(),
 			mailboxGroupRoot: createMailboxGroupRoot(),
 		}
+
 		model = new SendMailModel(
 			mailFacade,
-			logins,
+			loginController,
 			mailModel,
 			contactModel,
-			downcast(eventController),
+			eventController,
 			entity,
 			mailboxDetails,
 		)
-		mockedAttributeReferences.push(mockAttribute(model, model._getDefaultSender, () => DEFAULT_SENDER_FOR_TESTING))
-		mockedAttributeReferences.push(
-			// @ts-ignore
-			mockAttribute(model._entity, model._entity.load, (typeRef, id, params) => {
-				return Promise.resolve({
-					_type: typeRef,
-					_id: id,
-				})
-			}),
-		)
-		mockedAttributeReferences.push(mockAttribute(mailFacade, mailFacade.sendDraft, mailFacade.sendDraft))
-		mockedAttributeReferences.push(mockAttribute(mailFacade, mailFacade.createDraft, mailFacade.createDraft))
-		mockedAttributeReferences.push(mockAttribute(mailFacade, mailFacade.updateDraft, mailFacade.updateDraft))
+
+		replace(model, "_getDefaultSender", () => DEFAULT_SENDER_FOR_TESTING)
 	})
-	o.afterEach(function () {
-		mockedAttributeReferences.forEach(ref => unmockAttribute(ref))
-		mockedAttributeReferences = []
-	})
+
 	o.spec("initialization", function () {
 		o.beforeEach(function () {
-			mockAttribute(model, model._createAndResolveRecipientInfo, (name, address, contact, resolveLazily) => {
+			replace(model, "_createAndResolveRecipientInfo", (name, address, contact, resolveLazily) => {
 				const ri: RecipientInfo = {
 					type: isTutanotaMailAddress(address) ? RecipientInfoType.INTERNAL : RecipientInfoType.EXTERNAL,
 					mailAddress: address,
@@ -378,23 +246,6 @@ o.spec("SendMailModel", function () {
 			o(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
 		o("initWithDraft with blank data", async function () {
-			const loadMock = mockAttribute(
-				entity,
-				entity.load,
-				<T>(
-					typeRef: TypeRef<T>,
-					id: Id | IdTuple,
-					queryParams: Dict | null | undefined,
-					extraHeaders?: Dict,
-				) => {
-					const values = {
-						_id: id,
-					}
-					const ce = createConversationEntry()
-					ce.conversationType = ConversationType.REPLY
-					return Promise.resolve(ce)
-				},
-			)
 			const draftMail = createMail({
 				confidential: false,
 				sender: createMailAddress(),
@@ -403,9 +254,10 @@ o.spec("SendMailModel", function () {
 				bccRecipients: [],
 				subject: "",
 				replyTos: [],
+				conversationEntry: testIdGenerator.newIdTuple()
 			})
+			when(entity.load(ConversationEntryTypeRef, draftMail.conversationEntry)).thenResolve(createConversationEntry({conversationType: ConversationType.REPLY}))
 			const initializedModel = await model.initWithDraft(draftMail, [], BODY_TEXT_1, Promise.resolve(new Map()))
-			unmockAttribute(loadMock)
 			o(initializedModel.getConversationType()).equals(ConversationType.REPLY)
 			o(initializedModel.getSubject()).equals(draftMail.subject)
 			o(initializedModel.getBody()).equals(BODY_TEXT_1)
@@ -418,23 +270,6 @@ o.spec("SendMailModel", function () {
 			o(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
 		o("initWithDraft with some data", async function () {
-			const loadMock = mockAttribute(
-				entity,
-				entity.load,
-				<T>(
-					typeRef: TypeRef<T>,
-					id: Id | IdTuple,
-					queryParams: Dict | null | undefined,
-					extraHeaders?: Dict,
-				) => {
-					const values = {
-						_id: id,
-					}
-					const ce = createConversationEntry()
-					ce.conversationType = ConversationType.FORWARD
-					return Promise.resolve(ce)
-				},
-			)
 			const draftMail = createMail({
 				confidential: true,
 				sender: createMailAddress(),
@@ -454,9 +289,13 @@ o.spec("SendMailModel", function () {
 				bccRecipients: [],
 				subject: SUBJECT_LINE_1,
 				replyTos: [],
+				conversationEntry: testIdGenerator.newIdTuple()
 			})
+
+			when(entity.load(ConversationEntryTypeRef, draftMail.conversationEntry))
+				.thenResolve(createConversationEntry({conversationType: ConversationType.FORWARD}))
+
 			const initializedModel = await model.initWithDraft(draftMail, [], BODY_TEXT_1, Promise.resolve(new Map()))
-			unmockAttribute(loadMock)
 			o(initializedModel.getConversationType()).equals(ConversationType.FORWARD)
 			o(initializedModel.getSubject()).equals(draftMail.subject)
 			o(initializedModel.getBody()).equals(BODY_TEXT_1)
@@ -478,25 +317,42 @@ o.spec("SendMailModel", function () {
 		o.beforeEach(async function () {
 			await model.initWithTemplate({}, "", "", [], false, "")
 		})
-		o("adding duplicate to recipient", async function () {
+
+		o("lazily resolved recipient will set it's promise to null when resolved", async function () {
 			const recipient = {
 				name: "sanchez",
 				address: "123@test.com",
 				contact: null,
 			}
 			const [r1] = model.addOrGetRecipient(RecipientField.TO, recipient, false)
-			o(r1.contact === null).equals(true)
-			o(r1.resolveContactPromise === null).equals(false)
-			o(model.addOrGetRecipient(RecipientField.TO, recipient, false)[0] === r1).equals(true)
+
+			o(r1.contact).equals(null)("Contact not resolved yet, it's null")
+			o(r1.resolveContactPromise).notEquals(null)("Contact not resolved yet, promise is non null")
+
+			await r1.resolveContactPromise
+
+			o(r1.contact).notEquals(null)("Contact has resolved and is no longer null")
+			o(r1.resolveContactPromise).equals(null)("Contact has resolved, so it's promise is now null")
+		})
+
+		o("adding duplicate to-recipient", async function () {
+			const recipient = {
+				name: "sanchez",
+				address: "123@test.com",
+				contact: null,
+			}
+			const [r1] = model.addOrGetRecipient(RecipientField.TO, recipient, false)
+
+			o(model.addOrGetRecipient(RecipientField.TO, recipient, false)[0] === r1).equals(true)("Adding same recipient a second time will return the same as the first time")
+
 			o(model.toRecipients().length).equals(1)
 			o(model.ccRecipients().length).equals(0)
 			o(model.bccRecipients().length).equals(0)
+
 			await r1.resolveContactPromise
-			o(r1.contact === null).equals(false)
-			o(r1.resolveContactPromise === null).equals(true)
-			o(neverNull(r1.contact).mailAddresses[0].address).equals(recipient.address)
+			o(r1.contact!.mailAddresses[0].address).equals(recipient.address)
 		})
-		o("add different to recipients", async function () {
+		o("add different to-recipients", async function () {
 			const pablo = {
 				name: "pablo",
 				address: "pablo94@test.co.uk",
@@ -509,22 +365,16 @@ o.spec("SendMailModel", function () {
 			}
 			const [r1] = model.addOrGetRecipient(RecipientField.TO, pablo, false)
 			const [r2] = model.addOrGetRecipient(RecipientField.TO, cortez, false)
-			o(r1.contact === null).equals(true)
-			o(r1.resolveContactPromise === null).equals(false)
-			o(r2.contact === null).equals(true)
-			o(r2.resolveContactPromise === null).equals(false)
 			o(r1 === r2).equals(false)
 			o(model.toRecipients().length).equals(2)
 			o(model.ccRecipients().length).equals(0)
 			o(model.bccRecipients().length).equals(0)
+
 			await r1.resolveContactPromise
-			o(r1.contact === null).equals(false)
-			o(r1.resolveContactPromise === null).equals(true)
-			o(neverNull(r1.contact).mailAddresses[0].address).equals(pablo.address)
+			o(r1.contact!.mailAddresses[0].address).equals(pablo.address)
+
 			await r2.resolveContactPromise
-			o(r2.contact === null).equals(false)
-			o(r2.resolveContactPromise === null).equals(true)
-			o(neverNull(r2.contact).mailAddresses[0].address).equals(cortez.address)
+			o(r2.contact!.mailAddresses[0].address).equals(cortez.address)
 		})
 		o("add duplicate recipients to different fields", async function () {
 			const recipient = {
@@ -534,34 +384,26 @@ o.spec("SendMailModel", function () {
 			}
 			const [r1] = model.addOrGetRecipient(RecipientField.TO, recipient, false)
 			const [r2] = model.addOrGetRecipient(RecipientField.CC, recipient, false)
-			o(r1.contact === null).equals(true)
-			o(r1.resolveContactPromise === null).equals(false)
-			o(r2.contact === null).equals(true)
-			o(r2.resolveContactPromise === null).equals(false)
 			o(r1 === r2).equals(false)
 			o(model.toRecipients().length).equals(1)
 			o(model.ccRecipients().length).equals(1)
 			o(model.bccRecipients().length).equals(0)
 			await r1.resolveContactPromise
-			o(r1.contact === null).equals(false)
-			o(r1.resolveContactPromise === null).equals(true)
-			o(neverNull(r1.contact).mailAddresses[0].address).equals(recipient.address)
+			o(r1.contact!.mailAddresses[0].address).equals(recipient.address)
 			await r2.resolveContactPromise
-			o(r2.contact === null).equals(false)
-			o(r2.resolveContactPromise === null).equals(true)
-			o(neverNull(r2.contact).mailAddresses[0].address).equals(recipient.address)
+			o(r2.contact!.mailAddresses[0].address).equals(recipient.address)
 		})
 	})
 	o.spec("Sending", function () {
 		o("completely blank email", async function () {
 			const method = MailMethod.NONE
-			const getConfirmation = o.spy(_ => Promise.resolve(true))
+			const getConfirmation = func<() => Promise<boolean>>()
 			const e = await assertThrows(UserError, () => model.send(method, getConfirmation))
 			o(e?.message).equals(lang.get("noRecipients_msg"))
-			o(getConfirmation.callCount).equals(0)
-			o(mailFacade.sendDraft.callCount).equals(0)
-			o(mailFacade.createDraft.callCount).equals(0)
-			o(mailFacade.updateDraft.callCount).equals(0)
+			verify(getConfirmation(), {times: 0})
+			verify(mailFacade.sendDraft(anything(), anything(), anything()), {times: 0})
+			verify(mailFacade.createDraft(anything()), {times: 0})
+			verify(mailFacade.updateDraft(anything()), {times: 0})
 		})
 		o("blank subject no confirm", async function () {
 			await model.addOrGetRecipient(RecipientField.TO, {
@@ -570,13 +412,13 @@ o.spec("SendMailModel", function () {
 				contact: null,
 			})[0].resolveContactPromise
 			const method = MailMethod.NONE
-			const getConfirmation = o.spy(_ => Promise.resolve(false))
+			const getConfirmation = func<() => Promise<boolean>>()
 			const r = await model.send(method, getConfirmation)
 			o(r).equals(false)
-			o(getConfirmation.callCount).equals(1)
-			o(mailFacade.sendDraft.callCount).equals(0)
-			o(mailFacade.createDraft.callCount).equals(0)
-			o(mailFacade.updateDraft.callCount).equals(0)
+			verify(getConfirmation(), {times: 0})
+			verify(mailFacade.sendDraft(anything(), anything(), anything()), {times: 0})
+			verify(mailFacade.createDraft(anything()), {times: 0})
+			verify(mailFacade.updateDraft(anything()), {times: 0})
 		})
 		o("confidential missing password", async function () {
 			await model.addOrGetRecipient(RecipientField.TO, {
@@ -586,13 +428,16 @@ o.spec("SendMailModel", function () {
 			})[0].resolveContactPromise
 			model.setConfidential(true)
 			const method = MailMethod.NONE
-			const getConfirmation = o.spy(_ => Promise.resolve(true))
+
+			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
+			when(getConfirmation(anything())).thenResolve(true)
+
 			const e = await assertThrows(UserError, () => model.send(method, getConfirmation))
 			o(e?.message).equals(lang.get("noPreSharedPassword_msg"))
-			o(getConfirmation.callCount).equals(1)
-			o(mailFacade.sendDraft.callCount).equals(0)
-			o(mailFacade.createDraft.callCount).equals(0)
-			o(mailFacade.updateDraft.callCount).equals(0)
+
+			verify(mailFacade.sendDraft(anything(), anything(), anything()), {times: 0})
+			verify(mailFacade.createDraft(anything()), {times: 0})
+			verify(mailFacade.updateDraft(anything()), {times: 0})
 		})
 		o("confidential weak password no confirm", async function () {
 			const recipient = {
@@ -606,13 +451,15 @@ o.spec("SendMailModel", function () {
 			o(model.getPassword(recipient.address)).equals("abc")
 			model.setConfidential(true)
 			const method = MailMethod.NONE
-			const getConfirmation = o.spy(_ => Promise.resolve(false))
+
+			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
+			when(getConfirmation(anything())).thenResolve(false)
+
 			const r = await model.send(method, getConfirmation)
 			o(r).equals(false)
-			o(getConfirmation.callCount).equals(1)
-			o(mailFacade.sendDraft.callCount).equals(0)
-			o(mailFacade.createDraft.callCount).equals(0)
-			o(mailFacade.updateDraft.callCount).equals(0)
+			verify(mailFacade.sendDraft(anything(), anything(), anything()), {times: 0})
+			verify(mailFacade.createDraft(anything()), {times: 0})
+			verify(mailFacade.updateDraft(anything()), {times: 0})
 		})
 		o("confidential weak password confirm", async function () {
 			const recipient = {
@@ -627,19 +474,28 @@ o.spec("SendMailModel", function () {
 			o(model.getPassword(recipient.address)).equals(password)
 			model.setConfidential(true)
 			const method = MailMethod.NONE
-			const getConfirmation = o.spy(_ => Promise.resolve(true))
+			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
+			when(getConfirmation(anything())).thenResolve(true)
+
 			const r = await model.send(method, getConfirmation)
 			o(r).equals(true)
-			o(getConfirmation.callCount).equals(1)
-			o(mailFacade.sendDraft.callCount).equals(1)
-			o(mailFacade.createDraft.callCount).equals(1)
-			o(mailFacade.updateDraft.callCount).equals(0)
-			const contact = model.getRecipientList(RecipientField.TO)[0].contact
-			o(contact && contact.presharedPassword).equals(password)
-			o(entity.setup.callCount).equals(1)
-			o(entity.setup.args.includes(contact)).equals(true)
-			o(entity.update.callCount).equals(0)
+
+			verify(mailFacade.sendDraft(anything(), anything(), anything()), {times: 1})
+			verify(mailFacade.createDraft(anything()), {times: 1})
+			verify(mailFacade.updateDraft(anything()), {times: 0})
+
+			const contact = model.getRecipientList(RecipientField.TO)[0].contact!
+			o(contact.presharedPassword).equals(password)
 		})
+
+		o("correct password will be returned from getPassword after calling setPassword", function () {
+			model.setPassword("address1", "password1")
+			model.setPassword("address2", "password2")
+
+			o(model.getPassword("address2")).equals("password2")
+			o(model.getPassword("address1")).equals("password1")
+		})
+
 		o("confidential strong password", async function () {
 			const address = "test@address.com"
 			const recipient = {
@@ -651,129 +507,111 @@ o.spec("SendMailModel", function () {
 			model.setSubject("did you get that thing i sent ya?")
 			const password = STRONG_PASSWORD
 			model.setPassword(address, password)
-			o(model.getPassword(address)).equals(password)
 			model.setConfidential(true)
 			const method = MailMethod.NONE
-			const getConfirmation = o.spy(msg => {
-				o("We shouldn't call getConfirmation").equals("But we did")
-				return Promise.resolve(false)
-			})
+
+			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
+
 			const r = await model.send(method, getConfirmation)
 			o(r).equals(true)
-			o(getConfirmation.callCount).equals(0)
-			o(mailFacade.sendDraft.callCount).equals(1)
-			o(mailFacade.createDraft.callCount).equals(1)
-			o(mailFacade.updateDraft.callCount).equals(0)
-			const contact = model.getRecipientList(RecipientField.TO)[0].contact
-			o(contact && contact.presharedPassword).equals(password)
-			o(entity.setup.callCount).equals(1)
-			o(entity.setup.args.includes(contact)).equals(true)
-			o(entity.update.callCount).equals(0)
+
+			verify(getConfirmation(anything), {times: 0})
+
+			verify(mailFacade.sendDraft(anything(), anything(), anything()), {times: 1})
+			verify(mailFacade.createDraft(anything()), {times: 1})
+			verify(mailFacade.updateDraft(anything()), {times: 0})
+
+			const contact = model.getRecipientList(RecipientField.TO)[0].contact!
+			o(contact.presharedPassword).equals(password)
 		})
-		o("existing and new contacts", async function () {
-			const password = STRONG_PASSWORD
-			const recipients = [
+
+		o("when a recipient doesn't have an existing contact, it will be created", async function () {
+			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
+
+			const [recipientInfo, resolveContactPromise] = model.addOrGetRecipient(
+				RecipientField.TO,
 				{
-					name: "paul gilbert",
-					address: "paul@gmail.com",
-					contact: null,
-				},
-				{
-					name: "steve vai",
-					address: "steve@gmail.com",
-					contact: null,
-				},
-				{
-					name: "ingwe malmsteen",
-					address: "ingwe@tutanota.com",
-					contact: null,
-				},
-				{
-					name: "frank zappa",
-					address: "frank@gmail.com",
-					contact: createContact({
-						_id: testIdGenerator.newIdTuple(),
-						firstName: "frank",
-						lastName: "zappa",
-						presharedPassword: null,
-					}),
-				},
-				{
-					name: "ronnie james dio",
-					address: "dio@gmail.com",
-					contact: createContact({
-						_id: testIdGenerator.newIdTuple(),
-						firstName: "ronnie james",
-						lastName: "dio",
-						presharedPassword: STRONG_PASSWORD, // <---- this contact will not be updated
-					}),
-				},
-				{
-					name: "guthrie govan",
-					address: "guthrie@gmail.com",
-					contact: createContact({
-						_id: testIdGenerator.newIdTuple(),
-						firstName: "guthrie",
-						lastName: "govan",
-						presharedPassword: "some old password",
-					}),
-				},
-				{
-					name: "james hetfield",
-					address: "james@tutanota.com",
-					contact: createContact({
-						_id: testIdGenerator.newIdTuple(),
-						firstName: "james",
-						lastName: "hetfield",
-					}),
-				},
-			]
-			recipients.forEach(r => {
-				model.addOrGetRecipient(RecipientField.TO, r)
-				o(model.getPassword(r.address)).equals(r.contact ? r.contact.presharedPassword || "" : "")(
-					"If a recipient was added with a contact that has a password, we want to set that password on the way in",
-				)
-			})
-			o(model.allRecipients().length).equals(recipients.length)
-			recipients.forEach(r => {
-				model.setPassword(r.address, password)
-			})
+					name: "chippie",
+					address: "chippie@cinco.net",
+					contact: null
+				}
+			)
+
+			model.setPassword("chippie@cinco.net", STRONG_PASSWORD)
 			model.setSubject("did you get that thing i sent ya?")
 			model.setConfidential(true)
-			const method = MailMethod.NONE
-			const getConfirmation = o.spy(_ => {
-				o("We shouldn't call getConfirmation").equals("But we did")
-				return Promise.resolve(false)
+
+			await model.send(MailMethod.NONE, getConfirmation)
+
+			verify(entity.setup("contactListId", argThat((contact) => isSameTypeRef(ContactTypeRef, contact._type))))
+			verify(entity.update(anything()), {times: 0})
+		})
+
+		o("when a recipient has an existing contact, it won't be created or updated", async function () {
+			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
+
+			const [recipientInfo, resolveContactPromise] = model.addOrGetRecipient(
+				RecipientField.TO,
+				{
+					name: "chippie",
+					address: "chippie@cinco.net",
+					contact: createContact({
+						_id: testIdGenerator.newIdTuple(),
+						firstName: "my",
+						lastName: "chippie",
+						presharedPassword: STRONG_PASSWORD,
+					})
+				}
+			)
+
+			model.setSubject("did you get that thing i sent ya?")
+			model.setConfidential(true)
+
+			await model.send(MailMethod.NONE, getConfirmation)
+
+			verify(entity.setup(anything(), anything(), anything()), {times: 0})
+			verify(entity.update(anything()), {times: 0})
+		})
+
+		o("when a recipient has an existing contact, and the saved password changes, then the contact will be updated", async function () {
+			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
+
+			const contact = createContact({
+				_id: testIdGenerator.newIdTuple(),
+				firstName: "my",
+				lastName: "chippie",
+				presharedPassword: "weak password",
 			})
-			const numContactsToSetup = 3
-			const numContactsToUpdate = 2
-			const r = await model.send(method, getConfirmation)
-			o(r).equals(true)
-			o(getConfirmation.callCount).equals(0)
-			o(mailFacade.sendDraft.callCount).equals(1)
-			o(mailFacade.createDraft.callCount).equals(1)
-			o(mailFacade.updateDraft.callCount).equals(0)
-			o(entity.setup.callCount).equals(numContactsToSetup)(
-				"contacts that didn't already exist should have been created in the server",
+
+			const [recipientInfo, resolveContactPromise] = model.addOrGetRecipient(
+				RecipientField.TO,
+				{
+					name: "chippie",
+					address: "chippie@cinco.net",
+					contact
+				}
 			)
-			o(entity.update.callCount).equals(numContactsToUpdate)(
-				"contacts that did already exist should be updated in the server if they received a new password",
-			)
-			const didUpdateDio = entity.update.calls.some(call => call.args[0].mailAddresses.includes("dio@gmail.com"))
-			o(didUpdateDio).equals(false)(
-				"When an external recipient doesn't have it's password changed, then we dont make an update in the server",
-			)
+
+			model.setPassword("chippie@cinco.net", STRONG_PASSWORD)
+			model.setSubject("did you get that thing i sent ya?")
+			model.setConfidential(true)
+
+			await model.send(MailMethod.NONE, getConfirmation)
+
+			verify(entity.update(contact), {times: 1})
 		})
 	})
 	o.spec("Entity Event Updates", function () {
-		let loadMock
 		let existingContact
+
 		o.beforeEach(async function () {
+
 			existingContact = createContact({
 				_id: testIdGenerator.newIdTuple(),
 				firstName: "james",
 				lastName: "hetfield",
 			})
+
 			const recipients = [
 				{
 					name: "paul gilbert",
@@ -794,26 +632,17 @@ o.spec("SendMailModel", function () {
 				"",
 			)
 		})
-		o("nonmatching event", async function () {
-			let spy = o.spy(entity.load)
 
-			/*
-	  export type EntityUpdateData = {
-		  application: string,
-		  type: string,
-		  instanceListId: string,
-		  instanceId: string,
-		  operation: OperationTypeEnum
-	  }
-	   */
+		o("nonmatching event", async function () {
 			await model._handleEntityEvent(downcast(CustomerAccountCreateDataTypeRef))
 			await model._handleEntityEvent(downcast(UserTypeRef))
 			await model._handleEntityEvent(downcast(CustomerTypeRef))
 			await model._handleEntityEvent(downcast(NotificationMailTypeRef))
 			await model._handleEntityEvent(downcast(ChallengeTypeRef))
 			await model._handleEntityEvent(downcast(MailTypeRef))
-			o(spy.callCount).equals(0)
+			verify(entity.load(anything(), anything(), anything(), anything()), {times: 0})
 		})
+
 		o("contact updated email kept", async function () {
 			const {app, type} = ContactTypeRef
 			const [instanceListId, instanceId] = existingContact._id
@@ -829,22 +658,18 @@ o.spec("SendMailModel", function () {
 					}),
 				],
 			}
-			loadMock = mockAttribute(entity, entity.load, <T>(typeRef: TypeRef<T>, id: IdTuple, ...args) => {
-				const values = {
-					_id: id,
-				}
-				return Promise.resolve(createContact(Object.assign(downcast(values), contactForUpdate)))
-			})
+			when(entity.load(ContactTypeRef, argThat((id) => isSameId(id, existingContact._id))))
+				.thenResolve(createContact(Object.assign({_id: existingContact._id} as Contact, contactForUpdate)))
+
 			await model._handleEntityEvent(
-				downcast({
+				{
 					application: app,
 					type,
 					operation: OperationType.UPDATE,
 					instanceListId,
 					instanceId,
-				}),
+				},
 			)
-			unmockAttribute(loadMock)
 			o(model.allRecipients().length).equals(2)
 			const updatedRecipient = model
 				.allRecipients()
@@ -863,39 +688,40 @@ o.spec("SendMailModel", function () {
 					}),
 				],
 			}
-			loadMock = mockAttribute(entity, entity.load, <T>(typeRef: TypeRef<T>, id: IdTuple, ...args) => {
-				const values = {
-					_id: id,
-				}
-				return Promise.resolve(createContact(Object.assign(downcast(values), contactForUpdate)))
-			})
+
+			when(entity.load(ContactTypeRef, existingContact._id))
+				.thenResolve(
+					createContact(Object.assign({
+						_id: existingContact._id,
+					} as Contact, contactForUpdate))
+				)
+
 			await model._handleEntityEvent(
-				downcast({
+				{
 					application: app,
 					type,
 					operation: OperationType.UPDATE,
 					instanceListId,
 					instanceId,
-				}),
+				},
 			)
-			unmockAttribute(loadMock)
 			o(model.allRecipients().length).equals(1)
 			const updatedContact = model
 				.allRecipients()
 				.find(r => r.contact && isSameId(r.contact._id, existingContact._id))
-			o(updatedContact == null).equals(true)
+			o(updatedContact ?? null).equals(null)
 		})
 		o("contact removed", async function () {
 			const {app, type} = ContactTypeRef
 			const [instanceListId, instanceId] = existingContact._id
 			await model._handleEntityEvent(
-				downcast({
+				{
 					application: app,
 					type,
 					operation: OperationType.DELETE,
 					instanceListId,
 					instanceId,
-				}),
+				},
 			)
 			o(model.allRecipients().length).equals(1)
 			const updatedContact = model
@@ -905,7 +731,7 @@ o.spec("SendMailModel", function () {
 		})
 		o("too many to recipients dont confirm", async function () {
 			const recipients = {
-				to: [] as { name: string, address: string }[],
+				to: [] as {name: string, address: string}[],
 			}
 
 			for (let i = 0; i < TOO_MANY_VISIBLE_RECIPIENTS; ++i) {
@@ -917,16 +743,16 @@ o.spec("SendMailModel", function () {
 
 			const subject = "subyekt"
 			const body = "bodie"
-			const getConfirmation = o.spy((str) => Promise.resolve(false))
+
+			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
+			when(getConfirmation("manyRecipients_msg")).thenResolve(false)
+
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
 			o(await model.send(MailMethod.NONE, getConfirmation)).equals(false)
-			o(getConfirmation.calls.map(c => c.args)).deepEquals([
-				["manyRecipients_msg"]
-			])
 		})
 		o("too many to recipients confirm", async function () {
 			const recipients = {
-				to: [] as { name: string, address: string }[],
+				to: [] as {name: string, address: string}[],
 			}
 
 			for (let i = 0; i < TOO_MANY_VISIBLE_RECIPIENTS; ++i) {
@@ -938,16 +764,17 @@ o.spec("SendMailModel", function () {
 
 			const subject = "subyekt"
 			const body = "bodie"
-			const getConfirmation = o.spy((txt: TranslationText) => Promise.resolve(true))
+
+			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
+			when(getConfirmation("manyRecipients_msg")).thenResolve(true)
+
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
+
 			o(await model.send(MailMethod.NONE, getConfirmation)).equals(true)
-			o(getConfirmation.calls).deepEquals([
-				{this: undefined, args: ["manyRecipients_msg"]},
-			])
 		})
 		o("too many cc recipients dont confirm", async function () {
 			const recipients = {
-				cc: [] as { name: string, address: string }[],
+				cc: [] as {name: string, address: string}[],
 			}
 
 			for (let i = 0; i < TOO_MANY_VISIBLE_RECIPIENTS; ++i) {
@@ -959,16 +786,16 @@ o.spec("SendMailModel", function () {
 
 			const subject = "subyekt"
 			const body = "bodie"
-			const getConfirmation = o.spy((txt) => Promise.resolve(false))
+
+			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
+			when(getConfirmation("manyRecipients_msg")).thenResolve(false)
+
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
 			o(await model.send(MailMethod.NONE, getConfirmation)).equals(false)
-			o(getConfirmation.calls).deepEquals([
-				{this: undefined, args: ["manyRecipients_msg"]},
-			])
 		})
 		o("too many cc recipients confirm", async function () {
 			const recipients = {
-				cc: [] as { name: string, address: string }[],
+				cc: [] as {name: string, address: string}[],
 			}
 
 			for (let i = 0; i < TOO_MANY_VISIBLE_RECIPIENTS; ++i) {
@@ -980,12 +807,12 @@ o.spec("SendMailModel", function () {
 
 			const subject = "subyekt"
 			const body = "bodie"
-			const getConfirmation = o.spy((txt) => Promise.resolve(true))
+
+			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
+			when(getConfirmation("manyRecipients_msg")).thenResolve(true)
+
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
 			o(await model.send(MailMethod.NONE, getConfirmation)).equals(true)
-			o(getConfirmation.calls).deepEquals([
-				{this: undefined, args: ["manyRecipients_msg"]},
-			])
 		})
 	})
 })
