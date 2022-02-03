@@ -8,7 +8,7 @@ import {px} from "../size"
 import {theme} from "../theme"
 import {BootIcons} from "../base/icons/BootIcons"
 import {Icon} from "../base/Icon"
-import {assertNotNull, getStartOfDay, isSameDayOfDate} from "@tutao/tutanota-utils"
+import {getStartOfDay, isSameDayOfDate} from "@tutao/tutanota-utils"
 import {DateTime} from "luxon"
 import {getAllDayDateLocal} from "../../api/common/utils/CommonCalendarUtils"
 import {TextFieldN} from "../base/TextFieldN"
@@ -16,9 +16,21 @@ import {Keys} from "../../api/common/TutanotaConstants"
 import type {CalendarDay} from "../../calendar/date/CalendarUtils"
 import {getCalendarMonth, getDateIndicator} from "../../calendar/date/CalendarUtils"
 import {parseDate} from "../../misc/DateParser"
-import Stream from "mithril/stream";
+import Stream from "mithril/stream"
+
+export interface DatePickerAttrs {
+	date: Date
+	onDateSelected: (date: Date) => unknown
+	startOfTheWeekOffset: number
+	label: TranslationText
+	nullSelectionText?: TranslationText
+	disabled?: boolean
+	rightAlignDropdown?: boolean
+}
 
 /**
+ * Date picker component. Looks like a text field until interacted. On mobile it will be native browser picker, on desktop a {@class VisualDatePicker}.
+ *
  * The HTML input[type=date] is not usable on desktops because:
  * * it always displays a placeholder (mm/dd/yyyy) and several buttons and
  * * the picker can't be opened programmatically and
@@ -27,22 +39,12 @@ import Stream from "mithril/stream";
  * That is why we only use the picker on mobile devices. They provide native picker components
  * and allow opening the picker by forwarding the click event to the input.
  */
-export interface DatePickerAttrs {
-	date: Date
-	onDateSelected: (arg0: Date) => unknown
-	startOfTheWeekOffset: number
-	label: TranslationText
-	nullSelectionText?: TranslationText
-	disabled?: boolean
-	rightAlignDropdown?: boolean
-}
-
 export class DatePicker implements Component<DatePickerAttrs> {
-	inputText: string = ""
-	showingDropdown: boolean = false
-	domInput: HTMLElement | null = null
-	documentClickListener: EventListener | null = null
-	textFieldHasFocus: boolean = false
+	private inputText: string = ""
+	private showingDropdown: boolean = false
+	private domInput: HTMLElement | null = null
+	private documentClickListener: EventListener | null = null
+	private textFieldHasFocus: boolean = false
 
 	constructor({attrs}: Vnode<DatePickerAttrs>) {
 		const initDate = attrs.date
@@ -58,20 +60,21 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		const date = attrs.date
 
 		// If the user is interacting with the textfield, then we want the textfield to accept their input, so never override the text
-		// Otherwise, we want to it to reflect whatever date has been passed in, because it may have been changed programatically
+		// Otherwise, we want to it to reflect whatever date has been passed in, because it may have been changed programmatically
 		if (!this.textFieldHasFocus) {
 			this.inputText = formatDate(date)
 		}
 
 		return m(".rel", [
-			this._renderTextField(attrs),
-			this.showingDropdown ? this._renderDropdown(attrs) : null, // For mobile devices we render a native date picker, it's easier to use and more accessible.
+			this.renderTextField(attrs),
+			this.showingDropdown ? this.renderDropdown(attrs) : null,
+			// For mobile devices we render a native date picker, it's easier to use and more accessible.
 			// We render invisible input which opens native picker on interaction.
-			client.isMobileDevice() ? this._renderMobileDateInput(attrs) : null,
+			client.isMobileDevice() ? this.renderMobileDateInput(attrs) : null,
 		])
 	}
 
-	_renderTextField({date, onDateSelected, label, nullSelectionText, disabled}: DatePickerAttrs): Children {
+	private renderTextField({date, onDateSelected, label, nullSelectionText, disabled}: DatePickerAttrs): Children {
 		return m(
 			"",
 			{
@@ -84,9 +87,9 @@ export class DatePicker implements Component<DatePickerAttrs> {
 			m(TextFieldN, {
 				value: Stream(this.inputText),
 				label,
-				helpLabel: () => this._renderHelpLabel(date, nullSelectionText ?? null),
+				helpLabel: () => this.renderHelpLabel(date, nullSelectionText ?? null),
 				disabled,
-				oninput: this._getTextInputHandler(onDateSelected),
+				oninput: (text) => this.handleInput(text, onDateSelected),
 				onfocus: () => {
 					this.showingDropdown = true
 					this.textFieldHasFocus = true
@@ -108,7 +111,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		)
 	}
 
-	_renderHelpLabel(date: Date | null, nullSelectionText: TranslationText | null): Children {
+	private renderHelpLabel(date: Date | null, nullSelectionText: TranslationText | null): Children {
 		if (this.showingDropdown) {
 			return null
 		} else if (date != null) {
@@ -118,9 +121,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		}
 	}
 
-	_renderDropdown({date, onDateSelected, startOfTheWeekOffset, rightAlignDropdown}: DatePickerAttrs): Children {
-		const onSelected = this._getDateSelectedHandler(onDateSelected)
-
+	private renderDropdown({date, onDateSelected, startOfTheWeekOffset, rightAlignDropdown}: DatePickerAttrs): Children {
 		return m(
 			".fixed.content-bg.z3.menu-shadow.plr.pb-s",
 			{
@@ -149,7 +150,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 			m(VisualDatePicker, {
 				selectedDate: date,
 				onDateSelected: (newDate, dayClick) => {
-					onSelected(newDate)
+					this.handleSelectedDate(newDate, onDateSelected)
 
 					if (dayClick) {
 						// Do not close dropdown on changing a month
@@ -162,9 +163,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		)
 	}
 
-	_renderMobileDateInput({date, onDateSelected}: DatePickerAttrs): Children {
-		const onSelected = this._getDateSelectedHandler(onDateSelected)
-
+	private renderMobileDateInput({date, onDateSelected}: DatePickerAttrs): Children {
 		return m("input.fill-absolute", {
 			type: "date",
 			style: {
@@ -179,32 +178,31 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				// valueAsDate is always 00:00 UTC
 				// https://www.w3.org/TR/html52/sec-forms.html#date-state-typedate
 				const htmlDate = (event.target as HTMLInputElement).valueAsDate
-				onSelected(getAllDayDateLocal(assertNotNull(htmlDate)))
+				// It can be null if user clicks "clear". Ignore it.
+				if (htmlDate != null) {
+					this.handleSelectedDate(getAllDayDateLocal(htmlDate), onDateSelected)
+				}
 			},
 		})
 	}
 
-	_getTextInputHandler(setDateCallback: (arg0: Date) => unknown): (arg0: string) => unknown {
-		return text => {
-			this.inputText = text
-			const trimmedValue = text.trim()
+	private handleInput(text: string, onDateSelected: DatePickerAttrs["onDateSelected"]) {
+		this.inputText = text
+		const trimmedValue = text.trim()
 
-			if (trimmedValue !== "") {
-				try {
-					const parsedDate = parseDate(trimmedValue)
-					setDateCallback(parsedDate)
-				} catch (e) {
-					// Parsing failed so the user is probably typing
-				}
+		if (trimmedValue !== "") {
+			try {
+				const parsedDate = parseDate(trimmedValue)
+				onDateSelected(parsedDate)
+			} catch (e) {
+				// Parsing failed so the user is probably typing
 			}
 		}
 	}
 
-	_getDateSelectedHandler(setDateCallback: (arg0: Date) => unknown): (arg0: Date) => unknown {
-		return date => {
-			this.inputText = formatDate(date)
-			setDateCallback(date)
-		}
+	private handleSelectedDate(date: Date, onDateSelected: DatePickerAttrs["onDateSelected"]) {
+		this.inputText = formatDate(date)
+		onDateSelected(date)
 	}
 }
 
@@ -215,29 +213,30 @@ type VisualDatePickerAttrs = {
 	startOfTheWeekOffset: number
 }
 
+/** Date picker used on desktop. Displays a month and ability to select a month. */
 export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
-	private _displayingDate: Date
-	private _lastSelectedDate: Date | null = null
+	private displayingDate: Date
+	private lastSelectedDate: Date | null = null
 
 	constructor(vnode: Vnode<VisualDatePickerAttrs>) {
-		this._displayingDate = vnode.attrs.selectedDate || getStartOfDay(new Date())
+		this.displayingDate = vnode.attrs.selectedDate || getStartOfDay(new Date())
 	}
 
 	view(vnode: Vnode<VisualDatePickerAttrs>): Children {
 		const selectedDate = vnode.attrs.selectedDate
 
-		if (selectedDate && !isSameDayOfDate(this._lastSelectedDate, selectedDate)) {
-			this._lastSelectedDate = selectedDate
-			this._displayingDate = new Date(selectedDate)
+		if (selectedDate && !isSameDayOfDate(this.lastSelectedDate, selectedDate)) {
+			this.lastSelectedDate = selectedDate
+			this.displayingDate = new Date(selectedDate)
 
-			this._displayingDate.setDate(1)
+			this.displayingDate.setDate(1)
 		}
 
-		let date = new Date(this._displayingDate)
-		const {weeks, weekdays} = getCalendarMonth(this._displayingDate, vnode.attrs.startOfTheWeekOffset, true)
+		let date = new Date(this.displayingDate)
+		const {weeks, weekdays} = getCalendarMonth(this.displayingDate, vnode.attrs.startOfTheWeekOffset, true)
 		return m(".flex.flex-column", [
 			m(".flex.flex-space-between.pt-s.pb-s.items-center", [
-				this._switchMonthArrowIcon(false, vnode.attrs),
+				this.renderSwitchMonthArrowIcon(false, vnode.attrs),
 				m(
 					".b",
 					{
@@ -247,28 +246,28 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 					},
 					formatMonthWithFullYear(date),
 				),
-				this._switchMonthArrowIcon(true, vnode.attrs),
+				this.renderSwitchMonthArrowIcon(true, vnode.attrs),
 			]),
-			m(".flex.flex-space-between", this._weekdaysVdom(vnode.attrs.wide, weekdays)),
+			m(".flex.flex-space-between", this.renderWeekDays(vnode.attrs.wide, weekdays)),
 			m(
 				".flex.flex-column.flex-space-around",
 				{
 					style: {
 						fontSize: px(14),
-						lineHeight: px(this._elWidth(vnode.attrs)),
+						lineHeight: px(this.getElementWidth(vnode.attrs)),
 					},
 				},
-				weeks.map(w => this._weekVdom(w, vnode.attrs)),
+				weeks.map(w => this.renderWeek(w, vnode.attrs)),
 			),
 		])
 	}
 
-	_switchMonthArrowIcon(forward: boolean, attrs: VisualDatePickerAttrs): Children {
-		const size = px(this._elWidth(attrs))
+	private renderSwitchMonthArrowIcon(forward: boolean, attrs: VisualDatePickerAttrs): Children {
+		const size = px(this.getElementWidth(attrs))
 		return m(
 			".icon.flex.justify-center.items-center.click",
 			{
-				onclick: forward ? () => this._onNextMonthSelected() : () => this._onPrevMonthSelected(),
+				onclick: forward ? () => this.onNextMonthSelected() : () => this.onPrevMonthSelected(),
 				style: {
 					fill: theme.content_fg,
 					width: size,
@@ -284,16 +283,16 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 		)
 	}
 
-	_onPrevMonthSelected() {
-		this._displayingDate.setMonth(this._displayingDate.getMonth() - 1)
+	private onPrevMonthSelected() {
+		this.displayingDate.setMonth(this.displayingDate.getMonth() - 1)
 	}
 
-	_onNextMonthSelected() {
-		this._displayingDate.setMonth(this._displayingDate.getMonth() + 1)
+	private onNextMonthSelected() {
+		this.displayingDate.setMonth(this.displayingDate.getMonth() + 1)
 	}
 
-	_dayVdom({date, day, paddingDay}: CalendarDay, attrs: VisualDatePickerAttrs): Children {
-		const size = px(this._elWidth(attrs))
+	private renderDay({date, day, paddingDay}: CalendarDay, attrs: VisualDatePickerAttrs): Children {
+		const size = px(this.getElementWidth(attrs))
 		return m(
 			".center.click" + (paddingDay ? "" : getDateIndicator(date, attrs.selectedDate)),
 			{
@@ -311,18 +310,18 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 		)
 	}
 
-	_elWidth(attrs: VisualDatePickerAttrs): number {
+	private getElementWidth(attrs: VisualDatePickerAttrs): number {
 		return attrs.wide ? 40 : 24
 	}
 
-	_weekVdom(week: Array<CalendarDay>, attrs: VisualDatePickerAttrs): Children {
+	private renderWeek(week: Array<CalendarDay>, attrs: VisualDatePickerAttrs): Children {
 		return m(
 			".flex.flex-space-between",
-			week.map(d => this._dayVdom(d, attrs)),
+			week.map(d => this.renderDay(d, attrs)),
 		)
 	}
 
-	_weekdaysVdom(wide: boolean, weekdays: string[]): Children {
+	private renderWeekDays(wide: boolean, weekdays: string[]): Children {
 		const size = px(wide ? 40 : 24)
 		const fontSize = px(14)
 		return weekdays.map(wd =>
