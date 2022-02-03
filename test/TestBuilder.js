@@ -6,7 +6,8 @@ import path, {dirname} from "path"
 import {renderHtml} from "../buildSrc/LaunchHtml.js"
 import {fileURLToPath} from "url"
 import nodeResolve from "@rollup/plugin-node-resolve"
-import {getSqliteNativeModulePath, sqliteNativeBannerPlugin} from "../buildSrc/cachedSqliteProvider.js"
+import rollupPluginJson from "@rollup/plugin-json"
+import {sqliteNativeBannerPlugin} from "../buildSrc/cachedSqliteProvider.js"
 
 const testRoot = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(testRoot, ".."))
@@ -30,6 +31,10 @@ export async function build(buildOptions, serverOptions, log) {
 			envPlugin(localEnv),
 			resolveTestLibsPlugin(),
 			...rollupDebugPlugins(path.resolve(".."), {outDir: "build"}),
+			// json is imported by is-core-module
+			// which is a dependency of testdouble
+			// so we need rollup-plugin-json to compile for tests
+			rollupPluginJson(),
 			nodeResolve({preferBuiltins: true}),
 			sqliteNativeBannerPlugin(
 				{
@@ -76,8 +81,9 @@ function resolveTestLibsPlugin() {
 					// nollup only rewrites absolute paths so resolve path first.
 					return path.resolve("../node_modules/mithril/test-utils/browserMock.js")
 				case "ospec":
-					return ("../node_modules/ospec/ospec.js")
+					return "../node_modules/ospec/ospec.js"
 				case "better-sqlite3":
+				case "testdouble":
 				case "crypto":
 				case "xhr2":
 				case "express":

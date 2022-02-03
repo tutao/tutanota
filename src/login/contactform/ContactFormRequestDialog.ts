@@ -17,6 +17,7 @@ import {PasswordForm} from "../../settings/PasswordForm"
 import {HtmlEditor} from "../../gui/editor/HtmlEditor"
 import {Icons} from "../../gui/base/icons/Icons"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {CheckboxN} from "../../gui/base/CheckboxN"
 import {getPrivacyStatementLink} from "../LoginView"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
@@ -33,7 +34,6 @@ import {locator} from "../../api/main/MainLocator"
 import {assertMainOrNode} from "../../api/common/Env"
 import {DataFile} from "../../api/common/DataFile";
 import {FileReference} from "../../api/common/utils/FileUtils";
-import Stream from "mithril/stream";
 
 assertMainOrNode()
 
@@ -318,24 +318,26 @@ export class ContactFormRequestDialog {
 					const name = ""
 					const mailAddress = contactFormResult.requestMailAddress
 					const draft = await mailFacade.createDraft(
-						this._subject,
-						this._editor.getValue(),
-						userEmailAddress,
-						"",
-						[
-							createDraftRecipient({
-								name,
-								mailAddress,
-							}),
-						],
-						[],
-						[],
-						ConversationType.NEW,
-						null,
-						this._attachments,
-						true,
-						[],
-						MailMethod.NONE,
+						{
+							subject: this._subject,
+							bodyText: this._editor.getValue(),
+							senderMailAddress: userEmailAddress,
+							senderName: "",
+							toRecipients: [
+								createDraftRecipient({
+									name,
+									mailAddress,
+								}),
+							],
+							ccRecipients: [],
+							bccRecipients: [],
+							conversationType: ConversationType.NEW,
+							previousMessageId: null,
+							attachments: this._attachments,
+							confidential: true,
+							replyTos: [],
+							method: MailMethod.NONE
+						},
 					)
 					await mailFacade.sendDraft(draft, [makeRecipientDetails(name, mailAddress, RecipientInfoType.INTERNAL, null)], lang.code)
 				} finally {

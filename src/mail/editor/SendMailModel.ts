@@ -404,31 +404,28 @@ export class SendMailModel {
 	}
 
 	async initWithDraft(draft: Mail, attachments: TutanotaFile[], bodyText: string, inlineImages: Promise<InlineImages>): Promise<SendMailModel> {
-		let conversationType: ConversationType = ConversationType.NEW
 		let previousMessageId: string | null = null
 		let previousMail: Mail | null = null
-		await this._entity.load(ConversationEntryTypeRef, draft.conversationEntry).then(ce => {
-			conversationType = downcast(ce.conversationType)
 
-			if (ce.previous) {
-				return this._entity
-						   .load(ConversationEntryTypeRef, ce.previous)
-						   .then(previousCe => {
-							   previousMessageId = previousCe.messageId
+		const conversationEntry = await this._entity.load(ConversationEntryTypeRef, draft.conversationEntry)
+		const conversationType = downcast<ConversationType>(conversationEntry.conversationType)
 
-							   if (previousCe.mail) {
-								   return this._entity.load(MailTypeRef, previousCe.mail).then(mail => {
-									   previousMail = mail
-								   })
-							   }
-						   })
-						   .catch(
-							   ofClass(NotFoundError, e => {
-								   // ignore
-							   }),
-						   )
+		if (conversationEntry.previous) {
+			try {
+				const previousEntry = await this._entity.load(ConversationEntryTypeRef, conversationEntry.previous)
+				previousMessageId = previousEntry.messageId
+				if (previousEntry.mail) {
+					previousMail = await this._entity.load(MailTypeRef, previousEntry.mail)
+				}
+			} catch (e) {
+				if (e instanceof NotFoundError) {
+					// ignore
+				} else {
+					throw e
+				}
 			}
-		})
+		}
+
 		// if we reuse the same image references, changing the displayed mail in mail view will cause the minimized draft to lose
 		// that reference, because it will be revoked
 		this.loadedInlineImages = cloneInlineImages(await inlineImages)
@@ -681,16 +678,18 @@ export class SendMailModel {
 	_updateDraft(body: string, attachments: ReadonlyArray<Attachment> | null, draft: Mail): Promise<Mail> {
 		return this._mailFacade
 				   .updateDraft(
-					   this.getSubject(),
-					   body,
-					   this._senderAddress,
-					   this.getSenderName(),
-					   this.toRecipients().map(recipientInfoToDraftRecipient),
-					   this.ccRecipients().map(recipientInfoToDraftRecipient),
-					   this.bccRecipients().map(recipientInfoToDraftRecipient),
-					   attachments,
-					   this.isConfidential(),
-					   draft,
+					   {
+						   subject: this.getSubject(),
+						   body: body,
+						   senderMailAddress: this._senderAddress,
+						   senderName: this.getSenderName(),
+						   toRecipients: this.toRecipients().map(recipientInfoToDraftRecipient),
+						   ccRecipients: this.ccRecipients().map(recipientInfoToDraftRecipient),
+						   bccRecipients: this.bccRecipients().map(recipientInfoToDraftRecipient),
+						   attachments: attachments,
+						   confidential: this.isConfidential(),
+						   draft: draft
+					   },
 				   )
 				   .catch(
 					   ofClass(LockedError, e => {
@@ -708,19 +707,21 @@ export class SendMailModel {
 
 	_createDraft(body: string, attachments: ReadonlyArray<Attachment> | null, mailMethod: MailMethod): Promise<Mail> {
 		return this._mailFacade.createDraft(
-			this.getSubject(),
-			body,
-			this._senderAddress,
-			this.getSenderName(),
-			this.toRecipients().map(recipientInfoToDraftRecipient),
-			this.ccRecipients().map(recipientInfoToDraftRecipient),
-			this.bccRecipients().map(recipientInfoToDraftRecipient),
-			this._conversationType,
-			this._previousMessageId,
-			attachments,
-			this.isConfidential(),
-			this._replyTos.map(recipientInfoToEncryptedMailAddress),
-			mailMethod,
+			{
+				subject: this.getSubject(),
+				bodyText: body,
+				senderMailAddress: this._senderAddress,
+				senderName: this.getSenderName(),
+				toRecipients: this.toRecipients().map(recipientInfoToDraftRecipient),
+				ccRecipients: this.ccRecipients().map(recipientInfoToDraftRecipient),
+				bccRecipients: this.bccRecipients().map(recipientInfoToDraftRecipient),
+				conversationType: this._conversationType,
+				previousMessageId: this._previousMessageId,
+				attachments: attachments,
+				confidential: this.isConfidential(),
+				replyTos: this._replyTos.map(recipientInfoToEncryptedMailAddress),
+				method: mailMethod
+			},
 		)
 	}
 
