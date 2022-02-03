@@ -492,6 +492,7 @@ export function getRangeOfDays(startDay: Date, numDays: number): Array<Date> {
 	return days
 }
 
+/** Start of the week offset relative to Sunday (forward). */
 export function getStartOfTheWeekOffset(weekStart: WeekStart): number {
 	switch (weekStart) {
 		case WeekStart.SUNDAY:
@@ -506,6 +507,7 @@ export function getStartOfTheWeekOffset(weekStart: WeekStart): number {
 	}
 }
 
+/** {@see getStartOfTheWeekOffset} */
 export function getStartOfTheWeekOffsetForUser(userSettingsGroupRoot: UserSettingsGroupRoot): number {
 	return getStartOfTheWeekOffset(getWeekStart(userSettingsGroupRoot))
 }
