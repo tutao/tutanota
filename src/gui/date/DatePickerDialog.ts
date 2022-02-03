@@ -6,6 +6,7 @@ import {px} from "../size"
 import {client} from "../../misc/ClientDetector"
 import {formatDateWithWeekdayAndYear} from "../../misc/Formatter"
 import {assertMainOrNode} from "../../api/common/Env"
+import {noOp} from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -81,5 +82,9 @@ export function showDateRangeSelectionDialog<T>(
 				}),
 			type: DialogType.EditMedium,
 		})
+		if (client.isMobileDevice()) {
+			// Prevent focusing text field automatically on mobile. It opens keyboard and you don't see all details.
+			dialog.setFocusOnLoadFunction(noOp)
+		}
 	})
 }
