@@ -55,7 +55,7 @@
 		"body-parser": "1.19.0",
 		"chokidar": "3.5.2",
 		"commander": "5.0.0-2",
-		"electron": "15.3.1",
+		"electron": "16.0.8",
 		"electron-builder": "22.14.5",
 		"electron-notarize": "1.1.1",
 		"electron-packager": "15.4.0",
