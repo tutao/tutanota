@@ -10,11 +10,7 @@ import {createGroupInfo} from "../../../src/api/entities/sys/GroupInfo"
 import {AccessExpiredError, NotAuthenticatedError} from "../../../src/api/common/error/RestError"
 import {SecondFactorHandler} from "../../../src/misc/2fa/SecondFactorHandler"
 import {assertThrows} from "@tutao/tutanota-test-utils"
-import type {
-    CredentialsInfo,
-    ICredentialsProvider,
-    PersistentCredentials,
-} from "../../../src/misc/credentials/CredentialsProvider"
+import type {CredentialsInfo, ICredentialsProvider, PersistentCredentials,} from "../../../src/misc/credentials/CredentialsProvider"
 import {KeyPermanentlyInvalidatedError} from "../../../src/api/common/error/KeyPermanentlyInvalidatedError"
 import {CredentialAuthenticationError} from "../../../src/api/common/error/CredentialAuthenticationError"
 import type {Credentials} from "../../../src/misc/credentials/Credentials"
@@ -524,5 +520,39 @@ o.spec("LoginViewModelTest", () => {
             o(viewModel.getSavedCredentials()).deepEquals([])
             o(credentialsProvider.clearCredentials.callCount).equals(1)
         })
+		o("should be in error state if email address is empty", async function () {
+			const loginController = loginControllerBuilder
+				.with<Partial<LoginController>>({
+					createSession() {
+						throw new Error("stub!")
+					}
+				})
+				.set()
+			const viewModel = await createViewModel({loginController})
+			viewModel.showLoginForm()
+			viewModel.mailAddress("")
+			viewModel.password("123")
+			await viewModel.login()
+			o(viewModel.state).equals(LoginState.InvalidCredentials)
+			o(viewModel.helpText).equals("loginFailed_msg")
+			o(loginController.createSession.callCount).equals(0)
+		})
+		o("should be in error state if password is empty", async function () {
+			const loginController = loginControllerBuilder
+				.with<Partial<LoginController>>({
+					createSession() {
+						throw new Error("stub!")
+					}
+				})
+				.set()
+			const viewModel = await createViewModel({loginController})
+			viewModel.showLoginForm()
+			viewModel.mailAddress("test@example.com")
+			viewModel.password("")
+			await viewModel.login()
+			o(viewModel.state).equals(LoginState.InvalidCredentials)
+			o(viewModel.helpText).equals("loginFailed_msg")
+			o(loginController.createSession.callCount).equals(0)
+		})
     })
 })
