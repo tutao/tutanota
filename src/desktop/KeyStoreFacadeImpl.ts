@@ -1,85 +1,107 @@
 import type {SecretStorage} from "./sse/SecretStorage"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {log} from "./DesktopLog"
-import {DeviceStorageUnavailableError} from "../api/common/error/DeviceStorageUnavailableError"
-import type {Base64, DeferredObject} from "@tutao/tutanota-utils"
-import {defer} from "@tutao/tutanota-utils"
+import {getFromMap} from "@tutao/tutanota-utils"
 import {base64ToKey, keyToBase64} from "@tutao/tutanota-crypto"
-// exported for testing
-export const SERVICE_NAME = "tutanota-vault"
 
-export enum KeyAccountName {
-	DEVICE_KEY = "tuta",
-	CREDENTIALS_KEY = "credentials-device-lock-key"
+interface NativeKeySpec {
+	/**
+	 * This is supposed to be internet service but this is what is usually presented to the user (at least mac os does this).
+	 * One would thing that this would group all the things but in reality permissions are set per-account anyway.
+	 */
+	readonly serviceName: string
+	/** This is supposed to be account name but this is usually not shown. */
+	readonly accountName: string
+	/** Whether we want to cache the key in memory */
+	readonly cached: boolean
 }
 
+export const DeviceKeySpec: NativeKeySpec = Object.freeze({
+	serviceName: "tutanota-vault",
+	accountName: "tuta",
+	cached: true,
+})
+
+export const CredentialsKeySpec: NativeKeySpec = Object.freeze({
+	serviceName: "tutanota-credentials",
+	accountName: "tutanota-credentials",
+	// Credentials key should not be cached, we should ask it every time we operate on credentials (there's already intermediate in web to avoid asking
+	// too many times)
+	cached: false
+})
+
+/** Interface for accessing/generating/caching keys. */
 export interface DesktopKeyStoreFacade {
-	getDeviceKey(): Promise<Aes256Key>
-
-	getCredentialsKey(): Promise<Aes256Key>
-}
-
-export class KeyStoreFacadeImpl implements DesktopKeyStoreFacade {
-	_secretStorage: SecretStorage
-	_resolvedKeys: Record<string, DeferredObject<Aes256Key>>
-	_crypto: DesktopCryptoFacade
-
-	constructor(secretStorage: SecretStorage, crypto: DesktopCryptoFacade) {
-		this._secretStorage = secretStorage
-		this._crypto = crypto
-		this._resolvedKeys = {}
-	}
-
 	/**
 	 * get the key used to encrypt alarms and settings
 	 */
-	async getDeviceKey(): Promise<Aes256Key> {
-		return this._resolveKey(KeyAccountName.DEVICE_KEY)
-	}
+	getDeviceKey(): Promise<Aes256Key>
 
 	/**
 	 * get the key used to encrypt saved credentials
 	 */
+	getCredentialsKey(): Promise<Aes256Key>
+}
+
+export class KeyStoreFacadeImpl implements DesktopKeyStoreFacade {
+	private readonly resolvedKeys: Map<NativeKeySpec, Promise<Aes256Key>> = new Map()
+
+	constructor(
+		private readonly secretStorage: SecretStorage,
+		private readonly crypto: DesktopCryptoFacade
+	) {
+	}
+
+	/** @inheritDoc */
+	async getDeviceKey(): Promise<Aes256Key> {
+		// Device key can be cached
+		return this.resolveKey(DeviceKeySpec)
+	}
+
+	/** @inheritDoc */
 	async getCredentialsKey(): Promise<Aes256Key> {
-		return this._resolveKey(KeyAccountName.CREDENTIALS_KEY)
+		return this.resolveKey(CredentialsKeySpec)
 	}
 
-	async _resolveKey(account: KeyAccountName): Promise<Aes256Key> {
+	private resolveKey(spec: NativeKeySpec): Promise<Aes256Key> {
+		// Asking for the same key in parallel easily breaks keytar/gnome-keyring so we cache the promise.
+		const entry = getFromMap(this.resolvedKeys, spec, () => this.fetchOrGenerateKey(spec))
 
-		// make sure keys are resolved exactly once
-		if (!this._resolvedKeys[account]) {
-			const deferred = defer<BitArray>()
-			this._resolvedKeys[account] = deferred
-			let storedKey: Base64 | null = null
-
-			try {
-				storedKey = await this._secretStorage.getPassword(SERVICE_NAME, account)
-			} catch (e) {
-				deferred.reject(new DeviceStorageUnavailableError(`could not retrieve key ${account} from device secret storage`, e))
-			}
-
-			if (storedKey) {
-				deferred.resolve(base64ToKey(storedKey))
-			} else {
-				try {
-					const newKey = await this._generateAndStoreKey(account)
-					deferred.resolve(newKey)
-				} catch (e) {
-					deferred.reject(new DeviceStorageUnavailableError(`could not create new ${account} key`, e))
-				}
-			}
+		if (spec.cached) {
+			// We only want to cache *successful* promises, otherwise we have no chance to retry.
+			return entry.catch((e) => {
+				this.resolvedKeys.delete(spec)
+				throw e
+			})
+		} else {
+			// If we don't want to cache the key we remove it in any case.
+			return entry.finally(() => {
+				this.resolvedKeys.delete(spec)
+			})
 		}
-
-		return this._resolvedKeys[account].promise
 	}
 
-	async _generateAndStoreKey(account: KeyAccountName): Promise<Aes256Key> {
-		log.warn(`key ${account} not found, generating a new one`)
+	private async fetchOrGenerateKey(spec: NativeKeySpec): Promise<Aes256Key> {
+		log.debug("resolving key...", spec.serviceName)
+		try {
+			return (await this.fetchKey(spec)) ?? (await this.generateAndStoreKey(spec))
+		} catch (e) {
+			log.warn("Failed to resolve/generate key: ", spec.serviceName, e)
+			throw e
+		}
+	}
 
-		// save key entry in keychain
-		const key: Aes256Key = this._crypto.generateDeviceKey()
+	private async fetchKey(spec: NativeKeySpec): Promise<Aes256Key | null> {
+		const base64 = await this.secretStorage.getPassword(spec.serviceName, spec.accountName)
+		return base64 == null ? null : base64ToKey(base64)
+	}
 
-		await this._secretStorage.setPassword(SERVICE_NAME, account, keyToBase64(key))
+	private async generateAndStoreKey(spec: NativeKeySpec): Promise<Aes256Key> {
+		log.warn(`key ${spec.serviceName} not found, generating a new one`)
+
+		const key: Aes256Key = this.crypto.generateDeviceKey()
+
+		await this.secretStorage.setPassword(spec.serviceName, spec.accountName, keyToBase64(key))
 		return key
 	}
 }
