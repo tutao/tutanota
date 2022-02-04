@@ -315,12 +315,12 @@ export class LoginViewModel implements ILoginViewModel {
 		const savePassword = this.savePassword()
 
 		if (mailAddress === "" || password === "") {
+			this.state = LoginState.InvalidCredentials
 			this.helpText = "loginFailed_msg"
 			return
 		}
 
 		this.helpText = "login_msg"
-		this.state = LoginState.LogginIn
 
 		try {
 			const sessionType = savePassword ? SessionType.Persistent : SessionType.Login
