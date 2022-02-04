@@ -112,7 +112,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 		// only delete once save has finished
 		minimizedEditor.saveStatus.map(async status => {
 			if (status !== SaveStatus.Saving) {
-				const draft = model._draft
+				const draft = model.draft
 
 				if (draft) {
 					await promptAndDeleteMails(model.mails(), [draft], noOp)
