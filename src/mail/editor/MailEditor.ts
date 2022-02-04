@@ -3,7 +3,7 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {Editor} from "../../gui/editor/Editor"
 import type {Attachment, Recipients, ResponseMailParameters} from "./SendMailModel"
-import {defaultSendMailModel, noopBlockingWaitHandler, SendMailModel} from "./SendMailModel"
+import {defaultSendMailModel, SendMailModel} from "./SendMailModel"
 import {Dialog} from "../../gui/base/Dialog"
 import {lang} from "../../misc/LanguageViewModel"
 import type {MailboxDetail} from "../model/MailModel"
@@ -217,8 +217,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 
 							if (inlineAttachment && isTutanotaFile(inlineAttachment)) {
 								locator.fileController
-									.downloadAndOpen(downcast(inlineAttachment), true)
-									.catch(ofClass(FileOpenError, () => Dialog.message("canNotOpenFileOnDevice_msg")))
+									   .downloadAndOpen(downcast(inlineAttachment), true)
+									   .catch(ofClass(FileOpenError, () => Dialog.message("canNotOpenFileOnDevice_msg")))
 							}
 						},
 						type: ButtonType.Dropdown,
@@ -346,6 +346,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				domElement.style.height = ""
 			})
 		}
+
 		const attachmentButtonAttrs = createAttachmentButtonAttrs(model, this.inlineImageElements)
 
 		const lazyPasswordFieldAttrs = () =>
@@ -430,15 +431,15 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				ondrop: (ev: DragEvent) => {
 					if (ev.dataTransfer?.files && ev.dataTransfer.files.length > 0) {
 						locator.fileController
-							.readLocalFiles(ev.dataTransfer.files)
-							.then(dataFiles => {
-								model.attachFiles(dataFiles as any)
-								m.redraw()
-							})
-							.catch(e => {
-								console.log(e)
-								return Dialog.message("couldNotAttachFile_msg")
-							})
+							   .readLocalFiles(ev.dataTransfer.files)
+							   .then(dataFiles => {
+								   model.attachFiles(dataFiles as any)
+								   m.redraw()
+							   })
+							   .catch(e => {
+								   console.log(e)
+								   return Dialog.message("couldNotAttachFile_msg")
+							   })
 						ev.stopPropagation()
 						ev.preventDefault()
 					}
@@ -565,20 +566,21 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 	let mailEditorAttrs: MailEditorAttrs
 
 	const save = (showProgress: boolean = true) => {
-		return model.saveDraft(true, MailMethod.NONE, showProgress ? showProgressDialog : noopBlockingWaitHandler)
+		const savePromise = model.saveDraft(true, MailMethod.NONE)
+		if (showProgress) {
+			return showProgressDialog("save_msg", savePromise)
+		} else {
+			return savePromise
+		}
 	}
 
-	const send = () => {
+	const send = async () => {
 		try {
-			model
-				.send(MailMethod.NONE, Dialog.confirm, showProgressDialog)
-				.then(success => {
-					if (success) {
-						dispose()
-						dialog.close()
-					}
-				})
-				.catch(ofClass(UserError, err => Dialog.message(() => err.message)))
+			const success = await model.send(MailMethod.NONE, Dialog.confirm, showProgressDialog)
+			if (success) {
+				dispose()
+				dialog.close()
+			}
 		} catch (e) {
 			Dialog.message(() => e.message)
 		}
@@ -612,7 +614,7 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 		right: [
 			{
 				label: "send_action",
-				click: send,
+				click: () => { send() },
 				type: ButtonType.Primary,
 			},
 		],
@@ -675,7 +677,9 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 	const shortcuts: Shortcut[] = [
 		{
 			key: Keys.ESC,
-			exec: minimize,
+			exec: () => {
+				minimize()
+			},
 			help: "close_alt",
 		},
 		{
@@ -690,13 +694,17 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 			key: Keys.S,
 			ctrl: true,
 			shift: true,
-			exec: send,
+			exec: () => {
+				send()
+			},
 			help: "send_action",
 		},
 		{
 			key: Keys.RETURN,
 			ctrl: true,
-			exec: send,
+			exec: () => {
+				send()
+			},
 			help: "send_action",
 		},
 	]

@@ -142,7 +142,7 @@ export class SendMailModel {
 
 	private _body: string
 	// Isn't private because used by MinimizedEditorOverlay, refactor?
-	_draft: Mail | null
+	draft: Mail | null
 	private _recipients: Map<RecipientField, Array<RecipientInfo>>
 	private _senderAddress: string
 	private _isConfidential: boolean
@@ -161,6 +161,13 @@ export class SendMailModel {
 	onRecipientDeleted: Stream<{field: RecipientField, recipient: RecipientInfo} | null>
 	onBeforeSend: () => unknown
 	loadedInlineImages: InlineImages
+
+	// The promise for the draft currently being saved
+	private currentSavePromise: Promise<void> | null = null
+
+	// If saveDraft is called while the previous call is still running, then flag to call again afterwards
+	private doSaveAgain: boolean = false
+
 
 	/**
 	 * creates a new empty draft message. calling an init method will fill in all the blank data
@@ -185,7 +192,7 @@ export class SendMailModel {
 		this._conversationType = ConversationType.NEW
 		this._subject = ""
 		this._body = ""
-		this._draft = null
+		this.draft = null
 		this._recipients = new Map()
 		this._senderAddress = this._getDefaultSender()
 		this._isConfidential = !userProps.defaultUnconfidential
@@ -478,7 +485,7 @@ export class SendMailModel {
 		this._conversationType = conversationType
 		this._subject = subject
 		this._body = bodyText
-		this._draft = draft || null
+		this.draft = draft || null
 		const {to = [], cc = [], bcc = []} = recipients
 
 		const makeRecipientInfo = (r: Recipient) => {
@@ -672,7 +679,7 @@ export class SendMailModel {
 	}
 
 	getDraft(): Readonly<Mail> | null {
-		return this._draft
+		return this.draft
 	}
 
 	_updateDraft(body: string, attachments: ReadonlyArray<Attachment> | null, draft: Mail): Promise<Mail> {
@@ -754,8 +761,8 @@ export class SendMailModel {
 	 * @reject {LockedError}
 	 * @reject {UserError}
 	 * @param mailMethod
-	 * @param getConfirmation
-	 * @param waitHandler: Function to call while waiting for email to send
+	 * @param getConfirmation: A callback to get user confirmation
+	 * @param waitHandler: A callback to allow UI blocking while the mail is being sent. it seems like wrapping the send call in showProgressDialog causes the confirmation dialogs not to be shown. We should fix this, but this works for now
 	 * @param tooManyRequestsError
 	 * @return true if the send was completed, false if it was aborted (by getConfirmation returning false
 	 */
@@ -802,7 +809,7 @@ export class SendMailModel {
 		}
 
 		const doSend = async () => {
-			await this.saveDraft(true, mailMethod, noopBlockingWaitHandler)
+			await this.saveDraft(true, mailMethod)
 			await this._updateContacts(this.allRecipients())
 			const allRecipients = this.allRecipients().map(({
 																name,
@@ -810,7 +817,7 @@ export class SendMailModel {
 																type,
 																contact
 															}) => makeRecipientDetails(name, mailAddress, type, contact))
-			await this._mailFacade.sendDraft(neverNull(this._draft), allRecipients, this._selectedNotificationLanguage)
+			await this._mailFacade.sendDraft(neverNull(this.draft), allRecipients, this._selectedNotificationLanguage)
 			await this._updatePreviousMail()
 			await this._updateExternalLanguage()
 			return true
@@ -819,49 +826,49 @@ export class SendMailModel {
 		return waitHandler(this.isConfidential() ? "sending_msg" : "sendingUnencrypted_msg", doSend())
 			.catch(
 				ofClass(LockedError, () => {
-					throw new UserError("operationStillActive_msg")
+				throw new UserError("operationStillActive_msg")
 				}),
 			) // catch all of the badness
 			.catch(
 				ofClass(RecipientNotResolvedError, () => {
-					throw new UserError("tooManyAttempts_msg")
+				throw new UserError("tooManyAttempts_msg")
 				}),
 			)
 			.catch(
 				ofClass(RecipientsNotFoundError, e => {
-					if (mailMethod === MailMethod.ICAL_CANCEL) {
-						//in case of calendar event cancellation we willremove invalid recipients and then delete the event without sending updates
-						throw e
-					} else {
-						let invalidRecipients = e.message
-						throw new UserError(
-							() => lang.get("tutanotaAddressDoesNotExist_msg") + " " + lang.get("invalidRecipients_msg") + "\n" + invalidRecipients,
-						)
-					}
+				if (mailMethod === MailMethod.ICAL_CANCEL) {
+					// in case of calendar event cancellation we will remove invalid recipients and then delete the event without sending updates
+					throw e
+				} else {
+					let invalidRecipients = e.message
+					throw new UserError(
+						() => lang.get("tutanotaAddressDoesNotExist_msg") + " " + lang.get("invalidRecipients_msg") + "\n" + invalidRecipients,
+					)
+				}
 				}),
 			)
 			.catch(
 				ofClass(TooManyRequestsError, () => {
-					throw new UserError(tooManyRequestsError)
+				throw new UserError(tooManyRequestsError)
 				}),
 			)
 			.catch(
 				ofClass(AccessBlockedError, e => {
-					// special case: the approval status is set to SpamSender, but the update has not been received yet, so use SpamSender as default
-					return checkApprovalStatus(this._logins, true, ApprovalStatus.SPAM_SENDER).then(() => {
-						console.log("could not send mail (blocked access)", e)
-						return false
-					})
+				// special case: the approval status is set to SpamSender, but the update has not been received yet, so use SpamSender as default
+				return checkApprovalStatus(this._logins, true, ApprovalStatus.SPAM_SENDER).then(() => {
+					console.log("could not send mail (blocked access)", e)
+					return false
+				})
 				}),
 			)
 			.catch(
 				ofClass(FileNotFoundError, () => {
-					throw new UserError("couldNotAttachFile_msg")
+				throw new UserError("couldNotAttachFile_msg")
 				}),
 			)
 			.catch(
 				ofClass(PreconditionFailedError, () => {
-					throw new UserError("operationStillActive_msg")
+				throw new UserError("operationStillActive_msg")
 				}),
 			)
 	}
@@ -879,55 +886,82 @@ export class SendMailModel {
 		return !isSecurePassword(minimalPasswordStrength)
 	}
 
+	saveDraft(
+		saveAttachments: boolean,
+		mailMethod: MailMethod
+	): Promise<void> {
+
+		if (this.currentSavePromise == null) {
+			this.currentSavePromise = Promise.resolve().then(async () => {
+				try {
+					await this.doSaveDraft(saveAttachments, mailMethod)
+				} finally {
+					// If there is an error, we still need to reset currentSavePromise
+					this.currentSavePromise = null
+				}
+				if (this._mailChanged && this.doSaveAgain) {
+					this.doSaveAgain = false
+					await this.saveDraft(saveAttachments, mailMethod)
+				}
+			})
+		} else {
+			this.doSaveAgain = true
+		}
+
+		return this.currentSavePromise
+	}
+
 	/**
 	 * Saves the draft.
 	 * @param saveAttachments True if also the attachments shall be saved, false otherwise.
+	 * @param mailMethod
 	 * @returns {Promise} When finished.
 	 * @throws FileNotFoundError when one of the attachments could not be opened
 	 * @throws PreconditionFailedError when the draft is locked
 	 */
-	saveDraft(
+	private async doSaveDraft(
 		saveAttachments: boolean,
 		mailMethod: MailMethod,
-		blockingWaitHandler: (arg0: TranslationKey | lazy<string>, arg1: Promise<any>) => Promise<any>,
 	): Promise<void> {
-		const attachments = saveAttachments ? this._attachments : null
-		const {_draft} = this
-		// Create new drafts for drafts edited from trash or spam folder
-		const doCreateNewDraft = _draft
-			? this._mailModel
-				  .getMailboxFolders(_draft)
-				  .then(folders => folders.filter(f => f.folderType === MailFolderType.TRASH || f.folderType === MailFolderType.SPAM))
-				  .then(trashAndMailFolders => trashAndMailFolders.find(folder => isSameId(folder.mails, getListId(_draft))) != null)
-			: Promise.resolve(true)
-		const savePromise = doCreateNewDraft
-			.then(createNewDraft => {
-				return createNewDraft
-					? this._createDraft(this.getBody(), attachments, mailMethod)
-					: this._updateDraft(this.getBody(), attachments, neverNull(_draft))
-			})
-			.then(draft => {
-				this._draft = draft
-				return promiseMap(draft.attachments, fileId => this._entity.load<TutanotaFile>(FileTypeRef, fileId), {
-					concurrency: 5,
-				}).then(attachments => {
-					this._attachments = [] // attachFiles will push to existing files but we want to overwrite them
 
-					this.attachFiles(attachments)
-					this._mailChanged = false
-				})
-			})
-			.catch(
-				ofClass(PayloadTooLargeError, () => {
-					throw new UserError("requestTooLarge_msg")
-				}),
+		// Allow any changes that might occur while the mail is being saved to be accounted for
+		// if saved is called before this has completed
+		this._mailChanged = false
+
+		try {
+			const attachments = saveAttachments ? this._attachments : null
+
+			// We also want to create new drafts for drafts edited from trash or spam folder
+			this.draft = this.draft == null || await this.isMailInTrashOrSpam(this.draft)
+				? await this._createDraft(this.getBody(), attachments, mailMethod)
+				: await this._updateDraft(this.getBody(), attachments, this.draft)
+
+			const newAttachments = await promiseMap(
+				this.draft.attachments,
+				fileId => this._entity.load<TutanotaFile>(FileTypeRef, fileId),
+				{
+					concurrency: 5,
+				}
 			)
-			.catch(
-				ofClass(MailBodyTooLargeError, () => {
-					throw new UserError("mailBodyTooLarge_msg")
-				}),
-			)
-		return blockingWaitHandler("save_msg", savePromise)
+
+			this._attachments = [] // attachFiles will push to existing files but we want to overwrite them
+			this.attachFiles(newAttachments)
+
+		} catch (e) {
+			if (e instanceof PayloadTooLargeError) {
+				throw new UserError("requestTooLarge_msg")
+			} else if (e instanceof MailBodyTooLargeError) {
+				throw new UserError("mailBodyTooLarge_msg")
+			} else {
+				throw e
+			}
+		}
+	}
+
+	private async isMailInTrashOrSpam(draft: Mail) {
+		const folders = await this._mailModel.getMailboxFolders(draft)
+		const trashAndMailFolders = folders.filter(f => f.folderType === MailFolderType.TRASH || f.folderType === MailFolderType.SPAM)
+		return trashAndMailFolders.some(folder => isSameId(folder.mails, getListId(draft)))
 	}
 
 	_sendApprovalMail(body: string): Promise<unknown> {
