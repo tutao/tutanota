@@ -37,6 +37,9 @@ import {DateProviderImpl} from "../calendar/date/CalendarUtils"
 import {ThemeManager} from "./ThemeManager"
 import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys";
 import {DektopCredentialsEncryption, DesktopCredentialsEncryptionImpl} from "./credentials/DektopCredentialsEncryption"
+import {DesktopWebauthn} from "./2fa/DesktopWebauthn.js"
+import {webauthnIpcHandler, WebDialogController} from "./WebDialog.js"
+import {ExposedNativeInterface} from "../native/common/NativeInterface.js"
 import path from "path"
 import {OfflineDbFacade} from "./db/OfflineDbFacade"
 import {OfflineDb} from "./db/OfflineDb"
@@ -130,6 +133,8 @@ async function createComponents(): Promise<Components> {
 		log.error("Could not reschedule alarms", e)
 		return sse.resetStoredState()
 	})
+	const webDialogController = new WebDialogController(webauthnIpcHandler)
+
 	tray.setWindowManager(wm)
 	const sse = new DesktopSseClient(app, conf, notifier, wm, desktopAlarmScheduler, desktopNet, desktopCrypto, alarmStorage, lang)
 	// It should be ok to await this, all we are waiting for is dynamic imports
@@ -143,6 +148,14 @@ async function createComponents(): Promise<Components> {
 	}
 
 	const offlineDbFacade = new OfflineDbFacade(offlineDbFactory)
+
+	const exposedInterfaceFactory = (windowId: number): ExposedNativeInterface => {
+		return {
+			webauthn: new DesktopWebauthn(windowId, webDialogController),
+			offlineDbFacade: offlineDbFacade
+		}
+	}
+
 	const ipc = new IPC(
 		conf,
 		notifier,
@@ -161,6 +174,7 @@ async function createComponents(): Promise<Components> {
 		themeManager,
 		offlineDbFacade,
 		credentialsEncryption,
+		exposedInterfaceFactory
 	)
 	wm.setIPC(ipc)
 	conf.getConst(BuildConfigKey.appUserModelId).then(appUserModelId => {

@@ -2,7 +2,7 @@ import {lang} from "../misc/LanguageViewModel"
 import type {WindowManager} from "./DesktopWindowManager"
 import {objToError} from "../api/common/utils/Utils"
 import type {DeferredObject} from "@tutao/tutanota-utils"
-import {base64ToUint8Array, defer, downcast, mapNullable, noOp} from "@tutao/tutanota-utils"
+import {base64ToUint8Array, defer, downcast, getFromMap, mapNullable, noOp} from "@tutao/tutanota-utils"
 import {Request, RequestError, Response} from "../api/common/MessageDispatcher"
 import type {DesktopConfig} from "./config/DesktopConfig"
 import type {DesktopSseClient} from "./sse/DesktopSseClient"
@@ -31,6 +31,8 @@ import {OfflineDbFacade} from "./db/OfflineDbFacade"
 import {exposeLocal} from "../api/common/WorkerProxy"
 import {ExposedNativeInterface} from "../native/common/NativeInterface"
 
+type FacadeHandler = (message: Request<"facade">) => Promise<any>
+
 /**
  * node-side endpoint for communication between the renderer threads and the node thread
  */
@@ -55,7 +57,7 @@ export class IPC {
 	_initialized: Array<DeferredObject<void>>
 	_requestId: number = 0
 	readonly _queue: Record<string, (...args: Array<any>) => any>
-	private readonly facadeHandler: (message: Request<NativeRequestType>) => Promise<any>
+	private readonly facadeHandlerPerWindow: Map<number, FacadeHandler> = new Map()
 
 	constructor(
 		conf: DesktopConfig,
@@ -74,7 +76,8 @@ export class IPC {
 		alarmScheduler: DesktopAlarmScheduler,
 		themeManager: ThemeManager,
 		offlineDbFacade: OfflineDbFacade,
-		credentialsEncryption: DektopCredentialsEncryption
+		credentialsEncryption: DektopCredentialsEncryption,
+		private readonly exposedInterfaceFactory: (windowId: number) => ExposedNativeInterface,
 	) {
 		this._conf = conf
 		this._sse = sse
@@ -92,7 +95,6 @@ export class IPC {
 		this._alarmScheduler = alarmScheduler
 		this._themeManager = themeManager
 		this._offlineDbFacade = offlineDbFacade
-		this.facadeHandler = exposeLocal<ExposedNativeInterface, NativeRequestType>({offlineDbFacade: this._offlineDbFacade})
 		this._credentialsEncryption = credentialsEncryption
 
 		if (!!this._updater) {
@@ -413,8 +415,6 @@ export class IPC {
 				await mapNullable(await this._themeManager.getSelectedThemeId(), id => this._applyTheme(id))
 				return
 			}
-			case "facade":
-				return this.facadeHandler(new Request(method, args))
 
 			case "encryptUsingKeychain": {
 				const [mode, decryptedKey] = args
@@ -430,9 +430,15 @@ export class IPC {
 				return this._credentialsEncryption.getSupportedEncryptionModes()
 			}
 
+			case "facade":
+				return this.getHandlerForWindow(windowId)(new Request(method, args))
 			default:
 				return Promise.reject(new Error(`Invalid Method invocation: ${method}`))
 		}
+	}
+
+	private getHandlerForWindow(windowId: number): FacadeHandler {
+		return getFromMap(this.facadeHandlerPerWindow, windowId, () => exposeLocal(this.exposedInterfaceFactory(windowId)))
 	}
 
 	async _applyTheme(newThemeId: ThemeId) {
@@ -483,5 +489,6 @@ export class IPC {
 
 	removeWindow(id: number) {
 		delete this._initialized[id]
+		this.facadeHandlerPerWindow.delete(id)
 	}
 }
