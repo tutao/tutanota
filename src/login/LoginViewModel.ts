@@ -42,7 +42,7 @@ export const enum DisplayMode {
  */
 export const enum LoginState {
 	/* Log in in process. */
-	LogginIn = "LogginIn",
+	LoggingIn = "LoggingIn",
 
 	/* Some unknown error occured during login. */
 	UnknownError = "UnknownError",
@@ -191,8 +191,8 @@ export class LoginViewModel implements ILoginViewModel {
 	}
 
 	async login() {
-		if (this.state === LoginState.LogginIn) return
-		this.state = LoginState.LogginIn
+		if (this.state === LoginState.LoggingIn) return
+		this.state = LoginState.LoggingIn
 
 		if (this.displayMode === DisplayMode.Credentials || this.displayMode === DisplayMode.DeleteCredentials) {
 			await this._autologin()
