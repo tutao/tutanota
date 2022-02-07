@@ -11,11 +11,24 @@ assertMainOrNodeBoot()
 function produceThrottledFunction<R>(ms: number, fn: () => Promise<R>): () => Promise<R> {
 	let lastTry = 0
 	return async () => {
-		let previousTry = lastTry
+		const previousTry = lastTry
 		lastTry = Date.now()
+		const sincePreviousTry = Date.now() - previousTry
 
-		if (previousTry !== 0 && previousTry - Date.now() < ms) {
-			await delay(previousTry - Date.now())
+		// |---|----|--------------|-----|
+		//   1001  1003           1011
+		//    a     b              c
+		// ms: 10
+		// a: previousTry
+		// b: Date.now()
+		// c: previousTry + ms
+		// If the last call was at 1001 and we are now calling fn again at 1003 then we want to wait until 1011 which would be (a + ms) - b.
+
+		if (previousTry !== 0 &&  sincePreviousTry < ms) {
+			const waitShouldEndAt = previousTry + ms
+			const timeUntilWaitEnd = waitShouldEndAt - Date.now()
+			console.log("delaying error handler import by", timeUntilWaitEnd)
+			await delay(timeUntilWaitEnd)
 		}
 
 		return fn()
