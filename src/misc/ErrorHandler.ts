@@ -27,7 +27,6 @@ function produceThrottledFunction<R>(ms: number, fn: () => Promise<R>): () => Pr
 		if (previousTry !== 0 &&  sincePreviousTry < ms) {
 			const waitShouldEndAt = previousTry + ms
 			const timeUntilWaitEnd = waitShouldEndAt - Date.now()
-			console.log("delaying error handler import by", timeUntilWaitEnd)
 			await delay(timeUntilWaitEnd)
 		}
 
