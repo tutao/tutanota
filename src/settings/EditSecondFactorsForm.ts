@@ -4,7 +4,7 @@ import {SecondFactorTypeRef} from "../api/entities/sys/SecondFactor"
 import {assertNotNull, LazyLoaded, neverNull, ofClass} from "@tutao/tutanota-utils"
 import {Icons} from "../gui/base/icons/Icons"
 import {Dialog} from "../gui/base/Dialog"
-import {lang} from "../misc/LanguageViewModel"
+import {InfoLink, lang} from "../misc/LanguageViewModel"
 import {assertEnumValue, SecondFactorType} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
 import {appIdToLoginDomain} from "../misc/2fa/SecondFactorHandler"
@@ -51,7 +51,7 @@ export class EditSecondFactorsForm {
 			isTutanotaDomain()
 				? [
 					m("span.small", lang.get("moreInfo_msg") + " "),
-					ifAllowedTutanotaLinks("2FA_link", link => m("span.small.text-break", [m(`a[href=${link}][target=_blank]`, link)])),
+					ifAllowedTutanotaLinks(InfoLink.SecondFactor, link => m("span.small.text-break", [m(`a[href=${link}][target=_blank]`, link)])),
 				]
 				: null,
 		]

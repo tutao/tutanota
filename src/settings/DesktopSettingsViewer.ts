@@ -1,5 +1,5 @@
 import m, {Children} from "mithril"
-import {lang} from "../misc/LanguageViewModel"
+import {InfoLink, lang} from "../misc/LanguageViewModel"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {Request} from "../api/common/MessageDispatcher"
@@ -86,7 +86,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		const setRunInBackgroundAttrs: DropDownSelectorAttrs<boolean> = {
 			label: "runInBackground_action",
 			helpLabel: () => {
-				return ifAllowedTutanotaLinks("runInBackground_link", link => [
+				return ifAllowedTutanotaLinks(InfoLink.RunInBackground, link => [
 					m("span", lang.get("runInBackground_msg") + " "),
 					m("span", lang.get("moreInfo_msg") + " "),
 					m("span.text-break", [m(`a[href=${link}][target=_blank]`, link)]),

@@ -1,10 +1,10 @@
-import m, {ChildArray, ChildArrayOrPrimitive, Children, Vnode} from "mithril"
+import m, {ChildArray, Children, Vnode} from "mithril"
 import stream from "mithril/stream"
 import {client} from "../misc/ClientDetector"
 import {assertMainOrNode, isApp, isDesktop, isTutanotaDomain} from "../api/common/Env"
-import {lang} from "../misc/LanguageViewModel"
+import {InfoLink, lang} from "../misc/LanguageViewModel"
 import type {DeferredObject} from "@tutao/tutanota-utils"
-import {assertNotNull, defer, mapNullable} from "@tutao/tutanota-utils"
+import {defer, mapNullable} from "@tutao/tutanota-utils"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
@@ -374,11 +374,11 @@ export function getWhitelabelRegistrationDomains(): string[] {
 }
 
 export function getImprintLink(): string | null {
-	return mapNullable(getWhitelabelCustomizations(window), c => c.imprintUrl) || lang.getInfoLink("about_link")
+	return mapNullable(getWhitelabelCustomizations(window), c => c.imprintUrl) || InfoLink.About
 }
 
 export function getPrivacyStatementLink(): string | null {
-	return mapNullable(getWhitelabelCustomizations(window), c => c.privacyStatementUrl) || lang.getInfoLink("privacy_link")
+	return mapNullable(getWhitelabelCustomizations(window), c => c.privacyStatementUrl) || InfoLink.Privacy
 }
 
 export function renderPrivacyAndImprintLinks(): Children {

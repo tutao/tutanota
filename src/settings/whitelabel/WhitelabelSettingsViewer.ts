@@ -1,4 +1,4 @@
-import m, {Children, Vnode} from "mithril"
+import m, {Children} from "mithril"
 import {assertMainOrNode} from "../../api/common/Env"
 import {downcast, LazyLoaded, neverNull, noOp, promiseMap} from "@tutao/tutanota-utils"
 import type {Customer} from "../../api/entities/sys/Customer"
@@ -8,7 +8,7 @@ import {getCustomMailDomains, getWhitelabelDomain} from "../../api/common/utils/
 import type {CustomerInfo} from "../../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../../api/entities/sys/CustomerInfo"
 import {logins} from "../../api/main/LoginController"
-import {lang} from "../../misc/LanguageViewModel"
+import {InfoLink, lang} from "../../misc/LanguageViewModel"
 import {FeatureType, OperationType} from "../../api/common/TutanotaConstants"
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import type {WhitelabelConfig} from "../../api/entities/sys/WhitelabelConfig"
@@ -36,10 +36,7 @@ import type {WhitelabelImprintAndPrivacySettingsAttrs} from "./WhitelabelImprint
 import {WhitelabelImprintAndPrivacySettings} from "./WhitelabelImprintAndPrivacySettings"
 import {WhitelabelRegistrationSettings} from "./WhitelabelRegistrationSettings"
 import {createStringWrapper} from "../../api/entities/sys/StringWrapper"
-import {
-	WhitelabelCustomMetaTagsSettings,
-	WhitelabelCustomMetaTagsSettingsAttrs
-} from "./WhitelabelCustomMetaTagsSettings"
+import {WhitelabelCustomMetaTagsSettings, WhitelabelCustomMetaTagsSettingsAttrs} from "./WhitelabelCustomMetaTagsSettings"
 import {WhitelabelStatusSettings} from "./WhitelabelStatusSettings"
 import {WhitelabelNotificationEmailSettings} from "./WhitelabelNotificationEmailSettings"
 import type {GermanLanguageCode} from "./WhitelabelGermanLanguageFileSettings"
@@ -90,7 +87,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 				? [
 					m(".h4.mt-l", lang.get("whitelabel_label")),
 					m(".small", lang.get("whitelabelDomainLinkInfo_msg") + " "),
-					m("small.text-break", [m(`a[href=${lang.getInfoLink("whitelabel_link")}][target=_blank]`, lang.getInfoLink("whitelabel_link"))]),
+					m("small.text-break", [m(`a[href=${InfoLink.Whitelabel}][target=_blank]`, InfoLink.Whitelabel)]),
 					this._renderWhitelabelStatusSettings(),
 					this._renderNotificationEmailSettings(),
 					m(".h4.mt-l", lang.get("whitelabelDomain_label")),

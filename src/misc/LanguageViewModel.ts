@@ -132,28 +132,28 @@ export const languages: ReadonlyArray<{
 		textId,
 	}
 })
-const infoLinks = Object.freeze({
-	homePage_link: "https://tutanota.com",
-	about_link: "https://tutanota.com/imprint",
+
+export const enum InfoLink {
+	HomePage = "https://tutanota.com",
+	About = "https://tutanota.com/imprint",
 	//terms
-	terms_link: "https://tutanota.com/terms",
-	privacy_link: "https://tutanota.com/privacy",
+	Terms = "https://tutanota.com/terms",
+	Privacy = "https://tutanota.com/privacy",
+	GiftCardsTerms = "https://tutanota.com/giftCardsTerms",
 	//faq
-	recoverCode_link: "https://tutanota.com/faq#reset",
-	"2FA_link": "https://tutanota.com/faq#2fa",
-	spamRules_link: "https://tutanota.com/faq#spam",
-	domainInfo_link: "https://tutanota.com/faq#custom-domain",
-	whitelabel_link: "https://tutanota.com/faq#whitelabel",
-	webview_link: "https://tutanota.com/faq#webview",
-	phishing_link: "https://tutanota.com/faq#phishing",
-	mailAuth_link: "https://tutanota.com/faq#mail-auth",
-	runInBackground_link: "https://tutanota.com/faq#tray-desktop",
-	loadImages_link: "https://tutanota.com/faq#load-images",
-	giftCardsTerms_link: "https://tutanota.com/faq#gift-cards-terms",
+	RecoverCode = "https://tutanota.com/faq#reset",
+	SecondFactor = "https://tutanota.com/faq#2fa",
+	SpamRules = "https://tutanota.com/faq#spam",
+	DomainInfo = "https://tutanota.com/faq#custom-domain",
+	Whitelabel = "https://tutanota.com/faq#whitelabel",
+	Webview = "https://tutanota.com/faq#webview",
+	Phishing = "https://tutanota.com/faq#phishing",
+	MailAuth = "https://tutanota.com/faq#mail-auth",
+	RunInBackground = "https://tutanota.com/faq#tray-desktop",
+	LoadImages = "https://tutanota.com/faq#load-images",
 	//blog
-	premiumProBusiness_link: "https://tutanota.com/blog/posts/premium-pro-business",
-})
-export type InfoLink = keyof typeof infoLinks
+	PremiumProBusiness = "https://tutanota.com/blog/posts/premium-pro-business",
+}
 
 /**
  * Provides all localizations of strings on our gui.
@@ -434,9 +434,6 @@ export class LanguageViewModel {
 		return typeof value === "function" ? value() : lang.get(value)
 	}
 
-	getInfoLink(id: InfoLink): string {
-		return infoLinks[id]
-	}
 }
 
 /**

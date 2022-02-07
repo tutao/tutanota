@@ -34,7 +34,7 @@ import {
 import type {File as TutanotaFile} from "../../api/entities/tutanota/File"
 import {FileTypeRef} from "../../api/entities/tutanota/File"
 import {CALENDAR_MIME_TYPE} from "../../file/FileController"
-import {lang, TranslationKey} from "../../misc/LanguageViewModel"
+import {InfoLink, lang, TranslationKey} from "../../misc/LanguageViewModel"
 import {assertMainOrNode, isAndroidApp, isDesktop, isIOSApp} from "../../api/common/Env"
 import {Dialog} from "../../gui/base/Dialog"
 import type {DeferredObject} from "@tutao/tutanota-utils"
@@ -928,7 +928,7 @@ export class MailViewer implements Component {
 					},
 					[
 						m("div", lang.get("phishingReport_msg")),
-						ifAllowedTutanotaLinks("phishing_link", link =>
+						ifAllowedTutanotaLinks(InfoLink.Phishing, link =>
 							m(
 								"a.mt-s",
 								{
@@ -1892,7 +1892,7 @@ export class MailViewer implements Component {
 				message: "phishingMessageBody_msg",
 				icon: Icons.Warning,
 				type: BannerType.Warning,
-				helpLink: "phishing_link",
+				helpLink: InfoLink.Phishing,
 				buttons: [
 					{
 						label: "markAsNotPhishing_action",
@@ -1908,7 +1908,7 @@ export class MailViewer implements Component {
 			return m(InfoBanner, {
 				message: "mailAuthFailed_msg",
 				icon: Icons.Warning,
-				helpLink: "mailAuth_link",
+				helpLink: InfoLink.MailAuth,
 				type: BannerType.Warning,
 				buttons: [
 					{
@@ -1930,7 +1930,7 @@ export class MailViewer implements Component {
 						})
 						: lang.get("mailAuthMissing_label"),
 				icon: Icons.Warning,
-				helpLink: "mailAuth_link",
+				helpLink: InfoLink.MailAuth,
 				buttons: [
 					{
 						label: "close_alt",
@@ -1975,7 +1975,7 @@ export class MailViewer implements Component {
 		return m(InfoBanner, {
 			message: "contentBlocked_msg",
 			icon: Icons.Picture,
-			helpLink: "loadImages_link",
+			helpLink: InfoLink.LoadImages,
 			buttons: [showButton, ...maybeDropdownButtons],
 		})
 	}

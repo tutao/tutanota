@@ -1,4 +1,4 @@
-import {lang} from "../../misc/LanguageViewModel"
+import {InfoLink, lang} from "../../misc/LanguageViewModel"
 import type {TutanotaProperties} from "../../api/entities/tutanota/TutanotaProperties"
 import {EmailSignatureType as TutanotaConstants} from "../../api/common/TutanotaConstants"
 import {LINE_BREAK} from "../model/MailUtils"
@@ -14,7 +14,7 @@ export function getDefaultSignature(): string {
 		LINE_BREAK +
 		htmlSanitizer.sanitizeHTML(
 			lang.get("defaultEmailSignature_msg", {
-				"{1}": lang.getInfoLink("homePage_link"),
+				"{1}": InfoLink.HomePage,
 			}),
 		).text
 	)

@@ -1,6 +1,6 @@
 import m from "mithril"
 import {DAY_IN_MILLIS, LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
-import {lang} from "../misc/LanguageViewModel"
+import {InfoLink, lang} from "../misc/LanguageViewModel"
 import {getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog} from "./AddSpamRuleDialog"
 import {getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType} from "../api/common/TutanotaConstants"
 import {getCustomMailDomains} from "../api/common/utils/Utils"
@@ -37,13 +37,7 @@ import {showDnsCheckDialog} from "./CheckDomainDnsStatusDialog"
 import type {DomainInfo} from "../api/entities/sys/DomainInfo"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {RejectedSenderTypeRef} from "../api/entities/sys/RejectedSender"
-import {
-	GENERATED_MAX_ID,
-	generatedIdToTimestamp,
-	getElementId,
-	sortCompareByReverseId,
-	timestampToGeneratedId
-} from "../api/common/utils/EntityUtils"
+import {GENERATED_MAX_ID, generatedIdToTimestamp, getElementId, sortCompareByReverseId, timestampToGeneratedId} from "../api/common/utils/EntityUtils"
 import {ExpandableTable} from "./ExpandableTable"
 import {showRejectedSendersInfoDialog} from "./RejectedSendersInfoDialog"
 import {createEmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
@@ -199,7 +193,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						title: "adminSpam_action",
 						table: spamRuleTableAttrs,
 						infoMsg: "adminSpamRuleInfo_msg",
-						infoLinkId: "spamRules_link",
+						infoLinkId: InfoLink.SpamRules,
 					}),
 					m(ExpandableTable, {
 						title: "rejectedEmails_label",
@@ -211,7 +205,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						title: "customEmailDomains_label",
 						table: customDomainTableAttrs,
 						infoMsg: "moreInfo_msg",
-						infoLinkId: "domainInfo_link",
+						infoLinkId: InfoLink.DomainInfo,
 					}),
 					m(".mt-l", [
 						m(".h4", lang.get("security_title")),
