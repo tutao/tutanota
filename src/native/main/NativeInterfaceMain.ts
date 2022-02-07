@@ -6,6 +6,7 @@ import {base64ToUint8Array, defer, downcast, utf8Uint8ArrayToString} from "@tuta
 import type {NativeInterface} from "../common/NativeInterface"
 import {appCommands, desktopCommands} from "./NativeWrapperCommands"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
+import {NativeApp} from "../../global"
 
 assertMainOrNode()
 
@@ -96,19 +97,24 @@ class IosNativeTransport implements Transport<NativeRequestType, JsRequestType> 
 	}
 }
 
+
 /**
  * Transport for communication between electron native and webview
  * Uses window.nativeApp, which is injected by the preload script in desktop mode
  * electron can handle message passing without jsonification
  */
 
-class DesktopTransport implements Transport<NativeRequestType, JsRequestType> {
-	postMessage(message: NativeMessage) {
-		window.nativeApp.invoke(message)
+export class DesktopTransport<OutgoingRequestType extends string = JsRequestType, IncomingRequestType extends string = NativeRequestType>
+	implements Transport<OutgoingRequestType, IncomingRequestType> {
+	constructor(private readonly nativeApp: NativeApp) {
 	}
 
-	setMessageHandler(handler: JsMessageHandler): void {
-		window.nativeApp.attach(handler)
+	postMessage(message: Message<OutgoingRequestType>) {
+		this.nativeApp.invoke(message)
+	}
+
+	setMessageHandler(handler: (message: Message<IncomingRequestType>) => unknown): void {
+		this.nativeApp.attach(handler)
 	}
 }
 
@@ -117,15 +123,16 @@ export class NativeInterfaceMain implements NativeInterface {
 	private _appUpdateListener: (() => void) | null = null
 
 	async init() {
-		let transport
+		let transport: Transport<NativeRequestType, JsRequestType>
 
 		if (isAndroidApp()) {
-			transport = new AndroidNativeTransport()
-			transport.start()
+			const androidTransport = new AndroidNativeTransport()
+			androidTransport.start()
+			transport = androidTransport
 		} else if (isIOSApp()) {
 			transport = new IosNativeTransport()
 		} else if (isDesktop() || isAdminClient()) {
-			transport = new DesktopTransport()
+			transport = new DesktopTransport(window.nativeApp)
 		} else {
 			throw new ProgrammingError("Tried to create a native interface in the browser")
 		}
@@ -134,7 +141,7 @@ export class NativeInterfaceMain implements NativeInterface {
 		// Typescript doesn't like this, we could be more specific
 		const commands = downcast<Commands<JsRequestType>>(isApp() ? appCommands : desktopCommands)
 		// Ensure that we have messaged native with "init" before we allow anyone else to make native requests
-		const queue = new MessageDispatcher(transport, commands)
+		const queue = new MessageDispatcher<NativeRequestType, JsRequestType>(transport, commands)
 		await queue.postRequest(new Request("init", []))
 
 		this._dispatchDeferred.resolve(queue)

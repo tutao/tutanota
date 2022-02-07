@@ -26,7 +26,7 @@ export const LogoutUrl: string = location.hash.startsWith("#mail") ? "/ext?noAut
 assertMainOrNode()
 
 export interface CurrentView extends Component {
-	updateUrl(args: Record<string, any>, requestedPath: String): void
+	updateUrl(args: Record<string, any>, requestedPath: string): void
 	readonly headerView?: () => Children
 	readonly headerRightView?: () => Children
 	readonly getViewSlider?: () => ViewSlider | null

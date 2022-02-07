@@ -4,7 +4,7 @@ import {EventController} from "./EventController"
 import {EntropyCollector} from "./EntropyCollector"
 import {SearchModel} from "../../search/model/SearchModel"
 import {MailModel} from "../../mail/model/MailModel"
-import {assertMainOrNode, isBrowser} from "../common/Env"
+import {assertMainOrNode, getWebRoot, isBrowser, isDesktop} from "../common/Env"
 import {notifications} from "../../gui/Notifications"
 import {logins} from "./LoginController"
 import type {ContactModel} from "../../contacts/model/ContactModel"
@@ -39,13 +39,17 @@ import type {NativeFileApp} from "../../native/common/FileApp"
 import type {NativePushServiceApp} from "../../native/main/NativePushServiceApp"
 import type {NativeSystemApp} from "../../native/main/NativeSystemApp"
 import type {NativeInterfaceMain} from "../../native/main/NativeInterfaceMain"
+import type {NativeInterfaces} from "./NativeInterfaceFactory"
 import {createNativeInterfaces} from "./NativeInterfaceFactory"
 import {ProgrammingError} from "../common/error/ProgrammingError"
-import type {NativeInterfaces} from "./NativeInterfaceFactory"
 import {SecondFactorHandler} from "../../misc/2fa/SecondFactorHandler"
-import {WebauthnClient} from "../../misc/2fa/webauthn/WebauthnClient"
+import {IWebauthnClient, WebauthnClient} from "../../misc/2fa/webauthn/WebauthnClient"
 import {UserManagementFacade} from "../worker/facades/UserManagementFacade"
 import {GroupManagementFacade} from "../worker/facades/GroupManagementFacade"
+import {exposeRemote} from "../common/WorkerProxy"
+import {ExposedNativeInterface} from "../../native/common/NativeInterface"
+import {IWebauthn} from "../../misc/2fa/webauthn/IWebauthn.js"
+import {BrowserWebauthn} from "../../misc/2fa/webauthn/BrowserWebauthn.js"
 
 assertMainOrNode()
 
@@ -67,6 +71,7 @@ export interface IMainLocator {
 	readonly pushService: NativePushServiceApp
 	readonly systemApp: NativeSystemApp
 	readonly secondFactorHandler: SecondFactorHandler
+	readonly webauthnClient: IWebauthnClient
 	readonly loginFacade: LoginFacade
 	readonly customerFacade: CustomerFacade
 	readonly giftCardFacade: GiftCardFacade
@@ -101,6 +106,7 @@ class MainLocator implements IMainLocator {
 	worker!: WorkerClient
 	fileController!: FileController
 	secondFactorHandler!: SecondFactorHandler
+	webauthnClient!: IWebauthnClient
 	loginFacade!: LoginFacade
 	customerFacade!: CustomerFacade
 	giftCardFacade!: GiftCardFacade
@@ -135,6 +141,13 @@ class MainLocator implements IMainLocator {
 
 	get systemApp(): NativeSystemApp {
 		return this._getNativeInterface("systemApp")
+	}
+
+	get webauthnController(): IWebauthn {
+		const creds = navigator.credentials
+		return isDesktop()
+			? exposeRemote<ExposedNativeInterface>((msg) => this.native.invokeNative(msg)).webauthn
+			: new BrowserWebauthn(creds, window.location.hostname)
 	}
 
 	_getNativeInterface<T extends keyof NativeInterfaces>(name: T): NativeInterfaces[T] {
@@ -216,7 +229,8 @@ class MainLocator implements IMainLocator {
 		this.progressTracker = new ProgressTracker()
 		this.search = new SearchModel(this.searchFacade)
 		this.entityClient = new EntityClient(restInterface)
-		this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, new WebauthnClient(), this.loginFacade)
+		this.webauthnClient = new WebauthnClient(this.webauthnController, getWebRoot())
+		this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, this.webauthnClient, this.loginFacade)
 		this.credentialsProvider = await createCredentialsProvider(deviceEncryptionFacade, this._nativeInterfaces?.native ?? null)
 		this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient)
 

@@ -6,8 +6,8 @@ import path, {dirname} from "path"
 import {renderHtml} from "../buildSrc/LaunchHtml.js"
 import {fileURLToPath} from "url"
 import nodeResolve from "@rollup/plugin-node-resolve"
-import rollupPluginJson from "@rollup/plugin-json"
 import {sqliteNativeBannerPlugin} from "../buildSrc/cachedSqliteProvider.js"
+import rollupPluginJson from "@rollup/plugin-json"
 
 const testRoot = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(testRoot, ".."))
@@ -31,10 +31,7 @@ export async function build(buildOptions, serverOptions, log) {
 			envPlugin(localEnv),
 			resolveTestLibsPlugin(),
 			...rollupDebugPlugins(path.resolve(".."), {outDir: "build"}),
-			// json is imported by is-core-module
-			// which is a dependency of testdouble
-			// so we need rollup-plugin-json to compile for tests
-			rollupPluginJson(),
+			rollupPluginJson({}),
 			nodeResolve({preferBuiltins: true}),
 			sqliteNativeBannerPlugin(
 				{

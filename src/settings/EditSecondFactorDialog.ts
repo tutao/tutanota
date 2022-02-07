@@ -1,35 +1,35 @@
-import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
+import {showProgressDialog} from "../gui/dialogs/ProgressDialog.js"
 import stream from "mithril/stream"
-import {GroupType, SecondFactorType} from "../api/common/TutanotaConstants"
-import type {DropDownSelectorAttrs, SelectorItem} from "../gui/base/DropDownSelectorN"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {lang} from "../misc/LanguageViewModel"
-import type {TextFieldAttrs} from "../gui/base/TextFieldN"
-import {TextFieldN} from "../gui/base/TextFieldN"
-import {isApp, isTutanotaDomain} from "../api/common/Env"
+import {GroupType, SecondFactorType} from "../api/common/TutanotaConstants.js"
+import type {DropDownSelectorAttrs, SelectorItem} from "../gui/base/DropDownSelectorN.js"
+import {DropDownSelectorN} from "../gui/base/DropDownSelectorN.js"
+import type {TranslationKey} from "../misc/LanguageViewModel.js"
+import {lang} from "../misc/LanguageViewModel.js"
+import type {TextFieldAttrs} from "../gui/base/TextFieldN.js"
+import {TextFieldN} from "../gui/base/TextFieldN.js"
+import {isApp, isTutanotaDomain} from "../api/common/Env.js"
 import m, {Children} from "mithril"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {copyToClipboard} from "../misc/ClipboardUtils"
-import {Icons} from "../gui/base/icons/Icons"
+import type {ButtonAttrs} from "../gui/base/ButtonN.js"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN.js"
+import {copyToClipboard} from "../misc/ClipboardUtils.js"
+import {Icons} from "../gui/base/icons/Icons.js"
 import QRCode from "qrcode-svg"
-import {htmlSanitizer} from "../misc/HtmlSanitizer"
-import {Dialog, DialogType} from "../gui/base/Dialog"
-import {Icon, progressIcon} from "../gui/base/Icon"
-import {theme} from "../gui/theme"
-import {createSecondFactor} from "../api/entities/sys/SecondFactor"
+import {htmlSanitizer} from "../misc/HtmlSanitizer.js"
+import {Dialog, DialogType} from "../gui/base/Dialog.js"
+import {Icon, progressIcon} from "../gui/base/Icon.js"
+import {theme} from "../gui/theme.js"
+import {createSecondFactor} from "../api/entities/sys/SecondFactor.js"
 import {assertNotNull, LazyLoaded, neverNull} from "@tutao/tutanota-utils"
-import {locator} from "../api/main/MainLocator"
-import type {User} from "../api/entities/sys/User"
-import {getEtId, isSameId} from "../api/common/utils/EntityUtils"
-import {logins} from "../api/main/LoginController"
-import * as RecoverCodeDialog from "./RecoverCodeDialog"
-import {WebauthnClient} from "../misc/2fa/webauthn/WebauthnClient"
-import type {U2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
-import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
-import {EntityClient} from "../api/common/EntityClient"
-import {ProgrammingError} from "../api/common/error/ProgrammingError"
+import {locator} from "../api/main/MainLocator.js"
+import type {User} from "../api/entities/sys/User.js"
+import {getEtId, isSameId} from "../api/common/utils/EntityUtils.js"
+import {logins} from "../api/main/LoginController.js"
+import * as RecoverCodeDialog from "./RecoverCodeDialog.js"
+import {IWebauthnClient} from "../misc/2fa/webauthn/WebauthnClient.js"
+import type {U2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice.js"
+import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo.js"
+import {EntityClient} from "../api/common/EntityClient.js"
+import {ProgrammingError} from "../api/common/error/ProgrammingError.js"
 import type {TotpSecret} from "@tutao/tutanota-crypto"
 
 const enum VerificationStatus {
@@ -48,32 +48,28 @@ const FactorTypes = {
 type FactorTypesEnum = Values<typeof FactorTypes>
 
 export class EditSecondFactorDialog {
-	private _dialog: Dialog
-	private _selectedType: FactorTypesEnum
-	private _verificationStatus: VerificationStatus = VerificationStatus.Initial
-	private _u2fRegistrationData: U2fRegisteredDevice | null = null
-	private _name: string = ""
-	private _totpCode: string = ""
-	private readonly _entityClient: EntityClient
-	private readonly _user: User
-	private readonly _mailAddress: string
-	private readonly _webauthnSupport: boolean
-	private _totpKeys: TotpSecret
-	private _otpInfo: LazyLoaded<{
+	private readonly dialog: Dialog
+	private selectedType: FactorTypesEnum
+	private verificationStatus: VerificationStatus = VerificationStatus.Initial
+	private u2fRegistrationData: U2fRegisteredDevice | null = null
+	private name: string = ""
+	private totpCode: string = ""
+	private readonly otpInfo: LazyLoaded<{
 		qrCodeSvg: string | null
 		url: string
 	}>
-	private _webauthnAbortController: AbortController | null = null
 
-	constructor(entityClient: EntityClient, user: User, mailAddress: string, webauthnSupport: boolean, totpKeys: TotpSecret) {
-		this._entityClient = entityClient
-		this._user = user
-		this._mailAddress = mailAddress
-		this._webauthnSupport = webauthnSupport
-		this._totpKeys = totpKeys
-		this._selectedType = webauthnSupport ? FactorTypes.WEBAUTHN : FactorTypes.TOTP
-		this._otpInfo = new LazyLoaded(async () => {
-			const url = await this._getOtpAuthUrl(this._totpKeys.readableKey)
+	constructor(
+		private readonly entityClient: EntityClient,
+		private readonly user: User,
+		private readonly mailAddress: string,
+		private readonly webauthnClient: IWebauthnClient,
+		private readonly totpKeys: TotpSecret,
+		private readonly webauthnSupported: boolean,
+	) {
+		this.selectedType = webauthnSupported ? FactorTypes.WEBAUTHN : FactorTypes.TOTP
+		this.otpInfo = new LazyLoaded(async () => {
+			const url = await this.getOtpAuthUrl(this.totpKeys.readableKey)
 			let totpQRCodeSvg
 
 			if (!isApp()) {
@@ -96,87 +92,88 @@ export class EditSecondFactorDialog {
 			}
 		})
 
-		this._otpInfo.getAsync().then(() => m.redraw())
+		this.otpInfo.getAsync().then(() => m.redraw())
 
-		this._dialog = Dialog.createActionDialog({
+		this.dialog = Dialog.createActionDialog({
 			title: lang.get("add_action"),
 			allowOkWithReturn: true,
 			child: {
-				view: () => this._render(),
+				view: () => this.render(),
 			},
-			okAction: () => this._save(),
+			okAction: () => this.save(),
 			allowCancel: true,
 			okActionTextId: "save_action",
-			cancelAction: () => this._webauthnAbortController?.abort(),
+			cancelAction: () => this.webauthnClient.abortCurrentOperation(),
 		})
 	}
 
-	async _save() {
-		if (this._selectedType === FactorTypes.WEBAUTHN) {
+	static loadAndShow(entityClient: EntityClient, lazyUser: LazyLoaded<User>, mailAddress: string) {
+		showProgressDialog("pleaseWait_msg", this.loadWebauthnClient(entityClient, lazyUser, mailAddress))
+			.then((dialog) => {
+				dialog.dialog.show()
+			})
+	}
+
+	private async save() {
+		if (this.selectedType === FactorTypes.WEBAUTHN) {
 			// Prevent starting in parallel
-			if (this._verificationStatus === VerificationStatus.Progress) {
+			if (this.verificationStatus === VerificationStatus.Progress) {
 				return
 			}
 
-			this._verificationStatus = VerificationStatus.Progress
-			this._webauthnAbortController = new AbortController()
-			const abortSignal = this._webauthnAbortController.signal
-
 			try {
-				this._u2fRegistrationData = await new WebauthnClient().register(this._user._id, this._name, this._mailAddress, abortSignal)
-				this._verificationStatus = VerificationStatus.Success
+				this.u2fRegistrationData = await this.webauthnClient.register(this.user._id, this.name, this.mailAddress)
+				this.verificationStatus = VerificationStatus.Success
 			} catch (e) {
 				console.log("Webauthn registration failed: ", e)
-				this._u2fRegistrationData = null
-				this._verificationStatus = VerificationStatus.Failed
-			} finally {
-				this._webauthnAbortController = null
+				this.u2fRegistrationData = null
+				this.verificationStatus = VerificationStatus.Failed
 			}
 		}
 
 		m.redraw()
 		const sf = createSecondFactor({
-			_ownerGroup: this._user._ownerGroup,
-			name: this._name,
+			_ownerGroup: this.user._ownerGroup,
+			name: this.name,
 		})
 
-		if (this._selectedType === FactorTypes.WEBAUTHN) {
+		if (this.selectedType === FactorTypes.WEBAUTHN) {
 			sf.type = SecondFactorType.webauthn
 
-			if (this._verificationStatus !== VerificationStatus.Success) {
+			if (this.verificationStatus !== VerificationStatus.Success) {
 				Dialog.message("unrecognizedU2fDevice_msg")
 				return
 			} else {
-				sf.u2f = this._u2fRegistrationData
+				sf.u2f = this.u2fRegistrationData
 			}
-		} else if (this._selectedType === FactorTypes.TOTP) {
+		} else if (this.selectedType === FactorTypes.TOTP) {
 			sf.type = SecondFactorType.totp
 
-			if (this._verificationStatus !== VerificationStatus.Success) {
+			if (this.verificationStatus !== VerificationStatus.Success) {
 				Dialog.message("totpCodeEnter_msg")
 				return
 			} else {
-				sf.otpSecret = this._totpKeys.key
+				sf.otpSecret = this.totpKeys.key
 			}
 		} else {
 			throw new ProgrammingError("")
 		}
 
-		await showProgressDialog("pleaseWait_msg", this._entityClient.setup(assertNotNull(this._user.auth).secondFactors, sf))
+		await showProgressDialog("pleaseWait_msg", this.entityClient.setup(assertNotNull(this.user.auth).secondFactors, sf))
 
-		this._dialog.close()
+		this.dialog.close()
 
-		this._showRecoveryInfoDialog(this._user)
+		this.showRecoveryInfoDialog(this.user)
 	}
 
-	_render(): Children {
+	private render(): Children {
 		const options: Array<SelectorItem<FactorTypesEnum>> = []
 		options.push({
 			name: lang.get("totpAuthenticator_label"),
 			value: FactorTypes.TOTP,
 		})
 
-		if (this._webauthnSupport) {
+		if (this.webauthnSupported) {
 			options.push({
 				name: lang.get("u2fSecurityKey_label"),
 				value: FactorTypes.WEBAUTHN,
@@ -185,76 +182,76 @@ export class EditSecondFactorDialog {
 
 		const typeDropdownAttrs: DropDownSelectorAttrs<FactorTypesEnum> = {
 			label: "type_label",
-			selectedValue: stream(this._selectedType),
-			selectionChangedHandler: newValue => this._onTypeSelected(newValue),
+			selectedValue: stream(this.selectedType),
+			selectionChangedHandler: newValue => this.onTypeSelected(newValue),
 			items: options,
 			dropdownWidth: 300,
 		}
 		const nameFieldAttrs: TextFieldAttrs = {
 			label: "name_label",
 			helpLabel: () => lang.get("secondFactorNameInfo_msg"),
-			value: stream(this._name),
+			value: stream(this.name),
 			oninput: value => {
-				this._name = value
+				this.name = value
 			},
 		}
-		return [m(DropDownSelectorN, typeDropdownAttrs), m(TextFieldN, nameFieldAttrs), this._renderTypeSpecificFields()]
+		return [m(DropDownSelectorN, typeDropdownAttrs), m(TextFieldN, nameFieldAttrs), this.renderTypeSpecificFields()]
 	}
 
-	_renderTypeSpecificFields(): Children {
-		switch (this._selectedType) {
+	private renderTypeSpecificFields(): Children {
+		switch (this.selectedType) {
 			case FactorTypes.TOTP:
-				return this._renderOtpFields()
+				return this.renderOtpFields()
 
 			case FactorTypes.WEBAUTHN:
-				return this._renderU2FFields()
+				return this.renderU2FFields()
 
 			default:
-				throw new ProgrammingError(`Invalid 2fa type: ${this._selectedType}`)
+				throw new ProgrammingError(`Invalid 2fa type: ${this.selectedType}`)
 		}
 	}
 
-	_renderU2FFields(): Children {
+	private renderU2FFields(): Children {
 		// Only show progress for u2f because success/error will show another dialog
-		if (this._verificationStatus !== VerificationStatus.Progress) {
+		if (this.verificationStatus !== VerificationStatus.Progress) {
 			return null
 		} else {
-			return m("p.flex.items-center", [m(".mr-s", this._statusIcon()), m("", this._statusMessage())])
+			return m("p.flex.items-center", [m(".mr-s", this.statusIcon()), m("", this.statusMessage())])
 		}
 	}
 
-	_renderOtpFields(): Children {
+	private renderOtpFields(): Children {
 		const totpSecretFieldAttrs: TextFieldAttrs = {
 			label: "totpSecret_label",
 			helpLabel: () => lang.get(isApp() ? "totpTransferSecretApp_msg" : "totpTransferSecret_msg"),
-			value: stream(this._totpKeys.readableKey),
+			value: stream(this.totpKeys.readableKey),
 			injectionsRight: () => m(ButtonN, copyButtonAttrs),
 			disabled: true,
 		}
 		const copyButtonAttrs: ButtonAttrs = {
 			label: "copy_action",
-			click: () => copyToClipboard(this._totpKeys.readableKey),
+			click: () => copyToClipboard(this.totpKeys.readableKey),
 			icon: () => Icons.Clipboard,
 		}
 		const totpCodeAttrs: TextFieldAttrs = {
 			label: "totpCode_label",
-			value: stream(this._totpCode),
-			oninput: newValue => this._onTotpValueChange(newValue),
+			value: stream(this.totpCode),
+			oninput: newValue => this.onTotpValueChange(newValue),
 		}
 		const openTOTPAppAttrs: ButtonAttrs = {
 			label: "addOpenOTPApp_action",
-			click: () => this._openOtpLink(),
+			click: () => this.openOtpLink(),
 			type: ButtonType.Login,
 		}
 		return m(".mb", [
 			m(TextFieldN, totpSecretFieldAttrs),
-			isApp() ? m(".pt", m(ButtonN, openTOTPAppAttrs)) : this._renderOtpQrCode(),
+			isApp() ? m(".pt", m(ButtonN, openTOTPAppAttrs)) : this.renderOtpQrCode(),
 			m(TextFieldN, totpCodeAttrs),
 		])
 	}
 
-	_renderOtpQrCode(): Children {
-		const otpInfo = this._otpInfo.getSync()
+	private renderOtpQrCode(): Children {
+		const otpInfo = this.otpInfo.getSync()
 
 		if (otpInfo) {
 			const qrCodeSvg = assertNotNull(otpInfo.qrCodeSvg)
@@ -265,8 +262,8 @@ export class EditSecondFactorDialog {
 		}
 	}
 
-	async _openOtpLink() {
-		const {url} = await this._otpInfo.getAsync()
+	private async openOtpLink() {
+		const {url} = await this.otpInfo.getAsync()
 		const successful = await locator.systemApp.openLinkNative(url)
 
 		if (!successful) {
@@ -274,38 +271,35 @@ export class EditSecondFactorDialog {
 		}
 	}
 
-	async _onTotpValueChange(newValue: string) {
-		this._totpCode = newValue
+	private async onTotpValueChange(newValue: string) {
+		this.totpCode = newValue
 		let cleanedValue = newValue.replace(/ /g, "")
 
 		if (cleanedValue.length === 6) {
 			const expectedCode = Number(cleanedValue)
-			this._verificationStatus = await this._tryCodes(expectedCode, this._totpKeys.key)
+			this.verificationStatus = await this.tryCodes(expectedCode, this.totpKeys.key)
 		} else {
-			this._verificationStatus = VerificationStatus.Progress
+			this.verificationStatus = VerificationStatus.Progress
 		}
 	}
 
-	_onTypeSelected(newValue: FactorTypesEnum) {
-		this._selectedType = newValue
-		this._verificationStatus = newValue === FactorTypes.WEBAUTHN ? VerificationStatus.Initial : VerificationStatus.Progress
+	private onTypeSelected(newValue: FactorTypesEnum) {
+		this.selectedType = newValue
+		this.verificationStatus = newValue === FactorTypes.WEBAUTHN ? VerificationStatus.Initial : VerificationStatus.Progress
 
 		if (newValue !== FactorTypes.WEBAUTHN) {
-			this._webauthnAbortController?.abort()
+			this.webauthnClient.abortCurrentOperation()
 		}
 	}
 
-	static async loadAndShow(entityClient: EntityClient, user: LazyLoaded<User>, mailAddress: string): Promise<void> {
-		const webAuthn = new WebauthnClient()
-		const totpPromise = locator.loginFacade.generateTotpSecret()
-		const webAuthnPromise = webAuthn.isSupported()
-		const userPromise = user.getAsync()
-		showProgressDialog("pleaseWait_msg", Promise.all([totpPromise, webAuthnPromise, userPromise])).then(([totpKeys, u2fSupport, user]) => {
-			new EditSecondFactorDialog(entityClient, user, mailAddress, u2fSupport, totpKeys)._dialog.show()
-		})
+	private static async loadWebauthnClient(entityClient: EntityClient, lazyUser: LazyLoaded<User>, mailAddress: string): Promise<EditSecondFactorDialog> {
+		const totpKeys = await locator.loginFacade.generateTotpSecret()
+		const user = await lazyUser.getAsync()
+		const webauthnSupported = await locator.webauthnClient.isSupported()
+		return new EditSecondFactorDialog(entityClient, user, mailAddress, locator.webauthnClient, totpKeys, webauthnSupported)
 	}
 
-	_showRecoveryInfoDialog(user: User) {
+	private showRecoveryInfoDialog(user: User) {
 		// We only show the recovery code if it is for the current user and it is a global admin
 		if (!isSameId(getEtId(logins.getUserController().user), getEtId(user)) || !user.memberships.find(gm => gm.groupType === GroupType.Admin)) {
 			return
@@ -325,7 +319,7 @@ export class EditSecondFactorDialog {
 		})
 	}
 
-	async _tryCodes(expectedCode: number, key: Uint8Array): Promise<VerificationStatus> {
+	private async tryCodes(expectedCode: number, key: Uint8Array): Promise<VerificationStatus> {
 		const {loginFacade} = locator
 		const time = Math.floor(new Date().getTime() / 1000 / 30)
 		// We try out 3 codes: current minute, 30 seconds before and 30 seconds after.
@@ -352,8 +346,8 @@ export class EditSecondFactorDialog {
 	}
 
 	/** see https://github.com/google/google-authenticator/wiki/Key-Uri-Format */
-	async _getOtpAuthUrl(secret: string): Promise<string> {
-		const userGroupInfo = await this._entityClient.load(GroupInfoTypeRef, this._user.userGroup.groupInfo)
+	private async getOtpAuthUrl(secret: string): Promise<string> {
+		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.user.userGroup.groupInfo)
 		const issuer = isTutanotaDomain() ? "Tutanota" : location.hostname
 		const account = encodeURI(issuer + ":" + neverNull(userGroupInfo.mailAddress))
 		const url = new URL("otpauth://totp/" + account)
@@ -365,8 +359,8 @@ export class EditSecondFactorDialog {
 		return url.toString()
 	}
 
-	_statusIcon(): Children {
-		switch (this._verificationStatus) {
+	private statusIcon(): Children {
+		switch (this.verificationStatus) {
 			case VerificationStatus.Progress:
 				return progressIcon()
 
@@ -393,13 +387,13 @@ export class EditSecondFactorDialog {
 		}
 	}
 
-	_statusMessage(): string {
-		if (this._selectedType === SecondFactorType.webauthn) {
-			return this._verificationStatus === VerificationStatus.Success ? lang.get("registeredU2fDevice_msg") : lang.get("registerU2fDevice_msg")
+	private statusMessage(): string {
+		if (this.selectedType === SecondFactorType.webauthn) {
+			return this.verificationStatus === VerificationStatus.Success ? lang.get("registeredU2fDevice_msg") : lang.get("registerU2fDevice_msg")
 		} else {
-			if (this._verificationStatus === VerificationStatus.Success) {
+			if (this.verificationStatus === VerificationStatus.Success) {
 				return lang.get("totpCodeConfirmed_msg")
-			} else if (this._verificationStatus === VerificationStatus.Failed) {
+			} else if (this.verificationStatus === VerificationStatus.Failed) {
 				return lang.get("totpCodeWrong_msg")
 			} else {
 				return lang.get("totpCodeEnter_msg")

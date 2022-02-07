@@ -10,7 +10,6 @@ import type {lazy} from "@tutao/tutanota-utils"
 import {downcast, neverNull} from "@tutao/tutanota-utils"
 import {routeChange} from "./misc/RouteChange"
 import {windowFacade} from "./misc/WindowFacade"
-import {Const} from "./api/common/TutanotaConstants"
 import {styles} from "./gui/styles"
 import {deviceConfig} from "./misc/DeviceConfig"
 import {Logger, replaceNativeLogger} from "./api/common/Logger"
@@ -18,6 +17,8 @@ import {init as initSW} from "./serviceworker/ServiceWorkerClient"
 import {applicationPaths} from "./ApplicationPaths"
 import {ProgrammingError} from "./api/common/error/ProgrammingError"
 import {CurrentView} from "./gui/base/Header"
+import {NativeWebauthnView} from "./login/NativeWebauthnView"
+import {WebauthnNativeBridge} from "./native/main/WebauthnNativeBridge"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -230,7 +231,7 @@ import("./translations/en")
 		}
 
 		const paths = applicationPaths({
-			loginViewResolver: createViewResolver(
+			login: createViewResolver(
 				async () => {
 					const {LoginView} = await import("./login/LoginView.js")
 					const {LoginViewModel} = await import("./login/LoginViewModel.js")
@@ -242,20 +243,20 @@ import("./translations/en")
 				false,
 				true,
 			),
-			contactViewResolver: createViewResolver(() => import("./contacts/view/ContactView.js").then(module => new module.ContactView())),
-			externalLoginViewResolver: createViewResolver(() => import("./login/ExternalLoginView.js").then(module => new module.ExternalLoginView()), false),
-			mailViewResolver: createViewResolver(() => import("./mail/view/MailView.js").then(module => new module.MailView())),
-			settingsViewResolver: createViewResolver(() => import("./settings/SettingsView.js").then(module => new module.SettingsView())),
-			searchViewResolver: createViewResolver(() => import("./search/view/SearchView.js").then(module => new module.SearchView())),
-			contactFormViewResolver: createViewResolver(() => import("./login/contactform/ContactFormView.js").then(module => module.contactFormView), false),
-			calendarViewResolver: createViewResolver(() => import("./calendar/view/CalendarView.js").then(module => new module.CalendarView()), true),
+			contact: createViewResolver(() => import("./contacts/view/ContactView.js").then(module => new module.ContactView())),
+			externalLogin: createViewResolver(() => import("./login/ExternalLoginView.js").then(module => new module.ExternalLoginView()), false),
+			mail: createViewResolver(() => import("./mail/view/MailView.js").then(module => new module.MailView())),
+			settings: createViewResolver(() => import("./settings/SettingsView.js").then(module => new module.SettingsView())),
+			search: createViewResolver(() => import("./search/view/SearchView.js").then(module => new module.SearchView())),
+			contactForm: createViewResolver(() => import("./login/contactform/ContactFormView.js").then(module => module.contactFormView), false),
+			calendar: createViewResolver(() => import("./calendar/view/CalendarView.js").then(module => new module.CalendarView()), true),
 
 			/**
 			 * The following resolvers are programmed by hand instead of using createViewResolver() in order to be able to properly redirect
 			 * to the login page without having to deal with a ton of conditional logic in the LoginViewModel and to avoid some of the default
 			 * behaviour of resolvers created with createViewResolver(), e.g. caching.
 			 */
-			signupViewResolver: {
+			signup: {
 				async onmatch() {
 					const {showSignupDialog} = await import("./misc/LoginUtils")
 					// We have to manually parse it because mithril does not put hash into args of onmatch
@@ -267,7 +268,7 @@ import("./translations/en")
 					return null
 				},
 			},
-			giftcardViewResolver: {
+			giftcard: {
 				async onmatch() {
 					const {showGiftCardDialog} = await import("./misc/LoginUtils")
 					showGiftCardDialog(location.hash)
@@ -277,7 +278,7 @@ import("./translations/en")
 					return null
 				},
 			},
-			recoverViewResolver: {
+			recover: {
 				async onmatch(args: any) {
 					const {showRecoverDialog} = await import("./misc/LoginUtils")
 					const resetAction = args.resetAction === "password" || args.resetAction === "secondFactor" ? args.resetAction : "password"
@@ -289,6 +290,17 @@ import("./translations/en")
 					return null
 				},
 			},
+			webauthn: createViewResolver(
+				async () => {
+					const {BrowserWebauthn} = await import("./misc/2fa/webauthn/BrowserWebauthn.js")
+					const {NativeWebauthnView} = await import("./login/NativeWebauthnView.js")
+					const {WebauthnNativeBridge} = await import("./native/main/WebauthnNativeBridge.js")
+					const creds = navigator.credentials
+					return new NativeWebauthnView(new BrowserWebauthn(creds, window.location.hostname), new WebauthnNativeBridge())
+				},
+				false,
+				false
+			)
 		})
 		// see https://github.com/MithrilJS/mithril.js/issues/2659
 		m.route.prefix = neverNull(state.prefix).replace(/(?:%[a-f89][a-f0-9])+/gim, decodeURIComponent)

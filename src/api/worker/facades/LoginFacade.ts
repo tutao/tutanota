@@ -404,6 +404,11 @@ export class LoginFacadeImpl implements LoginFacade {
 			session: sessionId,
 		})
 		await serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.DELETE, secondFactorAuthDeleteData)
+			.catch(ofClass(NotFoundError, (e) => {
+				// This can happen during some odd behavior in browser where main loop would be blocked by webauthn (hello, FF) and then we would try to
+				// cancel too late. No harm here anyway if the session is already gone.
+				console.warn("Tried to cancel second factor but it was not there anymore", e)
+			}))
 		this._loginRequestSessionId = null
 		this._loggingInPromiseWrapper && this._loggingInPromiseWrapper.reject(new CancelledError("login cancelled"))
 	}

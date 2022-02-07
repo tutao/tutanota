@@ -12,33 +12,33 @@ export type Command<T> = (msg: Request<T>) => Promise<any>
 export type Commands<T extends string> = Record<T, Command<T>>
 export type Message<Type> = Request<Type> | Response<Type> | RequestError<Type>
 
-export interface Transport<RequestCommandType, ResponseCommandType> {
+export interface Transport<OutgoingCommandType, IncomingCommandType> {
 	/**
 	 * Post a message to the other side of the transport
 	 */
-	postMessage(message: Message<RequestCommandType>): void
+	postMessage(message: Message<OutgoingCommandType>): void
 
 	/**
 	 * Set the handler for messages coming from the other end of the transport
 	 */
-	setMessageHandler(handler: (message: Message<ResponseCommandType>) => unknown): unknown
+	setMessageHandler(handler: (message: Message<IncomingCommandType>) => unknown): unknown
 }
 
 /**
  * Queue transport for both WorkerClient and WorkerImpl
  */
-export class WorkerTransport<RequestType, ResponseType> implements Transport<RequestType, ResponseType> {
+export class WorkerTransport<OutgoingCommandType, IncomingCommandType> implements Transport<OutgoingCommandType, IncomingCommandType> {
 	_worker: Worker | DedicatedWorkerGlobalScope
 
 	constructor(worker: Worker | DedicatedWorkerGlobalScope) {
 		this._worker = worker
 	}
 
-	postMessage(message: Message<RequestType>): void {
+	postMessage(message: Message<OutgoingCommandType>): void {
 		return this._worker.postMessage(message)
 	}
 
-	setMessageHandler(handler: (message: Message<ResponseType>) => unknown) {
+	setMessageHandler(handler: (message: Message<IncomingCommandType>) => unknown) {
 		this._worker.onmessage = (ev: MessageEvent) => handler(downcast(ev.data))
 	}
 }
