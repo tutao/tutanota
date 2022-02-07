@@ -6,7 +6,7 @@ import {createLogFile} from "../api/common/Logger"
 import {downcast, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {clientInfoString, showUserError} from "../misc/ErrorHandlerImpl"
 import {locator} from "../api/main/MainLocator"
-import {lang} from "../misc/LanguageViewModel"
+import {InfoLink, lang} from "../misc/LanguageViewModel"
 import {newMailEditorFromTemplate} from "../mail/editor/MailEditor"
 import {createDataFile} from "../api/common/DataFile"
 import {UserError} from "../api/main/UserError"
@@ -18,7 +18,7 @@ export class AboutDialog implements Component {
 			m(".center.mt", "Powered by"),
 			m(".center.mt", m.trust(getColouredTutanotaLogo())),
 			m(".flex.justify-center.mt-l.flex-wrap", [
-				this._aboutLink(lang.getInfoLink("homePage_link"), "Website"),
+				this._aboutLink(InfoLink.HomePage, "Website"),
 				this._aboutLink("https://github.com/tutao/tutanota/releases", "Releases"),
 			]),
 			m(".flex.justify-center.flex-wrap", [m("p.center.mt.mlr", `v${env.versionNumber}`), m("p.text-center.mlr", "GPL-v3"), m("p", "© 2021 Tutao GmbH")]),

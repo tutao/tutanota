@@ -1,7 +1,7 @@
 import {DomainDnsStatus} from "../DomainDnsStatus"
 import m, {ChildArray, Children, Vnode, VnodeDOM} from "mithril"
 import {assertEnumValue, CustomDomainCheckResult, DnsRecordType, DnsRecordValidation, getAsEnumValue} from "../../api/common/TutanotaConstants"
-import {lang, TranslationKey} from "../../misc/LanguageViewModel"
+import {InfoLink, lang, TranslationKey} from "../../misc/LanguageViewModel"
 import type {AddDomainData} from "./AddDomainWizard"
 import {createDnsRecordTableN} from "./AddDomainWizard"
 import {Dialog} from "../../gui/base/Dialog"
@@ -155,7 +155,7 @@ export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButt
 			m(".mt-m.mb-s", lang.get("setDnsRecords_msg")),
 			createDnsRecordTableN(validatedRecords, refreshButtonAttrs),
 			m("span.small.mt-m", lang.get("moreInfo_msg") + " "),
-			m("span.small", m(`a[href=${lang.getInfoLink("domainInfo_link")}][target=_blank]`, lang.getInfoLink("domainInfo_link")))
+			m("span.small", m(`a[href=${InfoLink.DomainInfo}][target=_blank]`, InfoLink.DomainInfo))
 		]
 	} else {
 		const errorMessageMap: Record<CustomDomainCheckResult, TranslationKey> = {

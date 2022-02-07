@@ -181,7 +181,7 @@ export function makeListSelectionChangedScrollHandler(scrollDom: HTMLElement, en
  */
 export function ifAllowedTutanotaLinks(linkId: InfoLink, render: (arg0: string) => Children): Children | null {
 	if (logins.getUserController().isGlobalAdmin() || !logins.isWhitelabel()) {
-		return render(lang.getInfoLink(linkId))
+		return render(linkId)
 	}
 
 	return null

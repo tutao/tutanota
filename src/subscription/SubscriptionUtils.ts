@@ -1,6 +1,5 @@
-import m, {Component} from "mithril"
+import {Component} from "mithril"
 import type {TranslationKey} from "../misc/LanguageViewModel"
-import {lang} from "../misc/LanguageViewModel"
 import {AccountType, BookingItemFeatureType, Const} from "../api/common/TutanotaConstants"
 import {getCurrentCount} from "./PriceUtils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
@@ -13,9 +12,6 @@ import {serviceRequestVoid} from "../api/main/ServiceRequest"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {Dialog} from "../gui/base/Dialog"
-import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
-import {htmlSanitizer} from "../misc/HtmlSanitizer"
-import {ButtonType} from "../gui/base/ButtonN"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {ofClass} from "@tutao/tutanota-utils"
 import Stream from "mithril/stream";
@@ -472,47 +468,6 @@ export function buySharing(enable: boolean): Promise<boolean> {
  */
 export function buyBusiness(enable: boolean): Promise<boolean> {
 	return bookItem(BookingItemFeatureType.Business, enable ? 1 : 0)
-}
-
-export async function showServiceTerms(section: "terms" | "privacy" | "giftCards") {
-	const terms = await import("./terms.js")
-	let visibleLang: "en" | "de" = lang.code.startsWith("de") ? "de" : "en"
-	let dialog: Dialog
-	let sanitizedTerms: string
-
-	function getSection(): string {
-		const langSection: string = section + "_" + visibleLang
-		// @ts-ignore
-		const dirtyText: string = terms[langSection]
-		return htmlSanitizer.sanitizeHTML(dirtyText, {
-			blockExternalContent: false,
-		}).text
-	}
-
-	let headerBarAttrs: DialogHeaderBarAttrs = {
-		left: [
-			{
-				label: () => "EN/DE",
-				click: () => {
-					visibleLang = visibleLang === "de" ? "en" : "de"
-					sanitizedTerms = getSection()
-					m.redraw()
-				},
-				type: ButtonType.Secondary,
-			},
-		],
-		right: [
-			{
-				label: "ok_action",
-				click: () => dialog.close(),
-				type: ButtonType.Primary,
-			},
-		],
-	}
-	sanitizedTerms = getSection()
-	dialog = Dialog.largeDialog(headerBarAttrs, {
-		view: () => m(".text-break", m.trust(sanitizedTerms)),
-	}).show()
 }
 
 function getBookingItemErrorMsg(feature: BookingItemFeatureType): TranslationKey {

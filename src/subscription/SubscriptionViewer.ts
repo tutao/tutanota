@@ -1,9 +1,9 @@
 import m, {Children} from "mithril"
-import {assertMainOrNode, isApp} from "../api/common/Env"
+import {assertMainOrNode} from "../api/common/Env"
 import {AccountType, AccountTypeNames, BookingItemFeatureType, Const, OperationType} from "../api/common/TutanotaConstants"
 import type {Customer} from "../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {assertNotNull, downcast, neverNull, noOp} from "@tutao/tutanota-utils"
+import {assertNotNull, downcast, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {serviceRequest} from "../api/main/ServiceRequest"
@@ -28,6 +28,7 @@ import * as ContactFormEditor from "../settings/ContactFormEditor"
 import {showUpgradeWizard} from "./UpgradeSubscriptionWizard"
 import {showSwitchDialog} from "./SwitchSubscriptionDialog"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {showDeleteAccountDialog} from "./DeleteAccountDialog"
 import type {OrderProcessingAgreement} from "../api/entities/sys/OrderProcessingAgreement"
 import {OrderProcessingAgreementTypeRef} from "../api/entities/sys/OrderProcessingAgreement"
@@ -46,7 +47,7 @@ import {
 	isBusinessFeatureActive,
 	isSharingActive,
 	isWhitelabelActive,
-	showServiceTerms,
+
 } from "./SubscriptionUtils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
@@ -67,8 +68,13 @@ import {elementIdPart, GENERATED_MAX_ID, getEtId} from "../api/common/utils/Enti
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {showStorageCapacityOptionsDialog} from "./StorageCapacityOptionsDialog"
 import type {UpdatableSettingsViewer} from "../settings/SettingsView"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
-import Stream from "mithril/stream";
+import {
+	CURRENT_GIFT_CARD_TERMS_VERSION,
+	CURRENT_PRIVACY_VERSION,
+	CURRENT_TERMS_VERSION,
+	renderTermsAndConditionsButton,
+	TermsSection
+} from "./TermsAndConditions"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
@@ -130,8 +136,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			label: "show_action",
 			click: () =>
 				locator.entityClient
-					.load(GroupInfoTypeRef, neverNull(this._orderAgreement).signerUserGroupInfo)
-					.then(signerUserGroupInfo => SignOrderAgreementDialog.showForViewing(neverNull(this._orderAgreement), signerUserGroupInfo)),
+					   .load(GroupInfoTypeRef, neverNull(this._orderAgreement).signerUserGroupInfo)
+					   .then(signerUserGroupInfo => SignOrderAgreementDialog.showForViewing(neverNull(this._orderAgreement), signerUserGroupInfo)),
 			icon: () => Icons.Download,
 		} as const
 		let subscriptionPeriods = [
@@ -314,6 +320,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						disabled: true,
 					})
 					: null,
+				m(".small.mt-s", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
+				m(".small.mt-s", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
 				m(
 					SettingsExpander,
 					{
@@ -414,19 +422,19 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		}
 
 		locator.entityClient
-			.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-			.then(customer => {
-				this._updateCustomerData(customer)
+			   .load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+			   .then(customer => {
+				   this._updateCustomerData(customer)
 
-				return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
-			})
-			.then(customerInfo => {
-				this._customerInfo = customerInfo
-				return locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
-			})
-			.then(accountingInfo => {
-				this._updateAccountInfoData(accountingInfo)
-			})
+				   return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+			   })
+			   .then(customerInfo => {
+				   this._customerInfo = customerInfo
+				   return locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+			   })
+			   .then(accountingInfo => {
+				   this._updateAccountInfoData(accountingInfo)
+			   })
 		const loadingString = lang.get("loading_msg")
 		this._currentPriceFieldValue = stream(loadingString)
 		this._subscriptionFieldValue = stream(loadingString)
@@ -561,38 +569,38 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	_updateBookings(): Promise<void> {
 		return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 			return locator.entityClient
-				.load(CustomerInfoTypeRef, customer.customerInfo)
-				.catch(
-					ofClass(NotFoundError, e => {
-						console.log("could not update bookings as customer info does not exist (moved between free/premium lists)")
-					}),
-				)
-				.then(customerInfo => {
-					if (!customerInfo) {
-						return
-					}
+						  .load(CustomerInfoTypeRef, customer.customerInfo)
+						  .catch(
+							  ofClass(NotFoundError, e => {
+								  console.log("could not update bookings as customer info does not exist (moved between free/premium lists)")
+							  }),
+						  )
+						  .then(customerInfo => {
+							  if (!customerInfo) {
+								  return
+							  }
 
-					this._customerInfo = customerInfo
-					return locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true).then(bookings => {
-						this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
-						this._customer = customer
-						this._isCancelled = customer.canceledPremiumAccount
-						this._currentSubscription = getSubscriptionType(this._lastBooking, customer, customerInfo)
+							  this._customerInfo = customerInfo
+							  return locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true).then(bookings => {
+								  this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
+								  this._customer = customer
+								  this._isCancelled = customer.canceledPremiumAccount
+								  this._currentSubscription = getSubscriptionType(this._lastBooking, customer, customerInfo)
 
-						this._updateSubscriptionField(this._isCancelled)
+								  this._updateSubscriptionField(this._isCancelled)
 
-						return Promise.all([
-							this._updateUserField(),
-							this._updateStorageField(customer, customerInfo),
-							this._updateAliasField(customer, customerInfo),
-							this._updateGroupsField(),
-							this._updateWhitelabelField(),
-							this._updateSharingField(),
-							this._updateBusinessFeatureField(),
-							this._updateContactFormsField(),
-						]).then(() => m.redraw())
-					})
-				})
+								  return Promise.all([
+									  this._updateUserField(),
+									  this._updateStorageField(customer, customerInfo),
+									  this._updateAliasField(customer, customerInfo),
+									  this._updateGroupsField(),
+									  this._updateWhitelabelField(),
+									  this._updateSharingField(),
+									  this._updateBusinessFeatureField(),
+									  this._updateContactFormsField(),
+								  ]).then(() => m.redraw())
+							  })
+						  })
 		})
 	}
 
@@ -707,11 +715,11 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
 			return locator.entityClient
-				.load(AccountingInfoTypeRef, instanceId)
-				.then(accountingInfo => this._updateAccountInfoData(accountingInfo))
-				.then(() => {
-					return this._updatePriceInfo()
-				})
+						  .load(AccountingInfoTypeRef, instanceId)
+						  .then(accountingInfo => this._updateAccountInfoData(accountingInfo))
+						  .then(() => {
+							  return this._updatePriceInfo()
+						  })
 		} else if (isUpdateForTypeRef(UserTypeRef, update)) {
 			return this._updateBookings().then(() => {
 				return this._updatePriceInfo()
@@ -814,9 +822,9 @@ function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => bo
 									okAction: (dialog: Dialog) => {
 										giftCard.message = message()
 										locator.entityClient
-											.update(giftCard)
-											.then(() => dialog.close())
-											.catch(() => Dialog.message("giftCardUpdateError_msg"))
+											   .update(giftCard)
+											   .then(() => dialog.close())
+											   .catch(() => Dialog.message("giftCardUpdateError_msg"))
 										showGiftCardToShare(giftCard)
 									},
 									okActionTextId: "save_action",
@@ -839,18 +847,7 @@ function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => bo
 		}),
 		m(
 			".small",
-			m(
-				`a[href=${lang.getInfoLink("giftCardsTerms_link")}][target=_blank]`,
-				{
-					onclick: (e: MouseEvent) => {
-						if (isApp()) {
-							showServiceTerms("giftCards")
-							e.preventDefault()
-						}
-					},
-				},
-				lang.get("giftCardTerms_label"),
-			),
+			renderTermsAndConditionsButton(TermsSection.GiftCards, CURRENT_GIFT_CARD_TERMS_VERSION)
 		),
 	]
 }

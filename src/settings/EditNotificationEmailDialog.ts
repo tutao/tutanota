@@ -1,7 +1,7 @@
 import type {NotificationMailTemplate} from "../api/entities/sys/NotificationMailTemplate"
 import {createNotificationMailTemplate} from "../api/entities/sys/NotificationMailTemplate"
 import {HtmlEditor} from "../gui/editor/HtmlEditor"
-import {lang, languages} from "../misc/LanguageViewModel"
+import {InfoLink, lang, languages} from "../misc/LanguageViewModel"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {Dialog, DialogType} from "../gui/base/Dialog"
@@ -51,8 +51,8 @@ export function showAddOrEditNotificationEmailDialog(userController: IUserContro
 						.then(customerInfo => {
 							return customerInfo.bookings
 								? locator.entityClient
-									.loadRange(BookingTypeRef, customerInfo.bookings.items, GENERATED_MAX_ID, 1, true)
-									.then(bookings => (bookings.length === 1 ? bookings[0] : null))
+										 .loadRange(BookingTypeRef, customerInfo.bookings.items, GENERATED_MAX_ID, 1, true)
+										 .then(bookings => (bookings.length === 1 ? bookings[0] : null))
 								: null
 						})
 						.then(lastBooking => {
@@ -261,7 +261,7 @@ function getDefaultNotificationMail(): string {
 		HTML_PTAG_END +
 		HTML_PTAG_START +
 		lang.get("externalNotificationMailBody2_msg", {
-			"{1}": lang.getInfoLink("homePage_link"),
+			"{1}": InfoLink.HomePage,
 		}) +
 		HTML_PTAG_END +
 		HTML_PTAG_START +

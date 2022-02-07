@@ -3,7 +3,7 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {lang} from "../misc/LanguageViewModel"
+import {InfoLink, lang} from "../misc/LanguageViewModel"
 import {PasswordForm} from "./PasswordForm"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
@@ -94,7 +94,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		const recoveryCodeFieldAttrs: TextFieldAttrs = {
 			label: "recoveryCode_label",
 			helpLabel: () => {
-				return ifAllowedTutanotaLinks("recoverCode_link", link => [
+				return ifAllowedTutanotaLinks(InfoLink.RecoverCode, link => [
 					m("span", lang.get("moreInfo_msg") + " "),
 					m("span.text-break", [m(`a[href=${link}][target=_blank]`, link)]),
 				])

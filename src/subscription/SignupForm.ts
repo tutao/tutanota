@@ -7,7 +7,7 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {getWhitelabelRegistrationDomains} from "../login/LoginView"
 import type {NewAccountData} from "./UpgradeSubscriptionWizard"
 import {SelectMailAddressForm, SelectMailAddressFormAttrs} from "../settings/SelectMailAddressForm"
-import {isApp, isTutanotaDomain} from "../api/common/Env"
+import {isTutanotaDomain} from "../api/common/Env"
 import {AccountType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
 import {PasswordForm} from "../settings/PasswordForm"
 import type {CheckboxAttrs} from "../gui/base/CheckboxN"
@@ -22,7 +22,6 @@ import {showWorkerProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {AccessDeactivatedError, AccessExpiredError, InvalidDataError} from "../api/common/error/RestError"
 import {createRegistrationCaptchaServiceGetData} from "../api/entities/sys/RegistrationCaptchaServiceGetData"
 import {deviceConfig} from "../misc/DeviceConfig"
-import {showServiceTerms} from "./SubscriptionUtils"
 import {serviceRequest, serviceRequestVoid} from "../api/main/ServiceRequest"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
@@ -30,6 +29,7 @@ import {RegistrationCaptchaServiceReturnTypeRef} from "../api/entities/sys/Regis
 import {createRegistrationCaptchaServiceData} from "../api/entities/sys/RegistrationCaptchaServiceData"
 import {locator} from "../api/main/MainLocator"
 import {deleteCampaign} from "../misc/LoginUtils"
+import {CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection} from "./TermsAndConditions"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -153,36 +153,8 @@ export class SignupForm implements Component<SignupFormAttrs> {
 function renderTermsLabel(): Children {
 	return [
 		m("div", lang.get("termsAndConditions_label")),
-		m(
-			"div",
-			m(
-				`a[href=${lang.getInfoLink("terms_link")}][target=_blank]`,
-				{
-					onclick: (e: MouseEvent) => {
-						if (isApp()) {
-							showServiceTerms("terms")
-							e.preventDefault()
-						}
-					},
-				},
-				lang.get("termsAndConditionsLink_label"),
-			),
-		),
-		m(
-			"div",
-			m(
-				`a[href=${lang.getInfoLink("privacy_link")}][target=_blank]`,
-				{
-					onclick: (e: MouseEvent) => {
-						if (isApp()) {
-							showServiceTerms("privacy")
-							e.preventDefault()
-						}
-					},
-				},
-				lang.get("privacyLink_label"),
-			),
-		),
+		m("div", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
+		m("div", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION))
 	]
 }
 

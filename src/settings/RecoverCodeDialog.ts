@@ -1,4 +1,4 @@
-import {lang} from "../misc/LanguageViewModel"
+import {InfoLink, lang} from "../misc/LanguageViewModel"
 import stream from "mithril/stream"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {Dialog, DialogType} from "../gui/base/Dialog"
@@ -61,7 +61,7 @@ export type RecoverCodeFieldAttrs = {
 
 export class RecoverCodeField {
 	view(vnode: Vnode<RecoverCodeFieldAttrs>): Children {
-		const lnk = lang.getInfoLink("recoverCode_link")
+		const lnk = InfoLink.RecoverCode
 		return [
 			vnode.attrs.showMessage
 				? m(".pt.pb", [

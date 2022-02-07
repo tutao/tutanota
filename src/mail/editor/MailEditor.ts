@@ -5,7 +5,7 @@ import {Editor} from "../../gui/editor/Editor"
 import type {Attachment, Recipients, ResponseMailParameters} from "./SendMailModel"
 import {defaultSendMailModel, SendMailModel} from "./SendMailModel"
 import {Dialog} from "../../gui/base/Dialog"
-import {lang} from "../../misc/LanguageViewModel"
+import {InfoLink, lang} from "../../misc/LanguageViewModel"
 import type {MailboxDetail} from "../model/MailModel"
 import {checkApprovalStatus} from "../../misc/LoginUtils"
 import {checkAttachmentSize, conversationTypeString, getEnabledMailAddressesWithUser, LINE_BREAK, RecipientField} from "../model/MailUtils"
@@ -866,7 +866,7 @@ export function writeSupportMail(subject: string = "", mailboxDetails?: MailboxD
 					"{1}": formatPrice(1, true),
 				})
 				const title = lang.get("upgradeReminderTitle_msg")
-				return Dialog.reminder(title, message, lang.getInfoLink("premiumProBusiness_link"))
+				return Dialog.reminder(title, message, InfoLink.PremiumProBusiness)
 			})
 			.then(confirm => {
 				if (confirm) {

@@ -10,7 +10,6 @@ import {_TypeModel as GiftCardTypeModel, GiftCardTypeRef} from "../../api/entiti
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang, TranslationText} from "../../misc/LanguageViewModel"
 import {UserError} from "../../api/main/UserError"
-import {showServiceTerms} from "../SubscriptionUtils"
 import {Dialog} from "../../gui/base/Dialog"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
@@ -36,6 +35,7 @@ import {elementIdPart, GENERATED_MAX_ID} from "../../api/common/utils/EntityUtil
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import {formatPrice} from "../PriceUtils"
 import Stream from "mithril/stream";
+import {CURRENT_GIFT_CARD_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection} from "../TermsAndConditions"
 
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH = 24
@@ -414,18 +414,7 @@ export function renderAcceptGiftCardTermsCheckbox(confirmed: Stream<boolean>): C
 			m("", lang.get("termsAndConditions_label")),
 			m(
 				"div",
-				m(
-					`a[href=${lang.getInfoLink("giftCardsTerms_link")}][target=_blank]`,
-					{
-						onclick: (e: MouseEvent) => {
-							if (isApp()) {
-								showServiceTerms("giftCards")
-								e.preventDefault()
-							}
-						},
-					},
-					lang.get("giftCardTerms_label"),
-				),
+				renderTermsAndConditionsButton(TermsSection.GiftCards, CURRENT_GIFT_CARD_TERMS_VERSION)
 			),
 		],
 	})

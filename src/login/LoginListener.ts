@@ -9,7 +9,7 @@ import {locator} from "../api/main/MainLocator"
 import {serviceRequestVoid} from "../api/main/ServiceRequest"
 import {TutanotaService} from "../api/entities/tutanota/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
-import {lang} from "../misc/LanguageViewModel"
+import {InfoLink, lang} from "../misc/LanguageViewModel"
 import {getHourCycle} from "../misc/Formatter"
 import type {OutOfOfficeNotification} from "../api/entities/tutanota/OutOfOfficeNotification"
 import {isNotificationCurrentlyActive, loadOutOfOfficeNotification} from "../misc/OutOfOfficeNotificationUtils"
@@ -92,24 +92,24 @@ class LoginListener implements LoginEventHandler {
 		this.asyncActions()
 	}
 
-	async asyncActions() {
+	private async asyncActions() {
 		await checkApprovalStatus(logins, true)
-		await this._showUpgradeReminder()
-		await this._checkStorageWarningLimit()
+		await this.showUpgradeReminder()
+		await this.checkStorageWarningLimit()
 
 		this._secondFactorHandler.setupAcceptOtherClientLoginListener()
 
 		if (!isAdminClient()) {
 			await locator.mailModel.init()
 			await locator.calendarModel.init()
-			await this._remindActiveOutOfOfficeNotification()
+			await this.remindActiveOutOfOfficeNotification()
 		}
 
 		if (isApp() || isDesktop()) {
 			// don't wait for it, just invoke
 			locator.fileApp.clearFileData().catch(e => console.log("Failed to clean file data", e))
 			locator.pushService.register()
-			await this._maybeSetCustomTheme()
+			await this.maybeSetCustomTheme()
 		}
 
 		if (logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
@@ -123,15 +123,15 @@ class LoginListener implements LoginEventHandler {
 			hourCycle: getHourCycle(logins.getUserController().userSettingsGroupRoot),
 		})
 
-		this._enforcePasswordChange()
+		this.enforcePasswordChange()
 	}
 
-	_deactivateOutOfOfficeNotification(notification: OutOfOfficeNotification): Promise<void> {
+	private deactivateOutOfOfficeNotification(notification: OutOfOfficeNotification): Promise<void> {
 		notification.enabled = false
 		return locator.entityClient.update(notification)
 	}
 
-	_remindActiveOutOfOfficeNotification(): Promise<void> {
+	private remindActiveOutOfOfficeNotification(): Promise<void> {
 		return loadOutOfOfficeNotification().then(notification => {
 			if (notification && isNotificationCurrentlyActive(notification, new Date())) {
 				const notificationMessage: Component = {
@@ -147,7 +147,7 @@ class LoginListener implements LoginEventHandler {
 					[
 						{
 							label: "deactivate_action",
-							click: () => this._deactivateOutOfOfficeNotification(notification),
+							click: () => this.deactivateOutOfOfficeNotification(notification),
 							type: ButtonType.Primary,
 						},
 					],
@@ -156,7 +156,7 @@ class LoginListener implements LoginEventHandler {
 		})
 	}
 
-	async _maybeSetCustomTheme(): Promise<any> {
+	private async maybeSetCustomTheme(): Promise<any> {
 		const domainInfoAndConfig = await logins.getUserController().loadWhitelabelConfig()
 
 		if (domainInfoAndConfig && domainInfoAndConfig.whitelabelConfig.jsonTheme) {
@@ -181,7 +181,7 @@ class LoginListener implements LoginEventHandler {
 		}
 	}
 
-	_checkStorageWarningLimit(): Promise<void> {
+	private checkStorageWarningLimit(): Promise<void> {
 		if (!logins.getUserController().isGlobalAdmin()) {
 			return Promise.resolve()
 		}
@@ -198,7 +198,7 @@ class LoginListener implements LoginEventHandler {
 		})
 	}
 
-	_showUpgradeReminder(): Promise<void> {
+	private showUpgradeReminder(): Promise<void> {
 		if (logins.getUserController().isFreeAccount() && env.mode !== Mode.App) {
 			return logins
 				.getUserController()
@@ -212,7 +212,7 @@ class LoginListener implements LoginEventHandler {
 							) {
 								let message = lang.get("premiumOffer_msg")
 								let title = lang.get("upgradeReminderTitle_msg")
-								return Dialog.reminder(title, message, lang.getInfoLink("premiumProBusiness_link"))
+								return Dialog.reminder(title, message, InfoLink.PremiumProBusiness)
 											 .then(confirm => {
 												 if (confirm) {
 													 import("../subscription/UpgradeSubscriptionWizard").then(wizard => wizard.showUpgradeWizard())
@@ -231,7 +231,7 @@ class LoginListener implements LoginEventHandler {
 		}
 	}
 
-	_enforcePasswordChange(): void {
+	private enforcePasswordChange(): void {
 		if (logins.getUserController().user.requirePasswordUpdate) {
 			import("../settings/PasswordForm").then(({PasswordForm}) => {
 				return PasswordForm.showChangeOwnPasswordDialog(false)

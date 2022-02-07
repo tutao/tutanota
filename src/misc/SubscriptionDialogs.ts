@@ -4,7 +4,7 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {neverNull} from "@tutao/tutanota-utils"
 import {Dialog} from "../gui/base/Dialog"
 import type {TranslationKey} from "./LanguageViewModel"
-import {lang} from "./LanguageViewModel"
+import {InfoLink, lang} from "./LanguageViewModel"
 import {isIOSApp} from "../api/common/Env"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import type {clickHandler} from "../gui/base/GuiUtils"
@@ -26,7 +26,7 @@ export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean): voi
 				lang.get("premiumOffer_msg", {
 					"{1}": priceUtils.formatPrice(1, true),
 				})
-			Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, lang.getInfoLink("premiumProBusiness_link")).then(confirmed => {
+			Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, InfoLink.PremiumProBusiness).then(confirmed => {
 				if (confirmed) {
 					wizard.showUpgradeWizard()
 				}
