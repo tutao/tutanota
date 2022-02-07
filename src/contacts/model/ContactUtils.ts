@@ -29,7 +29,8 @@ export function formatBirthdayNumeric(birthday: Birthday): string {
 	if (birthday.year) {
 		return formatDate(new Date(Number(birthday.year), Number(birthday.month) - 1, Number(birthday.day)))
 	} else {
-		return lang.formats.simpleDateWithoutYear.format(new Date(Number(2011), Number(birthday.month) - 1, Number(birthday.day)))
+		//if no year is specified a leap year is used to allow 2/29 as birthday
+		return lang.formats.simpleDateWithoutYear.format(new Date(Number(2016), Number(birthday.month) - 1, Number(birthday.day)))
 	}
 }
 

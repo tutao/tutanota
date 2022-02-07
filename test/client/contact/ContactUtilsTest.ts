@@ -158,6 +158,10 @@ o.spec("ContactUtilsTest", function () {
 		leapYearBirthday.month = "2"
 		leapYearBirthday.day = "29"
 
+		const leapYearBirthdayNoYear = createBirthday()
+		leapYearBirthdayNoYear.month = "2"
+		leapYearBirthdayNoYear.day = "29"
+
 		// Chrome date bug issue: https://github.com/tutao/tutanota/issues/414
 		const chromeBugBirthday = createBirthday()
 		chromeBugBirthday.year = "1911"
@@ -166,6 +170,7 @@ o.spec("ContactUtilsTest", function () {
 
 		lang._setLanguageTag("en")
 		o(formatBirthdayNumeric(leapYearBirthday)).equals("2/29/2016")
+		o(formatBirthdayNumeric(leapYearBirthdayNoYear)).equals("2/29")
 		o(formatBirthdayNumeric(chromeBugBirthday)).equals("8/15/1911")
 
 		lang._setLanguageTag("de")
