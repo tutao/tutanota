@@ -197,6 +197,13 @@ const map = {
     BlobId: () => import('./BlobId.js'),
     TargetServer: () => import('./TargetServer.js'),
     BlobAccessInfo: () => import('./BlobAccessInfo.js'),
-    WebauthnResponseData: () => import('./WebauthnResponseData.js')
+    WebauthnResponseData: () => import('./WebauthnResponseData.js'),
+    UsageTestPingData: () => import('./UsageTestPingData.js'),
+    UsageTestAssignmentPostIn: () => import('./UsageTestAssignmentPostIn.js'),
+    UsageTestAssignment: () => import('./UsageTestAssignment.js'),
+    UsageTestAssignmentPostOut: () => import('./UsageTestAssignmentPostOut.js'),
+    UsageTestParticipationPostIn: () => import('./UsageTestParticipationPostIn.js'),
+    UsageTestParticipationPutIn: () => import('./UsageTestParticipationPutIn.js'),
+    UsageTestParticipationPostOut: () => import('./UsageTestParticipationPostOut.js')
 }
 export default map

@@ -43,4 +43,6 @@ export const enum SysService {
 	TakeOverDeletedAddressService = "takeoverdeletedaddressservice",
 	GiftCardService = "giftcardservice",
 	GiftCardRedeemService = "giftcardredeemservice",
+	UsageTestAssignmentService = "usagetestassignmentservice",
+	UsageTestParticipationService = "usagetestparticipationservice",
 }
