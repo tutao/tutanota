@@ -1,6 +1,6 @@
 import m, {Component} from "mithril"
 import {MailView} from "./MailView"
-import {assertMainOrNode, isApp, Mode} from "../../api/common/Env"
+import {assertMainOrNode, isApp} from "../../api/common/Env"
 import {ActionBar} from "../../gui/base/ActionBar"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import {lang} from "../../misc/LanguageViewModel"

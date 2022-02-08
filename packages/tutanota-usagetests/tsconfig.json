@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig_common.json",
+  "include": [
+	"lib/**/*"
+  ],
+  "files": [
+	"lib/index.ts"
+  ],
+  "compilerOptions": {
+	"outDir": "dist"
+  }
+}

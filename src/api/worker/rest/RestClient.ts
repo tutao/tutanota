@@ -1,11 +1,5 @@
 import {assertWorkerOrNode, getHttpOrigin, isAdminClient, isWorker} from "../../common/Env"
-import {
-	ConnectionError,
-	handleRestError,
-	PayloadTooLargeError,
-	ServiceUnavailableError,
-	TooManyRequestsError
-} from "../../common/error/RestError"
+import {ConnectionError, handleRestError, PayloadTooLargeError, ServiceUnavailableError, TooManyRequestsError} from "../../common/error/RestError"
 import {HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {assertNotNull, typedEntries, uint8ArrayToArrayBuffer} from "@tutao/tutanota-utils"
 import {SuspensionHandler} from "../SuspensionHandler"

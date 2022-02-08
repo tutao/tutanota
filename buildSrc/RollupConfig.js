@@ -121,7 +121,8 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 		moduleId.includes(path.normalize("src/misc/ErrorHandlerImpl")) ||
 		moduleId.includes(path.normalize("src/misc")) ||
 		moduleId.includes(path.normalize("src/file")) ||
-		moduleId.includes(path.normalize("src/gui"))
+		moduleId.includes(path.normalize("src/gui")) ||
+		moduleId.includes(path.normalize("packages/tutanota-usagetests"))
 	) {
 		// Things which we always need for main thread anyway, at least currently
 		return "main"

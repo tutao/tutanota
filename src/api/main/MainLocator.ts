@@ -50,6 +50,8 @@ import {exposeRemote} from "../common/WorkerProxy"
 import {ExposedNativeInterface} from "../../native/common/NativeInterface"
 import {IWebauthn} from "../../misc/2fa/webauthn/IWebauthn.js"
 import {BrowserWebauthn} from "../../misc/2fa/webauthn/BrowserWebauthn.js"
+import {UsageTestController} from "@tutao/tutanota-usagetests"
+import {UsageTestModel} from "../../misc/UsageTestModel"
 
 assertMainOrNode()
 
@@ -89,6 +91,8 @@ export interface IMainLocator {
 	readonly userManagementFacade: UserManagementFacade
 	readonly contactFormFacade: ContactFormFacade
 	readonly deviceEncryptionFacade: DeviceEncryptionFacade
+	readonly usageTestController: UsageTestController
+	readonly usageTestModel: UsageTestModel
 
 	readonly init: () => Promise<void>
 	readonly initialized: Promise<void>
@@ -125,6 +129,8 @@ class MainLocator implements IMainLocator {
 	userManagementFacade!: UserManagementFacade
 	contactFormFacade!: ContactFormFacade
 	deviceEncryptionFacade!: DeviceEncryptionFacade
+	usageTestController!: UsageTestController
+	usageTestModel!: UsageTestModel
 
 	private _nativeInterfaces: NativeInterfaces | null = null
 
@@ -238,6 +244,7 @@ class MainLocator implements IMainLocator {
 		this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, this.webauthnClient, this.loginFacade)
 		this.credentialsProvider = await createCredentialsProvider(deviceEncryptionFacade, this._nativeInterfaces?.native ?? null)
 		this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient)
+		this.usageTestModel = new UsageTestModel()
 
 		const lazyScheduler = async () => {
 			const {AlarmSchedulerImpl} = await import("../../calendar/date/AlarmScheduler")
@@ -261,6 +268,8 @@ class MainLocator implements IMainLocator {
 		this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, logins)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
 		this.fileController = new FileController(this._nativeInterfaces?.fileApp ?? null)
+		this.usageTestController = new UsageTestController()
+		this.usageTestController.pingAdapter = this.usageTestModel
 	}
 }
 
