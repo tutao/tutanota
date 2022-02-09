@@ -1,11 +1,12 @@
 import {TokenOrNestedTokens} from "cborg/types/interface.js"
 import {ListElementEntity, SomeEntity} from "../../common/EntityTypes.js"
 import {firstBiggerThanSecond} from "../../common/utils/EntityUtils.js"
-import {CacheStorage, expandId} from "./EntityRestCache.js"
+import {CacheStorage, expandId, isUsingOfflineCache} from "./EntityRestCache.js"
 import * as cborg from "cborg"
 import {EncodeOptions, Token, Type} from "cborg"
-import {assertNotNull, TypeRef} from "@tutao/tutanota-utils"
+import {assert, assertNotNull, TypeRef} from "@tutao/tutanota-utils"
 import type {OfflineDbFacade} from "../../../desktop/db/OfflineDbFacade"
+import {isTest} from "../../common/Env"
 
 function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNestedTokens | null {
 	return [
@@ -37,6 +38,7 @@ export class OfflineStorage implements CacheStorage {
 		private readonly offlineDbFacade: OfflineDbFacade,
 		private readonly userIdProvider: () => Id | null
 	) {
+		assert(isUsingOfflineCache() || isTest(), "Offline storage is not available.")
 	}
 
 	private get userId(): Id {
