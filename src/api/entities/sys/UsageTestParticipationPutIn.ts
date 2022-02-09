@@ -2,41 +2,41 @@ import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {UsageTestPingData} from "./UsageTestPingData.js"
+import type {UsageTestMetric} from "./UsageTestMetric.js"
 
 export const UsageTestParticipationPutInTypeRef: TypeRef<UsageTestParticipationPutIn> = new TypeRef("sys", "UsageTestParticipationPutIn")
 export const _TypeModel: TypeModel = {
 	"name": "UsageTestParticipationPutIn",
 	"since": 72,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 1958,
-	"rootId": "A3N5cwAHpg",
+	"id": 1961,
+	"rootId": "A3N5cwAHqQ",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"id": 1959,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"participationId": {
-			"id": 1961,
-			"type": "GeneratedId",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"stage": {
 			"id": 1962,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
+		"participationId": {
+			"id": 1964,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"stage": {
+			"id": 1965,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"testId": {
-			"id": 1960,
+			"id": 1963,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": false,
@@ -44,12 +44,12 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
-		"pingData": {
-			"id": 1963,
+		"metrics": {
+			"id": 1966,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "UsageTestPingData",
+			"refType": "UsageTestMetric",
 			"dependency": null
 		}
 	},
@@ -69,5 +69,5 @@ export type UsageTestParticipationPutIn = {
 	stage: NumberString;
 	testId: Id;
 
-	pingData: UsageTestPingData[];
+	metrics: UsageTestMetric[];
 }

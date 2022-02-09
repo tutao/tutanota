@@ -2,27 +2,27 @@ import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {UsageTestPingData} from "./UsageTestPingData.js"
+import type {UsageTestMetric} from "./UsageTestMetric.js"
 
 export const UsageTestParticipationPostInTypeRef: TypeRef<UsageTestParticipationPostIn> = new TypeRef("sys", "UsageTestParticipationPostIn")
 export const _TypeModel: TypeModel = {
 	"name": "UsageTestParticipationPostIn",
 	"since": 72,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 1954,
-	"rootId": "A3N5cwAHog",
+	"id": 1957,
+	"rootId": "A3N5cwAHpQ",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"id": 1955,
+			"id": 1958,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"testId": {
-			"id": 1956,
+			"id": 1959,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": false,
@@ -30,12 +30,12 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
-		"pingData": {
-			"id": 1957,
+		"metrics": {
+			"id": 1960,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "UsageTestPingData",
+			"refType": "UsageTestMetric",
 			"dependency": null
 		}
 	},
@@ -53,5 +53,5 @@ export type UsageTestParticipationPostIn = {
 	_format: NumberString;
 	testId: Id;
 
-	pingData: UsageTestPingData[];
+	metrics: UsageTestMetric[];
 }
