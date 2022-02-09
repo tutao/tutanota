@@ -3,17 +3,19 @@ import {VariantRenderer, VariantsIndex} from "../view/VariantRenderer.js"
 import {Stage} from "./Stage.js"
 import {PingAdapter} from "../storage/PingAdapter.js"
 
-const NO_PARTICIPATION_VARIANT = -1
+const NO_PARTICIPATION_VARIANT = 0
 
 export class UsageTest {
 	readonly testId: string
+	readonly testName: string
 	readonly _stages: Map<number, Stage> = new Map<number, Stage>()
 	pingAdapter?: PingAdapter
 	readonly variant: number
 	participationId?: string
 
-	constructor(testId: string, variant: number) {
+	constructor(testId: string, testName: string, variant: number) {
 		this.testId = testId
+		this.testName = testName
 		this.variant = variant
 	}
 
@@ -41,7 +43,7 @@ export class UsageTest {
 			return
 		}
 
+		console.log(`Completing stage: ${stage.number}, variant : ${this.variant}`)
 		await this.pingAdapter.sendPing(this, stage)
-		console.log(`Completed stage: ${stage.number}`)
 	}
 }

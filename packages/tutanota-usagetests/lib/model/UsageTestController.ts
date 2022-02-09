@@ -25,13 +25,23 @@ export class UsageTestController {
 		}
 	}
 
-	getTest(testId: string) {
-		let test = this.tests.get(testId)
+	/**
+	 * Searches a test first by its ID and then, if no match is found, by its name.
+	 * @param testIdOrName The test's ID or its name
+	 */
+	getTest(testIdOrName: string): UsageTest {
+		let result = this.tests.get(testIdOrName)
 
-		if (test === undefined) {
-			throw new UsageTestNotRegisteredError(`Test ${testId} is not registered`)
+		if (!!result) {
+			return result
 		}
 
-		return test
+		for (let test of this.tests.values()) {
+			if (test.testName === testIdOrName) {
+				return test
+			}
+		}
+
+		throw new UsageTestNotRegisteredError(`Test ${testIdOrName} is not registered`)
 	}
 }

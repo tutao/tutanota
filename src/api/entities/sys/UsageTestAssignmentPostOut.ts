@@ -9,13 +9,13 @@ export const _TypeModel: TypeModel = {
 	"name": "UsageTestAssignmentPostOut",
 	"since": 72,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 1951,
-	"rootId": "A3N5cwAHnw",
+	"id": 1954,
+	"rootId": "A3N5cwAHog",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"id": 1952,
+			"id": 1955,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -24,7 +24,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"assignments": {
-			"id": 1953,
+			"id": 1956,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,

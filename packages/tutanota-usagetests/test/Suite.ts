@@ -18,7 +18,7 @@ o.spec("Main", function () {
 		let variantZeroRan = false
 
 		const testId = "t123"
-		const test = new UsageTest(testId, 0)
+		const test = new UsageTest(testId, "test 123", 0)
 		test.pingAdapter = new MockPingAdapter()
 
 		test.renderVariant(new ArbitraryVariantRenderer(), {
@@ -33,15 +33,10 @@ o.spec("Main", function () {
 		const testId = "t123"
 		const pingAdapter = new MockPingAdapter()
 
-		const test = new UsageTest(testId, 2)
+		const test = new UsageTest(testId, "test 123", 2)
 		test.pingAdapter = pingAdapter
 
-		const stage0 = new Stage(0, test, new Set<string>(["metric0"]))
-
-		o(stage0.allMetricsCollected()).equals(false)
-
-		stage0.setMetric("metric0", "bla")
-		o(stage0.allMetricsCollected()).equals(true)
+		const stage0 = new Stage(0, test)
 
 		o(function () {
 			stage0.setMetric("metric1", "")
@@ -54,10 +49,10 @@ o.spec("Main", function () {
 
 	o("add tests to and retrieve from usage test controller", function () {
 		const testId1 = "t1"
-		const test1 = new UsageTest(testId1, 0)
+		const test1 = new UsageTest(testId1, "test 1", 0)
 
 		const testId2 = "t2"
-		const test2 = new UsageTest(testId2, 1)
+		const test2 = new UsageTest(testId2, "test 2", 1)
 
 		const usageTestController = new UsageTestController()
 

@@ -3,9 +3,9 @@ import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes.js"
 
 
-export const UsageTestPingDataTypeRef: TypeRef<UsageTestPingData> = new TypeRef("sys", "UsageTestPingData")
+export const UsageTestMetricTypeRef: TypeRef<UsageTestMetric> = new TypeRef("sys", "UsageTestMetric")
 export const _TypeModel: TypeModel = {
-	"name": "UsageTestPingData",
+	"name": "UsageTestMetric",
 	"since": 72,
 	"type": "AGGREGATED_TYPE",
 	"id": 1915,
@@ -40,12 +40,12 @@ export const _TypeModel: TypeModel = {
 	"version": "72"
 }
 
-export function createUsageTestPingData(values?: Partial<UsageTestPingData>): UsageTestPingData {
-	return Object.assign(create(_TypeModel, UsageTestPingDataTypeRef), downcast<UsageTestPingData>(values))
+export function createUsageTestMetric(values?: Partial<UsageTestMetric>): UsageTestMetric {
+	return Object.assign(create(_TypeModel, UsageTestMetricTypeRef), downcast<UsageTestMetric>(values))
 }
 
-export type UsageTestPingData = {
-	_type: TypeRef<UsageTestPingData>;
+export type UsageTestMetric = {
+	_type: TypeRef<UsageTestMetric>;
 
 	_id: Id;
 	type: string;

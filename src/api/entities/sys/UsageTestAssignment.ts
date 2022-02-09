@@ -8,27 +8,41 @@ export const _TypeModel: TypeModel = {
 	"name": "UsageTestAssignment",
 	"since": 72,
 	"type": "AGGREGATED_TYPE",
-	"id": 1947,
-	"rootId": "A3N5cwAHmw",
+	"id": 1948,
+	"rootId": "A3N5cwAHnA",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"id": 1948,
+			"id": 1949,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
+		"name": {
+			"id": 1951,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"numberOfStages": {
+			"id": 1953,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"testId": {
-			"id": 1949,
+			"id": 1950,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"variant": {
-			"id": 1950,
+			"id": 1952,
 			"type": "Number",
 			"cardinality": "ZeroOrOne",
 			"final": true,
@@ -48,6 +62,8 @@ export type UsageTestAssignment = {
 	_type: TypeRef<UsageTestAssignment>;
 
 	_id: Id;
+	name: string;
+	numberOfStages: NumberString;
 	testId: Id;
 	variant: null | NumberString;
 }
