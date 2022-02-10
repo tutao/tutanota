@@ -1,5 +1,6 @@
 import o from "ospec"
 
+import "./worker/facades/LoginFacadeTest.js"
 import "./common/LoggerTest.js"
 import "./common/BirthdayUtilsTest"
 import "./rest/EntityRestClientTest"
@@ -52,16 +53,17 @@ import * as td from "testdouble"
 		}
 	}
 
-	// setup the Entropy for all testcases
-	await random.addEntropy([{data: 36, entropy: 256, source: "key"}])
-	preTest()
 
-	o.before(function () {
+	o.before(async function () {
+		preTest()
 		// testdouble complains about certain mocking related code smells, and also prints a warning whenever you replace a property on an object.
 		// it's very very noisy, so we turn it off
 		td.config({
 			ignoreWarnings: true
 		})
+
+		// setup the Entropy for all testcases
+		await random.addEntropy([{data: 36, entropy: 256, source: "key"}])
 	})
 
 	o.afterEach(function () {

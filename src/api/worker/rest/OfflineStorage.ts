@@ -1,12 +1,14 @@
 import {TokenOrNestedTokens} from "cborg/types/interface.js"
 import {ListElementEntity, SomeEntity} from "../../common/EntityTypes.js"
 import {firstBiggerThanSecond} from "../../common/utils/EntityUtils.js"
-import {CacheStorage, expandId, isUsingOfflineCache} from "./EntityRestCache.js"
+import {CacheStorage, expandId} from "./EntityRestCache.js"
 import * as cborg from "cborg"
 import {EncodeOptions, Token, Type} from "cborg"
-import {assert, assertNotNull, TypeRef} from "@tutao/tutanota-utils"
+import {assert, TypeRef} from "@tutao/tutanota-utils"
 import type {OfflineDbFacade} from "../../../desktop/db/OfflineDbFacade"
-import {isTest} from "../../common/Env"
+import {isOfflineStorageAvailable, isTest} from "../../common/Env"
+import {ProgrammingError} from "../../common/error/ProgrammingError"
+import {SessionType} from "../../common/SessionType"
 
 function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNestedTokens | null {
 	return [
@@ -31,18 +33,30 @@ export const customTypeDecoders: Array<TypeDecoder> = (() => {
 	return tags
 })()
 
-const LAST_UPDATE_TIME_META_KEY = "lastUpdateTime"
-
 export class OfflineStorage implements CacheStorage {
+	private _userId: Id | null = null
+
 	constructor(
 		private readonly offlineDbFacade: OfflineDbFacade,
-		private readonly userIdProvider: () => Id | null
 	) {
-		assert(isUsingOfflineCache() || isTest(), "Offline storage is not available.")
+		assert(isOfflineStorageAvailable() || isTest(), "Offline storage is not available.")
+	}
+
+	async init(userId: Id, databaseKey: Aes256Key): Promise<void> {
+		this._userId = userId
+		await this.offlineDbFacade.openDatabaseForUser(userId, databaseKey)
+	}
+
+	async close(): Promise<void> {
+		await this.offlineDbFacade.closeDatabaseForUser(this.userId)
 	}
 
 	private get userId(): Id {
-		return assertNotNull(this.userIdProvider())
+		if (this._userId == null) {
+			throw new ProgrammingError("Offline storage not initialized")
+		}
+
+		return this._userId
 	}
 
 	async deleteIfExists(typeRef: TypeRef<SomeEntity>, listId: Id | null, id: Id): Promise<void> {
@@ -50,16 +64,8 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	async get<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<T | null> {
-		const userId = this.userIdProvider()
-		if (userId == null) {
-			return null
-		}
-		const loaded = await this.offlineDbFacade.get(userId, this.getTypeId(typeRef), listId, id)
-		if (loaded) {
-			return this.deserialize(typeRef, loaded)
-		} else {
-			return null
-		}
+		const loaded = await this.offlineDbFacade.get(this.userId, this.getTypeId(typeRef), listId, id) ?? null
+		return loaded && this.deserialize(typeRef, loaded)
 	}
 
 	async getIdsInRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>> {
@@ -83,10 +89,6 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	async put(originalEntity: SomeEntity): Promise<void> {
-		const userId = this.userIdProvider()
-		if (userId == null) {
-			return
-		}
 		const serializedEntity = this.serialize(originalEntity)
 		const {listId, elementId} = expandId(originalEntity._id)
 		return this.offlineDbFacade.put(this.userId, {type: this.getTypeId(originalEntity._type), listId, elementId, entity: serializedEntity})
@@ -130,15 +132,27 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	async getLastUpdateTime(): Promise<number | null> {
-		const metadata = await this.offlineDbFacade.getMetadata(this.userId, LAST_UPDATE_TIME_META_KEY)
-		return metadata ? cborg.decode(metadata) : null
+		return this.getMetadata("lastUpdateTime")
 	}
 
 	async putLastUpdateTime(value: number): Promise<void> {
-		await this.offlineDbFacade.putMetadata(this.userId, LAST_UPDATE_TIME_META_KEY, cborg.encode(value))
+		await this.putMetadata("lastUpdateTime", value)
+	}
+
+	private async putMetadata<K extends keyof OfflineDbMeta>(key: K, value: OfflineDbMeta[K]): Promise<void> {
+		await this.offlineDbFacade.putMetadata(this.userId, key, cborg.encode(value))
+	}
+
+	private async getMetadata<K extends keyof OfflineDbMeta>(key: K): Promise<OfflineDbMeta[K] | null> {
+		const encoded = await this.offlineDbFacade.getMetadata(this.userId, key)
+		return encoded && cborg.decode(encoded)
 	}
 
 	async purgeStorage(): Promise<void> {
 		await this.offlineDbFacade.deleteAll(this.userId)
 	}
+}
+
+export type OfflineDbMeta = {
+	lastUpdateTime: number
 }

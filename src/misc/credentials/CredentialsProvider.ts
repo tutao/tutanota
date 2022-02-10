@@ -3,6 +3,7 @@ import type {ICredentialsKeyMigrator} from "./CredentialsKeyMigrator"
 import type {Base64, Base64Url} from "@tutao/tutanota-utils"
 import {assertNotNull} from "@tutao/tutanota-utils"
 import type {Credentials} from "./Credentials"
+import {DatabaseKeyFactory} from "./DatabaseKeyFactory"
 
 /**
  * Type for persistent credentials, that contain the full credentials data.
@@ -10,6 +11,7 @@ import type {Credentials} from "./Credentials"
 export type PersistentCredentials = {
 	credentialInfo: CredentialsInfo
 	accessToken: Base64
+	databaseKey: Base64 | null
 	encryptedPassword: Base64Url
 }
 
@@ -31,13 +33,13 @@ export interface CredentialsEncryption {
 	 * Encrypts {@param credentials} using the encryption mode set for the device.
 	 * @param credentials
 	 */
-	encrypt(credentials: Credentials): Promise<PersistentCredentials>
+	encrypt(credentials: CredentialsAndDatabaseKey): Promise<PersistentCredentials>
 
 	/**
 	 * Decrypts {@param encryptedCredentials} using the encryption mode set for the device.
 	 * @param encryptedCredentials
 	 */
-	decrypt(encryptedCredentials: PersistentCredentials): Promise<Credentials>
+	decrypt(encryptedCredentials: PersistentCredentials): Promise<CredentialsAndDatabaseKey>
 
 	/**
 	 * Returns all credentials encryption modes that are supported by the device.
@@ -84,7 +86,8 @@ export interface CredentialsStorage {
 	setCredentialEncryptionMode(encryptionMode: CredentialEncryptionMode | null): void
 
 	/**
-	 * Returns the (encrypted) key used for encrypting credentials.
+	 * Returns the (encrypted) key used for encrypting the access token and the database key
+	 * This is encrypted using a key in the device's keystore
 	 */
 	getCredentialsEncryptionKey(): Uint8Array | null
 
@@ -95,15 +98,20 @@ export interface CredentialsStorage {
 	setCredentialsEncryptionKey(credentialsEncryptionKey: Uint8Array | null): void
 }
 
+export type CredentialsAndDatabaseKey = {
+	credentials: Credentials,
+	databaseKey?: Uint8Array | null
+}
+
 /**
  * Main entry point to interact with credentials, i.e. storing and retrieving credentials from/to persistence.
  */
 export interface ICredentialsProvider {
 	/**
 	 * Stores credentials. If credentials already exist for login, they will be overwritten.
-	 * @param credentials
+	 * Also creates a database key
 	 */
-	store(credentials: Credentials): Promise<void>
+	store(credentialsAndKey: CredentialsAndDatabaseKey): Promise<void>
 
 	getCredentialsInfoByUserId(userId: Id): Promise<CredentialsInfo | null>
 
@@ -111,12 +119,7 @@ export interface ICredentialsProvider {
 	 * Returns the full credentials for the userId passed in.
 	 * @param userId
 	 */
-	getCredentialsByUserId(userId: Id): Promise<Credentials | null>
-
-	/**
-	 * Returns all credential infos stored on the device.
-	 */
-	getCredentialsInfos(): Promise<Array<CredentialsInfo>>
+	getCredentialsByUserId(userId: Id): Promise<CredentialsAndDatabaseKey | null>
 
 	/**
 	 * Returns the stored credentials infos of all internal users, i.e. users that have a "real" tutanota account and not the ones that
@@ -158,51 +161,61 @@ export interface ICredentialsProvider {
  * Platoform-independent implementation for ICredentialsProvider.
  */
 export class CredentialsProvider implements ICredentialsProvider {
-	readonly _credentialsEncryption: CredentialsEncryption
-	readonly _credentialsStorage: CredentialsStorage
-	readonly _keyMigrator: ICredentialsKeyMigrator
 
-	constructor(credentialsEncryption: CredentialsEncryption, storage: CredentialsStorage, keyMigrator: ICredentialsKeyMigrator) {
-		this._credentialsEncryption = credentialsEncryption
-		this._credentialsStorage = storage
-		this._keyMigrator = keyMigrator
+	constructor(
+		private readonly credentialsEncryption: CredentialsEncryption,
+		private readonly storage: CredentialsStorage,
+		private readonly keyMigrator: ICredentialsKeyMigrator,
+		private readonly databaseKeyFactory: DatabaseKeyFactory
+	) {
 	}
 
-	async store(credentials: Credentials): Promise<void> {
-		const encryptedCredentials = await this._credentialsEncryption.encrypt(credentials)
-
-		this._credentialsStorage.store(encryptedCredentials)
+	async store(credentialsAndKey: CredentialsAndDatabaseKey): Promise<void> {
+		const encryptedCredentials = await this.credentialsEncryption.encrypt(credentialsAndKey)
+		this.storage.store(encryptedCredentials)
 	}
 
 	async getCredentialsInfoByUserId(userId: Id): Promise<CredentialsInfo | null> {
-		const persistentCredentials = this._credentialsStorage.loadByUserId(userId)
+		const persistentCredentials = this.storage.loadByUserId(userId)
 
 		return persistentCredentials?.credentialInfo ?? null
 	}
 
-	async getCredentialsByUserId(userId: Id): Promise<Credentials | null> {
-		const userIdAndCredentials = this._credentialsStorage.loadByUserId(userId)
+	async getCredentialsByUserId(userId: Id): Promise<CredentialsAndDatabaseKey | null> {
+		const persistentCredentials = this.storage.loadByUserId(userId)
 
-		if (userIdAndCredentials == null) {
+		if (persistentCredentials == null) {
 			return null
 		}
 
-		return this._credentialsEncryption.decrypt(userIdAndCredentials)
-	}
+		const decrypted = await this.credentialsEncryption.decrypt(persistentCredentials)
 
-	async getCredentialsInfos(): Promise<Array<CredentialsInfo>> {
-		return this._credentialsStorage.loadAll().map(persistentCredentials => persistentCredentials.credentialInfo)
+		if (decrypted.databaseKey == null) {
+			// When offline mode is first released, there will be users who have saved credentials but no database key.
+			// In the future, we will never save credentials without it, but we need to create one here
+
+			decrypted.databaseKey = await this.databaseKeyFactory.generateKey()
+
+			if (decrypted.databaseKey != null) {
+				// TODO this might prompt the user to unlock the keychain again
+				// 		We should figure out what to do about this
+				const reEncrypted = await this.credentialsEncryption.encrypt(decrypted)
+				this.storage.store(reEncrypted)
+			}
+		}
+
+		return decrypted
 	}
 
 	async getInternalCredentialsInfos(): Promise<Array<CredentialsInfo>> {
-		const allCredentials = await this.getCredentialsInfos()
+		const allCredentials = this.storage.loadAll().map(persistentCredentials => persistentCredentials.credentialInfo)
 		return allCredentials.filter(credential => {
 			return credential.type === "internal"
 		})
 	}
 
 	async deleteByUserId(userId: Id): Promise<void> {
-		this._credentialsStorage.deleteByUserId(userId)
+		this.storage.deleteByUserId(userId)
 	}
 
 	async setCredentialsEncryptionMode(encryptionMode: CredentialEncryptionMode): Promise<void> {
@@ -210,37 +223,37 @@ export class CredentialsProvider implements ICredentialsProvider {
 			return
 		}
 
-		const oldKeyEncrypted = this._credentialsStorage.getCredentialsEncryptionKey()
+		const oldKeyEncrypted = this.storage.getCredentialsEncryptionKey()
 
 		if (oldKeyEncrypted) {
 			// if we have a key we must have a method
-			const oldEncryptionMode = assertNotNull(this._credentialsStorage.getCredentialEncryptionMode())
-			const newlyEncryptedKey = await this._keyMigrator.migrateCredentialsKey(oldKeyEncrypted, oldEncryptionMode, encryptionMode)
+			const oldEncryptionMode = assertNotNull(this.storage.getCredentialEncryptionMode())
+			const newlyEncryptedKey = await this.keyMigrator.migrateCredentialsKey(oldKeyEncrypted, oldEncryptionMode, encryptionMode)
 
-			this._credentialsStorage.setCredentialsEncryptionKey(newlyEncryptedKey)
+			this.storage.setCredentialsEncryptionKey(newlyEncryptedKey)
 		}
 
-		this._credentialsStorage.setCredentialEncryptionMode(encryptionMode)
+		this.storage.setCredentialEncryptionMode(encryptionMode)
 	}
 
 	getCredentialsEncryptionMode(): CredentialEncryptionMode | null {
-		return this._credentialsStorage.getCredentialEncryptionMode()
+		return this.storage.getCredentialEncryptionMode()
 	}
 
 	async getSupportedEncryptionModes(): Promise<Array<CredentialEncryptionMode>> {
-		return await this._credentialsEncryption.getSupportedEncryptionModes()
+		return await this.credentialsEncryption.getSupportedEncryptionModes()
 	}
 
 	async clearCredentials(reason: Error | string): Promise<void> {
 		console.warn("clearing all stored credentials:", reason)
-		const storedCredentials = this._credentialsStorage.loadAll()
+		const storedCredentials = this.storage.loadAll()
 
 		for (let storedCredential of storedCredentials) {
 			await this.deleteByUserId(storedCredential.credentialInfo.userId)
 		}
 
-		this._credentialsStorage.setCredentialsEncryptionKey(null)
+		this.storage.setCredentialsEncryptionKey(null)
 
-		this._credentialsStorage.setCredentialEncryptionMode(null)
+		this.storage.setCredentialEncryptionMode(null)
 	}
 }

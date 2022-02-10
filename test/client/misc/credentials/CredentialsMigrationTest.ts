@@ -11,7 +11,7 @@ import type {NativeInterface} from "../../../../src/native/common/NativeInterfac
 o.spec("CredentialsMigrationTest", function () {
 	let encryptionKey: Uint8Array
 	const encryptedKey = new Uint8Array([8, 5, 1, 2])
-	let storedCredentials: Array<PersistentCredentials>
+	let storedCredentials: Array<Omit<PersistentCredentials, "databaseKey">>
 	let deviceConfig: DeviceConfig
 	let deviceEncryptionFacade: DeviceEncryptionFacade
 	let credentialsMigration: CredentialsMigration
@@ -72,23 +72,23 @@ o.spec("CredentialsMigrationTest", function () {
 	})
 
 	o("Should migrate credentials", async function () {
-		const internalCredentials: PersistentCredentials = {
+		const internalCredentials: Omit<PersistentCredentials, "databaseKey"> = {
 			credentialInfo: {
 				login: "internal@example.org",
 				userId: "internalId",
 				type: "internal"
 			},
 			accessToken: "asarashfasdfkala",
-			encryptedPassword: "jwqeopirsafldx"
+			encryptedPassword: "jwqeopirsafldx",
 		}
-		const externalCredentials: PersistentCredentials = {
+		const externalCredentials: Omit<PersistentCredentials, "databaseKey"> = {
 			credentialInfo: {
 				login: "external@example.org",
 				userId: "externalId",
 				type: "external"
 			},
 			accessToken: "dGVzdFRoaXNCc09tZw==",
-			encryptedPassword: "as;elkr32jr-jfje"
+			encryptedPassword: "as;elkr32jr-jfje",
 		}
 
 		storedCredentialsEncryptionKey = null
@@ -117,13 +117,13 @@ o.spec("CredentialsMigrationTest", function () {
 		o(deviceConfig.store.calls[0].args[0]).deepEquals({
 			credentialInfo: internalCredentials.credentialInfo,
 			accessToken: uint8ArrayToBase64(stringToUtf8Uint8Array(internalCredentials.accessToken).reverse()),
-			encryptedPassword: internalCredentials.encryptedPassword
+			encryptedPassword: internalCredentials.encryptedPassword,
 		})
 
 		o(deviceConfig.store.calls[1].args[0]).deepEquals({
 			credentialInfo: externalCredentials.credentialInfo,
 			accessToken: uint8ArrayToBase64(stringToUtf8Uint8Array(externalCredentials.accessToken).reverse()),
-			encryptedPassword: externalCredentials.encryptedPassword
+			encryptedPassword: externalCredentials.encryptedPassword,
 		})
 	})
 })

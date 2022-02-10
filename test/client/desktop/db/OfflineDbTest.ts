@@ -3,11 +3,19 @@ import {OfflineDb} from "../../../../src/desktop/db/OfflineDb"
 import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {GENERATED_MAX_ID, GENERATED_MIN_ID} from "../../../../src/api/common/utils/EntityUtils"
 import {UserTypeRef} from "../../../../src/api/entities/sys/User"
-import {concat, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
+import {assertNotNull, concat, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {calendarGroupId} from "../../calendar/CalendarTestUtils"
+import * as fs from "fs"
 import * as cborg from "cborg"
-//in-memory database
-const inMemoryDataBaseFile = ":memory:"
+import {assertThrows} from "@tutao/tutanota-test-utils"
+import {CryptoError} from "@tutao/tutanota-crypto"
+//some tests will not work wit in-memory database so we crate a file and delete it afterwards
+const database = "./testdatabase.sqlite"
+
+export const offlineDatabaseTestKey = [3957386659, 354339016, 3786337319, 3366334248]
+
+// Added by sqliteNativeBannerPlugin
+const nativePath = globalThis.buildOptions.sqliteNativePath
 
 o.spec("Offline DB ", function () {
 	let db: OfflineDb
@@ -18,13 +26,12 @@ o.spec("Offline DB ", function () {
 	const id3 = "---------id3"
 
 	o.beforeEach(async function () {
-		// Added by sqliteNativeBannerPlugin
-		const nativePath = globalThis.buildOptions.sqliteNativePath
 		db = new OfflineDb(nativePath)
-		await db.init(inMemoryDataBaseFile)
+		await db.init(database, offlineDatabaseTestKey)
 	})
 	o.afterEach(async function () {
-		await db.closeDb()
+		await db.close()
+		fs.rmSync(database)
 	})
 
 	o.spec("test put", function () {
@@ -269,6 +276,7 @@ o.spec("Offline DB ", function () {
 
 
 	o.spec("getBatchId", async function () {
+
 		o("returns null when nothing is written", async function () {
 			o(await db.getLastBatchIdForGroup("groupId")).equals(null)
 		})
@@ -290,12 +298,77 @@ o.spec("Offline DB ", function () {
 		})
 	})
 	o("put and get Metadata", async function () {
-		const date = new Date().getTime()
-		const value = cborg.encode(date)
-		await db.putMetadata("lastUpdateTime", value)
+		const time = new Date().getTime()
+		const encodedDate = cborg.encode(time)
+		await db.putMetadata("lastUpdateTime", encodedDate)
 		const receivedEntity = await db.getMetadata("lastUpdateTime")
-		const decode = receivedEntity ? cborg.decode(receivedEntity) : null
-		o(decode).deepEquals(date)
+		o(cborg.decode(assertNotNull(receivedEntity))).equals(time)
+	})
+	o.spec("Test encryption", function () {
+		const time = new Date().getTime()
+		const encodedDate = cborg.encode(time)
+		o("can create new database", async function () {
+			//save something
+			await db.putMetadata("lastUpdateTime", encodedDate)
+			const receivedEntity = await db.getMetadata("lastUpdateTime")
+			o(cborg.decode(assertNotNull(receivedEntity))).equals(time)
+		})
+
+		o("can open existing database", async function () {
+			//save something
+			await db.putMetadata("lastUpdateTime", encodedDate)
+			await db.close()
+
+			db = new OfflineDb(nativePath)
+			await db.init(database, offlineDatabaseTestKey)
+
+			const receivedEntity = await db.getMetadata("lastUpdateTime")
+			o(cborg.decode(assertNotNull(receivedEntity))).equals(time)
+		})
+
+		o("can't read from existing database if password is wrong", async function () {
+			//save something
+			await db.putMetadata("lastUpdateTime", encodedDate)
+			await db.close()
+
+			db = new OfflineDb(nativePath)
+			const theWrongKey = [3957386659, 354339016, 3786337319, 3366334249]
+			//with integrity check (performed first)
+			await assertThrows(Error, () => db.init(database, theWrongKey))
+			//without integrity check
+			await assertThrows(Error, () => db.init(database, theWrongKey, false))
+		})
+		o("Integrity check works", async function () {
+			//save something
+			await db.putMetadata("lastUpdateTime", encodedDate)
+			o(() => db.checkIntegrity()).notThrows(Error)
+
+			//flip byte in database
+			let fileBuffer = new Uint8Array(fs.readFileSync(database))
+			fileBuffer[fileBuffer.length - 1] ^= fileBuffer[fileBuffer.length - 1]
+			fs.writeFileSync(database, fileBuffer)
+
+			o(() => db.checkIntegrity()).throws(Error)
+		})
+		o("Integrity of the database is checked on initialization", async function () {
+			//save something
+			await db.putMetadata("lastUpdateTime", encodedDate)
+			await db.close()
+
+
+			//flip byte in database
+			let fileBuffer = new Uint8Array(fs.readFileSync(database))
+			fileBuffer[fileBuffer.length - 1] ^= fileBuffer[fileBuffer.length - 1]
+			fs.writeFileSync(database, fileBuffer)
+
+			db = new OfflineDb(nativePath)
+
+			//does not throw if integrity check is turned of
+			await db.init(database, offlineDatabaseTestKey, false)
+
+			//throws if integrity check is turned on
+			const error = await assertThrows(CryptoError, () => db.init(database, offlineDatabaseTestKey))
+		})
 	})
 })
 

@@ -11,7 +11,6 @@ import {SecondFactorHandler} from "../misc/2fa/SecondFactorHandler"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {getLoginErrorMessage} from "../misc/LoginUtils"
 import type {LoginController} from "../api/main/LoginController"
-import {SessionType} from "../api/main/LoginController"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
@@ -20,7 +19,9 @@ import {CredentialAuthenticationError} from "../api/common/error/CredentialAuthe
 import {first} from "@tutao/tutanota-utils"
 import {KeyPermanentlyInvalidatedError} from "../api/common/error/KeyPermanentlyInvalidatedError"
 import {assertMainOrNode} from "../api/common/Env"
+import {SessionType} from "../api/common/SessionType"
 import {DeviceStorageUnavailableError} from "../api/common/error/DeviceStorageUnavailableError"
+import {DatabaseKeyFactory} from "../misc/credentials/DatabaseKeyFactory"
 
 assertMainOrNode()
 
@@ -127,9 +128,6 @@ export interface ILoginViewModel {
 }
 
 export class LoginViewModel implements ILoginViewModel {
-	readonly _loginController: LoginController
-	readonly _credentialsProvider: ICredentialsProvider
-	readonly _secondFactorHandler: SecondFactorHandler
 	readonly mailAddress: Stream<string>
 	readonly password: Stream<string>
 	displayMode: DisplayMode
@@ -139,10 +137,12 @@ export class LoginViewModel implements ILoginViewModel {
 	_savedInternalCredentials: Array<CredentialsInfo>
 	_autoLoginCredentials: CredentialsInfo | null
 
-	constructor(loginController: LoginController, credentialsProvider: ICredentialsProvider, secondFactorHandler: SecondFactorHandler) {
-		this._loginController = loginController
-		this._credentialsProvider = credentialsProvider
-		this._secondFactorHandler = secondFactorHandler
+	constructor(
+		private readonly loginController: LoginController,
+		private readonly credentialsProvider: ICredentialsProvider,
+		private readonly secondFactorHandler: SecondFactorHandler,
+		private readonly databaseKeyFactory: DatabaseKeyFactory
+	) {
 		this.state = LoginState.NotAuthenticated
 		this.displayMode = DisplayMode.Form
 		this.helpText = "emptyString_msg"
@@ -163,7 +163,7 @@ export class LoginViewModel implements ILoginViewModel {
 	}
 
 	async useUserId(userId: string): Promise<void> {
-		this._autoLoginCredentials = await this._credentialsProvider.getCredentialsInfoByUserId(userId)
+		this._autoLoginCredentials = await this.credentialsProvider.getCredentialsInfoByUserId(userId)
 
 		if (this._autoLoginCredentials) {
 			this.displayMode = DisplayMode.Credentials
@@ -183,7 +183,7 @@ export class LoginViewModel implements ILoginViewModel {
 	}
 
 	async useCredentials(encryptedCredentials: CredentialsInfo): Promise<void> {
-		const credentialsInfo = await this._credentialsProvider.getCredentialsInfoByUserId(encryptedCredentials.userId)
+		const credentialsInfo = await this.credentialsProvider.getCredentialsInfoByUserId(encryptedCredentials.userId)
 
 		if (credentialsInfo) {
 			this._autoLoginCredentials = credentialsInfo
@@ -215,10 +215,10 @@ export class LoginViewModel implements ILoginViewModel {
 			 * 2. It is used as a session ID
 			 * Since we want to also delete the session from the server, we need the (decrypted) accessToken in its function as a session id.
 			 */
-			credentials = await this._credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
+			credentials = await this.credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
 		} catch (e) {
 			if (e instanceof KeyPermanentlyInvalidatedError) {
-				await this._credentialsProvider.clearCredentials(e)
+				await this.credentialsProvider.clearCredentials(e)
 				await this._updateCachedCredentials()
 				this.state = LoginState.NotAuthenticated
 				return
@@ -231,8 +231,8 @@ export class LoginViewModel implements ILoginViewModel {
 		}
 
 		if (credentials) {
-			await this._loginController.deleteOldSession(credentials)
-			await this._credentialsProvider.deleteByUserId(credentials.userId)
+			await this.loginController.deleteOldSession(credentials.credentials)
+			await this.credentialsProvider.deleteByUserId(credentials.credentials.userId)
 			await this._updateCachedCredentials()
 		}
 	}
@@ -262,7 +262,7 @@ export class LoginViewModel implements ILoginViewModel {
 	}
 
 	async _updateCachedCredentials() {
-		this._savedInternalCredentials = await this._credentialsProvider.getInternalCredentialsInfos()
+		this._savedInternalCredentials = await this.credentialsProvider.getInternalCredentialsInfos()
 		this._autoLoginCredentials = null
 
 		if (this._savedInternalCredentials.length > 0) {
@@ -277,25 +277,25 @@ export class LoginViewModel implements ILoginViewModel {
 	async _autologin(): Promise<void> {
 		try {
 			if (this._autoLoginCredentials == null) {
-				const allCredentials = await this._credentialsProvider.getInternalCredentialsInfos()
+				const allCredentials = await this.credentialsProvider.getInternalCredentialsInfos()
 				this._autoLoginCredentials = first(allCredentials)
 			}
 
 			if (this._autoLoginCredentials) {
-				const credentials = await this._credentialsProvider.getCredentialsByUserId(this._autoLoginCredentials.userId)
+				const credentials = await this.credentialsProvider.getCredentialsByUserId(this._autoLoginCredentials.userId)
 
 				if (credentials) {
-					await this._loginController.resumeSession(credentials)
+					await this.loginController.resumeSession(credentials)
 					await this._onLogin()
 				}
 			}
 		} catch (e) {
 			if (e instanceof NotAuthenticatedError && this._autoLoginCredentials) {
-				await this._credentialsProvider.deleteByUserId(this._autoLoginCredentials.userId)
+				await this.credentialsProvider.deleteByUserId(this._autoLoginCredentials.userId)
 				await this._updateCachedCredentials()
 				await this._onLoginFailed(e)
 			} else if (e instanceof KeyPermanentlyInvalidatedError) {
-				await this._credentialsProvider.clearCredentials(e)
+				await this.credentialsProvider.clearCredentials(e)
 				await this._updateCachedCredentials()
 				this.state = LoginState.NotAuthenticated
 				this.helpText = "credentialsKeyInvalidated_msg"
@@ -325,7 +325,13 @@ export class LoginViewModel implements ILoginViewModel {
 
 		try {
 			const sessionType = savePassword ? SessionType.Persistent : SessionType.Login
-			const newCredentials = await this._loginController.createSession(mailAddress, password, sessionType)
+
+			let newDatabaseKey: Uint8Array | null = null
+			if (sessionType === SessionType.Persistent) {
+				newDatabaseKey = await this.databaseKeyFactory.generateKey()
+			}
+
+			const newCredentials = await this.loginController.createSession(mailAddress, password, sessionType, newDatabaseKey)
 			await this._onLogin()
 
 			// we don't want to have multiple credentials that
@@ -334,20 +340,23 @@ export class LoginViewModel implements ILoginViewModel {
 			const storedCredentialsToDelete = this._savedInternalCredentials.filter(c => c.login === mailAddress || c.userId === newCredentials.userId)
 
 			for (const credentialToDelete of storedCredentialsToDelete) {
-				const credentials = await this._credentialsProvider.getCredentialsByUserId(credentialToDelete.userId)
+				const credentials = await this.credentialsProvider.getCredentialsByUserId(credentialToDelete.userId)
 
 				if (credentials) {
-					await this._loginController.deleteOldSession(credentials)
-					await this._credentialsProvider.deleteByUserId(credentials.userId)
+					await this.loginController.deleteOldSession(credentials.credentials)
+					await this.credentialsProvider.deleteByUserId(credentials.credentials.userId)
 				}
 			}
 
 			if (savePassword) {
 				try {
-					await this._credentialsProvider.store(newCredentials)
+					await this.credentialsProvider.store({
+						credentials: newCredentials,
+						databaseKey: newDatabaseKey
+					})
 				} catch (e) {
 					if (e instanceof KeyPermanentlyInvalidatedError) {
-						await this._credentialsProvider.clearCredentials(e)
+						await this.credentialsProvider.clearCredentials(e)
 						await this._updateCachedCredentials()
 					} else if (e instanceof DeviceStorageUnavailableError) {
 						console.warn("device storage unavailable, cannot save credentials:", e)
@@ -362,7 +371,7 @@ export class LoginViewModel implements ILoginViewModel {
 			}
 			await this._onLoginFailed(e)
 		} finally {
-			await this._secondFactorHandler.closeWaitingForSecondFactorDialog()
+			await this.secondFactorHandler.closeWaitingForSecondFactorDialog()
 		}
 	}
 

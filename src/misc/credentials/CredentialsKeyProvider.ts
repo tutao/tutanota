@@ -18,38 +18,36 @@ export interface ICredentialsKeyProvider {
 }
 
 export class CredentialsKeyProvider implements ICredentialsKeyProvider {
-	readonly _nativeApp: NativeInterface
-	readonly _credentialsStorage: CredentialsStorage
-	readonly _deviceEncryptionFacade: DeviceEncryptionFacade
 
-	constructor(nativeApp: NativeInterface, _credentialsStorage: CredentialsStorage, deviceEncryptionFacade: DeviceEncryptionFacade) {
-		this._nativeApp = nativeApp
-		this._credentialsStorage = _credentialsStorage
-		this._deviceEncryptionFacade = deviceEncryptionFacade
+	constructor(
+		private readonly nativeApp: NativeInterface,
+		private readonly credentialsStorage: CredentialsStorage,
+		private readonly deviceEncryptionFacade: DeviceEncryptionFacade
+	) {
 	}
 
 	async getCredentialsKey(): Promise<Uint8Array> {
-		const encryptedCredentialsKey = this._credentialsStorage.getCredentialsEncryptionKey()
+		const encryptedCredentialsKey = this.credentialsStorage.getCredentialsEncryptionKey()
 
 		if (encryptedCredentialsKey) {
-			const base64CredentialsKey = await this._nativeApp.invokeNative(
+			const base64CredentialsKey = await this.nativeApp.invokeNative(
 				new Request("decryptUsingKeychain", [this._getEncryptionMode(), uint8ArrayToBase64(encryptedCredentialsKey)]),
 			)
 			return base64ToUint8Array(base64CredentialsKey)
 		} else {
-			const credentialsKey = await this._deviceEncryptionFacade.generateKey()
-			const encryptedCredentialsKey = await this._nativeApp.invokeNative(
+			const credentialsKey = await this.deviceEncryptionFacade.generateKey()
+			const encryptedCredentialsKey = await this.nativeApp.invokeNative(
 				new Request("encryptUsingKeychain", [this._getEncryptionMode(), uint8ArrayToBase64(credentialsKey)]),
 			)
 
-			this._credentialsStorage.setCredentialsEncryptionKey(base64ToUint8Array(encryptedCredentialsKey))
+			this.credentialsStorage.setCredentialsEncryptionKey(base64ToUint8Array(encryptedCredentialsKey))
 
 			return credentialsKey
 		}
 	}
 
 	_getEncryptionMode(): CredentialEncryptionMode {
-		const encryptionMode = this._credentialsStorage.getCredentialEncryptionMode()
+		const encryptionMode = this.credentialsStorage.getCredentialEncryptionMode()
 
 		if (!encryptionMode) {
 			throw new Error("Encryption mode not set")

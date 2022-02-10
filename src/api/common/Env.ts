@@ -134,3 +134,12 @@ export function assertWorkerOrNode() {
 export function bootFinished() {
 	boot = false
 }
+
+/**
+ * Whether or not we will be using an offline cache (doesn't take into account if credentials are stored)
+ */
+export function isOfflineStorageAvailable(): boolean {
+    // TODO this will need to include apps, once they have offline mode
+    // FIXME turn this off before mergin to master, until we have dealt with error handling stuff
+    return isDesktop()
+}

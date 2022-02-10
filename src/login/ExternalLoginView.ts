@@ -21,7 +21,7 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN, TextFieldType as TextFieldType} from "../gui/base/TextFieldN"
 import {CheckboxN} from "../gui/base/CheckboxN"
 import {CancelledError} from "../api/common/error/CancelledError"
-import {logins, SessionType} from "../api/main/LoginController"
+import {logins} from "../api/main/LoginController"
 import {MessageBoxN} from "../gui/base/MessageBoxN"
 import {renderPrivacyAndImprintLinks} from "./LoginView"
 import {CurrentView, header} from "../gui/base/Header"
@@ -31,6 +31,7 @@ import {locator} from "../api/main/MainLocator"
 import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
 import {assertMainOrNode} from "../api/common/Env"
 import type {Credentials} from "../misc/credentials/Credentials"
+import {SessionType} from "../api/common/SessionType.js";
 
 assertMainOrNode()
 
@@ -128,7 +129,7 @@ export class ExternalLoginView implements CurrentView {
 
 			this._credentialsProvider.getCredentialsByUserId(this._urlData.userId).then(credentials => {
 				if (credentials && args.noAutoLogin !== true) {
-					this._autologin(credentials)
+					this._autologin(credentials.credentials)
 				} else {
 					m.redraw()
 				}
@@ -143,7 +144,7 @@ export class ExternalLoginView implements CurrentView {
 		this._autologinInProgress = true
 		showProgressDialog(
 			"login_msg",
-			this._handleSession(logins.resumeSession(credentials, assertNotNull(this._urlData).salt), () => {
+			this._handleSession(logins.resumeSession({credentials, databaseKey: null}, assertNotNull(this._urlData).salt), () => {
 				this._autologinInProgress = false
 				m.redraw()
 			}),
@@ -181,12 +182,12 @@ export class ExternalLoginView implements CurrentView {
 
 		// For external users userId is used instead of email address
 		if (persistentSession) {
-			await this._credentialsProvider.store(newCredentials)
+			await this._credentialsProvider.store({credentials: newCredentials})
 		}
 
 		if (storedCredentials) {
 			// delete persistent session if a new session is created
-			await logins.deleteOldSession(storedCredentials)
+			await logins.deleteOldSession(storedCredentials.credentials)
 
 			if (!persistentSession) {
 				await this._credentialsProvider.deleteByUserId(userId)

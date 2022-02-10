@@ -33,7 +33,7 @@
 		"@types/qrcode-svg": "1.1.1",
 		"@types/systemjs": "6.1.1",
 		"@types/winreg": "1.2.31",
-		"better-sqlite3": "7.5.0",
+		"better-sqlite3": "github:tutao/better-sqlite3-sqlcipher#1a67f2af527948449fc450b77f976f3b7e2b003f",
 		"cborg": "1.5.4",
 		"dompurify": "2.3.0",
 		"electron": "17.1.1",

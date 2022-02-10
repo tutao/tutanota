@@ -1,4 +1,5 @@
 import {AccountType, GroupType, OperationType} from "../common/TutanotaConstants"
+import type {Base64Url} from "@tutao/tutanota-utils"
 import {downcast, first, mapAndFilterNull, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {Customer} from "../entities/sys/Customer"
 import {CustomerTypeRef} from "../entities/sys/Customer"
@@ -28,7 +29,6 @@ import {isSameId} from "../common/utils/EntityUtils"
 import type {WhitelabelConfig} from "../entities/sys/WhitelabelConfig"
 import type {DomainInfo} from "../entities/sys/DomainInfo"
 import {getWhitelabelCustomizations} from "../../misc/WhitelabelCustomizations"
-import type {Base64Url} from "@tutao/tutanota-utils"
 import {EntityClient} from "../common/EntityClient"
 
 assertMainOrNode()
@@ -69,6 +69,10 @@ export interface IUserController {
 
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void>
 
+	/**
+	 * Delete the session (only if it's a non-persistent session
+	 * @param sync whether or not to delete in the main thread. For example, will be true when logging out due to closing the tab
+	 */
 	deleteSession(sync: boolean): Promise<void>
 
 	loadWhitelabelConfig(): Promise<| {
@@ -213,13 +217,17 @@ export class UserController implements IUserController {
 		}).then(noOp)
 	}
 
-	deleteSession(sync: boolean): Promise<void> {
+	async deleteSession(sync: boolean): Promise<void> {
+		// in case the tab is closed we need to delete the session in the main thread (synchronous rest request)
 		if (sync) {
-			// in case the tab is closed we need to delete the session in the main thread (synchronous rest request)
-			return this.persistentSession ? Promise.resolve() : this.deleteSessionSync()
+			if (!this.persistentSession) {
+				await this.deleteSessionSync()
+			}
 		} else {
-			const deletePromise = this.persistentSession ? Promise.resolve() : locator.loginFacade.deleteSession(this.accessToken)
-			return deletePromise.then(() => locator.worker.reset())
+			if (!this.persistentSession) {
+				await locator.loginFacade.deleteSession(this.accessToken)
+			}
+			await locator.worker.reset()
 		}
 	}
 
@@ -335,13 +343,15 @@ export type UserControllerInitData = {
 }
 // noinspection JSUnusedGlobalSymbols
 // dynamically imported
-export function initUserController({
-									   user,
-									   userGroupInfo,
-									   sessionId,
-									   accessToken,
-									   persistentSession
-								   }: UserControllerInitData): Promise<UserController> {
+export function initUserController(
+	{
+		user,
+		userGroupInfo,
+		sessionId,
+		accessToken,
+		persistentSession
+	}: UserControllerInitData
+): Promise<UserController> {
 	const entityClient = locator.entityClient
 	return Promise.all([
 		entityClient.loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group),

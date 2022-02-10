@@ -9,7 +9,7 @@ import type {InvoiceData, PaymentData, PaymentMethodType} from "../api/common/Tu
 import {getClientType, Keys, PaymentDataResultType} from "../api/common/TutanotaConstants"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {getLazyLoadedPayPalUrl} from "./PaymentDataDialog"
-import {logins, SessionType} from "../api/main/LoginController"
+import {logins} from "../api/main/LoginController"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -31,6 +31,7 @@ import {InvoiceInfoTypeRef} from "../api/entities/sys/InvoiceInfo"
 import {promiseMap} from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
 import {Credentials} from "../misc/credentials/Credentials";
+import {SessionType} from "../api/common/SessionType.js";
 
 /**
  * Wizard page for editing invoice and payment data.

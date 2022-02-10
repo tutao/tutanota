@@ -1,6 +1,6 @@
 import m, {Component} from "mithril"
 import type {LoggedInEvent, LoginEventHandler} from "../api/main/LoginController"
-import {logins, SessionType} from "../api/main/LoginController"
+import {logins} from "../api/main/LoginController"
 import {isAdminClient, isApp, isDesktop, LOGIN_TITLE, Mode} from "../api/common/Env"
 import {assertNotNull, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
 import {windowFacade} from "../misc/WindowFacade"
@@ -30,8 +30,12 @@ import type {ThemeCustomizations} from "../misc/WhitelabelCustomizations"
 import {getThemeCustomizations} from "../misc/WhitelabelCustomizations"
 import {CredentialEncryptionMode} from "../misc/credentials/CredentialEncryptionMode"
 import {SecondFactorHandler} from "../misc/2fa/SecondFactorHandler"
+import {SessionType} from "../api/common/SessionType"
 
-export async function registerLoginListener(credentialsProvider: ICredentialsProvider, secondFactorHandler: SecondFactorHandler) {
+export async function registerLoginListener(
+	credentialsProvider: ICredentialsProvider,
+	secondFactorHandler: SecondFactorHandler,
+) {
 	logins.registerHandler(new LoginListener(credentialsProvider, secondFactorHandler))
 }
 
@@ -40,12 +44,10 @@ export async function registerLoginListener(credentialsProvider: ICredentialsPro
  */
 
 class LoginListener implements LoginEventHandler {
-	readonly _credentialsProvider: ICredentialsProvider
-	_secondFactorHandler: SecondFactorHandler
-
-	constructor(credentialsProvider: ICredentialsProvider, secondFactorHandler: SecondFactorHandler) {
-		this._credentialsProvider = credentialsProvider
-		this._secondFactorHandler = secondFactorHandler
+	constructor(
+		public readonly credentialsProvider: ICredentialsProvider,
+		public secondFactorHandler: SecondFactorHandler,
+	) {
 	}
 
 	async onLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
@@ -81,11 +83,11 @@ class LoginListener implements LoginEventHandler {
 		if (
 			loggedInEvent.sessionType === SessionType.Persistent &&
 			usingKeychainAuthentication() &&
-			this._credentialsProvider.getCredentialsEncryptionMode() == null
+			this.credentialsProvider.getCredentialsEncryptionMode() == null
 		) {
 			// If the encryption mode is not selected, we opt user into automatic mode.
 			// We keep doing it here for now to have some flexibility if we want to show some other option here in the future.
-			await this._credentialsProvider.setCredentialsEncryptionMode(CredentialEncryptionMode.DEVICE_LOCK)
+			await this.credentialsProvider.setCredentialsEncryptionMode(CredentialEncryptionMode.DEVICE_LOCK)
 		}
 
 		// Do not wait
@@ -97,7 +99,7 @@ class LoginListener implements LoginEventHandler {
 		await this.showUpgradeReminder()
 		await this.checkStorageWarningLimit()
 
-		this._secondFactorHandler.setupAcceptOtherClientLoginListener()
+		this.secondFactorHandler.setupAcceptOtherClientLoginListener()
 
 		if (!isAdminClient()) {
 			await locator.mailModel.init()

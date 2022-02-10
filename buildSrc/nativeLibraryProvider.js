@@ -201,7 +201,7 @@ export async function getPrebuiltNativeModuleForWindows(
 	const target = getPrebuildConfiguration(nodeModule, log)
 
 	await callProgram({
-		command: "npm exex",
+		command: "npm exec",
 		args: [
 			"--",
 			"prebuild-install",
@@ -308,7 +308,8 @@ async function getModuleDir(rootDir, nodeModule) {
 	// however, if we just use rootDir as the base for require() it doesn't work: node_modules must be at the directory up from yours (for whatever reason).
 	// so we provide a directory one level deeper. Practically it doesn't matter if "src" subdirectory exists or not, this is just to give node some
 	// subdirectory to work against.
-	const filePath = createRequire(path.join(rootDir, "src")).resolve(nodeModule)
+	const someChild = path.resolve(path.join(rootDir, "src")).toString()
+	const filePath = createRequire(someChild).resolve(nodeModule)
 	const pathEnd = path.join("node_modules", nodeModule)
 	const endIndex = filePath.lastIndexOf(pathEnd)
 	return path.join(filePath.substring(0, endIndex), pathEnd)

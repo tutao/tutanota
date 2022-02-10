@@ -1,22 +1,16 @@
-import {
-	ENTITY_EVENT_BATCH_TTL_DAYS,
-	getMembershipGroupType,
-	GroupType,
-	NOTHING_INDEXED_TIMESTAMP,
-	OperationType
-} from "../../common/TutanotaConstants"
+import {ENTITY_EVENT_BATCH_TTL_DAYS, getMembershipGroupType, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import {NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatch, EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import type {DatabaseEntry, DbKey, DbTransaction, ObjectStoreName} from "./DbFacade"
 import {b64UserIdHash, DbFacade} from "./DbFacade"
 import type {DeferredObject} from "@tutao/tutanota-utils"
-import {generatedIdToTimestamp, timestampToGeneratedId} from "../../common/utils/EntityUtils"
 import {
 	contains,
 	daysToMillis,
 	defer,
 	downcast,
-	getFromMap, isNotNull,
+	getFromMap,
+	isNotNull,
 	isSameTypeRef,
 	isSameTypeRefByAttr,
 	millisToDays,
@@ -26,6 +20,7 @@ import {
 	promiseMap,
 	TypeRef,
 } from "@tutao/tutanota-utils"
+import {firstBiggerThanSecond, GENERATED_MAX_ID, generatedIdToTimestamp, getElementId, isSameId, timestampToGeneratedId} from "../../common/utils/EntityUtils"
 import {_createNewIndexUpdate, filterIndexMemberships, markEnd, markStart, typeRefToTypeInfo} from "./IndexUtils"
 import type {Db, GroupData} from "./SearchTypes"
 import type {WorkerImpl} from "../WorkerImpl"
@@ -38,7 +33,7 @@ import {UserTypeRef} from "../../entities/sys/User"
 import {GroupInfoIndexer} from "./GroupInfoIndexer"
 import {MailIndexer} from "./MailIndexer"
 import {IndexerCore} from "./IndexerCore"
-import type {EntityRestClient, EntityRestInterface} from "../rest/EntityRestClient"
+import type {EntityRestClient} from "../rest/EntityRestClient"
 import {OutOfSyncError} from "../../common/error/OutOfSyncError"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {DbError} from "../../common/error/DbError"
@@ -54,7 +49,6 @@ import {LocalTimeDateProvider} from "../DateProvider"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {EntityClient} from "../../common/EntityClient"
-import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId} from "../../common/utils/EntityUtils"
 import {deleteObjectStores} from "../utils/DbUtils"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, decrypt256Key, encrypt256Key, IV_BYTE_LENGTH, random} from "@tutao/tutanota-crypto"
 import {EntityRestCache} from "../rest/EntityRestCache"
@@ -82,6 +76,13 @@ export const GroupDataOS: ObjectStoreName = "GroupMetaData"
 export const SearchTermSuggestionsOS: ObjectStoreName = "SearchTermSuggestions"
 export const SearchIndexWordsIndex: IndexName = "SearchIndexWords"
 const DB_VERSION: number = 3
+
+interface IndexerInitParams {
+	user: User
+	userGroupKey: Aes128Key
+	retryOnError?: boolean
+	isUsingOfflineCache?: boolean
+}
 
 export function newSearchIndexDB(): DbFacade {
 	return new DbFacade(DB_VERSION, (event, db) => {
@@ -132,7 +133,12 @@ export class Indexer {
 	_entityRestClient: EntityRestClient
 	_indexedGroupIds: Array<Id>
 
-	constructor(entityRestClient: EntityRestClient, worker: WorkerImpl, browserData: BrowserData, defaultEntityRestCache: EntityRestCache) {
+	constructor(
+		entityRestClient: EntityRestClient,
+		worker: WorkerImpl,
+		browserData: BrowserData,
+		defaultEntityRestCache: EntityRestCache,
+	) {
 		let deferred = defer<void>()
 		this._dbInitializedDeferredObject = deferred
 		this.db = {
@@ -171,13 +177,16 @@ export class Indexer {
 	/**
 	 * Opens a new DbFacade and initializes the metadata if it is not there yet
 	 */
-	async init(user: User, userGroupKey: Aes128Key, retryOnError: boolean = true): Promise<void> {
+	async init({user, userGroupKey, retryOnError, isUsingOfflineCache}: IndexerInitParams): Promise<void> {
 		this._initParams = {
 			user,
 			groupKey: userGroupKey,
 		}
 
 		try {
+			if (isUsingOfflineCache != null) {
+				this._mail.setIsUsingOfflineCache(isUsingOfflineCache)
+			}
 			await this.db.dbFacade.open(b64UserIdHash(user))
 			const transaction = await this.db.dbFacade.createTransaction(true, [MetaDataOS])
 			const userEncDbKey = await transaction.get(MetaDataOS, Metadata.userEncDbKey)
@@ -211,7 +220,7 @@ export class Indexer {
 				ofClass(OutOfSyncError, e => this.disableMailIndexing("OutOfSyncError when loading new entities. " + e.message)),
 			)
 		} catch (e) {
-			if (retryOnError && (e instanceof MembershipRemovedError || e instanceof InvalidDatabaseStateError)) {
+			if (retryOnError !== false && (e instanceof MembershipRemovedError || e instanceof InvalidDatabaseStateError)) {
 				// in case of MembershipRemovedError mail or contact group has been removed from user.
 				// in case of InvalidDatabaseError no group id has been stored to the database.
 				// disable mail indexing and init index again in both cases.
@@ -258,7 +267,7 @@ export class Indexer {
 			this._worker.writeIndexerDebugLog("Disabling mail indexing: " + reason, this._initParams.user)
 
 			await this._mail.disableMailIndexing()
-			await this.init(this._initParams.user, this._initParams.groupKey)
+			await this.init({user: this._initParams.user, userGroupKey: this._initParams.groupKey})
 		}
 	}
 
@@ -286,7 +295,11 @@ export class Indexer {
 		const mailIndexingWasEnabled = this._mail.mailIndexingEnabled
 		return this._mail.disableMailIndexing().then(() => {
 			// do not try to init again on error
-			return this.init(this._initParams.user, this._initParams.groupKey, false).then(() => {
+			return this.init({
+				user: this._initParams.user,
+				userGroupKey: this._initParams.groupKey,
+				retryOnError: false
+			}).then(() => {
 				if (mailIndexingWasEnabled) {
 					return this.enableMailIndexing()
 				}

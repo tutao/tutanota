@@ -89,6 +89,7 @@ export interface IMainLocator {
 	readonly userManagementFacade: UserManagementFacade
 	readonly contactFormFacade: ContactFormFacade
 	readonly deviceEncryptionFacade: DeviceEncryptionFacade
+
 	readonly init: () => Promise<void>
 	readonly initialized: Promise<void>
 }
@@ -146,8 +147,12 @@ class MainLocator implements IMainLocator {
 	get webauthnController(): IWebauthn {
 		const creds = navigator.credentials
 		return isDesktop() || isAdminClient()
-			? exposeRemote<ExposedNativeInterface>((msg) => this.native.invokeNative(msg)).webauthn
+			? this.exposeNativeInterface().webauthn
 			: new BrowserWebauthn(creds, window.location.hostname)
+	}
+
+	exposeNativeInterface(): ExposedNativeInterface {
+		return exposeRemote<ExposedNativeInterface>((msg) => this.native.invokeNative(msg))
 	}
 
 	_getNativeInterface<T extends keyof NativeInterfaces>(name: T): NativeInterfaces[T] {

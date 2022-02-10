@@ -206,7 +206,10 @@ import("./translations/en")
 		}
 
 		const loginListener = await import("./login/LoginListener")
-		await loginListener.registerLoginListener(locator.credentialsProvider, locator.secondFactorHandler)
+		await loginListener.registerLoginListener(
+			locator.credentialsProvider,
+			locator.secondFactorHandler,
+		)
 		styles.init()
 		const {usingKeychainAuthentication} = await import("./misc/credentials/CredentialsProviderFactory")
 
@@ -236,7 +239,8 @@ import("./translations/en")
 					const {LoginView} = await import("./login/LoginView.js")
 					const {LoginViewModel} = await import("./login/LoginViewModel.js")
 					const {locator} = await import("./api/main/MainLocator")
-					const loginViewModel = new LoginViewModel(logins, locator.credentialsProvider, locator.secondFactorHandler)
+					const {DatabaseKeyFactory} = await import("./misc/credentials/DatabaseKeyFactory")
+					const loginViewModel = new LoginViewModel(logins, locator.credentialsProvider, locator.secondFactorHandler, new DatabaseKeyFactory(locator.deviceEncryptionFacade))
 					await loginViewModel.init()
 					return new LoginView(loginViewModel, "/mail")
 				},

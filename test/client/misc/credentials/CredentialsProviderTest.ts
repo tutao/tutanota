@@ -1,57 +1,26 @@
 import o from "ospec"
-import type {CredentialsEncryption, CredentialsStorage, PersistentCredentials} from "../../../../src/misc/credentials/CredentialsProvider"
+import type {
+	CredentialsAndDatabaseKey,
+	CredentialsEncryption,
+	CredentialsStorage,
+	PersistentCredentials
+} from "../../../../src/misc/credentials/CredentialsProvider"
 import {CredentialsProvider} from "../../../../src/misc/credentials/CredentialsProvider"
-import {assertNotNull} from "@tutao/tutanota-utils"
+import {assertNotNull, base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {CredentialEncryptionMode} from "../../../../src/misc/credentials/CredentialEncryptionMode"
 import type {ICredentialsKeyMigrator} from "../../../../src/misc/credentials/CredentialsKeyMigrator"
-import {spyify} from "../../nodemocker"
 import type {Credentials} from "../../../../src/misc/credentials/Credentials"
+import {instance, object, verify, when} from "testdouble"
+import {DatabaseKeyFactory} from "../../../../src/misc/credentials/DatabaseKeyFactory"
+import {keyToBase64} from "@tutao/tutanota-crypto"
 
 
 const encryptionKey = new Uint8Array([1, 2, 5, 8])
-const migratedKey = new Uint8Array([8, 3, 5, 8])
 
-class CredentialsStorageStub implements CredentialsStorage {
-	values = new Map<Id, PersistentCredentials>()
-	_credentialsEncryptionMode: CredentialEncryptionMode | null = null
-	_credentialsEncryptionKey: Uint8Array | null = null
-
-	store(encryptedCredentials: PersistentCredentials) {
-		this.values.set(encryptedCredentials.credentialInfo.userId, encryptedCredentials)
-	}
-
-	loadByUserId(userId: Id): PersistentCredentials | null {
-		return this.values.get(userId) ?? null
-	}
-
-	loadAll(): Array<PersistentCredentials> {
-		return Array.from(this.values.values())
-	}
-
-	deleteByUserId(userId: Id) {
-		this.values.delete(userId)
-	}
-
-	getCredentialEncryptionMode(): CredentialEncryptionMode | null {
-		return this._credentialsEncryptionMode
-	}
-
-	setCredentialEncryptionMode(encryptionMode: CredentialEncryptionMode | null): void {
-		this._credentialsEncryptionMode = encryptionMode
-	}
-
-	getCredentialsEncryptionKey(): Uint8Array | null {
-		return this._credentialsEncryptionKey;
-	}
-
-	setCredentialsEncryptionKey(credentialsEncryptionKey: Uint8Array | null) : void {
-		this._credentialsEncryptionKey = credentialsEncryptionKey
-	}
-}
 
 class CredentialsEncryptionStub implements CredentialsEncryption {
 
-	async encrypt(credentials: Credentials): Promise<PersistentCredentials> {
+	async encrypt({credentials, databaseKey}: CredentialsAndDatabaseKey): Promise<PersistentCredentials> {
 		const {encryptedPassword} = credentials
 		if (encryptedPassword == null) {
 			throw new Error("Trying to encrypt non-persistent credentials")
@@ -64,17 +33,26 @@ class CredentialsEncryptionStub implements CredentialsEncryption {
 			},
 			encryptedPassword,
 			accessToken: credentials.accessToken,
+			databaseKey: databaseKey ? uint8ArrayToBase64(databaseKey) : null
 		}
 	}
 
-	async decrypt(encryptedCredentials: PersistentCredentials): Promise<Credentials> {
-		return {
-			login: encryptedCredentials.credentialInfo.login,
-			userId: encryptedCredentials.credentialInfo.userId,
-			type: encryptedCredentials.credentialInfo.type,
-			encryptedPassword: encryptedCredentials.encryptedPassword,
-			accessToken: encryptedCredentials.accessToken,
+	async decrypt(encryptedCredentials: PersistentCredentials): Promise<CredentialsAndDatabaseKey> {
+		let databaseKey: Uint8Array | null = null
+		if (encryptedCredentials.databaseKey) {
+			databaseKey = base64ToUint8Array(encryptedCredentials.databaseKey)
 		}
+		return {
+			credentials: {
+				login: encryptedCredentials.credentialInfo.login,
+				userId: encryptedCredentials.credentialInfo.userId,
+				type: encryptedCredentials.credentialInfo.type,
+				encryptedPassword: encryptedCredentials.encryptedPassword,
+				accessToken: encryptedCredentials.accessToken,
+			},
+			databaseKey
+		}
+
 	}
 
 	async getSupportedEncryptionModes() {
@@ -82,27 +60,31 @@ class CredentialsEncryptionStub implements CredentialsEncryption {
 	}
 }
 
-class CredentialsKeyMigratorStub implements ICredentialsKeyMigrator {
-	async migrateCredentialsKey(oldKeyEncrypted, oldMode, newMode) {
-		return migratedKey
-	}
-}
-
 o.spec("CredentialsProvider", function () {
 	let encryption
-	let storage
-	let credentialsProvider
+	let storageMock
+	let credentialsProvider: CredentialsProvider
 	let internalCredentials: Credentials
+	let internalCredentials2: Credentials
 	let externalCredentials: Credentials
 	let encryptedInternalCredentials: PersistentCredentials
 	let encryptedExternalCredentials: PersistentCredentials
-	let keyMigrator: ICredentialsKeyMigrator
+	let encryptedInternalCredentialsWithoutDatabaseKey: Omit<PersistentCredentials, "databaseKey">
+	let keyMigratorMock: ICredentialsKeyMigrator
+	let databaseKeyFactoryMock: DatabaseKeyFactory
 	o.beforeEach(function () {
 		internalCredentials = {
 			login: "test@example.com",
 			encryptedPassword: "123",
 			accessToken: "456",
 			userId: "789",
+			type: "internal",
+		}
+		internalCredentials2 = {
+			login: "test@example.com",
+			encryptedPassword: "123456",
+			accessToken: "456789",
+			userId: "789012",
 			type: "internal",
 		}
 		externalCredentials = {
@@ -120,6 +102,7 @@ o.spec("CredentialsProvider", function () {
 			},
 			encryptedPassword: assertNotNull(internalCredentials.encryptedPassword),
 			accessToken: internalCredentials.accessToken,
+			databaseKey: "SSBhbSBhIGtleQo="
 		}
 		encryptedExternalCredentials = {
 			credentialInfo: {
@@ -129,98 +112,108 @@ o.spec("CredentialsProvider", function () {
 			},
 			encryptedPassword: assertNotNull(externalCredentials.encryptedPassword),
 			accessToken: externalCredentials.accessToken,
+			databaseKey: "SSBhbSBhIGtleQo="
+		}
+		encryptedInternalCredentialsWithoutDatabaseKey = {
+			credentialInfo: {
+				login: internalCredentials2.login,
+				userId: internalCredentials2.userId,
+				type: internalCredentials2.type,
+			},
+			encryptedPassword: assertNotNull(internalCredentials2.encryptedPassword),
+			accessToken: internalCredentials2.accessToken,
 		}
 		encryption = new CredentialsEncryptionStub()
-		storage = new CredentialsStorageStub()
-		keyMigrator = spyify(new CredentialsKeyMigratorStub())
-		credentialsProvider = new CredentialsProvider(encryption, storage, keyMigrator)
+		storageMock = object<CredentialsStorage>()
+
+		keyMigratorMock = object<ICredentialsKeyMigrator>()
+		databaseKeyFactoryMock = instance(DatabaseKeyFactory)
+		credentialsProvider = new CredentialsProvider(encryption, storageMock, keyMigratorMock, databaseKeyFactoryMock)
 	})
 
 	o.spec("Storing credentials", function () {
 		o("Should store credentials", async function () {
-			await credentialsProvider.store(internalCredentials)
+			await credentialsProvider.store({credentials: internalCredentials, databaseKey: null})
 
-			const expectedEncrypted = await encryption.encrypt(internalCredentials)
-			o(storage.loadByUserId(internalCredentials.userId)).deepEquals(expectedEncrypted)
+			const expectedEncrypted = await encryption.encrypt({credentials: internalCredentials, databaseKey: null})
+			verify(storageMock.store(expectedEncrypted))
 		})
 	})
 
 	o.spec("Reading Credentials", function () {
 		o.beforeEach(async function () {
-			await storage.store(encryptedInternalCredentials)
-			await storage.store(encryptedExternalCredentials)
+			when(storageMock.loadByUserId(internalCredentials.userId)).thenReturn(encryptedInternalCredentials)
+			when(storageMock.loadByUserId(externalCredentials.userId)).thenReturn(encryptedExternalCredentials)
+			when(storageMock.loadAll()).thenReturn([encryptedInternalCredentials, encryptedExternalCredentials])
 		})
 		o("Should return internal Credentials", async function () {
 			const retrievedCredentials = await credentialsProvider.getCredentialsByUserId(internalCredentials.userId)
 
-			o(retrievedCredentials).deepEquals(internalCredentials)
+			o(retrievedCredentials?.credentials ?? {}).deepEquals(internalCredentials)
 		})
 
-		o("Should return all Credentials", async function () {
-			const retrievedCredentials = await credentialsProvider.getCredentialsInfos()
-
-			o(retrievedCredentials).deepEquals([encryptedInternalCredentials.credentialInfo, encryptedExternalCredentials.credentialInfo])
-		})
-
-		o("Should return credentials for internal users", async function () {
+		o("Should return credential infos for internal users", async function () {
 			const retrievedCredentials = await credentialsProvider.getInternalCredentialsInfos()
 
 			o(retrievedCredentials).deepEquals([encryptedInternalCredentials.credentialInfo])
 		})
+
+		o("Should generate a database key if one doesn't exist on the stored credentials", async function () {
+			const newDatabaseKey = base64ToUint8Array(keyToBase64([3957386659, 354339016, 3786337319, 3366334248]))
+
+			when(databaseKeyFactoryMock.generateKey()).thenResolve(newDatabaseKey)
+			when(storageMock.loadByUserId(internalCredentials2.userId)).thenReturn(encryptedInternalCredentialsWithoutDatabaseKey)
+
+			const retrievedCredentials = await credentialsProvider.getCredentialsByUserId(internalCredentials2.userId)
+
+			o(retrievedCredentials?.databaseKey).equals(newDatabaseKey)
+
+			const expectedEncrypted = await encryption.encrypt({credentials: internalCredentials2, databaseKey: newDatabaseKey})
+			verify(storageMock.store(expectedEncrypted), {times: 1})
+		})
 	})
 
 	o.spec("Deleting credentials", function () {
-		o("Should delete credentials when they are there", async function () {
-			await storage.store(encryptedInternalCredentials)
-
+		o("Should delete credentials from storage", async function () {
 			await credentialsProvider.deleteByUserId(internalCredentials.userId)
-			o(storage.loadByUserId(internalCredentials.userId)).equals(null)
-		})
-
-		o("Should no-op when credentials are not there", async function () {
-			await credentialsProvider.deleteByUserId(internalCredentials.userId)
-			o(storage.loadByUserId(internalCredentials.userId)).equals(null)
+			verify(storageMock.deleteByUserId(internalCredentials.userId), {times: 1})
 		})
 	})
 
 	o.spec("Setting credentials encryption mode", function () {
 		o("Enrolling", async function () {
-			storage._credentialsEncryptionMode = null
+			when(storageMock.getCredentialEncryptionMode()).thenReturn(null)
 			const newEncryptionMode = CredentialEncryptionMode.DEVICE_LOCK
-
 			await credentialsProvider.setCredentialsEncryptionMode(newEncryptionMode)
-
-			o(storage.getCredentialEncryptionMode()).equals(newEncryptionMode)
+			verify(storageMock.setCredentialEncryptionMode(newEncryptionMode), {times: 1})
 		})
 	})
 
 	o.spec("Changing credentials encryption mode", function () {
 		o("Changing encryption mode", async function () {
 			const oldEncryptionMode = CredentialEncryptionMode.SYSTEM_PASSWORD
-			storage._credentialsEncryptionMode = oldEncryptionMode
-			storage._credentialsEncryptionKey = encryptionKey
-
 			const newEncryptionMode = CredentialEncryptionMode.DEVICE_LOCK
+			const migratedKey = new Uint8Array([8, 3, 5, 8])
+
+			when(storageMock.getCredentialEncryptionMode()).thenReturn(oldEncryptionMode)
+			when(storageMock.getCredentialsEncryptionKey()).thenReturn(encryptionKey)
+			when(keyMigratorMock.migrateCredentialsKey(encryptionKey, oldEncryptionMode, newEncryptionMode)).thenResolve(migratedKey)
+
 			await credentialsProvider.setCredentialsEncryptionMode(newEncryptionMode)
 
-			o(storage.getCredentialEncryptionMode()).equals(newEncryptionMode)
-			o(Array.from(keyMigrator.migrateCredentialsKey.args[0])).deepEquals(Array.from(encryptionKey))
-			o(keyMigrator.migrateCredentialsKey.args[1]).equals(oldEncryptionMode)
-			o(keyMigrator.migrateCredentialsKey.args[2]).equals(newEncryptionMode)
-			o(Array.from(storage.getCredentialsEncryptionKey() ?? [])).deepEquals(Array.from(migratedKey))
+			verify(storageMock.setCredentialEncryptionMode(newEncryptionMode))
+			verify(storageMock.setCredentialsEncryptionKey(migratedKey))
 		})
 	})
 
-	o.spec("clearCredentials", function() {
-		o("deleted credentials, key and mode", async function() {
-			await storage.store(encryptedInternalCredentials)
-			await storage.store(encryptedExternalCredentials)
+	o.spec("clearCredentials", function () {
+		o("deleted credentials, key and mode", async function () {
+			when(storageMock.loadAll()).thenReturn([encryptedInternalCredentials, encryptedExternalCredentials])
 
 			await credentialsProvider.clearCredentials("testing")
 
-			o(storage.loadAll()).deepEquals([])
-			o(storage.getCredentialsEncryptionKey()).equals(null)
-			o(storage.getCredentialEncryptionMode()).equals(null)
+			verify(storageMock.deleteByUserId(internalCredentials.userId))
+			verify(storageMock.deleteByUserId(externalCredentials.userId))
 		})
 	})
 })

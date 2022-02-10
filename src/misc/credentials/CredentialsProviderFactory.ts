@@ -1,4 +1,4 @@
-import type {CredentialsEncryption, ICredentialsProvider, PersistentCredentials} from "./CredentialsProvider"
+import type {CredentialsAndDatabaseKey, CredentialsEncryption, ICredentialsProvider, PersistentCredentials} from "./CredentialsProvider"
 import {CredentialsProvider} from "./CredentialsProvider"
 import {deviceConfig} from "../DeviceConfig"
 import {isApp, isDesktop} from "../../api/common/Env"
@@ -6,9 +6,9 @@ import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryp
 import {CredentialsKeyMigrator, CredentialsKeyMigratorStub} from "./CredentialsKeyMigrator"
 import {CredentialsKeyProvider} from "./CredentialsKeyProvider"
 import {NativeCredentialsEncryption} from "./NativeCredentialsEncryption"
-import type {Credentials} from "./Credentials"
 import type {NativeInterface} from "../../native/common/NativeInterface"
 import {assertNotNull} from "@tutao/tutanota-utils"
+import {DatabaseKeyFactory} from "./DatabaseKeyFactory"
 
 export function usingKeychainAuthentication(): boolean {
 	return isApp() || isDesktop()
@@ -23,15 +23,18 @@ export function hasKeychainAuthenticationOptions(): boolean {
  * @param deviceEncryptionFacade
  * @param nativeApp: If {@code usingKeychainAuthentication} would return true, this _must not_ be null
  */
-export function createCredentialsProvider(deviceEncryptionFacade: DeviceEncryptionFacade, nativeApp: NativeInterface | null): ICredentialsProvider {
+export function createCredentialsProvider(
+	deviceEncryptionFacade: DeviceEncryptionFacade,
+	nativeApp: NativeInterface | null,
+): ICredentialsProvider {
 	if (usingKeychainAuthentication()) {
 		const nonNullNativeApp = assertNotNull(nativeApp)
 		const credentialsKeyProvider = new CredentialsKeyProvider(nonNullNativeApp, deviceConfig, deviceEncryptionFacade)
 		const credentialsEncryption = new NativeCredentialsEncryption(credentialsKeyProvider, deviceEncryptionFacade, nonNullNativeApp)
 		const credentialsKeyMigrator = new CredentialsKeyMigrator(nonNullNativeApp)
-		return new CredentialsProvider(credentialsEncryption, deviceConfig, credentialsKeyMigrator)
+		return new CredentialsProvider(credentialsEncryption, deviceConfig, credentialsKeyMigrator, new DatabaseKeyFactory(deviceEncryptionFacade))
 	} else {
-		return new CredentialsProvider(new CredentialsEncryptionStub(), deviceConfig, new CredentialsKeyMigratorStub())
+		return new CredentialsProvider(new CredentialsEncryptionStub(), deviceConfig, new CredentialsKeyMigratorStub(), new DatabaseKeyFactory(deviceEncryptionFacade))
 	}
 }
 
@@ -42,7 +45,7 @@ export function createCredentialsProvider(deviceEncryptionFacade: DeviceEncrypti
  */
 
 class CredentialsEncryptionStub implements CredentialsEncryption {
-	async encrypt(credentials: Credentials): Promise<PersistentCredentials> {
+	async encrypt({credentials, databaseKey}: CredentialsAndDatabaseKey): Promise<PersistentCredentials> {
 		const {encryptedPassword} = credentials
 
 		if (encryptedPassword == null) {
@@ -57,16 +60,20 @@ class CredentialsEncryptionStub implements CredentialsEncryption {
 			},
 			encryptedPassword,
 			accessToken: credentials.accessToken,
+			databaseKey: null
 		}
 	}
 
-	async decrypt(encryptedCredentials: PersistentCredentials): Promise<Credentials> {
+	async decrypt(encryptedCredentials: PersistentCredentials): Promise<CredentialsAndDatabaseKey> {
 		return {
-			login: encryptedCredentials.credentialInfo.login,
-			encryptedPassword: encryptedCredentials.encryptedPassword,
-			accessToken: encryptedCredentials.accessToken,
-			userId: encryptedCredentials.credentialInfo.userId,
-			type: encryptedCredentials.credentialInfo.type,
+			credentials: {
+				login: encryptedCredentials.credentialInfo.login,
+				encryptedPassword: encryptedCredentials.encryptedPassword,
+				accessToken: encryptedCredentials.accessToken,
+				userId: encryptedCredentials.credentialInfo.userId,
+				type: encryptedCredentials.credentialInfo.type,
+			},
+			databaseKey: null
 		}
 	}
 

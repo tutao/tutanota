@@ -7,7 +7,7 @@ import type {EntityUpdate} from "../../../src/api/entities/sys/EntityUpdate"
 import {createEntityUpdate} from "../../../src/api/entities/sys/EntityUpdate"
 import type {Mail} from "../../../src/api/entities/tutanota/Mail"
 import {createMail, MailTypeRef} from "../../../src/api/entities/tutanota/Mail"
-import {assertNotNull, clone, downcast, isSameTypeRef, neverNull, TypeRef} from "@tutao/tutanota-utils"
+import {arrayOf, assertNotNull, clone, downcast, isSameTypeRef, neverNull, TypeRef} from "@tutao/tutanota-utils"
 import {createExternalUserReference, ExternalUserReferenceTypeRef} from "../../../src/api/entities/sys/ExternalUserReference"
 import {NotAuthorizedError, NotFoundError} from "../../../src/api/common/error/RestError"
 import {EntityRestClient, typeRefToPath} from "../../../src/api/worker/rest/EntityRestClient"
@@ -16,30 +16,31 @@ import {ContactTypeRef, createContact} from "../../../src/api/entities/tutanota/
 import {createCustomer, CustomerTypeRef} from "../../../src/api/entities/sys/Customer"
 import {assertThrows, mockAttribute, unmockAttribute} from "@tutao/tutanota-test-utils"
 import {createPermission, PermissionTypeRef} from "../../../src/api/entities/sys/Permission"
-import {OfflineStorage} from "../../../src/api/worker/rest/OfflineStorage"
 import {EphemeralCacheStorage} from "../../../src/api/worker/rest/EphemeralCacheStorage"
 import {QueuedBatch} from "../../../src/api/worker/search/EventQueue"
+import {offlineDatabaseTestKey} from "../../client/desktop/db/OfflineDbTest"
 import {matchers, object, when} from "testdouble"
-import {arrayOf} from "@tutao/tutanota-utils"
+import {OfflineStorage} from "../../../src/api/worker/rest/OfflineStorage"
 
 const {anything} = matchers
 
 
-type UserIdProvider = () => Id | null
-
-async function getOfflineStorage(userIdProvider: UserIdProvider): Promise<CacheStorage> {
+async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 	const {OfflineDbFacade} = await import("../../../src/desktop/db/OfflineDbFacade.js")
 	const {OfflineDb} = await import("../../../src/desktop/db/OfflineDb.js")
-	const offlineDbFactory = async (userId: string) => {
+	const offlineDbFactory = async (userId: string, key) => {
 		assertNotNull(userId)
 		// Added by sqliteNativeBannerPlugin
 		const nativePath = globalThis.buildOptions.sqliteNativePath
 		const db = new OfflineDb(nativePath)
-		await db.init(":memory:")
+		//integrity check breaks for in memory database
+		await db.init(":memory:", key, false)
 		return db
 	}
 	const offlineDbFacade = new OfflineDbFacade(offlineDbFactory)
-	return new OfflineStorage(offlineDbFacade, userIdProvider)
+	const offlineStorage = new OfflineStorage(offlineDbFacade)
+	await offlineStorage.init(userId, offlineDatabaseTestKey)
+	return offlineStorage
 }
 
 async function getEphemeralStorage(): Promise<EphemeralCacheStorage> {
@@ -49,7 +50,7 @@ async function getEphemeralStorage(): Promise<EphemeralCacheStorage> {
 testEntityRestCache("ephemeral", getEphemeralStorage)
 node(() => testEntityRestCache("offline", getOfflineStorage))()
 
-export function testEntityRestCache(name: string, getStorage: (userIdProvider: UserIdProvider) => Promise<CacheStorage>) {
+export function testEntityRestCache(name: string, getStorage: (userId: Id) => Promise<CacheStorage>) {
 	const groupId = "groupId"
 	const batchId = "batchId"
 	o.spec("entity rest cache " + name, function () {
@@ -59,7 +60,7 @@ export function testEntityRestCache(name: string, getStorage: (userIdProvider: U
 		// The entity client will assert to throwing if an unexpected method is called
 		// You can mock it's attributes if you want to assert that a given method will be called
 		let entityRestClient
-		let userIdProvider: UserIdProvider
+		let userId: Id | null
 
 
 		let createUpdate = function (
@@ -115,8 +116,8 @@ export function testEntityRestCache(name: string, getStorage: (userIdProvider: U
 		}
 
 		o.beforeEach(async function () {
-			userIdProvider = () => "userId"
-			storage = await getStorage(userIdProvider)
+			userId = "userId"
+			storage = await getStorage(userId)
 			entityRestClient = mockRestClient()
 			cache = new EntityRestCache(entityRestClient, storage)
 
@@ -1294,14 +1295,14 @@ export function testEntityRestCache(name: string, getStorage: (userIdProvider: U
 
 		o.spec("no user id", function () {
 			o("get", async function () {
-				userIdProvider = () => null
+				userId = null
 				entityRestClient.load = o.spy(async () => createContact({_id: ["listId", "id"]}))
 				await cache.load(ContactTypeRef, ["listId", "id"])
 				o(entityRestClient.load.callCount).equals(1)
 			})
 
 			o("put", async function () {
-				userIdProvider = () => null
+				userId = null
 				entityRestClient.setup = o.spy(async () => ["listId", "id"])
 				await cache.setup("listId", createContact({_id: ["listId", "id"]}))
 				o(entityRestClient.setup.callCount).equals(1)

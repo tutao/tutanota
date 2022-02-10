@@ -1,8 +1,8 @@
 import type {SecretStorage} from "./sse/SecretStorage"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {log} from "./DesktopLog"
-import {getFromMap} from "@tutao/tutanota-utils"
-import {base64ToKey, keyToBase64} from "@tutao/tutanota-crypto"
+import {Base64, base64ToUint8Array, getFromMap, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {base64ToKey, keyToBase64,} from "@tutao/tutanota-crypto"
 import {DeviceStorageUnavailableError} from "../api/common/error/DeviceStorageUnavailableError.js"
 import {CancelledError} from "../api/common/error/CancelledError"
 
@@ -98,7 +98,11 @@ export class KeyStoreFacadeImpl implements DesktopKeyStoreFacade {
 
 	private async fetchKey(spec: NativeKeySpec): Promise<Aes256Key | null> {
 		const base64 = await this.secretStorage.getPassword(spec.serviceName, spec.accountName)
-		return base64 == null ? null : base64ToKey(base64)
+
+		if (base64 == null) {
+			return null
+		}
+		return base64ToKey(base64)
 	}
 
 	private async generateAndStoreKey(spec: NativeKeySpec): Promise<Aes256Key> {
@@ -106,7 +110,9 @@ export class KeyStoreFacadeImpl implements DesktopKeyStoreFacade {
 
 		const key: Aes256Key = this.crypto.generateDeviceKey()
 
-		await this.secretStorage.setPassword(spec.serviceName, spec.accountName, keyToBase64(key))
+		const base64 = keyToBase64(key)
+
+		await this.secretStorage.setPassword(spec.serviceName, spec.accountName, base64)
 		return key
 	}
 }

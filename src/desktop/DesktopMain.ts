@@ -140,10 +140,10 @@ async function createComponents(): Promise<Components> {
 	// It should be ok to await this, all we are waiting for is dynamic imports
 	const integrator = await getDesktopIntegratorForPlatform(electron, fs, child_process, () => import("winreg"))
 
-	const offlineDbFactory = async (userId: Id) => {
+	const offlineDbFactory = async (userId: Id, key: Aes256Key) => {
 		const db = new OfflineDb(buildOptions.sqliteNativePath)
 		const dbPath = path.join(app.getPath("userData"), `offline_${userId}.sqlite`)
-		await db.init(dbPath)
+		await db.init(dbPath, key)
 		return db
 	}
 

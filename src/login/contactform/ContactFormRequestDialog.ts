@@ -12,7 +12,7 @@ import {progressIcon} from "../../gui/base/Icon"
 import {AccessDeactivatedError} from "../../api/common/error/RestError"
 import {client} from "../../misc/ClientDetector"
 import {createPushIdentifier} from "../../api/entities/sys/PushIdentifier"
-import {logins, SessionType} from "../../api/main/LoginController"
+import {logins} from "../../api/main/LoginController"
 import {PasswordForm} from "../../settings/PasswordForm"
 import {HtmlEditor} from "../../gui/editor/HtmlEditor"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -34,6 +34,7 @@ import {locator} from "../../api/main/MainLocator"
 import {assertMainOrNode} from "../../api/common/Env"
 import {DataFile} from "../../api/common/DataFile";
 import {FileReference} from "../../api/common/utils/FileUtils";
+import {SessionType} from "../../api/common/SessionType.js";
 
 assertMainOrNode()
 
@@ -298,7 +299,7 @@ export class ContactFormRequestDialog {
 			const doSend = async () => {
 				const contactFormResult = await customerFacade.createContactFormUser(password, this._contactForm._id)
 				const userEmailAddress = contactFormResult.responseMailAddress
-				await logins.createSession(userEmailAddress, password, SessionType.Temporary)
+				await logins.createSession(userEmailAddress, password, SessionType.Temporary, null)
 
 				try {
 					if (cleanedNotificationMailAddress) {
