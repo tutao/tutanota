@@ -1,14 +1,9 @@
-import {
-	base64ToBase64Url,
-	base64ToUint8Array,
-	stringToUtf8Uint8Array,
-	uint8ArrayToBase64,
-	utf8Uint8ArrayToString
-} from "@tutao/tutanota-utils"
+import {base64ToBase64Url, base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
 import type {CryptoFunctions} from "./CryptoFns"
 import type {TypeModel} from "../api/common/EntityTypes"
-import {base64ToKey, IV_BYTE_LENGTH} from "@tutao/tutanota-crypto"
 import type * as FsModule from "fs"
+import {Aes256Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
+import {aes256Decrypt256Key, aes256Encrypt256Key, base64ToKey, IV_BYTE_LENGTH} from "@tutao/tutanota-crypto"
 
 type FsExports = typeof FsModule
 
@@ -20,6 +15,15 @@ export class DesktopCryptoFacade {
 		this.fs = fs
 		this.cryptoFns = cryptoFns
 	}
+
+	aes256Encrypt256Key(encryptionKey: Aes256Key, keyToEncrypt: Aes256Key): Uint8Array {
+		return aes256Encrypt256Key(encryptionKey, keyToEncrypt)
+	}
+
+	aes256Decrypt256Key(encryptionKey: Aes256Key, keyToDecrypt: Uint8Array): Aes256Key {
+		return aes256Decrypt256Key(encryptionKey, keyToDecrypt)
+	}
+
 
 	aesEncryptObject(encryptionKey: Aes256Key, object: number | string | boolean | ReadonlyArray<any> | {}): string {
 		const serializedObject = JSON.stringify(object)

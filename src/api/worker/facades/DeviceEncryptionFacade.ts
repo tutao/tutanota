@@ -11,21 +11,21 @@ export interface DeviceEncryptionFacade {
 	generateKey(): Promise<Uint8Array>
 
 	/**
-	 * Encrypts {param data} using {param deviceKey}.
-	 * @param deviceKey Key used for encryption - key might be encrypted and/or protected by device specific mechanisms.
+	 * Encrypts {@param data} using {@param deviceKey}.
+	 * @param deviceKey Key used for encryption
 	 * @param data Data to encrypt.
 	 */
 	encrypt(deviceKey: Uint8Array, data: Uint8Array): Promise<Uint8Array>
 
 	/**
-	 * Decrypts {param encryptedData} using {param deviceKey}.
-	 * @param deviceKey Key used for encryption - key might be encrypted and/or protected by device specific mechanisms.
+	 * Decrypts {@param encryptedData} using {@param deviceKey}.
+	 * @param deviceKey Key used for encryption
 	 * @param encryptedData Data to be decrypted.
 	 */
 	decrypt(deviceKey: Uint8Array, encryptedData: Uint8Array): Promise<Uint8Array>
 }
 
-export class DeviceEncryptionFacadeImpl implements DeviceEncryptionFacade {
+export class Aes256DeviceEncryptionFacade implements DeviceEncryptionFacade {
 	async generateKey(): Promise<Uint8Array> {
 		return bitArrayToUint8Array(aes256RandomKey())
 	}

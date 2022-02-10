@@ -152,6 +152,10 @@ async function rollupDesktop(dirname, outDir, version, platform) {
 					environment: "electron",
 					rootDir: projectRoot,
 					dstPath: "./build/dist/desktop/better_sqlite3.node",
+					// Relative to the source file from which the .node file is loaded
+					// In our case it will be desktop/DesktopMain.js, which is located in the same directory
+					// This depends on the changes we made in our own fork of better_sqlite3
+					nativeBindingPath: "./better_sqlite3.node",
 					platform,
 				}
 			),

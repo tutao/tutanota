@@ -17,7 +17,7 @@ import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {RejectedSenderTypeRef} from "../../entities/sys/RejectedSender"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId} from "../../common/utils/EntityUtils";
 import {ProgrammingError} from "../../common/error/ProgrammingError"
-import {assertWorkerOrNode} from "../../common/Env"
+import {assertWorkerOrNode, isDesktop} from "../../common/Env"
 import type {ListElementEntity, SomeEntity} from "../../common/EntityTypes"
 import {EntityUpdateData} from "../../main/EventController"
 import {QueuedBatch} from "../search/EventQueue"
@@ -64,9 +64,10 @@ export interface IEntityRestCache extends EntityRestInterface {
 }
 
 
-type Range = {lower: Id, upper: Id}
+export type Range = {lower: Id, upper: Id}
 
 export interface CacheStorage {
+
 	/**
 	 * Get a given entity from the cache, expects that you have already checked for existence
 	 */
@@ -113,11 +114,6 @@ export interface CacheStorage {
 	getLastUpdateTime(): Promise<number | null>
 
 	putLastUpdateTime(value: number): Promise<void>
-}
-
-export function isUsingOfflineCache() {
-	// TODO : we disabled this code path while developing so changes can already be merged into master
-	return false
 }
 
 /**

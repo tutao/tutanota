@@ -21,6 +21,8 @@ export {
 	decrypt256Key,
 	encryptRsaKey,
 	decryptRsaKey,
+	aes256Decrypt256Key,
+	aes256Encrypt256Key
 } from "./encryption/KeyEncryption.js"
 export {Randomizer, random} from "./random/Randomizer.js"
 export {

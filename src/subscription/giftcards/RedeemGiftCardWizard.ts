@@ -9,7 +9,7 @@ import {
 	wizardPageWrapper,
 	WizardPageWrapper
 } from "../../gui/base/WizardDialogN"
-import {logins, SessionType} from "../../api/main/LoginController"
+import {logins} from "../../api/main/LoginController"
 import type {NewAccountData} from "../UpgradeSubscriptionWizard"
 import {loadUpgradePrices} from "../UpgradeSubscriptionWizard"
 import {Dialog} from "../../gui/base/Dialog"
@@ -44,6 +44,7 @@ import {ofClass} from "@tutao/tutanota-utils"
 import type {CredentialsInfo} from "../../misc/credentials/CredentialsProvider"
 import Stream from "mithril/stream";
 import {downcast} from "@tutao/tutanota-utils";
+import {SessionType} from "../../api/common/SessionType.js";
 
 type GetCredentialsMethod = "login" | "signup"
 type RedeemGiftCardWizardData = {

@@ -16,7 +16,7 @@ import {lang} from "./LanguageViewModel"
 import {assertMainOrNode, Mode} from "../api/common/Env"
 import {AccountType, ConversationType, MailMethod} from "../api/common/TutanotaConstants"
 import {errorToString, neverNull, noOp, ofClass, typedKeys} from "@tutao/tutanota-utils"
-import {logins, SessionType} from "../api/main/LoginController"
+import {logins} from "../api/main/LoginController"
 import {OutOfSyncError} from "../api/common/error/OutOfSyncError"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
@@ -34,6 +34,7 @@ import {px} from "../gui/size"
 import {UserError} from "../api/main/UserError"
 import {showMoreStorageNeededOrderDialog} from "./SubscriptionDialogs"
 import {createDraftRecipient} from "../api/entities/tutanota/DraftRecipient"
+import {SessionType} from "../api/common/SessionType"
 
 assertMainOrNode()
 type FeedbackContent = {

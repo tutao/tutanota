@@ -1,4 +1,5 @@
 import {client} from "./ClientDetector"
+import type {Base64} from "@tutao/tutanota-utils"
 import {base64ToUint8Array, typedEntries, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {LanguageCode} from "./LanguageViewModel"
 import type {ThemeId} from "../gui/theme"
@@ -7,7 +8,6 @@ import type {CredentialsStorage, PersistentCredentials} from "./credentials/Cred
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import type {CredentialEncryptionMode} from "./credentials/CredentialEncryptionMode"
 import {assertMainOrNodeBoot} from "../api/common/Env"
-import type {Base64} from "@tutao/tutanota-utils"
 
 assertMainOrNodeBoot()
 const ConfigVersion = 3
@@ -36,6 +36,13 @@ export class DeviceConfig implements CredentialsStorage {
 	}
 
 	store(persistentCredentials: PersistentCredentials): void {
+
+		const existing = this._credentials.get(persistentCredentials.credentialInfo.userId)
+
+		if (existing?.databaseKey) {
+			persistentCredentials.databaseKey = existing.databaseKey
+		}
+
 		this._credentials.set(persistentCredentials.credentialInfo.userId, persistentCredentials)
 
 		this._writeToStorage()
@@ -62,22 +69,22 @@ export class DeviceConfig implements CredentialsStorage {
 		this._themeId = defaultThemeId
 
 		if (loadedConfig) {
+			if (loadedConfig._version !== ConfigVersion) {
+				migrateConfig(loadedConfig)
+			}
+
 			if (loadedConfig._themeId) {
 				this._themeId = loadedConfig._themeId
 			} else if (loadedConfig._theme) {
 				this._themeId = loadedConfig._theme
 			}
 
-			if (loadedConfig._version !== ConfigVersion) {
-				this._credentials = migrateCredentials(loadedConfig)
-
-				this._writeToStorage()
-			} else {
-				this._credentials = new Map(typedEntries(loadedConfig._credentials))
-			}
-
+			this._credentials = new Map(typedEntries(loadedConfig._credentials))
 			this._credentialEncryptionMode = loadedConfig._credentialEncryptionMode
 			this._encryptedCredentialsKey = loadedConfig._encryptedCredentialsKey
+
+			// Write to storage, to save any migrations that may have occurred
+			this._writeToStorage()
 		}
 
 		this._scheduledAlarmUsers = (loadedConfig && loadedConfig._scheduledAlarmUsers) || []
@@ -225,49 +232,57 @@ export class DeviceConfig implements CredentialsStorage {
 	}
 }
 
-export function migrateCredentials(loadedConfig: any): Map<Id, PersistentCredentials> {
+
+export function migrateConfig(loadedConfig: any) {
 	if (loadedConfig === ConfigVersion) {
 		throw new ProgrammingError("Should not migrate credentials, current version")
 	}
 
-	if (loadedConfig._version === 2) {
-		const oldCredentialsArray = loadedConfig._credentials
-		const newCredentials = new Map<Id, PersistentCredentials>()
+	if (loadedConfig._version < 2) {
+		loadedConfig._credentials = []
+	}
 
-		for (const oldCredential of oldCredentialsArray) {
-			let newCredential: PersistentCredentials
+	if (loadedConfig._version < 3) {
+		migrateConfigV2to3(loadedConfig)
+	}
+}
 
-			// in version 2 external users had userId as their email address
-			// We use encryption stub in this version
-			if (oldCredential.mailAddress.includes("@")) {
-				newCredential = {
-					credentialInfo: {
-						login: oldCredential.mailAddress,
-						userId: oldCredential.userId,
-						type: "internal",
-					},
-					encryptedPassword: oldCredential.encryptedPassword,
-					accessToken: oldCredential.accessToken,
-				}
-			} else {
-				newCredential = {
-					credentialInfo: {
-						login: oldCredential.userId,
-						userId: oldCredential.userId,
-						type: "external",
-					},
-					encryptedPassword: oldCredential.encryptedPassword,
-					accessToken: oldCredential.accessToken,
-				}
+/**
+ * Migrate from V2 of the config to V3
+ *
+ * Exported for testing
+ */
+export function migrateConfigV2to3(loadedConfig: any) {
+
+	const oldCredentialsArray = loadedConfig._credentials
+
+	for (let i = 0; i < oldCredentialsArray.length; ++i) {
+
+		const oldCredential = oldCredentialsArray[i]
+
+		// in version 2 external users had userId as their email address
+		// We use encryption stub in this version
+		if (oldCredential.mailAddress.includes("@")) {
+			oldCredentialsArray[i] = {
+				credentialInfo: {
+					login: oldCredential.mailAddress,
+					userId: oldCredential.userId,
+					type: "internal",
+				},
+				encryptedPassword: oldCredential.encryptedPassword,
+				accessToken: oldCredential.accessToken,
 			}
-
-			newCredentials.set(newCredential.credentialInfo.userId, newCredential)
+		} else {
+			oldCredentialsArray[i] = {
+				credentialInfo: {
+					login: oldCredential.userId,
+					userId: oldCredential.userId,
+					type: "external",
+				},
+				encryptedPassword: oldCredential.encryptedPassword,
+				accessToken: oldCredential.accessToken,
+			}
 		}
-
-		return newCredentials
-	} else {
-		// Don't migrate otherwise
-		return new Map()
 	}
 }
 

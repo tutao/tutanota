@@ -36,7 +36,6 @@ import {RestClient} from "../../../src/api/worker/rest/RestClient"
 import {createWebsocketLeaderStatus} from "../../../src/api/entities/sys/WebsocketLeaderStatus"
 import {EntityClient} from "../../../src/api/common/EntityClient"
 import {EntityRestClientMock} from "../worker/EntityRestClientMock"
-import {hexToPrivateKey, hexToPublicKey} from "@tutao/tutanota-crypto"
 import {
 	aes128Decrypt,
 	aes128Encrypt,
@@ -45,14 +44,17 @@ import {
 	ENABLE_MAC,
 	encryptKey,
 	encryptRsaKey,
+	hexToPrivateKey,
+	hexToPublicKey,
 	IV_BYTE_LENGTH,
-	random,
+	random
 } from "@tutao/tutanota-crypto"
 import {RsaWeb} from "../../../src/api/worker/crypto/RsaImplementation"
 import {decryptValue, encryptValue, InstanceMapper} from "../../../src/api/worker/crypto/InstanceMapper"
 import {locator} from "../../../src/api/worker/WorkerLocator"
 import type {ModelValue} from "../../../src/api/common/EntityTypes"
 import {HttpMethod} from "../../../src/api/common/EntityFunctions";
+import {serviceRequest, serviceRequestVoid} from "../../../src/api/worker/ServiceRequestWorker"
 
 const rsa = new RsaWeb()
 const rsaEncrypt = rsa.encrypt
@@ -79,7 +81,7 @@ o.spec("crypto facade", function () {
 	o.before(function () {
 		const suspensionHandler = downcast({})
 		restClient = new RestClient(suspensionHandler)
-		login = new LoginFacadeImpl(null as any, restClient, downcast({}), downcast({}), instanceMapper, {} as lazy<CryptoFacade>)
+		login = new LoginFacadeImpl(null as any, {serviceRequest, serviceRequestVoid}, restClient, downcast({}), downcast({}), instanceMapper, {} as lazy<CryptoFacade>, async () => {})
 		locator.login = login
 		locator.restClient = restClient
 		locator.rsa = rsa

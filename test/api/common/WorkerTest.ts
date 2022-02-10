@@ -4,9 +4,10 @@ import {CryptoError} from "../../../src/api/common/error/CryptoError"
 import {NotAuthenticatedError} from "../../../src/api/common/error/RestError"
 import {Request} from "../../../src/api/common/MessageDispatcher"
 import {ProgrammingError} from "../../../src/api/common/error/ProgrammingError"
-import {logins, SessionType} from "../../../src/api/main/LoginController"
+import {logins} from "../../../src/api/main/LoginController"
 import {locator} from "../../../src/api/main/MainLocator"
 import {assertThrows} from "@tutao/tutanota-test-utils"
+import {SessionType} from "../../../src/api/common/SessionType.js";
 
 o.spec(
 		"WorkerTest request / response",

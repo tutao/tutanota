@@ -7,7 +7,7 @@ import {getNativeLibModulePath} from "./nativeLibraryProvider.js"
  * See DesktopMain.
  */
 export function sqliteNativeBannerPlugin(
-	{environment, rootDir, dstPath, platform},
+	{environment, rootDir, dstPath, nativeBindingPath, platform},
 	log = console.log.bind(console)
 ) {
 	return {
@@ -27,7 +27,7 @@ export function sqliteNativeBannerPlugin(
 		banner() {
 			return `
 			globalThis.buildOptions = globalThis.buildOptions ?? {}
-			globalThis.buildOptions.sqliteNativePath = "${dstPath}";
+			globalThis.buildOptions.sqliteNativePath = "${nativeBindingPath ?? dstPath}";
 			`
 		}
 	}

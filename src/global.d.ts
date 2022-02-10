@@ -10,6 +10,7 @@ import {RootView} from "./RootView";
 import {LoginController} from "./api/main/LoginController";
 import {IMainLocator} from "./api/main/MainLocator";
 import {WhitelabelCustomizations} from "./misc/WhitelabelCustomizations";
+import {WorkerLocatorType} from "./api/worker/WorkerLocator"
 
 interface NativeApp {
 	// In desktop we can pass whole objects
@@ -48,5 +49,9 @@ declare global {
 		 * It's existence can be used to determine whether or not we are inside a web dialog
 		 * */
 		nativeAppWebDialog: NativeApp | undefined,
+	}
+
+	interface WorkerGlobalScope {
+		locator: WorkerLocatorType
 	}
 }

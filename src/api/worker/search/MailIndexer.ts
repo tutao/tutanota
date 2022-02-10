@@ -21,7 +21,7 @@ import {IndexerCore} from "./IndexerCore"
 import {ElementDataOS, GroupDataOS, Metadata, MetaDataOS} from "./Indexer"
 import type {WorkerImpl} from "../WorkerImpl"
 import {DbError} from "../../common/error/DbError"
-import {EntityRestCache, isUsingOfflineCache} from "../rest/EntityRestCache"
+import {EntityRestCache} from "../rest/EntityRestCache"
 import type {DateProvider} from "../DateProvider"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import type {User} from "../../entities/sys/User"
@@ -54,6 +54,8 @@ export class MailIndexer {
 	_defaultCachingEntity: EntityClient
 	_dateProvider: DateProvider
 
+	private isUsingOfflineCache = false
+
 	constructor(
 		core: IndexerCore,
 		db: Db,
@@ -74,6 +76,10 @@ export class MailIndexer {
 		this._excludedListIds = []
 		this._entityRestClient = entityRestClient
 		this._dateProvider = dateProvider
+	}
+
+	setIsUsingOfflineCache(isUsing: boolean) {
+		this.isUsingOfflineCache = isUsing
 	}
 
 	createMailIndexEntries(mail: Mail, mailBody: MailBody | null, files: TutanotaFile[]): Map<string, SearchIndexEntry[]> {
@@ -365,7 +371,8 @@ export class MailIndexer {
 
 		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(MailTypeRef))
 
-		const indexLoader = new IndexLoader(this._entityRestClient, this._defaultCachingEntityRestClient)
+
+		const indexLoader = new IndexLoader(this._entityRestClient, this._defaultCachingEntityRestClient, this.isUsingOfflineCache)
 
 		return promiseMap(mailBoxes, mBoxData => {
 			return this._loadMailListIds(mBoxData.mbox).then(mailListIds => {
@@ -667,8 +674,12 @@ class IndexLoader {
 	_entity: EntityClient
 	private readonly cachingEntity: EntityClient
 
-	constructor(restClient: EntityRestClient, cachingEntityClient: EntityRestCache) {
-		if (isUsingOfflineCache()) {
+	constructor(
+		restClient: EntityRestClient,
+		cachingEntityClient: EntityRestCache,
+		private isUsingOfflineCache: boolean
+	) {
+		if (isUsingOfflineCache) {
 			this.entityCache = cachingEntityClient
 			this._entity = new EntityClient(cachingEntityClient)
 		} else {
@@ -696,7 +707,7 @@ class IndexLoader {
 	}
 
 	async removeFromCache(id: IdTuple): Promise<void> {
-		if (!isUsingOfflineCache()) {
+		if (!this.isUsingOfflineCache) {
 			return this.entityCache.deleteFromCacheIfExists(MailTypeRef, listIdPart(id), elementIdPart(id))
 		}
 	}

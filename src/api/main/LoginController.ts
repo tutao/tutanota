@@ -1,14 +1,15 @@
 import type {DeferredObject} from "@tutao/tutanota-utils"
-import {assertNotNull, defer} from "@tutao/tutanota-utils"
+import {assertNotNull, defer, remove} from "@tutao/tutanota-utils"
 import {assertMainOrNodeBoot, getHttpOrigin} from "../common/Env"
 import type {IUserController, UserControllerInitData} from "./UserController"
 import {getWhitelabelCustomizations} from "../../misc/WhitelabelCustomizations"
 import {NotFoundError} from "../common/error/RestError"
-import {remove} from "@tutao/tutanota-utils"
 import {client} from "../../misc/ClientDetector"
 import type {LoginFacade} from "../worker/facades/LoginFacade"
 import type {Credentials} from "../../misc/credentials/Credentials"
 import {FeatureType} from "../common/TutanotaConstants";
+import {CredentialsAndDatabaseKey} from "../../misc/credentials/CredentialsProvider"
+import {SessionType} from "../common/SessionType"
 
 assertMainOrNodeBoot()
 
@@ -16,31 +17,20 @@ export interface LoginEventHandler {
 	onLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void>
 }
 
-export const enum SessionType {
-	/* 'Regular' login session. */
-	Login = "Login",
-
-	/* Temporary session that will only be established for a short time, e.g. when recovering a lost account. */
-	Temporary = "Temporary",
-
-	/* Login session for which credentials should be stored on the device. */
-	Persistent = "Persistent",
-}
-
 export type LoggedInEvent = {
 	readonly sessionType: SessionType
 }
 
 export interface LoginController {
-	createSession(username: string, password: string, sessionType: SessionType): Promise<Credentials>
+	createSession(username: string, password: string, sessionType: SessionType, databaseKey?: Uint8Array | null): Promise<Credentials>
 
 	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, sessionType: SessionType): Promise<Credentials>
 
-	resumeSession(credentials: Credentials, externalUserSalt?: Uint8Array): Promise<void>
+	resumeSession(credentials: CredentialsAndDatabaseKey, externalUserSalt?: Uint8Array): Promise<void>
 
 	isUserLoggedIn(): boolean
 
-	waitForUserLogin(): Promise<LoggedInEvent>
+	waitForUserLogin(): Promise<void>
 
 	isInternalUserLoggedIn(): boolean
 
@@ -66,7 +56,7 @@ export interface LoginController {
 export class LoginControllerImpl implements LoginController {
 	private _userController: IUserController | null = null
 	customizations: NumberString[] | null = null
-	waitForLogin: DeferredObject<LoggedInEvent> = defer()
+	waitForLogin: DeferredObject<void> = defer()
 	private _isWhitelabel: boolean = !!getWhitelabelCustomizations(window)
 	private _loginEventHandlers: Array<LoginEventHandler> = []
 
@@ -78,24 +68,22 @@ export class LoginControllerImpl implements LoginController {
 		return locator.loginFacade
 	}
 
-	async createSession(username: string, password: string, sessionType: SessionType): Promise<Credentials> {
-		const permanentLogin = sessionType !== SessionType.Temporary
-		const persistentSession = sessionType === SessionType.Persistent
+	async createSession(username: string, password: string, sessionType: SessionType, databaseKey: Uint8Array | null): Promise<Credentials> {
 		const loginFacade = await this._getLoginFacade()
 		const {user, credentials, sessionId, userGroupInfo} = await loginFacade.createSession(
 			username,
 			password,
 			client.getIdentifier(),
-			persistentSession,
-			permanentLogin,
+			sessionType,
+			databaseKey
 		)
-		await this._initUserController(
+		await this.onLoginSuccess(
 			{
 				user,
 				userGroupInfo,
 				sessionId,
 				accessToken: credentials.accessToken,
-				persistentSession,
+				persistentSession: sessionType === SessionType.Persistent,
 			},
 			sessionType,
 		)
@@ -110,9 +98,9 @@ export class LoginControllerImpl implements LoginController {
 		remove(this._loginEventHandlers, handler)
 	}
 
-	async _initUserController(initData: UserControllerInitData, sessionType: SessionType): Promise<void> {
-		const userControllerModule = await import("./UserController")
-		this._userController = await userControllerModule.initUserController(initData)
+	async onLoginSuccess(initData: UserControllerInitData, sessionType: SessionType): Promise<void> {
+		const {initUserController} = await import("./UserController")
+		this._userController = await initUserController(initData)
 		await this.loadCustomizations()
 		await this._determineIfWhitelabel()
 
@@ -122,21 +110,19 @@ export class LoginControllerImpl implements LoginController {
 			})
 		}
 
-		this.waitForLogin.resolve({
-			sessionType,
-		})
+		this.waitForLogin.resolve()
 	}
 
 	async createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, sessionType: SessionType): Promise<Credentials> {
-		const worker = await this._getLoginFacade()
+		const loginFacade = await this._getLoginFacade()
 		const persistentSession = sessionType === SessionType.Persistent
 		const {
 			user,
 			credentials,
 			sessionId,
 			userGroupInfo
-		} = await worker.createExternalSession(userId, password, salt, clientIdentifier, persistentSession)
-		await this._initUserController(
+		} = await loginFacade.createExternalSession(userId, password, salt, clientIdentifier, persistentSession)
+		await this.onLoginSuccess(
 			{
 				user,
 				accessToken: credentials.accessToken,
@@ -149,10 +135,10 @@ export class LoginControllerImpl implements LoginController {
 		return credentials
 	}
 
-	async resumeSession(credentials: Credentials, externalUserSalt?: Uint8Array): Promise<void> {
+	async resumeSession({credentials, databaseKey}: CredentialsAndDatabaseKey, externalUserSalt?: Uint8Array): Promise<void> {
 		const loginFacade = await this._getLoginFacade()
-		const {user, userGroupInfo, sessionId} = await loginFacade.resumeSession(credentials, externalUserSalt ?? null)
-		await this._initUserController(
+		const {user, userGroupInfo, sessionId} = await loginFacade.resumeSession(credentials, externalUserSalt ?? null, databaseKey ?? null)
+		await this.onLoginSuccess(
 			{
 				user,
 				accessToken: credentials.accessToken,
@@ -168,7 +154,7 @@ export class LoginControllerImpl implements LoginController {
 		return this._userController != null
 	}
 
-	waitForUserLogin(): Promise<LoggedInEvent> {
+	waitForUserLogin(): Promise<void> {
 		return this.waitForLogin.promise
 	}
 

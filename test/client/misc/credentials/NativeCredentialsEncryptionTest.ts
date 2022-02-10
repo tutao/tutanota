@@ -4,13 +4,13 @@ import {ICredentialsKeyProvider} from "../../../../src/misc/credentials/Credenti
 import type {DeviceEncryptionFacade} from "../../../../src/api/worker/facades/DeviceEncryptionFacade.js"
 import n from "../../nodemocker.js"
 import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import type {PersistentCredentials} from "../../../../src/misc/credentials/CredentialsProvider.js"
-import type {Credentials} from "../../../../src/misc/credentials/Credentials.js"
+import type {CredentialsAndDatabaseKey, PersistentCredentials} from "../../../../src/misc/credentials/CredentialsProvider.js"
 import type {NativeInterface} from "../../../../src/native/common/NativeInterface.js"
 import {assertThrows} from "@tutao/tutanota-test-utils"
 import {KeyPermanentlyInvalidatedError} from "../../../../src/api/common/error/KeyPermanentlyInvalidatedError.js"
 import {CryptoError} from "../../../../src/api/common/error/CryptoError.js"
 
+//TODO test databasekey encryption
 o.spec("NativeCredentialsEncryptionTest", function () {
 	const credentialsKey = new Uint8Array([1, 2, 3])
 	let credentialsKeyProvider: ICredentialsKeyProvider
@@ -41,12 +41,15 @@ o.spec("NativeCredentialsEncryptionTest", function () {
 
 	o.spec("encrypt", function () {
 		o("produces encrypted credentials", async function () {
-			const credentials: Credentials = {
-				login: "test@example.com",
-				userId: "myUserId1",
-				type: "internal",
-				encryptedPassword: "123456789",
-				accessToken: "someAccessToken",
+			const credentials: CredentialsAndDatabaseKey = {
+				credentials: {
+					login: "test@example.com",
+					userId: "myUserId1",
+					type: "internal",
+					encryptedPassword: "123456789",
+					accessToken: "someAccessToken",
+				},
+				databaseKey: null
 			}
 			const encryptedCredentials = await encryption.encrypt(credentials)
 			o(encryptedCredentials).deepEquals({
@@ -57,6 +60,7 @@ o.spec("NativeCredentialsEncryptionTest", function () {
 				},
 				encryptedPassword: "123456789",
 				accessToken: uint8ArrayToBase64(stringToUtf8Uint8Array("someAccessToken")),
+				databaseKey: null
 			})
 			o(Array.from(deviceEncryptionFacade.encrypt.args[0])).deepEquals(Array.from(credentialsKey))
 			o(Array.from(deviceEncryptionFacade.encrypt.args[1])).deepEquals(Array.from(stringToUtf8Uint8Array("someAccessToken")))
@@ -73,14 +77,18 @@ o.spec("NativeCredentialsEncryptionTest", function () {
 				},
 				encryptedPassword: "123456789",
 				accessToken: uint8ArrayToBase64(stringToUtf8Uint8Array("someAccessToken")),
+				databaseKey: null
 			}
 			const decryptedCredentials = await encryption.decrypt(encryptedCredentials)
 			o(decryptedCredentials).deepEquals({
-				login: "test@example.com",
-				userId: "myUserId1",
-				type: "internal",
-				encryptedPassword: "123456789",
-				accessToken: "someAccessToken",
+				credentials: {
+					login: "test@example.com",
+					userId: "myUserId1",
+					type: "internal",
+					encryptedPassword: "123456789",
+					accessToken: "someAccessToken",
+				},
+				databaseKey: null
 			})
 			o(Array.from(deviceEncryptionFacade.decrypt.args[0])).deepEquals(Array.from(credentialsKey))
 			o(Array.from(deviceEncryptionFacade.decrypt.args[1])).deepEquals(Array.from(stringToUtf8Uint8Array("someAccessToken")))
@@ -95,6 +103,7 @@ o.spec("NativeCredentialsEncryptionTest", function () {
 				},
 				encryptedPassword: "123456789",
 				accessToken: uint8ArrayToBase64(stringToUtf8Uint8Array("someAccessToken")),
+				databaseKey: null
 			}
 			deviceEncryptionFacade.decrypt = () => {
 				return Promise.reject(new CryptoError("TEST"))
