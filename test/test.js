@@ -2,10 +2,13 @@ import child_process from "child_process"
 import {BuildServerClient} from "@tutao/tutanota-build-server"
 import path from "path"
 import {build} from "./TestBuilder.js"
+import {getTutanotaAppVersion} from "../buildSrc/buildUtils.js"
 
 run()
 
 async function run() {
+	console.log("testing version:", await getTutanotaAppVersion())
+
 	let project
 	if (process.argv.indexOf("api") !== -1) {
 		project = "api"

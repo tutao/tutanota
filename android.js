@@ -1,20 +1,25 @@
+/**
+ * Build script for android app.
+ *
+ *  Besides options below this script may require signing parameters passed as environment variables:
+ *  'APK_SIGN_ALIAS'
+ *  'APK_SIGN_STORE_PASS'
+ *  'APK_SIGN_KEY_PASS'
+ *  'APK_SIGN_STORE'
+ *  'ANDROID_HOME'
+ */
 import options from "commander"
-
 import fs from "fs"
 import {execFileSync} from "child_process"
 import {runDevBuild} from "./buildSrc/DevBuild.js"
 import {prepareMobileBuild} from "./buildSrc/prepareMobileBuild.js"
+import {buildWebapp} from "./buildSrc/buildWebapp.js"
+import {getTutanotaAppVersion, measure} from "./buildSrc/buildUtils.js"
+import path from "path"
 
 const log = (...messages) => console.log("\nBUILD:", ...messages, "\n")
 
-/**
- * Besides options below this script may require signing parameters passed as environment variables:
- * 'APK_SIGN_ALIAS'
- * 'APK_SIGN_STORE_PASS'
- * 'APK_SIGN_KEY_PASS'
- * 'APK_SIGN_STORE'
- * 'ANDROID_HOME'
- */
+
 options
 	.usage('[options] [test|prod|local|host <url>] ')
 	.arguments('[stage] [host]')
@@ -54,14 +59,17 @@ async function buildAndroid({stage, host, buildType, webClient}) {
 			serve: false
 		})
 	} else {
-		const nodeCommand = host
-			? ['dist', stage, host]
-			: ['dist', stage]
-
-		runCommand('node', nodeCommand, {
-			stdio: [null, process.stdout, process.stderr]
-		})
-
+		const version = await getTutanotaAppVersion()
+		await buildWebapp(
+			{
+				version,
+				stage,
+				host,
+				minify: true,
+				projectDir: path.resolve("."),
+				measure
+			}
+		)
 	}
 
 	await prepareMobileBuild(webClient)
