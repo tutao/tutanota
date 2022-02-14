@@ -35,7 +35,7 @@ pipeline {
             steps {
             	sh 'npm ci'
             	sh 'npm run build-packages'
-				sh 'node dist release'
+				sh 'node webapp.js release'
 				// excluding web-specific and mobile specific parts which we don't need in desktop
 				stash includes: 'build/dist/**', excludes: '**/braintree.html, **/index.html, **/app.html, **/desktop.html, **/index-index.js, **/index-app.js, **/index-desktop.js, **/dist/sw.js', name: 'web_base'
 				// adding web-specific parts to another bundle
@@ -93,7 +93,7 @@ pipeline {
 									export JENKINS=TRUE;
 									export HSM_USER_PIN=${PW};
 									export WIN_CSC_FILE="/opt/etc/codesign.crt";
-									node dist --existing --win '''
+									node desktop --existing --win '''
 								}
 								dir('build') {
 									stash includes: 'desktop-test/*', name:'win_installer_test'
@@ -132,7 +132,7 @@ pipeline {
 									export APPLEID=${APPLEIDVAR};
 									export APPLEIDPASS=${APPLEIDPASSVAR};
 									export APPLETEAMID=${APPLETEAMIDVAR};
-									node dist --existing --mac ''' + "${stage}"
+									node desktop --existing --mac ''' + "${stage}"
 								dir('build') {
 									if (params.RELEASE) {
 										stash includes: 'desktop-test/*', name:'mac_installer_test'
@@ -156,7 +156,7 @@ pipeline {
 						sh 'rm -rf ./build/*'
 						unstash 'web_base'
 						sh 'npm run build-packages'
-						sh 'node dist --existing --linux'
+						sh 'node desktop --existing --linux'
 						dir('build') {
 							stash includes: 'desktop-test/*', name:'linux_installer_test'
 							stash includes: 'desktop/*', name:'linux_installer'
@@ -189,10 +189,16 @@ pipeline {
                     unstash 'mac_installer_test'
                     unstash 'win_installer_test'
 				}
+				script {
+					if (params.UPDATE_DICTIONARIES) {
+						sh 'node buildSrc/fetchDictionaries.js --publish'
+					}
+				}
 				withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]){
 					sh '''export HSM_USER_PIN=${PW};
-					node dist --existing --deb --publish ''' + (params.UPDATE_DICTIONARIES ? "--get-dicts " : "") + "release"
+					node buildSrc/signDesktopClients.js'''
 				}
+				sh 'node buildSrc/publish.js'
             }
         }
 

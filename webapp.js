@@ -1,0 +1,83 @@
+/**
+ * Script to build and publish release versions of the app.
+ *
+ * <h2>Bundling</h2>
+ *
+ * Bundling is manual. Rollup makes no attempt to optimize chunk sizes anymore and we can do it much better manually anyway because we
+ * know what is needed together.
+ *
+ * Unfortunately manual bundling is "infectious" in a sense that if you manually put module in a chunk all its dependencies will also be
+ * put in that chunk unless they are sorted into another manual chunk. Ideally this would be semi-automatic with directory-based chunks.
+ */
+import options from "commander"
+import fs from "fs-extra"
+import path, {dirname} from "path"
+import {buildWebapp} from "./buildSrc/buildWebapp.js"
+import {getTutanotaAppVersion, measure} from "./buildSrc/buildUtils.js"
+import {fileURLToPath} from "url"
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+
+// We use terser for minimifaction but we don't use nameCache because it does not work.
+// It does not work because there's no top-level code besides invocations of System.register and non-top-level code is not put into cache
+// which looks like a problem e.g. for accessing fields.
+
+options
+	.usage('[options] [test|prod|local|release|host <url>], "release" is default')
+	.description('Utility to build the web part of tutanota')
+	.arguments('[stage] [host]')
+	.option('--disable-minify', "disable minification")
+	.option('--out-dir <outDir>', "where to copy the client",)
+	.action((stage, host) => {
+		if (!["test", "prod", "local", "host", "release", undefined].includes(stage)
+			|| (stage !== "host" && host)
+			|| (stage === "host" && !host)
+			|| stage !== "release" && options.publish) {
+			options.outputHelp()
+			process.exit(1)
+		}
+		options.stage = stage || "release"
+		options.host = host
+	})
+	.parse(process.argv)
+
+if (process.env.DEBUG_SIGN && !fs.existsSync(path.join(process.env.DEBUG_SIGN, "test.p12"))) {
+	options.outputHelp(a => "ERROR:\nPlease make sure your DEBUG_SIGN test certificate authority is set up properly!\n\n" + a)
+	process.exit(1)
+}
+
+doBuild().catch(e => {
+	console.error(e)
+	process.exit(1)
+})
+
+async function doBuild() {
+	try {
+		measure()
+		const version = await getTutanotaAppVersion()
+		const minify = options.disableMinify !== true
+
+		if (!minify) {
+			console.warn("Minification is disabled")
+		}
+
+		await buildWebapp(
+			{
+				version,
+				stage: options.stage,
+				host: options.host,
+				measure,
+				minify,
+				projectDir: __dirname
+			}
+		)
+
+		const now = new Date(Date.now()).toTimeString().substr(0, 5)
+		console.log(`\nBuild time: ${measure()}s (${now})`)
+
+	} catch (e) {
+		console.error("\nBuild error:", e)
+		process.exit(1)
+	}
+}

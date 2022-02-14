@@ -1,5 +1,3 @@
-// Attention: The contents of this file is evaluated at compile time and not at runtime
-
 export function create(params) {
 	const {staticUrl, version, mode, dist} = params
 
