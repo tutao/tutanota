@@ -989,6 +989,101 @@ export function testEntityRestCache(name: string, getStorage: (userIdProvider: U
 				unmockAttribute(mock)
 			})
 
+			o("When a range outside the existing range is requested, the exiting range will be extended. Not reverse, away from range", async function () {
+				const ids = [createId("1"), createId("2"), createId("3"), createId("4"), createId("5")]
+				const listId1 = "listId1"
+
+				const mail1 = createMailInstance(listId1, ids[0], "hello1")
+				const mail2 = createMailInstance(listId1, ids[1], "hello2")
+				const mail3 = createMailInstance(listId1, ids[2], "hello3")
+				const mail4 = createMailInstance(listId1, ids[3], "hello4")
+				const mail5 = createMailInstance(listId1, ids[4], "hello5")
+
+				const mails = [mail1, mail2, mail3, mail4, mail5]
+
+				await storage.setNewRangeForList(MailTypeRef, listId1, ids[0], ids[1])
+
+				for (const mail of [mail1, mail2]) {
+					await storage.put(mail)
+				}
+
+				const originalUpper = (await storage.getRangeForList(MailTypeRef, listId1))?.upper
+
+				//mails are loaded in steps pf count until ranges are joined
+				const loadRange = o.spy(function (typeRef, listId, loadStartId, count, reverse) {
+					if (loadStartId === originalUpper && count === 2) {
+						return Promise.resolve([mails[1], mails[2]])
+					} else if (loadStartId === ids[2] && count === 2) {
+						return Promise.resolve([mails[2], mails[3]])
+					} else if (loadStartId === ids[3] && count === 2) {
+						return Promise.resolve([mails[3], mails[4]])
+					} else {
+						throw new Error(`unexpected load request: startid ${loadStartId} and count ${count}`)
+					}
+				})
+
+				const mock = mockAttribute(entityRestClient, entityRestClient.loadRange, loadRange)
+
+
+				await cache.loadRange(MailTypeRef, listId1, ids[3], 2, false)
+
+				const lower = (await storage.getRangeForList(MailTypeRef, listId1))?.lower
+				const upper = (await storage.getRangeForList(MailTypeRef, listId1))?.upper
+
+				o(lower).equals(ids[0])("lower range is not changed")
+				o(upper).equals(ids[4])("upper range corresponds to the end of the new range request")
+				unmockAttribute(mock)
+
+			})
+
+			o("When a range outside the existing range is requested, the exiting range will be extended. Reverse, towards range", async function () {
+				const ids = [createId("1"), createId("2"), createId("3"), createId("4"), createId("5")]
+				const listId1 = "listId1"
+
+				const mail1 = createMailInstance(listId1, ids[0], "hello1")
+				const mail2 = createMailInstance(listId1, ids[1], "hello2")
+				const mail3 = createMailInstance(listId1, ids[2], "hello3")
+				const mail4 = createMailInstance(listId1, ids[3], "hello4")
+				const mail5 = createMailInstance(listId1, ids[4], "hello5")
+
+				const mails = [mail1, mail2, mail3, mail4, mail5]
+
+				await storage.setNewRangeForList(MailTypeRef, listId1, GENERATED_MIN_ID, ids[1])
+
+				for (const mail of [mail1, mail2]) {
+					await storage.put(mail)
+				}
+
+				const originalUpper = (await storage.getRangeForList(MailTypeRef, listId1))?.upper
+
+
+				const loadRange = o.spy(function (typeRef, listId, loadStartId, count, reverse) {
+					if (loadStartId === originalUpper && count === 2) {
+						return Promise.resolve([mails[1], mails[2]])
+					} else if (loadStartId === ids[2] && count === 2) {
+						return Promise.resolve([mails[2], mails[3]])
+					} else if (loadStartId === ids[3] && count === 2) {
+						return Promise.resolve([mails[3], mails[4]])
+					} else if (loadStartId === ids[4] && count === 2) {
+						return Promise.resolve([mails[4]])
+					} else {
+						throw new Error(`unexpected load request: startid ${loadStartId} and count ${count}`)
+					}
+				})
+
+				const mock = mockAttribute(entityRestClient, entityRestClient.loadRange, loadRange)
+
+
+				await cache.loadRange(MailTypeRef, listId1, GENERATED_MAX_ID, 2, true)
+
+				const lower = (await storage.getRangeForList(MailTypeRef, listId1))?.lower
+				const upper = (await storage.getRangeForList(MailTypeRef, listId1))?.upper
+
+				o(lower).equals(GENERATED_MIN_ID)("lower range is not changed")
+				o(upper).equals(GENERATED_MAX_ID)("upper range corresponds to the end of the new range request")
+				unmockAttribute(mock)
+			})
+
 
 			o("loadMultiple should load necessary elements from the server, and get the rest from the cache", async function () {
 					const listId = "listId"
