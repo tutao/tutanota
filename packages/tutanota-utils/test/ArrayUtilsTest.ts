@@ -12,9 +12,12 @@ import {
 	groupByAndMap,
 	groupByAndMapUniquely,
 	insertIntoSortedArray,
+	partition,
+	partitionAsync,
 	splitInChunks,
 	symmetricDifference,
 } from "../lib/ArrayUtils.js"
+import {assertThrows} from "@tutao/tutanota-test-utils"
 
 type ObjectWithId = {
 	v: number
@@ -800,6 +803,34 @@ o.spec("array utils", function () {
 		})
 		o("right has more", function () {
 			o(Array.from(symmetricDifference(new Set([1]), new Set([1, 2])))).deepEquals([2])
+		})
+	})
+
+	o.spec("partitionAsync", async function () {
+		const test = function (c: [string, any[], (any) => boolean, [any[], any[]]]) {
+			const [name, input, predicate, output] = c
+			o(name, async function () {
+				const result = partition(input, predicate)
+				o(result).deepEquals(output)
+				const resultAsync = await partitionAsync(input, e => Promise.resolve(predicate(e)))
+				o(resultAsync).deepEquals(output)
+			})
+		}
+		const testcases = [
+			["empty array", [], () => true, [[], []]],
+			["numbers", [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7], i => i < 5, [[3, 1, 4, 1, 2, 3], [5, 9, 6, 5, 5, 8, 9, 7]]],
+			["all left", ["a", "b", "c", "d", "e"], e => true, [["a", "b", "c", "d", "e"], []]],
+			["all right", ["a", "b", "c", "d", "e"], e => false, [[], ["a", "b", "c", "d", "e"]]],
+			["sort types", [1, "", 2, "a", 3, "c", 3, 8], k => typeof (k) === "string", [["", "a", "c"], [1, 2, 3, 3, 8]]]
+		]
+		// @ts-ignore
+		testcases.forEach(test)
+
+		o("rejection in partitionAsync is propagated", async function () {
+			await assertThrows(Error, () => partitionAsync(
+				[3, 1, 4, 1, 5, 9, 2, 6, 5, 3],
+				e => e === 9 ? Promise.reject(new Error()) : Promise.resolve(true))
+			)
 		})
 	})
 })
