@@ -1,7 +1,6 @@
 import {downcast, identity, neverNull} from "./Utils.js"
 import {getFromMap} from "./MapUtils.js"
-import {Type} from "cborg/types/lib/token";
-import map = Type.map;
+
 
 export function concat(...arrays: Uint8Array[]): Uint8Array {
 	let length = arrays.reduce((previous, current) => previous + current.length, 0)
@@ -489,8 +488,8 @@ export function symmetricDifference<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T
  * @param predicate
  */
 export function partition<T>(array: Array<T>, predicate: (arg0: T) => boolean): [Array<T>, Array<T>] {
-	const left: T[] = []
-	const right: T[] = []
+	const left: Array<T> = []
+	const right: Array<T> = []
 
 	for (let item of array) {
 		if (predicate(item)) {
@@ -501,4 +500,16 @@ export function partition<T>(array: Array<T>, predicate: (arg0: T) => boolean): 
 	}
 
 	return [left, right]
+}
+
+/**
+ * like partition(), but async
+ * rejects if any of the predicates reject.
+ * @param array
+ * @param predicate
+ */
+export async function partitionAsync<T>(array: Array<T>, predicate: (arg0: T) => Promise<boolean>): Promise<[Array<T>, Array<T>]> {
+	const mask: Array<boolean> = await Promise.all(array.map(predicate))
+	const [left, right] = partition(zip(mask, array), item => item[0])
+	return [left.map(i => i[1]), right.map(i => i[1])]
 }
