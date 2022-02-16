@@ -89,7 +89,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "49"
+	"version": "51"
 }
 
 export function createSecureExternalRecipientKeyData(values?: Partial<SecureExternalRecipientKeyData>): SecureExternalRecipientKeyData {

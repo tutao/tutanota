@@ -65,7 +65,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "71"
+	"version": "72"
 }
 
 export function createPriceRequestData(values?: Partial<PriceRequestData>): PriceRequestData {

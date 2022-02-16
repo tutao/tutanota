@@ -73,7 +73,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "monitor",
-	"version": "18"
+	"version": "19"
 }
 
 export function createApprovalMail(values?: Partial<ApprovalMail>): ApprovalMail {

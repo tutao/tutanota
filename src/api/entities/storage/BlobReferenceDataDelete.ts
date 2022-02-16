@@ -63,7 +63,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "storage",
-	"version": "2"
+	"version": "3"
 }
 
 export function createBlobReferenceDataDelete(values?: Partial<BlobReferenceDataDelete>): BlobReferenceDataDelete {

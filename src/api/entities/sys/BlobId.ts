@@ -21,8 +21,8 @@ export const _TypeModel: TypeModel = {
 			"encrypted": false
 		},
 		"blobId": {
-			"id": 1888,
-			"type": "Bytes",
+			"id": 1907,
+			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
@@ -30,7 +30,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "71"
+	"version": "72"
 }
 
 export function createBlobId(values?: Partial<BlobId>): BlobId {
@@ -41,5 +41,5 @@ export type BlobId = {
 	_type: TypeRef<BlobId>;
 
 	_id: Id;
-	blobId: Uint8Array;
+	blobId: Id;
 }

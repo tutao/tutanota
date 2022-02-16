@@ -31,7 +31,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "49"
+	"version": "51"
 }
 
 export function createGroupInvitationDeleteData(values?: Partial<GroupInvitationDeleteData>): GroupInvitationDeleteData {

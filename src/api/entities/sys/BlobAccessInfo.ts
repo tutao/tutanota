@@ -38,8 +38,8 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
-		"blobs": {
-			"id": 1896,
+		"blobIds": {
+			"id": 1908,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
@@ -56,7 +56,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "71"
+	"version": "72"
 }
 
 export function createBlobAccessInfo(values?: Partial<BlobAccessInfo>): BlobAccessInfo {
@@ -70,6 +70,6 @@ export type BlobAccessInfo = {
 	archiveId: Id;
 	storageAccessToken: string;
 
-	blobs: BlobId[];
+	blobIds: BlobId[];
 	servers: TargetServer[];
 }

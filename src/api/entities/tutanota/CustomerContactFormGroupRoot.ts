@@ -3,7 +3,6 @@ import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes.js"
 
 import type {DeleteContactFormConversationIndex} from "./DeleteContactFormConversationIndex.js"
-import type {UnencryptedStatisticLogRef} from "./UnencryptedStatisticLogRef.js"
 
 export const CustomerContactFormGroupRootTypeRef: TypeRef<CustomerContactFormGroupRoot> = new TypeRef("tutanota", "CustomerContactFormGroupRoot")
 export const _TypeModel: TypeModel = {
@@ -53,31 +52,16 @@ export const _TypeModel: TypeModel = {
 			"refType": "DeleteContactFormConversationIndex",
 			"dependency": null
 		},
-		"statisticsLog": {
-			"id": 890,
-			"type": "AGGREGATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "UnencryptedStatisticLogRef",
-			"dependency": null
-		},
 		"contactForms": {
 			"id": 789,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
 			"refType": "ContactForm"
-		},
-		"statisticsLog_encrypted_removed": {
-			"id": 790,
-			"type": "LIST_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "StatisticLogEntry"
 		}
 	},
 	"app": "tutanota",
-	"version": "49"
+	"version": "51"
 }
 
 export function createCustomerContactFormGroupRoot(values?: Partial<CustomerContactFormGroupRoot>): CustomerContactFormGroupRoot {
@@ -93,7 +77,5 @@ export type CustomerContactFormGroupRoot = {
 	_permissions: Id;
 
 	contactFormConversations:  null | DeleteContactFormConversationIndex;
-	statisticsLog:  null | UnencryptedStatisticLogRef;
 	contactForms: Id;
-	statisticsLog_encrypted_removed: Id;
 }

@@ -119,7 +119,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "49"
+	"version": "51"
 }
 
 export function createMailboxGroupRoot(values?: Partial<MailboxGroupRoot>): MailboxGroupRoot {

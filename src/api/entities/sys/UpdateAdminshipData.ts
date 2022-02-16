@@ -45,7 +45,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "71"
+	"version": "72"
 }
 
 export function createUpdateAdminshipData(values?: Partial<UpdateAdminshipData>): UpdateAdminshipData {

@@ -40,7 +40,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "storage",
-	"version": "2"
+	"version": "3"
 }
 
 export function createBlobAccessTokenData(values?: Partial<BlobAccessTokenData>): BlobAccessTokenData {

@@ -58,7 +58,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "71"
+	"version": "72"
 }
 
 export function createRegistrationCaptchaServiceGetData(values?: Partial<RegistrationCaptchaServiceGetData>): RegistrationCaptchaServiceGetData {

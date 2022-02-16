@@ -30,7 +30,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "71"
+	"version": "72"
 }
 
 export function createMailAddressAvailabilityData(values?: Partial<MailAddressAvailabilityData>): MailAddressAvailabilityData {
