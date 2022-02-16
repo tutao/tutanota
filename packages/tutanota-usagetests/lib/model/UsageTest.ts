@@ -1,6 +1,6 @@
 import {StageAlreadyRegisteredError, StageCompletionError} from "../errors.js"
 import {VariantRenderer, VariantsIndex} from "../view/VariantRenderer.js"
-import {Stage} from "./Stage.js"
+import {ShamStage, Stage} from "./Stage.js"
 import {PingAdapter} from "../storage/PingAdapter.js"
 
 const NO_PARTICIPATION_VARIANT = 0
@@ -45,5 +45,30 @@ export class UsageTest {
 
 		console.log(`Completing stage: ${stage.number}, variant : ${this.variant}`)
 		await this.pingAdapter.sendPing(this, stage)
+	}
+}
+
+export class ShamUsageTest extends UsageTest {
+	private readonly shamStage: ShamStage
+
+	constructor(testId: string, testName: string, variant: number) {
+		super(testId, testName, variant)
+		this.shamStage = new ShamStage(0, this)
+	}
+
+	getStage(stageNum: number): Stage | undefined {
+		return this.shamStage;
+	}
+
+	addStage(stage: Stage): Stage {
+		return this.shamStage;
+	}
+
+	renderVariant<T>(renderer: VariantRenderer<T>, variants: VariantsIndex<T>): T {
+		return renderer.render(NO_PARTICIPATION_VARIANT, variants)
+	}
+
+	async completeStage(stage: Stage) {
+		// no op
 	}
 }

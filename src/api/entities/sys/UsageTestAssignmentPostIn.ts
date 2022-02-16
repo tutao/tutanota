@@ -8,13 +8,13 @@ export const _TypeModel: TypeModel = {
 	"name": "UsageTestAssignmentPostIn",
 	"since": 72,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 1946,
-	"rootId": "A3N5cwAHmg",
+	"id": 1947,
+	"rootId": "A3N5cwAHmw",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"id": 1947,
+			"id": 1948,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
