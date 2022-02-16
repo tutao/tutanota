@@ -33,5 +33,14 @@ export class Stage {
 	setMetric(key: MetricKey, value: Metric) {
 		this.collectedMetrics.set(key, value)
 	}
+}
 
+export class ShamStage extends Stage {
+	async complete() {
+		// no op
+	}
+
+	setMetric(key: MetricKey, value: Metric) {
+		// no op
+	}
 }

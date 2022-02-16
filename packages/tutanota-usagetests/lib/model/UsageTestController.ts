@@ -1,10 +1,14 @@
-import {UsageTest} from "./UsageTest.js"
-import {UsageTestNotRegisteredError} from "../errors.js"
+import {ShamUsageTest, UsageTest} from "./UsageTest.js"
 import {PingAdapter} from "../storage/PingAdapter.js"
 
 export class UsageTestController {
 	private readonly tests: Map<string, UsageTest> = new Map<string, UsageTest>()
 	_pingAdapter?: PingAdapter
+	private readonly shamUsageTest: ShamUsageTest
+
+	constructor() {
+		this.shamUsageTest = new ShamUsageTest("shamtest", "shamtest", 0)
+	}
 
 	set pingAdapter(pingAdapter: PingAdapter) {
 		this._pingAdapter = pingAdapter
@@ -27,6 +31,9 @@ export class UsageTestController {
 
 	/**
 	 * Searches a test first by its ID and then, if no match is found, by its name.
+	 * If no test matches by name either, then we assume that the test is finished and the server no longer sends assignments for it.
+	 * In that case, we want to render the no-participation variant, so a sham test instance needs to be returned.
+	 *
 	 * @param testIdOrName The test's ID or its name
 	 */
 	getTest(testIdOrName: string): UsageTest {
@@ -42,6 +49,6 @@ export class UsageTestController {
 			}
 		}
 
-		throw new UsageTestNotRegisteredError(`Test ${testIdOrName} is not registered`)
+		return this.shamUsageTest
 	}
 }
