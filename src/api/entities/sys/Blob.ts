@@ -28,8 +28,8 @@ export const _TypeModel: TypeModel = {
 			"encrypted": false
 		},
 		"blobId": {
-			"id": 1885,
-			"type": "Bytes",
+			"id": 1906,
+			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
@@ -44,7 +44,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "71"
+	"version": "72"
 }
 
 export function createBlob(values?: Partial<Blob>): Blob {
@@ -56,6 +56,6 @@ export type Blob = {
 
 	_id: Id;
 	archiveId: Id;
-	blobId: Uint8Array;
+	blobId: Id;
 	size: NumberString;
 }

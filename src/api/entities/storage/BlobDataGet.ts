@@ -2,7 +2,6 @@ import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {BlobId} from "../sys/BlobId.js"
 
 export const BlobDataGetTypeRef: TypeRef<BlobDataGet> = new TypeRef("storage", "BlobDataGet")
 export const _TypeModel: TypeModel = {
@@ -27,20 +26,18 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
-		}
-	},
-	"associations": {
+		},
 		"blobId": {
-			"id": 53,
-			"type": "AGGREGATION",
+			"id": 110,
+			"type": "GeneratedId",
 			"cardinality": "One",
-			"final": true,
-			"refType": "BlobId",
-			"dependency": "sys"
+			"final": false,
+			"encrypted": false
 		}
 	},
+	"associations": {},
 	"app": "storage",
-	"version": "2"
+	"version": "3"
 }
 
 export function createBlobDataGet(values?: Partial<BlobDataGet>): BlobDataGet {
@@ -52,6 +49,5 @@ export type BlobDataGet = {
 
 	_format: NumberString;
 	archiveId: Id;
-
-	blobId: BlobId;
+	blobId: Id;
 }

@@ -75,7 +75,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "49"
+	"version": "51"
 }
 
 export function createEmailTemplate(values?: Partial<EmailTemplate>): EmailTemplate {

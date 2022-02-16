@@ -3,8 +3,6 @@ import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes.js"
 
 import type {ContactFormLanguage} from "./ContactFormLanguage.js"
-import type {InputField} from "./InputField.js"
-import type {StatisticLogRef} from "./StatisticLogRef.js"
 
 export const ContactFormTypeRef: TypeRef<ContactForm> = new TypeRef("tutanota", "ContactForm")
 export const _TypeModel: TypeModel = {
@@ -61,22 +59,6 @@ export const _TypeModel: TypeModel = {
 			"refType": "ContactFormLanguage",
 			"dependency": null
 		},
-		"statisticsFields_removed": {
-			"id": 745,
-			"type": "AGGREGATION",
-			"cardinality": "Any",
-			"final": false,
-			"refType": "InputField",
-			"dependency": null
-		},
-		"statisticsLog": {
-			"id": 878,
-			"type": "AGGREGATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "StatisticLogRef",
-			"dependency": null
-		},
 		"delegationGroups_removed": {
 			"id": 747,
 			"type": "ELEMENT_ASSOCIATION",
@@ -107,7 +89,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "49"
+	"version": "51"
 }
 
 export function createContactForm(values?: Partial<ContactForm>): ContactForm {
@@ -124,8 +106,6 @@ export type ContactForm = {
 	path: string;
 
 	languages: ContactFormLanguage[];
-	statisticsFields_removed: InputField[];
-	statisticsLog:  null | StatisticLogRef;
 	delegationGroups_removed: Id[];
 	participantGroupInfos: IdTuple[];
 	targetGroup: Id;

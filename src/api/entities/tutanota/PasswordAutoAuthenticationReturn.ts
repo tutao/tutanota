@@ -23,7 +23,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "49"
+	"version": "51"
 }
 
 export function createPasswordAutoAuthenticationReturn(values?: Partial<PasswordAutoAuthenticationReturn>): PasswordAutoAuthenticationReturn {

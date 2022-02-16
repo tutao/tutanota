@@ -40,7 +40,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "storage",
-	"version": "2"
+	"version": "3"
 }
 
 export function createBlobWriteData(values?: Partial<BlobWriteData>): BlobWriteData {

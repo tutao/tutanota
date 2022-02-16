@@ -73,7 +73,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "49"
+	"version": "51"
 }
 
 export function createConversationEntry(values?: Partial<ConversationEntry>): ConversationEntry {

@@ -2,7 +2,6 @@ import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {InputField} from "./InputField.js"
 
 export const ContactFormLanguageTypeRef: TypeRef<ContactFormLanguage> = new TypeRef("tutanota", "ContactFormLanguage")
 export const _TypeModel: TypeModel = {
@@ -57,18 +56,9 @@ export const _TypeModel: TypeModel = {
 			"encrypted": false
 		}
 	},
-	"associations": {
-		"statisticsFields": {
-			"id": 864,
-			"type": "AGGREGATION",
-			"cardinality": "Any",
-			"final": false,
-			"refType": "InputField",
-			"dependency": null
-		}
-	},
+	"associations": {},
 	"app": "tutanota",
-	"version": "49"
+	"version": "51"
 }
 
 export function createContactFormLanguage(values?: Partial<ContactFormLanguage>): ContactFormLanguage {
@@ -84,6 +74,4 @@ export type ContactFormLanguage = {
 	headerHtml: string;
 	helpHtml: string;
 	pageTitle: string;
-
-	statisticsFields: InputField[];
 }

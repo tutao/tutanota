@@ -37,7 +37,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "49"
+	"version": "51"
 }
 
 export function createDataBlock(values?: Partial<DataBlock>): DataBlock {
