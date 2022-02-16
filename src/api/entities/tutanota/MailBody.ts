@@ -79,7 +79,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "49"
+	"version": "51"
 }
 
 export function createMailBody(values?: Partial<MailBody>): MailBody {

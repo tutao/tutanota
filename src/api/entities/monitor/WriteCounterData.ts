@@ -51,7 +51,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "monitor",
-	"version": "18"
+	"version": "19"
 }
 
 export function createWriteCounterData(values?: Partial<WriteCounterData>): WriteCounterData {

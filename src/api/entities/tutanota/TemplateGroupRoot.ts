@@ -66,7 +66,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "49"
+	"version": "51"
 }
 
 export function createTemplateGroupRoot(values?: Partial<TemplateGroupRoot>): TemplateGroupRoot {

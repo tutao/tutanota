@@ -49,7 +49,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "71"
+	"version": "72"
 }
 
 export function createChallenge(values?: Partial<Challenge>): Challenge {

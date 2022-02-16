@@ -52,7 +52,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "71"
+	"version": "72"
 }
 
 export function createResetPasswordData(values?: Partial<ResetPasswordData>): ResetPasswordData {

@@ -87,7 +87,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "71"
+	"version": "72"
 }
 
 export function createWhitelabelChild(values?: Partial<WhitelabelChild>): WhitelabelChild {

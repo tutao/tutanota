@@ -2,8 +2,6 @@ import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {ContactFormStatisticField} from "./ContactFormStatisticField.js"
-import type {ContactFormStatisticEntry} from "./ContactFormStatisticEntry.js"
 import type {ContactFormUserData} from "./ContactFormUserData.js"
 import type {InternalGroupData} from "./InternalGroupData.js"
 
@@ -26,22 +24,6 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
-		"statisticFields": {
-			"id": 795,
-			"type": "AGGREGATION",
-			"cardinality": "Any",
-			"final": false,
-			"refType": "ContactFormStatisticField",
-			"dependency": null
-		},
-		"statistics": {
-			"id": 831,
-			"type": "AGGREGATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "ContactFormStatisticEntry",
-			"dependency": null
-		},
 		"userData": {
 			"id": 793,
 			"type": "AGGREGATION",
@@ -67,7 +49,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "49"
+	"version": "51"
 }
 
 export function createContactFormAccountData(values?: Partial<ContactFormAccountData>): ContactFormAccountData {
@@ -79,8 +61,6 @@ export type ContactFormAccountData = {
 
 	_format: NumberString;
 
-	statisticFields: ContactFormStatisticField[];
-	statistics:  null | ContactFormStatisticEntry;
 	userData: ContactFormUserData;
 	userGroupData: InternalGroupData;
 	contactForm: IdTuple;

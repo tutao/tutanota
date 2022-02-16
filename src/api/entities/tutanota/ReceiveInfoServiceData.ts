@@ -30,7 +30,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "49"
+	"version": "51"
 }
 
 export function createReceiveInfoServiceData(values?: Partial<ReceiveInfoServiceData>): ReceiveInfoServiceData {

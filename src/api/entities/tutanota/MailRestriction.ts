@@ -38,7 +38,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "49"
+	"version": "51"
 }
 
 export function createMailRestriction(values?: Partial<MailRestriction>): MailRestriction {

@@ -16,7 +16,6 @@ import {handleRestError} from "../../common/error/RestError"
 import {convertToDataFile, DataFile} from "../../common/DataFile"
 import type {SuspensionHandler} from "../SuspensionHandler"
 import {StorageService} from "../../entities/storage/Services"
-import {createBlobId} from "../../entities/sys/BlobId"
 import {serviceRequest} from "../ServiceRequestWorker"
 import {createBlobAccessTokenData} from "../../entities/storage/BlobAccessTokenData"
 import {BlobAccessTokenReturnTypeRef} from "../../entities/storage/BlobAccessTokenReturn"
@@ -217,7 +216,7 @@ export class FileFacade {
 		const typeModel = await resolveTypeReference(instance._type)
 		const sessionKey = neverNull(await resolveSessionKey(typeModel, instance))
 		const encryptedData = encryptBytes(sessionKey, blobData)
-		const blobId = uint8ArrayToBase64(sha256Hash(encryptedData).slice(0, 6))
+		const blobHash = uint8ArrayToBase64(sha256Hash(encryptedData).slice(0, 6))
 		const {storageAccessToken, servers} = await this.getUploadToken(typeModel, ownerGroupId)
 		const headers = Object.assign(
 			{
@@ -230,7 +229,7 @@ export class FileFacade {
 			STORAGE_REST_PATH,
 			HttpMethod.PUT,
 			{
-				blobId,
+				blobHash,
 			},
 			headers,
 			encryptedData,
@@ -240,7 +239,7 @@ export class FileFacade {
 		)
 	}
 
-	async downloadBlob(archiveId: Id, blobId: Uint8Array, key: Uint8Array): Promise<Uint8Array> {
+	async downloadBlob(archiveId: Id, blobId: Id, key: Uint8Array): Promise<Uint8Array> {
 		const {storageAccessToken, servers} = await this.getDownloadToken(archiveId)
 		const headers = Object.assign(
 			{
@@ -251,9 +250,7 @@ export class FileFacade {
 		)
 		const getData = createBlobDataGet({
 			archiveId,
-			blobId: createBlobId({
-				blobId,
-			}),
+			blobId,
 		})
 		const literalGetData = await this._instanceMapper.encryptAndMapToLiteral(BlobDataGetTypeModel, getData, null)
 		const body = JSON.stringify(literalGetData)

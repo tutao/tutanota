@@ -121,7 +121,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "49"
+	"version": "51"
 }
 
 export function createCustomerAccountCreateData(values?: Partial<CustomerAccountCreateData>): CustomerAccountCreateData {

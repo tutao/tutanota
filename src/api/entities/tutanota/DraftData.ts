@@ -123,7 +123,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "49"
+	"version": "51"
 }
 
 export function createDraftData(values?: Partial<DraftData>): DraftData {
