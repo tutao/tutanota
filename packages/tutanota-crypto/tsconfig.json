@@ -8,9 +8,21 @@
 	"lib/random"
   ],
   "files": [
-	"lib/index.ts"
+	"lib/index.ts",
+	"lib/internal/bCrypt.js",
+	"lib/internal/crypto-jsbn-2012-08-09_1.js",
+	"lib/internal/sjcl.js"
   ],
   "compilerOptions": {
-	"outDir": "dist"
-  }
+	"outDir": "dist",
+	"composite": true,
+	"incremental": true,
+	"rootDir": "lib",
+	"tsBuildInfoFile": "dist/tsbuildinfo",
+  },
+  "references": [
+	{
+	  "path": "../tutanota-utils"
+	}
+  ]
 }

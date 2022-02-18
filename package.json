@@ -12,9 +12,9 @@
 	"./buildSrc/*": "./buildSrc/*"
   },
   "scripts": {
-	"build-packages": "npm run build -w packages/tutanota-test-utils && npm run build -w packages/tutanota-utils && npm run build -w packages/tutanota-crypto && npm run build -w packages/tutanota-build-server",
+		"build-packages": "npm run build -ws",
 	"start": "./start-desktop.sh",
-	"test": "npm run --if-present test -ws && cd test && node --icu-data-dir=../node_modules/full-icu test api -c && node --icu-data-dir=../node_modules/full-icu test client",
+		"test": "npm run build-packages; npm run --if-present test -ws && cd test && node --icu-data-dir=../node_modules/full-icu test api -c && node --icu-data-dir=../node_modules/full-icu test client",
 	"testapi": "cd test && node --icu-data-dir=../node_modules/full-icu test api",
 	"testclient": "cd test && node --icu-data-dir=../node_modules/full-icu test client",
 	"postinstall": "node ./buildSrc/compileKeytar",

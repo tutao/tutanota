@@ -10,5 +10,10 @@
 	"outDir": "../build",
 	"declaration": false,
 	"noImplicitAny": false
-  }
+  },
+  "references": [
+	{
+	  "path": "../../tutanota-test-utils/tsconfig.json"
+	}
+  ]
 }
