@@ -214,10 +214,12 @@ pipeline {
 			}
 
 			steps {
-				sh "npm ci && npm run build-packages"
-				// .npmrc expects $NPM_TOKEN
-				withCredentials([string(credentialsId: 'npm-token',variable: 'NPM_TOKEN')]) {
-					sh "npm --workspaces publish"
+				catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+					sh "npm ci && npm run build-packages"
+					// .npmrc expects $NPM_TOKEN
+					withCredentials([string(credentialsId: 'npm-token',variable: 'NPM_TOKEN')]) {
+						sh "npm --workspaces publish"
+					}
 				}
 			}
         }
