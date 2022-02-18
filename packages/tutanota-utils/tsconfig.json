@@ -1,7 +1,19 @@
 {
   "extends": "../../tsconfig_common.json",
-  "include": ["lib", "../../types/"],
+  "include": [
+	"lib",
+	"../../types/"
+  ],
   "compilerOptions": {
-	"outDir": "dist"
-  }
+	"outDir": "dist",
+	"composite": true,
+	"rootDir": "lib",
+	"tsBuildInfoFile": "dist/tsbuildinfo",
+	"incremental": true
+  },
+  "references": [
+	{
+	  "path": "../tutanota-test-utils/tsconfig.json"
+	}
+  ]
 }

@@ -1,11 +1,18 @@
 {
   "extends": "../../tsconfig_common.json",
+  "include": [
+	"src/**.ts"
+  ],
   "files": [
 	"src/index.ts",
 	"src/BuildServerStarter.ts"
   ],
   "compilerOptions": {
 	"outDir": "dist",
-	"noImplicitAny": false
+	"noImplicitAny": false,
+	"composite": true,
+	"rootDir": "src",
+	"tsBuildInfoFile": "dist/tsbuildinfo",
+	"incremental": true
   }
 }

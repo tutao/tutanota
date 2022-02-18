@@ -4,11 +4,16 @@
 	"../../../types/*.d.ts"
   ],
   "files": [
-	"Suite.ts",
+	"Suite.ts"
   ],
   "compilerOptions": {
 	"outDir": "../build",
 	"declaration": false,
-	"noImplicitAny": false,
-  }
+	"noImplicitAny": false
+  },
+  "references": [
+	{
+	  "path": "../../tutanota-utils"
+	}
+  ]
 }

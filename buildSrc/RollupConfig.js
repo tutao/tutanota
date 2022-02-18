@@ -194,6 +194,9 @@ export function bundleDependencyCheckPlugin() {
 			const getModuleInfo = this.getModuleInfo.bind(this)
 
 			for (const chunk of Object.values(bundle)) {
+				if (!chunk || !chunk.modules) {
+					continue
+				}
 				for (const moduleId of Object.keys(chunk.modules)) {
 					// Its a translation file and they are in their own chunks. We can skip further checks.
 					if (moduleId.includes(path.normalize("src/translations"))) {

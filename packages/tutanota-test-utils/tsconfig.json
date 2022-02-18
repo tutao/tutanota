@@ -1,8 +1,15 @@
 {
   "extends": "../../tsconfig_common.json",
-  "include": ["lib", "../../types/"],
+  "include": [
+	"lib",
+	"../../types/"
+  ],
   "compilerOptions": {
 	"outDir": "dist",
-	"noImplicitAny": false
+	"noImplicitAny": false,
+	"composite": true,
+	"rootDir": "lib",
+	"tsBuildInfoFile": "dist/tsbuildinfo",
+	"incremental": true
   }
 }

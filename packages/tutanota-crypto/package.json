@@ -9,8 +9,8 @@
 		"directory": "packages/tutanota-crypto"
 	},
 	"scripts": {
-		"build": "rm -r dist; tsc",
-		"test": "rm -r build; tsc --project test/tsconfig.json && cd build && node test/Suite.js"
+		"build": "tsc -b",
+		"test": "tsc -b test && cd build && node test/Suite.js"
 	},
 	"type": "module",
 	"files": [
