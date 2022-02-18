@@ -7,9 +7,11 @@ import fs from "fs-extra"
 import path from "path"
 import options from "commander"
 
+console.log("Sign Desktop Clients")
+
 signDesktopClients()
-	.then(process.exit())
-	.catch(process.exit(1))
+	.then( () => process.exit())
+	.catch(() => process.exit(1))
 
 
 if (process.env.DEBUG_SIGN && !fs.existsSync(path.join(process.env.DEBUG_SIGN, "test.p12"))) {
