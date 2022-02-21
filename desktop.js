@@ -12,7 +12,7 @@ import {createHtml} from "./buildSrc/createHtml.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-let desktopTargets = new Map()
+const desktopTargets = new Set()
 
 options
 	.usage('[options] [test|prod|local|release|host <url>], "release" is default')
@@ -36,18 +36,18 @@ options
 		options.stage = stage || "release"
 		options.host = host
 
-		desktopTargets.set("win32", options.win ? true : false)
-		desktopTargets.set("linux", options.linux ? true : false)
-		desktopTargets.set("mac", options.mac ? true : false)
+		if (options.win) desktopTargets.add("win32")
+		if (options.linux) desktopTargets.add("linux")
+		if (options.mac) desktopTargets.add("mac")
 
 		if (options.customDesktopRelease) {
 			console.log(`Custom desktop release - adding local plattform (${process.platform}) to targets`)
-			desktopTargets.set(process.platform, true)
+			desktopTargets.add(process.platform)
 		}
 
-		if (!Array.from(desktopTargets.values()).includes(true)) {
+		if (desktopTargets.size === 0){
 			console.log("No target set, defaulting to linux.")
-			desktopTargets.set("linux", true)
+			desktopTargets.add("linux")
 		}
 
 	})
