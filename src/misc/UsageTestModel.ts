@@ -8,8 +8,12 @@ import {createUsageTestParticipationPostIn} from "../api/entities/sys/UsageTestP
 import {UsageTestParticipationPostOutTypeRef} from "../api/entities/sys/UsageTestParticipationPostOut"
 import {createUsageTestParticipationPutIn} from "../api/entities/sys/UsageTestParticipationPutIn"
 import {createUsageTestMetric} from "../api/entities/sys/UsageTestMetric"
+import {UsageTestState} from "../api/common/TutanotaConstants"
+import {ofClass} from "@tutao/tutanota-utils"
+import {PreconditionFailedError} from "../api/common/error/RestError"
 
 const FIRST_STAGE = 0
+const LIVE_STATES = [UsageTestState.Live]
 
 export class UsageTestModel implements PingAdapter, StorageAdapter {
 	async loadActiveUsageTests(): Promise<UsageTest[]> {
@@ -19,8 +23,9 @@ export class UsageTestModel implements PingAdapter, StorageAdapter {
 		const response = await serviceRequest(SysService.UsageTestAssignmentService, HttpMethod.POST, data, UsageTestAssignmentPostOutTypeRef)
 
 		console.log(response)
-		return Promise.resolve(response.assignments.map((usageTestAssignment, idx, arr) => {
-			const test = new UsageTest(usageTestAssignment.testId, usageTestAssignment.name, Number(usageTestAssignment.variant))
+		return Promise.resolve(response.assignments.map(usageTestAssignment => {
+			const test = new UsageTest(usageTestAssignment.testId, usageTestAssignment.name, Number(usageTestAssignment.variant),
+				LIVE_STATES.includes(usageTestAssignment.state as UsageTestState))
 
 			for (let i = 0; i < Number(usageTestAssignment.numberOfStages); i++) {
 				test.addStage(new Stage(i, test))
@@ -31,7 +36,7 @@ export class UsageTestModel implements PingAdapter, StorageAdapter {
 	}
 
 	async sendPing(test: UsageTest, stage: Stage): Promise<void> {
-		const metrics = Array.from(stage.collectedMetrics).map(([key, value], index, array) => {
+		const metrics = Array.from(stage.collectedMetrics).map(([key, value]) => {
 			const ping = createUsageTestMetric()
 			ping.type = key
 			ping.value = value
@@ -44,8 +49,14 @@ export class UsageTestModel implements PingAdapter, StorageAdapter {
 			data.testId = test.testId
 			data.metrics = metrics
 
-			const response = await serviceRequest(SysService.UsageTestParticipationService, HttpMethod.POST, data, UsageTestParticipationPostOutTypeRef)
-			test.participationId = response.participationId
+			serviceRequest(SysService.UsageTestParticipationService, HttpMethod.POST, data, UsageTestParticipationPostOutTypeRef)
+				.then(response => {
+					test.participationId = response.participationId
+				})
+				.catch(ofClass(PreconditionFailedError, (e) => {
+					test.active = false
+					console.log("Tried to send ping for paused test", e)
+				}))
 		} else {
 			const data = createUsageTestParticipationPutIn()
 			data.testId = test.testId
@@ -53,11 +64,13 @@ export class UsageTestModel implements PingAdapter, StorageAdapter {
 			data.stage = stage.number.toString()
 
 			if (!test.participationId) {
-				throw new Error(`participationId on test ${test.testId} has not been set. Has stage 0 been completed?`)
+				console.log(`Cannot send stage ${stage.number} because participationId on test ${test.testId} has not been set. Has stage 0 been completed?`)
+				return
 			}
 			data.participationId = test.participationId
 
-			await serviceRequestVoid(SysService.UsageTestParticipationService, HttpMethod.PUT, data)
+			serviceRequestVoid(SysService.UsageTestParticipationService, HttpMethod.PUT, data)
+				.catch(ofClass(PreconditionFailedError, (e) => console.log("Tried to send ping for paused test ", e)))
 		}
 	}
 

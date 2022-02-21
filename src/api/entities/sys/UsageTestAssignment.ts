@@ -34,6 +34,13 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"state": {
+			"id": 1955,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"testId": {
 			"id": 1951,
 			"type": "GeneratedId",
@@ -64,6 +71,7 @@ export type UsageTestAssignment = {
 	_id: Id;
 	name: string;
 	numberOfStages: NumberString;
+	state: NumberString;
 	testId: Id;
 	variant: null | NumberString;
 }

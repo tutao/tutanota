@@ -928,3 +928,12 @@ export type PaymentData = {
 	paymentMethod: PaymentMethodType
 	creditCardData: CreditCard | null
 }
+
+export enum UsageTestState {
+	Created = "0",
+	Live = "1",
+	Paused = "2",
+	Finished = "3",
+}
+
+export const UsageTestStateToName = reverse(UsageTestState)

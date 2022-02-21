@@ -12,11 +12,13 @@ export class UsageTest {
 	pingAdapter?: PingAdapter
 	readonly variant: number
 	participationId?: string
+	active: boolean
 
-	constructor(testId: string, testName: string, variant: number) {
+	constructor(testId: string, testName: string, variant: number, active?: boolean) {
 		this.testId = testId
 		this.testName = testName
 		this.variant = variant
+		this.active = active ?? true
 	}
 
 	getStage(stageNum: number): Stage | undefined {
@@ -39,7 +41,7 @@ export class UsageTest {
 	async completeStage(stage: Stage) {
 		if (!this.pingAdapter) {
 			throw new StageCompletionError("no ping adapter has been registered")
-		} else if (this.variant === NO_PARTICIPATION_VARIANT) {
+		} else if (this.variant === NO_PARTICIPATION_VARIANT || !this.active) {
 			return
 		}
 
@@ -52,7 +54,7 @@ export class ShamUsageTest extends UsageTest {
 	private readonly shamStage: ShamStage
 
 	constructor(testId: string, testName: string, variant: number) {
-		super(testId, testName, variant)
+		super(testId, testName, variant, false)
 		this.shamStage = new ShamStage(0, this)
 	}
 
