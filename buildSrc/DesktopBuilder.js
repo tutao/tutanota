@@ -12,7 +12,7 @@ import {create as createEnv, preludeEnvPlugin} from "./env.js"
 import cp from 'child_process'
 import util from 'util'
 import typescript from "@rollup/plugin-typescript"
-import {sqliteNativeBannerPlugin} from "./cachedSqliteProvider.js"
+import {keytarNativePlugin, sqliteNativeBannerPlugin} from "./nativeLibraryRollupPlugin.js"
 import {fileURLToPath} from "url"
 
 const exec = util.promisify(cp.exec)
@@ -137,7 +137,9 @@ async function rollupDesktop(dirname, outDir, version) {
 			}),
 			resolveLibs(),
 			nativeDepWorkaroundPlugin(),
-			pluginNativeLoader(),
+			keytarNativePlugin({
+				rootDir: projectRoot,
+			}),
 			nodeResolve({preferBuiltins: true}),
 			// requireReturnsDefault: "preferred" is needed in order to correclty generate a wrapper for the native keytar module
 			commonjs({

@@ -9,7 +9,7 @@ import hmr from "nollup/lib/plugin-hmr.js"
 import os from "os"
 import {bundleDependencyCheckPlugin} from "./RollupConfig.js"
 import {nativeDepWorkaroundPlugin, pluginNativeLoader} from "./RollupPlugins.js"
-import {sqliteNativeBannerPlugin} from "./cachedSqliteProvider.js"
+import {keytarNativePlugin, sqliteNativeBannerPlugin} from "./nativeLibraryRollupPlugin.js"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = __dirname.split(path.sep).slice(0, -1).join(path.sep)
@@ -196,8 +196,6 @@ async function bundleDesktop(log, version) {
 		plugins: [
 			...rollupDebugPlugins(path.resolve("."), {outDir: "build/desktop"}),
 			nativeDepWorkaroundPlugin(),
-			pluginNativeLoader(),
-			nodeResolve({preferBuiltins: true,}),
 			env.preludeEnvPlugin(env.create({staticUrl: null, version, mode: "Desktop", dist: false})),
 			sqliteNativeBannerPlugin(
 				{
@@ -207,6 +205,12 @@ async function bundleDesktop(log, version) {
 				},
 				log
 			),
+			keytarNativePlugin(
+				{
+					rootDir: root,
+				}
+			),
+			nodeResolve({preferBuiltins: true}),
 		],
 	})
 

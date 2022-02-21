@@ -72,7 +72,7 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 			}
 		},
 		"dependencies": {
-			"electron-updater": pj.devDependencies["electron-updater"],
+			"electron-updater": pj.dependencies["electron-updater"],
 		},
 		"build": {
 			"electronVersion": pj.dependencies.electron,

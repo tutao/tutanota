@@ -73,6 +73,7 @@ pipeline {
 							}
 							steps {
 								bat 'npm ci'
+								bat 'node buildSrc\\compileKeytar.js'
 								stash includes: 'node_modules/keytar/build/Release/keytar.node', name: 'keytar_win'
 							}
 						}

@@ -6,7 +6,7 @@ import path, {dirname} from "path"
 import {renderHtml} from "../buildSrc/LaunchHtml.js"
 import {fileURLToPath} from "url"
 import nodeResolve from "@rollup/plugin-node-resolve"
-import {sqliteNativeBannerPlugin} from "../buildSrc/cachedSqliteProvider.js"
+import {sqliteNativeBannerPlugin} from "../buildSrc/nativeLibraryRollupPlugin.js"
 import rollupPluginJson from "@rollup/plugin-json"
 
 const testRoot = dirname(fileURLToPath(import.meta.url))
