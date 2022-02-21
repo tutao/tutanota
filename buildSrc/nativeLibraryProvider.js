@@ -1,7 +1,7 @@
 import path from "path"
 import fs from "fs"
 import stream from "stream"
-import {spawn} from "child_process"
+import {spawn, execFileSync} from "child_process"
 
 /**
  * Rebuild native lib for either current node version or for electron version and
@@ -19,9 +19,8 @@ export async function getNativeLibModulePath({environment, rootDir, nodeModule, 
 	const dir = path.join(rootDir, "native-cache", environment)
 	await fs.promises.mkdir(dir, {recursive: true})
 
-	const pj = JSON.parse(await fs.promises.readFile(path.join(rootDir, "package.json"), "utf8"))
-	const electronVersion = pj.dependencies.electron
-	const libraryVersion = pj.dependencies[nodeModule].replace(/\//g, '_')
+	const electronVersion = getVersion("electron")
+	const libraryVersion = getVersion(nodeModule)
 
 	let filePath
 	if (environment === "electron") {
@@ -91,3 +90,6 @@ async function rebuild({environment, rootDir, electronVersion, log, nodeModule})
 	})
 }
 
+function getVersion(nodeModule) {
+	return execFileSync("npm", ["info", nodeModule, "version"]).toString().trim()
+}
