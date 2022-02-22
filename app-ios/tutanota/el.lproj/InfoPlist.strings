@@ -11,3 +11,4 @@ TutaoCancelAction = "Άκυρο";
 TutaoSettingsAction = "Ρυθμίσεις";
 TutaoCalendarAlarmTitle = "Υπενθύμιση";
 TutaoScheduleAlarmError = "Δεν ήταν δυνατόν να οριστεί συναγερμός. Ενημερώστε την εφαρμογή.";
+TutaoUnlockCredentialsAction = "Ξεκλείδωμα πιστοποιητικών.";

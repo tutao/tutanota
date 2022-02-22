@@ -11,3 +11,4 @@ TutaoCancelAction = "Annuler";
 TutaoSettingsAction = "Paramètres";
 TutaoCalendarAlarmTitle = "Rappel";
 TutaoScheduleAlarmError = "Impossible de définir un alarme. Veuillez mettre à jour l'application.";
+TutaoUnlockCredentialsAction = "Déverrouillage des données ";

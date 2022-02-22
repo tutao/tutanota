@@ -11,3 +11,4 @@ TutaoCancelAction = "Peruuta";
 TutaoSettingsAction = "Asetukset";
 TutaoCalendarAlarmTitle = "Muistutus";
 TutaoScheduleAlarmError = "Hälytystä ei voitu asettaa. Päivitä sovellus.";
+TutaoUnlockCredentialsAction = "Avaa tunnistetiedot";
