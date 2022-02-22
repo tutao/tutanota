@@ -92,15 +92,14 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				: null,
 			vnode.attrs.campaignInfoTextId && lang.exists(vnode.attrs.campaignInfoTextId) ? m(".b.center.mt", lang.get(vnode.attrs.campaignInfoTextId)) : null,
 			currentPlanInfo ? m(".smaller.center.mt", currentPlanInfo) : null,
-			m(
-				".flex.center-horizontally.wrap",
-				{
+			m(".flex.center-horizontally.wrap", {
 					oncreate: vnode => {
 						this._containerDOM = vnode.dom as HTMLElement
 						m.redraw()
 					},
 				},
 				buyBoxesViewPlacement,
+				m(".smaller.mb.center", vnode.attrs.options.businessUse() ? lang.get("subscriptionPeriodInfoBusiness_msg") : lang.get("subscriptionPeriodInfoPrivate_msg"))
 			),
 		]
 	}

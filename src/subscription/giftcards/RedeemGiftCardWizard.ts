@@ -375,8 +375,8 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
 								disabled: true,
 							} as TextFieldAttrs),
 							m(TextFieldN, {
-								label: "subscriptionPeriod_label",
-								value: () => `${lang.get("pricing.yearly_label")}, ${lang.get("automaticRenewal_label")}`,
+								label: "paymentInterval_label",
+								value: () => lang.get("pricing.yearly_label"),
 								disabled: true,
 							} as TextFieldAttrs),
 							m(TextFieldN, {

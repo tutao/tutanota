@@ -19,81 +19,20 @@ import {getDisplayNameOfSubscriptionType, getPreconditionFailedPaymentMsg, Subsc
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
-import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 import {deleteCampaign} from "../misc/LoginUtils"
 
 export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> {
-
-	dom!: HTMLElement
+	private dom!: HTMLElement
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>) {
 		this.dom = vnode.dom as HTMLElement
 	}
 
-	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
-		const attrs = vnode.attrs
-		const isYearly = isYearlyPayment(attrs.data.options.paymentInterval())
-		const newAccountData = attrs.data.newAccountData
-		const orderFieldAttrs = {
-			label: "subscription_label",
-			value: stream(getDisplayNameOfSubscriptionType(attrs.data.type)),
-			disabled: true,
-		} as const
-		const subscription = (isYearly ? lang.get("pricing.yearly_label") : lang.get("pricing.monthly_label")) + ", " + lang.get("automaticRenewal_label")
-		const subscriptionFieldAttrs = {
-			label: "subscriptionPeriod_label",
-			value: stream(subscription),
-			disabled: true,
-		} as const
-		const priceFieldAttrs = {
-			label: isYearly ? "priceFirstYear_label" : "price_label",
-			value: stream(buildPriceString(attrs.data.price, attrs.data.options)),
-			disabled: true,
-		} as const
-		const paymentMethodFieldAttrs = {
-			label: "paymentMethod_label",
-			value: stream(getPaymentMethodName(attrs.data.paymentData.paymentMethod)),
-			disabled: true,
-		} as const
-
-		const upgrade = () => {
-			const serviceData = createSwitchAccountTypeData()
-			serviceData.accountType = AccountType.PREMIUM
-			serviceData.subscriptionType = this._subscriptionTypeToPaidSubscriptionType(attrs.data.type)
-			serviceData.date = Const.CURRENT_DATE
-			serviceData.campaign = attrs.data.campaign
-			showProgressDialog(
-				"pleaseWait_msg",
-				serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, serviceData).then(() => {
-					return locator.customerFacade.switchFreeToPremiumGroup()
-				}),
-			)
-				.then(() => {
-					deleteCampaign()
-					return this.close(attrs.data, this.dom)
-				})
-				.catch(
-					ofClass(PreconditionFailedError, e => {
-						Dialog.message(
-							() =>
-								lang.get(getPreconditionFailedPaymentMsg(e.data)) +
-								(attrs.data.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
-						)
-					}),
-				)
-				.catch(
-					ofClass(BadGatewayError, e => {
-						Dialog.message(
-							() =>
-								lang.get("paymentProviderNotAvailableError_msg") +
-								(attrs.data.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
-						)
-					}),
-				)
-		}
+	view({attrs}: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
+		const {newAccountData} = attrs.data
 
 		return [
 			newAccountData
@@ -106,92 +45,160 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 				])
 				: null,
 			attrs.data.type === SubscriptionType.Free
-				? [
-					m(".flex-space-around.flex-wrap", [
-						m(
-							".flex-grow-shrink-half.plr-l.flex-center.items-end",
-							m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {
-								style: {
-									width: "200px",
-								},
-							}),
-						),
-					]),
-					m(
-						".flex-center.full-width.pt-l",
-						m(
-							"",
-							{
-								style: {
-									width: "260px",
-								},
-							},
-							m(ButtonN, {
-								label: "ok_action",
-								click: () => this.close(attrs.data, this.dom),
-								type: ButtonType.Login,
-							}),
-						),
-					),
-				]
-				: [
-					m(".center.h4.pt", lang.get("upgradeConfirm_msg")),
-					m(".flex-space-around.flex-wrap", [
-						m(".flex-grow-shrink-half.plr-l", [
-							m(TextFieldN, orderFieldAttrs),
-							m(TextFieldN, subscriptionFieldAttrs),
-							m(TextFieldN, priceFieldAttrs),
-							attrs.data.priceNextYear
-								? m(TextFieldN, this._createPriceNextYearFieldAttrs(attrs.data.priceNextYear, attrs.data.options))
-								: null,
-							m(TextFieldN, paymentMethodFieldAttrs),
-						]),
-						m(
-							".flex-grow-shrink-half.plr-l.flex-center.items-end",
-							m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {
-								style: {
-									width: "200px",
-								},
-							}),
-						),
-					]),
-					m(
-						".flex-center.full-width.pt-l",
-						m(
-							"",
-							{
-								style: {
-									width: "260px",
-								},
-							},
-							m(ButtonN, {
-								label: "buy_action",
-								click: upgrade,
-								type: ButtonType.Login,
-							}),
-						),
-					),
-				],
+				? this.renderFree(attrs)
+				: this.renderPaid(attrs),
 		]
 	}
 
-	_subscriptionTypeToPaidSubscriptionType(subscriptionType: SubscriptionType): PaidSubscriptionType {
-		if (subscriptionType === SubscriptionType.Premium) {
-			return PaidSubscriptionType.Premium
-		} else if (subscriptionType === SubscriptionType.PremiumBusiness) {
-			return PaidSubscriptionType.Premium_Business
-		} else if (subscriptionType === SubscriptionType.Teams) {
-			return PaidSubscriptionType.Teams
-		} else if (subscriptionType === SubscriptionType.TeamsBusiness) {
-			return PaidSubscriptionType.Teams_Business
-		} else if (subscriptionType === SubscriptionType.Pro) {
-			return PaidSubscriptionType.Pro
-		} else {
-			throw new Error("not a valid Premium subscription type: " + subscriptionType)
+	private upgrade(data: UpgradeSubscriptionData) {
+		const serviceData = createSwitchAccountTypeData()
+		serviceData.accountType = AccountType.PREMIUM
+		serviceData.subscriptionType = this.subscriptionTypeToPaidSubscriptionType(data.type)
+		serviceData.date = Const.CURRENT_DATE
+		serviceData.campaign = data.campaign
+		showProgressDialog(
+			"pleaseWait_msg",
+			serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, serviceData).then(() => {
+				return locator.customerFacade.switchFreeToPremiumGroup()
+			}),
+		)
+			.then(() => {
+				deleteCampaign()
+				return this.close(data, this.dom)
+			})
+			.catch(ofClass(PreconditionFailedError, e => {
+					Dialog.message(
+						() =>
+							lang.get(getPreconditionFailedPaymentMsg(e.data)) +
+							(data.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
+					)
+				}),
+			)
+			.catch(ofClass(BadGatewayError, e => {
+					Dialog.message(
+						() =>
+							lang.get("paymentProviderNotAvailableError_msg") +
+							(data.upgradeType === UpgradeType.Signup ? " " + lang.get("accountWasStillCreated_msg") : ""),
+					)
+				}),
+			)
+	}
+
+	private renderPaid(attrs: WizardPageAttrs<UpgradeSubscriptionData>) {
+		const isYearly = isYearlyPayment(attrs.data.options.paymentInterval())
+		const subscription = (isYearly ? lang.get("pricing.yearly_label") : lang.get("pricing.monthly_label"))
+
+		return [
+			m(".center.h4.pt", lang.get("upgradeConfirm_msg")),
+			m(".flex-space-around.flex-wrap", [
+				m(".flex-grow-shrink-half.plr-l", [
+					m(TextFieldN, {
+						label: "subscription_label",
+						value: stream(getDisplayNameOfSubscriptionType(attrs.data.type)),
+						disabled: true,
+					}),
+					m(TextFieldN, {
+						label: "paymentInterval_label",
+						value: stream(subscription),
+						disabled: true,
+					}),
+					m(TextFieldN, {
+						label: isYearly ? "priceFirstYear_label" : "price_label",
+						value: stream(buildPriceString(attrs.data.price, attrs.data.options)),
+						disabled: true,
+					}),
+					this.renderPriceNextYear(attrs),
+					m(TextFieldN, {
+						label: "paymentMethod_label",
+						value: stream(getPaymentMethodName(attrs.data.paymentData.paymentMethod)),
+						disabled: true,
+					}),
+				]),
+				m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
+					m("img.pt.bg-white.border-radius", {
+						src: HabReminderImage,
+						style: {
+							width: "200px",
+						},
+					}),
+				),
+			]),
+			m(".smaller.center.pt-l",
+				attrs.data.options.businessUse()
+					? lang.get("subscriptionPeriodInfoBusiness_msg")
+					: lang.get("subscriptionPeriodInfoPrivate_msg")
+			),
+			m(".flex-center.full-width.pt-l",
+				m("", {
+						style: {
+							width: "260px",
+						},
+					},
+					m(ButtonN, {
+						label: "buy_action",
+						click: () => this.upgrade(attrs.data),
+						type: ButtonType.Login,
+					}),
+				),
+			),
+		]
+	}
+
+	private renderPriceNextYear(attrs: WizardPageAttrs<UpgradeSubscriptionData>) {
+		return attrs.data.priceNextYear
+			? m(TextFieldN, {
+				label: "priceForNextYear_label",
+				value: stream(buildPriceString(attrs.data.priceNextYear, attrs.data.options)),
+				disabled: true,
+			})
+			: null
+	}
+
+	private renderFree(attrs: WizardPageAttrs<UpgradeSubscriptionData>) {
+		return [
+			m(".flex-space-around.flex-wrap", [
+				m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
+					m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {
+						style: {
+							width: "200px",
+						},
+					}),
+				),
+			]),
+			m(".flex-center.full-width.pt-l",
+				m("", {
+						style: {
+							width: "260px",
+						},
+					},
+					m(ButtonN, {
+						label: "ok_action",
+						click: () => this.close(attrs.data, this.dom),
+						type: ButtonType.Login,
+					}),
+				),
+			),
+		]
+	}
+
+	private subscriptionTypeToPaidSubscriptionType(subscriptionType: SubscriptionType): PaidSubscriptionType {
+		switch (subscriptionType) {
+			case SubscriptionType.Premium:
+				return PaidSubscriptionType.Premium
+			case SubscriptionType.PremiumBusiness:
+				return PaidSubscriptionType.Premium_Business
+			case SubscriptionType.Teams:
+				return PaidSubscriptionType.Teams
+			case SubscriptionType.TeamsBusiness:
+				return PaidSubscriptionType.Teams_Business
+			case SubscriptionType.Pro:
+				return PaidSubscriptionType.Pro
+			default:
+				throw new Error("not a valid Premium subscription type: " + subscriptionType)
 		}
 	}
 
-	close(data: UpgradeSubscriptionData, dom: HTMLElement) {
+	private close(data: UpgradeSubscriptionData, dom: HTMLElement) {
 		let promise = Promise.resolve()
 
 		if (data.newAccountData && logins.isUserLoggedIn()) {
@@ -201,14 +208,6 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 		promise.then(() => {
 			emitWizardEvent(dom, WizardEventType.SHOWNEXTPAGE)
 		})
-	}
-
-	_createPriceNextYearFieldAttrs(price: NumberString, options: SubscriptionOptions): TextFieldAttrs {
-		return {
-			label: "priceForNextYear_label",
-			value: stream(buildPriceString(price, options)),
-			disabled: true,
-		}
 	}
 }
 
