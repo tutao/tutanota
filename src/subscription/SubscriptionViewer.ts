@@ -3,7 +3,7 @@ import {assertMainOrNode} from "../api/common/Env"
 import {AccountType, AccountTypeNames, BookingItemFeatureType, Const, OperationType} from "../api/common/TutanotaConstants"
 import type {Customer} from "../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {assertNotNull, downcast, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
+import {assertNotNull, downcast, incrementDate, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {serviceRequest} from "../api/main/ServiceRequest"
@@ -142,11 +142,11 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		} as const
 		let subscriptionPeriods = [
 			{
-				name: lang.get("pricing.yearly_label") + ", " + lang.get("automaticRenewal_label"),
+				name: lang.get("pricing.yearly_label"),
 				value: 12,
 			},
 			{
-				name: lang.get("pricing.monthly_label") + ", " + lang.get("automaticRenewal_label"),
+				name: lang.get("pricing.monthly_label"),
 				value: 1,
 			},
 		]
@@ -280,13 +280,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					: null,
 				this._showPriceData()
 					? m(DropDownSelectorN, {
-						label: "subscriptionPeriod_label",
-						helpLabel: () =>
-							this._periodEndDate
-								? lang.get("endOfSubscriptionPeriod_label", {
-									"{1}": formatDate(this._periodEndDate),
-								})
-								: "",
+						label: "paymentInterval_label",
+						helpLabel: () => this.getChargeDateText(),
 						items: subscriptionPeriods,
 						selectedValue: this._selectedSubscriptionInterval,
 						dropdownWidth: 300,
@@ -307,6 +302,9 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 								: lang.get("price_label"),
 						value: this._currentPriceFieldValue,
 						disabled: true,
+						helpLabel: () => this._customer && this._customer.businessUse === true
+							? lang.get("subscriptionPeriodInfoBusiness_msg")
+							: null,
 					})
 					: null,
 				this._showPriceData() && this._nextPeriodPriceVisible && this._periodEndDate
@@ -404,9 +402,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							buttonText: "adminDeleteAccount_action",
 							expanded: deleteAccountExpanded,
 						},
-						m(
-							".flex-center",
-							m(
+						m(".flex-center", m(
 								"",
 								{
 									style: {
@@ -454,6 +450,15 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._updatePriceInfo()
 
 		this._updateBookings()
+	}
+
+	private getChargeDateText(): string {
+		if (this._periodEndDate) {
+			const chargeDate = formatDate(incrementDate(new Date(this._periodEndDate), 1))
+			return lang.get("nextChargeOn_label", {"{chargeDate}": chargeDate})
+		} else {
+			return ""
+		}
 	}
 
 	_showOrderAgreement(): boolean {

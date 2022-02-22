@@ -4,7 +4,7 @@ import {ButtonType} from "../gui/base/ButtonN"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {AccountType, BookingItemFeatureType, FeatureType} from "../api/common/TutanotaConstants"
-import {neverNull} from "@tutao/tutanota-utils"
+import {incrementDate, neverNull, ofClass} from "@tutao/tutanota-utils"
 import {formatDate} from "../misc/Formatter"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -19,7 +19,6 @@ import type {PriceServiceReturn} from "../api/entities/sys/PriceServiceReturn"
 import type {PriceData} from "../api/entities/sys/PriceData"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import stream from "mithril/stream"
-import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
 
@@ -56,6 +55,7 @@ export function showBuyDialog(featureType: BookingItemFeatureType, count: number
 												  return false
 											  })
 										  } else {
+											  const chargeDate = incrementDate(new Date(price.periodEndDate), 1)
 											  let buy = _isBuy(price, featureType)
 
 											  const orderFieldAttrs: TextFieldAttrs = {
@@ -66,7 +66,7 @@ export function showBuyDialog(featureType: BookingItemFeatureType, count: number
 											  }
 											  const buyFieldAttrs: TextFieldAttrs = {
 												  label: "subscription_label",
-												  helpLabel: () => _getSubscriptionInfoText(price),
+												  helpLabel: () => lang.get("nextChargeOn_label", {"{chargeDate}": formatDate(chargeDate)}),
 												  value: stream(_getSubscriptionText(price)),
 												  disabled: true,
 											  }
@@ -298,16 +298,10 @@ function _getBookingText(price: PriceServiceReturn, featureType: NumberString, c
 
 function _getSubscriptionText(price: PriceServiceReturn): string {
 	if (neverNull(price.futurePriceNextPeriod).paymentInterval === "12") {
-		return lang.get("pricing.yearly_label") + ", " + lang.get("automaticRenewal_label")
+		return lang.get("pricing.yearly_label")
 	} else {
-		return lang.get("pricing.monthly_label") + ", " + lang.get("automaticRenewal_label")
+		return lang.get("pricing.monthly_label")
 	}
-}
-
-function _getSubscriptionInfoText(price: PriceServiceReturn): string {
-	return lang.get("endOfSubscriptionPeriod_label", {
-		"{1}": formatDate(price.periodEndDate),
-	})
 }
 
 function _getPriceText(price: PriceServiceReturn, featureType: NumberString): string {
