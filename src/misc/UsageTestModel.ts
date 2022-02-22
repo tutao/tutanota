@@ -7,13 +7,12 @@ import {serviceRequest, serviceRequestVoid} from "../api/main/ServiceRequest"
 import {createUsageTestParticipationPostIn} from "../api/entities/sys/UsageTestParticipationPostIn"
 import {UsageTestParticipationPostOutTypeRef} from "../api/entities/sys/UsageTestParticipationPostOut"
 import {createUsageTestParticipationPutIn} from "../api/entities/sys/UsageTestParticipationPutIn"
-import {createUsageTestMetric} from "../api/entities/sys/UsageTestMetric"
 import {UsageTestState} from "../api/common/TutanotaConstants"
 import {ofClass} from "@tutao/tutanota-utils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
+import {createUsageTestMetricData} from "../api/entities/sys/UsageTestMetricData"
 
 const FIRST_STAGE = 0
-const LIVE_STATES = [UsageTestState.Live]
 
 export class UsageTestModel implements PingAdapter, StorageAdapter {
 	async loadActiveUsageTests(): Promise<UsageTest[]> {
@@ -25,10 +24,10 @@ export class UsageTestModel implements PingAdapter, StorageAdapter {
 		console.log(response)
 		return Promise.resolve(response.assignments.map(usageTestAssignment => {
 			const test = new UsageTest(usageTestAssignment.testId, usageTestAssignment.name, Number(usageTestAssignment.variant),
-				LIVE_STATES.includes(usageTestAssignment.state as UsageTestState))
+				UsageTestState.Live === usageTestAssignment.state)
 
-			for (let i = 0; i < Number(usageTestAssignment.numberOfStages); i++) {
-				test.addStage(new Stage(i, test))
+			for (let [index, stage] of usageTestAssignment.stages.entries()) {
+				test.addStage(new Stage(index, test))
 			}
 
 			return test
@@ -36,12 +35,12 @@ export class UsageTestModel implements PingAdapter, StorageAdapter {
 	}
 
 	async sendPing(test: UsageTest, stage: Stage): Promise<void> {
-		const metrics = Array.from(stage.collectedMetrics).map(([key, value]) => {
-			const ping = createUsageTestMetric()
-			ping.type = key
-			ping.value = value
+		const metrics = Array.from(stage.collectedMetrics).map(([key, {name, value}]) => {
+			const metric = createUsageTestMetricData()
+			metric.name = name
+			metric.value = value
 
-			return ping
+			return metric
 		})
 
 		if (stage.number === FIRST_STAGE) {

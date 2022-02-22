@@ -44,7 +44,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "72"
+	"version": "73"
 }
 
 export function createFile(values?: Partial<File>): File {

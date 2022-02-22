@@ -56,7 +56,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "72"
+	"version": "73"
 }
 
 export function createBlobAccessInfo(values?: Partial<BlobAccessInfo>): BlobAccessInfo {

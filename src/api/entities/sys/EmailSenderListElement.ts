@@ -51,7 +51,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "72"
+	"version": "73"
 }
 
 export function createEmailSenderListElement(values?: Partial<EmailSenderListElement>): EmailSenderListElement {

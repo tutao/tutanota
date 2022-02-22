@@ -3,35 +3,35 @@ import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes.js"
 
 
-export const StringConfigValueTypeRef: TypeRef<StringConfigValue> = new TypeRef("sys", "StringConfigValue")
+export const UsageTestMetricDataTypeRef: TypeRef<UsageTestMetricData> = new TypeRef("sys", "UsageTestMetricData")
 export const _TypeModel: TypeModel = {
-	"name": "StringConfigValue",
-	"since": 1,
+	"name": "UsageTestMetricData",
+	"since": 73,
 	"type": "AGGREGATED_TYPE",
-	"id": 515,
-	"rootId": "A3N5cwACAw",
+	"id": 1922,
+	"rootId": "A3N5cwAHgg",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"id": 516,
+			"id": 1923,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"name": {
-			"id": 517,
+			"id": 1924,
 			"type": "String",
 			"cardinality": "One",
-			"final": false,
+			"final": true,
 			"encrypted": false
 		},
 		"value": {
-			"id": 518,
+			"id": 1925,
 			"type": "String",
-			"cardinality": "One",
-			"final": false,
+			"cardinality": "ZeroOrOne",
+			"final": true,
 			"encrypted": false
 		}
 	},
@@ -40,14 +40,14 @@ export const _TypeModel: TypeModel = {
 	"version": "73"
 }
 
-export function createStringConfigValue(values?: Partial<StringConfigValue>): StringConfigValue {
-	return Object.assign(create(_TypeModel, StringConfigValueTypeRef), downcast<StringConfigValue>(values))
+export function createUsageTestMetricData(values?: Partial<UsageTestMetricData>): UsageTestMetricData {
+	return Object.assign(create(_TypeModel, UsageTestMetricDataTypeRef), downcast<UsageTestMetricData>(values))
 }
 
-export type StringConfigValue = {
-	_type: TypeRef<StringConfigValue>;
+export type UsageTestMetricData = {
+	_type: TypeRef<UsageTestMetricData>;
 
 	_id: Id;
 	name: string;
-	value: string;
+	value: null | string;
 }

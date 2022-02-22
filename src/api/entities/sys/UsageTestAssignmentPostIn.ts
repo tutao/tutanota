@@ -6,15 +6,15 @@ import type {TypeModel} from "../../common/EntityTypes.js"
 export const UsageTestAssignmentPostInTypeRef: TypeRef<UsageTestAssignmentPostIn> = new TypeRef("sys", "UsageTestAssignmentPostIn")
 export const _TypeModel: TypeModel = {
 	"name": "UsageTestAssignmentPostIn",
-	"since": 72,
+	"since": 73,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 1947,
-	"rootId": "A3N5cwAHmw",
+	"id": 1958,
+	"rootId": "A3N5cwAHpg",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"id": 1948,
+			"id": 1959,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -23,7 +23,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "72"
+	"version": "73"
 }
 
 export function createUsageTestAssignmentPostIn(values?: Partial<UsageTestAssignmentPostIn>): UsageTestAssignmentPostIn {

@@ -66,7 +66,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "72"
+	"version": "73"
 }
 
 export function createAdministratedGroup(values?: Partial<AdministratedGroup>): AdministratedGroup {
