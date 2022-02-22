@@ -2,63 +2,66 @@ import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes.js"
 
+import type {UsageTestStage} from "./UsageTestStage.js"
 
 export const UsageTestAssignmentTypeRef: TypeRef<UsageTestAssignment> = new TypeRef("sys", "UsageTestAssignment")
 export const _TypeModel: TypeModel = {
 	"name": "UsageTestAssignment",
-	"since": 72,
+	"since": 73,
 	"type": "AGGREGATED_TYPE",
-	"id": 1949,
-	"rootId": "A3N5cwAHnQ",
+	"id": 1960,
+	"rootId": "A3N5cwAHqA",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"id": 1950,
+			"id": 1961,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"name": {
-			"id": 1952,
+			"id": 1963,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
-		"numberOfStages": {
-			"id": 1954,
-			"type": "Number",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
 		"state": {
-			"id": 1955,
+			"id": 1965,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"testId": {
-			"id": 1951,
+			"id": 1962,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"variant": {
-			"id": 1953,
+			"id": 1964,
 			"type": "Number",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		}
 	},
-	"associations": {},
+	"associations": {
+		"stages": {
+			"id": 1966,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"final": false,
+			"refType": "UsageTestStage",
+			"dependency": null
+		}
+	},
 	"app": "sys",
-	"version": "72"
+	"version": "73"
 }
 
 export function createUsageTestAssignment(values?: Partial<UsageTestAssignment>): UsageTestAssignment {
@@ -70,8 +73,9 @@ export type UsageTestAssignment = {
 
 	_id: Id;
 	name: string;
-	numberOfStages: NumberString;
 	state: NumberString;
 	testId: Id;
 	variant: null | NumberString;
+
+	stages: UsageTestStage[];
 }

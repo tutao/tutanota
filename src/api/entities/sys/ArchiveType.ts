@@ -50,7 +50,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "72"
+	"version": "73"
 }
 
 export function createArchiveType(values?: Partial<ArchiveType>): ArchiveType {

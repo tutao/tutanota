@@ -3,39 +3,32 @@ import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes.js"
 
 
-export const KeyPairTypeRef: TypeRef<KeyPair> = new TypeRef("sys", "KeyPair")
+export const UsageTestMetricConfigTypeRef: TypeRef<UsageTestMetricConfig> = new TypeRef("sys", "UsageTestMetricConfig")
 export const _TypeModel: TypeModel = {
-	"name": "KeyPair",
-	"since": 1,
+	"name": "UsageTestMetricConfig",
+	"since": 73,
 	"type": "AGGREGATED_TYPE",
-	"id": 0,
-	"rootId": "A3N5cwAA",
+	"id": 1918,
+	"rootId": "A3N5cwAHfg",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"id": 1,
+			"id": 1919,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
-		"pubKey": {
-			"id": 2,
-			"type": "Bytes",
+		"name": {
+			"id": 1920,
+			"type": "String",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
-		"symEncPrivKey": {
-			"id": 3,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": true,
-			"encrypted": false
-		},
-		"version": {
-			"id": 4,
+		"type": {
+			"id": 1921,
 			"type": "Number",
 			"cardinality": "One",
 			"final": true,
@@ -47,15 +40,14 @@ export const _TypeModel: TypeModel = {
 	"version": "73"
 }
 
-export function createKeyPair(values?: Partial<KeyPair>): KeyPair {
-	return Object.assign(create(_TypeModel, KeyPairTypeRef), downcast<KeyPair>(values))
+export function createUsageTestMetricConfig(values?: Partial<UsageTestMetricConfig>): UsageTestMetricConfig {
+	return Object.assign(create(_TypeModel, UsageTestMetricConfigTypeRef), downcast<UsageTestMetricConfig>(values))
 }
 
-export type KeyPair = {
-	_type: TypeRef<KeyPair>;
+export type UsageTestMetricConfig = {
+	_type: TypeRef<UsageTestMetricConfig>;
 
 	_id: Id;
-	pubKey: Uint8Array;
-	symEncPrivKey: Uint8Array;
-	version: NumberString;
+	name: string;
+	type: NumberString;
 }

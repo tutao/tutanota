@@ -12,7 +12,7 @@ export interface StorageAdapter {
 
 export class DummyDataStorageAdapter implements StorageAdapter {
 	loadActiveUsageTests(): Promise<UsageTest[]> {
-		const usageTest = new UsageTest("t123", "test 123", 1)
+		const usageTest = new UsageTest("t123", "test 123", 1, true)
 		usageTest.addStage(new Stage(0, usageTest))
 
 		return Promise.resolve([usageTest])

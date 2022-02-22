@@ -72,7 +72,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "72"
+	"version": "73"
 }
 
 export function createSecondFactorAuthentication(values?: Partial<SecondFactorAuthentication>): SecondFactorAuthentication {

@@ -1,13 +1,13 @@
-import {ShamUsageTest, UsageTest} from "./UsageTest.js"
+import {ObsoleteUsageTest, UsageTest} from "./UsageTest.js"
 import {PingAdapter} from "../storage/PingAdapter.js"
 
 export class UsageTestController {
 	private readonly tests: Map<string, UsageTest> = new Map<string, UsageTest>()
 	_pingAdapter?: PingAdapter
-	private readonly shamUsageTest: ShamUsageTest
+	private readonly obsoleteUsageTest: ObsoleteUsageTest
 
 	constructor() {
-		this.shamUsageTest = new ShamUsageTest("shamtest", "shamtest", 0)
+		this.obsoleteUsageTest = new ObsoleteUsageTest("obsolete", "obsolete", 0)
 	}
 
 	set pingAdapter(pingAdapter: PingAdapter) {
@@ -49,6 +49,6 @@ export class UsageTestController {
 			}
 		}
 
-		return this.shamUsageTest
+		return this.obsoleteUsageTest
 	}
 }

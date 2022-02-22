@@ -114,7 +114,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "72"
+	"version": "73"
 }
 
 export function createPushIdentifier(values?: Partial<PushIdentifier>): PushIdentifier {

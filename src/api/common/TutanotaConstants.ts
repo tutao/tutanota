@@ -937,3 +937,9 @@ export enum UsageTestState {
 }
 
 export const UsageTestStateToName = reverse(UsageTestState)
+
+export enum UsageTestMetricType {
+	Number = "0",
+}
+
+export const UsageTestMetricTypeToName = reverse(UsageTestMetricType)

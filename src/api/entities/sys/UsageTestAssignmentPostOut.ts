@@ -7,15 +7,15 @@ import type {UsageTestAssignment} from "./UsageTestAssignment.js"
 export const UsageTestAssignmentPostOutTypeRef: TypeRef<UsageTestAssignmentPostOut> = new TypeRef("sys", "UsageTestAssignmentPostOut")
 export const _TypeModel: TypeModel = {
 	"name": "UsageTestAssignmentPostOut",
-	"since": 72,
+	"since": 73,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 1956,
-	"rootId": "A3N5cwAHpA",
+	"id": 1967,
+	"rootId": "A3N5cwAHrw",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"id": 1957,
+			"id": 1968,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -24,7 +24,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"assignments": {
-			"id": 1958,
+			"id": 1969,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
@@ -33,7 +33,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "72"
+	"version": "73"
 }
 
 export function createUsageTestAssignmentPostOut(values?: Partial<UsageTestAssignmentPostOut>): UsageTestAssignmentPostOut {

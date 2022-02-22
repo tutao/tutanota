@@ -73,7 +73,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "72"
+	"version": "73"
 }
 
 export function createGroupMembership(values?: Partial<GroupMembership>): GroupMembership {

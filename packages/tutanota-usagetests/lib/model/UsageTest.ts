@@ -1,6 +1,6 @@
 import {StageAlreadyRegisteredError, StageCompletionError} from "../errors.js"
 import {VariantRenderer, VariantsIndex} from "../view/VariantRenderer.js"
-import {ShamStage, Stage} from "./Stage.js"
+import {ObsoleteStage, Stage} from "./Stage.js"
 import {PingAdapter} from "../storage/PingAdapter.js"
 
 const NO_PARTICIPATION_VARIANT = 0
@@ -14,11 +14,11 @@ export class UsageTest {
 	participationId?: string
 	active: boolean
 
-	constructor(testId: string, testName: string, variant: number, active?: boolean) {
+	constructor(testId: string, testName: string, variant: number, active: boolean) {
 		this.testId = testId
 		this.testName = testName
 		this.variant = variant
-		this.active = active ?? true
+		this.active = active
 	}
 
 	getStage(stageNum: number): Stage | undefined {
@@ -50,20 +50,20 @@ export class UsageTest {
 	}
 }
 
-export class ShamUsageTest extends UsageTest {
-	private readonly shamStage: ShamStage
+export class ObsoleteUsageTest extends UsageTest {
+	private readonly obsoleteStage: ObsoleteStage
 
 	constructor(testId: string, testName: string, variant: number) {
 		super(testId, testName, variant, false)
-		this.shamStage = new ShamStage(0, this)
+		this.obsoleteStage = new ObsoleteStage(0, this)
 	}
 
 	getStage(stageNum: number): Stage | undefined {
-		return this.shamStage;
+		return this.obsoleteStage;
 	}
 
 	addStage(stage: Stage): Stage {
-		return this.shamStage;
+		return this.obsoleteStage;
 	}
 
 	renderVariant<T>(renderer: VariantRenderer<T>, variants: VariantsIndex<T>): T {
