@@ -11,7 +11,7 @@ pipeline {
         booleanParam(
 			name: 'RELEASE',
 			defaultValue: false,
-			description: "Prepare a release version (doesn't publish to production, this is done manually). Also publishes NPM modules"
+			description: "Prepare a release version (doesn't publish to production, this is done manually)"
 		)
         booleanParam(
         	name: 'UPDATE_DICTIONARIES',
@@ -36,30 +36,9 @@ pipeline {
             	sh 'npm ci'
             	sh 'npm run build-packages'
 				sh 'node webapp.js release'
+
 				// excluding web-specific and mobile specific parts which we don't need in desktop
 				stash includes: 'build/dist/**', excludes: '**/braintree.html, **/index.html, **/app.html, **/desktop.html, **/index-index.js, **/index-app.js, **/index-desktop.js, **/dist/sw.js', name: 'web_base'
-				// adding web-specific parts to another bundle
-				stash includes: '**/braintree.html, **/dist/index.html, **/dist/index-index.js, **/dist/sw.js', name: 'web_add'
-				// Bundle size stats
-				publishHTML target: [
-					allowMissing: false,
-					alwaysLinkToLastBuild: false,
-					keepAll: true,
-					reportDir: 'build',
-					reportFiles: 'stats.html',
-					reportName: 'bundle stats'
-				]
-				// Bundle dependencies graph
-				sh 'dot -Tsvg build/bundles.dot > build/bundles.svg'
-				sh """echo '<!doctype html><html><body><img src="./bundles.svg" /></body></html>' > build/bundles.html"""
-				publishHTML target: [
-					allowMissing: false,
-					alwaysLinkToLastBuild: false,
-					keepAll: true,
-					reportDir: 'build',
-					reportFiles: 'bundles.html',
-					reportName: 'bundle dependencies'
-				]
             }
         }
 
@@ -85,10 +64,9 @@ pipeline {
 								label 'win'
 							}
 							steps {
-								sh 'npm ci'
+								initBuildArea()
 								unstash 'keytar_win'
-								unstash 'web_base'
-								sh 'npm run build-packages'
+
 								withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
 									sh '''
 									export JENKINS=TRUE;
@@ -113,10 +91,9 @@ pipeline {
                         label 'mac'
                     }
                     steps {
-						sh 'npm ci'
-						sh 'rm -rf ./build/*'
-						sh 'npm run build-packages'
-						unstash 'web_base'
+
+						initBuildArea()
+
 					   	withCredentials(
 					   		[
 					   			usernamePassword(credentialsId: 'APP_NOTARIZE_CREDS', usernameVariable: 'APPLEIDVAR', passwordVariable: 'APPLEIDPASSVAR'),
@@ -153,11 +130,10 @@ pipeline {
 						PATH="${env.NODE_PATH}:${env.PATH}"
 					}
                     steps {
-						sh 'npm ci'
-						sh 'rm -rf ./build/*'
-						unstash 'web_base'
-						sh 'npm run build-packages'
+						initBuildArea()
+
 						sh 'node desktop --existing --linux'
+
 						dir('build') {
 							stash includes: 'desktop-test/*', name:'linux_installer_test'
 							stash includes: 'desktop/*', name:'linux_installer'
@@ -180,8 +156,7 @@ pipeline {
             steps {
             	sh 'npm ci'
 				sh 'rm -rf ./build/*'
-				unstash 'web_base'
-				unstash 'web_add'
+
 				dir('build') {
 					unstash 'linux_installer'
 					unstash 'mac_installer'
@@ -195,34 +170,31 @@ pipeline {
 						sh 'node buildSrc/fetchDictionaries.js --publish'
 					}
 				}
+
 				withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]){
 					sh '''export HSM_USER_PIN=${PW};
 					node buildSrc/signDesktopClients.js'''
 				}
-				sh 'node buildSrc/publish.js'
-            }
-        }
 
-        stage('Publish modules') {
-			when {
-				expression { params.RELEASE }
-			}
-			agent {
-				label 'linux'
-			}
-			environment {
-				PATH="${env.NODE_PATH}:${env.PATH}"
-			}
+				sh 'node buildSrc/publish.js desktop'
 
-			steps {
-				catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-					sh "npm ci && npm run build-packages"
-					// .npmrc expects $NPM_TOKEN
-					withCredentials([string(credentialsId: 'npm-token',variable: 'NPM_TOKEN')]) {
-						sh "npm --workspaces publish"
+				catchError(stageResult: 'UNSTABLE', message: 'Failed to create github release page') {
+					withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
+						sh """node buildSrc/createGithubReleasePage.js --name '${VERSION} (Desktop)' \
+																	   --milestone '${VERSION}' \
+																	   --tag 'tutanota-desktop-release-${VERSION}' \
+																	   --platform desktop"""
 					}
 				}
-			}
+            }
         }
     }
+}
+
+def initBuildArea() {
+	sh 'npm ci'
+	sh 'npm run build-packages'
+	sh 'rm -rf ./build/*'
+	sh 'rm -rf ./native-cache/*'
+	unstash 'web_base'
 }

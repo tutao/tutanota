@@ -11,7 +11,7 @@ if (wasRunFromCli) {
 		.requiredOption('--name <name>', "Name of the release")
 		.requiredOption('--milestone <milestone>', "Milestone to reference")
 		.requiredOption('--tag <tag>', "The commit tag to reference")
-		.option('--platform <platform>', 'Which platform to build', /android|ios|all/, "all")
+		.option('--platform <platform>', 'Which platform to build', /android|ios|desktop|all/, "all")
 		.option('--uploadFile <filePath>', "Path to a file to upload")
 		.option('--apkChecksum <checksum>', "Checksum for the APK")
 		.parse(process.argv)
@@ -86,17 +86,24 @@ async function getIssuesForMilestone(octokit, milestone, platform) {
 	return response.data
 }
 
+/**
+ * Filter the issues for the given platform.
+ * If an issue has no label, then it will be included
+ * If an issue has a label for a different platform, it won't be included,
+ * _unless_ it also has the label for the specified paltform
+ */
 function filterIssues(issues, platform) {
+
+	const allPlatforms = ["android", "ios", "desktop"]
+
 	if (platform === "all") {
 		return issues
-	} else if (platform === "android") {
+	} else if (allPlatforms.includes(platform)) {
+		const otherPlatforms = allPlatforms.filter(p => p !== platform)
 		return issues.filter(issue =>
-			issue.labels.some(label => label.name === "android") ||
-			!issue.labels.some(label => label.name === "desktop" || label.name === "ios"))
-	} else if (platform === "ios") {
-		return issues.filter(issue =>
-			issue.labels.some(label => label.name === "ios") ||
-			!issue.labels.some(label => label.name === "desktop" || label.name === "android"))
+			issue.labels.some(label => label.name === platform) ||
+			!issue.labels.some(label => otherPlatforms.includes(label.name))
+		)
 	} else {
 		throw new Error(`Invalid value "${platform}" for "platform"`)
 	}
