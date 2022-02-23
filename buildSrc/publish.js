@@ -65,7 +65,7 @@ async function packageAndPublishDeb({version, fpmRootMapping, name, fpmAfterInst
 		`--output-type`, `deb`,
 		`--deb-user`, `tutadb`,
 		`--deb-group`, `tutadb`,
-		`--name`, `${name}`,
+		`--name`, name,
 		`--version`, `${version}`,
 	]
 
