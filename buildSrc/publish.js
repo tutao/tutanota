@@ -70,7 +70,7 @@ async function packageAndPublishDeb({version, fpmRootMapping, name, fpmAfterInst
 	]
 
 	if (fpmAfterInstallScript != null) {
-		fpmFlags.push(`--after-install`, `${fpmAfterInstallScript}`)
+		fpmFlags.push(`--after-install`, fpmAfterInstallScript)
 	}
 
 	await $`/usr/local/bin/fpm ${fpmFlags} ${fpmRootMapping}`
