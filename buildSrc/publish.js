@@ -2,114 +2,90 @@
  * This is a script that runs all steps necessary for publishing the finished build artifacts, i.e. signed binaries.
  * The steps performed in here should be moved to the Jenkinsfile. That would be much simpler plus we never want to run this outside of our CI environment.
  */
-import {spawnSync} from "child_process"
-import {exitOnFail, getTutanotaAppVersion} from "./buildUtils.js"
-import {dirname} from "path"
-import {fileURLToPath} from "url"
+import {getTutanotaAppVersion} from "./buildUtils.js"
+import 'zx/globals'
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+(async function () {
 
-packageAndPublish()
-	.then(v => {
-		console.log("Published successfully")
-		process.exit()
-	})
-	.catch(e => {
-		console.log("Publishing failed: ", e)
+
+	// Find and compress built code (js and html)
+	const compress = () => $`/usr/bin/find ./build '(' -name "*.js" -o -name "*.html" ')' -exec gzip --force --keep --verbose --best '{}' ';'`
+
+	if (process.argv[2] === "webapp") {
+		await compress()
+		const tutanotaVersion = await getTutanotaAppVersion()
+		await packageAndPublishDeb({
+			version: tutanotaVersion,
+			name: "tutanota",
+			fpmRootMapping: "./build/dist/=/opt/tutanota",
+			fpmAfterInstallScript: "./resources/scripts/after-install.sh",
+			destinationDir: `/opt/repository/tutanota`
+		})
+		await tagRelease({
+			tagName: `tutanota-release-${tutanotaVersion}`
+		})
+
+	} else if (process.argv[2] === "desktop") {
+		await compress()
+		const tutanotaVersion = await getTutanotaAppVersion()
+		await packageAndPublishDeb({
+			version: tutanotaVersion,
+			name: "tutanota-desktop",
+			fpmRootMapping: `./build/desktop/=/opt/tutanota-desktop`,
+			destinationDir: `/opt/repository/tutanota-desktop`,
+		})
+		await packageAndPublishDeb({
+			version: tutanotaVersion,
+			name: "tutanota-desktop-test",
+			fpmRootMapping: `./build/desktop-test/=/opt/tutanota-desktop`,
+			destinationDir: `/opt/repository/tutanota-desktop-test`,
+		})
+
+		await tagRelease({
+			tagName: `tutanota-desktop-release-${tutanotaVersion}`
+		})
+
+		// copy appimage for dev_clients
+		// in order to release this new version locally, execute:
+		// mv /opt/repository/dev_client/tutanota-desktop-linux-new.AppImage /opt/repository/dev_client/tutanota-desktop-linux.AppImage
+		await $`/bin/cp -f ./build/desktop/tutanota-desktop-linux.AppImage /opt/repository/dev_client/tutanota-desktop-linux-new.AppImage`
+		await $`/bin/chmod o+r /opt/repository/dev_client/tutanota-desktop-linux-new.AppImage`
+
+	} else {
+		console.error("Usage: node publish <webapp|desktop>")
 		process.exit(1)
-	})
+	}
+})()
 
-async function packageAndPublish() {
-	const version = await getTutanotaAppVersion()
-	const debs = {
-		webApp: `tutanota_${version}_amd64.deb`,
-		desktop: `tutanota-desktop_${version}_amd64.deb`,
-		desktopTest: `tutanota-desktop-test_${version}_amd64.deb`,
-		// the dicts are bound to an electron release, so we use that version number.
-		dict: `tutanota-desktop-dicts_${electronVersion}_amd64.deb`
+async function packageAndPublishDeb({version, fpmRootMapping, name, fpmAfterInstallScript, destinationDir}) {
+
+	const fpmFlags = [
+		`--force`,
+		`--input-type`, `dir`,
+		`--output-type`, `deb`,
+		`--deb-user`, `tutadb`,
+		`--deb-group`, `tutadb`,
+		`--name`, name,
+		`--version`, version,
+	]
+
+	if (fpmAfterInstallScript != null) {
+		fpmFlags.push(`--after-install`, fpmAfterInstallScript)
 	}
 
-	packageDeb(version, debs)
-	publish(version, debs)
-}
+	await $`/usr/local/bin/fpm ${fpmFlags} ${fpmRootMapping}`
 
-function publish(version, debs) {
-	console.log("Create git tag and copy .deb")
-	exitOnFail(spawnSync("/usr/bin/git", `tag -a tutanota-release-${version} -m ''`.split(" "), {
-		stdio: [process.stdin, process.stdout, process.stderr]
-	}))
+	// The output filename from fpm
+	const debName = `${name}_${version}_amd64.deb`
+	const destination = path.join(destinationDir, debName)
 
-	exitOnFail(spawnSync("/usr/bin/git", `push origin tutanota-release-${version}`.split(" "), {
-		stdio: [process.stdin, process.stdout, process.stderr]
-	}))
-
-	exitOnFail(spawnSync("/bin/cp", `-f build/${debs.webApp} /opt/repository/tutanota/`.split(" "), {
-		cwd: __dirname,
-		stdio: [process.stdin, process.stdout, process.stderr]
-	}))
-
-	exitOnFail(spawnSync("/bin/cp", `-f build/${debs.desktop} /opt/repository/tutanota-desktop/`.split(" "), {
-		cwd: __dirname,
-		stdio: [process.stdin, process.stdout, process.stderr]
-	}))
-	exitOnFail(spawnSync("/bin/cp", `-f build/${debs.desktopTest} /opt/repository/tutanota-desktop-test/`.split(" "), {
-		cwd: __dirname,
-		stdio: [process.stdin, process.stdout, process.stderr]
-	}))
-
-	// copy appimage for dev_clients
-	exitOnFail(spawnSync("/bin/cp", `-f build/desktop/tutanota-desktop-linux.AppImage /opt/repository/dev_client/tutanota-desktop-linux-new.AppImage`.split(" "), {
-		cwd: __dirname,
-		stdio: [process.stdin, process.stdout, process.stderr]
-	}))
+	await $`/bin/cp -f ./${debName} ${destination}`
 
 	// user puppet needs to read the deb file from jetty
-	exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota/${debs.webApp}`.split(" "), {
-		cwd: __dirname + '/build/',
-		stdio: [process.stdin, process.stdout, process.stderr]
-	}))
-
-	exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota-desktop/${debs.desktop}`.split(" "), {
-		cwd: __dirname + '/build/',
-		stdio: [process.stdin, process.stdout, process.stderr]
-	}))
-	exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota-desktop-test/${debs.desktopTest}`.split(" "), {
-		cwd: __dirname + '/build/',
-		stdio: [process.stdin, process.stdout, process.stderr]
-	}))
-	// in order to release this new version locally, execute:
-	// mv /opt/repository/dev_client/tutanota-desktop-linux-new.AppImage /opt/repository/dev_client/tutanota-desktop-linux.AppImage
-	exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/dev_client/tutanota-desktop-linux-new.AppImage`.split(" "), {
-		cwd: __dirname + '/build/',
-		stdio: [process.stdin, process.stdout, process.stderr]
-	}))
+	await $`/bin/chmod o+r ${destination}`
 }
 
-function packageDeb(version, debs) {
-	// overwrite output, source=dir target=deb, set owner
-	const commonArgs = `-f -s dir -t deb --deb-user tutadb --deb-group tutadb`
-	const target = `/opt/tutanota`
-
-	exitOnFail(spawnSync("/usr/bin/find", `. ( -name *.js -o -name *.html ) -exec gzip -fkv --best {} \;`.split(" "), {
-		cwd: __dirname + '/build/dist',
-		stdio: [process.stdin, process.stdout, process.stderr]
-	}))
-
-	console.log("create " + debs.webApp)
-	exitOnFail(spawnSync("/usr/local/bin/fpm", `${commonArgs} --after-install ../resources/scripts/after-install.sh -n tutanota -v ${version} dist/=${target}`.split(" "), {
-		cwd: __dirname + '/build',
-		stdio: [process.stdin, process.stdout, process.stderr]
-	}))
-
-	console.log("create " + debs.desktop)
-	exitOnFail(spawnSync("/usr/local/bin/fpm", `${commonArgs} -n tutanota-desktop -v ${version} desktop/=${target}-desktop`.split(" "), {
-		cwd: __dirname + '/build',
-		stdio: [process.stdin, process.stdout, process.stderr]
-	}))
-
-	console.log("create " + debs.desktopTest)
-	exitOnFail(spawnSync("/usr/local/bin/fpm", `${commonArgs} -n tutanota-desktop-test -v ${version} desktop-test/=${target}-desktop`.split(" "), {
-		cwd: __dirname + '/build',
-		stdio: [process.stdin, process.stdout, process.stderr]
-	}))
+async function tagRelease({tagName}) {
+	await $`/usr/bin/git tag -a ${tagName} -m ''`
+	await $`/usr/bin/git push origin ${tagName}`
 }
