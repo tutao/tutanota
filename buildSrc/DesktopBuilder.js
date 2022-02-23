@@ -160,6 +160,7 @@ async function rollupDesktop(dirname, outDir, version) {
 	})
 	await mainBundle.write({sourcemap: true, format: "commonjs", dir: outDir})
 	await fs.promises.copyFile(path.join(dirname, "src/desktop/preload.js"), path.join(outDir, "preload.js"))
+	await fs.promises.copyFile(path.join(dirname, "src/desktop/preload-webdialog.js"), path.join(outDir, "preload-webdialog.js"))
 }
 
 /**

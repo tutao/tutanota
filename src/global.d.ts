@@ -40,6 +40,9 @@ declare global {
 		tutao: Tutao,
 		nativeApp: NativeApp,
 		logger: Logger,
-		whitelabelCustomizations: WhitelabelCustomizations | undefined
+		/** Set by the server for whitelabel domains. */
+		whitelabelCustomizations: WhitelabelCustomizations | undefined,
+		/** Whether we are running inside dialog of desktop app. */
+		webDialog: true | undefined,
 	}
 }
