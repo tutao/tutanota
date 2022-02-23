@@ -172,7 +172,6 @@ async function createComponents(): Promise<Components> {
 		integrator,
 		desktopAlarmScheduler,
 		themeManager,
-		offlineDbFacade,
 		credentialsEncryption,
 		exposedInterfaceFactory
 	)

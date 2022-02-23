@@ -22,7 +22,6 @@ import {ThemeManager} from "../../../src/desktop/ThemeManager";
 import {OfflineDbFacade} from "../../../src/desktop/db/OfflineDbFacade"
 import {DektopCredentialsEncryption, DesktopCredentialsEncryptionStub} from "../../../src/desktop/credentials/DektopCredentialsEncryption"
 import {object} from "testdouble"
-import {DesktopWebauthn} from "../../../src/desktop/2fa/DesktopWebauthn"
 import {ExposedNativeInterface} from "../../../src/native/common/NativeInterface"
 
 o.spec("IPC tests", function () {
@@ -242,7 +241,6 @@ o.spec("IPC tests", function () {
 			desktopIntegratorMock,
 			alarmSchedulerMock,
 			themeManagerMock,
-			offlineDbFacadeMock,
 			credentialsEncryption,
 			() => object<ExposedNativeInterface>()
 		)
