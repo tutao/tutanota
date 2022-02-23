@@ -59,29 +59,30 @@ import 'zx/globals'
 
 async function packageAndPublishDeb({version, fpmRootMapping, name, fpmAfterInstallScript, destinationDir}) {
 
-	const flags = [
+	const fpmFlags = [
 		`--force`,
 		`--input-type`, `dir`,
 		`--output-type`, `deb`,
 		`--deb-user`, `tutadb`,
 		`--deb-group`, `tutadb`,
 		`--name`, name,
-		`--version`, `${version}`,
+		`--version`, version,
 	]
 
 	if (fpmAfterInstallScript != null) {
-		flags.push(`--after-install`, `${fpmAfterInstallScript}`)
+		fpmFlags.push(`--after-install`, `${fpmAfterInstallScript}`)
 	}
 
-	await $`/usr/local/bin/fpm ${flags} ${fpmRootMapping}`
+	await $`/usr/local/bin/fpm ${fpmFlags} ${fpmRootMapping}`
 
 	// The output filename from fpm
 	const debName = `${name}_${version}_amd64.deb`
+	const destination = path.join(destinationDir, debName)
 
-	await $`/bin/cp -f ./${debName} ${path.join(destinationDir, debName)}`
+	await $`/bin/cp -f ./${debName} ${destination}`
 
 	// user puppet needs to read the deb file from jetty
-	await $`/bin/chmod o+r ${path.join(destinationDir, debName)}`
+	await $`/bin/chmod o+r ${destination}`
 }
 
 async function tagRelease({tagName}) {
