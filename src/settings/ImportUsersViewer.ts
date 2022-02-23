@@ -4,12 +4,10 @@ import {lang, TranslationKey} from "../misc/LanguageViewModel"
 import {isMailAddress} from "../misc/FormatValidator"
 import {showWorkerProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
-import {contains} from "@tutao/tutanota-utils"
+import {contains, delay, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {showBuyDialog} from "../subscription/BuyDialog"
-import {delay, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
-import {User} from "../api/entities/sys/User";
 
 const delayTime = 900
 type UserImportDetails = {
@@ -126,7 +124,7 @@ function showBookingDialog(userDetailsArray: UserImportDetails[]): void {
 	let notAvailableUsers: UserImportDetails[] = []
 	// There's a hacky progress solution where we send index to worker and then worker just simulates calculating progress based on the
 	// index
-	showBuyDialog(BookingItemFeatureType.Users, userDetailsArray.length, 0, false).then(accepted => {
+	showBuyDialog({featureType: BookingItemFeatureType.Users, count: userDetailsArray.length, freeAmount: 0, reactivate: false}).then(accepted => {
 		if (accepted) {
 			return showWorkerProgressDialog(
 				locator.worker,

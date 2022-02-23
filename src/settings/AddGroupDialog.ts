@@ -140,7 +140,7 @@ export function show(): void {
 			if (viewModel.groupType === GroupType.Mail) {
 				showProgressDialog(
 					"pleaseWait_msg",
-					showBuyDialog(BookingItemFeatureType.SharedMailGroup, 1, 0, false).then(accepted => {
+					showBuyDialog({featureType: BookingItemFeatureType.SharedMailGroup, count: 1, freeAmount: 0, reactivate: false}).then(accepted => {
 						if (accepted) {
 							dialog.close()
 							return viewModel.createMailGroup()
@@ -150,7 +150,7 @@ export function show(): void {
 			} else if (viewModel.groupType === GroupType.LocalAdmin) {
 				showProgressDialog(
 					"pleaseWait_msg",
-					showBuyDialog(BookingItemFeatureType.LocalAdminGroup, 1, 0, false).then(accepted => {
+					showBuyDialog({featureType: BookingItemFeatureType.LocalAdminGroup, count: 1, freeAmount: 0, reactivate: false}).then(accepted => {
 						if (accepted) {
 							dialog.close()
 							return viewModel.createLocalAdminGroup()

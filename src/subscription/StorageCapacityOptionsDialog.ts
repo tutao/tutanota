@@ -31,7 +31,7 @@ export function showStorageCapacityOptionsDialog(storageWarningTextId?: Translat
 					  return new Promise(resolve => {
 						  const changeStorageCapacityAction = (amount: number) => {
 							  dialog.close()
-							  showBuyDialog(BookingItemFeatureType.Storage, amount, freeStorageCapacity, false)
+							  showBuyDialog({featureType: BookingItemFeatureType.Storage, count: amount, freeAmount: freeStorageCapacity, reactivate: false})
 								  .then(confirm => {
 									  if (confirm) {
 										  return buyStorage(amount)

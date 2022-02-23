@@ -67,7 +67,12 @@ export function show(): Promise<void> {
 				return
 			}
 
-			showProgressDialog("pleaseWait_msg", showBuyDialog(BookingItemFeatureType.Users, 1, 0, false)).then(accepted => {
+			showProgressDialog("pleaseWait_msg", showBuyDialog({
+				featureType: BookingItemFeatureType.Users,
+				count: 1,
+				freeAmount: 0,
+				reactivate: false
+			})).then(accepted => {
 				if (accepted) {
 					let p = locator.userManagementFacade.createUser(userName, assertNotNull(emailAddress), passwordForm.getNewPassword(), 0, 1)
 					showWorkerProgressDialog(

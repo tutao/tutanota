@@ -512,7 +512,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	_deleteUser(restore: boolean): Promise<void> {
 		return showProgressDialog(
 			"pleaseWait_msg",
-			showBuyDialog(BookingItemFeatureType.Users, restore ? 1 : -1, 0, restore).then(confirmed => {
+			showBuyDialog({featureType: BookingItemFeatureType.Users, count: restore ? 1 : -1, freeAmount: 0, reactivate: restore}).then(confirmed => {
 				if (confirmed) {
 					return this._user.getAsync().then(user => {
 						return locator.userManagementFacade.deleteUser(user, restore)
