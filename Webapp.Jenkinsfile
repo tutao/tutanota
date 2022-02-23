@@ -1,12 +1,10 @@
 pipeline {
     environment {
-         NODE_PATH="/opt/node-v16.3.0-linux-x64/bin"
-         NODE_MAC_PATH="/usr/local/opt/node@16/bin/"
+         PATH="/opt/node-v16.3.0-linux-x64/bin:${env.PATH}"
     }
 	options {
 		preserveStashes()
 	}
-
 	parameters {
         booleanParam(
 			name: 'RELEASE',
@@ -14,16 +12,11 @@ pipeline {
 			description: "Prepare a release version (doesn't publish to production, this is done manually). Also publishes NPM modules"
 		)
     }
-
     agent {
         label 'master'
     }
-
     stages {
         stage('Build') {
-        	environment {
-        		PATH="${env.NODE_PATH}:${env.PATH}"
-        	}
             agent {
                 label 'linux'
             }
@@ -64,9 +57,6 @@ pipeline {
             agent {
                 label 'linux'
             }
-			environment {
-				PATH="${env.NODE_PATH}:${env.PATH}"
-			}
             steps {
             	sh 'npm ci'
 				sh 'rm -rf ./build/*'
@@ -82,9 +72,6 @@ pipeline {
 			}
 			agent {
 				label 'linux'
-			}
-			environment {
-				PATH="${env.NODE_PATH}:${env.PATH}"
 			}
 			steps {
 				catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
