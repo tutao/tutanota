@@ -1,8 +1,7 @@
 import m, {Children} from "mithril"
 import {TextFieldAttrs, TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
-import {ButtonType} from "../gui/base/ButtonN"
 import {Dialog, DialogType} from "../gui/base/Dialog"
-import {lang} from "../misc/LanguageViewModel"
+import {lang, TranslationKey} from "../misc/LanguageViewModel"
 import {AccountType, BookingItemFeatureType, FeatureType} from "../api/common/TutanotaConstants"
 import {incrementDate, neverNull, ofClass} from "@tutao/tutanota-utils"
 import {formatDate} from "../misc/Formatter"
@@ -13,8 +12,6 @@ import {logins} from "../api/main/LoginController"
 import {NotAuthorizedError} from "../api/common/error/RestError"
 import {formatPrice, getPriceItem} from "./PriceUtils"
 import {bookItem} from "./SubscriptionUtils"
-import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import type {PriceServiceReturn} from "../api/entities/sys/PriceServiceReturn"
 import type {PriceData} from "../api/entities/sys/PriceData"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
@@ -27,102 +24,83 @@ assertMainOrNode()
 /**
  * Returns true if the order is accepted by the user, false otherwise.
  */
-export function showBuyDialog(featureType: BookingItemFeatureType, count: number, freeAmount: number, reactivate: boolean): Promise<boolean> {
+export async function showBuyDialog(featureType: BookingItemFeatureType, count: number, freeAmount: number, reactivate: boolean): Promise<boolean> {
 	if (logins.isEnabled(FeatureType.HideBuyDialogs)) {
-		return Promise.resolve(true)
+		return true
 	}
 
-	return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-		if (customer.type === AccountType.PREMIUM && customer.canceledPremiumAccount) {
-			return Dialog.message("subscriptionCancelledMessage_msg").then(() => false)
+	const customer = await locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+	if (customer.type === AccountType.PREMIUM && customer.canceledPremiumAccount) {
+		await Dialog.message("subscriptionCancelledMessage_msg")
+		return false
+	} else {
+		const price = await locator.bookingFacade.getPrice(featureType, count, reactivate)
+		if (!_isPriceChange(price, featureType)) {
+			return true
 		} else {
-			return locator.bookingFacade.getPrice(featureType, count, reactivate).then(price => {
-				if (!_isPriceChange(price, featureType)) {
-					return Promise.resolve(true)
-				} else {
-					return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-						return locator.entityClient
-									  .load(AccountingInfoTypeRef, customerInfo.accountingInfo)
-									  .catch(ofClass(NotAuthorizedError, e => {
-									  })) // local admin
-									  .then(accountingInfo => {
-										  if (accountingInfo && accountingInfo.paymentMethod == null) {
-											  return Dialog.confirm("enterPaymentDataFirst_msg").then(confirm => {
-												  if (confirm) {
-													  m.route.set("/settings/invoice")
-												  }
-
-												  return false
-											  })
-										  } else {
-											  const chargeDate = incrementDate(new Date(price.periodEndDate), 1)
-											  let buy = _isBuy(price, featureType)
-
-											  const orderFieldAttrs: TextFieldAttrs = {
-												  label: "bookingOrder_label",
-												  value: stream(_getBookingText(price, featureType, count, freeAmount)),
-												  type: TextFieldType.Area,
-												  disabled: true,
-											  }
-											  const buyFieldAttrs: TextFieldAttrs = {
-												  label: "subscription_label",
-												  helpLabel: () => lang.get("nextChargeOn_label", {"{chargeDate}": formatDate(chargeDate)}),
-												  value: stream(_getSubscriptionText(price)),
-												  disabled: true,
-											  }
-											  const priceFieldAttrs: TextFieldAttrs = {
-												  label: "price_label",
-												  helpLabel: () => _getPriceInfoText(price, featureType),
-												  value: stream(_getPriceText(price, featureType)),
-												  disabled: true,
-											  }
-											  return new Promise<boolean>(resolve => {
-												  let dialog: Dialog
-
-												  const doAction = (res: boolean) => {
-													  dialog.close()
-													  resolve(res)
-												  }
-
-												  let actionBarAttrs: DialogHeaderBarAttrs = {
-													  left: [
-														  {
-															  label: "cancel_action",
-															  click: () => doAction(false),
-															  type: ButtonType.Secondary,
-														  },
-													  ],
-													  right: [
-														  {
-															  label: buy ? "buy_action" : "order_action",
-															  click: () => doAction(true),
-															  type: ButtonType.Primary,
-														  },
-													  ],
-													  middle: () => lang.get("bookingSummary_label"),
-												  }
-												  dialog = new Dialog(DialogType.EditSmall, {
-													  view: (): Children => [
-														  m(".dialog-header.plr-l", m(DialogHeaderBar, actionBarAttrs)),
-														  m(
-															  ".plr-l.pb",
-															  m("", [
-																  m(TextFieldN, orderFieldAttrs),
-																  buy ? m(TextFieldN, buyFieldAttrs) : null,
-																  m(TextFieldN, priceFieldAttrs),
-															  ]),
-														  ),
-													  ],
-												  })
-													  .setCloseHandler(() => doAction(false))
-													  .show()
-											  })
-										  }
-									  })
-					})
+			const customerInfo = await locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+			const accountingInfo = await locator.entityClient
+												.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+												.catch(ofClass(NotAuthorizedError, () => null))
+			if (accountingInfo && accountingInfo.paymentMethod == null) {
+				const confirm = await Dialog.confirm("enterPaymentDataFirst_msg")
+				if (confirm) {
+					m.route.set("/settings/invoice")
 				}
-			})
+
+				return false
+			} else {
+				const chargeDate = incrementDate(new Date(price.periodEndDate), 1)
+				let buy = _isBuy(price, featureType)
+
+				const orderFieldAttrs: TextFieldAttrs = {
+					label: "bookingOrder_label",
+					value: stream(_getBookingText(price, featureType, count, freeAmount)),
+					type: TextFieldType.Area,
+					disabled: true,
+				}
+				const buyFieldAttrs: TextFieldAttrs = {
+					label: "subscription_label",
+												  helpLabel: () => lang.get("nextChargeOn_label", {"{chargeDate}": formatDate(chargeDate)}),
+					value: stream(_getSubscriptionText(price)),
+					disabled: true,
+				}
+				const priceFieldAttrs: TextFieldAttrs = {
+					label: "price_label",
+					helpLabel: () => _getPriceInfoText(price, featureType),
+					value: stream(_getPriceText(price, featureType)),
+					disabled: true,
+				}
+
+				return showDialog(
+					buy ? "buy_action" : "order_action",
+					() => m("", [
+						m(TextFieldN, orderFieldAttrs),
+						buy ? m(TextFieldN, buyFieldAttrs) : null,
+						m(TextFieldN, priceFieldAttrs),
+					])
+				)
+			}
 		}
+	}
+}
+
+function showDialog(okLabel: TranslationKey, view: () => Children) {
+	return new Promise<boolean>(resolve => {
+		let dialog: Dialog
+
+		const doAction = (res: boolean) => {
+			dialog.close()
+			resolve(res)
+		}
+
+		dialog = Dialog.showActionDialog({
+			title: () => lang.get("bookingSummary_label"),
+			child: () => view(),
+			okAction: () => doAction(true),
+			cancelAction: () => doAction(false),
+			type: DialogType.EditSmall,
+		})
 	})
 }
 
