@@ -43,16 +43,16 @@ export type SubscriptionSelectorAttr = {
 }
 
 export class SubscriptionSelector implements Component<SubscriptionSelectorAttr> {
-	private _containerDOM: Element | null = null
+	private containerDOM: Element | null = null
 
 	view(vnode: Vnode<SubscriptionSelectorAttr>): Children {
 		let buyBoxesViewPlacement
 
 		if (vnode.attrs.options.businessUse()) {
 			buyBoxesViewPlacement = [
-				m(BuyOptionBox, this._createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.PremiumBusiness)),
-				m(BuyOptionBox, this._createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.TeamsBusiness)),
-				m(BuyOptionBox, this._createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.Pro)),
+				m(BuyOptionBox, this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.PremiumBusiness)),
+				m(BuyOptionBox, this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.TeamsBusiness)),
+				m(BuyOptionBox, this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.Pro)),
 				m(".smaller.mb", lang.get("downgradeToPrivateNotAllowed_msg")), //only displayed when business options are shown
 			]
 		} else {
@@ -62,26 +62,26 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			const premiumBuyOptionBox = m(
 				BuyOptionBox,
 				currentSubscription === SubscriptionType.PremiumBusiness
-					? this._createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.PremiumBusiness)
-					: this._createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.Premium),
+					? this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.PremiumBusiness)
+					: this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.Premium),
 			)
 			const teamsBuyOptionBox = m(
 				BuyOptionBox,
 				currentSubscription === SubscriptionType.TeamsBusiness
-					? this._createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.TeamsBusiness)
-					: this._createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.Teams),
+					? this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.TeamsBusiness)
+					: this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.Teams),
 			)
-			const freeBuyOptionBox = m(BuyOptionBox, this._createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.Free))
+			const freeBuyOptionBox = m(BuyOptionBox, this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.Free))
 
 			// Changes order of BuyBoxes to Premium Pro Free, needed for mobile view (one column layout)
-			if (this._containerDOM && this._containerDOM.clientWidth < columnWidth * 2) {
+			if (this.containerDOM && this.containerDOM.clientWidth < columnWidth * 2) {
 				buyBoxesViewPlacement = [premiumBuyOptionBox, teamsBuyOptionBox, freeBuyOptionBox]
 			} else {
 				buyBoxesViewPlacement = [freeBuyOptionBox, premiumBuyOptionBox, teamsBuyOptionBox]
 			}
 		}
 
-		const currentPlanInfo = this._getCurrentPlanInfo(vnode.attrs)
+		const currentPlanInfo = this.getCurrentPlanInfo(vnode.attrs)
 
 		return [
 			vnode.attrs.isInitialUpgrade
@@ -94,7 +94,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			currentPlanInfo ? m(".smaller.center.mt", currentPlanInfo) : null,
 			m(".flex.center-horizontally.wrap", {
 					oncreate: vnode => {
-						this._containerDOM = vnode.dom as HTMLElement
+						this.containerDOM = vnode.dom as HTMLElement
 						m.redraw()
 					},
 				},
@@ -104,7 +104,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		]
 	}
 
-	_getCurrentPlanInfo(selectorAttrs: SubscriptionSelectorAttr): string | null {
+	private getCurrentPlanInfo(selectorAttrs: SubscriptionSelectorAttr): string | null {
 		if (selectorAttrs.options.businessUse() && selectorAttrs.currentSubscriptionType && !selectorAttrs.currentlyBusinessOrdered) {
 			const price = getSubscriptionPrice(selectorAttrs, selectorAttrs.currentSubscriptionType, UpgradePriceType.PlanActualPrice)
 			return (
@@ -120,7 +120,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		return null
 	}
 
-	_createFreeBuyOptionBoxAttr(selectorAttrs: SubscriptionSelectorAttr): BuyOptionBoxAttr {
+	private createFreeBuyOptionBoxAttr(selectorAttrs: SubscriptionSelectorAttr): BuyOptionBoxAttr {
 		return {
 			heading: "Free",
 			actionButton:
@@ -145,12 +145,12 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		}
 	}
 
-	_createBuyOptionBoxAttr(selectorAttrs: SubscriptionSelectorAttr, targetSubscription: SubscriptionType): BuyOptionBoxAttr {
+	private createBuyOptionBoxAttr(selectorAttrs: SubscriptionSelectorAttr, targetSubscription: SubscriptionType): BuyOptionBoxAttr {
 		const planPrices = getPlanPrices(selectorAttrs.planPrices, targetSubscription)
 
 		if (!planPrices) {
 			// no prices for the plan means subscription === SubscriptionType.Free (special case)
-			return this._createFreeBuyOptionBoxAttr(selectorAttrs)
+			return this.createFreeBuyOptionBoxAttr(selectorAttrs)
 		}
 
 		let showAdditionallyBookedFeatures = false
