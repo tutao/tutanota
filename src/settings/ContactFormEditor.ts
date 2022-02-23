@@ -325,7 +325,12 @@ export class ContactFormEditor {
 
 														  if (this._createNew) {
 															  this._contactForm._id = contactFormIdFromPath
-															  p = showBuyDialog(BookingItemFeatureType.ContactForm, 1, 0, false).then(accepted => {
+															  p = showBuyDialog({
+																  featureType: BookingItemFeatureType.ContactForm,
+																  count: 1,
+																  freeAmount: 0,
+																  reactivate: false
+															  }).then(accepted => {
 																  if (accepted) {
 																	  return locator.entityClient.setup(contactFormsListId, this._contactForm).then(() => {
 																		  this._newContactFormIdReceiver(customElementIdFromPath)

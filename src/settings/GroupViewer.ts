@@ -75,12 +75,12 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 				return this._group.getAsync().then(group => {
 					// load only up to 200 members to avoid too long loading, like for account groups
 					return this._entityClient
-						.loadRange(AdministratedGroupTypeRef, neverNull(group.administratedGroups).items, GENERATED_MAX_ID, 200, true)
-						.then(administratedGroups => {
-							return promiseMap(administratedGroups, administratedGroup => {
-								return this._entityClient.load(GroupInfoTypeRef, administratedGroup.groupInfo)
-							})
-						})
+							   .loadRange(AdministratedGroupTypeRef, neverNull(group.administratedGroups).items, GENERATED_MAX_ID, 200, true)
+							   .then(administratedGroups => {
+								   return promiseMap(administratedGroups, administratedGroup => {
+									   return this._entityClient.load(GroupInfoTypeRef, administratedGroup.groupInfo)
+								   })
+							   })
 				})
 			})
 
@@ -166,23 +166,24 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 					this.groupInfo.groupType === GroupType.LocalAdmin ? BookingItemFeatureType.LocalAdminGroup : BookingItemFeatureType.SharedMailGroup
 				return showProgressDialog(
 					"pleaseWait_msg",
-					showBuyDialog(bookingItemType, deactivate ? -1 : 1, 0, !deactivate).then(confirmed => {
-						if (confirmed) {
-							return this._group.getAsync().then(group =>
-								locator.groupManagementFacade.deactivateGroup(group, !deactivate).catch(
-									ofClass(PreconditionFailedError, e => {
-										if (this.groupInfo.groupType === GroupType.LocalAdmin) {
-											Dialog.message("localAdminGroupAssignedError_msg")
-										} else if (!deactivate) {
-											Dialog.message("emailAddressInUse_msg")
-										} else {
-											Dialog.message("stillReferencedFromContactForm_msg")
-										}
-									}),
-								),
-							)
-						}
-					}),
+					showBuyDialog({featureType: bookingItemType, count: deactivate ? -1 : 1, freeAmount: 0, reactivate: !deactivate})
+						.then(confirmed => {
+							if (confirmed) {
+								return this._group.getAsync().then(group =>
+									locator.groupManagementFacade.deactivateGroup(group, !deactivate).catch(
+										ofClass(PreconditionFailedError, e => {
+											if (this.groupInfo.groupType === GroupType.LocalAdmin) {
+												Dialog.message("localAdminGroupAssignedError_msg")
+											} else if (!deactivate) {
+												Dialog.message("emailAddressInUse_msg")
+											} else {
+												Dialog.message("stillReferencedFromContactForm_msg")
+											}
+										}),
+									),
+								)
+							}
+						}),
 				)
 			}
 		})
@@ -314,9 +315,9 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 
 	_addUserToGroup(group: Id): Promise<any> {
 		return this._entityClient
-			.load(GroupTypeRef, group)
-			.then(userGroup => this._entityClient.load(UserTypeRef, neverNull(userGroup.user)))
-			.then(user => locator.groupManagementFacade.addUserToGroup(user, this.groupInfo.group))
+				   .load(GroupTypeRef, group)
+				   .then(userGroup => this._entityClient.load(UserTypeRef, neverNull(userGroup.user)))
+				   .then(user => locator.groupManagementFacade.addUserToGroup(user, this.groupInfo.group))
 	}
 
 	_updateMembers(): void {

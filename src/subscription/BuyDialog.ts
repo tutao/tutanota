@@ -1,44 +1,64 @@
 import m, {Children, Component, Vnode} from "mithril"
-import {TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
-import {Dialog, DialogType} from "../gui/base/Dialog"
-import {lang, TranslationKey} from "../misc/LanguageViewModel"
-import {AccountType, BookingItemFeatureType, FeatureType} from "../api/common/TutanotaConstants"
-import {assertNotNull, filterInt, incrementDate, neverNull, ofClass} from "@tutao/tutanota-utils"
-import {formatDate} from "../misc/Formatter"
-import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
-import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
-import {logins} from "../api/main/LoginController"
-import {NotAuthorizedError} from "../api/common/error/RestError"
-import {formatPrice, getPriceItem} from "./PriceUtils"
-import {bookItem} from "./SubscriptionUtils"
-import type {PriceServiceReturn} from "../api/entities/sys/PriceServiceReturn"
-import type {PriceData} from "../api/entities/sys/PriceData"
-import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import stream from "mithril/stream"
-import {locator} from "../api/main/MainLocator"
-import {assertMainOrNode} from "../api/common/Env"
-import {PriceItemData} from "../api/entities/sys/PriceItemData"
+import {assertNotNull, filterInt, incrementDate, neverNull, ofClass} from "@tutao/tutanota-utils"
+import {TextFieldN, TextFieldType} from "../gui/base/TextFieldN.js"
+import {Dialog, DialogType} from "../gui/base/Dialog.js"
+import {lang, TranslationKey} from "../misc/LanguageViewModel.js"
+import {AccountType, BookingItemFeatureType, FeatureType} from "../api/common/TutanotaConstants.js"
+import {formatDate} from "../misc/Formatter.js"
+import {CustomerTypeRef} from "../api/entities/sys/Customer.js"
+import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo.js"
+import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo.js"
+import {logins} from "../api/main/LoginController.js"
+import {NotAuthorizedError} from "../api/common/error/RestError.js"
+import {formatPrice, getPriceItem} from "./PriceUtils.js"
+import {bookItem} from "./SubscriptionUtils.js"
+import type {PriceServiceReturn} from "../api/entities/sys/PriceServiceReturn.js"
+import type {PriceData} from "../api/entities/sys/PriceData.js"
+import {showProgressDialog} from "../gui/dialogs/ProgressDialog.js"
+import {locator} from "../api/main/MainLocator.js"
+import {assertMainOrNode} from "../api/common/Env.js"
+import {PriceItemData} from "../api/entities/sys/PriceItemData.js"
 
 assertMainOrNode()
+
+interface BuyDialogParams {
+	featureType: BookingItemFeatureType,
+	count: number,
+	freeAmount: number,
+	reactivate: boolean,
+}
 
 /**
  * Returns true if the order is accepted by the user, false otherwise.
  */
-export async function showBuyDialog(featureType: BookingItemFeatureType, count: number, freeAmount: number, reactivate: boolean): Promise<boolean> {
+export async function showBuyDialog(params: BuyDialogParams): Promise<boolean> {
 	if (logins.isEnabled(FeatureType.HideBuyDialogs)) {
 		return true
 	}
 
+	const priceChangeModel = await showProgressDialog("pleaseWait_msg", prepareDialog(params))
+
+	if (priceChangeModel) {
+		return showDialog(
+			priceChangeModel.isBuy() ? "buy_action" : "order_action",
+			() => m(ConfirmSubscriptionView, {priceChangeModel, count: params.count, freeAmount: params.freeAmount})
+		)
+	} else {
+		return false
+	}
+}
+
+async function prepareDialog({featureType, count, reactivate}: BuyDialogParams): Promise<PriceChangeModel | null> {
 	const customer = await locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 	if (customer.type === AccountType.PREMIUM && customer.canceledPremiumAccount) {
 		await Dialog.message("subscriptionCancelledMessage_msg")
-		return false
+		return null
 	} else {
 		const price = await locator.bookingFacade.getPrice(featureType, count, reactivate)
 		const priceChangeModel = new PriceChangeModel(price, featureType)
 		if (!priceChangeModel.isPriceChange()) {
-			return true
+			return null
 		} else {
 			const customerInfo = await locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 			const accountingInfo = await locator.entityClient
@@ -50,12 +70,9 @@ export async function showBuyDialog(featureType: BookingItemFeatureType, count: 
 					m.route.set("/settings/invoice")
 				}
 
-				return false
+				return null
 			} else {
-				return showDialog(
-					priceChangeModel.isBuy() ? "buy_action" : "order_action",
-					() => m(ConfirmSubscriptionView, {priceChangeModel, count, freeAmount})
-				)
+				return priceChangeModel
 			}
 		}
 	}
@@ -75,14 +92,13 @@ export function showWhitelabelBuyDialog(enable: boolean): Promise<boolean> {
  * @param enable true if the whitelabel package should be enabled otherwise false.
  * @returns false if the execution was successful. True if the action has been cancelled by user or the precondition has failed.
  */
-export function showSharingBuyDialog(enable: boolean): Promise<boolean> {
-	return (enable ? Promise.resolve(true) : Dialog.confirm("sharingDeletionWarning_msg")).then(ok => {
-		if (ok) {
-			return showBuyDialogToBookItem(BookingItemFeatureType.Sharing, enable ? 1 : 0)
-		} else {
-			return true
-		}
-	})
+export async function showSharingBuyDialog(enable: boolean): Promise<boolean> {
+	const ok = enable ? true : await Dialog.confirm("sharingDeletionWarning_msg")
+	if (ok) {
+		return showBuyDialogToBookItem(BookingItemFeatureType.Sharing, enable ? 1 : 0)
+	} else {
+		return true
+	}
 }
 
 /**
@@ -90,32 +106,30 @@ export function showSharingBuyDialog(enable: boolean): Promise<boolean> {
  * @param enable true if the business package should be enabled otherwise false.
  * @returns false if the execution was successful. True if the action has been cancelled by user or the precondition has failed.
  */
-export function showBusinessBuyDialog(enable: boolean): Promise<boolean> {
-	return (enable ? Promise.resolve(true) : Dialog.confirm("businessDeletionWarning_msg")).then(ok => {
-		if (ok) {
-			return showBuyDialogToBookItem(BookingItemFeatureType.Business, enable ? 1 : 0)
-		} else {
-			return true
-		}
-	})
+export async function showBusinessBuyDialog(enable: boolean): Promise<boolean> {
+	const ok = enable ? true : await Dialog.confirm("businessDeletionWarning_msg")
+	if (ok) {
+		return showBuyDialogToBookItem(BookingItemFeatureType.Business, enable ? 1 : 0)
+	} else {
+		return true
+	}
 }
 
 /**
  * @returns True if it failed, false otherwise
  */
-export function showBuyDialogToBookItem(
+export async function showBuyDialogToBookItem(
 	bookingItemFeatureType: BookingItemFeatureType,
-	amount: number,
+	count: number,
 	freeAmount: number = 0,
 	reactivate: boolean = false,
 ): Promise<boolean> {
-	return showProgressDialog("pleaseWait_msg", showBuyDialog(bookingItemFeatureType, amount, freeAmount, reactivate)).then(accepted => {
-		if (accepted) {
-			return bookItem(bookingItemFeatureType, amount)
-		} else {
-			return true
-		}
-	})
+	const accepted = await showBuyDialog({featureType: bookingItemFeatureType, count, freeAmount, reactivate})
+	if (accepted) {
+		return bookItem(bookingItemFeatureType, count)
+	} else {
+		return true
+	}
 }
 
 function showDialog(okLabel: TranslationKey, view: () => Children) {
@@ -255,7 +269,7 @@ class ConfirmSubscriptionView implements Component<ConfirmAttrs> {
 				newPackageCount = model.getFutureCount()
 			}
 
-			let visibleAmount = Math.max(count, freeAmount)
+			const visibleAmount = Math.max(count, freeAmount)
 
 			switch (model.featureType) {
 				case BookingItemFeatureType.Storage:

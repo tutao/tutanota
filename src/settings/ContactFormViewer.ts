@@ -122,7 +122,7 @@ export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
 			if (confirmed) {
 				showProgressDialog(
 					"pleaseWait_msg",
-					showBuyDialog(BookingItemFeatureType.ContactForm, -1, 0, false).then(accepted => {
+					showBuyDialog({featureType: BookingItemFeatureType.ContactForm, count: -1, freeAmount: 0, reactivate: false}).then(accepted => {
 						if (accepted) {
 							return locator.entityClient.erase(this.contactForm)
 						}
