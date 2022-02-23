@@ -20,3 +20,7 @@ contextBridge.exposeInMainWorld("nativeAppWebauthn", {
 		return undefined
 	},
 })
+
+// We define this so that web client can figure out what's going on and act
+// accordingly (e.g. disable ServiceWorker).
+window.webDialog = true

@@ -59,7 +59,8 @@ export function init() {
 	const serviceWorker = navigator.serviceWorker
 
 	if (serviceWorker) {
-		if (env.dist && !isApp() && !isDesktop()) {
+		// We don't want service worker in certain envirtonments
+		if (env.dist && !isApp() && !isDesktop() && window.webDialog !== true) {
 			console.log("Registering ServiceWorker")
 			serviceWorker
 				.register(window.tutao.appState.prefixWithoutFile + "/sw.js")
