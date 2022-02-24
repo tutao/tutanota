@@ -13,13 +13,14 @@ import {getLoginErrorMessage} from "../misc/LoginUtils"
 import type {LoginController} from "../api/main/LoginController"
 import {SessionType} from "../api/main/LoginController"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import type {CredentialsInfo, ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
 import {CredentialAuthenticationError} from "../api/common/error/CredentialAuthenticationError"
 import {first} from "@tutao/tutanota-utils"
 import {KeyPermanentlyInvalidatedError} from "../api/common/error/KeyPermanentlyInvalidatedError"
 import {assertMainOrNode} from "../api/common/Env"
-import Stream from "mithril/stream";
+import {DeviceStorageUnavailableError} from "../api/common/error/DeviceStorageUnavailableError"
 
 assertMainOrNode()
 
@@ -347,6 +348,8 @@ export class LoginViewModel implements ILoginViewModel {
 					if (e instanceof KeyPermanentlyInvalidatedError) {
 						await this._credentialsProvider.clearCredentials()
 						await this._updateCachedCredentials()
+					} else if (e instanceof DeviceStorageUnavailableError) {
+						console.warn("device storage unavailable, cannot save credentials")
 					} else {
 						throw e
 					}
