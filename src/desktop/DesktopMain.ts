@@ -226,15 +226,13 @@ async function startupInstance(components: Components) {
 		   e.preventDefault()
 
 		   if (url.startsWith("mailto:")) {
-			   desktopUtils.callWhenReady(() => handleMailto(url, components))
+			   app.whenReady().then(() => handleMailto(url, components))
 		   }
 	   })
 	   .on("will-quit", e => {
 		   dl.deleteTutanotaTempDirectory()
 	   })
-	// it takes a short while to get here,
-	// the event may already have fired
-	desktopUtils.callWhenReady(() => onAppReady(components))
+	app.whenReady().then(() => onAppReady(components))
 }
 
 async function onAppReady(components: Components) {
