@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2022-02-22T18:25:24Z",
+	"updated_at": "2022-02-24T09:41:59Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -830,6 +830,7 @@ export default {
 		"newMails_msg": "Novo email recebido no Tutanota.",
 		"newMail_action": "Novo email",
 		"newPassword_label": "Nova senha",
+		"nextChargeOn_label": "Próximo pagamento em {chargeDate}",
 		"nextDay_label": "Amanhã",
 		"nextMonth_label": "Mês que vem",
 		"nextSubscriptionPrice_msg": "Preço válido para o próximo período de vigência, após o atual.",

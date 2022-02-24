@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2022-02-22T16:17:29Z",
+	"updated_at": "2022-02-24T09:41:59Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "درباره",
@@ -826,6 +826,7 @@ export default {
 		"newMails_msg": "ایمیل جدید در توتانوتا",
 		"newMail_action": "ایمیل جدید",
 		"newPassword_label": "تنظیم گذرواژه",
+		"nextChargeOn_label": "صورت‌حساب بعدی در تاریخ {chargeDate}",
 		"nextDay_label": "روز بعد",
 		"nextMonth_label": "ماه بعدی",
 		"nextSubscriptionPrice_msg": "این قیمت برای دورهٔ اشتراک بعد از این دورهٔ اشتراک، معتبر است.",
