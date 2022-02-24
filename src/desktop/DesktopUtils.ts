@@ -1,7 +1,6 @@
 import path from "path"
 import {spawn} from "child_process"
 import type {Rectangle} from "electron"
-import {app} from "electron"
 import {defer, delay, noOp, uint8ArrayToHex} from "@tutao/tutanota-utils"
 import {log} from "./DesktopLog"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
@@ -23,7 +22,7 @@ export class DesktopUtils {
 	}
 
 	checkIsMailtoHandler(): Promise<boolean> {
-		return Promise.resolve(app.isDefaultProtocolClient("mailto"))
+		return Promise.resolve(this.electron.app.isDefaultProtocolClient("mailto"))
 	}
 
 	checkIsPerUserInstall(): Promise<boolean> {
@@ -75,7 +74,7 @@ export class DesktopUtils {
 				await this.doRegisterMailtoOnWin32WithCurrentUser()
 				break
 			case "darwin":
-				const didRegister = app.setAsDefaultProtocolClient("mailto")
+				const didRegister = this.electron.app.setAsDefaultProtocolClient("mailto")
 				if (!didRegister) {
 					throw new Error("Could not register as mailto handler")
 				}
@@ -94,7 +93,7 @@ export class DesktopUtils {
 				await this.doUnregisterMailtoOnWin32WithCurrentUser()
 				break
 			case "darwin":
-				const didUnregister = app.removeAsDefaultProtocolClient("mailto")
+				const didUnregister = this.electron.app.removeAsDefaultProtocolClient("mailto")
 				if (!didUnregister) {
 					throw new Error("Could not unregister as mailto handler")
 				}
@@ -111,11 +110,11 @@ export class DesktopUtils {
 	 * @returns {Promise<boolean>} whether the lock was overridden by another version
 	 */
 	singleInstanceLockOverridden(): Promise<boolean> {
-		const lockfilePath = getLockFilePath()
+		const lockfilePath = this.getLockFilePath()
 		return this.fs.promises
 				   .readFile(lockfilePath, "utf8")
 				   .then(version => {
-					   return this.fs.promises.writeFile(lockfilePath, app.getVersion(), "utf8").then(() => version !== app.getVersion())
+					   return this.fs.promises.writeFile(lockfilePath, this.electron.app.getVersion(), "utf8").then(() => version !== this.electron.app.getVersion())
 				   })
 				   .catch(() => false)
 	}
@@ -132,27 +131,27 @@ export class DesktopUtils {
 	 * @returns {Promise<boolean>} whether the app was successful in getting the lock
 	 */
 	makeSingleInstance(): Promise<boolean> {
-		const lockfilePath = getLockFilePath()
+		const lockfilePath = this.getLockFilePath()
 		// first, put down a file in temp that contains our version.
 		// will overwrite if it already exists.
 		// errors are ignored and we fall back to a version agnostic single instance lock.
 		return this.fs.promises
-				   .writeFile(lockfilePath, app.getVersion(), "utf8")
+				   .writeFile(lockfilePath, this.electron.app.getVersion(), "utf8")
 				   .catch(noOp)
 				   .then(() => {
 					   // try to get the lock, if there's already an instance running,
 					   // give the other instance time to see if it wants to release the lock.
 					   // if it changes the version back, it was a different version and
 					   // will terminate itself.
-					   return app.requestSingleInstanceLock()
+					   return this.electron.app.requestSingleInstanceLock()
 						   ? Promise.resolve(true)
 						   : delay(1500)
 							   .then(() => this.singleInstanceLockOverridden())
 							   .then(canStay => {
 								   if (canStay) {
-									   app.requestSingleInstanceLock()
+									   this.electron.app.requestSingleInstanceLock()
 								   } else {
-									   app.quit()
+									   this.electron.app.quit()
 								   }
 
 								   return canStay
@@ -219,11 +218,11 @@ export class DesktopUtils {
 		// we may be a per-machine installation that's used by multiple users, so the dll will replace %USERPROFILE%
 		// with the value of the USERPROFILE env var.
 		const appData = path.join("%USERPROFILE%", "AppData")
-		const logPath = path.join(appData, "Roaming", app.getName(), "logs")
+		const logPath = path.join(appData, "Roaming", this.electron.app.getName(), "logs")
 		const tmpPath = path.join(appData, "Local", "Temp", this.topLevelDownloadDir, "attach")
 		const tmpRegScript = makeRegisterKeysScript(RegistryRoot.CURRENT_USER, {execPath, dllPath, logPath, tmpPath})
 		await this._executeRegistryScript(tmpRegScript)
-		app.setAsDefaultProtocolClient("mailto")
+		this.electron.app.setAsDefaultProtocolClient("mailto")
 		await this._openDefaultAppsSettings()
 	}
 
@@ -231,7 +230,7 @@ export class DesktopUtils {
 		if (process.platform !== "win32") {
 			throw new ProgrammingError("Not win32")
 		}
-		app.removeAsDefaultProtocolClient('mailto')
+		this.electron.app.removeAsDefaultProtocolClient('mailto')
 		const tmpRegScript = makeUnregisterKeysScript(RegistryRoot.CURRENT_USER)
 		await this._executeRegistryScript(tmpRegScript)
 		await this._openDefaultAppsSettings()
@@ -254,12 +253,13 @@ export class DesktopUtils {
 	getTutanotaTempPath(...subdirs: string[]): string {
 		return path.join(this.electron.app.getPath("temp"), this.topLevelDownloadDir, ...subdirs)
 	}
-}
 
-function getLockFilePath() {
-	// don't get temp dir path from DesktopDownloadManager because the path returned from there may be deleted at some point,
-	// we want to put the lockfile in root tmp so it persists
-	return path.join(app.getPath("temp"), "tutanota_desktop_lockfile")
+	getLockFilePath() {
+		// don't get temp dir path from DesktopDownloadManager because the path returned from there may be deleted at some point,
+		// we want to put the lockfile in root tmp so it persists
+		return path.join(this.electron.app.getPath("temp"), "tutanota_desktop_lockfile")
+	}
+
 }
 
 export function isRectContainedInRect(closestRect: Rectangle, lastBounds: Rectangle): boolean {
