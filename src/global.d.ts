@@ -43,6 +43,6 @@ declare global {
 		/** Set by the server for whitelabel domains. */
 		whitelabelCustomizations: WhitelabelCustomizations | undefined,
 		/** Whether we are running inside dialog of desktop app. */
-		webDialog: true | undefined,
+		nativeAppWebauthn: NativeApp | undefined,
 	}
 }
