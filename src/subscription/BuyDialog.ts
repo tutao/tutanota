@@ -418,6 +418,7 @@ class PriceChangeModel {
 		if (featureType === BookingItemFeatureType.Users) {
 			itemPrice += this.getPriceFromPriceData(priceData, BookingItemFeatureType.Whitelabel)
 			itemPrice += this.getPriceFromPriceData(priceData, BookingItemFeatureType.Sharing)
+			itemPrice += this.getPriceFromPriceData(priceData, BookingItemFeatureType.Business)
 		}
 
 		return itemPrice
