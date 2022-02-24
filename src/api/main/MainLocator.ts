@@ -4,7 +4,7 @@ import {EventController} from "./EventController"
 import {EntropyCollector} from "./EntropyCollector"
 import {SearchModel} from "../../search/model/SearchModel"
 import {MailModel} from "../../mail/model/MailModel"
-import {assertMainOrNode, getWebRoot, isBrowser, isDesktop} from "../common/Env"
+import {assertMainOrNode, getWebRoot, isAdminClient, isBrowser, isDesktop} from "../common/Env"
 import {notifications} from "../../gui/Notifications"
 import {logins} from "./LoginController"
 import type {ContactModel} from "../../contacts/model/ContactModel"
@@ -145,7 +145,7 @@ class MainLocator implements IMainLocator {
 
 	get webauthnController(): IWebauthn {
 		const creds = navigator.credentials
-		return isDesktop()
+		return isDesktop() || isAdminClient()
 			? exposeRemote<ExposedNativeInterface>((msg) => this.native.invokeNative(msg)).webauthn
 			: new BrowserWebauthn(creds, window.location.hostname)
 	}
