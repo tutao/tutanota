@@ -163,19 +163,6 @@ export class DesktopUtils {
 	}
 
 	/**
-	 * calls the callback if the ready event was already fired,
-	 * registers it as an event listener otherwise
-	 * @param callback listener to call
-	 */
-	callWhenReady(callback: () => unknown): void {
-		if (app.isReady()) {
-			callback()
-		} else {
-			app.once("ready", callback)
-		}
-	}
-
-	/**
 	 * this will silently fail if we're not admin.
 	 * @param script: source of the registry script
 	 * @private
