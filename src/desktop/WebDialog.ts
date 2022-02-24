@@ -52,12 +52,16 @@ export class WebDialog<FacadeType extends object> {
 				throw e
 			})
 			.finally(() => {
-				if (!this.browserWindow.isDestroyed()) this.browserWindow.close()
+				this.close()
 			})
 	}
 
 	cancel() {
-		this.browserWindow.close()
+		this.close()
+	}
+
+	private close() {
+		if (!this.browserWindow.isDestroyed()) this.browserWindow.close()
 	}
 }
 
@@ -69,6 +73,9 @@ export class WebDialogController implements IWebDialogController {
 
 	async create<FacadeType extends object>(parentWindowId: number, urlToOpen: URL): Promise<WebDialog<FacadeType>> {
 		const bw = await this.createBrowserWindow(parentWindowId)
+		// Holding a separate reference on purpose. When BrowserWindow is destroyed and WebContents fire "destroyed" event, we can't get WebContents from
+		// BrowserWindow anymore.
+		const {webContents} = bw
 		const closeDefer = defer<never>()
 		bw.on("closed", () => {
 			console.log("web dialog window closed")
@@ -76,19 +83,20 @@ export class WebDialogController implements IWebDialogController {
 		})
 
 		register(bw, "F12", () => {
-			bw.webContents.openDevTools()
+			webContents.openDevTools()
 		})
 
 		bw.once('ready-to-show', () => bw.show())
-		bw.webContents.on("did-fail-load", () => closeDefer.reject(new Error(`Could not load web dialog at ${urlToOpen}`)))
+		webContents.on("did-fail-load", () => closeDefer.reject(new Error(`Could not load web dialog at ${urlToOpen}`)))
 
 		// Don't wait for the facade to init here, because that only happens after we call `bw.loadUrl`
 		// But we need setup the listener beforehand in case the app in the webDialog loads too fast and we miss it
 		const facadePromise = this.initRemoteWebauthn<FacadeType>(bw.webContents)
-
 		await bw.loadURL(urlToOpen.toString())
 
-		bw.webContents.on("destroyed", () => this.uninitRemoteWebauthn(bw.webContents))
+		webContents.on("destroyed", () => {
+			this.uninitRemoteWebauthn(webContents)
+		})
 
 		// We can confidently await here because we're sure that the bridge will be finished being setup in the webDialog
 		const facade = await facadePromise
