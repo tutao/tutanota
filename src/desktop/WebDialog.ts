@@ -62,13 +62,17 @@ export class WebDialog<FacadeType extends object> {
 }
 
 export class WebDialogController implements IWebDialogController {
+
 	constructor(
 		private readonly ipcHandler: WebDialogIpcHandler
 	) {
 	}
 
 	async create<FacadeType extends object>(parentWindowId: number, urlToOpen: URL): Promise<WebDialog<FacadeType>> {
+
+
 		const bw = await this.createBrowserWindow(parentWindowId)
+
 		const closeDefer = defer<never>()
 		bw.on("closed", () => {
 			console.log("web dialog window closed")
@@ -81,11 +85,17 @@ export class WebDialogController implements IWebDialogController {
 
 		bw.once('ready-to-show', () => bw.show())
 		bw.webContents.on("did-fail-load", () => closeDefer.reject(new Error(`Could not load web dialog at ${urlToOpen}`)))
+
+		// Don't wait for the facade to init here, because that only happens after we call `bw.loadUrl`
+		// But we need setup the listener beforehand in case the app in the webDialog loads too fast and we miss it
+		const facadePromise = this.initRemoteWebauthn<FacadeType>(bw.webContents)
+
 		await bw.loadURL(urlToOpen.toString())
 
-		const facade = await this.initRemoteWebauthn<FacadeType>(bw.webContents)
-
 		bw.webContents.on("destroyed", () => this.uninitRemoteWebauthn(bw.webContents))
+
+		// We can confidently await here because we're sure that the bridge will be finished being setup in the webDialog
+		const facade = await facadePromise
 
 		return new WebDialog(facade, closeDefer.promise, bw)
 	}
@@ -139,8 +149,12 @@ export class WebDialogController implements IWebDialogController {
 				return Promise.resolve()
 			}
 		})
+
+		const facade = exposeRemote<FacadeType>(req => dispatcher.postRequest(req))
+
 		await deferred.promise
-		return exposeRemote<FacadeType>(req => dispatcher.postRequest(req))
+
+		return facade
 	}
 
 	private async uninitRemoteWebauthn(webContents: WebContents) {
