@@ -13,15 +13,13 @@ import {DataFile} from "../api/common/DataFile";
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 
 export class DesktopUtils {
-	private readonly _fs: FsExports
-	private readonly _electron: ElectronExports
-	private readonly _desktopCrypto: DesktopCryptoFacade
-	private readonly _topLevelDownloadDir: string = "tutanota"
+	private readonly topLevelDownloadDir: string = "tutanota"
 
-	constructor(fs: FsExports, electron: ElectronExports, desktopCrypto: DesktopCryptoFacade) {
-		this._fs = fs
-		this._electron = electron
-		this._desktopCrypto = desktopCrypto
+	constructor(
+		private readonly fs: FsExports,
+		private readonly electron: ElectronExports,
+		private readonly desktopCrypto: DesktopCryptoFacade
+	) {
 	}
 
 	checkIsMailtoHandler(): Promise<boolean> {
@@ -38,7 +36,7 @@ export class DesktopUtils {
 	 * @param path: the file to touch
 	 */
 	touch(path: string): void {
-		this._fs.closeSync(this._fs.openSync(path, "a"))
+		this.fs.closeSync(this.fs.openSync(path, "a"))
 	}
 
 	/**
@@ -54,7 +52,7 @@ export class DesktopUtils {
 		}
 
 		try {
-			const data = await this._fs.promises.readFile(uriOrPath)
+			const data = await this.fs.promises.readFile(uriOrPath)
 			const name = path.basename(uriOrPath)
 			return {
 				_type: "DataFile",
@@ -114,10 +112,10 @@ export class DesktopUtils {
 	 */
 	singleInstanceLockOverridden(): Promise<boolean> {
 		const lockfilePath = getLockFilePath()
-		return this._fs.promises
+		return this.fs.promises
 				   .readFile(lockfilePath, "utf8")
 				   .then(version => {
-					   return this._fs.promises.writeFile(lockfilePath, app.getVersion(), "utf8").then(() => version !== app.getVersion())
+					   return this.fs.promises.writeFile(lockfilePath, app.getVersion(), "utf8").then(() => version !== app.getVersion())
 				   })
 				   .catch(() => false)
 	}
@@ -138,7 +136,7 @@ export class DesktopUtils {
 		// first, put down a file in temp that contains our version.
 		// will overwrite if it already exists.
 		// errors are ignored and we fall back to a version agnostic single instance lock.
-		return this._fs.promises
+		return this.fs.promises
 				   .writeFile(lockfilePath, app.getVersion(), "utf8")
 				   .catch(noOp)
 				   .then(() => {
@@ -176,7 +174,7 @@ export class DesktopUtils {
 			stdio: ["ignore", "inherit", "inherit"],
 			detached: false,
 		}).on("exit", (code, signal) => {
-			this._fs.unlinkSync(file)
+			this.fs.unlinkSync(file)
 
 			if (code === 0) {
 				deferred.resolve(undefined)
@@ -193,12 +191,12 @@ export class DesktopUtils {
 	 * @returns path to the written file
 	 */
 	private async _writeToDisk(contents: string): Promise<string> {
-		const filename = uint8ArrayToHex(this._desktopCrypto.randomBytes(12))
+		const filename = uint8ArrayToHex(this.desktopCrypto.randomBytes(12))
 		const tmpPath = this.getTutanotaTempPath("reg")
-		await this._fs.promises.mkdir(tmpPath, {recursive: true})
+		await this.fs.promises.mkdir(tmpPath, {recursive: true})
 		const filePath = path.join(tmpPath, filename)
 
-		await this._fs.promises.writeFile(filePath, contents, {
+		await this.fs.promises.writeFile(filePath, contents, {
 			encoding: "utf-8",
 			mode: 0o400,
 		})
@@ -222,7 +220,7 @@ export class DesktopUtils {
 		// with the value of the USERPROFILE env var.
 		const appData = path.join("%USERPROFILE%", "AppData")
 		const logPath = path.join(appData, "Roaming", app.getName(), "logs")
-		const tmpPath = path.join(appData, "Local", "Temp", this._topLevelDownloadDir, "attach")
+		const tmpPath = path.join(appData, "Local", "Temp", this.topLevelDownloadDir, "attach")
 		const tmpRegScript = makeRegisterKeysScript(RegistryRoot.CURRENT_USER, {execPath, dllPath, logPath, tmpPath})
 		await this._executeRegistryScript(tmpRegScript)
 		app.setAsDefaultProtocolClient("mailto")
@@ -241,7 +239,7 @@ export class DesktopUtils {
 
 	private async _openDefaultAppsSettings(): Promise<void> {
 		try {
-			await this._electron.shell.openExternal("ms-settings:defaultapps")
+			await this.electron.shell.openExternal("ms-settings:defaultapps")
 		} catch (e) {
 			// ignoring, this is just a convenience for the user
 			console.error("failed to open default apps settings page:", e.message)
@@ -254,7 +252,7 @@ export class DesktopUtils {
 	 * @returns {string}
 	 */
 	getTutanotaTempPath(...subdirs: string[]): string {
-		return path.join(this._electron.app.getPath("temp"), this._topLevelDownloadDir, ...subdirs)
+		return path.join(this.electron.app.getPath("temp"), this.topLevelDownloadDir, ...subdirs)
 	}
 }
 
