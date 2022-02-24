@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2022-02-22T16:17:29Z",
+	"updated_at": "2022-02-24T09:42:00Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",
@@ -828,6 +828,7 @@ export default {
 		"newMails_msg": "Nová zpráva od Tutanoty.",
 		"newMail_action": "Nový e-mail",
 		"newPassword_label": "Nové heslo",
+		"nextChargeOn_label": "Příští platba dne {chargeDate}",
 		"nextDay_label": "Následující den",
 		"nextMonth_label": "Následující měsíc",
 		"nextSubscriptionPrice_msg": "Tato cena platí pro následující období předplatného po skončení současného.",
@@ -1262,7 +1263,7 @@ export default {
 		"subscriptionCancelledMessage_msg": "Vaše předplatné bylo zrušeno. K obnovení prosím kontaktujte podporu.",
 		"subscriptionChangePeriod_msg": "Vaše předplatné bude změněno po konci současného období předplatného ({1}).",
 		"subscriptionChange_msg": "Vaše předplatné bude změněno po konci současného období předplatného.",
-		"subscriptionPeriodInfoBusiness_msg": "V případě měsíční platby je doba předplatného jeden měsíc, v případě platby jednou ročně je to jeden rok. Předplatné bude po skončení období automaticky obnoveno.",
+		"subscriptionPeriodInfoBusiness_msg": "V případě měsíční platby je doba předplatného jeden měsíc, v případě platby jednou ročně je to jeden rok. Předplatné bude na konci období automaticky obnoveno.",
 		"subscriptionPeriodInfoPrivate_msg": "V případě měsíční platby je doba předplatného jeden měsíc, v případě platby jednou ročně je to jeden rok.",
 		"subscription_label": "Předplatné",
 		"success_label": "Úspěch!",

@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2022-02-22T16:17:29Z",
+	"updated_at": "2022-02-24T09:41:59Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -832,6 +832,7 @@ export default {
 		"newMails_msg": "Ai primit un e-mail nou în Tutanota.",
 		"newMail_action": "E-mail nou",
 		"newPassword_label": "Parola nouă",
+		"nextChargeOn_label": "Următoarea plată pe {chargeDate}",
 		"nextDay_label": "Ziua următoare",
 		"nextMonth_label": "Luna următoare",
 		"nextSubscriptionPrice_msg": "Acest preț este valabil pentru următoarea perioadă de abonare, după cea curentă.",
@@ -1266,7 +1267,7 @@ export default {
 		"subscriptionCancelledMessage_msg": "Abonamentul tău a fost anulat. Te rugăm contactează Asistența pentru a reactiva abonamentul.",
 		"subscriptionChangePeriod_msg": "Abonamentul tău va fi modificat la sfîrșitul actualei perioade de abonament ({1}).",
 		"subscriptionChange_msg": "Abonamentul tău va fi modificat la sfîrșitul actualei perioade de abonament.",
-		"subscriptionPeriodInfoBusiness_msg": "Perioada abonamentului este de o lună în cazul plății lunare și de un an în cazul plății anuale. Abonamentul va fi reînnoit automat după încheierea perioadei.",
+		"subscriptionPeriodInfoBusiness_msg": "Perioada abonamentului este de o lună în cazul plății lunare și de un an în cazul plății anuale. Abonamentul va fi reînnoit automat la sfârșitul perioadei de abonament.",
 		"subscriptionPeriodInfoPrivate_msg": "Perioada abonamentului este de o lună în cazul plății lunare și de un an în cazul plății anuale.",
 		"subscription_label": "Abonament",
 		"success_label": "Succes!",

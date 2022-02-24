@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2022-02-23T12:17:39Z",
+	"updated_at": "2022-02-24T09:41:59Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -1265,7 +1265,7 @@ export default {
 		"subscriptionChangePeriod_msg": "Your subscription will be changed after the end of the current subscription period ({1}).",
 		"subscriptionChange_msg": "Your subscription will be changed after the end of the current subscription period.",
 		"subscriptionPeriodInfoBusiness_msg": "The subscription period is one month when paying monthly and one year when paying yearly. The subscription will be renewed automatically at the end of the subscription period.",
-		"subscriptionPeriodInfoPrivate_msg": "The subscription period is one month when paying monthly and one year when paying yearly.",
+		"subscriptionPeriodInfoPrivate_msg": "The subscription period is one month when paying monthly and one year when paying yearly. After the initial period it will turn into a non-fixed term contract and may be cancelled at any time.",
 		"subscription_label": "Subscription",
 		"success_label": "Success!",
 		"summary_label": "Summary",

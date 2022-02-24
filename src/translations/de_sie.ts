@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2022-02-23T12:18:07Z",
+	"updated_at": "2022-02-24T09:42:32Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -1269,7 +1269,7 @@ export default {
 		"subscriptionChangePeriod_msg": "Ihr Abonnenment wird nach Ablauf des aktuellen Abrechnungszeitraums  ({1}) angepasst.",
 		"subscriptionChange_msg": "Ihr Abonnenment wird nach Ablauf des aktuellen Abrechnungszeitraums angepasst.",
 		"subscriptionPeriodInfoBusiness_msg": "Die Vertragslaufzeit beträgt einen Monat bei monatlicher Zahlung und ein Jahr bei jährlicher Zahlung. Die Vertragslaufzeit wird automatisch verlängert nach Ende der Laufzeit.",
-		"subscriptionPeriodInfoPrivate_msg": "Die Vertragslaufzeit beträgt einen Monat bei monatlicher Zahlung und ein Jahr bei jährlicher Zahlung.",
+		"subscriptionPeriodInfoPrivate_msg": "Die Vertragslaufzeit beträgt einen Monat bei monatlicher Zahlung und ein Jahr bei jährlicher Zahlung. Anschließend wird der Vertrag auf unbestimmte Zeit verlängert und kann jederzeit gekündigt werden.",
 		"subscription_label": "Abonnement",
 		"success_label": "Das hat geklappt!",
 		"summary_label": "Zusammenfassung",

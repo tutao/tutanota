@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2022-02-22T16:17:29Z",
+	"updated_at": "2022-02-24T09:42:00Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O programu",
@@ -828,6 +828,7 @@ export default {
 		"newMails_msg": "Prejeli ste novo Tutanota sporočilo.",
 		"newMail_action": "Novo sporočilo",
 		"newPassword_label": "Novo geslo",
+		"nextChargeOn_label": "Naslednje plačilo: {chargeDate}",
 		"nextDay_label": "Naslednji dan",
 		"nextMonth_label": "Naslednji mesec",
 		"nextSubscriptionPrice_msg": "Ta cena velja za naročniško obdobje po trenutnem.",
@@ -1262,7 +1263,7 @@ export default {
 		"subscriptionCancelledMessage_msg": "Naročnina je bila preklicana. Obrnite se na podporo, da ponovno aktivirate naročnino.",
 		"subscriptionChangePeriod_msg": "Vaša naročnina bo spremenjena po koncu trenutnega naročniškega obdobja ({1}).",
 		"subscriptionChange_msg": "Vaša naročnina bo spremenjena po koncu trenutnega naročniškega obdobja.",
-		"subscriptionPeriodInfoBusiness_msg": "Naročniško obdobje je en mesec v primeru mesečnega plačila in eno leto v primeru letnega plačila. Naročnina se bo samodejno podaljšala po koncu obdobja.",
+		"subscriptionPeriodInfoBusiness_msg": "Naročniško obdobje je en mesec v primeru mesečnega plačila in eno leto v primeru letnega plačila. Naročnina se bo samodejno podaljšala po koncu naročniškega obdobja.",
 		"subscriptionPeriodInfoPrivate_msg": "Naročniško obdobje je en mesec v primeru mesečnega plačila in eno leto v primeru letnega plačila.",
 		"subscription_label": "Naročnina",
 		"success_label": "Uspeh!",
