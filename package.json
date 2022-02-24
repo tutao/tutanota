@@ -18,7 +18,7 @@
 		"testapi": "cd test && node --icu-data-dir=../node_modules/full-icu test api",
 		"testclient": "cd test && node --icu-data-dir=../node_modules/full-icu test client",
 		"types": "tsc",
-		"prebuild": "tsc --noEmit false --outDir build/prebuilt --declaration true --declarationMap true && cp src/*.d.ts build/prebuilt"
+		"prebuild": "tsc --noEmit false --outDir build/prebuilt --declaration true --declarationMap true --incremental true && cp src/*.d.ts build/prebuilt"
 	},
 	"dependencies": {
 		"@tutao/oxmsg": "0.0.9-beta.0",
