@@ -301,4 +301,17 @@ async function getCachedLibPath({rootDir, nodeModule, environment, platform}) {
 	}
 }
 
+function getVersion(nodeModule) {
+	return JSON.parse(execFileSync("npm", ["list", nodeModule, "--json"]).toString().trim()).dependencies[nodeModule].version
+}
 
+async function getModuleDir(rootDir, nodeModule) {
+	// We resolve relative to the rootDir passed to us
+	// however, if we just use rootDir as the base for require() it doesn't work: node_modules must be at the directory up from yours (for whatever reason).
+	// so we provide a directory one level deeper. Practically it doesn't matter if "src" subdirectory exists or not, this is just to give node some
+	// subdirectory to work against.
+	const filePath = createRequire(path.join(rootDir, "src")).resolve(nodeModule)
+	const pathEnd = path.join("node_modules", nodeModule)
+	const endIndex = filePath.lastIndexOf(pathEnd)
+	return path.join(filePath.substring(0, endIndex), pathEnd)
+}
