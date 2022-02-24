@@ -2,6 +2,8 @@ import {Commands, MessageDispatcher, Request} from "../../api/common/MessageDisp
 import {DesktopTransport} from "./NativeInterfaceMain.js"
 import {exposeLocal} from "../../api/common/WorkerProxy"
 import {IWebauthn} from "../../misc/2fa/webauthn/IWebauthn"
+import {NativeApp} from "../../global"
+import {assertNotNull} from "@tutao/tutanota-utils"
 
 export type WebToNativeRequest = "init"
 export type NativeToWebRequest = "facade"
@@ -11,8 +13,7 @@ export class WebauthnNativeBridge {
 	private impl!: IWebauthn
 
 	constructor() {
-		// @ts-ignore
-		const nativeApp: NativeApp = window.nativeAppWebauthn
+		const nativeApp = assertNotNull(window.nativeAppWebauthn)
 		const transport: DesktopTransport<WebToNativeRequest, NativeToWebRequest> = new DesktopTransport(nativeApp)
 		const that = this
 		const commands: Commands<NativeToWebRequest> = {
