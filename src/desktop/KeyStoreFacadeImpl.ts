@@ -3,6 +3,8 @@ import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {log} from "./DesktopLog"
 import {getFromMap} from "@tutao/tutanota-utils"
 import {base64ToKey, keyToBase64} from "@tutao/tutanota-crypto"
+import {DeviceStorageUnavailableError} from "../api/common/error/DeviceStorageUnavailableError.js"
+import {CancelledError} from "../api/common/error/CancelledError"
 
 interface NativeKeySpec {
 	/**
@@ -87,7 +89,10 @@ export class KeyStoreFacadeImpl implements DesktopKeyStoreFacade {
 			return (await this.fetchKey(spec)) ?? (await this.generateAndStoreKey(spec))
 		} catch (e) {
 			log.warn("Failed to resolve/generate key: ", spec.serviceName, e)
-			throw e
+			if (e instanceof CancelledError) {
+				throw e
+			}
+			throw new DeviceStorageUnavailableError("failed to resolve/generate key", e)
 		}
 	}
 
