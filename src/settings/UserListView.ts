@@ -7,12 +7,11 @@ import {size} from "../gui/size"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {assertNotNull, contains, LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
+import {assertNotNull, contains, LazyLoaded, neverNull, noOp, promiseMap} from "@tutao/tutanota-utils"
 import {UserViewer} from "./UserViewer"
 import type {SettingsView, UpdatableSettingsViewer} from "./SettingsView"
 import {FeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
-import * as AddUserDialog from "./AddUserDialog"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {BootIcons} from "../gui/base/icons/BootIcons"
@@ -24,70 +23,69 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {compareGroupInfos} from "../api/common/utils/GroupUtils"
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
-import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {ListColumnWrapper} from "../gui/ListColumnWrapper"
 import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
 import Stream from "mithril/stream";
+import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
+import * as AddUserDialog from "./AddUserDialog"
 
 assertMainOrNode()
 const className = "user-list"
 
 export class UserListView implements UpdatableSettingsViewer {
-	list: List<GroupInfo, UserRow>
-	view: (...args: Array<any>) => any
-	_listId: LazyLoaded<Id>
-	_settingsView: SettingsView
-	_searchResultStreamDependency: Stream<any>
-	_adminUserGroupInfoIds: Id[]
-	onremove: (...args: Array<any>) => any
 
-	constructor(settingsView: SettingsView) {
-		this._adminUserGroupInfoIds = []
-		this._settingsView = settingsView
-		this._listId = new LazyLoaded(() => {
-			return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-				return customer.userGroups
-			})
+	readonly list: List<GroupInfo, UserRow>
+	readonly view: (...args: Array<any>) => any
+	readonly onremove: (...args: Array<any>) => any
+
+	private readonly listId: LazyLoaded<Id>
+	private readonly searchResultStreamDependency: Stream<any>
+	private adminUserGroupInfoIds: Id[] = []
+
+	constructor(
+		private readonly settingsView: SettingsView
+	) {
+		this.listId = new LazyLoaded(async () => {
+			const customer = await locator.entityClient.load(CustomerTypeRef, logins.getUserController().user.customer!)
+			return customer.userGroups
 		})
 		this.list = new List({
 			rowHeight: size.list_row_height,
-			fetch: (startId, count) => {
-				if (startId === GENERATED_MAX_ID) {
-					return this._loadAdmins().then(() => {
-						return this._listId.getAsync().then(listId => {
-							return locator.entityClient.loadAll(GroupInfoTypeRef, listId).then(allUserGroupInfos => {
-								// we have to set loadedCompletely to make sure that fetch is never called again and also that new users are inserted into the list, even at the end
-								this._setLoadedCompletely()
-
-								// we return all users because we have already loaded all users and the scroll bar shall have the complete size.
-								if (logins.getUserController().isGlobalAdmin()) {
-									return allUserGroupInfos
-								} else {
-									let localAdminGroupIds = logins
-										.getUserController()
-										.getLocalAdminGroupMemberships()
-										.map(gm => gm.group)
-									return allUserGroupInfos.filter((gi: GroupInfo) => gi.localAdmin && localAdminGroupIds.indexOf(gi.localAdmin) !== -1)
-								}
-							})
-						})
-					})
-				} else {
+			fetch: async (startId, count) => {
+				if (startId !== GENERATED_MAX_ID) {
 					throw new Error("fetch user group infos called for specific start id")
 				}
+				await this.loadAdmins()
+				const listId = await this.listId.getAsync()
+				const allUserGroupInfos = await locator.entityClient.loadAll(GroupInfoTypeRef, listId)
+
+				// we have to set loadedCompletely to make sure that fetch is never called again and also that new users are inserted into the list, even at the end
+				this.setLoadedCompletely()
+
+				// we return all users because we have already loaded all users and the scroll bar shall have the complete size.
+				if (logins.getUserController().isGlobalAdmin()) {
+					return allUserGroupInfos
+				} else {
+					let localAdminGroupIds = logins
+						.getUserController()
+						.getLocalAdminGroupMemberships()
+						.map(gm => gm.group)
+					return allUserGroupInfos.filter((gi: GroupInfo) => gi.localAdmin && localAdminGroupIds.indexOf(gi.localAdmin) !== -1)
+				}
 			},
-			loadSingle: elementId => {
-				return this._listId.getAsync().then(listId => {
-					return locator.entityClient
-								  .load<GroupInfo>(GroupInfoTypeRef, [listId, elementId])
-								  .catch(
-									  ofClass(NotFoundError, e => {
-										  // we return null if the entity does not exist
-										  return null
-									  }),
-								  )
-				})
+			loadSingle: async elementId => {
+				const listId = await this.listId.getAsync()
+				try {
+					return await locator.entityClient.load<GroupInfo>(GroupInfoTypeRef, [listId, elementId])
+				} catch (e) {
+					if (e instanceof NotFoundError) {
+						// we return null if the GroupInfo does not exist
+						return null
+					} else {
+						throw e
+					}
+				}
 			},
 			sortCompare: compareGroupInfos,
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) =>
@@ -128,56 +126,56 @@ export class UserListView implements UpdatableSettingsViewer {
 		this.list.loadInitial()
 		const searchBar = neverNull(header.searchBar)
 
-		this._listId.getAsync().then(listId => {
+		this.listId.getAsync().then(listId => {
 			searchBar.setGroupInfoRestrictionListId(listId)
 		})
 
-		this._searchResultStreamDependency = searchBar.lastSelectedGroupInfoResult.map(groupInfo => {
-			if (this._listId.isLoaded() && this._listId.getSync() === groupInfo._id[0]) {
+		this.searchResultStreamDependency = searchBar.lastSelectedGroupInfoResult.map(groupInfo => {
+			if (this.listId.isLoaded() && this.listId.getSync() === groupInfo._id[0]) {
 				this.list.scrollToIdAndSelect(groupInfo._id[1])
 			}
 		})
 
 		this.onremove = () => {
-			if (this._searchResultStreamDependency) {
-				this._searchResultStreamDependency.end(true)
+			if (this.searchResultStreamDependency) {
+				this.searchResultStreamDependency.end(true)
 			}
 		}
 	}
 
-	async _loadAdmins(): Promise<void> {
+	private async loadAdmins(): Promise<void> {
 		let adminGroupMembership = logins.getUserController().user.memberships.find(gm => gm.groupType === GroupType.Admin)
 		if (adminGroupMembership == null) return Promise.resolve()
 		const members = await locator.entityClient.loadAll(GroupMemberTypeRef, adminGroupMembership.groupMember[0])
-		this._adminUserGroupInfoIds = members.map(adminGroupMember => adminGroupMember.userGroupInfo[1])
+		this.adminUserGroupInfoIds = members.map(adminGroupMember => adminGroupMember.userGroupInfo[1])
 	}
 
-	_setLoadedCompletely() {
+	private setLoadedCompletely() {
 		this.list.setLoadedCompletely()
 	}
 
-	elementSelected(groupInfos: GroupInfo[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
-		if (groupInfos.length === 0 && this._settingsView.detailsViewer) {
-			this._settingsView.detailsViewer = null
+	private elementSelected(groupInfos: GroupInfo[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {
+		if (groupInfos.length === 0 && this.settingsView.detailsViewer) {
+			this.settingsView.detailsViewer = null
 			m.redraw()
 		} else if (groupInfos.length === 1 && selectionChanged) {
-			this._settingsView.detailsViewer = new UserViewer(groupInfos[0], this.isAdmin(groupInfos[0]))
+			this.settingsView.detailsViewer = new UserViewer(groupInfos[0], this.isAdmin(groupInfos[0]))
 
 			if (elementClicked) {
-				this._settingsView.focusSettingsDetailsColumn()
+				this.settingsView.focusSettingsDetailsColumn()
 			}
 
 			m.redraw()
 		} else {
-			this._settingsView.focusSettingsDetailsColumn()
+			this.settingsView.focusSettingsDetailsColumn()
 		}
 	}
 
 	isAdmin(userGroupInfo: GroupInfo): boolean {
-		return contains(this._adminUserGroupInfoIds, userGroupInfo._id[1])
+		return contains(this.adminUserGroupInfoIds, userGroupInfo._id[1])
 	}
 
-	addButtonClicked() {
+	private addButtonClicked() {
 		if (logins.getUserController().isFreeAccount()) {
 			showNotAvailableForFreeDialog(false)
 		} else {
@@ -189,7 +187,7 @@ export class UserListView implements UpdatableSettingsViewer {
 		return promiseMap(updates, update => {
 			const {instanceListId, instanceId, operation} = update
 
-			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this._listId.getSync() === instanceListId) {
+			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this.listId.getSync() === instanceListId) {
 				if (!logins.getUserController().isGlobalAdmin()) {
 					let listEntity = this.list.getEntity(instanceId)
 					return locator.entityClient.load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(gi => {
@@ -214,7 +212,7 @@ export class UserListView implements UpdatableSettingsViewer {
 					return this.list.entityEventReceived(instanceId, operation)
 				}
 			} else if (isUpdateForTypeRef(UserTypeRef, update) && operation === OperationType.UPDATE) {
-				return this._loadAdmins().then(() => {
+				return this.loadAdmins().then(() => {
 					this.list.redraw()
 				})
 			}
