@@ -11,7 +11,7 @@ const {ipcRenderer, contextBridge} = require("electron")
 
 console.log("registering context bridge")
 
-contextBridge.exposeInMainWorld("nativeAppWebauthn", {
+contextBridge.exposeInMainWorld("nativeAppWebDialog", {
 	invoke: (msg) => ipcRenderer.invoke("to-main-webdialog", msg),
 	attach: (handler) => {
 		console.log("attach from preload-webdialog")

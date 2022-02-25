@@ -62,17 +62,13 @@ export class WebDialog<FacadeType extends object> {
 }
 
 export class WebDialogController implements IWebDialogController {
-
 	constructor(
 		private readonly ipcHandler: WebDialogIpcHandler
 	) {
 	}
 
 	async create<FacadeType extends object>(parentWindowId: number, urlToOpen: URL): Promise<WebDialog<FacadeType>> {
-
-
 		const bw = await this.createBrowserWindow(parentWindowId)
-
 		const closeDefer = defer<never>()
 		bw.on("closed", () => {
 			console.log("web dialog window closed")
@@ -96,7 +92,6 @@ export class WebDialogController implements IWebDialogController {
 
 		// We can confidently await here because we're sure that the bridge will be finished being setup in the webDialog
 		const facade = await facadePromise
-
 		return new WebDialog(facade, closeDefer.promise, bw)
 	}
 
@@ -149,11 +144,8 @@ export class WebDialogController implements IWebDialogController {
 				return Promise.resolve()
 			}
 		})
-
 		const facade = exposeRemote<FacadeType>(req => dispatcher.postRequest(req))
-
 		await deferred.promise
-
 		return facade
 	}
 
