@@ -2,7 +2,7 @@ import type {EntityRestInterface} from "./EntityRestClient"
 import {EntityRestClient} from "./EntityRestClient"
 import {resolveTypeReference} from "../../common/EntityFunctions"
 import {OperationType} from "../../common/TutanotaConstants"
-import {flat, groupBy, isSameTypeRef, TypeRef} from "@tutao/tutanota-utils"
+import {assertNotNull, firstThrow, flat, groupBy, isSameTypeRef, lastThrow, TypeRef} from "@tutao/tutanota-utils"
 import {containsEventOfType, getEventOfType} from "../../common/utils/Utils"
 import {PermissionTypeRef} from "../../entities/sys/Permission"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
@@ -15,7 +15,7 @@ import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {RejectedSenderTypeRef} from "../../entities/sys/RejectedSender"
-import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getLetId} from "../../common/utils/EntityUtils";
+import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId} from "../../common/utils/EntityUtils";
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {assertWorkerOrNode} from "../../common/Env"
 import type {ListElementEntity, SomeEntity} from "../../common/EntityTypes"
@@ -54,6 +54,8 @@ export interface IEntityRestCache extends EntityRestInterface {
 }
 
 
+type Range = {lower: Id, upper: Id}
+
 export interface CacheStorage {
 	/**
 	 * Get a given entity from the cache, expects that you have already checked for existence
@@ -75,7 +77,7 @@ export interface CacheStorage {
 	 */
 	provideFromRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]>;
 
-	getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<{lower: Id, upper: Id} | null>;
+	getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Range | null>;
 
 	setUpperRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void>;
 
@@ -163,20 +165,6 @@ export class EntityRestCache implements IEntityRestCache {
 		return cachedEntity
 	}
 
-
-	async loadRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
-		const typeModel = await resolveTypeReference(typeRef)
-		if (
-			typeRef.app === "monitor"
-			|| this.ignoredTypes.some(ref => isSameTypeRef(typeRef, ref))
-			|| typeModel.values._id.type !== ValueType.GeneratedId // we currently only store ranges for generated ids
-		) {
-			return this.entityRestClient.loadRange(typeRef, listId, start, count, reverse)
-		}
-
-		return this._loadRange(typeRef, listId, start, count, reverse)
-	}
-
 	loadMultiple<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementIds: Array<Id>): Promise<Array<T>> {
 		if (
 			typeRef.app === "monitor"
@@ -255,110 +243,186 @@ export class EntityRestCache implements IEntityRestCache {
 		return entitiesFromServer.concat(entitiesInCache)
 	}
 
-	private async _loadRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
+	async loadRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
+		const typeModel = await resolveTypeReference(typeRef)
+		if (
+			typeRef.app === "monitor"
+			|| this.ignoredTypes.some(ref => isSameTypeRef(typeRef, ref))
+			|| typeModel.values._id.type !== ValueType.GeneratedId // we currently only store ranges for generated ids
+		) {
+			return this.entityRestClient.loadRange(typeRef, listId, start, count, reverse)
+		}
 
 		const range = await this.storage.getRangeForList(typeRef, listId)
 
-		if (range == null) {
-
-			// Create a new range and load everything
-			const entities = await this.entityRestClient.loadRange(typeRef, listId, start, count, reverse)
-
-			// Initialize a new range for this list
-			await this.storage.setNewRangeForList(typeRef, listId, start, start)
-
-			// The range bounds will be updated in here
-			return this.handleElementRangeResult(typeRef, listId, start, count, reverse, entities, count)
+		if (
+			range == null
+		) {
+			await this.createNewRange(typeRef, listId, start, count, reverse)
+		} else if (
+			!firstBiggerThanSecond(start, range.upper) && !firstBiggerThanSecond(range.lower, start)
+		) {
+			await this.extendFromWithinRange(typeRef, listId, start, count, reverse)
+		} else if (
+			(reverse && firstBiggerThanSecond(range.lower, start))
+			|| (!reverse && firstBiggerThanSecond(start, range.upper))
+		) {
+			await this.extendAwayFromRange(typeRef, listId, start, count, reverse)
 		} else {
+			await this.extendTowardsRange(typeRef, listId, start, count, reverse)
+		}
 
-			const startIsLocatedInRange = !firstBiggerThanSecond(start, range.upper) && !firstBiggerThanSecond(range.lower, start)
+		return this.storage.provideFromRange(typeRef, listId, start, count, reverse)
+	}
 
-			if (startIsLocatedInRange) {
-				const {newStart, newCount} = await this.recalculateRangeRequest(typeRef, listId, start, count, reverse)
-				if (newCount > 0) {
-					// We will be able to provide some entities from the cache, so we just want to load the remaining entities from the server
-					const entities = await this.entityRestClient.loadRange(typeRef, listId, newStart, newCount, reverse)
-					return this.handleElementRangeResult(typeRef, listId, start, count, reverse, entities, newCount)
-				} else {
-					// all elements are located in the cache.
-					return this.storage.provideFromRange(typeRef, listId, start, count, reverse)
-				}
-			} else {
+	/**
+	 * Creates a new list range, reading everything from the server that it can
+	 * range:         (none)
+	 * request:       *------>
+	 * range becomes: |------|
+	 * @private
+	 */
+	private async createNewRange<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start: Id,
+		count: number,
+		reverse: boolean
+	) {
+		// Create a new range and load everything
+		const entities = await this.entityRestClient.loadRange(typeRef, listId, start, count, reverse)
 
-				const isLoadingAwayFromRange = (reverse && firstBiggerThanSecond(range.lower, start)) || (!reverse && firstBiggerThanSecond(start, range.upper))
+		// Initialize a new range for this list
+		await this.storage.setNewRangeForList(typeRef, listId, start, start)
 
-				if (isLoadingAwayFromRange) {
-					// Start is outside the range, and we are loading away from the range, so we grow until we are able to provide enough
-					// entities starting at startId
+		// The range bounds will be updated in here
+		await this.updateRangeInStorage(typeRef, listId, count, reverse, entities)
+	}
 
-					// Which end of the range to start loading from
-					const loadStartId = reverse
-						? range.lower
-						: range.upper
+	/**
+	 * Returns part of a request from the cache, and the remainder is loaded from the server
+	 * range:          |-----------|
+	 * request:               *----------->
+	 * range becomes: |-------------------|
+	 */
+	private async extendFromWithinRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean) {
 
-					// Load from the end of the range in the direction of the startId. then, if all available elements have been loaded or the requested number is in cache, return from cache. otherwise load again the same way.
-					const entities = await this.entityRestClient.loadRange(typeRef, listId, loadStartId, count, reverse)
+		const {newStart, newCount} = await this.recalculateRangeRequest(typeRef, listId, start, count, reverse)
+		if (newCount > 0) {
+			// We will be able to provide some entities from the cache, so we just want to load the remaining entities from the server
+			const entities = await this.entityRestClient.loadRange(typeRef, listId, newStart, newCount, reverse)
+			await this.updateRangeInStorage(typeRef, listId, newCount, reverse, entities)
+		}
+	}
 
-					// put the new elements into the cache
-					await this.handleElementRangeResult(typeRef, listId, loadStartId, count, reverse, entities, count)
+	/**
+	 * Start was outside the range, and we are loading away from the range
+	 * Keeps loading elements from the end of the range in the direction of the startId.
+	 * Returns once all available elements have been loaded or the requested number is in cache
+	 * range:		   |-----------------|
+	 * request:							    *------->
+	 * range becomes:  |----------------------------|
+	 */
+	private async extendAwayFromRange<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start: Id,
+		count: number,
+		reverse: boolean
+	) {
+		// Start is outside the range, and we are loading away from the range, so we grow until we are able to provide enough
+		// entities starting at startId
+		while (true) {
+			const range = assertNotNull(await this.storage.getRangeForList(typeRef, listId))
 
-					// provide from cache with the actual start id
-					const resultElements = await this.storage.provideFromRange(typeRef, listId, start, count, reverse)
+			// Which end of the range to start loading from
+			const loadStartId = reverse
+				? range.lower
+				: range.upper
 
-					if (entities.length < count || resultElements.length === count) {
-						// either all available elements have been loaded from target or the requested number of elements could be provided from cache
-						return resultElements
-					} else {
-						// try again with the new elements in the cache
-						return this.loadRange(typeRef, listId, start, count, reverse)
-					}
-				} else {
-					// Start is outside the range, and we are loading towards the range, so grow outward from the range until start is
-					// inside the range, then provide from cache
+			// Load some entities
+			const entities = await this.entityRestClient.loadRange(typeRef, listId, loadStartId, count, reverse)
 
-					const loadStartId = reverse
-						? range.upper
-						: range.lower
+			await this.updateRangeInStorage(typeRef, listId, count, reverse, entities)
 
-					const entities = await this.entityRestClient.loadRange(typeRef, listId, loadStartId, count, !reverse)
+			// Try to get enough entities from cache
+			const entitiesFromCache = await this.storage.provideFromRange(typeRef, listId, start, count, reverse)
 
-					await this.handleElementRangeResult(typeRef, listId, loadStartId, count, !reverse, entities, count)
-
-					if (!await this.storage.isElementIdInCacheRange(typeRef, listId, start)) {
-						return this.loadRange(typeRef, listId, start, count, reverse)
-					} else {
-						return this.storage.provideFromRange(typeRef, listId, start, count, reverse)
-					}
-				}
+			// If we exhausted the entities from the server,
+			// Or cache was able to provide the original request
+			// Then we are done
+			if (entities.length < count || entitiesFromCache.length === count) {
+				break
 			}
 		}
 	}
 
-	private async handleElementRangeResult<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean, elements: T[], targetCount: number): Promise<T[]> {
-		let elementsToAdd = elements
-		if (reverse) {
+	/**
+	 * Loads all elements from the startId in the direction of the range
+	 * Once complete, returns as many elements as it can from the original request
+	 * range:          |--------------|
+	 * request:    	    			        <------*
+	 * range becomes:  |---------------------------|
+	 * or
+	 * range:		            |---------|
+	 * request:		      <-------------------*
+	 * range becomes:     |--------------------|
+	 */
+	private async extendTowardsRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean) {
+
+		while (true) {
+
+			const range = assertNotNull(await this.storage.getRangeForList(typeRef, listId))
+
+			const loadStartId = reverse
+				? range.upper
+				: range.lower
+
+			const entities = await this.entityRestClient.loadRange(typeRef, listId, loadStartId, count, !reverse)
+
+			await this.updateRangeInStorage(typeRef, listId, count, !reverse, entities)
+
+			if (await this.storage.isElementIdInCacheRange(typeRef, listId, start)) {
+				break
+			}
+		}
+
+		await this.extendFromWithinRange(typeRef, listId, start, count, reverse)
+	}
+
+	/**
+	 * Given the parameters and result of a range request,
+	 * Inserts the result into storage, and updates the range bounds
+	 * based on number of entities requested and the actual amount that were received
+	 */
+	private async updateRangeInStorage<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		countRequested: number,
+		wasReverseRequest: boolean,
+		receivedEntities: T[],
+	) {
+		let elementsToAdd = receivedEntities
+		if (wasReverseRequest) {
 			// Ensure that elements are cached in ascending (not reverse) order
-			elementsToAdd = elements.reverse()
-			if (elements.length < targetCount) {
+			elementsToAdd = receivedEntities.reverse()
+			if (receivedEntities.length < countRequested) {
 				await this.storage.setLowerRangeForList(typeRef, listId, GENERATED_MIN_ID)
 			} else {
 				// After reversing the list the first element in the list is the lower range limit
-				await this.storage.setLowerRangeForList(typeRef, listId, getLetId(elements[0])[1])
+				await this.storage.setLowerRangeForList(typeRef, listId, getElementId(firstThrow(receivedEntities)))
 			}
 		} else {
 			// Last element in the list is the upper range limit
-			if (elements.length < targetCount) {
+			if (receivedEntities.length < countRequested) {
 				// all elements have been loaded, so the upper range must be set to MAX_ID
 				await this.storage.setUpperRangeForList(typeRef, listId, GENERATED_MAX_ID)
 			} else {
-				await this.storage.setUpperRangeForList(typeRef, listId, getLetId(elements[elements.length - 1])[1])
+				await this.storage.setUpperRangeForList(typeRef, listId, getElementId(lastThrow(receivedEntities)))
 			}
 		}
 
 		await Promise.all(elementsToAdd.map(element => this.storage.put(element)))
-
-
-		return this.storage.provideFromRange(typeRef, listId, start, count, reverse)
 	}
 
 	/**
