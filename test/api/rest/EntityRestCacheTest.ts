@@ -19,6 +19,10 @@ import {createPermission, PermissionTypeRef} from "../../../src/api/entities/sys
 import {OfflineStorage} from "../../../src/api/worker/rest/OfflineStorage"
 import {EphemeralCacheStorage} from "../../../src/api/worker/rest/EphemeralCacheStorage"
 import {QueuedBatch} from "../../../src/api/worker/search/EventQueue"
+import {matchers, object, when} from "testdouble"
+
+const {anything} = matchers
+
 
 type UserIdProvider = () => Id | null
 
@@ -126,6 +130,7 @@ export function testEntityRestCache(name: string, getStorage: (userIdProvider: U
 			const id3 = "id3"
 			const id4 = "id4"
 			const id5 = "id5"
+			const id6 = "id6"
 			const id7 = "id7"
 
 			o("writes batch meta on entity update", async function () {
@@ -989,101 +994,150 @@ export function testEntityRestCache(name: string, getStorage: (userIdProvider: U
 				unmockAttribute(mock)
 			})
 
-			o("When a range outside the existing range is requested, the exiting range will be extended. Not reverse, away from range", async function () {
-				const ids = [createId("1"), createId("2"), createId("3"), createId("4"), createId("5")]
-				const listId1 = "listId1"
+			o("When there is a non-reverse range request that loads away from the existing range, the range will grow to include startId and the resulting range from the server",
+				async function () {
 
-				const mail1 = createMailInstance(listId1, ids[0], "hello1")
-				const mail2 = createMailInstance(listId1, ids[1], "hello2")
-				const mail3 = createMailInstance(listId1, ids[2], "hello3")
-				const mail4 = createMailInstance(listId1, ids[3], "hello4")
-				const mail5 = createMailInstance(listId1, ids[4], "hello5")
+					const clientMock = object<EntityRestClient>()
+					const cache = new EntityRestCache(clientMock, storage)
 
-				const mails = [mail1, mail2, mail3, mail4, mail5]
+					const listId = "listId"
 
-				await storage.setNewRangeForList(MailTypeRef, listId1, ids[0], ids[1])
+					const id1 = createId("1")
+					const id2 = createId("2")
+					const id3 = createId("3")
+					const id4 = createId("4")
+					const id5 = createId("5")
+					const id6 = createId("6")
 
-				for (const mail of [mail1, mail2]) {
-					await storage.put(mail)
-				}
+					const mail1 = createMailInstance(listId, id1, "hello1")
+					const mail2 = createMailInstance(listId, id2, "hello2")
+					const mail3 = createMailInstance(listId, id3, "hello3")
+					const mail4 = createMailInstance(listId, id4, "hello4")
+					const mail5 = createMailInstance(listId, id5, "hello5")
+					const mail6 = createMailInstance(listId, id6, "hello6")
 
-				const originalUpper = (await storage.getRangeForList(MailTypeRef, listId1))?.upper
+					await storage.setNewRangeForList(MailTypeRef, listId, id1, id2)
+					await storage.put(mail1)
+					await storage.put(mail2)
 
-				//mails are loaded in steps pf count until ranges are joined
-				const loadRange = o.spy(function (typeRef, listId, loadStartId, count, reverse) {
-					if (loadStartId === originalUpper && count === 2) {
-						return Promise.resolve([mails[1], mails[2]])
-					} else if (loadStartId === ids[2] && count === 2) {
-						return Promise.resolve([mails[2], mails[3]])
-					} else if (loadStartId === ids[3] && count === 2) {
-						return Promise.resolve([mails[3], mails[4]])
-					} else {
-						throw new Error(`unexpected load request: startid ${loadStartId} and count ${count}`)
-					}
+					// mails are loaded in steps pf count until ranges are joined
+					when(clientMock.loadRange(anything(), listId, id2, 2, false))
+						.thenResolve([mail3, mail4])
+
+					when(clientMock.loadRange(anything(), listId, id4, 2, false))
+						.thenResolve([mail5, mail6])
+
+					const result = await cache.loadRange(MailTypeRef, listId, id3, 2, false)
+
+					o(result).deepEquals([
+						mail4, mail5
+					])
+
+					o((await storage.getRangeForList(MailTypeRef, listId))!).deepEquals({
+						lower: id1, upper: id6
+					})
+
+					o(await storage.getIdsInRange(MailTypeRef, listId)).deepEquals([
+						id1, id2, id3, id4, id5, id6
+					])
 				})
 
-				const mock = mockAttribute(entityRestClient, entityRestClient.loadRange, loadRange)
+			o("When there is a reverse range request that loads in the direction of the existing range, the range will grow to include the startId", async function () {
 
+				const clientMock = object<EntityRestClient>()
+				const cache = new EntityRestCache(clientMock, storage)
 
-				await cache.loadRange(MailTypeRef, listId1, ids[3], 2, false)
+				const listId = "listId1"
 
-				const lower = (await storage.getRangeForList(MailTypeRef, listId1))?.lower
-				const upper = (await storage.getRangeForList(MailTypeRef, listId1))?.upper
+				const id1 = createId("1")
+				const id2 = createId("2")
+				const id3 = createId("3")
+				const id4 = createId("4")
+				const id5 = createId("5")
 
-				o(lower).equals(ids[0])("lower range is not changed")
-				o(upper).equals(ids[4])("upper range corresponds to the end of the new range request")
-				unmockAttribute(mock)
+				const mail1 = createMailInstance(listId, id1, "hello1")
+				const mail2 = createMailInstance(listId, id2, "hello2")
+				const mail3 = createMailInstance(listId, id3, "hello3")
+				const mail4 = createMailInstance(listId, id4, "hello4")
+				const mail5 = createMailInstance(listId, id5, "hello5")
 
+				await storage.setNewRangeForList(MailTypeRef, listId, GENERATED_MIN_ID, id2)
+				await storage.put(mail1)
+				await storage.put(mail2)
+
+				when(clientMock.loadRange(anything(), listId, id2, 2, false))
+					.thenResolve([mail3, mail4])
+
+				when(clientMock.loadRange(anything(), listId, id4, 2, false))
+					.thenResolve([mail5])
+
+				const result = await cache.loadRange(MailTypeRef, listId, GENERATED_MAX_ID, 2, true)
+
+				o(result).deepEquals([
+					mail5, mail4
+				])
+
+				o((await storage.getRangeForList(MailTypeRef, listId))!).deepEquals({lower: GENERATED_MIN_ID, upper: GENERATED_MAX_ID})
+				o(await storage.getIdsInRange(MailTypeRef, listId)).deepEquals([
+					id1, id2, id3, id4, id5
+				])
 			})
 
-			o("When a range outside the existing range is requested, the exiting range will be extended. Reverse, towards range", async function () {
-				const ids = [createId("1"), createId("2"), createId("3"), createId("4"), createId("5")]
-				const listId1 = "listId1"
 
-				const mail1 = createMailInstance(listId1, ids[0], "hello1")
-				const mail2 = createMailInstance(listId1, ids[1], "hello2")
-				const mail3 = createMailInstance(listId1, ids[2], "hello3")
-				const mail4 = createMailInstance(listId1, ids[3], "hello4")
-				const mail5 = createMailInstance(listId1, ids[4], "hello5")
+			o("The range request starts on one end of the existing range, and would finish on the other end, so it loads from either direction of the range", async function () {
+				const clientMock = object<EntityRestClient>()
+				const cache = new EntityRestCache(clientMock, storage)
 
-				const mails = [mail1, mail2, mail3, mail4, mail5]
-
-				await storage.setNewRangeForList(MailTypeRef, listId1, GENERATED_MIN_ID, ids[1])
-
-				for (const mail of [mail1, mail2]) {
-					await storage.put(mail)
-				}
-
-				const originalUpper = (await storage.getRangeForList(MailTypeRef, listId1))?.upper
+				const id1 = createId("1")
+				const id2 = createId("2")
+				const id3 = createId("3")
+				const id4 = createId("4")
+				const id5 = createId("5")
+				const id6 = createId("6")
 
 
-				const loadRange = o.spy(function (typeRef, listId, loadStartId, count, reverse) {
-					if (loadStartId === originalUpper && count === 2) {
-						return Promise.resolve([mails[1], mails[2]])
-					} else if (loadStartId === ids[2] && count === 2) {
-						return Promise.resolve([mails[2], mails[3]])
-					} else if (loadStartId === ids[3] && count === 2) {
-						return Promise.resolve([mails[3], mails[4]])
-					} else if (loadStartId === ids[4] && count === 2) {
-						return Promise.resolve([mails[4]])
-					} else {
-						throw new Error(`unexpected load request: startid ${loadStartId} and count ${count}`)
-					}
-				})
+				const listId = "listId"
 
-				const mock = mockAttribute(entityRestClient, entityRestClient.loadRange, loadRange)
+				const mail1 = createMailInstance(listId, id1, "ok")
+				const mail2 = createMailInstance(listId, id2, "ok")
+				const mail3 = createMailInstance(listId, id3, "ok")
+				const mail4 = createMailInstance(listId, id4, "ok")
+				const mail5 = createMailInstance(listId, id5, "ok")
 
+				await storage.setNewRangeForList(MailTypeRef, listId, id2, id3)
+				await storage.put(mail2)
+				await storage.put(mail3)
 
-				await cache.loadRange(MailTypeRef, listId1, GENERATED_MAX_ID, 2, true)
+				// First it will try to load in the direction of start id from the existing range
+				when(clientMock.loadRange(anything(), listId, id2, 10, true))
+					.thenResolve([mail1])
 
-				const lower = (await storage.getRangeForList(MailTypeRef, listId1))?.lower
-				const upper = (await storage.getRangeForList(MailTypeRef, listId1))?.upper
+				// It will then fall into the "load from within the range" case
+				// It will try to load starting from the end of the range
+				when(clientMock.loadRange(anything(), listId, id3, 7, false))
+					.thenResolve([
+						mail4,
+						mail5,
+					])
 
-				o(lower).equals(GENERATED_MIN_ID)("lower range is not changed")
-				o(upper).equals(GENERATED_MAX_ID)("upper range corresponds to the end of the new range request")
-				unmockAttribute(mock)
+				const result = await cache.loadRange(MailTypeRef, listId, GENERATED_MIN_ID, 10, false)
+
+				o((await storage.getRangeForList(MailTypeRef, listId))!).deepEquals(
+					{lower: GENERATED_MIN_ID, upper: GENERATED_MAX_ID}
+				)
+
+				o(await storage.getIdsInRange(MailTypeRef, listId)).deepEquals([
+					id1, id2, id3, id4, id5
+				])
+
+				o(result).deepEquals([
+					mail1,
+					mail2,
+					mail3,
+					mail4,
+					mail5,
+				])
 			})
-
 
 			o("loadMultiple should load necessary elements from the server, and get the rest from the cache", async function () {
 					const listId = "listId"
