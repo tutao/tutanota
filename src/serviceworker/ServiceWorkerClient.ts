@@ -60,7 +60,7 @@ export function init() {
 
 	if (serviceWorker) {
 		// We don't want service worker in certain envirtonments
-		if (env.dist && !isApp() && !isDesktop() && window.nativeAppWebauthn == null) {
+		if (env.dist && !isApp() && !isDesktop() && window.nativeAppWebDialog == null) {
 			console.log("Registering ServiceWorker")
 			serviceWorker
 				.register(window.tutao.appState.prefixWithoutFile + "/sw.js")

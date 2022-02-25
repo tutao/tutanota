@@ -38,11 +38,15 @@ type Tutao = {
 declare global {
 	interface Window {
 		tutao: Tutao,
-		nativeApp: NativeApp,
 		logger: Logger,
 		/** Set by the server for whitelabel domains. */
 		whitelabelCustomizations: WhitelabelCustomizations | undefined,
-		/** Whether we are running inside dialog of desktop app. */
-		nativeAppWebauthn: NativeApp | undefined,
+		/** The NativeApp for use in the main client */
+		nativeApp: NativeApp,
+		/**
+		 * The NativeApp for use in web dialogs.
+		 * It's existence can be used to determine whether or not we are inside a web dialog
+		 * */
+		nativeAppWebDialog: NativeApp | undefined,
 	}
 }

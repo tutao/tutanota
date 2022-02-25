@@ -13,7 +13,7 @@ export class WebauthnNativeBridge {
 	private impl!: IWebauthn
 
 	constructor() {
-		const nativeApp = assertNotNull(window.nativeAppWebauthn)
+		const nativeApp = assertNotNull(window.nativeAppWebDialog)
 		const transport: DesktopTransport<WebToNativeRequest, NativeToWebRequest> = new DesktopTransport(nativeApp)
 		const that = this
 		const commands: Commands<NativeToWebRequest> = {
