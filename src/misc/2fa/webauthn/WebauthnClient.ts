@@ -8,7 +8,7 @@ import {createWebauthnResponseData} from "../../../api/entities/sys/WebauthnResp
 import type {IWebauthn} from "./IWebauthn.js"
 import {U2F_APPID, U2f_APPID_SUFFIX, WEBAUTHN_RP_ID} from "./IWebauthn.js"
 import {U2fKey} from "../../../api/entities/sys/U2fKey.js"
-import {partitionAsync} from "@tutao/tutanota-utils/dist/ArrayUtils"
+import {partitionAsync} from "@tutao/tutanota-utils"
 
 /** Web authentication entry point for the rest of the app. */
 export interface IWebauthnClient {

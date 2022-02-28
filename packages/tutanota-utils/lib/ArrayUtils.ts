@@ -1,4 +1,4 @@
-import {downcast, identity, neverNull} from "./Utils.js"
+import {downcast, identity, neverNull, Thunk} from "./Utils.js"
 import {getFromMap} from "./MapUtils.js"
 
 
@@ -13,6 +13,9 @@ export function concat(...arrays: Uint8Array[]): Uint8Array {
 	return result
 }
 
+/**
+ * Create an array filled with the numbers min..max (inclusive)
+ */
 export function numberRange(min: number, max: number): Array<number> {
 	return [...Array(max + 1).keys()].slice(min)
 }
@@ -512,4 +515,11 @@ export async function partitionAsync<T>(array: Array<T>, predicate: (arg0: T) =>
 	const mask: Array<boolean> = await Promise.all(array.map(predicate))
 	const [left, right] = partition(zip(mask, array), item => item[0])
 	return [left.map(i => i[1]), right.map(i => i[1])]
+}
+
+/**
+ * Create an array with n elements by calling the provided factory
+ */
+export function arrayOf<T>(n: number, factory: (idx: number) => T): Array<T> {
+	return numberRange(0, n - 1).map(factory)
 }

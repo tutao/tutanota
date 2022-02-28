@@ -1,34 +1,34 @@
 import m, {Children} from "mithril"
-import type {VirtualRow} from "../gui/base/List"
-import {List} from "../gui/base/List"
-import {lang} from "../misc/LanguageViewModel"
-import {NotFoundError} from "../api/common/error/RestError"
-import {size} from "../gui/size"
-import type {GroupInfo} from "../api/entities/sys/GroupInfo"
-import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
-import {CustomerTypeRef} from "../api/entities/sys/Customer"
+import type {VirtualRow} from "../gui/base/List.js"
+import {List} from "../gui/base/List.js"
+import {lang} from "../misc/LanguageViewModel.js"
+import {NotFoundError} from "../api/common/error/RestError.js"
+import {size} from "../gui/size.js"
+import type {GroupInfo} from "../api/entities/sys/GroupInfo.js"
+import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo.js"
+import {CustomerTypeRef} from "../api/entities/sys/Customer.js"
 import {assertNotNull, contains, LazyLoaded, neverNull, noOp, promiseMap} from "@tutao/tutanota-utils"
-import {UserViewer} from "./UserViewer"
-import type {SettingsView, UpdatableSettingsViewer} from "./SettingsView"
-import {FeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
-import {logins} from "../api/main/LoginController"
-import {Icon} from "../gui/base/Icon"
-import {Icons} from "../gui/base/icons/Icons"
-import {BootIcons} from "../gui/base/icons/BootIcons"
-import {header} from "../gui/base/Header"
-import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
-import {UserTypeRef} from "../api/entities/sys/User"
-import type {EntityUpdateData} from "../api/main/EventController"
-import {isUpdateForTypeRef} from "../api/main/EventController"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {compareGroupInfos} from "../api/common/utils/GroupUtils"
-import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
-import {ListColumnWrapper} from "../gui/ListColumnWrapper"
-import {assertMainOrNode} from "../api/common/Env"
-import {locator} from "../api/main/MainLocator"
+import {UserViewer} from "./UserViewer.js"
+import type {SettingsView, UpdatableSettingsViewer} from "./SettingsView.js"
+import {FeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants.js"
+import {logins} from "../api/main/LoginController.js"
+import {Icon} from "../gui/base/Icon.js"
+import {Icons} from "../gui/base/icons/Icons.js"
+import {BootIcons} from "../gui/base/icons/BootIcons.js"
+import {header} from "../gui/base/Header.js"
+import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember.js"
+import {UserTypeRef} from "../api/entities/sys/User.js"
+import type {EntityUpdateData} from "../api/main/EventController.js"
+import {isUpdateForTypeRef} from "../api/main/EventController.js"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN.js"
+import {compareGroupInfos} from "../api/common/utils/GroupUtils.js"
+import {elementIdPart, GENERATED_MAX_ID} from "../api/common/utils/EntityUtils.js"
+import {ListColumnWrapper} from "../gui/ListColumnWrapper.js"
+import {assertMainOrNode} from "../api/common/Env.js"
+import {locator} from "../api/main/MainLocator.js"
 import Stream from "mithril/stream";
-import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
-import * as AddUserDialog from "./AddUserDialog"
+import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs.js"
+import * as AddUserDialog from "./AddUserDialog.js"
 
 assertMainOrNode()
 const className = "user-list"
@@ -36,8 +36,6 @@ const className = "user-list"
 export class UserListView implements UpdatableSettingsViewer {
 
 	readonly list: List<GroupInfo, UserRow>
-	readonly view: (...args: Array<any>) => any
-	readonly onremove: (...args: Array<any>) => any
 
 	private readonly listId: LazyLoaded<Id>
 	private readonly searchResultStreamDependency: Stream<any>
@@ -61,7 +59,7 @@ export class UserListView implements UpdatableSettingsViewer {
 				const allUserGroupInfos = await locator.entityClient.loadAll(GroupInfoTypeRef, listId)
 
 				// we have to set loadedCompletely to make sure that fetch is never called again and also that new users are inserted into the list, even at the end
-				this.setLoadedCompletely()
+				this.list.setLoadedCompletely()
 
 				// we return all users because we have already loaded all users and the scroll bar shall have the complete size.
 				if (logins.getUserController().isGlobalAdmin()) {
@@ -71,7 +69,7 @@ export class UserListView implements UpdatableSettingsViewer {
 						.getUserController()
 						.getLocalAdminGroupMemberships()
 						.map(gm => gm.group)
-					return allUserGroupInfos.filter((gi: GroupInfo) => gi.localAdmin && localAdminGroupIds.indexOf(gi.localAdmin) !== -1)
+					return allUserGroupInfos.filter((gi: GroupInfo) => gi.localAdmin && localAdminGroupIds.includes(gi.localAdmin))
 				}
 			},
 			loadSingle: async elementId => {
@@ -104,24 +102,6 @@ export class UserListView implements UpdatableSettingsViewer {
 			emptyMessage: lang.get("noEntries_msg"),
 		})
 
-		this.view = (): Children => {
-			return !logins.isEnabled(FeatureType.WhitelabelChild)
-				? m(
-					ListColumnWrapper,
-					{
-						headerContent: m(
-							".mr-negative-s.align-self-end",
-							m(ButtonN, {
-								label: "addUsers_action",
-								type: ButtonType.Primary,
-								click: () => this.addButtonClicked(),
-							}),
-						),
-					},
-					m(this.list),
-				)
-				: null
-		}
 
 		this.list.loadInitial()
 		const searchBar = neverNull(header.searchBar)
@@ -136,22 +116,41 @@ export class UserListView implements UpdatableSettingsViewer {
 			}
 		})
 
-		this.onremove = () => {
-			if (this.searchResultStreamDependency) {
-				this.searchResultStreamDependency.end(true)
-			}
+		this.onremove = this.onremove.bind(this)
+		this.view = this.view.bind(this)
+	}
+
+	view(): Children {
+		if (logins.isEnabled(FeatureType.WhitelabelChild)) {
+			return null
+		}
+
+		return m(ListColumnWrapper, {
+				headerContent: m(".mr-negative-s.align-self-end",
+					m(ButtonN, {
+						label: "addUsers_action",
+						type: ButtonType.Primary,
+						click: () => this.addButtonClicked(),
+					}),
+				),
+			},
+			m(this.list),
+		)
+	}
+
+	onremove() {
+		if (this.searchResultStreamDependency) {
+			this.searchResultStreamDependency.end(true)
 		}
 	}
 
 	private async loadAdmins(): Promise<void> {
-		let adminGroupMembership = logins.getUserController().user.memberships.find(gm => gm.groupType === GroupType.Admin)
-		if (adminGroupMembership == null) return Promise.resolve()
+		const adminGroupMembership = logins.getUserController().user.memberships.find(gm => gm.groupType === GroupType.Admin)
+		if (adminGroupMembership == null) {
+			return
+		}
 		const members = await locator.entityClient.loadAll(GroupMemberTypeRef, adminGroupMembership.groupMember[0])
-		this.adminUserGroupInfoIds = members.map(adminGroupMember => adminGroupMember.userGroupInfo[1])
-	}
-
-	private setLoadedCompletely() {
-		this.list.setLoadedCompletely()
+		this.adminUserGroupInfoIds = members.map(adminGroupMember => elementIdPart(adminGroupMember.userGroupInfo))
 	}
 
 	private elementSelected(groupInfos: GroupInfo[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {

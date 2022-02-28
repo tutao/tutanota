@@ -1,7 +1,12 @@
+import type {Hex} from "@tutao/tutanota-utils"
 import {
+	base64ExtToBase64,
+	base64ToBase64Ext,
 	base64ToBase64Url,
 	base64ToUint8Array,
 	base64UrlToBase64,
+	hexToBase64,
+	pad,
 	stringToUtf8Uint8Array,
 	TypeRef,
 	uint8ArrayToBase64,
@@ -9,8 +14,6 @@ import {
 } from "@tutao/tutanota-utils"
 import {Cardinality, Type, ValueType} from "../EntityConstants"
 import type {ModelValue, SomeEntity, TypeModel} from "../EntityTypes"
-import type {Hex} from "@tutao/tutanota-utils"
-import {base64ExtToBase64, base64ToBase64Ext, hexToBase64, pad} from "@tutao/tutanota-utils"
 import {ElementEntity} from "../EntityTypes"
 
 /**
@@ -39,7 +42,6 @@ export const CUSTOM_MIN_ID = ""
 export const RANGE_ITEM_LIMIT = 1000
 export const LOAD_MULTIPLE_LIMIT = 100
 export const POST_MULTIPLE_LIMIT = 100
-export const READ_ONLY_HEADER = "read-only"
 
 /**
  * Tests if one id is bigger than another.
