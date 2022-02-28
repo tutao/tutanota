@@ -1,26 +1,27 @@
 import o from "ospec"
-import {EventBusClient} from "../../../src/api/worker/EventBusClient"
-import {OperationType} from "../../../src/api/common/TutanotaConstants"
+import {ConnectMode, ENTITY_EVENT_BATCH_EXPIRE_MS, EventBusClient} from "../../../src/api/worker/EventBusClient"
+import {GroupType, OperationType} from "../../../src/api/common/TutanotaConstants"
 import type {EntityUpdate} from "../../../src/api/entities/sys/EntityUpdate"
 import {createEntityUpdate} from "../../../src/api/entities/sys/EntityUpdate"
 import {EntityRestClientMock} from "./EntityRestClientMock"
 import {EntityClient} from "../../../src/api/common/EntityClient"
-import {noOp} from "@tutao/tutanota-utils"
+import {defer, delay, noOp} from "@tutao/tutanota-utils"
 import {WorkerImpl} from "../../../src/api/worker/WorkerImpl"
 import {LoginFacadeImpl} from "../../../src/api/worker/facades/LoginFacade"
-import {createUser} from "../../../src/api/entities/sys/User"
+import {createUser, User} from "../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
 import {InstanceMapper} from "../../../src/api/worker/crypto/InstanceMapper"
 import {EntityRestCache} from "../../../src/api/worker/rest/EntityRestCache"
 import {QueuedBatch} from "../../../src/api/worker/search/EventQueue"
-import {assertThrows} from "@tutao/tutanota-test-utils"
 import {OutOfSyncError} from "../../../src/api/common/error/OutOfSyncError"
-import {matchers, object, verify, when} from "testdouble"
+import {explain, matchers, object, verify, when} from "testdouble"
 import {MailFacade} from "../../../src/api/worker/facades/MailFacade"
 import {Indexer} from "../../../src/api/worker/search/Indexer"
 import {createWebsocketEntityData, WebsocketEntityData} from "../../../src/api/entities/sys/WebsocketEntityData"
 import {createWebsocketCounterData, WebsocketCounterData} from "../../../src/api/entities/sys/WebsocketCounterData"
 import {createWebsocketCounterValue} from "../../../src/api/entities/sys/WebsocketCounterValue"
+import {createEntityEventBatch, EntityEventBatchTypeRef} from "../../../src/api/entities/sys/EntityEventBatch"
+import {getElementId} from "../../../src/api/common/utils/EntityUtils"
 
 o.spec("EventBusClient test", function () {
 	let ebc: EventBusClient
@@ -30,6 +31,23 @@ o.spec("EventBusClient test", function () {
 	let loginMock: LoginFacadeImpl
 	let mailMock: MailFacade
 	let indexerMock: Indexer
+	let socket: WebSocket
+	let user: User
+
+	function initEventBus() {
+		const entityClient = new EntityClient(restClient)
+		const intanceMapper = new InstanceMapper()
+		ebc = new EventBusClient(
+			workerMock,
+			indexerMock,
+			cacheMock,
+			mailMock,
+			loginMock,
+			entityClient,
+			intanceMapper,
+			() => socket,
+		)
+	}
 
 	o.beforeEach(async function () {
 		cacheMock = object({
@@ -39,19 +57,17 @@ o.spec("EventBusClient test", function () {
 			async getLastEntityEventBatchForGroup(groupId: Id): Promise<Id | null> {
 				return null
 			},
-			getServerTimestampMs(): number {
-				return 0
+			async recordSyncTime(): Promise<void> {
+				return
 			},
-			async getLastUpdateTime(): Promise<number | null> {
-				return 0
-			},
-			async setLastUpdateTime(value: number): Promise<void> {
+			async timeSinceLastSync(): Promise<number | null> {
+				return null
 			},
 			async purgeStorage(): Promise<void> {
 			}
 		} as EntityRestCache)
 
-		const user = createUser({
+		user = createUser({
 			userGroup: createGroupMembership({
 				group: "userGroupId",
 			}),
@@ -61,6 +77,7 @@ o.spec("EventBusClient test", function () {
 		when(loginMock.entityEventsReceived(matchers.anything())).thenResolve(undefined)
 		when(loginMock.getLoggedInUser()).thenReturn(user)
 		when(loginMock.isLoggedIn()).thenReturn(true)
+		when(loginMock.createAuthHeaders()).thenReturn({})
 
 		mailMock = object("mail")
 		when(mailMock.entityEventsReceived(matchers.anything())).thenResolve(undefined)
@@ -69,38 +86,110 @@ o.spec("EventBusClient test", function () {
 		when(workerMock.entityEventsReceived(matchers.anything(), matchers.anything())).thenResolve(undefined)
 		when(workerMock.updateCounter(matchers.anything())).thenResolve(undefined)
 		when(workerMock.updateWebSocketState(matchers.anything())).thenResolve(undefined)
-		when(workerMock.sendError(matchers.anything())).thenDo((e) => {
-			throw e
-		})
+		when(workerMock.createProgressMonitor(matchers.anything())).thenResolve(42)
+		when(workerMock.progressWorkDone(matchers.anything(), matchers.anything())).thenResolve(undefined)
 
 		indexerMock = object("indexer")
-		// TODO: ???
-		// when(indexerMock.processEntityEvents(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(undefined)
 
 		restClient = new EntityRestClientMock()
-		const entityClient = new EntityClient(restClient)
-		const intanceMapper = new InstanceMapper()
-		ebc = new EventBusClient(workerMock, indexerMock, cacheMock, mailMock, loginMock, entityClient, intanceMapper)
 
-		// TODO
-		let e = ebc as any
-		e.connect = function (reconnect: boolean) {
-		}
+
+		socket = object<WebSocket>()
+
+		initEventBus()
 	})
 
-	o.spec("loadMissedEntityEvents ", function () {
-		o("When the cache is out of sync with the server, the cache is purged", async function () {
-			when(cacheMock.getServerTimestampMs()).thenReturn(Date.now())
-			await assertThrows(OutOfSyncError, () => ebc.loadMissedEntityEvents())
+	o.spec("initEntityEvents ", function () {
+		const mailGroupId = "mailGroupId"
+
+		o.beforeEach(function () {
+			user.memberships = [
+				createGroupMembership({
+					groupType: GroupType.Mail,
+					group: mailGroupId,
+				})
+			]
+		})
+
+		o("initial connect: when the cache is clean it downloads one batch and initializes cache", async function () {
+			when(cacheMock.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve(null)
+			when(cacheMock.timeSinceLastSync()).thenResolve(null)
+			const batch = createEntityEventBatch({_id: [mailGroupId, "-----------1"]})
+			restClient.addListInstances(batch)
+
+			await ebc.connect(ConnectMode.Initial)
+			await socket.onopen?.(new Event("open"))
+
+			// Did not download anything besides single batch
+			verify(restClient.loadRange(EntityEventBatchTypeRef, mailGroupId, matchers.anything(), matchers.not(1), matchers.anything()), {times: 0})
+			verify(cacheMock.recordSyncTime())
+			// TODO: cache is initialized with batch id here
+		})
+
+		o("initial connect: when the cache is initialized, missed events are loaded", async function () {
+			when(cacheMock.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve("------------")
+			when(cacheMock.timeSinceLastSync()).thenResolve(1)
+			const update = createEntityUpdate({
+				type: "Mail",
+				application: "tutanota",
+				instanceListId: mailGroupId,
+				instanceId: "newBatchId",
+			})
+			const batch = createEntityEventBatch({
+				_id: [mailGroupId, "-----------1"],
+				events: [update],
+			})
+			restClient.addListInstances(batch)
+
+			const eventsReceivedDefer = defer()
+			when(cacheMock.entityEventsReceived({events: [update], batchId: getElementId(batch), groupId: mailGroupId}))
+				.thenDo(() => eventsReceivedDefer.resolve(undefined))
+
+			await ebc.connect(ConnectMode.Initial)
+			await socket.onopen?.(new Event("open"))
+
+			await eventsReceivedDefer.promise
+
+			verify(cacheMock.purgeStorage(), {times: 0})
+			verify(cacheMock.recordSyncTime())
+		})
+
+		o("reconnect: when the cache is out of sync with the server, the cache is purged", async function () {
+			when(cacheMock.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve("lastBatchId")
+			// Make initial connection to simulate reconnect (populate lastEntityEventIds
+			await ebc.connect(ConnectMode.Initial)
+			await socket.onopen?.(new Event("open"))
+
+			// Make it think that it's actually a reconnect
+			when(cacheMock.timeSinceLastSync()).thenResolve(ENTITY_EVENT_BATCH_EXPIRE_MS + 100)
+
+			// initialize events first as well as current time
+			await ebc.connect(ConnectMode.Reconnect)
+			await socket.onopen?.(new Event("open"))
+
 			verify(cacheMock.purgeStorage(), {times: 1})
+			verify(workerMock.sendError(matchers.isA(OutOfSyncError)))
+		})
+
+		o("initial connect: when the cache is out of sync with the server, the cache is purged", async function () {
+			when(cacheMock.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve("lastBatchId")
+			when(cacheMock.timeSinceLastSync()).thenResolve(ENTITY_EVENT_BATCH_EXPIRE_MS + 100)
+
+			await ebc.connect(ConnectMode.Reconnect)
+			await socket.onopen?.(new Event("open"))
+
+			verify(cacheMock.purgeStorage(), {times: 1})
+			verify(workerMock.sendError(matchers.isA(OutOfSyncError)))
 		})
 	})
+
 	o("parallel received event batches are passed sequentially to the entity rest cache", async function () {
 			o.timeout(500)
-			await ebc._onOpen(false)
+			ebc.connect(ConnectMode.Initial)
+			await socket.onopen?.(new Event("open"))
 
-			let messageData1 = createMessageData(1)
-			let messageData2 = createMessageData(2)
+			const messageData1 = createEntityMessage(1)
+			const messageData2 = createEntityMessage(2)
 
 			// Casting ot object here because promise stubber doesn't allow you to just return the promise
 			// We never resolve the promise
@@ -108,13 +197,11 @@ o.spec("EventBusClient test", function () {
 
 
 			// call twice as if it was received in parallel
-			let p1 = ebc._onMessage(
-				{
-					data: messageData1,
-				} as MessageEvent<string>,
-			)
+			const p1 = socket.onmessage?.({
+				data: messageData1,
+			} as MessageEvent<string>)
 
-			let p2 = ebc._onMessage(
+			const p2 = socket.onmessage?.(
 				{
 					data: messageData2,
 				} as MessageEvent<string>,
@@ -128,9 +215,10 @@ o.spec("EventBusClient test", function () {
 	)
 
 	o("counter update", async function () {
-			let counterUpdate = createCounterData({mailGroupId: "group1", counterValue: 4, listId: "list1"})
+			const counterUpdate = createCounterData({mailGroupId: "group1", counterValue: 4, listId: "list1"})
+			await ebc.connect(ConnectMode.Initial)
 
-			await ebc._onMessage(
+			await socket.onmessage?.(
 				{
 					data: createCounterMessage(counterUpdate),
 				} as MessageEvent,
@@ -139,7 +227,7 @@ o.spec("EventBusClient test", function () {
 		},
 	)
 
-	function createMessageData(eventBatchId: number): string {
+	function createEntityMessage(eventBatchId: number): string {
 		const event: WebsocketEntityData = createWebsocketEntityData({
 				eventBatchId: String(eventBatchId),
 				eventBatchOwner: "ownerId",

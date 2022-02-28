@@ -13,7 +13,7 @@ import {SearchFacade} from "./search/SearchFacade"
 import {CustomerFacadeImpl} from "./facades/CustomerFacade"
 import {CounterFacade} from "./facades/CounterFacade"
 import {EventBusClient} from "./EventBusClient"
-import {assertWorkerOrNode, isAdminClient} from "../common/Env"
+import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient} from "../common/Env"
 import {Const} from "../common/TutanotaConstants"
 import type {BrowserData} from "../../misc/ClientConstants"
 import {CalendarFacade} from "./facades/CalendarFacade"
@@ -41,6 +41,7 @@ import {exposeRemote} from "../common/WorkerProxy"
 import {AdminClientRestCacheDummy} from "./rest/AdminClientRestCacheDummy"
 
 assertWorkerOrNode()
+
 export type WorkerLocatorType = {
 	login: LoginFacadeImpl
 	indexer: Indexer
@@ -144,6 +145,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.login,
 		locator.cachingEntityClient,
 		locator.instanceMapper,
+		(path) => new WebSocket(getWebsocketOrigin() + path),
 	)
 	locator.login.init(locator.indexer, locator.eventBusClient)
 	locator.Const = Const
