@@ -25,6 +25,14 @@ import {QueuedBatch} from "../search/EventQueue"
 
 assertWorkerOrNode()
 
+/**
+ *
+ * The minimum size of a range request when extending an existing range
+ * Because we extend by making (potentially) many range requests until we reach the startId
+ * We want to avoid that the requests are too small
+ */
+export const EXTEND_RANGE_MIN_CHUNK_SIZE = 40
+
 export interface IEntityRestCache extends EntityRestInterface {
 	/**
 	 * Clear out the contents of the cache.
@@ -258,15 +266,10 @@ export class EntityRestCache implements IEntityRestCache {
 		if (
 			range == null
 		) {
-			await this.createNewRange(typeRef, listId, start, count, reverse)
-		} else if (
-			!firstBiggerThanSecond(start, range.upper) && !firstBiggerThanSecond(range.lower, start)
-		) {
+			await this.populateNewListWithRange(typeRef, listId, start, count, reverse)
+		} else if (isStartIdWithinRange(range, start)) {
 			await this.extendFromWithinRange(typeRef, listId, start, count, reverse)
-		} else if (
-			(reverse && firstBiggerThanSecond(range.lower, start))
-			|| (!reverse && firstBiggerThanSecond(start, range.upper))
-		) {
+		} else if (isRangeRequestAwayFromExistingRange(range, reverse, start)) {
 			await this.extendAwayFromRange(typeRef, listId, start, count, reverse)
 		} else {
 			await this.extendTowardsRange(typeRef, listId, start, count, reverse)
@@ -278,11 +281,11 @@ export class EntityRestCache implements IEntityRestCache {
 	/**
 	 * Creates a new list range, reading everything from the server that it can
 	 * range:         (none)
-	 * request:       *------>
-	 * range becomes: |------|
+	 * request:       *--------->
+	 * range becomes: |---------|
 	 * @private
 	 */
-	private async createNewRange<T extends ListElementEntity>(
+	private async populateNewListWithRange<T extends ListElementEntity>(
 		typeRef: TypeRef<T>,
 		listId: Id,
 		start: Id,
@@ -301,9 +304,9 @@ export class EntityRestCache implements IEntityRestCache {
 
 	/**
 	 * Returns part of a request from the cache, and the remainder is loaded from the server
-	 * range:          |-----------|
-	 * request:               *----------->
-	 * range becomes: |-------------------|
+	 * range:          |---------|
+	 * request:             *-------------->
+	 * range becomes: |--------------------|
 	 */
 	private async extendFromWithinRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean) {
 
@@ -319,9 +322,9 @@ export class EntityRestCache implements IEntityRestCache {
 	 * Start was outside the range, and we are loading away from the range
 	 * Keeps loading elements from the end of the range in the direction of the startId.
 	 * Returns once all available elements have been loaded or the requested number is in cache
-	 * range:		   |-----------------|
-	 * request:							    *------->
-	 * range becomes:  |----------------------------|
+	 * range:          |---------|
+	 * request:                     *------->
+	 * range becomes:  |--------------------|
 	 */
 	private async extendAwayFromRange<T extends ListElementEntity>(
 		typeRef: TypeRef<T>,
@@ -340,18 +343,23 @@ export class EntityRestCache implements IEntityRestCache {
 				? range.lower
 				: range.upper
 
-			// Load some entities
-			const entities = await this.entityRestClient.loadRange(typeRef, listId, loadStartId, count, reverse)
+			const requestCount = Math.max(count, EXTEND_RANGE_MIN_CHUNK_SIZE)
 
-			await this.updateRangeInStorage(typeRef, listId, count, reverse, entities)
+			// Load some entities
+			const entities = await this.entityRestClient.loadRange(typeRef, listId, loadStartId, requestCount, reverse)
+
+			await this.updateRangeInStorage(typeRef, listId, requestCount, reverse, entities)
+
+			// If we exhausted the entities from the server
+			if (entities.length < requestCount) {
+				break
+			}
 
 			// Try to get enough entities from cache
 			const entitiesFromCache = await this.storage.provideFromRange(typeRef, listId, start, count, reverse)
 
-			// If we exhausted the entities from the server,
-			// Or cache was able to provide the original request
-			// Then we are done
-			if (entities.length < count || entitiesFromCache.length === count) {
+			// If cache is now capable of providing the whole request
+			if (entitiesFromCache.length === count) {
 				break
 			}
 		}
@@ -360,13 +368,13 @@ export class EntityRestCache implements IEntityRestCache {
 	/**
 	 * Loads all elements from the startId in the direction of the range
 	 * Once complete, returns as many elements as it can from the original request
-	 * range:          |--------------|
-	 * request:    	    			        <------*
-	 * range becomes:  |---------------------------|
+	 * range:         |---------|
+	 * request:                     <------*
+	 * range becomes: |--------------------|
 	 * or
-	 * range:		            |---------|
-	 * request:		      <-------------------*
-	 * range becomes:     |--------------------|
+	 * range:              |---------|
+	 * request:       <-------------------*
+	 * range becomes: |--------------------|
 	 */
 	private async extendTowardsRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean) {
 
@@ -378,10 +386,14 @@ export class EntityRestCache implements IEntityRestCache {
 				? range.upper
 				: range.lower
 
-			const entities = await this.entityRestClient.loadRange(typeRef, listId, loadStartId, count, !reverse)
+			const requestCount = Math.max(count, EXTEND_RANGE_MIN_CHUNK_SIZE)
 
-			await this.updateRangeInStorage(typeRef, listId, count, !reverse, entities)
+			const entities = await this.entityRestClient.loadRange(typeRef, listId, loadStartId, requestCount, !reverse)
 
+			await this.updateRangeInStorage(typeRef, listId, requestCount, !reverse, entities)
+
+			// The call to `updateRangeInStorage` will have set the range bounds to GENERATED_MIN_ID/GENERATED_MAX_ID
+			// in the case that we have exhausted all elements from the server, so if that happens, we will also end up breaking here
 			if (await this.storage.isElementIdInCacheRange(typeRef, listId, start)) {
 				break
 			}
@@ -684,4 +696,21 @@ export function getUpdateInstanceId(update: EntityUpdate): {instanceListId: Id |
 		instanceListId = update.instanceListId
 	}
 	return {instanceListId, instanceId: update.instanceId}
+}
+
+/**
+ * Check if a range request begins inside of an existing range
+ */
+function isStartIdWithinRange(range: Range, startId: Id): boolean {
+	return !firstBiggerThanSecond(startId, range.upper) && !firstBiggerThanSecond(range.lower, startId)
+}
+
+/**
+ * Check if a range request is going away from an existing range
+ * Assumes that the range request doesn't start inside the range
+ */
+function isRangeRequestAwayFromExistingRange(range: Range, reverse: boolean, start: string) {
+	return reverse
+		? firstBiggerThanSecond(range.lower, start)
+		: firstBiggerThanSecond(start, range.upper)
 }

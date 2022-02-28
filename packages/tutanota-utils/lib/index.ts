@@ -36,6 +36,8 @@ export {
 	difference,
 	symmetricDifference,
 	partition,
+	partitionAsync,
+	arrayOf
 } from "./ArrayUtils.js"
 export {AsyncResult} from "./AsyncResult.js"
 export {intersection} from "./CollectionUtils.js"

@@ -2,6 +2,7 @@ import o from "ospec"
 import {
 	arrayEquals,
 	arrayEqualsWithPredicate,
+	arrayOf,
 	concat,
 	deduplicate,
 	difference,
@@ -832,5 +833,16 @@ o.spec("array utils", function () {
 				e => e === 9 ? Promise.reject(new Error()) : Promise.resolve(true))
 			)
 		})
+	})
+
+	o("arrayOf test", function() {
+		o(arrayOf(0, () => { throw new Error("I shouldn'ta been called!!!")}))
+			.deepEquals([])
+
+		o(arrayOf(1, idx => (idx + 1) + " one thousand"))
+			.deepEquals(["1 one thousand"])
+
+		o(arrayOf(2, idx => (idx + 1) + " one thousand"))
+			.deepEquals(["1 one thousand", "2 one thousand"])
 	})
 })
