@@ -1,7 +1,7 @@
 import path from "path"
 import fs from "fs"
 import stream from "stream"
-import {spawn, execFileSync} from "child_process"
+import {execFileSync, spawn} from "child_process"
 
 /**
  * Rebuild native lib for either current node version or for electron version and
@@ -91,5 +91,5 @@ async function rebuild({environment, rootDir, electronVersion, log, nodeModule})
 }
 
 function getVersion(nodeModule) {
-	return execFileSync("npm", ["info", nodeModule, "version"]).toString().trim()
+	return JSON.parse(execFileSync("npm", ["list", nodeModule, "--json"]).toString().trim()).dependencies[nodeModule].version
 }
