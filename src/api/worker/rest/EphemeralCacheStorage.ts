@@ -14,9 +14,9 @@ type ListTypeCache = Map<Id, {
 }>
 
 export class EphemeralCacheStorage implements CacheStorage {
-
 	private readonly entities: Map<string, Map<Id, ElementEntity>> = new Map()
 	private readonly lists: Map<string, ListTypeCache> = new Map()
+	private lastUpdateTime: number | null = null
 
 	/**
 	 * Get a given entity from the cache, expects that you have already checked for existence
@@ -202,13 +202,11 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 
-	getLastUpdateTime(): Promise<number | null> {
-		//we do not have a persistent storage and thus always want to get from the server
-		return Promise.resolve(null)
+	async getLastUpdateTime(): Promise<number | null> {
+		return this.lastUpdateTime
 	}
 
-	putLastUpdateTime(value: number): Promise<void> {
-		return Promise.resolve()
+	async putLastUpdateTime(value: number): Promise<void> {
+		this.lastUpdateTime = value
 	}
-
 }

@@ -1,7 +1,7 @@
 import {LoginFacadeImpl} from "./facades/LoginFacade"
 import type {MailFacade} from "./facades/MailFacade"
 import type {WorkerImpl} from "./WorkerImpl"
-import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isTest, Mode} from "../common/Env"
+import {assertWorkerOrNode, isAdminClient, isTest} from "../common/Env"
 import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
 import {
 	AccessBlockedError,
@@ -13,7 +13,7 @@ import {
 	SessionExpiredError,
 } from "../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
-import {assertNotNull, binarySearch, delay, downcast, identity, lastThrow, neverNull, ofClass, randomIntFromInterval} from "@tutao/tutanota-utils"
+import {assertNotNull, binarySearch, delay, identity, lastThrow, ofClass, randomIntFromInterval} from "@tutao/tutanota-utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import type {Indexer} from "./search/Indexer"
 import {CloseEventBusOption, GroupType, SECOND_MS} from "../common/TutanotaConstants"
@@ -33,7 +33,7 @@ import {NoopProgressMonitor} from "../common/utils/ProgressMonitor"
 import {compareOldestFirst, firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getLetId, isSameId} from "../common/utils/EntityUtils"
 import {InstanceMapper} from "./crypto/InstanceMapper"
 import {WsConnectionState} from "../main/WorkerClient";
-import {IEntityRestCache, isUsingOfflineCache} from "./rest/EntityRestCache"
+import {IEntityRestCache} from "./rest/EntityRestCache"
 
 assertWorkerOrNode()
 
@@ -70,6 +70,11 @@ const enum MessageType {
 	LeaderStatus = "leaderStatus",
 }
 
+export const enum ConnectMode {
+	Initial,
+	Reconnect,
+}
+
 export class EventBusClient {
 	private state: EventBusState
 	private socket: WebSocket | null
@@ -89,13 +94,6 @@ export class EventBusClient {
 	 */
 	private lastAddedBatchForGroup: Map<Id, Id>
 
-	/**
-	 * The last time we received an EntityEventBatch or checked for updates. we use this to find out if our data has expired.
-	 * see ENTITY_EVENT_BATCH_EXPIRE_MS
-	 *
-	 * nullable because we cannot load it during construction, since it comes from the native part
-	 */
-	private lastUpdateTime: number | null = null
 	private lastAntiphishingMarkersId: Id | null = null
 
 	/** Queue to process all events. */
@@ -121,6 +119,7 @@ export class EventBusClient {
 		private readonly login: LoginFacadeImpl,
 		private readonly entity: EntityClient,
 		private readonly instanceMapper: InstanceMapper,
+		private readonly socketFactory: (path: string) => WebSocket,
 	) {
 		this.state = EventBusState.Automatic
 		this.lastEntityEventIds = new Map()
@@ -141,8 +140,6 @@ export class EventBusClient {
 
 		this.lastAddedBatchForGroup.clear()
 
-		this.lastUpdateTime = null
-
 		this.eventQueue.pause()
 
 		this.eventQueue.clear()
@@ -152,15 +149,10 @@ export class EventBusClient {
 
 	/**
 	 * Opens a WebSocket connection to receive server events.
-	 * @param reconnect Set to true if the connection has been opened before.
-	 * @returns The event bus client object.
+	 * @param connectMode
 	 */
-	connect(reconnect: boolean) {
-		if (env.mode === Mode.Test) {
-			return
-		}
-
-		console.log(new Date().toISOString(), "ws connect reconnect=", reconnect, "state:", this.state)
+	connect(connectMode: ConnectMode) {
+		console.log("ws connect reconnect:", connectMode === ConnectMode.Reconnect, "state:", this.state)
 		// make sure a retry will be cancelled by setting _serviceUnavailableRetry to null
 		this.serviceUnavailableRetry = null
 
@@ -172,7 +164,9 @@ export class EventBusClient {
 			this.progressMonitor.completed()
 		}
 
-		this.progressMonitor = reconnect ? new ProgressMonitorDelegate(this.eventGroups().length + 2, this.worker) : new NoopProgressMonitor()
+		this.progressMonitor = connectMode === ConnectMode.Reconnect
+			? new ProgressMonitorDelegate(this.eventGroups().length + 2, this.worker)
+			: new NoopProgressMonitor()
 
 		this.progressMonitor.workDone(1)
 
@@ -194,54 +188,42 @@ export class EventBusClient {
 			"&accessToken=" +
 			authHeaders.accessToken +
 			(this.lastAntiphishingMarkersId ? "&lastPhishingMarkersId=" + this.lastAntiphishingMarkersId : "")
-		let url = getWebsocketOrigin() + "/event?" + authQuery
+		const path = "/event?" + authQuery
 
 		this.unsubscribeFromOldWebsocket()
 
-		this.socket = new WebSocket(url)
-		this.socket.onopen = () => this._onOpen(reconnect)
+		this.socket = this.socketFactory(path)
+		this.socket.onopen = () => this.onOpen(connectMode)
 		this.socket.onclose = (event: CloseEvent) => this.onClose(event)
 		this.socket.onerror = (error: any) => this.onError(error)
-		this.socket.onmessage = (message: MessageEvent<string>) => this._onMessage(message)
+		this.socket.onmessage = (message: MessageEvent<string>) => this.onMessage(message)
 	}
 
 	// Returning promise for tests
-	_onOpen(reconnect: boolean): Promise<void> {
+	private onOpen(connectMode: ConnectMode): Promise<void> {
 		this.failedConnectionAttempts = 0
-		console.log("ws open: ", new Date(), "state:", this.state)
+		console.log("ws open state:", this.state)
 
 		// Indicate some progress right away
 		this.progressMonitor.workDone(1)
 
-		const p = this.initEntityEvents(reconnect)
+		const p = this.initEntityEvents(connectMode)
 
 		this.worker.updateWebSocketState(WsConnectionState.connected)
 
 		return p
 	}
 
-	private async initEntityEvents(reconnect: boolean): Promise<void> {
+	private async initEntityEvents(connectMode: ConnectMode): Promise<void> {
 		// pause processing entity update message while initializing event queue
 		this.entityUpdateMessageQueue.pause()
 
 		// pause event queue and add all missed entity events first
 		this.eventQueue.pause()
 
-		// if it's the first connection on desktop, we want to fetch events since the last login
+		const existingConnection = connectMode == ConnectMode.Reconnect && this.lastEntityEventIds.size > 0
+		const p = (existingConnection) ? this.loadMissedEntityEvents() : this.initOnNewConnection()
 
-		let existingConnection = reconnect && this.lastEntityEventIds.size > 0
-		let p: Promise<void>
-		if (existingConnection) {
-			p = this.loadMissedEntityEvents()
-		} else {
-			// If we have offline cache then we need to both set last ids from persistence and load batches since then
-			if (isUsingOfflineCache()) {
-				p = this.setLatestEntityEventIds()
-						.then(() => this.loadMissedEntityEvents())
-			} else {
-				p = this.setLatestEntityEventIds()
-			}
-		}
 		return p
 			.then(() => {
 				this.entityUpdateMessageQueue.resume()
@@ -249,12 +231,12 @@ export class EventBusClient {
 				this.eventQueue.resume()
 			})
 			.catch(ofClass(ConnectionError, e => {
-				console.log("not connected in connect(), close websocket", e)
+				console.log("ws not connected in connect(), close websocket", e)
 				this.close(CloseEventBusOption.Reconnect)
 			}))
 			.catch(ofClass(CancelledError, () => {
 				// the processing was aborted due to a reconnect. do not reset any attributes because they might already be in use since reconnection
-				console.log("cancelled retry process entity events after reconnect")
+				console.log("ws cancelled retry process entity events after reconnect")
 			}))
 			.catch(ofClass(ServiceUnavailableError, async e => {
 				// a ServiceUnavailableError is a temporary error and we have to retry to avoid data inconsistencies
@@ -263,22 +245,27 @@ export class EventBusClient {
 				// for a new connection we reset the last entity event ids because otherwise this would not be completed in the next try
 				if (!existingConnection) {
 					this.lastEntityEventIds.clear()
-
-					this.lastUpdateTime = await this.cache.getLastUpdateTime() ?? 0
 				}
 
-				console.log("retry init entity events in 30s", e)
+				console.log("ws retry init entity events in ", RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS, e)
 				let promise = delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
 					// if we have a websocket reconnect we have to stop retrying
 					if (this.serviceUnavailableRetry === promise) {
-						console.log("retry initializing entity events")
-						return this.initEntityEvents(reconnect)
+						console.log("ws retry initializing entity events")
+						return this.initEntityEvents(connectMode)
 					} else {
-						console.log("cancel initializing entity events")
+						console.log("ws cancel initializing entity events")
 					}
 				})
 				this.serviceUnavailableRetry = promise
 				return promise
+			}))
+			.catch(ofClass(OutOfSyncError, async (e) => {
+				// we did not check for updates for too long, so some missed EntityEventBatches can not be loaded any more
+				// purge cache if out of sync
+				await this.cache.purgeStorage()
+				// We want users to re-login. By the time we get here they probably already have loaded some entities which we cannot update
+				throw e
 			}))
 			.catch(e => {
 				this.entityUpdateMessageQueue.resume()
@@ -289,12 +276,31 @@ export class EventBusClient {
 			})
 	}
 
+	private async initOnNewConnection() {
+		const {lastIds, someIdsWereCached} = await this.retrieveLastEntityEventIds()
+		// First, we record lastEntityEventIds. We need this to know what we need to re-fetch.
+		// This is not the same as the cache because we might have already downloaded them but cache might not have processed them yet.
+		// Important: do it in one step so that we don't have partial IDs in the map in case an error occurs.
+		this.lastEntityEventIds = lastIds
+
+		// Second, we need to initialize the cache too.
+		if (someIdsWereCached) {
+			// If some of the last IDs were retrieved from the cache then we want to load from that point to bring cache up-to-date. This is mostly important for
+			// persistent cache.
+			await this.loadMissedEntityEvents()
+		} else {
+			// If the cache is clean then this is a clean cache (either ephemeral after first connect or persistent with empty DB).
+			// We need to record the time even if we don't process anything to later know if we are out of sync or not.
+			await this.cache.recordSyncTime()
+		}
+	}
+
 	/**
 	 * Sends a close event to the server and finally closes the connection.
 	 * The state of this event bus client is reset and the client is terminated (does not automatically reconnect) except reconnect == true
 	 */
 	close(closeOption: CloseEventBusOption) {
-		console.log(new Date().toISOString(), "ws close closeOption: ", closeOption, "state:", this.state)
+		console.log("ws close closeOption: ", closeOption, "state:", this.state)
 
 		switch (closeOption) {
 			case CloseEventBusOption.Terminate:
@@ -322,7 +328,7 @@ export class EventBusClient {
 		try {
 			await this.processEventBatch(modification)
 		} catch (e) {
-			console.log("Error while processing event batches", e)
+			console.log("ws error while processing event batches", e)
 			this.worker.sendError(e)
 			throw e
 		}
@@ -356,10 +362,10 @@ export class EventBusClient {
 	}
 
 	private onError(error: any) {
-		console.log(new Date().toISOString(), "ws error: ", error, JSON.stringify(error), "state:", this.state)
+		console.log("ws error:", error, JSON.stringify(error), "state:", this.state)
 	}
 
-	async _onMessage(message: MessageEvent<string>): Promise<void> {
+	private async onMessage(message: MessageEvent<string>): Promise<void> {
 		const [type, value] = message.data.split(";")
 
 		switch (type) {
@@ -407,7 +413,7 @@ export class EventBusClient {
 
 	private onClose(event: CloseEvent) {
 		this.failedConnectionAttempts++
-		console.log(new Date().toISOString(), "ws _close: ", event, "state:", this.state)
+		console.log("ws close event:", event, "state:", this.state)
 
 		this.login.setLeaderStatus(
 			createWebsocketLeaderStatus({
@@ -454,7 +460,7 @@ export class EventBusClient {
 	}
 
 	tryReconnect(closeIfOpen: boolean, enableAutomaticState: boolean, delay: number | null = null) {
-		console.log("tryReconnect, closeIfOpen", closeIfOpen, "enableAutomaticState", enableAutomaticState, "delay", delay)
+		console.log("ws tryReconnect closeIfOpen:", closeIfOpen, "enableAutomaticState:", enableAutomaticState, "delay:", delay)
 
 		if (this.reconnectTimer) {
 			// prevent reconnect race-condition
@@ -474,13 +480,12 @@ export class EventBusClient {
 	 */
 	private reconnect(closeIfOpen: boolean, enableAutomaticState: boolean) {
 		console.log(
-			new Date().toISOString(),
-			"ws _reconnect socket state (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): " + (this.socket ? this.socket.readyState : "null"),
+			"ws reconnect socket.readyState: (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): " + (this.socket ? this.socket.readyState : "null"),
 			"state:",
 			this.state,
-			"closeIfOpen",
+			"closeIfOpen:",
 			closeIfOpen,
-			"enableAutomaticState",
+			"enableAutomaticState:",
 			enableAutomaticState,
 		)
 
@@ -490,7 +495,7 @@ export class EventBusClient {
 
 		if (closeIfOpen && this.socket && this.socket.readyState === WebSocket.OPEN) {
 			this.immediateReconnect = true
-			neverNull(this.socket).close()
+			this.socket.close()
 		} else if (
 			(this.socket == null || this.socket.readyState === WebSocket.CLOSED || this.socket.readyState === WebSocket.CLOSING) &&
 			this.state !== EventBusState.Terminated &&
@@ -502,85 +507,78 @@ export class EventBusClient {
 				clearTimeout(this.connectTimer)
 			}
 
-			this.connectTimer = setTimeout(() => this.connect(true), 100)
+			this.connectTimer = setTimeout(() => this.connect(ConnectMode.Reconnect), 100)
 		}
 	}
 
 	/**
-	 * stores the latest event batch ids for each of the users groups or min id if there is no event batch yet.
-	 * this is needed to know from where to start loading missed events after a reconnect
+	 * Gets the latest event batch ids for each of the users groups or min id if there is no event batch yet.
+	 * This is needed to know from where to start loading missed events when we connect.
 	 */
-	private async setLatestEntityEventIds(): Promise<void> {
+	private async retrieveLastEntityEventIds(): Promise<{lastIds: Map<Id, Array<Id>>, someIdsWereCached: boolean}> {
 		// set all last event ids in one step to avoid that we have just set them for a few groups when a ServiceUnavailableError occurs
 		const lastIds: Map<Id, Array<Id>> = new Map()
+		let someIdsWereCached = false
 		for (const groupId of this.eventGroups()) {
 			const cachedBatchId = await this.cache.getLastEntityEventBatchForGroup(groupId)
 			if (cachedBatchId != null) {
 				lastIds.set(groupId, [cachedBatchId])
+				someIdsWereCached = true
 			} else {
 				const batches = await this.entity.loadRange(EntityEventBatchTypeRef, groupId, GENERATED_MAX_ID, 1, true)
-				lastIds.set(groupId, [batches.length === 1 ? getLetId(batches[0])[1] : GENERATED_MIN_ID])
+				const id = batches.length === 1 ? getElementId(batches[0]) : GENERATED_MIN_ID
+				lastIds.set(groupId, [id])
 			}
 		}
 
-		this.lastEntityEventIds = lastIds
-		this.lastUpdateTime = this.cache.getServerTimestampMs()
-		await this.cache.setLastUpdateTime(this.lastUpdateTime)
+		return {lastIds, someIdsWereCached}
 	}
 
-	//visible for testing
-	async loadMissedEntityEvents(): Promise<void> {
-		if (this.login.isLoggedIn()) {
-			const now = this.cache.getServerTimestampMs()
+	/** Load event batches since the last time we were connected to bring cache and other things up-to-date. */
+	private async loadMissedEntityEvents(): Promise<void> {
+		if (!this.login.isLoggedIn()) {
+			return
+		}
 
-			if (this.lastUpdateTime == null) {
-				this.lastUpdateTime = await this.cache.getLastUpdateTime() ?? 0
-			}
+		// We try to detect whether event batches have already expired.
+		// If this happened we don't need to download anything, we need to purge the cache and start all over.
+		const sinceLastUpdate = await this.cache.timeSinceLastSync()
+		if (sinceLastUpdate != null && sinceLastUpdate > ENTITY_EVENT_BATCH_EXPIRE_MS) {
+			console.log("ws cache is out of sync, purging...")
 
-			if (now > this.lastUpdateTime + ENTITY_EVENT_BATCH_EXPIRE_MS) {
+			// Allow the progress bar to complete
+			this.progressMonitor.workDone(this.eventGroups().length)
 
-				console.log("cache is out of sync, purging...")
-
-				// Allow the progress bar to complete
-				this.progressMonitor.workDone(this.eventGroups().length)
-
-				// we did not check for updates for too long, so some missed EntityEventBatches can not be loaded any more
-				// purge cache if out of sync
-				await this.cache.purgeStorage()
-				//If in memory cached is used user has to log out and in again to clean the cache so we return an error. We might also purge the in memory cache.
-				if (!isUsingOfflineCache()) {
-					await this.worker.sendError(new OutOfSyncError("some missed EntityEventBatches cannot be loaded any more"))
-				}
-			} else {
-				for (let groupId of this.eventGroups()) {
-					let eventBatches
-					try {
-						eventBatches = await this.entity.loadAll(EntityEventBatchTypeRef, groupId, this.getLastEventBatchIdOrMinIdForGroup(groupId))
-					} catch (e) {
-						if (e instanceof NotAuthorizedError) {
-							console.log("could not download entity updates => lost permission")
-
-							// We need to do this to mark group as "processed", otherwise progress bar will get stuck
-							this.progressMonitor.workDone(1)
-							continue
-						} else {
-							throw e
-						}
-					}
-					if (eventBatches.length === 0) {
-						// There won't be a callback from the queue to process the event so we mark this group as
-						// completed right away
+			throw new OutOfSyncError("some missed EntityEventBatches cannot be loaded any more")
+		} else {
+			for (let groupId of this.eventGroups()) {
+				let eventBatches
+				try {
+					eventBatches = await this.entity.loadAll(EntityEventBatchTypeRef, groupId, this.getLastEventBatchIdOrMinIdForGroup(groupId))
+				} catch (e) {
+					if (e instanceof NotAuthorizedError) {
+						console.log("ws could not download entity updates, lost permission")
+						// We need to do this to mark group as "processed", otherwise progress bar will get stuck
 						this.progressMonitor.workDone(1)
+						continue
 					} else {
-						for (const batch of eventBatches) {
-							this.addBatch(getElementId(batch), groupId, batch.events)
-						}
+						throw e
 					}
 				}
-
-				this.lastUpdateTime = this.cache.getServerTimestampMs()
-				await this.cache.setLastUpdateTime(this.lastUpdateTime)
+				if (eventBatches.length === 0) {
+					// There won't be a callback from the queue to process the event so we mark this group as
+					// completed right away
+					this.progressMonitor.workDone(1)
+				} else {
+					for (const batch of eventBatches) {
+						this.addBatch(getElementId(batch), groupId, batch.events)
+					}
+				}
 			}
+
+			// We've loaded all the batches, we've added them to the queue, we can let the cache remember sync point for us to detect out of sync now.
+			// It is possible that we will record the time before the batch will be processed but the risk is low.
+			await this.cache.recordSyncTime()
 		}
 	}
 
@@ -633,7 +631,7 @@ export class EventBusClient {
 			}
 		}).catch(ofClass(ServiceUnavailableError, e => {
 			// a ServiceUnavailableError is a temporary error and we have to retry to avoid data inconsistencies
-			console.log("retry processing event in 30s", e)
+			console.log("ws retry processing event in 30s", e)
 			let promise = delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
 				// if we have a websocket reconnect we have to stop retrying
 				if (this.serviceUnavailableRetry === promise) {

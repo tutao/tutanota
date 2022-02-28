@@ -6,13 +6,6 @@ import {TypeRef} from "@tutao/tutanota-utils"
 import {IEntityRestCache} from "./EntityRestCache"
 
 export class AdminClientRestCacheDummy implements IEntityRestCache {
-
-	getServerTimestampMs(): number {
-		// this currently only used to check if the cache is out of the sync with the server
-		// since the admin client doesn't have a cache
-		return 0
-	}
-
 	async entityEventsReceived(batch: QueuedBatch): Promise<Array<EntityUpdate>> {
 		return batch.events
 	}
@@ -53,13 +46,11 @@ export class AdminClientRestCacheDummy implements IEntityRestCache {
 		return null
 	}
 
-	async getLastUpdateTime(): Promise<number | null> {
-		return null
-	}
-
-	async setLastUpdateTime(value: number): Promise<void> {
+	async recordSyncTime(): Promise<void> {
 		return
 	}
 
-
+	async timeSinceLastSync(): Promise<number | null> {
+		return null
+	}
 }

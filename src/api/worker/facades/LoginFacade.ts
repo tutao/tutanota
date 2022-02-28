@@ -33,7 +33,7 @@ import {UserTypeRef} from "../../entities/sys/User"
 import {HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../common/Env"
 import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
-import {EventBusClient} from "../EventBusClient"
+import {ConnectMode, EventBusClient} from "../EventBusClient"
 import {createCreateSessionData} from "../../entities/sys/CreateSessionData"
 import type {CreateSessionReturn} from "../../entities/sys/CreateSessionReturn"
 import {CreateSessionReturnTypeRef} from "../../entities/sys/CreateSessionReturn"
@@ -493,7 +493,7 @@ export class LoginFacadeImpl implements LoginFacade {
 					   if (userIdFromFormerLogin) {
 						   this._eventBusClient.tryReconnect(true, true)
 					   } else {
-						   this._eventBusClient.connect(false)
+						   this._eventBusClient.connect(ConnectMode.Initial)
 					   }
 				   })
 				   .then(() => this.storeEntropy())

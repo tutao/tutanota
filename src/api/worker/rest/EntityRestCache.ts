@@ -45,20 +45,15 @@ export interface IEntityRestCache extends EntityRestInterface {
 	getLastEntityEventBatchForGroup(groupId: Id): Promise<Id | null>;
 
 	/**
-	 * Gets the current time on the server.
+	 * Persist the last time client downloaded event batches. This is not the last *processed* item, merely when things were *downloaded*. We use it to
+	 * detect out-of-sync.
 	 */
-	getServerTimestampMs(): number;
+	recordSyncTime(): Promise<void>;
 
 	/**
-	 * Get from the offline cache the last time that entity events were processed.
+	 * Fetch the time since last time we downloaded event batches.
 	 */
-	getLastUpdateTime(): Promise<number | null>;
-
-	/**
-	 * Writes the last time that entity events were processed to the database.
-	 */
-
-	setLastUpdateTime(value: number): Promise<void>;
+	timeSinceLastSync(): Promise<number | null>;
 }
 
 
@@ -107,7 +102,6 @@ export interface CacheStorage {
 	getLastBatchIdForGroup(groupId: Id): Promise<Id | null>;
 
 	purgeStorage(): Promise<void>
-
 
 	getLastUpdateTime(): Promise<number | null>
 
@@ -208,17 +202,22 @@ export class EntityRestCache implements IEntityRestCache {
 		return this.storage.purgeStorage()
 	}
 
+	async recordSyncTime(): Promise<void> {
+		const timestamp = this.getServerTimestampMs()
+		await this.storage.putLastUpdateTime(timestamp)
+	}
 
-	getServerTimestampMs(): number {
+	async timeSinceLastSync(): Promise<number | null> {
+		const lastUpdate = await this.storage.getLastUpdateTime()
+		if (lastUpdate == null) {
+			return null
+		}
+		const now = this.getServerTimestampMs()
+		return now - lastUpdate
+	}
+
+	private getServerTimestampMs(): number {
 		return this.entityRestClient.getRestClient().getServerTimestampMs()
-	}
-
-	setLastUpdateTime(value: number): Promise<void> {
-		return this.storage.putLastUpdateTime(value)
-	}
-
-	async getLastUpdateTime(): Promise<number | null> {
-		return (await this.storage.getLastUpdateTime())
 	}
 
 	/**
