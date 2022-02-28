@@ -49,19 +49,21 @@ export const enum EventBusState {
 export const ENTITY_EVENT_BATCH_EXPIRE_MS = 44 * 24 * 60 * 60 * 1000
 const RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS = 30000
 const NORMAL_SHUTDOWN_CLOSE_CODE = 1
-const LARGE_RECONNECT_INTERVAL = [60, 120] as const
-const SMALL_RECONNECT_INTERVAL = [5, 10] as const
-const MEDIUM_RECONNECT_INTERVAL = [20, 40] as const
+/**
+ * Reconnection interval bounds. When we reconnect we pick a random number of seconds in a range. The range depends on the number of attempts and server
+ * return.
+ * */
+const RECONNECT_INTERVAL = Object.freeze({
+	SMALL: [5, 10],
+	MEDIUM: [20, 40],
+	LARGE: [60, 120],
+} as const)
+// we store the last 1000 event ids per group, so we know if an event was already processed.
+// it is not sufficient to check the last event id because a smaller event id may arrive later
+// than a bigger one if the requests are processed in parallel on the server
+const MAX_EVENT_IDS_QUEUE_LENGTH = 1000
 
 export class EventBusClient {
-	private _MAX_EVENT_IDS_QUEUE_LENGTH: number
-	private readonly indexer: Indexer
-	private readonly cache: IEntityRestCache
-	private readonly entity: EntityClient
-	// needed for test
-	_worker: WorkerImpl
-	private readonly mail: MailFacade
-	private readonly login: LoginFacadeImpl
 	// needed for test
 	_state: EventBusState
 	private socket: WebSocket | null
@@ -104,24 +106,16 @@ export class EventBusClient {
 	private serviceUnavailableRetry: Promise<void> | null = null
 	private failedConnectionAttempts: number = 0
 	private progressMonitor: IProgressMonitor
-	private instanceMapper: InstanceMapper
 
 	constructor(
-		worker: WorkerImpl,
-		indexer: Indexer,
-		cache: IEntityRestCache,
-		mail: MailFacade,
-		login: LoginFacadeImpl,
-		entityClient: EntityClient,
-		instanceMapper: InstanceMapper,
+		private readonly worker: WorkerImpl,
+		private readonly indexer: Indexer,
+		private readonly cache: IEntityRestCache,
+		private readonly mail: MailFacade,
+		private readonly login: LoginFacadeImpl,
+		private readonly entity: EntityClient,
+		private readonly instanceMapper: InstanceMapper,
 	) {
-		this.indexer = indexer
-		this.cache = cache
-		this.entity = entityClient
-		this._worker = worker
-		this.mail = mail
-		this.login = login
-		this.instanceMapper = instanceMapper
 		this._state = EventBusState.Automatic
 		this.lastEntityEventIds = new Map()
 		this.lastAddedBatchForGroup = new Map()
@@ -132,11 +126,6 @@ export class EventBusClient {
 		this.eventQueue = new EventQueue(true, modification => this.eventQueueCallback(modification))
 		this.entityUpdateMessageQueue = new EventQueue(false, (batch) => this.entityUpdateMessageQueueCallback(batch))
 		this.reset()
-
-		// we store the last 1000 event ids per group, so we know if an event was already processed.
-		// it is not sufficient to check the last event id because a smaller event id may arrive later
-		// than a bigger one if the requests are processed in parallel on the server
-		this._MAX_EVENT_IDS_QUEUE_LENGTH = 1000
 	}
 
 	private reset() {
@@ -169,7 +158,7 @@ export class EventBusClient {
 		// make sure a retry will be cancelled by setting _serviceUnavailableRetry to null
 		this.serviceUnavailableRetry = null
 
-		this._worker.updateWebSocketState(WsConnectionState.connecting)
+		this.worker.updateWebSocketState(WsConnectionState.connecting)
 
 		// Task for updating events are number of groups + 2. Use 2 as base for reconnect state.
 		if (this.progressMonitor) {
@@ -177,7 +166,7 @@ export class EventBusClient {
 			this.progressMonitor.completed()
 		}
 
-		this.progressMonitor = reconnect ? new ProgressMonitorDelegate(this.eventGroups().length + 2, this._worker) : new NoopProgressMonitor()
+		this.progressMonitor = reconnect ? new ProgressMonitorDelegate(this.eventGroups().length + 2, this.worker) : new NoopProgressMonitor()
 
 		this.progressMonitor.workDone(1)
 
@@ -224,7 +213,7 @@ export class EventBusClient {
 
 		const p = this.initEntityEvents(reconnect)
 
-		this._worker.updateWebSocketState(WsConnectionState.connected)
+		this.worker.updateWebSocketState(WsConnectionState.connected)
 
 		return p
 	}
@@ -261,7 +250,7 @@ export class EventBusClient {
 				console.log("not connected in connect(), close websocket", e)
 				this.close(CloseEventBusOption.Reconnect)
 			}))
-			.catch(ofClass(CancelledError, e => {
+			.catch(ofClass(CancelledError, () => {
 				// the processing was aborted due to a reconnect. do not reset any attributes because they might already be in use since reconnection
 				console.log("cancelled retry process entity events after reconnect")
 			}))
@@ -294,7 +283,7 @@ export class EventBusClient {
 
 				this.eventQueue.resume()
 
-				this._worker.sendError(e)
+				this.worker.sendError(e)
 			})
 	}
 
@@ -314,12 +303,12 @@ export class EventBusClient {
 			case CloseEventBusOption.Pause:
 				this._state = EventBusState.Suspended
 
-				this._worker.updateWebSocketState(WsConnectionState.connecting)
+				this.worker.updateWebSocketState(WsConnectionState.connecting)
 
 				break
 
 			case CloseEventBusOption.Reconnect:
-				this._worker.updateWebSocketState(WsConnectionState.connecting)
+				this.worker.updateWebSocketState(WsConnectionState.connecting)
 
 				break
 		}
@@ -332,7 +321,7 @@ export class EventBusClient {
 			await this.processEventBatch(modification)
 		} catch (e) {
 			console.log("Error while processing event batches", e)
-			this._worker.sendError(e)
+			this.worker.sendError(e)
 			throw e
 		}
 
@@ -361,7 +350,7 @@ export class EventBusClient {
 
 		this.reset()
 
-		this._worker.updateWebSocketState(WsConnectionState.terminated)
+		this.worker.updateWebSocketState(WsConnectionState.terminated)
 	}
 
 	private error(error: any) {
@@ -379,7 +368,7 @@ export class EventBusClient {
 			})
 		} else if (type === "unreadCounterUpdate") {
 			const counterData: WebsocketCounterData = await this.instanceMapper.decryptAndMapToInstance(WebsocketCounterDataTypeModel, JSON.parse(value), null)
-			this._worker.updateCounter(counterData)
+			this.worker.updateCounter(counterData)
 		} else if (type === "phishingMarkers") {
 			return this.instanceMapper.decryptAndMapToInstance<PhishingMarkerWebsocketData>(PhishingMarkerWebsocketDataTypeModel, JSON.parse(value), null).then(data => {
 				this.lastAntiphishingMarkersId = data.lastId
@@ -415,14 +404,14 @@ export class EventBusClient {
 		if ([NotAuthorizedError.CODE, AccessDeactivatedError.CODE, AccessBlockedError.CODE].includes(serverCode)) {
 			this.terminate()
 
-			this._worker.sendError(handleRestError(serverCode, "web socket error", null, null))
+			this.worker.sendError(handleRestError(serverCode, "web socket error", null, null))
 		} else if (serverCode === SessionExpiredError.CODE) {
 			// session is expired. do not try to reconnect until the user creates a new session
 			this._state = EventBusState.Suspended
 
-			this._worker.updateWebSocketState(WsConnectionState.connecting)
+			this.worker.updateWebSocketState(WsConnectionState.connecting)
 		} else if (this._state === EventBusState.Automatic && this.login.isLoggedIn()) {
-			this._worker.updateWebSocketState(WsConnectionState.connecting)
+			this.worker.updateWebSocketState(WsConnectionState.connecting)
 
 			if (this.immediateReconnect) {
 				this.immediateReconnect = false
@@ -431,13 +420,13 @@ export class EventBusClient {
 				let reconnectionInterval: readonly [number, number]
 
 				if (serverCode === NORMAL_SHUTDOWN_CLOSE_CODE) {
-					reconnectionInterval = LARGE_RECONNECT_INTERVAL
+					reconnectionInterval = RECONNECT_INTERVAL.LARGE
 				} else if (this.failedConnectionAttempts === 1) {
-					reconnectionInterval = SMALL_RECONNECT_INTERVAL
+					reconnectionInterval = RECONNECT_INTERVAL.SMALL
 				} else if (this.failedConnectionAttempts === 2) {
-					reconnectionInterval = MEDIUM_RECONNECT_INTERVAL
+					reconnectionInterval = RECONNECT_INTERVAL.MEDIUM
 				} else {
-					reconnectionInterval = LARGE_RECONNECT_INTERVAL
+					reconnectionInterval = RECONNECT_INTERVAL.LARGE
 				}
 
 				this.tryReconnect(false, false, SECOND_MS * randomIntFromInterval(reconnectionInterval[0], reconnectionInterval[1]))
@@ -541,7 +530,7 @@ export class EventBusClient {
 				await this.cache.purgeStorage()
 				//If in memory cached is used user has to log out and in again to clean the cache so we return an error. We might also purge the in memory cache.
 				if (!isUsingOfflineCache()) {
-					await this._worker.sendError(new OutOfSyncError("some missed EntityEventBatches cannot be loaded any more"))
+					await this.worker.sendError(new OutOfSyncError("some missed EntityEventBatches cannot be loaded any more"))
 				}
 			} else {
 				for (let groupId of this.eventGroups()) {
@@ -590,7 +579,7 @@ export class EventBusClient {
 			wasAdded = false
 		}
 
-		if (lastForGroup.length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
+		if (lastForGroup.length > MAX_EVENT_IDS_QUEUE_LENGTH) {
 			lastForGroup.shift()
 		}
 
@@ -606,7 +595,7 @@ export class EventBusClient {
 			const filteredEvents = await this.cache.entityEventsReceived(batch)
 			await this.executeIfNotTerminated(() => this.login.entityEventsReceived(filteredEvents))
 			await this.executeIfNotTerminated(() => this.mail.entityEventsReceived(filteredEvents))
-			await this.executeIfNotTerminated(() => this._worker.entityEventsReceived(filteredEvents, batch.groupId))
+			await this.executeIfNotTerminated(() => this.worker.entityEventsReceived(filteredEvents, batch.groupId))
 
 			// Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
 			// shall not receive the event twice.

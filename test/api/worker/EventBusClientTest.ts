@@ -1,11 +1,11 @@
 import o from "ospec"
-import {EventBusClient, EventBusState} from "../../../src/api/worker/EventBusClient"
+import {EventBusClient} from "../../../src/api/worker/EventBusClient"
 import {OperationType} from "../../../src/api/common/TutanotaConstants"
 import type {EntityUpdate} from "../../../src/api/entities/sys/EntityUpdate"
 import {createEntityUpdate} from "../../../src/api/entities/sys/EntityUpdate"
 import {EntityRestClientMock} from "./EntityRestClientMock"
 import {EntityClient} from "../../../src/api/common/EntityClient"
-import {downcast, noOp} from "@tutao/tutanota-utils"
+import {noOp} from "@tutao/tutanota-utils"
 import {WorkerImpl} from "../../../src/api/worker/WorkerImpl"
 import {LoginFacadeImpl} from "../../../src/api/worker/facades/LoginFacade"
 import {createUser} from "../../../src/api/entities/sys/User"
@@ -97,7 +97,6 @@ o.spec("EventBusClient test", function () {
 	})
 	o("parallel received event batches are passed sequentially to the entity rest cache", async function () {
 			o.timeout(500)
-			ebc._state = EventBusState.Automatic
 			await ebc._onOpen(false)
 
 			let messageData1 = createMessageData(1)
@@ -110,15 +109,15 @@ o.spec("EventBusClient test", function () {
 
 			// call twice as if it was received in parallel
 			let p1 = ebc._message(
-				downcast({
+				{
 					data: messageData1,
-				}),
+				} as MessageEvent<string>,
 			)
 
 			let p2 = ebc._message(
-				downcast({
+				{
 					data: messageData2,
-				}),
+				} as MessageEvent<string>,
 			)
 
 			await Promise.all([p1, p2])
@@ -131,7 +130,6 @@ o.spec("EventBusClient test", function () {
 	o("counter update", async function () {
 			let counterUpdate = createCounterData({mailGroupId: "group1", counterValue: 4, listId: "list1"})
 
-			downcast(workerMock).updateCounter = o.spy(ebc._worker.updateCounter)
 			await ebc._message(
 				{
 					data: createCounterMessage(counterUpdate),
