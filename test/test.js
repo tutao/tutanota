@@ -43,7 +43,9 @@ async function run() {
 
 async function buildWithoutServer(buildOptions, serverOptions) {
 	const bundleWrappers = await build(buildOptions, serverOptions, console.log.bind(console))
-	await bundleWrappers[0].generate()
+	for (const wrapper of bundleWrappers) {
+		await wrapper.generate()
+	}
 }
 
 function runTest(project) {

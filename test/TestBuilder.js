@@ -82,7 +82,6 @@ function resolveTestLibsPlugin() {
 				case "ospec":
 					return "../node_modules/ospec/ospec.js"
 				case "better-sqlite3":
-				case "testdouble":
 				case "crypto":
 				case "xhr2":
 				case "express":
@@ -101,6 +100,7 @@ function resolveTestLibsPlugin() {
 				case "fs":
 				case "buffer":
 				case "winreg":
+				case "testdouble": // cannot bundle it now because nollup
 					return false
 				case "electron":
 					throw new Error(`electron is imported by ${importer}, don't do it in tests`)
