@@ -21,6 +21,7 @@ import type {WebsocketEntityData} from "../entities/sys/WebsocketEntityData"
 import {_TypeModel as WebsocketEntityDataTypeModel} from "../entities/sys/WebsocketEntityData"
 import {CancelledError} from "../common/error/CancelledError"
 import {_TypeModel as PhishingMarkerWebsocketDataTypeModel, PhishingMarkerWebsocketData} from "../entities/tutanota/PhishingMarkerWebsocketData"
+import {_TypeModel as WebsocketCounterDataTypeModel, WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import {EntityClient} from "../common/EntityClient"
 import type {QueuedBatch} from "./search/EventQueue"
@@ -367,7 +368,7 @@ export class EventBusClient {
 		console.log(new Date().toISOString(), "ws error: ", error, JSON.stringify(error), "state:", this._state)
 	}
 
-	_message(message: MessageEvent): Promise<void> {
+	async _message(message: MessageEvent): Promise<void> {
 		//console.log("ws message: ", message.data);
 		const [type, value] = downcast(message.data).split(";")
 
@@ -377,7 +378,8 @@ export class EventBusClient {
 				this.entityUpdateMessageQueue.add(data.eventBatchId, data.eventBatchOwner, data.eventBatch)
 			})
 		} else if (type === "unreadCounterUpdate") {
-			this._worker.updateCounter(JSON.parse(value))
+			const counterData: WebsocketCounterData = await this.instanceMapper.decryptAndMapToInstance(WebsocketCounterDataTypeModel, JSON.parse(value), null)
+			this._worker.updateCounter(counterData)
 		} else if (type === "phishingMarkers") {
 			return this.instanceMapper.decryptAndMapToInstance<PhishingMarkerWebsocketData>(PhishingMarkerWebsocketDataTypeModel, JSON.parse(value), null).then(data => {
 				this.lastAntiphishingMarkersId = data.lastId

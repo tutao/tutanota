@@ -103,7 +103,7 @@ export async function assertThrows<T extends Error>(expected: Class<T>, fn: () =
 		await fn()
 	} catch (e) {
 		o(e instanceof expected).equals(true)(
-			"AssertThrows failed: Expected a " + (expected as any) + " to be thrown, but got a " + e.constructor,
+			"AssertThrows failed: Expected a " + (expected.name) + " to be thrown, but got a " + e,
 		)
 		return e as T
 	}
