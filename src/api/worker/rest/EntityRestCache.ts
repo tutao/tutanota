@@ -45,6 +45,13 @@ export interface IEntityRestCache extends EntityRestInterface {
 	getLastEntityEventBatchForGroup(groupId: Id): Promise<Id | null>;
 
 	/**
+	 * Saved tha batch id of the most recently processed batch manually.
+	 *
+	 * Is needed when the cache is new but we want to make sure that the next time we will download from this moment, even if we don't receive any events.
+	 */
+	setLastEntityEventBatchForGroup(groupId: Id, batchId: Id): Promise<void>;
+
+	/**
 	 * Persist the last time client downloaded event batches. This is not the last *processed* item, merely when things were *downloaded*. We use it to
 	 * detect out-of-sync.
 	 */
@@ -196,6 +203,10 @@ export class EntityRestCache implements IEntityRestCache {
 
 	getLastEntityEventBatchForGroup(groupId: Id): Promise<Id | null> {
 		return this.storage.getLastBatchIdForGroup(groupId)
+	}
+
+	setLastEntityEventBatchForGroup(groupId: Id, batchId: Id): Promise<void> {
+		return this.storage.putLastBatchIdForGroup(groupId, batchId)
 	}
 
 	purgeStorage(): Promise<void> {

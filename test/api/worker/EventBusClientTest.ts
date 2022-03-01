@@ -64,6 +64,9 @@ o.spec("EventBusClient test", function () {
 				return null
 			},
 			async purgeStorage(): Promise<void> {
+			},
+			async setLastEntityEventBatchForGroup(groupId: Id, batchId: Id): Promise<void> {
+				return
 			}
 		} as EntityRestCache)
 
@@ -120,10 +123,10 @@ o.spec("EventBusClient test", function () {
 			await ebc.connect(ConnectMode.Initial)
 			await socket.onopen?.(new Event("open"))
 
+			verify(cacheMock.recordSyncTime())
 			// Did not download anything besides single batch
 			verify(restClient.loadRange(EntityEventBatchTypeRef, mailGroupId, matchers.anything(), matchers.not(1), matchers.anything()), {times: 0})
-			verify(cacheMock.recordSyncTime())
-			// TODO: cache is initialized with batch id here
+			verify(cacheMock.setLastEntityEventBatchForGroup(mailGroupId, getElementId(batch)))
 		})
 
 		o("initial connect: when the cache is initialized, missed events are loaded", async function () {
