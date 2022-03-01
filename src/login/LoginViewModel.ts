@@ -328,8 +328,9 @@ export class LoginViewModel implements ILoginViewModel {
 			const newCredentials = await this._loginController.createSession(mailAddress, password, sessionType)
 			await this._onLogin()
 
-			// There are situations when we have stored credentials with the same mail address as we are trying to use now but this
-			// stored session belongs to another user. This can happen e.g. when email address alias is moved to another user.
+			// we don't want to have multiple credentials that
+			// * share the same userId with different mail addresses (may happen if a user chooses a different alias to log in than the one they saved)
+			// * share the same mail address (may happen if mail aliases are moved between users)
 			const storedCredentialsToDelete = this._savedInternalCredentials.filter(c => c.login === mailAddress || c.userId === newCredentials.userId)
 
 			for (const credentialToDelete of storedCredentialsToDelete) {

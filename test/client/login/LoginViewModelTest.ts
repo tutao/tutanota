@@ -398,7 +398,7 @@ o.spec("LoginViewModelTest", () => {
 				userId: testCredentials.userId,
 				type: "internal",
 			}
-			credentialsProvider.store(oldCredentials)
+			await credentialsProvider.store(oldCredentials)
 			const viewModel = await createViewModel({
 				loginController,
 			})
@@ -412,7 +412,14 @@ o.spec("LoginViewModelTest", () => {
 			o((await credentialsProvider.getCredentialsByUserId(testCredentials.userId))!).deepEquals(testCredentials)
 			o(loginController.deleteOldSession.args).deepEquals([oldCredentials])
 		})
-		o("should login and delete old stored credentials", async function () {
+
+		async function testCredentialDeletion(replacer) {
+			const oldCredentials = Object.assign(
+				{},
+				credentialsWithoutPassword,
+				{accessToken: "oldAccessToken", encryptedPassword: "encPw"},
+				replacer
+			)
 			const loginController = loginControllerBuilder
 				.with({
 					async createSession(username, password, persistentSession, permanentLogin) {
@@ -420,14 +427,7 @@ o.spec("LoginViewModelTest", () => {
 					},
 				})
 				.set()
-			const oldCredentials: Credentials = {
-				login: credentialsWithoutPassword.login,
-				encryptedPassword: "encPw",
-				accessToken: "oldAccessToken",
-				userId: credentialsWithoutPassword.userId,
-				type: "internal",
-			}
-			credentialsProvider.store(oldCredentials)
+			await credentialsProvider.store(oldCredentials)
 			const viewModel = await createViewModel({
 				loginController,
 			})
@@ -444,43 +444,18 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.state).equals(LoginState.LoggedIn)
 			o(await credentialsProvider.getCredentialsByUserId(credentialsWithoutPassword.userId)).equals(null)
 			o(loginController.deleteOldSession.args).deepEquals([oldCredentials])
+		}
+
+		o("should login and delete old stored credentials with same address & same user id", async function () {
+			await testCredentialDeletion({})
 		})
-		o(
-			"should login and delete old stored credentials with same email address but different user id",
-			async function () {
-				const loginController = loginControllerBuilder
-					.with({
-						async createSession(username, password, persistentSession, permanentLogin) {
-							return credentialsWithoutPassword
-						},
-					})
-					.set()
-				const oldCredentials: Credentials = {
-					login: credentialsWithoutPassword.login,
-					encryptedPassword: "encPw",
-					accessToken: "oldAccessToken",
-					userId: "anotherUserId",
-					type: "internal",
-				}
-				await credentialsProvider.store(oldCredentials)
-				const viewModel = await createViewModel({
-					loginController,
-				})
-				viewModel.showLoginForm()
-				viewModel.mailAddress(credentialsWithoutPassword.login)
-				viewModel.password(password)
-				viewModel.savePassword(false)
-				await viewModel.login()
-				o(loginController.createSession.args).deepEquals([
-					credentialsWithoutPassword.login,
-					password,
-					SessionType.Login,
-				])
-				o(viewModel.state).equals(LoginState.LoggedIn)
-				o(await credentialsProvider.getCredentialsByUserId(credentialsWithoutPassword.userId)).equals(null)
-				o(loginController.deleteOldSession.args).deepEquals([oldCredentials])
-			},
-		)
+		o("should login and delete old stored credentials with same email address & different user id", async function () {
+			await testCredentialDeletion({userId: "anotherId"})
+		})
+
+		o("should login and delete old stored credentials with different address & same user id", async function () {
+			await testCredentialDeletion({login: "another@login.de"})
+		})
 		o("Should throw if login controller throws", async function () {
 			const loginController = loginControllerBuilder
 				.with({
