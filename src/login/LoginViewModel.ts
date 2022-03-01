@@ -218,6 +218,7 @@ export class LoginViewModel implements ILoginViewModel {
 			credentials = await this._credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
 		} catch (e) {
 			if (e instanceof KeyPermanentlyInvalidatedError) {
+				console.warn("clearing stored credentials due to permanently invalidated credentials key", e)
 				await this._credentialsProvider.clearCredentials()
 				await this._updateCachedCredentials()
 				this.state = LoginState.NotAuthenticated
@@ -349,13 +350,16 @@ export class LoginViewModel implements ILoginViewModel {
 						await this._credentialsProvider.clearCredentials()
 						await this._updateCachedCredentials()
 					} else if (e instanceof DeviceStorageUnavailableError) {
-						console.warn("device storage unavailable, cannot save credentials")
+						console.warn("device storage unavailable, cannot save credentials:", e)
 					} else {
 						throw e
 					}
 				}
 			}
 		} catch (e) {
+			if (e instanceof DeviceStorageUnavailableError) {
+				console.warn("cannot log in: failed to get credentials from device storage", e)
+			}
 			await this._onLoginFailed(e)
 		} finally {
 			await this._secondFactorHandler.closeWaitingForSecondFactorDialog()
