@@ -12,7 +12,7 @@ import {
 	ServiceUnavailableError,
 	SessionExpiredError,
 } from "../common/error/RestError"
-import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
+import {EntityEventBatch, EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
 import {assertNotNull, binarySearch, delay, identity, lastThrow, ofClass, randomIntFromInterval} from "@tutao/tutanota-utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import type {Indexer} from "./search/Indexer"
@@ -30,7 +30,7 @@ import {_TypeModel as WebsocketLeaderStatusTypeModel, createWebsocketLeaderStatu
 import {ProgressMonitorDelegate} from "./ProgressMonitorDelegate"
 import type {IProgressMonitor} from "../common/utils/ProgressMonitor"
 import {NoopProgressMonitor} from "../common/utils/ProgressMonitor"
-import {compareOldestFirst, firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getLetId, isSameId} from "../common/utils/EntityUtils"
+import {compareOldestFirst, firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, isSameId} from "../common/utils/EntityUtils"
 import {InstanceMapper} from "./crypto/InstanceMapper"
 import {WsConnectionState} from "../main/WorkerClient";
 import {IEntityRestCache} from "./rest/EntityRestCache"
@@ -466,6 +466,40 @@ export class EventBusClient {
 			return
 		}
 
+		await this.checkOutOfSync()
+
+		for (let groupId of this.eventGroups()) {
+			const eventBatches = await this.loadEntityEventsForGroup(groupId)
+			if (eventBatches.length === 0) {
+				// There won't be a callback from the queue to process the event so we mark this group as
+				// completed right away
+				this.progressMonitor.workDone(1)
+			} else {
+				for (const batch of eventBatches) {
+					this.addBatch(getElementId(batch), groupId, batch.events)
+				}
+			}
+		}
+
+		// We've loaded all the batches, we've added them to the queue, we can let the cache remember sync point for us to detect out of sync now.
+		// It is possible that we will record the time before the batch will be processed but the risk is low.
+		await this.cache.recordSyncTime()
+	}
+
+	private async loadEntityEventsForGroup(groupId: Id): Promise<EntityEventBatch[]> {
+		try {
+			return await this.entity.loadAll(EntityEventBatchTypeRef, groupId, this.getLastEventBatchIdOrMinIdForGroup(groupId))
+		} catch (e) {
+			if (e instanceof NotAuthorizedError) {
+				console.log("ws could not download entity updates, lost permission")
+				return []
+			} else {
+				throw e
+			}
+		}
+	}
+
+	private async checkOutOfSync() {
 		// We try to detect whether event batches have already expired.
 		// If this happened we don't need to download anything, we need to purge the cache and start all over.
 		const sinceLastUpdate = await this.cache.timeSinceLastSync()
@@ -476,35 +510,6 @@ export class EventBusClient {
 			this.progressMonitor.workDone(this.eventGroups().length)
 
 			throw new OutOfSyncError("some missed EntityEventBatches cannot be loaded any more")
-		} else {
-			for (let groupId of this.eventGroups()) {
-				let eventBatches
-				try {
-					eventBatches = await this.entity.loadAll(EntityEventBatchTypeRef, groupId, this.getLastEventBatchIdOrMinIdForGroup(groupId))
-				} catch (e) {
-					if (e instanceof NotAuthorizedError) {
-						console.log("ws could not download entity updates, lost permission")
-						// We need to do this to mark group as "processed", otherwise progress bar will get stuck
-						this.progressMonitor.workDone(1)
-						continue
-					} else {
-						throw e
-					}
-				}
-				if (eventBatches.length === 0) {
-					// There won't be a callback from the queue to process the event so we mark this group as
-					// completed right away
-					this.progressMonitor.workDone(1)
-				} else {
-					for (const batch of eventBatches) {
-						this.addBatch(getElementId(batch), groupId, batch.events)
-					}
-				}
-			}
-
-			// We've loaded all the batches, we've added them to the queue, we can let the cache remember sync point for us to detect out of sync now.
-			// It is possible that we will record the time before the batch will be processed but the risk is low.
-			await this.cache.recordSyncTime()
 		}
 	}
 
@@ -606,42 +611,42 @@ export class EventBusClient {
 		}
 	}
 
-	private processEventBatch(batch: QueuedBatch): Promise<void> {
-		return this.executeIfNotTerminated(async () => {
+	private async processEventBatch(batch: QueuedBatch): Promise<void> {
+		try {
+			if (this.isTerminated()) return
 			const filteredEvents = await this.cache.entityEventsReceived(batch)
-			await this.executeIfNotTerminated(() => this.login.entityEventsReceived(filteredEvents))
-			await this.executeIfNotTerminated(() => this.mail.entityEventsReceived(filteredEvents))
-			await this.executeIfNotTerminated(() => this.worker.entityEventsReceived(filteredEvents, batch.groupId))
-
+			if (!this.isTerminated()) await this.login.entityEventsReceived(filteredEvents)
+			if (!this.isTerminated()) await this.mail.entityEventsReceived(filteredEvents)
+			if (!this.isTerminated()) await this.worker.entityEventsReceived(filteredEvents, batch.groupId)
 			// Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
 			// shall not receive the event twice.
-			if (!isTest() && !isAdminClient()) {
-				this.executeIfNotTerminated(() => {
-					this.indexer.addBatchesToQueue([
-						{
-							groupId: batch.groupId,
-							batchId: batch.batchId,
-							events: filteredEvents,
-						},
-					])
-
-					this.indexer.startProcessing()
-				})
-			}
-		}).catch(ofClass(ServiceUnavailableError, e => {
-			// a ServiceUnavailableError is a temporary error and we have to retry to avoid data inconsistencies
-			console.log("ws retry processing event in 30s", e)
-			let promise = delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
-				// if we have a websocket reconnect we have to stop retrying
-				if (this.serviceUnavailableRetry === promise) {
-					return this.processEventBatch(batch)
-				} else {
-					throw new CancelledError("stop retry processing after service unavailable due to reconnect")
+			if (!isTest() && !isAdminClient() && !this.isTerminated()) {
+				const queuedBatch = {
+					groupId: batch.groupId,
+					batchId: batch.batchId,
+					events: filteredEvents,
 				}
-			})
-			this.serviceUnavailableRetry = promise
-			return promise
-		}))
+				this.indexer.addBatchesToQueue([queuedBatch])
+				this.indexer.startProcessing()
+			}
+		} catch (e) {
+			if (e instanceof ServiceUnavailableError) {
+				// a ServiceUnavailableError is a temporary error and we have to retry to avoid data inconsistencies
+				console.log("ws retry processing event in 30s", e)
+				const retryPromise = delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
+					// if we have a websocket reconnect we have to stop retrying
+					if (this.serviceUnavailableRetry === retryPromise) {
+						return this.processEventBatch(batch)
+					} else {
+						throw new CancelledError("stop retry processing after service unavailable due to reconnect")
+					}
+				})
+				this.serviceUnavailableRetry = retryPromise
+				return retryPromise
+			} else {
+				throw e
+			}
+		}
 	}
 
 	private getLastEventBatchIdOrMinIdForGroup(groupId: Id): Id {
@@ -650,12 +655,8 @@ export class EventBusClient {
 		return lastIds && lastIds.length > 0 ? lastThrow(lastIds) : GENERATED_MIN_ID
 	}
 
-	private executeIfNotTerminated(call: (...args: Array<any>) => any): Promise<void> {
-		if (this.state !== EventBusState.Terminated) {
-			return call()
-		} else {
-			return Promise.resolve()
-		}
+	private isTerminated() {
+		return this.state === EventBusState.Terminated
 	}
 
 	private eventGroups(): Id[] {
