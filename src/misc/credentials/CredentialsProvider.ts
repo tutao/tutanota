@@ -1,7 +1,7 @@
 import type {CredentialEncryptionMode} from "./CredentialEncryptionMode"
 import type {ICredentialsKeyMigrator} from "./CredentialsKeyMigrator"
-import {assertNotNull} from "@tutao/tutanota-utils"
 import type {Base64, Base64Url} from "@tutao/tutanota-utils"
+import {assertNotNull} from "@tutao/tutanota-utils"
 import type {Credentials} from "./Credentials"
 
 /**
@@ -151,7 +151,7 @@ export interface ICredentialsProvider {
 	/**
 	 * Removes all stored credentials as well as any settings associated with credentials encryption.
 	 */
-	clearCredentials(): Promise<void>
+	clearCredentials(reason: Error | string): Promise<void>
 }
 
 /**
@@ -231,7 +231,8 @@ export class CredentialsProvider implements ICredentialsProvider {
 		return await this._credentialsEncryption.getSupportedEncryptionModes()
 	}
 
-	async clearCredentials(): Promise<void> {
+	async clearCredentials(reason: Error | string): Promise<void> {
+		console.warn("clearing all stored credentials:", reason)
 		const storedCredentials = this._credentialsStorage.loadAll()
 
 		for (let storedCredential of storedCredentials) {
