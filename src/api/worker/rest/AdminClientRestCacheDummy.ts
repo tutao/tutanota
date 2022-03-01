@@ -46,6 +46,10 @@ export class AdminClientRestCacheDummy implements IEntityRestCache {
 		return null
 	}
 
+	async setLastEntityEventBatchForGroup(groupId: Id, batchId: Id): Promise<void> {
+		return
+	}
+
 	async recordSyncTime(): Promise<void> {
 		return
 	}

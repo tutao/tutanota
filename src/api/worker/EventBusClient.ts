@@ -526,8 +526,10 @@ export class EventBusClient {
 				someIdsWereCached = true
 			} else {
 				const batches = await this.entity.loadRange(EntityEventBatchTypeRef, groupId, GENERATED_MAX_ID, 1, true)
-				const id = batches.length === 1 ? getElementId(batches[0]) : GENERATED_MIN_ID
-				lastIds.set(groupId, [id])
+				const batchId = batches.length === 1 ? getElementId(batches[0]) : GENERATED_MIN_ID
+				lastIds.set(groupId, [batchId])
+				// In case we don't receive any events for the group this time we want to still download from this point next time.
+				await this.cache.setLastEntityEventBatchForGroup(groupId, batchId)
 			}
 		}
 
