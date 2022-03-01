@@ -199,102 +199,6 @@ export class EventBusClient {
 		this.socket.onmessage = (message: MessageEvent<string>) => this.onMessage(message)
 	}
 
-	// Returning promise for tests
-	private onOpen(connectMode: ConnectMode): Promise<void> {
-		this.failedConnectionAttempts = 0
-		console.log("ws open state:", this.state)
-
-		// Indicate some progress right away
-		this.progressMonitor.workDone(1)
-
-		const p = this.initEntityEvents(connectMode)
-
-		this.worker.updateWebSocketState(WsConnectionState.connected)
-
-		return p
-	}
-
-	private async initEntityEvents(connectMode: ConnectMode): Promise<void> {
-		// pause processing entity update message while initializing event queue
-		this.entityUpdateMessageQueue.pause()
-
-		// pause event queue and add all missed entity events first
-		this.eventQueue.pause()
-
-		const existingConnection = connectMode == ConnectMode.Reconnect && this.lastEntityEventIds.size > 0
-		const p = (existingConnection) ? this.loadMissedEntityEvents() : this.initOnNewConnection()
-
-		return p
-			.then(() => {
-				this.entityUpdateMessageQueue.resume()
-
-				this.eventQueue.resume()
-			})
-			.catch(ofClass(ConnectionError, e => {
-				console.log("ws not connected in connect(), close websocket", e)
-				this.close(CloseEventBusOption.Reconnect)
-			}))
-			.catch(ofClass(CancelledError, () => {
-				// the processing was aborted due to a reconnect. do not reset any attributes because they might already be in use since reconnection
-				console.log("ws cancelled retry process entity events after reconnect")
-			}))
-			.catch(ofClass(ServiceUnavailableError, async e => {
-				// a ServiceUnavailableError is a temporary error and we have to retry to avoid data inconsistencies
-				// some EventBatches/missed events are processed already now
-				// for an existing connection we just keep the current state and continue loading missed events for the other groups
-				// for a new connection we reset the last entity event ids because otherwise this would not be completed in the next try
-				if (!existingConnection) {
-					this.lastEntityEventIds.clear()
-				}
-
-				console.log("ws retry init entity events in ", RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS, e)
-				let promise = delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
-					// if we have a websocket reconnect we have to stop retrying
-					if (this.serviceUnavailableRetry === promise) {
-						console.log("ws retry initializing entity events")
-						return this.initEntityEvents(connectMode)
-					} else {
-						console.log("ws cancel initializing entity events")
-					}
-				})
-				this.serviceUnavailableRetry = promise
-				return promise
-			}))
-			.catch(ofClass(OutOfSyncError, async (e) => {
-				// we did not check for updates for too long, so some missed EntityEventBatches can not be loaded any more
-				// purge cache if out of sync
-				await this.cache.purgeStorage()
-				// We want users to re-login. By the time we get here they probably already have loaded some entities which we cannot update
-				throw e
-			}))
-			.catch(e => {
-				this.entityUpdateMessageQueue.resume()
-
-				this.eventQueue.resume()
-
-				this.worker.sendError(e)
-			})
-	}
-
-	private async initOnNewConnection() {
-		const {lastIds, someIdsWereCached} = await this.retrieveLastEntityEventIds()
-		// First, we record lastEntityEventIds. We need this to know what we need to re-fetch.
-		// This is not the same as the cache because we might have already downloaded them but cache might not have processed them yet.
-		// Important: do it in one step so that we don't have partial IDs in the map in case an error occurs.
-		this.lastEntityEventIds = lastIds
-
-		// Second, we need to initialize the cache too.
-		if (someIdsWereCached) {
-			// If some of the last IDs were retrieved from the cache then we want to load from that point to bring cache up-to-date. This is mostly important for
-			// persistent cache.
-			await this.loadMissedEntityEvents()
-		} else {
-			// If the cache is clean then this is a clean cache (either ephemeral after first connect or persistent with empty DB).
-			// We need to record the time even if we don't process anything to later know if we are out of sync or not.
-			await this.cache.recordSyncTime()
-		}
-	}
-
 	/**
 	 * Sends a close event to the server and finally closes the connection.
 	 * The state of this event bus client is reset and the client is terminated (does not automatically reconnect) except reconnect == true
@@ -324,41 +228,35 @@ export class EventBusClient {
 		this.socket?.close()
 	}
 
-	private async eventQueueCallback(modification: QueuedBatch): Promise<void> {
-		try {
-			await this.processEventBatch(modification)
-		} catch (e) {
-			console.log("ws error while processing event batches", e)
-			this.worker.sendError(e)
-			throw e
+	tryReconnect(closeIfOpen: boolean, enableAutomaticState: boolean, delay: number | null = null) {
+		console.log("ws tryReconnect closeIfOpen:", closeIfOpen, "enableAutomaticState:", enableAutomaticState, "delay:", delay)
+
+		if (this.reconnectTimer) {
+			// prevent reconnect race-condition
+			clearTimeout(this.reconnectTimer)
+			this.reconnectTimer = null
 		}
 
-		// If we completed the event, it was added before
-		const lastForGroup = assertNotNull(this.lastAddedBatchForGroup.get(modification.groupId))
-
-		if (isSameId(modification.batchId, lastForGroup) || firstBiggerThanSecond(modification.batchId, lastForGroup)) {
-			this.progressMonitor && this.progressMonitor.workDone(1)
-		}
-	}
-
-	private async entityUpdateMessageQueueCallback(batch: QueuedBatch): Promise<void> {
-		this.addBatch(batch.batchId, batch.groupId, batch.events)
-		this.eventQueue.resume()
-	}
-
-	private unsubscribeFromOldWebsocket() {
-		if (this.socket) {
-			// Remove listeners. We don't want old socket to mess our state
-			this.socket.onopen = this.socket.onclose = this.socket.onerror = this.socket.onmessage = identity
+		if (!delay) {
+			this.reconnect(closeIfOpen, enableAutomaticState)
+		} else {
+			this.reconnectTimer = setTimeout(() => this.reconnect(closeIfOpen, enableAutomaticState), delay)
 		}
 	}
 
-	private async terminate(): Promise<void> {
-		this.state = EventBusState.Terminated
+	// Returning promise for tests
+	private onOpen(connectMode: ConnectMode): Promise<void> {
+		this.failedConnectionAttempts = 0
+		console.log("ws open state:", this.state)
 
-		this.reset()
+		// Indicate some progress right away
+		this.progressMonitor.workDone(1)
 
-		this.worker.updateWebSocketState(WsConnectionState.terminated)
+		const p = this.initEntityEvents(connectMode)
+
+		this.worker.updateWebSocketState(WsConnectionState.connected)
+
+		return p
 	}
 
 	private onError(error: any) {
@@ -428,12 +326,10 @@ export class EventBusClient {
 
 		if ([NotAuthorizedError.CODE, AccessDeactivatedError.CODE, AccessBlockedError.CODE].includes(serverCode)) {
 			this.terminate()
-
 			this.worker.sendError(handleRestError(serverCode, "web socket error", null, null))
 		} else if (serverCode === SessionExpiredError.CODE) {
 			// session is expired. do not try to reconnect until the user creates a new session
 			this.state = EventBusState.Suspended
-
 			this.worker.updateWebSocketState(WsConnectionState.connecting)
 		} else if (this.state === EventBusState.Automatic && this.login.isLoggedIn()) {
 			this.worker.updateWebSocketState(WsConnectionState.connecting)
@@ -459,55 +355,83 @@ export class EventBusClient {
 		}
 	}
 
-	tryReconnect(closeIfOpen: boolean, enableAutomaticState: boolean, delay: number | null = null) {
-		console.log("ws tryReconnect closeIfOpen:", closeIfOpen, "enableAutomaticState:", enableAutomaticState, "delay:", delay)
+	private async initEntityEvents(connectMode: ConnectMode): Promise<void> {
+		// pause processing entity update message while initializing event queue
+		this.entityUpdateMessageQueue.pause()
 
-		if (this.reconnectTimer) {
-			// prevent reconnect race-condition
-			clearTimeout(this.reconnectTimer)
-			this.reconnectTimer = null
-		}
+		// pause event queue and add all missed entity events first
+		this.eventQueue.pause()
 
-		if (!delay) {
-			this.reconnect(closeIfOpen, enableAutomaticState)
-		} else {
-			this.reconnectTimer = setTimeout(() => this.reconnect(closeIfOpen, enableAutomaticState), delay)
-		}
+		const existingConnection = connectMode == ConnectMode.Reconnect && this.lastEntityEventIds.size > 0
+		const p = (existingConnection) ? this.loadMissedEntityEvents() : this.initOnNewConnection()
+
+		return p
+			.then(() => {
+				this.entityUpdateMessageQueue.resume()
+				this.eventQueue.resume()
+			})
+			.catch(ofClass(ConnectionError, e => {
+				console.log("ws not connected in connect(), close websocket", e)
+				this.close(CloseEventBusOption.Reconnect)
+			}))
+			.catch(ofClass(CancelledError, () => {
+				// the processing was aborted due to a reconnect. do not reset any attributes because they might already be in use since reconnection
+				console.log("ws cancelled retry process entity events after reconnect")
+			}))
+			.catch(ofClass(ServiceUnavailableError, async e => {
+				// a ServiceUnavailableError is a temporary error and we have to retry to avoid data inconsistencies
+				// some EventBatches/missed events are processed already now
+				// for an existing connection we just keep the current state and continue loading missed events for the other groups
+				// for a new connection we reset the last entity event ids because otherwise this would not be completed in the next try
+				if (!existingConnection) {
+					this.lastEntityEventIds.clear()
+				}
+
+				console.log("ws retry init entity events in ", RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS, e)
+				let promise = delay(RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS).then(() => {
+					// if we have a websocket reconnect we have to stop retrying
+					if (this.serviceUnavailableRetry === promise) {
+						console.log("ws retry initializing entity events")
+						return this.initEntityEvents(connectMode)
+					} else {
+						console.log("ws cancel initializing entity events")
+					}
+				})
+				this.serviceUnavailableRetry = promise
+				return promise
+			}))
+			.catch(ofClass(OutOfSyncError, async (e) => {
+				// we did not check for updates for too long, so some missed EntityEventBatches can not be loaded any more
+				// purge cache if out of sync
+				await this.cache.purgeStorage()
+				// We want users to re-login. By the time we get here they probably already have loaded some entities which we cannot update
+				throw e
+			}))
+			.catch(e => {
+				this.entityUpdateMessageQueue.resume()
+
+				this.eventQueue.resume()
+
+				this.worker.sendError(e)
+			})
 	}
 
-	/**
-	 * Tries to reconnect the websocket if it is not connected.
-	 */
-	private reconnect(closeIfOpen: boolean, enableAutomaticState: boolean) {
-		console.log(
-			"ws reconnect socket.readyState: (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): " + (this.socket ? this.socket.readyState : "null"),
-			"state:",
-			this.state,
-			"closeIfOpen:",
-			closeIfOpen,
-			"enableAutomaticState:",
-			enableAutomaticState,
-		)
+	private async initOnNewConnection() {
+		const {lastIds, someIdsWereCached} = await this.retrieveLastEntityEventIds()
+		// First, we record lastEntityEventIds. We need this to know what we need to re-fetch.
+		// This is not the same as the cache because we might have already downloaded them but cache might not have processed them yet.
+		// Important: do it in one step so that we don't have partial IDs in the map in case an error occurs.
+		this.lastEntityEventIds = lastIds
 
-		if (this.state !== EventBusState.Terminated && enableAutomaticState) {
-			this.state = EventBusState.Automatic
-		}
-
-		if (closeIfOpen && this.socket && this.socket.readyState === WebSocket.OPEN) {
-			this.immediateReconnect = true
-			this.socket.close()
-		} else if (
-			(this.socket == null || this.socket.readyState === WebSocket.CLOSED || this.socket.readyState === WebSocket.CLOSING) &&
-			this.state !== EventBusState.Terminated &&
-			this.login.isLoggedIn()
-		) {
-			// Don't try to connect right away because connection may not be actually there
-			// see #1165
-			if (this.connectTimer) {
-				clearTimeout(this.connectTimer)
-			}
-
-			this.connectTimer = setTimeout(() => this.connect(ConnectMode.Reconnect), 100)
+		// Second, we need to initialize the cache too.
+		if (someIdsWereCached) {
+			// If some of the last IDs were retrieved from the cache then we want to load from that point to bring cache up-to-date. This is mostly important for
+			// persistent cache.
+			await this.loadMissedEntityEvents()
+		} else {
+			// If the cache is clean then this is a clean cache (either ephemeral after first connect or persistent with empty DB).
+			// We need to record the time even if we don't process anything to later know if we are out of sync or not.
+			await this.cache.recordSyncTime()
 		}
 	}
 
@@ -581,6 +505,79 @@ export class EventBusClient {
 			// We've loaded all the batches, we've added them to the queue, we can let the cache remember sync point for us to detect out of sync now.
 			// It is possible that we will record the time before the batch will be processed but the risk is low.
 			await this.cache.recordSyncTime()
+		}
+	}
+
+	private async eventQueueCallback(modification: QueuedBatch): Promise<void> {
+		try {
+			await this.processEventBatch(modification)
+		} catch (e) {
+			console.log("ws error while processing event batches", e)
+			this.worker.sendError(e)
+			throw e
+		}
+
+		// If we completed the event, it was added before
+		const lastForGroup = assertNotNull(this.lastAddedBatchForGroup.get(modification.groupId))
+
+		if (isSameId(modification.batchId, lastForGroup) || firstBiggerThanSecond(modification.batchId, lastForGroup)) {
+			this.progressMonitor && this.progressMonitor.workDone(1)
+		}
+	}
+
+	private async entityUpdateMessageQueueCallback(batch: QueuedBatch): Promise<void> {
+		this.addBatch(batch.batchId, batch.groupId, batch.events)
+		this.eventQueue.resume()
+	}
+
+	private unsubscribeFromOldWebsocket() {
+		if (this.socket) {
+			// Remove listeners. We don't want old socket to mess our state
+			this.socket.onopen = this.socket.onclose = this.socket.onerror = this.socket.onmessage = identity
+		}
+	}
+
+	private async terminate(): Promise<void> {
+		this.state = EventBusState.Terminated
+
+		this.reset()
+
+		this.worker.updateWebSocketState(WsConnectionState.terminated)
+	}
+
+	/**
+	 * Tries to reconnect the websocket if it is not connected.
+	 */
+	private reconnect(closeIfOpen: boolean, enableAutomaticState: boolean) {
+		console.log(
+			"ws reconnect socket.readyState: (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): " + (this.socket ? this.socket.readyState : "null"),
+			"state:",
+			this.state,
+			"closeIfOpen:",
+			closeIfOpen,
+			"enableAutomaticState:",
+			enableAutomaticState,
+		)
+
+		if (this.state !== EventBusState.Terminated && enableAutomaticState) {
+			this.state = EventBusState.Automatic
+		}
+
+		if (closeIfOpen && this.socket && this.socket.readyState === WebSocket.OPEN) {
+			this.immediateReconnect = true
+			this.socket.close()
+		} else if (
+			(this.socket == null || this.socket.readyState === WebSocket.CLOSED || this.socket.readyState === WebSocket.CLOSING) &&
+			this.state !== EventBusState.Terminated &&
+			this.login.isLoggedIn()
+		) {
+			// Don't try to connect right away because connection may not be actually there
+			// see #1165
+			if (this.connectTimer) {
+				clearTimeout(this.connectTimer)
+			}
+
+			this.connectTimer = setTimeout(() => this.connect(ConnectMode.Reconnect), 100)
 		}
 	}
 
