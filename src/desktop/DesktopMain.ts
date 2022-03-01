@@ -32,7 +32,7 @@ import {DesktopConfigMigrator} from "./config/migrations/DesktopConfigMigrator"
 import type {DesktopKeyStoreFacade} from "./KeyStoreFacadeImpl"
 import {KeyStoreFacadeImpl} from "./KeyStoreFacadeImpl"
 import {AlarmSchedulerImpl} from "../calendar/date/AlarmScheduler"
-import {SchedulerImpl} from "../api/common/utils/Scheduler"
+import {SchedulerImpl} from "../api/common/utils/Scheduler.js"
 import {DateProviderImpl} from "../calendar/date/CalendarUtils"
 import {ThemeManager} from "./ThemeManager"
 import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys";
@@ -127,7 +127,7 @@ async function createComponents(): Promise<Components> {
 	const themeManager = new ThemeManager(conf)
 	const credentialsEncryption = new DesktopCredentialsEncryptionImpl(keyStoreFacade, desktopCrypto)
 	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, dl, themeManager)
-	const alarmScheduler = new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, global))
+	const alarmScheduler = new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, global, global))
 	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler)
 	desktopAlarmScheduler.rescheduleAll().catch(e => {
 		log.error("Could not reschedule alarms", e)

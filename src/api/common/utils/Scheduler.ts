@@ -1,12 +1,17 @@
 import type {Thunk} from "@tutao/tutanota-utils"
-import {DateProvider} from "../DateProvider"
+import {DateProvider} from "../DateProvider.js"
 
-export type ScheduledId = TimeoutID
+export type ScheduledTimeoutId = TimeoutID
+export type ScheduledPeriodicId = TimeoutID
 
 export interface Scheduler {
-	scheduleAt(thunk: Thunk, date: Date): ScheduledId
+	scheduleAt(thunk: Thunk, date: Date): ScheduledTimeoutId;
 
-	unschedule(id: ScheduledId): void
+	unscheduleTimeout(id: ScheduledTimeoutId): void;
+
+	schedulePeriodic(thunk: Thunk, period: number): ScheduledPeriodicId
+
+	unschedulePeriodic(id: ScheduledPeriodicId): void;
 }
 
 /**
@@ -17,65 +22,81 @@ export const SET_TIMEOUT_LIMIT = 0x7fffffff
 
 /** Default impl of timeout functions, useful for testing */
 export type SystemTimeout = {
-	setTimeout: typeof setTimeout
+	// Copying it because ts has some weird properties attach to it in node tslib.
+	// no-arg version because lambadas exist.
+	setTimeout(callback: () => void, ms: number): number;
 	clearTimeout: typeof clearTimeout
 }
 
-export class SchedulerImpl implements Scheduler {
-	readonly _dateProvider: DateProvider
-	readonly _systemTimeout: SystemTimeout
+export type SystemInterval = {
+	// Copying it because ts has some weird properties attach to it in node tslib.
+	// no-arg version because lambadas exist.
+	setInterval(callback: () => void, ms: number): number;
+	clearInterval: typeof clearInterval,
+}
 
+export class SchedulerImpl implements Scheduler {
 	/**
 	 * This points from the originally scheduled timeout to the most recent timeout
 	 */
-	readonly _bridgedTimeouts: Map<ScheduledId, ScheduledId>
+	private readonly bridgedTimeouts: Map<ScheduledTimeoutId, ScheduledTimeoutId>
 
-	constructor(dateProvider: DateProvider, systemTimeout: SystemTimeout) {
-		this._dateProvider = dateProvider
-		this._systemTimeout = systemTimeout
-		this._bridgedTimeouts = new Map()
+	constructor(
+		private readonly dateProvider: DateProvider,
+		private readonly systemTimeout: SystemTimeout,
+		private readonly systemInterval: SystemInterval
+		) {
+		this.bridgedTimeouts = new Map()
 	}
 
-	scheduleAt(callback: Thunk, date: Date): ScheduledId {
+	scheduleAt(callback: Thunk, date: Date): ScheduledTimeoutId {
 		let timeoutId: TimeoutID
 
 		// Call the thunk and clean up timeout in the map
 		const wrappedCallback = () => {
-			this._bridgedTimeouts.delete(timeoutId)
+			this.bridgedTimeouts.delete(timeoutId)
 
 			callback()
 		}
 
-		timeoutId = this._scheduleAtInternal(wrappedCallback, date)
+		timeoutId = this.scheduleAtInternal(wrappedCallback, date)
 		return timeoutId
 	}
 
 	/** We have separate internal version which does not re-wrap the thunk. */
-	_scheduleAtInternal(thunk: Thunk, date: Date): ScheduledId {
-		const now = this._dateProvider.now()
+	private scheduleAtInternal(thunk: Thunk, date: Date): ScheduledTimeoutId {
+		const now = this.dateProvider.now()
 
 		const then = date.getTime()
 		const diff = Math.max(then - now, 0)
 		let timeoutId: TimeoutID
 
 		if (diff > SET_TIMEOUT_LIMIT) {
-			timeoutId = this._systemTimeout.setTimeout(() => {
-				const newTimeoutId = this._scheduleAtInternal(thunk, date)
+			timeoutId = this.systemTimeout.setTimeout(() => {
+				const newTimeoutId = this.scheduleAtInternal(thunk, date)
 
-				this._bridgedTimeouts.set(timeoutId, newTimeoutId)
+				this.bridgedTimeouts.set(timeoutId, newTimeoutId)
 			}, SET_TIMEOUT_LIMIT)
 		} else {
-			timeoutId = this._systemTimeout.setTimeout(thunk, diff)
+			timeoutId = this.systemTimeout.setTimeout(thunk, diff)
 		}
 
 		return timeoutId
 	}
 
-	unschedule(id: ScheduledId): void {
-		const rescheduledId = this._bridgedTimeouts.get(id) || id
+	unscheduleTimeout(id: ScheduledTimeoutId): void {
+		const rescheduledId = this.bridgedTimeouts.get(id) || id
 
-		this._bridgedTimeouts.delete(rescheduledId)
+		this.bridgedTimeouts.delete(rescheduledId)
 
-		return this._systemTimeout.clearTimeout(rescheduledId)
+		return this.systemTimeout.clearTimeout(rescheduledId)
+	}
+
+	schedulePeriodic(thunk: Thunk, ms: number): ScheduledPeriodicId {
+		return this.systemInterval.setInterval(thunk, ms)
+	}
+
+	unschedulePeriodic(id: ScheduledPeriodicId) {
+		this.systemInterval.clearInterval(id)
 	}
 }

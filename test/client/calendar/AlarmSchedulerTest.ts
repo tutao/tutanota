@@ -1,15 +1,11 @@
-// noinspection JSConstantReassignment
-
 import {AlarmScheduler, AlarmSchedulerImpl} from "../../../src/calendar/date/AlarmScheduler"
-import type {ScheduledId, Scheduler} from "../../../src/api/common/utils/Scheduler"
-import type {Thunk} from "@tutao/tutanota-utils"
-import {downcast} from "@tutao/tutanota-utils"
 import o from "ospec"
 import {DateTime} from "luxon"
 import {createAlarmInfo} from "../../../src/api/entities/sys/AlarmInfo"
 import {createRepeatRule} from "../../../src/api/entities/sys/RepeatRule"
 import {EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants"
 import {DateProvider} from "../../../src/api/common/DateProvider"
+import {SchedulerMock} from "../../api/TestUtils"
 
 o.spec("AlarmScheduler", function () {
 	let alarmScheduler: AlarmSchedulerImpl
@@ -109,7 +105,7 @@ o.spec("AlarmScheduler", function () {
 			}
 
 			alarmScheduler.cancelAlarm(alarmInfo.alarmIdentifier)
-			o(scheduler.cancelled.has(scheduled.id)).equals(true)("was unscheduled")
+			o(scheduler.cancelledAt.has(scheduled.id)).equals(true)("was unscheduled")
 		})
 		o("repeating", function () {
 			const eventInfo = {
@@ -132,55 +128,8 @@ o.spec("AlarmScheduler", function () {
 			const scheduled = Array.from(scheduler.scheduledAt.values()).map(idThunk => idThunk.id)
 			o(scheduled.length).equals(1)
 			alarmScheduler.cancelAlarm(alarmInfo.alarmIdentifier)
-			o(Array.from(scheduler.cancelled)).deepEquals(scheduled)
+			o(Array.from(scheduler.cancelledAt)).deepEquals(scheduled)
 		})
 	})
 })
-type IdThunk = {
-	id: ScheduledId
-	thunk: Thunk
-}
 
-class SchedulerMock implements Scheduler {
-	alarmId: number
-
-	/** key is the time */
-	scheduledAt: Map<number, IdThunk>
-	scheduledAfter: Map<number, IdThunk>
-	cancelled: Set<ScheduledId>
-
-	constructor() {
-		this.alarmId = 0
-		this.scheduledAt = new Map()
-		this.scheduledAfter = new Map()
-		this.cancelled = new Set()
-	}
-
-	scheduleAt(callback, date): ScheduledId {
-		const id = this._incAlarmId()
-
-		this.scheduledAt.set(date.getTime(), {
-			id,
-			thunk: callback,
-		})
-		return id
-	}
-
-	scheduleAfter(callback, ms): ScheduledId {
-		const id = this._incAlarmId()
-
-		this.scheduledAfter.set(ms, {
-			id,
-			thunk: callback,
-		})
-		return id
-	}
-
-	unschedule(id) {
-		this.cancelled.add(id)
-	}
-
-	_incAlarmId() {
-		return downcast<ScheduledId>(this.alarmId++)
-	}
-}

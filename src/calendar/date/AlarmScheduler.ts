@@ -1,11 +1,10 @@
-import {isSameDay} from "@tutao/tutanota-utils"
-import {formatDateWithWeekdayAndTime, formatTime} from "../../misc/Formatter"
 import type {Thunk} from "@tutao/tutanota-utils"
-import {downcast} from "@tutao/tutanota-utils"
+import {downcast, isSameDay} from "@tutao/tutanota-utils"
+import {formatDateWithWeekdayAndTime, formatTime} from "../../misc/Formatter"
 import {EndType} from "../../api/common/TutanotaConstants"
 import type {AlarmInfo} from "../../api/entities/sys/AlarmInfo"
 import type {RepeatRule} from "../../api/entities/sys/RepeatRule"
-import type {ScheduledId, Scheduler} from "../../api/common/utils/Scheduler"
+import type {ScheduledTimeoutId, Scheduler} from "../../api/common/utils/Scheduler.js"
 import {calculateAlarmTime, findNextAlarmOccurrence, getEventStartByTimes, getValidTimeZone} from "./CalendarUtils"
 import {DateProvider} from "../../api/common/DateProvider"
 
@@ -23,7 +22,7 @@ export interface AlarmScheduler {
 }
 
 export class AlarmSchedulerImpl implements AlarmScheduler {
-	readonly _scheduledNotifications: Map<string, ScheduledId>
+	readonly _scheduledNotifications: Map<string, ScheduledTimeoutId>
 	readonly _scheduler: Scheduler
 	readonly _dateProvider: DateProvider
 
@@ -80,7 +79,7 @@ export class AlarmSchedulerImpl implements AlarmScheduler {
 		const timeoutId = this._scheduledNotifications.get(alarmIdentifier)
 
 		if (timeoutId != null) {
-			this._scheduler.unschedule(timeoutId)
+			this._scheduler.unscheduleTimeout(timeoutId)
 		}
 	}
 

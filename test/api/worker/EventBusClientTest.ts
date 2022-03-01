@@ -5,7 +5,7 @@ import type {EntityUpdate} from "../../../src/api/entities/sys/EntityUpdate"
 import {createEntityUpdate} from "../../../src/api/entities/sys/EntityUpdate"
 import {EntityRestClientMock} from "./EntityRestClientMock"
 import {EntityClient} from "../../../src/api/common/EntityClient"
-import {defer, delay, noOp} from "@tutao/tutanota-utils"
+import {defer, noOp} from "@tutao/tutanota-utils"
 import {WorkerImpl} from "../../../src/api/worker/WorkerImpl"
 import {LoginFacadeImpl} from "../../../src/api/worker/facades/LoginFacade"
 import {createUser, User} from "../../../src/api/entities/sys/User"
@@ -14,7 +14,7 @@ import {InstanceMapper} from "../../../src/api/worker/crypto/InstanceMapper"
 import {EntityRestCache} from "../../../src/api/worker/rest/EntityRestCache"
 import {QueuedBatch} from "../../../src/api/worker/search/EventQueue"
 import {OutOfSyncError} from "../../../src/api/common/error/OutOfSyncError"
-import {explain, matchers, object, verify, when} from "testdouble"
+import {matchers, object, verify, when} from "testdouble"
 import {MailFacade} from "../../../src/api/worker/facades/MailFacade"
 import {Indexer} from "../../../src/api/worker/search/Indexer"
 import {createWebsocketEntityData, WebsocketEntityData} from "../../../src/api/entities/sys/WebsocketEntityData"
@@ -22,6 +22,8 @@ import {createWebsocketCounterData, WebsocketCounterData} from "../../../src/api
 import {createWebsocketCounterValue} from "../../../src/api/entities/sys/WebsocketCounterValue"
 import {createEntityEventBatch, EntityEventBatchTypeRef} from "../../../src/api/entities/sys/EntityEventBatch"
 import {getElementId} from "../../../src/api/common/utils/EntityUtils"
+import {SleepDetector} from "../../../src/api/worker/utils/SleepDetector"
+import {WsConnectionState} from "../../../src/api/main/WorkerClient"
 
 o.spec("EventBusClient test", function () {
 	let ebc: EventBusClient
@@ -33,10 +35,12 @@ o.spec("EventBusClient test", function () {
 	let indexerMock: Indexer
 	let socket: WebSocket
 	let user: User
+	let sleepDetector: SleepDetector
+	let socketFactory
 
 	function initEventBus() {
 		const entityClient = new EntityClient(restClient)
-		const intanceMapper = new InstanceMapper()
+		const instanceMapper = new InstanceMapper()
 		ebc = new EventBusClient(
 			workerMock,
 			indexerMock,
@@ -44,10 +48,22 @@ o.spec("EventBusClient test", function () {
 			mailMock,
 			loginMock,
 			entityClient,
-			intanceMapper,
-			() => socket,
+			instanceMapper,
+			socketFactory,
+			sleepDetector,
 		)
 	}
+
+	o.before(function () {
+		// @ts-ignore not defined in node
+		WebSocket.CONNECTING = WebSocket.CONNECTING ?? 0
+		// @ts-ignore not defined in node
+		WebSocket.OPEN = WebSocket.OPEN ?? 1
+		// @ts-ignore not defined in node
+		WebSocket.CLOSING = WebSocket.CLOSING ?? 2
+		// @ts-ignore not defined in node
+		WebSocket.CLOSED = WebSocket.CLOSED ?? 3
+	})
 
 	o.beforeEach(async function () {
 		cacheMock = object({
@@ -98,6 +114,8 @@ o.spec("EventBusClient test", function () {
 
 
 		socket = object<WebSocket>()
+		sleepDetector = object()
+		socketFactory = () => socket
 
 		initEventBus()
 	})
@@ -217,7 +235,7 @@ o.spec("EventBusClient test", function () {
 		},
 	)
 
-	o("counter update", async function () {
+	o("on counter update it send message to the main thread", async function () {
 			const counterUpdate = createCounterData({mailGroupId: "group1", counterValue: 4, listId: "list1"})
 			await ebc.connect(ConnectMode.Initial)
 
@@ -229,6 +247,44 @@ o.spec("EventBusClient test", function () {
 			verify(workerMock.updateCounter(counterUpdate))
 		},
 	)
+
+	o.spec("sleep detection", function () {
+		o("on connect it starts", async function () {
+			verify(sleepDetector.start(matchers.anything()), {times: 0})
+
+			ebc.connect(ConnectMode.Initial)
+			await socket.onopen?.(new Event("open"))
+
+			verify(sleepDetector.start(matchers.anything()), {times: 1})
+		})
+
+		o("on disconnect it stops", async function () {
+			ebc.connect(ConnectMode.Initial)
+			await socket.onopen?.(new Event("open"))
+
+			await socket.onclose?.(new Event("close") as CloseEvent) // there's no CloseEvent in node
+			verify(sleepDetector.stop())
+		})
+
+		o("on sleep it reconnects", async function () {
+			let passedCb
+			when(sleepDetector.start(matchers.anything())).thenDo((cb) => passedCb = cb)
+			const firstSocket = socket
+
+			ebc.connect(ConnectMode.Initial)
+			// @ts-ignore
+			firstSocket.readyState = WebSocket.OPEN
+			await firstSocket.onopen?.(new Event("open"))
+			verify(socket.close(), {ignoreExtraArgs: true, times: 0})
+			const secondSocket = socket = object()
+			passedCb()
+
+			verify(firstSocket.close(), {ignoreExtraArgs: true, times: 1})
+			verify(workerMock.updateWebSocketState(WsConnectionState.connecting))
+			await secondSocket.onopen?.(new Event("open"))
+			verify(workerMock.updateWebSocketState(WsConnectionState.connected))
+		})
+	})
 
 	function createEntityMessage(eventBatchId: number): string {
 		const event: WebsocketEntityData = createWebsocketEntityData({

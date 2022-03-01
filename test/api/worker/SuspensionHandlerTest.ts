@@ -2,7 +2,8 @@ import o from "ospec"
 import {SuspensionHandler} from "../../../src/api/worker/SuspensionHandler"
 import {deferWithHandler, downcast} from "@tutao/tutanota-utils"
 import type {WorkerImpl} from "../../../src/api/worker/WorkerImpl"
-import type {SystemTimeout} from "../../../src/api/common/utils/Scheduler"
+import type {SystemTimeout} from "../../../src/api/common/utils/Scheduler.js"
+
 o.spec("SuspensionHandler test", () => {
     let suspensionHandler
     let workerMock: WorkerImpl

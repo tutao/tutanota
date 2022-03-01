@@ -39,6 +39,9 @@ import {EphemeralCacheStorage} from "./rest/EphemeralCacheStorage"
 import {OfflineStorage} from "./rest/OfflineStorage"
 import {exposeRemote} from "../common/WorkerProxy"
 import {AdminClientRestCacheDummy} from "./rest/AdminClientRestCacheDummy"
+import {SleepDetector} from "./utils/SleepDetector.js"
+import {SchedulerImpl} from "../common/utils/Scheduler.js"
+import {WorkerDateProvider} from "./utils/WorkerDateProvider.js"
 
 assertWorkerOrNode()
 
@@ -137,6 +140,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.calendar = new CalendarFacade(locator.login, locator.groupManagement, cache, worker, worker, locator.instanceMapper)
 	}
 	locator.mailAddress = new MailAddressFacade(locator.login)
+
+	const dateProvider = new WorkerDateProvider()
+	const scheduler = new SchedulerImpl(dateProvider, self, self)
+
 	locator.eventBusClient = new EventBusClient(
 		worker,
 		locator.indexer,
@@ -146,6 +153,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.cachingEntityClient,
 		locator.instanceMapper,
 		(path) => new WebSocket(getWebsocketOrigin() + path),
+		new SleepDetector(scheduler, dateProvider),
 	)
 	locator.login.init(locator.indexer, locator.eventBusClient)
 	locator.Const = Const
