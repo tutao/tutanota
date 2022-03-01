@@ -3,7 +3,6 @@ import {CredentialsKeySpec, DeviceKeySpec, KeyStoreFacadeImpl} from "../../../sr
 import {DesktopCryptoFacade} from "../../../src/desktop/DesktopCryptoFacade"
 import type {SecretStorage} from "../../../src/desktop/sse/SecretStorage"
 import {spyify} from "../nodemocker"
-import {downcast} from "@tutao/tutanota-utils"
 import {keyToBase64, uint8ArrayToKey} from "@tutao/tutanota-crypto"
 import {CancelledError} from "../../../src/api/common/error/CancelledError"
 import {assertThrows} from "../../../packages/tutanota-test-utils/lib"
@@ -18,7 +17,8 @@ o.spec("KeyStoreFacade test", function () {
 	let cryptoFacadeSpy: DesktopCryptoFacade
 
 	o.beforeEach(function () {
-		cryptoFacadeSpy = spyify(downcast({generateDeviceKey: () => new Uint8Array([0, 0])}))
+		const stub = {generateDeviceKey: () => uint8ArrayToKey(new Uint8Array([0, 0]))} as DesktopCryptoFacade
+		cryptoFacadeSpy = spyify(stub)
 	})
 
 	const toSpec = {
@@ -53,11 +53,11 @@ o.spec("KeyStoreFacade test", function () {
 					async setPassword(service: string, account: string, password: string): Promise<void> {
 					},
 				})
-				cryptoFacadeSpy = downcast<DesktopCryptoFacade>({
+				cryptoFacadeSpy = {
 					generateDeviceKey() {
 						return aes256Key
 					},
-				})
+				} as DesktopCryptoFacade
 				const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
 				await keyStoreFacade[opName]()
 				o(secretStorageSpy.setPassword.args).deepEquals([spec.serviceName, spec.accountName, keyToBase64(aes256Key)])
