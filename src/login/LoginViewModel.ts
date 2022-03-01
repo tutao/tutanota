@@ -218,8 +218,7 @@ export class LoginViewModel implements ILoginViewModel {
 			credentials = await this._credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
 		} catch (e) {
 			if (e instanceof KeyPermanentlyInvalidatedError) {
-				console.warn("clearing stored credentials due to permanently invalidated credentials key", e)
-				await this._credentialsProvider.clearCredentials()
+				await this._credentialsProvider.clearCredentials(e)
 				await this._updateCachedCredentials()
 				this.state = LoginState.NotAuthenticated
 				return
@@ -296,7 +295,7 @@ export class LoginViewModel implements ILoginViewModel {
 				await this._updateCachedCredentials()
 				await this._onLoginFailed(e)
 			} else if (e instanceof KeyPermanentlyInvalidatedError) {
-				await this._credentialsProvider.clearCredentials()
+				await this._credentialsProvider.clearCredentials(e)
 				await this._updateCachedCredentials()
 				this.state = LoginState.NotAuthenticated
 				this.helpText = "credentialsKeyInvalidated_msg"
@@ -347,7 +346,7 @@ export class LoginViewModel implements ILoginViewModel {
 					await this._credentialsProvider.store(newCredentials)
 				} catch (e) {
 					if (e instanceof KeyPermanentlyInvalidatedError) {
-						await this._credentialsProvider.clearCredentials()
+						await this._credentialsProvider.clearCredentials(e)
 						await this._updateCachedCredentials()
 					} else if (e instanceof DeviceStorageUnavailableError) {
 						console.warn("device storage unavailable, cannot save credentials:", e)

@@ -216,7 +216,7 @@ o.spec("CredentialsProvider", function () {
 			await storage.store(encryptedInternalCredentials)
 			await storage.store(encryptedExternalCredentials)
 
-			await credentialsProvider.clearCredentials()
+			await credentialsProvider.clearCredentials("testing")
 
 			o(storage.loadAll()).deepEquals([])
 			o(storage.getCredentialsEncryptionKey()).equals(null)

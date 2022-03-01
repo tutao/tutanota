@@ -98,7 +98,7 @@ class CredentialEncryptionMethodDialog {
 				this._error = e.message
 				m.redraw()
 			} else if (e instanceof KeyPermanentlyInvalidatedError) {
-				await this._credentialsProvider.clearCredentials()
+				await this._credentialsProvider.clearCredentials(e)
 
 				this._dialog.close()
 
