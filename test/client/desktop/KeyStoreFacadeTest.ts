@@ -7,6 +7,7 @@ import {downcast} from "@tutao/tutanota-utils"
 import {keyToBase64, uint8ArrayToKey} from "@tutao/tutanota-crypto"
 import {CancelledError} from "../../../src/api/common/error/CancelledError"
 import {assertThrows} from "../../../packages/tutanota-test-utils/lib"
+import {DeviceStorageUnavailableError} from "../../../src/api/common/error/DeviceStorageUnavailableError"
 
 function initKeyStoreFacade(secretStorage: SecretStorage, crypto: DesktopCryptoFacade): KeyStoreFacadeImpl {
 	return new KeyStoreFacadeImpl(secretStorage, crypto)
@@ -17,174 +18,160 @@ o.spec("KeyStoreFacade test", function () {
 	let cryptoFacadeSpy: DesktopCryptoFacade
 
 	o.beforeEach(function () {
-		cryptoFacadeSpy = spyify(downcast({}))
+		cryptoFacadeSpy = spyify(downcast({generateDeviceKey: () => new Uint8Array([0, 0])}))
 	})
 
-	o.spec("getDeviceKey", function ()  {
-		o("should return stored key", async function () {
-			const secretStorageSpy = spyify<SecretStorage>({
-				async getPassword(service: string, account: string): Promise<string | null> {
-					return keyToBase64(aes256Key)
-				},
+	const toSpec = {
+		"getDeviceKey": DeviceKeySpec,
+		"getCredentialsKey": CredentialsKeySpec
+	}
 
-				async setPassword(service: string, account: string, password: string): Promise<void> {
-				},
-			})
-			const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
-			const actualKey = await keyStoreFacade.getDeviceKey()
-			o(actualKey).deepEquals(aes256Key)
-			o(secretStorageSpy.getPassword.callCount).equals(1)
-			o(secretStorageSpy.getPassword.calls[0].args).deepEquals([DeviceKeySpec.serviceName,  DeviceKeySpec.accountName])
-		})
-
-		o("should store the key", async function () {
-			const secretStorageSpy = spyify<SecretStorage>({
-				async getPassword(service: string, account: string): Promise<string | null> {
-					return null
-				},
-
-				async setPassword(service: string, account: string, password: string): Promise<void> {
-				},
-			})
-			cryptoFacadeSpy = downcast<DesktopCryptoFacade>({
-				generateDeviceKey() {
-					return aes256Key
-				},
-			})
-			const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
-			await keyStoreFacade.getDeviceKey()
-			o(secretStorageSpy.setPassword.args).deepEquals([DeviceKeySpec.serviceName, DeviceKeySpec.accountName, keyToBase64(aes256Key)])
-		})
-
-		o("should cache successful key fetch", async function () {
-			const secretStorageSpy= spyify<SecretStorage>({
-				async getPassword(service: string, account: string): Promise<string | null> {
-					return keyToBase64(aes256Key)
-				},
-
-				async setPassword(service: string, account: string, password: string): Promise<void> {
-				},
-			})
-			const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
-			const actualKey = await keyStoreFacade.getDeviceKey()
-			o(actualKey).deepEquals(aes256Key)
-
-			const actualKey2 = await keyStoreFacade.getDeviceKey()
-			o(actualKey2).deepEquals(aes256Key)
-
-			o(secretStorageSpy.getPassword.callCount).equals(1)
-			o(secretStorageSpy.getPassword.calls[0].args).deepEquals([DeviceKeySpec.serviceName,  DeviceKeySpec.accountName])
-		})
-
-		o("should not cache failures", async function () {
-			let calls = 0
-			const secretStorageSpy= spyify<SecretStorage>({
-				async getPassword(service: string, account: string): Promise<string | null> {
-					if (calls == 0) {
-						calls++
-						throw new CancelledError("Test")
-					} else {
-						calls++
+	for (const [opName, spec] of Object.entries(toSpec)) {
+		o.spec(opName, function () {
+			o(opName + " should return stored key", async function () {
+				const secretStorageSpy = spyify<SecretStorage>({
+					async getPassword(service: string, account: string): Promise<string | null> {
 						return keyToBase64(aes256Key)
-					}
-				},
+					},
 
-				async setPassword(service: string, account: string, password: string): Promise<void> {
-				},
+					async setPassword(service: string, account: string, password: string): Promise<void> {
+					},
+				})
+				const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
+				const actualKey = await keyStoreFacade[opName]()
+				o(actualKey).deepEquals(aes256Key)
+				o(secretStorageSpy.getPassword.callCount).equals(1)
+				o(secretStorageSpy.getPassword.calls[0].args).deepEquals([spec.serviceName, spec.accountName])
 			})
 
-			const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
-			await assertThrows(CancelledError, () => keyStoreFacade.getDeviceKey())
+			o("should store the key", async function () {
+				const secretStorageSpy = spyify<SecretStorage>({
+					async getPassword(service: string, account: string): Promise<string | null> {
+						return null
+					},
 
-			const actualKey = await keyStoreFacade.getDeviceKey()
-			o(actualKey).deepEquals(aes256Key)
-
-			o(secretStorageSpy.getPassword.callCount).equals(2)
-			o(secretStorageSpy.getPassword.calls[1].args).deepEquals([DeviceKeySpec.serviceName,  DeviceKeySpec.accountName])
-		})
-	})
-
-	o.spec("getCredentialsKey", function () {
-		o("should return stored key", async function () {
-			const secretStorageSpy = spyify<SecretStorage>({
-				async getPassword(service: string, account: string): Promise<string | null> {
-					return keyToBase64(aes256Key)
-				},
-
-				async setPassword(service: string, account: string, password: string): Promise<void> {
-				},
+					async setPassword(service: string, account: string, password: string): Promise<void> {
+					},
+				})
+				cryptoFacadeSpy = downcast<DesktopCryptoFacade>({
+					generateDeviceKey() {
+						return aes256Key
+					},
+				})
+				const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
+				await keyStoreFacade[opName]()
+				o(secretStorageSpy.setPassword.args).deepEquals([spec.serviceName, spec.accountName, keyToBase64(aes256Key)])
 			})
-			const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
-			const actualKey = await keyStoreFacade.getCredentialsKey()
-			o(actualKey).deepEquals(aes256Key)
-			o(secretStorageSpy.getPassword.callCount).equals(1)
-			o(secretStorageSpy.getPassword.calls[0].args).deepEquals([CredentialsKeySpec.serviceName,  CredentialsKeySpec.accountName])
-		})
 
-		o("should store the key", async function () {
-			const secretStorageSpy = spyify<SecretStorage>({
-				async getPassword(service: string, account: string): Promise<string | null> {
-					return null
-				},
-
-				async setPassword(service: string, account: string, password: string): Promise<void> {
-				},
-			})
-			cryptoFacadeSpy = downcast<DesktopCryptoFacade>({
-				generateDeviceKey() {
-					return aes256Key
-				},
-			})
-			const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
-			await keyStoreFacade.getCredentialsKey()
-			o(secretStorageSpy.setPassword.args).deepEquals([CredentialsKeySpec.serviceName, CredentialsKeySpec.accountName, keyToBase64(aes256Key)])
-		})
-
-		o("should NOT cache successful key fetch", async function () {
-			const secretStorageSpy= spyify<SecretStorage>({
-				async getPassword(service: string, account: string): Promise<string | null> {
-					return keyToBase64(aes256Key)
-				},
-
-				async setPassword(service: string, account: string, password: string): Promise<void> {
-				},
-			})
-			const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
-			const actualKey = await keyStoreFacade.getCredentialsKey()
-			o(actualKey).deepEquals(aes256Key)
-
-			const actualKey2 = await keyStoreFacade.getCredentialsKey()
-			o(actualKey2).deepEquals(aes256Key)
-
-			o(secretStorageSpy.getPassword.callCount).equals(2)
-			o(secretStorageSpy.getPassword.calls[1].args).deepEquals([CredentialsKeySpec.serviceName,  CredentialsKeySpec.accountName])
-		})
-
-		o("should not cache failures", async function () {
-			let calls = 0
-			const secretStorageSpy= spyify<SecretStorage>({
-				async getPassword(service: string, account: string): Promise<string | null> {
-					if (calls == 0) {
-						calls++
-						throw new CancelledError("Test")
-					} else {
-						calls++
+			o(spec.cached ? opName + " should cache successful key fetch" : opName + " should NOT cache successful key fetch", async function () {
+				const secretStorageSpy = spyify<SecretStorage>({
+					async getPassword(service: string, account: string): Promise<string | null> {
 						return keyToBase64(aes256Key)
-					}
-				},
+					},
 
+					async setPassword(service: string, account: string, password: string): Promise<void> {
+					},
+				})
+				const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
+				const actualKey = await keyStoreFacade[opName]()
+				o(actualKey).deepEquals(aes256Key)
+
+				const actualKey2 = await keyStoreFacade[opName]()
+				o(actualKey2).deepEquals(aes256Key)
+				if (spec.cached) {
+					o(secretStorageSpy.getPassword.callCount).equals(1)
+					o(secretStorageSpy.getPassword.calls[0].args).deepEquals([spec.serviceName, spec.accountName])
+				} else {
+					o(secretStorageSpy.getPassword.callCount).equals(2)
+					o(secretStorageSpy.getPassword.calls[1].args).deepEquals([spec.serviceName, spec.accountName])
+				}
+			})
+
+			o(opName + " should not cache failures", async function () {
+				let calls = 0
+				const secretStorageSpy = spyify<SecretStorage>({
+					async getPassword(service: string, account: string): Promise<string | null> {
+						if (calls == 0) {
+							calls++
+							throw new CancelledError("Test")
+						} else {
+							calls++
+							return keyToBase64(aes256Key)
+						}
+					},
+
+					async setPassword(service: string, account: string, password: string): Promise<void> {
+					},
+				})
+
+				const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
+				await assertThrows(CancelledError, () => keyStoreFacade[opName]())
+
+				const actualKey = await keyStoreFacade[opName]()
+				o(actualKey).deepEquals(aes256Key)
+
+				o(secretStorageSpy.getPassword.callCount).equals(2)
+				o(secretStorageSpy.getPassword.calls[1].args).deepEquals([spec.serviceName, spec.accountName])
+			})
+		})
+	}
+
+	o.spec("key storage errors get propagated properly", function () {
+
+		async function testErrorWrapping({onget, onset, expectError}) {
+			const secretStorageSpy = spyify<SecretStorage>({
+				async getPassword(service: string, account: string): Promise<string | null> {
+					return onget()
+				},
 				async setPassword(service: string, account: string, password: string): Promise<void> {
+					return onset()
 				},
 			})
 
 			const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
-			await assertThrows(CancelledError, () => keyStoreFacade.getCredentialsKey())
+			await assertThrows(expectError, () => keyStoreFacade.getDeviceKey())
+		}
 
-			const actualKey = await keyStoreFacade.getCredentialsKey()
-			o(actualKey).deepEquals(aes256Key)
+		o("CancelledError passes through for getPassword", async function () {
+			await testErrorWrapping({
+				onget: () => {
+					throw new CancelledError("getting")
+				},
+				onset: () => {
+				},
+				expectError: CancelledError
+			})
+		})
 
-			o(secretStorageSpy.getPassword.callCount).equals(2)
-			o(secretStorageSpy.getPassword.calls[1].args).deepEquals([CredentialsKeySpec.serviceName,  CredentialsKeySpec.accountName])
+		o("CancelledError passes through for setPassword", async function () {
+			await testErrorWrapping({
+				onget: () => null,
+				onset: () => {
+					throw new CancelledError("setting")
+				},
+				expectError: CancelledError
+			})
+		})
+
+		o("other errors get wrapped for getPassword", async function () {
+			await testErrorWrapping({
+				onget: () => {
+					throw new Error("random get failure")
+				},
+				onset: () => {
+				},
+				expectError: DeviceStorageUnavailableError
+			})
+		})
+
+		o("other errors get wrapped for setPassword", async function () {
+			await testErrorWrapping({
+				onget: () => null,
+				onset: () => {
+					throw new Error("random set failure")
+				},
+				expectError: DeviceStorageUnavailableError
+			})
 		})
 	})
 })
