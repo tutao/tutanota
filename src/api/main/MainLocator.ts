@@ -16,7 +16,7 @@ import type {DeferredObject} from "@tutao/tutanota-utils"
 import {defer, downcast} from "@tutao/tutanota-utils"
 import {ProgressTracker} from "./ProgressTracker"
 import {MinimizedMailEditorViewModel} from "../../mail/model/MinimizedMailEditorViewModel"
-import {SchedulerImpl} from "../common/utils/Scheduler"
+import {SchedulerImpl} from "../common/utils/Scheduler.js"
 import type {ICredentialsProvider} from "../../misc/credentials/CredentialsProvider"
 import {createCredentialsProvider} from "../../misc/credentials/CredentialsProviderFactory"
 import type {LoginFacade} from "../worker/facades/LoginFacade"
@@ -238,7 +238,7 @@ class MainLocator implements IMainLocator {
 			const {AlarmSchedulerImpl} = await import("../../calendar/date/AlarmScheduler")
 			const {DateProviderImpl} = await import("../../calendar/date/CalendarUtils")
 			const dateProvider = new DateProviderImpl()
-			return new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, window))
+			return new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, window, window))
 		}
 
 		this.calendarModel = new CalendarModelImpl(

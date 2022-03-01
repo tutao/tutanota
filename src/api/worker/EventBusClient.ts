@@ -34,6 +34,7 @@ import {compareOldestFirst, firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_M
 import {InstanceMapper} from "./crypto/InstanceMapper"
 import {WsConnectionState} from "../main/WorkerClient";
 import {IEntityRestCache} from "./rest/EntityRestCache"
+import {SleepDetector} from "./utils/SleepDetector.js"
 
 assertWorkerOrNode()
 
@@ -120,6 +121,7 @@ export class EventBusClient {
 		private readonly entity: EntityClient,
 		private readonly instanceMapper: InstanceMapper,
 		private readonly socketFactory: (path: string) => WebSocket,
+		private readonly sleepDetector: SleepDetector,
 	) {
 		this.state = EventBusState.Automatic
 		this.lastEntityEventIds = new Map()
@@ -197,6 +199,11 @@ export class EventBusClient {
 		this.socket.onclose = (event: CloseEvent) => this.onClose(event)
 		this.socket.onerror = (error: any) => this.onError(error)
 		this.socket.onmessage = (message: MessageEvent<string>) => this.onMessage(message)
+
+		this.sleepDetector.start(() => {
+			console.log("ws sleep detected, reconnecting...")
+			this.tryReconnect(true, true)
+		})
 	}
 
 	/**
@@ -318,6 +325,8 @@ export class EventBusClient {
 				leaderStatus: false,
 			}),
 		)
+
+		this.sleepDetector.stop()
 
 		// Avoid running into penalties when trying to authenticate with an invalid session
 		// NotAuthenticatedException 401, AccessDeactivatedException 470, AccessBlocked 472

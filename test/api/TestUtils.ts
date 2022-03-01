@@ -1,13 +1,14 @@
 import o from "ospec"
-import type {BrowserData} from "../../src/misc/ClientConstants"
-import type {Db} from "../../src/api/worker/search/SearchTypes"
-import {IndexerCore} from "../../src/api/worker/search/IndexerCore"
-import {EventQueue} from "../../src/api/worker/search/EventQueue"
-import {DbFacade, DbTransaction} from "../../src/api/worker/search/DbFacade"
-import {assertNotNull, neverNull} from "@tutao/tutanota-utils"
-import type {DesktopKeyStoreFacade} from "../../src/desktop/KeyStoreFacadeImpl"
+import type {BrowserData} from "../../src/misc/ClientConstants.js"
+import type {Db} from "../../src/api/worker/search/SearchTypes.js"
+import {IndexerCore} from "../../src/api/worker/search/IndexerCore.js"
+import {EventQueue} from "../../src/api/worker/search/EventQueue.js"
+import {DbFacade, DbTransaction} from "../../src/api/worker/search/DbFacade.js"
+import {assertNotNull, neverNull, Thunk} from "@tutao/tutanota-utils"
+import type {DesktopKeyStoreFacade} from "../../src/desktop/KeyStoreFacadeImpl.js"
 import {mock} from "@tutao/tutanota-test-utils"
 import {aes256RandomKey, fixedIv, uint8ArrayToKey} from "@tutao/tutanota-crypto"
+import {ScheduledPeriodicId, ScheduledTimeoutId, Scheduler} from "../../src/api/common/utils/Scheduler.js"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -72,5 +73,48 @@ export function makeKeyStoreFacade(uint8ArrayKey: Uint8Array): DesktopKeyStoreFa
 		getCredentialsKey(): Promise<Aes256Key> {
 			return Promise.resolve(uint8ArrayToKey(uint8ArrayKey))
 		}
+	}
+}
+
+type IdThunk = {
+	id: ScheduledTimeoutId
+	thunk: Thunk
+}
+
+export class SchedulerMock implements Scheduler {
+	alarmId: number = 0
+
+	/** key is the time */
+	scheduledAt: Map<number, IdThunk> = new Map()
+	cancelledAt: Set<ScheduledTimeoutId> = new Set()
+	scheduledPeriodic: Map<number, IdThunk> = new Map()
+	cancelledPeriodic: Set<ScheduledTimeoutId> = new Set()
+
+	scheduleAt(callback, date): ScheduledTimeoutId {
+		const id = this._incAlarmId()
+
+		this.scheduledAt.set(date.getTime(), {
+			id,
+			thunk: callback,
+		})
+		return id
+	}
+
+	unscheduleTimeout(id) {
+		this.cancelledAt.add(id)
+	}
+
+	schedulePeriodic(thunk, period: number): ScheduledPeriodicId {
+		const id = this._incAlarmId()
+		this.scheduledPeriodic.set(period, {id, thunk})
+		return id
+	}
+
+	unschedulePeriodic(id: ScheduledPeriodicId) {
+		this.cancelledPeriodic.add(id)
+	}
+
+	_incAlarmId(): ScheduledTimeoutId {
+		return this.alarmId++
 	}
 }
