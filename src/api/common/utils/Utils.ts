@@ -51,6 +51,7 @@ import {CredentialAuthenticationError} from "../error/CredentialAuthenticationEr
 import {KeyPermanentlyInvalidatedError} from "../error/KeyPermanentlyInvalidatedError"
 import type {FeatureType, OperationType} from "../TutanotaConstants"
 import {ImportError} from "../error/ImportError"
+import {WebauthnError} from "../error/WebauthnError"
 
 export function getWhitelabelDomain(customerInfo: CustomerInfo, domainName?: string): DomainInfo | null {
 	return customerInfo.domainInfos.find(info => info.whitelabelConfig != null && (domainName == null || info.domain === domainName)) ?? null
@@ -115,6 +116,7 @@ const ErrorNameToType = {
 	DeviceStorageUnavailableError,
 	MailBodyTooLargeError,
 	ImportError,
+	WebauthnError,
 	Error,
 	"java.net.SocketTimeoutException": ConnectionError,
 	"java.net.ConnectException": ConnectionError,
