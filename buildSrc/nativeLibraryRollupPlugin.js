@@ -7,18 +7,19 @@ import {getNativeLibModulePath} from "./nativeLibraryProvider.js"
  * See DesktopMain.
  */
 export function sqliteNativeBannerPlugin(
-	{environment, rootDir, dstPath},
+	{environment, rootDir, dstPath, platform},
 	log = console.log.bind(console)
 ) {
 	return {
 		name: "sqlite-native-banner-plugin",
 		async buildStart() {
 			const modulePath = await getNativeLibModulePath({
+				nodeModule: "better-sqlite3",
 				environment,
 				rootDir,
 				log,
-				nodeModule: "better-sqlite3",
-				builtPath: "build/Release/better_sqlite3.node",
+				platform,
+				copyTarget: "better_sqlite3",
 			})
 			await fs.promises.mkdir(path.dirname(dstPath), {recursive: true})
 			await fs.promises.copyFile(modulePath, dstPath)
@@ -37,19 +38,20 @@ export function sqliteNativeBannerPlugin(
  * See DesktopMain.
  */
 export function keytarNativePlugin(
-	{rootDir},
+	{rootDir, platform},
 	log = console.log.bind(console)
 ) {
 	let outputPath
 	return {
 		name: "keytar-native-banner-plugin",
 		async buildStart() {
+
 			outputPath = await getNativeLibModulePath({
+				nodeModule: "keytar",
 				environment: "electron",
 				rootDir,
 				log,
-				nodeModule: "keytar",
-				builtPath: "build/Release/keytar.node",
+				platform,
 			})
 			// await fs.promises.mkdir(path.dirname(dstPath), {recursive: true})
 			// await fs.promises.copyFile(modulePath, dstPath)
@@ -79,3 +81,4 @@ export function keytarNativePlugin(
 		},
 	}
 }
+

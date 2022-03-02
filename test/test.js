@@ -7,7 +7,7 @@ import {getTutanotaAppVersion} from "../buildSrc/buildUtils.js"
 run()
 
 async function run() {
-	console.log("testing version:", await getTutanotaAppVersion())
+	console.log("testing version:", getTutanotaAppVersion())
 
 	let project
 	if (process.argv.indexOf("api") !== -1) {

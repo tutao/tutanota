@@ -5,83 +5,67 @@ import options from "commander"
 import * as env from "./buildSrc/env.js"
 import os from "os"
 import {buildWebapp} from "./buildSrc/buildWebapp.js"
-import {getTutanotaAppVersion, measure} from "./buildSrc/buildUtils.js"
+import {getCanonicalPlatformName, getTutanotaAppVersion, measure} from "./buildSrc/buildUtils.js"
 import {dirname} from "path"
 import {fileURLToPath} from "url"
 import {createHtml} from "./buildSrc/createHtml.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-const desktopTargets = new Set()
-
 options
 	.usage('[options] [test|prod|local|release|host <url>], "release" is default')
-	.description('Main build tool for distributable tutanota desktop artifacts. If neither of --win --linux --mac options is provided, --linux will be assumed')
+	.description('Main build tool for distributable tutanota desktop artifacts.')
 	.arguments('[stage] [host]')
 	.option('-e, --existing', 'Use existing prebuilt Webapp files in /build/dist/')
-	.option('-w --win', 'Build desktop client for windows')
-	.option('-l --linux', 'Build desktop client for linux')
-	.option('-m --mac', 'Build desktop client for mac')
-	.option('--custom-desktop-release', "use if manually building desktop client from source. doesn't install auto updates, but may still notify about new releases.")
-	.option('--disable-minify', "disable minification")
-	.option('--unpacked', "don't pack the app into an installer")
-	.option('--out-dir <outDir>', "where to copy the client",)
-	.action((stage, host) => {
+	.option('-p, --platform <platform>', "For which platform to build: linux|win|mac", process.platform)
+	.option('-c,--custom-desktop-release', "use if manually building desktop client from source. doesn't install auto updates, but may still notify about new releases.")
+	.option('-d,--disable-minify', "disable minification", false)
+	.option('-u,--unpacked', "don't pack the app into an installer")
+	.option('-o,--out-dir <outDir>', "where to copy the client",)
+	.action(async (stage, host, opts) => {
 		if (!["test", "prod", "local", "host", "release", undefined].includes(stage)
 			|| (stage !== "host" && host)
 			|| (stage === "host" && !host)) {
-			options.outputHelp()
+			opts.outputHelp()
 			process.exit(1)
 		}
-		options.stage = stage || "release"
-		options.host = host
+		opts.stage = stage ?? "release"
+		opts.host = host
 
-		if (options.win) desktopTargets.add("win32")
-		if (options.linux) desktopTargets.add("linux")
-		if (options.mac) desktopTargets.add("mac")
-
-		if (options.customDesktopRelease) {
-			console.log(`Custom desktop release - adding local plattform (${process.platform}) to targets`)
-			desktopTargets.add(process.platform)
+		if (opts.customDesktopRelease) {
+			console.log(`Custom desktop release - setting platform to ${process.platform}`)
+			opts.platform = process.platform
 		}
 
-		if (desktopTargets.size === 0){
-			console.log("No target set, defaulting to linux.")
-			desktopTargets.add("linux")
-		}
+		opts.platform = getCanonicalPlatformName(opts.platform)
 
+		await doBuild(opts)
 	})
-	.parse(process.argv)
+	.parseAsync(process.argv)
 
-doBuild().catch(e => {
-	console.error(e)
-	process.exit(1)
-})
-
-async function doBuild() {
+async function doBuild(opts) {
 	try {
 		measure()
-		const version = await getTutanotaAppVersion()
+		const version = getTutanotaAppVersion()
 
-		if (options.existing) {
+		if (opts.existing) {
 			console.log("Found existing option (-e). Skipping Webapp build.")
 		} else {
-			const minify = options.disableMinify !== true
-			if (!minify) {
+			if (opts.disableMinify) {
 				console.warn("Minification is disabled")
 			}
 			await buildWebapp(
 				{
 					version,
-					stage: options.stage,
-					host: options.host,
+					stage: opts.stage,
+					host: opts.host,
 					measure,
-					minify,
+					minify: !opts.disableMinify,
 					projectDir: __dirname
 				})
 		}
 
-		await buildDesktopClient(version)
+		await buildDesktopClient(version, opts)
 
 		const now = new Date(Date.now()).toTimeString().substr(0, 5)
 		console.log(`\nBuild time: ${measure()}s (${now})`)
@@ -91,25 +75,35 @@ async function doBuild() {
 	}
 }
 
-async function buildDesktopClient(version) {
+async function buildDesktopClient(
+	version,
+	{
+		stage,
+		host,
+		platform,
+		customDesktopRelease,
+		unpacked,
+		outDir
+	}
+) {
 	const {buildDesktop} = await import("./buildSrc/DesktopBuilder.js")
 	const desktopBaseOpts = {
 		dirname: __dirname,
 		version,
-		targets: desktopTargets,
-		updateUrl: options.customDesktopRelease
+		platform: platform,
+		updateUrl: customDesktopRelease
 			? ""
 			: "https://mail.tutanota.com/desktop",
 		nameSuffix: "",
-		notarize: !options.customDesktopRelease,
-		outDir: options.outDir,
-		unpacked: options.unpacked
+		notarize: !customDesktopRelease,
+		outDir: outDir,
+		unpacked: unpacked
 	}
 
-	if (options.stage === "release") {
+	if (stage === "release") {
 		await createHtml(env.create({staticUrl: "https://mail.tutanota.com", version, mode: "Desktop", dist: true}))
 		await buildDesktop(desktopBaseOpts)
-		if (!options.customDesktopRelease) { // don't build the test version for manual/custom builds
+		if (!customDesktopRelease) { // don't build the test version for manual/custom builds
 			const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
 				updateUrl: "https://test.tutanota.com/desktop",
 				nameSuffix: "-test",
@@ -119,7 +113,7 @@ async function buildDesktopClient(version) {
 			await createHtml(env.create({staticUrl: "https://test.tutanota.com", version, mode: "Desktop", dist: true}))
 			await buildDesktop(desktopTestOpts)
 		}
-	} else if (options.stage === "local") {
+	} else if (stage === "local") {
 		// this is the only way to contact the local server from localhost, a VM and
 		// from other machines in the LAN with the same url.
 		const addr = Object
@@ -135,7 +129,7 @@ async function buildDesktopClient(version) {
 		})
 		await createHtml(env.create({staticUrl: `http://${addr}:9000`, version, mode: "Desktop", dist: true}))
 		await buildDesktop(desktopLocalOpts)
-	} else if (options.stage === "test") {
+	} else if (stage === "test") {
 		const desktopTestOpts = Object.assign({}, desktopBaseOpts, {
 			updateUrl: "https://test.tutanota.com/desktop",
 			nameSuffix: "-test",
@@ -143,7 +137,7 @@ async function buildDesktopClient(version) {
 		})
 		await createHtml(env.create({staticUrl: "https://test.tutanota.com", version, mode: "Desktop", dist: true}))
 		await buildDesktop(desktopTestOpts)
-	} else if (options.stage === "prod") {
+	} else if (stage === "prod") {
 		const desktopProdOpts = Object.assign({}, desktopBaseOpts, {
 			version,
 			updateUrl: "http://localhost:9000/desktop",
@@ -154,11 +148,11 @@ async function buildDesktopClient(version) {
 	} else { // stage = host
 		const desktopHostOpts = Object.assign({}, desktopBaseOpts, {
 			version,
-			updateUrl: `${options.host}/client/build/desktop-snapshot`,
+			updateUrl: `${host}/client/build/desktop-snapshot`,
 			nameSuffix: "-snapshot",
 			notarize: false
 		})
-		await createHtml(env.create({staticUrl: options.host, version, mode: "Desktop", dist: true}))
+		await createHtml(env.create({staticUrl: host, version, mode: "Desktop", dist: true}))
 		await buildDesktop(desktopHostOpts)
 	}
 }

@@ -55,7 +55,7 @@ doBuild().catch(e => {
 async function doBuild() {
 	try {
 		measure()
-		const version = await getTutanotaAppVersion()
+		const version = getTutanotaAppVersion()
 		const minify = options.disableMinify !== true
 
 		if (!minify) {
