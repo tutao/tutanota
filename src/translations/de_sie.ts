@@ -1439,6 +1439,6 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
-		"domainStillHasContactForms_msg": "{domain} kann nicht deaktiviert werden weil noch Kontaktformulare aktiv sind. Bitte löschen sie die Kontaktformulare bevor sie {domain} deaktivieren."
+		"domainStillHasContactForms_msg": "{domain} kann nicht deaktiviert werden, da noch Kontaktformulare aktiv sind. Bitte löschen Sie die Kontaktformulare bevor Sie {domain} deaktivieren."
 	}
 }
