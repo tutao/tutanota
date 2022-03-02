@@ -179,7 +179,7 @@ pipeline {
 
 				sh 'node buildSrc/publish.js desktop'
 
-				catchError(stageResult: 'UNSTABLE', message: 'Failed to create github release page') {
+				catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page') {
 					withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
 						sh """node buildSrc/createGithubReleasePage.js --name '${VERSION} (Desktop)' \
 																	   --milestone '${VERSION}' \

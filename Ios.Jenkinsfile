@@ -129,7 +129,7 @@ pipeline {
 			}
 			steps {
 				script {
-					catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+					catchError(stageResult: 'FAILURE', buildResult: 'SUCCESS', message: 'Failed to create github release page') {
 						def tag = "tutanota-ios-release-${VERSION}"
 						// need to run npm ci to install dependencies of createGithubReleasePage.js
 						sh "npm ci"
