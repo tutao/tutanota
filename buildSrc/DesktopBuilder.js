@@ -1,5 +1,5 @@
 import {resolveLibs} from "./RollupConfig.js"
-import {nativeDepWorkaroundPlugin, pluginNativeLoader} from "./RollupPlugins.js"
+import {nativeDepWorkaroundPlugin} from "./RollupPlugins.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import fs from "fs"
 import path, {dirname} from "path"
@@ -7,7 +7,7 @@ import {rollup} from "rollup"
 import {terser} from "rollup-plugin-terser"
 import commonjs from "@rollup/plugin-commonjs"
 import electronBuilder from "electron-builder"
-import generatePackgeJson from "./electron-package-json-template.js"
+import generatePackageJson from "./electron-package-json-template.js"
 import {create as createEnv, preludeEnvPlugin} from "./env.js"
 import cp from 'child_process'
 import util from 'util'
@@ -22,7 +22,7 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
 /**
  * @param dirname directory this was called from
  * @param version application version that gets built
- * @param targets: Set<string> - which desktop targets to build and how to package them
+ * @param platform: {"linux"|"win32"|"darwin"} - Canonical platform name of the desktop target to be built
  * @param updateUrl where the client should pull its updates from, if any
  * @param nameSuffix suffix used to distinguish test-, prod- or snapshot builds on the same machine
  * @param notarize for the MacOs notarization feature
@@ -34,7 +34,7 @@ export async function buildDesktop(
 	{
 		dirname,
 		version,
-		targets,
+		platform,
 		updateUrl,
 		nameSuffix,
 		notarize,
@@ -48,12 +48,11 @@ export async function buildDesktop(
 	// - move installers out of the dist into build/desktop-whatever
 	// - cleanup dist directory
 	// It's messy
-	const targetString = Array.from(targets).join(" ")
 
-	console.log("Building desktop client for v" + version + " (" + targetString + ")...")
-	const updateSubDir = "desktop" + nameSuffix
+	console.log(`Building ${platform} desktop client for v${version}`)
+	const updateSubDir = `desktop${nameSuffix}`
 	const distDir = path.join(dirname, "build", "dist")
-	outDir = path.join(outDir || path.join(distDir, ".."), updateSubDir)
+	outDir = path.join(outDir ?? path.join(distDir, ".."), updateSubDir)
 	await fs.promises.mkdir(outDir, {recursive: true})
 
 
@@ -61,7 +60,7 @@ export async function buildDesktop(
 	// and downloads everything it needs. Usually dependencies build themselves in post-install script.
 	// Currently we have keytar which avoids building itself if possible and only build
 	console.log("Updating electron-builder config...")
-	const content = generatePackgeJson({
+	const content = generatePackageJson({
 		nameSuffix,
 		version,
 		updateUrl,
@@ -72,9 +71,7 @@ export async function buildDesktop(
 	})
 	console.log("updateUrl is", updateUrl)
 	await fs.promises.writeFile("./build/dist/package.json", JSON.stringify(content), 'utf-8')
-	if (targets.has("win32")) await getMapirs(distDir)
-
-	await maybeGetKeytar(targets)
+	if (platform === "win32") await getMapirs(distDir)
 
 	// prepare files
 	try {
@@ -86,7 +83,7 @@ export async function buildDesktop(
 	}
 
 	console.log("Bundling desktop client")
-	await rollupDesktop(dirname, path.join(distDir, "desktop"), version)
+	await rollupDesktop(dirname, path.join(distDir, "desktop"), version, platform)
 
 	console.log("Starting installer build...")
 	if (process.platform.startsWith("darwin")) {
@@ -101,9 +98,9 @@ export async function buildDesktop(
 	// package for linux, win, mac
 	await electronBuilder.build({
 		_: ['build'],
-		win: targets.has("win32") ? [] : undefined,
-		mac: targets.has("mac") ? [] : undefined,
-		linux: targets.has("linux") ? [] : undefined,
+		win: platform === "win32" ? [] : undefined,
+		mac: platform === "darwin" ? [] : undefined,
+		linux: platform === "linux" ? [] : undefined,
 		publish: 'always',
 		project: distDir
 	})
@@ -126,7 +123,7 @@ export async function buildDesktop(
 	])
 }
 
-async function rollupDesktop(dirname, outDir, version) {
+async function rollupDesktop(dirname, outDir, version, platform) {
 	const mainBundle = await rollup({
 		input: path.join(dirname, "src/desktop/DesktopMain.ts"),
 		preserveEntrySignatures: false,
@@ -139,6 +136,7 @@ async function rollupDesktop(dirname, outDir, version) {
 			nativeDepWorkaroundPlugin(),
 			keytarNativePlugin({
 				rootDir: projectRoot,
+				platform
 			}),
 			nodeResolve({preferBuiltins: true}),
 			// requireReturnsDefault: "preferred" is needed in order to correclty generate a wrapper for the native keytar module
@@ -153,7 +151,8 @@ async function rollupDesktop(dirname, outDir, version) {
 				{
 					environment: "electron",
 					rootDir: projectRoot,
-					dstPath: "./build/dist/desktop/better_sqlite3.node"
+					dstPath: "./build/dist/desktop/better_sqlite3.node",
+					platform,
 				}
 			),
 		]
@@ -163,31 +162,6 @@ async function rollupDesktop(dirname, outDir, version) {
 	await fs.promises.copyFile(path.join(dirname, "src/desktop/preload-webdialog.js"), path.join(outDir, "preload-webdialog.js"))
 }
 
-/**
- * we can't cross-compile keytar, so we need to have the prebuilt version
- * when building a desktop client for windows on linux
- *
- * napiVersion is the N-API version that's used by keytar.
- * the current release artifacts on github are namend accordingly,
- * e.g. keytar-v7.7.0-napi-v3-linux-x64.tar.gz for N-API v3
- *
- * @param targets: Set<string>
- * @param napiVersion
- */
-async function maybeGetKeytar(targets, napiVersion = 3) {
-	const target = Array.from(targets).filter(t => t !== process.platform)
-
-	if (target.length === 0 || process.env.JENKINS) return
-
-	console.log("fetching prebuilt keytar for", target, "N-API", napiVersion)
-	return Promise.all(target.map(t => exec(
-		`npx prebuild-install --platform ${t} --target ${napiVersion} --tag-prefix v --runtime napi --verbose`,
-		{
-			cwd: './node_modules/keytar/',
-			stdout: 'inherit'
-		}
-	)))
-}
 
 /**
  * get the DLL that's needed for the windows client to handle "Send as Mail..." context

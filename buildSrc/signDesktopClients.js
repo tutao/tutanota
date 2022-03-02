@@ -6,11 +6,12 @@
 import fs from "fs-extra"
 import path from "path"
 import options from "commander"
+import {fileExists} from "./buildUtils.js"
 
 console.log("Sign Desktop Clients")
 
 signDesktopClients()
-	.then( () => process.exit())
+	.then(() => process.exit())
 	.catch(() => process.exit(1))
 
 
@@ -55,8 +56,3 @@ async function signDesktopClients() {
 	await signIfExists('./build/desktop-snapshot/tutanota-desktop-snapshot-linux.AppImage', LINUX_SIGNATURE_FILE, LINUX_YML_FILE)
 }
 
-async function fileExists(filePath) {
-	return fs.stat(filePath)
-			 .then(stats => stats.isFile())
-			 .catch(() => false)
-}

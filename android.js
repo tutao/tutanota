@@ -59,7 +59,7 @@ async function buildAndroid({stage, host, buildType, webClient}) {
 			serve: false
 		})
 	} else {
-		const version = await getTutanotaAppVersion()
+		const version = getTutanotaAppVersion()
 		await buildWebapp(
 			{
 				version,

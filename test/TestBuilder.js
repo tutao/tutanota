@@ -36,6 +36,7 @@ export async function build(buildOptions, serverOptions, log) {
 			sqliteNativeBannerPlugin(
 				{
 					environment: "node",
+					platform: process.platform,
 					rootDir: projectRoot,
 					dstPath: buildDir("better_sqlite3.node")
 				},
