@@ -3,13 +3,14 @@ import {default as path} from "path"
 import {fileURLToPath} from "url"
 import * as LaunchHtml from "./LaunchHtml.js"
 import * as env from "./env.js"
-import {rollupDebugPlugins, writeNollupBundle} from "./RollupDebugConfig.js"
+import {rollupDebugPlugins} from "./RollupDebugConfig.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import hmr from "nollup/lib/plugin-hmr.js"
 import os from "os"
 import {bundleDependencyCheckPlugin} from "./RollupConfig.js"
 import {nativeDepWorkaroundPlugin, pluginNativeLoader} from "./RollupPlugins.js"
 import {keytarNativePlugin, sqliteNativeBannerPlugin} from "./nativeLibraryRollupPlugin.js"
+import {writeNollupBundle} from "./RollupUtils.js"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = __dirname.split(path.sep).slice(0, -1).join(path.sep)
@@ -201,14 +202,17 @@ async function bundleDesktop(log, version) {
 				{
 					environment: "electron",
 					rootDir: root,
-					dstPath: path.join(root, "build/native/better_sqlite3.node")
+					dstPath: path.join(root, "build/native/better_sqlite3.node"),
+					platform: process.platform,
 				},
 				log
 			),
 			keytarNativePlugin(
 				{
 					rootDir: root,
-				}
+					platform: process.platform,
+				},
+				log,
 			),
 			nodeResolve({preferBuiltins: true}),
 		],

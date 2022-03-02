@@ -1,4 +1,4 @@
-import {rollupDebugPlugins, writeNollupBundle} from "../buildSrc/RollupDebugConfig.js"
+import {rollupDebugPlugins} from "../buildSrc/RollupDebugConfig.js"
 import nollup from "nollup"
 import * as env from "../buildSrc/env.js"
 import {promises as fs} from "fs"
@@ -8,6 +8,7 @@ import {fileURLToPath} from "url"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import {sqliteNativeBannerPlugin} from "../buildSrc/nativeLibraryRollupPlugin.js"
 import rollupPluginJson from "@rollup/plugin-json"
+import {writeNollupBundle} from "../buildSrc/RollupUtils.js"
 
 const testRoot = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(testRoot, ".."))

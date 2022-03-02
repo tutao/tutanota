@@ -18,7 +18,7 @@
 		"testapi": "cd test && node --icu-data-dir=../node_modules/full-icu test api",
 		"testclient": "cd test && node --icu-data-dir=../node_modules/full-icu test client",
 		"types": "tsc",
-		"prebuild": "tsc --noEmit false --outDir build/prebuilt --declaration true --declarationMap true --incremental true && cp src/*.d.ts build/prebuilt"
+		"prebuild": "npm run build-packages && tsc --noEmit false --outDir build/prebuilt --declaration true --declarationMap true --incremental true && cp src/*.d.ts build/prebuilt"
 	},
 	"dependencies": {
 		"@tutao/oxmsg": "0.0.9-beta.0",
@@ -68,7 +68,6 @@
 		"full-icu": "1.3.4",
 		"glob": "7.1.7",
 		"js-yaml": "3.13.1",
-		"mithril-node-render": "3.0.1",
 		"node-gyp": "6.1.0",
 		"nollup": "0.18.7",
 		"octokit": "1.3.0",

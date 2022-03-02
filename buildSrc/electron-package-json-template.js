@@ -15,6 +15,7 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 	const debugkey = process.env.DEBUG_SIGN
 		? readFileSync(path.join(process.env.DEBUG_SIGN, "test.pubkey"), {encoding: 'utf8'})
 		: undefined
+	const log = console.log.bind(console)
 	return {
 		"name": appName,
 		"main": "./desktop/DesktopMain.js",
@@ -69,7 +70,7 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 			}
 		},
 		"dependencies": {
-			"electron-updater": getInstalledModuleVersion("electron-updater"),
+			"electron-updater": getInstalledModuleVersion("electron-updater", log),
 		},
 		"build": {
 			"electronVersion": getElectronVersion(),
