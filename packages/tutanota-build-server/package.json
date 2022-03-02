@@ -19,7 +19,7 @@
 		"dist/"
 	],
 	"dependencies": {
-		"chokidar": "3.5.1",
+		"chokidar": "3.5.2",
 		"express": "4.17.0",
 		"express-ws": "4.0.0",
 		"fs-extra": "10.0.0"
