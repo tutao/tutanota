@@ -1,27 +1,27 @@
 {
-  "extends": "./tsconfig_common.json",
-  "compilerOptions": {
-	"declaration": false,
-	"noEmit": true,
-	"outDir": "build/dist",
-  },
-  "include": [
-	"src/",
-	"libs/*.ts",
-	"types/*.d.ts"
-  ],
-  "references": [
-	{
-	  "path": "./packages/tutanota-utils"
+	"extends": "./tsconfig_common.json",
+	"compilerOptions": {
+		"declaration": false,
+		"noEmit": true,
+		"outDir": "build/dist"
 	},
-	{
-	  "path": "./packages/tutanota-build-server"
-	},
-	{
-	  "path": "./packages/tutanota-crypto"
-	},
-	{
-	  "path": "./packages/tutanota-test-utils"
-	}
-  ]
+	"include": [
+		"src/",
+		"libs/*.ts",
+		"types/*.d.ts"
+	],
+	"references": [
+		{
+			"path": "./packages/tutanota-utils"
+		},
+		{
+			"path": "./packages/tutanota-build-server"
+		},
+		{
+			"path": "./packages/tutanota-crypto"
+		},
+		{
+			"path": "./packages/tutanota-test-utils"
+		}
+	]
 }
