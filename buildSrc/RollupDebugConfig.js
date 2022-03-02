@@ -2,18 +2,8 @@ import typescript from "@rollup/plugin-typescript"
 import commonjs from "@rollup/plugin-commonjs"
 import path from "path"
 import fs from "fs-extra"
-import {dependencyMap} from "./RollupConfig.js";
+import {resolveLibs} from "./RollupUtils.js"
 
-
-function resolveLibs(baseDir = ".") {
-	return {
-		name: "resolve-libs",
-		resolveId(source) {
-			const resolved = dependencyMap[source]
-			return resolved && path.join(baseDir, resolved)
-		}
-	}
-}
 
 export function rollupDebugPlugins(baseDir, tsOptions) {
 	return [
@@ -37,16 +27,6 @@ export function rollupDebugPlugins(baseDir, tsOptions) {
 			ignoreDynamicRequires: true,
 		}),
 	]
-}
-
-export async function writeNollupBundle(generatedBundle, log, dir = "build") {
-	await fs.mkdirp(dir)
-
-	return Promise.all(generatedBundle.output.map((o) => {
-		const filePath = path.join(dir, o.fileName)
-		// log("Writing", filePath)
-		return fs.writeFile(filePath, o.code || o.source)
-	}))
 }
 
 /**

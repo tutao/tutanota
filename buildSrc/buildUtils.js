@@ -5,6 +5,7 @@ import fs from "fs-extra"
 import path, {dirname} from "path"
 import {fileURLToPath} from "url"
 import stream from "stream"
+import {spawnSync} from "child_process"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -24,8 +25,8 @@ export function getTutanotaAppVersion() {
  * Returns the version of electron used by the app (as in package.json).
  * @returns {string}
  */
-export function getElectronVersion() {
-	return getInstalledModuleVersion("electron")
+export function getElectronVersion(log = console.log.bind(console)) {
+	return getInstalledModuleVersion("electron", log)
 }
 
 /**
@@ -33,10 +34,30 @@ export function getElectronVersion() {
  * @param module {string}
  * @returns {string}
  */
-export function getInstalledModuleVersion(module) {
-	const moduleDir = path.join(__dirname, "..", "node_modules", module)
-	const packageJson = JSON.parse(fs.readFileSync(path.join(moduleDir, "package.json"), "utf8"))
-	return packageJson.version.trim()
+export function getInstalledModuleVersion(module, log) {
+	// npm list likes to error out for no reason so we just print a warning. If it really fails, we will see it.
+	const {stdout, stderr, status} = spawnSync("npm", ["list", module, "--json"])
+	if (status !== 0) {
+		log(`npm list is not happy about ${module}, but it doesn't mean anything`, stderr)
+	}
+	const json = JSON.parse(stdout.toString().trim())
+	return findVersion(json, module)
+}
+
+// Unfortunately `npm list` is garbage and instead of just giving you the info about package it will give you some subtree with the thing you are looking for
+// buried deep beneath. So we try to find it manually by descending into each dependency.
+// This surfaces in admin client when keytar is not our direct dependency but rather through the tutanota-3
+function findVersion({dependencies}, nodeModule) {
+	if (dependencies[nodeModule]) {
+		return dependencies[nodeModule].version
+	} else {
+		for (const dep of Object.values(dependencies)) {
+			const found = findVersion(dep, nodeModule)
+			if (found) {
+				return found
+			}
+		}
+	}
 }
 
 /**
