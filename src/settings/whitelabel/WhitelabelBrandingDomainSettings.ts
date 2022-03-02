@@ -25,6 +25,9 @@ export type WhitelabelBrandingDomainSettingsAttrs = {
 	whitelabelDomain: string
 }
 
+const FAILURE_LOCKED = "lock.locked"
+const FAILURE_CONTACT_FORM_ACTIVE = "domain.contact_form_active"
+
 export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBrandingDomainSettingsAttrs> {
 	constructor(vnode: Vnode<WhitelabelBrandingDomainSettingsAttrs>) {
 	}
@@ -49,14 +52,13 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 			label: "deactivate_action",
 			click: async () => {
 				if (await Dialog.confirm("confirmDeactivateWhitelabelDomain_msg")) {
-					const customerInfo = await logins.getUserController().loadCustomerInfo()
 					try {
 						return await showProgressDialog("pleaseWait_msg", locator.customerFacade.deleteCertificate(whitelabelDomain))
 					} catch (e) {
 						if (e instanceof PreconditionFailedError) {
-							if (e.data === "lock.locked") {
+							if (e.data === FAILURE_LOCKED) {
 								return await Dialog.message("operationStillActive_msg")
-							} else if (e.data === "domain.contact_form_active") {
+							} else if (e.data === FAILURE_CONTACT_FORM_ACTIVE) {
 								return await Dialog.message(() => lang.get("domainStillHasContactForms_msg", {"{domain}": whitelabelDomain}))
 							}
 						}
