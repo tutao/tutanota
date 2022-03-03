@@ -32,7 +32,7 @@ import {DesktopConfigMigrator} from "./config/migrations/DesktopConfigMigrator"
 import type {DesktopKeyStoreFacade} from "./KeyStoreFacadeImpl"
 import {KeyStoreFacadeImpl} from "./KeyStoreFacadeImpl"
 import {AlarmSchedulerImpl} from "../calendar/date/AlarmScheduler"
-import {SchedulerImpl} from "../misc/Scheduler"
+import {SchedulerImpl} from "../api/common/utils/Scheduler"
 import {DateProviderImpl} from "../calendar/date/CalendarUtils"
 import {ThemeManager} from "./ThemeManager"
 import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys";

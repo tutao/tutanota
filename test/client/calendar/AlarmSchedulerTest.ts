@@ -1,15 +1,15 @@
 // noinspection JSConstantReassignment
 
 import {AlarmScheduler, AlarmSchedulerImpl} from "../../../src/calendar/date/AlarmScheduler"
-import type {ScheduledId, Scheduler} from "../../../src/misc/Scheduler"
+import type {ScheduledId, Scheduler} from "../../../src/api/common/utils/Scheduler"
 import type {Thunk} from "@tutao/tutanota-utils"
 import {downcast} from "@tutao/tutanota-utils"
-import type {DateProvider} from "../../../src/calendar/date/CalendarUtils"
 import o from "ospec"
 import {DateTime} from "luxon"
 import {createAlarmInfo} from "../../../src/api/entities/sys/AlarmInfo"
 import {createRepeatRule} from "../../../src/api/entities/sys/RepeatRule"
 import {EndType, RepeatPeriod} from "../../../src/api/common/TutanotaConstants"
+import {DateProvider} from "../../../src/api/common/DateProvider"
 
 o.spec("AlarmScheduler", function () {
 	let alarmScheduler: AlarmSchedulerImpl

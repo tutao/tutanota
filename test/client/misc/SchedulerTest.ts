@@ -1,10 +1,10 @@
 import o from "ospec"
-import type {ScheduledId, Scheduler, SystemTimeout} from "../../../src/misc/Scheduler"
-import {SchedulerImpl, SET_TIMEOUT_LIMIT} from "../../../src/misc/Scheduler"
-import type {DateProvider} from "../../../src/calendar/date/CalendarUtils"
+import type {ScheduledId, Scheduler, SystemTimeout} from "../../../src/api/common/utils/Scheduler"
+import {SchedulerImpl, SET_TIMEOUT_LIMIT} from "../../../src/api/common/utils/Scheduler"
 import type {Thunk} from "@tutao/tutanota-utils"
 import {assertNotNull, downcast} from "@tutao/tutanota-utils"
 import {DateTime, Duration} from "luxon"
+import {DateProvider} from "../../../src/api/common/DateProvider"
 o.spec("Scheduler", function () {
     let dateProvider: DateProvider
     let scheduler: SchedulerImpl

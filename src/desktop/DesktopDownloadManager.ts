@@ -9,7 +9,6 @@ import {log} from "./DesktopLog.js"
 import {looksExecutable, nonClobberingFilename} from "./PathUtils.js"
 import type {DesktopUtils} from "./DesktopUtils.js"
 import type * as FsModule from "fs"
-import type {DateProvider} from "../calendar/date/CalendarUtils.js"
 import {CancelledError} from "../api/common/error/CancelledError.js"
 import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys.js"
 import {WriteStream} from "fs-extra"
@@ -17,6 +16,7 @@ import {WriteStream} from "fs-extra"
 import type {DownloadTaskResponse} from "../native/common/FileApp.js"
 import type http from "http"
 import type * as stream from "stream"
+import {DateProvider} from "../api/common/DateProvider"
 
 type FsExports = typeof FsModule
 type ElectronExports = typeof Electron.CrossProcessExports

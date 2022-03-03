@@ -26,12 +26,7 @@ import {
 import {DateTime, FixedOffsetZone, IANAZone} from "luxon"
 import type {CalendarRepeatRule} from "../../api/entities/tutanota/CalendarRepeatRule"
 import {createCalendarRepeatRule} from "../../api/entities/tutanota/CalendarRepeatRule"
-import {
-	DAYS_SHIFTED_MS,
-	generateEventElementId,
-	isAllDayEvent,
-	isAllDayEventByTimes
-} from "../../api/common/utils/CommonCalendarUtils"
+import {DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes} from "../../api/common/utils/CommonCalendarUtils"
 import {lang} from "../../misc/LanguageViewModel"
 import {formatDateTime, formatDateWithMonth, formatTime, timeStringFromParts} from "../../misc/Formatter"
 import {size} from "../../gui/size"
@@ -47,7 +42,8 @@ import type {SelectorItemList} from "../../gui/base/DropDownSelectorN"
 import type {RepeatRule} from "../../api/entities/sys/RepeatRule"
 import type {CalendarInfo} from "../model/CalendarModel"
 import {assertMainOrNode} from "../../api/common/Env"
-import {Child, ChildArray, Children} from "mithril";
+import {ChildArray, Children} from "mithril";
+import {DateProvider} from "../../api/common/DateProvider"
 
 assertMainOrNode()
 export const CALENDAR_EVENT_HEIGHT: number = size.calendar_line_height + 2
@@ -293,13 +289,6 @@ export function getValidTimeZone(zone: string, fallback?: string): string {
 export function getTimeZone(): string {
 	return DateTime.local().zoneName
 }
-
-export interface DateProvider {
-	now(): number
-
-	timeZone(): string
-}
-
 export class DateProviderImpl implements DateProvider {
 	now(): number {
 		return Date.now()
