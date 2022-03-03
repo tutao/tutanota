@@ -1,5 +1,5 @@
-import type {DateProvider} from "../calendar/date/CalendarUtils"
 import type {Thunk} from "@tutao/tutanota-utils"
+import {DateProvider} from "../DateProvider"
 
 export type ScheduledId = TimeoutID
 

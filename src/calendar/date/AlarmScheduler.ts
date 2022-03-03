@@ -5,9 +5,9 @@ import {downcast} from "@tutao/tutanota-utils"
 import {EndType} from "../../api/common/TutanotaConstants"
 import type {AlarmInfo} from "../../api/entities/sys/AlarmInfo"
 import type {RepeatRule} from "../../api/entities/sys/RepeatRule"
-import type {ScheduledId, Scheduler} from "../../misc/Scheduler"
-import type {DateProvider} from "./CalendarUtils"
+import type {ScheduledId, Scheduler} from "../../api/common/utils/Scheduler"
 import {calculateAlarmTime, findNextAlarmOccurrence, getEventStartByTimes, getValidTimeZone} from "./CalendarUtils"
+import {DateProvider} from "../../api/common/DateProvider"
 
 type NotificationSender = (title: string, message: string) => void
 type EventInfo = {

@@ -1,7 +1,7 @@
 import type {DeferredObject} from "@tutao/tutanota-utils"
 import {defer, noOp} from "@tutao/tutanota-utils"
 import {WorkerImpl} from "./WorkerImpl"
-import type {SystemTimeout} from "../../misc/Scheduler"
+import type {SystemTimeout} from "../common/utils/Scheduler"
 
 export class SuspensionHandler {
 	_isSuspended: boolean
