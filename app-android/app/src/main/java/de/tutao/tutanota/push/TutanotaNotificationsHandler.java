@@ -167,10 +167,10 @@ public class TutanotaNotificationsHandler {
 		if (responseCode == 404) {
 			throw new FileNotFoundException("Missed notification not found: " + 404);
 		} else if (responseCode == ServiceUnavailableException.CODE) {
-			int suspensionTime = extractSuspectionTime(urlConnection);
+			int suspensionTime = extractSuspentionTime(urlConnection);
 			throw new ServiceUnavailableException(suspensionTime);
 		} else if (responseCode == TooManyRequestsException.CODE) {
-			int suspensionTime = extractSuspectionTime(urlConnection);
+			int suspensionTime = extractSuspentionTime(urlConnection);
 			throw new TooManyRequestsException(suspensionTime);
 		} else if (400 <= responseCode && responseCode < 500) {
 			throw new ClientRequestException(responseCode);
@@ -179,7 +179,7 @@ public class TutanotaNotificationsHandler {
 		}
 	}
 
-	private int extractSuspectionTime(HttpURLConnection urlConnection) {
+	private int extractSuspentionTime(HttpURLConnection urlConnection) {
 		String retryAfterHeader = urlConnection.getHeaderField("Retry-After");
 		if (retryAfterHeader == null) {
 			retryAfterHeader = urlConnection.getHeaderField("Suspension-Time");

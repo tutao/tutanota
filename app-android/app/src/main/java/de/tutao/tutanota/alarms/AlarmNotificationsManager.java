@@ -14,7 +14,6 @@ import java.util.Objects;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
-import de.tutao.tutanota.AndroidKeyStoreFacade;
 import de.tutao.tutanota.Crypto;
 import de.tutao.tutanota.CryptoError;
 import de.tutao.tutanota.OperationType;
@@ -137,7 +136,7 @@ public class AlarmNotificationsManager {
 				});
 			}
 		} catch (CryptoError cryptoError) {
-			Log.w(TAG, "Error when decrypting alarmNotificaiton", cryptoError);
+			Log.w(TAG, "Error when decrypting alarmNotification", cryptoError);
 		} catch (Exception e) {
 			Log.e(TAG, "Error when scheduling alarm", e);
 			localNotificationsFacade.showErrorNotification(R.string.wantToSendReport_msg, e);

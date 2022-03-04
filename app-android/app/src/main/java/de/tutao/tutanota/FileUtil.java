@@ -68,8 +68,7 @@ public class FileUtil {
 		this.localNotificationsFacade = localNotificationsFacade;
 	}
 
-
-	private Promise<Void, Exception, Void> requestStoragePermission() {
+	private Promise<ActivityResult, Exception, Void> requestStoragePermission() {
 		// Requesting android runtime permissions. (Android 5+)
 		// We only need to request the read permission even if we want to get write access. There is only one permission of a permission group necessary to get
 		// access to all permission of that permission group. We still have to declare write access in the manifest.
@@ -173,7 +172,7 @@ public class FileUtil {
 			});
 			return promise;
 		} else {
-			return requestStoragePermission().then((DonePipe<Void, Object, Exception, Void>) nothing -> {
+			return requestStoragePermission().then((DonePipe<ActivityResult, Object, Exception, Void>) nothing -> {
 				DeferredObject<Object, Exception, Void> promise = new DeferredObject<>();
 				backgroundTasksExecutor.execute(() -> {
 					try {
@@ -331,7 +330,7 @@ public class FileUtil {
 	}
 
 	private File writeFileToEncryptedDir(String filename, InputStream inputStream) throws IOException {
-		return  writeFileToDir(filename, inputStream, Crypto.TEMP_DIR_ENCRYPTED);
+		return writeFileToDir(filename, inputStream, Crypto.TEMP_DIR_ENCRYPTED);
 	}
 
 	Promise<Object, Exception, Void> saveBlob(final String name, final String base64blob) {

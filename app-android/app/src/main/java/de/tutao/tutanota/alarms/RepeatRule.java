@@ -55,11 +55,11 @@ public final class RepeatRule {
 	}
 
 	@Nullable
-	public EndType getEndTypeDec(Crypto crypto, byte[] sesionKey) throws CryptoError {
+	public EndType getEndTypeDec(Crypto crypto, byte[] sessionKey) throws CryptoError {
 		if (this.endType == null) {
 			return null;
 		}
-		long endTypeNumber = EncryptionUtils.decryptNumber(endType, crypto, sesionKey);
+		long endTypeNumber = EncryptionUtils.decryptNumber(endType, crypto, sessionKey);
 		return EndType.get(endTypeNumber);
 	}
 

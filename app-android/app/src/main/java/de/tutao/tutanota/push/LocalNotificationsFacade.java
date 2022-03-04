@@ -68,13 +68,13 @@ public class LocalNotificationsFacade {
 				.build();
 	}
 
-	public void notificationDismissed(List<String> dissmissAddrs, boolean isSummary) {
+	public void notificationDismissed(List<String> dismissAdders, boolean isSummary) {
 		if (isSummary) {
 			// If the user clicked on summary directly, reset counter for all notifications
 			aliasNotification.clear();
 		} else {
-			if (dissmissAddrs != null) {
-				for (String addr : dissmissAddrs) {
+			if (dismissAdders != null) {
+				for (String addr : dismissAdders) {
 					aliasNotification.remove(addr);
 					getNotificationManager().cancel(makeNotificationId(addr));
 				}

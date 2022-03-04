@@ -71,7 +71,7 @@ public class MainActivity extends FragmentActivity {
 	private static final String TAG = "MainActivity";
 
 	private static int requestId = 0;
-	private final Map<Integer, Deferred> requests = new ConcurrentHashMap<>();
+	private final Map<Integer, Deferred<ActivityResult, Exception, Void>> requests = new ConcurrentHashMap<>();
 
 	private WebView webView;
 	public SseStorage sseStorage;
@@ -327,8 +327,8 @@ public class MainActivity extends FragmentActivity {
 		return requestId;
 	}
 
-	Promise<Void, Exception, Void> getPermission(String permission) {
-		Deferred<Void, Exception, Void> p = new DeferredObject<>();
+	Promise<ActivityResult, Exception, Void> getPermission(String permission) {
+		Deferred<ActivityResult, Exception, Void> p = new DeferredObject<>();
 		if (hasPermission(permission)) {
 			p.resolve(null);
 		} else {
@@ -343,12 +343,10 @@ public class MainActivity extends FragmentActivity {
 		return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED;
 	}
 
-	// deprecated but we need requestCode to identify the request which is not possible with new API
-	@SuppressWarnings("deprecation")
 	@Override
 	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-		Deferred deferred = requests.remove(requestCode);
+		Deferred<ActivityResult, Exception, Void> deferred = requests.remove(requestCode);
 		if (deferred == null) {
 			Log.w(TAG, "No deferred for the permission request" + requestCode);
 			return;
@@ -360,26 +358,22 @@ public class MainActivity extends FragmentActivity {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	public Promise<ActivityResult, ?, ?> startActivityForResult(@RequiresPermission Intent intent) {
 		int requestCode = getRequestCode();
-		Deferred p = new DeferredObject();
+		Deferred<ActivityResult, Exception, Void> p = new DeferredObject<>();
 		requests.put(requestCode, p);
 		// deprecated but we need requestCode to identify the request which is not possible with new API
 		super.startActivityForResult(intent, requestCode);
 		return p;
 	}
 
-	// deprecated but we need requestCode to identify the request which is not possible with new API
-	@SuppressWarnings("deprecation")
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-		Deferred deferred = requests.remove(requestCode);
+		Deferred<ActivityResult, Exception, Void> deferred = requests.remove(requestCode);
 		if (deferred != null) {
 			deferred.resolve(new ActivityResult(resultCode, data));
 		} else {
-
 			Log.w(TAG, "No deferred for activity request" + requestCode);
 		}
 	}
@@ -397,7 +391,7 @@ public class MainActivity extends FragmentActivity {
 
 	/**
 	 * The sharing activity. Either invoked from MainActivity (if the app was not active when the
-	 * share occured) or from onCreate.
+	 * share occurred) or from onCreate.
 	 */
 	void share(Intent intent) {
 		String action = intent.getAction();
@@ -494,9 +488,9 @@ public class MainActivity extends FragmentActivity {
 			return;
 		}
 		nativeImpl.sendRequest(JsRequest.openMailbox, new Object[]{userId, address});
-		ArrayList<String> addressess = new ArrayList<>(1);
-		addressess.add(address);
-		startService(LocalNotificationsFacade.notificationDismissedIntent(this, addressess,
+		ArrayList<String> addresses = new ArrayList<>(1);
+		addresses.add(address);
+		startService(LocalNotificationsFacade.notificationDismissedIntent(this, addresses,
 				"MainActivity#openMailbox", isSummary));
 	}
 
@@ -509,7 +503,6 @@ public class MainActivity extends FragmentActivity {
 	}
 
 	@Override
-
 	public void onBackPressed() {
 		if (nativeImpl.getWebAppInitialized().isResolved()) {
 			nativeImpl.sendRequest(JsRequest.handleBackPress, new Object[0])
@@ -563,15 +556,5 @@ public class MainActivity extends FragmentActivity {
 				return true;
 			});
 		}
-	}
-}
-
-class ActivityResult {
-	int resultCode;
-	Intent data;
-
-	ActivityResult(int resultCode, Intent data) {
-		this.resultCode = resultCode;
-		this.data = data;
 	}
 }
