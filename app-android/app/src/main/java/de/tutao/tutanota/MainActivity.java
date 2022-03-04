@@ -1,17 +1,16 @@
 package de.tutao.tutanota;
 
-import android.Manifest;
+import static de.tutao.tutanota.Utils.parseColor;
+
 import android.annotation.SuppressLint;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ActivityNotFoundException;
-import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -31,7 +30,6 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
-import androidx.activity.ComponentActivity;
 import androidx.annotation.ColorInt;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
@@ -63,11 +61,7 @@ import de.tutao.tutanota.push.LocalNotificationsFacade;
 import de.tutao.tutanota.push.PushNotificationService;
 import de.tutao.tutanota.push.SseStorage;
 
-import static de.tutao.tutanota.Utils.parseColor;
-
 public class MainActivity extends FragmentActivity {
-
-	public static final String INVALIDATE_SSE_ACTION = "de.tutao.tutanota.INVALIDATE_SSE";
 	public static final String OPEN_USER_MAILBOX_ACTION = "de.tutao.tutanota.OPEN_USER_MAILBOX_ACTION";
 	public static final String OPEN_CALENDAR_ACTION = "de.tutao.tutanota.OPEN_CALENDAR_ACTION";
 	public static final String OPEN_USER_MAILBOX_MAILADDRESS_KEY = "mailAddress";
@@ -160,14 +154,6 @@ public class MainActivity extends FragmentActivity {
 		}
 
 		startWebApp(queryParameters);
-
-		IntentFilter filter = new IntentFilter(INVALIDATE_SSE_ACTION);
-		this.registerReceiver(new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-
-			}
-		}, filter);
 	}
 
 	@Override
