@@ -102,7 +102,7 @@ public class Crypto {
 	}
 
 
-	protected synchronized JSONObject generateRsaKey(byte[] seed) throws JSONException, NoSuchProviderException, NoSuchAlgorithmException {
+	protected synchronized JSONObject generateRsaKey(byte[] seed) throws JSONException, NoSuchAlgorithmException {
 		this.randomizer.setSeed(seed);
 		KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
 		generator.initialize(RSA_KEY_LENGTH_IN_BITS, randomizer);

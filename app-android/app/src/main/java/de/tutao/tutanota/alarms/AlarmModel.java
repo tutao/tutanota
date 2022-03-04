@@ -8,28 +8,30 @@ public class AlarmModel {
 
 	public static final int OCCURRENCES_SCHEDULED_AHEAD = 10;
 
-	public static void iterateAlarmOccurrences(Date now,
-											   TimeZone timeZone,
-											   Date eventStart,
-											   Date eventEnd,
-											   RepeatPeriod frequency,
-											   int interval,
-											   EndType endType,
-											   long endValue,
-											   AlarmTrigger alarmTrigger,
-											   TimeZone locaTimeZone,
-											   AlarmIterationCallback callback) {
+	public static void iterateAlarmOccurrences(
+			Date now,
+			TimeZone timeZone,
+			Date eventStart,
+			Date eventEnd,
+			RepeatPeriod frequency,
+			int interval,
+			EndType endType,
+			long endValue,
+			AlarmTrigger alarmTrigger,
+			TimeZone localTimeZone,
+			AlarmIterationCallback callback
+	) {
 
 
 		boolean isAllDayEvent = isAllDayEventByTimes(eventStart, eventEnd);
-		Date calcEventStart = isAllDayEvent ? getAllDayDateLocal(eventStart, locaTimeZone) : eventStart;
+		Date calcEventStart = isAllDayEvent ? getAllDayDateLocal(eventStart, localTimeZone) : eventStart;
 		Date endDate = endType == EndType.UNTIL
 				? isAllDayEvent
-				? getAllDayDateLocal(new Date(endValue), locaTimeZone)
+				? getAllDayDateLocal(new Date(endValue), localTimeZone)
 				: new Date(endValue)
 				: null;
 
-		Calendar calendar = Calendar.getInstance(isAllDayEvent ? locaTimeZone : timeZone);
+		Calendar calendar = Calendar.getInstance(isAllDayEvent ? localTimeZone : timeZone);
 		int occurrences = 0;
 		int futureOccurrences = 0;
 
@@ -44,7 +46,7 @@ public class AlarmModel {
 			if (endType == EndType.UNTIL && calendar.getTimeInMillis() >= endDate.getTime()) {
 				break;
 			}
-			Date alarmTime = calculateAlarmTime(calendar.getTime(), locaTimeZone, alarmTrigger);
+			Date alarmTime = calculateAlarmTime(calendar.getTime(), localTimeZone, alarmTrigger);
 
 			if (alarmTime.after(now)) {
 				callback.call(alarmTime, occurrences, calendar.getTime());

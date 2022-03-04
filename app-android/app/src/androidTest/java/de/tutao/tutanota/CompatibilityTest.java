@@ -1,10 +1,12 @@
 package de.tutao.tutanota;
 
 
-import android.support.annotation.NonNull;
+import static org.junit.Assert.assertEquals;
+
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import androidx.annotation.NonNull;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONException;
@@ -19,8 +21,6 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
-
-import static org.junit.Assert.assertEquals;
 
 @RunWith(AndroidJUnit4.class)
 public class CompatibilityTest {

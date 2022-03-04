@@ -8,6 +8,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import de.tutao.tutanota.AndroidKeyStoreFacade;
@@ -97,7 +98,13 @@ public final class PushNotificationService extends LifecycleJobService {
 				removeBackgroundServiceNotification();
 				finishJobIfNeeded();
 			} else {
-				sseClient.restartConnectionIfNeeded(new SseInfo(sseStorage.getPushIdentifier(), userIds, sseStorage.getSseOrigin()));
+				sseClient.restartConnectionIfNeeded(
+						new SseInfo(
+								Objects.requireNonNull(sseStorage.getPushIdentifier()),
+								userIds,
+								sseStorage.getSseOrigin()
+						)
+				);
 			}
 		});
 

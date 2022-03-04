@@ -8,13 +8,15 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.OnLifecycleEvent;
 
-public class NetworkObserver extends BroadcastReceiver implements LifecycleObserver {
+public class NetworkObserver extends BroadcastReceiver implements DefaultLifecycleObserver {
 	public static final String TAG = "NetworkObserver";
 
 	private final ConnectivityManager connectivityManager;
@@ -56,8 +58,8 @@ public class NetworkObserver extends BroadcastReceiver implements LifecycleObser
 		void onNetworkConnectivityChange(boolean connected);
 	}
 
-	@OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-	void onDestroy() {
+	@Override
+	public void onDestroy(@NonNull LifecycleOwner owner) {
 		context.unregisterReceiver(this);
 	}
 }
