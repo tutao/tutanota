@@ -24,7 +24,7 @@ export class SidebarSection implements Component<SidebarSectionAttrs> {
 			},
 			[
 				m(".folder-row.flex-space-between.plr-l.pt-s.button-height", [
-					m("small.b.align-self-center", lang.getMaybeLazy(name).toLocaleUpperCase()),
+					m("small.b.align-self-center.text-ellipsis", lang.getMaybeLazy(name).toLocaleUpperCase()),
 					buttonAttrs ? m(ButtonN, buttonAttrs) : null,
 				]),
 				content,
