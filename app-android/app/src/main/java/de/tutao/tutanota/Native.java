@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
 
 import org.jdeferred.Deferred;
+import org.jdeferred.DonePipe;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 import org.json.JSONArray;
@@ -30,7 +31,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +63,7 @@ public final class Native {
 	public final ThemeManager themeManager;
 	private final ICredentialsEncryption credentialsEncryption;
 	private volatile DeferredObject<Void, Throwable, Void> webAppInitialized = new DeferredObject<>();
+	@Nullable
 	private WebMessagePort webMessagePort;
 
 	Native(MainActivity activity, SseStorage sseStorage, AlarmNotificationsManager alarmNotificationsManager) {
@@ -141,24 +142,26 @@ public final class Native {
 	}
 
 	Promise<Object, Exception, ?> sendRequest(JsRequest type, Object[] args) {
-		JSONObject request = new JSONObject();
-		String requestId = createRequestId();
-		try {
-			JSONArray arguments = new JSONArray();
-			for (Object arg : args) {
-				arguments.put(arg);
+		return this.webAppInitialized.then((DonePipe<Void, Object, Exception, Void>) (v) -> {
+			JSONObject request = new JSONObject();
+			String requestId = createRequestId();
+			try {
+				JSONArray arguments = new JSONArray();
+				for (Object arg : args) {
+					arguments.put(arg);
+				}
+				request.put("id", requestId);
+				request.put("type", "request");
+				request.put("requestType", type.toString());
+				request.put("args", arguments);
+				this.postMessage(request);
+				DeferredObject<Object, Exception, Void> d = new DeferredObject<>();
+				this.queue.put(requestId, d);
+				return d.promise();
+			} catch (JSONException e) {
+				throw new RuntimeException(e);
 			}
-			request.put("id", requestId);
-			request.put("type", "request");
-			request.put("requestType", type.toString());
-			request.put("args", arguments);
-			this.postMessage(request);
-			DeferredObject<Object, Exception, Void> d = new DeferredObject<>();
-			this.queue.put(requestId, d);
-			return d.promise();
-		} catch (JSONException e) {
-			throw new RuntimeException(e);
-		}
+		});
 	}
 
 	private static String createRequestId() {
@@ -190,6 +193,9 @@ public final class Native {
 	}
 
 	private void postMessage(final JSONObject json) {
+		if (this.webMessagePort == null) {
+			throw new IllegalStateException("Web bridge is not initialized yet!");
+		}
 		webMessagePort.postMessage(new WebMessage(json.toString()));
 	}
 
@@ -462,10 +468,6 @@ public final class Native {
 		StringWriter errors = new StringWriter();
 		e.printStackTrace(new PrintWriter(errors));
 		return errors.toString();
-	}
-
-	private static String escape(String s) {
-		return Utils.bytesToBase64(s.getBytes());
 	}
 
 	DeferredObject<Void, Throwable, Void> getWebAppInitialized() {
