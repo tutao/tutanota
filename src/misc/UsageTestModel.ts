@@ -1,76 +1,132 @@
-import {createUsageTestAssignmentPostIn} from "../api/entities/sys/UsageTestAssignmentPostIn.js"
+import {createUsageTestAssignmentIn} from "../api/entities/sys/UsageTestAssignmentIn.js"
 import {SysService} from "../api/entities/sys/Services.js"
 import {HttpMethod} from "../api/common/EntityFunctions.js"
-import {UsageTestAssignmentPostOutTypeRef} from "../api/entities/sys/UsageTestAssignmentPostOut.js"
-import {PingAdapter, Stage, StorageAdapter, UsageTest} from "@tutao/tutanota-usagetests"
-import {serviceRequest, serviceRequestVoid} from "../api/main/ServiceRequest"
-import {createUsageTestParticipationPostIn} from "../api/entities/sys/UsageTestParticipationPostIn"
-import {UsageTestParticipationPostOutTypeRef} from "../api/entities/sys/UsageTestParticipationPostOut"
-import {createUsageTestParticipationPutIn} from "../api/entities/sys/UsageTestParticipationPutIn"
+import {UsageTestAssignmentOutTypeRef} from "../api/entities/sys/UsageTestAssignmentOut.js"
+import {PingAdapter, Stage, UsageTest} from "@tutao/tutanota-usagetests"
+import {serviceRequest} from "../api/main/ServiceRequest"
+import {createUsageTestParticipationIn} from "../api/entities/sys/UsageTestParticipationIn"
 import {UsageTestState} from "../api/common/TutanotaConstants"
-import {ofClass} from "@tutao/tutanota-utils"
+import {filterInt, ofClass} from "@tutao/tutanota-utils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {createUsageTestMetricData} from "../api/entities/sys/UsageTestMetricData"
+import {_TypeModel as UsageTestTypeModel, UsageTestAssignment} from "../api/entities/sys/UsageTestAssignment"
+import {DateProvider} from "../calendar/date/CalendarUtils.js"
 
-const FIRST_STAGE = 0
+export interface PersistedAssignmentData {
+	updatedAt: number
+	assignments: UsageTestAssignment[]
+	sysModelVersion: number
+}
 
-export class UsageTestModel implements PingAdapter, StorageAdapter {
-	async loadActiveUsageTests(): Promise<UsageTest[]> {
-		console.log("loading tests")
+export interface UsageTestStorage {
+	getTestDeviceId(): Promise<string | null>
 
-		const data = createUsageTestAssignmentPostIn()
-		const response = await serviceRequest(SysService.UsageTestAssignmentService, HttpMethod.POST, data, UsageTestAssignmentPostOutTypeRef)
+	storeTestDeviceId(testDeviceId: string): Promise<void>
 
-		console.log(response)
-		return Promise.resolve(response.assignments.map(usageTestAssignment => {
-			const test = new UsageTest(usageTestAssignment.testId, usageTestAssignment.name, Number(usageTestAssignment.variant),
-				UsageTestState.Live === usageTestAssignment.state)
+	getAssignments(): Promise<PersistedAssignmentData | null>
 
-			for (let [index, stage] of usageTestAssignment.stages.entries()) {
+	storeAssignments(persistedAssignmentData: PersistedAssignmentData): Promise<void>
+}
+
+export const ASSIGNMENT_UPDATE_INTERVAL_MS = 1000 * 60 * 60 // 1h
+
+export const enum TtlBehavior {
+	PossiblyOutdated,
+	UpToDateOnly,
+}
+
+export interface ServiceExecutor {
+	serviceRequest: typeof serviceRequest
+}
+
+export class UsageTestModel implements PingAdapter {
+
+	constructor(
+		private readonly testStorage: UsageTestStorage,
+		private readonly dateProvider: DateProvider,
+		private readonly serviceExecutor: ServiceExecutor,
+	) {
+	}
+
+	async loadActiveUsageTests(ttlBehavior: TtlBehavior): Promise<UsageTest[]> {
+		const persistedData = await this.testStorage.getAssignments()
+
+		if (persistedData == null ||
+			persistedData.sysModelVersion !== filterInt(UsageTestTypeModel.version) ||
+			(ttlBehavior === TtlBehavior.UpToDateOnly && Date.now() - persistedData.updatedAt > ASSIGNMENT_UPDATE_INTERVAL_MS)
+		) {
+			return this.assignmentsToTests(await this.loadAssignments())
+		} else {
+			return this.assignmentsToTests(persistedData.assignments)
+		}
+	}
+
+	private async loadAssignments(): Promise<UsageTestAssignment[]> {
+		const testDeviceId = await this.testStorage.getTestDeviceId()
+
+		const data = createUsageTestAssignmentIn({
+			testDeviceId: testDeviceId
+		})
+
+		const response = await this.serviceExecutor.serviceRequest(
+			SysService.UsageTestAssignmentService,
+			testDeviceId ? HttpMethod.PUT : HttpMethod.POST,
+			data,
+			UsageTestAssignmentOutTypeRef,
+		)
+		await this.testStorage.storeTestDeviceId(response.testDeviceId)
+		await this.testStorage.storeAssignments({
+			assignments: response.assignments,
+			updatedAt: this.dateProvider.now(),
+			sysModelVersion: filterInt(UsageTestTypeModel.version),
+		})
+
+		return response.assignments
+	}
+
+	private assignmentsToTests(assignments: UsageTestAssignment[]): UsageTest[] {
+		return assignments.map(usageTestAssignment => {
+			const test = new UsageTest(
+				usageTestAssignment.testId,
+				usageTestAssignment.name,
+				Number(usageTestAssignment.variant),
+				UsageTestState.Live === usageTestAssignment.state,
+			)
+
+			for (const index of usageTestAssignment.stages.keys()) {
 				test.addStage(new Stage(index, test))
 			}
 
 			return test
-		}))
+		})
 	}
 
 	async sendPing(test: UsageTest, stage: Stage): Promise<void> {
-		const metrics = Array.from(stage.collectedMetrics).map(([key, {name, value}]) => {
-			const metric = createUsageTestMetricData()
-			metric.name = name
-			metric.value = value
+		const testDeviceId = await this.testStorage.getTestDeviceId()
+		if (testDeviceId == null) {
+			console.warn("No device id set before sending pings")
+			return
+		}
 
-			return metric
+		const metrics = Array.from(stage.collectedMetrics).map(([key, {name, value}]) =>
+			createUsageTestMetricData({
+				name: name,
+				value: value,
+			}))
+
+		const data = createUsageTestParticipationIn({
+			testId: test.testId,
+			metrics,
+			stage: stage.number.toString(),
+			testDeviceId: testDeviceId,
 		})
 
-		if (stage.number === FIRST_STAGE) {
-			const data = createUsageTestParticipationPostIn()
-			data.testId = test.testId
-			data.metrics = metrics
+		// FIXME Check that stage - 1 has been sent
 
-			serviceRequest(SysService.UsageTestParticipationService, HttpMethod.POST, data, UsageTestParticipationPostOutTypeRef)
-				.then(response => {
-					test.participationId = response.participationId
-				})
-				.catch(ofClass(PreconditionFailedError, (e) => {
-					test.active = false
-					console.log("Tried to send ping for paused test", e)
-				}))
-		} else {
-			const data = createUsageTestParticipationPutIn()
-			data.testId = test.testId
-			data.metrics = metrics
-			data.stage = stage.number.toString()
-
-			if (!test.participationId) {
-				console.log(`Cannot send stage ${stage.number} because participationId on test ${test.testId} has not been set. Has stage 0 been completed?`)
-				return
-			}
-			data.participationId = test.participationId
-
-			serviceRequestVoid(SysService.UsageTestParticipationService, HttpMethod.PUT, data)
-				.catch(ofClass(PreconditionFailedError, (e) => console.log("Tried to send ping for paused test ", e)))
-		}
+		await this.serviceExecutor.serviceRequest(SysService.UsageTestParticipationService, HttpMethod.POST, data)
+				  .catch(ofClass(PreconditionFailedError, (e) => {
+					  test.active = false
+					  console.log("Tried to send ping for paused test", e)
+				  }))
 	}
-
 }

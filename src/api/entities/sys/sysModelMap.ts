@@ -201,11 +201,9 @@ const map = {
     UsageTestMetricConfig: () => import('./UsageTestMetricConfig.js'),
     UsageTestMetricData: () => import('./UsageTestMetricData.js'),
     UsageTestStage: () => import('./UsageTestStage.js'),
-    UsageTestAssignmentPostIn: () => import('./UsageTestAssignmentPostIn.js'),
+    UsageTestAssignmentIn: () => import('./UsageTestAssignmentIn.js'),
     UsageTestAssignment: () => import('./UsageTestAssignment.js'),
-    UsageTestAssignmentPostOut: () => import('./UsageTestAssignmentPostOut.js'),
-    UsageTestParticipationPostIn: () => import('./UsageTestParticipationPostIn.js'),
-    UsageTestParticipationPutIn: () => import('./UsageTestParticipationPutIn.js'),
-    UsageTestParticipationPostOut: () => import('./UsageTestParticipationPostOut.js')
+    UsageTestAssignmentOut: () => import('./UsageTestAssignmentOut.js'),
+    UsageTestParticipationIn: () => import('./UsageTestParticipationIn.js')
 }
 export default map

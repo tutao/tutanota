@@ -52,6 +52,8 @@ import {IWebauthn} from "../../misc/2fa/webauthn/IWebauthn.js"
 import {BrowserWebauthn} from "../../misc/2fa/webauthn/BrowserWebauthn.js"
 import {UsageTestController} from "@tutao/tutanota-usagetests"
 import {UsageTestModel} from "../../misc/UsageTestModel"
+import {deviceConfig} from "../../misc/DeviceConfig"
+import {DateProvider} from "../../calendar/date/CalendarUtils"
 
 assertMainOrNode()
 
@@ -244,7 +246,17 @@ class MainLocator implements IMainLocator {
 		this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, this.webauthnClient, this.loginFacade)
 		this.credentialsProvider = await createCredentialsProvider(deviceEncryptionFacade, this._nativeInterfaces?.native ?? null)
 		this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient)
-		this.usageTestModel = new UsageTestModel()
+		this.usageTestModel = new UsageTestModel(
+			deviceConfig, {
+				now(): number {
+					return Date.now()
+				},
+				timeZone(): string {
+					throw new Error("Not implemented by this provider")
+				},
+			},
+			this.worker,
+			)
 
 		const lazyScheduler = async () => {
 			const {AlarmSchedulerImpl} = await import("../../calendar/date/AlarmScheduler")

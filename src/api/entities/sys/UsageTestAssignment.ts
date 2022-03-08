@@ -9,41 +9,41 @@ export const _TypeModel: TypeModel = {
 	"name": "UsageTestAssignment",
 	"since": 73,
 	"type": "AGGREGATED_TYPE",
-	"id": 1960,
-	"rootId": "A3N5cwAHqA",
+	"id": 1959,
+	"rootId": "A3N5cwAHpw",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"id": 1961,
+			"id": 1960,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"name": {
-			"id": 1963,
+			"id": 1962,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"state": {
-			"id": 1965,
+			"id": 1964,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"testId": {
-			"id": 1962,
+			"id": 1961,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"variant": {
-			"id": 1964,
+			"id": 1963,
 			"type": "Number",
 			"cardinality": "ZeroOrOne",
 			"final": true,
@@ -52,7 +52,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"stages": {
-			"id": 1966,
+			"id": 1965,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,

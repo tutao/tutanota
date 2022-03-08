@@ -4,25 +4,39 @@ import type {TypeModel} from "../../common/EntityTypes.js"
 
 import type {UsageTestMetricData} from "./UsageTestMetricData.js"
 
-export const UsageTestParticipationPostInTypeRef: TypeRef<UsageTestParticipationPostIn> = new TypeRef("sys", "UsageTestParticipationPostIn")
+export const UsageTestParticipationInTypeRef: TypeRef<UsageTestParticipationIn> = new TypeRef("sys", "UsageTestParticipationIn")
 export const _TypeModel: TypeModel = {
-	"name": "UsageTestParticipationPostIn",
+	"name": "UsageTestParticipationIn",
 	"since": 73,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 1970,
-	"rootId": "A3N5cwAHsg",
+	"id": 1971,
+	"rootId": "A3N5cwAHsw",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"id": 1971,
+			"id": 1972,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
+		"stage": {
+			"id": 1974,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"testDeviceId": {
+			"id": 1975,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"testId": {
-			"id": 1972,
+			"id": 1973,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": false,
@@ -31,7 +45,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"metrics": {
-			"id": 1973,
+			"id": 1976,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
@@ -43,14 +57,16 @@ export const _TypeModel: TypeModel = {
 	"version": "73"
 }
 
-export function createUsageTestParticipationPostIn(values?: Partial<UsageTestParticipationPostIn>): UsageTestParticipationPostIn {
-	return Object.assign(create(_TypeModel, UsageTestParticipationPostInTypeRef), downcast<UsageTestParticipationPostIn>(values))
+export function createUsageTestParticipationIn(values?: Partial<UsageTestParticipationIn>): UsageTestParticipationIn {
+	return Object.assign(create(_TypeModel, UsageTestParticipationInTypeRef), downcast<UsageTestParticipationIn>(values))
 }
 
-export type UsageTestParticipationPostIn = {
-	_type: TypeRef<UsageTestParticipationPostIn>;
+export type UsageTestParticipationIn = {
+	_type: TypeRef<UsageTestParticipationIn>;
 
 	_format: NumberString;
+	stage: NumberString;
+	testDeviceId: Id;
 	testId: Id;
 
 	metrics: UsageTestMetricData[];
