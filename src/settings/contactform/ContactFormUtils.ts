@@ -1,13 +1,13 @@
-import {lang} from "../misc/LanguageViewModel"
-import {logins} from "../api/main/LoginController"
-import {AdministratedGroupTypeRef} from "../api/entities/sys/AdministratedGroup"
-import {GroupTypeRef} from "../api/entities/sys/Group"
-import {createContactFormLanguage} from "../api/entities/tutanota/ContactFormLanguage"
-import type {ContactFormLanguage} from "../api/entities/tutanota/ContactFormLanguage"
-import {getElementId} from "../api/common/utils/EntityUtils"
+import {lang} from "../../misc/LanguageViewModel"
+import {logins} from "../../api/main/LoginController"
+import {AdministratedGroupTypeRef} from "../../api/entities/sys/AdministratedGroup"
+import {GroupTypeRef} from "../../api/entities/sys/Group"
+import {createContactFormLanguage} from "../../api/entities/tutanota/ContactFormLanguage"
+import type {ContactFormLanguage} from "../../api/entities/tutanota/ContactFormLanguage"
+import {getElementId} from "../../api/common/utils/EntityUtils"
 import {flat} from "@tutao/tutanota-utils"
 import {promiseMap} from "@tutao/tutanota-utils"
-import {locator} from "../api/main/MainLocator"
+import {locator} from "../../api/main/MainLocator"
 
 export function getDefaultContactFormLanguage(supportedLanguages: ContactFormLanguage[]): ContactFormLanguage {
 	let language = supportedLanguages.find(l => l.code === lang.code || l.code + "_sie" === lang.code)

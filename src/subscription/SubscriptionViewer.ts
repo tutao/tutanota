@@ -24,7 +24,7 @@ import {MailAddressAliasServiceReturnTypeRef} from "../api/entities/sys/MailAddr
 import * as AddUserDialog from "../settings/AddUserDialog"
 import * as EmailAliasOptionsDialog from "./EmailAliasOptionsDialog"
 import * as AddGroupDialog from "../settings/AddGroupDialog"
-import * as ContactFormEditor from "../settings/ContactFormEditor"
+import * as ContactFormEditor from "../settings/contactform/ContactFormEditor"
 import {showUpgradeWizard} from "./UpgradeSubscriptionWizard"
 import {showSwitchDialog} from "./SwitchSubscriptionDialog"
 import stream from "mithril/stream"
