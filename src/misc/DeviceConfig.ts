@@ -8,6 +8,7 @@ import type {CredentialsStorage, PersistentCredentials} from "./credentials/Cred
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import type {CredentialEncryptionMode} from "./credentials/CredentialEncryptionMode"
 import {assertMainOrNodeBoot} from "../api/common/Env"
+import {PersistedAssignmentData, UsageTestStorage} from "./UsageTestModel"
 
 assertMainOrNodeBoot()
 const ConfigVersion = 3
@@ -17,7 +18,7 @@ export const defaultThemeId: ThemeId = "light"
 /**
  * Device config for internal user auto login. Only one config per device is stored.
  */
-export class DeviceConfig implements CredentialsStorage {
+export class DeviceConfig implements CredentialsStorage, UsageTestStorage {
 	private _version: number
 	private _credentials!: Map<Id, PersistentCredentials>
 	private _scheduledAlarmUsers!: Id[]
@@ -28,6 +29,8 @@ export class DeviceConfig implements CredentialsStorage {
 	private _signupToken!: string
 	private _credentialEncryptionMode!: CredentialEncryptionMode | null
 	private _encryptedCredentialsKey!: Base64 | null
+	private _testDeviceId!: string | null
+	private _testAssignments!: PersistedAssignmentData | null
 
 	constructor() {
 		this._version = ConfigVersion
@@ -92,6 +95,9 @@ export class DeviceConfig implements CredentialsStorage {
 		this._defaultCalendarView = (loadedConfig && loadedConfig._defaultCalendarView) || {}
 		this._hiddenCalendars = (loadedConfig && loadedConfig._hiddenCalendars) || {}
 		let loadedSignupToken = loadedConfig && loadedConfig._signupToken
+
+		this._testDeviceId = loadedConfig?._testDeviceId ?? null
+		this._testAssignments = loadedConfig?._testAssignments ?? null
 
 		if (loadedSignupToken) {
 			this._signupToken = loadedSignupToken
@@ -228,6 +234,24 @@ export class DeviceConfig implements CredentialsStorage {
 			this._encryptedCredentialsKey = null
 		}
 
+		this._writeToStorage()
+	}
+
+	async getTestDeviceId(): Promise<string | null> {
+		return this._testDeviceId
+	}
+
+	async storeTestDeviceId(testDeviceId: string): Promise<void> {
+		this._testDeviceId = testDeviceId
+		this._writeToStorage()
+	}
+
+	async getAssignments(): Promise<PersistedAssignmentData | null> {
+		return this._testAssignments
+	}
+
+	async storeAssignments(persistedAssignmentData: PersistedAssignmentData): Promise<void> {
+		this._testAssignments = persistedAssignmentData
 		this._writeToStorage()
 	}
 }

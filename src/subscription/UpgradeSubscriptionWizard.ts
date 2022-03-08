@@ -32,6 +32,7 @@ import {assertMainOrNode} from "../api/common/Env"
 import type {Hex} from "@tutao/tutanota-utils"
 import {getCampaignFromLocalStorage} from "../misc/LoginUtils"
 import {locator} from "../api/main/MainLocator"
+import {TtlBehavior} from "../misc/UsageTestModel"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -146,71 +147,64 @@ export function showUpgradeWizard(): void {
 	})
 }
 
-export function loadSignupWizard(subscriptionParameters: SubscriptionParameters | null, campaign: string | null): Promise<Dialog> {
-	return loadUpgradePrices(campaign).then(prices => {
-		const planPrices: SubscriptionPlanPrices = {
-			Premium: prices.premiumPrices,
-			PremiumBusiness: prices.premiumBusinessPrices,
-			Teams: prices.teamsPrices,
-			TeamsBusiness: prices.teamsBusinessPrices,
-			Pro: prices.proPrices,
-		}
-		const signupData: UpgradeSubscriptionData = {
-			options: {
-				businessUse: stream(prices.business),
-				paymentInterval: stream(12),
-			},
-			invoiceData: {
-				invoiceAddress: "",
-				country: null,
-				vatNumber: "", // only for EU countries otherwise empty
-			},
-			paymentData: {
-				paymentMethod: PaymentMethod.CreditCard,
-				creditCardData: null,
-			},
-			price: "",
-			priceNextYear: null,
-			type: SubscriptionType.Free,
-			accountingInfo: null,
-			customer: null,
-			newAccountData: null,
-			campaign,
-			campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
-			upgradeType: UpgradeType.Signup,
-			planPrices: planPrices,
-			currentSubscription: null,
-			subscriptionParameters: subscriptionParameters,
-		}
-		const wizardPages = [
-			wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(signupData)),
-			wizardPageWrapper(SignupPage, new SignupPageAttrs(signupData)),
-			wizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(signupData)),
-			wizardPageWrapper(UpgradeConfirmPage, new UpgradeConfirmPageAttrs(signupData)),
-		]
-		const wizardBuilder = createWizardDialog(signupData, wizardPages, () => {
-			let promise
+export async function loadSignupWizard(subscriptionParameters: SubscriptionParameters | null, campaign: string | null): Promise<Dialog> {
+	locator.usageTestController.addTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly))
 
-			if (logins.isUserLoggedIn()) {
-				promise = logins.logout(false)
-			} else {
-				promise = Promise.resolve()
-			}
+	const prices = await loadUpgradePrices(campaign)
+	const planPrices: SubscriptionPlanPrices = {
+		Premium: prices.premiumPrices,
+		PremiumBusiness: prices.premiumBusinessPrices,
+		Teams: prices.teamsPrices,
+		TeamsBusiness: prices.teamsBusinessPrices,
+		Pro: prices.proPrices,
+	}
+	const signupData: UpgradeSubscriptionData = {
+		options: {
+			businessUse: stream(prices.business),
+			paymentInterval: stream(12),
+		},
+		invoiceData: {
+			invoiceAddress: "",
+			country: null,
+			vatNumber: "", // only for EU countries otherwise empty
+		},
+		paymentData: {
+			paymentMethod: PaymentMethod.CreditCard,
+			creditCardData: null,
+		},
+		price: "",
+		priceNextYear: null,
+		type: SubscriptionType.Free,
+		accountingInfo: null,
+		customer: null,
+		newAccountData: null,
+		campaign,
+		campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
+		upgradeType: UpgradeType.Signup,
+		planPrices: planPrices,
+		currentSubscription: null,
+		subscriptionParameters: subscriptionParameters,
+	}
+	const wizardPages = [
+		wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(signupData)),
+		wizardPageWrapper(SignupPage, new SignupPageAttrs(signupData)),
+		wizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(signupData)),
+		wizardPageWrapper(UpgradeConfirmPage, new UpgradeConfirmPageAttrs(signupData)),
+	]
+	const wizardBuilder = createWizardDialog(signupData, wizardPages, async () => {
+		if (logins.isUserLoggedIn()) {
+			await logins.logout(false)
+		}
 
-			return promise.then(() => {
-				if (signupData.newAccountData) {
-					m.route.set("/login", {
-						loginWith: signupData.newAccountData.mailAddress,
-					})
-				} else {
-					m.route.set("/login", {
-						noAutoLogin: true,
-					})
-				}
+		if (signupData.newAccountData) {
+			m.route.set("/login", {
+				loginWith: signupData.newAccountData.mailAddress,
 			})
-		})
-		const wizard = wizardBuilder.dialog
-		//we only return the dialog so that it can be shown
-		return wizard
+		} else {
+			m.route.set("/login", {
+				noAutoLogin: true,
+			})
+		}
 	})
+	return wizardBuilder.dialog
 }

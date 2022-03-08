@@ -12,11 +12,11 @@ assertMainOrNode()
 
 type Service = SysService | TutanotaService | MonitorService | AccountingService
 
-export function serviceRequest<T extends Entity>(
+export function serviceRequest<T>(
 	service: Service,
 	method: HttpMethod,
 	requestEntity?: Entity | undefined | null,
-	responseTypeRef?: TypeRef<T>,
+	responseTypeRef?: T extends Entity ? TypeRef<T> : never,
 	queryParams?: Dict,
 	sk?: Aes128Key,
 	extraHeaders?: Dict,

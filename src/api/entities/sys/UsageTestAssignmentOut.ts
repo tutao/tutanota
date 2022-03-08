@@ -4,19 +4,26 @@ import type {TypeModel} from "../../common/EntityTypes.js"
 
 import type {UsageTestAssignment} from "./UsageTestAssignment.js"
 
-export const UsageTestAssignmentPostOutTypeRef: TypeRef<UsageTestAssignmentPostOut> = new TypeRef("sys", "UsageTestAssignmentPostOut")
+export const UsageTestAssignmentOutTypeRef: TypeRef<UsageTestAssignmentOut> = new TypeRef("sys", "UsageTestAssignmentOut")
 export const _TypeModel: TypeModel = {
-	"name": "UsageTestAssignmentPostOut",
+	"name": "UsageTestAssignmentOut",
 	"since": 73,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 1967,
-	"rootId": "A3N5cwAHrw",
+	"id": 1966,
+	"rootId": "A3N5cwAHrg",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
-			"id": 1968,
+			"id": 1967,
 			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"testDeviceId": {
+			"id": 1968,
+			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
@@ -36,14 +43,15 @@ export const _TypeModel: TypeModel = {
 	"version": "73"
 }
 
-export function createUsageTestAssignmentPostOut(values?: Partial<UsageTestAssignmentPostOut>): UsageTestAssignmentPostOut {
-	return Object.assign(create(_TypeModel, UsageTestAssignmentPostOutTypeRef), downcast<UsageTestAssignmentPostOut>(values))
+export function createUsageTestAssignmentOut(values?: Partial<UsageTestAssignmentOut>): UsageTestAssignmentOut {
+	return Object.assign(create(_TypeModel, UsageTestAssignmentOutTypeRef), downcast<UsageTestAssignmentOut>(values))
 }
 
-export type UsageTestAssignmentPostOut = {
-	_type: TypeRef<UsageTestAssignmentPostOut>;
+export type UsageTestAssignmentOut = {
+	_type: TypeRef<UsageTestAssignmentOut>;
 
 	_format: NumberString;
+	testDeviceId: Id;
 
 	assignments: UsageTestAssignment[];
 }
