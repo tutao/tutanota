@@ -36,7 +36,7 @@
 		"better-sqlite3": "7.5.0",
 		"cborg": "1.5.4",
 		"dompurify": "2.3.0",
-		"electron": "16.0.9",
+		"electron": "17.1.1",
 		"electron-updater": "4.6.5",
 		"jszip": "3.7.0",
 		"keytar": "github:tutao/node-keytar#12593c5809c9ed6bfc063ed3e862dd85a1506aca",
