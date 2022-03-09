@@ -28,6 +28,7 @@ export type SystemTimeout = {
 	clearTimeout: typeof clearTimeout
 }
 
+/** Default impl of interval functions, useful for testing */
 export type SystemInterval = {
 	// Copying it because ts has some weird properties attach to it in node tslib.
 	// no-arg version because lambadas exist.
@@ -93,6 +94,11 @@ export class SchedulerImpl implements Scheduler {
 	}
 
 	schedulePeriodic(thunk: Thunk, ms: number): ScheduledPeriodicId {
+		// Intervals bigger than 32 bit int will not work out-of-the-box and we do not want to implement bridging for them as this is a very rare case and is
+		// usually a bug.
+		if (ms > SET_TIMEOUT_LIMIT) {
+			throw new Error("Attempting to schedule periodic task but the period is too big: " + ms)
+		}
 		return this.systemInterval.setInterval(thunk, ms)
 	}
 
