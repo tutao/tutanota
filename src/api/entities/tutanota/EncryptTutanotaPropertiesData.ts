@@ -34,7 +34,8 @@ export const _TypeModel: TypeModel = {
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "TutanotaProperties"
+			"refType": "TutanotaProperties",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

@@ -104,14 +104,16 @@ export const _TypeModel: TypeModel = {
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "SentGroupInvitation"
+			"refType": "SentGroupInvitation",
+			"dependency": null
 		},
 		"sharedGroup": {
 			"id": 1615,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "Group"
+			"refType": "Group",
+			"dependency": null
 		}
 	},
 	"app": "sys",

@@ -6,9 +6,7 @@ import {assertNotNull, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
 import {windowFacade} from "../misc/WindowFacade"
 import {checkApprovalStatus} from "../misc/LoginUtils"
 import {locator} from "../api/main/MainLocator"
-import {serviceRequestVoid} from "../api/main/ServiceRequest"
-import {TutanotaService} from "../api/entities/tutanota/Services"
-import {HttpMethod} from "../api/common/EntityFunctions"
+import {ReceiveInfoService} from "../api/entities/tutanota/Services"
 import {InfoLink, lang} from "../misc/LanguageViewModel"
 import {getHourCycle} from "../misc/Formatter"
 import type {OutOfOfficeNotification} from "../api/entities/tutanota/OutOfOfficeNotification"
@@ -121,7 +119,7 @@ class LoginListener implements LoginEventHandler {
 			const receiveInfoData = createReceiveInfoServiceData({
 				language: lang.code,
 			})
-			await serviceRequestVoid(TutanotaService.ReceiveInfoService, HttpMethod.POST, receiveInfoData)
+			await locator.serviceExecutor.post(ReceiveInfoService, receiveInfoData)
 		}
 
 		lang.updateFormats({

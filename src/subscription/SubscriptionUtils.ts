@@ -8,13 +8,13 @@ import type {Customer} from "../api/entities/sys/Customer"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import type {Booking} from "../api/entities/sys/Booking"
 import {createBookingServiceData} from "../api/entities/sys/BookingServiceData"
-import {serviceRequestVoid} from "../api/main/ServiceRequest"
-import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {Dialog} from "../gui/base/Dialog"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {ofClass} from "@tutao/tutanota-utils"
 import Stream from "mithril/stream";
+import {locator} from "../api/main/MainLocator"
+import {BookingService} from "../api/entities/sys/Services"
 
 export type SubscriptionOptions = {
 	businessUse: Stream<boolean>
@@ -416,7 +416,7 @@ export function bookItem(featureType: BookingItemFeatureType, amount: number): P
 		featureType,
 		date: Const.CURRENT_DATE,
 	})
-	return serviceRequestVoid(SysService.BookingService, HttpMethod.POST, bookingData)
+	return locator.serviceExecutor.post(BookingService, bookingData)
 		.then(() => false)
 		.catch(
 			ofClass(PreconditionFailedError, error => {

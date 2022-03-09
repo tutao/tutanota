@@ -54,14 +54,12 @@ import {SettingsFolderRow} from "./SettingsFolderRow"
 import {isCustomizationEnabledForCustomer} from "../api/common/utils/Utils"
 import type {ReceivedGroupInvitation} from "../api/entities/sys/ReceivedGroupInvitation"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {serviceRequestVoid} from "../api/main/ServiceRequest"
-import {TutanotaService} from "../api/entities/tutanota/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {createGroupSettings} from "../api/entities/tutanota/GroupSettings"
 import {createUserAreaGroupDeleteData} from "../api/entities/tutanota/UserAreaGroupDeleteData"
 import {GroupInvitationFolderRow} from "../sharing/view/GroupInvitationFolderRow"
-import type {NativeInterfaceMain} from "../native/main/NativeInterfaceMain"
+import {TemplateGroupService} from "../api/entities/tutanota/Services"
 
 assertMainOrNode()
 
@@ -425,13 +423,9 @@ export class SettingsView implements CurrentView {
 		return getConfirmation("confirmDeleteTemplateGroup_msg").confirmed(() =>
 			showProgressDialog(
 				"pleaseWait_msg",
-				serviceRequestVoid(
-					TutanotaService.TemplateGroupService,
-					HttpMethod.DELETE,
-					createUserAreaGroupDeleteData({
-						group: templateInfo.groupInfo.group,
-					}),
-				),
+				locator.serviceExecutor.delete(TemplateGroupService, createUserAreaGroupDeleteData({
+					group: templateInfo.groupInfo.group,
+				}))
 			),
 		)
 	}

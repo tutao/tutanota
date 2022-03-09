@@ -48,7 +48,8 @@ export const _TypeModel: TypeModel = {
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "CalendarEvent"
+			"refType": "CalendarEvent",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

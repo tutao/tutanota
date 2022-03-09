@@ -5,7 +5,6 @@ import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
-import {serviceRequest} from "../api/main/ServiceRequest"
 import {logins} from "../api/main/LoginController"
 import type {InvoiceData, PaymentData} from "../api/common/TutanotaConstants"
 import {Const, getPaymentMethodType, PaymentMethodType as PaymentMethod} from "../api/common/TutanotaConstants"
@@ -18,7 +17,6 @@ import {SubscriptionType, UpgradeType} from "./SubscriptionUtils"
 import stream from "mithril/stream"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {createUpgradePriceServiceData} from "../api/entities/sys/UpgradePriceServiceData"
-import {SysService} from "../api/entities/sys/Services"
 import type {UpgradePriceServiceReturn} from "../api/entities/sys/UpgradePriceServiceReturn"
 import {UpgradePriceServiceReturnTypeRef} from "../api/entities/sys/UpgradePriceServiceReturn"
 import type {TranslationKey} from "../misc/LanguageViewModel"
@@ -33,6 +31,7 @@ import type {Hex} from "@tutao/tutanota-utils"
 import {getCampaignFromLocalStorage} from "../misc/LoginUtils"
 import {locator} from "../api/main/MainLocator"
 import {TtlBehavior} from "../misc/UsageTestModel"
+import {UpgradePriceService} from "../api/entities/sys/Services"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -74,10 +73,11 @@ export type UpgradeSubscriptionData = {
 }
 
 export function loadUpgradePrices(campaign: string | null): Promise<UpgradePriceServiceReturn> {
-	let data = createUpgradePriceServiceData()
-	data.date = Const.CURRENT_DATE
-	data.campaign = campaign
-	return serviceRequest(SysService.UpgradePriceService, HttpMethod.GET, data, UpgradePriceServiceReturnTypeRef)
+	const data = createUpgradePriceServiceData({
+		date: Const.CURRENT_DATE,
+		campaign,
+	})
+	return locator.serviceExecutor.get(UpgradePriceService, data)
 }
 
 function loadCustomerAndInfo(): Promise<{

@@ -27,7 +27,8 @@ export const _TypeModel: TypeModel = {
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "WhitelabelChild"
+			"refType": "WhitelabelChild",
+			"dependency": null
 		}
 	},
 	"app": "sys",

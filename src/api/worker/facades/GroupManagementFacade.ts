@@ -4,9 +4,6 @@ import type {InternalGroupData} from "../../entities/tutanota/InternalGroupData"
 import {createInternalGroupData} from "../../entities/tutanota/InternalGroupData"
 import {hexToUint8Array, neverNull} from "@tutao/tutanota-utils"
 import {LoginFacadeImpl} from "./LoginFacade"
-import {serviceRequest, serviceRequestVoid} from "../ServiceRequestWorker"
-import {TutanotaService} from "../../entities/tutanota/Services"
-import {HttpMethod} from "../../common/EntityFunctions"
 import {createCreateLocalAdminGroupData} from "../../entities/tutanota/CreateLocalAdminGroupData"
 import type {Group} from "../../entities/sys/Group"
 import {GroupTypeRef} from "../../entities/sys/Group"
@@ -14,9 +11,7 @@ import {createMembershipAddData} from "../../entities/sys/MembershipAddData"
 import {createMembershipRemoveData} from "../../entities/sys/MembershipRemoveData"
 import {createDeleteGroupData} from "../../entities/tutanota/DeleteGroupData"
 import {CounterFacade} from "./CounterFacade"
-import {SysService} from "../../entities/sys/Services"
 import type {User} from "../../entities/sys/User"
-import {CreateGroupPostReturnTypeRef} from "../../entities/tutanota/CreateGroupPostReturn"
 import {createUserAreaGroupPostData} from "../../entities/tutanota/UserAreaGroupPostData"
 import type {UserAreaGroupData} from "../../entities/tutanota/UserAreaGroupData"
 import {createUserAreaGroupData} from "../../entities/tutanota/UserAreaGroupData"
@@ -24,14 +19,10 @@ import {EntityClient} from "../../common/EntityClient"
 import {assertWorkerOrNode} from "../../common/Env"
 import {encryptString} from "../crypto/CryptoFacade"
 import type {RsaImplementation} from "../crypto/RsaImplementation"
-import {
-	aes128RandomKey,
-	decryptKey,
-	encryptKey,
-	encryptRsaKey,
-	publicKeyToHex,
-	RsaKeyPair
-} from "@tutao/tutanota-crypto";
+import {aes128RandomKey, decryptKey, encryptKey, encryptRsaKey, publicKeyToHex, RsaKeyPair} from "@tutao/tutanota-crypto";
+import {IServiceExecutor} from "../../common/ServiceRequest"
+import {LocalAdminGroupService, MailGroupService, TemplateGroupService} from "../../entities/tutanota/Services"
+import {MembershipService} from "../../entities/sys/Services"
 
 assertWorkerOrNode()
 
@@ -57,7 +48,13 @@ export class GroupManagementFacadeImpl {
 	private readonly _rsa: RsaImplementation
 	private readonly _entityClient: EntityClient
 
-	constructor(login: LoginFacadeImpl, counters: CounterFacade, entity: EntityClient, rsa: RsaImplementation) {
+	constructor(
+		login: LoginFacadeImpl,
+		counters: CounterFacade,
+		entity: EntityClient,
+		rsa: RsaImplementation,
+		private readonly serivceExecutor: IServiceExecutor,
+	) {
 		this._login = login
 		this._counters = counters
 		this._entityClient = entity
@@ -93,12 +90,13 @@ export class GroupManagementFacadeImpl {
 			adminGroupKey,
 			customerGroupKey,
 		)
-		let data = createCreateMailGroupData()
-		data.mailAddress = mailAddress
-		data.encryptedName = encryptString(mailGroupInfoSessionKey, name)
-		data.mailEncMailboxSessionKey = encryptKey(mailGroupKey, mailboxSessionKey)
-		data.groupData = mailGroupData
-		return serviceRequestVoid(TutanotaService.MailGroupService, HttpMethod.POST, data)
+		const data = createCreateMailGroupData({
+			mailAddress,
+			encryptedName: encryptString(mailGroupInfoSessionKey, name),
+			mailEncMailboxSessionKey: encryptKey(mailGroupKey, mailboxSessionKey),
+			groupData: mailGroupData,
+		})
+		await this.serivceExecutor.post(MailGroupService, data)
 	}
 
 	async createLocalAdminGroup(name: string): Promise<void> {
@@ -112,10 +110,11 @@ export class GroupManagementFacadeImpl {
 		let groupInfoSessionKey = aes128RandomKey()
 		const keyPair = await this._rsa.generateKey()
 		const mailGroupData = await this.generateInternalGroupData(keyPair, groupKey, groupInfoSessionKey, adminGroupId, adminGroupKey, customerGroupKey)
-		let data = createCreateLocalAdminGroupData()
-		data.encryptedName = encryptString(groupInfoSessionKey, name)
-		data.groupData = mailGroupData
-		return serviceRequestVoid(TutanotaService.LocalAdminGroupService, HttpMethod.POST, data)
+		const data = createCreateLocalAdminGroupData({
+			encryptedName: encryptString(groupInfoSessionKey, name),
+			groupData: mailGroupData,
+		})
+		await this.serivceExecutor.post(LocalAdminGroupService, data)
 	}
 
 	/**
@@ -161,9 +160,8 @@ export class GroupManagementFacadeImpl {
 			const serviceData = createUserAreaGroupPostData({
 				groupData: groupData,
 			})
-			return serviceRequest(TutanotaService.TemplateGroupService, HttpMethod.POST, serviceData, CreateGroupPostReturnTypeRef).then(
-				returnValue => returnValue.group,
-			)
+			return this.serivceExecutor.post(TemplateGroupService, serviceData)
+					   .then(returnValue => returnValue.group)
 		})
 	}
 
@@ -184,36 +182,37 @@ export class GroupManagementFacadeImpl {
 		return groupData
 	}
 
-	addUserToGroup(user: User, groupId: Id): Promise<void> {
-		return this.getGroupKeyAsAdmin(user.userGroup.group).then(userGroupKey => {
-			return this.getGroupKeyAsAdmin(groupId).then(groupKey => {
-				let data = createMembershipAddData()
-				data.user = user._id
-				data.group = groupId
-				data.symEncGKey = encryptKey(userGroupKey, groupKey)
-				return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, data)
-			})
+	async addUserToGroup(user: User, groupId: Id): Promise<void> {
+		const userGroupKey = await this.getGroupKeyAsAdmin(user.userGroup.group)
+		const groupKey = await this.getGroupKeyAsAdmin(groupId)
+		const data = createMembershipAddData({
+			user: user._id,
+			group: groupId,
+			symEncGKey: encryptKey(userGroupKey, groupKey),
 		})
+		await this.serivceExecutor.post(MembershipService, data)
 	}
 
-	removeUserFromGroup(userId: Id, groupId: Id): Promise<void> {
-		let data = createMembershipRemoveData()
-		data.user = userId
-		data.group = groupId
-		return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, data)
+	async removeUserFromGroup(userId: Id, groupId: Id): Promise<void> {
+		const data = createMembershipRemoveData({
+			user: userId,
+			group: groupId,
+		})
+		await this.serivceExecutor.delete(MembershipService, data)
 	}
 
-	deactivateGroup(group: Group, restore: boolean): Promise<void> {
-		let data = createDeleteGroupData()
-		data.group = group._id
-		data.restore = restore
+	async deactivateGroup(group: Group, restore: boolean): Promise<void> {
+		const data = createDeleteGroupData({
+			group: group._id,
+			restore,
+		})
 
 		if (group.type === GroupType.Mail) {
-			return serviceRequestVoid(TutanotaService.MailGroupService, HttpMethod.DELETE, data)
+			await this.serivceExecutor.delete(MailGroupService, data)
 		} else if (group.type === GroupType.LocalAdmin) {
-			return serviceRequestVoid(TutanotaService.LocalAdminGroupService, HttpMethod.DELETE, data)
+			await this.serivceExecutor.delete(LocalAdminGroupService, data)
 		} else {
-			return Promise.reject(new Error("invalid group type for deactivation"))
+			throw new Error("invalid group type for deactivation")
 		}
 	}
 

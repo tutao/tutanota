@@ -66,6 +66,30 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"mails": {
+			"id": 132,
+			"type": "LIST_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "Mail",
+			"dependency": null
+		},
+		"receivedAttachments": {
+			"id": 134,
+			"type": "LIST_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "File",
+			"dependency": null
+		},
+		"sentAttachments": {
+			"id": 133,
+			"type": "LIST_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "File",
+			"dependency": null
+		},
 		"spamResults": {
 			"id": 1220,
 			"type": "AGGREGATION",
@@ -81,27 +105,6 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"refType": "MailFolderRef",
 			"dependency": null
-		},
-		"mails": {
-			"id": 132,
-			"type": "LIST_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "Mail"
-		},
-		"receivedAttachments": {
-			"id": 134,
-			"type": "LIST_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "File"
-		},
-		"sentAttachments": {
-			"id": 133,
-			"type": "LIST_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "File"
 		}
 	},
 	"app": "tutanota",
@@ -124,9 +127,9 @@ export type MailBox = {
 	lastInfoDate: Date;
 	symEncShareBucketKey: null | Uint8Array;
 
-	spamResults:  null | SpamResults;
-	systemFolders:  null | MailFolderRef;
 	mails: Id;
 	receivedAttachments: Id;
 	sentAttachments: Id;
+	spamResults:  null | SpamResults;
+	systemFolders:  null | MailFolderRef;
 }

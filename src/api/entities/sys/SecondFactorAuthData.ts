@@ -38,6 +38,14 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"session": {
+			"id": 1232,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"refType": "Session",
+			"dependency": null
+		},
 		"u2f": {
 			"id": 1231,
 			"type": "AGGREGATION",
@@ -53,13 +61,6 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"refType": "WebauthnResponseData",
 			"dependency": null
-		},
-		"session": {
-			"id": 1232,
-			"type": "LIST_ELEMENT_ASSOCIATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "Session"
 		}
 	},
 	"app": "sys",
@@ -77,7 +78,7 @@ export type SecondFactorAuthData = {
 	otpCode: null | NumberString;
 	type: null | NumberString;
 
+	session:  null | IdTuple;
 	u2f:  null | U2fResponseData;
 	webauthn:  null | WebauthnResponseData;
-	session:  null | IdTuple;
 }

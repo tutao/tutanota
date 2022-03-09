@@ -13,8 +13,6 @@ import {UserError} from "../../api/main/UserError"
 import {Dialog} from "../../gui/base/Dialog"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
-import {serviceRequest} from "../../api/main/ServiceRequest"
-import {SysService} from "../../api/entities/sys/Services"
 import {px} from "../../gui/size"
 import type {Base64, lazy} from "@tutao/tutanota-utils"
 import {assertNotNull, base64ExtToBase64, base64ToBase64Ext, base64ToBase64Url, base64UrlToBase64, neverNull, ofClass} from "@tutao/tutanota-utils"
@@ -36,6 +34,7 @@ import {HttpMethod} from "../../api/common/EntityFunctions"
 import {formatPrice} from "../PriceUtils"
 import Stream from "mithril/stream";
 import {CURRENT_GIFT_CARD_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection} from "../TermsAndConditions"
+import {LocationService} from "../../api/entities/sys/Services"
 
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH = 24
@@ -64,7 +63,7 @@ export function redeemGiftCard(
 	getConfirmation: (arg0: TranslationKey | lazy<string>) => Promise<boolean>,
 ): Promise<void> {
 	// Check that the country matches
-	return serviceRequest(SysService.LocationService, HttpMethod.GET, null, LocationServiceGetReturnTypeRef)
+	return locator.serviceExecutor.get(LocationService, null)
 		.then(userLocation => {
 			const validCountry = getByAbbreviation(validCountryCode)
 

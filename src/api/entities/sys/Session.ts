@@ -106,7 +106,8 @@ export const _TypeModel: TypeModel = {
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "User"
+			"refType": "User",
+			"dependency": null
 		}
 	},
 	"app": "sys",

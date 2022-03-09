@@ -1,9 +1,5 @@
-import {createUsageTestAssignmentIn} from "../api/entities/sys/UsageTestAssignmentIn.js"
-import {SysService} from "../api/entities/sys/Services.js"
-import {HttpMethod} from "../api/common/EntityFunctions.js"
-import {UsageTestAssignmentOutTypeRef} from "../api/entities/sys/UsageTestAssignmentOut.js"
+import {UsageTestAssignmentOut} from "../api/entities/sys/UsageTestAssignmentOut.js"
 import {PingAdapter, Stage, UsageTest} from "@tutao/tutanota-usagetests"
-import {serviceRequest} from "../api/main/ServiceRequest"
 import {createUsageTestParticipationIn} from "../api/entities/sys/UsageTestParticipationIn"
 import {UsageTestState} from "../api/common/TutanotaConstants"
 import {filterInt, ofClass} from "@tutao/tutanota-utils"
@@ -14,6 +10,9 @@ import {SuspensionError} from "../api/common/error/SuspensionError"
 import {SuspensionBehavior} from "../api/worker/rest/RestClient"
 import {DateProvider} from "../api/common/DateProvider.js"
 import {isTest} from "../api/common/Env"
+import {IServiceExecutor} from "../api/common/ServiceRequest"
+import {createUsageTestAssignmentIn} from "../api/entities/sys/UsageTestAssignmentIn"
+import {UsageTestAssignmentService, UsageTestParticipationService} from "../api/entities/sys/Services"
 
 export interface PersistedAssignmentData {
 	updatedAt: number
@@ -38,10 +37,6 @@ export const enum TtlBehavior {
 	UpToDateOnly,
 }
 
-export interface ServiceExecutor {
-	serviceRequest: typeof serviceRequest
-}
-
 const USAGE_TESTS_ENABLED = isTest()
 
 export class UsageTestModel implements PingAdapter {
@@ -49,7 +44,7 @@ export class UsageTestModel implements PingAdapter {
 	constructor(
 		private readonly testStorage: UsageTestStorage,
 		private readonly dateProvider: DateProvider,
-		private readonly serviceExecutor: ServiceExecutor,
+		private readonly serviceExecutor: IServiceExecutor,
 	) {
 	}
 
@@ -76,16 +71,13 @@ export class UsageTestModel implements PingAdapter {
 		})
 
 		try {
-			const response = await this.serviceExecutor.serviceRequest(
-				SysService.UsageTestAssignmentService,
-				testDeviceId ? HttpMethod.PUT : HttpMethod.POST,
-				data,
-				UsageTestAssignmentOutTypeRef,
-				undefined,
-				undefined,
-				undefined,
-				SuspensionBehavior.Throw,
-			)
+			const response: UsageTestAssignmentOut = (testDeviceId)
+				? await this.serviceExecutor.put(UsageTestAssignmentService, data, {
+					suspensionBehavior: SuspensionBehavior.Throw,
+				})
+				: await this.serviceExecutor.post(UsageTestAssignmentService, data, {
+					suspensionBehavior: SuspensionBehavior.Throw,
+				})
 			await this.testStorage.storeTestDeviceId(response.testDeviceId)
 			await this.testStorage.storeAssignments({
 				assignments: response.assignments,
@@ -141,7 +133,7 @@ export class UsageTestModel implements PingAdapter {
 			testDeviceId: testDeviceId,
 		})
 
-		await this.serviceExecutor.serviceRequest(SysService.UsageTestParticipationService, HttpMethod.POST, data)
+		await this.serviceExecutor.post(UsageTestParticipationService, data)
 				  .catch(ofClass(PreconditionFailedError, (e) => {
 					  test.active = false
 					  console.log("Tried to send ping for paused test", e)

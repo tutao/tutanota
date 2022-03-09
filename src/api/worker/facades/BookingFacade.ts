@@ -2,20 +2,20 @@ import type {BookingItemFeatureType} from "../../common/TutanotaConstants"
 import {Const} from "../../common/TutanotaConstants"
 import {createPriceServiceData} from "../../entities/sys/PriceServiceData"
 import {createPriceRequestData} from "../../entities/sys/PriceRequestData"
-import {serviceRequest} from "../ServiceRequestWorker"
 import type {PriceServiceReturn} from "../../entities/sys/PriceServiceReturn"
-import {PriceServiceReturnTypeRef} from "../../entities/sys/PriceServiceReturn"
 import {neverNull} from "@tutao/tutanota-utils"
-import {HttpMethod} from "../../common/EntityFunctions"
-import {SysService} from "../../entities/sys/Services"
 import type {PriceData} from "../../entities/sys/PriceData"
 import type {PriceItemData} from "../../entities/sys/PriceItemData"
 import {assertWorkerOrNode} from "../../common/Env"
+import {IServiceExecutor} from "../../common/ServiceRequest"
+import {PriceService} from "../../entities/sys/Services"
 
 assertWorkerOrNode()
 
 export class BookingFacade {
-	constructor() {
+	constructor(
+		private readonly serviceExecutor: IServiceExecutor,
+	) {
 	}
 
 	/**
@@ -29,18 +29,20 @@ export class BookingFacade {
 	 * @return Resolves to PriceServiceReturn or an exception if the loading failed.
 	 */
 	getPrice(type: BookingItemFeatureType, count: number, reactivate: boolean): Promise<PriceServiceReturn> {
-		let serviceData = createPriceServiceData()
-		serviceData.date = Const.CURRENT_DATE
-		let priceRequestData = createPriceRequestData()
-		priceRequestData.featureType = type
-		priceRequestData.count = String(count)
-		priceRequestData.reactivate = reactivate
-		priceRequestData.paymentInterval = null
-		priceRequestData.accountType = null
-		priceRequestData.business = null
-		serviceData.priceRequest = priceRequestData
-		serviceData.campaign = null
-		return serviceRequest(SysService.PriceService, HttpMethod.GET, serviceData, PriceServiceReturnTypeRef)
+		const priceRequestData = createPriceRequestData({
+			featureType: type,
+			count: String(count),
+			reactivate,
+			paymentInterval: null,
+			accountType: null,
+			business: null
+		})
+		const serviceData = createPriceServiceData({
+			date: Const.CURRENT_DATE,
+			priceRequest: priceRequestData,
+			campaign: null,
+		})
+		return this.serviceExecutor.get(PriceService, serviceData)
 	}
 
 	/**
@@ -48,8 +50,8 @@ export class BookingFacade {
 	 * @return Resolves to PriceServiceReturn or an exception if the loading failed.
 	 */
 	getCurrentPrice(): Promise<PriceServiceReturn> {
-		let serviceData = createPriceServiceData()
-		return serviceRequest(SysService.PriceService, HttpMethod.GET, serviceData, PriceServiceReturnTypeRef)
+		const serviceData = createPriceServiceData()
+		return this.serviceExecutor.get(PriceService, serviceData)
 	}
 
 	/**
@@ -66,5 +68,3 @@ export class BookingFacade {
 		return null
 	}
 }
-
-export const bookingFacade: BookingFacade = new BookingFacade()

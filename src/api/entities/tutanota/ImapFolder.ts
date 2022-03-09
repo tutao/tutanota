@@ -48,7 +48,8 @@ export const _TypeModel: TypeModel = {
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "RemoteImapSyncInfo"
+			"refType": "RemoteImapSyncInfo",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

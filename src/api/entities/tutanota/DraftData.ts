@@ -98,6 +98,14 @@ export const _TypeModel: TypeModel = {
 			"refType": "DraftRecipient",
 			"dependency": null
 		},
+		"removedAttachments": {
+			"id": 507,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "Any",
+			"final": true,
+			"refType": "File",
+			"dependency": null
+		},
 		"replyTos": {
 			"id": 819,
 			"type": "AGGREGATION",
@@ -113,13 +121,6 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"refType": "DraftRecipient",
 			"dependency": null
-		},
-		"removedAttachments": {
-			"id": 507,
-			"type": "LIST_ELEMENT_ASSOCIATION",
-			"cardinality": "Any",
-			"final": true,
-			"refType": "File"
 		}
 	},
 	"app": "tutanota",
@@ -145,7 +146,7 @@ export type DraftData = {
 	addedAttachments: DraftAttachment[];
 	bccRecipients: DraftRecipient[];
 	ccRecipients: DraftRecipient[];
+	removedAttachments: IdTuple[];
 	replyTos: EncryptedMailAddress[];
 	toRecipients: DraftRecipient[];
-	removedAttachments: IdTuple[];
 }

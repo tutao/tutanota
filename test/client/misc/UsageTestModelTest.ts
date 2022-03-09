@@ -1,23 +1,16 @@
 import o from "ospec"
-import {
-	ASSIGNMENT_UPDATE_INTERVAL_MS,
-	PersistedAssignmentData,
-	ServiceExecutor,
-	TtlBehavior,
-	UsageTestModel,
-	UsageTestStorage
-} from "../../../src/misc/UsageTestModel"
+import {ASSIGNMENT_UPDATE_INTERVAL_MS, PersistedAssignmentData, TtlBehavior, UsageTestModel, UsageTestStorage} from "../../../src/misc/UsageTestModel"
 import {createUsageTestAssignment} from "../../../src/api/entities/sys/UsageTestAssignment"
 import {matchers, object, verify, when} from "testdouble"
-import {SysService} from "../../../src/api/entities/sys/Services"
-import {HttpMethod} from "../../../src/api/common/EntityFunctions"
 import {createUsageTestAssignmentIn} from "../../../src/api/entities/sys/UsageTestAssignmentIn"
-import {createUsageTestAssignmentOut, UsageTestAssignmentOutTypeRef} from "../../../src/api/entities/sys/UsageTestAssignmentOut"
+import {createUsageTestAssignmentOut} from "../../../src/api/entities/sys/UsageTestAssignmentOut"
 import {clone} from "@tutao/tutanota-utils"
 import {Stage, UsageTest} from "@tutao/tutanota-usagetests"
 import {createUsageTestParticipationIn} from "../../../src/api/entities/sys/UsageTestParticipationIn"
 import {createUsageTestMetricData} from "../../../src/api/entities/sys/UsageTestMetricData"
 import {SuspensionBehavior} from "../../../src/api/worker/rest/RestClient"
+import {UsageTestAssignmentService, UsageTestParticipationService} from "../../../src/api/entities/sys/Services"
+import {IServiceExecutor} from "../../../src/api/common/ServiceRequest"
 
 const {anything} = matchers
 
@@ -50,7 +43,7 @@ class MockStorage implements UsageTestStorage {
 
 o.spec("UsageTestModel", function () {
 	let usageTestModel: UsageTestModel
-	let serviceExecutor: ServiceExecutor
+	let serviceExecutor: IServiceExecutor
 	let mockStorage: MockStorage
 	const testDeviceId = "123testDeviceId321"
 
@@ -101,21 +94,15 @@ o.spec("UsageTestModel", function () {
 		o.spec("usage test model loading assignments", function () {
 
 			o("when there's no deviceId it does POST", async function () {
-				when(serviceExecutor.serviceRequest(
-					SysService.UsageTestAssignmentService,
-					HttpMethod.POST,
-					createUsageTestAssignmentIn({}),
-					UsageTestAssignmentOutTypeRef,
-					undefined,
-					undefined,
-					undefined,
-					SuspensionBehavior.Throw,
-				)).thenResolve(
+				when(serviceExecutor.post(UsageTestAssignmentService, createUsageTestAssignmentIn({}), {
+					suspensionBehavior: SuspensionBehavior.Throw,
+				})).thenResolve(
 					createUsageTestAssignmentOut({
 						assignments: [newAssignment],
 						testDeviceId: testDeviceId,
 					})
 				)
+
 				const result = await usageTestModel.loadActiveUsageTests(TtlBehavior.PossiblyOutdated)
 				await assertStored(result, newAssignment)
 			})
@@ -128,16 +115,10 @@ o.spec("UsageTestModel", function () {
 					sysModelVersion: 1, // definitely outdated!
 					updatedAt: dateProvider.now() - 1,
 				})
-				when(serviceExecutor.serviceRequest(
-					SysService.UsageTestAssignmentService,
-					HttpMethod.PUT,
-					createUsageTestAssignmentIn({testDeviceId}),
-					UsageTestAssignmentOutTypeRef,
-					undefined,
-					undefined,
-					undefined,
-					SuspensionBehavior.Throw,
-				)).thenResolve(
+
+				when(serviceExecutor.put(UsageTestAssignmentService, createUsageTestAssignmentIn({testDeviceId}), {
+					suspensionBehavior: SuspensionBehavior.Throw,
+				})).thenResolve(
 					createUsageTestAssignmentOut({
 						assignments: [newAssignment],
 						testDeviceId: testDeviceId,
@@ -149,21 +130,15 @@ o.spec("UsageTestModel", function () {
 			})
 
 			o("possibly outdated, loads from server and stores if nothing is stored", async function () {
-				when(serviceExecutor.serviceRequest(
-					SysService.UsageTestAssignmentService,
-					HttpMethod.PUT,
-					createUsageTestAssignmentIn({testDeviceId}),
-					UsageTestAssignmentOutTypeRef,
-					undefined,
-					undefined,
-					undefined,
-					SuspensionBehavior.Throw,
-				)).thenResolve(
+				when(serviceExecutor.put(UsageTestAssignmentService, createUsageTestAssignmentIn({testDeviceId}), {
+					suspensionBehavior: SuspensionBehavior.Throw,
+				})).thenResolve(
 					createUsageTestAssignmentOut({
 						assignments: [newAssignment],
 						testDeviceId: testDeviceId,
 					})
 				)
+
 				await mockStorage.storeTestDeviceId(testDeviceId)
 
 				const result = await usageTestModel.loadActiveUsageTests(TtlBehavior.PossiblyOutdated)
@@ -183,16 +158,10 @@ o.spec("UsageTestModel", function () {
 			o("up to date only, data outdated, loads from the server and stores", async function () {
 				await mockStorage.storeTestDeviceId(testDeviceId)
 				await mockStorage.storeAssignments(assignmentData)
-				when(serviceExecutor.serviceRequest(
-					SysService.UsageTestAssignmentService,
-					HttpMethod.PUT,
-					createUsageTestAssignmentIn({testDeviceId}),
-					UsageTestAssignmentOutTypeRef,
-					undefined,
-					undefined,
-					undefined,
-					SuspensionBehavior.Throw,
-				)).thenResolve(
+
+				when(serviceExecutor.put(UsageTestAssignmentService, createUsageTestAssignmentIn({testDeviceId}), {
+					suspensionBehavior: SuspensionBehavior.Throw,
+				})).thenResolve(
 					createUsageTestAssignmentOut({
 						assignments: [newAssignment],
 						testDeviceId: testDeviceId,
@@ -227,20 +196,20 @@ o.spec("UsageTestModel", function () {
 				}
 				stage.setMetric(metric)
 
-				when(serviceExecutor.serviceRequest(
-					SysService.UsageTestParticipationService,
-					HttpMethod.POST,
-					createUsageTestParticipationIn({
-						testId: usageTest.testId,
-						metrics: [createUsageTestMetricData(metric)],
-						stage: stage.number.toString(),
-						testDeviceId: testDeviceId,
-					}),
-				)).thenResolve(undefined)
+				when(serviceExecutor.post(
+						UsageTestParticipationService,
+						createUsageTestParticipationIn({
+							testId: usageTest.testId,
+							metrics: [createUsageTestMetricData(metric)],
+							stage: stage.number.toString(),
+							testDeviceId: testDeviceId,
+						})
+					)
+				).thenResolve(undefined)
 
 				await usageTestModel.sendPing(usageTest, stage)
 
-				verify(serviceExecutor.serviceRequest(SysService.UsageTestParticipationService, anything(), anything()), {times: 1})
+				verify(serviceExecutor.post(UsageTestParticipationService, anything()), {times: 1})
 			})
 		})
 	})

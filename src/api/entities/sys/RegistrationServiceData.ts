@@ -20,17 +20,17 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"starterDomain": {
-			"id": 322,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
 		"source": {
 			"id": 874,
 			"type": "String",
 			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
+		"starterDomain": {
+			"id": 322,
+			"type": "String",
+			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
@@ -55,7 +55,7 @@ export type RegistrationServiceData = {
 	_type: TypeRef<RegistrationServiceData>;
 
 	_format: NumberString;
-	starterDomain: string;
 	source: null | string;
+	starterDomain: string;
 	state: NumberString;
 }

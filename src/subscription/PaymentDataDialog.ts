@@ -11,15 +11,15 @@ import {formatNameAndAddress} from "../misc/Formatter"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {getClientType, PaymentMethodType} from "../api/common/TutanotaConstants"
 import {LazyLoaded} from "@tutao/tutanota-utils"
-import {serviceRequest} from "../api/main/ServiceRequest"
 import {PaymentDataServiceGetReturnTypeRef} from "../api/entities/sys/PaymentDataServiceGetReturn"
-import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {neverNull} from "@tutao/tutanota-utils"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {createPaymentDataServiceGetData} from "../api/entities/sys/PaymentDataServiceGetData"
 import type {Customer} from "../api/entities/sys/Customer"
 import {downcast} from "@tutao/tutanota-utils";
+import {locator} from "../api/main/MainLocator"
+import {PaymentDataService} from "../api/entities/sys/Services"
 
 /**
  * @returns {boolean} true if the payment data update was successful
@@ -117,14 +117,9 @@ export function show(customer: Customer, accountingInfo: AccountingInfo, price: 
 export function getLazyLoadedPayPalUrl(): LazyLoaded<string> {
 	return new LazyLoaded(() => {
 		const clientType = getClientType()
-		return serviceRequest(
-			SysService.PaymentDataService,
-			HttpMethod.GET,
-			createPaymentDataServiceGetData({
-				clientType,
-			}),
-			PaymentDataServiceGetReturnTypeRef,
-		).then(result => {
+		return locator.serviceExecutor.get(PaymentDataService, createPaymentDataServiceGetData({
+			clientType,
+		})).then(result => {
 			return result.loginUrl
 		})
 	})

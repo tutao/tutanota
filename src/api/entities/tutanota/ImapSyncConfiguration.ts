@@ -55,7 +55,8 @@ export const _TypeModel: TypeModel = {
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
 			"final": false,
-			"refType": "ImapSyncState"
+			"refType": "ImapSyncState",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

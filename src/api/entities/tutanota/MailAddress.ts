@@ -41,7 +41,8 @@ export const _TypeModel: TypeModel = {
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
 			"final": false,
-			"refType": "Contact"
+			"refType": "Contact",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

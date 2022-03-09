@@ -16,7 +16,6 @@ import type {EntityUpdateData} from "./EventController"
 import {isUpdateForTypeRef} from "./EventController"
 import type {UserSettingsGroupRoot} from "../entities/tutanota/UserSettingsGroupRoot"
 import {createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef} from "../entities/tutanota/UserSettingsGroupRoot"
-import {SysService} from "../entities/sys/Services"
 import {createCloseSessionServicePost} from "../entities/sys/CloseSessionServicePost"
 import type {GroupMembership} from "../entities/sys/GroupMembership"
 import {NotFoundError} from "../common/error/RestError"
@@ -30,6 +29,7 @@ import type {WhitelabelConfig} from "../entities/sys/WhitelabelConfig"
 import type {DomainInfo} from "../entities/sys/DomainInfo"
 import {getWhitelabelCustomizations} from "../../misc/WhitelabelCustomizations"
 import {EntityClient} from "../common/EntityClient"
+import {CloseSessionService} from "../entities/sys/Services"
 
 assertMainOrNode()
 
@@ -237,7 +237,7 @@ export class UserController implements IUserController {
 
 			if (sendBeacon) {
 				try {
-					const path = `${getHttpOrigin()}/rest/sys/${SysService.CloseSessionService}`
+					const path = `${getHttpOrigin()}/rest/sys/${CloseSessionService}`
 					const requestObject = createCloseSessionServicePost({
 						accessToken: this.accessToken,
 						sessionId: this.sessionId,

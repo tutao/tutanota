@@ -1,5 +1,4 @@
 import m, {Children} from "mithril"
-import {serviceRequestVoid} from "../../api/main/ServiceRequest"
 import type {CurrentView} from "../../gui/base/Header"
 import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import {lang, TranslationKey} from "../../misc/LanguageViewModel"
@@ -11,7 +10,6 @@ import {downcast, incrementDate, LazyLoaded, memoized, ofClass} from "@tutao/tut
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {CalendarEventTypeRef} from "../../api/entities/tutanota/CalendarEvent"
 import {logins} from "../../api/main/LoginController"
-import {HttpMethod} from "../../api/common/EntityFunctions"
 import {defaultCalendarColor, GroupType, Keys, ShareCapability, TimeFormat} from "../../api/common/TutanotaConstants"
 import {locator} from "../../api/main/MainLocator"
 import {getEventStart, getStartOfTheWeekOffset, getStartOfWeek, getTimeZone, shouldDefaultToAmPmTimeFormat} from "../date/CalendarUtils"
@@ -26,8 +24,6 @@ import type {GroupInfo} from "../../api/entities/sys/GroupInfo"
 import {showEditCalendarDialog} from "./EditCalendarDialog"
 import type {GroupSettings} from "../../api/entities/tutanota/GroupSettings"
 import {createGroupSettings} from "../../api/entities/tutanota/GroupSettings"
-import {TutanotaService} from "../../api/entities/tutanota/Services"
-import {createCalendarDeleteData} from "../../api/entities/tutanota/CalendarDeleteData"
 import {styles} from "../../gui/styles"
 import {MultiDayCalendarView} from "./MultiDayCalendarView"
 import {Dialog} from "../../gui/base/Dialog"
@@ -666,13 +662,8 @@ export class CalendarView implements CurrentView {
 					}),
 			).then(confirmed => {
 				if (confirmed) {
-					serviceRequestVoid(
-						TutanotaService.CalendarService,
-						HttpMethod.DELETE,
-						createCalendarDeleteData({
-							groupRootId: calendarInfo.groupRoot._id,
-						}),
-					).catch(ofClass(NotFoundError, () => console.log("Calendar to be deleted was not found.")))
+					this._calendarViewModel.deleteCalendar(calendarInfo)
+						.catch(ofClass(NotFoundError, () => console.log("Calendar to be deleted was not found.")))
 				}
 			})
 		})

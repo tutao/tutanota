@@ -24,6 +24,8 @@ import {PushIdentifierTypeRef} from "../../../../src/api/entities/sys/PushIdenti
 import {SetupMultipleError} from "../../../../src/api/common/error/SetupMultipleError"
 import {InstanceMapper} from "../../../../src/api/worker/crypto/InstanceMapper"
 import {GroupManagementFacadeImpl} from "../../../../src/api/worker/facades/GroupManagementFacade";
+import {object} from "testdouble"
+import {IServiceExecutor} from "../../../../src/api/common/ServiceRequest"
 
 
 o.spec("CalendarFacadeTest", async function () {
@@ -45,6 +47,7 @@ o.spec("CalendarFacadeTest", async function () {
 	let workerMock
 	let nativeMock
 	let instanceMapper
+	let serviceExecutor: IServiceExecutor
 
 
 	function sortEventsWithAlarmInfos(eventsWithAlarmInfos: Array<EventWithAlarmInfos>) {
@@ -112,7 +115,8 @@ o.spec("CalendarFacadeTest", async function () {
 			invokeNative: o.spy(() => Promise.resolve())
 		})
 		instanceMapper = new InstanceMapper()
-		calendarFacade = new CalendarFacade(loginFacade, groupManagementFacade, entityRestCache, nativeMock, workerMock, instanceMapper)
+		serviceExecutor = object()
+		calendarFacade = new CalendarFacade(loginFacade, groupManagementFacade, entityRestCache, nativeMock, workerMock, instanceMapper, serviceExecutor)
 	})
 
 

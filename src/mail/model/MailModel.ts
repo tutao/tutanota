@@ -1,12 +1,9 @@
 import m from "mithril"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {containsEventOfType} from "../../api/common/utils/Utils"
-import {neverNull, noOp} from "@tutao/tutanota-utils"
-import {createMoveMailData} from "../../api/entities/tutanota/MoveMailData"
-import {TutanotaService} from "../../api/entities/tutanota/Services"
-import {HttpMethod} from "../../api/common/EntityFunctions"
+import {groupBy, neverNull, noOp, ofClass, promiseMap, splitInChunks} from "@tutao/tutanota-utils"
 import {logins} from "../../api/main/LoginController"
-import {createDeleteMailData} from "../../api/entities/tutanota/DeleteMailData"
 import type {MailBox} from "../../api/entities/tutanota/MailBox"
 import {MailBoxTypeRef} from "../../api/entities/tutanota/MailBox"
 import type {MailboxGroupRoot} from "../../api/entities/tutanota/MailboxGroupRoot"
@@ -21,7 +18,7 @@ import type {MailReportType} from "../../api/common/TutanotaConstants"
 import {FeatureType, GroupType, MailFolderType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE, OperationType} from "../../api/common/TutanotaConstants"
 import {UserTypeRef} from "../../api/entities/sys/User"
 import type {Mail} from "../../api/entities/tutanota/Mail"
-import {_TypeModel as MailTypeModel, MailTypeRef} from "../../api/entities/tutanota/Mail"
+import {MailTypeRef} from "../../api/entities/tutanota/Mail"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../../api/main/EventController"
 import {lang} from "../../misc/LanguageViewModel"
@@ -29,15 +26,10 @@ import {Notifications} from "../../gui/Notifications"
 import {findAndApplyMatchingRule} from "./InboxRuleHandler"
 import type {WebsocketCounterData} from "../../api/entities/sys/WebsocketCounterData"
 import type {WorkerClient} from "../../api/main/WorkerClient"
-import {groupBy, splitInChunks} from "@tutao/tutanota-utils"
 import {EntityClient} from "../../api/common/EntityClient"
 import {elementIdPart, getListId, isSameId, listIdPart} from "../../api/common/utils/EntityUtils"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
-import {createReportMailPostData} from "../../api/entities/tutanota/ReportMailPostData"
-import {base64ToUint8Array} from "@tutao/tutanota-utils"
 import {NotFoundError} from "../../api/common/error/RestError"
 import type {MailFacade} from "../../api/worker/facades/MailFacade"
-import Stream from "mithril/stream";
 
 export type MailboxDetail = {
 	mailbox: MailBox
@@ -182,16 +174,7 @@ export class MailModel {
 
 	async reportMails(reportType: MailReportType, mails: ReadonlyArray<Mail>): Promise<void> {
 		for (const mail of mails) {
-			await this._worker
-					  .resolveSessionKey(MailTypeModel, mail)
-					  .then(mailSessionKeyB64 => {
-						  const postData = createReportMailPostData({
-							  mailId: mail._id,
-							  mailSessionKey: base64ToUint8Array(neverNull(mailSessionKeyB64)),
-							  reportType,
-						  })
-						  return this._worker.serviceRequest(TutanotaService.ReportMailService, HttpMethod.POST, postData)
-					  })
+			await this._mailFacade.reportMail(mail, reportType)
 					  .catch(ofClass(NotFoundError, e => console.log("mail to be reported not found", e)))
 		}
 	}
@@ -206,14 +189,10 @@ export class MailModel {
 		const sourceMailFolder = this.getMailFolder(getListId(mails[0]))
 
 		if (moveMails.length > 0 && sourceMailFolder && !isSameId(targetMailFolder._id, sourceMailFolder._id)) {
-			let moveMailData = createMoveMailData()
-			moveMailData.targetFolder = targetMailFolder._id
-			moveMailData.mails = mails.map(m => m._id)
-			const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, moveMailData.mails)
+			const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mails.map(m => m._id))
 
 			for (const mailChunk of mailChunks) {
-				moveMailData.mails = mailChunk
-				await this._worker.serviceRequest(TutanotaService.MoveMailService, HttpMethod.POST, moveMailData)
+				await this._mailFacade.moveMails(mailChunk, targetMailFolder._id)
 			}
 		}
 	}
@@ -268,15 +247,12 @@ export class MailModel {
 	 */
 	async _finallyDeleteMails(mails: Mail[]): Promise<void> {
 		if (!mails.length) return Promise.resolve()
-		let deleteMailData = createDeleteMailData()
 		const mailFolder = neverNull(this.getMailFolder(getListId(mails[0])))
-		deleteMailData.folder = mailFolder._id
 		const mailIds = mails.map(m => m._id)
 		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mailIds)
 
 		for (const mailChunk of mailChunks) {
-			deleteMailData.mails = mailChunk
-			await this._worker.serviceRequest(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData)
+			await this._mailFacade.deleteMails(mailChunk, mailFolder._id)
 		}
 	}
 
@@ -312,7 +288,7 @@ export class MailModel {
 					await this.getMailboxDetailsForMailListId(update.instanceListId)
 							  .then(mailboxDetail => {
 								  // We only apply rules on server if we are the leader in case of incoming messages
-								  return findAndApplyMatchingRule(this._worker, this._entityClient, mailboxDetail, mail, this._worker.isLeader())
+								  return findAndApplyMatchingRule(this._mailFacade, this._entityClient, mailboxDetail, mail, this._worker.isLeader())
 							  })
 							  .then(newId => this._showNotification(newId || mailId))
 							  .catch(noOp)
@@ -370,5 +346,22 @@ export class MailModel {
 
 	isFinalDelete(folder: MailFolder | null): boolean {
 		return folder != null && (folder.folderType === MailFolderType.TRASH || folder.folderType === MailFolderType.SPAM)
+	}
+
+	async deleteFolder(folder: MailFolder): Promise<void> {
+		await this._mailFacade.deleteFolder(folder._id)
+	}
+
+	async fixupCounterForMailList(listId: Id, unreadMails: number) {
+		const mailboxDetails = await this.getMailboxDetailsForMailListId(listId)
+		await this._mailFacade.fixupCounterForMailList(mailboxDetails.mailGroup._id, listId, unreadMails)
+	}
+
+	async clearFolder(folder: MailFolder): Promise<void> {
+		await this._mailFacade.clearFolder(folder._id)
+	}
+
+	async unsubscribe(mail: Mail, recipient: string, headers: string[]) {
+		await this._mailFacade.unsubscribe(mail._id, recipient, headers)
 	}
 }

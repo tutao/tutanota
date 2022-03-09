@@ -1,7 +1,6 @@
 import m, {Children} from "mithril"
 import {assertMainOrNode, isIOSApp} from "../api/common/Env"
 import {assertNotNull, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
-import {serviceRequest, serviceRequestVoid} from "../api/main/ServiceRequest"
 import {lang} from "../misc/LanguageViewModel"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
@@ -9,7 +8,6 @@ import {HtmlEditor, HtmlEditorMode} from "../gui/editor/HtmlEditor"
 import {formatPrice, getPaymentMethodInfoText, getPaymentMethodName} from "./PriceUtils"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {Icons} from "../gui/base/icons/Icons"
-import {HttpMethod} from "../api/common/EntityFunctions"
 import {ColumnWidth, TableLineAttrs, TableN} from "../gui/base/TableN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {formatDate, formatNameAndAddress} from "../misc/Formatter"
@@ -17,19 +15,17 @@ import {getPaymentMethodType, PaymentMethodType, PostingType} from "../api/commo
 import {BadGatewayError, LockedError, PreconditionFailedError, TooManyRequestsError} from "../api/common/error/RestError"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {createDebitServicePutData} from "../api/entities/sys/DebitServicePutData"
-import {SysService} from "../api/entities/sys/Services"
 import {getByAbbreviation} from "../api/common/CountryList"
 import * as PaymentDataDialog from "./PaymentDataDialog"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {getPreconditionFailedPaymentMsg} from "./SubscriptionUtils"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {AccountingService} from "../api/entities/accounting/Services"
-import {CustomerAccountReturnTypeRef} from "../api/entities/accounting/CustomerAccountReturn"
 import type {Customer} from "../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {logins} from "../api/main/LoginController"
@@ -44,8 +40,9 @@ import type {Booking} from "../api/entities/sys/Booking"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
 import {createNotAvailableForFreeClickHandler} from "../misc/SubscriptionDialogs"
 import type {UpdatableSettingsViewer} from "../settings/SettingsView"
-import Stream from "mithril/stream";
 import {TranslationKeyType} from "../misc/TranslationKey";
+import {CustomerAccountService} from "../api/entities/accounting/Services"
+import {DebitService} from "../api/entities/sys/Services"
 
 assertMainOrNode()
 
@@ -325,7 +322,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 
 	_loadPostings(): Promise<void> {
-		return serviceRequest(AccountingService.CustomerAccountService, HttpMethod.GET, null, CustomerAccountReturnTypeRef).then(result => {
+		return locator.serviceExecutor.get(CustomerAccountService, null).then(result => {
 			this._postings = result.postings
 			this._outstandingBookingsPrice = Number(result.outstandingBookingsPrice)
 			m.redraw()
@@ -370,32 +367,31 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		return _showPayConfirmDialog(openBalance)
 			.then(confirmed => {
 				if (confirmed) {
-					let service = createDebitServicePutData()
 					return showProgressDialog(
 						"pleaseWait_msg",
-						serviceRequestVoid(SysService.DebitService, HttpMethod.PUT, service)
-							.then(() => {
-								// accounting is updated async but we know that the balance will be 0 when the payment was successful.
-								let mostCurrentPosting = this._postings[0]
-								let newPosting = createCustomerAccountPosting({
-									valueDate: new Date(),
-									amount: String(-Number.parseFloat(mostCurrentPosting.balance)),
-									balance: "0",
-									type: PostingType.Payment,
-								})
+						locator.serviceExecutor.put(DebitService, createDebitServicePutData())
+							   .then(() => {
+								   // accounting is updated async but we know that the balance will be 0 when the payment was successful.
+								   let mostCurrentPosting = this._postings[0]
+								   let newPosting = createCustomerAccountPosting({
+									   valueDate: new Date(),
+									   amount: String(-Number.parseFloat(mostCurrentPosting.balance)),
+									   balance: "0",
+									   type: PostingType.Payment,
+								   })
 
-								this._postings.unshift(newPosting)
+								   this._postings.unshift(newPosting)
 
-								m.redraw()
-							})
-							.catch(ofClass(LockedError, () => "operationStillActive_msg"))
-							.catch(
-								ofClass(PreconditionFailedError, error => {
-									return getPreconditionFailedPaymentMsg(error.data)
-								}),
-							)
-							.catch(ofClass(BadGatewayError, () => "paymentProviderNotAvailableError_msg"))
-							.catch(ofClass(TooManyRequestsError, () => "tooManyAttempts_msg")),
+								   m.redraw()
+							   })
+							   .catch(ofClass(LockedError, () => "operationStillActive_msg"))
+							   .catch(
+								   ofClass(PreconditionFailedError, error => {
+									   return getPreconditionFailedPaymentMsg(error.data)
+								   }),
+							   )
+							   .catch(ofClass(BadGatewayError, () => "paymentProviderNotAvailableError_msg"))
+							   .catch(ofClass(TooManyRequestsError, () => "tooManyAttempts_msg")),
 					)
 				}
 			})

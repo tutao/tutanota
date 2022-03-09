@@ -20,6 +20,13 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
+		"externalPwEncUserGroupKey": {
+			"id": 142,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"internalUserEncUserGroupKey": {
 			"id": 143,
 			"type": "Bytes",
@@ -30,13 +37,6 @@ export const _TypeModel: TypeModel = {
 		"mailAddress": {
 			"id": 141,
 			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"externalPwEncUserGroupKey": {
-			"id": 142,
-			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
@@ -55,7 +55,7 @@ export type CreateExternalUserGroupData = {
 	_type: TypeRef<CreateExternalUserGroupData>;
 
 	_id: Id;
+	externalPwEncUserGroupKey: Uint8Array;
 	internalUserEncUserGroupKey: Uint8Array;
 	mailAddress: string;
-	externalPwEncUserGroupKey: Uint8Array;
 }

@@ -4,7 +4,6 @@ import {
 	downcast,
 	hexToUint8Array,
 	isSameTypeRef,
-	lazy,
 	neverNull,
 	stringToUtf8Uint8Array,
 	uint8ArrayToBase64,
@@ -20,16 +19,16 @@ import * as Contact from "../../../src/api/entities/tutanota/Contact"
 import {createContact} from "../../../src/api/entities/tutanota/Contact"
 import * as UserIdReturn from "../../../src/api/entities/sys/UserIdReturn"
 import {createUserIdReturn} from "../../../src/api/entities/sys/UserIdReturn"
-import {createPermission} from "../../../src/api/entities/sys/Permission"
+import {createPermission, PermissionTypeRef} from "../../../src/api/entities/sys/Permission"
 import {createBucket} from "../../../src/api/entities/sys/Bucket"
-import {createGroup} from "../../../src/api/entities/sys/Group"
+import {createGroup, GroupTypeRef} from "../../../src/api/entities/sys/Group"
 import {createKeyPair} from "../../../src/api/entities/sys/KeyPair"
 import {BucketPermissionTypeRef, createBucketPermission} from "../../../src/api/entities/sys/BucketPermission"
 import {createUser} from "../../../src/api/entities/sys/User"
 import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
 import {createContactAddress} from "../../../src/api/entities/tutanota/ContactAddress"
 import {MailAddressTypeRef} from "../../../src/api/entities/tutanota/MailAddress"
-import {assertThrows, mockAttribute, unmockAttribute} from "@tutao/tutanota-test-utils"
+import {assertThrows} from "@tutao/tutanota-test-utils"
 import {LoginFacadeImpl} from "../../../src/api/worker/facades/LoginFacade"
 import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 import {RestClient} from "../../../src/api/worker/rest/RestClient"
@@ -53,8 +52,11 @@ import {RsaWeb} from "../../../src/api/worker/crypto/RsaImplementation"
 import {decryptValue, encryptValue, InstanceMapper} from "../../../src/api/worker/crypto/InstanceMapper"
 import {locator} from "../../../src/api/worker/WorkerLocator"
 import type {ModelValue} from "../../../src/api/common/EntityTypes"
-import {HttpMethod} from "../../../src/api/common/EntityFunctions";
-import {serviceRequest, serviceRequestVoid} from "../../../src/api/worker/ServiceRequestWorker"
+import {IServiceExecutor} from "../../../src/api/common/ServiceRequest"
+import {matchers, object, verify, when} from "testdouble"
+import {UpdatePermissionKeyService} from "../../../src/api/entities/sys/Services"
+import {UpdatePermissionKeyData} from "../../../src/api/entities/sys/UpdatePermissionKeyData"
+import {getListId, isSameId} from "../../../src/api/common/utils/EntityUtils"
 
 const rsa = new RsaWeb()
 const rsaEncrypt = rsa.encrypt
@@ -66,27 +68,41 @@ o.spec("crypto facade", function () {
 	let login
 	let restClient
 	let instanceMapper = new InstanceMapper()
-
-	function createCrypto(entityClient) {
-		const crypto = new CryptoFacadeImpl(
-			login,
-			entityClient ?? new EntityClient(new EntityRestClientMock()),
-			restClient,
-			rsa,
-		)
-		locator.crypto = crypto
-		return crypto
-	}
+	let serviceExecutor: IServiceExecutor
+	let entityClient: EntityClient
+	let crypto: CryptoFacade
 
 	o.before(function () {
 		const suspensionHandler = downcast({})
 		restClient = new RestClient(suspensionHandler)
-		login = new LoginFacadeImpl(null as any, {serviceRequest, serviceRequestVoid}, restClient, downcast({}), downcast({}), instanceMapper, {} as lazy<CryptoFacade>, async () => {})
+		login = new LoginFacadeImpl(
+			object(),
+			restClient,
+			object(),
+			downcast({}),
+			instanceMapper,
+			() => object(),
+			async () => {},
+			serviceExecutor,
+			)
 		locator.login = login
 		locator.restClient = restClient
 		locator.rsa = rsa
 		locator.instanceMapper = instanceMapper
 	})
+
+	o.beforeEach(function () {
+		serviceExecutor = object()
+		entityClient = object()
+		crypto = new CryptoFacadeImpl(
+			login,
+			entityClient,
+			restClient,
+			rsa,
+			serviceExecutor,
+		)
+	})
+
 	o.afterEach(function () {
 		login.resetSession()
 	})
@@ -669,16 +685,12 @@ o.spec("crypto facade", function () {
 		})
 	})
 
-	o("resolve session key: unencrypted instance", function () {
-		let userIdLiteral = {
+	o("resolve session key: unencrypted instance", async function () {
+		const userIdLiteral = {
 			_format: "0",
 			userId: "KOBqO7a----0",
 		}
-		return createCrypto(null)
-			.resolveSessionKey(UserIdReturn._TypeModel, userIdLiteral)
-			.then(sessionKey => {
-				o(sessionKey).equals(null)
-			})
+		o(await crypto.resolveSessionKey(UserIdReturn._TypeModel, userIdLiteral)).equals(null)
 	})
 
 	o("resolve session key: _ownerEncSessionKey instance", async function () {
@@ -692,11 +704,14 @@ o.spec("crypto facade", function () {
 			ownerGroupId: gk,
 		}
 		login._user = createUser()
-		login._user.userGroup = {
+		login._user.userGroup = createGroupMembership({
 			group: "ownerGroupId",
-		} as any
-		let mail = createMailLiteral(gk, sk, subject, confidential, senderName, recipientName)
-		const sessionKey: Aes128Key = neverNull(await createCrypto(null).resolveSessionKey(MailTypeModel, mail))
+		})
+		const mail = createMailLiteral(gk, sk, subject, confidential, senderName, recipientName)
+
+
+		const sessionKey: Aes128Key = neverNull(await crypto.resolveSessionKey(MailTypeModel, mail))
+
 		o(sessionKey).deepEquals(sk)
 	})
 
@@ -712,62 +727,58 @@ o.spec("crypto facade", function () {
 		let bk = aes128RandomKey()
 		let privateKey = hexToPrivateKey(rsaPrivateHexKey)
 		let publicKey = hexToPublicKey(rsaPublicHexKey)
-		let keyPair = createKeyPair()
-		keyPair._id = "keyPairId"
-		keyPair.symEncPrivKey = encryptRsaKey(gk, privateKey)
-		keyPair.pubKey = hexToUint8Array(rsaPublicHexKey)
-		let userGroup = createGroup()
-		userGroup._id = "userGroupId"
-		userGroup.keys = [keyPair]
-		let mail = createMailLiteral(gk, sk, subject, confidential, senderName, recipientName)
+		const keyPair = createKeyPair({
+			_id: "keyPairId",
+			symEncPrivKey: encryptRsaKey(gk, privateKey),
+			pubKey: hexToUint8Array(rsaPublicHexKey)
+		})
+		const userGroup = createGroup({
+			_id: "userGroupId",
+			keys: [keyPair]
+		})
+		const mail = createMailLiteral(gk, sk, subject, confidential, senderName, recipientName)
 		// @ts-ignore
 		mail._ownerEncSessionKey = null
-		let bucket = createBucket()
-		bucket.bucketPermissions = "bucketPermissionListId"
-		let permission = createPermission()
-		permission.bucketEncSessionKey = encryptKey(bk, sk)
-		permission._id = ["permissionListId", "permissionId"]
-		permission.bucket = bucket
-		permission.type = PermissionType.Public
-		permission._ownerGroup = userGroup._id
+		const bucket = createBucket({
+			bucketPermissions: "bucketPermissionListId"
+		})
+		const permission = createPermission({
+			_id: ["permissionListId", "permissionId"],
+			_ownerGroup: userGroup._id,
+			bucketEncSessionKey: encryptKey(bk, sk),
+			bucket,
+			type: PermissionType.Public,
+		})
 		const pubEncBucketKey = await rsaEncrypt(publicKey, bitArrayToUint8Array(bk))
-		let bucketPermission = createBucketPermission()
-		bucketPermission.pubEncBucketKey = pubEncBucketKey
-		bucketPermission.type = BucketPermissionType.Public
-		bucketPermission._id = ["bucketPermissionListId", "bucketPermissionId"]
-		bucketPermission._ownerGroup = userGroup._id
-		bucketPermission.group = userGroup._id
-		let mem = createGroupMembership()
-		mem.group = userGroup._id
+		const bucketPermission = createBucketPermission({
+			_id: ["bucketPermissionListId", "bucketPermissionId"],
+			_ownerGroup: userGroup._id,
+			type: BucketPermissionType.Public,
+			group: userGroup._id,
+			pubEncBucketKey,
+		})
+		const mem = createGroupMembership({
+			group: userGroup._id,
+		})
+
 		login._user = createUser()
 		login._user.userGroup = mem
 		login.groupKeys["userGroupId"] = gk
 		login._leaderStatus = createWebsocketLeaderStatus({
 			leaderStatus: true,
 		})
-		const entityClient = downcast({
-			loadAll: o.spy(async (typeRef, ...rest) =>
-				isSameTypeRef(BucketPermissionTypeRef, typeRef) ? [bucketPermission] : [permission],
-			),
-			load: o.spy(async () => userGroup),
-		})
-		// mock the invocation of UpdatePermissionKeyService
-		const updateMock = mockAttribute(restClient, restClient.request, () => Promise.resolve())
+		when(entityClient.loadAll(BucketPermissionTypeRef, getListId(bucketPermission))).thenResolve([bucketPermission])
+		when(entityClient.loadAll(PermissionTypeRef, getListId(permission))).thenResolve([permission])
+		when(entityClient.load(GroupTypeRef, userGroup._id)).thenResolve(userGroup)
+		when(serviceExecutor.post(UpdatePermissionKeyService, matchers.argThat((p: UpdatePermissionKeyData) => {
+			console.log("KEY DATA", p)
+			return isSameId(p.permission, permission._id) &&
+				isSameId(p.bucketPermission, bucketPermission._id)
+		}))).thenResolve(undefined)
 
-		try {
-			const sessionKey = neverNull(await createCrypto(entityClient).resolveSessionKey(MailTypeModel, mail))
-			o(sessionKey).deepEquals(sk)
-			o((restClient.request as any).callCount).equals(1)
-			o(entityClient.loadAll.callCount).equals(2)
-			o(entityClient.loadAll.calls.map(call => call.args[1])).deepEquals([
-				permission._id[0],
-				bucketPermission._id[0],
-			])
-			o(entityClient.load.callCount).equals(1)
-			o(entityClient.load.args[1]).equals(userGroup._id)
-		} finally {
-			unmockAttribute(updateMock)
-		}
+		const sessionKey = neverNull(await crypto.resolveSessionKey(MailTypeModel, mail))
+
+		o(sessionKey).deepEquals(sk)
 	})
 
 	o("decryption errors should be written to _errors field", async function () {
@@ -785,129 +796,117 @@ o.spec("crypto facade", function () {
 	})
 
 	o.spec("instance migrations", function () {
-		var mock
-		let entityClient
 		o.beforeEach(function () {
-			const updateMock = (
-				typeRef,
-				method: HttpMethod,
-				listId: Id | null | undefined,
-				id: Id | null | undefined,
-				entity,
-			) => {
-				return Promise.resolve()
-			}
+			when(entityClient.update(matchers.anything())).thenResolve(undefined)
+		})
+		o("contact migration without birthday", async function () {
+			const contact = createContact()
 
-			entityClient = new EntityClient(new EntityRestClientMock())
-			mock = mockAttribute(entityClient, entityClient.update, updateMock)
-		})
-		o.afterEach(function () {
-			unmockAttribute(mock)
-		})
-		o("contact migration without birthday", function () {
-			const contact = createContact()
-			return createCrypto(entityClient)
-				.applyMigrationsForInstance(contact)
-				.then(migratedContact => {
-					o(migratedContact.birthdayIso).equals(null)
-					o(entityClient.update.callCount).equals(0)
-				})
-		})
-		o("contact migration without existing birthday", function () {
-			const contact = createContact()
-			contact.birthdayIso = "2019-05-01"
-			return createCrypto(entityClient)
-				.applyMigrationsForInstance(contact)
-				.then(migratedContact => {
-					o(migratedContact.birthdayIso).equals("2019-05-01")
-					o(entityClient.update.callCount).equals(0)
-				})
-		})
-		o("contact migration without existing birthday and oldBirthdayDate", function () {
-			const contact = createContact()
-			contact._id = ["listid", "id"]
-			contact.birthdayIso = "2019-05-01"
-			contact.oldBirthdayDate = new Date(2000, 4, 1)
-			return createCrypto(entityClient)
-				.applyMigrationsForInstance(contact)
-				.then(migratedContact => {
-					o(migratedContact.birthdayIso).equals("2019-05-01")
-					o(migratedContact.oldBirthdayAggregate).equals(null)
-					o(migratedContact.oldBirthdayDate).equals(null)
-					o(entityClient.update.callCount).equals(1)
-				})
+			const migratedContact = await crypto.applyMigrationsForInstance(contact)
+
+			o(migratedContact.birthdayIso).equals(null)
+			verify(entityClient.update(matchers.anything()), {times: 0})
+
 		})
 
-		o("contact migration with existing birthday and oldBirthdayAggregate", function () {
-			const contact = createContact()
-			contact._id = ["listid", "id"]
-			contact.birthdayIso = "2019-05-01"
-			contact.oldBirthdayAggregate = createBirthday()
-			contact.oldBirthdayAggregate.day = "01"
-			contact.oldBirthdayAggregate.month = "05"
-			contact.oldBirthdayAggregate.year = "2000"
-			return createCrypto(entityClient)
-				.applyMigrationsForInstance(contact)
-				.then(migratedContact => {
-					o(migratedContact.birthdayIso).equals("2019-05-01")
-					o(migratedContact.oldBirthdayAggregate).equals(null)
-					o(migratedContact.oldBirthdayDate).equals(null)
-					o(entityClient.update.callCount).equals(1)
-				})
+		o("contact migration without existing birthday", async function () {
+			const contact = createContact({
+				birthdayIso: "2019-05-01",
+			})
+
+			const migratedContact = await crypto.applyMigrationsForInstance(contact)
+
+			o(migratedContact.birthdayIso).equals("2019-05-01")
+			verify(entityClient.update(matchers.anything()), {times: 0})
 		})
 
-		o("contact migration from oldBirthdayAggregate", function () {
-			const contact = createContact()
-			contact._id = ["listid", "id"]
-			contact.birthdayIso = null
-			contact.oldBirthdayAggregate = createBirthday()
-			contact.oldBirthdayAggregate.day = "01"
-			contact.oldBirthdayAggregate.month = "05"
-			contact.oldBirthdayAggregate.year = "2000"
-			contact.oldBirthdayDate = new Date(1800, 4, 1)
-			return createCrypto(entityClient)
-				.applyMigrationsForInstance(contact)
-				.then(migratedContact => {
-					o(migratedContact.birthdayIso).equals("2000-05-01")
-					o(migratedContact.oldBirthdayAggregate).equals(null)
-					o(migratedContact.oldBirthdayDate).equals(null)
-					o(entityClient.update.callCount).equals(1)
-				})
+		o("contact migration without existing birthday and oldBirthdayDate", async function () {
+			const contact = createContact({
+				_id: ["listid", "id"],
+				birthdayIso: "2019-05-01",
+				oldBirthdayDate: new Date(2000, 4, 1)
+			})
+
+			const migratedContact = await crypto.applyMigrationsForInstance(contact)
+			o(migratedContact.birthdayIso).equals("2019-05-01")
+			o(migratedContact.oldBirthdayAggregate).equals(null)
+			o(migratedContact.oldBirthdayDate).equals(null)
+			verify(entityClient.update(matchers.anything()), {times: 1})
 		})
 
-		o("contact migration from oldBirthdayDate", function () {
-			const contact = createContact()
-			contact._id = ["listid", "id"]
-			contact.birthdayIso = null
-			contact.oldBirthdayAggregate = null
-			contact.oldBirthdayDate = new Date(1800, 4, 1)
-			return createCrypto(entityClient)
-				.applyMigrationsForInstance(contact)
-				.then(migratedContact => {
-					o(migratedContact.birthdayIso).equals("1800-05-01")
-					o(migratedContact.oldBirthdayAggregate).equals(null)
-					o(migratedContact.oldBirthdayDate).equals(null)
-					o(entityClient.update.callCount).equals(1)
+		o("contact migration with existing birthday and oldBirthdayAggregate", async function () {
+			const contact = createContact({
+				_id: ["listid", "id"],
+				birthdayIso: "2019-05-01",
+				oldBirthdayAggregate: createBirthday({
+					day: "01",
+					month: "05",
+					year: "2000",
 				})
+			})
+
+			const migratedContact = await crypto.applyMigrationsForInstance(contact)
+
+			o(migratedContact.birthdayIso).equals("2019-05-01")
+			o(migratedContact.oldBirthdayAggregate).equals(null)
+			o(migratedContact.oldBirthdayDate).equals(null)
+			verify(entityClient.update(matchers.anything()), {times: 1})
 		})
 
-		o("contact migration from oldBirthdayAggregate without year", function () {
-			const contact = createContact()
-			contact._id = ["listid", "id"]
-			contact.birthdayIso = null
-			contact.oldBirthdayAggregate = createBirthday()
-			contact.oldBirthdayAggregate.day = "01"
-			contact.oldBirthdayAggregate.month = "05"
-			contact.oldBirthdayAggregate.year = null
-			contact.oldBirthdayDate = null
-			return createCrypto(entityClient)
-				.applyMigrationsForInstance(contact)
-				.then(migratedContact => {
-					o(migratedContact.birthdayIso).equals("--05-01")
-					o(migratedContact.oldBirthdayAggregate).equals(null)
-					o(migratedContact.oldBirthdayDate).equals(null)
-					o(entityClient.update.callCount).equals(1)
+		o("contact migration from oldBirthdayAggregate", async function () {
+			const contact = createContact({
+				_id: ["listid", "id"],
+				oldBirthdayDate: new Date(1800, 4, 1),
+				oldBirthdayAggregate: createBirthday({
+					day: "01",
+					month: "05",
+					year: "2000",
 				})
+			})
+
+			const migratedContact = await crypto.applyMigrationsForInstance(contact)
+
+			o(migratedContact.birthdayIso).equals("2000-05-01")
+			o(migratedContact.oldBirthdayAggregate).equals(null)
+			o(migratedContact.oldBirthdayDate).equals(null)
+			verify(entityClient.update(matchers.anything()), {times: 1})
+		})
+
+		o("contact migration from oldBirthdayDate", async function () {
+			const contact = createContact({
+				_id: ["listid", "id"],
+				birthdayIso: null,
+				oldBirthdayDate: new Date(1800, 4, 1),
+				oldBirthdayAggregate: null,
+			})
+
+			const migratedContact = await crypto.applyMigrationsForInstance(contact)
+
+			o(migratedContact.birthdayIso).equals("1800-05-01")
+			o(migratedContact.oldBirthdayAggregate).equals(null)
+			o(migratedContact.oldBirthdayDate).equals(null)
+			verify(entityClient.update(matchers.anything()), {times: 1})
+		})
+
+		o("contact migration from oldBirthdayAggregate without year", async function () {
+			const contact = createContact({
+				_id: ["listid", "id"],
+				birthdayIso: null,
+				oldBirthdayDate: null,
+				oldBirthdayAggregate: createBirthday({
+					day: "01",
+					month: "05",
+					year: null
+				}),
+			})
+
+			const migratedContact = await crypto.applyMigrationsForInstance(contact)
+
+			o(migratedContact.birthdayIso).equals("--05-01")
+			o(migratedContact.oldBirthdayAggregate).equals(null)
+			o(migratedContact.oldBirthdayDate).equals(null)
+			verify(entityClient.update(matchers.anything()), {times: 1})
+
 		})
 	})
 })

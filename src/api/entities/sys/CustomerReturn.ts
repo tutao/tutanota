@@ -27,14 +27,16 @@ export const _TypeModel: TypeModel = {
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "User"
+			"refType": "User",
+			"dependency": null
 		},
 		"adminUserGroup": {
 			"id": 373,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "Group"
+			"refType": "Group",
+			"dependency": null
 		}
 	},
 	"app": "sys",

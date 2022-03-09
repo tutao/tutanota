@@ -1,12 +1,11 @@
 import {CryptoError} from "../common/error/CryptoError"
 import type {Commands} from "../common/MessageDispatcher"
 import {MessageDispatcher, Request, WorkerTransport} from "../common/MessageDispatcher"
-import type {HttpMethod} from "../common/EntityFunctions"
 import {assertMainOrNode} from "../common/Env"
 import type {IMainLocator} from "./MainLocator"
 import {client} from "../../misc/ClientDetector"
 import type {DeferredObject} from "@tutao/tutanota-utils"
-import {defer, downcast, identity, TypeRef} from "@tutao/tutanota-utils"
+import {defer, downcast, identity} from "@tutao/tutanota-utils"
 import {objToError} from "../common/utils/Utils"
 import type {InfoMessage} from "../common/CommonTypes"
 import {handleUncaughtError} from "../../misc/ErrorHandler"
@@ -15,15 +14,10 @@ import {createWebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus
 import {addSearchIndexDebugEntry} from "../../misc/IndexerDebugLogger"
 import type {MainInterface, WorkerInterface} from "../worker/WorkerImpl"
 import {exposeLocal, exposeRemote} from "../common/WorkerProxy"
-import type {Entity, TypeModel} from "../common/EntityTypes"
+import type {TypeModel} from "../common/EntityTypes"
 import type {EntropySource} from "@tutao/tutanota-crypto"
 import type {CloseEventBusOption} from "../common/TutanotaConstants"
 import stream from "mithril/stream"
-import type {TutanotaService} from "../entities/tutanota/Services";
-import type {SysService} from "../entities/sys/Services";
-import type {AccountingService} from "../entities/accounting/Services";
-import type {MonitorService} from "../entities/monitor/Services";
-import type {StorageService} from "../entities/storage/Services";
 import {User} from "../entities/sys/User"
 import type {RestClient} from "../worker/rest/RestClient"
 import {SuspensionBehavior} from "../worker/rest/RestClient"
@@ -181,24 +175,6 @@ export class WorkerClient {
 
 	resolveSessionKey(typeModel: TypeModel, instance: Record<string, any>): Promise<string | null> {
 		return this._postRequest(new Request("resolveSessionKey", [typeModel, instance]))
-	}
-
-	/**
-	 * @deprecated expose service calls via facades on the server side
-	 *
-	 * Make sure that it matches interface of service request functions
-	 */
-	serviceRequest<T>(
-		service: SysService | TutanotaService | MonitorService | AccountingService | StorageService,
-		method: HttpMethod,
-		requestEntity?: Entity | undefined | null,
-		responseTypeRef?: TypeRef<T>,
-		queryParameter?: Dict,
-		sk?: Aes128Key,
-		extraHeaders?: Dict,
-		suspensionBehavior?: SuspensionBehavior,
-	): Promise<T> {
-		return this._postRequest(new Request("serviceRequest", [service, method, requestEntity, responseTypeRef, queryParameter, sk, extraHeaders, suspensionBehavior]))
 	}
 
 	entropy(entropyCache: {source: EntropySource, entropy: number, data: number}[]): Promise<void> {

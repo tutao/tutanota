@@ -34,14 +34,16 @@ export const _TypeModel: TypeModel = {
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "Group"
+			"refType": "Group",
+			"dependency": null
 		},
 		"newAdminGroup": {
 			"id": 1292,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "Group"
+			"refType": "Group",
+			"dependency": null
 		}
 	},
 	"app": "sys",

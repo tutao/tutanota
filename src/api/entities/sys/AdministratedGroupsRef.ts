@@ -27,7 +27,8 @@ export const _TypeModel: TypeModel = {
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "AdministratedGroup"
+			"refType": "AdministratedGroup",
+			"dependency": null
 		}
 	},
 	"app": "sys",

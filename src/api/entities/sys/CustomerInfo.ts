@@ -151,12 +151,28 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"accountingInfo": {
+			"id": 159,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "AccountingInfo",
+			"dependency": null
+		},
 		"bookings": {
 			"id": 727,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"refType": "BookingsRef",
+			"dependency": null
+		},
+		"customer": {
+			"id": 158,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "Customer",
 			"dependency": null
 		},
 		"domainInfos": {
@@ -175,26 +191,13 @@ export const _TypeModel: TypeModel = {
 			"refType": "GiftCardsRef",
 			"dependency": null
 		},
-		"accountingInfo": {
-			"id": 159,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "AccountingInfo"
-		},
-		"customer": {
-			"id": 158,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "Customer"
-		},
 		"takeoverCustomer": {
 			"id": 1076,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
 			"final": false,
-			"refType": "Customer"
+			"refType": "Customer",
+			"dependency": null
 		}
 	},
 	"app": "sys",
@@ -228,10 +231,10 @@ export type CustomerInfo = {
 	testEndTime: null | Date;
 	usedSharedEmailAliases: NumberString;
 
+	accountingInfo: Id;
 	bookings:  null | BookingsRef;
+	customer: Id;
 	domainInfos: DomainInfo[];
 	giftCards:  null | GiftCardsRef;
-	accountingInfo: Id;
-	customer: Id;
 	takeoverCustomer:  null | Id;
 }

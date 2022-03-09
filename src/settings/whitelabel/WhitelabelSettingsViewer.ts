@@ -3,7 +3,6 @@ import {assertMainOrNode} from "../../api/common/Env"
 import {downcast, LazyLoaded, neverNull, noOp, promiseMap} from "@tutao/tutanota-utils"
 import type {Customer} from "../../api/entities/sys/Customer"
 import {CustomerTypeRef} from "../../api/entities/sys/Customer"
-import {serviceRequest} from "../../api/main/ServiceRequest"
 import {getCustomMailDomains, getWhitelabelDomain} from "../../api/common/utils/Utils"
 import type {CustomerInfo} from "../../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../../api/entities/sys/CustomerInfo"
@@ -24,7 +23,6 @@ import {CustomerPropertiesTypeRef} from "../../api/entities/sys/CustomerProperti
 import * as EditNotificationEmailDialog from "../EditNotificationEmailDialog"
 import {showBuyOrSetNotificationEmailDialog} from "../EditNotificationEmailDialog"
 import {isWhitelabelActive} from "../../subscription/SubscriptionUtils"
-import {SysService} from "../../api/entities/sys/Services"
 import {BrandingDomainGetReturnTypeRef} from "../../api/entities/sys/BrandingDomainGetReturn"
 import type {DomainInfo} from "../../api/entities/sys/DomainInfo"
 import type {NotificationMailTemplate} from "../../api/entities/sys/NotificationMailTemplate"
@@ -47,6 +45,7 @@ import {getThemeCustomizations} from "../../misc/WhitelabelCustomizations"
 import {EntityClient} from "../../api/common/EntityClient"
 import {locator} from "../../api/main/MainLocator"
 import {SelectorItem, SelectorItemList} from "../../gui/base/DropDownSelectorN";
+import {BrandingDomainService} from "../../api/entities/sys/Services"
 
 assertMainOrNode()
 
@@ -300,7 +299,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		if (domainInfo && domainInfo.whitelabelConfig) {
 			return Promise.all([
 				locator.entityClient.load(WhitelabelConfigTypeRef, domainInfo.whitelabelConfig),
-				serviceRequest(SysService.BrandingDomainService, HttpMethod.GET, null, BrandingDomainGetReturnTypeRef).then(response =>
+				locator.serviceExecutor.get(BrandingDomainService, null).then(response =>
 					neverNull(response.certificateInfo),
 				),
 			]).then(([whitelabelConfig, certificateInfo]) => ({

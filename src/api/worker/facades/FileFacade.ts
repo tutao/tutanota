@@ -6,8 +6,6 @@ import {_TypeModel as FileTypeModel} from "../../entities/tutanota/File"
 import {assert, filterInt, neverNull, TypeRef, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {LoginFacadeImpl} from "./LoginFacade"
 import {createFileDataDataPost} from "../../entities/tutanota/FileDataDataPost"
-import {_service} from "../rest/ServiceRestClient"
-import {FileDataReturnPostTypeRef} from "../../entities/tutanota/FileDataReturnPost"
 import {GroupType} from "../../common/TutanotaConstants"
 import {_TypeModel as FileDataDataReturnTypeModel} from "../../entities/tutanota/FileDataDataReturn"
 import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
@@ -15,10 +13,7 @@ import {assertWorkerOrNode, getHttpOrigin, Mode} from "../../common/Env"
 import {handleRestError} from "../../common/error/RestError"
 import {convertToDataFile, DataFile} from "../../common/DataFile"
 import type {SuspensionHandler} from "../SuspensionHandler"
-import {StorageService} from "../../entities/storage/Services"
-import {serviceRequest} from "../ServiceRequestWorker"
 import {createBlobAccessTokenData} from "../../entities/storage/BlobAccessTokenData"
-import {BlobAccessTokenReturnTypeRef} from "../../entities/storage/BlobAccessTokenReturn"
 import type {BlobAccessInfo} from "../../entities/sys/BlobAccessInfo"
 import {_TypeModel as BlobDataGetTypeModel, createBlobDataGet} from "../../entities/storage/BlobDataGet"
 import {createBlobWriteData} from "../../entities/storage/BlobWriteData"
@@ -29,11 +24,13 @@ import type {NativeFileApp} from "../../../native/common/FileApp"
 import type {AesApp} from "../../../native/worker/AesApp"
 import {InstanceMapper} from "../crypto/InstanceMapper"
 import {FileReference} from "../../common/utils/FileUtils";
-import {TutanotaService} from "../../entities/tutanota/Services";
+import {IServiceExecutor} from "../../common/ServiceRequest"
+import {FileDataService} from "../../entities/tutanota/Services"
+import {BlobAccessTokenService, BlobService} from "../../entities/storage/Services"
 
 assertWorkerOrNode()
 const REST_PATH = "/rest/tutanota/filedataservice"
-const STORAGE_REST_PATH = `/rest/storage/${StorageService.BlobService}`
+const STORAGE_REST_PATH = `/rest/storage/${BlobService.name}`
 
 export class FileFacade {
 	_login: LoginFacadeImpl
@@ -50,6 +47,7 @@ export class FileFacade {
 		fileApp: NativeFileApp,
 		aesApp: AesApp,
 		instanceMapper: InstanceMapper,
+		private readonly serviceExecutor: IServiceExecutor,
 	) {
 		this._login = login
 		this._restClient = restClient
@@ -135,34 +133,32 @@ export class FileFacade {
 		}
 	}
 
-	uploadFileData(dataFile: DataFile, sessionKey: Aes128Key): Promise<Id> {
-		let encryptedData = encryptBytes(sessionKey, dataFile.data)
-		let fileData = createFileDataDataPost()
-		fileData.size = dataFile.data.byteLength.toString()
-		fileData.group = this._login.getGroupId(GroupType.Mail) // currently only used for attachments
-
-		return _service(TutanotaService.FileDataService, HttpMethod.POST, fileData, FileDataReturnPostTypeRef, undefined, sessionKey).then(fileDataPostReturn => {
-			// upload the file content
-			let fileDataId = fileDataPostReturn.fileData
-
-			let headers = this._login.createAuthHeaders()
-
-			headers["v"] = FileDataDataReturnTypeModel.version
-			return this._restClient
-					   .request(
-						   REST_PATH,
-						   HttpMethod.PUT,
-						   {
-							   queryParams: {
-								   fileDataId: fileDataId,
-							   },
-							   headers,
-							   body: encryptedData,
-							   responseType: MediaType.Binary,
-						   },
-					   )
-					   .then(() => fileDataId)
+	async uploadFileData(dataFile: DataFile, sessionKey: Aes128Key): Promise<Id> {
+		const encryptedData = encryptBytes(sessionKey, dataFile.data)
+		const fileData = createFileDataDataPost({
+			size: dataFile.data.byteLength.toString(),
+			group: this._login.getGroupId(GroupType.Mail)  // currently only used for attachments
 		})
+		const fileDataPostReturn = await this.serviceExecutor.post(FileDataService, fileData, {sessionKey})
+		// upload the file content
+		let fileDataId = fileDataPostReturn.fileData
+
+		const headers = this._login.createAuthHeaders()
+		headers["v"] = FileDataDataReturnTypeModel.version
+		await this._restClient
+				  .request(
+					  REST_PATH,
+					  HttpMethod.PUT,
+					  {
+						  queryParams: {
+							  fileDataId: fileDataId,
+						  },
+						  headers,
+						  body: encryptedData,
+						  responseType: MediaType.Binary,
+					  },
+				  )
+		return fileDataId
 	}
 
 	/**
@@ -178,7 +174,7 @@ export class FileFacade {
 			size: encryptedFileInfo.unencSize.toString(),
 			group: this._login.getGroupId(GroupType.Mail), // currently only used for attachments
 		})
-		const fileDataPostReturn = await _service(TutanotaService.FileDataService, HttpMethod.POST, fileData, FileDataReturnPostTypeRef, undefined, sessionKey)
+		const fileDataPostReturn = await this.serviceExecutor.post(FileDataService, fileData, {sessionKey})
 		const fileDataId = fileDataPostReturn.fileData
 
 		const headers = this._login.createAuthHeaders()
@@ -276,7 +272,7 @@ export class FileFacade {
 				archiveOwnerGroup: ownerGroupId,
 			}),
 		})
-		const {blobAccessInfo} = await serviceRequest(StorageService.BlobAccessTokenService, HttpMethod.POST, tokenRequest, BlobAccessTokenReturnTypeRef)
+		const {blobAccessInfo} = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest)
 		return blobAccessInfo
 	}
 
@@ -284,7 +280,7 @@ export class FileFacade {
 		const tokenRequest = createBlobAccessTokenData({
 			readArchiveId,
 		})
-		const {blobAccessInfo} = await serviceRequest(StorageService.BlobAccessTokenService, HttpMethod.POST, tokenRequest, BlobAccessTokenReturnTypeRef)
+		const {blobAccessInfo} = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest)
 		return blobAccessInfo
 	}
 }

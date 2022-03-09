@@ -84,6 +84,22 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"adminGroup": {
+			"id": 37,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "Group",
+			"dependency": null
+		},
+		"adminGroups": {
+			"id": 39,
+			"type": "LIST_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "GroupInfo",
+			"dependency": null
+		},
 		"auditLog": {
 			"id": 1161,
 			"type": "AGGREGATION",
@@ -108,12 +124,52 @@ export const _TypeModel: TypeModel = {
 			"refType": "UserAreaGroups",
 			"dependency": null
 		},
+		"customerGroup": {
+			"id": 38,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "Group",
+			"dependency": null
+		},
+		"customerGroups": {
+			"id": 40,
+			"type": "LIST_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "GroupInfo",
+			"dependency": null
+		},
+		"customerInfo": {
+			"id": 160,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "CustomerInfo",
+			"dependency": null
+		},
 		"customizations": {
 			"id": 1256,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
 			"refType": "Feature",
+			"dependency": null
+		},
+		"orderProcessingAgreement": {
+			"id": 1348,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"refType": "OrderProcessingAgreement",
+			"dependency": null
+		},
+		"properties": {
+			"id": 662,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"refType": "CustomerProperties",
 			"dependency": null
 		},
 		"rejectedSenders": {
@@ -124,12 +180,36 @@ export const _TypeModel: TypeModel = {
 			"refType": "RejectedSendersRef",
 			"dependency": null
 		},
+		"serverProperties": {
+			"id": 960,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"refType": "CustomerServerProperties",
+			"dependency": null
+		},
+		"teamGroups": {
+			"id": 42,
+			"type": "LIST_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "GroupInfo",
+			"dependency": null
+		},
 		"userAreaGroups": {
 			"id": 992,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"refType": "UserAreaGroups",
+			"dependency": null
+		},
+		"userGroups": {
+			"id": 41,
+			"type": "LIST_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "GroupInfo",
 			"dependency": null
 		},
 		"whitelabelChildren": {
@@ -147,76 +227,6 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"refType": "WhitelabelParent",
 			"dependency": null
-		},
-		"adminGroup": {
-			"id": 37,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "Group"
-		},
-		"adminGroups": {
-			"id": 39,
-			"type": "LIST_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "GroupInfo"
-		},
-		"customerGroup": {
-			"id": 38,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "Group"
-		},
-		"customerGroups": {
-			"id": 40,
-			"type": "LIST_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "GroupInfo"
-		},
-		"customerInfo": {
-			"id": 160,
-			"type": "LIST_ELEMENT_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "CustomerInfo"
-		},
-		"orderProcessingAgreement": {
-			"id": 1348,
-			"type": "LIST_ELEMENT_ASSOCIATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "OrderProcessingAgreement"
-		},
-		"properties": {
-			"id": 662,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "CustomerProperties"
-		},
-		"serverProperties": {
-			"id": 960,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "CustomerServerProperties"
-		},
-		"teamGroups": {
-			"id": 42,
-			"type": "LIST_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "GroupInfo"
-		},
-		"userGroups": {
-			"id": 41,
-			"type": "LIST_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "GroupInfo"
 		}
 	},
 	"app": "sys",
@@ -240,22 +250,22 @@ export type Customer = {
 	orderProcessingAgreementNeeded: boolean;
 	type: NumberString;
 
+	adminGroup: Id;
+	adminGroups: Id;
 	auditLog:  null | AuditLogRef;
 	contactFormUserAreaGroups:  null | UserAreaGroups;
 	contactFormUserGroups:  null | UserAreaGroups;
-	customizations: Feature[];
-	rejectedSenders:  null | RejectedSendersRef;
-	userAreaGroups:  null | UserAreaGroups;
-	whitelabelChildren:  null | WhitelabelChildrenRef;
-	whitelabelParent:  null | WhitelabelParent;
-	adminGroup: Id;
-	adminGroups: Id;
 	customerGroup: Id;
 	customerGroups: Id;
 	customerInfo: IdTuple;
+	customizations: Feature[];
 	orderProcessingAgreement:  null | IdTuple;
 	properties:  null | Id;
+	rejectedSenders:  null | RejectedSendersRef;
 	serverProperties:  null | Id;
 	teamGroups: Id;
+	userAreaGroups:  null | UserAreaGroups;
 	userGroups: Id;
+	whitelabelChildren:  null | WhitelabelChildrenRef;
+	whitelabelParent:  null | WhitelabelParent;
 }

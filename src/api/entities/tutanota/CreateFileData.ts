@@ -34,19 +34,19 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"ownerEncSessionKey": {
-			"id": 351,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
 		"mimeType": {
 			"id": 349,
 			"type": "String",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": true
+		},
+		"ownerEncSessionKey": {
+			"id": 351,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
 		}
 	},
 	"associations": {
@@ -55,14 +55,16 @@ export const _TypeModel: TypeModel = {
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "FileData"
+			"refType": "FileData",
+			"dependency": null
 		},
 		"parentFolder": {
 			"id": 353,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "File"
+			"refType": "File",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",
@@ -80,8 +82,8 @@ export type CreateFileData = {
 	_format: NumberString;
 	fileName: string;
 	group: Id;
-	ownerEncSessionKey: Uint8Array;
 	mimeType: string;
+	ownerEncSessionKey: Uint8Array;
 
 	fileData: Id;
 	parentFolder:  null | IdTuple;

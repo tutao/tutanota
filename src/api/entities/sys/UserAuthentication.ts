@@ -27,21 +27,24 @@ export const _TypeModel: TypeModel = {
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
 			"final": false,
-			"refType": "RecoverCode"
+			"refType": "RecoverCode",
+			"dependency": null
 		},
 		"secondFactors": {
 			"id": 1209,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "SecondFactor"
+			"refType": "SecondFactor",
+			"dependency": null
 		},
 		"sessions": {
 			"id": 1208,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "Session"
+			"refType": "Session",
+			"dependency": null
 		}
 	},
 	"app": "sys",

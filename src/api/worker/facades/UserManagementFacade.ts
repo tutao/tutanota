@@ -1,16 +1,13 @@
 import {AccountType, Const, GroupType} from "../../common/TutanotaConstants"
-import {serviceRequest, serviceRequestVoid} from "../ServiceRequestWorker"
 import {GroupTypeRef} from "../../entities/sys/Group"
 import {encryptBytes, encryptString} from "../crypto/CryptoFacade"
 import {neverNull} from "@tutao/tutanota-utils"
 import {createResetPasswordData} from "../../entities/sys/ResetPasswordData"
-import {HttpMethod} from "../../common/EntityFunctions"
 import {createMembershipAddData} from "../../entities/sys/MembershipAddData"
 import {createUserDataDelete} from "../../entities/sys/UserDataDelete"
 import type {UserAccountUserData} from "../../entities/tutanota/UserAccountUserData"
 import {createUserAccountUserData} from "../../entities/tutanota/UserAccountUserData"
 import {createUserAccountCreateData} from "../../entities/tutanota/UserAccountCreateData"
-import {TutanotaService} from "../../entities/tutanota/Services"
 import type {GroupManagementFacadeImpl} from "./GroupManagementFacade"
 import type {ContactFormUserData} from "../../entities/tutanota/ContactFormUserData"
 import {createContactFormUserData} from "../../entities/tutanota/ContactFormUserData"
@@ -18,9 +15,7 @@ import type {LoginFacadeImpl, RecoverData} from "./LoginFacade"
 import type {WorkerImpl} from "../WorkerImpl"
 import {CounterFacade} from "./CounterFacade"
 import {createUpdateAdminshipData} from "../../entities/sys/UpdateAdminshipData"
-import {SysService} from "../../entities/sys/Services"
 import type {User} from "../../entities/sys/User"
-import {SystemKeysReturnTypeRef} from "../../entities/sys/SystemKeysReturn"
 import {assertWorkerOrNode} from "../../common/Env"
 import {
 	aes128RandomKey,
@@ -34,6 +29,9 @@ import {
 } from "@tutao/tutanota-crypto"
 import type {RsaImplementation} from "../crypto/RsaImplementation"
 import {EntityClient} from "../../common/EntityClient"
+import {IServiceExecutor} from "../../common/ServiceRequest"
+import {MembershipService, ResetPasswordService, SystemKeysService, UpdateAdminshipService, UserService} from "../../entities/sys/Services"
+import {UserAccountService} from "../../entities/tutanota/Services"
 
 assertWorkerOrNode()
 
@@ -52,6 +50,7 @@ export class UserManagementFacade {
 		counters: CounterFacade,
 		rsa: RsaImplementation,
 		entityClient: EntityClient,
+		private readonly serviceExecutor: IServiceExecutor,
 	) {
 		this._worker = worker
 		this._login = login
@@ -61,19 +60,19 @@ export class UserManagementFacade {
 		this._entityClient = entityClient
 	}
 
-	changeUserPassword(user: User, newPassword: string): Promise<void> {
-		return this._groupManagement.getGroupKeyAsAdmin(user.userGroup.group).then(userGroupKey => {
-			let salt = generateRandomSalt()
-			let passwordKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
-			let pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey)
-			let passwordVerifier = createAuthVerifier(passwordKey)
-			let data = createResetPasswordData()
-			data.user = user._id
-			data.salt = salt
-			data.verifier = passwordVerifier
-			data.pwEncUserGroupKey = pwEncUserGroupKey
-			return serviceRequestVoid(SysService.ResetPasswordService, HttpMethod.POST, data)
+	async changeUserPassword(user: User, newPassword: string): Promise<void> {
+		const userGroupKey = await this._groupManagement.getGroupKeyAsAdmin(user.userGroup.group)
+		const salt = generateRandomSalt()
+		const passwordKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
+		const pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey)
+		const passwordVerifier = createAuthVerifier(passwordKey)
+		const data = createResetPasswordData({
+			user: user._id,
+			salt,
+			verifier: passwordVerifier,
+			pwEncUserGroupKey,
 		})
+		await this.serviceExecutor.post(ResetPasswordService, data)
 	}
 
 	async changeAdminFlag(user: User, admin: boolean): Promise<void> {
@@ -90,11 +89,12 @@ export class UserManagementFacade {
 			if (user.accountType !== AccountType.SYSTEM) {
 				const keyData = await this._getAccountKeyData()
 				// we can not use addUserToGroup here because the admin is not admin of the account group
-				let addAccountGroup = createMembershipAddData()
-				addAccountGroup.user = user._id
-				addAccountGroup.group = keyData.group
-				addAccountGroup.symEncGKey = encryptKey(userGroupKey, decryptKey(this._login.getUserGroupKey(), keyData.symEncGKey))
-				return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, addAccountGroup)
+				const addAccountGroup = createMembershipAddData({
+					user: user._id,
+					group: keyData.group,
+					symEncGKey: encryptKey(userGroupKey, decryptKey(this._login.getUserGroupKey(), keyData.symEncGKey)),
+				})
+				await this.serviceExecutor.post(MembershipService, addAccountGroup)
 			}
 		} else {
 			await this._groupManagement.removeUserFromGroup(user._id, adminGroupId)
@@ -112,62 +112,56 @@ export class UserManagementFacade {
 	 *
 	 * @private
 	 */
-	_getAccountKeyData(): Promise<{
-		group: Id
-		symEncGKey: Uint8Array
-	}> {
-		return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef).then(keysReturn => {
-			const user = this._login.getLoggedInUser()
+	async _getAccountKeyData(): Promise<{group: Id, symEncGKey: Uint8Array}> {
+		const keysReturn = await this.serviceExecutor.get(SystemKeysService, null)
+		const user = this._login.getLoggedInUser()
 
-			if (user.accountType === AccountType.PREMIUM) {
-				return {
-					group: neverNull(keysReturn.premiumGroup),
-					symEncGKey: keysReturn.premiumGroupKey,
-				}
-			} else if (user.accountType === AccountType.STARTER) {
-				// We don't have starterGroup on SystemKeyReturn so we hardcode it for now.
-				return {
-					group: "JDpWrwG----0",
-					symEncGKey: keysReturn.starterGroupKey,
-				}
-			} else {
-				throw new Error(`Trying to get keyData for user with account type ${user.accountType}`)
+		if (user.accountType === AccountType.PREMIUM) {
+			return {
+				group: neverNull(keysReturn.premiumGroup),
+				symEncGKey: keysReturn.premiumGroupKey,
 			}
-		})
+		} else if (user.accountType === AccountType.STARTER) {
+			// We don't have starterGroup on SystemKeyReturn so we hardcode it for now.
+			return {
+				group: "JDpWrwG----0",
+				symEncGKey: keysReturn.starterGroupKey,
+			}
+		} else {
+			throw new Error(`Trying to get keyData for user with account type ${user.accountType}`)
+		}
 	}
 
-	updateAdminship(groupId: Id, newAdminGroupId: Id): Promise<void> {
+	async updateAdminship(groupId: Id, newAdminGroupId: Id): Promise<void> {
 		let adminGroupId = this._login.getGroupId(GroupType.Admin)
+		const newAdminGroup = await this._entityClient.load(GroupTypeRef, newAdminGroupId)
+		const group = await this._entityClient.load(GroupTypeRef, groupId)
+		const oldAdminGroup = await this._entityClient.load(GroupTypeRef, neverNull(group.admin))
 
-		return this._entityClient.load(GroupTypeRef, newAdminGroupId).then(newAdminGroup => {
-			return this._entityClient.load(GroupTypeRef, groupId).then(group => {
-				return this._entityClient.load(GroupTypeRef, neverNull(group.admin)).then(oldAdminGroup => {
-					let data = createUpdateAdminshipData()
-					data.group = group._id
-					data.newAdminGroup = newAdminGroup._id
+		const adminGroupKey = this._login.getGroupKey(adminGroupId)
 
-					let adminGroupKey = this._login.getGroupKey(adminGroupId)
+		let groupKey
+		if (oldAdminGroup._id === adminGroupId) {
+			groupKey = decryptKey(adminGroupKey, neverNull(group.adminGroupEncGKey))
+		} else {
+			let localAdminGroupKey = decryptKey(adminGroupKey, neverNull(oldAdminGroup.adminGroupEncGKey))
+			groupKey = decryptKey(localAdminGroupKey, neverNull(group.adminGroupEncGKey))
+		}
 
-					let groupKey
+		let newAdminGroupEncGKey
+		if (newAdminGroup._id === adminGroupId) {
+			newAdminGroupEncGKey = encryptKey(adminGroupKey, groupKey)
+		} else {
+			let localAdminGroupKey = decryptKey(adminGroupKey, neverNull(newAdminGroup.adminGroupEncGKey))
+			newAdminGroupEncGKey = encryptKey(localAdminGroupKey, groupKey)
+		}
 
-					if (oldAdminGroup._id === adminGroupId) {
-						groupKey = decryptKey(adminGroupKey, neverNull(group.adminGroupEncGKey))
-					} else {
-						let localAdminGroupKey = decryptKey(adminGroupKey, neverNull(oldAdminGroup.adminGroupEncGKey))
-						groupKey = decryptKey(localAdminGroupKey, neverNull(group.adminGroupEncGKey))
-					}
-
-					if (newAdminGroup._id === adminGroupId) {
-						data.newAdminGroupEncGKey = encryptKey(adminGroupKey, groupKey)
-					} else {
-						let localAdminGroupKey = decryptKey(adminGroupKey, neverNull(newAdminGroup.adminGroupEncGKey))
-						data.newAdminGroupEncGKey = encryptKey(localAdminGroupKey, groupKey)
-					}
-
-					return serviceRequestVoid(SysService.UpdateAdminshipService, HttpMethod.POST, data)
-				})
-			})
+		const data = createUpdateAdminshipData({
+			group: group._id,
+			newAdminGroup: newAdminGroup._id,
+			newAdminGroupEncGKey,
 		})
+		await this.serviceExecutor.post(UpdateAdminshipService, data)
 	}
 
 	readUsedUserStorage(user: User): Promise<number> {
@@ -180,12 +174,13 @@ export class UserManagementFacade {
 		})
 	}
 
-	deleteUser(user: User, restore: boolean): Promise<void> {
-		let data = createUserDataDelete()
-		data.user = user._id
-		data.restore = restore
-		data.date = Const.CURRENT_DATE
-		return serviceRequestVoid(SysService.UserService, HttpMethod.DELETE, data)
+	async deleteUser(user: User, restore: boolean): Promise<void> {
+		const data = createUserDataDelete({
+			user: user._id,
+			restore,
+			date: Const.CURRENT_DATE,
+		})
+		await this.serviceExecutor.delete(UserService, data)
 	}
 
 	_getGroupId(user: User, groupType: GroupType): Id {
@@ -236,7 +231,7 @@ export class UserManagementFacade {
 							   name,
 							   this._login.generateRecoveryCode(userGroupKey),
 						   )
-						   return serviceRequestVoid(TutanotaService.UserAccountService, HttpMethod.POST, data).then(() => {
+						   return this.serviceExecutor.post(UserAccountService, data).then(() => {
 							   return this._worker.sendProgress(((userIndex + 1) / overallNbrOfUsersToCreate) * 100)
 						   })
 					   })

@@ -53,6 +53,7 @@ import {BrowserWebauthn} from "../../misc/2fa/webauthn/BrowserWebauthn.js"
 import {UsageTestController} from "@tutao/tutanota-usagetests"
 import {UsageTestModel} from "../../misc/UsageTestModel"
 import {deviceConfig} from "../../misc/DeviceConfig"
+import {IServiceExecutor} from "../common/ServiceRequest.js"
 
 assertMainOrNode()
 
@@ -94,7 +95,7 @@ export interface IMainLocator {
 	readonly deviceEncryptionFacade: DeviceEncryptionFacade
 	readonly usageTestController: UsageTestController
 	readonly usageTestModel: UsageTestModel
-
+	readonly serviceExecutor: IServiceExecutor
 	readonly init: () => Promise<void>
 	readonly initialized: Promise<void>
 }
@@ -132,6 +133,7 @@ class MainLocator implements IMainLocator {
 	deviceEncryptionFacade!: DeviceEncryptionFacade
 	usageTestController!: UsageTestController
 	usageTestModel!: UsageTestModel
+	serviceExecutor!: IServiceExecutor
 
 	private _nativeInterfaces: NativeInterfaces | null = null
 
@@ -219,6 +221,7 @@ class MainLocator implements IMainLocator {
 			contactFormFacade,
 			deviceEncryptionFacade,
 			restInterface,
+			serviceExecutor
 		} = this.worker.getWorkerInterface()
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -237,6 +240,7 @@ class MainLocator implements IMainLocator {
 		this.userManagementFacade = userManagementFacade
 		this.contactFormFacade = contactFormFacade
 		this.deviceEncryptionFacade = deviceEncryptionFacade
+		this.serviceExecutor = serviceExecutor
 		this.eventController = new EventController(logins)
 		this.progressTracker = new ProgressTracker()
 		this.search = new SearchModel(this.searchFacade)
@@ -254,7 +258,7 @@ class MainLocator implements IMainLocator {
 					throw new Error("Not implemented by this provider")
 				},
 			},
-			this.worker,
+			this.serviceExecutor,
 			)
 
 		const lazyScheduler = async () => {
@@ -268,7 +272,7 @@ class MainLocator implements IMainLocator {
 			notifications,
 			lazyScheduler,
 			this.eventController,
-			this.worker,
+			this.serviceExecutor,
 			logins,
 			this.progressTracker,
 			this.entityClient,

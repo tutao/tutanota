@@ -27,14 +27,16 @@ export const _TypeModel: TypeModel = {
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "Mail"
+			"refType": "Mail",
+			"dependency": null
 		},
 		"targetFolder": {
 			"id": 447,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "MailFolder"
+			"refType": "MailFolder",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

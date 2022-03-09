@@ -142,6 +142,22 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"bookings": {
+			"id": 1672,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "Any",
+			"final": true,
+			"refType": "Booking",
+			"dependency": null
+		},
+		"customer": {
+			"id": 1671,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "Customer",
+			"dependency": null
+		},
 		"items": {
 			"id": 1670,
 			"type": "AGGREGATION",
@@ -149,20 +165,6 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"refType": "InvoiceItem",
 			"dependency": null
-		},
-		"bookings": {
-			"id": 1672,
-			"type": "LIST_ELEMENT_ASSOCIATION",
-			"cardinality": "Any",
-			"final": true,
-			"refType": "Booking"
-		},
-		"customer": {
-			"id": 1671,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "Customer"
 		}
 	},
 	"app": "sys",
@@ -196,7 +198,7 @@ export type Invoice = {
 	vatIdNumber: null | string;
 	vatRate: NumberString;
 
-	items: InvoiceItem[];
 	bookings: IdTuple[];
 	customer: Id;
+	items: InvoiceItem[];
 }

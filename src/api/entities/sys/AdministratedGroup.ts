@@ -55,14 +55,16 @@ export const _TypeModel: TypeModel = {
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "GroupInfo"
+			"refType": "GroupInfo",
+			"dependency": null
 		},
 		"localAdminGroup": {
 			"id": 1302,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "Group"
+			"refType": "Group",
+			"dependency": null
 		}
 	},
 	"app": "sys",

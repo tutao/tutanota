@@ -1,4 +1,3 @@
-import {SysService} from "../../entities/sys/Services"
 import type {Base64Url, Hex} from "@tutao/tutanota-utils"
 import {
 	assertNotNull,
@@ -20,11 +19,20 @@ import {
 	uint8ArrayToHex,
 	utf8Uint8ArrayToString,
 } from "@tutao/tutanota-utils"
+import {
+	AutoLoginService,
+	ChangePasswordService,
+	CustomerService,
+	ResetFactorsService,
+	SaltService,
+	SecondFactorAuthService,
+	SessionService,
+	TakeOverDeletedAddressService
+} from "../../entities/sys/Services"
 import {CloseEventBusOption, GroupType, OperationType} from "../../common/TutanotaConstants"
 import {CryptoError} from "../../common/error/CryptoError"
 import {createSaltData} from "../../entities/sys/SaltData"
 import type {SaltReturn} from "../../entities/sys/SaltReturn"
-import {SaltReturnTypeRef} from "../../entities/sys/SaltReturn"
 import type {GroupInfo} from "../../entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
@@ -36,19 +44,15 @@ import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
 import {ConnectMode, EventBusClient} from "../EventBusClient"
 import {createCreateSessionData} from "../../entities/sys/CreateSessionData"
 import type {CreateSessionReturn} from "../../entities/sys/CreateSessionReturn"
-import {CreateSessionReturnTypeRef} from "../../entities/sys/CreateSessionReturn"
 import {_TypeModel as SessionModelType, SessionTypeRef} from "../../entities/sys/Session"
 import {EntityRestClient, typeRefToPath} from "../rest/EntityRestClient"
 import {createSecondFactorAuthGetData} from "../../entities/sys/SecondFactorAuthGetData"
-import {SecondFactorAuthGetReturnTypeRef} from "../../entities/sys/SecondFactorAuthGetReturn"
 import {ConnectionError, LockedError, NotAuthenticatedError, NotFoundError, ServiceUnavailableError} from "../../common/error/RestError"
 import type {WorkerImpl} from "../WorkerImpl"
 import type {Indexer} from "../search/Indexer"
 import {createDeleteCustomerData} from "../../entities/sys/DeleteCustomerData"
 import {createAutoLoginDataGet} from "../../entities/sys/AutoLoginDataGet"
-import {AutoLoginDataReturnTypeRef} from "../../entities/sys/AutoLoginDataReturn"
 import {CancelledError} from "../../common/error/CancelledError"
-import {TutanotaService} from "../../entities/tutanota/Services"
 import {createRecoverCode, RecoverCodeTypeRef} from "../../entities/sys/RecoverCode"
 import {createResetFactorsDeleteData} from "../../entities/sys/ResetFactorsDeleteData"
 import type {GroupMembership} from "../../entities/sys/GroupMembership"
@@ -92,9 +96,10 @@ import type {SecondFactorAuthHandler} from "../../../misc/2fa/SecondFactorHandle
 import {createSecondFactorAuthDeleteData} from "../../entities/sys/SecondFactorAuthDeleteData"
 import type {SecondFactorAuthData} from "../../entities/sys/SecondFactorAuthData"
 import {Aes128Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
+import {EntropyService} from "../../entities/tutanota/Services"
+import {IServiceExecutor} from "../../common/ServiceRequest"
 import {SessionType} from "../../common/SessionType"
 import {LateInitializedCacheStorage} from "../rest/CacheStorageProxy"
-import {ServiceRestInterface} from "../rest/ServiceRestInterface"
 
 assertWorkerOrNode()
 const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
@@ -171,7 +176,6 @@ export interface LoginFacade {
 	resetSecondFactors(mailAddress: string, password: string, recoverCode: Hex): Promise<void>
 
 	decryptUserPassword(userId: string, deviceToken: string, encryptedPassword: string): Promise<string>
-
 }
 
 export class LoginFacadeImpl implements LoginFacade {
@@ -199,7 +203,6 @@ export class LoginFacadeImpl implements LoginFacade {
 
 	constructor(
 		readonly worker: WorkerImpl,
-		private readonly service: ServiceRestInterface,
 		private readonly restClient: RestClient,
 		private readonly entityClient: EntityClient,
 		private readonly secondFactorAuthHandler: SecondFactorAuthHandler,
@@ -210,7 +213,8 @@ export class LoginFacadeImpl implements LoginFacade {
 		 *  This is necessary because we don't know if we'll be persistent or not until the user tries to login
 		 *  Once the credentials handling has been changed to *always* save in desktop, then this should become obsolete
 		 */
-		private readonly initializeCacheStorage: LateInitializedCacheStorage["initialize"]
+		private readonly initializeCacheStorage: LateInitializedCacheStorage["initialize"],
+		private readonly serviceExecutor: IServiceExecutor,
 	) {
 		this.initializeMembers()
 	}
@@ -267,8 +271,7 @@ export class LoginFacadeImpl implements LoginFacade {
 				accessKey = aes128RandomKey()
 				sessionData.accessKey = keyToUint8Array(accessKey)
 			}
-
-			return this.service.serviceRequest(SysService.SessionService, HttpMethod.POST, sessionData, CreateSessionReturnTypeRef)
+			return this.serviceExecutor.post(SessionService, sessionData)
 					   .then(createSessionReturn => this._waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, mailAddress))
 					   .then(sessionData => {
 						   return this.initSession(sessionData.userId, sessionData.accessToken, userPassphraseKey, sessionType, databaseKey).then(() => {
@@ -323,7 +326,7 @@ export class LoginFacadeImpl implements LoginFacade {
 	_waitUntilSecondFactorApproved(accessToken: Base64Url, sessionId: IdTuple, retryOnNetworkError: number): Promise<void> {
 		let secondFactorAuthGetData = createSecondFactorAuthGetData()
 		secondFactorAuthGetData.accessToken = accessToken
-		return this.service.serviceRequest(SysService.SecondFactorAuthService, HttpMethod.GET, secondFactorAuthGetData, SecondFactorAuthGetReturnTypeRef)
+		return this.serviceExecutor.get(SecondFactorAuthService, secondFactorAuthGetData)
 				   .then(secondFactorAuthGetReturn => {
 					   if (!this._loginRequestSessionId || !isSameId(this._loginRequestSessionId, sessionId)) {
 						   return Promise.reject(new CancelledError("login cancelled"))
@@ -368,7 +371,7 @@ export class LoginFacadeImpl implements LoginFacade {
 			sessionData.accessKey = keyToUint8Array(accessKey)
 		}
 
-		const createSessionReturn = await this.service.serviceRequest(SysService.SessionService, HttpMethod.POST, sessionData, CreateSessionReturnTypeRef)
+		const createSessionReturn = await this.serviceExecutor.post(SessionService, sessionData)
 
 
 		let sessionId = [this._getSessionListId(createSessionReturn.accessToken), this._getSessionElementId(createSessionReturn.accessToken)] as const
@@ -397,7 +400,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		const secondFactorAuthDeleteData = createSecondFactorAuthDeleteData({
 			session: sessionId,
 		})
-		await this.service.serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.DELETE, secondFactorAuthDeleteData)
+		await this.serviceExecutor.delete(SecondFactorAuthService, secondFactorAuthDeleteData)
 				  .catch(ofClass(NotFoundError, (e) => {
 					  // This can happen during some odd behavior in browser where main loop would be blocked by webauthn (hello, FF) and then we would try to
 					  // cancel too late. No harm here anyway if the session is already gone.
@@ -409,7 +412,7 @@ export class LoginFacadeImpl implements LoginFacade {
 
 	/** @inheritDoc */
 	async authenticateWithSecondFactor(data: SecondFactorAuthData): Promise<void> {
-		await this.service.serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, data)
+		await this.serviceExecutor.post(SecondFactorAuthService, data)
 	}
 
 	/**
@@ -547,9 +550,8 @@ export class LoginFacadeImpl implements LoginFacade {
 
 	_loadUserPassphraseKey(mailAddress: string, passphrase: string): Promise<Aes128Key> {
 		mailAddress = mailAddress.toLowerCase().trim()
-		let saltRequest = createSaltData()
-		saltRequest.mailAddress = mailAddress
-		return this.service.serviceRequest(SysService.SaltService, HttpMethod.GET, saltRequest, SaltReturnTypeRef).then((saltReturn: SaltReturn) => {
+		const saltRequest = createSaltData({mailAddress})
+		return this.serviceExecutor.get(SaltService, saltRequest).then((saltReturn: SaltReturn) => {
 			return generateKeyFromPassphrase(passphrase, saltReturn.salt, KeyLength.b128)
 		})
 	}
@@ -719,7 +721,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		const entropyData = createEntropyData({
 			groupEncEntropy: encryptBytes(userGroupKey, random.generateRandomData(32)),
 		})
-		return this.service.serviceRequestVoid(TutanotaService.EntropyService, HttpMethod.PUT, entropyData)
+		return this.serviceExecutor.put(EntropyService, entropyData)
 				   .catch(ofClass(LockedError, noOp))
 				   .catch(
 					   ofClass(ConnectionError, e => {
@@ -759,7 +761,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		}).then(noOp)
 	}
 
-	changePassword(oldPassword: string, newPassword: string): Promise<void> {
+	async changePassword(oldPassword: string, newPassword: string): Promise<void> {
 		let oldAuthVerifier = createAuthVerifier(generateKeyFromPassphrase(oldPassword, neverNull(neverNull(this._user).salt), KeyLength.b128))
 		let salt = generateRandomSalt()
 		let userPassphraseKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
@@ -770,10 +772,10 @@ export class LoginFacadeImpl implements LoginFacade {
 		service.salt = salt
 		service.verifier = authVerifier
 		service.pwEncUserGroupKey = pwEncUserGroupKey
-		return this.service.serviceRequestVoid(SysService.ChangePasswordService, HttpMethod.POST, service)
+		await this.serviceExecutor.post(ChangePasswordService, service)
 	}
 
-	deleteAccount(password: string, reason: string, takeover: string): Promise<void> {
+	async deleteAccount(password: string, reason: string, takeover: string): Promise<void> {
 		let d = createDeleteCustomerData()
 		d.authVerifier = createAuthVerifier(generateKeyFromPassphrase(password, neverNull(neverNull(this._user).salt), KeyLength.b128))
 		d.undelete = false
@@ -785,15 +787,14 @@ export class LoginFacadeImpl implements LoginFacade {
 		} else {
 			d.takeoverMailAddress = null
 		}
-
-		return this.service.serviceRequestVoid(SysService.CustomerService, HttpMethod.DELETE, d)
+		await this.serviceExecutor.delete(CustomerService, d)
 	}
 
 	decryptUserPassword(userId: string, deviceToken: string, encryptedPassword: string): Promise<string> {
 		const getData = createAutoLoginDataGet()
 		getData.userId = userId
 		getData.deviceToken = deviceToken
-		return this.service.serviceRequest(SysService.AutoLoginService, HttpMethod.GET, getData, AutoLoginDataReturnTypeRef, undefined).then(returnData => {
+		return this.serviceExecutor.get(AutoLoginService, getData).then(returnData => {
 			const key = uint8ArrayToKey(returnData.deviceKey)
 			return utf8Uint8ArrayToString(aes128Decrypt(key, base64ToUint8Array(encryptedPassword)))
 		})
@@ -875,7 +876,7 @@ export class LoginFacadeImpl implements LoginFacade {
 			this.instanceMapper,
 		)
 		const entityClient = new EntityClient(eventRestClient)
-		return this.service.serviceRequest(SysService.SessionService, HttpMethod.POST, sessionData, CreateSessionReturnTypeRef) // Don't pass email address to avoid proposing to reset second factor when we're resetting password
+		return this.serviceExecutor.post(SessionService, sessionData) // Don't pass email address to avoid proposing to reset second factor when we're resetting password
 				   .then(createSessionReturn => this._waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, null))
 				   .then(sessionData => {
 					   return entityClient
@@ -907,7 +908,7 @@ export class LoginFacadeImpl implements LoginFacade {
 							   const extraHeaders = {
 								   accessToken: sessionData.accessToken,
 							   }
-							   return this.service.serviceRequestVoid(SysService.ChangePasswordService, HttpMethod.POST, postData, undefined, undefined, extraHeaders)
+						return this.serviceExecutor.post(ChangePasswordService, postData, {extraHeaders})
 						   })
 						   .finally(() => this.deleteSession(sessionData.accessToken))
 				   })
@@ -923,7 +924,7 @@ export class LoginFacadeImpl implements LoginFacade {
 			deleteData.mailAddress = mailAddress
 			deleteData.authVerifier = authVerifier
 			deleteData.recoverCodeVerifier = recoverCodeVerifier
-			return this.service.serviceRequestVoid(SysService.ResetFactorsService, HttpMethod.DELETE, deleteData)
+			return this.serviceExecutor.delete(ResetFactorsService, deleteData)
 		})
 	}
 
@@ -942,7 +943,7 @@ export class LoginFacadeImpl implements LoginFacade {
 			data.authVerifier = authVerifier
 			data.recoverCodeVerifier = recoverCodeVerifier
 			data.targetAccountMailAddress = targetAccountMailAddress
-			return this.service.serviceRequestVoid(SysService.TakeOverDeletedAddressService, HttpMethod.POST, data)
+			return this.serviceExecutor.post(TakeOverDeletedAddressService, data)
 		})
 	}
 

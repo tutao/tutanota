@@ -14,7 +14,6 @@ declare type WorkerRequestType =
 	| 'testEcho'
 	| 'testError'
 	| 'restRequest'
-	| 'serviceRequest'
 	| 'entropy'
 	| 'tryReconnectEventBus'
 	| 'closeEventBus'

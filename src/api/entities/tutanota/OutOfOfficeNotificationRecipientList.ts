@@ -27,7 +27,8 @@ export const _TypeModel: TypeModel = {
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "OutOfOfficeNotificationRecipient"
+			"refType": "OutOfOfficeNotificationRecipient",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

@@ -8,9 +8,7 @@ import {CryptoFacade, encryptString} from "../../../../src/api/worker/crypto/Cry
 import {LateInitializedCacheStorage} from "../../../../src/api/worker/rest/CacheStorageProxy"
 import {func, instance, matchers, object, verify, when} from "testdouble"
 import {SessionType} from "../../../../src/api/common/SessionType"
-import {ServiceRestInterface} from "../../../../src/api/worker/rest/ServiceRestInterface"
 import {HttpMethod} from "../../../../src/api/common/EntityFunctions"
-import {SysService} from "../../../../src/api/entities/sys/Services"
 import {createCreateSessionReturn} from "../../../../src/api/entities/sys/CreateSessionReturn"
 import type {SecondFactorAuthHandler} from "../../../../src/misc/2fa/SecondFactorHandler.js"
 import {createSaltReturn} from "../../../../src/api/entities/sys/SaltReturn"
@@ -22,6 +20,8 @@ import {Indexer} from "../../../../src/api/worker/search/Indexer"
 import {EventBusClient} from "../../../../src/api/worker/EventBusClient"
 import {Credentials} from "../../../../src/misc/credentials/Credentials"
 import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {IServiceExecutor} from "../../../../src/api/common/ServiceRequest"
+import {SaltService, SessionService} from "../../../../src/api/entities/sys/Services"
 
 const {anything} = matchers
 
@@ -45,23 +45,23 @@ function makeUser({id, passphrase, salt}) {
 
 o.spec("LoginFacadeTest", function () {
 
-	let facade: LoginFacadeImpl,
-		workerMock: WorkerImpl,
-		serviceMock: ServiceRestInterface,
-		restClientMock: RestClient,
-		entityClientMock: EntityClient,
-		secondFactorAuthHandlerMock: SecondFactorAuthHandler,
-		instanceMapperMock: InstanceMapper,
-		cryptoFacadeMock: CryptoFacade,
-		initializeCacheStorageMock: LateInitializedCacheStorage["initialize"],
-		indexerMock: Indexer,
-		eventBusClientMock: EventBusClient
+	let facade: LoginFacadeImpl
+	let workerMock: WorkerImpl
+	let serviceExecutor: IServiceExecutor
+	let restClientMock: RestClient
+	let entityClientMock: EntityClient
+	let secondFactorAuthHandlerMock: SecondFactorAuthHandler
+	let instanceMapperMock: InstanceMapper
+	let cryptoFacadeMock: CryptoFacade
+	let initializeCacheStorageMock: LateInitializedCacheStorage["initialize"]
+	let indexerMock: Indexer
+	let eventBusClientMock: EventBusClient
 
 	o.beforeEach(function () {
 
 		workerMock = instance(WorkerImpl)
-		serviceMock = object<ServiceRestInterface>()
-		when(serviceMock.serviceRequest(SysService.SaltService, HttpMethod.GET, anything(), anything()))
+		serviceExecutor = object()
+		when(serviceExecutor.get(SaltService, anything()), {ignoreExtraArgs: true})
 			.thenResolve(createSaltReturn({salt: SALT}))
 
 		restClientMock = instance(RestClient)
@@ -75,13 +75,13 @@ o.spec("LoginFacadeTest", function () {
 
 		facade = new LoginFacadeImpl(
 			workerMock,
-			serviceMock,
 			restClientMock,
 			entityClientMock,
 			secondFactorAuthHandlerMock,
 			instanceMapperMock,
 			() => cryptoFacadeMock,
-			initializeCacheStorageMock
+			initializeCacheStorageMock,
+			serviceExecutor,
 		)
 
 		indexerMock = instance(Indexer)
@@ -97,7 +97,7 @@ o.spec("LoginFacadeTest", function () {
 			const userId = "userId"
 
 			o.beforeEach(function () {
-				when(serviceMock.serviceRequest(SysService.SessionService, HttpMethod.POST, anything(), anything()))
+				when(serviceExecutor.post(SessionService, anything()), {ignoreExtraArgs: true})
 					.thenResolve(createCreateSessionReturn({user: userId, accessToken: "accessToken", challenges: []}))
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(makeUser({
 					id: userId,

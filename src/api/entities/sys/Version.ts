@@ -48,14 +48,16 @@ export const _TypeModel: TypeModel = {
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "Group"
+			"refType": "Group",
+			"dependency": null
 		},
 		"authorGroupInfo": {
 			"id": 486,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "GroupInfo"
+			"refType": "GroupInfo",
+			"dependency": null
 		}
 	},
 	"app": "sys",

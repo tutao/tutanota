@@ -17,7 +17,7 @@ export const offlineDatabaseTestKey = [3957386659, 354339016, 3786337319, 336633
 // Added by sqliteNativeBannerPlugin
 const nativePath = globalThis.buildOptions.sqliteNativePath
 
-o.spec("Offline DB ", function () {
+o.spec("OfflineDb ", function () {
 	let db: OfflineDb
 	const listId = "listId"
 	// they are

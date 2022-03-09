@@ -27,7 +27,8 @@ export const _TypeModel: TypeModel = {
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
 			"final": false,
-			"refType": "LegacyInvoice"
+			"refType": "LegacyInvoice",
+			"dependency": null
 		}
 	},
 	"app": "sys",

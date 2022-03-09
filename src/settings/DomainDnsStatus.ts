@@ -1,13 +1,11 @@
 import {createCustomDomainCheckData} from "../api/entities/sys/CustomDomainCheckData"
-import {serviceRequest} from "../api/main/ServiceRequest"
-import {SysService} from "../api/entities/sys/Services"
-import {HttpMethod} from "../api/common/EntityFunctions"
 import type {CustomDomainCheckReturn} from "../api/entities/sys/CustomDomainCheckReturn"
-import {CustomDomainCheckReturnTypeRef} from "../api/entities/sys/CustomDomainCheckReturn"
 import {CustomDomainCheckResult, DnsRecordType, DnsRecordValidation} from "../api/common/TutanotaConstants"
 import {LazyLoaded, noOp} from "@tutao/tutanota-utils"
 import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/common/Env"
+import {locator} from "../api/main/MainLocator"
+import {CustomDomainCheckService} from "../api/entities/sys/Services"
 
 assertMainOrNode()
 
@@ -20,7 +18,7 @@ export class DomainDnsStatus {
 		this.status = new LazyLoaded(() => {
 			let data = createCustomDomainCheckData()
 			data.domain = cleanDomainName
-			return serviceRequest(SysService.CustomDomainCheckService, HttpMethod.GET, data, CustomDomainCheckReturnTypeRef)
+			return locator.serviceExecutor.get(CustomDomainCheckService, data)
 		})
 	}
 
