@@ -1,9 +1,11 @@
 import {Thunk} from "@tutao/tutanota-utils"
 import {Scheduler} from "../../common/utils/Scheduler.js"
-import {DateProvider} from "../../common/DateProvider"
+import {DateProvider} from "../../common/DateProvider.js"
 
 // exported for testing
+/** How often do we check for sleep. */
 export const CHECK_INTERVAL = 5000
+/** How much time should have passed for us to assume that the app was suspended. */
 export const SLEEP_INTERVAL = 15000
 
 interface ScheduledState {
@@ -12,6 +14,15 @@ interface ScheduledState {
 	readonly onSleep: Thunk,
 }
 
+/**
+ * Class for detecting suspension state of the app/device.
+ * When the device is entering the sleep mode the browser would pause the page. For most of the app it looks like no time has passed at all but when there
+ * are external factors e.g. websocket connection we might need to know whether it happens.
+ *
+ * We detect such situation by scheduling periodic timer and measuring the time in between.
+ *
+ * Currently is only capable of having one sleep action at a time.
+ */
 export class SleepDetector {
 	private scheduledState: ScheduledState | null = null
 
