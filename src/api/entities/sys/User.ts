@@ -116,12 +116,28 @@ export const _TypeModel: TypeModel = {
 			"refType": "AuthenticatedDevice",
 			"dependency": null
 		},
+		"customer": {
+			"id": 99,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"refType": "Customer",
+			"dependency": null
+		},
 		"externalAuthInfo": {
 			"id": 98,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
 			"refType": "UserExternalAuthInfo",
+			"dependency": null
+		},
+		"failedLogins": {
+			"id": 101,
+			"type": "LIST_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "Login",
 			"dependency": null
 		},
 		"memberships": {
@@ -148,6 +164,22 @@ export const _TypeModel: TypeModel = {
 			"refType": "PushIdentifierList",
 			"dependency": null
 		},
+		"secondFactorAuthentications": {
+			"id": 102,
+			"type": "LIST_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "SecondFactorAuthentication",
+			"dependency": null
+		},
+		"successfulLogins": {
+			"id": 100,
+			"type": "LIST_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "Login",
+			"dependency": null
+		},
 		"userGroup": {
 			"id": 95,
 			"type": "AGGREGATION",
@@ -155,34 +187,6 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"refType": "GroupMembership",
 			"dependency": null
-		},
-		"customer": {
-			"id": 99,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "Customer"
-		},
-		"failedLogins": {
-			"id": 101,
-			"type": "LIST_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "Login"
-		},
-		"secondFactorAuthentications": {
-			"id": 102,
-			"type": "LIST_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "SecondFactorAuthentication"
-		},
-		"successfulLogins": {
-			"id": 100,
-			"type": "LIST_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "Login"
 		}
 	},
 	"app": "sys",
@@ -210,13 +214,13 @@ export type User = {
 	alarmInfoList:  null | UserAlarmInfoListType;
 	auth:  null | UserAuthentication;
 	authenticatedDevices: AuthenticatedDevice[];
+	customer:  null | Id;
 	externalAuthInfo:  null | UserExternalAuthInfo;
+	failedLogins: Id;
 	memberships: GroupMembership[];
 	phoneNumbers: PhoneNumber[];
 	pushIdentifierList:  null | PushIdentifierList;
-	userGroup: GroupMembership;
-	customer:  null | Id;
-	failedLogins: Id;
 	secondFactorAuthentications: Id;
 	successfulLogins: Id;
+	userGroup: GroupMembership;
 }

@@ -23,6 +23,14 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"draft": {
+			"id": 522,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"final": false,
+			"refType": "Mail",
+			"dependency": null
+		},
 		"draftData": {
 			"id": 521,
 			"type": "AGGREGATION",
@@ -30,13 +38,6 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"refType": "DraftData",
 			"dependency": null
-		},
-		"draft": {
-			"id": 522,
-			"type": "LIST_ELEMENT_ASSOCIATION",
-			"cardinality": "One",
-			"final": false,
-			"refType": "Mail"
 		}
 	},
 	"app": "tutanota",
@@ -53,6 +54,6 @@ export type DraftUpdateData = {
 
 	_format: NumberString;
 
-	draftData: DraftData;
 	draft: IdTuple;
+	draftData: DraftData;
 }

@@ -116,6 +116,14 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"alarmInfos": {
+			"id": 946,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "Any",
+			"final": false,
+			"refType": "UserAlarmInfo",
+			"dependency": null
+		},
 		"attendees": {
 			"id": 1091,
 			"type": "AGGREGATION",
@@ -139,13 +147,6 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"refType": "CalendarRepeatRule",
 			"dependency": null
-		},
-		"alarmInfos": {
-			"id": 946,
-			"type": "LIST_ELEMENT_ASSOCIATION",
-			"cardinality": "Any",
-			"final": false,
-			"refType": "UserAlarmInfo"
 		}
 	},
 	"app": "tutanota",
@@ -175,8 +176,8 @@ export type CalendarEvent = {
 	summary: string;
 	uid: null | string;
 
+	alarmInfos: IdTuple[];
 	attendees: CalendarEventAttendee[];
 	organizer:  null | EncryptedMailAddress;
 	repeatRule:  null | CalendarRepeatRule;
-	alarmInfos: IdTuple[];
 }

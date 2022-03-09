@@ -30,6 +30,14 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"existingFile": {
+			"id": 495,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"refType": "File",
+			"dependency": null
+		},
 		"newFile": {
 			"id": 494,
 			"type": "AGGREGATION",
@@ -37,13 +45,6 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"refType": "NewDraftAttachment",
 			"dependency": null
-		},
-		"existingFile": {
-			"id": 495,
-			"type": "LIST_ELEMENT_ASSOCIATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "File"
 		}
 	},
 	"app": "tutanota",
@@ -60,6 +61,6 @@ export type DraftAttachment = {
 	_id: Id;
 	ownerEncFileSessionKey: Uint8Array;
 
-	newFile:  null | NewDraftAttachment;
 	existingFile:  null | IdTuple;
+	newFile:  null | NewDraftAttachment;
 }

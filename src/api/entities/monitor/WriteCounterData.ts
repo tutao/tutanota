@@ -20,6 +20,13 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"column": {
+			"id": 52,
+			"type": "GeneratedId",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"counterType": {
 			"id": 215,
 			"type": "Number",
@@ -30,13 +37,6 @@ export const _TypeModel: TypeModel = {
 		"row": {
 			"id": 51,
 			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"column": {
-			"id": 52,
-			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
@@ -62,8 +62,8 @@ export type WriteCounterData = {
 	_type: TypeRef<WriteCounterData>;
 
 	_format: NumberString;
+	column: Id;
 	counterType: null | NumberString;
 	row: string;
-	column: Id;
 	value: NumberString;
 }

@@ -27,7 +27,8 @@ export const _TypeModel: TypeModel = {
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "Session"
+			"refType": "Session",
+			"dependency": null
 		}
 	},
 	"app": "sys",

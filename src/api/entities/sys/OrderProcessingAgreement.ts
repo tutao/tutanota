@@ -76,14 +76,16 @@ export const _TypeModel: TypeModel = {
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "Customer"
+			"refType": "Customer",
+			"dependency": null
 		},
 		"signerUserGroupInfo": {
 			"id": 1336,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "GroupInfo"
+			"refType": "GroupInfo",
+			"dependency": null
 		}
 	},
 	"app": "sys",

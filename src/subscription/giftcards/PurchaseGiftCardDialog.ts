@@ -1,7 +1,6 @@
 import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import {Dialog} from "../../gui/base/Dialog"
-import {serviceRequest} from "../../api/main/ServiceRequest"
 import {logins} from "../../api/main/LoginController"
 import type {AccountingInfo} from "../../api/entities/sys/AccountingInfo"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
@@ -9,7 +8,6 @@ import {GiftCardTypeRef} from "../../api/entities/sys/GiftCard"
 import {locator} from "../../api/main/MainLocator"
 import type {Country} from "../../api/common/CountryList"
 import {getByAbbreviation} from "../../api/common/CountryList"
-import {SysService} from "../../api/entities/sys/Services"
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import {GiftCardGetReturnTypeRef} from "../../api/entities/sys/GiftCardGetReturn"
 import type {GiftCardOption} from "../../api/entities/sys/GiftCardOption"
@@ -37,6 +35,7 @@ import {formatPrice, getSubscriptionPrice} from "../PriceUtils"
 import {ofClass} from "@tutao/tutanota-utils"
 import type {lazy} from "@tutao/tutanota-utils"
 import Stream from "mithril/stream";
+import {GiftCardService} from "../../api/entities/sys/Services"
 
 export type GiftCardPurchaseViewAttrs = {
 	purchaseLimit: number
@@ -217,7 +216,7 @@ export function showPurchaseGiftCardDialog(): Promise<void> {
 		})
 		.then(() =>
 			Promise.all([
-				serviceRequest(SysService.GiftCardService, HttpMethod.GET, null, GiftCardGetReturnTypeRef),
+				locator.serviceExecutor.get(GiftCardService, null),
 				logins.getUserController().loadCustomerInfo(),
 				loadUpgradePrices(null), // do not pass in any campaign here because the gift card prices should be based on default prices.
 			]),

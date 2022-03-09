@@ -51,6 +51,14 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"delegationGroups_removed": {
+			"id": 747,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "Any",
+			"final": false,
+			"refType": "Group",
+			"dependency": null
+		},
 		"languages": {
 			"id": 865,
 			"type": "AGGREGATION",
@@ -59,33 +67,29 @@ export const _TypeModel: TypeModel = {
 			"refType": "ContactFormLanguage",
 			"dependency": null
 		},
-		"delegationGroups_removed": {
-			"id": 747,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "Any",
-			"final": false,
-			"refType": "Group"
-		},
 		"participantGroupInfos": {
 			"id": 822,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "GroupInfo"
+			"refType": "GroupInfo",
+			"dependency": null
 		},
 		"targetGroup": {
 			"id": 746,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "Group"
+			"refType": "Group",
+			"dependency": null
 		},
 		"targetGroupInfo": {
 			"id": 821,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
 			"final": false,
-			"refType": "GroupInfo"
+			"refType": "GroupInfo",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",
@@ -105,8 +109,8 @@ export type ContactForm = {
 	_permissions: Id;
 	path: string;
 
-	languages: ContactFormLanguage[];
 	delegationGroups_removed: Id[];
+	languages: ContactFormLanguage[];
 	participantGroupInfos: IdTuple[];
 	targetGroup: Id;
 	targetGroupInfo:  null | IdTuple;

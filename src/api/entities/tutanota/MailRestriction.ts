@@ -27,14 +27,16 @@ export const _TypeModel: TypeModel = {
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "Group"
+			"refType": "Group",
+			"dependency": null
 		},
 		"participantGroupInfos": {
 			"id": 820,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
 			"final": true,
-			"refType": "GroupInfo"
+			"refType": "GroupInfo",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

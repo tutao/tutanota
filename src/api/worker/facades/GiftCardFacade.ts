@@ -1,16 +1,12 @@
 import {GroupType} from "../../common/TutanotaConstants"
 import {firstThrow} from "@tutao/tutanota-utils"
 import {createGiftCardCreateData} from "../../entities/sys/GiftCardCreateData"
-import {serviceRequest, serviceRequestVoid} from "../ServiceRequestWorker"
-import {SysService} from "../../entities/sys/Services"
-import {HttpMethod} from "../../common/EntityFunctions"
-import type {GiftCardCreateReturn} from "../../entities/sys/GiftCardCreateReturn"
-import {GiftCardCreateReturnTypeRef} from "../../entities/sys/GiftCardCreateReturn"
 import type {LoginFacadeImpl} from "./LoginFacade"
 import type {GiftCardRedeemGetReturn} from "../../entities/sys/GiftCardRedeemGetReturn"
-import {GiftCardRedeemGetReturnTypeRef} from "../../entities/sys/GiftCardRedeemGetReturn"
 import {createGiftCardRedeemData} from "../../entities/sys/GiftCardRedeemData"
 import {aes128RandomKey, base64ToKey, bitArrayToUint8Array, encryptKey, sha256Hash} from "@tutao/tutanota-crypto"
+import {IServiceExecutor} from "../../common/ServiceRequest"
+import {GiftCardRedeemService, GiftCardService} from "../../entities/sys/Services"
 
 export interface GiftCardFacade {
 	generateGiftCard(message: string, value: NumberString, countryCode: string): Promise<IdTuple>
@@ -23,7 +19,10 @@ export interface GiftCardFacade {
 export class GiftCardFacadeImpl implements GiftCardFacade {
 	_logins: LoginFacadeImpl
 
-	constructor(logins: LoginFacadeImpl) {
+	constructor(
+		logins: LoginFacadeImpl,
+		private readonly serviceExecutor: IServiceExecutor,
+	) {
 		this._logins = logins
 	}
 
@@ -47,9 +46,8 @@ export class GiftCardFacadeImpl implements GiftCardFacade {
 			country: countryCode,
 			ownerEncSessionKey,
 		})
-		return serviceRequest(SysService.GiftCardService, HttpMethod.POST, data, GiftCardCreateReturnTypeRef, undefined, sessionKey).then(
-			(returnData: GiftCardCreateReturn) => returnData.giftCard,
-		)
+		return this.serviceExecutor.post(GiftCardService, data, {sessionKey})
+				   .then((returnData) => returnData.giftCard)
 	}
 
 	getGiftCardInfo(id: Id, key: string): Promise<GiftCardRedeemGetReturn> {
@@ -59,16 +57,16 @@ export class GiftCardFacadeImpl implements GiftCardFacade {
 			giftCardInfo: id,
 			keyHash: keyHash,
 		})
-		return serviceRequest(SysService.GiftCardRedeemService, HttpMethod.GET, data, GiftCardRedeemGetReturnTypeRef, undefined, bitKey)
+		return this.serviceExecutor.get(GiftCardRedeemService, data, {sessionKey: bitKey})
 	}
 
-	redeemGiftCard(id: Id, key: string): Promise<void> {
+	async redeemGiftCard(id: Id, key: string): Promise<void> {
 		const bitKey = base64ToKey(key)
 		const keyHash = sha256Hash(bitArrayToUint8Array(bitKey))
 		const data = createGiftCardRedeemData({
 			giftCardInfo: id,
 			keyHash: keyHash,
 		})
-		return serviceRequestVoid(SysService.GiftCardRedeemService, HttpMethod.POST, data)
+		await this.serviceExecutor.post(GiftCardRedeemService, data)
 	}
 }

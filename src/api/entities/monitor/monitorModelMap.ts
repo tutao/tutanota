@@ -1,7 +1,7 @@
 const map = {
+    ApprovalMail: () => import('./ApprovalMail.js'),
     ReadCounterData: () => import('./ReadCounterData.js'),
     ReadCounterReturn: () => import('./ReadCounterReturn.js'),
-    WriteCounterData: () => import('./WriteCounterData.js'),
-    ApprovalMail: () => import('./ApprovalMail.js')
+    WriteCounterData: () => import('./WriteCounterData.js')
 }
 export default map

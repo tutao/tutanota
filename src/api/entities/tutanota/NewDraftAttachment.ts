@@ -48,7 +48,8 @@ export const _TypeModel: TypeModel = {
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "FileData"
+			"refType": "FileData",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

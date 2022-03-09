@@ -93,6 +93,22 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"group": {
+			"id": 20,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "Group",
+			"dependency": null
+		},
+		"localAdmin": {
+			"id": 1287,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"refType": "Group",
+			"dependency": null
+		},
 		"mailAddressAliases": {
 			"id": 687,
 			"type": "AGGREGATION",
@@ -100,20 +116,6 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"refType": "MailAddressAlias",
 			"dependency": null
-		},
-		"group": {
-			"id": 20,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "Group"
-		},
-		"localAdmin": {
-			"id": 1287,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "Group"
 		}
 	},
 	"app": "sys",
@@ -140,7 +142,7 @@ export type GroupInfo = {
 	mailAddress: null | string;
 	name: string;
 
-	mailAddressAliases: MailAddressAlias[];
 	group: Id;
 	localAdmin:  null | Id;
+	mailAddressAliases: MailAddressAlias[];
 }

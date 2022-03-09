@@ -1,58 +1,55 @@
 import {createMailAddressAliasServiceDataDelete} from "../../entities/sys/MailAddressAliasServiceDataDelete"
-import {_service} from "../rest/ServiceRestClient"
-import {HttpMethod} from "../../common/EntityFunctions"
 import {createMailAddressAliasServiceData} from "../../entities/sys/MailAddressAliasServiceData"
 import {createDomainMailAddressAvailabilityData} from "../../entities/sys/DomainMailAddressAvailabilityData"
 import type {LoginFacadeImpl} from "./LoginFacade"
 import {createMailAddressAvailabilityData} from "../../entities/sys/MailAddressAvailabilityData"
-import {DomainMailAddressAvailabilityReturnTypeRef} from "../../entities/sys/DomainMailAddressAvailabilityReturn"
-import {MailAddressAvailabilityReturnTypeRef} from "../../entities/sys/MailAddressAvailabilityReturn"
-import {MailAddressAliasServiceReturnTypeRef} from "../../entities/sys/MailAddressAliasServiceReturn"
-import {SysService} from "../../entities/sys/Services"
 import type {MailAddressAliasServiceReturn} from "../../entities/sys/MailAddressAliasServiceReturn"
+import {DomainMailAddressAvailabilityService, MailAddressAliasService, MailAddressAvailabilityService} from "../../entities/sys/Services"
 import {assertWorkerOrNode} from "../../common/Env"
+import {IServiceExecutor} from "../../common/ServiceRequest"
 
 assertWorkerOrNode()
 
 export class MailAddressFacade {
 	_login: LoginFacadeImpl
 
-	constructor(login: LoginFacadeImpl) {
+	constructor(
+		login: LoginFacadeImpl,
+		private readonly serviceExecutor: IServiceExecutor,
+	) {
 		this._login = login
 	}
 
 	getAliasCounters(): Promise<MailAddressAliasServiceReturn> {
-		return _service(SysService.MailAddressAliasService, HttpMethod.GET, null, MailAddressAliasServiceReturnTypeRef)
+		return this.serviceExecutor.get(MailAddressAliasService, null)
 	}
 
 	isMailAddressAvailable(mailAddress: string): Promise<boolean> {
 		if (this._login.isLoggedIn()) {
-			let data = createDomainMailAddressAvailabilityData()
-			data.mailAddress = mailAddress
-			return _service(SysService.DomainMailAddressAvailabilityService, HttpMethod.GET, data, DomainMailAddressAvailabilityReturnTypeRef).then(
-				result => result.available,
-			)
+			const data = createDomainMailAddressAvailabilityData({mailAddress})
+			return this.serviceExecutor.get(DomainMailAddressAvailabilityService, data)
+					   .then(result => result.available)
 		} else {
-			let data = createMailAddressAvailabilityData()
-			data.mailAddress = mailAddress
-			return _service(SysService.MailAddressAvailabilityService, HttpMethod.GET, data, MailAddressAvailabilityReturnTypeRef).then(
-				result => result.available,
-			)
+			const data = createMailAddressAvailabilityData({mailAddress})
+			return this.serviceExecutor.get(MailAddressAvailabilityService, data)
+					   .then(result => result.available)
 		}
 	}
 
-	addMailAlias(groupId: Id, alias: string): Promise<void> {
-		let data = createMailAddressAliasServiceData()
-		data.group = groupId
-		data.mailAddress = alias
-		return _service(SysService.MailAddressAliasService, HttpMethod.POST, data)
+	async addMailAlias(groupId: Id, alias: string): Promise<void> {
+		const data = createMailAddressAliasServiceData({
+			group: groupId,
+			mailAddress: alias,
+		})
+		await this.serviceExecutor.post(MailAddressAliasService, data)
 	}
 
-	setMailAliasStatus(groupId: Id, alias: string, restore: boolean): Promise<void> {
-		let deleteData = createMailAddressAliasServiceDataDelete()
-		deleteData.mailAddress = alias
-		deleteData.restore = restore
-		deleteData.group = groupId
-		return _service(SysService.MailAddressAliasService, HttpMethod.DELETE, deleteData)
+	async setMailAliasStatus(groupId: Id, alias: string, restore: boolean): Promise<void> {
+		const deleteData = createMailAddressAliasServiceDataDelete({
+			mailAddress: alias,
+			restore,
+			group: groupId,
+		})
+		await this.serviceExecutor.delete(MailAddressAliasService, deleteData)
 	}
 }

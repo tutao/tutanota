@@ -3,7 +3,6 @@ import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
-import {serviceRequestVoid} from "../../api/main/ServiceRequest"
 import {Button} from "../../gui/base/Button"
 import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, urlEncodeHtmlTags} from "../../misc/Formatter"
 import {windowFacade} from "../../misc/WindowFacade"
@@ -74,9 +73,6 @@ import {CustomerTypeRef} from "../../api/entities/sys/Customer"
 import {LockedError, NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {theme} from "../../gui/theme"
-import {TutanotaService} from "../../api/entities/tutanota/Services"
-import {HttpMethod} from "../../api/common/EntityFunctions"
-import {createListUnsubscribeData} from "../../api/entities/tutanota/ListUnsubscribeData"
 import {MailHeadersTypeRef} from "../../api/entities/tutanota/MailHeaders"
 import {client} from "../../misc/ClientDetector"
 import type {PosRect} from "../../gui/base/Dropdown"
@@ -117,7 +113,7 @@ import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSuppo
 import {CancelledError} from "../../api/common/error/CancelledError"
 import type {ConfigurationDatabase} from "../../api/worker/facades/ConfigurationDatabase"
 import type {NativeInterface} from "../../native/common/NativeInterface"
-import {copyToClipboard} from "../../misc/ClipboardUtils";
+import {copyToClipboard} from "../../misc/ClipboardUtils"
 
 assertMainOrNode()
 // map of inline image cid to InlineImageReference
@@ -659,20 +655,15 @@ export class MailViewer implements Component {
 		if (this.mail.headers) {
 			return showProgressDialog(
 				"pleaseWait_msg",
-				this._entityClient.load(MailHeadersTypeRef, this.mail.headers).then(mailHeaders => {
-					let headers = getMailHeaders(mailHeaders)
+				this._entityClient.load(MailHeadersTypeRef, this.mail.headers).then(async (mailHeaders) => {
+					const headers = getMailHeaders(mailHeaders)
 						.split("\n")
 						.filter(headerLine => headerLine.toLowerCase().startsWith("list-unsubscribe"))
 
 					if (headers.length > 0) {
-						return this._getSenderOfResponseMail().then(recipient => {
-							const postData = createListUnsubscribeData({
-								mail: this.mail._id,
-								recipient,
-								headers: headers.join("\n"),
-							})
-							return serviceRequestVoid(TutanotaService.ListUnsubscribeService, HttpMethod.POST, postData).then(() => true)
-						})
+						const recipient = await this._getSenderOfResponseMail()
+						await locator.mailModel.unsubscribe(this.mail, recipient, headers)
+						return true
 					} else {
 						return false
 					}

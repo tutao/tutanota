@@ -24,6 +24,14 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"contactForm": {
+			"id": 796,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"final": false,
+			"refType": "ContactForm",
+			"dependency": null
+		},
 		"userData": {
 			"id": 793,
 			"type": "AGGREGATION",
@@ -39,13 +47,6 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"refType": "InternalGroupData",
 			"dependency": null
-		},
-		"contactForm": {
-			"id": 796,
-			"type": "LIST_ELEMENT_ASSOCIATION",
-			"cardinality": "One",
-			"final": false,
-			"refType": "ContactForm"
 		}
 	},
 	"app": "tutanota",
@@ -61,7 +62,7 @@ export type ContactFormAccountData = {
 
 	_format: NumberString;
 
+	contactForm: IdTuple;
 	userData: ContactFormUserData;
 	userGroupData: InternalGroupData;
-	contactForm: IdTuple;
 }

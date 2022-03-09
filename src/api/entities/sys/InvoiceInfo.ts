@@ -121,6 +121,14 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"invoices": {
+			"id": 760,
+			"type": "LIST_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "LegacyInvoice",
+			"dependency": null
+		},
 		"paymentErrorInfo": {
 			"id": 1640,
 			"type": "AGGREGATION",
@@ -128,13 +136,6 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"refType": "PaymentErrorInfo",
 			"dependency": null
-		},
-		"invoices": {
-			"id": 760,
-			"type": "LIST_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "LegacyInvoice"
 		}
 	},
 	"app": "sys",
@@ -164,6 +165,6 @@ export type InvoiceInfo = {
 	specialPriceUserSingle: null | NumberString;
 	specialPriceUserTotal: null | NumberString;
 
-	paymentErrorInfo:  null | PaymentErrorInfo;
 	invoices: Id;
+	paymentErrorInfo:  null | PaymentErrorInfo;
 }

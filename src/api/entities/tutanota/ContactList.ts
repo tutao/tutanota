@@ -51,6 +51,14 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"contacts": {
+			"id": 160,
+			"type": "LIST_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "Contact",
+			"dependency": null
+		},
 		"photos": {
 			"id": 856,
 			"type": "AGGREGATION",
@@ -58,13 +66,6 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"refType": "PhotosRef",
 			"dependency": null
-		},
-		"contacts": {
-			"id": 160,
-			"type": "LIST_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "Contact"
 		}
 	},
 	"app": "tutanota",
@@ -85,6 +86,6 @@ export type ContactList = {
 	_ownerGroup: null | Id;
 	_permissions: Id;
 
-	photos:  null | PhotosRef;
 	contacts: Id;
+	photos:  null | PhotosRef;
 }

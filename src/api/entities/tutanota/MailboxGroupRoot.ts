@@ -53,6 +53,38 @@ export const _TypeModel: TypeModel = {
 			"refType": "CalendarEventUpdateList",
 			"dependency": null
 		},
+		"contactFormUserContactForm": {
+			"id": 748,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"refType": "ContactForm",
+			"dependency": null
+		},
+		"mailbox": {
+			"id": 699,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "MailBox",
+			"dependency": null
+		},
+		"mailboxProperties": {
+			"id": 1203,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"refType": "MailboxProperties",
+			"dependency": null
+		},
+		"outOfOfficeNotification": {
+			"id": 1150,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"refType": "OutOfOfficeNotification",
+			"dependency": null
+		},
 		"outOfOfficeNotificationRecipientList": {
 			"id": 1151,
 			"type": "AGGREGATION",
@@ -61,61 +93,37 @@ export const _TypeModel: TypeModel = {
 			"refType": "OutOfOfficeNotificationRecipientList",
 			"dependency": null
 		},
-		"contactFormUserContactForm": {
-			"id": 748,
-			"type": "LIST_ELEMENT_ASSOCIATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "ContactForm"
-		},
-		"mailbox": {
-			"id": 699,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "MailBox"
-		},
-		"mailboxProperties": {
-			"id": 1203,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "MailboxProperties"
-		},
-		"outOfOfficeNotification": {
-			"id": 1150,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "OutOfOfficeNotification"
-		},
 		"participatingContactForms": {
 			"id": 842,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "ContactForm"
+			"refType": "ContactForm",
+			"dependency": null
 		},
 		"serverProperties": {
 			"id": 700,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "MailboxServerProperties"
+			"refType": "MailboxServerProperties",
+			"dependency": null
 		},
 		"targetMailGroupContactForm": {
 			"id": 749,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "ContactForm"
+			"refType": "ContactForm",
+			"dependency": null
 		},
 		"whitelistRequests": {
 			"id": 701,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "WhitelistRequest"
+			"refType": "WhitelistRequest",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",
@@ -135,11 +143,11 @@ export type MailboxGroupRoot = {
 	_permissions: Id;
 
 	calendarEventUpdates:  null | CalendarEventUpdateList;
-	outOfOfficeNotificationRecipientList:  null | OutOfOfficeNotificationRecipientList;
 	contactFormUserContactForm:  null | IdTuple;
 	mailbox: Id;
 	mailboxProperties:  null | Id;
 	outOfOfficeNotification:  null | Id;
+	outOfOfficeNotificationRecipientList:  null | OutOfOfficeNotificationRecipientList;
 	participatingContactForms: IdTuple[];
 	serverProperties: Id;
 	targetMailGroupContactForm:  null | IdTuple;

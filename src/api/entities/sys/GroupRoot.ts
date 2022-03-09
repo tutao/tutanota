@@ -44,6 +44,14 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"externalGroupInfos": {
+			"id": 116,
+			"type": "LIST_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "GroupInfo",
+			"dependency": null
+		},
 		"externalUserAreaGroupInfos": {
 			"id": 999,
 			"type": "AGGREGATION",
@@ -52,19 +60,13 @@ export const _TypeModel: TypeModel = {
 			"refType": "UserAreaGroups",
 			"dependency": null
 		},
-		"externalGroupInfos": {
-			"id": 116,
-			"type": "LIST_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "GroupInfo"
-		},
 		"externalUserReferences": {
 			"id": 117,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "ExternalUserReference"
+			"refType": "ExternalUserReference",
+			"dependency": null
 		}
 	},
 	"app": "sys",
@@ -83,7 +85,7 @@ export type GroupRoot = {
 	_ownerGroup: null | Id;
 	_permissions: Id;
 
-	externalUserAreaGroupInfos:  null | UserAreaGroups;
 	externalGroupInfos: Id;
+	externalUserAreaGroupInfos:  null | UserAreaGroups;
 	externalUserReferences: Id;
 }

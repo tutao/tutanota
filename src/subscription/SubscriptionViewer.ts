@@ -6,7 +6,6 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {assertNotNull, downcast, incrementDate, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
-import {serviceRequest} from "../api/main/ServiceRequest"
 import {logins} from "../api/main/LoginController"
 import {lang, TranslationKey} from "../misc/LanguageViewModel"
 import {Button} from "../gui/base/Button"
@@ -19,7 +18,6 @@ import {formatDate, formatNameAndAddress, formatStorageSize} from "../misc/Forma
 import {getByAbbreviation} from "../api/common/CountryList"
 import type {Booking} from "../api/entities/sys/Booking"
 import {BookingTypeRef} from "../api/entities/sys/Booking"
-import {SysService} from "../api/entities/sys/Services"
 import {MailAddressAliasServiceReturnTypeRef} from "../api/entities/sys/MailAddressAliasServiceReturn"
 import * as AddUserDialog from "../settings/AddUserDialog"
 import * as EmailAliasOptionsDialog from "./EmailAliasOptionsDialog"
@@ -75,6 +73,7 @@ import {
 	renderTermsAndConditionsButton,
 	TermsSection
 } from "./TermsAndConditions"
+import {MailAddressAliasService} from "../api/entities/sys/Services"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
@@ -637,7 +636,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 			return Promise.resolve()
 		} else {
-			return serviceRequest(SysService.MailAddressAliasService, HttpMethod.GET, null, MailAddressAliasServiceReturnTypeRef)
+			return locator.serviceExecutor.get(MailAddressAliasService, null)
 				.then(aliasServiceReturn => {
 					this._emailAliasFieldValue(
 						lang.get("amountUsedAndActivatedOf_label", {

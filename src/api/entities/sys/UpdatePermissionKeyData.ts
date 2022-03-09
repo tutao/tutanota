@@ -41,14 +41,16 @@ export const _TypeModel: TypeModel = {
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "BucketPermission"
+			"refType": "BucketPermission",
+			"dependency": null
 		},
 		"permission": {
 			"id": 450,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "Permission"
+			"refType": "Permission",
+			"dependency": null
 		}
 	},
 	"app": "sys",

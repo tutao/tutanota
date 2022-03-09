@@ -1,22 +1,8 @@
 import type {DeferredObject} from "@tutao/tutanota-utils"
-import {
-	assertNotNull,
-	clone,
-	defer,
-	downcast,
-	filterInt,
-	getFromMap,
-	isNotNull,
-	LazyLoaded,
-	noOp,
-	ofClass,
-	promiseMap
-} from "@tutao/tutanota-utils"
+import {assertNotNull, clone, defer, downcast, filterInt, getFromMap, isNotNull, LazyLoaded, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {CalendarMethod, FeatureType, GroupType, OperationType} from "../../api/common/TutanotaConstants"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../../api/main/EventController"
-import type {WorkerClient} from "../../api/main/WorkerClient"
-import {HttpMethod} from "../../api/common/EntityFunctions"
 import type {UserAlarmInfo} from "../../api/entities/sys/UserAlarmInfo"
 import {UserAlarmInfoTypeRef} from "../../api/entities/sys/UserAlarmInfo"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
@@ -35,7 +21,6 @@ import type {ParsedCalendarData} from "../export/CalendarImporter"
 import type {CalendarEventUpdate} from "../../api/entities/tutanota/CalendarEventUpdate"
 import {CalendarEventUpdateTypeRef} from "../../api/entities/tutanota/CalendarEventUpdate"
 import {createMembershipRemoveData} from "../../api/entities/sys/MembershipRemoveData"
-import {SysService} from "../../api/entities/sys/Services"
 import type {Group} from "../../api/entities/sys/Group"
 import {GroupTypeRef} from "../../api/entities/sys/Group"
 import type {AlarmInfo} from "../../api/entities/sys/AlarmInfo"
@@ -55,6 +40,8 @@ import type {CalendarFacade} from "../../api/worker/facades/CalendarFacade"
 import type {FileFacade} from "../../api/worker/facades/FileFacade"
 import {DataFile} from "../../api/common/DataFile";
 import {GroupMembership} from "../../api/entities/sys/GroupMembership";
+import {IServiceExecutor} from "../../api/common/ServiceRequest"
+import {MembershipService} from "../../api/entities/sys/Services"
 
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot
@@ -97,10 +84,11 @@ export interface CalendarModel {
 	updateEventWithExternal(dbEvent: CalendarEvent, event: CalendarEvent): Promise<CalendarEvent>
 
 	createCalendar(name: string, color: string | null): Promise<void>
+
+	deleteCalendar(calendar: CalendarInfo): Promise<void>;
 }
 
 export class CalendarModelImpl implements CalendarModel {
-	_worker: WorkerClient
 	_scheduledNotifications: Map<string, TimeoutID>
 	_notifications: Notifications
 
@@ -119,7 +107,7 @@ export class CalendarModelImpl implements CalendarModel {
 		notifications: Notifications,
 		alarmScheduler: () => Promise<AlarmScheduler>,
 		eventController: EventController,
-		worker: WorkerClient,
+		private readonly serviceExecutor: IServiceExecutor,
 		logins: LoginController,
 		progressTracker: ProgressTracker,
 		entityClient: EntityClient,
@@ -130,7 +118,6 @@ export class CalendarModelImpl implements CalendarModel {
 		this._notifications = notifications
 		this._alarmScheduler = alarmScheduler
 		this._logins = logins
-		this._worker = worker
 		this._scheduledNotifications = new Map()
 		this._pendingAlarmRequests = new Map()
 		this._progressTracker = progressTracker
@@ -228,7 +215,7 @@ export class CalendarModelImpl implements CalendarModel {
 					user: user._id,
 					group: notFoundMembership.group,
 				})
-				return this._worker.serviceRequest(SysService.MembershipService, HttpMethod.DELETE, data)
+				return this.serviceExecutor.delete(MembershipService, data)
 			})
 			return calendarInfos
 		})
@@ -458,6 +445,10 @@ export class CalendarModelImpl implements CalendarModel {
 		}
 
 		return this._entityClient.loadMultiple(UserAlarmInfoTypeRef, listIdPart(ids[0]), ids.map(elementIdPart))
+	}
+
+	async deleteCalendar(calendar: CalendarInfo): Promise<void> {
+		await this._calendarFacade.deleteCalendar(calendar.groupRoot._id)
 	}
 
 	_entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {

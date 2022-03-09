@@ -178,6 +178,14 @@ export const _TypeModel: TypeModel = {
 			"refType": "ContactPhoneNumber",
 			"dependency": null
 		},
+		"photo": {
+			"id": 852,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"refType": "File",
+			"dependency": null
+		},
 		"socialIds": {
 			"id": 83,
 			"type": "AGGREGATION",
@@ -185,13 +193,6 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"refType": "ContactSocialId",
 			"dependency": null
-		},
-		"photo": {
-			"id": 852,
-			"type": "LIST_ELEMENT_ASSOCIATION",
-			"cardinality": "ZeroOrOne",
-			"final": false,
-			"refType": "File"
 		}
 	},
 	"app": "tutanota",
@@ -229,6 +230,6 @@ export type Contact = {
 	mailAddresses: ContactMailAddress[];
 	oldBirthdayAggregate:  null | Birthday;
 	phoneNumbers: ContactPhoneNumber[];
-	socialIds: ContactSocialId[];
 	photo:  null | IdTuple;
+	socialIds: ContactSocialId[];
 }

@@ -1,22 +1,22 @@
-import {ReadCounterReturnTypeRef} from "../../entities/monitor/ReadCounterReturn"
-import {HttpMethod} from "../../common/EntityFunctions"
 import {createReadCounterData} from "../../entities/monitor/ReadCounterData"
-import {serviceRequest} from "../ServiceRequestWorker"
-import {MonitorService} from "../../entities/monitor/Services"
 import {assertWorkerOrNode} from "../../common/Env"
+import {IServiceExecutor} from "../../common/ServiceRequest"
+import {CounterService} from "../../entities/monitor/Services"
 
 assertWorkerOrNode()
 
 export class CounterFacade {
-	constructor() {
+	constructor(
+		private readonly serviceExecutor: IServiceExecutor,
+	) {
 	}
 
-	readCounterValue(monitorValue: string, ownerId: Id): Promise<NumberString | null> {
-		let counterData = createReadCounterData()
-		counterData.monitor = monitorValue
-		counterData.owner = ownerId
-		return serviceRequest(MonitorService.CounterService, HttpMethod.GET, counterData, ReadCounterReturnTypeRef).then(counterReturn => {
-			return counterReturn.value
+	async readCounterValue(monitorValue: string, ownerId: Id): Promise<NumberString | null> {
+		const counterData = createReadCounterData({
+			monitor: monitorValue,
+			owner: ownerId,
 		})
+		const counterReturn = await this.serviceExecutor.get(CounterService, counterData)
+		return counterReturn.value
 	}
 }

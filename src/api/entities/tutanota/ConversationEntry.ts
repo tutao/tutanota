@@ -62,14 +62,16 @@ export const _TypeModel: TypeModel = {
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "Mail"
+			"refType": "Mail",
+			"dependency": null
 		},
 		"previous": {
 			"id": 123,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "ConversationEntry"
+			"refType": "ConversationEntry",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

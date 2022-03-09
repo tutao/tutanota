@@ -27,14 +27,16 @@ export const _TypeModel: TypeModel = {
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "Customer"
+			"refType": "Customer",
+			"dependency": null
 		},
 		"whitelabelChildInParent": {
 			"id": 1275,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "WhitelabelChild"
+			"refType": "WhitelabelChild",
+			"dependency": null
 		}
 	},
 	"app": "sys",

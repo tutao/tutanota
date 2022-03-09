@@ -74,6 +74,14 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"admin": {
+			"id": 224,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"refType": "Group",
+			"dependency": null
+		},
 		"administratedGroups": {
 			"id": 1306,
 			"type": "AGGREGATION",
@@ -90,6 +98,30 @@ export const _TypeModel: TypeModel = {
 			"refType": "ArchiveType",
 			"dependency": null
 		},
+		"customer": {
+			"id": 226,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"refType": "Customer",
+			"dependency": null
+		},
+		"groupInfo": {
+			"id": 227,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "GroupInfo",
+			"dependency": null
+		},
+		"invitations": {
+			"id": 228,
+			"type": "LIST_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "SentGroupInvitation",
+			"dependency": null
+		},
 		"keys": {
 			"id": 13,
 			"type": "AGGREGATION",
@@ -98,47 +130,21 @@ export const _TypeModel: TypeModel = {
 			"refType": "KeyPair",
 			"dependency": null
 		},
-		"admin": {
-			"id": 224,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "Group"
-		},
-		"customer": {
-			"id": 226,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "Customer"
-		},
-		"groupInfo": {
-			"id": 227,
-			"type": "LIST_ELEMENT_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "GroupInfo"
-		},
-		"invitations": {
-			"id": 228,
-			"type": "LIST_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "SentGroupInvitation"
-		},
 		"members": {
 			"id": 229,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "GroupMember"
+			"refType": "GroupMember",
+			"dependency": null
 		},
 		"user": {
 			"id": 225,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "User"
+			"refType": "User",
+			"dependency": null
 		}
 	},
 	"app": "sys",
@@ -161,13 +167,13 @@ export type Group = {
 	external: boolean;
 	type: NumberString;
 
+	admin:  null | Id;
 	administratedGroups:  null | AdministratedGroupsRef;
 	archives: ArchiveType[];
-	keys: KeyPair[];
-	admin:  null | Id;
 	customer:  null | Id;
 	groupInfo: IdTuple;
 	invitations: Id;
+	keys: KeyPair[];
 	members: Id;
 	user:  null | Id;
 }

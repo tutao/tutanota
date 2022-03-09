@@ -27,6 +27,13 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"customerEncGroupInfoSessionKey": {
+			"id": 960,
+			"type": "Bytes",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
 		"groupEncGroupRootSessionKey": {
 			"id": 958,
 			"type": "Bytes",
@@ -36,13 +43,6 @@ export const _TypeModel: TypeModel = {
 		},
 		"groupInfoEncName": {
 			"id": 962,
-			"type": "Bytes",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": false
-		},
-		"customerEncGroupInfoSessionKey": {
-			"id": 960,
 			"type": "Bytes",
 			"cardinality": "One",
 			"final": false,
@@ -62,7 +62,8 @@ export const _TypeModel: TypeModel = {
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "Group"
+			"refType": "Group",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",
@@ -78,9 +79,9 @@ export type UserAreaGroupData = {
 
 	_id: Id;
 	adminEncGroupKey: null | Uint8Array;
+	customerEncGroupInfoSessionKey: Uint8Array;
 	groupEncGroupRootSessionKey: Uint8Array;
 	groupInfoEncName: Uint8Array;
-	customerEncGroupInfoSessionKey: Uint8Array;
 	userEncGroupKey: Uint8Array;
 
 	adminGroup:  null | Id;

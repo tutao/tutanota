@@ -1,13 +1,23 @@
 import type {CryptoFacade} from "../crypto/CryptoFacade"
 import {encryptBytes, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
-import {serviceRequest, serviceRequestVoid} from "../ServiceRequestWorker"
-import {TutanotaService} from "../../entities/tutanota/Services"
+import {
+	DraftService,
+	ExternalUserService,
+	ListUnsubscribeService,
+	MailFolderService,
+	MailService,
+	MoveMailService,
+	ReportMailService,
+	SendDraftService
+} from "../../entities/tutanota/Services"
 import {LoginFacadeImpl} from "./LoginFacade"
 import type {ConversationType} from "../../common/TutanotaConstants"
 import {
+	CounterType_UnreadMails,
 	GroupType,
 	MailAuthenticationStatus as MailAuthStatus,
 	MailMethod,
+	MailReportType,
 	OperationType,
 	PhishingMarkerStatus,
 	ReportedMailFieldType,
@@ -15,22 +25,20 @@ import {
 import {createCreateMailFolderData} from "../../entities/tutanota/CreateMailFolderData"
 import {createDraftCreateData} from "../../entities/tutanota/DraftCreateData"
 import {createDraftData} from "../../entities/tutanota/DraftData"
-import {DraftCreateReturnTypeRef} from "../../entities/tutanota/DraftCreateReturn"
 import type {Mail} from "../../entities/tutanota/Mail"
 import {_TypeModel as MailTypeModel, MailTypeRef} from "../../entities/tutanota/Mail"
 import type {DraftRecipient} from "../../entities/tutanota/DraftRecipient"
 import {createDraftUpdateData} from "../../entities/tutanota/DraftUpdateData"
-import {DraftUpdateReturnTypeRef} from "../../entities/tutanota/DraftUpdateReturn"
 import type {SendDraftData} from "../../entities/tutanota/SendDraftData"
 import {createSendDraftData} from "../../entities/tutanota/SendDraftData"
 import type {RecipientDetails} from "../../common/RecipientInfo"
 import {RecipientsNotFoundError} from "../../common/error/RecipientsNotFoundError"
 import {NotFoundError} from "../../common/error/RestError"
 import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
-import {HttpMethod} from "../../common/EntityFunctions"
 import {ExternalUserReferenceTypeRef} from "../../entities/sys/ExternalUserReference"
 import {
 	addressDomain,
+	assertNotNull,
 	byteLength,
 	contains,
 	defer,
@@ -69,8 +77,6 @@ import {htmlToText} from "../search/IndexUtils"
 import {MailBodyTooLargeError} from "../../common/error/MailBodyTooLargeError"
 import {UNCOMPRESSED_MAX_SIZE} from "../Compression"
 import type {PublicKeyReturn} from "../../entities/sys/PublicKeyReturn"
-import {PublicKeyReturnTypeRef} from "../../entities/sys/PublicKeyReturn"
-import {SysService} from "../../entities/sys/Services"
 import {createPublicKeyData} from "../../entities/sys/PublicKeyData"
 import {
 	aes128RandomKey,
@@ -88,6 +94,15 @@ import {
 } from "@tutao/tutanota-crypto"
 import {DataFile} from "../../common/DataFile";
 import {FileReference} from "../../common/utils/FileUtils";
+import {createDeleteMailFolderData} from "../../entities/tutanota/DeleteMailFolderData"
+import {createWriteCounterData} from "../../entities/monitor/WriteCounterData"
+import {createDeleteMailData} from "../../entities/tutanota/DeleteMailData"
+import {createListUnsubscribeData} from "../../entities/tutanota/ListUnsubscribeData"
+import {createMoveMailData} from "../../entities/tutanota/MoveMailData"
+import {createReportMailPostData} from "../../entities/tutanota/ReportMailPostData"
+import {CounterService} from "../../entities/monitor/Services"
+import {PublicKeyService} from "../../entities/sys/Services"
+import {IServiceExecutor} from "../../common/ServiceRequest"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -133,7 +148,13 @@ export class MailFacade {
 	_entityClient: EntityClient
 	_crypto: CryptoFacade
 
-	constructor(login: LoginFacadeImpl, fileFacade: FileFacade, entity: EntityClient, crypto: CryptoFacade) {
+	constructor(
+		login: LoginFacadeImpl,
+		fileFacade: FileFacade,
+		entity: EntityClient,
+		crypto: CryptoFacade,
+		private readonly serviceExecutor: IServiceExecutor,
+	) {
 		this._login = login
 		this._file = fileFacade
 		this._phishingMarkers = new Set()
@@ -143,15 +164,16 @@ export class MailFacade {
 		this._crypto = crypto
 	}
 
-	createMailFolder(name: string, parent: IdTuple, ownerGroupId: Id): Promise<void> {
-		let mailGroupKey = this._login.getGroupKey(ownerGroupId)
+	async createMailFolder(name: string, parent: IdTuple, ownerGroupId: Id): Promise<void> {
+		const mailGroupKey = this._login.getGroupKey(ownerGroupId)
 
-		let sk = aes128RandomKey()
-		let newFolder = createCreateMailFolderData()
-		newFolder.folderName = name
-		newFolder.parentFolder = parent
-		newFolder.ownerEncSessionKey = encryptKey(mailGroupKey, sk)
-		return serviceRequestVoid(TutanotaService.MailFolderService, HttpMethod.POST, newFolder, undefined, sk)
+		const sk = aes128RandomKey()
+		const newFolder = createCreateMailFolderData({
+			folderName: name,
+			parentFolder: parent,
+			ownerEncSessionKey: encryptKey(mailGroupKey, sk),
+		})
+		await this.serviceExecutor.post(MailFolderService, newFolder, {sessionKey: sk})
 	}
 
 	/**
@@ -208,7 +230,7 @@ export class MailFacade {
 			replyTos,
 			addedAttachments: await this._createAddedAttachments(attachments, [], mailGroupKey),
 		})
-		const createDraftReturn = await serviceRequest(TutanotaService.DraftService, HttpMethod.POST, service, DraftCreateReturnTypeRef, undefined, sk)
+		const createDraftReturn = await this.serviceExecutor.post(DraftService, service, {sessionKey: sk})
 		return this._entityClient.load(MailTypeRef, createDraftReturn.draft)
 	}
 
@@ -270,8 +292,30 @@ export class MailFacade {
 		this._deferredDraftUpdate = defer()
 		// use a local reference here because this._deferredDraftUpdate is set to null when the event is received async
 		const deferredUpdatePromiseWrapper = this._deferredDraftUpdate
-		await serviceRequest(TutanotaService.DraftService, HttpMethod.PUT, service, DraftUpdateReturnTypeRef, undefined, sk)
+		await this.serviceExecutor.put(DraftService, service, {sessionKey: sk})
 		return deferredUpdatePromiseWrapper.promise
+	}
+
+	async moveMails(mails: IdTuple[], targetFolder: IdTuple): Promise<void> {
+		await this.serviceExecutor.post(MoveMailService, createMoveMailData({mails, targetFolder}))
+	}
+
+	async reportMail(mail: Mail, reportType: MailReportType): Promise<void> {
+		const mailSessionKey: Aes128Key = assertNotNull(await resolveSessionKey(MailTypeModel, mail))
+		const postData = createReportMailPostData({
+			mailId: mail._id,
+			mailSessionKey: bitArrayToUint8Array(mailSessionKey),
+			reportType,
+		})
+		await this.serviceExecutor.post(ReportMailService, postData)
+	}
+
+	async deleteMails(mails: IdTuple[], folder: IdTuple): Promise<void> {
+		const deleteMailData = createDeleteMailData({
+			mails,
+			folder,
+		})
+		await this.serviceExecutor.delete(MailService, deleteMailData)
 	}
 
 	/**
@@ -409,7 +453,7 @@ export class MailFacade {
 				}
 			}),
 		])
-		return serviceRequestVoid(TutanotaService.SendDraftService, HttpMethod.POST, sendDraftData)
+		await this.serviceExecutor.post(SendDraftService, sendDraftData)
 	}
 
 	checkMailForPhishing(
@@ -476,6 +520,25 @@ export class MailFacade {
 		}
 
 		return Promise.resolve(7 < score)
+	}
+
+	async deleteFolder(id: IdTuple): Promise<void> {
+		const deleteMailFolderData = createDeleteMailFolderData({
+			folders: [id]
+		})
+		// TODO make DeleteMailFolderData unencrypted in next model version
+		await this.serviceExecutor.delete(MailFolderService, deleteMailFolderData, {sessionKey: "dummy" as any})
+	}
+
+	async fixupCounterForMailList(groupId: Id, listId: Id, unreadMails: number): Promise<void> {
+		const data = createWriteCounterData({
+			counterType: CounterType_UnreadMails,
+			row: groupId,
+			column: listId,
+			value: String(unreadMails),
+		})
+		// TODO
+		await this.serviceExecutor.post(CounterService, data)
 	}
 
 	_checkFieldForPhishing(type: ReportedMailFieldType, value: string): boolean {
@@ -597,7 +660,7 @@ export class MailFacade {
 							   userGroupData.externalPwEncUserGroupKey = encryptKey(externalUserPwKey, externalUserGroupKey)
 							   userGroupData.internalUserEncUserGroupKey = encryptKey(this._login.getUserGroupKey(), externalUserGroupKey)
 							   d.userGroupData = userGroupData
-							   return serviceRequestVoid(TutanotaService.ExternalUserService, HttpMethod.POST, d).then(() => {
+							   return this.serviceExecutor.post(ExternalUserService, d).then(() => {
 								   return {
 									   externalUserGroupKey: externalUserGroupKey,
 									   externalMailGroupKey: externalMailGroupKey,
@@ -637,14 +700,11 @@ export class MailFacade {
 	}
 
 	getRecipientKeyData(mailAddress: string): Promise<PublicKeyReturn | null> {
-		return serviceRequest(
-			SysService.PublicKeyService,
-			HttpMethod.GET,
-			createPublicKeyData({
-				mailAddress,
-			}),
-			PublicKeyReturnTypeRef,
-		).catch(ofClass(NotFoundError, () => null))
+		return this.serviceExecutor
+				   .get(PublicKeyService, createPublicKeyData({
+					   mailAddress,
+				   }))
+				   .catch(ofClass(NotFoundError, () => null))
 	}
 
 	_getMailGroupIdForMailAddress(user: User, mailAddress: string): Promise<Id> {
@@ -670,6 +730,22 @@ export class MailFacade {
 				throw new NotFoundError("group for mail address not found " + mailAddress)
 			}
 		})
+	}
+
+	async clearFolder(folderId: IdTuple) {
+		const deleteMailData = createDeleteMailData({
+			folder: folderId
+		})
+		await this.serviceExecutor.delete(MailService, deleteMailData)
+	}
+
+	async unsubscribe(mailId: IdTuple, recipient: string, headers: string[]) {
+		const postData = createListUnsubscribeData({
+			mail: mailId,
+			recipient,
+			headers: headers.join("\n"),
+		})
+		await this.serviceExecutor.post(ListUnsubscribeService, postData)
 	}
 }
 

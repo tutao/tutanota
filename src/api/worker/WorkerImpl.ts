@@ -1,11 +1,10 @@
 import type {Commands} from "../common/MessageDispatcher"
 import {errorToObj, MessageDispatcher, Request, WorkerTransport} from "../common/MessageDispatcher"
 import {CryptoError} from "../common/error/CryptoError"
-import {BookingFacade, bookingFacade} from "./facades/BookingFacade"
+import {BookingFacade} from "./facades/BookingFacade"
 import {NotAuthenticatedError} from "../common/error/RestError"
 import {ProgrammingError} from "../common/error/ProgrammingError"
 import {initLocator, locator, resetLocator} from "./WorkerLocator"
-import {_service} from "./rest/ServiceRestClient"
 import {assertWorkerOrNode, isMainOrNode} from "../common/Env"
 import type {ContactFormFacade} from "./facades/ContactFormFacade"
 import type {BrowserData} from "../../misc/ClientConstants"
@@ -42,6 +41,7 @@ import type {SecondFactorAuthHandler} from "../../misc/2fa/SecondFactorHandler"
 import type {EntityRestInterface} from "./rest/EntityRestClient"
 import {WsConnectionState} from "../main/WorkerClient";
 import {RestClient} from "./rest/RestClient"
+import {IServiceExecutor} from "../common/ServiceRequest.js"
 
 assertWorkerOrNode()
 
@@ -65,6 +65,7 @@ export interface WorkerInterface {
 	readonly contactFormFacade: ContactFormFacade
 	readonly deviceEncryptionFacade: DeviceEncryptionFacade
 	readonly restInterface: EntityRestInterface
+	readonly serviceExecutor: IServiceExecutor
 }
 
 /** Interface for the "main"/webpage context of the app, interface for the worker client. */
@@ -168,7 +169,7 @@ export class WorkerImpl implements NativeInterface {
 			},
 
 			get bookingFacade() {
-				return bookingFacade
+				return locator.booking
 			},
 
 			get mailAddressFacade() {
@@ -194,6 +195,9 @@ export class WorkerImpl implements NativeInterface {
 			get restInterface() {
 				return locator.cache
 			},
+			get serviceExecutor() {
+				return locator.serviceExecutor
+			}
 		}
 	}
 
@@ -226,10 +230,6 @@ export class WorkerImpl implements NativeInterface {
 				options = options ?? {}
 				options.headers = {...locator.login.createAuthHeaders(), ...options.headers}
 				return locator.restClient.request(path, method, options)
-			},
-			serviceRequest: (message: WorkerRequest) => {
-				const args = message.args as Parameters<typeof _service>
-				return _service(...args)
 			},
 			entropy: (message: WorkerRequest) => {
 				return this.addEntropy(message.args[0])

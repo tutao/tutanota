@@ -1,6 +1,5 @@
 import type {MoveMailData} from "../../api/entities/tutanota/MoveMailData"
 import {createMoveMailData} from "../../api/entities/tutanota/MoveMailData"
-import {TutanotaService} from "../../api/entities/tutanota/Services"
 import {InboxRuleType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE} from "../../api/common/TutanotaConstants"
 import {isDomainName, isRegularExpression} from "../../misc/FormatValidator"
 import {HttpMethod} from "../../api/common/EntityFunctions"
@@ -21,19 +20,20 @@ import {getElementId, getListId, isSameId} from "../../api/common/utils/EntityUt
 import {getInboxFolder} from "./MailUtils"
 import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../../api/common/Env"
+import {MailFacade} from "../../api/worker/facades/MailFacade"
 
 assertMainOrNode()
 const moveMailDataPerFolder: MoveMailData[] = []
 const DEBOUNCE_FIRST_MOVE_MAIL_REQUEST_MS = 200
 let applyingRules = false // used to avoid concurrent application of rules (-> requests to locked service)
 
-async function sendMoveMailRequest(worker: WorkerClient): Promise<void> {
+async function sendMoveMailRequest(mailFacade: MailFacade): Promise<void> {
 	if (moveMailDataPerFolder.length) {
 		const moveToTargetFolder = assertNotNull(moveMailDataPerFolder.shift())
 		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, moveToTargetFolder.mails)
 		await promiseMap(mailChunks, mailChunk => {
 			moveToTargetFolder.mails = mailChunk
-			return worker.serviceRequest(TutanotaService.MoveMailService, HttpMethod.POST, moveToTargetFolder)
+			return mailFacade.moveMails(mailChunk, moveToTargetFolder.targetFolder)
 		})
 			.catch(
 				ofClass(LockedError, e => {
@@ -48,18 +48,18 @@ async function sendMoveMailRequest(worker: WorkerClient): Promise<void> {
 				}),
 			)
 			.finally(() => {
-				return sendMoveMailRequest(worker)
+				return sendMoveMailRequest(mailFacade)
 			})
 	} //We are done and unlock for future requests
 }
 
 // We throttle the moveMail requests to a rate of 50ms
 // Each target folder requires one request
-const applyMatchingRules = debounce(DEBOUNCE_FIRST_MOVE_MAIL_REQUEST_MS, (worker: WorkerClient) => {
+const applyMatchingRules = debounce(DEBOUNCE_FIRST_MOVE_MAIL_REQUEST_MS, (mailFacade: MailFacade) => {
 	if (applyingRules) return
 	// We lock to avoid concurrent requests
 	applyingRules = true
-	sendMoveMailRequest(worker).finally(() => {
+	sendMoveMailRequest(mailFacade).finally(() => {
 		applyingRules = false
 	})
 })
@@ -103,7 +103,7 @@ export function getInboxRuleTypeName(type: string): string {
  * @returns true if a rule matches otherwise false
  */
 export function findAndApplyMatchingRule(
-	worker: WorkerClient,
+	mailFacade: MailFacade,
 	entityClient: EntityClient,
 	mailboxDetail: MailboxDetail,
 	mail: Mail,
@@ -132,7 +132,7 @@ export function findAndApplyMatchingRule(
 						moveMailDataPerFolder.push(moveMailData)
 					}
 
-					applyMatchingRules(worker)
+					applyMatchingRules(mailFacade)
 				}
 
 				return [targetFolder.mails, getElementId(mail)]

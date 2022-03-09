@@ -22,14 +22,13 @@ import {showWorkerProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {AccessDeactivatedError, AccessExpiredError, InvalidDataError} from "../api/common/error/RestError"
 import {createRegistrationCaptchaServiceGetData} from "../api/entities/sys/RegistrationCaptchaServiceGetData"
 import {deviceConfig} from "../misc/DeviceConfig"
-import {serviceRequest, serviceRequestVoid} from "../api/main/ServiceRequest"
-import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {RegistrationCaptchaServiceReturnTypeRef} from "../api/entities/sys/RegistrationCaptchaServiceReturn"
 import {createRegistrationCaptchaServiceData} from "../api/entities/sys/RegistrationCaptchaServiceData"
 import {locator} from "../api/main/MainLocator"
 import {deleteCampaign} from "../misc/LoginUtils"
 import {CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection} from "./TermsAndConditions"
+import {RegistrationCaptchaService} from "../api/entities/sys/Services"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -224,13 +223,16 @@ function runCaptcha(
 	campaignToken: string | null,
 ): Promise<string | void> {
 	let captchaInput = ""
-	let data = createRegistrationCaptchaServiceGetData()
-	data.token = campaignToken
-	data.mailAddress = mailAddress
-	data.signupToken = deviceConfig.getSignupToken()
-	data.businessUseSelected = isBusinessUse
-	data.paidSubscriptionSelected = isPaidSubscription
-	return serviceRequest(SysService.RegistrationCaptchaService, HttpMethod.GET, data, RegistrationCaptchaServiceReturnTypeRef)
+
+	return locator
+		.serviceExecutor
+		.get(RegistrationCaptchaService, createRegistrationCaptchaServiceGetData({
+			token: campaignToken,
+			mailAddress,
+			signupToken: deviceConfig.getSignupToken(),
+			businessUseSelected: isBusinessUse,
+			paidSubscriptionSelected: isPaidSubscription,
+		}))
 		.then(captchaReturn => {
 			let regDataId = captchaReturn.token
 
@@ -247,11 +249,11 @@ function runCaptcha(
 						let parsedInput = parseCaptchaInput(captchaInput)
 
 						if (parsedInput) {
-							let data = createRegistrationCaptchaServiceData()
-							data.token = captchaReturn.token
-							data.response = parsedInput
 							dialog.close()
-							serviceRequestVoid(SysService.RegistrationCaptchaService, HttpMethod.POST, data)
+
+							locator
+								.serviceExecutor
+								.post(RegistrationCaptchaService, createRegistrationCaptchaServiceData({token: captchaReturn.token, response: parsedInput}))
 								.then(() => {
 									resolve(captchaReturn.token)
 								})

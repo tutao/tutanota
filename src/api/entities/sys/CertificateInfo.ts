@@ -48,7 +48,8 @@ export const _TypeModel: TypeModel = {
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
-			"refType": "SslCertificate"
+			"refType": "SslCertificate",
+			"dependency": null
 		}
 	},
 	"app": "sys",

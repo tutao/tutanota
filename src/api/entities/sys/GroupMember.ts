@@ -55,21 +55,24 @@ export const _TypeModel: TypeModel = {
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "Group"
+			"refType": "Group",
+			"dependency": null
 		},
 		"user": {
 			"id": 223,
 			"type": "ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "User"
+			"refType": "User",
+			"dependency": null
 		},
 		"userGroupInfo": {
 			"id": 221,
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "GroupInfo"
+			"refType": "GroupInfo",
+			"dependency": null
 		}
 	},
 	"app": "sys",

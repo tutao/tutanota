@@ -7,15 +7,10 @@ import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import type {NavButtonAttrs} from "../../gui/base/NavButtonN"
 import {isNavButtonSelected, isSelectedPrefix, NavButtonColor} from "../../gui/base/NavButtonN"
-import {TutanotaService} from "../../api/entities/tutanota/Services"
-import {serviceRequestVoid} from "../../api/main/ServiceRequest"
 import {createMailViewer, MailViewer} from "./MailViewer"
 import {Dialog} from "../../gui/base/Dialog"
 import {FeatureType, Keys, MailFolderType, OperationType} from "../../api/common/TutanotaConstants"
 import {CurrentView} from "../../gui/base/Header"
-import {HttpMethod} from "../../api/common/EntityFunctions"
-import {createDeleteMailFolderData} from "../../api/entities/tutanota/DeleteMailFolderData"
-import {createDeleteMailData} from "../../api/entities/tutanota/DeleteMailData"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
 import type {lazy} from "@tutao/tutanota-utils"
@@ -742,14 +737,12 @@ export class MailView implements CurrentView {
 			throw new Error("Cannot delete non-custom folder: " + String(folder._id))
 		}
 
-		//TODO make DeleteMailFolderData unencrypted in next model version
+
 		// remove any selection to avoid that the next mail is loaded and selected for each deleted mail event
 		this.mailList.list.selectNone()
-		let deleteMailFolderData = createDeleteMailFolderData()
-		deleteMailFolderData.folders.push(folder._id)
-		return serviceRequestVoid(TutanotaService.MailFolderService, HttpMethod.DELETE, deleteMailFolderData, undefined, "dummy" as any)
-			.catch(ofClass(NotFoundError, e => console.log("mail folder already deleted")))
-			.catch(ofClass(PreconditionFailedError, e => Dialog.message("operationStillActive_msg")))
+		return locator.mailModel.deleteFolder(folder)
+					  .catch(ofClass(NotFoundError, e => console.log("mail folder already deleted")))
+					  .catch(ofClass(PreconditionFailedError, e => Dialog.message("operationStillActive_msg")))
 	}
 
 	logout() {
@@ -822,19 +815,17 @@ export class MailView implements CurrentView {
 		return promptAndDeleteMails(locator.mailModel, mails, noOp)
 	}
 
-	_finallyDeleteAllMailsInSelectedFolder(folder: MailFolder): Promise<void> {
+	finallyDeleteAllMailsInSelectedFolder(folder: MailFolder): Promise<void> {
 		if (folder.folderType !== MailFolderType.TRASH && folder.folderType !== MailFolderType.SPAM) {
 			throw new Error(`Cannot delete mails in folder ${String(folder._id)} with type ${folder.folderType}`)
 		}
 
 		// remove any selection to avoid that the next mail is loaded and selected for each deleted mail event
 		this.mailList.list.selectNone()
-		let deleteMailData = createDeleteMailData()
-		deleteMailData.folder = folder._id
+
 		// The request will be handled async by server
-		return showProgressDialog("progressDeleting_msg", serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData)).catch(
-			ofClass(PreconditionFailedError, e => Dialog.message("operationStillActive_msg")),
-		)
+		return showProgressDialog("progressDeleting_msg", locator.mailModel.clearFolder(folder))
+			.catch(ofClass(PreconditionFailedError, e => Dialog.message("operationStillActive_msg")))
 	}
 
 	entityEventReceived<T>(update: EntityUpdateData): Promise<void> {

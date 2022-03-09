@@ -18,12 +18,12 @@ import {assertThrows, mockAttribute, unmockAttribute} from "@tutao/tutanota-test
 import {createPermission, PermissionTypeRef} from "../../../src/api/entities/sys/Permission"
 import {EphemeralCacheStorage} from "../../../src/api/worker/rest/EphemeralCacheStorage"
 import {QueuedBatch} from "../../../src/api/worker/search/EventQueue"
-import {offlineDatabaseTestKey} from "../../client/desktop/db/OfflineDbTest"
 import {matchers, object, when} from "testdouble"
 import {OfflineStorage} from "../../../src/api/worker/rest/OfflineStorage"
 
 const {anything} = matchers
 
+const offlineDatabaseTestKey = [3957386659, 354339016, 3786337319, 3366334248]
 
 async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 	const {OfflineDbFacade} = await import("../../../src/desktop/db/OfflineDbFacade.js")

@@ -27,7 +27,8 @@ export const _TypeModel: TypeModel = {
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "Any",
 			"final": false,
-			"refType": "SecondFactor"
+			"refType": "SecondFactor",
+			"dependency": null
 		}
 	},
 	"app": "sys",

@@ -1,4 +1,3 @@
-import {serviceRequest, serviceRequestVoid} from "../ServiceRequestWorker"
 import {assertWorkerOrNode} from "../../common/Env"
 import type {UserAlarmInfo} from "../../entities/sys/UserAlarmInfo"
 import {createUserAlarmInfo, UserAlarmInfoTypeRef} from "../../entities/sys/UserAlarmInfo"
@@ -18,12 +17,10 @@ import {
 	promiseMap,
 	stringToUtf8Uint8Array,
 } from "@tutao/tutanota-utils"
-import {HttpMethod} from "../../common/EntityFunctions"
 import type {PushIdentifier} from "../../entities/sys/PushIdentifier"
 import {_TypeModel as PushIdentifierTypeModel, PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 import {resolveSessionKey} from "../crypto/CryptoFacade"
 import {_TypeModel as AlarmServicePostTypeModel, createAlarmServicePost} from "../../entities/sys/AlarmServicePost"
-import {SysService} from "../../entities/sys/Services"
 import type {AlarmNotification} from "../../entities/sys/AlarmNotification"
 import {createAlarmNotification} from "../../entities/sys/AlarmNotification"
 import type {AlarmInfo} from "../../entities/sys/AlarmInfo"
@@ -32,7 +29,6 @@ import type {RepeatRule} from "../../entities/sys/RepeatRule"
 import {createRepeatRule} from "../../entities/sys/RepeatRule"
 import {GroupType, OperationType} from "../../common/TutanotaConstants"
 import {createNotificationSessionKey} from "../../entities/sys/NotificationSessionKey"
-import {TutanotaService} from "../../entities/tutanota/Services"
 import type {Group} from "../../entities/sys/Group"
 import {GroupTypeRef} from "../../entities/sys/Group"
 import type {CalendarEvent} from "../../entities/tutanota/CalendarEvent"
@@ -50,7 +46,6 @@ import type {CalendarRepeatRule} from "../../entities/tutanota/CalendarRepeatRul
 import {EntityClient} from "../../common/EntityClient"
 import {elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToCustomId} from "../../common/utils/EntityUtils"
 import {Request} from "../../common/MessageDispatcher"
-import {CreateGroupPostReturnTypeRef} from "../../entities/tutanota/CreateGroupPostReturn"
 import {GroupManagementFacadeImpl} from "./GroupManagementFacade"
 import {createUserAreaGroupPostData} from "../../entities/tutanota/UserAreaGroupPostData"
 import type {NativeInterface} from "../../../native/common/NativeInterface"
@@ -59,6 +54,9 @@ import {SetupMultipleError} from "../../common/error/SetupMultipleError"
 import {ImportError} from "../../common/error/ImportError"
 import {aes128RandomKey, encryptKey, sha256Hash} from "@tutao/tutanota-crypto"
 import {InstanceMapper} from "../crypto/InstanceMapper"
+import {IServiceExecutor} from "../../common/ServiceRequest"
+import {AlarmService} from "../../entities/sys/Services"
+import {CalendarService} from "../../entities/tutanota/Services"
 
 assertWorkerOrNode()
 
@@ -88,6 +86,7 @@ export class CalendarFacade {
 		native: NativeInterface,
 		worker: WorkerImpl,
 		instanceMapper: InstanceMapper,
+		private readonly serviceExecutor: IServiceExecutor,
 	) {
 		this._loginFacade = loginFacade
 		this._groupManagementFacade = groupManagementFacade
@@ -234,7 +233,7 @@ export class CalendarFacade {
 			const requestEntity = createAlarmServicePost({
 				alarmNotifications,
 			})
-			return serviceRequestVoid(SysService.AlarmService, HttpMethod.POST, requestEntity, undefined, notificationSessionKey)
+			return this.serviceExecutor.post(AlarmService, requestEntity, {sessionKey: notificationSessionKey})
 		})
 	}
 
@@ -276,7 +275,7 @@ export class CalendarFacade {
 		const postData = createUserAreaGroupPostData({
 			groupData,
 		})
-		const returnData = await serviceRequest(TutanotaService.CalendarService, HttpMethod.POST, postData, CreateGroupPostReturnTypeRef)
+		const returnData = await this.serviceExecutor.post(CalendarService, postData)
 		const group = await this._entityClient.load(GroupTypeRef, returnData.group)
 		// remove the user from the cache before loading it again to make sure we get the latest version.
 		// otherwise we might not see the new calendar in case it is created at login and the websocket is not connected yet
@@ -292,14 +291,8 @@ export class CalendarFacade {
 		}
 	}
 
-	deleteCalendar(groupRootId: Id): Promise<void> {
-		return serviceRequestVoid(
-			TutanotaService.CalendarService,
-			HttpMethod.DELETE,
-			Object.assign(createCalendarDeleteData(), {
-				groupRootId,
-			}),
-		)
+	async deleteCalendar(groupRootId: Id): Promise<void> {
+		await this.serviceExecutor.delete(CalendarService, createCalendarDeleteData({groupRootId}))
 	}
 
 	async scheduleAlarmsForNewDevice(pushIdentifier: PushIdentifier): Promise<void> {

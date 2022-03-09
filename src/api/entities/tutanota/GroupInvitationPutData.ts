@@ -41,7 +41,8 @@ export const _TypeModel: TypeModel = {
 			"type": "LIST_ELEMENT_ASSOCIATION",
 			"cardinality": "One",
 			"final": false,
-			"refType": "ReceivedGroupInvitation"
+			"refType": "ReceivedGroupInvitation",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

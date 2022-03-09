@@ -93,6 +93,22 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"data": {
+			"id": 24,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"refType": "FileData",
+			"dependency": null
+		},
+		"parent": {
+			"id": 25,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"refType": "File",
+			"dependency": null
+		},
 		"subFiles": {
 			"id": 26,
 			"type": "AGGREGATION",
@@ -100,20 +116,6 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"refType": "Subfiles",
 			"dependency": null
-		},
-		"data": {
-			"id": 24,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "FileData"
-		},
-		"parent": {
-			"id": 25,
-			"type": "LIST_ELEMENT_ASSOCIATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "File"
 		}
 	},
 	"app": "tutanota",
@@ -140,7 +142,7 @@ export type File = {
 	name: string;
 	size: NumberString;
 
-	subFiles:  null | Subfiles;
 	data:  null | Id;
 	parent:  null | IdTuple;
+	subFiles:  null | Subfiles;
 }

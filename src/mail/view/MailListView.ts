@@ -2,9 +2,7 @@ import m, {Children, Component, Vnode} from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import type {VirtualRow} from "../../gui/base/List"
 import {List} from "../../gui/base/List"
-import {HttpMethod} from "../../api/common/EntityFunctions"
-import {serviceRequestVoid} from "../../api/main/ServiceRequest"
-import {CounterType_UnreadMails, MailFolderType} from "../../api/common/TutanotaConstants"
+import {MailFolderType} from "../../api/common/TutanotaConstants"
 import type {MailView} from "./MailView"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
@@ -19,8 +17,6 @@ import {logins} from "../../api/main/LoginController"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {Dialog} from "../../gui/base/Dialog"
-import {MonitorService} from "../../api/entities/monitor/Services"
-import {createWriteCounterData} from "../../api/entities/monitor/WriteCounterData"
 import {assertNotNull, AsyncResult, debounce, downcast, neverNull, ofClass, promiseFilter, promiseMap} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
 import {getLetId, haveSameId, sortCompareByReverseId} from "../../api/common/utils/EntityUtils"
@@ -276,7 +272,7 @@ export class MailListView implements Component {
 	}
 
 	// Do not start many fixes in parallel, do check after some time when counters are more likely to settle
-	_fixCounterIfNeeded: (listId: Id, listLength: number) => void = debounce(2000, (listId: Id, listLength: number) => {
+	_fixCounterIfNeeded: (listId: Id, listLength: number) => void = debounce(2000, async (listId: Id, listLength: number) => {
 		// If folders are changed, list won't have the data we need.
 		// Do not rely on counters if we are not connected
 		if (this.listId !== listId || locator.worker.wsConnection()() !== WsConnectionState.connected) {
@@ -295,19 +291,10 @@ export class MailListView implements Component {
 
 			return acc
 		}, 0)
-		locator.mailModel.getCounterValue(this.listId).then(counterValue => {
-			if (counterValue != null && counterValue !== unreadMails) {
-				locator.mailModel.getMailboxDetailsForMailListId(this.listId).then(mailboxDetails => {
-					const data = createWriteCounterData({
-						counterType: CounterType_UnreadMails,
-						row: mailboxDetails.mailGroup._id,
-						column: this.listId,
-						value: String(unreadMails),
-					})
-					serviceRequestVoid(MonitorService.CounterService, HttpMethod.POST, data)
-				})
-			}
-		})
+		const counterValue = await locator.mailModel.getCounterValue(this.listId)
+		if (counterValue != null && counterValue !== unreadMails) {
+			await locator.mailModel.fixupCounterForMailList(this.listId, unreadMails)
+		}
 	})
 
 	view(vnode: Vnode): Children {
@@ -329,7 +316,7 @@ export class MailListView implements Component {
 					}),
 				).then(confirmed => {
 					if (confirmed) {
-						this.mailView._finallyDeleteAllMailsInSelectedFolder(folder)
+						this.mailView.finallyDeleteAllMailsInSelectedFolder(folder)
 					}
 				})
 			},
@@ -402,7 +389,7 @@ export class MailListView implements Component {
 				if (isInboxList(mailboxDetail, this.listId)) {
 					// filter emails
 					return promiseFilter(mails, mail => {
-						return findAndApplyMatchingRule(locator.worker, locator.entityClient, mailboxDetail, mail, true).then(matchingMailId => !matchingMailId)
+						return findAndApplyMatchingRule(locator.mailFacade, locator.entityClient, mailboxDetail, mail, true).then(matchingMailId => !matchingMailId)
 					}).then(inboxMails => {
 						if (mails.length === count && inboxMails.length < mails.length) {
 							//console.log("load more because of matching inbox rules")

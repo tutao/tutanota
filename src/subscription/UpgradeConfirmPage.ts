@@ -6,8 +6,6 @@ import {formatPriceWithInfo, getPaymentMethodName, isYearlyPayment} from "./Pric
 import {HabReminderImage} from "../gui/base/icons/Icons"
 import {createSwitchAccountTypeData} from "../api/entities/sys/SwitchAccountTypeData"
 import {AccountType, Const, PaidSubscriptionType} from "../api/common/TutanotaConstants"
-import {SysService} from "../api/entities/sys/Services"
-import {serviceRequestVoid} from "../api/main/ServiceRequest"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
@@ -23,6 +21,7 @@ import {TextFieldN} from "../gui/base/TextFieldN"
 import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 import {deleteCampaign} from "../misc/LoginUtils"
+import {SwitchAccountTypeService} from "../api/entities/sys/Services"
 
 export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -51,14 +50,15 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 	}
 
 	private upgrade(data: UpgradeSubscriptionData) {
-		const serviceData = createSwitchAccountTypeData()
-		serviceData.accountType = AccountType.PREMIUM
-		serviceData.subscriptionType = this.subscriptionTypeToPaidSubscriptionType(data.type)
-		serviceData.date = Const.CURRENT_DATE
-		serviceData.campaign = data.campaign
+		const serviceData = createSwitchAccountTypeData({
+			accountType: AccountType.PREMIUM,
+			subscriptionType: this.subscriptionTypeToPaidSubscriptionType(data.type),
+			date: Const.CURRENT_DATE,
+			campaign: data.campaign,
+		})
 		showProgressDialog(
 			"pleaseWait_msg",
-			serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, serviceData).then(() => {
+			locator.serviceExecutor.post(SwitchAccountTypeService, serviceData).then(() => {
 				return locator.customerFacade.switchFreeToPremiumGroup()
 			}),
 		)

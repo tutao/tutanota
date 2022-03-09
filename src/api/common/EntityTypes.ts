@@ -1,6 +1,6 @@
 import {AssociationType, Cardinality, Type, ValueType} from "./EntityConstants"
 import {TypeRef} from "@tutao/tutanota-utils"
-import type {Element, ListElement} from "./utils/EntityUtils"
+import type {Element, ListElement} from "./utils/EntityUtils.js"
 
 export type TypeModel = {
 	id: number

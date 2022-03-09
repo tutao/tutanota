@@ -332,6 +332,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		}
 	}
 
+	async deleteCalendar(calendar: CalendarInfo): Promise<void> {
+		await this._calendarModel.deleteCalendar(calendar)
+	}
+
 	_addTransientEvent(event: CalendarEvent) {
 		this._transientEvents.push(event)
 	}

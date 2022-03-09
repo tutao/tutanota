@@ -55,14 +55,16 @@ export const _TypeModel: TypeModel = {
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "KnowledgeBaseEntry"
+			"refType": "KnowledgeBaseEntry",
+			"dependency": null
 		},
 		"templates": {
 			"id": 1188,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "EmailTemplate"
+			"refType": "EmailTemplate",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

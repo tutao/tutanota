@@ -2,8 +2,6 @@ import m, {Component} from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {serviceRequestVoid} from "../api/main/ServiceRequest"
-import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {createSwitchAccountTypeData} from "../api/entities/sys/SwitchAccountTypeData"
 import {
@@ -50,6 +48,7 @@ import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import type {Booking} from "../api/entities/sys/Booking"
 import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
+import {SwitchAccountTypeService} from "../api/entities/sys/Services"
 
 /**
  * Only shown if the user is already a Premium user. Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -157,7 +156,9 @@ function cancelSubscription(dialog: Dialog, currentSubscriptionInfo: CurrentSubs
 					return
 				}
 
-				return serviceRequestVoid(SysService.SwitchAccountTypeService, HttpMethod.POST, d)
+				return locator
+					.serviceExecutor
+					.post(SwitchAccountTypeService, d)
 					.then(() => locator.customerFacade.switchPremiumToFreeGroup())
 					.catch(
 						ofClass(PreconditionFailedError, e => {

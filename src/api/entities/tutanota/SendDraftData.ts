@@ -83,6 +83,14 @@ export const _TypeModel: TypeModel = {
 			"refType": "InternalRecipientKeyData",
 			"dependency": null
 		},
+		"mail": {
+			"id": 556,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "Mail",
+			"dependency": null
+		},
 		"secureExternalRecipientKeyData": {
 			"id": 554,
 			"type": "AGGREGATION",
@@ -90,13 +98,6 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"refType": "SecureExternalRecipientKeyData",
 			"dependency": null
-		},
-		"mail": {
-			"id": 556,
-			"type": "LIST_ELEMENT_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "Mail"
 		}
 	},
 	"app": "tutanota",
@@ -120,6 +121,6 @@ export type SendDraftData = {
 
 	attachmentKeyData: AttachmentKeyData[];
 	internalRecipientKeyData: InternalRecipientKeyData[];
-	secureExternalRecipientKeyData: SecureExternalRecipientKeyData[];
 	mail: IdTuple;
+	secureExternalRecipientKeyData: SecureExternalRecipientKeyData[];
 }

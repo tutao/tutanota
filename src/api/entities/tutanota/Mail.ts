@@ -166,12 +166,28 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"attachments": {
+			"id": 115,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "Any",
+			"final": true,
+			"refType": "File",
+			"dependency": null
+		},
 		"bccRecipients": {
 			"id": 114,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,
 			"refType": "MailAddress",
+			"dependency": null
+		},
+		"body": {
+			"id": 116,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "MailBody",
 			"dependency": null
 		},
 		"bodyBlob": {
@@ -188,6 +204,22 @@ export const _TypeModel: TypeModel = {
 			"cardinality": "Any",
 			"final": true,
 			"refType": "MailAddress",
+			"dependency": null
+		},
+		"conversationEntry": {
+			"id": 117,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"final": true,
+			"refType": "ConversationEntry",
+			"dependency": null
+		},
+		"headers": {
+			"id": 618,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"refType": "MailHeaders",
 			"dependency": null
 		},
 		"headersBlob": {
@@ -229,34 +261,6 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"refType": "MailAddress",
 			"dependency": null
-		},
-		"attachments": {
-			"id": 115,
-			"type": "LIST_ELEMENT_ASSOCIATION",
-			"cardinality": "Any",
-			"final": true,
-			"refType": "File"
-		},
-		"body": {
-			"id": 116,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "MailBody"
-		},
-		"conversationEntry": {
-			"id": 117,
-			"type": "LIST_ELEMENT_ASSOCIATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "ConversationEntry"
-		},
-		"headers": {
-			"id": 618,
-			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "ZeroOrOne",
-			"final": true,
-			"refType": "MailHeaders"
 		}
 	},
 	"app": "tutanota",
@@ -293,16 +297,16 @@ export type Mail = {
 	trashed: boolean;
 	unread: boolean;
 
+	attachments: IdTuple[];
 	bccRecipients: MailAddress[];
+	body: Id;
 	bodyBlob:  null | Blob;
 	ccRecipients: MailAddress[];
+	conversationEntry: IdTuple;
+	headers:  null | Id;
 	headersBlob:  null | Blob;
 	replyTos: EncryptedMailAddress[];
 	restrictions:  null | MailRestriction;
 	sender: MailAddress;
 	toRecipients: MailAddress[];
-	attachments: IdTuple[];
-	body: Id;
-	conversationEntry: IdTuple;
-	headers:  null | Id;
 }

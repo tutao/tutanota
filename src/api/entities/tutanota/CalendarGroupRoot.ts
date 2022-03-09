@@ -64,14 +64,16 @@ export const _TypeModel: TypeModel = {
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "CalendarEvent"
+			"refType": "CalendarEvent",
+			"dependency": null
 		},
 		"shortEvents": {
 			"id": 954,
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "CalendarEvent"
+			"refType": "CalendarEvent",
+			"dependency": null
 		}
 	},
 	"app": "tutanota",

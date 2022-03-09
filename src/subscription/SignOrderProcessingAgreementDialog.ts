@@ -4,16 +4,16 @@ import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode, isApp} from "../api/common/Env"
 import {formatDate, formatNameAndAddress} from "../misc/Formatter"
 import {HtmlEditor, HtmlEditorMode} from "../gui/editor/HtmlEditor"
-import {serviceRequestVoid} from "../api/main/ServiceRequest"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {createSignOrderProcessingAgreementData} from "../api/entities/sys/SignOrderProcessingAgreementData"
-import {SysService} from "../api/entities/sys/Services"
 import {getDisplayText} from "../mail/model/MailUtils"
 import {neverNull} from "@tutao/tutanota-utils"
 import type {OrderProcessingAgreement} from "../api/entities/sys/OrderProcessingAgreement"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import type {Customer} from "../api/entities/sys/Customer"
 import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
+import {locator} from "../api/main/MainLocator"
+import {SignOrderProcessingAgreementService} from "../api/entities/sys/Services"
 
 assertMainOrNode()
 const PRINT_DIV_ID = "print-div"
@@ -47,7 +47,7 @@ export function showForSigning(customer: Customer, accountingInfo: AccountingInf
 		if (addressEditor.getValue().trim().split("\n").length < 3) {
 			Dialog.message("contractorInfo_msg")
 		} else {
-			serviceRequestVoid(SysService.SignOrderProcessingAgreementService, HttpMethod.POST, data).then(() => dialog.close())
+			locator.serviceExecutor.post(SignOrderProcessingAgreementService, data).then(() => dialog.close())
 		}
 	}
 

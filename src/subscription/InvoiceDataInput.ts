@@ -5,15 +5,15 @@ import stream from "mithril/stream"
 import type {Country} from "../api/common/CountryList"
 import {Countries, CountryType} from "../api/common/CountryList"
 import {HtmlEditor, HtmlEditorMode} from "../gui/editor/HtmlEditor"
-import {serviceRequest} from "../api/main/ServiceRequest"
 import {HttpMethod} from "../api/common/EntityFunctions"
-import {SysService} from "../api/entities/sys/Services"
 import type {LocationServiceGetReturn} from "../api/entities/sys/LocationServiceGetReturn"
 import {LocationServiceGetReturnTypeRef} from "../api/entities/sys/LocationServiceGetReturn"
 import {createCountryDropdown} from "../gui/base/GuiUtils"
 import {TextFieldAttrs, TextFieldN} from "../gui/base/TextFieldN"
 import type {InvoiceData} from "../api/common/TutanotaConstants"
 import Stream from "mithril/stream";
+import {LocationService} from "../api/entities/sys/Services"
+import {locator} from "../api/main/MainLocator"
 
 export class InvoiceDataInput {
 	view: (...args: Array<any>) => any
@@ -53,7 +53,7 @@ export class InvoiceDataInput {
 		]
 
 		this.oncreate = () => {
-			serviceRequest(SysService.LocationService, HttpMethod.GET, null, LocationServiceGetReturnTypeRef).then((location: LocationServiceGetReturn) => {
+			locator.serviceExecutor.get(LocationService, null).then((location: LocationServiceGetReturn) => {
 				if (!this.selectedCountry()) {
 					let country = Countries.find(c => c.a === location.country)
 

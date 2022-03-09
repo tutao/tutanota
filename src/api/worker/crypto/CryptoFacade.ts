@@ -12,8 +12,6 @@ import {
 	uint8ArrayToHex,
 } from "@tutao/tutanota-utils"
 import {BucketPermissionType, GroupType, PermissionType} from "../../common/TutanotaConstants"
-import {serviceRequest, serviceRequestVoid} from "../ServiceRequestWorker"
-import {TutanotaService} from "../../entities/tutanota/Services"
 import {HttpMethod, resolveTypeReference} from "../../common/EntityFunctions"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
@@ -26,7 +24,6 @@ import type {Permission} from "../../entities/sys/Permission"
 import {PermissionTypeRef} from "../../entities/sys/Permission"
 import {typeRefToPath} from "../rest/EntityRestClient"
 import {createUpdatePermissionKeyData} from "../../entities/sys/UpdatePermissionKeyData"
-import {SysService} from "../../entities/sys/Services"
 import {LockedError, NotFoundError, PayloadTooLargeError, TooManyRequestsError} from "../../common/error/RestError"
 import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
@@ -58,10 +55,12 @@ import {
 import type {InternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
 import {createInternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
 import {createPublicKeyData} from "../../entities/sys/PublicKeyData"
-import {PublicKeyReturnTypeRef} from "../../entities/sys/PublicKeyReturn"
 import {RecipientNotResolvedError} from "../../common/error/RecipientNotResolvedError"
 import type {RsaImplementation} from "./RsaImplementation"
 import {locator} from "../WorkerLocator"
+import {IServiceExecutor} from "../../common/ServiceRequest"
+import {EncryptTutanotaPropertiesService} from "../../entities/tutanota/Services"
+import {PublicKeyService, UpdatePermissionKeyService} from "../../entities/sys/Services"
 
 assertWorkerOrNode()
 
@@ -109,14 +108,13 @@ export class CryptoFacadeImpl implements CryptoFacade {
 	// this especially improves the performance when indexing mail bodies
 	readonly _mailBodySessionKeyCache: Record<string, Aes128Key> = {}
 
-	/**
-	 *
-	 * @param logins
-	 * @param entityClient
-	 * @param restClient
-	 * @param rsa
-	 */
-	constructor(logins: LoginFacadeImpl, entityClient: EntityClient, restClient: RestClient, rsa: RsaImplementation) {
+	constructor(
+		logins: LoginFacadeImpl,
+		entityClient: EntityClient,
+		restClient: RestClient,
+		rsa: RsaImplementation,
+		private readonly serviceExecutor: IServiceExecutor,
+	) {
 		this.logins = logins
 		this.entityClient = entityClient
 		this.restClient = restClient
@@ -145,7 +143,8 @@ export class CryptoFacadeImpl implements CryptoFacade {
 			data._ownerEncSessionKey = uint8ArrayToBase64(groupEncSessionKey)
 			migrationData.properties = data._id
 			migrationData.symEncSessionKey = groupEncSessionKey
-			return serviceRequestVoid(TutanotaService.EncryptTutanotaPropertiesService, HttpMethod.POST, migrationData).then(() => data as any)
+			const result = await this.serviceExecutor.post(EncryptTutanotaPropertiesService, migrationData)
+			return data
 		} else if (isSameTypeRef(typeRef, PushIdentifierTypeRef) && data._ownerEncSessionKey == null) {
 			// set sessionKey for allowing encryption when old instance (< v43) is updated
 			return resolveTypeReference(typeRef)
@@ -425,7 +424,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 	): Promise<InternalRecipientKeyData | void> {
 		let keyData = createPublicKeyData()
 		keyData.mailAddress = recipientMailAddress
-		return serviceRequest(SysService.PublicKeyService, HttpMethod.GET, keyData, PublicKeyReturnTypeRef)
+		return this.serviceExecutor.get(PublicKeyService, keyData)
 			.then(publicKeyData => {
 				let publicKey = hexToPublicKey(uint8ArrayToHex(publicKeyData.pubKey))
 				let uint8ArrayBucketKey = bitArrayToUint8Array(bucketKey)
@@ -487,7 +486,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 			updateService.ownerEncSessionKey = encryptKey(permissionOwnerGroupKey, sessionKey)
 			updateService.symEncSessionKey = encryptKey(permissionGroupKey, sessionKey) // legacy can be removed
 
-			return serviceRequestVoid(SysService.UpdatePermissionKeyService, HttpMethod.POST, updateService)
+			return this.serviceExecutor.post(UpdatePermissionKeyService, updateService).then(noOp)
 		}
 	}
 

@@ -27,7 +27,8 @@ export const _TypeModel: TypeModel = {
 			"type": "LIST_ASSOCIATION",
 			"cardinality": "One",
 			"final": true,
-			"refType": "GiftCard"
+			"refType": "GiftCard",
+			"dependency": null
 		}
 	},
 	"app": "sys",
