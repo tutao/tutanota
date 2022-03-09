@@ -51,8 +51,9 @@ export const ENTITY_EVENT_BATCH_EXPIRE_MS = 44 * 24 * 60 * 60 * 1000
 const RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS = 30000
 const NORMAL_SHUTDOWN_CLOSE_CODE = 1
 /**
- * Reconnection interval bounds. When we reconnect we pick a random number of seconds in a range. The range depends on the number of attempts and server
- * return.
+ * Reconnection interval bounds. When we reconnect we pick a random number of seconds in a range to prevent that all the clients connect at the same time which
+ * would put unnecessary load on the server.
+ * The range depends on the number of attempts and the server response.
  * */
 const RECONNECT_INTERVAL = Object.freeze({
 	SMALL: [5, 10],
@@ -64,6 +65,7 @@ const RECONNECT_INTERVAL = Object.freeze({
 // than a bigger one if the requests are processed in parallel on the server
 const MAX_EVENT_IDS_QUEUE_LENGTH = 1000
 
+/** Known types of messages that can be received over websocket. */
 const enum MessageType {
 	EntityUpdate = "entityUpdate",
 	UnreadCounterUpdate = "unreadCounterUpdate",
@@ -518,6 +520,7 @@ export class EventBusClient {
 			// Allow the progress bar to complete
 			this.progressMonitor.workDone(this.eventGroups().length)
 
+			// We handle it where we initialize the connection and purge the cache there.
 			throw new OutOfSyncError("some missed EntityEventBatches cannot be loaded any more")
 		}
 	}
