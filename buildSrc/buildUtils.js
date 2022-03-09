@@ -38,7 +38,7 @@ export function getInstalledModuleVersion(module, log) {
 	// npm list likes to error out for no reason so we just print a warning. If it really fails, we will see it.
 	const {stdout, stderr, status} = spawnSync("npm", ["list", module, "--json"])
 	if (status !== 0) {
-		log(`npm list is not happy about ${module}, but it doesn't mean anything`, stderr)
+		log(`npm list is not happy about ${module}, but it doesn't mean anything`, status, stderr)
 	}
 	const json = JSON.parse(stdout.toString().trim())
 	return findVersion(json, module)
