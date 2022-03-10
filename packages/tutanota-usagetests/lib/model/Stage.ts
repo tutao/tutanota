@@ -6,18 +6,15 @@ type Metric = {
 	value: string | null,
 }
 
+/** One part of the test. Has multiple metrics that are sent together. */
 export class Stage {
-	readonly number: number
-	readonly collectedMetrics: Metrics
-	private readonly test: UsageTest
-	private completed: boolean
+	readonly collectedMetrics = new Map<string, Metric>()
+	private completed = false
 
-	constructor(number: number, test: UsageTest) {
-		this.number = number
-		this.test = test
-		this.completed = false
-
-		this.collectedMetrics = new Map<string, Metric>()
+	constructor(
+		readonly number: number,
+		private readonly test: UsageTest,
+	) {
 	}
 
 	/**

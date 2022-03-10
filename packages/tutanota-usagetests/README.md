@@ -26,15 +26,13 @@ loaded into the `UsageTestController` singleton.
 The relevant test has two variants in this case.
 
 ```typescript
-import {MithrilVariantRenderer} from "@tutao/tutanota-usagetests"
-
 // Within some mithril view
 class SomeView implements Component {
 	view() {
 		const controller = locator.usageTestController
 		const relevantTest = controller.getTest("relevantTestId")
 
-		return m("div", relevantTest.renderVariant(new MithrilVariantRenderer(), {
+		return m("div", relevantTest.renderVariant({
 			[0]: () => m("p", "This is rendered if the user is assigned to variant 0"),
 			[1]: () => m("p", "This is rendered if the user is assigned to variant 1")
 		}))

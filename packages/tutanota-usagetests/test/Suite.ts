@@ -1,6 +1,5 @@
 import o from "ospec"
 import {PingAdapter, Stage, UsageTest} from "../lib/index.js"
-import {ArbitraryVariantRenderer} from "../lib/view/VariantRenderer.js"
 import {UsageTestController} from "../lib/model/UsageTestController.js"
 
 
@@ -18,7 +17,7 @@ o.spec("Main", function () {
 		const test = new UsageTest(testId, "test 123", 0, true)
 		test.pingAdapter = new MockPingAdapter()
 
-		const rendered = test.renderVariant(new ArbitraryVariantRenderer(), {
+		const rendered = test.renderVariant({
 			[0]: () => 0,
 			[1]: () => 1
 		})
@@ -46,14 +45,13 @@ o.spec("Main", function () {
 		const testId2 = "t2"
 		const test2 = new UsageTest(testId2, "test 2", 1, true)
 
-		const usageTestController = new UsageTestController()
-
-		usageTestController.pingAdapter = new MockPingAdapter()
+		const adapter = new MockPingAdapter()
+		const usageTestController = new UsageTestController(adapter)
 
 		usageTestController.addTests([test1, test2])
 
 		// Correctly injected ping adapter
-		o(usageTestController.getTest(testId1).pingAdapter).equals(usageTestController._pingAdapter)
+		o(usageTestController.getTest(testId1).pingAdapter).equals(adapter)
 
 		o(usageTestController.getTest(testId2)).equals(test2)
 	})

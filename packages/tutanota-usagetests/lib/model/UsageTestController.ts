@@ -1,25 +1,18 @@
 import {ObsoleteUsageTest, UsageTest} from "./UsageTest.js"
 import {PingAdapter} from "../storage/PingAdapter.js"
 
+/** Centralized place which holds all the {@link UsageTest}s. */
 export class UsageTestController {
 	private readonly tests: Map<string, UsageTest> = new Map<string, UsageTest>()
-	_pingAdapter?: PingAdapter
-	private readonly obsoleteUsageTest: ObsoleteUsageTest
+	private readonly obsoleteUsageTest = new ObsoleteUsageTest("obsolete", "obsolete", 0)
 
-	constructor() {
-		this.obsoleteUsageTest = new ObsoleteUsageTest("obsolete", "obsolete", 0)
-	}
-
-	set pingAdapter(pingAdapter: PingAdapter) {
-		this._pingAdapter = pingAdapter
-
-		for (let test of this.tests.values()) {
-			test.pingAdapter = pingAdapter
-		}
+	constructor(
+		private readonly pingAdapter: PingAdapter,
+	) {
 	}
 
 	addTest(test: UsageTest) {
-		test.pingAdapter = this._pingAdapter
+		test.pingAdapter = this.pingAdapter
 		this.tests.set(test.testId, test)
 	}
 
