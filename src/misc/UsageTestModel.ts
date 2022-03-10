@@ -121,8 +121,6 @@ export class UsageTestModel implements PingAdapter {
 			testDeviceId: testDeviceId,
 		})
 
-		// FIXME Check that stage - 1 has been sent
-
 		await this.serviceExecutor.serviceRequest(SysService.UsageTestParticipationService, HttpMethod.POST, data)
 				  .catch(ofClass(PreconditionFailedError, (e) => {
 					  test.active = false

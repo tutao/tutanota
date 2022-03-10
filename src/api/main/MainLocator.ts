@@ -280,8 +280,7 @@ class MainLocator implements IMainLocator {
 		this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, logins)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
 		this.fileController = new FileController(this._nativeInterfaces?.fileApp ?? null)
-		this.usageTestController = new UsageTestController()
-		this.usageTestController.pingAdapter = this.usageTestModel
+		this.usageTestController = new UsageTestController(this.usageTestModel)
 	}
 }
 
