@@ -565,7 +565,10 @@ export class LoginFacadeImpl implements LoginFacade {
 			v: SessionModelType.version,
 		}
 		return this.restClient
-				   .request(path, HttpMethod.DELETE, {}, headers, undefined, MediaType.Json)
+				   .request(path, HttpMethod.DELETE, {
+					   headers,
+					   responseType: MediaType.Json,
+				   })
 				   .catch(
 					   ofClass(NotAuthenticatedError, () => {
 						   console.log("authentication failed => session is already closed")
@@ -600,7 +603,10 @@ export class LoginFacadeImpl implements LoginFacade {
 			accessToken: accessToken,
 			v: SessionModelType.version,
 		}
-		return this.restClient.request(path, HttpMethod.GET, {}, headers, undefined, MediaType.Json).then(instance => {
+		return this.restClient.request(path, HttpMethod.GET, {
+			headers,
+			responseType: MediaType.Json,
+		}).then(instance => {
 			let session = JSON.parse(instance)
 			return {
 				userId: session.user,

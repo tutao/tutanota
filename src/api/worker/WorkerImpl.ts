@@ -220,9 +220,12 @@ export class WorkerImpl implements NativeInterface {
 				return resetLocator()
 			},
 			restRequest: (message: WorkerRequest) => {
-				message.args[3] = Object.assign(locator.login.createAuthHeaders(), message.args[3])
+				// This horror is to add auth headers to the admin client
 				const args = message.args as Parameters<RestClient["request"]>
-				return locator.restClient.request(...args)
+				let [path, method, options] = args
+				options = options ?? {}
+				options.headers = {...locator.login.createAuthHeaders(), ...options.headers}
+				return locator.restClient.request(path, method, options)
 			},
 			serviceRequest: (message: WorkerRequest) => {
 				const args = message.args as Parameters<typeof _service>

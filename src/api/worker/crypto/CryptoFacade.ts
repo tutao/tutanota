@@ -502,10 +502,10 @@ export class CryptoFacadeImpl implements CryptoFacade {
 					   path,
 					   HttpMethod.PUT,
 					   {
-						   updateOwnerEncSessionKey: "true",
+						   headers,
+						   body: JSON.stringify(instance),
+						   queryParams: {updateOwnerEncSessionKey: "true"},
 					   },
-					   headers,
-					   JSON.stringify(instance),
 				   )
 				   .catch(
 					   ofClass(PayloadTooLargeError, e => {
