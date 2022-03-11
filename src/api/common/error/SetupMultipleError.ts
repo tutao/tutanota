@@ -8,7 +8,9 @@ export class SetupMultipleError<T> extends TutanotaError {
 	failedInstances: Array<T>
 
 	constructor(message: string, errors: Error[], instances: Array<T>) {
-		super("SetupMultipleError", message + "\nNumber of errors: " + errors.length)
+		super("SetupMultipleError", `${message}
+Number of errors: ${errors.length}
+First error: ${errors[0]}`)
 		this.errors = errors
 		this.failedInstances = instances
 	}

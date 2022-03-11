@@ -1,6 +1,6 @@
 import type {HttpMethod} from "../../common/EntityFunctions"
 import {MediaType, resolveTypeReference} from "../../common/EntityFunctions"
-import {downcast, neverNull, TypeRef} from "@tutao/tutanota-utils"
+import {downcast, TypeRef} from "@tutao/tutanota-utils"
 import {assertWorkerOrNode} from "../../common/Env"
 import type {TutanotaService} from "../../entities/tutanota/Services";
 import type {SysService} from "../../entities/sys/Services";
@@ -42,7 +42,12 @@ export function _service<T extends Entity>(
 
 		return p.then(encryptedEntity => {
 			return locator.restClient
-						  .request(path, method, queryParams, neverNull(headers), encryptedEntity ? JSON.stringify(encryptedEntity) : undefined, MediaType.Json)
+						  .request(path, method, {
+							  queryParams,
+							  headers,
+							  body: encryptedEntity ? JSON.stringify(encryptedEntity) : undefined,
+							  responseType: MediaType.Json,
+						  })
 						  .then(data => {
 							  if (responseTypeRef) {
 								  return resolveTypeReference(responseTypeRef).then(responseTypeModel => {

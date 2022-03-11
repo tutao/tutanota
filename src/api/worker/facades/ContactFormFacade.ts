@@ -28,12 +28,12 @@ export class ContactFormFacadeImpl implements ContactFormFacade {
 					   .request(
 						   path + "/" + formId,
 						   HttpMethod.GET,
-						   {},
 						   {
-							   v: model.version,
+							   headers: {
+								   v: model.version,
+							   },
+							   responseType: MediaType.Json,
 						   },
-						   undefined,
-						   MediaType.Json,
 					   )
 					   .then(json => {
 						   let data = JSON.parse(json as string)

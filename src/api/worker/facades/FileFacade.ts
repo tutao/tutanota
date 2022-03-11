@@ -73,7 +73,7 @@ export class FileFacade {
 
 				headers["v"] = FileDataDataGetTypModel.version
 				let body = JSON.stringify(entityToSend)
-				return this._restClient.request(REST_PATH, HttpMethod.GET, {}, headers, body, MediaType.Binary).then(data => {
+				return this._restClient.request(REST_PATH, HttpMethod.GET, {body, responseType: MediaType.Binary, headers}).then(data => {
 					return convertToDataFile(file, aes128Decrypt(neverNull(sessionKey), data))
 				})
 			})
@@ -153,11 +153,13 @@ export class FileFacade {
 						   REST_PATH,
 						   HttpMethod.PUT,
 						   {
-							   fileDataId: fileDataId,
+							   queryParams: {
+								   fileDataId: fileDataId,
+							   },
+							   headers,
+							   body: encryptedData,
+							   responseType: MediaType.Binary,
 						   },
-						   headers,
-						   encryptedData,
-						   MediaType.Binary,
 					   )
 					   .then(() => fileDataId)
 		})
@@ -229,13 +231,14 @@ export class FileFacade {
 			STORAGE_REST_PATH,
 			HttpMethod.PUT,
 			{
-				blobHash,
+				queryParams: {
+					blobHash
+				},
+				headers,
+				body: encryptedData,
+				responseType: MediaType.Binary,
+				baseUrl: servers[0].url,
 			},
-			headers,
-			encryptedData,
-			MediaType.Binary,
-			undefined,
-			servers[0].url,
 		)
 	}
 
@@ -254,7 +257,12 @@ export class FileFacade {
 		})
 		const literalGetData = await this._instanceMapper.encryptAndMapToLiteral(BlobDataGetTypeModel, getData, null)
 		const body = JSON.stringify(literalGetData)
-		const data = await this._restClient.request(STORAGE_REST_PATH, HttpMethod.GET, {}, headers, body, MediaType.Binary, undefined, servers[0].url)
+		const data = await this._restClient.request(STORAGE_REST_PATH, HttpMethod.GET, {
+			headers,
+			body,
+			responseType: MediaType.Binary,
+			baseUrl: servers[0].url,
+		})
 		return aes128Decrypt(uint8ArrayToKey(key), data)
 	}
 

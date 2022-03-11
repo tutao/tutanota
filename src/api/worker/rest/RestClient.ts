@@ -13,6 +13,15 @@ interface ProgressListener {
 	download(percent: number): void;
 }
 
+export interface RestClientOptions {
+	body?: string | Uint8Array,
+	responseType?: MediaType,
+	progressListener?: ProgressListener,
+	baseUrl?: string,
+	headers?: Dict,
+	queryParams?: Dict,
+}
+
 export class RestClient {
 	url: string
 	id: number
@@ -29,36 +38,30 @@ export class RestClient {
 	request(
 		path: string,
 		method: HttpMethod,
-		queryParams: Dict,
-		headers: Dict,
-		body?: string | Uint8Array,
-		responseType?: MediaType,
-		progressListener?: ProgressListener,
-		baseUrl?: string,
+		options: RestClientOptions = {},
 	): Promise<any | null> {
-		this._checkRequestSizeLimit(path, method, body ?? null)
+		this._checkRequestSizeLimit(path, method, options.body ?? null)
 
 		if (this._suspensionHandler.isSuspended()) {
-			return this._suspensionHandler.deferRequest(() => this.request(path, method, queryParams, headers, body, responseType, progressListener, baseUrl))
+			return this._suspensionHandler.deferRequest(() => this.request(path, method, options))
 		} else {
 			return new Promise((resolve, reject) => {
 				this.id++
-
-				if (method === HttpMethod.GET && typeof body === "string") {
-					if (!queryParams) {
-						queryParams = {}
-					}
-
-					queryParams["_body"] = body // get requests are not allowed to send a body. Therefore, we convert our body to a paramater
+				if (!options.queryParams) {
+					options.queryParams = {}
 				}
 
-				let url = addParamsToUrl(new URL((baseUrl ? baseUrl : this.url) + path), queryParams)
+				if (method === HttpMethod.GET && typeof options.body === "string") {
+					options.queryParams["_body"] = options.body // get requests are not allowed to send a body. Therefore, we convert our body to a paramater
+				}
+
+				let url = addParamsToUrl(new URL((options.baseUrl ?? this.url) + path), options.queryParams)
 				var xhr = new XMLHttpRequest()
 				xhr.open(method, url.toString())
 
-				this._setHeaders(xhr, headers, body, responseType ?? null)
+				this._setHeaders(xhr, options)
 
-				xhr.responseType = responseType === MediaType.Json || responseType === MediaType.Text ? "text" : "arraybuffer"
+				xhr.responseType = options.responseType === MediaType.Json || options.responseType === MediaType.Text ? "text" : "arraybuffer"
 
 				const abortAfterTimeout = () => {
 					let res = {
@@ -93,9 +96,9 @@ export class RestClient {
 					this._saveServerTimeOffsetFromRequest(xhr)
 
 					if (xhr.status === 200 || (method === HttpMethod.POST && xhr.status === 201)) {
-						if (responseType === MediaType.Json || responseType === MediaType.Text) {
+						if (options.responseType === MediaType.Json || options.responseType === MediaType.Text) {
 							resolve(xhr.response)
-						} else if (responseType === MediaType.Binary) {
+						} else if (options.responseType === MediaType.Binary) {
 							resolve(new Uint8Array(xhr.response))
 						} else {
 							resolve(null)
@@ -108,11 +111,11 @@ export class RestClient {
 
 							resolve(
 								this._suspensionHandler.deferRequest(() =>
-									this.request(path, method, queryParams, headers, body, responseType, progressListener, baseUrl),
+									this.request(path, method, options),
 								),
 							)
 						} else {
-							console.log("failed request", method, url, xhr.status, xhr.statusText, headers, body)
+							console.log("failed request", method, url, xhr.status, xhr.statusText, options.headers, options.body)
 							reject(handleRestError(xhr.status, `| ${method} ${path}`, xhr.getResponseHeader("Error-Id"), xhr.getResponseHeader("Precondition")))
 						}
 					}
@@ -120,7 +123,7 @@ export class RestClient {
 
 				xhr.onerror = function () {
 					clearTimeout(timeout)
-					console.log("failed to request", method, url, headers, body)
+					console.log("failed to request", method, url, options.headers, options.body)
 					reject(handleRestError(xhr.status, ` | ${method} ${path}`, xhr.getResponseHeader("Error-Id"), xhr.getResponseHeader("Precondition")))
 				}
 
@@ -141,9 +144,9 @@ export class RestClient {
 							console.log(`${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
 						}
 
-						if (progressListener != null && pe.lengthComputable) {
+						if (options.progressListener != null && pe.lengthComputable) {
 							// see https://developer.mozilla.org/en-US/docs/Web/API/ProgressEvent
-							progressListener.upload((1 / pe.total) * pe.loaded)
+							options.progressListener.upload((1 / pe.total) * pe.loaded)
 						}
 					}
 				} catch (e) {
@@ -167,9 +170,9 @@ export class RestClient {
 						console.log(`${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
 					}
 
-					if (progressListener != null && pe.lengthComputable) {
+					if (options.progressListener != null && pe.lengthComputable) {
 						// see https://developer.mozilla.org/en-US/docs/Web/API/ProgressEvent
-						progressListener.download((1 / pe.total) * pe.loaded)
+						options.progressListener.download((1 / pe.total) * pe.loaded)
 					}
 				}
 
@@ -178,10 +181,10 @@ export class RestClient {
 					reject(new ConnectionError(`Reached timeout of ${env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
 				}
 
-				if (body instanceof Uint8Array) {
-					xhr.send(uint8ArrayToArrayBuffer(body))
+				if (options.body instanceof Uint8Array) {
+					xhr.send(uint8ArrayToArrayBuffer(options.body))
 				} else {
-					xhr.send(body)
+					xhr.send(options.body)
 				}
 			})
 		}
@@ -237,10 +240,12 @@ export class RestClient {
 
 	_setHeaders(
 		xhr: XMLHttpRequest,
-		headers: Dict,
-		body: (string | null | Uint8Array | undefined),
-		responseType: MediaType | null,
+		options: RestClientOptions
 	) {
+		if (options.headers == null) {
+			options.headers = {}
+		}
+		const {headers, body, responseType} = options
 		headers["cv"] = env.versionNumber
 
 		if (body instanceof Uint8Array) {
@@ -253,7 +258,7 @@ export class RestClient {
 			headers["Accept"] = responseType
 		}
 
-		for (var i in headers) {
+		for (const i in headers) {
 			xhr.setRequestHeader(i, headers[i])
 		}
 	}
