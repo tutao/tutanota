@@ -3,10 +3,10 @@ import o from "ospec"
 import en from "../../../src/translations/en"
 import type {IUserController} from "../../../src/api/main/UserController"
 import type {LoginController} from "../../../src/api/main/LoginController"
-import {MailboxDetail, MailModel} from "../../../src/mail/model/MailModel"
+import {MailModel} from "../../../src/mail/model/MailModel"
 import {Contact, ContactTypeRef, createContact} from "../../../src/api/entities/tutanota/Contact"
 import {ContactModel} from "../../../src/contacts/model/ContactModel"
-import {assertThrows} from "@tutao/tutanota-test-utils"
+import {assertThrows, verify} from "@tutao/tutanota-test-utils"
 import {downcast, isSameTypeRef} from "@tutao/tutanota-utils"
 import {createTutanotaProperties} from "../../../src/api/entities/tutanota/TutanotaProperties"
 import {SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS} from "../../../src/mail/editor/SendMailModel"
@@ -35,7 +35,7 @@ import {ConversationEntryTypeRef, createConversationEntry} from "../../../src/ap
 import {isSameId} from "../../../src/api/common/utils/EntityUtils"
 import {MailFacade} from "../../../src/api/worker/facades/MailFacade"
 import {RecipientField} from "../../../src/mail/model/MailUtils"
-import {func, instance, matchers, object, replace, verify, when} from "testdouble"
+import {func, instance, matchers, object, replace, when} from "testdouble"
 
 const {anything, argThat} = matchers
 

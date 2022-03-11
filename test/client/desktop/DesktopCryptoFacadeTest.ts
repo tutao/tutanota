@@ -154,7 +154,7 @@ o.spec("DesktopCryptoFacadeTest", () => {
             keyToBase64(aes128Key),
             aes256EncryptedKeyb64,
         )
-        o(instance).deepEquals({
+        o(instance as any).deepEquals({
             a: "property_a",
             b: true,
             c: 42,

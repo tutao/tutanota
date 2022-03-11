@@ -19,7 +19,8 @@
 		"LICENSE.txt"
 	],
 	"peerDependencies": {
-		"ospec": "https://github.com/tutao/ospec.git#0472107629ede33be4c4d19e89f237a6d7b0cb11"
+		"ospec": "https://github.com/tutao/ospec.git#0472107629ede33be4c4d19e89f237a6d7b0cb11",
+	  	"testdouble": "3.16.4"
 	},
 	"devDependencies": {
 		"typescript": "4.5.4"
