@@ -39,6 +39,12 @@ declare module "ospec" {
 
 			/** Asserts that the function does **not** throw an error of given type */
 			notThrows(this: Assertion<() => any>, error: string | ErrorConstructor | ObjectConstructor<any>): AssertionDescriber; // See above
+
+			/** Asserts that a value satisfies a given check */
+			satisfies(this: Assertion<T>, check: (value: T) => { pass: boolean, message: string })
+
+			/** Asserts that a value does **not** satisfy a given check */
+			notSatisfies(this: Assertion<T>, check: (value: T) => { pass: boolean, message: string })
 		}
 
 		type Definer = (done: (error?: Error | null) => void, timeout: (delay: number) => void) => void | PromiseLike<any>;

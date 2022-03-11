@@ -1,4 +1,6 @@
 import o from "ospec"
+import * as td from "testdouble"
+
 
 /**
  * Mocks an attribute (function or object) on an object and makes sure that it can be restored to the original attribute by calling unmockAttribute() later.
@@ -156,4 +158,23 @@ function delay(ms: number): Promise<void> {
 	return new Promise(resolve => {
 		setTimeout(resolve, ms)
 	})
+}
+
+/** Verify using testdouble, but register as an ospec assertion */
+export function verify(demonstration: any, config?: td.VerificationConfig) {
+	function check(demonstration) {
+		try {
+			td.verify(demonstration, config)
+			return {
+				pass: true,
+				message: "Successful verification"
+			}
+		} catch (e) {
+			return {
+				pass: false,
+				message: e.toString()
+			}
+		}
+	}
+	o(demonstration).satisfies(check)
 }
