@@ -146,7 +146,8 @@ o.spec("EntityRestClient", async function () {
 			)).thenResolve(JSON.stringify([{instance: 1}, {instance: 2}]))
 
 			const result = await entityRestClient.loadRange(CalendarEventTypeRef, listId, startId, count, false)
-			// FIXME For some reason range requests don't do applyMigrations()
+			// There's some weird optimization for list requests where the types to migrate
+			// are hardcoded (e.g. PushIdentifier) for *vaguely gestures* optimization reasons.
 			o(result as any).deepEquals([
 				{instance: 1, /*migrated: true,*/ decrypted: true, migratedForInstance: true},
 				{instance: 2, /*migrated: true,*/ decrypted: true, migratedForInstance: true},
@@ -170,6 +171,8 @@ o.spec("EntityRestClient", async function () {
 
 			const result = await entityRestClient.loadMultiple(CustomerTypeRef, null, ids)
 
+			// There's some weird optimization for list requests where the types to migrate
+			// are hardcoded (e.g. PushIdentifier) for *vaguely gestures* optimization reasons.
 			o(result as any).deepEquals([
 				{instance: 1, /*migrated: true,*/ decrypted: true, migratedForInstance: true},
 				{instance: 2, /*migrated: true,*/ decrypted: true, migratedForInstance: true},
@@ -190,6 +193,8 @@ o.spec("EntityRestClient", async function () {
 			), {times: 1}).thenResolve(JSON.stringify([{instance: 1}, {instance: 2}]))
 
 			const result = await entityRestClient.loadMultiple(CustomerTypeRef, null, ids)
+			// There's some weird optimization for list requests where the types to migrate
+			// are hardcoded (e.g. PushIdentifier) for *vaguely gestures* optimization reasons.
 			o(result as any).deepEquals([
 				{instance: 1, /*migrated: true,*/ decrypted: true, migratedForInstance: true},
 				{instance: 2, /*migrated: true,*/ decrypted: true, migratedForInstance: true},
