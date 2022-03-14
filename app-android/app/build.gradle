@@ -116,7 +116,8 @@ dependencies {
 	androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
 		exclude group: 'com.android.support', module: 'support-annotations'
 	})
-	implementation 'commons-io:commons-io:2.11.0'
+	// Important: cannot be updated without additional measures as Android 6 and 7 do not have Java 9
+	implementation 'commons-io:commons-io:2.5'
 	implementation 'org.jdeferred:jdeferred-core:1.2.4'
 	implementation 'androidx.core:core:1.7.0'
 	implementation "androidx.activity:activity:$activity_version"
