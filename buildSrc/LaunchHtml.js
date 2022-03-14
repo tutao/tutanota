@@ -21,7 +21,7 @@ export async function renderHtml(scripts, env) {
 	<meta name="mobile-web-app-capable" content="yes">
 	<meta name="referrer" content="no-referrer">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-	${scripts.map(renderScriptImport)}
+	${scripts.map(renderScriptImport).join("\n\t")}
 	<!-- TutanotaTags -->
 	<title>Mail. Done. Right. Tutanota Login &amp; Sign up for an Ad-free Mailbox</title>
 	<meta name="description" content="Mail. Done. Right. Get a free mail account that does not abuse your emails for advertising. Tutanota is fast, easy, secure and free of ads.">
@@ -67,7 +67,7 @@ function csp(env) {
 
 			return `<meta http-equiv="Content-Security-Policy" content="${cspContent}">`
 		} else {
-			return null
+			return ""
 		}
 	} else {
 		const cspContent = "default-src * 'unsafe-inline' 'unsafe-eval';"
@@ -83,6 +83,6 @@ function csp(env) {
 }
 
 function renderScriptImport({src, type}) {
-	const typeString = type ? `type=${type}` : ""
-	return `<script src="${src}" ${typeString}" defer></script>`
+	const typeString = type ? `" type=${type}"` : ""
+	return `<script src="${src}"${typeString} defer></script>`
 }
