@@ -52,6 +52,7 @@ import {KeyPermanentlyInvalidatedError} from "../error/KeyPermanentlyInvalidated
 import type {FeatureType, OperationType} from "../TutanotaConstants"
 import {ImportError} from "../error/ImportError"
 import {WebauthnError} from "../error/WebauthnError"
+import {SuspensionError} from "../error/SuspensionError.js"
 
 export function getWhitelabelDomain(customerInfo: CustomerInfo, domainName?: string): DomainInfo | null {
 	return customerInfo.domainInfos.find(info => info.whitelabelConfig != null && (domainName == null || info.domain === domainName)) ?? null
@@ -117,6 +118,7 @@ const ErrorNameToType = {
 	MailBodyTooLargeError,
 	ImportError,
 	WebauthnError,
+	SuspensionError,
 	Error,
 	"java.net.SocketTimeoutException": ConnectionError,
 	"java.net.ConnectException": ConnectionError,

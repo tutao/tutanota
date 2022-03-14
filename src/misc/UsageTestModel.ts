@@ -11,6 +11,8 @@ import {PreconditionFailedError} from "../api/common/error/RestError"
 import {createUsageTestMetricData} from "../api/entities/sys/UsageTestMetricData"
 import {_TypeModel as UsageTestTypeModel, UsageTestAssignment} from "../api/entities/sys/UsageTestAssignment"
 import {DateProvider} from "../calendar/date/CalendarUtils.js"
+import {SuspensionError} from "../api/common/error/SuspensionError"
+import {SuspensionBehavior} from "../api/worker/rest/RestClient"
 
 export interface PersistedAssignmentData {
 	updatedAt: number
@@ -68,20 +70,33 @@ export class UsageTestModel implements PingAdapter {
 			testDeviceId: testDeviceId
 		})
 
-		const response = await this.serviceExecutor.serviceRequest(
-			SysService.UsageTestAssignmentService,
-			testDeviceId ? HttpMethod.PUT : HttpMethod.POST,
-			data,
-			UsageTestAssignmentOutTypeRef,
-		)
-		await this.testStorage.storeTestDeviceId(response.testDeviceId)
-		await this.testStorage.storeAssignments({
-			assignments: response.assignments,
-			updatedAt: this.dateProvider.now(),
-			sysModelVersion: filterInt(UsageTestTypeModel.version),
-		})
+		try {
+			const response = await this.serviceExecutor.serviceRequest(
+				SysService.UsageTestAssignmentService,
+				testDeviceId ? HttpMethod.PUT : HttpMethod.POST,
+				data,
+				UsageTestAssignmentOutTypeRef,
+				undefined,
+				undefined,
+				undefined,
+				SuspensionBehavior.Throw,
+			)
+			await this.testStorage.storeTestDeviceId(response.testDeviceId)
+			await this.testStorage.storeAssignments({
+				assignments: response.assignments,
+				updatedAt: this.dateProvider.now(),
+				sysModelVersion: filterInt(UsageTestTypeModel.version),
+			})
 
-		return response.assignments
+			return response.assignments
+		} catch (e) {
+			if (e instanceof SuspensionError) {
+				console.log("rate-limit for new assignments reached, disabling tests")
+				return []
+			}
+
+			throw e
+		}
 	}
 
 	private assignmentsToTests(assignments: UsageTestAssignment[]): UsageTest[] {

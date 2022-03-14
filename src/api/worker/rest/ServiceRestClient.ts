@@ -9,6 +9,7 @@ import type {MonitorService} from "../../entities/monitor/Services";
 import type {StorageService} from "../../entities/storage/Services";
 import {locator} from "../WorkerLocator";
 import type {Entity} from "../../common/EntityTypes"
+import {SuspensionBehavior} from "./RestClient"
 
 assertWorkerOrNode()
 
@@ -20,6 +21,7 @@ export function _service<T extends Entity>(
 	queryParameter?: Dict,
 	sk?: Aes128Key,
 	extraHeaders?: Dict,
+	suspensionBehavior?: SuspensionBehavior,
 ): Promise<any> {
 	return resolveTypeReference(requestEntity ? requestEntity._type : downcast(responseTypeRef)).then(modelForAppAndVersion => {
 		let path = `/rest/${modelForAppAndVersion.app.toLowerCase()}/${service}`
@@ -47,6 +49,7 @@ export function _service<T extends Entity>(
 							  headers,
 							  body: encryptedEntity ? JSON.stringify(encryptedEntity) : undefined,
 							  responseType: MediaType.Json,
+							  suspensionBehavior,
 						  })
 						  .then(data => {
 							  if (responseTypeRef) {
