@@ -23,16 +23,16 @@ export interface RestClientOptions {
 }
 
 export class RestClient {
-	url: string
-	id: number
-	private _suspensionHandler: SuspensionHandler
+	private readonly url: string
+	private id: number
+	private suspensionHandler: SuspensionHandler
 	// accurate to within a few seconds, depending on network speed
-	private _serverTimeOffsetMs: number | null = null
+	private serverTimeOffsetMs: number | null = null
 
 	constructor(suspensionHandler: SuspensionHandler) {
 		this.url = getHttpOrigin()
 		this.id = 0
-		this._suspensionHandler = suspensionHandler
+		this.suspensionHandler = suspensionHandler
 	}
 
 	request(
@@ -40,10 +40,10 @@ export class RestClient {
 		method: HttpMethod,
 		options: RestClientOptions = {},
 	): Promise<any | null> {
-		this._checkRequestSizeLimit(path, method, options.body ?? null)
+		this.checkRequestSizeLimit(path, method, options.body ?? null)
 
-		if (this._suspensionHandler.isSuspended()) {
-			return this._suspensionHandler.deferRequest(() => this.request(path, method, options))
+		if (this.suspensionHandler.isSuspended()) {
+			return this.suspensionHandler.deferRequest(() => this.request(path, method, options))
 		} else {
 			return new Promise((resolve, reject) => {
 				this.id++
@@ -55,17 +55,17 @@ export class RestClient {
 					options.queryParams["_body"] = options.body // get requests are not allowed to send a body. Therefore, we convert our body to a paramater
 				}
 
-				let url = addParamsToUrl(new URL((options.baseUrl ?? this.url) + path), options.queryParams)
-				var xhr = new XMLHttpRequest()
+				const url = addParamsToUrl(new URL((options.baseUrl ?? this.url) + path), options.queryParams)
+				const xhr = new XMLHttpRequest()
 				xhr.open(method, url.toString())
 
-				this._setHeaders(xhr, options)
+				this.setHeaders(xhr, options)
 
 				xhr.responseType = options.responseType === MediaType.Json || options.responseType === MediaType.Text ? "text" : "arraybuffer"
 
 				const abortAfterTimeout = () => {
-					let res = {
-						timeoutId: (0 as any) as TimeoutID,
+					const res = {
+						timeoutId: 0 as TimeoutID,
 						abortFunction: () => {
 							console.log(`${this.id}: ${String(new Date())} aborting ` + String(res.timeoutId))
 							xhr.abort()
@@ -74,7 +74,7 @@ export class RestClient {
 					return res
 				}
 
-				let t = abortAfterTimeout()
+				const t = abortAfterTimeout()
 				let timeout = setTimeout(t.abortFunction, env.timeout)
 				t.timeoutId = timeout
 
@@ -93,7 +93,7 @@ export class RestClient {
 
 					clearTimeout(timeout)
 
-					this._saveServerTimeOffsetFromRequest(xhr)
+					this.saveServerTimeOffsetFromRequest(xhr)
 
 					if (xhr.status === 200 || (method === HttpMethod.POST && xhr.status === 201)) {
 						if (options.responseType === MediaType.Json || options.responseType === MediaType.Text) {
@@ -107,10 +107,10 @@ export class RestClient {
 						const suspensionTime = xhr.getResponseHeader("Retry-After") || xhr.getResponseHeader("Suspension-Time")
 
 						if (isSuspensionResponse(xhr.status, suspensionTime)) {
-							this._suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime))
+							this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime))
 
 							resolve(
-								this._suspensionHandler.deferRequest(() =>
+								this.suspensionHandler.deferRequest(() =>
 									this.request(path, method, options),
 								),
 							)
@@ -127,34 +127,29 @@ export class RestClient {
 					reject(handleRestError(xhr.status, ` | ${method} ${path}`, xhr.getResponseHeader("Error-Id"), xhr.getResponseHeader("Precondition")))
 				}
 
-				try {
-					xhr.upload.onprogress = (pe: any) => {
-						// @ts-ignore
-						if (isWorker() && self.debug) {
-							console.log(`${this.id}: ${String(new Date())} upload progress. Clearing Timeout ${String(timeout)}`, pe)
-						}
-
-						clearTimeout(timeout)
-						let t = abortAfterTimeout()
-						timeout = setTimeout(t.abortFunction, env.timeout)
-						t.timeoutId = timeout
-
-						// @ts-ignore
-						if (isWorker() && self.debug) {
-							console.log(`${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
-						}
-
-						if (options.progressListener != null && pe.lengthComputable) {
-							// see https://developer.mozilla.org/en-US/docs/Web/API/ProgressEvent
-							options.progressListener.upload((1 / pe.total) * pe.loaded)
-						}
+				xhr.upload.onprogress = (pe: ProgressEvent) => {
+					// @ts-ignore
+					if (isWorker() && self.debug) {
+						console.log(`${this.id}: ${String(new Date())} upload progress. Clearing Timeout ${String(timeout)}`, pe)
 					}
-				} catch (e) {
-					// IE <= 11 throw an error when upload.onprogress is used from workers; see https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/107521/
-					clearTimeout(e)
+
+					clearTimeout(timeout)
+					const t = abortAfterTimeout()
+					timeout = setTimeout(t.abortFunction, env.timeout)
+					t.timeoutId = timeout
+
+					// @ts-ignore
+					if (isWorker() && self.debug) {
+						console.log(`${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
+					}
+
+					if (options.progressListener != null && pe.lengthComputable) {
+						// see https://developer.mozilla.org/en-US/docs/Web/API/ProgressEvent
+						options.progressListener.upload((1 / pe.total) * pe.loaded)
+					}
 				}
 
-				xhr.onprogress = (pe: any) => {
+				xhr.onprogress = (pe: ProgressEvent) => {
 					// @ts-ignore
 					if (isWorker() && self.debug) {
 						console.log(`${this.id}: ${String(new Date())} download progress. Clearing Timeout ${String(timeout)}`, pe)
@@ -176,7 +171,7 @@ export class RestClient {
 					}
 				}
 
-				xhr.onabort = function () {
+				xhr.onabort = () => {
 					clearTimeout(timeout)
 					reject(new ConnectionError(`Reached timeout of ${env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
 				}
@@ -190,7 +185,7 @@ export class RestClient {
 		}
 	}
 
-	_saveServerTimeOffsetFromRequest(xhr: XMLHttpRequest) {
+	private saveServerTimeOffsetFromRequest(xhr: XMLHttpRequest) {
 		// Dates sent in the `Date` field of HTTP headers follow the format specified by rfc7231
 		// JavaScript's Date expects dates in the format specified by rfc2822
 		// rfc7231 provides three options of formats, the preferred one being IMF-fixdate. This one is definitely
@@ -206,7 +201,7 @@ export class RestClient {
 
 			if (!isNaN(serverTime)) {
 				const now = Date.now()
-				this._serverTimeOffsetMs = serverTime - now
+				this.serverTimeOffsetMs = serverTime - now
 			}
 		}
 	}
@@ -217,7 +212,7 @@ export class RestClient {
 	 * will throw an error if offline or no rest requests have been made yet
 	 */
 	getServerTimestampMs(): number {
-		const timeOffset = assertNotNull(this._serverTimeOffsetMs, "You can't get server time if no rest requests were made")
+		const timeOffset = assertNotNull(this.serverTimeOffsetMs, "You can't get server time if no rest requests were made")
 		return Date.now() + timeOffset
 	}
 
@@ -226,19 +221,19 @@ export class RestClient {
 	 * Ignores the method because GET requests etc. should not exceed the limits neither.
 	 * This is done to avoid making the request, because the server will return a PayloadTooLargeError anyway.
 	 * */
-	_checkRequestSizeLimit(path: string, method: HttpMethod, body: (string | null) | (Uint8Array | null)) {
+	private checkRequestSizeLimit(path: string, method: HttpMethod, body: string | Uint8Array | null) {
 		if (isAdminClient()) {
 			return
 		}
 
-		const limit = REQUEST_SIZE_LIMIT_MAP.get(path) || REQUEST_SIZE_LIMIT_DEFAULT
+		const limit = REQUEST_SIZE_LIMIT_MAP.get(path) ?? REQUEST_SIZE_LIMIT_DEFAULT
 
 		if (body && body.length > limit) {
 			throw new PayloadTooLargeError(`request body is too large. Path: ${path}, Method: ${method}, Body length: ${body.length}`)
 		}
 	}
 
-	_setHeaders(
+	private setHeaders(
 		xhr: XMLHttpRequest,
 		options: RestClientOptions
 	) {
