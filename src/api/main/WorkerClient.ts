@@ -26,6 +26,7 @@ import type {MonitorService} from "../entities/monitor/Services";
 import type {StorageService} from "../entities/storage/Services";
 import {User} from "../entities/sys/User"
 import type {RestClient} from "../worker/rest/RestClient"
+import {SuspensionBehavior} from "../worker/rest/RestClient"
 
 assertMainOrNode()
 
@@ -195,8 +196,9 @@ export class WorkerClient {
 		queryParameter?: Dict,
 		sk?: Aes128Key,
 		extraHeaders?: Dict,
+		suspensionBehavior?: SuspensionBehavior,
 	): Promise<T> {
-		return this._postRequest(new Request("serviceRequest", [service, method, requestEntity, responseTypeRef, queryParameter, sk, extraHeaders]))
+		return this._postRequest(new Request("serviceRequest", [service, method, requestEntity, responseTypeRef, queryParameter, sk, extraHeaders, suspensionBehavior]))
 	}
 
 	entropy(entropyCache: {source: EntropySource, entropy: number, data: number}[]): Promise<void> {

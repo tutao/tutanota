@@ -7,6 +7,7 @@ import {TutanotaService} from "../entities/tutanota/Services";
 import {MonitorService} from "../entities/monitor/Services";
 import {AccountingService} from "../entities/accounting/Services";
 import type {Entity} from "../common/EntityTypes"
+import {SuspensionBehavior} from "../worker/rest/RestClient"
 
 assertMainOrNode()
 
@@ -20,8 +21,9 @@ export function serviceRequest<T>(
 	queryParams?: Dict,
 	sk?: Aes128Key,
 	extraHeaders?: Dict,
+	suspensionBehavior?: SuspensionBehavior,
 ): Promise<T> {
-	return locator.worker.serviceRequest(service, method, requestEntity, responseTypeRef, queryParams, sk, extraHeaders)
+	return locator.worker.serviceRequest(service, method, requestEntity, responseTypeRef, queryParams, sk, extraHeaders, suspensionBehavior)
 }
 
 export function serviceRequestVoid(
@@ -31,6 +33,7 @@ export function serviceRequestVoid(
 	queryParams?: Dict,
 	sk?: Aes128Key,
 	extraHeaders?: Dict,
+	suspensionBehavior?: SuspensionBehavior,
 ): Promise<void> {
-	return locator.worker.serviceRequest(service, method, requestEntity, undefined, queryParams, sk, extraHeaders)
+	return locator.worker.serviceRequest(service, method, requestEntity, undefined, queryParams, sk, extraHeaders, suspensionBehavior)
 }

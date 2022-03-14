@@ -4,6 +4,7 @@ import {HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {assertNotNull, typedEntries, uint8ArrayToArrayBuffer} from "@tutao/tutanota-utils"
 import {SuspensionHandler} from "../SuspensionHandler"
 import {REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP} from "../../common/TutanotaConstants"
+import {SuspensionError} from "../../common/error/SuspensionError"
 
 assertWorkerOrNode()
 
@@ -13,6 +14,11 @@ interface ProgressListener {
 	download(percent: number): void;
 }
 
+export const enum SuspensionBehavior {
+	Suspend,
+	Throw,
+}
+
 export interface RestClientOptions {
 	body?: string | Uint8Array,
 	responseType?: MediaType,
@@ -20,6 +26,8 @@ export interface RestClientOptions {
 	baseUrl?: string,
 	headers?: Dict,
 	queryParams?: Dict,
+	/** Default is to suspend all requests on rate limit. */
+	suspensionBehavior?: SuspensionBehavior,
 }
 
 export class RestClient {
@@ -106,7 +114,9 @@ export class RestClient {
 					} else {
 						const suspensionTime = xhr.getResponseHeader("Retry-After") || xhr.getResponseHeader("Suspension-Time")
 
-						if (isSuspensionResponse(xhr.status, suspensionTime)) {
+						if (isSuspensionResponse(xhr.status, suspensionTime) && options.suspensionBehavior === SuspensionBehavior.Throw) {
+							reject(new SuspensionError(`blocked for ${suspensionTime}, not suspending`))
+						} else if (isSuspensionResponse(xhr.status, suspensionTime)) {
 							this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime))
 
 							resolve(
