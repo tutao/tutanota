@@ -1438,6 +1438,7 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+		"domainStillHasContactForms_msg": "{domain} kann nicht deaktiviert werden weil noch Kontaktformulare aktiv sind. Bitte lösche die Kontaktformulare bevor du {domain} deaktivierst."
 	}
 }

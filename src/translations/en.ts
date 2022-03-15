@@ -1434,6 +1434,7 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"domainStillHasContactForms_msg": "{domain} can't be deactivated because there are still active contact forms on the whitelabel domain. Please delete the contact forms before deactivating {domain}."
 	}
 }
