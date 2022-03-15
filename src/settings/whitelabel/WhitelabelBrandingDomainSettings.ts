@@ -2,7 +2,7 @@ import {TextFieldN} from "../../gui/base/TextFieldN"
 import {Dialog} from "../../gui/base/Dialog"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {neverNull} from "@tutao/tutanota-utils"
-import {LockedError, PreconditionFailedError} from "../../api/common/error/RestError"
+import {PreconditionFailedError} from "../../api/common/error/RestError"
 import {Icons} from "../../gui/base/icons/Icons"
 import {logins} from "../../api/main/LoginController"
 import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
@@ -16,7 +16,6 @@ import type {CustomerInfo} from "../../api/entities/sys/CustomerInfo"
 import type {CertificateInfo} from "../../api/entities/sys/CertificateInfo"
 import {CertificateState, CertificateType} from "../../api/common/TutanotaConstants"
 import {formatDateTime} from "../../misc/Formatter"
-import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
 
 export type WhitelabelBrandingDomainSettingsAttrs = {
@@ -48,22 +47,22 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 	_renderDeactivateButton(whitelabelDomain: string): Children {
 		const deactivateButtonAttrs = {
 			label: "deactivate_action",
-			click: () => {
-				Dialog.confirm("confirmDeactivateWhitelabelDomain_msg").then(ok => {
-					if (ok) {
-						showProgressDialog("pleaseWait_msg", locator.customerFacade.deleteCertificate(whitelabelDomain))
-							.catch(ofClass(LockedError, e => Dialog.message("operationStillActive_msg")))
-							.catch(
-								ofClass(PreconditionFailedError, e => {
-									if (e.data === "lock.locked") {
-										Dialog.message("operationStillActive_msg")
-									} else {
-										throw e
-									}
-								}),
-							)
+			click: async () => {
+				if (await Dialog.confirm("confirmDeactivateWhitelabelDomain_msg")) {
+					const customerInfo = await logins.getUserController().loadCustomerInfo()
+					try {
+						return await showProgressDialog("pleaseWait_msg", locator.customerFacade.deleteCertificate(whitelabelDomain))
+					} catch (e) {
+						if (e instanceof PreconditionFailedError) {
+							if (e.data === "lock.locked") {
+								return await Dialog.message("operationStillActive_msg")
+							} else if (e.data === "domain.contact_form_active") {
+								return await Dialog.message(() => lang.get("domainStillHasContactForms_msg", {"{domain}": whitelabelDomain}))
+							}
+						}
+						throw e
 					}
-				})
+				}
 			},
 			icon: () => Icons.Cancel,
 		} as const
