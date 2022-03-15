@@ -36,12 +36,10 @@ export async function showBuyDialog(params: BuyDialogParams): Promise<boolean> {
 	if (logins.isEnabled(FeatureType.HideBuyDialogs)) {
 		return true
 	}
-
 	const priceChangeModel = await showProgressDialog("pleaseWait_msg", prepareDialog(params))
-
 	if (priceChangeModel) {
 		return showDialog(
-			priceChangeModel.isBuy() ? "buy_action" : "order_action",
+			priceChangeModel.getActionLabel(),
 			() => m(ConfirmSubscriptionView, {priceChangeModel, count: params.count, freeAmount: params.freeAmount})
 		)
 	} else {
@@ -57,25 +55,22 @@ async function prepareDialog({featureType, count, reactivate}: BuyDialogParams):
 	} else {
 		const price = await locator.bookingFacade.getPrice(featureType, count, reactivate)
 		const priceChangeModel = new PriceChangeModel(price, featureType)
-		if (!priceChangeModel.isPriceChange()) {
+		const customerInfo = await locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+		const accountingInfo = await locator.entityClient
+											.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+											.catch(ofClass(NotAuthorizedError, () => null))
+		if (accountingInfo && accountingInfo.paymentMethod == null) {
+			const confirm = await Dialog.confirm("enterPaymentDataFirst_msg")
+			if (confirm) {
+				m.route.set("/settings/invoice")
+			}
+
 			return null
 		} else {
-			const customerInfo = await locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
-			const accountingInfo = await locator.entityClient
-												.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
-												.catch(ofClass(NotAuthorizedError, () => null))
-			if (accountingInfo && accountingInfo.paymentMethod == null) {
-				const confirm = await Dialog.confirm("enterPaymentDataFirst_msg")
-				if (confirm) {
-					m.route.set("/settings/invoice")
-				}
-
-				return null
-			} else {
-				return priceChangeModel
-			}
+			return priceChangeModel
 		}
 	}
+
 }
 
 /**
@@ -142,6 +137,7 @@ function showDialog(okLabel: TranslationKey, view: () => Children) {
 		}
 
 		dialog = Dialog.showActionDialog({
+			okActionTextId: okLabel,
 			title: () => lang.get("bookingSummary_label"),
 			child: () => view(),
 			okAction: () => doAction(true),
@@ -358,6 +354,16 @@ class PriceChangeModel {
 		} else {
 			this.additionalFeatures = new Set()
 		}
+	}
+
+	getActionLabel(): TranslationKey {
+		if (!this.isPriceChange()) {
+			return "accept_action"
+		}
+		if (this.isBuy()) {
+			return "buy_action"
+		}
+		return "order_action"
 	}
 
 	isBuy() {
