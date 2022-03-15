@@ -8,6 +8,7 @@ import {assertWorkerOrNode} from "../../common/Env"
 import {HttpMethod} from "../../common/EntityFunctions"
 import type {EmailSenderListElement} from "../../entities/sys/EmailSenderListElement"
 import {createEmailSenderListElement} from "../../entities/sys/EmailSenderListElement"
+import type {Hex} from "@tutao/tutanota-utils"
 import {downcast, neverNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "@tutao/tutanota-utils"
 import type {CustomerServerProperties} from "../../entities/sys/CustomerServerProperties"
 import {CustomerServerPropertiesTypeRef} from "../../entities/sys/CustomerServerProperties"
@@ -45,7 +46,6 @@ import {PdfInvoiceServiceReturnTypeRef} from "../../entities/sys/PdfInvoiceServi
 import {AccountingService} from "../../entities/accounting/Services"
 import type {InternalGroupData} from "../../entities/tutanota/InternalGroupData"
 import {LockedError} from "../../common/error/RestError"
-import type {Hex} from "@tutao/tutanota-utils"
 import type {RsaKeyPair} from "@tutao/tutanota-crypto"
 import {aes128RandomKey, bitArrayToUint8Array, encryptKey, hexToPublicKey, sha256Hash, uint8ArrayToBitArray} from "@tutao/tutanota-crypto"
 import type {RsaImplementation} from "../crypto/RsaImplementation"
@@ -115,45 +115,31 @@ export interface CustomerFacade {
 	deleteCertificate(domainName: string): Promise<void>
 }
 
+interface ContactFormUserGroupData {
+	userGroupKey: Aes128Key
+	userGroupData: InternalGroupData
+}
+
 export class CustomerFacadeImpl implements CustomerFacade {
-	_login: LoginFacadeImpl
-	_groupManagement: GroupManagementFacadeImpl
-	_userManagement: UserManagementFacade
-	_worker: WorkerImpl
-	_counters: CounterFacade
-	contactFormUserGroupData:
-		| Promise<{
-		userGroupKey: Aes128Key
-		userGroupData: InternalGroupData
-	}>
-		| null
-		| undefined
-	_rsa: RsaImplementation
-	_entityClient: EntityClient
+	private contactFormUserGroupData: Promise<ContactFormUserGroupData> | null
 
 	constructor(
-		worker: WorkerImpl,
-		login: LoginFacadeImpl,
-		groupManagement: GroupManagementFacadeImpl,
-		userManagement: UserManagementFacade,
-		counters: CounterFacade,
-		rsa: RsaImplementation,
-		entityClient: EntityClient,
+		private readonly worker: WorkerImpl,
+		private readonly login: LoginFacadeImpl,
+		private readonly groupManagement: GroupManagementFacadeImpl,
+		private readonly userManagement: UserManagementFacade,
+		private readonly counters: CounterFacade,
+		private readonly rsa: RsaImplementation,
+		private readonly entityClient: EntityClient,
 	) {
-		this._worker = worker
-		this._login = login
-		this._groupManagement = groupManagement
-		this._userManagement = userManagement
-		this._counters = counters
-		this._rsa = rsa
-		this._entityClient = entityClient
+		this.contactFormUserGroupData = null
 	}
 
 	getDomainValidationRecord(domainName: string): Promise<string> {
 		return Promise.resolve(
 			"t-verify=" +
 			uint8ArrayToHex(
-				sha256Hash(stringToUtf8Uint8Array(domainName.trim().toLowerCase() + neverNull(this._login.getLoggedInUser().customer))).slice(0, 16),
+				sha256Hash(stringToUtf8Uint8Array(domainName.trim().toLowerCase() + neverNull(this.login.getLoggedInUser().customer))).slice(0, 16),
 			),
 		)
 	}
@@ -178,13 +164,13 @@ export class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	async orderWhitelabelCertificate(domainName: string): Promise<void> {
-		const customer = await this._entityClient.load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer))
-		const customerInfo = await this._entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+		const customer = await this.entityClient.load(CustomerTypeRef, neverNull(this.login.getLoggedInUser().customer))
+		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		let existingBrandingDomain = getWhitelabelDomain(customerInfo, domainName)
 		const keyData = await serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
 		let systemAdminPubKey = hexToPublicKey(uint8ArrayToHex(keyData.systemAdminPubKey))
 		let sessionKey = aes128RandomKey()
-		const systemAdminPubEncAccountingInfoSessionKey = await this._rsa.encrypt(systemAdminPubKey, bitArrayToUint8Array(sessionKey))
+		const systemAdminPubEncAccountingInfoSessionKey = await this.rsa.encrypt(systemAdminPubKey, bitArrayToUint8Array(sessionKey))
 		let data = createBrandingDomainData()
 		data.domain = domainName
 		data.systemAdminPubEncSessionKey = systemAdminPubEncAccountingInfoSessionKey
@@ -198,16 +184,16 @@ export class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	readUsedCustomerStorage(customerId: Id): Promise<number> {
-		return this._counters.readCounterValue(Const.COUNTER_USED_MEMORY_INTERNAL, customerId).then(usedMemoryInternal => {
-			return this._counters.readCounterValue(Const.COUNTER_USED_MEMORY_EXTERNAL, customerId).then(usedMemoryExternal => {
+		return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY_INTERNAL, customerId).then(usedMemoryInternal => {
+			return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY_EXTERNAL, customerId).then(usedMemoryExternal => {
 				return Number(usedMemoryInternal) + Number(usedMemoryExternal)
 			})
 		})
 	}
 
 	readAvailableCustomerStorage(customerId: Id): Promise<number> {
-		return this._entityClient.load(CustomerTypeRef, customerId).then(customer => {
-			return this._entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
+		return this.entityClient.load(CustomerTypeRef, customerId).then(customer => {
+			return this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
 				let includedStorage = Number(customerInfo.includedStorageCapacity)
 				let promotionStorage = Number(customerInfo.promotionStorageCapacity)
 				let availableStorage = Math.max(includedStorage, promotionStorage)
@@ -232,7 +218,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	loadCustomerServerProperties(): Promise<CustomerServerProperties> {
-		return this._entityClient.load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
+		return this.entityClient.load(CustomerTypeRef, neverNull(this.login.getLoggedInUser().customer)).then(customer => {
 			let p
 
 			if (customer.serverProperties) {
@@ -241,7 +227,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 				// create properties
 				let sessionKey = aes128RandomKey()
 
-				let adminGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Admin))
+				let adminGroupKey = this.login.getGroupKey(this.login.getGroupId(GroupType.Admin))
 
 				let groupEncSessionKey = encryptKey(adminGroupKey, sessionKey)
 				let data = createCreateCustomerServerPropertiesData()
@@ -254,7 +240,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 			}
 
 			return p.then(cspId => {
-				return this._entityClient.load(CustomerServerPropertiesTypeRef, cspId)
+				return this.entityClient.load(CustomerServerPropertiesTypeRef, cspId)
 			})
 		})
 	}
@@ -269,7 +255,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 				field,
 			})
 			props.emailSenderList.push(newListEntry)
-			return this._entityClient.update(props).catch(ofClass(LockedError, noOp))
+			return this.entityClient.update(props).catch(ofClass(LockedError, noOp))
 		})
 	}
 
@@ -283,17 +269,17 @@ export class CustomerFacadeImpl implements CustomerFacade {
 			}
 
 			props.emailSenderList[index] = spamRule
-			return this._entityClient.update(props).catch(ofClass(LockedError, noOp))
+			return this.entityClient.update(props).catch(ofClass(LockedError, noOp))
 		})
 	}
 
 	async generateSignupKeys(): Promise<[RsaKeyPair, RsaKeyPair, RsaKeyPair]> {
-		const key1 = await this._rsa.generateKey()
-		await this._worker.sendProgress(33)
-		const key2 = await this._rsa.generateKey()
-		await this._worker.sendProgress(66)
-		const key3 = await this._rsa.generateKey()
-		await this._worker.sendProgress(100)
+		const key1 = await this.rsa.generateKey()
+		await this.worker.sendProgress(33)
+		const key2 = await this.rsa.generateKey()
+		await this.worker.sendProgress(66)
+		const key3 = await this.rsa.generateKey()
+		await this.worker.sendProgress(100)
 		return [key1, key2, key3]
 	}
 
@@ -317,8 +303,8 @@ export class CustomerFacadeImpl implements CustomerFacade {
 			let accountingInfoSessionKey = aes128RandomKey()
 			let customerServerPropertiesSessionKey = aes128RandomKey()
 			// we can not join all the following promises because they are running sync and therefore would not allow the worker sending the progress
-			return this._rsa.encrypt(systemAdminPubKey, bitArrayToUint8Array(accountingInfoSessionKey)).then(systemAdminPubEncAccountingInfoSessionKey => {
-				let userGroupData = this._groupManagement.generateInternalGroupData(
+			return this.rsa.encrypt(systemAdminPubKey, bitArrayToUint8Array(accountingInfoSessionKey)).then(systemAdminPubEncAccountingInfoSessionKey => {
+				let userGroupData = this.groupManagement.generateInternalGroupData(
 					keyPairs[0],
 					userGroupKey,
 					userGroupInfoSessionKey,
@@ -327,7 +313,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 					customerGroupKey,
 				)
 
-				let adminGroupData = this._groupManagement.generateInternalGroupData(
+				let adminGroupData = this.groupManagement.generateInternalGroupData(
 					keyPairs[1],
 					adminGroupKey,
 					adminGroupInfoSessionKey,
@@ -336,7 +322,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 					customerGroupKey,
 				)
 
-				let customerGroupData = this._groupManagement.generateInternalGroupData(
+				let customerGroupData = this.groupManagement.generateInternalGroupData(
 					keyPairs[2],
 					customerGroupKey,
 					customerGroupInfoSessionKey,
@@ -345,14 +331,14 @@ export class CustomerFacadeImpl implements CustomerFacade {
 					customerGroupKey,
 				)
 
-				const recoverData = this._login.generateRecoveryCode(userGroupKey)
+				const recoverData = this.login.generateRecoveryCode(userGroupKey)
 
 				let data = createCustomerAccountCreateData()
 				data.authToken = authToken
 				data.date = Const.CURRENT_DATE
 				data.lang = currentLanguage
 				data.code = registrationCode
-				data.userData = this._userManagement.generateUserAccountData(
+				data.userData = this.userManagement.generateUserAccountData(
 					userGroupKey,
 					userGroupInfoSessionKey,
 					customerGroupKey,
@@ -377,9 +363,9 @@ export class CustomerFacadeImpl implements CustomerFacade {
 	createContactFormUserGroupData(): Promise<void> {
 		let userGroupKey = aes128RandomKey()
 		let userGroupInfoSessionKey = aes128RandomKey()
-		this.contactFormUserGroupData = this._rsa
+		this.contactFormUserGroupData = this.rsa
 											.generateKey()
-											.then(keyPair => this._groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, null, userGroupKey, userGroupKey))
+											.then(keyPair => this.groupManagement.generateInternalGroupData(keyPair, userGroupKey, userGroupInfoSessionKey, null, userGroupKey, userGroupKey))
 											.then(userGroupData => {
 												return {
 													userGroupKey,
@@ -389,10 +375,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 		return Promise.resolve()
 	}
 
-	async _getContactFormUserGroupData(): Promise<{
-		userGroupKey: Aes128Key
-		userGroupData: InternalGroupData
-	}> {
+	async _getContactFormUserGroupData(): Promise<ContactFormUserGroupData> {
 		if (this.contactFormUserGroupData) {
 			return this.contactFormUserGroupData
 		} else {
@@ -407,10 +390,10 @@ export class CustomerFacadeImpl implements CustomerFacade {
 	async createContactFormUser(password: string, contactFormId: IdTuple): Promise<ContactFormAccountReturn> {
 		const contactFormUserGroupData = await this._getContactFormUserGroupData()
 		let {userGroupKey, userGroupData} = contactFormUserGroupData
-		await this._worker.sendProgress(35)
+		await this.worker.sendProgress(35)
 		let data = createContactFormAccountData()
-		data.userData = this._userManagement.generateContactFormUserAccountData(userGroupKey, password)
-		await this._worker.sendProgress(95)
+		data.userData = this.userManagement.generateContactFormUserAccountData(userGroupKey, password)
+		await this.worker.sendProgress(95)
 		data.userGroupData = userGroupData
 		data.contactForm = contactFormId
 		const result = serviceRequest(TutanotaService.ContactFormAccountService, HttpMethod.POST, data, ContactFormAccountReturnTypeRef)
@@ -432,12 +415,12 @@ export class CustomerFacadeImpl implements CustomerFacade {
 		return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
 			.then(keyData => {
 				let membershipAddData = createMembershipAddData()
-				membershipAddData.user = this._login.getLoggedInUser()._id
+				membershipAddData.user = this.login.getLoggedInUser()._id
 				membershipAddData.group = neverNull(keyData.premiumGroup)
-				membershipAddData.symEncGKey = encryptKey(this._login.getUserGroupKey(), uint8ArrayToBitArray(keyData.premiumGroupKey))
+				membershipAddData.symEncGKey = encryptKey(this.login.getUserGroupKey(), uint8ArrayToBitArray(keyData.premiumGroupKey))
 				return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, membershipAddData).then(() => {
 					let membershipRemoveData = createMembershipRemoveData()
-					membershipRemoveData.user = this._login.getLoggedInUser()._id
+					membershipRemoveData.user = this.login.getLoggedInUser()._id
 					membershipRemoveData.group = neverNull(keyData.freeGroup)
 					return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, membershipRemoveData)
 				})
@@ -453,12 +436,12 @@ export class CustomerFacadeImpl implements CustomerFacade {
 		return serviceRequest(SysService.SystemKeysService, HttpMethod.GET, null, SystemKeysReturnTypeRef)
 			.then(keyData => {
 				let membershipAddData = createMembershipAddData()
-				membershipAddData.user = this._login.getLoggedInUser()._id
+				membershipAddData.user = this.login.getLoggedInUser()._id
 				membershipAddData.group = neverNull(keyData.freeGroup)
-				membershipAddData.symEncGKey = encryptKey(this._login.getUserGroupKey(), uint8ArrayToBitArray(keyData.freeGroupKey))
+				membershipAddData.symEncGKey = encryptKey(this.login.getUserGroupKey(), uint8ArrayToBitArray(keyData.freeGroupKey))
 				return serviceRequestVoid(SysService.MembershipService, HttpMethod.POST, membershipAddData).then(() => {
 					let membershipRemoveData = createMembershipRemoveData()
-					membershipRemoveData.user = this._login.getLoggedInUser()._id
+					membershipRemoveData.user = this.login.getLoggedInUser()._id
 					membershipRemoveData.group = neverNull(keyData.premiumGroup)
 					return serviceRequestVoid(SysService.MembershipService, HttpMethod.DELETE, membershipRemoveData)
 				})
@@ -476,9 +459,9 @@ export class CustomerFacadeImpl implements CustomerFacade {
 		paymentData: PaymentData | null,
 		confirmedInvoiceCountry: Country | null,
 	): Promise<PaymentDataServicePutReturn> {
-		return this._entityClient.load(CustomerTypeRef, neverNull(this._login.getLoggedInUser().customer)).then(customer => {
-			return this._entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-				return this._entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
+		return this.entityClient.load(CustomerTypeRef, neverNull(this.login.getLoggedInUser().customer)).then(customer => {
+			return this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
+				return this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
 					return resolveSessionKey(AccountingInfoTypeModel, accountingInfo).then(accountingInfoSessionKey => {
 						const service = createPaymentDataServicePutData()
 						service.business = false // not used, must be set to false currently, will be removed later
