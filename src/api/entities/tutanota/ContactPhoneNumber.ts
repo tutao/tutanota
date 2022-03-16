@@ -44,7 +44,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "51"
+	"version": "52"
 }
 
 export function createContactPhoneNumber(values?: Partial<ContactPhoneNumber>): ContactPhoneNumber {

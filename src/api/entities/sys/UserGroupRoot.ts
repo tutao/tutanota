@@ -53,7 +53,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "73"
+	"version": "74"
 }
 
 export function createUserGroupRoot(values?: Partial<UserGroupRoot>): UserGroupRoot {

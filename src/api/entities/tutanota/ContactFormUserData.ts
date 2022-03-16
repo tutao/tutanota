@@ -86,7 +86,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "51"
+	"version": "52"
 }
 
 export function createContactFormUserData(values?: Partial<ContactFormUserData>): ContactFormUserData {

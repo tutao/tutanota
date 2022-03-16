@@ -31,7 +31,7 @@ import type {Indexer} from "../worker/search/Indexer"
 import type {SearchFacade} from "../worker/search/SearchFacade"
 import type {BookingFacade} from "../worker/facades/BookingFacade"
 import type {MailAddressFacade} from "../worker/facades/MailAddressFacade"
-import type {FileFacade} from "../worker/facades/FileFacade"
+import type {FileFacade} from "../worker/facades/FileFacade.js"
 import type {ContactFormFacade} from "../worker/facades/ContactFormFacade"
 import type {DeviceEncryptionFacade} from "../worker/facades/DeviceEncryptionFacade"
 import {FileController} from "../../file/FileController"
@@ -54,6 +54,8 @@ import {UsageTestController} from "@tutao/tutanota-usagetests"
 import {UsageTestModel} from "../../misc/UsageTestModel"
 import {deviceConfig} from "../../misc/DeviceConfig"
 import {IServiceExecutor} from "../common/ServiceRequest.js"
+import {BlobFacade} from "../worker/facades/BlobFacade"
+import {CryptoFacade} from "../worker/crypto/CryptoFacade"
 
 assertMainOrNode()
 
@@ -90,12 +92,15 @@ export interface IMainLocator {
 	readonly bookingFacade: BookingFacade
 	readonly mailAddressFacade: MailAddressFacade
 	readonly fileFacade: FileFacade
+	readonly blobFacade: BlobFacade
 	readonly userManagementFacade: UserManagementFacade
 	readonly contactFormFacade: ContactFormFacade
 	readonly deviceEncryptionFacade: DeviceEncryptionFacade
 	readonly usageTestController: UsageTestController
 	readonly usageTestModel: UsageTestModel
 	readonly serviceExecutor: IServiceExecutor
+	readonly cryptoFacade: CryptoFacade
+
 	readonly init: () => Promise<void>
 	readonly initialized: Promise<void>
 }
@@ -128,12 +133,14 @@ class MainLocator implements IMainLocator {
 	bookingFacade!: BookingFacade
 	mailAddressFacade!: MailAddressFacade
 	fileFacade!: FileFacade
+	blobFacade!: BlobFacade
 	userManagementFacade!: UserManagementFacade
 	contactFormFacade!: ContactFormFacade
 	deviceEncryptionFacade!: DeviceEncryptionFacade
 	usageTestController!: UsageTestController
 	usageTestModel!: UsageTestModel
 	serviceExecutor!: IServiceExecutor
+	cryptoFacade!: CryptoFacade
 
 	private _nativeInterfaces: NativeInterfaces | null = null
 
@@ -217,11 +224,13 @@ class MainLocator implements IMainLocator {
 			bookingFacade,
 			mailAddressFacade,
 			fileFacade,
+			blobFacade,
 			userManagementFacade,
 			contactFormFacade,
 			deviceEncryptionFacade,
 			restInterface,
-			serviceExecutor
+			serviceExecutor,
+			cryptoFacade,
 		} = this.worker.getWorkerInterface()
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -237,6 +246,7 @@ class MainLocator implements IMainLocator {
 		this.bookingFacade = bookingFacade
 		this.mailAddressFacade = mailAddressFacade
 		this.fileFacade = fileFacade
+		this.blobFacade = blobFacade
 		this.userManagementFacade = userManagementFacade
 		this.contactFormFacade = contactFormFacade
 		this.deviceEncryptionFacade = deviceEncryptionFacade
@@ -245,6 +255,7 @@ class MainLocator implements IMainLocator {
 		this.progressTracker = new ProgressTracker()
 		this.search = new SearchModel(this.searchFacade)
 		this.entityClient = new EntityClient(restInterface)
+		this.cryptoFacade = cryptoFacade
 		this.webauthnClient = new WebauthnClient(this.webauthnController, getWebRoot())
 		this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, this.webauthnClient, this.loginFacade)
 		this.credentialsProvider = await createCredentialsProvider(deviceEncryptionFacade, this._nativeInterfaces?.native ?? null)

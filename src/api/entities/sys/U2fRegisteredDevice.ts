@@ -58,7 +58,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "73"
+	"version": "74"
 }
 
 export function createU2fRegisteredDevice(values?: Partial<U2fRegisteredDevice>): U2fRegisteredDevice {

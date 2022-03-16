@@ -3,25 +3,25 @@ import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes.js"
 
 
-export const TargetServerTypeRef: TypeRef<TargetServer> = new TypeRef("sys", "TargetServer")
+export const BlobServerUrlTypeRef: TypeRef<BlobServerUrl> = new TypeRef("storage", "BlobServerUrl")
 export const _TypeModel: TypeModel = {
-	"name": "TargetServer",
-	"since": 69,
+	"name": "BlobServerUrl",
+	"since": 4,
 	"type": "AGGREGATED_TYPE",
-	"id": 1889,
-	"rootId": "A3N5cwAHYQ",
+	"id": 148,
+	"rootId": "B3N0b3JhZ2UAAJQ",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"id": 1890,
+			"id": 149,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"url": {
-			"id": 1891,
+			"id": 150,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
@@ -29,16 +29,16 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {},
-	"app": "sys",
-	"version": "73"
+	"app": "storage",
+	"version": "4"
 }
 
-export function createTargetServer(values?: Partial<TargetServer>): TargetServer {
-	return Object.assign(create(_TypeModel, TargetServerTypeRef), downcast<TargetServer>(values))
+export function createBlobServerUrl(values?: Partial<BlobServerUrl>): BlobServerUrl {
+	return Object.assign(create(_TypeModel, BlobServerUrlTypeRef), downcast<BlobServerUrl>(values))
 }
 
-export type TargetServer = {
-	_type: TypeRef<TargetServer>;
+export type BlobServerUrl = {
+	_type: TypeRef<BlobServerUrl>;
 
 	_id: Id;
 	url: string;

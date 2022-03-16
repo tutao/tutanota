@@ -26,10 +26,19 @@ export interface RestClientOptions {
 	baseUrl?: string,
 	headers?: Dict,
 	queryParams?: Dict,
+	noCORS?: boolean,
 	/** Default is to suspend all requests on rate limit. */
 	suspensionBehavior?: SuspensionBehavior,
 }
 
+/**
+ * Allows REST communication with the server.
+ * The RestClient observes upload/download progress and times
+ * out in case no data is sent or received for a certain time.
+ *
+ * Uses XmlHttpRequest as there is still no support for tracking
+ * upload progress with fetch (see https://stackoverflow.com/a/69400632)
+ */
 export class RestClient {
 	private readonly url: string
 	private id: number
@@ -61,6 +70,10 @@ export class RestClient {
 
 				if (method === HttpMethod.GET && typeof options.body === "string") {
 					options.queryParams["_body"] = options.body // get requests are not allowed to send a body. Therefore, we convert our body to a paramater
+				}
+
+				if (options.noCORS) {
+					options.queryParams["cv"] = env.versionNumber
 				}
 
 				const url = addParamsToUrl(new URL((options.baseUrl ?? this.url) + path), options.queryParams)
@@ -137,25 +150,28 @@ export class RestClient {
 					reject(handleRestError(xhr.status, ` | ${method} ${path}`, xhr.getResponseHeader("Error-Id"), xhr.getResponseHeader("Precondition")))
 				}
 
-				xhr.upload.onprogress = (pe: ProgressEvent) => {
-					// @ts-ignore
-					if (isWorker() && self.debug) {
-						console.log(`${this.id}: ${String(new Date())} upload progress. Clearing Timeout ${String(timeout)}`, pe)
-					}
+				// don't add an EventListener for non-CORS requests, otherwise it would not meet the 'CORS-Preflight simple request' requirements
+				if (!options.noCORS) {
+					xhr.upload.onprogress = (pe: ProgressEvent) => {
+						// @ts-ignore
+						if (isWorker() && self.debug) {
+							console.log(`${this.id}: ${String(new Date())} upload progress. Clearing Timeout ${String(timeout)}`, pe)
+						}
 
-					clearTimeout(timeout)
-					const t = abortAfterTimeout()
-					timeout = setTimeout(t.abortFunction, env.timeout)
-					t.timeoutId = timeout
+						clearTimeout(timeout)
+						const t = abortAfterTimeout()
+						timeout = setTimeout(t.abortFunction, env.timeout)
+						t.timeoutId = timeout
 
-					// @ts-ignore
-					if (isWorker() && self.debug) {
-						console.log(`${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
-					}
+						// @ts-ignore
+						if (isWorker() && self.debug) {
+							console.log(`${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
+						}
 
-					if (options.progressListener != null && pe.lengthComputable) {
-						// see https://developer.mozilla.org/en-US/docs/Web/API/ProgressEvent
-						options.progressListener.upload((1 / pe.total) * pe.loaded)
+						if (options.progressListener != null && pe.lengthComputable) {
+							// see https://developer.mozilla.org/en-US/docs/Web/API/ProgressEvent
+							options.progressListener.upload((1 / pe.total) * pe.loaded)
+						}
 					}
 				}
 
@@ -251,12 +267,15 @@ export class RestClient {
 			options.headers = {}
 		}
 		const {headers, body, responseType} = options
-		headers["cv"] = env.versionNumber
 
-		if (body instanceof Uint8Array) {
-			headers["Content-Type"] = MediaType.Binary
-		} else if (typeof body === "string") {
-			headers["Content-Type"] = MediaType.Json
+		// don't add custom and content-type headers for non-CORS requests, otherwise it would not meet the 'CORS-Preflight simple request' requirements
+		if (!options.noCORS) {
+			headers["cv"] = env.versionNumber
+			if (body instanceof Uint8Array) {
+				headers["Content-Type"] = MediaType.Binary
+			} else if (typeof body === "string") {
+				headers["Content-Type"] = MediaType.Json
+			}
 		}
 
 		if (responseType) {
@@ -272,7 +291,9 @@ export class RestClient {
 export function addParamsToUrl(url: URL, urlParams: Dict): URL {
 	if (urlParams) {
 		for (const [key, value] of typedEntries(urlParams)) {
-			url.searchParams.set(key, value)
+			if (value) {
+				url.searchParams.set(key, value)
+			}
 		}
 	}
 

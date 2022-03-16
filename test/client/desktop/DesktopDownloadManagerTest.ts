@@ -3,10 +3,11 @@ import n, {Mocked} from "../nodemocker"
 import {DesktopDownloadManager} from "../../../src/desktop/DesktopDownloadManager"
 import {assertThrows} from "@tutao/tutanota-test-utils"
 import {CancelledError} from "../../../src/api/common/error/CancelledError"
-import {delay} from "@tutao/tutanota-utils"
 import {DesktopNetworkClient} from "../../../src/desktop/DesktopNetworkClient"
 import {PreconditionFailedError, TooManyRequestsError} from "../../../src/api/common/error/RestError"
 import type * as fs from "fs"
+import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {sha256Hash} from "@tutao/tutanota-crypto"
 
 const DEFAULT_DOWNLOAD_PATH = "/a/download/path/"
 
@@ -15,6 +16,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 	let session
 	let item
 	let WriteStream: Mocked<fs.WriteStream>
+	let ReadStream: Mocked<fs.ReadStream>
 	let fs
 	let dateProvider
 	let time = 1629115820468
@@ -130,9 +132,37 @@ o.spec("DesktopDownloadManagerTest", function () {
 
 					return this
 				},
+				end: function (resolve) {
+					if (this.callbacks["finish"]) {
+						this.callbacks["finish"]()
+					}
+					resolve()
+				},
+			},
+			statics: {},
+		})
+		ReadStream = n.classify({
+			prototype: {
+				callbacks: {},
+				on: function (ev, cb) {
+					this.callbacks[ev] = cb
+					return this
+				},
+				close: function () {
+					this.callbacks["close"]()
+				},
+				removeAllListeners: function (ev) {
+					this.callbacks[ev] = () => {
+					}
+
+					return this
+				},
 				end: function () {
 					this.callbacks["finish"]()
 				},
+				pipe: function ()  {
+					this.callbacks["end"]()
+				}
 			},
 			statics: {},
 		})
@@ -143,14 +173,20 @@ o.spec("DesktopDownloadManagerTest", function () {
 			},
 			writeFile: () => Promise.resolve(),
 			createWriteStream: () => new WriteStream(),
+			createReadStream: () => new ReadStream(),
 			existsSync: path => path === DEFAULT_DOWNLOAD_PATH,
 			mkdirSync: () => {
 			},
+
 			promises: {
 				unlink: () => Promise.resolve(),
 				mkdir: () => Promise.resolve(),
 				writeFile: () => Promise.resolve(),
 				readdir: () => Promise.resolve([]),
+				stat: () =>  {
+					return {size: 33}
+				},
+				readFile: (fileName) => Promise.resolve(stringToUtf8Uint8Array(fileName))
 			},
 		}
 		const lang = {
@@ -307,7 +343,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 				errorId: null,
 				precondition: null,
 				suspensionTime: null,
-				encryptedFileUri: expectedFilePath
+				encryptedFileUri: expectedFilePath,
 			})
 
 			const ws = WriteStream.mockedInstances[0]
@@ -486,6 +522,42 @@ o.spec("DesktopDownloadManagerTest", function () {
 			await dl.open("exec.exe")
 			o(mocks.electronMock.dialog.showMessageBox.callCount).equals(1)
 			o(mocks.electronMock.shell.openPath.callCount).equals(0)
+		})
+	})
+
+	o.spec("join", function() {
+		o("join", async function () {
+			const mocks = standardMocks()
+			const dl = makeMockedDownloadManager(mocks)
+			const joinedFile = await dl.joinFiles("fileName.pdf", ["/file1"])
+			o(mocks.fsMock.createWriteStream.callCount).equals(1)("createStream calls")
+			const ws = WriteStream.mockedInstances[0]
+
+			o(mocks.fsMock.createReadStream.callCount).equals(1)("createStream calls")
+			const rs = ReadStream.mockedInstances[0]
+			o(rs.pipe.callCount).equals(1)("stream was piped")
+			o(rs.pipe.args).deepEquals([ws, {end: false}])
+			o(ws.end.callCount).equals(1)
+
+			o(joinedFile).equals(DEFAULT_DOWNLOAD_PATH + "fileName.pdf")
+		})
+	})
+
+	o.spec("size", function () {
+		o("size", async function () {
+			const mocks = standardMocks()
+			const dl = makeMockedDownloadManager(mocks)
+			const size = await dl.getSize("/file1")
+			o(size).equals(33)
+		})
+	})
+
+	o.spec("hash", function() {
+		o("hash", async function () {
+			const mocks = standardMocks()
+			const dl = makeMockedDownloadManager(mocks)
+			const fileHash = await dl.hashFile("/file1")
+			o(fileHash).equals(uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array("/file1"))))
 		})
 	})
 })

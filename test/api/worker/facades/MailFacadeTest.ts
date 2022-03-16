@@ -11,6 +11,7 @@ import {IServiceExecutor} from "../../../../src/api/common/ServiceRequest"
 import {LoginFacade, LoginFacadeImpl} from "../../../../src/api/worker/facades/LoginFacade"
 import {FileFacade} from "../../../../src/api/worker/facades/FileFacade"
 import {EntityClient} from "../../../../src/api/common/EntityClient"
+import {BlobFacade} from "../../../../src/api/worker/facades/BlobFacade"
 
 o.spec("MailFacade test", function () {
 	let facade: MailFacade
@@ -19,14 +20,16 @@ o.spec("MailFacade test", function () {
 	let serviceExecutor: IServiceExecutor
 	let fileFacade: FileFacade
 	let entity: EntityClient
+	let blobFacade: BlobFacade
 
 	o.beforeEach(function () {
 		loginFacade = object()
+		blobFacade = object()
 		fileFacade = object()
 		entity = object()
 		cryptoFacade = object()
 		serviceExecutor = object()
-		facade = new MailFacade(loginFacade, fileFacade, entity, cryptoFacade, serviceExecutor)
+		facade = new MailFacade(loginFacade, fileFacade, blobFacade, entity, cryptoFacade, serviceExecutor)
 	})
 
 	o.spec("checkMailForPhishing", function () {

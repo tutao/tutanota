@@ -9,7 +9,7 @@ import {assertWorkerOrNode, isMainOrNode} from "../common/Env"
 import type {ContactFormFacade} from "./facades/ContactFormFacade"
 import type {BrowserData} from "../../misc/ClientConstants"
 import type {InfoMessage} from "../common/CommonTypes"
-import {resolveSessionKey} from "./crypto/CryptoFacade"
+import {CryptoFacade, resolveSessionKey} from "./crypto/CryptoFacade"
 import {delay} from "@tutao/tutanota-utils"
 import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
@@ -29,7 +29,7 @@ import {CounterFacade} from "./facades/CounterFacade"
 import {Indexer} from "./search/Indexer"
 import {SearchFacade} from "./search/SearchFacade"
 import {MailAddressFacade} from "./facades/MailAddressFacade"
-import {FileFacade} from "./facades/FileFacade"
+import {FileFacade} from "./facades/FileFacade.js"
 import {UserManagementFacade} from "./facades/UserManagementFacade"
 import {exposeLocal, exposeRemote} from "../common/WorkerProxy"
 import type {SearchIndexStateInfo} from "./search/SearchTypes"
@@ -42,6 +42,7 @@ import type {EntityRestInterface} from "./rest/EntityRestClient"
 import {WsConnectionState} from "../main/WorkerClient";
 import {RestClient} from "./rest/RestClient"
 import {IServiceExecutor} from "../common/ServiceRequest.js"
+import {BlobFacade} from "./facades/BlobFacade"
 
 assertWorkerOrNode()
 
@@ -61,11 +62,13 @@ export interface WorkerInterface {
 	readonly bookingFacade: BookingFacade
 	readonly mailAddressFacade: MailAddressFacade
 	readonly fileFacade: FileFacade
+	readonly blobFacade: BlobFacade
 	readonly userManagementFacade: UserManagementFacade
 	readonly contactFormFacade: ContactFormFacade
 	readonly deviceEncryptionFacade: DeviceEncryptionFacade
 	readonly restInterface: EntityRestInterface
 	readonly serviceExecutor: IServiceExecutor
+	readonly cryptoFacade: CryptoFacade
 }
 
 /** Interface for the "main"/webpage context of the app, interface for the worker client. */
@@ -180,6 +183,10 @@ export class WorkerImpl implements NativeInterface {
 				return locator.file
 			},
 
+			get blobFacade() {
+				return locator.blob
+			},
+
 			get userManagementFacade() {
 				return locator.userManagement
 			},
@@ -197,7 +204,11 @@ export class WorkerImpl implements NativeInterface {
 			},
 			get serviceExecutor() {
 				return locator.serviceExecutor
-			}
+			},
+
+			get cryptoFacade() {
+				return locator.crypto
+			},
 		}
 	}
 

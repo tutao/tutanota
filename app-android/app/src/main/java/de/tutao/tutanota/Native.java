@@ -6,6 +6,7 @@ import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebMessage;
@@ -13,6 +14,7 @@ import android.webkit.WebMessagePort;
 import android.webkit.WebView;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.core.content.FileProvider;
 
 import org.jdeferred.Deferred;
@@ -254,12 +256,33 @@ public final class Native {
 				case "getSize":
 					promise.resolve(files.getSize(args.getString(0)) + "");
 					break;
-				case "upload":
-					promise.resolve(files.upload(args.getString(0), args.getString(1), args.getJSONObject(2)));
+				case "upload": {
+					String fileUri = args.getString(0);
+					String targetUrl = args.getString(1);
+					String httpMethod = args.getString(2);
+					JSONObject headers = args.getJSONObject(3);
+					promise.resolve(files.upload(fileUri, targetUrl, httpMethod, headers));
 					break;
-				case "download":
-					promise.resolve(files.download(args.getString(0), args.getString(1), args.getJSONObject(2)));
+				}
+				case "download": {
+					String url = args.getString(0);
+					String filename = args.getString(1);
+					JSONObject headers = args.getJSONObject(2);
+					promise.resolve(files.download(url, filename, headers));
 					break;
+				}
+				case "joinFiles": {
+					String filename = args.getString(0);
+					List<String> filesTojoin = jsonArrayToTypedList(args.getJSONArray(1));
+					promise.resolve(files.joinFiles(filename, filesTojoin));
+					break;
+				}
+				case "splitFile": {
+					String fileUri = args.getString(0);
+					int maxChunkSize = args.getInt(1);
+					promise.resolve(files.splitFile(fileUri, maxChunkSize));
+					break;
+				}
 				case "clearFileData":
 					files.clearFileData();
 					promise.resolve(null);
@@ -367,6 +390,10 @@ public final class Native {
 					promise.resolve(jsonArray);
 					break;
 				}
+				case "hashFile": {
+					String file = args.getString(0);
+					return promise.resolve(files.hashFile(file));
+				}
 				default:
 					throw new Exception("unsupported method: " + method);
 			}
@@ -389,6 +416,14 @@ public final class Native {
 		}
 		activity.startService(LocalNotificationsFacade.notificationDismissedIntent(activity,
 				emailAddresses, "Native", false));
+	}
+
+	private <T> List<T> jsonArrayToTypedList(JSONArray jsonArray) throws JSONException {
+		List<T> l = new ArrayList<>(jsonArray.length());
+		for (int i = 0; i < jsonArray.length(); i++) {
+			l.add((T) jsonArray.get(i));
+		}
+		return l;
 	}
 
 	private boolean openLink(@Nullable String uri) {
@@ -418,7 +453,8 @@ public final class Native {
 		String imageName = "logo-solo-red.png";
 		try {
 			InputStream logoInputStream = activity.getAssets().open("tutanota/images/" + imageName);
-			File logoFile = this.files.writeFileToUnencryptedDir(imageName, logoInputStream);
+			File logoFile = this.files.getTempDecryptedFile(imageName);
+			this.files.writeFile(logoFile, logoInputStream);
 			Uri logoUri = FileProvider.getUriForFile(activity, BuildConfig.FILE_PROVIDER_AUTHORITY, logoFile);
 			ClipData thumbnail = ClipData.newUri(
 					activity.getContentResolver(),

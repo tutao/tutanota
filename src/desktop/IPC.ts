@@ -29,6 +29,7 @@ import {Logger} from "../api/common/Logger"
 import {DektopCredentialsEncryption} from "./credentials/DektopCredentialsEncryption"
 import {exposeLocal} from "../api/common/WorkerProxy"
 import {ExposedNativeInterface} from "../native/common/NativeInterface"
+import {FileUri} from "../native/common/FileApp"
 
 type FacadeHandler = (message: Request<"facade">) => Promise<any>
 
@@ -129,7 +130,6 @@ export class IPC {
 						const response = new RequestError(request, e)
 
 						const w = this._wm.get(windowId)
-
 						if (w) w.sendMessageToWebContents(response)
 					})
 			}
@@ -209,7 +209,8 @@ export class IPC {
 				}
 
 			case "openFileChooser":
-				if (args[1]) {
+				const openFolderDialog = args[1]
+				if (openFolderDialog) {
 					// open folder dialog
 					return this._electron.dialog
 							   .showOpenDialog({
@@ -221,50 +222,69 @@ export class IPC {
 					return Promise.resolve([])
 				}
 
-			case "open":
+			case "open": {
 				// itemPath, mimeType
 				const itemPath = args[0].toString()
 				return this._dl.open(itemPath)
+			}
 
 			case "readDataFile": {
 				const location = args[0]
 				return this._desktopUtils.readDataFile(location)
 			}
 
-			case "download":
-				// sourceUrl, filename, headers
-				return this._dl.downloadNative(args[0], args[1], args[2])
+			case "download": {
+				const url: string = downcast(args[0])
+				const filename: string = downcast(args[1])
+				const headers: Dict = downcast(args[2])
+				return this._dl.downloadNative(url, filename, headers)
+			}
 
-			case "saveBlob":
+			case 'joinFiles': {
+				const filename: string = downcast(args[0])
+				const files: Array<FileUri> = downcast(args[1])
+				return this._dl.joinFiles(filename, files)
+			}
+
+			case "saveBlob": {
 				// args: [data.name, uint8ArrayToBase64(data.data)]
 				const filename: string = downcast(args[0])
 				const data: Uint8Array = base64ToUint8Array(downcast(args[1]))
 				return this._dl.saveBlob(filename, data)
+			}
 
-			case "aesDecryptFile":
-				// key, path
-				return this._crypto.aesDecryptFile(args[0], args[1])
+			case 'deleteFile' : {
+				const filename: string = downcast(args[0])
+				return this._dl.deleteFile(filename)
+			}
 
-			case "setConfigValue":
+			case "aesDecryptFile": {
+				const encodedKey: string = args[0]
+				const fileUri: FileUri = args[1]
+				const targetDir = this._desktopUtils.getTutanotaTempPath()
+				return this._crypto.aesDecryptFile(encodedKey, fileUri, targetDir)
+			}
+
+			case "setConfigValue": {
 				const [key, value] = args.slice(0, 2)
 				return this._conf.setVar(key, value)
-
-			case "openNewWindow":
+			}
+			case "openNewWindow": {
 				this._wm.newWindow(true)
 
 				return Promise.resolve()
-
-			case "enableAutoLaunch":
+			}
+			case "enableAutoLaunch": {
 				return this._integrator.enableAutoLaunch().catch(e => {
 					log.debug("could not enable auto launch:", e)
 				})
-
-			case "disableAutoLaunch":
+			}
+			case "disableAutoLaunch": {
 				return this._integrator.disableAutoLaunch().catch(e => {
 					log.debug("could not disable auto launch:", e)
 				})
-
-			case "getPushIdentifier":
+			}
+			case "getPushIdentifier": {
 				const uInfo = {
 					userId: args[0].toString(),
 					mailAddress: args[1].toString(),
@@ -284,43 +304,43 @@ export class IPC {
 					const sseInfo = await this._sse.getSseInfo()
 					return sseInfo && sseInfo.identifier
 				})
-
-			case "storePushIdentifierLocally":
+			}
+			case "storePushIdentifierLocally": {
 				return Promise.all([
 					this._sse.storePushIdentifier(args[0].toString(), args[1].toString(), args[2].toString()),
 					this._alarmStorage.storePushIdentifierSessionKey(args[3].toString(), args[4].toString()),
 				]).then(() => {
 				})
-
-			case "initPushNotifications":
+			}
+			case "initPushNotifications": {
 				// Nothing to do here because sse connection is opened when starting the native part.
 				return Promise.resolve()
-
-			case "closePushNotifications":
+			}
+			case "closePushNotifications": {
 				// only gets called in the app
 				// the desktop client closes notifications on window focus
 				return Promise.resolve()
-
-			case "sendSocketMessage":
+			}
+			case "sendSocketMessage": {
 				// for admin client integration
 				this._sock.sendSocketMessage(args[0])
 
 				return Promise.resolve()
-
-			case "getLog":
+			}
+			case "getLog": {
 				// @ts-ignore
 				const logger: Logger = global.logger
 				return Promise.resolve(logger.getEntries())
-
-			case "changeLanguage":
+			}
+			case "changeLanguage": {
 				return lang.setLanguage(args[0])
-
-			case "manualUpdate":
+			}
+			case "manualUpdate": {
 				return !!this._updater ? this._updater.manualUpdate() : Promise.resolve(false)
-
-			case "isUpdateAvailable":
+			}
+			case "isUpdateAvailable": {
 				return !!this._updater ? Promise.resolve(this._updater.updateInfo) : Promise.resolve(null)
-
+			}
 			case "mailToMsg": {
 				const bundle = args[0]
 				const fileName = args[1]
@@ -426,10 +446,22 @@ export class IPC {
 				return this._credentialsEncryption.getSupportedEncryptionModes()
 			}
 
-			case "facade":
+			case 'hashFile': {
+				const file: FileUri = args[0]
+				return this._dl.hashFile(file)
+			}
+
+			case 'getSize': {
+				const file: FileUri = args[0]
+				return this._dl.getSize(file)
+			}
+
+			case "facade": {
 				return this.getHandlerForWindow(windowId)(new Request(method, args))
-			default:
+			}
+			default: {
 				return Promise.reject(new Error(`Invalid Method invocation: ${method}`))
+			}
 		}
 	}
 

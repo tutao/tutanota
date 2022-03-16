@@ -117,7 +117,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "73"
+	"version": "74"
 }
 
 export function createReceivedGroupInvitation(values?: Partial<ReceivedGroupInvitation>): ReceivedGroupInvitation {

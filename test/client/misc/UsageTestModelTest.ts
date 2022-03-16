@@ -1,6 +1,6 @@
 import o from "ospec"
 import {ASSIGNMENT_UPDATE_INTERVAL_MS, PersistedAssignmentData, TtlBehavior, UsageTestModel, UsageTestStorage} from "../../../src/misc/UsageTestModel"
-import {createUsageTestAssignment} from "../../../src/api/entities/sys/UsageTestAssignment"
+import {_TypeModel as UsageTestTypeModel, createUsageTestAssignment} from "../../../src/api/entities/sys/UsageTestAssignment"
 import {matchers, object, verify, when} from "testdouble"
 import {createUsageTestAssignmentIn} from "../../../src/api/entities/sys/UsageTestAssignmentIn"
 import {createUsageTestAssignmentOut} from "../../../src/api/entities/sys/UsageTestAssignmentOut"
@@ -65,7 +65,7 @@ o.spec("UsageTestModel", function () {
 	})
 	const assignmentData: PersistedAssignmentData = {
 		updatedAt: dateProvider.now() - (ASSIGNMENT_UPDATE_INTERVAL_MS * 2),
-		sysModelVersion: 73,
+		sysModelVersion: Number(UsageTestTypeModel.version),
 		assignments: [oldAssignment],
 	}
 

@@ -1,14 +1,15 @@
-import {BlobAccessTokenDataTypeRef} from "./BlobAccessTokenData.js"
-import {BlobAccessTokenReturnTypeRef} from "./BlobAccessTokenReturn.js"
-import {BlobReferenceDataPutTypeRef} from "./BlobReferenceDataPut.js"
-import {BlobReferenceDataDeleteTypeRef} from "./BlobReferenceDataDelete.js"
-import {BlobDataGetTypeRef} from "./BlobDataGet.js"
+import {BlobAccessTokenPostInTypeRef} from "./BlobAccessTokenPostIn.js"
+import {BlobAccessTokenPostOutTypeRef} from "./BlobAccessTokenPostOut.js"
+import {BlobReferencePutInTypeRef} from "./BlobReferencePutIn.js"
+import {BlobReferenceDeleteInTypeRef} from "./BlobReferenceDeleteIn.js"
+import {BlobGetInTypeRef} from "./BlobGetIn.js"
+import {BlobPostOutTypeRef} from "./BlobPostOut.js"
 
 export const BlobAccessTokenService = Object.freeze({
 	app: "storage",
 	name: "BlobAccessTokenService",
 	get: null,
-	post: {data: BlobAccessTokenDataTypeRef, return: BlobAccessTokenReturnTypeRef},
+	post: {data: BlobAccessTokenPostInTypeRef, return: BlobAccessTokenPostOutTypeRef},
 	put: null,
 	delete: null,
 } as const)
@@ -18,15 +19,15 @@ export const BlobReferenceService = Object.freeze({
 	name: "BlobReferenceService",
 	get: null,
 	post: null,
-	put: {data: BlobReferenceDataPutTypeRef, return: null},
-	delete: {data: BlobReferenceDataDeleteTypeRef, return: null},
+	put: {data: BlobReferencePutInTypeRef, return: null},
+	delete: {data: BlobReferenceDeleteInTypeRef, return: null},
 } as const)
 
 export const BlobService = Object.freeze({
 	app: "storage",
 	name: "BlobService",
-	get: {data: BlobDataGetTypeRef, return: null},
-	post: null,
+	get: {data: BlobGetInTypeRef, return: null},
+	post: {data: null, return: BlobPostOutTypeRef},
 	put: null,
 	delete: null,
 } as const)

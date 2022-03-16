@@ -8,11 +8,12 @@ import {lang, TranslationKey} from "../misc/LanguageViewModel"
 import {BrowserType} from "../misc/ClientConstants"
 import {client} from "../misc/ClientDetector"
 import {ConnectionError} from "../api/common/error/RestError"
-import type {File as TutanotaFile} from "../api/entities/tutanota/File"
+import {File as TutanotaFile} from "../api/entities/tutanota/File"
 import {deduplicateFilenames, FileReference, sanitizeFilename} from "../api/common/utils/FileUtils"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {locator} from "../api/main/MainLocator"
 import type {NativeFileApp} from "../native/common/FileApp"
+import {ArchiveDataType} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 export const CALENDAR_MIME_TYPE = "text/calendar"
@@ -33,12 +34,16 @@ export class FileController {
 	 */
 	downloadAndOpen(tutanotaFile: TutanotaFile, open: boolean): Promise<void> {
 		const fileFacade = locator.fileFacade
+		const blobFacade = locator.blobFacade
 		const downloadPromise = Promise.resolve().then(async () => {
+			let file: DataFile | FileReference | null = null
 			if (isApp()) {
-				let file
-
 				try {
-					file = await fileFacade.downloadFileContentNative(tutanotaFile)
+					if (tutanotaFile.blobs.length === 0) {
+						file = await fileFacade.downloadFileContentNative(tutanotaFile)
+					} else {
+						file = await blobFacade.downloadAndDecryptNative(ArchiveDataType.Attachments, tutanotaFile.blobs, tutanotaFile, tutanotaFile.name, neverNull(tutanotaFile.mimeType))
+					}
 
 					if (isAndroidApp() && !open) {
 						await this.fileApp.putFileIntoDownloadsFolder(file.location)
@@ -51,10 +56,20 @@ export class FileController {
 					}
 				}
 			} else if (isDesktop()) {
-				const file = open ? await fileFacade.downloadFileContentNative(tutanotaFile) : await fileFacade.downloadFileContent(tutanotaFile)
+				if (tutanotaFile.blobs.length === 0) {
+					file = open ? await fileFacade.downloadFileContentNative(tutanotaFile) : await fileFacade.downloadFileContent(tutanotaFile)
+				} else {
+					file = await blobFacade.downloadAndDecryptNative(ArchiveDataType.Attachments, tutanotaFile.blobs, tutanotaFile, tutanotaFile.name, neverNull(tutanotaFile.mimeType))
+				}
 				await this.open(file)
 			} else {
-				const file = await fileFacade.downloadFileContent(tutanotaFile)
+				// web client
+				if (tutanotaFile.blobs.length === 0) {
+					file = await fileFacade.downloadFileContent(tutanotaFile)
+				} else {
+					const data = await blobFacade.downloadAndDecrypt(ArchiveDataType.Attachments, tutanotaFile.blobs, tutanotaFile)
+					file = convertToDataFile(tutanotaFile, data)
+				}
 				await this.open(file)
 			}
 		})
@@ -88,7 +103,6 @@ export class FileController {
 					fileFacade.downloadFileContentNative(f)
 							  .catch(ofClass(CryptoError, () => showErr("corrupted_msg", f.name)))
 							  .catch(ofClass(ConnectionError, () => showErr("couldNotAttachFile_msg", f.name))),
-				{concurrency: 1}
 			)
 			const files = fileResults.filter(isNotNull)
 			for (const file of files) {
@@ -101,7 +115,6 @@ export class FileController {
 					fileFacade.downloadFileContentNative(f)
 							  .catch(ofClass(CryptoError, () => showErr("corrupted_msg", f.name)))
 							  .catch(ofClass(ConnectionError, () => showErr("couldNotAttachFile_msg", f.name))),
-				{concurrency: 1}
 			)
 			const files = fileResults.filter(isNotNull)
 			for (const file of files) {
@@ -114,7 +127,6 @@ export class FileController {
 					fileFacade.downloadFileContent(f)
 							  .catch(ofClass(CryptoError, () => showErr("corrupted_msg", f.name)))
 							  .catch(ofClass(ConnectionError, () => showErr("couldNotAttachFile_msg", f.name))),
-				{concurrency: 1}
 			)
 			const files = fileResults.filter(isNotNull)
 			const zip = await this.zipDataFiles(files, `${sortableTimestamp()}-attachments.zip`)

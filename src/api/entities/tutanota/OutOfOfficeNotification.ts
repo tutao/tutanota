@@ -75,7 +75,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "51"
+	"version": "52"
 }
 
 export function createOutOfOfficeNotification(values?: Partial<OutOfOfficeNotification>): OutOfOfficeNotification {

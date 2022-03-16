@@ -51,7 +51,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "73"
+	"version": "74"
 }
 
 export function createLogin(values?: Partial<Login>): Login {

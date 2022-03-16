@@ -2,6 +2,7 @@ import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes.js"
 
+import type {BlobReferenceTokenWrapper} from "../sys/BlobReferenceTokenWrapper.js"
 
 export const NewDraftAttachmentTypeRef: TypeRef<NewDraftAttachment> = new TypeRef("tutanota", "NewDraftAttachment")
 export const _TypeModel: TypeModel = {
@@ -46,14 +47,22 @@ export const _TypeModel: TypeModel = {
 		"fileData": {
 			"id": 490,
 			"type": "ELEMENT_ASSOCIATION",
-			"cardinality": "One",
+			"cardinality": "ZeroOrOne",
 			"final": true,
 			"refType": "FileData",
 			"dependency": null
+		},
+		"referenceTokens": {
+			"id": 1226,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"final": true,
+			"refType": "BlobReferenceTokenWrapper",
+			"dependency": "sys"
 		}
 	},
 	"app": "tutanota",
-	"version": "51"
+	"version": "52"
 }
 
 export function createNewDraftAttachment(values?: Partial<NewDraftAttachment>): NewDraftAttachment {
@@ -68,5 +77,6 @@ export type NewDraftAttachment = {
 	encFileName: Uint8Array;
 	encMimeType: Uint8Array;
 
-	fileData: Id;
+	fileData:  null | Id;
+	referenceTokens: BlobReferenceTokenWrapper[];
 }

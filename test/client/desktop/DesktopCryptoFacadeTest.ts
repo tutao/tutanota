@@ -91,7 +91,8 @@ o.spec("DesktopCryptoFacadeTest", () => {
     const fs = {
         promises: {
             readFile: () => Promise.resolve(data),
-            writeFile: (file, data) =>
+			mkdir: () => Promise.resolve(),
+			writeFile: (file, data) =>
                 data === decryptedUint8 ? Promise.resolve() : Promise.reject("decryption failed"),
         },
     }
@@ -127,8 +128,8 @@ o.spec("DesktopCryptoFacadeTest", () => {
 
     o("aesDecryptFile", async function () {
         const {desktopCrypto, fsMock} = setupSubject()
-        const file = await desktopCrypto.aesDecryptFile("b64_somekey", "/some/path/to/file")
-        o(file).equals("/some/path/to/file")
+        const file = await desktopCrypto.aesDecryptFile("b64_somekey", "/some/path/to/file.pdf", "/some/other/path/to")
+        o(file).equals("/some/other/path/to/file.pdf")
         o(fsMock.promises.writeFile.callCount).equals(1)
     })
     o("aes256DecryptKeyToB64", function () {

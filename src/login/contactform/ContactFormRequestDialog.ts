@@ -337,7 +337,7 @@ export class ContactFormRequestDialog {
 							attachments: this._attachments,
 							confidential: true,
 							replyTos: [],
-							method: MailMethod.NONE
+							method: MailMethod.NONE,
 						},
 					)
 					await mailFacade.sendDraft(draft, [makeRecipientDetails(name, mailAddress, RecipientInfoType.INTERNAL, null)], lang.code)

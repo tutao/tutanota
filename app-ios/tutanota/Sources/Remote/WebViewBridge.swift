@@ -1,5 +1,6 @@
 import Foundation
 import DictionaryCoding
+import CryptoTokenKit
 
 /// Gateway for communicating with Javascript code in WebView. Can send messages and handle requests.
 class WebViewBridge : NSObject {
@@ -13,6 +14,7 @@ class WebViewBridge : NSObject {
   private let userPreferences: UserPreferenceFacade
   private let alarmManager: AlarmManager
   private let credentialsEncryption: CredentialsEncryption
+  private let blobUtils: BlobUtil
 
   private var requestId = 0
   private var requests = [String : ((Any?) -> Void)]()
@@ -29,7 +31,8 @@ class WebViewBridge : NSObject {
     userPreferences: UserPreferenceFacade,
     alarmManager: AlarmManager,
     fileFacade: FileFacade,
-    credentialsEncryption: CredentialsEncryption
+    credentialsEncryption: CredentialsEncryption,
+    blobUtils: BlobUtil
   ) {
     self.webView = webView
     self.viewController = viewController
@@ -41,6 +44,7 @@ class WebViewBridge : NSObject {
     self.alarmManager = alarmManager
     self.fileFacade = fileFacade
     self.credentialsEncryption = credentialsEncryption
+    self.blobUtils = blobUtils
 
     super.init()
     self.webView.configuration.userContentController.add(self, name: "nativeApp")
@@ -197,7 +201,8 @@ class WebViewBridge : NSObject {
         self.fileFacade.uploadFile(
           atPath: args[0] as! String,
           toUrl: args[1] as! String,
-          withHeaders: args[2] as! [String : String],
+          method: args[2] as! String,
+          withHeaders: args[3] as! [String : String],
           completion: respond
         )
       case "deleteFile":
@@ -283,6 +288,17 @@ class WebViewBridge : NSObject {
         self.credentialsEncryption.decryptUsingKeychain(encryptedData: args[1] as! Base64, encryptionMode: encryptionMode, completion: respond)
       case "getSupportedEncryptionModes":
         self.credentialsEncryption.getSupportedEncryptionModes(completion: respond)
+      case "joinFiles":
+        let outFileName = args[0] as! String
+        let filesToJoin = args[1] as! [String]
+        self.blobUtils.joinFiles(fileName: outFileName, filePathsToJoin: filesToJoin, completion: respond)
+      case "splitFile":
+        let inFileName = args[0] as! String
+        let maxBlobSize = args[1] as! Int
+        self.blobUtils.splitFile(fileUri: inFileName, maxBlobSize: maxBlobSize, completion: respond)
+      case "hashFile":
+        let inFileUri = args[0] as! String
+        self.blobUtils.hashFile(fileUri: inFileUri, completion: respond)
       default:
         let message = "Unknown comand: \(type)"
         TUTSLog(message)

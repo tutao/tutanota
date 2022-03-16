@@ -30,7 +30,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "51"
+	"version": "52"
 }
 
 export function createPasswordRetrievalReturn(values?: Partial<PasswordRetrievalReturn>): PasswordRetrievalReturn {

@@ -108,7 +108,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "51"
+	"version": "52"
 }
 
 export function createMailBox(values?: Partial<MailBox>): MailBox {

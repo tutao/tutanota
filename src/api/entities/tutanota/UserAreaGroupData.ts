@@ -67,7 +67,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "51"
+	"version": "52"
 }
 
 export function createUserAreaGroupData(values?: Partial<UserAreaGroupData>): UserAreaGroupData {

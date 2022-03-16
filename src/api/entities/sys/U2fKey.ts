@@ -46,7 +46,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "73"
+	"version": "74"
 }
 
 export function createU2fKey(values?: Partial<U2fKey>): U2fKey {

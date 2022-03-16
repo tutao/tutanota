@@ -40,6 +40,12 @@ export type ModelAssociation = {
 	dependency?: string | null
 }
 
+export interface Instance extends Entity {
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
+	_id: Id | IdTuple;
+}
+
 export interface Entity {
 	_type: TypeRef<this>
 	// _ownerEncSessionKey?: ?Uint8Array,

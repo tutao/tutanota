@@ -37,7 +37,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "73"
+	"version": "74"
 }
 
 export function createBraintree3ds2Response(values?: Partial<Braintree3ds2Response>): Braintree3ds2Response {

@@ -3,25 +3,25 @@ import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes.js"
 
 
-export const BlobIdTypeRef: TypeRef<BlobId> = new TypeRef("sys", "BlobId")
+export const BlobIdTypeRef: TypeRef<BlobId> = new TypeRef("storage", "BlobId")
 export const _TypeModel: TypeModel = {
 	"name": "BlobId",
-	"since": 69,
+	"since": 4,
 	"type": "AGGREGATED_TYPE",
-	"id": 1886,
-	"rootId": "A3N5cwAHXg",
+	"id": 144,
+	"rootId": "B3N0b3JhZ2UAAJA",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"id": 1887,
+			"id": 145,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"blobId": {
-			"id": 1907,
+			"id": 146,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": false,
@@ -29,8 +29,8 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {},
-	"app": "sys",
-	"version": "73"
+	"app": "storage",
+	"version": "4"
 }
 
 export function createBlobId(values?: Partial<BlobId>): BlobId {

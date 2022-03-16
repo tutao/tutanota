@@ -2,7 +2,6 @@ import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {BlobAccessInfo} from "../sys/BlobAccessInfo.js"
 
 export const FileDataReturnPostTypeRef: TypeRef<FileDataReturnPost> = new TypeRef("tutanota", "FileDataReturnPost")
 export const _TypeModel: TypeModel = {
@@ -23,14 +22,6 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
-		"accessInfo": {
-			"id": 1222,
-			"type": "AGGREGATION",
-			"cardinality": "ZeroOrOne",
-			"final": false,
-			"refType": "BlobAccessInfo",
-			"dependency": "sys"
-		},
 		"fileData": {
 			"id": 344,
 			"type": "ELEMENT_ASSOCIATION",
@@ -41,7 +32,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "51"
+	"version": "52"
 }
 
 export function createFileDataReturnPost(values?: Partial<FileDataReturnPost>): FileDataReturnPost {
@@ -54,6 +45,5 @@ export type FileDataReturnPost = {
 
 	_format: NumberString;
 
-	accessInfo:  null | BlobAccessInfo;
 	fileData: Id;
 }

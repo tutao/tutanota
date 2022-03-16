@@ -36,6 +36,7 @@ export {
 	difference,
 	symmetricDifference,
 	partition,
+	splitUint8ArrayInChunks,
 	partitionAsync,
 	arrayOf
 } from "./ArrayUtils.js"

@@ -303,12 +303,19 @@ export function groupBy<T, R>(iterable: Iterable<T>, discriminator: (arg0: T) =>
  * @returns {Array<Array<T>>}
  */
 export function splitInChunks<T>(chunkSize: number, array: Array<T>): Array<Array<T>> {
+	return downcast(_chunk(chunkSize, array))
+}
+
+export function splitUint8ArrayInChunks(chunkSize: number, array: Uint8Array): Array<Uint8Array> {
+	return downcast(_chunk(chunkSize, array))
+}
+function _chunk<T>(chunkSize: number, array: Array<T> | Uint8Array): Array<Array<T> | Uint8Array> {
 	if (chunkSize < 1) {
 		return []
 	}
 
 	let chunkNum = 0
-	const chunks: Array<Array<T>> = []
+	const chunks: Array<Array<T> | Uint8Array> = []
 	let end
 
 	do {
@@ -491,8 +498,8 @@ export function symmetricDifference<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T
  * @param predicate
  */
 export function partition<T>(array: Array<T>, predicate: (arg0: T) => boolean): [Array<T>, Array<T>] {
-	const left: Array<T> = []
-	const right: Array<T> = []
+	const left: T[] = []
+	const right: T[] = []
 
 	for (let item of array) {
 		if (predicate(item)) {

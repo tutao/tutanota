@@ -39,7 +39,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "51"
+	"version": "52"
 }
 
 export function createEncryptTutanotaPropertiesData(values?: Partial<EncryptTutanotaPropertiesData>): EncryptTutanotaPropertiesData {

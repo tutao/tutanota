@@ -20,7 +20,8 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     keychainManager: KeychainManager,
     userPreferences: UserPreferenceFacade,
     alarmManager: AlarmManager,
-    credentialsEncryption: CredentialsEncryption
+    credentialsEncryption: CredentialsEncryption,
+    blobUtils:BlobUtil
     ) {
       self.themeManager = themeManager
       self.alarmManager = alarmManager
@@ -52,7 +53,8 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
         userPreferences: userPreferences,
         alarmManager: alarmManager,
         fileFacade: fileFacade,
-        credentialsEncryption: credentialsEncryption
+        credentialsEncryption: credentialsEncryption,
+        blobUtils:blobUtils
       )
   }
   

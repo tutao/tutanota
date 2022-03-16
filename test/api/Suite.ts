@@ -32,6 +32,7 @@ import "./worker/CompressionTest"
 import "../api/common/PlainTextSearchTest"
 import "../api/common/EntityUtilsTest"
 import "./rest/CborDateEncoderTest.js"
+import "./worker/facades/BlobFacadeTest.js"
 import "./worker/utils/SleepDetectorTest.js"
 import "./worker/rest/ServiceExecutorTest.js"
 

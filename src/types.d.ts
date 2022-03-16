@@ -99,7 +99,10 @@ declare type NativeRequestType = 'init'
 	| 'encryptUsingKeychain'
 	| 'decryptUsingKeychain'
 	| 'getSupportedEncryptionModes'
+	| 'hashFile'
 	| 'facade' // only for desktop
+	| 'joinFiles'
+	| 'splitFile'
 
 /** Requests from native to web */
 declare type JsRequestType = 'createMailEditor'

@@ -3,11 +3,10 @@ import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes.js"
 
 import type {Blob} from "../sys/Blob.js"
-import type {TypeInfo} from "../sys/TypeInfo.js"
 
-export const BlobReferenceDataDeleteTypeRef: TypeRef<BlobReferenceDataDelete> = new TypeRef("storage", "BlobReferenceDataDelete")
+export const BlobReferenceDeleteInTypeRef: TypeRef<BlobReferenceDeleteIn> = new TypeRef("storage", "BlobReferenceDeleteIn")
 export const _TypeModel: TypeModel = {
-	"name": "BlobReferenceDataDelete",
+	"name": "BlobReferenceDeleteIn",
 	"since": 1,
 	"type": "DATA_TRANSFER_TYPE",
 	"id": 100,
@@ -22,14 +21,14 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
-		"field": {
-			"id": 109,
-			"type": "String",
+		"archiveDataType": {
+			"id": 124,
+			"type": "Number",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
-		"instanceListElementId": {
+		"instanceId": {
 			"id": 103,
 			"type": "GeneratedId",
 			"cardinality": "One",
@@ -39,7 +38,7 @@ export const _TypeModel: TypeModel = {
 		"instanceListId": {
 			"id": 102,
 			"type": "GeneratedId",
-			"cardinality": "One",
+			"cardinality": "ZeroOrOne",
 			"final": false,
 			"encrypted": false
 		}
@@ -52,32 +51,23 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"refType": "Blob",
 			"dependency": "sys"
-		},
-		"type": {
-			"id": 104,
-			"type": "AGGREGATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "TypeInfo",
-			"dependency": "sys"
 		}
 	},
 	"app": "storage",
-	"version": "3"
+	"version": "4"
 }
 
-export function createBlobReferenceDataDelete(values?: Partial<BlobReferenceDataDelete>): BlobReferenceDataDelete {
-	return Object.assign(create(_TypeModel, BlobReferenceDataDeleteTypeRef), downcast<BlobReferenceDataDelete>(values))
+export function createBlobReferenceDeleteIn(values?: Partial<BlobReferenceDeleteIn>): BlobReferenceDeleteIn {
+	return Object.assign(create(_TypeModel, BlobReferenceDeleteInTypeRef), downcast<BlobReferenceDeleteIn>(values))
 }
 
-export type BlobReferenceDataDelete = {
-	_type: TypeRef<BlobReferenceDataDelete>;
+export type BlobReferenceDeleteIn = {
+	_type: TypeRef<BlobReferenceDeleteIn>;
 
 	_format: NumberString;
-	field: string;
-	instanceListElementId: Id;
-	instanceListId: Id;
+	archiveDataType: NumberString;
+	instanceId: Id;
+	instanceListId: null | Id;
 
 	blobs: Blob[];
-	type: TypeInfo;
 }

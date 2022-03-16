@@ -50,7 +50,8 @@ class AppDelegate : UIResponder,
       keychainManager: keychainManager,
       userPreferences: userPreferences,
       alarmManager: self.alarmManager,
-      credentialsEncryption: credentialsEncryption
+      credentialsEncryption: credentialsEncryption,
+      blobUtils: BlobUtil()
     )
     self.window!.rootViewController = viewController
     

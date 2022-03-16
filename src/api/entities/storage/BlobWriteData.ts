@@ -2,7 +2,6 @@ import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {TypeInfo} from "../sys/TypeInfo.js"
 
 export const BlobWriteDataTypeRef: TypeRef<BlobWriteData> = new TypeRef("storage", "BlobWriteData")
 export const _TypeModel: TypeModel = {
@@ -29,18 +28,9 @@ export const _TypeModel: TypeModel = {
 			"encrypted": false
 		}
 	},
-	"associations": {
-		"type": {
-			"id": 76,
-			"type": "AGGREGATION",
-			"cardinality": "One",
-			"final": true,
-			"refType": "TypeInfo",
-			"dependency": "sys"
-		}
-	},
+	"associations": {},
 	"app": "storage",
-	"version": "3"
+	"version": "4"
 }
 
 export function createBlobWriteData(values?: Partial<BlobWriteData>): BlobWriteData {
@@ -52,6 +42,4 @@ export type BlobWriteData = {
 
 	_id: Id;
 	archiveOwnerGroup: Id;
-
-	type: TypeInfo;
 }

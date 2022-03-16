@@ -4,6 +4,8 @@ import type {TypeModel} from "../api/common/EntityTypes"
 import type * as FsModule from "fs"
 import {Aes256Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
 import {aes256Decrypt256Key, aes256Encrypt256Key, base64ToKey, IV_BYTE_LENGTH} from "@tutao/tutanota-crypto"
+import {FileUri} from "../native/common/FileApp"
+import path from "path"
 
 type FsExports = typeof FsModule
 
@@ -45,24 +47,22 @@ export class DesktopCryptoFacade {
 	}
 
 	/**
-	 * decrypts a file in-place
+	 * decrypts a file and returns the decrypted files path
 	 * @param encodedKey
-	 * @param itemPath
-	 * @returns {Promise<Uint8Array>}
+	 * @param encryptedFileUri
+	 * @param targetDir
+	 * @returns {Promise<FileUri>}
 	 */
-	aesDecryptFile(encodedKey: string, itemPath: string): Promise<string> {
-		return this.fs.promises
-				   .readFile(itemPath)
-				   .then(encData => {
-					   const key = this.cryptoFns.base64ToKey(encodedKey)
-					   return this.cryptoFns.aes128Decrypt(key, encData, true)
-				   })
-				   .then(decData => {
-					   return this.fs.promises.writeFile(itemPath, decData, {
-						   encoding: "binary",
-					   })
-				   })
-				   .then(() => itemPath)
+	async aesDecryptFile(encodedKey: string, encryptedFileUri: FileUri, targetDir: FileUri): Promise<FileUri> {
+		const encData = await this.fs.promises.readFile(encryptedFileUri)
+		const key = this.cryptoFns.base64ToKey(encodedKey)
+		const decData = await this.cryptoFns.aes128Decrypt(key, encData, true)
+		await this.fs.promises.mkdir(targetDir, {recursive: true})
+		const decryptedFileUri = path.join(targetDir, path.basename(encryptedFileUri))
+		await this.fs.promises.writeFile(decryptedFileUri, decData, {
+			encoding: "binary",
+		})
+		return decryptedFileUri
 	}
 
 	aes256DecryptKeyToB64(encryptionKey: Aes256Key, keyToDecryptB64: string): string {

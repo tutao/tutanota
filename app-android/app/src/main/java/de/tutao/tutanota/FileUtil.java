@@ -21,6 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.BoundedInputStream;
 import org.jdeferred.DoneFilter;
 import org.jdeferred.DonePipe;
 import org.jdeferred.Promise;
@@ -30,16 +31,25 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.SequenceInputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -47,10 +57,13 @@ import java.util.concurrent.TimeUnit;
 
 import de.tutao.tutanota.push.LocalNotificationsFacade;
 
+import static de.tutao.tutanota.Utils.bytesToBase64;
+
 
 public class FileUtil {
 	private final static String TAG = "FileUtil";
 	private static final int HTTP_TIMEOUT = 15 * 1000;
+	public static final int COPY_BUFFER_SIZE = 1024 * 1000;
 
 	private final MainActivity activity;
 	private final LocalNotificationsFacade localNotificationsFacade;
@@ -83,6 +96,16 @@ public class FileUtil {
 				throw new Exception("could not deleteAlarmNotification file " + fileUri);
 			}
 		}
+	}
+
+	String joinFiles(final String fileName, List<String> filesToJoin) throws IOException {
+		List<InputStream> inStreams = new ArrayList<>(filesToJoin.size());
+		for (String infile : filesToJoin) {
+			inStreams.add(new FileInputStream(Uri.parse(infile).getPath()));
+		}
+		File output = getTempDecryptedFile(fileName);
+		writeFile(output, new SequenceInputStream(Collections.enumeration(inStreams)));
+		return Utils.fileToUri(output);
 	}
 
 	Promise<Object, Exception, Void> openFileChooser() {
@@ -250,26 +273,39 @@ public class FileUtil {
 		return Utils.getFileInfo(activity, Uri.parse(fileUri)).name;
 	}
 
-	JSONObject upload(final String fileUri, final String targetUrl, final JSONObject headers) throws IOException, JSONException {
+	JSONObject upload(final String fileUri, final String targetUrl, final String httpMethod, final JSONObject headers) throws IOException, JSONException {
 		InputStream inputStream = activity.getContentResolver().openInputStream(Uri.parse(fileUri));
 		HttpURLConnection con = (HttpURLConnection) (new URL(targetUrl)).openConnection();
 		try {
 			con.setConnectTimeout(HTTP_TIMEOUT);
 			con.setReadTimeout(HTTP_TIMEOUT);
-			con.setRequestMethod("PUT");
+			con.setRequestMethod(httpMethod);
 			con.setDoInput(true);
+			con.setDoOutput(true);
 			con.setUseCaches(false);
 			con.setRequestProperty("Content-Type", "application/octet-stream");
 			con.setChunkedStreamingMode(4096); // mitigates OOM for large files (start uploading before the complete file is buffered)
 			addHeadersToRequest(con, headers);
 			con.connect();
 			IOUtils.copy(inputStream, con.getOutputStream());
-			JSONObject response = new JSONObject();
-			response.put("statusCode", con.getResponseCode());
-			response.put("errorId", con.getHeaderField("Error-Id")); // see ResourceConstants.ERROR_ID_HEADER
-			response.put("precondition", con.getHeaderField("Precondition")); // see ResourceConstants.PRECONDITION_HEADER
-			response.put("suspensionTime", con.getHeaderField("Retry-After"));
-			if (!response.has("suspensionTime")) {
+
+			int responseCode = con.getResponseCode();
+
+			JSONObject response = new JSONObject()
+					.put("statusCode", responseCode)
+					.put("errorId", con.getHeaderField("Error-Id")) // see ResourceConstants.ERROR_ID_HEADER
+					.put("precondition", con.getHeaderField("Precondition")) // see ResourceConstants.PRECONDITION_HEADER
+					.put("suspensionTime", con.getHeaderField("Retry-After"));
+
+
+			if (responseCode >= 200 && responseCode < 300) {
+				ByteArrayOutputStream responseBodyStream = new ByteArrayOutputStream();
+				IOUtils.copy(con.getInputStream(), responseBodyStream);
+				response.put("responseBody", bytesToBase64(responseBodyStream.toByteArray()));
+			}
+
+
+			if (!response.has("suspensionTime")) { // enters this block if "Retry-After" header is not set
 				response.put("suspensionTime", con.getHeaderField("Suspension-Time"));
 			}
 			return response;
@@ -293,15 +329,16 @@ public class FileUtil {
 			File encryptedFile = null;
 			if (con.getResponseCode() == 200) {
 				InputStream inputStream = con.getInputStream();
-				encryptedFile = writeFileToEncryptedDir(filename, inputStream);
+				encryptedFile = getTempEncryptedFile(filename);
+				writeFile(encryptedFile, inputStream);
 			}
 
-			JSONObject result = new JSONObject();
-			result.put("statusCode", con.getResponseCode());
-			result.put("encryptedFileUri", encryptedFile != null ? Utils.fileToUri(encryptedFile) : JSONObject.NULL);
-			result.put("errorId", con.getHeaderField("Error-Id")); // see ResourceConstants.ERROR_ID_HEADER
-			result.put("precondition", con.getHeaderField("Precondition")); // see ResourceConstants.PRECONDITION_HEADER
-			result.put("suspensionTime", con.getHeaderField("Retry-After"));
+			JSONObject result = new JSONObject()
+					.put("statusCode", con.getResponseCode())
+					.put("encryptedFileUri", encryptedFile != null ? Utils.fileToUri(encryptedFile) : JSONObject.NULL)
+					.put("errorId", con.getHeaderField("Error-Id")) // see ResourceConstants.ERROR_ID_HEADER
+					.put("precondition", con.getHeaderField("Precondition")) // see ResourceConstants.PRECONDITION_HEADER
+					.put("suspensionTime", con.getHeaderField("Retry-After"));
 			if (!result.has("suspensionTime")) {
 				result.put("suspensionTime", con.getHeaderField("Suspension-Time"));
 			}
@@ -313,30 +350,18 @@ public class FileUtil {
 		}
 	}
 
-	private File writeFileToDir(String filename, InputStream inputStream, String directory) throws IOException {
-
-		File file;
-		File dir = new File(Utils.getDir(activity), directory);
-		dir.mkdirs();
-		file = new File(dir, filename);
-
-		IOUtils.copyLarge(inputStream, new FileOutputStream(file),
-				new byte[1024 * 1000]);
-		return file;
-	}
-
-	public File writeFileToUnencryptedDir(String filename, InputStream inputStream) throws IOException {
-		return writeFileToDir(filename, inputStream, Crypto.TEMP_DIR_DECRYPTED);
-	}
-
-	private File writeFileToEncryptedDir(String filename, InputStream inputStream) throws IOException {
-		return writeFileToDir(filename, inputStream, Crypto.TEMP_DIR_ENCRYPTED);
+	@NonNull
+	public void writeFile(File filePath, InputStream inputStream) throws IOException {
+		filePath.getParentFile().mkdirs();
+		IOUtils.copyLarge(inputStream, new FileOutputStream(filePath),
+				new byte[COPY_BUFFER_SIZE]);
 	}
 
 	Promise<Object, Exception, Void> saveBlob(final String name, final String base64blob) {
 		try {
-			File localFile = writeFileToUnencryptedDir(name, new ByteArrayInputStream(Utils.base64ToBytes(base64blob)));
-			return this.putToDownloadFolder(Utils.fileToUri(localFile));
+			File localPath = getTempDecryptedFile(name);
+			writeFile(localPath, new ByteArrayInputStream(Utils.base64ToBytes(base64blob)));
+			return this.putToDownloadFolder(Uri.fromFile(localPath).getPath());
 		} catch (IOException e) {
 			DeferredObject<Object, Exception, Void> result = new DeferredObject<>();
 			result.reject(e);
@@ -373,4 +398,46 @@ public class FileUtil {
 		}
 	}
 
+	public JSONArray splitFile(String fileUri, int maxChunkSize) throws IOException, NoSuchAlgorithmException, JSONException {
+		Uri file = Uri.parse(fileUri);
+		long fileSize = Utils.getFileInfo(activity, file).size;
+		InputStream inputStream = activity.getContentResolver().openInputStream(file);
+		List<String> chunkUris = new ArrayList<>();
+		for (int chunk = 0; chunk * maxChunkSize <= fileSize; chunk++) {
+			String tmpFilename = Integer.toHexString(file.hashCode()) + "." + chunk + ".blob";
+			BoundedInputStream chunkedInputStream = new BoundedInputStream(inputStream, maxChunkSize);
+			File tmpFile = getTempDecryptedFile(tmpFilename);
+			writeFile(tmpFile, chunkedInputStream);
+
+			chunkUris.add(Utils.fileToUri(tmpFile));
+		}
+		return new JSONArray(chunkUris);
+	}
+
+	public String hashFile(String fileUri) throws IOException, NoSuchAlgorithmException {
+		InputStream inputStream = activity.getContentResolver().openInputStream(Uri.parse(fileUri));
+		HashingInputStream hashingInputStream = new HashingInputStream(MessageDigest.getInstance("SHA-256"), inputStream);
+		OutputStream devNull = new OutputStream() {
+			public void write(int b) {
+			}
+		};
+
+		IOUtils.copyLarge(hashingInputStream, devNull);
+		byte[] hash = hashingInputStream.hash();
+		return bytesToBase64(Arrays.copyOf(hash, 6));
+	}
+
+	public File getTempDecryptedFile(String filename) throws IOException {
+		return getTempFile(filename, Crypto.TEMP_DIR_DECRYPTED);
+	}
+
+	private File getTempEncryptedFile(String filename) throws IOException {
+		return getTempFile(filename, Crypto.TEMP_DIR_ENCRYPTED);
+	}
+
+	private File getTempFile(String filename, String directory) throws IOException {
+		File dir = new File(Utils.getDir(activity), directory);
+		File file = new File(dir, filename);
+		return file;
+	}
 }

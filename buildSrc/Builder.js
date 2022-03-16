@@ -99,6 +99,7 @@ function debugModels() {
 				"../entities/tutanota/tutanotaModelMap": "src/api/entities/tutanota/tutanotaModelMapDebug.ts",
 				"../entities/monitor/monitorModelMap": "src/api/entities/monitor/monitorModelMapDebug.ts",
 				"../entities/accounting/accountingModelMap": "src/api/entities/accounting/accountingModelMapDebug.ts",
+				"../entities/storage/storageModelMap": "src/api/entities/storage/storageModelMapDebug.ts",
 			}
 			return imports[id]
 		}

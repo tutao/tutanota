@@ -1,4 +1,13 @@
-import {ApprovalStatus, ConversationType, MailFolderType, MailMethod, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../../api/common/TutanotaConstants"
+import {
+	ApprovalStatus,
+	ConversationType,
+	FeatureType,
+	MailFolderType,
+	MailMethod,
+	MAX_ATTACHMENT_SIZE,
+	OperationType,
+	ReplyType
+} from "../../api/common/TutanotaConstants"
 import type {RecipientInfo} from "../../api/common/RecipientInfo"
 import {isExternal, makeRecipientDetails} from "../../api/common/RecipientInfo"
 import {
@@ -695,7 +704,7 @@ export class SendMailModel {
 						   bccRecipients: this.bccRecipients().map(recipientInfoToDraftRecipient),
 						   attachments: attachments,
 						   confidential: this.isConfidential(),
-						   draft: draft
+						   draft: draft,
 					   },
 				   )
 				   .catch(

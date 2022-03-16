@@ -47,7 +47,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "73"
+	"version": "74"
 }
 
 export function createGiftCardGetReturn(values?: Partial<GiftCardGetReturn>): GiftCardGetReturn {

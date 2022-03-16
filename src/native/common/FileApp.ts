@@ -1,10 +1,11 @@
 import {Request} from "../../api/common/MessageDispatcher"
-import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {promiseMap, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {MailBundle} from "../../mail/export/Bundler"
-import {promiseMap} from "@tutao/tutanota-utils"
 import type {NativeInterface} from "./NativeInterface"
 import {FileReference} from "../../api/common/utils/FileUtils";
 import {DataFile} from "../../api/common/DataFile";
+import {HttpMethod} from "../../api/common/EntityFunctions"
+
 
 export type DataTaskResponse = {
 	statusCode: number
@@ -15,6 +16,12 @@ export type DataTaskResponse = {
 export type DownloadTaskResponse = DataTaskResponse & {
 	encryptedFileUri: string | null
 }
+
+export type UploadTaskResponse = DataTaskResponse & {
+	responseBody: string
+}
+
+export type FileUri = string
 
 export class NativeFileApp {
 	native: NativeInterface
@@ -60,7 +67,7 @@ export class NativeFileApp {
 	 * Deletes the file.
 	 * @param  file The uri of the file to delete.
 	 */
-	deleteFile(file: string): Promise<void> {
+	deleteFile(file: FileUri): Promise<void> {
 		return this.native.invokeNative(new Request("deleteFile", [file]))
 	}
 
@@ -68,7 +75,7 @@ export class NativeFileApp {
 	 * Returns the name of the file
 	 * @param file The uri of the file
 	 */
-	getName(file: string): Promise<string> {
+	getName(file: FileUri): Promise<string> {
 		return this.native.invokeNative(new Request("getName", [file]))
 	}
 
@@ -76,7 +83,7 @@ export class NativeFileApp {
 	 * Returns the mime type of the file
 	 * @param file The uri of the file
 	 */
-	getMimeType(file: string): Promise<string> {
+	getMimeType(file: FileUri): Promise<string> {
 		return this.native.invokeNative(new Request("getMimeType", [file]))
 	}
 
@@ -84,7 +91,7 @@ export class NativeFileApp {
 	 * Returns the byte size of a file
 	 * @param file The uri of the file
 	 */
-	getSize(file: string): Promise<number> {
+	getSize(file: FileUri): Promise<number> {
 		return this.native.invokeNative(new Request("getSize", [file])).then(sizeString => Number(sizeString))
 	}
 
@@ -93,7 +100,7 @@ export class NativeFileApp {
 	 * @param localFileUri URI for the source file
 	 * @returns {*} absolute path of the destination file
 	 */
-	putFileIntoDownloadsFolder(localFileUri: string): Promise<string> {
+	putFileIntoDownloadsFolder(localFileUri: FileUri): Promise<string> {
 		return this.native.invokeNative(new Request("putFileIntoDownloads", [localFileUri]))
 	}
 
@@ -104,16 +111,25 @@ export class NativeFileApp {
 	/**
 	 * Uploads the binary data of a file to tutadb
 	 */
-	upload(fileUrl: string, targetUrl: string, headers: Record<string, any>): Promise<DataTaskResponse> {
-		return this.native.invokeNative(new Request("upload", [fileUrl, targetUrl, headers]))
+	upload(fileUrl: string, targetUrl: string, method: HttpMethod, headers: Dict): Promise<UploadTaskResponse> {
+		return this.native.invokeNative(new Request("upload", [fileUrl, targetUrl, method, headers]))
 	}
 
 	/**
 	 * Downloads the binary data of a file from tutadb and stores it in the internal memory.
 	 * @returns Resolves to the URI of the downloaded file
 	 */
-	download(sourceUrl: string, filename: string, headers: Record<string, any>): Promise<DownloadTaskResponse> {
+	download(sourceUrl: FileUri, filename: string, headers: Dict): Promise<DownloadTaskResponse> {
 		return this.native.invokeNative(new Request("download", [sourceUrl, filename, headers]))
+	}
+
+	/**
+	 * Get the shortened (first six bytes) of the SHA256 of the file.
+	 * @param fileUri
+	 * @return Base64 encoded, shortened SHA256 hash of the file
+	 */
+	hashFile(fileUri: FileUri): Promise<string> {
+		return this.native.invokeNative(new Request('hashFile', [fileUri]))
 	}
 
 	clearFileData(): Promise<any> {
@@ -173,4 +189,25 @@ export class NativeFileApp {
 			location: uri,
 		}))
 	}
+
+	/**
+	 * Joins the given files into one single file with a given name. The file is place in the app's temporary decrypted directory.
+	 * @param filename the resulting filename
+	 * @param files The files to join.
+	 *
+	 */
+	joinFiles(filename: string, files: Array<FileUri>): Promise<FileUri> {
+		return this.native.invokeNative(new Request('joinFiles', [filename, files]))
+	}
+
+	/**
+	 * Splits the given file into chunks of the given maximum size. The chunks will be placed in the temporary decrypted directory.
+	 * @param fileUri
+	 * @param maxChunkSizeBytes
+	 */
+	async splitFile(fileUri: FileUri, maxChunkSizeBytes: number): Promise<FileUri[]> {
+		return this.native.invokeNative(new Request("splitFile", [fileUri, maxChunkSizeBytes]))
+	}
+
+
 }

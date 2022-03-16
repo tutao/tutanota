@@ -2,7 +2,6 @@ import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes.js"
 
-import type {Blob} from "../sys/Blob.js"
 import type {DataBlock} from "./DataBlock.js"
 
 export const FileDataTypeRef: TypeRef<FileData> = new TypeRef("tutanota", "FileData")
@@ -59,14 +58,6 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
-		"blobs": {
-			"id": 1221,
-			"type": "AGGREGATION",
-			"cardinality": "Any",
-			"final": false,
-			"refType": "Blob",
-			"dependency": "sys"
-		},
 		"blocks": {
 			"id": 10,
 			"type": "AGGREGATION",
@@ -77,7 +68,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "51"
+	"version": "52"
 }
 
 export function createFileData(values?: Partial<FileData>): FileData {
@@ -94,6 +85,5 @@ export type FileData = {
 	size: NumberString;
 	unreferenced: boolean;
 
-	blobs: Blob[];
 	blocks: DataBlock[];
 }

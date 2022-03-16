@@ -32,7 +32,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "51"
+	"version": "52"
 }
 
 export function createCalendarEventIndexRef(values?: Partial<CalendarEventIndexRef>): CalendarEventIndexRef {

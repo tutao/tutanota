@@ -1,7 +1,7 @@
 import type {Session} from "electron"
 import type {DesktopConfig} from "./config/DesktopConfig.js"
 import path from "path"
-import {assertNotNull} from "@tutao/tutanota-utils"
+import {assertNotNull, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {lang} from "../misc/LanguageViewModel.js"
 import type {DesktopNetworkClient} from "./DesktopNetworkClient.js"
 import {FileOpenError} from "../api/common/error/FileOpenError.js"
@@ -13,10 +13,11 @@ import {CancelledError} from "../api/common/error/CancelledError.js"
 import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys.js"
 import {WriteStream} from "fs-extra"
 // Make sure to only import the type
-import type {DownloadTaskResponse} from "../native/common/FileApp.js"
+import type {DownloadTaskResponse, FileUri} from "../native/common/FileApp.js"
 import type http from "http"
 import type * as stream from "stream"
 import {DateProvider} from "../api/common/DateProvider"
+import {sha256Hash} from "@tutao/tutanota-crypto"
 
 type FsExports = typeof FsModule
 type ElectronExports = typeof Electron.CrossProcessExports
@@ -64,15 +65,22 @@ export class DesktopDownloadManager {
 	}
 
 	/**
+	 * SHA256 of the file found at given URI
+	 * @throws Error if file is not found
+	 */
+	async hashFile(fileUri: string): Promise<string> {
+		const data = await this._fs.promises.readFile(fileUri)
+		const checksum = sha256Hash(data)
+		return uint8ArrayToBase64(checksum)
+	}
+
+	/**
 	 * Download file into the encrypted files directory.
 	 */
 	async downloadNative(
 		sourceUrl: string,
 		fileName: string,
-		headers: {
-			v: string
-			accessToken: string
-		},
+		headers: Dict,
 	): Promise<DownloadTaskResponse> {
 		// Propagate error in initial request if it occurs (I/O errors and such)
 		const response = await this._net.executeRequest(sourceUrl, {
@@ -210,6 +218,34 @@ export class DesktopDownloadManager {
 			await this._fs.promises.unlink(encryptedFilePath)
 			throw e
 		}
+	}
+
+	async joinFiles(filename: string, files: Array<FileUri>): Promise<string> {
+		const fileUri = await this._pickSavePath(filename)
+		const outStream = this._fs.createWriteStream(fileUri, {autoClose: false})
+
+		for (const infile of files) {
+			await new Promise((resolve, reject) => {
+				const readStream = this._fs.createReadStream(infile)
+				readStream.on('end', resolve)
+				readStream.on('error', reject)
+				readStream.pipe(outStream, {end: false})
+			})
+		}
+		// Wait for the write stream to finish
+		await new Promise((resolve) => {
+			outStream.end(resolve)
+		})
+		return fileUri
+	}
+
+	async deleteFile(filename: string): Promise<void> {
+		return this._fs.promises.unlink(filename)
+	}
+
+	async getSize(fileUri: FileUri): Promise<number> {
+		const stats = await this._fs.promises.stat(fileUri)
+		return stats.size
 	}
 }
 

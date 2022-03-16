@@ -81,6 +81,7 @@ o.spec("IPC tests", function () {
 			return Promise.resolve()
 		},
 		checkIsMailtoHandler: () => Promise.resolve(true),
+		getTutanotaTempPath: () => "/some/path"
 	}
 	const crypto = {
 		aesDecryptFile: (key, file) =>
@@ -89,6 +90,9 @@ o.spec("IPC tests", function () {
 	const dl = {
 		downloadNative: (url, file) => (file === "filename" ? Promise.resolve() : Promise.reject("DL error")),
 		open: file => (file === "/file/to/open" ? Promise.resolve() : Promise.reject("Could not open!")),
+		hashFile: file => (file === "/file/to/open" ? Promise.resolve() : Promise.reject("Could not open!")),
+		joinFiles: (fileName, files) => (fileName === "fileName" ? Promise.resolve() : Promise.reject("Could not open!")),
+		getSize: file => (file === "/file" ? Promise.resolve() : Promise.reject("Could not open!")),
 	}
 	const desktopIntegrator = {
 		isAutoLaunchEnabled: () => Promise.resolve(true),
@@ -510,6 +514,7 @@ o.spec("IPC tests", function () {
 				type: "response",
 				value: [],
 			})
+			// trigger error
 			electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {
 				type: "request",
 				requestType: "openFileChooser",
@@ -588,6 +593,7 @@ o.spec("IPC tests", function () {
 				type: "response",
 				value: undefined,
 			})
+			// trigger error
 			electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {
 				type: "request",
 				requestType: "disableAutoLaunch",
@@ -740,6 +746,7 @@ o.spec("IPC tests", function () {
 				type: "response",
 				value: undefined,
 			})
+			// trigger error
 			electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {
 				type: "request",
 				requestType: "open",
@@ -791,6 +798,7 @@ o.spec("IPC tests", function () {
 				type: "response",
 				value: undefined,
 			})
+			// trigger error
 			electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {
 				type: "request",
 				requestType: "download",
@@ -834,13 +842,14 @@ o.spec("IPC tests", function () {
 		})
 		setTimeout(() => {
 			o(cryptoMock.aesDecryptFile.callCount).equals(1)
-			o(cryptoMock.aesDecryptFile.args).deepEquals(["decryption_key", "/a/path/to/a/blob"])
+			o(cryptoMock.aesDecryptFile.args).deepEquals(["decryption_key", "/a/path/to/a/blob", "/some/path"])
 			o(windowMock.sendMessageToWebContents.callCount).equals(2)
 			o(toObject(windowMock.sendMessageToWebContents.args[0])).deepEquals({
 				id: "id2",
 				type: "response",
 				value: "/a/path/to/a/blob",
 			})
+			// trigger error
 			electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {
 				type: "request",
 				requestType: "aesDecryptFile",
@@ -850,7 +859,7 @@ o.spec("IPC tests", function () {
 		}, 10)
 		setTimeout(() => {
 			o(cryptoMock.aesDecryptFile.callCount).equals(2)
-			o(cryptoMock.aesDecryptFile.args).deepEquals(["invalid_decryption_key", "/a/path/to/a/blob"])
+			o(cryptoMock.aesDecryptFile.args).deepEquals(["invalid_decryption_key", "/a/path/to/a/blob", "/some/path"])
 			o(windowMock.sendMessageToWebContents.callCount).equals(3)
 			o(toObject(windowMock.sendMessageToWebContents.args[0])).deepEquals({
 				id: "id3",
@@ -876,6 +885,118 @@ o.spec("IPC tests", function () {
 			o(typeof arg.error).equals("object")
 			done()
 		}, 10)
+	})
+	o("hashFile", function (done) {
+		const {electronMock, dlMock} = setUpWithWindowAndInit()
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {
+			type: "request",
+			requestType: "hashFile",
+			id: "id2",
+			args: ["/file/to/open"],
+		})
+		setTimeout(() => {
+			o(dlMock.hashFile.callCount).equals(1)
+			o(dlMock.hashFile.args).deepEquals(["/file/to/open"])
+			o(windowMock.sendMessageToWebContents.callCount).equals(2)
+			o(toObject(windowMock.sendMessageToWebContents.args[0])).deepEquals({
+				id: "id2",
+				type: "response",
+				value: undefined,
+			})
+			// trigger error
+			electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {
+				type: "request",
+				requestType: "hashFile",
+				id: "id3",
+				args: ["/incorrect/file/to/open"],
+			})
+		}, 10)
+		// trigger error
+		setTimeout(() => {
+			o(dlMock.hashFile.callCount).equals(2)
+			o(dlMock.hashFile.args).deepEquals(["/incorrect/file/to/open"])
+			o(windowMock.sendMessageToWebContents.callCount).equals(3)
+			o(toObject(windowMock.sendMessageToWebContents.args[0])).deepEquals({
+				id: "id3",
+				type: "requestError",
+				error: emptyError(),
+			})
+			done()
+		}, 20)
+	})
+	o("joinFiles", function (done) {
+		const {electronMock, dlMock} = setUpWithWindowAndInit()
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {
+			type: "request",
+			requestType: "joinFiles",
+			id: "id2",
+			args: ["fileName", ["/file1", "/file2"]],
+		})
+		setTimeout(() => {
+			o(dlMock.joinFiles.callCount).equals(1)
+			o(dlMock.joinFiles.args).deepEquals(["fileName", ["/file1", "/file2"]])
+			o(windowMock.sendMessageToWebContents.callCount).equals(2)
+			o(toObject(windowMock.sendMessageToWebContents.args[0])).deepEquals({
+				id: "id2",
+				type: "response",
+				value: undefined,
+			})
+			// trigger error
+			electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {
+				type: "request",
+				requestType: "joinFiles",
+				id: "id3",
+				args: ["invalidFileName", ["/file1", "/file2"]],
+			})
+		}, 10)
+		setTimeout(() => {
+			o(dlMock.joinFiles.callCount).equals(2)
+			o(dlMock.joinFiles.args).deepEquals(["invalidFileName", ["/file1", "/file2"]])
+			o(windowMock.sendMessageToWebContents.callCount).equals(3)
+			o(toObject(windowMock.sendMessageToWebContents.args[0])).deepEquals({
+				id: "id3",
+				type: "requestError",
+				error: emptyError(),
+			})
+			done()
+		}, 20)
+	})
+	o("getSize", function (done) {
+		const {electronMock, dlMock} = setUpWithWindowAndInit()
+		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {
+			type: "request",
+			requestType: "getSize",
+			id: "id2",
+			args: ["/file"],
+		})
+		setTimeout(() => {
+			o(dlMock.getSize.callCount).equals(1)
+			o(dlMock.getSize.args).deepEquals(["/file"])
+			o(windowMock.sendMessageToWebContents.callCount).equals(2)
+			o(toObject(windowMock.sendMessageToWebContents.args[0])).deepEquals({
+				id: "id2",
+				type: "response",
+				value: undefined,
+			})
+			// trigger error
+			electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {
+				type: "request",
+				requestType: "getSize",
+				id: "id3",
+				args: ["/invalidFile"],
+			})
+		}, 10)
+		setTimeout(() => {
+			o(dlMock.getSize.callCount).equals(2)
+			o(dlMock.getSize.args).deepEquals(["/invalidFile"])
+			o(windowMock.sendMessageToWebContents.callCount).equals(3)
+			o(toObject(windowMock.sendMessageToWebContents.args[0])).deepEquals({
+				id: "id3",
+				type: "requestError",
+				error: emptyError(),
+			})
+			done()
+		}, 20)
 	})
 })
 

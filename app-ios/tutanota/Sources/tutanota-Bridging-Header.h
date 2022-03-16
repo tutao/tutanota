@@ -4,6 +4,7 @@
 
 #import "Utils/TUTIcons.h"
 #import "Utils/TUTErrorFactory.h"
+#import "Utils/TUTEncodingConverter.h"
 #import "Utils/TUTLog.h"
 #import "Utils/WebviewHacks.h"
 #import "Crypto/TUTAes128Facade.h"
