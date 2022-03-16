@@ -30,7 +30,7 @@ export const _TypeModel: TypeModel = {
 		"value": {
 			"id": 1924,
 			"type": "String",
-			"cardinality": "ZeroOrOne",
+			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		}
@@ -49,5 +49,5 @@ export type UsageTestMetricData = {
 
 	_id: Id;
 	name: string;
-	value: null | string;
+	value: string;
 }

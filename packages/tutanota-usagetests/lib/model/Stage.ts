@@ -3,7 +3,7 @@ import {UsageTest} from "./UsageTest.js"
 export type Metrics = Map<string, Metric>
 type Metric = {
 	name: string,
-	value: string | null,
+	value: string,
 }
 
 /** One part of the test. Has multiple metrics that are sent together. */
