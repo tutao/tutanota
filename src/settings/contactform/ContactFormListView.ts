@@ -135,19 +135,15 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 			this.customerInfo.getAsync().then(customerInfo => {
 				const whitelabelDomain = getWhitelabelDomain(customerInfo)
 
-				if (whitelabelDomain) {
-					this.settingsView.detailsViewer = new ContactFormViewer(contactForms[0], whitelabelDomain.domain, contactFormId =>
-						this.list.scrollToIdAndSelectWhenReceived(contactFormId),
-					)
+				this.settingsView.detailsViewer = new ContactFormViewer(contactForms[0], whitelabelDomain?.domain ?? null, contactFormId =>
+					this.list.scrollToIdAndSelectWhenReceived(contactFormId),
+				)
 
-					if (elementClicked) {
-						this.settingsView.focusSettingsDetailsColumn()
-					}
-
-					m.redraw()
-				} else {
-					Dialog.message("whitelabelDomainNeeded_msg")
+				if (elementClicked) {
+					this.settingsView.focusSettingsDetailsColumn()
 				}
+
+				m.redraw()
 			})
 		}
 	}
@@ -255,9 +251,7 @@ export class ContactFormRow implements VirtualRow<ContactForm> {
 		if (this._customerInfo.isLoaded()) {
 			const whitelabelDomain = getWhitelabelDomain(this._customerInfo.getLoaded())
 
-			if (whitelabelDomain) {
-				this._domUrl.textContent = getContactFormUrl(whitelabelDomain.domain, contactForm.path)
-			}
+			this._domUrl.textContent = getContactFormUrl(whitelabelDomain?.domain ?? null, contactForm.path)
 		}
 	}
 

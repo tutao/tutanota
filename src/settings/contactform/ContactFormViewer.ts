@@ -8,7 +8,7 @@ import {createContactForm} from "../../api/entities/tutanota/ContactForm"
 import {loadGroupInfos} from "../LoadingUtils"
 import {Icons} from "../../gui/base/icons/Icons"
 import {Dialog} from "../../gui/base/Dialog"
-import {neverNull} from "@tutao/tutanota-utils"
+import {isNotNull, neverNull} from "@tutao/tutanota-utils"
 import {GroupInfo, GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
 import {getDefaultContactFormLanguage} from "./ContactFormUtils.js"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
@@ -21,6 +21,7 @@ import {UpdatableSettingsDetailsViewer} from "../SettingsView"
 import {assertMainOrNode} from "../../api/common/Env"
 import {locator} from "../../api/main/MainLocator"
 import {ContactFormLanguage} from "../../api/entities/tutanota/ContactFormLanguage"
+import {ButtonAttrs} from "../../gui/base/ButtonN"
 
 assertMainOrNode()
 
@@ -31,7 +32,7 @@ export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
 
 	constructor(
 		readonly contactForm: ContactForm,
-		private readonly brandingDomain: string,
+		private readonly brandingDomain: string | null,
 		private readonly newContactFormIdReceiver: (id: Id) => unknown,
 	) {
 		this.language = getDefaultContactFormLanguage(this.contactForm.languages)
@@ -75,24 +76,29 @@ export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	private renderActionBar(): Children {
-		return m(ActionBar, {
-			buttons: [
-				{
+		const buttons: (ButtonAttrs | null)[] = [
+			this.brandingDomain
+				? {
 					label: "edit_action",
 					click: () => ContactFormEditor.show(this.contactForm, false, this.newContactFormIdReceiver),
 					icon: () => Icons.Edit,
-				},
-				{
+				}
+				: null,
+			this.brandingDomain
+				? {
 					label: "copy_action",
 					click: () => this.copy(),
 					icon: () => Icons.Copy,
-				},
-				{
-					label: "delete_action",
-					click: () => this.delete(),
-					icon: () => Icons.Trash,
-				},
-			],
+				}
+				: null,
+			{
+				label: "delete_action",
+				click: () => this.delete(),
+				icon: () => Icons.Trash,
+			}
+		]
+		return m(ActionBar, {
+			buttons: buttons.filter(isNotNull),
 		})
 	}
 
@@ -141,7 +147,7 @@ export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
 	}
 }
 
-export function getContactFormUrl(domain: string, path: string): string {
+export function getContactFormUrl(domain: string | null, path: string): string {
 	let pathPrefix = ""
 
 	if (location.pathname.indexOf("client/build") !== -1) {
@@ -149,5 +155,7 @@ export function getContactFormUrl(domain: string, path: string): string {
 		pathPrefix = ":9000/client/build"
 	}
 
-	return "https://" + domain + pathPrefix + "/contactform/" + path
+	// In case whitelabel domain was deleted but contact form is there we display a placeholder.
+	const displayDomain = domain ?? "[no domain]"
+	return "https://" + displayDomain + pathPrefix + "/contactform/" + path
 }
