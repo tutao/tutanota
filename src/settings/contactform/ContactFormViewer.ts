@@ -1,4 +1,4 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {BookingItemFeatureType} from "../../api/common/TutanotaConstants"
 import {ActionBar} from "../../gui/base/ActionBar"
@@ -9,115 +9,118 @@ import {loadGroupInfos} from "../LoadingUtils"
 import {Icons} from "../../gui/base/icons/Icons"
 import {Dialog} from "../../gui/base/Dialog"
 import {neverNull} from "@tutao/tutanota-utils"
-import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
+import {GroupInfo, GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
 import {getDefaultContactFormLanguage} from "./ContactFormUtils.js"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
 import {showBuyDialog} from "../../subscription/BuyDialog"
 import stream from "mithril/stream"
-import {TextFieldAttrs, TextFieldN} from "../../gui/base/TextFieldN"
+import {TextFieldN} from "../../gui/base/TextFieldN"
 import {UpdatableSettingsDetailsViewer} from "../SettingsView"
 import {assertMainOrNode} from "../../api/common/Env"
 import {locator} from "../../api/main/MainLocator"
-import {ButtonAttrs} from "../../gui/base/ButtonN";
+import {ContactFormLanguage} from "../../api/entities/tutanota/ContactFormLanguage"
 
 assertMainOrNode()
 
 export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
-	view: UpdatableSettingsDetailsViewer["view"]
-	contactForm: ContactForm
-	private readonly _newContactFormIdReceiver: (id: Id) => unknown
+	private mailGroupInfo: GroupInfo | null = null
+	private participationGroupInfos: GroupInfo[] | null = null
+	private readonly language: ContactFormLanguage
 
-	constructor(contactForm: ContactForm, brandingDomain: string, newContactFormIdReceiver: (id: Id) => unknown) {
-		this.contactForm = contactForm
-		this._newContactFormIdReceiver = newContactFormIdReceiver
-		const actionBarButtons: ButtonAttrs[] = [
-			{
-				label: "edit_action",
-				click: () => ContactFormEditor.show(this.contactForm, false, this._newContactFormIdReceiver),
-				icon: () => Icons.Edit,
-			},
-			{
-				label: "copy_action",
-				click: () => this._copy(brandingDomain),
-				icon: () => Icons.Copy,
-			},
-			{
-				label: "delete_action",
-				click: () => this._delete(),
-				icon: () => Icons.Trash,
-			},
-		]
-		const urlFieldAttrs = {
-			label: "url_label",
-			value: stream(getContactFormUrl(brandingDomain, contactForm.path)),
-			disabled: true,
-		} as const
-		let mailGroupFieldAttrs = {
-			label: "receivingMailbox_label",
-			value: stream(lang.get("loading_msg")),
-			disabled: true,
-		} as const
+	constructor(
+		readonly contactForm: ContactForm,
+		private readonly brandingDomain: string,
+		private readonly newContactFormIdReceiver: (id: Id) => unknown,
+	) {
+		this.language = getDefaultContactFormLanguage(this.contactForm.languages)
+
 		locator.entityClient.load(GroupInfoTypeRef, neverNull(contactForm.targetGroupInfo)).then(groupInfo => {
-			mailGroupFieldAttrs = {
-				label: "receivingMailbox_label",
-				value: stream(getGroupInfoDisplayName(groupInfo)),
-				disabled: true,
-			}
+			this.mailGroupInfo = groupInfo
 			m.redraw()
 		})
-		let participantMailGroupsFieldAttrs: TextFieldAttrs | null = null
 		loadGroupInfos(contactForm.participantGroupInfos).then(groupInfos => {
-			const mailGroupNames = groupInfos.map(groupInfo => getGroupInfoDisplayName(groupInfo))
-
-			if (mailGroupNames.length > 0) {
-				participantMailGroupsFieldAttrs = {
-					label: "responsiblePersons_label",
-					value: stream(mailGroupNames.join("; ")),
-					disabled: true,
-				}
-				m.redraw()
-			}
+			this.participationGroupInfos = groupInfos
+			m.redraw()
 		})
-		const language = getDefaultContactFormLanguage(this.contactForm.languages)
-		const pageTitleFieldAttrs = {
-			label: "pageTitle_label",
-			value: stream(language.pageTitle),
-			disabled: true,
-		} as const
+	}
 
-		this.view = () => {
-			return [
-				m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
-					m(".flex-space-between.pt", [
-						m(".h4", lang.get("emailProcessing_label")),
-						m(ActionBar, {
-							buttons: actionBarButtons,
-						}),
-					]),
-					m(TextFieldN, mailGroupFieldAttrs),
-					participantMailGroupsFieldAttrs ? m(".mt-l", [m(TextFieldN, participantMailGroupsFieldAttrs)]) : null,
-					m(".h4.mt-l", lang.get("display_action")),
-					m(TextFieldN, urlFieldAttrs),
-					m(TextFieldN, pageTitleFieldAttrs),
+	view(): Children {
+		return [
+			m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
+				m(".flex-space-between.pt", [
+					m(".h4", lang.get("emailProcessing_label")),
+					this.renderActionBar(),
 				]),
-			]
+				m(TextFieldN, {
+					label: "receivingMailbox_label",
+					value: stream(this.mailGroupInfo ? getGroupInfoDisplayName(this.mailGroupInfo) : lang.get("loading_msg")),
+					disabled: true,
+				}),
+				this.renderParticipation(),
+				m(".h4.mt-l", lang.get("display_action")),
+				m(TextFieldN, {
+					label: "url_label",
+					value: stream(getContactFormUrl(this.brandingDomain, this.contactForm.path)),
+					disabled: true,
+				} as const),
+				m(TextFieldN, {
+					label: "pageTitle_label",
+					value: stream(this.language.pageTitle),
+					disabled: true,
+				}),
+			]),
+		]
+	}
+
+	private renderActionBar(): Children {
+		return m(ActionBar, {
+			buttons: [
+				{
+					label: "edit_action",
+					click: () => ContactFormEditor.show(this.contactForm, false, this.newContactFormIdReceiver),
+					icon: () => Icons.Edit,
+				},
+				{
+					label: "copy_action",
+					click: () => this.copy(),
+					icon: () => Icons.Copy,
+				},
+				{
+					label: "delete_action",
+					click: () => this.delete(),
+					icon: () => Icons.Trash,
+				},
+			],
+		})
+	}
+
+	private renderParticipation(): Children {
+		if (this.participationGroupInfos == null || this.participationGroupInfos.length === 0) {
+			return null
+		} else {
+			const mailGroupNames = this.participationGroupInfos.map(groupInfo => getGroupInfoDisplayName(groupInfo))
+			return m(".mt-l", m(TextFieldN, {
+				label: "responsiblePersons_label",
+				value: stream(mailGroupNames.join("; ")),
+				disabled: true,
+			}))
 		}
 	}
 
-	_copy(brandingDomain: string) {
-		let newForm = createContactForm()
+	private copy() {
+		const newForm = createContactForm()
 		// copy the instances as deep as necessary to make sure that the instances are not used in two different entities and changes affect both entities
 		newForm.targetGroupInfo = this.contactForm.targetGroupInfo
 		newForm.participantGroupInfos = this.contactForm.participantGroupInfos.slice()
 		newForm.path = "" // do not copy the path
 
 		newForm.languages = this.contactForm.languages.map(l => Object.assign({}, l))
-		ContactFormEditor.show(newForm, true, this._newContactFormIdReceiver)
+		ContactFormEditor.show(newForm, true, this.newContactFormIdReceiver)
 	}
 
-	_delete() {
+	private delete() {
 		Dialog.confirm("confirmDeleteContactForm_msg").then(confirmed => {
 			if (confirmed) {
 				showProgressDialog(
