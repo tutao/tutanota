@@ -1,0 +1,10 @@
+entities/
+translations/
+node_modules/
+build/
+dist/
+libs/
+app-android/
+app-ios/
+fdroid-metadata-workaround/
+packages/tutanota-crypto/lib/internal/
