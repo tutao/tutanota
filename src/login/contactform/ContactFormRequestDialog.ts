@@ -28,13 +28,13 @@ import {createDropDownButton} from "../../gui/base/Dropdown"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {getCleanedMailAddress} from "../../misc/parsing/MailAddressParser"
 import {createDraftRecipient} from "../../api/entities/tutanota/TypeRefs.js"
-import {makeRecipientDetails, RecipientInfoType} from "../../api/common/RecipientInfo"
 import {checkAttachmentSize} from "../../mail/model/MailUtils"
 import {locator} from "../../api/main/MainLocator"
 import {assertMainOrNode} from "../../api/common/Env"
 import {DataFile} from "../../api/common/DataFile";
 import {FileReference} from "../../api/common/utils/FileUtils";
 import {SessionType} from "../../api/common/SessionType.js";
+import {RecipientType} from "../../api/common/recipients/Recipient"
 
 assertMainOrNode()
 
@@ -325,12 +325,7 @@ export class ContactFormRequestDialog {
 							bodyText: this._editor.getValue(),
 							senderMailAddress: userEmailAddress,
 							senderName: "",
-							toRecipients: [
-								createDraftRecipient({
-									name,
-									mailAddress,
-								}),
-							],
+							toRecipients: [{name, address: mailAddress}],
 							ccRecipients: [],
 							bccRecipients: [],
 							conversationType: ConversationType.NEW,
@@ -341,7 +336,7 @@ export class ContactFormRequestDialog {
 							method: MailMethod.NONE,
 						},
 					)
-					await mailFacade.sendDraft(draft, [makeRecipientDetails(name, mailAddress, RecipientInfoType.INTERNAL, null)], lang.code)
+					await mailFacade.sendDraft(draft, [{name, address: mailAddress, type: RecipientType.INTERNAL, contact: null}], lang.code)
 				} finally {
 					await logins.logout(false)
 				}

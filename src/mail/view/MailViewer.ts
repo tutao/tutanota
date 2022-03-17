@@ -39,7 +39,11 @@ import {keyManager} from "../../misc/KeyManager"
 import {logins} from "../../api/main/LoginController"
 import {Icon, progressIcon} from "../../gui/base/Icon"
 import {Icons} from "../../gui/base/icons/Icons"
-import {LockedError} from "../../api/common/error/RestError"
+import type {MailAddress} from "../../api/entities/tutanota/MailAddress"
+import {createMailAddress} from "../../api/entities/tutanota/MailAddress"
+import {createEncryptedMailAddress} from "../../api/entities/tutanota/EncryptedMailAddress"
+import {CustomerTypeRef} from "../../api/entities/sys/Customer"
+import {LockedError, NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {theme} from "../../gui/theme"
 import {client} from "../../misc/ClientDetector"
@@ -362,8 +366,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				},
 				onupdate: vnode => {
 					const dom = vnode.dom as HTMLElement
-
-					this.setDomBody(dom)
+						this.setDomBody(dom)
 
 					// Only measure and update line height once.
 					// BUT we need to do in from onupdate too if we swap mailViewer but mithril does not realize

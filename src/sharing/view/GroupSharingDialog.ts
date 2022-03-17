@@ -8,7 +8,7 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {lang} from "../../misc/LanguageViewModel"
 import {Bubble, BubbleTextField} from "../../gui/base/BubbleTextField"
 import {RecipientInfoBubbleHandler} from "../../misc/RecipientInfoBubbleHandler"
-import {createRecipientInfo, getDisplayText, resolveRecipientInfoContact} from "../../mail/model/MailUtils"
+import {getDisplayText} from "../../mail/model/MailUtils"
 import type {DropdownChildAttrs} from "../../gui/base/DropdownN"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import {ButtonType} from "../../gui/base/ButtonN"
@@ -19,7 +19,6 @@ import {PreconditionFailedError, TooManyRequestsError} from "../../api/common/er
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import type {GroupInfo} from "../../api/entities/sys/TypeRefs.js"
 import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
-import type {RecipientInfo} from "../../api/common/RecipientInfo"
 import {
 	getCapabilityText,
 	getMemberCabability,
@@ -38,6 +37,7 @@ import {getConfirmation} from "../../gui/base/GuiUtils"
 import type {GroupSharingTexts} from "../GroupGuiUtils"
 import {getTextsForGroupType} from "../GroupGuiUtils"
 import Stream from "mithril/stream";
+import {Recipient} from "../../api/common/recipients/Recipient"
 // the maximum number of BTF suggestions so the suggestions dropdown does not overflow the dialog
 const SHOW_CONTACT_SUGGESTIONS_MAX = 3
 
@@ -55,6 +55,7 @@ export function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNameOverr
 			locator.mailFacade,
 			locator.shareFacade,
 			locator.groupManagementFacade,
+			locator.recipientsModel,
 		),
 	).then(model => {
 		model.onEntityUpdate.map(m.redraw.bind(m))
@@ -156,7 +157,7 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 	}
 } // This is a separate function because "this" inside bubble handler object is "any"
 
-function _createBubbleContextButtons(bubbles: Array<Bubble<RecipientInfo>>, name: string, mailAddress: string): Array<DropdownChildAttrs> {
+function _createBubbleContextButtons(bubbles: Array<Bubble<Recipient>>, name: string, mailAddress: string): Array<DropdownChildAttrs> {
 	let buttonAttrs: Array<DropdownChildAttrs> = [
 		{
 			info: mailAddress,
@@ -168,7 +169,7 @@ function _createBubbleContextButtons(bubbles: Array<Bubble<RecipientInfo>>, name
 		label: "remove_action",
 		type: ButtonType.Secondary,
 		click: () => {
-			const bubbleToRemove = bubbles.find(bubble => bubble.entity.mailAddress === mailAddress)
+			const bubbleToRemove = bubbles.find(bubble => bubble.entity.address === mailAddress)
 
 			if (bubbleToRemove) {
 				remove(bubbles, bubbleToRemove)
@@ -181,29 +182,27 @@ function _createBubbleContextButtons(bubbles: Array<Bubble<RecipientInfo>>, name
 function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSharingTexts) {
 	const bubbleHandler = new RecipientInfoBubbleHandler(
 		{
-			createBubble(name: string | null, mailAddress: string, contact: Contact | null): Bubble<RecipientInfo> {
-				let recipientInfo = createRecipientInfo(mailAddress, name, contact)
-				recipientInfo.resolveContactPromise = resolveRecipientInfoContact(recipientInfo, locator.contactModel, logins.getUserController().user)
-				let bubbleWrapper = {}
+			createBubble(name: string | null, address: string, contact: Contact | null): Bubble<Recipient> {
+				const recipient = locator.recipientsModel.resolve({ name, address, contact, resolveLazily: false})
 
-				const childAttrs = () => _createBubbleContextButtons(invitePeopleValueTextField.bubbles, recipientInfo.name, mailAddress)
+				const childAttrs = () => _createBubbleContextButtons(invitePeopleValueTextField.bubbles, recipient.name, address)
 
 				const buttonAttrs = attachDropdown(
 					{
                         mainButtonAttrs: {
-                            label: () => getDisplayText(recipientInfo.name, mailAddress, false),
+                            label: () => getDisplayText(recipient.name, address, false),
                             type: ButtonType.TextBubble,
                             isSelected: () => false,
                         }, childAttrs: childAttrs
                     },
 				)
-				return new Bubble(recipientInfo, neverNull(buttonAttrs), mailAddress)
+				return new Bubble(recipient, neverNull(buttonAttrs), address)
 			},
 		},
 		locator.contactModel,
 		SHOW_CONTACT_SUGGESTIONS_MAX,
 	)
-	const invitePeopleValueTextField = new BubbleTextField<RecipientInfo>("shareWithEmailRecipient_label", bubbleHandler)
+	const invitePeopleValueTextField = new BubbleTextField<Recipient>("shareWithEmailRecipient_label", bubbleHandler)
 	const capability = stream<ShareCapability>(ShareCapability.Read)
 	const realGroupName = getSharedGroupName(model.info, false)
 	const customGroupName = getSharedGroupName(model.info, true)
@@ -258,7 +257,7 @@ function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSharingT
 									dialog.close()
 									sendShareNotificationEmail(
 										model.info,
-										invitedMailAddresses.map(ma => createRecipientInfo(ma.address, null, null)),
+										invitedMailAddresses,
 										texts,
 									)
 								})

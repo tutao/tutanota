@@ -25,8 +25,6 @@ import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
 import {client} from "../../misc/ClientDetector"
 import type {Guest, RepeatData} from "../date/CalendarEventViewModel"
 import {CalendarEventViewModel, createCalendarEventViewModel} from "../date/CalendarEventViewModel"
-import type {RecipientInfo} from "../../api/common/RecipientInfo"
-import {RecipientInfoType} from "../../api/common/RecipientInfo"
 import {UserError} from "../../api/main/UserError"
 import {theme} from "../../gui/theme"
 import {showBusinessFeatureRequiredDialog} from "../../misc/SubscriptionDialogs"
@@ -37,13 +35,15 @@ import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {PasswordIndicator} from "../../gui/PasswordIndicator"
 import {TimePicker} from "../../gui/TimePicker"
 import type {ContactModel} from "../../contacts/model/ContactModel"
-import {createRecipientInfo, getDisplayText} from "../../mail/model/MailUtils"
+import {getDisplayText, isTutanotaMailAddress} from "../../mail/model/MailUtils"
 import {getSharedGroupName} from "../../sharing/GroupUtils"
 import {logins} from "../../api/main/LoginController"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {askIfShouldSendCalendarUpdatesToAttendees} from "./CalendarGuiUtils"
 import type {CalendarInfo} from "../model/CalendarModel"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
+import {Recipient, RecipientType} from "../../api/common/recipients/Recipient"
+import {getContactDisplayName} from "../../contacts/model/ContactUtils"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 
 export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = Object.freeze({
@@ -227,7 +227,7 @@ export function showCalendarEventDialog(
 						address: createEncryptedMailAddress({
 							address: organizer.address,
 						}),
-						type: RecipientInfoType.EXTERNAL,
+						type: RecipientType.EXTERNAL,
 						// Events created by Tutanota will always have the organizer in the attendee list
 						status: CalendarAttendeeStatus.ADDED, // We don't know whether the organizer will be attending or not in this case
 					})
@@ -235,7 +235,7 @@ export function showCalendarEventDialog(
 
 				const externalGuests = viewModel.shouldShowPasswordFields()
 					? guests
-						.filter(a => a.type === RecipientInfoType.EXTERNAL)
+						.filter(a => a.type === RecipientType.EXTERNAL)
 						.map(guest => {
 							return m(TextFieldN, {
 								value: viewModel.getGuestPassword(guest),
@@ -566,7 +566,7 @@ function createIntevalValues(): Array<{name: string, value: number}> {
 	})
 }
 
-function makeBubbleTextField(viewModel: CalendarEventViewModel, contactModel: ContactModel): BubbleTextField<RecipientInfo> {
+function makeBubbleTextField(viewModel: CalendarEventViewModel, contactModel: ContactModel): BubbleTextField<Recipient> {
 	function createBubbleContextButtons(name: string, mailAddress: string): [DropdownInfoAttrs, ButtonAttrs] {
 		return [
 			{
@@ -577,7 +577,7 @@ function makeBubbleTextField(viewModel: CalendarEventViewModel, contactModel: Co
 			{
 				label: "remove_action",
 				click: () => {
-					findAndRemove(invitePeopleValueTextField.bubbles, bubble => bubble.entity.mailAddress === mailAddress)
+					findAndRemove(invitePeopleValueTextField.bubbles, bubble => bubble.entity.address === mailAddress)
 				},
 			}
 		]
@@ -585,17 +585,17 @@ function makeBubbleTextField(viewModel: CalendarEventViewModel, contactModel: Co
 
 	const bubbleHandler = new RecipientInfoBubbleHandler(
 		{
-			createBubble(name: string | null, mailAddress: string, contact: Contact | null): Bubble<RecipientInfo> {
-				const recipientInfo = createRecipientInfo(mailAddress, name, contact)
+			createBubble(name: string | null, address: string, contact: Contact | null): Bubble<Recipient> {
+				const recipient = new EventRecipient(address, name, contact)
 				const buttonAttrs = attachDropdown({
 					mainButtonAttrs: {
-						label: () => getDisplayText(recipientInfo.name, mailAddress, false),
+						label: () => getDisplayText(recipient.name, address, false),
 						type: ButtonType.TextBubble,
 						isSelected: () => false,
 					},
-					childAttrs: () => createBubbleContextButtons(recipientInfo.name, mailAddress)
+					childAttrs: () => createBubbleContextButtons(recipient.name, address)
 				})
-				const bubble = new Bubble(recipientInfo, buttonAttrs, mailAddress)
+				const bubble = new Bubble(recipient, buttonAttrs, address)
 				// remove bubble after it was created - we don't need it for calendar invites because the attendees are shown in a separate list.
 				Promise.resolve().then(() => {
 					const notAvailable = viewModel.shouldShowSendInviteNotAvailable()
@@ -604,13 +604,13 @@ function makeBubbleTextField(viewModel: CalendarEventViewModel, contactModel: Co
 					if (notAvailable) {
 						p = showBusinessFeatureRequiredDialog("businessFeatureRequiredInvite_msg").then(businessFeatureOrdered => {
 							if (businessFeatureOrdered) {
-								viewModel.addGuest(bubble.entity.mailAddress, bubble.entity.contact)
+								viewModel.addGuest(bubble.entity.address, bubble.entity.contact)
 							}
 
 							viewModel.hasBusinessFeature(businessFeatureOrdered) //entity event updates are too slow to call updateBusinessFeature()
 						})
 					} else {
-						viewModel.addGuest(bubble.entity.mailAddress, bubble.entity.contact)
+						viewModel.addGuest(bubble.entity.address, bubble.entity.contact)
 					}
 
 					p.then(() => {
@@ -624,6 +624,19 @@ function makeBubbleTextField(viewModel: CalendarEventViewModel, contactModel: Co
 	)
 	const invitePeopleValueTextField = new BubbleTextField("addGuest_label", bubbleHandler, () => renderGuestButtons(viewModel))
 	return invitePeopleValueTextField
+}
+
+class EventRecipient implements Recipient {
+	public readonly name: string
+	public readonly type: RecipientType
+	constructor(
+		public readonly address: string,
+		name: string | null,
+		public readonly contact: Contact | null
+	) {
+		this.type = isTutanotaMailAddress(address) ? RecipientType.INTERNAL : RecipientType.UNKNOWN
+		this.name = name != null ? name : contact != null ? getContactDisplayName(contact) : ""
+	}
 }
 
 function renderTwoColumnsIfFits(left: Children, right: Children): Children {
@@ -767,7 +780,7 @@ function renderUpdateAttendeesButton(viewModel: CalendarEventViewModel) {
 }
 
 function renderConfidentialButton(viewModel: CalendarEventViewModel) {
-	return viewModel.attendees().find(a => a.type === RecipientInfoType.EXTERNAL)
+	return viewModel.attendees().find(a => a.type === RecipientType.EXTERNAL)
 		? m(ButtonN, {
 			label: "confidential_action",
 			click: () => viewModel.setConfidential(!viewModel.isConfidential()),

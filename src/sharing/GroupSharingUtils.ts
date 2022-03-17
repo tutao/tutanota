@@ -1,23 +1,22 @@
-import type {Recipients} from "../mail/editor/SendMailModel"
 import {getDefaultSender, getEnabledMailAddresses, getSenderNameForUser} from "../mail/model/MailUtils"
 import type {GroupInfo} from "../api/entities/sys/TypeRefs.js"
 import type {ReceivedGroupInvitation} from "../api/entities/sys/TypeRefs.js"
 import {locator} from "../api/main/MainLocator"
-import type {RecipientInfo} from "../api/common/RecipientInfo"
 import {logins} from "../api/main/LoginController"
 import {MailMethod} from "../api/common/TutanotaConstants"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {GroupSharingTexts} from "./GroupGuiUtils"
 import {getDefaultGroupName, getInvitationGroupType, getSharedGroupName} from "./GroupUtils"
+import {PartialRecipient, Recipients} from "../api/common/recipients/Recipient"
 
-export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>, texts: GroupSharingTexts) {
+export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipients: Array<PartialRecipient>, texts: GroupSharingTexts) {
 	locator.mailModel.getUserMailboxDetails().then(mailboxDetails => {
 		const senderMailAddress = getDefaultSender(logins, mailboxDetails)
 		const userName = getSenderNameForUser(mailboxDetails, logins.getUserController())
 		// Sending notifications as bcc so that invited people don't see each other
-		const bcc = recipients.map(({name, mailAddress}) => ({
+		const bcc = recipients.map(({name, address}) => ({
 			name,
-			address: mailAddress,
+			address,
 		}))
 
 		_sendNotificationEmail(

@@ -3,7 +3,6 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
-import {isTutanotaMailAddress} from "../api/common/RecipientInfo"
 import {isMailAddress} from "../misc/FormatValidator"
 import {Icons} from "../gui/base/icons/Icons"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
@@ -18,6 +17,7 @@ import {Icon} from "../gui/base/Icon"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
+import {isTutanotaMailAddress} from "../mail/model/MailUtils.js";
 
 assertMainOrNode()
 const VALID_MESSAGE_ID = "mailAddressAvailable_msg"

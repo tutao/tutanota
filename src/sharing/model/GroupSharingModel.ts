@@ -1,4 +1,5 @@
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../../api/main/EventController"
 import {EntityClient} from "../../api/common/EntityClient"
@@ -7,7 +8,7 @@ import type {SentGroupInvitation} from "../../api/entities/sys/TypeRefs.js"
 import {SentGroupInvitationTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import {OperationType, ShareCapability} from "../../api/common/TutanotaConstants"
 import {NotFoundError} from "../../api/common/error/RestError"
-import {findAndRemove} from "@tutao/tutanota-utils"
+import {findAndRemove, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {GroupMember} from "../../api/entities/sys/TypeRefs.js"
 import {GroupMemberTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import type {GroupInfo} from "../../api/entities/sys/TypeRefs.js"
@@ -17,19 +18,15 @@ import type {GroupMemberInfo} from "../GroupUtils"
 import {getSharedGroupName, hasCapabilityOnGroup, isSharedGroupOwner, loadGroupInfoForMember, loadGroupMembers} from "../GroupUtils"
 import type {LoginController} from "../../api/main/LoginController"
 import {UserError} from "../../api/main/UserError"
-import type {RecipientInfo} from "../../api/common/RecipientInfo"
-import {RecipientInfoType} from "../../api/common/RecipientInfo"
 import type {MailAddress} from "../../api/entities/tutanota/TypeRefs.js"
 import {lang} from "../../misc/LanguageViewModel"
 import {RecipientsNotFoundError} from "../../api/common/error/RecipientsNotFoundError"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
-import {resolveRecipientInfo} from "../../mail/model/MailUtils"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
-import {noOp} from "@tutao/tutanota-utils"
 import type {MailFacade} from "../../api/worker/facades/MailFacade"
 import type {ShareFacade} from "../../api/worker/facades/ShareFacade"
 import type {GroupManagementFacade} from "../../api/worker/facades/GroupManagementFacade"
-import Stream from "mithril/stream";
+import {Recipient, RecipientType} from "../../api/common/recipients/Recipient"
+import {RecipientsModel} from "../../api/main/RecipientsModel"
 
 export class GroupSharingModel {
 	readonly info: GroupInfo
@@ -56,6 +53,7 @@ export class GroupSharingModel {
 		mailFacade: MailFacade,
 		shareFacade: ShareFacade,
 		groupManagementFacade: GroupManagementFacade,
+		private readonly recipientsModel: RecipientsModel,
 	) {
 		this.info = groupInfo
 		this.group = group
@@ -79,6 +77,7 @@ export class GroupSharingModel {
 		mailFacade: MailFacade,
 		shareFacade: ShareFacade,
 		groupManagementFacade: GroupManagementFacade,
+		recipientsModel: RecipientsModel
 	): Promise<GroupSharingModel> {
 		return entityClient
 			.load(GroupTypeRef, info.group)
@@ -96,6 +95,7 @@ export class GroupSharingModel {
 							mailFacade,
 							shareFacade,
 							groupManagementFacade,
+							recipientsModel,
 						),
 				),
 			)
@@ -141,47 +141,49 @@ export class GroupSharingModel {
 			: Promise.reject(new Error("User does not have permission to cancel this invitation")) // TODO error type
 	}
 
-	sendGroupInvitation(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>, capability: ShareCapability): Promise<Array<MailAddress>> {
+	async sendGroupInvitation(sharedGroupInfo: GroupInfo, recipients: Array<Recipient>, capability: ShareCapability): Promise<Array<MailAddress>> {
 		const externalRecipients: string[] = []
-		return promiseMap(recipients, recipient => {
-			return resolveRecipientInfo(this._mailFacade, recipient).then(r => {
-				if (r.type !== RecipientInfoType.INTERNAL) {
-					externalRecipients.push(r.mailAddress)
-				}
-			})
-		}).then(() => {
-			if (externalRecipients.length) {
-				throw new UserError(() => lang.get("featureTutanotaOnly_msg") + " " + lang.get("invalidRecipients_msg") + "\n" + externalRecipients.join("\n"))
+		for (let recipient of recipients) {
+			const resolved = await this.recipientsModel.resolve(recipient).resolved()
+			if (resolved.type !== RecipientType.INTERNAL) {
+				externalRecipients.push(resolved.address)
 			}
 
-			return this._shareFacade
-					   .sendGroupInvitation(
-						   sharedGroupInfo,
-						   getSharedGroupName(sharedGroupInfo, false),
-						   recipients.map(r => r.mailAddress),
-						   capability,
-					   )
-					   .then(groupInvitationReturn => {
-						   if (groupInvitationReturn.existingMailAddresses.length > 0 || groupInvitationReturn.invalidMailAddresses.length > 0) {
-							   const existingMailAddresses = groupInvitationReturn.existingMailAddresses.map(ma => ma.address).join("\n")
-							   const invalidMailAddresses = groupInvitationReturn.invalidMailAddresses.map(ma => ma.address).join("\n")
-							   throw new UserError(() => {
-								   let msg = ""
-								   msg += existingMailAddresses.length === 0 ? "" : lang.get("existingMailAddress_msg") + "\n" + existingMailAddresses
-								   msg += existingMailAddresses.length === 0 && invalidMailAddresses.length === 0 ? "" : "\n\n"
-								   msg += invalidMailAddresses.length === 0 ? "" : lang.get("invalidMailAddress_msg") + "\n" + invalidMailAddresses
-								   return msg
-							   })
-						   }
+		}
+		if (externalRecipients.length) {
+			throw new UserError(() => lang.get("featureTutanotaOnly_msg") + " " + lang.get("invalidRecipients_msg") + "\n" + externalRecipients.join("\n"))
+		}
 
-						   return groupInvitationReturn.invitedMailAddresses
-					   })
-					   .catch(
-						   ofClass(RecipientsNotFoundError, e => {
-							   throw new UserError(() => `${lang.get("tutanotaAddressDoesNotExist_msg")} ${lang.get("invalidRecipients_msg")}\n${e.message}`)
-						   }),
-					   )
-		})
+		let groupInvitationReturn
+		try {
+			groupInvitationReturn = await this._shareFacade.sendGroupInvitation(
+				sharedGroupInfo,
+				getSharedGroupName(sharedGroupInfo, false),
+				recipients.map(r => r.address),
+				capability,
+			)
+		} catch (e) {
+			if (e instanceof RecipientsNotFoundError) {
+				throw new UserError(() => `${lang.get("tutanotaAddressDoesNotExist_msg")} ${lang.get("invalidRecipients_msg")}\n${e.message}`)
+			} else {
+				throw e
+			}
+		}
+
+
+		if (groupInvitationReturn.existingMailAddresses.length > 0 || groupInvitationReturn.invalidMailAddresses.length > 0) {
+			const existingMailAddresses = groupInvitationReturn.existingMailAddresses.map(ma => ma.address).join("\n")
+			const invalidMailAddresses = groupInvitationReturn.invalidMailAddresses.map(ma => ma.address).join("\n")
+			throw new UserError(() => {
+				let msg = ""
+				msg += existingMailAddresses.length === 0 ? "" : lang.get("existingMailAddress_msg") + "\n" + existingMailAddresses
+				msg += existingMailAddresses.length === 0 && invalidMailAddresses.length === 0 ? "" : "\n\n"
+				msg += invalidMailAddresses.length === 0 ? "" : lang.get("invalidMailAddress_msg") + "\n" + invalidMailAddresses
+				return msg
+			})
+		}
+
+		return groupInvitationReturn.invitedMailAddresses
 	}
 
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {

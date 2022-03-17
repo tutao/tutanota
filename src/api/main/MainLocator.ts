@@ -57,6 +57,7 @@ import {IServiceExecutor} from "../common/ServiceRequest.js"
 import {BlobFacade} from "../worker/facades/BlobFacade"
 import {CryptoFacade} from "../worker/crypto/CryptoFacade"
 import type {InterWindowEventBus} from "../../native/common/InterWindowEventBus"
+import {RecipientsModel} from "./RecipientsModel"
 import {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade"
 import {ExposedCacheStorage} from "../worker/rest/EntityRestCache.js"
 import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes"
@@ -109,7 +110,7 @@ export interface IMainLocator {
 	readonly loginListener: LoginListener
 	readonly offlineDbFacade: OfflineDbFacade
 	readonly cacheStorage: ExposedCacheStorage
-
+	readonly recipientsModel: RecipientsModel
 	readonly init: () => Promise<void>
 	readonly initialized: Promise<void>
 }
@@ -150,6 +151,7 @@ class MainLocator implements IMainLocator {
 	usageTestModel!: UsageTestModel
 	serviceExecutor!: IServiceExecutor
 	cryptoFacade!: CryptoFacade
+	recipientsModel!: RecipientsModel
 	cacheStorage!: ExposedCacheStorage
 	_interWindowEventBus!: InterWindowEventBus<InterWindowEventTypes>
 	loginListener!: LoginListener
@@ -347,6 +349,7 @@ class MainLocator implements IMainLocator {
 		this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, logins)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
 		this.usageTestController = new UsageTestController(this.usageTestModel)
+		this.recipientsModel = new RecipientsModel(this.contactModel, logins, this.mailFacade, this.entityClient)
 	}
 }
 

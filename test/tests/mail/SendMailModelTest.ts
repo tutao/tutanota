@@ -18,8 +18,7 @@ import {ConversationType, GroupType, MailMethod, OperationType} from "../../../s
 import {lang} from "../../../src/misc/LanguageViewModel.js"
 import {createCustomer, CustomerTypeRef} from "../../../src/api/entities/sys/TypeRefs.js"
 import {createUser, UserTypeRef} from "../../../src/api/entities/sys/TypeRefs.js"
-import type {RecipientInfo} from "../../../src/api/common/RecipientInfo.js"
-import {isTutanotaMailAddress, RecipientInfoType} from "../../../src/api/common/RecipientInfo.js"
+import type {RecipientInfo} from "../../../src/api/common/RecipientInfo"
 import {createMail, MailTypeRef} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {EventController} from "../../../src/api/main/EventController.js"
 import {createMailAddress} from "../../../src/api/entities/tutanota/TypeRefs.js"
@@ -34,8 +33,9 @@ import {getContactDisplayName} from "../../../src/contacts/model/ContactUtils.js
 import {ConversationEntryTypeRef, createConversationEntry} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {isSameId} from "../../../src/api/common/utils/EntityUtils.js"
 import {MailFacade} from "../../../src/api/worker/facades/MailFacade.js"
-import {RecipientField} from "../../../src/mail/model/MailUtils.js"
+import {isTutanotaMailAddress, RecipientField} from "../../../src/mail/model/MailUtils.js"
 import {func, instance, matchers, object, replace, when} from "testdouble"
+import {RecipientType} from "../../../src/api/common/recipients/RecipientsModel.js";
 
 const {anything, argThat} = matchers
 
@@ -169,7 +169,7 @@ o.spec("SendMailModel", function () {
 		o.beforeEach(function () {
 			replace(model, "_createAndResolveRecipientInfo", (name, address, contact, resolveLazily) => {
 				const ri: RecipientInfo = {
-					type: isTutanotaMailAddress(address) ? RecipientInfoType.INTERNAL : RecipientInfoType.EXTERNAL,
+					type: isTutanotaMailAddress(address) ? RecipientType.INTERNAL : RecipientType.EXTERNAL,
 					mailAddress: address,
 					name: name,
 					contact:

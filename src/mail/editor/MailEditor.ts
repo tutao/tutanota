@@ -2,7 +2,7 @@ import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {Editor} from "../../gui/editor/Editor"
-import type {Attachment, Recipients, ResponseMailParameters} from "./SendMailModel"
+import type {Attachment, InitAsResponseArgs} from "./SendMailModel"
 import {defaultSendMailModel, SendMailModel} from "./SendMailModel"
 import {Dialog} from "../../gui/base/Dialog"
 import {InfoLink, lang} from "../../misc/LanguageViewModel"
@@ -21,15 +21,13 @@ import {attachDropdown, createDropdown} from "../../gui/base/DropdownN"
 import {RichTextToolbar} from "../../gui/base/RichTextToolbar"
 import {isApp, isBrowser, isDesktop} from "../../api/common/Env"
 import {Icons} from "../../gui/base/icons/Icons"
-import {RecipientInfoType} from "../../api/common/RecipientInfo"
-import {animations, height, opacity} from "../../gui/animation/Animations"
+import {AnimationPromise, animations, height, opacity} from "../../gui/animation/Animations"
 import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
-import {TextFieldN} from "../../gui/base/TextFieldN"
+import {TextFieldN, TextFieldType} from "../../gui/base/TextFieldN"
 import {
 	chooseAndAttachFile,
 	cleanupInlineAttachments,
 	createAttachmentButtonAttrs,
-	createPasswordField,
 	getConfidentialStateMessage,
 	MailEditorRecipientField,
 } from "./MailEditorViewModel"
@@ -61,6 +59,8 @@ import {parseMailtoUrl} from "../../misc/parsing/MailAddressParser"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import {Shortcut} from "../../misc/KeyManager";
 import {DataFile} from "../../api/common/DataFile";
+import {Recipients, RecipientType} from "../../api/common/recipients/Recipient"
+import {PasswordIndicator} from "../../gui/PasswordIndicator"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 
@@ -109,12 +109,14 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	inlineImageElements: Array<HTMLElement>
 	templateModel: TemplatePopupModel | null
 	openKnowledgeBaseButtonAttrs: ButtonAttrs | null = null
+	sendMailModel!: SendMailModel
 
 	constructor(vnode: Vnode<MailEditorAttrs>) {
 		this.inlineImageElements = []
 		this.mentionedInlineImages = []
 		const a: MailEditorAttrs = vnode.attrs
 		const model = a.model
+		this.sendMailModel = model
 		this.templateModel = a.templateModel
 		this.editor = new Editor(200, (html, isPaste) => {
 			const sanitized = htmlSanitizer.sanitizeFragment(html, {
@@ -295,6 +297,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	view(vnode: Vnode<MailEditorAttrs>): Children {
 		const a = vnode.attrs
 		const {model} = a
+		this.sendMailModel = model
 
 		const showConfidentialButton = model.containsExternalRecipients()
 		const isConfidential = model.isConfidential() && showConfidentialButton
@@ -343,30 +346,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			},
 		}
 
-		function animate(domElement: HTMLElement, fadein: boolean) {
-			let childHeight = domElement.offsetHeight
-			return animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0)).then(() => {
-				domElement.style.height = ""
-			})
-		}
-
 		const attachmentButtonAttrs = createAttachmentButtonAttrs(model, this.inlineImageElements)
-
-		const lazyPasswordFieldAttrs = () =>
-			model
-				.allRecipients()
-				.filter(r => r.type === RecipientInfoType.EXTERNAL || (r.type === RecipientInfoType.UNKNOWN && !r.resolveContactPromise)) // only show passwords for resolved contacts, otherwise we might not get the password
-				.map(r =>
-					m(
-						TextFieldN,
-						Object.assign({}, createPasswordField(model, r), {
-							oncreate: (vnode: VnodeDOM<TextFieldAttrs>) => {
-								animate(vnode.dom as HTMLElement, true)
-							},
-							onbeforeremove: (vnode: VnodeDOM<TextFieldAttrs>) => animate(vnode.dom as HTMLElement, false),
-						}),
-					),
-				)
 
 		let editCustomNotificationMailAttrs: ButtonAttrs | null = null
 
@@ -504,14 +484,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						: null,
 				]),
 				isConfidential
-					? m(
-						".external-recipients.overflow-hidden",
-						{
-							oncreate: vnode => animate((vnode as VnodeDOM).dom as HTMLElement, true),
-							onbeforeremove: vnode => animate((vnode as VnodeDOM).dom as HTMLElement, false),
-						},
-						lazyPasswordFieldAttrs(),
-					)
+					? this.renderPasswordFields()
 					: null,
 				m(".row", m(TextFieldN, subjectFieldAttrs)),
 				m(
@@ -540,12 +513,46 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		)
 	}
 
-	openTemplates() {
+	private renderPasswordFields(): Children {
+		return m(".external-recipients.overflow-hidden",
+			{
+				oncreate: vnode => this.animate((vnode as VnodeDOM).dom as HTMLElement, true),
+				onbeforeremove: vnode => this.animate((vnode as VnodeDOM).dom as HTMLElement, false),
+			},
+			this.sendMailModel
+				.allRecipients()
+				.filter(r => r.type === RecipientType.EXTERNAL || (r.type === RecipientType.UNKNOWN && !r.isResolved())) // only show passwords for resolved contacts, otherwise we might not get the password
+				.map(recipient => {
+					const passwordStrength = this.sendMailModel.getPasswordStrength(recipient)
+					const password = this.sendMailModel.getPassword(recipient.address)
+					const passwordIndicator = new PasswordIndicator(() => passwordStrength)
+
+					return m(TextFieldN, {
+						oncreate: vnode => this.animate(vnode.dom as HTMLElement, true),
+						onbeforeremove: vnode => this.animate(vnode.dom as HTMLElement, false),
+						label: () => lang.get("passwordFor_label", {"{1}": recipient.address,}),
+						helpLabel: () => m(passwordIndicator),
+						value: Stream(password),
+						type: TextFieldType.ExternalPassword,
+						oninput: val => this.sendMailModel.setPassword(recipient.address, val),
+					})
+				})
+		)
+	}
+
+	private openTemplates() {
 		if (this.templateModel) {
 			this.templateModel.init().then(templateModel => {
 				showTemplatePopupInEditor(templateModel, this.editor, null, this.editor.getSelectedText())
 			})
 		}
+	}
+
+	private animate(domElement: HTMLElement, fadein: boolean): AnimationPromise {
+		let childHeight = domElement.offsetHeight
+		return animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0)).then(() => {
+			domElement.style.height = ""
+		})
 	}
 }
 
@@ -553,7 +560,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
  * Creates a new Dialog with a MailEditor inside.
  * @param model
  * @param blockExternalContent
- * @param inlineImages
  * @returns {Dialog}
  * @private
  */
@@ -754,7 +760,7 @@ export function newMailEditor(mailboxDetails: MailboxDetail): Promise<Dialog> {
 }
 
 export function newMailEditorAsResponse(
-	args: ResponseMailParameters,
+	args: InitAsResponseArgs,
 	blockExternalContent: boolean,
 	inlineImages: InlineImages,
 	mailboxDetails?: MailboxDetail,
