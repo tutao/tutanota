@@ -1,0 +1,10 @@
+{
+	"rules": {
+		// Tests are all kinds of unlintable. We could at some point go through and clear this stuff up
+		// but it's not that could take a long time
+		"@typescript-eslint/ban-ts-comment": 0,
+		"@typescript-eslint/no-explicit-any": 0,
+		"@typescript-eslint/no-unexpected-any": 0,
+		"@typescript-eslint/no-empty-function": 0
+	}
+}
