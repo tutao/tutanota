@@ -1,6 +1,8 @@
 import o from "ospec"
 import {
+	parseCalendarEvents,
 	parseDuration,
+	parseICalendar,
 	parseProperty,
 	parsePropertyKeyValue,
 	parseTime,
@@ -149,6 +151,48 @@ o.spec("CalendarParser", function () {
 			date: new Date(Date.UTC(2018, 0, 15, 21, 40, 0)),
 			allDay: false,
 		})
+		o(parseTime("20180115T", "Europe/Berlin")).deepEquals({
+			date: new Date(Date.UTC(2018, 0, 15, 0, 0, 0)),
+			allDay: true,
+		})
 		o(() => parseTime("20180015T214000Z", "Europe/Berlin")).throws(ParserError)
+	})
+
+	const mkEventWithStartEnd = (start, end) => parseICalendar("BEGIN:VCALENDAR\n" +
+		"VERSION:2.0\n" +
+		"BEGIN:VEVENT\n" +
+		"UID:0c838926-f826-43c9-9f17-4836c565eece\n" +
+		"DTSTAMP:20220106T214416Z\n" +
+		"SUMMARY;LANGUAGE=de:Gelber Sack\n" +
+		`DTSTART:${start}\n` +
+		`DTEND:${end}\n` +
+		"DESCRIPTION:Gelber Sack\n" +
+		"LOCATION:test\n" +
+		"END:VEVENT\n" +
+		"END:VCALENDAR")
+
+	o("parseCalendarEvents fixes all-day-events with illegal endTime to a duration of 1 day", function () {
+		const alldayEqual = mkEventWithStartEnd("20220315T", "20220315T")
+		const {event: eventEqual} = parseCalendarEvents(alldayEqual, "Europe/Berlin").contents[0]
+		o(eventEqual.endTime.getTime()).equals(parseTime("20220316T", "Europe/Berlin").date.getTime())("alldayEqual")
+
+		const alldayFlipped = mkEventWithStartEnd("20220315T", "20220314T")
+		const {event: flippedEvent} = parseCalendarEvents(alldayFlipped, "Europe/Berlin").contents[0]
+		o(flippedEvent.endTime.getTime()).equals(parseTime("20220316T", "Europe/Berlin").date.getTime())("alldayFlipped")
+
+		// allday with an endTime that has hours/minutes/seconds?
+		const wack = mkEventWithStartEnd("20220315T", "20220314T225915Z")
+		const {event: wackEvent} = parseCalendarEvents(wack, "Europe/Berlin").contents[0]
+		o(wackEvent.endTime.getTime()).equals(parseTime("20220316T", "Europe/Berlin").date.getTime())("wack")
+	})
+
+	o("parseCalendarEvents fixes non-all-day-events with illegal endTime to a duration of 1 second", function () {
+		const icalEqual = mkEventWithStartEnd("20220315T225900Z", "20220315T225900Z")
+		const {event: eventEqual} = parseCalendarEvents(icalEqual, "Europe/Berlin").contents[0]
+		o(eventEqual.endTime.getTime()).equals(new Date("2022-03-15T22:59:01.000Z").getTime())("equal non-allday")
+
+		const icalFlipped = mkEventWithStartEnd("20220315T225900Z", "20220315T225800Z")
+		const {event: eventFlipped} = parseCalendarEvents(icalFlipped, "Europe/Berlin").contents[0]
+		o(eventFlipped.endTime.getTime()).equals(new Date("2022-03-15T22:59:01.000Z").getTime())("flipped non-allday")
 	})
 })
