@@ -13,6 +13,7 @@ import {_TypeModel as UsageTestTypeModel, UsageTestAssignment} from "../api/enti
 import {SuspensionError} from "../api/common/error/SuspensionError"
 import {SuspensionBehavior} from "../api/worker/rest/RestClient"
 import {DateProvider} from "../api/common/DateProvider.js"
+import {isTest} from "../api/common/Env"
 
 export interface PersistedAssignmentData {
 	updatedAt: number
@@ -41,6 +42,8 @@ export interface ServiceExecutor {
 	serviceRequest: typeof serviceRequest
 }
 
+const USAGE_TESTS_ENABLED = isTest()
+
 export class UsageTestModel implements PingAdapter {
 
 	constructor(
@@ -51,6 +54,8 @@ export class UsageTestModel implements PingAdapter {
 	}
 
 	async loadActiveUsageTests(ttlBehavior: TtlBehavior): Promise<UsageTest[]> {
+		if (!USAGE_TESTS_ENABLED) return []
+
 		const persistedData = await this.testStorage.getAssignments()
 
 		if (persistedData == null ||

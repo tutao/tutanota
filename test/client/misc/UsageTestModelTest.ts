@@ -17,6 +17,7 @@ import {clone} from "@tutao/tutanota-utils"
 import {Stage, UsageTest} from "@tutao/tutanota-usagetests"
 import {createUsageTestParticipationIn} from "../../../src/api/entities/sys/UsageTestParticipationIn"
 import {createUsageTestMetricData} from "../../../src/api/entities/sys/UsageTestMetricData"
+import {SuspensionBehavior} from "../../../src/api/worker/rest/RestClient"
 
 const {anything} = matchers
 
@@ -105,6 +106,10 @@ o.spec("UsageTestModel", function () {
 					HttpMethod.POST,
 					createUsageTestAssignmentIn({}),
 					UsageTestAssignmentOutTypeRef,
+					undefined,
+					undefined,
+					undefined,
+					SuspensionBehavior.Throw,
 				)).thenResolve(
 					createUsageTestAssignmentOut({
 						assignments: [newAssignment],
@@ -128,6 +133,10 @@ o.spec("UsageTestModel", function () {
 					HttpMethod.PUT,
 					createUsageTestAssignmentIn({testDeviceId}),
 					UsageTestAssignmentOutTypeRef,
+					undefined,
+					undefined,
+					undefined,
+					SuspensionBehavior.Throw,
 				)).thenResolve(
 					createUsageTestAssignmentOut({
 						assignments: [newAssignment],
@@ -145,6 +154,10 @@ o.spec("UsageTestModel", function () {
 					HttpMethod.PUT,
 					createUsageTestAssignmentIn({testDeviceId}),
 					UsageTestAssignmentOutTypeRef,
+					undefined,
+					undefined,
+					undefined,
+					SuspensionBehavior.Throw,
 				)).thenResolve(
 					createUsageTestAssignmentOut({
 						assignments: [newAssignment],
@@ -175,6 +188,10 @@ o.spec("UsageTestModel", function () {
 					HttpMethod.PUT,
 					createUsageTestAssignmentIn({testDeviceId}),
 					UsageTestAssignmentOutTypeRef,
+					undefined,
+					undefined,
+					undefined,
+					SuspensionBehavior.Throw,
 				)).thenResolve(
 					createUsageTestAssignmentOut({
 						assignments: [newAssignment],
