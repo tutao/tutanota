@@ -10,9 +10,9 @@ import {filterInt, ofClass} from "@tutao/tutanota-utils"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {createUsageTestMetricData} from "../api/entities/sys/UsageTestMetricData"
 import {_TypeModel as UsageTestTypeModel, UsageTestAssignment} from "../api/entities/sys/UsageTestAssignment"
-import {DateProvider} from "../calendar/date/CalendarUtils.js"
 import {SuspensionError} from "../api/common/error/SuspensionError"
 import {SuspensionBehavior} from "../api/worker/rest/RestClient"
+import {DateProvider} from "../api/common/DateProvider.js"
 
 export interface PersistedAssignmentData {
 	updatedAt: number
