@@ -53,7 +53,6 @@ import {BrowserWebauthn} from "../../misc/2fa/webauthn/BrowserWebauthn.js"
 import {UsageTestController} from "@tutao/tutanota-usagetests"
 import {UsageTestModel} from "../../misc/UsageTestModel"
 import {deviceConfig} from "../../misc/DeviceConfig"
-import {DateProvider} from "../../calendar/date/CalendarUtils"
 
 assertMainOrNode()
 
