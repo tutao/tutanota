@@ -1,5 +1,5 @@
 import o from "ospec"
-import {_getSubstitutedLanguageCode, getAvailableLanguageCode, lang} from "../../../src/misc/LanguageViewModel.js"
+import {getSubstitutedLanguageCode, getAvailableLanguageCode, lang} from "../../../src/misc/LanguageViewModel.js"
 // @ts-ignore[untyped-import]
 import en from "../../../src/translations/en.js"
 o.spec("LanguageViewModelTests", function () {
@@ -43,7 +43,7 @@ o.spec("LanguageViewModelTests", function () {
 				["fa", "fa_ir"],
 			]
 			for (const [k, r] of cases) {
-				o(_getSubstitutedLanguageCode(k)).equals(r)
+				o(getSubstitutedLanguageCode(k)).equals(r)
 			}
     })
     o("_getSubstitutedLanguageCodeWhitelabelCustomizations", function () {
@@ -51,7 +51,7 @@ o.spec("LanguageViewModelTests", function () {
         globalSelf.whitelabelCustomizations = {
             germanLanguageCode: "de_sie",
         }
-        o(_getSubstitutedLanguageCode("de")).equals("de_sie")
+        o(getSubstitutedLanguageCode("de")).equals("de_sie")
         globalSelf.whitelabelCustomizations = undefined
     })
 })

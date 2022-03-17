@@ -189,7 +189,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		let toFieldInectionsRight
 		let toFieldDisabled = false
 
-		if (model.logins().isInternalUserLoggedIn()) {
+		if (model.logins.isInternalUserLoggedIn()) {
 			toFieldInectionsRight = () =>
 				m(
 					".mr-s",
@@ -452,7 +452,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						},
 						m(DropDownSelectorN, {
 							label: "sender_label",
-							items: getEnabledMailAddressesWithUser(model.getMailboxDetails(), model.user().userGroupInfo)
+							items: getEnabledMailAddressesWithUser(model.mailboxDetails, model.user().userGroupInfo)
 								.sort()
 								.map(mailAddress => ({
 									name: mailAddress,

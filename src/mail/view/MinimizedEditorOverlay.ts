@@ -115,7 +115,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 				const draft = model.draft
 
 				if (draft) {
-					await promptAndDeleteMails(model.mails(), [draft], noOp)
+					await promptAndDeleteMails(model.mailModel, [draft], noOp)
 				}
 			}
 		})

@@ -122,11 +122,11 @@ export function replyToEventInvitation(
 		return import("../../mail/editor/SendMailModel").then(({SendMailModel}) => {
 			const sendMailModel = new SendMailModel(
 				locator.mailFacade,
+				locator.entityClient,
 				logins,
 				locator.mailModel,
 				locator.contactModel,
 				locator.eventController,
-				locator.entityClient,
 				mailboxDetails,
 			)
 			return calendarUpdateDistributor

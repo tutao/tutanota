@@ -255,10 +255,10 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 		)
 		bubble = new Bubble(recipientInfo, buttonAttrs, recipientInfo.mailAddress)
 
-		if (this.model.logins().isInternalUserLoggedIn()) {
-			resolveRecipientInfoContact(recipientInfo, this.model.contacts(), this.model.logins().getUserController().user)
+		if (this.model.logins.isInternalUserLoggedIn()) {
+			resolveRecipientInfoContact(recipientInfo, this.model.contactModel, this.model.logins.getUserController().user)
 		} else {
-			resolveRecipientInfo(this.model.mailFacade(), recipientInfo)
+			resolveRecipientInfo(this.model.mailFacade, recipientInfo)
 				.then(() => m.redraw())
 				.catch((e) => {
 					if (isOfflineError(e)) {
@@ -289,7 +289,7 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 			label: () => lang.get("editContact_label"),
 			type: ButtonType.Secondary,
 			click: () => {
-				import("../../contacts/ContactEditor").then(({ContactEditor}) => new ContactEditor(this.model.entity(), recipient.contact).show())
+				import("../../contacts/ContactEditor").then(({ContactEditor}) => new ContactEditor(this.model.entity, recipient.contact).show())
 			},
 		}
 	}
@@ -314,9 +314,9 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 			click: () => {
 				// contact list
 				this._contactModel.contactListId().then(contactListId => {
-					const newContact = createNewContact(this.model.logins().getUserController().user, recipient.mailAddress, recipient.name)
+					const newContact = createNewContact(this.model.logins.getUserController().user, recipient.mailAddress, recipient.name)
 					import("../../contacts/ContactEditor").then(({ContactEditor}) => {
-						new ContactEditor(this.model.entity(), newContact, contactListId ?? undefined, createdContactReceiver).show()
+						new ContactEditor(this.model.entity, newContact, contactListId ?? undefined, createdContactReceiver).show()
 					})
 				})
 			},
@@ -325,7 +325,7 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 
 	_createBubbleContextButtons(bubble: RecipientInfoBubble): Array<ButtonAttrs | DropdownInfoAttrs> {
 		const recipient = bubble.entity
-		const canEditBubbleRecipient = this.model.user().isInternalUser() && !this.model.logins().isEnabled(FeatureType.DisableContacts)
+		const canEditBubbleRecipient = this.model.user().isInternalUser() && !this.model.logins.isEnabled(FeatureType.DisableContacts)
 		const previousMail = this.model.getPreviousMail()
 		const canRemoveBubble =
 			this.model.user().isInternalUser() && (!previousMail || !previousMail.restrictions || previousMail.restrictions.participantGroupInfos.length === 0)
@@ -337,7 +337,7 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 				if (!contactListId) return
 				const id: IdTuple = [contactListId, contactElementId]
 				this.model
-					.entity()
+					.entity
 					.load(ContactTypeRef, id)
 					.then(contact => {
 						if (contact.mailAddresses.find(ma => cleanMatch(ma.address, mailAddress))) {
