@@ -157,42 +157,41 @@ o.spec("CalendarParser", function () {
 		})
 		o(() => parseTime("20180015T214000Z", "Europe/Berlin")).throws(ParserError)
 	})
+	o.spec("parseCalendarEvents: fix illegal end times", function () {
+		const makeEvent = ({start, end}) => parseICalendar("BEGIN:VCALENDAR\n" +
+			"VERSION:2.0\n" +
+			"BEGIN:VEVENT\n" +
+			"UID:0c838926-f826-43c9-9f17-4836c565eece\n" +
+			"DTSTAMP:20220106T214416Z\n" +
+			"SUMMARY;LANGUAGE=de:Gelber Sack\n" +
+			`DTSTART:${start}\n` +
+			`DTEND:${end}\n` +
+			"DESCRIPTION:Gelber Sack\n" +
+			"LOCATION:test\n" +
+			"END:VEVENT\n" +
+			"END:VCALENDAR")
 
-	const mkEventWithStartEnd = (start, end) => parseICalendar("BEGIN:VCALENDAR\n" +
-		"VERSION:2.0\n" +
-		"BEGIN:VEVENT\n" +
-		"UID:0c838926-f826-43c9-9f17-4836c565eece\n" +
-		"DTSTAMP:20220106T214416Z\n" +
-		"SUMMARY;LANGUAGE=de:Gelber Sack\n" +
-		`DTSTART:${start}\n` +
-		`DTEND:${end}\n` +
-		"DESCRIPTION:Gelber Sack\n" +
-		"LOCATION:test\n" +
-		"END:VEVENT\n" +
-		"END:VCALENDAR")
+		const testParseIllegalCalendarEvents = ({start, end, expect}) => {
+			const event = makeEvent({start, end})
+			const {event: parsedEvent} = parseCalendarEvents(event, "Europe/Berlin").contents[0]
+			o(parsedEvent.endTime.getTime()).equals(expect)
+		}
 
-	o("parseCalendarEvents fixes all-day-events with illegal endTime to a duration of 1 day", function () {
-		const alldayEqual = mkEventWithStartEnd("20220315T", "20220315T")
-		const {event: eventEqual} = parseCalendarEvents(alldayEqual, "Europe/Berlin").contents[0]
-		o(eventEqual.endTime.getTime()).equals(parseTime("20220316T", "Europe/Berlin").date.getTime())("alldayEqual")
+		o("allday equal", function () {
+			testParseIllegalCalendarEvents({start: "20220315T", end: "20220315T", expect: parseTime("20220316T", "Europe/Berlin").date.getTime()})
+		})
+		o("allday flipped", function () {
+			testParseIllegalCalendarEvents({start: "20220315T", end: "20220314T", expect: parseTime("20220316T", "Europe/Berlin").date.getTime()})
+		})
+		o("allday with an endTime that has hours/minutes/seconds", function () {
+			testParseIllegalCalendarEvents({start: "20220315T", end: "20220314T225915Z", expect: parseTime("20220316T", "Europe/Berlin").date.getTime()})
+		})
 
-		const alldayFlipped = mkEventWithStartEnd("20220315T", "20220314T")
-		const {event: flippedEvent} = parseCalendarEvents(alldayFlipped, "Europe/Berlin").contents[0]
-		o(flippedEvent.endTime.getTime()).equals(parseTime("20220316T", "Europe/Berlin").date.getTime())("alldayFlipped")
-
-		// allday with an endTime that has hours/minutes/seconds?
-		const wack = mkEventWithStartEnd("20220315T", "20220314T225915Z")
-		const {event: wackEvent} = parseCalendarEvents(wack, "Europe/Berlin").contents[0]
-		o(wackEvent.endTime.getTime()).equals(parseTime("20220316T", "Europe/Berlin").date.getTime())("wack")
-	})
-
-	o("parseCalendarEvents fixes non-all-day-events with illegal endTime to a duration of 1 second", function () {
-		const icalEqual = mkEventWithStartEnd("20220315T225900Z", "20220315T225900Z")
-		const {event: eventEqual} = parseCalendarEvents(icalEqual, "Europe/Berlin").contents[0]
-		o(eventEqual.endTime.getTime()).equals(new Date("2022-03-15T22:59:01.000Z").getTime())("equal non-allday")
-
-		const icalFlipped = mkEventWithStartEnd("20220315T225900Z", "20220315T225800Z")
-		const {event: eventFlipped} = parseCalendarEvents(icalFlipped, "Europe/Berlin").contents[0]
-		o(eventFlipped.endTime.getTime()).equals(new Date("2022-03-15T22:59:01.000Z").getTime())("flipped non-allday")
+		o("endTime equal", function () {
+			testParseIllegalCalendarEvents({start: "20220315T225900Z", end: "20220315T225900Z", expect: new Date("2022-03-15T22:59:01.000Z").getTime()})
+		})
+		o("endTime flipped", function () {
+			testParseIllegalCalendarEvents({start: "20220315T225900Z", end: "20220315T225800Z", expect: new Date("2022-03-15T22:59:01.000Z").getTime()})
+		})
 	})
 })
