@@ -634,12 +634,12 @@ o.spec("SendMailModel", function () {
 		})
 
 		o("nonmatching event", async function () {
-			await model._handleEntityEvent(downcast(CustomerAccountCreateDataTypeRef))
-			await model._handleEntityEvent(downcast(UserTypeRef))
-			await model._handleEntityEvent(downcast(CustomerTypeRef))
-			await model._handleEntityEvent(downcast(NotificationMailTypeRef))
-			await model._handleEntityEvent(downcast(ChallengeTypeRef))
-			await model._handleEntityEvent(downcast(MailTypeRef))
+			await model.handleEntityEvent(downcast(CustomerAccountCreateDataTypeRef))
+			await model.handleEntityEvent(downcast(UserTypeRef))
+			await model.handleEntityEvent(downcast(CustomerTypeRef))
+			await model.handleEntityEvent(downcast(NotificationMailTypeRef))
+			await model.handleEntityEvent(downcast(ChallengeTypeRef))
+			await model.handleEntityEvent(downcast(MailTypeRef))
 			verify(entity.load(anything(), anything(), anything(), anything()), {times: 0})
 		})
 
@@ -661,7 +661,7 @@ o.spec("SendMailModel", function () {
 			when(entity.load(ContactTypeRef, argThat((id) => isSameId(id, existingContact._id))))
 				.thenResolve(createContact(Object.assign({_id: existingContact._id} as Contact, contactForUpdate)))
 
-			await model._handleEntityEvent(
+			await model.handleEntityEvent(
 				{
 					application: app,
 					type,
@@ -696,7 +696,7 @@ o.spec("SendMailModel", function () {
 					} as Contact, contactForUpdate))
 				)
 
-			await model._handleEntityEvent(
+			await model.handleEntityEvent(
 				{
 					application: app,
 					type,
@@ -714,7 +714,7 @@ o.spec("SendMailModel", function () {
 		o("contact removed", async function () {
 			const {app, type} = ContactTypeRef
 			const [instanceListId, instanceId] = existingContact._id
-			await model._handleEntityEvent(
+			await model.handleEntityEvent(
 				{
 					application: app,
 					type,

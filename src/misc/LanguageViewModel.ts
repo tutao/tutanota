@@ -458,7 +458,7 @@ export function getLanguageNoDefault(restrictions?: LanguageCode[]): | {code: La
 
 	if (languageTags) {
 		for (let tag of languageTags) {
-			let code = _getSubstitutedLanguageCode(tag, restrictions)
+			let code = getSubstitutedLanguageCode(tag, restrictions)
 
 			if (code) {
 				return {
@@ -498,7 +498,7 @@ export function getLanguage(
 	}
 }
 
-export function _getSubstitutedLanguageCode(tag: string, restrictions?: LanguageCode[]): LanguageCode | null {
+export function getSubstitutedLanguageCode(tag: string, restrictions?: LanguageCode[]): LanguageCode | null {
 	let code = tag.toLowerCase().replace("-", "_")
 	let language = languages.find(l => l.code === code && (restrictions == null || restrictions.indexOf(l.code) !== -1))
 
@@ -542,7 +542,7 @@ function getBasePart(code: string): string {
 }
 
 export function getAvailableLanguageCode(code: string): string {
-	return _getSubstitutedLanguageCode(code) || "en"
+	return getSubstitutedLanguageCode(code) || "en"
 }
 
 /**
