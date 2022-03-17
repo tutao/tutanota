@@ -405,10 +405,10 @@ function oneDayDurationEnd(startTime: Date, allDay: boolean, tzId: string | null
 	return DateTime.fromJSDate(startTime, {
 		zone: allDay ? "UTC" : tzId || zone,
 	})
-		.plus({
-			day: 1,
-		})
-		.toJSDate()
+				   .plus({
+					   day: 1,
+				   })
+				   .toJSDate()
 }
 
 const MAILTO_PREFIX_REGEX = /^mailto:(.*)/i
@@ -444,11 +444,27 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 		if (endProp) {
 			if (typeof endProp.value !== "string") throw new ParserError("DTEND value is not a string")
 			const endTzId = getTzId(endProp)
-			event.endTime = parseTime(endProp.value, typeof endTzId === "string" ? endTzId : undefined).date
+			const parsedEndTime = parseTime(endProp.value, typeof endTzId === "string" ? endTzId : undefined)
+			event.endTime = parsedEndTime.date
 
 			if (event.endTime <= event.startTime) {
-				// If the end time is not after the start (as per RFC) then we assume one day duration.
-				event.endTime = oneDayDurationEnd(startTime, allDay, tzId, zone)
+				// as per RFC, these are _technically_ illegal: https://tools.ietf.org/html/rfc5545#section-3.8.2.2
+				if (allDay) {
+					// if the startTime indicates an all-day event, we want to preserve that.
+					// we'll assume a 1-day duration.
+					event.endTime = DateTime.fromJSDate(event.startTime)
+											.plus({day: 1})
+											.toJSDate()
+				} else {
+					// we make a best effort to deliver alarms at the set interval before startTime and set the
+					// event duration to be 1 second
+					// as of now:
+					// * this displays as ending the same minute it starts in the tutanota calendar
+					// * gets exported with a duration of 1 second
+					event.endTime = DateTime.fromJSDate(event.startTime)
+											.plus({second: 1})
+											.toJSDate()
+				}
 			}
 		} else {
 			const durationProp = eventObj.properties.find(p => p.name === "DURATION")
@@ -676,6 +692,12 @@ export function parseUntilRruleTime(value: string, zone: string | null): Date {
 	return toValidJSDate(startOfNextDay, value, components.zone ?? null)
 }
 
+/**
+ * parse a ical time string and return a JS Date object along with a flag that determines
+ * whether the time should be considered part of an all-day event
+ * @param value {string} the time string to be parsed
+ * @param zone {string} the time zone to use
+ */
 export function parseTime(
 	value: string,
 	zone?: string,
