@@ -9,7 +9,7 @@ import {LateInitializedCacheStorage} from "../../../../src/api/worker/rest/Cache
 import {func, instance, matchers, object, verify, when} from "testdouble"
 import {SessionType} from "../../../../src/api/common/SessionType"
 import {ServiceRestInterface} from "../../../../src/api/worker/rest/ServiceRestInterface"
-import {HttpMethod, MediaType} from "../../../../src/api/common/EntityFunctions"
+import {HttpMethod} from "../../../../src/api/common/EntityFunctions"
 import {SysService} from "../../../../src/api/entities/sys/Services"
 import {createCreateSessionReturn} from "../../../../src/api/entities/sys/CreateSessionReturn"
 import type {SecondFactorAuthHandler} from "../../../../src/misc/2fa/SecondFactorHandler.js"
@@ -153,7 +153,7 @@ o.spec("LoginFacadeTest", function () {
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
 
 				// The call to /sys/session/...
-				when(restClientMock.request(anything(), HttpMethod.GET, {}, anything(), undefined, MediaType.Json))
+				when(restClientMock.request(anything(), HttpMethod.GET, anything()))
 					.thenResolve(JSON.stringify({user: userId, accessKey: keyToBase64(accessKey)}))
 			})
 
