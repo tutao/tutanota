@@ -6,30 +6,28 @@ import type {Contact} from "../api/entities/tutanota/TypeRefs.js"
 import {ContactTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import {Mode} from "../api/common/Env"
 import {ContactSuggestion, ContactSuggestionHeight} from "./ContactSuggestion"
-import type {RecipientInfo} from "../api/common/RecipientInfo"
 import type {ContactModel} from "../contacts/model/ContactModel"
 import {stringToNameAndMailAddress} from "./parsing/MailAddressParser"
 import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
+import {Recipient} from "../api/common/recipients/Recipient"
 import {LoginIncompleteError} from "../api/common/error/LoginIncompleteError"
 
-export type RecipientInfoBubble = Bubble<RecipientInfo>
-
-export interface RecipientInfoBubbleFactory {
+export interface RecipientBubbleFactory<T extends Recipient> {
 	// Create a Recipient Info Bubble or none if invalid (ie. mailaddress already exists)
-	createBubble(name: string | null, mailAddress: string, contact: Contact | null): Bubble<RecipientInfo>
+	createBubble(name: string | null, mailAddress: string, contact: Contact | null): Bubble<T>
 
 	// If the bubbleFactory also has to deal with state, then it probably wants to know when a bubble is deleted from the text field
-	readonly bubbleDeleted?: (arg0: Bubble<RecipientInfo>) => void
+	readonly bubbleDeleted?: (arg0: Bubble<T>) => void
 }
 
-export class RecipientInfoBubbleHandler implements BubbleHandler<RecipientInfo, ContactSuggestion> {
+export class RecipientInfoBubbleHandler<RecipientT extends Recipient> implements BubbleHandler<RecipientT, ContactSuggestion> {
 	suggestionHeight: number
 	maximumSuggestions: number | null
-	_bubbleFactory: RecipientInfoBubbleFactory
+	_bubbleFactory: RecipientBubbleFactory<RecipientT>
 	_contactModel: ContactModel
 
-	constructor(bubbleFactory: RecipientInfoBubbleFactory, contactModel: ContactModel, maximumSuggestions?: number) {
+	constructor(bubbleFactory: RecipientBubbleFactory<RecipientT>, contactModel: ContactModel, maximumSuggestions?: number) {
 		this._bubbleFactory = bubbleFactory
 		this._contactModel = contactModel
 		this.suggestionHeight = ContactSuggestionHeight
@@ -82,14 +80,14 @@ export class RecipientInfoBubbleHandler implements BubbleHandler<RecipientInfo, 
 		return suggestions.sort((suggestion1, suggestion2) => suggestion1.name.localeCompare(suggestion2.name))
 	}
 
-	createBubbleFromSuggestion(suggestion: ContactSuggestion): Bubble<RecipientInfo> | null {
+	createBubbleFromSuggestion(suggestion: ContactSuggestion): Bubble<RecipientT> | null {
 		return this._bubbleFactory.createBubble(suggestion.name, suggestion.mailAddress, suggestion.contact)
 	}
 
-	createBubblesFromText(text: string): Bubble<RecipientInfo>[] {
+	createBubblesFromText(text: string): Bubble<RecipientT>[] {
 		let separator = text.indexOf(";") !== -1 ? ";" : ","
 		let textParts = text.split(separator)
-		let bubbles: Bubble<RecipientInfo>[] = []
+		let bubbles: Bubble<RecipientT>[] = []
 
 		for (let part of textParts) {
 			part = part.trim()
@@ -111,7 +109,7 @@ export class RecipientInfoBubbleHandler implements BubbleHandler<RecipientInfo, 
 		return bubbles
 	}
 
-	bubbleDeleted(bubble: Bubble<RecipientInfo>): void {
+	bubbleDeleted(bubble: Bubble<RecipientT>): void {
 		this._bubbleFactory.bubbleDeleted && this._bubbleFactory.bubbleDeleted(bubble)
 	}
 
@@ -120,7 +118,7 @@ export class RecipientInfoBubbleHandler implements BubbleHandler<RecipientInfo, 
 	 * @param text The text to create a RecipientInfo from.
 	 * @return The recipient info or null if the text is not valid data.
 	 */
-	_getBubbleFromText(text: string): Bubble<RecipientInfo> | null {
+	_getBubbleFromText(text: string): Bubble<RecipientT> | null {
 		text = text.trim()
 		if (text === "") return null
 		const nameAndMailAddress = stringToNameAndMailAddress(text)

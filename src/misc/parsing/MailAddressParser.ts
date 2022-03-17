@@ -1,5 +1,5 @@
 import {isMailAddress} from "../FormatValidator"
-import type {Recipient, Recipients} from "../../mail/editor/SendMailModel"
+import {PartialRecipient, Recipients} from "../../api/common/recipients/Recipient"
 
 export type ParsedMailto = {
 	recipients: Recipients
@@ -20,7 +20,7 @@ export type ParsedMailto = {
 export function parseMailtoUrl(mailtoUrl: string): ParsedMailto {
 	let url = new URL(mailtoUrl)
 
-	const createMailAddressFromString = (address: string): Recipient | null => {
+	const createMailAddressFromString = (address: string): PartialRecipient | null => {
 		const nameAndMailAddress = stringToNameAndMailAddress(address)
 		if (!nameAndMailAddress) return null
 		return {

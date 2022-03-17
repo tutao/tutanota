@@ -128,6 +128,7 @@ export function replyToEventInvitation(
 				locator.contactModel,
 				locator.eventController,
 				mailboxDetails,
+				locator.recipientsModel
 			)
 			return calendarUpdateDistributor
 				.sendResponse(eventClone, sendMailModel, foundAttendee.address.address, previousMail, decision)

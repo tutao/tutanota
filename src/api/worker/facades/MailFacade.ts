@@ -86,6 +86,11 @@ import {
 import {BlobFacade} from "./BlobFacade"
 import {FileFacade} from "./FileFacade"
 import {assertWorkerOrNode, isApp} from "../../common/Env"
+import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
+import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
+import {createEncryptedMailAddress, EncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
+import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
+import type {PhishingMarker} from "../../entities/tutanota/PhishingMarker"
 import {EntityClient} from "../../common/EntityClient"
 import {getEnabledMailAddressesForGroupInfo, getUserGroupMemberships} from "../../common/utils/GroupUtils"
 import {containsId, getLetId, isSameId, stringToCustomId} from "../../common/utils/EntityUtils"
@@ -113,6 +118,8 @@ import {PublicKeyService} from "../../entities/sys/Services.js"
 import {IServiceExecutor} from "../../common/ServiceRequest"
 import {createWriteCounterData} from "../../entities/monitor/TypeRefs"
 import {UserFacade} from "./UserFacade"
+import {PartialRecipient, Recipient, RecipientList, RecipientType} from "../../common/recipients/Recipient"
+import {Contact} from "../../entities/tutanota/Contact"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -123,14 +130,14 @@ interface CreateDraftParams {
 	bodyText: string;
 	senderMailAddress: string;
 	senderName: string;
-	toRecipients: Array<DraftRecipient>;
-	ccRecipients: Array<DraftRecipient>;
-	bccRecipients: Array<DraftRecipient>;
+	toRecipients: RecipientList;
+	ccRecipients: RecipientList;
+	bccRecipients: RecipientList;
 	conversationType: ConversationType;
 	previousMessageId: Id | null;
 	attachments: Attachments | null;
 	confidential: boolean;
-	replyTos: Array<EncryptedMailAddress>;
+	replyTos: RecipientList;
 	method: MailMethod;
 }
 
@@ -139,9 +146,9 @@ interface UpdateDraftParams {
 	body: string;
 	senderMailAddress: string;
 	senderName: string;
-	toRecipients: Array<DraftRecipient>;
-	ccRecipients: Array<DraftRecipient>;
-	bccRecipients: Array<DraftRecipient>;
+	toRecipients: RecipientList;
+	ccRecipients: RecipientList;
+	bccRecipients: RecipientList;
 	attachments: Attachments | null;
 	confidential: boolean;
 	draft: Mail;
@@ -221,10 +228,10 @@ export class MailFacade {
 			senderName,
 			confidential,
 			method,
-			toRecipients,
-			ccRecipients,
-			bccRecipients,
-			replyTos,
+			toRecipients: toRecipients.map(recipientToDraftRecipient),
+			ccRecipients: ccRecipients.map(recipientToDraftRecipient),
+			bccRecipients: bccRecipients.map(recipientToDraftRecipient),
+			replyTos: replyTos.map(recipientToEncryptedMailAddress),
 			addedAttachments: await this._createAddedAttachments(attachments, [], senderMailGroupId, mailGroupKey, await this.usingBlobs()),
 		})
 		const createDraftReturn = await this.serviceExecutor.post(DraftService, service, {sessionKey: sk})
@@ -277,9 +284,9 @@ export class MailFacade {
 			senderName: senderName,
 			confidential: confidential,
 			method: draft.method,
-			toRecipients,
-			ccRecipients,
-			bccRecipients,
+			toRecipients: toRecipients.map(recipientToDraftRecipient),
+			ccRecipients: ccRecipients.map(recipientToDraftRecipient),
+			bccRecipients: bccRecipients.map(recipientToDraftRecipient),
 			replyTos: draft.replyTos,
 			removedAttachments: this._getRemovedAttachments(attachments, draft.attachments),
 			addedAttachments: await this._createAddedAttachments(attachments, draft.attachments, senderMailGroupId, mailGroupKey, await this.usingBlobs()),
@@ -437,7 +444,7 @@ export class MailFacade {
 		return attachment
 	}
 
-	async sendDraft(draft: Mail, recipients: Array<RecipientDetails>, language: string): Promise<void> {
+	async sendDraft(draft: Mail, recipients: Array<Recipient>, language: string): Promise<void> {
 		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), draft.sender.address)
 		const bucketKey = aes128RandomKey()
 		const sendDraftData = createSendDraftData()
@@ -470,7 +477,7 @@ export class MailFacade {
 
 				if (draft.confidential) {
 					sendDraftData.bucketEncMailSessionKey = encryptKey(bucketKey, sk)
-					const hasExternalSecureRecipient = recipients.some(r => r.isExternal && !!r.password?.trim())
+					const hasExternalSecureRecipient = recipients.some(r => r.type === RecipientType.EXTERNAL && !!this.getContactPassword(r.contact)?.trim())
 
 					if (hasExternalSecureRecipient) {
 						sendDraftData.senderNameUnencrypted = draft.sender.name // needed for notification mail
@@ -574,32 +581,32 @@ export class MailFacade {
 		return this.phishingMarkers.has(hash)
 	}
 
-	async _addRecipientKeyData(bucketKey: Aes128Key, service: SendDraftData, recipients: Array<RecipientDetails>, senderMailGroupId: Id): Promise<void> {
+	async _addRecipientKeyData(bucketKey: Aes128Key, service: SendDraftData, recipients: Array<Recipient>, senderMailGroupId: Id): Promise<void> {
 		const notFoundRecipients: string[] = []
 
 		for (let recipient of recipients) {
-			if (recipient.mailAddress === "system@tutanota.de" || !recipient) {
-				notFoundRecipients.push(recipient.mailAddress)
+			if (recipient.address === "system@tutanota.de" || !recipient) {
+				notFoundRecipients.push(recipient.address)
 				continue
 			}
 
 			// copy password information if this is an external contact
 			// otherwise load the key information from the server
-			if (recipient.isExternal) {
-				const password = recipient.password
+			if (recipient.type === RecipientType.EXTERNAL) {
+				const password = this.getContactPassword(recipient.contact)
 
 				if (password == null || !isSameId(this.userFacade.getGroupId(GroupType.Mail), senderMailGroupId)) {
 					// no password given and prevent sending to secure externals from shared group
-					notFoundRecipients.push(recipient.mailAddress)
+					notFoundRecipients.push(recipient.address)
 					continue
 				}
 
 				const salt = generateRandomSalt()
 				const passwordKey = generateKeyFromPassphrase(password, salt, KeyLength.b128)
 				const passwordVerifier = createAuthVerifier(passwordKey)
-				const externalGroupKeys = await this._getExternalGroupKey(recipient.mailAddress, passwordKey, passwordVerifier)
+				const externalGroupKeys = await this._getExternalGroupKey(recipient.address, passwordKey, passwordVerifier)
 				const data = createSecureExternalRecipientKeyData()
-				data.mailAddress = recipient.mailAddress
+				data.mailAddress = recipient.address
 				data.symEncBucketKey = null // legacy for old permission system, not used any more
 
 				data.ownerEncBucketKey = encryptKey(externalGroupKeys.externalMailGroupKey, bucketKey)
@@ -609,7 +616,7 @@ export class MailFacade {
 				data.pwEncCommunicationKey = encryptKey(passwordKey, externalGroupKeys.externalUserGroupKey)
 				service.secureExternalRecipientKeyData.push(data)
 			} else {
-				const keyData = await this.crypto.encryptBucketKeyForInternalRecipient(bucketKey, recipient.mailAddress, notFoundRecipients)
+				const keyData = await this.crypto.encryptBucketKeyForInternalRecipient(bucketKey, recipient.address, notFoundRecipients)
 
 				if (keyData) {
 					service.internalRecipientKeyData.push(keyData)
@@ -620,6 +627,10 @@ export class MailFacade {
 		if (notFoundRecipients.length > 0) {
 			throw new RecipientsNotFoundError(notFoundRecipients.join("\n"))
 		}
+	}
+
+	private getContactPassword(contact: Contact | null): string | null {
+		return contact?.presharedPassword ?? contact?.autoTransmitPassword ?? null
 	}
 
 	/**
@@ -801,4 +812,18 @@ function parseUrl(link: string): URL | null {
 function getUrlDomain(link: string): string | null {
 	const url = parseUrl(link)
 	return url && url.hostname
+}
+
+function recipientToDraftRecipient(recipient: PartialRecipient): DraftRecipient {
+	return createDraftRecipient({
+		name: recipient.name ?? "",
+		mailAddress: recipient.address
+	})
+}
+
+function recipientToEncryptedMailAddress(recipient: PartialRecipient): EncryptedMailAddress {
+	return createEncryptedMailAddress({
+		name: recipient.name ?? "",
+		address: recipient.address
+	})
 }

@@ -3,7 +3,6 @@ import {Dialog} from "../gui/base/Dialog"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {lang, TranslationKey} from "../misc/LanguageViewModel"
-import {isTutanotaMailAddress} from "../api/common/RecipientInfo"
 import {InvalidDataError, LimitReachedError, PreconditionFailedError} from "../api/common/error/RestError"
 import {noOp} from "@tutao/tutanota-utils"
 import {SelectMailAddressForm, SelectMailAddressFormAttrs} from "./SelectMailAddressForm"
@@ -27,6 +26,7 @@ import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
 import Stream from "mithril/stream";
 import {TextFieldAttrs} from "../gui/base/TextFieldN"
+import {isTutanotaMailAddress} from "../mail/model/MailUtils.js";
 
 assertMainOrNode()
 const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
