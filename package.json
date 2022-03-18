@@ -37,7 +37,7 @@
 		"better-sqlite3": "github:tutao/better-sqlite3-sqlcipher#a717d6418c7a4dd679df4f321a11dfc2e521ad7f",
 		"cborg": "1.5.4",
 		"dompurify": "2.3.0",
-		"electron": "17.1.1",
+		"electron": "17.1.2",
 		"electron-updater": "4.6.5",
 		"jszip": "3.7.0",
 		"keytar": "github:tutao/node-keytar#12593c5809c9ed6bfc063ed3e862dd85a1506aca",
