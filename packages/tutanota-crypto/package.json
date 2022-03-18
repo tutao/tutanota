@@ -9,8 +9,9 @@
 		"directory": "packages/tutanota-crypto"
 	},
 	"scripts": {
-		"build": "tsc -b",
-		"test": "tsc -b test && cd build && node test/Suite.js"
+	  "prepublishOnly": "npm run build",
+	  "build": "tsc -b",
+	  "test": "tsc -b test && cd build && node test/Suite.js"
 	},
 	"type": "module",
 	"files": [

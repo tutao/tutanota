@@ -10,8 +10,9 @@
 		"directory": "packages/tutanota-utils"
 	},
 	"scripts": {
-		"test": "tsc -b --verbose test && cd build/test && node 'Suite.js'",
-		"build": "tsc -b"
+	  "prepublishOnly": "npm run build",
+	  "test": "tsc -b --verbose test && cd build/test && node 'Suite.js'",
+	  "build": "tsc -b"
 	},
 	"type": "module",
 	"files": [

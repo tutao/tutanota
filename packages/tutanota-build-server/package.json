@@ -9,6 +9,7 @@
 		"directory": "packages/tutanota-build-server"
 	},
 	"scripts": {
+	  	"prepublishOnly": "npm run build",
 		"test": "tsc -b test && cp -r test/resources build/test/ && cd build/test && node 'index.js'",
 		"build": "tsc -b"
 	},

@@ -11,9 +11,9 @@
 		"directory": "packages/tutanota-usagetests"
 	},
 	"scripts": {
-		"build": "rm -r dist; tsc",
-		"test": "rm -r build; tsc --project test/tsconfig.json && cd build/test && node 'Suite.js'",
-		"rollup": "rm -r distsrc; tsc --project src/tsconfig.json && rollup --config rollup.config.js"
+	  "prepublishOnly": "npm run build",
+	  "build": "tsc -b",
+	  "test": "tsc -b --project test/tsconfig.json && cd build/test && node 'Suite.js'"
 	},
 	"author": "now",
 	"type": "module",

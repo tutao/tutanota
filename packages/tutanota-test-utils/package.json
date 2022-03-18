@@ -9,8 +9,9 @@
 		"directory": "packages/tutanota-test-utils"
 	},
 	"scripts": {
-		"build": "tsc -b",
-		"test": "echo 'No tests for module'"
+	  "prepublishOnly": "npm run build",
+	  "build": "tsc -b",
+	  "test": "echo 'No tests for module'"
 	},
 	"type": "module",
 	"files": [
