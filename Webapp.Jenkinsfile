@@ -78,7 +78,7 @@ pipeline {
 					sh "npm ci && npm run build-packages"
 					// .npmrc expects $NPM_TOKEN
 					withCredentials([string(credentialsId: 'npm-token',variable: 'NPM_TOKEN')]) {
-						sh "npm --workspaces publish"
+						sh "npm --workspaces publish --access public"
 					}
 				}
 			}
