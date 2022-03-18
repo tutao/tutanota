@@ -1,6 +1,6 @@
 {
 	"name": "@tutao/tutanota-test-utils",
-	"version": "3.94.0",
+	"version": "3.94.1",
 	"license": "GPL-3.0",
 	"main": "./dist/index.js",
 	"repository": {
@@ -9,9 +9,9 @@
 		"directory": "packages/tutanota-test-utils"
 	},
 	"scripts": {
-	  "prepublishOnly": "npm run build",
-	  "build": "tsc -b",
-	  "test": "echo 'No tests for module'"
+		"prepublishOnly": "npm run build",
+		"build": "tsc -b",
+		"test": "echo 'No tests for module'"
 	},
 	"type": "module",
 	"files": [

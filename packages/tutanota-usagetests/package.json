@@ -1,6 +1,6 @@
 {
 	"name": "@tutao/tutanota-usagetests",
-	"version": "3.94.0",
+	"version": "3.94.1",
 	"license": "GLP-3.0",
 	"description": "",
 	"main": "./dist/index.js",
@@ -11,9 +11,9 @@
 		"directory": "packages/tutanota-usagetests"
 	},
 	"scripts": {
-	  "prepublishOnly": "npm run build",
-	  "build": "tsc -b",
-	  "test": "tsc -b --project test/tsconfig.json && cd build/test && node 'Suite.js'"
+		"prepublishOnly": "npm run build",
+		"build": "tsc -b",
+		"test": "tsc -b --project test/tsconfig.json && cd build/test && node 'Suite.js'"
 	},
 	"author": "now",
 	"type": "module",

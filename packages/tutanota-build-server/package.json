@@ -1,6 +1,6 @@
 {
 	"name": "@tutao/tutanota-build-server",
-	"version": "3.94.0",
+	"version": "3.94.1",
 	"license": "GPL-3.0",
 	"main": "dist/index.js",
 	"repository": {
@@ -9,7 +9,7 @@
 		"directory": "packages/tutanota-build-server"
 	},
 	"scripts": {
-	  	"prepublishOnly": "npm run build",
+		"prepublishOnly": "npm run build",
 		"test": "tsc -b test && cp -r test/resources build/test/ && cd build/test && node 'index.js'",
 		"build": "tsc -b"
 	},
