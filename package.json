@@ -23,8 +23,8 @@
 	"dependencies": {
 		"@tutao/oxmsg": "0.0.9-beta.0",
 		"@tutao/tutanota-crypto": "3.94.0",
-		"@tutao/tutanota-utils": "3.94.0",
 		"@tutao/tutanota-usagetests": "3.94.0",
+		"@tutao/tutanota-utils": "3.94.0-1",
 		"@types/better-sqlite3": "7.4.2",
 		"@types/dompurify": "2.3.0",
 		"@types/linkifyjs": "2.1.4",
