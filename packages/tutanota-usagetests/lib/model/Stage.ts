@@ -9,7 +9,6 @@ type Metric = {
 /** One part of the test. Has multiple metrics that are sent together. */
 export class Stage {
 	readonly collectedMetrics = new Map<string, Metric>()
-	private completed = false
 
 	constructor(
 		readonly number: number,
@@ -17,15 +16,8 @@ export class Stage {
 	) {
 	}
 
-	/**
-	 * Marks the stage as completed if the method was called
-	 * for the first time. No op if the stage has already been completed.
-	 */
 	async complete() {
-		if (!this.completed) {
-			this.completed = true
-			await this.test.completeStage(this)
-		}
+		await this.test.completeStage(this)
 	}
 
 	setMetric(metric: Metric) {

@@ -958,3 +958,10 @@ export const enum ArchiveDataType {
 }
 
 export const OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS = 31
+
+export enum UsageTestParticipationMode {
+	Once = "0",
+	Unlimited = "1",
+}
+
+export const UsageTestParticipationModeToName = reverse(UsageTestParticipationMode)
