@@ -112,7 +112,7 @@ export class UsageTestModel implements PingAdapter {
 				usageTestAssignment.testId,
 				usageTestAssignment.name,
 				Number(usageTestAssignment.variant),
-				UsageTestState.Live === usageTestAssignment.state,
+				usageTestAssignment.sendPings,
 			)
 
 			for (const index of usageTestAssignment.stages.keys()) {
@@ -147,8 +147,17 @@ export class UsageTestModel implements PingAdapter {
 			await this.serviceExecutor.post(UsageTestParticipationService, data)
 		} catch (e) {
 			if (e instanceof PreconditionFailedError) {
-				test.active = false
-				console.log("Tried to send ping for paused test", e)
+				if (e.data === "invalid_state") {
+					test.active = false
+					console.log("Tried to send ping for paused test", e)
+				} else if (e.data === "invalid_restart") {
+					test.active = false
+					console.log("Tried to restart test in ParticipationMode.Once that device has already participated in", e)
+				} else if (e.data === "invalid_stage") {
+					console.log("Tried to send ping for wrong stage", e)
+				} else {
+					throw e
+				}
 			} else if (e instanceof NotFoundError) {
 				// Cached assignments are likely out of date if we run into a NotFoundError here.
 				// We should not attempt to re-send pings, as the relevant test has likely been deleted.
@@ -168,6 +177,5 @@ export class UsageTestModel implements PingAdapter {
 				throw e
 			}
 		}
-
 	}
 }
