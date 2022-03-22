@@ -114,6 +114,7 @@ export class WebDialogController implements IWebDialogController {
 			movable: false,
 			alwaysOnTop: true,
 			fullscreenable: false,
+			roundedCorners: false,
 			frame: false,
 			width: 400,
 			height: 200,
