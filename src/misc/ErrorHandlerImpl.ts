@@ -35,6 +35,7 @@ import {UserError} from "../api/main/UserError"
 import {showMoreStorageNeededOrderDialog} from "./SubscriptionDialogs"
 import {createDraftRecipient} from "../api/entities/tutanota/DraftRecipient"
 import {SessionType} from "../api/common/SessionType"
+import {showSnackBar} from "../gui/base/SnackBar"
 
 assertMainOrNode()
 type FeedbackContent = {
@@ -66,26 +67,17 @@ export function handleUncaughtError(e: Error) {
 	if (e instanceof ConnectionError) {
 		if (!notConnectedDialogActive) {
 			notConnectedDialogActive = true
-
-			var checkForMaintenance = function () {
-				var img = document.createElement("img")
-
-				img.onload = function () {
-					Dialog.message("serverDownForMaintenance_msg").then(() => {
-						notConnectedDialogActive = false
-					})
+			showSnackBar({
+				message: "serverNotReachable_msg",
+				button: {
+					label: "ok_action",
+					click: () => {
+					}
+				},
+				onClose: () => {
+					notConnectedDialogActive = false
 				}
-
-				img.onerror = function () {
-					Dialog.message("serverNotReachable_msg").then(() => {
-						notConnectedDialogActive = false
-					})
-				}
-
-				img.src = "https://tutanota.com/images/maintenancecheck.png"
-			}
-
-			checkForMaintenance()
+			})
 		}
 	} else if (e instanceof InvalidSoftwareVersionError) {
 		if (!invalidSoftwareVersionActive) {

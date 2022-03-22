@@ -85,18 +85,18 @@ export async function reportMailsAutomatically(mailReportType: MailReportType, m
 		// only show the snackbar to undo the report if the user was not asked already
 		if (allowUndoing) {
 			let undoClicked = false
-			showSnackBar(
-				"undoMailReport_msg",
-				{
+			showSnackBar({
+				message: "undoMailReport_msg",
+				button: {
 					label: "cancel_action",
 					click: () => (undoClicked = true),
 				},
-				() => {
+				onClose: () => {
 					if (!undoClicked) {
 						mailModel.reportMails(mailReportType, mails)
 					}
-				},
-			)
+				}
+			})
 		} else {
 			mailModel.reportMails(mailReportType, mails)
 		}
