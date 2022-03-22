@@ -1,7 +1,7 @@
 import m, {Children, Component, Vnode} from "mithril"
 import type {TranslationKey} from "../LanguageViewModel"
 import {lang} from "../LanguageViewModel"
-import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {ButtonAttrs, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {Icon, progressIcon} from "../../gui/base/Icon"
 import {Icons, SecondFactorImage} from "../../gui/base/icons/Icons"
 import {theme} from "../../gui/theme"
@@ -83,16 +83,18 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 		let items
 		const {state} = webauthn
 
+		const doWebauthnButtonAttrs: ButtonAttrs = {
+			label: "useSecurityKey_action",
+			click: () => webauthn.doWebauthn(),
+			type: ButtonType.Login,
+		}
+
 		switch (state.state) {
 			case "init":
 				items = [
 					m(
 						".align-self-center",
-						m(ButtonN, {
-							label: "useSecurityKey_action",
-							click: () => webauthn.doWebauthn(),
-							type: ButtonType.Primary,
-						}),
+						m(ButtonN, doWebauthnButtonAttrs),
 					),
 				]
 				break
@@ -117,11 +119,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 							),
 							m("", lang.get(state.error)),
 						]),
-						m(ButtonN, {
-							label: "useSecurityKey_action",
-							click: () => webauthn.doWebauthn(),
-							type: ButtonType.Primary,
-						}),
+						m(ButtonN, doWebauthnButtonAttrs),
 					]),
 				]
 				break
@@ -153,7 +151,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 			return null
 		}
 
-		return m(".small.right", [
+		return m(".small.text-center.pt-m", [
 			m(
 				`a[href=#]`,
 				{
