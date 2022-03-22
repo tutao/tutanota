@@ -125,13 +125,14 @@ export function createAttachmentButtonAttrs(model: SendMailModel, inlineImageEle
 		]
 		return attachDropdown(
 			{
-				label: () => file.name,
-				icon: () => Icons.Attachment,
-				type: ButtonType.Bubble,
-				staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
-				colors: ButtonColor.Elevated,
-			},
-			() => lazyButtonAttrs,
+                mainButtonAttrs: {
+                    label: () => file.name,
+                    icon: () => Icons.Attachment,
+                    type: ButtonType.Bubble,
+                    staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
+                    colors: ButtonColor.Elevated,
+                }, childAttrs: () => lazyButtonAttrs
+            },
 		)
 	})
 }
@@ -249,16 +250,15 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 		let bubble: Bubble<RecipientInfo>
 		const buttonAttrs = attachDropdown(
 			{
-				label: () => getDisplayText(recipientInfo.name, recipientInfo.mailAddress, false),
-				type: ButtonType.TextBubble,
-				isSelected: () => false,
-			},
-			() =>
-				recipientInfo.resolveContactPromise
-					? recipientInfo.resolveContactPromise.then(contact => this._createBubbleContextButtons(bubble))
-					: Promise.resolve(this._createBubbleContextButtons(bubble)),
-			undefined,
-			250,
+                mainButtonAttrs: {
+                    label: () => getDisplayText(recipientInfo.name, recipientInfo.mailAddress, false),
+                    type: ButtonType.TextBubble,
+                    isSelected: () => false,
+                }, childAttrs: () =>
+                    recipientInfo.resolveContactPromise
+                        ? recipientInfo.resolveContactPromise.then(contact => this._createBubbleContextButtons(bubble))
+                        : Promise.resolve(this._createBubbleContextButtons(bubble)), showDropdown: undefined, width: 250
+            },
 		)
 		bubble = new Bubble(recipientInfo, buttonAttrs, recipientInfo.mailAddress)
 

@@ -233,7 +233,7 @@ export function createRowActions<T>(
 	]
 	return {
 		label: "edit_action",
-		click: createDropdown(makeButtonAttrs, 260),
+		click: createDropdown({lazyButtons: makeButtonAttrs, width: 260}),
 		icon: () => Icons.Edit,
 	}
 }

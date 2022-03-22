@@ -41,21 +41,22 @@ class IdentifierRow implements Component<IdentifierRowAttrs> {
 	view(vnode: Vnode<IdentifierRowAttrs>): Children {
 		const dropdownAttrs = attachDropdown(
 			{
-				label: "edit_action",
-				icon: () => Icons.Edit,
-			},
-			() => [
-				{
-					label: () => lang.get(vnode.attrs.disabled ? "activate_action" : "deactivate_action"),
-					type: ButtonType.Dropdown,
-					click: vnode.attrs.disableClicked,
-				},
-				{
-					label: "delete_action",
-					type: ButtonType.Dropdown,
-					click: vnode.attrs.removeClicked,
-				},
-			],
+                mainButtonAttrs: {
+                    label: "edit_action",
+                    icon: () => Icons.Edit,
+                }, childAttrs: () => [
+                    {
+                        label: () => lang.get(vnode.attrs.disabled ? "activate_action" : "deactivate_action"),
+                        type: ButtonType.Dropdown,
+                        click: vnode.attrs.disableClicked,
+                    },
+                    {
+                        label: "delete_action",
+                        type: ButtonType.Dropdown,
+                        click: vnode.attrs.removeClicked,
+                    },
+                ]
+            },
 		)
 		return m(".flex.flex-column.full-width", [
 			m(".flex.items-center.selectable", [

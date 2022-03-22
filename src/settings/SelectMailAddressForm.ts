@@ -54,13 +54,15 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 
 		const domainChooserAttrs: ButtonAttrs = attachDropdown(
 			{
-				label: "domain_label",
-				icon: () => Icons.More,
-				noBubble: true,
-			},
-			() => attrs.availableDomains.map(domain => this._createDropdownItemAttrs(domain, validate, attrs.onDomainChanged || noOp)),
-			() => true,
-			250,
+                mainButtonAttrs: {
+                    label: "domain_label",
+                    icon: () => Icons.More,
+                    noBubble: true,
+                },
+                childAttrs: () => attrs.availableDomains.map(domain => this._createDropdownItemAttrs(domain, validate, attrs.onDomainChanged || noOp)),
+                showDropdown: () => true,
+                width: 250
+            },
 		)
 
 		// this is a semi-good hack to reset the username after the user pressed "ok"

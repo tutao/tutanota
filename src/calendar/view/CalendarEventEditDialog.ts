@@ -9,11 +9,10 @@ import type {DropDownSelectorAttrs, SelectorItemList} from "../../gui/base/DropD
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 import {Icons} from "../../gui/base/icons/Icons"
 import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
-import {downcast, memoized, noOp} from "@tutao/tutanota-utils"
+import {downcast, findAndRemove, memoized, noOp, numberRange, ofClass, remove} from "@tutao/tutanota-utils"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {AlarmInterval, CalendarAttendeeStatus, EndType, Keys, RepeatPeriod} from "../../api/common/TutanotaConstants"
-import {findAndRemove, numberRange, remove} from "@tutao/tutanota-utils"
 import {createRepeatRuleEndTypeValues, createRepeatRuleFrequencyValues, getStartOfTheWeekOffsetForUser} from "../date/CalendarUtils"
 import {Bubble, BubbleTextField} from "../../gui/base/BubbleTextField"
 import {RecipientInfoBubbleHandler} from "../../misc/RecipientInfoBubbleHandler"
@@ -44,7 +43,6 @@ import {createRecipientInfo, getDisplayText} from "../../mail/model/MailUtils"
 import {getSharedGroupName} from "../../sharing/GroupUtils"
 import {logins} from "../../api/main/LoginController"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
-import {ofClass} from "@tutao/tutanota-utils"
 import {createEncryptedMailAddress} from "../../api/entities/tutanota/EncryptedMailAddress"
 import {askIfShouldSendCalendarUpdatesToAttendees} from "./CalendarGuiUtils"
 import type {CalendarInfo} from "../model/CalendarModel"
@@ -595,14 +593,14 @@ function makeBubbleTextField(viewModel: CalendarEventViewModel, contactModel: Co
 		{
 			createBubble(name: string | null, mailAddress: string, contact: Contact | null): Bubble<RecipientInfo> {
 				const recipientInfo = createRecipientInfo(mailAddress, name, contact)
-				const buttonAttrs = attachDropdown(
-					{
+				const buttonAttrs = attachDropdown({
+					mainButtonAttrs: {
 						label: () => getDisplayText(recipientInfo.name, mailAddress, false),
 						type: ButtonType.TextBubble,
 						isSelected: () => false,
 					},
-					() => createBubbleContextButtons(recipientInfo.name, mailAddress),
-				)
+					childAttrs: () => createBubbleContextButtons(recipientInfo.name, mailAddress)
+				})
 				const bubble = new Bubble(recipientInfo, buttonAttrs, mailAddress)
 				// remove bubble after it was created - we don't need it for calendar invites because the attendees are shown in a separate list.
 				Promise.resolve().then(() => {
@@ -652,7 +650,7 @@ function showOrganizerDropdown(viewModel: CalendarEventViewModel, e: MouseEvent)
 			}
 		})
 
-	createDropdown(makeButtons, 300)(e, e.target as any)
+	createDropdown({lazyButtons: makeButtons, width: 300})(e, e.target as any)
 }
 
 function renderGuest(guest: Guest, index: number, viewModel: CalendarEventViewModel, ownAttendee: Guest | null): Children {

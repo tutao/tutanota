@@ -95,10 +95,11 @@ export class MultiMailViewer implements Component {
 			...cancel,
 			attachDropdown(
 				{
-					label: "move_action",
-					icon: () => Icons.Folder,
-				},
-				() => this.makeMoveMailButtons(),
+                    mainButtonAttrs: {
+                        label: "move_action",
+                        icon: () => Icons.Folder,
+                    }, childAttrs: () => this.makeMoveMailButtons()
+                },
 			),
 			{
 				label: "delete_action",
@@ -110,33 +111,34 @@ export class MultiMailViewer implements Component {
 			},
 			attachDropdown(
 				{
-					label: "more_label",
-					icon: () => Icons.More,
-				},
-				() => [
-					{
-						label: "markUnread_action",
-						click: this._actionBarAction(mails => markMails(locator.entityClient, mails, true)),
-						icon: () => Icons.NoEye,
-						type: ButtonType.Dropdown,
-					},
-					{
-						label: "markRead_action",
-						click: this._actionBarAction(mails => markMails(locator.entityClient, mails, false)),
-						icon: () => Icons.Eye,
-						type: ButtonType.Dropdown,
-					},
-					!isApp() && !logins.isEnabled(FeatureType.DisableMailExport)
-						? {
-							label: "export_action",
-							click: this._actionBarAction(mails =>
-								showProgressDialog("pleaseWait_msg", exportMails(mails, locator.entityClient, locator.fileFacade)),
-							),
-							icon: () => Icons.Export,
-							type: ButtonType.Dropdown,
-						}
-						: null,
-				],
+                    mainButtonAttrs: {
+                        label: "more_label",
+                        icon: () => Icons.More,
+                    }, childAttrs: () => [
+                        {
+                            label: "markUnread_action",
+                            click: this._actionBarAction(mails => markMails(locator.entityClient, mails, true)),
+                            icon: () => Icons.NoEye,
+                            type: ButtonType.Dropdown,
+                        },
+                        {
+                            label: "markRead_action",
+                            click: this._actionBarAction(mails => markMails(locator.entityClient, mails, false)),
+                            icon: () => Icons.Eye,
+                            type: ButtonType.Dropdown,
+                        },
+                        !isApp() && !logins.isEnabled(FeatureType.DisableMailExport)
+                            ? {
+                                label: "export_action",
+                                click: this._actionBarAction(mails =>
+                                    showProgressDialog("pleaseWait_msg", exportMails(mails, locator.entityClient, locator.fileFacade)),
+                                ),
+                                icon: () => Icons.Export,
+                                type: ButtonType.Dropdown,
+                            }
+                            : null,
+                    ]
+                },
 			),
 		]
 	}
@@ -165,7 +167,7 @@ export class MultiMailViewer implements Component {
 			.map(f => {
 				return {
 					label: () => getFolderName(f),
-					click: this._actionBarAction(mails => moveMails(locator.mailModel, mails, f)),
+					click: this._actionBarAction(mails => moveMails({mailModel : locator.mailModel, mails : mails, targetMailFolder : f})),
 					icon: getFolderIcon(f),
 					type: ButtonType.Dropdown,
 				}

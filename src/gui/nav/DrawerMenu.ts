@@ -65,29 +65,31 @@ export class DrawerMenu implements Component<Attrs> {
 					ButtonN,
 					attachDropdown(
 						{
-							label: "showHelp_action",
-							icon: () => BootIcons.Help,
-							type: ButtonType.ActionLarge,
-							click: () => keyManager.openF1Help(),
-							noBubble: true,
-							colors: ButtonColor.DrawerNav,
-						},
-						() => [
-							{
-								label: "supportMenu_label",
-								click: () => showSupportDialog(),
-								type: ButtonType.Dropdown,
-								colors: ButtonColor.DrawerNav,
-							},
-							{
-								label: "keyboardShortcuts_title",
-								click: () => keyManager.openF1Help(true),
-								type: ButtonType.Dropdown,
-								colors: ButtonColor.DrawerNav,
-							},
-						],
-						() => logins.isUserLoggedIn() && logins.getUserController().isPremiumAccount(),
-						300,
+                            mainButtonAttrs: {
+                                label: "showHelp_action",
+                                icon: () => BootIcons.Help,
+                                type: ButtonType.ActionLarge,
+                                click: () => keyManager.openF1Help(),
+                                noBubble: true,
+                                colors: ButtonColor.DrawerNav,
+                            },
+                            childAttrs: () => [
+                                {
+                                    label: "supportMenu_label",
+                                    click: () => showSupportDialog(),
+                                    type: ButtonType.Dropdown,
+                                    colors: ButtonColor.DrawerNav,
+                                },
+                                {
+                                    label: "keyboardShortcuts_title",
+                                    click: () => keyManager.openF1Help(true),
+                                    type: ButtonType.Dropdown,
+                                    colors: ButtonColor.DrawerNav,
+                                },
+                            ],
+                            showDropdown: () => logins.isUserLoggedIn() && logins.getUserController().isPremiumAccount(),
+                            width: 300
+                        },
 					),
 				),
 				isNewMailActionAvailable() && logins.getUserController().isGlobalAdmin()

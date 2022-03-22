@@ -160,33 +160,35 @@ export class LoginView implements CurrentView {
 	}
 
 	themeSwitchListener(): clickHandler {
-		return createAsyncDropdown(async () => {
-			const defaultButtons: ReadonlyArray<ButtonAttrs> = [
-				{
-					label: "light_label",
-					type: ButtonType.Dropdown,
-					click: () => themeController.setThemeId("light"),
-				},
-				{
-					label: "dark_label",
-					type: ButtonType.Dropdown,
-					click: () => themeController.setThemeId("dark"),
-				},
-				{
-					label: "blue_label",
-					type: ButtonType.Dropdown,
-					click: () => themeController.setThemeId("blue"),
-				},
-			]
-			const customButtons = (await themeController.getCustomThemes()).map(themeId => {
-				return {
-					label: () => themeId,
-					type: ButtonType.Dropdown,
-					click: () => themeController.setThemeId(themeId),
-				}
-			})
-			return defaultButtons.concat(customButtons)
-		}, 300)
+		return createAsyncDropdown({
+            lazyButtons: async () => {
+                const defaultButtons: ReadonlyArray<ButtonAttrs> = [
+                    {
+                        label: "light_label",
+                        type: ButtonType.Dropdown,
+                        click: () => themeController.setThemeId("light"),
+                    },
+                    {
+                        label: "dark_label",
+                        type: ButtonType.Dropdown,
+                        click: () => themeController.setThemeId("dark"),
+                    },
+                    {
+                        label: "blue_label",
+                        type: ButtonType.Dropdown,
+                        click: () => themeController.setThemeId("blue"),
+                    },
+                ]
+                const customButtons = (await themeController.getCustomThemes()).map(themeId => {
+                    return {
+                        label: () => themeId,
+                        type: ButtonType.Dropdown,
+                        click: () => themeController.setThemeId(themeId),
+                    }
+                })
+                return defaultButtons.concat(customButtons)
+            }, width: 300
+        })
 	}
 
 	_signupLinkVisible(): boolean {

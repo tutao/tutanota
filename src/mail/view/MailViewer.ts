@@ -1,119 +1,73 @@
 import {size} from "../../gui/size"
 import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
-import Stream from "mithril/stream"
 import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
 import {Button} from "../../gui/base/Button"
-import {formatDateTime, formatDateWithWeekday, formatStorageSize, formatTime, urlEncodeHtmlTags} from "../../misc/Formatter"
-import {windowFacade} from "../../misc/WindowFacade"
-import {ease} from "../../gui/animation/Easing"
-import type {DomMutation} from "../../gui/animation/Animations"
-import {animations, scroll} from "../../gui/animation/Animations"
-import type {MailBody} from "../../api/entities/tutanota/MailBody"
-import {MailBodyTypeRef} from "../../api/entities/tutanota/MailBody"
+import {formatDateWithWeekday, formatStorageSize, formatTime} from "../../misc/Formatter"
+import {windowFacade, windowSizeListener} from "../../misc/WindowFacade"
 import {
-	CalendarMethod,
-	ConversationType,
-	ExternalImageRule,
 	FeatureType,
 	InboxRuleType,
 	Keys,
 	MailAuthenticationStatus,
 	MailFolderType,
-	MailMethod,
-	mailMethodToCalendarMethod,
 	MailPhishingStatus,
 	MailReportType,
-	MailState,
 	SpamRuleFieldType,
-	SpamRuleFieldType as SparmRuleType,
 	SpamRuleType,
 	TabIndex,
 } from "../../api/common/TutanotaConstants"
 import type {File as TutanotaFile} from "../../api/entities/tutanota/File"
-import {FileTypeRef} from "../../api/entities/tutanota/File"
-import {CALENDAR_MIME_TYPE} from "../../file/FileController"
-import {InfoLink, lang, TranslationKey} from "../../misc/LanguageViewModel"
+import {InfoLink, lang} from "../../misc/LanguageViewModel"
 import {assertMainOrNode, isAndroidApp, isDesktop, isIOSApp} from "../../api/common/Env"
 import {Dialog} from "../../gui/base/Dialog"
-import type {DeferredObject} from "@tutao/tutanota-utils"
-import {addAll, assertNotNull, contains, defer, downcast, isNotNull, neverNull, noOp, ofClass, startsWith} from "@tutao/tutanota-utils"
-import {getMailBodyText, getMailHeaders} from "../../api/common/utils/Utils"
-import {Request} from "../../api/common/MessageDispatcher"
-import {ConversationEntryTypeRef} from "../../api/entities/tutanota/ConversationEntry"
+import {isNotNull, neverNull, noOp, ofClass,} from "@tutao/tutanota-utils"
 import {
 	createNewContact,
-	getArchiveFolder,
-	getDefaultSender,
 	getDisplayText,
-	getEnabledMailAddresses,
 	getExistingRuleForType,
-	getFolder,
 	getFolderIcon,
 	getFolderName,
-	getMailboxName,
 	getSenderOrRecipientHeading,
 	getSenderOrRecipientHeadingTooltip,
 	getSortedCustomFolders,
 	getSortedSystemFolders,
-	isExcludedMailAddress,
 	isTutanotaTeamMail,
 } from "../model/MailUtils"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
-import type {KeyPress, Shortcut} from "../../misc/KeyManager"
+import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {logins} from "../../api/main/LoginController"
 import {Icon, progressIcon} from "../../gui/base/Icon"
 import {Icons} from "../../gui/base/icons/Icons"
-import type {MailAddress} from "../../api/entities/tutanota/MailAddress"
-import {createMailAddress} from "../../api/entities/tutanota/MailAddress"
-import type {EncryptedMailAddress} from "../../api/entities/tutanota/EncryptedMailAddress"
-import {createEncryptedMailAddress} from "../../api/entities/tutanota/EncryptedMailAddress"
-import {CustomerTypeRef} from "../../api/entities/sys/Customer"
-import {LockedError, NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
+import {LockedError} from "../../api/common/error/RestError"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {theme} from "../../gui/theme"
 import {MailHeadersTypeRef} from "../../api/entities/tutanota/MailHeaders"
 import {client} from "../../misc/ClientDetector"
-import type {PosRect} from "../../gui/base/Dropdown"
-import {createAsyncDropDownButton, createDropDownButton, DomRectReadOnlyPolyfilled} from "../../gui/base/Dropdown"
+import {createAsyncDropDownButton, DomRectReadOnlyPolyfilled} from "../../gui/base/Dropdown"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import Badge from "../../gui/base/Badge"
-import {FileOpenError} from "../../api/common/error/FileOpenError"
-import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {styles} from "../../gui/styles"
-import {createAsyncDropdown, createDropdown, showDropdownAtPosition} from "../../gui/base/DropdownN"
+import {attachDropdown, createAsyncDropdown, createDropdown} from "../../gui/base/DropdownN"
 import {navButtonRoutes} from "../../misc/RouteChange"
-import {createEmailSenderListElement} from "../../api/entities/sys/EmailSenderListElement"
 import {RecipientButton} from "../../gui/base/RecipientButton"
 import type {Mail} from "../../api/entities/tutanota/Mail"
-import type {GroupInfo} from "../../api/entities/sys/GroupInfo"
 import {EventBanner} from "./EventBanner"
+import type {InlineImageReference} from "./MailGuiUtils"
+import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
+import {locator} from "../../api/main/MainLocator"
+import {BannerType, InfoBanner} from "../../gui/base/InfoBanner"
+import {createMoreSecondaryButtonAttrs, ifAllowedTutanotaLinks} from "../../gui/base/GuiUtils"
+import {copyToClipboard} from "../../misc/ClipboardUtils";
+import {ContentBlockingStatus, MailViewerViewModel} from "./MailViewerViewModel"
+import {getListId} from "../../api/common/utils/EntityUtils"
+import {createEmailSenderListElement} from "../../api/entities/sys/EmailSenderListElement"
 import {checkApprovalStatus} from "../../misc/LoginUtils"
-import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
-import type {MailboxDetail, MailModel} from "../model/MailModel"
-import type {ResponseMailParameters} from "../editor/SendMailModel"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
-import {EntityClient} from "../../api/common/EntityClient"
-import type {InlineImageReference} from "./MailGuiUtils"
-import {getReferencedAttachments, loadInlineImages, moveMails, promptAndDeleteMails, replaceCidsWithInlineImages, revokeInlineImages} from "./MailGuiUtils"
-import type {ContactModel} from "../../contacts/model/ContactModel"
-import {elementIdPart, getListId, listIdPart} from "../../api/common/utils/EntityUtils"
-import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
-import {locator} from "../../api/main/MainLocator"
-import {exportMails} from "../export/Exporter"
-import {BannerType, InfoBanner} from "../../gui/base/InfoBanner"
-import {createMoreSecondaryButtonAttrs, getCoordsOfMouseOrTouchEvent, ifAllowedTutanotaLinks} from "../../gui/base/GuiUtils"
-import type {Link} from "../../misc/HtmlSanitizer"
-import {stringifyFragment} from "../../gui/HtmlUtils"
-import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
-import {CancelledError} from "../../api/common/error/CancelledError"
-import type {ConfigurationDatabase} from "../../api/worker/facades/ConfigurationDatabase"
-import type {NativeInterface} from "../../native/common/NativeInterface"
-import {copyToClipboard} from "../../misc/ClipboardUtils"
 
 assertMainOrNode()
 // map of inline image cid to InlineImageReference
@@ -123,140 +77,61 @@ type MaybeSyntheticEvent = TouchEvent & {
 	synthetic?: boolean
 }
 const DOUBLE_TAP_TIME_MS = 350
-const SCROLL_FACTOR = 4 / 5
-
-export const enum ContentBlockingStatus {
-	Block = "0",
-	Show = "1",
-	AlwaysShow = "2",
-	NoExternalContent = "3",
-	AlwaysBlock = "4",
-}
 
 type MailAddressAndName = {
 	name: string
 	address: string
 }
 
+export interface MailViewerAttrs {
+	viewModel: MailViewerViewModel
+}
+
 /**
  * The MailViewer displays a mail. The mail body is loaded asynchronously.
  */
-export class MailViewer implements Component {
-	view: Component["view"]
-	mail: Mail
-	private _mailBody: MailBody | null = null
-	private _contrastFixNeeded: boolean
-	private _sanitizedMailBody: string | null // always sanitized in this.setSanitizedMailBodyFromMail
-
-	private _loadingAttachments: boolean = false
-	private _attachments: TutanotaFile[]
-	private _attachmentButtons: Button[]
-	private _contentBlockingStatus: ContentBlockingStatus
-	private _domMailViewer: HTMLElement | null
+export class MailViewer implements Component<MailViewerAttrs> {
 
 	/** it is set after we measured mail body element */
-	private _bodyLineHeight: number | null = null
-	private _errorOccurred: boolean
-	oncreate: Component["oncreate"]
-	onbeforeremove: Component["onbeforeremove"]
-	onremove: Component["onremove"]
-	private _scrollAnimation: Promise<void> | null = null
-	private _folderText: string | null
+	private bodyLineHeight: number | null = null
+
 	mailHeaderDialog: Dialog
 	mailHeaderInfo: string
-	private _isScaling: boolean
-	private _filesExpanded: Stream<boolean>
-	private _referencedCids: Promise<Array<string>>
-	private _loadedInlineImages: Promise<InlineImages>
-	private _suspicious: boolean
-	private _domBodyDeferred: DeferredObject<HTMLElement>
-	private _domBody: HTMLElement | null = null
-	private _lastBodyTouchEndTime: number = 0
-	private _lastTouchStart: {
-		x: number
-		y: number
-		time: number
+	private isScaling = true
+	private readonly filesExpanded = stream<boolean>(false)
+
+	private lastBodyTouchEndTime = 0
+	private lastTouchStart = {
+		x: 0,
+		y: 0,
+		time: Date.now(),
 	}
-	private _domForScrolling: HTMLElement | null = null
-	private _warningDismissed: boolean
-	private _calendarEventAttachment:
-		| {
-		event: CalendarEvent
-		method: CalendarMethod
-		recipient: string
-	}
-		| null
-		| undefined
-	private _entityClient: EntityClient
-	private _mailModel: MailModel
-	private _contactModel: ContactModel
-	private _delayBodyRenderingUntil: Promise<any>
-	private _delayProgressSpinner: boolean
-	private _configFacade: ConfigurationDatabase
 
-	constructor(
-		mail: Mail,
-		showFolder: boolean,
-		entityClient: EntityClient,
-		mailModel: MailModel,
-		contactModel: ContactModel,
-		configFacade: ConfigurationDatabase,
-		delayBodyRenderingUntil: Promise<any>,
-		native: NativeInterface | null,
-	) {
-		this.mail = mail
-		this._contactModel = contactModel
-		this._configFacade = configFacade
-		this._entityClient = entityClient
-		this._mailModel = mailModel
-		this._delayBodyRenderingUntil = delayBodyRenderingUntil
+	// Delay the display of the progress spinner in main body view for a short time to suppress it when just sanitizing
+	private delayProgressSpinner = true
 
-		if (isDesktop()) {
-			// Notify the admin client about the mail being selected
-			native?.invokeNative(
-				new Request("sendSocketMessage", [
-					{
-						mailAddress: mail.sender.address,
-					},
-				]),
-			)
-		}
+	private readonly resizeListener: windowSizeListener
 
-		this._folderText = null
-		this._filesExpanded = stream(false)
-		this._domBodyDeferred = defer()
+	private viewModel: MailViewerViewModel
 
-		if (showFolder) {
-			const folder = this._mailModel.getMailFolder(mail._id[0])
+	private details: Children
+	private detailsExpanded = stream<boolean>(false)
 
-			if (folder) {
-				this._mailModel.getMailboxDetailsForMail(mail).then(mailboxDetails => {
-					this._folderText = `${lang.get("location_label")}: ${getMailboxName(logins, mailboxDetails)} / ${getFolderName(folder)}`.toUpperCase()
-					m.redraw()
-				})
-			}
-		}
+	private delayIsOver = false
 
-		this._attachments = []
-		this._attachmentButtons = []
-		this._sanitizedMailBody = null
-		this._contrastFixNeeded = false
-		// Initialize with NoExternalContent so that the banner doesn't flash, this will be set later in _loadMailBody
-		this._contentBlockingStatus = ContentBlockingStatus.NoExternalContent
-		this._errorOccurred = false
-		this._domMailViewer = null
-		this._suspicious = false
-		this._isScaling = true
-		this._lastTouchStart = {
-			x: 0,
-			y: 0,
-			time: Date.now(),
-		}
-		this._warningDismissed = false
+	private shortcuts: Array<Shortcut>
 
-		let closeAction = () => this.mailHeaderDialog.close()
+	constructor(vnode: Vnode<MailViewerAttrs>) {
 
-		const headerBarAttrs: DialogHeaderBarAttrs = {
+		this.viewModel = vnode.attrs.viewModel
+		this.viewModel.deferredAttachments.promise.then(() => {
+			m.redraw()
+		})
+
+
+		const closeAction = () => this.mailHeaderDialog.close()
+		this.mailHeaderInfo = ""
+		this.mailHeaderDialog = Dialog.largeDialog({
 			right: [
 				{
 					label: "ok_action",
@@ -265,239 +140,237 @@ export class MailViewer implements Component {
 				},
 			],
 			middle: () => lang.get("mailHeaders_title"),
-		}
-		this.mailHeaderInfo = ""
-		this.mailHeaderDialog = Dialog.largeDialog(headerBarAttrs, {
+		}, {
 			view: () => {
 				return m(".white-space-pre.pt.pb.selectable", this.mailHeaderInfo)
 			},
-		})
-									  .addShortcut({
-										  key: Keys.ESC,
-										  exec: closeAction,
-										  help: "close_alt",
-									  })
-									  .setCloseHandler(closeAction)
+		}).addShortcut({
+			key: Keys.ESC,
+			exec: closeAction,
+			help: "close_alt",
+		}).setCloseHandler(closeAction)
 
-		const resizeListener = () => this._domBodyDeferred.promise.then(dom => this._updateLineHeight(dom))
+		this.resizeListener = () => this.viewModel.getResolvedDomBody().then(dom => this.updateLineHeight(dom))
 
-		windowFacade.addResizeListener(resizeListener)
-		const bubbleMenuWidth = 300
+		this.details = this.createDetailsExpanderChildren({bubbleMenuWidth: 300})
 
-		const details = this._createDetailsExpanderChildren(bubbleMenuWidth, mail)
-
-		const detailsExpanded = stream(false)
-		const expanderButtonStyle = {}
-		const detailsExpanderButtonAttrs = {
-			label: "showMore_action",
-			expanded: detailsExpanded,
-			style: expanderButtonStyle,
-		} as const
-		// We call those sequentially as _loadAttachments() waits for _inlineFileIds to resolve
-		this._referencedCids = this._loadMailBody(mail)
-		this._loadedInlineImages = this._loadAttachments(mail)
-
-		this._loadedInlineImages.then(() => {
-			// load the conversation entry here because we expect it to be loaded immediately when responding to this email
-			this._entityClient
-				.load(ConversationEntryTypeRef, mail.conversationEntry)
-				.catch(ofClass(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e)))
-		})
-
-		let delayIsOver = false
-		delayBodyRenderingUntil.then(() => {
-			delayIsOver = true
+		this.viewModel.delayBodyRenderingUntil.then(() => {
+			this.delayIsOver = true
 			m.redraw()
 		})
-		// Delay the display of the progress spinner in main body view for a short time to suppress it when just sanitizing
-		this._delayProgressSpinner = true
+
 		setTimeout(() => {
-			this._delayProgressSpinner = false
+			this.delayProgressSpinner = false
 			m.redraw()
 		}, 50)
 
-		this.view = () => {
-			const dateTime = formatDateWithWeekday(this.mail.receivedDate) + " • " + formatTime(this.mail.receivedDate)
-			return [
-				m(
-					"#mail-viewer.fill-absolute" + (client.isMobileDevice() ? ".scroll-no-overlay.overflow-x-hidden" : ".flex.flex-column"),
-					{
-						oncreate: vnode => (this._domMailViewer = vnode.dom as HTMLElement),
-					},
-					[
-						m(".header.plr-l.margin-are-inset-lr", [
-							m(".flex-space-between.button-min-height", [
-								// the natural height may vary in browsers (Firefox), so set it to button height here to make it similar to the MultiMailViewer
-								m(".flex.flex-column-reverse", [
-									detailsExpanded()
-										? m("small.flex.text-break", lang.get("from_label"))
-										: m(
-											".small.flex.text-break.selectable.badge-line-height.flex-wrap.pt-s",
-											{
-												title: getSenderOrRecipientHeadingTooltip(this.mail),
-											},
-											[this._tutaoBadge(), getSenderOrRecipientHeading(this.mail, false)],
-										),
-									this._folderText
-										? m(
-											"small.b.flex.pt",
-											{
-												style: {
-													color: theme.navigation_button,
-												},
-											},
-											this._folderText,
-										)
-										: null,
-								]),
-								!this._isAnnouncement() && styles.isUsingBottomNavigation() ? null : m(".pt-0", m(ExpanderButtonN, detailsExpanderButtonAttrs)),
-							]),
-							m(
-								".mb-m",
-								m(
-									ExpanderPanelN,
-									{
-										expanded: detailsExpanded,
-									},
-									details,
-								),
-							),
-							m(".subject-actions.flex-space-between.flex-wrap.mt-xs", [
-								m(".left.flex-grow-shrink-150", [
-									m(
-										".subject.text-break.selectable",
+		this.shortcuts = this.setupShortcuts()
+	}
+
+	oncreate() {
+		keyManager.registerShortcuts(this.shortcuts)
+		this.viewModel.replaceInlineImages()
+		windowFacade.addResizeListener(this.resizeListener)
+	}
+
+	// onbeforeremove is only called if we are removed from the parent
+	// e.g. it is not called when switching to contact view
+	onbeforeremove() {
+		this.viewModel.revokeInlineImages()
+	}
+
+	onremove() {
+		windowFacade.removeResizeListener(this.resizeListener)
+		this.viewModel.clearDomBody()
+		keyManager.unregisterShortcuts(this.shortcuts)
+	}
+
+	view(vnode: Vnode<MailViewerAttrs>): Children {
+
+		this.viewModel = vnode.attrs.viewModel
+
+		const detailsExpanderButtonAttrs = {
+			label: "showMore_action",
+			expanded: this.detailsExpanded,
+			style: {},
+		} as const
+
+		const dateTime = formatDateWithWeekday(this.viewModel.mail.receivedDate) + " • " + formatTime(this.viewModel.mail.receivedDate)
+		return [
+			m(
+				"#mail-viewer.fill-absolute" + (client.isMobileDevice() ? ".scroll-no-overlay.overflow-x-hidden" : ".flex.flex-column"),
+				{
+					oncreate: vnode => this.viewModel.setMailViewerDom(vnode.dom as HTMLElement),
+				},
+				[
+					m(".header.plr-l.margin-are-inset-lr", [
+						m(".flex-space-between.button-min-height", [
+							// the natural height may vary in browsers (Firefox), so set it to button height here to make it similar to the MultiMailViewer
+							m(".flex.flex-column-reverse", [
+								this.detailsExpanded()
+									? m("small.flex.text-break", lang.get("from_label"))
+									: m(
+										".small.flex.text-break.selectable.badge-line-height.flex-wrap.pt-s",
 										{
-											"aria-label": lang.get("subject_label") + ", " + (this.mail.subject || ""),
+											title: getSenderOrRecipientHeadingTooltip(this.viewModel.mail),
 										},
-										this.mail.subject || "",
+										[this.tutaoBadge(), getSenderOrRecipientHeading(this.viewModel.mail, false)],
 									),
-									m(
-										".flex.items-center.content-accent-fg.svg-content-accent-fg" + (this.mail.confidential ? ".ml-negative-xs" : ""),
+								this.viewModel.getFolderText()
+									? m(
+										"small.b.flex.pt",
 										{
-											// Orca refuses to read ut unless it's not focusable
-											tabindex: TabIndex.Default,
-											"aria-label": lang.get(this.mail.confidential ? "confidential_action" : "nonConfidential_action") + ", " + dateTime,
+											style: {
+												color: theme.navigation_button,
+											},
 										},
-										[
-											this.mail.confidential
-												? m(Icon, {
-													icon: Icons.Lock,
-													style: {
-														fill: theme.content_fg,
-													},
-												})
-												: null,
-											m("small.date.mt-xs.content-fg.selectable", dateTime),
-											m(".flex-grow"),
-											m(
-												".flex.flex-column-reverse",
-												!this._isAnnouncement() && styles.isUsingBottomNavigation()
-													? m(".pt-m", m(ExpanderButtonN, detailsExpanderButtonAttrs))
-													: null,
-											),
-										],
-									),
-								]),
-								styles.isUsingBottomNavigation() ? null : this.actionButtons(),
+										this.viewModel.getFolderText(),
+									)
+									: null,
 							]),
-							styles.isUsingBottomNavigation() ? this.actionButtons() : null,
-							this._renderEventBanner(),
-							this._renderAttachments(),
-							this._renderBanners(mail),
+							!this.viewModel.isAnnouncement() && styles.isUsingBottomNavigation()
+								? null
+								: m(".pt-0",
+									m(ExpanderButtonN, detailsExpanderButtonAttrs)),
 						]),
 						m(
-							".flex-grow.margin-are-inset-lr.scroll-x.plr-l.pb-floating.pt" +
-							(client.isMobileDevice() ? "" : ".scroll-no-overlay") +
-							(this._contrastFixNeeded ? ".bg-white.content-black" : " "),
-							{
-								ontouchstart: (event: EventRedraw<TouchEvent>) => {
-									event.redraw = false
-									const touch = event.touches[0]
-									this._lastTouchStart.x = touch.clientX
-									this._lastTouchStart.y = touch.clientY
-									this._lastTouchStart.time = Date.now()
+							".mb-m",
+							m(
+								ExpanderPanelN,
+								{
+									expanded: this.detailsExpanded,
 								},
-								oncreate: vnode => {
-									this._domForScrolling = vnode.dom as HTMLElement
-								},
-								ontouchend: (event: EventRedraw<TouchEvent>) => {
-									if (client.isMobileDevice()) {
-										this._handleDoubleTap(
-											event,
-											e => this._handleAnchorClick(e, true),
-											() => this._rescale(true),
-										)
-									}
-
-									// Avoid redraws for this event listener, we don't need it for either opening links or rescaling
-									event.redraw = false
-								},
-								onclick: (event: MouseEvent) => {
-									if (!client.isMobileDevice()) {
-										this._handleAnchorClick(event, false)
-									}
-								},
-							},
-							delayIsOver ? this.renderMailBodySection() : null,
+								this.details,
+							),
 						),
-					],
-				),
-			]
-		}
+						m(".subject-actions.flex-space-between.flex-wrap.mt-xs", [
+							m(".left.flex-grow-shrink-150", [
+								m(
+									".subject.text-break.selectable",
+									{
+										"aria-label": lang.get("subject_label") + ", " + (this.viewModel.getSubject() || ""),
+									},
+									this.viewModel.getSubject() || "",
+								),
+								m(
+									".flex.items-center.content-accent-fg.svg-content-accent-fg" + (this.viewModel.isConfidential() ? ".ml-negative-xs" : ""),
+									{
+										// Orca refuses to read ut unless it's not focusable
+										tabindex: TabIndex.Default,
+										"aria-label": lang.get(this.viewModel.isConfidential() ? "confidential_action" : "nonConfidential_action") + ", " + dateTime,
+									},
+									[
+										this.viewModel.isConfidential()
+											? m(Icon, {
+												icon: Icons.Lock,
+												style: {
+													fill: theme.content_fg,
+												},
+											})
+											: null,
+										m("small.date.mt-xs.content-fg.selectable", dateTime),
+										m(".flex-grow"),
+										m(
+											".flex.flex-column-reverse",
+											!this.viewModel.isAnnouncement() && styles.isUsingBottomNavigation()
+												? m(".pt-m", m(ExpanderButtonN, detailsExpanderButtonAttrs))
+												: null,
+										),
+									],
+								),
+							]),
+							styles.isUsingBottomNavigation() ? null : this.actionButtons(),
+						]),
+						styles.isUsingBottomNavigation() ? this.actionButtons() : null,
+						this.renderEventBanner(),
+						this.renderAttachments(),
+						this.renderBanners(this.viewModel.mail),
+					]),
+					m(
+						".flex-grow.margin-are-inset-lr.scroll-x.plr-l.pb-floating.pt" +
+						(client.isMobileDevice() ? "" : ".scroll-no-overlay") +
+						(this.viewModel.isContrastFixNeeded() ? ".bg-white.content-black" : " "),
+						{
+							ontouchstart: (event: EventRedraw<TouchEvent>) => {
+								event.redraw = false
+								const touch = event.touches[0]
+								this.lastTouchStart.x = touch.clientX
+								this.lastTouchStart.y = touch.clientY
+								this.lastTouchStart.time = Date.now()
+							},
+							oncreate: vnode => {
+								this.viewModel.setScrollDom(vnode.dom as HTMLElement)
+							},
+							ontouchend: (event: EventRedraw<TouchEvent>) => {
+								if (client.isMobileDevice()) {
+									this.handleDoubleTap(
+										event,
+										e => this.viewModel.handleAnchorClick(e, true),
+										() => this.rescale(true),
+									)
+								}
 
-		this.onremove = () => windowFacade.removeResizeListener(resizeListener)
-
-		this._setupShortcuts()
+								// Avoid redraws for this event listener, we don't need it for either opening links or rescaling
+								event.redraw = false
+							},
+							onclick: (event: MouseEvent) => {
+								if (!client.isMobileDevice()) {
+									this.viewModel.handleAnchorClick(event, false)
+								}
+							},
+						},
+						this.delayIsOver
+							? this.renderMailBodySection()
+							: null,
+					),
+				],
+			),
+		]
 	}
 
-	_renderBanners(mail: Mail): Children {
-		return [
-			this._renderPhishingWarning() || this._renderHardAuthenticationFailWarning(mail) || this._renderSoftAuthenticationFailWarning(mail),
-			this._renderExternalContentBanner(),
-			m("hr.hr.mt-xs"),
-		].filter(Boolean)
-	}
+	private renderMailBodySection(): Children {
+		const sanitizedMailBody = this.viewModel.getSanitizedMailBody()
 
-	renderMailBodySection(): Children {
-		const sanitizedMailBody = this._sanitizedMailBody
-
-		if (sanitizedMailBody != null && !this._didErrorsOccur()) {
+		if (sanitizedMailBody != null && !this.viewModel.didErrorsOccur()) {
 			return m(
 				"#mail-body.selectable.touch-callout.break-word-links" + (client.isMobileDevice() ? ".break-pre" : ""),
 				{
 					oncreate: vnode => {
-						this._domBodyDeferred.resolve(vnode.dom as HTMLElement)
+						const dom = vnode.dom as HTMLElement
 
-						const dom = (this._domBody = vnode.dom as HTMLElement)
-
-						this._updateLineHeight(vnode.dom as HTMLElement)
-
-						this._rescale(false)
+						this.viewModel.setDomBody(dom)
+						this.updateLineHeight(dom)
+						this.rescale(false)
 					},
 					onupdate: vnode => {
-						this._domBodyDeferred.resolve(vnode.dom as HTMLElement)
+						const dom = vnode.dom as HTMLElement
 
-						this._domBody = vnode.dom as HTMLElement
+						this.viewModel.setDomBody(dom)
 
 						// Only measure and update line height once.
 						// BUT we need to do in from onupdate too if we swap mailViewer but mithril does not realize
 						// that it's a different vnode so oncreate might not be called.
-						if (!this._bodyLineHeight) {
-							this._updateLineHeight(vnode.dom as HTMLElement)
+						if (!this.bodyLineHeight) {
+							this.updateLineHeight(vnode.dom as HTMLElement)
 						}
 
-						this._rescale(false)
+						this.rescale(false)
 					},
-					onsubmit: (event: Event) => this._confirmSubmit(event),
+					onsubmit: (event: Event) => {
+						// use the default confirm dialog here because the submit can not be done async
+						if (!confirm(lang.get("reallySubmitContent_msg"))) {
+							event.preventDefault()
+						}
+					},
 					style: {
-						"line-height": this._bodyLineHeight ? this._bodyLineHeight.toString() : size.line_height,
+						"line-height": this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height,
 						"transform-origin": "top left",
 					},
 				},
 				m.trust(sanitizedMailBody),
 			)
-		} else if (!this._didErrorsOccur()) {
-			return this._delayProgressSpinner
+		} else if (!this.viewModel.didErrorsOccur()) {
+			return this.delayProgressSpinner
 				? m(".flex-v-center.items-center")
 				: m(
 					".progress-panel.flex-v-center.items-center",
@@ -517,70 +390,88 @@ export class MailViewer implements Component {
 		}
 	}
 
-	_didErrorsOccur(): boolean {
-		return this._errorOccurred || typeof this.mail._errors !== 'undefined' || (this._mailBody != null && typeof this._mailBody._errors !== 'undefined')
+	private renderBanners(mail: Mail): Children {
+		return [
+			this.renderPhishingWarning() || this.renderHardAuthenticationFailWarning(mail) || this.renderSoftAuthenticationFailWarning(mail),
+			this.renderExternalContentBanner(),
+			m("hr.hr.mt-xs"),
+		].filter(Boolean)
 	}
 
-	_renderEventBanner(): Children {
-		return this._calendarEventAttachment
+	private renderEventBanner(): Children {
+		const event = this.viewModel.getCalendarEventAttachment()
+		return event
 			? m(EventBanner, {
-				event: this._calendarEventAttachment.event,
-				method: this._calendarEventAttachment.method,
-				recipient: this._calendarEventAttachment.recipient,
-				mail: this.mail,
+				event: event.event,
+				method: event.method,
+				recipient: event.recipient,
+				mail: this.viewModel.mail,
 			})
 			: null
 	}
 
-	_createDetailsExpanderChildren(bubbleMenuWidth: number, mail: Mail): Children {
-		const envelopeSender = this.mail.differentEnvelopeSender
+	private createDetailsExpanderChildren({bubbleMenuWidth}: {bubbleMenuWidth: number}): Children {
+		const envelopeSender = this.viewModel.getDifferentEnvelopeSender()
 		return [
 			m(RecipientButton, {
-				label: getDisplayText(this.mail.sender.name, this.mail.sender.address, false),
-				click: createAsyncDropdown(() => this._createBubbleContextButtons(this.mail.sender, InboxRuleType.FROM_EQUALS), bubbleMenuWidth),
+				label: getDisplayText(this.viewModel.getSender().name, this.viewModel.getSender().address, false),
+				click: createAsyncDropdown({
+					lazyButtons: () => this.createMailAddressContextButtons({
+						mailAddress: this.viewModel.getSender(),
+						defaultInboxRuleField: InboxRuleType.FROM_EQUALS
+					}), width: bubbleMenuWidth
+				}),
 			}),
 			envelopeSender
 				? [
 					m(".small", lang.get("sender_label")),
 					m(RecipientButton, {
 						label: getDisplayText("", envelopeSender, false),
-						click: createAsyncDropdown(async () => {
-							const childElements = [
-								{
-									info: lang.get("envelopeSenderInfo_msg"),
-									center: false,
-									bold: false,
-								},
-								{
-									info: envelopeSender,
-									center: true,
-									bold: true,
-								},
-							]
-							const contextButtons = await this._createBubbleContextButtons(
-								{
-									address: envelopeSender,
-									name: "",
-								},
-								InboxRuleType.FROM_EQUALS,
-								false,
-							)
-							return [...childElements, ...contextButtons]
-						}, bubbleMenuWidth),
+						click: createAsyncDropdown({
+							lazyButtons: async () => {
+								const childElements = [
+									{
+										info: lang.get("envelopeSenderInfo_msg"),
+										center: false,
+										bold: false,
+									},
+									{
+										info: envelopeSender,
+										center: true,
+										bold: true,
+									},
+								]
+								const contextButtons = await this.createMailAddressContextButtons(
+									{
+										mailAddress: {
+											address: envelopeSender,
+											name: "",
+										},
+										defaultInboxRuleField: InboxRuleType.FROM_EQUALS,
+										createContact: false
+									},
+								)
+								return [...childElements, ...contextButtons]
+							}, width: bubbleMenuWidth
+						}),
 					}),
 				]
 				: null,
-			mail.toRecipients.length
+			this.viewModel.getToRecipients().length
 				? [
 					m(".small", lang.get("to_label")),
 					m(
 						".flex-start.flex-wrap",
-						this.mail.toRecipients.map(recipient =>
+						this.viewModel.getToRecipients().map(recipient =>
 							m(RecipientButton, {
 								label: getDisplayText(recipient.name, recipient.address, false),
 								click: createAsyncDropdown(
-									() => this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_TO_EQUALS),
-									bubbleMenuWidth,
+									{
+										lazyButtons: () => this.createMailAddressContextButtons({
+											mailAddress: recipient,
+											defaultInboxRuleField: InboxRuleType.RECIPIENT_TO_EQUALS
+										}), width: bubbleMenuWidth
+									},
 								),
 								// To wrap text inside flex container, we need to allow element to shrink and pick own width
 								style: {
@@ -591,17 +482,21 @@ export class MailViewer implements Component {
 					),
 				]
 				: null,
-			mail.ccRecipients.length
+			this.viewModel.getCcRecipients().length
 				? [
 					m(".small", lang.get("cc_label")),
 					m(
 						".flex-start.flex-wrap",
-						this.mail.ccRecipients.map(recipient =>
+						this.viewModel.getCcRecipients().map(recipient =>
 							m(RecipientButton, {
 								label: getDisplayText(recipient.name, recipient.address, false),
 								click: createAsyncDropdown(
-									() => this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_CC_EQUALS),
-									bubbleMenuWidth,
+									{
+										lazyButtons: () => this.createMailAddressContextButtons({
+											mailAddress: recipient,
+											defaultInboxRuleField: InboxRuleType.RECIPIENT_CC_EQUALS
+										}), width: bubbleMenuWidth
+									},
 								),
 								style: {
 									flex: "0 1 auto",
@@ -611,17 +506,21 @@ export class MailViewer implements Component {
 					),
 				]
 				: null,
-			mail.bccRecipients.length
+			this.viewModel.getBccRecipients().length
 				? [
 					m(".small", lang.get("bcc_label")),
 					m(
 						".flex-start.flex-wrap",
-						this.mail.bccRecipients.map(recipient =>
+						this.viewModel.getBccRecipients().map(recipient =>
 							m(RecipientButton, {
 								label: getDisplayText(recipient.name, recipient.address, false),
 								click: createAsyncDropdown(
-									() => this._createBubbleContextButtons(recipient, InboxRuleType.RECIPIENT_BCC_EQUALS),
-									bubbleMenuWidth,
+									{
+										lazyButtons: () => this.createMailAddressContextButtons({
+											mailAddress: recipient,
+											defaultInboxRuleField: InboxRuleType.RECIPIENT_BCC_EQUALS
+										}), width: bubbleMenuWidth
+									},
 								),
 								style: {
 									flex: "0 1 auto",
@@ -631,15 +530,20 @@ export class MailViewer implements Component {
 					),
 				]
 				: null,
-			mail.replyTos.length
+			this.viewModel.getReplyTos().length
 				? [
 					m(".small", lang.get("replyTo_label")),
 					m(
 						".flex-start.flex-wrap",
-						this.mail.replyTos.map(recipient =>
+						this.viewModel.getReplyTos().map(recipient =>
 							m(RecipientButton, {
 								label: getDisplayText(recipient.name, recipient.address, false),
-								click: createAsyncDropdown(() => this._createBubbleContextButtons(recipient, null), bubbleMenuWidth),
+								click: createAsyncDropdown({
+									lazyButtons: () => this.createMailAddressContextButtons({
+										mailAddress: recipient,
+										defaultInboxRuleField: null
+									}), width: bubbleMenuWidth
+								}),
 								style: {
 									flex: "0 1 auto",
 								},
@@ -651,77 +555,58 @@ export class MailViewer implements Component {
 		]
 	}
 
-	_unsubscribe(): Promise<void> {
-		if (this.mail.headers) {
-			return showProgressDialog(
-				"pleaseWait_msg",
-				this._entityClient.load(MailHeadersTypeRef, this.mail.headers).then(async (mailHeaders) => {
-					const headers = getMailHeaders(mailHeaders)
-						.split("\n")
-						.filter(headerLine => headerLine.toLowerCase().startsWith("list-unsubscribe"))
-
-					if (headers.length > 0) {
-						const recipient = await this._getSenderOfResponseMail()
-						await locator.mailModel.unsubscribe(this.mail, recipient, headers)
-						return true
-					} else {
-						return false
-					}
-				}),
-			)
-				.then(success => {
-					if (success) {
-						return Dialog.message("unsubscribeSuccessful_msg")
-					}
-				})
-				.catch(e => {
-					if (e instanceof LockedError) {
-						return Dialog.message("operationStillActive_msg")
-					} else {
-						return Dialog.message("unsubscribeFailed_msg")
-					}
-				})
-		}
-
-		return Promise.resolve()
+	private unsubscribe(): Promise<void> {
+		return showProgressDialog("pleaseWait_msg", this.viewModel.unsubscribe())
+			.then(success => {
+				if (success) {
+					return Dialog.message("unsubscribeSuccessful_msg")
+				}
+			})
+			.catch(e => {
+				if (e instanceof LockedError) {
+					return Dialog.message("operationStillActive_msg")
+				} else {
+					return Dialog.message("unsubscribeFailed_msg")
+				}
+			})
 	}
 
-	actionButtons(): Children {
-		const mail = this.mail
+	private actionButtons(): Children {
 		const actions: Children = []
 		const colors = ButtonColor.Content
 
-		if (mail.state === MailState.DRAFT) {
+		if (this.viewModel.isDraftMail()) {
 			actions.push(
 				m(ButtonN, {
 					label: "edit_action",
-					click: () => this._editDraft(),
+					click: () => this.editDraft(),
 					icon: () => Icons.Edit,
 					colors,
 				}),
 			)
 		} else {
-			if (!this._isAnnouncement()) {
+			if (!this.viewModel.isAnnouncement()) {
 				actions.push(
 					m(ButtonN, {
 						label: "reply_action",
-						click: () => this._reply(false),
+						click: () => this.viewModel.reply(false),
 						icon: () => Icons.Reply,
 						colors,
 					}),
 				)
 				const userController = logins.getUserController()
-				const restrictedParticipants = mail.restrictions && mail.restrictions.participantGroupInfos.length > 0
+				const restrictions = this.viewModel.getRestrictions()
+				const restrictedParticipants = restrictions && restrictions.participantGroupInfos.length > 0
 
 				if (
 					userController.isInternalUser() &&
-					mail.toRecipients.length + mail.ccRecipients.length + mail.bccRecipients.length > 1 &&
+					this.viewModel.getToRecipients().length + this.viewModel.getCcRecipients().length + this.viewModel.getBccRecipients().length > 1 &&
 					!restrictedParticipants
 				) {
 					actions.push(
 						m(ButtonN, {
 							label: "replyAll_action",
-							click: () => this._reply(true),
+							click: () => this.viewModel.reply(true),
 							icon: () => Icons.ReplyAll,
 							colors,
 						}),
@@ -732,7 +617,7 @@ export class MailViewer implements Component {
 					actions.push(
 						m(ButtonN, {
 							label: "forward_action",
-							click: () => this._forward(),
+							click: () => this.viewModel.forward(),
 							icon: () => Icons.Forward,
 							colors,
 						}),
@@ -742,29 +627,35 @@ export class MailViewer implements Component {
 							label: "move_action",
 							icon: () => Icons.Folder,
 							colors,
-							click: createAsyncDropdown(() =>
-								this._mailModel.getMailboxFolders(this.mail).then(folders => {
-									const filteredFolders = folders.filter(f => f.mails !== this.mail._id[0])
-									const targetFolders = getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders))
-									return targetFolders.map(f => {
-										return {
-											label: () => getFolderName(f),
-											click: () => moveMails(this._mailModel, [mail], f),
-											icon: getFolderIcon(f),
-											type: ButtonType.Dropdown,
-										}
-									})
-								}),
+							click: createAsyncDropdown({
+									lazyButtons: () =>
+										this.viewModel.mailModel.getMailboxFolders(this.viewModel.mail).then(folders => {
+											const filteredFolders = folders.filter(f => f.mails !== this.viewModel.getMailId()[0])
+											const targetFolders = getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders))
+											return targetFolders.map(f => {
+												return {
+													label: () => getFolderName(f),
+													click: () => moveMails({
+														mailModel: this.viewModel.mailModel,
+														mails: [this.viewModel.mail],
+														targetMailFolder: f
+													}),
+													icon: getFolderIcon(f),
+													type: ButtonType.Dropdown,
+												}
+											})
+										})
+								},
 							),
 						}),
 					)
 				} else if (
 					userController.isInternalUser() &&
 					restrictedParticipants &&
-					userController.getUserMailGroupMembership().group !== this.mail._ownerGroup
+					userController.getUserMailGroupMembership().group !== this.viewModel.getMailOwnerGroup()
 				) {
 					// do not allow re-assigning from personal mailbox
-					actions.push(m(this._createAssignActionButton(mail).setColors(colors)))
+					actions.push(m(this.createAssignActionButton(this.viewModel.mail).setColors(colors)))
 				}
 			}
 		}
@@ -773,107 +664,109 @@ export class MailViewer implements Component {
 			m(ButtonN, {
 				label: "delete_action",
 				click: () => {
-					promptAndDeleteMails(this._mailModel, [this.mail], noOp)
+					promptAndDeleteMails(this.viewModel.mailModel, [this.viewModel.mail], noOp)
 				},
 				icon: () => Icons.Trash,
 				colors,
 			}),
 		)
 
-		if (mail.state !== MailState.DRAFT) {
+		if (!this.viewModel.isDraftMail()) {
 			actions.push(
 				m(ButtonN, {
 					label: "more_label",
 					icon: () => Icons.More,
 					colors,
-					click: createDropdown(() => {
-						const moreButtons: Array<ButtonAttrs> = []
+					click: createDropdown({
+						lazyButtons: () => {
+							const moreButtons: Array<ButtonAttrs> = []
 
-						if (this.mail.unread) {
-							moreButtons.push({
-								label: "markRead_action",
-								click: () => this._markUnread(false),
-								icon: () => Icons.Eye,
-								type: ButtonType.Dropdown,
-							})
-						} else {
-							moreButtons.push({
-								label: "markUnread_action",
-								click: () => this._markUnread(true),
-								icon: () => Icons.NoEye,
-								type: ButtonType.Dropdown,
-							})
-						}
+							if (this.viewModel.isUnread()) {
+								moreButtons.push({
+									label: "markRead_action",
+									click: () => this.viewModel.setUnread(false),
+									icon: () => Icons.Eye,
+									type: ButtonType.Dropdown,
+								})
+							} else {
+								moreButtons.push({
+									label: "markUnread_action",
+									click: () => this.viewModel.setUnread(true),
+									icon: () => Icons.NoEye,
+									type: ButtonType.Dropdown,
+								})
+							}
 
-						if (!this._isAnnouncement() && !client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport)) {
-							moreButtons.push({
-								label: "export_action",
-								click: () => showProgressDialog("pleaseWait_msg", exportMails([this.mail], this._entityClient, locator.fileFacade)),
-								icon: () => Icons.Export,
-								type: ButtonType.Dropdown,
-							})
-						}
+							if (!this.viewModel.isAnnouncement() && !client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport)) {
+								moreButtons.push({
+									label: "export_action",
+									click: () => showProgressDialog("pleaseWait_msg", this.viewModel.exportMail()),
+									icon: () => Icons.Export,
+									type: ButtonType.Dropdown,
+								})
+							}
 
-						if (!client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport) && typeof window.print === "function") {
-							moreButtons.push({
-								label: "print_action",
-								click: () => window.print(),
-								icon: () => Icons.Print,
-								type: ButtonType.Dropdown,
-							})
-						}
+							if (!client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport) && typeof window.print === "function") {
+								moreButtons.push({
+									label: "print_action",
+									click: () => window.print(),
+									icon: () => Icons.Print,
+									type: ButtonType.Dropdown,
+								})
+							}
 
-						if (this.mail.listUnsubscribe) {
-							moreButtons.push({
-								label: "unsubscribe_action",
-								click: () => this._unsubscribe(),
-								icon: () => Icons.Cancel,
-								type: ButtonType.Dropdown,
-							})
-						}
+							if (this.viewModel.isListUnsubscribe()) {
+								moreButtons.push({
+									label: "unsubscribe_action",
+									click: () => this.unsubscribe(),
+									icon: () => Icons.Cancel,
+									type: ButtonType.Dropdown,
+								})
+							}
 
-						if (logins.isInternalUserLoggedIn()) {
-							moreButtons.push({
-								label: "showHeaders_action",
-								click: () => this._showHeaders(),
-								icon: () => Icons.ListUnordered,
-								type: ButtonType.Dropdown,
-							})
-						}
+							if (logins.isInternalUserLoggedIn()) {
+								moreButtons.push({
+									label: "showHeaders_action",
+									click: () => this.showHeaders(),
+									icon: () => Icons.ListUnordered,
+									type: ButtonType.Dropdown,
+								})
+							}
 
-						if (this.mail.phishingStatus === MailPhishingStatus.UNKNOWN && !isTutanotaTeamMail(this.mail) && logins.isInternalUserLoggedIn()) {
-							moreButtons.push({
-								label: "reportEmail_action",
-								click: () => this._reportMail(),
-								icon: () => Icons.Warning,
-								type: ButtonType.Dropdown,
-							})
-						}
+							if (this.viewModel.getPhishingStatus() === MailPhishingStatus.UNKNOWN && !this.viewModel.isTutanotaTeamMail() && logins.isInternalUserLoggedIn()) {
+								moreButtons.push({
+									label: "reportEmail_action",
+									click: () => this.reportMail(),
+									icon: () => Icons.Warning,
+									type: ButtonType.Dropdown,
+								})
+							}
 
-						if (locator.search.indexingSupported && this._isShowingExternalContent()) {
-							moreButtons.push({
-								label: "disallowExternalContent_action",
-								click: () => {
-									this._setContentBlockingStatus(ContentBlockingStatus.Block)
-								},
-								icon: () => Icons.Picture,
-								type: ButtonType.Dropdown,
-							})
-						}
+							if (locator.search.indexingSupported && this.viewModel.isShowingExternalContent()) {
+								moreButtons.push({
+									label: "disallowExternalContent_action",
+									click: () => {
+										this.viewModel.setContentBlockingStatus(ContentBlockingStatus.Block)
+									},
+									icon: () => Icons.Picture,
+									type: ButtonType.Dropdown,
+								})
+							}
 
-						if (locator.search.indexingSupported && this.isBlockingExternalImages()) {
-							moreButtons.push({
-								label: "showImages_action",
-								click: () => {
-									this._setContentBlockingStatus(ContentBlockingStatus.Show)
-								},
-								icon: () => Icons.Picture,
-								type: ButtonType.Dropdown,
-							})
-						}
+							if (locator.search.indexingSupported && this.viewModel.isBlockingExternalImages()) {
+								moreButtons.push({
+									label: "showImages_action",
+									click: () => {
+										this.viewModel.setContentBlockingStatus(ContentBlockingStatus.Show)
+									},
+									icon: () => Icons.Picture,
+									type: ButtonType.Dropdown,
+								})
+							}
 
-						return moreButtons
-					}, 300),
+							return moreButtons
+						}, width: 300
+					}),
 				}),
 			)
 		}
@@ -881,29 +774,12 @@ export class MailViewer implements Component {
 		return m(".action-bar.flex-end.items-center.mr-negative-s", actions)
 	}
 
-	_isShowingExternalContent(): boolean {
-		return this._contentBlockingStatus === ContentBlockingStatus.Show || this._contentBlockingStatus === ContentBlockingStatus.AlwaysShow
-	}
 
-	_reportMail() {
+	private reportMail() {
 		const sendReport = (reportType: MailReportType) => {
-			this._mailModel
-				.reportMails(reportType, [this.mail])
-				.then(() => {
-					if (reportType === MailReportType.PHISHING) {
-						this.mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
-						return this._entityClient.update(this.mail)
-					}
-				})
-				.then(() => this._mailModel.getMailboxDetailsForMail(this.mail))
-				.then(mailboxDetails => {
-					const spamFolder = getFolder(mailboxDetails.folders, MailFolderType.SPAM)
-					// do not report moved mails again
-					return moveMails(this._mailModel, [this.mail], spamFolder, false)
-				})
+			this.viewModel.reportMail(reportType)
 				.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
-				.catch(ofClass(NotFoundError, () => console.log("mail already moved")))
-				.then(m.redraw)
+				.finally(m.redraw)
 		}
 
 		const dialog = Dialog.showActionDialog({
@@ -953,58 +829,13 @@ export class MailViewer implements Component {
 		})
 	}
 
-	_markAsNotPhishing(): Promise<void> {
-		const oldStatus = this.mail.phishingStatus
-
-		if (oldStatus === MailPhishingStatus.WHITELISTED) {
-			return Promise.resolve()
-		}
-
-		this.mail.phishingStatus = MailPhishingStatus.WHITELISTED
-		return this._entityClient
-				   .update(this.mail)
-				   .catch(e => (this.mail.phishingStatus = oldStatus))
-				   .then(m.redraw)
-	}
-
-	_checkMailForPhishing(mail: Mail, links: Array<HTMLElement>) {
-		if (mail.phishingStatus === MailPhishingStatus.SUSPICIOUS) {
-			this._suspicious = true
-		} else if (mail.phishingStatus === MailPhishingStatus.UNKNOWN) {
-			const linkObjects = links.map(link => {
-				return {
-					href: link.getAttribute("href") || "",
-					innerHTML: link.innerHTML,
-				}
-			})
-
-			this._mailModel.checkMailForPhishing(mail, linkObjects).then(isSuspicious => {
-				if (isSuspicious) {
-					this._suspicious = true
-					mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
-
-					this._entityClient
-						.update(mail)
-						.catch(ofClass(LockedError, e => console.log("could not update mail phishing status as mail is locked")))
-						.catch(ofClass(NotFoundError, e => console.log("mail already moved")))
-
-					m.redraw()
-				}
-			})
-		}
-	}
-
-	getBounds(): PosRect | null {
-		return this._domMailViewer && this._domMailViewer.getBoundingClientRect()
-	}
-
-	_createAssignActionButton(mail: Mail): Button {
+	private createAssignActionButton(mail: Mail): Button {
 		const makeButtons = async () => {
 			// remove the current mailbox/owner from the recipients list.
-			const userOrMailGroupInfos = await this._getAssignableMailRecipients()
+			const userOrMailGroupInfos = await this.viewModel.getAssignableMailRecipients()
 			return userOrMailGroupInfos
 				.filter(userOrMailGroupInfo => {
-					if (logins.getUserController().getUserMailGroupMembership().group === this.mail._ownerGroup) {
+					if (logins.getUserController().getUserMailGroupMembership().group === this.viewModel.getMailOwnerGroup()) {
 						return userOrMailGroupInfo.group !== logins.getUserController().userGroupInfo.group && userOrMailGroupInfo.group !== mail._ownerGroup
 					} else {
 						return userOrMailGroupInfo.group !== mail._ownerGroup
@@ -1013,7 +844,7 @@ export class MailViewer implements Component {
 				.map(userOrMailGroupInfo => {
 					return new Button(
 						() => getDisplayText(userOrMailGroupInfo.name, neverNull(userOrMailGroupInfo.mailAddress), true),
-						() => this._assignMail(userOrMailGroupInfo),
+						() => this.viewModel.assignMail(userOrMailGroupInfo),
 						() => BootIcons.Contacts,
 					).setType(ButtonType.Dropdown)
 				})
@@ -1022,182 +853,108 @@ export class MailViewer implements Component {
 		return createAsyncDropDownButton("forward_action", () => Icons.Forward, makeButtons, 250)
 	}
 
-	async _replaceInlineImages() {
-		const [loadedInlineImages, domBody] = await Promise.all([this._loadedInlineImages, this._domBodyDeferred.promise])
-		replaceCidsWithInlineImages(domBody, loadedInlineImages, (cid, event, dom) => {
-			const inlineAttachment = this._attachments.find(attachment => attachment.cid === cid)
 
-			if (inlineAttachment) {
-				const coords = getCoordsOfMouseOrTouchEvent(event)
-				showDropdownAtPosition(
-					[
-						{
-							label: "download_action",
-							click: () => this._downloadAndOpenAttachment(inlineAttachment, false),
-							type: ButtonType.Dropdown,
-						},
-						{
-							label: "open_action",
-							click: () => this._downloadAndOpenAttachment(inlineAttachment, true),
-							type: ButtonType.Dropdown,
-						},
-					],
-					coords.x,
-					coords.y,
-				)
-			}
-		})
-	}
-
-	/** @return list of inline referenced cid */
-	async _loadMailBody(mail: Mail): Promise<Array<string>> {
-		try {
-			this._mailBody = await this._entityClient.load(MailBodyTypeRef, mail.body)
-		} catch (e) {
-			if (e instanceof NotFoundError) {
-				console.log("could load mail body as it has been moved/deleted already", e)
-				this._errorOccurred = true
-				return []
-			}
-
-			if (e instanceof NotAuthorizedError) {
-				console.log("could load mail body as the permission is missing", e)
-				this._errorOccurred = true
-				return []
-			}
-
-			throw e
-		}
-
-		const externalImageRule = await this._configFacade.getExternalImageRule(mail.sender.address).catch(e => {
-			console.log("Error getting external image rule:", e)
-			return ExternalImageRule.None
-		})
-		const isAllowedAndAuthenticatedExternalSender =
-			externalImageRule === ExternalImageRule.Allow && mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
-		// We should not try to sanitize body while we still animate because it's a heavy operation.
-		await this._delayBodyRenderingUntil
-		const sanitizeResult = await this.setSanitizedMailBodyFromMail(mail, !isAllowedAndAuthenticatedExternalSender)
-
-		this._checkMailForPhishing(mail, sanitizeResult.links)
-
-		this._contentBlockingStatus =
-			externalImageRule === ExternalImageRule.Block
-				? ContentBlockingStatus.AlwaysBlock
-				: isAllowedAndAuthenticatedExternalSender
-					? ContentBlockingStatus.AlwaysShow
-					: sanitizeResult.externalContent.length > 0
-						? ContentBlockingStatus.Block
-						: ContentBlockingStatus.NoExternalContent
-		m.redraw()
-		return sanitizeResult.inlineImageCids
-	}
-
-	_loadAttachments(mail: Mail): Promise<InlineImages> {
-		if (mail.attachments.length === 0) {
-			this._loadingAttachments = false
-			return Promise.resolve(new Map())
-		} else {
-			//We wait for _inlineFileIds to resolve in order to make the server requests sequentially
-			return this._referencedCids.then(inlineCids => {
-				this._loadingAttachments = true
-				const attachmentsListId = listIdPart(mail.attachments[0])
-				const attachmentElementIds = mail.attachments.map(attachment => elementIdPart(attachment))
-				return this._entityClient
-						   .loadMultiple(FileTypeRef, attachmentsListId, attachmentElementIds)
-						   .then(async files => {
-							   this._handleCalendarFile(files, mail)
-
-							   this._attachments = files
-							   this._attachmentButtons = this._createAttachmentsButtons(files, inlineCids)
-							   this._loadingAttachments = false
-							   const inlineImages = await loadInlineImages(locator.fileFacade, files, inlineCids)
-							   m.redraw()
-							   return inlineImages
-						   })
-						   .catch(
-							   ofClass(NotFoundError, e => {
-								   console.log("could load attachments as they have been moved/deleted already", e)
-								   return new Map()
-							   }),
-						   )
-			})
-		}
-	}
-
-	/**
-	 * Check if the list of files contain an iCal file which we can then load and display details for. An calendar notification
-	 * should contain only one iCal attachment so we only process the first matching one.
-	 */
-	_handleCalendarFile(files: Array<TutanotaFile>, mail: Mail): void {
-		const calendarFile = files.find(a => a.mimeType && a.mimeType.startsWith(CALENDAR_MIME_TYPE))
-
-		if (calendarFile && (mail.method === MailMethod.ICAL_REQUEST || mail.method === MailMethod.ICAL_REPLY) && mail.state === MailState.RECEIVED) {
-			Promise.all([
-				import("../../calendar/date/CalendarInvites").then(({getEventFromFile}) => getEventFromFile(calendarFile)),
-				this._getSenderOfResponseMail(),
-			]).then(([event, recipient]) => {
-				this._calendarEventAttachment = event && {
-					event,
-					method: mailMethodToCalendarMethod(downcast(mail.method)),
-					recipient,
-				}
-				m.redraw()
-			})
-		}
-	}
-
-	_renderAttachments(): Children {
-		if (this._loadingAttachments) {
+	private renderAttachments(): Children {
+		if (this.viewModel.isLoadingAttachments()) {
 			return m(".flex", [m(".flex-v-center.pl-button", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))])
 		} else {
-			const spoilerLimit = this._attachmentsSpoilerLimit()
+
+			const attachments = this.viewModel
+									.getAttachments()
+									.filter(({cid}) => cid == null || !this.viewModel.getInlineCids().includes(cid))
+
+			const spoilerLimit = styles.isDesktopLayout() ? 4 : 2
 
 			return m(".flex.ml-negative-bubble.flex-wrap", [
-				this._attachmentButtons.length > spoilerLimit
+				attachments.length > spoilerLimit
 					? [
-						this._attachmentButtons.slice(0, spoilerLimit).map((b) => m(b)),
+						attachments.slice(0, spoilerLimit).map(attachment => this.renderAttachmentButton(attachment)),
 						m(ExpanderButtonN, {
 							style: {
 								paddingTop: "0px",
 								margin: "0px 6px",
 							},
 							label: "showAll_action",
-							expanded: this._filesExpanded,
+							expanded: this.filesExpanded,
 						}),
 						m(
 							ExpanderPanelN,
 							{
-								expanded: this._filesExpanded,
+								expanded: this.filesExpanded,
 							},
-							this._attachmentButtons.slice(spoilerLimit).map((b) => m(b)),
+							attachments.slice(spoilerLimit).map(attachment => this.renderAttachmentButton(attachment)),
 						),
 					]
-					: this._attachmentButtons.map(b => m(b)),
-				this._renderDownloadAllButton(),
+					: attachments.map(attachment => this.renderAttachmentButton(attachment)),
+				this.renderDownloadAllButton(),
 			])
 		}
 	}
 
-	_renderDownloadAllButton(): Children {
-		return !isIOSApp() && this._attachmentButtons.length > 2
+	private renderAttachmentButton(attachment: TutanotaFile): Children {
+
+		if (isAndroidApp() || isDesktop()) {
+			return m(ButtonN,
+				attachDropdown(
+					{
+						mainButtonAttrs: {
+							label: () => attachment.name,
+							icon: () => Icons.Attachment,
+							type: ButtonType.Bubble,
+							staticRightText: `(${formatStorageSize(Number(attachment.size))})`
+						},
+						childAttrs: () => [
+							{
+								label: "open_action",
+								click: () => this.viewModel.downloadAndOpenAttachment(attachment, true),
+								type: ButtonType.Dropdown
+							},
+							{
+								label: "download_action",
+								click: () => this.viewModel.downloadAndOpenAttachment(attachment, true),
+								type: ButtonType.Dropdown
+							},
+						],
+						showDropdown: () => true,
+						width: 200,
+						overrideOrigin: (originalOrigin) => {
+							// Bubble buttons use border so dropdown is misaligned by default
+							return new DomRectReadOnlyPolyfilled(
+								originalOrigin.left + size.bubble_border_width,
+								originalOrigin.top,
+								originalOrigin.width,
+								originalOrigin.height
+							)
+						}
+					}
+				)
+			)
+		} else {
+			return m(ButtonN, {
+				label: () => attachment.name,
+				icon: () => Icons.Attachment,
+				click: () => this.viewModel.downloadAndOpenAttachment(attachment, true),
+				type: ButtonType.Bubble,
+				staticRightText: `(${formatStorageSize(Number(attachment.size))})`
+			})
+		}
+	}
+
+	private renderDownloadAllButton(): Children {
+		return !isIOSApp() && this.viewModel.getAttachments().length > 2
 			? m(
 				".limit-width",
 				m(ButtonN, {
 					label: "saveAll_action",
 					type: ButtonType.Secondary,
-					click: () => this._downloadAll(),
+					click: () => this.viewModel.downloadAll(),
 				}),
 			)
 			: null
 	}
 
-	_attachmentsSpoilerLimit(): number {
-		return styles.isDesktopLayout() ? 4 : 2
-	}
-
-	_tutaoBadge(): Vnode<any> | null {
-		return isTutanotaTeamMail(this.mail)
+	private tutaoBadge(): Vnode<any> | null {
+		return isTutanotaTeamMail(this.viewModel.mail)
 			? m(
 				Badge,
 				{
@@ -1208,19 +965,15 @@ export class MailViewer implements Component {
 			: null
 	}
 
-	_isAnnouncement(): boolean {
-		return isExcludedMailAddress(this.mail.sender.address)
-	}
 
-	_rescale(animate: boolean) {
-		if (!client.isMobileDevice() || !this._domBody) {
+	private rescale(animate: boolean) {
+		const child = this.viewModel.getDomBody()
+		if (!client.isMobileDevice() || !child) {
 			return
 		}
-
-		const child = this._domBody
 		const containerWidth = child.offsetWidth
 
-		if (!this._isScaling || containerWidth > child.scrollWidth) {
+		if (!this.isScaling || containerWidth > child.scrollWidth) {
 			child.style.transform = ""
 			child.style.marginBottom = ""
 		} else {
@@ -1236,38 +989,38 @@ export class MailViewer implements Component {
 		child.style.transformOrigin = "top left"
 	}
 
-	_setupShortcuts() {
+	private setupShortcuts(): Array<Shortcut> {
 		const userController = logins.getUserController()
-		let shortcuts: Shortcut[] = [
+		const shortcuts: Shortcut[] = [
 			{
 				key: Keys.E,
-				enabled: () => this.mail.state === MailState.DRAFT,
+				enabled: () => this.viewModel.isDraftMail(),
 				exec: () => {
-					this._editDraft()
+					this.editDraft()
 				},
 				help: "editMail_action",
 			},
 			{
 				key: Keys.H,
-				enabled: () => this.mail.state !== MailState.DRAFT,
-				exec: () => this._showHeaders(),
+				enabled: () => !this.viewModel.isDraftMail(),
+				exec: () => this.showHeaders(),
 				help: "showHeaders_action",
 			},
 			{
 				key: Keys.R,
-				exec: (key: KeyPress) => {
-					this._reply(false)
+				exec: () => {
+					this.viewModel.reply(false)
 				},
-				enabled: () => this.mail.state !== MailState.DRAFT,
+				enabled: () => !this.viewModel.isDraftMail(),
 				help: "reply_action",
 			},
 			{
 				key: Keys.R,
 				shift: true,
-				exec: (key: KeyPress) => {
-					this._reply(true)
+				exec: () => {
+					this.viewModel.reply(true)
 				},
-				enabled: () => this.mail.state !== MailState.DRAFT,
+				enabled: () => !this.viewModel.isDraftMail(),
 				help: "replyAll_action",
 			},
 		]
@@ -1276,62 +1029,45 @@ export class MailViewer implements Component {
 			shortcuts.push({
 				key: Keys.F,
 				shift: true,
-				enabled: () => this.mail.state !== MailState.DRAFT,
-				exec: (key: KeyPress) => {
-					this._forward()
+				enabled: () => !this.viewModel.isDraftMail(),
+				exec: () => {
+					this.viewModel.forward()
 				},
 				help: "forward_action",
 			})
 		}
 
-		this.oncreate = () => {
-			keyManager.registerShortcuts(shortcuts)
-
-			this._replaceInlineImages()
-		}
-
-		// onremove is called when we or any of our parents are removed from dom
-		this.onremove = () => {
-			keyManager.unregisterShortcuts(shortcuts)
-			this._domBodyDeferred = defer()
-			this._domBody = null
-		}
-
-		// onbeforeremove is only called if we are removed from the parent
-		// e.g. it is not called when switching to contact view
-		this.onbeforeremove = () => {
-			this._loadedInlineImages.then(inlineImages => {
-				revokeInlineImages(inlineImages)
-			})
-		}
+		return shortcuts
 	}
 
-	_updateLineHeight(dom: HTMLElement) {
+	private updateLineHeight(dom: HTMLElement) {
 		const width = dom.offsetWidth
 
 		if (width > 900) {
-			this._bodyLineHeight = size.line_height_l
+			this.bodyLineHeight = size.line_height_l
 		} else if (width > 600) {
-			this._bodyLineHeight = size.line_height_m
+			this.bodyLineHeight = size.line_height_m
 		} else {
-			this._bodyLineHeight = size.line_height
+			this.bodyLineHeight = size.line_height
 		}
 
-		dom.style.lineHeight = String(this._bodyLineHeight)
+		dom.style.lineHeight = String(this.bodyLineHeight)
 	}
 
-	_confirmSubmit(event: Event) {
-		// use the default confirm dialog here because the submit can not be done async
-		if (!confirm(lang.get("reallySubmitContent_msg"))) {
-			event.preventDefault()
-		}
-	}
-
-	_createBubbleContextButtons(
+	private async createMailAddressContextButtons(args: {
 		mailAddress: MailAddressAndName,
 		defaultInboxRuleField: InboxRuleType | null,
-		createContact: boolean = true): Promise<Array<ButtonAttrs>> {
-		const buttons: ButtonAttrs[] = []
+		createContact?: boolean,
+	}): Promise<Array<ButtonAttrs>> {
+
+		const {
+			mailAddress,
+			defaultInboxRuleField,
+			createContact = true
+		} = args
+
+		const buttons = [] as Array<ButtonAttrs>
+
 		buttons.push({
 				label: "copy_action",
 				type: ButtonType.Secondary,
@@ -1340,509 +1076,71 @@ export class MailViewer implements Component {
 		)
 
 		if (logins.getUserController().isInternalUser()) {
-			let contactsPromise = Promise.resolve()
 
 			if (createContact && !logins.isEnabled(FeatureType.DisableContacts)) {
-				contactsPromise = this._contactModel.searchForContact(mailAddress.address).then(contact => {
-					if (contact) {
-						buttons.push({
-							label: "showContact_action",
-							click: () => {
-								navButtonRoutes.contactsUrl = `/contact/${neverNull(contact)._id[0]}/${neverNull(contact)._id[1]}`
-								m.route.set(navButtonRoutes.contactsUrl + location.hash)
-							},
-							type: ButtonType.Secondary,
-						})
-					} else {
-						buttons.push({
-							label: "createContact_action",
-							click: () => {
-								this._contactModel.contactListId().then(contactListId => {
-									import("../../contacts/ContactEditor").then(({ContactEditor}) => {
-										const contact = createNewContact(logins.getUserController().user, mailAddress.address, mailAddress.name)
-										new ContactEditor(this._entityClient, contact, contactListId ?? undefined).show()
-									})
-								})
-							},
-							type: ButtonType.Secondary,
-						})
-					}
-				})
-			}
-
-			return contactsPromise.then(() => {
-				return this._mailModel.getMailboxDetailsForMail(this.mail).then(mailboxDetails => {
-					if (defaultInboxRuleField && !logins.isEnabled(FeatureType.InternalCommunication)) {
-						let rule = getExistingRuleForType(logins.getUserController().props, mailAddress.address.trim().toLowerCase(), defaultInboxRuleField)
-						let actionLabel: TranslationKey = rule ? "editInboxRule_action" : "addInboxRule_action"
-						buttons.push({
-							label: actionLabel,
-							click: () => {
-								import("../../settings/AddInboxRuleDialog").then(({show, createInboxRuleTemplate}) => {
-									const newRule = rule || createInboxRuleTemplate(defaultInboxRuleField, mailAddress.address.trim().toLowerCase())
-									show(mailboxDetails, newRule)
-								})
-							},
-							type: ButtonType.Secondary,
-						})
-					}
-
-					if (logins.isGlobalAdminUserLoggedIn() && !logins.isEnabled(FeatureType.InternalCommunication)) {
-						buttons.push({
-							label: "addSpamRule_action",
-							click: () => this._addSpamRule(defaultInboxRuleField, mailAddress.address),
-							type: ButtonType.Secondary,
-						})
-					}
-
-					return buttons
-				})
-			})
-		} else {
-			return Promise.resolve(buttons)
-		}
-	}
-
-	_addSpamRule(defaultInboxRuleField: InboxRuleType | null, address: string) {
-		const folder = this._mailModel.getMailFolder(getListId(this.mail))
-
-		const spamRuleType = folder && folder.folderType === MailFolderType.SPAM ? SpamRuleType.WHITELIST : SpamRuleType.BLACKLIST
-		let spamRuleField: SpamRuleFieldType
-
-		switch (defaultInboxRuleField) {
-			case InboxRuleType.RECIPIENT_TO_EQUALS:
-				spamRuleField = SparmRuleType.TO
-				break
-
-			case InboxRuleType.RECIPIENT_CC_EQUALS:
-				spamRuleField = SparmRuleType.CC
-				break
-
-			case InboxRuleType.RECIPIENT_BCC_EQUALS:
-				spamRuleField = SparmRuleType.BCC
-				break
-
-			default:
-				spamRuleField = SparmRuleType.FROM
-				break
-		}
-
-		import("../../settings/AddSpamRuleDialog").then(({showAddSpamRuleDialog}) => {
-			showAddSpamRuleDialog(
-				createEmailSenderListElement({
-					value: address.trim().toLowerCase(),
-					type: spamRuleType,
-					field: spamRuleField,
-				}),
-			)
-		})
-	}
-
-	_markUnread(unread: boolean) {
-		this.mail.unread = unread
-
-		this._entityClient
-			.update(this.mail)
-			.catch(ofClass(LockedError, () => console.log("could not update mail read state: ", lang.get("operationStillActive_msg"))))
-			.catch(ofClass(NotFoundError, noOp))
-	}
-
-	_editDraft(): Promise<void> {
-		return checkApprovalStatus(logins, false).then(sendAllowed => {
-			if (sendAllowed) {
-				// check if to be opened draft has already been minimized, iff that is the case, re-open it
-				const minimizedEditor = locator.minimizedMailModel.getEditorForDraft(this.mail)
-
-				if (minimizedEditor) {
-					locator.minimizedMailModel.reopenMinimizedEditor(minimizedEditor)
+				const contact = await this.viewModel.contactModel.searchForContact(mailAddress.address)
+				if (contact) {
+					buttons.push({
+						label: "showContact_action",
+						click: () => {
+							navButtonRoutes.contactsUrl = `/contact/${neverNull(contact)._id[0]}/${neverNull(contact)._id[1]}`
+							m.route.set(navButtonRoutes.contactsUrl + location.hash)
+						},
+						type: ButtonType.Secondary,
+					})
 				} else {
-					return Promise.all([this._mailModel.getMailboxDetailsForMail(this.mail), import("../editor/MailEditor")])
-								  .then(([mailboxDetails, {newMailEditorFromDraft}]) => {
-									  return newMailEditorFromDraft(
-										  this.mail,
-										  this._attachments,
-										  this._getMailBody(),
-										  this.isBlockingExternalImages(),
-										  this._loadedInlineImages,
-										  mailboxDetails,
-									  )
-								  })
-								  .then(editorDialog => {
-									  editorDialog.show()
-								  })
-								  .catch(ofClass(UserError, showUserError))
-				}
-			}
-		})
-	}
-
-	async _reply(replyAll: boolean): Promise<void> {
-		if (this._isAnnouncement()) {
-			return Promise.resolve()
-		}
-
-		const sendAllowed = await checkApprovalStatus(logins, false)
-
-		if (sendAllowed) {
-			const mailboxDetails = await this._mailModel.getMailboxDetailsForMail(this.mail)
-			let prefix = "Re: "
-			const mailSubject = this.mail.subject
-			let subject = mailSubject ? (startsWith(mailSubject.toUpperCase(), prefix.toUpperCase()) ? mailSubject : prefix + mailSubject) : ""
-			let infoLine = formatDateTime(this.mail.sentDate) + " " + lang.get("by_label") + " " + this.mail.sender.address + ":"
-			let body = infoLine + '<br><blockquote class="tutanota_quote">' + this._getMailBody() + "</blockquote>"
-			let toRecipients: MailAddress[] = []
-			let ccRecipients: MailAddress[] = []
-			let bccRecipients: MailAddress[] = []
-
-			if (!logins.getUserController().isInternalUser() && this.mail.state === MailState.RECEIVED) {
-				toRecipients.push(this.mail.sender)
-			} else if (this.mail.state === MailState.RECEIVED) {
-				if (this.mail.replyTos.filter(address => !downcast(address)._errors).length > 0) {
-					addAll(toRecipients, this.mail.replyTos)
-				} else {
-					toRecipients.push(this.mail.sender)
-				}
-
-				if (replyAll) {
-					let myMailAddresses = getEnabledMailAddresses(mailboxDetails)
-					addAll(
-						ccRecipients,
-						this.mail.toRecipients.filter(recipient => !contains(myMailAddresses, recipient.address.toLowerCase())),
-					)
-					addAll(
-						ccRecipients,
-						this.mail.ccRecipients.filter(recipient => !contains(myMailAddresses, recipient.address.toLowerCase())),
-					)
-				}
-			} else {
-				// this is a sent email, so use the to recipients as new recipients
-				addAll(toRecipients, this.mail.toRecipients)
-
-				if (replyAll) {
-					addAll(ccRecipients, this.mail.ccRecipients)
-					addAll(bccRecipients, this.mail.bccRecipients)
-				}
-			}
-
-			return Promise.all([this._getSenderOfResponseMail(), import("../signature/Signature"), import("../editor/MailEditor"), this._referencedCids])
-						  .then(([senderMailAddress, {prependEmailSignature}, {newMailEditorAsResponse}, referencedCids]) => {
-							  const attachmentsForReply = getReferencedAttachments(this._attachments, referencedCids)
-							  return newMailEditorAsResponse(
-								  {
-									  previousMail: this.mail,
-									  conversationType: ConversationType.REPLY,
-									  senderMailAddress,
-									  toRecipients,
-									  ccRecipients,
-									  bccRecipients,
-									  attachments: attachmentsForReply,
-									  subject,
-									  bodyText: prependEmailSignature(body, logins),
-									  replyTos: [],
-								  },
-								  this.isBlockingExternalImages(),
-								  this._loadedInlineImages,
-								  mailboxDetails,
-							  )
-						  })
-						  .then(editor => {
-							  editor.show()
-						  })
-						  .catch(ofClass(UserError, showUserError))
-		}
-	}
-
-	_getMailBody(): string {
-		if (this._mailBody) {
-			return getMailBodyText(this._mailBody)
-		} else {
-			return ""
-		}
-	}
-
-	_forward(): Promise<void> {
-		return checkApprovalStatus(logins, false).then(sendAllowed => {
-			if (sendAllowed) {
-				return this._createResponseMailArgsForForwarding([], [], true).then(args => {
-					return Promise.all([this._getMailboxDetails(), import("../editor/MailEditor")])
-								  .then(([mailboxDetails, {newMailEditorAsResponse}]) => {
-									  return newMailEditorAsResponse(args, this.isBlockingExternalImages(), this._loadedInlineImages, mailboxDetails)
-								  })
-								  .then(editor => {
-									  editor.show()
-								  })
-								  .catch(ofClass(UserError, showUserError))
-				})
-			}
-		})
-	}
-
-	isBlockingExternalImages(): boolean {
-		return this._contentBlockingStatus === ContentBlockingStatus.Block || this._contentBlockingStatus === ContentBlockingStatus.AlwaysBlock
-	}
-
-	_createResponseMailArgsForForwarding(recipients: MailAddress[], replyTos: EncryptedMailAddress[], addSignature: boolean): Promise<ResponseMailParameters> {
-		let infoLine = lang.get("date_label") + ": " + formatDateTime(this.mail.sentDate) + "<br>"
-		infoLine += lang.get("from_label") + ": " + this.mail.sender.address + "<br>"
-
-		if (this.mail.toRecipients.length > 0
-		) {
-			infoLine += lang.get("to_label") + ": " + this.mail.toRecipients.map(recipient => recipient.address).join(", ")
-			infoLine += "<br>"
-		}
-
-		if (this.mail.ccRecipients.length > 0) {
-			infoLine += lang.get("cc_label") + ": " + this.mail.ccRecipients.map(recipient => recipient.address).join(", ")
-			infoLine += "<br>"
-		}
-
-		const mailSubject = this.mail.subject || ""
-		infoLine += lang.get("subject_label") + ": " + urlEncodeHtmlTags(mailSubject)
-		let body = infoLine + '<br><br><blockquote class="tutanota_quote">' + this._getMailBody() + "</blockquote>"
-		return Promise.all([this._getSenderOfResponseMail(), import("../signature/Signature")]).then(([senderMailAddress, {prependEmailSignature}]) => {
-			return {
-				previousMail: this.mail,
-				conversationType: ConversationType.FORWARD,
-				senderMailAddress,
-				toRecipients: recipients,
-				ccRecipients: [],
-				bccRecipients: [],
-				attachments: this._attachments.slice(),
-				subject: "FWD: " + mailSubject,
-				bodyText: addSignature ? prependEmailSignature(body, logins) : body,
-				replyTos,
-			}
-		})
-	}
-
-	_getMailboxDetails(): Promise<MailboxDetail> {
-		return this._mailModel.getMailboxDetailsForMail(this.mail)
-	}
-
-	async _getAssignableMailRecipients(): Promise<GroupInfo[]> {
-		if (this.mail.restrictions != null && this.mail.restrictions.participantGroupInfos.length > 0) {
-			const participantGroupInfos = this.mail.restrictions.participantGroupInfos
-			const customer = await this._entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-			const {loadGroupInfos} = await import("../../settings/LoadingUtils")
-			const groupInfos = await loadGroupInfos(
-				participantGroupInfos.filter(groupInfoId => {
-					return neverNull(customer.contactFormUserGroups).list !== groupInfoId[0]
-				}),
-			)
-			return groupInfos.filter(groupInfo => groupInfo.deleted == null)
-		} else {
-			return []
-		}
-	}
-
-	_assignMail(userGroupInfo: GroupInfo): Promise<boolean> {
-		const recipient = createMailAddress()
-		recipient.address = neverNull(userGroupInfo.mailAddress)
-		recipient.name = userGroupInfo.name
-		let newReplyTos
-
-		if (this.mail.replyTos.length > 0) {
-			newReplyTos = this.mail.replyTos
-		} else {
-			newReplyTos = [createEncryptedMailAddress()]
-			newReplyTos[0].address = this.mail.sender.address
-			newReplyTos[0].name = this.mail.sender.name
-		}
-
-		return this._createResponseMailArgsForForwarding([recipient], newReplyTos, false)
-				   .then(args => {
-					   return Promise.all([this._getMailboxDetails(), import("../editor/SendMailModel")]).then(([mailboxDetails, {defaultSendMailModel}]) => {
-						   return defaultSendMailModel(mailboxDetails)
-							   .initAsResponse(args, this._loadedInlineImages)
-							   .then(model => model.send(MailMethod.NONE))
-					   })
-				   })
-				   .then(() => this._mailModel.getMailboxFolders(this.mail))
-				   .then(folders => {
-					   return moveMails(this._mailModel, [this.mail], getArchiveFolder(folders))
-				   })
-	}
-
-	_getSenderOfResponseMail(): Promise<string> {
-		return this._mailModel.getMailboxDetailsForMail(this.mail).then(mailboxDetails => {
-			let myMailAddresses = getEnabledMailAddresses(mailboxDetails)
-			let addressesInMail: MailAddress[] = []
-			addAll(addressesInMail, this.mail.toRecipients)
-			addAll(addressesInMail, this.mail.ccRecipients)
-			addAll(addressesInMail, this.mail.bccRecipients)
-			addressesInMail.push(this.mail.sender)
-			let foundAddress = addressesInMail.find(address => contains(myMailAddresses, address.address.toLowerCase()))
-
-			if (foundAddress) {
-				return foundAddress.address.toLowerCase()
-			} else {
-				return getDefaultSender(logins, mailboxDetails)
-			}
-		})
-	}
-
-	_handleAnchorClick(event: Event, shouldDispatchSyntheticClick: boolean): void {
-		let target = event.target as any
-
-		if (target && target.closest
-		) {
-			let anchorElement = target.closest("a")
-
-			if (anchorElement && startsWith(anchorElement.href, "mailto:")) {
-				event.preventDefault()
-
-				if (isNewMailActionAvailable()) {
-					// disable new mails for external users.
-					import("../editor/MailEditor").then(({newMailtoUrlMailEditor}) => {
-						newMailtoUrlMailEditor(anchorElement.href, !logins.getUserController().props.defaultUnconfidential)
-							.then(editor => editor.show())
-							.catch(ofClass(CancelledError, noOp))
+					buttons.push({
+						label: "createContact_action",
+						click: () => {
+							this.viewModel.contactModel.contactListId().then(contactListId => {
+								import("../../contacts/ContactEditor").then(({ContactEditor}) => {
+									const contact = createNewContact(logins.getUserController().user, mailAddress.address, mailAddress.name)
+									new ContactEditor(this.viewModel.entityClient, contact, contactListId ?? undefined).show()
+								})
+							})
+						},
+						type: ButtonType.Secondary,
 					})
 				}
-			} // Navigate to the settings menu if they are linked within an email.
-			else if (anchorElement && isSettingsLink(anchorElement, this.mail)) {
-				let newRoute = anchorElement.href.substr(anchorElement.href.indexOf("/settings/"))
-				m.route.set(newRoute)
-				event.preventDefault()
-			} else if (anchorElement && shouldDispatchSyntheticClick) {
-				let newClickEvent: MouseEvent & {
-					synthetic?: boolean
-				} = new MouseEvent("click")
-				newClickEvent.synthetic = true
-				anchorElement.dispatchEvent(newClickEvent)
 			}
-		}
-	}
 
-	scrollUp(): void {
-		this._scrollIfDomBody(dom => {
-			const current = dom.scrollTop
-			const toScroll = dom.clientHeight * SCROLL_FACTOR
-			return scroll(current, Math.max(0, current - toScroll))
-		})
-	}
-
-	scrollDown(): void {
-		this._scrollIfDomBody(dom => {
-			const current = dom.scrollTop
-			const toScroll = dom.clientHeight * SCROLL_FACTOR
-			return scroll(current, Math.min(dom.scrollHeight - dom.offsetHeight, dom.scrollTop + toScroll))
-		})
-	}
-
-	scrollToTop(): void {
-		this._scrollIfDomBody(dom => {
-			return scroll(dom.scrollTop, 0)
-		})
-	}
-
-	scrollToBottom(): void {
-		this._scrollIfDomBody(dom => {
-			const end = dom.scrollHeight - dom.offsetHeight
-			return scroll(dom.scrollTop, end)
-		})
-	}
-
-	_showHeaders() {
-		if (!this.mailHeaderDialog.visible) {
-			if (this.mail.headers) {
-				this._entityClient
-					.load(MailHeadersTypeRef, this.mail.headers)
-					.then(mailHeaders => {
-						this.mailHeaderInfo = getMailHeaders(mailHeaders)
-						this.mailHeaderDialog.show()
-					})
-					.catch(ofClass(NotFoundError, noOp))
-			} else {
-				this.mailHeaderInfo = lang.get("noMailHeadersInfo_msg")
-				this.mailHeaderDialog.show()
-			}
-		}
-	}
-
-	_scrollIfDomBody(cb: (dom: HTMLElement) => DomMutation) {
-		if (this._domForScrolling) {
-			const dom = this._domForScrolling
-
-			if (!this._scrollAnimation) {
-				this._scrollAnimation = animations
-					.add(dom, cb(dom), {
-						easing: ease.inOut,
-					})
-					.then(() => {
-						this._scrollAnimation = null
-					})
-			}
-		}
-	}
-
-	_downloadAndOpenAttachment(file: TutanotaFile, open: boolean): void {
-		locator.fileController
-			   .downloadAndOpen(file, open)
-			   .catch(
-				   ofClass(FileOpenError, e => {
-					   console.warn("FileOpenError", e)
-					   Dialog.message("canNotOpenFileOnDevice_msg")
-				   }),
-			   )
-			   .catch(e => {
-				   const msg = e || "unknown error"
-				   console.error("could not open file:", msg)
-				   return Dialog.message("errorDuringFileOpen_msg")
-			   })
-	}
-
-	_createAttachmentsButtons(files: ReadonlyArray<TutanotaFile>, inlineCids: ReadonlyArray<Id>): Button[] {
-		// Only show file buttons which do not correspond to inline images in HTML
-		files = files.filter(item => (item.cid == null) || inlineCids.includes(item.cid) === false)
-		let buttons
-
-		// On Android we give an option to open a file from a private folder or to put it into "Downloads" directory
-		if (isAndroidApp() || isDesktop()) {
-			buttons = files.map(file => {
-				const dropdownButton: Button = createDropDownButton(
-					() => file.name,
-					() => Icons.Attachment,
-					() => [
-						new Button("open_action", () => this._downloadAndOpenAttachment(file, true)).setType(ButtonType.Dropdown),
-						new Button("download_action", () => this._downloadAndOpenAttachment(file, false)).setType(ButtonType.Dropdown),
-					],
-					200,
-					() => {
-						// Bubble buttons use border so dropdown is misaligned by default
-						const rect = assertNotNull(dropdownButton._domButton).getBoundingClientRect()
-
-						return new DomRectReadOnlyPolyfilled(rect.left + size.bubble_border_width, rect.top, rect.width, rect.height)
+			if (defaultInboxRuleField && !logins.isEnabled(FeatureType.InternalCommunication)) {
+				const rule = getExistingRuleForType(logins.getUserController().props, mailAddress.address.trim().toLowerCase(), defaultInboxRuleField)
+				buttons.push({
+					label: rule ? "editInboxRule_action" : "addInboxRule_action",
+					click: async () => {
+						const mailboxDetails = await this.viewModel.mailModel.getMailboxDetailsForMail(this.viewModel.mail)
+						const {show, createInboxRuleTemplate} = await import("../../settings/AddInboxRuleDialog")
+						const newRule = rule ?? createInboxRuleTemplate(defaultInboxRuleField, mailAddress.address.trim().toLowerCase())
+						show(mailboxDetails, newRule)
 					},
-				)
-					.setType(ButtonType.Bubble)
-					.setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
-				return dropdownButton
-			})
-		} else {
-			buttons = files.map(file =>
-				new Button(
-					() => file.name,
-					() => this._downloadAndOpenAttachment(file, true),
-					() => Icons.Attachment,
-				)
-					.setType(ButtonType.Bubble)
-					.setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")"),
-			)
+					type: ButtonType.Secondary,
+				})
+			}
+
+			if (this.viewModel.canCreateSpamRule()) {
+				buttons.push({
+					label: "addSpamRule_action",
+					click: () => this.addSpamRule(defaultInboxRuleField, mailAddress.address),
+					type: ButtonType.Secondary,
+				})
+			}
 		}
 
 		return buttons
 	}
 
-	_downloadAll() {
-		this._referencedCids
-			// Skip inline images (they have cid and it is referenced)
-			.then(inlineFileIds => this._attachments.filter(a => a.cid == null || !inlineFileIds.includes(a.cid)))
-			.then(nonInlineFiles => showProgressDialog("pleaseWait_msg", locator.fileController.downloadAll(nonInlineFiles)))
+	private showHeaders() {
+		if (!this.mailHeaderDialog.visible) {
+			this.viewModel.getHeaders().then(headers => {
+				this.mailHeaderInfo = headers ?? lang.get("noMailHeadersInfo_msg")
+				this.mailHeaderDialog.show()
+			})
+		}
 	}
 
-	_handleDoubleTap(e: MaybeSyntheticEvent, singleClickAction: (e: MaybeSyntheticEvent) => void, doubleClickAction: (e: MaybeSyntheticEvent) => void) {
-		const lastClick = this._lastBodyTouchEndTime
+	private handleDoubleTap(e: MaybeSyntheticEvent, singleClickAction: (e: MaybeSyntheticEvent) => void, doubleClickAction: (e: MaybeSyntheticEvent) => void) {
+		const lastClick = this.lastBodyTouchEndTime
 		const now = Date.now()
 		const touch = e.changedTouches[0]
 
@@ -1852,9 +1150,9 @@ export class MailViewer implements Component {
 			!touch ||
 			e.synthetic ||
 			!e.cancelable ||
-			Date.now() - this._lastTouchStart.time > DOUBLE_TAP_TIME_MS ||
-			touch.clientX - this._lastTouchStart.x > 40 ||
-			touch.clientY - this._lastTouchStart.y > 40
+			Date.now() - this.lastTouchStart.time > DOUBLE_TAP_TIME_MS ||
+			touch.clientX - this.lastTouchStart.x > 40 ||
+			touch.clientY - this.lastTouchStart.y > 40
 		) {
 			return
 		}
@@ -1862,23 +1160,23 @@ export class MailViewer implements Component {
 		e.preventDefault()
 
 		if (now - lastClick < DOUBLE_TAP_TIME_MS) {
-			this._isScaling = !this._isScaling
-			this._lastBodyTouchEndTime = 0
+			this.isScaling = !this.isScaling
+			this.lastBodyTouchEndTime = 0
 			;(e as any).redraw = false
 			doubleClickAction(e)
 		} else {
 			setTimeout(() => {
-				if (this._lastBodyTouchEndTime === now) {
+				if (this.lastBodyTouchEndTime === now) {
 					singleClickAction(e)
 				}
 			}, DOUBLE_TAP_TIME_MS)
 		}
 
-		this._lastBodyTouchEndTime = now
+		this.lastBodyTouchEndTime = now
 	}
 
-	_renderPhishingWarning(): Children | null {
-		if (this._suspicious) {
+	private renderPhishingWarning(): Children | null {
+		if (this.viewModel.isMailSuspicious()) {
 			return m(InfoBanner, {
 				message: "phishingMessageBody_msg",
 				icon: Icons.Warning,
@@ -1887,15 +1185,15 @@ export class MailViewer implements Component {
 				buttons: [
 					{
 						label: "markAsNotPhishing_action",
-						click: () => this._markAsNotPhishing(),
+						click: () => this.viewModel.markAsNotPhishing().then(() => m.redraw()),
 					},
 				],
 			})
 		}
 	}
 
-	_renderHardAuthenticationFailWarning(mail: Mail): Children | null {
-		if (!this._warningDismissed && mail.authStatus === MailAuthenticationStatus.HARD_FAIL) {
+	private renderHardAuthenticationFailWarning(mail: Mail): Children | null {
+		if (!this.viewModel.isWarningDismissed() && mail.authStatus === MailAuthenticationStatus.HARD_FAIL) {
 			return m(InfoBanner, {
 				message: "mailAuthFailed_msg",
 				icon: Icons.Warning,
@@ -1904,15 +1202,15 @@ export class MailViewer implements Component {
 				buttons: [
 					{
 						label: "close_alt",
-						click: () => (this._warningDismissed = true),
+						click: () => (this.viewModel.setWarningDismissed(true)),
 					},
 				],
 			})
 		}
 	}
 
-	_renderSoftAuthenticationFailWarning(mail: Mail): Children | null {
-		if (!this._warningDismissed && mail.authStatus === MailAuthenticationStatus.SOFT_FAIL) {
+	private renderSoftAuthenticationFailWarning(mail: Mail): Children | null {
+		if (!this.viewModel.isWarningDismissed() && mail.authStatus === MailAuthenticationStatus.SOFT_FAIL) {
 			return m(InfoBanner, {
 				message: () =>
 					mail.differentEnvelopeSender
@@ -1925,7 +1223,7 @@ export class MailViewer implements Component {
 				buttons: [
 					{
 						label: "close_alt",
-						click: () => (this._warningDismissed = true),
+						click: () => (this.viewModel.setWarningDismissed(true)),
 					},
 				],
 			})
@@ -1934,27 +1232,27 @@ export class MailViewer implements Component {
 		}
 	}
 
-	_renderExternalContentBanner(): Children | null {
+	private renderExternalContentBanner(): Children | null {
 		// only show banner when there are blocked images and the user hasn't made a decision about how to handle them
-		if (this._contentBlockingStatus !== ContentBlockingStatus.Block) {
+		if (this.viewModel.getContentBlockingStatus() !== ContentBlockingStatus.Block) {
 			return null
 		}
 
 		const showButton: ButtonAttrs = {
 			label: "showBlockedContent_action",
-			click: () => this._setContentBlockingStatus(ContentBlockingStatus.Show),
+			click: () => this.viewModel.setContentBlockingStatus(ContentBlockingStatus.Show),
 		}
 		const alwaysOrNeverAllowButtons: ReadonlyArray<ButtonAttrs> = locator.search.indexingSupported
 			? [
-				this.mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
+				this.viewModel.isMailAuthenticated()
 					? {
 						label: "allowExternalContentSender_action" as const,
-						click: () => this._setContentBlockingStatus(ContentBlockingStatus.AlwaysShow),
+						click: () => this.viewModel.setContentBlockingStatus(ContentBlockingStatus.AlwaysShow),
 					}
 					: null,
 				{
 					label: "blockExternalContentSender_action" as const,
-					click: () => this._setContentBlockingStatus(ContentBlockingStatus.AlwaysBlock),
+					click: () => this.viewModel.setContentBlockingStatus(ContentBlockingStatus.AlwaysBlock),
 				},
 			].filter(isNotNull)
 			: []
@@ -1971,75 +1269,69 @@ export class MailViewer implements Component {
 		})
 	}
 
-	async _setContentBlockingStatus(status: ContentBlockingStatus): Promise<void> {
-		// We can only be set to NoExternalContent when initially loading the mailbody (_loadMailBody)
-		// so we ignore it here, and don't do anything if we were already set to NoExternalContent
-		if (status === ContentBlockingStatus.NoExternalContent
-			|| this._contentBlockingStatus === ContentBlockingStatus.NoExternalContent
-			|| this._contentBlockingStatus === status
-		) {
-			return
+	addSpamRule(defaultInboxRuleField: InboxRuleType | null, address: string) {
+		const folder = this.viewModel.mailModel.getMailFolder(getListId(this.viewModel.mail))
+
+		const spamRuleType = folder && folder.folderType === MailFolderType.SPAM ? SpamRuleType.WHITELIST : SpamRuleType.BLACKLIST
+
+		let spamRuleField: SpamRuleFieldType
+		switch (defaultInboxRuleField) {
+			case InboxRuleType.RECIPIENT_TO_EQUALS:
+				spamRuleField = SpamRuleFieldType.TO
+				break
+
+			case InboxRuleType.RECIPIENT_CC_EQUALS:
+				spamRuleField = SpamRuleFieldType.CC
+				break
+
+			case InboxRuleType.RECIPIENT_BCC_EQUALS:
+				spamRuleField = SpamRuleFieldType.BCC
+				break
+
+			default:
+				spamRuleField = SpamRuleFieldType.FROM
+				break
 		}
 
-		if (status === ContentBlockingStatus.AlwaysShow) {
-			this._configFacade.addExternalImageRule(this.mail.sender.address, ExternalImageRule.Allow).catch(ofClass(IndexingNotSupportedError, noOp))
-		} else if (status === ContentBlockingStatus.AlwaysBlock) {
-			this._configFacade.addExternalImageRule(this.mail.sender.address, ExternalImageRule.Block).catch(ofClass(IndexingNotSupportedError, noOp))
-		} else {
-			// we are going from allow or block to something else it means we're resetting to the default rule for the given sender
-			this._configFacade.addExternalImageRule(this.mail.sender.address, ExternalImageRule.None).catch(ofClass(IndexingNotSupportedError, noOp))
-		}
-
-		this._contentBlockingStatus = status
-// We don't check mail authentication status here because the user has manually called this
-		await this.setSanitizedMailBodyFromMail(this.mail, this.isBlockingExternalImages())
-		this._domBodyDeferred = defer()
-		this._domBody = null
-
-		this._replaceInlineImages()
-	}
-
-	async setSanitizedMailBodyFromMail(mail: Mail, blockExternalContent: boolean):
-		Promise<{
-			inlineImageCids: Array<string>,
-			links: Array<Link>,
-			externalContent: Array<string>
-		}> {
-		const {htmlSanitizer} = await import("../../misc/HtmlSanitizer")
-		const sanitizeResult = htmlSanitizer.sanitizeFragment(this._getMailBody(), {
-			blockExternalContent,
-			allowRelativeLinks: isTutanotaTeamMail(mail),
+		import("../../settings/AddSpamRuleDialog").then(({showAddSpamRuleDialog}) => {
+			showAddSpamRuleDialog(
+				createEmailSenderListElement({
+					value: address.trim().toLowerCase(),
+					type: spamRuleType,
+					field: spamRuleField,
+				}),
+			)
 		})
-		const {html, inlineImageCids, links, externalContent} = sanitizeResult
-
-		/**
-		 * Check if we need to improve contrast for dark theme. We apply the contrast fix if any of the following is contained in
-		 * the html body of the mail
-		 *  * any tag with a style attribute that has the color property set (besides "inherit")
-		 *  * any tag with a style attribute that has the background-color set (besides "inherit")
-		 *  * any font tag with the color attribute set
-		 */
-		this._contrastFixNeeded =
-			Array.from(html.querySelectorAll("*[style]"), e => (e as HTMLElement).style).some(
-				s => (s.color && s.color !== "inherit") || (s.backgroundColor && s.backgroundColor !== "inherit"),
-			) || html.querySelectorAll("font[color]").length > 0
-		this._sanitizedMailBody = await locator.worker.urlify(stringifyFragment(html))
-		m.redraw()
-		return {
-			inlineImageCids,
-			links,
-			externalContent,
-		}
 	}
-}
 
-/**
- * support and invoice mails can contain links to the settings page.
- * we don't want normal mails to be able to link places in the app, though.
- * */
-function isSettingsLink(anchor: HTMLAnchorElement, mail: Mail): boolean {
-	const href = anchor.getAttribute("href")
-	return href != null && href.startsWith("/settings/") && isTutanotaTeamMail(mail)
+	editDraft(): Promise<void> {
+		return checkApprovalStatus(logins, false).then(sendAllowed => {
+			if (sendAllowed) {
+				// check if to be opened draft has already been minimized, iff that is the case, re-open it
+				const minimizedEditor = locator.minimizedMailModel.getEditorForDraft(this.viewModel.mail)
+
+				if (minimizedEditor) {
+					locator.minimizedMailModel.reopenMinimizedEditor(minimizedEditor)
+				} else {
+					return Promise.all([this.viewModel.mailModel.getMailboxDetailsForMail(this.viewModel.mail), import("../editor/MailEditor")])
+								  .then(([mailboxDetails, {newMailEditorFromDraft}]) => {
+									  return newMailEditorFromDraft(
+										  this.viewModel.mail,
+										  this.viewModel.getAttachments(),
+										  this.viewModel.getMailBody(),
+										  this.viewModel.isBlockingExternalImages(),
+										  this.viewModel.getLoadedInlineImages(),
+										  mailboxDetails,
+									  )
+								  })
+								  .then(editorDialog => {
+									  editorDialog.show()
+								  })
+								  .catch(ofClass(UserError, showUserError))
+				}
+			}
+		})
+	}
 }
 
 type CreateMailViewerOptions = {
@@ -2048,15 +1340,18 @@ type CreateMailViewerOptions = {
 	delayBodyRenderingUntil?: Promise<void>
 }
 
-export function createMailViewer({mail, showFolder, delayBodyRenderingUntil}: CreateMailViewerOptions): MailViewer {
-	return new MailViewer(
+export function createMailViewerViewModell({mail, showFolder, delayBodyRenderingUntil}: CreateMailViewerOptions): MailViewerViewModel {
+	return new MailViewerViewModel(
 		mail,
 		showFolder,
+		delayBodyRenderingUntil ?? Promise.resolve(),
 		locator.entityClient,
 		locator.mailModel,
 		locator.contactModel,
 		locator.configFacade,
-		delayBodyRenderingUntil ?? Promise.resolve(),
 		isDesktop() ? locator.native : null,
+		locator.fileFacade,
+		locator.fileController,
+		logins
 	)
 }

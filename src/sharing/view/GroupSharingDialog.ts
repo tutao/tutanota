@@ -190,11 +190,12 @@ function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSharingT
 
 				const buttonAttrs = attachDropdown(
 					{
-						label: () => getDisplayText(recipientInfo.name, mailAddress, false),
-						type: ButtonType.TextBubble,
-						isSelected: () => false,
-					},
-					childAttrs,
+                        mainButtonAttrs: {
+                            label: () => getDisplayText(recipientInfo.name, mailAddress, false),
+                            type: ButtonType.TextBubble,
+                            isSelected: () => false,
+                        }, childAttrs: childAttrs
+                    },
 				)
 				return new Bubble(recipientInfo, neverNull(buttonAttrs), mailAddress)
 			},

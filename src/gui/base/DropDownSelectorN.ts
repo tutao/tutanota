@@ -63,25 +63,27 @@ export class DropDownSelectorN<T> implements Component<DropDownSelectorAttrs<T>>
 	}
 
 	createDropdown(a: DropDownSelectorAttrs<T>): clickHandler {
-		return createDropdown(() => {
-			return a.items
-					.filter(item => item.selectable !== false)
-					.map(item => {
-						return {
-							label: () => item.name,
-							click: () => {
-								if (a.selectionChangedHandler) {
-									a.selectionChangedHandler(item.value)
-								} else {
-									a.selectedValue(item.value)
-									m.redraw()
-								}
-							},
-							type: ButtonType.Dropdown,
-							isSelected: () => a.selectedValue() === item.value,
-						}
-					})
-		}, a.dropdownWidth)
+		return createDropdown({
+            lazyButtons: () => {
+                return a.items
+                    .filter(item => item.selectable !== false)
+                    .map(item => {
+                        return {
+                            label: () => item.name,
+                            click: () => {
+                                if (a.selectionChangedHandler) {
+                                    a.selectionChangedHandler(item.value)
+                                } else {
+                                    a.selectedValue(item.value)
+                                    m.redraw()
+                                }
+                            },
+                            type: ButtonType.Dropdown,
+                            isSelected: () => a.selectedValue() === item.value,
+                        }
+                    })
+            }, width: a.dropdownWidth
+        })
 	}
 
 	valueToText(a: DropDownSelectorAttrs<T>, value: T | null): string | null {

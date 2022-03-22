@@ -100,12 +100,12 @@ export class MailListView implements Component {
 							this.list.selectNone()
 							return locator.mailModel
 										  .getMailboxFolders(listElement)
-										  .then(folders => moveMails(locator.mailModel, [listElement], getInboxFolder(folders)))
+										  .then(folders => moveMails({mailModel : locator.mailModel, mails : [listElement], targetMailFolder : getInboxFolder(folders)}))
 						} else {
 							this.list.selectNone()
 							return locator.mailModel
 										  .getMailboxFolders(listElement)
-										  .then(folders => moveMails(locator.mailModel, [listElement], getArchiveFolder(folders)))
+										  .then(folders => moveMails({mailModel : locator.mailModel, mails : [listElement], targetMailFolder : getArchiveFolder(folders)}))
 						}
 					},
 					enabled: true,

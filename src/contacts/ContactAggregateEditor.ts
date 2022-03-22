@@ -5,7 +5,6 @@ import {lang} from "../misc/LanguageViewModel"
 import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {Icons} from "../gui/base/icons/Icons"
-import type {AnimationPromise} from "../gui/animation/Animations"
 import {animations, height, opacity} from "../gui/animation/Animations"
 import {attachDropdown} from "../gui/base/DropdownN"
 import Stream from "mithril/stream";
@@ -66,20 +65,20 @@ export class ContactAggregateEditor implements Component<AggregateEditorAttrs<an
 	}
 
 	_moreButtonFor(attrs: AggregateEditorAttrs<any>): Children {
-		const moreButtonAttrs = attachDropdown(
-			{
+		const moreButtonAttrs = attachDropdown({
+			mainButtonAttrs: {
 				label: "more_label",
 				icon: () => Icons.More,
 			},
-			() =>
+			childAttrs: () =>
 				attrs.typeLabels.map(([key, value]) => {
 					return {
 						label: value,
 						click: () => attrs.onTypeSelected(key),
 						type: ButtonType.Dropdown,
 					}
-				}),
-		)
+				})
+		})
 		return m(ButtonN, moreButtonAttrs)
 	}
 

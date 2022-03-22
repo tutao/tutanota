@@ -212,25 +212,24 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		}
 		const changeDefaultDownloadPathAttrs: ButtonAttrs = attachDropdown(
 			{
-				label: "edit_action",
-				type: ButtonType.Action,
-				click: noOp,
-				icon: () => Icons.Edit,
-			},
-			() => [
-				{
-					label: "alwaysAsk_action",
-					click: () => this.setDefaultDownloadPath(DownloadLocationStrategy.ALWAYS_ASK),
-					type: ButtonType.Dropdown,
-				},
-				{
-					label: "chooseDirectory_action",
-					click: () => this.setDefaultDownloadPath(DownloadLocationStrategy.CHOOSE_DIRECTORY),
-					type: ButtonType.Dropdown,
-				},
-			],
-			() => !this._isPathDialogOpen,
-			200,
+                mainButtonAttrs: {
+                    label: "edit_action",
+                    type: ButtonType.Action,
+                    click: noOp,
+                    icon: () => Icons.Edit,
+                }, childAttrs: () => [
+                    {
+                        label: "alwaysAsk_action",
+                        click: () => this.setDefaultDownloadPath(DownloadLocationStrategy.ALWAYS_ASK),
+                        type: ButtonType.Dropdown,
+                    },
+                    {
+                        label: "chooseDirectory_action",
+                        click: () => this.setDefaultDownloadPath(DownloadLocationStrategy.CHOOSE_DIRECTORY),
+                        type: ButtonType.Dropdown,
+                    },
+                ], showDropdown: () => !this._isPathDialogOpen, width: 200
+            },
 		)
 		const defaultDownloadPathAttrs: TextFieldAttrs = {
 			label: "defaultDownloadPath_label",

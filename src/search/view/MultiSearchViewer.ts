@@ -185,10 +185,11 @@ export class MultiSearchViewer implements Component {
 				: null,
 			attachDropdown(
 				{
-					label: "move_action",
-					icon: () => Icons.Folder,
-				},
-				() => this.createMoveMailButtons(),
+                    mainButtonAttrs: {
+                        label: "move_action",
+                        icon: () => Icons.Folder,
+                    }, childAttrs: () => this.createMoveMailButtons()
+                },
 			),
 			{
 				label: "delete_action",
@@ -197,31 +198,32 @@ export class MultiSearchViewer implements Component {
 			},
 			attachDropdown(
 				{
-					label: "more_label",
-					icon: () => Icons.More,
-				},
-				() => [
-					{
-						label: "markUnread_action",
-						click: () => markMails(locator.entityClient, this.getSelectedMails(), true).then(() => this._searchListView.selectNone()),
-						icon: () => Icons.NoEye,
-						type: ButtonType.Dropdown,
-					},
-					{
-						label: "markRead_action",
-						click: () => markMails(locator.entityClient, this.getSelectedMails(), false).then(() => this._searchListView.selectNone()),
-						icon: () => Icons.Eye,
-						type: ButtonType.Dropdown,
-					},
-					!isApp() && !logins.isEnabled(FeatureType.DisableMailExport)
-						? {
-							label: "export_action",
-							click: () => showProgressDialog("pleaseWait_msg", exportMails(this.getSelectedMails(), locator.entityClient, locator.fileFacade)),
-							icon: () => Icons.Export,
-							type: ButtonType.Dropdown,
-						}
-						: null,
-				],
+                    mainButtonAttrs: {
+                        label: "more_label",
+                        icon: () => Icons.More,
+                    }, childAttrs: () => [
+                        {
+                            label: "markUnread_action",
+                            click: () => markMails(locator.entityClient, this.getSelectedMails(), true).then(() => this._searchListView.selectNone()),
+                            icon: () => Icons.NoEye,
+                            type: ButtonType.Dropdown,
+                        },
+                        {
+                            label: "markRead_action",
+                            click: () => markMails(locator.entityClient, this.getSelectedMails(), false).then(() => this._searchListView.selectNone()),
+                            icon: () => Icons.Eye,
+                            type: ButtonType.Dropdown,
+                        },
+                        !isApp() && !logins.isEnabled(FeatureType.DisableMailExport)
+                            ? {
+                                label: "export_action",
+                                click: () => showProgressDialog("pleaseWait_msg", exportMails(this.getSelectedMails(), locator.entityClient, locator.fileFacade)),
+                                icon: () => Icons.Export,
+                                type: ButtonType.Dropdown,
+                            }
+                            : null,
+                    ]
+                },
 			),
 		]
 		return buttons.filter(isNotNull)
@@ -261,7 +263,7 @@ export class MultiSearchViewer implements Component {
 					this._searchListView.selectNone()
 
 					// move all groups one by one because the mail list cannot be modified in parallel
-					return moveMails(locator.mailModel, selectedMails, f)
+					return moveMails({mailModel : locator.mailModel, mails : selectedMails, targetMailFolder : f})
 				},
 				icon: getFolderIcon(f),
 				type: ButtonType.Dropdown,

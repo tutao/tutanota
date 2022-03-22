@@ -65,14 +65,15 @@ class KnowledgeBaseEditor implements Component<KnowledgeBaseEditorModel> {
 		const model = vnode.attrs
 		this.linkedTemplateButtonAttrs = attachDropdown(
 			{
-				label: () => lang.get("linkTemplate_label") + " ▼",
-				title: "linkTemplate_label",
-				type: ButtonType.Toggle,
-				click: noOp,
-				noBubble: true,
-				colors: ButtonColor.Elevated,
-			},
-			() => this._createDropdownChildAttrs(model),
+                mainButtonAttrs: {
+                    label: () => lang.get("linkTemplate_label") + " ▼",
+                    title: "linkTemplate_label",
+                    type: ButtonType.Toggle,
+                    click: noOp,
+                    noBubble: true,
+                    colors: ButtonColor.Elevated,
+                }, childAttrs: () => this._createDropdownChildAttrs(model)
+            },
 		)
 		this.entryContentEditor = new HtmlEditor("content_label", {
 			enabled: true,

@@ -72,11 +72,18 @@ export function promptAndDeleteMails(mailModel: MailModel, mails: ReadonlyArray<
 	})
 }
 
+interface MoveMailsParams {
+	mailModel: MailModel;
+	mails: ReadonlyArray<Mail>;
+	targetMailFolder: MailFolder;
+	isReportable?: boolean;
+}
+
 /**
  * Moves the mails and reports them as spam if the user or settings allow it.
  * @return whether mails were actually moved
  */
-export function moveMails(mailModel: MailModel, mails: ReadonlyArray<Mail>, targetMailFolder: MailFolder, isReportable: boolean = true): Promise<boolean> {
+export function moveMails({mailModel, mails, targetMailFolder, isReportable=true}: MoveMailsParams): Promise<boolean> {
 	return mailModel
 		.moveMails(mails, targetMailFolder)
 		.then(() => {
@@ -105,7 +112,7 @@ export function moveMails(mailModel: MailModel, mails: ReadonlyArray<Mail>, targ
 export function archiveMails(mails: Mail[]): Promise<any> {
 	if (mails.length > 0) {
 		// assume all mails in the array belong to the same Mailbox
-		return locator.mailModel.getMailboxFolders(mails[0]).then(folders => moveMails(locator.mailModel, mails, getArchiveFolder(folders)))
+		return locator.mailModel.getMailboxFolders(mails[0]).then(folders => moveMails({mailModel : locator.mailModel, mails : mails, targetMailFolder : getArchiveFolder(folders)}))
 	} else {
 		return Promise.resolve()
 	}
@@ -114,7 +121,7 @@ export function archiveMails(mails: Mail[]): Promise<any> {
 export function moveToInbox(mails: Mail[]): Promise<any> {
 	if (mails.length > 0) {
 		// assume all mails in the array belong to the same Mailbox
-		return locator.mailModel.getMailboxFolders(mails[0]).then(folders => moveMails(locator.mailModel, mails, getInboxFolder(folders)))
+		return locator.mailModel.getMailboxFolders(mails[0]).then(folders => moveMails({mailModel : locator.mailModel, mails : mails, targetMailFolder : getInboxFolder(folders)}))
 	} else {
 		return Promise.resolve()
 	}
