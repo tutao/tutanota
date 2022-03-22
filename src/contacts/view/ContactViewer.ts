@@ -130,7 +130,7 @@ export class ContactViewer implements ClassComponent {
 
 	_renderComment(): Children {
 		return this.contact.comment && this.contact.comment.trim().length > 0
-			? [m("hr.hr.mt-l"), m("p.mt-l.text-prewrap.text-break", this.contact.comment)]
+			? [m("hr.hr.mt-l"), m("p.mt-l.text-prewrap.text-break.selectable", this.contact.comment)]
 			: null
 	}
 
