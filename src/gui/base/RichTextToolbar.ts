@@ -2,17 +2,16 @@ import m, {Children, VnodeDOM} from "mithril"
 import {Icons} from "./icons/Icons"
 import type {Editor} from "../editor/Editor"
 import stream from "mithril/stream"
-import {numberRange} from "@tutao/tutanota-utils"
+import Stream from "mithril/stream"
+import {noOp, numberRange} from "@tutao/tutanota-utils"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonColor, ButtonN, ButtonType} from "./ButtonN"
 import {size} from "../size"
-import {noOp} from "@tutao/tutanota-utils"
 import {attachDropdown, DropdownButtonAttrs} from "./DropdownN"
 import {lang} from "../../misc/LanguageViewModel"
 import {animations, height, opacity} from "../animation/Animations"
 import {client} from "../../misc/ClientDetector"
 import {BrowserType} from "../../misc/ClientConstants"
-import Stream from "mithril/stream";
 
 export type Options = {
 	imageButtonClickHandler?: ((ev: Event, editor: Editor) => unknown) | null
@@ -172,12 +171,12 @@ export class RichTextToolbar {
 			colors: ButtonColor.Elevated,
 
 		}
-		const alignDropdownAttrs = attachDropdown(
-			buttonAttrs,
-			() => alignToggleAttrs,
-			() => true,
-			2 * size.hpad_large + size.button_height,
-		)
+		const alignDropdownAttrs = attachDropdown({
+			mainButtonAttrs: buttonAttrs,
+			childAttrs: () => alignToggleAttrs,
+			showDropdown: () => true,
+			width: 2 * size.hpad_large + size.button_height
+		})
 		const removeFormattingButtonAttrs: ButtonAttrs = {
 			label: "emptyString_msg",
 			title: "removeFormatting_action",
@@ -187,8 +186,8 @@ export class RichTextToolbar {
 			noBubble: true,
 			colors: ButtonColor.Elevated,
 		}
-		const sizeButtonAttrs = attachDropdown(
-			{
+		const sizeButtonAttrs = attachDropdown({
+			mainButtonAttrs: {
 				label: () => "▼",
 				title: "formatTextFontSize_msg",
 				icon: () => Icons.FontSize,
@@ -197,7 +196,7 @@ export class RichTextToolbar {
 				noBubble: true,
 				colors: ButtonColor.Elevated,
 			},
-			() =>
+			childAttrs: () =>
 				numberRange(8, 144).map(n => {
 					return {
 						label: () => n.toString(),
@@ -211,8 +210,8 @@ export class RichTextToolbar {
 							m.redraw()
 						},
 					}
-				}),
-		)
+				})
+		})
 		const allButtonAttrs: Array<ButtonAttrs> = styleToggleAttrs
 
 		if (customButtonAttrs) {

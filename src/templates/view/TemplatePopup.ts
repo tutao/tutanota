@@ -308,20 +308,21 @@ export class TemplatePopup implements ModalComponent {
 		} else if (writeableGroups.length > 1) {
 			return attachDropdown(
 				{
-					label: "createTemplate_action",
-					click: noOp,
-					type: ButtonType.ActionLarge,
-					icon: () => Icons.Add,
-					colors: ButtonColor.DrawerNav,
-				},
-				() =>
-					writeableGroups.map(groupInstances => {
-						return {
-							label: () => getSharedGroupName(groupInstances.groupInfo, true),
-							click: () => this.showTemplateEditor(null, groupInstances.groupRoot),
-							type: ButtonType.Dropdown,
-						}
-					}),
+                    mainButtonAttrs: {
+                        label: "createTemplate_action",
+                        click: noOp,
+                        type: ButtonType.ActionLarge,
+                        icon: () => Icons.Add,
+                        colors: ButtonColor.DrawerNav,
+                    }, childAttrs: () =>
+                        writeableGroups.map(groupInstances => {
+                            return {
+                                label: () => getSharedGroupName(groupInstances.groupInfo, true),
+                                click: () => this.showTemplateEditor(null, groupInstances.groupRoot),
+                                type: ButtonType.Dropdown,
+                            }
+                        })
+                },
 			)
 		} else {
 			return null
@@ -339,26 +340,27 @@ export class TemplatePopup implements ModalComponent {
 				ButtonN,
 				attachDropdown(
 					{
-						label: () => (selectedContent ? selectedContent.languageCode + " ▼" : ""),
-						title: "chooseLanguage_action",
-						// Use dropdown as button type because it matches with the colors of the other buttons
-						type: ButtonType.Dropdown,
-						click: noOp,
-						noBubble: true,
-					},
-					() =>
-						selectedTemplate.contents.map(content => {
-							const langCode: LanguageCode = downcast(content.languageCode)
-							return {
-								label: () => lang.get(languageByCode[langCode].textId),
-								type: ButtonType.Dropdown,
-								click: (e: MouseEvent) => {
-									e.stopPropagation()
-									this._templateModel.setSelectedContentLanguage(langCode)
-									this._inputDom?.focus()
-								},
-							}
-						}),
+                        mainButtonAttrs: {
+                            label: () => (selectedContent ? selectedContent.languageCode + " ▼" : ""),
+                            title: "chooseLanguage_action",
+                            // Use dropdown as button type because it matches with the colors of the other buttons
+                            type: ButtonType.Dropdown,
+                            click: noOp,
+                            noBubble: true,
+                        }, childAttrs: () =>
+                            selectedTemplate.contents.map(content => {
+                                const langCode: LanguageCode = downcast(content.languageCode)
+                                return {
+                                    label: () => lang.get(languageByCode[langCode].textId),
+                                    type: ButtonType.Dropdown,
+                                    click: (e: MouseEvent) => {
+                                        e.stopPropagation()
+                                        this._templateModel.setSelectedContentLanguage(langCode)
+                                        this._inputDom?.focus()
+                                    },
+                                }
+                            })
+                    },
 				),
 			),
 			canEdit

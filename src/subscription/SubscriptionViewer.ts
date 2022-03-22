@@ -799,45 +799,46 @@ function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => bo
 				cells: [formatDate(giftCard.orderDate), formatPrice(parseFloat(giftCard.value), true)],
 				actionButtonAttrs: attachDropdown(
 					{
-						label: "options_action",
-						click: () => showGiftCardToShare(giftCard),
-						icon: () => Icons.More,
-						type: ButtonType.Dropdown,
-					},
-					() => [
-						{
-							label: "view_label",
-							click: () => showGiftCardToShare(giftCard),
-							type: ButtonType.Dropdown,
-						},
-						{
-							label: "edit_action",
-							click: () => {
-								let message = stream(giftCard.message)
-								Dialog.showActionDialog({
-									title: lang.get("editMessage_label"),
-									child: () =>
-										m(
-											".flex-center",
-											m(GiftCardMessageEditorField, {
-												message,
-											}),
-										),
-									okAction: (dialog: Dialog) => {
-										giftCard.message = message()
-										locator.entityClient
-											   .update(giftCard)
-											   .then(() => dialog.close())
-											   .catch(() => Dialog.message("giftCardUpdateError_msg"))
-										showGiftCardToShare(giftCard)
-									},
-									okActionTextId: "save_action",
-									type: DialogType.EditSmall,
-								})
-							},
-							type: ButtonType.Dropdown,
-						},
-					],
+                        mainButtonAttrs: {
+                            label: "options_action",
+                            click: () => showGiftCardToShare(giftCard),
+                            icon: () => Icons.More,
+                            type: ButtonType.Dropdown,
+                        }, childAttrs: () => [
+                            {
+                                label: "view_label",
+                                click: () => showGiftCardToShare(giftCard),
+                                type: ButtonType.Dropdown,
+                            },
+                            {
+                                label: "edit_action",
+                                click: () => {
+                                    let message = stream(giftCard.message)
+                                    Dialog.showActionDialog({
+                                        title: lang.get("editMessage_label"),
+                                        child: () =>
+                                            m(
+                                                ".flex-center",
+                                                m(GiftCardMessageEditorField, {
+                                                    message,
+                                                }),
+                                            ),
+                                        okAction: (dialog: Dialog) => {
+                                            giftCard.message = message()
+                                            locator.entityClient
+                                                .update(giftCard)
+                                                .then(() => dialog.close())
+                                                .catch(() => Dialog.message("giftCardUpdateError_msg"))
+                                            showGiftCardToShare(giftCard)
+                                        },
+                                        okActionTextId: "save_action",
+                                        type: DialogType.EditSmall,
+                                    })
+                                },
+                                type: ButtonType.Dropdown,
+                            },
+                        ]
+                    },
 				),
 			}
 		})

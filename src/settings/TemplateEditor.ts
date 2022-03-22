@@ -113,21 +113,23 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 			label: "languages_label",
 			type: ButtonType.Action,
 			icon: () => Icons.Language,
-			click: createDropdown(() => {
-				// save current content with language & create a dropdwon with all added languages & an option to add a new language
-				this.model.updateContent()
-				return this.model.template.contents.map(content => {
-					return {
-						label: () => getLanguageName(content),
-						click: () => {
-							this.model.selectedContent(content)
+			click: createDropdown({
+                lazyButtons: () => {
+                    // save current content with language & create a dropdwon with all added languages & an option to add a new language
+                    this.model.updateContent()
+                    return this.model.template.contents.map(content => {
+                        return {
+                            label: () => getLanguageName(content),
+                            click: () => {
+                                this.model.selectedContent(content)
 
-							this._templateContentEditor.setValue(content.text)
-						},
-						type: ButtonType.Dropdown,
-					}
-				})
-			}),
+                                this._templateContentEditor.setValue(content.text)
+                            },
+                            type: ButtonType.Dropdown,
+                        }
+                    })
+                }
+            }),
 		}
 		const removeButtonAttrs: ButtonAttrs = {
 			label: "removeLanguage_action",
@@ -155,12 +157,13 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 			type: ButtonType.Action,
 			icon: () => Icons.Add,
 			click: createDropdown(
-				() =>
-					this.model
-						.getAdditionalLanguages()
-						.sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
-						.map(lang => this.createAddNewLanguageButtonAttrs(lang)),
-				250,
+				{
+                    lazyButtons: () =>
+                        this.model
+                            .getAdditionalLanguages()
+                            .sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
+                            .map(lang => this.createAddNewLanguageButtonAttrs(lang)), width: 250
+                },
 			),
 		}
 	}

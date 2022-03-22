@@ -107,20 +107,21 @@ function createAddButtonAttrs(model: KnowledgeBaseModel): ButtonAttrs {
 	} else {
 		return attachDropdown(
 			{
-				label: "add_action",
-				click: noOp,
-				type: ButtonType.Primary,
-			},
-			() =>
-				templateGroupInstances.map(groupInstances => {
-					return {
-						label: () => getSharedGroupName(groupInstances.groupInfo, true),
-						click: () => {
-							showKnowledgeBaseEditor(null, groupInstances.groupRoot)
-						},
-						type: ButtonType.Dropdown,
-					}
-				}),
+                mainButtonAttrs: {
+                    label: "add_action",
+                    click: noOp,
+                    type: ButtonType.Primary,
+                }, childAttrs: () =>
+                    templateGroupInstances.map(groupInstances => {
+                        return {
+                            label: () => getSharedGroupName(groupInstances.groupInfo, true),
+                            click: () => {
+                                showKnowledgeBaseEditor(null, groupInstances.groupRoot)
+                            },
+                            type: ButtonType.Dropdown,
+                        }
+                    })
+            },
 		)
 	}
 }

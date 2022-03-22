@@ -71,25 +71,25 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		}
 		const recoveryCodeDropdownButtonAttrs: ButtonAttrs = attachDropdown(
 			{
-				label: "edit_action",
-				icon: () => Icons.Edit,
-				click: noOp,
-			},
-			() => [
-				logins.getUserController().user.auth?.recoverCode
-					? {
-						label: "show_action",
-						click: () => RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification("get"),
-						type: ButtonType.Dropdown,
-					}
-					: null,
-				{
-					label: () => (neverNull(logins.getUserController().user.auth).recoverCode ? lang.get("update_action") : lang.get("setUp_action")),
-					click: () => RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification("create"),
-					type: ButtonType.Dropdown,
-				},
-			],
-			() => true,
+                mainButtonAttrs: {
+                    label: "edit_action",
+                    icon: () => Icons.Edit,
+                    click: noOp,
+                }, childAttrs: () => [
+                    logins.getUserController().user.auth?.recoverCode
+                        ? {
+                            label: "show_action",
+                            click: () => RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification("get"),
+                            type: ButtonType.Dropdown,
+                        }
+                        : null,
+                    {
+                        label: () => (neverNull(logins.getUserController().user.auth).recoverCode ? lang.get("update_action") : lang.get("setUp_action")),
+                        click: () => RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification("create"),
+                        type: ButtonType.Dropdown,
+                    },
+                ], showDropdown: () => true
+            },
 		)
 		const recoveryCodeFieldAttrs: TextFieldAttrs = {
 			label: "recoveryCode_label",

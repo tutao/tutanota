@@ -160,34 +160,33 @@ export function getAliasLineAttrs(editAliasAttrs: EditAliasesFormAttrs): Array<T
 						 .map(alias => {
 							 const actionButtonAttrs: ButtonAttrs = attachDropdown(
 								 {
-									 label: "edit_action",
-									 icon: () => Icons.Edit,
-									 click: noOp,
-								 },
-								 () => [
-									 {
-										 label: "activate_action",
-										 click: () => {
-											 if (!alias.enabled) {
-												 switchAliasStatus(alias, editAliasAttrs)
-											 }
-										 },
-										 type: ButtonType.Dropdown,
-										 isSelected: () => alias.enabled,
-									 },
-									 {
-										 label: isTutanotaMailAddress(alias.mailAddress) ? "deactivate_action" : "delete_action",
-										 click: () => {
-											 if (alias.enabled) {
-												 switchAliasStatus(alias, editAliasAttrs)
-											 }
-										 },
-										 type: ButtonType.Dropdown,
-										 isSelected: () => !alias.enabled,
-									 },
-								 ],
-								 () => true,
-								 250,
+                                     mainButtonAttrs: {
+                                         label: "edit_action",
+                                         icon: () => Icons.Edit,
+                                         click: noOp,
+                                     }, childAttrs: () => [
+                                         {
+                                             label: "activate_action",
+                                             click: () => {
+                                                 if (!alias.enabled) {
+                                                     switchAliasStatus(alias, editAliasAttrs)
+                                                 }
+                                             },
+                                             type: ButtonType.Dropdown,
+                                             isSelected: () => alias.enabled,
+                                         },
+                                         {
+                                             label: isTutanotaMailAddress(alias.mailAddress) ? "deactivate_action" : "delete_action",
+                                             click: () => {
+                                                 if (alias.enabled) {
+                                                     switchAliasStatus(alias, editAliasAttrs)
+                                                 }
+                                             },
+                                             type: ButtonType.Dropdown,
+                                             isSelected: () => !alias.enabled,
+                                         },
+                                     ], showDropdown: () => true, width: 250
+                                 },
 							 )
 							 return {
 								 cells: [alias.mailAddress, alias.enabled ? lang.get("activated_label") : lang.get("deactivated_label")],

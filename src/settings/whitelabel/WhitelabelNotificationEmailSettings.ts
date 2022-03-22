@@ -68,22 +68,23 @@ export class WhitelabelNotificationEmailSettings implements Component<Whitelabel
 							cells: [langName, template.subject],
 							actionButtonAttrs: attachDropdown(
 								{
-									label: "edit_action",
-									type: ButtonType.Action,
-									icon: () => Icons.Edit,
-								},
-								() => [
-									{
-										label: "edit_action",
-										click: () => onEditTemplate(template),
-										type: ButtonType.Dropdown,
-									},
-									{
-										label: "remove_action",
-										click: () => onRemoveTemplate(template),
-										type: ButtonType.Dropdown,
-									},
-								],
+                                    mainButtonAttrs: {
+                                        label: "edit_action",
+                                        type: ButtonType.Action,
+                                        icon: () => Icons.Edit,
+                                    }, childAttrs: () => [
+                                        {
+                                            label: "edit_action",
+                                            click: () => onEditTemplate(template),
+                                            type: ButtonType.Dropdown,
+                                        },
+                                        {
+                                            label: "remove_action",
+                                            click: () => onRemoveTemplate(template),
+                                            type: ButtonType.Dropdown,
+                                        },
+                                    ]
+                                },
 							),
 						}
 					}),

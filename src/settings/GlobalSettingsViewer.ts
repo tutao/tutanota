@@ -316,30 +316,31 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 													  },
 													  actionButtonAttrs: attachDropdown(
 														  {
-															  label: "showMore_action",
-															  icon: () => Icons.More,
-														  },
-														  () => [
-															  {
-																  label: "showRejectReason_action",
-																  type: ButtonType.Dropdown,
-																  click: () => showRejectedSendersInfoDialog(rejectedSender),
-															  },
-															  {
-																  label: "addSpamRule_action",
-																  type: ButtonType.Dropdown,
-																  click: () => {
-																	  const domainPart = getDomainPart(rejectedSender.senderMailAddress)
-																	  showAddSpamRuleDialog(
-																		  createEmailSenderListElement({
-																			  value: domainPart ? domainPart : "",
-																			  type: SpamRuleType.WHITELIST,
-																			  field: SpamRuleFieldType.FROM,
-																		  }),
-																	  )
+															  mainButtonAttrs: {
+																  label: "showMore_action",
+																  icon: () => Icons.More,
+															  }, childAttrs: () => [
+																  {
+																	  label: "showRejectReason_action",
+																	  type: ButtonType.Dropdown,
+																	  click: () => showRejectedSendersInfoDialog(rejectedSender),
 																  },
-															  },
-														  ],
+																  {
+																	  label: "addSpamRule_action",
+																	  type: ButtonType.Dropdown,
+																	  click: () => {
+																		  const domainPart = getDomainPart(rejectedSender.senderMailAddress)
+																		  showAddSpamRuleDialog(
+																			  createEmailSenderListElement({
+																				  value: domainPart ? domainPart : "",
+																				  type: SpamRuleType.WHITELIST,
+																				  field: SpamRuleFieldType.FROM,
+																			  }),
+																		  )
+																	  },
+																  },
+															  ]
+														  },
 													  ),
 												  }
 											  })
@@ -503,35 +504,36 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 							label: "action_label" as const,
 							icon: () => Icons.More,
 							click: createDropdown(
-								() => {
+								{
+                                    lazyButtons: () => {
 
-									const buttons: DropdownChildAttrs[] = [
-										{
-											type: ButtonType.Dropdown,
-											label: "setCatchAllMailbox_action",
-											click: () => this._editCatchAllMailbox(domainInfo),
-										},
-										{
-											type: ButtonType.Dropdown,
-											label: "delete_action",
-											click: () => this._deleteCustomDomain(domainInfo),
-										}
-									]
+                                        const buttons: DropdownChildAttrs[] = [
+                                            {
+                                                type: ButtonType.Dropdown,
+                                                label: "setCatchAllMailbox_action",
+                                                click: () => this._editCatchAllMailbox(domainInfo),
+                                            },
+                                            {
+                                                type: ButtonType.Dropdown,
+                                                label: "delete_action",
+                                                click: () => this._deleteCustomDomain(domainInfo),
+                                            }
+                                        ]
 
-									if (domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine()) {
-										buttons.unshift({
-											type: ButtonType.Dropdown,
-											label: "resumeSetup_label",
-											click: () => {
-												showAddDomainWizard(domainDnsStatus.domain, customerInfo).then(() => {
-													domainDnsStatus.loadCurrentStatus().then(() => m.redraw())
-												})
-											},
-										})
-									}
-									return buttons
-								},
-								260,
+                                        if (domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine()) {
+                                            buttons.unshift({
+                                                type: ButtonType.Dropdown,
+                                                label: "resumeSetup_label",
+                                                click: () => {
+                                                    showAddDomainWizard(domainDnsStatus.domain, customerInfo).then(() => {
+                                                        domainDnsStatus.loadCurrentStatus().then(() => m.redraw())
+                                                    })
+                                                },
+                                            })
+                                        }
+                                        return buttons
+                                    }, width: 260
+                                },
 							),
 						},
 					}

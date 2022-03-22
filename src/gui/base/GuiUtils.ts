@@ -86,7 +86,7 @@ function moreButtonAttrsImpl(
 			}
 		})
 	})
-	return attachDropdown(button, buttons, () => true, dropdownWidth)
+	return attachDropdown({mainButtonAttrs: button, childAttrs: buttons, showDropdown: () => true, width: dropdownWidth})
 }
 
 type Confirmation = {

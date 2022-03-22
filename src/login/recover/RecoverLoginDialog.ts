@@ -46,7 +46,10 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 		},
 		type: ButtonType.Dropdown,
 	}
-	const resetActionClickHandler = createDropdown(() => [resetPasswordAction, resetSecondFactorAction], 300)
+	const resetActionClickHandler = createDropdown({
+        lazyButtons: () => [resetPasswordAction, resetSecondFactorAction],
+        width: 300
+    })
 	const resetActionButtonAttrs: ButtonAttrs = {
 		label: "action_label",
 		click: resetActionClickHandler,

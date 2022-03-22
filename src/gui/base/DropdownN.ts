@@ -226,7 +226,7 @@ export class DropdownN implements ModalComponent {
 			{
 				key: Keys.TAB,
 				shift: false,
-				exec: () => this._domDropdown ?focusNext(this._domDropdown) : false,
+				exec: () => this._domDropdown ? focusNext(this._domDropdown) : false,
 				help: "selectNext_action",
 			},
 			{
@@ -304,11 +304,19 @@ export class DropdownN implements ModalComponent {
 	}
 }
 
-export function createDropdown(lazyButtons: lazy<ReadonlyArray<DropdownChildAttrs | null>>, width: number = 200): clickHandler {
-	return createAsyncDropdown(() => Promise.resolve(lazyButtons()), width)
+export function createDropdown({lazyButtons, overrideOrigin, width = 200}: {
+	lazyButtons: lazy<ReadonlyArray<DropdownChildAttrs | null>>,
+	overrideOrigin?: (original: PosRect) => PosRect,
+	width?: number
+}): clickHandler {
+	return createAsyncDropdown({lazyButtons: async () => lazyButtons(), overrideOrigin, width})
 }
 
-export function createAsyncDropdown(lazyButtons: lazyAsync<ReadonlyArray<DropdownChildAttrs | null>>, width: number = 200): clickHandler {
+export function createAsyncDropdown({lazyButtons, overrideOrigin, width = 200}: {
+	lazyButtons: lazyAsync<ReadonlyArray<DropdownChildAttrs | null>>,
+	overrideOrigin?: (original: PosRect) => PosRect,
+	width?: number
+}): clickHandler {
 	// not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
 	return (e, dom) => {
 		const originalButtons = lazyButtons()
@@ -330,7 +338,16 @@ export function createAsyncDropdown(lazyButtons: lazyAsync<ReadonlyArray<Dropdow
 		])
 		buttons.then(buttons => {
 			let dropdown = new DropdownN(() => buttons, width)
-			dropdown.setOrigin(dom.getBoundingClientRect())
+
+			let buttonRect
+			if (overrideOrigin) {
+				buttonRect = overrideOrigin(dom.getBoundingClientRect())
+			} else {
+				// When new instance is created and the old DOM is detached we may have incorrect positioning
+				buttonRect = dom.getBoundingClientRect()
+			}
+
+			dropdown.setOrigin(buttonRect)
 			modal.displayUnique(dropdown, false)
 		})
 	}
@@ -343,6 +360,14 @@ export function showDropdownAtPosition(buttons: ReadonlyArray<DropdownChildAttrs
 }
 
 
+type AttachDropdownParams = {
+	mainButtonAttrs: DropdownButtonAttrs,
+	childAttrs: lazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>,
+	showDropdown?: lazy<boolean>,
+	width?: number,
+	overrideOrigin?: (original: PosRect) => PosRect
+}
+
 /**
  *
  * @param mainButtonAttrs the attributes of the main button. if showDropdown returns false, this buttons onclick will
@@ -354,16 +379,19 @@ export function showDropdownAtPosition(buttons: ReadonlyArray<DropdownChildAttrs
  * executes the original onclick if showDropdown returns false
  */
 export function attachDropdown(
-	mainButtonAttrs: DropdownButtonAttrs,
-	childAttrs: lazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>,
-	showDropdown: lazy<boolean> = () => true,
-	width?: number,
+	{
+		mainButtonAttrs,
+		childAttrs,
+		showDropdown = () => true,
+		width,
+		overrideOrigin
+	}: AttachDropdownParams
 ): ButtonAttrs {
 	const oldClick = mainButtonAttrs.click
 	return Object.assign({}, mainButtonAttrs, {
 		click: (e: MouseEvent, dom: HTMLElement) => {
 			if (showDropdown()) {
-				const dropDownFn = createAsyncDropdown(() => Promise.resolve(childAttrs()), width)
+				const dropDownFn = createAsyncDropdown({lazyButtons: () => Promise.resolve(childAttrs()), overrideOrigin, width})
 				dropDownFn(e, dom)
 				e.stopPropagation()
 			} else if (oldClick) {

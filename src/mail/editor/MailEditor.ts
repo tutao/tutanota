@@ -209,21 +209,23 @@ export class MailEditor implements Component<MailEditorAttrs> {
         }
         this.editor.initialized.promise.then(() => {
             this.inlineImageElements = replaceCidsWithInlineImages(this.editor.getDOM(), model.loadedInlineImages, (cid, event, dom) => {
-                const downloadClickHandler = createDropdown(() => [
-                    {
-                        label: "download_action",
-                        click: () => {
-                            const inlineAttachment = model.getAttachments().find(attachment => attachment.cid === cid)
+				const downloadClickHandler = createDropdown({
+					lazyButtons: () => [
+						{
+							label: "download_action",
+							click: () => {
+								const inlineAttachment = model.getAttachments().find(attachment => attachment.cid === cid)
 
-                            if (inlineAttachment && isTutanotaFile(inlineAttachment)) {
-                                locator.fileController
-                                       .downloadAndOpen(downcast(inlineAttachment), true)
-                                       .catch(ofClass(FileOpenError, () => Dialog.message("canNotOpenFileOnDevice_msg")))
-                            }
-                        },
-                        type: ButtonType.Dropdown,
-                    },
-                ])
+								if (inlineAttachment && isTutanotaFile(inlineAttachment)) {
+									locator.fileController
+										   .downloadAndOpen(downcast(inlineAttachment), true)
+										   .catch(ofClass(FileOpenError, () => Dialog.message("canNotOpenFileOnDevice_msg")))
+								}
+							},
+							type: ButtonType.Dropdown,
+						},
+					]
+				})
                 downloadClickHandler(downcast(event), dom)
             })
         })
@@ -387,31 +389,32 @@ export class MailEditor implements Component<MailEditorAttrs> {
         if (logins.getUserController().isGlobalAdmin()) {
             editCustomNotificationMailAttrs = attachDropdown(
                 {
-                    label: "edit_action",
-                    click: () => {
-                    },
-                    icon: () => Icons.Edit,
-                },
-                () => [
-                    {
-                        label: "add_action",
-                        click: () => {
-                            import("../../settings/EditNotificationEmailDialog").then(({showAddOrEditNotificationEmailDialog}) =>
-                                showAddOrEditNotificationEmailDialog(logins.getUserController()),
-                            )
-                        },
-                        type: ButtonType.Dropdown,
-                    },
-                    {
-                        label: "edit_action",
-                        click: () => {
-                            import("../../settings/EditNotificationEmailDialog").then(({showAddOrEditNotificationEmailDialog}) =>
-                                showAddOrEditNotificationEmailDialog(logins.getUserController(), selectedNotificationLanguage),
-                            )
-                        },
-                        type: ButtonType.Dropdown,
-                    },
-                ],
+					mainButtonAttrs: {
+						label: "edit_action",
+						click: () => {
+						},
+						icon: () => Icons.Edit,
+					}, childAttrs: () => [
+						{
+							label: "add_action",
+							click: () => {
+								import("../../settings/EditNotificationEmailDialog").then(({showAddOrEditNotificationEmailDialog}) =>
+									showAddOrEditNotificationEmailDialog(logins.getUserController()),
+								)
+							},
+							type: ButtonType.Dropdown,
+						},
+						{
+							label: "edit_action",
+							click: () => {
+								import("../../settings/EditNotificationEmailDialog").then(({showAddOrEditNotificationEmailDialog}) =>
+									showAddOrEditNotificationEmailDialog(logins.getUserController(), selectedNotificationLanguage),
+								)
+							},
+							type: ButtonType.Dropdown,
+						},
+					]
+				},
             )
         }
 
