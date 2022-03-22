@@ -51,12 +51,16 @@ function makeButtonAttrsForSnackBar(button: SnackBarButtonAttrs): ButtonAttrs {
  * @param snackBarButton will close the snackbar if it is clicked (onClose() will be called)
  * @param onClose called when the snackbar is closed (either by timeout or button click)
  */
-export function showSnackBar(message: TranslationKey | lazy<string>, snackBarButton: SnackBarButtonAttrs, onClose: (() => void) | null) {
-	const button = makeButtonAttrsForSnackBar(snackBarButton)
+export function showSnackBar(args: {
+	message: TranslationKey,
+	button: SnackBarButtonAttrs,
+	onClose?: () => void
+}) {
+	const button = makeButtonAttrsForSnackBar(args.button)
 	notificationQueue.push({
-		message,
-		button,
-		onClose,
+		message: args.message,
+		button: button,
+		onClose: args.onClose ?? null,
 	})
 
 	if (notificationQueue.length > 1) {

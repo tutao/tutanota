@@ -19,7 +19,7 @@ import Stream from "mithril/stream";
 
 export type dropHandler = (dragData: string) => void
 // not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
-export type clickHandler = (event: MouseEvent, dom: HTMLElement) => unknown
+export type clickHandler = (event: MouseEvent, dom: HTMLElement) => void
 
 // TODO Use DropDownSelectorN
 export function createCountryDropdown(
