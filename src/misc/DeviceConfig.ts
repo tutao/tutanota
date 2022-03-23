@@ -83,6 +83,8 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage {
 			_signupToken: signupToken
 		}
 
+		// We need to write the config if there was a migration and if we generate the signup token and if.
+		// We do not save the config if there was no config. The config is stored when some value changes.
 		if (doSave) {
 			this.writeToStorage()
 		}
