@@ -52,7 +52,7 @@ pipeline {
                                 label 'win-native'
                             }
                             steps {
-								bat 'npm ci'
+								bat 'npm install'
 								bat "node buildSrc\\nativeLibraryProvider.js keytar --force-rebuild --root-dir ${WORKSPACE}"
 								bat "node buildSrc\\nativeLibraryProvider.js better-sqlite3 --copy-target better_sqlite3 --force-rebuild --root-dir ${WORKSPACE}"
 								stash includes: 'native-cache/**/*', name: 'native_modules'
