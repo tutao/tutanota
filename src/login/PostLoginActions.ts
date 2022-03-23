@@ -80,7 +80,8 @@ export class PostLoginActions implements IPostLoginAction {
 			// We keep doing it here for now to have some flexibility if we want to show some other option here in the future.
 			await this.credentialsProvider.setCredentialsEncryptionMode(CredentialEncryptionMode.DEVICE_LOCK)
 		}
-		locator.usageTestController.addTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.PossiblyOutdated))
+
+		locator.usageTestController.setTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.PossiblyOutdated))
 
 		lang.updateFormats({ // partial
 			hourCycle: getHourCycle(logins.getUserController().userSettingsGroupRoot),
@@ -129,7 +130,7 @@ export class PostLoginActions implements IPostLoginAction {
 		}
 
 		// Get any tests, as soon as possible even if they are stale
-		locator.usageTestController.addTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly))
+		locator.usageTestController.setTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly))
 
 		this.enforcePasswordChange()
 	}
