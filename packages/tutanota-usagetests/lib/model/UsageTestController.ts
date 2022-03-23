@@ -22,6 +22,12 @@ export class UsageTestController {
 		}
 	}
 
+	setTests(tests: UsageTest[]) {
+		this.tests.clear()
+
+		this.addTests(tests)
+	}
+
 	/**
 	 * Searches a test first by its ID and then, if no match is found, by its name.
 	 * If no test matches by name either, then we assume that the test is finished and the server no longer sends assignments for it.

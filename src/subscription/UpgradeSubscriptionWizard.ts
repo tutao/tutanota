@@ -138,7 +138,7 @@ export function showUpgradeWizard(): void {
 }
 
 export async function loadSignupWizard(subscriptionParameters: SubscriptionParameters | null, registrationDataId: string | null): Promise<Dialog> {
-	locator.usageTestController.addTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly))
+	locator.usageTestController.setTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly))
 
 	const prices = await loadUpgradePrices(registrationDataId)
 	const planPrices: SubscriptionPlanPrices = {

@@ -7,8 +7,7 @@ import {
 	UsageTestAssignmentTypeRef
 } from "../api/entities/sys/TypeRefs.js"
 import {PingAdapter, Stage, UsageTest} from "@tutao/tutanota-usagetests"
-import {UsageTestState} from "../api/common/TutanotaConstants"
-import {filterInt, ofClass} from "@tutao/tutanota-utils"
+import {filterInt} from "@tutao/tutanota-utils"
 import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {SuspensionError} from "../api/common/error/SuspensionError"
 import {SuspensionBehavior} from "../api/worker/rest/RestClient"
