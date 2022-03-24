@@ -14,7 +14,7 @@ import {locator} from "../../api/main/MainLocator"
 import {logins} from "../../api/main/LoginController"
 import {ALLOWED_IMAGE_FORMATS, ConversationType, FeatureType, Keys, MailMethod} from "../../api/common/TutanotaConstants"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
-import {PreconditionFailedError} from "../../api/common/error/RestError"
+import {ConnectionError, PreconditionFailedError} from "../../api/common/error/RestError"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
@@ -57,7 +57,7 @@ import {createKnowledgeBaseDialogInjection, createOpenKnowledgeBaseButtonAttrs} 
 import {KnowledgeBaseModel} from "../../knowledgebase/model/KnowledgeBaseModel"
 import {styles} from "../../gui/styles"
 import {showMinimizedMailEditor} from "../view/MinimizedMailEditorOverlay"
-import {SaveStatus} from "../model/MinimizedMailEditorViewModel"
+import {SaveStatus, SaveStatusEnum} from "../model/MinimizedMailEditorViewModel"
 import {isDataFile, isTutanotaFile} from "../../api/common/utils/FileUtils"
 import {parseMailtoUrl} from "../../misc/parsing/MailAddressParser"
 import {CancelledError} from "../../api/common/error/CancelledError"
@@ -585,9 +585,13 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
                 dialog.close()
             }
         } catch (e) {
-            Dialog.message(() => e.message)
-        }
-    }
+			if (e instanceof ConnectionError) {
+				Dialog.message("connectionLostLong_msg")
+			} else {
+				Dialog.message(() => e.message)
+			}
+		}
+	}
 
     const dispose = () => {
         model.dispose()
@@ -595,12 +599,22 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
     }
 
     const minimize = () => {
-        const saveStatus = stream(SaveStatus.Saving)
+		const saveStatus = stream<SaveStatus>({status: SaveStatusEnum.Saving})
         save(false)
-            .then(() => saveStatus(SaveStatus.Saved))
+			.then(() => saveStatus({status: SaveStatusEnum.Saved}))
             .catch(e => {
-                saveStatus(SaveStatus.NotSaved)
-                handleSaveError(e)
+
+				const reason = e instanceof ConnectionError
+					? "connectionLost_msg"
+					: null
+
+				saveStatus({status: SaveStatusEnum.NotSaved, reason})
+
+				if (reason == null) {
+					// If we will not show an error reason in the minimized editor dialog
+					// Then will handle it ourselves
+					handleSaveError(e)
+				}
             })
         showMinimizedMailEditor(dialog, model, locator.minimizedMailModel, locator.eventController, dispose, saveStatus)
     }
@@ -617,7 +631,9 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
         right: [
             {
                 label: "send_action",
-                click: () => { send() },
+				click: () => {
+					send()
+				},
                 type: ButtonType.Primary,
             },
         ],
@@ -931,6 +947,8 @@ function handleSaveError(e: Error) {
         Dialog.message("couldNotAttachFile_msg")
     } else if (e instanceof PreconditionFailedError) {
         Dialog.message("operationStillActive_msg")
+	} else if (e instanceof ConnectionError) {
+		Dialog.message("connectionLostLong_msg")
     } else {
         throw e
     }

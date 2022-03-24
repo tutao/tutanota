@@ -2,9 +2,9 @@ import m, {Children, Component, Vnode} from "mithril"
 import {CounterBadge} from "../../gui/base/CounterBadge"
 import {getNavButtonIconBackground, theme} from "../../gui/theme"
 import {lang} from "../../misc/LanguageViewModel"
-import {ButtonAttrs, ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import type {MinimizedEditor, MinimizedMailEditorViewModel} from "../model/MinimizedMailEditorViewModel"
-import {SaveStatus} from "../model/MinimizedMailEditorViewModel"
+import {SaveStatus, SaveStatusEnum} from "../model/MinimizedMailEditorViewModel"
 import {px} from "../../gui/size"
 import {Icons} from "../../gui/base/icons/Icons"
 import {styles} from "../../gui/styles"
@@ -110,8 +110,8 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 		const model = minimizedEditor.sendMailModel
 		viewModel.removeMinimizedEditor(minimizedEditor)
 		// only delete once save has finished
-		minimizedEditor.saveStatus.map(async status => {
-			if (status !== SaveStatus.Saving) {
+		minimizedEditor.saveStatus.map(async ({status}) => {
+			if (status !== SaveStatusEnum.Saving) {
 				const draft = model.draft
 
 				if (draft) {
@@ -123,14 +123,16 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 }
 
 function getStatusMessage(saveStatus: SaveStatus): string {
-	switch (saveStatus) {
-		case SaveStatus.Saving:
+	switch (saveStatus.status) {
+		case SaveStatusEnum.Saving:
 			return lang.get("save_msg")
 
-		case SaveStatus.NotSaved:
-			return lang.get("draftNotSaved_msg")
+		case SaveStatusEnum.NotSaved:
+			return saveStatus.reason != null
+				? lang.get("draftNotSavedWithReason_msg", {"{reason}": lang.get(saveStatus.reason)})
+				: lang.get("draftNotSaved_msg")
 
-		case SaveStatus.Saved:
+		case SaveStatusEnum.Saved:
 			return lang.get("draftSaved_msg")
 
 		default:

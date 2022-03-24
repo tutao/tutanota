@@ -145,11 +145,18 @@ export type SearchResult = {
 	// array of pairs (token, lastReadSearchIndexRowOldestElementTimestamp) lastRowReadSearchIndexRow: null = no result read, 0 = no more search results????
 	matchWordOrder: boolean
 }
+
+export const enum IndexingErrorReason {
+	Unknown,
+	ConnectionLost
+}
+
 export type SearchIndexStateInfo = {
 	initializing: boolean
 	mailIndexEnabled: boolean
 	progress: number
 	currentMailIndexTimestamp: number
 	indexedMailCount: number
-	failedIndexingUpTo: number | null
+	failedIndexingUpTo: number | null,
+	error?: IndexingErrorReason | null
 }

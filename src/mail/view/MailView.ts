@@ -22,7 +22,7 @@ import {keyManager} from "../../misc/KeyManager"
 import {MultiMailViewer} from "./MultiMailViewer"
 import {logins} from "../../api/main/LoginController"
 import {Icons} from "../../gui/base/icons/Icons"
-import {LockedError, NotFoundError, PreconditionFailedError} from "../../api/common/error/RestError"
+import {ConnectionError, LockedError, NotFoundError, PreconditionFailedError} from "../../api/common/error/RestError"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {
 	canDoDragAndDropExport,
@@ -790,10 +790,11 @@ export class MailView implements CurrentView {
 					   .update(mails[0])
 					   .catch(ofClass(NotFoundError, e => console.log("could not set read flag as mail has been moved/deleted already", e)))
 					   .catch(ofClass(LockedError, noOp))
+						.catch(ofClass(ConnectionError, noOp))
 			}
 
 			if (elementClicked) {
-				this.mailList.list._loading.then(() => {
+				this.mailList.list.loading.then(() => {
 					this.viewSlider.focus(this.mailColumn).then(() => animationOverDeferred.resolve())
 				})
 			} else {

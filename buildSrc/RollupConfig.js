@@ -153,6 +153,7 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 		|| moduleId.includes(path.normalize("src/api/entities"))
 		|| moduleId.includes(path.normalize("src/desktop/config/ConfigKeys"))
 		|| moduleId.includes("cborg")
+		|| moduleId.includes(path.normalize("src/offline"))
 	) {
 		// things that are used in both worker and client
 		// entities could be separate in theory but in practice they are anyway

@@ -99,7 +99,7 @@ export function getColors(
 	}
 }
 
-export type ButtonAttrs = {
+export interface ButtonAttrs {
 	label: TranslationKey | lazy<string>
 	title?: TranslationKey | lazy<string>
 	click?: clickHandler

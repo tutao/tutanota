@@ -18,7 +18,7 @@ export const enum BannerType {
 	Warning = "warning",
 }
 
-export type InfoBannerAttrs = {
+export interface InfoBannerAttrs {
 	message: TranslationKey | lazy<string>
 	icon: AllIcons
 	helpLink?: InfoLink | null

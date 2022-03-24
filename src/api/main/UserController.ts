@@ -226,6 +226,7 @@ export class UserController implements IUserController {
 		} else {
 			if (!this.persistentSession) {
 				await locator.loginFacade.deleteSession(this.accessToken)
+							 .catch((e) => console.log("Error ignored on Logout:", e))
 			}
 			await locator.worker.reset()
 		}

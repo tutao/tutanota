@@ -3,7 +3,7 @@ import {px, size} from "../gui/size"
 import {lang} from "../misc/LanguageViewModel"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {Icons} from "../gui/base/icons/Icons"
-import {isEmpty} from "@tutao/tutanota-utils"
+import {isEmpty, isSameTypeRef, TypeRef} from "@tutao/tutanota-utils"
 import {logins} from "../api/main/LoginController"
 import {FULL_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
 import {formatDate, formatDateTimeFromYesterdayOn, formatDateWithMonth} from "../misc/Formatter"
@@ -24,9 +24,9 @@ import m, {Children, Component, Vnode} from "mithril"
 import {theme} from "../gui/theme"
 import {getContactListName} from "../contacts/model/ContactUtils"
 import {getMailFolderIcon} from "../mail/view/MailGuiUtils"
-import {isSameTypeRef, TypeRef} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 import Stream from "mithril/stream";
+import {IndexingErrorReason} from "../api/worker/search/SearchTypes"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState
@@ -70,7 +70,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 	_renderIndexingStatus(state: SearchBarState, attrs: SearchBarOverlayAttrs): Children {
 		if (attrs.isFocused || (!attrs.isQuickSearch && client.isDesktopDevice())) {
 			if (state.indexState.failedIndexingUpTo != null) {
-				return this._renderError(state.indexState.failedIndexingUpTo, attrs)
+				return this.renderError(state.indexState.failedIndexingUpTo, attrs)
 			} else if (state.indexState.progress !== 0) {
 				return this._renderProgress(state, attrs)
 			} else {
@@ -131,7 +131,11 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 		])
 	}
 
-	_renderError(failedIndexingUpTo: number, attrs: SearchBarOverlayAttrs): Children {
+	private renderError(failedIndexingUpTo: number, attrs: SearchBarOverlayAttrs): Children {
+		const errorMessageKey = attrs.state.indexState.error === IndexingErrorReason.ConnectionLost
+			? "indexingFailedConnection_error"
+			: "indexing_error"
+
 		return m(".flex.rel", [
 			m(
 				".plr-l.pt-s.pb-s.flex.items-center.flex-space-between.mr-negative-s",
@@ -142,7 +146,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 					},
 				},
 				[
-					m(".small", lang.get("indexing_error")),
+					m(".small", lang.get(errorMessageKey)),
 					m(
 						"div",
 						{

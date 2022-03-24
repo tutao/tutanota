@@ -4,11 +4,21 @@ import {lastThrow, remove} from "@tutao/tutanota-utils"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {isSameId} from "../../api/common/utils/EntityUtils"
 import Stream from "mithril/stream";
+import {TranslationKey} from "../../misc/LanguageViewModel"
 
-export const enum SaveStatus {
+export const enum SaveStatusEnum {
 	Saving = 0,
 	Saved = 1,
 	NotSaved = 2,
+}
+
+export type SaveStatus = {
+	status: SaveStatusEnum.Saving
+} | {
+	status: SaveStatusEnum.Saved
+} | {
+	status: SaveStatusEnum.NotSaved,
+	reason: TranslationKey | null
 }
 
 export type MinimizedEditor = {

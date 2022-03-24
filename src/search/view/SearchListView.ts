@@ -12,7 +12,7 @@ import type {SearchView} from "./SearchView"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {locator} from "../../api/main/MainLocator"
 import type {DeferredObject} from "@tutao/tutanota-utils"
-import {defer, downcast, flat, groupBy, isSameTypeRef, neverNull, noOp, ofClass, promiseMap, TypeRef} from "@tutao/tutanota-utils"
+import {defer, downcast, groupBy, isSameTypeRef, neverNull, noOp, ofClass, TypeRef} from "@tutao/tutanota-utils"
 import type {OperationType} from "../../api/common/TutanotaConstants"
 import {logins} from "../../api/main/LoginController"
 import {hasMoreResults} from "../model/SearchModel"
@@ -76,7 +76,7 @@ export class SearchListView implements Component {
 							l.clear()
 						}
 
-						l.displaySpinner(true, true)
+						l.displaySpinner()
 					}
 				} else if (isSameTypeRef(this._lastType, result.restriction.type)) {
 					// if this search type is the same as the last one, don't re-create the list, just clear it
@@ -148,16 +148,18 @@ export class SearchListView implements Component {
 				const deferredResult = defer<SearchResultListEntry[]>()
 				this._lastSearchResults = deferredResult
 
-				this._loadSearchResults(lastResult, startId !== GENERATED_MAX_ID, startId, count).then(results => {
-					const entries = results.map(instance => new SearchResultListEntry(instance))
+				this.loadSearchResults(lastResult, startId !== GENERATED_MAX_ID, startId, count)
+					.then(results => {
+						const entries = results.map(instance => new SearchResultListEntry(instance))
 
-					// We only want to resolve the most recent deferred object with it's respective search query results
-					// Any queries that started but didn't finish before this one began have already been resolved with `[]`
-					if (this._lastSearchResults === deferredResult) {
-						deferredResult.resolve(entries)
-						this._lastSearchResults = null
-					}
-				})
+						// We only want to resolve the most recent deferred object with it's respective search query results
+						// Any queries that started but didn't finish before this one began have already been resolved with `[]`
+						if (this._lastSearchResults === deferredResult) {
+							deferredResult.resolve(entries)
+							this._lastSearchResults = null
+						}
+					})
+					.catch(deferredResult.reject)
 
 				return deferredResult.promise.finally(m.redraw)
 			},
@@ -211,59 +213,65 @@ export class SearchListView implements Component {
 		})
 	}
 
-	_loadSearchResults<T extends Mail | Contact>(currentResult: SearchResult, getMoreFromSearch: boolean, startId: Id, count: number): Promise<T[]> {
-		let mail = isSameTypeRef(currentResult.restriction.type, MailTypeRef)
-		let contact = isSameTypeRef(currentResult.restriction.type, ContactTypeRef)
+	private async loadSearchResults<T extends Mail | Contact>(
+		currentResult: SearchResult,
+		getMoreFromSearch: boolean,
+		startId: Id,
+		count: number
+	): Promise<T[]> {
+		const mail = isSameTypeRef(currentResult.restriction.type, MailTypeRef)
+		const contact = isSameTypeRef(currentResult.restriction.type, ContactTypeRef)
 
 		if (!isSameTypeRef(this._lastType, currentResult.restriction.type)) {
-			//console.log("different type ref - don't load resuloadInitiallts")
-			return Promise.resolve([])
+			return []
 		}
 
-		let loadingResultsPromise = Promise.resolve(currentResult)
+		const result = getMoreFromSearch && hasMoreResults(currentResult)
+			? await locator.searchFacade.getMoreSearchResults(currentResult, count)
+			: currentResult
 
-		if (getMoreFromSearch && hasMoreResults(currentResult)) {
-			loadingResultsPromise = locator.searchFacade.getMoreSearchResults(currentResult, count)
-		}
+		// we need to override global reference for other functions
+		this._searchResult = result
 
-		return loadingResultsPromise
-			.then(moreResults => {
-				// we need to override global reference for other functions
-				this._searchResult = moreResults
+		let searchResult
+		if (mail) {
+			let startIndex = 0
 
-				if (mail) {
-					let startIndex = 0
+			if (startId !== GENERATED_MAX_ID) {
+				startIndex = result.results.findIndex(id => id[1] === startId)
 
-					if (startId !== GENERATED_MAX_ID) {
-						startIndex = moreResults.results.findIndex(id => id[1] === startId)
-
-						if (startIndex === -1) {
-							throw new Error("start index not found")
-						} else {
-							startIndex++ // the start index is already in the list of loaded elements load from the next element
-						}
-					}
-
-					// Ignore count when slicing here because we would have to modify SearchResult too
-					let toLoad = moreResults.results.slice(startIndex)
-					return this._loadAndFilterInstances(currentResult.restriction.type, toLoad, moreResults, startIndex)
-				} else if (contact) {
-					// load all contacts to sort them by name afterwards
-					return this._loadAndFilterInstances(currentResult.restriction.type, moreResults.results, moreResults, 0).finally(() => {
-						this.list && this.list.setLoadedCompletely()
-						m.redraw()
-					})
+				if (startIndex === -1) {
+					throw new Error("start index not found")
 				} else {
-					// this type is not shown in the search view, e.g. group info
-					return Promise.resolve([])
+					// the start index is already in the list of loaded elements load from the next element
+					startIndex++
 				}
-			})
-			.then(results => {
-				return results.length < count && hasMoreResults(neverNull(this._searchResult)) // Recursively load more until we have enough or there are no more results.
-					? // Otherwise List thinks that this is the end
-					this._loadSearchResults(neverNull(this._searchResult), true, startId, count)
-					: results
-			})
+			}
+
+			// Ignore count when slicing here because we would have to modify SearchResult too
+			const toLoad = result.results.slice(startIndex)
+			searchResult = await this.loadAndFilterInstances(currentResult.restriction.type, toLoad, result, startIndex)
+		} else if (contact) {
+			try {
+				// load all contacts to sort them by name afterwards
+				searchResult = await this.loadAndFilterInstances(currentResult.restriction.type, result.results, result, 0)
+			} finally {
+				this.list && this.list.setLoadedCompletely()
+				m.redraw()
+			}
+
+		} else {
+			// this type is not shown in the search view, e.g. group info
+			searchResult = []
+		}
+
+		if (searchResult.length < count && hasMoreResults(this._searchResult)) {
+			// Recursively load more until we have enough or there are no more results.
+			// Otherwise List thinks that this is the end
+			return this.loadSearchResults(neverNull(this._searchResult), true, startId, count)
+		} else {
+			return searchResult
+		}
 	}
 
 	entityEventReceived(elementId: Id, operation: OperationType): Promise<void> {
@@ -274,34 +282,35 @@ export class SearchListView implements Component {
 		return Promise.resolve()
 	}
 
-	_loadAndFilterInstances<T extends ListElementEntity>(type: TypeRef<T>, toLoad: IdTuple[], currentResult: SearchResult, startIndex: number): Promise<T[]> {
-		const grouped = groupBy(toLoad, listIdPart)
-		return promiseMap(grouped, ([listId, ids]) => locator.entityClient.loadMultiple(type, listId, ids.map(elementIdPart)))
-			.then(flat)
-			.then(loaded => {
-				// Filter not found instances from the current result as well so we don’t loop trying to load them
-				if (loaded.length < toLoad.length) {
-					const resultLength = currentResult.results.length
-					console.log(`Could not load some results: ${loaded.length} out of ${toLoad.length}`)
+	private async loadAndFilterInstances<T extends ListElementEntity>(type: TypeRef<T>, toLoad: IdTuple[], currentResult: SearchResult, startIndex: number): Promise<T[]> {
+		let instances = [] as T[]
+		for (let [listId, ids] of groupBy(toLoad, listIdPart)) {
+			const loaded = await locator.entityClient.loadMultiple(type, listId, ids.map(elementIdPart))
+			instances = instances.concat(loaded)
+		}
 
-					// loop backwards to remove correct elements by index
-					for (let i = toLoad.length - 1; i >= 0; i--) {
-						const toLoadId = toLoad[i]
+		// Filter not found instances from the current result as well so we don’t loop trying to load them
+		if (instances.length < toLoad.length) {
+			const resultLength = currentResult.results.length
+			console.log(`Could not load some results: ${instances.length} out of ${toLoad.length}`)
 
-						if (loaded.find(l => isSameId(l._id, toLoadId)) == null) {
-							currentResult.results.splice(startIndex + i, 1)
+			// loop backwards to remove correct elements by index
+			for (let i = toLoad.length - 1; i >= 0; i--) {
+				const toLoadId = toLoad[i]
 
-							if (loaded.length === toLoad.length) {
-								break
-							}
-						}
+				if (instances.find(instance => isSameId(instance._id, toLoadId)) == null) {
+					currentResult.results.splice(startIndex + i, 1)
+
+					if (instances.length === toLoad.length) {
+						break
 					}
-
-					console.log(`Fixed results, before ${resultLength}, after: ${currentResult.results.length}`)
 				}
+			}
 
-				return loaded
-			})
+			console.log(`Fixed results, before ${resultLength}, after: ${currentResult.results.length}`)
+		}
+
+		return instances
 	}
 
 	isEntitySelected(id: Id): boolean {
@@ -322,7 +331,7 @@ export class SearchListView implements Component {
 
 	loading(): Promise<void> {
 		if (this.list) {
-			return this.list._loading
+			return this.list.loading
 		}
 
 		return Promise.resolve()

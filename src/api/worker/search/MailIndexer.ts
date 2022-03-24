@@ -1,7 +1,7 @@
 import {FULL_INDEXED_TIMESTAMP, MailFolderType, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import type {MailBody} from "../../entities/tutanota/MailBody"
 import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
-import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
+import {ConnectionError, NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {MailboxGroupRootTypeRef} from "../../entities/tutanota/MailboxGroupRoot"
 import type {MailBox} from "../../entities/tutanota/MailBox"
 import {MailBoxTypeRef} from "../../entities/tutanota/MailBox"
@@ -10,7 +10,7 @@ import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
 import type {Mail} from "../../entities/tutanota/Mail"
 import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
 import {containsEventOfType, getMailBodyText} from "../../common/utils/Utils"
-import {flat, groupBy, isNotNull, neverNull, noOp, ofClass, promiseMap, splitInChunks, TypeRef} from "@tutao/tutanota-utils"
+import {flat, groupBy, neverNull, noOp, ofClass, promiseMap, splitInChunks, TypeRef} from "@tutao/tutanota-utils"
 import {elementIdPart, isSameId, listIdPart, timestampToGeneratedId} from "../../common/utils/EntityUtils"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo} from "./IndexUtils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
@@ -32,6 +32,7 @@ import {ProgressMonitor} from "../../common/utils/ProgressMonitor"
 import type {SomeEntity} from "../../common/EntityTypes"
 import {EntityUpdateData} from "../../main/EventController";
 import {EphemeralCacheStorage} from "../rest/EphemeralCacheStorage";
+import {IndexingErrorReason} from "./SearchTypes"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20
@@ -255,7 +256,7 @@ export class MailIndexer {
 	/**
 	 * Indexes all mailboxes of the given user up to the endIndexTimestamp if mail indexing is enabled. If the mailboxes are already fully indexed, they are not indexed again.
 	 */
-	indexMailboxes(user: User, oldestTimestamp: number): Promise<void> {
+	async indexMailboxes(user: User, oldestTimestamp: number): Promise<void> {
 		if (!this.mailIndexingEnabled) {
 			return Promise.resolve()
 		}
@@ -265,7 +266,7 @@ export class MailIndexer {
 
 		this._core.resetStats()
 
-		this._worker.sendIndexState({
+		await this._worker.sendIndexState({
 			initializing: false,
 			mailIndexEnabled: this.mailIndexingEnabled,
 			progress: 1,
@@ -278,79 +279,81 @@ export class MailIndexer {
 
 		this._core.queue.pause()
 
-		this.mailboxIndexingPromise = promiseMap(memberships, mailGroupMembership => {
-			let mailGroupId = mailGroupMembership.group
-			return this._defaultCachingEntity
-					   .load(MailboxGroupRootTypeRef, mailGroupId)
-					   .then(mailGroupRoot => this._defaultCachingEntity.load(MailBoxTypeRef, mailGroupRoot.mailbox))
-					   .then(mbox => {
-						   return this._db.dbFacade.createTransaction(true, [GroupDataOS]).then(t => {
-							   return t.get(GroupDataOS, mailGroupId).then((groupData: GroupData | null) => {
-								   if (!groupData) {
-									   // group data is not available if group has been added. group will be indexed after login.
-									   return null
-								   } else {
-									   const newestTimestamp =
-										   groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP
-											   ? this._dateProvider.getStartOfDayShiftedBy(1).getTime()
-											   : groupData.indexTimestamp
+		try {
+			const mailBoxes: Array<{mbox: MailBox, newestTimestamp: number}> = []
 
-									   if (newestTimestamp > oldestTimestamp) {
-										   return {
-											   mbox,
-											   newestTimestamp,
-										   }
-									   } else {
-										   return null
-									   }
-								   }
-							   })
-						   })
-					   })
-		})
-			.then((mailBoxes: Array<| {mbox: MailBox, newestTimestamp: number} | null>) => {
-					const filtered = mailBoxes.filter(isNotNull)
+			for (let mailGroupMembership of memberships) {
+				let mailGroupId = mailGroupMembership.group
+				const mailboxGroupRoot = await this._defaultCachingEntity.load(MailboxGroupRootTypeRef, mailGroupId)
+				const mailbox = await this._defaultCachingEntity.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
 
-					if (filtered.length > 0) {
-						return this._indexMailLists(filtered, oldestTimestamp)
+				const transaction = await this._db.dbFacade.createTransaction(true, [GroupDataOS])
+				const groupData = await transaction.get(GroupDataOS, mailGroupId)
+
+				// group data is not available if group has been added. group will be indexed after login.
+				if (groupData) {
+					const newestTimestamp =
+						groupData.indexTimestamp === NOTHING_INDEXED_TIMESTAMP
+							? this._dateProvider.getStartOfDayShiftedBy(1).getTime()
+							: groupData.indexTimestamp
+
+					if (newestTimestamp > oldestTimestamp) {
+						mailBoxes.push({
+							mbox: mailbox,
+							newestTimestamp,
+						})
 					}
-				},
-			)
-			.then(() => {
-				this._core.printStatus()
+				}
+			}
 
-				return this.updateCurrentIndexTimestamp(user).then(() =>
-					this._worker.sendIndexState({
-						initializing: false,
-						mailIndexEnabled: this.mailIndexingEnabled,
-						progress: 0,
-						currentMailIndexTimestamp: this.currentIndexTimestamp,
-						indexedMailCount: this._core._stats.mailcount,
-						failedIndexingUpTo: null,
-					}),
-				)
-			})
-			.catch(e => {
-				console.warn("Mail indexing failed: ", e)
-				// avoid that a rejected promise is stored
-				this.mailboxIndexingPromise = Promise.resolve()
-				return this.updateCurrentIndexTimestamp(user).then(() => {
-					this._worker.sendIndexState({
-						initializing: false,
-						mailIndexEnabled: this.mailIndexingEnabled,
-						progress: 0,
-						currentMailIndexTimestamp: this.currentIndexTimestamp,
-						indexedMailCount: this._core._stats.mailcount,
-						failedIndexingUpTo: this._core.isStoppedProcessing() || e instanceof CancelledError ? null : oldestTimestamp,
-					})
-				})
-			})
-			.finally(() => {
-				this._core.queue.resume()
+			if (mailBoxes.length > 0) {
+				await this._indexMailLists(mailBoxes, oldestTimestamp)
+			}
 
-				this.isIndexing = false
+			this._core.printStatus()
+
+			await this.updateCurrentIndexTimestamp(user)
+
+			await this._worker.sendIndexState({
+				initializing: false,
+				mailIndexEnabled: this.mailIndexingEnabled,
+				progress: 0,
+				currentMailIndexTimestamp: this.currentIndexTimestamp,
+				indexedMailCount: this._core._stats.mailcount,
+				failedIndexingUpTo: null,
 			})
-		return this.mailboxIndexingPromise.then(noOp)
+
+		} catch (e) {
+			console.warn("Mail indexing failed: ", e)
+			// avoid that a rejected promise is stored
+			this.mailboxIndexingPromise = Promise.resolve()
+			await this.updateCurrentIndexTimestamp(user)
+
+			const success = this._core.isStoppedProcessing() || e instanceof CancelledError
+
+			const failedIndexingUpTo =  success
+				? null
+				: oldestTimestamp
+
+			const error = success
+				? null
+				: e instanceof ConnectionError
+				? IndexingErrorReason.ConnectionLost
+					: IndexingErrorReason.Unknown
+
+			await this._worker.sendIndexState({
+				initializing: false,
+				mailIndexEnabled: this.mailIndexingEnabled,
+				progress: 0,
+				currentMailIndexTimestamp: this.currentIndexTimestamp,
+				indexedMailCount: this._core._stats.mailcount,
+				failedIndexingUpTo,
+				error
+			})
+		} finally {
+			this._core.queue.resume()
+			this.isIndexing = false
+		}
 	}
 
 	_indexMailLists(

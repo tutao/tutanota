@@ -1439,6 +1439,11 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
-		"domainStillHasContactForms_msg": "{domain} kann nicht deaktiviert werden, da noch Kontaktformulare aktiv sind. Bitte lösche die Kontaktformulare bevor du {domain} deaktivierst."
+		"domainStillHasContactForms_msg": "{domain} kann nicht deaktiviert werden, da noch Kontaktformulare aktiv sind. Bitte lösche die Kontaktformulare bevor du {domain} deaktivierst.",
+		"draftNotSavedWithReason_msg": "Der Entwurf konnte nicht gespeichert werden ({reason}).",
+		"connectionLost_msg": "Verbindung abgebrochen.",
+		"connectionLostLong_msg": "Die Verbindung zum Server ist abgebrochen. Bitte versuche es erneut.",
+		"mailPartsNotLoaded_msg": "Einige Teile der E-Mail konnten nicht geladen werden, da die Verbindung abgebrochen ist.",
+		"indexingFailedConnection_error": "Die Indizierung wurde abgebrochen, da die Verbindung abgebrochen ist."
 	}
 }
