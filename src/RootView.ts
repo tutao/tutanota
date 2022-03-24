@@ -9,7 +9,7 @@ assertMainOrNodeBoot()
 export const enum LayerType {
 	// Minimized editors, SearchBarOverlay
 	View = 0,
-	// SnackBars, notifications that require no user interaction
+	// notifications that require no user interaction
 	LowPriorityOverlay = 100,
 	// Foreground menu in mobile layout
 	LowPriorityNotification = 150,

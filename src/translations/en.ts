@@ -1435,6 +1435,11 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"domainStillHasContactForms_msg": "{domain} can't be deactivated because there are still active contact forms on the whitelabel domain. Please delete the contact forms before deactivating {domain}."
+		"domainStillHasContactForms_msg": "{domain} can't be deactivated because there are still active contact forms on the whitelabel domain. Please delete the contact forms before deactivating {domain}.",
+		"draftNotSavedWithReason_msg": "Draft not saved ({reason}).",
+		"connectionLost_msg": "Connection lost.",
+		"connectionLostLong_msg": "The connection to the server was lost. Please try again.",
+		"mailPartsNotLoaded_msg": "Some parts of the mail failed to load due to a lost connection.",
+		"indexingFailedConnection_error": "Indexing failed because the connection was lost."
 	}
 }

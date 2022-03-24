@@ -90,21 +90,21 @@ o.spec("List", function () {
 			})
 
 			// @ts-ignore
-			list._domListContainer = downcast({
+			list.domListContainer = downcast({
 				clientWidth: 100,
 				clientHeight: 100,
 				addEventListener: function () {
 				}
 			})
 			// @ts-ignore
-			list._domLoadingRow = downcast({classList: {add: () => undefined, remove: () => undefined}, style: {}})
-			list._setDomList(downcast({style: {}}))
-			list._init()
+			list.domLoadingRow = downcast({classList: {add: () => undefined, remove: () => undefined}, style: {}})
+			list.setDomList(downcast({style: {}}))
+			list.init()
 			// @ts-ignore
-			list._domInitialized.resolve()
+			list.domDeferred.resolve()
 
 			await list.loadInitial()
-			o(list._loadedEntities.slice(0, 100)).deepEquals(new Array(100).fill(mail0))
+			o(list.loadedEntities.slice(0, 100)).deepEquals(new Array(100).fill(mail0))
 		})
 	})
 
@@ -139,23 +139,24 @@ o.spec("List", function () {
 				swipe: defaultSwipe,
 			})
 			// @ts-ignore
-			list._domListContainer = downcast({
+			list.domListContainer = downcast({
 				clientWidth: 100,
 				clientHeight: 235,
 				addEventListener: function () {
 				}
 			})
 			// @ts-ignore
-			list._domInitialized.resolve()
+			list.domDeferred.resolve()
+
 			// @ts-ignore
-			list._domLoadingRow = downcast({classList: {add: () => undefined, remove: () => undefined}, style: {}})
-			list._setDomList(downcast({style: {}}))
-			list._init()
+			list.domLoadingRow = downcast({classList: {add: () => undefined, remove: () => undefined}, style: {}})
+			list.setDomList(downcast({style: {}}))
+			list.init()
 
 			await list.loadInitial()
-			list._init()
-			list._createChildrens()
-			o(list._virtualList.length).equals(Math.ceil(235 / 62) + ScrollBuffer * 2)
+			list.init()
+			list.createVirtualRows()
+			o(list.virtualList.length).equals(Math.ceil(235 / 62) + ScrollBuffer * 2)
 		})
 	})
 })

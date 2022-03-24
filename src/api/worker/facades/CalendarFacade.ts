@@ -37,7 +37,7 @@ import {createCalendarEventRef} from "../../entities/sys/CalendarEventRef"
 import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
 import {EntityRestCache} from "../rest/EntityRestCache"
-import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
+import {ConnectionError, NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {createCalendarDeleteData} from "../../entities/tutanota/CalendarDeleteData"
 import {CalendarGroupRootTypeRef} from "../../entities/tutanota/CalendarGroupRoot"
 import type {CalendarEventUidIndex} from "../../entities/tutanota/CalendarEventUidIndex"
@@ -54,6 +54,7 @@ import {SetupMultipleError} from "../../common/error/SetupMultipleError"
 import {ImportError} from "../../common/error/ImportError"
 import {aes128RandomKey, encryptKey, sha256Hash} from "@tutao/tutanota-crypto"
 import {InstanceMapper} from "../crypto/InstanceMapper"
+import {TutanotaError} from "../../common/error/TutanotaError"
 import {IServiceExecutor} from "../../common/ServiceRequest"
 import {AlarmService} from "../../entities/sys/Services"
 import {CalendarService} from "../../entities/tutanota/Services"
@@ -144,6 +145,7 @@ export class CalendarFacade {
 		//we have different lists for short and long events so this is 1 or 2
 		const size = eventsWithAlarmsByEventListId.size
 		let failed = 0
+		let errors = [] as Array<TutanotaError>
 
 		for (const [listId, eventsWithAlarmsOfOneList] of eventsWithAlarmsByEventListId) {
 			let successfulEvents = eventsWithAlarmsOfOneList
@@ -155,6 +157,7 @@ export class CalendarFacade {
 					  .catch(
 						  ofClass(SetupMultipleError, e => {
 							  failed += e.failedInstances.length
+							  errors = errors.concat(e.errors)
 							  successfulEvents = eventsWithAlarmsOfOneList.filter(({event}) => !e.failedInstances.includes(event))
 						  }),
 					  )
@@ -176,7 +179,11 @@ export class CalendarFacade {
 		await this._worker.sendProgress(100)
 
 		if (failed !== 0) {
-			throw new ImportError("Could not save alarms.", failed)
+			if (errors.some(error => error instanceof ConnectionError)) {
+				throw new ConnectionError("Connection lost while saving events")
+			} else {
+				throw new ImportError("Could not save events.", failed)
+			}
 		}
 	}
 

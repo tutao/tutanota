@@ -11,7 +11,7 @@ assertMainOrNode()
 export type Attrs = {
 	message: TranslationKey | lazy<Children>
 	icon?: AllIcons
-	color: string
+	color: string,
 }
 /**
  * A message box displaying a text. A message box can be displayed on the background of a column if the column is empty.

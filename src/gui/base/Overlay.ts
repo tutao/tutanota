@@ -88,7 +88,7 @@ export const overlay: Component = {
 							right: position.right,
 							left: position.left,
 							height: position.height,
-							"z-index": position.zIndex ? position.zIndex : LayerType.Overlay,
+							"z-index": position.zIndex != null ? position.zIndex : LayerType.Overlay,
 							"margin-top": requiresStatusBarHack() ? "20px" : "env(safe-area-inset-top)", // insets for iPhone X
 						},
 						oncreate: (vnode) => {

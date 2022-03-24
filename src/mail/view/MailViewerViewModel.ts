@@ -5,25 +5,26 @@ import {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
 import {
 	CalendarMethod,
 	ConversationType,
-	ExternalImageRule, FeatureType, InboxRuleType,
+	ExternalImageRule,
+	FeatureType,
 	MailAuthenticationStatus,
 	MailFolderType,
 	MailMethod,
 	mailMethodToCalendarMethod,
 	MailPhishingStatus,
 	MailReportType,
-	MailState, SpamRuleFieldType, SpamRuleType,
+	MailState,
 } from "../../api/common/TutanotaConstants"
 import {EntityClient} from "../../api/common/EntityClient"
 import {MailboxDetail, MailModel} from "../model/MailModel"
 import {ContactModel} from "../../contacts/model/ContactModel"
 import {ConfigurationDatabase} from "../../api/worker/facades/ConfigurationDatabase"
 import {InlineImages} from "./MailViewer"
-import {isAndroidApp, isDesktop} from "../../api/common/Env"
+import {isDesktop} from "../../api/common/Env"
 import {Request} from "../../api/common/MessageDispatcher"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {addAll, assertNotNull, contains, defer, DeferredObject, downcast, neverNull, noOp, ofClass, startsWith} from "@tutao/tutanota-utils"
+import {addAll, contains, defer, DeferredObject, downcast, neverNull, noOp, ofClass, startsWith} from "@tutao/tutanota-utils"
 import {lang} from "../../misc/LanguageViewModel"
 import {
 	getArchiveFolder,
@@ -38,9 +39,9 @@ import {
 import {LoginController, logins} from "../../api/main/LoginController"
 import m from "mithril"
 import {ConversationEntryTypeRef} from "../../api/entities/tutanota/ConversationEntry"
-import {LockedError, NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
+import {ConnectionError, LockedError, NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
 import {NativeInterface} from "../../native/common/NativeInterface"
-import {elementIdPart, getListId, listIdPart} from "../../api/common/utils/EntityUtils"
+import {elementIdPart, listIdPart} from "../../api/common/utils/EntityUtils"
 import {getReferencedAttachments, loadInlineImages, moveMails, replaceCidsWithInlineImages, revokeInlineImages} from "./MailGuiUtils"
 import {locator} from "../../api/main/MainLocator"
 import {Link} from "../../misc/HtmlSanitizer"
@@ -63,7 +64,7 @@ import {serviceRequestVoid} from "../../api/main/ServiceRequest"
 import {TutanotaService} from "../../api/entities/tutanota/Services"
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import {checkApprovalStatus} from "../../misc/LoginUtils"
-import {formatDateTime, formatStorageSize, urlEncodeHtmlTags} from "../../misc/Formatter"
+import {formatDateTime, urlEncodeHtmlTags} from "../../misc/Formatter"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {ResponseMailParameters} from "../editor/SendMailModel"
@@ -72,15 +73,11 @@ import {CustomerTypeRef} from "../../api/entities/sys/Customer"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {MailRestriction} from "../../api/entities/tutanota/MailRestriction"
 import {animations, DomMutation, scroll} from "../../gui/animation/Animations"
-import {createDropDownButton, DomRectReadOnlyPolyfilled, PosRect} from "../../gui/base/Dropdown"
+import {PosRect} from "../../gui/base/Dropdown"
 import {ease} from "../../gui/animation/Easing"
-import {createEmailSenderListElement} from "../../api/entities/sys/EmailSenderListElement"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {CancelledError} from "../../api/common/error/CancelledError"
-import {Button} from "../../gui/base/Button"
-import {Icons} from "../../gui/base/icons/Icons"
-import {size} from "../../gui/size"
-import {Contact} from "../../api/entities/tutanota/Contact"
+import {LoadingStateTracker} from "../../offline/LoadingState"
 
 const SCROLL_FACTOR = 4 / 5
 
@@ -108,8 +105,8 @@ export class MailViewerViewModel {
 
 	private contentBlockingStatus: ContentBlockingStatus = ContentBlockingStatus.NoExternalContent
 	private errorOccurred: boolean = false
-	private referencedCids: Promise<Array<string>>
-	private readonly loadedInlineImages: Promise<InlineImages>
+	private referencedCids = defer<Array<string>>()
+	private loadedInlineImages = defer<InlineImages>()
 	private suspicious: boolean = false
 
 	private folderText: string | null
@@ -130,6 +127,8 @@ export class MailViewerViewModel {
 	private domMailViewer: HTMLElement | null = null
 	private scrollAnimation: Promise<void> | null = null
 	private domForScrolling: HTMLElement | null = null
+
+	private readonly loadingState = new LoadingStateTracker()
 
 	constructor(
 		public readonly mail: Mail,
@@ -170,16 +169,26 @@ export class MailViewerViewModel {
 			}
 		}
 
-		// We call those sequentially as _loadAttachments() waits for _inlineFileIds to resolve
-		this.referencedCids = this.loadMailBody(mail)
-		this.loadedInlineImages = this.loadAttachments(mail)
+		this.loadAll()
+	}
 
-		this.loadedInlineImages.then(() => {
-			// load the conversation entry here because we expect it to be loaded immediately when responding to this email
-			this.entityClient
-				.load(ConversationEntryTypeRef, mail.conversationEntry)
-				.catch(ofClass(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e)))
-		})
+	async loadAll() {
+		await this.loadingState.trackPromise(
+			Promise.all([
+				// We call those sequentially as _loadAttachments() waits for _inlineFileIds to resolve
+				this.loadMailBody(this.mail).then(referencedCids => this.referencedCids.resolve(referencedCids)),
+				this.loadAttachments(this.mail),
+				// TODO it doesn't make much sense why we load this here, we load it again anyway when we init a new sendMailModel
+				// this.loadedInlineImages.promise.then(() =>
+				// 	// load the conversation entry here because we expect it to be loaded immediately when responding to this email
+				// 	this.entityClient
+				// 		.load(ConversationEntryTypeRef, this.mail.conversationEntry)
+				// 		.catch(ofClass(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e)))
+				// )
+			])
+		).catch(ofClass(ConnectionError, noOp))
+
+		m.redraw()
 	}
 
 	clearDomBody() {
@@ -187,8 +196,16 @@ export class MailViewerViewModel {
 		this.domBody = null
 	}
 
+	isLoading(): boolean {
+		return this.loadingState.isLoading()
+	}
+
+	isConnectionLost(): boolean {
+		return this.loadingState.isConnectionLost()
+	}
+
 	revokeInlineImages(): Promise<void> {
-		return this.loadedInlineImages.then(inlineImages => {
+		return this.getLoadedInlineImages().then(inlineImages => {
 			revokeInlineImages(inlineImages)
 		})
 	}
@@ -201,8 +218,12 @@ export class MailViewerViewModel {
 		return this.inlineCids
 	}
 
+	getReferencedCids(): Promise<Array<string>> {
+		return this.referencedCids.promise
+	}
+
 	getLoadedInlineImages(): Promise<InlineImages> {
-		return this.loadedInlineImages
+		return this.loadedInlineImages.promise
 	}
 
 
@@ -241,6 +262,10 @@ export class MailViewerViewModel {
 
 	getMailId(): IdTuple {
 		return this.mail._id
+	}
+
+	isMailBodyLoaded(): boolean {
+		return this.sanitizedMailBody != null
 	}
 
 	getSanitizedMailBody(): string | null {
@@ -419,7 +444,7 @@ export class MailViewerViewModel {
 			const mailboxDetails = await this.mailModel.getMailboxDetailsForMail(this.mail)
 			const spamFolder = getFolder(mailboxDetails.folders, MailFolderType.SPAM)
 			// do not report moved mails again
-			await moveMails({mailModel : this.mailModel, mails : [this.mail], targetMailFolder : spamFolder, isReportable : false})
+			await moveMails({mailModel: this.mailModel, mails: [this.mail], targetMailFolder: spamFolder, isReportable: false})
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				console.log("mail already moved")
@@ -543,36 +568,48 @@ export class MailViewerViewModel {
 		return sanitizeResult.inlineImageCids
 	}
 
-	private async loadAttachments(mail: Mail): Promise<InlineImages> {
+	private async loadAttachments(mail: Mail) {
 		if (mail.attachments.length === 0) {
 			this.loadingAttachments = false
-			return Promise.resolve(new Map())
+			this.loadedInlineImages.resolve(new Map())
 		} else {
-			//We wait for _inlineFileIds to resolve in order to make the server requests sequentially
-			return this.referencedCids.then(inlineCids => {
-				this.loadingAttachments = true
-				const attachmentsListId = listIdPart(mail.attachments[0])
-				const attachmentElementIds = mail.attachments.map(attachment => elementIdPart(attachment))
-				return this.entityClient
-						   .loadMultiple(FileTypeRef, attachmentsListId, attachmentElementIds)
-						   .then(async files => {
-							   this.handleCalendarFile(files, mail)
+			await Promise
+				.resolve()
+				.then(async () => {
+					// We wait for _inlineFileIds to resolve in order to make the server requests sequentially
+					const inlineCids = await this.getReferencedCids()
 
-							   this.attachments = files
-							   this.inlineCids = inlineCids
-							   this.deferredAttachments.resolve(null)
-							   this.loadingAttachments = false
-							   const inlineImages = await loadInlineImages(this.fileFacade, files, inlineCids)
-							   m.redraw()
-							   return inlineImages
-						   })
-						   .catch(
-							   ofClass(NotFoundError, e => {
-								   console.log("could load attachments as they have been moved/deleted already", e)
-								   return new Map()
-							   }),
-						   )
-			})
+					this.loadingAttachments = true
+					const attachmentsListId = listIdPart(mail.attachments[0])
+					const attachmentElementIds = mail.attachments.map(attachment => elementIdPart(attachment))
+
+					try {
+
+						const files = await this.entityClient.loadMultiple(FileTypeRef, attachmentsListId, attachmentElementIds)
+
+						this.handleCalendarFile(files, mail)
+
+						this.attachments = files
+						this.inlineCids = inlineCids
+						this.deferredAttachments.resolve(null)
+						this.loadingAttachments = false
+						const inlineImages = loadInlineImages(this.fileFacade, files, inlineCids).then(this.loadedInlineImages.resolve)
+						m.redraw()
+						return inlineImages
+					} catch (e) {
+						if (e instanceof NotFoundError) {
+							console.log("could load attachments as they have been moved/deleted already", e)
+							return new Map()
+						} else {
+							throw e
+						}
+					}
+				})
+				.then(this.loadedInlineImages.resolve)
+				.catch(e => {
+					this.loadedInlineImages.reject(e)
+					throw e
+				})
 		}
 	}
 
@@ -648,7 +685,7 @@ export class MailViewerViewModel {
 				return this.createResponseMailArgsForForwarding([], [], true).then(args => {
 					return Promise.all([this.getMailboxDetails(), import("../editor/MailEditor")])
 								  .then(([mailboxDetails, {newMailEditorAsResponse}]) => {
-									  return newMailEditorAsResponse(args, this.isBlockingExternalImages(), this.loadedInlineImages, mailboxDetails)
+									  return newMailEditorAsResponse(args, this.isBlockingExternalImages(), this.getLoadedInlineImages(), mailboxDetails)
 								  })
 								  .then(editor => {
 									  editor.show()
@@ -742,31 +779,39 @@ export class MailViewerViewModel {
 				}
 			}
 
-			return Promise.all([this.getSenderOfResponseMail(), import("../signature/Signature"), import("../editor/MailEditor"), this.referencedCids])
-						  .then(([senderMailAddress, {prependEmailSignature}, {newMailEditorAsResponse}, referencedCids]) => {
-							  const attachmentsForReply = getReferencedAttachments(this.attachments, referencedCids)
-							  return newMailEditorAsResponse(
-								  {
-									  previousMail: this.mail,
-									  conversationType: ConversationType.REPLY,
-									  senderMailAddress,
-									  toRecipients,
-									  ccRecipients,
-									  bccRecipients,
-									  attachments: attachmentsForReply,
-									  subject,
-									  bodyText: prependEmailSignature(body, logins),
-									  replyTos: [],
-								  },
-								  this.isBlockingExternalImages(),
-								  this.loadedInlineImages,
-								  mailboxDetails,
-							  )
-						  })
-						  .then(editor => {
-							  editor.show()
-						  })
-						  .catch(ofClass(UserError, showUserError))
+			const {prependEmailSignature} = await import("../signature/Signature.js")
+			const {newMailEditorAsResponse} = await import("../editor/MailEditor")
+
+			const [senderMailAddress, referencedCids] = await Promise.all([this.getSenderOfResponseMail(), this.getReferencedCids()])
+
+			const attachmentsForReply = getReferencedAttachments(this.attachments, referencedCids)
+			try {
+
+				const editor = await newMailEditorAsResponse(
+					{
+						previousMail: this.mail,
+						conversationType: ConversationType.REPLY,
+						senderMailAddress,
+						toRecipients,
+						ccRecipients,
+						bccRecipients,
+						attachments: attachmentsForReply,
+						subject,
+						bodyText: prependEmailSignature(body, logins),
+						replyTos: [],
+					},
+					this.isBlockingExternalImages(),
+					this.getLoadedInlineImages(),
+					mailboxDetails,
+				)
+				editor.show()
+			} catch (e) {
+				if (e instanceof UserError) {
+					showUserError(e)
+				} else {
+					throw e
+				}
+			}
 		}
 	}
 
@@ -804,7 +849,7 @@ export class MailViewerViewModel {
 	}
 
 	async replaceInlineImages() {
-		const [loadedInlineImages, domBody] = await Promise.all([this.loadedInlineImages, this.domBodyDeferred.promise])
+		const [loadedInlineImages, domBody] = await Promise.all([this.getLoadedInlineImages(), this.domBodyDeferred.promise])
 
 		replaceCidsWithInlineImages(domBody, loadedInlineImages, (cid, event, dom) => {
 			const inlineAttachment = this.attachments.find(attachment => attachment.cid === cid)
@@ -865,18 +910,18 @@ export class MailViewerViewModel {
 				   .then(args => {
 					   return Promise.all([this.getMailboxDetails(), import("../editor/SendMailModel")]).then(([mailboxDetails, {defaultSendMailModel}]) => {
 						   return defaultSendMailModel(mailboxDetails)
-							   .initAsResponse(args, this.loadedInlineImages)
+							   .initAsResponse(args, this.getLoadedInlineImages())
 							   .then(model => model.send(MailMethod.NONE))
 					   })
 				   })
 				   .then(() => this.mailModel.getMailboxFolders(this.mail))
 				   .then(folders => {
-					   return moveMails({mailModel : this.mailModel, mails : [this.mail], targetMailFolder : getArchiveFolder(folders)})
+					   return moveMails({mailModel: this.mailModel, mails: [this.mail], targetMailFolder: getArchiveFolder(folders)})
 				   })
 	}
 
 	downloadAll() {
-		this.referencedCids
+		this.referencedCids.promise
 			// Skip inline images (they have cid and it is referenced)
 			.then(inlineFileIds => this.attachments.filter(a => a.cid == null || !inlineFileIds.includes(a.cid)))
 			.then(nonInlineFiles => showProgressDialog("pleaseWait_msg", this.fileController.downloadAll(nonInlineFiles)))

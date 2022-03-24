@@ -282,6 +282,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 							styles.isUsingBottomNavigation() ? null : this.actionButtons(),
 						]),
 						styles.isUsingBottomNavigation() ? this.actionButtons() : null,
+						this.renderConnectionLostBanner(),
 						this.renderEventBanner(),
 						this.renderAttachments(),
 						this.renderBanners(this.viewModel.mail),
@@ -329,65 +330,79 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private renderMailBodySection(): Children {
-		const sanitizedMailBody = this.viewModel.getSanitizedMailBody()
 
-		if (sanitizedMailBody != null && !this.viewModel.didErrorsOccur()) {
-			return m(
-				"#mail-body.selectable.touch-callout.break-word-links" + (client.isMobileDevice() ? ".break-pre" : ""),
-				{
-					oncreate: vnode => {
-						const dom = vnode.dom as HTMLElement
-
-						this.viewModel.setDomBody(dom)
-						this.updateLineHeight(dom)
-						this.rescale(false)
-					},
-					onupdate: vnode => {
-						const dom = vnode.dom as HTMLElement
-
-						this.viewModel.setDomBody(dom)
-
-						// Only measure and update line height once.
-						// BUT we need to do in from onupdate too if we swap mailViewer but mithril does not realize
-						// that it's a different vnode so oncreate might not be called.
-						if (!this.bodyLineHeight) {
-							this.updateLineHeight(vnode.dom as HTMLElement)
-						}
-
-						this.rescale(false)
-					},
-					onsubmit: (event: Event) => {
-						// use the default confirm dialog here because the submit can not be done async
-						if (!confirm(lang.get("reallySubmitContent_msg"))) {
-							event.preventDefault()
-						}
-					},
-					style: {
-						"line-height": this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height,
-						"transform-origin": "top left",
-					},
-				},
-				m.trust(sanitizedMailBody),
-			)
-		} else if (!this.viewModel.didErrorsOccur()) {
-			return this.delayProgressSpinner
-				? m(".flex-v-center.items-center")
-				: m(
-					".progress-panel.flex-v-center.items-center",
-					{
-						style: {
-							height: "200px",
-						},
-					},
-					[progressIcon(), m("small", lang.get("loading_msg"))],
-				)
-		} else {
+		if (this.viewModel.didErrorsOccur()) {
 			return m(ColumnEmptyMessageBox, {
 				message: "corrupted_msg",
 				icon: Icons.Warning,
 				color: theme.content_message_bg,
 			})
 		}
+
+		const sanitizedMailBody = this.viewModel.getSanitizedMailBody()
+
+		if (sanitizedMailBody != null) {
+			return this.renderMailBody(sanitizedMailBody)
+		} else if (this.viewModel.isLoading()) {
+			return this.renderLoadingIcon()
+		} else {
+			// The body failed to load, just show blank body because there is a banner
+			return null
+		}
+	}
+
+	private renderMailBody(sanitizedMailBody: string): Children {
+		return m(
+			"#mail-body.selectable.touch-callout.break-word-links" + (client.isMobileDevice() ? ".break-pre" : ""),
+			{
+				oncreate: vnode => {
+					const dom = vnode.dom as HTMLElement
+
+					this.viewModel.setDomBody(dom)
+					this.updateLineHeight(dom)
+					this.rescale(false)
+				},
+				onupdate: vnode => {
+					const dom = vnode.dom as HTMLElement
+
+					this.viewModel.setDomBody(dom)
+
+					// Only measure and update line height once.
+					// BUT we need to do in from onupdate too if we swap mailViewer but mithril does not realize
+					// that it's a different vnode so oncreate might not be called.
+					if (!this.bodyLineHeight) {
+						this.updateLineHeight(vnode.dom as HTMLElement)
+					}
+
+					this.rescale(false)
+				},
+				onsubmit: (event: Event) => {
+					// use the default confirm dialog here because the submit can not be done async
+					if (!confirm(lang.get("reallySubmitContent_msg"))) {
+						event.preventDefault()
+					}
+				},
+				style: {
+					"line-height": this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height,
+					"transform-origin": "top left",
+				},
+			},
+			m.trust(sanitizedMailBody),
+		)
+	}
+
+	private renderLoadingIcon(): Children {
+		return this.delayProgressSpinner
+			? m(".flex-v-center.items-center")
+			: m(
+				".progress-panel.flex-v-center.items-center",
+				{
+					style: {
+						height: "200px",
+					},
+				},
+				[progressIcon(), m("small", lang.get("loading_msg"))],
+			)
 	}
 
 	private renderBanners(mail: Mail): Children {
@@ -396,6 +411,25 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			this.renderExternalContentBanner(),
 			m("hr.hr.mt-xs"),
 		].filter(Boolean)
+	}
+
+	private renderConnectionLostBanner(): Children {
+		// If the mail body failed to load, then we show a message in the main column
+		// If the mail body did load but not everything else, we show the message here
+		if (this.viewModel.isConnectionLost()) {
+			return m(InfoBanner, {
+				message: "mailPartsNotLoaded_msg",
+				icon: Icons.Warning,
+				buttons: [
+					{
+						label: "retry_action",
+						click: () => this.viewModel.loadAll()
+					}
+				]
+			})
+		} else {
+			return null
+		}
 	}
 
 	private renderEventBanner(): Children {
@@ -855,7 +889,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 
 	private renderAttachments(): Children {
-		if (this.viewModel.isLoadingAttachments()) {
+		if (this.viewModel.isLoadingAttachments() && !this.viewModel.isConnectionLost()) {
 			return m(".flex", [m(".flex-v-center.pl-button", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))])
 		} else {
 

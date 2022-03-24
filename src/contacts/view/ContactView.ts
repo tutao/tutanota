@@ -105,8 +105,8 @@ export class ContactView implements CurrentView {
 			let selectedEntities = contactList ? contactList.list.getSelectedEntities() : []
 
 			if (selectedEntities.length > 0 && contactList) {
-				let selectedIndex = contactList.list._loadedEntities.indexOf(selectedEntities[0]) + 1
-				return selectedIndex + "/" + contactList.list._loadedEntities.length
+				let selectedIndex = contactList.list.loadedEntities.indexOf(selectedEntities[0]) + 1
+				return selectedIndex + "/" + contactList.list.loadedEntities.length
 			} else {
 				return ""
 			}

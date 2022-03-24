@@ -1,5 +1,5 @@
 import {ENTITY_EVENT_BATCH_TTL_DAYS, getMembershipGroupType, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
-import {NotAuthorizedError} from "../../common/error/RestError"
+import {ConnectionError, NotAuthorizedError} from "../../common/error/RestError"
 import {EntityEventBatch, EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import type {DatabaseEntry, DbKey, DbTransaction, ObjectStoreName} from "./DbFacade"
 import {b64UserIdHash, DbFacade} from "./DbFacade"
@@ -23,6 +23,7 @@ import {
 import {firstBiggerThanSecond, GENERATED_MAX_ID, generatedIdToTimestamp, getElementId, isSameId, timestampToGeneratedId} from "../../common/utils/EntityUtils"
 import {_createNewIndexUpdate, filterIndexMemberships, markEnd, markStart, typeRefToTypeInfo} from "./IndexUtils"
 import type {Db, GroupData} from "./SearchTypes"
+import {IndexingErrorReason} from "./SearchTypes"
 import type {WorkerImpl} from "../WorkerImpl"
 import {ContactIndexer} from "./ContactIndexer"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
@@ -236,6 +237,9 @@ export class Indexer {
 					currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
 					indexedMailCount: 0,
 					failedIndexingUpTo: this._mail.currentIndexTimestamp,
+					error: e instanceof ConnectionError
+						? IndexingErrorReason.ConnectionLost
+						: IndexingErrorReason.Unknown
 				})
 
 				this._dbInitializedDeferredObject.reject(e)
