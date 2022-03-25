@@ -56,7 +56,7 @@ export class HtmlEditor implements Component {
 		this._mode.map(v => {
 			this.setValue(this._value())
 			this._editor.initialized.promise.then(() => {
-				const dom = assertNotNull(this._editor?._domElement)
+				const dom = assertNotNull(this._editor?.domElement)
 				dom.onfocus = (_) => focus()
 				dom.onblur = (_) => blur()
 			})
@@ -80,7 +80,7 @@ export class HtmlEditor implements Component {
 			return (!this._active && this.isEmpty()) ? m(".abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {
 					oncreate: vnode => this._placeholderDomElement = vnode.dom as HTMLElement,
 					onclick: () => this._mode() === HtmlEditorMode.WYSIWYG
-						? assertNotNull(this._editor._domElement).focus()
+						? assertNotNull(this._editor.domElement).focus()
 						: assertNotNull(this._domTextArea).focus()
 				},
 				(this._placeholderId ? lang.get(this._placeholderId) : "")
@@ -121,10 +121,10 @@ export class HtmlEditor implements Component {
 								: null,
 							m(this._editor,
 								{
-									oncreate: (_) => {
+									oncreate: () => {
 										this._editor.initialized.promise.then(() => this._editor.setHTML(this._value()))
 									},
-									onremove: (_) => {
+									onremove: () => {
 										this._value(this.getValue())
 									}
 								}
@@ -149,7 +149,7 @@ export class HtmlEditor implements Component {
 								'font-family': this._htmlMonospace ? 'monospace' : 'inherit',
 								"min-height": this._minHeight ? px(this._minHeight) : 'initial'
 							},
-							disabled: !this._editor._enabled
+							disabled: !this._editor.enabled
 						})),
 				])
 			])

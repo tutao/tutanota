@@ -1,6 +1,5 @@
-import m, {Component} from "mithril"
+import m, {Children, Component} from "mithril"
 import SquireEditor from "squire-rte"
-import type {DeferredObject} from "@tutao/tutanota-utils"
 import {defer} from "@tutao/tutanota-utils"
 import {px} from "../size"
 import {Dialog} from "../base/Dialog"
@@ -21,18 +20,19 @@ type Styles = {
 }
 
 export class Editor implements ImageHandler, Component {
-    _squire: Squire
-    view: Component["view"]
-    onbeforeupdate: Component["onbeforeupdate"]
-    onremove: Component["onremove"]
-    initialized: DeferredObject<void>
-    _domElement: HTMLElement | null = null
-    _enabled: boolean
-    private _active: boolean
-    private _createsLists: boolean
-    private _minHeight: number | null
-    private _sanitizer: SanitizerFn
-    private _styleActions: Record<Style, Array<(...args: Array<any>) => any>>
+    squire: Squire
+    initialized = defer<void>()
+    domElement: HTMLElement | null = null
+    enabled = true
+	private createsLists = true
+    private styleActions = Object.freeze({
+		b: [() => this.squire.bold(), () => this.squire.removeBold(), () => this.styles.b],
+		i: [() => this.squire.italic(), () => this.squire.removeItalic(), () => this.styles.i],
+		u: [() => this.squire.underline(), () => this.squire.removeUnderline(), () => this.styles.u],
+		c: [() => this.squire.setFontFace("monospace"), () => this.squire.setFontFace("sans-serif"), () => this.styles.c],
+		a: [() => this.makeLink(), () => this.squire.removeLink(), () => this.styles.a],
+	} as const)
+
     styles: Styles = {
         b: false,
         i: false,
@@ -43,80 +43,75 @@ export class Editor implements ImageHandler, Component {
         listing: null,
     }
 
-    constructor(minHeight: number | null, sanitizer: SanitizerFn) {
-        this._enabled = true
-        this._active = false
-        this._minHeight = minHeight
-        this._sanitizer = sanitizer
-        //this._tutanotaProperties = tutanotaProperties
-        this.initialized = defer()
-
-        this.onbeforeupdate = () => !(this._squire != null) // do not update the dom part managed by squire
-
-        this.onremove = () => {
-            if (this._squire) {
-                this._squire.destroy()
-
-                this._squire = null
-                this.initialized = defer()
-            }
-        }
-
-        this._createsLists = true
-        this._styleActions = Object.freeze({
-            b: [() => this._squire.bold(), () => this._squire.removeBold(), () => this.styles.b],
-            i: [() => this._squire.italic(), () => this._squire.removeItalic(), () => this.styles.i],
-            u: [() => this._squire.underline(), () => this._squire.removeUnderline(), () => this.styles.u],
-            c: [() => this._squire.setFontFace("monospace"), () => this._squire.setFontFace("sans-serif"), () => this.styles.c],
-            a: [() => this.makeLink(), () => this._squire.removeLink(), () => this.styles.a],
-        })
-
-        this.view = () => {
-            return m(".hide-outline.selectable", {
-                role: "textbox",
-                "aria-multiline": "true",
-                tabindex: TabIndex.Default,
-                oncreate: vnode => this.initSquire(vnode.dom as HTMLElement),
-                class: 'flex-grow',
-                style: this._minHeight
-                    ? {
-                        "min-height": px(this._minHeight),
-                    }
-                    : {},
-            })
-        }
+    constructor(
+		private minHeight: number | null,
+		private sanitizer: SanitizerFn,
+	) {
+		this.onremove = this.onremove.bind(this)
+		this.onbeforeupdate = this.onbeforeupdate.bind(this)
+        this.view = this.view.bind(this)
     }
 
+	onbeforeupdate(): boolean {
+		// do not update the dom part managed by squire
+		return this.squire == null
+
+	}
+
+	onremove() {
+		if (this.squire) {
+			this.squire.destroy()
+
+			this.squire = null
+			this.initialized = defer()
+		}
+	}
+
+	view(): Children {
+		return m(".hide-outline.selectable", {
+			role: "textbox",
+			"aria-multiline": "true",
+			tabindex: TabIndex.Default,
+			oncreate: vnode => this.initSquire(vnode.dom as HTMLElement),
+			class:'flex-grow',
+			style: this.minHeight
+				? {
+					"min-height": px(this.minHeight),
+				}
+				: {},
+		})
+	}
+
     isEmpty(): boolean {
-        return !this._squire || this._squire.getHTML() === "<div><br></div>"
+        return !this.squire || this.squire.getHTML() === "<div><br></div>"
     }
 
     getValue(): string {
-        return this.isEmpty() ? "" : this._squire.getHTML()
+        return this.isEmpty() ? "" : this.squire.getHTML()
     }
 
     addChangeListener(callback: (...args: Array<any>) => any) {
-        this._squire.addEventListener("input", callback)
+        this.squire.addEventListener("input", callback)
     }
 
     setMinHeight(minHeight: number): Editor {
-        this._minHeight = minHeight
+        this.minHeight = minHeight
         return this
     }
 
     setCreatesLists(createsLists: boolean): Editor {
-        this._createsLists = createsLists
+        this.createsLists = createsLists
         return this
     }
 
     initSquire(domElement: HTMLElement) {
         let squire = new (SquireEditor as any)(domElement, {
-            sanitizeToDOMFragment: this._sanitizer,
+            sanitizeToDOMFragment: this.sanitizer,
             blockAttributes: {
                 dir: "auto",
             },
         }).addEventListener("keyup", (e: KeyboardEvent) => {
-            if (this._createsLists && isKeyPressed(e.keyCode, Keys.SPACE)) {
+            if (this.createsLists && isKeyPressed(e.keyCode, Keys.SPACE)) {
                 let blocks: HTMLElement[] = []
                 squire.forEachBlock((block: HTMLElement) => {
                     blocks.push(block)
@@ -126,16 +121,16 @@ export class Editor implements ImageHandler, Component {
                 createList(blocks, /^\*\s$/, false) // create an unordered list if a line is started with '* '
             }
         })
-        this._squire = squire
+        this.squire = squire
 
-        this._squire.addEventListener("pathChange", () => {
+        this.squire.addEventListener("pathChange", () => {
             this.getStylesAtPath()
             m.redraw() // allow richtexttoolbar to redraw elements
         })
 
-        this._domElement = domElement
+        this.domElement = domElement
         // the _editor might have been disabled before the dom element was there
-        this.setEnabled(this._enabled)
+        this.setEnabled(this.enabled)
         this.initialized.resolve()
 
         function createList(blocks: HTMLElement[], regex: RegExp, ordered: boolean) {
@@ -166,7 +161,7 @@ export class Editor implements ImageHandler, Component {
     }
 
     setEnabled(enabled: boolean) {
-        this._enabled = enabled
+        this.enabled = enabled
 
         // not working currently
         // text is pasted before the event is triggered
@@ -174,40 +169,40 @@ export class Editor implements ImageHandler, Component {
             e.preventDefault()
         }
 
-        if (this._domElement) {
-            this._domElement.setAttribute("contenteditable", String(enabled))
+        if (this.domElement) {
+            this.domElement.setAttribute("contenteditable", String(enabled))
 
-            if (this._enabled) {
-                this._domElement.removeEventListener("paste", pasteSuppressor)
+            if (this.enabled) {
+                this.domElement.removeEventListener("paste", pasteSuppressor)
             } else {
-                this._domElement.addEventListener("paste", pasteSuppressor)
+                this.domElement.addEventListener("paste", pasteSuppressor)
             }
         }
     }
 
     isEnabled(): boolean {
-        return this._enabled
+        return this.enabled
     }
 
     setHTML(html: string | null) {
-        this._squire.setHTML(html)
+        this.squire.setHTML(html)
     }
 
     getHTML(): string {
-        return this._squire.getHTML()
+        return this.squire.getHTML()
     }
 
     setStyle(state: boolean, style: Style) {
-        ;(state ? this._styleActions[style][0] : this._styleActions[style][1])()
+        ;(state ? this.styleActions[style][0] : this.styleActions[style][1])()
     }
 
-    hasStyle: (arg0: Style) => boolean = style => (this._squire ? this._styleActions[style][2]() : false)
+    hasStyle: (arg0: Style) => boolean = style => (this.squire ? this.styleActions[style][2]() : false)
     getStylesAtPath: () => void = () => {
-        if (!this._squire) {
+        if (!this.squire) {
             return
         }
 
-        let pathSegments: string[] = this._squire.getPath().split(">")
+        let pathSegments: string[] = this.squire.getPath().split(">")
 
         // lists
         const ulIndex = pathSegments.lastIndexOf("UL")
@@ -260,9 +255,9 @@ export class Editor implements ImageHandler, Component {
         // font
         this.styles.c = pathSegments.find(f => f.includes("monospace")) !== undefined
         // decorations
-        this.styles.b = this._squire.hasFormat("b")
-        this.styles.u = this._squire.hasFormat("u")
-        this.styles.i = this._squire.hasFormat("i")
+        this.styles.b = this.squire.hasFormat("b")
+        this.styles.u = this.squire.hasFormat("u")
+        this.styles.i = this.squire.hasFormat("i")
     }
 
     makeLink() {
@@ -273,56 +268,56 @@ export class Editor implements ImageHandler, Component {
                 url = "https://" + url
             }
 
-            this._squire.makeLink(url)
+            this.squire.makeLink(url)
         })
     }
 
     insertImage(srcAttr: string, attrs?: Record<string, string>): HTMLElement {
-        return this._squire.insertImage(srcAttr, attrs)
+        return this.squire.insertImage(srcAttr, attrs)
     }
 
     /**
      * Inserts the given html content at the current cursor position.
      */
     insertHTML(html: string) {
-        this._squire.insertHTML(html)
+        this.squire.insertHTML(html)
     }
 
     getDOM(): HTMLElement {
-        return this._squire.getRoot()
+        return this.squire.getRoot()
     }
 
     getCursorPosition(): ClientRect {
-        return this._squire.getCursorPosition()
+        return this.squire.getCursorPosition()
     }
 
     focus(): void {
-        this._squire.focus()
+        this.squire.focus()
 
         this.getStylesAtPath()
     }
 
     isAttached(): boolean {
-        return this._squire != null
+        return this.squire != null
     }
 
     removeAllFormatting(): void {
         // Create a range which contains the whole editor
         const range = document.createRange()
-        range.selectNode(this._squire.getRoot())
+        range.selectNode(this.squire.getRoot())
 
-        this._squire.removeAllFormatting(range)
+        this.squire.removeAllFormatting(range)
     }
 
     getSelectedText(): string {
-        return this._squire.getSelectedText()
+        return this.squire.getSelectedText()
     }
 
     addEventListener(type: string, handler: (arg0: Event) => void) {
-        this._squire.addEventListener(type, handler)
+        this.squire.addEventListener(type, handler)
     }
 
     setSelection(range: Range) {
-        this._squire.setSelection(range)
+        this.squire.setSelection(range)
     }
 }

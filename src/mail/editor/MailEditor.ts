@@ -122,7 +122,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
             })
             this.mentionedInlineImages = sanitized.inlineImageCids
             return sanitized.html
-        }, {flexHeight: true})
+        })
 
         const onEditorChanged = () => {
             cleanupInlineAttachments(this.editor.getDOM(), this.inlineImageElements, model.getAttachments())

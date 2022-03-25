@@ -88,9 +88,9 @@ export class RichTextToolbar {
 			label: "emptyString_msg",
 			title: o.title,
 			click: () => {
-				editor._squire.setTextAlignment(o.name)
+				editor.squire.setTextAlignment(o.name)
 
-				setTimeout(() => editor._squire.focus(), 100) // blur for the editor is fired after the handler for some reason
+				setTimeout(() => editor.squire.focus(), 100) // blur for the editor is fired after the handler for some reason
 
 				m.redraw()
 			},
@@ -105,9 +105,9 @@ export class RichTextToolbar {
 				title: () => lang.get("formatTextUl_msg") + " (Ctrl + Shift + 8)",
 				click: () => {
 					if (editor.styles.listing === "ul") {
-						editor._squire.removeList()
+						editor.squire.removeList()
 					} else {
-						editor._squire.makeUnorderedList()
+						editor.squire.makeUnorderedList()
 					}
 				},
 				icon: () => Icons.ListUnordered,
@@ -123,9 +123,9 @@ export class RichTextToolbar {
 				title: () => lang.get("formatTextOl_msg") + " (Ctrl + Shift + 9)",
 				click: () => {
 					if (editor.styles.listing === "ol") {
-						editor._squire.removeList()
+						editor.squire.removeList()
 					} else {
-						editor._squire.makeOrderedList()
+						editor.squire.makeOrderedList()
 					}
 				},
 				icon: () => Icons.ListOrdered,
@@ -183,7 +183,7 @@ export class RichTextToolbar {
 			title: "removeFormatting_action",
 			icon: () => Icons.Cancel,
 			type: ButtonType.Toggle,
-			click: () => editor._squire.removeAllFormatting(),
+			click: () => editor.squire.removeAllFormatting(),
 			noBubble: true,
 			colors: ButtonColor.Elevated,
 		}
@@ -203,10 +203,10 @@ export class RichTextToolbar {
 						label: () => n.toString(),
 						type: ButtonType.Dropdown,
 						click: () => {
-							editor._squire.setFontSize(n)
+							editor.squire.setFontSize(n)
 
 							this.selectedSize(n)
-							setTimeout(() => editor._squire.focus(), 100) // blur for the editor is fired after the handler for some reason
+							setTimeout(() => editor.squire.focus(), 100) // blur for the editor is fired after the handler for some reason
 
 							m.redraw()
 						},
@@ -231,7 +231,7 @@ export class RichTextToolbar {
 
 		this.view = (): Children | null => {
 			try {
-				this.selectedSize(parseInt(editor._squire.getFontInfo().size.slice(0, -2)))
+				this.selectedSize(parseInt(editor.squire.getFontInfo().size.slice(0, -2)))
 			} catch (e) {
 				this.selectedSize(size.font_size_base)
 			}
