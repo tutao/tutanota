@@ -31,7 +31,6 @@ export class Editor implements ImageHandler, Component {
     private _active: boolean
     private _createsLists: boolean
     private _minHeight: number | null
-    private _flexHeight: boolean
     private _sanitizer: SanitizerFn
     private _styleActions: Record<Style, Array<(...args: Array<any>) => any>>
     styles: Styles = {
@@ -44,11 +43,10 @@ export class Editor implements ImageHandler, Component {
         listing: null,
     }
 
-    constructor(minHeight: number | null, sanitizer: SanitizerFn, extraStyles: {flexHeight: boolean} = {flexHeight: false}) {
+    constructor(minHeight: number | null, sanitizer: SanitizerFn) {
         this._enabled = true
         this._active = false
         this._minHeight = minHeight
-        this._flexHeight = extraStyles.flexHeight
         this._sanitizer = sanitizer
         //this._tutanotaProperties = tutanotaProperties
         this.initialized = defer()
@@ -79,7 +77,7 @@ export class Editor implements ImageHandler, Component {
                 "aria-multiline": "true",
                 tabindex: TabIndex.Default,
                 oncreate: vnode => this.initSquire(vnode.dom as HTMLElement),
-                class: this._flexHeight ? 'flex-grow' : '',
+                class: 'flex-grow',
                 style: this._minHeight
                     ? {
                         "min-height": px(this._minHeight),
