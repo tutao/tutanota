@@ -17,9 +17,12 @@ import {DefaultAnimationTime} from "../gui/animation/Animations"
 import {Keys} from "../api/common/TutanotaConstants"
 import {Checkbox} from "../gui/base/Checkbox.js"
 import {getSubscriptionPrice} from "./PriceUtils"
+import {locator} from "../api/main/MainLocator"
+import {UsageTest} from "@tutao/tutanota-usagetests"
 
 export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private _dom: HTMLElement | null = null
+	private __signupFreeTest?: UsageTest
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>): void {
 		this._dom = vnode.dom as HTMLElement
@@ -31,6 +34,9 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			vnode.attrs.data.options.paymentInterval = stream(Number(subscriptionParameters.interval))
 			this.goToNextPageWithPreselectedSubscription(subscriptionParameters, vnode.attrs.data)
 		}
+
+		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
+		this.__signupFreeTest.strictStageOrder = true
 	}
 
 	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
@@ -70,8 +76,12 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 	}
 
 	selectFree(data: UpgradeSubscriptionData) {
+		// Confirmation of free subscription selection (click on subscription selector)
+		this.__signupFreeTest?.getStage(0).complete()
 		confirmFreeSubscription().then(confirmed => {
 			if (confirmed) {
+				// Confirmation of free/business dialog (click on ok)
+				this.__signupFreeTest?.getStage(1).complete()
 				data.type = SubscriptionType.Free
 				data.price = "0"
 				data.priceNextYear = "0"
