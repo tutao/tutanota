@@ -20,6 +20,7 @@ import {showWorkerProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {InvalidDataError} from "../api/common/error/RestError"
 import {locator} from "../api/main/MainLocator"
 import {CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection} from "./TermsAndConditions"
+import {UsageTest} from "@tutao/tutanota-usagetests"
 import {logins} from "../api/main/LoginController.js"
 import {runCaptchaFlow} from "./Captcha.js"
 
@@ -42,9 +43,16 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private _mailAddressFormErrorId: TranslationKey | null = null
 	private _mailAddress!: string
 	private _isMailVerificationBusy: boolean
+	private readonly __mailValid: Stream<boolean>
+	private __signupFreeTest?: UsageTest
 
 	constructor() {
 		this.passwordModel = new PasswordModel(logins, {checkOldPassword: false, enforceStrength: true, repeatInput: false})
+		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
+		this.__signupFreeTest.strictStageOrder = true
+
+		this.__mailValid = stream(false)
+
 		this._confirmTerms = stream<boolean>(false)
 		this._confirmAge = stream<boolean>(false)
 		this._code = stream("")
@@ -57,6 +65,8 @@ export class SignupForm implements Component<SignupFormAttrs> {
 		const mailAddressFormAttrs: SelectMailAddressFormAttrs = {
 			availableDomains: isTutanotaDomain() ? TUTANOTA_MAIL_ADDRESS_DOMAINS : getWhitelabelRegistrationDomains(),
 			onValidationResult: (email, validationResult) => {
+				this.__mailValid(validationResult.isValid)
+
 				if (validationResult.isValid) {
 					this._mailAddress = email
 					this._mailAddressFormErrorId = null
@@ -97,6 +107,8 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			const ageConfirmPromise = this._confirmAge() ? Promise.resolve(true) : Dialog.confirm("parentConfirmation_msg", "paymentDataValidation_action")
 			ageConfirmPromise.then(confirmed => {
 				if (confirmed) {
+					// Credentials confirmation (click on next)
+					this.__signupFreeTest?.getStage(4).complete()
 					return signup(
 						this._mailAddress,
 						this.passwordModel.getNewPassword(),

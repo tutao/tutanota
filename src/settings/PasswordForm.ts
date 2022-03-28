@@ -14,6 +14,9 @@ import {theme} from "../gui/theme"
 import {Icons} from "../gui/base/icons/Icons"
 import {Button, ButtonAttrs} from "../gui/base/Button.js"
 import {px, size} from "../gui/size.js"
+import {UsageTest} from "@tutao/tutanota-usagetests"
+import Stream from "mithril/stream"
+import {locator} from "../api/main/MainLocator.js"
 
 assertMainOrNode()
 
@@ -34,12 +37,25 @@ export class PasswordModel {
 	private repeatedPassword = ""
 	private passwordStrength: number
 	private revealPassword: boolean = false
+	private readonly __mailValid?: Stream<boolean>
+	private __signupFreeTest?: UsageTest
 
 	constructor(
 		private readonly logins: LoginController,
 		readonly config: PasswordModelConfig,
+		mailValid?: Stream<boolean>,
 	) {
 		this.passwordStrength = this.calculatePasswordStrength()
+
+		this.__mailValid = mailValid
+		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
+	}
+
+	_checkBothValidAndSendPing() {
+		if (this.getNewPasswordStatus().type === "valid" && this.getRepeatedPasswordStatus().type === "valid") {
+			// Password entry (both passwords entered and valid)
+			this.__signupFreeTest?.getStage(3).complete()
+		}
 	}
 
 	getNewPassword(): string {
@@ -47,8 +63,15 @@ export class PasswordModel {
 	}
 
 	setNewPassword(newPassword: string) {
+		if (this.__mailValid && this.__mailValid()) {
+			// Email address selection finished (email address is available and clicked in password field)
+			this.__signupFreeTest?.getStage(2).complete()
+		}
+
 		this.newPassword = newPassword
 		this.passwordStrength = this.calculatePasswordStrength()
+
+		this._checkBothValidAndSendPing()
 	}
 
 	getOldPassword(): string {
@@ -67,6 +90,8 @@ export class PasswordModel {
 	setRepeatedPassword(repeatedPassword: string) {
 		this.repeatedPassword = repeatedPassword
 		this.passwordStrength = this.calculatePasswordStrength()
+
+		this._checkBothValidAndSendPing()
 	}
 
 	clear() {

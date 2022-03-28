@@ -40,7 +40,7 @@ export const enum TtlBehavior {
 	UpToDateOnly,
 }
 
-const USAGE_TESTS_ENABLED = isTest()
+const USAGE_TESTS_ENABLED = true
 
 export class UsageTestModel implements PingAdapter {
 
@@ -112,6 +112,7 @@ export class UsageTestModel implements PingAdapter {
 				usageTestAssignment.name,
 				Number(usageTestAssignment.variant),
 				usageTestAssignment.sendPings,
+				false,
 			)
 
 			for (const index of usageTestAssignment.stages.keys()) {

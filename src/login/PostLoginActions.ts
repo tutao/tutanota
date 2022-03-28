@@ -132,6 +132,9 @@ export class PostLoginActions implements IPostLoginAction {
 		// Get any tests, as soon as possible even if they are stale
 		locator.usageTestController.setTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly))
 
+		// Login after signup (accept that we send a ping at login although the test was never started)
+		locator.usageTestController.getTest("signup.free").getStage(5).complete()
+
 		this.enforcePasswordChange()
 	}
 
