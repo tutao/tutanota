@@ -45,11 +45,12 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private _isMailVerificationBusy: boolean
 	private readonly __mailValid: Stream<boolean>
 	private __signupFreeTest?: UsageTest
+	private __signupPaidTest?: UsageTest
 
 	constructor() {
 		this.passwordModel = new PasswordModel(logins, {checkOldPassword: false, enforceStrength: true, repeatInput: false})
 		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
-		this.__signupFreeTest.strictStageOrder = true
+		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
 
 		this.__mailValid = stream(false)
 
@@ -109,6 +110,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 				if (confirmed) {
 					// Credentials confirmation (click on next)
 					this.__signupFreeTest?.getStage(4).complete()
+					this.__signupPaidTest?.getStage(3).complete()
 					return signup(
 						this._mailAddress,
 						this.passwordModel.getNewPassword(),
