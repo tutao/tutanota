@@ -23,6 +23,7 @@ import {UsageTest} from "@tutao/tutanota-usagetests"
 export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private _dom: HTMLElement | null = null
 	private __signupFreeTest?: UsageTest
+	private __signupPaidTest?: UsageTest
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>): void {
 		this._dom = vnode.dom as HTMLElement
@@ -37,6 +38,9 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 
 		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
 		this.__signupFreeTest.strictStageOrder = true
+
+		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
+		this.__signupPaidTest.strictStageOrder = true
 	}
 
 	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
@@ -144,6 +148,8 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 	}
 
 	setNonFreeDataAndGoToNextPage(data: UpgradeSubscriptionData, subscriptionType: SubscriptionType): void {
+		// Confirmation of paid subscription selection (click on subscription selector)
+		this.__signupPaidTest?.getStage(0).complete()
 		data.type = subscriptionType
 		data.price = String(getSubscriptionPrice(data, data.type, UpgradePriceType.PlanActualPrice))
 		let nextYear = String(getSubscriptionPrice(data, data.type, UpgradePriceType.PlanNextYearsPrice))

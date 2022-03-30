@@ -39,6 +39,7 @@ export class PasswordModel {
 	private revealPassword: boolean = false
 	private readonly __mailValid?: Stream<boolean>
 	private __signupFreeTest?: UsageTest
+	private __signupPaidTest?: UsageTest
 
 	constructor(
 		private readonly logins: LoginController,
@@ -49,12 +50,14 @@ export class PasswordModel {
 
 		this.__mailValid = mailValid
 		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
+		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
 	}
 
 	_checkBothValidAndSendPing() {
 		if (this.getNewPasswordStatus().type === "valid" && this.getRepeatedPasswordStatus().type === "valid") {
 			// Password entry (both passwords entered and valid)
 			this.__signupFreeTest?.getStage(3).complete()
+			this.__signupPaidTest?.getStage(2).complete()
 		}
 	}
 
@@ -66,6 +69,7 @@ export class PasswordModel {
 		if (this.__mailValid && this.__mailValid()) {
 			// Email address selection finished (email address is available and clicked in password field)
 			this.__signupFreeTest?.getStage(2).complete()
+			this.__signupPaidTest?.getStage(1).complete()
 		}
 
 		this.newPassword = newPassword
