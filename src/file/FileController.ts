@@ -256,8 +256,25 @@ export class FileController {
 			try {
 				// @ts-ignore
 				let URL = window.URL || window.webkitURL || window.mozURL || window.msURL
+
+				// Workaround for new behaviour in firefox 98 where PDF attachments open in the same tab by default
+				// Users can always change their settings to "always ask" or somesuch, but it's very not nice for this to happen at all
+				// because the app gets clobbered, logging users out as well as losing their non-persistent sessions
+				// There is a bug report: https://bugzilla.mozilla.org/show_bug.cgi?id=1756980
+				// It is unclear whether this will be fixed on the firefox side as it seems that they consider it to be expected behaviour
+				// Maybe it will gain enough traction that it will be reverted
+				// It's unclear to me why target=_blank is being ignored. If there is a way to ensure that it always opens a new tab,
+				// Then we should do that instead of this, because it's preferable to keep the mime type.
+			const needsPdfWorkaround = dataFile.mimeType === "application/pdf"
+				&& client.browser === BrowserType.FIREFOX
+				&& client.browserVersion >= 98
+
+			const mimeType = needsPdfWorkaround
+					? "application/octet-stream"
+					: dataFile.mimeType
+
 				let blob = new Blob([dataFile.data], {
-					type: dataFile.mimeType,
+					type: mimeType,
 				})
 				let url = URL.createObjectURL(blob)
 				let a = document.createElement("a")
