@@ -18,14 +18,14 @@ assertMainOrNode()
 export const CALENDAR_MIME_TYPE = "text/calendar"
 
 export class FileController {
-	_fileApp: NativeFileApp | null
 
-	get fileApp(): NativeFileApp {
+	private get fileApp(): NativeFileApp {
 		return assertNotNull(this._fileApp)
 	}
 
-	constructor(fileApp: NativeFileApp | null) {
-		this._fileApp = fileApp
+	constructor(
+		private readonly _fileApp: NativeFileApp | null
+	) {
 	}
 
 	/**
@@ -47,7 +47,7 @@ export class FileController {
 					}
 				} finally {
 					if (file) {
-						this._deleteFile(file.location)
+						this.deleteFile(file.location)
 					}
 				}
 			} else if (isDesktop()) {
@@ -105,7 +105,7 @@ export class FileController {
 			)
 			const files = fileResults.filter(isNotNull)
 			for (const file of files) {
-				await this.openFileReference(file).finally(() => this._deleteFile(file.location))
+				await this.openFileReference(file).finally(() => this.deleteFile(file.location))
 			}
 		} else {
 			const fileResults = await promiseMap(
@@ -204,119 +204,79 @@ export class FileController {
 		)
 	}
 
-	openFileReference(file: FileReference): Promise<void> {
+	private openFileReference(file: FileReference): Promise<void> {
 		return this.fileApp.open(file)
 	}
 
 	async openDataFile(dataFile: DataFile): Promise<void> {
+
 		if (isApp() || isDesktop()) {
 			// For apps "opening" blob currently means saving it. This is not logical but we need to check all cases before changing this.
-			await this._saveBlobNative(dataFile)
+			await this.saveBlobNative(dataFile)
 			return
 		}
 
-		let saveFunction: (...args: Array<any>) => any =
-			// @ts-ignore
-			window.saveAs ||
-			// @ts-ignore
-			window.webkitSaveAs ||
-			// @ts-ignore
-			window.mozSaveAs ||
-			// @ts-ignore
-			window.msSaveAs ||
-			(navigator as any).saveBlob ||
-			(navigator as any).msSaveOrOpenBlob ||
-			(navigator as any).msSaveBlob ||
-			(navigator as any).mozSaveBlob ||
-			(navigator as any).webkitSaveBlob
+		try {
+			const URL = window.URL || window.webkitURL || window.mozURL || window.msURL
 
-		if (saveFunction) {
-			let blob = new Blob([dataFile.data], {
-				type: dataFile.mimeType,
-			})
-
-			try {
-				const navAny = navigator as any
-
-				// in IE the save function must be called directly, otherwise an error is thrown
-				if (navAny.msSaveOrOpenBlob) {
-					navAny.msSaveOrOpenBlob(blob, dataFile.name)
-				} else if (navAny.msSaveBlob) {
-					navAny.msSaveBlob(blob, dataFile.name)
-				} else {
-					saveFunction(blob, dataFile.name)
-				}
-
-				return Promise.resolve()
-			} catch (e) {
-				console.log(e)
-				return Dialog.message("saveDownloadNotPossibleIe_msg")
-			}
-		} else {
-			try {
-				// @ts-ignore
-				let URL = window.URL || window.webkitURL || window.mozURL || window.msURL
-
-				// Workaround for new behaviour in firefox 98 where PDF attachments open in the same tab by default
-				// Users can always change their settings to "always ask" or somesuch, but it's very not nice for this to happen at all
-				// because the app gets clobbered, logging users out as well as losing their non-persistent sessions
-				// There is a bug report: https://bugzilla.mozilla.org/show_bug.cgi?id=1756980
-				// It is unclear whether this will be fixed on the firefox side as it seems that they consider it to be expected behaviour
-				// Maybe it will gain enough traction that it will be reverted
-				// It's unclear to me why target=_blank is being ignored. If there is a way to ensure that it always opens a new tab,
-				// Then we should do that instead of this, because it's preferable to keep the mime type.
+			// Workaround for new behaviour in firefox 98 where PDF attachments open in the same tab by default
+			// Users can always change their settings to "always ask" or somesuch, but it's very not nice for this to happen at all
+			// because the app gets clobbered, logging users out as well as losing their non-persistent sessions
+			// There is a bug report: https://bugzilla.mozilla.org/show_bug.cgi?id=1756980
+			// It is unclear whether this will be fixed on the firefox side as it seems that they consider it to be expected behaviour
+			// Maybe it will gain enough traction that it will be reverted
+			// It's unclear to me why target=_blank is being ignored. If there is a way to ensure that it always opens a new tab,
+			// Then we should do that instead of this, because it's preferable to keep the mime type.
 			const needsPdfWorkaround = dataFile.mimeType === "application/pdf"
 				&& client.browser === BrowserType.FIREFOX
 				&& client.browserVersion >= 98
 
 			const mimeType = needsPdfWorkaround
-					? "application/octet-stream"
-					: dataFile.mimeType
+				? "application/octet-stream"
+				: dataFile.mimeType
 
-				let blob = new Blob([dataFile.data], {
-					type: mimeType,
-				})
-				let url = URL.createObjectURL(blob)
-				let a = document.createElement("a")
+			const blob = new Blob([dataFile.data], {type: mimeType,})
+			const url = URL.createObjectURL(blob)
+			const a = document.createElement("a")
 
-				if (typeof a.download !== "undefined") {
-					a.href = url
-					a.download = dataFile.name
-					a.style.display = "none"
-					a.target = "_blank"
-					const body = neverNull(document.body)
-					body.appendChild(a)
-					a.click()
-					body.removeChild(a)
-					// Do not revoke object URL right away so that the browser has a chance to open it
-					setTimeout(() => {
-						window.URL.revokeObjectURL(url)
-					}, 2000)
-				} else {
-					if (client.isIos() && client.browser === BrowserType.CHROME && typeof FileReader === "function") {
-						var reader = new FileReader()
+			if (typeof a.download !== "undefined") {
+				a.href = url
+				a.download = dataFile.name
+				a.style.display = "none"
+				a.target = "_blank"
+				document.body.appendChild(a)
+				a.click()
+				document.body.removeChild(a)
+				// Do not revoke object URL right away so that the browser has a chance to open it
+				setTimeout(() => {
+					window.URL.revokeObjectURL(url)
+				}, 2000)
+			} else {
+				if (client.isIos() && client.browser === BrowserType.CHROME && typeof FileReader === "function") {
 
-						reader.onloadend = function () {
-							let url = reader.result as any
-							return Dialog.legacyDownload(dataFile.name, url)
+					const reader = new FileReader()
+
+					const downloadPromise = new Promise(resolve => {
+						reader.onloadend = async function () {
+							const url = reader.result as any
+							resolve(await Dialog.legacyDownload(dataFile.name, url))
 						}
+					})
 
-						reader.readAsDataURL(blob)
-					} else {
-						// if the download attribute is not supported try to open the link in a new tab.
-						return Dialog.legacyDownload(dataFile.name, url)
-					}
+					reader.readAsDataURL(blob)
+					await downloadPromise
+				} else {
+					// if the download attribute is not supported try to open the link in a new tab.
+					await Dialog.legacyDownload(dataFile.name, url)
 				}
-
-				return Promise.resolve()
-			} catch (e) {
-				console.log(e)
-				return Dialog.message("canNotOpenFileOnDevice_msg")
 			}
+		} catch (e) {
+			console.log(e)
+			return Dialog.message("canNotOpenFileOnDevice_msg")
 		}
 	}
 
-	async _saveBlobNative(dataFile: DataFile) {
+	private async saveBlobNative(dataFile: DataFile) {
 		try {
 			await this.fileApp.saveBlob(dataFile)
 		} catch (e) {
@@ -360,7 +320,7 @@ export class FileController {
 		}
 	}
 
-	_deleteFile(filePath: string) {
+	private deleteFile(filePath: string) {
 		if (isApp()) {
 			this.fileApp.deleteFile(filePath).catch(e => console.log("failed to delete file", filePath, e))
 		}
