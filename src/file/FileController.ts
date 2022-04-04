@@ -217,7 +217,7 @@ export class FileController {
 		}
 
 		try {
-			const URL = window.URL || window.webkitURL || window.mozURL || window.msURL
+			const URL = window.URL ?? window.webkitURL
 
 			// Workaround for new behaviour in firefox 98 where PDF attachments open in the same tab by default
 			// Users can always change their settings to "always ask" or somesuch, but it's very not nice for this to happen at all
