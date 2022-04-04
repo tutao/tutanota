@@ -60,9 +60,6 @@ import {getCoordsOfMouseOrTouchEvent} from "../../gui/base/GuiUtils"
 import {showDropdownAtPosition} from "../../gui/base/DropdownN"
 import {ButtonType} from "../../gui/base/ButtonN"
 import {createListUnsubscribeData} from "../../api/entities/tutanota/ListUnsubscribeData"
-import {serviceRequestVoid} from "../../api/main/ServiceRequest"
-import {TutanotaService} from "../../api/entities/tutanota/Services"
-import {HttpMethod} from "../../api/common/EntityFunctions"
 import {checkApprovalStatus} from "../../misc/LoginUtils"
 import {formatDateTime, urlEncodeHtmlTags} from "../../misc/Formatter"
 import {UserError} from "../../api/main/UserError"
@@ -78,6 +75,8 @@ import {ease} from "../../gui/animation/Easing"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import {LoadingStateTracker} from "../../offline/LoadingState"
+import {IServiceExecutor} from "../../api/common/ServiceRequest"
+import {ListUnsubscribeService} from "../../api/entities/tutanota/Services"
 
 const SCROLL_FACTOR = 4 / 5
 
@@ -142,6 +141,7 @@ export class MailViewerViewModel {
 		private readonly fileFacade: FileFacade,
 		private readonly fileController: FileController,
 		readonly logins: LoginController,
+		readonly service: IServiceExecutor
 	) {
 
 		if (isDesktop()) {
@@ -182,6 +182,11 @@ export class MailViewerViewModel {
 		)
 	}
 
+	async dispose() {
+		const inlineImages = await this.getLoadedInlineImages()
+		revokeInlineImages(inlineImages)
+	}
+
 	async loadAll() {
 		await this.loadingState.trackPromise(
 			Promise.all([
@@ -189,6 +194,8 @@ export class MailViewerViewModel {
 				this.loadAttachments(this.mail, this.referencedCids.promise),
 			])
 		).catch(ofClass(ConnectionError, noOp))
+
+		await this.replaceInlineImages()
 
 		m.redraw()
 	}
@@ -204,12 +211,6 @@ export class MailViewerViewModel {
 
 	isConnectionLost(): boolean {
 		return this.loadingState.isConnectionLost()
-	}
-
-	revokeInlineImages(): Promise<void> {
-		return this.getLoadedInlineImages().then(inlineImages => {
-			revokeInlineImages(inlineImages)
-		})
 	}
 
 	getAttachments(): Array<TutanotaFile> {
@@ -514,7 +515,7 @@ export class MailViewerViewModel {
 						recipient,
 						headers: headers.join("\n"),
 					})
-					return serviceRequestVoid(TutanotaService.ListUnsubscribeService, HttpMethod.POST, postData).then(() => true)
+					return this.service.post(ListUnsubscribeService, postData).then(() => true)
 				})
 			} else {
 				return false

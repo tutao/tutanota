@@ -4,7 +4,6 @@ import {lastThrow, remove} from "@tutao/tutanota-utils"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {isSameId} from "../../api/common/utils/EntityUtils"
 import Stream from "mithril/stream";
-import {TranslationKey} from "../../misc/LanguageViewModel"
 
 export const enum SaveStatusEnum {
 	Saving = 0,

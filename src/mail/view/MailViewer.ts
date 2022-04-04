@@ -43,7 +43,6 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {LockedError} from "../../api/common/error/RestError"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {theme} from "../../gui/theme"
-import {MailHeadersTypeRef} from "../../api/entities/tutanota/MailHeaders"
 import {client} from "../../misc/ClientDetector"
 import {createAsyncDropDownButton, DomRectReadOnlyPolyfilled} from "../../gui/base/Dropdown"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
@@ -176,7 +175,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	// onbeforeremove is only called if we are removed from the parent
 	// e.g. it is not called when switching to contact view
 	onbeforeremove() {
-		this.viewModel.revokeInlineImages()
+		this.viewModel.dispose()
 	}
 
 	onremove() {
@@ -1386,6 +1385,7 @@ export function createMailViewerViewModell({mail, showFolder, delayBodyRendering
 		isDesktop() ? locator.native : null,
 		locator.fileFacade,
 		locator.fileController,
-		logins
+		logins,
+		locator.serviceExecutor
 	)
 }
