@@ -81,7 +81,7 @@ export class MailView implements CurrentView {
 	mailList!: MailListView
 	view: CurrentView["view"]
 	selectedFolder: MailFolder | null = null
-	mailViewerViewModel: MailViewerViewModel | null = null
+
 	oncreate: CurrentView["oncreate"]
 	onremove: CurrentView["onremove"]
 	_mailboxSections: Map<Id, MailboxSection> // mailGroupId -> section
@@ -91,6 +91,21 @@ export class MailView implements CurrentView {
 	private _actionBarButtons: lazy<ButtonAttrs[]>
 	private _throttledRouteSet: (arg0: string) => void
 	private _countersStream!: Stream<any>
+
+
+
+	private _mailViewerViewModel: MailViewerViewModel | null = null
+
+	get mailViewerViewModel(): MailViewerViewModel | null {
+		return this._mailViewerViewModel
+	}
+
+	set mailViewerViewModel(viewModel: MailViewerViewModel | null) {
+		if (this._mailViewerViewModel != null) {
+			this._mailViewerViewModel.dispose()
+		}
+		this._mailViewerViewModel = viewModel
+	}
 
 	constructor() {
 		this._mailboxSections = new Map()
