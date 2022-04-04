@@ -134,7 +134,12 @@ export class CalendarFacade {
 		const numEvents = eventsWrapper.length
 		const eventsWithAlarms: Array<AlarmNotificationsPerEvent> = await this._saveMultipleAlarms(user, eventsWrapper).catch(
 			ofClass(SetupMultipleError, e => {
-				throw new ImportError("Could not save alarms.", numEvents)
+				if (e.errors.some(error => error instanceof ConnectionError)) {
+					//In this case the user will not be informed about the number of failed alarms. We considered this is okay because it is not actionable anyways.
+					throw new ConnectionError("Connection lost while saving alarms")
+				} else {
+					throw new ImportError("Could not save alarms.", numEvents)
+				}
 			}),
 		)
 		eventsWithAlarms.forEach(({event, alarmInfoIds}) => (event.alarmInfos = alarmInfoIds))
@@ -180,6 +185,7 @@ export class CalendarFacade {
 
 		if (failed !== 0) {
 			if (errors.some(error => error instanceof ConnectionError)) {
+				//In this case the user will not be informed about the number of failed events. We considered this is okay because it is not actionable anyways.
 				throw new ConnectionError("Connection lost while saving events")
 			} else {
 				throw new ImportError("Could not save events.", failed)

@@ -1422,7 +1422,7 @@ export type TranslationKeyType =
 	| "you_label"
 	| "emptyString_msg"
 	| "domainStillHasContactForms_msg"
-	| "draftNotSavedWithReason_msg"
+	| "draftNotSavedConnectionLost_msg"
 	| "connectionLost_msg"
 	| "connectionLostLong_msg"
 	| "mailPartsNotLoaded_msg"

@@ -12,13 +12,18 @@ export const enum SaveStatusEnum {
 	NotSaved = 2,
 }
 
+export const enum SaveErrorReason {
+	Unknown,
+	ConnectionLost
+}
+
 export type SaveStatus = {
 	status: SaveStatusEnum.Saving
 } | {
 	status: SaveStatusEnum.Saved
 } | {
 	status: SaveStatusEnum.NotSaved,
-	reason: TranslationKey | null
+	reason: SaveErrorReason
 }
 
 export type MinimizedEditor = {

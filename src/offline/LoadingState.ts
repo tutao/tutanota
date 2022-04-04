@@ -2,11 +2,18 @@ import stream from "mithril/stream"
 import {ConnectionError} from "../api/common/error/RestError"
 
 export enum LoadingState {
+	/** We have not tried to load anything, or the loading is complete */
 	Idle,
+	/** We are waiting for a resource to load */
 	Loading,
+	/** We tried to load and got a `ConnectionError` */
 	ConnectionLost
 }
 
+/**
+ * A utility to track the loaded state of some resource
+ * Provides listeners for handling state changes
+ */
 export class LoadingStateTracker {
 
 	private readonly state: stream<LoadingState>
@@ -50,6 +57,12 @@ export class LoadingStateTracker {
 		this.set(LoadingState.ConnectionLost)
 	}
 
+	/**
+	 * Follow the state of a promise.
+	 * While the promise is not resolved, this will be in `Loading` state
+	 * If the promise rejects with a `ConnectionError`, then it will finish in `ConnectionLost` state
+	 * Otherwise it will finish in `Idle` state
+	 */
 	async trackPromise<T>(promise: Promise<T>): Promise<T> {
 		this.set(LoadingState.Loading)
 

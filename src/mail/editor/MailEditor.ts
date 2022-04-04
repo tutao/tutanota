@@ -57,7 +57,7 @@ import {createKnowledgeBaseDialogInjection, createOpenKnowledgeBaseButtonAttrs} 
 import {KnowledgeBaseModel} from "../../knowledgebase/model/KnowledgeBaseModel"
 import {styles} from "../../gui/styles"
 import {showMinimizedMailEditor} from "../view/MinimizedMailEditorOverlay"
-import {SaveStatus, SaveStatusEnum} from "../model/MinimizedMailEditorViewModel"
+import {SaveErrorReason, SaveStatus, SaveStatusEnum} from "../model/MinimizedMailEditorViewModel"
 import {isDataFile, isTutanotaFile} from "../../api/common/utils/FileUtils"
 import {parseMailtoUrl} from "../../misc/parsing/MailAddressParser"
 import {CancelledError} from "../../api/common/error/CancelledError"
@@ -605,8 +605,8 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
             .catch(e => {
 
 				const reason = e instanceof ConnectionError
-					? "connectionLost_msg"
-					: null
+					? SaveErrorReason.ConnectionLost
+					: SaveErrorReason.Unknown
 
 				saveStatus({status: SaveStatusEnum.NotSaved, reason})
 
