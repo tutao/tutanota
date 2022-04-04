@@ -170,21 +170,23 @@ export class MailViewerViewModel {
 		}
 
 		this.loadAll()
+
+		// We need the conversation entry in order to reply to the message.
+		// We don't want the user to have to wait for it to load when they click reply,
+		// So we load it here pre-emptively to make sure it is in the cache.
+		this.loadedInlineImages.promise.then(() =>
+			this.entityClient
+				.load(ConversationEntryTypeRef, this.mail.conversationEntry)
+				.catch(ofClass(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e)))
+				.catch(ofClass(ConnectionError, e => console.log("failed to load conversation entry, because of a lost connection", e)))
+		)
 	}
 
 	async loadAll() {
 		await this.loadingState.trackPromise(
 			Promise.all([
-				// We call those sequentially as _loadAttachments() waits for _inlineFileIds to resolve
 				this.loadMailBody(this.mail).then(referencedCids => this.referencedCids.resolve(referencedCids)),
-				this.loadAttachments(this.mail),
-				// TODO it doesn't make much sense why we load this here, we load it again anyway when we init a new sendMailModel
-				// this.loadedInlineImages.promise.then(() =>
-				// 	// load the conversation entry here because we expect it to be loaded immediately when responding to this email
-				// 	this.entityClient
-				// 		.load(ConversationEntryTypeRef, this.mail.conversationEntry)
-				// 		.catch(ofClass(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e)))
-				// )
+				this.loadAttachments(this.mail, this.referencedCids.promise),
 			])
 		).catch(ofClass(ConnectionError, noOp))
 
@@ -568,48 +570,38 @@ export class MailViewerViewModel {
 		return sanitizeResult.inlineImageCids
 	}
 
-	private async loadAttachments(mail: Mail) {
+	private async loadAttachments(mail: Mail, inlineCidsPromise: Promise<Array<string>>) {
+
 		if (mail.attachments.length === 0) {
 			this.loadingAttachments = false
 			this.loadedInlineImages.resolve(new Map())
 		} else {
-			await Promise
-				.resolve()
-				.then(async () => {
-					// We wait for _inlineFileIds to resolve in order to make the server requests sequentially
-					const inlineCids = await this.getReferencedCids()
+			this.loadingAttachments = true
+			const attachmentsListId = listIdPart(mail.attachments[0])
+			const attachmentElementIds = mail.attachments.map(attachment => elementIdPart(attachment))
 
-					this.loadingAttachments = true
-					const attachmentsListId = listIdPart(mail.attachments[0])
-					const attachmentElementIds = mail.attachments.map(attachment => elementIdPart(attachment))
+			const inlineCids = await inlineCidsPromise
 
-					try {
+			try {
+				const files = await this.entityClient.loadMultiple(FileTypeRef, attachmentsListId, attachmentElementIds)
 
-						const files = await this.entityClient.loadMultiple(FileTypeRef, attachmentsListId, attachmentElementIds)
+				this.handleCalendarFile(files, mail)
 
-						this.handleCalendarFile(files, mail)
-
-						this.attachments = files
-						this.inlineCids = inlineCids
-						this.deferredAttachments.resolve(null)
-						this.loadingAttachments = false
-						const inlineImages = loadInlineImages(this.fileFacade, files, inlineCids).then(this.loadedInlineImages.resolve)
-						m.redraw()
-						return inlineImages
-					} catch (e) {
-						if (e instanceof NotFoundError) {
-							console.log("could load attachments as they have been moved/deleted already", e)
-							return new Map()
-						} else {
-							throw e
-						}
-					}
-				})
-				.then(this.loadedInlineImages.resolve)
-				.catch(e => {
+				this.attachments = files
+				this.inlineCids = inlineCids
+				this.deferredAttachments.resolve(null)
+				this.loadingAttachments = false
+				await loadInlineImages(this.fileFacade, files, inlineCids).then(this.loadedInlineImages.resolve)
+				m.redraw()
+			} catch (e) {
+				if (e instanceof NotFoundError) {
+					console.log("could load attachments as they have been moved/deleted already", e)
+					this.loadedInlineImages.resolve(new Map())
+				} else {
 					this.loadedInlineImages.reject(e)
 					throw e
-				})
+				}
+			}
 		}
 	}
 

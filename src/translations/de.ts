@@ -1440,7 +1440,7 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
 		"domainStillHasContactForms_msg": "{domain} kann nicht deaktiviert werden, da noch Kontaktformulare aktiv sind. Bitte lösche die Kontaktformulare bevor du {domain} deaktivierst.",
-		"draftNotSavedWithReason_msg": "Der Entwurf konnte nicht gespeichert werden ({reason}).",
+		"draftNotSavedConnectionLost_msg": "Der Entwurf konnte nicht gespeichert werden (Verbindung abgebrochen).",
 		"connectionLost_msg": "Verbindung abgebrochen.",
 		"connectionLostLong_msg": "Die Verbindung zum Server ist abgebrochen. Bitte versuche es erneut.",
 		"mailPartsNotLoaded_msg": "Einige Teile der E-Mail konnten nicht geladen werden, da die Verbindung abgebrochen ist.",

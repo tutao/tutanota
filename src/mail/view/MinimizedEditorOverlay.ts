@@ -4,7 +4,7 @@ import {getNavButtonIconBackground, theme} from "../../gui/theme"
 import {lang} from "../../misc/LanguageViewModel"
 import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import type {MinimizedEditor, MinimizedMailEditorViewModel} from "../model/MinimizedMailEditorViewModel"
-import {SaveStatus, SaveStatusEnum} from "../model/MinimizedMailEditorViewModel"
+import {SaveErrorReason, SaveStatus, SaveStatusEnum} from "../model/MinimizedMailEditorViewModel"
 import {px} from "../../gui/size"
 import {Icons} from "../../gui/base/icons/Icons"
 import {styles} from "../../gui/styles"
@@ -126,15 +126,15 @@ function getStatusMessage(saveStatus: SaveStatus): string {
 	switch (saveStatus.status) {
 		case SaveStatusEnum.Saving:
 			return lang.get("save_msg")
-
 		case SaveStatusEnum.NotSaved:
-			return saveStatus.reason != null
-				? lang.get("draftNotSavedWithReason_msg", {"{reason}": lang.get(saveStatus.reason)})
-				: lang.get("draftNotSaved_msg")
-
+			switch (saveStatus.reason) {
+				case SaveErrorReason.ConnectionLost:
+					return lang.get("draftNotSavedConnectionLost_msg")
+				default:
+					return lang.get("draftNotSaved_msg")
+			}
 		case SaveStatusEnum.Saved:
 			return lang.get("draftSaved_msg")
-
 		default:
 			return ""
 	}
