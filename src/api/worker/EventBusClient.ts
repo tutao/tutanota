@@ -374,7 +374,9 @@ export class EventBusClient {
 		this.eventQueue.pause()
 
 		const existingConnection = connectMode == ConnectMode.Reconnect && this.lastEntityEventIds.size > 0
-		const p = (existingConnection) ? this.loadMissedEntityEvents() : this.initOnNewConnection()
+		const p = existingConnection
+			? this.loadMissedEntityEvents()
+			: this.initOnNewConnection()
 
 		return p
 			.then(() => {
@@ -513,9 +515,7 @@ export class EventBusClient {
 	private async checkOutOfSync() {
 		// We try to detect whether event batches have already expired.
 		// If this happened we don't need to download anything, we need to purge the cache and start all over.
-		const sinceLastUpdate = await this.cache.timeSinceLastSync()
-		if (sinceLastUpdate != null && sinceLastUpdate > ENTITY_EVENT_BATCH_EXPIRE_MS) {
-			console.log("ws cache is out of sync, purging...")
+		if (await this.cache.isOutOfSync()) {
 
 			// Allow the progress bar to complete
 			this.progressMonitor.workDone(this.eventGroups().length)

@@ -54,7 +54,11 @@ export class AdminClientRestCacheDummy implements IEntityRestCache {
 		return
 	}
 
-	async timeSinceLastSync(): Promise<number | null> {
+	async timeSinceLastSyncMs(): Promise<number | null> {
 		return null
+	}
+
+	async isOutOfSync(): Promise<boolean> {
+		return false
 	}
 }

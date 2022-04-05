@@ -26,9 +26,9 @@ import type {IProgressMonitor} from "../../../src/api/common/utils/ProgressMonit
 import type {CalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
 import {createCalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
 
-export const accountMailAddress = "address@tutanota.com"
-export const userId = "12356"
-export const calendarGroupId = "0"
+export const accountMailAddress = "address@tutanota.com" as const
+export const userId = "12356" as const
+export const calendarGroupId = "0" as const
 
 export function makeUserController(
 	aliases: Array<string> = [],

@@ -17,10 +17,13 @@ import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {RejectedSenderTypeRef} from "../../entities/sys/RejectedSender"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId} from "../../common/utils/EntityUtils";
 import {ProgrammingError} from "../../common/error/ProgrammingError"
-import {assertWorkerOrNode, isDesktop} from "../../common/Env"
+import {assertWorkerOrNode} from "../../common/Env"
 import type {ListElementEntity, SomeEntity} from "../../common/EntityTypes"
 import {EntityUpdateData} from "../../main/EventController"
 import {QueuedBatch} from "../search/EventQueue"
+import {ENTITY_EVENT_BATCH_EXPIRE_MS} from "../EventBusClient"
+import {WorkerImpl} from "../WorkerImpl"
+import {OutOfSyncError} from "../../common/error/OutOfSyncError"
 
 
 assertWorkerOrNode()
@@ -60,7 +63,12 @@ export interface IEntityRestCache extends EntityRestInterface {
 	/**
 	 * Fetch the time since last time we downloaded event batches.
 	 */
-	timeSinceLastSync(): Promise<number | null>;
+	timeSinceLastSyncMs(): Promise<number | null>;
+
+	/**
+	 * Detect if out of sync based on stored "lastUpdateTime" and the current server time
+	 */
+	isOutOfSync(): Promise<boolean>;
 }
 
 
@@ -136,17 +144,21 @@ export interface CacheStorage {
  * lowerRangeId may be anything from MIN_ID to c, upperRangeId may be anything from k to MAX_ID
  */
 export class EntityRestCache implements IEntityRestCache {
-	private readonly ignoredTypes: TypeRef<any>[];
-	readonly entityRestClient: EntityRestClient;
-	private readonly storage: CacheStorage;
 
-	constructor(entityRestClient: EntityRestClient, storage: CacheStorage) {
-		this.entityRestClient = entityRestClient
-		this.ignoredTypes = [
-			EntityEventBatchTypeRef, PermissionTypeRef, BucketPermissionTypeRef, SessionTypeRef,
-			SecondFactorTypeRef, RecoverCodeTypeRef, RejectedSenderTypeRef,
-		]
-		this.storage = storage
+	private readonly ignoredTypes = [
+		EntityEventBatchTypeRef,
+		PermissionTypeRef,
+		BucketPermissionTypeRef,
+		SessionTypeRef,
+		SecondFactorTypeRef,
+		RecoverCodeTypeRef,
+		RejectedSenderTypeRef,
+	] as const
+
+	constructor(
+		readonly entityRestClient: EntityRestClient,
+		private readonly storage: CacheStorage,
+	) {
 	}
 
 	async load<T extends SomeEntity>(
@@ -206,7 +218,13 @@ export class EntityRestCache implements IEntityRestCache {
 	}
 
 	purgeStorage(): Promise<void> {
+		console.log("Purging the user's offline database")
 		return this.storage.purgeStorage()
+	}
+
+	async isOutOfSync(): Promise<boolean> {
+		const timeSinceLastSync = await this.timeSinceLastSyncMs()
+		return timeSinceLastSync != null && timeSinceLastSync > ENTITY_EVENT_BATCH_EXPIRE_MS
 	}
 
 	async recordSyncTime(): Promise<void> {
@@ -214,7 +232,7 @@ export class EntityRestCache implements IEntityRestCache {
 		await this.storage.putLastUpdateTime(timestamp)
 	}
 
-	async timeSinceLastSync(): Promise<number | null> {
+	async timeSinceLastSyncMs(): Promise<number | null> {
 		const lastUpdate = await this.storage.getLastUpdateTime()
 		if (lastUpdate == null) {
 			return null
@@ -502,6 +520,9 @@ export class EntityRestCache implements IEntityRestCache {
 	 * @return Promise, which resolves to the array of valid events (if response is NotFound or NotAuthorized we filter it out)
 	 */
 	async entityEventsReceived(batch: QueuedBatch): Promise<Array<EntityUpdate>> {
+
+		await this.recordSyncTime()
+
 		// we handle post multiple create operations separately to optimize the number of requests with getMultiple
 		const createUpdatesForLETs: EntityUpdate[] = []
 		const regularUpdates: EntityUpdate[] = [] // all updates not resulting from post multiple requests

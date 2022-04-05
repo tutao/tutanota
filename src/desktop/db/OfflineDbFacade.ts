@@ -63,7 +63,7 @@ export class OfflineDbFacade {
 	}
 
 	async deleteAll(userId: Id): Promise<void> {
-		return this.getDbForUserId(userId).deleteAll()
+		return this.getDbForUserId(userId).purge()
 
 	}
 

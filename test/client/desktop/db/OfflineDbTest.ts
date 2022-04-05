@@ -3,11 +3,10 @@ import {OfflineDb} from "../../../../src/desktop/db/OfflineDb"
 import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
 import {GENERATED_MAX_ID, GENERATED_MIN_ID} from "../../../../src/api/common/utils/EntityUtils"
 import {UserTypeRef} from "../../../../src/api/entities/sys/User"
-import {assertNotNull, concat, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
+import {concat, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {calendarGroupId} from "../../calendar/CalendarTestUtils"
 import * as fs from "fs"
 import * as cborg from "cborg"
-import {assertThrows} from "@tutao/tutanota-test-utils"
 import {CryptoError} from "@tutao/tutanota-crypto"
 //some tests will not work wit in-memory database so we crate a file and delete it afterwards
 const database = "./testdatabase.sqlite"
@@ -25,322 +24,355 @@ o.spec("OfflineDb ", function () {
 	const id2 = "---------id2"
 	const id3 = "---------id3"
 
-	o.beforeEach(async function () {
+	o.beforeEach(function () {
 		db = new OfflineDb(nativePath)
-		await db.init(database, offlineDatabaseTestKey)
+		db.init(database, offlineDatabaseTestKey)
 	})
-	o.afterEach(async function () {
-		await db.close()
+	o.afterEach(function () {
+		db.close()
 		fs.rmSync(database)
 	})
 
 	o.spec("test put", function () {
-		o("put and get works", async function () {
+		o("put and get works", function () {
 			const entity = createEntity(listId, id1)
-			await db.put({type: ContactTypeRef.type, listId, elementId: id1, entity})
-			const receivedEntity = await db.get(ContactTypeRef.type, listId, id1)
+			db.put({type: ContactTypeRef.type, listId, elementId: id1, entity})
+			const receivedEntity = db.get(ContactTypeRef.type, listId, id1)
 			o(receivedEntity!).deepEquals(entity)
 		})
-		o("put overwrites list entity", async function () {
+		o("put overwrites list entity", function () {
 			const entity = createEntity(listId, id1)
-			await db.put({type: ContactTypeRef.type, listId, elementId: id1, entity})
+			db.put({type: ContactTypeRef.type, listId, elementId: id1, entity})
 			const updatedEntity = new Buffer(concat(entity, new Uint8Array([1])))
-			await db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: updatedEntity})
-			const receivedEntity = await db.get(ContactTypeRef.type, listId, id1)
+			db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: updatedEntity})
+			const receivedEntity = db.get(ContactTypeRef.type, listId, id1)
 			o(receivedEntity!).deepEquals(updatedEntity)
 		})
 
-		o("put and get element type", async function () {
+		o("put and get element type", function () {
 			const entity = createElementEntity(id1)
-			await db.put({type: UserTypeRef.type, listId: null, elementId: id1, entity})
-			const receivedEntity = await db.get(UserTypeRef.type, null, id1)
+			db.put({type: UserTypeRef.type, listId: null, elementId: id1, entity})
+			const receivedEntity = db.get(UserTypeRef.type, null, id1)
 			o(receivedEntity!).deepEquals(entity)
 		})
 
-		o("put overwrites element entity", async function () {
+		o("put overwrites element entity", function () {
 			const entity = createElementEntity(id1)
-			await db.put({type: UserTypeRef.type, listId: null, elementId: id1, entity})
+			db.put({type: UserTypeRef.type, listId: null, elementId: id1, entity})
 			const updatedEntity = new Buffer(concat(entity, new Uint8Array([1])))
-			await db.put({type: UserTypeRef.type, listId: null, elementId: id1, entity: updatedEntity})
+			db.put({type: UserTypeRef.type, listId: null, elementId: id1, entity: updatedEntity})
 
-			const receivedEntity = await db.get(UserTypeRef.type, null, id1)
+			const receivedEntity = db.get(UserTypeRef.type, null, id1)
 			o(receivedEntity!).deepEquals(updatedEntity)
 		})
 	})
 
 
-	o("set new range works", async function () {
-		await db.setNewRange(ContactTypeRef.type, listId, "lowerId", "upperId")
-		const received = await db.getRange(ContactTypeRef.type, listId)
+	o("set new range works", function () {
+		db.setNewRange(ContactTypeRef.type, listId, "lowerId", "upperId")
+		const received = db.getRange(ContactTypeRef.type, listId)
 		o(received!).deepEquals({lower: "lowerId", upper: "upperId"})
 	})
 
-	o("set lower range works", async function () {
-		await db.setNewRange(ContactTypeRef.type, listId, GENERATED_MIN_ID, GENERATED_MAX_ID)
-		await db.setLowerRange(ContactTypeRef.type, listId, "lowerId")
-		const received = await db.getRange(ContactTypeRef.type, listId)
+	o("set lower range works", function () {
+		db.setNewRange(ContactTypeRef.type, listId, GENERATED_MIN_ID, GENERATED_MAX_ID)
+		db.setLowerRange(ContactTypeRef.type, listId, "lowerId")
+		const received = db.getRange(ContactTypeRef.type, listId)
 		o(received!).deepEquals({lower: "lowerId", upper: GENERATED_MAX_ID})
 	})
 
-	o("set upper range works", async function () {
-		await db.setNewRange(ContactTypeRef.type, listId, GENERATED_MIN_ID, GENERATED_MAX_ID)
-		await db.setUpperRange(ContactTypeRef.type, listId, "upperId")
-		const received = await db.getRange(ContactTypeRef.type, listId)
+	o("set upper range works", function () {
+		db.setNewRange(ContactTypeRef.type, listId, GENERATED_MIN_ID, GENERATED_MAX_ID)
+		db.setUpperRange(ContactTypeRef.type, listId, "upperId")
+		const received = db.getRange(ContactTypeRef.type, listId)
 		o(received!).deepEquals({lower: GENERATED_MIN_ID, upper: "upperId"})
 	})
 
 	o.spec("get ids in range", function () {
-		o("works", async function () {
+		o("works", function () {
 			const entity1 = createEntity(listId, id1)
 			const entity2 = createEntity(listId, id2)
-			await db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
-			await db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
-			await db.setNewRange(ContactTypeRef.type, listId, GENERATED_MIN_ID, GENERATED_MAX_ID)
-			const received = await db.getIdsInRange(ContactTypeRef.type, listId)
+			db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
+			db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
+			db.setNewRange(ContactTypeRef.type, listId, GENERATED_MIN_ID, GENERATED_MAX_ID)
+			const received = db.getIdsInRange(ContactTypeRef.type, listId)
 			o(received).deepEquals([id1, id2])
 		})
 
-		o("correctly filters out by length", async function () {
+		o("correctly filters out by length", function () {
 			const entity1 = createEntity(listId, id1)
 			const entity2 = createEntity(listId, id2)
-			await db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
-			await db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
-			await db.setNewRange(ContactTypeRef.type, listId, GENERATED_MIN_ID, "-----------------") // like maxId but longer than normal id, therefore bigger
-			const received = await db.getIdsInRange(ContactTypeRef.type, listId)
+			db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
+			db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
+			db.setNewRange(ContactTypeRef.type, listId, GENERATED_MIN_ID, "-----------------") // like maxId but longer than normal id, therefore bigger
+			const received = db.getIdsInRange(ContactTypeRef.type, listId)
 			o(received).deepEquals([id1, id2])
 		})
 	})
 
 	o.spec("provideFromRange", function () {
 		o.spec("non-reverse", function () {
-			o("works", async function () {
+			o("works", function () {
 				const entity1 = createEntity(listId, id1)
 				const entity2 = createEntity(listId, id2)
 
-				await db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
-				await db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
-				const received = await db.provideFromRange(ContactTypeRef.type, listId, GENERATED_MIN_ID, 3, false)
+				db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
+				db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
+				const received = db.provideFromRange(ContactTypeRef.type, listId, GENERATED_MIN_ID, 3, false)
 				o(received).deepEquals([entity1, entity2])
 			})
 
-			o("filters by list", async function () {
+			o("filters by list", function () {
 				const entity1 = createEntity(listId, id1)
 				const entity2 = createEntity(listId, id2)
 				const anotherListId = "anotherListId"
 				const entity3 = createEntity(anotherListId, id3)
-				await db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
-				await db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
-				await db.put({type: ContactTypeRef.type, listId: anotherListId, elementId: id3, entity: entity3})
-				const received = await db.provideFromRange(ContactTypeRef.type, listId, GENERATED_MIN_ID, 3, false)
+				db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
+				db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
+				db.put({type: ContactTypeRef.type, listId: anotherListId, elementId: id3, entity: entity3})
+				const received = db.provideFromRange(ContactTypeRef.type, listId, GENERATED_MIN_ID, 3, false)
 				o(received).deepEquals([entity1, entity2])
 			})
 
-			o("does not include start", async function () {
+			o("does not include start", function () {
 				const entity1 = createEntity(listId, id1)
 				const entity2 = createEntity(listId, id2)
-				await db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
-				await db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
-				const received = await db.provideFromRange(ContactTypeRef.type, listId, id1, 3, false)
+				db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
+				db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
+				const received = db.provideFromRange(ContactTypeRef.type, listId, id1, 3, false)
 				o(received).deepEquals([entity2])
 			})
 
-			o("limit", async function () {
+			o("limit", function () {
 				const entity1 = createEntity(listId, id1)
 				const entity2 = createEntity(listId, id2)
-				await db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
-				await db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
-				const received = await db.provideFromRange(ContactTypeRef.type, listId, GENERATED_MIN_ID, 1, false)
+				db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
+				db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
+				const received = db.provideFromRange(ContactTypeRef.type, listId, GENERATED_MIN_ID, 1, false)
 				o(received).deepEquals([entity1])
 			})
 
-			o("compares ids by length first", async function () {
+			o("compares ids by length first", function () {
 				const shortId = "------shortId"
 				// this is actually longer than normal IDs
 				const longId = "------loooongId"
 				const entity1 = createEntity(listId, shortId)
 				const entity2 = createEntity(listId, longId)
-				await db.put({type: ContactTypeRef.type, listId, elementId: shortId, entity: entity1})
-				await db.put({type: ContactTypeRef.type, listId, elementId: longId, entity: entity2})
+				db.put({type: ContactTypeRef.type, listId, elementId: shortId, entity: entity1})
+				db.put({type: ContactTypeRef.type, listId, elementId: longId, entity: entity2})
 
-				const received = await db.provideFromRange(ContactTypeRef.type, listId, GENERATED_MIN_ID, 2, false)
+				const received = db.provideFromRange(ContactTypeRef.type, listId, GENERATED_MIN_ID, 2, false)
 				o(received).deepEquals([entity1, entity2])
 			})
 
-			o("filters out by id first", async function () {
+			o("filters out by id first", function () {
 				// this is actually shorter than normal IDs
 				const shortId = "----shortId"
 				const longId = "---loooongId"
 				const entity1 = createEntity(listId, shortId)
 				const entity2 = createEntity(listId, longId)
-				await db.put({type: ContactTypeRef.type, listId, elementId: shortId, entity: entity1})
-				await db.put({type: ContactTypeRef.type, listId, elementId: longId, entity: entity2})
+				db.put({type: ContactTypeRef.type, listId, elementId: shortId, entity: entity1})
+				db.put({type: ContactTypeRef.type, listId, elementId: longId, entity: entity2})
 
-				const received = await db.provideFromRange(ContactTypeRef.type, listId, shortId, 2, false)
+				const received = db.provideFromRange(ContactTypeRef.type, listId, shortId, 2, false)
 				o(received).deepEquals([entity2])
 			})
 		})
 
-		o.spec("reverse", async function () {
-			o("works", async function () {
+		o.spec("reverse", function () {
+			o("works", function () {
 				const entity1 = createEntity(listId, id1)
 				const entity2 = createEntity(listId, id2)
-				await db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
-				await db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
-				const received = await db.provideFromRange(ContactTypeRef.type, listId, GENERATED_MAX_ID, 3, true)
+				db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
+				db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
+				const received = db.provideFromRange(ContactTypeRef.type, listId, GENERATED_MAX_ID, 3, true)
 				o(received).deepEquals([entity2, entity1])
 			})
 
-			o("does not include start", async function () {
+			o("does not include start", function () {
 				const entity1 = createEntity(listId, id1)
 				const entity2 = createEntity(listId, id2)
-				await db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
-				await db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
-				const received = await db.provideFromRange(ContactTypeRef.type, listId, id2, 3, true)
+				db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
+				db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
+				const received = db.provideFromRange(ContactTypeRef.type, listId, id2, 3, true)
 				o(received).deepEquals([entity1])
 			})
 
-			o("limit", async function () {
+			o("limit", function () {
 				const entity1 = createEntity(listId, id1)
 				const entity2 = createEntity(listId, id2)
-				await db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
-				await db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
-				const received = await db.provideFromRange(ContactTypeRef.type, listId, GENERATED_MAX_ID, 1, true)
+				db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
+				db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
+				const received = db.provideFromRange(ContactTypeRef.type, listId, GENERATED_MAX_ID, 1, true)
 				o(received).deepEquals([entity2])
 			})
 
-			o("filters by list", async function () {
+			o("filters by list", function () {
 				const entity1 = createEntity(listId, id1)
 				const entity2 = createEntity(listId, id2)
 				const anotherListId = "anotherListId"
 				const entity3 = createEntity(anotherListId, id3)
-				await db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
-				await db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
-				await db.put({type: ContactTypeRef.type, listId: anotherListId, elementId: id3, entity: entity3})
-				const received = await db.provideFromRange(ContactTypeRef.type, listId, GENERATED_MAX_ID, 3, true)
+				db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
+				db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
+				db.put({type: ContactTypeRef.type, listId: anotherListId, elementId: id3, entity: entity3})
+				const received = db.provideFromRange(ContactTypeRef.type, listId, GENERATED_MAX_ID, 3, true)
 				o(received).deepEquals([entity2, entity1])
 			})
 
-			o("compares ids by length first", async function () {
+			o("compares ids by length first", function () {
 				// this is actually shorter than normal IDs
 				const shortId = "----shortId"
 				const longId = "---loooongId"
 				const entity1 = createEntity(listId, shortId)
 				const entity2 = createEntity(listId, longId)
-				await db.put({type: ContactTypeRef.type, listId, elementId: shortId, entity: entity1})
-				await db.put({type: ContactTypeRef.type, listId, elementId: longId, entity: entity2})
+				db.put({type: ContactTypeRef.type, listId, elementId: shortId, entity: entity1})
+				db.put({type: ContactTypeRef.type, listId, elementId: longId, entity: entity2})
 
-				const received = await db.provideFromRange(ContactTypeRef.type, listId, GENERATED_MAX_ID, 2, true)
+				const received = db.provideFromRange(ContactTypeRef.type, listId, GENERATED_MAX_ID, 2, true)
 				o(received).deepEquals([entity2, entity1])
 			})
 
-			o("filters out by id first", async function () {
+			o("filters out by id first", function () {
 				// this is actually shorter than normal IDs
 				const shortId = "----shortId"
 				const longId = "---loooongId"
 				const entity1 = createEntity(listId, shortId)
 				const entity2 = createEntity(listId, longId)
-				await db.put({type: ContactTypeRef.type, listId, elementId: shortId, entity: entity1})
-				await db.put({type: ContactTypeRef.type, listId, elementId: longId, entity: entity2})
+				db.put({type: ContactTypeRef.type, listId, elementId: shortId, entity: entity1})
+				db.put({type: ContactTypeRef.type, listId, elementId: longId, entity: entity2})
 
-				const received = await db.provideFromRange(ContactTypeRef.type, listId, longId, 2, true)
+				const received = db.provideFromRange(ContactTypeRef.type, listId, longId, 2, true)
 				o(received).deepEquals([entity1])
 			})
 		})
 	})
 
 	o.spec("delete", function () {
-		o("deleting single element works", async function () {
+		o("deleting single element works", function () {
 			const entity1 = createEntity(listId, id1)
 			const entity2 = createEntity(listId, id2)
-			await db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
-			await db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
-			await db.delete(ContactTypeRef.type, listId, id1)
-			const received = await db.provideFromRange(ContactTypeRef.type, listId, GENERATED_MIN_ID, 3, false)
+			db.put({type: ContactTypeRef.type, listId, elementId: id1, entity: entity1})
+			db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
+			db.delete(ContactTypeRef.type, listId, id1)
+			const received = db.provideFromRange(ContactTypeRef.type, listId, GENERATED_MIN_ID, 3, false)
 			o(received).deepEquals([entity2])
 		})
-		o("delete all works", async function () {
+		o("delete all works", function () {
 			const entity1 = createElementEntity(id1)
 			const entity2 = createEntity(listId, id2)
-			await db.put({type: ContactTypeRef.type, listId: null, elementId: id1, entity: entity1})
-			await db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
-			await db.putLastBatchIdForGroup(calendarGroupId, "batchId")
-			await db.setNewRange(ContactTypeRef.type, listId, id1, id2)
+			db.put({type: ContactTypeRef.type, listId: null, elementId: id1, entity: entity1})
+			db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
+			db.putLastBatchIdForGroup(calendarGroupId, "batchId")
+			db.setNewRange(ContactTypeRef.type, listId, id1, id2)
+			db.putMetadata("lastUpdateTime", cborg.encode(1234))
 
-			await db.deleteAll()
-			o(await db.get(ContactTypeRef.type, null, id1)).equals(null)("element entities was deleted")
-			o(await db.get(ContactTypeRef.type, listId, id2)).equals(null)("list entities was deleted")
-			o(await db.getRange(ContactTypeRef.type, listId)).equals(null)("range was deleted")
-			o(await db.getLastBatchIdForGroup(calendarGroupId)).equals(null)("metadata was deleted")
+			db.purge()
+			o(db.get(ContactTypeRef.type, null, id1)).equals(null)("element entities was deleted")
+			o(db.get(ContactTypeRef.type, listId, id2)).equals(null)("list entities was deleted")
+			o(db.getRange(ContactTypeRef.type, listId)).equals(null)("range was deleted")
+			o(db.getLastBatchIdForGroup(calendarGroupId)).equals(null)("last batch id per group was deleted")
+			o(db.getMetadata("lastUpdateTime")).equals(null)("metadata was deleted")
+
+		})
+		o("delete all then write works", function() {
+			const entity1 = createEntity(listId, id1)
+			const entity2 = createEntity(listId, id2)
+
+			db.put({type: ContactTypeRef.type, listId: null, elementId: id1, entity: entity1})
+			db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
+			db.putLastBatchIdForGroup(calendarGroupId, "batchId")
+			db.setNewRange(ContactTypeRef.type, listId, id1, id2)
+			db.putMetadata("lastUpdateTime", cborg.encode(123))
+
+			db.purge()
+
+			db.put({type: ContactTypeRef.type, listId: null, elementId: id1, entity: entity1})
+			db.put({type: ContactTypeRef.type, listId, elementId: id2, entity: entity2})
+			db.putLastBatchIdForGroup(calendarGroupId, "batchId")
+			db.setNewRange(ContactTypeRef.type, listId, id1, id2)
+			db.putMetadata("lastUpdateTime", cborg.encode(123))
+
+			o(db.get(ContactTypeRef.type, null, id1)!).deepEquals(entity1)
+			o(db.get(ContactTypeRef.type, listId, id2)!).deepEquals(entity2)
+			o(db.getLastBatchIdForGroup(calendarGroupId)).equals("batchId")
+			o(db.getIdsInRange(ContactTypeRef.type, listId)).deepEquals([id2])
+			o(cborg.decode(db.getMetadata("lastUpdateTime")!)).equals(123)
 		})
 	})
 
 
-	o.spec("getBatchId", async function () {
+	o.spec("getBatchId", function () {
 
-		o("returns null when nothing is written", async function () {
-			o(await db.getLastBatchIdForGroup("groupId")).equals(null)
+		o("returns null when nothing is written", function () {
+			o(db.getLastBatchIdForGroup("groupId")).equals(null)
 		})
 
-		o("returns correct value when written", async function () {
+		o("returns correct value when written", function () {
 			const groupId = "groupId"
 			const batchId = "batchId"
-			await db.putLastBatchIdForGroup(groupId, batchId)
-			o(await db.getLastBatchIdForGroup(groupId)).equals(batchId)
+			db.putLastBatchIdForGroup(groupId, batchId)
+			o(db.getLastBatchIdForGroup(groupId)).equals(batchId)
 		})
 
-		o("returns correct value when overwritten", async function () {
+		o("returns correct value when overwritten", function () {
 			const groupId = "groupId"
 			const batchId = "batchId"
 			const newBatchId = "newBatchId"
-			await db.putLastBatchIdForGroup(groupId, batchId)
-			await db.putLastBatchIdForGroup(groupId, newBatchId)
-			o(await db.getLastBatchIdForGroup(groupId)).equals(newBatchId)
+			db.putLastBatchIdForGroup(groupId, batchId)
+			db.putLastBatchIdForGroup(groupId, newBatchId)
+			o(db.getLastBatchIdForGroup(groupId)).equals(newBatchId)
 		})
 	})
-	o("put and get Metadata", async function () {
-		const time = new Date().getTime()
-		const encodedDate = cborg.encode(time)
-		await db.putMetadata("lastUpdateTime", encodedDate)
-		const receivedEntity = await db.getMetadata("lastUpdateTime")
-		o(cborg.decode(assertNotNull(receivedEntity))).equals(time)
+	o.spec("metadata", function() {
+		o("get a value that was written should  return the same value", function () {
+			const time = 123456789
+			db.putMetadata("lastUpdateTime", cborg.encode(time))
+			const read = db.getMetadata("lastUpdateTime")
+			o(cborg.decode(read!)).equals(time)
+		})
+
+		o("get a value that wasn't written should just return null", function() {
+			const read = db.getMetadata("lastUpdateTime")
+			o(read).equals(null)
+		})
 	})
 	o.spec("Test encryption", function () {
 		const time = new Date().getTime()
 		const encodedDate = cborg.encode(time)
-		o("can create new database", async function () {
+		o("can create new database", function () {
 			//save something
-			await db.putMetadata("lastUpdateTime", encodedDate)
-			const receivedEntity = await db.getMetadata("lastUpdateTime")
-			o(cborg.decode(assertNotNull(receivedEntity))).equals(time)
+			db.putMetadata("lastUpdateTime", encodedDate)
+			o(cborg.decode(db.getMetadata("lastUpdateTime")!)).equals(time)
 		})
 
-		o("can open existing database", async function () {
+		o("can open existing database", function () {
 			//save something
-			await db.putMetadata("lastUpdateTime", encodedDate)
-			await db.close()
+			db.putMetadata("lastUpdateTime", encodedDate)
+			db.close()
 
 			db = new OfflineDb(nativePath)
-			await db.init(database, offlineDatabaseTestKey)
+			db.init(database, offlineDatabaseTestKey)
 
-			const receivedEntity = await db.getMetadata("lastUpdateTime")
-			o(cborg.decode(assertNotNull(receivedEntity))).equals(time)
+			o(cborg.decode(db.getMetadata("lastUpdateTime")!)).equals(time)
 		})
 
-		o("can't read from existing database if password is wrong", async function () {
+		o("can't read from existing database if password is wrong", function () {
 			//save something
-			await db.putMetadata("lastUpdateTime", encodedDate)
-			await db.close()
+			db.putMetadata("lastUpdateTime", encodedDate)
+			db.close()
 
 			db = new OfflineDb(nativePath)
 			const theWrongKey = [3957386659, 354339016, 3786337319, 3366334249]
+
 			//with integrity check (performed first)
-			await assertThrows(Error, () => db.init(database, theWrongKey))
+			o(() => db.init(database, theWrongKey)).throws(Error)
+
 			//without integrity check
-			await assertThrows(Error, () => db.init(database, theWrongKey, false))
+			o(() => db.init(database, theWrongKey, false)).throws(Error)
 		})
-		o("Integrity check works", async function () {
+		o("Integrity check works", function () {
 			//save something
-			await db.putMetadata("lastUpdateTime", encodedDate)
+			db.putMetadata("lastUpdateTime", encodedDate)
 			o(() => db.checkIntegrity()).notThrows(Error)
 
 			//flip byte in database
@@ -350,10 +382,10 @@ o.spec("OfflineDb ", function () {
 
 			o(() => db.checkIntegrity()).throws(Error)
 		})
-		o("Integrity of the database is checked on initialization", async function () {
+		o("Integrity of the database is checked on initialization", function () {
 			//save something
-			await db.putMetadata("lastUpdateTime", encodedDate)
-			await db.close()
+			db.putMetadata("lastUpdateTime", encodedDate)
+			db.close()
 
 
 			//flip byte in database
@@ -364,18 +396,18 @@ o.spec("OfflineDb ", function () {
 			db = new OfflineDb(nativePath)
 
 			//does not throw if integrity check is turned of
-			await db.init(database, offlineDatabaseTestKey, false)
+			db.init(database, offlineDatabaseTestKey, false)
 
 			//throws if integrity check is turned on
-			const error = await assertThrows(CryptoError, () => db.init(database, offlineDatabaseTestKey))
+			o(() => db.init(database, offlineDatabaseTestKey)).throws(CryptoError)
 		})
 	})
 })
 
-function createEntity(listId: string, elementId: string) {
+function createEntity(listId: string, elementId: string): Buffer {
 	return new Buffer(stringToUtf8Uint8Array(listId + elementId))
 }
 
-function createElementEntity(elementId: string) {
+function createElementEntity(elementId: string): Buffer {
 	return new Buffer(stringToUtf8Uint8Array(elementId))
 }

@@ -4,7 +4,7 @@
 
 type ObjectConstructor<T> = new (...args: any[]) => T
 
-type WithThis<T> = { this: any, args: T }
+type WithThis<T> = {this: any, args: T}
 
 declare module "ospec" {
 	declare namespace o {
@@ -29,22 +29,22 @@ declare module "ospec" {
 			notEquals(value: T | null | undefined): AssertionDescriber;
 
 			/** Asserts that two objects are recursively equal */
-			deepEquals(this: Assertion<object>, expected: T): AssertionDescriber;
+			deepEquals(this: Assertion<unknown>, expected: T): AssertionDescriber;
 
 			/** Asserts that two objects are **not** recursively equal */
-			notDeepEquals(this: Assertion<object>, value: T): AssertionDescriber;
+			notDeepEquals(this: Assertion<unknown>, value: T): AssertionDescriber;
 
 			/** Asserts that the function throws an error of a given type */
-			throws(this: Assertion<() => any>, error: string | ErrorConstructor | ObjectConstructor<any>): AssertionDescriber;
+			throws(this: Assertion<() => void>, error: string | ErrorConstructor | ObjectConstructor<any>): AssertionDescriber;
 
 			/** Asserts that the function does **not** throw an error of given type */
-			notThrows(this: Assertion<() => any>, error: string | ErrorConstructor | ObjectConstructor<any>): AssertionDescriber; // See above
+			notThrows(this: Assertion<() => void>, error: string | ErrorConstructor | ObjectConstructor<any>): AssertionDescriber; // See above
 
 			/** Asserts that a value satisfies a given check */
-			satisfies(this: Assertion<T>, check: (value: T) => { pass: boolean, message: string })
+			satisfies(this: Assertion<T>, check: (value: T) => {pass: boolean, message: string})
 
 			/** Asserts that a value does **not** satisfy a given check */
-			notSatisfies(this: Assertion<T>, check: (value: T) => { pass: boolean, message: string })
+			notSatisfies(this: Assertion<T>, check: (value: T) => {pass: boolean, message: string})
 		}
 
 		type Definer = (done: (error?: Error | null) => void, timeout: (delay: number) => void) => void | PromiseLike<any>;

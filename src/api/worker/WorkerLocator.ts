@@ -13,8 +13,8 @@ import {FileFacade} from "./facades/FileFacade.js"
 import {SearchFacade} from "./search/SearchFacade"
 import {CustomerFacadeImpl} from "./facades/CustomerFacade"
 import {CounterFacade} from "./facades/CounterFacade"
-import {EventBusClient} from "./EventBusClient"
-import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isDesktop, isOfflineStorageAvailable} from "../common/Env"
+import {ENTITY_EVENT_BATCH_EXPIRE_MS, EventBusClient} from "./EventBusClient"
+import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isOfflineStorageAvailable} from "../common/Env"
 import {Const} from "../common/TutanotaConstants"
 import type {BrowserData} from "../../misc/ClientConstants"
 import {CalendarFacade} from "./facades/CalendarFacade"
@@ -48,6 +48,7 @@ import {uint8ArrayToKey} from "@tutao/tutanota-crypto"
 import {IServiceExecutor} from "../common/ServiceRequest"
 import {ServiceExecutor} from "./rest/ServiceExecutor"
 import {BookingFacade} from "./facades/BookingFacade"
+import {OutOfSyncError} from "../common/error/OutOfSyncError"
 
 assertWorkerOrNode()
 
@@ -105,7 +106,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.native = worker
 	locator.booking = new BookingFacade(locator.serviceExecutor)
 
-	const uninitializedStorage = makeCacheStorage()
+	const uninitializedStorage = makeCacheStorage(() => locator.restClient.getServerTimestampMs(), worker)
 
 	// We don't wont to cache within the admin client
 	const cache = isAdminClient() ? null : new EntityRestCache(entityRestClient, uninitializedStorage)
@@ -201,13 +202,23 @@ if (typeof self !== "undefined") {
 	(self as unknown as WorkerGlobalScope).locator = locator // export in worker scope
 }
 
-function makeCacheStorage(): LateInitializedCacheStorage {
+function makeCacheStorage(getServerTime: () => number, worker: WorkerImpl): LateInitializedCacheStorage {
 	if (isOfflineStorageAvailable()) {
 		return new LateInitializedCacheStorageImpl(async (args) => {
 			if (args.persistent) {
 				const {offlineDbFacade} = exposeRemote((request) => locator.native.invokeNative(request))
 				const offlineStorage = new OfflineStorage(offlineDbFacade)
 				await offlineStorage.init(args.userId, uint8ArrayToKey(args.databaseKey))
+
+				const lastUpdateTime = await offlineStorage.getLastUpdateTime()
+				if (lastUpdateTime != null) {
+					const serverTime = getServerTime()
+					if (serverTime - lastUpdateTime > ENTITY_EVENT_BATCH_EXPIRE_MS) {
+						console.log(`Purging database for user ${args.userId} because it is out of sync`)
+						await offlineStorage.purgeStorage()
+						worker.sendError(new OutOfSyncError("database is out of sync"))
+					}
+				}
 				return offlineStorage
 			} else {
 				return new EphemeralCacheStorage()

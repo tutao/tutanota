@@ -13,7 +13,7 @@ import {Dialog, DialogType} from "../gui/base/Dialog"
 import {TextFieldAttrs, TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
 import m from "mithril"
 import {lang} from "./LanguageViewModel"
-import {assertMainOrNode, Mode} from "../api/common/Env"
+import {assertMainOrNode, isOfflineStorageAvailable, Mode} from "../api/common/Env"
 import {AccountType, ConversationType, MailMethod} from "../api/common/TutanotaConstants"
 import {errorToString, neverNull, noOp, ofClass, typedKeys} from "@tutao/tutanota-utils"
 import {logins} from "../api/main/LoginController"
@@ -52,7 +52,7 @@ let shownQuotaError = false
 let showingImportError = false
 const ignoredMessages = ["webkitExitFullScreen", "googletag", "avast_submit"]
 
-export function handleUncaughtError(e: Error) {
+export async function handleUncaughtError(e: Error) {
 	if (isLoggingOut) {
 		// ignore all errors while logging out
 		return
@@ -124,7 +124,16 @@ export function handleUncaughtError(e: Error) {
 			})
 		}
 	} else if (e instanceof OutOfSyncError) {
-		Dialog.message("dataExpired_msg")
+
+		// When the user logs in and their offline database is out of sync, we just silently purge it and continue
+		// If the user is not using an offline database and they just go out of sync due to being logged in for too long,
+		// then they should log out and in again
+		const isUsingOfflineStorage = isOfflineStorageAvailable() && await locator.loginFacade.isPersistentSession()
+		if (isUsingOfflineStorage) {
+			Dialog.message("dataExpiredOfflineDb_msg")
+		} else {
+			Dialog.message("dataExpired_msg")
+		}
 	} else if (e instanceof InsufficientStorageError) {
 		if (logins.getUserController().isGlobalAdmin()) {
 			showMoreStorageNeededOrderDialog(logins, "insufficientStorageAdmin_msg")

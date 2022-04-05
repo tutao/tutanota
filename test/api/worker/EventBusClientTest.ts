@@ -1,5 +1,5 @@
 import o from "ospec"
-import {ConnectMode, ENTITY_EVENT_BATCH_EXPIRE_MS, EventBusClient} from "../../../src/api/worker/EventBusClient"
+import {ConnectMode, EventBusClient} from "../../../src/api/worker/EventBusClient"
 import {GroupType, OperationType} from "../../../src/api/common/TutanotaConstants"
 import type {EntityUpdate} from "../../../src/api/entities/sys/EntityUpdate"
 import {createEntityUpdate} from "../../../src/api/entities/sys/EntityUpdate"
@@ -76,13 +76,16 @@ o.spec("EventBusClient test", function () {
 			async recordSyncTime(): Promise<void> {
 				return
 			},
-			async timeSinceLastSync(): Promise<number | null> {
+			async timeSinceLastSyncMs(): Promise<number | null> {
 				return null
 			},
 			async purgeStorage(): Promise<void> {
 			},
 			async setLastEntityEventBatchForGroup(groupId: Id, batchId: Id): Promise<void> {
 				return
+			},
+			async isOutOfSync(): Promise<boolean> {
+				return false
 			}
 		} as EntityRestCache)
 
@@ -134,7 +137,7 @@ o.spec("EventBusClient test", function () {
 
 		o("initial connect: when the cache is clean it downloads one batch and initializes cache", async function () {
 			when(cacheMock.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve(null)
-			when(cacheMock.timeSinceLastSync()).thenResolve(null)
+			when(cacheMock.timeSinceLastSyncMs()).thenResolve(null)
 			const batch = createEntityEventBatch({_id: [mailGroupId, "-----------1"]})
 			restClient.addListInstances(batch)
 
@@ -149,7 +152,7 @@ o.spec("EventBusClient test", function () {
 
 		o("initial connect: when the cache is initialized, missed events are loaded", async function () {
 			when(cacheMock.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve("------------")
-			when(cacheMock.timeSinceLastSync()).thenResolve(1)
+			when(cacheMock.timeSinceLastSyncMs()).thenResolve(1)
 			const update = createEntityUpdate({
 				type: "Mail",
 				application: "tutanota",
@@ -182,7 +185,7 @@ o.spec("EventBusClient test", function () {
 			await socket.onopen?.(new Event("open"))
 
 			// Make it think that it's actually a reconnect
-			when(cacheMock.timeSinceLastSync()).thenResolve(ENTITY_EVENT_BATCH_EXPIRE_MS + 100)
+			when(cacheMock.isOutOfSync()).thenResolve(true)
 
 			// initialize events first as well as current time
 			await ebc.connect(ConnectMode.Reconnect)
@@ -194,7 +197,7 @@ o.spec("EventBusClient test", function () {
 
 		o("initial connect: when the cache is out of sync with the server, the cache is purged", async function () {
 			when(cacheMock.getLastEntityEventBatchForGroup(mailGroupId)).thenResolve("lastBatchId")
-			when(cacheMock.timeSinceLastSync()).thenResolve(ENTITY_EVENT_BATCH_EXPIRE_MS + 100)
+			when(cacheMock.isOutOfSync()).thenResolve(true)
 
 			await ebc.connect(ConnectMode.Reconnect)
 			await socket.onopen?.(new Event("open"))

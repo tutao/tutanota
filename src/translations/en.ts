@@ -354,6 +354,7 @@ export default {
 		"cut_action": "Cut",
 		"dark_label": "Dark",
 		"dataExpired_msg": "Your loaded data is expired and out of sync with the data on the Tutanota servers. Please logout and login again to refresh your data.",
+		"dataExpiredOfflineDb_msg": "Your local data is out of sync with the data on the Tutanota servers. It will be deleted and re-downloaded.",
 		"dataWillBeStored_msg": "Data will be stored on your device.",
 		"dateFrom_label": "From",
 		"dateInvalidRange_msg": "Please define a valid date range.",

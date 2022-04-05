@@ -358,6 +358,7 @@ export default {
 		"cut_action": "Ausschneiden",
 		"dark_label": "Dunkel",
 		"dataExpired_msg": "Ihre geladenen Daten sind nicht mehr aktuell und können nicht mehr mit dem Server synchronisiert werden. Bitte loggen Sie sich aus und wieder ein, um Ihre Daten zu aktualisieren.",
+		"dataExpiredOfflineDb_msg": "Ihre geladenen Daten sind nicht mehr aktuell und können nicht mehr mit dem Server synchronisiert werden. Sie werden gelöscht und erneut heruntergeladen.",
 		"dataWillBeStored_msg": "Die Daten werden auf Ihrem Gerät gespeichert.",
 		"dateFrom_label": "Von",
 		"dateInvalidRange_msg": "Bitte geben Sie einen gültigen Datumsbereich ein.",

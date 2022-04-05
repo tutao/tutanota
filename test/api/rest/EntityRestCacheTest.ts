@@ -20,6 +20,7 @@ import {EphemeralCacheStorage} from "../../../src/api/worker/rest/EphemeralCache
 import {QueuedBatch} from "../../../src/api/worker/search/EventQueue"
 import {matchers, object, when} from "testdouble"
 import {OfflineStorage} from "../../../src/api/worker/rest/OfflineStorage"
+import {RestClient} from "../../../src/api/worker/rest/RestClient"
 
 const {anything} = matchers
 
@@ -102,6 +103,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					throw new Error(name + " should not have been called. arguments: " + String(args))
 				}
 			}
+			const restClient = object<RestClient>()
+			when(restClient.getServerTimestampMs()).thenReturn(Date.now())
 
 			return downcast({
 				load: notToBeCalled("load"),
@@ -112,6 +115,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				update: notToBeCalled("update"),
 				erase: notToBeCalled("erase"),
 				entityEventsReceived: e => Promise.resolve(e),
+				getRestClient: () => restClient
 			})
 		}
 
@@ -146,6 +150,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				const loadMultiple = o.spy(function (typeRef, listId, ids,) {
 					return Promise.resolve([contact1, contact2])
 				})
+
+
 				const mock = mockAttribute(entityRestClient, entityRestClient.loadMultiple, loadMultiple)
 				const mock2 = mockAttribute(storage, storage.putLastBatchIdForGroup, () => {
 					return Promise.resolve(undefined)
