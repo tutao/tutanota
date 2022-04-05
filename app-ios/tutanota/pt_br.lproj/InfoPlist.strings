@@ -11,4 +11,4 @@ TutaoCancelAction = "Cancelar";
 TutaoSettingsAction = "Configurações";
 TutaoCalendarAlarmTitle = "Lembrete";
 TutaoScheduleAlarmError = "Não foi possível configurar um alarme. Por favor, atualize o aplicativo.";
-TutaoUnlockCredentialsAction = "Desbloquear credenciais";
+TutaoUnlockCredentialsAction = "Desbloquear credenciais.";

@@ -9,10 +9,11 @@ export default {
 		"zero",
 		"one",
 		"few",
-		"other"
+		"other",
+		"many"
 	],
 	"created_at": "2015-03-13T10:17:47Z",
-	"updated_at": "2021-10-18T10:56:28Z",
+	"updated_at": "2022-03-31T08:11:45Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Prašome išjungti užsakytą talpą ar bet kokį kitą paketą ir išjungti visus kitus el. paštus prieš pakeičiant vartotojo tipą.",

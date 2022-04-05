@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2022-02-04T11:02:22Z",
+	"updated_at": "2022-03-31T08:37:12Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Thông tin",
