@@ -1,5 +1,5 @@
 import {size} from "../../gui/size"
-import m, {_NoLifecycle, Children, CommonAttributes, Component, Vnode, VnodeDOM} from "mithril"
+import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
 import stream from "mithril/stream"
 import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
 import {Button} from "../../gui/base/Button"
@@ -84,14 +84,12 @@ type MailAddressAndName = {
 
 export type MailViewerAttrs = {
 	viewModel: MailViewerViewModel
-} & CommonAttributes<MailViewerAttrs, MailViewer>
+}
 
 /**
  * The MailViewer displays a mail. The mail body is loaded asynchronously.
  */
 export class MailViewer implements Component<MailViewerAttrs> {
-
-	dom!: HTMLElement
 
 	/** it is set after we measured mail body element */
 	private bodyLineHeight: number | null = null
@@ -168,10 +166,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		this.shortcuts = this.setupShortcuts()
 	}
 
-	oncreate(vnode: VnodeDOM<MailViewerAttrs>) {
-		if (vnode.attrs.oncreate) {
-			vnode.attrs.oncreate.call(this, vnode)
-		}
+	oncreate() {
 		keyManager.registerShortcuts(this.shortcuts)
 		this.viewModel.replaceInlineImages()
 		windowFacade.addResizeListener(this.resizeListener)
@@ -203,9 +198,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		return [
 			m(
 				"#mail-viewer.fill-absolute" + (client.isMobileDevice() ? ".scroll-no-overlay.overflow-x-hidden" : ".flex.flex-column"),
-				{
-					oncreate: vnode => this.dom = vnode.dom as HTMLElement
-				},
 				[
 					m(".header.plr-l.margin-are-inset-lr", [
 						m(".flex-space-between.button-min-height", [

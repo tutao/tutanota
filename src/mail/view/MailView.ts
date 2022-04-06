@@ -48,7 +48,7 @@ import {styles} from "../../gui/styles"
 import {size} from "../../gui/size"
 import {FolderColumnView} from "../../gui/base/FolderColumnView"
 import {modal} from "../../gui/base/Modal"
-import {DomRectReadOnlyPolyfilled, PosRect} from "../../gui/base/Dropdown"
+import {DomRectReadOnlyPolyfilled} from "../../gui/base/Dropdown"
 import type {MailFolder} from "../../api/entities/tutanota/MailFolder"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
@@ -93,7 +93,6 @@ export class MailView implements CurrentView {
 
 	private _multiMailViewer: MultiMailViewer
 	private _mailViewerViewModel: MailViewerViewModel | null = null
-	private mailViewer: MailViewer | null = null
 
 	get mailViewerViewModel(): MailViewerViewModel | null {
 		return this._mailViewerViewModel
@@ -175,17 +174,9 @@ export class MailView implements CurrentView {
 					".mail",
 					this.mailViewerViewModel != null
 						? m(MailViewer, {
-							oncreate: (vnode) => {
-								this.mailViewer = vnode.state as MailViewer
-							},
 							viewModel: this.mailViewerViewModel
 						})
-						: m("",
-							{
-								oncreate: () => this.mailViewer = null
-							},
-							m(this._multiMailViewer)
-						)
+						: m(this._multiMailViewer)
 				),
 			},
 			ColumnType.Background,
@@ -465,18 +456,11 @@ export class MailView implements CurrentView {
 				}))
 			}, 300)
 
-			let mailViewerBounds: PosRect | null
-			if (this.mailViewer) {
-				mailViewerBounds = this.mailViewer.dom.getBoundingClientRect()
-			} else {
-				mailViewerBounds = this._multiMailViewer?.getBounds()
-			}
-
-			if (mailViewerBounds) {
-				const origin = new DomRectReadOnlyPolyfilled(mailViewerBounds.left, mailViewerBounds.top, mailViewerBounds.width, 0)
-				dropdown.setOrigin(origin)
-				modal.displayUnique(dropdown)
-			}
+			// Render the dropdown at the position of the selected mails in the MailList
+			const bounds = this.mailList.list.getSelectionBounds()
+			const origin = new DomRectReadOnlyPolyfilled(bounds.left, bounds.top, bounds.width, 0)
+			dropdown.setOrigin(origin)
+			modal.displayUnique(dropdown)
 		})
 		return false
 	}

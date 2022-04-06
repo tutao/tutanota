@@ -14,7 +14,6 @@ import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {theme} from "../../gui/theme"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {locator} from "../../api/main/MainLocator"
-import type {PosRect} from "../../gui/base/Dropdown"
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import {exportMails} from "../export/Exporter"
@@ -28,7 +27,6 @@ assertMainOrNode()
 export class MultiMailViewer implements Component {
 	view: Component["view"]
 	private readonly _mailView: MailView
-	private _domMailViewer: HTMLElement | null = null
 
 	constructor(mailView: MailView) {
 		this._mailView = mailView
@@ -37,11 +35,6 @@ export class MultiMailViewer implements Component {
 			return [
 				m(
 					".fill-absolute.mt-xs.plr-l",
-					{
-						oncreate: vnode => {
-							this._domMailViewer = vnode.dom as HTMLElement
-						},
-					},
 					mailView.mailList && mailView.mailList.list.getSelectedEntities().length > 0
 						? [
 							m(".button-height"), // just for the margin
@@ -60,10 +53,6 @@ export class MultiMailViewer implements Component {
 				),
 			]
 		}
-	}
-
-	getBounds(): PosRect | null {
-		return this._domMailViewer && this._domMailViewer.getBoundingClientRect()
 	}
 
 	_getMailSelectionMessage(mailView: MailView): string {
