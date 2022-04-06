@@ -47,7 +47,7 @@ import {IWebauthnClient, WebauthnClient} from "../../misc/2fa/webauthn/WebauthnC
 import {UserManagementFacade} from "../worker/facades/UserManagementFacade"
 import {GroupManagementFacade} from "../worker/facades/GroupManagementFacade"
 import {exposeRemote} from "../common/WorkerProxy"
-import {ExposedNativeInterface} from "../../native/common/NativeInterface"
+import {ExposedNativeInterface, ExposedWebInterface} from "../../native/common/NativeInterface"
 import {IWebauthn} from "../../misc/2fa/webauthn/IWebauthn.js"
 import {BrowserWebauthn} from "../../misc/2fa/webauthn/BrowserWebauthn.js"
 import {UsageTestController} from "@tutao/tutanota-usagetests"
@@ -56,6 +56,7 @@ import {deviceConfig} from "../../misc/DeviceConfig"
 import {IServiceExecutor} from "../common/ServiceRequest.js"
 import {BlobFacade} from "../worker/facades/BlobFacade"
 import {CryptoFacade} from "../worker/crypto/CryptoFacade"
+import type {InterWindowEventBus} from "../../native/common/InterWindowEventBus"
 
 assertMainOrNode()
 
@@ -100,6 +101,7 @@ export interface IMainLocator {
 	readonly usageTestModel: UsageTestModel
 	readonly serviceExecutor: IServiceExecutor
 	readonly cryptoFacade: CryptoFacade
+	readonly interWindowEventBus: InterWindowEventBus
 
 	readonly init: () => Promise<void>
 	readonly initialized: Promise<void>
@@ -141,6 +143,7 @@ class MainLocator implements IMainLocator {
 	usageTestModel!: UsageTestModel
 	serviceExecutor!: IServiceExecutor
 	cryptoFacade!: CryptoFacade
+	_interWindowEventBus!: InterWindowEventBus
 
 	private _nativeInterfaces: NativeInterfaces | null = null
 
@@ -158,6 +161,13 @@ class MainLocator implements IMainLocator {
 
 	get systemApp(): NativeSystemApp {
 		return this._getNativeInterface("systemApp")
+	}
+
+	get interWindowEventBus(): InterWindowEventBus {
+		if (!isDesktop()) {
+			throw new ProgrammingError("Trying to use InterWindowEventBus not on desktop")
+		}
+		return this._interWindowEventBus
 	}
 
 	get webauthnController(): IWebauthn {
@@ -206,7 +216,18 @@ class MainLocator implements IMainLocator {
 
 	async _createInstances() {
 		if (!isBrowser()) {
-			this._nativeInterfaces = await createNativeInterfaces()
+			if (isDesktop()) {
+				const {InterWindowEventBus} = await import("../../native/common/InterWindowEventBus.js")
+				this._interWindowEventBus = new InterWindowEventBus()
+			}
+			const webInterface: ExposedWebInterface = {
+				interWindowEventHandler: this._interWindowEventBus,
+			}
+			this._nativeInterfaces = await createNativeInterfaces(webInterface)
+
+			if (isDesktop()) {
+				this.interWindowEventBus.init(this.exposeNativeInterface().interWindowEventSender)
+			}
 		}
 
 		const {
@@ -258,7 +279,7 @@ class MainLocator implements IMainLocator {
 		this.cryptoFacade = cryptoFacade
 		this.webauthnClient = new WebauthnClient(this.webauthnController, getWebRoot())
 		this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, this.webauthnClient, this.loginFacade)
-		this.credentialsProvider = await createCredentialsProvider(deviceEncryptionFacade, this._nativeInterfaces?.native ?? null)
+		this.credentialsProvider = await createCredentialsProvider(deviceEncryptionFacade, this._nativeInterfaces?.native ?? null, isDesktop() ? this.interWindowEventBus : null)
 		this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient)
 		this.usageTestModel = new UsageTestModel(
 			deviceConfig, {
@@ -270,7 +291,7 @@ class MainLocator implements IMainLocator {
 				},
 			},
 			this.serviceExecutor,
-			)
+		)
 
 		const lazyScheduler = async () => {
 			const {AlarmSchedulerImpl} = await import("../../calendar/date/AlarmScheduler")

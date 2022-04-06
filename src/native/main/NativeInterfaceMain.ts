@@ -4,9 +4,11 @@ import {MessageDispatcher, Request} from "../../api/common/MessageDispatcher"
 import type {Base64, DeferredObject} from "@tutao/tutanota-utils"
 import {base64ToUint8Array, defer, downcast, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
 import type {NativeInterface} from "../common/NativeInterface"
+import {ExposedWebInterface} from "../common/NativeInterface"
 import {appCommands, desktopCommands} from "./NativeWrapperCommands"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {NativeApp} from "../../global"
+import {exposeLocal} from "../../api/common/WorkerProxy"
 
 assertMainOrNode()
 
@@ -122,6 +124,11 @@ export class NativeInterfaceMain implements NativeInterface {
 	private readonly _dispatchDeferred: DeferredObject<MessageDispatcher<NativeRequestType, JsRequestType>> = defer()
 	private _appUpdateListener: (() => void) | null = null
 
+	constructor(
+		private readonly webInterface: ExposedWebInterface
+	) {
+	}
+
 	async init() {
 		let transport: Transport<NativeRequestType, JsRequestType>
 
@@ -140,6 +147,7 @@ export class NativeInterfaceMain implements NativeInterface {
 		// All possible commands are in a big pile together, but we only need certain ones for either app or desktop
 		// Typescript doesn't like this, we could be more specific
 		const commands = downcast<Commands<JsRequestType>>(isApp() ? appCommands : desktopCommands)
+		commands["facade"] = exposeLocal(this.webInterface)
 		// Ensure that we have messaged native with "init" before we allow anyone else to make native requests
 		const queue = new MessageDispatcher<NativeRequestType, JsRequestType>(transport, commands)
 		await queue.postRequest(new Request("init", []))

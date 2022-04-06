@@ -22,7 +22,8 @@ import {createReceiveInfoServiceData} from "../api/entities/tutanota/ReceiveInfo
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {LockedError} from "../api/common/error/RestError"
-import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
+import type {CredentialsDeletedEvent, ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
+import {CREDENTIALS_DELETED_EVENT} from "../misc/credentials/CredentialsProvider"
 import {usingKeychainAuthentication} from "../misc/credentials/CredentialsProviderFactory"
 import type {ThemeCustomizations} from "../misc/WhitelabelCustomizations"
 import {getThemeCustomizations} from "../misc/WhitelabelCustomizations"
@@ -130,6 +131,17 @@ class LoginListener implements LoginEventHandler {
 		locator.usageTestController.addTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly))
 
 		this.enforcePasswordChange()
+
+		if (isDesktop()) {
+			locator.interWindowEventBus.events.map(async (event) => {
+				if (event.name === CREDENTIALS_DELETED_EVENT) {
+					if ((event as CredentialsDeletedEvent).userId === logins.getUserController().user._id) {
+						await logins.logout(false)
+						await windowFacade.reload({noAutoLogin: true})
+					}
+				}
+			})
+		}
 	}
 
 	private deactivateOutOfOfficeNotification(notification: OutOfOfficeNotification): Promise<void> {

@@ -5,15 +5,17 @@ import type {
 	CredentialsStorage,
 	PersistentCredentials
 } from "../../../../src/misc/credentials/CredentialsProvider"
-import {CredentialsProvider} from "../../../../src/misc/credentials/CredentialsProvider"
+import {CREDENTIALS_DELETED_EVENT, CredentialsProvider} from "../../../../src/misc/credentials/CredentialsProvider"
 import {assertNotNull, base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {CredentialEncryptionMode} from "../../../../src/misc/credentials/CredentialEncryptionMode"
 import type {ICredentialsKeyMigrator} from "../../../../src/misc/credentials/CredentialsKeyMigrator"
 import type {Credentials} from "../../../../src/misc/credentials/Credentials"
-import {instance, object, verify, when} from "testdouble"
+import {instance, object, when} from "testdouble"
 import {DatabaseKeyFactory} from "../../../../src/misc/credentials/DatabaseKeyFactory"
 import {keyToBase64} from "@tutao/tutanota-crypto"
-
+import {OfflineDbFacade} from "../../../../src/desktop/db/OfflineDbFacade"
+import {InterWindowEventBus} from "../../../../src/native/common/InterWindowEventBus"
+import {verify} from "@tutao/tutanota-test-utils"
 
 const encryptionKey = new Uint8Array([1, 2, 5, 8])
 
@@ -72,6 +74,8 @@ o.spec("CredentialsProvider", function () {
 	let encryptedInternalCredentialsWithoutDatabaseKey: Omit<PersistentCredentials, "databaseKey">
 	let keyMigratorMock: ICredentialsKeyMigrator
 	let databaseKeyFactoryMock: DatabaseKeyFactory
+	let offlineDbFacadeMock: OfflineDbFacade
+	let interWindowEventBusMock: InterWindowEventBus
 	o.beforeEach(function () {
 		internalCredentials = {
 			login: "test@example.com",
@@ -128,7 +132,10 @@ o.spec("CredentialsProvider", function () {
 
 		keyMigratorMock = object<ICredentialsKeyMigrator>()
 		databaseKeyFactoryMock = instance(DatabaseKeyFactory)
-		credentialsProvider = new CredentialsProvider(encryption, storageMock, keyMigratorMock, databaseKeyFactoryMock)
+		offlineDbFacadeMock = object()
+		interWindowEventBusMock = object()
+		credentialsProvider = new CredentialsProvider(encryption, storageMock, keyMigratorMock, databaseKeyFactoryMock,
+			offlineDbFacadeMock, interWindowEventBusMock)
 	})
 
 	o.spec("Storing credentials", function () {
@@ -178,6 +185,14 @@ o.spec("CredentialsProvider", function () {
 			await credentialsProvider.deleteByUserId(internalCredentials.userId)
 			verify(storageMock.deleteByUserId(internalCredentials.userId), {times: 1})
 		})
+		o("Deletes offline database", async function () {
+			await credentialsProvider.deleteByUserId(internalCredentials.userId)
+			verify(offlineDbFacadeMock.deleteDatabaseForUser(internalCredentials.userId))
+		})
+		o("Sends event over EventBus", async function () {
+			await credentialsProvider.deleteByUserId(internalCredentials.userId)
+			verify(interWindowEventBusMock.send({name: CREDENTIALS_DELETED_EVENT, userId: internalCredentials.userId}))
+		})
 	})
 
 	o.spec("Setting credentials encryption mode", function () {
@@ -207,13 +222,24 @@ o.spec("CredentialsProvider", function () {
 	})
 
 	o.spec("clearCredentials", function () {
-		o("deleted credentials, key and mode", async function () {
+		o.beforeEach(function () {
 			when(storageMock.loadAll()).thenReturn([encryptedInternalCredentials, encryptedExternalCredentials])
-
+		})
+		o("deleted credentials, key and mode", async function () {
 			await credentialsProvider.clearCredentials("testing")
 
 			verify(storageMock.deleteByUserId(internalCredentials.userId))
 			verify(storageMock.deleteByUserId(externalCredentials.userId))
+		})
+		o("Clears offline databases", async function () {
+			await credentialsProvider.clearCredentials("testing")
+			verify(offlineDbFacadeMock.deleteDatabaseForUser(internalCredentials.userId))
+			verify(offlineDbFacadeMock.deleteDatabaseForUser(externalCredentials.userId))
+		})
+		o("Sends event over EventBus", async function () {
+			await credentialsProvider.clearCredentials("testing")
+			verify(interWindowEventBusMock.send({name: CREDENTIALS_DELETED_EVENT, userId: internalCredentials.userId}))
+			verify(interWindowEventBusMock.send({name: CREDENTIALS_DELETED_EVENT, userId: externalCredentials.userId}))
 		})
 	})
 })

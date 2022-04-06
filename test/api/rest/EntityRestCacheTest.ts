@@ -29,15 +29,20 @@ const offlineDatabaseTestKey = [3957386659, 354339016, 3786337319, 3366334248]
 async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 	const {OfflineDbFacade} = await import("../../../src/desktop/db/OfflineDbFacade.js")
 	const {OfflineDb} = await import("../../../src/desktop/db/OfflineDb.js")
-	const offlineDbFactory = async (userId: string, key) => {
-		assertNotNull(userId)
-		// Added by sqliteNativeBannerPlugin
-		const nativePath = globalThis.buildOptions.sqliteNativePath
-		const db = new OfflineDb(nativePath)
-		//integrity check breaks for in memory database
-		await db.init(":memory:", key, false)
-		return db
+	const offlineDbFactory = {
+		async create(userId: string, key) {
+			assertNotNull(userId)
+			// Added by sqliteNativeBannerPlugin
+			const nativePath = globalThis.buildOptions.sqliteNativePath
+			const db = new OfflineDb(nativePath)
+			//integrity check breaks for in memory database
+			await db.init(":memory:", key, false)
+			return db
+		},
+		async delete() {
+		},
 	}
+
 	const offlineDbFacade = new OfflineDbFacade(offlineDbFactory)
 	const offlineStorage = new OfflineStorage(offlineDbFacade)
 	await offlineStorage.init(userId, offlineDatabaseTestKey)

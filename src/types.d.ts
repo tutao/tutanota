@@ -105,7 +105,9 @@ declare type NativeRequestType = 'init'
 	| 'splitFile'
 
 /** Requests from native to web */
-declare type JsRequestType = 'createMailEditor'
+declare type JsRequestType =
+	| 'facade' // only for desktop
+	| 'createMailEditor'
 	| 'handleBackPress'
 	| 'showAlertDialog'
 	| 'openMailbox'

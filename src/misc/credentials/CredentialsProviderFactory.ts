@@ -1,14 +1,17 @@
 import type {CredentialsAndDatabaseKey, CredentialsEncryption, ICredentialsProvider, PersistentCredentials} from "./CredentialsProvider"
 import {CredentialsProvider} from "./CredentialsProvider"
 import {deviceConfig} from "../DeviceConfig"
-import {isApp, isDesktop} from "../../api/common/Env"
+import {isApp, isDesktop, isOfflineStorageAvailable} from "../../api/common/Env"
 import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
 import {CredentialsKeyMigrator, CredentialsKeyMigratorStub} from "./CredentialsKeyMigrator"
 import {CredentialsKeyProvider} from "./CredentialsKeyProvider"
 import {NativeCredentialsEncryption} from "./NativeCredentialsEncryption"
-import type {NativeInterface} from "../../native/common/NativeInterface"
+import type {ExposedNativeInterface, NativeInterface} from "../../native/common/NativeInterface"
 import {assertNotNull} from "@tutao/tutanota-utils"
 import {DatabaseKeyFactory} from "./DatabaseKeyFactory"
+import {exposeRemote} from "../../api/common/WorkerProxy"
+import {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade"
+import {InterWindowEventBus} from "../../native/common/InterWindowEventBus"
 
 export function usingKeychainAuthentication(): boolean {
 	return isApp() || isDesktop()
@@ -22,19 +25,45 @@ export function hasKeychainAuthenticationOptions(): boolean {
  * Factory method for credentials provider that will return an instance injected with the implementations appropriate for the platform.
  * @param deviceEncryptionFacade
  * @param nativeApp: If {@code usingKeychainAuthentication} would return true, this _must not_ be null
+ * @param eventBus
  */
 export function createCredentialsProvider(
 	deviceEncryptionFacade: DeviceEncryptionFacade,
 	nativeApp: NativeInterface | null,
+	eventBus: InterWindowEventBus | null,
 ): ICredentialsProvider {
 	if (usingKeychainAuthentication()) {
 		const nonNullNativeApp = assertNotNull(nativeApp)
 		const credentialsKeyProvider = new CredentialsKeyProvider(nonNullNativeApp, deviceConfig, deviceEncryptionFacade)
 		const credentialsEncryption = new NativeCredentialsEncryption(credentialsKeyProvider, deviceEncryptionFacade, nonNullNativeApp)
 		const credentialsKeyMigrator = new CredentialsKeyMigrator(nonNullNativeApp)
-		return new CredentialsProvider(credentialsEncryption, deviceConfig, credentialsKeyMigrator, new DatabaseKeyFactory(deviceEncryptionFacade))
+		// TODO: check if using offline
+		let offlineDbFacade: OfflineDbFacade | null
+		if (isOfflineStorageAvailable()) {
+			const remoteInterface = exposeRemote<ExposedNativeInterface>(
+				(request) => nonNullNativeApp.invokeNative(request)
+			)
+			offlineDbFacade = remoteInterface.offlineDbFacade
+		} else {
+			offlineDbFacade = null
+		}
+		return new CredentialsProvider(
+			credentialsEncryption,
+			deviceConfig,
+			credentialsKeyMigrator,
+			new DatabaseKeyFactory(deviceEncryptionFacade),
+			offlineDbFacade,
+			isDesktop() ? eventBus : null,
+		)
 	} else {
-		return new CredentialsProvider(new CredentialsEncryptionStub(), deviceConfig, new CredentialsKeyMigratorStub(), new DatabaseKeyFactory(deviceEncryptionFacade))
+		return new CredentialsProvider(
+			new CredentialsEncryptionStub(),
+			deviceConfig,
+			new CredentialsKeyMigratorStub(),
+			new DatabaseKeyFactory(deviceEncryptionFacade),
+			null,
+			null,
+		)
 	}
 }
 

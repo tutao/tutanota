@@ -8,8 +8,7 @@ import {EntityRestCache} from "./rest/EntityRestCache"
 import {GroupManagementFacadeImpl} from "./facades/GroupManagementFacade"
 import {MailFacade} from "./facades/MailFacade"
 import {MailAddressFacade} from "./facades/MailAddressFacade"
-import {BlobFacade} from "./facades/BlobFacade.js"
-import {FileFacade} from "./facades/FileFacade.js"
+import {FileFacade} from "./facades/FileFacade"
 import {SearchFacade} from "./search/SearchFacade"
 import {CustomerFacadeImpl} from "./facades/CustomerFacade"
 import {CounterFacade} from "./facades/CounterFacade"
@@ -28,7 +27,7 @@ import type {ContactFormFacade} from "./facades/ContactFormFacade"
 import {ContactFormFacadeImpl} from "./facades/ContactFormFacade"
 import type {DeviceEncryptionFacade} from "./facades/DeviceEncryptionFacade"
 import {Aes256DeviceEncryptionFacade} from "./facades/DeviceEncryptionFacade"
-import type {NativeInterface} from "../../native/common/NativeInterface"
+import type {ExposedNativeInterface, NativeInterface} from "../../native/common/NativeInterface"
 import {NativeFileApp} from "../../native/common/FileApp"
 import {AesApp} from "../../native/worker/AesApp"
 import type {RsaImplementation} from "./crypto/RsaImplementation"
@@ -49,6 +48,7 @@ import {IServiceExecutor} from "../common/ServiceRequest"
 import {ServiceExecutor} from "./rest/ServiceExecutor"
 import {BookingFacade} from "./facades/BookingFacade"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
+import {BlobFacade} from "./facades/BlobFacade"
 
 assertWorkerOrNode()
 
@@ -206,7 +206,7 @@ function makeCacheStorage(getServerTime: () => number, worker: WorkerImpl): Late
 	if (isOfflineStorageAvailable()) {
 		return new LateInitializedCacheStorageImpl(async (args) => {
 			if (args.persistent) {
-				const {offlineDbFacade} = exposeRemote((request) => locator.native.invokeNative(request))
+				const {offlineDbFacade} = exposeRemote<ExposedNativeInterface>((request) => locator.native.invokeNative(request))
 				const offlineStorage = new OfflineStorage(offlineDbFacade)
 				await offlineStorage.init(args.userId, uint8ArrayToKey(args.databaseKey))
 

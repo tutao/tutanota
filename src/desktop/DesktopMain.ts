@@ -41,8 +41,9 @@ import {DesktopWebauthn} from "./2fa/DesktopWebauthn.js"
 import {webauthnIpcHandler, WebDialogController} from "./WebDialog.js"
 import {ExposedNativeInterface} from "../native/common/NativeInterface.js"
 import path from "path"
-import {OfflineDbFacade} from "./db/OfflineDbFacade"
+import {OfflineDbFacade, OfflineDbFactory} from "./db/OfflineDbFacade"
 import {OfflineDb} from "./db/OfflineDb"
+import {DesktopInterWindowEventSender} from "./ipc/DesktopInterWIndowEventSender"
 
 /**
  * Should be injected during build time.
@@ -140,19 +141,30 @@ async function createComponents(): Promise<Components> {
 	// It should be ok to await this, all we are waiting for is dynamic imports
 	const integrator = await getDesktopIntegratorForPlatform(electron, fs, child_process, () => import("winreg"))
 
-	const offlineDbFactory = async (userId: Id, key: Aes256Key) => {
-		const db = new OfflineDb(buildOptions.sqliteNativePath)
-		const dbPath = path.join(app.getPath("userData"), `offline_${userId}.sqlite`)
-		await db.init(dbPath, key)
-		return db
+	function makeDbPath(userId: string): string {
+		return path.join(app.getPath("userData"), `offline_${userId}.sqlite`)
+	}
+
+	const offlineDbFactory: OfflineDbFactory = {
+		async create(userid: string, key: Aes256Key): Promise<OfflineDb> {
+			const db = new OfflineDb(buildOptions.sqliteNativePath)
+			const dbPath = makeDbPath(userid)
+			await db.init(dbPath, key)
+			return db
+		},
+		async delete(userId: string): Promise<void> {
+			const dbPath = makeDbPath(userId)
+			await fs.promises.rm(dbPath)
+		}
 	}
 
 	const offlineDbFacade = new OfflineDbFacade(offlineDbFactory)
 
-	const exposedInterfaceFactory = (windowId: number): ExposedNativeInterface => {
+	const exposedInterfaceFactory = (windowId: number, ipc: IPC): ExposedNativeInterface => {
 		return {
 			webauthn: new DesktopWebauthn(windowId, webDialogController),
-			offlineDbFacade: offlineDbFacade
+			offlineDbFacade,
+			interWindowEventSender: new DesktopInterWindowEventSender(ipc, wm),
 		}
 	}
 

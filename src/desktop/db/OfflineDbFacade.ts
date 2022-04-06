@@ -1,9 +1,14 @@
 import {OfflineDb, PersistedEntity} from "./OfflineDb"
 import {OfflineDbMeta} from "../../api/worker/rest/OfflineStorage"
 
+export interface OfflineDbFactory {
+	create(userid: string, key: Aes256Key): Promise<OfflineDb>
+	delete(userId: string): Promise<void>
+}
+
 export class OfflineDbFacade {
 	constructor(
-		private readonly offlineDbFactory: (userid: string, key: Aes256Key) => Promise<OfflineDb>
+		private readonly offlineDbFactory: OfflineDbFactory,
 	) {
 	}
 
@@ -15,7 +20,7 @@ export class OfflineDbFacade {
 	 */
 	async openDatabaseForUser(userId: Id, databaseKey: Aes256Key): Promise<void> {
 		if (!this.cache.has(userId)) {
-			const db = await this.offlineDbFactory(userId, databaseKey)
+			const db = await this.offlineDbFactory.create(userId, databaseKey)
 			this.cache.set(userId, db)
 		}
 	}
@@ -24,6 +29,12 @@ export class OfflineDbFacade {
 		const db = this.getDbForUserId(userId)
 		await db.close()
 		this.cache.delete(userId)
+	}
+
+	async deleteDatabaseForUser(userId: Id): Promise<void> {
+		// FIXME what if it's still open by another window?
+		await this.closeDatabaseForUser(userId)
+		await this.offlineDbFactory.delete(userId)
 	}
 
 	async get(userId: Id, type: string, listId: string | null, elementId: string): Promise<Uint8Array | null> {
