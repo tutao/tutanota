@@ -113,7 +113,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 	private viewModel: MailViewerViewModel
 
-	private details: Children
 	private detailsExpanded = stream<boolean>(false)
 
 	private delayIsOver = false
@@ -151,8 +150,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 		this.resizeListener = () => this.viewModel.getResolvedDomBody().then(dom => this.updateLineHeight(dom))
 
-		this.details = this.createDetailsExpanderChildren({bubbleMenuWidth: 300})
-
 		this.viewModel.delayBodyRenderingUntil.then(() => {
 			this.delayIsOver = true
 			m.redraw()
@@ -188,12 +185,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 		this.viewModel = vnode.attrs.viewModel
 
-		const detailsExpanderButtonAttrs = {
-			label: "showMore_action",
-			expanded: this.detailsExpanded,
-			style: {},
-		} as const
-
 		const dateTime = formatDateWithWeekday(this.viewModel.mail.receivedDate) + " • " + formatTime(this.viewModel.mail.receivedDate)
 		return [
 			m(
@@ -226,8 +217,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 							]),
 							!this.viewModel.isAnnouncement() && styles.isUsingBottomNavigation()
 								? null
-								: m(".pt-0",
-									m(ExpanderButtonN, detailsExpanderButtonAttrs)),
+								: m(".pt-0", this.renderShowMoreButton()),
 						]),
 						m(
 							".mb-m",
@@ -236,7 +226,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 								{
 									expanded: this.detailsExpanded,
 								},
-								this.details,
+								this.renderDetails({bubbleMenuWidth: 300}),
 							),
 						),
 						m(".subject-actions.flex-space-between.flex-wrap.mt-xs", [
@@ -269,7 +259,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 										m(
 											".flex.flex-column-reverse",
 											!this.viewModel.isAnnouncement() && styles.isUsingBottomNavigation()
-												? m(".pt-m", m(ExpanderButtonN, detailsExpanderButtonAttrs))
+												? m(".pt-m", this.renderShowMoreButton())
 												: null,
 										),
 									],
@@ -440,7 +430,14 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			: null
 	}
 
-	private createDetailsExpanderChildren({bubbleMenuWidth}: {bubbleMenuWidth: number}): Children {
+	private renderShowMoreButton() {
+		return m(ExpanderButtonN, {
+			label: "showMore_action",
+			expanded: this.detailsExpanded,
+		})
+	}
+
+	private renderDetails({bubbleMenuWidth}: {bubbleMenuWidth: number}): Children {
 		const envelopeSender = this.viewModel.getDifferentEnvelopeSender()
 		return [
 			m(RecipientButton, {
