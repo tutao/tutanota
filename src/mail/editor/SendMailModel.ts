@@ -952,6 +952,10 @@ export class SendMailModel {
 				throw new UserError("requestTooLarge_msg")
 			} else if (e instanceof MailBodyTooLargeError) {
 				throw new UserError("mailBodyTooLarge_msg")
+			} else if (e instanceof FileNotFoundError) {
+				throw new UserError("couldNotAttachFile_msg")
+			} else if (e instanceof PreconditionFailedError) {
+				throw new UserError("operationStillActive_msg")
 			} else {
 				throw e
 			}

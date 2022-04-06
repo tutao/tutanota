@@ -13,8 +13,7 @@ import {PermissionError} from "../../api/common/error/PermissionError"
 import {locator} from "../../api/main/MainLocator"
 import {logins} from "../../api/main/LoginController"
 import {ALLOWED_IMAGE_FORMATS, ConversationType, FeatureType, Keys, MailMethod} from "../../api/common/TutanotaConstants"
-import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
-import {ConnectionError, PreconditionFailedError} from "../../api/common/error/RestError"
+import {ConnectionError} from "../../api/common/error/RestError"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
@@ -27,12 +26,12 @@ import {animations, height, opacity} from "../../gui/animation/Animations"
 import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {
-    chooseAndAttachFile,
-    cleanupInlineAttachments,
-    createAttachmentButtonAttrs,
-    createPasswordField,
-    getConfidentialStateMessage,
-    MailEditorRecipientField,
+	chooseAndAttachFile,
+	cleanupInlineAttachments,
+	createAttachmentButtonAttrs,
+	createPasswordField,
+	getConfidentialStateMessage,
+	MailEditorRecipientField,
 } from "./MailEditorViewModel"
 import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
 import {windowFacade} from "../../misc/WindowFacade"
@@ -63,6 +62,7 @@ import {parseMailtoUrl} from "../../misc/parsing/MailAddressParser"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import {Shortcut} from "../../misc/KeyManager";
 import {DataFile} from "../../api/common/DataFile";
+import {showUserError} from "../../misc/ErrorHandlerImpl"
 
 export type MailEditorAttrs = {
     model: SendMailModel
@@ -570,6 +570,7 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 
     const save = (showProgress: boolean = true) => {
         const savePromise = model.saveDraft(true, MailMethod.NONE)
+
         if (showProgress) {
             return showProgressDialog("save_msg", savePromise)
         } else {
@@ -585,10 +586,10 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
                 dialog.close()
             }
         } catch (e) {
-			if (e instanceof ConnectionError) {
-				Dialog.message("connectionLostLong_msg")
+			if (e instanceof UserError) {
+				showUserError(e)
 			} else {
-				Dialog.message(() => e.message)
+				throw e
 			}
 		}
 	}
@@ -610,10 +611,14 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 
 				saveStatus({status: SaveStatusEnum.NotSaved, reason})
 
-				if (reason == null) {
-					// If we will not show an error reason in the minimized editor dialog
-					// Then will handle it ourselves
-					handleSaveError(e)
+				// If we don't show the error in the minimized error dialog,
+				// Then we need to communicate it in a dialog or as an unhandled error
+				if (reason === SaveErrorReason.Unknown) {
+					if (e instanceof UserError) {
+						showUserError(e)
+					} else {
+						throw e
+					}
 				}
             })
         showMinimizedMailEditor(dialog, model, locator.minimizedMailModel, locator.eventController, dispose, saveStatus)
@@ -705,7 +710,7 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
             key: Keys.S,
             ctrl: true,
             exec: () => {
-                save().catch(handleSaveError)
+                save().catch(ofClass(UserError, showUserError))
             },
             help: "save_action",
         },
@@ -938,18 +943,4 @@ export function writeGiftCardMail(link: string, svg: SVGElement, mailboxDetails?
 
 function _mailboxPromise(mailbox?: MailboxDetail): Promise<MailboxDetail> {
     return mailbox ? Promise.resolve(mailbox) : locator.mailModel.getUserMailboxDetails()
-}
-
-function handleSaveError(e: Error) {
-    if (e instanceof UserError) {
-        Dialog.message(() => e.message)
-    } else if (e instanceof FileNotFoundError) {
-        Dialog.message("couldNotAttachFile_msg")
-    } else if (e instanceof PreconditionFailedError) {
-        Dialog.message("operationStillActive_msg")
-	} else if (e instanceof ConnectionError) {
-		Dialog.message("connectionLostLong_msg")
-    } else {
-        throw e
-    }
 }
