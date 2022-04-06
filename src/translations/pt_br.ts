@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2022-04-05T06:42:43Z",
+	"updated_at": "2022-04-06T14:21:30Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -356,6 +356,7 @@ export default {
 		"cut_action": "Recortar",
 		"dark_label": "Escuro",
 		"dataExpired_msg": "Seus dados carregados expiraram e estão dessincronizados com os servidores do Tutanota. Por favor, encerre sua sessão e refaça login.",
+		"dataWillBeStored_msg": "Os dados ficarão armazenados no seu dispositivo.",
 		"dateFrom_label": "De",
 		"dateInvalidRange_msg": "Por favor defina um intervalo de datas válido.",
 		"dateTo_label": "até",
@@ -1391,7 +1392,7 @@ export default {
 		"userEmailSignature_label": "Assinatura de email",
 		"userManagementRedirect_msg": "Você será redirecionado para as configurações de usuário. Você pode continuar depois a configuração do seu domnínio personalizado.",
 		"userSettings_label": "Configurações de usuário",
-		"useSecurityKey_action": "Usar chave de segurança",
+		"useSecurityKey_action": "Usar chave de segurança_ação",
 		"validGiftCardCountry_msg": "Este cartão de presente é válido apenas par auso em {valid}, mas nós  detecrtamos que você está em {actual}. Por favor confirme que você está usando este cartão de presente em {valid}.",
 		"validInCountry_msg": "Válido em {country}.",
 		"validInputFormat_msg": "Formato válido. ",

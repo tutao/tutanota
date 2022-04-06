@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T09:48:48Z",
-	"updated_at": "2022-04-05T06:42:44Z",
+	"updated_at": "2022-04-06T02:04:22Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "소개",
@@ -346,7 +346,7 @@ export default {
 		"decline_action": "거절",
 		"defaultColor_label": "기본 색상: {1}",
 		"defaultDownloadPath_label": "기본 다운로드 경로",
-		"defaultEmailSignature_msg": "--\n<br>\n광고없는 보안메일, Tutanota로 전송되었음.\n<br>",
+		"defaultEmailSignature_msg": "--\n<br>\n광고 없는 보안 메일, Tutanota로 전송되었음.\n<br>",
 		"defaultExternalDeliveryInfo_msg": "외부 수신인에게 새 이메일을 보내는 기본 설정: 기밀 (종단간 암호화) 또는 비기밀 (종단간 암호화가 아님) 입니다.",
 		"defaultExternalDelivery_label": "기본 전송",
 		"defaultGiftCardMessage_msg": "Tutanota와 함께 보안 & 프라이버시를 즐기세요!",
@@ -1306,7 +1306,7 @@ export default {
 		"userColumn_label": "사용자",
 		"userEmailSignature_label": "이메일 서명",
 		"userSettings_label": "사용자 설정",
-		"useSecurityKey_action": "보안 키 사용하기",
+		"useSecurityKey_action": "클릭하여 보안 키 사용하기",
 		"validGiftCardCountry_msg": "본 기프트 카드는 {actual}이 아닌 {valid}에서만 사용할 수 있습니다. 기프트 카드를 {valid}에서 사용 중인지 확인해 주세요.",
 		"validInCountry_msg": "{country}에서 유효합니다.",
 		"validInputFormat_msg": "형식 통과.",

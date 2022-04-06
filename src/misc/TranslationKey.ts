@@ -339,6 +339,7 @@ export type TranslationKeyType =
 	| "cut_action"
 	| "dark_label"
 	| "dataExpired_msg"
+	| "dataWillBeStored_msg"
 	| "dateFrom_label"
 	| "dateInvalidRange_msg"
 	| "dateTo_label"

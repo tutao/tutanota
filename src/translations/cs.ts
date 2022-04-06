@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2022-04-05T06:42:44Z",
+	"updated_at": "2022-04-06T14:21:30Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",
@@ -354,6 +354,7 @@ export default {
 		"cut_action": "Vyjmout",
 		"dark_label": "Tmavé",
 		"dataExpired_msg": "Vaše načtená data jsou zastaralá a nejsou synchronizována s daty na serverech Tutanota. Odhlašte se prosím a znovu se přihlaste, aby se obnovila data.",
+		"dataWillBeStored_msg": "Data budou uložena na vašem zařízení.",
 		"dateFrom_label": "Od",
 		"dateInvalidRange_msg": "Zadejte prosím platný rozsah dat.",
 		"dateTo_label": "Do",

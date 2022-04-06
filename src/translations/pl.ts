@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2022-04-05T06:42:43Z",
+	"updated_at": "2022-04-06T14:21:30Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1391,7 +1391,7 @@ export default {
 		"userEmailSignature_label": "Podpis pod wiadomością e-mail",
 		"userManagementRedirect_msg": "Nastąpi przekierowanie do menu ustawień użytkownika. Możesz później wznowić proces konfiguracji swojej własnej domeny. ",
 		"userSettings_label": "Ustawienia użytkownika",
-		"useSecurityKey_action": "Użyj klucza bezpieczeństwa",
+		"useSecurityKey_action": "Kliknij, aby użyć klucza bezpieczeństwa",
 		"validGiftCardCountry_msg": "Ta karta podarunkowa jest ważna tylko do użytku w {valid}, ale wykryliśmy, że jesteś w {actual}. Potwierdź, że używasz tej karty w ‪{valid}‬.",
 		"validInCountry_msg": "Obowiązuje w {country}.",
 		"validInputFormat_msg": "Format w porządku.",
