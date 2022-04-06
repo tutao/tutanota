@@ -267,10 +267,6 @@ export class MailViewerViewModel {
 		return this.mail._id
 	}
 
-	isMailBodyLoaded(): boolean {
-		return this.sanitizedMailBody != null
-	}
-
 	getSanitizedMailBody(): string | null {
 		return this.sanitizedMailBody
 	}
