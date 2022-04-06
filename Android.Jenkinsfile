@@ -7,6 +7,7 @@ pipeline {
 		ANDROID_SDK_ROOT = "/opt/android-sdk-linux"
 		ANDROID_HOME = "/opt/android-sdk-linux"
 		GITHUB_RELEASE_PAGE = "https://github.com/tutao/tutanota/releases/tag/tutanota-android-release-${VERSION}"
+		TAG = "tutanota-android-release-${VERSION}"
 	}
 
 	agent {
@@ -23,6 +24,15 @@ pipeline {
 	}
 
 	stages {
+		stage("Check tag") {
+			when {
+				expression { params.RELEASE }
+			}
+			steps {
+				def util = load "jenkins-lib/util.groovy"
+				util.checkGitTag(TAG)
+			}
+		}
 		stage('Test') {
 			steps {
 				dir("${WORKSPACE}/app-android/") {
@@ -118,7 +128,6 @@ pipeline {
 
 						script {
 							def filePath = "build/app-android/tutanota-tutao-release-${VERSION}.apk"
-							def tag = "tutanota-android-release-${VERSION}"
 							def util = load "jenkins-lib/util.groovy"
 
 							util.publishToNexus(
@@ -154,7 +163,7 @@ pipeline {
 			// Needed to generate a checksum
 			unstash 'apk-production'
 
-			sh "git tag ${tag}"
+			sh "git tag ${TAG}"
 			sh "git push --tags"
 
 			def filePath = "build/app-android/tutanota-tutao-release-${VERSION}.apk"

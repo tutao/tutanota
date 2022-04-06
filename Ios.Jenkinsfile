@@ -3,6 +3,7 @@ pipeline {
     	NODE_PATH="/opt/node-v16.3.0-linux-x64/bin"
     	NODE_MAC_PATH="/usr/local/opt/node@16/bin/"
     	VERSION = sh(returnStdout: true, script: "${NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
+    	TAG = "tutanota-ios-release-${VERSION}"
     	RELEASE_NOTES_PATH = "app-ios/fastlane/metadata/default/release_notes.txt"
     }
 
@@ -11,15 +12,26 @@ pipeline {
     }
 
 	parameters {
-		booleanParam(name: 'PROD', defaultValue: false, description: 'Build for production')
 		booleanParam(
-			name: 'PUBLISH', defaultValue: false,
-			description: "Publish the app to Nexus and Apple Store (when not in production mode, " +
-						 "it will publish to Nexus only)"
-		)
+		  name: 'RELEASE',
+		  defaultValue: false,
+		  description: "Build staging and production version, and upload them to nexus/testflight/appstore. " +
+		  			   "The production version will need to be released manually from appstoreconnect.apple.com"
+		  )
 	}
 
 	stages {
+
+		stage("Check tag") {
+			when {
+				expression { params.RELEASE }
+			}
+			steps {
+				def util = load "jenkins-lib/util.groovy"
+				util.checkGitTag(TAG)
+			}
+		}
+
 	    stage("Run tests") {
 	        agent {
 	        	label 'mac'
@@ -37,7 +49,7 @@ pipeline {
 	        }
 	    }
 
-		stage("Build IOS app") {
+		stage("Build and upload to Apple") {
 			environment {
 				PATH="${env.NODE_MAC_PATH}:${env.PATH}"
 				MATCH_GIT_URL="git@gitlab:/tuta/apple-certificates.git"
@@ -47,70 +59,26 @@ pipeline {
 		    agent {
             	label 'mac'
             }
-			steps {
-				script {
-					createAppfile()
+            stages {
+            	stage('Staging') {
+					steps {
+						script {
+        					doBuild('test', 'adhoctest', params.RELEASE)
+							stash includes: "app-ios/releases/tutanota-${VERSION}-test.ipa", name: 'ipa-staging'
+						}
+					}
+            	}
 
-					script {
-						catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release notes') {
-							def tag = "tutanota-ios-release-${VERSION}"
-							// need to run npm ci to install dependencies of releaseNotes.js
-							sh "npm ci"
-							withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-								sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (IOS)' \
-																			   --milestone '${VERSION}' \
-																			   --tag '${tag}' \
-																			   --platform ios \
-																			   --format ios \
-																			   --toFile ${RELEASE_NOTES_PATH}"""
-							}
+            	stage('Production') {
+					steps {
+						script {
+							doBuild('prod', 'adhoc', params.RELEASE)
+							stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc.ipa", name: 'ipa-production'
 
 						}
 					}
-
-					sh "echo Created release notes for fastlane ${RELEASE_NOTES_PATH}"
-					sh "pwd"
-
-					stash includes: "${RELEASE_NOTES_PATH}", name: 'release_notes'
-
-					def stage = params.PROD ? 'prod' : 'test'
-					def lane = params.PROD ? 'adhoc' : 'adhoctest'
-					def ipaFileName = params.PROD ? "tutanota-${VERSION}-adhoc.ipa" : "tutanota-${VERSION}-test.ipa"
-
-					sh "echo $PATH"
-					sh "npm ci"
-					sh 'npm run build-packages'
-					sh "node --max-old-space-size=8192 webapp ${stage}"
-					sh "node buildSrc/prepareMobileBuild.js dist"
-
-					withCredentials([
-						file(credentialsId: 'appstore-api-key-json', variable: "API_KEY_JSON_FILE_PATH"),
-						string(credentialsId: 'match-password', variable: 'MATCH_PASSWORD'),
-						string(credentialsId: 'team-id', variable: 'FASTLANE_TEAM_ID'),
-						sshUserPrivateKey(credentialsId: 'jenkins', keyFileVariable: 'MATCH_GIT_PRIVATE_KEY'),
-						string(credentialsId: 'fastlane-keychain-password', variable: 'FASTLANE_KEYCHAIN_PASSWORD')
-					 ]) {
-						dir('app-ios') {
-							sh "security unlock-keychain -p ${FASTLANE_KEYCHAIN_PASSWORD}"
-
-							// Set git ssh command to avoid ssh prompting to confirm an unknown host
-							// (since we don't have console access we can't confirm and it gets stuck)
-							sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane ${lane}"
-							if (params.PROD && params.PUBLISH) {
-								sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane release submit:true"
-							}
-						}
-					}
-
-					stash includes: "app-ios/releases/${ipaFileName}", name: 'ipa'
-
-					if (params.PUBLISH && params.PROD) {
-						def tag = "tutanota-ios-release-${VERSION}"
- 						sh "git tag ${tag}"
- 						sh "git push --tags"
-					}
-				}
-			}
+            	}
+            }
 		}
 
 		stage('Upload to Nexus') {
@@ -118,44 +86,45 @@ pipeline {
 				PATH="${env.NODE_PATH}:${env.PATH}"
 			}
 			when {
-				expression { params.PUBLISH }
+				expression { params.RELEASE }
 			}
 			agent {
 				label 'linux'
 			}
 			steps {
 				script {
-					def util = load "jenkins-lib/util.groovy"
-					def ipaFileName = params.PROD ? "tutanota-${VERSION}-adhoc.ipa" : "tutanota-${VERSION}-test.ipa"
-					def artifactId = params.PROD ? "ios" : "ios-test"
 
-					unstash 'ipa'
+					unstash 'ipa-staging'
+					unstash 'ipa-production'
 
-					util.publishToNexus(groupId: "app",
-							artifactId: "${artifactId}",
-							version: "${VERSION}",
-							assetFilePath: "${WORKSPACE}/app-ios/releases/${ipaFileName}",
-							fileExtension: "ipa"
-					)
+					script {
+						catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'There was an error when uploading to Nexus') {
+							publishToNexus("ios-test", "tutanota-${VERSION}-test.ipa")
+							publishToNexus("ios", "tutanota-${VERSION}-adhoc.ipa")
+						}
+					}
 				}
 			}
 		}
 
-		stage('Create github release page') {
+		stage('Tag and create github release page') {
 			environment {
 				PATH="${env.NODE_PATH}:${env.PATH}"
 			}
 			when {
-				expression { params.PROD }
-				expression { params.PUBLISH }
+				expression { params.RELEASE }
 			}
 			agent {
 				label 'linux'
 			}
 			steps {
+
+				sh "git tag ${TAG}"
+				sh "git push --tags"
+
 				script {
 
-					catchError(stageResult: 'FAILURE', buildResult: 'SUCCESS', message: 'Failed to create github release page') {
+					catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page') {
 						def tag = "tutanota-ios-release-${VERSION}"
 						// need to run npm ci to install dependencies of releaseNotes.js
 						sh "npm ci"
@@ -172,10 +141,9 @@ pipeline {
 	}
 }
 
-/**
- * Prepares the fastlane Appfile which defines the required ids for the ios application build.
- */
-def createAppfile() {
+void doBuild(String stage, String lane, bool release) {
+
+	// Prepare the fastlane Appfile which defines the required ids for the ios app build.
 	script {
 		def app_identifier = 'de.tutao.tutanota'
 		def appfile = './app-ios/fastlane/Appfile'
@@ -192,4 +160,61 @@ def createAppfile() {
 			sh "echo \"team_id('${team_id}')\" >> ${appfile}"
 		}
 	}
+
+		script {
+			catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release notes') {
+				def tag = "tutanota-ios-release-${VERSION}"
+				// need to run npm ci to install dependencies of releaseNotes.js
+				sh "npm ci"
+				withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
+					sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (IOS)' \
+																   --milestone '${VERSION}' \
+																   --tag '${tag}' \
+																   --platform ios \
+																   --format ios \
+																   --toFile ${RELEASE_NOTES_PATH}"""
+				}
+
+			}
+		}
+
+	sh "echo Created release notes for fastlane ${RELEASE_NOTES_PATH}"
+	sh "pwd"
+
+	stash includes: "${RELEASE_NOTES_PATH}", name: 'release_notes'
+
+	sh "echo $PATH"
+	sh "npm ci"
+	sh 'npm run build-packages'
+	sh "node --max-old-space-size=8192 webapp ${stage}"
+	sh "node buildSrc/prepareMobileBuild.js dist"
+
+	withCredentials([
+		file(credentialsId: 'appstore-api-key-json', variable: "API_KEY_JSON_FILE_PATH"),
+		string(credentialsId: 'match-password', variable: 'MATCH_PASSWORD'),
+		string(credentialsId: 'team-id', variable: 'FASTLANE_TEAM_ID'),
+		sshUserPrivateKey(credentialsId: 'jenkins', keyFileVariable: 'MATCH_GIT_PRIVATE_KEY'),
+		string(credentialsId: 'fastlane-keychain-password', variable: 'FASTLANE_KEYCHAIN_PASSWORD')
+	 ]) {
+		dir('app-ios') {
+			sh "security unlock-keychain -p ${FASTLANE_KEYCHAIN_PASSWORD}"
+
+			// Set git ssh command to avoid ssh prompting to confirm an unknown host
+			// (since we don't have console access we can't confirm and it gets stuck)
+			sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane ${lane}"
+			if (release) {
+				sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane release submit:true"
+			}
+		}
+	}
+}
+
+void publishToNexus(String artifactId, String ipaFileName) {
+	def util = load "jenkins-lib/util.groovy"
+	util.publishToNexus(groupId: "app",
+		artifactId: "${artifactId}",
+		version: "${VERSION}",
+		assetFilePath: "${WORKSPACE}/app-ios/releases/${ipaFileName}",
+		fileExtension: "ipa"
+	)
 }
