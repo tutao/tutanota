@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2022-04-06T14:21:30Z",
+	"updated_at": "2022-04-07T12:17:56Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",
@@ -353,6 +353,7 @@ export default {
 		"custom_label": "Vlastní",
 		"cut_action": "Vyjmout",
 		"dark_label": "Tmavé",
+		"dataExpiredOfflineDb_msg": "Vaše stažená data nejsou synchronizována s daty na serverech Tutanoty. Budou smazána a znovu stažena.",
 		"dataExpired_msg": "Vaše načtená data jsou zastaralá a nejsou synchronizována s daty na serverech Tutanota. Odhlašte se prosím a znovu se přihlaste, aby se obnovila data.",
 		"dataWillBeStored_msg": "Data budou uložena na vašem zařízení.",
 		"dateFrom_label": "Od",
@@ -427,7 +428,7 @@ export default {
 		"downgradeToTeams_msg": "Váš účet bude změněn na Teams s 5 aliasy, 10 GB uložištěm a bez funkce whitelabel.",
 		"downloadCompleted_msg": "Úspěšně staženo",
 		"download_action": "Stáhnout",
-		"draftNotSavedConnectionLost_msg": "Koncept neuložen (spojení bylo přerušeno).",
+		"draftNotSavedConnectionLost_msg": "Koncept neuložen (Offline).",
 		"draftNotSaved_msg": "Koncept neuložen.",
 		"draftSaved_msg": "Koncept uložen.",
 		"draft_action": "Koncepty",
@@ -877,6 +878,7 @@ export default {
 		"npoDiscount_msg": "Nabídka pro neziskové organizace: 50% uživatelská sleva na Premium a 20 aliasů zdarma!",
 		"npoDonation_msg": "Nabídka pro neziskové organizace: až 50 uživatelů  pro Premium účet a 100 aliasů zdarma!",
 		"number_label": "Číslo",
+		"offlineStorage_label": "Offline úložiště",
 		"ok_action": "OK",
 		"oldPasswordInvalid_msg": "Nesprávné dosavadní heslo.",
 		"oldPasswordNeutral_msg": "Zadejte prosím své staré heslo.",

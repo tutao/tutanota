@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2022-04-06T14:21:30Z",
+	"updated_at": "2022-04-07T12:35:36Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -358,6 +358,7 @@ export default {
 		"cut_action": "Wytnij",
 		"dark_label": "Ciemny",
 		"dataExpired_msg": "Załadowane dane wygasły i nie są synchronizowane z serwerami Tutanota. Wyloguj się i zaloguj ponownie, aby je odświeżyć.",
+		"dataWillBeStored_msg": "Dane zostaną zapisane na Twoim urządzeniu.",
 		"dateFrom_label": "Od",
 		"dateInvalidRange_msg": "Wprowadź prawidłowy zakres dat.",
 		"dateTo_label": "Do",
@@ -879,6 +880,7 @@ export default {
 		"npoDiscount_msg": "Oferta dla organizacji non-profit: 50% zniżki na wersję Premium i 20 aliasów za darmo!",
 		"npoDonation_msg": "Darowizna dla organizacji pozarządowych: do 50 użytkowników dla wersji Premium i 100 aliasów bezpłatnie!",
 		"number_label": "Numer",
+		"offlineStorage_label": "Miejsce offline",
 		"ok_action": "OK",
 		"oldPasswordInvalid_msg": "Nieprawidłowe stare hasło. ",
 		"oldPasswordNeutral_msg": "Wprowadź stare hasło.",

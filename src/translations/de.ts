@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2022-04-06T14:21:47Z",
+	"updated_at": "2022-04-07T12:12:45Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -357,6 +357,7 @@ export default {
 		"custom_label": "Eigenes",
 		"cut_action": "Ausschneiden",
 		"dark_label": "Dunkel",
+		"dataExpiredOfflineDb_msg": "Deine geladenen Daten sind nicht mehr aktuell und können nicht mehr mit dem Server synchronisiert werden. Sie werden gelöscht und erneut heruntergeladen.",
 		"dataExpired_msg": "Deine geladenen Daten sind nicht mehr aktuell und können nicht mehr mit dem Server synchronisiert werden. Bitte logge dich aus und wieder ein, um deine Daten zu aktualisieren.",
 		"dataExpiredOfflineDb_msg": "Deine geladenen Daten sind nicht mehr aktuell und können nicht mehr mit dem Server synchronisiert werden. Sie werden gelöscht und erneut heruntergeladen.",
 		"dataWillBeStored_msg": "Die Daten werden auf deinem Gerät gespeichert.",
@@ -882,6 +883,7 @@ export default {
 		"npoDiscount_msg": "Angebot für NPOs: 50% Benutzer-Rabatt für Premium und 20 Aliasse kostenfrei!",
 		"npoDonation_msg": "Spende für NPOs: Bis zu 50 Benutzer für Premium und 100 Aliasse kostenfrei!",
 		"number_label": "Nummer",
+		"offlineStorage_label": "Offline Speicherung",
 		"ok_action": "OK",
 		"oldPasswordInvalid_msg": "Altes Passwort nicht korrekt.",
 		"oldPasswordNeutral_msg": "Bitte altes Passwort eingeben.",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2022-04-06T14:21:30Z",
+	"updated_at": "2022-04-07T12:12:16Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -353,6 +353,7 @@ export default {
 		"custom_label": "Custom",
 		"cut_action": "Cut",
 		"dark_label": "Dark",
+		"dataExpiredOfflineDb_msg": "Your local data is out of sync with the data on the Tutanota servers. It will be deleted and re-downloaded.",
 		"dataExpired_msg": "Your loaded data is expired and out of sync with the data on the Tutanota servers. Please logout and login again to refresh your data.",
 		"dataExpiredOfflineDb_msg": "Your local data is out of sync with the data on the Tutanota servers. It will be deleted and re-downloaded.",
 		"dataWillBeStored_msg": "Data will be stored on your device.",
@@ -878,6 +879,7 @@ export default {
 		"npoDiscount_msg": "Offer for NPOs: 50% user discount for Premium and 20 aliases free of charge!",
 		"npoDonation_msg": "Donation for NPOs: up to 50 users for Premium and 100 aliases free of charge!",
 		"number_label": "Number",
+		"offlineStorage_label": "Offline storage",
 		"ok_action": "Ok",
 		"oldPasswordInvalid_msg": "Incorrect old password.",
 		"oldPasswordNeutral_msg": "Please enter your old password.",
