@@ -30,7 +30,7 @@ import type {GiftCardRedeemGetReturn} from "../../api/entities/sys/GiftCardRedee
 import {redeemGiftCard, renderAcceptGiftCardTermsCheckbox, renderGiftCardSvg} from "./GiftCardUtils"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import {lang} from "../../misc/LanguageViewModel"
-import {getLoginErrorMessage} from "../../misc/LoginUtils"
+import {getLoginErrorMessage, handleExpectedLoginError} from "../../misc/LoginUtils"
 import {RecoverCodeField} from "../../settings/RecoverCodeDialog"
 import {HabReminderImage} from "../../gui/base/icons/Icons"
 import {PaymentMethodType} from "../../api/common/TutanotaConstants"
@@ -200,36 +200,33 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 			helpText: this._loginFormHelpText,
 		}
 
-		const onCredentialsSelected = (encryptedCredentials: CredentialsInfo) => {
-			// If the user is logged in already (because they selected credentials and then went back) we dont have to do
-			// anything, so just move on
-			if (logins.isUserLoggedIn() && isSameId(logins.getUserController().user._id, encryptedCredentials.userId)) {
-				this._postLogin()
-			} else {
-				showProgressDialog(
-					"pleaseWait_msg",
-					logins
-						.logout(false)
-						.then(async () => {
-							const credentials = await locator.credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
+		const loginWithStoredCredentials = async (encryptedCredentials: CredentialsInfo) => {
+			try {
+				await logins.logout(false)
+				const credentials = await locator.credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
 
-							if (credentials) {
-								await logins.resumeSession(credentials)
-							}
-						})
-						.then(() => this._postLogin())
-						.catch(
-							ofClass(NotAuthorizedError, e => {
-								Dialog.message("savedCredentialsError_msg")
-							}),
-						),
-				)
+				if (credentials) {
+					await logins.resumeSession(credentials)
+					await this._postLogin()
+				}
+
+			} catch (e) {
+				this._loginFormHelpText = lang.getMaybeLazy(getLoginErrorMessage(e, false))
+				handleExpectedLoginError(e, noOp)
 			}
 		}
 
 		const credentialsSelectorAttrs: CredentialsSelectorAttrs = {
 			credentials: this._storedCredentials,
-			onCredentialsSelected,
+			onCredentialsSelected: async encryptedCredentials => {
+				if (logins.isUserLoggedIn() && isSameId(logins.getUserController().user._id, encryptedCredentials.userId)) {
+					// If the user is logged in already (because they selected credentials and then went back) we dont have to do
+					// anything, so just move on
+					await this._postLogin()
+				} else {
+					await showProgressDialog("pleaseWait_msg", loginWithStoredCredentials(encryptedCredentials))
+				}
+			},
 		}
 		return [
 			m(
