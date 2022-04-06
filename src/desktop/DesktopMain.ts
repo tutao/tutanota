@@ -164,7 +164,7 @@ async function createComponents(): Promise<Components> {
 		return {
 			webauthn: new DesktopWebauthn(windowId, webDialogController),
 			offlineDbFacade,
-			interWindowEventSender: new DesktopInterWindowEventSender(ipc, wm),
+			interWindowEventSender: new DesktopInterWindowEventSender(ipc, wm, windowId),
 		}
 	}
 
