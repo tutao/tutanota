@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2022-04-05T06:42:44Z",
+	"updated_at": "2022-04-06T14:21:54Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -358,6 +358,7 @@ export default {
 		"cut_action": "Ausschneiden",
 		"dark_label": "Dunkel",
 		"dataExpired_msg": "Ihre geladenen Daten sind nicht mehr aktuell und können nicht mehr mit dem Server synchronisiert werden. Bitte loggen Sie sich aus und wieder ein, um Ihre Daten zu aktualisieren.",
+		"dataWillBeStored_msg": "Die Daten werden auf Ihrem Gerät gespeichert.",
 		"dateFrom_label": "Von",
 		"dateInvalidRange_msg": "Bitte geben Sie einen gültigen Datumsbereich ein.",
 		"dateTo_label": "Bis",
@@ -430,7 +431,7 @@ export default {
 		"downgradeToTeams_msg": "Ihr Account wird zu einem Teams-Account mit 5 Alias-Adressen und 10 GB Speicher ohne Whitelabel-Funktion gewechselt.",
 		"downloadCompleted_msg": "Download abgeschlossen",
 		"download_action": "Herunterladen",
-		"draftNotSavedConnectionLost_msg": "Der Entwurf konnte nicht gespeichert werden (Verbindung abgebrochen).",
+		"draftNotSavedConnectionLost_msg": "Entwurf nicht gespeichert (Offline).",
 		"draftNotSaved_msg": "Entwurf nicht gespeichert.",
 		"draftSaved_msg": "Entwurf gespeichert.",
 		"draft_action": "Entwürfe",

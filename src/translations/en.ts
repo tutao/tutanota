@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2022-04-05T06:42:43Z",
+	"updated_at": "2022-04-06T14:21:30Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -354,6 +354,7 @@ export default {
 		"cut_action": "Cut",
 		"dark_label": "Dark",
 		"dataExpired_msg": "Your loaded data is expired and out of sync with the data on the Tutanota servers. Please logout and login again to refresh your data.",
+		"dataWillBeStored_msg": "Data will be stored on your device.",
 		"dateFrom_label": "From",
 		"dateInvalidRange_msg": "Please define a valid date range.",
 		"dateTo_label": "To",
@@ -426,7 +427,7 @@ export default {
 		"downgradeToTeams_msg": "Your account will be downgraded to a Teams account with 5 aliases, 10 GB of storage and without whitelabel functions.",
 		"downloadCompleted_msg": "Download completed",
 		"download_action": "Download",
-		"draftNotSavedConnectionLost_msg": "Draft not saved (the connection was lost).",
+		"draftNotSavedConnectionLost_msg": "Draft not saved (Offline).",
 		"draftNotSaved_msg": "Draft not saved.",
 		"draftSaved_msg": "Draft saved.",
 		"draft_action": "Drafts",
