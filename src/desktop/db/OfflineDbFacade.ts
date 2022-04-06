@@ -94,7 +94,6 @@ export class OfflineDbFacade {
 		return this.getDbForUserId(userId).putMetadata(key, value)
 	}
 
-
 	private getDbForUserId(userId: Id,): OfflineDb {
 		const db = this.cache.get(userId)
 

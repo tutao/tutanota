@@ -35,6 +35,7 @@ import "./rest/CborDateEncoderTest.js"
 import "./worker/facades/BlobFacadeTest.js"
 import "./worker/utils/SleepDetectorTest.js"
 import "./worker/rest/ServiceExecutorTest.js"
+import "./worker/rest/OfflineStorageTest.js"
 
 import {preTest, reportTest} from "./TestUtils"
 import {random} from "@tutao/tutanota-crypto"

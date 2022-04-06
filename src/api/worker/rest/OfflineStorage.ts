@@ -4,11 +4,11 @@ import {firstBiggerThanSecond} from "../../common/utils/EntityUtils.js"
 import {CacheStorage, expandId} from "./EntityRestCache.js"
 import * as cborg from "cborg"
 import {EncodeOptions, Token, Type} from "cborg"
-import {assert, TypeRef} from "@tutao/tutanota-utils"
+import {assert, typedKeys, TypeRef} from "@tutao/tutanota-utils"
 import type {OfflineDbFacade} from "../../../desktop/db/OfflineDbFacade"
 import {isOfflineStorageAvailable, isTest} from "../../common/Env"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
-import {SessionType} from "../../common/SessionType"
+import {modelInfos} from "../../common/EntityFunctions"
 
 function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNestedTokens | null {
 	return [
@@ -45,6 +45,21 @@ export class OfflineStorage implements CacheStorage {
 	async init(userId: Id, databaseKey: Aes256Key): Promise<void> {
 		this._userId = userId
 		await this.offlineDbFacade.openDatabaseForUser(userId, databaseKey)
+
+		for (const app of typedKeys(modelInfos)) {
+			const storedVersion = await this.getMetadata(`${app}-version`)
+			const runtimeVersion = modelInfos[app].version
+			if (storedVersion != null && storedVersion !== runtimeVersion) {
+				console.log(`Detected incompatible model version for ${app}, stored: ${storedVersion}, runtime: ${runtimeVersion}, purging db for ${userId}`)
+				await this.offlineDbFacade.deleteAll(userId)
+				break
+			}
+		}
+
+		for (const app of typedKeys(modelInfos)) {
+			const runtimeVersion = modelInfos[app].version
+			await this.putMetadata(`${app}-version`, runtimeVersion)
+		}
 	}
 
 	async close(): Promise<void> {
@@ -153,6 +168,12 @@ export class OfflineStorage implements CacheStorage {
 	}
 }
 
-export type OfflineDbMeta = {
-	lastUpdateTime: number
+
+type AppMetadataEntries = {
+	// Yes this is cursed, give me a break
+	[P in keyof typeof modelInfos as `${P}-version`]: number
+}
+
+export interface OfflineDbMeta extends AppMetadataEntries {
+	lastUpdateTime: number,
 }
