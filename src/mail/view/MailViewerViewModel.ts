@@ -77,7 +77,6 @@ import {LoadingStateTracker} from "../../offline/LoadingState"
 import {IServiceExecutor} from "../../api/common/ServiceRequest"
 import {ListUnsubscribeService} from "../../api/entities/tutanota/Services"
 
-const SCROLL_FACTOR = 4 / 5
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -120,10 +119,6 @@ export class MailViewerViewModel {
 
 	private domBodyDeferred: DeferredObject<HTMLElement> = defer()
 	private domBody: HTMLElement | null = null
-
-	// Initialize with NoExternalContent so that the banner doesn't flash, this will be set later in _loadMailBody
-	private scrollAnimation: Promise<void> | null = null
-	private domForScrolling: HTMLElement | null = null
 
 	private readonly loadingState = new LoadingStateTracker()
 
@@ -376,10 +371,6 @@ export class MailViewerViewModel {
 
 	getRestrictions(): MailRestriction | null {
 		return this.mail.restrictions
-	}
-
-	setScrollDom(scrollDom: HTMLElement) {
-		this.domForScrolling = scrollDom
 	}
 
 	async setContentBlockingStatus(status: ContentBlockingStatus): Promise<void> {
@@ -924,51 +915,6 @@ export class MailViewerViewModel {
 				   console.error("could not open file:", msg)
 				   return Dialog.message("errorDuringFileOpen_msg")
 			   })
-	}
-
-	scrollUp(): void {
-		this.scrollIfDomBody(dom => {
-			const current = dom.scrollTop
-			const toScroll = dom.clientHeight * SCROLL_FACTOR
-			return scroll(current, Math.max(0, current - toScroll))
-		})
-	}
-
-	scrollDown(): void {
-		this.scrollIfDomBody(dom => {
-			const current = dom.scrollTop
-			const toScroll = dom.clientHeight * SCROLL_FACTOR
-			return scroll(current, Math.min(dom.scrollHeight - dom.offsetHeight, dom.scrollTop + toScroll))
-		})
-	}
-
-	scrollToTop(): void {
-		this.scrollIfDomBody(dom => {
-			return scroll(dom.scrollTop, 0)
-		})
-	}
-
-	scrollToBottom(): void {
-		this.scrollIfDomBody(dom => {
-			const end = dom.scrollHeight - dom.offsetHeight
-			return scroll(dom.scrollTop, end)
-		})
-	}
-
-	private scrollIfDomBody(cb: (dom: HTMLElement) => DomMutation) {
-		if (this.domForScrolling) {
-			const dom = this.domForScrolling
-
-			if (!this.scrollAnimation) {
-				this.scrollAnimation = animations
-					.add(dom, cb(dom), {
-						easing: ease.inOut,
-					})
-					.then(() => {
-						this.scrollAnimation = null
-					})
-			}
-		}
 	}
 
 	handleAnchorClick(event: Event, shouldDispatchSyntheticClick: boolean): void {
