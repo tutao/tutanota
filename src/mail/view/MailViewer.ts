@@ -944,7 +944,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 							},
 							{
 								label: "download_action",
-								click: () => this.viewModel.downloadAndOpenAttachment(attachment, true),
+								click: () => this.viewModel.downloadAndOpenAttachment(attachment, false),
 								type: ButtonType.Dropdown
 							},
 						],
