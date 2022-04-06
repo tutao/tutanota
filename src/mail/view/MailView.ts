@@ -301,26 +301,6 @@ export class MailView implements CurrentView {
 	_getShortcuts(): Array<Shortcut> {
 		return [
 			{
-				key: Keys.PAGE_UP,
-				exec: () => this.mailViewerViewModel?.scrollUp(),
-				help: "scrollUp_action",
-			},
-			{
-				key: Keys.PAGE_DOWN,
-				exec: () => this.mailViewerViewModel?.scrollDown(),
-				help: "scrollDown_action",
-			},
-			{
-				key: Keys.HOME,
-				exec: () => this.mailViewerViewModel?.scrollToTop(),
-				help: "scrollToTop_action",
-			},
-			{
-				key: Keys.END,
-				exec: () => this.mailViewerViewModel?.scrollToBottom(),
-				help: "scrollToBottom_action",
-			},
-			{
 				key: Keys.N,
 				exec: () => {
 					this._showNewMailDialog().catch(ofClass(PermissionError, noOp))

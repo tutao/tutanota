@@ -1,5 +1,5 @@
 import {size} from "../../gui/size"
-import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
 import {Button} from "../../gui/base/Button"
@@ -67,6 +67,8 @@ import {createEmailSenderListElement} from "../../api/entities/sys/EmailSenderLi
 import {checkApprovalStatus} from "../../misc/LoginUtils"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
+import {animations, DomMutation, scroll} from "../../gui/animation/Animations"
+import {ease} from "../../gui/animation/Easing"
 
 assertMainOrNode()
 // map of inline image cid to InlineImageReference
@@ -75,6 +77,8 @@ export type InlineImages = Map<string, InlineImageReference>
 type MaybeSyntheticEvent = TouchEvent & {
 	synthetic?: boolean
 }
+
+const SCROLL_FACTOR = 4 / 5
 const DOUBLE_TAP_TIME_MS = 350
 
 type MailAddressAndName = {
@@ -118,6 +122,9 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private delayIsOver = false
 
 	private shortcuts: Array<Shortcut>
+
+	private scrollAnimation: Promise<void> | null = null
+	private scrollDom: HTMLElement | null = null
 
 	constructor(vnode: Vnode<MailViewerAttrs>) {
 
@@ -286,7 +293,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 								this.lastTouchStart.time = Date.now()
 							},
 							oncreate: vnode => {
-								this.viewModel.setScrollDom(vnode.dom as HTMLElement)
+								this.scrollDom = vnode.dom as HTMLElement
 							},
 							ontouchend: (event: EventRedraw<TouchEvent>) => {
 								if (client.isMobileDevice()) {
@@ -1050,6 +1057,26 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				enabled: () => !this.viewModel.isDraftMail(),
 				help: "replyAll_action",
 			},
+			{
+				key: Keys.PAGE_UP,
+				exec: () => this.scrollUp(),
+				help: "scrollUp_action",
+			},
+			{
+				key: Keys.PAGE_DOWN,
+				exec: () => this.scrollDown(),
+				help: "scrollDown_action",
+			},
+			{
+				key: Keys.HOME,
+				exec: () => this.scrollToTop(),
+				help: "scrollToTop_action",
+			},
+			{
+				key: Keys.END,
+				exec: () => this.scrollToBottom(),
+				help: "scrollToBottom_action",
+			},
 		]
 
 		if (userController.isInternalUser()) {
@@ -1296,7 +1323,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		})
 	}
 
-	addSpamRule(defaultInboxRuleField: InboxRuleType | null, address: string) {
+	private addSpamRule(defaultInboxRuleField: InboxRuleType | null, address: string) {
 		const folder = this.viewModel.mailModel.getMailFolder(getListId(this.viewModel.mail))
 
 		const spamRuleType = folder && folder.folderType === MailFolderType.SPAM ? SpamRuleType.WHITELIST : SpamRuleType.BLACKLIST
@@ -1331,7 +1358,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		})
 	}
 
-	editDraft(): Promise<void> {
+	private editDraft(): Promise<void> {
 		return checkApprovalStatus(logins, false).then(sendAllowed => {
 			if (sendAllowed) {
 				// check if to be opened draft has already been minimized, iff that is the case, re-open it
@@ -1358,6 +1385,51 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				}
 			}
 		})
+	}
+
+	private scrollUp(): void {
+		this.scrollIfDomBody(dom => {
+			const current = dom.scrollTop
+			const toScroll = dom.clientHeight * SCROLL_FACTOR
+			return scroll(current, Math.max(0, current - toScroll))
+		})
+	}
+
+	private scrollDown(): void {
+		this.scrollIfDomBody(dom => {
+			const current = dom.scrollTop
+			const toScroll = dom.clientHeight * SCROLL_FACTOR
+			return scroll(current, Math.min(dom.scrollHeight - dom.offsetHeight, dom.scrollTop + toScroll))
+		})
+	}
+
+	private scrollToTop(): void {
+		this.scrollIfDomBody(dom => {
+			return scroll(dom.scrollTop, 0)
+		})
+	}
+
+	private scrollToBottom(): void {
+		this.scrollIfDomBody(dom => {
+			const end = dom.scrollHeight - dom.offsetHeight
+			return scroll(dom.scrollTop, end)
+		})
+	}
+
+	private scrollIfDomBody(cb: (dom: HTMLElement) => DomMutation) {
+		if (this.scrollDom) {
+			const dom = this.scrollDom
+
+			if (!this.scrollAnimation) {
+				this.scrollAnimation = animations
+					.add(dom, cb(dom), {
+						easing: ease.inOut,
+					})
+					.then(() => {
+						this.scrollAnimation = null
+					})
+			}
+		}
 	}
 }
 
