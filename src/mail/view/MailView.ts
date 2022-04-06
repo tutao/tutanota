@@ -48,7 +48,7 @@ import {styles} from "../../gui/styles"
 import {size} from "../../gui/size"
 import {FolderColumnView} from "../../gui/base/FolderColumnView"
 import {modal} from "../../gui/base/Modal"
-import {DomRectReadOnlyPolyfilled} from "../../gui/base/Dropdown"
+import {DomRectReadOnlyPolyfilled, PosRect} from "../../gui/base/Dropdown"
 import type {MailFolder} from "../../api/entities/tutanota/MailFolder"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
@@ -87,14 +87,13 @@ export class MailView implements CurrentView {
 	_mailboxSections: Map<Id, MailboxSection> // mailGroupId -> section
 
 	private _folderToUrl: Record<Id, string>
-	private _multiMailViewer: MultiMailViewer
 	private _actionBarButtons: lazy<ButtonAttrs[]>
 	private _throttledRouteSet: (arg0: string) => void
 	private _countersStream!: Stream<any>
 
-
-
+	private _multiMailViewer: MultiMailViewer
 	private _mailViewerViewModel: MailViewerViewModel | null = null
+	private mailViewer: MailViewer | null = null
 
 	get mailViewerViewModel(): MailViewerViewModel | null {
 		return this._mailViewerViewModel
@@ -172,7 +171,22 @@ export class MailView implements CurrentView {
 
 		this.mailColumn = new ViewColumn(
 			{
-				view: () => m(".mail", this.mailViewerViewModel != null ? m(MailViewer, { viewModel: this.mailViewerViewModel }) : m(this._multiMailViewer)),
+				view: () => m(
+					".mail",
+					this.mailViewerViewModel != null
+						? m(MailViewer, {
+							oncreate: (vnode) => {
+								this.mailViewer = vnode.state as MailViewer
+							},
+							viewModel: this.mailViewerViewModel
+						})
+						: m("",
+							{
+								oncreate: () => this.mailViewer = null
+							},
+							m(this._multiMailViewer)
+						)
+				),
 			},
 			ColumnType.Background,
 			size.third_col_min_width,
@@ -445,16 +459,21 @@ export class MailView implements CurrentView {
 				const targetFolders = getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders))
 				return targetFolders.map(f => ({
 					label: () => getFolderName(f),
-					click: () => moveMails({mailModel : locator.mailModel, mails : selectedMails, targetMailFolder : f}),
+					click: () => moveMails({mailModel: locator.mailModel, mails: selectedMails, targetMailFolder: f}),
 					icon: getFolderIcon(f),
 					type: ButtonType.Dropdown,
 				}))
 			}, 300)
-			const viewer = this.mailViewerViewModel || this._multiMailViewer
-			const mailViewerOrigin = viewer && viewer.getBounds()
 
-			if (mailViewerOrigin) {
-				const origin = new DomRectReadOnlyPolyfilled(mailViewerOrigin.left, mailViewerOrigin.top, mailViewerOrigin.width, 0)
+			let mailViewerBounds: PosRect | null
+			if (this.mailViewer) {
+				mailViewerBounds = this.mailViewer.dom.getBoundingClientRect()
+			} else {
+				mailViewerBounds = this._multiMailViewer?.getBounds()
+			}
+
+			if (mailViewerBounds) {
+				const origin = new DomRectReadOnlyPolyfilled(mailViewerBounds.left, mailViewerBounds.top, mailViewerBounds.width, 0)
 				dropdown.setOrigin(origin)
 				modal.displayUnique(dropdown)
 			}
@@ -646,7 +665,7 @@ export class MailView implements CurrentView {
 						}
 					}
 
-					moveMails({mailModel : locator.mailModel, mails : mailsToMove, targetMailFolder : folder})
+					moveMails({mailModel: locator.mailModel, mails: mailsToMove, targetMailFolder: folder})
 				},
 			}
 			return {
@@ -805,7 +824,7 @@ export class MailView implements CurrentView {
 					   .update(mails[0])
 					   .catch(ofClass(NotFoundError, e => console.log("could not set read flag as mail has been moved/deleted already", e)))
 					   .catch(ofClass(LockedError, noOp))
-						.catch(ofClass(ConnectionError, noOp))
+					   .catch(ofClass(ConnectionError, noOp))
 			}
 
 			if (elementClicked) {

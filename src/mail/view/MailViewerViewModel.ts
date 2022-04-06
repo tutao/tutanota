@@ -70,7 +70,6 @@ import {CustomerTypeRef} from "../../api/entities/sys/Customer"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {MailRestriction} from "../../api/entities/tutanota/MailRestriction"
 import {animations, DomMutation, scroll} from "../../gui/animation/Animations"
-import {PosRect} from "../../gui/base/Dropdown"
 import {ease} from "../../gui/animation/Easing"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {CancelledError} from "../../api/common/error/CancelledError"
@@ -123,7 +122,6 @@ export class MailViewerViewModel {
 	private domBody: HTMLElement | null = null
 
 	// Initialize with NoExternalContent so that the banner doesn't flash, this will be set later in _loadMailBody
-	private domMailViewer: HTMLElement | null = null
 	private scrollAnimation: Promise<void> | null = null
 	private domForScrolling: HTMLElement | null = null
 
@@ -382,10 +380,6 @@ export class MailViewerViewModel {
 
 	getRestrictions(): MailRestriction | null {
 		return this.mail.restrictions
-	}
-
-	setMailViewerDom(dom: HTMLElement) {
-		this.domMailViewer = dom
 	}
 
 	setScrollDom(scrollDom: HTMLElement) {
@@ -963,10 +957,6 @@ export class MailViewerViewModel {
 			const end = dom.scrollHeight - dom.offsetHeight
 			return scroll(dom.scrollTop, end)
 		})
-	}
-
-	getBounds(): PosRect | null {
-		return this.domMailViewer && this.domMailViewer.getBoundingClientRect()
 	}
 
 	private scrollIfDomBody(cb: (dom: HTMLElement) => DomMutation) {
