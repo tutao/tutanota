@@ -131,8 +131,32 @@ export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): Tr
 				})
 
 		case ConnectionError:
+			return "connectionLostLong_msg"
+
 		default:
 			return "emptyString_msg"
+	}
+}
+
+/**
+ * Handle expected login errors
+ * Any unexpected errors will be rethrown
+ */
+export function handleExpectedLoginError<E extends Error>(error: E, handler: (error: E) => void) {
+	if (
+		error instanceof BadRequestError ||
+		error instanceof NotAuthenticatedError ||
+		error instanceof AccessExpiredError ||
+		error instanceof AccessBlockedError ||
+		error instanceof AccessDeactivatedError ||
+		error instanceof TooManyRequestsError ||
+		error instanceof CancelledError ||
+		error instanceof CredentialAuthenticationError ||
+		error instanceof ConnectionError
+	) {
+		handler(error)
+	} else {
+		throw error
 	}
 }
 

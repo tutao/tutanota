@@ -1,22 +1,18 @@
 import {
-	AccessBlockedError,
-	AccessDeactivatedError,
 	AccessExpiredError,
 	BadRequestError,
 	NotAuthenticatedError,
-	TooManyRequestsError,
 } from "../api/common/error/RestError"
 import type {TranslationText} from "../misc/LanguageViewModel"
 import {SecondFactorHandler} from "../misc/2fa/SecondFactorHandler"
-import {CancelledError} from "../api/common/error/CancelledError"
-import {getLoginErrorMessage} from "../misc/LoginUtils"
+import {getLoginErrorMessage, handleExpectedLoginError} from "../misc/LoginUtils"
 import type {LoginController} from "../api/main/LoginController"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import type {CredentialsInfo, ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
 import {CredentialAuthenticationError} from "../api/common/error/CredentialAuthenticationError"
-import {first} from "@tutao/tutanota-utils"
+import {first, noOp} from "@tutao/tutanota-utils"
 import {KeyPermanentlyInvalidatedError} from "../api/common/error/KeyPermanentlyInvalidatedError"
 import {assertMainOrNode} from "../api/common/Env"
 import {SessionType} from "../api/common/SessionType"
@@ -391,18 +387,6 @@ export class LoginViewModel implements ILoginViewModel {
 			this.state = LoginState.UnknownError
 		}
 
-		if (
-			error instanceof BadRequestError ||
-			error instanceof NotAuthenticatedError ||
-			error instanceof AccessExpiredError ||
-			error instanceof AccessBlockedError ||
-			error instanceof AccessDeactivatedError ||
-			error instanceof TooManyRequestsError ||
-			error instanceof CancelledError ||
-			error instanceof CredentialAuthenticationError
-		) {
-		} else {
-			throw error
-		}
+		handleExpectedLoginError(error, noOp)
 	}
 }

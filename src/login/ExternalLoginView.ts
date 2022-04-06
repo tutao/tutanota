@@ -2,12 +2,7 @@ import m, {Children} from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {
-	AccessBlockedError,
-	AccessDeactivatedError,
 	AccessExpiredError,
-	BadRequestError,
-	NotAuthenticatedError,
-	TooManyRequestsError,
 } from "../api/common/error/RestError"
 import {assertNotNull, base64ToUint8Array, base64UrlToBase64} from "@tutao/tutanota-utils"
 import type {TranslationText} from "../misc/LanguageViewModel"
@@ -26,7 +21,7 @@ import {MessageBoxN} from "../gui/base/MessageBoxN"
 import {renderPrivacyAndImprintLinks} from "./LoginView"
 import {CurrentView, header} from "../gui/base/Header"
 import {GENERATED_MIN_ID} from "../api/common/utils/EntityUtils"
-import {getLoginErrorMessage} from "../misc/LoginUtils"
+import {getLoginErrorMessage, handleExpectedLoginError} from "../misc/LoginUtils"
 import {locator} from "../api/main/MainLocator"
 import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
 import {assertMainOrNode} from "../api/common/Env"
@@ -212,20 +207,7 @@ export class ExternalLoginView implements CurrentView {
 
 				m.redraw()
 
-				// any other kind of error we forward on to the global error handler
-				if (
-					e instanceof BadRequestError ||
-					e instanceof NotAuthenticatedError ||
-					e instanceof AccessExpiredError ||
-					e instanceof AccessBlockedError ||
-					e instanceof AccessDeactivatedError ||
-					e instanceof TooManyRequestsError ||
-					e instanceof CancelledError
-				) {
-					return errorAction()
-				} else {
-					throw e
-				}
+				handleExpectedLoginError(e, errorAction)
 			})
 	}
 }
