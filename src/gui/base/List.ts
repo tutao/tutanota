@@ -22,6 +22,7 @@ import {assertMainOrNode} from "../../api/common/Env"
 import {ButtonN, ButtonType} from "./ButtonN"
 import {LoadingState, LoadingStateTracker} from "../../offline/LoadingState"
 import {lang} from "../../misc/LanguageViewModel"
+import {PosRect} from "./Dropdown"
 
 assertMainOrNode()
 export const ScrollBuffer = 15 // virtual elements that are used as scroll buffer in both directions
@@ -788,6 +789,28 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 	getSelectedEntities(): T[] {
 		// return a copy to avoid outside modifications
 		return this.selectedEntities.slice()
+	}
+
+	getSelectionBounds(): PosRect {
+		const selected = this.getSelectedEntities()
+
+		const rowBounds = this.virtualList
+							  .filter(row => row.domElement != null && row.entity != null && selected.includes(row.entity))
+							  .map(row => row.domElement!.getBoundingClientRect())
+
+		const left = Math.min(...rowBounds.map(row => row.left))
+		const right = Math.max(...rowBounds.map(row => row.right))
+		const top = Math.min(...rowBounds.map(row => row.top))
+		const bottom = Math.max(...rowBounds.map(row => row.bottom))
+
+		return {
+			left,
+			right,
+			top,
+			bottom,
+			height: bottom - top,
+			width: right - left
+		}
 	}
 
 	/**
