@@ -7,7 +7,7 @@ import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import type {NavButtonAttrs} from "../../gui/base/NavButtonN"
 import {isNavButtonSelected, isSelectedPrefix, NavButtonColor} from "../../gui/base/NavButtonN"
-import {createMailViewerViewModell, MailViewer} from "./MailViewer"
+import {createMailViewerViewModel, MailViewer} from "./MailViewer"
 import {Dialog} from "../../gui/base/Dialog"
 import {FeatureType, Keys, MailFolderType, OperationType} from "../../api/common/TutanotaConstants"
 import {CurrentView} from "../../gui/base/Header"
@@ -746,11 +746,12 @@ export class MailView implements CurrentView {
 		selectionChanged,
 		multiSelectOperation,
 	) => {
+		// Make the animation of switching between list and single email smooth by delaying sanitizing/heavy rendering until the animation is done.
 		const animationOverDeferred = defer<void>()
 
 		if (mails.length === 1 && !multiSelectOperation && (selectionChanged || !this.mailViewerViewModel)) {
 			// set or update the visible mail
-			this.mailViewerViewModel = createMailViewerViewModell({
+			this.mailViewerViewModel = createMailViewerViewModel({
 				mail: mails[0],
 				showFolder: false,
 				delayBodyRenderingUntil: animationOverDeferred.promise,
@@ -836,7 +837,7 @@ export class MailView implements CurrentView {
 					return locator.entityClient
 								  .load(MailTypeRef, this.mailViewerViewModel.getMailId())
 								  .then(updatedMail => {
-									  this.mailViewerViewModel = createMailViewerViewModell({
+									  this.mailViewerViewModel = createMailViewerViewModel({
 										  mail: updatedMail,
 										  showFolder: false,
 									  })

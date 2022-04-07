@@ -762,7 +762,7 @@ export function newMailEditor(mailboxDetails: MailboxDetail): Promise<Dialog> {
 export function newMailEditorAsResponse(
     args: ResponseMailParameters,
     blockExternalContent: boolean,
-    inlineImages: Promise<InlineImages>,
+    inlineImages: InlineImages,
     mailboxDetails?: MailboxDetail,
 ): Promise<Dialog> {
     return _mailboxPromise(mailboxDetails)
@@ -776,7 +776,7 @@ export function newMailEditorFromDraft(
     attachments: Array<TutanotaFile>,
     bodyText: string,
     blockExternalContent: boolean,
-    inlineImages: Promise<InlineImages>,
+    inlineImages: InlineImages,
     mailboxDetails?: MailboxDetail,
 ): Promise<Dialog> {
     return _mailboxPromise(mailboxDetails)

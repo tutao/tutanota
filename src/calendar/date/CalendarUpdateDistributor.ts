@@ -149,7 +149,7 @@ export class CalendarMailDistributor implements CalendarUpdateDistributor {
 									  subject: message,
 									  replyTos: [],
 								  },
-								  Promise.resolve(new Map()),
+								  new Map(),
 							  )
 						  })
 						  .then(model => {

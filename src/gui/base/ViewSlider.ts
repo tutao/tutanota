@@ -1,5 +1,6 @@
 import m, {Children, Component} from "mithril"
 import {ColumnType, ViewColumn} from "./ViewColumn"
+import type {windowSizeListener} from "../../misc/WindowFacade"
 import {windowFacade} from "../../misc/WindowFacade"
 import {size} from "../size"
 import {alpha, AlphaEnum, animations, transform, TransformEnum} from "../animation/Animations"
@@ -11,7 +12,6 @@ import {header} from "./Header"
 import {styles} from "../styles"
 import {AriaLandmarks} from "../AriaUtils"
 import {LayerType} from "../../RootView"
-import type {windowSizeListener} from "../../misc/WindowFacade"
 import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
