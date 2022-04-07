@@ -40,7 +40,10 @@ export class LazyLoaded<T> {
 			return Promise.resolve(neverNull(this._loadedObject))
 		} else {
 			if (!this._loadingPromise) {
-				this._loadingPromise = this._loadFunction().then(result => {
+				this._loadingPromise = this._loadFunction().catch(e => {
+					this._loadingPromise = null
+					throw e
+				}).then(result => {
 					this._loadedObject = result
 					this._isLoaded = true
 					return result
