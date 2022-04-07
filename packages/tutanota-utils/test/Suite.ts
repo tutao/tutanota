@@ -7,5 +7,6 @@ import "./EncodingTest.js"
 import "./PromiseUtilTest.js"
 import "./SortedArrayTest.js"
 import "./MathUtilsTest.js"
+import "./LazyLoadedTest.js"
 
 o.run()
