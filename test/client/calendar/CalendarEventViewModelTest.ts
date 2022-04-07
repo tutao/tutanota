@@ -10,13 +10,7 @@ import type {MailboxDetail} from "../../../src/mail/model/MailModel"
 import {MailModel} from "../../../src/mail/model/MailModel"
 import type {CalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
 import {createCalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
-import {
-	AccountType,
-	AlarmInterval,
-	assertEnumValue,
-	CalendarAttendeeStatus,
-	ShareCapability,
-} from "../../../src/api/common/TutanotaConstants"
+import {AccountType, AlarmInterval, assertEnumValue, CalendarAttendeeStatus, ShareCapability,} from "../../../src/api/common/TutanotaConstants"
 import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
 import type {User} from "../../../src/api/entities/sys/User"
 import {createCalendarEventAttendee} from "../../../src/api/entities/tutanota/CalendarEventAttendee"
@@ -78,16 +72,16 @@ o.spec("CalendarEventViewModel", function () {
 	let showProgress = noOp
 
 	async function init({
-		                    userController = makeUserController(),
-		                    distributor = makeDistributor(),
-		                    mailboxDetail = makeMailboxDetail(),
-		                    calendars,
-		                    existingEvent,
-		                    calendarModel = makeCalendarModel(),
-		                    mailModel = downcast({}),
-		                    contactModel = makeContactModel(),
-		                    mail = null,
-	                    }: {
+							userController = makeUserController(),
+							distributor = makeDistributor(),
+							mailboxDetail = makeMailboxDetail(),
+							calendars,
+							existingEvent,
+							calendarModel = makeCalendarModel(),
+							mailModel = downcast({}),
+							contactModel = makeContactModel(),
+							mail = null,
+						}: {
 		userController?: IUserController
 		distributor?: CalendarUpdateDistributor
 		mailboxDetail?: MailboxDetail
@@ -95,7 +89,7 @@ o.spec("CalendarEventViewModel", function () {
 		calendarModel?: CalendarModel
 		mailModel?: MailModel
 		contactModel?: ContactModel
-		existingEvent: CalendarEvent | null | undefined
+		existingEvent: CalendarEvent | null
 		mail?: Mail | null | undefined
 	}): Promise<CalendarEventViewModel> {
 		const loginController: LoginController = downcast({
@@ -176,7 +170,7 @@ o.spec("CalendarEventViewModel", function () {
 			now,
 			zone,
 			calendars,
-			neverNull(existingEvent),
+			existingEvent,
 			mail,
 			false,
 		)
@@ -234,8 +228,8 @@ o.spec("CalendarEventViewModel", function () {
 				day: 26,
 				zone,
 			})
-				.toJSDate()
-				.toISOString(),
+					.toJSDate()
+					.toISOString(),
 		)
 		o(viewModel.endDate.toISOString()).equals(
 			DateTime.fromObject({
@@ -244,8 +238,8 @@ o.spec("CalendarEventViewModel", function () {
 				day: 26,
 				zone,
 			})
-				.toJSDate()
-				.toISOString(),
+					.toJSDate()
+					.toISOString(),
 		)
 		// @ts-ignore
 		o(viewModel.startTime?.toObject()).deepEquals({
@@ -303,8 +297,8 @@ o.spec("CalendarEventViewModel", function () {
 				day: 26,
 				zone,
 			})
-				.toJSDate()
-				.toISOString(),
+					.toJSDate()
+					.toISOString(),
 		)
 		o(viewModel.endDate.toISOString()).equals(
 			DateTime.fromObject({
@@ -313,8 +307,8 @@ o.spec("CalendarEventViewModel", function () {
 				day: 26,
 				zone,
 			})
-				.toJSDate()
-				.toISOString(),
+					.toJSDate()
+					.toISOString(),
 		)
 	})
 	o("invite in our own calendar", async function () {
@@ -1058,6 +1052,11 @@ o.spec("CalendarEventViewModel", function () {
 				presharedPassword: null,
 			})
 			const contactModel = makeContactModel([contact])
+
+			// specify start and end date specifically,
+			// because sometimes deepEquals fails due to milliseconds being off by a fraction (even though it's the same object?)
+			const existingStart = new Date(1994, 5, 8)
+			const existingEnd = new Date(1994, 5, 9)
 			const existingEvent = createCalendarEvent({
 				_id: ["listid", "calendarid"],
 				_ownerGroup: calendarGroupId,
@@ -1065,6 +1064,8 @@ o.spec("CalendarEventViewModel", function () {
 				attendees: [ownAttendee, attendee],
 				sequence: "1",
 				invitedConfidentially: true,
+				startTime: existingStart,
+				endTime: existingEnd
 			})
 			const viewModel = await init({
 				calendars,
@@ -1075,10 +1076,7 @@ o.spec("CalendarEventViewModel", function () {
 				contactModel,
 			})
 			await viewModel.deleteEvent()
-			// This doesn't always pass because sometimes the start and end times are off by a fraction of a second
-			// @ts-ignore
 			o(calendarModel.deleteEvent.calls.map(c => c.args)).deepEquals([[existingEvent]])
-			// @ts-ignore
 			o(distributor.sendCancellation.calls.map(c => c.args[0])).deepEquals([])
 			o(cancelModel.bccRecipients().map(r => r.mailAddress)).deepEquals([])
 		})
@@ -2146,8 +2144,8 @@ o.spec("CalendarEventViewModel", function () {
 					day: 11,
 					zone,
 				})
-					.toJSDate()
-					.toISOString(),
+						.toJSDate()
+						.toISOString(),
 			)
 			// @ts-ignore
 			o(viewModel.endTime?.toObject()).deepEquals({
@@ -2193,8 +2191,8 @@ o.spec("CalendarEventViewModel", function () {
 					day: 7,
 					zone,
 				})
-					.toJSDate()
-					.toISOString(),
+						.toJSDate()
+						.toISOString(),
 			)
 			// @ts-ignore
 			o(viewModel.endTime?.toObject()).deepEquals({
@@ -2235,8 +2233,8 @@ o.spec("CalendarEventViewModel", function () {
 					day: 8,
 					zone,
 				})
-					.toJSDate()
-					.toISOString(),
+						.toJSDate()
+						.toISOString(),
 			)
 			// @ts-ignore
 			o(viewModel.endTime?.to24HourString()).deepEquals("16:00")
@@ -2272,8 +2270,8 @@ o.spec("CalendarEventViewModel", function () {
 					day: 8,
 					zone,
 				})
-					.toJSDate()
-					.toISOString(),
+						.toJSDate()
+						.toISOString(),
 			)
 			// @ts-ignore
 			o(viewModel.endTime?.toObject()).deepEquals({
@@ -2312,8 +2310,8 @@ o.spec("CalendarEventViewModel", function () {
 					day: 9,
 					zone,
 				})
-					.toJSDate()
-					.toISOString(),
+						.toJSDate()
+						.toISOString(),
 			)
 			o(viewModel.endTime?.to24HourString()).equals("15:00")
 		})
