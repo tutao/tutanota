@@ -3,7 +3,7 @@ import {SearchListView, SearchResultListEntry} from "./SearchListView"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import {MailTypeRef} from "../../api/entities/tutanota/Mail"
 import {LockedError, NotFoundError} from "../../api/common/error/RestError"
-import {createMailViewerViewModell, MailViewer} from "../../mail/view/MailViewer"
+import {createMailViewerViewModel, MailViewer} from "../../mail/view/MailViewer"
 import {ContactViewer} from "../../contacts/view/ContactViewer"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import type {Contact} from "../../api/entities/tutanota/Contact"
@@ -64,7 +64,7 @@ export class SearchResultDetailsViewer {
 			const mail = entity as Mail
 			this._viewer = {
 				mode: "mail",
-				viewModel: createMailViewerViewModell({
+				viewModel: createMailViewerViewModel({
 					mail,
 					showFolder: true,
 				})

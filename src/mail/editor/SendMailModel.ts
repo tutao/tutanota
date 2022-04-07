@@ -364,7 +364,7 @@ export class SendMailModel {
 		})
 	}
 
-	async initAsResponse(args: ResponseMailParameters, inlineImages: Promise<InlineImages>): Promise<SendMailModel> {
+	async initAsResponse(args: ResponseMailParameters, inlineImages: InlineImages): Promise<SendMailModel> {
 		const {
 			previousMail,
 			conversationType,
@@ -395,7 +395,7 @@ export class SendMailModel {
 				  )
 		// if we reuse the same image references, changing the displayed mail in mail view will cause the minimized draft to lose
 		// that reference, because it will be revoked
-		this.loadedInlineImages = cloneInlineImages(await inlineImages)
+		this.loadedInlineImages = cloneInlineImages(inlineImages)
 		return this._init({
 			conversationType,
 			subject,
@@ -410,7 +410,7 @@ export class SendMailModel {
 		})
 	}
 
-	async initWithDraft(draft: Mail, attachments: TutanotaFile[], bodyText: string, inlineImages: Promise<InlineImages>): Promise<SendMailModel> {
+	async initWithDraft(draft: Mail, attachments: TutanotaFile[], bodyText: string, inlineImages: InlineImages): Promise<SendMailModel> {
 		let previousMessageId: string | null = null
 		let previousMail: Mail | null = null
 
@@ -435,7 +435,7 @@ export class SendMailModel {
 
 		// if we reuse the same image references, changing the displayed mail in mail view will cause the minimized draft to lose
 		// that reference, because it will be revoked
-		this.loadedInlineImages = cloneInlineImages(await inlineImages)
+		this.loadedInlineImages = cloneInlineImages(inlineImages)
 		const {confidential, sender, toRecipients, ccRecipients, bccRecipients, subject, replyTos} = draft
 		const recipients: Recipients = {
 			to: toRecipients.map(mailAddressToRecipient),
