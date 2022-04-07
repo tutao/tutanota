@@ -487,7 +487,7 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 				m(ButtonN, {
 					label: "retry_action",
 					type: ButtonType.Primary,
-					click: () => this.loadMoreIfNecessary()
+					click: () => this.retryLoading()
 				})
 			]
 		)
@@ -1026,10 +1026,22 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 	private loadMoreIfNecessary() {
 		let lastBunchVisible = this.currentPosition > this.loadedEntities.length * this.config.rowHeight - this.visibleElementsHeight * 2
 
-		if (lastBunchVisible && !this.loadingState.isLoading() && !this.loadedCompletely) {
+		if (lastBunchVisible &&
+			!this.loadingState.isLoading() &&
+			!this.loadedCompletely &&
+			!this.loadingState.isConnectionLost()
+		) {
 			this.loadMore().then(() => {
 				this.domList.style.height = this.calculateListHeight()
 			})
+		}
+	}
+
+	private async retryLoading() {
+		if (this.loadingState.isConnectionLost()) {
+			await this.loadMore()
+			// We might need to remove extra space for the "retry" list item.
+			this.domList.style.height = this.calculateListHeight()
 		}
 	}
 
