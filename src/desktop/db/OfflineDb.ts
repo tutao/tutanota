@@ -48,7 +48,6 @@ export class OfflineDb {
 	}
 
 	/**
-	 * FIXME configuration needs to be discussed still
 	 * Initialise sqlcipher with a database key, configuration:
 	 * - Sqlcipher always uses aes-256 for encryption.
 	 * - Sqlcipher always creates per page hmac for integrity with sha512.
