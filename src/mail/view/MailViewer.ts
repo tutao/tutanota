@@ -2,7 +2,6 @@ import {size} from "../../gui/size"
 import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
-import {Button} from "../../gui/base/Button"
 import {formatDateWithWeekday, formatStorageSize, formatTime} from "../../misc/Formatter"
 import {windowFacade, windowSizeListener} from "../../misc/WindowFacade"
 import {
@@ -44,7 +43,7 @@ import {LockedError} from "../../api/common/error/RestError"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {theme} from "../../gui/theme"
 import {client} from "../../misc/ClientDetector"
-import {createAsyncDropDownButton, DomRectReadOnlyPolyfilled} from "../../gui/base/Dropdown"
+import {DomRectReadOnlyPolyfilled} from "../../gui/base/Dropdown"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import Badge from "../../gui/base/Badge"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
@@ -680,15 +679,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 						colors,
 					}),
 				)
-				const userController = logins.getUserController()
-				const restrictions = this.viewModel.getRestrictions()
-				const restrictedParticipants = restrictions && restrictions.participantGroupInfos.length > 0
 
-				if (
-					userController.isInternalUser() &&
-					this.viewModel.getToRecipients().length + this.viewModel.getCcRecipients().length + this.viewModel.getBccRecipients().length > 1 &&
-					!restrictedParticipants
-				) {
+				if (this.viewModel.canReplyAll()) {
 					actions.push(
 						m(ButtonN, {
 							label: "replyAll_action",
@@ -699,7 +691,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					)
 				}
 
-				if (userController.isInternalUser() && !restrictedParticipants) {
+				if (this.viewModel.canForwardOrMove()) {
 					actions.push(
 						m(ButtonN, {
 							label: "forward_action",
@@ -736,13 +728,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 							),
 						}),
 					)
-				} else if (
-					userController.isInternalUser() &&
-					restrictedParticipants &&
-					userController.getUserMailGroupMembership().group !== this.viewModel.getMailOwnerGroup()
-				) {
-					// do not allow re-assigning from personal mailbox
-					actions.push(m(this.createAssignActionButton(this.viewModel.mail).setColors(colors)))
+				} else if (this.viewModel.canAssignMails()) {
+					actions.push(this.createAssignActionButton())
 				}
 			}
 		}
@@ -916,28 +903,29 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		})
 	}
 
-	private createAssignActionButton(mail: Mail): Button {
-		const makeButtons = async () => {
-			// remove the current mailbox/owner from the recipients list.
-			const userOrMailGroupInfos = await this.viewModel.getAssignableMailRecipients()
-			return userOrMailGroupInfos
-				.filter(userOrMailGroupInfo => {
-					if (logins.getUserController().getUserMailGroupMembership().group === this.viewModel.getMailOwnerGroup()) {
-						return userOrMailGroupInfo.group !== logins.getUserController().userGroupInfo.group && userOrMailGroupInfo.group !== mail._ownerGroup
-					} else {
-						return userOrMailGroupInfo.group !== mail._ownerGroup
-					}
-				})
-				.map(userOrMailGroupInfo => {
-					return new Button(
-						() => getDisplayText(userOrMailGroupInfo.name, neverNull(userOrMailGroupInfo.mailAddress), true),
-						() => this.viewModel.assignMail(userOrMailGroupInfo),
-						() => BootIcons.Contacts,
-					).setType(ButtonType.Dropdown)
-				})
+	private createAssignActionButton(): Children {
+		const makeButtons = async (): Promise<ButtonAttrs[]> => {
+			const assignmentGroupInfos = await this.viewModel.getAssignmentGroupInfos()
+
+			return assignmentGroupInfos.map(userOrMailGroupInfo => {
+				return {
+					label: () => getDisplayText(userOrMailGroupInfo.name, neverNull(userOrMailGroupInfo.mailAddress), true),
+					icon: () => BootIcons.Contacts,
+					type: ButtonType.Dropdown,
+					click: () => this.viewModel.assignMail(userOrMailGroupInfo),
+				} as ButtonAttrs
+			})
 		}
 
-		return createAsyncDropDownButton("forward_action", () => Icons.Forward, makeButtons, 250)
+		return m(ButtonN, {
+			label: "forward_action",
+			icon: () => Icons.Forward,
+			colors: ButtonColor.Content,
+			click: createAsyncDropdown({
+				width: 250,
+				lazyButtons: makeButtons
+			})
+		})
 	}
 
 

@@ -69,6 +69,7 @@ import {MailRestriction} from "../../api/entities/tutanota/MailRestriction"
 import {LoadingStateTracker} from "../../offline/LoadingState"
 import {IServiceExecutor} from "../../api/common/ServiceRequest"
 import {ListUnsubscribeService} from "../../api/entities/tutanota/Services"
+import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 
 
 export const enum ContentBlockingStatus {
@@ -278,10 +279,6 @@ export class MailViewerViewModel {
 
 	getSender(): MailAddress {
 		return this.mail.sender
-	}
-
-	getMailOwnerGroup(): Id | null {
-		return this.mail._ownerGroup
 	}
 
 	getPhishingStatus(): MailPhishingStatus {
@@ -787,7 +784,7 @@ export class MailViewerViewModel {
 		}
 	}
 
-	async getAssignableMailRecipients(): Promise<GroupInfo[]> {
+	private async getAssignableMailRecipients(): Promise<GroupInfo[]> {
 		if (this.mail.restrictions != null && this.mail.restrictions.participantGroupInfos.length > 0) {
 			const participantGroupInfos = this.mail.restrictions.participantGroupInfos
 			const customer = await this.entityClient.load(CustomerTypeRef, neverNull(this.logins.getUserController().user.customer))
@@ -804,6 +801,9 @@ export class MailViewerViewModel {
 	}
 
 	async assignMail(userGroupInfo: GroupInfo): Promise<boolean> {
+		if (!this.canAssignMails()) {
+			throw new ProgrammingError("Cannot assign mails")
+		}
 		const recipient = createMailAddress()
 		recipient.address = neverNull(userGroupInfo.mailAddress)
 		recipient.name = userGroupInfo.name
@@ -850,7 +850,48 @@ export class MailViewerViewModel {
 			   })
 	}
 
+	/** Special feature for contact forms with shared mailboxes. */
+	canAssignMails(): boolean {
+		// do not allow re-assigning from personal mailbox
+		return this.logins.getUserController().isInternalUser() &&
+			this.areParticipantsRestricted() &&
+			this.logins.getUserController().getUserMailGroupMembership().group !== this.getMailOwnerGroup()
+	}
+
+	private areParticipantsRestricted(): boolean {
+		const restrictions = this.getRestrictions()
+		return restrictions != null && restrictions.participantGroupInfos.length > 0
+	}
+
+	canReplyAll(): boolean {
+		return this.logins.getUserController().isInternalUser() &&
+			this.getToRecipients().length + this.getCcRecipients().length + this.getBccRecipients().length > 1 &&
+			!this.areParticipantsRestricted()
+	}
+
+	canForwardOrMove(): boolean {
+		return this.logins.getUserController().isInternalUser() && !this.areParticipantsRestricted()
+	}
+
 	shouldDelayRendering(): boolean {
 		return this.renderIsDelayed
+	}
+
+	async getAssignmentGroupInfos(): Promise<GroupInfo[]> {
+		// remove the current mailbox/owner from the recipients list.
+		const userOrMailGroupInfos = await this.getAssignableMailRecipients()
+		return userOrMailGroupInfos
+			.filter(userOrMailGroupInfo => {
+				if (this.logins.getUserController().getUserMailGroupMembership().group === this.getMailOwnerGroup()) {
+					return userOrMailGroupInfo.group !== this.logins.getUserController().userGroupInfo.group && userOrMailGroupInfo.group !== this.mail._ownerGroup
+				} else {
+					return userOrMailGroupInfo.group !== this.mail._ownerGroup
+				}
+			})
+
+	}
+
+	private getMailOwnerGroup(): Id | null {
+		return this.mail._ownerGroup
 	}
 }
