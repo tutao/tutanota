@@ -252,7 +252,7 @@ export class LoginFacadeImpl implements LoginFacade {
 	}
 
 	/** @inheritDoc */
-	createSession(
+	async createSession(
 		mailAddress: string,
 		passphrase: string,
 		clientIdentifier: string,
@@ -264,38 +264,38 @@ export class LoginFacadeImpl implements LoginFacade {
 			// check if it is the same user in _initSession()
 		}
 
-		return this._loadUserPassphraseKey(mailAddress, passphrase).then(userPassphraseKey => {
-			// the verifier is always sent as url parameter, so it must be url encoded
-			let authVerifier = createAuthVerifierAsBase64Url(userPassphraseKey)
-			let sessionData = createCreateSessionData()
-			sessionData.mailAddress = mailAddress.toLowerCase().trim()
-			sessionData.clientIdentifier = clientIdentifier
-			sessionData.authVerifier = authVerifier
-			let accessKey: Aes128Key | null = null
-
-			if (sessionType === SessionType.Persistent) {
-				accessKey = aes128RandomKey()
-				sessionData.accessKey = keyToUint8Array(accessKey)
-			}
-			return this.serviceExecutor.post(SessionService, sessionData)
-					   .then(createSessionReturn => this._waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, mailAddress))
-					   .then(sessionData => {
-						   return this.initSession(sessionData.userId, sessionData.accessToken, userPassphraseKey, sessionType, databaseKey).then(() => {
-							   return {
-								   user: neverNull(this._user),
-								   userGroupInfo: neverNull(this._userGroupInfo),
-								   sessionId: sessionData.sessionId,
-								   credentials: {
-									   login: mailAddress,
-									   accessToken: neverNull(this._accessToken),
-									   encryptedPassword: sessionType === SessionType.Persistent ? uint8ArrayToBase64(encryptString(neverNull(accessKey), passphrase)) : null,
-									   userId: sessionData.userId,
-									   type: "internal",
-								   },
-							   }
-						   })
-					   })
+		const userPassphraseKey = await this._loadUserPassphraseKey(mailAddress, passphrase)
+		// the verifier is always sent as url parameter, so it must be url encoded
+		const authVerifier = createAuthVerifierAsBase64Url(userPassphraseKey)
+		const createSessionData = createCreateSessionData({
+			mailAddress: mailAddress.toLowerCase().trim(),
+			clientIdentifier,
+			authVerifier,
 		})
+
+		let accessKey: Aes128Key | null = null
+
+		if (sessionType === SessionType.Persistent) {
+			accessKey = aes128RandomKey()
+			createSessionData.accessKey = keyToUint8Array(accessKey)
+		}
+		const createSessionReturn = await this.serviceExecutor.post(SessionService, createSessionData)
+		const sessionData = await this._waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, mailAddress)
+
+		await this.initSession(sessionData.userId, sessionData.accessToken, userPassphraseKey, sessionType, databaseKey)
+
+		return {
+			user: neverNull(this._user),
+			userGroupInfo: neverNull(this._userGroupInfo),
+			sessionId: sessionData.sessionId,
+			credentials: {
+				login: mailAddress,
+				accessToken: neverNull(this._accessToken),
+				encryptedPassword: sessionType === SessionType.Persistent ? uint8ArrayToBase64(encryptString(neverNull(accessKey), passphrase)) : null,
+				userId: sessionData.userId,
+				type: "internal",
+			},
+		}
 	}
 
 	/**
