@@ -128,7 +128,7 @@ export async function handleUncaughtError(e: Error) {
 		// When the user logs in and their offline database is out of sync, we just silently purge it and continue
 		// If the user is not using an offline database and they just go out of sync due to being logged in for too long,
 		// then they should log out and in again
-		const isUsingOfflineStorage = isOfflineStorageAvailable() && await locator.loginFacade.isPersistentSession()
+		const isUsingOfflineStorage = isOfflineStorageAvailable() && logins.isUserLoggedIn() && logins.getUserController().persistentSession
 		if (isUsingOfflineStorage) {
 			Dialog.message("dataExpiredOfflineDb_msg")
 		} else {
