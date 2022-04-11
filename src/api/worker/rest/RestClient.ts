@@ -138,7 +138,7 @@ export class RestClient {
 								),
 							)
 						} else {
-							console.log("failed request", method, url, xhr.status, xhr.statusText, options.headers, options.body)
+							console.log("failed request", method, url.toString(), xhr.status, xhr.statusText, options.headers, options.body)
 							reject(handleRestError(xhr.status, `| ${method} ${path}`, xhr.getResponseHeader("Error-Id"), xhr.getResponseHeader("Precondition")))
 						}
 					}

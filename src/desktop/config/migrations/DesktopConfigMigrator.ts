@@ -9,6 +9,7 @@ import * as migration0002 from "./migration-0002"
 import * as migration0003 from "./migration-0003"
 import * as migration0004 from "./migration-0004"
 import * as migration0005 from "./migration-0005"
+import * as migration0006 from "./migration-0006"
 import type {Config, ConfigMigration} from "../ConfigCommon"
 import {DesktopCryptoFacade} from "../../DesktopCryptoFacade"
 import type {DesktopKeyStoreFacade} from "../../KeyStoreFacadeImpl"
@@ -50,8 +51,10 @@ export class DesktopConfigMigrator {
 				await applyMigration(config => migration0005[migrationFunction](config, this._electron), oldConfig)
 
 			case 5:
-				log.debug("config up to date")
+				await applyMigration(migration0006[migrationFunction], oldConfig)
 
+			case 6:
+				log.debug("config up to date")
 				/* add new migrations as needed */
 				break
 

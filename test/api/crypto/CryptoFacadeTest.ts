@@ -34,7 +34,6 @@ import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
 import {RestClient} from "../../../src/api/worker/rest/RestClient"
 import {createWebsocketLeaderStatus} from "../../../src/api/entities/sys/WebsocketLeaderStatus"
 import {EntityClient} from "../../../src/api/common/EntityClient"
-import {EntityRestClientMock} from "../worker/EntityRestClientMock"
 import {
 	aes128Decrypt,
 	aes128Encrypt,
@@ -82,9 +81,11 @@ o.spec("crypto facade", function () {
 			downcast({}),
 			instanceMapper,
 			() => object(),
-			async () => {},
+			async () => {
+			},
 			serviceExecutor,
-			)
+			async () => false,
+		)
 		locator.login = login
 		locator.restClient = restClient
 		locator.rsa = rsa

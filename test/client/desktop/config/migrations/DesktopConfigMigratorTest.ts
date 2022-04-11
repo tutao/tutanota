@@ -5,7 +5,7 @@ import {downcast} from "@tutao/tutanota-utils"
 import {makeKeyStoreFacade} from "../../../../api/TestUtils"
 import {DesktopKeyStoreFacade} from "../../../../../src/desktop/KeyStoreFacadeImpl";
 
-o.spec('desktop config migrator test', function () {
+o.spec('DesktopConfigMigrator', function () {
 	let migrator
 	let crypto: DesktopCryptoFacade
 	let keyStoreFacade: DesktopKeyStoreFacade
@@ -51,9 +51,10 @@ o.spec('desktop config migrator test', function () {
 			"defaultDownloadPath": null,
 			"enableAutoUpdate": true,
 			"runAsTrayApp": true,
-			"desktopConfigVersion": 5,
+			"desktopConfigVersion": 6,
 			"showAutoUpdateOption": true,
 			"spellcheck": "de-DE",
+			"offlineStorage": false,
 			"mailExportMode": "eml",
 			"sseInfo": JSON.stringify(oldConfig.pushIdentifier),
 		}
@@ -67,10 +68,11 @@ o.spec('desktop config migrator test', function () {
 		}
 		const requiredResult = {
 			"runAsTrayApp": true,
-			"desktopConfigVersion": 5,
+			"desktopConfigVersion": 6,
 			"showAutoUpdateOption": true,
 			"mailExportMode": "eml",
 			"spellcheck": "",
+			"offlineStorage": false,
 		}
 
 		o(await migrator.applyMigrations("migrateAdmin", oldConfig)).deepEquals(requiredResult)

@@ -2,8 +2,8 @@ import {Request} from "../../api/common/MessageDispatcher"
 import {isDesktop} from "../../api/common/Env"
 import type {DesktopConfigEncKey, DesktopConfigKey} from "../../desktop/config/ConfigKeys"
 import type {LanguageCode} from "../../misc/LanguageViewModel"
-import type {NativeInterface} from "../common/NativeInterface"
-import type {NativeFileApp} from "../common/FileApp"
+import type {NativeInterface} from "./NativeInterface"
+import type {NativeFileApp} from "./FileApp"
 import {FileReference} from "../../api/common/utils/FileUtils";
 
 export type IntegrationInfo = {

@@ -3,6 +3,7 @@ import {OfflineDbMeta} from "../../api/worker/rest/OfflineStorage"
 
 export interface OfflineDbFactory {
 	create(userid: string, key: Aes256Key): Promise<OfflineDb>
+
 	delete(userId: string): Promise<void>
 }
 
@@ -38,7 +39,7 @@ export class OfflineDbFacade {
 	async closeDatabaseForUser(userId: Id): Promise<void> {
 		const entry = this.cache.get(userId)
 		if (entry == null) {
-			throw new Error(`Trying to close DB for user ${userId} but it was not open`)
+			return
 		}
 		entry.counter -= 1
 		if (entry.counter === 0) {

@@ -43,6 +43,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	private readonly _updateAvailable: Stream<boolean>
 	private readonly _mailExportMode: Stream<MailExportMode>
 	private _isPathDialogOpen: boolean = false
+	private _offlienStorageValue: Stream<boolean>
 
 	constructor() {
 		this._isDefaultMailtoHandler = stream(false)
@@ -54,6 +55,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		this._showAutoUpdateOption = true
 		this._updateAvailable = stream(false)
 		this._mailExportMode = stream("msg") // msg is just a dummy value here, it will be overwritten in requestDesktopConfig
+		this._offlienStorageValue = stream(false)
 	}
 
 	oninit() {
@@ -212,30 +214,54 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		}
 		const changeDefaultDownloadPathAttrs: ButtonAttrs = attachDropdown(
 			{
-                mainButtonAttrs: {
-                    label: "edit_action",
-                    type: ButtonType.Action,
-                    click: noOp,
-                    icon: () => Icons.Edit,
-                }, childAttrs: () => [
-                    {
-                        label: "alwaysAsk_action",
-                        click: () => this.setDefaultDownloadPath(DownloadLocationStrategy.ALWAYS_ASK),
-                        type: ButtonType.Dropdown,
-                    },
-                    {
-                        label: "chooseDirectory_action",
-                        click: () => this.setDefaultDownloadPath(DownloadLocationStrategy.CHOOSE_DIRECTORY),
-                        type: ButtonType.Dropdown,
-                    },
-                ], showDropdown: () => !this._isPathDialogOpen, width: 200
-            },
+				mainButtonAttrs: {
+					label: "edit_action",
+					type: ButtonType.Action,
+					click: noOp,
+					icon: () => Icons.Edit,
+				}, childAttrs: () => [
+					{
+						label: "alwaysAsk_action",
+						click: () => this.setDefaultDownloadPath(DownloadLocationStrategy.ALWAYS_ASK),
+						type: ButtonType.Dropdown,
+					},
+					{
+						label: "chooseDirectory_action",
+						click: () => this.setDefaultDownloadPath(DownloadLocationStrategy.CHOOSE_DIRECTORY),
+						type: ButtonType.Dropdown,
+					},
+				], showDropdown: () => !this._isPathDialogOpen, width: 200
+			},
 		)
 		const defaultDownloadPathAttrs: TextFieldAttrs = {
 			label: "defaultDownloadPath_label",
 			value: this._defaultDownloadPath,
 			injectionsRight: () => m(ButtonN, changeDefaultDownloadPathAttrs),
 			disabled: true,
+		}
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5d65a00d9 (Add config value for offline storage)
+		const setOfflineStorageAttrs: DropDownSelectorAttrs<any> = {
+			label: "offlineStorage_label",
+			helpLabel: undefined,
+			items: [
+				{
+					name: lang.get("activated_label"),
+					value: true,
+				},
+				{
+					name: lang.get("deactivated_label"),
+					value: false,
+				},
+			],
+			selectedValue: this._offlienStorageValue,
+			selectionChangedHandler: (v) => {
+				this._offlienStorageValue(v)
+				this.updateConfigBoolean(DesktopConfigKey.offlineStorage, v)
+			}
+
 		}
 		return [
 			m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
@@ -252,6 +278,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				// AppImage is kind of a portable install so we optionally add desktop icons etc
 				env.platformId === "linux" ? m(DropDownSelectorN, setDesktopIntegrationAttrs) : null,
 				this._showAutoUpdateOption ? m(DropDownSelectorN, setAutoUpdateAttrs) : null,
+				m(DropDownSelectorN, setOfflineStorageAttrs),
 			]),
 		]
 	}
@@ -286,6 +313,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			enableAutoUpdate,
 			mailExportMode,
 			spellcheckLabel,
+			offlineStorage,
 		] = await Promise.all([
 			locator.systemApp.getIntegrationInfo(),
 			locator.systemApp.getConfigValue(DesktopConfigKey.defaultDownloadPath),
@@ -294,6 +322,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			locator.systemApp.getConfigValue(DesktopConfigKey.enableAutoUpdate),
 			locator.systemApp.getConfigValue(DesktopConfigKey.mailExportMode),
 			getCurrentSpellcheckLanguageLabel(),
+			locator.systemApp.getConfigValue(DesktopConfigKey.offlineStorage),
 		])
 		const {isMailtoHandler, isAutoLaunchEnabled, isIntegrated, isUpdateAvailable} = integrationInfo
 
@@ -316,6 +345,8 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		this._mailExportMode(mailExportMode)
 
 		this._spellCheckLang(spellcheckLabel)
+
+		this._offlienStorageValue(offlineStorage)
 
 		m.redraw()
 	}

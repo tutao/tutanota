@@ -37,7 +37,7 @@ import type {DeviceEncryptionFacade} from "../worker/facades/DeviceEncryptionFac
 import {FileController} from "../../file/FileController"
 import type {NativeFileApp} from "../../native/common/FileApp"
 import type {NativePushServiceApp} from "../../native/main/NativePushServiceApp"
-import type {NativeSystemApp} from "../../native/main/NativeSystemApp"
+import type {NativeSystemApp} from "../../native/common/NativeSystemApp"
 import type {NativeInterfaceMain} from "../../native/main/NativeInterfaceMain"
 import type {NativeInterfaces} from "./NativeInterfaceFactory"
 import {createNativeInterfaces} from "./NativeInterfaceFactory"

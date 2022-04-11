@@ -13,7 +13,7 @@ import {SearchFacade} from "./search/SearchFacade"
 import {CustomerFacadeImpl} from "./facades/CustomerFacade"
 import {CounterFacade} from "./facades/CounterFacade"
 import {ENTITY_EVENT_BATCH_EXPIRE_MS, EventBusClient} from "./EventBusClient"
-import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isOfflineStorageAvailable} from "../common/Env"
+import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isDesktop, isOfflineStorageAvailable} from "../common/Env"
 import {Const} from "../common/TutanotaConstants"
 import type {BrowserData} from "../../misc/ClientConstants"
 import {CalendarFacade} from "./facades/CalendarFacade"
@@ -49,6 +49,8 @@ import {ServiceExecutor} from "./rest/ServiceExecutor"
 import {BookingFacade} from "./facades/BookingFacade"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import {BlobFacade} from "./facades/BlobFacade"
+import {NativeSystemApp} from "../../native/common/NativeSystemApp"
+import {DesktopConfigKey} from "../../desktop/config/ConfigKeys"
 
 assertWorkerOrNode()
 
@@ -117,6 +119,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.indexer = new Indexer(entityRestClient, worker, browserData, locator.cache as EntityRestCache)
 	const mainInterface = worker.getMainInterface()
 	locator.secondFactorAuthenticationHandler = mainInterface.secondFactorAuthenticationHandler
+
+	const fileApp = new NativeFileApp(worker)
+	const systemApp = new NativeSystemApp(worker, fileApp)
+
 	locator.login = new LoginFacadeImpl(
 		worker,
 		locator.restClient,
@@ -129,6 +135,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		() => locator.crypto,
 		uninitializedStorage.initialize.bind(uninitializedStorage),
 		locator.serviceExecutor,
+		async () => isDesktop() && await systemApp.getConfigValue(DesktopConfigKey.offlineStorage),
 	)
 	locator.crypto = new CryptoFacadeImpl(locator.login, locator.cachingEntityClient, locator.restClient, locator.rsa, locator.serviceExecutor)
 	const suggestionFacades = [
@@ -159,7 +166,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.serviceExecutor,
 		locator.booking,
 	)
-	const fileApp = new NativeFileApp(worker)
 	const aesApp = new AesApp(worker)
 	locator.blob = new BlobFacade(locator.login, locator.serviceExecutor, locator.restClient, suspensionHandler, fileApp, aesApp, locator.instanceMapper, locator.crypto)
 	locator.file = new FileFacade(locator.login, locator.restClient, suspensionHandler, fileApp, aesApp, locator.instanceMapper, locator.serviceExecutor)

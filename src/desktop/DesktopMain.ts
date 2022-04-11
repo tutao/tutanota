@@ -137,7 +137,15 @@ async function createComponents(): Promise<Components> {
 		},
 		async delete(userId: string): Promise<void> {
 			const dbPath = makeDbPath(userId)
-			await fs.promises.rm(dbPath)
+			try {
+				await fs.promises.rm(dbPath)
+			} catch (e) {
+				if (e.code === "ENOENT") {
+					// No database, no problems
+				} else {
+					throw e
+				}
+			}
 		}
 	}
 
