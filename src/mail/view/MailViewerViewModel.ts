@@ -132,7 +132,11 @@ export class MailViewerViewModel {
 		readonly logins: LoginController,
 		readonly service: IServiceExecutor
 	) {
-
+		this.delayBodyRenderingUntil.then(() => {
+				this.renderIsDelayed = false
+				m.redraw()
+			}
+		)
 		if (isDesktop()) {
 			// Notify the admin client about the mail being selected
 			native?.invokeNative(
@@ -499,7 +503,7 @@ export class MailViewerViewModel {
 			externalImageRule === ExternalImageRule.Allow && mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
 		// We should not try to sanitize body while we still animate because it's a heavy operation.
 		await this.delayBodyRenderingUntil
-		this.renderIsDelayed = false
+
 		const sanitizeResult = await this.setSanitizedMailBodyFromMail(mail, !isAllowedAndAuthenticatedExternalSender)
 
 		this.checkMailForPhishing(mail, sanitizeResult.links)
