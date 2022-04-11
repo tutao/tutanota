@@ -21,6 +21,7 @@ import {isRectContainedInRect} from "./DesktopUtils"
 import {downcast} from "@tutao/tutanota-utils"
 import {ThemeManager} from "./ThemeManager"
 import {ElectronExports, WebContentsEvent} from "./ElectronExportTypes";
+import {OfflineDbFacade} from "./db/OfflineDbFacade"
 
 export type WindowBounds = {
 	rect: Rectangle
@@ -50,6 +51,7 @@ export class WindowManager {
 		localShortcut: LocalShortcutManager,
 		dl: DesktopDownloadManager,
 		themeManager: ThemeManager,
+		private readonly offlineDbFacade: OfflineDbFacade,
 	) {
 		this._conf = conf
 
@@ -285,7 +287,7 @@ export class WindowManager {
 		const dictUrl = updateUrl && updateUrl !== "" ? updateUrl : "https://mail.tutanota.com/desktop/"
 		// custom builds get the dicts from us as well
 		const icon = await this.getIcon()
-		return new ApplicationWindow(this, desktopHtml, icon, electron, localShortcut, this._themeManager, dictUrl, noAutoLogin)
+		return new ApplicationWindow(this, desktopHtml, icon, electron, localShortcut, this._themeManager, this.offlineDbFacade, dictUrl, noAutoLogin)
 	}
 
 	async startNativeDrag(filenames: Array<string>, windowId: number) {

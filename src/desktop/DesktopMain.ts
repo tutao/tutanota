@@ -127,7 +127,23 @@ async function createComponents(): Promise<Components> {
 	const shortcutManager = new LocalShortcutManager()
 	const themeManager = new ThemeManager(conf)
 	const credentialsEncryption = new DesktopCredentialsEncryptionImpl(keyStoreFacade, desktopCrypto)
-	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, dl, themeManager)
+
+	const offlineDbFactory: OfflineDbFactory = {
+		async create(userid: string, key: Aes256Key): Promise<OfflineDb> {
+			const db = new OfflineDb(buildOptions.sqliteNativePath)
+			const dbPath = makeDbPath(userid)
+			await db.init(dbPath, key)
+			return db
+		},
+		async delete(userId: string): Promise<void> {
+			const dbPath = makeDbPath(userId)
+			await fs.promises.rm(dbPath)
+		}
+	}
+
+	const offlineDbFacade = new OfflineDbFacade(offlineDbFactory)
+
+	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, dl, themeManager, offlineDbFacade)
 	const alarmScheduler = new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, global, global))
 	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler)
 	desktopAlarmScheduler.rescheduleAll().catch(e => {
@@ -144,21 +160,6 @@ async function createComponents(): Promise<Components> {
 	function makeDbPath(userId: string): string {
 		return path.join(app.getPath("userData"), `offline_${userId}.sqlite`)
 	}
-
-	const offlineDbFactory: OfflineDbFactory = {
-		async create(userid: string, key: Aes256Key): Promise<OfflineDb> {
-			const db = new OfflineDb(buildOptions.sqliteNativePath)
-			const dbPath = makeDbPath(userid)
-			await db.init(dbPath, key)
-			return db
-		},
-		async delete(userId: string): Promise<void> {
-			const dbPath = makeDbPath(userId)
-			await fs.promises.rm(dbPath)
-		}
-	}
-
-	const offlineDbFacade = new OfflineDbFacade(offlineDbFactory)
 
 	const exposedInterfaceFactory = (windowId: number, ipc: IPC): ExposedNativeInterface => {
 		return {

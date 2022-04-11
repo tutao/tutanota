@@ -82,6 +82,7 @@ import {random} from "@tutao/tutanota-crypto"
 		await import("./desktop/KeyStoreFacadeTest.js")
 		await import ("./desktop/config/ConfigFileTest.js")
 		await import("./desktop/db/OfflineDbTest")
+		await import("./desktop/db/OfflineDbFacadeTest")
 		await import ("./desktop/credentials/DesktopCredentialsEncryptionTest")
 	}
 

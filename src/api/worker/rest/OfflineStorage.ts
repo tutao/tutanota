@@ -62,10 +62,6 @@ export class OfflineStorage implements CacheStorage {
 		}
 	}
 
-	async close(): Promise<void> {
-		await this.offlineDbFacade.closeDatabaseForUser(this.userId)
-	}
-
 	private get userId(): Id {
 		if (this._userId == null) {
 			throw new ProgrammingError("Offline storage not initialized")

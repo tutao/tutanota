@@ -6,34 +6,56 @@ export interface OfflineDbFactory {
 	delete(userId: string): Promise<void>
 }
 
+type CacheEntry = {
+	readonly db: OfflineDb,
+	/** Reference counting for db in case multiple windows open it. */
+	counter: number,
+}
+
 export class OfflineDbFacade {
 	constructor(
 		private readonly offlineDbFactory: OfflineDbFactory,
 	) {
 	}
 
-	private readonly cache: Map<Id, OfflineDb> = new Map()
+	private readonly cache: Map<Id, CacheEntry> = new Map()
 
 	/**
 	 * Open up a OfflineDb for the given user
 	 * Must be called before any queries for that user can be made
 	 */
 	async openDatabaseForUser(userId: Id, databaseKey: Aes256Key): Promise<void> {
-		if (!this.cache.has(userId)) {
+		let entry: CacheEntry | undefined = this.cache.get(userId)
+		if (entry) {
+			entry.counter += 1
+		} else {
 			const db = await this.offlineDbFactory.create(userId, databaseKey)
-			this.cache.set(userId, db)
+			entry = {db, counter: 1}
+			this.cache.set(userId, entry)
 		}
 	}
 
 	async closeDatabaseForUser(userId: Id): Promise<void> {
-		const db = this.getDbForUserId(userId)
-		await db.close()
-		this.cache.delete(userId)
+		const entry = this.cache.get(userId)
+		if (entry == null) {
+			throw new Error(`Trying to close DB for user ${userId} but it was not open`)
+		}
+		entry.counter -= 1
+		if (entry.counter === 0) {
+			await entry.db.close()
+			this.cache.delete(userId)
+		}
 	}
 
 	async deleteDatabaseForUser(userId: Id): Promise<void> {
-		// FIXME what if it's still open by another window?
-		await this.closeDatabaseForUser(userId)
+		const entry = this.cache.get(userId)
+		if (entry != null && entry.counter != 1) {
+			if (entry.counter != 1) {
+				throw new Error(`Trying to delete database that is opened ${entry.counter} times`)
+			}
+			await this.closeDatabaseForUser(userId)
+		}
+
 		await this.offlineDbFactory.delete(userId)
 	}
 
@@ -94,13 +116,13 @@ export class OfflineDbFacade {
 		return this.getDbForUserId(userId).putMetadata(key, value)
 	}
 
-	private getDbForUserId(userId: Id,): OfflineDb {
-		const db = this.cache.get(userId)
+	private getDbForUserId(userId: Id): OfflineDb {
+		const entry = this.cache.get(userId)
 
-		if (!db) {
+		if (!entry) {
 			throw new Error(`Db for user ${userId} is not open. must call openDataBaseForUser first :)`)
 		}
 
-		return db
+		return entry.db
 	}
 }

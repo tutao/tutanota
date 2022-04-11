@@ -14,6 +14,7 @@ import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 import {ThemeManager} from "./ThemeManager"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {ElectronExports} from "./ElectronExportTypes";
+import {OfflineDbFacade} from "./db/OfflineDbFacade"
 import HandlerDetails = Electron.HandlerDetails
 
 const MINIMUM_WINDOW_SIZE: number = 350
@@ -73,6 +74,7 @@ export class ApplicationWindow {
 		electron: typeof Electron.CrossProcessExports,
 		localShortcutManager: LocalShortcutManager,
 		themeManager: ThemeManager,
+		private readonly offlineDbFacade: OfflineDbFacade,
 		dictUrl: string,
 		noAutoLogin?: boolean | null,
 	) {
@@ -292,6 +294,9 @@ export class ApplicationWindow {
 		wm.dl.manageDownloadsForSession(this._browserWindow.webContents.session, dictUrl)
 
 		this._browserWindow
+			.on("close", () => {
+				this.closeDb()
+			})
 			.on("closed", () => {
 				this.setUserInfo(null)
 
@@ -374,8 +379,17 @@ export class ApplicationWindow {
 	}
 
 	async reload(queryParams: Record<string, string | boolean>) {
+		await this.closeDb()
+		this._userInfo = null
 		const url = await this._getInitialUrl(queryParams)
 		await this._browserWindow.loadURL(url)
+	}
+
+	private async closeDb() {
+		if (this._userInfo?.userId) {
+			console.log(`closing offline db for ${this._userInfo.userId}`)
+			await this.offlineDbFacade.closeDatabaseForUser(this._userInfo.userId)
+		}
 	}
 
 	_onNewWindow(details: HandlerDetails): {action: "deny"} {
