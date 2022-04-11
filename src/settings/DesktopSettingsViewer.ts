@@ -239,10 +239,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			injectionsRight: () => m(ButtonN, changeDefaultDownloadPathAttrs),
 			disabled: true,
 		}
-<<<<<<< HEAD
-=======
 
->>>>>>> 5d65a00d9 (Add config value for offline storage)
 		const setOfflineStorageAttrs: DropDownSelectorAttrs<any> = {
 			label: "offlineStorage_label",
 			helpLabel: undefined,
