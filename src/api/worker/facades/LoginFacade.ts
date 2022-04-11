@@ -31,37 +31,45 @@ import {
 } from "../../entities/sys/Services"
 import {AccountType, CloseEventBusOption, FeatureType, GroupType, OperationType} from "../../common/TutanotaConstants"
 import {CryptoError} from "../../common/error/CryptoError"
-import {createSaltData, SessionTypeRef} from "../../entities/sys/TypeRefs.js"
-import type {SaltReturn} from "../../entities/sys/TypeRefs.js"
-import type {GroupInfo} from "../../entities/sys/TypeRefs.js"
-import {GroupInfoTypeRef} from "../../entities/sys/TypeRefs.js"
-import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TypeRefs.js"
-import type {User} from "../../entities/sys/TypeRefs.js"
-import {UserTypeRef} from "../../entities/sys/TypeRefs.js"
+import type {
+	CreateSessionReturn,
+	EntityUpdate,
+	GroupInfo,
+	GroupMembership,
+	SaltReturn,
+	SecondFactorAuthData,
+	User,
+	WebsocketLeaderStatus
+} from "../../entities/sys/TypeRefs.js"
+import {
+	createAutoLoginDataGet,
+	createChangePasswordData,
+	createCreateSessionData,
+	createDeleteCustomerData,
+	createRecoverCode,
+	createResetFactorsDeleteData,
+	createSaltData,
+	createSecondFactorAuthDeleteData,
+	createSecondFactorAuthGetData,
+	createTakeOverDeletedAddressData,
+	createWebsocketLeaderStatus,
+	CustomerTypeRef,
+	GroupInfoTypeRef,
+	RecoverCodeTypeRef,
+	SessionTypeRef,
+	UserTypeRef
+} from "../../entities/sys/TypeRefs.js"
+import {createEntropyData, TutanotaPropertiesTypeRef} from "../../entities/tutanota/TypeRefs.js"
 import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../common/Env"
-import {createChangePasswordData} from "../../entities/sys/TypeRefs.js"
 import {ConnectMode, EventBusClient} from "../EventBusClient"
-import {createCreateSessionData} from "../../entities/sys/TypeRefs.js"
-import type {CreateSessionReturn} from "../../entities/sys/TypeRefs.js"
 import {EntityRestClient, typeRefToPath} from "../rest/EntityRestClient"
-import {createSecondFactorAuthGetData} from "../../entities/sys/TypeRefs.js"
 import {ConnectionError, LockedError, NotAuthenticatedError, NotFoundError, ServiceUnavailableError} from "../../common/error/RestError"
 import type {WorkerImpl} from "../WorkerImpl"
 import type {Indexer} from "../search/Indexer"
-import {createDeleteCustomerData} from "../../entities/sys/TypeRefs.js"
-import {createAutoLoginDataGet} from "../../entities/sys/TypeRefs.js"
 import {CancelledError} from "../../common/error/CancelledError"
-import {createRecoverCode, RecoverCodeTypeRef} from "../../entities/sys/TypeRefs.js"
-import {createResetFactorsDeleteData} from "../../entities/sys/TypeRefs.js"
-import type {GroupMembership} from "../../entities/sys/TypeRefs.js"
-import type {EntityUpdate} from "../../entities/sys/TypeRefs.js"
 import {RestClient} from "../rest/RestClient"
 import {EntityClient} from "../../common/EntityClient"
-import {createTakeOverDeletedAddressData} from "../../entities/sys/TypeRefs.js"
-import type {WebsocketLeaderStatus} from "../../entities/sys/TypeRefs.js"
-import {createWebsocketLeaderStatus} from "../../entities/sys/TypeRefs.js"
-import {createEntropyData} from "../../entities/tutanota/TypeRefs.js"
 import {GENERATED_ID_BYTES_LENGTH, isSameId} from "../../common/utils/EntityUtils"
 import type {Credentials} from "../../../misc/credentials/Credentials"
 import {
@@ -92,14 +100,11 @@ import {
 import {CryptoFacade, encryptBytes, encryptString} from "../crypto/CryptoFacade"
 import {InstanceMapper} from "../crypto/InstanceMapper"
 import type {SecondFactorAuthHandler} from "../../../misc/2fa/SecondFactorHandler"
-import {createSecondFactorAuthDeleteData} from "../../entities/sys/TypeRefs.js"
-import type {SecondFactorAuthData} from "../../entities/sys/TypeRefs.js"
 import {Aes128Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
 import {EntropyService} from "../../entities/tutanota/Services"
 import {IServiceExecutor} from "../../common/ServiceRequest"
 import {SessionType} from "../../common/SessionType"
 import {LateInitializedCacheStorage} from "../rest/CacheStorageProxy"
-import {CustomerTypeRef} from "../../entities/sys/TypeRefs.js"
 
 assertWorkerOrNode()
 const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
@@ -176,8 +181,6 @@ export interface LoginFacade {
 	resetSecondFactors(mailAddress: string, password: string, recoverCode: Hex): Promise<void>
 
 	decryptUserPassword(userId: string, deviceToken: string, encryptedPassword: string): Promise<string>
-
-	isPersistentSession(): Promise<boolean>
 }
 
 export class LoginFacadeImpl implements LoginFacade {
@@ -202,8 +205,6 @@ export class LoginFacadeImpl implements LoginFacade {
 
 	// needed here for entropy updates, init as non-leader
 	private _leaderStatus!: WebsocketLeaderStatus
-
-	private sessionType: SessionType | null = null
 
 	constructor(
 		readonly worker: WorkerImpl,
@@ -233,7 +234,6 @@ export class LoginFacadeImpl implements LoginFacade {
 		this._leaderStatus = createWebsocketLeaderStatus({
 			leaderStatus: false,
 		})
-		this.sessionType = null
 	}
 
 	init(indexer: Indexer, eventBusClient: EventBusClient) {
@@ -282,7 +282,8 @@ export class LoginFacadeImpl implements LoginFacade {
 		const createSessionReturn = await this.serviceExecutor.post(SessionService, createSessionData)
 		const sessionData = await this._waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, mailAddress)
 
-		await this.initSession(sessionData.userId, sessionData.accessToken, userPassphraseKey, sessionType, databaseKey)
+		await this.initCache(sessionData.userId, databaseKey)
+		await this.initSession(sessionData.userId, sessionData.accessToken, userPassphraseKey, sessionType)
 
 		return {
 			user: neverNull(this._user),
@@ -381,7 +382,8 @@ export class LoginFacadeImpl implements LoginFacade {
 
 
 		let sessionId = [this._getSessionListId(createSessionReturn.accessToken), this._getSessionElementId(createSessionReturn.accessToken)] as const
-		await this.initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey, SessionType.Login, null)
+		await this.initCache(userId, null)
+		await this.initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey, SessionType.Login)
 		const userGroupInfo = neverNull(this._userGroupInfo)
 		return {
 			user: assertNotNull<User>(this._user),
@@ -424,7 +426,7 @@ export class LoginFacadeImpl implements LoginFacade {
 	/**
 	 * Resume a session of stored credentials.
 	 */
-	resumeSession(
+	async resumeSession(
 		credentials: Credentials,
 		externalUserSalt: Uint8Array | null,
 		databaseKey: Uint8Array | null
@@ -433,34 +435,47 @@ export class LoginFacadeImpl implements LoginFacade {
 		userGroupInfo: GroupInfo
 		sessionId: IdTuple
 	}> {
-		return this._loadSessionData(credentials.accessToken).then(sessionData => {
+		const usingOfflineStorage = await this.initCache(credentials.userId, databaseKey)
+		const sessionId: IdTuple = [this._getSessionListId(credentials.accessToken), this._getSessionElementId(credentials.accessToken)]
+
+		const finishResumeSession = async () => {
+			const sessionData = await this._loadSessionData(credentials.accessToken)
 			let passphrase = utf8Uint8ArrayToString(aes128Decrypt(sessionData.accessKey, base64ToUint8Array(neverNull(credentials.encryptedPassword))))
-			let passphraseKeyPromise: Promise<Aes128Key>
+			let userPassphraseKey: Aes128Key
 
 			if (externalUserSalt) {
-				passphraseKeyPromise = Promise.resolve(generateKeyFromPassphrase(passphrase, externalUserSalt, KeyLength.b128))
+				userPassphraseKey = generateKeyFromPassphrase(passphrase, externalUserSalt, KeyLength.b128)
 			} else {
-				passphraseKeyPromise = this._loadUserPassphraseKey(credentials.login, passphrase)
+				userPassphraseKey = await this._loadUserPassphraseKey(credentials.login, passphrase)
 			}
 
-			return passphraseKeyPromise.then(userPassphraseKey => {
-				return this.initSession(sessionData.userId, credentials.accessToken, userPassphraseKey, SessionType.Persistent, databaseKey).then(() => {
-					return {
-						user: neverNull(this._user),
-						userGroupInfo: neverNull(this._userGroupInfo),
-						sessionId: [this._getSessionListId(credentials.accessToken), this._getSessionElementId(credentials.accessToken)],
-					}
-				})
-			})
-		})
+			await this.initSession(sessionData.userId, credentials.accessToken, userPassphraseKey, SessionType.Persistent)
+			return {
+				user: neverNull(this._user),
+				userGroupInfo: neverNull(this._userGroupInfo),
+				sessionId: sessionId,
+			}
+		}
+
+		if (usingOfflineStorage) {
+			const user = await this.entityClient.load(UserTypeRef, credentials.userId)
+			// Do not wait for it
+			finishResumeSession()
+			return {
+				user,
+				userGroupInfo: await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo),
+				sessionId,
+			}
+		} else {
+			return finishResumeSession()
+		}
 	}
 
 	private async initSession(
 		userId: Id,
 		accessToken: Base64Url,
 		userPassphraseKey: Aes128Key,
-		sessionType: SessionType,
-		databaseKey: Uint8Array | null
+		sessionType: SessionType
 	): Promise<void> {
 		let userIdFromFormerLogin = this._user ? this._user._id : null
 
@@ -468,29 +483,9 @@ export class LoginFacadeImpl implements LoginFacade {
 			throw new Error("different user is tried to login in existing other user's session")
 		}
 
-		this.sessionType = sessionType
 		this._accessToken = accessToken
 
-		const usingOfflineStorage = databaseKey != null && await this.offlineStorageEnabledProvider()
-
 		try {
-			if (usingOfflineStorage) {
-				try {
-					await this.initializeCacheStorage({
-						persistent: true,
-						userId,
-						databaseKey
-					})
-				} catch (e) {
-					// Precaution in case something bad happens to offline database. We want users to still be able to log in.
-					console.error("Error while initializing offline cache storage", e)
-					this.worker.sendError(e)
-					await this.initializeCacheStorage({persistent: false})
-				}
-			} else {
-				await this.initializeCacheStorage({persistent: false})
-			}
-
 			const user = await this.entityClient.load(UserTypeRef, userId)
 			// we check that the password is not changed
 			// this may happen when trying to resume a session with an old stored password for externals when the password was changed by the sender
@@ -511,7 +506,8 @@ export class LoginFacadeImpl implements LoginFacade {
 				// index new items in background
 				console.log("_initIndexer after log in")
 
-				this._initIndexer(usingOfflineStorage)
+				// FIXME
+				// this._initIndexer(usingOfflineStorage)
 			}
 
 			await this.loadEntropy()
@@ -529,6 +525,27 @@ export class LoginFacadeImpl implements LoginFacade {
 			this.resetSession()
 			throw e
 		}
+	}
+
+	private async initCache(userId: string, databaseKey: Uint8Array | null): Promise<boolean> {
+		const usingOfflineStorage = databaseKey != null && await this.offlineStorageEnabledProvider()
+		if (usingOfflineStorage) {
+			try {
+				await this.initializeCacheStorage({
+					persistent: true,
+					userId,
+					databaseKey
+				})
+			} catch (e) {
+				// Precaution in case something bad happens to offline database. We want users to still be able to log in.
+				console.error("Error while initializing offline cache storage", e)
+				this.worker.sendError(e)
+				await this.initializeCacheStorage({persistent: false})
+			}
+		} else {
+			await this.initializeCacheStorage({persistent: false})
+		}
+		return usingOfflineStorage
 	}
 
 	_initIndexer(isUsingOfflineCache: boolean): Promise<void> {
@@ -987,10 +1004,6 @@ export class LoginFacadeImpl implements LoginFacade {
 
 	getTotpVerifier(): Promise<TotpVerifier> {
 		return Promise.resolve(new TotpVerifier())
-	}
-
-	async isPersistentSession(): Promise<boolean> {
-		return this.sessionType === SessionType.Persistent
 	}
 
 	async isEnabled(feature: FeatureType): Promise<boolean> {

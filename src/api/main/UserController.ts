@@ -41,6 +41,7 @@ export interface IUserController {
 	sessionId: IdTuple
 	accessToken: string
 	readonly userSettingsGroupRoot: UserSettingsGroupRoot
+	persistentSession: boolean
 
 	isGlobalAdmin(): boolean
 
