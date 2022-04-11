@@ -44,6 +44,8 @@ export class OfflineStorage implements CacheStorage {
 
 	async init(userId: Id, databaseKey: Aes256Key): Promise<void> {
 		this._userId = userId
+
+		// We open database here and it is closed in the native side when the window is closed or the page is reloaded
 		await this.offlineDbFacade.openDatabaseForUser(userId, databaseKey)
 
 		for (const app of typedKeys(modelInfos)) {

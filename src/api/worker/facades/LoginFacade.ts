@@ -476,11 +476,18 @@ export class LoginFacadeImpl implements LoginFacade {
 
 		try {
 			if (usingOfflineStorage) {
-				await this.initializeCacheStorage({
-					persistent: true,
-					userId,
-					databaseKey
-				})
+				try {
+					await this.initializeCacheStorage({
+						persistent: true,
+						userId,
+						databaseKey
+					})
+				} catch (e) {
+					// Precaution in case something bad happens to offline database. We want users to still be able to log in.
+					console.error("Error while initializing offline cache storage", e)
+					this.worker.sendError(e)
+					await this.initializeCacheStorage({persistent: false})
+				}
 			} else {
 				await this.initializeCacheStorage({persistent: false})
 			}
