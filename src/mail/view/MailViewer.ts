@@ -1022,7 +1022,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				m(ButtonN, {
 					label: "saveAll_action",
 					type: ButtonType.Secondary,
-					click: () => this.viewModel.downloadAll(),
+					click: () => showProgressDialog("pleaseWait_msg", this.viewModel.downloadAll()),
 				}),
 			)
 			: null
