@@ -44,7 +44,7 @@ import {NativeInterface} from "../../native/common/NativeInterface"
 import {elementIdPart, listIdPart} from "../../api/common/utils/EntityUtils"
 import {getReferencedAttachments, loadInlineImages, moveMails, revokeInlineImages} from "./MailGuiUtils"
 import {locator} from "../../api/main/MainLocator"
-import {Link} from "../../misc/HtmlSanitizer"
+import {SanitizeResult} from "../../misc/HtmlSanitizer"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {CALENDAR_MIME_TYPE, FileController} from "../../file/FileController"
 import {createMailAddress, MailAddress} from "../../api/entities/tutanota/MailAddress"
@@ -64,7 +64,6 @@ import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {ResponseMailParameters} from "../editor/SendMailModel"
 import {GroupInfo} from "../../api/entities/sys/GroupInfo"
 import {CustomerTypeRef} from "../../api/entities/sys/Customer"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {MailRestriction} from "../../api/entities/tutanota/MailRestriction"
 import {LoadingStateTracker} from "../../offline/LoadingState"
 import {IServiceExecutor} from "../../api/common/ServiceRequest"
@@ -85,16 +84,13 @@ export class MailViewerViewModel {
 	private contrastFixNeeded: boolean = false
 
 	// always sanitized in this.setSanitizedMailBodyFromMail
-	private sanitizedMailBody: string | null = null
+	private sanitizeResult: SanitizeResult | null = null
 	private loadingAttachments: boolean = false
 
-	public readonly deferredAttachments: DeferredObject<null> = defer()
 	private attachments: TutanotaFile[] = []
-	private inlineCids: Array<string> = []
 
 	private contentBlockingStatus: ContentBlockingStatus | null = null
 	private errorOccurred: boolean = false
-	private referencedCids = defer<Array<string>>()
 	private loadedInlineImages: InlineImages | null = null
 	private suspicious: boolean = false
 
@@ -170,10 +166,8 @@ export class MailViewerViewModel {
 
 	async loadAll() {
 		await this.loadingState.trackPromise(
-			Promise.all([
-				this.loadMailBody(this.mail).then(referencedCids => this.referencedCids.resolve(referencedCids)),
-				this.loadAttachments(this.mail, this.referencedCids.promise),
-			])
+			this.loadMailBody(this.mail)
+				.then((inlineImageCids) => this.loadAttachments(this.mail, inlineImageCids))
 		).catch(ofClass(ConnectionError, noOp))
 
 		m.redraw()
@@ -200,17 +194,12 @@ export class MailViewerViewModel {
 	}
 
 	getInlineCids(): Array<string> {
-		return this.inlineCids
-	}
-
-	getReferencedCids(): Promise<Array<string>> {
-		return this.referencedCids.promise
+		return this.sanitizeResult?.inlineImageCids ?? []
 	}
 
 	getLoadedInlineImages(): InlineImages {
 		return this.loadedInlineImages ?? new Map()
 	}
-
 
 	isContrastFixNeeded(): boolean {
 		return this.contrastFixNeeded
@@ -250,7 +239,7 @@ export class MailViewerViewModel {
 	}
 
 	getSanitizedMailBody(): string | null {
-		return this.sanitizedMailBody
+		return this.sanitizeResult?.text ?? null
 	}
 
 	getMailBody(): string {
@@ -367,7 +356,8 @@ export class MailViewerViewModel {
 		this.contentBlockingStatus = status
 
 		// We don't check mail authentication status here because the user has manually called this
-		await this.setSanitizedMailBodyFromMail(this.mail, this.isBlockingExternalImages())
+
+		this.sanitizeResult = await this.setSanitizedMailBodyFromMail(this.mail, this.isBlockingExternalImages())
 	}
 
 	async markAsNotPhishing(): Promise<void> {
@@ -476,7 +466,12 @@ export class MailViewerViewModel {
 	}
 
 	/** @return list of inline referenced cid */
-	private async loadMailBody(mail: Mail): Promise<Array<string>> {
+	private async loadMailBody(mail: Mail): Promise<string[]> {
+		// Short-circuit if we already loaded everything. Will avoid resetting contentBlockingStatus or mail body.
+		if (this.sanitizeResult) {
+			return this.sanitizeResult.inlineImageCids
+		}
+
 		try {
 			this.mailBody = await this.entityClient.load(MailBodyTypeRef, mail.body)
 		} catch (e) {
@@ -504,26 +499,23 @@ export class MailViewerViewModel {
 		// We should not try to sanitize body while we still animate because it's a heavy operation.
 		await this.delayBodyRenderingUntil
 
-		const sanitizeResult = await this.setSanitizedMailBodyFromMail(mail, !isAllowedAndAuthenticatedExternalSender)
+		this.sanitizeResult = await this.setSanitizedMailBodyFromMail(mail, !isAllowedAndAuthenticatedExternalSender)
 
-		this.checkMailForPhishing(mail, sanitizeResult.links)
+		this.checkMailForPhishing(mail, this.sanitizeResult.links)
 
-		//only  determine contentBlockingStatus if we are loading the mail body for the first time, otherwise temporary status is overwritten on reloading (e.g. forward)
-		if (!this.contentBlockingStatus) {
-			this.contentBlockingStatus =
-				externalImageRule === ExternalImageRule.Block
-					? ContentBlockingStatus.AlwaysBlock
-					: isAllowedAndAuthenticatedExternalSender
-						? ContentBlockingStatus.AlwaysShow
-						: sanitizeResult.externalContent.length > 0
-							? ContentBlockingStatus.Block
-							: ContentBlockingStatus.NoExternalContent
-		}
+		this.contentBlockingStatus =
+			externalImageRule === ExternalImageRule.Block
+				? ContentBlockingStatus.AlwaysBlock
+				: isAllowedAndAuthenticatedExternalSender
+					? ContentBlockingStatus.AlwaysShow
+					: this.sanitizeResult.externalContent.length > 0
+						? ContentBlockingStatus.Block
+						: ContentBlockingStatus.NoExternalContent
 		m.redraw()
-		return sanitizeResult.inlineImageCids
+		return this.sanitizeResult.inlineImageCids
 	}
 
-	private async loadAttachments(mail: Mail, inlineCidsPromise: Promise<Array<string>>) {
+	private async loadAttachments(mail: Mail, inlineCids: string[]) {
 		if (mail.attachments.length === 0) {
 			this.loadingAttachments = false
 		} else {
@@ -531,16 +523,12 @@ export class MailViewerViewModel {
 			const attachmentsListId = listIdPart(mail.attachments[0])
 			const attachmentElementIds = mail.attachments.map(attachment => elementIdPart(attachment))
 
-			const inlineCids = await inlineCidsPromise
-
 			try {
 				const files = await this.entityClient.loadMultiple(FileTypeRef, attachmentsListId, attachmentElementIds)
 
 				this.handleCalendarFile(files, mail)
 
 				this.attachments = files
-				this.inlineCids = inlineCids
-				this.deferredAttachments.resolve(null)
 				this.loadingAttachments = false
 				m.redraw()
 
@@ -725,7 +713,11 @@ export class MailViewerViewModel {
 			const {prependEmailSignature} = await import("../signature/Signature.js")
 			const {newMailEditorAsResponse} = await import("../editor/MailEditor")
 
-			const [senderMailAddress, referencedCids] = await Promise.all([this.getSenderOfResponseMail(), this.getReferencedCids()])
+			await this.loadAll()
+			// It should be there after loadAll() but if not we just give up
+			const inlineImageCids = this.sanitizeResult?.inlineImageCids ?? []
+
+			const [senderMailAddress, referencedCids] = await Promise.all([this.getSenderOfResponseMail(), inlineImageCids])
 
 			const attachmentsForReply = getReferencedAttachments(this.attachments, referencedCids)
 			try {
@@ -758,12 +750,7 @@ export class MailViewerViewModel {
 		}
 	}
 
-	async setSanitizedMailBodyFromMail(mail: Mail, blockExternalContent: boolean):
-		Promise<{
-			inlineImageCids: Array<string>,
-			links: Array<Link>,
-			externalContent: Array<string>
-		}> {
+	private async setSanitizedMailBodyFromMail(mail: Mail, blockExternalContent: boolean): Promise<SanitizeResult> {
 		const {htmlSanitizer} = await import("../../misc/HtmlSanitizer")
 		const sanitizeResult = htmlSanitizer.sanitizeFragment(this.getMailBody(), {
 			blockExternalContent,
@@ -782,9 +769,10 @@ export class MailViewerViewModel {
 			Array.from(html.querySelectorAll("*[style]"), e => (e as HTMLElement).style).some(
 				s => (s.color && s.color !== "inherit") || (s.backgroundColor && s.backgroundColor !== "inherit"),
 			) || html.querySelectorAll("font[color]").length > 0
-		this.sanitizedMailBody = await locator.worker.urlify(stringifyFragment(html))
+		const text = await locator.worker.urlify(stringifyFragment(html))
 		m.redraw()
 		return {
+			text,
 			inlineImageCids,
 			links,
 			externalContent,
@@ -834,11 +822,11 @@ export class MailViewerViewModel {
 		return moveMails({mailModel: this.mailModel, mails: [this.mail], targetMailFolder: getArchiveFolder(folders)})
 	}
 
-	downloadAll() {
-		this.referencedCids.promise
-			// Skip inline images (they have cid and it is referenced)
-			.then(inlineFileIds => this.attachments.filter(a => a.cid == null || !inlineFileIds.includes(a.cid)))
-			.then(nonInlineFiles => showProgressDialog("pleaseWait_msg", this.fileController.downloadAll(nonInlineFiles)))
+	async downloadAll(): Promise<void> {
+		// If we have attachments it is safe to assume that we already have body and referenced cids from it
+		const inlineFileIds = this.sanitizeResult?.inlineImageCids ?? []
+		const nonInlineFiles = this.attachments.filter(a => a.cid == null || !inlineFileIds.includes(a.cid))
+		await this.fileController.downloadAll(nonInlineFiles)
 	}
 
 	downloadAndOpenAttachment(file: TutanotaFile, open: boolean): void {
