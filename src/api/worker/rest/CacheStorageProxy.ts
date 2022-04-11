@@ -38,7 +38,9 @@ export class LateInitializedCacheStorageImpl implements LateInitializedCacheStor
 
 	async initialize(args: StorageInitArgs): Promise<void> {
 		if (this._inner != null) {
-			throw new ProgrammingError("Tried to initialize storage  twice!")
+			// throw new ProgrammingError("Tried to initialize storage  twice!")
+			// FIXME is this correct?
+			return
 		}
 		this._inner = await this.factory(args)
 	}

@@ -129,7 +129,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		/**
 		 * we don't want to try to use the cache in the login facade, because it may not be available (when no user is logged in)
 		 */
-		new EntityClient(entityRestClient),
+		new EntityClient(locator.cache),
 		locator.secondFactorAuthenticationHandler,
 		locator.instanceMapper,
 		() => locator.crypto,
