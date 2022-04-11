@@ -92,7 +92,7 @@ export class MailViewerViewModel {
 	private attachments: TutanotaFile[] = []
 	private inlineCids: Array<string> = []
 
-	private contentBlockingStatus: ContentBlockingStatus = ContentBlockingStatus.NoExternalContent
+	private contentBlockingStatus: ContentBlockingStatus | null = null
 	private errorOccurred: boolean = false
 	private referencedCids = defer<Array<string>>()
 	private loadedInlineImages: InlineImages | null = null
@@ -329,7 +329,7 @@ export class MailViewerViewModel {
 		return this.calendarEventAttachment
 	}
 
-	getContentBlockingStatus(): ContentBlockingStatus {
+	getContentBlockingStatus(): ContentBlockingStatus | null {
 		return this.contentBlockingStatus
 	}
 
@@ -508,14 +508,17 @@ export class MailViewerViewModel {
 
 		this.checkMailForPhishing(mail, sanitizeResult.links)
 
-		this.contentBlockingStatus =
-			externalImageRule === ExternalImageRule.Block
-				? ContentBlockingStatus.AlwaysBlock
-				: isAllowedAndAuthenticatedExternalSender
-					? ContentBlockingStatus.AlwaysShow
-					: sanitizeResult.externalContent.length > 0
-						? ContentBlockingStatus.Block
-						: ContentBlockingStatus.NoExternalContent
+		//only  determine contentBlockingStatus if we are loading the mail body for the first time, otherwise temporary status is overwritten on reloading (e.g. forward)
+		if (!this.contentBlockingStatus) {
+			this.contentBlockingStatus =
+				externalImageRule === ExternalImageRule.Block
+					? ContentBlockingStatus.AlwaysBlock
+					: isAllowedAndAuthenticatedExternalSender
+						? ContentBlockingStatus.AlwaysShow
+						: sanitizeResult.externalContent.length > 0
+							? ContentBlockingStatus.Block
+							: ContentBlockingStatus.NoExternalContent
+		}
 		m.redraw()
 		return sanitizeResult.inlineImageCids
 	}
