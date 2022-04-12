@@ -291,7 +291,7 @@ export class RestClient {
 export function addParamsToUrl(url: URL, urlParams: Dict): URL {
 	if (urlParams) {
 		for (const [key, value] of typedEntries(urlParams)) {
-			if (value) {
+			if (value !== undefined) {
 				url.searchParams.set(key, value)
 			}
 		}
