@@ -13,6 +13,7 @@ import {
 import {LoginFacadeImpl} from "./LoginFacade"
 import type {ConversationType} from "../../common/TutanotaConstants"
 import {
+	AccountType,
 	ArchiveDataType,
 	CounterType_UnreadMails,
 	FeatureType,
@@ -60,7 +61,7 @@ import {NotFoundError} from "../../common/error/RestError"
 import type {EntityUpdate, PublicKeyReturn, User} from "../../entities/sys/TypeRefs.js"
 import {
 	BlobReferenceTokenWrapper,
-	createPublicKeyData,
+	createPublicKeyData, CustomerTypeRef,
 	ExternalUserReferenceTypeRef,
 	GroupInfoTypeRef,
 	GroupRootTypeRef,
@@ -111,6 +112,7 @@ import {CounterService} from "../../entities/monitor/Services"
 import {PublicKeyService} from "../../entities/sys/Services.js"
 import {IServiceExecutor} from "../../common/ServiceRequest"
 import {createWriteCounterData} from "../../entities/monitor/TypeRefs"
+import {UserFacade} from "./UserFacade"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -146,7 +148,6 @@ interface UpdateDraftParams {
 }
 
 export class MailFacade {
-	_login: LoginFacadeImpl
 	_file: FileFacade
 	private blob: BlobFacade
 	_phishingMarkers: Set<string>
@@ -158,14 +159,13 @@ export class MailFacade {
 	_crypto: CryptoFacade
 
 	constructor(
-		login: LoginFacadeImpl,
+		private readonly userFacade: UserFacade,
 		fileFacade: FileFacade,
 		blobFacade: BlobFacade,
 		entity: EntityClient,
 		crypto: CryptoFacade,
 		private readonly serviceExecutor: IServiceExecutor,
 	) {
-		this._login = login
 		this._file = fileFacade
 		this.blob = blobFacade
 		this._phishingMarkers = new Set()
@@ -176,7 +176,7 @@ export class MailFacade {
 	}
 
 	async createMailFolder(name: string, parent: IdTuple, ownerGroupId: Id): Promise<void> {
-		const mailGroupKey = this._login.getGroupKey(ownerGroupId)
+		const mailGroupKey = this.userFacade.getGroupKey(ownerGroupId)
 
 		const sk = aes128RandomKey()
 		const newFolder = createCreateMailFolderData({
@@ -215,11 +215,11 @@ export class MailFacade {
 			throw new MailBodyTooLargeError(`Can't update draft, mail body too large (${byteLength(bodyText)})`)
 		}
 
-		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this._login.getLoggedInUser(), senderMailAddress)
+		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), senderMailAddress)
 
-		const userGroupKey = this._login.getUserGroupKey()
+		const userGroupKey = this.userFacade.getUserGroupKey()
 
-		const mailGroupKey = this._login.getGroupKey(senderMailGroupId)
+		const mailGroupKey = this.userFacade.getGroupKey(senderMailGroupId)
 
 		const sk = aes128RandomKey()
 		const service = createDraftCreateData()
@@ -239,7 +239,7 @@ export class MailFacade {
 			ccRecipients,
 			bccRecipients,
 			replyTos,
-			addedAttachments: await this._createAddedAttachments(attachments, [], senderMailGroupId, mailGroupKey, await this._login.isEnabled(FeatureType.Blobs)),
+			addedAttachments: await this._createAddedAttachments(attachments, [], senderMailGroupId, mailGroupKey, await this.usingBlobs()),
 		})
 		const createDraftReturn = await this.serviceExecutor.post(DraftService, service, {sessionKey: sk})
 		return this._entityClient.load(MailTypeRef, createDraftReturn.draft)
@@ -277,9 +277,9 @@ export class MailFacade {
 			throw new MailBodyTooLargeError(`Can't update draft, mail body too large (${byteLength(body)})`)
 		}
 
-		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this._login.getLoggedInUser(), senderMailAddress)
+		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), senderMailAddress)
 
-		const mailGroupKey = this._login.getGroupKey(senderMailGroupId)
+		const mailGroupKey = this.userFacade.getGroupKey(senderMailGroupId)
 
 		const sk = decryptKey(mailGroupKey, draft._ownerEncSessionKey as any)
 		const service = createDraftUpdateData()
@@ -296,7 +296,7 @@ export class MailFacade {
 			bccRecipients,
 			replyTos: draft.replyTos,
 			removedAttachments: this._getRemovedAttachments(attachments, draft.attachments),
-			addedAttachments: await this._createAddedAttachments(attachments, draft.attachments, senderMailGroupId, mailGroupKey, await this._login.isEnabled(FeatureType.Blobs)),
+			addedAttachments: await this._createAddedAttachments(attachments, draft.attachments, senderMailGroupId, mailGroupKey, await this.usingBlobs()),
 		})
 		this._deferredDraftId = draft._id
 		// we have to wait for the updated mail because sendMail() might be called right after this update
@@ -452,7 +452,7 @@ export class MailFacade {
 	}
 
 	async sendDraft(draft: Mail, recipients: Array<RecipientDetails>, language: string): Promise<void> {
-		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this._login.getLoggedInUser(), draft.sender.address)
+		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), draft.sender.address)
 		const bucketKey = aes128RandomKey()
 		const sendDraftData = createSendDraftData()
 		sendDraftData.language = language
@@ -475,7 +475,7 @@ export class MailFacade {
 		}
 
 		await Promise.all([
-			this._entityClient.loadRoot(TutanotaPropertiesTypeRef, this._login.getUserGroupId()).then(tutanotaProperties => {
+			this._entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId()).then(tutanotaProperties => {
 				sendDraftData.plaintext = tutanotaProperties.sendPlaintextOnly
 			}),
 			this._crypto.resolveSessionKeyForInstance(draft).then(mailSessionkey => {
@@ -603,7 +603,7 @@ export class MailFacade {
 			if (recipient.isExternal) {
 				const password = recipient.password
 
-				if (password == null || !isSameId(this._login.getGroupId(GroupType.Mail), senderMailGroupId)) {
+				if (password == null || !isSameId(this.userFacade.getGroupId(GroupType.Mail), senderMailGroupId)) {
 					// no password given and prevent sending to secure externals from shared group
 					notFoundRecipients.push(recipient.mailAddress)
 					continue
@@ -653,7 +653,7 @@ export class MailFacade {
 		externalUserGroupKey: Aes128Key
 		externalMailGroupKey: Aes128Key
 	}> {
-		return this._entityClient.loadRoot(GroupRootTypeRef, this._login.getUserGroupId()).then(groupRoot => {
+		return this._entityClient.loadRoot(GroupRootTypeRef, this.userFacade.getUserGroupId()).then(groupRoot => {
 			let cleanedMailAddress = recipientMailAddress.trim().toLocaleLowerCase()
 			let mailAddressId = stringToCustomId(cleanedMailAddress)
 			return this._entityClient
@@ -665,7 +665,7 @@ export class MailFacade {
 								   this._entityClient.load(GroupTypeRef, mailGroupId),
 								   this._entityClient.load(GroupTypeRef, externalUserReference.userGroup),
 							   ]).then(([externalMailGroup, externalUserGroup]) => {
-								   let externalUserGroupKey = decryptKey(this._login.getUserGroupKey(), neverNull(externalUserGroup.adminGroupEncGKey))
+								   let externalUserGroupKey = decryptKey(this.userFacade.getUserGroupKey(), neverNull(externalUserGroup.adminGroupEncGKey))
 								   let externalMailGroupKey = decryptKey(externalUserGroupKey, neverNull(externalMailGroup.adminGroupEncGKey))
 								   return {
 									   externalUserGroupKey,
@@ -677,7 +677,7 @@ export class MailFacade {
 					   .catch(
 						   ofClass(NotFoundError, e => {
 							   // it does not exist, so create it
-							   let internalMailGroupKey = this._login.getGroupKey(this._login.getGroupId(GroupType.Mail))
+							   let internalMailGroupKey = this.userFacade.getGroupKey(this.userFacade.getGroupId(GroupType.Mail))
 
 							   let externalUserGroupKey = aes128RandomKey()
 							   let externalMailGroupKey = aes128RandomKey()
@@ -701,7 +701,7 @@ export class MailFacade {
 							   let userGroupData = createCreateExternalUserGroupData()
 							   userGroupData.mailAddress = cleanedMailAddress
 							   userGroupData.externalPwEncUserGroupKey = encryptKey(externalUserPwKey, externalUserGroupKey)
-							   userGroupData.internalUserEncUserGroupKey = encryptKey(this._login.getUserGroupKey(), externalUserGroupKey)
+							   userGroupData.internalUserEncUserGroupKey = encryptKey(this.userFacade.getUserGroupKey(), externalUserGroupKey)
 							   d.userGroupData = userGroupData
 							   return this.serviceExecutor.post(ExternalUserService, d).then(() => {
 								   return {
@@ -789,6 +789,15 @@ export class MailFacade {
 			headers: headers.join("\n"),
 		})
 		await this.serviceExecutor.post(ListUnsubscribeService, postData)
+	}
+
+	private async usingBlobs(): Promise<boolean> {
+		const user = this.userFacade.getUser()
+		if (!user || user.accountType === AccountType.EXTERNAL) {
+			return false // externals and contact form users can't load the customer (missing permission) so we do not enable blob storage for them yet
+		}
+		const customer = await this._entityClient.load(CustomerTypeRef, assertNotNull(user.customer))
+		return customer.customizations.some(f => f.feature === FeatureType.Blobs)
 	}
 }
 

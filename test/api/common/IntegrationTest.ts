@@ -17,13 +17,13 @@ function loadFolders(folderListId: Id): Promise<MailFolder[]> {
 }
 
 function loadMailboxSystemFolders(): Promise<MailFolder[]> {
-	return locator.cachingEntityClient.loadRoot(MailBoxTypeRef, locator.login.getUserGroupId()).then(mailbox => {
+	return locator.cachingEntityClient.loadRoot(MailBoxTypeRef, locator.user.getUserGroupId()).then(mailbox => {
 		return loadFolders(neverNull(mailbox.systemFolders).folders)
 	})
 }
 
 function loadContactList() {
-	return locator.cachingEntityClient.loadRoot(ContactListTypeRef, locator.login.getUserGroupId())
+	return locator.cachingEntityClient.loadRoot(ContactListTypeRef, locator.user.getUserGroupId())
 }
 
 o.spec("integration test", function () {
@@ -45,8 +45,8 @@ o.spec("integration test", function () {
 		address.customTypeName = "0"
 		let contact = createContact()
 		contact._area = "0"
-		contact._owner = locator.login.getLoggedInUser()._id
-		contact._ownerGroup = locator.login.getGroupId(GroupType.Contact)
+		contact._owner = locator.user.getLoggedInUser()._id
+		contact._ownerGroup = locator.user.getGroupId(GroupType.Contact)
 		contact.title = "Dr."
 		contact.firstName = "Max"
 		contact.lastName = "Meier"
