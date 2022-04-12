@@ -80,7 +80,7 @@ export default {
 		"administratedGroups_label": "Grupos gerenciados",
 		"administrator_label": "Administrador",
 		"adminMaxNbrOfAliasesReached_msg": "O limite máximo de apelidos foi atingindo. ",
-		"adminPayment_action": "Dados de Pagamento",
+		"adminPayment_action": "Dados de pagamento",
 		"adminPremiumFeatures_action": "Extensões",
 		"adminSettings_label": "Configurações de administrador",
 		"adminSpamRuleInfo_msg": "Detalhes para configurar filtro de spam:",
