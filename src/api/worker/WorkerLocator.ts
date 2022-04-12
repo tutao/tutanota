@@ -51,12 +51,14 @@ import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import {BlobFacade} from "./facades/BlobFacade"
 import {NativeSystemApp} from "../../native/common/NativeSystemApp"
 import {DesktopConfigKey} from "../../desktop/config/ConfigKeys"
+import {UserFacade} from "./facades/UserFacade"
 
 assertWorkerOrNode()
 
 export type WorkerLocatorType = {
 	serviceExecutor: IServiceExecutor
 	login: LoginFacadeImpl
+	user: UserFacade
 	indexer: Indexer
 	cache: EntityRestInterface
 	cachingEntityClient: EntityClient
@@ -90,7 +92,7 @@ export type WorkerLocatorType = {
 export const locator: WorkerLocatorType = {} as any
 
 export async function initLocator(worker: WorkerImpl, browserData: BrowserData) {
-	const getAuthHeaders = () => locator.login.createAuthHeaders()
+	locator.user = new UserFacade()
 
 	const suspensionHandler = new SuspensionHandler(worker, self)
 	locator.instanceMapper = new InstanceMapper()
@@ -98,11 +100,11 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.restClient = new RestClient(suspensionHandler)
 	locator.serviceExecutor = new ServiceExecutor(
 		locator.restClient,
-		() => locator.login.createAuthHeaders(),
+		locator.user,
 		locator.instanceMapper,
 		() => locator.crypto,
 	)
-	const entityRestClient = new EntityRestClient(getAuthHeaders, locator.restClient, () => locator.crypto, locator.instanceMapper)
+	const entityRestClient = new EntityRestClient(locator.user, locator.restClient, () => locator.crypto, locator.instanceMapper)
 	locator._browserData = browserData
 
 	locator.native = worker
@@ -123,6 +125,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	const fileApp = new NativeFileApp(worker)
 	const systemApp = new NativeSystemApp(worker, fileApp)
 
+	locator.crypto = new CryptoFacadeImpl(locator.user, locator.cachingEntityClient, locator.restClient, locator.rsa, locator.serviceExecutor)
 	locator.login = new LoginFacadeImpl(
 		worker,
 		locator.restClient,
@@ -132,23 +135,23 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		new EntityClient(locator.cache),
 		locator.secondFactorAuthenticationHandler,
 		locator.instanceMapper,
-		() => locator.crypto,
+		locator.crypto,
 		uninitializedStorage.initialize.bind(uninitializedStorage),
 		locator.serviceExecutor,
 		async () => isDesktop() && await systemApp.getConfigValue(DesktopConfigKey.offlineStorageEnabled),
+		locator.user,
 	)
-	locator.crypto = new CryptoFacadeImpl(locator.login, locator.cachingEntityClient, locator.restClient, locator.rsa, locator.serviceExecutor)
 	const suggestionFacades = [
 		locator.indexer._contact.suggestionFacade,
 		locator.indexer._groupInfo.suggestionFacade,
 		locator.indexer._whitelabelChildIndexer.suggestionFacade,
 	]
-	locator.search = new SearchFacade(locator.login, locator.indexer.db, locator.indexer._mail, suggestionFacades, browserData, locator.cachingEntityClient)
+	locator.search = new SearchFacade(locator.user, locator.indexer.db, locator.indexer._mail, suggestionFacades, browserData, locator.cachingEntityClient)
 	locator.counters = new CounterFacade(locator.serviceExecutor)
-	locator.groupManagement = new GroupManagementFacadeImpl(locator.login, locator.counters, locator.cachingEntityClient, locator.rsa, locator.serviceExecutor)
+	locator.groupManagement = new GroupManagementFacadeImpl(locator.user, locator.counters, locator.cachingEntityClient, locator.rsa, locator.serviceExecutor)
 	locator.userManagement = new UserManagementFacade(
 		worker,
-		locator.login,
+		locator.user,
 		locator.groupManagement,
 		locator.counters,
 		locator.rsa,
@@ -157,7 +160,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	)
 	locator.customer = new CustomerFacadeImpl(
 		worker,
-		locator.login,
+		locator.user,
 		locator.groupManagement,
 		locator.userManagement,
 		locator.counters,
@@ -168,14 +171,14 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.crypto,
 	)
 	const aesApp = new AesApp(worker)
-	locator.blob = new BlobFacade(locator.login, locator.serviceExecutor, locator.restClient, suspensionHandler, fileApp, aesApp, locator.instanceMapper, locator.crypto)
-	locator.file = new FileFacade(locator.login, locator.restClient, suspensionHandler, fileApp, aesApp, locator.instanceMapper, locator.serviceExecutor, locator.crypto)
-	locator.mail = new MailFacade(locator.login, locator.file, locator.blob, locator.cachingEntityClient, locator.crypto, locator.serviceExecutor)
+	locator.blob = new BlobFacade(locator.user, locator.serviceExecutor, locator.restClient, suspensionHandler, fileApp, aesApp, locator.instanceMapper, locator.crypto)
+	locator.file = new FileFacade(locator.user, locator.restClient, suspensionHandler, fileApp, aesApp, locator.instanceMapper, locator.serviceExecutor, locator.crypto)
+	locator.mail = new MailFacade(locator.user, locator.file, locator.blob, locator.cachingEntityClient, locator.crypto, locator.serviceExecutor)
 	// not needed for admin client
 	if (cache) {
-		locator.calendar = new CalendarFacade(locator.login, locator.groupManagement, cache, worker, worker, locator.instanceMapper, locator.serviceExecutor, locator.crypto)
+		locator.calendar = new CalendarFacade(locator.user, locator.groupManagement, cache, worker, worker, locator.instanceMapper, locator.serviceExecutor, locator.crypto)
 	}
-	locator.mailAddress = new MailAddressFacade(locator.login, locator.serviceExecutor)
+	locator.mailAddress = new MailAddressFacade(locator.user, locator.serviceExecutor)
 
 	const dateProvider = new WorkerDateProvider()
 	const scheduler = new SchedulerImpl(dateProvider, self, self)
@@ -185,17 +188,18 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.indexer,
 		cache ?? new AdminClientRestCacheDummy(),
 		locator.mail,
-		locator.login,
+		locator.user,
 		locator.cachingEntityClient,
 		locator.instanceMapper,
 		(path) => new WebSocket(getWebsocketOrigin() + path),
 		new SleepDetector(scheduler, dateProvider),
+		locator.login,
 	)
 	locator.login.init(locator.indexer, locator.eventBusClient)
 	locator.Const = Const
-	locator.share = new ShareFacade(locator.login, locator.crypto, locator.serviceExecutor)
-	locator.giftCards = new GiftCardFacadeImpl(locator.login, locator.serviceExecutor, locator.crypto)
-	locator.configFacade = new ConfigurationDatabase(locator.login)
+	locator.share = new ShareFacade(locator.user, locator.crypto, locator.serviceExecutor)
+	locator.giftCards = new GiftCardFacadeImpl(locator.user, locator.serviceExecutor, locator.crypto)
+	locator.configFacade = new ConfigurationDatabase(locator.user)
 	locator.contactFormFacade = new ContactFormFacadeImpl(locator.restClient, locator.instanceMapper)
 	locator.deviceEncryptionFacade = new Aes256DeviceEncryptionFacade()
 }

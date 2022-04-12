@@ -17,6 +17,7 @@ import {InstanceMapper} from "../crypto/InstanceMapper"
 import {CryptoFacade} from "../crypto/CryptoFacade"
 import {assertWorkerOrNode} from "../../common/Env"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
+import {AuthHeadersProvider} from "../facades/UserFacade"
 
 assertWorkerOrNode()
 
@@ -25,7 +26,7 @@ type AnyService = GetService | PostService | PutService | DeleteService
 export class ServiceExecutor implements IServiceExecutor {
 	constructor(
 		private readonly restClient: RestClient,
-		private readonly authHeadersProvider: () => Dict,
+		private readonly authHeadersProvider: AuthHeadersProvider,
 		private readonly instanceMapper: InstanceMapper,
 		private readonly cryptoFacade: lazy<CryptoFacade>,
 	) {
@@ -73,7 +74,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		const modelVersion = await this.getModelVersion(methodDefinition)
 
 		const path = `/rest/${service.app.toLowerCase()}/${service.name.toLowerCase()}`
-		const headers = {...this.authHeadersProvider(), ...params?.extraHeaders, v: modelVersion}
+		const headers = {...this.authHeadersProvider.createAuthHeaders(), ...params?.extraHeaders, v: modelVersion}
 
 		const encryptedEntity = await this.encryptDataIfNeeded(methodDefinition, requestEntity, service, method, params ?? null)
 

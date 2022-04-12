@@ -1,7 +1,6 @@
 import {addParamsToUrl, isSuspensionResponse, RestClient} from "../rest/RestClient"
 import {CryptoFacade, encryptBytes} from "../crypto/CryptoFacade"
 import {concat, decodeBase64, downcast, Mapper, neverNull, promiseMap, splitUint8ArrayInChunks, uint8ArrayToBase64,} from "@tutao/tutanota-utils"
-import {LoginFacadeImpl} from "./LoginFacade"
 import {ArchiveDataType, MAX_BLOB_SIZE_BYTES} from "../../common/TutanotaConstants"
 
 import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
@@ -13,24 +12,26 @@ import type {FileUri, NativeFileApp} from "../../../native/common/FileApp"
 import type {AesApp} from "../../../native/worker/AesApp"
 import {InstanceMapper} from "../crypto/InstanceMapper"
 import {Aes128Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
-import {Blob} from "../../entities/sys/TypeRefs.js"
+import {Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper} from "../../entities/sys/TypeRefs.js"
 import {FileReference} from "../../common/utils/FileUtils"
 import {ConnectionError, handleRestError} from "../../common/error/RestError"
 import {Instance} from "../../common/EntityTypes"
 import {getElementId, getEtId, getListId, isElementEntity} from "../../common/utils/EntityUtils"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {IServiceExecutor} from "../../common/ServiceRequest"
-import {BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper} from "../../entities/sys/TypeRefs.js"
 import {
 	BlobGetInTypeRef,
 	BlobPostOut,
 	BlobPostOutTypeRef,
-	BlobServerAccessInfo, BlobServerUrl,
-	createBlobAccessTokenPostIn, createBlobGetIn,
+	BlobServerAccessInfo,
+	BlobServerUrl,
+	createBlobAccessTokenPostIn,
+	createBlobGetIn,
 	createBlobReadData,
 	createBlobWriteData,
 	createInstanceId
 } from "../../entities/storage/TypeRefs"
+import {AuthHeadersProvider} from "./UserFacade"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
@@ -46,7 +47,6 @@ export type ReferenceToken = string
  * Otherwise the blobs will automatically be deleted after some time. It is not allowed to reference blobs manually in some instance.
  */
 export class BlobFacade {
-	private readonly login: LoginFacadeImpl
 	private readonly serviceExecutor: IServiceExecutor
 	private readonly restClient: RestClient
 	private readonly suspensionHandler: SuspensionHandler
@@ -56,7 +56,7 @@ export class BlobFacade {
 	private readonly cryptoFacade: CryptoFacade
 
 	constructor(
-		login: LoginFacadeImpl,
+		private readonly authHeadersProvider: AuthHeadersProvider,
 		serviceExecutor: IServiceExecutor,
 		restClient: RestClient,
 		suspensionHandler: SuspensionHandler,
@@ -65,7 +65,6 @@ export class BlobFacade {
 		instanceMapper: InstanceMapper,
 		cryptoFacade: CryptoFacade
 	) {
-		this.login = login
 		this.serviceExecutor = serviceExecutor
 		this.restClient = restClient
 		this.suspensionHandler = suspensionHandler
@@ -309,7 +308,7 @@ export class BlobFacade {
 				_body,
 				v: BlobGetInTypeModel.version,
 			},
-			this.login.createAuthHeaders(),
+			this.authHeadersProvider.createAuthHeaders(),
 		)
 	}
 

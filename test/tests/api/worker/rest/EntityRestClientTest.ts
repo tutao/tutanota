@@ -71,8 +71,13 @@ o.spec("EntityRestClient", async function () {
 
 		restClient = object()
 
+		const authHeaderProvider = {
+			createAuthHeaders(): Dict {
+				return authHeader
+			}
+		}
 		entityRestClient = new EntityRestClient(
-			() => authHeader,
+			authHeaderProvider,
 			restClient,
 			() => cryptoFacadeMock,
 			instanceMapperMock,

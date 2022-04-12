@@ -236,7 +236,7 @@ export class WorkerImpl implements NativeInterface {
 				const args = message.args as Parameters<RestClient["request"]>
 				let [path, method, options] = args
 				options = options ?? {}
-				options.headers = {...locator.login.createAuthHeaders(), ...options.headers}
+				options.headers = {...locator.user.createAuthHeaders(), ...options.headers}
 				return locator.restClient.request(path, method, options)
 			},
 			entropy: (message: WorkerRequest) => {

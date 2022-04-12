@@ -61,6 +61,7 @@ import type {RsaImplementation} from "./RsaImplementation"
 import {IServiceExecutor} from "../../common/ServiceRequest"
 import {EncryptTutanotaPropertiesService} from "../../entities/tutanota/Services"
 import {PublicKeyService, UpdatePermissionKeyService} from "../../entities/sys/Services"
+import {UserFacade} from "../facades/UserFacade"
 
 assertWorkerOrNode()
 
@@ -104,33 +105,24 @@ export interface CryptoFacade {
 }
 
 export class CryptoFacadeImpl implements CryptoFacade {
-	readonly logins: LoginFacadeImpl
-	readonly entityClient: EntityClient
-	readonly restClient: RestClient
-	readonly rsa: RsaImplementation
 	// stores a mapping from mail body id to mail body session key. the mail body of a mail is encrypted with the same session key as the mail.
 	// so when resolving the session key of a mail we cache it for the mail's body to avoid that the body's permission (+ bucket permission) have to be loaded.
 	// this especially improves the performance when indexing mail bodies
 	readonly _mailBodySessionKeyCache: Record<string, Aes128Key> = {}
 
 	constructor(
-		logins: LoginFacadeImpl,
-		entityClient: EntityClient,
-		restClient: RestClient,
-		rsa: RsaImplementation,
+		private readonly userFacade: UserFacade,
+		private readonly entityClient: EntityClient,
+		private readonly restClient: RestClient,
+		private readonly rsa: RsaImplementation,
 		private readonly serviceExecutor: IServiceExecutor,
 	) {
-		this.logins = logins
-		this.entityClient = entityClient
-		this.restClient = restClient
-		this.rsa = rsa
 	}
 
 	async applyMigrations<T>(typeRef: TypeRef<T>, data: any): Promise<T> {
 		if (isSameTypeRef(typeRef, GroupInfoTypeRef) && data._ownerGroup == null) {
-			//FIXME: do we still need this?
-			let customerGroupMembership = this.logins.getLoggedInUser().memberships.find((g: GroupMembership) => g.groupType === GroupType.Customer) as any
-			let customerGroupKey = this.logins.getGroupKey(customerGroupMembership.group)
+			let customerGroupMembership = this.userFacade.getLoggedInUser().memberships.find((g: GroupMembership) => g.groupType === GroupType.Customer) as any
+			let customerGroupKey = this.userFacade.getGroupKey(customerGroupMembership.group)
 			return this.entityClient.loadAll(PermissionTypeRef, data._id[0]).then((listPermissions: Permission[]) => {
 				let customerGroupPermission = listPermissions.find(p => p.group === customerGroupMembership.group)
 				if (!customerGroupPermission) throw new SessionKeyNotFoundError("Permission not found, could not apply OwnerGroup migration")
@@ -143,8 +135,8 @@ export class CryptoFacadeImpl implements CryptoFacade {
 		} else if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && data._ownerEncSessionKey == null) {
 			// EncryptTutanotaPropertiesService could be removed and replaced with an Migration that writes the key
 			let migrationData = createEncryptTutanotaPropertiesData()
-			data._ownerGroup = this.logins.getUserGroupId()
-			let groupEncSessionKey = encryptKey(this.logins.getUserGroupKey(), aes128RandomKey())
+			data._ownerGroup = this.userFacade.getUserGroupId()
+			let groupEncSessionKey = encryptKey(this.userFacade.getUserGroupKey(), aes128RandomKey())
 			data._ownerEncSessionKey = uint8ArrayToBase64(groupEncSessionKey)
 			migrationData.properties = data._id
 			migrationData.symEncSessionKey = groupEncSessionKey
@@ -153,7 +145,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 		} else if (isSameTypeRef(typeRef, PushIdentifierTypeRef) && data._ownerEncSessionKey == null) {
 			// set sessionKey for allowing encryption when old instance (< v43) is updated
 			return resolveTypeReference(typeRef)
-				.then(typeModel => this._updateOwnerEncSessionKey(typeModel, data, this.logins.getUserGroupKey(), aes128RandomKey()))
+				.then(typeModel => this._updateOwnerEncSessionKey(typeModel, data, this.userFacade.getUserGroupKey(), aes128RandomKey()))
 				.then(() => data)
 		}
 
@@ -224,8 +216,8 @@ export class CryptoFacadeImpl implements CryptoFacade {
 							  // the mail body instance is cached, so the session key is not needed any more
 							  delete this._mailBodySessionKeyCache[instance._id]
 							  return sessionKey
-						  } else if (instance._ownerEncSessionKey && this.logins.isLoggedIn() && this.logins.hasGroup(instance._ownerGroup)) {
-							  let gk = this.logins.getGroupKey(instance._ownerGroup)
+						  } else if (instance._ownerEncSessionKey && this.userFacade.isLoggedIn() && this.userFacade.hasGroup(instance._ownerGroup)) {
+							  let gk = this.userFacade.getGroupKey(instance._ownerGroup)
 							  let key = instance._ownerEncSessionKey
 
 							  if (typeof key === "string") {
@@ -236,7 +228,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 						  } else if (instance.ownerEncSessionKey) {
 							  // TODO this is a service instance: Rename all ownerEncSessionKey attributes to _ownerEncSessionKey and add _ownerGroupId (set ownerEncSessionKey here automatically after resolving the group)
 							  // add to payment data service
-							  let gk = this.logins.getGroupKey(this.logins.getGroupId(GroupType.Mail))
+							  let gk = this.userFacade.getGroupKey(this.userFacade.getGroupId(GroupType.Mail))
 							  let key = instance.ownerEncSessionKey
 
 							  if (typeof key === "string") {
@@ -246,7 +238,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 							  return Promise.resolve(decryptKey(gk, key))
 						  } else {
 							  return this.entityClient.loadAll(PermissionTypeRef, instance._permissions).then((listPermissions: Permission[]) => {
-								  let userGroupIds = this.logins.getAllGroupIds()
+								  let userGroupIds = this.userFacade.getAllGroupIds()
 								  let instancePermission: Permission | null = listPermissions.find(
 									  p =>
 										  (p.type === PermissionType.Public_Symmetric || p.type === PermissionType.Symmetric) &&
@@ -255,7 +247,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 								  ) ?? null
 
 								  if (instancePermission) {
-									  let gk = this.logins.getGroupKey(instancePermission._ownerGroup as any)
+									  let gk = this.userFacade.getGroupKey(instancePermission._ownerGroup as any)
 									  return Promise.resolve(decryptKey(gk, instancePermission._ownerEncSessionKey as any))
 								  }
 
@@ -286,9 +278,9 @@ export class CryptoFacadeImpl implements CryptoFacade {
 													 let bucketKey
 
 													 if (bp.ownerEncBucketKey != null) {
-														 bucketKey = decryptKey(this.logins.getGroupKey(neverNull(bp._ownerGroup)), neverNull(bp.ownerEncBucketKey))
+														 bucketKey = decryptKey(this.userFacade.getGroupKey(neverNull(bp._ownerGroup)), neverNull(bp.ownerEncBucketKey))
 													 } else if (bp.symEncBucketKey) {
-														 bucketKey = decryptKey(this.logins.getUserGroupKey(), neverNull(bp.symEncBucketKey))
+														 bucketKey = decryptKey(this.userFacade.getUserGroupKey(), neverNull(bp.symEncBucketKey))
 													 } else {
 														 throw new SessionKeyNotFoundError(
 															 `BucketEncSessionKey is not defined for Permission ${permission._id.toString()} (Instance: ${JSON.stringify(
@@ -304,7 +296,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 														 let privKey
 
 														 try {
-															 privKey = decryptRsaKey(this.logins.getGroupKey(group._id), keypair.symEncPrivKey)
+															 privKey = decryptRsaKey(this.userFacade.getGroupKey(group._id), keypair.symEncPrivKey)
 														 } catch (e) {
 															 console.log("failed to decrypt rsa key for group with id " + group._id)
 															 throw e
@@ -336,8 +328,8 @@ export class CryptoFacadeImpl implements CryptoFacade {
 
 															 if (bucketPermission._ownerGroup) {
 																 // is not defined for some old AccountingInfos
-																 let bucketPermissionOwnerGroupKey = this.logins.getGroupKey(neverNull(bucketPermission._ownerGroup))
-																 let bucketPermissionGroupKey = this.logins.getGroupKey(bucketPermission.group)
+																 let bucketPermissionOwnerGroupKey = this.userFacade.getGroupKey(neverNull(bucketPermission._ownerGroup))
+																 let bucketPermissionGroupKey = this.userFacade.getGroupKey(bucketPermission.group)
 																 return this._updateWithSymPermissionKey(
 																	 typeModel,
 																	 instance,
@@ -391,7 +383,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 		if (instance._ownerPublicEncSessionKey) {
 			return this.entityClient.load(GroupTypeRef, instance._ownerGroup).then(group => {
 				let keypair = group.keys[0]
-				let gk = this.logins.getGroupKey(instance._ownerGroup)
+				let gk = this.userFacade.getGroupKey(instance._ownerGroup)
 				let privKey
 
 				try {
@@ -426,7 +418,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 			}
 
 			let sessionKey = aes128RandomKey()
-			entity._ownerEncSessionKey = encryptKey(this.logins.getGroupKey(entity._ownerGroup), sessionKey)
+			entity._ownerEncSessionKey = encryptKey(this.userFacade.getGroupKey(entity._ownerGroup), sessionKey)
 			return sessionKey
 		} else {
 			return null
@@ -486,7 +478,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 		permissionGroupKey: Aes128Key,
 		sessionKey: Aes128Key,
 	): Promise<void> {
-		if (typeof instance._type !== "undefined" || !this.logins.isLeader()) {
+		if (typeof instance._type !== "undefined" || !this.userFacade.isLeader()) {
 			// do not update the session key in case of an unencrypted (client-side) instance
 			// or in case we are not the leader client
 			return Promise.resolve()
@@ -510,7 +502,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 		instance._ownerEncSessionKey = uint8ArrayToBase64(encryptKey(ownerGroupKey, sessionKey))
 		// we have to call the rest client directly because instance is still the encrypted server-side version
 		const path = typeRefToPath(new TypeRef(typeModel.app, typeModel.name)) + "/" + (instance._id instanceof Array ? instance._id.join("/") : instance._id)
-		const headers = this.logins.createAuthHeaders()
+		const headers = this.userFacade.createAuthHeaders()
 		headers.v = typeModel.version
 		return this.restClient
 				   .request(

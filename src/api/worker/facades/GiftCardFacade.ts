@@ -17,6 +17,7 @@ import {IServiceExecutor} from "../../common/ServiceRequest"
 import {GiftCardRedeemService, GiftCardService} from "../../entities/sys/Services"
 import {elementIdPart, GENERATED_MAX_ID} from "../../common/utils/EntityUtils"
 import {CryptoFacade} from "../crypto/CryptoFacade"
+import {UserFacade} from "./UserFacade"
 
 export interface GiftCardFacade {
 	generateGiftCard(message: string, value: NumberString, countryCode: string): Promise<IdTuple>
@@ -34,27 +35,24 @@ const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH_B64 = 24
 
 export class GiftCardFacadeImpl implements GiftCardFacade {
-	_logins: LoginFacadeImpl
-
 	constructor(
-		logins: LoginFacadeImpl,
+		private readonly user: UserFacade,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly cryptoFacade: CryptoFacade,
 	) {
-		this._logins = logins
 	}
 
 	generateGiftCard(message: string, value: NumberString, countryCode: string): Promise<IdTuple> {
 		const sessionKey = aes128RandomKey()
 		const keyHash = sha256Hash(bitArrayToUint8Array(sessionKey))
 
-		let adminGroupIds = this._logins.getGroupIds(GroupType.Admin)
+		let adminGroupIds = this.user.getGroupIds(GroupType.Admin)
 
 		if (adminGroupIds.length === 0) {
 			throw new Error("missing admin membership")
 		}
 
-		const ownerKey = this._logins.getGroupKey(firstThrow(adminGroupIds)) // adminGroupKey
+		const ownerKey = this.user.getGroupKey(firstThrow(adminGroupIds)) // adminGroupKey
 
 		const ownerEncSessionKey = encryptKey(ownerKey, sessionKey)
 		const data = createGiftCardCreateData({

@@ -2,14 +2,24 @@ import o from "ospec"
 import {ConnectMode, EventBusClient} from "../../../../src/api/worker/EventBusClient.js"
 import {GroupType, OperationType} from "../../../../src/api/common/TutanotaConstants.js"
 import type {EntityUpdate} from "../../../../src/api/entities/sys/TypeRefs.js"
-import {createEntityUpdate} from "../../../../src/api/entities/sys/TypeRefs.js"
+import {
+	createEntityEventBatch,
+	createEntityUpdate,
+	createGroupMembership,
+	createUser,
+	createWebsocketCounterData,
+	createWebsocketCounterValue,
+	createWebsocketEntityData,
+	EntityEventBatchTypeRef,
+	User,
+	WebsocketCounterData,
+	WebsocketEntityData
+} from "../../../../src/api/entities/sys/TypeRefs.js"
 import {EntityRestClientMock} from "./rest/EntityRestClientMock.js"
 import {EntityClient} from "../../../../src/api/common/EntityClient.js"
 import {defer, noOp} from "@tutao/tutanota-utils"
 import {WorkerImpl} from "../../../../src/api/worker/WorkerImpl.js"
 import {LoginFacadeImpl} from "../../../../src/api/worker/facades/LoginFacade.js"
-import {createUser, User} from "../../../../src/api/entities/sys/TypeRefs.js"
-import {createGroupMembership} from "../../../../src/api/entities/sys/TypeRefs.js"
 import {InstanceMapper} from "../../../../src/api/worker/crypto/InstanceMapper.js"
 import {EntityRestCache} from "../../../../src/api/worker/rest/EntityRestCache.js"
 import {QueuedBatch} from "../../../../src/api/worker/search/EventQueue.js"
@@ -17,13 +27,10 @@ import {OutOfSyncError} from "../../../../src/api/common/error/OutOfSyncError.js
 import {matchers, object, verify, when} from "testdouble"
 import {MailFacade} from "../../../../src/api/worker/facades/MailFacade.js"
 import {Indexer} from "../../../../src/api/worker/search/Indexer.js"
-import {createWebsocketEntityData, WebsocketEntityData} from "../../../../src/api/entities/sys/TypeRefs.js"
-import {createWebsocketCounterData, WebsocketCounterData} from "../../../../src/api/entities/sys/TypeRefs.js"
-import {createWebsocketCounterValue} from "../../../../src/api/entities/sys/TypeRefs.js"
-import {createEntityEventBatch, EntityEventBatchTypeRef} from "../../../../src/api/entities/sys/TypeRefs.js"
 import {getElementId} from "../../../../src/api/common/utils/EntityUtils.js"
 import {SleepDetector} from "../../../../src/api/worker/utils/SleepDetector.js"
 import {WsConnectionState} from "../../../../src/api/main/WorkerClient.js"
+import {UserFacade} from "../../../../src/api/worker/facades/UserFacade"
 
 o.spec("EventBusClient test", function () {
 	let ebc: EventBusClient
@@ -31,6 +38,7 @@ o.spec("EventBusClient test", function () {
 	let restClient: EntityRestClientMock
 	let workerMock: WorkerImpl
 	let loginMock: LoginFacadeImpl
+	let userMock: UserFacade
 	let mailMock: MailFacade
 	let indexerMock: Indexer
 	let socket: WebSocket
@@ -46,11 +54,12 @@ o.spec("EventBusClient test", function () {
 			indexerMock,
 			cacheMock,
 			mailMock,
-			loginMock,
+			userMock,
 			entityClient,
 			instanceMapper,
 			socketFactory,
 			sleepDetector,
+			loginMock,
 		)
 	}
 
@@ -100,9 +109,11 @@ o.spec("EventBusClient test", function () {
 
 		loginMock = object("login")
 		when(loginMock.entityEventsReceived(matchers.anything())).thenResolve(undefined)
-		when(loginMock.getLoggedInUser()).thenReturn(user)
-		when(loginMock.isLoggedIn()).thenReturn(true)
-		when(loginMock.createAuthHeaders()).thenReturn({})
+
+		userMock = object("user")
+		when(userMock.getLoggedInUser()).thenReturn(user)
+		when(userMock.isLoggedIn()).thenReturn(true)
+		when(userMock.createAuthHeaders()).thenReturn({})
 
 		mailMock = object("mail")
 		when(mailMock.entityEventsReceived(matchers.anything())).thenResolve(undefined)
