@@ -12,8 +12,8 @@ import type {MailboxDetail} from "../mail/model/MailModel"
 import stream from "mithril/stream"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
-import {LockedError} from "../api/common/error/RestError"
+import {neverNull} from "@tutao/tutanota-utils"
+import {ConnectionError, LockedError} from "../api/common/error/RestError"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {isSameId} from "../api/common/utils/EntityUtils"
 import {assertMainOrNode} from "../api/common/Env"
@@ -61,6 +61,7 @@ export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
 
 		const isNewRule = ruleOrTemplate._id === null
 
+
 		const addInboxRuleOkAction = (dialog: Dialog) => {
 			let rule = createInboxRule()
 			rule.type = inboxRuleType()
@@ -69,14 +70,22 @@ export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
 			const props = logins.getUserController().props
 			const inboxRules = props.inboxRules
 			props.inboxRules = isNewRule ? [...inboxRules, rule] : inboxRules.map(inboxRule => (isSameId(inboxRule._id, ruleOrTemplate._id) ? rule : inboxRule))
-			locator.entityClient
-				   .update(props)
-				   .catch(error => {
-					   props.inboxRules = inboxRules
-					   throw error
-				   })
-				   .catch(ofClass(LockedError, noOp))
-			dialog.close()
+
+			locator.entityClient.update(props).then(() => {
+				dialog.close()
+			}).catch(error => {
+				if (error instanceof ConnectionError) {
+					props.inboxRules = inboxRules
+					//do not close
+					throw error
+				} else if (error instanceof LockedError) {
+					dialog.close()
+				} else {
+					props.inboxRules = inboxRules
+					dialog.close()
+					throw error
+				}
+			})
 		}
 
 		Dialog.showActionDialog({

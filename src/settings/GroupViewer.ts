@@ -1,14 +1,13 @@
-import m, {Children} from "mithril"
+import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
-import {assertNotNull, neverNull, noOp} from "@tutao/tutanota-utils"
+import {assertNotNull, LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {Group} from "../api/entities/sys/Group"
 import {GroupTypeRef} from "../api/entities/sys/Group"
 import {BookingItemFeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
-import {LazyLoaded} from "@tutao/tutanota-utils"
 import {BadRequestError, NotAuthorizedError, PreconditionFailedError} from "../api/common/error/RestError"
 import type {TableAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableLineAttrs, TableN} from "../gui/base/TableN"
@@ -29,11 +28,10 @@ import {showBuyDialog} from "../subscription/BuyDialog"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {ButtonAttrs, ButtonN} from "../gui/base/ButtonN"
-import type {DropDownSelectorAttrs, SelectorItem, SelectorItemList} from "../gui/base/DropDownSelectorN"
+import type {DropDownSelectorAttrs, SelectorItemList} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import type {EntityClient} from "../api/common/EntityClient"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
-import type {UpdatableSettingsDetailsViewer, UpdatableSettingsViewer} from "./SettingsView"
+import type {UpdatableSettingsDetailsViewer} from "./SettingsView"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
 
@@ -233,18 +231,20 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 		const editNameButtonAttrs = {
 			label: "edit_action",
 			click: () => {
-				Dialog.showTextInputDialog("edit_action", "name_label", null, this._name, newName => {
-					if (this._group.isLoaded() && this._group.getLoaded().type === GroupType.MailingList && newName.trim() === "") {
-						return "enterName_msg"
-					} else {
-						return null
-					}
-				}).then(newName => {
-					const newGroupInfo: GroupInfo = Object.assign({}, this.groupInfo)
-					newGroupInfo.name = newName
+				Dialog.showProcessTextInputDialog("edit_action", "name_label", null, this._name,
+					(newName) => {
+						const newGroupInfo: GroupInfo = Object.assign({}, this.groupInfo)
+						newGroupInfo.name = newName
 
-					this._entityClient.update(newGroupInfo)
-				})
+						return this._entityClient.update(newGroupInfo)
+					},
+					newName => {
+						if (this._group.isLoaded() && this._group.getLoaded().type === GroupType.MailingList && newName.trim() === "") {
+							return "enterName_msg"
+						} else {
+							return null
+						}
+					})
 			},
 			icon: () => Icons.Edit,
 		} as const

@@ -1,16 +1,9 @@
 import m, {Children, Component} from "mithril"
+import type Stream from "mithril/stream"
 import stream from "mithril/stream"
 import type {ModalComponent} from "./Modal"
 import {modal} from "./Modal"
-import {
-	alpha,
-	AlphaEnum, AnimationPromise,
-	animations,
-	DefaultAnimationTime,
-	opacity,
-	transform,
-	TransformEnum
-} from "../animation/Animations"
+import {alpha, AlphaEnum, AnimationPromise, animations, DefaultAnimationTime, opacity, transform, TransformEnum} from "../animation/Animations"
 import {ease} from "../animation/Easing"
 import type {TranslationKey, TranslationText} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
@@ -37,7 +30,7 @@ import {$Promisable, assertNotNull, getAsLazy, mapLazily, noOp} from "@tutao/tut
 import type {DialogInjectionRightAttrs} from "./DialogInjectionRight"
 import {DialogInjectionRight} from "./DialogInjectionRight"
 import {assertMainOrNode} from "../../api/common/Env"
-import type Stream from "mithril/stream"
+import {ConnectionError} from "../../api/common/error/RestError"
 
 assertMainOrNode()
 export const INPUT = "input, textarea, div[contenteditable='true']"
@@ -769,6 +762,47 @@ export class Dialog implements ModalComponent {
 					dialog.close()
 				},
 			})
+		})
+	}
+
+	/**
+	 * Shows a dialog with a text field input and ok/cancel buttons. In contrast to {@link showTextInputDialog} the entered text is not returned but processed in the okayAction.
+	 * @param titleId title of the dialog
+	 * @param labelIdOrLabelFunction label of the text field
+	 * @param infoMsgId help label of the text field
+	 * @param value initial value
+	 * @param inputValidator Called when "Ok" is clicked receiving the entered text. Must return null if the text is valid or an error messageId if the text is invalid, so an error message is shown.
+	 * @param okAction Called when "OK" is clicked, receives the entered text. If the okayAction results in a ConnectionsError the dialog is not closed.
+	 */
+	static showProcessTextInputDialog(
+		titleId: TranslationKey | lazy<string>,
+		labelIdOrLabelFunction: TranslationKey | lazy<string>,
+		infoMsgId: (TranslationKey | null) | (lazy<string> | null),
+		value: string,
+		okAction: (arg0: string) => Promise<unknown>,
+		inputValidator?: stringValidator,
+	) {
+		const result: Stream<string> = stream(value)
+		const textFieldAttrs: TextFieldAttrs = {
+			label: labelIdOrLabelFunction,
+			value: result,
+			helpLabel: () => (infoMsgId ? lang.getMaybeLazy(infoMsgId) : ""),
+		}
+		Dialog.showActionDialog({
+			title: lang.getMaybeLazy(titleId),
+			child: () => m(TextFieldN, textFieldAttrs),
+			validator: () => (inputValidator ? inputValidator(result()) : null),
+			allowOkWithReturn: true,
+			okAction: (dialog: Dialog) => {
+				okAction(result()).then(() => {
+					dialog.close()
+				}).catch(error => {
+					if (!(error instanceof ConnectionError)) {
+						dialog.close()
+					}
+					throw error
+				})
+			}
 		})
 	}
 
