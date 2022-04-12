@@ -14,7 +14,6 @@ import {
 	UserAlarmInfoTypeRef,
 	UserTypeRef
 } from "../../entities/sys/TypeRefs.js"
-import type {LoginFacadeImpl} from "./LoginFacade"
 import {
 	asyncFindAndMap,
 	downcast,
@@ -57,6 +56,7 @@ import {IServiceExecutor} from "../../common/ServiceRequest"
 import {AlarmService} from "../../entities/sys/Services"
 import {CalendarService} from "../../entities/tutanota/Services"
 import {resolveTypeReference} from "../../common/EntityFunctions"
+import {UserFacade} from "./UserFacade"
 
 assertWorkerOrNode()
 
@@ -71,7 +71,6 @@ type AlarmNotificationsPerEvent = {
 }
 
 export class CalendarFacade {
-	_loginFacade: LoginFacadeImpl
 	_groupManagementFacade: GroupManagementFacadeImpl
 	_entityRestCache: EntityRestCache
 	_entityClient: EntityClient
@@ -80,7 +79,7 @@ export class CalendarFacade {
 	_instanceMapper: InstanceMapper
 
 	constructor(
-		loginFacade: LoginFacadeImpl,
+		private readonly userFacade: UserFacade,
 		groupManagementFacade: GroupManagementFacadeImpl,
 		entityRestCache: EntityRestCache,
 		native: NativeInterface,
@@ -89,7 +88,6 @@ export class CalendarFacade {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly cryptoFacade: CryptoFacade,
 	) {
-		this._loginFacade = loginFacade
 		this._groupManagementFacade = groupManagementFacade
 		this._entityRestCache = entityRestCache
 		this._entityClient = new EntityClient(entityRestCache)
@@ -129,7 +127,7 @@ export class CalendarFacade {
 		let currentProgress = 10
 		await this._worker.sendProgress(currentProgress)
 
-		const user = this._loginFacade.getLoggedInUser()
+		const user = this.userFacade.getLoggedInUser()
 
 		const numEvents = eventsWrapper.length
 		const eventsWithAlarms: Array<AlarmNotificationsPerEvent> = await this._saveMultipleAlarms(user, eventsWrapper).catch(
@@ -174,7 +172,7 @@ export class CalendarFacade {
 
 		const pushIdentifierList = await this._entityClient.loadAll(
 			PushIdentifierTypeRef,
-			neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list,
+			neverNull(this.userFacade.getLoggedInUser().pushIdentifierList).list,
 		)
 
 		if (collectedAlarmNotifications.length > 0 && pushIdentifierList.length > 0) {
@@ -216,7 +214,7 @@ export class CalendarFacade {
 		event._ownerEncSessionKey = existingEvent._ownerEncSessionKey
 		event._permissions = existingEvent._permissions
 
-		const user = this._loginFacade.getLoggedInUser()
+		const user = this.userFacade.getLoggedInUser()
 
 		const userAlarmIdsWithAlarmNotificationsPerEvent = await this._saveMultipleAlarms(user, [
 			{
@@ -234,7 +232,7 @@ export class CalendarFacade {
 		if (alarmNotifications.length > 0) {
 			const pushIdentifierList = await this._entityClient.loadAll(
 				PushIdentifierTypeRef,
-				neverNull(this._loginFacade.getLoggedInUser().pushIdentifierList).list,
+				neverNull(this.userFacade.getLoggedInUser().pushIdentifierList).list,
 			)
 			await this._sendAlarmNotifications(alarmNotifications, pushIdentifierList)
 		}
@@ -292,12 +290,12 @@ export class CalendarFacade {
 		const group = await this._entityClient.load(GroupTypeRef, returnData.group)
 		// remove the user from the cache before loading it again to make sure we get the latest version.
 		// otherwise we might not see the new calendar in case it is created at login and the websocket is not connected yet
-		const userId = this._loginFacade.getLoggedInUser()._id
+		const userId = this.userFacade.getLoggedInUser()._id
 
 		await this._entityRestCache.deleteFromCacheIfExists(UserTypeRef, null, userId)
 
 		const user = await this._entityClient.load(UserTypeRef, userId)
-		this._loginFacade._user = user
+		this.userFacade.updateUser(user)
 		return {
 			user,
 			group,
@@ -309,7 +307,7 @@ export class CalendarFacade {
 	}
 
 	async scheduleAlarmsForNewDevice(pushIdentifier: PushIdentifier): Promise<void> {
-		const user = this._loginFacade.getLoggedInUser()
+		const user = this.userFacade.getLoggedInUser()
 
 		const eventsWithAlarmInfos = await this.loadAlarmEvents()
 		const alarmNotifications = flatMap(eventsWithAlarmInfos, ({event, userAlarmInfos}) =>
@@ -332,7 +330,7 @@ export class CalendarFacade {
 	 * @return: Map from concatenated ListId of an event to list of UserAlarmInfos for that event
 	 */
 	async loadAlarmEvents(): Promise<Array<EventWithAlarmInfos>> {
-		const alarmInfoList = this._loginFacade.getLoggedInUser().alarmInfoList
+		const alarmInfoList = this.userFacade.getLoggedInUser().alarmInfoList
 
 		if (!alarmInfoList) {
 			console.warn("No alarmInfo list on user")
@@ -373,7 +371,7 @@ export class CalendarFacade {
 	 * We currently only need this for calendar event updates and for that we don't want to look into shared calendars.
 	 */
 	getEventByUid(uid: string): Promise<CalendarEvent | null> {
-		const calendarMemberships = this._loginFacade.getLoggedInUser().memberships.filter(m => m.groupType === GroupType.Calendar && m.capability == null)
+		const calendarMemberships = this.userFacade.getLoggedInUser().memberships.filter(m => m.groupType === GroupType.Calendar && m.capability == null)
 
 		return asyncFindAndMap(calendarMemberships, membership => {
 			return this._entityClient

@@ -10,7 +10,8 @@ import {HttpMethod, MediaType, resolveTypeReference} from "../../../../../src/ap
 import {deepEqual} from "@tutao/tutanota-utils"
 import {assertThrows, verify} from "@tutao/tutanota-test-utils"
 import {createGiftCardCreateData, GiftCardCreateDataTypeRef} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {ProgrammingError} from "../../../../../src/api/common/error/ProgrammingError.js"
+import {ProgrammingError} from "../../../../../src/api/common/error/ProgrammingError"
+import {AuthHeadersProvider} from "../../../../../src/api/worker/facades/UserFacade"
 
 const {anything} = matchers
 
@@ -28,11 +29,16 @@ o.spec("ServiceExecutor", function () {
 	o.beforeEach(function () {
 		restClient = object()
 		authHeaders = {}
+		const authHeadersProvider: AuthHeadersProvider = {
+			createAuthHeaders(): Dict {
+				return authHeaders
+			}
+		}
 		instanceMapper = object()
 		cryptoFacade = object()
 		executor = new ServiceExecutor(
 			restClient,
-			() => authHeaders,
+			authHeadersProvider,
 			instanceMapper,
 			() => cryptoFacade,
 		)

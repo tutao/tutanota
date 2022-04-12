@@ -3,7 +3,6 @@ import {CryptoFacade, encryptBytes} from "../crypto/CryptoFacade"
 import type {File as TutanotaFile} from "../../entities/tutanota/TypeRefs.js"
 import {createFileDataDataGet, createFileDataDataPost, FileDataDataGetTypeRef, FileTypeRef} from "../../entities/tutanota/TypeRefs.js"
 import {assert, assertNotNull, filterInt, neverNull} from "@tutao/tutanota-utils"
-import {LoginFacadeImpl} from "./LoginFacade"
 import {GroupType} from "../../common/TutanotaConstants"
 
 import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
@@ -19,12 +18,12 @@ import {FileReference} from "../../common/utils/FileUtils";
 import {IServiceExecutor} from "../../common/ServiceRequest"
 import {FileDataService} from "../../entities/tutanota/Services"
 import modelInfo from "../../entities/tutanota/ModelInfo"
+import {UserFacade} from "./UserFacade"
 
 assertWorkerOrNode()
 const REST_PATH = "/rest/tutanota/filedataservice"
 
 export class FileFacade {
-	_login: LoginFacadeImpl
 	_restClient: RestClient
 	_suspensionHandler: SuspensionHandler
 	_fileApp: NativeFileApp
@@ -32,7 +31,7 @@ export class FileFacade {
 	_instanceMapper: InstanceMapper
 
 	constructor(
-		login: LoginFacadeImpl,
+		private readonly user: UserFacade,
 		restClient: RestClient,
 		suspensionHandler: SuspensionHandler,
 		fileApp: NativeFileApp,
@@ -41,7 +40,6 @@ export class FileFacade {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly cryptoFacade: CryptoFacade,
 	) {
-		this._login = login
 		this._restClient = restClient
 		this._suspensionHandler = suspensionHandler
 		this._fileApp = fileApp
@@ -59,11 +57,12 @@ export class FileFacade {
 		requestData.base64 = false
 		const sessionKey = await this.cryptoFacade.resolveSessionKeyForInstance(file)
 		const entityToSend = await this._instanceMapper.encryptAndMapToLiteral(await resolveTypeReference(FileDataDataGetTypeRef), requestData, null)
-		let headers = this._login.createAuthHeaders()
+		let headers = this.user.createAuthHeaders()
 
 		headers["v"] = String(modelInfo.version)
 		let body = JSON.stringify(entityToSend)
 		const data = await this._restClient.request(REST_PATH, HttpMethod.GET, {body, responseType: MediaType.Binary, headers})
+					return convertToDataFile(file, aes128Decrypt(neverNull(sessionKey), data))
 		return convertToDataFile(file, aes128Decrypt(neverNull(sessionKey), data))
 	}
 
@@ -85,7 +84,7 @@ export class FileFacade {
 		const FileDataDataGetTypModel = await resolveTypeReference(FileDataDataGetTypeRef)
 		const entityToSend = await this._instanceMapper.encryptAndMapToLiteral(FileDataDataGetTypModel, requestData, null)
 
-		const headers = this._login.createAuthHeaders()
+		const headers = this.user.createAuthHeaders()
 
 		headers["v"] = String(modelInfo.version)
 		const body = JSON.stringify(entityToSend)
@@ -130,13 +129,13 @@ export class FileFacade {
 		const encryptedData = encryptBytes(sessionKey, dataFile.data)
 		const fileData = createFileDataDataPost({
 			size: dataFile.data.byteLength.toString(),
-			group: this._login.getGroupId(GroupType.Mail)  // currently only used for attachments
+			group: this.user.getGroupId(GroupType.Mail)  // currently only used for attachments
 		})
 		const fileDataPostReturn = await this.serviceExecutor.post(FileDataService, fileData, {sessionKey})
 		// upload the file content
 		let fileDataId = fileDataPostReturn.fileData
 
-		const headers = this._login.createAuthHeaders()
+		const headers = this.user.createAuthHeaders()
 		headers["v"] = String(modelInfo.version)
 		await this._restClient
 				  .request(
@@ -165,12 +164,12 @@ export class FileFacade {
 		const encryptedFileInfo = await this._aesApp.aesEncryptFile(sessionKey, fileReference.location, random.generateRandomData(16))
 		const fileData = createFileDataDataPost({
 			size: encryptedFileInfo.unencSize.toString(),
-			group: this._login.getGroupId(GroupType.Mail), // currently only used for attachments
+			group: this.user.getGroupId(GroupType.Mail), // currently only used for attachments
 		})
 		const fileDataPostReturn = await this.serviceExecutor.post(FileDataService, fileData, {sessionKey})
 		const fileDataId = fileDataPostReturn.fileData
 
-		const headers = this._login.createAuthHeaders()
+		const headers = this.user.createAuthHeaders()
 
 		headers["v"] = String(modelInfo.version)
 		const url = addParamsToUrl(new URL(getHttpOrigin() + "/rest/tutanota/filedataservice"), {

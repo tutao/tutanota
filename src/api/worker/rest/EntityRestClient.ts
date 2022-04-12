@@ -15,14 +15,13 @@ import {SetupMultipleError} from "../../common/error/SetupMultipleError"
 import {expandId} from "./EntityRestCache"
 import {InstanceMapper} from "../crypto/InstanceMapper"
 import {QueuedBatch} from "../search/EventQueue"
+import {AuthHeadersProvider} from "../facades/UserFacade"
 
 assertWorkerOrNode()
 
 export function typeRefToPath(typeRef: TypeRef<any>): string {
 	return `/rest/${typeRef.app}/${typeRef.type.toLowerCase()}`
 }
-
-export type AuthHeadersProvider = () => Dict
 
 /**
  * The EntityRestInterface provides a convenient interface for invoking server side REST services.
@@ -353,7 +352,7 @@ export class EntityRestClient implements EntityRestInterface {
 			path += "/" + elementId
 		}
 
-		const headers = Object.assign({}, this._authHeadersProvider(), extraHeaders)
+		const headers = Object.assign({}, this._authHeadersProvider.createAuthHeaders(), extraHeaders)
 
 		if (Object.keys(headers).length === 0) {
 			throw new NotAuthenticatedError("user must be authenticated for entity requests")

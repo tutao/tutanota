@@ -4,36 +4,37 @@ import {CalendarFacade} from "../../../../../src/api/worker/facades/CalendarFaca
 import {EntityRestClientMock} from "../rest/EntityRestClientMock.js"
 import {EntityRestCache} from "../../../../../src/api/worker/rest/EntityRestCache.js"
 import {downcast, isSameTypeRef, neverNull, noOp} from "@tutao/tutanota-utils"
-import {LoginFacadeImpl} from "../../../../../src/api/worker/facades/LoginFacade.js"
-import type {UserAlarmInfo} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {createUserAlarmInfo, UserAlarmInfoTypeRef} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {createCalendarEventRef} from "../../../../../src/api/entities/sys/TypeRefs.js"
+import type {AlarmInfo, User, UserAlarmInfo} from "../../../../../src/api/entities/sys/TypeRefs.js"
+import {
+	createAlarmInfo,
+	createCalendarEventRef,
+	createPushIdentifierList,
+	createUser,
+	createUserAlarmInfo,
+	createUserAlarmInfoListType,
+	PushIdentifierTypeRef,
+	UserAlarmInfoTypeRef
+} from "../../../../../src/api/entities/sys/TypeRefs.js"
 import {getElementId, getLetId, getListId} from "../../../../../src/api/common/utils/EntityUtils.js"
-import type {AlarmInfo} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {createAlarmInfo} from "../../../../../src/api/entities/sys/TypeRefs.js"
 import type {CalendarEvent} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import {CalendarEventTypeRef, createCalendarEvent} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import type {User} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {createUser} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {createUserAlarmInfoListType} from "../../../../../src/api/entities/sys/TypeRefs.js"
 import {ProgressMonitor} from "../../../../../src/api/common/utils/ProgressMonitor.js"
-import {createPushIdentifierList} from "../../../../../src/api/entities/sys/TypeRefs.js"
 import {assertThrows, mockAttribute, unmockAttribute} from "@tutao/tutanota-test-utils"
 import {ImportError} from "../../../../../src/api/common/error/ImportError.js"
-import {PushIdentifierTypeRef} from "../../../../../src/api/entities/sys/TypeRefs.js"
 import {SetupMultipleError} from "../../../../../src/api/common/error/SetupMultipleError.js"
 import {InstanceMapper} from "../../../../../src/api/worker/crypto/InstanceMapper.js"
 import {GroupManagementFacadeImpl} from "../../../../../src/api/worker/facades/GroupManagementFacade.js";
 import {object} from "testdouble"
-import {IServiceExecutor} from "../../../../../src/api/common/ServiceRequest.js"
-import {CryptoFacade} from "../../../../../src/api/worker/crypto/CryptoFacade.js"
+import {IServiceExecutor} from "../../../../../src/api/common/ServiceRequest"
+import {CryptoFacade} from "../../../../../src/api/worker/crypto/CryptoFacade"
+import {UserFacade} from "../../../../../src/api/worker/facades/UserFacade"
 
 
 o.spec("CalendarFacadeTest", async function () {
 
 	let userAlarmInfoListId: Id
 	let user: User
-	let loginFacade: LoginFacadeImpl
+	let userFacade: UserFacade
 	let groupManagementFacade: GroupManagementFacadeImpl
 	let restClientMock: EntityRestClientMock
 	let entityRestCache: EntityRestCache
@@ -104,7 +105,7 @@ o.spec("CalendarFacadeTest", async function () {
 				group: "Id"
 			})
 		})
-		loginFacade = downcast({
+		userFacade = downcast({
 			getLoggedInUser: () => user
 		})
 		groupManagementFacade = downcast({})
@@ -119,7 +120,7 @@ o.spec("CalendarFacadeTest", async function () {
 		instanceMapper = new InstanceMapper()
 		serviceExecutor = object()
 		cryptoFacade = object()
-		calendarFacade = new CalendarFacade(loginFacade, groupManagementFacade, entityRestCache, nativeMock, workerMock, instanceMapper, serviceExecutor, cryptoFacade)
+		calendarFacade = new CalendarFacade(userFacade, groupManagementFacade, entityRestCache, nativeMock, workerMock, instanceMapper, serviceExecutor, cryptoFacade)
 	})
 
 

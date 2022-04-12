@@ -8,6 +8,7 @@ import type {User} from "../../entities/sys/TypeRefs.js"
 import {assertNotNull} from "@tutao/tutanota-utils"
 import {ExternalImageRule} from "../../common/TutanotaConstants"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, decrypt256Key, encrypt256Key, IV_BYTE_LENGTH, random} from "@tutao/tutanota-crypto"
+import {UserFacade} from "./UserFacade"
 
 const VERSION: number = 1
 const DB_KEY_PREFIX: string = "ConfigStorage"
@@ -36,10 +37,10 @@ export async function encryptItem(item: string, key: Aes128Key, iv: Uint8Array):
 export class ConfigurationDatabase {
 	readonly db: LazyLoaded<ConfigDb>
 
-	constructor(loginFacade: LoginFacadeImpl, dbLoadFn: (arg0: User, arg1: Aes128Key) => Promise<ConfigDb> = loadConfigDb) {
+	constructor(userFacade: UserFacade, dbLoadFn: (arg0: User, arg1: Aes128Key) => Promise<ConfigDb> = loadConfigDb) {
 		this.db = new LazyLoaded(() => {
-			const user = assertNotNull(loginFacade.getLoggedInUser())
-			const userGroupKey = loginFacade.getUserGroupKey()
+			const user = assertNotNull(userFacade.getLoggedInUser())
+			const userGroupKey = userFacade.getUserGroupKey()
 			return dbLoadFn(user, userGroupKey)
 		})
 	}

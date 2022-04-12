@@ -1,6 +1,5 @@
 import o from "ospec"
 import {BLOB_SERVICE_REST_PATH, BlobFacade} from "../../../../../src/api/worker/facades/BlobFacade.js"
-import {LoginFacadeImpl} from "../../../../../src/api/worker/facades/LoginFacade.js"
 import {RestClient} from "../../../../../src/api/worker/rest/RestClient.js"
 import {SuspensionHandler} from "../../../../../src/api/worker/SuspensionHandler.js"
 import {NativeFileApp} from "../../../../../src/native/common/FileApp.js"
@@ -33,12 +32,13 @@ import {
 	createInstanceId
 } from "../../../../../src/api/entities/storage/TypeRefs.js"
 import storageModelInfo from "../../../../../src/api/entities/storage/ModelInfo.js"
+import type {AuthHeadersProvider} from "../../../../../src/api/worker/facades/UserFacade.js"
 
 const {anything, captor} = matchers
 
 o.spec("BlobFacade test", function () {
 	let facade: BlobFacade
-	let loginMock: LoginFacadeImpl
+	let authHeadersProvider: AuthHeadersProvider
 	let serviceMock: ServiceExecutor
 	let restClientMock: RestClient
 	let suspensionHandlerMock: SuspensionHandler
@@ -53,7 +53,9 @@ o.spec("BlobFacade test", function () {
 
 
 	o.beforeEach(function () {
-		loginMock = instance(LoginFacadeImpl)
+		authHeadersProvider = {
+			createAuthHeaders: () => ({})
+		}
 		serviceMock = object<ServiceExecutor>()
 		restClientMock = instance(RestClient)
 		suspensionHandlerMock = instance(SuspensionHandler)
@@ -62,7 +64,7 @@ o.spec("BlobFacade test", function () {
 		instanceMapperMock = instance(InstanceMapper)
 		cryptoFacadeMock = object<CryptoFacade>()
 
-		facade = new BlobFacade(loginMock, serviceMock, restClientMock, suspensionHandlerMock, fileAppMock, aesAppMock, instanceMapperMock, cryptoFacadeMock)
+		facade = new BlobFacade(authHeadersProvider, serviceMock, restClientMock, suspensionHandlerMock, fileAppMock, aesAppMock, instanceMapperMock, cryptoFacadeMock)
 	})
 
 	o.afterEach(function () {

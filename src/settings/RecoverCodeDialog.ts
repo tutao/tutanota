@@ -19,9 +19,9 @@ assertMainOrNode()
 
 export function showRecoverCodeDialogAfterPasswordVerification(action: Action, showMessage: boolean = true) {
 	const errorMessage: Stream<string> = stream(lang.get("emptyString_msg"))
-	const loginFacade = locator.loginFacade
+	const userManagementFacade = locator.userManagementFacade
 	Dialog.showRequestPasswordDialog(errorMessage).map(pw =>
-		showProgressDialog("loading_msg", action === "get" ? loginFacade.getRecoverCode(pw) : loginFacade.createRecoveryCode(pw))
+		showProgressDialog("loading_msg", action === "get" ? userManagementFacade.getRecoverCode(pw) : userManagementFacade.createRecoveryCode(pw))
 			.then(recoverCode => {
 				errorMessage("")
 				showRecoverCodeDialog(recoverCode, showMessage)
