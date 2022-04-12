@@ -3,32 +3,32 @@ import {TypeRef, downcast} from "@tutao/tutanota-utils"
 import type {TypeModel} from "../../common/EntityTypes.js"
 
 
-export const UsageTestMetricConfigValueTypeRef: TypeRef<UsageTestMetricConfigValue> = new TypeRef("sys", "UsageTestMetricConfigValue")
+export const UsageTestMetricConfigValueTypeRef: TypeRef<UsageTestMetricConfigValue> = new TypeRef("usage", "UsageTestMetricConfigValue")
 export const _TypeModel: TypeModel = {
 	"name": "UsageTestMetricConfigValue",
-	"since": 74,
+	"since": 1,
 	"type": "AGGREGATED_TYPE",
-	"id": 1992,
-	"rootId": "A3N5cwAHyA",
+	"id": 11,
+	"rootId": "BXVzYWdlAAs",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"id": 1993,
+			"id": 12,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"key": {
-			"id": 1994,
+			"id": 13,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"value": {
-			"id": 1995,
+			"id": 14,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
@@ -36,8 +36,8 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {},
-	"app": "sys",
-	"version": "74"
+	"app": "usage",
+	"version": "1"
 }
 
 export function createUsageTestMetricConfigValue(values?: Partial<UsageTestMetricConfigValue>): UsageTestMetricConfigValue {

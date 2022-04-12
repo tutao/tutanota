@@ -5,22 +5,21 @@ import {
 	UsageTestAssignment,
 	UsageTestAssignmentOut,
 	UsageTestAssignmentTypeRef
-} from "../api/entities/sys/TypeRefs.js"
+} from "../api/entities/usage/TypeRefs.js"
 import {PingAdapter, Stage, UsageTest} from "@tutao/tutanota-usagetests"
 import {filterInt} from "@tutao/tutanota-utils"
 import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {SuspensionError} from "../api/common/error/SuspensionError"
 import {SuspensionBehavior} from "../api/worker/rest/RestClient"
 import {DateProvider} from "../api/common/DateProvider.js"
-import {isTest} from "../api/common/Env"
 import {IServiceExecutor} from "../api/common/ServiceRequest"
-import {UsageTestAssignmentService, UsageTestParticipationService} from "../api/entities/sys/Services.js"
+import {UsageTestAssignmentService, UsageTestParticipationService} from "../api/entities/usage/Services.js"
 import {resolveTypeReference} from "../api/common/EntityFunctions"
 
 export interface PersistedAssignmentData {
 	updatedAt: number
 	assignments: UsageTestAssignment[]
-	sysModelVersion: number
+	usageModelVersion: number
 }
 
 export interface UsageTestStorage {
@@ -58,7 +57,7 @@ export class UsageTestModel implements PingAdapter {
 		const modelVersion = await this.modelVersion()
 
 		if (persistedData == null ||
-			persistedData.sysModelVersion !== modelVersion ||
+			persistedData.usageModelVersion !== modelVersion ||
 			(ttlBehavior === TtlBehavior.UpToDateOnly && Date.now() - persistedData.updatedAt > ASSIGNMENT_UPDATE_INTERVAL_MS)
 		) {
 			return this.assignmentsToTests(await this.loadAssignments())
@@ -91,7 +90,7 @@ export class UsageTestModel implements PingAdapter {
 			await this.testStorage.storeAssignments({
 				assignments: response.assignments,
 				updatedAt: this.dateProvider.now(),
-				sysModelVersion: await this.modelVersion(),
+				usageModelVersion: await this.modelVersion(),
 			})
 
 			return response.assignments
@@ -172,7 +171,7 @@ export class UsageTestModel implements PingAdapter {
 				if (storedAssignments) {
 					await this.testStorage.storeAssignments({
 						updatedAt: storedAssignments.updatedAt,
-						sysModelVersion: storedAssignments.sysModelVersion,
+						usageModelVersion: storedAssignments.usageModelVersion,
 						assignments: storedAssignments.assignments.filter(assignment => assignment.testId !== test.testId),
 					})
 				}
