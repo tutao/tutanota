@@ -7,17 +7,15 @@ import type {MailAddressAliasServiceReturn} from "../../entities/sys/TypeRefs.js
 import {DomainMailAddressAvailabilityService, MailAddressAliasService, MailAddressAvailabilityService} from "../../entities/sys/Services.js"
 import {assertWorkerOrNode} from "../../common/Env"
 import {IServiceExecutor} from "../../common/ServiceRequest"
+import {UserFacade} from "./UserFacade"
 
 assertWorkerOrNode()
 
 export class MailAddressFacade {
-	_login: LoginFacadeImpl
-
 	constructor(
-		login: LoginFacadeImpl,
+		private readonly user: UserFacade,
 		private readonly serviceExecutor: IServiceExecutor,
 	) {
-		this._login = login
 	}
 
 	getAliasCounters(): Promise<MailAddressAliasServiceReturn> {
@@ -25,7 +23,7 @@ export class MailAddressFacade {
 	}
 
 	isMailAddressAvailable(mailAddress: string): Promise<boolean> {
-		if (this._login.isLoggedIn()) {
+		if (this.user.isLoggedIn()) {
 			const data = createDomainMailAddressAvailabilityData({mailAddress})
 			return this.serviceExecutor.get(DomainMailAddressAvailabilityService, data)
 					   .then(result => result.available)

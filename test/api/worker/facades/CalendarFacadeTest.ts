@@ -4,7 +4,6 @@ import {CalendarFacade} from "../../../../src/api/worker/facades/CalendarFacade"
 import {EntityRestClientMock} from "../EntityRestClientMock"
 import {EntityRestCache} from "../../../../src/api/worker/rest/EntityRestCache"
 import {downcast, isSameTypeRef, neverNull, noOp} from "@tutao/tutanota-utils"
-import {LoginFacadeImpl} from "../../../../src/api/worker/facades/LoginFacade"
 import type {UserAlarmInfo} from "../../../../src/api/entities/sys/TypeRefs.js"
 import {createUserAlarmInfo, UserAlarmInfoTypeRef} from "../../../../src/api/entities/sys/TypeRefs.js"
 import {createCalendarEventRef} from "../../../../src/api/entities/sys/TypeRefs.js"
@@ -27,13 +26,14 @@ import {GroupManagementFacadeImpl} from "../../../../src/api/worker/facades/Grou
 import {object} from "testdouble"
 import {IServiceExecutor} from "../../../../src/api/common/ServiceRequest"
 import {CryptoFacade} from "../../../../src/api/worker/crypto/CryptoFacade"
+import {UserFacade} from "../../../../src/api/worker/facades/UserFacade"
 
 
 o.spec("CalendarFacadeTest", async function () {
 
 	let userAlarmInfoListId: Id
 	let user: User
-	let loginFacade: LoginFacadeImpl
+	let userFacade: UserFacade
 	let groupManagementFacade: GroupManagementFacadeImpl
 	let restClientMock: EntityRestClientMock
 	let entityRestCache: EntityRestCache
@@ -104,7 +104,7 @@ o.spec("CalendarFacadeTest", async function () {
 				group: "Id"
 			})
 		})
-		loginFacade = downcast({
+		userFacade = downcast({
 			getLoggedInUser: () => user
 		})
 		groupManagementFacade = downcast({})
@@ -119,7 +119,7 @@ o.spec("CalendarFacadeTest", async function () {
 		instanceMapper = new InstanceMapper()
 		serviceExecutor = object()
 		cryptoFacade = object()
-		calendarFacade = new CalendarFacade(loginFacade, groupManagementFacade, entityRestCache, nativeMock, workerMock, instanceMapper, serviceExecutor, cryptoFacade)
+		calendarFacade = new CalendarFacade(userFacade, groupManagementFacade, entityRestCache, nativeMock, workerMock, instanceMapper, serviceExecutor, cryptoFacade)
 	})
 
 

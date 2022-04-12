@@ -18,7 +18,7 @@ import {
 } from "../../entities/sys/TypeRefs.js"
 import {assertWorkerOrNode} from "../../common/Env"
 import type {Hex} from "@tutao/tutanota-utils"
-import {downcast, neverNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "@tutao/tutanota-utils"
+import {assertNotNull, downcast, neverNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "@tutao/tutanota-utils"
 import {getWhitelabelDomain} from "../../common/utils/Utils"
 import {CryptoFacade} from "../crypto/CryptoFacade"
 import {
@@ -34,7 +34,6 @@ import type {ContactFormAccountReturn, InternalGroupData} from "../../entities/t
 import {createContactFormAccountData, createCustomerAccountCreateData} from "../../entities/tutanota/TypeRefs.js"
 import type {UserManagementFacade} from "./UserManagementFacade"
 import type {GroupManagementFacadeImpl} from "./GroupManagementFacade"
-import type {LoginFacadeImpl} from "./LoginFacade"
 import type {WorkerImpl} from "../WorkerImpl"
 import {CounterFacade} from "./CounterFacade"
 import type {Country} from "../../common/CountryList"
@@ -47,6 +46,7 @@ import {DataFile} from "../../common/DataFile";
 import {IServiceExecutor} from "../../common/ServiceRequest"
 import {ContactFormAccountService, CustomerAccountService} from "../../entities/tutanota/Services"
 import {BookingFacade} from "./BookingFacade"
+import {UserFacade} from "./UserFacade"
 
 assertWorkerOrNode()
 
@@ -121,7 +121,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 
 	constructor(
 		private readonly worker: WorkerImpl,
-		private readonly login: LoginFacadeImpl,
+		private readonly userFacade: UserFacade,
 		private readonly groupManagement: GroupManagementFacadeImpl,
 		private readonly userManagement: UserManagementFacade,
 		private readonly counters: CounterFacade,
@@ -134,13 +134,11 @@ export class CustomerFacadeImpl implements CustomerFacade {
 		this.contactFormUserGroupData = null
 	}
 
-	getDomainValidationRecord(domainName: string): Promise<string> {
-		return Promise.resolve(
-			"t-verify=" +
-			uint8ArrayToHex(
-				sha256Hash(stringToUtf8Uint8Array(domainName.trim().toLowerCase() + neverNull(this.login.getLoggedInUser().customer))).slice(0, 16),
-			),
-		)
+	async getDomainValidationRecord(domainName: string): Promise<string> {
+		const customer = this.getCustomerId()
+		const baseString = domainName.trim().toLowerCase() + customer
+		const hash = sha256Hash(stringToUtf8Uint8Array(baseString)).slice(0, 16)
+		return "t-verify=" + uint8ArrayToHex(hash)
 	}
 
 	addDomain(domainName: string): Promise<CustomDomainReturn> {
@@ -166,7 +164,8 @@ export class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	async orderWhitelabelCertificate(domainName: string): Promise<void> {
-		const customer = await this.entityClient.load(CustomerTypeRef, neverNull(this.login.getLoggedInUser().customer))
+		const customerId = this.getCustomerId()
+		const customer = await this.entityClient.load(CustomerTypeRef, customerId)
 		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		let existingBrandingDomain = getWhitelabelDomain(customerInfo, domainName)
 		const keyData = await this.serviceExecutor.get(SystemKeysService, null)
@@ -183,6 +182,10 @@ export class CustomerFacadeImpl implements CustomerFacade {
 		} else {
 			await this.serviceExecutor.post(BrandingDomainService, data)
 		}
+	}
+
+	private getCustomerId() {
+		return assertNotNull(this.userFacade.getLoggedInUser().customer)
 	}
 
 	async deleteCertificate(domainName: string): Promise<void> {
@@ -227,14 +230,14 @@ export class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	async loadCustomerServerProperties(): Promise<CustomerServerProperties> {
-		const customer = await this.entityClient.load(CustomerTypeRef, neverNull(this.login.getLoggedInUser().customer))
+		const customer = await this.entityClient.load(CustomerTypeRef, this.getCustomerId())
 		let cspId
 		if (customer.serverProperties) {
 			cspId = customer.serverProperties
 		} else {
 			// create properties
 			const sessionKey = aes128RandomKey()
-			const adminGroupKey = this.login.getGroupKey(this.login.getGroupId(GroupType.Admin))
+			const adminGroupKey = this.userFacade.getGroupKey(this.userFacade.getGroupId(GroupType.Admin))
 
 			const groupEncSessionKey = encryptKey(adminGroupKey, sessionKey)
 			const data = createCreateCustomerServerPropertiesData({
@@ -331,7 +334,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 			customerGroupKey,
 		)
 
-		const recoverData = this.login.generateRecoveryCode(userGroupKey)
+		const recoverData = this.userManagement.generateRecoveryCode(userGroupKey)
 
 		const data = createCustomerAccountCreateData({
 			authToken,
@@ -404,13 +407,13 @@ export class CustomerFacadeImpl implements CustomerFacade {
 		try {
 			const keyData = await this.serviceExecutor.get(SystemKeysService, null)
 			const membershipAddData = createMembershipAddData({
-				user: this.login.getLoggedInUser()._id,
+				user: this.userFacade.getLoggedInUser()._id,
 				group: neverNull(keyData.premiumGroup),
-				symEncGKey: encryptKey(this.login.getUserGroupKey(), uint8ArrayToBitArray(keyData.premiumGroupKey)),
+				symEncGKey: encryptKey(this.userFacade.getUserGroupKey(), uint8ArrayToBitArray(keyData.premiumGroupKey)),
 			})
 			await this.serviceExecutor.post(MembershipService, membershipAddData)
 			const membershipRemoveData = createMembershipRemoveData({
-				user: this.login.getLoggedInUser()._id,
+				user: this.userFacade.getLoggedInUser()._id,
 				group: neverNull(keyData.freeGroup),
 			})
 			await this.serviceExecutor.delete(MembershipService, membershipRemoveData)
@@ -425,13 +428,13 @@ export class CustomerFacadeImpl implements CustomerFacade {
 		try {
 			const keyData = await this.serviceExecutor.get(SystemKeysService, null)
 			const membershipAddData = createMembershipAddData({
-				user: this.login.getLoggedInUser()._id,
+				user: this.userFacade.getLoggedInUser()._id,
 				group: neverNull(keyData.freeGroup),
-				symEncGKey: encryptKey(this.login.getUserGroupKey(), uint8ArrayToBitArray(keyData.freeGroupKey))
+				symEncGKey: encryptKey(this.userFacade.getUserGroupKey(), uint8ArrayToBitArray(keyData.freeGroupKey))
 			})
 			await this.serviceExecutor.post(MembershipService, membershipAddData)
 			const membershipRemoveData = createMembershipRemoveData({
-				user: this.login.getLoggedInUser()._id,
+				user: this.userFacade.getLoggedInUser()._id,
 				group: neverNull(keyData.premiumGroup),
 			})
 			await this.serviceExecutor.delete(MembershipService, membershipRemoveData)
@@ -448,7 +451,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 		paymentData: PaymentData | null,
 		confirmedInvoiceCountry: Country | null,
 	): Promise<PaymentDataServicePutReturn> {
-		return this.entityClient.load(CustomerTypeRef, neverNull(this.login.getLoggedInUser().customer)).then(customer => {
+		return this.entityClient.load(CustomerTypeRef, neverNull(this.userFacade.getLoggedInUser().customer)).then(customer => {
 			return this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
 				return this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(async accountingInfo => {
 					return this.cryptoFacade.resolveSessionKeyForInstance(accountingInfo).then(accountingInfoSessionKey => {
@@ -491,5 +494,4 @@ export class CustomerFacadeImpl implements CustomerFacade {
 			}
 		})
 	}
-
 }
