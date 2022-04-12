@@ -6,14 +6,14 @@ import {
 	createUsageTestAssignmentOut,
 	createUsageTestMetricData,
 	createUsageTestParticipationIn
-} from "../../../src/api/entities/sys/TypeRefs.js"
+} from "../../../src/api/entities/usage/TypeRefs.js"
 import {matchers, object, verify, when} from "testdouble"
 import {clone} from "@tutao/tutanota-utils"
 import {Stage, UsageTest} from "@tutao/tutanota-usagetests"
 import {SuspensionBehavior} from "../../../src/api/worker/rest/RestClient.js"
-import {UsageTestAssignmentService, UsageTestParticipationService} from "../../../src/api/entities/sys/Services.js"
+import {UsageTestAssignmentService, UsageTestParticipationService} from "../../../src/api/entities/usage/Services.js"
 import {IServiceExecutor} from "../../../src/api/common/ServiceRequest.js"
-import modelInfo from "../../../src/api/entities/sys/ModelInfo.js"
+import modelInfo from "../../../src/api/entities/usage/ModelInfo.js"
 
 const {anything} = matchers
 
@@ -68,7 +68,7 @@ o.spec("UsageTestModel", function () {
 	})
 	const assignmentData: PersistedAssignmentData = {
 		updatedAt: dateProvider.now() - (ASSIGNMENT_UPDATE_INTERVAL_MS * 2),
-		sysModelVersion: modelInfo.version,
+		usageModelVersion: modelInfo.version,
 		assignments: [oldAssignment],
 	}
 
@@ -115,7 +115,7 @@ o.spec("UsageTestModel", function () {
 				await mockStorage.storeTestDeviceId(testDeviceId)
 				await mockStorage.storeAssignments({
 					assignments: [],
-					sysModelVersion: 1, // definitely outdated!
+					usageModelVersion: -1, // definitely outdated!
 					updatedAt: dateProvider.now() - 1,
 				})
 

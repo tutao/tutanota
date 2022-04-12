@@ -8,6 +8,7 @@ import {typeModels as monitorTypeModels} from "../entities/monitor/TypeModels.js
 import {typeModels as accountingTypeModels} from "../entities/accounting/TypeModels.js"
 import {typeModels as gossipTypeModels} from "../entities/gossip/TypeModels.js"
 import {typeModels as storageTypeModels} from "../entities/storage/TypeModels.js"
+import {typeModels as usageTypeModels} from "../entities/usage/TypeModels.js"
 import sysModelInfo from "../entities/sys/ModelInfo.js"
 import baseModelInfo from "../entities/base/ModelInfo.js"
 import tutanotaModelInfo from "../entities/tutanota/ModelInfo.js"
@@ -15,6 +16,7 @@ import monitorModelInfo from "../entities/monitor/ModelInfo.js"
 import accountingModelInfo from "../entities/accounting/ModelInfo.js"
 import gossipModelInfo from "../entities/gossip/ModelInfo.js"
 import storageModelInfo from "../entities/storage/ModelInfo.js"
+import usageModelInfo from "../entities/usage/ModelInfo.js"
 
 export const enum HttpMethod {
 	GET = "GET",
@@ -42,6 +44,7 @@ const typeModels = {
 	accounting: accountingTypeModels,
 	gossip: gossipTypeModels,
 	storage: storageTypeModels,
+	usage: usageTypeModels,
 } as const
 
 export const modelInfos = {
@@ -52,6 +55,7 @@ export const modelInfos = {
 	accounting: accountingModelInfo,
 	gossip: gossipModelInfo,
 	storage: storageModelInfo,
+	usage: usageModelInfo,
 } as const
 export type ModelInfos = typeof modelInfos
 

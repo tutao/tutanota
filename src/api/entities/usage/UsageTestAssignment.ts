@@ -4,46 +4,46 @@ import type {TypeModel} from "../../common/EntityTypes.js"
 
 import type {UsageTestStage} from "./UsageTestStage.js"
 
-export const UsageTestAssignmentTypeRef: TypeRef<UsageTestAssignment> = new TypeRef("sys", "UsageTestAssignment")
+export const UsageTestAssignmentTypeRef: TypeRef<UsageTestAssignment> = new TypeRef("usage", "UsageTestAssignment")
 export const _TypeModel: TypeModel = {
 	"name": "UsageTestAssignment",
-	"since": 73,
+	"since": 1,
 	"type": "AGGREGATED_TYPE",
-	"id": 1959,
-	"rootId": "A3N5cwAHpw",
+	"id": 59,
+	"rootId": "BXVzYWdlADs",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"id": 1960,
+			"id": 60,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"name": {
-			"id": 1962,
+			"id": 62,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"sendPings": {
-			"id": 1991,
+			"id": 64,
 			"type": "Boolean",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"testId": {
-			"id": 1961,
+			"id": 61,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"variant": {
-			"id": 1963,
+			"id": 63,
 			"type": "Number",
 			"cardinality": "ZeroOrOne",
 			"final": true,
@@ -52,7 +52,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"stages": {
-			"id": 1965,
+			"id": 65,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
@@ -60,8 +60,8 @@ export const _TypeModel: TypeModel = {
 			"dependency": null
 		}
 	},
-	"app": "sys",
-	"version": "74"
+	"app": "usage",
+	"version": "1"
 }
 
 export function createUsageTestAssignment(values?: Partial<UsageTestAssignment>): UsageTestAssignment {

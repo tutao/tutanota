@@ -4,32 +4,32 @@ import type {TypeModel} from "../../common/EntityTypes.js"
 
 import type {UsageTestMetricConfigValue} from "./UsageTestMetricConfigValue.js"
 
-export const UsageTestMetricConfigTypeRef: TypeRef<UsageTestMetricConfig> = new TypeRef("sys", "UsageTestMetricConfig")
+export const UsageTestMetricConfigTypeRef: TypeRef<UsageTestMetricConfig> = new TypeRef("usage", "UsageTestMetricConfig")
 export const _TypeModel: TypeModel = {
 	"name": "UsageTestMetricConfig",
-	"since": 73,
+	"since": 1,
 	"type": "AGGREGATED_TYPE",
-	"id": 1917,
-	"rootId": "A3N5cwAHfQ",
+	"id": 15,
+	"rootId": "BXVzYWdlAA8",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"id": 1918,
+			"id": 16,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"name": {
-			"id": 1919,
+			"id": 17,
 			"type": "String",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"type": {
-			"id": 1920,
+			"id": 18,
 			"type": "Number",
 			"cardinality": "One",
 			"final": true,
@@ -38,7 +38,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"configValues": {
-			"id": 1996,
+			"id": 19,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": false,
@@ -46,8 +46,8 @@ export const _TypeModel: TypeModel = {
 			"dependency": null
 		}
 	},
-	"app": "sys",
-	"version": "74"
+	"app": "usage",
+	"version": "1"
 }
 
 export function createUsageTestMetricConfig(values?: Partial<UsageTestMetricConfig>): UsageTestMetricConfig {
