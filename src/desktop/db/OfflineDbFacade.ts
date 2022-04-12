@@ -1,5 +1,6 @@
 import {OfflineDb, PersistedEntity} from "./OfflineDb"
 import {OfflineDbMeta} from "../../api/worker/rest/OfflineStorage"
+import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 
 export interface OfflineDbFactory {
 	create(userid: string, key: Aes256Key): Promise<OfflineDb>
@@ -50,9 +51,9 @@ export class OfflineDbFacade {
 
 	async deleteDatabaseForUser(userId: Id): Promise<void> {
 		const entry = this.cache.get(userId)
-		if (entry != null && entry.counter != 1) {
+		if (entry != null) {
 			if (entry.counter != 1) {
-				throw new Error(`Trying to delete database that is opened ${entry.counter} times`)
+				throw new ProgrammingError(`Trying to delete database that is opened ${entry.counter} times`)
 			}
 			await this.closeDatabaseForUser(userId)
 		}
@@ -121,7 +122,7 @@ export class OfflineDbFacade {
 		const entry = this.cache.get(userId)
 
 		if (!entry) {
-			throw new Error(`Db for user ${userId} is not open. must call openDataBaseForUser first :)`)
+			throw new ProgrammingError(`Db for user ${userId} is not open. must call openDataBaseForUser first :)`)
 		}
 
 		return entry.db

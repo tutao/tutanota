@@ -43,7 +43,7 @@ import {ExposedNativeInterface} from "../native/common/NativeInterface.js"
 import path from "path"
 import {OfflineDbFacade, OfflineDbFactory} from "./db/OfflineDbFacade"
 import {OfflineDb} from "./db/OfflineDb"
-import {DesktopInterWindowEventSender} from "./ipc/DesktopInterWIndowEventSender"
+import {DesktopInterWindowEventSender} from "./ipc/DesktopInterWindowEventSender"
 
 /**
  * Should be injected during build time.

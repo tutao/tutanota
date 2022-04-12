@@ -43,7 +43,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	private readonly _updateAvailable: Stream<boolean>
 	private readonly _mailExportMode: Stream<MailExportMode>
 	private _isPathDialogOpen: boolean = false
-	private _offlienStorageValue: Stream<boolean>
+	private _offlineStorageValue: Stream<boolean>
 
 	constructor() {
 		this._isDefaultMailtoHandler = stream(false)
@@ -55,7 +55,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		this._showAutoUpdateOption = true
 		this._updateAvailable = stream(false)
 		this._mailExportMode = stream("msg") // msg is just a dummy value here, it will be overwritten in requestDesktopConfig
-		this._offlienStorageValue = stream(false)
+		this._offlineStorageValue = stream(false)
 	}
 
 	oninit() {
@@ -253,10 +253,10 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 					value: false,
 				},
 			],
-			selectedValue: this._offlienStorageValue,
+			selectedValue: this._offlineStorageValue,
 			selectionChangedHandler: (v) => {
-				this._offlienStorageValue(v)
-				this.updateConfigBoolean(DesktopConfigKey.offlineStorage, v)
+				this._offlineStorageValue(v)
+				this.updateConfigBoolean(DesktopConfigKey.offlineStorageEnabled, v)
 			}
 
 		}
@@ -319,7 +319,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			locator.systemApp.getConfigValue(DesktopConfigKey.enableAutoUpdate),
 			locator.systemApp.getConfigValue(DesktopConfigKey.mailExportMode),
 			getCurrentSpellcheckLanguageLabel(),
-			locator.systemApp.getConfigValue(DesktopConfigKey.offlineStorage),
+			locator.systemApp.getConfigValue(DesktopConfigKey.offlineStorageEnabled),
 		])
 		const {isMailtoHandler, isAutoLaunchEnabled, isIntegrated, isUpdateAvailable} = integrationInfo
 
@@ -343,7 +343,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 
 		this._spellCheckLang(spellcheckLabel)
 
-		this._offlienStorageValue(offlineStorage)
+		this._offlineStorageValue(offlineStorage)
 
 		m.redraw()
 	}

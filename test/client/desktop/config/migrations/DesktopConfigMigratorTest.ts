@@ -54,7 +54,7 @@ o.spec('DesktopConfigMigrator', function () {
 			"desktopConfigVersion": 6,
 			"showAutoUpdateOption": true,
 			"spellcheck": "de-DE",
-			"offlineStorage": false,
+			"offlineStorageEnabled": false,
 			"mailExportMode": "eml",
 			"sseInfo": JSON.stringify(oldConfig.pushIdentifier),
 		}
@@ -72,7 +72,7 @@ o.spec('DesktopConfigMigrator', function () {
 			"showAutoUpdateOption": true,
 			"mailExportMode": "eml",
 			"spellcheck": "",
-			"offlineStorage": false,
+			"offlineStorageEnabled": false,
 		}
 
 		o(await migrator.applyMigrations("migrateAdmin", oldConfig)).deepEquals(requiredResult)

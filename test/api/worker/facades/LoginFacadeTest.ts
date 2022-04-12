@@ -56,7 +56,7 @@ o.spec("LoginFacadeTest", function () {
 	let initializeCacheStorageMock: LateInitializedCacheStorage["initialize"]
 	let indexerMock: Indexer
 	let eventBusClientMock: EventBusClient
-	let usingOflfineStorage: boolean
+	let usingOfflineStorage: boolean
 
 	o.beforeEach(function () {
 
@@ -73,7 +73,7 @@ o.spec("LoginFacadeTest", function () {
 		instanceMapperMock = instance(InstanceMapper)
 		cryptoFacadeMock = object<CryptoFacade>()
 		initializeCacheStorageMock = func() as LateInitializedCacheStorage["initialize"]
-		usingOflfineStorage = false
+		usingOfflineStorage = false
 
 		facade = new LoginFacadeImpl(
 			workerMock,
@@ -84,7 +84,7 @@ o.spec("LoginFacadeTest", function () {
 			() => cryptoFacadeMock,
 			initializeCacheStorageMock,
 			serviceExecutor,
-			async () => usingOflfineStorage,
+			async () => usingOfflineStorage,
 		)
 
 		indexerMock = instance(Indexer)
@@ -110,22 +110,22 @@ o.spec("LoginFacadeTest", function () {
 			})
 
 			o("When a database key is provided and offline is disabled, storage is initialized as ephemeral", async function () {
-				usingOflfineStorage = false
+				usingOfflineStorage = false
 				await facade.createSession("born.slippy@tuta.io", passphrase, "client", SessionType.Persistent, dbKey)
 				verify(initializeCacheStorageMock({persistent: false}))
 			})
 			o("When a database key is provided and offline is enabled, storage is initialized as persistent", async function () {
-				usingOflfineStorage = true
+				usingOfflineStorage = true
 				await facade.createSession("born.slippy@tuta.io", passphrase, "client", SessionType.Persistent, dbKey)
 				verify(initializeCacheStorageMock({persistent: true, databaseKey: dbKey, userId: userId}))
 			})
 			o("When no database key is provided and offline is enabled, storage is initialized as ephemeral", async function () {
-				usingOflfineStorage = true
+				usingOfflineStorage = true
 				await facade.createSession("born.slippy@tuta.io", passphrase, "client", SessionType.Persistent, null)
 				verify(initializeCacheStorageMock({persistent: false}))
 			})
 			o("When no database key is provided and offline is disabled, storage is initialized as ephemeral", async function () {
-				usingOflfineStorage = false
+				usingOfflineStorage = false
 				await facade.createSession("born.slippy@tuta.io", passphrase, "client", SessionType.Persistent, null)
 				verify(initializeCacheStorageMock({persistent: false}))
 			})
@@ -172,22 +172,22 @@ o.spec("LoginFacadeTest", function () {
 			})
 
 			o("When resuming a session and there is a database key and offline storage is enabled, a persistent storage is created", async function () {
-				usingOflfineStorage = true
+				usingOfflineStorage = true
 				await facade.resumeSession(credentials, SALT, dbKey)
 				verify(initializeCacheStorageMock({persistent: true, databaseKey: dbKey, userId: userId}))
 			})
 			o("When resuming a session and there is a database key and offline storage is disabled, a ephemeral storage is created", async function () {
-				usingOflfineStorage = false
+				usingOfflineStorage = false
 				await facade.resumeSession(credentials, SALT, dbKey)
 				verify(initializeCacheStorageMock({persistent:false}))
 			})
 			o("When resuming a session and there is no database key and offline storage is enabled, a non-persistent storage is created", async function () {
-				usingOflfineStorage = true
+				usingOfflineStorage = true
 				await facade.resumeSession(credentials, SALT, null)
 				verify(initializeCacheStorageMock({persistent: false}))
 			})
 			o("When resuming a session and there is no database key and offline storage is disabled, a non-persistent storage is created", async function () {
-				usingOflfineStorage = false
+				usingOfflineStorage = false
 				await facade.resumeSession(credentials, SALT, null)
 				verify(initializeCacheStorageMock({persistent: false}))
 			})

@@ -167,9 +167,11 @@ export class OfflineStorage implements CacheStorage {
 }
 
 
+type Apps = keyof typeof modelInfos
+
 type AppMetadataEntries = {
 	// Yes this is cursed, give me a break
-	[P in keyof typeof modelInfos as `${P}-version`]: number
+	[P in Apps as `${P}-version`]: number
 }
 
 export interface OfflineDbMeta extends AppMetadataEntries {

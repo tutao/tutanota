@@ -135,7 +135,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		() => locator.crypto,
 		uninitializedStorage.initialize.bind(uninitializedStorage),
 		locator.serviceExecutor,
-		async () => isDesktop() && await systemApp.getConfigValue(DesktopConfigKey.offlineStorage),
+		async () => isDesktop() && await systemApp.getConfigValue(DesktopConfigKey.offlineStorageEnabled),
 	)
 	locator.crypto = new CryptoFacadeImpl(locator.login, locator.cachingEntityClient, locator.restClient, locator.rsa, locator.serviceExecutor)
 	const suggestionFacades = [

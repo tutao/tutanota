@@ -16,7 +16,7 @@ export enum DesktopConfigKey {
 	spellcheck = "spellcheck",
 	selectedTheme = "selectedTheme",
 	themes = "themes",
-	offlineStorage = "offlineStorage",
+	offlineStorageEnabled = "offlineStorageEnabled",
 }
 
 export enum DesktopConfigEncKey {
