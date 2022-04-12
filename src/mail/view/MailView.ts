@@ -644,12 +644,12 @@ export class MailView implements CurrentView {
 		return {
 			label: "add_action",
 			click: () => {
-				return Dialog.showTextInputDialog("folderNameCreate_label", "folderName_label", null, "", name =>
-					this._checkFolderName(name, mailGroupId),
-				).then(name =>
-					locator.mailModel
-						   .getMailboxDetailsForMailGroup(mailGroupId)
-						   .then(mailboxDetails => locator.mailFacade.createMailFolder(name, getInboxFolder(mailboxDetails.folders)._id, mailGroupId)),
+				return Dialog.showProcessTextInputDialog("folderNameCreate_label", "folderName_label", null, "", (name) => {
+						return locator.mailModel
+									  .getMailboxDetailsForMailGroup(mailGroupId)
+									  .then(mailboxDetails => locator.mailFacade.createMailFolder(name, getInboxFolder(mailboxDetails.folders)._id, mailGroupId))
+					}, name =>
+						this._checkFolderName(name, mailGroupId),
 				)
 			},
 			icon: () => Icons.Add,
@@ -670,14 +670,16 @@ export class MailView implements CurrentView {
 						icon: () => Icons.Edit,
 						type: ButtonType.Dropdown,
 						click: () => {
-							return Dialog.showTextInputDialog("folderNameRename_label", "folderName_label", null, getFolderName(folder), name =>
-								this._checkFolderName(name, mailGroupId),
-							).then(newName => {
-								const renamedFolder: MailFolder = Object.assign({}, folder, {
-									name: newName,
-								})
-								return locator.entityClient.update(renamedFolder)
-							})
+							return Dialog.showProcessTextInputDialog("folderNameRename_label", "folderName_label", null, getFolderName(folder),
+								(newName) => {
+									const renamedFolder: MailFolder = Object.assign({}, folder, {
+										name: newName,
+									})
+									return locator.entityClient.update(renamedFolder)
+								},
+								name =>
+									this._checkFolderName(name, mailGroupId),
+							)
 						},
 					},
 					{

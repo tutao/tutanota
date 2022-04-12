@@ -2,13 +2,7 @@ import m from "mithril"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {isDomainOrTopLevelDomain, isMailAddress} from "../misc/FormatValidator"
-import {
-	getSpamRuleField,
-	getSpamRuleType,
-	SpamRuleFieldType,
-	SpamRuleType,
-	TUTANOTA_MAIL_ADDRESS_DOMAINS
-} from "../api/common/TutanotaConstants"
+import {getSpamRuleField, getSpamRuleType, SpamRuleFieldType, SpamRuleType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
 import {contains, neverNull, objectEntries} from "@tutao/tutanota-utils"
 import {Dialog} from "../gui/base/Dialog"
 import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
@@ -21,6 +15,7 @@ import {TextFieldN} from "../gui/base/TextFieldN"
 import type {EmailSenderListElement} from "../api/entities/sys/EmailSenderListElement"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
+import {ConnectionError} from "../api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -65,9 +60,11 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderLis
 		}),
 	]
 
-	let addSpamRuleOkAction = (dialog: Dialog) => {
+
+	let addSpamRuleOkAction = async (dialog: Dialog) => {
+		let spamRulePromise
 		if (existingSpamRuleOrTemplate && existingSpamRuleOrTemplate._id) {
-			locator.customerFacade.editSpamRule(
+			spamRulePromise = locator.customerFacade.editSpamRule(
 				Object.assign({}, existingSpamRuleOrTemplate, {
 					value: valueFieldValue(),
 					field: selectedField(),
@@ -75,10 +72,16 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderLis
 				}),
 			)
 		} else {
-			locator.customerFacade.addSpamRule(selectedField(), selectedType(), valueFieldValue())
+			spamRulePromise = locator.customerFacade.addSpamRule(selectedField(), selectedType(), valueFieldValue())
 		}
-
-		dialog.close()
+		spamRulePromise.then(() => {
+			dialog.close()
+		}).catch(error => {
+			if (!(error instanceof ConnectionError)) {
+				dialog.close()
+			}
+			throw error
+		})
 	}
 
 	Dialog.showActionDialog({

@@ -126,10 +126,11 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		const editSenderNameButtonAttrs: ButtonAttrs = {
 			label: "mailName_label",
 			click: () => {
-				Dialog.showTextInputDialog("edit_action", "mailName_label", null, this._senderName()).then(newName => {
-					logins.getUserController().userGroupInfo.name = newName
-					locator.entityClient.update(logins.getUserController().userGroupInfo)
-				})
+				Dialog.showProcessTextInputDialog("edit_action", "mailName_label", null, this._senderName(),
+					(newName) => {
+						logins.getUserController().userGroupInfo.name = newName
+						return locator.entityClient.update(logins.getUserController().userGroupInfo)
+					})
 			},
 			icon: () => Icons.Edit,
 		}

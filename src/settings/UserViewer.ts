@@ -1,4 +1,4 @@
-import m, {Children, Vnode} from "mithril"
+import m, {Children} from "mithril"
 import {assertMainOrNode} from "../api/common/Env"
 import {Button} from "../gui/base/Button"
 import {Dialog} from "../gui/base/Dialog"
@@ -215,10 +215,12 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		const editSenderNameButtonAttrs: ButtonAttrs = {
 			label: "edit_action",
 			click: () => {
-				Dialog.showTextInputDialog("edit_action", "mailName_label", null, this._senderName).then(newName => {
-					this.userGroupInfo.name = newName
-					locator.entityClient.update(this.userGroupInfo)
-				})
+				Dialog.showProcessTextInputDialog("edit_action", "mailName_label", null, this._senderName,
+					(newName) => {
+						this.userGroupInfo.name = newName
+						return locator.entityClient.update(this.userGroupInfo)
+					}
+				)
 			},
 			icon: () => Icons.Edit,
 		} as const
