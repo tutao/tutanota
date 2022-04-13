@@ -226,7 +226,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		sessionType: SessionType,
 		databaseKey: Uint8Array | null,
 	): Promise<NewSessionData> {
-		if (this.userFacade.isLoggedIn()) {
+		if (this.userFacade.isPartiallyLoggedIn()) {
 			console.log("session already exists, reuse data") // do not reset here because the event bus client needs to be kept if the same user is logged in as before
 			// check if it is the same user in _initSession()
 		}
@@ -324,7 +324,7 @@ export class LoginFacadeImpl implements LoginFacade {
 
 	/** @inheritDoc */
 	async createExternalSession(userId: Id, passphrase: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean): Promise<NewSessionData> {
-		if (this.userFacade.isLoggedIn()) {
+		if (this.userFacade.isPartiallyLoggedIn()) {
 			throw new Error("user already logged in")
 		}
 
@@ -405,12 +405,14 @@ export class LoginFacadeImpl implements LoginFacade {
 		userGroupInfo: GroupInfo
 		sessionId: IdTuple
 	}> {
+		this.userFacade.setAccessToken(credentials.accessToken)
+
 		const usingOfflineStorage = await this.initCache(credentials.userId, databaseKey)
 		const sessionId: IdTuple = [this._getSessionListId(credentials.accessToken), this._getSessionElementId(credentials.accessToken)]
 
-		const finishResumeSession = async () => {
+		const loadAndInitSession = async () => {
 			const sessionData = await this._loadSessionData(credentials.accessToken)
-			let passphrase = utf8Uint8ArrayToString(aes128Decrypt(sessionData.accessKey, base64ToUint8Array(neverNull(credentials.encryptedPassword))))
+			const passphrase = utf8Uint8ArrayToString(aes128Decrypt(sessionData.accessKey, base64ToUint8Array(neverNull(credentials.encryptedPassword))))
 			let userPassphraseKey: Aes128Key
 
 			if (externalUserSalt) {
@@ -429,15 +431,16 @@ export class LoginFacadeImpl implements LoginFacade {
 
 		if (usingOfflineStorage) {
 			const user = await this.entityClient.load(UserTypeRef, credentials.userId)
-			// Do not wait for it
-			finishResumeSession()
+			this.userFacade.setUser(user)
+			// noinspection ES6MissingAwait: it's started async on purpose
+			loadAndInitSession()
 			return {
 				user,
 				userGroupInfo: await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo),
 				sessionId,
 			}
 		} else {
-			return finishResumeSession()
+			return loadAndInitSession()
 		}
 	}
 
@@ -468,7 +471,8 @@ export class LoginFacadeImpl implements LoginFacade {
 				throw new NotAuthenticatedError("password has changed")
 			}
 
-			this.userFacade.setUser(user, userPassphraseKey)
+			this.userFacade.setUser(user)
+			this.userFacade.unlockUserGroupKey(userPassphraseKey)
 			const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
 			this.userFacade.setUserGroupInfo(userGroupInfo)
 
@@ -641,7 +645,7 @@ export class LoginFacadeImpl implements LoginFacade {
 
 	storeEntropy(): Promise<void> {
 		// We only store entropy to the server if we are the leader
-		if (!this.userFacade.isLoggedIn() || !this.userFacade.isLeader()) return Promise.resolve()
+		if (!this.userFacade.isFullyLoggedIn() || !this.userFacade.isLeader()) return Promise.resolve()
 		const userGroupKey = this.userFacade.getUserGroupKey()
 		const entropyData = createEntropyData({
 			groupEncEntropy: encryptBytes(userGroupKey, random.generateRandomData(32)),
@@ -823,7 +827,7 @@ export class LoginFacadeImpl implements LoginFacade {
 			) {
 				this.userFacade.updateUser(await this.entityClient.load(UserTypeRef, user._id))
 			} else if (
-				this.userFacade.isLoggedIn() &&
+				this.userFacade.isFullyLoggedIn() &&
 				update.operation === OperationType.UPDATE &&
 				isSameTypeRefByAttr(GroupInfoTypeRef, update.application, update.type) &&
 				isSameId(this.userFacade.getUserGroupInfo()._id, [update.instanceListId, update.instanceId])

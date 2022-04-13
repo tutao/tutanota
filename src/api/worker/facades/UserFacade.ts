@@ -3,6 +3,7 @@ import {decryptKey} from "@tutao/tutanota-crypto"
 import {assertNotNull, getFromMap} from "@tutao/tutanota-utils"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {createWebsocketLeaderStatus, GroupInfo, GroupMembership, User, WebsocketLeaderStatus} from "../../entities/sys/TypeRefs"
+import {Aes128Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
 
 export interface AuthHeadersProvider {
 	/**
@@ -31,9 +32,29 @@ export class UserFacade implements AuthHeadersProvider {
 	// 1. Access token is set
 	// 2. User and user group key are set
 	// 3. UserGroupInfo is set
-	setUser(user: User, userPassphraseKey: Aes128Key) {
+	setAccessToken(accessToken: string | null) {
+		this.accessToken = accessToken
+	}
+
+	setUser(user: User) {
+		if (this.accessToken == null) {
+			throw new ProgrammingError("invalid state: no access token")
+		}
 		this.user = user
+	}
+
+	unlockUserGroupKey(userPassphraseKey: Aes128Key) {
+		if (this.user == null) {
+			throw new ProgrammingError("Invalid state: no user")
+		}
 		this.groupKeys.set(this.getUserGroupId(), decryptKey(userPassphraseKey, this.user.userGroup.symEncGKey))
+	}
+
+	setUserGroupInfo(userGroupInfo: GroupInfo) {
+		if (this.groupKeys.get(this.getUserGroupId()) == null) {
+			throw new ProgrammingError("Invalid state: no user group key")
+		}
+		this.userGroupInfo = userGroupInfo
 	}
 
 	updateUser(user: User) {
@@ -43,16 +64,8 @@ export class UserFacade implements AuthHeadersProvider {
 		this.user = user
 	}
 
-	setUserGroupInfo(userGroupInfo: GroupInfo) {
-		this.userGroupInfo = userGroupInfo
-	}
-
 	getUser(): User | null {
 		return this.user
-	}
-
-	setAccessToken(accessToken: string | null) {
-		this.accessToken = accessToken
 	}
 
 	/**
@@ -105,7 +118,7 @@ export class UserFacade implements AuthHeadersProvider {
 		if (!this.user) {
 			return false
 		} else {
-			return groupId === this.user.userGroup.group || this.user.memberships.find(m => m.group === groupId) != null
+			return groupId === this.user.userGroup.group || this.user.memberships.some(m => m.group === groupId)
 		}
 	}
 
@@ -129,8 +142,12 @@ export class UserFacade implements AuthHeadersProvider {
 				   .map(gm => gm.group)
 	}
 
-	isLoggedIn(): boolean {
+	isPartiallyLoggedIn(): boolean {
 		return this.user != null
+	}
+
+	isFullyLoggedIn(): boolean {
+		return this.userGroupInfo != null
 	}
 
 	getLoggedInUser(): User {
