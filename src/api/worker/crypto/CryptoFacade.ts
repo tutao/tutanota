@@ -14,7 +14,7 @@ import {
 } from "@tutao/tutanota-utils"
 import {BucketPermissionType, GroupType, PermissionType} from "../../common/TutanotaConstants"
 import {HttpMethod, resolveTypeReference} from "../../common/EntityFunctions"
-import type {BucketPermission, Group, GroupMembership, Permission} from "../../entities/sys/TypeRefs.js"
+import type {BucketPermission, GroupMembership, Permission} from "../../entities/sys/TypeRefs.js"
 import {
 	BucketPermissionTypeRef,
 	createPublicKeyData,
@@ -41,7 +41,6 @@ import {birthdayToIsoDate, oldBirthdayToBirthday} from "../../common/utils/Birth
 import type {Entity, TypeModel} from "../../common/EntityTypes"
 import {Instance} from "../../common/EntityTypes"
 import {assertWorkerOrNode} from "../../common/Env"
-import type {LoginFacadeImpl} from "../facades/LoginFacade"
 import type {EntityClient} from "../../common/EntityClient"
 import {RestClient} from "../rest/RestClient"
 import {
@@ -63,6 +62,7 @@ import {IServiceExecutor} from "../../common/ServiceRequest"
 import {EncryptTutanotaPropertiesService} from "../../entities/tutanota/Services"
 import {PublicKeyService, UpdatePermissionKeyService} from "../../entities/sys/Services"
 import {UserFacade} from "../facades/UserFacade"
+import {Aes128Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
 
 assertWorkerOrNode()
 
@@ -204,9 +204,9 @@ export class CryptoFacadeImpl implements CryptoFacade {
 			.resolve()
 			.then(async () => {
 				if (!typeModel.encrypted) {
-					return Promise.resolve(null)
+					return null
 				} else if (isSameTypeRefByAttr(MailBodyTypeRef, typeModel.app, typeModel.name) && this._mailBodySessionKeyCache[instance._id]) {
-					let sessionKey = this._mailBodySessionKeyCache[instance._id]
+					const sessionKey = this._mailBodySessionKeyCache[instance._id]
 					// the mail body instance is cached, so the session key is not needed any more
 					delete this._mailBodySessionKeyCache[instance._id]
 					return sessionKey
@@ -222,121 +222,15 @@ export class CryptoFacadeImpl implements CryptoFacade {
 				} else if (instance.ownerEncSessionKey) {
 					// TODO this is a service instance: Rename all ownerEncSessionKey attributes to _ownerEncSessionKey and add _ownerGroupId (set ownerEncSessionKey here automatically after resolving the group)
 					// add to payment data service
-					let gk = this.userFacade.getGroupKey(this.userFacade.getGroupId(GroupType.Mail))
-					let key = instance.ownerEncSessionKey
-
-					if (typeof key === "string") {
-						key = base64ToUint8Array(instance.ownerEncSessionKey)
-					}
+					const gk = this.userFacade.getGroupKey(this.userFacade.getGroupId(GroupType.Mail))
+					const key: Uint8Array = (typeof instance.ownerEncSessionKey === "string")
+						? base64ToUint8Array(instance.ownerEncSessionKey)
+						: instance.ownerEncSessionKey
 
 					return decryptKey(gk, key)
 				} else {
-					const listPermissions = await this.entityClient.loadAll(PermissionTypeRef, instance._permissions)
-					let instancePermission: Permission | null = listPermissions.find(p =>
-						(p.type === PermissionType.Public_Symmetric || p.type === PermissionType.Symmetric) &&
-						p._ownerGroup &&
-						this.userFacade.hasGroup(p._ownerGroup),
-					) ?? null
-
-					if (instancePermission) {
-						const gk = this.userFacade.getGroupKey(assertNotNull(instancePermission._ownerGroup))
-						return decryptKey(gk, assertNotNull(instancePermission._ownerEncSessionKey))
-					} else {
-						instancePermission = listPermissions.find(p => p.type === PermissionType.Public || p.type === PermissionType.External) ?? null
-					}
-
-					if (instancePermission == null) {
-						throw new SessionKeyNotFoundError("could not find permission")
-					}
-					const permission = instancePermission
-
-					const bucketPermissions = await this.entityClient
-														.loadAll(BucketPermissionTypeRef, assertNotNull(permission.bucket).bucketPermissions)
-					const bucketPermission = bucketPermissions.find(
-						bp =>
-							(bp.type === BucketPermissionType.Public || bp.type === BucketPermissionType.External) &&
-							permission._ownerGroup === bp._ownerGroup,
-					)
-
-					// find the bucket permission with the same group as the permission and public type
-					if (bucketPermission == null) {
-						throw new SessionKeyNotFoundError("no corresponding bucket permission found")
-					}
-
-					if (bucketPermission.type === BucketPermissionType.External) {
-						let bucketKey
-
-						if (bucketPermission.ownerEncBucketKey != null) {
-							bucketKey = decryptKey(this.userFacade.getGroupKey(neverNull(bucketPermission._ownerGroup)), neverNull(bucketPermission.ownerEncBucketKey))
-						} else if (bucketPermission.symEncBucketKey) {
-							bucketKey = decryptKey(this.userFacade.getUserGroupKey(), neverNull(bucketPermission.symEncBucketKey))
-						} else {
-							throw new SessionKeyNotFoundError(
-								`BucketEncSessionKey is not defined for Permission ${permission._id.toString()} (Instance: ${JSON.stringify(
-									instance,
-								)})`,
-							)
-						}
-
-						return decryptKey(bucketKey, neverNull(permission.bucketEncSessionKey))
-					} else {
-						const group = await this.entityClient.load(GroupTypeRef, bucketPermission.group)
-						let keypair = group.keys[0]
-						let privKey
-
-						try {
-							privKey = decryptRsaKey(this.userFacade.getGroupKey(group._id), keypair.symEncPrivKey)
-						} catch (e) {
-							console.log("failed to decrypt rsa key for group with id " + group._id)
-							throw e
-						}
-
-						let pubEncBucketKey = bucketPermission.pubEncBucketKey
-
-						if (pubEncBucketKey == null) {
-							throw new SessionKeyNotFoundError(
-								`PubEncBucketKey is not defined for BucketPermission ${bucketPermission._id.toString()} (Instance: ${JSON.stringify(
-									instance,
-								)})`,
-							)
-						}
-
-						const decryptedBytes = await this.rsa.decrypt(privKey, pubEncBucketKey)
-						let bucketKey = uint8ArrayToBitArray(decryptedBytes)
-						let bucketEncSessionKey = permission.bucketEncSessionKey
-
-						if (bucketEncSessionKey == null) {
-							throw new SessionKeyNotFoundError(
-								`BucketEncSessionKey is not defined for Permission ${permission._id.toString()} (Instance: ${JSON.stringify(
-									instance,
-								)})`,
-							)
-						}
-
-						let sk = decryptKey(bucketKey, bucketEncSessionKey)
-
-						if (bucketPermission._ownerGroup) {
-							// is not defined for some old AccountingInfos
-							let bucketPermissionOwnerGroupKey = this.userFacade.getGroupKey(neverNull(bucketPermission._ownerGroup))
-							let bucketPermissionGroupKey = this.userFacade.getGroupKey(bucketPermission.group)
-							await this._updateWithSymPermissionKey(
-								typeModel,
-								instance,
-								permission,
-								bucketPermission,
-								bucketPermissionOwnerGroupKey,
-								bucketPermissionGroupKey,
-								sk,
-							)
-									  .catch(
-										  ofClass(NotFoundError, e => {
-											  console.log("w> could not find instance to update permission")
-										  }),
-									  )
-
-						}
-						return sk
-					}
+					const permissions = await this.entityClient.loadAll(PermissionTypeRef, instance._permissions)
+					return this.trySymmetricPermission(permissions) ?? (await this.resolveWithPublicOrExternalPermission(permissions, instance, typeModel))
 				}
 			})
 			.then(sessionKey => {
@@ -347,12 +241,134 @@ export class CryptoFacadeImpl implements CryptoFacade {
 
 				return sessionKey
 			})
-			.catch(
-				ofClass(CryptoError, e => {
+			.catch(ofClass(CryptoError, e => {
 					console.log("failed to resolve session key", e)
 					throw new SessionKeyNotFoundError("Crypto error while resolving session key for instance " + instance._id)
 				}),
 			)
+	}
+
+	private trySymmetricPermission(listPermissions: Permission[]) {
+		const symmetricPermission: Permission | null = listPermissions.find(p =>
+			(p.type === PermissionType.Public_Symmetric || p.type === PermissionType.Symmetric) &&
+			p._ownerGroup &&
+			this.userFacade.hasGroup(p._ownerGroup),
+		) ?? null
+
+		if (symmetricPermission) {
+			const gk = this.userFacade.getGroupKey(assertNotNull(symmetricPermission._ownerGroup))
+			return decryptKey(gk, assertNotNull(symmetricPermission._ownerEncSessionKey))
+		}
+	}
+
+	private async resolveWithPublicOrExternalPermission(
+		listPermissions: Permission[],
+		instance: Record<string, any>,
+		typeModel: TypeModel,
+	): Promise<Aes128Key> {
+		const pubOrExtPermission = listPermissions.find(p => p.type === PermissionType.Public || p.type === PermissionType.External) ?? null
+
+		if (pubOrExtPermission == null) {
+			throw new SessionKeyNotFoundError("could not find permission")
+		}
+
+		const bucketPermissions = await this.entityClient
+											.loadAll(BucketPermissionTypeRef, assertNotNull(pubOrExtPermission.bucket).bucketPermissions)
+		const bucketPermission = bucketPermissions.find(bp =>
+			(bp.type === BucketPermissionType.Public || bp.type === BucketPermissionType.External) &&
+			pubOrExtPermission._ownerGroup === bp._ownerGroup,
+		)
+
+		// find the bucket permission with the same group as the permission and public type
+		if (bucketPermission == null) {
+			throw new SessionKeyNotFoundError("no corresponding bucket permission found")
+		}
+
+		if (bucketPermission.type === BucketPermissionType.External) {
+			return this.decryptWithExternalBucket(bucketPermission, pubOrExtPermission, instance)
+		} else {
+			return await this.decryptWithPublicBucket(bucketPermission, instance, pubOrExtPermission, typeModel)
+		}
+	}
+
+	private decryptWithExternalBucket(bucketPermission: BucketPermission, pubOrExtPermission: Permission, instance: Record<string, any>) {
+		let bucketKey
+
+		if (bucketPermission.ownerEncBucketKey != null) {
+			bucketKey = decryptKey(this.userFacade.getGroupKey(neverNull(bucketPermission._ownerGroup)), bucketPermission.ownerEncBucketKey)
+		} else if (bucketPermission.symEncBucketKey) {
+			bucketKey = decryptKey(this.userFacade.getUserGroupKey(), bucketPermission.symEncBucketKey)
+		} else {
+			throw new SessionKeyNotFoundError(
+				`BucketEncSessionKey is not defined for Permission ${pubOrExtPermission._id.toString()} (Instance: ${JSON.stringify(
+					instance,
+				)})`,
+			)
+		}
+
+		return decryptKey(bucketKey, neverNull(pubOrExtPermission.bucketEncSessionKey))
+	}
+
+
+	private async decryptWithPublicBucket(
+		bucketPermission: BucketPermission,
+		instance: Record<string, any>,
+		pubOrExtPermission: Permission,
+		typeModel: TypeModel,
+	): Promise<Aes128Key> {
+		const group = await this.entityClient.load(GroupTypeRef, bucketPermission.group)
+		let keypair = group.keys[0]
+		let privKey
+
+		try {
+			privKey = decryptRsaKey(this.userFacade.getGroupKey(group._id), keypair.symEncPrivKey)
+		} catch (e) {
+			console.log("failed to decrypt rsa key for group with id " + group._id)
+			throw e
+		}
+
+		let pubEncBucketKey = bucketPermission.pubEncBucketKey
+
+		if (pubEncBucketKey == null) {
+			throw new SessionKeyNotFoundError(
+				`PubEncBucketKey is not defined for BucketPermission ${bucketPermission._id.toString()} (Instance: ${JSON.stringify(
+					instance,
+				)})`,
+			)
+		}
+
+		const decryptedBytes = await this.rsa.decrypt(privKey, pubEncBucketKey)
+		const bucketKey = uint8ArrayToBitArray(decryptedBytes)
+		const bucketEncSessionKey = pubOrExtPermission.bucketEncSessionKey
+
+		if (bucketEncSessionKey == null) {
+			throw new SessionKeyNotFoundError(
+				`BucketEncSessionKey is not defined for Permission ${pubOrExtPermission._id.toString()} (Instance: ${JSON.stringify(
+					instance,
+				)})`,
+			)
+		}
+
+		const sk = decryptKey(bucketKey, bucketEncSessionKey)
+
+		if (bucketPermission._ownerGroup) {
+			// is not defined for some old AccountingInfos
+			let bucketPermissionOwnerGroupKey = this.userFacade.getGroupKey(neverNull(bucketPermission._ownerGroup))
+			let bucketPermissionGroupKey = this.userFacade.getGroupKey(bucketPermission.group)
+			await this._updateWithSymPermissionKey(
+				typeModel,
+				instance,
+				pubOrExtPermission,
+				bucketPermission,
+				bucketPermissionOwnerGroupKey,
+				bucketPermissionGroupKey,
+				sk,
+			).catch(ofClass(NotFoundError, () => {
+				console.log("w> could not find instance to update permission")
+			}))
+
+		}
+		return sk
 	}
 
 	/**
