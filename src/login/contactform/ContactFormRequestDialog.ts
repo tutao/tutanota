@@ -237,7 +237,7 @@ export class ContactFormRequestDialog {
 					"download_action",
 					() => {
 						if (file._type === "DataFile") {
-							locator.fileController.open(downcast(file))
+							locator.fileController.openDataFile(downcast(file))
 						} else {
 							locator.fileController.downloadAndOpen((file as any) as TutanotaFile, true)
 						}

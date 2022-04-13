@@ -11,6 +11,7 @@ import {promiseMap} from "@tutao/tutanota-utils"
 import type {FileFacade} from "../../api/worker/facades/FileFacade"
 import {DataFile} from "../../api/common/DataFile";
 import {MailAddress} from "../../api/entities/tutanota/MailAddress"
+import {FileController} from "../../file/FileController"
 
 /**
  * Used to pass all downloaded mail stuff to the desktop side to be exported as a file
@@ -47,7 +48,7 @@ export type MailBundle = {
  * @param worker
  * @param sanitizer
  */
-export function makeMailBundle(mail: Mail, entityClient: EntityClient, fileFacade: FileFacade, sanitizer: HtmlSanitizer): Promise<MailBundle> {
+export function makeMailBundle(mail: Mail, entityClient: EntityClient, fileController: FileController, sanitizer: HtmlSanitizer): Promise<MailBundle> {
 	const bodyTextPromise = entityClient
 		.load(MailBodyTypeRef, mail.body)
 		.then(getMailBodyText)
@@ -60,7 +61,7 @@ export function makeMailBundle(mail: Mail, entityClient: EntityClient, fileFacad
 				}).text,
 		)
 	const attachmentsPromise: Promise<Array<DataFile>> = promiseMap(mail.attachments, fileId =>
-		entityClient.load(FileTypeRef, fileId).then(file => fileFacade.downloadFileContent(file)),
+		entityClient.load(FileTypeRef, fileId).then(file => fileController.downloadAndDecryptBrowser(file)),
 	)
 	const headersPromise = mail.headers ? entityClient.load(MailHeadersTypeRef, mail.headers) : Promise.resolve(null)
 

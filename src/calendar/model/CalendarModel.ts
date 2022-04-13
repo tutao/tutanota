@@ -37,11 +37,11 @@ import type {Notifications} from "../../gui/Notifications"
 import m from "mithril"
 import {createGroupSettings} from "../../api/entities/tutanota/GroupSettings"
 import type {CalendarFacade} from "../../api/worker/facades/CalendarFacade"
-import type {FileFacade} from "../../api/worker/facades/FileFacade"
 import {DataFile} from "../../api/common/DataFile";
 import {GroupMembership} from "../../api/entities/sys/GroupMembership";
 import {IServiceExecutor} from "../../api/common/ServiceRequest"
 import {MembershipService} from "../../api/entities/sys/Services"
+import {FileController} from "../../file/FileController"
 
 export type CalendarInfo = {
 	groupRoot: CalendarGroupRoot
@@ -101,7 +101,6 @@ export class CalendarModelImpl implements CalendarModel {
 	_alarmScheduler: () => Promise<AlarmScheduler>
 	readonly _userAlarmToAlarmInfo: Map<string, string>
 	_calendarFacade: CalendarFacade
-	_fileFacade: FileFacade
 
 	constructor(
 		notifications: Notifications,
@@ -113,7 +112,7 @@ export class CalendarModelImpl implements CalendarModel {
 		entityClient: EntityClient,
 		mailModel: MailModel,
 		calendarFacade: CalendarFacade,
-		fileFacade: FileFacade,
+		private readonly fileController: FileController
 	) {
 		this._notifications = notifications
 		this._alarmScheduler = alarmScheduler
@@ -124,7 +123,6 @@ export class CalendarModelImpl implements CalendarModel {
 		this._entityClient = entityClient
 		this._mailModel = mailModel
 		this._calendarFacade = calendarFacade
-		this._fileFacade = fileFacade
 		this._userAlarmToAlarmInfo = new Map()
 
 		if (!isApp()) {
@@ -292,7 +290,7 @@ export class CalendarModelImpl implements CalendarModel {
 	_handleCalendarEventUpdate(update: CalendarEventUpdate): Promise<void> {
 		return this._entityClient
 				   .load(FileTypeRef, update.file)
-				   .then(file => this._fileFacade.downloadFileContent(file))
+				   .then(file => this.fileController.downloadAndDecryptBrowser(file))
 				   .then((dataFile: DataFile) => import("../export/CalendarImporter").then(({parseCalendarFile}) => parseCalendarFile(dataFile)))
 				   .then(parsedCalendarData => this.processCalendarUpdate(update.sender, parsedCalendarData))
 				   .catch(e => {
@@ -555,3 +553,4 @@ function repeatRulesEqual(repeatRule: CalendarRepeatRule | null, repeatRule2: Ca
 			repeatRule.timeZone === repeatRule2.timeZone)
 	)
 }
+

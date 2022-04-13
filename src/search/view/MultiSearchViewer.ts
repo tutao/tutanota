@@ -217,7 +217,7 @@ export class MultiSearchViewer implements Component {
                         !isApp() && !logins.isEnabled(FeatureType.DisableMailExport)
                             ? {
                                 label: "export_action",
-                                click: () => showProgressDialog("pleaseWait_msg", exportMails(this.getSelectedMails(), locator.entityClient, locator.fileFacade)),
+                                click: () => showProgressDialog("pleaseWait_msg", exportMails(this.getSelectedMails(), locator.entityClient, locator.fileController)),
                                 icon: () => Icons.Export,
                                 type: ButtonType.Dropdown,
                             }

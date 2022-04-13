@@ -142,7 +142,7 @@ async function _downloadAttachment(attachment: Attachment) {
 		if (attachment._type === "FileReference") {
 			await locator.fileApp.open(downcast(attachment))
 		} else if (attachment._type === "DataFile") {
-			await locator.fileController.open(downcast(attachment))
+			await locator.fileController.openDataFile(downcast(attachment))
 		} else {
 			await locator.fileController.downloadAndOpen((attachment as any) as TutanotaFile, true)
 		}

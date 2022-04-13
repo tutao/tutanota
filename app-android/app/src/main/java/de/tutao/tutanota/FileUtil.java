@@ -357,16 +357,11 @@ public class FileUtil {
 				new byte[COPY_BUFFER_SIZE]);
 	}
 
-	Promise<Object, Exception, Void> saveBlob(final String name, final String base64blob) {
-		try {
-			File localPath = getTempDecryptedFile(name);
-			writeFile(localPath, new ByteArrayInputStream(Utils.base64ToBytes(base64blob)));
-			return this.putToDownloadFolder(Uri.fromFile(localPath).getPath());
-		} catch (IOException e) {
-			DeferredObject<Object, Exception, Void> result = new DeferredObject<>();
-			result.reject(e);
-			return result;
-		}
+	String saveDataFile(final String name, final String base64blob) throws IOException {
+		File localPath = getTempDecryptedFile(name);
+		writeFile(localPath, new ByteArrayInputStream(Utils.base64ToBytes(base64blob)));
+		Uri targetUri = Uri.fromFile(localPath);
+		return targetUri.toString();
 	}
 
 	private static void addHeadersToRequest(URLConnection connection, JSONObject headers) throws JSONException {

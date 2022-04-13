@@ -120,7 +120,7 @@ export class MultiMailViewer implements Component {
                             ? {
                                 label: "export_action",
                                 click: this._actionBarAction(mails =>
-                                    showProgressDialog("pleaseWait_msg", exportMails(mails, locator.entityClient, locator.fileFacade)),
+                                    showProgressDialog("pleaseWait_msg", exportMails(mails, locator.entityClient, locator.fileController)),
                                 ),
                                 icon: () => Icons.Export,
                                 type: ButtonType.Dropdown,

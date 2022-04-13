@@ -94,7 +94,7 @@ export class DesktopDownloadManager {
 
 		let encryptedFilePath
 		if (statusCode == 200) {
-			const downloadDirectory = await this.getTutanotaTempDirectory("download")
+			const downloadDirectory = await this.getTutanotaTempDirectory("encrypted")
 			encryptedFilePath = path.join(downloadDirectory, fileName)
 			await this.pipeIntoFile(response, encryptedFilePath)
 		} else {
@@ -148,12 +148,31 @@ export class DesktopDownloadManager {
 	/**
 	 * Save {@param data} to the disk. Will pick the path based on user download dir preference and {@param filename}.
 	 */
-	async saveBlob(filename: string, data: Uint8Array): Promise<void> {
+	async saveDataFile(filename: string, data: Uint8Array): Promise<void> {
 		const savePath = await this._pickSavePath(filename)
 		await this._fs.promises.mkdir(path.dirname(savePath), {
 			recursive: true,
 		})
 		await this._fs.promises.writeFile(savePath, data)
+		await this.showInFileExplorer(savePath)
+	}
+
+
+	/**
+	 * Copy {@param fileUri} to the downloads folder disk. Will pick the path based on user download dir preference.
+	 */
+	async putFileIntoDownloadsFolder(fileUri: string): Promise<FileUri> {
+		const filename = path.basename(fileUri)
+		const savePath = await this._pickSavePath(filename)
+		await this._fs.promises.mkdir(path.dirname(savePath), {
+			recursive: true,
+		})
+		await this._fs.promises.copyFile(fileUri, savePath)
+		await this.showInFileExplorer(savePath)
+		return savePath
+	}
+
+	async showInFileExplorer(savePath: string): Promise<void> {
 		// See doc for _lastOpenedFileManagerAt on why we do this throttling.
 		const lastOpenedFileManagerAt = this._lastOpenedFileManagerAt
 		const fileManagerTimeout = await this._conf.getConst(BuildConfigKey.fileManagerTimeout)
@@ -163,6 +182,7 @@ export class DesktopDownloadManager {
 			await this._electron.shell.openPath(path.dirname(savePath))
 		}
 	}
+
 
 	private async _pickSavePath(filename: string): Promise<string> {
 		const defaultDownloadPath = await this._conf.getVar(DesktopConfigKey.defaultDownloadPath)
@@ -221,7 +241,8 @@ export class DesktopDownloadManager {
 	}
 
 	async joinFiles(filename: string, files: Array<FileUri>): Promise<string> {
-		const fileUri = await this._pickSavePath(filename)
+		const downloadDirectory = await this.getTutanotaTempDirectory("download")
+		const fileUri = path.join(downloadDirectory, filename)
 		const outStream = this._fs.createWriteStream(fileUri, {autoClose: false})
 
 		for (const infile of files) {

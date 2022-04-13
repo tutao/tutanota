@@ -4,8 +4,8 @@ import type {File as TutanotaFile} from "../../api/entities/tutanota/File"
 import {locator} from "../../api/main/MainLocator"
 import type {CalendarEventAttendee} from "../../api/entities/tutanota/CalendarEventAttendee"
 import type {CalendarAttendeeStatus} from "../../api/common/TutanotaConstants"
-import {CalendarMethod, getAsEnumValue} from "../../api/common/TutanotaConstants"
-import {assertNotNull, clone, filterInt, noOp, Thunk} from "@tutao/tutanota-utils"
+import {ArchiveDataType, CalendarMethod, getAsEnumValue} from "../../api/common/TutanotaConstants"
+import {assertNotNull, clone, filterInt, noOp, ofClass, Thunk} from "@tutao/tutanota-utils"
 import {findPrivateCalendar, getEventStart, getTimeZone} from "./CalendarUtils"
 import {logins} from "../../api/main/LoginController"
 import type {Mail} from "../../api/entities/tutanota/Mail"
@@ -13,9 +13,8 @@ import {calendarUpdateDistributor} from "./CalendarUpdateDistributor"
 import {Dialog} from "../../gui/base/Dialog"
 import {UserError} from "../../api/main/UserError"
 import {NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
-import {ofClass} from "@tutao/tutanota-utils"
 import {CalendarEventViewModel, createCalendarEventViewModel} from "./CalendarEventViewModel"
-import {DataFile} from "../../api/common/DataFile";
+import {convertToDataFile, DataFile} from "../../api/common/DataFile";
 
 function getParsedEvent(
 	fileData: DataFile,
@@ -71,11 +70,10 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 	new CalendarEventPopup(latestEvent, eventBubbleRect, htmlSanitizer, onEditEvent, viewModel).show()
 }
 
-export function getEventFromFile(file: TutanotaFile): Promise<CalendarEvent | null> {
-	return locator.fileFacade.downloadFileContent(file).then(fileData => {
-		const parsedEvent = getParsedEvent(fileData)
-		return parsedEvent?.event ?? null
-	})
+export async function getEventFromFile(file: TutanotaFile): Promise<CalendarEvent | null> {
+	const dataFile = await locator.fileController.downloadAndDecryptBrowser(file)
+	const parsedEvent = getParsedEvent(dataFile)
+	return parsedEvent?.event ?? null
 }
 
 /**

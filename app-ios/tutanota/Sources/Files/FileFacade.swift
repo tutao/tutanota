@@ -18,19 +18,14 @@ class FileFacade {
     self.viewer.openFile(path: path, completion: completion)
   }
 
-  func openFile(name: String, data: Data, completion: @escaping ResponseCallback<Void>) {
+  func saveDataFile(name: String, data: Data, completion: @escaping ResponseCallback<String>) {
     DispatchQueue.global(qos: .default).async {
       do {
         let decryptedFolder = try FileUtils.getDecryptedFolder()
         let filePath = (decryptedFolder as NSString).appendingPathComponent(name)
         let fileURL = URL(fileURLWithPath: filePath)
         try data.write(to: fileURL, options: .atomic)
-        self.openFile(path: filePath) {
-          let result = Result {
-            try FileManager.default.removeItem(atPath: filePath)
-          }
-          completion(result)
-        }
+        completion(.success(filePath))
       } catch {
         completion(.failure(error))
       }

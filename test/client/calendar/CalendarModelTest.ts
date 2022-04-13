@@ -37,9 +37,9 @@ import {EntityClient} from "../../../src/api/common/EntityClient"
 import {MailModel} from "../../../src/mail/model/MailModel"
 import {AlarmScheduler} from "../../../src/calendar/date/AlarmScheduler"
 import {CalendarFacade} from "../../../src/api/worker/facades/CalendarFacade"
-import {FileFacade} from "../../../src/api/worker/facades/FileFacade"
 import {asResult, mapToObject} from "@tutao/tutanota-test-utils"
 import type {WorkerClient} from "../../../src/api/main/WorkerClient"
+import {FileController} from "../../../src/file/FileController"
 
 o.spec("CalendarModel", function () {
 	o.spec("addDaysForEvent", function () {
@@ -1430,7 +1430,7 @@ function makeCalendarFacade(getEventByUid, entityRestClient: EntityRestClientMoc
 	})
 }
 
-function makeFileFacade(): FileFacade {
+function makeFileController(): FileController {
 	return downcast({})
 }
 
@@ -1450,7 +1450,7 @@ function init({
 						  },
 						  restClientMock,
 				  ),
-				  fileFacade = makeFileFacade(),
+				  fileFacade = makeFileController(),
 			  }): CalendarModelImpl {
 	const lazyScheduler = async () => alarmScheduler
 

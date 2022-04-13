@@ -289,11 +289,11 @@ class MainLocator implements IMainLocator {
 			this.entityClient,
 			this.mailModel,
 			this.calendarFacade,
-			this.fileFacade,
+			this.fileController,
 		)
 		this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, logins)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
-		this.fileController = new FileController(this._nativeInterfaces?.fileApp ?? null)
+		this.fileController = new FileController(this._nativeInterfaces?.fileApp ?? null, blobFacade, fileFacade)
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 	}
 }

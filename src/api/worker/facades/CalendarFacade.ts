@@ -27,7 +27,7 @@ import type {AlarmInfo} from "../../entities/sys/AlarmInfo"
 import {createAlarmInfo} from "../../entities/sys/AlarmInfo"
 import type {RepeatRule} from "../../entities/sys/RepeatRule"
 import {createRepeatRule} from "../../entities/sys/RepeatRule"
-import {GroupType, OperationType} from "../../common/TutanotaConstants"
+import {ArchiveDataType, GroupType, OperationType} from "../../common/TutanotaConstants"
 import {createNotificationSessionKey} from "../../entities/sys/NotificationSessionKey"
 import type {Group} from "../../entities/sys/Group"
 import {GroupTypeRef} from "../../entities/sys/Group"
@@ -58,6 +58,10 @@ import {TutanotaError} from "../../common/error/TutanotaError"
 import {IServiceExecutor} from "../../common/ServiceRequest"
 import {AlarmService} from "../../entities/sys/Services"
 import {CalendarService} from "../../entities/tutanota/Services"
+import {File as TutanotaFile} from "../../entities/tutanota/File"
+import {locator} from "../../main/MainLocator"
+import {convertToDataFile} from "../../common/DataFile"
+import {FileFacade} from "./FileFacade"
 
 assertWorkerOrNode()
 
@@ -456,6 +460,7 @@ export class CalendarFacade {
 			}
 		})
 	}
+
 }
 
 export type EventWithAlarmInfos = {

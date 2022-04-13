@@ -104,8 +104,15 @@ export class NativeFileApp {
 		return this.native.invokeNative(new Request("putFileIntoDownloads", [localFileUri]))
 	}
 
-	saveBlob(data: DataFile): Promise<void> {
-		return this.native.invokeNative(new Request("saveBlob", [data.name, uint8ArrayToBase64(data.data)]))
+	async saveDataFile(data: DataFile): Promise<FileReference> {
+		const fileUri = await this.native.invokeNative(new Request("saveDataFile", [data.name, uint8ArrayToBase64(data.data)]))
+		return {
+			_type: "FileReference",
+			name: data.name,
+			mimeType: data.mimeType,
+			size: data.size,
+			location: fileUri,
+		}
 	}
 
 	/**

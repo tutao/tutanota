@@ -246,11 +246,16 @@ export class IPC {
 				return this._dl.joinFiles(filename, files)
 			}
 
-			case "saveBlob": {
+			case "saveDataFile": {
 				// args: [data.name, uint8ArrayToBase64(data.data)]
 				const filename: string = downcast(args[0])
 				const data: Uint8Array = base64ToUint8Array(downcast(args[1]))
-				return this._dl.saveBlob(filename, data)
+				return this._dl.saveDataFile(filename, data)
+			}
+
+			case "putFileIntoDownloads": {
+				const fileUri: FileUri = args[0]
+				return this._dl.putFileIntoDownloadsFolder(fileUri)
 			}
 
 			case 'deleteFile' : {
@@ -261,7 +266,7 @@ export class IPC {
 			case "aesDecryptFile": {
 				const encodedKey: string = args[0]
 				const fileUri: FileUri = args[1]
-				const targetDir = this._desktopUtils.getTutanotaTempPath()
+				const targetDir = this._desktopUtils.getTutanotaTempPath("decrypted")
 				return this._crypto.aesDecryptFile(encodedKey, fileUri, targetDir)
 			}
 

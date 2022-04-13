@@ -18,6 +18,7 @@ import type {Mail} from "../../api/entities/tutanota/Mail"
 import type {EntityClient} from "../../api/common/EntityClient"
 import type {FileFacade} from "../../api/worker/facades/FileFacade"
 import {locator} from "../../api/main/MainLocator"
+import {FileController} from "../../file/FileController"
 // .msg export is handled in DesktopFileExport because it uses APIs that can't be loaded web side
 export type MailExportMode = "msg" | "eml"
 
@@ -55,15 +56,15 @@ export function generateExportFileName(subject: string, sentOn: Date, mode: Mail
  * @returns {Promise<void>} resolved after the fileController
  * was instructed to open the new zip File containing the exported files
  */
-export function exportMails(mails: Array<Mail>, entityClient: EntityClient, fileFacade: FileFacade): Promise<void> {
+export function exportMails(mails: Array<Mail>, entityClient: EntityClient, fileController: FileController): Promise<void> {
 	const downloadPromise = promiseMap(mails, mail =>
-		import("../../misc/HtmlSanitizer").then(({htmlSanitizer}) => makeMailBundle(mail, entityClient, fileFacade, htmlSanitizer)),
+		import("../../misc/HtmlSanitizer").then(({htmlSanitizer}) => makeMailBundle(mail, entityClient, fileController, htmlSanitizer)),
 	)
 	return Promise.all([getMailExportMode(), downloadPromise]).then(([mode, bundles]) => {
 		promiseMap(bundles, bundle => generateMailFile(bundle, generateExportFileName(bundle.subject, new Date(bundle.sentOn), mode), mode)).then(files => {
 			const zipName = `${sortableTimestamp()}-${mode}-mail-export.zip`
 			const maybeZipPromise = files.length === 1 ? Promise.resolve(files[0]) : locator.fileController.zipDataFiles(files, zipName)
-			maybeZipPromise.then(outputFile => locator.fileController.open(outputFile))
+			maybeZipPromise.then(outputFile => locator.fileController.openDataFile(outputFile))
 		})
 	})
 }

@@ -351,8 +351,10 @@ public final class Native {
 					promise.resolve(null);
 					break;
 				}
-				case "saveBlob":
-					return files.saveBlob(args.getString(0), args.getString(1));
+				case "saveDataFile":
+					String fileUri = files.saveDataFile(args.getString(0), args.getString(1));
+					promise.resolve(fileUri);
+					break;
 				case "putFileIntoDownloads":
 					final String path = args.getString(0);
 					return files.putToDownloadFolder(path);

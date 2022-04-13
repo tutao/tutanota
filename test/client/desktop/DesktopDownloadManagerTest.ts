@@ -171,7 +171,6 @@ o.spec("DesktopDownloadManagerTest", function () {
 			},
 			openSync: () => {
 			},
-			writeFile: () => Promise.resolve(),
 			createWriteStream: () => new WriteStream(),
 			createReadStream: () => new ReadStream(),
 			existsSync: path => path === DEFAULT_DOWNLOAD_PATH,
@@ -182,6 +181,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 				unlink: () => Promise.resolve(),
 				mkdir: () => Promise.resolve(),
 				writeFile: () => Promise.resolve(),
+				copyFile: () => Promise.resolve(),
 				readdir: () => Promise.resolve([]),
 				stat: () =>  {
 					return {size: 33}
@@ -215,7 +215,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 		return new DesktopDownloadManager(confMock, netMock, desktopUtilsMock, dateProviderMock, fsMock, electronMock)
 	}
 
-	o.spec("saveBlob", function () {
+	o.spec("saveDataFile", function () {
 		o("no default download path => save to user selected path", async function () {
 			const mocks = standardMocks()
 			mocks.confMock = n
@@ -233,7 +233,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 				})
 				.set()
 			const dl = makeMockedDownloadManager(mocks)
-			await dl.saveBlob("blob", new Uint8Array([1]))
+			await dl.saveDataFile("blob", new Uint8Array([1]))
 			o(mocks.fsMock.promises.mkdir.args).deepEquals([
 				"parentDir",
 				{
@@ -266,13 +266,13 @@ o.spec("DesktopDownloadManagerTest", function () {
 				})
 
 			const dl = makeMockedDownloadManager(mocks)
-			await assertThrows(CancelledError, () => dl.saveBlob("blob", new Uint8Array([1])))
+			await assertThrows(CancelledError, () => dl.saveDataFile("blob", new Uint8Array([1])))
 		})
 
 		o("with default download path", async function () {
 			const mocks = standardMocks()
 			const dl = makeMockedDownloadManager(mocks)
-			await dl.saveBlob("blob", new Uint8Array([1]))
+			await dl.saveDataFile("blob", new Uint8Array([1]))
 			o(mocks.fsMock.promises.mkdir.args).deepEquals([
 				"/a/download/path",
 				{
@@ -290,7 +290,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 
 			mocks.fsMock.promises.readdir = () => Promise.resolve(["blob"] as any)
 
-			await dl.saveBlob("blob", new Uint8Array([1]))
+			await dl.saveDataFile("blob", new Uint8Array([1]))
 			o(mocks.fsMock.promises.mkdir.args).deepEquals([
 				"/a/download/path",
 				{
@@ -305,19 +305,19 @@ o.spec("DesktopDownloadManagerTest", function () {
 		o("two downloads, open two filemanagers", async function () {
 			const mocks = standardMocks()
 			const dl = makeMockedDownloadManager(mocks)
-			await dl.saveBlob("blob", new Uint8Array([0]))
+			await dl.saveDataFile("blob", new Uint8Array([0]))
 			o(mocks.electronMock.shell.openPath.callCount).equals(1)
-			await dl.saveBlob("blob", new Uint8Array([0]))
+			await dl.saveDataFile("blob", new Uint8Array([0]))
 			o(mocks.electronMock.shell.openPath.callCount).equals(1)
 		})
 
 		o("two downloads, open two filemanagers after a pause", async function () {
 			const mocks = standardMocks()
 			const dl = makeMockedDownloadManager(mocks)
-			await dl.saveBlob("blob", new Uint8Array([0]))
+			await dl.saveDataFile("blob", new Uint8Array([0]))
 			o(mocks.electronMock.shell.openPath.callCount).equals(1)
 			time += 1000 * 60
-			await dl.saveBlob("blob", new Uint8Array([0]))
+			await dl.saveDataFile("blob", new Uint8Array([0]))
 			o(mocks.electronMock.shell.openPath.callCount).equals(2)
 		})
 	})
@@ -331,7 +331,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 			}
 			mocks.netMock.executeRequest = o.spy(() => response)
 
-			const expectedFilePath = "/tutanota/tmp/path/download/nativelyDownloadedFile"
+			const expectedFilePath = "/tutanota/tmp/path/encrypted/nativelyDownloadedFile"
 
 			const dl = makeMockedDownloadManager(mocks)
 			const downloadResult = await dl.downloadNative("some://url/file", "nativelyDownloadedFile", {
@@ -491,7 +491,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 			const ws = WriteStream.mockedInstances[0]
 			o(ws.close.callCount).equals(1)("stream is closed")
 			o(mocks.fsMock.promises.unlink.calls.map(c => c.args)).deepEquals([
-				["/tutanota/tmp/path/download/nativelyDownloadedFile"]
+				["/tutanota/tmp/path/encrypted/nativelyDownloadedFile"]
 			])("unlink")
 		})
 	})
@@ -539,7 +539,18 @@ o.spec("DesktopDownloadManagerTest", function () {
 			o(rs.pipe.args).deepEquals([ws, {end: false}])
 			o(ws.end.callCount).equals(1)
 
-			o(joinedFile).equals(DEFAULT_DOWNLOAD_PATH + "fileName.pdf")
+			o(joinedFile).equals("/tutanota/tmp/path/download/fileName.pdf")
+		})
+	})
+
+	o.spec("putFileIntoDownloadsFolder", function() {
+		o("putFileIntoDownloadsFolder", async function () {
+			const mocks = standardMocks()
+			const dl = makeMockedDownloadManager(mocks)
+			const copiedFileUri = await dl.putFileIntoDownloadsFolder("/path/fileName.pdf")
+			o(mocks.fsMock.promises.copyFile.callCount).equals(1)("copy file to downloads folder")
+
+			o(copiedFileUri).equals(DEFAULT_DOWNLOAD_PATH + "fileName.pdf")
 		})
 	})
 

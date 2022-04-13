@@ -41,8 +41,8 @@ o.spec("Bundler", function () {
 			load: o.spy(() => Promise.resolve({text: body, headers})),
 		}
 
-		const fileFacade = {
-			downloadFileContent: o.spy(() => {
+		const fileController = {
+			downloadAndDecryptBrowser: o.spy(() => {
 				return anAttachmnet
 			})
 		}
@@ -70,7 +70,7 @@ o.spec("Bundler", function () {
 
 		})
 
-		const bundle = await makeMailBundle(mail, downcast(entityClient), downcast(fileFacade), downcast(sanitizer))
+		const bundle = await makeMailBundle(mail, downcast(entityClient), downcast(fileController), downcast(sanitizer))
 
 		o(bundle.mailId).deepEquals(mailId)
 		o(bundle.subject).equals(subject)

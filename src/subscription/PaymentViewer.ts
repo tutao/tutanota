@@ -267,7 +267,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 												showProgressDialog(
 													"pleaseWait_msg",
 													locator.customerFacade.downloadInvoice(neverNull(posting.invoiceNumber)),
-												).then(pdfInvoice => locator.fileController.open(pdfInvoice))
+												).then(pdfInvoice => locator.fileController.openDataFile(pdfInvoice))
 											},
 										}
 										: null,

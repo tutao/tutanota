@@ -252,11 +252,11 @@ class WebViewBridge : NSObject {
           options: [:]) { success in
             respond(.success(success))
         }
-      case "saveBlob":
+      case "saveDataFile":
         let fileDataB64 = args[1] as! Base64
         let fileData = Data(base64Encoded: fileDataB64)!
-        self.fileFacade.openFile(name: args[0] as! String, data: fileData) { result in
-          respond(result.asNull())
+        self.fileFacade.saveDataFile(name: args[0] as! String, data: fileData) { result in
+          respond(result)
         }
       case "getDeviceLog":
         let result = Result { try self.getLogfile() }

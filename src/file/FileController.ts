@@ -1,6 +1,6 @@
 import {Dialog} from "../gui/base/Dialog"
 import {convertToDataFile, createDataFile, DataFile} from "../api/common/DataFile"
-import {assertMainOrNode, isAndroidApp, isApp, isDesktop} from "../api/common/Env"
+import {assertMainOrNode, isAndroidApp, isApp, isDesktop, isIOSApp} from "../api/common/Env"
 import {assertNotNull, isNotNull, neverNull, noOp, ofClass, promiseMap, sortableTimestamp} from "@tutao/tutanota-utils"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {CryptoError} from "../api/common/error/CryptoError"
@@ -11,9 +11,11 @@ import {ConnectionError} from "../api/common/error/RestError"
 import {File as TutanotaFile} from "../api/entities/tutanota/File"
 import {deduplicateFilenames, FileReference, sanitizeFilename} from "../api/common/utils/FileUtils"
 import {CancelledError} from "../api/common/error/CancelledError"
-import {locator} from "../api/main/MainLocator"
 import type {NativeFileApp} from "../native/common/FileApp"
 import {ArchiveDataType} from "../api/common/TutanotaConstants"
+import {ProgrammingError} from "../api/common/error/ProgrammingError"
+import {BlobFacade} from "../api/worker/facades/BlobFacade"
+import {FileFacade} from "../api/worker/facades/FileFacade"
 
 assertMainOrNode()
 export const CALENDAR_MIME_TYPE = "text/calendar"
@@ -25,7 +27,9 @@ export class FileController {
 	}
 
 	constructor(
-		private readonly _fileApp: NativeFileApp | null
+		private readonly _fileApp: NativeFileApp | null,
+		private readonly blobFacade: BlobFacade,
+		private readonly fileFacade: FileFacade
 	) {
 	}
 
@@ -33,44 +37,27 @@ export class FileController {
 	 * Temporary files are deleted afterwards in apps.
 	 */
 	downloadAndOpen(tutanotaFile: TutanotaFile, open: boolean): Promise<void> {
-		const fileFacade = locator.fileFacade
-		const blobFacade = locator.blobFacade
 		const downloadPromise = Promise.resolve().then(async () => {
-			let file: DataFile | FileReference | null = null
-			if (isApp()) {
+			if (isApp() || isDesktop()) {
+				let file: FileReference | null = null
 				try {
-					if (tutanotaFile.blobs.length === 0) {
-						file = await fileFacade.downloadFileContentNative(tutanotaFile)
-					} else {
-						file = await blobFacade.downloadAndDecryptNative(ArchiveDataType.Attachments, tutanotaFile.blobs, tutanotaFile, tutanotaFile.name, neverNull(tutanotaFile.mimeType))
-					}
-
-					if (isAndroidApp() && !open) {
+					file = await this.downloadAndDecryptNative(tutanotaFile)
+					if (open) {
+						await this.fileApp.open(file)
+					} else if (isAndroidApp() || isDesktop()) {
 						await this.fileApp.putFileIntoDownloadsFolder(file.location)
-					} else {
-						await this.open(file)
+					} else if (isIOSApp()) {
+						await this.fileApp.open(file)
 					}
 				} finally {
-					if (file) {
+					if (file && (isApp() || !open)) { // can't delete on desktop as we can't wait until the viewer has actually loaded the file
 						this.deleteFile(file.location)
 					}
 				}
-			} else if (isDesktop()) {
-				if (tutanotaFile.blobs.length === 0) {
-					file = open ? await fileFacade.downloadFileContentNative(tutanotaFile) : await fileFacade.downloadFileContent(tutanotaFile)
-				} else {
-					file = await blobFacade.downloadAndDecryptNative(ArchiveDataType.Attachments, tutanotaFile.blobs, tutanotaFile, tutanotaFile.name, neverNull(tutanotaFile.mimeType))
-				}
-				await this.open(file)
 			} else {
 				// web client
-				if (tutanotaFile.blobs.length === 0) {
-					file = await fileFacade.downloadFileContent(tutanotaFile)
-				} else {
-					const data = await blobFacade.downloadAndDecrypt(ArchiveDataType.Attachments, tutanotaFile.blobs, tutanotaFile)
-					file = convertToDataFile(tutanotaFile, data)
-				}
-				await this.open(file)
+				let file = await this.downloadAndDecryptBrowser(tutanotaFile)
+				await this.openDataFile(file)
 			}
 		})
 		return showProgressDialog("pleaseWait_msg", downloadPromise.then(noOp))
@@ -94,15 +81,13 @@ export class FileController {
 	async downloadAll(tutanotaFiles: Array<TutanotaFile>): Promise<void> {
 		const showErr = (msg: TranslationKey, name: string) => Dialog.message(() => lang.get(msg) + " " + name).then(() => null)
 
-		const fileFacade = locator.fileFacade
-
 		if (isAndroidApp()) {
 			const fileResults = await promiseMap(
 				tutanotaFiles,
 				(f) =>
-					fileFacade.downloadFileContentNative(f)
-							  .catch(ofClass(CryptoError, () => showErr("corrupted_msg", f.name)))
-							  .catch(ofClass(ConnectionError, () => showErr("couldNotAttachFile_msg", f.name))),
+					this.downloadAndDecryptNative(f)
+						.catch(ofClass(CryptoError, () => showErr("corrupted_msg", f.name)))
+						.catch(ofClass(ConnectionError, () => showErr("couldNotAttachFile_msg", f.name))),
 			)
 			const files = fileResults.filter(isNotNull)
 			for (const file of files) {
@@ -112,25 +97,25 @@ export class FileController {
 			const fileResults = await promiseMap(
 				tutanotaFiles,
 				(f) =>
-					fileFacade.downloadFileContentNative(f)
-							  .catch(ofClass(CryptoError, () => showErr("corrupted_msg", f.name)))
-							  .catch(ofClass(ConnectionError, () => showErr("couldNotAttachFile_msg", f.name))),
+					this.downloadAndDecryptNative(f)
+						.catch(ofClass(CryptoError, () => showErr("corrupted_msg", f.name)))
+						.catch(ofClass(ConnectionError, () => showErr("couldNotAttachFile_msg", f.name))),
 			)
 			const files = fileResults.filter(isNotNull)
 			for (const file of files) {
-				await this.openFileReference(file).finally(() => this.deleteFile(file.location))
+				await this.fileApp.open(file).finally(() => this.deleteFile(file.location))
 			}
 		} else {
 			const fileResults = await promiseMap(
 				tutanotaFiles,
 				(f) =>
-					fileFacade.downloadFileContent(f)
-							  .catch(ofClass(CryptoError, () => showErr("corrupted_msg", f.name)))
-							  .catch(ofClass(ConnectionError, () => showErr("couldNotAttachFile_msg", f.name))),
+					this.downloadAndDecryptBrowser(f)
+						.catch(ofClass(CryptoError, () => showErr("corrupted_msg", f.name)))
+						.catch(ofClass(ConnectionError, () => showErr("couldNotAttachFile_msg", f.name))),
 			)
 			const files = fileResults.filter(isNotNull)
 			const zip = await this.zipDataFiles(files, `${sortableTimestamp()}-attachments.zip`)
-			await this.openDataFile(zip)
+			await this.openDataFileInBrowser(zip)
 		}
 	}
 
@@ -216,18 +201,7 @@ export class FileController {
 		)
 	}
 
-	private openFileReference(file: FileReference): Promise<void> {
-		return this.fileApp.open(file)
-	}
-
-	async openDataFile(dataFile: DataFile): Promise<void> {
-
-		if (isApp() || isDesktop()) {
-			// For apps "opening" blob currently means saving it. This is not logical but we need to check all cases before changing this.
-			await this.saveBlobNative(dataFile)
-			return
-		}
-
+	async openDataFileInBrowser(dataFile: DataFile): Promise<void> {
 		try {
 			const URL = window.URL ?? window.webkitURL
 
@@ -288,20 +262,6 @@ export class FileController {
 		}
 	}
 
-	private async saveBlobNative(dataFile: DataFile) {
-		try {
-			await this.fileApp.saveBlob(dataFile)
-		} catch (e) {
-			if (e instanceof CancelledError) {
-				// no-op. User cancelled file dialog
-				console.log("saveBlob cancelled")
-			} else {
-				console.warn("openDataFile failed", e)
-				Dialog.message("canNotOpenFileOnDevice_msg")
-			}
-		}
-	}
-
 	/**
 	 * take a file location in the form of
 	 *   * a uri like file:///home/user/cat.jpg
@@ -324,18 +284,34 @@ export class FileController {
 	/**
 	 * Does not delete temporary file in app.
 	 */
-	open(file: DataFile | FileReference): Promise<void> {
-		if (file._type === "FileReference") {
-			return this.openFileReference(file)
+	async openDataFile(file: DataFile): Promise<void> {
+		if (isApp() || isDesktop()) {
+			// For apps "opening" DataFile currently means saving and opening it.
+			try {
+				const fileReference = await this.fileApp.saveDataFile(file)
+				return this.fileApp.open(fileReference)
+			} catch (e) {
+				if (e instanceof CancelledError) {
+					// no-op. User cancelled file dialog
+					console.log("saveDataFile cancelled")
+				} else {
+					console.warn("openDataFile failed", e)
+					Dialog.message("canNotOpenFileOnDevice_msg")
+				}
+				return
+			}
 		} else {
-			return this.openDataFile(file)
+			// webclient
+			if (file._type === "DataFile") {
+				return this.openDataFileInBrowser(file)
+			} else {
+				throw new ProgrammingError("can't open FileReference in browser")
+			}
 		}
 	}
 
 	private deleteFile(filePath: string) {
-		if (isApp()) {
-			this.fileApp.deleteFile(filePath).catch(e => console.log("failed to delete file", filePath, e))
-		}
+		this.fileApp.deleteFile(filePath).catch(e => console.log("failed to delete file", filePath, e))
 	}
 
 	/**
@@ -369,5 +345,24 @@ export class FileController {
 				})
 			})
 			.then((zipData: Uint8Array) => createDataFile(name, "application/zip", zipData))
+	}
+
+
+	// visible for testing
+	async downloadAndDecryptNative(tutanotaFile: TutanotaFile): Promise<FileReference> {
+		if (tutanotaFile.blobs.length === 0) {
+			return await this.fileFacade.downloadFileContentNative(tutanotaFile)
+		} else {
+			return await this.blobFacade.downloadAndDecryptNative(ArchiveDataType.Attachments, tutanotaFile.blobs, tutanotaFile, tutanotaFile.name, neverNull(tutanotaFile.mimeType))
+		}
+	}
+
+	async downloadAndDecryptBrowser(file: TutanotaFile): Promise<DataFile> {
+		if (file.blobs.length === 0) {
+			return await this.fileFacade.downloadFileContent(file)
+		} else {
+			const bytes = await this.blobFacade.downloadAndDecrypt(ArchiveDataType.Attachments, file.blobs, file)
+			return convertToDataFile(file, bytes)
+		}
 	}
 }

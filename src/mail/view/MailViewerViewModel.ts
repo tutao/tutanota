@@ -396,7 +396,7 @@ export class MailViewerViewModel {
 	}
 
 	async exportMail(): Promise<void> {
-		await exportMails([this.mail], this.entityClient, this.fileFacade)
+		await exportMails([this.mail], this.entityClient, this.fileController)
 	}
 
 	async getHeaders(): Promise<string | null> {
@@ -535,7 +535,7 @@ export class MailViewerViewModel {
 				// We can load any other part again because they are cached but inline images are fileData e.g. binary blobs so we don't cache them like
 				// entities. So instead we check here whether we need to load them.
 				if (this.loadedInlineImages == null) {
-					this.loadedInlineImages = await loadInlineImages(this.fileFacade, files, inlineCids)
+					this.loadedInlineImages = await loadInlineImages(this.fileController, files, inlineCids)
 				}
 				m.redraw()
 			} catch (e) {
