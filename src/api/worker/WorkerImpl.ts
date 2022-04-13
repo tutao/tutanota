@@ -34,12 +34,12 @@ import type {DeviceEncryptionFacade} from "./facades/DeviceEncryptionFacade"
 import type {EntropySource} from "@tutao/tutanota-crypto"
 import {aes256RandomKey, keyToBase64, random} from "@tutao/tutanota-crypto"
 import type {NativeInterface} from "../../native/common/NativeInterface"
-import type {SecondFactorAuthHandler} from "../../misc/2fa/SecondFactorHandler"
 import type {EntityRestInterface} from "./rest/EntityRestClient"
 import {WsConnectionState} from "../main/WorkerClient";
 import {RestClient} from "./rest/RestClient"
 import {IServiceExecutor} from "../common/ServiceRequest.js"
 import {BlobFacade} from "./facades/BlobFacade"
+import {ILoginListener} from "../main/LoginListener"
 
 assertWorkerOrNode()
 
@@ -70,7 +70,7 @@ export interface WorkerInterface {
 
 /** Interface for the "main"/webpage context of the app, interface for the worker client. */
 export interface MainInterface {
-	readonly secondFactorAuthenticationHandler: SecondFactorAuthHandler
+	readonly loginListener: ILoginListener
 }
 
 type WorkerRequest = Request<WorkerRequestType>
@@ -202,7 +202,6 @@ export class WorkerImpl implements NativeInterface {
 			get serviceExecutor() {
 				return locator.serviceExecutor
 			},
-
 			get cryptoFacade() {
 				return locator.crypto
 			},

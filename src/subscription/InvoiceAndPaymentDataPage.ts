@@ -99,7 +99,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 				let payPalRequestUrl = getLazyLoadedPayPalUrl()
 
 				if (logins.isUserLoggedIn()) {
-					payPalRequestUrl.getAsync()
+					logins.waitForFullLogin().then(() => payPalRequestUrl.getAsync())
 				}
 
 				this._paymentMethodInput = new PaymentMethodInput(

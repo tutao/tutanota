@@ -1,5 +1,5 @@
 import m, {Component} from "mithril"
-import type {LoggedInEvent, LoginEventHandler} from "../api/main/LoginController"
+import type {LoggedInEvent, IPostLoginAction} from "../api/main/LoginController"
 import {logins} from "../api/main/LoginController"
 import {isAdminClient, isApp, isDesktop, LOGIN_TITLE, Mode} from "../api/common/Env"
 import {assertNotNull, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
@@ -32,18 +32,18 @@ import {SecondFactorHandler} from "../misc/2fa/SecondFactorHandler"
 import {SessionType} from "../api/common/SessionType"
 import {TtlBehavior} from "../misc/UsageTestModel"
 
-export async function registerLoginListener(
+export async function addPostLoginActions(
 	credentialsProvider: ICredentialsProvider,
 	secondFactorHandler: SecondFactorHandler,
 ) {
-	logins.registerHandler(new LoginListener(credentialsProvider, secondFactorHandler))
+	logins.addPostLoginAction(new PostLoginActions(credentialsProvider, secondFactorHandler))
 }
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
  */
 
-class LoginListener implements LoginEventHandler {
+class PostLoginActions implements IPostLoginAction {
 	constructor(
 		public readonly credentialsProvider: ICredentialsProvider,
 		public secondFactorHandler: SecondFactorHandler,
@@ -112,7 +112,7 @@ class LoginListener implements LoginEventHandler {
 		if (isApp() || isDesktop()) {
 			// don't wait for it, just invoke
 			locator.fileApp.clearFileData().catch(e => console.log("Failed to clean file data", e))
-			locator.pushService.register()
+			logins.waitForFullLogin().then(() => locator.pushService.register())
 			await this.maybeSetCustomTheme()
 		}
 
@@ -120,7 +120,7 @@ class LoginListener implements LoginEventHandler {
 			const receiveInfoData = createReceiveInfoServiceData({
 				language: lang.code,
 			})
-			await locator.serviceExecutor.post(ReceiveInfoService, receiveInfoData)
+			logins.waitForFullLogin().then(() => locator.serviceExecutor.post(ReceiveInfoService, receiveInfoData))
 		}
 
 		lang.updateFormats({

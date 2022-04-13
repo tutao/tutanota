@@ -14,18 +14,11 @@ import type {Challenge} from "../../api/entities/sys/TypeRefs.js"
 import {isSameId} from "../../api/common/utils/EntityUtils"
 import {assertMainOrNode} from "../../api/common/Env"
 import type {EntityClient} from "../../api/common/EntityClient"
-import {IWebauthnClient, WebauthnClient} from "./webauthn/WebauthnClient"
+import {IWebauthnClient} from "./webauthn/WebauthnClient"
 import {SecondFactorAuthDialog} from "./SecondFactorAuthDialog"
 import type {LoginFacade} from "../../api/worker/facades/LoginFacade"
 
 assertMainOrNode()
-
-export interface SecondFactorAuthHandler {
-	/**
-	 * Shows a dialog with possibility to use second factor and with a message that the login can be approved from another client.
-	 */
-	showSecondFactorAuthenticationDialog(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null): Promise<void>
-}
 
 /**
  * Handles showing and hiding of the following dialogs:
@@ -33,7 +26,7 @@ export interface SecondFactorAuthHandler {
  * 2. Ask for approving the login on another client (setupAcceptOtherClientLoginListener() must have been called initially).
  *      If the dialog is visible and another client tries to login at the same time, that second login is ignored.
  */
-export class SecondFactorHandler implements SecondFactorAuthHandler {
+export class SecondFactorHandler {
 	readonly _eventController: EventController
 	readonly _entityClient: EntityClient
 	readonly _webauthnClient: IWebauthnClient

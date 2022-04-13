@@ -34,7 +34,6 @@ import type {RsaImplementation} from "./crypto/RsaImplementation"
 import {createRsaImplementation} from "./crypto/RsaImplementation"
 import {CryptoFacade, CryptoFacadeImpl} from "./crypto/CryptoFacade"
 import {InstanceMapper} from "./crypto/InstanceMapper"
-import type {SecondFactorAuthHandler} from "../../misc/2fa/SecondFactorHandler"
 import {EphemeralCacheStorage} from "./rest/EphemeralCacheStorage"
 import {OfflineStorage} from "./rest/OfflineStorage"
 import {exposeRemote} from "../common/WorkerProxy"
@@ -83,7 +82,6 @@ export type WorkerLocatorType = {
 	contactFormFacade: ContactFormFacade
 	deviceEncryptionFacade: DeviceEncryptionFacade
 	native: NativeInterface
-	secondFactorAuthenticationHandler: SecondFactorAuthHandler
 	rsa: RsaImplementation
 	crypto: CryptoFacade
 	instanceMapper: InstanceMapper
@@ -120,7 +118,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.cachingEntityClient = new EntityClient(locator.cache)
 	locator.indexer = new Indexer(entityRestClient, worker, browserData, locator.cache as EntityRestCache)
 	const mainInterface = worker.getMainInterface()
-	locator.secondFactorAuthenticationHandler = mainInterface.secondFactorAuthenticationHandler
 
 	const fileApp = new NativeFileApp(worker)
 	const systemApp = new NativeSystemApp(worker, fileApp)
@@ -133,7 +130,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		 * we don't want to try to use the cache in the login facade, because it may not be available (when no user is logged in)
 		 */
 		new EntityClient(locator.cache),
-		locator.secondFactorAuthenticationHandler,
+		mainInterface.loginListener,
 		locator.instanceMapper,
 		locator.crypto,
 		uninitializedStorage.initialize.bind(uninitializedStorage),

@@ -57,6 +57,7 @@ import {IServiceExecutor} from "../common/ServiceRequest.js"
 import {BlobFacade} from "../worker/facades/BlobFacade"
 import {CryptoFacade} from "../worker/crypto/CryptoFacade"
 import type {InterWindowEventBus} from "../../native/common/InterWindowEventBus"
+import {LoginListener} from "./LoginListener"
 
 assertMainOrNode()
 
@@ -102,6 +103,7 @@ export interface IMainLocator {
 	readonly serviceExecutor: IServiceExecutor
 	readonly cryptoFacade: CryptoFacade
 	readonly interWindowEventBus: InterWindowEventBus
+	readonly loginListener: LoginListener
 
 	readonly init: () => Promise<void>
 	readonly initialized: Promise<void>
@@ -144,6 +146,7 @@ class MainLocator implements IMainLocator {
 	serviceExecutor!: IServiceExecutor
 	cryptoFacade!: CryptoFacade
 	_interWindowEventBus!: InterWindowEventBus
+	loginListener!: LoginListener
 
 	private _nativeInterfaces: NativeInterfaces | null = null
 
@@ -279,6 +282,7 @@ class MainLocator implements IMainLocator {
 		this.cryptoFacade = cryptoFacade
 		this.webauthnClient = new WebauthnClient(this.webauthnController, getWebRoot())
 		this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, this.webauthnClient, this.loginFacade)
+		this.loginListener = new LoginListener(this.secondFactorHandler)
 		this.credentialsProvider = await createCredentialsProvider(deviceEncryptionFacade, this._nativeInterfaces?.native ?? null, isDesktop() ? this.interWindowEventBus : null)
 		this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient)
 		this.usageTestModel = new UsageTestModel(

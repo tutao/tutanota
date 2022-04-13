@@ -120,7 +120,8 @@ export class MailModel {
 				   })
 				   .then(folders => {
 					   return folders.filter(f => {
-						   if ((f.folderType === MailFolderType.SPAM || f.folderType === MailFolderType.ARCHIVE) && !logins.isInternalUserLoggedIn()) {
+						   // We do not show spam or archive for external users
+						   if (!logins.isInternalUserLoggedIn() && (f.folderType === MailFolderType.SPAM || f.folderType === MailFolderType.ARCHIVE)) {
 							   return false
 						   } else if (logins.isEnabled(FeatureType.InternalCommunication) && f.folderType === MailFolderType.SPAM) {
 							   return false

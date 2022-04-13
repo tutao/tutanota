@@ -19,12 +19,10 @@ type JsRequest = Request<JsRequestType>
  *
  */
 async function createMailEditor(msg: JsRequest): Promise<void> {
-	const [locator, {newMailEditorFromTemplate, newMailtoUrlMailEditor}, {logins}, signatureModule] = await Promise.all([
-		getInitializedLocator(),
-		import("../../mail/editor/MailEditor.js"),
-		import("../../api/main/LoginController.js"),
-		import("../../mail/signature/Signature"),
-	])
+	const locator = await getInitializedLocator()
+	const {newMailEditorFromTemplate, newMailtoUrlMailEditor} = await import("../../mail/editor/MailEditor.js")
+	const {logins} = await import("../../api/main/LoginController.js")
+	const signatureModule = await import("../../mail/signature/Signature")
 	const [filesUris, text, addresses, subject, mailToUrl] = msg.args
 	await logins.waitForUserLogin()
 	const mailboxDetails = await locator.mailModel.getUserMailboxDetails()

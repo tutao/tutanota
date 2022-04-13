@@ -205,8 +205,8 @@ import("./translations/en")
 			}
 		}
 
-		const loginListener = await import("./login/LoginListener")
-		await loginListener.registerLoginListener(
+		const loginListener = await import("./login/PostLoginActions")
+		await loginListener.addPostLoginActions(
 			locator.credentialsProvider,
 			locator.secondFactorHandler,
 		)
