@@ -9,39 +9,29 @@ import {
 	ServiceUnavailableError,
 	SessionExpiredError,
 } from "../api/common/error/RestError"
-import {Dialog, DialogType} from "../gui/base/Dialog"
-import {TextFieldAttrs, TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
-import m from "mithril"
+import {Dialog} from "../gui/base/Dialog"
 import {lang} from "./LanguageViewModel"
-import {assertMainOrNode, isOfflineStorageAvailable, Mode} from "../api/common/Env"
-import {AccountType, ConversationType, MailMethod} from "../api/common/TutanotaConstants"
-import {errorToString, neverNull, noOp, ofClass, typedKeys} from "@tutao/tutanota-utils"
+import {assertMainOrNode, isOfflineStorageAvailable} from "../api/common/Env"
+import {neverNull, noOp} from "@tutao/tutanota-utils"
 import {logins} from "../api/main/LoginController"
 import {OutOfSyncError} from "../api/common/error/OutOfSyncError"
-import stream from "mithril/stream"
-import Stream from "mithril/stream"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import {windowFacade} from "./WindowFacade"
-import * as notificationOverlay from "../gui/base/NotificationOverlay"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {CheckboxN} from "../gui/base/CheckboxN"
-import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {locator} from "../api/main/MainLocator"
 import {QuotaExceededError} from "../api/common/error/QuotaExceededError"
-import {copyToClipboard} from "./ClipboardUtils"
-import {px} from "../gui/size"
 import {UserError} from "../api/main/UserError"
 import {showMoreStorageNeededOrderDialog} from "./SubscriptionDialogs"
-import {createDraftRecipient} from "../api/entities/tutanota/TypeRefs.js"
-import {SessionType} from "../api/common/SessionType"
 import {showSnackBar} from "../gui/base/SnackBar"
+import {Credentials} from "./credentials/Credentials"
+import {promptForFeedbackAndSend, showErrorDialogNotLoggedIn} from "./ErrorReporter"
+import {CancelledError} from "../api/common/error/CancelledError"
+import {getLoginErrorMessage} from "./LoginUtils"
+import {SessionType} from "../api/common/SessionType"
+import {LoginIncompleteError} from "../api/common/error/LoginIncompleteError.js"
 
 assertMainOrNode()
-type FeedbackContent = {
-	message: string
-	subject: string
-}
+
 let unknownErrorDialogActive = false
 let notConnectedDialogActive = false
 let invalidSoftwareVersionActive = false
@@ -52,7 +42,7 @@ let shownQuotaError = false
 let showingImportError = false
 const ignoredMessages = ["webkitExitFullScreen", "googletag", "avast_submit"]
 
-export async function handleUncaughtError(e: Error) {
+export async function handleUncaughtErrorImpl(e: Error) {
 	if (isLoggingOut) {
 		// ignore all errors while logging out
 		return
@@ -64,21 +54,8 @@ export async function handleUncaughtError(e: Error) {
 		return
 	}
 
-	if (e instanceof ConnectionError) {
-		if (!notConnectedDialogActive) {
-			notConnectedDialogActive = true
-			showSnackBar({
-				message: "serverNotReachable_msg",
-				button: {
-					label: "ok_action",
-					click: () => {
-					}
-				},
-				onClose: () => {
-					notConnectedDialogActive = false
-				}
-			})
-		}
+	if (e instanceof ConnectionError || e instanceof LoginIncompleteError) {
+		showOfflineMessage()
 	} else if (e instanceof InvalidSoftwareVersionError) {
 		if (!invalidSoftwareVersionActive) {
 			invalidSoftwareVersionActive = true
@@ -91,44 +68,15 @@ export async function handleUncaughtError(e: Error) {
 		e instanceof AccessExpiredError
 	) {
 		// If we session is closed (e.g. password is changed) we log user out forcefully so we reload the page
-		if (!loginDialogActive) {
-			windowFacade.reload({})
-		}
+		logoutIfNoPasswordPrompt()
 	} else if (e instanceof SessionExpiredError) {
-		if (!loginDialogActive) {
-			locator.loginFacade.resetSession()
-			loginDialogActive = true
-			const errorMessage: Stream<string> = stream(lang.get("emptyString_msg"))
-			Dialog.showRequestPasswordDialog(errorMessage, {
-				allowCancel: false,
-			}).map(pw => {
-				// SessionType is Login because it can (seemingly) only happen for long-running (normal) sessions.
-				showProgressDialog(
-					"pleaseWait_msg",
-					logins.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress), pw, SessionType.Login),
-				)
-					.then(() => {
-						errorMessage("")
-						loginDialogActive = false
-					})
-					.catch(ofClass(AccessBlockedError, e => errorMessage(lang.get("loginFailedOften_msg"))))
-					.catch(ofClass(NotAuthenticatedError, e => errorMessage(lang.get("loginFailed_msg"))))
-					.catch(ofClass(AccessDeactivatedError, e => errorMessage(lang.get("loginFailed_msg"))))
-					.catch(
-						ofClass(ConnectionError, e => {
-							errorMessage(lang.get("emptyString_msg"))
-							throw e
-						}),
-					)
-					.finally(() => locator.secondFactorHandler.closeWaitingForSecondFactorDialog())
-			})
-		}
+		reloginForExpiredSession()
 	} else if (e instanceof OutOfSyncError) {
 
 		// When the user logs in and their offline database is out of sync, we just silently purge it and continue
 		// If the user is not using an offline database and they just go out of sync due to being logged in for too long,
 		// then they should log out and in again
-		const isUsingOfflineStorage = isOfflineStorageAvailable() && logins.isUserLoggedIn() && logins.getUserController().persistentSession
+		const isUsingOfflineStorage = isOfflineStorageAvailable() && logins.isUserLoggedIn() && logins.getUserController().sessionType === SessionType.Persistent
 		if (isUsingOfflineStorage) {
 			Dialog.message("dataExpiredOfflineDb_msg")
 		} else {
@@ -166,208 +114,95 @@ export async function handleUncaughtError(e: Error) {
 			// only logged in users can report errors
 			if (logins.isUserLoggedIn()) {
 				promptForFeedbackAndSend(e)
+					.then(({ignored}) => {
+						unknownErrorDialogActive = false
+						if (ignored) {
+							ignoredMessages.push(e.message)
+						}
+					})
 			} else {
 				console.log("Unknown error", e)
 				showErrorDialogNotLoggedIn(e)
+					.then(() => unknownErrorDialogActive = false)
 			}
 		}
+	}
+}
+
+function showOfflineMessage() {
+	if (!notConnectedDialogActive) {
+		notConnectedDialogActive = true
+		showSnackBar({
+			message: "serverNotReachable_msg",
+			button: {
+				label: "ok_action",
+				click: () => {
+				}
+			},
+			onClose: () => {
+				notConnectedDialogActive = false
+			}
+		})
+	}
+}
+
+function logoutIfNoPasswordPrompt() {
+	if (!loginDialogActive) {
+		windowFacade.reload({})
+	}
+}
+
+export async function reloginForExpiredSession() {
+	if (!loginDialogActive) {
+		// Make sure that partial login part is complete before we will try to make a new session.
+		// Otherwise we run into a race condition where login failure arrives before we initialize userController.
+		await logins.waitForUserLogin()
+		console.log("RELOGIN", logins.isUserLoggedIn())
+		const sessionType = logins.getUserController().sessionType
+		const userId = logins.getUserController().user._id
+		locator.loginFacade.resetSession()
+		loginDialogActive = true
+
+		const dialog = Dialog.showRequestPasswordDialog({
+			action: async (pw) => {
+				let credentials: Credentials
+				try {
+					credentials = await logins.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress), pw, sessionType)
+				} catch (e) {
+					if (e instanceof CancelledError ||
+						e instanceof AccessBlockedError ||
+						e instanceof NotAuthenticatedError ||
+						e instanceof AccessDeactivatedError ||
+						e instanceof ConnectionError
+					) {
+						return lang.getMaybeLazy(getLoginErrorMessage(e, false))
+					} else {
+						throw e
+					}
+				} finally {
+					// Once login succeeds we need to manually close the dialog
+					locator.secondFactorHandler.closeWaitingForSecondFactorDialog()
+				}
+				// Fetch old credentials to preserve database key if it's there
+				const oldCredentials = await locator.credentialsProvider.getCredentialsByUserId(userId)
+				await locator.credentialsProvider.deleteByUserId(userId, {deleteOfflineDb: false})
+				await locator.credentialsProvider.store({credentials: credentials, databaseKey: oldCredentials?.databaseKey})
+				loginDialogActive = false
+				dialog.close()
+				return ""
+			},
+			cancel: {
+				textId: "logout_label",
+				action() {
+					windowFacade.reload({})
+				},
+			}
+		})
 	}
 }
 
 function ignoredError(e: Error): boolean {
 	return e.message != null && ignoredMessages.some(s => e.message.includes(s))
-}
-
-export function promptForFeedbackAndSend(e: Error): Promise<FeedbackContent | void> {
-	const loggedIn = logins.isUserLoggedIn()
-	return new Promise(resolve => {
-		const preparedContent = prepareFeedbackContent(e, loggedIn)
-		const detailsExpanded = stream(false)
-		let userMessage = ""
-		const userMessageTextFieldAttrs: TextFieldAttrs = {
-			label: "yourMessage_label",
-			helpLabel: () => lang.get("feedbackOnErrorInfo_msg"),
-			value: stream(userMessage),
-			type: TextFieldType.Area,
-			oninput: value => (userMessage = value),
-		}
-
-		let errorOkAction = (dialog: Dialog) => {
-			unknownErrorDialogActive = false
-			preparedContent.message = userMessage + "\n" + preparedContent.message
-			resolve(preparedContent)
-			dialog.close()
-		}
-
-		const ignoreChecked = stream<boolean>()
-		notificationOverlay.show(
-			{
-				view: () =>
-					m("", [
-						"An error occurred",
-						m(CheckboxN, {
-							label: () => "Ignore the error for this session",
-							checked: ignoreChecked,
-						}),
-					]),
-			},
-			{
-				label: "close_alt",
-				click: () => {
-					addToIgnored()
-					unknownErrorDialogActive = false
-					resolve(null)
-				},
-			},
-			[
-				{
-					label: () => "Send report",
-					click: () => {
-						addToIgnored()
-						showReportDialog()
-					},
-					type: ButtonType.Secondary,
-				},
-			],
-		)
-
-		function addToIgnored() {
-			if (ignoreChecked()) {
-				ignoredMessages.push(e.message)
-			}
-		}
-
-		function showReportDialog() {
-			Dialog.showActionDialog({
-				title: lang.get("sendErrorReport_action"),
-				type: DialogType.EditMedium,
-				child: {
-					view: () => {
-						return [
-							m(TextFieldN, userMessageTextFieldAttrs),
-							m(
-								".flex-end",
-								m(
-									".right",
-									m(ExpanderButtonN, {
-										label: "details_label",
-										expanded: detailsExpanded,
-									}),
-								),
-							),
-							m(
-								ExpanderPanelN,
-								{
-									expanded: detailsExpanded,
-								},
-								m(".selectable", [
-									m(".selectable", preparedContent.subject),
-									preparedContent.message.split("\n").map(l => (l.trim() === "" ? m(".pb-m", "") : m("", l))),
-								]),
-							),
-						]
-					},
-				},
-				okAction: errorOkAction,
-				cancelAction: () => {
-					unknownErrorDialogActive = false
-					resolve(null)
-				},
-			})
-		}
-	}).then(content => {
-		if (content) {
-			sendFeedbackMail(content as FeedbackContent)
-		}
-	})
-}
-
-function prepareFeedbackContent(error: Error, loggedIn: boolean): FeedbackContent {
-	const timestamp = new Date()
-	let {message, client, type} = clientInfoString(timestamp, loggedIn)
-
-	if (error) {
-		message += errorToString(error)
-	}
-
-	const subject = `Feedback v${env.versionNumber} - ${error && error.name ? error.name : "?"} - ${type} - ${client}`
-	return {
-		message,
-		subject,
-	}
-}
-
-export function clientInfoString(
-	timestamp: Date,
-	loggedIn: boolean,
-): {
-	message: string
-	client: string
-	type: string
-} {
-	const type = loggedIn
-		? neverNull(typedKeys(AccountType).find(typeName => AccountType[typeName] === logins.getUserController().user.accountType))
-		: "UNKNOWN"
-
-	const client = (() => {
-		switch (env.mode) {
-			case Mode.Browser:
-			case Mode.Test:
-				return env.mode
-			default:
-				return env.platformId ?? ""
-		}
-	})()
-
-	let message = `\n\n Client: ${client}`
-	message += `\n Type: ${type}`
-	message += `\n Tutanota version: ${env.versionNumber}`
-	message += `\n Timestamp (UTC): ${timestamp.toUTCString()}`
-	message += `\n User agent:\n${navigator.userAgent}` + "\n"
-	return {
-		message,
-		client,
-		type,
-	}
-}
-
-export async function sendFeedbackMail(content: FeedbackContent): Promise<void> {
-	const name = ""
-	const mailAddress = "reports@tutao.de"
-	const draft = await locator.mailFacade.createDraft(
-		{
-			subject: content.subject,
-			bodyText: content.message.split("\n").join("<br>"),
-			senderMailAddress: neverNull(logins.getUserController().userGroupInfo.mailAddress),
-			senderName: "",
-			toRecipients: [
-				createDraftRecipient({
-					name,
-					mailAddress,
-				}),
-			],
-			ccRecipients: [],
-			bccRecipients: [],
-			conversationType: ConversationType.NEW,
-			previousMessageId: null,
-			attachments: [],
-			confidential: true,
-			replyTos: [],
-			method: MailMethod.NONE
-		},
-	)
-	await locator.mailFacade.sendDraft(
-		draft,
-		[
-			{
-				name,
-				mailAddress,
-				password: "",
-				isExternal: false,
-			},
-		],
-		"de",
-	)
 }
 
 /**
@@ -376,61 +211,6 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 export function disableErrorHandlingDuringLogout() {
 	isLoggingOut = true
 	showProgressDialog("loggingOut_msg", new Promise(noOp))
-}
-
-function showErrorDialogNotLoggedIn(e: Error) {
-	const content = prepareFeedbackContent(e, false)
-	const expanded = stream(false)
-	const message = content.subject + "\n\n" + content.message
-
-	const info = () => [
-		m(
-			".flex.col.items-end.plr",
-			{
-				style: {
-					marginTop: "-16px",
-				},
-			},
-			[
-				m(
-					"div.mr-negative-xs",
-					m(ExpanderButtonN, {
-						expanded,
-						label: "showMore_action",
-					}),
-				),
-			],
-		),
-		m(
-			ExpanderPanelN,
-			{
-				expanded,
-			},
-			[
-				m(
-					".flex-end.plr",
-					m(ButtonN, {
-						label: "copy_action",
-						click: () => copyToClipboard(message),
-						type: ButtonType.Secondary,
-					}),
-				),
-				m(
-					".plr.selectable.pb.scroll.text-pre",
-					{
-						style: {
-							height: px(200),
-						},
-					},
-					message,
-				),
-			],
-		),
-	]
-
-	Dialog.message("unknownError_msg", info).then(() => {
-		unknownErrorDialogActive = false
-	})
 }
 
 function handleImportError() {
@@ -461,7 +241,7 @@ function handleImportError() {
 
 if (typeof window !== "undefined") {
 	// @ts-ignore
-	window.tutao.testError = () => handleUncaughtError(new Error("test error!"))
+	window.tutao.testError = () => handleUncaughtErrorImpl(new Error("test error!"))
 }
 
 export function showUserError(error: UserError): Promise<void> {

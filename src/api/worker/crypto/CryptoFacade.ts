@@ -210,7 +210,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 					// the mail body instance is cached, so the session key is not needed any more
 					delete this._mailBodySessionKeyCache[instance._id]
 					return sessionKey
-				} else if (instance._ownerEncSessionKey && this.userFacade.isLoggedIn() && this.userFacade.hasGroup(instance._ownerGroup)) {
+				} else if (instance._ownerEncSessionKey && this.userFacade.isFullyLoggedIn() && this.userFacade.hasGroup(instance._ownerGroup)) {
 					let gk = this.userFacade.getGroupKey(instance._ownerGroup)
 					let key = instance._ownerEncSessionKey
 

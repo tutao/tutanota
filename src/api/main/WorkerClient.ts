@@ -149,8 +149,8 @@ export class WorkerClient {
 				return Promise.resolve()
 			},
 			facade: exposeLocal<MainInterface, MainRequestType>({
-				get secondFactorAuthenticationHandler() {
-					return locator.secondFactorHandler
+				get loginListener() {
+					return locator.loginListener
 				},
 			}),
 		}

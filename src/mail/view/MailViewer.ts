@@ -16,7 +16,7 @@ import {
 	SpamRuleType,
 	TabIndex,
 } from "../../api/common/TutanotaConstants"
-import type {File as TutanotaFile} from "../../api/entities/tutanota/TypeRefs.js"
+import type {File as TutanotaFile, Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {InfoLink, lang} from "../../misc/LanguageViewModel"
 import {assertMainOrNode, isAndroidApp, isDesktop, isIOSApp} from "../../api/common/Env"
 import {Dialog} from "../../gui/base/Dialog"
@@ -52,7 +52,6 @@ import {styles} from "../../gui/styles"
 import {attachDropdown, createAsyncDropdown, createDropdown, showDropdownAtPosition} from "../../gui/base/DropdownN"
 import {navButtonRoutes} from "../../misc/RouteChange"
 import {RecipientButton} from "../../gui/base/RecipientButton"
-import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {EventBanner} from "./EventBanner"
 import type {InlineImageReference} from "./MailGuiUtils"
 import {moveMails, promptAndDeleteMails, replaceCidsWithInlineImages} from "./MailGuiUtils"
@@ -1172,8 +1171,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		)
 
 		if (logins.getUserController().isInternalUser()) {
-
-			if (createContact && !logins.isEnabled(FeatureType.DisableContacts)) {
+			//searching for contacts will never resolve if the user has not logged in online
+			if (createContact && !logins.isEnabled(FeatureType.DisableContacts) && logins.isFullyLoggedIn()) {
 				const contact = await this.viewModel.contactModel.searchForContact(mailAddress.address)
 				if (contact) {
 					buttons.push({

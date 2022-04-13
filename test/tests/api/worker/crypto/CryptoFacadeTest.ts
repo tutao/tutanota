@@ -701,7 +701,7 @@ o.spec("crypto facade", function () {
 				group: "ownerGroupId",
 			})
 		})
-		when(userFacade.isLoggedIn()).thenReturn(true)
+		when(userFacade.isFullyLoggedIn()).thenReturn(true)
 		when(userFacade.getLoggedInUser()).thenReturn(user)
 		when(userFacade.hasGroup("ownerGroupId")).thenReturn(true)
 		const mail = createMailLiteral(gk, sk, subject, confidential, senderName, recipientName)

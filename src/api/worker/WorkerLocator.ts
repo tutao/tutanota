@@ -34,7 +34,6 @@ import type {RsaImplementation} from "./crypto/RsaImplementation"
 import {createRsaImplementation} from "./crypto/RsaImplementation"
 import {CryptoFacade, CryptoFacadeImpl} from "./crypto/CryptoFacade"
 import {InstanceMapper} from "./crypto/InstanceMapper"
-import type {SecondFactorAuthHandler} from "../../misc/2fa/SecondFactorHandler"
 import {EphemeralCacheStorage} from "./rest/EphemeralCacheStorage"
 import {OfflineStorage} from "./rest/OfflineStorage"
 import {exposeRemote} from "../common/WorkerProxy"
@@ -83,7 +82,6 @@ export type WorkerLocatorType = {
 	contactFormFacade: ContactFormFacade
 	deviceEncryptionFacade: DeviceEncryptionFacade
 	native: NativeInterface
-	secondFactorAuthenticationHandler: SecondFactorAuthHandler
 	rsa: RsaImplementation
 	crypto: CryptoFacade
 	instanceMapper: InstanceMapper
@@ -120,7 +118,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.cachingEntityClient = new EntityClient(locator.cache)
 	locator.indexer = new Indexer(entityRestClient, worker, browserData, locator.cache as EntityRestCache)
 	const mainInterface = worker.getMainInterface()
-	locator.secondFactorAuthenticationHandler = mainInterface.secondFactorAuthenticationHandler
 
 	const fileApp = new NativeFileApp(worker)
 	const systemApp = new NativeSystemApp(worker, fileApp)
@@ -133,7 +130,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		 * we don't want to try to use the cache in the login facade, because it may not be available (when no user is logged in)
 		 */
 		new EntityClient(locator.cache),
-		locator.secondFactorAuthenticationHandler,
+		mainInterface.loginListener,
 		locator.instanceMapper,
 		locator.crypto,
 		uninitializedStorage.initialize.bind(uninitializedStorage),
@@ -173,7 +170,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	const aesApp = new AesApp(worker)
 	locator.blob = new BlobFacade(locator.user, locator.serviceExecutor, locator.restClient, suspensionHandler, fileApp, aesApp, locator.instanceMapper, locator.crypto)
 	locator.file = new FileFacade(locator.user, locator.restClient, suspensionHandler, fileApp, aesApp, locator.instanceMapper, locator.serviceExecutor, locator.crypto)
-	locator.mail = new MailFacade(locator.user, locator.file, locator.blob, locator.cachingEntityClient, locator.crypto, locator.serviceExecutor)
+	locator.mail = new MailFacade(locator.user, locator.file, locator.cachingEntityClient, locator.crypto, locator.serviceExecutor, locator.blob)
 	// not needed for admin client
 	if (cache) {
 		locator.calendar = new CalendarFacade(locator.user, locator.groupManagement, cache, worker, worker, locator.instanceMapper, locator.serviceExecutor, locator.crypto)
@@ -197,7 +194,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	)
 	locator.login.init(locator.indexer, locator.eventBusClient)
 	locator.Const = Const
-	locator.share = new ShareFacade(locator.user, locator.crypto, locator.serviceExecutor)
+	locator.share = new ShareFacade(locator.user, locator.crypto, locator.serviceExecutor, locator.cachingEntityClient)
 	locator.giftCards = new GiftCardFacadeImpl(locator.user, locator.serviceExecutor, locator.crypto)
 	locator.configFacade = new ConfigurationDatabase(locator.user)
 	locator.contactFormFacade = new ContactFormFacadeImpl(locator.restClient, locator.instanceMapper)
@@ -220,16 +217,6 @@ function makeCacheStorage(getServerTime: () => number, worker: WorkerImpl): Late
 				const {offlineDbFacade} = exposeRemote<ExposedNativeInterface>((request) => locator.native.invokeNative(request))
 				const offlineStorage = new OfflineStorage(offlineDbFacade)
 				await offlineStorage.init(args.userId, uint8ArrayToKey(args.databaseKey))
-
-				const lastUpdateTime = await offlineStorage.getLastUpdateTime()
-				if (lastUpdateTime != null) {
-					const serverTime = getServerTime()
-					if (serverTime - lastUpdateTime > ENTITY_EVENT_BATCH_EXPIRE_MS) {
-						console.log(`Purging database for user ${args.userId} because it is out of sync`)
-						await offlineStorage.purgeStorage()
-						worker.sendError(new OutOfSyncError("database is out of sync"))
-					}
-				}
 				return offlineStorage
 			} else {
 				return new EphemeralCacheStorage()

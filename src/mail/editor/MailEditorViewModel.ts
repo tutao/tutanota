@@ -15,7 +15,8 @@ import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColor, ButtonType} from "../../gui/base/ButtonN"
-import type {File as TutanotaFile} from "../../api/entities/tutanota/TypeRefs.js"
+import type {Contact, File as TutanotaFile} from "../../api/entities/tutanota/TypeRefs.js"
+import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {FileOpenError} from "../../api/common/error/FileOpenError"
 import type {DropdownInfoAttrs} from "../../gui/base/DropdownN"
 import {attachDropdown} from "../../gui/base/DropdownN"
@@ -23,18 +24,10 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {formatStorageSize} from "../../misc/Formatter"
 import {FeatureType} from "../../api/common/TutanotaConstants"
 import {getContactDisplayName} from "../../contacts/model/ContactUtils"
-import {
-	createNewContact,
-	getDisplayText,
-	RecipientField,
-	resolveRecipientInfo,
-	resolveRecipientInfoContact
-} from "../model/MailUtils"
+import {createNewContact, getDisplayText, RecipientField, resolveRecipientInfo, resolveRecipientInfoContact} from "../model/MailUtils"
 import {Bubble, BubbleTextField} from "../../gui/base/BubbleTextField"
 import type {RecipientInfoBubble, RecipientInfoBubbleFactory} from "../../misc/RecipientInfoBubbleHandler"
 import {RecipientInfoBubbleHandler} from "../../misc/RecipientInfoBubbleHandler"
-import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
-import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {ConnectionError, TooManyRequestsError} from "../../api/common/error/RestError"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
@@ -42,7 +35,6 @@ import type {ContactModel} from "../../contacts/model/ContactModel"
 import {locator} from "../../api/main/MainLocator"
 import {FileReference} from "../../api/common/utils/FileUtils";
 import {DataFile} from "../../api/common/DataFile";
-import * as stream from "stream";
 import Stream from "mithril/stream";
 
 export function chooseAndAttachFile(
@@ -125,14 +117,14 @@ export function createAttachmentButtonAttrs(model: SendMailModel, inlineImageEle
 		]
 		return attachDropdown(
 			{
-                mainButtonAttrs: {
-                    label: () => file.name,
-                    icon: () => Icons.Attachment,
-                    type: ButtonType.Bubble,
-                    staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
-                    colors: ButtonColor.Elevated,
-                }, childAttrs: () => lazyButtonAttrs
-            },
+				mainButtonAttrs: {
+					label: () => file.name,
+					icon: () => Icons.Attachment,
+					type: ButtonType.Bubble,
+					staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
+					colors: ButtonColor.Elevated,
+				}, childAttrs: () => lazyButtonAttrs
+			},
 		)
 	})
 }
@@ -250,15 +242,15 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 		let bubble: Bubble<RecipientInfo>
 		const buttonAttrs = attachDropdown(
 			{
-                mainButtonAttrs: {
-                    label: () => getDisplayText(recipientInfo.name, recipientInfo.mailAddress, false),
-                    type: ButtonType.TextBubble,
-                    isSelected: () => false,
-                }, childAttrs: () =>
-                    recipientInfo.resolveContactPromise
-                        ? recipientInfo.resolveContactPromise.then(contact => this._createBubbleContextButtons(bubble))
-                        : Promise.resolve(this._createBubbleContextButtons(bubble)), showDropdown: undefined, width: 250
-            },
+				mainButtonAttrs: {
+					label: () => getDisplayText(recipientInfo.name, recipientInfo.mailAddress, false),
+					type: ButtonType.TextBubble,
+					isSelected: () => false,
+				}, childAttrs: () =>
+					recipientInfo.resolveContactPromise
+						? recipientInfo.resolveContactPromise.then(contact => this._createBubbleContextButtons(bubble))
+						: Promise.resolve(this._createBubbleContextButtons(bubble)), showDropdown: undefined, width: 250
+			},
 		)
 		bubble = new Bubble(recipientInfo, buttonAttrs, recipientInfo.mailAddress)
 

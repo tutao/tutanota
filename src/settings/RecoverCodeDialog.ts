@@ -1,34 +1,39 @@
 import {InfoLink, lang} from "../misc/LanguageViewModel"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {Dialog, DialogType} from "../gui/base/Dialog"
-import {neverNull} from "@tutao/tutanota-utils"
+import type {Hex} from "@tutao/tutanota-utils"
+import {neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
 import m, {Children, Vnode} from "mithril"
 import {assertMainOrNode, isApp} from "../api/common/Env"
 import {Icons} from "../gui/base/icons/Icons"
 import {copyToClipboard} from "../misc/ClipboardUtils"
 import {ButtonN} from "../gui/base/ButtonN"
 import {AccessBlockedError, NotAuthenticatedError} from "../api/common/error/RestError"
-import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
-import type {Hex} from "@tutao/tutanota-utils"
-import Stream from "mithril/stream";
 
 type Action = "get" | "create"
 assertMainOrNode()
 
 export function showRecoverCodeDialogAfterPasswordVerification(action: Action, showMessage: boolean = true) {
-	const errorMessage: Stream<string> = stream(lang.get("emptyString_msg"))
 	const userManagementFacade = locator.userManagementFacade
-	Dialog.showRequestPasswordDialog(errorMessage).map(pw =>
-		showProgressDialog("loading_msg", action === "get" ? userManagementFacade.getRecoverCode(pw) : userManagementFacade.createRecoveryCode(pw))
-			.then(recoverCode => {
-				errorMessage("")
-				showRecoverCodeDialog(recoverCode, showMessage)
-			})
-			.catch(ofClass(NotAuthenticatedError, () => errorMessage(lang.get("invalidPassword_msg"))))
-			.catch(ofClass(AccessBlockedError, () => errorMessage(lang.get("tooManyAttempts_msg")))),
-	)
+	const dialog = Dialog.showRequestPasswordDialog({
+		action: (pw) => {
+			return (action === "get" ? userManagementFacade.getRecoverCode(pw) : userManagementFacade.createRecoveryCode(pw))
+				.then(recoverCode => {
+					dialog.close()
+					showRecoverCodeDialog(recoverCode, showMessage)
+					return ""
+				})
+				.catch(ofClass(NotAuthenticatedError, () => lang.get("invalidPassword_msg")))
+				.catch(ofClass(AccessBlockedError, () => lang.get("tooManyAttempts_msg")))
+		},
+		cancel: {
+			textId: "cancel_action",
+			action: noOp,
+		}
+	})
 }
 
 export function showRecoverCodeDialog(recoverCode: Hex, showMessage: boolean): Promise<void> {

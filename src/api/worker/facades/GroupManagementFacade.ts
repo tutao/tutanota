@@ -44,24 +44,17 @@ export interface GroupManagementFacade {
 }
 
 export class GroupManagementFacadeImpl {
-	private readonly _counters: CounterFacade
-	private readonly _rsa: RsaImplementation
-	private readonly _entityClient: EntityClient
 
 	constructor(
 		private readonly user: UserFacade,
-		counters: CounterFacade,
-		entity: EntityClient,
-		rsa: RsaImplementation,
-		private readonly serivceExecutor: IServiceExecutor,
-	) {
-		this._counters = counters
-		this._entityClient = entity
-		this._rsa = rsa
-	}
+		private readonly counters: CounterFacade,
+		private readonly entityClient: EntityClient,
+		private readonly rsa: RsaImplementation,
+		private readonly serviceExecutor: IServiceExecutor,
+	) {}
 
 	readUsedGroupStorage(groupId: Id): Promise<number> {
-		return this._counters.readCounterValue(Const.COUNTER_USED_MEMORY, groupId).then(usedStorage => {
+		return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY, groupId).then(usedStorage => {
 			return Number(usedStorage)
 		})
 	}
@@ -80,7 +73,7 @@ export class GroupManagementFacadeImpl {
 		let mailGroupKey = aes128RandomKey()
 		let mailGroupInfoSessionKey = aes128RandomKey()
 		let mailboxSessionKey = aes128RandomKey()
-		const keyPair = await this._rsa.generateKey()
+		const keyPair = await this.rsa.generateKey()
 		const mailGroupData = await this.generateInternalGroupData(
 			keyPair,
 			mailGroupKey,
@@ -95,7 +88,7 @@ export class GroupManagementFacadeImpl {
 			mailEncMailboxSessionKey: encryptKey(mailGroupKey, mailboxSessionKey),
 			groupData: mailGroupData,
 		})
-		await this.serivceExecutor.post(MailGroupService, data)
+		await this.serviceExecutor.post(MailGroupService, data)
 	}
 
 	async createLocalAdminGroup(name: string): Promise<void> {
@@ -107,13 +100,13 @@ export class GroupManagementFacadeImpl {
 
 		let groupKey = aes128RandomKey()
 		let groupInfoSessionKey = aes128RandomKey()
-		const keyPair = await this._rsa.generateKey()
+		const keyPair = await this.rsa.generateKey()
 		const mailGroupData = await this.generateInternalGroupData(keyPair, groupKey, groupInfoSessionKey, adminGroupId, adminGroupKey, customerGroupKey)
 		const data = createCreateLocalAdminGroupData({
 			encryptedName: encryptString(groupInfoSessionKey, name),
 			groupData: mailGroupData,
 		})
-		await this.serivceExecutor.post(LocalAdminGroupService, data)
+		await this.serviceExecutor.post(LocalAdminGroupService, data)
 	}
 
 	/**
@@ -126,7 +119,7 @@ export class GroupManagementFacadeImpl {
 	 * @param name Name of the group
 	 */
 	generateUserAreaGroupData(name: string): Promise<UserAreaGroupData> {
-		return this._entityClient.load(GroupTypeRef, this.user.getUserGroupId()).then(userGroup => {
+		return this.entityClient.load(GroupTypeRef, this.user.getUserGroupId()).then(userGroup => {
 			const adminGroupId = neverNull(userGroup.admin) // user group has always admin group
 
 			let adminGroupKey: BitArray | null = null
@@ -159,7 +152,7 @@ export class GroupManagementFacadeImpl {
 			const serviceData = createUserAreaGroupPostData({
 				groupData: groupData,
 			})
-			return this.serivceExecutor.post(TemplateGroupService, serviceData)
+			return this.serviceExecutor.post(TemplateGroupService, serviceData)
 					   .then(returnValue => returnValue.group)
 		})
 	}
@@ -189,7 +182,7 @@ export class GroupManagementFacadeImpl {
 			group: groupId,
 			symEncGKey: encryptKey(userGroupKey, groupKey),
 		})
-		await this.serivceExecutor.post(MembershipService, data)
+		await this.serviceExecutor.post(MembershipService, data)
 	}
 
 	async removeUserFromGroup(userId: Id, groupId: Id): Promise<void> {
@@ -197,7 +190,7 @@ export class GroupManagementFacadeImpl {
 			user: userId,
 			group: groupId,
 		})
-		await this.serivceExecutor.delete(MembershipService, data)
+		await this.serviceExecutor.delete(MembershipService, data)
 	}
 
 	async deactivateGroup(group: Group, restore: boolean): Promise<void> {
@@ -207,9 +200,9 @@ export class GroupManagementFacadeImpl {
 		})
 
 		if (group.type === GroupType.Mail) {
-			await this.serivceExecutor.delete(MailGroupService, data)
+			await this.serviceExecutor.delete(MailGroupService, data)
 		} else if (group.type === GroupType.LocalAdmin) {
-			await this.serivceExecutor.delete(LocalAdminGroupService, data)
+			await this.serviceExecutor.delete(LocalAdminGroupService, data)
 		} else {
 			throw new Error("invalid group type for deactivation")
 		}
@@ -220,7 +213,7 @@ export class GroupManagementFacadeImpl {
 			// e.g. I am a global admin and want to add another user to the global admin group
 			return Promise.resolve(this.user.getGroupKey(neverNull(groupId)))
 		} else {
-			return this._entityClient.load(GroupTypeRef, groupId).then(group => {
+			return this.entityClient.load(GroupTypeRef, groupId).then(group => {
 				return Promise.resolve()
 							  .then(() => {
 								  if (group.admin && this.user.hasGroup(group.admin)) {
@@ -232,7 +225,7 @@ export class GroupManagementFacadeImpl {
 
 									  let globalAdminGroupKey = this.user.getGroupKey(globalAdminGroupId)
 
-									  return this._entityClient.load(GroupTypeRef, neverNull(group.admin)).then(localAdminGroup => {
+									  return this.entityClient.load(GroupTypeRef, neverNull(group.admin)).then(localAdminGroup => {
 										  if (localAdminGroup.admin === globalAdminGroupId) {
 											  return decryptKey(globalAdminGroupKey, neverNull(localAdminGroup.adminGroupEncGKey))
 										  } else {

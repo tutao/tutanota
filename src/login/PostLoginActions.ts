@@ -1,5 +1,5 @@
 import m, {Component} from "mithril"
-import type {LoggedInEvent, LoginEventHandler} from "../api/main/LoginController"
+import type {IPostLoginAction, LoggedInEvent} from "../api/main/LoginController"
 import {logins} from "../api/main/LoginController"
 import {isAdminClient, isApp, isDesktop, LOGIN_TITLE, Mode} from "../api/common/Env"
 import {assertNotNull, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
@@ -10,6 +10,7 @@ import {ReceiveInfoService} from "../api/entities/tutanota/Services"
 import {InfoLink, lang} from "../misc/LanguageViewModel"
 import {getHourCycle} from "../misc/Formatter"
 import type {OutOfOfficeNotification} from "../api/entities/tutanota/TypeRefs.js"
+import {createReceiveInfoServiceData} from "../api/entities/tutanota/TypeRefs.js"
 import {isNotificationCurrentlyActive, loadOutOfOfficeNotification} from "../misc/OutOfOfficeNotificationUtils"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import {ButtonType} from "../gui/base/ButtonN"
@@ -18,9 +19,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
 import {showMoreStorageNeededOrderDialog} from "../misc/SubscriptionDialogs"
 import {notifications} from "../gui/Notifications"
-import {createReceiveInfoServiceData} from "../api/entities/tutanota/TypeRefs.js"
-import {CustomerPropertiesTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {CustomerInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
+import {CustomerInfoTypeRef, CustomerPropertiesTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {LockedError} from "../api/common/error/RestError"
 import type {CredentialsDeletedEvent, ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
 import {CREDENTIALS_DELETED_EVENT} from "../misc/credentials/CredentialsProvider"
@@ -32,39 +31,33 @@ import {SecondFactorHandler} from "../misc/2fa/SecondFactorHandler"
 import {SessionType} from "../api/common/SessionType"
 import {TtlBehavior} from "../misc/UsageTestModel"
 
-export async function registerLoginListener(
-	credentialsProvider: ICredentialsProvider,
-	secondFactorHandler: SecondFactorHandler,
-) {
-	logins.registerHandler(new LoginListener(credentialsProvider, secondFactorHandler))
-}
-
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
  */
 
-class LoginListener implements LoginEventHandler {
+export class PostLoginActions implements IPostLoginAction {
 	constructor(
 		public readonly credentialsProvider: ICredentialsProvider,
 		public secondFactorHandler: SecondFactorHandler,
 	) {
 	}
 
-	async onLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
+	async onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
 		// We establish websocket connection even for temporary sessions because we need to get updates e.g. during singup
 		windowFacade.addOnlineListener(() => {
 			console.log(new Date().toISOString(), "online - try reconnect")
-			// When we try to connect after receiving online event it might not succeed so we delay reconnect attempt by 2s
-			locator.worker.tryReconnectEventBus(true, true, 2000)
+			if (logins.isFullyLoggedIn()) {
+				// When we try to connect after receiving online event it might not succeed so we delay reconnect attempt by 2s
+				locator.worker.tryReconnectEventBus(true, true, 2000)
+			} else {
+				// log in user
+				logins.retryAsyncLogin()
+			}
 		})
 		windowFacade.addOfflineListener(() => {
 			console.log(new Date().toISOString(), "offline - pause event bus")
 			locator.worker.closeEventBus(CloseEventBusOption.Pause)
 		})
-
-		if (loggedInEvent.sessionType === SessionType.Temporary) {
-			return
-		}
 
 		// only show "Tutanota" after login if there is no custom title set
 		if (!logins.getUserController().isInternalUser()) {
@@ -77,7 +70,6 @@ class LoginListener implements LoginEventHandler {
 			let postLoginTitle = document.title === LOGIN_TITLE ? "Tutanota" : document.title
 			document.title = neverNull(logins.getUserController().userGroupInfo.mailAddress) + " - " + postLoginTitle
 		}
-
 		notifications.requestPermission()
 
 		if (
@@ -89,14 +81,31 @@ class LoginListener implements LoginEventHandler {
 			// We keep doing it here for now to have some flexibility if we want to show some other option here in the future.
 			await this.credentialsProvider.setCredentialsEncryptionMode(CredentialEncryptionMode.DEVICE_LOCK)
 		}
-
 		locator.usageTestController.addTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.PossiblyOutdated))
 
-		// Do not wait
-		this.asyncActions()
+		lang.updateFormats({ // partial
+			hourCycle: getHourCycle(logins.getUserController().userSettingsGroupRoot),
+		})
+
+		if (!isAdminClient()) {
+			await locator.mailModel.init()
+		}
+		if (isApp() || isDesktop()) {
+			// don't wait for it, just invoke
+			locator.fileApp.clearFileData().catch(e => console.log("Failed to clean file data", e))
+		}
 	}
 
-	private async asyncActions() {
+	async onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
+		if (loggedInEvent.sessionType === SessionType.Temporary || !logins.getUserController().isInternalUser()) {
+			return
+		}
+
+		// Do not wait
+		this.fullLoginAsyncActions()
+	}
+
+	private async fullLoginAsyncActions() {
 		await checkApprovalStatus(logins, true)
 		await this.showUpgradeReminder()
 		await this.checkStorageWarningLimit()
@@ -104,14 +113,11 @@ class LoginListener implements LoginEventHandler {
 		this.secondFactorHandler.setupAcceptOtherClientLoginListener()
 
 		if (!isAdminClient()) {
-			await locator.mailModel.init()
 			await locator.calendarModel.init()
 			await this.remindActiveOutOfOfficeNotification()
 		}
 
 		if (isApp() || isDesktop()) {
-			// don't wait for it, just invoke
-			locator.fileApp.clearFileData().catch(e => console.log("Failed to clean file data", e))
 			locator.pushService.register()
 			await this.maybeSetCustomTheme()
 		}
@@ -120,12 +126,8 @@ class LoginListener implements LoginEventHandler {
 			const receiveInfoData = createReceiveInfoServiceData({
 				language: lang.code,
 			})
-			await locator.serviceExecutor.post(ReceiveInfoService, receiveInfoData)
+			locator.serviceExecutor.post(ReceiveInfoService, receiveInfoData)
 		}
-
-		lang.updateFormats({
-			hourCycle: getHourCycle(logins.getUserController().userSettingsGroupRoot),
-		})
 
 		// Get any tests, as soon as possible even if they are stale
 		locator.usageTestController.addTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly))
@@ -136,9 +138,9 @@ class LoginListener implements LoginEventHandler {
 			locator.interWindowEventBus.addListener(async (event) => {
 				if (event.name === CREDENTIALS_DELETED_EVENT) {
 					if ((event as CredentialsDeletedEvent).userId === logins.getUserController().user._id) {
-					await logins.logout(false)
-					await windowFacade.reload({noAutoLogin: true})
-				}
+						await logins.logout(false)
+						await windowFacade.reload({noAutoLogin: true})
+					}
 				}
 			})
 		}
@@ -199,21 +201,19 @@ class LoginListener implements LoginEventHandler {
 		}
 	}
 
-	private checkStorageWarningLimit(): Promise<void> {
+	private async checkStorageWarningLimit(): Promise<void> {
 		if (!logins.getUserController().isGlobalAdmin()) {
-			return Promise.resolve()
+			return
 		}
 
 		const customerId = assertNotNull(logins.getUserController().user.customer)
-		return locator.customerFacade.readUsedCustomerStorage(customerId).then(usedStorage => {
-			if (Number(usedStorage) > Const.MEMORY_GB_FACTOR * Const.MEMORY_WARNING_FACTOR) {
-				return locator.customerFacade.readAvailableCustomerStorage(customerId).then(availableStorage => {
-					if (Number(usedStorage) > Number(availableStorage) * Const.MEMORY_WARNING_FACTOR) {
-						showMoreStorageNeededOrderDialog(logins, "insufficientStorageWarning_msg")
-					}
-				})
+		const usedStorage = await locator.customerFacade.readUsedCustomerStorage(customerId)
+		if (Number(usedStorage) > Const.MEMORY_GB_FACTOR * Const.MEMORY_WARNING_FACTOR) {
+			const availableStorage = await locator.customerFacade.readAvailableCustomerStorage(customerId)
+			if (Number(usedStorage) > Number(availableStorage) * Const.MEMORY_WARNING_FACTOR) {
+				showMoreStorageNeededOrderDialog(logins, "insufficientStorageWarning_msg")
 			}
-		})
+		}
 	}
 
 	private showUpgradeReminder(): Promise<void> {

@@ -23,7 +23,7 @@ export class MailAddressFacade {
 	}
 
 	isMailAddressAvailable(mailAddress: string): Promise<boolean> {
-		if (this.user.isLoggedIn()) {
+		if (this.user.isFullyLoggedIn()) {
 			const data = createDomainMailAddressAvailabilityData({mailAddress})
 			return this.serviceExecutor.get(DomainMailAddressAvailabilityService, data)
 					   .then(result => result.available)

@@ -4,13 +4,14 @@ import {getColouredTutanotaLogo} from "../gui/theme"
 import {isApp, isDesktop} from "../api/common/Env"
 import {createLogFile} from "../api/common/Logger"
 import {downcast, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
-import {clientInfoString, showUserError} from "../misc/ErrorHandlerImpl"
+import {showUserError} from "../misc/ErrorHandlerImpl"
 import {locator} from "../api/main/MainLocator"
-import {InfoLink, lang} from "../misc/LanguageViewModel"
+import {InfoLink} from "../misc/LanguageViewModel"
 import {newMailEditorFromTemplate} from "../mail/editor/MailEditor"
 import {createDataFile} from "../api/common/DataFile"
 import {UserError} from "../api/main/UserError"
 import {Attachment} from "../mail/editor/SendMailModel";
+import {clientInfoString} from "../misc/ErrorReporter"
 
 export class AboutDialog implements Component {
 	view(vnode: Vnode): Children {

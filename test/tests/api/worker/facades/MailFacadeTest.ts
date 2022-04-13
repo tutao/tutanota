@@ -27,7 +27,7 @@ o.spec("MailFacade test", function () {
 		entity = object()
 		cryptoFacade = object()
 		serviceExecutor = object()
-		facade = new MailFacade(userFacade, fileFacade, blobFacade, entity, cryptoFacade, serviceExecutor)
+		facade = new MailFacade(userFacade, fileFacade, entity, cryptoFacade, serviceExecutor, blobFacade)
 	})
 
 	o.spec("checkMailForPhishing", function () {
