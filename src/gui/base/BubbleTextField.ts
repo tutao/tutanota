@@ -1,5 +1,5 @@
 import {inputLineHeight, px, size} from "../size"
-import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
+import m, {Children, Component} from "mithril"
 import {animations, fontSize, transform, TransformEnum} from "../animation/Animations"
 import {progressIcon} from "./Icon"
 import type {ButtonAttrs} from "./ButtonN"
@@ -16,8 +16,8 @@ import {TextFieldType} from "./TextFieldN"
 import {windowFacade} from "../../misc/WindowFacade"
 import {makeListSelectionChangedScrollHandler} from "./GuiUtils"
 import type {lazy} from "@tutao/tutanota-utils"
-import {assertMainOrNode} from "../../api/common/Env"
 import {assertNotNull, neverNull} from "@tutao/tutanota-utils";
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 
@@ -236,7 +236,6 @@ export class BubbleTextField<T> implements Component {
 
 		if (this.loading != null) {
 		} else if (query.length > 0 && !(this.previousQuery.length > 0 && query.indexOf(this.previousQuery) === 0 && this.suggestions.length === 0)) {
-			const loadingStartTime = Date.now()
 			this.loading = this.bubbleHandler.getSuggestions(query).then(newSuggestions => {
 				this.loading = null
 

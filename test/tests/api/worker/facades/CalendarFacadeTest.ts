@@ -145,7 +145,7 @@ o.spec("CalendarFacadeTest", async function () {
 
 
 			sendAlarmNotificationsMock = mockAttribute(calendarFacade, calendarFacade._sendAlarmNotifications, () => Promise.resolve())
-			enitityClientLoadAllMock = mockAttribute(calendarFacade._entityClient, calendarFacade._entityClient.loadAll, loadAllMock)
+			enitityClientLoadAllMock = mockAttribute(calendarFacade.entityClient, calendarFacade.entityClient.loadAll, loadAllMock)
 			entityRequestMock = mockAttribute(restClientMock, restClientMock.setupMultiple, requestSpy)
 		})
 		o.afterEach(async function () {

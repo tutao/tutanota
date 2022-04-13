@@ -148,32 +148,18 @@ interface UpdateDraftParams {
 }
 
 export class MailFacade {
-	_file: FileFacade
-	private blob: BlobFacade
-	_phishingMarkers: Set<string>
-	_deferredDraftId: IdTuple | null // the mail id of the draft that we are waiting for to be updated via websocket
-
-	_deferredDraftUpdate: Record<string, any> | null // this deferred promise is resolved as soon as the update of the draft is received
-
-	_entityClient: EntityClient
-	_crypto: CryptoFacade
+	private phishingMarkers: Set<string> = new Set()
+	private deferredDraftId: IdTuple | null = null// the mail id of the draft that we are waiting for to be updated via websocket
+	private deferredDraftUpdate: Record<string, any> | null = null // this deferred promise is resolved as soon as the update of the draft is received
 
 	constructor(
 		private readonly userFacade: UserFacade,
-		fileFacade: FileFacade,
-		blobFacade: BlobFacade,
-		entity: EntityClient,
-		crypto: CryptoFacade,
+		private readonly fileFacade: FileFacade,
+		private readonly entityClient: EntityClient,
+		private readonly crypto: CryptoFacade,
 		private readonly serviceExecutor: IServiceExecutor,
-	) {
-		this._file = fileFacade
-		this.blob = blobFacade
-		this._phishingMarkers = new Set()
-		this._deferredDraftId = null
-		this._deferredDraftUpdate = null
-		this._entityClient = entity
-		this._crypto = crypto
-	}
+		private readonly blobFacade: BlobFacade,
+	) {}
 
 	async createMailFolder(name: string, parent: IdTuple, ownerGroupId: Id): Promise<void> {
 		const mailGroupKey = this.userFacade.getGroupKey(ownerGroupId)
@@ -242,7 +228,7 @@ export class MailFacade {
 			addedAttachments: await this._createAddedAttachments(attachments, [], senderMailGroupId, mailGroupKey, await this.usingBlobs()),
 		})
 		const createDraftReturn = await this.serviceExecutor.post(DraftService, service, {sessionKey: sk})
-		return this._entityClient.load(MailTypeRef, createDraftReturn.draft)
+		return this.entityClient.load(MailTypeRef, createDraftReturn.draft)
 	}
 
 	/**
@@ -298,11 +284,11 @@ export class MailFacade {
 			removedAttachments: this._getRemovedAttachments(attachments, draft.attachments),
 			addedAttachments: await this._createAddedAttachments(attachments, draft.attachments, senderMailGroupId, mailGroupKey, await this.usingBlobs()),
 		})
-		this._deferredDraftId = draft._id
+		this.deferredDraftId = draft._id
 		// we have to wait for the updated mail because sendMail() might be called right after this update
-		this._deferredDraftUpdate = defer()
+		this.deferredDraftUpdate = defer()
 		// use a local reference here because this._deferredDraftUpdate is set to null when the event is received async
-		const deferredUpdatePromiseWrapper = this._deferredDraftUpdate
+		const deferredUpdatePromiseWrapper = this.deferredDraftUpdate
 		await this.serviceExecutor.put(DraftService, service, {sessionKey: sk})
 		return deferredUpdatePromiseWrapper.promise
 	}
@@ -312,7 +298,7 @@ export class MailFacade {
 	}
 
 	async reportMail(mail: Mail, reportType: MailReportType): Promise<void> {
-		const mailSessionKey: Aes128Key = assertNotNull(await this._crypto.resolveSessionKeyForInstance(mail))
+		const mailSessionKey: Aes128Key = assertNotNull(await this.crypto.resolveSessionKeyForInstance(mail))
 		const postData = createReportMailPostData({
 			mailId: mail._id,
 			mailSessionKey: bitArrayToUint8Array(mailSessionKey),
@@ -371,10 +357,10 @@ export class MailFacade {
 					const dataFile = downcast<DataFile>(providedFile)
 					if (useBlobs) {
 						// return
-						const referenceTokens = await this.blob.encryptAndUpload(ArchiveDataType.Attachments, dataFile.data, senderMailGroupId, fileSessionKey)
+						const referenceTokens = await this.blobFacade.encryptAndUpload(ArchiveDataType.Attachments, dataFile.data, senderMailGroupId, fileSessionKey)
 						return this.createAndEncryptDraftAttachment(referenceTokens, fileSessionKey, dataFile, mailGroupKey)
 					} else {
-						return this._file.uploadFileData(dataFile, fileSessionKey).then(fileDataId => {
+						return this.fileFacade.uploadFileData(dataFile, fileSessionKey).then(fileDataId => {
 							return this.createAndEncryptLegacyDraftAttachment(fileDataId, fileSessionKey, dataFile, mailGroupKey)
 						})
 					}
@@ -382,16 +368,16 @@ export class MailFacade {
 					const fileSessionKey = aes128RandomKey()
 					const fileRef = downcast<FileReference>(providedFile)
 					if (useBlobs) {
-						const referenceTokens = await this.blob.encryptAndUploadNative(ArchiveDataType.Attachments, fileRef.location, senderMailGroupId, fileSessionKey)
+						const referenceTokens = await this.blobFacade.encryptAndUploadNative(ArchiveDataType.Attachments, fileRef.location, senderMailGroupId, fileSessionKey)
 						return this.createAndEncryptDraftAttachment(referenceTokens, fileSessionKey, fileRef, mailGroupKey)
 					} else {
-						return this._file.uploadFileDataNative(fileRef, fileSessionKey).then(fileDataId => {
+						return this.fileFacade.uploadFileDataNative(fileRef, fileSessionKey).then(fileDataId => {
 							return this.createAndEncryptLegacyDraftAttachment(fileDataId, fileSessionKey, fileRef, mailGroupKey)
 						})
 					}
 				} else if (!containsId(existingFileIds, getLetId(providedFile))) {
 					// forwarded attachment which was not in the draft before
-					return this._crypto.resolveSessionKeyForInstance(providedFile).then(fileSessionKey => {
+					return this.crypto.resolveSessionKeyForInstance(providedFile).then(fileSessionKey => {
 						const attachment = createDraftAttachment()
 						attachment.existingFile = getLetId(providedFile)
 						attachment.ownerEncFileSessionKey = encryptKey(mailGroupKey, neverNull(fileSessionKey))
@@ -405,7 +391,7 @@ export class MailFacade {
 				.then(it => {
 					// only delete the temporary files after all attachments have been uploaded
 					if (isApp()) {
-						this._file.clearFileData().catch(e => console.warn("Failed to clear files", e))
+						this.fileFacade.clearFileData().catch(e => console.warn("Failed to clear files", e))
 					}
 
 					return it
@@ -459,8 +445,8 @@ export class MailFacade {
 		sendDraftData.mail = draft._id
 
 		for (let fileId of draft.attachments) {
-			const file = await this._entityClient.load(FileTypeRef, fileId)
-			const fileSessionKey = await this._crypto.resolveSessionKeyForInstance(file)
+			const file = await this.entityClient.load(FileTypeRef, fileId)
+			const fileSessionKey = await this.crypto.resolveSessionKeyForInstance(file)
 			const data = createAttachmentKeyData({
 				file: fileId,
 			})
@@ -475,10 +461,10 @@ export class MailFacade {
 		}
 
 		await Promise.all([
-			this._entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId()).then(tutanotaProperties => {
+			this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId()).then(tutanotaProperties => {
 				sendDraftData.plaintext = tutanotaProperties.sendPlaintextOnly
 			}),
-			this._crypto.resolveSessionKeyForInstance(draft).then(mailSessionkey => {
+			this.crypto.resolveSessionKeyForInstance(draft).then(mailSessionkey => {
 				let sk = neverNull(mailSessionkey)
 				sendDraftData.calendarMethod = draft.method !== MailMethod.NONE
 
@@ -580,13 +566,12 @@ export class MailFacade {
 			column: listId,
 			value: String(unreadMails),
 		})
-		// TODO
 		await this.serviceExecutor.post(CounterService, data)
 	}
 
 	_checkFieldForPhishing(type: ReportedMailFieldType, value: string): boolean {
 		const hash = phishingMarkerValue(type, value)
-		return this._phishingMarkers.has(hash)
+		return this.phishingMarkers.has(hash)
 	}
 
 	async _addRecipientKeyData(bucketKey: Aes128Key, service: SendDraftData, recipients: Array<RecipientDetails>, senderMailGroupId: Id): Promise<void> {
@@ -624,7 +609,7 @@ export class MailFacade {
 				data.pwEncCommunicationKey = encryptKey(passwordKey, externalGroupKeys.externalUserGroupKey)
 				service.secureExternalRecipientKeyData.push(data)
 			} else {
-				const keyData = await this._crypto.encryptBucketKeyForInternalRecipient(bucketKey, recipient.mailAddress, notFoundRecipients)
+				const keyData = await this.crypto.encryptBucketKeyForInternalRecipient(bucketKey, recipient.mailAddress, notFoundRecipients)
 
 				if (keyData) {
 					service.internalRecipientKeyData.push(keyData)
@@ -653,17 +638,17 @@ export class MailFacade {
 		externalUserGroupKey: Aes128Key
 		externalMailGroupKey: Aes128Key
 	}> {
-		return this._entityClient.loadRoot(GroupRootTypeRef, this.userFacade.getUserGroupId()).then(groupRoot => {
+		return this.entityClient.loadRoot(GroupRootTypeRef, this.userFacade.getUserGroupId()).then(groupRoot => {
 			let cleanedMailAddress = recipientMailAddress.trim().toLocaleLowerCase()
 			let mailAddressId = stringToCustomId(cleanedMailAddress)
-			return this._entityClient
+			return this.entityClient
 					   .load(ExternalUserReferenceTypeRef, [groupRoot.externalUserReferences, mailAddressId])
 					   .then(externalUserReference => {
-						   return this._entityClient.load(UserTypeRef, externalUserReference.user).then(externalUser => {
+						   return this.entityClient.load(UserTypeRef, externalUserReference.user).then(externalUser => {
 							   let mailGroupId = neverNull(externalUser.memberships.find(m => m.groupType === GroupType.Mail)).group
 							   return Promise.all([
-								   this._entityClient.load(GroupTypeRef, mailGroupId),
-								   this._entityClient.load(GroupTypeRef, externalUserReference.userGroup),
+								   this.entityClient.load(GroupTypeRef, mailGroupId),
+								   this.entityClient.load(GroupTypeRef, externalUserReference.userGroup),
 							   ]).then(([externalMailGroup, externalUserGroup]) => {
 								   let externalUserGroupKey = decryptKey(this.userFacade.getUserGroupKey(), neverNull(externalUserGroup.adminGroupEncGKey))
 								   let externalMailGroupKey = decryptKey(externalUserGroupKey, neverNull(externalMailGroup.adminGroupEncGKey))
@@ -717,15 +702,15 @@ export class MailFacade {
 	entityEventsReceived(data: EntityUpdate[]): Promise<void> {
 		return promiseMap(data, update => {
 			if (
-				this._deferredDraftUpdate &&
-				this._deferredDraftId &&
+				this.deferredDraftUpdate &&
+				this.deferredDraftId &&
 				update.operation === OperationType.UPDATE &&
 				isSameTypeRefByAttr(MailTypeRef, update.application, update.type) &&
-				isSameId(this._deferredDraftId, [update.instanceListId, update.instanceId])
+				isSameId(this.deferredDraftId, [update.instanceListId, update.instanceId])
 			) {
-				return this._entityClient.load(MailTypeRef, neverNull(this._deferredDraftId)).then(mail => {
-					let deferredPromiseWrapper = neverNull(this._deferredDraftUpdate)
-					this._deferredDraftUpdate = null
+				return this.entityClient.load(MailTypeRef, neverNull(this.deferredDraftId)).then(mail => {
+					let deferredPromiseWrapper = neverNull(this.deferredDraftUpdate)
+					this.deferredDraftUpdate = null
 					deferredPromiseWrapper.resolve(mail)
 				})
 			}
@@ -735,9 +720,9 @@ export class MailFacade {
 	phishingMarkersUpdateReceived(markers: Array<PhishingMarker>) {
 		markers.forEach(marker => {
 			if (marker.status === PhishingMarkerStatus.INACTIVE) {
-				this._phishingMarkers.delete(marker.marker)
+				this.phishingMarkers.delete(marker.marker)
 			} else {
-				this._phishingMarkers.add(marker.marker)
+				this.phishingMarkers.add(marker.marker)
 			}
 		})
 	}
@@ -752,13 +737,13 @@ export class MailFacade {
 
 	_getMailGroupIdForMailAddress(user: User, mailAddress: string): Promise<Id> {
 		return promiseFilter(getUserGroupMemberships(user, GroupType.Mail), groupMembership => {
-			return this._entityClient.load(GroupTypeRef, groupMembership.group).then(mailGroup => {
+			return this.entityClient.load(GroupTypeRef, groupMembership.group).then(mailGroup => {
 				if (mailGroup.user == null) {
-					return this._entityClient.load(GroupInfoTypeRef, groupMembership.groupInfo).then(mailGroupInfo => {
+					return this.entityClient.load(GroupInfoTypeRef, groupMembership.groupInfo).then(mailGroupInfo => {
 						return contains(getEnabledMailAddressesForGroupInfo(mailGroupInfo), mailAddress)
 					})
 				} else if (isSameId(mailGroup.user, user._id)) {
-					return this._entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo).then(userGroupInfo => {
+					return this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo).then(userGroupInfo => {
 						return contains(getEnabledMailAddressesForGroupInfo(userGroupInfo), mailAddress)
 					})
 				} else {
@@ -796,7 +781,7 @@ export class MailFacade {
 		if (!user || user.accountType === AccountType.EXTERNAL) {
 			return false // externals and contact form users can't load the customer (missing permission) so we do not enable blob storage for them yet
 		}
-		const customer = await this._entityClient.load(CustomerTypeRef, assertNotNull(user.customer))
+		const customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(user.customer))
 		return customer.customizations.some(f => f.feature === FeatureType.Blobs)
 	}
 }

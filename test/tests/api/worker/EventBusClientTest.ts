@@ -112,7 +112,7 @@ o.spec("EventBusClient test", function () {
 
 		userMock = object("user")
 		when(userMock.getLoggedInUser()).thenReturn(user)
-		when(userMock.isLoggedIn()).thenReturn(true)
+		when(userMock.isFullyLoggedIn()).thenReturn(true)
 		when(userMock.createAuthHeaders()).thenReturn({})
 
 		mailMock = object("mail")

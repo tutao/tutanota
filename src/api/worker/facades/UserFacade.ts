@@ -2,7 +2,9 @@ import {GroupType} from "../../common/TutanotaConstants"
 import {decryptKey} from "@tutao/tutanota-crypto"
 import {assertNotNull, getFromMap} from "@tutao/tutanota-utils"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
-import {createWebsocketLeaderStatus, GroupInfo, GroupMembership, User, WebsocketLeaderStatus} from "../../entities/sys/TypeRefs"
+import {createWebsocketLeaderStatus, GroupMembership, User, WebsocketLeaderStatus} from "../../entities/sys/TypeRefs"
+import {Aes128Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
+import {LoginIncompleteError} from "../../common/error/LoginIncompleteError"
 
 export interface AuthHeadersProvider {
 	/**
@@ -14,7 +16,6 @@ export interface AuthHeadersProvider {
 /** Holder for the user and session-related data on the worker side. */
 export class UserFacade implements AuthHeadersProvider {
 	private user: User | null = null
-	private userGroupInfo: GroupInfo | null = null
 	private accessToken: string | null = null
 	/** A cache for decrypted keys of each group. Encrypted keys are stored on membership.symEncGKey. */
 	private groupKeys: Map<Id, Aes128Key> = new Map()
@@ -24,15 +25,28 @@ export class UserFacade implements AuthHeadersProvider {
 		this.reset()
 	}
 
-	// Login process is somehow multi-step and we don't use a separate network stack for it. So we have to break up setters
-	// 1. We need to download user. For that we need to set access token already.
-	// 2. We need to download userGroupInfo. For that we need user and user group key.
+	// Login process is somehow multi-step and we don't use a separate network stack for it. So we have to break up setters.
+	// 1. We need to download user. For that we need to set access token already (to authenticate the request for the server as its passed in headers).
+	// 2. We need to get group keys. For that we need to unlock userGroupKey with userPasspharseKey
 	// so this leads to this steps in UserFacade:
 	// 1. Access token is set
-	// 2. User and user group key are set
-	// 3. UserGroupInfo is set
-	setUser(user: User, userPassphraseKey: Aes128Key) {
+	// 2. User is set
+	// 3. UserGroupKey is unlocked
+	setAccessToken(accessToken: string | null) {
+		this.accessToken = accessToken
+	}
+
+	setUser(user: User) {
+		if (this.accessToken == null) {
+			throw new ProgrammingError("invalid state: no access token")
+		}
 		this.user = user
+	}
+
+	unlockUserGroupKey(userPassphraseKey: Aes128Key) {
+		if (this.user == null) {
+			throw new ProgrammingError("Invalid state: no user")
+		}
 		this.groupKeys.set(this.getUserGroupId(), decryptKey(userPassphraseKey, this.user.userGroup.symEncGKey))
 	}
 
@@ -43,16 +57,8 @@ export class UserFacade implements AuthHeadersProvider {
 		this.user = user
 	}
 
-	setUserGroupInfo(userGroupInfo: GroupInfo) {
-		this.userGroupInfo = userGroupInfo
-	}
-
 	getUser(): User | null {
 		return this.user
-	}
-
-	setAccessToken(accessToken: string | null) {
-		this.accessToken = accessToken
 	}
 
 	/**
@@ -70,10 +76,6 @@ export class UserFacade implements AuthHeadersProvider {
 		return this.getLoggedInUser().userGroup.group
 	}
 
-	getUserGroupInfo(): GroupInfo {
-		return assertNotNull(this.userGroupInfo)
-	}
-
 	getAllGroupIds(): Id[] {
 		let groups = this.getLoggedInUser().memberships.map(membership => membership.group)
 		groups.push(this.getLoggedInUser().userGroup.group)
@@ -82,7 +84,17 @@ export class UserFacade implements AuthHeadersProvider {
 
 	getUserGroupKey(): Aes128Key {
 		// the userGroupKey is always written after the login to this.groupKeys
-		return assertNotNull(this.groupKeys.get(this.getUserGroupId()), "User is not logged in")
+		//if the user has only logged in offline this has not happened
+		const userGroupKey = this.groupKeys.get(this.getUserGroupId())
+		if (userGroupKey == null) {
+			if (this.isPartiallyLoggedIn()) {
+				throw new LoginIncompleteError("userGroupKey not available")
+			} else {
+				throw new ProgrammingError("Invalid state: userGroupKey is not available")
+			}
+		}
+		return userGroupKey
+
 	}
 
 	getGroupKey(groupId: Id): Aes128Key {
@@ -105,7 +117,7 @@ export class UserFacade implements AuthHeadersProvider {
 		if (!this.user) {
 			return false
 		} else {
-			return groupId === this.user.userGroup.group || this.user.memberships.find(m => m.group === groupId) != null
+			return groupId === this.user.userGroup.group || this.user.memberships.some(m => m.group === groupId)
 		}
 	}
 
@@ -129,8 +141,13 @@ export class UserFacade implements AuthHeadersProvider {
 				   .map(gm => gm.group)
 	}
 
-	isLoggedIn(): boolean {
+	isPartiallyLoggedIn(): boolean {
 		return this.user != null
+	}
+
+	isFullyLoggedIn(): boolean {
+		// We have userGroupKey and we can decrypt any other key - we are good to go
+		return this.groupKeys != null
 	}
 
 	getLoggedInUser(): User {
@@ -148,7 +165,6 @@ export class UserFacade implements AuthHeadersProvider {
 
 	reset() {
 		this.user = null
-		this.userGroupInfo = null
 		this.accessToken = null
 		this.groupKeys = new Map()
 		this.leaderStatus = createWebsocketLeaderStatus({

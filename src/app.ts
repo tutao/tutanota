@@ -19,6 +19,7 @@ import {ProgrammingError} from "./api/common/error/ProgrammingError"
 import {CurrentView} from "./gui/base/Header"
 import {NativeWebauthnView} from "./login/NativeWebauthnView"
 import {WebauthnNativeBridge} from "./native/main/WebauthnNativeBridge"
+import {PostLoginActions} from "./login/PostLoginActions"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -200,11 +201,9 @@ import("./translations/en")
 			}
 		}
 
-		const loginListener = await import("./login/LoginListener")
-		await loginListener.registerLoginListener(
-			locator.credentialsProvider,
-			locator.secondFactorHandler,
-		)
+		const {PostLoginActions} = await import("./login/PostLoginActions")
+		logins.addPostLoginAction(new PostLoginActions(locator.credentialsProvider, locator.secondFactorHandler))
+
 		styles.init()
 		const {usingKeychainAuthentication} = await import("./misc/credentials/CredentialsProviderFactory")
 

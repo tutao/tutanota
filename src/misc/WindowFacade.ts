@@ -214,11 +214,11 @@ class WindowFacade {
 		}
 	}
 
-	addOnlineListener(listener: (...args: Array<any>) => any) {
+	addOnlineListener(listener: () => void) {
 		window.addEventListener("online", listener)
 	}
 
-	addOfflineListener(listener: (...args: Array<any>) => any) {
+	addOfflineListener(listener: () => void) {
 		window.addEventListener("offline", listener)
 	}
 

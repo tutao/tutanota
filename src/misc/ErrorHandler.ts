@@ -48,8 +48,8 @@ export async function handleUncaughtError(e: Error) {
 	console.log("error", e, e.stack)
 
 	try {
-		const {handleUncaughtError} = await importErrorHandler()
-		await handleUncaughtError(e)
+		const {handleUncaughtErrorImpl} = await importErrorHandler()
+		await handleUncaughtErrorImpl(e)
 	} catch (e) {
 		console.error("Encountered error when trying to handle errors with ErrorHandlerImpl", e)
 	}

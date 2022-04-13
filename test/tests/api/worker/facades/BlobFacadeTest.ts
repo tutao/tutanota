@@ -38,7 +38,7 @@ const {anything, captor} = matchers
 
 o.spec("BlobFacade test", function () {
 	let facade: BlobFacade
-	let authHeadersProvider: AuthHeadersProvider
+	let authHeadersProviderMock: AuthHeadersProvider
 	let serviceMock: ServiceExecutor
 	let restClientMock: RestClient
 	let suspensionHandlerMock: SuspensionHandler
@@ -53,9 +53,7 @@ o.spec("BlobFacade test", function () {
 
 
 	o.beforeEach(function () {
-		authHeadersProvider = {
-			createAuthHeaders: () => ({})
-		}
+		authHeadersProviderMock = object<AuthHeadersProvider>()
 		serviceMock = object<ServiceExecutor>()
 		restClientMock = instance(RestClient)
 		suspensionHandlerMock = instance(SuspensionHandler)
@@ -64,7 +62,7 @@ o.spec("BlobFacade test", function () {
 		instanceMapperMock = instance(InstanceMapper)
 		cryptoFacadeMock = object<CryptoFacade>()
 
-		facade = new BlobFacade(authHeadersProvider, serviceMock, restClientMock, suspensionHandlerMock, fileAppMock, aesAppMock, instanceMapperMock, cryptoFacadeMock)
+		facade = new BlobFacade(authHeadersProviderMock, serviceMock, restClientMock, suspensionHandlerMock, fileAppMock, aesAppMock, instanceMapperMock, cryptoFacadeMock)
 	})
 
 	o.afterEach(function () {

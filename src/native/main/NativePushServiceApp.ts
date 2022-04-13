@@ -24,6 +24,7 @@ export class NativePushServiceApp {
 	}
 
 	async register(): Promise<void> {
+		console.log("Registering for push notifications")
 		if (isAndroidApp() || isDesktop()) {
 			try {
 				const identifier = (await this._loadPushIdentifierFromNative()) ?? (await locator.worker.generateSsePushIdentifer())
@@ -61,11 +62,12 @@ export class NativePushServiceApp {
 		}
 	}
 
-	invalidateAlarms(): Promise<void> {
+	async invalidateAlarms(): Promise<void> {
 		console.log("invalidating alarms")
 		deviceConfig.setNoAlarmsScheduled()
 
 		if (logins.isUserLoggedIn()) {
+			await logins.waitForFullLogin()
 			return this.register()
 		} else {
 			return Promise.resolve()

@@ -11,6 +11,7 @@ import type {ContactModel} from "../contacts/model/ContactModel"
 import {stringToNameAndMailAddress} from "./parsing/MailAddressParser"
 import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
+import {LoginIncompleteError} from "../api/common/error/LoginIncompleteError"
 
 export type RecipientInfoBubble = Bubble<RecipientInfo>
 
@@ -53,7 +54,10 @@ export class RecipientInfoBubbleHandler implements BubbleHandler<RecipientInfo, 
 					return []
 				}
 			}),
-		)
+		).catch(ofClass(LoginIncompleteError, () => {
+				return []
+			}
+		))
 		const suggestions = contacts
 			.map(contact => {
 				let name = `${contact.firstName} ${contact.lastName}`.trim()

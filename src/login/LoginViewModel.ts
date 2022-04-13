@@ -281,8 +281,13 @@ export class LoginViewModel implements ILoginViewModel {
 				const credentials = await this.credentialsProvider.getCredentialsByUserId(this._autoLoginCredentials.userId)
 
 				if (credentials) {
-					await this.loginController.resumeSession(credentials)
-					await this._onLogin()
+					const result = await this.loginController.resumeSession(credentials)
+					if (result.type == "success") {
+						await this._onLogin()
+					} else {
+						this.state = LoginState.NotAuthenticated
+						this.helpText = "offlineLoginRequiresPremium_msg"
+					}
 				}
 			}
 		} catch (e) {

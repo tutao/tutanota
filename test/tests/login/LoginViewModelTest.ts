@@ -12,6 +12,7 @@ import {CredentialAuthenticationError} from "../../../src/api/common/error/Crede
 import type {Credentials} from "../../../src/misc/credentials/Credentials.js"
 import {SessionType} from "../../../src/api/common/SessionType.js";
 import {instance, matchers, object, replace, verify, when} from "testdouble"
+import {ResumeSessionErrorReason} from "../../../src/api/worker/facades/LoginFacade"
 import {AccessExpiredError, NotAuthenticatedError} from "../../../src/api/common/error/RestError.js"
 import {DatabaseKeyFactory} from "../../../src/misc/credentials/DatabaseKeyFactory.js"
 
@@ -222,6 +223,7 @@ o.spec("LoginViewModelTest", () => {
 	o.spec("Login with stored credentials", function () {
 		o("login should succeed with valid stored credentials", async function () {
 			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
+			when(loginControllerMock.resumeSession({credentials: testCredentials, databaseKey: null})).thenResolve({type: "success"})
 			const viewModel = await getViewModel()
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
@@ -231,6 +233,7 @@ o.spec("LoginViewModelTest", () => {
 		})
 		o("login should succeed with valid stored credentials in DeleteCredentials display mode", async function () {
 			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
+			when(loginControllerMock.resumeSession({credentials: testCredentials, databaseKey: null})).thenResolve({type: "success"})
 			const viewModel = await getViewModel()
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
@@ -275,6 +278,19 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.displayMode).equals(DisplayMode.Form)
 			o(viewModel.getSavedCredentials()).deepEquals([])
 			verify(credentialsProviderMock.clearCredentials(anything()), {times: 1})
+		})
+		o("should handle error result", async function () {
+			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
+			when(loginControllerMock.resumeSession({credentials: testCredentials, databaseKey: null})).thenResolve({
+				type: "error",
+				reason: ResumeSessionErrorReason.OfflineNotAvailableForFree
+			})
+			const viewModel = await getViewModel()
+
+			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
+			await viewModel.login()
+			verify(loginControllerMock.resumeSession({credentials: testCredentials, databaseKey: null}), {times: 1})
+			o(viewModel.state).equals(LoginState.NotAuthenticated)
 		})
 	})
 	o.spec("Login with email and password", function () {

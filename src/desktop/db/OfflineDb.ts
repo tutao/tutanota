@@ -38,7 +38,7 @@ export class OfflineDb {
 
 	private openDatabase(dbPath: string) {
 		this.db = new sqlite(dbPath, {
-			//TODO remove ts-ignore once proper definition of Options exists, see https://github.com/DefinitelyTyped/DefinitelyTyped/discussions/59049#
+			// Remove ts-ignore once proper definition of Options exists, see https://github.com/DefinitelyTyped/DefinitelyTyped/discussions/59049#
 			// @ts-ignore missing type
 			nativeBinding: this.nativeBindingPath,
 			// verbose: (message, args) => {
@@ -54,7 +54,6 @@ export class OfflineDb {
 	 * - Sqlcipher generates a database salt value randomly and stores in the first 16 bytes of the database.
 	 * - We pass the database key directly to sqlcipher rather than using a password and therefore do not configure key derivation.
 	 * - we assume that adding entropy to entropy pool of the crypto provide (cipher_add_random) "is not necessary [...], since [openssl] does (re-)seed itself automatically using trusted system entropy sources", https://www.openssl.org/docs/man1.1.1/man3/RAND_add.html
-	 * TODO migrate database if needed
 	 * @param databaseKey
 	 * @param wipe if true the the memory security option (that was default until 4.5, https://www.zetetic.net/blog/2021/10/28/sqlcipher-4.5.0-release/) to wipe memory allocated by SQLite internally, including the page cache is enabled.
 	 * @param integrityCheck: if true the hmac stored with each page of the database is verified to detect modification.
