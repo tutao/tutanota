@@ -26,7 +26,8 @@ export class LateInitializedCacheStorageImpl implements LateInitializedCacheStor
 
 	constructor(
 		private factory: (args: StorageInitArgs) => Promise<CacheStorage>
-	) {}
+	) {
+	}
 
 	private get inner(): CacheStorage {
 		if (this._inner == null) {
@@ -37,11 +38,8 @@ export class LateInitializedCacheStorageImpl implements LateInitializedCacheStor
 	}
 
 	async initialize(args: StorageInitArgs): Promise<void> {
-		if (this._inner != null) {
-			// throw new ProgrammingError("Tried to initialize storage  twice!")
-			// FIXME is this correct?
-			return
-		}
+		// We might call this multiple times.
+		// This happens when persistent credentials login fails and we need to start with new cache for new login.
 		this._inner = await this.factory(args)
 	}
 

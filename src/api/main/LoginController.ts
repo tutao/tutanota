@@ -1,44 +1,56 @@
 import type {DeferredObject} from "@tutao/tutanota-utils"
-import {assertNotNull, defer, remove} from "@tutao/tutanota-utils"
-import {assertMainOrNodeBoot, getHttpOrigin} from "../common/Env"
+import {assertNotNull, defer} from "@tutao/tutanota-utils"
+import {assertMainOrNodeBoot} from "../common/Env"
 import type {IUserController, UserControllerInitData} from "./UserController"
 import {getWhitelabelCustomizations} from "../../misc/WhitelabelCustomizations"
 import {NotFoundError} from "../common/error/RestError"
 import {client} from "../../misc/ClientDetector"
 import type {LoginFacade} from "../worker/facades/LoginFacade"
+import {ResumeSessionErrorReason} from "../worker/facades/LoginFacade"
 import type {Credentials} from "../../misc/credentials/Credentials"
 import {FeatureType} from "../common/TutanotaConstants";
 import {CredentialsAndDatabaseKey} from "../../misc/credentials/CredentialsProvider"
 import {SessionType} from "../common/SessionType"
+import {IMainLocator} from "./MainLocator"
 
 assertMainOrNodeBoot()
 
-export interface LoginEventHandler {
-	onLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void>
+export interface IPostLoginAction {
+	/** Partial login is achieved with getting the user, can happen offline. The login will wait for the returned promise. */
+	onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void>
+
+	/** Full login is achieved with getting group keys. Can do service calls from this point on. */
+	onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void>
 }
 
 export type LoggedInEvent = {
 	readonly sessionType: SessionType
 }
 
+export type ResumeSessionResult =
+	| {type: "success"}
+	| {type: "error", reason: ResumeSessionErrorReason}
+
 export interface LoginController {
 	createSession(username: string, password: string, sessionType: SessionType, databaseKey?: Uint8Array | null): Promise<Credentials>
 
 	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, sessionType: SessionType): Promise<Credentials>
 
-	resumeSession(credentials: CredentialsAndDatabaseKey, externalUserSalt?: Uint8Array): Promise<void>
+	resumeSession(credentials: CredentialsAndDatabaseKey, externalUserSalt?: Uint8Array): Promise<ResumeSessionResult>
 
 	isUserLoggedIn(): boolean
 
+	isFullyLoggedIn(): boolean
+
 	waitForUserLogin(): Promise<void>
+
+	waitForFullLogin(): Promise<void>
 
 	isInternalUserLoggedIn(): boolean
 
 	isGlobalAdminUserLoggedIn(): boolean
 
 	getUserController(): IUserController
-
-	isProdDisabled(): boolean
 
 	isEnabled(feature: FeatureType): boolean
 
@@ -48,28 +60,46 @@ export interface LoginController {
 
 	deleteOldSession(credentials: Credentials): Promise<void>
 
-	registerHandler(handler: LoginEventHandler): void
+	addPostLoginAction(handler: IPostLoginAction): void
 
-	unregisterHandler(handler: LoginEventHandler): void
+	retryAsyncLogin(): Promise<void>
 }
 
 export class LoginControllerImpl implements LoginController {
-	private _userController: IUserController | null = null
-	customizations: NumberString[] | null = null
-	waitForLogin: DeferredObject<void> = defer()
+	private userController: IUserController | null = null
+	private customizations: NumberString[] | null = null
+	private userLogin: DeferredObject<void> = defer()
 	private _isWhitelabel: boolean = !!getWhitelabelCustomizations(window)
-	private _loginEventHandlers: Array<LoginEventHandler> = []
+	private postLoginActions: Array<IPostLoginAction> = []
+	private fullyLoggedIn: boolean = false
 
-	async _getLoginFacade(): Promise<LoginFacade> {
+	async init() {
+		this.waitForFullLogin().then(async () => {
+			this.fullyLoggedIn = true
+			await this.waitForUserLogin()
+			for (const action of this.postLoginActions) {
+				await action.onFullLoginSuccess({
+					sessionType: this.getUserController().sessionType
+				})
+			}
+		})
+	}
+
+	private async getMainLocator(): Promise<IMainLocator> {
 		const {locator} = await import("./MainLocator")
 		await locator.initialized
+		return locator
+	}
+
+	private async getLoginFacade(): Promise<LoginFacade> {
+		const locator = await this.getMainLocator()
 		const worker = locator.worker
 		await worker.initialized
 		return locator.loginFacade
 	}
 
 	async createSession(username: string, password: string, sessionType: SessionType, databaseKey: Uint8Array | null): Promise<Credentials> {
-		const loginFacade = await this._getLoginFacade()
+		const loginFacade = await this.getLoginFacade()
 		const {user, credentials, sessionId, userGroupInfo} = await loginFacade.createSession(
 			username,
 			password,
@@ -77,44 +107,41 @@ export class LoginControllerImpl implements LoginController {
 			sessionType,
 			databaseKey
 		)
-		await this.onLoginSuccess(
+		await this.onPartialLoginSuccess(
 			{
 				user,
 				userGroupInfo,
 				sessionId,
 				accessToken: credentials.accessToken,
-				persistentSession: sessionType === SessionType.Persistent,
+				sessionType,
 			},
 			sessionType,
 		)
 		return credentials
 	}
 
-	registerHandler(handler: LoginEventHandler) {
-		this._loginEventHandlers.push(handler)
+	addPostLoginAction(handler: IPostLoginAction) {
+		this.postLoginActions.push(handler)
 	}
 
-	unregisterHandler(handler: LoginEventHandler) {
-		remove(this._loginEventHandlers, handler)
-	}
-
-	async onLoginSuccess(initData: UserControllerInitData, sessionType: SessionType): Promise<void> {
+	async onPartialLoginSuccess(initData: UserControllerInitData, sessionType: SessionType): Promise<void> {
 		const {initUserController} = await import("./UserController")
-		this._userController = await initUserController(initData)
+		this.userController = await initUserController(initData)
+
 		await this.loadCustomizations()
 		await this._determineIfWhitelabel()
 
-		for (const handler of this._loginEventHandlers) {
-			await handler.onLoginSuccess({
+		for (const handler of this.postLoginActions) {
+			await handler.onPartialLoginSuccess({
 				sessionType,
 			})
 		}
 
-		this.waitForLogin.resolve()
+		this.userLogin.resolve()
 	}
 
 	async createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, sessionType: SessionType): Promise<Credentials> {
-		const loginFacade = await this._getLoginFacade()
+		const loginFacade = await this.getLoginFacade()
 		const persistentSession = sessionType === SessionType.Persistent
 		const {
 			user,
@@ -122,11 +149,11 @@ export class LoginControllerImpl implements LoginController {
 			sessionId,
 			userGroupInfo
 		} = await loginFacade.createExternalSession(userId, password, salt, clientIdentifier, persistentSession)
-		await this.onLoginSuccess(
+		await this.onPartialLoginSuccess(
 			{
 				user,
 				accessToken: credentials.accessToken,
-				persistentSession,
+				sessionType,
 				sessionId,
 				userGroupInfo,
 			},
@@ -135,27 +162,45 @@ export class LoginControllerImpl implements LoginController {
 		return credentials
 	}
 
-	async resumeSession({credentials, databaseKey}: CredentialsAndDatabaseKey, externalUserSalt?: Uint8Array): Promise<void> {
-		const loginFacade = await this._getLoginFacade()
-		const {user, userGroupInfo, sessionId} = await loginFacade.resumeSession(credentials, externalUserSalt ?? null, databaseKey ?? null)
-		await this.onLoginSuccess(
-			{
-				user,
-				accessToken: credentials.accessToken,
-				userGroupInfo,
-				sessionId,
-				persistentSession: true,
-			},
-			SessionType.Persistent,
-		)
+	async resumeSession({credentials, databaseKey}: CredentialsAndDatabaseKey, externalUserSalt?: Uint8Array): Promise<ResumeSessionResult> {
+		const loginFacade = await this.getLoginFacade()
+		const resumeResult = await loginFacade.resumeSession(credentials, externalUserSalt ?? null, databaseKey ?? null)
+		if (resumeResult.type === "error") {
+			return resumeResult
+		} else {
+			const {user, userGroupInfo, sessionId} = resumeResult.data
+			await this.onPartialLoginSuccess(
+				{
+					user,
+					accessToken: credentials.accessToken,
+					userGroupInfo,
+					sessionId,
+					sessionType: SessionType.Persistent,
+				},
+				SessionType.Persistent,
+			)
+			return {type: "success"}
+		}
 	}
 
 	isUserLoggedIn(): boolean {
-		return this._userController != null
+		return this.userController != null
+	}
+
+	isFullyLoggedIn(): boolean {
+		return this.fullyLoggedIn
 	}
 
 	waitForUserLogin(): Promise<void> {
-		return this.waitForLogin.promise
+		return this.userLogin.promise
+	}
+
+	async waitForFullLogin(): Promise<void> {
+		const locator = await this.getMainLocator()
+		// Full login event might be received before we finish userLogin on the client side because they are done in parallel.
+		// So we make sure to wait for userLogin first.
+		await this.waitForUserLogin()
+		return locator.loginListener.waitForFullLogin()
 	}
 
 	isInternalUserLoggedIn(): boolean {
@@ -167,17 +212,7 @@ export class LoginControllerImpl implements LoginController {
 	}
 
 	getUserController(): IUserController {
-		return assertNotNull(this._userController) // only to be used after login (when user is defined)
-	}
-
-	isProdDisabled(): boolean {
-		// we enable certain features only for certain customers in prod
-		return (
-			getHttpOrigin().startsWith("https://mail.tutanota") &&
-			this._userController != null &&
-			this._userController.user.customer !== "Kq3X5tF--7-0" &&
-			this._userController.user.customer !== "Jwft3IR--7-0"
-		)
+		return assertNotNull(this.userController) // only to be used after login (when user is defined)
 	}
 
 	isEnabled(feature: FeatureType): boolean {
@@ -197,10 +232,10 @@ export class LoginControllerImpl implements LoginController {
 	}
 
 	async logout(sync: boolean): Promise<void> {
-		if (this._userController) {
-			await this._userController.deleteSession(sync)
-			this._userController = null
-			this.waitForLogin = defer()
+		if (this.userController) {
+			await this.userController.deleteSession(sync)
+			this.userController = null
+			this.userLogin = defer()
 		} else {
 			console.log("No session to delete")
 		}
@@ -215,7 +250,7 @@ export class LoginControllerImpl implements LoginController {
 	}
 
 	async deleteOldSession(credentials: Credentials): Promise<void> {
-		const loginFacade = await this._getLoginFacade()
+		const loginFacade = await this.getLoginFacade()
 
 		try {
 			await loginFacade.deleteSession(credentials.accessToken)
@@ -227,6 +262,15 @@ export class LoginControllerImpl implements LoginController {
 			}
 		}
 	}
+
+	async retryAsyncLogin() {
+		const loginFacade = await this.getLoginFacade()
+		await loginFacade.retryAsyncLogin()
+	}
 }
 
-export const logins: LoginController = new LoginControllerImpl()
+const loginController = new LoginControllerImpl()
+export const logins: LoginController = loginController
+
+// Should be called elsewhere later e.g. in mainLocator
+loginController.init()

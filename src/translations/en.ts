@@ -1443,6 +1443,7 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"offlineLoginRequiresPremium_msg": "Offline login requires premium subscription."
 	}
 }

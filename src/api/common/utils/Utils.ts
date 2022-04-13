@@ -1,11 +1,8 @@
 //@bundleInto:common-min
 
 import type {EntityUpdateData} from "../../main/EventController"
-import type {CustomerInfo} from "../../entities/sys/TypeRefs.js"
-import type {EntityUpdate} from "../../entities/sys/TypeRefs.js"
-import type {MailBody} from "../../entities/tutanota/TypeRefs.js"
-import type {MailHeaders} from "../../entities/tutanota/TypeRefs.js"
-import type {DomainInfo} from "../../entities/sys/TypeRefs.js"
+import type {Customer, CustomerInfo, DomainInfo, EntityUpdate} from "../../entities/sys/TypeRefs.js"
+import type {MailBody, MailHeaders} from "../../entities/tutanota/TypeRefs.js"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -44,7 +41,6 @@ import {CancelledError} from "../error/CancelledError"
 import {FileOpenError} from "../error/FileOpenError"
 import {PermissionError} from "../error/PermissionError"
 import {FileNotFoundError} from "../error/FileNotFoundError"
-import type {Customer} from "../../entities/sys/TypeRefs.js"
 import {DeviceStorageUnavailableError} from "../error/DeviceStorageUnavailableError"
 import {MailBodyTooLargeError} from "../error/MailBodyTooLargeError"
 import {CredentialAuthenticationError} from "../error/CredentialAuthenticationError"
@@ -53,6 +49,7 @@ import type {FeatureType, OperationType} from "../TutanotaConstants"
 import {ImportError} from "../error/ImportError"
 import {WebauthnError} from "../error/WebauthnError"
 import {SuspensionError} from "../error/SuspensionError.js"
+import {LoginIncompleteError} from "../error/LoginIncompleteError.js"
 
 export function getWhitelabelDomain(customerInfo: CustomerInfo, domainName?: string): DomainInfo | null {
 	return customerInfo.domainInfos.find(info => info.whitelabelConfig != null && (domainName == null || info.domain === domainName)) ?? null
@@ -119,6 +116,7 @@ const ErrorNameToType = {
 	ImportError,
 	WebauthnError,
 	SuspensionError,
+	LoginIncompleteError,
 	Error,
 	"java.net.SocketTimeoutException": ConnectionError,
 	"java.net.SocketException": ConnectionError,

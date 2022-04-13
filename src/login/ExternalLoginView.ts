@@ -1,9 +1,7 @@
 import m, {Children} from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {
-	AccessExpiredError,
-} from "../api/common/error/RestError"
+import {AccessExpiredError,} from "../api/common/error/RestError"
 import {assertNotNull, base64ToUint8Array, base64UrlToBase64} from "@tutao/tutanota-utils"
 import type {TranslationText} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
@@ -15,7 +13,6 @@ import {progressIcon} from "../gui/base/Icon"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN, TextFieldType as TextFieldType} from "../gui/base/TextFieldN"
 import {CheckboxN} from "../gui/base/CheckboxN"
-import {CancelledError} from "../api/common/error/CancelledError"
 import {logins} from "../api/main/LoginController"
 import {MessageBoxN} from "../gui/base/MessageBoxN"
 import {renderPrivacyAndImprintLinks} from "./LoginView"
@@ -27,6 +24,7 @@ import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider
 import {assertMainOrNode} from "../api/common/Env"
 import type {Credentials} from "../misc/credentials/Credentials"
 import {SessionType} from "../api/common/SessionType.js";
+import {ResumeSessionErrorReason} from "../api/worker/facades/LoginFacade"
 
 assertMainOrNode()
 
@@ -139,11 +137,21 @@ export class ExternalLoginView implements CurrentView {
 		this._autologinInProgress = true
 		showProgressDialog(
 			"login_msg",
-			this._handleSession(logins.resumeSession({credentials, databaseKey: null}, assertNotNull(this._urlData).salt), () => {
+			this._handleSession(this.resumeSession(credentials), () => {
 				this._autologinInProgress = false
 				m.redraw()
 			}),
 		)
+	}
+
+	private async resumeSession(credentials: Credentials): Promise<void> {
+		const result = await logins.resumeSession({credentials, databaseKey: null}, assertNotNull(this._urlData).salt)
+		if (result.type === "error") {
+			switch (result.reason) {
+				case ResumeSessionErrorReason.OfflineNotAvailableForFree:
+					throw new Error("Cannot happen")
+			}
+		}
 	}
 
 	async _formLogin() {

@@ -4,7 +4,6 @@ import {showSpellcheckLanguageDialog} from "../../gui/dialogs/SpellcheckLanguage
 import {CancelledError} from "../../api/common/error/CancelledError"
 import {noOp, ofClass} from "@tutao/tutanota-utils"
 import m from "mithril";
-import {Shortcut} from "../../misc/KeyManager"
 
 type JsRequest = Request<JsRequestType>
 
@@ -19,12 +18,10 @@ type JsRequest = Request<JsRequestType>
  *
  */
 async function createMailEditor(msg: JsRequest): Promise<void> {
-	const [locator, {newMailEditorFromTemplate, newMailtoUrlMailEditor}, {logins}, signatureModule] = await Promise.all([
-		getInitializedLocator(),
-		import("../../mail/editor/MailEditor.js"),
-		import("../../api/main/LoginController.js"),
-		import("../../mail/signature/Signature"),
-	])
+	const locator = await getInitializedLocator()
+	const {newMailEditorFromTemplate, newMailtoUrlMailEditor} = await import("../../mail/editor/MailEditor.js")
+	const {logins} = await import("../../api/main/LoginController.js")
+	const signatureModule = await import("../../mail/signature/Signature")
 	const [filesUris, text, addresses, subject, mailToUrl] = msg.args
 	await logins.waitForUserLogin()
 	const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
@@ -112,12 +109,11 @@ const addShortcuts = (msg: JsRequest): Promise<void> => {
 	})
 }
 
-function reportError(msg: JsRequest): Promise<any> {
-	return Promise.all([import("../../misc/ErrorHandlerImpl.js"), import("../../api/main/LoginController.js")]).then(
-		([{promptForFeedbackAndSend}, {logins}]) => {
-			return logins.waitForUserLogin().then(() => promptForFeedbackAndSend(msg.args[0]))
-		},
-	)
+async function reportError(msg: JsRequest): Promise<void> {
+	const {promptForFeedbackAndSend} = await import("../../misc/ErrorReporter.js")
+	const {logins} = await import("../../api/main/LoginController.js")
+	await logins.waitForUserLogin()
+	await promptForFeedbackAndSend(msg.args[0] as Error)
 }
 
 let disconnectTimeoutId: TimeoutID | null

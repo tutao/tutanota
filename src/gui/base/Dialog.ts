@@ -8,7 +8,7 @@ import {ease} from "../animation/Easing"
 import type {TranslationKey, TranslationText} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import type {KeyPress, Shortcut} from "../../misc/KeyManager"
-import {focusNext, focusPrevious, keyManager} from "../../misc/KeyManager"
+import {focusNext, focusPrevious, isKeyPressed, keyManager} from "../../misc/KeyManager"
 import {getElevatedBackground} from "../theme"
 import {px, size} from "../size"
 import {HabReminderImage} from "./icons/Icons"
@@ -31,6 +31,8 @@ import type {DialogInjectionRightAttrs} from "./DialogInjectionRight"
 import {DialogInjectionRight} from "./DialogInjectionRight"
 import {assertMainOrNode} from "../../api/common/Env"
 import {ConnectionError} from "../../api/common/error/RestError"
+import {Icon} from "./Icon"
+import {BootIcons} from "./icons/BootIcons"
 
 assertMainOrNode()
 export const INPUT = "input, textarea, div[contenteditable='true']"
@@ -906,43 +908,71 @@ export class Dialog implements ModalComponent {
 
 	/**
 	 * Requests a password from the user. Stays open until the caller sets the error message to "".
-	 * @param errorMessage a stream of error messages that will be shown as the password field help text. should not start with "", but with lang.get("emptyString_msg")
+	 * @param props.action will be executed as an attempt to apply new password. Error message is the return value.
 	 * @returns a stream of entered passwords
 	 */
 	static showRequestPasswordDialog(
-		errorMessage: Stream<string>,
-		props: {allowCancel: boolean} = {allowCancel: true},
-	): Stream<string> {
-		const out: Stream<string> = stream()
+		props: {
+			action: (pw: string) => Promise<string>
+			cancel: {
+				textId: TranslationKey,
+				action: () => void,
+			} | null
+		},
+	): Dialog {
 		const value: Stream<string> = stream("")
-		const textFieldAttrs: TextFieldAttrs = {
-			label: "password_label",
-			helpLabel: errorMessage,
-			value: value,
-			preventAutofill: true,
-			type: TextFieldType.Password,
-			keyHandler: (key: KeyPress) => {
-				if (key.keyCode === 13) {
-					//return
-					out(value())
-					return false
-				}
+		let state: {type: "progress"} | {type: "idle", message: string} = {type: "idle", message: ""}
 
-				return true
+		const doAction = async () => {
+			state = {type: "progress"}
+			m.redraw()
+			const errorMessage = await props.action(value())
+			state = {type: "idle", message: errorMessage}
+			m.redraw()
+		}
+
+		const child = {
+			view: () => {
+				const savedState = state
+				return (savedState.type == "idle")
+					? m(TextFieldN, {
+						label: "password_label",
+						helpLabel: () => savedState.message,
+						value: value,
+						preventAutofill: true,
+						type: TextFieldType.Password,
+						keyHandler: (key: KeyPress) => {
+							if (isKeyPressed(key.keyCode, Keys.RETURN)) {
+								doAction()
+								return false
+							}
+
+							return true
+						},
+					})
+					: m(Icon, {
+						icon: BootIcons.Progress,
+						class: "icon-xl icon-progress block mt mb",
+						style: {
+							marginLeft: 'auto',
+							marginRight: 'auto',
+						}
+					})
 			},
 		}
 		const dialog = Dialog.showActionDialog({
 			title: lang.get("password_label"),
-			child: {
-				view: () => m(TextFieldN, textFieldAttrs),
-			},
+			child: child,
 			allowOkWithReturn: true,
-			okAction: () => out(value()),
-			allowCancel: props.allowCancel,
-			cancelAction: () => dialog.close(),
+			okAction: () => doAction(),
+			cancelActionTextId: props.cancel?.textId,
+			allowCancel: props.cancel != null,
+			cancelAction: () => {
+				props?.cancel?.action?.()
+				dialog.close()
+			},
 		})
-		errorMessage.map(v => (v ? m.redraw() : dialog.close()))
-		return out
+		return dialog
 	}
 
 	static _onKeyboardSizeChanged(newSize: number): void {
