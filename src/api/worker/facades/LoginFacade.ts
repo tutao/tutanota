@@ -1,4 +1,4 @@
-import type {Base64Url, Hex} from "@tutao/tutanota-utils"
+import type {Base64Url, DeferredObject, Hex} from "@tutao/tutanota-utils"
 import {
 	assertNotNull,
 	Base64,
@@ -157,6 +157,8 @@ export interface LoginFacade {
 	resetSecondFactors(mailAddress: string, password: string, recoverCode: Hex): Promise<void>
 
 	decryptUserPassword(userId: string, deviceToken: string, encryptedPassword: string): Promise<string>
+
+	retryAsyncLogin(): Promise<void>
 }
 
 export class LoginFacadeImpl implements LoginFacade {
@@ -170,10 +172,13 @@ export class LoginFacadeImpl implements LoginFacade {
 	/**
 	 * Used for cancelling second factor immediately
 	 */
-	private _loggingInPromiseWrapper:
-		| {promise: Promise<void>, reject: (arg0: Error) => void}
-		| null
-		| undefined
+	private loggingInPromiseWrapper: DeferredObject<void> | null = null
+
+	/** On platforms with offline cache we do the actual login asynchronously and we can retry it. This is the state of such async login. */
+	private asyncLoginState:
+		| {state: "idle"}
+		| {state: "running"}
+		| {state: "failed", credentials: Credentials} = {state: "idle"}
 
 	constructor(
 		readonly worker: WorkerImpl,
@@ -276,9 +281,9 @@ export class LoginFacadeImpl implements LoginFacade {
 			p = this._waitUntilSecondFactorApproved(createSessionReturn.accessToken, sessionId, 0)
 		}
 
-		this._loggingInPromiseWrapper = defer()
+		this.loggingInPromiseWrapper = defer()
 		// Wait for either login or cancel
-		return Promise.race([this._loggingInPromiseWrapper.promise, p]).then(() => ({
+		return Promise.race([this.loggingInPromiseWrapper.promise, p]).then(() => ({
 			sessionId,
 			accessToken: createSessionReturn.accessToken,
 			userId: createSessionReturn.user,
@@ -373,7 +378,7 @@ export class LoginFacadeImpl implements LoginFacade {
 					  console.warn("Tried to cancel second factor but it was not there anymore", e)
 				  }))
 		this._loginRequestSessionId = null
-		this._loggingInPromiseWrapper && this._loggingInPromiseWrapper.reject(new CancelledError("login cancelled"))
+		this.loggingInPromiseWrapper?.reject(new CancelledError("login cancelled"))
 	}
 
 	/** @inheritDoc */
@@ -396,42 +401,65 @@ export class LoginFacadeImpl implements LoginFacade {
 		this.userFacade.setAccessToken(credentials.accessToken)
 
 		const usingOfflineStorage = await this.initCache(credentials.userId, databaseKey)
-		const sessionId: IdTuple = [this._getSessionListId(credentials.accessToken), this._getSessionElementId(credentials.accessToken)]
-
-		const loadAndInitSession = async () => {
-			const sessionData = await this._loadSessionData(credentials.accessToken)
-			const passphrase = utf8Uint8ArrayToString(aes128Decrypt(sessionData.accessKey, base64ToUint8Array(neverNull(credentials.encryptedPassword))))
-			let userPassphraseKey: Aes128Key
-
-			if (externalUserSalt) {
-				userPassphraseKey = generateKeyFromPassphrase(passphrase, externalUserSalt, KeyLength.b128)
-			} else {
-				userPassphraseKey = await this._loadUserPassphraseKey(credentials.login, passphrase)
-			}
-
-			const {user, userGroupInfo} = await this.initSession(sessionData.userId, credentials.accessToken, userPassphraseKey, SessionType.Persistent)
-			return {
-				user,
-				userGroupInfo,
-				sessionId: sessionId,
-			}
-		}
+		const sessionId = this.getSessionId(credentials)
 
 		if (usingOfflineStorage) {
 			const user = await this.entityClient.load(UserTypeRef, credentials.userId)
 			this.userFacade.setUser(user)
 			this.loginListener.onPartialLoginSuccess()
 			// noinspection ES6MissingAwait: it's started async on purpose
-			loadAndInitSession()
+			this.asyncResumeSession(credentials)
 			return {
 				user,
 				userGroupInfo: await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo),
 				sessionId,
 			}
 		} else {
-			return loadAndInitSession()
+			return this.finishResumeSession(credentials, externalUserSalt)
 		}
 	}
+
+	private getSessionId(credentials: Credentials): IdTuple {
+		return [this._getSessionListId(credentials.accessToken), this._getSessionElementId(credentials.accessToken)]
+	}
+
+	private async asyncResumeSession(credentials: Credentials): Promise<void> {
+		if (this.asyncLoginState.state === "running") {
+			throw new Error("finishLoginResume run in parallel")
+		}
+		this.asyncLoginState = {state: "running"}
+
+		try {
+			await this.finishResumeSession(credentials, null)
+		} catch (e) {
+			this.asyncLoginState = {state: "failed", credentials}
+			throw e
+		}
+	}
+
+	private async finishResumeSession(credentials: Credentials, externalUserSalt: Uint8Array | null) {
+		const sessionId = this.getSessionId(credentials)
+		const sessionData = await this._loadSessionData(credentials.accessToken)
+		const passphrase = utf8Uint8ArrayToString(aes128Decrypt(sessionData.accessKey, base64ToUint8Array(neverNull(credentials.encryptedPassword))))
+		let userPassphraseKey: Aes128Key
+
+		if (externalUserSalt) {
+			userPassphraseKey = generateKeyFromPassphrase(passphrase, externalUserSalt, KeyLength.b128)
+		} else {
+			userPassphraseKey = await this._loadUserPassphraseKey(credentials.login, passphrase)
+		}
+
+		const {user, userGroupInfo} = await this.initSession(sessionData.userId, credentials.accessToken, userPassphraseKey, SessionType.Persistent)
+
+		this.asyncLoginState = {state: "idle"}
+
+		return {
+			user,
+			userGroupInfo,
+			sessionId,
+		}
+	}
+
 
 	private async initSession(
 		userId: Id,
@@ -830,6 +858,16 @@ export class LoginFacadeImpl implements LoginFacade {
 			) {
 				this.userFacade.setUserGroupInfo(await this.entityClient.load(GroupInfoTypeRef, this.userFacade.getUserGroupInfo()._id))
 			}
+		}
+	}
+
+	async retryAsyncLogin(): Promise<void> {
+		if (this.asyncLoginState.state === "running") {
+			return
+		} else if (this.asyncLoginState.state === "failed") {
+			await this.asyncResumeSession(this.asyncLoginState.credentials)
+		} else {
+			throw new Error("credentials went missing")
 		}
 	}
 }

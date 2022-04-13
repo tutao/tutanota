@@ -1,5 +1,5 @@
 import m, {Component} from "mithril"
-import type {LoggedInEvent, IPostLoginAction} from "../api/main/LoginController"
+import type {IPostLoginAction, LoggedInEvent} from "../api/main/LoginController"
 import {logins} from "../api/main/LoginController"
 import {isAdminClient, isApp, isDesktop, LOGIN_TITLE, Mode} from "../api/common/Env"
 import {assertNotNull, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
@@ -54,8 +54,13 @@ class PostLoginActions implements IPostLoginAction {
 		// We establish websocket connection even for temporary sessions because we need to get updates e.g. during singup
 		windowFacade.addOnlineListener(() => {
 			console.log(new Date().toISOString(), "online - try reconnect")
-			// When we try to connect after receiving online event it might not succeed so we delay reconnect attempt by 2s
-			locator.worker.tryReconnectEventBus(true, true, 2000)
+			if (logins.isFullyLoggedIn()) {
+				// When we try to connect after receiving online event it might not succeed so we delay reconnect attempt by 2s
+				locator.worker.tryReconnectEventBus(true, true, 2000)
+			} else {
+				// log in user
+				logins.retryAsyncLogin()
+			}
 		})
 		windowFacade.addOfflineListener(() => {
 			console.log(new Date().toISOString(), "offline - pause event bus")

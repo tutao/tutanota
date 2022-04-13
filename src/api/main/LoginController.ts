@@ -31,6 +31,8 @@ export interface LoginController {
 
 	isUserLoggedIn(): boolean
 
+	isFullyLoggedIn(): boolean
+
 	waitForUserLogin(): Promise<void>
 
 	waitForFullLogin(): Promise<void>
@@ -50,15 +52,23 @@ export interface LoginController {
 	deleteOldSession(credentials: Credentials): Promise<void>
 
 	addPostLoginAction(handler: IPostLoginAction): void
+
+	retryAsyncLogin(): Promise<void>
 }
 
 export class LoginControllerImpl implements LoginController {
 	private userController: IUserController | null = null
 	private customizations: NumberString[] | null = null
 	private userLogin: DeferredObject<void> = defer()
-	private fullLogin: DeferredObject<void> = defer()
 	private _isWhitelabel: boolean = !!getWhitelabelCustomizations(window)
 	private postLoginActions: Array<IPostLoginAction> = []
+	private fullyLoggedIn: boolean = false
+
+	async init() {
+		this.waitForFullLogin().then(() => {
+			this.fullyLoggedIn = true
+		})
+	}
 
 	private async getMainLocator(): Promise<IMainLocator> {
 		const {locator} = await import("./MainLocator")
@@ -155,6 +165,10 @@ export class LoginControllerImpl implements LoginController {
 		return this.userController != null
 	}
 
+	isFullyLoggedIn(): boolean {
+		return this.fullyLoggedIn
+	}
+
 	waitForUserLogin(): Promise<void> {
 		return this.userLogin.promise
 	}
@@ -223,6 +237,15 @@ export class LoginControllerImpl implements LoginController {
 			}
 		}
 	}
+
+	async retryAsyncLogin() {
+		const loginFacade = await this.getLoginFacade()
+		await loginFacade.retryAsyncLogin()
+	}
 }
 
-export const logins: LoginController = new LoginControllerImpl()
+const loginController = new LoginControllerImpl()
+export const logins: LoginController = loginController
+
+// Should be called elsewhere later e.g. in mainLocator
+loginController.init()
