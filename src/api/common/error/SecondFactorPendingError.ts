@@ -1,7 +1,7 @@
 //@bundleInto:common-min
 
 import {TutanotaError} from "./TutanotaError"
-import type {Challenge} from "../../entities/sys/Challenge"
+import type {Challenge} from "../../entities/sys/TypeRefs.js"
 
 export class SecondFactorPendingError extends TutanotaError {
 	data: {

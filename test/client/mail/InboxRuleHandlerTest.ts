@@ -1,12 +1,12 @@
 import o from "ospec"
 import {_findMatchingRule, _matchesRegularExpression} from "../../../src/mail/model/InboxRuleHandler"
-import type {InboxRule} from "../../../src/api/entities/tutanota/InboxRule"
-import {createInboxRule} from "../../../src/api/entities/tutanota/InboxRule"
+import type {InboxRule} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {createInboxRule} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {EntityRestClientMock} from "../../api/worker/EntityRestClientMock"
 import {EntityClient} from "../../../src/api/common/EntityClient"
-import type {Mail} from "../../../src/api/entities/tutanota/Mail"
-import {createMail} from "../../../src/api/entities/tutanota/Mail"
-import {createMailAddress} from "../../../src/api/entities/tutanota/MailAddress"
+import type {Mail} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {createMail} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {createMailAddress} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {InboxRuleType} from "../../../src/api/common/TutanotaConstants"
 o.spec("InboxRuleHandlerTest", function () {
     o.spec("Test _matchesRegularExpression", function () {

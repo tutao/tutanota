@@ -1,8 +1,8 @@
 import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import {lang} from "../misc/LanguageViewModel"
-import type {CreditCard} from "../api/entities/sys/CreditCard"
-import {createCreditCard} from "../api/entities/sys/CreditCard"
+import type {CreditCard} from "../api/entities/sys/TypeRefs.js"
+import {createCreditCard} from "../api/entities/sys/TypeRefs.js"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import Stream from "mithril/stream";
 

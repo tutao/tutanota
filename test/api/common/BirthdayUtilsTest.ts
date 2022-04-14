@@ -1,5 +1,5 @@
 import o from "ospec"
-import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
+import {createBirthday} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {birthdayToIsoDate, isoDateToBirthday} from "../../../src/api/common/utils/BirthdayUtils"
 import {ParsingError} from "../../../src/api/common/error/ParsingError"
 import {TutanotaError} from "../../../src/api/common/error/TutanotaError"

@@ -1,7 +1,7 @@
 import type {Dialog} from "../../gui/base/Dialog"
 import type {SendMailModel} from "../editor/SendMailModel"
 import {lastThrow, remove} from "@tutao/tutanota-utils"
-import type {Mail} from "../../api/entities/tutanota/Mail"
+import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {isSameId} from "../../api/common/utils/EntityUtils"
 import Stream from "mithril/stream";
 

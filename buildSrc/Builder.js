@@ -84,28 +84,6 @@ async function prepareAssets(stage, host, version) {
 	}
 }
 
-/**
- * Use model map with all the TypeModels inlined so that worker doesn't have to async import them
- * which doesn't work in non-Blink browsers at the moment.
- * This is not ideal as nollup puts them into every chunk which uses modelMap but it'll do for now.
- */
-function debugModels() {
-	return {
-		name: "debug-models",
-		resolveId(id) {
-			const imports = {
-				"../entities/base/baseModelMap": "src/api/entities/base/baseModelMapDebug.ts",
-				"../entities/sys/sysModelMap": "src/api/entities/sys/sysModelMapDebug.ts",
-				"../entities/tutanota/tutanotaModelMap": "src/api/entities/tutanota/tutanotaModelMapDebug.ts",
-				"../entities/monitor/monitorModelMap": "src/api/entities/monitor/monitorModelMapDebug.ts",
-				"../entities/accounting/accountingModelMap": "src/api/entities/accounting/accountingModelMapDebug.ts",
-				"../entities/storage/storageModelMap": "src/api/entities/storage/storageModelMapDebug.ts",
-			}
-			return imports[id]
-		}
-	}
-}
-
 export async function preBuild({}, {}, log) {
 }
 
@@ -116,7 +94,6 @@ async function bundleWeb(nollup, devServerPort, log, start) {
 	const bundle = await nollup({
 		input: ["src/app.ts", "src/api/worker/worker.ts"],
 		plugins: [
-			debugModels(), // must be before typescript or it won't be able to pick it up
 			...rollupDebugPlugins(path.resolve("."), {outDir: "build"}),
 			devServerPort ? hmr({bundleId: '', hmrHost: `localhost:${devServerPort}`, verbose: true}) : false,
 			bundleDependencyCheckPlugin(),

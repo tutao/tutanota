@@ -1,21 +1,21 @@
 import type {CryptoFacade} from "../crypto/CryptoFacade"
-import {encryptBytes, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
-import type {GroupInfo} from "../../entities/sys/GroupInfo"
-import {_TypeModel as GroupInfoTypeModel} from "../../entities/sys/GroupInfo"
+import {encryptBytes, encryptString} from "../crypto/CryptoFacade"
+import type {GroupInfo, ReceivedGroupInvitation} from "../../entities/sys/TypeRefs.js"
 import type {ShareCapability} from "../../common/TutanotaConstants"
-import {createSharedGroupData} from "../../entities/tutanota/SharedGroupData"
+import type {GroupInvitationPostReturn} from "../../entities/tutanota/TypeRefs.js"
+import {
+	createGroupInvitationDeleteData,
+	createGroupInvitationPostData,
+	createGroupInvitationPutData,
+	createSharedGroupData
+} from "../../entities/tutanota/TypeRefs.js"
 import {neverNull} from "@tutao/tutanota-utils"
 import {RecipientsNotFoundError} from "../../common/error/RecipientsNotFoundError"
 import {LoginFacadeImpl} from "./LoginFacade"
-import {createGroupInvitationPostData} from "../../entities/tutanota/GroupInvitationPostData"
-import {createGroupInvitationPutData} from "../../entities/tutanota/GroupInvitationPutData"
-import {createGroupInvitationDeleteData} from "../../entities/tutanota/GroupInvitationDeleteData"
-import type {GroupInvitationPostReturn} from "../../entities/tutanota/GroupInvitationPostReturn"
-import type {ReceivedGroupInvitation} from "../../entities/sys/ReceivedGroupInvitation"
 import {assertWorkerOrNode} from "../../common/Env"
 import {aes128RandomKey, bitArrayToUint8Array, encryptKey, uint8ArrayToBitArray} from "@tutao/tutanota-crypto"
 import {IServiceExecutor} from "../../common/ServiceRequest"
-import {GroupInvitationService} from "../../entities/tutanota/Services"
+import {GroupInvitationService} from "../../entities/tutanota/Services.js"
 
 assertWorkerOrNode()
 
@@ -40,8 +40,8 @@ export class ShareFacade {
 	): Promise<GroupInvitationPostReturn> {
 		const sharedGroupKey = this._loginFacade.getGroupKey(sharedGroupInfo.group)
 
-		const userGroupInfoSessionKey = await resolveSessionKey(GroupInfoTypeModel, this._loginFacade.getUserGroupInfo())
-		const sharedGroupInfoSessionKey = await resolveSessionKey(GroupInfoTypeModel, sharedGroupInfo)
+		const userGroupInfoSessionKey = await this._crypto.resolveSessionKeyForInstance(this._loginFacade.getUserGroupInfo())
+		const sharedGroupInfoSessionKey = await this._crypto.resolveSessionKeyForInstance(sharedGroupInfo)
 		const bucketKey = aes128RandomKey()
 		const invitationSessionKey = aes128RandomKey()
 		const sharedGroupData = createSharedGroupData({
@@ -75,7 +75,7 @@ export class ShareFacade {
 	}
 
 	async acceptGroupInvitation(invitation: ReceivedGroupInvitation): Promise<void> {
-		const userGroupInfoSessionKey = await resolveSessionKey(GroupInfoTypeModel, this._loginFacade.getUserGroupInfo())
+		const userGroupInfoSessionKey = await this._crypto.resolveSessionKeyForInstance(this._loginFacade.getUserGroupInfo())
 		const sharedGroupKey = uint8ArrayToBitArray(invitation.sharedGroupKey)
 		const serviceData = createGroupInvitationPutData({
 			receivedInvitation: invitation._id,

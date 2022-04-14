@@ -2,11 +2,11 @@ import {OperationType} from "../../common/TutanotaConstants"
 import {containsEventOfType, getEventOfType} from "../../common/utils/Utils"
 import {assertNotNull, findAllAndRemove, isSameTypeRefByAttr, remove} from "@tutao/tutanota-utils"
 import {ConnectionError, ServiceUnavailableError} from "../../common/error/RestError"
-import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
+import type {EntityUpdate} from "../../entities/sys/TypeRefs.js"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
-import {MailTypeRef} from "../../entities/tutanota/Mail"
+import {MailTypeRef} from "../../entities/tutanota/TypeRefs.js"
 import {isSameId} from "../../common/utils/EntityUtils"
-import {CustomerInfoTypeRef} from "../../entities/sys/CustomerInfo"
+import {CustomerInfoTypeRef} from "../../entities/sys/TypeRefs.js"
 import {EntityUpdateData} from "../../main/EventController";
 
 export type QueuedBatch = {

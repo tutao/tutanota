@@ -1,5 +1,5 @@
 import {InfoLink, lang} from "../../misc/LanguageViewModel"
-import type {TutanotaProperties} from "../../api/entities/tutanota/TutanotaProperties"
+import type {TutanotaProperties} from "../../api/entities/tutanota/TypeRefs.js"
 import {EmailSignatureType as TutanotaConstants} from "../../api/common/TutanotaConstants"
 import {LINE_BREAK} from "../model/MailUtils"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"

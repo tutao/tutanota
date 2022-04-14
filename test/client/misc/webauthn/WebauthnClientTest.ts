@@ -3,8 +3,8 @@ import {matchers, object, when} from "testdouble"
 import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {WebauthnClient} from "../../../../src/misc/2fa/webauthn/WebauthnClient.js"
 import {IWebauthn} from "../../../../src/misc/2fa/webauthn/IWebauthn.js"
-import {createU2fChallenge} from "../../../../src/api/entities/sys/U2fChallenge.js"
-import {createU2fKey} from "../../../../src/api/entities/sys/U2fKey.js"
+import {createU2fChallenge} from "../../../../src/api/entities/sys/TypeRefs.js"
+import {createU2fKey} from "../../../../src/api/entities/sys/TypeRefs.js"
 
 o.spec("WebauthnClient", function () {
 	let webauthn: IWebauthn

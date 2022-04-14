@@ -3,11 +3,10 @@ import type {LoginController} from "./LoginController"
 import type {OperationType} from "../common/TutanotaConstants"
 import stream from "mithril/stream"
 import {downcast, identity, noOp} from "@tutao/tutanota-utils"
-import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
-import type {EntityUpdate} from "../entities/sys/EntityUpdate"
 import {isSameTypeRefByAttr, TypeRef} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../common/Env"
 import Stream from "mithril/stream";
+import {EntityUpdate, WebsocketCounterData} from "../entities/sys/TypeRefs"
 
 assertMainOrNode()
 export type EntityUpdateData = {

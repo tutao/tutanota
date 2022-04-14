@@ -3,7 +3,7 @@ import {lang, languageCodeToTag, languages} from "../../../src/misc/LanguageView
 // @ts-ignore[untyped-import]
 import en from "../../../src/translations/en"
 import {formatDate, formatNameAndAddress} from "../../../src/misc/Formatter"
-import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
+import {createBirthday} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {_getNumDaysInMonth, parseBirthday, parseDate} from "../../../src/misc/DateParser"
 
 o.spec("FormatterTest", function () {

@@ -1,5 +1,5 @@
 import m from "mithril"
-import type {RejectedSender} from "../api/entities/sys/RejectedSender"
+import type {RejectedSender} from "../api/entities/sys/TypeRefs.js"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import stream from "mithril/stream"
 import {Dialog} from "../gui/base/Dialog"

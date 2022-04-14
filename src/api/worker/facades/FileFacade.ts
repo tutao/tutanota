@@ -1,15 +1,12 @@
-import {_TypeModel as FileDataDataGetTypModel, createFileDataDataGet} from "../../entities/tutanota/FileDataDataGet"
 import {addParamsToUrl, isSuspensionResponse, RestClient} from "../rest/RestClient"
-import {encryptBytes, resolveSessionKey} from "../crypto/CryptoFacade"
-import type {File as TutanotaFile} from "../../entities/tutanota/File"
-import {_TypeModel as FileTypeModel} from "../../entities/tutanota/File"
+import {CryptoFacade, encryptBytes} from "../crypto/CryptoFacade"
+import type {File as TutanotaFile} from "../../entities/tutanota/TypeRefs.js"
+import {createFileDataDataGet, createFileDataDataPost, FileDataDataGetTypeRef, FileTypeRef} from "../../entities/tutanota/TypeRefs.js"
 import {assert, assertNotNull, filterInt, neverNull} from "@tutao/tutanota-utils"
 import {LoginFacadeImpl} from "./LoginFacade"
-import {createFileDataDataPost} from "../../entities/tutanota/FileDataDataPost"
 import {GroupType} from "../../common/TutanotaConstants"
-import {_TypeModel as FileDataDataReturnTypeModel} from "../../entities/tutanota/FileDataDataReturn"
 
-import {HttpMethod, MediaType} from "../../common/EntityFunctions"
+import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, getHttpOrigin, Mode} from "../../common/Env"
 import {handleRestError} from "../../common/error/RestError"
 import {convertToDataFile, DataFile} from "../../common/DataFile"
@@ -21,6 +18,7 @@ import {InstanceMapper} from "../crypto/InstanceMapper"
 import {FileReference} from "../../common/utils/FileUtils";
 import {IServiceExecutor} from "../../common/ServiceRequest"
 import {FileDataService} from "../../entities/tutanota/Services"
+import modelInfo from "../../entities/tutanota/ModelInfo"
 
 assertWorkerOrNode()
 const REST_PATH = "/rest/tutanota/filedataservice"
@@ -41,6 +39,7 @@ export class FileFacade {
 		aesApp: AesApp,
 		instanceMapper: InstanceMapper,
 		private readonly serviceExecutor: IServiceExecutor,
+		private readonly cryptoFacade: CryptoFacade,
 	) {
 		this._login = login
 		this._restClient = restClient
@@ -54,21 +53,18 @@ export class FileFacade {
 		return this._fileApp.clearFileData()
 	}
 
-	downloadFileContent(file: TutanotaFile): Promise<DataFile> {
+	async downloadFileContent(file: TutanotaFile): Promise<DataFile> {
 		let requestData = createFileDataDataGet()
 		requestData.file = file._id
 		requestData.base64 = false
-		return resolveSessionKey(FileTypeModel, file).then(sessionKey => {
-			return this._instanceMapper.encryptAndMapToLiteral(FileDataDataGetTypModel, requestData, null).then(entityToSend => {
-				let headers = this._login.createAuthHeaders()
+		const sessionKey = await this.cryptoFacade.resolveSessionKeyForInstance(file)
+		const entityToSend = await this._instanceMapper.encryptAndMapToLiteral(await resolveTypeReference(FileDataDataGetTypeRef), requestData, null)
+		let headers = this._login.createAuthHeaders()
 
-				headers["v"] = FileDataDataGetTypModel.version
-				let body = JSON.stringify(entityToSend)
-				return this._restClient.request(REST_PATH, HttpMethod.GET, {body, responseType: MediaType.Binary, headers}).then(data => {
-					return convertToDataFile(file, aes128Decrypt(neverNull(sessionKey), data))
-				})
-			})
-		})
+		headers["v"] = String(modelInfo.version)
+		let body = JSON.stringify(entityToSend)
+		const data = await this._restClient.request(REST_PATH, HttpMethod.GET, {body, responseType: MediaType.Binary, headers})
+		return convertToDataFile(file, aes128Decrypt(neverNull(sessionKey), data))
 	}
 
 	async downloadFileContentNative(file: TutanotaFile): Promise<FileReference> {
@@ -78,18 +74,20 @@ export class FileFacade {
 			return this._suspensionHandler.deferRequest(() => this.downloadFileContentNative(file))
 		}
 
-		const sessionKey = assertNotNull(await resolveSessionKey(FileTypeModel, file), "Session key for TutanotaFile is null")
+		const FileTypeModel = await resolveTypeReference(FileTypeRef)
+		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKeyForInstance(file), "Session key for TutanotaFile is null")
 
 		const requestData = createFileDataDataGet({
 			file: file._id,
 			base64: false,
 		})
 
+		const FileDataDataGetTypModel = await resolveTypeReference(FileDataDataGetTypeRef)
 		const entityToSend = await this._instanceMapper.encryptAndMapToLiteral(FileDataDataGetTypModel, requestData, null)
 
 		const headers = this._login.createAuthHeaders()
 
-		headers["v"] = FileDataDataGetTypModel.version
+		headers["v"] = String(modelInfo.version)
 		const body = JSON.stringify(entityToSend)
 		const queryParams = {
 			_body: body,
@@ -139,7 +137,7 @@ export class FileFacade {
 		let fileDataId = fileDataPostReturn.fileData
 
 		const headers = this._login.createAuthHeaders()
-		headers["v"] = FileDataDataReturnTypeModel.version
+		headers["v"] = String(modelInfo.version)
 		await this._restClient
 				  .request(
 					  REST_PATH,
@@ -174,7 +172,7 @@ export class FileFacade {
 
 		const headers = this._login.createAuthHeaders()
 
-		headers["v"] = FileDataDataReturnTypeModel.version
+		headers["v"] = String(modelInfo.version)
 		const url = addParamsToUrl(new URL(getHttpOrigin() + "/rest/tutanota/filedataservice"), {
 			fileDataId,
 		})

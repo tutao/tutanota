@@ -1,5 +1,5 @@
 import type {CryptoFacade} from "../crypto/CryptoFacade"
-import {encryptBytes, encryptString, resolveSessionKey} from "../crypto/CryptoFacade"
+import {encryptBytes, encryptString} from "../crypto/CryptoFacade"
 import {
 	DraftService,
 	ExternalUserService,
@@ -9,12 +9,12 @@ import {
 	MoveMailService,
 	ReportMailService,
 	SendDraftService
-} from "../../entities/tutanota/Services"
+} from "../../entities/tutanota/Services.js"
 import {LoginFacadeImpl} from "./LoginFacade"
 import type {ConversationType} from "../../common/TutanotaConstants"
 import {
-	CounterType_UnreadMails,
 	ArchiveDataType,
+	CounterType_UnreadMails,
 	FeatureType,
 	GroupType,
 	MailAuthenticationStatus as MailAuthStatus,
@@ -24,20 +24,49 @@ import {
 	PhishingMarkerStatus,
 	ReportedMailFieldType,
 } from "../../common/TutanotaConstants"
-import {createCreateMailFolderData} from "../../entities/tutanota/CreateMailFolderData"
-import {createDraftCreateData} from "../../entities/tutanota/DraftCreateData"
-import {createDraftData} from "../../entities/tutanota/DraftData"
-import type {Mail} from "../../entities/tutanota/Mail"
-import {_TypeModel as MailTypeModel, MailTypeRef} from "../../entities/tutanota/Mail"
-import type {DraftRecipient} from "../../entities/tutanota/DraftRecipient"
-import {createDraftUpdateData} from "../../entities/tutanota/DraftUpdateData"
-import type {SendDraftData} from "../../entities/tutanota/SendDraftData"
-import {createSendDraftData} from "../../entities/tutanota/SendDraftData"
+import type {
+	DraftAttachment,
+	DraftRecipient,
+	EncryptedMailAddress,
+	File as TutanotaFile,
+	Mail,
+	PhishingMarker,
+	SendDraftData
+} from "../../entities/tutanota/TypeRefs.js"
+import {
+	createAttachmentKeyData,
+	createCreateExternalUserGroupData,
+	createCreateMailFolderData,
+	createDeleteMailData,
+	createDeleteMailFolderData,
+	createDraftAttachment,
+	createDraftCreateData,
+	createDraftData,
+	createDraftUpdateData,
+	createExternalUserData,
+	createListUnsubscribeData,
+	createMoveMailData,
+	createNewDraftAttachment,
+	createReportMailPostData,
+	createSecureExternalRecipientKeyData,
+	createSendDraftData,
+	FileTypeRef,
+	MailTypeRef,
+	TutanotaPropertiesTypeRef
+} from "../../entities/tutanota/TypeRefs.js"
 import type {RecipientDetails} from "../../common/RecipientInfo"
 import {RecipientsNotFoundError} from "../../common/error/RecipientsNotFoundError"
 import {NotFoundError} from "../../common/error/RestError"
-import {GroupRootTypeRef} from "../../entities/sys/GroupRoot"
-import {ExternalUserReferenceTypeRef} from "../../entities/sys/ExternalUserReference"
+import type {EntityUpdate, PublicKeyReturn, User} from "../../entities/sys/TypeRefs.js"
+import {
+	BlobReferenceTokenWrapper,
+	createPublicKeyData,
+	ExternalUserReferenceTypeRef,
+	GroupInfoTypeRef,
+	GroupRootTypeRef,
+	GroupTypeRef,
+	UserTypeRef
+} from "../../entities/sys/TypeRefs.js"
 import {
 	addressDomain,
 	assertNotNull,
@@ -53,34 +82,15 @@ import {
 	promiseFilter,
 	promiseMap,
 } from "@tutao/tutanota-utils"
-import type {User} from "../../entities/sys/User"
-import {UserTypeRef} from "../../entities/sys/User"
-import {GroupTypeRef} from "../../entities/sys/Group"
-import {createExternalUserData} from "../../entities/tutanota/ExternalUserData"
-import {createCreateExternalUserGroupData} from "../../entities/tutanota/CreateExternalUserGroupData"
-import {createSecureExternalRecipientKeyData} from "../../entities/tutanota/SecureExternalRecipientKeyData"
-import type {DraftAttachment} from "../../entities/tutanota/DraftAttachment"
-import {createDraftAttachment} from "../../entities/tutanota/DraftAttachment"
-import {createNewDraftAttachment} from "../../entities/tutanota/NewDraftAttachment"
-import type {File as TutanotaFile} from "../../entities/tutanota/File"
-import {_TypeModel as FileTypeModel, FileTypeRef} from "../../entities/tutanota/File"
-import {BlobFacade, ReferenceToken} from "./BlobFacade"
+import {BlobFacade} from "./BlobFacade"
 import {FileFacade} from "./FileFacade"
-import {createAttachmentKeyData} from "../../entities/tutanota/AttachmentKeyData"
 import {assertWorkerOrNode, isApp} from "../../common/Env"
-import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
-import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
-import type {EncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
-import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
-import type {PhishingMarker} from "../../entities/tutanota/PhishingMarker"
 import {EntityClient} from "../../common/EntityClient"
 import {getEnabledMailAddressesForGroupInfo, getUserGroupMemberships} from "../../common/utils/GroupUtils"
 import {containsId, getLetId, isSameId, stringToCustomId} from "../../common/utils/EntityUtils"
 import {htmlToText} from "../search/IndexUtils"
 import {MailBodyTooLargeError} from "../../common/error/MailBodyTooLargeError"
 import {UNCOMPRESSED_MAX_SIZE} from "../Compression"
-import type {PublicKeyReturn} from "../../entities/sys/PublicKeyReturn"
-import {createPublicKeyData} from "../../entities/sys/PublicKeyData"
 import {
 	aes128RandomKey,
 	bitArrayToUint8Array,
@@ -97,16 +107,11 @@ import {
 } from "@tutao/tutanota-crypto"
 import {DataFile} from "../../common/DataFile";
 import {FileReference} from "../../common/utils/FileUtils";
-import {createDeleteMailFolderData} from "../../entities/tutanota/DeleteMailFolderData"
-import {createWriteCounterData} from "../../entities/monitor/WriteCounterData"
-import {createDeleteMailData} from "../../entities/tutanota/DeleteMailData"
-import {createListUnsubscribeData} from "../../entities/tutanota/ListUnsubscribeData"
-import {createMoveMailData} from "../../entities/tutanota/MoveMailData"
-import {createReportMailPostData} from "../../entities/tutanota/ReportMailPostData"
 import {CounterService} from "../../entities/monitor/Services"
-import {PublicKeyService} from "../../entities/sys/Services"
+import {PublicKeyService} from "../../entities/sys/Services.js"
 import {IServiceExecutor} from "../../common/ServiceRequest"
-import {BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper} from "../../entities/sys/BlobReferenceTokenWrapper"
+import {resolveTypeReference} from "../../common/EntityFunctions"
+import {createWriteCounterData} from "../../entities/monitor/TypeRefs"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -308,7 +313,7 @@ export class MailFacade {
 	}
 
 	async reportMail(mail: Mail, reportType: MailReportType): Promise<void> {
-		const mailSessionKey: Aes128Key = assertNotNull(await resolveSessionKey(MailTypeModel, mail))
+		const mailSessionKey: Aes128Key = assertNotNull(await this._crypto.resolveSessionKeyForInstance(mail))
 		const postData = createReportMailPostData({
 			mailId: mail._id,
 			mailSessionKey: bitArrayToUint8Array(mailSessionKey),
@@ -387,7 +392,7 @@ export class MailFacade {
 					}
 				} else if (!containsId(existingFileIds, getLetId(providedFile))) {
 					// forwarded attachment which was not in the draft before
-					return resolveSessionKey(FileTypeModel, providedFile).then(fileSessionKey => {
+					return this._crypto.resolveSessionKeyForInstance(providedFile).then(fileSessionKey => {
 						const attachment = createDraftAttachment()
 						attachment.existingFile = getLetId(providedFile)
 						attachment.ownerEncFileSessionKey = encryptKey(mailGroupKey, neverNull(fileSessionKey))
@@ -456,7 +461,7 @@ export class MailFacade {
 
 		for (let fileId of draft.attachments) {
 			const file = await this._entityClient.load(FileTypeRef, fileId)
-			const fileSessionKey = await resolveSessionKey(FileTypeModel, file)
+			const fileSessionKey = await this._crypto.resolveSessionKeyForInstance(file)
 			const data = createAttachmentKeyData({
 				file: fileId,
 			})
@@ -474,7 +479,7 @@ export class MailFacade {
 			this._entityClient.loadRoot(TutanotaPropertiesTypeRef, this._login.getUserGroupId()).then(tutanotaProperties => {
 				sendDraftData.plaintext = tutanotaProperties.sendPlaintextOnly
 			}),
-			resolveSessionKey(MailTypeModel, draft).then(mailSessionkey => {
+			this._crypto.resolveSessionKeyForInstance(draft).then(mailSessionkey => {
 				let sk = neverNull(mailSessionkey)
 				sendDraftData.calendarMethod = draft.method !== MailMethod.NONE
 

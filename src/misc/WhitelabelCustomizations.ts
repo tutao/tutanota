@@ -1,7 +1,7 @@
 import type {BaseThemeId, Theme} from "../gui/theme"
 import type {BootstrapFeatureType} from "../api/common/TutanotaConstants"
 import {assertMainOrNodeBoot} from "../api/common/Env"
-import type {WhitelabelConfig} from "../api/entities/sys/WhitelabelConfig"
+import type {WhitelabelConfig} from "../api/entities/sys/TypeRefs.js"
 
 assertMainOrNodeBoot()
 export type ThemeCustomizations = Partial<Theme> & {

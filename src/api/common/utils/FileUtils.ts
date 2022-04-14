@@ -1,6 +1,6 @@
 import {downcast, isSameTypeRef, toLowerCase} from "@tutao/tutanota-utils"
-import type {File as TutanotaFile} from "../../entities/tutanota/File"
-import {FileTypeRef as TutanotaFileTypeRef} from "../../entities/tutanota/File"
+import type {File as TutanotaFile} from "../../entities/tutanota/TypeRefs.js"
+import {FileTypeRef as TutanotaFileTypeRef} from "../../entities/tutanota/TypeRefs.js"
 import {intersection} from "@tutao/tutanota-utils"
 import {DataFile} from "../DataFile";
 

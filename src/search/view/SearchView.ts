@@ -17,7 +17,7 @@ import {keyManager, Shortcut} from "../../misc/KeyManager"
 import type {NavButtonAttrs} from "../../gui/base/NavButtonN"
 import {isNavButtonSelected, NavButtonColor, NavButtonN} from "../../gui/base/NavButtonN"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
-import {ContactTypeRef} from "../../api/entities/tutanota/Contact"
+import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {SearchListView, SearchResultListEntry} from "./SearchListView"
 import {size} from "../../gui/size"
 import {SearchResultDetailsViewer} from "./SearchResultDetailsViewer"
@@ -30,7 +30,7 @@ import {
 	SEARCH_MAIL_FIELDS,
 	setSearchUrl,
 } from "../model/SearchUtils"
-import {MailTypeRef} from "../../api/entities/tutanota/Mail"
+import {MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {Dialog} from "../../gui/base/Dialog"
 import {locator} from "../../api/main/MainLocator"
 import {DropDownSelector} from "../../gui/base/DropDownSelector"

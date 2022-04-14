@@ -1,8 +1,8 @@
 import m, {Children, Component} from "mithril"
 import {px, size} from "../../gui/size"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
-import {createMail} from "../../api/entities/tutanota/Mail"
-import {createMailAddress} from "../../api/entities/tutanota/MailAddress"
+import {createMail} from "../../api/entities/tutanota/TypeRefs.js"
+import {createMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
 import {MailRow} from "../../mail/view/MailRow"
 import {noOp} from "@tutao/tutanota-utils"
 

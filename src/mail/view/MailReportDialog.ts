@@ -1,4 +1,4 @@
-import type {MailboxProperties} from "../../api/entities/tutanota/MailboxProperties"
+import type {MailboxProperties} from "../../api/entities/tutanota/TypeRefs.js"
 import stream from "mithril/stream"
 import type {CheckboxAttrs} from "../../gui/base/CheckboxN"
 import {CheckboxN} from "../../gui/base/CheckboxN"
@@ -9,7 +9,7 @@ import {loadMailboxProperties, saveReportMovedMails} from "../../misc/MailboxPro
 import {ButtonAttrs, ButtonType} from "../../gui/base/ButtonN"
 import {Dialog} from "../../gui/base/Dialog"
 import type {MailModel} from "../model/MailModel"
-import type {Mail} from "../../api/entities/tutanota/Mail"
+import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {showSnackBar} from "../../gui/base/SnackBar"
 
 function confirmMailReportDialog(mailboxProperties: MailboxProperties | null): Promise<boolean> {

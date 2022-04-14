@@ -1,4 +1,4 @@
-import {createReadCounterData} from "../../entities/monitor/ReadCounterData"
+import {createReadCounterData} from "../../entities/monitor/TypeRefs"
 import {assertWorkerOrNode} from "../../common/Env"
 import {IServiceExecutor} from "../../common/ServiceRequest"
 import {CounterService} from "../../entities/monitor/Services"

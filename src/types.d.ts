@@ -17,7 +17,6 @@ declare type WorkerRequestType =
 	| 'entropy'
 	| 'tryReconnectEventBus'
 	| 'closeEventBus'
-	| 'resolveSessionKey'
 	| 'getLog'
 	| 'urlify'
 	| 'generateSsePushIdentifer'

@@ -1,28 +1,19 @@
 //@bundleInto:common-min
 
 import {downcast} from "@tutao/tutanota-utils"
-import type {GroupMembership} from "../entities/sys/GroupMembership"
-import type {EmailSenderListElement} from "../entities/sys/EmailSenderListElement"
-import type {CertificateInfo} from "../entities/sys/CertificateInfo"
-import type {UserSettingsGroupRoot} from "../entities/tutanota/UserSettingsGroupRoot"
-import type {CalendarEventAttendee} from "../entities/tutanota/CalendarEventAttendee"
+import type {GroupMembership} from "../entities/sys/TypeRefs.js"
+import type {EmailSenderListElement} from "../entities/sys/TypeRefs.js"
+import type {CertificateInfo} from "../entities/sys/TypeRefs.js"
+import type {UserSettingsGroupRoot} from "../entities/tutanota/TypeRefs.js"
+import type {CalendarEventAttendee} from "../entities/tutanota/TypeRefs.js"
 import {isAdminClient, isApp, isDesktop} from "./Env"
 import type {Country} from "./CountryList"
-import type {CreditCard} from "../entities/sys/CreditCard"
+import type {CreditCard} from "../entities/sys/TypeRefs.js"
 import {ProgrammingError} from "./error/ProgrammingError";
-import {MailFolder} from "../entities/tutanota/MailFolder";
-import {ContactSocialId} from "../entities/tutanota/ContactSocialId";
-import {Customer} from "../entities/sys/Customer";
-import {AccountingInfo} from "../entities/sys/AccountingInfo";
-// export const reverse = <K, V>(objectMap: Record<K, V>): Record<V, K> =>
-//     Object.keys(objectMap).reduce((r, k) => {
-//         const v = objectMap[downcast(k)]
-//         return Object.assign(r, {
-//             [v]: k,
-//         })
-//     }, {})
-// Also used in other projects
-// export type $Reversed<T> = $Call<typeof reverse, T>
+import {MailFolder} from "../entities/tutanota/TypeRefs.js";
+import {ContactSocialId} from "../entities/tutanota/TypeRefs.js";
+import {Customer} from "../entities/sys/TypeRefs.js";
+import {AccountingInfo} from "../entities/sys/TypeRefs.js";
 
 export const MAX_NBR_MOVE_DELETE_MAIL_SERVICE = 50
 

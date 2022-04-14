@@ -1,5 +1,5 @@
 import m, {Children, Component, Vnode} from "mithril"
-import type {KnowledgeBaseEntry} from "../../api/entities/tutanota/KnowledgeBaseEntry"
+import type {KnowledgeBaseEntry} from "../../api/entities/tutanota/TypeRefs.js"
 import {px} from "../../gui/size"
 
 export type KnowledgebaseListEntryAttrs = {

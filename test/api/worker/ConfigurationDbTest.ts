@@ -3,7 +3,7 @@ import {ConfigurationDatabase, encryptItem} from "../../../src/api/worker/facade
 import {downcast} from "@tutao/tutanota-utils"
 import {DbStub} from "./search/DbStub"
 import {ExternalImageRule} from "../../../src/api/common/TutanotaConstants"
-import {createUser} from "../../../src/api/entities/sys/User"
+import {createUser} from "../../../src/api/entities/sys/TypeRefs.js"
 import {aes256RandomKey, IV_BYTE_LENGTH, random} from "@tutao/tutanota-crypto"
 
 o.spec("ConfigurationDbTest", function () {

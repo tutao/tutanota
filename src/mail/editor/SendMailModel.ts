@@ -36,17 +36,17 @@ import {
 	resolveRecipientInfo,
 	resolveRecipientInfoContact,
 } from "../model/MailUtils"
-import type {File as TutanotaFile} from "../../api/entities/tutanota/File"
-import {FileTypeRef} from "../../api/entities/tutanota/File"
-import {ConversationEntryTypeRef} from "../../api/entities/tutanota/ConversationEntry"
-import type {Mail} from "../../api/entities/tutanota/Mail"
-import {MailTypeRef} from "../../api/entities/tutanota/Mail"
-import type {Contact} from "../../api/entities/tutanota/Contact"
-import {ContactTypeRef} from "../../api/entities/tutanota/Contact"
+import type {File as TutanotaFile} from "../../api/entities/tutanota/TypeRefs.js"
+import {FileTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
+import {ConversationEntryTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
+import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
+import {MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
+import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
+import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import type {LoginController} from "../../api/main/LoginController"
 import {logins} from "../../api/main/LoginController"
-import type {MailAddress} from "../../api/entities/tutanota/MailAddress"
+import type {MailAddress} from "../../api/entities/tutanota/TypeRefs.js"
 import type {MailboxDetail, MailModel} from "../model/MailModel"
 import {RecipientNotResolvedError} from "../../api/common/error/RecipientNotResolvedError"
 import stream from "mithril/stream"
@@ -54,8 +54,8 @@ import Stream from "mithril/stream"
 import type {EntityEventsListener, EntityUpdateData} from "../../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../../api/main/EventController"
 import {isMailAddress} from "../../misc/FormatValidator"
-import {createApprovalMail} from "../../api/entities/monitor/ApprovalMail"
-import type {EncryptedMailAddress} from "../../api/entities/tutanota/EncryptedMailAddress"
+import {createApprovalMail} from "../../api/entities/monitor/TypeRefs.js"
+import type {EncryptedMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
 import type {ContactModel} from "../../contacts/model/ContactModel"
 import type {Language, TranslationKey, TranslationText} from "../../misc/LanguageViewModel"
 import {_getSubstitutedLanguageCode, getAvailableLanguageCode, lang, languages} from "../../misc/LanguageViewModel"
@@ -66,7 +66,7 @@ import {EntityClient} from "../../api/common/EntityClient"
 import {locator} from "../../api/main/MainLocator"
 import {getContactDisplayName} from "../../contacts/model/ContactUtils"
 import {getListId, isSameId, stringToCustomId} from "../../api/common/utils/EntityUtils"
-import {CustomerPropertiesTypeRef} from "../../api/entities/sys/CustomerProperties"
+import {CustomerPropertiesTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import type {InlineImages} from "../view/MailViewer"
 import {cloneInlineImages, revokeInlineImages} from "../view/MailGuiUtils"
 import {MailBodyTooLargeError} from "../../api/common/error/MailBodyTooLargeError"
@@ -126,13 +126,6 @@ export type ResponseMailParameters = {
 	subject: string
 	bodyText: string
 	replyTos: EncryptedMailAddress[]
-}
-
-/**
- * Simple blocking wait handler implementation which just ignores messages and can be used to silently save a draft without showing progress.
- */
-export function noopBlockingWaitHandler<T>(messageIdOrMessageFunction: TranslationKey | lazy<string>, action: Promise<T>): Promise<T> {
-	return action
 }
 
 /**

@@ -9,18 +9,14 @@ import {defer, downcast, identity} from "@tutao/tutanota-utils"
 import {objToError} from "../common/utils/Utils"
 import type {InfoMessage} from "../common/CommonTypes"
 import {handleUncaughtError} from "../../misc/ErrorHandler"
-import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
-import {createWebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import {addSearchIndexDebugEntry} from "../../misc/IndexerDebugLogger"
 import type {MainInterface, WorkerInterface} from "../worker/WorkerImpl"
 import {exposeLocal, exposeRemote} from "../common/WorkerProxy"
-import type {TypeModel} from "../common/EntityTypes"
 import type {EntropySource} from "@tutao/tutanota-crypto"
 import type {CloseEventBusOption} from "../common/TutanotaConstants"
 import stream from "mithril/stream"
-import {User} from "../entities/sys/User"
 import type {RestClient} from "../worker/rest/RestClient"
-import {SuspensionBehavior} from "../worker/rest/RestClient"
+import {createWebsocketLeaderStatus, User, WebsocketLeaderStatus} from "../entities/sys/TypeRefs"
 
 assertMainOrNode()
 
@@ -171,10 +167,6 @@ export class WorkerClient {
 	/** Only used in admin client, */
 	restRequest(...args: Parameters<RestClient["request"]>): Promise<any | null> {
 		return this._postRequest(new Request("restRequest", Array.from(arguments)))
-	}
-
-	resolveSessionKey(typeModel: TypeModel, instance: Record<string, any>): Promise<string | null> {
-		return this._postRequest(new Request("resolveSessionKey", [typeModel, instance]))
 	}
 
 	entropy(entropyCache: {source: EntropySource, entropy: number, data: number}[]): Promise<void> {

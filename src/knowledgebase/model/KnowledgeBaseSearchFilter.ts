@@ -1,4 +1,4 @@
-import type {KnowledgeBaseEntry} from "../../api/entities/tutanota/KnowledgeBaseEntry"
+import type {KnowledgeBaseEntry} from "../../api/entities/tutanota/TypeRefs.js"
 import {search} from "../../api/common/utils/PlainTextSearch"
 
 export function knowledgeBaseSearch(input: string, allEntries: ReadonlyArray<KnowledgeBaseEntry>): ReadonlyArray<KnowledgeBaseEntry> {

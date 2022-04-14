@@ -1,6 +1,6 @@
 import {lang} from "../../misc/LanguageViewModel"
-import type {Contact} from "../../api/entities/tutanota/Contact"
-import type {Birthday} from "../../api/entities/tutanota/Birthday"
+import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
+import type {Birthday} from "../../api/entities/tutanota/TypeRefs.js"
 import {formatDate} from "../../misc/Formatter"
 import {isoDateToBirthday} from "../../api/common/utils/BirthdayUtils"
 import {assertMainOrNode} from "../../api/common/Env"

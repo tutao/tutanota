@@ -1,13 +1,13 @@
 import o from "ospec"
-import {createContact} from "../../../src/api/entities/tutanota/Contact"
-import {ContactAddressTypeRef} from "../../../src/api/entities/tutanota/ContactAddress"
+import {createContact} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {ContactAddressTypeRef} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {neverNull} from "@tutao/tutanota-utils"
 import {vCardFileToVCards, vCardListToContacts} from "../../../src/contacts/VCardImporter"
 // @ts-ignore[untyped-import]
 import en from "../../../src/translations/en"
 import {lang} from "../../../src/misc/LanguageViewModel"
-import {ContactMailAddressTypeRef} from "../../../src/api/entities/tutanota/ContactMailAddress"
-import {ContactPhoneNumberTypeRef} from "../../../src/api/entities/tutanota/ContactPhoneNumber"
+import {ContactMailAddressTypeRef} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {ContactPhoneNumberTypeRef} from "../../../src/api/entities/tutanota/TypeRefs.js"
 o.spec("VCardImporterTest", function () {
     o.before(async function () {
 	    // @ts-ignore

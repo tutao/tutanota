@@ -2,7 +2,6 @@ import {LoginFacadeImpl} from "./facades/LoginFacade"
 import type {MailFacade} from "./facades/MailFacade"
 import type {WorkerImpl} from "./WorkerImpl"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../common/Env"
-import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -12,21 +11,24 @@ import {
 	ServiceUnavailableError,
 	SessionExpiredError,
 } from "../common/error/RestError"
-import {EntityEventBatch, EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
+import {
+	createWebsocketLeaderStatus,
+	EntityEventBatch,
+	EntityEventBatchTypeRef,
+	WebsocketCounterData,
+	WebsocketCounterDataTypeRef,
+	WebsocketEntityDataTypeRef, WebsocketLeaderStatus, WebsocketLeaderStatusTypeRef
+} from "../entities/sys/TypeRefs.js"
 import {assertNotNull, binarySearch, delay, identity, lastThrow, ofClass, randomIntFromInterval} from "@tutao/tutanota-utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import type {Indexer} from "./search/Indexer"
 import {CloseEventBusOption, GroupType, SECOND_MS} from "../common/TutanotaConstants"
-import type {WebsocketEntityData} from "../entities/sys/WebsocketEntityData"
-import {_TypeModel as WebsocketEntityDataTypeModel} from "../entities/sys/WebsocketEntityData"
+import type {WebsocketEntityData} from "../entities/sys/TypeRefs.js"
 import {CancelledError} from "../common/error/CancelledError"
-import {_TypeModel as PhishingMarkerWebsocketDataTypeModel, PhishingMarkerWebsocketData} from "../entities/tutanota/PhishingMarkerWebsocketData"
-import {_TypeModel as WebsocketCounterDataTypeModel, WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
-import type {EntityUpdate} from "../entities/sys/EntityUpdate"
+import type {EntityUpdate} from "../entities/sys/TypeRefs.js"
 import {EntityClient} from "../common/EntityClient"
 import type {QueuedBatch} from "./search/EventQueue"
 import {EventQueue} from "./search/EventQueue"
-import {_TypeModel as WebsocketLeaderStatusTypeModel, createWebsocketLeaderStatus, WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
 import {ProgressMonitorDelegate} from "./ProgressMonitorDelegate"
 import type {IProgressMonitor} from "../common/utils/ProgressMonitor"
 import {NoopProgressMonitor} from "../common/utils/ProgressMonitor"
@@ -35,6 +37,10 @@ import {InstanceMapper} from "./crypto/InstanceMapper"
 import {WsConnectionState} from "../main/WorkerClient";
 import {IEntityRestCache} from "./rest/EntityRestCache"
 import {SleepDetector} from "./utils/SleepDetector.js"
+import sysModelInfo from "../entities/sys/ModelInfo.js"
+import tutanotaModelInfo from "../entities/tutanota/ModelInfo.js"
+import {resolveTypeReference} from "../common/EntityFunctions.js"
+import {PhishingMarkerWebsocketData, PhishingMarkerWebsocketDataTypeRef} from "../entities/tutanota/TypeRefs"
 
 assertWorkerOrNode()
 
@@ -182,9 +188,9 @@ export class EventBusClient {
 		// Native query building is not supported in old browser, mithril is not available in the worker
 		const authQuery =
 			"modelVersions=" +
-			WebsocketEntityDataTypeModel.version +
+			sysModelInfo.version +
 			"." +
-			MailTypeModel.version +
+			tutanotaModelInfo.version +
 			"&clientVersion=" +
 			env.versionNumber +
 			"&userId=" +
@@ -278,7 +284,7 @@ export class EventBusClient {
 		switch (type) {
 			case MessageType.EntityUpdate: {
 				const data: WebsocketEntityData = await this.instanceMapper.decryptAndMapToInstance(
-					WebsocketEntityDataTypeModel,
+					await resolveTypeReference(WebsocketEntityDataTypeRef),
 					JSON.parse(value),
 					null,
 				)
@@ -287,7 +293,7 @@ export class EventBusClient {
 			}
 			case MessageType.UnreadCounterUpdate: {
 				const counterData: WebsocketCounterData = await this.instanceMapper.decryptAndMapToInstance(
-					WebsocketCounterDataTypeModel,
+					await resolveTypeReference(WebsocketCounterDataTypeRef),
 					JSON.parse(value),
 					null,
 				)
@@ -296,7 +302,7 @@ export class EventBusClient {
 			}
 			case MessageType.PhishingMarkers: {
 				const data: PhishingMarkerWebsocketData = await this.instanceMapper.decryptAndMapToInstance(
-					PhishingMarkerWebsocketDataTypeModel,
+					await resolveTypeReference(PhishingMarkerWebsocketDataTypeRef),
 					JSON.parse(value),
 					null,
 				)
@@ -306,7 +312,7 @@ export class EventBusClient {
 			}
 			case MessageType.LeaderStatus:
 				const data: WebsocketLeaderStatus = await this.instanceMapper.decryptAndMapToInstance(
-					WebsocketLeaderStatusTypeModel,
+					await resolveTypeReference(WebsocketLeaderStatusTypeRef),
 					JSON.parse(value),
 					null,
 				)

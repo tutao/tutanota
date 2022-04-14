@@ -1,5 +1,5 @@
 import {QueuedBatch} from "../search/EventQueue"
-import {EntityUpdate} from "../../entities/sys/EntityUpdate"
+import {EntityUpdate} from "../../entities/sys/TypeRefs.js"
 import {ListElementEntity, SomeEntity} from "../../common/EntityTypes"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {TypeRef} from "@tutao/tutanota-utils"

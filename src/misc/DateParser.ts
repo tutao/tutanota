@@ -1,7 +1,7 @@
 import {lang} from "./LanguageViewModel"
 import {DateTime} from "luxon"
-import type {Birthday} from "../api/entities/tutanota/Birthday"
-import {createBirthday} from "../api/entities/tutanota/Birthday"
+import type {Birthday} from "../api/entities/tutanota/TypeRefs.js"
+import {createBirthday} from "../api/entities/tutanota/TypeRefs.js"
 import {formatDate} from "./Formatter"
 
 /**

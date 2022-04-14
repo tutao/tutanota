@@ -1,6 +1,6 @@
 import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
-import type {RootInstance} from "../entities/sys/RootInstance"
-import {RootInstanceTypeRef} from "../entities/sys/RootInstance"
+import type {RootInstance} from "../entities/sys/TypeRefs.js"
+import {RootInstanceTypeRef} from "../entities/sys/TypeRefs.js"
 import {CUSTOM_MIN_ID, GENERATED_MIN_ID, getElementId, getLetId, RANGE_ITEM_LIMIT} from "./utils/EntityUtils"
 import {Type, ValueType} from "./EntityConstants"
 import {last, TypeRef} from "@tutao/tutanota-utils"

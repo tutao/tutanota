@@ -1,9 +1,9 @@
-import {BlobAccessTokenPostInTypeRef} from "./BlobAccessTokenPostIn.js"
-import {BlobAccessTokenPostOutTypeRef} from "./BlobAccessTokenPostOut.js"
-import {BlobReferencePutInTypeRef} from "./BlobReferencePutIn.js"
-import {BlobReferenceDeleteInTypeRef} from "./BlobReferenceDeleteIn.js"
-import {BlobGetInTypeRef} from "./BlobGetIn.js"
-import {BlobPostOutTypeRef} from "./BlobPostOut.js"
+import {BlobAccessTokenPostInTypeRef} from "./TypeRefs.js"
+import {BlobAccessTokenPostOutTypeRef} from "./TypeRefs.js"
+import {BlobReferencePutInTypeRef} from "./TypeRefs.js"
+import {BlobReferenceDeleteInTypeRef} from "./TypeRefs.js"
+import {BlobGetInTypeRef} from "./TypeRefs.js"
+import {BlobPostOutTypeRef} from "./TypeRefs.js"
 
 export const BlobAccessTokenService = Object.freeze({
 	app: "storage",

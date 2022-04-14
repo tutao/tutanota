@@ -1,5 +1,5 @@
 import {TUTANOTA_MAIL_ADDRESS_DOMAINS} from "./TutanotaConstants"
-import type {Contact} from "../entities/tutanota/Contact"
+import type {Contact} from "../entities/tutanota/TypeRefs.js"
 
 export const enum RecipientInfoType {
 	UNKNOWN = "unknown",

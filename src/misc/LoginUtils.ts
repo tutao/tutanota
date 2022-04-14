@@ -218,17 +218,16 @@ export function deleteCampaign(): void {
 	}
 }
 
+async function loadRedeemGiftCardWizard(urlHash: string): Promise<Dialog> {
+	const {getTokenFromUrl} = await import("../subscription/giftcards/GiftCardUtils")
+	const {id, key} = await getTokenFromUrl(urlHash)
+	const giftCardInfo = await locator.giftCardFacade.getGiftCardInfo(id, key)
+	const wizard = await import("../subscription/giftcards/RedeemGiftCardWizard")
+	return wizard.loadRedeemGiftCardWizard(giftCardInfo, key)
+}
+
 export async function showGiftCardDialog(urlHash: string) {
-	const showWizardPromise = import("../subscription/giftcards/GiftCardUtils")
-		.then(({getTokenFromUrl}) => getTokenFromUrl(urlHash))
-		.then(async ([id, key]) => {
-			return locator.giftCardFacade
-						  .getGiftCardInfo(id, key)
-						  .then(giftCardInfo =>
-							  import("../subscription/giftcards/RedeemGiftCardWizard").then(wizard => wizard.loadRedeemGiftCardWizard(giftCardInfo, key)),
-						  )
-		})
-	showProgressDialog("loading_msg", showWizardPromise)
+	showProgressDialog("loading_msg", loadRedeemGiftCardWizard(urlHash))
 		.then(dialog => dialog.show())
 		.catch(e => {
 			if (e instanceof NotAuthorizedError || e instanceof NotFoundError) {

@@ -17,8 +17,8 @@ import {ShareCapability} from "../../api/common/TutanotaConstants"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 import {PreconditionFailedError, TooManyRequestsError} from "../../api/common/error/RestError"
 import {TextFieldN} from "../../gui/base/TextFieldN"
-import type {GroupInfo} from "../../api/entities/sys/GroupInfo"
-import type {Contact} from "../../api/entities/tutanota/Contact"
+import type {GroupInfo} from "../../api/entities/sys/TypeRefs.js"
+import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
 import type {RecipientInfo} from "../../api/common/RecipientInfo"
 import {
 	getCapabilityText,

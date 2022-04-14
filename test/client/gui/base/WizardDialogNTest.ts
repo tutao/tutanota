@@ -3,11 +3,11 @@ import {createWizardDialog, WizardPageWrapper} from "../../../../src/gui/base/Wi
 import {Dialog} from "../../../../src/gui/base/Dialog"
 import {EnterDomainPageAttrs} from "../../../../src/settings/emaildomain/EnterDomainPage"
 import stream from "mithril/stream";
-import {createCustomerInfo} from "../../../../src/api/entities/sys/CustomerInfo";
-import {createDnsRecord} from "../../../../src/api/entities/sys/DnsRecord";
+import {createCustomerInfo} from "../../../../src/api/entities/sys/TypeRefs.js";
+import {createDnsRecord} from "../../../../src/api/entities/sys/TypeRefs.js";
 import {DomainDnsStatus} from "../../../../src/settings/DomainDnsStatus";
 import {AddDomainData} from "../../../../src/settings/emaildomain/AddDomainWizard";
-import {createGroupInfo} from "../../../../src/api/entities/sys/GroupInfo";
+import {createGroupInfo} from "../../../../src/api/entities/sys/TypeRefs.js";
 
 const data: AddDomainData = {
 	domain: stream("domain"),

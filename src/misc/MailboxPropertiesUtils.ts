@@ -1,9 +1,9 @@
-import type {MailboxProperties} from "../api/entities/tutanota/MailboxProperties"
-import {createMailboxProperties, MailboxPropertiesTypeRef} from "../api/entities/tutanota/MailboxProperties"
+import type {MailboxProperties} from "../api/entities/tutanota/TypeRefs.js"
+import {createMailboxProperties, MailboxPropertiesTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import {locator} from "../api/main/MainLocator"
 import {ReportMovedMailsType} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
-import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
+import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import {downcast} from "@tutao/tutanota-utils"
 
 /**

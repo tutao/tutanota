@@ -31,38 +31,37 @@ import {
 } from "../../entities/sys/Services"
 import {AccountType, CloseEventBusOption, FeatureType, GroupType, OperationType} from "../../common/TutanotaConstants"
 import {CryptoError} from "../../common/error/CryptoError"
-import {createSaltData} from "../../entities/sys/SaltData"
-import type {SaltReturn} from "../../entities/sys/SaltReturn"
-import type {GroupInfo} from "../../entities/sys/GroupInfo"
-import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
-import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
-import type {User} from "../../entities/sys/User"
-import {UserTypeRef} from "../../entities/sys/User"
-import {HttpMethod, MediaType} from "../../common/EntityFunctions"
+import {createSaltData, SessionTypeRef} from "../../entities/sys/TypeRefs.js"
+import type {SaltReturn} from "../../entities/sys/TypeRefs.js"
+import type {GroupInfo} from "../../entities/sys/TypeRefs.js"
+import {GroupInfoTypeRef} from "../../entities/sys/TypeRefs.js"
+import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TypeRefs.js"
+import type {User} from "../../entities/sys/TypeRefs.js"
+import {UserTypeRef} from "../../entities/sys/TypeRefs.js"
+import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../common/Env"
-import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
+import {createChangePasswordData} from "../../entities/sys/TypeRefs.js"
 import {ConnectMode, EventBusClient} from "../EventBusClient"
-import {createCreateSessionData} from "../../entities/sys/CreateSessionData"
-import type {CreateSessionReturn} from "../../entities/sys/CreateSessionReturn"
-import {_TypeModel as SessionModelType, SessionTypeRef} from "../../entities/sys/Session"
+import {createCreateSessionData} from "../../entities/sys/TypeRefs.js"
+import type {CreateSessionReturn} from "../../entities/sys/TypeRefs.js"
 import {EntityRestClient, typeRefToPath} from "../rest/EntityRestClient"
-import {createSecondFactorAuthGetData} from "../../entities/sys/SecondFactorAuthGetData"
+import {createSecondFactorAuthGetData} from "../../entities/sys/TypeRefs.js"
 import {ConnectionError, LockedError, NotAuthenticatedError, NotFoundError, ServiceUnavailableError} from "../../common/error/RestError"
 import type {WorkerImpl} from "../WorkerImpl"
 import type {Indexer} from "../search/Indexer"
-import {createDeleteCustomerData} from "../../entities/sys/DeleteCustomerData"
-import {createAutoLoginDataGet} from "../../entities/sys/AutoLoginDataGet"
+import {createDeleteCustomerData} from "../../entities/sys/TypeRefs.js"
+import {createAutoLoginDataGet} from "../../entities/sys/TypeRefs.js"
 import {CancelledError} from "../../common/error/CancelledError"
-import {createRecoverCode, RecoverCodeTypeRef} from "../../entities/sys/RecoverCode"
-import {createResetFactorsDeleteData} from "../../entities/sys/ResetFactorsDeleteData"
-import type {GroupMembership} from "../../entities/sys/GroupMembership"
-import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
+import {createRecoverCode, RecoverCodeTypeRef} from "../../entities/sys/TypeRefs.js"
+import {createResetFactorsDeleteData} from "../../entities/sys/TypeRefs.js"
+import type {GroupMembership} from "../../entities/sys/TypeRefs.js"
+import type {EntityUpdate} from "../../entities/sys/TypeRefs.js"
 import {RestClient} from "../rest/RestClient"
 import {EntityClient} from "../../common/EntityClient"
-import {createTakeOverDeletedAddressData} from "../../entities/sys/TakeOverDeletedAddressData"
-import type {WebsocketLeaderStatus} from "../../entities/sys/WebsocketLeaderStatus"
-import {createWebsocketLeaderStatus} from "../../entities/sys/WebsocketLeaderStatus"
-import {createEntropyData} from "../../entities/tutanota/EntropyData"
+import {createTakeOverDeletedAddressData} from "../../entities/sys/TypeRefs.js"
+import type {WebsocketLeaderStatus} from "../../entities/sys/TypeRefs.js"
+import {createWebsocketLeaderStatus} from "../../entities/sys/TypeRefs.js"
+import {createEntropyData} from "../../entities/tutanota/TypeRefs.js"
 import {GENERATED_ID_BYTES_LENGTH, isSameId} from "../../common/utils/EntityUtils"
 import type {Credentials} from "../../../misc/credentials/Credentials"
 import {
@@ -93,14 +92,14 @@ import {
 import {CryptoFacade, encryptBytes, encryptString} from "../crypto/CryptoFacade"
 import {InstanceMapper} from "../crypto/InstanceMapper"
 import type {SecondFactorAuthHandler} from "../../../misc/2fa/SecondFactorHandler"
-import {createSecondFactorAuthDeleteData} from "../../entities/sys/SecondFactorAuthDeleteData"
-import type {SecondFactorAuthData} from "../../entities/sys/SecondFactorAuthData"
+import {createSecondFactorAuthDeleteData} from "../../entities/sys/TypeRefs.js"
+import type {SecondFactorAuthData} from "../../entities/sys/TypeRefs.js"
 import {Aes128Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
 import {EntropyService} from "../../entities/tutanota/Services"
 import {IServiceExecutor} from "../../common/ServiceRequest"
 import {SessionType} from "../../common/SessionType"
 import {LateInitializedCacheStorage} from "../rest/CacheStorageProxy"
-import {CustomerTypeRef} from "../../entities/sys/Customer"
+import {CustomerTypeRef} from "../../entities/sys/TypeRefs.js"
 
 assertWorkerOrNode()
 const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
@@ -574,12 +573,13 @@ export class LoginFacadeImpl implements LoginFacade {
 	/**
 	 * We use the accessToken that should be deleted for authentication. Therefore it can be invoked while logged in or logged out.
 	 */
-	deleteSession(accessToken: Base64Url): Promise<void> {
+	async deleteSession(accessToken: Base64Url): Promise<void> {
 		let path = typeRefToPath(SessionTypeRef) + "/" + this._getSessionListId(accessToken) + "/" + this._getSessionElementId(accessToken)
+		const sessionTypeModel = await resolveTypeReference(SessionTypeRef)
 
-		let headers = {
+		const headers = {
 			accessToken: neverNull(accessToken),
-			v: SessionModelType.version,
+			v: sessionTypeModel.version,
 		}
 		return this.restClient
 				   .request(path, HttpMethod.DELETE, {
@@ -608,17 +608,18 @@ export class LoginFacadeImpl implements LoginFacade {
 		return base64ToBase64Ext(uint8ArrayToBase64(byteAccessToken.slice(0, GENERATED_ID_BYTES_LENGTH)))
 	}
 
-	_loadSessionData(
+	async _loadSessionData(
 		accessToken: Base64Url,
 	): Promise<{
 		userId: Id
 		accessKey: Aes128Key
 	}> {
-		let path = typeRefToPath(SessionTypeRef) + "/" + this._getSessionListId(accessToken) + "/" + this._getSessionElementId(accessToken)
+		const path = typeRefToPath(SessionTypeRef) + "/" + this._getSessionListId(accessToken) + "/" + this._getSessionElementId(accessToken)
+		const SessionTypeModel = await resolveTypeReference(SessionTypeRef)
 
 		let headers = {
 			accessToken: accessToken,
-			v: SessionModelType.version,
+			v: SessionTypeModel.version,
 		}
 		return this.restClient.request(path, HttpMethod.GET, {
 			headers,

@@ -1,7 +1,7 @@
 import {ContactAddressType, ContactPhoneNumberType, ContactSocialType} from "../../api/common/TutanotaConstants"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import type {Contact} from "../../api/entities/tutanota/Contact"
+import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
 import {sortCompareByReverseId} from "../../api/common/utils/EntityUtils"
 
 export const ContactMailAddressTypeToLabel: Record<ContactAddressType, TranslationKey> = {

@@ -2,15 +2,9 @@ import m, {Component} from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {HttpMethod} from "../api/common/EntityFunctions"
-import {createSwitchAccountTypeData} from "../api/entities/sys/SwitchAccountTypeData"
-import {
-	AccountType,
-	BookingItemFeatureByCode, BookingItemFeatureType,
-	Const,
-	Keys,
-	UnsubscribeFailureReason
-} from "../api/common/TutanotaConstants"
+import type {AccountingInfo, Booking, Customer, CustomerInfo} from "../api/entities/sys/TypeRefs.js"
+import {createSwitchAccountTypeData} from "../api/entities/sys/TypeRefs.js"
+import {AccountType, BookingItemFeatureByCode, BookingItemFeatureType, Const, Keys, UnsubscribeFailureReason} from "../api/common/TutanotaConstants"
 import {BadRequestError, InvalidDataError, PreconditionFailedError} from "../api/common/error/RestError"
 import {SubscriptionSelector} from "./SubscriptionSelector"
 import stream from "mithril/stream"
@@ -42,10 +36,6 @@ import {
 	isUpgradeWhitelabelNeeded,
 	SwitchSubscriptionDialogModel,
 } from "./SwitchSubscriptionDialogModel"
-import type {Customer} from "../api/entities/sys/Customer"
-import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
-import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
-import type {Booking} from "../api/entities/sys/Booking"
 import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 import {SwitchAccountTypeService} from "../api/entities/sys/Services"

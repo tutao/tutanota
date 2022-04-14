@@ -1,7 +1,7 @@
 import type {Suggestion, SuggestionAttrs} from "../gui/base/BubbleTextField"
 import m, {Children, Vnode} from "mithril"
 import {px, size} from "../gui/size"
-import type {Contact} from "../api/entities/tutanota/Contact"
+import type {Contact} from "../api/entities/tutanota/TypeRefs.js"
 
 export const ContactSuggestionHeight = 60
 

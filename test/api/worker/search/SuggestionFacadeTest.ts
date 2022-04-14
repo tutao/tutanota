@@ -2,7 +2,7 @@
  * Created by bdeterding on 13.12.17.
  */
 import o from "ospec"
-import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
+import {ContactTypeRef} from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import {SuggestionFacade} from "../../../../src/api/worker/search/SuggestionFacade"
 import {SearchTermSuggestionsOS} from "../../../../src/api/worker/search/Indexer"
 import {downcast} from "@tutao/tutanota-utils"

@@ -1,5 +1,5 @@
-import {createCustomDomainCheckData} from "../api/entities/sys/CustomDomainCheckData"
-import type {CustomDomainCheckReturn} from "../api/entities/sys/CustomDomainCheckReturn"
+import {createCustomDomainCheckData} from "../api/entities/sys/TypeRefs.js"
+import type {CustomDomainCheckReturn} from "../api/entities/sys/TypeRefs.js"
 import {CustomDomainCheckResult, DnsRecordType, DnsRecordValidation} from "../api/common/TutanotaConstants"
 import {LazyLoaded, noOp} from "@tutao/tutanota-utils"
 import {lang} from "../misc/LanguageViewModel"

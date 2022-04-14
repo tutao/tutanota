@@ -1,17 +1,26 @@
 import type {InvoiceData, PaymentData, SpamRuleFieldType, SpamRuleType} from "../../common/TutanotaConstants"
 import {AccountType, BookingItemFeatureType, Const, GroupType} from "../../common/TutanotaConstants"
-import {CustomerTypeRef} from "../../entities/sys/Customer"
-import {CustomerInfoTypeRef} from "../../entities/sys/CustomerInfo"
+import type {CustomDomainReturn, CustomerServerProperties, EmailSenderListElement, PaymentDataServicePutReturn} from "../../entities/sys/TypeRefs.js"
+import {
+	AccountingInfoTypeRef,
+	createBrandingDomainData,
+	createBrandingDomainDeleteData,
+	createCreateCustomerServerPropertiesData,
+	createCustomDomainData,
+	createEmailSenderListElement,
+	createMembershipAddData,
+	createMembershipRemoveData,
+	createPaymentDataServicePutData,
+	createPdfInvoiceServiceData,
+	CustomerInfoTypeRef,
+	CustomerServerPropertiesTypeRef,
+	CustomerTypeRef
+} from "../../entities/sys/TypeRefs.js"
 import {assertWorkerOrNode} from "../../common/Env"
-import type {EmailSenderListElement} from "../../entities/sys/EmailSenderListElement"
-import {createEmailSenderListElement} from "../../entities/sys/EmailSenderListElement"
 import type {Hex} from "@tutao/tutanota-utils"
 import {downcast, neverNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "@tutao/tutanota-utils"
-import type {CustomerServerProperties} from "../../entities/sys/CustomerServerProperties"
-import {CustomerServerPropertiesTypeRef} from "../../entities/sys/CustomerServerProperties"
 import {getWhitelabelDomain} from "../../common/utils/Utils"
-import {resolveSessionKey} from "../crypto/CryptoFacade"
-import {createCreateCustomerServerPropertiesData} from "../../entities/sys/CreateCustomerServerPropertiesData"
+import {CryptoFacade} from "../crypto/CryptoFacade"
 import {
 	BrandingDomainService,
 	CreateCustomerServerProperties,
@@ -20,28 +29,15 @@ import {
 	PaymentDataService,
 	PdfInvoiceService,
 	SystemKeysService
-} from "../../entities/sys/Services"
-import type {SystemKeysReturn} from "../../entities/sys/SystemKeysReturn"
-import {createCustomerAccountCreateData} from "../../entities/tutanota/CustomerAccountCreateData"
-import {createContactFormAccountData} from "../../entities/tutanota/ContactFormAccountData"
+} from "../../entities/sys/Services.js"
+import type {ContactFormAccountReturn, InternalGroupData} from "../../entities/tutanota/TypeRefs.js"
+import {createContactFormAccountData, createCustomerAccountCreateData} from "../../entities/tutanota/TypeRefs.js"
 import type {UserManagementFacade} from "./UserManagementFacade"
 import type {GroupManagementFacadeImpl} from "./GroupManagementFacade"
-import {createCustomDomainData} from "../../entities/sys/CustomDomainData"
-import type {CustomDomainReturn} from "../../entities/sys/CustomDomainReturn"
-import type {ContactFormAccountReturn} from "../../entities/tutanota/ContactFormAccountReturn"
-import {createBrandingDomainDeleteData} from "../../entities/sys/BrandingDomainDeleteData"
-import {createBrandingDomainData} from "../../entities/sys/BrandingDomainData"
 import type {LoginFacadeImpl} from "./LoginFacade"
 import type {WorkerImpl} from "../WorkerImpl"
 import {CounterFacade} from "./CounterFacade"
-import {createMembershipAddData} from "../../entities/sys/MembershipAddData"
-import {createMembershipRemoveData} from "../../entities/sys/MembershipRemoveData"
-import {createPaymentDataServicePutData} from "../../entities/sys/PaymentDataServicePutData"
 import type {Country} from "../../common/CountryList"
-import type {PaymentDataServicePutReturn} from "../../entities/sys/PaymentDataServicePutReturn"
-import {_TypeModel as AccountingInfoTypeModel, AccountingInfoTypeRef} from "../../entities/sys/AccountingInfo"
-import {createPdfInvoiceServiceData} from "../../entities/sys/PdfInvoiceServiceData"
-import type {InternalGroupData} from "../../entities/tutanota/InternalGroupData"
 import {LockedError} from "../../common/error/RestError"
 import type {RsaKeyPair} from "@tutao/tutanota-crypto"
 import {aes128RandomKey, bitArrayToUint8Array, encryptKey, hexToPublicKey, sha256Hash, uint8ArrayToBitArray} from "@tutao/tutanota-crypto"
@@ -133,6 +129,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 		private readonly entityClient: EntityClient,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly bookingFacade: BookingFacade,
+		private readonly cryptoFacade: CryptoFacade,
 	) {
 		this.contactFormUserGroupData = null
 	}
@@ -334,7 +331,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 			customerGroupKey,
 		)
 
-				const recoverData = this.login.generateRecoveryCode(userGroupKey)
+		const recoverData = this.login.generateRecoveryCode(userGroupKey)
 
 		const data = createCustomerAccountCreateData({
 			authToken,
@@ -403,16 +400,6 @@ export class CustomerFacadeImpl implements CustomerFacade {
 		return result
 	}
 
-	_getAccountGroupKey(keyData: SystemKeysReturn, accountType: AccountType): Aes128Key {
-		if (accountType === AccountType.FREE) {
-			return uint8ArrayToBitArray(keyData.freeGroupKey)
-		} else if (accountType === AccountType.STARTER) {
-			return uint8ArrayToBitArray(keyData.starterGroupKey)
-		} else {
-			throw Error("Illegal account type")
-		}
-	}
-
 	async switchFreeToPremiumGroup(): Promise<void> {
 		try {
 			const keyData = await this.serviceExecutor.get(SystemKeysService, null)
@@ -463,8 +450,8 @@ export class CustomerFacadeImpl implements CustomerFacade {
 	): Promise<PaymentDataServicePutReturn> {
 		return this.entityClient.load(CustomerTypeRef, neverNull(this.login.getLoggedInUser().customer)).then(customer => {
 			return this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-				return this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
-					return resolveSessionKey(AccountingInfoTypeModel, accountingInfo).then(accountingInfoSessionKey => {
+				return this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(async accountingInfo => {
+					return this.cryptoFacade.resolveSessionKeyForInstance(accountingInfo).then(accountingInfoSessionKey => {
 						const service = createPaymentDataServicePutData()
 						service.business = false // not used, must be set to false currently, will be removed later
 

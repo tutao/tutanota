@@ -6,7 +6,7 @@ import {getDisplayText} from "../../mail/model/MailUtils"
 import {ButtonN} from "../../gui/base/ButtonN"
 import {showGroupInvitationDialog} from "./ReceivedGroupInvitationDialog"
 import {Icons} from "../../gui/base/icons/Icons"
-import type {ReceivedGroupInvitation} from "../../api/entities/sys/ReceivedGroupInvitation"
+import type {ReceivedGroupInvitation} from "../../api/entities/sys/TypeRefs.js"
 import type {AllIcons} from "../../gui/base/Icon"
 
 export type GroupInvitationFolderRowAttrs = {

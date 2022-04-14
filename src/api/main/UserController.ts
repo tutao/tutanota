@@ -1,35 +1,36 @@
 import {AccountType, GroupType, OperationType} from "../common/TutanotaConstants"
 import type {Base64Url} from "@tutao/tutanota-utils"
 import {downcast, first, mapAndFilterNull, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
-import type {Customer} from "../entities/sys/Customer"
-import {CustomerTypeRef} from "../entities/sys/Customer"
-import type {User} from "../entities/sys/User"
-import {UserTypeRef} from "../entities/sys/User"
 import {MediaType} from "../common/EntityFunctions"
-import type {GroupInfo} from "../entities/sys/GroupInfo"
-import {GroupInfoTypeRef} from "../entities/sys/GroupInfo"
 import {assertMainOrNode, getHttpOrigin, isDesktop} from "../common/Env"
-import type {TutanotaProperties} from "../entities/tutanota/TutanotaProperties"
-import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties"
-import {_TypeModel as SessionModelType} from "../entities/sys/Session"
 import type {EntityUpdateData} from "./EventController"
 import {isUpdateForTypeRef} from "./EventController"
-import type {UserSettingsGroupRoot} from "../entities/tutanota/UserSettingsGroupRoot"
-import {createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef} from "../entities/tutanota/UserSettingsGroupRoot"
-import {createCloseSessionServicePost} from "../entities/sys/CloseSessionServicePost"
-import type {GroupMembership} from "../entities/sys/GroupMembership"
 import {NotFoundError} from "../common/error/RestError"
-import type {CustomerInfo} from "../entities/sys/CustomerInfo"
-import {CustomerInfoTypeRef} from "../entities/sys/CustomerInfo"
-import type {AccountingInfo} from "../entities/sys/AccountingInfo"
-import {AccountingInfoTypeRef} from "../entities/sys/AccountingInfo"
 import {locator} from "./MainLocator"
 import {isSameId} from "../common/utils/EntityUtils"
-import type {WhitelabelConfig} from "../entities/sys/WhitelabelConfig"
-import type {DomainInfo} from "../entities/sys/DomainInfo"
 import {getWhitelabelCustomizations} from "../../misc/WhitelabelCustomizations"
 import {EntityClient} from "../common/EntityClient"
 import {CloseSessionService} from "../entities/sys/Services"
+import {
+	AccountingInfo, AccountingInfoTypeRef, createCloseSessionServicePost,
+	Customer,
+	CustomerInfo,
+	CustomerInfoTypeRef,
+	CustomerTypeRef,
+	DomainInfo,
+	GroupInfo, GroupInfoTypeRef,
+	GroupMembership,
+	User, UserTypeRef,
+	WhitelabelConfig, WhitelabelConfigTypeRef
+} from "../entities/sys/TypeRefs"
+import {
+	createUserSettingsGroupRoot,
+	TutanotaProperties,
+	TutanotaPropertiesTypeRef,
+	UserSettingsGroupRoot,
+	UserSettingsGroupRootTypeRef
+} from "../entities/tutanota/TypeRefs"
+import {typeModels as sysTypeModels} from "../entities/sys/TypeModels"
 
 assertMainOrNode()
 
@@ -266,7 +267,7 @@ export class UserController implements IUserController {
 				xhr.open("DELETE", getHttpOrigin() + path, false) // sync requests increase reliability when invoked in onunload
 
 				xhr.setRequestHeader("accessToken", this.accessToken)
-				xhr.setRequestHeader("v", SessionModelType.version)
+				xhr.setRequestHeader("v", sysTypeModels.Session.version)
 
 				xhr.onload = function () {
 					// XMLHttpRequestProgressEvent, but not needed
@@ -325,7 +326,6 @@ export class UserController implements IUserController {
 		)
 
 		if (domainInfoAndConfig) {
-			const {WhitelabelConfigTypeRef} = await import("./../entities/sys/WhitelabelConfig")
 			const whitelabelConfig = await locator.entityClient.load(WhitelabelConfigTypeRef, domainInfoAndConfig.whitelabelConfig)
 			return {
 				domainInfo: domainInfoAndConfig.domainInfo,
@@ -361,9 +361,9 @@ export function initUserController(
 				entityClient
 					.setup(
 						null,
-						Object.assign(createUserSettingsGroupRoot(), {
+						createUserSettingsGroupRoot({
 							_ownerGroup: user.userGroup.group,
-						}),
+						})
 					)
 					.then(() => entityClient.load(UserSettingsGroupRootTypeRef, user.userGroup.group)),
 			),

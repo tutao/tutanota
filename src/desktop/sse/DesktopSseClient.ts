@@ -16,10 +16,10 @@ import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import type {DesktopAlarmScheduler, EncryptedAlarmNotification} from "./DesktopAlarmScheduler"
 import type {DesktopNetworkClient} from "../DesktopNetworkClient"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
-import {_TypeModel as MissedNotificationTypeModel} from "../../api/entities/sys/MissedNotification"
+import {typeModels} from "../../api/entities/sys/TypeModels"
 import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
 import type {LanguageViewModelType} from "../../misc/LanguageViewModel"
-import type {NotificationInfo} from "../../api/entities/sys/NotificationInfo"
+import type {NotificationInfo} from "../../api/entities/sys/TypeRefs.js"
 import {
 	handleRestError,
 	NotAuthenticatedError,
@@ -196,7 +196,7 @@ export class DesktopSseClient {
 									   Connection: "Keep-Alive",
 									   "Keep-Alive": "header",
 									   Accept: "text/event-stream",
-									   v: MissedNotificationTypeModel.version,
+									   v: typeModels.MissedNotification.version,
 									   cv: this._app.getVersion(),
 								   },
 								   method: "GET",
@@ -442,7 +442,7 @@ export class DesktopSseClient {
 			log.debug("downloading missed notification")
 			const headers: Record<string, string> = {
 				userIds: userId,
-				v: MissedNotificationTypeModel.version,
+				v: typeModels.MissedNotification.version,
 				cv: this._app.getVersion(),
 			}
 			const lastProcessedId = await this._conf.getVar(DesktopConfigKey.lastProcessedNotificationId)

@@ -1,6 +1,6 @@
 import {getMailFolderType, MailFolderType, ReplyType} from "../../api/common/TutanotaConstants"
 import {FontIcons} from "../../gui/base/icons/FontIcons"
-import type {Mail} from "../../api/entities/tutanota/Mail"
+import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {formatDateTimeFromYesterdayOn} from "../../misc/Formatter"
 import {getSenderOrRecipientHeading, isTutanotaTeamMail} from "../model/MailUtils"
 import {locator} from "../../api/main/MainLocator"

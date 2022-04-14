@@ -5,11 +5,11 @@ import {InstanceMapper} from "../../../../src/api/worker/crypto/InstanceMapper"
 import {CryptoFacade} from "../../../../src/api/worker/crypto/CryptoFacade"
 import {matchers, object, when} from "testdouble"
 import {DeleteService, GetService, PostService, PutService} from "../../../../src/api/common/ServiceRequest"
-import {createSaltData, SaltDataTypeRef} from "../../../../src/api/entities/sys/SaltData"
+import {createSaltData, SaltDataTypeRef} from "../../../../src/api/entities/sys/TypeRefs.js"
 import {HttpMethod, MediaType, resolveTypeReference} from "../../../../src/api/common/EntityFunctions"
 import {deepEqual} from "@tutao/tutanota-utils"
 import {assertThrows, verify} from "@tutao/tutanota-test-utils"
-import {createGiftCardCreateData, GiftCardCreateDataTypeRef} from "../../../../src/api/entities/sys/GiftCardCreateData"
+import {createGiftCardCreateData, GiftCardCreateDataTypeRef} from "../../../../src/api/entities/sys/TypeRefs.js"
 import {ProgrammingError} from "../../../../src/api/common/error/ProgrammingError"
 
 const {anything} = matchers

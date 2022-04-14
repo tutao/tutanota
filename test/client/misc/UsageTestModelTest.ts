@@ -1,16 +1,17 @@
 import o from "ospec"
 import {ASSIGNMENT_UPDATE_INTERVAL_MS, PersistedAssignmentData, TtlBehavior, UsageTestModel, UsageTestStorage} from "../../../src/misc/UsageTestModel"
-import {_TypeModel as UsageTestTypeModel, createUsageTestAssignment} from "../../../src/api/entities/sys/UsageTestAssignment"
+import {createUsageTestAssignment} from "../../../src/api/entities/sys/TypeRefs.js"
 import {matchers, object, verify, when} from "testdouble"
-import {createUsageTestAssignmentIn} from "../../../src/api/entities/sys/UsageTestAssignmentIn"
-import {createUsageTestAssignmentOut} from "../../../src/api/entities/sys/UsageTestAssignmentOut"
+import {createUsageTestAssignmentIn} from "../../../src/api/entities/sys/TypeRefs.js"
+import {createUsageTestAssignmentOut} from "../../../src/api/entities/sys/TypeRefs.js"
 import {clone} from "@tutao/tutanota-utils"
 import {Stage, UsageTest} from "@tutao/tutanota-usagetests"
-import {createUsageTestParticipationIn} from "../../../src/api/entities/sys/UsageTestParticipationIn"
-import {createUsageTestMetricData} from "../../../src/api/entities/sys/UsageTestMetricData"
+import {createUsageTestParticipationIn} from "../../../src/api/entities/sys/TypeRefs.js"
+import {createUsageTestMetricData} from "../../../src/api/entities/sys/TypeRefs.js"
 import {SuspensionBehavior} from "../../../src/api/worker/rest/RestClient"
-import {UsageTestAssignmentService, UsageTestParticipationService} from "../../../src/api/entities/sys/Services"
+import {UsageTestAssignmentService, UsageTestParticipationService} from "../../../src/api/entities/sys/Services.js"
 import {IServiceExecutor} from "../../../src/api/common/ServiceRequest"
+import modelInfo from "../../../src/api/entities/sys/sysModelInfo"
 
 const {anything} = matchers
 
@@ -65,7 +66,7 @@ o.spec("UsageTestModel", function () {
 	})
 	const assignmentData: PersistedAssignmentData = {
 		updatedAt: dateProvider.now() - (ASSIGNMENT_UPDATE_INTERVAL_MS * 2),
-		sysModelVersion: Number(UsageTestTypeModel.version),
+		sysModelVersion: modelInfo.version,
 		assignments: [oldAssignment],
 	}
 

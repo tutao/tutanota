@@ -3,7 +3,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {GroupType} from "../api/common/TutanotaConstants"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {getDefaultGroupName} from "./GroupUtils"
-import type {ReceivedGroupInvitation} from "../api/entities/sys/ReceivedGroupInvitation"
+import type {ReceivedGroupInvitation} from "../api/entities/sys/TypeRefs.js"
 import type {lazy} from "@tutao/tutanota-utils"
 
 export type GroupSharingTexts = {

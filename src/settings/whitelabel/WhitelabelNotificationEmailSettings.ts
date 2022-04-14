@@ -6,7 +6,7 @@ import {ColumnWidth, TableN} from "../../gui/base/TableN"
 import {ButtonType} from "../../gui/base/ButtonN"
 import {Icons} from "../../gui/base/icons/Icons"
 import {attachDropdown} from "../../gui/base/DropdownN"
-import type {NotificationMailTemplate} from "../../api/entities/sys/NotificationMailTemplate"
+import type {NotificationMailTemplate} from "../../api/entities/sys/TypeRefs.js"
 import {downcast} from "@tutao/tutanota-utils"
 import type {LanguageCode} from "../../misc/LanguageViewModel"
 import Stream from "mithril/stream";

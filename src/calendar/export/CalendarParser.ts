@@ -1,11 +1,11 @@
 import {DAY_IN_MILLIS, downcast, filterInt, neverNull} from "@tutao/tutanota-utils"
 import {DateTime, IANAZone} from "luxon"
-import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
-import {createCalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
-import type {RepeatRule} from "../../api/entities/sys/RepeatRule"
-import {createRepeatRule} from "../../api/entities/sys/RepeatRule"
-import type {AlarmInfo} from "../../api/entities/sys/AlarmInfo"
-import {createAlarmInfo} from "../../api/entities/sys/AlarmInfo"
+import type {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
+import {createCalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
+import type {RepeatRule} from "../../api/entities/sys/TypeRefs.js"
+import {createRepeatRule} from "../../api/entities/sys/TypeRefs.js"
+import type {AlarmInfo} from "../../api/entities/sys/TypeRefs.js"
+import {createAlarmInfo} from "../../api/entities/sys/TypeRefs.js"
 import type {Parser} from "../../misc/parsing/ParserCombinator"
 import {
 	combineParsers,
@@ -20,8 +20,8 @@ import {
 } from "../../misc/parsing/ParserCombinator"
 import WindowsZones from "./WindowsZones"
 import type {ParsedCalendarData} from "./CalendarImporter"
-import {CalendarEventAttendee, createCalendarEventAttendee} from "../../api/entities/tutanota/CalendarEventAttendee"
-import {createEncryptedMailAddress} from "../../api/entities/tutanota/EncryptedMailAddress"
+import {CalendarEventAttendee, createCalendarEventAttendee} from "../../api/entities/tutanota/TypeRefs.js"
+import {createEncryptedMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
 import {isMailAddress} from "../../misc/FormatValidator"
 import {AlarmInterval, CalendarAttendeeStatus, CalendarMethod, EndType, RepeatPeriod, reverse} from "../../api/common/TutanotaConstants"
 

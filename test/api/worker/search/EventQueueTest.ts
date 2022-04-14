@@ -1,12 +1,12 @@
 import o from "ospec"
 import type {QueuedBatch} from "../../../../src/api/worker/search/EventQueue"
 import {EventQueue} from "../../../../src/api/worker/search/EventQueue"
-import type {EntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
-import {createEntityUpdate} from "../../../../src/api/entities/sys/EntityUpdate"
+import type {EntityUpdate} from "../../../../src/api/entities/sys/TypeRefs.js"
+import {createEntityUpdate} from "../../../../src/api/entities/sys/TypeRefs.js"
 import {OperationType} from "../../../../src/api/common/TutanotaConstants"
 import {defer} from "@tutao/tutanota-utils"
 import {ConnectionError} from "../../../../src/api/common/error/RestError"
-import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
+import {MailTypeRef} from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import {delay} from "@tutao/tutanota-utils"
 
 o.spec("EventQueueTest", function () {

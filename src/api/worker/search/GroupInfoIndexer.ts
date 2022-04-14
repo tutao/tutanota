@@ -1,17 +1,18 @@
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import {NotFoundError} from "../../common/error/RestError"
-import type {GroupInfo} from "../../entities/sys/GroupInfo"
-import {_TypeModel as GroupInfoModel, GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
+import type {GroupInfo} from "../../entities/sys/TypeRefs.js"
+import {GroupInfoTypeRef} from "../../entities/sys/TypeRefs.js"
+import {typeModels} from "../../entities/sys/TypeModels.js"
 import {neverNull, noOp} from "@tutao/tutanota-utils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {_createNewIndexUpdate, typeRefToTypeInfo, userIsLocalOrGlobalAdmin} from "./IndexUtils"
-import {CustomerTypeRef} from "../../entities/sys/Customer"
+import {CustomerTypeRef} from "../../entities/sys/TypeRefs.js"
 import {GroupDataOS} from "./Indexer"
 import {IndexerCore} from "./IndexerCore"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {tokenize} from "./Tokenizer"
-import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
-import type {User} from "../../entities/sys/User"
+import type {EntityUpdate} from "../../entities/sys/TypeRefs.js"
+import type {User} from "../../entities/sys/TypeRefs.js"
 import {EntityClient} from "../../common/EntityClient"
 import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 
@@ -30,7 +31,8 @@ export class GroupInfoIndexer {
 
 	createGroupInfoIndexEntries(groupInfo: GroupInfo): Map<string, SearchIndexEntry[]> {
 		this.suggestionFacade.addSuggestions(this._getSuggestionWords(groupInfo))
-		return this._core.createIndexEntriesForAttributes(GroupInfoModel, groupInfo, [
+		const GroupInfoModel = typeModels.GroupInfo
+		return this._core.createIndexEntriesForAttributes(groupInfo, [
 			{
 				attribute: GroupInfoModel.values["name"],
 				value: () => groupInfo.name,

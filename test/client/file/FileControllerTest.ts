@@ -5,11 +5,11 @@ import {BlobFacade} from "../../../src/api/worker/facades/BlobFacade"
 import {FileFacade} from "../../../src/api/worker/facades/FileFacade"
 import {NativeFileApp} from "../../../src/native/common/FileApp"
 import {matchers, object, verify, when} from "testdouble"
-import {createFile} from "../../../src/api/entities/tutanota/File"
-import {createBlob} from "../../../src/api/entities/sys/Blob"
 import {FileReference} from "../../../src/api/common/utils/FileUtils"
 import {neverNull} from "@tutao/tutanota-utils"
 import {DataFile} from "../../../src/api/common/DataFile"
+import {createBlob} from "../../../src/api/entities/sys/TypeRefs"
+import {createFile} from "../../../src/api/entities/tutanota/TypeRefs.js"
 
 const {anything, captor} = matchers
 

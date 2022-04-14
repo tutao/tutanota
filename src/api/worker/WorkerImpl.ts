@@ -9,13 +9,10 @@ import {assertWorkerOrNode, isMainOrNode} from "../common/Env"
 import type {ContactFormFacade} from "./facades/ContactFormFacade"
 import type {BrowserData} from "../../misc/ClientConstants"
 import type {InfoMessage} from "../common/CommonTypes"
-import {CryptoFacade, resolveSessionKey} from "./crypto/CryptoFacade"
+import {CryptoFacade} from "./crypto/CryptoFacade"
 import {delay} from "@tutao/tutanota-utils"
-import type {EntityUpdate} from "../entities/sys/EntityUpdate"
-import type {WebsocketCounterData} from "../entities/sys/WebsocketCounterData"
+import type {EntityUpdate, User, WebsocketCounterData, WebsocketLeaderStatus} from "../entities/sys/TypeRefs.js"
 import type {ProgressMonitorId} from "../common/utils/ProgressMonitor"
-import type {WebsocketLeaderStatus} from "../entities/sys/WebsocketLeaderStatus"
-import type {User} from "../entities/sys/User"
 import {urlify} from "./Urlifier"
 import type {GiftCardFacade} from "./facades/GiftCardFacade"
 import type {LoginFacade} from "./facades/LoginFacade"
@@ -261,9 +258,6 @@ export class WorkerImpl implements NativeInterface {
 			closeEventBus: (message: WorkerRequest) => {
 				locator.eventBusClient.close(message.args[0])
 				return Promise.resolve()
-			},
-			resolveSessionKey: (message: WorkerRequest) => {
-				return resolveSessionKey.apply(null, message.args).then((sk: BitArray) => (sk ? keyToBase64(sk) : null))
 			},
 			getLog: () => {
 				const global = self as any

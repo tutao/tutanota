@@ -9,11 +9,11 @@ import {
 import type {LoginController} from "../../../src/api/main/LoginController"
 import {assertThrows} from "@tutao/tutanota-test-utils"
 import {downcast, getStartOfDay, LazyLoaded, assertNotNull, neverNull} from "@tutao/tutanota-utils"
-import type {CalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
+import type {CalendarEvent} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {
     _TypeModel as CalendarEventTypeModel,
     createCalendarEvent,
-} from "../../../src/api/entities/tutanota/CalendarEvent"
+} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {DateTime} from "luxon"
 import {addDaysForEvent, getTimeZone} from "../../../src/calendar/date/CalendarUtils"
 import type {CalendarInfo, CalendarModel} from "../../../src/calendar/model/CalendarModel"
@@ -21,7 +21,7 @@ import type {CreateCalendarEventViewModelFunction} from "../../../src/calendar/v
 import {CalendarViewModel} from "../../../src/calendar/view/CalendarViewModel"
 import {CalendarEventViewModel} from "../../../src/calendar/date/CalendarEventViewModel"
 import {EntityClient} from "../../../src/api/common/EntityClient"
-import {createEncryptedMailAddress} from "../../../src/api/entities/tutanota/EncryptedMailAddress"
+import {createEncryptedMailAddress} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import type {EntityUpdateData} from "../../../src/api/main/EventController"
 import {EventController} from "../../../src/api/main/EventController"
 import {ProgressTracker} from "../../../src/api/main/ProgressTracker"

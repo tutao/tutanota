@@ -1,6 +1,4 @@
-import type {File as TutanotaFile} from "../entities/tutanota/File"
-import {FileTypeRef} from "../entities/tutanota/File"
-import {isSameTypeRef} from "@tutao/tutanota-utils"
+import type {File as TutanotaFile} from "../entities/tutanota/TypeRefs.js"
 
 
 export interface DataFile {

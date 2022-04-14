@@ -1,8 +1,8 @@
 import o from "ospec"
-import {createContact} from "../../../src/api/entities/tutanota/Contact"
+import {createContact} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {formatBirthdayNumeric} from "../../../src/contacts/model/ContactUtils"
-import {createContactMailAddress} from "../../../src/api/entities/tutanota/ContactMailAddress"
-import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
+import {createContactMailAddress} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {createBirthday} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {lang} from "../../../src/misc/LanguageViewModel"
 import {compareContacts} from "../../../src/contacts/view/ContactGuiUtils"
 

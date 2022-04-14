@@ -1,8 +1,8 @@
 import o from "ospec"
 import {knowledgeBaseSearch} from "../../../src/knowledgebase/model/KnowledgeBaseSearchFilter"
-import type {KnowledgeBaseEntry} from "../../../src/api/entities/tutanota/KnowledgeBaseEntry"
-import {createKnowledgeBaseEntry} from "../../../src/api/entities/tutanota/KnowledgeBaseEntry"
-import {createKnowledgeBaseEntryKeyword} from "../../../src/api/entities/tutanota/KnowledgeBaseEntryKeyword"
+import type {KnowledgeBaseEntry} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {createKnowledgeBaseEntry} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {createKnowledgeBaseEntryKeyword} from "../../../src/api/entities/tutanota/TypeRefs.js"
 o.spec("KnowledgeBaseSearchFilter", function () {
     o("finds in title with two filtered keywords", function () {
         const knowledgebaseEntry1: KnowledgeBaseEntry = createKnowledgeBaseEntry({

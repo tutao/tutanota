@@ -1,7 +1,7 @@
 import o from "ospec"
 import {SearchFacade} from "../../../../src/api/worker/search/SearchFacade"
-import {MailTypeRef} from "../../../../src/api/entities/tutanota/Mail"
-import {createUser} from "../../../../src/api/entities/sys/User"
+import {MailTypeRef} from "../../../../src/api/entities/tutanota/TypeRefs.js"
+import {createUser} from "../../../../src/api/entities/sys/TypeRefs.js"
 import type {TypeInfo} from "../../../../src/api/worker/search/IndexUtils"
 import {
     encryptIndexKeyBase64,
@@ -16,7 +16,7 @@ import type {
     SearchIndexMetaDataRow,
     SearchRestriction,
 } from "../../../../src/api/worker/search/SearchTypes"
-import {ContactTypeRef} from "../../../../src/api/entities/tutanota/Contact"
+import {ContactTypeRef} from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import {
     compareOldestFirst,
     elementIdPart,

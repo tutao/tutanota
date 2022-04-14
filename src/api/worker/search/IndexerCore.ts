@@ -60,7 +60,7 @@ import {
 	iterateBinaryBlocks,
 	removeBinaryBlockRanges,
 } from "./SearchIndexEncoding"
-import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
+import type {EntityUpdate} from "../../entities/sys/TypeRefs.js"
 import {
 	ElementDataOS,
 	GroupDataOS,
@@ -132,7 +132,7 @@ export class IndexerCore {
 	/**
 	 * Converts an instances into a map from words to a list of SearchIndexEntries.
 	 */
-	createIndexEntriesForAttributes(model: TypeModel, instance: Record<string, any>, attributes: AttributeHandler[]): Map<string, SearchIndexEntry[]> {
+	createIndexEntriesForAttributes(instance: Record<string, any>, attributes: AttributeHandler[]): Map<string, SearchIndexEntry[]> {
 		let indexEntries: Map<string, SearchIndexEntry>[] = attributes.map(attributeHandler => {
 			if (typeof attributeHandler.value !== "function") {
 				throw new ProgrammingError("Value for attributeHandler is not a function: " + JSON.stringify(attributeHandler.attribute))

@@ -1,4 +1,4 @@
-import {CustomerAccountReturnTypeRef} from "./CustomerAccountReturn.js"
+import {CustomerAccountReturnTypeRef} from "./TypeRefs.js"
 
 export const CustomerAccountService = Object.freeze({
 	app: "accounting",

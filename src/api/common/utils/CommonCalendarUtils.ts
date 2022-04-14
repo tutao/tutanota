@@ -1,5 +1,5 @@
 import {DAY_IN_MILLIS} from "@tutao/tutanota-utils"
-import type {CalendarEvent} from "../../entities/tutanota/CalendarEvent"
+import type {CalendarEvent} from "../../entities/tutanota/TypeRefs.js"
 import {stringToCustomId} from "./EntityUtils"
 
 export const DAYS_SHIFTED_MS = 15 * DAY_IN_MILLIS

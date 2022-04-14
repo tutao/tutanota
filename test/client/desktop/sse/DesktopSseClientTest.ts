@@ -7,7 +7,7 @@ import {defer, delay, downcast, neverNull, noOp, numberRange} from "@tutao/tutan
 import {AlarmInterval} from "../../../../src/api/common/TutanotaConstants"
 import * as url from "url"
 import * as querystring from "querystring"
-import {_TypeModel as MissedNotificationTypeModel, createMissedNotification} from "../../../../src/api/entities/sys/MissedNotification"
+import {_TypeModel as MissedNotificationTypeModel, createMissedNotification} from "../../../../src/api/entities/sys/TypeRefs.js"
 import {DesktopSseClient} from "../../../../src/desktop/sse/DesktopSseClient"
 import {DesktopConfigEncKey, DesktopConfigKey} from "../../../../src/desktop/config/ConfigKeys"
 import type {DesktopConfig} from "../../../../src/desktop/config/DesktopConfig"

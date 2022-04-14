@@ -3,32 +3,34 @@ import {CryptoFacade, encryptBytes} from "../crypto/CryptoFacade"
 import {concat, decodeBase64, downcast, Mapper, neverNull, promiseMap, splitUint8ArrayInChunks, uint8ArrayToBase64,} from "@tutao/tutanota-utils"
 import {LoginFacadeImpl} from "./LoginFacade"
 import {ArchiveDataType, MAX_BLOB_SIZE_BYTES} from "../../common/TutanotaConstants"
-import {_TypeModel as BlobGetInTypeModel, createBlobGetIn} from "../../entities/storage/BlobGetIn"
 
 import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isApp, isDesktop} from "../../common/Env"
 import type {SuspensionHandler} from "../SuspensionHandler"
 import {BlobAccessTokenService, BlobService} from "../../entities/storage/Services"
-import {createBlobWriteData} from "../../entities/storage/BlobWriteData"
 import {aes128Decrypt, random, sha256Hash} from "@tutao/tutanota-crypto"
 import type {FileUri, NativeFileApp} from "../../../native/common/FileApp"
 import type {AesApp} from "../../../native/worker/AesApp"
 import {InstanceMapper} from "../crypto/InstanceMapper"
-import {BlobPostOut, BlobPostOutTypeRef} from "../../entities/storage/BlobPostOut"
-import {createBlobReadData} from "../../entities/storage/BlobReadData"
 import {Aes128Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
-import {Blob} from "../../entities/sys/Blob"
+import {Blob} from "../../entities/sys/TypeRefs.js"
 import {FileReference} from "../../common/utils/FileUtils"
 import {ConnectionError, handleRestError} from "../../common/error/RestError"
 import {Instance} from "../../common/EntityTypes"
 import {getElementId, getEtId, getListId, isElementEntity} from "../../common/utils/EntityUtils"
-import {createInstanceId} from "../../entities/storage/InstanceId.js"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {IServiceExecutor} from "../../common/ServiceRequest"
-import {createBlobAccessTokenPostIn} from "../../entities/storage/BlobAccessTokenPostIn"
-import {BlobServerAccessInfo} from "../../entities/storage/BlobServerAccessInfo"
-import {BlobServerUrl} from "../../entities/storage/BlobServerUrl"
-import {BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper} from "../../entities/sys/BlobReferenceTokenWrapper"
+import {BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper} from "../../entities/sys/TypeRefs.js"
+import {
+	BlobGetInTypeRef,
+	BlobPostOut,
+	BlobPostOutTypeRef,
+	BlobServerAccessInfo, BlobServerUrl,
+	createBlobAccessTokenPostIn, createBlobGetIn,
+	createBlobReadData,
+	createBlobWriteData,
+	createInstanceId
+} from "../../entities/storage/TypeRefs"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
@@ -112,7 +114,7 @@ export class BlobFacade {
 	 */
 	async downloadAndDecrypt(archiveDataType: ArchiveDataType, blobs: Blob[], referencingInstance: Instance): Promise<Uint8Array> {
 		const blobAccessInfo = await this.requestReadToken(archiveDataType, blobs, referencingInstance)
-		const sessionKey = neverNull(await this.cryptoFacade.resolveSessionKey(await resolveTypeReference(referencingInstance._type), referencingInstance))
+		const sessionKey = neverNull(await this.cryptoFacade.resolveSessionKeyForInstance(referencingInstance))
 		const blobData = await promiseMap(blobs, (blob) => this.downloadAndDecryptChunk(blob, blobAccessInfo, sessionKey))
 		return concat(...blobData)
 	}
@@ -133,7 +135,7 @@ export class BlobFacade {
 			throw new ProgrammingError("Environment is not app or Desktop!")
 		}
 		const blobAccessInfo = await this.requestReadToken(archiveDataType, blobs, referencingInstance)
-		const sessionKey = neverNull(await this.cryptoFacade.resolveSessionKey(await resolveTypeReference(referencingInstance._type), referencingInstance))
+		const sessionKey = neverNull(await this.cryptoFacade.resolveSessionKeyForInstance(referencingInstance))
 		const decryptedChunkFileUris: FileUri[] = []
 		for (const blob of blobs) {
 			try {
@@ -215,7 +217,7 @@ export class BlobFacade {
 		const {blobAccessToken, servers} = blobAccessInfo
 		const encryptedData = encryptBytes(sessionKey, chunk)
 		const blobHash = uint8ArrayToBase64(sha256Hash(encryptedData).slice(0, 6))
-		const queryParams = this.createParams({blobAccessToken, blobHash})
+		const queryParams = await this.createParams({blobAccessToken, blobHash})
 		return this.tryServers(servers, async (serverUrl) => {
 			const response = await this.restClient.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST,
 				{
@@ -234,7 +236,7 @@ export class BlobFacade {
 		const encryptedChunkUri = encryptedFileInfo.uri
 		const blobHash = await this.fileApp.hashFile(encryptedChunkUri)
 
-		const queryParams = this.createParams({blobAccessToken, blobHash})
+		const queryParams = await this.createParams({blobAccessToken, blobHash})
 		return this.tryServers(servers, async (serverUrl) => {
 			const serviceUrl = new URL(BLOB_SERVICE_REST_PATH, serverUrl)
 			const fullUrl = addParamsToUrl(serviceUrl, queryParams)
@@ -276,11 +278,12 @@ export class BlobFacade {
 	private async downloadAndDecryptChunk(blob: Blob, blobAccessInfo: BlobServerAccessInfo, sessionKey: Aes128Key): Promise<Uint8Array> {
 		const {blobAccessToken, servers} = blobAccessInfo
 		const {archiveId, blobId} = blob
-		const queryParams = this.createParams({blobAccessToken})
+		const queryParams = await this.createParams({blobAccessToken})
 		const getData = createBlobGetIn({
 			archiveId,
 			blobId,
 		})
+		const BlobGetInTypeModel = await resolveTypeReference(BlobGetInTypeRef)
 		const literalGetData = await this.instanceMapper.encryptAndMapToLiteral(BlobGetInTypeModel, getData, null)
 		const body = JSON.stringify(literalGetData)
 
@@ -296,8 +299,9 @@ export class BlobFacade {
 		}, `can't download from server `)
 	}
 
-	private createParams(options: {blobAccessToken: string, blobHash?: string, _body?: string}) {
+	private async createParams(options: {blobAccessToken: string, blobHash?: string, _body?: string}) {
 		const {blobAccessToken, blobHash, _body} = options
+		const BlobGetInTypeModel = await resolveTypeReference(BlobGetInTypeRef)
 		return Object.assign(
 			{
 				blobAccessToken,
@@ -316,9 +320,10 @@ export class BlobFacade {
 			archiveId,
 			blobId,
 		})
+		const BlobGetInTypeModel = await resolveTypeReference(BlobGetInTypeRef)
 		const literalGetData = await this.instanceMapper.encryptAndMapToLiteral(BlobGetInTypeModel, getData, null)
 		const _body = JSON.stringify(literalGetData)
-		const queryParams = this.createParams({blobAccessToken, _body})
+		const queryParams = await this.createParams({blobAccessToken, _body})
 		const blobFilename = blobId + ".blob"
 
 		return this.tryServers(servers, async (serverUrl) => {

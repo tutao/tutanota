@@ -1,12 +1,12 @@
 import {ContactComparisonResult, IndifferentContactComparisonResult} from "../api/common/TutanotaConstants"
 import {neverNull} from "@tutao/tutanota-utils"
 import {isoDateToBirthday} from "../api/common/utils/BirthdayUtils"
-import type {Contact} from "../api/entities/tutanota/Contact"
-import type {ContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
-import type {Birthday} from "../api/entities/tutanota/Birthday"
-import type {ContactAddress} from "../api/entities/tutanota/ContactAddress"
-import type {ContactPhoneNumber} from "../api/entities/tutanota/ContactPhoneNumber"
-import type {ContactSocialId} from "../api/entities/tutanota/ContactSocialId"
+import type {Contact} from "../api/entities/tutanota/TypeRefs.js"
+import type {ContactMailAddress} from "../api/entities/tutanota/TypeRefs.js"
+import type {Birthday} from "../api/entities/tutanota/TypeRefs.js"
+import type {ContactAddress} from "../api/entities/tutanota/TypeRefs.js"
+import type {ContactPhoneNumber} from "../api/entities/tutanota/TypeRefs.js"
+import type {ContactSocialId} from "../api/entities/tutanota/TypeRefs.js"
 
 /**
  * returns all contacts that are deletable because another contact exists that is exactly the same, and all contacts that look similar and therfore may be merged.

@@ -1,6 +1,6 @@
 import type {LoginController} from "../api/main/LoginController"
 import {logins} from "../api/main/LoginController"
-import {CustomerTypeRef} from "../api/entities/sys/Customer"
+import {CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {neverNull} from "@tutao/tutanota-utils"
 import {Dialog} from "../gui/base/Dialog"
 import type {TranslationKey} from "./LanguageViewModel"

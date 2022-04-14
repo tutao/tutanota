@@ -1,19 +1,20 @@
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
 import {NotFoundError} from "../../common/error/RestError"
-import type {WhitelabelChild} from "../../entities/sys/WhitelabelChild"
-import {_TypeModel as WhitelabelChildModel, WhitelabelChildTypeRef} from "../../entities/sys/WhitelabelChild"
+import type {WhitelabelChild} from "../../entities/sys/TypeRefs.js"
+import {WhitelabelChildTypeRef} from "../../entities/sys/TypeRefs.js"
 import {neverNull, noOp} from "@tutao/tutanota-utils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {_createNewIndexUpdate, typeRefToTypeInfo, userIsGlobalAdmin} from "./IndexUtils"
-import {CustomerTypeRef} from "../../entities/sys/Customer"
+import {CustomerTypeRef} from "../../entities/sys/TypeRefs.js"
 import {GroupDataOS} from "./Indexer"
 import {IndexerCore} from "./IndexerCore"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {tokenize} from "./Tokenizer"
-import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
-import type {User} from "../../entities/sys/User"
+import type {EntityUpdate} from "../../entities/sys/TypeRefs.js"
+import type {User} from "../../entities/sys/TypeRefs.js"
 import {EntityClient} from "../../common/EntityClient"
 import {ofClass, promiseMap} from "@tutao/tutanota-utils"
+import {typeModels} from "../../entities/sys/TypeModels"
 
 export class WhitelabelChildIndexer {
 	_core: IndexerCore
@@ -30,7 +31,8 @@ export class WhitelabelChildIndexer {
 
 	createWhitelabelChildIndexEntries(whitelabelChild: WhitelabelChild): Map<string, SearchIndexEntry[]> {
 		this.suggestionFacade.addSuggestions(this._getSuggestionWords(whitelabelChild))
-		return this._core.createIndexEntriesForAttributes(WhitelabelChildModel, whitelabelChild, [
+		const WhitelabelChildModel = typeModels.WhitelabelChild
+		return this._core.createIndexEntriesForAttributes(whitelabelChild, [
 			{
 				attribute: WhitelabelChildModel.values["mailAddress"],
 				value: () => whitelabelChild.mailAddress,

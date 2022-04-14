@@ -8,15 +8,21 @@ import {assertThrows, unmockAttribute} from "@tutao/tutanota-test-utils"
 import {clone, delay, downcast, neverNull, noOp} from "@tutao/tutanota-utils"
 import type {MailboxDetail} from "../../../src/mail/model/MailModel"
 import {MailModel} from "../../../src/mail/model/MailModel"
-import type {CalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
-import {createCalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
-import {AccountType, AlarmInterval, assertEnumValue, CalendarAttendeeStatus, ShareCapability,} from "../../../src/api/common/TutanotaConstants"
-import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
-import type {User} from "../../../src/api/entities/sys/User"
-import {createCalendarEventAttendee} from "../../../src/api/entities/tutanota/CalendarEventAttendee"
+import type {CalendarEvent} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {createCalendarEvent} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {
+	AccountType,
+	AlarmInterval,
+	assertEnumValue,
+	CalendarAttendeeStatus,
+	ShareCapability,
+} from "../../../src/api/common/TutanotaConstants"
+import {createGroupMembership} from "../../../src/api/entities/sys/TypeRefs.js"
+import type {User} from "../../../src/api/entities/sys/TypeRefs.js"
+import {createCalendarEventAttendee} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import type {CalendarUpdateDistributor} from "../../../src/calendar/date/CalendarUpdateDistributor"
 import type {IUserController} from "../../../src/api/main/UserController"
-import {createEncryptedMailAddress, EncryptedMailAddress} from "../../../src/api/entities/tutanota/EncryptedMailAddress"
+import {createEncryptedMailAddress, EncryptedMailAddress} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import type {CalendarInfo} from "../../../src/calendar/model/CalendarModel"
 import {CalendarModel} from "../../../src/calendar/model/CalendarModel"
 import {getAllDayDateUTCFromZone, getTimeZone} from "../../../src/calendar/date/CalendarUtils"
@@ -26,12 +32,12 @@ import {SendMailModel} from "../../../src/mail/editor/SendMailModel"
 import type {LoginController} from "../../../src/api/main/LoginController"
 import type {ContactModel} from "../../../src/contacts/model/ContactModel"
 import {EventController} from "../../../src/api/main/EventController"
-import type {Mail} from "../../../src/api/entities/tutanota/Mail"
-import {createMail} from "../../../src/api/entities/tutanota/Mail"
-import {createContact} from "../../../src/api/entities/tutanota/Contact"
+import type {Mail} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {createMail} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {createContact} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {EntityClient} from "../../../src/api/common/EntityClient"
-import {createPublicKeyReturn} from "../../../src/api/entities/sys/PublicKeyReturn"
-import {createContactMailAddress} from "../../../src/api/entities/tutanota/ContactMailAddress"
+import {createPublicKeyReturn} from "../../../src/api/entities/sys/TypeRefs.js"
+import {createContactMailAddress} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {BusinessFeatureRequiredError} from "../../../src/api/main/BusinessFeatureRequiredError"
 import {MailFacade} from "../../../src/api/worker/facades/MailFacade"
 import {EntityRestClientMock} from "../../api/worker/EntityRestClientMock"
@@ -47,7 +53,7 @@ import {
 	makeMailboxDetail,
 	makeUserController,
 } from "./CalendarTestUtils"
-import {createRepeatRule} from "../../../src/api/entities/sys/RepeatRule"
+import {createRepeatRule} from "../../../src/api/entities/sys/TypeRefs.js"
 
 const now = new Date(2020, 4, 25, 13, 40)
 const zone = getTimeZone()

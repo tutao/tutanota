@@ -1,9 +1,9 @@
-import type {OutOfOfficeNotification} from "../api/entities/tutanota/OutOfOfficeNotification"
-import {OutOfOfficeNotificationTypeRef} from "../api/entities/tutanota/OutOfOfficeNotification"
+import type {OutOfOfficeNotification} from "../api/entities/tutanota/TypeRefs.js"
+import {OutOfOfficeNotificationTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import {formatDate} from "./Formatter"
 import {lang} from "./LanguageViewModel"
 import {locator} from "../api/main/MainLocator"
-import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
+import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import {logins} from "../api/main/LoginController"
 import {getDayShifted} from "@tutao/tutanota-utils"
 

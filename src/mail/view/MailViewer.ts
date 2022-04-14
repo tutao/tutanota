@@ -16,7 +16,7 @@ import {
 	SpamRuleType,
 	TabIndex,
 } from "../../api/common/TutanotaConstants"
-import type {File as TutanotaFile} from "../../api/entities/tutanota/File"
+import type {File as TutanotaFile} from "../../api/entities/tutanota/TypeRefs.js"
 import {InfoLink, lang} from "../../misc/LanguageViewModel"
 import {assertMainOrNode, isAndroidApp, isDesktop, isIOSApp} from "../../api/common/Env"
 import {Dialog} from "../../gui/base/Dialog"
@@ -52,7 +52,7 @@ import {styles} from "../../gui/styles"
 import {attachDropdown, createAsyncDropdown, createDropdown, showDropdownAtPosition} from "../../gui/base/DropdownN"
 import {navButtonRoutes} from "../../misc/RouteChange"
 import {RecipientButton} from "../../gui/base/RecipientButton"
-import type {Mail} from "../../api/entities/tutanota/Mail"
+import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {EventBanner} from "./EventBanner"
 import type {InlineImageReference} from "./MailGuiUtils"
 import {moveMails, promptAndDeleteMails, replaceCidsWithInlineImages} from "./MailGuiUtils"
@@ -62,7 +62,7 @@ import {createMoreSecondaryButtonAttrs, getCoordsOfMouseOrTouchEvent, ifAllowedT
 import {copyToClipboard} from "../../misc/ClipboardUtils";
 import {ContentBlockingStatus, MailViewerViewModel} from "./MailViewerViewModel"
 import {getListId} from "../../api/common/utils/EntityUtils"
-import {createEmailSenderListElement} from "../../api/entities/sys/EmailSenderListElement"
+import {createEmailSenderListElement} from "../../api/entities/sys/TypeRefs.js"
 import {checkApprovalStatus} from "../../misc/LoginUtils"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"

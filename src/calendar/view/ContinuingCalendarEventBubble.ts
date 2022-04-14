@@ -1,8 +1,8 @@
 import m, {Children, Component, Vnode} from "mithril"
 import {formatEventTime, hasAlarmsForTheUser} from "../date/CalendarUtils"
 import {CalendarEventBubble} from "./CalendarEventBubble"
-import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
-import type {User} from "../../api/entities/sys/User"
+import type {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
+import type {User} from "../../api/entities/sys/TypeRefs.js"
 import type {EventTextTimeOption} from "../../api/common/TutanotaConstants"
 import type {CalendarEventBubbleClickHandler} from "./CalendarViewModel"
 

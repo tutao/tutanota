@@ -1,24 +1,25 @@
 import m, {Children} from "mithril"
 import {assertMainOrNode} from "../api/common/Env"
 import {AccountType, AccountTypeNames, BookingItemFeatureType, Const, OperationType} from "../api/common/TutanotaConstants"
-import type {Customer} from "../api/entities/sys/Customer"
-import {CustomerTypeRef} from "../api/entities/sys/Customer"
+import type {AccountingInfo, Booking, Customer, CustomerInfo, GiftCard, OrderProcessingAgreement} from "../api/entities/sys/TypeRefs.js"
+import {
+	AccountingInfoTypeRef,
+	BookingTypeRef,
+	CustomerInfoTypeRef,
+	CustomerTypeRef,
+	GiftCardTypeRef,
+	GroupInfoTypeRef,
+	OrderProcessingAgreementTypeRef,
+	UserTypeRef
+} from "../api/entities/sys/TypeRefs.js"
 import {assertNotNull, downcast, incrementDate, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
-import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
-import {CustomerInfoTypeRef} from "../api/entities/sys/CustomerInfo"
 import {logins} from "../api/main/LoginController"
 import {lang, TranslationKey} from "../misc/LanguageViewModel"
 import {Button} from "../gui/base/Button"
 import {Icons} from "../gui/base/icons/Icons"
-import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
-import {AccountingInfoTypeRef} from "../api/entities/sys/AccountingInfo"
-import {UserTypeRef} from "../api/entities/sys/User"
 import {formatPrice, formatPriceDataWithInfo, getCurrentCount} from "./PriceUtils"
 import {formatDate, formatNameAndAddress, formatStorageSize} from "../misc/Formatter"
 import {getByAbbreviation} from "../api/common/CountryList"
-import type {Booking} from "../api/entities/sys/Booking"
-import {BookingTypeRef} from "../api/entities/sys/Booking"
-import {MailAddressAliasServiceReturnTypeRef} from "../api/entities/sys/MailAddressAliasServiceReturn"
 import * as AddUserDialog from "../settings/AddUserDialog"
 import * as EmailAliasOptionsDialog from "./EmailAliasOptionsDialog"
 import * as AddGroupDialog from "../settings/AddGroupDialog"
@@ -28,10 +29,7 @@ import {showSwitchDialog} from "./SwitchSubscriptionDialog"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {showDeleteAccountDialog} from "./DeleteAccountDialog"
-import type {OrderProcessingAgreement} from "../api/entities/sys/OrderProcessingAgreement"
-import {OrderProcessingAgreementTypeRef} from "../api/entities/sys/OrderProcessingAgreement"
 import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
-import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import * as SwitchToBusinessInvoiceDataDialog from "./SwitchToBusinessInvoiceDataDialog"
 import {NotFoundError} from "../api/common/error/RestError"
 import type {EntityUpdateData} from "../api/main/EventController"
@@ -45,7 +43,6 @@ import {
 	isBusinessFeatureActive,
 	isSharingActive,
 	isWhitelabelActive,
-
 } from "./SubscriptionUtils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
@@ -54,8 +51,6 @@ import {Dialog, DialogType} from "../gui/base/Dialog"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {showPurchaseGiftCardDialog} from "./giftcards/PurchaseGiftCardDialog"
 import {loadGiftCards, showGiftCardToShare} from "./giftcards/GiftCardUtils"
-import type {GiftCard} from "../api/entities/sys/GiftCard"
-import {GiftCardTypeRef} from "../api/entities/sys/GiftCard"
 import {locator} from "../api/main/MainLocator"
 import {GiftCardMessageEditorField} from "./giftcards/GiftCardMessageEditorField"
 import {attachDropdown} from "../gui/base/DropdownN"
@@ -63,7 +58,6 @@ import {showBusinessBuyDialog, showSharingBuyDialog, showWhitelabelBuyDialog} fr
 import {createNotAvailableForFreeClickHandler} from "../misc/SubscriptionDialogs"
 import {SettingsExpander} from "../settings/SettingsExpander"
 import {elementIdPart, GENERATED_MAX_ID, getEtId} from "../api/common/utils/EntityUtils"
-import {HttpMethod} from "../api/common/EntityFunctions"
 import {showStorageCapacityOptionsDialog} from "./StorageCapacityOptionsDialog"
 import type {UpdatableSettingsViewer} from "../settings/SettingsView"
 import {

@@ -17,7 +17,7 @@ import {
 } from "../date/CalendarUtils"
 import {CalendarEventBubble} from "./CalendarEventBubble"
 import {downcast, mapNullable, neverNull} from "@tutao/tutanota-utils"
-import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
+import type {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
 import {logins} from "../../api/main/LoginController"
 import {Time} from "../../api/common/utils/Time"
 import {getPosAndBoundsFromMouseEvent} from "../../gui/base/GuiUtils"

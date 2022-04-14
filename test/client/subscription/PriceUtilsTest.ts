@@ -1,7 +1,7 @@
 import o from "ospec"
 import {formatMonthlyPrice, formatPrice, getSubscriptionPrice} from "../../../src/subscription/PriceUtils"
 import stream from "mithril/stream/stream.js"
-import {createPlanPrices} from "../../../src/api/entities/sys/PlanPrices"
+import {createPlanPrices} from "../../../src/api/entities/sys/TypeRefs.js"
 import {SubscriptionType, UpgradePriceType} from "../../../src/subscription/SubscriptionUtils"
 import {clone} from "@tutao/tutanota-utils"
 const PLAN_PRICES = {

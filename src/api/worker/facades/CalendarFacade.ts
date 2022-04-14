@@ -1,6 +1,19 @@
 import {assertWorkerOrNode} from "../../common/Env"
-import type {UserAlarmInfo} from "../../entities/sys/UserAlarmInfo"
-import {createUserAlarmInfo, UserAlarmInfoTypeRef} from "../../entities/sys/UserAlarmInfo"
+import type {AlarmInfo, AlarmNotification, Group, PushIdentifier, RepeatRule, User, UserAlarmInfo} from "../../entities/sys/TypeRefs.js"
+import {
+	AlarmServicePostTypeRef,
+	createAlarmInfo,
+	createAlarmNotification,
+	createAlarmServicePost,
+	createCalendarEventRef,
+	createNotificationSessionKey,
+	createRepeatRule,
+	createUserAlarmInfo,
+	GroupTypeRef,
+	PushIdentifierTypeRef,
+	UserAlarmInfoTypeRef,
+	UserTypeRef
+} from "../../entities/sys/TypeRefs.js"
 import type {LoginFacadeImpl} from "./LoginFacade"
 import {
 	asyncFindAndMap,
@@ -17,37 +30,22 @@ import {
 	promiseMap,
 	stringToUtf8Uint8Array,
 } from "@tutao/tutanota-utils"
-import type {PushIdentifier} from "../../entities/sys/PushIdentifier"
-import {_TypeModel as PushIdentifierTypeModel, PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
-import {resolveSessionKey} from "../crypto/CryptoFacade"
-import {_TypeModel as AlarmServicePostTypeModel, createAlarmServicePost} from "../../entities/sys/AlarmServicePost"
-import type {AlarmNotification} from "../../entities/sys/AlarmNotification"
-import {createAlarmNotification} from "../../entities/sys/AlarmNotification"
-import type {AlarmInfo} from "../../entities/sys/AlarmInfo"
-import {createAlarmInfo} from "../../entities/sys/AlarmInfo"
-import type {RepeatRule} from "../../entities/sys/RepeatRule"
-import {createRepeatRule} from "../../entities/sys/RepeatRule"
+import {CryptoFacade} from "../crypto/CryptoFacade"
 import {GroupType, OperationType} from "../../common/TutanotaConstants"
-import {createNotificationSessionKey} from "../../entities/sys/NotificationSessionKey"
-import type {Group} from "../../entities/sys/Group"
-import {GroupTypeRef} from "../../entities/sys/Group"
-import type {CalendarEvent} from "../../entities/tutanota/CalendarEvent"
-import {CalendarEventTypeRef} from "../../entities/tutanota/CalendarEvent"
-import {createCalendarEventRef} from "../../entities/sys/CalendarEventRef"
-import type {User} from "../../entities/sys/User"
-import {UserTypeRef} from "../../entities/sys/User"
+import type {CalendarEvent, CalendarEventUidIndex, CalendarRepeatRule} from "../../entities/tutanota/TypeRefs.js"
+import {
+	CalendarEventTypeRef,
+	CalendarEventUidIndexTypeRef,
+	CalendarGroupRootTypeRef,
+	createCalendarDeleteData,
+	createUserAreaGroupPostData
+} from "../../entities/tutanota/TypeRefs.js"
 import {EntityRestCache} from "../rest/EntityRestCache"
 import {ConnectionError, NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
-import {createCalendarDeleteData} from "../../entities/tutanota/CalendarDeleteData"
-import {CalendarGroupRootTypeRef} from "../../entities/tutanota/CalendarGroupRoot"
-import type {CalendarEventUidIndex} from "../../entities/tutanota/CalendarEventUidIndex"
-import {CalendarEventUidIndexTypeRef} from "../../entities/tutanota/CalendarEventUidIndex"
-import type {CalendarRepeatRule} from "../../entities/tutanota/CalendarRepeatRule"
 import {EntityClient} from "../../common/EntityClient"
 import {elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToCustomId} from "../../common/utils/EntityUtils"
 import {Request} from "../../common/MessageDispatcher"
 import {GroupManagementFacadeImpl} from "./GroupManagementFacade"
-import {createUserAreaGroupPostData} from "../../entities/tutanota/UserAreaGroupPostData"
 import type {NativeInterface} from "../../../native/common/NativeInterface"
 import type {WorkerImpl} from "../WorkerImpl"
 import {SetupMultipleError} from "../../common/error/SetupMultipleError"
@@ -58,6 +56,7 @@ import {TutanotaError} from "../../common/error/TutanotaError"
 import {IServiceExecutor} from "../../common/ServiceRequest"
 import {AlarmService} from "../../entities/sys/Services"
 import {CalendarService} from "../../entities/tutanota/Services"
+import {resolveTypeReference} from "../../common/EntityFunctions"
 
 assertWorkerOrNode()
 
@@ -88,6 +87,7 @@ export class CalendarFacade {
 		worker: WorkerImpl,
 		instanceMapper: InstanceMapper,
 		private readonly serviceExecutor: IServiceExecutor,
+		private readonly cryptoFacade: CryptoFacade,
 	) {
 		this._loginFacade = loginFacade
 		this._groupManagementFacade = groupManagementFacade
@@ -256,8 +256,8 @@ export class CalendarFacade {
 		pushIdentifierList: Array<PushIdentifier>,
 	): Promise<void> {
 		// PushID SK ->* Notification SK -> alarm fields
-		return promiseMap(pushIdentifierList, identifier => {
-			return resolveSessionKey(PushIdentifierTypeModel, identifier).then(pushIdentifierSk => {
+		return promiseMap(pushIdentifierList, async identifier => {
+			return this.cryptoFacade.resolveSessionKeyForInstance(identifier).then(pushIdentifierSk => {
 				if (pushIdentifierSk) {
 					const pushIdentifierSessionEncSessionKey = encryptKey(pushIdentifierSk, notificationSessionKey)
 					return {
@@ -322,6 +322,7 @@ export class CalendarFacade {
 		const requestEntity = createAlarmServicePost({
 			alarmNotifications,
 		})
+		const AlarmServicePostTypeModel = await resolveTypeReference(AlarmServicePostTypeRef)
 		const encEntity = await this._instanceMapper.encryptAndMapToLiteral(AlarmServicePostTypeModel, requestEntity, notificationKey)
 		return this._native.invokeNative(new Request("scheduleAlarms", [downcast(encEntity).alarmNotifications]))
 	}

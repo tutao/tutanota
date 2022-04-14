@@ -14,14 +14,14 @@ import {
 	promiseMap,
 	symmetricDifference,
 } from "@tutao/tutanota-utils"
-import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
-import {CalendarEventTypeRef} from "../../api/entities/tutanota/CalendarEvent"
+import type {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
+import {CalendarEventTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {OperationType, reverse} from "../../api/common/TutanotaConstants"
 import {NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
 import {getListId, isSameId, listIdPart} from "../../api/common/utils/EntityUtils"
 import {LoginController, logins} from "../../api/main/LoginController"
 import {IProgressMonitor, NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
-import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
+import {GroupInfoTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import stream from "mithril/stream"
 import type {CalendarMonthTimeRange} from "../date/CalendarUtils"
 import {
@@ -44,12 +44,12 @@ import {ReceivedGroupInvitationsModel} from "../../sharing/model/ReceivedGroupIn
 import type {CalendarInfo, CalendarModel} from "../model/CalendarModel"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../../api/main/EventController"
-import {UserSettingsGroupRootTypeRef} from "../../api/entities/tutanota/UserSettingsGroupRoot"
-import {UserTypeRef} from "../../api/entities/sys/User"
+import {UserSettingsGroupRootTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
+import {UserTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import {EntityClient} from "../../api/common/EntityClient"
 import {ProgressTracker} from "../../api/main/ProgressTracker"
 import {DeviceConfig} from "../../misc/DeviceConfig"
-import type {ReceivedGroupInvitation} from "../../api/entities/sys/ReceivedGroupInvitation"
+import type {ReceivedGroupInvitation} from "../../api/entities/sys/TypeRefs.js"
 import type {EventDragHandlerCallbacks} from "./EventDragHandler"
 import Stream from "mithril/stream";
 import {$Promisable} from "@tutao/tutanota-utils";

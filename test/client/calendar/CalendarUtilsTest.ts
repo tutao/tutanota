@@ -14,17 +14,17 @@ import {
 	prepareCalendarDescription,
 } from "../../../src/calendar/date/CalendarUtils"
 import {lang} from "../../../src/misc/LanguageViewModel"
-import {createGroupMembership} from "../../../src/api/entities/sys/GroupMembership"
-import {createGroup} from "../../../src/api/entities/sys/Group"
-import {createUser} from "../../../src/api/entities/sys/User"
+import {createGroupMembership} from "../../../src/api/entities/sys/TypeRefs.js"
+import {createGroup} from "../../../src/api/entities/sys/TypeRefs.js"
+import {createUser} from "../../../src/api/entities/sys/TypeRefs.js"
 import {AlarmInterval, EndType, GroupType, RepeatPeriod, ShareCapability,} from "../../../src/api/common/TutanotaConstants"
 import {timeStringFromParts} from "../../../src/misc/Formatter"
 import {DateTime} from "luxon"
 import {getAllDayDateUTC} from "../../../src/api/common/utils/CommonCalendarUtils"
 import {hasCapabilityOnGroup} from "../../../src/sharing/GroupUtils"
 import {parseTime} from "../../../src/misc/parsing/TimeParser"
-import type {CalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
-import {createCalendarEvent} from "../../../src/api/entities/tutanota/CalendarEvent"
+import type {CalendarEvent} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {createCalendarEvent} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {neverNull} from "@tutao/tutanota-utils";
 
 o.spec("calendar utils tests", function () {

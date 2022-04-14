@@ -1,10 +1,6 @@
-import type {PushIdentifier} from "../../api/entities/sys/PushIdentifier"
-import {
-	_TypeModel as PushIdentifierModel,
-	createPushIdentifier,
-	PushIdentifierTypeRef
-} from "../../api/entities/sys/PushIdentifier"
-import {neverNull} from "@tutao/tutanota-utils"
+import type {PushIdentifier} from "../../api/entities/sys/TypeRefs.js"
+import {createPushIdentifier, PushIdentifierTypeRef} from "../../api/entities/sys/TypeRefs.js"
+import {assertNotNull, neverNull, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {PushServiceType} from "../../api/common/TutanotaConstants"
 import {lang} from "../../misc/LanguageViewModel"
 import {getHttpOrigin, isAndroidApp, isDesktop, isIOSApp} from "../../api/common/Env"
@@ -85,7 +81,8 @@ export class NativePushServiceApp {
 	_storePushIdentifierLocally(pushIdentifier: PushIdentifier): Promise<void> {
 		const userId = logins.getUserController().user._id
 
-		return locator.worker.resolveSessionKey(PushIdentifierModel, pushIdentifier).then(skB64 => {
+		return locator.cryptoFacade.resolveSessionKeyForInstanceBinary(pushIdentifier).then(sk => {
+			const skB64 = uint8ArrayToBase64(assertNotNull(sk))
 			return this._native.invokeNative(
 				new Request("storePushIdentifierLocally", [pushIdentifier.identifier, userId, getHttpOrigin(), getElementId(pushIdentifier), skB64]),
 			)

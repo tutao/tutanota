@@ -1,4 +1,4 @@
-import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
+import type {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
 import m from "mithril"
 import {getAllDayDateUTC, isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
 import {Time} from "../../api/common/utils/Time"

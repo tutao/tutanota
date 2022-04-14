@@ -14,7 +14,7 @@ import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {CurrentView, header} from "../../gui/base/Header"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {Keys} from "../../api/common/TutanotaConstants"
-import type {ContactForm} from "../../api/entities/tutanota/ContactForm"
+import type {ContactForm} from "../../api/entities/tutanota/TypeRefs.js"
 import {locator} from "../../api/main/MainLocator"
 import {assertMainOrNode} from "../../api/common/Env"
 

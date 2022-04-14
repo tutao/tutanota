@@ -1,4 +1,4 @@
-import type {EmailTemplate} from "../../api/entities/tutanota/EmailTemplate"
+import type {EmailTemplate} from "../../api/entities/tutanota/TypeRefs.js"
 import {TEMPLATE_SHORTCUT_PREFIX} from "./TemplatePopupModel"
 import {search} from "../../api/common/utils/PlainTextSearch"
 

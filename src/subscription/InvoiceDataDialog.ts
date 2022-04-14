@@ -5,7 +5,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {InvoiceDataInput} from "./InvoiceDataInput"
 import {updatePaymentData} from "./InvoiceAndPaymentDataPage"
 import {BadRequestError} from "../api/common/error/RestError"
-import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
+import type {AccountingInfo} from "../api/entities/sys/TypeRefs.js"
 import type {InvoiceData} from "../api/common/TutanotaConstants"
 import {ofClass} from "@tutao/tutanota-utils"
 

@@ -1,5 +1,5 @@
-import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot"
-import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
+import type {TemplateGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
+import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import {logins} from "../api/main/LoginController"
 import {showBusinessFeatureRequiredDialog} from "../misc/SubscriptionDialogs"
 import {locator} from "../api/main/MainLocator"

@@ -1,21 +1,22 @@
 import {FULL_INDEXED_TIMESTAMP, MailFolderType, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
-import type {MailBody} from "../../entities/tutanota/MailBody"
-import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
+import type {MailBody} from "../../entities/tutanota/TypeRefs.js"
+import {MailBodyTypeRef} from "../../entities/tutanota/TypeRefs.js"
 import {ConnectionError, NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
-import {MailboxGroupRootTypeRef} from "../../entities/tutanota/MailboxGroupRoot"
-import type {MailBox} from "../../entities/tutanota/MailBox"
-import {MailBoxTypeRef} from "../../entities/tutanota/MailBox"
-import type {MailFolder} from "../../entities/tutanota/MailFolder"
-import {MailFolderTypeRef} from "../../entities/tutanota/MailFolder"
-import type {Mail} from "../../entities/tutanota/Mail"
-import {_TypeModel as MailModel, MailTypeRef} from "../../entities/tutanota/Mail"
+import {MailboxGroupRootTypeRef} from "../../entities/tutanota/TypeRefs.js"
+import type {MailBox} from "../../entities/tutanota/TypeRefs.js"
+import {MailBoxTypeRef} from "../../entities/tutanota/TypeRefs.js"
+import type {MailFolder} from "../../entities/tutanota/TypeRefs.js"
+import {MailFolderTypeRef} from "../../entities/tutanota/TypeRefs.js"
+import type {Mail} from "../../entities/tutanota/TypeRefs.js"
+import {MailTypeRef} from "../../entities/tutanota/TypeRefs.js"
+import {typeModels} from "../../entities/tutanota/TypeModels"
 import {containsEventOfType, getMailBodyText} from "../../common/utils/Utils"
 import {flat, groupBy, neverNull, noOp, ofClass, promiseMap, splitInChunks, TypeRef} from "@tutao/tutanota-utils"
 import {elementIdPart, isSameId, listIdPart, timestampToGeneratedId} from "../../common/utils/EntityUtils"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo} from "./IndexUtils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
-import type {File as TutanotaFile} from "../../entities/tutanota/File"
-import {FileTypeRef} from "../../entities/tutanota/File"
+import type {File as TutanotaFile} from "../../entities/tutanota/TypeRefs.js"
+import {FileTypeRef} from "../../entities/tutanota/TypeRefs.js"
 import {CancelledError} from "../../common/error/CancelledError"
 import {IndexerCore} from "./IndexerCore"
 import {ElementDataOS, GroupDataOS, Metadata, MetaDataOS} from "./Indexer"
@@ -23,9 +24,9 @@ import type {WorkerImpl} from "../WorkerImpl"
 import {DbError} from "../../common/error/DbError"
 import {EntityRestCache} from "../rest/EntityRestCache"
 import type {DateProvider} from "../DateProvider"
-import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
-import type {User} from "../../entities/sys/User"
-import type {GroupMembership} from "../../entities/sys/GroupMembership"
+import type {EntityUpdate} from "../../entities/sys/TypeRefs.js"
+import type {User} from "../../entities/sys/TypeRefs.js"
+import type {GroupMembership} from "../../entities/sys/TypeRefs.js"
 import {EntityRestClient} from "../rest/EntityRestClient"
 import {EntityClient} from "../../common/EntityClient"
 import {ProgressMonitor} from "../../common/utils/ProgressMonitor"
@@ -86,7 +87,8 @@ export class MailIndexer {
 	createMailIndexEntries(mail: Mail, mailBody: MailBody | null, files: TutanotaFile[]): Map<string, SearchIndexEntry[]> {
 		let startTimeIndex = getPerformanceTimestamp()
 
-		let keyToIndexEntries = this._core.createIndexEntriesForAttributes(MailModel, mail, [
+		const MailModel = typeModels.Mail
+		let keyToIndexEntries = this._core.createIndexEntriesForAttributes(mail, [
 			{
 				attribute: MailModel.values["subject"],
 				value: () => mail.subject,

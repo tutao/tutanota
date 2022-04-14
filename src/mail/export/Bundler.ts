@@ -1,16 +1,16 @@
-import type {Mail} from "../../api/entities/tutanota/Mail"
+import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import type {EntityClient} from "../../api/common/EntityClient"
-import {MailBodyTypeRef} from "../../api/entities/tutanota/MailBody"
+import {MailBodyTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {getMailBodyText, getMailHeaders} from "../../api/common/utils/Utils"
-import {FileTypeRef} from "../../api/entities/tutanota/File"
-import {MailHeadersTypeRef} from "../../api/entities/tutanota/MailHeaders"
+import {FileTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
+import {MailHeadersTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {MailState} from "../../api/common/TutanotaConstants"
 import {getLetId} from "../../api/common/utils/EntityUtils"
 import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
 import {promiseMap} from "@tutao/tutanota-utils"
 import type {FileFacade} from "../../api/worker/facades/FileFacade"
 import {DataFile} from "../../api/common/DataFile";
-import {MailAddress} from "../../api/entities/tutanota/MailAddress"
+import {MailAddress} from "../../api/entities/tutanota/TypeRefs.js"
 import {FileController} from "../../file/FileController"
 
 /**

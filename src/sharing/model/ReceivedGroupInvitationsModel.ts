@@ -1,6 +1,6 @@
 import stream from "mithril/stream"
-import type {ReceivedGroupInvitation} from "../../api/entities/sys/ReceivedGroupInvitation"
-import {ReceivedGroupInvitationTypeRef} from "../../api/entities/sys/ReceivedGroupInvitation"
+import type {ReceivedGroupInvitation} from "../../api/entities/sys/TypeRefs.js"
+import {ReceivedGroupInvitationTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import {EntityClient} from "../../api/common/EntityClient"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../../api/main/EventController"

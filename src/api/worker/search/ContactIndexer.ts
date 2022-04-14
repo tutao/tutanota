@@ -1,16 +1,17 @@
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
-import type {Contact} from "../../entities/tutanota/Contact"
-import {_TypeModel as ContactModel, ContactTypeRef} from "../../entities/tutanota/Contact"
+import type {Contact} from "../../entities/tutanota/TypeRefs.js"
+import {ContactTypeRef} from "../../entities/tutanota/TypeRefs.js"
+import {typeModels as tutanotaModels} from "../../entities/tutanota/TypeModels"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
 import {_createNewIndexUpdate, typeRefToTypeInfo} from "./IndexUtils"
 import {neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
-import type {ContactList} from "../../entities/tutanota/ContactList"
-import {ContactListTypeRef} from "../../entities/tutanota/ContactList"
+import type {ContactList} from "../../entities/tutanota/TypeRefs.js"
+import {ContactListTypeRef} from "../../entities/tutanota/TypeRefs.js"
 import {IndexerCore} from "./IndexerCore"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {tokenize} from "./Tokenizer"
-import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
+import type {EntityUpdate} from "../../entities/sys/TypeRefs.js"
 import {EntityClient} from "../../common/EntityClient"
 import {GroupDataOS, MetaDataOS} from "./Indexer"
 
@@ -28,7 +29,8 @@ export class ContactIndexer {
 	}
 
 	createContactIndexEntries(contact: Contact): Map<string, SearchIndexEntry[]> {
-		let keyToIndexEntries = this._core.createIndexEntriesForAttributes(ContactModel, contact, [
+		const ContactModel = tutanotaModels.Contact
+		let keyToIndexEntries = this._core.createIndexEntriesForAttributes(contact, [
 			{
 				attribute: ContactModel.values["firstName"],
 				value: () => contact.firstName,

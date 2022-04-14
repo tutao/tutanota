@@ -7,7 +7,7 @@ import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonType} from "../../gui/base/ButtonN"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {lang} from "../../misc/LanguageViewModel"
-import type {TemplateGroupRoot} from "../../api/entities/tutanota/TemplateGroupRoot"
+import type {TemplateGroupRoot} from "../../api/entities/tutanota/TypeRefs.js"
 import {noOp} from "@tutao/tutanota-utils"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import stream from "mithril/stream"
@@ -15,7 +15,7 @@ import type {DialogInjectionRightAttrs} from "../../gui/base/DialogInjectionRigh
 import {Icons} from "../../gui/base/icons/Icons"
 import {TemplatePopupModel} from "../../templates/model/TemplatePopupModel"
 import {getSharedGroupName} from "../../sharing/GroupUtils"
-import type {KnowledgeBaseEntry} from "../../api/entities/tutanota/KnowledgeBaseEntry"
+import type {KnowledgeBaseEntry} from "../../api/entities/tutanota/TypeRefs.js"
 import type {lazy} from "@tutao/tutanota-utils"
 import Stream from "mithril/stream";
 

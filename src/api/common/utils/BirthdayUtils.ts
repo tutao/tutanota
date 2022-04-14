@@ -1,5 +1,5 @@
-import type {Birthday} from "../../entities/tutanota/Birthday"
-import {createBirthday} from "../../entities/tutanota/Birthday"
+import type {Birthday} from "../../entities/tutanota/TypeRefs.js"
+import {createBirthday} from "../../entities/tutanota/TypeRefs.js"
 import {formatSortableDate} from "@tutao/tutanota-utils"
 import {ParsingError} from "../error/ParsingError"
 

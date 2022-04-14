@@ -1,4 +1,4 @@
-import {MailTypeRef} from "../../entities/tutanota/Mail"
+import {MailTypeRef} from "../../entities/tutanota/TypeRefs.js"
 import {DbTransaction} from "./DbFacade"
 import {resolveTypeReference} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
@@ -632,7 +632,6 @@ export class SearchFacade {
 	): Promise<void> {
 		indexEntries.sort((l, r) => compareNewestFirst(l.id, r.id))
 		// We filter out everything we've processed from moreEntries, even if we didn't include it
-		const {resolve: stop, promise: whenToStop} = defer()
 		// downcast: Array of optional elements in not subtype of non-optional elements
 		const entriesCopy: Array<MoreResultsIndexEntry | null> = downcast(indexEntries.slice())
 		// Results are added in the random order and we may filter some of them out. We need to sort them.

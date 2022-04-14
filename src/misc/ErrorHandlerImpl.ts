@@ -33,7 +33,7 @@ import {copyToClipboard} from "./ClipboardUtils"
 import {px} from "../gui/size"
 import {UserError} from "../api/main/UserError"
 import {showMoreStorageNeededOrderDialog} from "./SubscriptionDialogs"
-import {createDraftRecipient} from "../api/entities/tutanota/DraftRecipient"
+import {createDraftRecipient} from "../api/entities/tutanota/TypeRefs.js"
 import {SessionType} from "../api/common/SessionType"
 import {showSnackBar} from "../gui/base/SnackBar"
 

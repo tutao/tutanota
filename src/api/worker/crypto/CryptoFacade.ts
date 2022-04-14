@@ -13,28 +13,32 @@ import {
 } from "@tutao/tutanota-utils"
 import {BucketPermissionType, GroupType, PermissionType} from "../../common/TutanotaConstants"
 import {HttpMethod, resolveTypeReference} from "../../common/EntityFunctions"
-import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
-import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
-import {createEncryptTutanotaPropertiesData} from "../../entities/tutanota/EncryptTutanotaPropertiesData"
-import type {BucketPermission} from "../../entities/sys/BucketPermission"
-import {BucketPermissionTypeRef} from "../../entities/sys/BucketPermission"
-import type {Group} from "../../entities/sys/Group"
-import {GroupTypeRef} from "../../entities/sys/Group"
-import type {Permission} from "../../entities/sys/Permission"
-import {PermissionTypeRef} from "../../entities/sys/Permission"
+import type {BucketPermission, Group, GroupMembership, Permission} from "../../entities/sys/TypeRefs.js"
+import {
+	BucketPermissionTypeRef,
+	createPublicKeyData,
+	createUpdatePermissionKeyData,
+	GroupInfoTypeRef,
+	GroupTypeRef,
+	PermissionTypeRef,
+	PushIdentifierTypeRef
+} from "../../entities/sys/TypeRefs.js"
+import type {Contact, InternalRecipientKeyData} from "../../entities/tutanota/TypeRefs.js"
+import {
+	ContactTypeRef,
+	createEncryptTutanotaPropertiesData,
+	createInternalRecipientKeyData,
+	MailBodyTypeRef,
+	MailTypeRef,
+	TutanotaPropertiesTypeRef
+} from "../../entities/tutanota/TypeRefs.js"
 import {typeRefToPath} from "../rest/EntityRestClient"
-import {createUpdatePermissionKeyData} from "../../entities/sys/UpdatePermissionKeyData"
 import {LockedError, NotFoundError, PayloadTooLargeError, TooManyRequestsError} from "../../common/error/RestError"
 import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
-import {MailBodyTypeRef} from "../../entities/tutanota/MailBody"
-import {MailTypeRef} from "../../entities/tutanota/Mail"
 import {CryptoError} from "../../common/error/CryptoError"
-import {PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
-import type {Contact} from "../../entities/tutanota/Contact"
-import {ContactTypeRef} from "../../entities/tutanota/Contact"
 import {birthdayToIsoDate, oldBirthdayToBirthday} from "../../common/utils/BirthdayUtils"
-import type {GroupMembership} from "../../entities/sys/GroupMembership"
 import type {Entity, TypeModel} from "../../common/EntityTypes"
+import {Instance} from "../../common/EntityTypes"
 import {assertWorkerOrNode} from "../../common/Env"
 import type {LoginFacadeImpl} from "../facades/LoginFacade"
 import type {EntityClient} from "../../common/EntityClient"
@@ -52,12 +56,8 @@ import {
 	random,
 	uint8ArrayToBitArray,
 } from "@tutao/tutanota-crypto"
-import type {InternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
-import {createInternalRecipientKeyData} from "../../entities/tutanota/InternalRecipientKeyData"
-import {createPublicKeyData} from "../../entities/sys/PublicKeyData"
 import {RecipientNotResolvedError} from "../../common/error/RecipientNotResolvedError"
 import type {RsaImplementation} from "./RsaImplementation"
-import {locator} from "../WorkerLocator"
 import {IServiceExecutor} from "../../common/ServiceRequest"
 import {EncryptTutanotaPropertiesService} from "../../entities/tutanota/Services"
 import {PublicKeyService, UpdatePermissionKeyService} from "../../entities/sys/Services"
@@ -94,6 +94,11 @@ export interface CryptoFacade {
 		recipientMailAddress: string,
 		notFoundRecipients: Array<string>,
 	): Promise<InternalRecipientKeyData | void>
+
+	resolveSessionKeyForInstance(instance: Instance): Promise<Aes128Key | null>
+
+	/** Helper for the rare cases when we needed it on the client side. */
+	resolveSessionKeyForInstanceBinary(instance: Instance): Promise<Uint8Array | null>
 
 	resolveSessionKey(typeModel: TypeModel, instance: Record<string, any>): Promise<Aes128Key | null>
 }
@@ -187,6 +192,17 @@ export class CryptoFacadeImpl implements CryptoFacade {
 		}
 
 		return Promise.resolve(decryptedInstance)
+	}
+
+
+	async resolveSessionKeyForInstance(instance: Instance): Promise<Aes128Key | null> {
+		const typeModel = await resolveTypeReference(instance._type)
+		return this.resolveSessionKey(typeModel, instance)
+	}
+
+	async resolveSessionKeyForInstanceBinary(instance: Instance): Promise<Uint8Array | null> {
+		const key = await this.resolveSessionKeyForInstance(instance)
+		return key == null ? null : bitArrayToUint8Array(key)
 	}
 
 	/**
@@ -425,30 +441,30 @@ export class CryptoFacadeImpl implements CryptoFacade {
 		let keyData = createPublicKeyData()
 		keyData.mailAddress = recipientMailAddress
 		return this.serviceExecutor.get(PublicKeyService, keyData)
-			.then(publicKeyData => {
-				let publicKey = hexToPublicKey(uint8ArrayToHex(publicKeyData.pubKey))
-				let uint8ArrayBucketKey = bitArrayToUint8Array(bucketKey)
+				   .then(publicKeyData => {
+					   let publicKey = hexToPublicKey(uint8ArrayToHex(publicKeyData.pubKey))
+					   let uint8ArrayBucketKey = bitArrayToUint8Array(bucketKey)
 
-				if (notFoundRecipients.length === 0) {
-					return this.rsa.encrypt(publicKey, uint8ArrayBucketKey).then(encrypted => {
-						let data = createInternalRecipientKeyData()
-						data.mailAddress = recipientMailAddress
-						data.pubEncBucketKey = encrypted
-						data.pubKeyVersion = publicKeyData.pubKeyVersion
-						return data
-					})
-				}
-			})
-			.catch(
-				ofClass(NotFoundError, e => {
-					notFoundRecipients.push(recipientMailAddress)
-				}),
-			)
-			.catch(
-				ofClass(TooManyRequestsError, e => {
-					throw new RecipientNotResolvedError("")
-				}),
-			)
+					   if (notFoundRecipients.length === 0) {
+						   return this.rsa.encrypt(publicKey, uint8ArrayBucketKey).then(encrypted => {
+							   let data = createInternalRecipientKeyData()
+							   data.mailAddress = recipientMailAddress
+							   data.pubEncBucketKey = encrypted
+							   data.pubKeyVersion = publicKeyData.pubKeyVersion
+							   return data
+						   })
+					   }
+				   })
+				   .catch(
+					   ofClass(NotFoundError, e => {
+						   notFoundRecipients.push(recipientMailAddress)
+					   }),
+				   )
+				   .catch(
+					   ofClass(TooManyRequestsError, e => {
+						   throw new RecipientNotResolvedError("")
+					   }),
+				   )
 	}
 
 	/**
@@ -512,14 +528,6 @@ export class CryptoFacadeImpl implements CryptoFacade {
 					   }),
 				   )
 	}
-}
-
-/**
- * Convenience wrapper for calling resolveSessionKey on the global CryptoFacade
- */
-export async function resolveSessionKey(typeModel: TypeModel, instance: Record<string, any>): Promise<Aes128Key | null> {
-	const {locator} = await import("../../worker/WorkerLocator")
-	return locator.crypto.resolveSessionKey(typeModel, instance)
 }
 
 if (!("toJSON" in Error.prototype)) {

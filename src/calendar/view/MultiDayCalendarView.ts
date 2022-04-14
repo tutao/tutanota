@@ -27,7 +27,7 @@ import {EventTextTimeOption, WeekStart} from "../../api/common/TutanotaConstants
 import {lastThrow} from "@tutao/tutanota-utils"
 import {lang} from "../../misc/LanguageViewModel"
 import {PageView} from "../../gui/base/PageView"
-import type {CalendarEvent} from "../../api/entities/tutanota/CalendarEvent"
+import type {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
 import {logins} from "../../api/main/LoginController"
 import type {GroupColors} from "./CalendarView"
 import {SELECTED_DATE_INDICATOR_THICKNESS} from "./CalendarView"

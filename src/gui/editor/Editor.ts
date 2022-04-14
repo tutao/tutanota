@@ -20,7 +20,7 @@ type Styles = {
 }
 
 export class Editor implements ImageHandler, Component {
-    squire: Squire
+    squire: SquireEditor
     initialized = defer<void>()
     domElement: HTMLElement | null = null
     enabled = true
@@ -105,7 +105,7 @@ export class Editor implements ImageHandler, Component {
     }
 
     initSquire(domElement: HTMLElement) {
-        let squire = new (SquireEditor as any)(domElement, {
+        let squire = new SquireEditor(domElement, {
             sanitizeToDOMFragment: this.sanitizer,
             blockAttributes: {
                 dir: "auto",

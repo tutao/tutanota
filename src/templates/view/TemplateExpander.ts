@@ -4,7 +4,7 @@ import {px, size} from "../../gui/size"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {TemplatePopupModel} from "../model/TemplatePopupModel"
 import {isKeyPressed} from "../../misc/KeyManager"
-import type {EmailTemplate} from "../../api/entities/tutanota/EmailTemplate"
+import type {EmailTemplate} from "../../api/entities/tutanota/TypeRefs.js"
 
 /**
  * TemplateExpander is the right side that is rendered within the Popup. Consists of Dropdown, Content and Button.

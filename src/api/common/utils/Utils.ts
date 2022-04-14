@@ -1,11 +1,11 @@
 //@bundleInto:common-min
 
 import type {EntityUpdateData} from "../../main/EventController"
-import type {CustomerInfo} from "../../entities/sys/CustomerInfo"
-import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
-import type {MailBody} from "../../entities/tutanota/MailBody"
-import type {MailHeaders} from "../../entities/tutanota/MailHeaders"
-import type {DomainInfo} from "../../entities/sys/DomainInfo"
+import type {CustomerInfo} from "../../entities/sys/TypeRefs.js"
+import type {EntityUpdate} from "../../entities/sys/TypeRefs.js"
+import type {MailBody} from "../../entities/tutanota/TypeRefs.js"
+import type {MailHeaders} from "../../entities/tutanota/TypeRefs.js"
+import type {DomainInfo} from "../../entities/sys/TypeRefs.js"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -44,7 +44,7 @@ import {CancelledError} from "../error/CancelledError"
 import {FileOpenError} from "../error/FileOpenError"
 import {PermissionError} from "../error/PermissionError"
 import {FileNotFoundError} from "../error/FileNotFoundError"
-import type {Customer} from "../../entities/sys/Customer"
+import type {Customer} from "../../entities/sys/TypeRefs.js"
 import {DeviceStorageUnavailableError} from "../error/DeviceStorageUnavailableError"
 import {MailBodyTooLargeError} from "../error/MailBodyTooLargeError"
 import {CredentialAuthenticationError} from "../error/CredentialAuthenticationError"

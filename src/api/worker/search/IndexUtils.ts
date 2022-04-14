@@ -16,12 +16,10 @@ import {
 	decodeNumbers,
 	encodeNumbers
 } from "./SearchIndexEncoding"
-import {_TypeModel as MailModel} from "../../entities/tutanota/Mail"
-import {_TypeModel as ContactModel} from "../../entities/tutanota/Contact"
-import {_TypeModel as GroupInfoModel} from "../../entities/sys/GroupInfo"
-import {_TypeModel as WhitelabelChildModel} from "../../entities/sys/WhitelabelChild"
-import type {User} from "../../entities/sys/User"
-import type {GroupMembership} from "../../entities/sys/GroupMembership"
+import {typeModels as sysTypeModels} from "../../entities/sys/TypeModels"
+import {typeModels as tutanotaTypeModels} from "../../entities/tutanota/TypeModels"
+import type {User} from "../../entities/sys/TypeRefs.js"
+import type {GroupMembership} from "../../entities/sys/TypeRefs.js"
 import type {TypeModel} from "../../common/EntityTypes"
 import {isTest} from "../../common/Env"
 import type {Base64} from "@tutao/tutanota-utils"
@@ -132,25 +130,25 @@ const typeInfos = {
 	tutanota: {
 		Mail: {
 			appId: 1,
-			typeId: MailModel.id,
-			attributeIds: getAttributeIds(MailModel),
+			typeId: tutanotaTypeModels.Mail.id,
+			attributeIds: getAttributeIds(tutanotaTypeModels.Mail),
 		},
 		Contact: {
 			appId: 1,
-			typeId: ContactModel.id,
-			attributeIds: getAttributeIds(ContactModel),
+			typeId: tutanotaTypeModels.Contact.id,
+			attributeIds: getAttributeIds(tutanotaTypeModels.Contact),
 		},
 	},
 	sys: {
 		GroupInfo: {
 			appId: 0,
-			typeId: GroupInfoModel.id,
-			attributeIds: getAttributeIds(GroupInfoModel),
+			typeId: sysTypeModels.GroupInfo.id,
+			attributeIds: getAttributeIds(sysTypeModels.GroupInfo),
 		},
 		WhitelabelChild: {
 			appId: 0,
-			typeId: WhitelabelChildModel.id,
-			attributeIds: getAttributeIds(WhitelabelChildModel),
+			typeId: sysTypeModels.WhitelabelChild.id,
+			attributeIds: getAttributeIds(sysTypeModels.WhitelabelChild),
 		},
 	},
 }

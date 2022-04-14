@@ -1,17 +1,14 @@
 import m from "mithril"
-import {_TypeModel as MailModel, MailTypeRef} from "../../api/entities/tutanota/Mail"
-import {_TypeModel as ContactModel, ContactTypeRef} from "../../api/entities/tutanota/Contact"
-import {GroupInfoTypeRef} from "../../api/entities/sys/GroupInfo"
-import {neverNull} from "@tutao/tutanota-utils"
-import {getDayShifted, getStartOfDay} from "@tutao/tutanota-utils"
+import type {GroupInfo} from "../../api/entities/sys/TypeRefs.js"
+import {GroupInfoTypeRef, WhitelabelChildTypeRef} from "../../api/entities/sys/TypeRefs.js"
+import {getDayShifted, getStartOfDay, isSameTypeRef, neverNull} from "@tutao/tutanota-utils"
 import {logins} from "../../api/main/LoginController"
-import {WhitelabelChildTypeRef} from "../../api/entities/sys/WhitelabelChild"
 import {throttleRoute} from "../../misc/RouteChange"
-import type {GroupInfo} from "../../api/entities/sys/GroupInfo"
 import type {SearchRestriction} from "../../api/worker/search/SearchTypes"
-import {isSameTypeRef} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../../api/common/Env"
 import {TranslationKey} from "../../misc/LanguageViewModel";
+import {ContactTypeRef, MailTypeRef} from "../../api/entities/tutanota/TypeRefs"
+import {typeModels} from "../../api/entities/tutanota/TypeModels.js"
 
 assertMainOrNode()
 
@@ -51,31 +48,31 @@ export const SEARCH_MAIL_FIELDS: ReadonlyArray<SearchMailField> = [
 	{
 		textId: "subject_label",
 		field: "subject",
-		attributeIds: [MailModel.values["subject"].id as number],
+		attributeIds: [typeModels.Mail.values["subject"].id as number],
 	},
 	{
 		textId: "mailBody_label",
 		field: "body",
-		attributeIds: [MailModel.associations["body"].id as number],
+		attributeIds: [typeModels.Mail.associations["body"].id as number],
 	},
 	{
 		textId: "from_label",
 		field: "from",
-		attributeIds: [MailModel.associations["sender"].id as number],
+		attributeIds: [typeModels.Mail.associations["sender"].id as number],
 	},
 	{
 		textId: "to_label",
 		field: "to",
 		attributeIds: [
-			MailModel.associations["toRecipients"].id as number,
-			MailModel.associations["ccRecipients"].id as number,
-			MailModel.associations["bccRecipients"].id as number,
+			typeModels.Mail.associations["toRecipients"].id as number,
+			typeModels.Mail.associations["ccRecipients"].id as number,
+			typeModels.Mail.associations["bccRecipients"].id as number,
 		],
 	},
 	{
 		textId: "attachmentName_label",
 		field: "attachment",
-		attributeIds: [MailModel.associations["attachments"].id as number],
+		attributeIds: [typeModels.Mail.associations["attachments"].id as number],
 	},
 ]
 
@@ -150,10 +147,10 @@ export function createRestriction(
 	} else if (field && searchCategory === "contact") {
 		if (field === "recipient") {
 			r.field = field
-			r.attributeIds = [ContactModel.values["firstName"].id, ContactModel.values["lastName"].id, ContactModel.associations["mailAddresses"].id]
+			r.attributeIds = [typeModels.Contact.values["firstName"].id, typeModels.Contact.values["lastName"].id, typeModels.Contact.associations["mailAddresses"].id]
 		} else if (field === "mailAddress") {
 			r.field = field
-			r.attributeIds = [ContactModel.associations["mailAddresses"].id]
+			r.attributeIds = [typeModels.Contact.associations["mailAddresses"].id]
 		}
 	}
 

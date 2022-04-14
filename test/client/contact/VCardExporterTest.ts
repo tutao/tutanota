@@ -1,9 +1,9 @@
 import o from "ospec"
-import {createContact} from "../../../src/api/entities/tutanota/Contact"
-import {ContactAddressTypeRef, createContactAddress} from "../../../src/api/entities/tutanota/ContactAddress"
-import {createContactPhoneNumber} from "../../../src/api/entities/tutanota/ContactPhoneNumber"
-import {createContactMailAddress} from "../../../src/api/entities/tutanota/ContactMailAddress"
-import {createContactSocialId} from "../../../src/api/entities/tutanota/ContactSocialId"
+import {createContact} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {ContactAddressTypeRef, createContactAddress} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {createContactPhoneNumber} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {createContactMailAddress} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {createContactSocialId} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {ContactAddressType, ContactPhoneNumberType, ContactSocialType} from "../../../src/api/common/TutanotaConstants"
 import {
     _addressesToVCardAddresses,
@@ -12,10 +12,10 @@ import {
     _vCardFormatArrayToString,
     contactsToVCard,
 } from "../../../src/contacts/VCardExporter"
-import {createBirthday} from "../../../src/api/entities/tutanota/Birthday"
+import {createBirthday} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {neverNull} from "@tutao/tutanota-utils"
 import {vCardFileToVCards, vCardListToContacts} from "../../../src/contacts/VCardImporter"
-import type {Contact} from "../../../src/api/entities/tutanota/Contact"
+import type {Contact} from "../../../src/api/entities/tutanota/TypeRefs.js"
 let idCounter = 0
 o.spec("VCardExporterTest", function () {
     //turns given contacts into a vCard format string
@@ -185,7 +185,7 @@ VERSION:3.0
 FN:Mr. Ant Ste
 N:Ste;Ant;;Mr.;
 NICKNAME:Buffalo
-ADR;TYPE=work:Housestreet 123\\nTown 123\\nState 123\\nCountry 123 this is so 
+ADR;TYPE=work:Housestreet 123\\nTown 123\\nState 123\\nCountry 123 this is so
  there is a line break in this contact
 EMAIL;TYPE=work:antste@antste.de
 EMAIL;TYPE=work:bentste@bentste.de
@@ -217,7 +217,7 @@ VERSION:3.0
 FN:Mr. Ant Ste
 N:Ste;Ant;;Mr.;
 NICKNAME:Buffalo
-ADR;TYPE=work:Housestreet 123\\nTown 123\\nState 123\\nCountry 123 this is so 
+ADR;TYPE=work:Housestreet 123\\nTown 123\\nState 123\\nCountry 123 this is so
  there is a line break in this contact
 EMAIL;TYPE=work:antste@antste.de
 EMAIL;TYPE=work:bentste@bentste.de
@@ -439,7 +439,7 @@ VERSION:3.0
 FN:Mr. Ant Ste
 N:Ste;Ant;;Mr.;
 NICKNAME:Buffalo
-ADR;TYPE=work:Housestreet 123\\nTown 123\\nState 123\\nCountry 123 this is so 
+ADR;TYPE=work:Housestreet 123\\nTown 123\\nState 123\\nCountry 123 this is so
  there is a line break in this contact
 EMAIL;TYPE=work:antste@antste.de
 EMAIL;TYPE=work:bentste@bentste.de

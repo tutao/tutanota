@@ -1,7 +1,7 @@
 // This file exists for the express purpose of debugging the regular loss of the search index.
 // Once this problem is solved we should get rid of this
 // https://github.com/tutao/tutanota/issues/2453
-import type {User} from "../api/entities/sys/User"
+import type {User} from "../api/entities/sys/TypeRefs.js"
 import {getEtId} from "../api/common/utils/EntityUtils"
 import {client} from "./ClientDetector"
 
