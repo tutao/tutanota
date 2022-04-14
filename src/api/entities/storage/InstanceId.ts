@@ -8,20 +8,20 @@ export const _TypeModel: TypeModel = {
 	"name": "InstanceId",
 	"since": 4,
 	"type": "AGGREGATED_TYPE",
-	"id": 165,
-	"rootId": "B3N0b3JhZ2UAAKU",
+	"id": 172,
+	"rootId": "B3N0b3JhZ2UAAKw",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"id": 166,
+			"id": 173,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"instanceId": {
-			"id": 167,
+			"id": 174,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
 			"final": true,

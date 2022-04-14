@@ -279,6 +279,7 @@ class MainLocator implements IMainLocator {
 			return new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, window, window))
 		}
 
+		this.fileController = new FileController(this._nativeInterfaces?.fileApp ?? null, blobFacade, fileFacade)
 		this.calendarModel = new CalendarModelImpl(
 			notifications,
 			lazyScheduler,
@@ -293,7 +294,6 @@ class MainLocator implements IMainLocator {
 		)
 		this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, logins)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
-		this.fileController = new FileController(this._nativeInterfaces?.fileApp ?? null, blobFacade, fileFacade)
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 	}
 }

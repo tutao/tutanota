@@ -19,7 +19,7 @@ export function exportContacts(contacts: Contact[]): Promise<void> {
 	tmpFile.name = "vCard3.0.vcf"
 	tmpFile.mimeType = "vCard/rfc2426"
 	tmpFile.size = String(data.byteLength)
-	return locator.fileController.openDataFile(convertToDataFile(tmpFile, data))
+	return locator.fileController.saveDataFile(convertToDataFile(tmpFile, data))
 }
 
 /**

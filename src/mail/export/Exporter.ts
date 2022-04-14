@@ -16,7 +16,6 @@ import {isDesktop} from "../../api/common/Env"
 import {sanitizeFilename} from "../../api/common/utils/FileUtils"
 import type {Mail} from "../../api/entities/tutanota/Mail"
 import type {EntityClient} from "../../api/common/EntityClient"
-import type {FileFacade} from "../../api/worker/facades/FileFacade"
 import {locator} from "../../api/main/MainLocator"
 import {FileController} from "../../file/FileController"
 // .msg export is handled in DesktopFileExport because it uses APIs that can't be loaded web side
@@ -64,7 +63,7 @@ export function exportMails(mails: Array<Mail>, entityClient: EntityClient, file
 		promiseMap(bundles, bundle => generateMailFile(bundle, generateExportFileName(bundle.subject, new Date(bundle.sentOn), mode), mode)).then(files => {
 			const zipName = `${sortableTimestamp()}-${mode}-mail-export.zip`
 			const maybeZipPromise = files.length === 1 ? Promise.resolve(files[0]) : locator.fileController.zipDataFiles(files, zipName)
-			maybeZipPromise.then(outputFile => locator.fileController.openDataFile(outputFile))
+			maybeZipPromise.then(outputFile => locator.fileController.saveDataFile(outputFile))
 		})
 	})
 }

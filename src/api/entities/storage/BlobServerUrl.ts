@@ -8,20 +8,20 @@ export const _TypeModel: TypeModel = {
 	"name": "BlobServerUrl",
 	"since": 4,
 	"type": "AGGREGATED_TYPE",
-	"id": 148,
-	"rootId": "B3N0b3JhZ2UAAJQ",
+	"id": 154,
+	"rootId": "B3N0b3JhZ2UAAJo",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"id": 149,
+			"id": 155,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"url": {
-			"id": 150,
+			"id": 156,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,

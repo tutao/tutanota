@@ -151,7 +151,7 @@ function exportCalendarEvents(
 	tmpFile.name = calendarName === "" ? "export.ics" : calendarName + "-export.ics"
 	tmpFile.mimeType = CALENDAR_MIME_TYPE
 	tmpFile.size = String(data.byteLength)
-	return locator.fileController.openDataFile(convertToDataFile(tmpFile, data))
+	return locator.fileController.saveDataFile(convertToDataFile(tmpFile, data))
 }
 
 function loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEvent>> {

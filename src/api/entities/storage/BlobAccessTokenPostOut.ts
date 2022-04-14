@@ -24,7 +24,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"blobAccessInfo": {
-			"id": 155,
+			"id": 161,
 			"type": "AGGREGATION",
 			"cardinality": "One",
 			"final": false,

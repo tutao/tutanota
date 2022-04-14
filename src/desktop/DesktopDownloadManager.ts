@@ -148,13 +148,13 @@ export class DesktopDownloadManager {
 	/**
 	 * Save {@param data} to the disk. Will pick the path based on user download dir preference and {@param filename}.
 	 */
-	async saveDataFile(filename: string, data: Uint8Array): Promise<void> {
+	async saveDataFile(filename: string, data: Uint8Array): Promise<FileUri> {
 		const savePath = await this._pickSavePath(filename)
 		await this._fs.promises.mkdir(path.dirname(savePath), {
 			recursive: true,
 		})
 		await this._fs.promises.writeFile(savePath, data)
-		await this.showInFileExplorer(savePath)
+		return savePath
 	}
 
 

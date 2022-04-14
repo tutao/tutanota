@@ -9,27 +9,27 @@ export const _TypeModel: TypeModel = {
 	"name": "BlobReadData",
 	"since": 4,
 	"type": "AGGREGATED_TYPE",
-	"id": 168,
-	"rootId": "B3N0b3JhZ2UAAKg",
+	"id": 175,
+	"rootId": "B3N0b3JhZ2UAAK8",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"id": 169,
+			"id": 176,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"archiveId": {
-			"id": 170,
+			"id": 177,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": false
 		},
 		"instanceListId": {
-			"id": 171,
+			"id": 178,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
 			"final": true,
@@ -38,7 +38,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"instanceIds": {
-			"id": 172,
+			"id": 179,
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"final": true,

@@ -23,7 +23,7 @@ export const _TypeModel: TypeModel = {
 			"encrypted": false
 		},
 		"archiveDataType": {
-			"id": 173,
+			"id": 180,
 			"type": "Number",
 			"cardinality": "One",
 			"final": false,
@@ -32,7 +32,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {
 		"read": {
-			"id": 174,
+			"id": 181,
 			"type": "AGGREGATION",
 			"cardinality": "ZeroOrOne",
 			"final": true,
