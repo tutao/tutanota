@@ -58,6 +58,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 		})
 		showProgressDialog(
 			"pleaseWait_msg",
+			// FIXME: load new customerInfo here to make sure it's cached for offline.
 			locator.serviceExecutor.post(SwitchAccountTypeService, serviceData).then(() => {
 				return locator.customerFacade.switchFreeToPremiumGroup()
 			}),

@@ -290,6 +290,10 @@ export class EventBusClient {
 					JSON.parse(value),
 					null,
 				)
+				// FIXME
+				for (const event of data.eventBatch) {
+					console.log("UPD", event.type, event.operation)
+				}
 				this.entityUpdateMessageQueue.add(data.eventBatchId, data.eventBatchOwner, data.eventBatch)
 				break
 			}

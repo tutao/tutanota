@@ -11,6 +11,7 @@ import {FeatureType} from "../common/TutanotaConstants";
 import {CredentialsAndDatabaseKey} from "../../misc/credentials/CredentialsProvider"
 import {SessionType} from "../common/SessionType"
 import {IMainLocator} from "./MainLocator"
+import {ResumeSessionErrorReason} from "../worker/facades/LoginFacade"
 
 assertMainOrNodeBoot()
 
@@ -22,12 +23,16 @@ export type LoggedInEvent = {
 	readonly sessionType: SessionType
 }
 
+export type ResumeSessionResult =
+	| {type: "success"}
+	| {type: "error", reason: ResumeSessionErrorReason}
+
 export interface LoginController {
 	createSession(username: string, password: string, sessionType: SessionType, databaseKey?: Uint8Array | null): Promise<Credentials>
 
 	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, sessionType: SessionType): Promise<Credentials>
 
-	resumeSession(credentials: CredentialsAndDatabaseKey, externalUserSalt?: Uint8Array): Promise<void>
+	resumeSession(credentials: CredentialsAndDatabaseKey, externalUserSalt?: Uint8Array): Promise<ResumeSessionResult>
 
 	isUserLoggedIn(): boolean
 
@@ -146,19 +151,25 @@ export class LoginControllerImpl implements LoginController {
 		return credentials
 	}
 
-	async resumeSession({credentials, databaseKey}: CredentialsAndDatabaseKey, externalUserSalt?: Uint8Array): Promise<void> {
+	async resumeSession({credentials, databaseKey}: CredentialsAndDatabaseKey, externalUserSalt?: Uint8Array): Promise<ResumeSessionResult> {
 		const loginFacade = await this.getLoginFacade()
-		const {user, userGroupInfo, sessionId} = await loginFacade.resumeSession(credentials, externalUserSalt ?? null, databaseKey ?? null)
-		await this.onLoginSuccess(
-			{
-				user,
-				accessToken: credentials.accessToken,
-				userGroupInfo,
-				sessionId,
-				persistentSession: true,
-			},
-			SessionType.Persistent,
-		)
+		const resumeResult = await loginFacade.resumeSession(credentials, externalUserSalt ?? null, databaseKey ?? null)
+		if (resumeResult.type === "error") {
+			return resumeResult
+		} else {
+			const {user, userGroupInfo, sessionId} = resumeResult.data
+			await this.onLoginSuccess(
+				{
+					user,
+					accessToken: credentials.accessToken,
+					userGroupInfo,
+					sessionId,
+					persistentSession: true,
+				},
+				SessionType.Persistent,
+			)
+			return {type: "success"}
+		}
 	}
 
 	isUserLoggedIn(): boolean {

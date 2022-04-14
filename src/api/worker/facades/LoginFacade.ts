@@ -26,7 +26,7 @@ import {
 	SessionService,
 	TakeOverDeletedAddressService
 } from "../../entities/sys/Services"
-import {CloseEventBusOption, OperationType} from "../../common/TutanotaConstants"
+import {AccountType, CloseEventBusOption, OperationType} from "../../common/TutanotaConstants"
 import {CryptoError} from "../../common/error/CryptoError"
 import type {CreateSessionReturn, EntityUpdate, GroupInfo, SaltReturn, SecondFactorAuthData, User} from "../../entities/sys/TypeRefs.js"
 import {
@@ -95,6 +95,20 @@ export type NewSessionData = {
 	credentials: Credentials
 }
 
+interface ResumeSessionResultData {
+	user: User
+	userGroupInfo: GroupInfo
+	sessionId: IdTuple
+}
+
+export const enum ResumeSessionErrorReason {
+	OfflineNotAvailableForFree
+}
+
+type ResumeSessionResult =
+	| {type: "success", data: ResumeSessionResultData}
+	| {type: "error", reason: ResumeSessionErrorReason}
+
 export interface LoginFacade {
 	/**
 	 * Create session and log in. Changes internal state to refer to the logged in user.
@@ -124,11 +138,7 @@ export interface LoginFacade {
 		credentials: Credentials,
 		externalUserSalt: Uint8Array | null,
 		databaseKey: Uint8Array | null
-	): Promise<{
-		user: User
-		userGroupInfo: GroupInfo
-		sessionId: IdTuple
-	}>
+	): Promise<ResumeSessionResult>
 
 	deleteSession(accessToken: Base64Url): Promise<void>
 
@@ -393,27 +403,40 @@ export class LoginFacadeImpl implements LoginFacade {
 		credentials: Credentials,
 		externalUserSalt: Uint8Array | null,
 		databaseKey: Uint8Array | null
-	): Promise<{
-		user: User
-		userGroupInfo: GroupInfo
-		sessionId: IdTuple
-	}> {
+	): Promise<ResumeSessionResult> {
 		this.userFacade.setAccessToken(credentials.accessToken)
 
 		const usingOfflineStorage = await this.initCache(credentials.userId, databaseKey)
 		const sessionId = this.getSessionId(credentials)
 
+		// using offline, free, have connection         -> sync login
+		// using offline, free, no connection           -> indicate that offline login is not for free customers
+		// using offline, premium, have connection      -> async login
+		// using offline, premium, no connection        -> async login w/ later retry
+		// no offline, free, have connection            -> sync login
+		// no offline, free, no connection              -> sync login, fail with connection error
+		// no offline, premium, have connection         -> sync login
+		// no offline, premium, no connection           -> sync login, fail with connection error
+
 		if (usingOfflineStorage) {
 			const user = await this.entityClient.load(UserTypeRef, credentials.userId)
+			if (user.accountType !== AccountType.PREMIUM) {
+				// if account is free do not start offline login/async login workflow
+				return this.finishResumeSession(credentials, externalUserSalt)
+						   .catch(ofClass(ConnectionError, (e) => {
+							   return {type: "error", reason: ResumeSessionErrorReason.OfflineNotAvailableForFree}
+						   }))
+			}
 			this.userFacade.setUser(user)
 			this.loginListener.onPartialLoginSuccess()
 			// noinspection ES6MissingAwait: it's started async on purpose
 			this.asyncResumeSession(credentials)
-			return {
+			const data = {
 				user,
 				userGroupInfo: await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo),
 				sessionId,
 			}
+			return {type: "success", data}
 		} else {
 			return this.finishResumeSession(credentials, externalUserSalt)
 		}
@@ -437,7 +460,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		}
 	}
 
-	private async finishResumeSession(credentials: Credentials, externalUserSalt: Uint8Array | null) {
+	private async finishResumeSession(credentials: Credentials, externalUserSalt: Uint8Array | null): Promise<ResumeSessionResult> {
 		const sessionId = this.getSessionId(credentials)
 		const sessionData = await this._loadSessionData(credentials.accessToken)
 		const passphrase = utf8Uint8ArrayToString(aes128Decrypt(sessionData.accessKey, base64ToUint8Array(neverNull(credentials.encryptedPassword))))
@@ -453,13 +476,14 @@ export class LoginFacadeImpl implements LoginFacade {
 
 		this.asyncLoginState = {state: "idle"}
 
-		return {
+		const data = {
 			user,
 			userGroupInfo,
 			sessionId,
 		}
-	}
 
+		return {type: "success", data}
+	}
 
 	private async initSession(
 		userId: Id,

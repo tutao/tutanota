@@ -1431,3 +1431,4 @@ export type TranslationKeyType =
 	| "you_label"
 	| "emptyString_msg"
 	| "dataExpiredOfflineDb_msg"
+    | "offlineLoginRequiresPremium_msg"

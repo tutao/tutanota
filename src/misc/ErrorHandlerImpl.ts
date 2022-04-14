@@ -85,7 +85,6 @@ export async function handleUncaughtError(e: Error) {
 			Dialog.message("outdatedClient_msg").then(() => (invalidSoftwareVersionActive = false))
 		}
 	} else if (
-		e instanceof NotAuthenticatedError ||
 		e instanceof AccessBlockedError ||
 		e instanceof AccessDeactivatedError ||
 		e instanceof AccessExpiredError
@@ -94,7 +93,11 @@ export async function handleUncaughtError(e: Error) {
 		if (!loginDialogActive) {
 			windowFacade.reload({})
 		}
-	} else if (e instanceof SessionExpiredError) {
+	} else if (
+		// FIXME we need to decide upon either offline dialog or password prompt here based on login state
+		e instanceof NotAuthenticatedError ||
+		e instanceof SessionExpiredError
+	) {
 		if (!loginDialogActive) {
 			locator.loginFacade.resetSession()
 			loginDialogActive = true
