@@ -28,9 +28,9 @@
 	// Can't enable right now: cannot infer callbacks in some generic attributes
 	"strictFunctionTypes": false,
 	"strictPropertyInitialization": true,
-	// Can't enable right now: filter(isNotNull) does not work then
 	"noStrictGenericChecks": false,
 	"strictNullChecks": true,
 	"useUnknownInCatchVariables": false,
+	"types": []
   }
 }
