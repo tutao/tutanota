@@ -1,4 +1,4 @@
-import type {InvoiceData, PaymentData, SpamRuleFieldType, SpamRuleType} from "../../common/TutanotaConstants"
+import type {EmailSpamRuleListElement, InvoiceData, PaymentData, SpamRuleFieldType, SpamRuleType} from "../../common/TutanotaConstants"
 import {AccountType, BookingItemFeatureType, Const, GroupType} from "../../common/TutanotaConstants"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../../entities/sys/CustomerInfo"
@@ -90,6 +90,8 @@ export interface CustomerFacade {
 	orderWhitelabelCertificate(domainName: string): Promise<void>
 
 	addSpamRule(field: SpamRuleFieldType, type: SpamRuleType, value: string): Promise<void>
+
+	addSpamRules(spamRules: ReadonlyArray<EmailSpamRuleListElement>): Promise<void>
 
 	downloadInvoice(invoiceNumber: string): Promise<DataFile>
 
@@ -259,6 +261,22 @@ export class CustomerFacadeImpl implements CustomerFacade {
 				field,
 			})
 			props.emailSenderList.push(newListEntry)
+			return this.entityClient.update(props).catch(ofClass(LockedError, noOp))
+		})
+	}
+
+	addSpamRules(spamRules: ReadonlyArray<EmailSpamRuleListElement>): Promise<void> {
+		return this.loadCustomerServerProperties().then(props => {
+			spamRules.forEach(({field, type, value}) => {
+				value = value.toLowerCase().trim()
+				let newListEntry = createEmailSenderListElement({
+					value,
+					hashedValue: uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array(value))),
+					type,
+					field,
+				})
+				props.emailSenderList.push(newListEntry)
+			});
 			return this.entityClient.update(props).catch(ofClass(LockedError, noOp))
 		})
 	}

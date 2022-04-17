@@ -262,6 +262,12 @@ export function getSpamRuleField(spamRule: EmailSenderListElement): SpamRuleFiel
 	return downcast(spamRule.field)
 }
 
+export type EmailSpamRuleListElement = {
+	field: SpamRuleFieldType;
+	type: SpamRuleType;
+	value: string;
+}
+
 export const enum ReportMovedMailsType {
 	ALWAYS_ASK = "0",
 	AUTOMATICALLY_ONLY_SPAM = "1",
