@@ -29,7 +29,7 @@ import {
 	SessionService,
 	TakeOverDeletedAddressService
 } from "../../entities/sys/Services"
-import {CloseEventBusOption, FeatureType, GroupType, OperationType} from "../../common/TutanotaConstants"
+import {AccountType, CloseEventBusOption, FeatureType, GroupType, OperationType} from "../../common/TutanotaConstants"
 import {CryptoError} from "../../common/error/CryptoError"
 import {createSaltData} from "../../entities/sys/SaltData"
 import type {SaltReturn} from "../../entities/sys/SaltReturn"
@@ -909,7 +909,7 @@ export class LoginFacadeImpl implements LoginFacade {
 							   const extraHeaders = {
 								   accessToken: sessionData.accessToken,
 							   }
-						return this.serviceExecutor.post(ChangePasswordService, postData, {extraHeaders})
+							   return this.serviceExecutor.post(ChangePasswordService, postData, {extraHeaders})
 						   })
 						   .finally(() => this.deleteSession(sessionData.accessToken))
 				   })
@@ -975,8 +975,8 @@ export class LoginFacadeImpl implements LoginFacade {
 	}
 
 	async isEnabled(feature: FeatureType): Promise<boolean> {
-		if (!this._user) {
-			return false
+		if (!this._user || this._user.accountType === AccountType.EXTERNAL) {
+			return false // externals and contact form users can't load the user so we do not enable blob storage for them yet
 		}
 		const customer = await this.entityClient.load(CustomerTypeRef, neverNull(this._user.customer))
 		return customer.customizations.some(f => f.feature === feature)
