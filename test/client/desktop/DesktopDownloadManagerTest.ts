@@ -160,7 +160,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 				end: function () {
 					this.callbacks["finish"]()
 				},
-				pipe: function ()  {
+				pipe: function () {
 					this.callbacks["end"]()
 				}
 			},
@@ -183,7 +183,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 				writeFile: () => Promise.resolve(),
 				copyFile: () => Promise.resolve(),
 				readdir: () => Promise.resolve([]),
-				stat: () =>  {
+				stat: () => {
 					return {size: 33}
 				},
 				readFile: (fileName) => Promise.resolve(stringToUtf8Uint8Array(fileName))
@@ -280,8 +280,6 @@ o.spec("DesktopDownloadManagerTest", function () {
 				},
 			])
 			o(mocks.fsMock.promises.writeFile.args[0]).equals("/a/download/path/blob")
-			o(mocks.electronMock.shell.openPath.callCount).equals(1)
-			o(mocks.electronMock.shell.openPath.args[0]).equals("/a/download/path")
 		})
 
 		o("with default download path but file exists", async function () {
@@ -298,26 +296,26 @@ o.spec("DesktopDownloadManagerTest", function () {
 				},
 			])
 			o(mocks.fsMock.promises.writeFile.args[0]).equals("/a/download/path/blob-1")
-			o(mocks.electronMock.shell.openPath.callCount).equals(1)
-			o(mocks.electronMock.shell.openPath.args[0]).equals("/a/download/path")
 		})
+	})
 
+	o.spec("showInFileExplorer", function () {
 		o("two downloads, open two filemanagers", async function () {
 			const mocks = standardMocks()
 			const dl = makeMockedDownloadManager(mocks)
-			await dl.saveDataFile("blob", new Uint8Array([0]))
+			await dl.showInFileExplorer("/path/to/file.txt")
 			o(mocks.electronMock.shell.openPath.callCount).equals(1)
-			await dl.saveDataFile("blob", new Uint8Array([0]))
+			await dl.showInFileExplorer("/path/to/file.txt")
 			o(mocks.electronMock.shell.openPath.callCount).equals(1)
 		})
 
 		o("two downloads, open two filemanagers after a pause", async function () {
 			const mocks = standardMocks()
 			const dl = makeMockedDownloadManager(mocks)
-			await dl.saveDataFile("blob", new Uint8Array([0]))
+			await dl.showInFileExplorer("/path/to/file.txt")
 			o(mocks.electronMock.shell.openPath.callCount).equals(1)
 			time += 1000 * 60
-			await dl.saveDataFile("blob", new Uint8Array([0]))
+			await dl.showInFileExplorer("/path/to/file.txt")
 			o(mocks.electronMock.shell.openPath.callCount).equals(2)
 		})
 	})
@@ -525,7 +523,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 		})
 	})
 
-	o.spec("join", function() {
+	o.spec("join", function () {
 		o("join", async function () {
 			const mocks = standardMocks()
 			const dl = makeMockedDownloadManager(mocks)
@@ -543,7 +541,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 		})
 	})
 
-	o.spec("putFileIntoDownloadsFolder", function() {
+	o.spec("putFileIntoDownloadsFolder", function () {
 		o("putFileIntoDownloadsFolder", async function () {
 			const mocks = standardMocks()
 			const dl = makeMockedDownloadManager(mocks)
@@ -563,7 +561,7 @@ o.spec("DesktopDownloadManagerTest", function () {
 		})
 	})
 
-	o.spec("hash", function() {
+	o.spec("hash", function () {
 		o("hash", async function () {
 			const mocks = standardMocks()
 			const dl = makeMockedDownloadManager(mocks)
