@@ -1,5 +1,5 @@
 import o from "ospec"
-import {_TypeModel as GroupInfoModel, createGroupInfo, GroupInfoTypeRef,} from "../../../../src/api/entities/sys/TypeRefs.js"
+import {createGroupInfo, GroupInfoTypeRef,} from "../../../../src/api/entities/sys/TypeRefs.js"
 import {NotFoundError} from "../../../../src/api/common/error/RestError"
 import type {Db} from "../../../../src/api/worker/search/SearchTypes"
 import {FULL_INDEXED_TIMESTAMP, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType,} from "../../../../src/api/common/TutanotaConstants"
@@ -16,6 +16,7 @@ import {browserDataStub} from "../../TestUtils"
 import {isSameId} from "../../../../src/api/common/utils/EntityUtils"
 import {GroupDataOS} from "../../../../src/api/worker/search/Indexer"
 import {aes256RandomKey, fixedIv} from "@tutao/tutanota-crypto"
+import {resolveTypeReference} from "../../../../src/api/common/EntityFunctions"
 
 const dbMock: any = {
 	iv: fixedIv,
@@ -53,7 +54,7 @@ o.spec("GroupInfoIndexer test", function () {
 		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("test")
 		o(keyToIndexEntries.size).equals(1)
 	})
-	o("createGroupInfoIndexEntries", function () {
+	o("createGroupInfoIndexEntries", async function () {
 		let core = {
 			createIndexEntriesForAttributes: o.spy(),
 		} as any
@@ -70,15 +71,15 @@ o.spec("GroupInfoIndexer test", function () {
 		indexer.createGroupInfoIndexEntries(g)
 		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("n,ma,ma0,ma1")
 		let args = core.createIndexEntriesForAttributes.args
-		let attributeHandlers = core.createIndexEntriesForAttributes.args[2]
-		o(args[0]).equals(GroupInfoModel)
-		o(args[1]).equals(g)
+		let attributeHandlers = core.createIndexEntriesForAttributes.args[1]
+		o(args[0]).equals(g)
 		let attributes = attributeHandlers.map(h => {
 			return {
 				attribute: h.attribute.id,
 				value: h.value(),
 			}
 		})
+		const GroupInfoModel = await resolveTypeReference(GroupInfoTypeRef)
 		o(JSON.stringify(attributes)).equals(
 			JSON.stringify([
 				{

@@ -4,14 +4,16 @@ import {BadRequestError, InternalServerError, PayloadTooLargeError} from "../../
 import {assertThrows} from "@tutao/tutanota-test-utils"
 import {SetupMultipleError} from "../../../src/api/common/error/SetupMultipleError"
 import {HttpMethod, MediaType, resolveTypeReference} from "../../../src/api/common/EntityFunctions"
-import {_TypeModel as CustomerTypeModel, createCustomer, CustomerTypeRef} from "../../../src/api/entities/sys/TypeRefs.js"
+import {createCustomer, CustomerTypeRef} from "../../../src/api/entities/sys/TypeRefs.js"
 import {EntityRestClient, typeRefToPath} from "../../../src/api/worker/rest/EntityRestClient"
 import {RestClient} from "../../../src/api/worker/rest/RestClient"
 import type {CryptoFacade} from "../../../src/api/worker/crypto/CryptoFacade"
 import {createInternalRecipientKeyData} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {InstanceMapper} from "../../../src/api/worker/crypto/InstanceMapper"
-import {_TypeModel as CalendarEventTypeModel, CalendarEventTypeRef} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {CalendarEventTypeRef} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {matchers, object, verify, when} from "testdouble"
+import tutanotaModelInfo from "../../../src/api/entities/tutanota/ModelInfo"
+import sysModelInfo from "../../../src/api/entities/sys/ModelInfo"
 
 const {anything} = matchers
 
@@ -85,7 +87,7 @@ o.spec("EntityRestClient", async function () {
 				`${typeRefToPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`,
 				HttpMethod.GET,
 				{
-					headers: {...authHeader, v: CalendarEventTypeModel.version},
+					headers: {...authHeader, v: String(tutanotaModelInfo.version)},
 					responseType: MediaType.Json,
 					queryParams: undefined,
 				}
@@ -101,7 +103,7 @@ o.spec("EntityRestClient", async function () {
 				`${typeRefToPath(CustomerTypeRef)}/${id1}`,
 				HttpMethod.GET,
 				{
-					headers: {...authHeader, v: CustomerTypeModel.version},
+					headers: {...authHeader, v: String(sysModelInfo.version)},
 					responseType: MediaType.Json,
 					queryParams: undefined,
 				}
@@ -118,7 +120,7 @@ o.spec("EntityRestClient", async function () {
 					`${typeRefToPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`,
 					HttpMethod.GET,
 					{
-						headers: {...authHeader, v: CalendarEventTypeModel.version, baz: "quux"},
+						headers: {...authHeader, v: String(tutanotaModelInfo.version), baz: "quux"},
 						responseType: MediaType.Json,
 						queryParams: {foo: "bar"},
 					}
@@ -139,7 +141,7 @@ o.spec("EntityRestClient", async function () {
 				`${typeRefToPath(CalendarEventTypeRef)}/${listId}`,
 				HttpMethod.GET,
 				{
-					headers: {...authHeader, v: CalendarEventTypeModel.version},
+					headers: {...authHeader, v: String(tutanotaModelInfo.version)},
 					queryParams: {start: startId, count: String(count), reverse: String(false)},
 					responseType: MediaType.Json,
 				}
@@ -163,7 +165,7 @@ o.spec("EntityRestClient", async function () {
 				`${typeRefToPath(CustomerTypeRef)}`,
 				HttpMethod.GET,
 				{
-					headers: {...authHeader, v: CustomerTypeModel.version},
+					headers: {...authHeader, v: String(sysModelInfo.version)},
 					queryParams: {ids: "0,1,2,3,4"},
 					responseType: MediaType.Json,
 				}
@@ -186,7 +188,7 @@ o.spec("EntityRestClient", async function () {
 				`${typeRefToPath(CustomerTypeRef)}`,
 				HttpMethod.GET,
 				{
-					headers: {...authHeader, v: CustomerTypeModel.version},
+					headers: {...authHeader, v: String(sysModelInfo.version)},
 					queryParams: {ids: ids.join(",")},
 					responseType: MediaType.Json,
 				}
@@ -208,7 +210,7 @@ o.spec("EntityRestClient", async function () {
 				`${typeRefToPath(CustomerTypeRef)}`,
 				HttpMethod.GET,
 				{
-					headers: {...authHeader, v: CustomerTypeModel.version},
+					headers: {...authHeader, v: String(sysModelInfo.version)},
 					queryParams: {ids: countFrom(0, 100).join(",")},
 					responseType: MediaType.Json,
 				}
@@ -218,7 +220,7 @@ o.spec("EntityRestClient", async function () {
 				`${typeRefToPath(CustomerTypeRef)}`,
 				HttpMethod.GET,
 				{
-					headers: {...authHeader, v: CustomerTypeModel.version},
+					headers: {...authHeader, v: String(sysModelInfo.version)},
 					queryParams: {ids: "100"},
 					responseType: MediaType.Json,
 				}
@@ -238,7 +240,7 @@ o.spec("EntityRestClient", async function () {
 				typeRefToPath(CustomerTypeRef),
 				HttpMethod.GET,
 				{
-					headers: {...authHeader, v: CustomerTypeModel.version},
+					headers: {...authHeader, v: String(sysModelInfo.version)},
 					queryParams: {ids: countFrom(0, 100).join(",")},
 					responseType: MediaType.Json,
 				}
@@ -248,7 +250,7 @@ o.spec("EntityRestClient", async function () {
 				typeRefToPath(CustomerTypeRef),
 				HttpMethod.GET,
 				{
-					headers: {...authHeader, v: CustomerTypeModel.version},
+					headers: {...authHeader, v: String(sysModelInfo.version)},
 					queryParams: {ids: countFrom(100, 100).join(",")},
 					responseType: MediaType.Json,
 				}
@@ -258,7 +260,7 @@ o.spec("EntityRestClient", async function () {
 				typeRefToPath(CustomerTypeRef),
 				HttpMethod.GET,
 				{
-					headers: {...authHeader, v: CustomerTypeModel.version},
+					headers: {...authHeader, v: String(sysModelInfo.version)},
 					queryParams: {ids: countFrom(200, 11).join(",")},
 					responseType: MediaType.Json,
 				}

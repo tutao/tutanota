@@ -31,11 +31,12 @@ import {EventQueue} from "../../../../src/api/worker/search/EventQueue"
 import {CancelledError} from "../../../../src/api/common/error/CancelledError"
 import {createSearchIndexDbStub, DbStub, DbStubTransaction} from "./DbStub"
 import {IndexerCore} from "../../../../src/api/worker/search/IndexerCore"
-import {_TypeModel as ContactModel, ContactTypeRef, createContact} from "../../../../src/api/entities/tutanota/TypeRefs.js"
+import {ContactTypeRef, createContact} from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import {elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId,} from "../../../../src/api/common/utils/EntityUtils"
 import {ElementDataOS, GroupDataOS, SearchIndexMetaDataOS, SearchIndexOS,} from "../../../../src/api/worker/search/Indexer"
 import {makeCore} from "../../TestUtils"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, fixedIv, IV_BYTE_LENGTH, random} from "@tutao/tutanota-crypto"
+import {resolveTypeReference} from "../../../../src/api/common/EntityFunctions"
 
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
 const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
@@ -66,7 +67,7 @@ function compareBinaryBlocks(actual: Uint8Array, expected: Uint8Array) {
 }
 
 o.spec("IndexerCore test", () => {
-	o("createIndexEntriesForAttributes", function () {
+	o("createIndexEntriesForAttributes", async function () {
 		let core = makeCore()
 		let contact = createContact()
 		contact._id = ["", "L-dNNLe----0"]
@@ -76,7 +77,8 @@ o.spec("IndexerCore test", () => {
 		contact.company = undefined as any // indexed but not defined
 
 		contact.comment = "Friend of Tim"
-		let entries = core.createIndexEntriesForAttributes(ContactModel, contact, [
+		const ContactModel = await resolveTypeReference(ContactTypeRef)
+		let entries = core.createIndexEntriesForAttributes(contact, [
 			{
 				attribute: ContactModel.values["firstName"],
 				value: () => contact.firstName,

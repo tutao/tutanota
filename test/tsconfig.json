@@ -15,5 +15,8 @@
 	"api/**/*.ts",
 	"client/**/*.ts",
 	"types/*.d.ts"
+  ],
+  "types": [
+	"node_modules/@types/node"
   ]
 }

@@ -26,6 +26,7 @@ import {InstanceMapper} from "../../../../src/api/worker/crypto/InstanceMapper"
 import {GroupManagementFacadeImpl} from "../../../../src/api/worker/facades/GroupManagementFacade";
 import {object} from "testdouble"
 import {IServiceExecutor} from "../../../../src/api/common/ServiceRequest"
+import {CryptoFacade} from "../../../../src/api/worker/crypto/CryptoFacade"
 
 
 o.spec("CalendarFacadeTest", async function () {
@@ -48,6 +49,7 @@ o.spec("CalendarFacadeTest", async function () {
 	let nativeMock
 	let instanceMapper
 	let serviceExecutor: IServiceExecutor
+	let cryptoFacade: CryptoFacade
 
 
 	function sortEventsWithAlarmInfos(eventsWithAlarmInfos: Array<EventWithAlarmInfos>) {
@@ -116,7 +118,8 @@ o.spec("CalendarFacadeTest", async function () {
 		})
 		instanceMapper = new InstanceMapper()
 		serviceExecutor = object()
-		calendarFacade = new CalendarFacade(loginFacade, groupManagementFacade, entityRestCache, nativeMock, workerMock, instanceMapper, serviceExecutor)
+		cryptoFacade = object()
+		calendarFacade = new CalendarFacade(loginFacade, groupManagementFacade, entityRestCache, nativeMock, workerMock, instanceMapper, serviceExecutor, cryptoFacade)
 	})
 
 

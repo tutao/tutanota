@@ -18,15 +18,16 @@ import {base64ToUint8Array, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
 import {concat} from "@tutao/tutanota-utils"
 import type {SearchIndexEntry, SearchIndexMetaDataRow} from "../../../../src/api/worker/search/SearchTypes"
 import {createUser, UserTypeRef} from "../../../../src/api/entities/sys/TypeRefs.js"
-import {_TypeModel as ContactTypeModel, ContactTypeRef} from "../../../../src/api/entities/tutanota/TypeRefs.js"
+import {ContactTypeRef} from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import {createGroupMembership} from "../../../../src/api/entities/sys/TypeRefs.js"
 import {GroupType, OperationType} from "../../../../src/api/common/TutanotaConstants"
-import {createEntityUpdate, EntityUpdate} from "../../../../src/api/entities/sys/TypeRefs.js"
+import {createEntityUpdate} from "../../../../src/api/entities/sys/TypeRefs.js"
 import {containsEventOfType} from "../../../../src/api/common/utils/Utils"
 import {MailTypeRef} from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import {byteLength} from "@tutao/tutanota-utils"
 import {aes256Decrypt, aes256RandomKey, fixedIv} from "@tutao/tutanota-crypto"
 import {EntityUpdateData} from "../../../../src/api/main/EventController";
+import {resolveTypeReference} from "../../../../src/api/common/EntityFunctions"
 o.spec("Index Utils", () => {
     o("encryptIndexKey", function () {
         let key = aes256RandomKey()
@@ -109,7 +110,7 @@ o.spec("Index Utils", () => {
             rows: [],
         })
     })
-    o("typeRefToTypeInfo", function () {
+    o("typeRefToTypeInfo", async function () {
         let thrown = false
 
         try {
@@ -122,6 +123,7 @@ o.spec("Index Utils", () => {
         // o(typeRefToTypeInfo(UserTypeRef).appId).equals(0)
         // o(typeRefToTypeInfo(UserTypeRef).typeId).equals(UserTypeModel.id)
         o(typeRefToTypeInfo(ContactTypeRef).appId).equals(1)
+		const ContactTypeModel = await resolveTypeReference(ContactTypeRef)
         o(typeRefToTypeInfo(ContactTypeRef).typeId).equals(ContactTypeModel.id)
     })
     o("userIsLocalOrGlobalAdmin", function () {

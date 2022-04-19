@@ -22,7 +22,7 @@ import {
     MailIndexer,
 } from "../../../../src/api/worker/search/MailIndexer"
 import type {Mail} from "../../../../src/api/entities/tutanota/TypeRefs.js"
-import {_TypeModel as MailModel, createMail, MailTypeRef} from "../../../../src/api/entities/tutanota/TypeRefs.js"
+import {createMail, MailTypeRef} from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import type {MailBody} from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import {createMailBody} from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import type {File as TutanotaFile} from "../../../../src/api/entities/tutanota/TypeRefs.js"
@@ -50,6 +50,7 @@ import type {DateProvider} from "../../../../src/api/worker/DateProvider"
 import {LocalTimeDateProvider} from "../../../../src/api/worker/DateProvider"
 import {aes256RandomKey, fixedIv} from "@tutao/tutanota-crypto"
 import {EntityRestCache} from "../../../../src/api/worker/rest/EntityRestCache"
+import {resolveTypeReference} from "../../../../src/api/common/EntityFunctions"
 
 class FixedDateProvider implements DateProvider {
     now: number
@@ -114,7 +115,7 @@ o.spec("MailIndexer test", () => {
         let keyToIndexEntries = indexer.createMailIndexEntries(mail, body, files)
         o(keyToIndexEntries.size).equals(1)
     })
-    o("createMailIndexEntries", function () {
+    o("createMailIndexEntries", async function () {
         let core: IndexerCore = {
             createIndexEntriesForAttributes: o.spy(),
             _stats: {},
@@ -158,18 +159,16 @@ o.spec("MailIndexer test", () => {
 
         files[0].name = "FN"
         indexer.createMailIndexEntries(mail, body, files)
-	    // @ts-ignore
         let args = core.createIndexEntriesForAttributes.args
-        o(args[0]).equals(MailModel)
-        o(args[1]).equals(mail)
-	    // @ts-ignore
-        let attributeHandlers = core.createIndexEntriesForAttributes.args[2]
+        o(args[0]).equals(mail)
+        let attributeHandlers = core.createIndexEntriesForAttributes.args[1]
         let attributes = attributeHandlers.map(h => {
             return {
                 attribute: h.attribute.id,
                 value: h.value(),
             }
         })
+		const MailModel = await resolveTypeReference(MailTypeRef)
         o(JSON.stringify(attributes)).equals(
             JSON.stringify([
                 {

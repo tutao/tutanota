@@ -7,34 +7,32 @@ import {NativeFileApp} from "../../../../src/native/common/FileApp"
 import {AesApp} from "../../../../src/native/worker/AesApp"
 import {InstanceMapper} from "../../../../src/api/worker/crypto/InstanceMapper"
 import {ArchiveDataType, MAX_BLOB_SIZE_BYTES} from "../../../../src/api/common/TutanotaConstants"
-import {createBlob} from "../../../../src/api/entities/sys/TypeRefs.js"
-import {createFile} from "../../../../src/api/entities/tutanota/TypeRefs.js"
+import {createBlob, createBlobReferenceTokenWrapper} from "../../../../src/api/entities/sys/TypeRefs.js"
+import {createFile, createMailBody} from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import {ServiceExecutor} from "../../../../src/api/worker/rest/ServiceExecutor"
 import {func, instance, matchers, object, verify, when} from "testdouble"
-import {HttpMethod, resolveTypeReference} from "../../../../src/api/common/EntityFunctions"
+import {HttpMethod} from "../../../../src/api/common/EntityFunctions"
 import {BlobAccessTokenService} from "../../../../src/api/entities/storage/Services"
-import {createBlobReadData} from "../../../../src/api/entities/storage/BlobReadData"
-import {createInstanceId} from "../../../../src/api/entities/storage/InstanceId"
 import {getElementId, getEtId, getListId} from "../../../../src/api/common/utils/EntityUtils"
-import {createMailBody} from "../../../../src/api/entities/tutanota/TypeRefs.js"
-import {createBlobWriteData} from "../../../../src/api/entities/storage/BlobWriteData"
 import {aes128Decrypt, aes128Encrypt, aes128RandomKey, generateIV, sha256Hash} from "@tutao/tutanota-crypto"
-import {arrayEquals, stringToBase64, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {arrayEquals, Mapper, stringToBase64, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {Mode} from "../../../../src/api/common/Env"
 import {CryptoFacade} from "../../../../src/api/worker/crypto/CryptoFacade"
-import {FileTypeRef} from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import {FileReference} from "../../../../src/api/common/utils/FileUtils"
 import {assertThrows} from "@tutao/tutanota-test-utils"
 import {ProgrammingError} from "../../../../src/api/common/error/ProgrammingError"
 import {ConnectionError} from "../../../../src/api/common/error/RestError"
-import {Mapper} from "../../../../packages/tutanota-utils/lib"
-import {createBlobAccessTokenPostOut} from "../../../../src/api/entities/storage/BlobAccessTokenPostOut"
-import {createBlobAccessTokenPostIn} from "../../../../src/api/entities/storage/BlobAccessTokenPostIn"
-import {createBlobServerAccessInfo} from "../../../../src/api/entities/storage/BlobServerAccessInfo"
-import {createBlobServerUrl} from "../../../../src/api/entities/storage/BlobServerUrl"
-import {createBlobReferenceTokenWrapper} from "../../../../src/api/entities/sys/TypeRefs.js"
-import {createBlobPostOut} from "../../../../src/api/entities/storage/BlobPostOut.js"
-import {_TypeModel as BlobGetInTypeModel} from "../../../../src/api/entities/storage/BlobGetIn"
+import {
+	createBlobAccessTokenPostIn,
+	createBlobAccessTokenPostOut,
+	createBlobPostOut,
+	createBlobReadData,
+	createBlobServerAccessInfo,
+	createBlobServerUrl,
+	createBlobWriteData,
+	createInstanceId
+} from "../../../../src/api/entities/storage/TypeRefs"
+import storageModelInfo from "../../../../src/api/entities/storage/ModelInfo"
 
 const {anything, captor} = matchers
 
@@ -199,7 +197,7 @@ o.spec("BlobFacade test", function () {
 			const referenceTokens = await facade.encryptAndUploadNative(archiveDataType, uploadedFileUri, ownerGroup, sessionKey)
 
 			o(referenceTokens).deepEquals(expectedReferenceTokens)
-			verify(fileAppMock.upload(encryptedFileInfo.uri, `http://w1.api.tutanota.com${BLOB_SERVICE_REST_PATH}?blobAccessToken=123&blobHash=${blobHash}&v=${BlobGetInTypeModel.version}`, HttpMethod.POST, {}))
+			verify(fileAppMock.upload(encryptedFileInfo.uri, `http://w1.api.tutanota.com${BLOB_SERVICE_REST_PATH}?blobAccessToken=123&blobHash=${blobHash}&v=${storageModelInfo.version}`, HttpMethod.POST, {}))
 		})
 
 	})
@@ -213,7 +211,7 @@ o.spec("BlobFacade test", function () {
 
 			let blobAccessInfo = createBlobServerAccessInfo({blobAccessToken: "123", servers: [createBlobServerUrl({url: "w1"})]})
 			facade.requestReadToken = () => Promise.resolve(blobAccessInfo)
-			when(cryptoFacadeMock.resolveSessionKey(await resolveTypeReference(FileTypeRef), file)).thenResolve(sessionKey)
+			when(cryptoFacadeMock.resolveSessionKeyForInstance(file)).thenResolve(sessionKey)
 			const requestBody = {"request-body": true}
 			when(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), anything())).thenResolve(requestBody)
 			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, anything())).thenResolve(encryptedBlobData)
@@ -239,7 +237,7 @@ o.spec("BlobFacade test", function () {
 				servers: [createBlobServerUrl({url: "http://w1.api.tutanota.com"})]
 			})
 			facade.requestReadToken = () => Promise.resolve(blobAccessInfo)
-			when(cryptoFacadeMock.resolveSessionKey(await resolveTypeReference(FileTypeRef), file)).thenResolve(sessionKey)
+			when(cryptoFacadeMock.resolveSessionKeyForInstance(file)).thenResolve(sessionKey)
 			const requestBody = {"request-body": true}
 			const encryptedFileUri = "encryptedUri"
 			const decryptedChunkUri = "decryptedChunkUri"
@@ -263,7 +261,7 @@ o.spec("BlobFacade test", function () {
 				location: decryptedUri,
 			}
 			o(decryptedFileReference).deepEquals(expectedFileReference)
-			verify(fileAppMock.download(`http://w1.api.tutanota.com${BLOB_SERVICE_REST_PATH}?blobAccessToken=123&_body=${encodeURIComponent(JSON.stringify(requestBody))}&v=${BlobGetInTypeModel.version}`, blobs[0].blobId + ".blob", {}))
+			verify(fileAppMock.download(`http://w1.api.tutanota.com${BLOB_SERVICE_REST_PATH}?blobAccessToken=123&_body=${encodeURIComponent(JSON.stringify(requestBody))}&v=${storageModelInfo.version}`, blobs[0].blobId + ".blob", {}))
 			verify(fileAppMock.deleteFile(encryptedFileUri))
 			verify(fileAppMock.deleteFile(decryptedChunkUri))
 		})
@@ -279,7 +277,7 @@ o.spec("BlobFacade test", function () {
 				servers: [createBlobServerUrl({url: "http://w1.api.tutanota.com"})]
 			})
 			facade.requestReadToken = () => Promise.resolve(blobAccessInfo)
-			when(cryptoFacadeMock.resolveSessionKey(await resolveTypeReference(FileTypeRef), file)).thenResolve(sessionKey)
+			when(cryptoFacadeMock.resolveSessionKeyForInstance(file)).thenResolve(sessionKey)
 			const requestBody = {"request-body": true}
 			const encryptedFileUri = "encryptedUri"
 			const decryptedChunkUri = "decryptedChunkUri"

@@ -7,7 +7,7 @@ import {defer, delay, downcast, neverNull, noOp, numberRange} from "@tutao/tutan
 import {AlarmInterval} from "../../../../src/api/common/TutanotaConstants"
 import * as url from "url"
 import * as querystring from "querystring"
-import {_TypeModel as MissedNotificationTypeModel, createMissedNotification} from "../../../../src/api/entities/sys/TypeRefs.js"
+import {createMissedNotification} from "../../../../src/api/entities/sys/TypeRefs.js"
 import {DesktopSseClient} from "../../../../src/desktop/sse/DesktopSseClient"
 import {DesktopConfigEncKey, DesktopConfigKey} from "../../../../src/desktop/config/ConfigKeys"
 import type {DesktopConfig} from "../../../../src/desktop/config/DesktopConfig"
@@ -19,6 +19,7 @@ import type {DesktopAlarmStorage} from "../../../../src/desktop/sse/DesktopAlarm
 import type {LanguageViewModel} from "../../../../src/misc/LanguageViewModel"
 import type {DesktopNetworkClient} from "../../../../src/desktop/DesktopNetworkClient"
 import {ServiceUnavailableError, TooManyRequestsError} from "../../../../src/api/common/error/RestError"
+import modelInfo from "../../../../src/api/entities/sys/ModelInfo"
 
 o.spec("DesktopSseClient Test", function () {
 	const identifier = 'identifier'
@@ -506,7 +507,7 @@ o.spec("DesktopSseClient Test", function () {
 			method: 'GET',
 			headers: {
 				userIds: 'id1',
-				v: MissedNotificationTypeModel.version,
+				v: String(modelInfo.version),
 				cv: electronMock.app.getVersion()
 			},
 			timeout: 20000

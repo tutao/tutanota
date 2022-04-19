@@ -14,25 +14,35 @@ import {ProgrammingError} from "../../../src/api/common/error/ProgrammingError"
 import {Cardinality, ValueType} from "../../../src/api/common/EntityConstants"
 import {BucketPermissionType, PermissionType} from "../../../src/api/common/TutanotaConstants"
 import type {Mail} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {_TypeModel as MailTypeModel, MailTypeRef} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import * as Contact from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {createContact} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {
+	ContactTypeRef,
+	createBirthday,
+	createContact,
+	createContactAddress,
+	MailAddressTypeRef,
+	MailTypeRef
+} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import * as UserIdReturn from "../../../src/api/entities/sys/TypeRefs.js"
-import {createUserIdReturn} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createPermission, PermissionTypeRef} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createBucket} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createGroup, GroupTypeRef} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createKeyPair} from "../../../src/api/entities/sys/TypeRefs.js"
-import {BucketPermissionTypeRef, createBucketPermission} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createUser} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createGroupMembership} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createContactAddress} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {MailAddressTypeRef} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {
+	BucketPermissionTypeRef,
+	createBucket,
+	createBucketPermission,
+	createGroup,
+	createGroupMembership,
+	createKeyPair,
+	createPermission,
+	createUser,
+	createUserIdReturn,
+	createWebsocketLeaderStatus,
+	GroupTypeRef,
+	PermissionTypeRef,
+	UpdatePermissionKeyData,
+	UserIdReturnTypeRef
+} from "../../../src/api/entities/sys/TypeRefs.js"
 import {assertThrows} from "@tutao/tutanota-test-utils"
 import {LoginFacadeImpl} from "../../../src/api/worker/facades/LoginFacade"
-import {createBirthday} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {RestClient} from "../../../src/api/worker/rest/RestClient"
-import {createWebsocketLeaderStatus} from "../../../src/api/entities/sys/TypeRefs.js"
 import {EntityClient} from "../../../src/api/common/EntityClient"
 import {
 	aes128Decrypt,
@@ -54,8 +64,8 @@ import type {ModelValue} from "../../../src/api/common/EntityTypes"
 import {IServiceExecutor} from "../../../src/api/common/ServiceRequest"
 import {matchers, object, verify, when} from "testdouble"
 import {UpdatePermissionKeyService} from "../../../src/api/entities/sys/Services.js"
-import {UpdatePermissionKeyData} from "../../../src/api/entities/sys/TypeRefs.js"
 import {getListId, isSameId} from "../../../src/api/common/utils/EntityUtils"
+import {resolveTypeReference} from "../../../src/api/common/EntityFunctions"
 
 const rsa = new RsaWeb()
 const rsaEncrypt = rsa.encrypt
@@ -599,7 +609,7 @@ o.spec("crypto facade", function () {
 		return mail
 	}
 
-	o("decrypt instance", function () {
+	o("decrypt instance", async function () {
 		o.timeout(1000)
 		let subject = "this is our subject"
 		let confidential = true
@@ -608,6 +618,7 @@ o.spec("crypto facade", function () {
 		let gk = aes128RandomKey()
 		let sk = aes128RandomKey()
 		let mail = createMailLiteral(gk, sk, subject, confidential, senderName, recipientName)
+		const MailTypeModel = await resolveTypeReference(MailTypeRef)
 		return instanceMapper.decryptAndMapToInstance<Mail>(MailTypeModel, mail, sk).then(decrypted => {
 			o(isSameTypeRef(decrypted._type, MailTypeRef)).equals(true)
 			o(decrypted.receivedDate.getTime()).equals(1470039025474)
@@ -640,7 +651,8 @@ o.spec("crypto facade", function () {
 		contact.company = "WIW"
 		contact.autoTransmitPassword = "stop bugging me!"
 		contact.addresses = [address]
-		const result: any = await instanceMapper.encryptAndMapToLiteral(Contact._TypeModel, contact, sk)
+		const ContactTypeModel = await resolveTypeReference(ContactTypeRef)
+		const result: any = await instanceMapper.encryptAndMapToLiteral(ContactTypeModel, contact, sk)
 		o(result._format).equals("0")
 		o(result._ownerGroup).equals(null)
 		o(result._ownerEncSessionKey).equals(null)
@@ -668,12 +680,13 @@ o.spec("crypto facade", function () {
 			_format: "0",
 			userId: "KOBqO7a----0",
 		}
-		const userIdReturn: UserIdReturn.UserIdReturn = await instanceMapper.decryptAndMapToInstance(UserIdReturn._TypeModel, userIdLiteral, null)
+		const UserIdReturnTypeModel = await resolveTypeReference(UserIdReturnTypeRef)
+		const userIdReturn: UserIdReturn.UserIdReturn = await instanceMapper.decryptAndMapToInstance(UserIdReturnTypeModel, userIdLiteral, null)
 		o(userIdReturn._format).equals("0")
 		o(userIdReturn.userId).equals("KOBqO7a----0")
 	})
 
-	o("map unencrypted to DB literal", function () {
+	o("map unencrypted to DB literal", async function () {
 		let userIdReturn = createUserIdReturn()
 		userIdReturn._format = "0"
 		userIdReturn.userId = "KOBqO7a----0"
@@ -681,7 +694,8 @@ o.spec("crypto facade", function () {
 			_format: "0",
 			userId: "KOBqO7a----0",
 		}
-		return instanceMapper.encryptAndMapToLiteral(UserIdReturn._TypeModel, userIdReturn, null).then(result => {
+		const UserIdReturnTypeModel = await resolveTypeReference(UserIdReturnTypeRef)
+		return instanceMapper.encryptAndMapToLiteral(UserIdReturnTypeModel, userIdReturn, null).then(result => {
 			o(result).deepEquals(userIdLiteral)
 		})
 	})
@@ -691,7 +705,8 @@ o.spec("crypto facade", function () {
 			_format: "0",
 			userId: "KOBqO7a----0",
 		}
-		o(await crypto.resolveSessionKey(UserIdReturn._TypeModel, userIdLiteral)).equals(null)
+		const UserIdReturnTypeModel = await resolveTypeReference(UserIdReturnTypeRef)
+		o(await crypto.resolveSessionKey(UserIdReturnTypeModel, userIdLiteral)).equals(null)
 	})
 
 	o("resolve session key: _ownerEncSessionKey instance", async function () {
@@ -711,6 +726,7 @@ o.spec("crypto facade", function () {
 		const mail = createMailLiteral(gk, sk, subject, confidential, senderName, recipientName)
 
 
+		const MailTypeModel = await resolveTypeReference(MailTypeRef)
 		const sessionKey: Aes128Key = neverNull(await crypto.resolveSessionKey(MailTypeModel, mail))
 
 		o(sessionKey).deepEquals(sk)
@@ -777,6 +793,7 @@ o.spec("crypto facade", function () {
 				isSameId(p.bucketPermission, bucketPermission._id)
 		}))).thenResolve(undefined)
 
+		const MailTypeModel = await resolveTypeReference(MailTypeRef)
 		const sessionKey = neverNull(await crypto.resolveSessionKey(MailTypeModel, mail))
 
 		o(sessionKey).deepEquals(sk)
@@ -792,6 +809,7 @@ o.spec("crypto facade", function () {
 		let bk = aes128RandomKey()
 		let mail = createMailLiteral(gk, sk, subject, confidential, senderName, recipientName)
 		mail.subject = "asdf"
+		const MailTypeModel = await resolveTypeReference(MailTypeRef)
 		const instance: Mail = await instanceMapper.decryptAndMapToInstance(MailTypeModel, mail, sk)
 		o(typeof instance._errors["subject"]).equals("string")
 	})

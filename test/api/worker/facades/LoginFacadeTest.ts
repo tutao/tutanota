@@ -21,7 +21,7 @@ import {EventBusClient} from "../../../../src/api/worker/EventBusClient"
 import {Credentials} from "../../../../src/misc/credentials/Credentials"
 import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {IServiceExecutor} from "../../../../src/api/common/ServiceRequest"
-import {SaltService, SessionService} from "../../../../src/api/entities/sys/TypeRefs.js"
+import {SaltService, SessionService} from "../../../../src/api/entities/sys/Services.js"
 
 const {anything} = matchers
 

@@ -1,5 +1,5 @@
 import o from "ospec"
-import {_TypeModel as ContactModel, ContactTypeRef, createContact} from "../../../../src/api/entities/tutanota/TypeRefs.js"
+import {ContactTypeRef, createContact} from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import {ContactIndexer} from "../../../../src/api/worker/search/ContactIndexer"
 import {createContactAddress} from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import {createContactMailAddress} from "../../../../src/api/entities/tutanota/TypeRefs.js"
@@ -17,6 +17,7 @@ import {downcast} from "@tutao/tutanota-utils"
 import {isSameId} from "../../../../src/api/common/utils/EntityUtils";
 import {GroupDataOS} from "../../../../src/api/worker/search/Indexer"
 import {fixedIv} from "@tutao/tutanota-crypto"
+import {resolveTypeReference} from "../../../../src/api/common/EntityFunctions"
 
 
 const dbMock: any = {iv: fixedIv}
@@ -52,7 +53,7 @@ o.spec("ContactIndexer test", () => {
 
 	})
 
-	o("createContactIndexEntries", function () {
+	o("createContactIndexEntries", async function () {
 		let core = ({createIndexEntriesForAttributes: o.spy()} as any)
 		const contactIndexer = new ContactIndexer(core, dbMock, (null as any), suggestionFacadeMock)
 
@@ -89,12 +90,12 @@ o.spec("ContactIndexer test", () => {
 		contactIndexer.createContactIndexEntries(c)
 		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("fn,ln,ma0,ma1")
 		let args = core.createIndexEntriesForAttributes.args
-		let attributeHandlers = core.createIndexEntriesForAttributes.args[2]
-		o(args[0]).equals(ContactModel)
-		o(args[1]).equals(c)
+		let attributeHandlers = core.createIndexEntriesForAttributes.args[1]
+		o(args[0]).equals(c)
 		let attributes = attributeHandlers.map(h => {
 			return {attribute: h.attribute.id, value: h.value()}
 		})
+		const ContactModel = await resolveTypeReference(ContactTypeRef)
 		o(attributes).deepEquals([
 			{attribute: ContactModel.values["firstName"].id, value: "FN"},
 			{attribute: ContactModel.values["lastName"].id, value: "LN"},
