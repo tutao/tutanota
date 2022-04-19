@@ -27,11 +27,11 @@ export interface GiftCardFacade {
 
 	encodeGiftCardToken(giftCard: GiftCard): Promise<string>
 
-	decodeGiftCardToken(token: string): Promise<{id: Id, key: string}>
+	decodeGiftCardToken(token: string): Promise<{id: Id, key: Base64}>
 }
 
 const ID_LENGTH = GENERATED_MAX_ID.length
-const KEY_LENGTH = 24
+const KEY_LENGTH_B64 = 24
 
 export class GiftCardFacadeImpl implements GiftCardFacade {
 	_logins: LoginFacadeImpl
@@ -93,11 +93,11 @@ export class GiftCardFacadeImpl implements GiftCardFacade {
 		return this.encodeToken(elementIdPart(giftCard._id), bitArrayToUint8Array(key))
 	}
 
-	async decodeGiftCardToken(token: string): Promise<{id: Id; key: string}> {
+	async decodeGiftCardToken(token: string): Promise<{id: Id; key: Base64}> {
 		const id = base64ToBase64Ext(base64UrlToBase64(token.slice(0, ID_LENGTH)))
 		const key = base64UrlToBase64(token.slice(ID_LENGTH, token.length))
 
-		if (id.length !== ID_LENGTH || key.length !== KEY_LENGTH) {
+		if (id.length !== ID_LENGTH || key.length !== KEY_LENGTH_B64) {
 			throw new Error("invalid token")
 		}
 
@@ -105,12 +105,16 @@ export class GiftCardFacadeImpl implements GiftCardFacade {
 	}
 
 	private encodeToken(id: Id, key: Uint8Array): Base64 {
-		if (id.length !== ID_LENGTH || key.length !== KEY_LENGTH) {
-			throw new Error("invalid input")
+		if (id.length !== ID_LENGTH) {
+			throw new Error("Invalid gift card params")
+		}
+		const keyBase64 = uint8ArrayToBase64(key)
+		if (keyBase64.length != KEY_LENGTH_B64) {
+			throw new Error("Invalid gift card key")
 		}
 
 		const idPart = base64ToBase64Url(base64ExtToBase64(id))
-		const keyPart = base64ToBase64Url(uint8ArrayToBase64(key))
+		const keyPart = base64ToBase64Url(keyBase64)
 		return idPart + keyPart
 	}
 }
