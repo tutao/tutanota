@@ -976,7 +976,7 @@ export class LoginFacadeImpl implements LoginFacade {
 
 	async isEnabled(feature: FeatureType): Promise<boolean> {
 		if (!this._user || this._user.accountType === AccountType.EXTERNAL) {
-			return false // externals and contact form users can't load the user so we do not enable blob storage for them yet
+			return false // externals and contact form users can't load the customer (missing permission) so we do not enable blob storage for them yet
 		}
 		const customer = await this.entityClient.load(CustomerTypeRef, neverNull(this._user.customer))
 		return customer.customizations.some(f => f.feature === feature)
