@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2022-04-05T06:42:44Z",
+	"updated_at": "2022-04-26T14:18:32Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Tietoja",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-13T07:36:09Z",
-	"updated_at": "2022-03-31T08:11:46Z",
+	"updated_at": "2022-04-26T14:19:26Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "אודות",

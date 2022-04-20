@@ -43,10 +43,10 @@ export async function runDevBuild({stage, host, desktop, clean, watch, serve}) {
 	// await buildWithoutServer(buildOpts, buildServerOptions)
 
 	const dictPath = "build/dictionaries"
-	if (!fs.existsSync(dictPath)) {
-		const {dependencies} = JSON.parse(await fs.readFile("package.json", "utf8"))
-		await fetchDictionaries(dependencies.electron, [dictPath])
-	}
+	// if (!fs.existsSync(dictPath)) {
+	// 	const {dependencies} = JSON.parse(await fs.readFile("package.json", "utf8"))
+	// 	await fetchDictionaries(dependencies.electron, [dictPath])
+	// }
 }
 
 async function buildWithoutServer(buildOptions, serverOptions) {

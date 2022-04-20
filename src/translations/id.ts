@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2022-03-31T08:37:11Z",
+	"updated_at": "2022-04-26T14:20:15Z",
 	"source_locale": null,
 	"keys": {
 		"acceptInvitation_action": "Terima undangan",

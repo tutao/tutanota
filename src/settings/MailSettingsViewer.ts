@@ -1,10 +1,10 @@
 import m, {Children} from "mithril"
-import {assertMainOrNode, isApp} from "../api/common/Env"
+import {assertMainOrNode, isApp, isOfflineStorageAvailable} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
 import type {TutanotaProperties} from "../api/entities/tutanota/TypeRefs.js"
 import {TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import {FeatureType, InboxRuleType, OperationType, ReportMovedMailsType} from "../api/common/TutanotaConstants"
-import {LazyLoaded, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
+import {capitalizeFirstLetter, defer, LazyLoaded, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
 import {MailFolderTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import {getInboxRuleTypeName} from "../mail/model/InboxRuleHandler"
 import type {EditAliasesFormAttrs} from "./EditAliasesFormN"
@@ -24,7 +24,7 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import {TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
@@ -46,6 +46,8 @@ import type {UpdatableSettingsViewer} from "./SettingsView"
 import type {MailboxProperties} from "../api/entities/tutanota/TypeRefs.js"
 import {MailboxPropertiesTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import {getReportMovedMailsType, loadMailboxProperties, saveReportMovedMails} from "../misc/MailboxPropertiesUtils"
+import {OfflineStorageSettingsModel} from "./OfflineStorageSettings"
+import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 
 assertMainOrNode()
 
@@ -66,6 +68,12 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_editAliasFormAttrs: EditAliasesFormAttrs
 	_outOfOfficeNotification: LazyLoaded<OutOfOfficeNotification | null>
 	_outOfOfficeStatus: Stream<string> // stores the status label, based on whether the notification is/ or will really be activated (checking start time/ end time)
+
+	private offlineStorageSettings = new OfflineStorageSettingsModel(
+		() => locator.offlineDbFacade,
+		() => locator.systemApp,
+		logins.getUserController()
+	)
 
 	constructor() {
 		this._defaultSender = stream(getDefaultSenderFromUser(logins.getUserController()))
@@ -102,6 +110,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		}, null)
 
 		this._outOfOfficeNotification.getAsync().then(() => this._updateOutOfOfficeNotification())
+
+		this.offlineStorageSettings.init().then(() => m.redraw())
 	}
 
 	view(): Children {
@@ -157,6 +167,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			disabled: true,
 			injectionsRight: () => [m(ButtonN, editOutOfOfficeNotificationButtonAttrs)],
 		}
+
 		const editOutOfOfficeNotificationButtonAttrs: ButtonAttrs = {
 			label: "outOfOfficeNotification_title",
 			click: () => {
@@ -294,6 +305,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m(DropDownSelectorN, enableMailIndexingAttrs),
 					m(DropDownSelectorN, reportMovedMailsAttrs),
 					m(TextFieldN, outOfOfficeAttrs),
+					m(".h4.mt-l", lang.get("localDataSection_label")),
+					this.renderOfflineStorageSettingsField(),
 					logins.getUserController().isGlobalAdmin() ? m(EditAliasesFormN, this._editAliasFormAttrs) : null,
 					logins.isEnabled(FeatureType.InternalCommunication)
 						? null
@@ -323,6 +336,36 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				],
 			),
 		]
+	}
+
+	private renderOfflineStorageSettingsField(): Children {
+		if (!this.offlineStorageSettings.available()) {
+			return null
+		}
+
+		const label = lang.get("storedDataTimeRange_label", {"{numDays}": this.offlineStorageSettings.getTimeRange()})
+
+		return m(TextFieldN, {
+			label: "emptyString_msg",
+			// Negative upper margin to make up for no label
+			class: "mt-negative-s",
+			value: stream(label),
+			disabled: true,
+			injectionsRight: () => [m(ButtonN, {
+				label: "edit_action",
+				click: () => this.onEditStoredDataTimeRangeClicked(),
+				icon: () => Icons.Edit,
+			})],
+		})
+	}
+
+	private async onEditStoredDataTimeRangeClicked() {
+		if (logins.getUserController().isFreeAccount()) {
+			showNotAvailableForFreeDialog(true, "offlineStoragePremiumOnly_msg")
+		} else {
+			await showEditStoredDataTimeRangeDialog(this.offlineStorageSettings)
+			m.redraw()
+		}
 	}
 
 	_updateTutanotaPropertiesSettings(props: TutanotaProperties) {
@@ -450,4 +493,33 @@ function makeReportMovedMailsDropdownAttrs(
 		},
 		dropdownWidth: 250,
 	}
+}
+
+async function showEditStoredDataTimeRangeDialog(settings: OfflineStorageSettingsModel) {
+
+	const initialTimeRange = settings.getTimeRange()
+	let timeRange = initialTimeRange
+
+	const newTimeRangeDeferred = defer<number>()
+	const dialog = Dialog.showActionDialog({
+		title: "",
+		child: () => m(TextFieldN, {
+			label: () => capitalizeFirstLetter(lang.get("days_label")),
+			helpLabel: () => lang.get("storedDataTimeRangeHelpText_msg"),
+			type: TextFieldType.Number,
+			value: stream(`${timeRange}`),
+			oninput: newValue => timeRange = Math.max(0, Number(newValue)),
+		}),
+		okAction: async () => {
+			try {
+				if (initialTimeRange !== timeRange) {
+					await settings.setTimeRange(timeRange)
+				}
+			} finally {
+				dialog.close()
+			}
+		},
+	})
+
+	return newTimeRangeDeferred.promise
 }

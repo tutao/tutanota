@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2022-04-07T12:35:36Z",
+	"updated_at": "2022-04-26T14:17:03Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -357,6 +357,7 @@ export default {
 		"custom_label": "Własny",
 		"cut_action": "Wytnij",
 		"dark_label": "Ciemny",
+		"dataExpiredOfflineDb_msg": "Twoje dane lokalne nie są spójne z danymi na serwerach Tutanota. Zostaną one usuniętę i ponownie ściągnięte.",
 		"dataExpired_msg": "Załadowane dane wygasły i nie są synchronizowane z serwerami Tutanota. Wyloguj się i zaloguj ponownie, aby je odświeżyć.",
 		"dataWillBeStored_msg": "Dane zostaną zapisane na Twoim urządzeniu.",
 		"dateFrom_label": "Od",
@@ -880,6 +881,7 @@ export default {
 		"npoDiscount_msg": "Oferta dla organizacji non-profit: 50% zniżki na wersję Premium i 20 aliasów za darmo!",
 		"npoDonation_msg": "Darowizna dla organizacji pozarządowych: do 50 użytkowników dla wersji Premium i 100 aliasów bezpłatnie!",
 		"number_label": "Numer",
+		"offlineStoragePremiumOnly_msg": "Potrzebujesz płatnego konta by skonfigurować przechowywanie danych offline. Ulepszenie konta pozwoli ci także logować się offline.",
 		"offlineStorage_label": "Miejsce offline",
 		"ok_action": "OK",
 		"oldPasswordInvalid_msg": "Nieprawidłowe stare hasło. ",
@@ -1269,6 +1271,8 @@ export default {
 		"storageDeletionAnnouncement_msg": "Info: maile przeniesione do Kosza lub Spamu będą automatycznie kasowane po 30 dniach.",
 		"storageDeletion_msg": "Wiadomości w tym folderze zostaną automatycznie usunięte po 30 dniach.",
 		"storageQuotaExceeded_msg": "Na urządzeniu nie ma wystarczającej ilości miejsca, aby utworzyć indeks wyszukiwania. Dlatego wyniki wyszukiwania nie mogą być wyświetlane w całości.",
+		"storedDataTimeRangeHelpText_msg": "Wszelkie dane starsze niż ustawione tu przez ciebie limity zostaną automatycznie usunięte z twojego urządzenia.",
+		"storedDataTimeRange_label": "Zakres czasu dla danych offline",
 		"storePassword_action": "Zapamiętaj hasło",
 		"subject_label": "Temat",
 		"subscriptionCancelledMessage_msg": "Twoja subskrybcja została anulowana. Skontaktuj się z działem wsparcia, aby ją ponownie aktywować.",

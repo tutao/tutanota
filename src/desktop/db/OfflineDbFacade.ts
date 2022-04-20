@@ -61,6 +61,10 @@ export class OfflineDbFacade {
 		await this.offlineDbFactory.delete(userId)
 	}
 
+	async isDatabaseOpen(userId: Id): Promise<boolean> {
+		return this.cache.has(userId)
+	}
+
 	async get(userId: Id, type: string, listId: string | null, elementId: string): Promise<Uint8Array | null> {
 		return this.getDbForUserId(userId).get(type, listId, elementId)
 	}
@@ -99,7 +103,6 @@ export class OfflineDbFacade {
 
 	async deleteAll(userId: Id): Promise<void> {
 		return this.getDbForUserId(userId).purge()
-
 	}
 
 	async getLastBatchIdForGroup(userId: Id, groupId: Id): Promise<string | null> {
@@ -118,6 +121,42 @@ export class OfflineDbFacade {
 		return this.getDbForUserId(userId).putMetadata(key, value)
 	}
 
+	async deleteElementsBeforeId(userId: Id, type: string, cutoffId: Id): Promise<void> {
+		return this.getDbForUserId(userId).deleteElementsBeforeId(type, cutoffId)
+	}
+
+	async deleteListElementsBeforeId(userId: Id, type: string, cutoffId: Id): Promise<void> {
+		return this.getDbForUserId(userId).deleteListElementsBeforeId(type, cutoffId)
+	}
+
+	async deleteList(userId: Id, type: string, listId: Id): Promise<void> {
+		return this.getDbForUserId(userId).deleteList(type, listId)
+	}
+
+	async getListsOfType(userId: Id, typeId: string): Promise<Array<Id>> {
+		return this.getDbForUserId(userId).getListsOfType(typeId)
+	}
+
+	async deleteRange(userId: Id, type: string, listId: string) {
+		return this.getDbForUserId(userId).deleteRange(type, listId)
+	}
+
+	async getElementsOfType(userId: Id, typeId: string): Promise<Array<Uint8Array>> {
+		return this.getDbForUserId(userId).getElementsOfType(typeId)
+	}
+
+	async getListElementsOfType(userId: Id, typeId: string): Promise<Array<Uint8Array>> {
+		return this.getDbForUserId(userId).getListElementsOfType(typeId)
+	}
+
+	async getWholeList(userId: Id, typeId: string, listId: Id): Promise<Array<Uint8Array>> {
+		return this.getDbForUserId(userId).getWholeList(typeId, listId)
+	}
+
+	async compactDatabase(userId: Id): Promise<void> {
+		await this.getDbForUserId(userId).compactDatabase()
+	}
+
 	private getDbForUserId(userId: Id): OfflineDb {
 		const entry = this.cache.get(userId)
 
@@ -128,3 +167,4 @@ export class OfflineDbFacade {
 		return entry.db
 	}
 }
+
