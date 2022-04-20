@@ -204,21 +204,20 @@ class PostLoginActions implements IPostLoginAction {
 		}
 	}
 
-	private checkStorageWarningLimit(): Promise<void> {
+	private async checkStorageWarningLimit(): Promise<void> {
 		if (!logins.getUserController().isGlobalAdmin()) {
-			return Promise.resolve()
+			return
 		}
 
+		await logins.waitForFullLogin()
 		const customerId = assertNotNull(logins.getUserController().user.customer)
-		return locator.customerFacade.readUsedCustomerStorage(customerId).then(usedStorage => {
-			if (Number(usedStorage) > Const.MEMORY_GB_FACTOR * Const.MEMORY_WARNING_FACTOR) {
-				return locator.customerFacade.readAvailableCustomerStorage(customerId).then(availableStorage => {
-					if (Number(usedStorage) > Number(availableStorage) * Const.MEMORY_WARNING_FACTOR) {
-						showMoreStorageNeededOrderDialog(logins, "insufficientStorageWarning_msg")
-					}
-				})
+		const usedStorage = await locator.customerFacade.readUsedCustomerStorage(customerId)
+		if (Number(usedStorage) > Const.MEMORY_GB_FACTOR * Const.MEMORY_WARNING_FACTOR) {
+			const availableStorage = await locator.customerFacade.readAvailableCustomerStorage(customerId)
+			if (Number(usedStorage) > Number(availableStorage) * Const.MEMORY_WARNING_FACTOR) {
+				showMoreStorageNeededOrderDialog(logins, "insufficientStorageWarning_msg")
 			}
-		})
+		}
 	}
 
 	private showUpgradeReminder(): Promise<void> {

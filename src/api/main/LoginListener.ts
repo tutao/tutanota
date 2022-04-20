@@ -1,6 +1,7 @@
 import {SecondFactorHandler} from "../../misc/2fa/SecondFactorHandler.js"
 import {defer, DeferredObject} from "@tutao/tutanota-utils"
 import {Challenge} from "../entities/sys/TypeRefs.js"
+import {reloginForExpiredSession} from "../../misc/ErrorHandlerImpl"
 
 /** Listener for the login events from the worker side. */
 export interface ILoginListener {
@@ -43,9 +44,8 @@ export class LoginListener implements ILoginListener {
 		this.loginPromise.resolve()
 	}
 
-	onLoginError(): Promise<void> {
-		// this._loginPromise.reject()
-		return Promise.resolve()
+	async onLoginError(): Promise<void> {
+		await reloginForExpiredSession()
 	}
 
 	onSecondFactorChallenge(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null): Promise<void> {

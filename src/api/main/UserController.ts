@@ -31,17 +31,19 @@ import {
 	UserSettingsGroupRootTypeRef
 } from "../entities/tutanota/TypeRefs"
 import {typeModels as sysTypeModels} from "../entities/sys/TypeModels"
+import {SessionType} from "../common/SessionType"
 
 assertMainOrNode()
 
 export interface IUserController {
+	// should be readonly but is needed for a workaround in CalendarModel
 	user: User
-	userGroupInfo: GroupInfo
-	props: TutanotaProperties
-	sessionId: IdTuple
-	accessToken: string
+	readonly userGroupInfo: GroupInfo
+	readonly props: TutanotaProperties
+	readonly sessionId: IdTuple
+	readonly accessToken: string
 	readonly userSettingsGroupRoot: UserSettingsGroupRoot
-	persistentSession: boolean
+	readonly sessionType: SessionType
 
 	isGlobalAdmin(): boolean
 
@@ -88,33 +90,16 @@ export interface IUserController {
 }
 
 export class UserController implements IUserController {
-	user: User
-	userGroupInfo: GroupInfo
-	props: TutanotaProperties
-	sessionId: IdTuple
-	accessToken: Base64Url
-	persistentSession: boolean
-	userSettingsGroupRoot: UserSettingsGroupRoot
-	entityClient: EntityClient
-
 	constructor(
-		user: User,
-		userGroupInfo: GroupInfo,
-		sessionId: IdTuple,
-		props: TutanotaProperties,
-		accessToken: Base64Url,
-		persistentSession: boolean,
-		userSettingsGroupRoot: UserSettingsGroupRoot,
-		entityClient: EntityClient,
+		public user: User,
+		public userGroupInfo: GroupInfo,
+		readonly sessionId: IdTuple,
+		public props: TutanotaProperties,
+		readonly accessToken: Base64Url,
+		public userSettingsGroupRoot: UserSettingsGroupRoot,
+		readonly sessionType: SessionType,
+		readonly entityClient: EntityClient,
 	) {
-		this.user = user
-		this.userGroupInfo = userGroupInfo
-		this.props = props
-		this.sessionId = sessionId
-		this.accessToken = accessToken
-		this.persistentSession = persistentSession
-		this.userSettingsGroupRoot = userSettingsGroupRoot
-		this.entityClient = entityClient
 	}
 
 	/**
@@ -214,11 +199,11 @@ export class UserController implements IUserController {
 	async deleteSession(sync: boolean): Promise<void> {
 		// in case the tab is closed we need to delete the session in the main thread (synchronous rest request)
 		if (sync) {
-			if (!this.persistentSession) {
+			if (this.sessionType !== SessionType.Persistent) {
 				await this.deleteSessionSync()
 			}
 		} else {
-			if (!this.persistentSession) {
+			if (this.sessionType !== SessionType.Persistent) {
 				await locator.loginFacade.deleteSession(this.accessToken)
 							 .catch((e) => console.log("Error ignored on Logout:", e))
 			}
@@ -333,7 +318,7 @@ export type UserControllerInitData = {
 	userGroupInfo: GroupInfo
 	sessionId: IdTuple
 	accessToken: Base64Url
-	persistentSession: boolean
+	sessionType: SessionType
 }
 // noinspection JSUnusedGlobalSymbols
 // dynamically imported
@@ -343,7 +328,7 @@ export async function initUserController(
 		userGroupInfo,
 		sessionId,
 		accessToken,
-		persistentSession
+		sessionType
 	}: UserControllerInitData
 ): Promise<UserController> {
 	const entityClient = locator.entityClient
@@ -359,5 +344,5 @@ export async function initUserController(
 						),
 					),
 	])
-	return new UserController(user, userGroupInfo, sessionId, props, accessToken, persistentSession, userSettingsGroupRoot, entityClient)
+	return new UserController(user, userGroupInfo, sessionId, props, accessToken, userSettingsGroupRoot, sessionType, entityClient)
 }

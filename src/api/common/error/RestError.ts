@@ -93,6 +93,7 @@ export class AccessDeactivatedError extends TutanotaError {
 	}
 }
 
+/** External users only, related to password changes. */
 export class AccessExpiredError extends TutanotaError {
 	static CODE: number = 471
 

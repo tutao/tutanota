@@ -6,12 +6,12 @@ import {getWhitelabelCustomizations} from "../../misc/WhitelabelCustomizations"
 import {NotFoundError} from "../common/error/RestError"
 import {client} from "../../misc/ClientDetector"
 import type {LoginFacade} from "../worker/facades/LoginFacade"
+import {ResumeSessionErrorReason} from "../worker/facades/LoginFacade"
 import type {Credentials} from "../../misc/credentials/Credentials"
 import {FeatureType} from "../common/TutanotaConstants";
 import {CredentialsAndDatabaseKey} from "../../misc/credentials/CredentialsProvider"
 import {SessionType} from "../common/SessionType"
 import {IMainLocator} from "./MainLocator"
-import {ResumeSessionErrorReason} from "../worker/facades/LoginFacade"
 
 assertMainOrNodeBoot()
 
@@ -103,7 +103,7 @@ export class LoginControllerImpl implements LoginController {
 				userGroupInfo,
 				sessionId,
 				accessToken: credentials.accessToken,
-				persistentSession: sessionType === SessionType.Persistent,
+				sessionType,
 			},
 			sessionType,
 		)
@@ -115,11 +115,17 @@ export class LoginControllerImpl implements LoginController {
 	}
 
 	async onLoginSuccess(initData: UserControllerInitData, sessionType: SessionType): Promise<void> {
+		// FIXME
+		console.log("LOGIN partial success")
 		const {initUserController} = await import("./UserController")
 		this.userController = await initUserController(initData)
+		// FIXME
+		console.log("LOGIN user controller set")
 		await this.loadCustomizations()
 		await this._determineIfWhitelabel()
 
+		// FIXME
+		console.log("LOGIN calling handlers")
 		for (const handler of this.postLoginActions) {
 			await handler.onLoginSuccess({
 				sessionType,
@@ -142,7 +148,7 @@ export class LoginControllerImpl implements LoginController {
 			{
 				user,
 				accessToken: credentials.accessToken,
-				persistentSession,
+				sessionType,
 				sessionId,
 				userGroupInfo,
 			},
@@ -164,7 +170,7 @@ export class LoginControllerImpl implements LoginController {
 					accessToken: credentials.accessToken,
 					userGroupInfo,
 					sessionId,
-					persistentSession: true,
+					sessionType: SessionType.Persistent,
 				},
 				SessionType.Persistent,
 			)
@@ -218,6 +224,8 @@ export class LoginControllerImpl implements LoginController {
 	}
 
 	async logout(sync: boolean): Promise<void> {
+		// FIXME
+		console.log("LOGIN logout")
 		if (this.userController) {
 			await this.userController.deleteSession(sync)
 			this.userController = null

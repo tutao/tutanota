@@ -4,7 +4,6 @@ import {showSpellcheckLanguageDialog} from "../../gui/dialogs/SpellcheckLanguage
 import {CancelledError} from "../../api/common/error/CancelledError"
 import {noOp, ofClass} from "@tutao/tutanota-utils"
 import m from "mithril";
-import {Shortcut} from "../../misc/KeyManager"
 
 type JsRequest = Request<JsRequestType>
 
@@ -110,12 +109,11 @@ const addShortcuts = (msg: JsRequest): Promise<void> => {
 	})
 }
 
-function reportError(msg: JsRequest): Promise<any> {
-	return Promise.all([import("../../misc/ErrorHandlerImpl.js"), import("../../api/main/LoginController.js")]).then(
-		([{promptForFeedbackAndSend}, {logins}]) => {
-			return logins.waitForUserLogin().then(() => promptForFeedbackAndSend(msg.args[0]))
-		},
-	)
+async function reportError(msg: JsRequest): Promise<void> {
+	const {promptForFeedbackAndSend} = await import("../../misc/ErrorReporter.js")
+	const {logins} = await import("../../api/main/LoginController.js")
+	await logins.waitForUserLogin()
+	await promptForFeedbackAndSend(msg.args[0] as Error)
 }
 
 let disconnectTimeoutId: TimeoutID | null

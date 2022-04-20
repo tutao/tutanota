@@ -49,7 +49,7 @@ import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFu
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../common/Env"
 import {ConnectMode, EventBusClient} from "../EventBusClient"
 import {EntityRestClient, typeRefToPath} from "../rest/EntityRestClient"
-import {ConnectionError, LockedError, NotAuthenticatedError, NotFoundError, ServiceUnavailableError} from "../../common/error/RestError"
+import {ConnectionError, LockedError, NotAuthenticatedError, NotFoundError, ServiceUnavailableError, SessionExpiredError} from "../../common/error/RestError"
 import type {WorkerImpl} from "../WorkerImpl"
 import type {Indexer} from "../search/Indexer"
 import {CancelledError} from "../../common/error/CancelledError"
@@ -456,7 +456,11 @@ export class LoginFacadeImpl implements LoginFacade {
 			await this.finishResumeSession(credentials, null)
 		} catch (e) {
 			this.asyncLoginState = {state: "failed", credentials}
-			throw e
+			if (e instanceof NotAuthenticatedError || e instanceof SessionExpiredError) {
+				this.loginListener.onLoginError()
+			} else {
+				throw e
+			}
 		}
 	}
 
