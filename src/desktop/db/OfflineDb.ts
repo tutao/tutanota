@@ -64,8 +64,8 @@ export class OfflineDb {
 			this.db.pragma("cipher_memory_security = ON")
 		}
 		const bytes = bitArrayToUint8Array(databaseKey)
-		const b64 = `x'${uint8ArrayToBase64(bytes)};`
-		this.db.pragma(`KEY = "${b64}"`)
+		const key = `x'${uint8ArrayToBase64(bytes)};`
+		this.db.pragma(`KEY = "${key}"`)
 
 		if (integrityCheck) {
 			this.checkIntegrity()
@@ -170,6 +170,18 @@ export class OfflineDb {
 		return result?.entity ?? null
 	}
 
+	getListElementsOfType(type: string): Array<Uint8Array> {
+		return this.db.prepare("SELECT entity from list_entities WHERE type = :type")
+				   .all({type})?.map(row => new Uint8Array(row.entity.buffer))
+			?? []
+	}
+
+	getWholeList(type: string, listId: Id): Array<Uint8Array> {
+		return this.db.prepare("SELECT entity FROM list_entities WHERE type = :type AND listId = :listId")
+				   .all({type, listId})
+				   .map(row => row.entity)
+	}
+
 	delete(type: string, listId: string | null, elementId: string) {
 		if (listId == null) {
 			this.db.prepare("DELETE FROM element_entities WHERE type = :type AND elementId = :elementId")
@@ -206,6 +218,21 @@ export class OfflineDb {
 			.run({key, value})
 	}
 
+	deleteList(type: string, listId: Id) {
+		this.db.transaction(() => {
+			this.db.prepare("DELETE FROM list_entities WHERE type = :type AND listId = :listId").run({type, listId})
+			this.deleteRange(type, listId)
+		}).immediate()
+	}
+
+	deleteRange(type: string, listId: string) {
+		this.db.prepare("DELETE FROM ranges WHERE type = :type AND listId = :listId").run({type, listId})
+	}
+
+	compactDatabase() {
+		this.db.exec("VACUUM")
+	}
+
 	printDatabaseInfo() {
 		console.log("sqlcipher version: ", this.db.pragma("cipher_version"))
 		console.log("sqlcipher configuration: ", this.db.pragma("cipher_settings"))
@@ -221,6 +248,16 @@ export class OfflineDb {
 		if (errors.length > 0) {
 			throw new CryptoError(`Integrity check failed with result : ${JSON.stringify(errors)}`)
 		}
+	}
+
+	deleteIn(type: string, listId: Id | null, elementIds: Id[]) {
+		const elementIdsPlaceholder = elementIds.map(() => '?').join(",")
+		const query = listId == null
+			? `DELETE FROM element_entities WHERE type = :type AND elementId IN (${elementIdsPlaceholder})`
+			: `DELETE FROM list_entities WHERE type = :type AND listId = :listId AND elementId IN (${elementIdsPlaceholder})`
+
+		this.db.prepare(query)
+			.run(elementIds, {type, listId})
 	}
 }
 

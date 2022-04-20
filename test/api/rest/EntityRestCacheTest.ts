@@ -21,6 +21,7 @@ import {QueuedBatch} from "../../../src/api/worker/search/EventQueue"
 import {matchers, object, when} from "testdouble"
 import {OfflineStorage} from "../../../src/api/worker/rest/OfflineStorage"
 import {RestClient} from "../../../src/api/worker/rest/RestClient"
+import {WorkerDateProvider} from "../../../src/api/worker/utils/WorkerDateProvider"
 
 const {anything} = matchers
 
@@ -44,7 +45,7 @@ async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 	}
 
 	const offlineDbFacade = new OfflineDbFacade(offlineDbFactory)
-	const offlineStorage = new OfflineStorage(offlineDbFacade)
+	const offlineStorage = new OfflineStorage(offlineDbFacade, new WorkerDateProvider())
 	await offlineStorage.init(userId, offlineDatabaseTestKey)
 	return offlineStorage
 }

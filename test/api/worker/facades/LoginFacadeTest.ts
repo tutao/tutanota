@@ -14,23 +14,17 @@ import {LoginFacadeImpl, ResumeSessionErrorReason} from "../../../../src/api/wor
 import {IServiceExecutor} from "../../../../src/api/common/ServiceRequest"
 import {EntityClient} from "../../../../src/api/common/EntityClient"
 import {RestClient} from "../../../../src/api/worker/rest/RestClient"
-import {Indexer} from "../../../../src/api/worker/search/Indexer"
 import {WorkerImpl} from "../../../../src/api/worker/WorkerImpl"
 import {InstanceMapper} from "../../../../src/api/worker/crypto/InstanceMapper"
 import {CryptoFacade, encryptString} from "../../../../src/api/worker/crypto/CryptoFacade"
 import {LateInitializedCacheStorage} from "../../../../src/api/worker/rest/CacheStorageProxy"
-import {ConnectMode, EventBusClient} from "../../../../src/api/worker/EventBusClient"
 import {UserFacade} from "../../../../src/api/worker/facades/UserFacade"
 import {SaltService, SessionService} from "../../../../src/api/entities/sys/Services"
 import {ILoginListener} from "../../../../src/api/main/LoginListener"
-import {createTutanotaProperties, TutanotaPropertiesTypeRef} from "../../../../src/api/entities/tutanota/TypeRefs"
-import {assertThrows, verify} from "@tutao/tutanota-test-utils"
 import {Credentials} from "../../../../src/misc/credentials/Credentials"
 import {defer, DeferredObject, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import {HttpMethod} from "../../../../src/api/common/EntityFunctions"
 import {AccountType} from "../../../../src/api/common/TutanotaConstants"
 import {ConnectionError} from "../../../../src/api/common/error/RestError"
-import {SessionType} from "../../../../src/api/common/SessionType"
 
 const {anything} = matchers
 
@@ -130,7 +124,7 @@ o.spec("LoginFacadeTest", function () {
 			o("When a database key is provided and offline is enabled, storage is initialized as persistent", async function () {
 				usingOfflineStorage = true
 				await facade.createSession("born.slippy@tuta.io", passphrase, "client", SessionType.Persistent, dbKey)
-				verify(initializeCacheStorageMock({persistent: true, databaseKey: dbKey, userId: userId}))
+				verify(initializeCacheStorageMock({persistent: true, databaseKey: dbKey, userId}))
 			})
 			o("When no database key is provided and offline is enabled, storage is initialized as ephemeral", async function () {
 				usingOfflineStorage = true
@@ -180,14 +174,14 @@ o.spec("LoginFacadeTest", function () {
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
 
 				// The call to /sys/session/...
-				when(restClientMock.request(anything(), HttpMethod.GET, anything()))
+				when(restClientMock.request(matchers.argThat(path => path.startsWith("/rest/sys/session/")), HttpMethod.GET, anything()))
 					.thenResolve(JSON.stringify({user: userId, accessKey: keyToBase64(accessKey)}))
 			})
 
 			o("When resuming a session and there is a database key and offline storage is enabled, a persistent storage is created", async function () {
 				usingOfflineStorage = true
 				await facade.resumeSession(credentials, SALT, dbKey)
-				verify(initializeCacheStorageMock({persistent: true, databaseKey: dbKey, userId: userId}))
+				verify(initializeCacheStorageMock({persistent: true, databaseKey: dbKey, userId}))
 			})
 			o("When resuming a session and there is a database key and offline storage is disabled, a ephemeral storage is created", async function () {
 				usingOfflineStorage = false

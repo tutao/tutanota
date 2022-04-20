@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2022-03-31T08:11:44Z",
+	"updated_at": "2022-04-26T14:21:13Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -116,7 +116,7 @@ export default {
 		"calendarInvitations_label": "日历邀请",
 		"calendarName_label": "日历名称",
 		"calendarReminderIntervalFiveMinutes_label": "5 分钟",
-		"calendarReminderIntervalOneDay_label": "1 天",
+		"calendarReminderIntervalOneDay_label": "一天",
 		"calendarReminderIntervalOneHour_label": "1 小时",
 		"calendarReminderIntervalOneWeek_label": "1 周",
 		"calendarReminderIntervalTenMinutes_label": "10 分钟",

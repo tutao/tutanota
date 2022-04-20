@@ -71,6 +71,8 @@ import {Mode} from "../../src/api/common/Env.js"
 	})
 
 	o.afterEach(function () {
+		// Reset env.mode in case any tests have fiddled with it
+		env.mode = Mode.Test
 		td.reset()
 		// Reset env.mode in case any tests have fiddled with it
 		env.mode = Mode.Test
