@@ -2,11 +2,10 @@ import {CacheStorage, Range} from "./EntityRestCache"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {ListElementEntity, SomeEntity} from "../../common/EntityTypes"
 import {TypeRef} from "@tutao/tutanota-utils"
-
-export type StorageInitArgs = {persistent: true, databaseKey: Uint8Array, userId: Id} | {persistent: false}
+import {CacheStorageFactory, GetStorageArgs} from "./CacheStorageFactory"
 
 export interface LateInitializedCacheStorage extends CacheStorage {
-	initialize(args: StorageInitArgs): Promise<void>;
+	initialize(args: GetStorageArgs): Promise<void>;
 }
 
 /**
@@ -25,7 +24,7 @@ export class LateInitializedCacheStorageImpl implements LateInitializedCacheStor
 	private _inner: CacheStorage | null = null
 
 	constructor(
-		private factory: (args: StorageInitArgs) => Promise<CacheStorage>
+		private factory: CacheStorageFactory
 	) {
 	}
 
@@ -37,10 +36,10 @@ export class LateInitializedCacheStorageImpl implements LateInitializedCacheStor
 		return this._inner
 	}
 
-	async initialize(args: StorageInitArgs): Promise<void> {
+	async initialize(args: GetStorageArgs): Promise<void> {
 		// We might call this multiple times.
 		// This happens when persistent credentials login fails and we need to start with new cache for new login.
-		this._inner = await this.factory(args)
+		this._inner = await this.factory.getStorage(args)
 	}
 
 	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void> {

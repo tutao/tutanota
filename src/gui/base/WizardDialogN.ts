@@ -9,7 +9,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import type {DialogHeaderBarAttrs} from "./DialogHeaderBar"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../../api/common/Env"
-import {typedEntries, typedKeys} from "@tutao/tutanota-utils"
+import {$Promisable, typedEntries, typedKeys} from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -266,7 +266,7 @@ export type WizardDialogAttrsBuilder<T> = {
 }
 
 // Use to generate a new wizard
-export function createWizardDialog<T>(data: T, pages: ReadonlyArray<WizardPageWrapper<T>>, closeAction?: () => Promise<void>): WizardDialogAttrsBuilder<T> {
+export function createWizardDialog<T>(data: T, pages: ReadonlyArray<WizardPageWrapper<T>>, closeAction?: () => $Promisable<void>): WizardDialogAttrsBuilder<T> {
 	// We need the close action of the dialog before we can create the proper attributes
 	const headerBarAttrs: DialogHeaderBarAttrs = {}
 
@@ -280,7 +280,7 @@ export function createWizardDialog<T>(data: T, pages: ReadonlyArray<WizardPageWr
 		data,
 		pages,
 		closeAction
-			? () => closeAction().then(() => wizardDialog.close())
+			? () => Promise.resolve(closeAction()).then(() => wizardDialog.close())
 			: async () => wizardDialog.close(),
 	)
 	// We replace the dummy values from dialog creation

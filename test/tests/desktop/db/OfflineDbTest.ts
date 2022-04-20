@@ -1,6 +1,6 @@
 import o from "ospec"
 import {OfflineDb} from "../../../../src/desktop/db/OfflineDb.js"
-import {ContactTypeRef} from "../../../../src/api/entities/tutanota/TypeRefs.js"
+import {ContactTypeRef, MailBodyTypeRef, MailTypeRef} from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import {GENERATED_MAX_ID, GENERATED_MIN_ID} from "../../../../src/api/common/utils/EntityUtils.js"
 import {UserTypeRef} from "../../../../src/api/entities/sys/TypeRefs.js"
 import {concat, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
@@ -273,7 +273,7 @@ o.spec("OfflineDb ", function () {
 			o(db.getMetadata("lastUpdateTime")).equals(null)("metadata was deleted")
 
 		})
-		o("delete all then write works", function() {
+		o("delete all then write works", function () {
 			const entity1 = createEntity(listId, id1)
 			const entity2 = createEntity(listId, id2)
 
@@ -296,6 +296,28 @@ o.spec("OfflineDb ", function () {
 			o(db.getLastBatchIdForGroup(calendarGroupId)).equals("batchId")
 			o(db.getIdsInRange(ContactTypeRef.type, listId)).deepEquals([id2])
 			o(cborg.decode(db.getMetadata("lastUpdateTime")!)).equals(123)
+		})
+		o("when a list is deleted, all entities and ranges are removed", function () {
+			const type = MailTypeRef.type
+			const listId = "listId"
+			for (let id of ["aaa", "bbb", "ccc"]) {
+				db.put({type, listId, elementId: id, entity: createEntity(listId, id)})
+			}
+			db.setNewRange(type, listId, "aaa", "ccc")
+
+			db.deleteList(type, listId)
+
+			o(() => db.getIdsInRange(type, listId)).throws(Error)("An error is thrown when no range exists")
+			o(db.get(type, listId, "aaa")).equals(null)
+			o(db.get(type, listId, "bbb")).equals(null)
+			o(db.get(type, listId, "ccc")).equals(null)
+			o(db.getRange(type, listId)).equals(null)
+		})
+
+		o("delete range works", function() {
+			db.setNewRange(MailTypeRef.type, "listId", "aaa", "eee")
+			db.deleteRange(MailTypeRef.type, "listId")
+			o(db.getRange(MailTypeRef.type, "listId")).equals(null)
 		})
 	})
 
@@ -322,7 +344,7 @@ o.spec("OfflineDb ", function () {
 			o(db.getLastBatchIdForGroup(groupId)).equals(newBatchId)
 		})
 	})
-	o.spec("metadata", function() {
+	o.spec("metadata", function () {
 		o("get a value that was written should  return the same value", function () {
 			const time = 123456789
 			db.putMetadata("lastUpdateTime", cborg.encode(time))
@@ -330,7 +352,7 @@ o.spec("OfflineDb ", function () {
 			o(cborg.decode(read!)).equals(time)
 		})
 
-		o("get a value that wasn't written should just return null", function() {
+		o("get a value that wasn't written should just return null", function () {
 			const read = db.getMetadata("lastUpdateTime")
 			o(read).equals(null)
 		})
@@ -403,8 +425,8 @@ o.spec("OfflineDb ", function () {
 	})
 })
 
-function createEntity(listId: string, elementId: string): Buffer {
-	return new Buffer(stringToUtf8Uint8Array(listId + elementId))
+function createEntity(listId: string | null, elementId: string): Buffer {
+	return new Buffer(stringToUtf8Uint8Array((listId ?? "") + elementId))
 }
 
 function createElementEntity(elementId: string): Buffer {

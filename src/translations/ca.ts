@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2022-05-11T12:29:25Z",
+	"updated_at": "2022-04-26T14:12:30Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Sobre",
@@ -184,6 +184,7 @@ export default {
 		"choosePhotos_action": "Fotografies",
 		"choose_label": "Seleccioneu ...",
 		"clearFolder_action": "Esborra la carpeta",
+		"clickNumber_msg": "Feu clic al número de telèfon de sota per rebre la contrasenya de Tutanota com a missatge de text.",
 		"clickToUpdate_msg": "Feu clic aquí si voleu aplicar-ho ara, o deixi'ns autoinstal·lar-ho en sortir.",
 		"clientSuspensionWait_label": "El servidor està processant la sol·licitud, si us plau tingueu paciència.",
 		"client_label": "Client",

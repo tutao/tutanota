@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2022-05-11T12:29:26Z",
+	"updated_at": "2022-04-26T14:14:06Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O programu",
@@ -216,6 +216,7 @@ export default {
 		"choosePhotos_action": "Slike",
 		"choose_label": "Izberi...",
 		"clearFolder_action": "Izprazni mapo",
+		"clickNumber_msg": "Prosimo, kliknite na svojo telefonsko številko spodaj, da prejmete Tutanotino geslo kot besedilno sporočilo.",
 		"clickToUpdate_msg": "Za posodobitev kliknite tukaj.",
 		"clientSuspensionWait_label": "Strežnik obdeluje vašo zahtevo. Prosimo, bodite potrpežljivi.",
 		"client_label": "Odjemalec",

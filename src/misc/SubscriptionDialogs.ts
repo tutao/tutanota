@@ -1,6 +1,7 @@
 import type {LoginController} from "../api/main/LoginController"
 import {logins} from "../api/main/LoginController"
 import {CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
+import type {lazy} from "@tutao/tutanota-utils"
 import {neverNull} from "@tutao/tutanota-utils"
 import {Dialog} from "../gui/base/Dialog"
 import type {TranslationKey} from "./LanguageViewModel"
@@ -8,31 +9,31 @@ import {InfoLink, lang} from "./LanguageViewModel"
 import {isIOSApp} from "../api/common/Env"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import type {clickHandler} from "../gui/base/GuiUtils"
-import type {lazy} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 
 /**
  * Opens a dialog which states that the function is not available in the Free subscription and provides an option to upgrade.
  * @param isInPremiumIncluded Whether the feature is included in the premium membership or not.
  */
-export function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean): void {
-	Promise.all([import("../subscription/UpgradeSubscriptionWizard"), import("../subscription/PriceUtils")]).then(([wizard, priceUtils]) => {
-		if (isIOSApp()) {
-			Dialog.message("notAvailableInApp_msg")
-		} else {
-			let message =
-				lang.get(!isInPremiumIncluded ? "onlyAvailableForPremiumNotIncluded_msg" : "onlyAvailableForPremium_msg") +
-				" " +
-				lang.get("premiumOffer_msg", {
-					"{1}": priceUtils.formatPrice(1, true),
-				})
-			Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, InfoLink.PremiumProBusiness).then(confirmed => {
-				if (confirmed) {
-					wizard.showUpgradeWizard()
-				}
-			})
+export async function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean, customMessage?: TranslationKey) {
+	const wizard = await import ("../subscription/UpgradeSubscriptionWizard")
+
+	if (isIOSApp()) {
+		await Dialog.message("notAvailableInApp_msg")
+	} else {
+		const baseMessage =
+			customMessage != null
+				? customMessage
+				: !isInPremiumIncluded
+					? "onlyAvailableForPremiumNotIncluded_msg"
+					: "onlyAvailableForPremium_msg"
+
+		const message = `${lang.get(baseMessage)}\n\n${lang.get("premiumOffer_msg")}`
+		const confirmed = await Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, InfoLink.PremiumProBusiness)
+		if (confirmed) {
+			wizard.showUpgradeWizard()
 		}
-	})
+	}
 }
 
 export function createNotAvailableForFreeClickHandler(includedInPremium: boolean, click: clickHandler, available: () => boolean): clickHandler {

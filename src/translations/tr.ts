@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2022-05-11T12:29:24Z",
+	"updated_at": "2022-04-26T14:18:46Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -218,6 +218,7 @@ export default {
 		"choosePhotos_action": "Fotoğraflar",
 		"choose_label": "Seçin...",
 		"clearFolder_action": "Klasörü temizle",
+		"clickNumber_msg": "Tutanota parolanızı alabilmek için lütfen aşağıdaki \"SMS Gönder\" tuşuna basınız.",
 		"clickToUpdate_msg": "Güncellemek için buraya tıklayın.",
 		"clientSuspensionWait_label": "Sunucu talebinizi işliyor, lütfen bekleyin.",
 		"client_label": "Cihaz",

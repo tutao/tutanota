@@ -11,7 +11,7 @@ import {createMailViewerViewModel, MailViewer} from "./MailViewer"
 import {Dialog} from "../../gui/base/Dialog"
 import {FeatureType, Keys, MailFolderType, OperationType} from "../../api/common/TutanotaConstants"
 import {CurrentView} from "../../gui/base/Header"
-import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
+import type {Mail, MailFolder} from "../../api/entities/tutanota/TypeRefs.js"
 import {MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import type {lazy} from "@tutao/tutanota-utils"
 import {defer, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
@@ -49,7 +49,6 @@ import {size} from "../../gui/size"
 import {FolderColumnView} from "../../gui/base/FolderColumnView"
 import {modal} from "../../gui/base/Modal"
 import {DomRectReadOnlyPolyfilled} from "../../gui/base/Dropdown"
-import type {MailFolder} from "../../api/entities/tutanota/TypeRefs.js"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {archiveMails, moveMails, moveToInbox, promptAndDeleteMails} from "./MailGuiUtils"
@@ -742,7 +741,7 @@ export class MailView implements CurrentView {
 		m.route.set("/")
 	}
 
-	elementSelected: (mails: Mail[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean) => void = (
+	elementSelected: (mails: Mail[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean) => void = async (
 		mails,
 		elementClicked,
 		selectionChanged,
@@ -751,57 +750,64 @@ export class MailView implements CurrentView {
 		// Make the animation of switching between list and single email smooth by delaying sanitizing/heavy rendering until the animation is done.
 		const animationOverDeferred = defer<void>()
 
-		if (mails.length === 1 && !multiSelectOperation && (selectionChanged || !this.mailViewerViewModel)) {
-			// set or update the visible mail
-			this.mailViewerViewModel = createMailViewerViewModel({
-				mail: mails[0],
-				showFolder: false,
-				delayBodyRenderingUntil: animationOverDeferred.promise,
-			})
-			let url = `/mail/${mails[0]._id.join("/")}`
+		try {
 
-			if (this.selectedFolder) {
-				this._folderToUrl[this.selectedFolder._id[1]] = url
-			}
 
-			this._setUrl(url)
-
-			m.redraw()
-		} else if (selectionChanged && (mails.length === 0 || multiSelectOperation) && this.mailViewerViewModel) {
-			// remove the visible mail
-			this.mailViewerViewModel = null
-			let url = `/mail/${this.mailList.listId}`
-
-			if (this.selectedFolder) {
-				this._folderToUrl[this.selectedFolder._id[1]] = url
-			}
-
-			this._setUrl(url)
-
-			m.redraw()
-		} else if (selectionChanged) {
-			// update the multi mail viewer
-			m.redraw()
-		}
-
-		if (this.mailViewerViewModel && !multiSelectOperation) {
-			if (mails[0].unread && !mails[0]._errors) {
-				mails[0].unread = false
-				locator.entityClient
-					   .update(mails[0])
-					   .catch(ofClass(NotFoundError, e => console.log("could not set read flag as mail has been moved/deleted already", e)))
-					   .catch(ofClass(LockedError, noOp))
-					   .catch(ofClass(ConnectionError, noOp))
-			}
-
-			if (elementClicked) {
-				this.mailList.list.loading.then(() => {
-					this.viewSlider.focus(this.mailColumn).then(() => animationOverDeferred.resolve())
+			if (mails.length === 1 && !multiSelectOperation && (selectionChanged || !this.mailViewerViewModel)) {
+				// set or update the visible mail
+				this.mailViewerViewModel = createMailViewerViewModel({
+					mail: mails[0],
+					showFolder: false,
+					delayBodyRenderingUntil: animationOverDeferred.promise,
 				})
-			} else {
-				animationOverDeferred.resolve()
+
+				const url = `/mail/${mails[0]._id.join("/")}`
+
+				if (this.selectedFolder) {
+					this._folderToUrl[this.selectedFolder._id[1]] = url
+				}
+
+				this._setUrl(url)
+
+				m.redraw()
+			} else if (selectionChanged && (mails.length === 0 || multiSelectOperation) && this.mailViewerViewModel) {
+				// remove the visible mail
+				this.mailViewerViewModel = null
+				const url = `/mail/${this.mailList.listId}`
+
+				if (this.selectedFolder) {
+					this._folderToUrl[this.selectedFolder._id[1]] = url
+				}
+
+				this._setUrl(url)
+
+				m.redraw()
+			} else if (selectionChanged) {
+				// update the multi mail viewer
+				m.redraw()
 			}
-		} else {
+
+			if (this.mailViewerViewModel && !multiSelectOperation) {
+				if (mails[0].unread && !mails[0]._errors) {
+					mails[0].unread = false
+					locator.entityClient
+						   .update(mails[0])
+						   .catch(ofClass(NotFoundError, e => console.log("could not set read flag as mail has been moved/deleted already", e)))
+						   .catch(ofClass(LockedError, noOp))
+				}
+
+				if (elementClicked) {
+					await this.mailList.list.loading
+					await this.viewSlider.focus(this.mailColumn)
+				}
+			}
+		} catch (e) {
+			if (e instanceof ConnectionError) {
+				console.log("Ignoring connection error when selecting mail", e)
+			} else {
+				throw e
+			}
+		} finally {
 			animationOverDeferred.resolve()
 		}
 	}

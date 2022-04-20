@@ -180,14 +180,14 @@ o.spec("LoginFacadeTest", function () {
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
 
 				// The call to /sys/session/...
-				when(restClientMock.request(anything(), HttpMethod.GET, anything()))
+				when(restClientMock.request(matchers.argThat(path => path.startsWith("/rest/sys/session/")), HttpMethod.GET, anything()))
 					.thenResolve(JSON.stringify({user: userId, accessKey: keyToBase64(accessKey)}))
 			})
 
 			o("When resuming a session and there is a database key and offline storage is enabled, a persistent storage is created", async function () {
 				usingOfflineStorage = true
 				await facade.resumeSession(credentials, SALT, dbKey)
-				verify(initializeCacheStorageMock({persistent: true, databaseKey: dbKey, userId: userId}))
+				verify(initializeCacheStorageMock({persistent: true, databaseKey: dbKey, userId}))
 			})
 			o("When resuming a session and there is a database key and offline storage is disabled, a ephemeral storage is created", async function () {
 				usingOfflineStorage = false

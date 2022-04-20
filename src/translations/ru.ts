@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2022-05-11T12:29:24Z",
+	"updated_at": "2022-04-26T14:16:12Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -220,6 +220,7 @@ export default {
 		"choosePhotos_action": "Фотографии",
 		"choose_label": "Выберите...",
 		"clearFolder_action": "Очистить папку",
+		"clickNumber_msg": "Пожалуйста, нажмите на свой номер телефона ниже, чтобы получить свой пароль Tutanota в виде текстового сообщения.",
 		"clickToUpdate_msg": "Нажмите здесь для обновления.",
 		"clientSuspensionWait_label": "Сервер обрабатывает ваш запрос. Пожалуйста, проявите терпение.",
 		"client_label": "Клиент",

@@ -14,6 +14,7 @@ export type NativeInterfaces = {
 }
 
 /**
+ * @deprecated Native interfaces exposed using this method should be refactored to be part of ExposedNativeInterface
  * A factory function to create interfaces for native communication
  * @returns NativeInterfaces
  * @throws ProgrammingError when you try to call this in the web browser
