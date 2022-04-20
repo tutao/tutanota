@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T09:48:48Z",
-	"updated_at": "2022-05-11T12:29:26Z",
+	"updated_at": "2022-04-26T14:18:10Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "소개",
@@ -206,6 +206,7 @@ export default {
 		"choosePhotos_action": "사진",
 		"choose_label": "선택 ...",
 		"clearFolder_action": "폴더 내용 삭제",
+		"clickNumber_msg": "아래에 있는 휴대전화 번호를 클릭해서 문자 메시지로 Tutanota 비밀번호를 수신하세요.",
 		"clickToUpdate_msg": "여기를 눌러 업데이트 하세요.",
 		"clientSuspensionWait_label": "서버에서 요청을 처리하고 있습니다, 잠시 기다려 주세요.",
 		"client_label": "클라이언트",

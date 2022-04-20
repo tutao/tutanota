@@ -61,6 +61,10 @@ export class OfflineDbFacade {
 		await this.offlineDbFactory.delete(userId)
 	}
 
+	async isDatabaseOpen(userId: Id): Promise<boolean> {
+		return this.cache.has(userId)
+	}
+
 	async get(userId: Id, type: string, listId: string | null, elementId: string): Promise<Uint8Array | null> {
 		return this.getDbForUserId(userId).get(type, listId, elementId)
 	}
@@ -93,13 +97,16 @@ export class OfflineDbFacade {
 		return this.getDbForUserId(userId).provideFromRange(type, listId, start, count, reverse)
 	}
 
-	async delete(userId: Id, type: string, listId: string | null, elementId: string): Promise<void> {
+	async delete(userId: Id, type: string, listId: Id | null, elementId: Id): Promise<void> {
 		return this.getDbForUserId(userId).delete(type, listId, elementId)
+	}
+
+	async deleteIn(userId: Id, type: string, listId: Id | null, elementIds: Id[]): Promise<void> {
+		this.getDbForUserId(userId).deleteIn(type, listId, elementIds)
 	}
 
 	async deleteAll(userId: Id): Promise<void> {
 		return this.getDbForUserId(userId).purge()
-
 	}
 
 	async getLastBatchIdForGroup(userId: Id, groupId: Id): Promise<string | null> {
@@ -118,6 +125,22 @@ export class OfflineDbFacade {
 		return this.getDbForUserId(userId).putMetadata(key, value)
 	}
 
+	async deleteRange(userId: Id, type: string, listId: string) {
+		return this.getDbForUserId(userId).deleteRange(type, listId)
+	}
+
+	async getListElementsOfType(userId: Id, typeId: string): Promise<Array<Uint8Array>> {
+		return this.getDbForUserId(userId).getListElementsOfType(typeId)
+	}
+
+	async getWholeList(userId: Id, typeId: string, listId: Id): Promise<Array<Uint8Array>> {
+		return this.getDbForUserId(userId).getWholeList(typeId, listId)
+	}
+
+	async compactDatabase(userId: Id): Promise<void> {
+		await this.getDbForUserId(userId).compactDatabase()
+	}
+
 	private getDbForUserId(userId: Id): OfflineDb {
 		const entry = this.cache.get(userId)
 
@@ -128,3 +151,4 @@ export class OfflineDbFacade {
 		return entry.db
 	}
 }
+

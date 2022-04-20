@@ -951,3 +951,5 @@ export const enum ArchiveDataType {
 	MailBody = "2",
 	MailHeaders = "3"
 }
+
+export const OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS = 31

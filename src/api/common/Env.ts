@@ -155,3 +155,10 @@ export function bootFinished() {
 export function isOfflineStorageAvailable(): boolean {
 	return isDesktop()
 }
+
+export function assertOfflineStorageAvailable() {
+	if (!isOfflineStorageAvailable()) {
+		throw new Error("Offline storage is not available")
+	}
+	return isDesktop()
+}

@@ -50,6 +50,7 @@ import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import {BlobFacade} from "./facades/BlobFacade"
 import {NativeSystemApp} from "../../native/common/NativeSystemApp"
 import {DesktopConfigKey} from "../../desktop/config/ConfigKeys"
+import {CacheStorageFactory} from "./rest/CacheStorageFactory"
 import {UserFacade} from "./facades/UserFacade"
 
 assertWorkerOrNode()
@@ -108,10 +109,12 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.native = worker
 	locator.booking = new BookingFacade(locator.serviceExecutor)
 
-	const uninitializedStorage = makeCacheStorage(() => locator.restClient.getServerTimestampMs(), worker)
+	const maybeUninitializedStorage = isOfflineStorageAvailable()
+		? new LateInitializedCacheStorageImpl(new CacheStorageFactory(() => locator.restClient.getServerTimestampMs(), worker, locator.native))
+		: new AlwaysInitializedStorage()
 
 	// We don't wont to cache within the admin client
-	const cache = isAdminClient() ? null : new EntityRestCache(entityRestClient, uninitializedStorage)
+	const cache = isAdminClient() ? null : new EntityRestCache(entityRestClient, maybeUninitializedStorage)
 
 	locator.cache = cache ?? entityRestClient
 
@@ -133,7 +136,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		mainInterface.loginListener,
 		locator.instanceMapper,
 		locator.crypto,
-		uninitializedStorage.initialize.bind(uninitializedStorage),
+		maybeUninitializedStorage.initialize.bind(maybeUninitializedStorage),
 		locator.serviceExecutor,
 		async () => isDesktop() && await systemApp.getConfigValue(DesktopConfigKey.offlineStorageEnabled),
 		locator.user,

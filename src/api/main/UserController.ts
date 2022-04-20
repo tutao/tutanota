@@ -44,6 +44,7 @@ export interface IUserController {
 	readonly accessToken: string
 	readonly userSettingsGroupRoot: UserSettingsGroupRoot
 	readonly sessionType: SessionType
+	readonly userId: Id
 
 	isGlobalAdmin(): boolean
 
@@ -87,9 +88,12 @@ export interface IUserController {
 		| undefined>
 
 	isWhitelabelAccount(): Promise<boolean>
+
+	isPersistentSession(): boolean
 }
 
 export class UserController implements IUserController {
+
 	constructor(
 		public user: User,
 		public userGroupInfo: GroupInfo,
@@ -98,8 +102,12 @@ export class UserController implements IUserController {
 		readonly accessToken: Base64Url,
 		public userSettingsGroupRoot: UserSettingsGroupRoot,
 		readonly sessionType: SessionType,
-		readonly entityClient: EntityClient,
+		private readonly entityClient: EntityClient,
 	) {
+	}
+
+	get userId(): Id {
+		return this.user._id
 	}
 
 	/**
@@ -310,6 +318,10 @@ export class UserController implements IUserController {
 				whitelabelConfig,
 			}
 		}
+	}
+
+	isPersistentSession(): boolean {
+		return this.persistentSession
 	}
 }
 

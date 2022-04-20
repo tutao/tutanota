@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2022-05-11T12:29:25Z",
+	"updated_at": "2022-04-26T14:19:55Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Körülbelül",
@@ -215,6 +215,7 @@ export default {
 		"choosePhotos_action": "Fényképek",
 		"choose_label": "Választás ...",
 		"clearFolder_action": "Mappa kiürítése.",
+		"clickNumber_msg": "Kérjük, kattintson lent a telefonszámára, hogy megkapja a Tutanota jelszavát szöveges üzenetként!",
 		"clickToUpdate_msg": "Kattintson ide a frissítéshez (naprakésszé tételhez)!",
 		"clientSuspensionWait_label": "Amíg a szerver feldolgozza kérését, szíves türelmét kérjük!",
 		"client_label": "Kliens",
