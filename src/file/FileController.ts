@@ -289,7 +289,12 @@ export class FileController {
 			// For apps "opening" DataFile currently means saving and opening it.
 			try {
 				const fileReference = await this.fileApp.saveDataFile(file)
-				return this.fileApp.open(fileReference)
+ 				if (isAndroidApp()) {
+					await this.fileApp.putFileIntoDownloadsFolder(fileReference.location)
+					return
+				} else {
+					return this.fileApp.open(fileReference)
+				}
 			} catch (e) {
 				if (e instanceof CancelledError) {
 					// no-op. User cancelled file dialog
