@@ -22,7 +22,7 @@ export type WhitelabelData = {
 	whitelabelDomainInfo: DomainInfo
 }
 export type WhitelabelThemeSettingsAttrs = {
-	whitelabelData: ?WhitelabelData
+	whitelabelData: WhitelabelData | null
 }
 
 export class WhitelabelThemeSettings implements Component<WhitelabelThemeSettingsAttrs> {

@@ -140,6 +140,7 @@ export class KeyManager {
 
 	_handleKeydown(e: KeyboardEvent): void {
 		const keyPress = getKeyPress(e)
+		const keyCode = keyPress.keyCode
 		let keysToShortcuts = this._keyToModalShortcut.size > 1 ? this._keyToModalShortcut : this._keyToShortcut
 		let shortcut = keysToShortcuts.get(createKeyIdentifier(keyPress.keyCode, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey))
 		if (shortcut != null && (shortcut.enabled == null || shortcut.enabled())) {
@@ -227,12 +228,13 @@ export function isKeyPressed(keyCode: number, ...keys: Array<Values<typeof Keys>
 
 export function getKeyPress(e: KeyboardEvent): KeyPress {
 	return {
+		// FIXME
 		keyCode: e.which,
 		key: e.key,
 		ctrl: e.ctrlKey,
-		alt: e.altKey,
+		// alt: e.altKey,
 		shift: e.shiftKey,
-		meta: e.metaKey
+		// meta: e.metaKey
 	}
 
 }

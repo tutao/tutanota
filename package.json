@@ -22,6 +22,7 @@
 		"prebuild": "npm run build-packages && tsc --noEmit false --outDir build/prebuilt --declaration true --declarationMap true --incremental true && cp src/*.d.ts build/prebuilt"
 	},
 	"dependencies": {
+		"@khanacademy/flow-to-ts": "^0.5.2",
 		"@tutao/oxmsg": "0.0.9-beta.0",
 		"@tutao/tutanota-crypto": "3.95.3",
 		"@tutao/tutanota-usagetests": "3.95.3",

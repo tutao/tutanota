@@ -875,7 +875,7 @@ export class MailView implements CurrentView {
 			: null
 	}
 
-	getSearchHandler(): ?SearchHandler {
+	getSearchHandler(): SearchHandler | null {
 		return null
 	}
 

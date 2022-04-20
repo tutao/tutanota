@@ -11,7 +11,6 @@ import {logins} from "../../api/main/LoginController"
 import {theme} from "../theme"
 import {FeatureType, Keys} from "../../api/common/TutanotaConstants"
 import {px, size as sizes} from "../size"
-import {assertMainOrNode} from "../../api/common/Env"
 import {BootIcons} from "./icons/BootIcons"
 import type {SearchBar} from "../../search/SearchBar"
 import type {IMainLocator} from "../../api/main/MainLocator"
@@ -28,13 +27,13 @@ const LogoutPath = "/login?noAutoLogin=true"
 export const LogoutUrl: string = location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : LogoutPath
 assertMainOrNode()
 
-export type SearchHandler = {|
+export type SearchHandler = {
 	placeholder: TranslationText,
-	onSearch(searchValue: string): Promise<mixed>, // Content of the search value has changed and a new search run can be executed
+	onSearch(searchValue: string): Promise<any>, // Content of the search value has changed and a new search run can be executed
 	onKeyUpPressed(): void, // A Key.UP event was triggered while the input field was focused. Can be used to select a next item.
 	onKeyDownPressed(): void, // A Key.DOWN event was triggered while the input field was focused. Can be used to select a previous item.
 	onBlur(): void // The input field lost focused.
-|}
+}
 
 export interface CurrentView extends Component {
 	updateUrl(args: Record<string, any>, requestedPath: string): void
@@ -45,10 +44,10 @@ export interface CurrentView extends Component {
 	readonly handleBackButton?: () => boolean
 
 	/** @return true if "back/up" icon should be shown, false if menu icon */
-	+overrideBackIcon?: () => boolean;
+	readonly overrideBackIcon?: () => boolean;
 
 	/** @rerturn Returns an search bar attributes object if a search bar should be shown in the header section. */
-	getSearchHandler(): ?SearchHandler;
+	getSearchHandler(): SearchHandler | null;
 
 	/** Called each time the url changes. */
 	updateUrl(args: Object, requestedPath: string): void;
