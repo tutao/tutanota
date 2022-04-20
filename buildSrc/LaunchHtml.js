@@ -2,7 +2,9 @@ global.window = undefined
 
 function getUrls(env) {
 	if (env.staticUrl) {
-		return env.staticUrl + " ws" + env.staticUrl.substring(4)
+		const staticUrlParts = env.staticUrl.split("//")
+		const apiUrl = staticUrlParts[0] + "//*.api." + staticUrlParts[1]
+		return env.staticUrl + " ws" + env.staticUrl.substring(4) + " " + apiUrl
 	} else {
 		return ""
 	}
