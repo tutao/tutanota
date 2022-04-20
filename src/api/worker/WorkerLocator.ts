@@ -51,6 +51,7 @@ import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import {BlobFacade} from "./facades/BlobFacade"
 import {NativeSystemApp} from "../../native/common/NativeSystemApp"
 import {DesktopConfigKey} from "../../desktop/config/ConfigKeys"
+import {CacheStorageFactory} from "./rest/CacheStorageFactory"
 
 assertWorkerOrNode()
 
@@ -108,10 +109,12 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.native = worker
 	locator.booking = new BookingFacade(locator.serviceExecutor)
 
-	const uninitializedStorage = makeCacheStorage(() => locator.restClient.getServerTimestampMs(), worker)
+	const maybeUninitializedStorage = isOfflineStorageAvailable()
+		? new LateInitializedCacheStorageImpl(new CacheStorageFactory(() => locator.restClient.getServerTimestampMs(), worker, locator.native))
+		: new AlwaysInitializedStorage()
 
 	// We don't wont to cache within the admin client
-	const cache = isAdminClient() ? null : new EntityRestCache(entityRestClient, uninitializedStorage)
+	const cache = isAdminClient() ? null : new EntityRestCache(entityRestClient, maybeUninitializedStorage)
 
 	locator.cache = cache ?? entityRestClient
 
@@ -133,7 +136,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.secondFactorAuthenticationHandler,
 		locator.instanceMapper,
 		() => locator.crypto,
-		uninitializedStorage.initialize.bind(uninitializedStorage),
+		maybeUninitializedStorage.initialize.bind(maybeUninitializedStorage),
 		locator.serviceExecutor,
 		async () => isDesktop() && await systemApp.getConfigValue(DesktopConfigKey.offlineStorageEnabled),
 	)
@@ -207,33 +210,6 @@ export async function resetLocator(): Promise<void> {
 
 if (typeof self !== "undefined") {
 	(self as unknown as WorkerGlobalScope).locator = locator // export in worker scope
-}
-
-function makeCacheStorage(getServerTime: () => number, worker: WorkerImpl): LateInitializedCacheStorage {
-	if (isOfflineStorageAvailable()) {
-		return new LateInitializedCacheStorageImpl(async (args) => {
-			if (args.persistent) {
-				const {offlineDbFacade} = exposeRemote<ExposedNativeInterface>((request) => locator.native.invokeNative(request))
-				const offlineStorage = new OfflineStorage(offlineDbFacade)
-				await offlineStorage.init(args.userId, uint8ArrayToKey(args.databaseKey))
-
-				const lastUpdateTime = await offlineStorage.getLastUpdateTime()
-				if (lastUpdateTime != null) {
-					const serverTime = getServerTime()
-					if (serverTime - lastUpdateTime > ENTITY_EVENT_BATCH_EXPIRE_MS) {
-						console.log(`Purging database for user ${args.userId} because it is out of sync`)
-						await offlineStorage.purgeStorage()
-						worker.sendError(new OutOfSyncError("database is out of sync"))
-					}
-				}
-				return offlineStorage
-			} else {
-				return new EphemeralCacheStorage()
-			}
-		})
-	} else {
-		return new AlwaysInitializedStorage()
-	}
 }
 
 // for cases where we know offlineStorage won't be available

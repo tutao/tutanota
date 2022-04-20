@@ -15,8 +15,12 @@ export class TypeRef<T> {
 		Object.freeze(this)
 	}
 
-	toString() {
+	toString(): string {
 		return `[TypeRef ${this.app} ${this.type}]`
+	}
+
+	getId(): string {
+		return this.app + "/" + this.type
 	}
 }
 

@@ -6,7 +6,7 @@ import {InstanceMapper} from "../../../../src/api/worker/crypto/InstanceMapper"
 import {EntityClient} from "../../../../src/api/common/EntityClient"
 import {CryptoFacade, encryptString} from "../../../../src/api/worker/crypto/CryptoFacade"
 import {LateInitializedCacheStorage} from "../../../../src/api/worker/rest/CacheStorageProxy"
-import {func, instance, matchers, object, verify, when} from "testdouble"
+import {func, instance, matchers, object, when} from "testdouble"
 import {SessionType} from "../../../../src/api/common/SessionType"
 import {HttpMethod} from "../../../../src/api/common/EntityFunctions"
 import {createCreateSessionReturn} from "../../../../src/api/entities/sys/TypeRefs.js"
@@ -22,6 +22,7 @@ import {Credentials} from "../../../../src/misc/credentials/Credentials"
 import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {IServiceExecutor} from "../../../../src/api/common/ServiceRequest"
 import {SaltService, SessionService} from "../../../../src/api/entities/sys/Services.js"
+import {verify} from "@tutao/tutanota-test-utils"
 
 const {anything} = matchers
 
@@ -117,7 +118,7 @@ o.spec("LoginFacadeTest", function () {
 			o("When a database key is provided and offline is enabled, storage is initialized as persistent", async function () {
 				usingOfflineStorage = true
 				await facade.createSession("born.slippy@tuta.io", passphrase, "client", SessionType.Persistent, dbKey)
-				verify(initializeCacheStorageMock({persistent: true, databaseKey: dbKey, userId: userId}))
+				verify(initializeCacheStorageMock({persistent: true, databaseKey: dbKey, userId}))
 			})
 			o("When no database key is provided and offline is enabled, storage is initialized as ephemeral", async function () {
 				usingOfflineStorage = true
@@ -167,14 +168,14 @@ o.spec("LoginFacadeTest", function () {
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
 
 				// The call to /sys/session/...
-				when(restClientMock.request(anything(), HttpMethod.GET, anything()))
+				when(restClientMock.request(matchers.argThat(path => path.startsWith("/rest/sys/session/")), HttpMethod.GET, anything()))
 					.thenResolve(JSON.stringify({user: userId, accessKey: keyToBase64(accessKey)}))
 			})
 
 			o("When resuming a session and there is a database key and offline storage is enabled, a persistent storage is created", async function () {
 				usingOfflineStorage = true
 				await facade.resumeSession(credentials, SALT, dbKey)
-				verify(initializeCacheStorageMock({persistent: true, databaseKey: dbKey, userId: userId}))
+				verify(initializeCacheStorageMock({persistent: true, databaseKey: dbKey, userId}))
 			})
 			o("When resuming a session and there is a database key and offline storage is disabled, a ephemeral storage is created", async function () {
 				usingOfflineStorage = false

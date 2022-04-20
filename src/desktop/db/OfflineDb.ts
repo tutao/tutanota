@@ -65,8 +65,8 @@ export class OfflineDb {
 			this.db.pragma("cipher_memory_security = ON")
 		}
 		const bytes = bitArrayToUint8Array(databaseKey)
-		const b64 = `x'${uint8ArrayToBase64(bytes)};`
-		this.db.pragma(`KEY = "${b64}"`)
+		const key = `x'${uint8ArrayToBase64(bytes)};`
+		this.db.pragma(`KEY = "${key}"`)
 
 		if (integrityCheck) {
 			this.checkIntegrity()
@@ -171,6 +171,24 @@ export class OfflineDb {
 		return result?.entity ?? null
 	}
 
+	getElementsOfType(type: string): Array<Uint8Array> {
+		return this.db.prepare("SELECT entity from element_entities WHERE type = :type")
+				   .all({type})?.map(row => new Uint8Array(row.entity.buffer))
+			?? []
+	}
+
+	getListElementsOfType(type: string): Array<Uint8Array> {
+		return this.db.prepare("SELECT entity from list_entities WHERE type = :type")
+				   .all({type})?.map(row => new Uint8Array(row.entity.buffer))
+			?? []
+	}
+
+	getWholeList(type: string, listId: Id): Array<Uint8Array> {
+		return this.db.prepare("SELECT entity FROM list_entities WHERE type = :type AND listId = :listId")
+				   .all({type, listId})
+				   .map(row => row.entity)
+	}
+
 	delete(type: string, listId: string | null, elementId: string) {
 		if (listId == null) {
 			this.db.prepare("DELETE FROM element_entities WHERE type = :type AND elementId = :elementId")
@@ -205,6 +223,35 @@ export class OfflineDb {
 	putMetadata<K extends keyof OfflineDbMeta>(key: K, value: Uint8Array) {
 		this.db.prepare("INSERT OR REPLACE INTO metadata VALUES (:key,:value)")
 			.run({key, value})
+	}
+
+	deleteElementsBeforeId(type: string, cutoffId: Id) {
+		this.db.prepare("DELETE FROM element_entities WHERE type = :type AND firstIdBigger(:cutoffId, elementId)").run({type, cutoffId})
+	}
+
+	deleteListElementsBeforeId(type: string, cutoffId: Id) {
+		this.db.prepare("DELETE FROM list_entities WHERE type = :type AND firstIdBigger(:cutoffId, elementId)").run({type, cutoffId})
+	}
+
+	deleteList(type: string, listId: Id) {
+		this.db.transaction(() => {
+			this.db.prepare("DELETE FROM list_entities WHERE type = :type AND listId = :listId").run({type, listId})
+			this.deleteRange(type, listId)
+		}).immediate()
+	}
+
+	deleteRange(type: string, listId: string) {
+		this.db.prepare("DELETE FROM ranges WHERE type = :type AND listId = :listId").run({type, listId})
+	}
+
+	getListsOfType(type: string): Array<Id> {
+		const result = this.db.prepare("SELECT listId FROM ranges WHERE type = :type").all({type}) ?? []
+		const listIds = result.map(row => row.listId)
+		return listIds
+	}
+
+	compactDatabase() {
+		this.db.exec("VACUUM")
 	}
 
 	printDatabaseInfo() {

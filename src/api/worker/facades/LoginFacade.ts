@@ -479,7 +479,7 @@ export class LoginFacadeImpl implements LoginFacade {
 					await this.initializeCacheStorage({
 						persistent: true,
 						userId,
-						databaseKey
+					databaseKey,
 					})
 				} catch (e) {
 					// Precaution in case something bad happens to offline database. We want users to still be able to log in.

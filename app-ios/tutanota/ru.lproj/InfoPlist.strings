@@ -10,5 +10,5 @@ TutaoChangePermissionMsg = "Чтобы предоставить доступ, В
 TutaoCancelAction = "Отмена";
 TutaoSettingsAction = "Настройки";
 TutaoCalendarAlarmTitle = "Напоминание";
-TutaoScheduleAlarmError = "Не удалось настроить оповещение. Пожалуйста обновите приложение.";
+TutaoScheduleAlarmError = "Не удалось настроить оповещение. Пожалуйста, обновите приложение.";
 TutaoUnlockCredentialsAction = "Разблокировать учетные данные";

@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2022-03-31T08:11:46Z",
+	"updated_at": "2022-04-26T14:21:17Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "請點擊複選框以同意隱私權政策。",
@@ -91,7 +91,7 @@ export default {
 		"buyStorageCapacityInfo_msg": "請選擇其一方案來調整​​郵件空間的儲存容量。訂購完成的空間大小可以被所有帳戶之間獨立擁有。",
 		"buy_action": "購買",
 		"by_label": "來自",
-		"calendarReminderIntervalOneDay_label": "一天",
+		"calendarReminderIntervalOneDay_label": "1 天",
 		"calendarReminderIntervalOneHour_label": "一小時",
 		"calendarReminderIntervalOneWeek_label": "一週",
 		"calendar_label": "行事曆",

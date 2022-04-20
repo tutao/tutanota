@@ -110,7 +110,6 @@ import {FileReference} from "../../common/utils/FileUtils";
 import {CounterService} from "../../entities/monitor/Services"
 import {PublicKeyService} from "../../entities/sys/Services.js"
 import {IServiceExecutor} from "../../common/ServiceRequest"
-import {resolveTypeReference} from "../../common/EntityFunctions"
 import {createWriteCounterData} from "../../entities/monitor/TypeRefs"
 
 assertWorkerOrNode()
