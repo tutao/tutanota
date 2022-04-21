@@ -4,9 +4,8 @@ import {client} from "../misc/ClientDetector"
 import {lang} from "../misc/LanguageViewModel"
 import {noselect, position_absolute, positionValue} from "./mixins"
 import {assertMainOrNodeBoot, isAdminClient, isApp, isDesktop} from "../api/common/Env"
-import {theme} from "./theme"
+import {getContentButtonIconBackground, getElevatedBackground, getNavigationMenuBg, theme} from "./theme"
 import {BrowserType} from "../misc/ClientConstants"
-import {getContentButtonIconBackground, getElevatedBackground, getNavigationMenuBg} from "./theme"
 
 assertMainOrNodeBoot()
 
@@ -674,7 +673,8 @@ styles.registerStyle("main", () => {
 		"::-webkit-scrollbar": !client.isMobileDevice()
 			? {
 				background: "transparent",
-				width: "8px",
+				width: "8px", // width of vertical scrollbar
+				height: "8px", // width of horizontal scrollbar
 			}
 			: {},
 		"::-webkit-scrollbar-thumb": !client.isMobileDevice()
