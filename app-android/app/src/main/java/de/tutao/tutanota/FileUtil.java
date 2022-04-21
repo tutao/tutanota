@@ -274,21 +274,30 @@ public class FileUtil {
 	}
 
 	JSONObject upload(final String fileUri, final String targetUrl, final String httpMethod, final JSONObject headers) throws IOException, JSONException {
-		InputStream inputStream = activity.getContentResolver().openInputStream(Uri.parse(fileUri));
+		Uri parsedUri = Uri.parse(fileUri);
+		InputStream inputStream = activity.getContentResolver().openInputStream(parsedUri);
 		HttpURLConnection con = (HttpURLConnection) (new URL(targetUrl)).openConnection();
 		try {
+			int fileSize = inputStream.available();
+			// this disables internal buffering of the output stream
+			con.setFixedLengthStreamingMode(fileSize);
 			con.setConnectTimeout(HTTP_TIMEOUT);
-			con.setReadTimeout(HTTP_TIMEOUT);
+			// infinite timeout
+			// - the server stops listening after 10 minutes -> SocketException
+			// - if the internet connection dies -> SocketException
+			// we don't want to time out in case of a slow connection because we may already be
+			// waiting for the response code while the TCP stack is still busy sending our data
+			con.setReadTimeout(0);
 			con.setRequestMethod(httpMethod);
 			con.setDoInput(true);
 			con.setDoOutput(true);
 			con.setUseCaches(false);
 			con.setRequestProperty("Content-Type", "application/octet-stream");
-			con.setChunkedStreamingMode(4096); // mitigates OOM for large files (start uploading before the complete file is buffered)
 			addHeadersToRequest(con, headers);
 			con.connect();
 			IOUtils.copy(inputStream, con.getOutputStream());
 
+			// this would run into the read timeout if the upload is still running
 			int responseCode = con.getResponseCode();
 
 			JSONObject response = new JSONObject()
