@@ -4,10 +4,10 @@ import {
 	createUsageTestParticipationIn,
 	UsageTestAssignment,
 	UsageTestAssignmentOut,
-	UsageTestAssignmentTypeRef
+	UsageTestAssignmentTypeRef,
 } from "../api/entities/usage/TypeRefs.js"
 import {PingAdapter, Stage, UsageTest} from "@tutao/tutanota-usagetests"
-import {filterInt} from "@tutao/tutanota-utils"
+import {filterInt, lazy} from "@tutao/tutanota-utils"
 import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {SuspensionError} from "../api/common/error/SuspensionError"
 import {SuspensionBehavior} from "../api/worker/rest/RestClient"
@@ -15,6 +15,69 @@ import {DateProvider} from "../api/common/DateProvider.js"
 import {IServiceExecutor} from "../api/common/ServiceRequest"
 import {UsageTestAssignmentService, UsageTestParticipationService} from "../api/entities/usage/Services.js"
 import {resolveTypeReference} from "../api/common/EntityFunctions"
+import {lang, TranslationKey} from "./LanguageViewModel"
+import stream from "mithril/stream"
+import {Dialog} from "../gui/base/Dialog"
+import m, {Children} from "mithril"
+import {DropDownSelectorN, SelectorItem} from "../gui/base/DropDownSelectorN"
+import {UsageTestMetricType} from "../api/common/TutanotaConstants"
+
+
+const PRESELECTED_LIKERT_VALUE = "3"
+
+type ExperienceSamplingOptions = {
+	title?: lazy<string> | string,
+	perMetric: {
+		[key: string]: {
+			question: TranslationKey | lazy<string>,
+			answerOptions: Array<string>,
+		}
+	}
+}
+
+export async function showExperienceSamplingDialog(stage: Stage, experienceSamplingOptions: ExperienceSamplingOptions): Promise<void> {
+	const likertMetrics = Array.from(stage.metricConfigs.values()).filter(metricConfig => metricConfig.type as UsageTestMetricType === UsageTestMetricType.Likert)
+	const selectedValues = new Map(likertMetrics.map(likertMetric => [likertMetric.name, stream(PRESELECTED_LIKERT_VALUE)]))
+
+	Dialog.showActionDialog({
+		okAction: (dialog: Dialog) => {
+			for (let [metricName, selectedValue] of selectedValues) {
+				stage.setMetric({
+					name: metricName,
+					value: selectedValue(),
+				})
+			}
+
+			stage.complete().then(() => dialog.close())
+			return Dialog.message("experienceSampling_thankYou_msg")
+		},
+		title: experienceSamplingOptions.title ?? lang.get("experienceSampling_header_label"),
+		child: () => {
+			const children: Array<Children> = []
+
+			for (let likertMetricConfig of likertMetrics) {
+				const metricOptions = experienceSamplingOptions["perMetric"][likertMetricConfig.name]
+
+				const answerOptionItems: Array<SelectorItem<string>> = metricOptions.answerOptions.map((answerOption, index) => {
+					return {
+						name: answerOption,
+						value: (index + 1).toString(),
+					}
+				})
+
+				children.push(
+					m(DropDownSelectorN, {
+						label: metricOptions.question,
+						items: answerOptionItems,
+						selectedValue: selectedValues.get(likertMetricConfig.name)!,
+					})
+				)
+			}
+
+			return children
+		},
+	})
+}
 
 export interface PersistedAssignmentData {
 	updatedAt: number
@@ -113,8 +176,23 @@ export class UsageTestModel implements PingAdapter {
 				usageTestAssignment.sendPings,
 			)
 
-			for (const index of usageTestAssignment.stages.keys()) {
-				test.addStage(new Stage(index, test))
+			for (const [index, stageConfig] of usageTestAssignment.stages.entries()) {
+				const stage = new Stage(index, test)
+				stageConfig.metrics.forEach(metricConfig => {
+					const configValues = new Map<string, string>()
+
+					metricConfig.configValues.forEach(metricConfigValue => {
+						configValues.set(metricConfigValue.key, metricConfigValue.value)
+					})
+
+					stage.setMetricConfig({
+						name: metricConfig.name,
+						type: metricConfig.type,
+						configValues,
+					})
+				})
+
+				test.addStage(stage)
 			}
 
 			return test
