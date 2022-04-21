@@ -121,6 +121,7 @@ const ErrorNameToType = {
 	SuspensionError,
 	Error,
 	"java.net.SocketTimeoutException": ConnectionError,
+	"java.net.SocketException": ConnectionError,
 	"java.net.ConnectException": ConnectionError,
 	"javax.net.ssl.SSLException": ConnectionError,
 	"javax.net.ssl.SSLHandshakeException": ConnectionError,
