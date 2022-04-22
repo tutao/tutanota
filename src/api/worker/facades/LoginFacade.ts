@@ -455,10 +455,12 @@ export class LoginFacadeImpl implements LoginFacade {
 		try {
 			await this.finishResumeSession(credentials, null)
 		} catch (e) {
-			this.asyncLoginState = {state: "failed", credentials}
 			if (e instanceof NotAuthenticatedError || e instanceof SessionExpiredError) {
+				// For this type of errors we cannot use credentials anymore.
+				this.asyncLoginState = {state: "idle"}
 				await this.loginListener.onLoginError()
 			} else {
+				this.asyncLoginState = {state: "failed", credentials}
 				await this.worker.sendError(e)
 			}
 		}
