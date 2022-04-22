@@ -210,8 +210,6 @@ export class CredentialsProvider implements ICredentialsProvider {
 			decrypted.databaseKey = await this.databaseKeyFactory.generateKey()
 
 			if (decrypted.databaseKey != null) {
-				// TODO this might prompt the user to unlock the keychain again
-				// 		We should figure out what to do about this
 				const reEncrypted = await this.credentialsEncryption.encrypt(decrypted)
 				this.storage.store(reEncrypted)
 			}

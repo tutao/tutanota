@@ -188,7 +188,7 @@ export class LoginFacadeImpl implements LoginFacade {
 	private asyncLoginState:
 		| {state: "idle"}
 		| {state: "running"}
-		| {state: "failed", credentials: Credentials} = {state: "idle"}
+		| {state: "failed", credentials: Credentials, usingOfflineStorage: boolean} = {state: "idle"}
 
 	constructor(
 		readonly worker: WorkerImpl,
@@ -252,8 +252,12 @@ export class LoginFacadeImpl implements LoginFacade {
 		const createSessionReturn = await this.serviceExecutor.post(SessionService, createSessionData)
 		const sessionData = await this._waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, mailAddress)
 
-		await this.initCache(sessionData.userId, databaseKey)
-		const {user, userGroupInfo, accessToken} = await this.initSession(sessionData.userId, sessionData.accessToken, userPassphraseKey, sessionType)
+		const usingOfflineStorage = await this.initCache(sessionData.userId, databaseKey)
+		const {
+			user,
+			userGroupInfo,
+			accessToken
+		} = await this.initSession(sessionData.userId, sessionData.accessToken, userPassphraseKey, sessionType, usingOfflineStorage)
 
 		return {
 			user,
@@ -352,12 +356,12 @@ export class LoginFacadeImpl implements LoginFacade {
 
 
 		let sessionId = [this._getSessionListId(createSessionReturn.accessToken), this._getSessionElementId(createSessionReturn.accessToken)] as const
-		await this.initCache(userId, null)
+		const usingOfflineStorage = await this.initCache(userId, null)
 		const {
 			user,
 			userGroupInfo,
 			accessToken
-		} = await this.initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey, SessionType.Login)
+		} = await this.initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey, SessionType.Login, usingOfflineStorage)
 		return {
 			user,
 			userGroupInfo,
@@ -422,7 +426,7 @@ export class LoginFacadeImpl implements LoginFacade {
 			const user = await this.entityClient.load(UserTypeRef, credentials.userId)
 			if (user.accountType !== AccountType.PREMIUM) {
 				// if account is free do not start offline login/async login workflow
-				return this.finishResumeSession(credentials, externalUserSalt)
+				return this.finishResumeSession(credentials, externalUserSalt, usingOfflineStorage)
 						   .catch(ofClass(ConnectionError, (e) => {
 							   return {type: "error", reason: ResumeSessionErrorReason.OfflineNotAvailableForFree}
 						   }))
@@ -430,7 +434,7 @@ export class LoginFacadeImpl implements LoginFacade {
 			this.userFacade.setUser(user)
 			this.loginListener.onPartialLoginSuccess()
 			// Start full login async
-			Promise.resolve().then(() => this.asyncResumeSession(credentials))
+			Promise.resolve().then(() => this.asyncResumeSession(credentials, usingOfflineStorage))
 			const data = {
 				user,
 				userGroupInfo: await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo),
@@ -438,7 +442,7 @@ export class LoginFacadeImpl implements LoginFacade {
 			}
 			return {type: "success", data}
 		} else {
-			return this.finishResumeSession(credentials, externalUserSalt)
+			return this.finishResumeSession(credentials, externalUserSalt, usingOfflineStorage)
 		}
 	}
 
@@ -446,27 +450,27 @@ export class LoginFacadeImpl implements LoginFacade {
 		return [this._getSessionListId(credentials.accessToken), this._getSessionElementId(credentials.accessToken)]
 	}
 
-	private async asyncResumeSession(credentials: Credentials): Promise<void> {
+	private async asyncResumeSession(credentials: Credentials, usingOfflineStorage: boolean): Promise<void> {
 		if (this.asyncLoginState.state === "running") {
 			throw new Error("finishLoginResume run in parallel")
 		}
 		this.asyncLoginState = {state: "running"}
 
 		try {
-			await this.finishResumeSession(credentials, null)
+			await this.finishResumeSession(credentials, null, usingOfflineStorage)
 		} catch (e) {
 			if (e instanceof NotAuthenticatedError || e instanceof SessionExpiredError) {
 				// For this type of errors we cannot use credentials anymore.
 				this.asyncLoginState = {state: "idle"}
 				await this.loginListener.onLoginError()
 			} else {
-				this.asyncLoginState = {state: "failed", credentials}
+				this.asyncLoginState = {state: "failed", credentials, usingOfflineStorage}
 				await this.worker.sendError(e)
 			}
 		}
 	}
 
-	private async finishResumeSession(credentials: Credentials, externalUserSalt: Uint8Array | null): Promise<ResumeSessionResult> {
+	private async finishResumeSession(credentials: Credentials, externalUserSalt: Uint8Array | null, usingOfflineStorage: boolean): Promise<ResumeSessionResult> {
 		const sessionId = this.getSessionId(credentials)
 		const sessionData = await this._loadSessionData(credentials.accessToken)
 		const passphrase = utf8Uint8ArrayToString(aes128Decrypt(sessionData.accessKey, base64ToUint8Array(neverNull(credentials.encryptedPassword))))
@@ -478,7 +482,10 @@ export class LoginFacadeImpl implements LoginFacade {
 			userPassphraseKey = await this._loadUserPassphraseKey(credentials.login, passphrase)
 		}
 
-		const {user, userGroupInfo} = await this.initSession(sessionData.userId, credentials.accessToken, userPassphraseKey, SessionType.Persistent)
+		const {
+			user,
+			userGroupInfo
+		} = await this.initSession(sessionData.userId, credentials.accessToken, userPassphraseKey, SessionType.Persistent, usingOfflineStorage)
 
 		this.asyncLoginState = {state: "idle"}
 
@@ -495,7 +502,8 @@ export class LoginFacadeImpl implements LoginFacade {
 		userId: Id,
 		accessToken: Base64Url,
 		userPassphraseKey: Aes128Key,
-		sessionType: SessionType
+		sessionType: SessionType,
+		usingOfflineStorage: boolean,
 	): Promise<{user: User, accessToken: string, userGroupInfo: GroupInfo}> {
 		let userIdFromFormerLogin = this.userFacade.getUser() ? this.userFacade.getUser()?._id : null
 
@@ -533,8 +541,7 @@ export class LoginFacadeImpl implements LoginFacade {
 				// index new items in background
 				console.log("_initIndexer after log in")
 
-				// FIXME
-				// this._initIndexer(usingOfflineStorage)
+				this._initIndexer(usingOfflineStorage)
 			}
 
 			await this.loadEntropy()
@@ -895,7 +902,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		if (this.asyncLoginState.state === "running") {
 			return
 		} else if (this.asyncLoginState.state === "failed") {
-			await this.asyncResumeSession(this.asyncLoginState.credentials)
+			await this.asyncResumeSession(this.asyncLoginState.credentials, this.asyncLoginState.usingOfflineStorage)
 		} else {
 			throw new Error("credentials went missing")
 		}

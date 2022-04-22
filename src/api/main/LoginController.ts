@@ -115,17 +115,12 @@ export class LoginControllerImpl implements LoginController {
 	}
 
 	async onLoginSuccess(initData: UserControllerInitData, sessionType: SessionType): Promise<void> {
-		// FIXME
-		console.log("LOGIN partial success")
 		const {initUserController} = await import("./UserController")
 		this.userController = await initUserController(initData)
-		// FIXME
-		console.log("LOGIN user controller set")
+
 		await this.loadCustomizations()
 		await this._determineIfWhitelabel()
 
-		// FIXME
-		console.log("LOGIN calling handlers")
 		for (const handler of this.postLoginActions) {
 			await handler.onLoginSuccess({
 				sessionType,
@@ -224,8 +219,6 @@ export class LoginControllerImpl implements LoginController {
 	}
 
 	async logout(sync: boolean): Promise<void> {
-		// FIXME
-		console.log("LOGIN logout")
 		if (this.userController) {
 			await this.userController.deleteSession(sync)
 			this.userController = null

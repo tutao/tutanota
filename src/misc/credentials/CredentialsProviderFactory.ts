@@ -37,7 +37,6 @@ export function createCredentialsProvider(
 		const credentialsKeyProvider = new CredentialsKeyProvider(nonNullNativeApp, deviceConfig, deviceEncryptionFacade)
 		const credentialsEncryption = new NativeCredentialsEncryption(credentialsKeyProvider, deviceEncryptionFacade, nonNullNativeApp)
 		const credentialsKeyMigrator = new CredentialsKeyMigrator(nonNullNativeApp)
-		// TODO: check if using offline
 		let offlineDbFacade: OfflineDbFacade | null
 		if (isOfflineStorageAvailable()) {
 			const remoteInterface = exposeRemote<ExposedNativeInterface>(

@@ -580,7 +580,6 @@ export class MailFacade {
 			column: listId,
 			value: String(unreadMails),
 		})
-		// TODO
 		await this.serviceExecutor.post(CounterService, data)
 	}
 
