@@ -11,7 +11,6 @@ import {
 } from "../../entities/tutanota/TypeRefs.js"
 import {neverNull} from "@tutao/tutanota-utils"
 import {RecipientsNotFoundError} from "../../common/error/RecipientsNotFoundError"
-import {LoginFacadeImpl} from "./LoginFacade"
 import {assertWorkerOrNode} from "../../common/Env"
 import {aes128RandomKey, bitArrayToUint8Array, encryptKey, uint8ArrayToBitArray} from "@tutao/tutanota-crypto"
 import {IServiceExecutor} from "../../common/ServiceRequest"
@@ -21,15 +20,12 @@ import {UserFacade} from "./UserFacade"
 assertWorkerOrNode()
 
 export class ShareFacade {
-	_crypto: CryptoFacade
 
 	constructor(
 		private readonly userFacade: UserFacade,
-		crypto: CryptoFacade,
+		private readonly cryptoFacade: CryptoFacade,
 		private readonly serviceExecutor: IServiceExecutor
 	) {
-		this.userFacade = userFacade
-		this._crypto = crypto
 	}
 
 	async sendGroupInvitation(
@@ -40,8 +36,8 @@ export class ShareFacade {
 	): Promise<GroupInvitationPostReturn> {
 		const sharedGroupKey = this.userFacade.getGroupKey(sharedGroupInfo.group)
 
-		const userGroupInfoSessionKey = await this._crypto.resolveSessionKeyForInstance(this.userFacade.getUserGroupInfo())
-		const sharedGroupInfoSessionKey = await this._crypto.resolveSessionKeyForInstance(sharedGroupInfo)
+		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKeyForInstance(this.userFacade.getUserGroupInfo())
+		const sharedGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKeyForInstance(sharedGroupInfo)
 		const bucketKey = aes128RandomKey()
 		const invitationSessionKey = aes128RandomKey()
 		const sharedGroupData = createSharedGroupData({
@@ -61,7 +57,7 @@ export class ShareFacade {
 		const notFoundRecipients: Array<string> = []
 
 		for (let mailAddress of recipientMailAddresses) {
-			const keyData = await this._crypto.encryptBucketKeyForInternalRecipient(bucketKey, mailAddress, notFoundRecipients)
+			const keyData = await this.cryptoFacade.encryptBucketKeyForInternalRecipient(bucketKey, mailAddress, notFoundRecipients)
 
 			if (keyData) {
 				invitationData.internalKeyData.push(keyData)
@@ -75,7 +71,7 @@ export class ShareFacade {
 	}
 
 	async acceptGroupInvitation(invitation: ReceivedGroupInvitation): Promise<void> {
-		const userGroupInfoSessionKey = await this._crypto.resolveSessionKeyForInstance(this.userFacade.getUserGroupInfo())
+		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKeyForInstance(this.userFacade.getUserGroupInfo())
 		const sharedGroupKey = uint8ArrayToBitArray(invitation.sharedGroupKey)
 		const serviceData = createGroupInvitationPutData({
 			receivedInvitation: invitation._id,

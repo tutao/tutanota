@@ -505,7 +505,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		sessionType: SessionType,
 		usingOfflineStorage: boolean,
 	): Promise<{user: User, accessToken: string, userGroupInfo: GroupInfo}> {
-		let userIdFromFormerLogin = this.userFacade.getUser() ? this.userFacade.getUser()?._id : null
+		let userIdFromFormerLogin = this.userFacade.getUser()?._id ?? null
 
 		if (userIdFromFormerLogin && userId !== userIdFromFormerLogin) {
 			throw new Error("different user is tried to login in existing other user's session")
