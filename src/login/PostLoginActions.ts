@@ -50,7 +50,7 @@ class PostLoginActions implements IPostLoginAction {
 	) {
 	}
 
-	async onLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
+	async onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
 		// We establish websocket connection even for temporary sessions because we need to get updates e.g. during singup
 		windowFacade.addOnlineListener(() => {
 			console.log(new Date().toISOString(), "online - try reconnect")
@@ -67,10 +67,6 @@ class PostLoginActions implements IPostLoginAction {
 			locator.worker.closeEventBus(CloseEventBusOption.Pause)
 		})
 
-		if (loggedInEvent.sessionType === SessionType.Temporary) {
-			return
-		}
-
 		// only show "Tutanota" after login if there is no custom title set
 		if (!logins.getUserController().isInternalUser()) {
 			if (document.title === LOGIN_TITLE) {
@@ -82,7 +78,6 @@ class PostLoginActions implements IPostLoginAction {
 			let postLoginTitle = document.title === LOGIN_TITLE ? "Tutanota" : document.title
 			document.title = neverNull(logins.getUserController().userGroupInfo.mailAddress) + " - " + postLoginTitle
 		}
-
 		notifications.requestPermission()
 
 		if (
@@ -94,48 +89,11 @@ class PostLoginActions implements IPostLoginAction {
 			// We keep doing it here for now to have some flexibility if we want to show some other option here in the future.
 			await this.credentialsProvider.setCredentialsEncryptionMode(CredentialEncryptionMode.DEVICE_LOCK)
 		}
-
 		locator.usageTestController.addTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.PossiblyOutdated))
 
-		// Do not wait
-		this.asyncActions()
-	}
-
-	private async asyncActions() {
-		await checkApprovalStatus(logins, true)
-		await this.showUpgradeReminder()
-		await this.checkStorageWarningLimit()
-
-		this.secondFactorHandler.setupAcceptOtherClientLoginListener()
-
-		if (!isAdminClient()) {
-			await locator.mailModel.init()
-			await locator.calendarModel.init()
-			await this.remindActiveOutOfOfficeNotification()
-		}
-
-		if (isApp() || isDesktop()) {
-			// don't wait for it, just invoke
-			locator.fileApp.clearFileData().catch(e => console.log("Failed to clean file data", e))
-			logins.waitForFullLogin().then(() => locator.pushService.register())
-			await this.maybeSetCustomTheme()
-		}
-
-		if (logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
-			const receiveInfoData = createReceiveInfoServiceData({
-				language: lang.code,
-			})
-			logins.waitForFullLogin().then(() => locator.serviceExecutor.post(ReceiveInfoService, receiveInfoData))
-		}
-
-		lang.updateFormats({
+		lang.updateFormats({ // partial
 			hourCycle: getHourCycle(logins.getUserController().userSettingsGroupRoot),
 		})
-
-		// Get any tests, as soon as possible even if they are stale
-		locator.usageTestController.addTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly))
-
-		this.enforcePasswordChange()
 
 		if (isDesktop()) {
 			locator.interWindowEventBus.events.map(async (event) => {
@@ -147,6 +105,55 @@ class PostLoginActions implements IPostLoginAction {
 				}
 			})
 		}
+
+		if (!isAdminClient()) {
+			await locator.mailModel.init()
+		}
+		if (isApp() || isDesktop()) {
+			// don't wait for it, just invoke
+			locator.fileApp.clearFileData().catch(e => console.log("Failed to clean file data", e))
+		}
+	}
+
+	async onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
+		if (loggedInEvent.sessionType === SessionType.Temporary || !logins.getUserController().isInternalUser()) {
+			return
+		}
+
+		// Do not wait
+		this.fullLoginAsyncActions()
+	}
+
+	private async fullLoginAsyncActions() {
+		await checkApprovalStatus(logins, true)
+		await this.showUpgradeReminder()
+		await this.checkStorageWarningLimit()
+
+		this.secondFactorHandler.setupAcceptOtherClientLoginListener()
+
+		if (!isAdminClient()) {
+			await locator.calendarModel.init()
+			await this.remindActiveOutOfOfficeNotification()
+		}
+
+		if (isApp() || isDesktop()) {
+			locator.pushService.register()
+			await this.maybeSetCustomTheme()
+		}
+
+		if (logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
+			const receiveInfoData = createReceiveInfoServiceData({
+				language: lang.code,
+			})
+			locator.serviceExecutor.post(ReceiveInfoService, receiveInfoData)
+		}
+
+		// Get any tests, as soon as possible even if they are stale
+		locator.usageTestController.addTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly))
+
+		this.enforcePasswordChange()
+
+
 	}
 
 	private deactivateOutOfOfficeNotification(notification: OutOfOfficeNotification): Promise<void> {
@@ -209,7 +216,6 @@ class PostLoginActions implements IPostLoginAction {
 			return
 		}
 
-		await logins.waitForFullLogin()
 		const customerId = assertNotNull(logins.getUserController().user.customer)
 		const usedStorage = await locator.customerFacade.readUsedCustomerStorage(customerId)
 		if (Number(usedStorage) > Const.MEMORY_GB_FACTOR * Const.MEMORY_WARNING_FACTOR) {

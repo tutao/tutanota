@@ -16,7 +16,11 @@ import {IMainLocator} from "./MainLocator"
 assertMainOrNodeBoot()
 
 export interface IPostLoginAction {
-	onLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void>
+	/** Partial login is achieved with getting the user, can happen offline. The login will wait for the returned promise. */
+	onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void>
+
+	/** Full login is achieved with getting group keys. Can do service calls from this point on. */
+	onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void>
 }
 
 export type LoggedInEvent = {
@@ -70,8 +74,14 @@ export class LoginControllerImpl implements LoginController {
 	private fullyLoggedIn: boolean = false
 
 	async init() {
-		this.waitForFullLogin().then(() => {
+		this.waitForFullLogin().then(async () => {
 			this.fullyLoggedIn = true
+			await this.waitForUserLogin()
+			for (const action of this.postLoginActions) {
+				await action.onFullLoginSuccess({
+					sessionType: this.getUserController().sessionType
+				})
+			}
 		})
 	}
 
@@ -97,7 +107,7 @@ export class LoginControllerImpl implements LoginController {
 			sessionType,
 			databaseKey
 		)
-		await this.onLoginSuccess(
+		await this.onPartialLoginSuccess(
 			{
 				user,
 				userGroupInfo,
@@ -114,7 +124,7 @@ export class LoginControllerImpl implements LoginController {
 		this.postLoginActions.push(handler)
 	}
 
-	async onLoginSuccess(initData: UserControllerInitData, sessionType: SessionType): Promise<void> {
+	async onPartialLoginSuccess(initData: UserControllerInitData, sessionType: SessionType): Promise<void> {
 		const {initUserController} = await import("./UserController")
 		this.userController = await initUserController(initData)
 
@@ -122,7 +132,7 @@ export class LoginControllerImpl implements LoginController {
 		await this._determineIfWhitelabel()
 
 		for (const handler of this.postLoginActions) {
-			await handler.onLoginSuccess({
+			await handler.onPartialLoginSuccess({
 				sessionType,
 			})
 		}
@@ -139,7 +149,7 @@ export class LoginControllerImpl implements LoginController {
 			sessionId,
 			userGroupInfo
 		} = await loginFacade.createExternalSession(userId, password, salt, clientIdentifier, persistentSession)
-		await this.onLoginSuccess(
+		await this.onPartialLoginSuccess(
 			{
 				user,
 				accessToken: credentials.accessToken,
@@ -159,7 +169,7 @@ export class LoginControllerImpl implements LoginController {
 			return resumeResult
 		} else {
 			const {user, userGroupInfo, sessionId} = resumeResult.data
-			await this.onLoginSuccess(
+			await this.onPartialLoginSuccess(
 				{
 					user,
 					accessToken: credentials.accessToken,
