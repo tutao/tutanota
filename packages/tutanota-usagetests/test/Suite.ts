@@ -14,7 +14,7 @@ class MockPingAdapter implements PingAdapter {
 o.spec("Main", function () {
 	o("dom render variant", function () {
 		const testId = "t123"
-		const test = new UsageTest(testId, "test 123", 0, true, false)
+		const test = new UsageTest(testId, "test 123", 0, true)
 		test.pingAdapter = new MockPingAdapter()
 
 		const rendered = test.renderVariant({
@@ -29,7 +29,7 @@ o.spec("Main", function () {
 		const testId = "t123"
 		const pingAdapter = new MockPingAdapter()
 
-		const test = new UsageTest(testId, "test 123", 2, true, false)
+		const test = new UsageTest(testId, "test 123", 2, true)
 		test.pingAdapter = pingAdapter
 
 		const stage0 = new Stage(0, test)
@@ -40,10 +40,10 @@ o.spec("Main", function () {
 
 	o("add tests to and retrieve from usage test controller", function () {
 		const testId1 = "t1"
-		const test1 = new UsageTest(testId1, "test 1", 0, true, false)
+		const test1 = new UsageTest(testId1, "test 1", 0, true)
 
 		const testId2 = "t2"
-		const test2 = new UsageTest(testId2, "test 2", 1, true, false)
+		const test2 = new UsageTest(testId2, "test 2", 1, true)
 
 		const adapter = new MockPingAdapter()
 		const usageTestController = new UsageTestController(adapter)
@@ -58,7 +58,8 @@ o.spec("Main", function () {
 
 	o("pings are only sent once if strictStageOrder is true", async function () {
 		const testId1 = "t1"
-		const test1 = new UsageTest(testId1, "test 1", 1, true, true)
+		const test1 = new UsageTest(testId1, "test 1", 1, true)
+		test1.strictStageOrder = true
 
 		for (let i = 0; i < 3; i++) {
 			test1.addStage(new Stage(i, test1))
@@ -84,7 +85,8 @@ o.spec("Main", function () {
 
 	o("lastCompletedStage is reset upon completing the last stage of a test", async function () {
 		const testId1 = "t1"
-		const test1 = new UsageTest(testId1, "test 1", 1, true, true)
+		const test1 = new UsageTest(testId1, "test 1", 1, true)
+		test1.strictStageOrder = true
 
 		for (let i = 0; i < 3; i++) {
 			test1.addStage(new Stage(i, test1))

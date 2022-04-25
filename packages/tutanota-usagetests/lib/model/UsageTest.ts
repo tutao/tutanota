@@ -14,12 +14,13 @@ export class UsageTest {
 	pingAdapter?: PingAdapter
 	private lastCompletedStage = ASSIGNMENT_STAGE
 
+	public strictStageOrder = false
+
 	constructor(
 		readonly testId: string,
 		readonly testName: string,
 		readonly variant: number,
 		public active: boolean,
-		public strictStageOrder: boolean,
 	) {
 	}
 
@@ -64,7 +65,7 @@ export class ObsoleteUsageTest extends UsageTest {
 	private readonly obsoleteStage: ObsoleteStage
 
 	constructor(testId: string, testName: string, variant: number) {
-		super(testId, testName, variant, false, false)
+		super(testId, testName, variant, false)
 		this.obsoleteStage = new ObsoleteStage(0, this)
 	}
 

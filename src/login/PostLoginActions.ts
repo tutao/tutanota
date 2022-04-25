@@ -133,6 +133,7 @@ export class PostLoginActions implements IPostLoginAction {
 		locator.usageTestController.setTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly))
 
 		// Login after signup (accept that we send a ping at login although the test was never started)
+		// Only the started test's (either free or paid clicked) stage is completed here
 		locator.usageTestController.getTest("signup.free").getStage(5).complete()
 		locator.usageTestController.getTest("signup.paid").getStage(6).complete()
 

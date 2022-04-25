@@ -180,6 +180,7 @@ export enum PaymentMethodType {
 	AccountBalance = "4",
 }
 
+export const PaymentMethodTypeToName = reverse(PaymentMethodType)
 
 export const Const = {
 	UPGRADE_REMINDER_INTERVAL: 14 * 24 * 60 * 60 * 1000,

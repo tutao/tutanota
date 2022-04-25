@@ -7,7 +7,7 @@ import {PaymentMethodInput} from "./PaymentMethodInput"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type {InvoiceData, PaymentData, PaymentMethodType} from "../api/common/TutanotaConstants"
-import {getClientType, Keys, PaymentDataResultType} from "../api/common/TutanotaConstants"
+import {getClientType, Keys, PaymentDataResultType, PaymentMethodTypeToName} from "../api/common/TutanotaConstants"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {getLazyLoadedPayPalUrl} from "./PaymentDataDialog"
 import {logins} from "../api/main/LoginController"
@@ -154,7 +154,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 									   const paymentMethodConfirmationStage = this.__signupPaidTest?.getStage(4)
 									   paymentMethodConfirmationStage?.setMetric({
 										   name: "paymentMethod",
-										   value: a.data.paymentData.paymentMethod,
+										   value: PaymentMethodTypeToName[a.data.paymentData.paymentMethod],
 									   })
 									   paymentMethodConfirmationStage?.complete()
 									   emitWizardEvent(this.dom, WizardEventType.SHOWNEXTPAGE)

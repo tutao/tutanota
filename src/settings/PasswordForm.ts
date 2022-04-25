@@ -56,6 +56,7 @@ export class PasswordModel {
 	_checkBothValidAndSendPing() {
 		if (this.getNewPasswordStatus().type === "valid" && this.getRepeatedPasswordStatus().type === "valid") {
 			// Password entry (both passwords entered and valid)
+			// Only the started test's (either free or paid clicked) stage is completed here
 			this.__signupFreeTest?.getStage(3).complete()
 			this.__signupPaidTest?.getStage(2).complete()
 		}
@@ -68,6 +69,7 @@ export class PasswordModel {
 	setNewPassword(newPassword: string) {
 		if (this.__mailValid && this.__mailValid()) {
 			// Email address selection finished (email address is available and clicked in password field)
+			// Only the started test's (either free or paid clicked) stage is completed here
 			this.__signupFreeTest?.getStage(2).complete()
 			this.__signupPaidTest?.getStage(1).complete()
 		}
