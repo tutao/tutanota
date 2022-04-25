@@ -6,7 +6,7 @@ import {reloginForExpiredSession} from "../../misc/ErrorHandlerImpl"
 /** Listener for the login events from the worker side. */
 export interface ILoginListener {
 	/**
-	 * Partial login reached: cached entities and user are avabilable.
+	 * Partial login reached: cached entities and user are available.
 	 */
 	onPartialLoginSuccess(): Promise<void>
 

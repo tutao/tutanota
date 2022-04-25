@@ -187,6 +187,9 @@ export class LoginControllerImpl implements LoginController {
 
 	async waitForFullLogin(): Promise<void> {
 		const locator = await this.getMainLocator()
+		// Full login event might be received before we finish userLogin on the client side because they are done in parallel.
+		// So we make sure to wait for userLogin first.
+		await this.waitForUserLogin()
 		return locator.loginListener.waitForFullLogin()
 	}
 
