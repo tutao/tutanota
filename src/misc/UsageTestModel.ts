@@ -111,7 +111,6 @@ export class UsageTestModel implements PingAdapter {
 				usageTestAssignment.name,
 				Number(usageTestAssignment.variant),
 				usageTestAssignment.sendPings,
-				false,
 			)
 
 			for (const index of usageTestAssignment.stages.keys()) {

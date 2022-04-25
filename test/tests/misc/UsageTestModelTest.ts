@@ -189,7 +189,7 @@ o.spec("UsageTestModel", function () {
 			o("sends ping", async function () {
 				await mockStorage.storeTestDeviceId(testDeviceId)
 
-				const usageTest: UsageTest = new UsageTest("testId", "testName", 1, true, false)
+				const usageTest: UsageTest = new UsageTest("testId", "testName", 1, true)
 				usageTest.pingAdapter = usageTestModel
 				const stage = new Stage(0, usageTest)
 				usageTest.addStage(stage)

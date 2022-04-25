@@ -109,6 +109,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			ageConfirmPromise.then(confirmed => {
 				if (confirmed) {
 					// Credentials confirmation (click on next)
+					// Only the started test's (either free or paid clicked) stage is completed here
 					this.__signupFreeTest?.getStage(4).complete()
 					this.__signupPaidTest?.getStage(3).complete()
 					return signup(
