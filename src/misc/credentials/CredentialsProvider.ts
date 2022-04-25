@@ -135,7 +135,7 @@ export interface ICredentialsProvider {
 	 * No-op if credentials are not there.
 	 * @param opts.deleteOfflineDb whether to delete offline database. Will delete by default.
 	 */
-	deleteByUserId(userId: Id, opts?: {offlineDb: "delete" | "keep"}): Promise<void>
+	deleteByUserId(userId: Id, opts?: {deleteOfflineDb: boolean}): Promise<void>
 
 	/**
 	 * Sets the credentials encryption mode, i.e. how the intermediate key used for encrypting credentials is protected.
@@ -225,13 +225,13 @@ export class CredentialsProvider implements ICredentialsProvider {
 		})
 	}
 
-	async deleteByUserId(userId: Id, opts: {offlineDb: "delete" | "keep"} = {offlineDb: "delete"}): Promise<void> {
+	async deleteByUserId(userId: Id, opts: {deleteOfflineDb: boolean} = {deleteOfflineDb: true}): Promise<void> {
 		const event: CredentialsDeletedEvent = {
 			name: CREDENTIALS_DELETED_EVENT,
 			userId,
 		}
 		this.interWindowEventBus?.send(event)
-		if (opts.offlineDb === "delete") {
+		if (opts?.deleteOfflineDb) {
 			await this.offlineDbFacade?.deleteDatabaseForUser(userId)
 		}
 		this.storage.deleteByUserId(userId)

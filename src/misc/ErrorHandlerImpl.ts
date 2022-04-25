@@ -184,7 +184,7 @@ export async function reloginForExpiredSession() {
 				}
 				// Fetch old credentials to preserve database key if it's there
 				const oldCredentials = await locator.credentialsProvider.getCredentialsByUserId(userId)
-				await locator.credentialsProvider.deleteByUserId(userId, {offlineDb: "keep"})
+				await locator.credentialsProvider.deleteByUserId(userId, {deleteOfflineDb: false})
 				await locator.credentialsProvider.store({credentials: credentials, databaseKey: oldCredentials?.databaseKey})
 				loginDialogActive = false
 				dialog.close()
