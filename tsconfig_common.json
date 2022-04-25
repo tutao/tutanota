@@ -31,6 +31,8 @@
 	"noStrictGenericChecks": false,
 	"strictNullChecks": true,
 	"useUnknownInCatchVariables": false,
-	"types": []
+	"types": [
+	  "node"
+	]
   }
 }
