@@ -312,7 +312,7 @@ o.spec("LoginFacadeTest", function () {
 				o(calls).deepEquals(["setUser", "sessionService"])
 
 				// Did not finish login
-				verify(userFacade.setUserGroupInfo(anything()), {times: 0})
+				verify(userFacade.unlockUserGroupKey(anything()), {times: 0})
 				await workerErrorDefer.promise
 			})
 
@@ -413,7 +413,7 @@ o.spec("LoginFacadeTest", function () {
 				fullLoginDeferred = defer()
 				when(loginListener.onFullLoginSuccess()).thenDo(() => fullLoginDeferred.resolve())
 				let fullyLoggedIn = false
-				when(userFacade.setUserGroupInfo(anything())).thenDo(() => {
+				when(userFacade.unlockUserGroupKey(anything())).thenDo(() => {
 					fullyLoggedIn = true
 				})
 				when(userFacade.isFullyLoggedIn()).thenDo(() => fullyLoggedIn)
@@ -430,7 +430,6 @@ o.spec("LoginFacadeTest", function () {
 				await fullLoginDeferred.promise
 
 				verify(userFacade.setAccessToken("accessToken"))
-				verify(userFacade.setUserGroupInfo(groupInfo))
 				verify(userFacade.unlockUserGroupKey(matchers.anything()))
 				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
@@ -450,7 +449,7 @@ o.spec("LoginFacadeTest", function () {
 				await workerErrorDefer.promise
 
 				verify(userFacade.setAccessToken("accessToken"))
-				verify(userFacade.setUserGroupInfo(anything()), {times: 0})
+				verify(userFacade.unlockUserGroupKey(anything()), {times: 0})
 				verify(userFacade.unlockUserGroupKey(matchers.anything()), {times: 0})
 				verify(eventBusClientMock.connect(ConnectMode.Initial), {times: 0})
 
@@ -462,7 +461,6 @@ o.spec("LoginFacadeTest", function () {
 				await fullLoginDeferred.promise
 
 				verify(userFacade.setAccessToken("accessToken"))
-				verify(userFacade.setUserGroupInfo(groupInfo))
 				verify(userFacade.unlockUserGroupKey(matchers.anything()))
 				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})

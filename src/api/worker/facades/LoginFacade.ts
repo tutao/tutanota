@@ -534,8 +534,6 @@ export class LoginFacadeImpl implements LoginFacade {
 
 			this.userFacade.unlockUserGroupKey(userPassphraseKey)
 			const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
-			this.userFacade.setUserGroupInfo(userGroupInfo)
-
 
 			if (!isTest() && sessionType !== SessionType.Temporary && !isAdminClient()) {
 				// index new items in background
@@ -887,13 +885,6 @@ export class LoginFacadeImpl implements LoginFacade {
 				isSameId(user._id, update.instanceId)
 			) {
 				this.userFacade.updateUser(await this.entityClient.load(UserTypeRef, user._id))
-			} else if (
-				this.userFacade.isFullyLoggedIn() &&
-				update.operation === OperationType.UPDATE &&
-				isSameTypeRefByAttr(GroupInfoTypeRef, update.application, update.type) &&
-				isSameId(this.userFacade.getUserGroupInfo()._id, [update.instanceListId, update.instanceId])
-			) {
-				this.userFacade.setUserGroupInfo(await this.entityClient.load(GroupInfoTypeRef, this.userFacade.getUserGroupInfo()._id))
 			}
 		}
 	}

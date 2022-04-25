@@ -15,7 +15,6 @@ export interface AuthHeadersProvider {
 /** Holder for the user and session-related data on the worker side. */
 export class UserFacade implements AuthHeadersProvider {
 	private user: User | null = null
-	private userGroupInfo: GroupInfo | null = null
 	private accessToken: string | null = null
 	/** A cache for decrypted keys of each group. Encrypted keys are stored on membership.symEncGKey. */
 	private groupKeys: Map<Id, Aes128Key> = new Map()
@@ -25,13 +24,13 @@ export class UserFacade implements AuthHeadersProvider {
 		this.reset()
 	}
 
-	// Login process is somehow multi-step and we don't use a separate network stack for it. So we have to break up setters
-	// 1. We need to download user. For that we need to set access token already.
-	// 2. We need to download userGroupInfo. For that we need user and user group key.
+	// Login process is somehow multi-step and we don't use a separate network stack for it. So we have to break up setters.
+	// 1. We need to download user. For that we need to set access token already (to authenticate the request for the server as its passed in headers).
+	// 2. We need to get group keys. For that we need to unlock userGroupKey with userPasspharseKey
 	// so this leads to this steps in UserFacade:
 	// 1. Access token is set
-	// 2. User and user group key are set
-	// 3. UserGroupInfo is set
+	// 2. User is set
+	// 3. UserGroupKey is unlocked
 	setAccessToken(accessToken: string | null) {
 		this.accessToken = accessToken
 	}
@@ -48,13 +47,6 @@ export class UserFacade implements AuthHeadersProvider {
 			throw new ProgrammingError("Invalid state: no user")
 		}
 		this.groupKeys.set(this.getUserGroupId(), decryptKey(userPassphraseKey, this.user.userGroup.symEncGKey))
-	}
-
-	setUserGroupInfo(userGroupInfo: GroupInfo) {
-		if (this.groupKeys.get(this.getUserGroupId()) == null) {
-			throw new ProgrammingError("Invalid state: no user group key")
-		}
-		this.userGroupInfo = userGroupInfo
 	}
 
 	updateUser(user: User) {
@@ -81,10 +73,6 @@ export class UserFacade implements AuthHeadersProvider {
 
 	getUserGroupId(): Id {
 		return this.getLoggedInUser().userGroup.group
-	}
-
-	getUserGroupInfo(): GroupInfo {
-		return assertNotNull(this.userGroupInfo)
 	}
 
 	getAllGroupIds(): Id[] {
@@ -147,7 +135,8 @@ export class UserFacade implements AuthHeadersProvider {
 	}
 
 	isFullyLoggedIn(): boolean {
-		return this.userGroupInfo != null
+		// We have userGroupKey and we can decrypt any other key - we are good to go
+		return this.groupKeys != null
 	}
 
 	getLoggedInUser(): User {
@@ -165,7 +154,6 @@ export class UserFacade implements AuthHeadersProvider {
 
 	reset() {
 		this.user = null
-		this.userGroupInfo = null
 		this.accessToken = null
 		this.groupKeys = new Map()
 		this.leaderStatus = createWebsocketLeaderStatus({

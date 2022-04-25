@@ -72,7 +72,8 @@ type AlarmNotificationsPerEvent = {
 
 export class CalendarFacade {
 
-	entityClient: EntityClient
+	// visible for testing
+	readonly entityClient: EntityClient
 
 	constructor(
 		private readonly userFacade: UserFacade,
