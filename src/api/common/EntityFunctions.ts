@@ -9,13 +9,13 @@ import {typeModels as monitorTypeModels} from "../entities/monitor/TypeModels.js
 import {typeModels as accountingTypeModels} from "../entities/accounting/TypeModels.js"
 import {typeModels as gossipTypeModels} from "../entities/gossip/TypeModels.js"
 import {typeModels as storageTypeModels} from "../entities/storage/TypeModels.js"
-import sysModelInfo from "../entities/sys/sysModelInfo"
-import baseModelInfo from "../entities/base/baseModelInfo"
-import tutanotaModelInfo from "../entities/tutanota/tutanotaModelInfo"
-import monitorModelInfo from "../entities/monitor/monitorModelInfo"
-import accountingModelInfo from "../entities/accounting/accountingModelInfo"
-import gossipModelInfo from "../entities/gossip/gossipModelInfo"
-import storageModelInfo from "../entities/storage/storageModelInfo"
+import sysModelInfo from "../entities/sys/ModelInfo.js"
+import baseModelInfo from "../entities/base/ModelInfo.js"
+import tutanotaModelInfo from "../entities/tutanota/ModelInfo.js"
+import monitorModelInfo from "../entities/monitor/ModelInfo.js"
+import accountingModelInfo from "../entities/accounting/ModelInfo.js"
+import gossipModelInfo from "../entities/gossip/ModelInfo.js"
+import storageModelInfo from "../entities/storage/ModelInfo.js"
 
 export const enum HttpMethod {
 	GET = "GET",

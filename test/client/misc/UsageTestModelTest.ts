@@ -1,17 +1,19 @@
 import o from "ospec"
 import {ASSIGNMENT_UPDATE_INTERVAL_MS, PersistedAssignmentData, TtlBehavior, UsageTestModel, UsageTestStorage} from "../../../src/misc/UsageTestModel"
-import {createUsageTestAssignment} from "../../../src/api/entities/sys/TypeRefs.js"
+import {
+	createUsageTestAssignment,
+	createUsageTestAssignmentIn,
+	createUsageTestAssignmentOut,
+	createUsageTestMetricData,
+	createUsageTestParticipationIn
+} from "../../../src/api/entities/sys/TypeRefs.js"
 import {matchers, object, verify, when} from "testdouble"
-import {createUsageTestAssignmentIn} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createUsageTestAssignmentOut} from "../../../src/api/entities/sys/TypeRefs.js"
 import {clone} from "@tutao/tutanota-utils"
 import {Stage, UsageTest} from "@tutao/tutanota-usagetests"
-import {createUsageTestParticipationIn} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createUsageTestMetricData} from "../../../src/api/entities/sys/TypeRefs.js"
 import {SuspensionBehavior} from "../../../src/api/worker/rest/RestClient"
 import {UsageTestAssignmentService, UsageTestParticipationService} from "../../../src/api/entities/sys/Services.js"
 import {IServiceExecutor} from "../../../src/api/common/ServiceRequest"
-import modelInfo from "../../../src/api/entities/sys/sysModelInfo"
+import modelInfo from "../../../src/api/entities/sys/ModelInfo.js"
 
 const {anything} = matchers
 
