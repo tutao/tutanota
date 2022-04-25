@@ -32,18 +32,11 @@ import {SecondFactorHandler} from "../misc/2fa/SecondFactorHandler"
 import {SessionType} from "../api/common/SessionType"
 import {TtlBehavior} from "../misc/UsageTestModel"
 
-export async function addPostLoginActions(
-	credentialsProvider: ICredentialsProvider,
-	secondFactorHandler: SecondFactorHandler,
-) {
-	logins.addPostLoginAction(new PostLoginActions(credentialsProvider, secondFactorHandler))
-}
-
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
  */
 
-class PostLoginActions implements IPostLoginAction {
+export class PostLoginActions implements IPostLoginAction {
 	constructor(
 		public readonly credentialsProvider: ICredentialsProvider,
 		public secondFactorHandler: SecondFactorHandler,
