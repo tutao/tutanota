@@ -1,19 +1,13 @@
 //@bundleInto:common-min
 
 import {downcast} from "@tutao/tutanota-utils"
-import type {GroupMembership} from "../entities/sys/TypeRefs.js"
-import type {EmailSenderListElement} from "../entities/sys/TypeRefs.js"
-import type {CertificateInfo} from "../entities/sys/TypeRefs.js"
-import type {UserSettingsGroupRoot} from "../entities/tutanota/TypeRefs.js"
-import type {CalendarEventAttendee} from "../entities/tutanota/TypeRefs.js"
+import type {CertificateInfo, CreditCard, EmailSenderListElement, GroupMembership} from "../entities/sys/TypeRefs.js"
+import {AccountingInfo, Customer} from "../entities/sys/TypeRefs.js";
+import type {CalendarEventAttendee, UserSettingsGroupRoot} from "../entities/tutanota/TypeRefs.js"
+import {ContactSocialId, MailFolder} from "../entities/tutanota/TypeRefs.js";
 import {isAdminClient, isApp, isDesktop} from "./Env"
 import type {Country} from "./CountryList"
-import type {CreditCard} from "../entities/sys/TypeRefs.js"
 import {ProgrammingError} from "./error/ProgrammingError";
-import {MailFolder} from "../entities/tutanota/TypeRefs.js";
-import {ContactSocialId} from "../entities/tutanota/TypeRefs.js";
-import {Customer} from "../entities/sys/TypeRefs.js";
-import {AccountingInfo} from "../entities/sys/TypeRefs.js";
 
 export const MAX_NBR_MOVE_DELETE_MAIL_SERVICE = 50
 
@@ -61,13 +55,23 @@ export const GroupTypeNameByCode = reverse(GroupType)
 
 export const getMembershipGroupType = (membership: GroupMembership): GroupType => downcast(membership.groupType)
 
+/**
+ * Permission is a kind of a metadata instance. Primarily used for two purposes:
+ *  - key sharing
+ *  - reference counting in the db
+ * */
 export const enum PermissionType {
+	/** Used in combination with bucket permission to send multiple things encrypted with the same public key. */
 	Public = "0",
+	/** Used to encrypt an instance for another group (which we are member of). */
 	Symmetric = "1",
+	/** Used to updating public permission with symmetric key. */
 	Public_Symmetric = "2",
-	// instances without ownerEncSessionKey (e.g. MailBody, FileData) after asymmetric decryption
+	/** Instances without ownerEncSessionKey (e.g. MailBody, FileData) after asymmetric decryption, used for reference counting. */
 	Unencrypted = "3",
+	/** Sending parts of email for external users. */
 	External = "5",
+	/** Used to mark the owner of the list. */
 	Owner_List = "8",
 }
 
