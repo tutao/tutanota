@@ -34,18 +34,12 @@ export class ContactListView {
 		const sortByFirstName = stream(true)
 		this.list = new List({
 			rowHeight: size.list_row_height,
-			fetch: (startId, count) => {
+			fetch: async (startId, count) => {
 				if (startId === GENERATED_MAX_ID) {
-					return locator.contactModel.contactListId().then(contactListId => {
-						if (!contactListId) return []
-						// we have to load all contacts in order to sort them by name
-						return locator.entityClient.loadAll(ContactTypeRef, contactListId).then(allContacts => {
-							// we have to set loadedCompletely to make sure that fetch is never called again and also that new received contacts are inserted into the list, even at the end
-							this._setLoadedCompletely()
-
-							return allContacts
-						})
-					})
+					const contactListId = await locator.contactModel.contactListId()
+					if (contactListId == null) return {items: [], complete: true}
+					const allContacts = await locator.entityClient.loadAll(ContactTypeRef, contactListId)
+					return {items: allContacts, complete: true}
 				} else {
 					throw new Error("fetch contact called for specific start id")
 				}
@@ -112,10 +106,6 @@ export class ContactListView {
 		this.onbeforeremove = () => {
 			sortModeChangedListener.end(true)
 		}
-	}
-
-	_setLoadedCompletely() {
-		this.list.setLoadedCompletely()
 	}
 }
 
