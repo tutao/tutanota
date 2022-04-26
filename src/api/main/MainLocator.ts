@@ -58,6 +58,7 @@ import {BlobFacade} from "../worker/facades/BlobFacade"
 import {CryptoFacade} from "../worker/crypto/CryptoFacade"
 import type {InterWindowEventBus} from "../../native/common/InterWindowEventBus"
 import {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade"
+import {CachedRangeLoader} from "../worker/rest/EntityRestCache.js"
 import {LoginListener} from "./LoginListener"
 
 assertMainOrNode()
@@ -106,6 +107,7 @@ export interface IMainLocator {
 	readonly interWindowEventBus: InterWindowEventBus
 	readonly loginListener: LoginListener
 	readonly offlineDbFacade: OfflineDbFacade
+	readonly cachedRangeLoader: CachedRangeLoader
 
 	readonly init: () => Promise<void>
 	readonly initialized: Promise<void>
@@ -147,6 +149,7 @@ class MainLocator implements IMainLocator {
 	usageTestModel!: UsageTestModel
 	serviceExecutor!: IServiceExecutor
 	cryptoFacade!: CryptoFacade
+	cachedRangeLoader!: CachedRangeLoader
 	_interWindowEventBus!: InterWindowEventBus
 	loginListener!: LoginListener
 
@@ -275,6 +278,7 @@ class MainLocator implements IMainLocator {
 			restInterface,
 			serviceExecutor,
 			cryptoFacade,
+			cachedRangeLoader
 		} = this.worker.getWorkerInterface()
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -300,6 +304,8 @@ class MainLocator implements IMainLocator {
 		this.search = new SearchModel(this.searchFacade)
 		this.entityClient = new EntityClient(restInterface)
 		this.cryptoFacade = cryptoFacade
+		this.cachedRangeLoader = cachedRangeLoader
+
 		this.webauthnClient = new WebauthnClient(this.webauthnController, getWebRoot())
 		this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, this.webauthnClient, this.loginFacade)
 		this.loginListener = new LoginListener(this.secondFactorHandler)

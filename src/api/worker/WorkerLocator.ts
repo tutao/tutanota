@@ -12,7 +12,7 @@ import {FileFacade} from "./facades/FileFacade"
 import {SearchFacade} from "./search/SearchFacade"
 import {CustomerFacadeImpl} from "./facades/CustomerFacade"
 import {CounterFacade} from "./facades/CounterFacade"
-import {ENTITY_EVENT_BATCH_EXPIRE_MS, EventBusClient} from "./EventBusClient"
+import {EventBusClient} from "./EventBusClient"
 import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isDesktop, isOfflineStorageAvailable} from "../common/Env"
 import {Const} from "../common/TutanotaConstants"
 import type {BrowserData} from "../../misc/ClientConstants"
@@ -27,7 +27,7 @@ import type {ContactFormFacade} from "./facades/ContactFormFacade"
 import {ContactFormFacadeImpl} from "./facades/ContactFormFacade"
 import type {DeviceEncryptionFacade} from "./facades/DeviceEncryptionFacade"
 import {Aes256DeviceEncryptionFacade} from "./facades/DeviceEncryptionFacade"
-import type {ExposedNativeInterface, NativeInterface} from "../../native/common/NativeInterface"
+import type {NativeInterface} from "../../native/common/NativeInterface"
 import {NativeFileApp} from "../../native/common/FileApp"
 import {AesApp} from "../../native/worker/AesApp"
 import type {RsaImplementation} from "./crypto/RsaImplementation"
@@ -35,22 +35,19 @@ import {createRsaImplementation} from "./crypto/RsaImplementation"
 import {CryptoFacade, CryptoFacadeImpl} from "./crypto/CryptoFacade"
 import {InstanceMapper} from "./crypto/InstanceMapper"
 import {EphemeralCacheStorage} from "./rest/EphemeralCacheStorage"
-import {OfflineStorage} from "./rest/OfflineStorage"
-import {exposeRemote} from "../common/WorkerProxy"
 import {AdminClientRestCacheDummy} from "./rest/AdminClientRestCacheDummy"
 import {SleepDetector} from "./utils/SleepDetector.js"
 import {SchedulerImpl} from "../common/utils/Scheduler.js"
 import {WorkerDateProvider} from "./utils/WorkerDateProvider.js"
 import {LateInitializedCacheStorage, LateInitializedCacheStorageImpl} from "./rest/CacheStorageProxy"
-import {uint8ArrayToKey} from "@tutao/tutanota-crypto"
 import {IServiceExecutor} from "../common/ServiceRequest"
 import {ServiceExecutor} from "./rest/ServiceExecutor"
 import {BookingFacade} from "./facades/BookingFacade"
-import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import {BlobFacade} from "./facades/BlobFacade"
 import {NativeSystemApp} from "../../native/common/NativeSystemApp"
 import {DesktopConfigKey} from "../../desktop/config/ConfigKeys"
 import {CacheStorageFactory} from "./rest/CacheStorageFactory"
+import {CacheStorage} from "./rest/EntityRestCache.js"
 import {UserFacade} from "./facades/UserFacade"
 
 assertWorkerOrNode()
@@ -87,6 +84,7 @@ export type WorkerLocatorType = {
 	crypto: CryptoFacade
 	instanceMapper: InstanceMapper
 	booking: BookingFacade
+	cacheStorage: CacheStorage
 }
 export const locator: WorkerLocatorType = {} as any
 
@@ -112,6 +110,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	const maybeUninitializedStorage = isOfflineStorageAvailable()
 		? new LateInitializedCacheStorageImpl(new CacheStorageFactory(() => locator.restClient.getServerTimestampMs(), worker, locator.native))
 		: new AlwaysInitializedStorage()
+
+	locator.cacheStorage = maybeUninitializedStorage
 
 	// We don't wont to cache within the admin client
 	const cache = isAdminClient() ? null : new EntityRestCache(entityRestClient, maybeUninitializedStorage)

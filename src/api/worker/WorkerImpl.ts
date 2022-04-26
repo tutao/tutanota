@@ -39,6 +39,7 @@ import {WsConnectionState} from "../main/WorkerClient";
 import {RestClient} from "./rest/RestClient"
 import {IServiceExecutor} from "../common/ServiceRequest.js"
 import {BlobFacade} from "./facades/BlobFacade"
+import {CachedRangeLoader} from "./rest/EntityRestCache.js"
 import {ILoginListener} from "../main/LoginListener"
 
 assertWorkerOrNode()
@@ -66,6 +67,7 @@ export interface WorkerInterface {
 	readonly restInterface: EntityRestInterface
 	readonly serviceExecutor: IServiceExecutor
 	readonly cryptoFacade: CryptoFacade
+	readonly cachedRangeLoader: CachedRangeLoader
 }
 
 /** Interface for the "main"/webpage context of the app, interface for the worker client. */
@@ -205,6 +207,9 @@ export class WorkerImpl implements NativeInterface {
 			get cryptoFacade() {
 				return locator.crypto
 			},
+			get cachedRangeLoader() {
+				return locator.cacheStorage
+			}
 		}
 	}
 
