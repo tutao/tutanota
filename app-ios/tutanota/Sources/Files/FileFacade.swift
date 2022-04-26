@@ -77,7 +77,7 @@ class FileFacade {
   func uploadFile(
     atPath path: String,
     toUrl url: String,
-    method method: String,
+    method: String,
     withHeaders headers: [String : String],
     completion: @escaping ResponseCallback<DataTaskResponse>
   ) {
@@ -88,6 +88,8 @@ class FileFacade {
       request.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
       request.allHTTPHeaderFields = headers
 
+      // session has a default request timeout of 60 seconds for new data (configuration.timeoutIntervalForRequest)
+      // the overall timeout for the task (w retries) is 7 days (configuration.timeoutIntervalForResource)
       let session = URLSession(configuration: .ephemeral)
 
       let fileUrl = URL(fileURLWithPath: path)
