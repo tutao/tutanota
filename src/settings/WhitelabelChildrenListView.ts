@@ -4,22 +4,19 @@ import {List} from "../gui/base/List"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
-import {CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {neverNull, noOp} from "@tutao/tutanota-utils"
+import type {WhitelabelChild} from "../api/entities/sys/TypeRefs.js"
+import {CustomerTypeRef, WhitelabelChildTypeRef} from "../api/entities/sys/TypeRefs.js"
+import {LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {SettingsView} from "./SettingsView"
-import {LazyLoaded} from "@tutao/tutanota-utils"
 import {logins} from "../api/main/LoginController"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {header} from "../gui/base/Header"
-import type {WhitelabelChild} from "../api/entities/sys/TypeRefs.js"
-import {WhitelabelChildTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {WhitelabelChildViewer} from "./WhitelabelChildViewer"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
 import Stream from "mithril/stream";
@@ -44,23 +41,17 @@ export class WhitelabelChildrenListView {
 		})
 		this.list = new List({
 			rowHeight: size.list_row_height,
-			fetch: (startId, count) => {
+			fetch: async (startId, count) => {
 				if (startId === GENERATED_MAX_ID) {
-					return this._listId.getAsync().then(listId => {
-						if (listId) {
-							return locator.entityClient.loadAll(WhitelabelChildTypeRef, listId).then(allChildren => {
-								// we have to set loadedCompletely to make sure that fetch is never called again and also that new whitelabel children are inserted into the list, even at the end
-								this._setLoadedCompletely()
+					const listId = await this._listId.getAsync()
+					if (listId) {
+						// we return all whitelabel children because we have already loaded all children and the scroll bar shall have the complete size.
+						const allChildren = await locator.entityClient.loadAll(WhitelabelChildTypeRef, listId)
+						return {items: allChildren, complete: true}
 
-								// we return all whitelabel children because we have already loaded all children and the scroll bar shall have the complete size.
-								return allChildren
-							})
-						} else {
-							this._setLoadedCompletely()
-
-							return []
-						}
-					})
+					} else {
+						return {items: [], complete: true}
+					}
 				} else {
 					throw new Error("fetch whitelabel children called for specific start id")
 				}
@@ -113,10 +104,6 @@ export class WhitelabelChildrenListView {
 				this._searchResultStreamDependency.end(true)
 			}
 		}
-	}
-
-	_setLoadedCompletely() {
-		this.list.setLoadedCompletely()
 	}
 
 	elementSelected(whitelabelChildren: WhitelabelChild[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {

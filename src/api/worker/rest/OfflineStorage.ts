@@ -8,7 +8,7 @@ import {
 	listIdPart,
 	timestampToGeneratedId
 } from "../../common/utils/EntityUtils.js"
-import {CacheStorage, expandId} from "./EntityRestCache.js"
+import {CachedRangeLoader, CacheStorage, expandId} from "./EntityRestCache.js"
 import * as cborg from "cborg"
 import {EncodeOptions, Token, Type} from "cborg"
 import {assert, DAY_IN_MILLIS, groupByAndMap, mapNullable, typedKeys, TypeRef} from "@tutao/tutanota-utils"
@@ -57,7 +57,7 @@ export interface OfflineDbMeta extends AppMetadataEntries {
 	timeRangeDays: number
 }
 
-export class OfflineStorage implements CacheStorage {
+export class OfflineStorage implements CacheStorage, CachedRangeLoader {
 	private _userId: Id | null = null
 
 	constructor(

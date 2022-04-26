@@ -55,25 +55,21 @@ export class GroupListView implements UpdatableSettingsViewer {
 		this._localAdminGroupMemberships = logins.getUserController().getLocalAdminGroupMemberships()
 		this.list = new List({
 			rowHeight: size.list_row_height,
-			fetch: (startId, count) => {
+			fetch: async (startId, count) => {
 				if (startId === GENERATED_MAX_ID) {
-					return this._listId.getAsync().then(listId => {
-						return locator.entityClient.loadAll(GroupInfoTypeRef, listId).then(allGroupInfos => {
-							// we have to set loadedCompletely to make sure that fetch is never called again and also that new users are inserted into the list, even at the end
-							this._setLoadedCompletely()
-
-							// we return all users because we have already loaded all users and the scroll bar shall have the complete size.
-							if (logins.getUserController().isGlobalAdmin()) {
-								return allGroupInfos
-							} else {
-								let localAdminGroupIds = logins
-									.getUserController()
-									.getLocalAdminGroupMemberships()
-									.map(gm => gm.group)
-								return allGroupInfos.filter((gi: GroupInfo) => isAdministratedGroup(localAdminGroupIds, gi))
-							}
-						})
-					})
+					const listId = await this._listId.getAsync()
+					const allGroupInfos = await locator.entityClient.loadAll(GroupInfoTypeRef, listId)
+					let items: GroupInfo[]
+					if (logins.getUserController().isGlobalAdmin()) {
+						items = allGroupInfos
+					} else {
+						let localAdminGroupIds = logins
+							.getUserController()
+							.getLocalAdminGroupMemberships()
+							.map(gm => gm.group)
+						items = allGroupInfos.filter((gi: GroupInfo) => isAdministratedGroup(localAdminGroupIds, gi))
+					}
+					return {items, complete: true}
 				} else {
 					throw new Error("fetch user group infos called for specific start id")
 				}
@@ -142,10 +138,6 @@ export class GroupListView implements UpdatableSettingsViewer {
 				this._searchResultStreamDependency.end(true)
 			}
 		}
-	}
-
-	_setLoadedCompletely() {
-		this.list.setLoadedCompletely()
 	}
 
 	elementSelected(groupInfos: GroupInfo[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {

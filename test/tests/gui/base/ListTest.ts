@@ -2,8 +2,8 @@ import o from "ospec"
 import {List, ScrollBuffer} from "../../../../src/gui/base/List.js"
 import {downcast, noOp} from "@tutao/tutanota-utils"
 import {createMail} from "../../../../src/api/entities/tutanota/TypeRefs.js"
-import {GENERATED_MAX_ID} from "../../../../src/api/common/utils/EntityUtils.js";
 import type {ListElement} from "../../../../src/api/common/utils/EntityUtils.js"
+import {GENERATED_MAX_ID} from "../../../../src/api/common/utils/EntityUtils.js"
 
 function dummySort() {
 	return 0
@@ -33,13 +33,14 @@ o.spec("List", function () {
 					o(start).equals("zzzzzzzzzzzz")
 					o(count).equals(100)
 					done()
-					return Promise.resolve(new Array(100))
+					return Promise.resolve({items: new Array(100), complete: true})
 				},
 				sortCompare: dummySort,
 				rowHeight: 5,
 				className: "div",
 				createVirtualRow: () => defaultVLE,
-				elementSelected: () => {},
+				elementSelected: () => {
+				},
 				emptyMessage: "",
 				loadSingle: () => Promise.reject("stub"),
 				multiSelectionAllowed: true,
@@ -75,13 +76,14 @@ o.spec("List", function () {
 					if (start !== GENERATED_MAX_ID) {
 						throw new Error("wrong start")
 					}
-					return Promise.resolve(db.slice(0, count))
+					return Promise.resolve({items: db.slice(0, count), complete: true})
 				},
 				createVirtualRow: () => defaultVLE,
 				sortCompare: dummySort,
 				rowHeight: 5,
 				className: "div",
-				elementSelected: () => {},
+				elementSelected: () => {
+				},
 				emptyMessage: "",
 				loadSingle: () => Promise.reject("stub"),
 				multiSelectionAllowed: true,
@@ -127,11 +129,12 @@ o.spec("List", function () {
 			o.timeout(100)
 			let list = new List({
 				rowHeight: 62,
-				fetch: () => Promise.resolve(new Array(100).fill(createMail())),
+				fetch: () => Promise.resolve({items: new Array(100).fill(createMail()), complete: true}),
 				createVirtualRow: () => defaultVLE,
 				sortCompare: dummySort,
 				className: "div",
-				elementSelected: () => {},
+				elementSelected: () => {
+				},
 				emptyMessage: "",
 				loadSingle: () => Promise.reject("stub"),
 				multiSelectionAllowed: true,

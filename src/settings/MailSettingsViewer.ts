@@ -1,11 +1,10 @@
 import m, {Children} from "mithril"
-import {assertMainOrNode, isApp, isOfflineStorageAvailable} from "../api/common/Env"
+import {assertMainOrNode, isApp} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
-import type {TutanotaProperties} from "../api/entities/tutanota/TypeRefs.js"
-import {TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TypeRefs.js"
+import type {MailboxProperties, OutOfOfficeNotification, TutanotaProperties} from "../api/entities/tutanota/TypeRefs.js"
+import {MailboxPropertiesTypeRef, MailFolderTypeRef, OutOfOfficeNotificationTypeRef, TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import {FeatureType, InboxRuleType, OperationType, ReportMovedMailsType} from "../api/common/TutanotaConstants"
 import {capitalizeFirstLetter, defer, LazyLoaded, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
-import {MailFolderTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import {getInboxRuleTypeName} from "../mail/model/InboxRuleHandler"
 import type {EditAliasesFormAttrs} from "./EditAliasesFormN"
 import {createEditAliasFormAttrs, EditAliasesFormN, updateNbrOfAliases} from "./EditAliasesFormN"
@@ -38,13 +37,9 @@ import {LockedError} from "../api/common/error/RestError"
 import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtils"
 import {isSameId} from "../api/common/utils/EntityUtils"
 import {showEditOutOfOfficeNotificationDialog} from "./EditOutOfOfficeNotificationDialog"
-import type {OutOfOfficeNotification} from "../api/entities/tutanota/TypeRefs.js"
-import {OutOfOfficeNotificationTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import {formatActivateState, loadOutOfOfficeNotification} from "../misc/OutOfOfficeNotificationUtils"
 import {getSignatureType, show as showEditSignatureDialog} from "./EditSignatureDialog"
 import type {UpdatableSettingsViewer} from "./SettingsView"
-import type {MailboxProperties} from "../api/entities/tutanota/TypeRefs.js"
-import {MailboxPropertiesTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import {getReportMovedMailsType, loadMailboxProperties, saveReportMovedMails} from "../misc/MailboxPropertiesUtils"
 import {OfflineStorageSettingsModel} from "./OfflineStorageSettings"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
@@ -305,8 +300,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m(DropDownSelectorN, enableMailIndexingAttrs),
 					m(DropDownSelectorN, reportMovedMailsAttrs),
 					m(TextFieldN, outOfOfficeAttrs),
-					m(".h4.mt-l", lang.get("localDataSection_label")),
-					this.renderOfflineStorageSettingsField(),
+					this.renderLocalDataSection(),
 					logins.getUserController().isGlobalAdmin() ? m(EditAliasesFormN, this._editAliasFormAttrs) : null,
 					logins.isEnabled(FeatureType.InternalCommunication)
 						? null
@@ -338,25 +332,28 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		]
 	}
 
-	private renderOfflineStorageSettingsField(): Children {
+	private renderLocalDataSection(): Children {
 		if (!this.offlineStorageSettings.available()) {
 			return null
 		}
 
 		const label = lang.get("storedDataTimeRange_label", {"{numDays}": this.offlineStorageSettings.getTimeRange()})
 
-		return m(TextFieldN, {
-			label: "emptyString_msg",
-			// Negative upper margin to make up for no label
-			class: "mt-negative-s",
-			value: stream(label),
-			disabled: true,
-			injectionsRight: () => [m(ButtonN, {
-				label: "edit_action",
-				click: () => this.onEditStoredDataTimeRangeClicked(),
-				icon: () => Icons.Edit,
-			})],
-		})
+		return [
+			m(".h4.mt-l", lang.get("localDataSection_label")),
+			m(TextFieldN, {
+				label: "emptyString_msg",
+				// Negative upper margin to make up for no label
+				class: "mt-negative-s",
+				value: stream(label),
+				disabled: true,
+				injectionsRight: () => [m(ButtonN, {
+					label: "edit_action",
+					click: () => this.onEditStoredDataTimeRangeClicked(),
+					icon: () => Icons.Edit,
+				})],
+			})
+		]
 	}
 
 	private async onEditStoredDataTimeRangeClicked() {
