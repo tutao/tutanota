@@ -118,7 +118,7 @@ pipeline {
 
 					catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS',  message: 'Failed to create github release page') {
 						withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-							sh """node buildSrc/createGithubReleasePage.js --name '${VERSION} (Android)' \
+							sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (Android)' \
 																		   --milestone '${VERSION}' \
 																		   --tag '${tag}' \
 																		   --uploadFile '${WORKSPACE}/${filePath}' \

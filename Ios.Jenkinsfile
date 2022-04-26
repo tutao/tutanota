@@ -3,6 +3,7 @@ pipeline {
     	NODE_PATH="/opt/node-v16.3.0-linux-x64/bin"
     	NODE_MAC_PATH="/usr/local/opt/node@16/bin/"
     	VERSION = sh(returnStdout: true, script: "${NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
+    	RELEASE_NOTES_PATH = "${WORKSPACE}/app-ios/fastlane/metadata/default/release_notes.txt"
     }
 
     agent {
@@ -35,6 +36,7 @@ pipeline {
 	        	}
 	        }
 	    }
+
 		stage("Build IOS app") {
 			environment {
 				PATH="${env.NODE_MAC_PATH}:${env.PATH}"
@@ -49,9 +51,29 @@ pipeline {
 				script {
 					createAppfile()
 
+					script {
+						catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release notes') {
+							def tag = "tutanota-ios-release-${VERSION}"
+							// need to run npm ci to install dependencies of releaseNotes.js
+							sh "npm ci"
+							withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
+								sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (IOS)' \
+																			   --milestone '${VERSION}' \
+																			   --tag '${tag}' \
+																			   --platform ios
+																			   --format ios
+																			   --toFile ${RELEASE_NOTES_PATH}"""
+							}
+
+						}
+					}
+
+					stash includes: RELEASE_NOTES_PATH, name: 'release_notes'
+
 					def stage = params.PROD ? 'prod' : 'test'
 					def lane = params.PROD ? 'adhoc' : 'adhoctest'
 					def ipaFileName = params.PROD ? "tutanota-${VERSION}-adhoc.ipa" : "tutanota-${VERSION}-test.ipa"
+
 					sh "echo $PATH"
 					sh "npm ci"
 					sh 'npm run build-packages'
@@ -116,7 +138,7 @@ pipeline {
 			}
 		}
 
-		stage('Create github release') {
+		stage('Create github release page') {
 			environment {
 				PATH="${env.NODE_PATH}:${env.PATH}"
 			}
@@ -129,15 +151,16 @@ pipeline {
 			}
 			steps {
 				script {
+
 					catchError(stageResult: 'FAILURE', buildResult: 'SUCCESS', message: 'Failed to create github release page') {
 						def tag = "tutanota-ios-release-${VERSION}"
-						// need to run npm ci to install dependencies of createGithubReleasePage.js
+						// need to run npm ci to install dependencies of releaseNotes.js
 						sh "npm ci"
 						withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-							sh """node buildSrc/createGithubReleasePage.js --name '${VERSION} (IOS)' \
+							sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (IOS)' \
 																		   --milestone '${VERSION}' \
 																		   --tag '${tag}' \
-																		   --platform ios """
+																		   --platform ios"""
 						}
 					}
 				}

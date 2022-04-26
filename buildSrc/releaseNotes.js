@@ -8,15 +8,34 @@ const wasRunFromCli = fileURLToPath(import.meta.url).startsWith(process.argv[1])
 
 if (wasRunFromCli) {
 	options
-		.requiredOption('--name <name>', "Name of the release")
+		.requiredOption('--releaseName <releaseName>', "Name of the release")
 		.requiredOption('--milestone <milestone>', "Milestone to reference")
 		.requiredOption('--tag <tag>', "The commit tag to reference")
 		.option('--platform <platform>', 'Which platform to build', /android|ios|desktop|all/, "all")
 		.option('--uploadFile <filePath>', "Path to a file to upload")
 		.option('--apkChecksum <checksum>', "Checksum for the APK")
-		.parse(process.argv)
+		.option('--toFile <toFile>', "If provided, the release notes will be written to the given file path. Implies `--dryRun`")
+		.option('--dryRun', "Don't make any changes to github")
+		.option('--format <format>', "Format to generate notes in", "github")
+		.action(async (options) => {
+			await createReleaseNotes(options)
+		})
+		.parseAsync(process.argv)
+}
 
-	const {name, milestone, tag, platform, uploadFile, apkChecksum} = options
+async function createReleaseNotes(
+	{
+		releaseName,
+		milestone,
+		tag,
+		platform,
+		uploadFile,
+		apkChecksum,
+		toFile,
+		dryRun,
+		format
+	}
+) {
 
 	const releaseToken = process.env.GITHUB_TOKEN
 
@@ -29,54 +48,61 @@ if (wasRunFromCli) {
 		userAgent: 'tuta-github-release-v0.0.1'
 	})
 
-	const releaseNotes = await generateReleaseNotes(octokit, milestone, platform, apkChecksum)
-		.catch(e => {
-			console.error(e)
-			process.exit(1)
+	let releaseNotes
+
+	const githubMilestone = await getMilestone(octokit, milestone)
+	const issues = await getIssuesForMilestone(octokit, githubMilestone)
+	const {bugs, other} = sortIssues(filterIssues(issues, platform))
+
+	if (format === "ios") {
+		releaseNotes = renderIosReleaseNotes(bugs, other)
+	} else {
+		releaseNotes = renderGithubReleaseNotes({
+			milestoneUrl: githubMilestone.html_url,
+			bugIssues: bugs,
+			otherIssues: other,
+			apkChecksum: apkChecksum
 		})
+	}
 
-	const draftResponse = await createReleaseDraft(octokit, name, tag, releaseNotes)
+	console.log("Release notes:")
+	console.log(releaseNotes)
 
-	const {upload_url, id} = draftResponse.data
+	if (!dryRun && !toFile) {
+		const draftResponse = await createReleaseDraft(octokit, releaseName, tag, releaseNotes)
 
-	if (uploadFile) {
-		console.log(`Uploading asset "${uploadFile}"`)
-		await uploadAsset(octokit, upload_url, id, uploadFile)
+		const {upload_url, id} = draftResponse.data
+
+		if (uploadFile) {
+			console.log(`Uploading asset "${uploadFile}"`)
+			await uploadAsset(octokit, upload_url, id, uploadFile)
+		}
+	}
+
+	if (toFile) {
+		await fs.promises.writeFile(toFile, "utf-8")
 	}
 }
 
-export async function generateReleaseNotes(octokit, milestoneName, platform = "all", apkChecksum = null) {
-	const milestone = await getMilestone(octokit, milestoneName)
-	const issues = await getIssuesForMilestone(octokit, milestone)
-	const {bugs, rest} = sortIssues(filterIssues(issues, platform))
-	const {whatsNewListRendered, bugsListRendered} = renderIssues(rest, bugs)
-	return renderReleaseBody(milestone.html_url, whatsNewListRendered, bugsListRendered, apkChecksum)
-}
-
 async function getMilestone(octokit, milestoneName) {
-	const milestones = await getMilestones(octokit)
+	const {data} = await octokit.issues.listMilestones({
+		owner: "tutao",
+		repo: "tutanota",
+		direction: "desc",
+		state: "all"
+	})
 
-	const milestone = milestones.find(m => m.title === milestoneName)
+	const milestone = data.find(m => m.title === milestoneName)
 
 	if (milestone) {
 		return milestone
 	} else {
-		const titles = milestones.map(m => m.title)
+		const titles = data.map(m => m.title)
 		throw new Error(`No milestone named ${milestoneName} found. Milestones: ${titles.join(", ")}`)
 	}
 }
 
-async function getMilestones(octokit) {
-	return (await octokit.issues.listMilestones({
-			owner: "tutao",
-			repo: "tutanota",
-			direction: "desc",
-			state: "all"
-		})
-	).data
-}
-
-async function getIssuesForMilestone(octokit, milestone, platform) {
+async function getIssuesForMilestone(octokit, milestone) {
 	const response = await octokit.issues.listForRepo({
 		owner: "tutao",
 		repo: "tutanota",
@@ -109,34 +135,40 @@ function filterIssues(issues, platform) {
 	}
 }
 
+/**
+ *  Sort issues into bug issues and other issues
+ */
 function sortIssues(issues) {
 	const bugs = []
-	const rest = []
+	const other = []
 	for (const issue of issues) {
 		const isBug = issue.labels.find(l => l.name === "bug")
 		if (isBug) {
 			bugs.push(issue)
 		} else {
-			rest.push(issue)
+			other.push(issue)
 		}
 	}
-	return {bugs, rest}
+	return {bugs, other}
 }
 
-function renderIssues(rest, bugs) {
-	const whatsNewListRendered = rest.map(i => {
-		return ` - ${i.title} #${i.number}`
-	}).join("\n")
-	const bugsListRendered = bugs.map(i => {
-		return ` - ${i.title} #${i.number}`
-	}).join("\n")
-	return {whatsNewListRendered, bugsListRendered}
-}
+function renderGithubReleaseNotes({milestoneUrl, bugIssues, otherIssues, apkChecksum}) {
 
-function renderReleaseBody(milestoneUrl, whatsNewListRendered, bugsListRendered, apkChecksum) {
+	const whatsNewListRendered = otherIssues.map(issue => {
+		return ` - ${issue.title} #${issue.number}`
+	}).join("\n")
+
+	const bugsListRendered = bugIssues.map(issue => {
+		return ` - ${issue.title} #${issue.number}`
+	}).join("\n")
+
 	const milestoneUrlObject = new URL(milestoneUrl)
 	milestoneUrlObject.searchParams.append("closed", "1")
-	return `# What's new
+
+	const apkSection = apkChecksum ? `# APK Checksum\nSHA256: ${apkChecksum}` : ""
+
+	return `
+# What's new
 ${whatsNewListRendered}
 
 # Bugfixes
@@ -145,7 +177,17 @@ ${bugsListRendered}
 # Milestone
 ${milestoneUrlObject.toString()}
 
-` + (apkChecksum ? `# APK Checksum\nSHA256: ${apkChecksum}` : "")
+${apkSection}
+`.trim()
+}
+
+function renderIosReleaseNotes(bugs, rest) {
+	return `
+what's new:
+${rest.map(issue => issue.title).join("\n")}
+
+bugfixes:
+${bugs.map(issue => issue.title).join("\n")}`.trim()
 }
 
 async function createReleaseDraft(octokit, name, tag, body) {
