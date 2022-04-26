@@ -24,9 +24,11 @@ import {UsageTest} from "@tutao/tutanota-usagetests"
 export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
 	private __signupPaidTest?: UsageTest
+	private __signupFreeTest?: UsageTest
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>) {
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
+		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
 
 		this.dom = vnode.dom as HTMLElement
 	}
@@ -68,6 +70,10 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 				orderConfirmationStage?.setMetric({
 					name: "paymentMethod",
 					value: PaymentMethodTypeToName[data.paymentData.paymentMethod],
+				})
+				orderConfirmationStage?.setMetric({
+					name: "switchedFromFree",
+					value: (this.__signupFreeTest?.isStarted() ?? false).toString(),
 				})
 				orderConfirmationStage?.complete()
 

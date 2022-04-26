@@ -16,8 +16,11 @@ export class Stage {
 	) {
 	}
 
-	async complete() {
-		await this.test.completeStage(this)
+	/**
+	 * Attempts to the complete the stage and returns true if a ping has been sent successfully.
+	 */
+	async complete(): Promise<boolean> {
+		return await this.test.completeStage(this)
 	}
 
 	setMetric(metric: Metric) {
@@ -26,8 +29,8 @@ export class Stage {
 }
 
 export class ObsoleteStage extends Stage {
-	async complete() {
-		// no op
+	async complete(): Promise<boolean> {
+		return true
 	}
 
 	setMetric(metric: Metric) {

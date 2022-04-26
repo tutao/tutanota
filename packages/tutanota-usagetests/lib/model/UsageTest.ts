@@ -24,6 +24,10 @@ export class UsageTest {
 	) {
 	}
 
+	isStarted(): boolean {
+		return this.lastCompletedStage > ASSIGNMENT_STAGE
+	}
+
 	getStage(stageNum: number): Stage {
 		if (!this.stages.has(stageNum)) {
 			throw new Error(`Stage ${stageNum} is not registered`)
@@ -45,19 +49,23 @@ export class UsageTest {
 		return variants[this.variant]()
 	}
 
-	async completeStage(stage: Stage) {
+	/**
+	 * Should not be used directly. Use stage.complete() instead.
+	 */
+	async completeStage(stage: Stage): Promise<boolean> {
 		if (!this.pingAdapter) {
 			throw new Error("no ping adapter has been registered")
 		} else if (this.variant === NO_PARTICIPATION_VARIANT || !this.active) {
-			return
+			return false
 		} else if (this.strictStageOrder && stage.number !== this.lastCompletedStage + 1) {
 			console.log(`Not sending ping for stage (${stage.number}) in wrong order because strictStageOrder is set on test '${this.testId}'`)
-			return
+			return false
 		}
 
 		console.log(`Completing stage: ${stage.number}, variant: ${this.variant}`)
 		this.lastCompletedStage = stage.number === (this.stages.size - 1) ? ASSIGNMENT_STAGE : stage.number
 		await this.pingAdapter.sendPing(this, stage)
+		return true
 	}
 }
 
@@ -81,7 +89,7 @@ export class ObsoleteUsageTest extends UsageTest {
 		return variants[0]()
 	}
 
-	async completeStage(stage: Stage) {
-		// no op
+	async completeStage(stage: Stage): Promise<boolean> {
+		return true
 	}
 }
