@@ -229,6 +229,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 
 					return decryptKey(gk, key)
 				} else {
+					// See PermissionType jsdoc for more info on permissions
 					const permissions = await this.entityClient.loadAll(PermissionTypeRef, instance._permissions)
 					return this.trySymmetricPermission(permissions) ?? (await this.resolveWithPublicOrExternalPermission(permissions, instance, typeModel))
 				}
