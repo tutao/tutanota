@@ -1,5 +1,5 @@
 import m, {Children, Component} from "mithril"
-import {List} from "../../gui/base/List"
+import {ListFetchResult, List} from "../../gui/base/List"
 import {assertMainOrNode} from "../../api/common/Env"
 import {lang} from "../../misc/LanguageViewModel"
 import {size} from "../../gui/size"
@@ -49,7 +49,7 @@ export class SearchListView implements Component {
 	// Contains load more results even when searchModel doesn't.
 	// Load more should probably be moved to the model to update it's result stream.
 	_searchResult: SearchResult | null = null
-	_lastSearchResults: DeferredObject<Array<SearchResultListEntry>> | null = null
+	_lastSearchResults: DeferredObject<ListFetchResult<SearchResultListEntry>> | null = null
 
 	constructor(searchView: SearchView) {
 		this._searchView = searchView
@@ -125,7 +125,7 @@ export class SearchListView implements Component {
 		this._lastType = m.route.param("category") === "mail" ? MailTypeRef : ContactTypeRef
 		return new List({
 			rowHeight: size.list_row_height,
-			fetch: (startId, count) => {
+			fetch: async (startId, count) => {
 				if (locator.search.indexState().initializing) {
 					// show spinner until the actual search index is initialized
 					return new Promise(noOp)
@@ -134,7 +134,7 @@ export class SearchListView implements Component {
 				const lastResult = this._searchResult
 
 				if (!lastResult || (lastResult.results.length === 0 && !hasMoreResults(lastResult))) {
-					return Promise.resolve([])
+					return {items: [], complete: true}
 				}
 
 				// If search is triggered and completes again before we finished loading the results from the previous search
@@ -142,10 +142,10 @@ export class SearchListView implements Component {
 				// this can happen if the user hits the enter key fast while in the search bar
 				// so we will ignore whatever is being downloaded from the last search, and the new search will update the list
 				if (this._lastSearchResults) {
-					this._lastSearchResults.resolve([])
+					this._lastSearchResults.resolve({items: [], complete: true})
 				}
 
-				const deferredResult = defer<SearchResultListEntry[]>()
+				const deferredResult = defer<ListFetchResult<SearchResultListEntry>>()
 				this._lastSearchResults = deferredResult
 
 				this.loadSearchResults(lastResult, startId !== GENERATED_MAX_ID, startId, count)
@@ -155,7 +155,7 @@ export class SearchListView implements Component {
 						// We only want to resolve the most recent deferred object with it's respective search query results
 						// Any queries that started but didn't finish before this one began have already been resolved with `[]`
 						if (this._lastSearchResults === deferredResult) {
-							deferredResult.resolve(entries)
+							deferredResult.resolve({items: entries, complete: entries.length < count})
 							this._lastSearchResults = null
 						}
 					})

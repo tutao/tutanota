@@ -38,16 +38,6 @@ export class CacheStorageFactory {
 			const offlineStorage = new OfflineStorage(offlineDbFacade, new WorkerDateProvider())
 			await offlineStorage.init(args.userId, uint8ArrayToKey(args.databaseKey))
 
-			const lastUpdateTime = await offlineStorage.getLastUpdateTime()
-			if (lastUpdateTime != null) {
-				const serverTime = this.getServerTime()
-				if (serverTime - lastUpdateTime > ENTITY_EVENT_BATCH_EXPIRE_MS) {
-					console.log(`Purging database for user ${args.userId} because it is out of sync`)
-					await offlineStorage.purgeStorage()
-					this.worker.sendError(new OutOfSyncError("database is out of sync"))
-				}
-			}
-
 			await offlineStorage.clearExcludedData()
 			return offlineStorage
 		} else {

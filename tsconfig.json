@@ -3,9 +3,10 @@
 	"compilerOptions": {
 		"declaration": false,
 		"noEmit": true,
-		"outDir": "build/dist"
+		"outDir": "build/dist",
+	  	"incremental": true,
 	},
-	"include": [
+  "include": [
 		"src/",
 		"libs/*.ts",
 		"types/*.d.ts"

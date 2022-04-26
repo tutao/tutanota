@@ -1,6 +1,6 @@
 import m, {Children} from "mithril"
 import type {SettingsView, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer} from "./SettingsView"
-import type {KnowledgeBaseEntry} from "../api/entities/tutanota/TypeRefs.js"
+import type {KnowledgeBaseEntry, TemplateGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
 import {KnowledgeBaseEntryTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {lang} from "../misc/LanguageViewModel"
@@ -9,7 +9,6 @@ import {List} from "../gui/base/List"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {size} from "../gui/size"
-import type {TemplateGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
 import {EntityClient} from "../api/common/EntityClient"
 import {showKnowledgeBaseEditor} from "./KnowledgeBaseEditor"
 import {getElementId, isSameId, listIdPart} from "../api/common/utils/EntityUtils"
@@ -50,8 +49,9 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 		const knowledgebaseListId = this._templateGroupRoot.knowledgeBase
 		const listConfig: ListConfig<KnowledgeBaseEntry, KnowledgeBaseRow> = {
 			rowHeight: size.list_row_height,
-			fetch: (startId, count) => {
-				return this._entityClient.loadRange(KnowledgeBaseEntryTypeRef, knowledgebaseListId, startId, count, true)
+			fetch: async (startId, count) => {
+				const items = await this._entityClient.loadRange(KnowledgeBaseEntryTypeRef, knowledgebaseListId, startId, count, true)
+				return {items, complete: items.length < count}
 			},
 			loadSingle: elementId => {
 				return this._entityClient.load<KnowledgeBaseEntry>(KnowledgeBaseEntryTypeRef, [knowledgebaseListId, elementId])
