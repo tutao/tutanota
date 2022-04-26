@@ -217,16 +217,6 @@ function makeCacheStorage(getServerTime: () => number, worker: WorkerImpl): Late
 				const {offlineDbFacade} = exposeRemote<ExposedNativeInterface>((request) => locator.native.invokeNative(request))
 				const offlineStorage = new OfflineStorage(offlineDbFacade)
 				await offlineStorage.init(args.userId, uint8ArrayToKey(args.databaseKey))
-
-				const lastUpdateTime = await offlineStorage.getLastUpdateTime()
-				if (lastUpdateTime != null) {
-					const serverTime = getServerTime()
-					if (serverTime - lastUpdateTime > ENTITY_EVENT_BATCH_EXPIRE_MS) {
-						console.log(`Purging database for user ${args.userId} because it is out of sync`)
-						await offlineStorage.purgeStorage()
-						worker.sendError(new OutOfSyncError("database is out of sync"))
-					}
-				}
 				return offlineStorage
 			} else {
 				return new EphemeralCacheStorage()
