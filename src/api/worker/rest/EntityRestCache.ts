@@ -4,17 +4,19 @@ import {resolveTypeReference} from "../../common/EntityFunctions"
 import {OperationType} from "../../common/TutanotaConstants"
 import {assertNotNull, firstThrow, flat, groupBy, isSameTypeRef, lastThrow, TypeRef} from "@tutao/tutanota-utils"
 import {containsEventOfType, getEventOfType} from "../../common/utils/Utils"
-import {PermissionTypeRef} from "../../entities/sys/TypeRefs.js"
-import {EntityEventBatchTypeRef} from "../../entities/sys/TypeRefs.js"
+import type {EntityUpdate} from "../../entities/sys/TypeRefs.js"
+import {
+	BucketPermissionTypeRef,
+	EntityEventBatchTypeRef,
+	PermissionTypeRef,
+	RecoverCodeTypeRef,
+	RejectedSenderTypeRef,
+	SecondFactorTypeRef,
+	SessionTypeRef
+} from "../../entities/sys/TypeRefs.js"
 import {ValueType} from "../../common/EntityConstants"
-import {SessionTypeRef} from "../../entities/sys/TypeRefs.js"
-import {BucketPermissionTypeRef} from "../../entities/sys/TypeRefs.js"
-import {SecondFactorTypeRef} from "../../entities/sys/TypeRefs.js"
-import {RecoverCodeTypeRef} from "../../entities/sys/TypeRefs.js"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {MailTypeRef} from "../../entities/tutanota/TypeRefs.js"
-import type {EntityUpdate} from "../../entities/sys/TypeRefs.js"
-import {RejectedSenderTypeRef} from "../../entities/sys/TypeRefs.js"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId} from "../../common/utils/EntityUtils";
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {assertWorkerOrNode} from "../../common/Env"
@@ -22,8 +24,6 @@ import type {ListElementEntity, SomeEntity} from "../../common/EntityTypes"
 import {EntityUpdateData} from "../../main/EventController"
 import {QueuedBatch} from "../search/EventQueue"
 import {ENTITY_EVENT_BATCH_EXPIRE_MS} from "../EventBusClient"
-import {WorkerImpl} from "../WorkerImpl"
-import {OutOfSyncError} from "../../common/error/OutOfSyncError"
 
 
 assertWorkerOrNode()
@@ -74,7 +74,23 @@ export interface IEntityRestCache extends EntityRestInterface {
 
 export type Range = {lower: Id, upper: Id}
 
-export interface CacheStorage {
+/**
+ * Part of the cache storage only with list loading part.
+ * Separate from the rest of the cache as a narrow interface to not expose the whole storage for cases where we want to only get the cached part of the list to
+ * display it even if we can't load the full page from the server.
+ */
+export interface CachedRangeLoader {
+	/**
+	 * Load range of entities. Does not include {@param start}.
+	 * If {@param reverse} is false then returns entities newer than {@param start} in ascending order sorted by
+	 * elementId.
+	 * If {@param reverse} is true then returns entities older than {@param start} in descending order sorted by
+	 * elementId.
+	 */
+	provideFromRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]>;
+}
+
+export interface CacheStorage extends CachedRangeLoader {
 
 	/**
 	 * Get a given entity from the cache, expects that you have already checked for existence
@@ -86,15 +102,6 @@ export interface CacheStorage {
 	isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<boolean>;
 
 	put(originalEntity: SomeEntity): Promise<void>;
-
-	/**
-	 * Load range of entities. Does not include {@param start}.
-	 * If {@param reverse} is false then returns entities newer than {@param start} in ascending order sorted by
-	 * elementId.
-	 * If {@param reverse} is true then returns entities older than {@param start} in descending order sorted by
-	 * elementId.
-	 */
-	provideFromRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]>;
 
 	getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Range | null>;
 

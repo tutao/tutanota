@@ -58,6 +58,7 @@ import {BlobFacade} from "../worker/facades/BlobFacade"
 import {CryptoFacade} from "../worker/crypto/CryptoFacade"
 import type {InterWindowEventBus} from "../../native/common/InterWindowEventBus"
 import {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade"
+import {CachedRangeLoader} from "../worker/rest/EntityRestCache.js"
 
 assertMainOrNode()
 
@@ -104,6 +105,7 @@ export interface IMainLocator {
 	readonly cryptoFacade: CryptoFacade
 	readonly interWindowEventBus: InterWindowEventBus
 	readonly offlineDbFacade: OfflineDbFacade
+	readonly cachedRangeLoader: CachedRangeLoader
 
 	readonly init: () => Promise<void>
 	readonly initialized: Promise<void>
@@ -145,6 +147,7 @@ class MainLocator implements IMainLocator {
 	usageTestModel!: UsageTestModel
 	serviceExecutor!: IServiceExecutor
 	cryptoFacade!: CryptoFacade
+	cachedRangeLoader!: CachedRangeLoader
 	_interWindowEventBus!: InterWindowEventBus
 
 	/**
@@ -272,6 +275,7 @@ class MainLocator implements IMainLocator {
 			restInterface,
 			serviceExecutor,
 			cryptoFacade,
+			cachedRangeLoader
 		} = this.worker.getWorkerInterface()
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -297,6 +301,8 @@ class MainLocator implements IMainLocator {
 		this.search = new SearchModel(this.searchFacade)
 		this.entityClient = new EntityClient(restInterface)
 		this.cryptoFacade = cryptoFacade
+		this.cachedRangeLoader = cachedRangeLoader
+
 		this.webauthnClient = new WebauthnClient(this.webauthnController, getWebRoot())
 		this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, this.webauthnClient, this.loginFacade)
 		this.credentialsProvider = await createCredentialsProvider(deviceEncryptionFacade, this._nativeInterfaces?.native ?? null, isDesktop() ? this.interWindowEventBus : null)

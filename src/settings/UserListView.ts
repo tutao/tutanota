@@ -5,8 +5,7 @@ import {lang} from "../misc/LanguageViewModel.js"
 import {NotFoundError} from "../api/common/error/RestError.js"
 import {size} from "../gui/size.js"
 import type {GroupInfo} from "../api/entities/sys/TypeRefs.js"
-import {GroupInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
+import {CustomerTypeRef, GroupInfoTypeRef, GroupMemberTypeRef, UserTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {assertNotNull, contains, LazyLoaded, neverNull, noOp, promiseMap} from "@tutao/tutanota-utils"
 import {UserViewer} from "./UserViewer.js"
 import type {SettingsView, UpdatableSettingsViewer} from "./SettingsView.js"
@@ -16,8 +15,6 @@ import {Icon} from "../gui/base/Icon.js"
 import {Icons} from "../gui/base/icons/Icons.js"
 import {BootIcons} from "../gui/base/icons/BootIcons.js"
 import {header} from "../gui/base/Header.js"
-import {GroupMemberTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {UserTypeRef} from "../api/entities/sys/TypeRefs.js"
 import type {EntityUpdateData} from "../api/main/EventController.js"
 import {isUpdateForTypeRef} from "../api/main/EventController.js"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN.js"
@@ -58,19 +55,18 @@ export class UserListView implements UpdatableSettingsViewer {
 				const listId = await this.listId.getAsync()
 				const allUserGroupInfos = await locator.entityClient.loadAll(GroupInfoTypeRef, listId)
 
-				// we have to set loadedCompletely to make sure that fetch is never called again and also that new users are inserted into the list, even at the end
-				this.list.setLoadedCompletely()
-
 				// we return all users because we have already loaded all users and the scroll bar shall have the complete size.
+				let items: GroupInfo[]
 				if (logins.getUserController().isGlobalAdmin()) {
-					return allUserGroupInfos
+					items = allUserGroupInfos
 				} else {
 					let localAdminGroupIds = logins
 						.getUserController()
 						.getLocalAdminGroupMemberships()
 						.map(gm => gm.group)
-					return allUserGroupInfos.filter((gi: GroupInfo) => gi.localAdmin && localAdminGroupIds.includes(gi.localAdmin))
+					items = allUserGroupInfos.filter((gi: GroupInfo) => gi.localAdmin && localAdminGroupIds.includes(gi.localAdmin))
 				}
+				return {items, complete: true}
 			},
 			loadSingle: async elementId => {
 				const listId = await this.listId.getAsync()

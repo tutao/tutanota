@@ -51,13 +51,19 @@ export interface VirtualRow<T> {
 	domElement: HTMLElement | null
 }
 
+export interface ListFetchResult<T> {
+	items: Array<T>
+	/** Complete means that we loaded the whole list and additional requests will not yield any results. */
+	complete: boolean
+}
+
 export interface ListConfig<T, R extends VirtualRow<T>> {
 	rowHeight: number
 
 	/**
 	 * Get the given number of entities starting after the given id. May return more elements than requested, e.g. if all elements are available on first fetch.
 	 */
-	fetch(startId: Id, count: number): Promise<Array<T>>
+	fetch(startId: Id, count: number): Promise<ListFetchResult<T>>
 
 	/**
 	 * Returns null if the given element could not be loaded
@@ -831,6 +837,10 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 
 	private async loadMore(): Promise<void> {
 		await this.loadingState.trackPromise(this.doLoadMore())
+				  .then(() =>
+					  // If we fetched just a few items we might want to try again
+					  this.loadMoreIfNecessary()
+				  )
 				  .catch(ofClass(ConnectionError, (e) => console.log("connection error in loadMore")))
 				  .finally(() => m.redraw())
 	}
@@ -848,10 +858,10 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 
 		this.loading = this.config
 						   .fetch(startId, count)
-						   .then(newItems => {
-							   this.loadedEntities.push(...newItems)
+						   .then(({items, complete}) => {
+							   this.loadedEntities.push(...items)
 							   this.loadedEntities.sort(this.config.sortCompare)
-							   if (newItems.length < count) {
+							   if (complete) {
 								   // ensure that all elements are added to the loaded entities before calling setLoadedCompletely
 								   this.setLoadedCompletely()
 							   }

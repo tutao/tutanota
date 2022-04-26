@@ -9,12 +9,10 @@ import {size} from "../gui/size"
 import type {SettingsView, UpdatableSettingsViewer} from "./SettingsView"
 import {TemplateDetailsViewer} from "./TemplateDetailsViewer"
 import {showTemplateEditor} from "./TemplateEditor"
-import type {EmailTemplate} from "../api/entities/tutanota/TypeRefs.js"
-import {createEmailTemplate, EmailTemplateTypeRef} from "../api/entities/tutanota/TypeRefs.js"
-import type {TemplateGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
+import type {EmailTemplate, TemplateGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
+import {createEmailTemplate, createEmailTemplateContent, EmailTemplateTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import {EntityClient} from "../api/common/EntityClient"
 import {getElementId, isSameId} from "../api/common/utils/EntityUtils"
-import {createEmailTemplateContent} from "../api/entities/tutanota/TypeRefs.js"
 import {TEMPLATE_SHORTCUT_PREFIX} from "../templates/model/TemplatePopupModel"
 import {hasCapabilityOnGroup} from "../sharing/GroupUtils"
 import {OperationType, ShareCapability} from "../api/common/TutanotaConstants"
@@ -47,15 +45,16 @@ export class TemplateListView implements UpdatableSettingsViewer {
 	_initTemplateList(): List<EmailTemplate, TemplateRow> {
 		const listConfig: ListConfig<EmailTemplate, TemplateRow> = {
 			rowHeight: size.list_row_height,
-			fetch: (startId, count) => {
-				return this._entityClient.loadRange(EmailTemplateTypeRef, this.templateListId(), startId, count, true)
+			fetch: async (startId, count) => {
+				const items = await this._entityClient.loadRange(EmailTemplateTypeRef, this.templateListId(), startId, count, true)
+				return {items, complete: items.length < count}
 			},
 			loadSingle: elementId => {
 				return this._entityClient.load<EmailTemplate>(EmailTemplateTypeRef, [this.templateListId(), elementId])
 			},
 			sortCompare: (a: EmailTemplate, b: EmailTemplate) => {
-				var titleA = a.title.toUpperCase()
-				var titleB = b.title.toUpperCase()
+				const titleA = a.title.toUpperCase()
+				const titleB = b.title.toUpperCase()
 				return titleA < titleB ? -1 : titleA > titleB ? 1 : 0
 			},
 			elementSelected: (templates: Array<EmailTemplate>, elementClicked) => {
