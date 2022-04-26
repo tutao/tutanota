@@ -38,9 +38,11 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 
 		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
 		this.__signupFreeTest.strictStageOrder = true
+		this.__signupFreeTest.active = false
 
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
 		this.__signupPaidTest.strictStageOrder = true
+		this.__signupPaidTest.active = false
 	}
 
 	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
@@ -81,7 +83,14 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 
 	selectFree(data: UpgradeSubscriptionData) {
 		// Confirmation of free subscription selection (click on subscription selector)
-		this.__signupFreeTest?.getStage(0).complete()
+		if (this.__signupPaidTest) {
+			this.__signupPaidTest.active = false
+		}
+
+		if (this.__signupFreeTest) {
+			this.__signupFreeTest.active = true
+			this.__signupFreeTest.getStage(0).complete()
+		}
 		confirmFreeSubscription().then(confirmed => {
 			if (confirmed) {
 				// Confirmation of free/business dialog (click on ok)
@@ -149,7 +158,14 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 
 	setNonFreeDataAndGoToNextPage(data: UpgradeSubscriptionData, subscriptionType: SubscriptionType): void {
 		// Confirmation of paid subscription selection (click on subscription selector)
-		this.__signupPaidTest?.getStage(0).complete()
+		if (this.__signupFreeTest) {
+			this.__signupFreeTest.active = false
+		}
+
+		if (this.__signupPaidTest) {
+			this.__signupPaidTest.active = true
+			this.__signupPaidTest.getStage(0).complete()
+		}
 		data.type = subscriptionType
 		data.price = String(getSubscriptionPrice(data, data.type, UpgradePriceType.PlanActualPrice))
 		let nextYear = String(getSubscriptionPrice(data, data.type, UpgradePriceType.PlanNextYearsPrice))

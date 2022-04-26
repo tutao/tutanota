@@ -110,7 +110,13 @@ export class SignupForm implements Component<SignupFormAttrs> {
 				if (confirmed) {
 					// Credentials confirmation (click on next)
 					// Only the started test's (either free or paid clicked) stage is completed here
-					this.__signupFreeTest?.getStage(4).complete()
+					const credentialsConfirmationStageFree = this.__signupFreeTest?.getStage(4)
+					credentialsConfirmationStageFree?.setMetric({
+						name: "switchedFromPaid",
+						value: (this.__signupPaidTest?.isStarted() ?? false).toString(),
+					})
+					credentialsConfirmationStageFree?.complete()
+
 					this.__signupPaidTest?.getStage(3).complete()
 					return signup(
 						this._mailAddress,
