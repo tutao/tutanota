@@ -12,7 +12,7 @@ export type VariantsIndex<ReturnT> = {
 export class UsageTest {
 	private readonly stages: Map<number, Stage> = new Map<number, Stage>()
 	pingAdapter?: PingAdapter
-	private lastCompletedStage = ASSIGNMENT_STAGE
+	public lastCompletedStage = ASSIGNMENT_STAGE
 
 	public strictStageOrder = false
 

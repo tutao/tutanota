@@ -108,16 +108,30 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			const ageConfirmPromise = this._confirmAge() ? Promise.resolve(true) : Dialog.confirm("parentConfirmation_msg", "paymentDataValidation_action")
 			ageConfirmPromise.then(confirmed => {
 				if (confirmed) {
-					// Credentials confirmation (click on next)
-					// Only the started test's (either free or paid clicked) stage is completed here
-					const credentialsConfirmationStageFree = this.__signupFreeTest?.getStage(4)
-					credentialsConfirmationStageFree?.setMetric({
-						name: "switchedFromPaid",
-						value: (this.__signupPaidTest?.isStarted() ?? false).toString(),
-					})
-					credentialsConfirmationStageFree?.complete()
+					// Only the started test's (either free or paid clicked) stages are completed here
+					if (this.__signupFreeTest) {
+						// Make sure that the previous two pings (valid email + valid passwords) have been sent in the correct order
+						this.__signupFreeTest.getStage(2).complete()
+						this.__signupFreeTest.getStage(3).complete()
 
-					this.__signupPaidTest?.getStage(3).complete()
+						// Credentials confirmation (click on next)
+						const credentialsConfirmationStageFree = this.__signupFreeTest.getStage(4)
+						credentialsConfirmationStageFree?.setMetric({
+							name: "switchedFromPaid",
+							value: (this.__signupPaidTest?.isStarted() ?? false).toString(),
+						})
+						credentialsConfirmationStageFree?.complete()
+					}
+
+					if (this.__signupPaidTest) {
+						// Make sure that the previous two pings (valid email + valid passwords) have been sent in the correct order
+						this.__signupPaidTest.getStage(1).complete()
+						this.__signupPaidTest.getStage(2).complete()
+
+						// Credentials confirmation (click on next)
+						this.__signupPaidTest.getStage(3).complete()
+					}
+
 					return signup(
 						this._mailAddress,
 						this.passwordModel.getNewPassword(),
