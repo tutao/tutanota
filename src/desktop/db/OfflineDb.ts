@@ -250,6 +250,16 @@ export class OfflineDb {
 			throw new CryptoError(`Integrity check failed with result : ${JSON.stringify(errors)}`)
 		}
 	}
+
+	deleteIn(type: string, listId: Id | null, elementIds: Id[]) {
+		const elementIdsPlaceholder = elementIds.map(() => '?').join(",")
+		const query = listId == null
+			? `DELETE FROM element_entities WHERE type = :type AND elementId IN (${elementIdsPlaceholder})`
+			: `DELETE FROM list_entities WHERE type = :type AND listId = :listId AND elementId IN (${elementIdsPlaceholder})`
+
+		this.db.prepare(query)
+			.run(elementIds, {type, listId})
+	}
 }
 
 enum SqliteBool {

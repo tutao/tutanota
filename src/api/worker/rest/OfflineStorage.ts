@@ -194,7 +194,6 @@ export class OfflineStorage implements CacheStorage, CachedRangeLoader {
 	}
 
 	async clearExcludedData(): Promise<void> {
-		const start = Date.now()
 
 		// Reset the stored data time range to the default in case the user has downgraded
 		const user = await this.get(UserTypeRef, null, this.userId)
@@ -214,9 +213,7 @@ export class OfflineStorage implements CacheStorage, CachedRangeLoader {
 			}
 		}
 
-		const beforeCompact = Date.now()
 		await this.offlineDbFacade.compactDatabase(this.userId)
-		console.log(`Clearing up database took ${Date.now() - start}ms (before compacting: ${beforeCompact - start}, compacting: ${Date.now() - beforeCompact})`)
 	}
 
 	/**
@@ -234,19 +231,16 @@ export class OfflineStorage implements CacheStorage, CachedRangeLoader {
 	 * 	2. We might need them in the future for showing the whole thread
 	 */
 	private async deleteMailList(listId: Id, cutoffId: Id): Promise<void> {
-		const beforeList = Date.now()
-		const mails = await this.getWholeList(MailTypeRef, listId)
-		console.log("getWholeList", Date.now() - beforeList)
+
 		// This must be done before deleting mails to know what the new range has to be
-		const beforeUpdateRange = Date.now()
 		await this.updateRangeForList(MailTypeRef, listId, cutoffId)
-		console.log("Updating range took", Date.now() - beforeUpdateRange)
 
 		const mailsToDelete: IdTuple[] = []
 		const headersToDelete: Id[] = []
 		const attachmentsTodelete: IdTuple[] = []
 		const mailbodiesToDelete: Id[] = []
 
+		const mails = await this.getWholeList(MailTypeRef, listId)
 		for (let mail of mails) {
 			if (firstBiggerThanSecond(cutoffId, getElementId(mail))) {
 				mailsToDelete.push(mail._id)
@@ -261,7 +255,6 @@ export class OfflineStorage implements CacheStorage, CachedRangeLoader {
 				}
 			}
 		}
-		const beforeWrite = Date.now()
 		await this.offlineDbFacade.deleteIn(this.userId, this.getTypeId(MailBodyTypeRef), null, mailbodiesToDelete)
 		await this.offlineDbFacade.deleteIn(this.userId, this.getTypeId(MailHeadersTypeRef), null, headersToDelete)
 		for (let [listId, elementIds] of groupByAndMap(attachmentsTodelete, listIdPart, elementIdPart).entries()) {
@@ -270,7 +263,6 @@ export class OfflineStorage implements CacheStorage, CachedRangeLoader {
 		}
 
 		await this.offlineDbFacade.deleteIn(this.userId, this.getTypeId(MailTypeRef), listId, mailsToDelete.map(elementIdPart))
-		console.log(`processing ${mailsToDelete.length} took ${Date.now() - beforeWrite}ms`)
 	}
 
 	private async updateRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, cutoffId: Id): Promise<void> {
