@@ -121,28 +121,8 @@ export class OfflineDbFacade {
 		return this.getDbForUserId(userId).putMetadata(key, value)
 	}
 
-	async deleteElementsBeforeId(userId: Id, type: string, cutoffId: Id): Promise<void> {
-		return this.getDbForUserId(userId).deleteElementsBeforeId(type, cutoffId)
-	}
-
-	async deleteListElementsBeforeId(userId: Id, type: string, cutoffId: Id): Promise<void> {
-		return this.getDbForUserId(userId).deleteListElementsBeforeId(type, cutoffId)
-	}
-
-	async deleteList(userId: Id, type: string, listId: Id): Promise<void> {
-		return this.getDbForUserId(userId).deleteList(type, listId)
-	}
-
-	async getListsOfType(userId: Id, typeId: string): Promise<Array<Id>> {
-		return this.getDbForUserId(userId).getListsOfType(typeId)
-	}
-
 	async deleteRange(userId: Id, type: string, listId: string) {
 		return this.getDbForUserId(userId).deleteRange(type, listId)
-	}
-
-	async getElementsOfType(userId: Id, typeId: string): Promise<Array<Uint8Array>> {
-		return this.getDbForUserId(userId).getElementsOfType(typeId)
 	}
 
 	async getListElementsOfType(userId: Id, typeId: string): Promise<Array<Uint8Array>> {

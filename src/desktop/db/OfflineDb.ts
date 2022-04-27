@@ -171,12 +171,6 @@ export class OfflineDb {
 		return result?.entity ?? null
 	}
 
-	getElementsOfType(type: string): Array<Uint8Array> {
-		return this.db.prepare("SELECT entity from element_entities WHERE type = :type")
-				   .all({type})?.map(row => new Uint8Array(row.entity.buffer))
-			?? []
-	}
-
 	getListElementsOfType(type: string): Array<Uint8Array> {
 		return this.db.prepare("SELECT entity from list_entities WHERE type = :type")
 				   .all({type})?.map(row => new Uint8Array(row.entity.buffer))
@@ -225,14 +219,6 @@ export class OfflineDb {
 			.run({key, value})
 	}
 
-	deleteElementsBeforeId(type: string, cutoffId: Id) {
-		this.db.prepare("DELETE FROM element_entities WHERE type = :type AND firstIdBigger(:cutoffId, elementId)").run({type, cutoffId})
-	}
-
-	deleteListElementsBeforeId(type: string, cutoffId: Id) {
-		this.db.prepare("DELETE FROM list_entities WHERE type = :type AND firstIdBigger(:cutoffId, elementId)").run({type, cutoffId})
-	}
-
 	deleteList(type: string, listId: Id) {
 		this.db.transaction(() => {
 			this.db.prepare("DELETE FROM list_entities WHERE type = :type AND listId = :listId").run({type, listId})
@@ -242,12 +228,6 @@ export class OfflineDb {
 
 	deleteRange(type: string, listId: string) {
 		this.db.prepare("DELETE FROM ranges WHERE type = :type AND listId = :listId").run({type, listId})
-	}
-
-	getListsOfType(type: string): Array<Id> {
-		const result = this.db.prepare("SELECT listId FROM ranges WHERE type = :type").all({type}) ?? []
-		const listIds = result.map(row => row.listId)
-		return listIds
 	}
 
 	compactDatabase() {
