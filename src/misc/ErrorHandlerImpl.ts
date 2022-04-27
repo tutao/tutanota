@@ -59,7 +59,7 @@ export async function handleUncaughtError(e: Error) {
 	}
 
 	// This is from the s.js and it shouldn't change. Unfortunately it is a plain Error.
-	if (e.message.includes("(SystemJS https://git.io/JvFET#")) {
+	if (e.message.includes("(SystemJS https://github.com/systemjs/systemjs/blob/master/docs/errors.md#")) {
 		handleImportError()
 		return
 	}
