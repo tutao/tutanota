@@ -1,17 +1,17 @@
 import {ListElementEntity, SomeEntity} from "../../common/EntityTypes.js"
 import {
+	elementIdPart,
 	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
 	getElementId,
-	getListId,
 	listIdPart,
 	timestampToGeneratedId
 } from "../../common/utils/EntityUtils.js"
 import {CachedRangeLoader, CacheStorage, expandId} from "./EntityRestCache.js"
 import * as cborg from "cborg"
 import {EncodeOptions, Token, Type} from "cborg"
-import {assert, DAY_IN_MILLIS, first, mapNullable, typedKeys, TypeRef} from "@tutao/tutanota-utils"
+import {assert, DAY_IN_MILLIS, groupByAndMap, mapNullable, typedKeys, TypeRef} from "@tutao/tutanota-utils"
 import type {OfflineDbFacade} from "../../../desktop/db/OfflineDbFacade"
 import {isOfflineStorageAvailable, isTest} from "../../common/Env"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
@@ -194,6 +194,7 @@ export class OfflineStorage implements CacheStorage, CachedRangeLoader {
 	}
 
 	async clearExcludedData(): Promise<void> {
+		const start = Date.now()
 
 		// Reset the stored data time range to the default in case the user has downgraded
 		const user = await this.get(UserTypeRef, null, this.userId)
@@ -213,7 +214,9 @@ export class OfflineStorage implements CacheStorage, CachedRangeLoader {
 			}
 		}
 
+		const beforeCompact = Date.now()
 		await this.offlineDbFacade.compactDatabase(this.userId)
+		console.log(`Clearing up database took ${Date.now() - start}ms (before compacting: ${beforeCompact - start}, compacting: ${Date.now() - beforeCompact})`)
 	}
 
 	/**
@@ -231,28 +234,43 @@ export class OfflineStorage implements CacheStorage, CachedRangeLoader {
 	 * 	2. We might need them in the future for showing the whole thread
 	 */
 	private async deleteMailList(listId: Id, cutoffId: Id): Promise<void> {
+		const beforeList = Date.now()
 		const mails = await this.getWholeList(MailTypeRef, listId)
+		console.log("getWholeList", Date.now() - beforeList)
 		// This must be done before deleting mails to know what the new range has to be
+		const beforeUpdateRange = Date.now()
 		await this.updateRangeForList(MailTypeRef, listId, cutoffId)
+		console.log("Updating range took", Date.now() - beforeUpdateRange)
+
+		const mailsToDelete: IdTuple[] = []
+		const headersToDelete: Id[] = []
+		const attachmentsTodelete: IdTuple[] = []
+		const mailbodiesToDelete: Id[] = []
 
 		for (let mail of mails) {
 			if (firstBiggerThanSecond(cutoffId, getElementId(mail))) {
-				await this.offlineDbFacade.delete(this.userId, this.getTypeId(MailBodyTypeRef), null, mail.body)
+				mailsToDelete.push(mail._id)
+				mailbodiesToDelete.push(mail.body)
 
 				if (mail.headers) {
-					await this.offlineDbFacade.delete(this.userId, this.getTypeId(MailHeadersTypeRef), null, mail.headers)
+					headersToDelete.push(mail.headers)
 				}
 
-				for (const [listId, id] of mail.attachments) {
-					await this.offlineDbFacade.delete(this.userId, this.getTypeId(FileTypeRef), listId, id)
+				for (const id of mail.attachments) {
+					attachmentsTodelete.push(id)
 				}
-				const attachmentListId = mapNullable(first(mail.attachments), listIdPart)
-				if (attachmentListId != null) {
-					await this.offlineDbFacade.deleteRange(this.userId, this.getTypeId(FileTypeRef), listId)
-				}
-				await this.offlineDbFacade.delete(this.userId, this.getTypeId(MailTypeRef), getListId(mail), getElementId(mail))
 			}
 		}
+		const beforeWrite = Date.now()
+		await this.offlineDbFacade.deleteIn(this.userId, this.getTypeId(MailBodyTypeRef), null, mailbodiesToDelete)
+		await this.offlineDbFacade.deleteIn(this.userId, this.getTypeId(MailHeadersTypeRef), null, headersToDelete)
+		for (let [listId, elementIds] of groupByAndMap(attachmentsTodelete, listIdPart, elementIdPart).entries()) {
+			await this.offlineDbFacade.deleteIn(this.userId, this.getTypeId(FileTypeRef), listId, elementIds)
+			await this.offlineDbFacade.deleteRange(this.userId, this.getTypeId(FileTypeRef), listId)
+		}
+
+		await this.offlineDbFacade.deleteIn(this.userId, this.getTypeId(MailTypeRef), listId, mailsToDelete.map(elementIdPart))
+		console.log(`processing ${mailsToDelete.length} took ${Date.now() - beforeWrite}ms`)
 	}
 
 	private async updateRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, cutoffId: Id): Promise<void> {

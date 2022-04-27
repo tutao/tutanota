@@ -97,8 +97,15 @@ export class OfflineDbFacade {
 		return this.getDbForUserId(userId).provideFromRange(type, listId, start, count, reverse)
 	}
 
-	async delete(userId: Id, type: string, listId: string | null, elementId: string): Promise<void> {
+	async delete(userId: Id, type: string, listId: Id | null, elementId: Id): Promise<void> {
 		return this.getDbForUserId(userId).delete(type, listId, elementId)
+	}
+
+	async deleteIn(userId: Id, type: string, listId: Id | null, elementIds: Id[]): Promise<void> {
+		const db = this.getDbForUserId(userId)
+		for (const id of elementIds) {
+			db.delete(type, listId, id)
+		}
 	}
 
 	async deleteAll(userId: Id): Promise<void> {
