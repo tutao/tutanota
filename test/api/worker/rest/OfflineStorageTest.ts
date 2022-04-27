@@ -168,11 +168,22 @@ o.spec("OfflineStorage", function () {
 				await storage.clearExcludedData()
 
 				// Spam mail was deleted even though it's after the cutoff
-				verify(dbFacadeMock.delete(userId, mailType, getListId(spamMail), getElementId(spamMail)))
+				verify(dbFacadeMock.deleteIn(userId, mailType, getListId(spamMail), [getElementId(spamMail)]))
 				// Trash mail was deleted even though it's after the cutoff
-				verify(dbFacadeMock.delete(userId, mailType, getListId(trashMail), getElementId(trashMail)))
-				verify(dbFacadeMock.delete(userId, mailBodyType, null, spamMailBodyId))
-				verify(dbFacadeMock.delete(userId, mailBodyType, null, trashMailBodyId))
+				verify(dbFacadeMock.deleteIn(userId, mailType, getListId(trashMail), [getElementId(trashMail)]))
+				verify(dbFacadeMock.deleteIn(
+					userId,
+					mailBodyType,
+					null,
+					[spamMailBodyId]
+				))
+				verify(dbFacadeMock.deleteIn(
+					userId,
+					mailBodyType,
+					null,
+					[trashMailBodyId]
+				))
+
 			})
 
 			o("normal folder is partially cleared", async function () {
@@ -192,22 +203,43 @@ o.spec("OfflineStorage", function () {
 
 				await storage.clearExcludedData()
 
-				verify(dbFacadeMock.delete(userId, mailType, getListId(mailBefore), getElementId(mailBefore)))
-				verify(dbFacadeMock.delete(userId, mailType, getListId(mailAfter), getElementId(mailAfter)), {times: 0})
-				verify(dbFacadeMock.delete(userId, mailBodyType, null, beforeMailBodyId))
-				verify(dbFacadeMock.delete(userId, mailBodyType, null, afterMailBodyId), {times: 0})
+				verify(dbFacadeMock.deleteIn(userId, mailType, inboxMailList, [getElementId(mailBefore)]))
+				verify(dbFacadeMock.deleteIn(userId, mailType, inboxMailList, [getElementId(mailAfter)]), {times: 0})
+				verify(dbFacadeMock.deleteIn(userId, mailBodyType, null, [beforeMailBodyId]))
+			})
+
+			o("normal folder is completely cleared", async function () {
+				const inboxMailList = "inboxMailList"
+				const mailBodyId1 = "mailBodyId1"
+				const mailBodyId2 = "afterMailBodyId"
+
+				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([
+					encode(createMailFolder({mails: inboxMailList, folderType: MailFolderType.INBOX})),
+				])
+				const mail1 = createMail({_id: [inboxMailList, offsetId(-2)], body: mailBodyId1})
+				const mail2 = createMail({_id: [inboxMailList, offsetId(-3)], body: mailBodyId2})
+				when(dbFacadeMock.getWholeList(userId, mailType, inboxMailList)).thenResolve([
+					encode(mail1),
+					encode(mail2),
+				])
+
+				await storage.clearExcludedData()
+
+				verify(dbFacadeMock.deleteIn(userId, mailType, inboxMailList, [getElementId(mail1), getElementId(mail2)]))
+				verify(dbFacadeMock.deleteIn(userId, mailBodyType, null, [mailBodyId1, mailBodyId2]))
 			})
 
 			o("when mail is deleted, attachment is also deleted", async function () {
 				const inboxMailList = "inboxMailList"
 				const beforeMailBodyId = "beforeMailBodyId"
 				const afterMailBodyId = "afterMailBodyId"
+				const fileListId = "fileListId"
 
 				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([
 					encode(createMailFolder({mails: inboxMailList, folderType: MailFolderType.INBOX})),
 				])
-				const fileBefore = createFile({_id: ["fileListId", "fileBefore"]})
-				const fileAfter = createFile({_id: ["fileListId", "fileAfter"]})
+				const fileBefore = createFile({_id: [fileListId, "fileBefore"]})
+				const fileAfter = createFile({_id: [fileListId, "fileAfter"]})
 				const mailBefore = createMail({_id: [inboxMailList, offsetId(-2)], body: beforeMailBodyId, attachments: [fileBefore._id]})
 				const mailAfter = createMail({_id: [inboxMailList, offsetId(2)], body: afterMailBodyId, attachments: [fileAfter._id]})
 				when(dbFacadeMock.getWholeList(userId, mailType, inboxMailList)).thenResolve([
@@ -216,11 +248,8 @@ o.spec("OfflineStorage", function () {
 				])
 
 				await storage.clearExcludedData()
-
-				verify(dbFacadeMock.delete(userId, mailType, getListId(mailBefore), getElementId(mailBefore)))
-				verify(dbFacadeMock.delete(userId, mailType, getListId(mailAfter), getElementId(mailAfter)), {times: 0})
-				verify(dbFacadeMock.delete(userId, FileTypeRef.getId(), getListId(fileBefore), getElementId(fileBefore)))
-				verify(dbFacadeMock.delete(userId, FileTypeRef.getId(), getListId(fileAfter), getElementId(fileAfter)), {times: 0})
+				verify(dbFacadeMock.deleteIn(userId, mailType, inboxMailList, [getElementId(mailBefore)]))
+				verify(dbFacadeMock.deleteIn(userId, FileTypeRef.getId(), fileListId, [getElementId(fileBefore)]))
 			})
 
 			o("when initialized and runtime version matches stored one database is not purged", async function () {

@@ -102,10 +102,7 @@ export class OfflineDbFacade {
 	}
 
 	async deleteIn(userId: Id, type: string, listId: Id | null, elementIds: Id[]): Promise<void> {
-		const db = this.getDbForUserId(userId)
-		for (const id of elementIds) {
-			db.delete(type, listId, id)
-		}
+		this.getDbForUserId(userId).deleteIn(type, listId, elementIds)
 	}
 
 	async deleteAll(userId: Id): Promise<void> {
