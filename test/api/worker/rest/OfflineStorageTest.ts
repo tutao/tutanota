@@ -1,17 +1,19 @@
 import o from "ospec"
 import {verify} from "@tutao/tutanota-test-utils"
-import {OfflineStorage} from "../../../../src/api/worker/rest/OfflineStorage"
+import {customTypeEncoders, OfflineStorage} from "../../../../src/api/worker/rest/OfflineStorage"
 import {OfflineDbFacade, OfflineDbFactory} from "../../../../src/desktop/db/OfflineDbFacade"
 import {instance, matchers, object, when} from "testdouble"
 import * as cborg from "cborg"
 import {modelInfos} from "../../../../src/api/common/EntityFunctions"
-import {GENERATED_MIN_ID, generatedIdToTimestamp, timestampToGeneratedId} from "../../../../src/api/common/utils/EntityUtils"
+import {GENERATED_MIN_ID, generatedIdToTimestamp, getElementId, getListId, timestampToGeneratedId} from "../../../../src/api/common/utils/EntityUtils"
 import {firstThrow, getDayShifted, lastThrow, promiseMap} from "@tutao/tutanota-utils"
 import {DateProvider} from "../../../../src/api/common/DateProvider"
 import {
+	createFile,
 	createMail,
 	createMailBody,
 	createMailFolder,
+	FileTypeRef,
 	Mail,
 	MailBody,
 	MailBodyTypeRef,
@@ -22,7 +24,6 @@ import {MailFolderType} from "../../../../src/api/common/TutanotaConstants"
 import {OfflineDb} from "../../../../src/desktop/db/OfflineDb"
 import {aes256RandomKey} from "@tutao/tutanota-crypto"
 import {expandId} from "../../../../src/api/worker/rest/EntityRestCache"
-import {encode} from "cborg"
 
 const {anything} = matchers
 
@@ -41,6 +42,10 @@ class IdGenerator {
 		this.currentId = incrementId(this.currentId, incrementByMs)
 		return this.currentId
 	}
+}
+
+function encode(thing) {
+	return cborg.encode(thing, {typeEncoders: customTypeEncoders})
 }
 
 o.spec("OfflineStorage", function () {
@@ -77,29 +82,17 @@ o.spec("OfflineStorage", function () {
 
 			o.beforeEach(function () {
 				when(dbFacadeMock.getMetadata(userId, "timeRangeDays")).thenResolve(storedTimeRange)
-				for (let type of OfflineStorage.TimeLimitedListElementTypes) {
-					when(dbFacadeMock.getListsOfType(userId, type.getId())).thenResolve([])
-				}
-			})
-
-			o("old data will be deleted", async function () {
-				when(dbFacadeMock.getListsOfType(userId, mailType)).thenResolve([])
-				when(dbFacadeMock.getElementsOfType(userId, mailType)).thenResolve([])
-				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([])
-				await storage.clearExcludedData()
-
-				verify(dbFacadeMock.deleteListElementsBeforeId(userId, anything(), cutoffId))
-				verify(dbFacadeMock.deleteElementsBeforeId(userId, anything(), cutoffId))
 			})
 
 			o("old ranges will be deleted", async function () {
 				const upper = offsetId(-1)
 				const lower = offsetId(-2)
 
-				when(dbFacadeMock.getListsOfType(userId, mailType)).thenResolve([listId])
+				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([
+					encode(createMailFolder({mails: listId}))
+				])
+				when(dbFacadeMock.getWholeList(userId, mailType, anything())).thenResolve([])
 				when(dbFacadeMock.getRange(userId, mailType, listId)).thenResolve({upper, lower})
-				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([])
-				when(dbFacadeMock.getElementsOfType(userId, mailFolderType)).thenResolve([])
 
 				await storage.clearExcludedData()
 
@@ -110,9 +103,11 @@ o.spec("OfflineStorage", function () {
 				const upper = offsetId(2)
 				const lower = offsetId(-2)
 
-				when(dbFacadeMock.getListsOfType(userId, mailType)).thenResolve([listId])
+				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([
+					encode(createMailFolder({mails: listId}))
+				])
+				when(dbFacadeMock.getWholeList(userId, mailType, anything())).thenResolve([])
 				when(dbFacadeMock.getRange(userId, mailType, listId)).thenResolve({upper, lower})
-				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([])
 
 				await storage.clearExcludedData()
 
@@ -123,9 +118,11 @@ o.spec("OfflineStorage", function () {
 				const upper = offsetId(2)
 				const lower = offsetId(1)
 
-				when(dbFacadeMock.getListsOfType(userId, mailType)).thenResolve([listId])
+				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([
+					encode(createMailFolder({mails: listId}))
+				])
+				when(dbFacadeMock.getWholeList(userId, mailType, anything())).thenResolve([])
 				when(dbFacadeMock.getRange(userId, mailType, listId)).thenResolve({upper, lower})
-				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([])
 
 				await storage.clearExcludedData()
 
@@ -136,7 +133,6 @@ o.spec("OfflineStorage", function () {
 			o("complete ranges won't be lost if entities are all newer than cutoff", async function () {
 				const upper = offsetId(2)
 				const lower = GENERATED_MIN_ID
-				when(dbFacadeMock.getListsOfType(userId, mailType)).thenResolve([listId])
 				when(dbFacadeMock.getRange(userId, mailType, listId)).thenResolve({upper, lower})
 				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([])
 				when(dbFacadeMock.provideFromRange(userId, mailType, listId, GENERATED_MIN_ID, 1, false)).thenResolve([
@@ -155,25 +151,76 @@ o.spec("OfflineStorage", function () {
 				const spamMailBodyId = "spamMailBodyId"
 				const trashMailBodyId = "trashMailBodyId"
 
-				when(dbFacadeMock.getListsOfType(userId, mailType)).thenResolve([])
 				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([
 					encode(createMailFolder({mails: spamListId, folderType: MailFolderType.SPAM})),
 					encode(createMailFolder({mails: trashListId, folderType: MailFolderType.TRASH})),
 				])
+				const spamMail = createMail({_id: [spamListId, offsetId(2)], body: spamMailBodyId})
 				when(dbFacadeMock.getWholeList(userId, mailType, spamListId)).thenResolve([
-					encode({body: spamMailBodyId})
+					encode(spamMail)
 				])
 
+				const trashMail = createMail({_id: [trashListId, offsetId(2)], body: trashMailBodyId})
 				when(dbFacadeMock.getWholeList(userId, mailType, trashListId)).thenResolve([
-					encode({body: trashMailBodyId})
+					encode(trashMail)
 				])
 
 				await storage.clearExcludedData()
 
-				verify(dbFacadeMock.deleteList(userId, mailType, spamListId))
-				verify(dbFacadeMock.deleteList(userId, mailType, trashListId))
+				// Spam mail was deleted even though it's after the cutoff
+				verify(dbFacadeMock.delete(userId, mailType, getListId(spamMail), getElementId(spamMail)))
+				// Trash mail was deleted even though it's after the cutoff
+				verify(dbFacadeMock.delete(userId, mailType, getListId(trashMail), getElementId(trashMail)))
 				verify(dbFacadeMock.delete(userId, mailBodyType, null, spamMailBodyId))
 				verify(dbFacadeMock.delete(userId, mailBodyType, null, trashMailBodyId))
+			})
+
+			o("normal folder is partially cleared", async function () {
+				const inboxMailList = "inboxMailList"
+				const beforeMailBodyId = "beforeMailBodyId"
+				const afterMailBodyId = "afterMailBodyId"
+
+				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([
+					encode(createMailFolder({mails: inboxMailList, folderType: MailFolderType.INBOX})),
+				])
+				const mailBefore = createMail({_id: [inboxMailList, offsetId(-2)], body: beforeMailBodyId})
+				const mailAfter = createMail({_id: [inboxMailList, offsetId(2)], body: afterMailBodyId})
+				when(dbFacadeMock.getWholeList(userId, mailType, inboxMailList)).thenResolve([
+					encode(mailBefore),
+					encode(mailAfter),
+				])
+
+				await storage.clearExcludedData()
+
+				verify(dbFacadeMock.delete(userId, mailType, getListId(mailBefore), getElementId(mailBefore)))
+				verify(dbFacadeMock.delete(userId, mailType, getListId(mailAfter), getElementId(mailAfter)), {times: 0})
+				verify(dbFacadeMock.delete(userId, mailBodyType, null, beforeMailBodyId))
+				verify(dbFacadeMock.delete(userId, mailBodyType, null, afterMailBodyId), {times: 0})
+			})
+
+			o("when mail is deleted, attachment is also deleted", async function () {
+				const inboxMailList = "inboxMailList"
+				const beforeMailBodyId = "beforeMailBodyId"
+				const afterMailBodyId = "afterMailBodyId"
+
+				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([
+					encode(createMailFolder({mails: inboxMailList, folderType: MailFolderType.INBOX})),
+				])
+				const fileBefore = createFile({_id: ["fileListId", "fileBefore"]})
+				const fileAfter = createFile({_id: ["fileListId", "fileAfter"]})
+				const mailBefore = createMail({_id: [inboxMailList, offsetId(-2)], body: beforeMailBodyId, attachments: [fileBefore._id]})
+				const mailAfter = createMail({_id: [inboxMailList, offsetId(2)], body: afterMailBodyId, attachments: [fileAfter._id]})
+				when(dbFacadeMock.getWholeList(userId, mailType, inboxMailList)).thenResolve([
+					encode(mailBefore),
+					encode(mailAfter),
+				])
+
+				await storage.clearExcludedData()
+
+				verify(dbFacadeMock.delete(userId, mailType, getListId(mailBefore), getElementId(mailBefore)))
+				verify(dbFacadeMock.delete(userId, mailType, getListId(mailAfter), getElementId(mailAfter)), {times: 0})
+				verify(dbFacadeMock.delete(userId, FileTypeRef.getId(), getListId(fileBefore), getElementId(fileBefore)))
+				verify(dbFacadeMock.delete(userId, FileTypeRef.getId(), getListId(fileAfter), getElementId(fileAfter)), {times: 0})
 			})
 
 			o("when initialized and runtime version matches stored one database is not purged", async function () {

@@ -313,72 +313,12 @@ o.spec("OfflineDb ", function () {
 			o(db.get(type, listId, "bbb")).equals(null)
 			o(db.get(type, listId, "ccc")).equals(null)
 			o(db.getRange(type, listId)).equals(null)
-			o(db.getListsOfType(type)).deepEquals([])
 		})
 
 		o("delete range works", function() {
 			db.setNewRange(MailTypeRef.type, "listId", "aaa", "eee")
 			db.deleteRange(MailTypeRef.type, "listId")
 			o(db.getRange(MailTypeRef.type, "listId")).equals(null)
-		})
-
-		o.spec("delete old data", function () {
-			const listType = MailTypeRef.type
-			const elementType = MailBodyTypeRef.type
-			const listId = "listId"
-			const cutoff = "ddd"
-			o("element entities older than cutoffId are deleted, entities as old as or newer than cutoff are kept", function () {
-				const oldEntities = [
-					{type: elementType, listId: null, elementId: "aab"},
-					{type: elementType, listId: null, elementId: "aac"},
-					{type: elementType, listId: null, elementId: "ddc"},
-				]
-				const newEntities = [
-					{type: elementType, listId: null, elementId: "dde"},
-					{type: elementType, listId: null, elementId: "ggg"},
-					{type: elementType, listId: null, elementId: "xxx"},
-				]
-				for (let entity of oldEntities.concat(newEntities)) {
-					db.put(Object.assign({}, entity, { entity: createEntity(entity.listId, entity.elementId)}))
-				}
-
-				db.deleteElementsBeforeId(elementType, cutoff)
-
-				for (let {type, listId, elementId} of oldEntities) {
-					o(db.get(type, listId, elementId)).equals(null)(`old ${type} ${listId} ${elementId}`)
-				}
-
-				for (let {type, listId, elementId} of newEntities) {
-					o(db.get(type, listId, elementId)).deepEquals(createEntity(listId, elementId))(`new ${type} ${listId} ${elementId}`)
-				}
-			})
-
-			o("element entities older than cutoffId are deleted, entities as old as or newer than cutoff are kept", function () {
-				const oldEntities = [
-					{type: listType, listId, elementId: "aaa"},
-					{type: listType, listId, elementId: "bbb"},
-					{type: listType, listId, elementId: "ccc"},
-				]
-				const newEntities = [
-					{type: listType, listId, elementId: "ddd"},
-					{type: listType, listId, elementId: "eee"},
-					{type: listType, listId, elementId: "fff"},
-				]
-				for (let entity of oldEntities.concat(newEntities)) {
-					db.put(Object.assign({}, entity, { entity: createEntity(entity.listId, entity.elementId)}))
-				}
-
-				db.deleteListElementsBeforeId(listType, cutoff)
-
-				for (let {type, listId, elementId} of oldEntities) {
-					o(db.get(type, listId, elementId)).equals(null)(`old ${type} ${listId} ${elementId}`)
-				}
-
-				for (let {type, listId, elementId} of newEntities) {
-					o(db.get(type, listId, elementId)).deepEquals(createEntity(listId, elementId))(`new ${type} ${listId} ${elementId}`)
-				}
-			})
-
 		})
 	})
 
