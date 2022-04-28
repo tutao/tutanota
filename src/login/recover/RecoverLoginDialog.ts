@@ -47,9 +47,9 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 		type: ButtonType.Dropdown,
 	}
 	const resetActionClickHandler = createDropdown({
-        lazyButtons: () => [resetPasswordAction, resetSecondFactorAction],
-        width: 300
-    })
+		lazyButtons: () => [resetPasswordAction, resetSecondFactorAction],
+		width: 300
+	})
 	const resetActionButtonAttrs: ButtonAttrs = {
 		label: "action_label",
 		click: resetActionClickHandler,
@@ -77,12 +77,14 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 				return [
 					m(TextFieldN, {
 						label: "mailAddress_label",
-						value: emailAddressStream,
+						value: emailAddressStream(),
+						oninput: emailAddressStream,
 					}),
 					m(editor),
 					m(TextFieldN, {
 						label: "action_label",
-						value: selectedValueLabelStream,
+						value: selectedValueLabelStream(),
+						oninput: selectedValueLabelStream,
 						injectionsRight: () => m(ButtonN, resetActionButtonAttrs),
 						disabled: true,
 					}),
@@ -93,7 +95,8 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 							: m(TextFieldN, {
 								label: "password_label",
 								type: TextFieldType.Password,
-								value: passwordValueStream,
+								value: passwordValueStream(),
+								oninput: passwordValueStream,
 							}),
 				]
 			},

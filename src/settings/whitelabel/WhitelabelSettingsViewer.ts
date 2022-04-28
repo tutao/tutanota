@@ -1,39 +1,41 @@
 import m, {Children} from "mithril"
 import {assertMainOrNode} from "../../api/common/Env"
 import {downcast, LazyLoaded, neverNull, noOp, promiseMap} from "@tutao/tutanota-utils"
-import type {Customer} from "../../api/entities/sys/TypeRefs.js"
-import {CustomerTypeRef} from "../../api/entities/sys/TypeRefs.js"
+import type {
+	Booking,
+	CertificateInfo,
+	Customer,
+	CustomerInfo,
+	CustomerProperties,
+	DomainInfo,
+	NotificationMailTemplate,
+	WhitelabelConfig
+} from "../../api/entities/sys/TypeRefs.js"
+import {
+	BookingTypeRef,
+	createStringWrapper,
+	CustomerInfoTypeRef,
+	CustomerPropertiesTypeRef,
+	CustomerTypeRef,
+	WhitelabelConfigTypeRef
+} from "../../api/entities/sys/TypeRefs.js"
 import {getCustomMailDomains, getWhitelabelDomain} from "../../api/common/utils/Utils"
-import type {CustomerInfo} from "../../api/entities/sys/TypeRefs.js"
-import {CustomerInfoTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import {logins} from "../../api/main/LoginController"
 import {InfoLink, lang} from "../../misc/LanguageViewModel"
 import {FeatureType, OperationType} from "../../api/common/TutanotaConstants"
-import {HttpMethod} from "../../api/common/EntityFunctions"
-import type {WhitelabelConfig} from "../../api/entities/sys/TypeRefs.js"
-import {WhitelabelConfigTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import {progressIcon} from "../../gui/base/Icon"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import type {Booking} from "../../api/entities/sys/TypeRefs.js"
-import {BookingTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {isUpdateForTypeRef} from "../../api/main/EventController"
-import type {CustomerProperties} from "../../api/entities/sys/TypeRefs.js"
-import {CustomerPropertiesTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import * as EditNotificationEmailDialog from "../EditNotificationEmailDialog"
 import {showBuyOrSetNotificationEmailDialog} from "../EditNotificationEmailDialog"
 import {isWhitelabelActive} from "../../subscription/SubscriptionUtils"
-import {BrandingDomainGetReturnTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import type {DomainInfo} from "../../api/entities/sys/TypeRefs.js"
-import type {NotificationMailTemplate} from "../../api/entities/sys/TypeRefs.js"
-import type {CertificateInfo} from "../../api/entities/sys/TypeRefs.js"
 import {GENERATED_MAX_ID} from "../../api/common/utils/EntityUtils"
 import {WhitelabelBrandingDomainSettings} from "./WhitelabelBrandingDomainSettings"
 import {WhitelabelThemeSettings} from "./WhitelabelThemeSettings"
 import type {WhitelabelImprintAndPrivacySettingsAttrs} from "./WhitelabelImprintAndPrivacySettings"
 import {WhitelabelImprintAndPrivacySettings} from "./WhitelabelImprintAndPrivacySettings"
-import {WhitelabelRegistrationSettings} from "./WhitelabelRegistrationSettings"
-import {createStringWrapper} from "../../api/entities/sys/TypeRefs.js"
+import {WhitelabelRegistrationSettings, WhitelabelRegistrationSettingsAttrs} from "./WhitelabelRegistrationSettings"
 import {WhitelabelCustomMetaTagsSettings, WhitelabelCustomMetaTagsSettingsAttrs} from "./WhitelabelCustomMetaTagsSettings"
 import {WhitelabelStatusSettings} from "./WhitelabelStatusSettings"
 import {WhitelabelNotificationEmailSettings} from "./WhitelabelNotificationEmailSettings"
@@ -167,7 +169,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 				}
 			}),
 		)
-		let onRegistrationDomainSelected: (_: string) => void = noOp
+		let onRegistrationDomainSelected: WhitelabelRegistrationSettingsAttrs["onRegistrationDomainSelected"] = noOp
 		let currentRegistrationDomain: string | null = null
 
 		if (this._whitelabelConfig) {
@@ -199,14 +201,13 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			}
 		}
 
-		const whitelabelRegistrationSettingsAttrs = {
+		return m(WhitelabelRegistrationSettings, {
 			whitelabelCode,
 			onWhitelabelCodeChanged,
 			possibleRegistrationDomains,
 			currentRegistrationDomain,
 			onRegistrationDomainSelected,
-		}
-		return m(WhitelabelRegistrationSettings, whitelabelRegistrationSettingsAttrs)
+		})
 	}
 
 	_renderDefaultGermanLanguageFileSettings(): Children {

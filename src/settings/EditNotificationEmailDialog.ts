@@ -31,7 +31,7 @@ import type {IUserController} from "../api/main/UserController"
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
 import {locator} from "../api/main/MainLocator"
 
-export function showAddOrEditNotificationEmailDialog(userController: IUserController, selectedNotificationLanguage?: Stream<string>) {
+export function showAddOrEditNotificationEmailDialog(userController: IUserController, selectedNotificationLanguage?: string) {
 	let existingTemplate: NotificationMailTemplate | undefined = undefined
 	userController.loadCustomer().then(customer => {
 		if (customer.properties) {
@@ -39,9 +39,9 @@ export function showAddOrEditNotificationEmailDialog(userController: IUserContro
 			return customerProperties
 				.getAsync()
 				.then(loadedCustomerProperties => {
-					if (selectedNotificationLanguage) {
+					if (selectedNotificationLanguage != null) {
 						existingTemplate = loadedCustomerProperties.notificationMailTemplates.find(
-							template => template.language === selectedNotificationLanguage(),
+							template => template.language === selectedNotificationLanguage,
 						)
 					}
 				})
@@ -139,17 +139,19 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 			? m(TextFieldN, {
 				label: "notificationMailLanguage_label",
 				disabled: true,
-				value: stream(selectedLanguage.name),
+				value: selectedLanguage.name,
 			})
 			: m(DropDownSelectorN, {
 				label: "notificationMailLanguage_label",
 				items: sortedLanguages,
-				selectedValue: selectedLanguageStream,
+				selectedValue: selectedLanguageStream(),
+				selectionChangedHandler: selectedLanguageStream,
 				dropdownWidth: 250,
 			}),
 		m(TextFieldN, {
 			label: "subject_label",
-			value: subject,
+			value: subject(),
+			oninput: subject,
 		}),
 		m(editor),
 	]
@@ -169,7 +171,7 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 	const previewTabContent = () => [
 		m(TextFieldN, {
 			label: "subject_label",
-			value: stream(subject().replace(/{sender}/g, senderName)),
+			value: subject().replace(/{sender}/g, senderName),
 			disabled: true,
 		}),
 		m(".small.mt.mb", lang.get("mailBody_label")),
@@ -183,7 +185,8 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 			return [
 				m(SegmentControl, {
 					items: [editSegment, previewSegment],
-					selectedValue: selectedTab,
+					selectedValue: selectedTab(),
+					onValueSelected: selectedTab,
 				}),
 				selectedTab() === editSegment.value ? editTabContent() : previewTabContent(),
 			]

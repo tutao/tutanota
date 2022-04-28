@@ -46,7 +46,6 @@ import {
 } from "./SubscriptionUtils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {showPurchaseGiftCardDialog} from "./giftcards/PurchaseGiftCardDialog"
@@ -68,6 +67,7 @@ import {
 	TermsSection
 } from "./TermsAndConditions"
 import {MailAddressAliasService} from "../api/entities/sys/Services"
+import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
@@ -229,14 +229,15 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		loadGiftCards(assertNotNull(logins.getUserController().user.customer)).then(giftCards => {
 			giftCards.forEach(giftCard => this._giftCards.set(elementIdPart(giftCard._id), giftCard))
 		})
-		this._giftCardsExpanded = stream(false)
+		this._giftCardsExpanded = stream<boolean>(false)
 
 		this.view = (): Children => {
 			return m("#subscription-settings.fill-absolute.scroll.plr-l", [
 				m(".h4.mt-l", lang.get("currentlyBooked_label")),
 				m(TextFieldN, {
 					label: "subscription_label",
-					value: this._subscriptionFieldValue,
+					value: this._subscriptionFieldValue(),
+					oninput: this._subscriptionFieldValue,
 					disabled: true,
 					injectionsRight: () =>
 						logins.getUserController().isFreeAccount() ? m(ButtonN, upgradeActionAttrs) : !this._isCancelled ? [m(subscriptionAction)] : null,
@@ -244,7 +245,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				this._showPriceData()
 					? m(TextFieldN, {
 						label: "businessOrPrivateUsage_label",
-						value: this._usageTypeFieldValue,
+						value: this._usageTypeFieldValue(),
+						oninput: this._usageTypeFieldValue,
 						disabled: true,
 						injectionsRight: () =>
 							this._customer && this._customer.businessUse === false && !this._customer.canceledPremiumAccount
@@ -256,7 +258,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					? m(TextFieldN, {
 						label: "orderProcessingAgreement_label",
 						helpLabel: () => lang.get("orderProcessingAgreementInfo_msg"),
-						value: this._orderAgreementFieldValue,
+						value: this._orderAgreementFieldValue(),
+						oninput: this._orderAgreementFieldValue,
 						disabled: true,
 						injectionsRight: () => {
 							if (this._orderAgreement && this._customer && this._customer.orderProcessingAgreementNeeded) {
@@ -276,7 +279,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						label: "paymentInterval_label",
 						helpLabel: () => this.getChargeDateText(),
 						items: subscriptionPeriods,
-						selectedValue: this._selectedSubscriptionInterval,
+						selectedValue: this._selectedSubscriptionInterval(),
 						dropdownWidth: 300,
 						selectionChangedHandler: (value: number) => {
 							if (this._accountingInfo) {
@@ -293,7 +296,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 									"{date}": formatDate(this._periodEndDate),
 								})
 								: lang.get("price_label"),
-						value: this._currentPriceFieldValue,
+						value: this._currentPriceFieldValue(),
+						oninput: this._currentPriceFieldValue,
 						disabled: true,
 						helpLabel: () => this._customer && this._customer.businessUse === true
 							? lang.get("subscriptionPeriodInfoBusiness_msg")
@@ -307,7 +311,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 								"{date}": formatDate(new Date(neverNull(this._periodEndDate).getTime() + DAY)),
 							}),
 						helpLabel: () => lang.get("nextSubscriptionPrice_msg"),
-						value: this._nextPriceFieldValue,
+						value: this._nextPriceFieldValue(),
+						oninput: this._nextPriceFieldValue,
 						disabled: true,
 					})
 					: null,
@@ -325,31 +330,36 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				m(".h4.mt-l", lang.get("adminPremiumFeatures_action")),
 				m(TextFieldN, {
 					label: "bookingItemUsers_label",
-					value: this._usersFieldValue,
+					value: this._usersFieldValue(),
+					oninput: this._usersFieldValue,
 					disabled: true,
 					injectionsRight: () => [m(ButtonN, addUserButtonAttrs), m(ButtonN, editUsersButtonAttrs)],
 				}),
 				m(TextFieldN, {
 					label: "storageCapacity_label",
-					value: this._storageFieldValue,
+					value: this._storageFieldValue(),
+					oninput: this._storageFieldValue,
 					disabled: true,
 					injectionsRight: () => m(ButtonN, changeStorageCapacityButtonAttrs),
 				}),
 				m(TextFieldN, {
 					label: "mailAddressAliases_label",
-					value: this._emailAliasFieldValue,
+					value: this._emailAliasFieldValue(),
+					oninput: this._emailAliasFieldValue,
 					disabled: true,
 					injectionsRight: () => m(ButtonN, changeEmailAliasPackageButtonAttrs),
 				}),
 				m(TextFieldN, {
 					label: "groups_label",
-					value: this._groupsFieldValue,
+					value: this._groupsFieldValue(),
+					oninput: this._groupsFieldValue,
 					disabled: true,
 					injectionsRight: () => [m(ButtonN, addGroupsActionAttrs), m(ButtonN, editGroupsActionAttrs)],
 				}),
 				m(TextFieldN, {
 					label: "whitelabelFeature_label",
-					value: this._whitelabelFieldValue,
+					value: this._whitelabelFieldValue(),
+					oninput: this._whitelabelFieldValue,
 					disabled: true,
 					injectionsRight: () =>
 						getCurrentCount(BookingItemFeatureType.Whitelabel, this._lastBooking) === 0
@@ -358,7 +368,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				}),
 				m(TextFieldN, {
 					label: "sharingFeature_label",
-					value: this._sharingFieldValue,
+					value: this._sharingFieldValue(),
+					oninput: this._sharingFieldValue,
 					disabled: true,
 					injectionsRight: () =>
 						getCurrentCount(BookingItemFeatureType.Sharing, this._lastBooking) === 0
@@ -367,7 +378,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				}),
 				m(TextFieldN, {
 					label: "businessFeature_label",
-					value: this._businessFeatureFieldValue,
+					value: this._businessFeatureFieldValue(),
+					oninput: this._businessFeatureFieldValue,
 					disabled: true,
 					injectionsRight: () => {
 						if (!this._customer || (this._customer.businessUse && isBusinessFeatureActive(this._lastBooking))) {
@@ -382,7 +394,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				}),
 				m(TextFieldN, {
 					label: "contactForms_label",
-					value: this._contactFormsFieldValue,
+					value: this._contactFormsFieldValue(),
+					oninput: this._contactFormsFieldValue,
 					disabled: true,
 					injectionsRight: () => [m(ButtonN, addContactFormActionAttrs), m(ButtonN, editContactFormsActionAttrs)],
 				}),
@@ -438,7 +451,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._sharingFieldValue = stream(loadingString)
 		this._businessFeatureFieldValue = stream(loadingString)
 		this._contactFormsFieldValue = stream(loadingString)
-		this._selectedSubscriptionInterval = stream(null)
+		this._selectedSubscriptionInterval = stream<number | null>(null)
 
 		this._updatePriceInfo()
 
@@ -631,16 +644,16 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			return Promise.resolve()
 		} else {
 			return locator.serviceExecutor.get(MailAddressAliasService, null)
-				.then(aliasServiceReturn => {
-					this._emailAliasFieldValue(
-						lang.get("amountUsedAndActivatedOf_label", {
-							"{used}": aliasServiceReturn.usedAliases,
-							"{active}": aliasServiceReturn.enabledAliases,
-							"{totalAmount}": totalAmount,
-						}),
-					)
-				})
-				.then(noOp)
+						  .then(aliasServiceReturn => {
+							  this._emailAliasFieldValue(
+								  lang.get("amountUsedAndActivatedOf_label", {
+									  "{used}": aliasServiceReturn.usedAliases,
+									  "{active}": aliasServiceReturn.enabledAliases,
+									  "{totalAmount}": totalAmount,
+								  }),
+							  )
+						  })
+						  .then(noOp)
 		}
 	}
 
@@ -793,46 +806,46 @@ function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => bo
 				cells: [formatDate(giftCard.orderDate), formatPrice(parseFloat(giftCard.value), true)],
 				actionButtonAttrs: attachDropdown(
 					{
-                        mainButtonAttrs: {
-                            label: "options_action",
-                            click: () => showGiftCardToShare(giftCard),
-                            icon: () => Icons.More,
-                            type: ButtonType.Dropdown,
-                        }, childAttrs: () => [
-                            {
-                                label: "view_label",
-                                click: () => showGiftCardToShare(giftCard),
-                                type: ButtonType.Dropdown,
-                            },
-                            {
-                                label: "edit_action",
-                                click: () => {
-                                    let message = stream(giftCard.message)
-                                    Dialog.showActionDialog({
-                                        title: lang.get("editMessage_label"),
-                                        child: () =>
-                                            m(
-                                                ".flex-center",
-                                                m(GiftCardMessageEditorField, {
-                                                    message,
-                                                }),
-                                            ),
-                                        okAction: (dialog: Dialog) => {
-                                            giftCard.message = message()
-                                            locator.entityClient
-                                                .update(giftCard)
-                                                .then(() => dialog.close())
-                                                .catch(() => Dialog.message("giftCardUpdateError_msg"))
-                                            showGiftCardToShare(giftCard)
-                                        },
-                                        okActionTextId: "save_action",
-                                        type: DialogType.EditSmall,
-                                    })
-                                },
-                                type: ButtonType.Dropdown,
-                            },
-                        ]
-                    },
+						mainButtonAttrs: {
+							label: "options_action",
+							click: () => showGiftCardToShare(giftCard),
+							icon: () => Icons.More,
+							type: ButtonType.Dropdown,
+						}, childAttrs: () => [
+							{
+								label: "view_label",
+								click: () => showGiftCardToShare(giftCard),
+								type: ButtonType.Dropdown,
+							},
+							{
+								label: "edit_action",
+								click: () => {
+									let message = stream(giftCard.message)
+									Dialog.showActionDialog({
+										title: lang.get("editMessage_label"),
+										child: () =>
+											m(
+												".flex-center",
+												m(GiftCardMessageEditorField, {
+													message,
+												}),
+											),
+										okAction: (dialog: Dialog) => {
+											giftCard.message = message()
+											locator.entityClient
+												   .update(giftCard)
+												   .then(() => dialog.close())
+												   .catch(() => Dialog.message("giftCardUpdateError_msg"))
+											showGiftCardToShare(giftCard)
+										},
+										okActionTextId: "save_action",
+										type: DialogType.EditSmall,
+									})
+								},
+								type: ButtonType.Dropdown,
+							},
+						]
+					},
 				),
 			}
 		})

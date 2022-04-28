@@ -49,8 +49,8 @@ export class SignupForm implements Component<SignupFormAttrs> {
 
 	constructor() {
 		this._passwordForm = new PasswordForm(false, true, true, "passwordImportance_msg")
-		this._confirmTerms = stream(false)
-		this._confirmAge = stream(false)
+		this._confirmTerms = stream<boolean>(false)
+		this._confirmAge = stream<boolean>(false)
 		this._code = stream("")
 		this._isMailVerificationBusy = false
 	}
@@ -118,7 +118,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 				a.readonly
 					? m(TextFieldN, {
 						label: "mailAddress_label",
-						value: stream(a.prefilledMailAddress ?? ""),
+						value: a.prefilledMailAddress ?? "",
 						disabled: true,
 					})
 					: [
@@ -126,7 +126,8 @@ export class SignupForm implements Component<SignupFormAttrs> {
 						m(this._passwordForm),
 						getWhitelabelRegistrationDomains().length > 0
 							? m(TextFieldN, {
-								value: this._code,
+								value: this._code(),
+								oninput: this._code,
 								label: "whitelabelRegistrationCode_label",
 							})
 							: null,
@@ -298,7 +299,7 @@ function runCaptcha(
 					const captchaInputAttrs: TextFieldAttrs = {
 						label: () => lang.get("captchaInput_label") + " (hh:mm)",
 						helpLabel: () => lang.get("captchaInfo_msg"),
-						value: stream(captchaInput),
+						value: captchaInput,
 						oninput: (value) => (captchaInput = value),
 					}
 					dialog = new Dialog(DialogType.EditSmall, {

@@ -204,7 +204,7 @@ function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSharingT
 		SHOW_CONTACT_SUGGESTIONS_MAX,
 	)
 	const invitePeopleValueTextField = new BubbleTextField<RecipientInfo>("shareWithEmailRecipient_label", bubbleHandler)
-	const capability: Stream<ShareCapability> = stream(ShareCapability.Read)
+	const capability = stream<ShareCapability>(ShareCapability.Read)
 	const realGroupName = getSharedGroupName(model.info, false)
 	const customGroupName = getSharedGroupName(model.info, true)
 	let dialog = Dialog.showActionDialog({
@@ -228,11 +228,12 @@ function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSharingT
 						value: ShareCapability.Read,
 					},
 				],
-				selectedValue: capability,
+				selectedValue: capability(),
+				selectionChangedHandler: capability,
 				dropdownWidth: 300,
 			}),
 			m(TextFieldN, {
-				value: stream(realGroupName),
+				value: realGroupName,
 				label: texts.groupNameLabel,
 				disabled: true,
 				helpLabel: () => {

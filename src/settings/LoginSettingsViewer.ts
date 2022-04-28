@@ -55,7 +55,8 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	view(): Children {
 		const mailAddressAttrs: TextFieldAttrs = {
 			label: "mailAddress_label",
-			value: this._mailAddress,
+			value: this._mailAddress(),
+			oninput: this._mailAddress,
 			disabled: true,
 		}
 		const changePasswordButtonAttrs: ButtonAttrs = {
@@ -65,7 +66,8 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		}
 		const passwordAttrs: TextFieldAttrs = {
 			label: "password_label",
-			value: this._stars,
+			value: this._stars(),
+			oninput: this._stars,
 			disabled: true,
 			injectionsRight: () => m(ButtonN, changePasswordButtonAttrs),
 		}
@@ -99,7 +101,8 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					m("span.text-break", [m(`a[href=${link}][target=_blank]`, link)]),
 				])
 			},
-			value: this._stars,
+			value: this._stars(),
+			oninput: this._stars,
 			disabled: true,
 			injectionsRight: () => m(ButtonN, recoveryCodeDropdownButtonAttrs),
 		}
@@ -153,7 +156,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 
 		return m(TextFieldN, {
 			label: "credentialsEncryptionMode_label",
-			value: stream(this._credentialsEncryptionModeName(usedMode)),
+			value: this._credentialsEncryptionModeName(usedMode),
 			disabled: true,
 			injectionsRight: () =>
 				m(ButtonN, {

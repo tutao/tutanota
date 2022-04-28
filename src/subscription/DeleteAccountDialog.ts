@@ -15,21 +15,21 @@ export function showDeleteAccountDialog() {
 	let why = ""
 	const whyFieldAttrs: TextFieldAttrs = {
 		label: "deleteAccountReason_label",
-		value: stream(why),
+		value: why,
 		oninput: value => (why = value),
 		helpLabel: () => lang.get("deleteAccountReasonInfo_msg"),
 	} as const
 	let takeover = ""
 	const takeoverFieldAttrs: TextFieldAttrs = {
 		label: "targetAddress_label",
-		value: stream(takeover),
+		value: takeover,
 		oninput: value => (takeover = value),
 		helpLabel: () => lang.get("takeoverMailAddressInfo_msg"),
 	} as const
 	let password = ""
 	const passwordFieldAttrs: TextFieldAttrs = {
 		label: "password_label",
-		value: stream(password),
+		value: password,
 		oninput: value => (password = value),
 		helpLabel: () => lang.get("passwordEnterNeutral_msg"),
 		type: TextFieldType.Password,

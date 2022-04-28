@@ -26,7 +26,8 @@ export class EnterDomainPage implements WizardPageN<AddDomainData> {
 			m(".mt", lang.get("enterDomainGetReady_msg")),
 			m(TextFieldN, {
 				label: "customDomain_label",
-				value: vnode.attrs.data.domain,
+				value: vnode.attrs.data.domain(),
+				oninput: vnode.attrs.data.domain,
 				helpLabel: () => {
 					const domain = vnode.attrs.data.domain()
 					const errorMsg = validateDomain(domain)

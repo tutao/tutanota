@@ -54,20 +54,24 @@ export class CreditCardInput implements Component<CreditCardAttrs> {
 		return [
 			m(TextFieldN, {
 				label: "creditCardNumber_label",
-				value: attrs.creditCardNumber,
+				value: attrs.creditCardNumber(),
+				oninput: attrs.creditCardNumber,
 			}),
 			m(TextFieldN, {
 				label: "creditCardCardHolderName_label",
-				value: attrs.cardHolderName,
+				value: attrs.cardHolderName(),
+				oninput: attrs.cardHolderName,
 			}),
 			m(TextFieldN, {
 				label: "creditCardCVV_label",
-				value: attrs.cvv,
+				value: attrs.cvv(),
+				oninput: attrs.cvv,
 			}),
 			m(TextFieldN, {
 				label: "creditCardExpirationDate_label",
 				helpLabel: () => lang.get("creditCardExpirationDateFormat_msg"),
-				value: attrs.expirationDate,
+				value: attrs.expirationDate(),
+				oninput: attrs.expirationDate,
 			}),
 		]
 	}

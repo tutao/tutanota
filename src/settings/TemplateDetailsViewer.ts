@@ -28,7 +28,7 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 		this.isReadOnly = isReadOnly
 		const tagAttrs: TextFieldAttrs = {
 			label: "shortcut_label",
-			value: stream(TEMPLATE_SHORTCUT_PREFIX + neverNull(template.tag)),
+			value: TEMPLATE_SHORTCUT_PREFIX + neverNull(template.tag),
 			disabled: true,
 		}
 		const EditButtonAttrs: ButtonAttrs = {

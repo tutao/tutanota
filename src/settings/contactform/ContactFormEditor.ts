@@ -428,7 +428,7 @@ export class ContactFormEditor {
 		)
 		return {
 			label: "language_label",
-			value: stream(this._languageDisplayValue),
+			value: this._languageDisplayValue,
 			disabled: true,
 			injectionsRight: () => [m(selectLanguageButton), this._languages.length > 1 ? m(deleteLanguageButton) : null],
 		}
@@ -437,7 +437,7 @@ export class ContactFormEditor {
 	_createPathFieldAttrs(): TextFieldAttrs {
 		return {
 			label: "urlPath_label",
-			value: stream(this._path),
+			value: this._path,
 			oninput: value => (this._path = value),
 			helpLabel: () => getContactFormUrl(this._brandingDomain, this._path),
 		}
@@ -446,7 +446,7 @@ export class ContactFormEditor {
 	_createPageTitleAttrs(): TextFieldAttrs {
 		return {
 			label: "pageTitle_label",
-			value: stream(this._pageTitle),
+			value: this._pageTitle,
 			oninput: value => (this._pageTitle = value),
 		}
 	}
@@ -493,7 +493,7 @@ export class ContactFormEditor {
 
 		return {
 			label: "receivingMailbox_label",
-			value: stream(this._receivingMailboxDisplayValue),
+			value: this._receivingMailboxDisplayValue,
 			disabled: true,
 			injectionsRight: () => (groupsDropdown ? [m(userDropdown), m(groupsDropdown)] : [m(userDropdown)]),
 		}

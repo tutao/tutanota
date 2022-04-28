@@ -56,19 +56,19 @@ export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
 				]),
 				m(TextFieldN, {
 					label: "receivingMailbox_label",
-					value: stream(this.mailGroupInfo ? getGroupInfoDisplayName(this.mailGroupInfo) : lang.get("loading_msg")),
+					value: this.mailGroupInfo ? getGroupInfoDisplayName(this.mailGroupInfo) : lang.get("loading_msg"),
 					disabled: true,
 				}),
 				this.renderParticipation(),
 				m(".h4.mt-l", lang.get("display_action")),
 				m(TextFieldN, {
 					label: "url_label",
-					value: stream(getContactFormUrl(this.brandingDomain, this.contactForm.path)),
+					value: getContactFormUrl(this.brandingDomain, this.contactForm.path),
 					disabled: true,
 				} as const),
 				m(TextFieldN, {
 					label: "pageTitle_label",
-					value: stream(this.language.pageTitle),
+					value: this.language.pageTitle,
 					disabled: true,
 				}),
 			]),
@@ -109,7 +109,7 @@ export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
 			const mailGroupNames = this.participationGroupInfos.map(groupInfo => getGroupInfoDisplayName(groupInfo))
 			return m(".mt-l", m(TextFieldN, {
 				label: "responsiblePersons_label",
-				value: stream(mailGroupNames.join("; ")),
+				value: mailGroupNames.join("; "),
 				disabled: true,
 			}))
 		}

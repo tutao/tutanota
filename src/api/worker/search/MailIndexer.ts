@@ -11,7 +11,7 @@ import type {Mail} from "../../entities/tutanota/TypeRefs.js"
 import {MailTypeRef} from "../../entities/tutanota/TypeRefs.js"
 import {typeModels} from "../../entities/tutanota/TypeModels"
 import {containsEventOfType, getMailBodyText} from "../../common/utils/Utils"
-import {flat, groupBy, neverNull, noOp, ofClass, promiseMap, splitInChunks, TypeRef} from "@tutao/tutanota-utils"
+import {flat, groupBy, isNotNull, neverNull, noOp, ofClass, promiseMap, splitInChunks, TypeRef} from "@tutao/tutanota-utils"
 import {elementIdPart, isSameId, listIdPart, timestampToGeneratedId} from "../../common/utils/EntityUtils"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo} from "./IndexUtils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
@@ -502,7 +502,7 @@ export class MailIndexer {
 									  files: files.filter(file => mail.attachments.find(a => isSameId(a, file._id))),
 								  }
 							  })
-							  .filter(Boolean),
+							  .filter(isNotNull),
 					  )
 					  .then(
 						  (

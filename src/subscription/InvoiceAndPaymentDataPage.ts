@@ -5,16 +5,15 @@ import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
 import {InvoiceDataInput} from "./InvoiceDataInput"
 import {PaymentMethodInput} from "./PaymentMethodInput"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import type {InvoiceData, PaymentData, PaymentMethodType} from "../api/common/TutanotaConstants"
 import {getClientType, Keys, PaymentDataResultType} from "../api/common/TutanotaConstants"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {getLazyLoadedPayPalUrl} from "./PaymentDataDialog"
 import {logins} from "../api/main/LoginController"
-import type {AccountingInfo} from "../api/entities/sys/TypeRefs.js"
-import {AccountingInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {CustomerInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {assertNotNull, neverNull, noOp} from "@tutao/tutanota-utils"
-import {CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
+import type {AccountingInfo, Braintree3ds2Request} from "../api/entities/sys/TypeRefs.js"
+import {AccountingInfoTypeRef, CustomerInfoTypeRef, CustomerTypeRef, InvoiceInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
+import {assertNotNull, neverNull, noOp, promiseMap} from "@tutao/tutanota-utils"
 import {getPreconditionFailedPaymentMsg, SubscriptionType, UpgradeType} from "./SubscriptionUtils"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
@@ -23,13 +22,9 @@ import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
 import type {Country} from "../api/common/CountryList"
 import {DefaultAnimationTime} from "../gui/animation/Animations"
-import type {Braintree3ds2Request} from "../api/entities/sys/TypeRefs.js"
-import {EntityUpdateData, isUpdateForTypeRef} from "../api/main/EventController"
+import {EntityEventsListener, EntityUpdateData, isUpdateForTypeRef} from "../api/main/EventController"
 import {locator} from "../api/main/MainLocator"
 import {getPaymentWebRoot} from "../api/common/Env"
-import {InvoiceInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {promiseMap} from "@tutao/tutanota-utils"
-import Stream from "mithril/stream"
 import {Credentials} from "../misc/credentials/Credentials";
 import {SessionType} from "../api/common/SessionType.js";
 
@@ -165,7 +160,8 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 				? [
 					m(SegmentControl, {
 						items: this._availablePaymentMethods,
-						selectedValue: this._selectedPaymentMethod,
+						selectedValue: this._selectedPaymentMethod(),
+						onValueSelected: this._selectedPaymentMethod,
 					}),
 					m(".flex-space-around.flex-wrap.pt", [
 						m(
@@ -341,7 +337,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 				help: "close_alt",
 			})
 
-		let entityEventListener = (updates: Array<EntityUpdateData>) => {
+		let entityEventListener: EntityEventsListener = (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) => {
 			return promiseMap(updates, update => {
 				if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
 					return locator.entityClient.load(InvoiceInfoTypeRef, update.instanceId).then(invoiceInfo => {

@@ -58,7 +58,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 			".left.mb",
 			m(TextFieldN, {
 				label: "totpCode_label",
-				value: stream(otp.codeFieldValue),
+				value: otp.codeFieldValue,
 				oninput: value => otp.onValueChanged(value.trim()),
 				injectionsRight: () => (otp.inProgress ? m(".mr-s", progressIcon()) : null),
 			}),

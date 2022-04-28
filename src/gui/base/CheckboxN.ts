@@ -21,7 +21,7 @@ export class CheckboxN implements Component<CheckboxAttrs> {
 	private _domIcon: HTMLElement | null = null
 
 	constructor() {
-		this.focused = stream(false)
+		this.focused = stream<boolean>(false)
 	}
 
 	view(vnode: Vnode<CheckboxAttrs>): Children {

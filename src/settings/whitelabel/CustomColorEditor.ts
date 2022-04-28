@@ -35,14 +35,14 @@ export class CustomColorEditor implements Component<SimpleCustomColorEditorAttrs
 	private readonly _advancedSettingsEnabled: Stream<boolean>
 
 	constructor() {
-		this._advancedSettingsEnabled = stream(false)
+		this._advancedSettingsEnabled = stream<boolean>(false)
 	}
 
 	view(vnode: Vnode<SimpleCustomColorEditorAttrs>): Children {
 		const {model} = vnode.attrs
 		const simpleColorPickerAttrs: TextFieldAttrs = {
 			label: "accentColor_label",
-			value: stream(vnode.attrs.model.accentColor),
+			value: vnode.attrs.model.accentColor,
 			injectionsRight: () =>
 				renderColorPicker(
 					inputEvent => {
@@ -89,7 +89,7 @@ export class CustomColorEditor implements Component<SimpleCustomColorEditorAttrs
 									value: "dark",
 								},
 							],
-							selectedValue: stream(vnode.attrs.model.baseThemeId),
+							selectedValue: vnode.attrs.model.baseThemeId,
 							selectionChangedHandler: (v: BaseThemeId) => {
 								vnode.attrs.model.changeBaseTheme(v)
 							},
@@ -169,7 +169,7 @@ function renderCustomColorField(model: CustomColorsEditorViewModel, {name, value
 		[
 			m(TextFieldN, {
 				label: () => name,
-				value: stream(value),
+				value: value,
 				injectionsRight: () =>
 					renderColorPicker(event => model.addCustomization(name, downcast<HTMLInputElement>(event.target).value), processColorInputValue(value)),
 				oninput: val => {

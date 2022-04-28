@@ -49,7 +49,7 @@ export class KnowledgeBaseModel {
 		this._allKeywords = []
 		this._matchedKeywordsInContent = []
 		this.filteredEntries = stream(this._allEntries.array)
-		this.selectedEntry = stream(null)
+		this.selectedEntry = stream<KnowledgeBaseEntry | null>(null)
 		this._filterValue = ""
 
 		this._entityEventReceived = updates => {

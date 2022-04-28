@@ -45,7 +45,8 @@ export function showTakeOverDialog(mailAddress: string, password: string): Dialo
 					]),
 					m(TextFieldN, {
 						label: "targetAddress_label",
-						value: targetAccountAddress,
+						value: targetAccountAddress(),
+						oninput: targetAccountAddress,
 					}),
 					m(editor),
 				]

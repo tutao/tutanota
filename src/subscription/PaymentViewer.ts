@@ -1,7 +1,7 @@
 import m, {Children} from "mithril"
 import {assertMainOrNode, isIOSApp} from "../api/common/Env"
 import {assertNotNull, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
-import {lang} from "../misc/LanguageViewModel"
+import {lang, TranslationKey} from "../misc/LanguageViewModel"
 import type {AccountingInfo, Booking, Customer, InvoiceInfo} from "../api/entities/sys/TypeRefs.js"
 import {
 	AccountingInfoTypeRef,
@@ -125,12 +125,6 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				icon: () => Icons.Edit,
 			} as const
 			const invoiceVatId = this._accountingInfo ? this._accountingInfo.invoiceVatIdNo : lang.get("loading_msg")
-			const invoiceVatNumberFieldAttrs = {
-				label: "invoiceVatIdNo_label",
-				value: stream(invoiceVatId),
-				disabled: true,
-			} as const
-
 			const paymentMethodHelpLabel = () => {
 				if (this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.Invoice) {
 					return lang.get("paymentProcessingTime_msg")
@@ -142,13 +136,6 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			const paymentMethod = this._accountingInfo
 				? getPaymentMethodName(getPaymentMethodType(neverNull(this._accountingInfo))) + " " + getPaymentMethodInfoText(neverNull(this._accountingInfo))
 				: lang.get("loading_msg")
-			const paymentMethodFieldAttrs = {
-				label: "paymentMethod_label",
-				value: stream(paymentMethod),
-				helpLabel: paymentMethodHelpLabel,
-				disabled: true,
-				injectionsRight: () => [m(ButtonN, changePaymentDataButtonAttrs)],
-			} as const
 			return m(
 				"#invoicing-settings.fill-absolute.scroll.plr-l",
 				{
@@ -160,8 +147,20 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						m(".mr-negative-s", m(ButtonN, changeInvoiceDataButtonAttrs)),
 					]),
 					m(this._invoiceAddressField),
-					this._accountingInfo && this._accountingInfo.invoiceVatIdNo.trim().length > 0 ? m(TextFieldN, invoiceVatNumberFieldAttrs) : null,
-					m(TextFieldN, paymentMethodFieldAttrs),
+					this._accountingInfo && this._accountingInfo.invoiceVatIdNo.trim().length > 0
+						? m(TextFieldN, {
+							label: "invoiceVatIdNo_label",
+							value: invoiceVatId,
+							disabled: true,
+						})
+						: null,
+					m(TextFieldN, {
+						label: "paymentMethod_label",
+						value: paymentMethod,
+						helpLabel: paymentMethodHelpLabel,
+						disabled: true,
+						injectionsRight: () => [m(ButtonN, changePaymentDataButtonAttrs)],
+					}),
 					this._renderPostings(postingExpanded),
 				],
 			)
@@ -383,14 +382,14 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 
 								   m.redraw()
 							   })
-							   .catch(ofClass(LockedError, () => "operationStillActive_msg"))
+							   .catch(ofClass(LockedError, () => "operationStillActive_msg" as TranslationKey))
 							   .catch(
 								   ofClass(PreconditionFailedError, error => {
 									   return getPreconditionFailedPaymentMsg(error.data)
 								   }),
 							   )
-							   .catch(ofClass(BadGatewayError, () => "paymentProviderNotAvailableError_msg"))
-							   .catch(ofClass(TooManyRequestsError, () => "tooManyAttempts_msg")),
+							   .catch(ofClass(BadGatewayError, () => "paymentProviderNotAvailableError_msg" as TranslationKey))
+							   .catch(ofClass(TooManyRequestsError, () => "tooManyAttempts_msg" as TranslationKey)),
 					)
 				}
 			})
@@ -438,7 +437,7 @@ function _showPayConfirmDialog(price: number): Promise<boolean> {
 						m(".pt", lang.get("invoicePayConfirm_msg")),
 						m(TextFieldN, {
 							label: "price_label",
-							value: stream(formatPrice(-price, true)),
+							value: formatPrice(-price, true),
 							disabled: true,
 						}),
 					]),

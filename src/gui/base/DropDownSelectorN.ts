@@ -1,17 +1,14 @@
-import m, {Children, Component, Vnode} from "mithril"
-import stream from "mithril/stream"
+import m, {Children, ClassComponent, Vnode} from "mithril"
 import {TextFieldN} from "./TextFieldN"
 import {ButtonColor, ButtonN, ButtonType} from "./ButtonN"
 import {createDropdown} from "./DropdownN"
 import type {AllIcons} from "./Icon"
-import {lazyStringValue} from "@tutao/tutanota-utils"
+import type {lazy} from "@tutao/tutanota-utils"
+import {lazyStringValue, noOp} from "@tutao/tutanota-utils"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {BootIcons} from "./icons/BootIcons"
-import {noOp} from "@tutao/tutanota-utils"
 import type {clickHandler} from "./GuiUtils"
-import type {lazy} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../../api/common/Env"
-import Stream from "mithril/stream";
 
 assertMainOrNode()
 export type SelectorItem<T> = {
@@ -21,10 +18,11 @@ export type SelectorItem<T> = {
 	icon?: AllIcons
 }
 export type SelectorItemList<T> = ReadonlyArray<SelectorItem<T>>
-export type DropDownSelectorAttrs<T> = {
+
+export interface DropDownSelectorAttrs<T> {
 	label: TranslationKey | lazy<string>
 	items: SelectorItemList<T>
-	selectedValue: Stream<T | null>
+	selectedValue: T | null
 
 	/**
 	 * The handler is invoked with the new selected value. The displayed selected value is not changed automatically,
@@ -39,12 +37,12 @@ export type DropDownSelectorAttrs<T> = {
 	doShowBorder?: boolean | null
 }
 
-export class DropDownSelectorN<T> implements Component<DropDownSelectorAttrs<T>> {
+export class DropDownSelectorN<T> implements ClassComponent<DropDownSelectorAttrs<T>> {
 	view(vnode: Vnode<DropDownSelectorAttrs<T>>): Children {
 		const a = vnode.attrs
 		return m(TextFieldN, {
 			label: a.label,
-			value: stream(this.valueToText(a, a.selectedValue()) || ""),
+			value: this.valueToText(a, a.selectedValue) || "",
 			helpLabel: a.helpLabel,
 			disabled: true,
 			onclick: a.disabled ? noOp : this.createDropdown(a),
@@ -64,30 +62,26 @@ export class DropDownSelectorN<T> implements Component<DropDownSelectorAttrs<T>>
 
 	createDropdown(a: DropDownSelectorAttrs<T>): clickHandler {
 		return createDropdown({
-            lazyButtons: () => {
-                return a.items
-                    .filter(item => item.selectable !== false)
-                    .map(item => {
-                        return {
-                            label: () => item.name,
-                            click: () => {
-                                if (a.selectionChangedHandler) {
-                                    a.selectionChangedHandler(item.value)
-                                } else {
-                                    a.selectedValue(item.value)
-                                    m.redraw()
-                                }
-                            },
-                            type: ButtonType.Dropdown,
-                            isSelected: () => a.selectedValue() === item.value,
-                        }
-                    })
-            }, width: a.dropdownWidth
-        })
+			lazyButtons: () => {
+				return a.items
+						.filter(item => item.selectable !== false)
+						.map(item => {
+							return {
+								label: () => item.name,
+								click: () => {
+									a.selectionChangedHandler?.(item.value)
+									m.redraw()
+								},
+								type: ButtonType.Dropdown,
+								isSelected: () => a.selectedValue === item.value,
+							}
+						})
+			}, width: a.dropdownWidth
+		})
 	}
 
 	valueToText(a: DropDownSelectorAttrs<T>, value: T | null): string | null {
-		let selectedItem = a.items.find(item => item.value === a.selectedValue())
+		let selectedItem = a.items.find(item => item.value === a.selectedValue)
 
 		if (selectedItem) {
 			return selectedItem.name

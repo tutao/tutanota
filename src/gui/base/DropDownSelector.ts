@@ -1,15 +1,15 @@
 import m, {Component} from "mithril"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {Button} from "./Button"
 import {Icons} from "./icons/Icons"
+import type {lazy} from "@tutao/tutanota-utils"
 import {lazyStringValue} from "@tutao/tutanota-utils"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {ButtonType} from "./ButtonN"
 import {createDropDownButton} from "./Dropdown"
 import {TextFieldN} from "./TextFieldN"
-import type {lazy} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../../api/common/Env"
-import Stream from "mithril/stream";
 
 assertMainOrNode()
 
@@ -61,18 +61,23 @@ export class DropDownSelector<T> implements Component {
 				if (selectedItem) {
 					return selectedItem.name
 				} else {
-					console.log(`Dropdown ${lazyStringValue(textFieldAttrs.label)} couldn't find element for value: ${String(value)}`)
+					console.log(`Dropdown ${lazyStringValue({
+						label: labelIdOrLabelTextFunction,
+						helpLabel: helpLabel,
+						disabled: true,
+						value: this._selectedValueDisplayValue,
+						injectionsRight: () => [m(itemChooser)],
+					}.label)} couldn't find element for value: ${String(value)}`)
 					return ""
 				}
 			})()
-			const textFieldAttrs = {
+			return m(TextFieldN, {
 				label: labelIdOrLabelTextFunction,
 				helpLabel: helpLabel,
 				disabled: true,
-				value: stream(this._selectedValueDisplayValue),
+				value: this._selectedValueDisplayValue,
 				injectionsRight: () => [m(itemChooser)],
-			}
-			return m(TextFieldN, textFieldAttrs)
+			})
 		}
 	}
 

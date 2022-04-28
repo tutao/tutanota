@@ -173,28 +173,29 @@ export class ServiceWorker {
 
 const init = (sw: ServiceWorker) => {
 	console.log("sw init", versionString)
+	const scope = self as unknown as ServiceWorkerGlobalScope
 
-	self.addEventListener("install", (evt: ExtendableEvent) => {
+	scope.addEventListener("install", (evt: ExtendableEvent) => {
 		console.log("SW: being installed", versionString)
 		evt.waitUntil(sw.precache())
 	})
-	self.addEventListener("activate", event => {
+	scope.addEventListener("activate", event => {
 		console.log("sw activate", versionString)
 		// @ts-ignore
 		event.waitUntil(sw.deleteOldCaches().then(() => self.clients.claim()))
 	})
-	self.addEventListener("fetch", (evt: FetchEvent) => {
+	scope.addEventListener("fetch", (evt: FetchEvent) => {
 		sw.respond(evt)
 	})
-	self.addEventListener("message", event => {
+	scope.addEventListener("message", event => {
 		console.log("sw message", versionString, event)
 
 		if (event.data === "update") {
 			// @ts-ignore
-			self.skipWaiting()
+			scope.skipWaiting()
 		}
 	})
-	self.addEventListener("error", ({error}) => {
+	scope.addEventListener("error", ({error}) => {
 		const serializedError = {
 			name: error.name,
 			message: error.message,
@@ -202,7 +203,7 @@ const init = (sw: ServiceWorker) => {
 			data: error.data,
 		}
 		// @ts-ignore
-		return self.clients.matchAll().then(allClients =>
+		return scope.clients.matchAll().then(allClients =>
 			allClients.forEach((c: Client) =>
 				c.postMessage({
 					type: "error",

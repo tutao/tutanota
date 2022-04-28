@@ -66,7 +66,7 @@ export class ContactFormRequestDialog {
 		this._notificationEmailAddress = ""
 		this._windowCloseUnsubscribe = noOp
 		this._passwordForm = new PasswordForm(false, false, true, "contactFormEnterPasswordInfo_msg")
-		this._privacyPolicyAccepted = stream(false)
+		this._privacyPolicyAccepted = stream<boolean>(false)
 		this._editor = new HtmlEditor().showBorders().setPlaceholderId("contactFormPlaceholder_label").setMinHeight(200)
 		let headerBarAttrs: DialogHeaderBarAttrs = {
 			left: [
@@ -114,14 +114,14 @@ export class ContactFormRequestDialog {
 		})
 		const subject = m(TextFieldN, {
 			label: "subject_label",
-			value: stream(this._subject),
+			value: this._subject,
 			helpLabel: this.getConfidentialStateMessage,
 			injectionsRight: () => [attachFilesButton],
 			oninput: value => (this._subject = value),
 		})
 		const notificationEmailAddress = m(TextFieldN, {
 			label: "mailAddress_label",
-			value: stream(this._notificationEmailAddress),
+			value: this._notificationEmailAddress,
 			helpLabel: () => lang.get("contactFormMailAddressInfo_msg"),
 			oninput: value => {
 				this._notificationEmailAddress = value.trim()
@@ -371,7 +371,7 @@ function showConfirmDialog(userEmailAddress: string): Promise<void> {
 		}).setType(ButtonType.Login)
 		const requestId = m(TextFieldN, {
 			label: "mailAddress_label",
-			value: stream(userEmailAddress),
+			value: userEmailAddress,
 			disabled: true,
 		})
 		const dialog = new Dialog(DialogType.EditMedium, {

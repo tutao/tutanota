@@ -69,7 +69,7 @@ class ShortcutDialog implements Component<ShortcutDialogAttrs> {
 			.filter(shortcut => shortcut.enabled == null || shortcut.enabled())
 			.map(shortcut => ({
 				label: () => makeShortcutName(shortcut),
-				value: stream(lang.get(shortcut.help)),
+				value: lang.get(shortcut.help),
 				disabled: true,
 			}))
 		return m(

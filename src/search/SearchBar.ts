@@ -98,10 +98,10 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		this.lastSelectedGroupInfoResult = stream()
 		this.lastSelectedWhitelabelChildrenInfoResult = stream()
 		this.focused = false
-		this.skipNextBlur = stream(false)
+		this.skipNextBlur = stream<boolean>(false)
 		this.busy = false
 		this._returnListener = noOp
-		this._state = stream({
+		this._state = stream<SearchBarState>({
 			query: "",
 			searchResult: null,
 			indexState: locator.search.indexState(),

@@ -6,11 +6,10 @@ import m, {Children} from "mithril"
 import {TextFieldN, TextFieldType as TextFieldType} from "../../gui/base/TextFieldN"
 import {lang} from "../../misc/LanguageViewModel"
 import type {DropDownSelectorAttrs, SelectorItemList} from "../../gui/base/DropDownSelectorN"
-import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 import {Icons} from "../../gui/base/icons/Icons"
 import type {CalendarEvent, Contact, Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {createEncryptedMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
-import {downcast, findAndRemove, memoized, noOp, numberRange, ofClass, remove} from "@tutao/tutanota-utils"
+import {downcast, findAndRemove, noOp, numberRange, ofClass, remove} from "@tutao/tutanota-utils"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {AlarmInterval, CalendarAttendeeStatus, EndType, Keys, RepeatPeriod} from "../../api/common/TutanotaConstants"
@@ -45,6 +44,7 @@ import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {askIfShouldSendCalendarUpdatesToAttendees} from "./CalendarGuiUtils"
 import type {CalendarInfo} from "../model/CalendarModel"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
+import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 
 export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
@@ -115,7 +115,7 @@ export function showCalendarEventDialog(
 					return m(DropDownSelectorN, {
 						label: "emptyString_msg",
 						items: intervalValues,
-						selectedValue: stream(viewModel.repeat.endValue),
+						selectedValue: viewModel.repeat.endValue,
 						selectionChangedHandler: (endValue: number) => viewModel.onEndOccurencesSelected(endValue),
 						icon: BootIcons.Expand,
 					})
@@ -238,7 +238,7 @@ export function showCalendarEventDialog(
 						.filter(a => a.type === RecipientInfoType.EXTERNAL)
 						.map(guest => {
 							return m(TextFieldN, {
-								value: stream(viewModel.getGuestPassword(guest)),
+								value: viewModel.getGuestPassword(guest),
 								type: TextFieldType.ExternalPassword,
 								label: () =>
 									lang.get("passwordFor_label", {
@@ -316,7 +316,8 @@ export function showCalendarEventDialog(
 			const renderLocationField = () =>
 				m(TextFieldN, {
 					label: "location_label",
-					value: viewModel.location,
+					value: viewModel.location(),
+					oninput: viewModel.location,
 					disabled: viewModel.isReadOnlyEvent(),
 					injectionsRight: () => {
 						let address = encodeURIComponent(viewModel.location())
@@ -348,7 +349,8 @@ export function showCalendarEventDialog(
 									value: calendarInfo,
 								}
 							}),
-							selectedValue: viewModel.selectedCalendar,
+							selectedValue: viewModel.selectedCalendar(),
+							selectionChangedHandler: viewModel.selectedCalendar,
 							icon: BootIcons.Expand,
 							disabled: viewModel.isReadOnlyEvent(),
 						} as DropDownSelectorAttrs<CalendarInfo>)
@@ -356,18 +358,11 @@ export function showCalendarEventDialog(
 				)
 			}
 
-			// Avoid creating stream on each render. Will create new stream if the value is changed.
-			// We could just change the value of the stream on each render but ultimately we should avoid
-			// passing streams into components.
-			const repeatFrequencyStream = memoized(stream)
-			const repeatIntervalStream = memoized(stream)
-			const endTypeStream = memoized(stream)
-
 			function renderRepeatPeriod() {
 				return m(DropDownSelectorN, {
 					label: "calendarRepeating_label",
 					items: repeatValues,
-					selectedValue: repeatFrequencyStream((viewModel.repeat && viewModel.repeat.frequency) || null),
+					selectedValue: (viewModel.repeat && viewModel.repeat.frequency) || null,
 					selectionChangedHandler: period => viewModel.onRepeatPeriodSelected(period),
 					icon: BootIcons.Expand,
 					disabled: viewModel.isReadOnlyEvent(),
@@ -378,7 +373,7 @@ export function showCalendarEventDialog(
 				return m(DropDownSelectorN, {
 					label: "interval_title",
 					items: intervalValues,
-					selectedValue: repeatIntervalStream((viewModel.repeat && viewModel.repeat.interval) || 1),
+					selectedValue: (viewModel.repeat && viewModel.repeat.interval) || 1,
 					selectionChangedHandler: period => viewModel.onRepeatIntervalChanged(period),
 					icon: BootIcons.Expand,
 					disabled: viewModel.isReadOnlyEvent(),
@@ -389,7 +384,7 @@ export function showCalendarEventDialog(
 				return m(DropDownSelectorN, {
 					label: () => lang.get("calendarRepeatStopCondition_label"),
 					items: endTypeValues,
-					selectedValue: endTypeStream(repeat.endType),
+					selectedValue: repeat.endType,
 					selectionChangedHandler: period => viewModel.onRepeatEndTypeChanged(period),
 					icon: BootIcons.Expand,
 					disabled: viewModel.isReadOnlyEvent(),
@@ -488,7 +483,8 @@ export function showCalendarEventDialog(
 			function renderHeading() {
 				return m(TextFieldN, {
 					label: "title_placeholder",
-					value: viewModel.summary,
+					value: viewModel.summary(),
+					oninput: viewModel.summary,
 					disabled: viewModel.isReadOnlyEvent(),
 					class: "big-input pt flex-grow",
 					injectionsRight: () =>

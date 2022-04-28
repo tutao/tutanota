@@ -31,7 +31,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 		if (onPrivacyStatementUrlChanged) {
 			const privacyUrlTextfieldAttrs: TextFieldAttrs = {
 				label: "privacyPolicyUrl_label",
-				value: stream(privacyStatementUrl),
+				value: privacyStatementUrl,
 				oninput: value => (privacyStatementUrl = value.trim()),
 			} as const
 			editPrivacyUrlButtonAttrs = {
@@ -57,7 +57,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 
 		const privacyPolicyConfigTextfieldAttrs = {
 			label: "privacyPolicyUrl_label",
-			value: stream(privacyStatementUrl),
+			value: privacyStatementUrl,
 			disabled: true,
 			injectionsRight: () => [editPrivacyUrlButtonAttrs ? m(ButtonN, editPrivacyUrlButtonAttrs) : null],
 		} as const
@@ -70,7 +70,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 		if (onImprintUrlChanged) {
 			const imprintUrlTextfieldAttrs: TextFieldAttrs = {
 				label: "imprintUrl_label",
-				value: stream(imprintUrl),
+				value: imprintUrl,
 				oninput: value => (imprintUrl = value.trim()),
 			} as const
 			editImprintUrlButtonAttrs = {
@@ -96,7 +96,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 
 		const whitelabelImprintTextfieldAttrs = {
 			label: "imprintUrl_label",
-			value: stream(imprintUrl),
+			value: imprintUrl,
 			disabled: true,
 			injectionsRight: () => [editImprintUrlButtonAttrs ? m(ButtonN, editImprintUrlButtonAttrs) : null],
 		} as const

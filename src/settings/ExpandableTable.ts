@@ -21,7 +21,7 @@ export class ExpandableTable implements Component<ExpandableTableAttrs> {
 	expanded: Stream<boolean>
 
 	constructor() {
-		this.expanded = stream(false)
+		this.expanded = stream<boolean>(false)
 	}
 
 	view(vnode: Vnode<ExpandableTableAttrs>): Children {

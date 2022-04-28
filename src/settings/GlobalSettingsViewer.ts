@@ -56,7 +56,7 @@ const REJECTED_SENDERS_TO_LOAD_MS = 5 * DAY_IN_MILLIS
 const REJECTED_SENDERS_MAX_NUMBER = 100
 
 export class GlobalSettingsViewer implements UpdatableSettingsViewer {
-	view: (...args: Array<any>) => any
+	view: UpdatableSettingsViewer["view"]
 	_props: Stream<CustomerServerProperties>
 	_customer: Stream<Customer>
 	_customerInfo: LazyLoaded<CustomerInfo>
@@ -78,10 +78,10 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						  .then(customer => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
 		})
 		this._domainDnsStatus = {}
-		this._spamRuleLines = stream([])
-		this._rejectedSenderLines = stream([])
-		this._customDomainLines = stream([])
-		this._auditLogLines = stream([])
+		this._spamRuleLines = stream<Array<TableLineAttrs>>([])
+		this._rejectedSenderLines = stream<Array<TableLineAttrs>>([])([])
+		this._customDomainLines = stream<Array<TableLineAttrs>>([])([])
+		this._auditLogLines = stream<Array<TableLineAttrs>>([])([])
 		this._props = stream()
 		this._customer = stream()
 		let saveIpAddress = stream(false)

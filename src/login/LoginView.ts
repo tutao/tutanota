@@ -25,7 +25,7 @@ import type {clickHandler} from "../gui/base/GuiUtils"
 assertMainOrNode()
 
 export class LoginView implements CurrentView {
-	readonly view: (vnode: Vnode<unknown>) => Children
+	readonly view: CurrentView["view"]
 	readonly _viewModel: ILoginViewModel
 	readonly _moreExpanded: stream<boolean>
 	// we save the login form because we need access to the password input field inside of it for when "loginWith" is set in the url,
@@ -43,7 +43,7 @@ export class LoginView implements CurrentView {
 		this._targetPath = targetPath
 		this._requestedPath = this._targetPath
 		this.loginForm = defer()
-		this._moreExpanded = stream(false)
+		this._moreExpanded = stream<boolean>(false)
 		let bottomMargin = 0
 
 		const keyboardListener = (keyboardSize: number) => {

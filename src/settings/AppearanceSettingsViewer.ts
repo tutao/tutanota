@@ -48,7 +48,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			label: "language_label",
 			items: languageItems,
 			// DropdownSelectorN uses `===` to compare items so if the language is not set then `undefined` will not match `null`
-			selectedValue: stream(deviceConfig.getLanguage() || null),
+			selectedValue: deviceConfig.getLanguage() || null,
 			selectionChangedHandler: async value => {
 				deviceConfig.setLanguage(value)
 				const newLanguage = value
@@ -80,7 +80,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 					value: TimeFormat.TWELVE_HOURS,
 				},
 			],
-			selectedValue: stream(downcast(userSettingsGroupRoot.timeFormat)),
+			selectedValue: downcast(userSettingsGroupRoot.timeFormat),
 			selectionChangedHandler: value => {
 				userSettingsGroupRoot.timeFormat = value
 				locator.entityClient.update(userSettingsGroupRoot)
@@ -112,7 +112,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 					value: WeekStart.SUNDAY,
 				},
 			],
-			selectedValue: stream(downcast(userSettingsGroupRoot.startOfTheWeek)),
+			selectedValue: downcast(userSettingsGroupRoot.startOfTheWeek),
 			selectionChangedHandler: value => {
 				userSettingsGroupRoot.startOfTheWeek = value
 				locator.entityClient.update(userSettingsGroupRoot)
@@ -156,7 +156,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 					value: "blue",
 				},
 			].concat(customOptions),
-			selectedValue: stream(themeController.themeId),
+			selectedValue: themeController.themeId,
 			selectionChangedHandler: value => themeController.setThemeId(value),
 			dropdownWidth: 300,
 		}

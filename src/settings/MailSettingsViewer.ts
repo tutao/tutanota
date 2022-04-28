@@ -51,12 +51,12 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_senderName: Stream<string>
 	_signature: Stream<string>
 	_mailboxProperties: LazyLoaded<MailboxProperties | null>
-	_reportMovedMails: Stream<ReportMovedMailsType>
-	_defaultSender: Stream<string | null>
-	_defaultUnconfidential: Stream<boolean | null>
-	_sendPlaintext: Stream<boolean | null>
-	_noAutomaticContacts: Stream<boolean | null>
-	_enableMailIndexing: Stream<boolean | null>
+	_reportMovedMails: ReportMovedMailsType
+	_defaultSender: string | null
+	_defaultUnconfidential: boolean | null
+	_sendPlaintext: boolean | null
+	_noAutomaticContacts: boolean | null
+	_enableMailIndexing: boolean | null
 	_inboxRulesTableLines: Stream<Array<TableLineAttrs>>
 	_inboxRulesExpanded: Stream<boolean>
 	_indexStateWatch: Stream<any> | null
@@ -72,17 +72,17 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	)
 
 	constructor() {
-		this._defaultSender = stream(getDefaultSenderFromUser(logins.getUserController()))
+		this._defaultSender = getDefaultSenderFromUser(logins.getUserController())
 		this._senderName = stream(logins.getUserController().userGroupInfo.name)
 		this._signature = stream(getSignatureType(logins.getUserController().props).name)
-		this._reportMovedMails = stream(getReportMovedMailsType(null)) // loaded later
+		this._reportMovedMails = getReportMovedMailsType(null) // loaded later
 
-		this._defaultUnconfidential = stream(logins.getUserController().props.defaultUnconfidential)
-		this._sendPlaintext = stream(logins.getUserController().props.sendPlaintextOnly)
-		this._noAutomaticContacts = stream(logins.getUserController().props.noAutomaticContacts)
-		this._enableMailIndexing = stream(locator.search.indexState().mailIndexEnabled)
-		this._inboxRulesExpanded = stream(false)
-		this._inboxRulesTableLines = stream([])
+		this._defaultUnconfidential = logins.getUserController().props.defaultUnconfidential
+		this._sendPlaintext = logins.getUserController().props.sendPlaintextOnly
+		this._noAutomaticContacts = logins.getUserController().props.noAutomaticContacts
+		this._enableMailIndexing = locator.search.indexState().mailIndexEnabled
+		this._inboxRulesExpanded = stream<boolean>(false)
+		this._inboxRulesTableLines = stream<Array<TableLineAttrs>>([])
 		this._outOfOfficeStatus = stream(lang.get("deactivated_label"))
 		this._indexStateWatch = null
 		this._identifierListViewer = new IdentifierListViewer(logins.getUserController().user)
@@ -142,7 +142,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		}
 		const senderNameAttrs: TextFieldAttrs = {
 			label: "mailName_label",
-			value: this._senderName,
+			value: this._senderName(),
+			oninput: this._senderName,
 			disabled: true,
 			injectionsRight: () => (logins.getUserController().isGlobalAdmin() ? [m(ButtonN, editSenderNameButtonAttrs)] : []),
 		}
@@ -153,13 +154,15 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		}
 		const signatureAttrs: TextFieldAttrs = {
 			label: "userEmailSignature_label",
-			value: this._signature,
+			value: this._signature(),
+			oninput: this._signature,
 			disabled: true,
 			injectionsRight: () => [m(ButtonN, changeSignatureButtonAttrs)],
 		}
 		const outOfOfficeAttrs: TextFieldAttrs = {
 			label: "outOfOfficeNotification_title",
-			value: this._outOfOfficeStatus,
+			value: this._outOfOfficeStatus(),
+			oninput: this._outOfOfficeStatus,
 			disabled: true,
 			injectionsRight: () => [m(ButtonN, editOutOfOfficeNotificationButtonAttrs)],
 		}
@@ -258,7 +261,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			},
 			dropdownWidth: 250,
 		}
-		const reportMovedMailsAttrs = makeReportMovedMailsDropdownAttrs(this._reportMovedMails, this._mailboxProperties)
+		const reportMovedMailsAttrs = this.makeReportMovedMailsDropdownAttrs()
 		const templateRule = createInboxRuleTemplate(InboxRuleType.RECIPIENT_TO_EQUALS, "")
 		const addInboxRuleButtonAttrs: ButtonAttrs = {
 			label: "addInboxRule_action",
@@ -279,7 +282,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					role: "group",
 					oncreate: () => {
 						this._indexStateWatch = locator.search.indexState.map(newValue => {
-							this._enableMailIndexing(newValue.mailIndexEnabled)
+							this._enableMailIndexing = newValue.mailIndexEnabled
 
 							m.redraw()
 						})
@@ -338,15 +341,13 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			return null
 		}
 
-		const label = lang.get("storedDataTimeRange_label", {"{numDays}": this.offlineStorageSettings.getTimeRange()})
-
 		return [
 			m(".h4.mt-l", lang.get("localDataSection_label")),
 			m(TextFieldN, {
 				label: "emptyString_msg",
 				// Negative upper margin to make up for no label
 				class: "mt-negative-s",
-				value: stream(label),
+				value: lang.get("storedDataTimeRange_label", {"{numDays}": this.offlineStorageSettings.getTimeRange()}),
 				disabled: true,
 				injectionsRight: () => [m(ButtonN, {
 					label: "edit_action",
@@ -368,21 +369,21 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 	_updateTutanotaPropertiesSettings(props: TutanotaProperties) {
 		if (props.defaultSender) {
-			this._defaultSender(props.defaultSender)
+			this._defaultSender = props.defaultSender
 		}
 
-		this._defaultUnconfidential(props.defaultUnconfidential)
+		this._defaultUnconfidential = props.defaultUnconfidential
 
-		this._noAutomaticContacts(props.noAutomaticContacts)
+		this._noAutomaticContacts = props.noAutomaticContacts
 
-		this._sendPlaintext(props.sendPlaintextOnly)
+		this._sendPlaintext = props.sendPlaintextOnly
 
 		this._signature(getSignatureType(props).name)
 	}
 
 	_updateMailboxPropertiesSettings() {
 		this._mailboxProperties.getAsync().then(props => {
-			this._reportMovedMails(getReportMovedMailsType(props))
+			this._reportMovedMails = getReportMovedMailsType(props)
 
 			m.redraw()
 		})
@@ -462,34 +463,34 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		}
 		m.redraw()
 	}
-}
 
-function makeReportMovedMailsDropdownAttrs(
-	reportMovedMailsSetting: Stream<ReportMovedMailsType>,
-	mailboxProperties: LazyLoaded<MailboxProperties | null>,
-): DropDownSelectorAttrs<ReportMovedMailsType> {
-	return {
-		label: "spamReports_label",
-		helpLabel: () => lang.get("unencryptedTransmission_msg"),
-		items: [
-			{
-				name: lang.get("alwaysAsk_action"),
-				value: ReportMovedMailsType.ALWAYS_ASK,
+	makeReportMovedMailsDropdownAttrs(
+		// reportMovedMailsSetting: ReportMovedMailsType,
+		// mailboxProperties: LazyLoaded<MailboxProperties | null>,
+	): DropDownSelectorAttrs<ReportMovedMailsType> {
+		return {
+			label: "spamReports_label",
+			helpLabel: () => lang.get("unencryptedTransmission_msg"),
+			items: [
+				{
+					name: lang.get("alwaysAsk_action"),
+					value: ReportMovedMailsType.ALWAYS_ASK,
+				},
+				{
+					name: lang.get("alwaysReport_action"),
+					value: ReportMovedMailsType.AUTOMATICALLY_ONLY_SPAM,
+				},
+				{
+					name: lang.get("neverReport_action"),
+					value: ReportMovedMailsType.NEVER,
+				},
+			],
+			selectedValue: this._reportMovedMails,
+			selectionChangedHandler: reportMovedMails => {
+				this._mailboxProperties.getAsync().then(props => saveReportMovedMails(props, reportMovedMails))
 			},
-			{
-				name: lang.get("alwaysReport_action"),
-				value: ReportMovedMailsType.AUTOMATICALLY_ONLY_SPAM,
-			},
-			{
-				name: lang.get("neverReport_action"),
-				value: ReportMovedMailsType.NEVER,
-			},
-		],
-		selectedValue: reportMovedMailsSetting,
-		selectionChangedHandler: reportMovedMails => {
-			mailboxProperties.getAsync().then(props => saveReportMovedMails(props, reportMovedMails))
-		},
-		dropdownWidth: 250,
+			dropdownWidth: 250,
+		}
 	}
 }
 
@@ -505,8 +506,10 @@ async function showEditStoredDataTimeRangeDialog(settings: OfflineStorageSetting
 			label: () => capitalizeFirstLetter(lang.get("days_label")),
 			helpLabel: () => lang.get("storedDataTimeRangeHelpText_msg"),
 			type: TextFieldType.Number,
-			value: stream(`${timeRange}`),
-			oninput: newValue => timeRange = Math.max(0, Number(newValue)),
+			value: `${timeRange}`,
+			oninput: (newValue) => {
+				timeRange = Math.max(0, Number(newValue))
+			},
 		}),
 		okAction: async () => {
 			try {

@@ -490,7 +490,7 @@ export class CalendarModelImpl implements CalendarModel {
 				(entityEventData.operation === OperationType.CREATE || entityEventData.operation === OperationType.UPDATE)
 			) {
 				const deferredEvent = getFromMap(this._pendingAlarmRequests, entityEventData.instanceId, defer)
-				deferredEvent.resolve(null)
+				deferredEvent.resolve(undefined)
 				return deferredEvent.promise
 			} else if (isUpdateForTypeRef(CalendarEventUpdateTypeRef, entityEventData) && entityEventData.operation === OperationType.CREATE) {
 				return this._entityClient

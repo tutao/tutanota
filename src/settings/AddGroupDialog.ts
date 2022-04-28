@@ -22,14 +22,14 @@ import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
 
 assertMainOrNode()
-const BUSINESS_FEATURE_REQUIRED = "templategroup.business_feature_required"
+
 export type AddGroupDialogAttrs = {
 	groupType: GroupType
 	availableDomains: Array<string>
 	availableGroupTypes: Array<GroupType>
 	name: string
-	onGroupNameChanged: (arg0: string) => unknown
-	onGroupTypeChanged: (arg0: GroupType) => unknown
+	onGroupNameChanged: (name: string) => unknown
+	onGroupTypeChanged: (type: GroupType) => unknown
 	onEmailChanged: (arg0: string, arg1: ValidationResult) => unknown
 	onBusyStateChanged: (arg0: boolean) => unknown
 }
@@ -46,12 +46,12 @@ export class AddGroupDialog implements Component<AddGroupDialogAttrs> {
 						value: t,
 					}
 				}),
-				selectedValue: stream(groupType),
+				selectedValue: groupType,
 				selectionChangedHandler: vnode.attrs.onGroupTypeChanged,
 			}),
 			m(TextFieldN, {
 				label: "name_label",
-				value: stream(vnode.attrs.name),
+				value: vnode.attrs.name,
 				oninput: vnode.attrs.onGroupNameChanged,
 			}),
 			groupType === GroupType.Mail

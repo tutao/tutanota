@@ -71,21 +71,22 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 					m(".mb", [
 						m(".pt.selectable", isMember ? lang.getMaybeLazy(texts.alreadyGroupMemberMessage) : texts.receivedGroupInvitationMessage),
 						m(TextFieldN, {
-							value: nameStream,
+							value: nameStream(),
+							oninput: nameStream,
 							label: texts.groupNameLabel,
 						}),
 						m(TextFieldN, {
-							value: stream(getDisplayText(invitation.inviterName, invitation.inviterMailAddress, false)),
+							value: getDisplayText(invitation.inviterName, invitation.inviterMailAddress, false),
 							label: "sender_label",
 							disabled: true,
 						}),
 						m(TextFieldN, {
-							value: stream(invitation.inviteeMailAddress),
+							value: invitation.inviteeMailAddress,
 							label: "to_label",
 							disabled: true,
 						}),
 						m(TextFieldN, {
-							value: stream(getCapabilityText(downcast(invitation.capability))),
+							value: getCapabilityText(downcast(invitation.capability)),
 							label: "permissions_label",
 							disabled: true,
 						}),

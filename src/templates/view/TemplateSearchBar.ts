@@ -1,4 +1,4 @@
-import m, {Children, Component, Vnode} from "mithril"
+import m, {Children, ClassComponent, Component, Vnode} from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {inputLineHeight, px} from "../../gui/size"
@@ -15,7 +15,7 @@ export type TemplateSearchBarAttrs = {
 	keyHandler?: keyHandler
 }
 
-export class TemplateSearchBar implements Component<TemplateSearchBarAttrs> {
+export class TemplateSearchBar implements ClassComponent<TemplateSearchBarAttrs> {
 	domInput: HTMLInputElement | null = null
 
 	view(vnode: Vnode<TemplateSearchBarAttrs>): Children {

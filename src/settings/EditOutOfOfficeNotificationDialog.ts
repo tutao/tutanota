@@ -119,7 +119,8 @@ class EditoOutOfOfficeNotificationDialog implements Component<EditoOutOfOfficeNo
 		this._statusSelectorAttrs = {
 			label: "state_label",
 			items: statusItems,
-			selectedValue: model.enabled,
+			selectedValue: model.enabled(),
+			selectionChangedHandler: model.enabled,
 		}
 		const recipientItems = [
 			{
@@ -155,7 +156,8 @@ class EditoOutOfOfficeNotificationDialog implements Component<EditoOutOfOfficeNo
 		this._recipientSelectorAttrs = {
 			label: "outOfOfficeRecipients_label",
 			items: recipientItems,
-			selectedValue: model.recipientMessageTypes,
+			selectedValue: model.recipientMessageTypes(),
+			selectionChangedHandler: model.recipientMessageTypes,
 			helpLabel: recipientHelpLabel,
 		}
 		this._timeRangeCheckboxAttrs = {
@@ -165,7 +167,8 @@ class EditoOutOfOfficeNotificationDialog implements Component<EditoOutOfOfficeNo
 		}
 		this._defaultSubjectAttrs = {
 			label: "subject_label",
-			value: model.defaultSubject,
+			value: model.defaultSubject(),
+			oninput: model.defaultSubject,
 			injectionsLeft: () =>
 				m(
 					".flex-no-grow-no-shrink-auto.pr-s",
@@ -180,7 +183,8 @@ class EditoOutOfOfficeNotificationDialog implements Component<EditoOutOfOfficeNo
 		}
 		this._organizationSubjectAttrs = {
 			label: "subject_label",
-			value: model.organizationSubject,
+			value: model.organizationSubject(),
+			oninput: model.organizationSubject,
 			injectionsLeft: () =>
 				m(
 					".flex-no-grow-no-shrink-auto.pr-s",

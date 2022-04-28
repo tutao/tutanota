@@ -103,7 +103,7 @@ export class BubbleTextField<T> implements Component {
 	) {
 		this.loading = null
 		this.suggestions = []
-		this.selectedSuggestion = stream(null)
+		this.selectedSuggestion = stream<Suggestion | null>(null)
 		this.suggestionAnimation = Promise.resolve()
 		this.previousQuery = ""
 		this._textField = new TextField(labelIdOrLabelTextFunction)

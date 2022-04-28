@@ -369,24 +369,24 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
 						m(".flex-grow-shrink-half.plr-l", [
 							m(TextFieldN, {
 								label: "subscription_label",
-								value: () => "Premium",
+								value: "Premium",
 								disabled: true,
-							} as TextFieldAttrs),
+							}),
 							m(TextFieldN, {
 								label: "paymentInterval_label",
-								value: () => lang.get("pricing.yearly_label"),
+								value: lang.get("pricing.yearly_label"),
 								disabled: true,
-							} as TextFieldAttrs),
+							}),
 							m(TextFieldN, {
 								label: "price_label",
-								value: () => formatPrice(Number(data.premiumPrice), true) + " " + lang.get("pricing.perYear_label"),
+								value: formatPrice(Number(data.premiumPrice), true) + " " + lang.get("pricing.perYear_label"),
 								disabled: true,
-							} as TextFieldAttrs),
+							}),
 							m(TextFieldN, {
 								label: "paymentMethod_label",
-								value: () => this.paymentMethod,
+								value: this.paymentMethod,
 								disabled: true,
-							} as TextFieldAttrs),
+							}),
 						]),
 						m(
 							".flex-grow-shrink-half.plr-l.flex-center.items-end",

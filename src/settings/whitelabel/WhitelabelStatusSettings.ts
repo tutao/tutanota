@@ -43,7 +43,7 @@ export class WhitelabelStatusSettings implements Component<WhitelabelStatusSetti
 		const value = isWhitelabelActive ? lang.get("active_label") : lang.get("deactivated_label")
 		const textFieldAttrs = {
 			label: "state_label",
-			value: stream(value),
+			value: value,
 			disabled: true,
 			injectionsRight: () => (isWhitelabelActive ? m(ButtonN, disableWhiteLabelAction) : m(ButtonN, enableWhiteLabelAction)),
 		} as const

@@ -30,9 +30,9 @@ export class SearchModel {
 	constructor(searchFacade: SearchFacade) {
 		this._searchFacade = searchFacade
 		this.result = stream()
-		this.lastQuery = stream("")
+		this.lastQuery = stream<string | null>("")
 		this.indexingSupported = true
-		this.indexState = stream({
+		this.indexState = stream<SearchIndexStateInfo>({
 			initializing: true,
 			mailIndexEnabled: false,
 			progress: 0,

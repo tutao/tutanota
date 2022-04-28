@@ -43,11 +43,13 @@ export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
 			m(DropDownSelectorN, {
 				items: getInboxRuleTypeNameMapping(),
 				label: "inboxRuleField_label",
-				selectedValue: inboxRuleType,
+				selectedValue: inboxRuleType(),
+				selectionChangedHandler: inboxRuleType,
 			}),
 			m(TextFieldN, {
 				label: "inboxRuleValue_label",
-				value: inboxRuleValue,
+				value: inboxRuleValue(),
+				oninput: inboxRuleValue,
 				helpLabel: () =>
 					inboxRuleType() !== InboxRuleType.SUBJECT_CONTAINS && inboxRuleType() !== InboxRuleType.MAIL_HEADER_CONTAINS
 						? lang.get("emailSenderPlaceholder_label")
@@ -56,7 +58,8 @@ export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
 			m(DropDownSelectorN, {
 				label: "inboxRuleTargetFolder_label",
 				items: targetFolders,
-				selectedValue: inboxRuleTarget,
+				selectedValue: inboxRuleTarget(),
+				selectionChangedHandler: inboxRuleTarget,
 			}),
 		]
 

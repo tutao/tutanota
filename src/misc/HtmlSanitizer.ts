@@ -1,4 +1,4 @@
-import DOMPurify, {DOMPurifyI, HookEvent} from "dompurify"
+import DOMPurify, {Config, DOMPurifyI, HookEvent} from "dompurify"
 import {ReplacementImage} from "../gui/base/icons/Icons"
 import {client} from "./ClientDetector"
 import {downcast, stringToUtf8Uint8Array, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
@@ -177,7 +177,8 @@ export class HtmlSanitizer {
 		return Object.assign({}, config, DEFAULT_CONFIG_EXTRA, configExtra)
 	}
 
-	private afterSanitizeAttributes(currentNode: Element, data: HookEvent, config: SanitizeConfig) {
+	private afterSanitizeAttributes(currentNode: Element, data: HookEvent, config: Config) {
+		const typedConfig = config as SanitizeConfig
 		// remove custom css classes as we do not allow style definitions. custom css classes can be in conflict to our self defined classes.
 		// just allow our own "tutanota_quote" class and MsoListParagraph classes for compatibility with Outlook 2010/2013 emails. see main-styles.js
 		let allowedClasses = ["tutanota_quote", "MsoListParagraph", "MsoListParagraphCxSpFirst", "MsoListParagraphCxSpMiddle", "MsoListParagraphCxSpLast"]
@@ -194,9 +195,9 @@ export class HtmlSanitizer {
 			}
 		}
 
-		this.replaceAttributes(currentNode as HTMLElement, config)
+		this.replaceAttributes(currentNode as HTMLElement, typedConfig)
 
-		this.processLink(currentNode as HTMLElement, config)
+		this.processLink(currentNode as HTMLElement, typedConfig)
 
 		return currentNode
 

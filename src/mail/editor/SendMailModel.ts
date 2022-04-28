@@ -215,8 +215,9 @@ export class SendMailModel {
 
 		this._passwords = new Map()
 		this._mailChanged = false
-		this.onMailChanged = stream(false)
-		this.onRecipientDeleted = stream(null)
+
+		this.onMailChanged = stream<boolean>(false)
+		this.onRecipientDeleted = stream<{field: RecipientField, recipient: RecipientInfo} | null>(null)
 		this.onBeforeSend = noOp
 		this.loadedInlineImages = new Map()
 	}

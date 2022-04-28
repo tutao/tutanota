@@ -13,7 +13,7 @@ import {
 	SubscriptionType,
 	UpgradePriceType,
 } from "./SubscriptionUtils"
-import type {SegmentControlItem} from "../gui/base/SegmentControl"
+import type {SegmentControlAttrs, SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
 import {formatMonthlyPrice, formatPrice, getSubscriptionPrice, isYearlyPayment} from "./PriceUtils"
 
@@ -86,7 +86,8 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		return [
 			vnode.attrs.isInitialUpgrade
 				? m(SegmentControl, {
-					selectedValue: vnode.attrs.options.businessUse,
+					selectedValue: vnode.attrs.options.businessUse(),
+					onValueSelected: vnode.attrs.options.businessUse,
 					items: BusinessUseItems,
 				})
 				: null,

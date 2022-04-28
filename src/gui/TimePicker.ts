@@ -1,5 +1,4 @@
 import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
-import stream from "mithril/stream"
 import {TextFieldN, TextFieldType as TextFieldType} from "./base/TextFieldN"
 import {theme} from "./theme"
 import {client} from "../misc/ClientDetector"
@@ -7,7 +6,6 @@ import {Keys} from "../api/common/TutanotaConstants"
 import {timeStringFromParts} from "../misc/Formatter"
 import {parseTime} from "../misc/parsing/TimeParser"
 import {Time} from "../api/common/utils/Time"
-import Stream from "mithril/stream";
 
 export type TimePickerAttrs = {
 	time: Time | null
@@ -21,11 +19,11 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	private _focused: boolean
 	private _selectedIndex!: number
 	private _oldValue!: string
-	private _value: Stream<string>
+	private _value: string
 
 	constructor({attrs}: Vnode<TimePickerAttrs>) {
 		this._focused = false
-		this._value = stream("")
+		this._value = ""
 		const times: string[] = []
 
 		for (let hour = 0; hour < 24; hour++) {
@@ -43,7 +41,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			this._selectedIndex = this._values.indexOf(timeAsString)
 
 			if (!this._focused) {
-				this._value(timeAsString)
+				this._value = timeAsString
 			}
 		}
 
@@ -63,14 +61,14 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		const timeAsString = attrs.time?.toString(false) ?? ""
 		this._oldValue = timeAsString
 
-		this._value(timeAsString)
+		this._value = timeAsString
 
 		return m(TextFieldN, {
 			label: "emptyString_msg",
 			value: this._value,
 			type: TextFieldType.Time,
 			oninput: value => {
-				this._value(value)
+				this._value = value
 
 				attrs.onTimeSelected(parseTime(value))
 			},
@@ -86,6 +84,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		return m(TextFieldN, {
 			label: "emptyString_msg",
 			value: this._value,
+			oninput: (v) => this._value = v,
 			disabled: attrs.disabled,
 			onfocus: (dom, input) => {
 				this._focused = true
@@ -148,9 +147,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	_onSelected(attrs: TimePickerAttrs) {
 		this._focused = false
 
-		const value = this._value()
-
-		attrs.onTimeSelected(parseTime(value))
+		attrs.onTimeSelected(parseTime(this._value))
 	}
 
 	_setScrollTop(attrs: TimePickerAttrs, vnode: VnodeDOM<TimePickerAttrs>) {

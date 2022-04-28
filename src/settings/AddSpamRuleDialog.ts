@@ -33,11 +33,13 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderLis
 		m(DropDownSelectorN, {
 			items: fieldValues,
 			label: "field_label",
-			selectedValue: selectedField,
+			selectedValue: selectedField(),
+			selectionChangedHandler: selectedField,
 		}),
 		m(TextFieldN, {
 			label: "emailSenderPlaceholder_label",
-			value: valueFieldValue,
+			value: valueFieldValue(),
+			oninput: valueFieldValue,
 			helpLabel: () =>
 				lang.get(
 					validate(selectedType(), valueFieldValue(), selectedField(), loadedData, existingSpamRuleOrTemplate) ?? "emptyString_msg",
@@ -46,7 +48,8 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderLis
 		m(DropDownSelectorN, {
 			items: typeItems,
 			label: "emailSenderRule_label",
-			selectedValue: selectedType,
+			selectedValue: selectedType(),
+			selectionChangedHandler: selectedType,
 		}),
 	]
 

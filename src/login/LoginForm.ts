@@ -59,15 +59,10 @@ export class LoginForm implements Component<LoginFormAttrs> {
 
 	view(vnode: Vnode<LoginFormAttrs>): Children {
 		const a = vnode.attrs
-		const mailAddressFieldAttrs = {
-			label: "mailAddress_label" as TranslationKey,
-			value: a.mailAddress,
-			autocomplete: "username",
-			type: TextFieldType.Email,
-		}
 		const passwordFieldAttrs: TextFieldAttrs = {
 			label: "password_label",
-			value: a.password,
+			value: a.password(),
+			oninput: a.password,
 			type: TextFieldType.Password,
 		}
 		const canSaveCredentials = !!client.localStorage()
@@ -89,7 +84,12 @@ export class LoginForm implements Component<LoginFormAttrs> {
 							this.mailAddressTextField = child.state
 						},
 					},
-					m(TextFieldN, mailAddressFieldAttrs),
+					m(TextFieldN, {
+						label: "mailAddress_label" as TranslationKey,
+						value: a.mailAddress(),
+						oninput: a.mailAddress,
+						type: TextFieldType.Email,
+					}),
 				),
 				m(
 					"",

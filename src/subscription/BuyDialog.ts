@@ -161,7 +161,7 @@ class ConfirmSubscriptionView implements Component<ConfirmAttrs> {
 		return m("", [
 			m(TextFieldN, {
 				label: "bookingOrder_label",
-				value: stream(this.getBookingText(priceChangeModel, count, freeAmount)),
+				value: this.getBookingText(priceChangeModel, count, freeAmount),
 				type: TextFieldType.Area,
 				disabled: true,
 			}),
@@ -169,14 +169,14 @@ class ConfirmSubscriptionView implements Component<ConfirmAttrs> {
 				? m(TextFieldN, {
 					label: "subscription_label",
 					helpLabel: () => lang.get("nextChargeOn_label", {"{chargeDate}": formatDate(chargeDate)}),
-					value: stream(this.getSubscriptionText(priceChangeModel)),
+					value: this.getSubscriptionText(priceChangeModel),
 					disabled: true,
 				})
 				: null,
 			m(TextFieldN, {
 				label: "price_label",
 				helpLabel: () => this.getPriceInfoText(priceChangeModel),
-				value: stream(this.getPriceText(priceChangeModel)),
+				value: this.getPriceText(priceChangeModel),
 				disabled: true,
 			}),
 		])

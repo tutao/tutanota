@@ -1,23 +1,21 @@
-import m from "mithril"
+import m, {Component} from "mithril"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import type {Country} from "../api/common/CountryList"
 import {Countries, CountryType} from "../api/common/CountryList"
 import {HtmlEditor, HtmlEditorMode} from "../gui/editor/HtmlEditor"
-import {HttpMethod} from "../api/common/EntityFunctions"
 import type {LocationServiceGetReturn} from "../api/entities/sys/TypeRefs.js"
-import {LocationServiceGetReturnTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {createCountryDropdown} from "../gui/base/GuiUtils"
 import {TextFieldAttrs, TextFieldN} from "../gui/base/TextFieldN"
 import type {InvoiceData} from "../api/common/TutanotaConstants"
-import Stream from "mithril/stream";
 import {LocationService} from "../api/entities/sys/Services"
 import {locator} from "../api/main/MainLocator"
 
-export class InvoiceDataInput {
-	view: (...args: Array<any>) => any
-	oncreate: (...args: Array<any>) => any
+export class InvoiceDataInput implements Component {
+	view: Component["view"]
+	oncreate: Component["oncreate"]
 	selectedCountry: Stream<Country | null>
 	_invoiceAddressComponent: HtmlEditor
 	_businessUse: boolean
@@ -34,11 +32,11 @@ export class InvoiceDataInput {
 		this._vatNumber = ""
 		const vatNumberFieldAttrs: TextFieldAttrs = {
 			label: "invoiceVatIdNo_label",
-			value: stream(this._vatNumber),
+			value: this._vatNumber,
 			helpLabel: () => lang.get("invoiceVatIdNoInfoBusiness_msg"),
 			oninput: value => (this._vatNumber = value),
 		} as const
-		this.selectedCountry = stream(null)
+		this.selectedCountry = stream<Country | null>(null)
 		const countryInput = createCountryDropdown(this.selectedCountry, () => lang.get("invoiceCountryInfoConsumer_msg"))
 
 		this._invoiceAddressComponent.setValue(invoiceData.invoiceAddress)

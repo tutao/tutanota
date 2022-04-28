@@ -46,16 +46,16 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	private _offlineStorageValue: Stream<boolean>
 
 	constructor() {
-		this._isDefaultMailtoHandler = stream(false)
-		this._runAsTrayApp = stream(true)
-		this._runOnStartup = stream(false)
+		this._isDefaultMailtoHandler = stream<boolean | null>(false)
+		this._runAsTrayApp = stream<boolean | null>(true)
+		this._runOnStartup = stream<boolean | null>(false)
 		this._spellCheckLang = stream("")
-		this._isIntegrated = stream(false)
-		this._isAutoUpdateEnabled = stream(false)
+		this._isIntegrated = stream<boolean | null>(false)
+		this._isAutoUpdateEnabled = stream<boolean | null>(false)
 		this._showAutoUpdateOption = true
-		this._updateAvailable = stream(false)
-		this._mailExportMode = stream("msg") // msg is just a dummy value here, it will be overwritten in requestDesktopConfig
-		this._offlineStorageValue = stream(false)
+		this._updateAvailable = stream<boolean>(false)
+		this._mailExportMode = stream<MailExportMode>("msg") // msg is just a dummy value here, it will be overwritten in requestDesktopConfig
+		this._offlineStorageValue = stream<boolean>(false)
 	}
 
 	oninit() {
@@ -76,7 +76,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 					value: true,
 				},
 			],
-			selectedValue: this._isDefaultMailtoHandler,
+			selectedValue: this._isDefaultMailtoHandler(),
 			selectionChangedHandler: v => {
 				showProgressDialog("pleaseWait_msg", this._updateDefaultMailtoHandler(v)).then(() => {
 					this._isDefaultMailtoHandler(v)
@@ -104,7 +104,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 					value: false,
 				},
 			],
-			selectedValue: this._runAsTrayApp,
+			selectedValue: this._runAsTrayApp(),
 			selectionChangedHandler: v => {
 				this._runAsTrayApp(v)
 
@@ -123,7 +123,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 					value: false,
 				},
 			],
-			selectedValue: this._runOnStartup,
+			selectedValue: this._runOnStartup(),
 			selectionChangedHandler: v => {
 				// this may take a while
 				showProgressDialog("pleaseWait_msg", this._toggleAutoLaunchInNative(v)).then(() => {
@@ -140,7 +140,8 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		}
 		const spellcheckLanguageAttrs: TextFieldAttrs = {
 			label: "checkSpelling_action",
-			value: this._spellCheckLang,
+			value: this._spellCheckLang(),
+			oninput: this._spellCheckLang,
 			disabled: true,
 			injectionsRight: () => [m(ButtonN, editSpellcheckLanguageButtonAttrs)],
 			helpLabel: () => lang.get("requiresNewWindow_msg"),
@@ -157,7 +158,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 					value: false,
 				},
 			],
-			selectedValue: this._isIntegrated,
+			selectedValue: this._isIntegrated(),
 			selectionChangedHandler: v => {
 				showProgressDialog("pleaseWait_msg", this._updateDesktopIntegration(v))
 					.then(() => {
@@ -181,7 +182,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 					value: "msg",
 				},
 			],
-			selectedValue: this._mailExportMode,
+			selectedValue: this._mailExportMode(),
 			selectionChangedHandler: v => {
 				this._mailExportMode(v)
 
@@ -205,7 +206,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 					value: false,
 				},
 			],
-			selectedValue: this._isAutoUpdateEnabled,
+			selectedValue: this._isAutoUpdateEnabled(),
 			selectionChangedHandler: v => {
 				this._isAutoUpdateEnabled(v)
 
@@ -235,7 +236,8 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		)
 		const defaultDownloadPathAttrs: TextFieldAttrs = {
 			label: "defaultDownloadPath_label",
-			value: this._defaultDownloadPath,
+			value: this._defaultDownloadPath(),
+			oninput: this._defaultDownloadPath,
 			injectionsRight: () => m(ButtonN, changeDefaultDownloadPathAttrs),
 			disabled: true,
 		}

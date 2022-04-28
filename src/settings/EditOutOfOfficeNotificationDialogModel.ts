@@ -25,16 +25,16 @@ const FAILURE_BUSINESS_FEATURE_REQUIRED = "outofoffice.business_feature_required
 
 export class EditOutOfOfficeNotificationDialogModel {
 	outOfOfficeNotification: OutOfOfficeNotification
-	enabled: Stream<boolean> = stream(false)
+	enabled: Stream<boolean> = stream<boolean>(false)
 	startDate: Stream<Date> = stream(new Date())
 	endDate: Stream<Date> = stream(new Date())
-	indefiniteTimeRange: Stream<boolean> = stream(true)
-	timeRangeEnabled: Stream<boolean> = stream(false)
+	indefiniteTimeRange: Stream<boolean> = stream<boolean>(true)
+	timeRangeEnabled: Stream<boolean> = stream<boolean>(false)
 	organizationSubject: Stream<string> = stream("")
 	organizationMessage: Stream<string> = stream("")
 	defaultSubject: Stream<string> = stream("")
 	defaultMessage: Stream<string> = stream("")
-	recipientMessageTypes: Stream<RecipientMessageType> = stream(RecipientMessageType.EXTERNAL_TO_EVERYONE)
+	recipientMessageTypes: Stream<RecipientMessageType> = stream<RecipientMessageType>(RecipientMessageType.EXTERNAL_TO_EVERYONE)
 	_entityClient: EntityClient
 	_userController: IUserController
 	_languageViewModel: LanguageViewModel

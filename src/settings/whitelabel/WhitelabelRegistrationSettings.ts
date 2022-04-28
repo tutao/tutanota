@@ -40,7 +40,7 @@ export class WhitelabelRegistrationSettings implements Component<WhitelabelRegis
 	): Children {
 		return m(DropDownSelectorN, {
 			label: "whitelabelRegistrationEmailDomain_label",
-			selectedValue: stream(currentRegistrationDomain),
+			selectedValue: currentRegistrationDomain,
 			items: possibleRegistrationDomains,
 			selectionChangedHandler: onRegistrationDomainSelected
 				? (selectedValue: string | null) => {
@@ -48,7 +48,7 @@ export class WhitelabelRegistrationSettings implements Component<WhitelabelRegis
 				}
 				: null,
 			disabled: !onRegistrationDomainSelected,
-		} as const)
+		})
 	}
 
 	_renderWhitelabelCodeField(whitelabelCode: string, onWhitelabelCodeChanged: ((arg0: string) => unknown) | null): Children {
@@ -68,7 +68,7 @@ export class WhitelabelRegistrationSettings implements Component<WhitelabelRegis
 
 		const whitelabelRegistrationTextfieldAttrs = {
 			label: "whitelabelRegistrationCode_label",
-			value: stream(whitelabelCode),
+			value: whitelabelCode,
 			disabled: true,
 			injectionsRight: () => [editButtonAttrs ? m(ButtonN, editButtonAttrs) : null],
 		} as const

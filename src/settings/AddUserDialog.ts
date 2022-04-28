@@ -29,8 +29,8 @@ export function show(): Promise<void> {
 		const nameFieldAttrs: TextFieldAttrs = {
 			label: "name_label",
 			helpLabel: () => lang.get("loginNameInfoAdmin_msg"),
-			value: stream(userName),
-			oninput: value => (userName = value.trim()),
+			value: userName,
+			oninput: (value) => userName = value.trim(),
 		}
 		let form = {
 			view: () => {

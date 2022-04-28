@@ -117,11 +117,13 @@ class KnowledgeBaseEditor implements Component<KnowledgeBaseEditorModel> {
 		return m("", [
 			m(TextFieldN, {
 				label: "title_placeholder",
-				value: model.title,
+				value: model.title(),
+				oninput: model.title,
 			}),
 			m(TextFieldN, {
 				label: "keywords_label",
-				value: model.keywords,
+				value: model.keywords(),
+				oninput: model.keywords,
 			}),
 			m(this.entryContentEditor),
 		])

@@ -30,7 +30,7 @@ export class CalendarEventPopup implements ModalComponent {
 
 	_isPersistentEvent: boolean
 	_isExternal: boolean
-	view: (arg0: Vnode<unknown>) => Children
+	view: ModalComponent["view"]
 
 	constructor(
 		calendarEvent: CalendarEvent,

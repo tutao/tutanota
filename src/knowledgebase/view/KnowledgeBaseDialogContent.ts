@@ -24,15 +24,11 @@ export type KnowledgebaseDialogContentAttrs = {
  */
 export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialogContentAttrs> {
 	private _streams: Array<Stream<any>>
-	private _filterInputFieldAttrs: TextFieldAttrs
+	private filterValue: string = ""
 	private _selectionChangedListener!: Stream<void>
 
 	constructor() {
 		this._streams = []
-		this._filterInputFieldAttrs = {
-			label: () => lang.get("filter_label"),
-			value: stream(""),
-		}
 	}
 
 	oncreate({attrs}: Vnode<KnowledgebaseDialogContentAttrs>) {
@@ -42,13 +38,6 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 			stream.combine(() => {
 				m.redraw()
 			}, [model.selectedEntry, model.filteredEntries]),
-		)
-
-		this._streams.push(
-			this._filterInputFieldAttrs.value.map((value: string) => {
-				model.filter(value)
-				m.redraw()
-			}),
 		)
 	}
 
@@ -74,7 +63,20 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 				},
 				readonly: model.isReadOnly(selectedEntry),
 			})
-			: [m(TextFieldN, this._filterInputFieldAttrs), this._renderKeywords(model), this._renderList(model, attrs)]
+			: [
+				m(TextFieldN, {
+						label: () => lang.get("filter_label"),
+						value: this.filterValue,
+						oninput: (value) => {
+							this.filterValue = value
+							model.filter(value)
+							m.redraw()
+						},
+					}
+				),
+				this._renderKeywords(model),
+				this._renderList(model, attrs),
+			]
 	}
 
 	_renderKeywords(model: KnowledgeBaseModel): Children {

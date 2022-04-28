@@ -22,7 +22,7 @@ export class WhitelabelNotificationEmailSettings implements Component<Whitelabel
 	_notificationEmailsExpanded: Stream<boolean>
 
 	constructor(vnode: Vnode<WhitelabelNotificationEmailSettingsAttrs>) {
-		this._notificationEmailsExpanded = stream(false)
+		this._notificationEmailsExpanded = stream<boolean>(false)
 	}
 
 	view(vnode: Vnode<WhitelabelNotificationEmailSettingsAttrs>): Children {

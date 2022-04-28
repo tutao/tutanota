@@ -114,7 +114,8 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 						m(".small.text-center.pb-s", lang.getMaybeLazy(vnode.attrs.helpLabel)),
 						vnode.attrs.paymentInterval
 							? m(SegmentControl, {
-								selectedValue: vnode.attrs.paymentInterval,
+								selectedValue: vnode.attrs.paymentInterval(),
+								onValueSelected: vnode.attrs.paymentInterval,
 								items: PaymentIntervalItems,
 							})
 							: null,

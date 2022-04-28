@@ -60,14 +60,14 @@ export function show(customerInfo: CustomerInfo): void {
 	// only show a dropdown if a domain is already selected for tutanota login or if there is exactly one domain available
 	const whitelabelDomainInfo = getWhitelabelDomain(customerInfo)
 	const domain = whitelabelDomainInfo ? stream(whitelabelDomainInfo.domain) : stream("")
-	const domainFieldAttrs = {
-		label: "whitelabelDomain_label",
-		value: domain,
-		disabled: whitelabelDomainInfo ? true : false,
-	} as const
 	let form = {
 		view: () => {
-			return [m(TextFieldN, domainFieldAttrs)]
+			return m(TextFieldN, {
+				label: "whitelabelDomain_label",
+				value: domain(),
+				oninput: domain,
+				disabled: whitelabelDomainInfo ? true : false,
+			})
 		},
 	}
 	let dialog = Dialog.showActionDialog({

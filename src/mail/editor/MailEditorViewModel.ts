@@ -82,7 +82,7 @@ export function createPasswordField(model: SendMailModel, recipient: RecipientIn
 				"{1}": recipient.mailAddress,
 			}),
 		helpLabel: () => m(passwordIndicator),
-		value: Stream(password),
+		value: password,
 		type: TextFieldType.ExternalPassword,
 		oninput: val => model.setPassword(recipient.mailAddress, val),
 	}

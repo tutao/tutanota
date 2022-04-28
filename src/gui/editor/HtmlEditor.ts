@@ -42,7 +42,7 @@ export class HtmlEditor implements Component {
 			richToolbarOptions = {enabled: false}
 		}
 		this._editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, {blockExternalContent: false}).html)
-		this._mode = stream(HtmlEditorMode.WYSIWYG)
+		this._mode = stream<HtmlEditorMode>(HtmlEditorMode.WYSIWYG)
 		this._active = false
 		this._disabled = false
 		this._showBorders = false

@@ -672,7 +672,8 @@ function showRenameTemplateListDialog(instance: TemplateGroupInstance) {
 		child: {
 			view: () =>
 				m(TextFieldN, {
-					value: name,
+					value: name(),
+					oninput: name,
 					label: "templateGroupName_label",
 				}),
 		},

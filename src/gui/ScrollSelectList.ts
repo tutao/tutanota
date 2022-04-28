@@ -1,6 +1,4 @@
-import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
-import stream from "mithril/stream"
-import Stream from "mithril/stream"
+import m, {Children, ClassComponent, Component, CVnode, CVnodeDOM, Vnode, VnodeDOM} from "mithril"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {Icon} from "./base/Icon"
@@ -10,55 +8,45 @@ import {resolveMaybeLazy} from "@tutao/tutanota-utils"
 
 export type ScrollSelectListAttrs<T> = {
 	items: ReadonlyArray<T>
-	selectedItem: Stream<T | null>
+	selectedItem: T | null
+	onItemSelected: (item: T) => unknown
 	emptyListMessage: MaybeLazy<TranslationKey>
 	width: number
-	renderItem: (arg0: T) => Children
-	onItemDoubleClicked: (arg0: T) => unknown
+	renderItem: (item: T) => Children
+	onItemDoubleClicked: (item: T) => unknown
 }
 
-export class ScrollSelectList<T> implements Component<ScrollSelectListAttrs<T>> {
-	private _handleSelectionMapping: Stream<void>
-	private _selectedItem: T | null = null
+export function rScrollSelectList<T>(attrs: ScrollSelectListAttrs<T>): Children {
+	return m<ScrollSelectListAttrs<T>, ScrollSelectList<T>>(ScrollSelectList, attrs)
+}
 
-	constructor() {
-		this._handleSelectionMapping = stream()
-	}
+export class ScrollSelectList<T> implements ClassComponent<ScrollSelectListAttrs<T>> {
+	private selectedItem: T | null = null
 
-	view(vnode: Vnode<ScrollSelectListAttrs<T>>): Children {
+	view(vnode: CVnode<ScrollSelectListAttrs<T>>): Children {
 		const a = vnode.attrs
-		return m(
-			".flex.flex-column.scroll-no-overlay",
-			{
-				oncreate: vnode => {
-					this._handleSelectionMapping = a.selectedItem.map(selection => {
-						// Ensures that redraw happens after selected item changed this guarantess that the selected item is focused correctly.
-						// Selecting the correct item in the list requires that the (possible filtered) list needs render first and then we
-						// can scroll to the new selected item. Therefore we call onSelectionChange in onupdate callback.
-						m.redraw()
-					})
-				},
-				onremove: vnode => {
-					this._handleSelectionMapping.end(true)
-				},
-			},
-			a.items.length > 0
+		return m(".flex.flex-column.scroll-no-overlay",
+			(a.items.length > 0)
 				? a.items.map(item => this.renderRow(item, vnode))
 				: m(".row-selected.text-center.pt", lang.get(resolveMaybeLazy(a.emptyListMessage))),
 		)
 	}
 
-	onupdate(vnode: VnodeDOM<ScrollSelectListAttrs<T>>) {
-		const newSelectedItem = vnode.attrs.selectedItem()
+	onupdate(vnode: CVnodeDOM<ScrollSelectListAttrs<T>>) {
+		const newSelectedItem = vnode.attrs.selectedItem
 
-		if (newSelectedItem !== this._selectedItem) {
+		if (newSelectedItem !== this.selectedItem) {
 			this._onSelectionChanged(newSelectedItem, vnode.attrs.items, vnode.dom as HTMLElement)
+			// Ensures that redraw happens after selected item changed this guarantess that the selected item is focused correctly.
+			// Selecting the correct item in the list requires that the (possible filtered) list needs render first and then we
+			// can scroll to the new selected item. Therefore we call onSelectionChange in onupdate callback.
+			m.redraw()
 		}
 	}
 
 	renderRow(item: T, vnode: Vnode<ScrollSelectListAttrs<T>>): Children {
 		const a = vnode.attrs
-		const isSelected = a.selectedItem() === item
+		const isSelected = a.selectedItem === item
 		return m(
 			".flex.flex-column.click",
 			{
@@ -71,11 +59,11 @@ export class ScrollSelectList<T> implements Component<ScrollSelectListAttrs<T>> 
 					".flex.template-list-row" + (isSelected ? ".row-selected" : ""),
 					{
 						onclick: (e: MouseEvent) => {
-							a.selectedItem(item)
+							a.onItemSelected(item)
 							e.stopPropagation()
 						},
 						ondblclick: (e: MouseEvent) => {
-							a.selectedItem(item)
+							a.onItemSelected(item)
 							a.onItemDoubleClicked(item)
 							e.stopPropagation()
 						},
@@ -103,7 +91,7 @@ export class ScrollSelectList<T> implements Component<ScrollSelectListAttrs<T>> 
 	}
 
 	_onSelectionChanged(selectedItem: T | null, items: ReadonlyArray<T>, scrollDom: HTMLElement) {
-		this._selectedItem = selectedItem
+		this.selectedItem = selectedItem
 		if (selectedItem != null) {
 			const selectedIndex = items.indexOf(selectedItem)
 

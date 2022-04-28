@@ -36,11 +36,9 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 	_renderCustomColorsField(data: WhitelabelData | null): Children {
 		return m(TextFieldN, {
 			label: "customColors_label",
-			value: Stream(
-				this.areCustomColorsDefined(data?.customTheme ?? null)
-					? lang.get("activated_label")
-					: lang.get("deactivated_label")
-			),
+			value: this.areCustomColorsDefined(data?.customTheme ?? null)
+				? lang.get("activated_label")
+				: lang.get("deactivated_label"),
 			disabled: true,
 			injectionsRight: () => (data ? this.renderCustomColorsFieldButtons(data) : null),
 		})
@@ -82,7 +80,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 		const customLogoTextfieldAttrs: TextFieldAttrs = {
 			label: "customLogo_label",
 			helpLabel: () => lang.get("customLogoInfo_msg"),
-			value: Stream(lang.get(data?.customTheme.logo != null ? "activated_label" : "deactivated_label")),
+			value: lang.get(data?.customTheme.logo != null ? "activated_label" : "deactivated_label"),
 			disabled: true,
 			injectionsRight: () => (data ? this.renderCustomLogoFieldButtons(data) : null),
 		}

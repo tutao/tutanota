@@ -33,7 +33,7 @@ export class WorkerClient {
 
 	private _dispatcher!: MessageDispatcher<WorkerRequestType, MainRequestType>
 	private _progressUpdater: ProgressUpdater | null = null
-	readonly _wsConnection: stream<WsConnectionState> = stream(WsConnectionState.terminated)
+	readonly _wsConnection: stream<WsConnectionState> = stream<WsConnectionState>(WsConnectionState.terminated)
 	// Should be empty stream unless there's really a message.
 	readonly infoMessages: stream<InfoMessage> = stream()
 	private _leaderStatus: WebsocketLeaderStatus

@@ -84,7 +84,7 @@ export class IdentifierListViewer {
 	private _identifiers: PushIdentifier[]
 
 	constructor(user: User) {
-		this._expanded = stream(false)
+		this._expanded = stream<boolean>(false)
 		this._identifiers = []
 		this._user = user
 
@@ -182,7 +182,8 @@ export class IdentifierListViewer {
 		} else {
 			let emailAddressInputFieldAttrs: TextFieldAttrs = {
 				label: "mailAddress_label",
-				value: mailAddress,
+				value: mailAddress(),
+				oninput: mailAddress,
 			}
 			let form = {
 				view: () => [m(TextFieldN, emailAddressInputFieldAttrs), m(".small.mt-s", lang.get("emailPushNotification_msg"))],

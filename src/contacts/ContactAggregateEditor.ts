@@ -10,7 +10,7 @@ import {attachDropdown} from "../gui/base/DropdownN"
 import Stream from "mithril/stream";
 
 export type AggregateEditorAttrs<AggregateType> = {
-	value: Stream<string>
+	value: string
 	cancelAction: () => unknown
 	key: string
 	animateCreate?: boolean

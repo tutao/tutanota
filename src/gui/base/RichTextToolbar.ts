@@ -271,7 +271,7 @@ export class RichTextToolbar {
 
 	_animate(dom: HTMLElement, appear: boolean): Promise<any> {
 		let childHeight = Array.from(dom.children)
-							   .map((domElement: HTMLElement) => domElement.offsetHeight)
+							   .map((domElement) => (domElement as HTMLElement).offsetHeight)
 							   .reduce((current: number, previous: number) => Math.max(current, previous), 0)
 		return animations
 			.add(dom, [height(appear ? 0 : childHeight, appear ? childHeight : 0), appear ? opacity(0, 1, false) : opacity(1, 0, false)])

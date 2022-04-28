@@ -141,6 +141,7 @@ export class DbFacade {
 				return new Promise((resolve, reject) => {
 					let deleteRequest = self.indexedDB.deleteDatabase(this._db.getLoaded().name)
 
+					// @ts-ignore
 					deleteRequest.onerror = (event: ErrorEvent) => {
 						reject(new DbError(`could not delete database ${this._db.getLoaded().name}`, downcast<Error>(event)))
 					}

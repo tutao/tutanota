@@ -1,4 +1,4 @@
-import m, {Children, Component, Vnode} from "mithril"
+import m, {Children, ClassComponent, Component, CVnode, Vnode} from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {addFlash, removeFlash} from "./Flash"
@@ -114,10 +114,10 @@ export interface ButtonAttrs {
 /**
  * A button.
  */
-export class ButtonN implements Component<ButtonAttrs> {
+export class ButtonN implements ClassComponent<ButtonAttrs> {
 	private _domButton: HTMLElement | null = null
 
-	view(vnode: Vnode<ButtonAttrs>): Children {
+	view(vnode: CVnode<ButtonAttrs>): Children {
 		const a = vnode.attrs
 		const type = this.getType(a.type)
 		const title = a.title !== undefined ? this.getTitle(a.title) : lang.getMaybeLazy(a.label)

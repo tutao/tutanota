@@ -160,7 +160,7 @@ export class ContactViewer implements ClassComponent {
 		})
 		return m(TextFieldN, {
 			label: () => getContactSocialTypeLabel(getContactSocialType(contactSocialId), contactSocialId.customTypeName),
-			value: stream(contactSocialId.socialId),
+			value: contactSocialId.socialId,
 			disabled: true,
 			injectionsRight: () => m(`a[href=${this.getSocialUrl(contactSocialId)}][target=_blank]`, showButton),
 		})
@@ -174,7 +174,7 @@ export class ContactViewer implements ClassComponent {
 		})
 		return m(TextFieldN, {
 			label: () => getContactAddressTypeLabel(address.type as any, address.customTypeName),
-			value: stream(address.address),
+			value: address.address,
 			disabled: true,
 			injectionsRight: () => [newMailButton],
 		})
@@ -188,7 +188,7 @@ export class ContactViewer implements ClassComponent {
 		})
 		return m(TextFieldN, {
 			label: () => getContactPhoneNumberTypeLabel(phone.type as any, phone.customTypeName),
-			value: stream(phone.number),
+			value: phone.number,
 			disabled: true,
 			injectionsRight: () => m(`a[href="tel:${phone.number}"][target=_blank]`, callButton),
 		})
@@ -210,7 +210,7 @@ export class ContactViewer implements ClassComponent {
 		})
 		return m(TextFieldN, {
 			label: () => getContactAddressTypeLabel(downcast<ContactAddressType>(address.type), address.customTypeName),
-			value: stream(address.address),
+			value: address.address,
 			disabled: true,
 			type: TextFieldType.Area,
 			injectionsRight: () => m(`a[href="https://www.openstreetmap.org/search?query=${prepAddress}"][target=_blank]`, showButton),

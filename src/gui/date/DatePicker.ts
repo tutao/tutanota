@@ -43,7 +43,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 	private inputText: string = ""
 	private showingDropdown: boolean = false
 	private domInput: HTMLElement | null = null
-	private documentClickListener: EventListener | null = null
+	private documentClickListener: ((e: MouseEvent) => unknown) | null = null
 	private textFieldHasFocus: boolean = false
 
 	constructor({attrs}: Vnode<DatePickerAttrs>) {
@@ -85,7 +85,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				},
 			},
 			m(TextFieldN, {
-				value: Stream(this.inputText),
+				value: this.inputText,
 				label,
 				helpLabel: () => this.renderHelpLabel(date, nullSelectionText ?? null),
 				disabled,

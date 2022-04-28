@@ -243,7 +243,8 @@ export class PressReleaseForm implements Component<PressReleaseFormAttrs> {
 			}),
 			m(TextFieldN, {
 				label: "subject_label",
-				value: subject,
+				value: subject(),
+				oninput: subject,
 			}),
 			m(this.toolbar),
 			m(".border-top", m(this.editor)),

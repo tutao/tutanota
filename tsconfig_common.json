@@ -25,7 +25,6 @@
 	"strict": false,
 	"alwaysStrict": true,
 	"strictBindCallApply": true,
-	// Can't enable right now: cannot infer callbacks in some generic attributes
 	"strictFunctionTypes": false,
 	"strictPropertyInitialization": true,
 	"noStrictGenericChecks": false,

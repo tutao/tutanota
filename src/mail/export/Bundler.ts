@@ -79,7 +79,9 @@ export function makeMailBundle(mail: Mail, entityClient: EntityClient, fileContr
 			to: mail.toRecipients.map(recipientMapper),
 			cc: mail.ccRecipients.map(recipientMapper),
 			bcc: mail.bccRecipients.map(recipientMapper),
-			replyTo: mail.replyTos.map(recipientMapper),
+			replyTo: mail.replyTos.map(({address, name}) => {
+				return {address, name}
+			}),
 			isDraft: mail.state === MailState.DRAFT,
 			isRead: !mail.unread,
 			sentOn: mail.sentDate.getTime(),

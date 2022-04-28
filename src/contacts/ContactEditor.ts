@@ -1,27 +1,25 @@
 import m, {Children} from "mithril"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {Dialog} from "../gui/base/Dialog"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {isMailAddress} from "../misc/FormatValidator"
 import {formatBirthdayNumeric, formatBirthdayOfContact} from "./model/ContactUtils"
 import {ContactAddressType, ContactPhoneNumberType, ContactSocialType, GroupType, Keys} from "../api/common/TutanotaConstants"
-import type {ContactMailAddress} from "../api/entities/tutanota/TypeRefs.js"
-import {createContactMailAddress} from "../api/entities/tutanota/TypeRefs.js"
-import type {ContactPhoneNumber} from "../api/entities/tutanota/TypeRefs.js"
-import {createContactPhoneNumber} from "../api/entities/tutanota/TypeRefs.js"
-import type {ContactAddress} from "../api/entities/tutanota/TypeRefs.js"
-import {createContactAddress} from "../api/entities/tutanota/TypeRefs.js"
-import type {ContactSocialId} from "../api/entities/tutanota/TypeRefs.js"
-import {createContactSocialId} from "../api/entities/tutanota/TypeRefs.js"
-import type {Contact} from "../api/entities/tutanota/TypeRefs.js"
-import {createContact} from "../api/entities/tutanota/TypeRefs.js"
-import {clone, downcast, neverNull, noOp, typedEntries} from "@tutao/tutanota-utils"
+import type {Contact, ContactAddress, ContactMailAddress, ContactPhoneNumber, ContactSocialId} from "../api/entities/tutanota/TypeRefs.js"
+import {
+	createBirthday,
+	createContact,
+	createContactAddress,
+	createContactMailAddress,
+	createContactPhoneNumber,
+	createContactSocialId
+} from "../api/entities/tutanota/TypeRefs.js"
+import {clone, downcast, findAndRemove, lastIndex, lastThrow, neverNull, noOp, ofClass, typedEntries} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../api/common/Env"
-import {findAndRemove, lastIndex, lastThrow} from "@tutao/tutanota-utils"
 import {windowFacade} from "../misc/WindowFacade"
 import {logins} from "../api/main/LoginController"
-import {createBirthday} from "../api/entities/tutanota/TypeRefs.js"
 import {NotFoundError, PayloadTooLargeError} from "../api/common/error/RestError"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonType} from "../gui/base/ButtonN"
@@ -42,10 +40,8 @@ import {timestampToGeneratedId} from "../api/common/utils/EntityUtils"
 import type {AggregateEditorAttrs} from "./ContactAggregateEditor"
 import {ContactAggregateEditor} from "./ContactAggregateEditor"
 import {DefaultAnimationTime} from "../gui/animation/Animations"
-import {ofClass} from "@tutao/tutanota-utils"
-import Stream from "mithril/stream";
 import {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar";
-import {ElementEntity, SomeEntity} from "../api/common/EntityTypes"
+import {ElementEntity} from "../api/common/EntityTypes"
 
 assertMainOrNode()
 
@@ -235,7 +231,7 @@ export class ContactEditor {
 
 		const typeLabels: Array<[ContactAddressType, TranslationKey]> = typedEntries(ContactMailAddressTypeToLabel)
 		return {
-			value: stream(mailAddress.address),
+			value: mailAddress.address,
 			fieldType: TextFieldType.Text,
 			label: getContactAddressTypeLabel(downcast(mailAddress.type), mailAddress.customTypeName),
 			helpLabel,
@@ -257,7 +253,7 @@ export class ContactEditor {
 	_createPhoneEditor(id: Id, allowCancel: boolean, phoneNumber: ContactPhoneNumber): AggregateEditorAttrs<any> {
 		const typeLabels = typedEntries(ContactPhoneNumberTypeToLabel)
 		return {
-			value: stream(phoneNumber.number),
+			value: phoneNumber.number,
 			fieldType: TextFieldType.Text,
 			label: getContactPhoneNumberTypeLabel(downcast(phoneNumber.type), phoneNumber.customTypeName),
 			helpLabel: "emptyString_msg",
@@ -279,7 +275,7 @@ export class ContactEditor {
 	_createAddressEditor(id: Id, allowCancel: boolean, address: ContactAddress): AggregateEditorAttrs<any> {
 		const typeLabels = typedEntries(ContactMailAddressTypeToLabel)
 		return {
-			value: stream(address.address),
+			value: address.address,
 			fieldType: TextFieldType.Area,
 			label: getContactAddressTypeLabel(downcast(address.type), address.customTypeName),
 			helpLabel: "emptyString_msg",
@@ -301,7 +297,7 @@ export class ContactEditor {
 	_createSocialEditor(id: Id, allowCancel: boolean, socialId: ContactSocialId): AggregateEditorAttrs<any> {
 		const typeLabels = typedEntries(ContactSocialTypeToLabel)
 		return {
-			value: stream(socialId.socialId),
+			value: socialId.socialId,
 			fieldType: TextFieldType.Text,
 			label: getContactSocialTypeLabel(downcast<ContactSocialType>(socialId.type), socialId.customTypeName),
 			helpLabel: "emptyString_msg",
@@ -323,7 +319,7 @@ export class ContactEditor {
 	_createCommentAttrs(): TextFieldAttrs {
 		return {
 			label: "comment_label",
-			value: stream(this.contact.comment),
+			value: this.contact.comment,
 			oninput: value => (this.contact.comment = value),
 			type: TextFieldType.Area,
 		}
@@ -332,24 +328,30 @@ export class ContactEditor {
 	_createFirstNameAttrs(): TextFieldAttrs {
 		return {
 			label: "firstName_placeholder",
-			value: this.firstName,
-			oninput: value => (this.contact.firstName = value),
+			value: this.firstName(),
+			oninput: value => {
+				this.firstName(value)
+				this.contact.firstName = value
+			},
 		}
 	}
 
 	_createNickNameAttrs(): TextFieldAttrs {
 		return {
 			label: "nickname_placeholder",
-			value: stream(this.contact.nickname || ""),
-			oninput: value => (this.contact.nickname = value),
+			value: this.contact.nickname ?? "",
+			oninput: (value) => this.contact.nickname = value,
 		}
 	}
 
 	_createLastNameAttrs(): TextFieldAttrs {
 		return {
 			label: "lastName_placeholder",
-			value: this.lastName,
-			oninput: value => (this.contact.lastName = value),
+			value: this.lastName(),
+			oninput: (value) => {
+				this.lastName(value)
+				this.contact.lastName = value
+			},
 		}
 	}
 
@@ -368,9 +370,10 @@ export class ContactEditor {
 
 		return {
 			label: "birthday_alt",
-			value: this.birthday,
+			value: this.birthday(),
 			helpLabel: birthdayHelpText,
-			oninput: value => {
+			oninput: (value) => {
+				this.birthday(value)
 				if (value.trim().length === 0) {
 					this.contact.birthdayIso = null
 					this.invalidBirthday = false
@@ -395,24 +398,24 @@ export class ContactEditor {
 	_createCompanyAttrs(): TextFieldAttrs {
 		return {
 			label: "company_label",
-			value: stream(this.contact.company),
-			oninput: value => (this.contact.company = value),
+			value: this.contact.company,
+			oninput: (value) => this.contact.company = value,
 		}
 	}
 
 	_createRoleAttrs(): TextFieldAttrs {
 		return {
 			label: "role_placeholder",
-			value: stream(this.contact.role),
-			oninput: value => (this.contact.role = value),
+			value: this.contact.role,
+			oninput: (value) => this.contact.role = value,
 		}
 	}
 
 	_createTitleAttrs(): TextFieldAttrs {
 		return {
 			label: "title_placeholder",
-			value: stream(this.contact.title || ""),
-			oninput: value => (this.contact.title = value),
+			value: this.contact.title || "",
+			oninput: (value) => this.contact.title = value,
 		}
 	}
 
@@ -423,8 +426,8 @@ export class ContactEditor {
 
 		return {
 			label: "password_label",
-			value: stream(this.contact.presharedPassword || ""),
-			oninput: value => (this.contact.presharedPassword = value),
+			value: this.contact.presharedPassword ?? "",
+			oninput: (value) => this.contact.presharedPassword = value,
 		}
 	}
 

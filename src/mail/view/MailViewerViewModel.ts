@@ -146,7 +146,7 @@ export class MailViewerViewModel {
 		}
 
 		this.folderText = null
-		this.filesExpanded = stream(false)
+		this.filesExpanded = stream<boolean>(false)
 
 		if (showFolder) {
 			const folder = this.mailModel.getMailFolder(mail._id[0])

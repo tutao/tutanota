@@ -16,22 +16,22 @@ import type {LanguageCode} from "../../misc/LanguageViewModel"
 import {lang, languageByCode} from "../../misc/LanguageViewModel"
 import type {windowSizeListener} from "../../misc/WindowFacade"
 import {windowFacade} from "../../misc/WindowFacade"
-import type {EmailTemplate} from "../../api/entities/tutanota/TypeRefs.js"
+import type {EmailTemplate, TemplateGroupRoot} from "../../api/entities/tutanota/TypeRefs.js"
+import {TemplateGroupRootTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {SELECT_NEXT_TEMPLATE, SELECT_PREV_TEMPLATE, TEMPLATE_SHORTCUT_PREFIX, TemplatePopupModel} from "../model/TemplatePopupModel"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import {debounce, downcast, neverNull, noOp} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
-import type {TemplateGroupRoot} from "../../api/entities/tutanota/TypeRefs.js"
-import {TemplateGroupRootTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {TemplateSearchBar} from "./TemplateSearchBar"
 import {Editor} from "../../gui/editor/Editor"
 import {logins} from "../../api/main/LoginController"
 import {getSharedGroupName, hasCapabilityOnGroup} from "../../sharing/GroupUtils"
 import {createInitialTemplateListIfAllowed} from "../TemplateGroupUtils"
 import {getConfirmation} from "../../gui/base/GuiUtils"
-import {ScrollSelectList} from "../../gui/ScrollSelectList"
+import {ScrollSelectList, ScrollSelectListAttrs} from "../../gui/ScrollSelectList"
+import {gm} from "../../gui/GenericRenderer"
 
 export const TEMPLATE_POPUP_HEIGHT = 340
 export const TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH = 600
@@ -308,21 +308,21 @@ export class TemplatePopup implements ModalComponent {
 		} else if (writeableGroups.length > 1) {
 			return attachDropdown(
 				{
-                    mainButtonAttrs: {
-                        label: "createTemplate_action",
-                        click: noOp,
-                        type: ButtonType.ActionLarge,
-                        icon: () => Icons.Add,
-                        colors: ButtonColor.DrawerNav,
-                    }, childAttrs: () =>
-                        writeableGroups.map(groupInstances => {
-                            return {
-                                label: () => getSharedGroupName(groupInstances.groupInfo, true),
-                                click: () => this.showTemplateEditor(null, groupInstances.groupRoot),
-                                type: ButtonType.Dropdown,
-                            }
-                        })
-                },
+					mainButtonAttrs: {
+						label: "createTemplate_action",
+						click: noOp,
+						type: ButtonType.ActionLarge,
+						icon: () => Icons.Add,
+						colors: ButtonColor.DrawerNav,
+					}, childAttrs: () =>
+						writeableGroups.map(groupInstances => {
+							return {
+								label: () => getSharedGroupName(groupInstances.groupInfo, true),
+								click: () => this.showTemplateEditor(null, groupInstances.groupRoot),
+								type: ButtonType.Dropdown,
+							}
+						})
+				},
 			)
 		} else {
 			return null
@@ -340,27 +340,27 @@ export class TemplatePopup implements ModalComponent {
 				ButtonN,
 				attachDropdown(
 					{
-                        mainButtonAttrs: {
-                            label: () => (selectedContent ? selectedContent.languageCode + " ▼" : ""),
-                            title: "chooseLanguage_action",
-                            // Use dropdown as button type because it matches with the colors of the other buttons
-                            type: ButtonType.Dropdown,
-                            click: noOp,
-                            noBubble: true,
-                        }, childAttrs: () =>
-                            selectedTemplate.contents.map(content => {
-                                const langCode: LanguageCode = downcast(content.languageCode)
-                                return {
-                                    label: () => lang.get(languageByCode[langCode].textId),
-                                    type: ButtonType.Dropdown,
-                                    click: (e: MouseEvent) => {
-                                        e.stopPropagation()
-                                        this._templateModel.setSelectedContentLanguage(langCode)
-                                        this._inputDom?.focus()
-                                    },
-                                }
-                            })
-                    },
+						mainButtonAttrs: {
+							label: () => (selectedContent ? selectedContent.languageCode + " ▼" : ""),
+							title: "chooseLanguage_action",
+							// Use dropdown as button type because it matches with the colors of the other buttons
+							type: ButtonType.Dropdown,
+							click: noOp,
+							noBubble: true,
+						}, childAttrs: () =>
+							selectedTemplate.contents.map(content => {
+								const langCode: LanguageCode = downcast(content.languageCode)
+								return {
+									label: () => lang.get(languageByCode[langCode].textId),
+									type: ButtonType.Dropdown,
+									click: (e: MouseEvent) => {
+										e.stopPropagation()
+										this._templateModel.setSelectedContentLanguage(langCode)
+										this._inputDom?.focus()
+									},
+								}
+							})
+					},
 				),
 			),
 			canEdit
@@ -405,16 +405,17 @@ export class TemplatePopup implements ModalComponent {
 	}
 
 	_renderList(): Children {
-		return m(ScrollSelectList, {
+		return gm<ScrollSelectListAttrs<EmailTemplate>>(ScrollSelectList, {
 			items: this._templateModel.searchResults(),
-			selectedItem: this._templateModel.selectedTemplate,
+			selectedItem: this._templateModel.selectedTemplate(),
+			onItemSelected: this._templateModel.selectedTemplate,
 			emptyListMessage: () => (this._templateModel.isLoaded() ? "nothingFound_label" : "loadingTemplates_label"),
 			width: TEMPLATE_LIST_ENTRY_WIDTH,
 			renderItem: (template: EmailTemplate) =>
 				m(TemplatePopupResultRow, {
 					template: template,
 				}),
-			onItemDoubleClicked: () => {
+			onItemDoubleClicked: (_: EmailTemplate) => {
 				const selected = this._templateModel.getSelectedContent()
 
 				if (selected) {

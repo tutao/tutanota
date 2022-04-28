@@ -101,7 +101,7 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 					m("", [
 						m(TextFieldN, {
 							label: "created_label",
-							value: stream(formatDateWithMonth(this.groupInfo.created)),
+							value: formatDateWithMonth(this.groupInfo.created),
 							disabled: true,
 						}),
 						this._isMailGroup() ? m(TextFieldN, this._createUsedStorageFieldAttrs()) : null,
@@ -120,7 +120,7 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 								m("", [
 									m(TextFieldN, {
 										label: "mailAddress_label",
-										value: stream(this.groupInfo.mailAddress ?? ""),
+										value: this.groupInfo.mailAddress ?? "",
 										disabled: true,
 									}),
 								]),
@@ -148,7 +148,7 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 					value: true,
 				},
 			],
-			selectedValue: stream(this._isActive),
+			selectedValue: this._isActive,
 			selectionChangedHandler: deactivate => {
 				this._onStatusSelected(deactivate)
 			},
@@ -208,7 +208,7 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 		return {
 			label: "administratedBy_label",
 			items: adminGroupIdToName,
-			selectedValue: stream(this.groupInfo.localAdmin),
+			selectedValue: this.groupInfo.localAdmin,
 			selectionChangedHandler: id => {
 				if (this.groupInfo.groupType === GroupType.LocalAdmin) {
 					Dialog.message("updateAdminshipLocalAdminGroupError_msg")
@@ -250,7 +250,7 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 		} as const
 		return {
 			label: "name_label",
-			value: stream(this._name),
+			value: this._name,
 			disabled: true,
 			injectionsRight: () => [m(ButtonN, editNameButtonAttrs)],
 		}
@@ -259,7 +259,7 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 	_createUsedStorageFieldAttrs(): TextFieldAttrs {
 		return {
 			label: "storageCapacityUsed_label",
-			value: this._usedStorageInBytes ? stream(formatStorageSize(this._usedStorageInBytes)) : stream(lang.get("loading_msg")),
+			value: this._usedStorageInBytes ? formatStorageSize(this._usedStorageInBytes) : lang.get("loading_msg"),
 			disabled: true,
 		}
 	}

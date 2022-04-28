@@ -248,7 +248,7 @@ function quotedString(input: string): string {
 }
 
 function escapeSemicolons(value: string): string {
-	return value.replace(/[;\\\n]/g, (ch: keyof typeof iCalReplacements) => iCalReplacements[ch])
+	return value.replace(/[;\\\n]/g, (ch) => iCalReplacements[ch as keyof typeof iCalReplacements])
 }
 
 function pad2(number: number) {

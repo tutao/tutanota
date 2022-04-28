@@ -30,7 +30,8 @@ export function showEditCalendarDialog(
 				m(".flex.col", [
 					warningMessage ? warningMessage() : null,
 					m(TextFieldN, {
-						value: nameStream,
+						value: nameStream(),
+						oninput: nameStream,
 						label: "calendarName_label",
 					}),
 					m(".small.mt.mb-xs", lang.get("color_label")),

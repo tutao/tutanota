@@ -182,7 +182,7 @@ export class EditSecondFactorDialog {
 
 		const typeDropdownAttrs: DropDownSelectorAttrs<FactorTypesEnum> = {
 			label: "type_label",
-			selectedValue: stream(this.selectedType),
+			selectedValue: this.selectedType,
 			selectionChangedHandler: newValue => this.onTypeSelected(newValue),
 			items: options,
 			dropdownWidth: 300,
@@ -190,7 +190,7 @@ export class EditSecondFactorDialog {
 		const nameFieldAttrs: TextFieldAttrs = {
 			label: "name_label",
 			helpLabel: () => lang.get("secondFactorNameInfo_msg"),
-			value: stream(this.name),
+			value: this.name,
 			oninput: value => {
 				this.name = value
 			},
@@ -224,7 +224,7 @@ export class EditSecondFactorDialog {
 		const totpSecretFieldAttrs: TextFieldAttrs = {
 			label: "totpSecret_label",
 			helpLabel: () => lang.get(isApp() ? "totpTransferSecretApp_msg" : "totpTransferSecret_msg"),
-			value: stream(this.totpKeys.readableKey),
+			value: this.totpKeys.readableKey,
 			injectionsRight: () => m(ButtonN, copyButtonAttrs),
 			disabled: true,
 		}
@@ -235,7 +235,7 @@ export class EditSecondFactorDialog {
 		}
 		const totpCodeAttrs: TextFieldAttrs = {
 			label: "totpCode_label",
-			value: stream(this.totpCode),
+			value: this.totpCode,
 			oninput: newValue => this.onTotpValueChange(newValue),
 		}
 		const openTOTPAppAttrs: ButtonAttrs = {

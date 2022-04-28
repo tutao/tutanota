@@ -20,7 +20,7 @@ export class ReceivedGroupInvitationsModel {
 	logins: LoginController
 
 	constructor(groupType: GroupType, eventController: EventController, entityClient: EntityClient, logins: LoginController) {
-		this.invitations = stream([])
+		this.invitations = stream<Array<ReceivedGroupInvitation>>([])
 		this.groupType = groupType
 		this.eventController = eventController
 		this.entityClient = entityClient

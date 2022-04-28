@@ -27,7 +27,7 @@ export class WhitelabelCustomMetaTagsSettings implements Component<WhitelabelCus
 		if (onMetaTagsChanged) {
 			const metaTagsAttrs: TextFieldAttrs = {
 				label: "customMetaTags_label",
-				value: stream(metaTags),
+				value: metaTags,
 				type: TextFieldType.Area,
 				oninput: value => {
 					metaTags = value
@@ -56,7 +56,7 @@ export class WhitelabelCustomMetaTagsSettings implements Component<WhitelabelCus
 		const customMetaTagsDefined = metaTags.length > 0
 		const customMetaTagsTextfieldAttrs = {
 			label: "customMetaTags_label",
-			value: stream(customMetaTagsDefined ? lang.get("activated_label") : lang.get("deactivated_label")),
+			value: customMetaTagsDefined ? lang.get("activated_label") : lang.get("deactivated_label"),
 			disabled: true,
 			injectionsRight: () => [editCustomMetaTagsButtonAttrs ? m(ButtonN, editCustomMetaTagsButtonAttrs) : null],
 		} as const

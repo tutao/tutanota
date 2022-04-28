@@ -36,7 +36,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 		const {customerInfo, certificateInfo, whitelabelDomain, isWhitelabelFeatureEnabled} = vnode.attrs
 		const whitelabelDomainConfigAttrs = {
 			label: "whitelabelDomain_label",
-			value: stream(whitelabelDomain ? whitelabelDomain : lang.get("deactivated_label")),
+			value: whitelabelDomain ? whitelabelDomain : lang.get("deactivated_label"),
 			helpLabel: this._renderWhitelabelInfo(certificateInfo),
 			disabled: true,
 			injectionsRight: () => [

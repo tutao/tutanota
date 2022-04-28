@@ -178,15 +178,15 @@ export class CalendarEventViewModel {
 		this._sendModelFactory = () => sendMailModelFactory(mailboxDetail, "response")
 
 		this._ownMailAddresses = getEnabledMailAddressesWithUser(mailboxDetail, userController.userGroupInfo)
-		this._ownAttendee = stream(null)
-		this.sendingOutUpdate = stream(false)
+		this._ownAttendee = stream<EncryptedMailAddress | null>(null)
+		this.sendingOutUpdate = stream<boolean>(false)
 		this._processing = false
-		this.hasBusinessFeature = stream(false)
-		this.hasPremiumLegacy = stream(false)
-		this.isForceUpdates = stream(false)
+		this.hasBusinessFeature = stream<boolean>(false)
+		this.hasPremiumLegacy = stream<boolean>(false)
+		this.isForceUpdates = stream<boolean>(false)
 		this.location = stream("")
 		this.note = ""
-		this.allDay = stream(false)
+		this.allDay = stream<boolean>(false)
 		this.amPmFormat = userController.userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS
 		this.existingEvent = existingEvent ?? null
 		this._zone = zone
@@ -198,7 +198,7 @@ export class CalendarEventViewModel {
 		this.possibleOrganizers = possibleOrganizers
 		this.alarms = []
 		this.calendars = calendars
-		this.selectedCalendar = stream(this.getAvailableCalendars()[0])
+		this.selectedCalendar = stream<CalendarInfo | null>(this.getAvailableCalendars()[0] ?? null)
 		this.initialized = Promise.resolve().then(async () => {
 			if (existingEvent) {
 				if (existingEvent.invitedConfidentially != null) {
@@ -413,7 +413,7 @@ export class CalendarEventViewModel {
 						 })
 		}
 
-		return stream(newStatuses)
+		return stream<ReadonlyMap<string, CalendarAttendeeStatus>>(newStatuses)
 	}
 
 	async updateCustomerFeatures(): Promise<void> {
@@ -427,8 +427,8 @@ export class CalendarEventViewModel {
 		}
 	}
 
-	_initAttendees(): Stream<Array<Guest>> {
-		return stream.merge([this._inviteModel.onMailChanged, this._updateModel.onMailChanged, this._guestStatuses, this._ownAttendee]).map(() => {
+	_initAttendees(): Stream<ReadonlyArray<Guest>> {
+		return stream.merge([this._inviteModel.onMailChanged, this._updateModel.onMailChanged, this._guestStatuses, this._ownAttendee] as Stream<unknown>[]).map(() => {
 			const makeGuestList = (model: SendMailModel) => {
 				return model.bccRecipients().map(recipientInfo => {
 					const guest = {
@@ -455,7 +455,7 @@ export class CalendarEventViewModel {
 				})
 			}
 
-			return guests
+			return guests as ReadonlyArray<Guest>
 		})
 	}
 

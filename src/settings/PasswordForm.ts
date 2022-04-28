@@ -55,7 +55,7 @@ export class PasswordForm implements Component {
 
 		const oldPasswordFieldAttrs: TextFieldAttrs = {
 			label: "oldPassword_label",
-			value: stream(this._oldPassword),
+			value: this._oldPassword,
 			helpLabel: () =>
 				m(StatusField, {
 					status: this._oldPasswordStatus,
@@ -67,7 +67,7 @@ export class PasswordForm implements Component {
 		const passwordIndicator = new PasswordIndicator(() => this._getPasswordStrength())
 		const newPasswordFieldAttrs: TextFieldAttrs = {
 			label: "newPassword_label",
-			value: stream(this._newPassword),
+			value: this._newPassword,
 			helpLabel: () =>
 				m(StatusField, {
 					status: this._newPasswordStatus,
@@ -79,7 +79,7 @@ export class PasswordForm implements Component {
 		} as const
 		const repeatedPasswordFieldAttrs: TextFieldAttrs = {
 			label: "repeatedPassword_label",
-			value: stream(this._repeatedPassword),
+			value: this._repeatedPassword,
 			helpLabel: () =>
 				m(StatusField, {
 					status: this._repeatedPasswordStatus,

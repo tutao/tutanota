@@ -45,7 +45,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 		const preSelectedDomain = firstThrow(attrs.availableDomains)
 		this._domain = stream(preSelectedDomain)
 		this._username = stream("")
-		this._messageId = stream("mailAddressNeutral_msg")
+		this._messageId = stream<TranslationKey | null>("mailAddressNeutral_msg")
 		this.cleanMailAddress = this._createCleanMailAddressStream()
 	}
 
@@ -84,10 +84,13 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 
 		const userNameAttrs: TextFieldAttrs = {
 			label: "mailAddress_label",
-			value: this._username,
+			value: this._username(),
 			alignRight: true,
 			helpLabel: () => this._addressHelpLabel(),
-			oninput: validate,
+			oninput: (value) => {
+				this._username(value)
+				validate()
+			},
 			injectionsRight: () => [
 				m(
 					".flex.items-end.mr-s",

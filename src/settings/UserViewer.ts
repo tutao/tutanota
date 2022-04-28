@@ -6,27 +6,20 @@ import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
 import {PasswordForm} from "./PasswordForm"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
-import type {User} from "../api/entities/sys/TypeRefs.js"
-import {UserTypeRef} from "../api/entities/sys/TypeRefs.js"
+import type {Customer, GroupInfo, GroupMembership, User} from "../api/entities/sys/TypeRefs.js"
+import {CustomerTypeRef, GroupInfoTypeRef, GroupTypeRef, UserTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {assertNotNull, LazyLoaded, neverNull, ofClass, promiseMap, remove} from "@tutao/tutanota-utils"
-import {GroupTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {BookingItemFeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
-import type {GroupInfo} from "../api/entities/sys/TypeRefs.js"
-import {GroupInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {BadRequestError, NotAuthorizedError, PreconditionFailedError} from "../api/common/error/RestError"
 import {logins} from "../api/main/LoginController"
-import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/TypeRefs.js"
+import type {ContactForm} from "../api/entities/tutanota/TypeRefs.js"
+import {ContactFormTypeRef, CustomerContactFormGroupRootTypeRef, MailboxGroupRootTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import {Table} from "../gui/base/Table"
 import {ColumnWidth} from "../gui/base/TableN"
 import TableLine from "../gui/base/TableLine"
 import {getGroupTypeName} from "./GroupViewer"
-import type {Customer} from "../api/entities/sys/TypeRefs.js"
-import {CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {Icons} from "../gui/base/icons/Icons"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
-import type {ContactForm} from "../api/entities/tutanota/TypeRefs.js"
-import {ContactFormTypeRef} from "../api/entities/tutanota/TypeRefs.js"
-import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import stream from "mithril/stream"
 import type {EntityUpdateData} from "../api/main/EventController"
@@ -36,7 +29,6 @@ import {filterContactFormsForLocalAdmin} from "./contactform/ContactFormListView
 import {checkAndImportUserData, CSV_USER_FORMAT} from "./ImportUsersViewer"
 import type {EditAliasesFormAttrs} from "./EditAliasesFormN"
 import {createEditAliasFormAttrs, EditAliasesFormN, updateNbrOfAliases} from "./EditAliasesFormN"
-import type {GroupMembership} from "../api/entities/sys/TypeRefs.js"
 import {compareGroupInfos, getGroupInfoDisplayName} from "../api/common/utils/GroupUtils"
 import {CUSTOM_MIN_ID, isSameId} from "../api/common/utils/EntityUtils"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
@@ -226,24 +218,9 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		} as const
 		const senderNameFieldAttrs = {
 			label: "mailName_label",
-			value: stream(this._senderName),
+			value: this._senderName,
 			disabled: true,
 			injectionsRight: () => [m(ButtonN, editSenderNameButtonAttrs)],
-		} as const
-		const mailAddressFieldAttrs = {
-			label: "mailAddress_label",
-			value: stream(this.userGroupInfo.mailAddress ?? ""),
-			disabled: true,
-		} as const
-		const createdFieldAttrs = {
-			label: "created_label",
-			value: stream(formatDateWithMonth(this.userGroupInfo.created)),
-			disabled: true,
-		} as const
-		const usedStorageFieldAttrs = {
-			label: "storageCapacityUsed_label",
-			value: this._usedStorage ? stream(formatStorageSize(this._usedStorage)) : stream(lang.get("loading_msg")),
-			disabled: true,
 		} as const
 		const changePasswordButtonAttrs: ButtonAttrs = {
 			label: "changePassword_label",
@@ -252,14 +229,30 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		} as const
 		const passwordFieldAttrs = {
 			label: "password_label",
-			value: stream("***"),
+			value: "***",
 			injectionsRight: () => [m(ButtonN, changePasswordButtonAttrs)],
 			disabled: true,
 		} as const
 		const whitelistProtection = this._whitelistProtection
 		return m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
 			m(".h4.mt-l", lang.get("userSettings_label")),
-			m("", [m(TextFieldN, mailAddressFieldAttrs), m(TextFieldN, createdFieldAttrs), m(TextFieldN, usedStorageFieldAttrs)]),
+			m("", [
+				m(TextFieldN, {
+					label: "mailAddress_label",
+					value: this.userGroupInfo.mailAddress ?? "",
+					disabled: true,
+				}),
+				m(TextFieldN, {
+					label: "created_label",
+					value: formatDateWithMonth(this.userGroupInfo.created),
+					disabled: true,
+				}),
+				m(TextFieldN, {
+					label: "storageCapacityUsed_label",
+					value: this._usedStorage ? formatStorageSize(this._usedStorage) : lang.get("loading_msg"),
+					disabled: true,
+				} as const)
+			]),
 			m("", [
 				m(TextFieldN, senderNameFieldAttrs),
 				m(TextFieldN, passwordFieldAttrs),

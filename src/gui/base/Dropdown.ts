@@ -217,7 +217,7 @@ export class Dropdown implements ModalComponent {
 		const next = () => {
 			const visibleElements = this._visibleItems()
 										.filter(b => typeof b !== "string")
-										.map((b: Button) => b._domButton)
+										.map((b) => (b as Button)._domButton)
 
 			if (this._domInput != null) {
 				visibleElements.unshift(this._domInput)
@@ -235,7 +235,7 @@ export class Dropdown implements ModalComponent {
 		const previous = () => {
 			const visibleElements = this._visibleItems()
 										.filter(b => typeof b !== "string")
-										.map((b: Button) => b._domButton)
+										.map((b) => (b as Button)._domButton)
 
 			if (this._domInput != null) {
 				visibleElements.unshift(this._domInput)

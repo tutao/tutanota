@@ -18,7 +18,7 @@ assertMainOrNode()
 export function showSupportDialog() {
 	const searchValue = stream("")
 	const searchResult = stream<ReadonlyArray<FaqEntry>>([])
-	var searchExecuted = false
+	let searchExecuted = false
 	const closeButton: ButtonAttrs = {
 		label: "close_alt",
 		type: ButtonType.Secondary,
@@ -55,7 +55,8 @@ export function showSupportDialog() {
 	}
 	const searchInputField: TextFieldAttrs = {
 		label: () => lang.get("describeProblem_msg"),
-		value: searchValue,
+		value: searchValue(),
+		oninput: searchValue,
 	}
 	const child: Component = {
 		view: () => {

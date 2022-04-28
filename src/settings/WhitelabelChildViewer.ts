@@ -38,12 +38,12 @@ export class WhitelabelChildViewer implements UpdatableSettingsDetailsViewer {
 	view(): Children {
 		const mailAddressAttrs = {
 			label: "mailAddress_label",
-			value: stream(this._mailAddress),
+			value: this._mailAddress,
 			disabled: true,
 		} as const
 		const createdAttrs = {
 			label: "created_label",
-			value: stream(formatDateWithMonth(this.whitelabelChild.createdDate)),
+			value: formatDateWithMonth(this.whitelabelChild.createdDate),
 			disabled: true,
 		} as const
 		const editCommentButtonAttrs = {
@@ -58,7 +58,7 @@ export class WhitelabelChildViewer implements UpdatableSettingsDetailsViewer {
 		} as const
 		const commentAttrs = {
 			label: "comment_label",
-			value: stream(this._comment),
+			value: this._comment,
 			disabled: true,
 			type: TextFieldType.Area,
 			injectionsRight: () => [m(ButtonN, editCommentButtonAttrs)],
@@ -75,7 +75,7 @@ export class WhitelabelChildViewer implements UpdatableSettingsDetailsViewer {
 					value: true,
 				},
 			],
-			selectedValue: stream(this._isWhitelabelChildActive),
+			selectedValue: this._isWhitelabelChildActive,
 			selectionChangedHandler: (deactivate: boolean) => {
 				this.whitelabelChild.deletedDate = deactivate ? new Date() : null
 				return showProgressDialog("pleaseWait_msg", locator.entityClient.update(this.whitelabelChild))

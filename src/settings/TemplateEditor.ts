@@ -94,15 +94,18 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 		// Initialize Attributes for TextFields and Buttons
 		this._enterTitleAttrs = {
 			label: "title_placeholder",
-			value: this.model.title,
+			value: this.model.title(),
+			oninput: this.model.title,
 		}
 		this._enterTagAttrs = {
 			label: "shortcut_label",
-			value: this.model.tag,
+			value: this.model.tag(),
+			oninput: this.model.tag,
 		}
 		this._chooseLanguageAttrs = {
 			label: "language_label",
-			value: this.model.selectedContent.map(content => (content ? getLanguageName(content) : "")),
+			// FIXME
+			value: this.model.selectedContent() ? getLanguageName(this.model.selectedContent()) : "",
 			injectionsRight: () => [
 				this.model.getAddedLanguages().length > 1 ? [m(ButtonN, removeButtonAttrs), m(ButtonN, selectLanguageButton)] : null,
 				m(ButtonN, addLanguageButtonAttrs),
