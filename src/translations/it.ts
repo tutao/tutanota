@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2022-04-26T14:14:21Z",
+	"updated_at": "2022-04-27T08:48:37Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -752,6 +752,7 @@ export default {
 		"localAdminGroups_label": "Gruppo di amministratori locale",
 		"localAdminGroup_label": "Gruppo di amministratore locale",
 		"localAdmin_label": "Amministratore locale",
+		"localDataSection_label": "Dati locali",
 		"location_label": "Posizione",
 		"loggingOut_msg": "Sto effettuando il log out...",
 		"loginAbuseDetected_msg": "Il tuo account non può più essere utilizzato perchè sono state violati i termini e le condizioni d'uso di Tutanota, es. per aver inviato email di spam.",
@@ -880,6 +881,7 @@ export default {
 		"npoDiscount_msg": "Offerta per organizzazioni no-profit: sconto utente del 50% per Premium e 20 alias gratuiti!",
 		"npoDonation_msg": "Regalo alle organizzazioni no-profit: fino a 50 utenti Premium e 100 alias gratuiti!",
 		"number_label": "Numero",
+		"offlineStoragePremiumOnly_msg": "Hai bisogno di un account a pagamento per configurare l'archiviazione offline. L'aggiornamento ti permetterà anche di accedere mentre sei offline.",
 		"offlineStorage_label": "Archiviazione offline",
 		"ok_action": "Ok",
 		"oldPasswordInvalid_msg": "Vecchia password non corretta.",
@@ -1269,6 +1271,8 @@ export default {
 		"storageDeletionAnnouncement_msg": "Le email spostate nel cestino o nella cartella spam saranno automaticamente cancellate dopo 30 giorni.",
 		"storageDeletion_msg": "Le email in questa cartella verranno automaticamente cancellate dopo 30 giorni.",
 		"storageQuotaExceeded_msg": "Lo spazio sul dispositivo non è sufficiente per creare l'indice di ricerca. Pertanto, i risultati della ricerca non possono essere mostrati completamente.",
+		"storedDataTimeRangeHelpText_msg": "Le email archiviate che sono più vecchie di quelle qui configurate saranno automaticamente rimosse dal tuo dispositivo.",
+		"storedDataTimeRange_label": "Conserva l'email degli ultimi {numDays} giorni",
 		"storePassword_action": "Salva la password",
 		"subject_label": "Oggetto",
 		"subscriptionCancelledMessage_msg": "La tua sottoscrizione è stata cancellata. Contatta il servizio clienti per riattivarla.",
