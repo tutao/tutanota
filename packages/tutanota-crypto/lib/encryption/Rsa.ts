@@ -2,7 +2,6 @@
 import {BigInteger, parseBigInt, RSAKey} from "../internal/crypto-jsbn-2012-08-09_1.js"
 import type {Base64, Hex} from "@tutao/tutanota-utils"
 import {
-	arrayEquals,
 	base64ToHex,
 	base64ToUint8Array,
 	concat,
@@ -123,63 +122,6 @@ export function _padAndUnpadLeadingZeros(targetByteLength: number, byteArray: Ui
 	// result     [0, 1, 1, 1]
 	result.set(byteArray, result.length - byteArray.length)
 	return result
-}
-
-/**
- * Sign bytes with the provided privateKey
- * @see http://world.std.com/~dtd/sign_encrypt/sign_encrypt7.html
- * @param privateKey
- * @param bytes
- * @return returns the signature.
- */
-export function sign(privateKey: PrivateKey, bytes: Uint8Array): Uint8Array {
-	try {
-		let rsa = new RSAKey()
-		// BigInteger of JSBN uses a signed byte array and we convert to it by using Int8Array
-		rsa.n = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.modulus)))
-		rsa.d = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.privateExponent)))
-		rsa.p = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeP)))
-		rsa.q = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeQ)))
-		rsa.dmp1 = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeExponentP)))
-		rsa.dmq1 = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.primeExponentQ)))
-		rsa.coeff = new BigInteger(new Int8Array(base64ToUint8Array(privateKey.crtCoefficient)))
-		var salt = random.generateRandomData(32)
-		let paddedBytes = encode(bytes, privateKey.keyLength, salt)
-		let paddedHex = uint8ArrayToHex(paddedBytes)
-		let bigInt = parseBigInt(paddedHex, 16)
-		let signed = new Uint8Array(rsa.doPrivate(bigInt).toByteArray())
-
-		let result = _padAndUnpadLeadingZeros(privateKey.keyLength / 8, signed)
-
-		return result
-	} catch (e) {
-		throw new CryptoError("failed RSA sign", e as Error)
-	}
-}
-
-/**
- * Verify the signature.
- * @param publicKey
- * @param bytes
- * @param signature
- * @throws CryptoError if the signature is not valid
- */
-export function verifySignature(publicKey: PublicKey, bytes: Uint8Array, signature: Uint8Array) {
-	try {
-		let rsa = new RSAKey()
-		rsa.n = new BigInteger(new Int8Array(base64ToUint8Array(publicKey.modulus))) // BigInteger of JSBN uses a signed byte array and we convert to it by using Int8Array
-
-		rsa.e = publicKey.publicExponent
-		let signatureHex = uint8ArrayToHex(signature)
-		let bigInt = parseBigInt(signatureHex, 16)
-		let unpadded = new Uint8Array(rsa.doPublic(bigInt).toByteArray())
-
-		let padded = _padAndUnpadLeadingZeros(publicKey.keyLength / 8, unpadded)
-
-		_verify(bytes, padded, publicKey.keyLength - 1)
-	} catch (e) {
-		throw new CryptoError("failed RSA verify sign", e as Error)
-	}
 }
 
 /********************************* OAEP *********************************/
@@ -360,98 +302,6 @@ export function encode(message: Uint8Array, keyLength: number, salt: Uint8Array)
 	_clear(maskedDb)
 
 	return em
-}
-
-/**
- * @see https://tools.ietf.org/html/rfc3447#section-9.1.2
- * @param message The message to verify.
- * @param encodedMessage The encodedMessage to verify against (derived from signature).
- * @param keyLength The length of the RSA key in bit.
- * @throws CryptoError if the hashes do not match
- */
-export function _verify(message: Uint8Array, encodedMessage: Uint8Array, keyLength: number) {
-	let hashLength = 32 // bytes sha256
-
-	let saltLength = hashLength
-	let emLen = Math.ceil(keyLength / 8)
-	let minEncodedLength = hashLength + saltLength + 2
-
-	try {
-		if (encodedMessage.length < minEncodedLength) {
-			throw new Error(
-					"invalid length of encoded message: " +
-					encodedMessage.length +
-					". expected: > " +
-					minEncodedLength +
-					" bytes!",
-			)
-		}
-
-		if (encodedMessage[encodedMessage.length - 1] !== 188) {
-			throw new Error(
-					"rightmost octet of EM must be 188 (0xbc) but was " + encodedMessage[encodedMessage.length - 1],
-			)
-		}
-
-		var maskedDB = encodedMessage.slice(0, emLen - hashLength - 1)
-		var hashed = encodedMessage.slice(emLen - hashLength - 1, emLen - hashLength - 1 + hashLength)
-
-		// If the leftmost 8emLen - emBits bits of the leftmost octet in maskedDB are not all equal to zero, output "inconsistent" and stop.
-		if (maskedDB[0] >> (8 - (8 * emLen - keyLength)) !== 0) {
-			throw new Error("inconsistent leftmost octet in maskedDB.")
-		}
-
-		var dbMask = mgf1(hashed, emLen - hashLength - 1)
-		var db = new Uint8Array(dbMask.length)
-
-		for (let i = 0; i < dbMask.length; i++) {
-			db[i] = maskedDB[i] ^ dbMask[i]
-		}
-
-		db[0] &= 0xff >> (8 * emLen - keyLength)
-
-		for (let i = 0; i < emLen - hashLength - saltLength - 2; i++) {
-			if (db[i] !== 0) {
-				throw new Error("inconsistent leftmost octets of db.")
-			}
-		}
-
-		if (db[emLen - hashLength - saltLength - 2] !== 1) {
-			throw new Error(
-					"inconsistent octet value in db. Expected 1 (0x01) but was " + db[emLen - hashLength - saltLength - 1],
-			)
-		}
-
-		var salt = db.slice(db.length - saltLength)
-		var messageHash = sha256Hash(message)
-		var message2 = concat(new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0]), messageHash, salt)
-		var message2Hash = sha256Hash(message2)
-
-		if (!arrayEquals(hashed, message2Hash)) {
-			throw new CryptoError("Hashes do not match")
-		}
-	} finally {
-		_clear(message)
-
-		_clear(encodedMessage)
-
-		// @ts-ignore
-		_clear(maskedDB)
-		// @ts-ignore
-		_clear(hashed)
-		// @ts-ignore
-		_clear(dbMask)
-		// @ts-ignore
-		_clear(db)
-		// @ts-ignore
-		_clear(salt)
-		// @ts-ignore
-		_clear(messageHash)
-		// @ts-ignore
-		_clear(message2)
-		// @ts-ignore
-		_clear(message2Hash)
-	}
 }
 
 /**

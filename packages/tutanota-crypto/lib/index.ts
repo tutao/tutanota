@@ -26,10 +26,8 @@ export {
 } from "./encryption/KeyEncryption.js"
 export {Randomizer, random} from "./random/Randomizer.js"
 export {
-	sign,
 	encode,
 	generateRsaKey,
-	verifySignature,
 	hexToPublicKey,
 	rsaDecrypt,
 	hexToPrivateKey,

@@ -16,9 +16,7 @@ import {
     random,
     rsaDecrypt,
     rsaEncrypt,
-    sign,
     uint8ArrayToBitArray,
-    verifySignature,
 } from "@tutao/tutanota-crypto"
 import {
 	base64ToUint8Array,
@@ -45,17 +43,6 @@ o.spec("crypto compatibility", function () {
             let privateKey = hexToPrivateKey(td.privateKey)
             let data = rsaDecrypt(privateKey, encryptedData)
             o(uint8ArrayToHex(data)).equals(td.input)
-        })
-    })
-    o("rsa signature", function () {
-        testData.rsaSignatureTests.forEach(td => {
-            random.generateRandomData = number => hexToUint8Array(td.seed)
-
-            let privateKey = hexToPrivateKey(td.privateKey)
-            let publicKey = hexToPublicKey(td.publicKey)
-            let signature = sign(privateKey, hexToUint8Array(td.input))
-            o(uint8ArrayToHex(signature)).equals(td.result)
-            verifySignature(publicKey, hexToUint8Array(td.input), signature)
         })
     })
     o("aes 256", function () {
