@@ -465,7 +465,7 @@ export class LoginFacadeImpl implements LoginFacade {
 				await this.loginListener.onLoginError()
 			} else {
 				this.asyncLoginState = {state: "failed", credentials, usingOfflineStorage}
-				await this.worker.sendError(e)
+				if (!(e instanceof ConnectionError)) await this.worker.sendError(e)
 			}
 		}
 	}
