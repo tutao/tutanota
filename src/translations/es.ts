@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2022-04-26T14:13:39Z",
+	"updated_at": "2022-04-26T18:59:17Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -752,6 +752,7 @@ export default {
 		"localAdminGroups_label": "Grupos de administración local",
 		"localAdminGroup_label": "Grupo de administración local",
 		"localAdmin_label": "Administración local",
+		"localDataSection_label": "Datos Locales",
 		"location_label": "Ubicación",
 		"loggingOut_msg": "Cerrando sesión...",
 		"loginAbuseDetected_msg": "Tu cuenta de Tutanota ya no puede ser usada porque se han violado los términos y condiciones, p.e. enviando correos spam.",
@@ -1271,7 +1272,7 @@ export default {
 		"storageDeletion_msg": "Los correos electrónicos en esta carpeta se eliminarán automáticamente después de 30 días.",
 		"storageQuotaExceeded_msg": "No hay suficiente espacio en el dispositivo para crear el índice de búsqueda; por tanto los resultados no se pueden mostrar en su totalidad.",
 		"storedDataTimeRangeHelpText_msg": "Cualquier dato almacenado que sea más antiguo que esto se eliminará automáticamente de tu dispositivo.",
-		"storedDataTimeRange_label": "Intervalo de tiempo para los datos almacenados sin conexión",
+		"storedDataTimeRange_label": "Mantenga los correos electrónicos de los últimos {numDays} Días",
 		"storePassword_action": "Almacenar contraseña",
 		"subject_label": "Asunto",
 		"subscriptionCancelledMessage_msg": "Su suscripción ha sido cancelada. Contacte con el soporte para reactivarla.",

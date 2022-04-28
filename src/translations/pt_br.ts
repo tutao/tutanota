@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2022-04-26T14:41:33Z",
+	"updated_at": "2022-04-27T14:12:08Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -1273,7 +1273,7 @@ export default {
 		"storageDeletion_msg": "Os emails nesta pasta serão excluídos automaticamente após 30 dias.",
 		"storageQuotaExceeded_msg": "Não há espaço suficiente no dispositivo para criar o índice de busca. Portanto os resultados de busca não podem ser exibidos completamente.",
 		"storedDataTimeRangeHelpText_msg": "Emails armazenados mais antigos do que você  configurou aqui, serão removidos automaticamente do seu dispositivo.",
-		"storedDataTimeRange_label": "Manter emails a partir dos últimos{número dias} dia/s",
+		"storedDataTimeRange_label": "Manter emails dos últimos {numDias} dias",
 		"storePassword_action": "Lembrar senha",
 		"subject_label": "Assunto",
 		"subscriptionCancelledMessage_msg": "Seu plano de assinatura foi cancelado. Por favor entre em contato com o suporte para reativar seu plano de assinatura.",
