@@ -26,7 +26,7 @@ import type {MailFacade} from "../../api/worker/facades/MailFacade"
 import type {ShareFacade} from "../../api/worker/facades/ShareFacade"
 import type {GroupManagementFacade} from "../../api/worker/facades/GroupManagementFacade"
 import {Recipient, RecipientType} from "../../api/common/recipients/Recipient"
-import {RecipientsModel} from "../../api/main/RecipientsModel"
+import {RecipientsModel, ResolveMode} from "../../api/main/RecipientsModel"
 
 export class GroupSharingModel {
 	readonly info: GroupInfo
@@ -144,7 +144,7 @@ export class GroupSharingModel {
 	async sendGroupInvitation(sharedGroupInfo: GroupInfo, recipients: Array<Recipient>, capability: ShareCapability): Promise<Array<MailAddress>> {
 		const externalRecipients: string[] = []
 		for (let recipient of recipients) {
-			const resolved = await this.recipientsModel.resolve(recipient).resolved()
+			const resolved = await this.recipientsModel.resolve(recipient, ResolveMode.Eager).resolved()
 			if (resolved.type !== RecipientType.INTERNAL) {
 				externalRecipients.push(resolved.address)
 			}

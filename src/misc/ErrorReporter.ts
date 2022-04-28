@@ -15,6 +15,7 @@ import {copyToClipboard} from "./ClipboardUtils"
 import {px} from "../gui/size"
 import {Mode} from "../api/common/Env"
 import {createDraftRecipient} from "../api/entities/tutanota/TypeRefs"
+import {RecipientType} from "../api/common/recipients/Recipient.js"
 
 type FeedbackContent = {
 	message: string
@@ -186,10 +187,11 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 			senderMailAddress: neverNull(logins.getUserController().userGroupInfo.mailAddress),
 			senderName: "",
 			toRecipients: [
-				createDraftRecipient({
+				{
 					name,
-					mailAddress,
-				}),
+					address: mailAddress,
+
+				}
 			],
 			ccRecipients: [],
 			bccRecipients: [],
@@ -206,9 +208,9 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 		[
 			{
 				name,
-				mailAddress,
-				password: "",
-				isExternal: false,
+				address: mailAddress,
+				type: RecipientType.INTERNAL,
+				contact: null
 			},
 		],
 		"de",

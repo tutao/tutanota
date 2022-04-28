@@ -28,4 +28,4 @@ declare type IdTuple = Readonly<[string, string]>
 
 declare type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
-declare type None = null | undefined | void
+declare type None = null | undefined

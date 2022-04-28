@@ -4,38 +4,48 @@ import en from "../../../src/translations/en.js"
 import type {IUserController} from "../../../src/api/main/UserController.js"
 import type {LoginController} from "../../../src/api/main/LoginController.js"
 import {MailModel} from "../../../src/mail/model/MailModel.js"
-import {Contact, ContactTypeRef, createContact} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {
+	Contact,
+	ContactListTypeRef,
+	ContactTypeRef,
+	ConversationEntryTypeRef,
+	createContact,
+	createConversationEntry,
+	createMail,
+	createMailAddress,
+	createMailBox,
+	createMailboxGroupRoot,
+	createTutanotaProperties,
+	CustomerAccountCreateDataTypeRef,
+	MailTypeRef,
+	NotificationMailTypeRef
+} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {ContactModel} from "../../../src/contacts/model/ContactModel.js"
 import {assertThrows, verify} from "@tutao/tutanota-test-utils"
 import {downcast, isSameTypeRef} from "@tutao/tutanota-utils"
-import {createTutanotaProperties} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS} from "../../../src/mail/editor/SendMailModel.js"
-import {createGroupInfo} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createMailboxGroupRoot} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {createGroup} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createMailBox} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {
+	ChallengeTypeRef,
+	createCustomer,
+	createGroup,
+	createGroupInfo,
+	createGroupMembership,
+	createUser,
+	CustomerTypeRef,
+	UserTypeRef
+} from "../../../src/api/entities/sys/TypeRefs.js"
 import {ConversationType, GroupType, MailMethod, OperationType} from "../../../src/api/common/TutanotaConstants.js"
 import {lang} from "../../../src/misc/LanguageViewModel.js"
-import {createCustomer, CustomerTypeRef} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createUser, UserTypeRef} from "../../../src/api/entities/sys/TypeRefs.js"
-import type {RecipientInfo} from "../../../src/api/common/RecipientInfo"
-import {createMail, MailTypeRef} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {EventController} from "../../../src/api/main/EventController.js"
-import {createMailAddress} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {createGroupMembership} from "../../../src/api/entities/sys/TypeRefs.js"
 import {UserError} from "../../../src/api/main/UserError.js"
-import {ContactListTypeRef} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {EntityClient} from "../../../src/api/common/EntityClient.js"
-import {CustomerAccountCreateDataTypeRef} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {NotificationMailTypeRef} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {ChallengeTypeRef} from "../../../src/api/entities/sys/TypeRefs.js"
 import {getContactDisplayName} from "../../../src/contacts/model/ContactUtils.js"
-import {ConversationEntryTypeRef, createConversationEntry} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {isSameId} from "../../../src/api/common/utils/EntityUtils.js"
 import {MailFacade} from "../../../src/api/worker/facades/MailFacade.js"
-import {isTutanotaMailAddress, RecipientField} from "../../../src/mail/model/MailUtils.js"
+import {RecipientField} from "../../../src/mail/model/MailUtils.js"
 import {func, instance, matchers, object, replace, when} from "testdouble"
-import {RecipientType} from "../../../src/api/common/recipients/RecipientsModel.js";
+import {RecipientsModel, ResolveMode} from "../../../src/api/main/RecipientsModel"
+import {ResolvableRecipientMock} from "./ResolvableRecipientMock.js"
 
 const {anything, argThat} = matchers
 
@@ -70,7 +80,8 @@ o.spec("SendMailModel", function () {
 
 	let mailModel: MailModel,
 		entity: EntityClient,
-		mailFacade: MailFacade
+		mailFacade: MailFacade,
+		recipientsModel: RecipientsModel
 
 	let model: SendMailModel
 
@@ -152,37 +163,35 @@ o.spec("SendMailModel", function () {
 			mailboxGroupRoot: createMailboxGroupRoot(),
 		}
 
+		recipientsModel = instance(RecipientsModel)
+		when(recipientsModel.resolve(anything(), anything())).thenDo((recipient, resolveMode) => {
+			return new ResolvableRecipientMock(
+				recipient.address,
+				recipient.name,
+				recipient.contact,
+				recipient.type,
+				[INTERNAL_RECIPIENT_1.address],
+				[],
+				resolveMode,
+				user
+			)
+		})
+
 		model = new SendMailModel(
 			mailFacade,
+			entity,
 			loginController,
 			mailModel,
 			contactModel,
 			eventController,
-			entity,
 			mailboxDetails,
+			recipientsModel
 		)
 
-		replace(model, "_getDefaultSender", () => DEFAULT_SENDER_FOR_TESTING)
+		replace(model, "getDefaultSender", () => DEFAULT_SENDER_FOR_TESTING)
 	})
 
 	o.spec("initialization", function () {
-		o.beforeEach(function () {
-			replace(model, "_createAndResolveRecipientInfo", (name, address, contact, resolveLazily) => {
-				const ri: RecipientInfo = {
-					type: isTutanotaMailAddress(address) ? RecipientType.INTERNAL : RecipientType.EXTERNAL,
-					mailAddress: address,
-					name: name,
-					contact:
-						contact ||
-						createContact({
-							firstName: name,
-							mailAddresses: [address],
-						}),
-					resolveContactPromise: null,
-				}
-				return [ri, Promise.resolve(ri)]
-			})
-		})
 		o("initWithTemplate empty", async function () {
 			await model.initWithTemplate({}, "", "", [], false)
 			o(model.getConversationType()).equals(ConversationType.NEW)
@@ -318,80 +327,62 @@ o.spec("SendMailModel", function () {
 			await model.initWithTemplate({}, "", "", [], false, "")
 		})
 
-		o("lazily resolved recipient will set it's promise to null when resolved", async function () {
-			const recipient = {
-				name: "sanchez",
-				address: "123@test.com",
-				contact: null,
-			}
-			const [r1] = model.addOrGetRecipient(RecipientField.TO, recipient, false)
-
-			o(r1.contact).equals(null)("Contact not resolved yet, it's null")
-			o(r1.resolveContactPromise).notEquals(null)("Contact not resolved yet, promise is non null")
-
-			await r1.resolveContactPromise
-
-			o(r1.contact).notEquals(null)("Contact has resolved and is no longer null")
-			o(r1.resolveContactPromise).equals(null)("Contact has resolved, so it's promise is now null")
-		})
-
 		o("adding duplicate to-recipient", async function () {
 			const recipient = {
 				name: "sanchez",
 				address: "123@test.com",
 				contact: null,
+				type: null,
 			}
-			const [r1] = model.addOrGetRecipient(RecipientField.TO, recipient, false)
+			model.addRecipient(RecipientField.TO, recipient, ResolveMode.Eager)
+			const r1 = model.getRecipient(RecipientField.TO, recipient.address)!
 
-			o(model.addOrGetRecipient(RecipientField.TO, recipient, false)[0] === r1).equals(true)("Adding same recipient a second time will return the same as the first time")
+			model.addRecipient(RecipientField.TO, recipient, ResolveMode.Eager)
+
+			verify(recipientsModel.resolve(recipient, ResolveMode.Eager), {times: 1})
 
 			o(model.toRecipients().length).equals(1)
 			o(model.ccRecipients().length).equals(0)
 			o(model.bccRecipients().length).equals(0)
-
-			await r1.resolveContactPromise
-			o(r1.contact!.mailAddresses[0].address).equals(recipient.address)
 		})
 		o("add different to-recipients", async function () {
 			const pablo = {
 				name: "pablo",
 				address: "pablo94@test.co.uk",
 				contact: null,
+				type: null
 			}
 			const cortez = {
 				name: "cortez",
 				address: "c.asd@test.net",
 				contact: null,
+				type: null
 			}
-			const [r1] = model.addOrGetRecipient(RecipientField.TO, pablo, false)
-			const [r2] = model.addOrGetRecipient(RecipientField.TO, cortez, false)
-			o(r1 === r2).equals(false)
+			model.addRecipient(RecipientField.TO, pablo, ResolveMode.Eager)
+			model.addRecipient(RecipientField.TO, cortez, ResolveMode.Eager)
+
+			verify(recipientsModel.resolve(pablo, ResolveMode.Eager))
+			verify(recipientsModel.resolve(cortez, ResolveMode.Eager))
+
 			o(model.toRecipients().length).equals(2)
 			o(model.ccRecipients().length).equals(0)
 			o(model.bccRecipients().length).equals(0)
-
-			await r1.resolveContactPromise
-			o(r1.contact!.mailAddresses[0].address).equals(pablo.address)
-
-			await r2.resolveContactPromise
-			o(r2.contact!.mailAddresses[0].address).equals(cortez.address)
 		})
 		o("add duplicate recipients to different fields", async function () {
 			const recipient = {
 				name: "sanchez",
 				address: "123@test.com",
 				contact: null,
+				type: null
 			}
-			const [r1] = model.addOrGetRecipient(RecipientField.TO, recipient, false)
-			const [r2] = model.addOrGetRecipient(RecipientField.CC, recipient, false)
-			o(r1 === r2).equals(false)
+			model.addRecipient(RecipientField.TO, recipient, ResolveMode.Eager)
+			model.addRecipient(RecipientField.CC, recipient, ResolveMode.Eager)
+
+			verify(recipientsModel.resolve(recipient, ResolveMode.Eager), {times: 2})
+
 			o(model.toRecipients().length).equals(1)
 			o(model.ccRecipients().length).equals(1)
 			o(model.bccRecipients().length).equals(0)
-			await r1.resolveContactPromise
-			o(r1.contact!.mailAddresses[0].address).equals(recipient.address)
-			await r2.resolveContactPromise
-			o(r2.contact!.mailAddresses[0].address).equals(recipient.address)
 		})
 	})
 	o.spec("Sending", function () {
@@ -406,11 +397,12 @@ o.spec("SendMailModel", function () {
 			verify(mailFacade.updateDraft(anything()), {times: 0})
 		})
 		o("blank subject no confirm", async function () {
-			await model.addOrGetRecipient(RecipientField.TO, {
+			model.addRecipient(RecipientField.TO, {
 				name: "test",
 				address: "test@address.com",
 				contact: null,
-			})[0].resolveContactPromise
+			})
+
 			const method = MailMethod.NONE
 			const getConfirmation = func<() => Promise<boolean>>()
 			const r = await model.send(method, getConfirmation)
@@ -421,11 +413,11 @@ o.spec("SendMailModel", function () {
 			verify(mailFacade.updateDraft(anything()), {times: 0})
 		})
 		o("confidential missing password", async function () {
-			await model.addOrGetRecipient(RecipientField.TO, {
+			await model.addRecipient(RecipientField.TO, {
 				name: "test",
 				address: "test@address.com",
 				contact: null,
-			})[0].resolveContactPromise
+			})
 			model.setConfidential(true)
 			const method = MailMethod.NONE
 
@@ -445,7 +437,7 @@ o.spec("SendMailModel", function () {
 				address: "test@address.com",
 				contact: null,
 			}
-			model.addOrGetRecipient(RecipientField.TO, recipient)
+			model.addRecipient(RecipientField.TO, recipient)
 			model.setSubject("subject")
 			model.setPassword("test@address.com", "abc")
 			o(model.getPassword(recipient.address)).equals("abc")
@@ -467,7 +459,7 @@ o.spec("SendMailModel", function () {
 				address: "test@address.com",
 				contact: null,
 			}
-			model.addOrGetRecipient(RecipientField.TO, recipient)
+			model.addRecipient(RecipientField.TO, recipient)
 			model.setSubject("did you get that thing i sent ya?")
 			const password = WEAK_PASSWORD
 			model.setPassword("test@address.com", password)
@@ -503,7 +495,7 @@ o.spec("SendMailModel", function () {
 				address: address,
 				contact: null,
 			}
-			model.addOrGetRecipient(RecipientField.TO, recipient)
+			model.addRecipient(RecipientField.TO, recipient)
 			model.setSubject("did you get that thing i sent ya?")
 			const password = STRONG_PASSWORD
 			model.setPassword(address, password)
@@ -525,54 +517,6 @@ o.spec("SendMailModel", function () {
 			o(contact.presharedPassword).equals(password)
 		})
 
-		o("when a recipient doesn't have an existing contact, it will be created", async function () {
-			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
-
-			const [recipientInfo, resolveContactPromise] = model.addOrGetRecipient(
-				RecipientField.TO,
-				{
-					name: "chippie",
-					address: "chippie@cinco.net",
-					contact: null
-				}
-			)
-
-			model.setPassword("chippie@cinco.net", STRONG_PASSWORD)
-			model.setSubject("did you get that thing i sent ya?")
-			model.setConfidential(true)
-
-			await model.send(MailMethod.NONE, getConfirmation)
-
-			verify(entity.setup("contactListId", argThat((contact) => isSameTypeRef(ContactTypeRef, contact._type))))
-			verify(entity.update(anything()), {times: 0})
-		})
-
-		o("when a recipient has an existing contact, it won't be created or updated", async function () {
-			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
-
-			const [recipientInfo, resolveContactPromise] = model.addOrGetRecipient(
-				RecipientField.TO,
-				{
-					name: "chippie",
-					address: "chippie@cinco.net",
-					contact: createContact({
-						_id: testIdGenerator.newIdTuple(),
-						firstName: "my",
-						lastName: "chippie",
-						presharedPassword: STRONG_PASSWORD,
-					})
-				}
-			)
-
-			model.setSubject("did you get that thing i sent ya?")
-			model.setConfidential(true)
-
-			await model.send(MailMethod.NONE, getConfirmation)
-
-			verify(entity.setup(anything(), anything(), anything()), {times: 0})
-			verify(entity.update(anything()), {times: 0})
-		})
-
 		o("when a recipient has an existing contact, and the saved password changes, then the contact will be updated", async function () {
 			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
 
@@ -583,7 +527,7 @@ o.spec("SendMailModel", function () {
 				presharedPassword: "weak password",
 			})
 
-			const [recipientInfo, resolveContactPromise] = model.addOrGetRecipient(
+			model.addRecipient(
 				RecipientField.TO,
 				{
 					name: "chippie",
@@ -601,6 +545,7 @@ o.spec("SendMailModel", function () {
 			verify(entity.update(contact), {times: 1})
 		})
 	})
+
 	o.spec("Entity Event Updates", function () {
 		let existingContact
 

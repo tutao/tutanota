@@ -2,7 +2,11 @@ import {isMailAddress} from "../FormatValidator"
 import {PartialRecipient, Recipients} from "../../api/common/recipients/Recipient"
 
 export type ParsedMailto = {
-	recipients: Recipients
+	recipients: {
+		to?: PartialRecipient[]
+		cc?: PartialRecipient[]
+		bcc?: PartialRecipient[]
+	}
 	subject: string | null
 	body: string | null
 	attach: Array<string> | null
