@@ -357,8 +357,4 @@ export class WorkerImpl implements NativeInterface {
 	updateLeaderStatus(status: WebsocketLeaderStatus): Promise<void> {
 		return this._dispatcher.postRequest(new Request("updateLeaderStatus", [status]))
 	}
-
-	writeIndexerDebugLog(reason: string, user: User): Promise<void> {
-		return this._dispatcher.postRequest(new Request("writeIndexerDebugLog", [reason, user]))
-	}
 }

@@ -3,12 +3,11 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {getColouredTutanotaLogo} from "../gui/theme"
 import {isApp, isDesktop} from "../api/common/Env"
 import {createLogFile} from "../api/common/Logger"
-import {downcast, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
+import {downcast} from "@tutao/tutanota-utils"
 import {clientInfoString, showUserError} from "../misc/ErrorHandlerImpl"
 import {locator} from "../api/main/MainLocator"
-import {InfoLink, lang} from "../misc/LanguageViewModel"
+import {InfoLink,} from "../misc/LanguageViewModel"
 import {newMailEditorFromTemplate} from "../mail/editor/MailEditor"
-import {createDataFile} from "../api/common/DataFile"
 import {UserError} from "../api/main/UserError"
 import {Attachment} from "../mail/editor/SendMailModel";
 
@@ -60,13 +59,6 @@ export class AboutDialog implements Component {
 			const workerLogEntries = await locator.worker.getLog()
 			const workerLogFile = await createLogFile(timestamp.getTime(), workerLogEntries, "worker")
 			attachments.push(workerLogFile)
-		}
-
-		const {getSearchIndexDebugLogs} = await import("../misc/IndexerDebugLogger")
-		const logs = getSearchIndexDebugLogs()
-
-		if (logs) {
-			attachments.push(createDataFile("indexer_debug.log", "text/plain", stringToUtf8Uint8Array(logs)))
 		}
 
 		if (isDesktop()) {
