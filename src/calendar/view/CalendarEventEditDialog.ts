@@ -1,5 +1,6 @@
 import {px, size} from "../../gui/size"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {DatePicker} from "../../gui/date/DatePicker"
 import {Dialog} from "../../gui/base/Dialog"
 import m, {Children} from "mithril"
@@ -7,17 +8,9 @@ import {TextFieldN, TextFieldType as TextFieldType} from "../../gui/base/TextFie
 import {lang} from "../../misc/LanguageViewModel"
 import type {DropDownSelectorAttrs, SelectorItemList} from "../../gui/base/DropDownSelectorN"
 import {Icons} from "../../gui/base/icons/Icons"
-import type {CalendarEvent, Contact, Mail} from "../../api/entities/tutanota/TypeRefs.js"
-import {createEncryptedMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
-import {downcast, findAndRemove, noOp, numberRange, ofClass, remove} from "@tutao/tutanota-utils"
-import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {AlarmInterval, CalendarAttendeeStatus, EndType, Keys, RepeatPeriod} from "../../api/common/TutanotaConstants"
 import {createRepeatRuleEndTypeValues, createRepeatRuleFrequencyValues, getStartOfTheWeekOffsetForUser} from "../date/CalendarUtils"
-import {Bubble, BubbleTextField} from "../../gui/base/BubbleTextField"
-import {RecipientInfoBubbleHandler} from "../../misc/RecipientInfoBubbleHandler"
-import type {DropdownInfoAttrs} from "../../gui/base/DropdownN"
-import {attachDropdown, createDropdown} from "../../gui/base/DropdownN"
 import {AllIcons, Icon} from "../../gui/base/Icon"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {CheckboxN} from "../../gui/base/CheckboxN"
@@ -28,22 +21,23 @@ import {CalendarEventViewModel, createCalendarEventViewModel} from "../date/Cale
 import {UserError} from "../../api/main/UserError"
 import {theme} from "../../gui/theme"
 import {showBusinessFeatureRequiredDialog} from "../../misc/SubscriptionDialogs"
-import {locator} from "../../api/main/MainLocator"
 import {BusinessFeatureRequiredError} from "../../api/main/BusinessFeatureRequiredError"
 import type {MailboxDetail} from "../../mail/model/MailModel"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {PasswordIndicator} from "../../gui/PasswordIndicator"
 import {TimePicker} from "../../gui/TimePicker"
-import type {ContactModel} from "../../contacts/model/ContactModel"
-import {getDisplayText, isTutanotaMailAddress} from "../../mail/model/MailUtils"
 import {getSharedGroupName} from "../../sharing/GroupUtils"
 import {logins} from "../../api/main/LoginController"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {askIfShouldSendCalendarUpdatesToAttendees} from "./CalendarGuiUtils"
 import type {CalendarInfo} from "../model/CalendarModel"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
-import {Recipient, RecipientType} from "../../api/common/recipients/Recipient"
-import {getContactDisplayName} from "../../contacts/model/ContactUtils"
+import {RecipientType} from "../../api/common/recipients/Recipient"
+import {MailRecipientsTextField} from "../../gui/MailRecipientsTextField.js"
+import {downcast, memoized, noOp, numberRange, ofClass} from "@tutao/tutanota-utils"
+import {createDropdown} from "../../gui/base/DropdownN.js"
+import {CalendarEvent, createEncryptedMailAddress, Mail} from "../../api/entities/tutanota/TypeRefs.js"
+import {getRecipientsSearchModel, RecipientsSearchModel} from "../../misc/RecipientsSearchModel.js"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 
 export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = Object.freeze({
@@ -92,458 +86,458 @@ const alarmIntervalItems = [
 	},
 ]
 
-export function showCalendarEventDialog(
+export async function showCalendarEventDialog(
 	date: Date,
 	calendars: ReadonlyMap<Id, CalendarInfo>,
 	mailboxDetail: MailboxDetail,
 	existingEvent?: CalendarEvent,
 	responseMail?: Mail,
 ) {
-	const viewModelPromise = createCalendarEventViewModel(date, calendars, mailboxDetail, existingEvent ?? null, responseMail ?? null, false);
-	Promise.all([import("../../gui/editor/HtmlEditor"), viewModelPromise]).then(
-		([{HtmlEditor}, viewModel]) => {
-			const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
-			const repeatValues: SelectorItemList<RepeatPeriod | null> = createRepeatRuleFrequencyValues()
-			const intervalValues = createIntevalValues()
-			const endTypeValues = createRepeatRuleEndTypeValues()
-			let finished = false
+	const {HtmlEditor} = await import("../../gui/editor/HtmlEditor")
+	const recipientsSearch = await getRecipientsSearchModel()
 
-			function renderEndValue(): Children {
-				if (viewModel.repeat == null || viewModel.repeat.endType === EndType.Never) {
-					return null
-				} else if (viewModel.repeat.endType === EndType.Count) {
-					return m(DropDownSelectorN, {
-						label: "emptyString_msg",
-						items: intervalValues,
+	const viewModel = await createCalendarEventViewModel(date, calendars, mailboxDetail, existingEvent ?? null, responseMail ?? null, false);
+	const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
+	const repeatValues: SelectorItemList<RepeatPeriod | null> = createRepeatRuleFrequencyValues()
+	const intervalValues = createIntervalValues()
+	const endTypeValues = createRepeatRuleEndTypeValues()
+	let finished = false
+
+	function renderEndValue(): Children {
+		if (viewModel.repeat == null || viewModel.repeat.endType === EndType.Never) {
+			return null
+		} else if (viewModel.repeat.endType === EndType.Count) {
+			return m(DropDownSelectorN, {
+				label: "emptyString_msg",
+				items: intervalValues,
 						selectedValue: viewModel.repeat.endValue,
-						selectionChangedHandler: (endValue: number) => viewModel.onEndOccurencesSelected(endValue),
-						icon: BootIcons.Expand,
-					})
-				} else if (viewModel.repeat.endType === EndType.UntilDate) {
-					return m(DatePicker, {
-						date: viewModel.repeat?.endValue != null ? new Date(viewModel.repeat?.endValue) : new Date(),
-						onDateSelected: date => viewModel.onRepeatEndDateSelected(date),
-						startOfTheWeekOffset,
-						label: "emptyString_msg",
-						nullSelectionText: "emptyString_msg",
-						// When the guests expander is expanded and the dialog has overflow, then the scrollbar will overlap the date picker popup
-						// to fix this we could either:
-						// * reorganize the layout so it doesn't go over the right edge
-						// * change the alignment so that it goes to the left (this is what we do)
-						rightAlignDropdown: true,
-					})
-				} else {
-					return null
-				}
-			}
+				selectionChangedHandler: (endValue: number) => viewModel.onEndOccurencesSelected(endValue),
+				icon: BootIcons.Expand,
+			})
+		} else if (viewModel.repeat.endType === EndType.UntilDate) {
+			return m(DatePicker, {
+				date: viewModel.repeat?.endValue != null ? new Date(viewModel.repeat?.endValue) : new Date(),
+				onDateSelected: date => viewModel.onRepeatEndDateSelected(date),
+				startOfTheWeekOffset,
+				label: "emptyString_msg",
+				nullSelectionText: "emptyString_msg",
+				// When the guests expander is expanded and the dialog has overflow, then the scrollbar will overlap the date picker popup
+				// to fix this we could either:
+				// * reorganize the layout so it doesn't go over the right edge
+				// * change the alignment so that it goes to the left (this is what we do)
+				rightAlignDropdown: true,
+			})
+		} else {
+			return null
+		}
+	}
 
-			const editorOptions = {
-				enabled: false,
-				alignmentEnabled: false,
-				fontSizeEnabled: false,
-			}
-			const descriptionEditor = new HtmlEditor("description_label", editorOptions, () =>
-				m(ButtonN, {
-					label: "emptyString_msg",
-					title: "showRichTextToolbar_action",
-					icon: () => Icons.FontSize,
-					click: () => (editorOptions.enabled = !editorOptions.enabled),
-					isSelected: () => editorOptions.enabled,
-					noBubble: true,
-					type: ButtonType.Toggle,
-					colors: ButtonColor.Elevated,
-				}),
-			)
-				.setMinHeight(400)
-				.showBorders()
-				.setEnabled(!viewModel.isReadOnlyEvent()) // We only set it once, we don't viewModel on every change, that would be slow
-				.setValue(viewModel.note)
+	const editorOptions = {
+		enabled: false,
+		alignmentEnabled: false,
+		fontSizeEnabled: false,
+	}
+	const descriptionEditor = new HtmlEditor("description_label", editorOptions, () =>
+		m(ButtonN, {
+			label: "emptyString_msg",
+			title: "showRichTextToolbar_action",
+			icon: () => Icons.FontSize,
+			click: () => (editorOptions.enabled = !editorOptions.enabled),
+			isSelected: () => editorOptions.enabled,
+			noBubble: true,
+			type: ButtonType.Toggle,
+			colors: ButtonColor.Elevated,
+		}),
+	)
+		.setMinHeight(400)
+		.showBorders()
+		.setEnabled(!viewModel.isReadOnlyEvent()) // We only set it once, we don't viewModel on every change, that would be slow
+		.setValue(viewModel.note)
 
-			const okAction = () => {
-				if (finished) {
-					return
-				}
+	const okAction = () => {
+		if (finished) {
+			return
+		}
 
-				const description = descriptionEditor.getValue()
+		const description = descriptionEditor.getValue()
 
-				if (description === "<div><br></div>") {
-					viewModel.changeDescription("")
-				} else {
-					viewModel.changeDescription(description)
-				}
+		if (description === "<div><br></div>") {
+			viewModel.changeDescription("")
+		} else {
+			viewModel.changeDescription(description)
+		}
 
-				function showProgress(p: Promise<unknown>) {
-					// We get all errors in main promise, we don't need to handle them here
-					return showProgressDialog("pleaseWait_msg", p).catch(noOp)
-				}
+		function showProgress(p: Promise<unknown>) {
+			// We get all errors in main promise, we don't need to handle them here
+			return showProgressDialog("pleaseWait_msg", p).catch(noOp)
+		}
 
-				Promise.resolve().then(async () => {
-					const shouldClose = await viewModel
-						.saveAndSend({
-							askForUpdates: askIfShouldSendCalendarUpdatesToAttendees,
-							showProgress,
-							askInsecurePassword: () => Dialog.confirm("presharedPasswordNotStrongEnough_msg"),
-						})
-						.catch(
-							ofClass(UserError, e => {
-								showUserError(e)
-								return false
-							}),
-						)
-						.catch(
-							ofClass(BusinessFeatureRequiredError, async e => {
-								const businessFeatureOrdered = await showBusinessFeatureRequiredDialog(() => e.message)
-								// entity event updates are too slow to call updateBusinessFeature()
-								viewModel.hasBusinessFeature(businessFeatureOrdered)
-								return false
-							}),
-						)
-
-					if (shouldClose) {
-						finish()
-					}
+		Promise.resolve().then(async () => {
+			const shouldClose = await viewModel
+				.saveAndSend({
+					askForUpdates: askIfShouldSendCalendarUpdatesToAttendees,
+					showProgress,
+					askInsecurePassword: () => Dialog.confirm("presharedPasswordNotStrongEnough_msg"),
 				})
-			}
-
-			const attendeesField = makeBubbleTextField(viewModel, locator.contactModel)
-			const attendeesExpanded = stream(viewModel.attendees().length > 0)
-
-			const renderInvitationField = (): Children => (viewModel.canModifyGuests() ? m(attendeesField) : null)
-
-			function renderAttendees() {
-				const ownAttendee = viewModel.findOwnAttendee()
-				const guests = viewModel.attendees().slice()
-
-				if (ownAttendee) {
-					const indexOfOwn = guests.indexOf(ownAttendee)
-					guests.splice(indexOfOwn, 1)
-					guests.unshift(ownAttendee)
-				}
-
-				const organizer = viewModel.organizer
-
-				if (organizer != null && guests.length > 0 && !guests.some(guest => guest.address.address === organizer.address)) {
-					guests.unshift({
-						address: createEncryptedMailAddress({
-							address: organizer.address,
-						}),
-						type: RecipientType.EXTERNAL,
-						// Events created by Tutanota will always have the organizer in the attendee list
-						status: CalendarAttendeeStatus.ADDED, // We don't know whether the organizer will be attending or not in this case
-					})
-				}
-
-				const externalGuests = viewModel.shouldShowPasswordFields()
-					? guests
-						.filter(a => a.type === RecipientType.EXTERNAL)
-						.map(guest => {
-							return m(TextFieldN, {
-								value: viewModel.getGuestPassword(guest),
-								type: TextFieldType.ExternalPassword,
-								label: () =>
-									lang.get("passwordFor_label", {
-										"{1}": guest.address.address,
-									}),
-								helpLabel: () => m(new PasswordIndicator(() => viewModel.getPasswordStrength(guest))),
-								key: guest.address.address,
-								oninput: newValue => viewModel.updatePassword(guest, newValue),
-							})
-						})
-					: []
-				return m("", [guests.map((guest, index) => renderGuest(guest, index, viewModel, ownAttendee)), externalGuests])
-			}
-
-			const renderDateTimePickers = () =>
-				renderTwoColumnsIfFits(
-					[
-						m(
-							".flex-grow",
-							m(DatePicker, {
-								date: viewModel.startDate,
-								onDateSelected: date => {
-									if (date) {
-										viewModel.setStartDate(date)
-									}
-								},
-								startOfTheWeekOffset,
-								label: "dateFrom_label",
-								nullSelectionText: "emptyString_msg",
-								disabled: viewModel.isReadOnlyEvent(),
-							}),
-						),
-						!viewModel.allDay()
-							? m(
-								".ml-s.time-field",
-								m(TimePicker, {
-									time: viewModel.startTime,
-									onTimeSelected: time => viewModel.setStartTime(time),
-									amPmFormat: viewModel.amPmFormat,
-									disabled: viewModel.isReadOnlyEvent(),
-								}),
-							)
-							: null,
-					],
-					[
-						m(
-							".flex-grow",
-							m(DatePicker, {
-								date: viewModel.endDate,
-								onDateSelected: date => {
-									if (date) {
-										viewModel.setEndDate(date)
-									}
-								},
-								startOfTheWeekOffset,
-								label: "dateTo_label",
-								nullSelectionText: "emptyString_msg",
-								disabled: viewModel.isReadOnlyEvent(),
-							}),
-						),
-						!viewModel.allDay()
-							? m(
-								".ml-s.time-field",
-								m(TimePicker, {
-									time: viewModel.endTime,
-									onTimeSelected: time => viewModel.setEndTime(time),
-									amPmFormat: viewModel.amPmFormat,
-									disabled: viewModel.isReadOnlyEvent(),
-								}),
-							)
-							: null,
-					],
+				.catch(
+					ofClass(UserError, e => {
+						showUserError(e)
+						return false
+					}),
+				)
+				.catch(
+					ofClass(BusinessFeatureRequiredError, async e => {
+						const businessFeatureOrdered = await showBusinessFeatureRequiredDialog(() => e.message)
+						// entity event updates are too slow to call updateBusinessFeature()
+						viewModel.hasBusinessFeature(businessFeatureOrdered)
+						return false
+					}),
 				)
 
-			const renderLocationField = () =>
-				m(TextFieldN, {
-					label: "location_label",
+			if (shouldClose) {
+				finish()
+			}
+		})
+	}
+
+	const attendeesExpanded = stream(viewModel.attendees().length > 0)
+	const invitationFieldText = stream("")
+	const renderInvitationField = (): Children => viewModel.canModifyGuests()
+		? renderAddAttendeesField(invitationFieldText, viewModel, recipientsSearch)
+		: null
+
+	function renderAttendees() {
+		const ownAttendee = viewModel.findOwnAttendee()
+		const guests = viewModel.attendees().slice()
+
+		if (ownAttendee) {
+			const indexOfOwn = guests.indexOf(ownAttendee)
+			guests.splice(indexOfOwn, 1)
+			guests.unshift(ownAttendee)
+		}
+
+		const organizer = viewModel.organizer
+
+		if (organizer != null && guests.length > 0 && !guests.some(guest => guest.address.address === organizer.address)) {
+			guests.unshift({
+				address: createEncryptedMailAddress({
+					address: organizer.address,
+				}),
+				type: RecipientType.EXTERNAL,
+				// Events created by Tutanota will always have the organizer in the attendee list
+				status: CalendarAttendeeStatus.ADDED, // We don't know whether the organizer will be attending or not in this case
+			})
+		}
+
+		const externalGuests = viewModel.shouldShowPasswordFields()
+			? guests
+				.filter(a => a.type === RecipientType.EXTERNAL)
+				.map(guest => {
+					return m(TextFieldN, {
+								value: viewModel.getGuestPassword(guest),
+						type: TextFieldType.ExternalPassword,
+						label: () =>
+							lang.get("passwordFor_label", {
+								"{1}": guest.address.address,
+							}),
+						helpLabel: () => m(new PasswordIndicator(() => viewModel.getPasswordStrength(guest))),
+						key: guest.address.address,
+						oninput: newValue => viewModel.updatePassword(guest, newValue),
+					})
+				})
+			: []
+		return m("", [guests.map((guest, index) => renderGuest(guest, index, viewModel, ownAttendee)), externalGuests])
+	}
+
+	const renderDateTimePickers = () =>
+		renderTwoColumnsIfFits(
+			[
+				m(
+					".flex-grow",
+					m(DatePicker, {
+						date: viewModel.startDate,
+						onDateSelected: date => {
+							if (date) {
+								viewModel.setStartDate(date)
+							}
+						},
+						startOfTheWeekOffset,
+						label: "dateFrom_label",
+						nullSelectionText: "emptyString_msg",
+						disabled: viewModel.isReadOnlyEvent(),
+					}),
+				),
+				!viewModel.allDay()
+					? m(
+						".ml-s.time-field",
+						m(TimePicker, {
+							time: viewModel.startTime,
+							onTimeSelected: time => viewModel.setStartTime(time),
+							amPmFormat: viewModel.amPmFormat,
+							disabled: viewModel.isReadOnlyEvent(),
+						}),
+					)
+					: null,
+			],
+			[
+				m(
+					".flex-grow",
+					m(DatePicker, {
+						date: viewModel.endDate,
+						onDateSelected: date => {
+							if (date) {
+								viewModel.setEndDate(date)
+							}
+						},
+						startOfTheWeekOffset,
+						label: "dateTo_label",
+						nullSelectionText: "emptyString_msg",
+						disabled: viewModel.isReadOnlyEvent(),
+					}),
+				),
+				!viewModel.allDay()
+					? m(
+						".ml-s.time-field",
+						m(TimePicker, {
+							time: viewModel.endTime,
+							onTimeSelected: time => viewModel.setEndTime(time),
+							amPmFormat: viewModel.amPmFormat,
+							disabled: viewModel.isReadOnlyEvent(),
+						}),
+					)
+					: null,
+			],
+		)
+
+	const renderLocationField = () =>
+		m(TextFieldN, {
+			label: "location_label",
 					value: viewModel.location(),
 					oninput: viewModel.location,
-					disabled: viewModel.isReadOnlyEvent(),
-					injectionsRight: () => {
-						let address = encodeURIComponent(viewModel.location())
+			disabled: viewModel.isReadOnlyEvent(),
+			injectionsRight: () => {
+				let address = encodeURIComponent(viewModel.location())
 
-						if (address === "") {
-							return null
-						}
+				if (address === "") {
+					return null
+				}
 
-						return m(ButtonN, {
-							label: "showAddress_alt",
-							icon: () => Icons.Pin,
-							click: () => {
-								window.open(`https://www.openstreetmap.org/search?query=${address}`, "_blank")
-							},
-						})
+				return m(ButtonN, {
+					label: "showAddress_alt",
+					icon: () => Icons.Pin,
+					click: () => {
+						window.open(`https://www.openstreetmap.org/search?query=${address}`, "_blank")
 					},
 				})
+			},
+		})
 
-			function renderCalendarPicker() {
-				const availableCalendars = viewModel.getAvailableCalendars()
-				return m(
-					".flex-half.pr-s",
-					availableCalendars.length
-						? m(DropDownSelectorN, {
-							label: "calendar_label",
-							items: availableCalendars.map(calendarInfo => {
-								return {
-									name: getSharedGroupName(calendarInfo.groupInfo, calendarInfo.shared),
-									value: calendarInfo,
-								}
-							}),
+	function renderCalendarPicker() {
+		const availableCalendars = viewModel.getAvailableCalendars()
+		return m(
+			".flex-half.pr-s",
+			availableCalendars.length
+				? m(DropDownSelectorN, {
+					label: "calendar_label",
+					items: availableCalendars.map(calendarInfo => {
+						return {
+							name: getSharedGroupName(calendarInfo.groupInfo, calendarInfo.shared),
+							value: calendarInfo,
+						}
+					}),
 							selectedValue: viewModel.selectedCalendar(),
 							selectionChangedHandler: viewModel.selectedCalendar,
-							icon: BootIcons.Expand,
-							disabled: viewModel.isReadOnlyEvent(),
-						} as DropDownSelectorAttrs<CalendarInfo>)
-						: null,
-				)
-			}
+					icon: BootIcons.Expand,
+					disabled: viewModel.isReadOnlyEvent(),
+				} as DropDownSelectorAttrs<CalendarInfo>)
+				: null,
+		)
+	}
 
-			function renderRepeatPeriod() {
-				return m(DropDownSelectorN, {
-					label: "calendarRepeating_label",
-					items: repeatValues,
+	function renderRepeatPeriod() {
+		return m(DropDownSelectorN, {
+			label: "calendarRepeating_label",
+			items: repeatValues,
 					selectedValue: (viewModel.repeat && viewModel.repeat.frequency) || null,
-					selectionChangedHandler: period => viewModel.onRepeatPeriodSelected(period),
-					icon: BootIcons.Expand,
-					disabled: viewModel.isReadOnlyEvent(),
-				} as DropDownSelectorAttrs<RepeatPeriod | null>)
-			}
+			selectionChangedHandler: period => viewModel.onRepeatPeriodSelected(period),
+			icon: BootIcons.Expand,
+			disabled: viewModel.isReadOnlyEvent(),
+		} as DropDownSelectorAttrs<RepeatPeriod | null>)
+	}
 
-			function renderRepeatInterval() {
-				return m(DropDownSelectorN, {
-					label: "interval_title",
-					items: intervalValues,
+	function renderRepeatInterval() {
+		return m(DropDownSelectorN, {
+			label: "interval_title",
+			items: intervalValues,
 					selectedValue: (viewModel.repeat && viewModel.repeat.interval) || 1,
-					selectionChangedHandler: period => viewModel.onRepeatIntervalChanged(period),
-					icon: BootIcons.Expand,
-					disabled: viewModel.isReadOnlyEvent(),
-				} as DropDownSelectorAttrs<number>)
-			}
+			selectionChangedHandler: period => viewModel.onRepeatIntervalChanged(period),
+			icon: BootIcons.Expand,
+			disabled: viewModel.isReadOnlyEvent(),
+		} as DropDownSelectorAttrs<number>)
+	}
 
-			function renderEndType(repeat: RepeatData) {
-				return m(DropDownSelectorN, {
-					label: () => lang.get("calendarRepeatStopCondition_label"),
-					items: endTypeValues,
+	function renderEndType(repeat: RepeatData) {
+		return m(DropDownSelectorN, {
+			label: () => lang.get("calendarRepeatStopCondition_label"),
+			items: endTypeValues,
 					selectedValue: repeat.endType,
-					selectionChangedHandler: period => viewModel.onRepeatEndTypeChanged(period),
-					icon: BootIcons.Expand,
-					disabled: viewModel.isReadOnlyEvent(),
-				} as DropDownSelectorAttrs<EndType>)
-			}
+			selectionChangedHandler: period => viewModel.onRepeatEndTypeChanged(period),
+			icon: BootIcons.Expand,
+			disabled: viewModel.isReadOnlyEvent(),
+		} as DropDownSelectorAttrs<EndType>)
+	}
 
-			const renderRepeatRulePicker = () =>
-				renderTwoColumnsIfFits(
-					[
-						// Repeat type == Frequency: Never, daily, annually etc
-						m(".flex-grow.pr-s", renderRepeatPeriod()), // Repeat interval: every day, every second day etc
-						m(".flex-grow.pl-s" + (viewModel.repeat ? "" : ".hidden"), renderRepeatInterval()),
-					],
-					viewModel.repeat ? [m(".flex-grow.pr-s", renderEndType(viewModel.repeat)), m(".flex-grow.pl-s", renderEndValue())] : null,
-				)
+	const renderRepeatRulePicker = () =>
+		renderTwoColumnsIfFits(
+			[
+				// Repeat type == Frequency: Never, daily, annually etc
+				m(".flex-grow.pr-s", renderRepeatPeriod()), // Repeat interval: every day, every second day etc
+				m(".flex-grow.pl-s" + (viewModel.repeat ? "" : ".hidden"), renderRepeatInterval()),
+			],
+			viewModel.repeat ? [m(".flex-grow.pr-s", renderEndType(viewModel.repeat)), m(".flex-grow.pl-s", renderEndValue())] : null,
+		)
 
-			function renderChangesMessage() {
-				return viewModel.isInvite() ? m(".mt.mb-s", lang.get("eventCopy_msg")) : null
-			}
+	function renderChangesMessage() {
+		return viewModel.isInvite() ? m(".mt.mb-s", lang.get("eventCopy_msg")) : null
+	}
 
-			viewModel.sendingOutUpdate.map(m.redraw)
+	viewModel.sendingOutUpdate.map(m.redraw)
 
-			function renderDialogContent() {
-				return m(
-					".calendar-edit-container.pb",
-					{
-						style: {
-							// The date picker dialogs have position: fixed, and they are fixed relative to the most recent ancestor with
-							// a transform. So doing a no-op transform will make the dropdowns scroll with the dialog
-							// without this, then the date picker dialogs will show at the same place on the screen regardless of whether the
-							// editor has scrolled or not.
-							// Ideally we could do this inside DatePicker itself, but the rendering breaks and the dialog appears below it's siblings
-							// We also don't want to do this for all dialogs because it could potentially cause other issues
-							transform: "translate(0)",
-						},
-					},
-					[
-						renderHeading(),
-						renderChangesMessage(),
-						m(
-							".mb.rel",
+	function renderDialogContent() {
+		return m(
+			".calendar-edit-container.pb",
+			{
+				style: {
+					// The date picker dialogs have position: fixed, and they are fixed relative to the most recent ancestor with
+					// a transform. So doing a no-op transform will make the dropdowns scroll with the dialog
+					// without this, then the date picker dialogs will show at the same place on the screen regardless of whether the
+					// editor has scrolled or not.
+					// Ideally we could do this inside DatePicker itself, but the rendering breaks and the dialog appears below it's siblings
+					// We also don't want to do this for all dialogs because it could potentially cause other issues
+					transform: "translate(0)",
+				},
+			},
+			[
+				renderHeading(),
+				renderChangesMessage(),
+				m(
+					".mb.rel",
 							m(ExpanderPanelN, {
 									expanded: attendeesExpanded(),
-								},
-								[m(".flex-grow", renderInvitationField()), m(".flex-grow", renderAttendees())],
-							),
-						),
-						renderDateTimePickers(),
-						m(".flex.items-center.mt-s", [
-							m(CheckboxN, {
+						},
+						[m(".flex-grow", renderInvitationField()), m(".flex-grow", renderAttendees())],
+					),
+				),
+				renderDateTimePickers(),
+				m(".flex.items-center.mt-s", [
+					m(CheckboxN, {
 								checked: viewModel.allDay(),
 								onChecked: viewModel.allDay,
-								disabled: viewModel.isReadOnlyEvent(),
-								label: () => lang.get("allDay_label"),
+						disabled: viewModel.isReadOnlyEvent(),
+						label: () => lang.get("allDay_label"),
+					}),
+					m(".flex-grow"),
+				]),
+				renderRepeatRulePicker(),
+				m(".flex", [
+					renderCalendarPicker(),
+					viewModel.canModifyAlarms()
+						? m(".flex.col.flex-half.pl-s", [
+							viewModel.alarms.map(a =>
+								m(DropDownSelectorN, {
+									label: "reminderBeforeEvent_label",
+									items: alarmIntervalItems,
+									selectedValue: stream(downcast(a.trigger)),
+									icon: BootIcons.Expand,
+									selectionChangedHandler: (value: AlarmInterval) => viewModel.changeAlarm(a.alarmIdentifier, value),
+									key: a.alarmIdentifier,
+								}),
+							),
+							m(DropDownSelectorN, {
+								label: "reminderBeforeEvent_label",
+								items: alarmIntervalItems,
+								selectedValue: stream(null),
+								icon: BootIcons.Expand,
+								selectionChangedHandler: (value: AlarmInterval) => value && viewModel.addAlarm(value),
 							}),
-							m(".flex-grow"),
-						]),
-						renderRepeatRulePicker(),
-						m(".flex", [
-							renderCalendarPicker(),
-							viewModel.canModifyAlarms()
-								? m(".flex.col.flex-half.pl-s", [
-									viewModel.alarms.map(a =>
-										m(DropDownSelectorN, {
-											label: "reminderBeforeEvent_label",
-											items: alarmIntervalItems,
-											selectedValue: stream(downcast(a.trigger)),
-											icon: BootIcons.Expand,
-											selectionChangedHandler: (value: AlarmInterval) => viewModel.changeAlarm(a.alarmIdentifier, value),
-											key: a.alarmIdentifier,
-										}),
-									),
-									m(DropDownSelectorN, {
-										label: "reminderBeforeEvent_label",
-										items: alarmIntervalItems,
-										selectedValue: stream(null),
-										icon: BootIcons.Expand,
-										selectionChangedHandler: (value: AlarmInterval) => value && viewModel.addAlarm(value),
-									}),
-								])
-								: m(".flex.flex-half.pl-s"),
-						]),
-						renderLocationField(),
-						m(descriptionEditor),
-					],
-				)
-			}
+						])
+						: m(".flex.flex-half.pl-s"),
+				]),
+				renderLocationField(),
+				m(descriptionEditor),
+			],
+		)
+	}
 
-			function finish() {
-				finished = true
-				viewModel.dispose()
-				dialog.close()
-			}
+	function finish() {
+		finished = true
+		viewModel.dispose()
+		dialog.close()
+	}
 
-			function renderHeading() {
-				return m(TextFieldN, {
-					label: "title_placeholder",
+	function renderHeading() {
+		return m(TextFieldN, {
+			label: "title_placeholder",
 					value: viewModel.summary(),
 					oninput: viewModel.summary,
-					disabled: viewModel.isReadOnlyEvent(),
-					class: "big-input pt flex-grow",
-					injectionsRight: () =>
-						m(
-							".mr-s",
-							m(ExpanderButtonN, {
-								label: "guests_label",
+			disabled: viewModel.isReadOnlyEvent(),
+			class: "big-input pt flex-grow",
+			injectionsRight: () =>
+				m(
+					".mr-s",
+					m(ExpanderButtonN, {
+						label: "guests_label",
 								expanded: attendeesExpanded(),
 								onExpandedChange: attendeesExpanded,
-								style: {
-									paddingTop: 0,
-								},
-							}),
-						),
-				})
-			}
+						style: {
+							paddingTop: 0,
+						},
+					}),
+				),
+		})
+	}
 
-			viewModel.attendees.map(m.redraw)
-			const dialogHeaderBarAttrs: DialogHeaderBarAttrs = {
-				left: [
-					{
-						label: "cancel_action",
-						click: finish,
-						type: ButtonType.Secondary,
-					},
-				],
-				middle: () => lang.get("createEvent_label"), // right: save button is only added if the event is not read-only
-			}
-			const dialog = Dialog.largeDialog(dialogHeaderBarAttrs, {
-				view: renderDialogContent,
-			}).addShortcut({
-				key: Keys.ESC,
-				exec: finish,
-				help: "close_alt",
-			})
+	viewModel.attendees.map(m.redraw)
+	const dialogHeaderBarAttrs: DialogHeaderBarAttrs = {
+		left: [
+			{
+				label: "cancel_action",
+				click: finish,
+				type: ButtonType.Secondary,
+			},
+		],
+		middle: () => lang.get("createEvent_label"), // right: save button is only added if the event is not read-only
+	}
+	const dialog = Dialog.largeDialog(dialogHeaderBarAttrs, {
+		view: renderDialogContent,
+	}).addShortcut({
+		key: Keys.ESC,
+		exec: finish,
+		help: "close_alt",
+	})
 
-			if (!viewModel.isReadOnlyEvent()) {
-				dialogHeaderBarAttrs.right = [
-					{
-						label: "save_action",
-						click: () => okAction(),
-						type: ButtonType.Primary,
-					},
-				]
-				dialog.addShortcut({
-					key: Keys.S,
-					ctrl: true,
-					exec: () => okAction(),
-					help: "save_action",
-				})
-			}
+	if (!viewModel.isReadOnlyEvent()) {
+		dialogHeaderBarAttrs.right = [
+			{
+				label: "save_action",
+				click: () => okAction(),
+				type: ButtonType.Primary,
+			},
+		]
+		dialog.addShortcut({
+			key: Keys.S,
+			ctrl: true,
+			exec: () => okAction(),
+			help: "save_action",
+		})
+	}
 
-			if (client.isMobileDevice()) {
-				// Prevent focusing text field automatically on mobile. It opens keyboard and you don't see all details.
-				dialog.setFocusOnLoadFunction(noOp)
-			}
+	if (client.isMobileDevice()) {
+		// Prevent focusing text field automatically on mobile. It opens keyboard and you don't see all details.
+		dialog.setFocusOnLoadFunction(noOp)
+	}
 
-			dialog.show()
-		},
-	)
+	dialog.show()
 }
 
 function renderStatusIcon(viewModel: CalendarEventViewModel, attendee: Guest): Children {
@@ -557,7 +551,7 @@ function renderStatusIcon(viewModel: CalendarEventViewModel, attendee: Guest): C
 	})
 }
 
-function createIntevalValues(): Array<{name: string, value: number}> {
+function createIntervalValues(): Array<{name: string, value: number}> {
 	return numberRange(1, 256).map(n => {
 		return {
 			name: String(n),
@@ -566,77 +560,56 @@ function createIntevalValues(): Array<{name: string, value: number}> {
 	})
 }
 
-function makeBubbleTextField(viewModel: CalendarEventViewModel, contactModel: ContactModel): BubbleTextField<Recipient> {
-	function createBubbleContextButtons(name: string, mailAddress: string): [DropdownInfoAttrs, ButtonAttrs] {
-		return [
-			{
-				info: mailAddress,
-				center: true,
-				bold: true,
-			},
-			{
-				label: "remove_action",
-				click: () => {
-					findAndRemove(invitePeopleValueTextField.bubbles, bubble => bubble.entity.address === mailAddress)
-				},
+function renderAddAttendeesField(
+	text: Stream<string>,
+	viewModel: CalendarEventViewModel,
+	recipientsSearch: RecipientsSearchModel
+): Children {
+	return m(MailRecipientsTextField, {
+		label: "addGuest_label",
+		text: text(),
+		onTextChanged: text,
+		// we dont show bubbles, we just want the search dropdown
+		recipients: [],
+		disabled: false,
+		onRecipientAdded: async (address, name, contact) => {
+			const notAvailable = viewModel.shouldShowSendInviteNotAvailable()
+			if (notAvailable) {
+				const businessFeatureOrdered = await showBusinessFeatureRequiredDialog("businessFeatureRequiredInvite_msg")
+				if (businessFeatureOrdered) {
+					viewModel.addGuest(address, contact)
+				}
+
+				viewModel.hasBusinessFeature(businessFeatureOrdered) //entity event updates are too slow to call updateBusinessFeature()
+			} else {
+				viewModel.addGuest(address, contact)
 			}
-		]
-	}
-
-	const bubbleHandler = new RecipientInfoBubbleHandler(
-		{
-			createBubble(name: string | null, address: string, contact: Contact | null): Bubble<Recipient> {
-				const recipient = new EventRecipient(address, name, contact)
-				const buttonAttrs = attachDropdown({
-					mainButtonAttrs: {
-						label: () => getDisplayText(recipient.name, address, false),
-						type: ButtonType.TextBubble,
-						isSelected: () => false,
-					},
-					childAttrs: () => createBubbleContextButtons(recipient.name, address)
-				})
-				const bubble = new Bubble(recipient, buttonAttrs, address)
-				// remove bubble after it was created - we don't need it for calendar invites because the attendees are shown in a separate list.
-				Promise.resolve().then(() => {
-					const notAvailable = viewModel.shouldShowSendInviteNotAvailable()
-					let p = Promise.resolve()
-
-					if (notAvailable) {
-						p = showBusinessFeatureRequiredDialog("businessFeatureRequiredInvite_msg").then(businessFeatureOrdered => {
-							if (businessFeatureOrdered) {
-								viewModel.addGuest(bubble.entity.address, bubble.entity.contact)
-							}
-
-							viewModel.hasBusinessFeature(businessFeatureOrdered) //entity event updates are too slow to call updateBusinessFeature()
-						})
-					} else {
-						viewModel.addGuest(bubble.entity.address, bubble.entity.contact)
-					}
-
-					p.then(() => {
-						remove(invitePeopleValueTextField.bubbles, bubble)
-					})
-				})
-				return bubble
-			},
 		},
-		contactModel,
-	)
-	const invitePeopleValueTextField = new BubbleTextField("addGuest_label", bubbleHandler, () => renderGuestButtons(viewModel))
-	return invitePeopleValueTextField
-}
-
-class EventRecipient implements Recipient {
-	public readonly name: string
-	public readonly type: RecipientType
-	constructor(
-		public readonly address: string,
-		name: string | null,
-		public readonly contact: Contact | null
-	) {
-		this.type = isTutanotaMailAddress(address) ? RecipientType.INTERNAL : RecipientType.UNKNOWN
-		this.name = name != null ? name : contact != null ? getContactDisplayName(contact) : ""
-	}
+		onRecipientRemoved: () => {
+			// do nothing because we don't have any bubbles here
+		},
+		injectionsRight: [
+			viewModel.isForceUpdateAvailable()
+				? m(ButtonN, {
+					label: "sendUpdates_label",
+					click: () => viewModel.isForceUpdates(!viewModel.isForceUpdates()),
+					icon: () => BootIcons.Mail,
+					isSelected: () => viewModel.isForceUpdates(),
+					noBubble: true,
+				})
+				: null,
+			viewModel.attendees().find(a => a.type === RecipientType.EXTERNAL)
+				? m(ButtonN, {
+					label: "confidential_action",
+					click: () => viewModel.setConfidential(!viewModel.isConfidential()),
+					icon: () => (viewModel.isConfidential() ? Icons.Lock : Icons.Unlock),
+					isSelected: () => viewModel.isConfidential(),
+					noBubble: true,
+				})
+				: null
+		],
+		search: recipientsSearch
+	})
 }
 
 function renderTwoColumnsIfFits(left: Children, right: Children): Children {
@@ -763,30 +736,3 @@ function renderGuest(guest: Guest, index: number, viewModel: CalendarEventViewMo
 	)
 }
 
-function renderGuestButtons(viewModel: CalendarEventViewModel): Children {
-	return [renderUpdateAttendeesButton(viewModel), renderConfidentialButton(viewModel)]
-}
-
-function renderUpdateAttendeesButton(viewModel: CalendarEventViewModel) {
-	return viewModel.isForceUpdateAvailable()
-		? m(ButtonN, {
-			label: "sendUpdates_label",
-			click: () => viewModel.isForceUpdates(!viewModel.isForceUpdates()),
-			icon: () => BootIcons.Mail,
-			isSelected: () => viewModel.isForceUpdates(),
-			noBubble: true,
-		})
-		: null
-}
-
-function renderConfidentialButton(viewModel: CalendarEventViewModel) {
-	return viewModel.attendees().find(a => a.type === RecipientType.EXTERNAL)
-		? m(ButtonN, {
-			label: "confidential_action",
-			click: () => viewModel.setConfidential(!viewModel.isConfidential()),
-			icon: () => (viewModel.isConfidential() ? Icons.Lock : Icons.Unlock),
-			isSelected: () => viewModel.isConfidential(),
-			noBubble: true,
-		})
-		: null
-}

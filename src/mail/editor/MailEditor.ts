@@ -1,4 +1,4 @@
-import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {Editor} from "../../gui/editor/Editor"
@@ -8,29 +8,23 @@ import {Dialog} from "../../gui/base/Dialog"
 import {InfoLink, lang} from "../../misc/LanguageViewModel"
 import type {MailboxDetail} from "../model/MailModel"
 import {checkApprovalStatus} from "../../misc/LoginUtils"
-import {checkAttachmentSize, conversationTypeString, getEnabledMailAddressesWithUser, LINE_BREAK, RecipientField} from "../model/MailUtils"
+import {checkAttachmentSize, conversationTypeString, createNewContact, getEnabledMailAddressesWithUser, LINE_BREAK, RecipientField} from "../model/MailUtils"
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {locator} from "../../api/main/MainLocator"
 import {logins} from "../../api/main/LoginController"
 import {ALLOWED_IMAGE_FORMATS, ConversationType, FeatureType, Keys, MailMethod} from "../../api/common/TutanotaConstants"
-import {ConnectionError} from "../../api/common/error/RestError"
+import {TooManyRequestsError} from "../../api/common/error/RestError"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
-import {attachDropdown, createDropdown} from "../../gui/base/DropdownN"
+import {attachDropdown, createDropdown, DropdownChildAttrs, DropdownInfoAttrs} from "../../gui/base/DropdownN"
 import {RichTextToolbar} from "../../gui/base/RichTextToolbar"
 import {isApp, isBrowser, isDesktop} from "../../api/common/Env"
 import {Icons} from "../../gui/base/icons/Icons"
 import {AnimationPromise, animations, height, opacity} from "../../gui/animation/Animations"
 import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
 import {TextFieldN, TextFieldType} from "../../gui/base/TextFieldN"
-import {
-	chooseAndAttachFile,
-	cleanupInlineAttachments,
-	createAttachmentButtonAttrs,
-	getConfidentialStateMessage,
-	MailEditorRecipientField,
-} from "./MailEditorViewModel"
+import {chooseAndAttachFile, cleanupInlineAttachments, createAttachmentButtonAttrs, getConfidentialStateMessage,} from "./MailEditorViewModel"
 import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
 import {windowFacade} from "../../misc/WindowFacade"
 import {UserError} from "../../api/main/UserError"
@@ -38,10 +32,11 @@ import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 import type {File as TutanotaFile, Mail} from "../../api/entities/tutanota/TypeRefs.js"
+import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import type {InlineImages} from "../view/MailViewer"
 import {FileOpenError} from "../../api/common/error/FileOpenError"
 import type {lazy} from "@tutao/tutanota-utils"
-import {downcast, isNotNull, noOp, ofClass, typedValues} from "@tutao/tutanota-utils"
+import {cleanMatch, downcast, isNotNull, noOp, ofClass, typedValues} from "@tutao/tutanota-utils"
 import {isCustomizationEnabledForCustomer} from "../../api/common/utils/Utils"
 import {createInlineImage, replaceCidsWithInlineImages, replaceInlineImagesWithCids} from "../view/MailGuiUtils"
 import {client} from "../../misc/ClientDetector"
@@ -62,7 +57,11 @@ import {DataFile} from "../../api/common/DataFile";
 import {Recipients, RecipientType} from "../../api/common/recipients/Recipient"
 import {PasswordIndicator} from "../../gui/PasswordIndicator"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
+import {MailRecipientsTextField} from "../../gui/MailRecipientsTextField.js"
+import {getContactDisplayName} from "../../contacts/model/ContactUtils"
+import {ResolvableRecipient} from "../../api/main/RecipientsModel"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
+import {getRecipientsSearchModel, RecipientsSearchModel} from "../../misc/RecipientsSearchModel.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -70,11 +69,11 @@ export type MailEditorAttrs = {
 	doShowToolbar: Stream<boolean>
 	onload?: (editor: Editor) => void
 	onclose?: (...args: Array<any>) => any
-	areDetailsExpanded: Stream<boolean>
 	selectedNotificationLanguage: Stream<string>
 	dialog: lazy<Dialog>
 	templateModel: TemplatePopupModel | null
 	createKnowledgeBaseButtonAttrs: (editor: Editor) => Promise<ButtonAttrs | null>
+	search: RecipientsSearchModel
 }
 
 export function createMailEditorAttrs(
@@ -84,37 +83,45 @@ export function createMailEditorAttrs(
 	dialog: lazy<Dialog>,
 	templateModel: TemplatePopupModel | null,
 	createKnowledgeBaseButtonAttrs: (editor: Editor) => Promise<ButtonAttrs | null>,
+	search: RecipientsSearchModel
 ): MailEditorAttrs {
 	return {
 		model,
 		doBlockExternalContent: stream(doBlockExternalContent),
 		doShowToolbar: stream<boolean>(false),
-		areDetailsExpanded: stream<boolean>(false),
 		selectedNotificationLanguage: stream(""),
 		dialog,
 		templateModel,
 		createKnowledgeBaseButtonAttrs: createKnowledgeBaseButtonAttrs,
+		search
 	}
 }
 
 export class MailEditor implements Component<MailEditorAttrs> {
+
+	private attrs: MailEditorAttrs
+
 	editor: Editor
 	toolbar: RichTextToolbar
-	recipientFields: {
-		to: MailEditorRecipientField
-		cc: MailEditorRecipientField
-		bcc: MailEditorRecipientField
+
+	private readonly recipientFieldTexts = {
+		to: stream(""),
+		cc: stream(""),
+		bcc: stream("")
 	}
+
 	mentionedInlineImages: Array<string>
 	inlineImageElements: Array<HTMLElement>
 	templateModel: TemplatePopupModel | null
 	openKnowledgeBaseButtonAttrs: ButtonAttrs | null = null
-	sendMailModel!: SendMailModel
+	sendMailModel: SendMailModel
+	private areDetailsExpanded = false
 
 	constructor(vnode: Vnode<MailEditorAttrs>) {
+		const a = vnode.attrs
+		this.attrs = a
 		this.inlineImageElements = []
 		this.mentionedInlineImages = []
-		const a: MailEditorAttrs = vnode.attrs
 		const model = a.model
 		this.sendMailModel = model
 		this.templateModel = a.templateModel
@@ -188,28 +195,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			imageButtonClickHandler: insertImageHandler,
 			customButtonAttrs: templateButtonAttrs,
 		})
-		let toFieldInectionsRight
-		let toFieldDisabled = false
 
-		if (model.logins.isInternalUserLoggedIn()) {
-			toFieldInectionsRight = () =>
-				m(
-					".mr-s",
-					m(ExpanderButtonN, {
-						label: "show_action",
-						expanded: a.areDetailsExpanded(),
-						onExpandedChange: a.areDetailsExpanded,
-					}),
-				)
-		} else {
-			toFieldDisabled = true
-		}
-
-		this.recipientFields = {
-			to: new MailEditorRecipientField(model, RecipientField.TO, locator.contactModel, toFieldInectionsRight, toFieldDisabled),
-			cc: new MailEditorRecipientField(model, RecipientField.CC, locator.contactModel),
-			bcc: new MailEditorRecipientField(model, RecipientField.BCC, locator.contactModel),
-		}
 		this.editor.initialized.promise.then(() => {
 			this.inlineImageElements = replaceCidsWithInlineImages(this.editor.getDOM(), model.loadedInlineImages, (cid, event, dom) => {
 				const downloadClickHandler = createDropdown({
@@ -238,12 +224,9 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		// Leftover text in recipient field is an error
 		model.setOnBeforeSendFunction(() => {
 			let invalidText = ""
-
-			for (const field of typedValues(this.recipientFields)) {
-				field.component.createBubbles()
-
-				if (field.component.currentValue().trim() !== "") {
-					invalidText += "\n" + field.component.currentValue().trim()
+			for (const leftoverText of typedValues(this.recipientFieldTexts)) {
+				if (leftoverText().trim() !== "") {
+					invalidText += "\n" + leftoverText().trim()
 				}
 			}
 
@@ -296,6 +279,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 
 	view(vnode: Vnode<MailEditorAttrs>): Children {
 		const a = vnode.attrs
+		this.attrs = a
 		const {model} = a
 		this.sendMailModel = model
 
@@ -303,7 +287,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		const isConfidential = model.isConfidential() && showConfidentialButton
 		const confidentialButtonAttrs: ButtonAttrs = {
 			label: "confidential_action",
-			click: (event, attrs) => model.setConfidential(!model.isConfidential()),
+			click: () => model.setConfidential(!model.isConfidential()),
 			icon: () => (model.isConfidential() ? Icons.Lock : Icons.Unlock),
 			isSelected: () => model.isConfidential(),
 		}
@@ -413,13 +397,16 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				},
 			},
 			[
-				m(".rel", m(this.recipientFields.to.component)),
+				m(".rel", this.renderRecipientField(RecipientField.TO, this.recipientFieldTexts.to, a.search)),
 				m(
 					".rel",
 					m(ExpanderPanelN, {
-							expanded: a.areDetailsExpanded(),
+							expanded: this.areDetailsExpanded,
 						},
-						m(".details", [m(this.recipientFields.cc.component), m(this.recipientFields.bcc.component)]),
+						m(".details", [
+							this.renderRecipientField(RecipientField.CC, this.recipientFieldTexts.cc, a.search),
+							this.renderRecipientField(RecipientField.BCC, this.recipientFieldTexts.bcc, a.search)
+						]),
 					),
 				),
 				m(".wrapping-row", [
@@ -451,14 +438,12 @@ export class MailEditor implements Component<MailEditorAttrs> {
 									"min-width": "250px",
 								},
 								oncreate: vnode => {
-									const htmlVnode = vnode as VnodeDOM
-									const htmlDom = htmlVnode.dom as HTMLElement
+									const htmlDom = vnode.dom as HTMLElement
 									htmlDom.style.opacity = "0"
 									return animations.add(htmlDom, opacity(0, 1, true))
 								},
 								onbeforeremove: vnode => {
-									const htmlVnode = vnode as VnodeDOM
-									const htmlDom = htmlVnode.dom as HTMLElement
+									const htmlDom = vnode.dom as HTMLElement
 									htmlDom.style.opacity = "1"
 									return animations.add(htmlDom, opacity(1, 0, true))
 								},
@@ -516,8 +501,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	private renderPasswordFields(): Children {
 		return m(".external-recipients.overflow-hidden",
 			{
-				oncreate: vnode => this.animate((vnode as VnodeDOM).dom as HTMLElement, true),
-				onbeforeremove: vnode => this.animate((vnode as VnodeDOM).dom as HTMLElement, false),
+				oncreate: vnode => this.animateHeight(vnode.dom as HTMLElement, true),
+				onbeforeremove: vnode => this.animateHeight(vnode.dom as HTMLElement, false),
 			},
 			this.sendMailModel
 				.allRecipients()
@@ -528,16 +513,147 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					const passwordIndicator = new PasswordIndicator(() => passwordStrength)
 
 					return m(TextFieldN, {
-						oncreate: vnode => this.animate(vnode.dom as HTMLElement, true),
-						onbeforeremove: vnode => this.animate(vnode.dom as HTMLElement, false),
+						oncreate: vnode => this.animateHeight(vnode.dom as HTMLElement, true),
+						onbeforeremove: vnode => this.animateHeight(vnode.dom as HTMLElement, false),
 						label: () => lang.get("passwordFor_label", {"{1}": recipient.address,}),
 						helpLabel: () => m(passwordIndicator),
-						value: Stream(password),
+						value: password,
 						type: TextFieldType.ExternalPassword,
 						oninput: val => this.sendMailModel.setPassword(recipient.address, val),
 					})
 				})
 		)
+	}
+
+	private renderRecipientField(
+		field: RecipientField,
+		fieldText: Stream<string>,
+		search: RecipientsSearchModel,
+	): Children {
+
+		const label = ({
+			to: "to_label",
+			cc: "cc_label",
+			bcc: "bcc_label"
+		} as const)[field]
+
+		return m(MailRecipientsTextField, {
+			label,
+			text: fieldText(),
+			onTextChanged: text => fieldText(text),
+			recipients: this.sendMailModel.getRecipientList(field),
+			onRecipientAdded: async (address, name) => {
+				try {
+					await this.sendMailModel.addRecipient(field, {address, name})
+				} catch (e) {
+					if (isOfflineError(e)) {
+						// we are offline but we want to show the error dialog only when we click on send.
+					} else if (e instanceof TooManyRequestsError) {
+						await Dialog.message("tooManyAttempts_msg")
+					} else {
+						throw e
+					}
+				}
+			},
+			onRecipientRemoved: address => this.sendMailModel.removeRecipientByAddress(address, field),
+			getRecipientClickedDropdownAttrs: (address) => {
+				const recipient = this.sendMailModel.getRecipient(field, address)!
+				return this.getRecipientClickedContextButtons(recipient, field)
+			},
+			disabled: !this.sendMailModel.logins.isInternalUserLoggedIn(),
+			injectionsRight: field === RecipientField.TO && this.sendMailModel.logins.isInternalUserLoggedIn()
+				? m(
+					".mr-s",
+					m(ExpanderButtonN, {
+						label: "show_action",
+						expanded: this.areDetailsExpanded,
+						onExpandedChange: expanded => this.areDetailsExpanded = expanded
+					}),
+				)
+				: null,
+			search
+		})
+	}
+
+	private async getRecipientClickedContextButtons(recipient: ResolvableRecipient, field: RecipientField): Promise<DropdownChildAttrs[]> {
+
+
+		const {logins, entity, contactModel} = this.sendMailModel
+
+		const canEditBubbleRecipient = logins.getUserController().isInternalUser()
+			&& !logins.isEnabled(FeatureType.DisableContacts)
+
+		const previousMail = this.sendMailModel.getPreviousMail()
+
+		const canRemoveBubble =
+			logins.getUserController().isInternalUser()
+			&& (!previousMail
+				|| !previousMail.restrictions
+				|| previousMail.restrictions.participantGroupInfos.length === 0)
+
+		const createdContactReceiver = (contactElementId: Id) => {
+			const mailAddress = recipient.address
+
+			contactModel.contactListId().then(contactListId => {
+				if (!contactListId) return
+				const id: IdTuple = [contactListId, contactElementId]
+				entity
+					.load(ContactTypeRef, id)
+					.then(contact => {
+						if (contact.mailAddresses.find(ma => cleanMatch(ma.address, mailAddress))) {
+							recipient.setName(getContactDisplayName(contact))
+							recipient.setContact(contact)
+						} else {
+							this.sendMailModel.removeRecipient(recipient, field, false)
+						}
+					})
+			})
+		}
+
+		const contextButtons: Array<ButtonAttrs | DropdownInfoAttrs> = []
+
+		// email address as info text
+		contextButtons.push({
+			info: recipient.address,
+			center: true,
+			bold: true,
+		})
+
+		if (canEditBubbleRecipient) {
+			if (recipient.contact && recipient.contact._id) {
+				contextButtons.push({
+					label: () => lang.get("editContact_label"),
+					type: ButtonType.Secondary,
+					click: () => {
+						import("../../contacts/ContactEditor").then(({ContactEditor}) => new ContactEditor(entity, recipient.contact).show())
+					},
+				})
+			} else {
+				contextButtons.push({
+					label: () => lang.get("createContact_action"),
+					type: ButtonType.Secondary,
+					click: () => {
+						// contact list
+						contactModel.contactListId().then(contactListId => {
+							const newContact = createNewContact(logins.getUserController().user, recipient.address, recipient.name)
+							import("../../contacts/ContactEditor").then(({ContactEditor}) => {
+								new ContactEditor(entity, newContact, contactListId ?? undefined, createdContactReceiver).show()
+							})
+						})
+					},
+				})
+			}
+		}
+
+		if (canRemoveBubble) {
+			contextButtons.push({
+				label: "remove_action",
+				type: ButtonType.Secondary,
+				click: () => this.sendMailModel.removeRecipient(recipient, field, false),
+			})
+		}
+
+		return contextButtons
 	}
 
 	private openTemplates() {
@@ -548,7 +664,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		}
 	}
 
-	private animate(domElement: HTMLElement, fadein: boolean): AnimationPromise {
+	private animateHeight(domElement: HTMLElement, fadein: boolean): AnimationPromise {
 		let childHeight = domElement.offsetHeight
 		return animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0)).then(() => {
 			domElement.style.height = ""
@@ -563,7 +679,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
  * @returns {Dialog}
  * @private
  */
-function createMailEditorDialog(model: SendMailModel, blockExternalContent: boolean = false): Dialog {
+async function createMailEditorDialog(model: SendMailModel, blockExternalContent: boolean = false): Promise<Dialog> {
 	let dialog: Dialog
 	let mailEditorAttrs: MailEditorAttrs
 
@@ -697,6 +813,7 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 		() => dialog,
 		templatePopupModel,
 		createKnowledgebaseButtonAttrs,
+		await getRecipientsSearchModel()
 	)
 	const shortcuts: Shortcut[] = [
 		{

@@ -1,13 +1,4 @@
-import {
-	ApprovalStatus,
-	ConversationType,
-	FeatureType,
-	MailFolderType,
-	MailMethod,
-	MAX_ATTACHMENT_SIZE,
-	OperationType,
-	ReplyType
-} from "../../api/common/TutanotaConstants"
+import {ApprovalStatus, ConversationType, MailFolderType, MailMethod, MAX_ATTACHMENT_SIZE, OperationType, ReplyType} from "../../api/common/TutanotaConstants"
 import {
 	AccessBlockedError,
 	LockedError,
@@ -19,7 +10,7 @@ import {
 } from "../../api/common/error/RestError"
 import {UserError} from "../../api/main/UserError"
 import {getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE} from "../../misc/PasswordUtils"
-import {cleanMatch, deduplicate, downcast, getFromMap, neverNull, noOp, ofClass, promiseMap, remove, typedValues} from "@tutao/tutanota-utils"
+import {cleanMatch, deduplicate, downcast, findAndRemove, getFromMap, neverNull, noOp, ofClass, promiseMap, remove, typedValues} from "@tutao/tutanota-utils"
 import {
 	checkAttachmentSize,
 	getDefaultSender,
@@ -28,17 +19,11 @@ import {
 	getTemplateLanguages,
 	RecipientField,
 } from "../model/MailUtils"
-import type {File as TutanotaFile} from "../../api/entities/tutanota/TypeRefs.js"
-import {FileTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {ConversationEntryTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
-import {MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
-import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
+import type {File as TutanotaFile, Mail} from "../../api/entities/tutanota/TypeRefs.js"
+import {ContactTypeRef, ConversationEntryTypeRef, FileTypeRef, MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import type {LoginController} from "../../api/main/LoginController"
 import {logins} from "../../api/main/LoginController"
-import type {MailAddress} from "../../api/entities/tutanota/TypeRefs.js"
 import type {MailboxDetail, MailModel} from "../model/MailModel"
 import {RecipientNotResolvedError} from "../../api/common/error/RecipientNotResolvedError"
 import stream from "mithril/stream"
@@ -46,9 +31,6 @@ import Stream from "mithril/stream"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../../api/main/EventController"
 import {isMailAddress} from "../../misc/FormatValidator"
-import {createApprovalMail} from "../../api/entities/monitor/TypeRefs.js"
-import type {EncryptedMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
-import {createApprovalMail} from "../../api/entities/monitor/ApprovalMail"
 import type {ContactModel} from "../../contacts/model/ContactModel"
 import type {Language, TranslationKey, TranslationText} from "../../misc/LanguageViewModel"
 import {getAvailableLanguageCode, getSubstitutedLanguageCode, lang, languages} from "../../misc/LanguageViewModel"
@@ -68,7 +50,8 @@ import {assertMainOrNode} from "../../api/common/Env"
 import {DataFile} from "../../api/common/DataFile";
 import {FileReference} from "../../api/common/utils/FileUtils"
 import {PartialRecipient, Recipient, RecipientList, Recipients, RecipientType} from "../../api/common/recipients/Recipient"
-import {RecipientsModel, ResolvableRecipient} from "../../api/main/RecipientsModel"
+import {RecipientsModel, ResolvableRecipient, ResolveMode} from "../../api/main/RecipientsModel"
+import {createApprovalMail} from "../../api/entities/monitor/TypeRefs"
 
 assertMainOrNode()
 export const TOO_MANY_VISIBLE_RECIPIENTS = 10
@@ -91,13 +74,13 @@ type InitArgs = {
 	subject: string
 	bodyText: string
 	recipients: Recipients
-	confidential: boolean | null | undefined
-	draft?: Mail | null | undefined
+	confidential: boolean | null
+	draft?: Mail | null
 	senderMailAddress?: string
 	attachments?: ReadonlyArray<Attachment>
 	replyTos?: RecipientList
-	previousMail?: Mail | null | undefined
-	previousMessageId?: string | null | undefined
+	previousMail?: Mail | null
+	previousMessageId?: string | null
 }
 
 /**
@@ -278,7 +261,7 @@ export class SendMailModel {
 			bodyText,
 			recipients,
 			attachments,
-			confidential,
+			confidential: confidential ?? null,
 			senderMailAddress,
 		})
 	}
@@ -407,7 +390,7 @@ export class SendMailModel {
 			const recipients = deduplicate(
 				recipientList.filter(r => isMailAddress(r.address, false)),
 				(a, b) => a.address === b.address,
-			).map(recipient => this.recipientsModel.resolve(recipient))
+			).map(recipient => this.recipientsModel.resolve(recipient, ResolveMode.Eager))
 
 			Promise.all(recipients.map(recipient => recipient.resolved())).then(() => this.mailChanged = false)
 
@@ -470,20 +453,35 @@ export class SendMailModel {
 		return Promise.all(this.replyTos.map(r => r.resolved()))
 	}
 
-	addRecipient(fieldType: RecipientField, {address, name, type, contact}: PartialRecipient, resolveLazily: boolean = false) {
+	/**
+	 * Add a new recipient, this method resolves when the recipient resolves
+	 */
+	async addRecipient(
+		fieldType: RecipientField,
+		{
+			address,
+			name,
+			type,
+			contact
+		}: PartialRecipient,
+		resolveMode: ResolveMode = ResolveMode.Eager
+	): Promise<void> {
 
+		let recipient = this.getRecipientList(fieldType).find(recipient => recipient.address === address)
 		// Only add a recipient if it doesn't exist
-		if (!this.getRecipientList(fieldType).some(recipient => recipient.address === address)) {
+		if (!recipient) {
+			recipient = this.recipientsModel.resolve({
+					address,
+					name,
+					type,
+					contact,
+				},
+				resolveMode
+			)
 
-			const newRecipient = this.recipientsModel.resolve({
-				address,
-				name,
-				type,
-				contact,
-				resolveLazily
-			})
+			this.getRecipientList(fieldType).push(recipient)
 
-			newRecipient.resolved().then(({address, contact}) => {
+			recipient.resolved().then(({address, contact}) => {
 				if (!this.passwords.has(address) && contact != null) {
 					this.setPassword(address, contact.presharedPassword ?? "")
 				}
@@ -492,16 +490,25 @@ export class SendMailModel {
 
 			this.setMailChanged(true)
 
-			this.getRecipientList(fieldType).push(newRecipient)
 		}
+
+		await recipient.resolved()
 	}
 
 	getRecipient(type: RecipientField, address: string): ResolvableRecipient | null {
 		return this.getRecipientList(type).find(recipient => recipient.address === address) ?? null
 	}
 
+	removeRecipientByAddress(address: string, type: RecipientField, notify: boolean = true) {
+		const recipient = this.getRecipientList(type).find(recipient => recipient.address === address)
+		if (recipient) {
+			this.removeRecipient(recipient, type, notify)
+		}
+	}
+
 	removeRecipient(recipient: Recipient, type: RecipientField, notify: boolean = true): boolean {
-		const didRemove = remove(this.getRecipientList(type), recipient)
+		const recipients = this.recipients.get(type) ?? []
+		const didRemove = findAndRemove(recipients, r => r.address === recipient.address)
 		this.setMailChanged(didRemove)
 
 		if (didRemove && notify) {
@@ -891,29 +898,29 @@ export class SendMailModel {
 		}
 	}
 
-	private updateContacts(resolvedRecipients: Recipient[]): Promise<any> {
-		return Promise.all(
-			resolvedRecipients.map(r => {
-				const {address, contact} = r
-				if (!contact) return Promise.resolve()
-				const isExternalAndConfidential = r.type === RecipientType.EXTERNAL && this.isConfidential()
+	/**
+	 * If contacts have had their passwords changed, we update them before sending
+	 */
+	private async updateContacts(resolvedRecipients: Recipient[]): Promise<any> {
+		for (const {address, contact, type} of resolvedRecipients) {
+			if (contact == null) {
+				continue
+			}
 
-				if (!contact._id && (!this.user().props.noAutomaticContacts || isExternalAndConfidential)) {
-					if (isExternalAndConfidential) {
-						contact.presharedPassword = this.getPassword(r.address).trim()
-					}
+			const isExternalAndConfidential = type === RecipientType.EXTERNAL && this.isConfidential()
 
-					return this.contactModel.contactListId().then(listId => {
-						return this.entity.setup(listId, contact)
-					})
-				} else if (contact._id && isExternalAndConfidential && contact.presharedPassword !== this.getPassword(address).trim()) {
+			if (!contact._id && (!this.user().props.noAutomaticContacts || isExternalAndConfidential)) {
+				if (isExternalAndConfidential) {
 					contact.presharedPassword = this.getPassword(address).trim()
-					return this.entity.update(contact)
-				} else {
-					return Promise.resolve()
 				}
-			}),
-		)
+
+				const listId = await this.contactModel.contactListId()
+				await this.entity.setup(listId, contact)
+			} else if (contact._id && isExternalAndConfidential && contact.presharedPassword !== this.getPassword(address).trim()) {
+				contact.presharedPassword = this.getPassword(address).trim()
+				await this.entity.update(contact)
+			}
+		}
 	}
 
 	allRecipients(): Array<ResolvableRecipient> {
@@ -930,7 +937,7 @@ export class SendMailModel {
 					  }))
 	}
 
-	private handleEntityEvent(update: EntityUpdateData): Promise<void> {
+	handleEntityEvent(update: EntityUpdateData): Promise<void> {
 		const {operation, instanceId, instanceListId} = update
 		let contactId: IdTuple = [neverNull(instanceListId), instanceId]
 

@@ -1,40 +1,25 @@
-import m, {Children} from "mithril"
+import m from "mithril"
 import type {Attachment} from "./SendMailModel"
 import {SendMailModel} from "./SendMailModel"
-import type {lazy} from "@tutao/tutanota-utils"
-import {cleanMatch, debounce, downcast, findAllAndRemove, ofClass, remove} from "@tutao/tutanota-utils"
+import {debounce, downcast, findAllAndRemove, ofClass, remove} from "@tutao/tutanota-utils"
 import {Mode} from "../../api/common/Env"
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {Dialog} from "../../gui/base/Dialog"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColor, ButtonType} from "../../gui/base/ButtonN"
 import type {Contact, File as TutanotaFile} from "../../api/entities/tutanota/TypeRefs.js"
 import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {FileOpenError} from "../../api/common/error/FileOpenError"
-import type {DropdownInfoAttrs} from "../../gui/base/DropdownN"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import {Icons} from "../../gui/base/icons/Icons"
 import {formatStorageSize} from "../../misc/Formatter"
-import {FeatureType} from "../../api/common/TutanotaConstants"
-import {getContactDisplayName} from "../../contacts/model/ContactUtils"
-import {createNewContact, getDisplayText, RecipientField,} from "../model/MailUtils"
-import {Bubble, BubbleTextField} from "../../gui/base/BubbleTextField"
-import type {RecipientBubbleFactory} from "../../misc/RecipientInfoBubbleHandler"
-import {RecipientInfoBubbleHandler} from "../../misc/RecipientInfoBubbleHandler"
-import {TooManyRequestsError} from "../../api/common/error/RestError"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
-import type {ContactModel} from "../../contacts/model/ContactModel"
 import {locator} from "../../api/main/MainLocator"
 import {FileReference} from "../../api/common/utils/FileUtils";
 import {DataFile} from "../../api/common/DataFile";
-import {Recipient} from "../../api/common/recipients/Recipient"
-import {ResolvableRecipient} from "../../api/main/RecipientsModel"
-import Stream from "mithril/stream";
-import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 
 export function chooseAndAttachFile(
 	model: SendMailModel,
@@ -163,183 +148,6 @@ export const cleanupInlineAttachments: (arg0: HTMLElement, arg1: Array<HTMLEleme
 	},
 )
 
-function _getRecipientFieldLabelTranslationKey(field: RecipientField): TranslationKey {
-	return {
-		to: "to_label",
-		cc: "cc_label",
-		bcc: "bcc_label",
-	}[field] as TranslationKey
-}
-
 export function getConfidentialStateMessage(isConfidential: boolean): string {
 	return isConfidential ? lang.get("confidentialStatus_msg") : lang.get("nonConfidentialStatus_msg")
-}
-
-export class MailEditorRecipientField implements RecipientBubbleFactory<ResolvableRecipient> {
-	model: SendMailModel
-	field: RecipientField
-	component: BubbleTextField<Recipient>
-	bubbleDeleted: (arg0: Bubble<Recipient>) => void
-	_contactModel: ContactModel
-
-	constructor(
-		model: SendMailModel,
-		fieldType: RecipientField,
-		contactModel: ContactModel,
-		injectionsRight?: lazy<Children>,
-		disabled?: boolean,
-	) {
-		this.model = model
-		this.field = fieldType
-		const handler = new RecipientInfoBubbleHandler(this, contactModel)
-		this.component = new BubbleTextField(_getRecipientFieldLabelTranslationKey(this.field), handler, injectionsRight, disabled)
-		// we want to fill in the field with existing recipients from the model
-		this.component.bubbles = this._modelRecipients().map(recipient => this.createBubble(recipient.name, recipient.address, recipient.contact))
-		// When a recipient is deleted via the model (from an entityEventUpdate for example),
-		// we need to delete all the bubbles that reference it
-		model.onRecipientDeleted.map(r => {
-			if (!r) return
-			const {field, recipient} = r
-
-			if (field === fieldType) {
-				findAllAndRemove(this.component.bubbles, bubble => bubble.entity === recipient)
-			}
-		})
-		this.bubbleDeleted = this.onBubbleDeleted
-		this._contactModel = contactModel
-	}
-
-	createBubble(name: string | null, address: string, contact: Contact | null): Bubble<ResolvableRecipient> {
-		// addOrGetRecipient will either create and add a new recipientInfo to itself
-		// or will return an existing recipientInfo from itself
-		// duplicate bubbles will not have a duplicate in the sendmailmodel
-		this.model.addRecipient(
-			this.field,
-			{
-				name,
-				address,
-				contact,
-			},
-			false,
-		)
-		const recipient = this.model.getRecipient(this.field, address)!
-
-		recipient.resolved().then(() => m.redraw())
-		let bubble: Bubble<ResolvableRecipient>
-		const buttonAttrs = attachDropdown(
-			{
-				mainButtonAttrs: {
-                    label: () => getDisplayText(recipient.name, recipient.address, false),
-					type: ButtonType.TextBubble,
-					isSelected: () => false,
-                }, childAttrs:() => recipient.resolved().then(() => this._createBubbleContextButtons(bubble)),
-			showDropdown: undefined, width: 250
-			},
-		)
-		bubble = new Bubble(recipient, buttonAttrs, recipient.address)
-
-		return bubble
-	}
-
-	onBubbleDeleted(bubble: Bubble<ResolvableRecipient>) {
-		// if that was the last bubble to reference a given recipient we want to remove that recipient from the model
-		// we don't need to tell ourself about it so we don't notify
-		if (!this.component.bubbles.some(b => b.entity === bubble.entity)) {
-			this.model.removeRecipient(bubble.entity, this.field, false)
-		}
-	}
-
-	_createEditContactButton(recipient: Recipient): ButtonAttrs {
-		return {
-			label: () => lang.get("editContact_label"),
-			type: ButtonType.Secondary,
-			click: () => {
-				import("../../contacts/ContactEditor").then(({ContactEditor}) => new ContactEditor(this.model.entity, recipient.contact).show())
-			},
-		}
-	}
-
-	_createRemoveButton(bubble: Bubble<ResolvableRecipient>): ButtonAttrs {
-		return {
-			label: "remove_action",
-			type: ButtonType.Secondary,
-			click: () => {
-				// On removal of a bubble, we only want to remove a recipientInfo from the model if it was the last bubble to reference the given recipient
-				if (remove(this.component.bubbles, bubble)) {
-					this.bubbleDeleted(bubble)
-				}
-			},
-		}
-	}
-
-	_createCreateContactButton(recipient: Recipient, createdContactReceiver: (contactElementId: Id) => void): ButtonAttrs {
-		return {
-			label: () => lang.get("createContact_action"),
-			type: ButtonType.Secondary,
-			click: () => {
-				// contact list
-				this._contactModel.contactListId().then(contactListId => {
-					const newContact = createNewContact(this.model.logins.getUserController().user, recipient.address, recipient.name)
-					import("../../contacts/ContactEditor").then(({ContactEditor}) => {
-						new ContactEditor(this.model.entity, newContact, contactListId ?? undefined, createdContactReceiver).show()
-					})
-				})
-			},
-		}
-	}
-
-	_createBubbleContextButtons(bubble: Bubble<ResolvableRecipient>): Array<ButtonAttrs | DropdownInfoAttrs> {
-		const recipient = bubble.entity
-		const canEditBubbleRecipient = this.model.user().isInternalUser() && !this.model.logins.isEnabled(FeatureType.DisableContacts)
-		const previousMail = this.model.getPreviousMail()
-		const canRemoveBubble =
-			this.model.user().isInternalUser() && (!previousMail || !previousMail.restrictions || previousMail.restrictions.participantGroupInfos.length === 0)
-
-		const createdContactReceiver = (contactElementId: Id) => {
-			const mailAddress = recipient.address
-
-			this._contactModel.contactListId().then(contactListId => {
-				if (!contactListId) return
-				const id: IdTuple = [contactListId, contactElementId]
-				this.model
-					.entity
-					.load(ContactTypeRef, id)
-					.then(contact => {
-						if (contact.mailAddresses.find(ma => cleanMatch(ma.address, mailAddress))) {
-							recipient.setName(getContactDisplayName(contact))
-							recipient.setContact(contact)
-						} else {
-							this.model.removeRecipient(recipient, this.field, false)
-							remove(this.component.bubbles, bubble)
-						}
-					})
-			})
-		}
-
-		const contextButtons: Array<ButtonAttrs | DropdownInfoAttrs> = []
-		// email address as info text
-		contextButtons.push({
-			info: recipient.address,
-			center: true,
-			bold: true,
-		})
-
-		if (canEditBubbleRecipient) {
-			if (recipient.contact && recipient.contact._id) {
-				contextButtons.push(this._createEditContactButton(recipient))
-			} else {
-				contextButtons.push(this._createCreateContactButton(recipient, createdContactReceiver))
-			}
-		}
-
-		if (canRemoveBubble) {
-			contextButtons.push(this._createRemoveButton(bubble))
-		}
-
-		return contextButtons
-	}
-
-	_modelRecipients(): Array<ResolvableRecipient> {
-		return this.model.getRecipientList(this.field)
-	}
 }

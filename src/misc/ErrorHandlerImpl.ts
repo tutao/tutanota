@@ -22,16 +22,13 @@ import {locator} from "../api/main/MainLocator"
 import {QuotaExceededError} from "../api/common/error/QuotaExceededError"
 import {UserError} from "../api/main/UserError"
 import {showMoreStorageNeededOrderDialog} from "./SubscriptionDialogs"
-import {createDraftRecipient} from "../api/entities/tutanota/TypeRefs.js"
-import {SessionType} from "../api/common/SessionType"
-import {RecipientType} from "../api/common/recipients/Recipient"
 import {showSnackBar} from "../gui/base/SnackBar"
 import {Credentials} from "./credentials/Credentials"
 import {promptForFeedbackAndSend, showErrorDialogNotLoggedIn} from "./ErrorReporter"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {getLoginErrorMessage} from "./LoginUtils"
-import {SessionType} from "../api/common/SessionType"
 import {isOfflineError} from "../api/common/utils/ErrorCheckUtils.js"
+import {SessionType} from "../api/common/SessionType.js"
 
 assertMainOrNode()
 

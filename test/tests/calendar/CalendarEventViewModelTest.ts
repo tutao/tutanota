@@ -10,6 +10,7 @@ import type {MailboxDetail} from "../../../src/mail/model/MailModel.js"
 import {MailModel} from "../../../src/mail/model/MailModel.js"
 import type {CalendarEvent, Mail} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {
+	Contact,
 	createCalendarEvent,
 	createCalendarEventAttendee,
 	createContact,
@@ -27,28 +28,29 @@ import type {CalendarInfo} from "../../../src/calendar/model/CalendarModel.js"
 import {CalendarModel} from "../../../src/calendar/model/CalendarModel.js"
 import {getAllDayDateUTCFromZone, getTimeZone} from "../../../src/calendar/date/CalendarUtils.js"
 import {DateTime} from "luxon"
-import {RecipientInfoType} from "../../../src/api/common/RecipientInfo.js"
-import {SendMailModel} from "../../../src/mail/editor/SendMailModel.js"
-import type {LoginController} from "../../../src/api/main/LoginController.js"
-import type {ContactModel} from "../../../src/contacts/model/ContactModel.js"
-import {EventController} from "../../../src/api/main/EventController.js"
-import {EntityClient} from "../../../src/api/common/EntityClient.js"
-import {BusinessFeatureRequiredError} from "../../../src/api/main/BusinessFeatureRequiredError.js"
-import {MailFacade} from "../../../src/api/worker/facades/MailFacade.js"
-import {EntityRestClientMock} from "../api/worker/rest/EntityRestClientMock.js"
-import {Time} from "../../../src/api/common/utils/Time.js"
+import {SendMailModel} from "../../../src/mail/editor/SendMailModel"
+import type {LoginController} from "../../../src/api/main/LoginController"
+import {EventController} from "../../../src/api/main/EventController"
+import {EntityClient} from "../../../src/api/common/EntityClient"
+import {BusinessFeatureRequiredError} from "../../../src/api/main/BusinessFeatureRequiredError"
+import {MailFacade} from "../../../src/api/worker/facades/MailFacade"
+import {Time} from "../../../src/api/common/utils/Time"
 import {
 	accountMailAddress,
 	calendarGroupId,
 	makeCalendarInfo,
 	makeCalendarModel,
 	makeCalendars,
-	makeContactModel,
 	makeDistributor,
 	makeMailboxDetail,
 	makeUserController,
 } from "./CalendarTestUtils.js"
-import {RecipientType} from "../../../src/api/common/recipients/RecipientsModel.js";
+import {RecipientType} from "../../../src/api/common/recipients/Recipient.js"
+import {RecipientsModel, ResolvableRecipient} from "../../../src/api/main/RecipientsModel"
+import {instance, matchers, object, when} from "testdouble"
+import {ContactModel} from "../../../src/contacts/model/ContactModel"
+import {ResolvableRecipientMock} from "../mail/ResolvableRecipientMock.js"
+import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 
 const now = new Date(2020, 4, 25, 13, 40)
 const zone = getTimeZone()
@@ -60,17 +62,22 @@ const wrapEncIntoMailAddress = address =>
 
 const encMailAddress: EncryptedMailAddress = wrapEncIntoMailAddress(accountMailAddress)
 
-const getAddress = a => a.mailAddress
+const getAddress = (a: ResolvableRecipient) => a.address
 
 let internalAddresses: string[] = []
 let resolveRecipientMs = 100
 let mockedAttributeReferences = []
+
+
 o.spec("CalendarEventViewModel", function () {
 	let inviteModel: SendMailModel
 	let updateModel: SendMailModel
 	let cancelModel: SendMailModel
 	let responseModel: SendMailModel
 	let showProgress = noOp
+
+
+	let recipientsModel: RecipientsModel
 
 	async function init({
 							userController = makeUserController(),
@@ -80,8 +87,8 @@ o.spec("CalendarEventViewModel", function () {
 							existingEvent,
 							calendarModel = makeCalendarModel(),
 							mailModel = downcast({}),
-							contactModel = makeContactModel(),
 							mail = null,
+							existingContacts = []
 						}: {
 		userController?: IUserController
 		distributor?: CalendarUpdateDistributor
@@ -89,10 +96,11 @@ o.spec("CalendarEventViewModel", function () {
 		calendars: Map<Id, CalendarInfo>
 		calendarModel?: CalendarModel
 		mailModel?: MailModel
-		contactModel?: ContactModel
 		existingEvent: CalendarEvent | null
-		mail?: Mail | null | undefined
+		mail?: Mail | null | undefined,
+		existingContacts?: Array<Contact>
 	}): Promise<CalendarEventViewModel> {
+
 		const loginController: LoginController = downcast({
 			getUserController: () => userController,
 			isInternalUserLoggedIn: () => true,
@@ -102,6 +110,7 @@ o.spec("CalendarEventViewModel", function () {
 			removeEntityListener: noOp,
 		})
 		const entityClient = new EntityClient(new EntityRestClientMock())
+
 		const mailFacadeMock = downcast<MailFacade>({
 			async getRecipientKeyData(mailAddress: string) {
 				await delay(resolveRecipientMs)
@@ -115,41 +124,62 @@ o.spec("CalendarEventViewModel", function () {
 				}
 			},
 		})
+
+		const contactModel = object<ContactModel>()
+
+		recipientsModel = instance(RecipientsModel)
+
+		when(recipientsModel.resolve(matchers.anything(), matchers.anything())).thenDo(({address, name, contact, type}, resolveMode) =>
+			new ResolvableRecipientMock(
+				address,
+				name ?? null,
+				contact ?? null,
+				type ?? null,
+				internalAddresses,
+				existingContacts,
+				resolveMode,
+				userController.user
+			))
+
 		inviteModel = new SendMailModel(
 			mailFacadeMock,
+			entityClient,
 			loginController,
 			neverNull(mailModel),
 			contactModel,
 			eventController,
-			entityClient,
 			mailboxDetail,
+			recipientsModel,
 		)
 		updateModel = new SendMailModel(
 			mailFacadeMock,
+			entityClient,
 			loginController,
 			neverNull(mailModel),
 			contactModel,
 			eventController,
-			entityClient,
 			mailboxDetail,
+			recipientsModel,
 		)
 		cancelModel = new SendMailModel(
 			mailFacadeMock,
+			entityClient,
 			loginController,
 			neverNull(mailModel),
 			contactModel,
 			eventController,
-			entityClient,
 			mailboxDetail,
+			recipientsModel,
 		)
 		responseModel = new SendMailModel(
 			mailFacadeMock,
+			entityClient,
 			loginController,
 			neverNull(mailModel),
 			contactModel,
 			eventController,
-			entityClient,
 			mailboxDetail,
+			recipientsModel,
 		)
 
 		const sendFactory = (_, purpose) => {
@@ -712,8 +742,11 @@ o.spec("CalendarEventViewModel", function () {
 				calendarModel,
 				distributor,
 			})
+
+			// @ts-ignore
 			updateModel.bccRecipients()[0].type = RecipientType.EXTERNAL
-			await updateModel.bccRecipients()[0].resolveContactPromise
+
+			// @ts-ignore
 			updateModel.bccRecipients()[0].contact = createContact({
 				presharedPassword: "123",
 			})
@@ -733,7 +766,7 @@ o.spec("CalendarEventViewModel", function () {
 			o(distributor.sendUpdate.callCount).equals(0)
 			// @ts-ignore
 			o(distributor.sendCancellation.callCount).equals(0)
-			o(updateModel.bccRecipients().map(a => a.mailAddress)).deepEquals([guest])
+			o(updateModel.bccRecipients().map(a => a.address)).deepEquals([guest])
 			o(askForUpdates.calls.length).equals(0)
 			// No new attendees, do not ask about password
 			o(askInsecurePassword.calls.length).equals(0)
@@ -767,8 +800,11 @@ o.spec("CalendarEventViewModel", function () {
 				calendarModel,
 				distributor,
 			})
+
+			// @ts-ignore
 			updateModel.bccRecipients()[0].type = RecipientType.EXTERNAL
-			await updateModel.bccRecipients()[0].resolveContactPromise
+
+			// @ts-ignore
 			updateModel.bccRecipients()[0].contact = createContact({
 				presharedPassword: "123",
 			})
@@ -791,7 +827,7 @@ o.spec("CalendarEventViewModel", function () {
 			o(distributor.sendUpdate.calls[0].args[1]).equals(updateModel)
 			// @ts-ignore
 			o(distributor.sendCancellation.callCount).equals(0)
-			o(updateModel.bccRecipients().map(a => a.mailAddress)).deepEquals([guest])
+			o(updateModel.bccRecipients().map(a => a.address)).deepEquals([guest])
 			o(askForUpdates.calls.length).equals(0) // not called because we force updates
 
 			// No new attendees, do not ask about password
@@ -827,8 +863,10 @@ o.spec("CalendarEventViewModel", function () {
 				distributor,
 			})
 			viewModel.setStartDate(new Date(2020, 4, 3))
+			// @ts-ignore
 			updateModel.bccRecipients()[0].type = RecipientType.EXTERNAL
-			await updateModel.bccRecipients()[0].resolveContactPromise
+
+			// @ts-ignore
 			updateModel.bccRecipients()[0].contact = createContact({
 				presharedPassword: "123",
 			})
@@ -851,7 +889,7 @@ o.spec("CalendarEventViewModel", function () {
 			o(distributor.sendUpdate.calls[0].args[1]).equals(updateModel)
 			// @ts-ignore
 			o(distributor.sendCancellation.callCount).equals(0)
-			o(updateModel.bccRecipients().map(a => a.mailAddress)).deepEquals([guest])
+			o(updateModel.bccRecipients().map(a => a.address)).deepEquals([guest])
 			o(askForUpdates.calls.length).equals(0) // not called because updates are forced
 
 			// No new attendees, do not ask about password
@@ -887,8 +925,10 @@ o.spec("CalendarEventViewModel", function () {
 				distributor,
 			})
 			viewModel.setStartDate(new Date(2020, 4, 3))
+			// @ts-ignore
 			updateModel.bccRecipients()[0].type = RecipientType.EXTERNAL
-			await updateModel.bccRecipients()[0].resolveContactPromise
+
+			// @ts-ignore
 			updateModel.bccRecipients()[0].contact = createContact({
 				presharedPassword: "123",
 			})
@@ -910,7 +950,7 @@ o.spec("CalendarEventViewModel", function () {
 			o(distributor.sendUpdate.calls[0].args[1]).equals(updateModel)
 			// @ts-ignore
 			o(distributor.sendCancellation.callCount).equals(0)
-			o(updateModel.bccRecipients().map(a => a.mailAddress)).deepEquals([guest])
+			o(updateModel.bccRecipients().map(a => a.address)).deepEquals([guest])
 			o(askForUpdates.calls.length).equals(1)
 			// No new attendees, do not ask about password
 			o(askInsecurePassword.calls.length).equals(0)
@@ -950,11 +990,9 @@ o.spec("CalendarEventViewModel", function () {
 			})
 			await viewModel.deleteEvent()
 			// This doesn't always pass because sometimes the start and end times are off by a fraction of a second
-			// @ts-ignore
 			o(calendarModel.deleteEvent.calls.map(c => c.args)).deepEquals([[existingEvent]])
-			// @ts-ignore
 			o(distributor.sendCancellation.calls.map(c => c.args[0])).deepEquals([newEvent])
-			o(cancelModel.bccRecipients().map(r => r.mailAddress)).deepEquals([attendee.address.address])
+			o(cancelModel.bccRecipients().map(r => r.address)).deepEquals([attendee.address.address])
 		})
 		o("own event with external attendees in own calendar, has password, not confidential", async function () {
 			const calendars = makeCalendars("own")
@@ -971,7 +1009,6 @@ o.spec("CalendarEventViewModel", function () {
 				],
 				presharedPassword: "123",
 			})
-			const contactModel = makeContactModel([contact])
 			const startTime = DateTime.fromISO("2016-05-25T09:08:34.123", {
 				zone: "UTC",
 			}).toJSDate()
@@ -1004,14 +1041,14 @@ o.spec("CalendarEventViewModel", function () {
 				calendarModel,
 				distributor,
 				mailModel,
-				contactModel,
+				existingContacts: [contact],
 			})
 			await viewModel.deleteEvent()
 			// @ts-ignore
 			o(calendarModel.deleteEvent.calls.map(c => c.args)).deepEquals([[existingEvent]])
 			// @ts-ignore
 			o(distributor.sendCancellation.calls.map(c => c.args[0])).deepEquals([newEvent])
-			o(cancelModel.bccRecipients().map(r => r.mailAddress)).deepEquals([attendee.address.address])
+			o(cancelModel.bccRecipients().map(r => r.address)).deepEquals([attendee.address.address])
 		})
 		o("own event with external attendees in own calendar, has password, confidential", async function () {
 			const calendars = makeCalendars("own")
@@ -1028,7 +1065,6 @@ o.spec("CalendarEventViewModel", function () {
 				],
 				presharedPassword: "123",
 			})
-			const contactModel = makeContactModel([contact])
 			const existingEvent = createCalendarEvent({
 				_id: ["listid", "calendarid"],
 				_ownerGroup: calendarGroupId,
@@ -1051,7 +1087,7 @@ o.spec("CalendarEventViewModel", function () {
 				calendarModel,
 				distributor,
 				mailModel,
-				contactModel,
+				existingContacts: [contact],
 			})
 			await viewModel.deleteEvent()
 			// This doesn't always pass because sometimes the start and end times are off by a fraction of a second
@@ -1059,7 +1095,7 @@ o.spec("CalendarEventViewModel", function () {
 			o(calendarModel.deleteEvent.calls.map(c => c.args)).deepEquals([[existingEvent]])
 			// @ts-ignore
 			o(distributor.sendCancellation.calls.map(c => c.args[0])).deepEquals([newEvent])
-			o(cancelModel.bccRecipients().map(r => r.mailAddress)).deepEquals([attendee.address.address])
+			o(cancelModel.bccRecipients().map(r => r.address)).deepEquals([attendee.address.address])
 		})
 		o("own event with external attendees in own calendar, no password, confidential", async function () {
 			// There should no cancellations sent to attendees without password as we cannot encrypt emails
@@ -1077,7 +1113,6 @@ o.spec("CalendarEventViewModel", function () {
 				],
 				presharedPassword: null,
 			})
-			const contactModel = makeContactModel([contact])
 
 			// specify start and end date specifically,
 			// because sometimes deepEquals fails due to milliseconds being off by a fraction (even though it's the same object?)
@@ -1099,12 +1134,12 @@ o.spec("CalendarEventViewModel", function () {
 				calendarModel,
 				distributor,
 				mailModel,
-				contactModel,
+				existingContacts: [contact],
 			})
 			await viewModel.deleteEvent()
 			o(calendarModel.deleteEvent.calls.map(c => c.args)).deepEquals([[existingEvent]])
 			o(distributor.sendCancellation.calls.map(c => c.args[0])).deepEquals([])
-			o(cancelModel.bccRecipients().map(r => r.mailAddress)).deepEquals([])
+			o(cancelModel.bccRecipients().map(r => r.address)).deepEquals([])
 		})
 		o(
 			"own event with external eventually resolved attendees in own calendar, no password, confidential",
@@ -1125,7 +1160,6 @@ o.spec("CalendarEventViewModel", function () {
 					],
 					presharedPassword: null,
 				})
-				const contactModel = makeContactModel([contact])
 				const existingEvent = createCalendarEvent({
 					_id: ["listid", "calendarid"],
 					_ownerGroup: calendarGroupId,
@@ -1140,7 +1174,7 @@ o.spec("CalendarEventViewModel", function () {
 					calendarModel,
 					distributor,
 					mailModel,
-					contactModel,
+					existingContacts: [contact],
 				})
 				await viewModel.deleteEvent()
 				// This doesn't always pass because sometimes the start and end times are off by a fraction of a second
@@ -1148,7 +1182,7 @@ o.spec("CalendarEventViewModel", function () {
 				o(calendarModel.deleteEvent.calls.map(c => c.args)).deepEquals([[existingEvent]])
 				// @ts-ignore
 				o(distributor.sendCancellation.calls.map(c => c.args[0])).deepEquals([])
-				o(cancelModel.bccRecipients().map(r => r.mailAddress)).deepEquals([])
+				o(cancelModel.bccRecipients().map(r => r.address)).deepEquals([])
 			},
 		)
 		o("own event without attendees in own calendar", async function () {
@@ -1331,7 +1365,7 @@ o.spec("CalendarEventViewModel", function () {
 			o(distributor.sendInvite.calls[0].args[1]).deepEquals(inviteModel)
 			// @ts-ignore
 			o(distributor.sendCancellation.callCount).equals(0)
-			o(inviteModel.bccRecipients().map(r => r.mailAddress)).deepEquals([newGuest])
+			o(inviteModel.bccRecipients().map(r => r.address)).deepEquals([newGuest])
 			// @ts-ignore
 			const createdEvent = calendarModel.createEvent.calls[0].args[0]
 			o(
@@ -1419,7 +1453,7 @@ o.spec("CalendarEventViewModel", function () {
 			o(distributor.sendUpdate.calls[0].args[1]).equals(updateModel)
 			// @ts-ignore
 			o(distributor.sendCancellation.callCount).equals(0)
-			o(updateModel.bccRecipients().map(a => a.mailAddress)).deepEquals([guest])
+			o(updateModel.bccRecipients().map(a => a.address)).deepEquals([guest])
 			o(askForUpdates.calls.length).equals(1)
 			o(askInsecurePassword.callCount).equals(0)
 		})
@@ -1471,15 +1505,11 @@ o.spec("CalendarEventViewModel", function () {
 				askInsecurePassword,
 				showProgress,
 			})
-			// @ts-ignore
 			o(calendarModel.updateEvent.calls.length).equals(1)("created event")
-			// @ts-ignore
 			o(distributor.sendUpdate.calls[0].args[1]).equals(updateModel)("update")
 			o(updateModel.bccRecipients().map(getAddress)).deepEquals([oldGuest])
-			// @ts-ignore
 			o(distributor.sendInvite.calls[0].args[1]).equals(inviteModel)("invite")
 			o(inviteModel.bccRecipients().map(getAddress)).deepEquals([newGuest])
-			// @ts-ignore
 			o(distributor.sendCancellation.calls[0].args[1]).equals(cancelModel)("cancel")
 			o(cancelModel.bccRecipients().map(getAddress)).deepEquals([toRemoveGuest.address.address])
 			o(askForUpdates.calls.length).equals(1)
@@ -1512,8 +1542,10 @@ o.spec("CalendarEventViewModel", function () {
 				calendarModel,
 				distributor,
 			})
+			// @ts-ignore
 			updateModel.bccRecipients()[0].type = RecipientType.EXTERNAL
-			await updateModel.bccRecipients()[0].resolveContactPromise
+
+			// @ts-ignore
 			updateModel.bccRecipients()[0].contact = createContact({
 				presharedPassword: "123",
 			})
@@ -1534,7 +1566,7 @@ o.spec("CalendarEventViewModel", function () {
 			o(distributor.sendUpdate.calls[0].args[1]).equals(updateModel)
 			// @ts-ignore
 			o(distributor.sendCancellation.callCount).equals(0)
-			o(updateModel.bccRecipients().map(a => a.mailAddress)).deepEquals([guest])
+			o(updateModel.bccRecipients().map(a => a.address)).deepEquals([guest])
 			o(askForUpdates.calls.length).equals(1)
 			// No new attendees, do not ask about password
 			o(askInsecurePassword.calls.length).equals(0)
@@ -1567,6 +1599,7 @@ o.spec("CalendarEventViewModel", function () {
 				calendarModel,
 				distributor,
 			})
+			// @ts-ignore
 			updateModel.bccRecipients()[0].type = RecipientType.EXTERNAL
 			viewModel.updatePassword(viewModel.attendees()[0], "123")
 			viewModel.setStartDate(new Date(2020, 4, 3))
@@ -1586,7 +1619,7 @@ o.spec("CalendarEventViewModel", function () {
 			o(distributor.sendUpdate.calls.length).equals(0)
 			// @ts-ignore
 			o(distributor.sendCancellation.callCount).equals(0)
-			o(updateModel.bccRecipients().map(a => a.mailAddress)).deepEquals([guest])
+			o(updateModel.bccRecipients().map(a => a.address)).deepEquals([guest])
 			o(askForUpdates.calls.length).equals(1)
 			o(askInsecurePassword.calls.length).equals(1)
 		})
@@ -2342,7 +2375,7 @@ o.spec("CalendarEventViewModel", function () {
 			o(viewModel.endTime?.to24HourString()).equals("15:00")
 		})
 	})
-	o.spec("addGuest", function () {
+	o.spec("add guest", function () {
 		o("to new event", async function () {
 			const calendars = makeCalendars("own")
 			const viewModel = await init({
@@ -2351,6 +2384,7 @@ o.spec("CalendarEventViewModel", function () {
 			})
 			const newGuest = "new-attendee@example.com"
 			viewModel.addGuest(newGuest, null)
+			await viewModel.waitForResolvedRecipients()
 			o(viewModel.attendees()).deepEquals([
 				{
 					address: encMailAddress,
@@ -2361,7 +2395,7 @@ o.spec("CalendarEventViewModel", function () {
 					address: createEncryptedMailAddress({
 						address: newGuest,
 					}),
-					type: RecipientType.UNKNOWN,
+					type: RecipientType.EXTERNAL,
 					//add guest does not wait for recipient info to be resolved
 					status: CalendarAttendeeStatus.ADDED,
 				},
@@ -2380,6 +2414,7 @@ o.spec("CalendarEventViewModel", function () {
 			})
 			const newGuest = "new-attendee@example.com"
 			viewModel.addGuest(newGuest, null)
+			await viewModel.waitForResolvedRecipients()
 			o(viewModel.attendees()).deepEquals([
 				{
 					address: encMailAddress,
@@ -2390,8 +2425,7 @@ o.spec("CalendarEventViewModel", function () {
 					address: createEncryptedMailAddress({
 						address: newGuest,
 					}),
-					type: RecipientType.UNKNOWN,
-					//add guest does not wait for recipient info to be resolved
+					type: RecipientType.EXTERNAL,
 					status: CalendarAttendeeStatus.ADDED,
 				},
 			])
@@ -2415,14 +2449,14 @@ o.spec("CalendarEventViewModel", function () {
 				existingEvent,
 			})
 			viewModel.addGuest(guest, null)
+			await viewModel.waitForResolvedRecipients()
 			// Organizer is not added because new attendee was not added
 			o(viewModel.attendees()).deepEquals([
 				{
 					address: createEncryptedMailAddress({
 						address: guest,
 					}),
-					type: RecipientType.UNKNOWN,
-					//new CalendarEventViewModel does not wait for recipient info to be resolved
+					type: RecipientType.EXTERNAL,
 					status: CalendarAttendeeStatus.ADDED,
 				},
 			])
@@ -2430,7 +2464,7 @@ o.spec("CalendarEventViewModel", function () {
 			o(viewModel.attendees()[0].type).equals(RecipientType.EXTERNAL)
 		})
 	})
-	o.spec("selectGoing", function () {
+	o.spec("select going", function () {
 		o("as a free user", async function () {
 			const calendars = makeCalendars("own")
 			const userController = makeUserController([], AccountType.FREE)
@@ -2473,6 +2507,7 @@ o.spec("CalendarEventViewModel", function () {
 				existingEvent,
 			})
 			viewModel.selectGoing(CalendarAttendeeStatus.DECLINED)
+			await viewModel.waitForResolvedRecipients()
 			o(viewModel.attendees()).deepEquals([
 				{
 					address: encMailAddress,
@@ -2481,8 +2516,7 @@ o.spec("CalendarEventViewModel", function () {
 				},
 				{
 					address: attendee.address,
-					type: RecipientType.UNKNOWN,
-					//new CalendarEventViewModel does not wait for recipient info to be resolved
+					type: RecipientType.EXTERNAL,
 					status: CalendarAttendeeStatus.ADDED,
 				},
 			])
@@ -2510,6 +2544,7 @@ o.spec("CalendarEventViewModel", function () {
 				existingEvent,
 			})
 			viewModel.selectGoing(CalendarAttendeeStatus.TENTATIVE)
+			await viewModel.waitForResolvedRecipients()
 			o(viewModel.attendees()).deepEquals([
 				{
 					address: encMailAddress,
@@ -2518,8 +2553,7 @@ o.spec("CalendarEventViewModel", function () {
 				},
 				{
 					address: attendee.address,
-					type: RecipientType.UNKNOWN,
-					//new CalendarEventViewModel does not wait for recipient info to be resolved
+					type: RecipientType.EXTERNAL,
 					status: assertEnumValue(CalendarAttendeeStatus, attendee.status),
 				},
 			])

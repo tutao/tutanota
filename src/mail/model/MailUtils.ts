@@ -81,8 +81,8 @@ export function createNewContact(user: User, mailAddress: string, name: string):
 	return contact
 }
 
-export function getDisplayText(name: string, mailAddress: string, preferNameOnly: boolean): string {
-	if (!name || name === "") {
+export function getDisplayText(name: string | null, mailAddress: string, preferNameOnly: boolean): string {
+	if (!name) {
 		return mailAddress
 	} else if (preferNameOnly) {
 		return name

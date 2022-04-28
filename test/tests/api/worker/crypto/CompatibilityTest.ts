@@ -167,7 +167,7 @@ o.spec("crypto compatibility", function () {
      * Creates the Javascript compatibility test data for compression. See CompatibilityTest.writeCompressionTestData() in Java for
      * instructions how to update the test data.
      */
-    // o.only("createCompressionTestData", function () {
+    // o("createCompressionTestData", function () {
     // 	console.log("List<String> javaScriptCompressed = List.of(")
     // 	console.log(compatibilityTestData.compressionTests.map(td => {
     // 		let compressed = uint8ArrayToBase64(compress(stringToUtf8Uint8Array(td.uncompressedText)))

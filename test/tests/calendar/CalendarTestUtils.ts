@@ -1,30 +1,28 @@
 import {AccountType, FeatureType, GroupType, TimeFormat} from "../../../src/api/common/TutanotaConstants.js"
 import type {IUserController} from "../../../src/api/main/UserController.js"
-import {createBookingsRef} from "../../../src/api/entities/sys/TypeRefs.js"
+import {
+	createBookingsRef,
+	createCustomer,
+	createCustomerInfo,
+	createFeature,
+	createGroup,
+	createGroupInfo,
+	createGroupMembership,
+	createMailAddressAlias,
+	createUser,
+	Feature
+} from "../../../src/api/entities/sys/TypeRefs.js"
 import {GENERATED_MAX_ID} from "../../../src/api/common/utils/EntityUtils.js"
-import {createFeature, Feature} from "../../../src/api/entities/sys/TypeRefs.js"
 import {downcast, LazyLoaded} from "@tutao/tutanota-utils"
-import {createUser} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createGroupMembership} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createTutanotaProperties} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {createGroupInfo} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createMailAddressAlias} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createCustomer} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createCustomerInfo} from "../../../src/api/entities/sys/TypeRefs.js"
+import type {CalendarEvent} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {createCalendarEvent, createMailBox, createMailboxGroupRoot, createTutanotaProperties} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import type {MailboxDetail} from "../../../src/mail/model/MailModel.js"
 import {MailModel} from "../../../src/mail/model/MailModel.js"
-import {createMailBox} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {createGroup} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createMailboxGroupRoot} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import type {CalendarUpdateDistributor} from "../../../src/calendar/date/CalendarUpdateDistributor.js"
 import o from "ospec"
-import type {Contact} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import type {ContactModel} from "../../../src/contacts/model/ContactModel.js"
-import type {CalendarInfo} from "../../../src/calendar/model/CalendarModel.js"
-import {CalendarModel} from "../../../src/calendar/model/CalendarModel.js"
-import type {IProgressMonitor} from "../../../src/api/common/utils/ProgressMonitor.js"
-import type {CalendarEvent} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {createCalendarEvent} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import type {CalendarInfo} from "../../../src/calendar/model/CalendarModel"
+import {CalendarModel} from "../../../src/calendar/model/CalendarModel"
+import type {IProgressMonitor} from "../../../src/api/common/utils/ProgressMonitor"
 
 export const accountMailAddress = "address@tutanota.com" as const
 export const userId = "12356" as const
@@ -160,14 +158,6 @@ export function makeCalendarModel(): CalendarModel {
 export function makeMailModel(): MailModel {
 	return downcast({
 		getUserMailboxDetails: o.spy(() => Promise.resolve(makeMailboxDetail())),
-	})
-}
-
-export function makeContactModel(contacts: Array<Contact> = []): ContactModel {
-	const findContact = address => contacts.find(c => c.mailAddresses.find(a => a.address === address))
-
-	return downcast({
-		searchForContact: address => Promise.resolve(findContact(address)),
 	})
 }
 

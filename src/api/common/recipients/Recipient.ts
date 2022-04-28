@@ -1,4 +1,4 @@
-import {Contact} from "../../entities/tutanota/Contact.js"
+import {Contact} from "../../entities/tutanota/TypeRefs"
 
 export const enum RecipientType {
 	UNKNOWN = "unknown",
