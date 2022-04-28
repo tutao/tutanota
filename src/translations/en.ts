@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2022-04-26T14:41:33Z",
+	"updated_at": "2022-04-28T05:30:56Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -562,7 +562,7 @@ export default {
 		"giftCards_label": "Gift cards",
 		"giftCardTerms_label": "Gift card terms and conditions",
 		"giftCardUpdateError_msg": "Unable to update gift card.",
-		"giftCardUpgradeNotify_msg": "You will be automatically upgraded to a Premium account with a yearly subscription. The cost of the first year ({price}) will be payed for with your gift card and the remaining value ({credit}) will be credited to your account.",
+		"giftCardUpgradeNotify_msg": "You will be automatically upgraded to a Premium account with a yearly subscription. The cost of the first year ({price}) will be paid for with your gift card and the remaining value ({credit}) will be credited to your account.",
 		"giftCard_label": "Gift card",
 		"globalAdmin_label": "Global admin",
 		"globalSettings_label": "Global settings",
