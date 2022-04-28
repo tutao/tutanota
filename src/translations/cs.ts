@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2022-04-26T14:17:10Z",
+	"updated_at": "2022-04-27T09:48:28Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",
@@ -750,6 +750,7 @@ export default {
 		"localAdminGroups_label": "Skupiny místních správců",
 		"localAdminGroup_label": "Skupina místních správců",
 		"localAdmin_label": "Místní správce",
+		"localDataSection_label": "Lokální data",
 		"location_label": "Místo",
 		"loggingOut_msg": "Odhlašuji...",
 		"loginAbuseDetected_msg": "Váš účet již nemůže být použit, protože byly porušeny smluvní podmínky Tutanoty, např. zasíláním nevyžádaných e-mailů.",
@@ -1268,8 +1269,8 @@ export default {
 		"storageDeletionAnnouncement_msg": "Info: pošta ze složek Koš a Spam bude automaticky smazána po třiceti dnech.",
 		"storageDeletion_msg": "E-maily v této složce budou automaticky smazány po 30 dnech.",
 		"storageQuotaExceeded_msg": "Na zařízení není dostatek paměti pro vytvoření indexu vyhledávání a není proto možné zobrazit kompletní výsledky vyhledávání.",
-		"storedDataTimeRangeHelpText_msg": "Uložená data, která jsou starší než zde nastavená hodnota, budou automaticky odstraněna z vašeho zařízení.",
-		"storedDataTimeRange_label": "Časový rozsah pro uložená offline data",
+		"storedDataTimeRangeHelpText_msg": "Uložené e-maily, které jsou starší než zde nastavená hodnota, budou automaticky odstraněny z vašeho zařízení.",
+		"storedDataTimeRange_label": "Ukládat e-maily za období posledních {numDays} dní.",
 		"storePassword_action": "Uložit heslo",
 		"subject_label": "Předmět",
 		"subscriptionCancelledMessage_msg": "Vaše předplatné bylo zrušeno. K obnovení prosím kontaktujte podporu.",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2022-04-26T14:41:48Z",
+	"updated_at": "2022-04-26T17:20:04Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -754,6 +754,7 @@ export default {
 		"localAdminGroups_label": "Lokale Admin-Gruppen",
 		"localAdminGroup_label": "Lokale Admin-Gruppe",
 		"localAdmin_label": "Lokaler Admin",
+		"localDataSection_label": "Lokale Daten",
 		"location_label": "Ort",
 		"loggingOut_msg": "Sie werden abgemeldet ...",
 		"loginAbuseDetected_msg": "Ihr Account kann nicht mehr verwendet werden, da gegen die AGB von Tutanota verstoßen wurde, z.B. indem Spam-E-Mails gesendet wurden.",
@@ -1274,7 +1275,7 @@ export default {
 		"storageDeletion_msg": "E-Mails in diesem Ordner werden nach 30 Tagen automatisch gelöscht.",
 		"storageQuotaExceeded_msg": "Es ist nicht genug Speicher für den Such-Index auf diesem Gerät vorhanden. Die Suchergebnisse können daher nicht vollständig angezeigt werden.",
 		"storedDataTimeRangeHelpText_msg": "Gespeicherte E-Mails, die älter sind als hier angegeben, werden automatisch von Ihrem Gerät entfernt.",
-		"storedDataTimeRange_label": "Speichern von E-Mails aktueller als {numDays} Tage",
+		"storedDataTimeRange_label": "Speichern der E-Mails der {numDays} letzten Tage",
 		"storePassword_action": "Passwort speichern",
 		"subject_label": "Betreff",
 		"subscriptionCancelledMessage_msg": "Ihr Abonnement wurde storniert. Bitte informieren Sie den Support, wenn Sie das Abonnement wieder aktivieren möchten.",
