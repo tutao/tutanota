@@ -5,7 +5,6 @@
  */
 import fs from "fs-extra"
 import path from "path"
-import options from "commander"
 import {fileExists} from "./buildUtils.js"
 
 console.log("Sign Desktop Clients")
@@ -16,7 +15,7 @@ signDesktopClients()
 
 
 if (process.env.DEBUG_SIGN && !fs.existsSync(path.join(process.env.DEBUG_SIGN, "test.p12"))) {
-	options.outputHelp(a => "ERROR:\nPlease make sure your DEBUG_SIGN test certificate authority is set up properly!\n\n" + a)
+	console.error("ERROR:\nPlease make sure your DEBUG_SIGN test certificate authority is set up properly!\n\n")
 	process.exit(1)
 }
 

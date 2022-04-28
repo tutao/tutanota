@@ -1,25 +1,21 @@
 #!/usr/bin/env node
 
-import options from "commander"
+import {Argument, program} from "commander"
 
 import {spawnSync} from "child_process"
 import fs from "fs"
 import path from "path"
 
-options
-	.usage('<minor|patch>', "major.minor.patch, default is patch")
-	.arguments('<which>')
-	.parse(process.argv)
+await program
+	.addArgument(new Argument("which", "which version segment to bump")
+		.choices(["major", "minor", "patch"])
+		.default("patch")
+		.argOptional())
+	.action(run)
+	.parseAsync(process.argv)
 
-const which = options.args[0] || "patch"
-if (!["minor", "patch"].includes(which)) {
-	options.outputHelp()
-	process.exit(1)
-}
-
-run()
-
-async function run() {
+async function run(which) {
+	console.log(`bumping ${which} version`)
 	const currentVersionString = JSON.parse(await fs.promises.readFile("./package.json", {encoding: "utf8"})).version
 	const currentVersion = currentVersionString.split(".").map((n) => parseInt(n, 10))
 	const newVersion = currentVersion.slice()

@@ -1,15 +1,14 @@
 import fs from "fs"
-import options from "commander"
+import {program} from "commander"
 import glob from "glob"
 import {fileURLToPath} from "url"
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-	options
+	program
 		.usage('make|dist')
 		.arguments('<target>')
-		.parse(process.args)
-
-	prepareMobileBuild(options.args[0])
+		.action(prepareMobileBuild)
+		.parse(process.argv)
 }
 
 /**

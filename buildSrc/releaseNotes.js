@@ -1,5 +1,5 @@
 import {Octokit} from "@octokit/rest"
-import options from "commander"
+import {Option, program} from "commander"
 import {fileURLToPath} from "url"
 import path from "path"
 import fs from "fs"
@@ -7,11 +7,15 @@ import fs from "fs"
 const wasRunFromCli = fileURLToPath(import.meta.url).startsWith(process.argv[1])
 
 if (wasRunFromCli) {
-	options
+	program
 		.requiredOption('--releaseName <releaseName>', "Name of the release")
 		.requiredOption('--milestone <milestone>', "Milestone to reference")
 		.requiredOption('--tag <tag>', "The commit tag to reference")
-		.option('--platform <platform>', 'Which platform to build', /android|ios|desktop|all/, "all")
+		.addOption(
+			new Option("--platform <platform>", 'Which platform to build')
+				.choices(["android", "ios", "desktop", "all"])
+				.default("all")
+		)
 		.option('--uploadFile <filePath>', "Path to a file to upload")
 		.option('--apkChecksum <checksum>', "Checksum for the APK")
 		.option('--toFile <toFile>', "If provided, the release notes will be written to the given file path. Implies `--dryRun`")

@@ -3,7 +3,7 @@
  */
 import path from "path"
 import fs from "fs"
-import options from "commander"
+import {program} from "commander"
 import {fileURLToPath} from "url"
 import {fileExists, getCanonicalPlatformName, getElectronVersion, getInstalledModuleVersion, LogWriter} from "./buildUtils.js"
 import {createRequire} from "module"
@@ -11,7 +11,7 @@ import {createRequire} from "module"
 import {spawn} from "child_process"
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-	options
+	await program
 		.usage('<module> [...options]')
 		.description('Utility for ensuring that a built and cached version of a given node module exists. Will build using node-gyp or download the module with prebuild-install as necessary')
 		.arguments('<module>')
