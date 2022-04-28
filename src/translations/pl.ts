@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2022-04-26T14:17:03Z",
+	"updated_at": "2022-04-27T18:05:11Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -753,6 +753,7 @@ export default {
 		"localAdminGroups_label": "Lokalne grupy administracyjne",
 		"localAdminGroup_label": "Lokalna grupa administratorów",
 		"localAdmin_label": "Administrator lokalny",
+		"localDataSection_label": "Dane lokalne",
 		"location_label": "Lokalizacja",
 		"loggingOut_msg": "Wylogowywanie...",
 		"loginAbuseDetected_msg": "Twoje konto zostało zablokowane, ponieważ zasady użytkowania Tutanota zostały złamane, np.: przez wysyłanie spamu.",
@@ -1271,8 +1272,8 @@ export default {
 		"storageDeletionAnnouncement_msg": "Info: maile przeniesione do Kosza lub Spamu będą automatycznie kasowane po 30 dniach.",
 		"storageDeletion_msg": "Wiadomości w tym folderze zostaną automatycznie usunięte po 30 dniach.",
 		"storageQuotaExceeded_msg": "Na urządzeniu nie ma wystarczającej ilości miejsca, aby utworzyć indeks wyszukiwania. Dlatego wyniki wyszukiwania nie mogą być wyświetlane w całości.",
-		"storedDataTimeRangeHelpText_msg": "Wszelkie dane starsze niż ustawione tu przez ciebie limity zostaną automatycznie usunięte z twojego urządzenia.",
-		"storedDataTimeRange_label": "Zakres czasu dla danych offline",
+		"storedDataTimeRangeHelpText_msg": "Przechowywane wiadomości e-mail starsze niż skonfigurowane w tym miejscu będą automatycznie usuwane z urządzenia.",
+		"storedDataTimeRange_label": "Zachowaj maile z ostatnich {numDays} dni",
 		"storePassword_action": "Zapamiętaj hasło",
 		"subject_label": "Temat",
 		"subscriptionCancelledMessage_msg": "Twoja subskrybcja została anulowana. Skontaktuj się z działem wsparcia, aby ją ponownie aktywować.",
