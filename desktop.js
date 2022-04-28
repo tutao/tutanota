@@ -1,7 +1,7 @@
 /**
  * Script to build desktop release versions of the app.
  */
-import options from "commander"
+import {Argument, program} from "commander"
 import * as env from "./buildSrc/env.js"
 import os from "os"
 import {buildWebapp} from "./buildSrc/buildWebapp.js"
@@ -12,10 +12,14 @@ import {createHtml} from "./buildSrc/createHtml.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-options
+await program
 	.usage('[options] [test|prod|local|release|host <url>], "release" is default')
 	.description('Main build tool for distributable tutanota desktop artifacts.')
-	.arguments('[stage] [host]')
+	.addArgument(new Argument("stage")
+		.choices(["test", "prod", "local", "host"])
+		.default("prod")
+		.argOptional())
+	.addArgument(new Argument("host").argOptional())
 	.option('-e, --existing', 'Use existing prebuilt Webapp files in /build/dist/')
 	.option('-p, --platform <platform>', "For which platform to build: linux|win|mac", process.platform)
 	.option('-c,--custom-desktop-release', "use if manually building desktop client from source. doesn't install auto updates, but may still notify about new releases.")
@@ -23,12 +27,12 @@ options
 	.option('-u,--unpacked', "don't pack the app into an installer")
 	.option('-o,--out-dir <outDir>', "where to copy the client",)
 	.action(async (stage, host, opts) => {
-		if (!["test", "prod", "local", "host", "release", undefined].includes(stage)
-			|| (stage !== "host" && host)
-			|| (stage === "host" && !host)) {
-			opts.outputHelp()
+
+		if (stage === "host" && host == null || stage !== "host" && host != null) {
+			program.outputHelp()
 			process.exit(1)
 		}
+
 		opts.stage = stage ?? "release"
 		opts.host = host
 
@@ -39,7 +43,9 @@ options
 
 		opts.platform = getCanonicalPlatformName(opts.platform)
 
-		await doBuild(opts)
+		await doBuild({
+			stage: stage ?? "release"
+		})
 	})
 	.parseAsync(process.argv)
 

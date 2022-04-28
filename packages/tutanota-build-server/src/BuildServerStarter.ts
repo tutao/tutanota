@@ -2,11 +2,11 @@
  * The code below can be used to start a build server instance via the commandline.
  * Example: node BuildServer.js start -d build Builder.js
  */
-import options from "commander"
+import {program} from "commander"
 import {BuildServer} from "./BuildServer.js"
 import {BuildServerConfig} from "./BuildServerConfig.js"
 
-options
+program
 		.arguments("<builderPath>")
 		.option("-d --directory <directory>", "Directory in which to create log files, sockets, etc.")
 		.option("-p --devServer-port <port>", "Port (on localhost) on which to launch a devServer")
@@ -24,8 +24,7 @@ options
 				"Absolute path to directory that should be used as web root by the devServer",
 		)
 		.option("-a --autoRebuild", "If set, changes to watched files trigger a rebuild")
-		.action(builderPath => {
-			const opts = options.opts()
+		.action((builderPath, opts) => {
 			const buildServerConfig = new BuildServerConfig(
 					builderPath,
 					opts.watchFolders ? opts.watchFolders.split(":") : [],

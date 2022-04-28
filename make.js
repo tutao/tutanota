@@ -1,19 +1,21 @@
-import options from "commander"
+import {program, Argument} from "commander"
 import {runDevBuild} from "./buildSrc/DevBuild.js"
 import {spawn} from "child_process"
 
-options
-	.usage('[options] [test|prod|local|host <url>], "local" is default')
-	.arguments('[stage] [host]')
+await program
+	.usage('[options] [test|prod|local|host <url>]')
+	.addArgument(new Argument("stage")
+		.choices(["test", "prod", "local", "host"])
+		.default("local")
+		.argOptional())
+	.addArgument(new Argument("host").argOptional())
 	.option('-c, --clean', 'Clean build directory')
 	.option('-w, --watch', 'Watch build dir and rebuild if necessary')
 	.option('-d, --desktop', 'Assemble & start desktop client')
 	.option('-s, --serve', 'Start a local server to serve the website')
 	.action(async (stage, host, options) => {
-		if (!["test", "prod", "local", "host", undefined].includes(stage)
-			|| (stage !== "host" && host)
-			|| (stage === "host" && !host)) {
-			options.outputHelp()
+		if (stage === "host" && host == null || stage !== "host" && host != null) {
+			program.outputHelp()
 			process.exit(1)
 		}
 
@@ -41,5 +43,4 @@ options
 			process.exit(1)
 		}
 	})
-
-options.parseAsync(process.argv)
+	.parseAsync(process.argv)

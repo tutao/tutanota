@@ -9,7 +9,7 @@
  * Unfortunately manual bundling is "infectious" in a sense that if you manually put module in a chunk all its dependencies will also be
  * put in that chunk unless they are sorted into another manual chunk. Ideally this would be semi-automatic with directory-based chunks.
  */
-import options from "commander"
+import {program, Argument} from "commander"
 import fs from "fs-extra"
 import path, {dirname} from "path"
 import {buildWebapp} from "./buildSrc/buildWebapp.js"
@@ -23,36 +23,40 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // It does not work because there's no top-level code besides invocations of System.register and non-top-level code is not put into cache
 // which looks like a problem e.g. for accessing fields.
 
-options
+await program
 	.usage('[options] [test|prod|local|release|host <url>], "release" is default')
 	.description('Utility to build the web part of tutanota')
-	.arguments('[stage] [host]')
+	.addArgument(new Argument("stage")
+		.choices(["test", "prod", "local", "host", "release"])
+		.default("prod")
+		.argOptional())
+	.addArgument(new Argument("host").argOptional())
 	.option('--disable-minify', "disable minification")
 	.option('--out-dir <outDir>', "where to copy the client",)
-	.action((stage, host) => {
-		if (!["test", "prod", "local", "host", "release", undefined].includes(stage)
-			|| (stage !== "host" && host)
-			|| (stage === "host" && !host)
-			|| stage !== "release" && options.publish) {
-			options.outputHelp()
+	.action(async (stage, host, options) => {
+
+		if (process.env.DEBUG_SIGN && !fs.existsSync(path.join(process.env.DEBUG_SIGN, "test.p12"))) {
+			console.error("ERROR:\nPlease make sure your DEBUG_SIGN test certificate authority is set up properly!\n\n")
 			process.exit(1)
 		}
-		options.stage = stage || "release"
+
+		if (
+			stage === "host" && host == null
+			|| stage !== "host" && host != null
+			|| stage !== "release" && options.publish) {
+			program.outputHelp()
+			process.exit(1)
+		}
+
+
+		options.stage = stage ?? "release"
 		options.host = host
+
+		await doBuild(options)
 	})
-	.parse(process.argv)
+	.parseAsync(process.argv)
 
-if (process.env.DEBUG_SIGN && !fs.existsSync(path.join(process.env.DEBUG_SIGN, "test.p12"))) {
-	options.outputHelp(a => "ERROR:\nPlease make sure your DEBUG_SIGN test certificate authority is set up properly!\n\n" + a)
-	process.exit(1)
-}
-
-doBuild().catch(e => {
-	console.error(e)
-	process.exit(1)
-})
-
-async function doBuild() {
+async function doBuild(options) {
 	try {
 		measure()
 		const version = getTutanotaAppVersion()

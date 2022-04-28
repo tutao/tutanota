@@ -8,7 +8,7 @@
  *  'APK_SIGN_STORE'
  *  'ANDROID_HOME'
  */
-import options from "commander"
+import {Argument, Option, program} from "commander"
 import fs from "fs"
 import {execFileSync} from "child_process"
 import {runDevBuild} from "./buildSrc/DevBuild.js"
@@ -20,34 +20,38 @@ import path from "path"
 const log = (...messages) => console.log("\nBUILD:", ...messages, "\n")
 
 
-options
+await program
 	.usage('[options] [test|prod|local|host <url>] ')
-	.arguments('[stage] [host]')
-	.option('-b, --buildtype <type>', 'gradle build type', /^(debugDist|debug|release|releaseTest)$/i, 'release')
-	.option('-w --webclient <client>', 'choose web client build', /^(make|dist)$/i, 'dist')
-	.action((stage, host, options) => {
-		if (!["test", "prod", "local", "host", undefined].includes(stage)
-			|| (stage !== "host" && host)
-			|| (stage === "host" && !host)) {
-			options.outputHelp()
+	.addArgument(new Argument("stage")
+		.choices(["test", "prod", "local", "host"])
+		.default("prod")
+		.argOptional())
+	.addArgument(new Argument("host").argOptional())
+	.addOption(new Option('-b, --buildtype <type>', 'gradle build type')
+		.choices(["debugDist", "debug", "release", "releaseTest"])
+		.default("dist"))
+	.addOption(new Option('-w --webclient <client>', 'choose web client build')
+		.choices(["make", "dist"])
+		.default("dist"))
+	.action(async (stage, host, options) => {
+		if (stage === "host" && host == null || stage !== "host" && host != null) {
+			program.outputHelp()
 			process.exit(1)
 		}
 
 		const {webclient, buildtype} = options
 
-		buildAndroid({
+		await buildAndroid({
 			stage: stage ?? 'prod',
 			host: host,
 			webClient: webclient,
 			buildType: buildtype,
 		})
 	})
-
-options.parse(process.argv)
-
+	.parseAsync(process.argv)
 
 async function buildAndroid({stage, host, buildType, webClient}) {
-	log(`Starting build with build type: ${buildType}, webclient: ${webClient}, host: ${host}`)
+	log(`Starting ${stage} build with build type: ${buildType}, webclient: ${webClient}, host: ${host}`)
 
 	if (webClient === "make") {
 		await runDevBuild({
