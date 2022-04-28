@@ -267,9 +267,6 @@ export class Indexer {
 
 		if (!this._core.isStoppedProcessing()) {
 			this._core.stopProcessing()
-
-			this._worker.writeIndexerDebugLog("Disabling mail indexing: " + reason, this._initParams.user)
-
 			await this._mail.disableMailIndexing()
 			await this.init({user: this._initParams.user, userGroupKey: this._initParams.groupKey})
 		}

@@ -9,14 +9,13 @@ import {defer, downcast, identity} from "@tutao/tutanota-utils"
 import {objToError} from "../common/utils/Utils"
 import type {InfoMessage} from "../common/CommonTypes"
 import {handleUncaughtError} from "../../misc/ErrorHandler"
-import {addSearchIndexDebugEntry} from "../../misc/IndexerDebugLogger"
 import type {MainInterface, WorkerInterface} from "../worker/WorkerImpl"
 import {exposeLocal, exposeRemote} from "../common/WorkerProxy"
 import type {EntropySource} from "@tutao/tutanota-crypto"
 import type {CloseEventBusOption} from "../common/TutanotaConstants"
 import stream from "mithril/stream"
 import type {RestClient} from "../worker/rest/RestClient"
-import {createWebsocketLeaderStatus, User, WebsocketLeaderStatus} from "../entities/sys/TypeRefs"
+import {createWebsocketLeaderStatus, WebsocketLeaderStatus} from "../entities/sys/TypeRefs"
 
 assertMainOrNode()
 
@@ -140,12 +139,6 @@ export class WorkerClient {
 				const workDone = downcast<number>(message.args[1])
 				const monitor = locator.progressTracker.getMonitor(reference)
 				monitor && monitor.workDone(workDone)
-				return Promise.resolve()
-			},
-			writeIndexerDebugLog: (message: MainRequest) => {
-				const reason = downcast<string>(message.args[0])
-				const user = downcast<User>(message.args[1])
-				addSearchIndexDebugEntry(reason, user)
 				return Promise.resolve()
 			},
 			facade: exposeLocal<MainInterface, MainRequestType>({

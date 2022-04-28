@@ -36,7 +36,6 @@ declare type MainRequestType =
 	| 'infoMessage'
 	| 'createProgressMonitor'
 	| 'progressWorkDone'
-	| 'writeIndexerDebugLog'
 
 /** Requests from web to native */
 declare type NativeRequestType = 'init'
