@@ -1,7 +1,8 @@
 import {OperationType} from "../../api/common/TutanotaConstants"
 import type {AlarmNotification} from "../../api/entities/sys/TypeRefs.js"
-import {AlarmInfoTypeRef} from "../../api/entities/sys/TypeRefs.js"
+import {AlarmNotificationTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import type {DesktopNotifier} from "../DesktopNotifier"
+import {NotificationResult} from "../DesktopNotifier";
 import type {WindowManager} from "../DesktopWindowManager"
 import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
 import type {DesktopCryptoFacade} from "../DesktopCryptoFacade"
@@ -10,7 +11,6 @@ import type {AlarmScheduler} from "../../calendar/date/AlarmScheduler"
 import {CryptoError} from "../../api/common/error/CryptoError"
 import {elementIdPart} from "../../api/common/utils/EntityUtils"
 import {hasError} from "../../api/common/utils/ErrorCheckUtils"
-import {NotificationResult} from "../DesktopNotifier";
 import {resolveTypeReference} from "../../api/common/EntityFunctions"
 
 export type NotificationSessionKey = {
@@ -78,7 +78,8 @@ export class DesktopAlarmScheduler {
 			}
 
 			const decAn: AlarmNotification = await this._crypto.decryptAndMapToInstance(
-				await resolveTypeReference(AlarmInfoTypeRef),
+				// await resolveTypeReference(AlarmNotificationTypeRef),
+				await resolveTypeReference(AlarmNotificationTypeRef),
 				an,
 				pushIdentifierSessionKey,
 				currentKey.pushIdentifierSessionEncSessionKey,
