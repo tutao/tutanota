@@ -188,11 +188,13 @@ function confirmFreeSubscription(): Promise<boolean> {
 				m(".dialog-contentButtonsBottom", [
 					m(CheckboxN, {
 						label: () => lang.get("confirmNoOtherFreeAccount_msg"),
-						checked: oneAccountValue,
+						checked: oneAccountValue(),
+						onChecked: oneAccountValue,
 					}),
 					m(CheckboxN, {
 						label: () => lang.get("confirmPrivateUse_msg"),
-						checked: privateUseValue,
+						checked: privateUseValue(),
+						onChecked: privateUseValue,
 					}),
 				]),
 				m(

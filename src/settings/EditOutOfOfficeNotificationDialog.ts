@@ -162,7 +162,8 @@ class EditoOutOfOfficeNotificationDialog implements Component<EditoOutOfOfficeNo
 		}
 		this._timeRangeCheckboxAttrs = {
 			label: () => lang.get("outOfOfficeTimeRange_msg"),
-			checked: model.timeRangeEnabled,
+			checked: model.timeRangeEnabled(),
+			onChecked: model.timeRangeEnabled,
 			helpLabel: () => lang.get("outOfOfficeTimeRangeHelp_msg"),
 		}
 		this._defaultSubjectAttrs = {
@@ -239,7 +240,8 @@ class EditoOutOfOfficeNotificationDialog implements Component<EditoOutOfOfficeNo
 			}),
 			m(CheckboxN, {
 				label: () => lang.get("unlimited_label"),
-				checked: model.indefiniteTimeRange,
+				checked: model.indefiniteTimeRange(),
+				onChecked: model.indefiniteTimeRange,
 			}),
 			!model.indefiniteTimeRange()
 				? m(DatePicker, {

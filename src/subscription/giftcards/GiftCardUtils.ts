@@ -371,7 +371,8 @@ export function renderGiftCardSvg(price: number, country: Country, link: string 
 
 export function renderAcceptGiftCardTermsCheckbox(confirmed: Stream<boolean>): Children {
 	return m(CheckboxN, {
-		checked: confirmed,
+		checked: confirmed(),
+		onChecked: confirmed,
 		label: () => [
 			m("", lang.get("termsAndConditions_label")),
 			m(

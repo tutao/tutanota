@@ -105,7 +105,8 @@ export class LoginForm implements Component<LoginFormAttrs> {
 				a.savePassword && !this._passwordDisabled()
 					? m(CheckboxN, {
 						label: () => lang.get("storePassword_action"),
-						checked: a.savePassword,
+						checked: a.savePassword(),
+						onChecked: a.savePassword,
 						helpLabel: (canSaveCredentials)
 							? () => lang.get("onlyPrivateComputer_msg") + (isOfflineStorageAvailable() ? "\n" + lang.get("dataWillBeStored_msg") : "")
 							: "functionNotSupported_msg",

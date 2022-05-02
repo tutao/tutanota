@@ -23,7 +23,7 @@ type FeedbackContent = {
 
 export function promptForFeedbackAndSend(e: Error): Promise<{ignored: boolean}> {
 	const loggedIn = logins.isUserLoggedIn()
-	const ignoreChecked = stream<boolean>()
+	let ignoreChecked = false
 
 	return new Promise(resolve => {
 		const preparedContent = prepareFeedbackContent(e, loggedIn)
@@ -34,7 +34,9 @@ export function promptForFeedbackAndSend(e: Error): Promise<{ignored: boolean}> 
 			helpLabel: () => lang.get("feedbackOnErrorInfo_msg"),
 			value: userMessage,
 			type: TextFieldType.Area,
-			oninput: value => {userMessage = value},
+			oninput: value => {
+				userMessage = value
+			},
 		}
 
 		let errorOkAction = (dialog: Dialog) => {
@@ -51,6 +53,9 @@ export function promptForFeedbackAndSend(e: Error): Promise<{ignored: boolean}> 
 						m(CheckboxN, {
 							label: () => "Ignore the error for this session",
 							checked: ignoreChecked,
+							onChecked: (checked) => {
+								ignoreChecked = checked
+							}
 						}),
 					]),
 			},
@@ -112,7 +117,7 @@ export function promptForFeedbackAndSend(e: Error): Promise<{ignored: boolean}> 
 		if (content) {
 			sendFeedbackMail(content as FeedbackContent)
 		}
-		return {ignored: ignoreChecked()}
+		return {ignored: ignoreChecked}
 	})
 }
 

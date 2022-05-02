@@ -74,7 +74,8 @@ export class ExternalLoginView implements CurrentView {
 				m(CheckboxN, {
 					label: () => lang.get("storePassword_action"),
 					helpLabel: () => lang.get("onlyPrivateComputer_msg"),
-					checked: this._savePassword,
+					checked: this._savePassword(),
+					onChecked: this._savePassword,
 				}),
 				m(
 					".pt",

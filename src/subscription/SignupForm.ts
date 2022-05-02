@@ -73,11 +73,13 @@ export class SignupForm implements Component<SignupFormAttrs> {
 		}
 		const confirmTermsCheckBoxAttrs: CheckboxAttrs = {
 			label: renderTermsLabel,
-			checked: this._confirmTerms,
+			checked: this._confirmTerms(),
+			onChecked: this._confirmTerms,
 		}
 		const confirmAgeCheckBoxAttrs: CheckboxAttrs = {
 			label: () => lang.get("ageConfirmation_msg"),
-			checked: this._confirmAge,
+			checked: this._confirmAge(),
+			onChecked: this._confirmAge,
 		}
 
 		const submit = () => {

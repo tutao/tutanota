@@ -173,7 +173,8 @@ export class ContactFormRequestDialog {
 				getPrivacyStatementLink()
 					? m(CheckboxN, {
 						label: () => this._getPrivacyPolicyCheckboxContent(),
-						checked: this._privacyPolicyAccepted,
+						checked: this._privacyPolicyAccepted(),
+						onChecked: this._privacyPolicyAccepted,
 					})
 					: null,
 			],

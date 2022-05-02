@@ -14,17 +14,18 @@ import {showSnackBar} from "../../gui/base/SnackBar"
 
 function confirmMailReportDialog(mailboxProperties: MailboxProperties | null): Promise<boolean> {
 	return new Promise(resolve => {
-		const shallRememberDecision = stream(false)
+		let shallRememberDecision = false
 		const rememberDecisionCheckboxAttrs: CheckboxAttrs = {
 			label: () => lang.get("rememberDecision_msg"),
 			checked: shallRememberDecision,
+			onChecked: (v) => shallRememberDecision = v,
 			helpLabel: () => lang.get("changeMailSettings_msg"),
 		}
 
 		const child = () => m(CheckboxN, rememberDecisionCheckboxAttrs)
 
 		function updateSpamReportSetting(areMailsReported: boolean) {
-			if (shallRememberDecision()) {
+			if (shallRememberDecision) {
 				const reportMovedMails = areMailsReported ? ReportMovedMailsType.AUTOMATICALLY_ONLY_SPAM : ReportMovedMailsType.NEVER
 				saveReportMovedMails(mailboxProperties, reportMovedMails)
 			}

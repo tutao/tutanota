@@ -437,7 +437,8 @@ export function showCalendarEventDialog(
 						renderDateTimePickers(),
 						m(".flex.items-center.mt-s", [
 							m(CheckboxN, {
-								checked: viewModel.allDay,
+								checked: viewModel.allDay(),
+								onChecked: viewModel.allDay,
 								disabled: viewModel.isReadOnlyEvent(),
 								label: () => lang.get("allDay_label"),
 							}),
