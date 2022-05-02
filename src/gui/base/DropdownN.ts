@@ -8,8 +8,6 @@ import {focusNext, focusPrevious} from "../../misc/KeyManager"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN} from "./ButtonN"
 import {lang} from "../../misc/LanguageViewModel"
-import stream from "mithril/stream"
-import Stream from "mithril/stream"
 import type {PosRect} from "./Dropdown"
 import {DomRectReadOnlyPolyfilled} from "./Dropdown"
 import {Keys} from "../../api/common/TutanotaConstants"
@@ -51,7 +49,7 @@ export class DropdownN implements ModalComponent {
 	view: ModalComponent["view"]
 	private _width: number
 	shortcuts: (...args: Array<any>) => any
-	private _filterString: Stream<string>
+	private _filterString: string
 	private _domInput: HTMLInputElement | null = null
 	private _domContents: HTMLElement | null = null
 	private _isFilterable: boolean = false
@@ -60,7 +58,7 @@ export class DropdownN implements ModalComponent {
 	constructor(lazyChildren: lazy<ReadonlyArray<DropdownChildAttrs | null>>, width: number) {
 		this.children = []
 		this._width = width
-		this._filterString = stream("")
+		this._filterString = ""
 
 		this.oninit = () => {
 			this.children = filterNull(lazyChildren())
@@ -96,10 +94,10 @@ export class DropdownN implements ModalComponent {
 						placeholder: lang.get("typeToFilter_label"),
 						oncreate: vnode => {
 							this._domInput = downcast<HTMLInputElement>(vnode.dom)
-							this._domInput.value = this._filterString()
+							this._domInput.value = this._filterString
 						},
 						oninput: () => {
-							this._filterString(neverNull(this._domInput).value)
+							this._filterString = neverNull(this._domInput).value
 						},
 						style: {
 							paddingLeft: px(size.hpad_large * 2),
@@ -110,7 +108,7 @@ export class DropdownN implements ModalComponent {
 							left: 0,
 						},
 					},
-					this._filterString(),
+					this._filterString,
 				)
 				: null
 		}
@@ -265,7 +263,7 @@ export class DropdownN implements ModalComponent {
 	}
 
 	chooseMatch: () => boolean = () => {
-		const filterString = this._filterString().toLowerCase()
+		const filterString = this._filterString.toLowerCase()
 
 		let visibleElements: Array<ButtonAttrs> = downcast(this._visibleChildren().filter(b => !isDropDownInfo(b)))
 		let matchingButton =
@@ -290,9 +288,9 @@ export class DropdownN implements ModalComponent {
 	_visibleChildren(): Array<DropdownChildAttrs> {
 		return this.children.filter(b => {
 			if (isDropDownInfo(b)) {
-				return b.info.includes(this._filterString().toLowerCase())
+				return b.info.includes(this._filterString.toLowerCase())
 			} else if (this._isFilterable) {
-				return lang.getMaybeLazy(b.label).toLowerCase().includes(this._filterString().toLowerCase())
+				return lang.getMaybeLazy(b.label).toLowerCase().includes(this._filterString.toLowerCase())
 			} else {
 				return true
 			}
