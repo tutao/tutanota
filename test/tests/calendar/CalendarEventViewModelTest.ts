@@ -370,6 +370,24 @@ o.spec("CalendarEventViewModel", function () {
 		o(viewModel.canModifyOrganizer()).equals(false)
 		o(viewModel.possibleOrganizers).deepEquals([neverNull(existingEvent.organizer)])
 	})
+	o("event created by another user we shared our calendar with", async function () {
+		const existingEvent = createCalendarEvent({
+			summary: "existing event",
+			startTime: new Date(2020, 4, 26, 12),
+			endTime: new Date(2020, 4, 26, 13),
+			organizer: wrapEncIntoMailAddress("another-user@provider.com"),
+			_ownerGroup: calendarGroupId,
+		})
+		const viewModel = await init({
+			calendars: makeCalendars("own"),
+			existingEvent,
+		})
+		o(viewModel.isReadOnlyEvent()).equals(false)
+		o(viewModel.canModifyGuests()).equals(true)
+		o(viewModel.canModifyOwnAttendance()).equals(true)
+		o(viewModel.canModifyOrganizer()).equals(true)
+		o(viewModel.possibleOrganizers).deepEquals([neverNull(encMailAddress)])("Organizer of the event is overwritten with our own address")
+	})
 	o("in writable calendar", async function () {
 		const calendars = makeCalendars("shared")
 		const userController = makeUserController()
@@ -378,7 +396,7 @@ o.spec("CalendarEventViewModel", function () {
 			summary: "existing event",
 			startTime: new Date(2020, 4, 26, 12),
 			endTime: new Date(2020, 4, 26, 13),
-			organizer: wrapEncIntoMailAddress("another-user@provider.com"),
+			organizer: encMailAddress,
 			_ownerGroup: calendarGroupId,
 		})
 		const viewModel = await init({
@@ -402,16 +420,22 @@ o.spec("CalendarEventViewModel", function () {
 			endTime: new Date(2020, 4, 26, 13),
 			organizer: wrapEncIntoMailAddress("another-user@provider.com"),
 			_ownerGroup: calendarGroupId,
+			attendees: [
+				createCalendarEventAttendee({
+					address: createEncryptedMailAddress({
+						address: "attendee@example.com",
+					}),
+				})],
 		})
 		const viewModel = await init({
 			calendars,
 			existingEvent,
 			userController,
 		})
-		o(viewModel.isReadOnlyEvent()).equals(false)
-		o(viewModel.canModifyGuests()).equals(false)
-		o(viewModel.canModifyOwnAttendance()).equals(false)
-		o(viewModel.canModifyOrganizer()).equals(false)
+		o(viewModel.isReadOnlyEvent()).equals(true)("Is readonly event")
+		o(viewModel.canModifyGuests()).equals(false)("Can modify guests")
+		o(viewModel.canModifyOwnAttendance()).equals(false)("Can modify own attendance")
+		o(viewModel.canModifyOrganizer()).equals(false)("Can modify organizer")
 		o(viewModel.possibleOrganizers).deepEquals([neverNull(existingEvent.organizer)])
 	})
 	o("in readonly calendar", async function () {
@@ -2617,14 +2641,25 @@ o.spec("CalendarEventViewModel", function () {
 		})
 		o("cannot modify when it's invite in own calendar", async function () {
 			const calendars = makeCalendars("own")
+
 			const viewModel = await init({
 				calendars,
 				existingEvent: createCalendarEvent({
-					_id: ["listId", "calendarId"],
+					summary: "existing event",
+					startTime: new Date(2020, 4, 26, 12),
+					endTime: new Date(2020, 4, 26, 13),
+					organizer: wrapEncIntoMailAddress("another-user@provider.com"),
 					_ownerGroup: calendarGroupId,
-					organizer: createEncryptedMailAddress({
-						address: "organizer@example.com",
-					}),
+					attendees: [
+						createCalendarEventAttendee({
+							address: createEncryptedMailAddress({
+								address: "attendee@example.com",
+							}),
+						}),
+						createCalendarEventAttendee({
+							address: encMailAddress,
+						}),
+					],
 				}),
 			})
 			o(viewModel.canModifyOrganizer()).equals(false)
