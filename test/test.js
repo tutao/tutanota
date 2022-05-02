@@ -1,10 +1,8 @@
 import child_process from "child_process"
-import {BuildServerClient} from "@tutao/tutanota-build-server"
-import path from "path"
-import {build} from "./TestBuilder.js"
+import {runTestBuild} from "./TestBuilder.js"
 import {getTutanotaAppVersion} from "../buildSrc/buildUtils.js"
 
-run()
+await run()
 
 async function run() {
 	console.log("testing version:", getTutanotaAppVersion())
@@ -20,18 +18,8 @@ async function run() {
 	}
 	const clean = process.argv.includes("-c")
 
-
 	try {
-		const buildServerClient = new BuildServerClient("test")
-		const buildServerOpts = {
-			forceRestart: clean,
-			builderPath: path.resolve("TestBuilder.js"),
-			watchFolders: [path.resolve("api"), path.resolve("client"), path.resolve("../src")],
-			autoRebuild: false
-		}
-		const buildOpts = {clean: false, stage: null, host: null}
-		await buildServerClient.buildWithServer(buildServerOpts, buildOpts)
-		// await buildWithoutServer(buildOpts, buildServerOpts)
+		await runTestBuild({clean})
 		console.log("build finished!")
 		const code = await runTest(project)
 		process.exit(code)
@@ -41,16 +29,9 @@ async function run() {
 	}
 }
 
-async function buildWithoutServer(buildOptions, serverOptions) {
-	const bundleWrappers = await build(buildOptions, serverOptions, console.log.bind(console))
-	for (const wrapper of bundleWrappers) {
-		await wrapper.generate()
-	}
-}
-
 function runTest(project) {
 	return new Promise((resolve) => {
-		let testRunner = child_process.fork(`./build/bootstrapTests-${project}.js`)
+		let testRunner = child_process.fork(`./build/${project}/bootstrapTests-${project}.js`)
 		testRunner.on('exit', (code) => {
 			resolve(code)
 		})

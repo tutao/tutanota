@@ -1,8 +1,4 @@
 // @ts-nocheck
-import env from "@tutanota/env"
-
-globalThis.env = env
-
 
 globalThis.isBrowser = typeof window !== "undefined"
 
@@ -31,7 +27,7 @@ globalThis.isBrowser = typeof window !== "undefined"
 		 */
 		globalThis.node = (func) => func
 
-		const browserMock = await import("mithril/test-utils/browserMock")
+		const browserMock = await import("mithril/test-utils/browserMock.js")
 		globalThis.window = browserMock.default()
 		globalThis.window.getElementsByTagName = function () {
 		} // for styles.js

@@ -21,18 +21,30 @@ export function sqliteNativeBannerPlugin(
 				platform,
 				copyTarget: "better_sqlite3",
 			})
-			const normalDst = path.normalize(dstPath)
-			const dstDir = path.dirname(normalDst)
-			await fs.promises.mkdir(dstDir, {recursive: true})
-			await fs.promises.copyFile(modulePath, normalDst)
+			await fs.promises.mkdir(path.dirname(dstPath), {recursive: true})
+			await fs.promises.copyFile(modulePath, dstPath)
 		},
 		banner() {
-			const nativeLibPath = (nativeBindingPath ?? dstPath)
+			const sep = pathSepForPlatform(platform)
+			const nativeLibPath = (nativeBindingPath ?? dstPath).split("/").join(sep)
+			log(`Using following path for sqlite on ${platform}: ${nativeLibPath}`)
 			return `
 			globalThis.buildOptions = globalThis.buildOptions ?? {}
 			globalThis.buildOptions.sqliteNativePath = "${nativeLibPath}";
 			`
 		}
+	}
+}
+
+function pathSepForPlatform(platform) {
+	switch (platform) {
+		case "win32":
+			return path.win32.sep
+		case "darwin":
+		case "linux":
+			return path.posix.sep
+		default:
+			throw new Error(`Unknown platform: ${platform}`)
 	}
 }
 

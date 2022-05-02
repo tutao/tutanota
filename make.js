@@ -1,4 +1,4 @@
-import {program, Argument} from "commander"
+import {Argument, program} from "commander"
 import {runDevBuild} from "./buildSrc/DevBuild.js"
 import {spawn} from "child_process"
 
@@ -10,7 +10,6 @@ await program
 		.argOptional())
 	.addArgument(new Argument("host").argOptional())
 	.option('-c, --clean', 'Clean build directory')
-	.option('-w, --watch', 'Watch build dir and rebuild if necessary')
 	.option('-d, --desktop', 'Assemble & start desktop client')
 	.option('-s, --serve', 'Start a local server to serve the website')
 	.action(async (stage, host, options) => {
@@ -20,6 +19,10 @@ await program
 		}
 
 		const {clean, watch, serve, desktop} = options
+
+		if (serve) {
+			console.error("--serve is currently disabled, point any server to ./build directory instead or build desktop")
+		}
 
 		try {
 			await runDevBuild({

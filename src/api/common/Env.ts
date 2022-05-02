@@ -109,7 +109,17 @@ export function isDesktopMainThread(): boolean {
 
 let boot = !isDesktopMainThread() && !isWorker()
 
+/**
+ * A hackaround set by esbuild.
+ * We have to bundle our project with esbuild now which puts everything together which means it won't be loaded at correct time and/or some thing might get
+ * included where they shouldn't so for debug builds we set this flag to not take care of this.
+ */
+declare var NO_THREAD_ASSERTIONS: boolean
+const assertionsEnabled = typeof NO_THREAD_ASSERTIONS === "undefined" || !NO_THREAD_ASSERTIONS
+
 export function assertMainOrNode() {
+	if (!assertionsEnabled) return
+
 	if (!isMainOrNode()) {
 		throw new Error("this code must not run in the worker thread")
 	}
@@ -120,12 +130,16 @@ export function assertMainOrNode() {
 }
 
 export function assertMainOrNodeBoot() {
+	if (!assertionsEnabled) return
+
 	if (!isMainOrNode()) {
 		throw new Error("this code must not run in the worker thread")
 	}
 }
 
 export function assertWorkerOrNode() {
+	if (!assertionsEnabled) return
+
 	if (!isWorkerOrNode()) {
 		throw new Error("this code must not run in the gui thread")
 	}

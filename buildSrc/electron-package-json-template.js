@@ -1,6 +1,6 @@
 import path from "path"
 import {readFileSync} from "fs"
-import {getElectronVersion, getInstalledModuleVersion} from "./buildUtils.js"
+import {getElectronVersion} from "./buildUtils.js"
 
 /**
  * This is used for launching electron:
@@ -70,10 +70,10 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 			}
 		},
 		"dependencies": {
-			"electron-updater": getInstalledModuleVersion("electron-updater", log),
+			// "electron-updater": getInstalledModuleVersion("electron-updater", log),
 		},
 		"build": {
-			"electronVersion": getElectronVersion(),
+			"electronVersion": getElectronVersion(log),
 			"icon": iconPath,
 			"appId": appId,
 			"productName": nameSuffix.length > 0
@@ -177,4 +177,3 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 		}
 	}
 }
-
