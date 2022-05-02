@@ -33,7 +33,6 @@ const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
 export type EditAliasesFormAttrs = {
 	userGroupInfo: GroupInfo
 	aliasCount: AliasCount
-	expanded: Stream<boolean>
 }
 type AliasCount = {
 	availableToCreate: number
@@ -41,6 +40,8 @@ type AliasCount = {
 }
 
 export class EditAliasesFormN implements Component<EditAliasesFormAttrs> {
+	private expanded: boolean = false
+
 	view(vnode: Vnode<EditAliasesFormAttrs>): Children {
 		const a = vnode.attrs
 		const addAliasButtonAttrs: ButtonAttrs = {
@@ -60,13 +61,12 @@ export class EditAliasesFormN implements Component<EditAliasesFormAttrs> {
 				m(".h4", lang.get("mailAddressAliases_label")),
 				m(ExpanderButtonN, {
 					label: "showEmailAliases_action",
-					expanded: a.expanded,
+					expanded: this.expanded,
+					onExpandedChange: (v) => this.expanded = v
 				}),
 			]),
-			m(
-				ExpanderPanelN,
-				{
-					expanded: a.expanded,
+			m(ExpanderPanelN, {
+					expanded: this.expanded,
 				},
 				m(TableN, aliasesTableAttrs),
 			),
@@ -135,10 +135,8 @@ export class EditAliasesFormN implements Component<EditAliasesFormAttrs> {
 						view: () => {
 							return [
 								m(SelectMailAddressForm, mailAddressFormAttrs),
-								m(
-									ExpanderPanelN,
-									{
-										expanded: isTutanotaDomain,
+								m(ExpanderPanelN, {
+										expanded: isTutanotaDomain(),
 									},
 									m(".pt-m", lang.get("permanentAliasWarning_msg")),
 								),
@@ -261,6 +259,5 @@ export function createEditAliasFormAttrs(userGroupInfo: GroupInfo): EditAliasesF
 			availableToEnable: 0,
 			availableToCreate: 0,
 		},
-		expanded: stream(false),
 	}
 }

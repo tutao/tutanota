@@ -232,13 +232,12 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					m(".h4", lang.get("postings_label")),
 					m(ExpanderButtonN, {
 						label: "show_action",
-						expanded: postingExpanded,
+						expanded: postingExpanded(),
+						onExpandedChange: postingExpanded,
 					}),
 				]),
-				m(
-					ExpanderPanelN,
-					{
-						expanded: postingExpanded,
+				m(ExpanderPanelN, {
+						expanded: postingExpanded(),
 					},
 					m(TableN, {
 						columnHeading: ["type_label", "amount_label"],

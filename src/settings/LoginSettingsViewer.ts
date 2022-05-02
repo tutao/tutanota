@@ -124,12 +124,13 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 						m(".h4", lang.get("closedSessions_label")),
 						m(ExpanderButtonN, {
 							label: "show_action",
-							expanded: this._closedSessionsExpanded,
+							expanded: this._closedSessionsExpanded(),
+							onExpandedChange: this._closedSessionsExpanded,
 							showWarning: false,
 						}),
 					]),
 					m(ExpanderPanelN, {
-							expanded: this._closedSessionsExpanded,
+							expanded: this._closedSessionsExpanded(),
 						},
 						this._renderClosedSessions(),
 					),

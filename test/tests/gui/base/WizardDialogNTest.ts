@@ -19,7 +19,6 @@ const data: AddDomainData = {
 			availableToCreate: 1,
 			availableToEnable: 1,
 		},
-		expanded: stream(false),
 	},
 	domainStatus: new DomainDnsStatus("domain"),
 }

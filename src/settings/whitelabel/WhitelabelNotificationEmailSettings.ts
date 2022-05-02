@@ -41,13 +41,12 @@ export class WhitelabelNotificationEmailSettings implements Component<Whitelabel
 				m(".h4", lang.get("customNotificationEmails_label")),
 				m(ExpanderButtonN, {
 					label: "show_action",
-					expanded: this._notificationEmailsExpanded,
+					expanded: this._notificationEmailsExpanded(),
+					onExpandedChange: this._notificationEmailsExpanded,
 				}),
 			]),
-			m(
-				ExpanderPanelN,
-				{
-					expanded: this._notificationEmailsExpanded,
+			m(ExpanderPanelN, {
+					expanded: this._notificationEmailsExpanded(),
 				},
 				m(TableN, {
 					columnHeading: ["language_label", "subject_label"],

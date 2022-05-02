@@ -31,13 +31,12 @@ export class SettingsExpander implements Component<SettingsExpanderAttrs> {
 				m(".h4", lang.getMaybeLazy(title)),
 				m(ExpanderButtonN, {
 					label: buttonText || "show_action",
-					expanded,
+					expanded: expanded(),
+					onExpandedChange: expanded,
 				}),
 			]),
-			m(
-				ExpanderPanelN,
-				{
-					expanded,
+			m(ExpanderPanelN, {
+					expanded: expanded(),
 				},
 				vnode.children,
 			),

@@ -9,18 +9,18 @@ import {theme} from "../theme"
 import {px} from "../size"
 import {DefaultAnimationTime} from "../animation/Animations"
 import type {lazy} from "@tutao/tutanota-utils"
-import Stream from "mithril/stream";
 import {assertNotNull} from "@tutao/tutanota-utils"
 
 export type ExpanderAttrs = {
 	label: TranslationKey | lazy<string>
-	expanded: Stream<boolean>
+	expanded: boolean
+	onExpandedChange: (value: boolean) => unknown
 	showWarning?: boolean
 	color?: string
 	style?: Record<string, any>
 }
 export type ExpanderPanelAttrs = {
-	expanded: Stream<boolean>
+	expanded: boolean
 }
 
 export class ExpanderButtonN implements Component<ExpanderAttrs> {
@@ -33,12 +33,12 @@ export class ExpanderButtonN implements Component<ExpanderAttrs> {
 				{
 					style: a.style,
 					onclick: (event: MouseEvent) => {
-						a.expanded(!a.expanded())
+						a.onExpandedChange(!a.expanded)
 						event.stopPropagation()
 					},
 					oncreate: vnode => addFlash(vnode.dom),
 					onremove: vnode => removeFlash(vnode.dom),
-					"aria-expanded": String(!!a.expanded()),
+					"aria-expanded": String(a.expanded),
 				},
 				[
 					a.showWarning
@@ -65,7 +65,7 @@ export class ExpanderButtonN implements Component<ExpanderAttrs> {
 							fill: a.color ? a.color : theme.content_button,
 							"margin-right": px(-4),
 							// icon is has 4px whitespace to the right,
-							transform: `rotateZ(${a.expanded() ? 180 : 0}deg)`,
+							transform: `rotateZ(${a.expanded ? 180 : 0}deg)`,
 							transition: `transform ${DefaultAnimationTime}ms`,
 						},
 					}),
@@ -88,35 +88,24 @@ export class ExpanderPanelN implements Component<ExpanderPanelAttrs> {
 	// We remove the children from the DOM to take them out of the taborder. Setting "tabindex = -1" on the element will not work because
 	// it does not apply to any children
 	childrenInDom: boolean | null = null
-	expandedStreamListenerHandle: Stream<void> | null = null
 	setChildrenInDomTimeout: TimeoutID | null
 
 	oninit(vnode: Vnode<ExpanderPanelAttrs>) {
-		this.childrenInDom = vnode.attrs.expanded()
+		this.childrenInDom = vnode.attrs.expanded
 		this.observer = new MutationObserver(mutations => {
 			// redraw if a child has been added that wont be getting displayed
 			if (this.childDiv && this.childDiv.offsetHeight !== this.lastCalculatedHeight) {
 				m.redraw()
 			}
 		})
-		this.expandedStreamListenerHandle = vnode.attrs.expanded.map(expanded => this._handleExpansionStateChanged(expanded))
 	}
 
 	onbeforeupdate(vnode: Vnode<ExpanderPanelAttrs>, old: Vnode<ExpanderPanelAttrs>): boolean {
 		const oldExpanded = old.attrs.expanded
 		const currentExpanded = vnode.attrs.expanded
 
-		// If the stream being passed in has changed, then we need to update our listener
-		// This is possible because some of the views (i.e. UserViewer) are being created with new and passed to mithril as objects,
-		// rather than being proper components
-		// so all the view model state gets recreated but mithril still reuses the old vnode because it doesn't see any difference
 		if (oldExpanded !== currentExpanded) {
-			if (oldExpanded() !== currentExpanded()) {
-				this._handleExpansionStateChanged(currentExpanded())
-			}
-
-			this.expandedStreamListenerHandle?.end(true)
-			this.expandedStreamListenerHandle = vnode.attrs.expanded.map(expanded => this._handleExpansionStateChanged(expanded))
+			this._handleExpansionStateChanged(currentExpanded)
 		}
 
 		return true
@@ -133,8 +122,8 @@ export class ExpanderPanelN implements Component<ExpanderPanelAttrs> {
 				"div",
 				{
 					style: {
-						opacity: expanded() ? "1" : "0",
-						height: expanded() ? `${this.lastCalculatedHeight}px` : "0px",
+						opacity: expanded ? "1" : "0",
+						height: expanded ? `${this.lastCalculatedHeight}px` : "0px",
 						transition: `opacity ${DefaultAnimationTime}ms ease-out, height ${DefaultAnimationTime}ms ease-out`,
 					},
 				},

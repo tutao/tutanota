@@ -97,13 +97,14 @@ export class LoginView implements CurrentView {
 				".flex-center.pt-l",
 				m(ExpanderButtonN, {
 					label: "more_label",
-					expanded: this._moreExpanded,
+					expanded: this._moreExpanded(),
+					onExpandedChange: this._moreExpanded,
 				}),
 			),
 			m(
 				ExpanderPanelN,
 				{
-					expanded: this._moreExpanded,
+					expanded: this._moreExpanded(),
 				},
 				[
 					m(".flex-center.flex-column", [

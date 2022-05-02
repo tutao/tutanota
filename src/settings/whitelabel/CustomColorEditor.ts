@@ -101,12 +101,11 @@ export class CustomColorEditor implements Component<SimpleCustomColorEditorAttrs
 			m("", [
 				m(ExpanderButtonN, {
 					label: "advanced_label",
-					expanded: this._advancedSettingsEnabled,
+					expanded: this._advancedSettingsEnabled(),
+					onExpandedChange: this._advancedSettingsEnabled,
 				}),
-				m(
-					ExpanderPanelN,
-					{
-						expanded: this._advancedSettingsEnabled,
+				m(ExpanderPanelN, {
+						expanded: this._advancedSettingsEnabled(),
 					},
 					[
 						m(".small.mt", lang.get("customColorsInfo_msg")),

@@ -426,10 +426,8 @@ export function showCalendarEventDialog(
 						renderChangesMessage(),
 						m(
 							".mb.rel",
-							m(
-								ExpanderPanelN,
-								{
-									expanded: attendeesExpanded,
+							m(ExpanderPanelN, {
+									expanded: attendeesExpanded(),
 								},
 								[m(".flex-grow", renderInvitationField()), m(".flex-grow", renderAttendees())],
 							),
@@ -493,7 +491,8 @@ export function showCalendarEventDialog(
 							".mr-s",
 							m(ExpanderButtonN, {
 								label: "guests_label",
-								expanded: attendeesExpanded,
+								expanded: attendeesExpanded(),
+								onExpandedChange: attendeesExpanded,
 								style: {
 									paddingTop: 0,
 								},

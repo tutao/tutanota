@@ -313,13 +313,12 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 								m(".h4", lang.get("inboxRulesSettings_action")),
 								m(ExpanderButtonN, {
 									label: "showInboxRules_action",
-									expanded: this._inboxRulesExpanded,
+									expanded: this._inboxRulesExpanded(),
+									onExpandedChange: this._inboxRulesExpanded,
 								}),
 							]),
-							m(
-								ExpanderPanelN,
-								{
-									expanded: this._inboxRulesExpanded,
+							m(ExpanderPanelN, {
+									expanded: this._inboxRulesExpanded(),
 								},
 								m(TableN, inboxRulesTableAttrs),
 							),

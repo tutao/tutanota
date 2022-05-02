@@ -99,7 +99,8 @@ export class IdentifierListViewer {
 	view(): Children {
 		const pushIdentifiersExpanderAttrs: ExpanderAttrs = {
 			label: "show_action",
-			expanded: this._expanded,
+			expanded: this._expanded(),
+			onExpandedChange: this._expanded,
 		}
 		const expanderContent = {
 			view: (): Children => {
@@ -137,7 +138,7 @@ export class IdentifierListViewer {
 				m(ExpanderButtonN, pushIdentifiersExpanderAttrs),
 			]),
 			m(ExpanderPanelN, {
-					expanded: this._expanded,
+					expanded: this._expanded(),
 				},
 				m(expanderContent),
 			),

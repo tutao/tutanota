@@ -235,10 +235,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 						]),
 						m(
 							".mb-m",
-							m(
-								ExpanderPanelN,
-								{
-									expanded: this.detailsExpanded,
+							m(ExpanderPanelN, {
+									expanded: this.detailsExpanded(),
 								},
 								this.renderDetails({bubbleMenuWidth: 300}),
 							),
@@ -461,7 +459,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private renderShowMoreButton() {
 		return m(ExpanderButtonN, {
 			label: "showMore_action",
-			expanded: this.detailsExpanded,
+			expanded: this.detailsExpanded(),
+			onExpandedChange: this.detailsExpanded,
 		})
 	}
 
@@ -949,12 +948,11 @@ export class MailViewer implements Component<MailViewerAttrs> {
 								margin: "0px 6px",
 							},
 							label: "showAll_action",
-							expanded: this.filesExpanded,
+							expanded: this.filesExpanded(),
+							onExpandedChange: this.filesExpanded,
 						}),
-						m(
-							ExpanderPanelN,
-							{
-								expanded: this.filesExpanded,
+						m(ExpanderPanelN, {
+								expanded: this.filesExpanded(),
 							},
 							attachments.slice(spoilerLimit).map(attachment => this.renderAttachmentButton(attachment)),
 						),
