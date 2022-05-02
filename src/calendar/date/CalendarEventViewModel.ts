@@ -9,21 +9,14 @@ import {
 	ShareCapability,
 	TimeFormat,
 } from "../../api/common/TutanotaConstants"
-import {createCalendarEventAttendee} from "../../api/entities/tutanota/TypeRefs.js"
-import type {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
-import {createCalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
-import type {AlarmInfo} from "../../api/entities/sys/TypeRefs.js"
+import type {CalendarEvent, CalendarRepeatRule, Contact, EncryptedMailAddress, Mail} from "../../api/entities/tutanota/TypeRefs.js"
+import {createCalendarEvent, createCalendarEventAttendee, createEncryptedMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
+import type {AlarmInfo, RepeatRule} from "../../api/entities/sys/TypeRefs.js"
 import {createAlarmInfo} from "../../api/entities/sys/TypeRefs.js"
 import type {MailboxDetail} from "../../mail/model/MailModel"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {
-	copyMailAddress,
-	getDefaultSenderFromUser,
-	getEnabledMailAddressesWithUser,
-	getSenderNameForUser,
-	RecipientField
-} from "../../mail/model/MailUtils"
+import {copyMailAddress, getDefaultSenderFromUser, getEnabledMailAddressesWithUser, getSenderNameForUser, RecipientField} from "../../mail/model/MailUtils"
 import {
 	createRepeatRuleWithValues,
 	generateUid,
@@ -58,18 +51,13 @@ import {generateEventElementId, isAllDayEvent} from "../../api/common/utils/Comm
 import type {CalendarInfo} from "../model/CalendarModel"
 import {CalendarModel} from "../model/CalendarModel"
 import {DateTime} from "luxon"
-import type {EncryptedMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
-import {createEncryptedMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
 import {NotFoundError, PayloadTooLargeError, TooManyRequestsError} from "../../api/common/error/RestError"
 import type {CalendarUpdateDistributor} from "./CalendarUpdateDistributor"
 import {calendarUpdateDistributor} from "./CalendarUpdateDistributor"
 import type {IUserController} from "../../api/main/UserController"
 import {isExternal, RecipientInfo, RecipientInfoType} from "../../api/common/RecipientInfo"
-import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
 import type {SendMailModel} from "../../mail/editor/SendMailModel"
-import type {RepeatRule} from "../../api/entities/sys/TypeRefs.js"
 import {UserError} from "../../api/main/UserError"
-import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {logins} from "../../api/main/LoginController"
 import {locator} from "../../api/main/MainLocator"
 import {EntityClient} from "../../api/common/EntityClient"
@@ -77,7 +65,6 @@ import {BusinessFeatureRequiredError} from "../../api/main/BusinessFeatureRequir
 import {hasCapabilityOnGroup} from "../../sharing/GroupUtils"
 import {Time} from "../../api/common/utils/Time"
 import {hasError} from "../../api/common/utils/ErrorCheckUtils"
-import type {CalendarRepeatRule} from "../../api/entities/tutanota/TypeRefs.js"
 
 const TIMESTAMP_ZERO_YEAR = 1970
 // whether to close dialog
@@ -199,17 +186,15 @@ export class CalendarEventViewModel {
 		this._zone = zone
 		this._guestStatuses = this._initGuestStatus(existingEvent, resolveRecipientsLazily)
 		this.attendees = this._initAttendees()
-		this._eventType = this._initEventType(existingEvent, calendars)
 		const existingOrganizer = existingEvent && existingEvent.organizer
+		this.organizer = this.initOrganizer(existingOrganizer, mailboxDetail, userController)
+		this._eventType = this._initEventType(existingEvent, calendars)
 		this.possibleOrganizers =
 			existingOrganizer && !this.canModifyOrganizer()
-				? [existingOrganizer]
-				: existingOrganizer && !this._ownMailAddresses.includes(existingOrganizer.address)
-					? [existingOrganizer].concat(this._ownPossibleOrganizers(mailboxDetail, userController))
+				? [this.organizer]
+				: existingOrganizer && !this._ownMailAddresses.includes(this.organizer.address)
+					? [this.organizer].concat(this._ownPossibleOrganizers(mailboxDetail, userController))
 					: this._ownPossibleOrganizers(mailboxDetail, userController)
-		this.organizer = existingOrganizer
-			? copyMailAddress(existingOrganizer)
-			: addressToMailAddress(getDefaultSenderFromUser(userController), mailboxDetail, userController)
 		this.alarms = []
 		this.calendars = calendars
 		this.selectedCalendar = stream(this.getAvailableCalendars()[0])
@@ -315,25 +300,45 @@ export class CalendarEventViewModel {
 		}
 	}
 
+	private initOrganizer(existingOrganizer: EncryptedMailAddress | null, mailboxDetail: MailboxDetail, userController: IUserController): EncryptedMailAddress {
+		if (existingOrganizer) {
+			//If we are not the organizer of the event and there were no invites for this event, the event was created by someone we shared our own calendar with.
+			//In this case we set the organizer to our own primary address.
+			if (!this._ownMailAddresses.includes(existingOrganizer.address) && this.existingEvent?.attendees.length === 0) {
+				return addressToMailAddress(getDefaultSenderFromUser(userController), mailboxDetail, userController)
+			} else {
+				return copyMailAddress(existingOrganizer)
+			}
+		} else {
+			return addressToMailAddress(getDefaultSenderFromUser(userController), mailboxDetail, userController)
+		}
+	}
+
+
 	/**
 	 * Capability for events is fairly complicated:
 	 * Note: share "shared" means "not owner of the calendar". Calendar always looks like personal for the owner.
 	 *
-	 * | Calendar | edit details    | own attendance | guests | organizer
-	 * |----------|-----------------|----------------|--------|----------
-	 * | Personal | yes             | yes            | yes    | yes
-	 * | Personal | yes (local)     | yes            | no     | no
-	 * | Shared   | yes***          | no             | no*    | no*
-	 * | Shared   | yes*** (local)  | no**           | no*    | no*
+	 * | Calendar   | is organizer**** | can edit details    | can modify own attendance | can modify guests | can modify organizer
+	 * |------------|------------------|---------------------|---------------------------|-------------------|----------
+	 * | Personal   | yes              | yes                 | yes                       | yes               | yes
+	 * | Personal   | no (invite)      | yes (local)         | yes                       | no                | no
+	 * | Personal   | no (shared)      | yes (local)         | yes                       | yes               | yes
+	 * | Shared     | yes              | yes***              | no                        | no*               | no*
+	 * | Shared     | no               | no                  | no**                      | no*               | no*
 	 *
-	 *   * we don't allow sharing in other people's calendar because later only organizer can modify event and
+	 *   * we don't allow inviting guests in other people's calendar because later only organizer can modify event and
 	 *   we don't want to prevent calendar owner from editing events in their own calendar.
 	 *
 	 *   ** this is not "our" copy of the event, from the point of organizer we saw it just accidentally.
 	 *   Later we might support proposing ourselves as attendee but currently organizer should be asked to
 	 *   send out the event.
 	 *
-	 *   *** depends on share capability. Cannot edit if it's not a copy and there are attendees.
+	 *   *** depends on share capability and whether there are attendees.
+	 *
+	 *   **** effectively organizer - if event doesn't have any guests then organizer doesn't matter and we can change
+	 *     the organizer to be ourselves. The only "real" organizer that event in a shared calendar can have is the
+	 *     owner of the calendar.
 	 */
 	_initEventType(existingEvent: CalendarEvent | null, calendars: ReadonlyMap<Id, CalendarInfo>): EventType {
 		if (!existingEvent) {
@@ -348,7 +353,7 @@ export class CalendarEventViewModel {
 						? EventType.SHARED_RW
 						: EventType.SHARED_RO
 				} else {
-					return existingEvent.organizer == null || this._ownMailAddresses.includes(existingEvent.organizer.address)
+					return this.organizer == null || this._ownMailAddresses.includes(this.organizer.address)
 						? EventType.OWN
 						: EventType.INVITE
 				}
@@ -520,6 +525,17 @@ export class CalendarEventViewModel {
 	}
 
 	isReadOnlyEvent(): boolean {
+		// For the RW calendar we have two similar cases:
+		//
+		// Case 1:
+		// Owner of the calendar created the event and invited some people. We, user with whom calendar was shared as RW, are seeing this event.
+		// We cannot modify that event even though we have RW permission because we are the not organizer.
+		// If the event is changed, the update must be sent out and we cannot do that because we are not the organizer.
+		//
+		// Case 2:
+		// Owner of the calendar received an invite and saved the event to the calendar. We, user with whom the calendar was shared as RW, are seeing this event.
+		// We can (theoretically) modify the event locally because we don't need to send any updates but we cannot change attendance because this would require sending an email.
+		// But we don't want to allow editing the event to make it more understandable for everyone.
 		return this._eventType === EventType.SHARED_RO || (this._eventType === EventType.SHARED_RW && this.attendees().length > 0)
 	}
 
