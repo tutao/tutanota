@@ -8,7 +8,7 @@ import nodeResolve from "@rollup/plugin-node-resolve"
 import hmr from "nollup/lib/plugin-hmr.js"
 import os from "os"
 import {bundleDependencyCheckPlugin} from "./RollupConfig.js"
-import {nativeDepWorkaroundPlugin, pluginNativeLoader} from "./RollupPlugins.js"
+import {nativeDepWorkaroundPlugin} from "./RollupPlugins.js"
 import {keytarNativePlugin, sqliteNativeBannerPlugin} from "./nativeLibraryRollupPlugin.js"
 import {writeNollupBundle} from "./RollupUtils.js"
 
@@ -67,7 +67,7 @@ function getStaticUrl(stage, mode, host) {
 	}
 }
 
-async function prepareAssets(stage, host, version) {
+export async function prepareAssets(stage, host, version) {
 	await Promise.all([
 		await fs.emptyDir(path.join(root, "build/images")),
 		fs.copy(path.join(root, '/resources/favicon'), path.join(root, '/build/images')),

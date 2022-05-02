@@ -46,7 +46,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
  * @returns {Promise<*>}
  */
 async function getDictionaries(outDir, local) {
-	const electronVersion = getElectronVersion()
+	const electronVersion = await getElectronVersion()
 	const baseTarget = path.join((outDir), '..')
 
 	const targets = local
@@ -59,7 +59,7 @@ async function getDictionaries(outDir, local) {
 async function publishDebPackage() {
 	const commonArgs = `-f -s dir -t deb --deb-user tutadb --deb-group tutadb`
 	const target = `/opt/tutanota`
-	const electronVersion = getElectronVersion()
+	const electronVersion = await getElectronVersion()
 	const deb = `tutanota-desktop-dicts_${electronVersion}_amd64.deb`
 
 	console.log("create " + debs.dict)
