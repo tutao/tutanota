@@ -11,7 +11,7 @@ import {getElectronVersion, getInstalledModuleVersion} from "./buildUtils.js"
 export default function generateTemplate({nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked}) {
 	const appName = "tutanota-desktop" + nameSuffix
 	const appId = "de.tutao.tutanota" + nameSuffix
-	if(process.env.JENKINS && process.env.DEBUG_SIGN) throw new Error("Tried to DEBUG_SIGN in CI!")
+	if (process.env.JENKINS && process.env.DEBUG_SIGN) throw new Error("Tried to DEBUG_SIGN in CI!")
 	const debugkey = process.env.DEBUG_SIGN
 		? readFileSync(path.join(process.env.DEBUG_SIGN, "test.pubkey"), {encoding: 'utf8'})
 		: undefined
@@ -80,6 +80,7 @@ export default function generateTemplate({nameSuffix, version, updateUrl, iconPa
 				? nameSuffix.slice(1) + " Tutanota Desktop"
 				: "Tutanota Desktop",
 			"artifactName": "${name}-${os}.${ext}",
+			"asarUnpack": "desktop/*.node",
 			"afterSign": notarize ? "buildSrc/notarize.cjs" : undefined,
 			"protocols": [
 				{

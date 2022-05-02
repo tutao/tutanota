@@ -40,6 +40,7 @@ export async function buildDesktop(
 		notarize,
 		outDir,
 		unpacked,
+		disableMinify,
 	}
 ) {
 	// The idea is that we
@@ -83,7 +84,7 @@ export async function buildDesktop(
 	}
 
 	console.log("Bundling desktop client")
-	await rollupDesktop(dirname, path.join(distDir, "desktop"), version, platform)
+	await rollupDesktop(dirname, path.join(distDir, "desktop"), version, platform, disableMinify)
 
 	console.log("Starting installer build...")
 	if (process.platform.startsWith("darwin")) {
@@ -123,7 +124,7 @@ export async function buildDesktop(
 	])
 }
 
-async function rollupDesktop(dirname, outDir, version, platform) {
+async function rollupDesktop(dirname, outDir, version, platform, disableMinify) {
 	const mainBundle = await rollup({
 		input: path.join(dirname, "src/desktop/DesktopMain.ts"),
 		preserveEntrySignatures: false,
@@ -145,16 +146,17 @@ async function rollupDesktop(dirname, outDir, version, platform) {
 				requireReturnsDefault: "preferred",
 				ignoreDynamicRequires: true,
 			}),
-			terser(),
+			disableMinify ? undefined : terser(),
 			preludeEnvPlugin(createEnv({staticUrl: null, version, mode: "Desktop", dist: true})),
 			sqliteNativeBannerPlugin(
 				{
 					environment: "electron",
 					rootDir: projectRoot,
 					dstPath: "./build/dist/desktop/better_sqlite3.node",
-					// Relative to the source file from which the .node file is loaded
-					// In our case it will be desktop/DesktopMain.js, which is located in the same directory
-					// This depends on the changes we made in our own fork of better_sqlite3
+					// Relative to the source file from which the .node file is loaded.
+					// In our case it will be desktop/DesktopMain.js, which is located in the same directory.
+					// This depends on the changes we made in our own fork of better_sqlite3.
+					// It's okay to use forward slash here, it is passed to require which can deal with it.
 					nativeBindingPath: "./better_sqlite3.node",
 					platform,
 				}

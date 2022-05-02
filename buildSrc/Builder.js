@@ -180,8 +180,9 @@ async function bundleDesktop(log, version) {
 				{
 					environment: "electron",
 					rootDir: root,
-					dstPath: path.join(root, "build/native/better_sqlite3.node"),
+					dstPath: path.join(root, "build/desktop/native/better_sqlite3.node"),
 					platform: process.platform,
+					nativeBindingPath: "./native/better_sqlite3.node",
 				},
 				log
 			),

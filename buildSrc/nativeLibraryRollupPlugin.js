@@ -21,13 +21,16 @@ export function sqliteNativeBannerPlugin(
 				platform,
 				copyTarget: "better_sqlite3",
 			})
-			await fs.promises.mkdir(path.dirname(dstPath), {recursive: true})
-			await fs.promises.copyFile(modulePath, dstPath)
+			const normalDst = path.normalize(dstPath)
+			const dstDir = path.dirname(normalDst)
+			await fs.promises.mkdir(dstDir, {recursive: true})
+			await fs.promises.copyFile(modulePath, normalDst)
 		},
 		banner() {
+			const nativeLibPath = (nativeBindingPath ?? dstPath)
 			return `
 			globalThis.buildOptions = globalThis.buildOptions ?? {}
-			globalThis.buildOptions.sqliteNativePath = "${nativeBindingPath ?? dstPath}";
+			globalThis.buildOptions.sqliteNativePath = "${nativeLibPath}";
 			`
 		}
 	}

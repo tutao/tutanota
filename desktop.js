@@ -89,7 +89,8 @@ async function buildDesktopClient(
 		platform,
 		customDesktopRelease,
 		unpacked,
-		outDir
+		outDir,
+		disableMinify,
 	}
 ) {
 	const {buildDesktop} = await import("./buildSrc/DesktopBuilder.js")
@@ -103,7 +104,8 @@ async function buildDesktopClient(
 		nameSuffix: "",
 		notarize: !customDesktopRelease,
 		outDir: outDir,
-		unpacked: unpacked
+		unpacked: unpacked,
+		disableMinify,
 	}
 
 	if (stage === "release") {
