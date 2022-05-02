@@ -5,6 +5,7 @@ import m, {Children} from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {isCustomizationEnabledForCustomer} from "../../api/common/utils/Utils"
 import {downcast} from "@tutao/tutanota-utils"
 import {Dialog} from "../../gui/base/Dialog"
@@ -19,7 +20,6 @@ import {getTextsForGroupType} from "../GroupGuiUtils"
 import {FeatureType, GroupType} from "../../api/common/TutanotaConstants"
 import {ColorPicker} from "../../gui/base/ColorPicker"
 import {locator} from "../../api/main/MainLocator"
-import Stream from "mithril/stream";
 
 export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	const groupType = getInvitationGroupType(invitation)
@@ -138,7 +138,8 @@ function renderCalendarGroupInvitationFields(invitation: ReceivedGroupInvitation
 	return [
 		m(".small.mt.mb-xs", lang.get("color_label")),
 		m(ColorPicker, {
-			value: selectedColourValue,
+			value: selectedColourValue(),
+			onValueChange: selectedColourValue,
 		}),
 	]
 }
