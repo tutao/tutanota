@@ -1,6 +1,6 @@
-import {UsageTestAssignmentInTypeRef} from "./UsageTestAssignmentIn.js"
-import {UsageTestAssignmentOutTypeRef} from "./UsageTestAssignmentOut.js"
-import {UsageTestParticipationInTypeRef} from "./UsageTestParticipationIn.js"
+import {UsageTestAssignmentInTypeRef} from "./TypeRefs.js"
+import {UsageTestAssignmentOutTypeRef} from "./TypeRefs.js"
+import {UsageTestParticipationInTypeRef} from "./TypeRefs.js"
 
 export const UsageTestAssignmentService = Object.freeze({
 	app: "usage",
