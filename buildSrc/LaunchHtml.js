@@ -85,6 +85,6 @@ function csp(env) {
 }
 
 function renderScriptImport({src, type}) {
-	const typeString = type ? `type="${type}"` : ""
+	const typeString = type ? ` type="${type}"` : ""
 	return `<script src="${src}"${typeString} defer></script>`
 }
