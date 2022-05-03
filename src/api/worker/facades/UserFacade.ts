@@ -2,8 +2,9 @@ import {GroupType} from "../../common/TutanotaConstants"
 import {decryptKey} from "@tutao/tutanota-crypto"
 import {assertNotNull, getFromMap} from "@tutao/tutanota-utils"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
-import {createWebsocketLeaderStatus, GroupInfo, GroupMembership, User, WebsocketLeaderStatus} from "../../entities/sys/TypeRefs"
+import {createWebsocketLeaderStatus, GroupMembership, User, WebsocketLeaderStatus} from "../../entities/sys/TypeRefs"
 import {Aes128Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
+import {LoginIncompleteError} from "../../common/error/LoginIncompleteError"
 
 export interface AuthHeadersProvider {
 	/**
@@ -83,7 +84,17 @@ export class UserFacade implements AuthHeadersProvider {
 
 	getUserGroupKey(): Aes128Key {
 		// the userGroupKey is always written after the login to this.groupKeys
-		return assertNotNull(this.groupKeys.get(this.getUserGroupId()), "User is not logged in")
+		//if the user has only logged in offline this has not happened
+		const userGroupKey = this.groupKeys.get(this.getUserGroupId())
+		if (userGroupKey == null) {
+			if (this.isPartiallyLoggedIn()) {
+				throw new LoginIncompleteError("userGroupKey not available")
+			} else {
+				throw new ProgrammingError("Invalid state: userGroupKey is not available")
+			}
+		}
+		return userGroupKey
+
 	}
 
 	getGroupKey(groupId: Id): Aes128Key {

@@ -28,6 +28,7 @@ import {promptForFeedbackAndSend, showErrorDialogNotLoggedIn} from "./ErrorRepor
 import {CancelledError} from "../api/common/error/CancelledError"
 import {getLoginErrorMessage} from "./LoginUtils"
 import {SessionType} from "../api/common/SessionType"
+import {LoginIncompleteError} from "../api/common/error/LoginIncompleteError.js"
 
 assertMainOrNode()
 
@@ -53,7 +54,7 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		return
 	}
 
-	if (e instanceof ConnectionError) {
+	if (e instanceof ConnectionError || e instanceof LoginIncompleteError) {
 		showOfflineMessage()
 	} else if (e instanceof InvalidSoftwareVersionError) {
 		if (!invalidSoftwareVersionActive) {
