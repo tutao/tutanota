@@ -42,13 +42,9 @@ export class CalendarAgendaView implements Component<Attrs> {
 		const tomorrow = incrementDate(new Date(today), 1)
 		const days = getNextFourteenDays(today)
 		const lastDay = lastThrow(days)
-		let title: string
-
-		if (days[0].getMonth() === lastDay.getMonth()) {
-			title = `${lang.formats.dateWithWeekdayWoMonth.format(days[0])} - ${lang.formats.dateWithWeekdayAndYear.format(lastDay)}`
-		} else {
-			title = `${lang.formats.dateWithWeekday.format(days[0])} - ${lang.formats.dateWithWeekdayAndYear.format(lastDay)}`
-		}
+		const title = days[0].getFullYear() === lastDay.getFullYear()
+			? `${lang.formats.dateWithWeekday.format(days[0])} - ${lang.formats.dateWithWeekdayAndYear.format(lastDay)}`
+			: `${lang.formats.dateWithWeekdayAndYear.format(days[0])} - ${lang.formats.dateWithWeekdayAndYear.format(lastDay)}`
 
 		const lastDayFormatted = formatDate(lastDay)
 		return m(".fill-absolute.flex.col.margin-are-inset-lr", [
