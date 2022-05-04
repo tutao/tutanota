@@ -1,16 +1,15 @@
 import {DrawerMenu} from "../nav/DrawerMenu"
 import {theme} from "../theme"
 import m, {Children, Component, Vnode} from "mithril"
-import {ButtonN, ButtonType} from "./ButtonN"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 import type {clickHandler} from "./GuiUtils"
 import type {lazy} from "@tutao/tutanota-utils"
-import {assertMainOrNode} from "../../api/common/Env"
 import {Request} from "../../api/common/MessageDispatcher"
+import {WsConnectionState} from "../../api/main/WorkerClient"
+import {FolderColumnHeaderButton} from "./buttons/FolderColumnHeaderButton"
 
-assertMainOrNode()
 export type Attrs = {
 	/** Button to be displayed on top of the column*/
 	button: | {label: TranslationKey, click: clickHandler} | null | undefined
@@ -19,6 +18,21 @@ export type Attrs = {
 }
 
 export class FolderColumnView implements Component<Attrs> {
+	private wsState: WsConnectionState = WsConnectionState.connecting
+
+	constructor() {
+		import("../../api/main/MainLocator").then(async ({locator}) => {
+			await locator.initialized
+			const worker = locator.worker
+			this.wsState = worker.wsConnection()()
+			worker.wsConnection().map(state => {
+				this.wsState = state
+				m.redraw()
+			})
+			m.redraw()
+		})
+	}
+
 	view({attrs}: Vnode<Attrs>): Children {
 		return m(".flex.height-100p", [
 			m(DrawerMenu, {
@@ -28,16 +42,7 @@ export class FolderColumnView implements Component<Attrs> {
 				},
 			}),
 			m(".folder-column.flex-grow.overflow-x-hidden.flex.col" + landmarkAttrs(AriaLandmarks.Navigation, lang.getMaybeLazy(attrs.ariaLabel)), [
-				attrs.button
-					? m(
-						".mlr-l.mt.mb",
-						m(ButtonN, {
-							label: attrs.button.label,
-							click: attrs.button.click,
-							type: ButtonType.PrimaryBorder,
-						}),
-					)
-					: null,
+				m(".mlr-l.mt.mb", this.renderMainButton(attrs)),
 				m(
 					".scroll.overflow-x-hidden.flex.col.flex-grow",
 					{
@@ -54,5 +59,12 @@ export class FolderColumnView implements Component<Attrs> {
 				),
 			]),
 		])
+	}
+
+	private renderMainButton(attrs: Attrs): Children {
+		return attrs.button ? m(FolderColumnHeaderButton, {
+			label: attrs.button.label,
+			click: attrs.button.click,
+		}) : null
 	}
 }
