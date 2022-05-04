@@ -1,16 +1,15 @@
-import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
-import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
+import type {Contact, ContactList} from "../../api/entities/tutanota/TypeRefs.js"
+import {ContactListTypeRef, ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {createRestriction} from "../../search/model/SearchUtils"
 import {flat, groupBy, LazyLoaded, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
 import {DbError} from "../../api/common/error/DbError"
 import {EntityClient} from "../../api/common/EntityClient"
 import type {LoginController} from "../../api/main/LoginController"
-import type {ContactList} from "../../api/entities/tutanota/TypeRefs.js"
-import {ContactListTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {compareOldestFirst, elementIdPart, listIdPart} from "../../api/common/utils/EntityUtils"
 import type {SearchFacade} from "../../api/worker/search/SearchFacade"
 import {assertMainOrNode} from "../../api/common/Env"
+import {LoginIncompleteError} from "../../api/common/error/LoginIncompleteError"
 
 assertMainOrNode()
 
@@ -30,11 +29,13 @@ export class ContactModelImpl implements ContactModel {
 	_entityClient: EntityClient
 	_searchFacade: SearchFacade
 	_contactListId: LazyLoaded<Id | null>
+	private loginController: LoginController
 
 	constructor(searchFacade: SearchFacade, entityClient: EntityClient, loginController: LoginController) {
 		this._searchFacade = searchFacade
 		this._entityClient = entityClient
 		this._contactListId = lazyContactListId(loginController, this._entityClient)
+		this.loginController = loginController
 	}
 
 	contactListId(): Promise<Id | null> {
@@ -42,9 +43,12 @@ export class ContactModelImpl implements ContactModel {
 	}
 
 	async searchForContact(mailAddress: string): Promise<Contact | null> {
+		//searching for contacts depends on searchFacade._db to be initialized. If the user has not logged in online the respective promise will never resolve.
+		if (!this.loginController.isFullyLoggedIn()) {
+			throw new LoginIncompleteError("cannot search for contacts as online login is not completed")
+		}
 		const cleanMailAddress = mailAddress.trim().toLowerCase()
 		let result
-
 		try {
 			result = await this._searchFacade
 							   .search(
@@ -102,6 +106,9 @@ export class ContactModelImpl implements ContactModel {
 	 * @pre locator.search.indexState().indexingSupported
 	 */
 	async searchForContacts(query: string, field: string, minSuggestionCount: number): Promise<Contact[]> {
+		if (!this.loginController.isFullyLoggedIn()) {
+			throw new LoginIncompleteError("cannot search for contacts as online login is not completed")
+		}
 		const result = await this._searchFacade.search(query, createRestriction("contact", null, null, field, null), minSuggestionCount)
 		const resultsByListId = groupBy(result.results, listIdPart)
 		const loadedContacts = await promiseMap(
