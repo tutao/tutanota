@@ -24,7 +24,6 @@ export const enum ButtonType {
 	Bubble = "bubble",
 	TextBubble = "textBubble",
 	Toggle = "toggle",
-	PrimaryBorder = "primaryBorder",
 }
 
 export const enum ButtonColor {
@@ -175,12 +174,7 @@ export class ButtonN implements Component<ButtonAttrs> {
 				"border-radius": "3px",
 				"background-color": theme.content_accent,
 			}
-			: a.type === ButtonType.PrimaryBorder
-				? {
-					border: `2px solid ${theme.content_accent}`,
-					"border-radius": "3px", // 'background-color': theme.navigation_button_icon_bg,
-				}
-				: {}
+			: {}
 	}
 
 	getTitle(title: TranslationKey | lazy<string>): string {
@@ -272,7 +266,7 @@ export class ButtonN implements Component<ButtonAttrs> {
 			buttonClasses.push("button-height") // set the button height for firefox browser
 		}
 
-		if (type === ButtonType.Login || type === ButtonType.PrimaryBorder) {
+		if (type === ButtonType.Login) {
 			buttonClasses.push("full-width")
 		}
 
@@ -339,7 +333,6 @@ export class ButtonN implements Component<ButtonAttrs> {
 		switch (type) {
 			case ButtonType.Primary:
 			case ButtonType.Secondary:
-			case ButtonType.PrimaryBorder:
 				color = theme.content_accent
 				break
 
@@ -362,7 +355,7 @@ export class ButtonN implements Component<ButtonAttrs> {
 
 		return {
 			color,
-			"font-weight": type === ButtonType.Primary || type === ButtonType.PrimaryBorder ? "bold" : "normal",
+			"font-weight": type === ButtonType.Primary ? "bold" : "normal",
 		}
 	}
 
