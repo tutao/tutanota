@@ -25,8 +25,8 @@ import {Credentials} from "../../../../../src/misc/credentials/Credentials"
 import {defer, DeferredObject, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {AccountType} from "../../../../../src/api/common/TutanotaConstants"
 import {ConnectionError} from "../../../../../src/api/common/error/RestError"
-import {SessionType} from "../../../../../src/api/common/SessionType"
 import {assertThrows, verify} from "@tutao/tutanota-test-utils"
+import {SessionType} from "../../../../../src/api/common/SessionType"
 import {HttpMethod} from "../../../../../src/api/common/EntityFunctions"
 import {ConnectMode, EventBusClient} from "../../../../../src/api/worker/EventBusClient"
 import {Indexer} from "../../../../../src/api/worker/search/Indexer"
@@ -467,6 +467,10 @@ o.spec("LoginFacadeTest", function () {
 
 				await facade.asyncLoginPromise
 
+				//We need to wait a bit so asyncResumeSesssion has failed - otherwise retry will not be executed
+				while (facade.asyncLoginState.state !== "failed") {
+					await Promise.resolve()
+				}
 				await facade.retryAsyncLogin()
 
 				await fullLoginDeferred.promise
