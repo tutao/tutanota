@@ -185,7 +185,7 @@ export class LoginFacadeImpl implements LoginFacade {
 	private loggingInPromiseWrapper: DeferredObject<void> | null = null
 
 	/** On platforms with offline cache we do the actual login asynchronously and we can retry it. This is the state of such async login. */
-	private asyncLoginState:
+	asyncLoginState:
 		| {state: "idle"}
 		| {state: "running"}
 		| {state: "failed", credentials: Credentials, usingOfflineStorage: boolean} = {state: "idle"}

@@ -24,13 +24,13 @@ import {UserFacade} from "../../../../src/api/worker/facades/UserFacade"
 import {SaltService, SessionService} from "../../../../src/api/entities/sys/Services"
 import {ILoginListener} from "../../../../src/api/main/LoginListener"
 import {createTutanotaProperties, TutanotaPropertiesTypeRef} from "../../../../src/api/entities/tutanota/TypeRefs"
-import {SessionType} from "../../../../src/api/common/SessionType"
 import {assertThrows, verify} from "@tutao/tutanota-test-utils"
 import {Credentials} from "../../../../src/misc/credentials/Credentials"
 import {defer, DeferredObject, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {HttpMethod} from "../../../../src/api/common/EntityFunctions"
 import {AccountType} from "../../../../src/api/common/TutanotaConstants"
 import {ConnectionError} from "../../../../src/api/common/error/RestError"
+import {SessionType} from "../../../../src/api/common/SessionType"
 
 const {anything} = matchers
 
@@ -304,8 +304,6 @@ o.spec("LoginFacadeTest", function () {
 						calls.push("sessionService")
 						throw connectionError
 					})
-				const workerErrorDefer = defer<void>()
-				when(workerMock.sendError(connectionError)).thenDo(() => workerErrorDefer.resolve())
 				const result = await facade.resumeSession(credentials, user.salt, dbKey)
 
 				o(result.type).equals("success")
@@ -313,7 +311,6 @@ o.spec("LoginFacadeTest", function () {
 
 				// Did not finish login
 				verify(userFacade.unlockUserGroupKey(anything()), {times: 0})
-				await workerErrorDefer.promise
 			})
 
 			o("When not using offline as free user with connection, sync login", async function () {
@@ -438,15 +435,12 @@ o.spec("LoginFacadeTest", function () {
 				const groupInfo = createGroupInfo()
 				when(entityClientMock.load(GroupInfoTypeRef, user.userGroup.groupInfo)).thenResolve(groupInfo)
 				const connectionError = new ConnectionError("test")
+
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything()))
 					.thenResolve(Promise.reject(connectionError))
 
-				const workerErrorDefer = defer<void>()
-				when(workerMock.sendError(connectionError)).thenDo(() => workerErrorDefer.resolve())
 
 				await facade.resumeSession(credentials, user.salt, dbKey)
-
-				await workerErrorDefer.promise
 
 				verify(userFacade.setAccessToken("accessToken"))
 				verify(userFacade.unlockUserGroupKey(anything()), {times: 0})
@@ -456,6 +450,10 @@ o.spec("LoginFacadeTest", function () {
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything()))
 					.thenResolve(JSON.stringify({user: userId, accessKey: keyToBase64(accessKey)}))
 
+				//We need to wait a bit so asyncResumeSesssion has failed - otherwise retry will not be executed
+				while (facade.asyncLoginState.state !== "failed") {
+					await Promise.resolve()
+				}
 				await facade.retryAsyncLogin()
 
 				await fullLoginDeferred.promise
