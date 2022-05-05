@@ -1,20 +1,16 @@
 import {parseCalendarFile} from "../export/CalendarImporter"
-import type {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
-import type {File as TutanotaFile} from "../../api/entities/tutanota/TypeRefs.js"
+import type {CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {locator} from "../../api/main/MainLocator"
-import type {CalendarEventAttendee} from "../../api/entities/tutanota/TypeRefs.js"
-import type {CalendarAttendeeStatus} from "../../api/common/TutanotaConstants"
-import {ArchiveDataType, CalendarMethod, getAsEnumValue} from "../../api/common/TutanotaConstants"
+import {CalendarAttendeeStatus, CalendarMethod, getAsEnumValue} from "../../api/common/TutanotaConstants"
 import {assertNotNull, clone, filterInt, noOp, ofClass, Thunk} from "@tutao/tutanota-utils"
 import {findPrivateCalendar, getEventStart, getTimeZone} from "./CalendarUtils"
 import {logins} from "../../api/main/LoginController"
-import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {calendarUpdateDistributor} from "./CalendarUpdateDistributor"
 import {Dialog} from "../../gui/base/Dialog"
 import {UserError} from "../../api/main/UserError"
 import {NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 import {CalendarEventViewModel, createCalendarEventViewModel} from "./CalendarEventViewModel"
-import {convertToDataFile, DataFile} from "../../api/common/DataFile";
+import {DataFile} from "../../api/common/DataFile";
 
 function getParsedEvent(
 	fileData: DataFile,
@@ -142,11 +138,12 @@ export function replyToEventInvitation(
 								return locator.calendarModel.updateEvent(eventClone, alarmInfos, getTimeZone(), calendar.groupRoot, event).then(noOp)
 							})
 						} else {
-							return locator.calendarModel.createEvent(eventClone, [], getTimeZone(), calendar.groupRoot)
+							if (decision !== CalendarAttendeeStatus.DECLINED) {
+								return locator.calendarModel.createEvent(eventClone, [], getTimeZone(), calendar.groupRoot)
+							}
 						}
-					} else {
-						return Promise.resolve()
 					}
+					return Promise.resolve()
 				})
 		})
 	})
