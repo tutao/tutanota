@@ -6,7 +6,7 @@ import {lang, TranslationKey} from "../misc/LanguageViewModel"
 import {isTutanotaMailAddress} from "../api/common/RecipientInfo"
 import {InvalidDataError, LimitReachedError, PreconditionFailedError} from "../api/common/error/RestError"
 import {noOp} from "@tutao/tutanota-utils"
-import {SelectMailAddressForm, SelectMailAddressFormAttrs} from "./SelectMailAddressForm"
+import {SelectMailAddressForm, SelectMailAddressFormAttrs, ValidationResult} from "./SelectMailAddressForm"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
@@ -170,13 +170,13 @@ export function showAddAliasDialog(aliasFormAttrs: EditAliasesFormAttrs) {
 	} else {
 		getAvailableDomains().then(domains => {
 			let isVerificationBusy = false
-			let mailAddress
-			let formErrorId = null
+			let mailAddress: string
+			let formErrorId: TranslationKey | null = null
 			let formDomain = stream(firstThrow(domains))
 
 			const mailAddressFormAttrs = {
 				availableDomains: domains,
-				onEmailChanged: (email, validationResult) => {
+				onEmailChanged: (email: string, validationResult: ValidationResult) => {
 					if (validationResult.isValid) {
 						mailAddress = email
 						formErrorId = null
@@ -184,10 +184,10 @@ export function showAddAliasDialog(aliasFormAttrs: EditAliasesFormAttrs) {
 						formErrorId = validationResult.errorId
 					}
 				},
-				onBusyStateChanged: (isBusy) => isVerificationBusy = isBusy,
-				onDomainChanged: (domain) => formDomain(domain),
+				onBusyStateChanged: (isBusy: boolean) => isVerificationBusy = isBusy,
+				onDomainChanged: (domain: string) => formDomain(domain),
 			}
-			const addEmailAliasOkAction = (dialog) => {
+			const addEmailAliasOkAction = (dialog: Dialog) => {
 				if (isVerificationBusy) return
 				if (formErrorId) {
 					Dialog.message(formErrorId)

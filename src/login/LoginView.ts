@@ -11,7 +11,7 @@ import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {windowFacade} from "../misc/WindowFacade"
 import {DeviceType} from "../misc/ClientConstants"
 import {ButtonAttrs, ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {CurrentView, header} from "../gui/base/Header"
+import {CurrentView, header, SearchHandler} from "../gui/base/Header"
 import {AriaLandmarks, landmarkAttrs, liveDataAttrs} from "../gui/AriaUtils"
 import type {ILoginViewModel} from "./LoginViewModel"
 import {DisplayMode, LoginState} from "./LoginViewModel"
@@ -368,6 +368,10 @@ export class LoginView implements CurrentView {
 
 	_switchDeleteCredentialsState(): void {
 		this._viewModel.switchDeleteState()
+	}
+
+	getSearchHandler(): SearchHandler | null {
+		return null;
 	}
 }
 

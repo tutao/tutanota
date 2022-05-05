@@ -1,5 +1,5 @@
 import m, {Children} from "mithril"
-import type {CurrentView} from "../../gui/base/Header"
+import type {CurrentView, SearchHandler} from "../../gui/base/Header"
 import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import {lang, TranslationKey} from "../../misc/LanguageViewModel"
 import {ViewSlider} from "../../gui/base/ViewSlider"
@@ -787,5 +787,9 @@ export class CalendarView implements CurrentView {
 			right: x,
 		}
 		new CalendarEventPopup(calendarEvent, rect, htmlSanitizer, () => this._editEventDialog(calendarEvent), viewModel).show()
+	}
+
+	getSearchHandler(): SearchHandler | null {
+		return null
 	}
 }

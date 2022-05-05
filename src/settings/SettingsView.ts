@@ -77,7 +77,7 @@ export interface UpdatableSettingsDetailsViewer {
 }
 
 export class SettingsView implements CurrentView {
-	readonly view: CurrentView["view"]
+	view: CurrentView["view"]
 	viewSlider: ViewSlider
 	private readonly _settingsFoldersColumn: ViewColumn
 	private readonly _settingsColumn: ViewColumn

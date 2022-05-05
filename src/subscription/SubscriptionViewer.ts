@@ -508,7 +508,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			SwitchToBusinessInvoiceDataDialog.show(
 				customer,
 				{
-					invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
+					invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress, accountingInfo.invoiceCountry),
 					country: invoiceCountry,
 					vatNumber: "",
 				},
@@ -772,7 +772,7 @@ export function changeSubscriptionInterval(accountingInfo: AccountingInfo, payme
 				locator.customerFacade.updatePaymentData(
 					paymentInterval,
 					{
-						invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
+						invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress, accountingInfo.invoiceCountry),
 						country: invoiceCountry,
 						vatNumber: accountingInfo.invoiceVatIdNo,
 					},

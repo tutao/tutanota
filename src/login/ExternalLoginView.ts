@@ -15,7 +15,6 @@ import {progressIcon} from "../gui/base/Icon"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN, TextFieldType as TextFieldType} from "../gui/base/TextFieldN"
 import {CheckboxN} from "../gui/base/CheckboxN"
-import {CancelledError} from "../api/common/error/CancelledError"
 import {logins} from "../api/main/LoginController"
 import {MessageBoxN} from "../gui/base/MessageBoxN"
 import {renderPrivacyAndImprintLinks} from "./LoginView"
@@ -24,7 +23,7 @@ import {GENERATED_MIN_ID} from "../api/common/utils/EntityUtils"
 import {getLoginErrorMessage, handleExpectedLoginError} from "../misc/LoginUtils"
 import {locator} from "../api/main/MainLocator"
 import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
-import type {CurrentView, SearchHandler} from "../gui/base/Header"
+import type {SearchHandler} from "../gui/base/Header"
 import {assertMainOrNode} from "../api/common/Env"
 import type {Credentials} from "../misc/credentials/Credentials"
 import {SessionType} from "../api/common/SessionType.js";
@@ -212,7 +211,7 @@ export class ExternalLoginView implements CurrentView {
 			})
 	}
 
-	getSearchHandler(): ?SearchHandler {
+	getSearchHandler(): SearchHandler | null {
 		return null
 	}
 }

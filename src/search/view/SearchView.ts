@@ -78,14 +78,14 @@ export class SearchView implements CurrentView {
 	resultListColumn: ViewColumn
 	resultDetailsColumn: ViewColumn
 	folderColumn: ViewColumn
-	private _viewer: SearchResultDetailsViewer
+	private readonly _viewer: SearchResultDetailsViewer
 	viewSlider: ViewSlider
-	private _searchList: SearchListView
+	private readonly _searchList: SearchListView
 	view: CurrentView["view"]
 	oncreate: CurrentView["oncreate"]
 	onremove: CurrentView["onremove"]
-	private _mailFolder: NavButtonAttrs
-	private _contactFolder: NavButtonAttrs
+	private readonly _mailFolder: NavButtonAttrs
+	private readonly _contactFolder: NavButtonAttrs
 	private _endDate: Date | null // null = today
 
 	private _startDate: Date | null // null = current mail index date. this allows us to start the search (and the url) without end date set
@@ -666,7 +666,7 @@ export class SearchView implements CurrentView {
 		}
 	}
 
-	getSearchHandler(): ?SearchHandler {
+	getSearchHandler(): SearchHandler | null {
 		return null
 	}
 }

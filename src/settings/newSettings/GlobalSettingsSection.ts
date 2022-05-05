@@ -18,10 +18,10 @@ import {formatDateTime, formatDateTimeFromYesterdayOn} from "../../misc/Formatte
 import {showRejectedSendersInfoDialog} from "../RejectedSendersInfoDialog";
 import {attachDropdown, createDropdown} from "../../gui/base/DropdownN";
 import {Icons} from "../../gui/base/icons/Icons";
-import {ButtonType} from "../../gui/base/ButtonN";
+import {ButtonAttrs, ButtonType} from "../../gui/base/ButtonN";
 import {getDomainPart} from "../../misc/parsing/MailAddressParser";
 import {getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog} from "../AddSpamRuleDialog";
-import {createEmailSenderListElement, EmailSenderListElement} from "../../api/entities/sys/EmailSenderListElement";
+import {createEmailSenderListElement} from "../../api/entities/sys/EmailSenderListElement";
 import {getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType} from "../../api/common/TutanotaConstants";
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog";
 import m from "mithril";
@@ -47,7 +47,7 @@ import {UserTypeRef} from "../../api/entities/sys/User";
 import {getUserGroupMemberships} from "../../api/common/utils/GroupUtils";
 import type {DropDownSelectorAttrs} from "../../gui/base/DropDownSelectorN";
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN";
-import {DAY_IN_MILLIS, LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils";
+import {DAY_IN_MILLIS, LazyLoaded, mod, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils";
 import {EntityClient} from "../../api/common/EntityClient";
 import type {CustomerFacade} from "../../api/worker/facades/CustomerFacade";
 
@@ -101,18 +101,13 @@ export class GlobalSettingsSection implements SettingsSection {
 	}
 
 	createSpamRulesSetting(): SettingsValue<SettingsTableAttrs> {
-		const rule: EmailSenderListElement = createEmailSenderListElement({
-			value: address.trim().toLowerCase(),
-			type: spamRuleType,
-			field: spamRuleField,
-		})
 		const spamRuleTableAttrs: TableAttrs = {
 			columnHeading: ["emailSender_label", "emailSenderRule_label"],
 			columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
 			showActionButtonColumn: true,
 			addButtonAttrs: {
 				label: "addSpamRule_action",
-				click: () => showAddSpamRuleDialog(rule),
+				click: () => showAddSpamRuleDialog(null),
 				icon: () => Icons.Add
 			},
 			lines: this.spamRuleLines()
@@ -206,7 +201,7 @@ export class GlobalSettingsSection implements SettingsSection {
 	}
 
 	createCustomDomainSettings(userController: IUserController): SettingsValue<SettingsTableAttrs> {
-		const customDomainTableAttrs = {
+		const customDomainTableAttrs: TableAttrs = {
 			columnHeading: ["adminCustomDomain_label", "catchAllMailbox_label"],
 			columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
 			showActionButtonColumn: true,
@@ -289,26 +284,33 @@ export class GlobalSettingsSection implements SettingsSection {
 							}];
 						},
 						actionButtonAttrs: attachDropdown({
-							label: "showMore_action",
-							icon: () => Icons.More
-						}, () => [{
-							label: "showRejectReason_action",
-							type: ButtonType.Dropdown,
-							click: () => showRejectedSendersInfoDialog(rejectedSender)
-						}, {
-							label: "addSpamRule_action",
-							type: ButtonType.Dropdown,
-							click: () => {
-								const domainPart = getDomainPart(rejectedSender.senderMailAddress);
-								showAddSpamRuleDialog(createEmailSenderListElement({
-									value: domainPart ? domainPart : "",
-									type: SpamRuleType.WHITELIST,
-									field: SpamRuleFieldType.FROM
-								}));
-							}
-						}])
-					};
-				});
+							mainButtonAttrs: {
+								label: "showMore_action",
+								icon: () => Icons.More
+							},
+							childAttrs: () => [
+								{
+									label: "showRejectReason_action",
+									type: ButtonType.Dropdown,
+									click: () => showRejectedSendersInfoDialog(rejectedSender)
+								},
+								{
+									label: "addSpamRule_action",
+									type: ButtonType.Dropdown,
+									click: () => {
+										const domainPart = getDomainPart(rejectedSender.senderMailAddress);
+										showAddSpamRuleDialog(createEmailSenderListElement({
+											value: domainPart ? domainPart : "",
+											type: SpamRuleType.WHITELIST,
+											field: SpamRuleFieldType.FROM
+										}));
+									}
+								}
+							],
+						})
+					}
+				})
+
 				this.rejectedSenderLines(tableEntries);
 			});
 			showProgressDialog("loading_msg", loadingPromise).then(() => m.redraw());
@@ -343,70 +345,76 @@ export class GlobalSettingsSection implements SettingsSection {
 		});
 	}
 
-	updateDomains(): Promise<void> {
-		return this.customerInfo.getAsync().then(customerInfo => {
-			let customDomainInfos = getCustomMailDomains(customerInfo);
-			// remove dns status instances for all removed domains
-			Object.keys(this.domainDnsStatus).forEach(domain => {
-				if (!customDomainInfos.find(di => di.domain === domain)) {
-					delete this.domainDnsStatus[domain];
-				}
-			});
-			return promiseMap(customDomainInfos, domainInfo => {
-				// create dns status instances for all new domains
-				if (!this.domainDnsStatus[domainInfo.domain]) {
-					this.domainDnsStatus[domainInfo.domain] = new DomainDnsStatus(domainInfo.domain);
-					this.domainDnsStatus[domainInfo.domain].loadCurrentStatus().then(() => {
-						m.redraw();
-					});
-				}
-
-				let domainDnsStatus = this.domainDnsStatus[domainInfo.domain];
-				let p = Promise.resolve(lang.get("comboBoxSelectionNone_msg"));
-
-				if (domainInfo.catchAllMailGroup) {
-					p = loadGroupDisplayName(domainInfo.catchAllMailGroup);
-				}
-
-				return p.then(catchAllGroupName => {
-					return {
-						cells: () => [{
-							main: domainInfo.domain,
-							info: [domainDnsStatus.getDnsStatusInfo()],
-							click: domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine() ? () => {
-								showDnsCheckDialog(domainDnsStatus);
-							} : noOp
-						}, {
-							main: catchAllGroupName
-						}],
-						actionButtonAttrs: {
-							label: "action_label",
-							icon: () => Icons.More,
-							click: createDropdown(() => (domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine() ? [{
-								type: ButtonType.Dropdown,
-								label: "resumeSetup_label",
-								click: () => {
-									showAddDomainWizard(domainDnsStatus.domain, customerInfo).then(() => {
-										domainDnsStatus.loadCurrentStatus().then(() => m.redraw());
-									});
-								}
-							}] : []).concat([{
-								type: ButtonType.Dropdown,
-								label: "setCatchAllMailbox_action",
-								click: () => this.editCatchAllMailbox(domainInfo)
-							}, {
-								type: ButtonType.Dropdown,
-								label: "delete_action",
-								click: () => this.deleteCustomDomain(domainInfo)
-							}]), 260)
-						}
-					};
-				});
-			}).then(tableLines => {
-				this.customDomainLines(tableLines);
-				m.redraw();
-			});
+	async updateDomains(): Promise<void> {
+		const customerInfo = await this.customerInfo.getAsync()
+		let customDomainInfos = getCustomMailDomains(customerInfo);
+		// remove dns status instances for all removed domains
+		Object.keys(this.domainDnsStatus).forEach(domain => {
+			if (!customDomainInfos.find(di => di.domain === domain)) {
+				delete this.domainDnsStatus[domain];
+			}
 		});
+		const tableLines: TableLineAttrs[] = await promiseMap(customDomainInfos, async domainInfo => {
+			// create dns status instances for all new domains
+			if (!this.domainDnsStatus[domainInfo.domain]) {
+				this.domainDnsStatus[domainInfo.domain] = new DomainDnsStatus(domainInfo.domain);
+				this.domainDnsStatus[domainInfo.domain].loadCurrentStatus().then(() => {
+					m.redraw();
+				});
+			}
+
+			let domainDnsStatus = this.domainDnsStatus[domainInfo.domain];
+
+			let p = Promise.resolve(lang.get("comboBoxSelectionNone_msg"));
+			const catchAllGroupName = domainInfo.catchAllMailGroup ? await loadGroupDisplayName(domainInfo.catchAllMailGroup) : lang.get("comboBoxSelectionNone_msg")
+			return {
+				cells: () => [{
+					main: domainInfo.domain,
+					info: [domainDnsStatus.getDnsStatusInfo()],
+					click: domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine() ? () => {
+						showDnsCheckDialog(domainDnsStatus);
+					} : noOp
+				}, {
+					main: catchAllGroupName
+				}],
+				actionButtonAttrs: {
+					label: "action_label",
+					icon: () => Icons.More,
+					click: createDropdown({
+						lazyButtons: () => this.domainMoreButtons(domainDnsStatus, domainInfo, customerInfo)
+					}),
+				}
+			}
+		})
+		this.customDomainLines(tableLines)
+		m.redraw()
+	}
+
+	private domainMoreButtons(domainDnsStatus: DomainDnsStatus, domainInfo: DomainInfo, customerInfo: CustomerInfo): ButtonAttrs[] {
+		return [
+			...(domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine()
+					? [{
+						type: ButtonType.Dropdown,
+						label: "resumeSetup_label",
+						click: () => {
+							showAddDomainWizard(domainDnsStatus.domain, customerInfo).then(() => {
+								domainDnsStatus.loadCurrentStatus().then(() => m.redraw());
+							});
+						}
+					} as ButtonAttrs]
+					: []
+			),
+			{
+				type: ButtonType.Dropdown,
+				label: "setCatchAllMailbox_action",
+				click: () => this.editCatchAllMailbox(domainInfo)
+			},
+			{
+				type: ButtonType.Dropdown,
+				label: "delete_action",
+				click: () => this.deleteCustomDomain(domainInfo)
+			}
+		]
 	}
 
 	deleteCustomDomain(domainInfo: DomainInfo) {
@@ -435,16 +443,19 @@ export class GlobalSettingsSection implements SettingsSection {
 		showProgressDialog("pleaseWait_msg", this.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 			return loadEnabledTeamMailGroups(customer).then(teamMailGroups => loadEnabledUserMailGroups(customer).then(userMailGroups => {
 				let allMailGroups = teamMailGroups.concat(userMailGroups);
-				let options = [{
-					name: lang.get("comboBoxSelectionNone_msg"),
-					value: null
-				}].concat(allMailGroups.map(groupData => {
-					return {
-						name: groupData.displayName,
-						value: groupData.groupId
-					};
-				}));
-				let selectedPromise = Promise.resolve(null); // default is no selection
+				const options = [
+					{
+						name: lang.get("comboBoxSelectionNone_msg"),
+						value: null
+					},
+					...allMailGroups.map(groupData => {
+						return {
+							name: groupData.displayName,
+							value: groupData.groupId
+						};
+					})
+				]
+				let selectedPromise: Promise<string | null> = Promise.resolve(null); // default is no selection
 
 				if (domainInfo.catchAllMailGroup) {
 					// the catch all group may be a user group, so load the mail group in that case
@@ -456,7 +467,7 @@ export class GlobalSettingsSection implements SettingsSection {
 						} else {
 							return domainInfo.catchAllMailGroup;
 						}
-					});
+					})
 				}
 
 				return selectedPromise.then(catchAllMailGroupId => {
@@ -493,35 +504,65 @@ export class GlobalSettingsSection implements SettingsSection {
 		});
 	}
 
-	showAuditLogDetails(entry: AuditLogEntry, customer: Customer) {
-		let modifiedGroupInfo: Stream<GroupInfo> = stream();
-		let groupInfo = stream();
-		let groupInfoLoadingPromises = [];
-
+	async showAuditLogDetails(entry: AuditLogEntry, customer: Customer) {
+		let modifiedGroupInfo: GroupInfo | null = null
 		if (entry.modifiedGroupInfo) {
-			groupInfoLoadingPromises.push(this.entityClient.load(GroupInfoTypeRef, entry.modifiedGroupInfo).then(gi => {
-				modifiedGroupInfo(gi);
-			}).catch(ofClass(NotAuthorizedError, e => {// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
-			})));
+			modifiedGroupInfo = await this.entityClient.load(GroupInfoTypeRef, entry.modifiedGroupInfo)
+										  .catch(ofClass(NotAuthorizedError, e => {
+											  // If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
+											  return null
+										  }))
 		}
+		let groupInfo: GroupInfo | null = null
 
 		if (entry.groupInfo) {
-			groupInfoLoadingPromises.push(this.entityClient.load(GroupInfoTypeRef, entry.groupInfo).then(gi => {
-				groupInfo(gi);
-			}).catch(ofClass(NotAuthorizedError, e => {// If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
-			})));
+			groupInfo = await this.entityClient.load(GroupInfoTypeRef, entry.groupInfo)
+								  .catch(ofClass(NotAuthorizedError, e => {
+									  // If the admin is removed from the free group, he does not have the permission to access the groupinfo of that group anymore
+									  return null
+								  }))
 		}
-
-		Promise.all(groupInfoLoadingPromises).then(() => {
-			let dialog = Dialog.showActionDialog({
-				title: lang.get("auditLog_title"),
-				child: {
-					view: () => m("table.pt", [m("tr", [m("td", lang.get("action_label")), m("td.pl", entry.action)]), m("tr", [m("td", lang.get("actor_label")), m("td.pl", entry.actorMailAddress)]), m("tr", [m("td", lang.get("IpAddress_label")), m("td.pl", entry.actorIpAddress ? entry.actorIpAddress : "")]), m("tr", [m("td", lang.get("modified_label")), m("td.pl", modifiedGroupInfo() && this.getGroupInfoDisplayText(modifiedGroupInfo()) ? this.getGroupInfoDisplayText(modifiedGroupInfo()) : entry.modifiedEntity)]), groupInfo() ? m("tr", [m("td", lang.get("group_label")), m("td.pl", customer.adminGroup === groupInfo().group ? lang.get("globalAdmin_label") : this.getGroupInfoDisplayText(groupInfo()))]) : null, m("tr", [m("td", lang.get("time_label")), m("td.pl", formatDateTime(entry.date))])])
-				},
-				allowOkWithReturn: true,
-				okAction: () => dialog.close(),
-				allowCancel: false
-			});
+		let dialog = Dialog.showActionDialog({
+			title: lang.get("auditLog_title"),
+			child: {
+				view: () => m("table.pt", [
+					m("tr", [
+							m("td", lang.get("action_label")),
+							m("td.pl", entry.action)
+						]
+					),
+					m("tr", [
+						m("td", lang.get("actor_label")),
+						m("td.pl", entry.actorMailAddress)
+					]),
+					m("tr", [
+						m("td", lang.get("IpAddress_label")),
+						m("td.pl", entry.actorIpAddress ? entry.actorIpAddress : "")
+					]),
+					m("tr", [
+						m("td", lang.get("modified_label")),
+						m("td.pl", modifiedGroupInfo && this.getGroupInfoDisplayText(modifiedGroupInfo)
+							? this.getGroupInfoDisplayText(modifiedGroupInfo)
+							: entry.modifiedEntity)
+					]),
+					groupInfo
+						? m("tr", [
+							m("td", lang.get("group_label")),
+							m("td.pl", customer.adminGroup === groupInfo.group
+								? lang.get("globalAdmin_label")
+								: this.getGroupInfoDisplayText(groupInfo)
+							)
+						])
+						: null, m("tr", [
+							m("td", lang.get("time_label")),
+							m("td.pl", formatDateTime(entry.date))
+						]
+					)
+				])
+			},
+			allowOkWithReturn: true,
+			okAction: () => dialog.close(),
+			allowCancel: false
 		});
 	}
 

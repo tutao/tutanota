@@ -76,7 +76,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						InvoiceDataDialog.show(
 							neverNull(neverNull(this._customer).businessUse),
 							{
-								invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
+								invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress, accountingInfo.invoiceCountry),
 								country: invoiceCountry,
 								vatNumber: accountingInfo.invoiceVatIdNo,
 							},
@@ -283,7 +283,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	_updateAccountingInfoData(accountingInfo: AccountingInfo) {
 		this._accountingInfo = accountingInfo
 
-		this._invoiceAddressField.setValue(formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress, accountingInfo.invoiceCountry ?? undefined))
+		this._invoiceAddressField.setValue(formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress, accountingInfo.invoiceCountry))
 
 		m.redraw()
 	}
@@ -404,7 +404,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 }
 
-function _showPayConfirmDialog(price: number): Promise<boolean> {
+export function _showPayConfirmDialog(price: number): Promise<boolean> {
 	return new Promise(resolve => {
 		let dialog: Dialog
 
@@ -451,7 +451,7 @@ function _showPayConfirmDialog(price: number): Promise<boolean> {
 	})
 }
 
-function getPostingTypeText(posting: CustomerAccountPosting): string {
+export function getPostingTypeText(posting: CustomerAccountPosting): string {
 	switch (posting.type) {
 		case PostingType.UsageFee:
 			return lang.get("invoice_label")

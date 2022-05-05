@@ -616,7 +616,7 @@ export class ContactView implements CurrentView {
 		}
 	}
 
-	getSearchHandler(): ?SearchHandler {
+	getSearchHandler(): SearchHandler | null {
 		return null
 	}
 

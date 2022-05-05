@@ -27,7 +27,7 @@ import {PaymentDataService} from "../api/entities/sys/Services"
 export function show(customer: Customer, accountingInfo: AccountingInfo, price: number): Promise<boolean> {
 	let payPalRequestUrl = getLazyLoadedPayPalUrl()
 	let invoiceData = {
-		invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
+		invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress, accountingInfo.invoiceCountry),
 		country: accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null,
 		vatNumber: accountingInfo.invoiceVatIdNo,
 	}

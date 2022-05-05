@@ -1,26 +1,24 @@
-import m, {Children} from "mithril";
+import m, {Children, Component, Vnode} from "mithril";
 import type {SettingsSection, SettingsValue} from "./SettingsModel";
 import {lang} from "../../misc/LanguageViewModel";
 
 export type DetailsColumnViewerAttrs = {
 	section: SettingsSection;
 	searchValue: string;
-};
+}
 
 /**
  * render the current selected section settings
  */
-export class DetailsColumnViewer {
+export class DetailsColumnViewer implements Component<DetailsColumnViewerAttrs> {
 
-	constructor(
-		private readonly section: SettingsSection,
-		private readonly searchValue: string
-	) {
+	constructor() {
 	}
 
 	/**
 	 * @returns true if the currently rendering setting includes the search value
 	 */
+	// FIXME: wtf is SettingsValue
 	isEqualToSearchValue(setting: SettingsValue<any>, value: string): boolean {
 		let result = false;
 
@@ -35,10 +33,16 @@ export class DetailsColumnViewer {
 		return result;
 	}
 
-	view(): Children {
-		return m(".fill-absolute.scroll.plr-l.pb-floating", [this.section.settingsValues.map(value => {
-			return m(".mt-l" + (this.isEqualToSearchValue(value, this.searchValue) ? ".elevated-bg" : ""), [m(value.component, value.attrs)]);
-		})]);
+	view({attrs}: Vnode<DetailsColumnViewerAttrs>): Children {
+		return m(".fill-absolute.scroll.plr-l.pb-floating", [
+			attrs.section.settingsValues.map(value => {
+				return m(".mt-l", {
+					class: this.isEqualToSearchValue(value, attrs.searchValue) ? ".elevated-bg" : "",
+				}, [
+					m(value.component, value.attrs)
+				]);
+			})
+		]);
 	}
 
 }

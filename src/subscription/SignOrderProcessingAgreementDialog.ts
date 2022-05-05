@@ -58,7 +58,7 @@ export function showForSigning(customer: Customer, accountingInfo: AccountingInf
 		.setPlaceholderId("contractor_label")
 		.setMode(HtmlEditorMode.HTML)
 		.setHtmlMonospace(false)
-		.setValue(formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress))
+		.setValue(formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress, accountingInfo.invoiceCountry))
 	Dialog.showActionDialog({
 		title: lang.get("orderProcessingAgreement_label"),
 		okAction: signAction,

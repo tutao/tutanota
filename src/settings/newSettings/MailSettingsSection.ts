@@ -50,6 +50,7 @@ import type { EntityClient } from "../../api/common/EntityClient";
 import { LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils";
 import type { Indexer } from "../../api/worker/search/Indexer";
 import Stream from "mithril/stream"
+
 export class MailSettingsSection implements SettingsSection {
   heading: string;
   category: string;

@@ -57,17 +57,23 @@ export class AppearanceSettingsSection implements SettingsSection {
 	}
 
 	createLanguageSettings(): SettingsValue<DropDownSelectorAttrs<LanguageCode | null | undefined>> {
-		const languageDropDownAttrs: DropDownSelectorAttrs<LanguageCode | null | undefined> = {
-			label: "language_label",
-			items: languages.map(language => {
-				return {
-					name: lang.get(language.textId),
-					value: language.code
-				};
-			}).sort((l1, l2) => l1.name.localeCompare(l2.name)).concat({
+		const items = [
+			...languages
+				.map(language => {
+					return {
+						name: lang.get(language.textId),
+						value: language.code
+					}
+				})
+				.sort((l1, l2) => l1.name.localeCompare(l2.name)),
+			{
 				name: lang.get("automatic_label"),
 				value: null
-			}),
+			},
+		]
+		const languageDropDownAttrs: DropDownSelectorAttrs<LanguageCode | null | undefined> = {
+			label: "language_label",
+			items: items,
 			// DropdownSelectorN uses `===` to compare items so if the language is not set then `undefined` will not match `null`
 			selectedValue: this.currentLanguage,
 			selectionChangedHandler: async value => {
@@ -172,8 +178,8 @@ export class AppearanceSettingsSection implements SettingsSection {
 		}
 	}
 
-	createHourFormatSettings(): SettingsValue<DropDownSelectorAttrs<TimeFormatEnum>> {
-		const hourFormatDropDownAttrs: DropDownSelectorAttrs<TimeFormatEnum> = {
+	createHourFormatSettings(): SettingsValue<DropDownSelectorAttrs<TimeFormat>> {
+		const hourFormatDropDownAttrs: DropDownSelectorAttrs<TimeFormat> = {
 			label: "timeFormat_label",
 			items: [{
 				name: lang.get("timeFormatTwentyFourHour_label"),
@@ -196,7 +202,7 @@ export class AppearanceSettingsSection implements SettingsSection {
 		};
 	}
 
-	createWeekStartSettings(): SettingsValue<DropDownSelectorAttrs<WeekStartEnum>> {
+	createWeekStartSettings(): SettingsValue<DropDownSelectorAttrs<WeekStart>> {
 		const weekdayFormat = new Intl.DateTimeFormat(lang.languageTag, {
 			weekday: "long"
 		});
@@ -207,7 +213,7 @@ export class AppearanceSettingsSection implements SettingsSection {
 
 		const saturdayName = weekdayFormat.format(incrementDate(calcDate, 5)); // Saturday is five days later
 
-		const weekStartDropDownAttrs: DropDownSelectorAttrs<WeekStartEnum> = {
+		const weekStartDropDownAttrs: DropDownSelectorAttrs<WeekStart> = {
 			label: "weekStart_label",
 			items: [{
 				name: mondayName,

@@ -120,7 +120,7 @@ export function urlEncodeHtmlTags(text: string): string {
 	return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;")
 }
 
-export function formatNameAndAddress(name: string, address: string, countryCode?: string): string {
+export function formatNameAndAddress(name: string, address: string, countryCode: string | null): string {
 	let result = ""
 
 	if (name) {
