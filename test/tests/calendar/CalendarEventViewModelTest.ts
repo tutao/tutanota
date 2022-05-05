@@ -5,7 +5,7 @@ import type {Guest} from "../../../src/calendar/date/CalendarEventViewModel.js"
 import {CalendarEventViewModel} from "../../../src/calendar/date/CalendarEventViewModel.js"
 import {lang} from "../../../src/misc/LanguageViewModel.js"
 import {assertThrows, unmockAttribute} from "@tutao/tutanota-test-utils"
-import {clone, delay, downcast, neverNull, noOp} from "@tutao/tutanota-utils"
+import {addMapEntry, clone, delay, downcast, neverNull, noOp} from "@tutao/tutanota-utils"
 import type {MailboxDetail} from "../../../src/mail/model/MailModel.js"
 import {MailModel} from "../../../src/mail/model/MailModel.js"
 import type {CalendarEvent, Mail} from "../../../src/api/entities/tutanota/TypeRefs.js"
@@ -2163,6 +2163,120 @@ o.spec("CalendarEventViewModel", function () {
 		o(attendees().length).equals(1)
 		o(viewModel.organizer!).deepEquals(aliasEncMailAddress)
 		o(attendees().find(guest => guest.address.address === alias)).notEquals(undefined)
+	})
+	o.spec("Events we have been invited to by another user", function () {
+		o("When we change our attendance status for a new event event (without id) to 'accept' the organizer is notified and the event is created", async function () {
+			const calendars = makeCalendars("own")
+			const distributor = makeDistributor()
+			const userController = makeUserController([], AccountType.PREMIUM)
+			const existingEvent = createCalendarEvent({
+				_ownerGroup: calendarGroupId,
+				startTime: new Date(2020, 5, 1),
+				endTime: new Date(2020, 5, 2),
+				organizer: wrapEncIntoMailAddress("someonelse@tutanota.com"),
+				attendees: [createCalendarEventAttendee({
+					status: CalendarAttendeeStatus.ADDED,
+					address: encMailAddress
+				})],
+			})
+			const calendarModel = makeCalendarModel()
+			const viewModel = await init({
+				calendars,
+				distributor,
+				userController,
+				existingEvent,
+				calendarModel
+			})
+			viewModel._guestStatuses(addMapEntry(viewModel._guestStatuses(), encMailAddress.address, CalendarAttendeeStatus.ACCEPTED))
+			await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})
+			o(distributor.sendResponse.calls.length).equals(1)("organizer gets notified")
+			o(calendarModel.createEvent.calls.length).equals(1)("create event")
+		})
+		o("When we change our attendance status for a new event event (without id) to 'decline' the organizer is notified and the event is created", async function () {
+			const calendars = makeCalendars("own")
+			const distributor = makeDistributor()
+			const userController = makeUserController([], AccountType.PREMIUM)
+			const existingEvent = createCalendarEvent({
+				_ownerGroup: calendarGroupId,
+				startTime: new Date(2020, 5, 1),
+				endTime: new Date(2020, 5, 2),
+				organizer: wrapEncIntoMailAddress("someonelse@tutanota.com"),
+				attendees: [createCalendarEventAttendee({
+					status: CalendarAttendeeStatus.ACCEPTED,
+					address: encMailAddress
+				})],
+			})
+			const calendarModel = makeCalendarModel()
+			const viewModel = await init({
+				calendars,
+				distributor,
+				userController,
+				existingEvent,
+				calendarModel
+			})
+			viewModel._guestStatuses(addMapEntry(viewModel._guestStatuses(), encMailAddress.address, CalendarAttendeeStatus.DECLINED))
+			await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})
+			o(distributor.sendResponse.calls.length).equals(1)("organizer gets notified")
+			o(calendarModel.createEvent.calls.length).equals(1)("create event")
+		})
+
+
+		o("When we change our attendance status of an existing event to 'decline' the organizer gets notified and the event gets updated in our calendar", async function () {
+			const calendars = makeCalendars("own")
+			const distributor = makeDistributor()
+			const userController = makeUserController([], AccountType.PREMIUM)
+			const existingEvent = createCalendarEvent({
+				_id: ["listId", "calendarId"],
+				_ownerGroup: calendarGroupId,
+				startTime: new Date(2020, 5, 1),
+				endTime: new Date(2020, 5, 2),
+				organizer: wrapEncIntoMailAddress("someonelse@tutanota.com"),
+				attendees: [createCalendarEventAttendee({
+					status: CalendarAttendeeStatus.ACCEPTED,
+					address: encMailAddress
+				})],
+			})
+			const calendarModel = makeCalendarModel()
+			const viewModel = await init({
+				calendars,
+				distributor,
+				userController,
+				existingEvent,
+				calendarModel
+			})
+			viewModel._guestStatuses(addMapEntry(viewModel._guestStatuses(), encMailAddress.address, CalendarAttendeeStatus.DECLINED))
+			await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})
+			o(distributor.sendResponse.calls.length).equals(1)("organizer gets notified")
+			o(calendarModel.updateEvent.calls.length).equals(1)("update event")
+		})
+		o("When we change our attendance status for an existing to 'accepted' the organizer gets notified and the event gets updated in our calendar", async function () {
+			const calendars = makeCalendars("own")
+			const distributor = makeDistributor()
+			const userController = makeUserController([], AccountType.PREMIUM)
+			const existingEvent = createCalendarEvent({
+				_id: ["listId", "calendarId"],
+				_ownerGroup: calendarGroupId,
+				startTime: new Date(2020, 5, 1),
+				endTime: new Date(2020, 5, 2),
+				organizer: wrapEncIntoMailAddress("someonelse@tutanota.com"),
+				attendees: [createCalendarEventAttendee({
+					status: CalendarAttendeeStatus.ADDED,
+					address: encMailAddress
+				})],
+			})
+			const calendarModel = makeCalendarModel()
+			const viewModel = await init({
+				calendars,
+				distributor,
+				userController,
+				existingEvent,
+				calendarModel
+			})
+			viewModel._guestStatuses(addMapEntry(viewModel._guestStatuses(), encMailAddress.address, CalendarAttendeeStatus.ACCEPTED))
+			await viewModel.saveAndSend({askForUpdates, askInsecurePassword, showProgress})
+			o(distributor.sendResponse.calls.length).equals(1)("organizer gets notified")
+			o(calendarModel.updateEvent.calls.length).equals(1)("update event")
+		})
 	})
 	o.spec("onStartDateSelected", function () {
 		o("date adjusted forward", async function () {
