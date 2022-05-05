@@ -104,7 +104,6 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 		}
 		this._chooseLanguageAttrs = {
 			label: "language_label",
-			// FIXME
 			value: this.model.selectedContent() ? getLanguageName(this.model.selectedContent()) : "",
 			injectionsRight: () => [
 				this.model.getAddedLanguages().length > 1 ? [m(ButtonN, removeButtonAttrs), m(ButtonN, selectLanguageButton)] : null,

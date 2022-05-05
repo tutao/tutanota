@@ -16,10 +16,6 @@ export type ScrollSelectListAttrs<T> = {
 	onItemDoubleClicked: (item: T) => unknown
 }
 
-export function rScrollSelectList<T>(attrs: ScrollSelectListAttrs<T>): Children {
-	return m<ScrollSelectListAttrs<T>, ScrollSelectList<T>>(ScrollSelectList, attrs)
-}
-
 export class ScrollSelectList<T> implements ClassComponent<ScrollSelectListAttrs<T>> {
 	private selectedItem: T | null = null
 

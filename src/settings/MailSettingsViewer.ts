@@ -463,10 +463,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		m.redraw()
 	}
 
-	makeReportMovedMailsDropdownAttrs(
-		// reportMovedMailsSetting: ReportMovedMailsType,
-		// mailboxProperties: LazyLoaded<MailboxProperties | null>,
-	): DropDownSelectorAttrs<ReportMovedMailsType> {
+	makeReportMovedMailsDropdownAttrs(): DropDownSelectorAttrs<ReportMovedMailsType> {
 		return {
 			label: "spamReports_label",
 			helpLabel: () => lang.get("unencryptedTransmission_msg"),

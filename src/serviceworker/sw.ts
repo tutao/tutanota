@@ -181,8 +181,7 @@ const init = (sw: ServiceWorker) => {
 	})
 	scope.addEventListener("activate", event => {
 		console.log("sw activate", versionString)
-		// @ts-ignore
-		event.waitUntil(sw.deleteOldCaches().then(() => self.clients.claim()))
+		event.waitUntil(sw.deleteOldCaches().then(() => scope.clients.claim()))
 	})
 	scope.addEventListener("fetch", (evt: FetchEvent) => {
 		sw.respond(evt)
@@ -191,7 +190,6 @@ const init = (sw: ServiceWorker) => {
 		console.log("sw message", versionString, event)
 
 		if (event.data === "update") {
-			// @ts-ignore
 			scope.skipWaiting()
 		}
 	})
