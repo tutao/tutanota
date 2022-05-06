@@ -145,7 +145,7 @@ export class ExternalLoginView implements CurrentView {
 	}
 
 	private async resumeSession(credentials: Credentials): Promise<void> {
-		const result = await logins.resumeSession({credentials, databaseKey: null}, assertNotNull(this._urlData).salt)
+		const result = await logins.resumeSession({credentials, databaseKey: null}, assertNotNull(this._urlData).salt, null)
 		if (result.type === "error") {
 			switch (result.reason) {
 				case ResumeSessionErrorReason.OfflineNotAvailableForFree:

@@ -234,7 +234,13 @@ import("./translations/en")
 					const {LoginViewModel} = await import("./login/LoginViewModel.js")
 					const {locator} = await import("./api/main/MainLocator")
 					const {DatabaseKeyFactory} = await import("./misc/credentials/DatabaseKeyFactory")
-					const loginViewModel = new LoginViewModel(logins, locator.credentialsProvider, locator.secondFactorHandler, new DatabaseKeyFactory(locator.deviceEncryptionFacade))
+					const loginViewModel = new LoginViewModel(
+						logins,
+						locator.credentialsProvider,
+						locator.secondFactorHandler,
+						new DatabaseKeyFactory(locator.deviceEncryptionFacade),
+						deviceConfig
+					)
 					await loginViewModel.init()
 					return new LoginView(loginViewModel, "/mail")
 				},

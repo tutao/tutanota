@@ -1,11 +1,10 @@
 import {OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS} from "../api/common/TutanotaConstants.js";
 import {isOfflineStorageAvailable} from "../api/common/Env.js";
-import {OfflineDbFacade} from "../desktop/db/OfflineDbFacade.js";
 import {assert, lazy} from "@tutao/tutanota-utils";
-import * as cborg from "cborg"
 import {IUserController} from "../api/main/UserController"
 import {NativeSystemApp} from "../native/common/NativeSystemApp"
 import {DesktopConfigKey} from "../desktop/config/ConfigKeys"
+import {DeviceConfig} from "../misc/DeviceConfig"
 
 /**
  * A model for handling offline storage configuration
@@ -23,9 +22,9 @@ export class OfflineStorageSettingsModel {
 	// Native interfaces are lazy to allow us to unconditionally construct the SettingsModel
 	// If we are not in a native context, then they should never be accessed
 	constructor(
-		private readonly offlineDbFacade: lazy<OfflineDbFacade>,
 		private readonly systemApp: lazy<NativeSystemApp>,
 		private readonly userController: IUserController,
+		private readonly deviceConfig: DeviceConfig,
 	) {
 	}
 
@@ -47,24 +46,18 @@ export class OfflineStorageSettingsModel {
 
 	async setTimeRange(days: number): Promise<void> {
 		this.assertAvailable()
-		const encoded = cborg.encode(days)
-		await this.offlineDbFacade().putMetadata(this.userController.userId, "timeRangeDays", encoded)
+		await this.deviceConfig.setOfflineTimeRangeDays(days)
 		this.timeRange = days
 	}
 
 	async init(): Promise<void> {
 		if (isOfflineStorageAvailable()) {
-			this.isEnabled =
-				await this.systemApp().getConfigValue(DesktopConfigKey.offlineStorageEnabled) &&
-				// If the user has only just enabled offline storage during this session, then a database will not yet have been created.
-				// Offline database initialization is tightly coupled with login and credentials generation and such,
-				// so we won't actually initialize offline mode until the next login
-				await this.offlineDbFacade().isDatabaseOpen(this.userController.userId)
+			this.isEnabled = await this.systemApp().getConfigValue(DesktopConfigKey.offlineStorageEnabled)
 
 			if (this.isEnabled) {
-				const stored = (await this.offlineDbFacade().getMetadata(this.userController.userId, "timeRangeDays"))
+				const stored = this.deviceConfig.getOfflineTimeRangeDays()
 				if (stored != null) {
-					this.timeRange = cborg.decode(stored)
+					this.timeRange = stored
 				}
 			}
 		}

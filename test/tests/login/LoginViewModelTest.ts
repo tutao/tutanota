@@ -1,20 +1,20 @@
 import o from "ospec"
 import {DisplayMode, LoginState, LoginViewModel} from "../../../src/login/LoginViewModel.js"
 import type {LoginController} from "../../../src/api/main/LoginController.js"
-import {createUser} from "../../../src/api/entities/sys/TypeRefs.js"
+import {createGroupInfo, createUser} from "../../../src/api/entities/sys/TypeRefs.js"
 import type {IUserController} from "../../../src/api/main/UserController.js"
-import {createGroupInfo} from "../../../src/api/entities/sys/TypeRefs.js"
-import {SecondFactorHandler} from "../../../src/misc/2fa/SecondFactorHandler.js"
-import {assertThrows} from "@tutao/tutanota-test-utils"
-import type {CredentialsAndDatabaseKey, ICredentialsProvider, PersistentCredentials,} from "../../../src/misc/credentials/CredentialsProvider.js"
 import {KeyPermanentlyInvalidatedError} from "../../../src/api/common/error/KeyPermanentlyInvalidatedError.js"
 import {CredentialAuthenticationError} from "../../../src/api/common/error/CredentialAuthenticationError.js"
 import type {Credentials} from "../../../src/misc/credentials/Credentials.js"
+import {SecondFactorHandler} from "../../../src/misc/2fa/SecondFactorHandler"
+import {assertThrows} from "@tutao/tutanota-test-utils"
+import type {CredentialsAndDatabaseKey, ICredentialsProvider, PersistentCredentials,} from "../../../src/misc/credentials/CredentialsProvider"
 import {SessionType} from "../../../src/api/common/SessionType.js";
 import {instance, matchers, object, replace, verify, when} from "testdouble"
+import {AccessExpiredError, NotAuthenticatedError} from "../../../src/api/common/error/RestError"
+import {DatabaseKeyFactory} from "../../../src/misc/credentials/DatabaseKeyFactory"
+import {DeviceConfig} from "../../../src/misc/DeviceConfig"
 import {ResumeSessionErrorReason} from "../../../src/api/worker/facades/LoginFacade"
-import {AccessExpiredError, NotAuthenticatedError} from "../../../src/api/common/error/RestError.js"
-import {DatabaseKeyFactory} from "../../../src/misc/credentials/DatabaseKeyFactory.js"
 
 const {anything} = matchers
 
@@ -106,6 +106,7 @@ o.spec("LoginViewModelTest", () => {
 	let credentialsProviderMock: ICredentialsProvider
 	let secondFactorHandlerMock: SecondFactorHandler
 	let databaseKeyFactory: DatabaseKeyFactory
+	let deviceConfigMock: DeviceConfig
 
 	o.beforeEach(async () => {
 		loginControllerMock = object<LoginController>()
@@ -126,6 +127,9 @@ o.spec("LoginViewModelTest", () => {
 
 		secondFactorHandlerMock = instance(SecondFactorHandler)
 		databaseKeyFactory = instance(DatabaseKeyFactory)
+
+		deviceConfigMock = instance(DeviceConfig)
+
 	})
 
 	/**
@@ -133,7 +137,7 @@ o.spec("LoginViewModelTest", () => {
 	 * on a per test basis, so instead of having a global viewModel to test we just have a factory function to get one in each test
 	 */
 	async function getViewModel() {
-		const viewModel = new LoginViewModel(loginControllerMock, credentialsProviderMock, secondFactorHandlerMock, databaseKeyFactory)
+		const viewModel = new LoginViewModel(loginControllerMock, credentialsProviderMock, secondFactorHandlerMock, databaseKeyFactory, deviceConfigMock)
 		await viewModel.init()
 		return viewModel
 	}
@@ -221,30 +225,38 @@ o.spec("LoginViewModelTest", () => {
 		})
 	})
 	o.spec("Login with stored credentials", function () {
+		const offlineTimeRangeDays = 42
+		o.beforeEach(() => {
+			when(deviceConfigMock.getOfflineTimeRangeDays()).thenReturn(offlineTimeRangeDays)
+		})
 		o("login should succeed with valid stored credentials", async function () {
 			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
-			when(loginControllerMock.resumeSession({credentials: testCredentials, databaseKey: null})).thenResolve({type: "success"})
+			when(loginControllerMock.resumeSession({
+				credentials: testCredentials,
+				databaseKey: null
+			}, null, offlineTimeRangeDays)).thenResolve({type: "success"})
 			const viewModel = await getViewModel()
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
 			await viewModel.login()
-			verify(loginControllerMock.resumeSession({credentials: testCredentials, databaseKey: null}), {times: 1})
 			o(viewModel.state).equals(LoginState.LoggedIn)
 		})
 		o("login should succeed with valid stored credentials in DeleteCredentials display mode", async function () {
 			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
-			when(loginControllerMock.resumeSession({credentials: testCredentials, databaseKey: null})).thenResolve({type: "success"})
+			when(loginControllerMock.resumeSession({
+				credentials: testCredentials,
+				databaseKey: null
+			}, null, offlineTimeRangeDays)).thenResolve({type: "success"})
 			const viewModel = await getViewModel()
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
 			viewModel.switchDeleteState()
 			await viewModel.login()
-			verify(loginControllerMock.resumeSession({credentials: testCredentials, databaseKey: null}), {times: 1})
 			o(viewModel.state).equals(LoginState.LoggedIn)
 		})
 		o("login should fail with invalid stored credentials", async function () {
 			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
-			when(loginControllerMock.resumeSession(anything())).thenReject(new NotAuthenticatedError("test"))
+			when(loginControllerMock.resumeSession(anything(), null, offlineTimeRangeDays)).thenReject(new NotAuthenticatedError("test"))
 			const viewModel = await getViewModel()
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
@@ -258,7 +270,7 @@ o.spec("LoginViewModelTest", () => {
 		})
 		o("login should fail for expired stored credentials", async function () {
 			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
-			when(loginControllerMock.resumeSession(anything())).thenReject(new AccessExpiredError("test"))
+			when(loginControllerMock.resumeSession(anything(), null, offlineTimeRangeDays)).thenReject(new AccessExpiredError("test"))
 			const viewModel = await getViewModel()
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
@@ -281,7 +293,7 @@ o.spec("LoginViewModelTest", () => {
 		})
 		o("should handle error result", async function () {
 			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
-			when(loginControllerMock.resumeSession({credentials: testCredentials, databaseKey: null})).thenResolve({
+			when(loginControllerMock.resumeSession({credentials: testCredentials, databaseKey: null}, null, offlineTimeRangeDays)).thenResolve({
 				type: "error",
 				reason: ResumeSessionErrorReason.OfflineNotAvailableForFree
 			})
@@ -289,7 +301,6 @@ o.spec("LoginViewModelTest", () => {
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
 			await viewModel.login()
-			verify(loginControllerMock.resumeSession({credentials: testCredentials, databaseKey: null}), {times: 1})
 			o(viewModel.state).equals(LoginState.NotAuthenticated)
 		})
 	})

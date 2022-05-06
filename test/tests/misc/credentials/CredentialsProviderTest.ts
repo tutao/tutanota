@@ -5,7 +5,7 @@ import type {
 	CredentialsStorage,
 	PersistentCredentials
 } from "../../../../src/misc/credentials/CredentialsProvider.js"
-import {CREDENTIALS_DELETED_EVENT, CredentialsProvider} from "../../../../src/misc/credentials/CredentialsProvider.js"
+import {CredentialsProvider} from "../../../../src/misc/credentials/CredentialsProvider.js"
 import {assertNotNull, base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {CredentialEncryptionMode} from "../../../../src/misc/credentials/CredentialEncryptionMode.js"
 import type {ICredentialsKeyMigrator} from "../../../../src/misc/credentials/CredentialsKeyMigrator.js"
@@ -16,6 +16,7 @@ import {keyToBase64} from "@tutao/tutanota-crypto"
 import {OfflineDbFacade} from "../../../../src/desktop/db/OfflineDbFacade.js"
 import {InterWindowEventBus} from "../../../../src/native/common/InterWindowEventBus.js"
 import {verify} from "@tutao/tutanota-test-utils"
+import {InterWindowEventTypes} from "../../../../src/native/common/InterWindowEventTypes"
 
 const encryptionKey = new Uint8Array([1, 2, 5, 8])
 
@@ -75,7 +76,7 @@ o.spec("CredentialsProvider", function () {
 	let keyMigratorMock: ICredentialsKeyMigrator
 	let databaseKeyFactoryMock: DatabaseKeyFactory
 	let offlineDbFacadeMock: OfflineDbFacade
-	let interWindowEventBusMock: InterWindowEventBus
+	let interWindowEventBusMock: InterWindowEventBus<InterWindowEventTypes>
 	o.beforeEach(function () {
 		internalCredentials = {
 			login: "test@example.com",
@@ -191,7 +192,7 @@ o.spec("CredentialsProvider", function () {
 		})
 		o("Sends event over EventBus", async function () {
 			await credentialsProvider.deleteByUserId(internalCredentials.userId)
-			verify(interWindowEventBusMock.send({name: CREDENTIALS_DELETED_EVENT, userId: internalCredentials.userId}))
+			verify(interWindowEventBusMock.send("logout", {userId: internalCredentials.userId}))
 		})
 	})
 
@@ -238,8 +239,8 @@ o.spec("CredentialsProvider", function () {
 		})
 		o("Sends event over EventBus", async function () {
 			await credentialsProvider.clearCredentials("testing")
-			verify(interWindowEventBusMock.send({name: CREDENTIALS_DELETED_EVENT, userId: internalCredentials.userId}))
-			verify(interWindowEventBusMock.send({name: CREDENTIALS_DELETED_EVENT, userId: externalCredentials.userId}))
+			verify(interWindowEventBusMock.send("logout", {userId: internalCredentials.userId}))
+			verify(interWindowEventBusMock.send("logout", {userId: externalCredentials.userId}))
 		})
 	})
 })

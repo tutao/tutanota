@@ -1153,7 +1153,7 @@ o.spec("ApplicationWindow Test", function () {
 			"dictUrl",
 		)
 		const userId = "123"
-		w.setUserInfo({userId})
+		w.setUserId(userId)
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 		;(bwInstance as any).callbacks["close"]()
 
@@ -1173,7 +1173,7 @@ o.spec("ApplicationWindow Test", function () {
 			"dictUrl",
 		)
 		const userId = "123"
-		w.setUserInfo({userId})
+		w.setUserId(userId)
 
 		await w.reload({})
 
