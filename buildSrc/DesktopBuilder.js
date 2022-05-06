@@ -14,7 +14,7 @@ import util from 'util'
 import typescript from "@rollup/plugin-typescript"
 import {keytarNativePlugin, sqliteNativeBannerPlugin} from "./nativeLibraryRollupPlugin.js"
 import {fileURLToPath} from "url"
-import {getCanonicalPlatformName} from "./buildUtils"
+import {getCanonicalPlatformName} from "./buildUtils.js"
 
 const exec = util.promisify(cp.exec)
 const buildSrc = dirname(fileURLToPath(import.meta.url))

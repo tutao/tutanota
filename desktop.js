@@ -17,7 +17,7 @@ await program
 	.description('Main build tool for distributable tutanota desktop artifacts.')
 	.addArgument(new Argument("stage")
 		.choices(["test", "prod", "local", "host", "release"])
-		.default("prod")
+		.default("release")
 		.argOptional())
 	.addArgument(new Argument("host").argOptional())
 	.option('-e, --existing', 'Use existing prebuilt Webapp files in /build/dist/')
