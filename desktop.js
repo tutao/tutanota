@@ -1,7 +1,6 @@
 /**
  * Script to build desktop release versions of the app.
  */
-import {Argument, program} from "commander"
 import * as env from "./buildSrc/env.js"
 import os from "os"
 import {buildWebapp} from "./buildSrc/buildWebapp.js"
@@ -16,7 +15,7 @@ await program
 	.usage('[options] [test|prod|local|release|host <url>], "release" is default')
 	.description('Main build tool for distributable tutanota desktop artifacts.')
 	.addArgument(new Argument("stage")
-		.choices(["test", "prod", "local", "host"])
+		.choices(["test", "prod", "local", "host", "release"])
 		.default("prod")
 		.argOptional())
 	.addArgument(new Argument("host").argOptional())
