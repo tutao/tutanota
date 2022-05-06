@@ -10,6 +10,7 @@ import {ReceiveInfoService} from "../api/entities/tutanota/Services"
 import {InfoLink, lang} from "../misc/LanguageViewModel"
 import {getHourCycle} from "../misc/Formatter"
 import type {OutOfOfficeNotification} from "../api/entities/tutanota/TypeRefs.js"
+import {createReceiveInfoServiceData} from "../api/entities/tutanota/TypeRefs.js"
 import {isNotificationCurrentlyActive, loadOutOfOfficeNotification} from "../misc/OutOfOfficeNotificationUtils"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import {ButtonType} from "../gui/base/ButtonN"
@@ -18,12 +19,9 @@ import {Dialog} from "../gui/base/Dialog"
 import {CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
 import {showMoreStorageNeededOrderDialog} from "../misc/SubscriptionDialogs"
 import {notifications} from "../gui/Notifications"
-import {createReceiveInfoServiceData} from "../api/entities/tutanota/TypeRefs.js"
-import {CustomerPropertiesTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {CustomerInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
+import {CustomerInfoTypeRef, CustomerPropertiesTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {LockedError} from "../api/common/error/RestError"
-import type {CredentialsDeletedEvent, ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
-import {CREDENTIALS_DELETED_EVENT} from "../misc/credentials/CredentialsProvider"
+import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
 import {usingKeychainAuthentication} from "../misc/credentials/CredentialsProviderFactory"
 import type {ThemeCustomizations} from "../misc/WhitelabelCustomizations"
 import {getThemeCustomizations} from "../misc/WhitelabelCustomizations"
@@ -133,12 +131,10 @@ class LoginListener implements LoginEventHandler {
 		this.enforcePasswordChange()
 
 		if (isDesktop()) {
-			locator.interWindowEventBus.addListener(async (event) => {
-				if (event.name === CREDENTIALS_DELETED_EVENT) {
-					if ((event as CredentialsDeletedEvent).userId === logins.getUserController().user._id) {
+			locator.interWindowEventBus.addListener("credentialsDeleted", async (data) => {
+				if (data.userId === logins.getUserController().user._id) {
 					await logins.logout(false)
 					await windowFacade.reload({noAutoLogin: true})
-				}
 				}
 			})
 		}

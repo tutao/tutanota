@@ -12,6 +12,7 @@ import {DatabaseKeyFactory} from "./DatabaseKeyFactory"
 import {exposeRemote} from "../../api/common/WorkerProxy"
 import {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade"
 import {InterWindowEventBus} from "../../native/common/InterWindowEventBus"
+import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes"
 
 export function usingKeychainAuthentication(): boolean {
 	return isApp() || isDesktop()
@@ -30,7 +31,7 @@ export function hasKeychainAuthenticationOptions(): boolean {
 export function createCredentialsProvider(
 	deviceEncryptionFacade: DeviceEncryptionFacade,
 	nativeApp: NativeInterface | null,
-	eventBus: InterWindowEventBus | null,
+	eventBus: InterWindowEventBus<InterWindowEventTypes> | null,
 ): ICredentialsProvider {
 	if (usingKeychainAuthentication()) {
 		const nonNullNativeApp = assertNotNull(nativeApp)

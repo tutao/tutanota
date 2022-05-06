@@ -6,7 +6,7 @@ import type {Credentials} from "./Credentials"
 import {DatabaseKeyFactory} from "./DatabaseKeyFactory"
 import {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade"
 import {InterWindowEventBus} from "../../native/common/InterWindowEventBus"
-import {InterWindowEvent} from "../../desktop/ipc/IInterWindowEventBus"
+import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes"
 
 /**
  * Type for persistent credentials, that contain the full credentials data.
@@ -160,13 +160,6 @@ export interface ICredentialsProvider {
 	clearCredentials(reason: Error | string): Promise<void>
 }
 
-export const CREDENTIALS_DELETED_EVENT = "credentialsDeleted"
-
-export interface CredentialsDeletedEvent extends InterWindowEvent {
-	name: typeof CREDENTIALS_DELETED_EVENT,
-	userId: Id,
-}
-
 /**
  * Platoform-independent implementation for ICredentialsProvider.
  */
@@ -178,7 +171,7 @@ export class CredentialsProvider implements ICredentialsProvider {
 		private readonly keyMigrator: ICredentialsKeyMigrator,
 		private readonly databaseKeyFactory: DatabaseKeyFactory,
 		private readonly offlineDbFacade: OfflineDbFacade | null,
-		private readonly interWindowEventBus: InterWindowEventBus | null,
+		private readonly interWindowEventBus: InterWindowEventBus<InterWindowEventTypes> | null,
 	) {
 	}
 
@@ -225,11 +218,7 @@ export class CredentialsProvider implements ICredentialsProvider {
 	}
 
 	async deleteByUserId(userId: Id): Promise<void> {
-		const event: CredentialsDeletedEvent = {
-			name: CREDENTIALS_DELETED_EVENT,
-			userId,
-		}
-		await this.interWindowEventBus?.send(event)
+		await this.interWindowEventBus?.send("credentialsDeleted", {userId})
 		await this.offlineDbFacade?.deleteDatabaseForUser(userId)
 		this.storage.deleteByUserId(userId)
 	}

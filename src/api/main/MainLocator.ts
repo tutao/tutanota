@@ -59,6 +59,7 @@ import {CryptoFacade} from "../worker/crypto/CryptoFacade"
 import type {InterWindowEventBus} from "../../native/common/InterWindowEventBus"
 import {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade"
 import {CachedRangeLoader} from "../worker/rest/EntityRestCache.js"
+import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes"
 
 assertMainOrNode()
 
@@ -103,7 +104,7 @@ export interface IMainLocator {
 	readonly usageTestModel: UsageTestModel
 	readonly serviceExecutor: IServiceExecutor
 	readonly cryptoFacade: CryptoFacade
-	readonly interWindowEventBus: InterWindowEventBus
+	readonly interWindowEventBus: InterWindowEventBus<InterWindowEventTypes>
 	readonly offlineDbFacade: OfflineDbFacade
 	readonly cachedRangeLoader: CachedRangeLoader
 
@@ -148,7 +149,7 @@ class MainLocator implements IMainLocator {
 	serviceExecutor!: IServiceExecutor
 	cryptoFacade!: CryptoFacade
 	cachedRangeLoader!: CachedRangeLoader
-	_interWindowEventBus!: InterWindowEventBus
+	_interWindowEventBus!: InterWindowEventBus<InterWindowEventTypes>
 
 	/**
 	 * @deprecated
@@ -173,7 +174,7 @@ class MainLocator implements IMainLocator {
 		return this._getNativeInterface("systemApp")
 	}
 
-	get interWindowEventBus(): InterWindowEventBus {
+	get interWindowEventBus(): InterWindowEventBus<InterWindowEventTypes> {
 		if (!isDesktop()) {
 			throw new ProgrammingError("Trying to use InterWindowEventBus not on desktop")
 		}
