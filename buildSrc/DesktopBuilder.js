@@ -14,6 +14,7 @@ import util from 'util'
 import typescript from "@rollup/plugin-typescript"
 import {keytarNativePlugin, sqliteNativeBannerPlugin} from "./nativeLibraryRollupPlugin.js"
 import {fileURLToPath} from "url"
+import {getCanonicalPlatformName} from "./buildUtils"
 
 const exec = util.promisify(cp.exec)
 const buildSrc = dirname(fileURLToPath(import.meta.url))
@@ -125,6 +126,7 @@ export async function buildDesktop(
 }
 
 async function rollupDesktop(dirname, outDir, version, platform, disableMinify) {
+	platform = getCanonicalPlatformName(platform)
 	const mainBundle = await rollup({
 		input: path.join(dirname, "src/desktop/DesktopMain.ts"),
 		preserveEntrySignatures: false,
