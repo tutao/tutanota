@@ -39,8 +39,7 @@ import {UserError} from "../../api/main/UserError"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
-import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
-import type {File as TutanotaFile} from "../../api/entities/tutanota/TypeRefs.js"
+import type {File as TutanotaFile, Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import type {InlineImages} from "../view/MailViewer"
 import {FileOpenError} from "../../api/common/error/FileOpenError"
 import type {lazy} from "@tutao/tutanota-utils"
@@ -600,6 +599,20 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 	}
 
 	const minimize = () => {
+		// If we have no subject/destination/body/recipients (or body is unmodified such as with a signature), do not save a draft
+		if (
+			(!model.hasMailChanged() || model.getBody() === "") &&
+			model.getSubject() === "" &&
+			model.getAttachments().length == 0 &&
+			model.getRecipientList(RecipientField.TO).length === 0 &&
+			model.getRecipientList(RecipientField.CC).length === 0 &&
+			model.getRecipientList(RecipientField.BCC).length === 0
+		) {
+			dispose()
+			dialog.close()
+			return
+		}
+
 		const saveStatus = stream<SaveStatus>({status: SaveStatusEnum.Saving})
 		save(false)
 			.then(() => saveStatus({status: SaveStatusEnum.Saved}))
