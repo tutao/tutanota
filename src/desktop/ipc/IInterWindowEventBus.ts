@@ -11,4 +11,4 @@ export interface IInterWindowEventSender {
 /** Receives events from interwindow event bus*/
 export interface IInterWindowEventHandler {
 	onEvent(event: InterWindowEvent): Promise<void>
-}
+	}

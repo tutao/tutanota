@@ -231,7 +231,7 @@ export class CredentialsProvider implements ICredentialsProvider {
 			name: CREDENTIALS_DELETED_EVENT,
 			userId,
 		}
-		this.interWindowEventBus?.send(event)
+		await this.interWindowEventBus?.send(event)
 		await this.offlineDbFacade?.deleteDatabaseForUser(userId)
 		this.storage.deleteByUserId(userId)
 	}
