@@ -1,18 +1,26 @@
-import Stream from "mithril/stream"
-import stream from "mithril/stream"
 import {IInterWindowEventHandler, IInterWindowEventSender, InterWindowEvent} from "../../desktop/ipc/IInterWindowEventBus"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 
-/** Communicates between different windows in a desktop app. */
+type Listener = (event: InterWindowEvent) => Promise<void>
+
+/**
+ * Communicates between different windows in a desktop app.
+ *
+ * Calls to `send` will resolve once all of the listeners have resolved or reject on the first rejection
+ */
 export class InterWindowEventBus implements IInterWindowEventHandler {
 	private sender: IInterWindowEventSender | null = null
-	readonly events: Stream<InterWindowEvent> = stream()
+	private readonly listeners: Array<Listener> = []
 
 	init(sender: IInterWindowEventSender) {
 		this.sender = sender
 	}
 
-	async send<T extends InterWindowEvent>(event: T): Promise<void> {
+	addListener(listener: Listener) {
+		this.listeners.push(listener)
+	}
+
+	async send(event: InterWindowEvent): Promise<void> {
 		if (this.sender == null) {
 			throw new ProgrammingError("Not initialized")
 		}
@@ -20,6 +28,6 @@ export class InterWindowEventBus implements IInterWindowEventHandler {
 	}
 
 	async onEvent(event: InterWindowEvent) {
-		this.events(event)
+		await Promise.all(this.listeners.map(listener => listener(event)))
 	}
 }

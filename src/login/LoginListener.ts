@@ -133,12 +133,12 @@ class LoginListener implements LoginEventHandler {
 		this.enforcePasswordChange()
 
 		if (isDesktop()) {
-			locator.interWindowEventBus.events.map(async (event) => {
+			locator.interWindowEventBus.addListener(async (event) => {
 				if (event.name === CREDENTIALS_DELETED_EVENT) {
 					if ((event as CredentialsDeletedEvent).userId === logins.getUserController().user._id) {
-						await logins.logout(false)
-						await windowFacade.reload({noAutoLogin: true})
-					}
+					await logins.logout(false)
+					await windowFacade.reload({noAutoLogin: true})
+				}
 				}
 			})
 		}
