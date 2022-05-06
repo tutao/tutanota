@@ -22,6 +22,7 @@ interface PersistentStorageArgs {
 	userId: Id,
 	/** The key that encrypts the sqlcipher db */
 	databaseKey: Uint8Array,
+	timeRangeDays: number | null,
 }
 
 export type GetStorageArgs = PersistentStorageArgs | {persistent: false}
@@ -51,7 +52,7 @@ export class CacheStorageFactory {
 				}
 			}
 
-			await offlineStorage.clearExcludedData()
+			await offlineStorage.clearExcludedData(args.timeRangeDays)
 			return offlineStorage
 		} else {
 			return new EphemeralCacheStorage()

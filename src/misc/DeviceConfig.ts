@@ -29,6 +29,7 @@ interface ConfigObject {
 	_encryptedCredentialsKey: Base64 | null
 	_testDeviceId: string | null
 	_testAssignments: PersistedAssignmentData | null
+	offlineTimeRangeDays: number | null
 }
 
 /**
@@ -80,7 +81,8 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage {
 			_hiddenCalendars: loadedConfig._hiddenCalendars ?? {},
 			_testDeviceId: loadedConfig._testDeviceId ?? null,
 			_testAssignments: loadedConfig._testAssignments ?? null,
-			_signupToken: signupToken
+			_signupToken: signupToken,
+			offlineTimeRangeDays: loadedConfig.offlineTimeRangeDays ?? null
 		}
 
 		// We need to write the config if there was a migration and if we generate the signup token and if.
@@ -267,6 +269,15 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage {
 
 	async storeAssignments(persistedAssignmentData: PersistedAssignmentData): Promise<void> {
 		this.config._testAssignments = persistedAssignmentData
+		this.writeToStorage()
+	}
+
+	getOfflineTimeRangeDays(): number | null {
+		return this.config.offlineTimeRangeDays
+	}
+
+	setOfflineTimeRangeDays(days: number) {
+		this.config.offlineTimeRangeDays = days
 		this.writeToStorage()
 	}
 }

@@ -26,7 +26,7 @@ export interface LoginController {
 
 	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, sessionType: SessionType): Promise<Credentials>
 
-	resumeSession(credentials: CredentialsAndDatabaseKey, externalUserSalt?: Uint8Array): Promise<void>
+	resumeSession(credentials: CredentialsAndDatabaseKey, externalUserSalt?: Uint8Array | null, offlineTimeRangeDays?: number | null): Promise<void>
 
 	isUserLoggedIn(): boolean
 
@@ -75,7 +75,7 @@ export class LoginControllerImpl implements LoginController {
 			password,
 			client.getIdentifier(),
 			sessionType,
-			databaseKey
+			databaseKey,
 		)
 		await this.onLoginSuccess(
 			{
@@ -135,9 +135,9 @@ export class LoginControllerImpl implements LoginController {
 		return credentials
 	}
 
-	async resumeSession({credentials, databaseKey}: CredentialsAndDatabaseKey, externalUserSalt?: Uint8Array): Promise<void> {
+	async resumeSession({credentials, databaseKey}: CredentialsAndDatabaseKey, externalUserSalt?: Uint8Array | null, offlineTimeRangeDays?: number | null): Promise<void> {
 		const loginFacade = await this._getLoginFacade()
-		const {user, userGroupInfo, sessionId} = await loginFacade.resumeSession(credentials, externalUserSalt ?? null, databaseKey ?? null)
+		const {user, userGroupInfo, sessionId} = await loginFacade.resumeSession(credentials, externalUserSalt ?? null, databaseKey ?? null, offlineTimeRangeDays ?? null)
 		await this.onLoginSuccess(
 			{
 				user,
