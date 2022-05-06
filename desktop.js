@@ -8,6 +8,7 @@ import {getCanonicalPlatformName, getTutanotaAppVersion, measure} from "./buildS
 import {dirname} from "path"
 import {fileURLToPath} from "url"
 import {createHtml} from "./buildSrc/createHtml.js"
+import {program} from "commander"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
