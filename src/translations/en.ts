@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2022-04-28T05:30:56Z",
+	"updated_at": "2022-05-06T14:43:56Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -353,7 +353,7 @@ export default {
 		"custom_label": "Custom",
 		"cut_action": "Cut",
 		"dark_label": "Dark",
-		"dataExpiredOfflineDb_msg": "Your local data is out of sync with the data on the Tutanota servers. It will be deleted and re-downloaded.",
+		"dataExpiredOfflineDb_msg": "Your local data is out of sync with the data on the Tutanota servers. You will be logged out and your locally stored data will be cleared and re-downloaded as needed.",
 		"dataExpired_msg": "Your loaded data is expired and out of sync with the data on the Tutanota servers. Please logout and login again to refresh your data.",
 		"dataWillBeStored_msg": "Data will be stored on your device.",
 		"dateFrom_label": "From",
@@ -930,6 +930,7 @@ export default {
 		"outOfOfficeTimeRangeHelp_msg": "Check to pick dates.",
 		"outOfOfficeTimeRange_msg": "Only send during this time range:",
 		"outOfOfficeUnencrypted_msg": "Please note that automatic replies (autoresponses) are sent in plaintext.",
+		"outOfSync_label": "Data expired",
 		"owner_label": "Owner",
 		"packageDowngradeUserAccounts_label": "Package downgrade to {1} user(s)",
 		"packageUpgradeUserAccounts_label": "Package upgrade to {1} user(s)",

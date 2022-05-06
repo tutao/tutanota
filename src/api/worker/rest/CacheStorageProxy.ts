@@ -7,14 +7,15 @@ import {WorkerImpl} from "../WorkerImpl"
 import {uint8ArrayToKey} from "@tutao/tutanota-crypto"
 import {EphemeralCacheStorage} from "./EphemeralCacheStorage"
 
-type OfflineStorageInitArgs = {
-	userId: Id,
-	databaseKey: Uint8Array,
+interface OfflineStorageInitArgs {
+	userId: Id
+	databaseKey: Uint8Array
+	timeRangeDays: number | null
 }
 
-type CacheStorageInitReturn = {
+interface CacheStorageInitReturn {
 	/** If the created storage is an OfflineStorage */
-	isPersistent: boolean,
+	isPersistent: boolean
 	/** If a OfflineStorage was created, whether or not the backing database was created fresh or already existed */
 	isNewOfflineDb: boolean
 }
@@ -73,7 +74,7 @@ export class LateInitializedCacheStorageImpl implements LateInitializedCacheStor
 					// if nothing is written here, it means it's a new database
 					const isNewOfflineDb = await storage.getLastUpdateTime() == null
 
-					await storage.clearExcludedData()
+					await storage.clearExcludedData(args.timeRangeDays)
 
 					return {
 						storage,

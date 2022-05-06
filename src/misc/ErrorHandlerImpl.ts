@@ -11,7 +11,7 @@ import {
 } from "../api/common/error/RestError"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "./LanguageViewModel"
-import {assertMainOrNode, isOfflineStorageAvailable} from "../api/common/Env"
+import {assertMainOrNode, isDesktop, isOfflineStorageAvailable} from "../api/common/Env"
 import {neverNull, noOp} from "@tutao/tutanota-utils"
 import {logins} from "../api/main/LoginController"
 import {OutOfSyncError} from "../api/common/error/OutOfSyncError"
@@ -29,6 +29,8 @@ import {CancelledError} from "../api/common/error/CancelledError"
 import {getLoginErrorMessage} from "./LoginUtils"
 import {SessionType} from "../api/common/SessionType"
 import {LoginIncompleteError} from "../api/common/error/LoginIncompleteError.js"
+import m, {Children} from "mithril"
+import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 
 assertMainOrNode()
 
@@ -72,16 +74,37 @@ export async function handleUncaughtErrorImpl(e: Error) {
 	} else if (e instanceof SessionExpiredError) {
 		reloginForExpiredSession()
 	} else if (e instanceof OutOfSyncError) {
-
-		// When the user logs in and their offline database is out of sync, we just silently purge it and continue
-		// If the user is not using an offline database and they just go out of sync due to being logged in for too long,
-		// then they should log out and in again
-		const isUsingOfflineStorage = isOfflineStorageAvailable() && logins.isUserLoggedIn() && logins.getUserController().sessionType === SessionType.Persistent
-		if (isUsingOfflineStorage) {
-			Dialog.message("dataExpiredOfflineDb_msg")
-		} else {
-			Dialog.message("dataExpired_msg")
-		}
+		const isOffline = isOfflineStorageAvailable() && logins.isUserLoggedIn() && logins.getUserController().sessionType === SessionType.Persistent
+		Dialog.showActionDialog({
+			title: lang.get("outOfSync_label"),
+			child: {
+				view(): Children {
+					return m(".pt-m.plr-l", [
+						lang.get(
+							isOffline
+								? "dataExpiredOfflineDb_msg"
+								: "dataExpired_msg"
+						),
+						m(".pt-m", m(ButtonN, {
+								label: "ok_action",
+								click: async () => {
+									const {userId} = logins.getUserController()
+									if (isDesktop()) {
+										await locator.interWindowEventBus?.send("logout", {userId})
+										await locator.offlineDbFacade?.deleteDatabaseForUser(userId)
+									}
+									await logins.logout(false)
+									await windowFacade.reload({noAutoLogin: true})
+								},
+								type: ButtonType.Login
+							})
+						)
+					])
+				}
+			},
+			okAction: null,
+			allowCancel: false,
+		})
 	} else if (e instanceof InsufficientStorageError) {
 		if (logins.getUserController().isGlobalAdmin()) {
 			showMoreStorageNeededOrderDialog(logins, "insufficientStorageAdmin_msg")

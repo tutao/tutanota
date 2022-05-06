@@ -134,8 +134,9 @@ export class PostLoginActions implements IPostLoginAction {
 		this.enforcePasswordChange()
 
 		if (isDesktop()) {
-			locator.interWindowEventBus.addListener("credentialsDeleted", async (data) => {
-				if (data.userId === logins.getUserController().user._id) {
+			locator.interWindowEventBus.addListener("logout", async data => {
+				const {userId} = logins.getUserController()
+				if (data.userId === userId) {
 						await logins.logout(false)
 						await windowFacade.reload({noAutoLogin: true})
 					}

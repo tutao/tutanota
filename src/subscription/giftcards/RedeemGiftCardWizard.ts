@@ -206,7 +206,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
 				const credentials = await locator.credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
 
 				if (credentials) {
-					await logins.resumeSession(credentials)
+					await logins.resumeSession(credentials, null, null)
 					await this._postLogin()
 				}
 
