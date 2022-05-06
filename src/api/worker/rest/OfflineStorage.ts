@@ -193,15 +193,18 @@ export class OfflineStorage implements CacheStorage, CachedRangeLoader {
 		await this.offlineDbFacade.deleteAll(this.userId)
 	}
 
-	async clearExcludedData(): Promise<void> {
+	/**
+	 * Clear out unneeded data from the offline database (i.e. trash and spam lists, old data)
+	 * @param timeRangeDays: the maxiumum age of days that mails should be to be kept in the database. if null, will use a default value
+	 */
+	async clearExcludedData(timeRangeDays: number | null): Promise<void> {
 
-		// Reset the stored data time range to the default in case the user has downgraded
 		const user = await this.get(UserTypeRef, null, this.userId)
-		if (user?.accountType === AccountType.FREE) {
-			await this.setTimeRangeDays(OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS)
-		}
 
-		const cutoffTimestamp = await this.getCutoffTimestamp()
+		// Free users always have default time range regardless of what is stored
+		const isFreeUser = user?.accountType === AccountType.FREE
+		const timeRange = isFreeUser || timeRangeDays == null ? OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS : timeRangeDays
+		const cutoffTimestamp =  this.dateProvider.now() - timeRange * DAY_IN_MILLIS
 		const cutoffId = timestampToGeneratedId(cutoffTimestamp)
 
 		const folders = await this.getListElementsOfType(MailFolderTypeRef)
@@ -296,18 +299,6 @@ export class OfflineStorage implements CacheStorage, CachedRangeLoader {
 				await this.offlineDbFacade.setLowerRange(this.userId, type, listId, cutoffId)
 			}
 		}
-	}
-
-	async getTimeRangeDays(): Promise<number> {
-		return await this.getMetadata("timeRangeDays") ?? OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS
-	}
-
-	async setTimeRangeDays(days: number): Promise<void> {
-		await this.putMetadata("timeRangeDays", days)
-	}
-
-	async getCutoffTimestamp(): Promise<number> {
-		return this.dateProvider.now() - (await this.getTimeRangeDays() * DAY_IN_MILLIS)
 	}
 
 	private async getListElementsOfType<T extends ListElementEntity>(typeRef: TypeRef<T>): Promise<Array<T>> {

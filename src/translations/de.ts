@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2022-04-26T17:19:37Z",
+	"updated_at": "2022-05-06T14:46:00Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -357,7 +357,7 @@ export default {
 		"custom_label": "Eigenes",
 		"cut_action": "Ausschneiden",
 		"dark_label": "Dunkel",
-		"dataExpiredOfflineDb_msg": "Deine geladenen Daten sind nicht mehr aktuell und können nicht mehr mit dem Server synchronisiert werden. Sie werden gelöscht und erneut heruntergeladen.",
+		"dataExpiredOfflineDb_msg": "Deine geladenen Daten sind abgelaufen und können nicht mehr mit dem Server synchronisiert werden. Du wirst jetzt automatisch ausgeloggt. Deine lokalen Daten werden gelöscht und bei Bedarf erneut heruntergeladen.",
 		"dataExpired_msg": "Deine geladenen Daten sind nicht mehr aktuell und können nicht mehr mit dem Server synchronisiert werden. Bitte logge dich aus und wieder ein, um deine Daten zu aktualisieren.",
 		"dataWillBeStored_msg": "Die Daten werden auf deinem Gerät gespeichert.",
 		"dateFrom_label": "Von",
@@ -934,6 +934,7 @@ export default {
 		"outOfOfficeTimeRangeHelp_msg": "Ankreuzen um Daten auszuwählen",
 		"outOfOfficeTimeRange_msg": "Nur in diesem Zeitraum senden:",
 		"outOfOfficeUnencrypted_msg": "Bitte beachte, dass Abwesenheitsbenachrichtigungen unverschlüsselt gesendet werden.",
+		"outOfSync_label": "Daten abgelaufen",
 		"owner_label": "Eigentümer",
 		"packageDowngradeUserAccounts_label": "Paketreduzierung auf {1} Benutzer",
 		"packageUpgradeUserAccounts_label": "Paketerweiterung auf {1} Benutzer",

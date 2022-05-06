@@ -14,10 +14,11 @@ import type {CredentialsInfo, ICredentialsProvider} from "../misc/credentials/Cr
 import {CredentialAuthenticationError} from "../api/common/error/CredentialAuthenticationError"
 import {first, noOp} from "@tutao/tutanota-utils"
 import {KeyPermanentlyInvalidatedError} from "../api/common/error/KeyPermanentlyInvalidatedError"
-import {assertMainOrNode} from "../api/common/Env"
+import {assertMainOrNode, isOfflineStorageAvailable} from "../api/common/Env"
 import {SessionType} from "../api/common/SessionType"
 import {DeviceStorageUnavailableError} from "../api/common/error/DeviceStorageUnavailableError"
 import {DatabaseKeyFactory} from "../misc/credentials/DatabaseKeyFactory"
+import {DeviceConfig} from "../misc/DeviceConfig"
 
 assertMainOrNode()
 
@@ -131,13 +132,12 @@ export class LoginViewModel implements ILoginViewModel {
 	helpText: TranslationText
 	readonly savePassword: Stream<boolean>
 	_savedInternalCredentials: Array<CredentialsInfo>
-	_autoLoginCredentials: CredentialsInfo | null
-
 	constructor(
 		private readonly loginController: LoginController,
 		private readonly credentialsProvider: ICredentialsProvider,
 		private readonly secondFactorHandler: SecondFactorHandler,
-		private readonly databaseKeyFactory: DatabaseKeyFactory
+		private readonly databaseKeyFactory: DatabaseKeyFactory,
+		private readonly deviceConfig: DeviceConfig,
 	) {
 		this.state = LoginState.NotAuthenticated
 		this.displayMode = DisplayMode.Form
@@ -148,6 +148,8 @@ export class LoginViewModel implements ILoginViewModel {
 		this.savePassword = stream(false)
 		this._savedInternalCredentials = []
 	}
+
+	_autoLoginCredentials: CredentialsInfo | null
 
 	/**
 	 * This method should be called right after creation of the view model by whoever created the viewmodel. The view model will not be
@@ -281,7 +283,8 @@ export class LoginViewModel implements ILoginViewModel {
 				const credentials = await this.credentialsProvider.getCredentialsByUserId(this._autoLoginCredentials.userId)
 
 				if (credentials) {
-					const result = await this.loginController.resumeSession(credentials)
+					const offlineTimeRange = isOfflineStorageAvailable() ? this.deviceConfig.getOfflineTimeRangeDays() : null
+					const result = await this.loginController.resumeSession(credentials, null, offlineTimeRange)
 					if (result.type == "success") {
 						await this._onLogin()
 					} else {
