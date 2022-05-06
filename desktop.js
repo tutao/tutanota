@@ -43,9 +43,7 @@ await program
 
 		opts.platform = getCanonicalPlatformName(opts.platform)
 
-		await doBuild({
-			stage: stage ?? "release"
-		})
+		await doBuild(opts)
 	})
 	.parseAsync(process.argv)
 
