@@ -218,7 +218,7 @@ export class CredentialsProvider implements ICredentialsProvider {
 	}
 
 	async deleteByUserId(userId: Id): Promise<void> {
-		await this.interWindowEventBus?.send("credentialsDeleted", {userId})
+		await this.interWindowEventBus?.send("logout", {userId})
 		await this.offlineDbFacade?.deleteDatabaseForUser(userId)
 		this.storage.deleteByUserId(userId)
 	}

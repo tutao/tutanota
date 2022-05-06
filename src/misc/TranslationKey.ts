@@ -915,6 +915,7 @@ export type TranslationKeyType =
 	| "outOfOfficeTimeRangeHelp_msg"
 	| "outOfOfficeTimeRange_msg"
 	| "outOfOfficeUnencrypted_msg"
+	| "outOfSync_label"
 	| "owner_label"
 	| "packageDowngradeUserAccounts_label"
 	| "packageUpgradeUserAccounts_label"

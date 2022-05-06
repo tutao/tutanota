@@ -53,7 +53,7 @@ export const enum EventBusState {
 }
 
 // EntityEventBatches expire after 45 days. keep a time diff security of one day.
-export const ENTITY_EVENT_BATCH_EXPIRE_MS = 44 * 24 * 60 * 60 * 1000
+export const ENTITY_EVENT_BATCH_EXPIRE_MS = 5 * 1000 //44 * 24 * 60 * 60 * 1000
 const RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS = 30000
 const NORMAL_SHUTDOWN_CLOSE_CODE = 1
 /**
