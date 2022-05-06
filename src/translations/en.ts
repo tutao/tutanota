@@ -548,7 +548,7 @@ export default {
 		"formatTextUnderline_msg": "Make selected text underlined.",
 		"forward_action": "Forward",
 		"freeAccountInfo_msg": "Only one Free account is allowed per person. Free accounts may only be used for private communication. If you want to use Tutanota for your business or as a freelancer, please order a paid subscription. Please also note that Free accounts get deleted if you do not log in for six months.",
-		"from_label": "From",
+		"from_label": "From/Sender",
 		"functionNotSupported_msg": "This function is not supported by your device or browser.",
 		"germanLanguageFile_label": "German language file",
 		"giftCardCopied_msg": "Gift card link copied to clipboard!",
