@@ -31,7 +31,7 @@ o.spec("CacheStorageProxy", function () {
 		o("should create a persistent storage when params are provided and offline storage is enabled", async function () {
 			when(offlineStorageProviderMock()).thenResolve(offlineStorageMock)
 
-			const {isPersistent} = await proxy.initialize({userId, databaseKey})
+			const {isPersistent} = await proxy.initialize({userId, databaseKey, timeRangeDays: null})
 
 			o(isPersistent).equals(true)
 		})
@@ -47,7 +47,7 @@ o.spec("CacheStorageProxy", function () {
 		o("should create a ephemeral storage when params are provided but offline storage is disabled", async function () {
 			when(offlineStorageProviderMock()).thenResolve(null)
 
-			const {isPersistent} = await proxy.initialize({userId, databaseKey})
+			const {isPersistent} = await proxy.initialize({userId, databaseKey, timeRangeDays: null})
 
 			o(isPersistent).equals(false)
 		})
@@ -64,7 +64,7 @@ o.spec("CacheStorageProxy", function () {
 			when(offlineStorageProviderMock()).thenResolve(offlineStorageMock)
 			when(offlineStorageMock.getLastUpdateTime()).thenResolve(null)
 
-			const {isNewOfflineDb} = await proxy.initialize({userId, databaseKey})
+			const {isNewOfflineDb} = await proxy.initialize({userId, databaseKey, timeRangeDays: null})
 
 			o(isNewOfflineDb).equals(true)
 		})
@@ -73,17 +73,17 @@ o.spec("CacheStorageProxy", function () {
 			when(offlineStorageProviderMock()).thenResolve(offlineStorageMock)
 			when(offlineStorageMock.getLastUpdateTime()).thenResolve(Date.now())
 
-			const {isNewOfflineDb} = await proxy.initialize({userId, databaseKey})
+			const {isNewOfflineDb} = await proxy.initialize({userId, databaseKey, timeRangeDays: null})
 
 			o(isNewOfflineDb).equals(false)
 		})
 
-		o("will clear excluded data from the offline database", async function () {
+		o("will clear excluded data from the offline database with the provided time range", async function () {
 			when(offlineStorageProviderMock()).thenResolve(offlineStorageMock)
 
-			await proxy.initialize({userId, databaseKey})
+			await proxy.initialize({userId, databaseKey, timeRangeDays: 42})
 
-			verify(offlineStorageMock.clearExcludedData())
+			verify(offlineStorageMock.clearExcludedData(42))
 		})
 
 		o("will fall back to an ephemeral storage when there is an error, and error is caught but sent to the worker", async function () {
@@ -91,7 +91,7 @@ o.spec("CacheStorageProxy", function () {
 
 			when(offlineStorageProviderMock()).thenReject(error)
 
-			const {isPersistent} = await proxy.initialize({userId, databaseKey})
+			const {isPersistent} = await proxy.initialize({userId, databaseKey, timeRangeDays: null})
 
 			o(isPersistent).equals(false)
 			verify(workerMock.sendError(error))

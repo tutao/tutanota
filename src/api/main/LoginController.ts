@@ -37,7 +37,7 @@ export interface LoginController {
 
 	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, sessionType: SessionType): Promise<Credentials>
 
-	resumeSession(credentials: CredentialsAndDatabaseKey, externalUserSalt?: Uint8Array): Promise<ResumeSessionResult>
+	resumeSession(credentials: CredentialsAndDatabaseKey, externalUserSalt: Uint8Array | null, offlineTimeRangeDays: number | null): Promise<ResumeSessionResult>
 
 	isUserLoggedIn(): boolean
 
@@ -107,7 +107,7 @@ export class LoginControllerImpl implements LoginController {
 			password,
 			client.getIdentifier(),
 			sessionType,
-			databaseKey
+			databaseKey,
 		)
 		await this.onPartialLoginSuccess(
 			{
@@ -165,9 +165,9 @@ export class LoginControllerImpl implements LoginController {
 		return credentials
 	}
 
-	async resumeSession({credentials, databaseKey}: CredentialsAndDatabaseKey, externalUserSalt?: Uint8Array): Promise<ResumeSessionResult> {
+	async resumeSession({credentials, databaseKey}: CredentialsAndDatabaseKey, externalUserSalt?: Uint8Array | null, offlineTimeRangeDays?: number | null): Promise<ResumeSessionResult> {
 		const loginFacade = await this.getLoginFacade()
-		const resumeResult = await loginFacade.resumeSession(credentials, externalUserSalt ?? null, databaseKey ?? null)
+		const resumeResult = await loginFacade.resumeSession(credentials, externalUserSalt ?? null, databaseKey ?? null, offlineTimeRangeDays ?? null)
 		if (resumeResult.type === "error") {
 			return resumeResult
 		} else {

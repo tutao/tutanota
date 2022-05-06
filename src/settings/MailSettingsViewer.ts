@@ -43,6 +43,7 @@ import type {UpdatableSettingsViewer} from "./SettingsView"
 import {getReportMovedMailsType, loadMailboxProperties, saveReportMovedMails} from "../misc/MailboxPropertiesUtils"
 import {OfflineStorageSettingsModel} from "./OfflineStorageSettings"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
+import {deviceConfig} from "../misc/DeviceConfig"
 
 assertMainOrNode()
 
@@ -65,9 +66,9 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_outOfOfficeStatus: Stream<string> // stores the status label, based on whether the notification is/ or will really be activated (checking start time/ end time)
 
 	private offlineStorageSettings = new OfflineStorageSettingsModel(
-		() => locator.offlineDbFacade,
 		() => locator.systemApp,
-		logins.getUserController()
+		logins.getUserController(),
+		deviceConfig
 	)
 
 	constructor() {

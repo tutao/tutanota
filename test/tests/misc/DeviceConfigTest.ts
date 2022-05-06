@@ -92,7 +92,8 @@ o.spec("DeviceConfig", function () {
 				_hiddenCalendars: {},
 				_testDeviceId: "testId",
 				_testAssignments: null,
-				_signupToken: "signupToken"
+				_signupToken: "signupToken",
+				offlineTimeRangeDays: 42,
 			}
 
 			when(localStorageMock.getItem(DeviceConfig.LocalStorageKey)).thenReturn(JSON.stringify(storedInLocalStorage))

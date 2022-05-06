@@ -28,23 +28,20 @@ import {
 } from "../../entities/sys/Services"
 import {AccountType, CloseEventBusOption, OperationType} from "../../common/TutanotaConstants"
 import {CryptoError} from "../../common/error/CryptoError"
-import type {CreateSessionReturn, EntityUpdate, GroupInfo, SaltReturn, SecondFactorAuthData, User} from "../../entities/sys/TypeRefs.js"
 import {
 	createAutoLoginDataGet,
-	createChangePasswordData,
-	createCreateSessionData,
-	createDeleteCustomerData,
+	createChangePasswordData, createCreateSessionData, createDeleteCustomerData,
 	createResetFactorsDeleteData,
-	createSaltData,
-	createSecondFactorAuthDeleteData,
-	createSecondFactorAuthGetData,
-	createTakeOverDeletedAddressData,
-	GroupInfoTypeRef,
-	RecoverCodeTypeRef,
-	SessionTypeRef,
-	UserTypeRef
+	createSaltData, createSecondFactorAuthGetData, CreateSessionReturn,
+	createTakeOverDeletedAddressData, EntityUpdate, RecoverCodeTypeRef,
+	SessionTypeRef
 } from "../../entities/sys/TypeRefs.js"
+import type {SaltReturn} from "../../entities/sys/TypeRefs.js"
+import type {GroupInfo} from "../../entities/sys/TypeRefs.js"
+import {GroupInfoTypeRef} from "../../entities/sys/TypeRefs.js"
 import {createEntropyData, TutanotaPropertiesTypeRef} from "../../entities/tutanota/TypeRefs.js"
+import type {User} from "../../entities/sys/TypeRefs.js"
+import {UserTypeRef} from "../../entities/sys/TypeRefs.js"
 import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../common/Env"
 import {ConnectMode, EventBusClient} from "../EventBusClient"
@@ -78,6 +75,8 @@ import {
 } from "@tutao/tutanota-crypto"
 import {CryptoFacade, encryptBytes, encryptString} from "../crypto/CryptoFacade"
 import {InstanceMapper} from "../crypto/InstanceMapper"
+import {createSecondFactorAuthDeleteData} from "../../entities/sys/TypeRefs.js"
+import type {SecondFactorAuthData} from "../../entities/sys/TypeRefs.js"
 import {Aes128Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
 import {EntropyService} from "../../entities/tutanota/Services"
 import {IServiceExecutor} from "../../common/ServiceRequest"
@@ -137,7 +136,8 @@ export interface LoginFacade {
 	resumeSession(
 		credentials: Credentials,
 		externalUserSalt: Uint8Array | null,
-		databaseKey: Uint8Array | null
+		databaseKey: Uint8Array | null,
+		offlineTimeRangeDays: number | null
 	): Promise<ResumeSessionResult>
 
 	deleteSession(accessToken: Base64Url): Promise<void>
@@ -169,6 +169,15 @@ export interface LoginFacade {
 	decryptUserPassword(userId: string, deviceToken: string, encryptedPassword: string): Promise<string>
 
 	retryAsyncLogin(): Promise<void>
+}
+
+interface InitSessionParams {
+	userId: Id;
+	accessToken: Base64Url;
+	userPassphraseKey: Aes128Key;
+	sessionType: SessionType;
+	databaseKey: Uint8Array | null;
+	offlineTimeRangeDays: number | null;
 }
 
 export class LoginFacadeImpl implements LoginFacade {
@@ -254,7 +263,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		const createSessionReturn = await this.serviceExecutor.post(SessionService, createSessionData)
 		const sessionData = await this._waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, mailAddress)
 
-		const {isPersistent} = await this.initCache(sessionData.userId, databaseKey)
+		const {isPersistent} = await this.initCache(sessionData.userId, databaseKey, null)
 		const {
 			user,
 			userGroupInfo,
@@ -358,7 +367,7 @@ export class LoginFacadeImpl implements LoginFacade {
 
 
 		let sessionId = [this._getSessionListId(createSessionReturn.accessToken), this._getSessionElementId(createSessionReturn.accessToken)] as const
-		const {isPersistent} = await this.initCache(userId, null)
+		const {isPersistent} = await this.initCache(userId, null, null)
 		const {
 			user,
 			userGroupInfo,
@@ -408,13 +417,14 @@ export class LoginFacadeImpl implements LoginFacade {
 	async resumeSession(
 		credentials: Credentials,
 		externalUserSalt: Uint8Array | null,
-		databaseKey: Uint8Array | null
+		databaseKey: Uint8Array | null,
+		offlineTimeRangeDays: number | null
 	): Promise<ResumeSessionResult> {
 		this.userFacade.setAccessToken(credentials.accessToken)
 		const {
 			isPersistent: usingOfflineStorage,
 			isNewOfflineDb
-		} = await this.initCache(credentials.userId, databaseKey)
+		} = await this.initCache(credentials.userId, databaseKey, offlineTimeRangeDays)
 
 		const sessionId = this.getSessionId(credentials)
 
@@ -575,9 +585,9 @@ export class LoginFacadeImpl implements LoginFacade {
 		}
 	}
 
-	private async initCache(userId: string, databaseKey: Uint8Array | null): Promise<{isPersistent: boolean, isNewOfflineDb: boolean}> {
+	private async initCache(userId: string, databaseKey: Uint8Array | null, timeRangeDays: number | null): Promise<{isPersistent: boolean, isNewOfflineDb: boolean}> {
 		if (databaseKey != null) {
-			return this.initializeCacheStorage({userId, databaseKey})
+			return this.initializeCacheStorage({userId, databaseKey, timeRangeDays})
 		} else {
 			return this.initializeCacheStorage(null)
 		}

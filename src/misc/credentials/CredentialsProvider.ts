@@ -219,7 +219,7 @@ export class CredentialsProvider implements ICredentialsProvider {
 	}
 
 	async deleteByUserId(userId: Id, opts: {deleteOfflineDb: boolean} = {deleteOfflineDb: true}): Promise<void> {
-		await this.interWindowEventBus?.send("credentialsDeleted", {userId})
+		await this.interWindowEventBus?.send("logout", {userId})
 		if (opts?.deleteOfflineDb) {
 			await this.offlineDbFacade?.deleteDatabaseForUser(userId)
 		}

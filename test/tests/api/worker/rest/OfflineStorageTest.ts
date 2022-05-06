@@ -75,14 +75,9 @@ o.spec("OfflineStorage", function () {
 
 		o.spec("Clearing excluded data", function () {
 			const listId = "listId"
-			const storedTimeRange = encode(timeRangeDays)
 			const mailType = MailTypeRef.getId()
 			const mailFolderType = MailFolderTypeRef.getId()
 			const mailBodyType = MailBodyTypeRef.getId()
-
-			o.beforeEach(function () {
-				when(dbFacadeMock.getMetadata(userId, "timeRangeDays")).thenResolve(storedTimeRange)
-			})
 
 			o("old ranges will be deleted", async function () {
 				const upper = offsetId(-1)
@@ -94,7 +89,7 @@ o.spec("OfflineStorage", function () {
 				when(dbFacadeMock.getWholeList(userId, mailType, anything())).thenResolve([])
 				when(dbFacadeMock.getRange(userId, mailType, listId)).thenResolve({upper, lower})
 
-				await storage.clearExcludedData()
+				await storage.clearExcludedData(timeRangeDays)
 
 				verify(dbFacadeMock.deleteRange(userId, mailType, listId))
 			})
@@ -109,7 +104,7 @@ o.spec("OfflineStorage", function () {
 				when(dbFacadeMock.getWholeList(userId, mailType, anything())).thenResolve([])
 				when(dbFacadeMock.getRange(userId, mailType, listId)).thenResolve({upper, lower})
 
-				await storage.clearExcludedData()
+				await storage.clearExcludedData(timeRangeDays)
 
 				verify(dbFacadeMock.setLowerRange(userId, mailType, listId, cutoffId))
 			})
@@ -124,7 +119,7 @@ o.spec("OfflineStorage", function () {
 				when(dbFacadeMock.getWholeList(userId, mailType, anything())).thenResolve([])
 				when(dbFacadeMock.getRange(userId, mailType, listId)).thenResolve({upper, lower})
 
-				await storage.clearExcludedData()
+				await storage.clearExcludedData(timeRangeDays)
 
 				verify(dbFacadeMock.setLowerRange(userId, mailType, listId, anything()), {times: 0})
 				verify(dbFacadeMock.deleteRange(userId, mailType, listId), {times: 0})
@@ -139,7 +134,7 @@ o.spec("OfflineStorage", function () {
 					encode({_id: [listId, offsetId(1)]})
 				])
 
-				await storage.clearExcludedData()
+				await storage.clearExcludedData(timeRangeDays)
 
 				verify(dbFacadeMock.setLowerRange(userId, mailType, listId, anything()), {times: 0})
 				verify(dbFacadeMock.deleteRange(userId, mailType, listId), {times: 0})
@@ -165,7 +160,7 @@ o.spec("OfflineStorage", function () {
 					encode(trashMail)
 				])
 
-				await storage.clearExcludedData()
+				await storage.clearExcludedData(timeRangeDays)
 
 				// Spam mail was deleted even though it's after the cutoff
 				verify(dbFacadeMock.deleteIn(userId, mailType, getListId(spamMail), [getElementId(spamMail)]))
@@ -201,7 +196,7 @@ o.spec("OfflineStorage", function () {
 					encode(mailAfter),
 				])
 
-				await storage.clearExcludedData()
+				await storage.clearExcludedData(timeRangeDays)
 
 				verify(dbFacadeMock.deleteIn(userId, mailType, inboxMailList, [getElementId(mailBefore)]))
 				verify(dbFacadeMock.deleteIn(userId, mailType, inboxMailList, [getElementId(mailAfter)]), {times: 0})
@@ -223,7 +218,7 @@ o.spec("OfflineStorage", function () {
 					encode(mail2),
 				])
 
-				await storage.clearExcludedData()
+				await storage.clearExcludedData(timeRangeDays)
 
 				verify(dbFacadeMock.deleteIn(userId, mailType, inboxMailList, [getElementId(mail1), getElementId(mail2)]))
 				verify(dbFacadeMock.deleteIn(userId, mailBodyType, null, [mailBodyId1, mailBodyId2]))
@@ -247,7 +242,7 @@ o.spec("OfflineStorage", function () {
 					encode(mailAfter),
 				])
 
-				await storage.clearExcludedData()
+				await storage.clearExcludedData(timeRangeDays)
 				verify(dbFacadeMock.deleteIn(userId, mailType, inboxMailList, [getElementId(mailBefore)]))
 				verify(dbFacadeMock.deleteIn(userId, FileTypeRef.getId(), fileListId, [getElementId(fileBefore)]))
 			})
@@ -294,7 +289,8 @@ o.spec("OfflineStorage", function () {
 
 			const factory: OfflineDbFactory = {
 				async create(userId, key) {
-					const db = new OfflineDb(globalThis.buildOptions.sqliteNativePath)
+					// @ts-ignore
+					const db = new OfflineDb(buildOptions.sqliteNativePath)
 					// await db.init("/tmp/test.sqlite", key, false)
 					await db.init(":memory:", key, false)
 					return db
@@ -350,7 +346,6 @@ o.spec("OfflineStorage", function () {
 		o("cleanup works as expected", async function () {
 
 			// Time range is five days
-			await offlineStorage.setTimeRangeDays(timeRangeDays)
 			const oldIds = new IdGenerator(offsetId(-5))
 			const newIds = new IdGenerator(offsetId(5))
 
@@ -396,7 +391,7 @@ o.spec("OfflineStorage", function () {
 			await offlineStorage.setNewRangeForList(MailTypeRef, inboxListId, firstThrow(oldInboxMails)._id[1], lastThrow(newInboxMails)._id[1])
 			await offlineStorage.setNewRangeForList(MailTypeRef, trashListId, firstThrow(trashMails)._id[1], lastThrow(trashMails)._id[1])
 
-			await offlineStorage.clearExcludedData()
+			await offlineStorage.clearExcludedData(timeRangeDays)
 
 			const assertContents = async ({_id, _type}, expected, msg) => {
 				const {listId, elementId} = expandId(_id)
