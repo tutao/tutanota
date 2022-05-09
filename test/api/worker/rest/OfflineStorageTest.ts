@@ -75,7 +75,6 @@ o.spec("OfflineStorage", function () {
 
 		o.spec("Clearing excluded data", function () {
 			const listId = "listId"
-			const storedTimeRange = encode(timeRangeDays)
 			const mailType = MailTypeRef.getId()
 			const mailFolderType = MailFolderTypeRef.getId()
 			const mailBodyType = MailBodyTypeRef.getId()

@@ -1,9 +1,7 @@
 import m, {Children} from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {
-	AccessExpiredError,
-} from "../api/common/error/RestError"
+import {AccessExpiredError,} from "../api/common/error/RestError"
 import {assertNotNull, base64ToUint8Array, base64UrlToBase64} from "@tutao/tutanota-utils"
 import type {TranslationText} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
@@ -15,7 +13,6 @@ import {progressIcon} from "../gui/base/Icon"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TextFieldN, TextFieldType as TextFieldType} from "../gui/base/TextFieldN"
 import {CheckboxN} from "../gui/base/CheckboxN"
-import {CancelledError} from "../api/common/error/CancelledError"
 import {logins} from "../api/main/LoginController"
 import {MessageBoxN} from "../gui/base/MessageBoxN"
 import {renderPrivacyAndImprintLinks} from "./LoginView"
@@ -139,7 +136,7 @@ export class ExternalLoginView implements CurrentView {
 		this._autologinInProgress = true
 		showProgressDialog(
 			"login_msg",
-			this._handleSession(logins.resumeSession({credentials, databaseKey: null}, assertNotNull(this._urlData).salt), () => {
+			this._handleSession(logins.resumeSession({credentials, databaseKey: null}, assertNotNull(this._urlData).salt, null), () => {
 				this._autologinInProgress = false
 				m.redraw()
 			}),

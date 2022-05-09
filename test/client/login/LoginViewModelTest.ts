@@ -241,12 +241,12 @@ o.spec("LoginViewModelTest", () => {
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
 			viewModel.switchDeleteState()
 			await viewModel.login()
-			verify(loginControllerMock.resumeSession({credentials: testCredentials, databaseKey: null}), {times: 1})
+			verify(loginControllerMock.resumeSession({credentials: testCredentials, databaseKey: null}, null, null), {times: 1})
 			o(viewModel.state).equals(LoginState.LoggedIn)
 		})
 		o("login should fail with invalid stored credentials", async function () {
 			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
-			when(loginControllerMock.resumeSession(anything())).thenReject(new NotAuthenticatedError("test"))
+			when(loginControllerMock.resumeSession(anything(), null, null)).thenReject(new NotAuthenticatedError("test"))
 			const viewModel = await getViewModel()
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
@@ -260,7 +260,7 @@ o.spec("LoginViewModelTest", () => {
 		})
 		o("login should fail for expired stored credentials", async function () {
 			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
-			when(loginControllerMock.resumeSession(anything())).thenReject(new AccessExpiredError("test"))
+			when(loginControllerMock.resumeSession(anything(), null, null)).thenReject(new AccessExpiredError("test"))
 			const viewModel = await getViewModel()
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
@@ -290,7 +290,7 @@ o.spec("LoginViewModelTest", () => {
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
 			await viewModel.login()
-			verify(loginControllerMock.resumeSession({credentials: testCredentials, databaseKey: null}, undefined, timeRangeDays), {times: 1})
+			verify(loginControllerMock.resumeSession({credentials: testCredentials, databaseKey: null}, null, timeRangeDays), {times: 1})
 			o(viewModel.state).equals(LoginState.LoggedIn)
 		})
 	})

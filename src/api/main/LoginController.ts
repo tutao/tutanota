@@ -26,7 +26,7 @@ export interface LoginController {
 
 	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, sessionType: SessionType): Promise<Credentials>
 
-	resumeSession(credentials: CredentialsAndDatabaseKey, externalUserSalt?: Uint8Array | null, offlineTimeRangeDays?: number | null): Promise<void>
+	resumeSession(credentials: CredentialsAndDatabaseKey, externalUserSalt: Uint8Array | null, offlineTimeRangeDays: number | null): Promise<void>
 
 	isUserLoggedIn(): boolean
 
