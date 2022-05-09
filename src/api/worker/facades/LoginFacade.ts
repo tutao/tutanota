@@ -190,6 +190,8 @@ export class LoginFacadeImpl implements LoginFacade {
 		| {state: "running"}
 		| {state: "failed", credentials: Credentials, usingOfflineStorage: boolean} = {state: "idle"}
 
+	asyncLoginPromise: Promise<null> | null = null
+
 	constructor(
 		readonly worker: WorkerImpl,
 		private readonly restClient: RestClient,
@@ -204,7 +206,6 @@ export class LoginFacadeImpl implements LoginFacade {
 		 */
 		private readonly initializeCacheStorage: LateInitializedCacheStorage["initialize"],
 		private readonly serviceExecutor: IServiceExecutor,
-		private readonly offlineStorageEnabledProvider: () => Promise<boolean>,
 		private readonly userFacade: UserFacade,
 	) {
 
@@ -252,12 +253,12 @@ export class LoginFacadeImpl implements LoginFacade {
 		const createSessionReturn = await this.serviceExecutor.post(SessionService, createSessionData)
 		const sessionData = await this._waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, mailAddress)
 
-		const usingOfflineStorage = await this.initCache(sessionData.userId, databaseKey)
+		const {isPersistent} = await this.initCache(sessionData.userId, databaseKey)
 		const {
 			user,
 			userGroupInfo,
 			accessToken
-		} = await this.initSession(sessionData.userId, sessionData.accessToken, userPassphraseKey, sessionType, usingOfflineStorage)
+		} = await this.initSession(sessionData.userId, sessionData.accessToken, userPassphraseKey, sessionType, isPersistent)
 
 		return {
 			user,
@@ -356,12 +357,12 @@ export class LoginFacadeImpl implements LoginFacade {
 
 
 		let sessionId = [this._getSessionListId(createSessionReturn.accessToken), this._getSessionElementId(createSessionReturn.accessToken)] as const
-		const usingOfflineStorage = await this.initCache(userId, null)
+		const {isPersistent} = await this.initCache(userId, null)
 		const {
 			user,
 			userGroupInfo,
 			accessToken
-		} = await this.initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey, SessionType.Login, usingOfflineStorage)
+		} = await this.initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey, SessionType.Login, isPersistent)
 		return {
 			user,
 			userGroupInfo,
@@ -409,8 +410,11 @@ export class LoginFacadeImpl implements LoginFacade {
 		databaseKey: Uint8Array | null
 	): Promise<ResumeSessionResult> {
 		this.userFacade.setAccessToken(credentials.accessToken)
+		const {
+			isPersistent: usingOfflineStorage,
+			isNewOfflineDb
+		} = await this.initCache(credentials.userId, databaseKey)
 
-		const usingOfflineStorage = await this.initCache(credentials.userId, databaseKey)
 		const sessionId = this.getSessionId(credentials)
 
 		// using offline, free, have connection         -> sync login
@@ -422,7 +426,11 @@ export class LoginFacadeImpl implements LoginFacade {
 		// no offline, premium, have connection         -> sync login
 		// no offline, premium, no connection           -> sync login, fail with connection error
 
-		if (usingOfflineStorage) {
+		// If a user enables offline storage for the first time, after already having saved credentials
+		// then upon their next login, they won't have an offline database available, meaning we have to do
+		// synchronous login in order to load all of the necessary keys and such
+		// the next time they login they will be able to do asynchronous login
+		if (usingOfflineStorage && !isNewOfflineDb) {
 			const user = await this.entityClient.load(UserTypeRef, credentials.userId)
 			if (user.accountType !== AccountType.PREMIUM) {
 				// if account is free do not start offline login/async login workflow
@@ -433,11 +441,12 @@ export class LoginFacadeImpl implements LoginFacade {
 			}
 			this.userFacade.setUser(user)
 			this.loginListener.onPartialLoginSuccess()
+			const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
 			// Start full login async
 			Promise.resolve().then(() => this.asyncResumeSession(credentials, usingOfflineStorage))
 			const data = {
 				user,
-				userGroupInfo: await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo),
+				userGroupInfo,
 				sessionId,
 			}
 			return {type: "success", data}
@@ -451,11 +460,12 @@ export class LoginFacadeImpl implements LoginFacade {
 	}
 
 	private async asyncResumeSession(credentials: Credentials, usingOfflineStorage: boolean): Promise<void> {
+		const deferred = defer<null>()
+		this.asyncLoginPromise = deferred.promise
 		if (this.asyncLoginState.state === "running") {
 			throw new Error("finishLoginResume run in parallel")
 		}
 		this.asyncLoginState = {state: "running"}
-
 		try {
 			await this.finishResumeSession(credentials, null, usingOfflineStorage)
 		} catch (e) {
@@ -467,6 +477,9 @@ export class LoginFacadeImpl implements LoginFacade {
 				this.asyncLoginState = {state: "failed", credentials, usingOfflineStorage}
 				if (!(e instanceof ConnectionError)) await this.worker.sendError(e)
 			}
+		} finally {
+			deferred.resolve(null)
+			this.asyncLoginPromise = null
 		}
 	}
 
@@ -561,25 +574,12 @@ export class LoginFacadeImpl implements LoginFacade {
 		}
 	}
 
-	private async initCache(userId: string, databaseKey: Uint8Array | null): Promise<boolean> {
-		const usingOfflineStorage = databaseKey != null && await this.offlineStorageEnabledProvider()
-		if (usingOfflineStorage) {
-			try {
-				await this.initializeCacheStorage({
-					persistent: true,
-					userId,
-					databaseKey
-				})
-			} catch (e) {
-				// Precaution in case something bad happens to offline database. We want users to still be able to log in.
-				console.error("Error while initializing offline cache storage", e)
-				this.worker.sendError(e)
-				await this.initializeCacheStorage({persistent: false})
-			}
+	private async initCache(userId: string, databaseKey: Uint8Array | null): Promise<{isPersistent: boolean, isNewOfflineDb: boolean}> {
+		if (databaseKey != null) {
+			return this.initializeCacheStorage({userId, databaseKey})
 		} else {
-			await this.initializeCacheStorage({persistent: false})
+			return this.initializeCacheStorage(null)
 		}
-		return usingOfflineStorage
 	}
 
 	_initIndexer(isUsingOfflineCache: boolean): Promise<void> {

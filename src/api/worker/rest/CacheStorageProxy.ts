@@ -2,10 +2,21 @@ import {CacheStorage, Range} from "./EntityRestCache"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {ListElementEntity, SomeEntity} from "../../common/EntityTypes"
 import {TypeRef} from "@tutao/tutanota-utils"
-import {CacheStorageFactory, GetStorageArgs} from "./CacheStorageFactory"
+import {OfflineStorage} from "./OfflineStorage"
+import {WorkerImpl} from "../WorkerImpl"
+import {uint8ArrayToKey} from "@tutao/tutanota-crypto"
+import {EphemeralCacheStorage} from "./EphemeralCacheStorage"
+
+type OfflineStorageInitArgs = {
+	userId: Id,
+	databaseKey: Uint8Array,
+}
 
 export interface LateInitializedCacheStorage extends CacheStorage {
-	initialize(args: GetStorageArgs): Promise<void>;
+	/**
+	 * @return boolean true if using offline storage and the offline database was created new
+	 */
+	initialize(args: OfflineStorageInitArgs | null): Promise<{isPersistent: boolean, isNewOfflineDb: boolean}>;
 }
 
 /**
@@ -24,7 +35,8 @@ export class LateInitializedCacheStorageImpl implements LateInitializedCacheStor
 	private _inner: CacheStorage | null = null
 
 	constructor(
-		private factory: CacheStorageFactory
+		private readonly worker: WorkerImpl,
+		private readonly offlineStorageProvider: () => Promise<null | OfflineStorage>,
 	) {
 	}
 
@@ -36,10 +48,46 @@ export class LateInitializedCacheStorageImpl implements LateInitializedCacheStor
 		return this._inner
 	}
 
-	async initialize(args: GetStorageArgs): Promise<void> {
+	async initialize(args: OfflineStorageInitArgs | null): Promise<{isPersistent: boolean, isNewOfflineDb: boolean}> {
 		// We might call this multiple times.
 		// This happens when persistent credentials login fails and we need to start with new cache for new login.
-		this._inner = await this.factory.getStorage(args)
+		const {storage, isPersistent, isNewOfflineDb} = await this.getStorage(args)
+		this._inner = storage
+		return {
+			isPersistent,
+			isNewOfflineDb
+		}
+	}
+
+	private async getStorage(args: OfflineStorageInitArgs | null): Promise<{storage: CacheStorage, isPersistent: boolean, isNewOfflineDb: boolean}> {
+		if (args != null) {
+			try {
+				const storage = await this.offlineStorageProvider()
+				if (storage != null) {
+					await storage.init(args.userId, uint8ArrayToKey(args.databaseKey))
+
+					// if nothing is written here, it means it's a new database
+					const isNewOfflineDb = await storage.getLastUpdateTime() == null
+
+					await storage.clearExcludedData()
+
+					return {
+						storage,
+						isPersistent: true,
+						isNewOfflineDb
+					}
+				}
+			} catch (e) {
+				// Precaution in case something bad happens to offline database. We want users to still be able to log in.
+				console.error("Error while initializing offline cache storage", e)
+				this.worker.sendError(e)
+			}
+		}
+		return {
+			storage: new EphemeralCacheStorage(),
+			isPersistent: false,
+			isNewOfflineDb: false
+		}
 	}
 
 	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void> {

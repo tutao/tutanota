@@ -46,9 +46,10 @@ import {BookingFacade} from "./facades/BookingFacade"
 import {BlobFacade} from "./facades/BlobFacade"
 import {NativeSystemApp} from "../../native/common/NativeSystemApp"
 import {DesktopConfigKey} from "../../desktop/config/ConfigKeys"
-import {CacheStorageFactory} from "./rest/CacheStorageFactory"
 import {CacheStorage} from "./rest/EntityRestCache.js"
 import {UserFacade} from "./facades/UserFacade"
+import {exposeRemote} from "../common/WorkerProxy"
+import {OfflineStorage} from "./rest/OfflineStorage"
 
 assertWorkerOrNode()
 
@@ -107,8 +108,18 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.native = worker
 	locator.booking = new BookingFacade(locator.serviceExecutor)
 
+	const offlineStorageProvider = async () => {
+		if (isDesktop() && await systemApp.getConfigValue(DesktopConfigKey.offlineStorageEnabled)) {
+			const {offlineDbFacade} = exposeRemote((request) => locator.native.invokeNative(request))
+			return new OfflineStorage(offlineDbFacade, new WorkerDateProvider())
+		} else {
+			return null
+		}
+
+	}
+
 	const maybeUninitializedStorage = isOfflineStorageAvailable()
-		? new LateInitializedCacheStorageImpl(new CacheStorageFactory(() => locator.restClient.getServerTimestampMs(), worker, locator.native))
+		? new LateInitializedCacheStorageImpl(worker, offlineStorageProvider)
 		: new AlwaysInitializedStorage()
 
 	locator.cacheStorage = maybeUninitializedStorage
@@ -138,7 +149,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.crypto,
 		maybeUninitializedStorage.initialize.bind(maybeUninitializedStorage),
 		locator.serviceExecutor,
-		async () => isDesktop() && await systemApp.getConfigValue(DesktopConfigKey.offlineStorageEnabled),
 		locator.user,
 	)
 	const suggestionFacades = [
@@ -213,26 +223,12 @@ if (typeof self !== "undefined") {
 	(self as unknown as WorkerGlobalScope).locator = locator // export in worker scope
 }
 
-function makeCacheStorage(getServerTime: () => number, worker: WorkerImpl): LateInitializedCacheStorage {
-	if (isOfflineStorageAvailable()) {
-		return new LateInitializedCacheStorageImpl(async (args) => {
-			if (args.persistent) {
-				const {offlineDbFacade} = exposeRemote<ExposedNativeInterface>((request) => locator.native.invokeNative(request))
-				const offlineStorage = new OfflineStorage(offlineDbFacade)
-				await offlineStorage.init(args.userId, uint8ArrayToKey(args.databaseKey))
-				return offlineStorage
-			} else {
-				return new EphemeralCacheStorage()
-			}
-		})
-	} else {
-		return new AlwaysInitializedStorage()
-	}
-}
-
 // for cases where we know offlineStorage won't be available
 class AlwaysInitializedStorage extends EphemeralCacheStorage implements LateInitializedCacheStorage {
-	async initialize(): Promise<void> {
-		// do nothing
+	async initialize(): Promise<{isPersistent: false, isNewOfflineDb: false}> {
+		return {
+			isPersistent: false,
+			isNewOfflineDb: false
+		}
 	}
 }
