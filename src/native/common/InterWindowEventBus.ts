@@ -20,7 +20,7 @@ export class InterWindowEventBus implements IInterWindowEventHandler {
 		this.listeners.push(listener)
 	}
 
-	async send(event: InterWindowEvent): Promise<void> {
+	async send<Event extends InterWindowEvent>(event: Event): Promise<void> {
 		if (this.sender == null) {
 			throw new ProgrammingError("Not initialized")
 		}
