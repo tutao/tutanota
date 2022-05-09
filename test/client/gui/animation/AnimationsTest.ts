@@ -16,7 +16,7 @@ import {assertNotNull, downcast} from "@tutao/tutanota-utils"
 
 client.device = DeviceType.DESKTOP
 
-global.HTMLElement = window.HTMLElement || (class HTMLElement {
+globalThis.HTMLElement = window.HTMLElement || (class HTMLElement {
 	style: CSSStyleDeclaration;
 
 	constructor() {

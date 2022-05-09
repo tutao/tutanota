@@ -8,7 +8,7 @@ import {keytarNativePlugin, sqliteNativePlugin} from "./nativeLibraryEsbuildPlug
 import * as env from "./env.js"
 import {dependencyMap} from "./RollupConfig.js"
 import {esbuildPluginAliasPath} from "esbuild-plugin-alias-path"
-import os from "os"
+import {runStep} from "./runStep.js"
 
 export async function runDevBuild({stage, host, desktop, clean, watch}) {
 	if (clean) {
@@ -112,12 +112,12 @@ async function buildDesktopPart({version}) {
 	})
 }
 
-function libDeps() {
+export function libDeps(prefix = ".") {
 	const absoluteDependencyMap = Object.fromEntries(
 		Object.entries(dependencyMap)
 			  .map(
 				  (([k, v]) => {
-					  return [k, path.resolve(v)]
+					  return [k, path.resolve(prefix, v)]
 				  })
 			  )
 	)
@@ -125,13 +125,6 @@ function libDeps() {
 	return esbuildPluginAliasPath({
 		alias: absoluteDependencyMap,
 	})
-}
-
-async function runStep(name, cmd) {
-	const before = Date.now()
-	console.log("Build >", name)
-	await cmd()
-	console.log("Build >", name, "took", Date.now() - before, "ms")
 }
 
 export function preludeEnvPlugin(env) {
@@ -143,23 +136,5 @@ export function preludeEnvPlugin(env) {
 			const bannerStart = options.banner["js"] ? options.banner["js"] + "\n" : ""
 			options.banner["js"] = bannerStart + `globalThis.env = ${JSON.stringify(env, null, 2)};`
 		},
-	}
-}
-
-function getStaticUrl(stage, mode, host) {
-	if (stage === "local" && mode === "Browser") {
-		// We would like to use web app build for both JS server and actual server. For that we should avoid hardcoding URL as server
-		// might be running as one of testing HTTPS domains. So instead we override URL when the app is served from JS server
-		// (see DevServer).
-		// This is only relevant for browser environment.
-		return null
-	} else if (stage === 'test') {
-		return 'https://test.tutanota.com'
-	} else if (stage === 'prod') {
-		return 'https://mail.tutanota.com'
-	} else if (stage === 'local') {
-		return "http://" + os.hostname() + ":9000"
-	} else { // host
-		return host
 	}
 }

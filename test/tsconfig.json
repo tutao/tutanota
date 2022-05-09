@@ -6,7 +6,8 @@
 	"noImplicitAny": false,
 	"noImplicitThis": false,
 	"strictPropertyInitialization": false,
-	"strictBindCallApply": false
+	"strictBindCallApply": false,
+	"outDir": "build",
   },
   "include": [
 	"../src/*d.ts",

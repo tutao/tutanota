@@ -1,21 +1,23 @@
 import o from "ospec"
 import {CacheStorage, EntityRestCache, expandId, EXTEND_RANGE_MIN_CHUNK_SIZE} from "../../../src/api/worker/rest/EntityRestCache"
-import type {MailBody} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {createMailBody, MailBodyTypeRef} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import type {Mail, MailBody} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {ContactTypeRef, createContact, createMail, createMailBody, MailBodyTypeRef, MailTypeRef} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {OperationType} from "../../../src/api/common/TutanotaConstants"
 import type {EntityUpdate} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createEntityUpdate} from "../../../src/api/entities/sys/TypeRefs.js"
-import type {Mail} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {createMail, MailTypeRef} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {
+	createCustomer,
+	createEntityUpdate,
+	createExternalUserReference,
+	createPermission,
+	CustomerTypeRef,
+	ExternalUserReferenceTypeRef,
+	PermissionTypeRef
+} from "../../../src/api/entities/sys/TypeRefs.js"
 import {arrayOf, assertNotNull, clone, downcast, isSameTypeRef, neverNull, TypeRef} from "@tutao/tutanota-utils"
-import {createExternalUserReference, ExternalUserReferenceTypeRef} from "../../../src/api/entities/sys/TypeRefs.js"
 import {NotAuthorizedError, NotFoundError} from "../../../src/api/common/error/RestError"
 import {EntityRestClient, typeRefToPath} from "../../../src/api/worker/rest/EntityRestClient"
 import {CUSTOM_MIN_ID, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getListId, stringToCustomId} from "../../../src/api/common/utils/EntityUtils";
-import {ContactTypeRef, createContact} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {createCustomer, CustomerTypeRef} from "../../../src/api/entities/sys/TypeRefs.js"
 import {assertThrows, mockAttribute, unmockAttribute} from "@tutao/tutanota-test-utils"
-import {createPermission, PermissionTypeRef} from "../../../src/api/entities/sys/TypeRefs.js"
 import {EphemeralCacheStorage} from "../../../src/api/worker/rest/EphemeralCacheStorage"
 import {QueuedBatch} from "../../../src/api/worker/search/EventQueue"
 import {matchers, object, when} from "testdouble"
@@ -32,8 +34,8 @@ async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 	const offlineDbFactory = {
 		async create(userId: string, key) {
 			assertNotNull(userId)
-			// Added by sqliteNativeBannerPlugin
-			const nativePath = globalThis.buildOptions.sqliteNativePath
+			// @ts-ignore Added by sqliteNativeBannerPlugin
+			const nativePath = buildOptions.sqliteNativePath
 			const db = new OfflineDb(nativePath)
 			//integrity check breaks for in memory database
 			await db.init(":memory:", key, false)

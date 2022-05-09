@@ -40,6 +40,9 @@ export async function getInstalledModuleVersion(module, log) {
 	if (await fs.exists(cachePath)) {
 		const content = await fs.readFile(cachePath, "utf8")
 		json = JSON.parse(content)
+	} else if (fs.exists(path.join("..", cachePath))) {
+		const content = await fs.readFile(path.join("..", cachePath), "utf8")
+		json = JSON.parse(content)
 	} else {
 		console.log(`Using slow method to resolve dependency version. Add a postinstall script to dump 'npm list' into ${cachePath} to speed things up.`)
 		// npm list likes to error out for no reason so we just print a warning. If it really fails, we will see it.

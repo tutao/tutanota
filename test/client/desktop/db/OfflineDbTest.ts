@@ -13,8 +13,8 @@ const database = "./testdatabase.sqlite"
 
 export const offlineDatabaseTestKey = [3957386659, 354339016, 3786337319, 3366334248]
 
-// Added by sqliteNativeBannerPlugin
-const nativePath = globalThis.buildOptions.sqliteNativePath
+// @ts-ignore Added by sqliteNativeBannerPlugin
+const nativePath = buildOptions.sqliteNativePath
 
 o.spec("OfflineDb ", function () {
 	let db: OfflineDb

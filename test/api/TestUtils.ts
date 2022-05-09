@@ -41,7 +41,7 @@ export function makeCore(args?: {
 }
 
 export function preTest() {
-	browser(() => {
+	if (globalThis.isBrowser) {
 		const p = document.createElement("p")
 		p.id = "report"
 		p.style.fontWeight = "bold"
@@ -49,20 +49,19 @@ export function preTest() {
 		p.style.fontFamily = "sans-serif"
 		p.textContent = "Running tests..."
 		neverNull(document.body).appendChild(p)
-	})()
+	}
 }
 
 export function reportTest(results: any, stats: any) {
 	// @ts-ignore
 	const errCount = o.report(results, stats)
 	if (typeof process != "undefined" && errCount !== 0) process.exit(1) // eslint-disable-line no-process-exit
-	browser(() => {
+	if (globalThis.isBrowser) {
 		const p = assertNotNull(document.getElementById("report"))
 		// errCount includes bailCount
 		p.textContent = errCount === 0 ? "No errors" : `${errCount} error(s) (see console)`
-		// @ts-ignore
-		p.style.Color = errCount === 0 ? "green" : "red"
-	})()
+		p.style.color = errCount === 0 ? "green" : "red"
+	}
 }
 
 export function makeKeyStoreFacade(uint8ArrayKey: Uint8Array): DesktopKeyStoreFacade {

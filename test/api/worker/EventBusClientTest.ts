@@ -55,14 +55,17 @@ o.spec("EventBusClient test", function () {
 	}
 
 	o.before(function () {
-		// @ts-ignore not defined in node
-		WebSocket.CONNECTING = WebSocket.CONNECTING ?? 0
-		// @ts-ignore not defined in node
-		WebSocket.OPEN = WebSocket.OPEN ?? 1
-		// @ts-ignore not defined in node
-		WebSocket.CLOSING = WebSocket.CLOSING ?? 2
-		// @ts-ignore not defined in node
-		WebSocket.CLOSED = WebSocket.CLOSED ?? 3
+		// Things that are not defined in node but are read-only in Browser
+		if (!globalThis.isBrowser) {
+			// @ts-ignore
+			WebSocket.CONNECTING = WebSocket.CONNECTING ?? 0
+			// @ts-ignore
+			WebSocket.OPEN = WebSocket.OPEN ?? 1
+			// @ts-ignore
+			WebSocket.CLOSING = WebSocket.CLOSING ?? 2
+			// @ts-ignore
+			WebSocket.CLOSED = WebSocket.CLOSED ?? 3
+		}
 	})
 
 	o.beforeEach(async function () {
