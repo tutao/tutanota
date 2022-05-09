@@ -1,6 +1,6 @@
 import {AccountType, GroupType, OperationType} from "../common/TutanotaConstants"
 import type {Base64Url} from "@tutao/tutanota-utils"
-import {downcast, first, mapAndFilterNull, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
+import {downcast, first, mapAndFilterNull, neverNull, ofClass} from "@tutao/tutanota-utils"
 import {MediaType} from "../common/EntityFunctions"
 import {assertMainOrNode, getHttpOrigin, isDesktop} from "../common/Env"
 import type {EntityUpdateData} from "./EventController"
@@ -12,16 +12,21 @@ import {getWhitelabelCustomizations} from "../../misc/WhitelabelCustomizations"
 import {EntityClient} from "../common/EntityClient"
 import {CloseSessionService} from "../entities/sys/Services"
 import {
-	AccountingInfo, AccountingInfoTypeRef, createCloseSessionServicePost,
+	AccountingInfo,
+	AccountingInfoTypeRef,
+	createCloseSessionServicePost,
 	Customer,
 	CustomerInfo,
 	CustomerInfoTypeRef,
 	CustomerTypeRef,
 	DomainInfo,
-	GroupInfo, GroupInfoTypeRef,
+	GroupInfo,
+	GroupInfoTypeRef,
 	GroupMembership,
-	User, UserTypeRef,
-	WhitelabelConfig, WhitelabelConfigTypeRef
+	User,
+	UserTypeRef,
+	WhitelabelConfig,
+	WhitelabelConfigTypeRef
 } from "../entities/sys/TypeRefs"
 import {
 	createUserSettingsGroupRoot,
@@ -321,7 +326,7 @@ export class UserController implements IUserController {
 	}
 
 	isPersistentSession(): boolean {
-		return this.persistentSession
+		return this.sessionType === SessionType.Persistent
 	}
 }
 
