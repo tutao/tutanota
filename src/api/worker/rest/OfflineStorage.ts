@@ -193,6 +193,10 @@ export class OfflineStorage implements CacheStorage, CachedRangeLoader {
 		await this.offlineDbFacade.deleteAll(this.userId)
 	}
 
+	/**
+	 * Clear out unneeded data from the offline database (i.e. trash and spam lists, old data)
+	 * @param timeRangeDays: the maxiumum age of days that mails should be to be kept in the database. if null, will use a default value
+	 */
 	async clearExcludedData(timeRangeDays: number | null): Promise<void> {
 
 		const user = await this.get(UserTypeRef, null, this.userId)

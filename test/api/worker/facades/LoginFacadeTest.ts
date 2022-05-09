@@ -118,7 +118,7 @@ o.spec("LoginFacadeTest", function () {
 			o("When a database key is provided and offline is enabled, storage is initialized as persistent", async function () {
 				usingOfflineStorage = true
 				await facade.createSession("born.slippy@tuta.io", passphrase, "client", SessionType.Persistent, dbKey)
-				verify(initializeCacheStorageMock({persistent: true, databaseKey: dbKey, userId}))
+				verify(initializeCacheStorageMock({persistent: true, databaseKey: dbKey, userId, timeRangeDays: null}))
 			})
 			o("When no database key is provided and offline is enabled, storage is initialized as ephemeral", async function () {
 				usingOfflineStorage = true
@@ -174,22 +174,22 @@ o.spec("LoginFacadeTest", function () {
 
 			o("When resuming a session and there is a database key and offline storage is enabled, a persistent storage is created", async function () {
 				usingOfflineStorage = true
-				await facade.resumeSession(credentials, SALT, dbKey)
-				verify(initializeCacheStorageMock({persistent: true, databaseKey: dbKey, userId}))
+				await facade.resumeSession(credentials, SALT, dbKey, null)
+				verify(initializeCacheStorageMock({persistent: true, databaseKey: dbKey, userId, timeRangeDays: null}))
 			})
 			o("When resuming a session and there is a database key and offline storage is disabled, a ephemeral storage is created", async function () {
 				usingOfflineStorage = false
-				await facade.resumeSession(credentials, SALT, dbKey)
+				await facade.resumeSession(credentials, SALT, dbKey, null)
 				verify(initializeCacheStorageMock({persistent:false}))
 			})
 			o("When resuming a session and there is no database key and offline storage is enabled, a non-persistent storage is created", async function () {
 				usingOfflineStorage = true
-				await facade.resumeSession(credentials, SALT, null)
+				await facade.resumeSession(credentials, SALT, null, null)
 				verify(initializeCacheStorageMock({persistent: false}))
 			})
 			o("When resuming a session and there is no database key and offline storage is disabled, a non-persistent storage is created", async function () {
 				usingOfflineStorage = false
-				await facade.resumeSession(credentials, SALT, null)
+				await facade.resumeSession(credentials, SALT, null, null)
 				verify(initializeCacheStorageMock({persistent: false}))
 			})
 		})

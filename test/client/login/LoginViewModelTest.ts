@@ -14,6 +14,7 @@ import {SessionType} from "../../../src/api/common/SessionType.js";
 import {instance, matchers, object, replace, verify, when} from "testdouble"
 import {AccessExpiredError, NotAuthenticatedError} from "../../../src/api/common/error/RestError"
 import {DatabaseKeyFactory} from "../../../src/misc/credentials/DatabaseKeyFactory"
+import {DeviceConfig} from "../../../src/misc/DeviceConfig"
 
 const {anything} = matchers
 
@@ -105,6 +106,7 @@ o.spec("LoginViewModelTest", () => {
 	let credentialsProviderMock: ICredentialsProvider
 	let secondFactorHandlerMock: SecondFactorHandler
 	let databaseKeyFactory: DatabaseKeyFactory
+	let deviceConfigMock: DeviceConfig
 
 	o.beforeEach(async () => {
 		loginControllerMock = object<LoginController>()
@@ -125,6 +127,9 @@ o.spec("LoginViewModelTest", () => {
 
 		secondFactorHandlerMock = instance(SecondFactorHandler)
 		databaseKeyFactory = instance(DatabaseKeyFactory)
+
+		deviceConfigMock = instance(DeviceConfig)
+
 	})
 
 	/**
@@ -132,7 +137,7 @@ o.spec("LoginViewModelTest", () => {
 	 * on a per test basis, so instead of having a global viewModel to test we just have a factory function to get one in each test
 	 */
 	async function getViewModel() {
-		const viewModel = new LoginViewModel(loginControllerMock, credentialsProviderMock, secondFactorHandlerMock, databaseKeyFactory)
+		const viewModel = new LoginViewModel(loginControllerMock, credentialsProviderMock, secondFactorHandlerMock, databaseKeyFactory, deviceConfigMock)
 		await viewModel.init()
 		return viewModel
 	}
@@ -226,7 +231,7 @@ o.spec("LoginViewModelTest", () => {
 
 			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
 			await viewModel.login()
-			verify(loginControllerMock.resumeSession({credentials: testCredentials, databaseKey: null}), {times: 1})
+			verify(loginControllerMock.resumeSession({credentials: testCredentials, databaseKey: null}, null, null), {times: 1})
 			o(viewModel.state).equals(LoginState.LoggedIn)
 		})
 		o("login should succeed with valid stored credentials in DeleteCredentials display mode", async function () {
@@ -275,6 +280,18 @@ o.spec("LoginViewModelTest", () => {
 			o(viewModel.displayMode).equals(DisplayMode.Form)
 			o(viewModel.getSavedCredentials()).deepEquals([])
 			verify(credentialsProviderMock.clearCredentials(anything()), {times: 1})
+		})
+		o("should provide timeRangeDays from the device config", async function() {
+			const timeRangeDays = 42
+			when(deviceConfigMock.getOfflineTimeRangeDays()).thenReturn(timeRangeDays)
+
+			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})
+			const viewModel = await getViewModel()
+
+			await viewModel.useCredentials(encryptedTestCredentials.credentialInfo)
+			await viewModel.login()
+			verify(loginControllerMock.resumeSession({credentials: testCredentials, databaseKey: null}, undefined, timeRangeDays), {times: 1})
+			o(viewModel.state).equals(LoginState.LoggedIn)
 		})
 	})
 	o.spec("Login with email and password", function () {
