@@ -12,11 +12,15 @@ type OfflineStorageInitArgs = {
 	databaseKey: Uint8Array,
 }
 
+type CacheStorageInitReturn = {
+	/** If the created storage is an OfflineStorage */
+	isPersistent: boolean,
+	/** If a OfflineStorage was created, whether or not the backing database was created fresh or already existed */
+	isNewOfflineDb: boolean
+}
+
 export interface LateInitializedCacheStorage extends CacheStorage {
-	/**
-	 * @return boolean true if using offline storage and the offline database was created new
-	 */
-	initialize(args: OfflineStorageInitArgs | null): Promise<{isPersistent: boolean, isNewOfflineDb: boolean}>;
+	initialize(args: OfflineStorageInitArgs | null): Promise<CacheStorageInitReturn>;
 }
 
 /**
@@ -48,7 +52,7 @@ export class LateInitializedCacheStorageImpl implements LateInitializedCacheStor
 		return this._inner
 	}
 
-	async initialize(args: OfflineStorageInitArgs | null): Promise<{isPersistent: boolean, isNewOfflineDb: boolean}> {
+	async initialize(args: OfflineStorageInitArgs | null): Promise<CacheStorageInitReturn> {
 		// We might call this multiple times.
 		// This happens when persistent credentials login fails and we need to start with new cache for new login.
 		const {storage, isPersistent, isNewOfflineDb} = await this.getStorage(args)
