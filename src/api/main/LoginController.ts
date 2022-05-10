@@ -25,6 +25,7 @@ export interface IPostLoginAction {
 
 export type LoggedInEvent = {
 	readonly sessionType: SessionType
+	readonly userId: Id
 }
 
 export type ResumeSessionResult =
@@ -79,7 +80,8 @@ export class LoginControllerImpl implements LoginController {
 			await this.waitForUserLogin()
 			for (const action of this.postLoginActions) {
 				await action.onFullLoginSuccess({
-					sessionType: this.getUserController().sessionType
+					sessionType: this.getUserController().sessionType,
+					userId: this.getUserController().userId
 				})
 			}
 		})
@@ -134,6 +136,7 @@ export class LoginControllerImpl implements LoginController {
 		for (const handler of this.postLoginActions) {
 			await handler.onPartialLoginSuccess({
 				sessionType,
+				userId: initData.user._id
 			})
 		}
 
