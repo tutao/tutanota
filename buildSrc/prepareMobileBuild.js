@@ -2,6 +2,7 @@ import fs from "fs"
 import {program} from "commander"
 import glob from "glob"
 import {fileURLToPath} from "url"
+import "zx/globals"
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	program
@@ -14,7 +15,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 /**
  * Removes source maps, icons, HTML files which are not needed for mobile apps.
  */
-export function prepareMobileBuild(buildType) {
+export async function prepareMobileBuild(buildType) {
 	console.log("prepare mobile build for build type", buildType)
 	let prefix
 	switch (buildType) {
@@ -33,7 +34,7 @@ export function prepareMobileBuild(buildType) {
 		"ionicons.ttf", "logo-solo-red.png"
 	]
 	if (fs.existsSync(imagesPath)) {
-		const imageFiles = glob.sync(prefix + "images/*")
+		const imageFiles = await globby(prefix + "images/*")
 		for (let file of imageFiles) {
 			const doDiscard = !imagesToKeep.find(name => file.endsWith(name))
 			if (doDiscard) {

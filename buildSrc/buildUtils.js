@@ -149,3 +149,14 @@ export function getCanonicalPlatformName(platformName) {
 			throw new Error(`Unknown platform name ${platformName}`)
 	}
 }
+
+export async function runStep(name, cmd) {
+	const before = Date.now()
+	console.log("Build >", name)
+	await cmd()
+	console.log("Build >", name, "took", Date.now() - before, "ms")
+}
+
+export function writeFile(targetFile, content) {
+	return fs.mkdir(path.dirname(targetFile), {recursive: true}).then(() => fs.writeFile(targetFile, content, 'utf-8'))
+}

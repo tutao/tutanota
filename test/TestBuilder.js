@@ -2,13 +2,11 @@ import * as env from "../buildSrc/env.js"
 import fs from "fs-extra"
 import path from "path"
 import {renderHtml} from "../buildSrc/LaunchHtml.js"
-import {runStep} from "../buildSrc/runStep.js"
 import {$} from "zx"
 import {build} from "esbuild"
-import {libDeps, preludeEnvPlugin} from "../buildSrc/DevBuild.js"
-import {keytarNativePlugin, sqliteNativePlugin} from "../buildSrc/nativeLibraryEsbuildPlugin.js"
-import {getTutanotaAppVersion} from "../buildSrc/buildUtils.js"
+import {getTutanotaAppVersion, runStep, writeFile} from "../buildSrc/buildUtils.js"
 import {esbuildPluginAliasPath} from "esbuild-plugin-alias-path"
+import {keytarNativePlugin, libDeps, preludeEnvPlugin, sqliteNativePlugin} from "../buildSrc/esbuildUtils.js"
 
 export async function runTestBuild({clean}) {
 	if (clean) {
@@ -94,16 +92,12 @@ async function createUnitTestHtml(project, localEnv) {
 	const template = `import('./${project}/bootstrapTests-${project}.js')`
 	const targetFile = inBuildDir(`test-${project}.html`)
 	console.log(`Generating browser tests for ${project} at "${targetFile}"`)
-	await _writeFile(inBuildDir(`test-${project}.js`), [
-		`window.whitelabelCustomizations = null`,
-	].join("\n") + "\n" + template)
+	const bootstrap = `window.whitelabelCustomizations = null
+	${template}`
+	await writeFile(inBuildDir(`test-${project}.js`), bootstrap)
 
 	const html = await renderHtml(imports, localEnv)
-	await _writeFile(targetFile, html)
-}
-
-function _writeFile(targetFile, content) {
-	return fs.mkdir(path.dirname(targetFile), {recursive: true}).then(() => fs.writeFile(targetFile, content, 'utf-8'))
+	await writeFile(targetFile, html)
 }
 
 function inBuildDir(...files) {

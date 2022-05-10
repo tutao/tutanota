@@ -2,12 +2,12 @@
  * Utility to download/update the dictionaries used for translations within the app.
  */
 import path from "path"
-import glob from "glob"
 import {exitOnFail, getDefaultDistDirectory, getElectronVersion} from "./buildUtils.js"
 import {program} from "commander"
 import {spawnSync} from "child_process"
 import {fileURLToPath} from "url"
 import fs from "fs-extra"
+import "zx/globals"
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	program
@@ -50,7 +50,7 @@ async function getDictionaries(outDir, local) {
 	const baseTarget = path.join((outDir), '..')
 
 	const targets = local
-		? glob.sync(path.join(baseTarget, 'desktop*'))
+		? await globby(path.join(baseTarget, 'desktop*'))
 		: [baseTarget]
 	const targetPaths = targets.map(d => path.join(d, "dictionaries"))
 	return fetchDictionaries(electronVersion, targetPaths)

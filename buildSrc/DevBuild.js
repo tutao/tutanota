@@ -1,15 +1,14 @@
 import path from "path"
 import fs from "fs-extra"
-import {prepareAssets} from "./Builder.js"
 import {build} from "esbuild"
-import {getTutanotaAppVersion} from "./buildUtils.js"
+import {getTutanotaAppVersion, runStep, writeFile} from "./buildUtils.js"
 import {$} from "zx"
 import "zx/globals"
-import {keytarNativePlugin, sqliteNativePlugin} from "./nativeLibraryEsbuildPlugin.js"
 import * as env from "./env.js"
-import {dependencyMap} from "./RollupConfig.js"
-import {esbuildPluginAliasPath} from "esbuild-plugin-alias-path"
-import {runStep} from "./runStep.js"
+import {externalTranslationsPlugin, keytarNativePlugin, libDeps, preludeEnvPlugin, sqliteNativePlugin} from "./esbuildUtils.js"
+import {fileURLToPath} from "url"
+import * as LaunchHtml from "./LaunchHtml"
+import os from "os"
 
 export async function runDevBuild({stage, host, desktop, clean}) {
 	if (clean) {
@@ -123,55 +122,70 @@ async function buildDesktopPart({version}) {
 	})
 }
 
-export function libDeps(prefix = ".") {
-	const absoluteDependencyMap = Object.fromEntries(
-		Object.entries(dependencyMap)
-			  .map(
-				  (([k, v]) => {
-					  return [k, path.resolve(prefix, v)]
-				  })
-			  )
-	)
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const root = __dirname.split(path.sep).slice(0, -1).join(path.sep)
 
-	return esbuildPluginAliasPath({
-		alias: absoluteDependencyMap,
-	})
+async function createBootstrap(env) {
+	let jsFileName
+	let htmlFileName
+	switch (env.mode) {
+		case "App":
+			jsFileName = "index-app.js"
+			htmlFileName = "index-app.html"
+			break
+		case "Browser":
+			jsFileName = "index.js"
+			htmlFileName = "index.html"
+			break
+		case "Desktop":
+			jsFileName = "index-desktop.js"
+			htmlFileName = "index-desktop.html"
+	}
+	const imports = [{src: 'polyfill.js'}, {src: jsFileName}]
+
+	const template = `window.whitelabelCustomizations = null
+window.env = ${JSON.stringify(env, null, 2)}
+if (env.staticUrl == null && window.tutaoDefaultApiUrl) {
+    // overriden by js dev server
+    window.env.staticUrl = window.tutaoDefaultApiUrl
+}
+import('./app.js')`
+	await writeFile(`./build/${jsFileName}`, template)
+	const html = await LaunchHtml.renderHtml(imports, env)
+	await writeFile(`./build/${htmlFileName}`, html)
 }
 
-export function preludeEnvPlugin(env) {
-	return {
-		name: "prelude-env",
-		setup(build) {
-			const options = build.initialOptions
-			options.banner = options.banner ?? {}
-			const bannerStart = options.banner["js"] ? options.banner["js"] + "\n" : ""
-			options.banner["js"] = bannerStart + `globalThis.env = ${JSON.stringify(env, null, 2)};`
-		},
+function getStaticUrl(stage, mode, host) {
+	if (stage === "local" && mode === "Browser") {
+		// We would like to use web app build for both JS server and actual server. For that we should avoid hardcoding URL as server
+		// might be running as one of testing HTTPS domains. So instead we override URL when the app is served from JS server
+		// (see DevServer).
+		// This is only relevant for browser environment.
+		return null
+	} else if (stage === 'test') {
+		return 'https://test.tutanota.com'
+	} else if (stage === 'prod') {
+		return 'https://mail.tutanota.com'
+	} else if (stage === 'local') {
+		return "http://" + os.hostname() + ":9000"
+	} else { // host
+		return host
 	}
 }
 
-/** Do not embed translations in the source, compile them separately so that ouput is not as huge. */
-export function externalTranslationsPlugin() {
-	return {
-		name: "skip-translations",
-		setup(build) {
-			build.onResolve({filter: /\.\.\/translations\/.+/, namespace: "file"}, () => {
-				return {
-					external: true,
-				}
-			})
-			build.onEnd(async () => {
-				const translations = await globby("src/translations/*.ts")
-				await build.esbuild.build({
-					...build.initialOptions,
-					// No need for plugins there, also we don't want *this* plugin to be called again
-					plugins: [],
-					entryPoints: translations,
-					// So that it outputs build/translations/de.js instead of build/de.js
-					// (or build/desktop/translations/de.js instead of build/desktop/de.js)
-					outbase: "src",
-				})
-			})
-		}
+export async function prepareAssets(stage, host, version) {
+	await Promise.all([
+		await fs.emptyDir(path.join(root, "build/images")),
+		fs.copy(path.join(root, '/resources/favicon'), path.join(root, '/build/images')),
+		fs.copy(path.join(root, '/resources/images/'), path.join(root, '/build/images')),
+		fs.copy(path.join(root, '/resources/desktop-icons'), path.join(root, '/build/icons')),
+		fs.copy(path.join(root, '/src/braintree.html'), path.join(root, 'build/braintree.html'))
+	])
+
+	// write empty file
+	await fs.writeFile("build/polyfill.js", "")
+
+	for (const mode of ["Browser", "App", "Desktop"]) {
+		await createBootstrap(env.create({staticUrl: getStaticUrl(stage, mode, host), version, mode, dist: false}))
 	}
 }

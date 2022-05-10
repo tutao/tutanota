@@ -1,6 +1,8 @@
 import {getNativeLibModulePath} from "./nativeLibraryProvider.js"
 import fs from "fs-extra"
 import path from "path"
+import {dependencyMap} from "./RollupConfig.js"
+import {esbuildPluginAliasPath} from "esbuild-plugin-alias-path"
 
 /**
  * Little plugin that obtains compiled keytar, copies it to dstPath and sets the path to nativeBindingPath.
@@ -68,4 +70,55 @@ export function sqliteNativePlugin(
 	}
 }
 
+export function libDeps(prefix = ".") {
+	const absoluteDependencyMap = Object.fromEntries(
+		Object.entries(dependencyMap)
+			  .map(
+				  (([k, v]) => {
+					  return [k, path.resolve(prefix, v)]
+				  })
+			  )
+	)
 
+	return esbuildPluginAliasPath({
+		alias: absoluteDependencyMap,
+	})
+}
+
+export function preludeEnvPlugin(env) {
+	return {
+		name: "prelude-env",
+		setup(build) {
+			const options = build.initialOptions
+			options.banner = options.banner ?? {}
+			const bannerStart = options.banner["js"] ? options.banner["js"] + "\n" : ""
+			options.banner["js"] = bannerStart + `globalThis.env = ${JSON.stringify(env, null, 2)};`
+		},
+	}
+}
+
+/** Do not embed translations in the source, compile them separately so that ouput is not as huge. */
+export function externalTranslationsPlugin() {
+	return {
+		name: "skip-translations",
+		setup(build) {
+			build.onResolve({filter: /\.\.\/translations\/.+/, namespace: "file"}, () => {
+				return {
+					external: true,
+				}
+			})
+			build.onEnd(async () => {
+				const translations = await globby("src/translations/*.ts")
+				await build.esbuild.build({
+					...build.initialOptions,
+					// No need for plugins there, also we don't want *this* plugin to be called again
+					plugins: [],
+					entryPoints: translations,
+					// So that it outputs build/translations/de.js instead of build/de.js
+					// (or build/desktop/translations/de.js instead of build/desktop/de.js)
+					outbase: "src",
+				})
+			})
+		}
+	}
+}
