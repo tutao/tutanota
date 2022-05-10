@@ -1,39 +1,39 @@
 import child_process from "child_process"
 import {runTestBuild} from "./TestBuilder.js"
-import {getTutanotaAppVersion} from "../buildSrc/buildUtils.js"
+import {Argument, Option, program} from "commander"
 
-await run()
-
-async function run() {
-	console.log("testing version:", getTutanotaAppVersion())
-
-	let project
-	if (process.argv.indexOf("api") !== -1) {
-		project = "api"
-	} else if (process.argv.indexOf("client") !== -1) {
-		project = "client"
-	} else {
-		console.error("must provide 'api' or 'client' to run the tests")
-		process.exit(1)
-	}
-	const clean = process.argv.includes("-c")
-
-	try {
+await program
+	.addArgument(new Argument("project")
+		.choices(["api", "client"])
+		.argOptional()
+	)
+	.addOption(new Option("-i, --integration", "Include integration tests (requires local server)"))
+	.addOption(new Option("-c, --clean"))
+	.action(async (project, {clean, integration}) => {
 		await runTestBuild({clean})
 		console.log("build finished!")
-		const code = await runTest(project)
-		process.exit(code)
-	} catch (e) {
-		console.error("Build failed", e)
-		process.exit(1)
+
+		const testProjects = project ? [project] : ["api", "client"]
+		await runTestsAndExit(testProjects, integration)
+	})
+	.parseAsync(process.argv)
+
+/** Function which runs tests for {@param projects} and exits with the most suitable code afterwards. */
+async function runTestsAndExit(projects, integration) {
+	const codes = []
+	for (const project of projects) {
+		codes.push(await runTest(project, integration))
 	}
+	const code = codes.find((code) => code !== 0) ?? 0
+	process.exit(code)
 }
 
-function runTest(project) {
+function runTest(project, integration) {
 	return new Promise((resolve) => {
-		let testRunner = child_process.fork(`./build/${project}/bootstrapTests-${project}.js`)
-		testRunner.on('exit', (code) => {
-			resolve(code)
-		})
+		console.log("running", project, "tests")
+		const args = integration ? ["-i"] : []
+		// We fork because ospec is very weird and doesn't just let you wait for the results unless you do something with report
+		const testProcess = child_process.fork(`./build/${project}/bootstrapTests-${project}.js`, args)
+		testProcess.on('exit', resolve)
 	})
 }
