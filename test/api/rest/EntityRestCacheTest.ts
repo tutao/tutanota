@@ -34,7 +34,6 @@ async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 	const offlineDbFactory = {
 		async create(userId: string, key) {
 			assertNotNull(userId)
-			// @ts-ignore Added by sqliteNativeBannerPlugin
 			const nativePath = buildOptions.sqliteNativePath
 			const db = new OfflineDb(nativePath)
 			//integrity check breaks for in memory database

@@ -52,6 +52,7 @@ export function sqliteNativePlugin(
 			const options = build.initialOptions
 			options.define = options.define ?? {}
 			const nativeLibPath = (nativeBindingPath ?? dstPath)
+			// Replace mentions of buildOptions.sqliteNativePath with the actual path
 			options.define["buildOptions.sqliteNativePath"] = `"${nativeLibPath}"`
 
 			build.onStart(async () => {
@@ -70,6 +71,7 @@ export function sqliteNativePlugin(
 	}
 }
 
+/** Little plugin that replaces imports for libs from dependencyMap with their prebuilt versions in libs directory. */
 export function libDeps(prefix = ".") {
 	const absoluteDependencyMap = Object.fromEntries(
 		Object.entries(dependencyMap)
@@ -85,6 +87,7 @@ export function libDeps(prefix = ".") {
 	})
 }
 
+/** Little plugin that prepends env */
 export function preludeEnvPlugin(env) {
 	return {
 		name: "prelude-env",

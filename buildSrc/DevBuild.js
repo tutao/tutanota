@@ -7,7 +7,7 @@ import "zx/globals"
 import * as env from "./env.js"
 import {externalTranslationsPlugin, keytarNativePlugin, libDeps, preludeEnvPlugin, sqliteNativePlugin} from "./esbuildUtils.js"
 import {fileURLToPath} from "url"
-import * as LaunchHtml from "./LaunchHtml"
+import * as LaunchHtml from "./LaunchHtml.js"
 import os from "os"
 
 export async function runDevBuild({stage, host, desktop, clean}) {
@@ -104,7 +104,8 @@ async function buildDesktopPart({version}) {
 	await runStep("Desktop: assets", async () => {
 		const desktopIconsPath = "./resources/desktop-icons"
 		await fs.copy(desktopIconsPath, "./build/desktop/resources/icons", {overwrite: true})
-		const packageJSON = (await import('./electron-package-json-template.js')).default({
+		const templateGenerator = (await import('./electron-package-json-template.js')).default
+		const packageJSON = await templateGenerator({
 			nameSuffix: "-debug",
 			version,
 			updateUrl: "http://localhost:9000/client/build",

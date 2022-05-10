@@ -38,9 +38,11 @@ export async function getInstalledModuleVersion(module, log) {
 	let json
 	const cachePath = "node_modules/.npm-deps-resolved"
 	if (await fs.exists(cachePath)) {
+		// Look for node_modules in current directory
 		const content = await fs.readFile(cachePath, "utf8")
 		json = JSON.parse(content)
 	} else if (fs.exists(path.join("..", cachePath))) {
+		// Try to find node_modules in directory one level up (e.g. if we run tests). Should be probably more generic
 		const content = await fs.readFile(path.join("..", cachePath), "utf8")
 		json = JSON.parse(content)
 	} else {

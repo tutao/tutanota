@@ -62,7 +62,7 @@ export async function buildDesktop(
 	// and downloads everything it needs. Usually dependencies build themselves in post-install script.
 	// Currently we have keytar which avoids building itself if possible and only build
 	console.log("Updating electron-builder config...")
-	const content = generatePackageJson({
+	const content = await generatePackageJson({
 		nameSuffix,
 		version,
 		updateUrl,
