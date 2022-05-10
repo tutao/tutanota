@@ -43,6 +43,7 @@ import path from "path"
 import {OfflineDbFacade, OfflineDbFactory} from "./db/OfflineDbFacade"
 import {OfflineDb} from "./db/OfflineDb"
 import {DesktopInterWindowEventSender} from "./ipc/DesktopInterWindowEventSender"
+import {DesktopPostLoginActions} from "./DesktopPostLoginActions"
 
 /**
  * Should be injected during build time.
@@ -174,6 +175,7 @@ async function createComponents(): Promise<Components> {
 			webauthn: new DesktopWebauthn(windowId, webDialogController),
 			offlineDbFacade,
 			interWindowEventSender: new DesktopInterWindowEventSender(ipc, wm, windowId),
+			postLoginActions: new DesktopPostLoginActions(wm, windowId)
 		}
 	}
 

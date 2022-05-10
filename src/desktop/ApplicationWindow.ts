@@ -49,7 +49,8 @@ export class ApplicationWindow {
 	_browserWindow!: BrowserWindow
 
 	/** User logged in in this window. Reset from WindowManager. */
-	_userInfo: UserInfo | null
+	private _userInfo: UserInfo | null
+	private userId: Id | null = null
 	private _setBoundsTimeout: ReturnType<typeof setTimeout> | null = null
 	private _findingInPage: boolean = false
 	private _skipNextSearchBarBlur: boolean = false
@@ -386,9 +387,11 @@ export class ApplicationWindow {
 	}
 
 	private async closeDb() {
-		if (this._userInfo?.userId) {
-			console.log(`closing offline db for ${this._userInfo.userId}`)
-			await this.offlineDbFacade.closeDatabaseForUser(this._userInfo.userId)
+		if (this.userId) {
+			console.log(`closing offline db for ${this.userId}`)
+			await this.offlineDbFacade.closeDatabaseForUser(this.userId)
+		} else {
+			console.error("couldn't close db for window, no userId is set!!!!")
 		}
 	}
 
@@ -492,8 +495,12 @@ export class ApplicationWindow {
 		return this._userInfo
 	}
 
-	getUserId(): string | null {
-		return this._userInfo ? this._userInfo.userId : null
+	getUserId(): Id | null {
+		return this.userId
+	}
+
+	setUserId(id: Id) {
+		this.userId = id
 	}
 
 	getPath(): string {

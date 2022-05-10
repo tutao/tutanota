@@ -147,13 +147,13 @@ export function makeCalendarModel(): CalendarModel {
 		updateEvent: o.spy(() => Promise.resolve()),
 		deleteEvent: o.spy(() => Promise.resolve()),
 		loadAlarms: o.spy(() => Promise.resolve([])),
-		loadCalendarInfos: progressMonitor => {
+		loadCalendarInfos: () => {
 			return Promise.resolve(makeCalendars("own", calendarGroupId))
 		},
-		loadOrCreateCalendarInfo: (progressMonitor: IProgressMonitor) => {
+		loadOrCreateCalendarInfo: () => {
 			return Promise.resolve(makeCalendars("own", calendarGroupId))
 		},
-		createCalendar: (name: string, color: string | null | undefined) => Promise.resolve(),
+		createCalendar: () => Promise.resolve(),
 	})
 }
 

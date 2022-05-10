@@ -20,6 +20,7 @@ import {CurrentView} from "./gui/base/Header"
 import {NativeWebauthnView} from "./login/NativeWebauthnView"
 import {WebauthnNativeBridge} from "./native/main/WebauthnNativeBridge"
 import {PostLoginActions} from "./login/PostLoginActions"
+import {exposeNativeInterface} from "./native/common/NativeInterface"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -350,6 +351,7 @@ import("./translations/en")
 		// If native starts telling the web side to navigate too early, mithril won't be ready and the requests will be lost
 		if (isApp() || isDesktop()) {
 			await locator.native.init()
+			logins.addPostLoginAction(exposeNativeInterface(locator.native).postLoginActions)
 		}
 
 		import("./gui/InfoMessageHandler.js").then(module => module.registerInfoMessageHandler())
