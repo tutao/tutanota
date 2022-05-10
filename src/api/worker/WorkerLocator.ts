@@ -50,6 +50,7 @@ import {CacheStorage} from "./rest/EntityRestCache.js"
 import {UserFacade} from "./facades/UserFacade"
 import {exposeRemote} from "../common/WorkerProxy"
 import {OfflineStorage} from "./rest/OfflineStorage"
+import {exposeNativeInterface} from "../../native/common/NativeInterface"
 
 assertWorkerOrNode()
 
@@ -110,7 +111,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	const offlineStorageProvider = async () => {
 		if (isDesktop() && await systemApp.getConfigValue(DesktopConfigKey.offlineStorageEnabled)) {
-			const {offlineDbFacade} = exposeRemote((request) => locator.native.invokeNative(request))
+			const {offlineDbFacade} = exposeNativeInterface(locator.native)
 			return new OfflineStorage(offlineDbFacade, new WorkerDateProvider())
 		} else {
 			return null
