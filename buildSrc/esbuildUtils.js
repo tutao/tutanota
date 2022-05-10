@@ -105,18 +105,33 @@ export function externalTranslationsPlugin() {
 	return {
 		name: "skip-translations",
 		setup(build) {
-			build.onResolve({filter: /\.\.\/translations\/.+/, namespace: "file"}, () => {
+			// We do a few tricks here
+			build.onResolve({filter: /^\.\.\/translations\/.+$/, namespace: "file"}, ({path}) => {
+				// We replace all the translation imports (they all start with .. but we could rewrite it more generally at the cost of complexity
+				// We should go from ../translations/en.js to ./translations/en.mjs
+				// Out output structure is always flat (except for desktop which is it's own flat structure) so we know that we can find translations in the
+				// ./translations
+				// We marked them as external because we don't want esbuild to roll them up, it makes output *huge*
+				// We add .mjs suffix so that we can import it from Electron without issues (more on that below). This is not necessary for of web but doesn't
+				// hurt either.
+				const replacementPath = path.substring(1).replace(".js", ".mjs")
 				return {
+					path: replacementPath,
 					external: true,
 				}
 			})
 			build.onEnd(async () => {
+				// After the main build is done we go and compile all translations. Alternatively we could collect all imports from onResolve().
 				const translations = await globby("src/translations/*.ts")
 				await build.esbuild.build({
-					...build.initialOptions,
-					// No need for plugins there, also we don't want *this* plugin to be called again
-					plugins: [],
+					// Always esm, even though desktop is compiled to commonjs because translations do `export default` and esbuild doesn't pick the correct
+					// interop.
+					// see https://esbuild.github.io/content-types/#default-interop
+					format: "esm",
+					outdir: build.initialOptions.outdir,
 					entryPoints: translations,
+					// Rename it to .mjs for reasons mentioned above
+					outExtension: {[".js"]: ".mjs"},
 					// So that it outputs build/translations/de.js instead of build/de.js
 					// (or build/desktop/translations/de.js instead of build/desktop/de.js)
 					outbase: "src",

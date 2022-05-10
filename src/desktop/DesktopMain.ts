@@ -13,7 +13,6 @@ import {Socketeer} from "./Socketeer"
 import {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
 import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
 import {lang} from "../misc/LanguageViewModel"
-import en from "../translations/en"
 import {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {DesktopDownloadManager} from "./DesktopDownloadManager"
@@ -106,6 +105,7 @@ if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 }
 
 async function createComponents(): Promise<Components> {
+	const en = (await import("../translations/en.js")).default
 	lang.init(en)
 	const secretStorage = new KeytarSecretStorage()
 	const keyStoreFacade = new KeyStoreFacadeImpl(secretStorage, desktopCrypto)
