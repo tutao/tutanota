@@ -1,20 +1,20 @@
 import {UsageTest} from "./UsageTest.js"
 
-export type Metrics = Map<string, Metric>
+type MetricName = string
 type Metric = {
-	name: string,
+	name: MetricName,
 	value: string,
 }
 type MetricConfig = {
-	name: string,
+	name: MetricName,
 	type: string,
 	configValues: Map<string, string>
 }
 
 /** One part of the test. Has multiple metrics that are sent together. */
 export class Stage {
-	readonly collectedMetrics = new Map<string, Metric>()
-	readonly metricConfigs = new Map<string, MetricConfig>()
+	readonly collectedMetrics = new Map<MetricName, Metric>()
+	readonly metricConfigs = new Map<MetricName, MetricConfig>()
 
 	constructor(
 		readonly number: number,
