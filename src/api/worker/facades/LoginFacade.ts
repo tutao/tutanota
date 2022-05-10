@@ -190,6 +190,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		| {state: "running"}
 		| {state: "failed", credentials: Credentials, usingOfflineStorage: boolean} = {state: "idle"}
 
+	// This is really just for tests, we need to wait for async login before moving on
 	asyncLoginPromise: Promise<null> | null = null
 
 	constructor(
