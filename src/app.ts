@@ -20,7 +20,7 @@ import {CurrentView} from "./gui/base/Header"
 import {NativeWebauthnView} from "./login/NativeWebauthnView"
 import {WebauthnNativeBridge} from "./native/main/WebauthnNativeBridge"
 import {PostLoginActions} from "./login/PostLoginActions"
-import {exposeNativeInterface} from "./native/common/NativeInterface"
+import {exposeNativeInterface} from "./api/common/ExposeNativeInterface"
 
 assertMainOrNodeBoot()
 bootFinished()

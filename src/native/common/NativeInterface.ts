@@ -2,7 +2,6 @@ import type {Request} from "../../api/common/MessageDispatcher"
 import type {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade"
 import {IWebauthn} from "../../misc/2fa/webauthn/IWebauthn.js"
 import {IInterWindowEventHandler, IInterWindowEventSender} from "../../desktop/ipc/IInterWindowEventBus"
-import {exposeRemote} from "../../api/common/WorkerProxy"
 import {IPostLoginAction} from "../../api/main/LoginController"
 
 export interface NativeInterface {
@@ -20,8 +19,4 @@ export interface ExposedNativeInterface {
 /** What web interfaces can be accessed by the native part. */
 export interface ExposedWebInterface {
 	interWindowEventHandler: IInterWindowEventHandler,
-}
-
-export function exposeNativeInterface(native: NativeInterface): ExposedNativeInterface {
-	return exposeRemote((request) => native.invokeNative(request))
 }

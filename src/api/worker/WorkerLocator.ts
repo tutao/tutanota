@@ -50,7 +50,7 @@ import {CacheStorage} from "./rest/EntityRestCache.js"
 import {UserFacade} from "./facades/UserFacade"
 import {exposeRemote} from "../common/WorkerProxy"
 import {OfflineStorage} from "./rest/OfflineStorage"
-import {exposeNativeInterface} from "../../native/common/NativeInterface"
+import {exposeNativeInterface} from "../common/ExposeNativeInterface"
 
 assertWorkerOrNode()
 
