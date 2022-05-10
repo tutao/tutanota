@@ -17,16 +17,17 @@ import {UsageTestAssignmentService, UsageTestParticipationService} from "../api/
 import {resolveTypeReference} from "../api/common/EntityFunctions"
 import {lang, TranslationKey} from "./LanguageViewModel"
 import stream from "mithril/stream"
-import {Dialog} from "../gui/base/Dialog"
+import {Dialog, DialogType} from "../gui/base/Dialog"
 import m, {Children} from "mithril"
 import {DropDownSelectorN, SelectorItem} from "../gui/base/DropDownSelectorN"
 import {UsageTestMetricType} from "../api/common/TutanotaConstants"
 
 
-const PRESELECTED_LIKERT_VALUE = "3"
+const PRESELECTED_LIKERT_VALUE = null
 
 type ExperienceSamplingOptions = {
 	title?: lazy<string> | string,
+	explanationText?: TranslationKey | lazy<string>,
 	perMetric: {
 		[key: string]: {
 			question: TranslationKey | lazy<string>,
@@ -40,20 +41,39 @@ export async function showExperienceSamplingDialog(stage: Stage, experienceSampl
 	const selectedValues = new Map(likertMetrics.map(likertMetric => [likertMetric.name, stream(PRESELECTED_LIKERT_VALUE)]))
 
 	Dialog.showActionDialog({
+		type: DialogType.EditMedium,
 		okAction: (dialog: Dialog) => {
 			for (let [metricName, selectedValue] of selectedValues) {
+				const selection = selectedValue()
+
+				if (selection === null) {
+					// User did not select an answer
+					return Dialog.message("experienceSamplingSelectAnswer_msg")
+				}
+
 				stage.setMetric({
 					name: metricName,
-					value: selectedValue(),
+					value: selection,
 				})
 			}
 
 			stage.complete().then(() => dialog.close())
-			return Dialog.message("experienceSampling_thankYou_msg")
+			return Dialog.message("experienceSamplingThankYou_msg")
 		},
-		title: experienceSamplingOptions.title ?? lang.get("experienceSampling_header_label"),
+		title: experienceSamplingOptions.title ?? lang.get("experienceSamplingHeader_label"),
 		child: () => {
 			const children: Array<Children> = []
+
+			if (experienceSamplingOptions.explanationText) {
+				const explanationTextLines = lang.getMaybeLazy(experienceSamplingOptions.explanationText).split("\n")
+
+				children.push(m(
+					"#dialog-message.text-break.text-prewrap.selectable.scroll",
+					[
+						explanationTextLines.map(line => m(".text-break.selectable", line))
+					]
+				))
+			}
 
 			for (let likertMetricConfig of likertMetrics) {
 				const metricOptions = experienceSamplingOptions["perMetric"][likertMetricConfig.name]
@@ -65,9 +85,14 @@ export async function showExperienceSamplingDialog(stage: Stage, experienceSampl
 					}
 				})
 
+				children.push(m(
+					"p.text-prewrap.scroll",
+					lang.getMaybeLazy(metricOptions.question)
+				))
+
 				children.push(
 					m(DropDownSelectorN, {
-						label: metricOptions.question,
+						label: "experienceSamplingAnswer_label",
 						items: answerOptionItems,
 						selectedValue: selectedValues.get(likertMetricConfig.name)!,
 					})
