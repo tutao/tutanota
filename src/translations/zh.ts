@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2022-03-31T08:11:44Z",
+	"updated_at": "2022-05-11T12:29:25Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -116,7 +116,7 @@ export default {
 		"calendarInvitations_label": "日历邀请",
 		"calendarName_label": "日历名称",
 		"calendarReminderIntervalFiveMinutes_label": "5 分钟",
-		"calendarReminderIntervalOneDay_label": "1 天",
+		"calendarReminderIntervalOneDay_label": "一天",
 		"calendarReminderIntervalOneHour_label": "1 小时",
 		"calendarReminderIntervalOneWeek_label": "1 周",
 		"calendarReminderIntervalTenMinutes_label": "10 分钟",
@@ -174,7 +174,6 @@ export default {
 		"choosePhotos_action": "照片",
 		"choose_label": "正在选择…",
 		"clearFolder_action": "清空文件夹",
-		"clickNumber_msg": "请点击下方“发送文本信息”按钮以接收Tutanota密码。",
 		"clickToUpdate_msg": "如果您想立即应用请点击这里，或者退出以自动安装。",
 		"client_label": "客户端",
 		"closedSessions_label": "关闭的会话",

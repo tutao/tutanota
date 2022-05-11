@@ -13,7 +13,7 @@ export default {
 		"many"
 	],
 	"created_at": "2015-03-13T10:17:47Z",
-	"updated_at": "2022-03-31T08:11:45Z",
+	"updated_at": "2022-05-11T12:29:25Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchAdditionalPackagesActive_msg": "Prašome išjungti užsakytą talpą ar bet kokį kitą paketą ir išjungti visus kitus el. paštus prieš pakeičiant vartotojo tipą.",
@@ -92,7 +92,6 @@ export default {
 		"chooseNumber_msg": "Prašome spustelėti vieną iš žemiau esančių telefono numerių, kad gautumėte Tutanota slaptažodį tekstine žinute. ",
 		"choosePhotos_action": "Nuotraukos",
 		"choose_label": "Pasirinkite ...",
-		"clickNumber_msg": "Spustelėkite ant jūsų telefono numerio, kad gautumėte Tutanota slaptažodį tekstine žinute. ",
 		"client_label": "Programa",
 		"closedSessions_label": "Uždarosios sesijos",
 		"closeSession_action": "Uždaryti sesiją",

@@ -12,6 +12,7 @@ export type DateTimeFormatOptions = {
 }
 const translationImportMap: Record<LanguageCode, () => Promise<any>> = {
 	ar: () => import("../translations/ar.js"),
+	be: () => import("../translations/be.js"),
 	bg: () => import("../translations/bg.js"),
 	ca: () => import("../translations/ca.js"),
 	cs: () => import("../translations/cs.js"),
@@ -66,6 +67,7 @@ const translationImportMap: Record<LanguageCode, () => Promise<any>> = {
  */
 export const LanguageNames: Record<string, TranslationKey> = Object.freeze({
 	ar: "languageArabic_label",
+	be: "languageBelarusian_label",
 	bg: "languageBulgarian_label",
 	ca: "languageCatalan_label",
 	cs: "languageCzech_label",

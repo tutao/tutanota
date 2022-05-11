@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2022-03-31T08:11:46Z",
+	"updated_at": "2022-05-11T12:29:26Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "請點擊複選框以同意隱私權政策。",
@@ -91,7 +91,7 @@ export default {
 		"buyStorageCapacityInfo_msg": "請選擇其一方案來調整​​郵件空間的儲存容量。訂購完成的空間大小可以被所有帳戶之間獨立擁有。",
 		"buy_action": "購買",
 		"by_label": "來自",
-		"calendarReminderIntervalOneDay_label": "一天",
+		"calendarReminderIntervalOneDay_label": "1 天",
 		"calendarReminderIntervalOneHour_label": "一小時",
 		"calendarReminderIntervalOneWeek_label": "一週",
 		"calendar_label": "行事曆",
@@ -133,7 +133,6 @@ export default {
 		"choosePhotos_action": "照片",
 		"choose_label": "選取．．．",
 		"clearFolder_action": "資料夾清空",
-		"clickNumber_msg": "請點擊下方＂手機號碼＂按鈕來接收您 Tutanota 的文字密碼。",
 		"clickToUpdate_msg": "若想立即升版請您點擊這裡，或是在程式結束時另行處理．",
 		"client_label": "客戶端",
 		"closedSessions_label": "過去連線紀錄",

@@ -1,0 +1,14 @@
+NSCameraUsageDescription = "Зрабі фота ці відэа, каб далучыць яго да ліста.";
+NSPhotoLibraryUsageDescription = "Далучы відарыс са сваёй бібліятэкі.";
+NSMicrophoneUsageDescription = "Патрэбна для запісу відэа ў якасці далучэння.";
+NSContactsUsageDescription = "Знайсці імэйл-адрас атрымальніка ў кантактах.";
+NSRemindersUsageDescription = "Паказваць абвесткі пры атрыманні новага паведамлення.";
+TutaoShowCameraAction = "Камера";
+TutaoChoosePhotosAction = "Фатаздымкі";
+TutaoNoPermissionTitle = "Няма дазволу";
+TutaoChangePermissionMsg = "Каб адкрыць доступ, вам неабходна змяніць дазволы для гэтай прылады.";
+TutaoCancelAction = "Скасаваць";
+TutaoSettingsAction = "Налады";
+TutaoCalendarAlarmTitle = "Напамін";
+TutaoScheduleAlarmError = "Не атрымалася паставіць напамін. Калі ласка, абнаві праграму.";
+TutaoUnlockCredentialsAction = "Разблакаваць даныя ўваходу";

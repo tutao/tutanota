@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-03-09T14:04:39Z",
-	"updated_at": "2022-03-31T08:37:12Z",
+	"updated_at": "2022-05-11T12:29:26Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Par",
@@ -192,7 +192,6 @@ export default {
 		"choosePhotos_action": "Fotoattēli",
 		"choose_label": "Izvēlieties...",
 		"clearFolder_action": "Iztīrīt mapi",
-		"clickNumber_msg": "Lai saņemtu Tutanota paroli SMS formā, klikšķiniet uz jūsu telefona numura zemāk.",
 		"clientSuspensionWait_label": "Serveris apstrādā jūsu pieprasījumu, lūdzu esiet pacietīgi.",
 		"client_label": "Klients",
 		"closedSessions_label": "Slēgtas (pabeigtas) sesijas",
