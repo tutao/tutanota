@@ -127,55 +127,53 @@ class WebViewBridge : NSObject {
   }
 
   private func handleRequest(type: String, requestId: String, args: [Any]) {
-    self.handleRequest(type: type, args: args) { response in
-      switch response {
-      case let .success(value):
+    Task {
+      do {
+        let value: Encodable = try await self.handleRequest(type: type, args: args) ?? NullReturn()
         self.sendResponse(requestId: requestId, value: value)
-      case let .failure(error):
+      } catch {
         self.sendErrorResponse(requestId: requestId, err: error)
       }
     }
   }
 
-  private func handleRequest(type: String, args: [Any], completion: @escaping (Result<Encodable, Error>) -> Void) {
-    func respond<T: Encodable>(_ result: Result<T, Error>) {
-      // For some reason Result is not covariant in its value so we manually erase it
-      let erasedResult: Result<Encodable, Error> = result.map { thing in thing }
-      completion(erasedResult)
-    }
-
+  private func handleRequest(type: String, args: [Any]) async throws -> Encodable? {
       switch type {
       case "init":
         self.webviewInitialized = true
-        respond(.success("ios"))
-        for callback in requestsBeforeInit {
-          callback()
+        // Start another task async that will execute everything else after web app (hopefully) thinks that we are initialized
+        Task {
+          sleep(200)
+          
+          for callback in requestsBeforeInit {
+            callback()
+          }
+          requestsBeforeInit.removeAll()
+          if let sseInfo = userPreferences.sseInfo, sseInfo.userIds.isEmpty {
+            TUTSLog("Sending alarm invalidation")
+            self.sendRequest(method: "invalidateAlarms", args: [] as Array<String>, completion: nil)
+          }
         }
-        requestsBeforeInit.removeAll()
-        if let sseInfo = userPreferences.sseInfo, sseInfo.userIds.isEmpty {
-          TUTSLog("Sending alarm invalidation")
-          self.sendRequest(method: "invalidateAlarms", args: [] as Array<String>, completion: nil)
-        }
+        return "ios"
       case "rsaEncrypt":
         let publicKey = try! DictionaryDecoder().decode(PublicKey.self, from: args[0] as! NSDictionary)
-        self.crypto.rsaEncrypt(
+        return try await self.crypto.rsaEncrypt(
           publicKey: publicKey,
           base64Data: args[1] as! Base64,
-          base64Seed: args[2] as! Base64,
-          completion: respond
+          base64Seed: args[2] as! Base64
           )
       case "rsaDecrypt":
         let privateKey = try! DictionaryDecoder().decode(PrivateKey.self, from: args[0] as! NSDictionary)
-        self.crypto.rsaDecrypt(
+        return try await self.crypto.rsaDecrypt(
           privateKey: privateKey,
-          base64Data: args[1] as! Base64,
-          completion: respond
+          base64Data: args[1] as! Base64
         )
       case "reload":
         self.webviewInitialized = false
-        self.viewController.loadMainPage(params: args[0] as! [String : String])
+        await self.viewController.loadMainPage(params: args[0] as! [String : String])
+        return nil
       case "generateRsaKey":
-        self.crypto.generateRsaKey(seed: args[0] as! Base64, completion: respond)
+        return try await self.crypto.generateRsaKey(seed: args[0] as! Base64)
       case "openFileChooser":
         let rectDict = args[0] as! [String : Int]
         let rect = CGRect(
@@ -184,48 +182,43 @@ class WebViewBridge : NSObject {
           width: rectDict["width"]!,
           height: rectDict["height"]!
         )
-        self.fileFacade.openFileChooser(anchor: rect, completion: respond)
+        return try await self.fileFacade.openFileChooser(anchor: rect)
       case "getName":
-        self.fileFacade.getName(path: args[0] as! String, completion: respond)
+        return try await self.fileFacade.getName(path: args[0] as! String)
       case "changeLanguage":
-        respond(nullResult())
+        return nil
       case "getSize":
-        self.fileFacade.getSize(path: args[0] as! String, completion: respond)
+        return try await self.fileFacade.getSize(path: args[0] as! String)
       case "getMimeType":
-        self.fileFacade.getMimeType(path: args[0] as! String, completion: respond)
+        return try await self.fileFacade.getMimeType(path: args[0] as! String)
       case "aesEncryptFile":
-        self.crypto.encryptFile(key: args[0] as! String, atPath: args[1] as! String, completion: respond)
+        return try await self.crypto.encryptFile(key: args[0] as! String, atPath: args[1] as! String)
       case "aesDecryptFile":
-        self.crypto.decryptFile(key: args[0] as! String, atPath: args[1] as! String, completion: respond)
+        return try await self.crypto.decryptFile(key: args[0] as! String, atPath: args[1] as! String)
       case "upload":
-        self.fileFacade.uploadFile(
+        return try await self.fileFacade.uploadFile(
           atPath: args[0] as! String,
           toUrl: args[1] as! String,
           method: args[2] as! String,
-          withHeaders: args[3] as! [String : String],
-          completion: respond
+          withHeaders: args[3] as! [String : String]
         )
       case "deleteFile":
-        self.fileFacade.deleteFile(path: args[0] as! String) { result in
-          respond(result.asNull())
-        }
+        try await self.fileFacade.deleteFile(path: args[0] as! String)
+        return nil
       case "clearFileData":
-        self.fileFacade.clearFileData { result in
-          respond(result.asNull())
-        }
+        try await self.fileFacade.clearFileData()
+        return nil
       case "download":
-        self.fileFacade.downloadFile(
+        return try await self.fileFacade.downloadFile(
           fromUrl: args[0] as! String,
           forName: args[1] as! String,
-          withHeaders: args[2] as! [String : String],
-          completion: respond
+          withHeaders: args[2] as! [String : String]
         )
       case "open":
-        self.fileFacade.openFile(path: args[0] as! String) {
-          respond(nullResult())
-        }
+        await self.fileFacade.openFile(path: args[0] as! String)
+        return nil
       case "getPushIdentifier":
-        self.viewController.appDelegate.registerForPushNotifications(callback: respond)
+        return try await self.viewController.appDelegate.registerForPushNotifications()
       case "storePushIdentifierLocally":
         self.userPreferences.store(
           pushIdentifier: args[0] as! String,
@@ -233,78 +226,65 @@ class WebViewBridge : NSObject {
           sseOrigin: args[2] as! String
         )
         let keyData = Data(base64Encoded: args[4] as! Base64)!
-        let result: Result<String?, Error> = Result {
-          try self.keychainManager.storeKey(keyData, withId: args[3] as! String)
-          return nil
-        }
-        respond(result)
+        try self.keychainManager.storeKey(keyData, withId: args[3] as! String)
+        return nil
       case "findSuggestions":
-        self.contactsSource.search(
-          query: args[0] as! String,
-          completion: respond
-        )
+        return try await self.contactsSource.search(query: args[0] as! String)
       case "closePushNotifications":
-        UIApplication.shared.applicationIconBadgeNumber = 0
-        respond(nullResult())
-      case "openLink":
-        UIApplication.shared.open(
-          URL(string: args[0] as! String)!,
-          options: [:]) { success in
-            respond(.success(success))
+        await MainActor.run {
+          UIApplication.shared.applicationIconBadgeNumber = 0
         }
+        return nil
+      case "openLink":
+        return await self.openLink(args[0] as! String)
       case "saveDataFile":
         let fileDataB64 = args[1] as! Base64
         let fileData = Data(base64Encoded: fileDataB64)!
-        self.fileFacade.saveDataFile(name: args[0] as! String, data: fileData) { result in
-          respond(result)
-        }
+        return try await self.fileFacade.saveDataFile(name: args[0] as! String, data: fileData)
       case "getDeviceLog":
-        let result = Result { try self.getLogfile() }
-        respond(result)
+        return try self.getLogfile()
       case "scheduleAlarms":
         let alarms = try! EncryptedAlarmNotification.arrayFrom(nsArray: args[0] as! NSArray)
-        self.alarmManager.processNewAlarms(alarms) { result in
-          respond(result.asNull())
-        }
+        try await self.alarmManager.processNewAlarms(alarms)
+        return nil
       case "getSelectedTheme":
-        respond(.success(self.themeManager.selectedThemeId))
+        return self.themeManager.selectedThemeId
       case "setSelectedTheme":
         let themeId = args[0] as! String
         self.themeManager.selectedThemeId = themeId
-        self.viewController.applyTheme(self.themeManager.currentThemeWithFallback)
-        respond(nullResult())
+        await self.viewController.applyTheme(self.themeManager.currentThemeWithFallback)
+        return nil
       case "getThemes":
-        respond(.success(self.themeManager.themes))
+        return self.themeManager.themes
       case "setThemes":
         let themes = args[0] as! [Theme]
         self.themeManager.themes = themes
-        self.viewController.applyTheme(self.themeManager.currentThemeWithFallback)
-        respond(nullResult())
+        await self.viewController.applyTheme(self.themeManager.currentThemeWithFallback)
+        return nil
       case "encryptUsingKeychain":
         let encryptionMode = CredentialEncryptionMode(rawValue: args[0] as! String)!
-        self.credentialsEncryption.encryptUsingKeychain(data: args[1] as! Base64, encryptionMode: encryptionMode, completion: respond)
+        return try await self.credentialsEncryption.encryptUsingKeychain(data: args[1] as! Base64, encryptionMode: encryptionMode)
       case "decryptUsingKeychain":
         let encryptionMode = CredentialEncryptionMode(rawValue: args[0] as! String)!
-        self.credentialsEncryption.decryptUsingKeychain(encryptedData: args[1] as! Base64, encryptionMode: encryptionMode, completion: respond)
+        return try await self.credentialsEncryption.decryptUsingKeychain(encryptedData: args[1] as! Base64, encryptionMode: encryptionMode)
       case "getSupportedEncryptionModes":
-        self.credentialsEncryption.getSupportedEncryptionModes(completion: respond)
+        return await self.credentialsEncryption.getSupportedEncryptionModes()
       case "joinFiles":
         let outFileName = args[0] as! String
         let filesToJoin = args[1] as! [String]
-        self.blobUtils.joinFiles(fileName: outFileName, filePathsToJoin: filesToJoin, completion: respond)
+        return try await self.blobUtils.joinFiles(fileName: outFileName, filePathsToJoin: filesToJoin)
       case "splitFile":
         let inFileName = args[0] as! String
         let maxBlobSize = args[1] as! Int
-        self.blobUtils.splitFile(fileUri: inFileName, maxBlobSize: maxBlobSize, completion: respond)
+        return try await self.blobUtils.splitFile(fileUri: inFileName, maxBlobSize: maxBlobSize)
       case "hashFile":
         let inFileUri = args[0] as! String
-        self.blobUtils.hashFile(fileUri: inFileUri, completion: respond)
+        return try await self.blobUtils.hashFile(fileUri: inFileUri)
       default:
         let message = "Unknown comand: \(type)"
         TUTSLog(message)
         let error = NSError(domain: "tutanota", code: 5, userInfo: ["message": message])
-
-        respond(Result<NullReturn, Error>.failure(error))
+        throw error
     }
   }
 
@@ -319,6 +299,18 @@ class WebViewBridge : NSObject {
     let bytes = stringContent.data(using: .utf8)!
     try bytes.write(to: fileUrl, options: .atomic)
     return fileUrl.path
+  }
+  
+  
+  @MainActor
+  private func openLink(_ link: String) async -> Bool {
+    return await withCheckedContinuation({ continuation in
+      UIApplication.shared.open(
+        URL(string: link)!,
+        options: [:]) { success in
+          continuation.resume(returning: success)
+      }
+    })
   }
 }
 
