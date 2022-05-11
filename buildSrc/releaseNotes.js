@@ -84,6 +84,7 @@ async function createReleaseNotes(
 	}
 
 	if (toFile) {
+		console.log(`writing release notes to ${toFile}`)
 		await fs.promises.writeFile(toFile, releaseNotes, "utf-8")
 	}
 }
