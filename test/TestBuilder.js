@@ -3,7 +3,7 @@ import fs from "fs-extra"
 import path from "path"
 import {renderHtml} from "../buildSrc/LaunchHtml.js"
 import {$} from "zx"
-import {build} from "esbuild"
+import {build as esbuild} from "esbuild"
 import {getTutanotaAppVersion, runStep, writeFile} from "../buildSrc/buildUtils.js"
 import {esbuildPluginAliasPath} from "esbuild-plugin-alias-path"
 import {keytarNativePlugin, libDeps, preludeEnvPlugin, sqliteNativePlugin} from "../buildSrc/esbuildUtils.js"
@@ -35,7 +35,7 @@ export async function runTestBuild({clean}) {
 	})
 
 	await runStep("Esbuild", async () => {
-		await build({
+		await esbuild({
 			entryPoints: ["api/bootstrapTests-api.ts", "client/bootstrapTests-client.ts"],
 			outdir: "./build",
 			// Bundle to include the whole graph
@@ -71,7 +71,8 @@ export async function runTestBuild({clean}) {
 				}),
 				sqliteNativePlugin({
 					environment: "node",
-					dstPath: "./build/better_sqlite3.node",
+					// We put it back into node_modules because we don't bundle it. If we remove node_modules but keep the cached one we will not run build.
+					dstPath: "../node_modules/better-sqlite3/build/Release/better_sqlite3.node",
 					platform: process.platform,
 					// Since we don't bundle it we need to give a path relative to database.js in node_modules/better_sqlite3
 					nativeBindingPath: "../build/Release/better_sqlite3.node",

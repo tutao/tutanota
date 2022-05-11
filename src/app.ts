@@ -7,7 +7,7 @@ import "./gui/main-styles"
 import {assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isTutanotaDomain} from "./api/common/Env"
 import {logins} from "./api/main/LoginController"
 import type {lazy} from "@tutao/tutanota-utils"
-import {downcast, neverNull} from "@tutao/tutanota-utils"
+import {neverNull} from "@tutao/tutanota-utils"
 import {routeChange} from "./misc/RouteChange"
 import {windowFacade} from "./misc/WindowFacade"
 import {styles} from "./gui/styles"
@@ -46,7 +46,7 @@ window.tutao = {
 	root,
 	logins,
 	currentView,
-	locator: window.tutao?.locator, // locator is not restored on hot reload otherwise
+	locator: null,
 }
 client.init(navigator.userAgent, navigator.platform)
 
@@ -63,15 +63,10 @@ windowFacade.init()
 export const state: {
 	prefix: string | null
 	prefixWithoutFile: string | null
-} =
-	// @ts-ignore
-	typeof module != "undefined" && module.hot && module.hot.data
-		// @ts-ignore
-		? downcast(module.hot.data.state)
-		: {
-			prefix: null,
-			prefixWithoutFile: null,
-		}
+} = {
+	prefix: null,
+	prefixWithoutFile: null,
+}
 let startRoute = "/"
 
 if (state.prefix == null) {
@@ -424,18 +419,3 @@ WWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 
 `)
 }, 5000)
-// @ts-ignore see above
-const hot = typeof module !== "undefined" && module.hot
-
-if (hot) {
-	// Save the state (mostly prefix) before the reload
-	hot.dispose((data: any) => {
-		data.state = state
-	})
-	// Import ourselves again to actually replace ourselves and all the dependencies
-	hot.accept(() => {
-		console.log("Requiring new app.js")
-
-		require(module.id)
-	})
-}

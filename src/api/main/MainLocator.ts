@@ -324,29 +324,3 @@ export const locator: IMainLocator = new MainLocator()
 if (typeof window !== "undefined") {
 	window.tutao.locator = locator
 }
-
-// It is critical to accept new locator here because locator is used in a lot of places and calculating all the dependencies is very
-// slow during HMR.
-// HMR is not meant for changing models so if there is a big change then you are better off reloading but this will work with simple
-// method implementation swapping.
-// @ts-ignore
-const hot = typeof module !== "undefined" && module.hot
-
-if (hot) {
-	hot.accept(async () => {
-		// This should be there already
-		await locator.initialized
-		const worker = locator.worker
-
-		// Import this module again and init the locator. If someone just imports it they will get a new one
-		const newLocator = require(module.id).locator
-
-		newLocator.worker = worker
-		await newLocator._createInstances(worker)
-
-		// This will patch old instances to use new classes, this is when instances are already injected
-		for (const key of Object.getOwnPropertyNames(newLocator)) {
-			Object.setPrototypeOf(downcast(locator)[key], Object.getPrototypeOf(newLocator[key]))
-		}
-	})
-}

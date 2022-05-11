@@ -41,7 +41,7 @@ export async function getInstalledModuleVersion(module, log) {
 		// Look for node_modules in current directory
 		const content = await fs.readFile(cachePath, "utf8")
 		json = JSON.parse(content)
-	} else if (fs.exists(path.join("..", cachePath))) {
+	} else if (await fs.exists(path.join("..", cachePath))) {
 		// Try to find node_modules in directory one level up (e.g. if we run tests). Should be probably more generic
 		const content = await fs.readFile(path.join("..", cachePath), "utf8")
 		json = JSON.parse(content)
@@ -56,7 +56,11 @@ export async function getInstalledModuleVersion(module, log) {
 		json = JSON.parse(stdout.toString().trim())
 	}
 
-	return findVersion(json, module)
+	const version = findVersion(json, module)
+	if (version == null) {
+		throw new Error(`Could not find version of ${module}`)
+	}
+	return version
 }
 
 // Unfortunately `npm list` is garbage and instead of just giving you the info about package it will give you some subtree with the thing you are looking for
@@ -66,10 +70,12 @@ function findVersion({dependencies}, nodeModule) {
 	if (dependencies[nodeModule]) {
 		return dependencies[nodeModule].version
 	} else {
-		for (const dep of Object.values(dependencies)) {
-			const found = findVersion(dep, nodeModule)
-			if (found) {
-				return found
+		for (const [name, dep] of Object.entries(dependencies)) {
+			if ("dependencies" in dep) {
+				const found = findVersion(dep, nodeModule)
+				if (found) {
+					return found
+				}
 			}
 		}
 	}

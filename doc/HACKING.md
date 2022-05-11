@@ -107,22 +107,16 @@ tp stay up-to-date with the server (for caching and indexing).
 ## Workflow
 
 ```bash
-node make -w prod
+node make
 ```
 
-This will start the dev server in hot reloading mode.
-
-Point browser of your choice to the `localhost:9001` and you should be good to go.
+Start any web server serving `build` directory, and you should be good to go.
 
 To run tests:
 
 ```bash
-cd test
+npm test
 ```
-
-and
-
-`node test api` or `node test client`
 
 ## Chunking rules
 

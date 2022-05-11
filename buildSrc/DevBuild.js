@@ -1,6 +1,6 @@
 import path from "path"
 import fs from "fs-extra"
-import {build} from "esbuild"
+import {build as esbuild} from "esbuild"
 import {getTutanotaAppVersion, runStep, writeFile} from "./buildUtils.js"
 import {$} from "zx"
 import "zx/globals"
@@ -45,7 +45,7 @@ importScripts("./worker.js")
 	})
 
 	await runStep("Web: Esbuild", async () => {
-		await build({
+		await esbuild({
 			// Using named entry points so that it outputs build/worker.js and not build/api/worker/worker.js
 			entryPoints: {app: "src/app.ts", worker: "src/api/worker/worker.ts"},
 			outdir: "./build/",
@@ -71,7 +71,7 @@ importScripts("./worker.js")
 
 async function buildDesktopPart({version}) {
 	await runStep("Desktop: Esbuild", async () => {
-		await build({
+		await esbuild({
 			entryPoints: ["src/desktop/DesktopMain.ts"],
 			outdir: "./build/desktop",
 			// Why we bundle at the moment:

@@ -15,9 +15,6 @@
 			"path": "./packages/tutanota-utils"
 		},
 		{
-			"path": "./packages/tutanota-build-server"
-		},
-		{
 			"path": "./packages/tutanota-crypto"
 		},
 		{
