@@ -108,6 +108,8 @@ export class CalendarAgendaView implements Component<Attrs> {
 										: events.map(ev => {
 											const startsBefore = eventStartsBefore(day, zone, ev)
 											const timeFormat = getTimeTextFormatForLongEvent(ev, day, day, zone)
+											const formattedEventTime = timeFormat ? formatEventTime(ev, timeFormat) : ""
+											const eventLocation = ev.location ? (formattedEventTime ? ", " : "") + ev.location : ""
 											return m(
 												".darker-hover.mb-s",
 												{
@@ -115,8 +117,7 @@ export class CalendarAgendaView implements Component<Attrs> {
 												},
 												m(CalendarEventBubble, {
 													text: ev.summary,
-													secondLineText:
-														(timeFormat ? formatEventTime(ev, timeFormat) : "") + (ev.location ? ", " + ev.location : ""),
+													secondLineText: formattedEventTime + eventLocation,
 													color: getEventColor(ev, attrs.groupColors),
 													hasAlarm: !startsBefore && hasAlarmsForTheUser(logins.getUserController().user, ev),
 													click: domEvent => attrs.onEventClicked(ev, domEvent),
