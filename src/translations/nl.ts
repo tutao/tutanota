@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2022-03-31T08:11:44Z",
+	"updated_at": "2022-05-11T12:29:25Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -213,7 +213,6 @@ export default {
 		"choosePhotos_action": "Foto's",
 		"choose_label": "Kies...",
 		"clearFolder_action": "Map leegmaken",
-		"clickNumber_msg": "Graag  op uw telefoonnummer hieronder klikken om uw Tutanota wachtwoord te ontvangen als SMS.",
 		"clickToUpdate_msg": "Klik hier om het direct te installeren.",
 		"clientSuspensionWait_label": "Het verzoek wordt verwerkt door de server, even geduld.",
 		"client_label": "Client",

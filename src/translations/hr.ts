@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2022-03-31T08:11:45Z",
+	"updated_at": "2022-05-11T12:29:24Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -191,7 +191,6 @@ export default {
 		"choosePhotos_action": "Slike",
 		"choose_label": "Odaberi...",
 		"clearFolder_action": "čistaMapa_aktivnost\nČista mapa",
-		"clickNumber_msg": "Kliknite na svoj telefonski broj u nastavku kako biste primili Tutanota lozinku kao tekstualnu poruku.",
 		"clickToUpdate_msg": "Kliknite ovdje ako ga želite primijeniti sada ili dopustite da se automatski instalira prilikom prekida.",
 		"clientSuspensionWait_label": "Poslužitelj obrađuje Vaš zahtjev, budite strpljivi.",
 		"client_label": "Klijent",

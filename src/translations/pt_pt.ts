@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2022-03-31T08:11:44Z",
+	"updated_at": "2022-05-11T12:29:24Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -202,7 +202,6 @@ export default {
 		"choosePhotos_action": "Fotos",
 		"choose_label": "Escolha...",
 		"clearFolder_action": "Limpar pasta",
-		"clickNumber_msg": "Por favor, abaixo clique no seu número de telefone para receber a sua palavra-passe Tutanota como mensagem de texto.",
 		"clickToUpdate_msg": "Clique aqui se você quiser aplicá-lo agora, ou deixe-nos instalar automaticamente ao sair.",
 		"clientSuspensionWait_label": "O servidor está a processar o seu pedido. Por favor, aguarde.",
 		"client_label": "Cliente",
