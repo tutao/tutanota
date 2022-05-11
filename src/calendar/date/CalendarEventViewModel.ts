@@ -94,6 +94,12 @@ export type RepeatData = {
 	endValue: number
 }
 type ShowProgressCallback = (arg0: Promise<unknown>) => unknown
+type InitEventTypeReturn = {
+	eventType: EventType,
+	organizer: EncryptedMailAddress | null,
+	possibleOrganizers: Array<EncryptedMailAddress>
+}
+
 
 /**
  * ViewModel for viewing/editing the event. Takes care of sending out updates.
@@ -186,15 +192,10 @@ export class CalendarEventViewModel {
 		this._zone = zone
 		this._guestStatuses = this._initGuestStatus(existingEvent, resolveRecipientsLazily)
 		this.attendees = this._initAttendees()
-		const existingOrganizer = existingEvent && existingEvent.organizer
-		this.organizer = this.initOrganizer(existingOrganizer, mailboxDetail, userController)
-		this._eventType = this._initEventType(existingEvent, calendars)
-		this.possibleOrganizers =
-			existingOrganizer && !this.canModifyOrganizer()
-				? [this.organizer]
-				: existingOrganizer && !this._ownMailAddresses.includes(this.organizer.address)
-					? [this.organizer].concat(this._ownPossibleOrganizers(mailboxDetail, userController))
-					: this._ownPossibleOrganizers(mailboxDetail, userController)
+		const {eventType, organizer, possibleOrganizers} = this.initEventTypeAndOrganizers(existingEvent, calendars, mailboxDetail, userController)
+		this._eventType = eventType
+		this.organizer = organizer
+		this.possibleOrganizers = possibleOrganizers
 		this.alarms = []
 		this.calendars = calendars
 		this.selectedCalendar = stream(this.getAvailableCalendars()[0])
@@ -300,32 +301,23 @@ export class CalendarEventViewModel {
 		}
 	}
 
-	private initOrganizer(existingOrganizer: EncryptedMailAddress | null, mailboxDetail: MailboxDetail, userController: IUserController): EncryptedMailAddress {
-		if (existingOrganizer) {
-			//If we are not the organizer of the event and there were no invites for this event, the event was created by someone we shared our own calendar with.
-			//In this case we set the organizer to our own primary address.
-			if (!this._ownMailAddresses.includes(existingOrganizer.address) && this.existingEvent?.attendees.length === 0) {
-				return addressToMailAddress(getDefaultSenderFromUser(userController), mailboxDetail, userController)
-			} else {
-				return copyMailAddress(existingOrganizer)
-			}
-		} else {
-			return addressToMailAddress(getDefaultSenderFromUser(userController), mailboxDetail, userController)
-		}
-	}
-
-
 	/**
+	 * Determines the event type, the organizer of the event and possible organizers in accordance with the capabilities for events (see table).
+	 * Note that the only "real" organizer that an event can have is the owner of the calendar.
+	 * If events are created by someone we share our personal calendar with, the organizer is overwritten and set to our own primary address.
+	 * Possible organizers are all email addresses of the user, allowed to modify the organizer. This is only the owner of the calendar ("real" organizer)
+	 * and only if there are no guests.
+	 *
 	 * Capability for events is fairly complicated:
 	 * Note: share "shared" means "not owner of the calendar". Calendar always looks like personal for the owner.
 	 *
-	 * | Calendar   | is organizer**** | can edit details    | can modify own attendance | can modify guests | can modify organizer
-	 * |------------|------------------|---------------------|---------------------------|-------------------|----------
-	 * | Personal   | yes              | yes                 | yes                       | yes               | yes
-	 * | Personal   | no (invite)      | yes (local)         | yes                       | no                | no
-	 * | Personal   | no (shared)      | yes (local)         | yes                       | yes               | yes
-	 * | Shared     | yes              | yes***              | no                        | no*               | no*
-	 * | Shared     | no               | no                  | no**                      | no*               | no*
+	 * | Calendar           | is organizer     | can edit details    | can modify own attendance | can modify guests | can modify organizer
+	 * |--------------------|------------------|---------------------|---------------------------|-------------------|----------
+	 * | Personal (own)     | yes              | yes                 | yes                       | yes               | yes
+	 * | Personal  (invite) | no               | yes (local)         | yes                       | no                | no
+	 * | Personal  (own)    | no****           | yes                 | yes                       | yes               | yes
+	 * | Shared             | yes****          | yes***              | no                        | no*               | no*
+	 * | Shared             | no               | no                  | no**                      | no*               | no*
 	 *
 	 *   * we don't allow inviting guests in other people's calendar because later only organizer can modify event and
 	 *   we don't want to prevent calendar owner from editing events in their own calendar.
@@ -336,30 +328,60 @@ export class CalendarEventViewModel {
 	 *
 	 *   *** depends on share capability and whether there are attendees.
 	 *
-	 *   **** effectively organizer - if event doesn't have any guests then organizer doesn't matter and we can change
-	 *     the organizer to be ourselves. The only "real" organizer that event in a shared calendar can have is the
-	 *     owner of the calendar.
+	 *   **** The creator of the event. Will be overwritten with owner of the calendar by this function.
 	 */
-	_initEventType(existingEvent: CalendarEvent | null, calendars: ReadonlyMap<Id, CalendarInfo>): EventType {
+	private initEventTypeAndOrganizers(existingEvent: CalendarEvent | null, calendars: ReadonlyMap<Id, CalendarInfo>, mailboxDetail: MailboxDetail, userController: IUserController): InitEventTypeReturn {
+		const ownDefaultSender = addressToMailAddress(getDefaultSenderFromUser(userController), mailboxDetail, userController)
+
 		if (!existingEvent) {
-			return EventType.OWN
+			return {
+				eventType: EventType.OWN,
+				organizer: ownDefaultSender,
+				possibleOrganizers: this._ownPossibleOrganizers(mailboxDetail, userController)
+			}
 		} else {
 			// OwnerGroup is not set for events from file
 			const calendarInfoForEvent = existingEvent._ownerGroup && calendars.get(existingEvent._ownerGroup)
+			const existingOrganizer = existingEvent.organizer
 
 			if (calendarInfoForEvent) {
 				if (calendarInfoForEvent.shared) {
-					return hasCapabilityOnGroup(this._userController.user, calendarInfoForEvent.group, ShareCapability.Write)
-						? EventType.SHARED_RW
-						: EventType.SHARED_RO
+					return {
+						eventType: hasCapabilityOnGroup(this._userController.user, calendarInfoForEvent.group, ShareCapability.Write)
+							? EventType.SHARED_RW
+							: EventType.SHARED_RO,
+						organizer: existingOrganizer ? copyMailAddress(existingOrganizer) : null,
+						possibleOrganizers: existingOrganizer ? [existingOrganizer] : []
+					}
 				} else {
-					return this.organizer == null || this._ownMailAddresses.includes(this.organizer.address)
-						? EventType.OWN
-						: EventType.INVITE
+					//For an event in a personal calendar there are 3 options (see table)
+					//1. We are the organizer of the event (or the event does not have an organizer yet and we become the organizer of the event)
+					//2. If we are not the organizer and the event does not have guests, it was created by someone we shared our calendar with (also considered our own event)
+					if (!existingOrganizer || this._ownMailAddresses.includes(existingOrganizer.address) || existingEvent.attendees.length === 0) {
+						//we want to keep the existing organizer if it is one of our email addresses in all other cases we use our primary address
+						const actualOrganizer = existingOrganizer && this._ownMailAddresses.includes(existingOrganizer.address) ? existingOrganizer : ownDefaultSender
+						return {
+							eventType: EventType.OWN,
+							organizer: copyMailAddress(actualOrganizer),
+							possibleOrganizers: this.hasGuests() ? [actualOrganizer] : this._ownPossibleOrganizers(mailboxDetail, userController)
+						}
+					}
+					//3. the event is an invitation
+					else {
+						return {
+							eventType: EventType.INVITE,
+							organizer: existingOrganizer,
+							possibleOrganizers: [existingOrganizer]
+						}
+					}
 				}
 			} else {
 				// We can edit new invites (from files)
-				return EventType.INVITE
+				return {
+					eventType: EventType.INVITE,
+					organizer: existingOrganizer ? copyMailAddress(existingOrganizer) : null,
+					possibleOrganizers: existingOrganizer ? [existingOrganizer] : []
+				}
 			}
 		}
 	}
@@ -713,11 +735,13 @@ export class CalendarEventViewModel {
 	canModifyOrganizer(): boolean {
 		// We can only modify the organizer if it is our own event and there are no guests
 		return (
-			this._eventType === EventType.OWN &&
-			(!this.existingEvent ||
-				this.existingEvent.attendees.length === 0 ||
-				(this.existingEvent.attendees.length === 1 && this._ownMailAddresses.includes(this.existingEvent.attendees[0].address.address)))
+			this._eventType === EventType.OWN && !this.hasGuests()
 		)
+	}
+
+	private hasGuests() {
+		return this.existingEvent && this.existingEvent.attendees.length > 0 &&
+			!(this.existingEvent.attendees.length === 1 && this._ownMailAddresses.includes(this.existingEvent.attendees[0].address.address))
 	}
 
 	setOrganizer(newOrganizer: EncryptedMailAddress): void {

@@ -8,21 +8,21 @@ import {assertThrows, unmockAttribute} from "@tutao/tutanota-test-utils"
 import {clone, delay, downcast, neverNull, noOp} from "@tutao/tutanota-utils"
 import type {MailboxDetail} from "../../../src/mail/model/MailModel.js"
 import {MailModel} from "../../../src/mail/model/MailModel.js"
-import type {CalendarEvent} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {createCalendarEvent} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import type {CalendarEvent, Mail} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {
-	AccountType,
-	AlarmInterval,
-	assertEnumValue,
-	CalendarAttendeeStatus,
-	ShareCapability,
-} from "../../../src/api/common/TutanotaConstants.js"
-import {createGroupMembership} from "../../../src/api/entities/sys/TypeRefs.js"
+	createCalendarEvent,
+	createCalendarEventAttendee,
+	createContact,
+	createContactMailAddress,
+	createEncryptedMailAddress,
+	createMail,
+	EncryptedMailAddress
+} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {AccountType, AlarmInterval, assertEnumValue, CalendarAttendeeStatus, ShareCapability,} from "../../../src/api/common/TutanotaConstants.js"
 import type {User} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createCalendarEventAttendee} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {createGroupMembership, createPublicKeyReturn, createRepeatRule} from "../../../src/api/entities/sys/TypeRefs.js"
 import type {CalendarUpdateDistributor} from "../../../src/calendar/date/CalendarUpdateDistributor.js"
 import type {IUserController} from "../../../src/api/main/UserController.js"
-import {createEncryptedMailAddress, EncryptedMailAddress} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import type {CalendarInfo} from "../../../src/calendar/model/CalendarModel.js"
 import {CalendarModel} from "../../../src/calendar/model/CalendarModel.js"
 import {getAllDayDateUTCFromZone, getTimeZone} from "../../../src/calendar/date/CalendarUtils.js"
@@ -32,12 +32,7 @@ import {SendMailModel} from "../../../src/mail/editor/SendMailModel.js"
 import type {LoginController} from "../../../src/api/main/LoginController.js"
 import type {ContactModel} from "../../../src/contacts/model/ContactModel.js"
 import {EventController} from "../../../src/api/main/EventController.js"
-import type {Mail} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {createMail} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {createContact} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {EntityClient} from "../../../src/api/common/EntityClient.js"
-import {createPublicKeyReturn} from "../../../src/api/entities/sys/TypeRefs.js"
-import {createContactMailAddress} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {BusinessFeatureRequiredError} from "../../../src/api/main/BusinessFeatureRequiredError.js"
 import {MailFacade} from "../../../src/api/worker/facades/MailFacade.js"
 import {EntityRestClientMock} from "../api/worker/rest/EntityRestClientMock.js"
@@ -53,7 +48,6 @@ import {
 	makeMailboxDetail,
 	makeUserController,
 } from "./CalendarTestUtils.js"
-import {createRepeatRule} from "../../../src/api/entities/sys/TypeRefs.js"
 
 const now = new Date(2020, 4, 25, 13, 40)
 const zone = getTimeZone()
@@ -370,7 +364,7 @@ o.spec("CalendarEventViewModel", function () {
 		o(viewModel.canModifyOrganizer()).equals(false)
 		o(viewModel.possibleOrganizers).deepEquals([neverNull(existingEvent.organizer)])
 	})
-	o("event created by another user we shared our calendar with", async function () {
+	o("When an event is created by another user, that a calendar calendar is shared with, the owner of the calendar obtains the same rights as for events they creates in their calendar.", async function () {
 		const existingEvent = createCalendarEvent({
 			summary: "existing event",
 			startTime: new Date(2020, 4, 26, 12),
@@ -386,7 +380,8 @@ o.spec("CalendarEventViewModel", function () {
 		o(viewModel.canModifyGuests()).equals(true)
 		o(viewModel.canModifyOwnAttendance()).equals(true)
 		o(viewModel.canModifyOrganizer()).equals(true)
-		o(viewModel.possibleOrganizers).deepEquals([neverNull(encMailAddress)])("Organizer of the event is overwritten with our own address")
+		o(viewModel.organizer).deepEquals(neverNull(encMailAddress))("Organizer of the event is overwritten with the owner's address")
+		o(viewModel.possibleOrganizers).deepEquals([neverNull(encMailAddress)])
 	})
 	o("in writable calendar", async function () {
 		const calendars = makeCalendars("shared")
