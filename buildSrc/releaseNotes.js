@@ -146,7 +146,7 @@ function sortIssues(issues) {
 	const bugs = []
 	const other = []
 	for (const issue of issues) {
-		const isBug = issue.labels.find(l => l.name === "bug")
+		const isBug = issue.labels.find(l => l.name === "bug" || l.name === "dev bug")
 		if (isBug) {
 			bugs.push(issue)
 		} else {

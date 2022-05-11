@@ -60,8 +60,8 @@ pipeline {
 								sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (IOS)' \
 																			   --milestone '${VERSION}' \
 																			   --tag '${tag}' \
-																			   --platform ios
-																			   --format ios
+																			   --platform ios \
+																			   --format ios \
 																			   --toFile ${RELEASE_NOTES_PATH}"""
 							}
 
