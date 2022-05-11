@@ -14,36 +14,22 @@ class CredentialsEncryption {
     self.keychainManager = keychainManager
   }
   
-  func encryptUsingKeychain(data base64Data: Base64, encryptionMode: CredentialEncryptionMode, completion: @escaping ResponseCallback<Base64>) {
-    DispatchQueue.global(qos: .default).async {
-      let data = Data(base64Encoded: base64Data)!
-      
-      let result: Result<Base64, Error> = Result {
-        let encryptedData = try self.keychainManager.encryptData(encryptionMode: encryptionMode, data: data)
-        return encryptedData.base64EncodedString()
-      }
-      completion(result)
-    }
+  func encryptUsingKeychain(data base64Data: Base64, encryptionMode: CredentialEncryptionMode) async throws -> Base64 {
+    let data = Data(base64Encoded: base64Data)!
+    
+    let encryptedData = try self.keychainManager.encryptData(encryptionMode: encryptionMode, data: data)
+    return encryptedData.base64EncodedString()
   }
   
-  func decryptUsingKeychain(encryptedData encryptedBase64Data: Base64, encryptionMode: CredentialEncryptionMode, completion: @escaping ResponseCallback<Base64>) {
-    DispatchQueue.global(qos: .default).async {
-      let encryptedData = Data(base64Encoded: encryptedBase64Data)!
-      
-      let result: Result<Base64, Error> = Result {
-        let data = try self.keychainManager.decryptData(encryptionMode: encryptionMode, encryptedData: encryptedData)
-        return data.base64EncodedString()
-      }
-      completion(result)
-    }
+  func decryptUsingKeychain(encryptedData encryptedBase64Data: Base64, encryptionMode: CredentialEncryptionMode) async throws -> Base64 {
+    let encryptedData = Data(base64Encoded: encryptedBase64Data)!
+    
+    
+    let data = try self.keychainManager.decryptData(encryptionMode: encryptionMode, encryptedData: encryptedData)
+    return data.base64EncodedString()
   }
   
-  func getSupportedEncryptionModes(completion: ResponseCallback<[CredentialEncryptionMode]>) {
-    let result = Result { try self.doGetSupportedEncryptionModes() }
-    completion(result)
-  }
-  
-  private func doGetSupportedEncryptionModes() throws -> [CredentialEncryptionMode] {
+  func getSupportedEncryptionModes() async -> [CredentialEncryptionMode] {
     var supportedModes = [CredentialEncryptionMode.deviceLock]
     let context = LAContext()
     

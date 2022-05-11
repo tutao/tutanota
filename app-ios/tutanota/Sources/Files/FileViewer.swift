@@ -11,15 +11,16 @@ class FileViewer {
     self.viewController = viewController
   }
   
-  func openFile(path: String, completion: @escaping () -> Void) {
+  @MainActor
+  func openFile(path: String) async {
     let previewController = QLPreviewController()
     
     let fileUrl = URL(fileURLWithPath: path)
-    DispatchQueue.main.async {
+    return await withCheckedContinuation { continuation in
       let delegate = Delegate(fileUrl: fileUrl) {
         // Remove the reference to break retain cycle
         self.currentPreview = nil
-        completion()
+        continuation.resume()
       }
       self.currentPreview = delegate
       previewController.dataSource = delegate

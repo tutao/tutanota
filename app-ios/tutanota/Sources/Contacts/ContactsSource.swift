@@ -18,34 +18,28 @@ struct ContactResult : Codable {
 }
 
 class ContactsSource {
-  func search(query: String, completion: @escaping ResponseCallback<[ContactResult]>) {
+  func search(query: String) async throws -> [ContactResult] {
     let status = CNContactStore.authorizationStatus(for: .contacts)
     switch status {
     case .authorized:
-      self.doSearch(query: query, completion: completion)
+      return try await self.doSearch(query: query)
     case .denied, .restricted:
-      completion(.success([]))
+      return []
     case .notDetermined:
-      CNContactStore().requestAccess(for: .contacts) { granted, error in
-        if granted {
-          self.doSearch(query: query, completion: completion)
-        } else {
-          completion(.success([]))
-        }
+      let granted = try await CNContactStore().requestAccess(for: .contacts)
+      if granted {
+        return try await self.doSearch(query: query)
+      } else {
+        return []
       }
     @unknown default:
       TUTSLog("Unknown auth status: \(status)")
-      completion(.success([]))
+      return []
     }
   }
   
-  private func doSearch(query: String, completion: @escaping ResponseCallback<[ContactResult]>) {
-    do {
-      let contacts = try self.queryContacts(query: query, upTo: 10)
-      completion(.success(contacts))
-    } catch {
-      completion(.failure(error))
-    }
+  private func doSearch(query: String) async throws -> [ContactResult] {
+      return try self.queryContacts(query: query, upTo: 10)
   }
   
   private func queryContacts(query: String, upTo: Int) throws -> [ContactResult] {

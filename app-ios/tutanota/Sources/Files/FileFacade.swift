@@ -10,153 +10,126 @@ class FileFacade {
     self.viewer = viewer
   }
 
-  func openFileChooser(anchor: CGRect, completion: @escaping ResponseCallback<[String]>) {
-    self.chooser.open(withAnchorRect: anchor, completion: completion)
+  func openFileChooser(anchor: CGRect) async throws -> [String] {
+    return try await self.chooser.open(withAnchorRect: anchor)
   }
 
-  func openFile(path: String, completion: @escaping () -> Void) {
-    self.viewer.openFile(path: path, completion: completion)
+  func openFile(path: String) async {
+    await self.viewer.openFile(path: path)
   }
 
-  func saveDataFile(name: String, data: Data, completion: @escaping ResponseCallback<String>) {
-    DispatchQueue.global(qos: .default).async {
-      do {
-        let decryptedFolder = try FileUtils.getDecryptedFolder()
-        let filePath = (decryptedFolder as NSString).appendingPathComponent(name)
-        let fileURL = URL(fileURLWithPath: filePath)
-        try data.write(to: fileURL, options: .atomic)
-        completion(.success(filePath))
-      } catch {
-        completion(.failure(error))
-      }
+  func saveDataFile(name: String, data: Data) async throws -> String {
+    let decryptedFolder = try FileUtils.getDecryptedFolder()
+    let filePath = (decryptedFolder as NSString).appendingPathComponent(name)
+    let fileURL = URL(fileURLWithPath: filePath)
+    try data.write(to: fileURL, options: .atomic)
+    return filePath
+  }
+
+  func deleteFile(path: String) async throws {
+    try FileManager.default.removeItem(atPath: path)
+  }
+
+  func getName(path: String) async throws -> String {
+    let fileName = (path as NSString).lastPathComponent
+    if FileUtils.fileExists(atPath: path) {
+      return fileName
+    } else {
+      throw TUTErrorFactory.createError(
+        withDomain: FILES_ERROR_DOMAIN,
+        message: "File does not exists"
+      )
     }
   }
 
-  func deleteFile(path: String, completion: @escaping ResponseCallback<Void>) {
-    DispatchQueue.global(qos: .default).async {
-      let result = Result {
-        try FileManager.default.removeItem(atPath: path)
-      }
-      completion(result)
-    }
+  func getMimeType(path: String) async throws -> String {
+    return self.getFileMIMEType(path: path) ?? "application/octet-stream"
   }
 
-  func getName(path: String, completion: @escaping ResponseCallback<String>) {
-    DispatchQueue.global(qos: .default).async {
-      let fileName = (path as NSString).lastPathComponent
-      if FileUtils.fileExists(atPath: path) {
-        completion(.success(fileName))
-      } else {
-        let error = TUTErrorFactory.createError(
-          withDomain: FILES_ERROR_DOMAIN,
-          message: "File does not exists"
-        )
-        completion(.failure(error))
-      }
-    }
-  }
-
-  func getMimeType(path: String, completion: @escaping ResponseCallback<String>) {
-    DispatchQueue.global(qos: .default).async {
-      let mimeType = self.getFileMIMEType(path: path) ?? "application/octet-stream"
-      completion(.success(mimeType))
-    }
-  }
-
-  func getSize(path: String, completion: @escaping ResponseCallback<UInt64>) {
-    DispatchQueue.global(qos: .default).async {
-      do {
-        let attrs = try FileManager.default.attributesOfItem(atPath: path)
-        completion(.success((attrs[.size] as! UInt64)))
-      } catch {
-        completion(.failure(error))
-      }
-    }
+  func getSize(path: String) async throws -> UInt64 {
+    let attrs = try FileManager.default.attributesOfItem(atPath: path)
+    return attrs[.size] as! UInt64
   }
 
   func uploadFile(
     atPath path: String,
     toUrl url: String,
     method: String,
-    withHeaders headers: [String : String],
-    completion: @escaping ResponseCallback<DataTaskResponse>
-  ) {
-    DispatchQueue.global(qos: .default).async {
-      let url = URL(string: url)!
-      var request = URLRequest(url: url)
-      request.httpMethod = method
-      request.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
-      request.allHTTPHeaderFields = headers
+    withHeaders headers: [String : String]) async throws -> DataTaskResponse {
+      // async upload is iOS 15+
+      return try await withCheckedThrowingContinuation { continuation in
+        let url1 = URL(string: url)!
+        var request = URLRequest(url: url1)
+        request.httpMethod = method
+        request.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
+        request.allHTTPHeaderFields = headers
 
-      // session has a default request timeout of 60 seconds for new data (configuration.timeoutIntervalForRequest)
-      // the overall timeout for the task (w retries) is 7 days (configuration.timeoutIntervalForResource)
-      let session = URLSession(configuration: .ephemeral)
+        // session has a default request timeout of 60 seconds for new data (configuration.timeoutIntervalForRequest)
+        // the overall timeout for the task (w retries) is 7 days (configuration.timeoutIntervalForResource)
+        let session = URLSession(configuration: .ephemeral)
 
-      let fileUrl = URL(fileURLWithPath: path)
-      let task = session.uploadTask(with: request, fromFile: fileUrl) { data, response, error in
-        if let error = error {
-          completion(.failure(error))
-          return
+        let fileUrl = URL(fileURLWithPath: path)
+        let task = session.uploadTask(with: request, fromFile: fileUrl) { data, response, error in
+          if let error = error {
+            continuation.resume(with: .failure(error))
+            return
+          }
+          let httpResponse = response as! HTTPURLResponse
+          let base64Response = data?.base64EncodedString()
+          let apiResponse = DataTaskResponse(httpResponse: httpResponse, responseBody: base64Response)
+
+          continuation.resume(with: .success(apiResponse))
         }
-        let httpResponse = response as! HTTPURLResponse
-        let base64Response = data?.base64EncodedString()
-        let apiResponse = DataTaskResponse(httpResponse: httpResponse, responseBody: base64Response)
-
-        completion(.success(apiResponse))
+        task.resume()
       }
-      task.resume()
     }
-  }
 
   func downloadFile(
     fromUrl url: String,
     forName fileName: String,
-    withHeaders headers: [String : String],
-    completion: @escaping ResponseCallback<DataTaskResponse>
-  ) {
-    DispatchQueue.global(qos: .default).async {
-      let url = URL(string: url)!
-      var request = URLRequest(url: url)
-      request.httpMethod = "GET"
-      request.allHTTPHeaderFields = headers
+    withHeaders headers: [String : String]) async throws -> DataTaskResponse {
+      return try await withCheckedThrowingContinuation { continuation in
+        DispatchQueue.global(qos: .default).async {
+          let url1 = URL(string: url)!
+          var request = URLRequest(url: url1)
+          request.httpMethod = "GET"
+          request.allHTTPHeaderFields = headers
 
-      let session = URLSession(configuration: .ephemeral)
-      let task = session.dataTask(with: request) { data, response, error in
-        if let error = error {
-          completion(.failure(error))
-          return
-        }
-        let httpResponse = response as! HTTPURLResponse
-        let encryptedFileUri: String?
-        if httpResponse.statusCode == 200 {
-          do {
-            encryptedFileUri = try self.writeEncryptedFile(fileName: fileName, data: data!)
-          } catch {
-            completion(.failure(error))
-            return
+          let session = URLSession(configuration: .ephemeral)
+          let task = session.dataTask(with: request) { data, response, error in
+            if let error = error {
+              continuation.resume(with: .failure(error))
+              return
+            }
+            let httpResponse = response as! HTTPURLResponse
+            let encryptedFileUri: String?
+            if httpResponse.statusCode == 200 {
+              do {
+                encryptedFileUri = try self.writeEncryptedFile(fileName: fileName, data: data!)
+              } catch {
+                continuation.resume(with: .failure(error))
+                return
+              }
+            } else {
+              encryptedFileUri = nil
+            }
+            let responseDict = DataTaskResponse(httpResponse: httpResponse, encryptedFileUri: encryptedFileUri)
+            continuation.resume(with: .success(responseDict))
           }
-        } else {
-          encryptedFileUri = nil
+          task.resume()
         }
-        let responseDict = DataTaskResponse(httpResponse: httpResponse, encryptedFileUri: encryptedFileUri)
-        completion(.success(responseDict))
       }
-      task.resume()
     }
+
+  func clearFileData() async throws {
+    let _ = await (
+      try self.clearDirectory(folderPath: FileUtils.getEncryptedFolder()),
+      try self.clearDirectory(folderPath: FileUtils.getDecryptedFolder()),
+      try self.clearDirectory(folderPath: NSTemporaryDirectory())
+    )
   }
 
-  func clearFileData(completion: @escaping ResponseCallback<Void>) {
-    DispatchQueue.global(qos: .default).async {
-      let result = Result {
-        try self.clearDirectory(folderPath: FileUtils.getEncryptedFolder())
-        try self.clearDirectory(folderPath: FileUtils.getDecryptedFolder())
-        try self.clearDirectory(folderPath: NSTemporaryDirectory())
-      }
-      completion(result)
-    }
-  }
-
-  private func clearDirectory(folderPath: String) throws {
+  private func clearDirectory(folderPath: String) async throws {
     let fileManager = FileManager.default
     let folderUrl = URL(fileURLWithPath: folderPath)
     let files = try fileManager.contentsOfDirectory(at: folderUrl, includingPropertiesForKeys: nil, options: [])

@@ -127,11 +127,8 @@ class AlarmManager {
     }
   }
 
-  func processNewAlarms(_ alarms: Array<EncryptedAlarmNotification>, completion: @escaping ResponseCallback<Void>) {
-    DispatchQueue.global(qos: .default).async {
-      let result = Result { try self.doProcessNewAlarms(alarms) }
-      completion(result)
-    }
+  func processNewAlarms(_ alarms: Array<EncryptedAlarmNotification>) async throws {
+    try self.doProcessNewAlarms(alarms)
   }
   
   private func doProcessNewAlarms(_ alarms: Array<EncryptedAlarmNotification>) throws {

@@ -7,65 +7,16 @@ struct EncryptedFileInfo {
 extension EncryptedFileInfo : Codable {}
 
 /// High-level cryptographic operations API
-class CryptoFacade {
-  /// Serial queue for executing crypto tasks
-  private let queue = DispatchQueue(
-    label: "de.tutao.encryption",
-    qos: .userInitiated
-  )
+/// Is an actor because we want to have serial execution for all the cryptogaphic operations, doing them in parallel is usually too
+/// much for the device.
+actor CryptoFacade {
   private let crypto: TUTCrypto = TUTCrypto()
-  
-  func encryptFile(key: Base64, atPath filePath: String, completion: @escaping ResponseCallback<EncryptedFileInfo>) {
-    self.run(completion) {
-      return try self.encryptFileSync(key: key, filePath: filePath)
-    }
-  }
-  
-  func decryptFile(key: Base64, atPath filePath: String, completion: @escaping ResponseCallback<String>) {
-    self.run(completion) {
-      return try self.decryptFileSync(key: key, atPath: filePath)
-    }
-  }
-  
-  func generateRsaKey(seed: Base64, completion: @escaping ResponseCallback<KeyPair>) {
-    self.run(completion) {
-      let tutKeyPair = try self.crypto.generateRsaKey(withSeed: seed)
-      return KeyPair(tutKeyPair)
-    }
-  }
-  
-  func rsaEncrypt(
-    publicKey: PublicKey,
-    base64Data: Base64,
-    base64Seed: Base64,
-    completion: @escaping ResponseCallback<String>
-  ) {
-    self.run(completion) {
-      return try self.crypto.rsaEncrypt(
-        with: publicKey.toObjcKey(),
-        base64Data: base64Data,
-        base64Seed: base64Seed
-      )
-    }
-  }
-  
-  func rsaDecrypt(
-    privateKey: PrivateKey,
-    base64Data: Base64,
-    completion: @escaping ResponseCallback<String>
-  ) {
-    self.run(completion) {
-      return try self.crypto.rsaDecrypt(with: privateKey.toObjcKey(),
-                                        base64Data: base64Data
-      )
-    }
-  }
-  
-  private func encryptFileSync(key: Base64, filePath: String) throws -> EncryptedFileInfo {
+
+  func encryptFile(key: Base64, atPath filePath: String) async throws -> EncryptedFileInfo {
     guard let keyData = Data(base64Encoded: key) else {
       throw CryptoError(message: "Invalid key data")
     }
-    
+
     if !FileUtils.fileExists(atPath: filePath) {
       throw CryptoError(message: "File to encrypt does not exist \(filePath)")
     }
@@ -76,40 +27,58 @@ class CryptoFacade {
     let plainTextData = try Data(contentsOf: URL(fileURLWithPath: filePath))
     let outputData = try TUTAes128Facade.encrypt(plainTextData, withKey: keyData, withIv: iv, withMac: true)
     let result = EncryptedFileInfo(uri: encryptedFilePath, unencSize: Int64(plainTextData.count))
-    
+
     try outputData.write(to: URL(fileURLWithPath: encryptedFilePath))
-    
+
     return result
   }
-  
-  private func decryptFileSync(key: Base64, atPath filePath: String) throws -> String {
+
+  func decryptFile(key: Base64, atPath filePath: String) async throws -> String {
     guard let key = Data(base64Encoded: key) else {
       throw CryptoError(message: "Invalid key data")
     }
     if !FileUtils.fileExists(atPath: filePath) {
       throw CryptoError(message: "File to decrypt does not exist")
     }
-    
+
     let encryptedData = try Data(contentsOf: URL(fileURLWithPath: filePath))
     let plaintextData = try TUTAes128Facade.decrypt(encryptedData, withKey: key)
-    
+
     let decryptedFolder = try FileUtils.getDecryptedFolder()
     let fileName = (filePath as NSString).lastPathComponent
     let plaintextPath = (decryptedFolder as NSString).appendingPathComponent(fileName)
     try plaintextData.write(to: URL(fileURLWithPath: plaintextPath), options: .atomic)
-    
+
     return plaintextPath
   }
-  
+
+  func generateRsaKey(seed: Base64) async throws -> KeyPair {
+    let tutKeyPair = try self.crypto.generateRsaKey(withSeed: seed)
+    return KeyPair(tutKeyPair)
+  }
+
+  func rsaEncrypt(
+    publicKey: PublicKey,
+    base64Data: Base64,
+    base64Seed: Base64) async throws -> String {
+      return try self.crypto.rsaEncrypt(
+        with: publicKey.toObjcKey(),
+        base64Data: base64Data,
+        base64Seed: base64Seed
+      )
+    }
+
+  func rsaDecrypt(
+    privateKey: PrivateKey,
+    base64Data: Base64) async throws -> String {
+      return try self.crypto.rsaDecrypt(
+        with: privateKey.toObjcKey(),
+        base64Data: base64Data
+      )
+    }
+
   private func generateIv() -> Data {
     return TUTCrypto.generateIv()
-  }
-  
-  private func run<T>(_ completion: @escaping ResponseCallback<T>, call: @escaping () throws -> T) {
-    self.queue.async {
-      let result = Result(catching: call)
-      completion(result)
-    }
   }
 }
 

@@ -35,20 +35,19 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
     self.imagePickerController.delegate = self
   }
 
-  public func open(
-    withAnchorRect anchorRect: CGRect,
-    completion completionHandler: @escaping ResponseCallback<[String]>
-  ) {
+  @MainActor
+  public func open(withAnchorRect anchorRect: CGRect) async throws -> [String] {
     if let previousHandler = self.resultHandler {
         TUTSLog("Another file picker is already open?")
         self.sourceController.dismiss(animated: true, completion: nil)
       previousHandler(.success([]))
     }
-    self.resultHandler = completionHandler
 
     let attachmentTypeMenu = UIDocumentMenuViewController(
       documentTypes: self.supportedUTIs, in: UIDocumentPickerMode.import)
+    
     self.attachmentTypeMenu = attachmentTypeMenu
+    
     attachmentTypeMenu.delegate = self
 
     // add menu item for selecting images from photo library.
@@ -102,7 +101,11 @@ class TUTFileChooser: NSObject, UIImagePickerControllerDelegate, UINavigationCon
         self?.openCamera()  // capture the weak reference to avoid reference cycle
       }
     }
-    self.sourceController.present(attachmentTypeMenu, animated: true, completion: nil)
+    
+    return try await withCheckedThrowingContinuation { continuation in
+      self.resultHandler = continuation.resume(with:)
+      self.sourceController.present(attachmentTypeMenu, animated: true, completion: nil)
+    }
   }
 
   private func showLegacyImagePicker(anchor: CGRect) {
