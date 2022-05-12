@@ -42,7 +42,7 @@ export class PostLoginActions implements IPostLoginAction {
 	}
 
 	async onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
-		// We establish websocket connection even for temporary sessions because we need to get updates e.g. during singup
+		// We establish websocket connection even for temporary sessions because we need to get updates e.g. during signup
 		windowFacade.addOnlineListener(() => {
 			console.log(new Date().toISOString(), "online - try reconnect")
 			if (logins.isFullyLoggedIn()) {

@@ -417,7 +417,7 @@ export class MailListView implements Component {
 			// give it to the list and let list make another request (and almost certainly fail that request) to show a retry button. This way we both show
 			// the items we have and also show that we couldn't load everything.
 			if (e instanceof ConnectionError) {
-				const items = await locator.cachedRangeLoader.provideFromRange(MailTypeRef, this.listId, start, count, true)
+				const items = await locator.cacheStorage.provideFromRange(MailTypeRef, this.listId, start, count, true)
 				if (items.length === 0) throw e
 				return {items, complete: false}
 			} else {
