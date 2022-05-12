@@ -23,7 +23,7 @@ export function handleBackPress(): Promise<boolean> {
 			return true
 		} else {
 			// otherwise try to navigate back in the current view
-			const viewSlider = header._getViewSlider()
+			const viewSlider = header.getViewSlider()
 
 			const currentRoute = m.route.get()
 

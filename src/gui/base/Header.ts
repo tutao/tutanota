@@ -27,6 +27,7 @@ assertMainOrNode()
 
 export interface CurrentView extends Component {
 	updateUrl(args: Record<string, any>, requestedPath: string): void
+
 	readonly headerView?: () => Children
 	readonly headerRightView?: () => Children
 	readonly getViewSlider?: () => ViewSlider | null
@@ -42,67 +43,26 @@ const PROGRESS_HIDDEN = -1
 const PROGRESS_DONE = 1
 
 class Header implements Component {
-	view: Component["view"]
-	private _currentView: CurrentView | null // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
-
+	searchBar: SearchBar | null = null
 	oncreate: Component["oncreate"]
 	onremove: Component["onremove"]
-	private _shortcuts: Shortcut[]
-	searchBar: SearchBar | null = null
-	private _wsState = WsConnectionState.terminated
-	private _loadingProgress: number = PROGRESS_HIDDEN
+
+	private currentView: CurrentView | null = null // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
+	private readonly shortcuts: Shortcut[]
+	private wsState = WsConnectionState.terminated
+	private loadingProgress: number = PROGRESS_HIDDEN
 
 	constructor() {
-		this._currentView = null
-
-		this._shortcuts = this._setupShortcuts()
-		this.oncreate = () => keyManager.registerShortcuts(this._shortcuts)
-		this.onremove = () => keyManager.unregisterShortcuts(this._shortcuts)
-
-		this.view = (): Children => {
-			// Do not return undefined if headerView is not present
-			const injectedView = this._currentView && this._currentView.headerView ? this._currentView.headerView() : null
-			return m(
-				".header-nav.overflow-hidden.flex.items-end.flex-center",
-				[
-					m(".abs.full-width", this._connectionIndicator() || this._entityEventProgress()),
-					injectedView
-						? m(".flex-grow", injectedView)
-						: [
-							m(
-								".header-left.pl-l.ml-negative-s.flex-start.items-center.overflow-hidden",
-								{
-									style: styles.isUsingBottomNavigation()
-										? {
-											"margin-left": px(-15),
-										}
-										: null, // manual margin to align the hamburger icon on mobile devices
-								},
-								this._getLeftElements(),
-							),
-							styles.isUsingBottomNavigation() ? this._getCenterContent() : null,
-							styles.isUsingBottomNavigation()
-								? m(
-									".header-right.pr-s.flex-end.items-center",
-									this._currentView && this._currentView.headerRightView
-										? this._currentView.headerRightView()
-										: null,
-								)
-								: m(".header-right.pr-l.mr-negative-m.flex-end.items-center", [
-									this._renderDesktopSearchBar(),
-									m(NavBar, this._renderButtons()),
-								]),
-						],
-				],
-			)
-		}
+		this.shortcuts = this.setupShortcuts()
+		this.oncreate = () => keyManager.registerShortcuts(this.shortcuts)
+		this.onremove = () => keyManager.unregisterShortcuts(this.shortcuts)
 
 		// load worker and search bar one after another because search bar uses worker.
 		import("../../api/main/MainLocator").then(async ({locator}) => {
 			await locator.initialized
 			const worker = locator.worker
 			worker.wsConnection().map(state => {
-				this._wsState = state
+				this.wsState = state
 				m.redraw()
 			})
 			await worker.initialized
@@ -112,18 +72,18 @@ class Header implements Component {
 			const progressTracker: ProgressTracker = locator.progressTracker
 
 			if (progressTracker.totalWork() !== 0) {
-				this._loadingProgress = progressTracker.completedAmount()
+				this.loadingProgress = progressTracker.completedAmount()
 			}
 
 			progressTracker.onProgressUpdate.map(amount => {
-				if (this._loadingProgress !== amount) {
-					this._loadingProgress = amount
+				if (this.loadingProgress !== amount) {
+					this.loadingProgress = amount
 					m.redraw()
 
-					if (this._loadingProgress >= PROGRESS_DONE) {
+					if (this.loadingProgress >= PROGRESS_DONE) {
 						// progress is done but we still want to finish the complete animation and then dismiss the progress bar.
 						setTimeout(() => {
-							this._loadingProgress = PROGRESS_HIDDEN
+							this.loadingProgress = PROGRESS_HIDDEN
 							m.redraw()
 						}, 500)
 					}
@@ -132,22 +92,70 @@ class Header implements Component {
 		})
 	}
 
-	_renderDesktopSearchBar(): Children {
-		return this.searchBar && this._desktopSearchBarVisible()
+	view(): Children {
+		// Do not return undefined if headerView is not present
+		const injectedView = this.currentView && this.currentView.headerView
+			? this.currentView.headerView()
+			: null
+		// manual margin to align the hamburger icon on mobile devices
+		const style = styles.isUsingBottomNavigation()
+			? {"margin-left": px(-15)}
+			: null
+		return m(
+			".header-nav.overflow-hidden.flex.items-end.flex-center",
+			[
+				m(".abs.full-width", this.renderConnectionIndicator() || this.renderEntityEventProgress()),
+				injectedView
+					? m(".flex-grow", injectedView)
+					: [
+						m(".header-left.pl-l.ml-negative-s.flex-start.items-center.overflow-hidden", {style}, this.renderLeftElements()),
+						styles.isUsingBottomNavigation() ? this.renderCenterContent() : null,
+						styles.isUsingBottomNavigation() ? this.renderNewItemButton() : this.renderHeaderWidgets(),
+					],
+			],
+		)
+	}
+
+	/**
+	 * render the new mail/contact/event icon in the top right of the one- and two-column layouts
+	 * @private
+	 */
+	private renderNewItemButton(): Children {
+		return m(
+			".header-right.pr-s.flex-end.items-center",
+			this.currentView && this.currentView.headerRightView
+				? this.currentView.headerRightView()
+				: null
+		)
+	}
+
+	/**
+	 * render the search and navigation bar in three-column layouts
+	 * @private
+	 */
+	private renderHeaderWidgets(): Children {
+		return m(".header-right.pr-l.mr-negative-m.flex-end.items-center", [
+			this.renderDesktopSearchBar(),
+			m(NavBar, this.renderButtons()),
+		])
+	}
+
+	private renderDesktopSearchBar(): Children {
+		return this.searchBar && this.desktopSearchBarVisible()
 			? m(this.searchBar, {
 				spacer: true,
-				placeholder: this._searchPlaceholder(),
+				placeholder: this.searchPlaceholder(),
 			})
 			: null
 	}
 
-	_focusMain() {
-		const viewSlider = this._currentView && this._currentView.getViewSlider && this._currentView.getViewSlider()
+	private focusMain() {
+		const viewSlider = this.currentView && this.currentView.getViewSlider && this.currentView.getViewSlider()
 
 		viewSlider && viewSlider.getMainColumn().focus()
 	}
 
-	_renderButtons(): Children {
+	private renderButtons(): Children {
 		// We assign click listeners to buttons to move focus correctly if the view is already open
 		return logins.isInternalUserLoggedIn() && isNotSignup()
 			? [
@@ -157,7 +165,7 @@ class Header implements Component {
 					href: navButtonRoutes.mailUrl,
 					isSelectedPrefix: MAIL_PREFIX,
 					colors: NavButtonColor.Header,
-					click: () => m.route.get() === navButtonRoutes.mailUrl && this._focusMain(),
+					click: () => m.route.get() === navButtonRoutes.mailUrl && this.focusMain(),
 				}),
 				!logins.isEnabled(FeatureType.DisableContacts)
 					? m(NavButtonN, {
@@ -166,7 +174,7 @@ class Header implements Component {
 						href: navButtonRoutes.contactsUrl,
 						isSelectedPrefix: CONTACTS_PREFIX,
 						colors: NavButtonColor.Header,
-						click: () => m.route.get() === navButtonRoutes.contactsUrl && this._focusMain(),
+						click: () => m.route.get() === navButtonRoutes.contactsUrl && this.focusMain(),
 					})
 					: null,
 				!logins.isEnabled(FeatureType.DisableCalendar) && client.calendarSupported()
@@ -175,14 +183,14 @@ class Header implements Component {
 						icon: () => BootIcons.Calendar,
 						href: CALENDAR_PREFIX,
 						colors: NavButtonColor.Header,
-						click: () => m.route.get().startsWith(CALENDAR_PREFIX) && this._focusMain(),
+						click: () => m.route.get().startsWith(CALENDAR_PREFIX) && this.focusMain(),
 					})
 					: null,
 			]
 			: null
 	}
 
-	_mobileSearchBarVisible(): boolean {
+	private mobileSearchBarVisible(): boolean {
 		let route = m.route.get()
 		let locator: IMainLocator | null = window.tutao.locator
 		return (
@@ -195,7 +203,7 @@ class Header implements Component {
 		)
 	}
 
-	_setupShortcuts(): Shortcut[] {
+	private setupShortcuts(): Shortcut[] {
 		return [
 			{
 				key: Keys.M,
@@ -232,15 +240,15 @@ class Header implements Component {
 		]
 	}
 
-	_getCenterContent(): Children {
-		const viewSlider = this._getViewSlider()
+	private renderCenterContent(): Children {
+		const viewSlider = this.getViewSlider()
 
 		const header = (title: string, left?: Children, right?: Children) => {
 			return m(".flex-center.header-middle.items-center.text-ellipsis.b", [left || null, title, right || null])
 		}
 
-		if (this._mobileSearchBarVisible()) {
-			return this._renderMobileSearchBar()
+		if (this.mobileSearchBarVisible()) {
+			return this.renderMobileSearchBar()
 		} else if (viewSlider) {
 			const firstVisibleBgColumn = viewSlider.getBackgroundColumns().find(c => c.visible)
 
@@ -261,7 +269,7 @@ class Header implements Component {
 		}
 	}
 
-	_renderMobileSearchBar(): Vnode<any> {
+	private renderMobileSearchBar(): Vnode<any> {
 		let placeholder
 		const route = m.route.get()
 
@@ -285,8 +293,8 @@ class Header implements Component {
 		})
 	}
 
-	_getLeftElements(): Children {
-		const viewSlider = this._getViewSlider()
+	private renderLeftElements(): Children {
+		const viewSlider = this.getViewSlider()
 
 		if (viewSlider && viewSlider.isFocusPreviousPossible()) {
 			return m(NavButtonN, {
@@ -296,8 +304,8 @@ class Header implements Component {
 				},
 				icon: () =>
 					(
-						this._currentView && this._currentView.overrideBackIcon
-							? this._currentView.overrideBackIcon()
+						this.currentView && this.currentView.overrideBackIcon
+							? this.currentView.overrideBackIcon()
 							: !viewSlider.getBackgroundColumns()[0].visible
 					)
 						? BootIcons.Back
@@ -305,7 +313,7 @@ class Header implements Component {
 				colors: NavButtonColor.Header,
 				href: () => m.route.get(),
 				click: () => {
-					if (!this._currentView || !this._currentView.handleBackButton || !this._currentView.handleBackButton()) {
+					if (!this.currentView || !this.currentView.handleBackButton || !this.currentView.handleBackButton()) {
 						viewSlider.focusPreviousColumn()
 					}
 				},
@@ -329,19 +337,19 @@ class Header implements Component {
 	}
 
 	updateCurrentView(currentView: CurrentView) {
-		this._currentView = currentView
+		this.currentView = currentView
 	}
 
-	_getViewSlider(): ViewSlider | null {
-		if (this._currentView && this._currentView.getViewSlider) {
-			return this._currentView.getViewSlider()
+	getViewSlider(): ViewSlider | null {
+		if (this.currentView && this.currentView.getViewSlider) {
+			return this.currentView.getViewSlider()
 		} else {
 			return null
 		}
 	}
 
-	_connectionIndicator(): Children {
-		if (this._wsState === WsConnectionState.connected || this._wsState === WsConnectionState.terminated) {
+	private renderConnectionIndicator(): Children {
+		if (this.wsState === WsConnectionState.connected || this.wsState === WsConnectionState.terminated) {
 			return null
 		} else {
 			// Use key so that mithril does not reuse dom element and transition works correctly
@@ -351,14 +359,14 @@ class Header implements Component {
 		}
 	}
 
-	_entityEventProgress(): Children {
-		if (this._loadingProgress !== PROGRESS_HIDDEN) {
+	private renderEntityEventProgress(): Children {
+		if (this.loadingProgress !== PROGRESS_HIDDEN) {
 			// Use key so that mithril does not reuse dom element and transition works correctly
 			return m(".accent-bg", {
 				key: "loading-indicator",
 				style: {
 					transition: "width 500ms",
-					width: this._loadingProgress * 100 + "%",
+					width: this.loadingProgress * 100 + "%",
 					height: "3px",
 				},
 			})
@@ -367,7 +375,7 @@ class Header implements Component {
 		}
 	}
 
-	_searchPlaceholder(): string | null {
+	private searchPlaceholder(): string | null {
 		const route = m.route.get()
 
 		if (route.startsWith(MAIL_PREFIX) || route.startsWith("/search/mail")) {
@@ -383,7 +391,7 @@ class Header implements Component {
 		}
 	}
 
-	_desktopSearchBarVisible(): boolean {
+	private desktopSearchBarVisible(): boolean {
 		let route = m.route.get()
 		let locator: IMainLocator | null = window.tutao.locator
 		return (
