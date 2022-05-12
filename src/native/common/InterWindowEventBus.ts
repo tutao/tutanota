@@ -14,7 +14,7 @@ export interface InterWindowEventHandler<Events> {
 
 export class InterWindowEventBusError extends TutanotaError {
 	constructor(event: string, readonly cause: Error) {
-		super("InterWindowEventBusError", `Error on "${event}" event from other window: ${cause.message}`)
+		super("InterWindowEventBusError", `Error on "${event}" event from other window: ${cause.message}\n${cause.stack}`)
 	}
 }
 
