@@ -20,6 +20,7 @@ import type {ProgressTracker} from "../../api/main/ProgressTracker"
 import type {ViewSlider} from "./ViewSlider"
 import {assertMainOrNode} from "../../api/common/Env"
 import {WsConnectionState} from "../../api/main/WorkerClient";
+import {ProgressBar} from "./ProgressBar.js"
 
 const LogoutPath = "/login?noAutoLogin=true"
 export const LogoutUrl: string = location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : LogoutPath
@@ -39,9 +40,6 @@ export interface CurrentView extends Component {
 	readonly overrideBackIcon?: () => boolean
 }
 
-const PROGRESS_HIDDEN = -1
-const PROGRESS_DONE = 1
-
 class Header implements Component {
 	searchBar: SearchBar | null = null
 	oncreate: Component["oncreate"]
@@ -50,7 +48,7 @@ class Header implements Component {
 	private currentView: CurrentView | null = null // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
 	private readonly shortcuts: Shortcut[]
 	private wsState = WsConnectionState.terminated
-	private loadingProgress: number = PROGRESS_HIDDEN
+	private loadingProgress: number = 1
 
 	constructor() {
 		this.shortcuts = this.setupShortcuts()
@@ -79,14 +77,6 @@ class Header implements Component {
 				if (this.loadingProgress !== amount) {
 					this.loadingProgress = amount
 					m.redraw()
-
-					if (this.loadingProgress >= PROGRESS_DONE) {
-						// progress is done but we still want to finish the complete animation and then dismiss the progress bar.
-						setTimeout(() => {
-							this.loadingProgress = PROGRESS_HIDDEN
-							m.redraw()
-						}, 500)
-					}
 				}
 			})
 		})
@@ -104,7 +94,7 @@ class Header implements Component {
 		return m(
 			".header-nav.overflow-hidden.flex.items-end.flex-center",
 			[
-				m(".abs.full-width", this.renderConnectionIndicator() || this.renderEntityEventProgress()),
+				this.renderConnectionIndicator(),
 				injectedView
 					? m(".flex-grow", injectedView)
 					: [
@@ -350,28 +340,12 @@ class Header implements Component {
 
 	private renderConnectionIndicator(): Children {
 		if (this.wsState === WsConnectionState.connected || this.wsState === WsConnectionState.terminated) {
-			return null
+			return m(ProgressBar, {progress: this.loadingProgress})
 		} else {
 			// Use key so that mithril does not reuse dom element and transition works correctly
-			return m(".indefinite-progress", {
+			return m(".abs.full-width", m(".indefinite-progress", {
 				key: "connection-indicator",
-			})
-		}
-	}
-
-	private renderEntityEventProgress(): Children {
-		if (this.loadingProgress !== PROGRESS_HIDDEN) {
-			// Use key so that mithril does not reuse dom element and transition works correctly
-			return m(".accent-bg", {
-				key: "loading-indicator",
-				style: {
-					transition: "width 500ms",
-					width: this.loadingProgress * 100 + "%",
-					height: "3px",
-				},
-			})
-		} else {
-			return null
+			}))
 		}
 	}
 
