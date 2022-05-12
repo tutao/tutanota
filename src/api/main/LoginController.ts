@@ -37,6 +37,12 @@ export interface LoginController {
 
 	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, sessionType: SessionType): Promise<Credentials>
 
+	/**
+	 * Resume an existing session using stored credentials, may or may not unlock a persistent local database
+	 * @param credentials: The stored credentials and optional database key for the offline db
+	 * @param externalUserSalt
+	 * @param offlineTimeRangeDays: the user configured time range for their offline storage, used to initialize the offline db
+	 */
 	resumeSession(credentials: CredentialsAndDatabaseKey, externalUserSalt: Uint8Array | null, offlineTimeRangeDays: number | null): Promise<ResumeSessionResult>
 
 	isUserLoggedIn(): boolean

@@ -1,8 +1,4 @@
-import {
-	AccessExpiredError,
-	BadRequestError,
-	NotAuthenticatedError,
-} from "../api/common/error/RestError"
+import {AccessExpiredError, BadRequestError, NotAuthenticatedError,} from "../api/common/error/RestError"
 import type {TranslationText} from "../misc/LanguageViewModel"
 import {SecondFactorHandler} from "../misc/2fa/SecondFactorHandler"
 import {getLoginErrorMessage, handleExpectedLoginError} from "../misc/LoginUtils"
@@ -14,7 +10,7 @@ import type {CredentialsInfo, ICredentialsProvider} from "../misc/credentials/Cr
 import {CredentialAuthenticationError} from "../api/common/error/CredentialAuthenticationError"
 import {first, noOp} from "@tutao/tutanota-utils"
 import {KeyPermanentlyInvalidatedError} from "../api/common/error/KeyPermanentlyInvalidatedError"
-import {assertMainOrNode, isOfflineStorageAvailable} from "../api/common/Env"
+import {assertMainOrNode} from "../api/common/Env"
 import {SessionType} from "../api/common/SessionType"
 import {DeviceStorageUnavailableError} from "../api/common/error/DeviceStorageUnavailableError"
 import {DatabaseKeyFactory} from "../misc/credentials/DatabaseKeyFactory"
@@ -132,6 +128,7 @@ export class LoginViewModel implements ILoginViewModel {
 	helpText: TranslationText
 	readonly savePassword: Stream<boolean>
 	_savedInternalCredentials: Array<CredentialsInfo>
+
 	constructor(
 		private readonly loginController: LoginController,
 		private readonly credentialsProvider: ICredentialsProvider,
@@ -283,7 +280,7 @@ export class LoginViewModel implements ILoginViewModel {
 				const credentials = await this.credentialsProvider.getCredentialsByUserId(this._autoLoginCredentials.userId)
 
 				if (credentials) {
-					const offlineTimeRange = isOfflineStorageAvailable() ? this.deviceConfig.getOfflineTimeRangeDays() : null
+					const offlineTimeRange = this.deviceConfig.getOfflineTimeRangeDays()
 					const result = await this.loginController.resumeSession(credentials, null, offlineTimeRange)
 					if (result.type == "success") {
 						await this._onLogin()
