@@ -58,7 +58,7 @@ import {BlobFacade} from "../worker/facades/BlobFacade"
 import {CryptoFacade} from "../worker/crypto/CryptoFacade"
 import type {InterWindowEventBus} from "../../native/common/InterWindowEventBus"
 import {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade"
-import {CachedRangeLoader} from "../worker/rest/EntityRestCache.js"
+import {ExposedCacheStorage} from "../worker/rest/EntityRestCache.js"
 import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes"
 import {LoginListener} from "./LoginListener"
 
@@ -108,7 +108,7 @@ export interface IMainLocator {
 	readonly interWindowEventBus: InterWindowEventBus<InterWindowEventTypes>
 	readonly loginListener: LoginListener
 	readonly offlineDbFacade: OfflineDbFacade
-	readonly cachedRangeLoader: CachedRangeLoader
+	readonly cacheStorage: ExposedCacheStorage
 
 	readonly init: () => Promise<void>
 	readonly initialized: Promise<void>
@@ -150,7 +150,7 @@ class MainLocator implements IMainLocator {
 	usageTestModel!: UsageTestModel
 	serviceExecutor!: IServiceExecutor
 	cryptoFacade!: CryptoFacade
-	cachedRangeLoader!: CachedRangeLoader
+	cacheStorage!: ExposedCacheStorage
 	_interWindowEventBus!: InterWindowEventBus<InterWindowEventTypes>
 	loginListener!: LoginListener
 
@@ -279,7 +279,7 @@ class MainLocator implements IMainLocator {
 			restInterface,
 			serviceExecutor,
 			cryptoFacade,
-			cachedRangeLoader
+			cacheStorage
 		} = this.worker.getWorkerInterface()
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -305,7 +305,7 @@ class MainLocator implements IMainLocator {
 		this.search = new SearchModel(this.searchFacade)
 		this.entityClient = new EntityClient(restInterface)
 		this.cryptoFacade = cryptoFacade
-		this.cachedRangeLoader = cachedRangeLoader
+		this.cacheStorage = cacheStorage
 
 		this.webauthnClient = new WebauthnClient(this.webauthnController, getWebRoot())
 		this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, this.webauthnClient, this.loginFacade)
