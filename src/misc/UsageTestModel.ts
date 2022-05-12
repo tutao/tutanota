@@ -120,6 +120,30 @@ export interface UsageTestStorage {
 	storeAssignments(persistedAssignmentData: PersistedAssignmentData): Promise<void>
 }
 
+export class EphemeralUsageTestStorage implements UsageTestStorage {
+	private assignments: PersistedAssignmentData | null = null
+	private testDeviceId: string | null = null
+
+	getAssignments(): Promise<PersistedAssignmentData | null> {
+		return Promise.resolve(this.assignments)
+	}
+
+	getTestDeviceId(): Promise<string | null> {
+		return Promise.resolve(this.testDeviceId)
+	}
+
+	storeAssignments(persistedAssignmentData: PersistedAssignmentData): Promise<void> {
+		this.assignments = persistedAssignmentData
+		return Promise.resolve()
+	}
+
+	storeTestDeviceId(testDeviceId: string): Promise<void> {
+		this.testDeviceId = testDeviceId
+		return Promise.resolve()
+	}
+
+}
+
 export const ASSIGNMENT_UPDATE_INTERVAL_MS = 1000 * 60 * 60 // 1h
 
 export const enum TtlBehavior {
@@ -129,19 +153,33 @@ export const enum TtlBehavior {
 
 const USAGE_TESTS_ENABLED = true
 
+export const enum StorageBehavior {
+	Persist,
+	Ephemeral,
+}
+
 export class UsageTestModel implements PingAdapter {
+	private storageBehavior = StorageBehavior.Ephemeral
 
 	constructor(
-		private readonly testStorage: UsageTestStorage,
+		private readonly storages: { [key in StorageBehavior]: UsageTestStorage },
 		private readonly dateProvider: DateProvider,
 		private readonly serviceExecutor: IServiceExecutor,
 	) {
 	}
 
+	setStorageBehavior(storageBehavior: StorageBehavior) {
+		this.storageBehavior = storageBehavior
+	}
+
+	private storage() {
+		return this.storages[this.storageBehavior]
+	}
+
 	async loadActiveUsageTests(ttlBehavior: TtlBehavior): Promise<UsageTest[]> {
 		if (!USAGE_TESTS_ENABLED) return []
 
-		const persistedData = await this.testStorage.getAssignments()
+		const persistedData = await this.storage().getAssignments()
 		const modelVersion = await this.modelVersion()
 
 		if (persistedData == null ||
@@ -160,8 +198,7 @@ export class UsageTestModel implements PingAdapter {
 	}
 
 	private async loadAssignments(): Promise<UsageTestAssignment[]> {
-		const testDeviceId = await this.testStorage.getTestDeviceId()
-
+		const testDeviceId = await this.storage().getTestDeviceId()
 		const data = createUsageTestAssignmentIn({
 			testDeviceId: testDeviceId
 		})
@@ -174,8 +211,8 @@ export class UsageTestModel implements PingAdapter {
 				: await this.serviceExecutor.post(UsageTestAssignmentService, data, {
 					suspensionBehavior: SuspensionBehavior.Throw,
 				})
-			await this.testStorage.storeTestDeviceId(response.testDeviceId)
-			await this.testStorage.storeAssignments({
+			await this.storage().storeTestDeviceId(response.testDeviceId)
+			await this.storage().storeAssignments({
 				assignments: response.assignments,
 				updatedAt: this.dateProvider.now(),
 				usageModelVersion: await this.modelVersion(),
@@ -225,7 +262,7 @@ export class UsageTestModel implements PingAdapter {
 	}
 
 	async sendPing(test: UsageTest, stage: Stage): Promise<void> {
-		const testDeviceId = await this.testStorage.getTestDeviceId()
+		const testDeviceId = await this.storage().getTestDeviceId()
 		if (testDeviceId == null) {
 			console.warn("No device id set before sending pings")
 			return
@@ -271,9 +308,9 @@ export class UsageTestModel implements PingAdapter {
 				test.active = false
 				console.log(`Tried to send ping. Removing test '${test.testId}' from storage`, e)
 
-				const storedAssignments = await this.testStorage.getAssignments()
+				const storedAssignments = await this.storage().getAssignments()
 				if (storedAssignments) {
-					await this.testStorage.storeAssignments({
+					await this.storage().storeAssignments({
 						updatedAt: storedAssignments.updatedAt,
 						usageModelVersion: storedAssignments.usageModelVersion,
 						assignments: storedAssignments.assignments.filter(assignment => assignment.testId !== test.testId),

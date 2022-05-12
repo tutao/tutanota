@@ -49,7 +49,7 @@ import {exposeRemote} from "../common/WorkerProxy"
 import {ExposedNativeInterface} from "../../native/common/NativeInterface"
 import {BrowserWebauthn} from "../../misc/2fa/webauthn/BrowserWebauthn.js"
 import {UsageTestController} from "@tutao/tutanota-usagetests"
-import {UsageTestModel} from "../../misc/UsageTestModel"
+import {EphemeralUsageTestStorage, StorageBehavior, UsageTestModel} from "../../misc/UsageTestModel"
 import {deviceConfig} from "../../misc/DeviceConfig"
 import {IServiceExecutor} from "../common/ServiceRequest.js"
 import {BlobFacade} from "../worker/facades/BlobFacade"
@@ -342,8 +342,12 @@ class MainLocator implements IMainLocator {
 		)
 		this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient)
 		this.random = random
+
 		this.usageTestModel = new UsageTestModel(
-			deviceConfig, {
+			{
+				[StorageBehavior.Persist]: deviceConfig,
+				[StorageBehavior.Ephemeral]: new EphemeralUsageTestStorage(),
+			}, {
 				now(): number {
 					return Date.now()
 				},

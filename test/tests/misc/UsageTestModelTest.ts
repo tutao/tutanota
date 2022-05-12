@@ -1,5 +1,5 @@
 import o from "ospec"
-import {ASSIGNMENT_UPDATE_INTERVAL_MS, PersistedAssignmentData, TtlBehavior, UsageTestModel, UsageTestStorage} from "../../../src/misc/UsageTestModel.js"
+import {ASSIGNMENT_UPDATE_INTERVAL_MS, PersistedAssignmentData, StorageBehavior, TtlBehavior, UsageTestModel, UsageTestStorage} from "../../../src/misc/UsageTestModel.js"
 import {
 	createUsageTestAssignment,
 	createUsageTestAssignmentIn,
@@ -17,37 +17,12 @@ import modelInfo from "../../../src/api/entities/usage/ModelInfo.js"
 
 const {anything} = matchers
 
-class MockStorage implements UsageTestStorage {
-	private assignments: PersistedAssignmentData | null
-	private deviceId: string | null
-
-	constructor(assignmentData?: PersistedAssignmentData, testDeviceId?: string) {
-		this.assignments = assignmentData ?? null
-		this.deviceId = testDeviceId ?? null
-	}
-
-	async getAssignments(): Promise<PersistedAssignmentData | null> {
-		return this.assignments
-	}
-
-	async getTestDeviceId(): Promise<string | null> {
-		return this.deviceId
-	}
-
-	async storeAssignments(persistedAssignmentData: PersistedAssignmentData): Promise<void> {
-		this.assignments = persistedAssignmentData
-	}
-
-	async storeTestDeviceId(testDeviceId: string): Promise<void> {
-		this.deviceId = testDeviceId
-	}
-}
-
 
 o.spec("UsageTestModel", function () {
 	let usageTestModel: UsageTestModel
 	let serviceExecutor: IServiceExecutor
-	let mockStorage: MockStorage
+	let persistentStorage: UsageTestStorage
+	let ephemeralStorage: UsageTestStorage
 	const testDeviceId = "123testDeviceId321"
 
 	const dateProvider = {
@@ -82,15 +57,21 @@ o.spec("UsageTestModel", function () {
 
 	o.beforeEach(function () {
 		serviceExecutor = object()
-		mockStorage = new MockStorage()
-		usageTestModel = new UsageTestModel(mockStorage, dateProvider, serviceExecutor)
+		ephemeralStorage = new EphemeralUsageTestStorage()
+		persistentStorage = new EphemeralUsageTestStorage()
+		usageTestModel = new UsageTestModel({
+				[StorageBehavior.Persist]: persistentStorage,
+				[StorageBehavior.Ephemeral]: ephemeralStorage,
+			},
+			dateProvider,
+			serviceExecutor)
 	})
 
-	async function assertStored(result, assignment) {
+	async function assertStored(storage, result, assignment) {
 		o(result[0].testId).equals(assignment.testId)
-		const storedAssignment = await mockStorage.getAssignments()
+		const storedAssignment = await storage.getAssignments()
 		o(storedAssignment?.assignments!![0].testId).equals(assignment.testId)
-		o(await mockStorage.getTestDeviceId()).equals(testDeviceId)
+		o(await storage.getTestDeviceId()).equals(testDeviceId)
 	}
 
 	o.spec("usage tests", function () {
@@ -107,13 +88,13 @@ o.spec("UsageTestModel", function () {
 				)
 
 				const result = await usageTestModel.loadActiveUsageTests(TtlBehavior.PossiblyOutdated)
-				await assertStored(result, newAssignment)
+				await assertStored(ephemeralStorage, result, newAssignment)
 			})
 
 			o("possibly outdated, loads from server because model version has changed", async function () {
 
-				await mockStorage.storeTestDeviceId(testDeviceId)
-				await mockStorage.storeAssignments({
+				await ephemeralStorage.storeTestDeviceId(testDeviceId)
+				await ephemeralStorage.storeAssignments({
 					assignments: [],
 					usageModelVersion: -1, // definitely outdated!
 					updatedAt: dateProvider.now() - 1,
@@ -129,7 +110,7 @@ o.spec("UsageTestModel", function () {
 				)
 
 				const result = await usageTestModel.loadActiveUsageTests(TtlBehavior.PossiblyOutdated)
-				await assertStored(result, newAssignment)
+				await assertStored(ephemeralStorage, result, newAssignment)
 			})
 
 			o("possibly outdated, loads from server and stores if nothing is stored", async function () {
@@ -142,25 +123,25 @@ o.spec("UsageTestModel", function () {
 					})
 				)
 
-				await mockStorage.storeTestDeviceId(testDeviceId)
+				await ephemeralStorage.storeTestDeviceId(testDeviceId)
 
 				const result = await usageTestModel.loadActiveUsageTests(TtlBehavior.PossiblyOutdated)
 
-				await assertStored(result, newAssignment)
+				await assertStored(ephemeralStorage, result, newAssignment)
 			})
 
 			o("possibly outdated, returns result from storage if it's there", async function () {
-				await mockStorage.storeTestDeviceId(testDeviceId)
-				await mockStorage.storeAssignments(assignmentData)
+				await ephemeralStorage.storeTestDeviceId(testDeviceId)
+				await ephemeralStorage.storeAssignments(assignmentData)
 
 				const result = await usageTestModel.loadActiveUsageTests(TtlBehavior.PossiblyOutdated)
 
-				await assertStored(result, oldAssignment)
+				await assertStored(ephemeralStorage, result, oldAssignment)
 			})
 
 			o("up to date only, data outdated, loads from the server and stores", async function () {
-				await mockStorage.storeTestDeviceId(testDeviceId)
-				await mockStorage.storeAssignments(assignmentData)
+				await ephemeralStorage.storeTestDeviceId(testDeviceId)
+				await ephemeralStorage.storeAssignments(assignmentData)
 
 				when(serviceExecutor.put(UsageTestAssignmentService, createUsageTestAssignmentIn({testDeviceId}), {
 					suspensionBehavior: SuspensionBehavior.Throw,
@@ -171,23 +152,23 @@ o.spec("UsageTestModel", function () {
 					})
 				)
 				const result = await usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly)
-				await assertStored(result, newAssignment)
+				await assertStored(ephemeralStorage, result, newAssignment)
 			})
 
 			o("up to date only, data not outdated, returns result from storage", async function () {
-				await mockStorage.storeTestDeviceId(testDeviceId)
+				await ephemeralStorage.storeTestDeviceId(testDeviceId)
 				const nonOutdatedAssignmentData = clone(assignmentData)
 				nonOutdatedAssignmentData.updatedAt = dateProvider.now() - ASSIGNMENT_UPDATE_INTERVAL_MS / 2
-				await mockStorage.storeAssignments(nonOutdatedAssignmentData)
+				await ephemeralStorage.storeAssignments(nonOutdatedAssignmentData)
 
 				const result = await usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly)
-				await assertStored(result, oldAssignment)
+				await assertStored(ephemeralStorage, result, oldAssignment)
 			})
 		})
 
 		o.spec("sendPing", function () {
 			o("sends ping", async function () {
-				await mockStorage.storeTestDeviceId(testDeviceId)
+				await ephemeralStorage.storeTestDeviceId(testDeviceId)
 
 				const usageTest: UsageTest = new UsageTest("testId", "testName", 1, true)
 				usageTest.pingAdapter = usageTestModel
@@ -213,6 +194,26 @@ o.spec("UsageTestModel", function () {
 				await usageTestModel.sendPing(usageTest, stage)
 
 				verify(serviceExecutor.post(UsageTestParticipationService, anything()), {times: 1, ignoreExtraArgs: true})
+			})
+		})
+
+		o.spec("setting the storage behavior", function () {
+			o("uses correct storage backend after the behavior has been set", async function () {
+				usageTestModel.setStorageBehavior(StorageBehavior.Persist)
+
+				when(serviceExecutor.post(UsageTestAssignmentService, createUsageTestAssignmentIn({}), {
+					suspensionBehavior: SuspensionBehavior.Throw,
+				})).thenResolve(
+					createUsageTestAssignmentOut({
+						assignments: [newAssignment],
+						testDeviceId: testDeviceId,
+					})
+				)
+
+				const result = await usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly)
+
+				await assertStored(persistentStorage, result, newAssignment)
+				verify(ephemeralStorage.getTestDeviceId(), {times: 0})
 			})
 		})
 	})
