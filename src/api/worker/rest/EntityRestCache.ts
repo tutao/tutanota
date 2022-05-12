@@ -75,11 +75,12 @@ export interface IEntityRestCache extends EntityRestInterface {
 export type Range = {lower: Id, upper: Id}
 
 /**
- * Part of the cache storage only with list loading part.
+ * Part of the cache storage only with subset of CacheStorage functionality
+ *
  * Separate from the rest of the cache as a narrow interface to not expose the whole storage for cases where we want to only get the cached part of the list to
  * display it even if we can't load the full page from the server.
  */
-export interface CachedRangeLoader {
+export interface ExposedCacheStorage {
 	/**
 	 * Load range of entities. Does not include {@param start}.
 	 * If {@param reverse} is false then returns entities newer than {@param start} in ascending order sorted by
@@ -90,7 +91,7 @@ export interface CachedRangeLoader {
 	provideFromRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]>;
 }
 
-export interface CacheStorage extends CachedRangeLoader {
+export interface CacheStorage extends ExposedCacheStorage {
 
 	/**
 	 * Get a given entity from the cache, expects that you have already checked for existence
