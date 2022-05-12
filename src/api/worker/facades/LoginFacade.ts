@@ -132,7 +132,13 @@ export interface LoginFacade {
 		persistentSession: boolean
 	): Promise<NewSessionData>
 
-	/** Resumes previously created session (using persisted credentials). */
+	/**
+	 * Resumes previously created session (using persisted credentials).
+	 * @param credentials the saved credentials to use
+	 * @param externalUserSalt
+	 * @param databaseKey key to unlock the local database (if enabled)
+	 * @param offlineTimeRangeDays the user configured time range for the offline database
+	 */
 	resumeSession(
 		credentials: Credentials,
 		externalUserSalt: Uint8Array | null,
