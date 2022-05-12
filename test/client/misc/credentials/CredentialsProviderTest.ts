@@ -192,7 +192,7 @@ o.spec("CredentialsProvider", function () {
 		})
 		o("Sends event over EventBus", async function () {
 			await credentialsProvider.deleteByUserId(internalCredentials.userId)
-			verify(interWindowEventBusMock.send("logout", {userId: internalCredentials.userId}))
+			verify(interWindowEventBusMock.send("credentialsDeleted", {userId: internalCredentials.userId}))
 		})
 	})
 
@@ -239,8 +239,8 @@ o.spec("CredentialsProvider", function () {
 		})
 		o("Sends event over EventBus", async function () {
 			await credentialsProvider.clearCredentials("testing")
-			verify(interWindowEventBusMock.send("logout", {userId: internalCredentials.userId}))
-			verify(interWindowEventBusMock.send("logout", {userId: externalCredentials.userId}))
+			verify(interWindowEventBusMock.send("credentialsDeleted", {userId: internalCredentials.userId}))
+			verify(interWindowEventBusMock.send("credentialsDeleted", {userId: externalCredentials.userId}))
 		})
 	})
 })
