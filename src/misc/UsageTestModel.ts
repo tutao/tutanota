@@ -245,7 +245,9 @@ export class UsageTestModel implements PingAdapter {
 		})
 
 		try {
-			await this.serviceExecutor.post(UsageTestParticipationService, data)
+			await this.serviceExecutor.post(UsageTestParticipationService, data, {
+				suspensionBehavior: SuspensionBehavior.Throw,
+			})
 		} catch (e) {
 			if (e instanceof SuspensionError) {
 				test.active = false
