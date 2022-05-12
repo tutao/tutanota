@@ -164,7 +164,7 @@ export async function reloginForExpiredSession() {
 	if (!loginDialogActive) {
 		// Make sure that partial login part is complete before we will try to make a new session.
 		// Otherwise we run into a race condition where login failure arrives before we initialize userController.
-		await logins.waitForUserLogin()
+		await logins.waitForPartialLogin()
 		console.log("RELOGIN", logins.isUserLoggedIn())
 		const sessionType = logins.getUserController().sessionType
 		const userId = logins.getUserController().user._id

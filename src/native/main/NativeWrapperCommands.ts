@@ -23,7 +23,7 @@ async function createMailEditor(msg: JsRequest): Promise<void> {
 	const {logins} = await import("../../api/main/LoginController.js")
 	const signatureModule = await import("../../mail/signature/Signature")
 	const [filesUris, text, addresses, subject, mailToUrl] = msg.args
-	await logins.waitForUserLogin()
+	await logins.waitForPartialLogin()
 	const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
 	let editor
 
@@ -112,7 +112,7 @@ const addShortcuts = (msg: JsRequest): Promise<void> => {
 async function reportError(msg: JsRequest): Promise<void> {
 	const {promptForFeedbackAndSend} = await import("../../misc/ErrorReporter.js")
 	const {logins} = await import("../../api/main/LoginController.js")
-	await logins.waitForUserLogin()
+	await logins.waitForPartialLogin()
 	await promptForFeedbackAndSend(msg.args[0] as Error)
 }
 
