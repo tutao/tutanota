@@ -90,7 +90,7 @@ export async function handleUncaughtErrorImpl(e: Error) {
 								click: async () => {
 									const {userId} = logins.getUserController()
 									if (isDesktop()) {
-										await locator.interWindowEventBus?.send("logout", {userId})
+										await locator.interWindowEventBus?.send("localDataOutOfSync", {userId})
 										await locator.offlineDbFacade?.deleteDatabaseForUser(userId)
 									}
 									await logins.logout(false)
