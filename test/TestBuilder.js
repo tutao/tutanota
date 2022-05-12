@@ -30,13 +30,12 @@ export async function runTestBuild({clean}) {
 		const pjPath = path.join("..", "package.json")
 		await fs.mkdir(inBuildDir(), {recursive: true})
 		await fs.copyFile(pjPath, inBuildDir("package.json"))
-		await createUnitTestHtml("api", localEnv)
-		await createUnitTestHtml("client", localEnv)
+		await createUnitTestHtml(localEnv)
 	})
 
 	await runStep("Esbuild", async () => {
 		await esbuild({
-			entryPoints: ["api/bootstrapTests-api.ts", "client/bootstrapTests-client.ts"],
+			entryPoints: ["tests/bootstrapTests.ts"],
 			outdir: "./build",
 			// Bundle to include the whole graph
 			bundle: true,
@@ -44,6 +43,7 @@ export async function runTestBuild({clean}) {
 			splitting: true,
 			format: "esm",
 			sourcemap: "linked",
+			target: "esnext",
 			define: {
 				// See Env.ts for explanation
 				"NO_THREAD_ASSERTIONS": 'true',
@@ -87,18 +87,14 @@ export async function runTestBuild({clean}) {
 	})
 }
 
-async function createUnitTestHtml(project, localEnv) {
-	const imports = [{src: `test-${project}.js`, type: "module"}]
+async function createUnitTestHtml(localEnv) {
+	const imports = [{src: `./bootstrapTests.js`, type: "module"}]
+	const htmlFilePath = inBuildDir("test.html")
 
-	const template = `import('./${project}/bootstrapTests-${project}.js')`
-	const targetFile = inBuildDir(`test-${project}.html`)
-	console.log(`Generating browser tests for ${project} at "${targetFile}"`)
-	const bootstrap = `window.whitelabelCustomizations = null
-	${template}`
-	await writeFile(inBuildDir(`test-${project}.js`), bootstrap)
+	console.log(`Generating browser tests at "${htmlFilePath}"`)
 
 	const html = await renderHtml(imports, localEnv)
-	await writeFile(targetFile, html)
+	await writeFile(htmlFilePath, html)
 }
 
 function inBuildDir(...files) {
