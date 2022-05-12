@@ -49,7 +49,7 @@ export interface LoginController {
 
 	isFullyLoggedIn(): boolean
 
-	waitForUserLogin(): Promise<void>
+	waitForPartialLogin(): Promise<void>
 
 	waitForFullLogin(): Promise<void>
 
@@ -75,7 +75,7 @@ export interface LoginController {
 export class LoginControllerImpl implements LoginController {
 	private userController: IUserController | null = null
 	private customizations: NumberString[] | null = null
-	private userLogin: DeferredObject<void> = defer()
+	private partialLogin: DeferredObject<void> = defer()
 	private _isWhitelabel: boolean = !!getWhitelabelCustomizations(window)
 	private postLoginActions: Array<IPostLoginAction> = []
 	private fullyLoggedIn: boolean = false
@@ -83,7 +83,7 @@ export class LoginControllerImpl implements LoginController {
 	async init() {
 		this.waitForFullLogin().then(async () => {
 			this.fullyLoggedIn = true
-			await this.waitForUserLogin()
+			await this.waitForPartialLogin()
 			for (const action of this.postLoginActions) {
 				await action.onFullLoginSuccess({
 					sessionType: this.getUserController().sessionType,
@@ -146,7 +146,7 @@ export class LoginControllerImpl implements LoginController {
 			})
 		}
 
-		this.userLogin.resolve()
+		this.partialLogin.resolve()
 	}
 
 	async createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, sessionType: SessionType): Promise<Credentials> {
@@ -200,15 +200,15 @@ export class LoginControllerImpl implements LoginController {
 		return this.fullyLoggedIn
 	}
 
-	waitForUserLogin(): Promise<void> {
-		return this.userLogin.promise
+	waitForPartialLogin(): Promise<void> {
+		return this.partialLogin.promise
 	}
 
 	async waitForFullLogin(): Promise<void> {
 		const locator = await this.getMainLocator()
 		// Full login event might be received before we finish userLogin on the client side because they are done in parallel.
 		// So we make sure to wait for userLogin first.
-		await this.waitForUserLogin()
+		await this.waitForPartialLogin()
 		return locator.loginListener.waitForFullLogin()
 	}
 
@@ -244,7 +244,7 @@ export class LoginControllerImpl implements LoginController {
 		if (this.userController) {
 			await this.userController.deleteSession(sync)
 			this.userController = null
-			this.userLogin = defer()
+			this.partialLogin = defer()
 		} else {
 			console.log("No session to delete")
 		}
