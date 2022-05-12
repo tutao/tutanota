@@ -78,7 +78,7 @@ export type Range = {lower: Id, upper: Id}
  * Part of the cache storage only with subset of CacheStorage functionality
  *
  * Separate from the rest of the cache as a narrow interface to not expose the whole storage for cases where we want to only get the cached part of the list to
- * display it even if we can't load the full page from the server.
+ * display it even if we can't load the full page from the server or need some metadata.
  */
 export interface ExposedCacheStorage {
 	/**
@@ -89,6 +89,8 @@ export interface ExposedCacheStorage {
 	 * elementId.
 	 */
 	provideFromRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]>;
+
+	getLastUpdateTime(): Promise<number | null>
 }
 
 export interface CacheStorage extends ExposedCacheStorage {
@@ -126,8 +128,6 @@ export interface CacheStorage extends ExposedCacheStorage {
 	getLastBatchIdForGroup(groupId: Id): Promise<Id | null>;
 
 	purgeStorage(): Promise<void>
-
-	getLastUpdateTime(): Promise<number | null>
 
 	putLastUpdateTime(value: number): Promise<void>
 }
