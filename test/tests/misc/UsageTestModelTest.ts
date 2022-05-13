@@ -1,5 +1,13 @@
 import o from "ospec"
-import {ASSIGNMENT_UPDATE_INTERVAL_MS, PersistedAssignmentData, StorageBehavior, TtlBehavior, UsageTestModel, UsageTestStorage} from "../../../src/misc/UsageTestModel.js"
+import {
+	ASSIGNMENT_UPDATE_INTERVAL_MS,
+	EphemeralUsageTestStorage,
+	PersistedAssignmentData,
+	StorageBehavior,
+	TtlBehavior,
+	UsageTestModel,
+	UsageTestStorage
+} from "../../../src/misc/UsageTestModel.js"
 import {
 	createUsageTestAssignment,
 	createUsageTestAssignmentIn,
