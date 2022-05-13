@@ -15,17 +15,19 @@ import {
 	createWebsocketLeaderStatus,
 	EntityEventBatch,
 	EntityEventBatchTypeRef,
+	EntityUpdate,
 	WebsocketCounterData,
 	WebsocketCounterDataTypeRef,
-	WebsocketEntityDataTypeRef, WebsocketLeaderStatus, WebsocketLeaderStatusTypeRef
+	WebsocketEntityData,
+	WebsocketEntityDataTypeRef,
+	WebsocketLeaderStatus,
+	WebsocketLeaderStatusTypeRef
 } from "../entities/sys/TypeRefs.js"
 import {assertNotNull, binarySearch, delay, identity, lastThrow, ofClass, randomIntFromInterval} from "@tutao/tutanota-utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
 import type {Indexer} from "./search/Indexer"
 import {CloseEventBusOption, GroupType, SECOND_MS} from "../common/TutanotaConstants"
-import type {WebsocketEntityData} from "../entities/sys/TypeRefs.js"
 import {CancelledError} from "../common/error/CancelledError"
-import type {EntityUpdate} from "../entities/sys/TypeRefs.js"
 import {EntityClient} from "../common/EntityClient"
 import type {QueuedBatch} from "./search/EventQueue"
 import {EventQueue} from "./search/EventQueue"
@@ -176,10 +178,7 @@ export class EventBusClient {
 			this.progressMonitor.completed()
 		}
 
-		this.progressMonitor = connectMode === ConnectMode.Reconnect
-			? new ProgressMonitorDelegate(this.eventGroups().length + 2, this.worker)
-			: new NoopProgressMonitor()
-
+		this.progressMonitor = new ProgressMonitorDelegate(this.eventGroups().length + 2, this.worker)
 		this.progressMonitor.workDone(1)
 
 		this.state = EventBusState.Automatic
@@ -527,7 +526,7 @@ export class EventBusClient {
 		if (await this.cache.isOutOfSync()) {
 
 			// Allow the progress bar to complete
-			this.progressMonitor.workDone(this.eventGroups().length)
+			this.progressMonitor.completed()
 
 			// We handle it where we initialize the connection and purge the cache there.
 			throw new OutOfSyncError("some missed EntityEventBatches cannot be loaded any more")
