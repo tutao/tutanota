@@ -83,7 +83,7 @@ import {IServiceExecutor} from "../../common/ServiceRequest"
 import {SessionType} from "../../common/SessionType"
 import {LateInitializedCacheStorage} from "../rest/CacheStorageProxy"
 import {AuthHeadersProvider, UserFacade} from "./UserFacade"
-import {ILoginListener} from "../../main/LoginListener"
+import {ILoginListener, LoginFailReason} from "../../main/LoginListener"
 
 assertWorkerOrNode()
 const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
@@ -107,6 +107,11 @@ export const enum ResumeSessionErrorReason {
 type ResumeSessionResult =
 	| {type: "success", data: ResumeSessionResultData}
 	| {type: "error", reason: ResumeSessionErrorReason}
+
+type AsyncLoginState =
+	| {state: "idle"}
+	| {state: "running"}
+	| {state: "failed", credentials: Credentials, usingOfflineStorage: boolean}
 
 export interface LoginFacade {
 	/**
@@ -200,10 +205,7 @@ export class LoginFacadeImpl implements LoginFacade {
 	private loggingInPromiseWrapper: DeferredObject<void> | null = null
 
 	/** On platforms with offline cache we do the actual login asynchronously and we can retry it. This is the state of such async login. */
-	asyncLoginState:
-		| {state: "idle"}
-		| {state: "running"}
-		| {state: "failed", credentials: Credentials, usingOfflineStorage: boolean} = {state: "idle"}
+	asyncLoginState: AsyncLoginState = {state: "idle"}
 
 	// This is really just for tests, we need to wait for async login before moving on
 	asyncLoginPromise: Promise<null> | null = null
@@ -489,10 +491,11 @@ export class LoginFacadeImpl implements LoginFacade {
 			if (e instanceof NotAuthenticatedError || e instanceof SessionExpiredError) {
 				// For this type of errors we cannot use credentials anymore.
 				this.asyncLoginState = {state: "idle"}
-				await this.loginListener.onLoginError()
+				await this.loginListener.onLoginFailure(LoginFailReason.SessionExpired)
 			} else {
 				this.asyncLoginState = {state: "failed", credentials, usingOfflineStorage}
 				if (!(e instanceof ConnectionError)) await this.worker.sendError(e)
+				await this.loginListener.onLoginFailure(LoginFailReason.Error)
 			}
 		} finally {
 			deferred.resolve(null)
