@@ -1,0 +1,36 @@
+package de.tutao.tutanota.alarms
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
+import de.tutao.tutanota.MainActivity
+import de.tutao.tutanota.alarms.AlarmBroadcastReceiver
+import de.tutao.tutanota.push.LocalNotificationsFacade
+import java.util.*
+
+class AlarmBroadcastReceiver : BroadcastReceiver() {
+	override fun onReceive(context: Context, intent: Intent) {
+		Log.d(TAG, "Received alarm broadcast")
+		val `when` = intent.getLongExtra(EVENT_DATE_EXTRA, System.currentTimeMillis())
+		val summary = intent.getStringExtra(SUMMARY_EXTRA)
+		LocalNotificationsFacade.showAlarmNotification(context, `when`, summary, intent)
+	}
+
+	companion object {
+		const val ALARM_NOTIFICATION_CHANNEL_ID = "alarms"
+		private const val TAG = "AlarmBroadcastReceiver"
+		private const val SUMMARY_EXTRA = "summary"
+		const val EVENT_DATE_EXTRA = "eventDate"
+		fun makeAlarmIntent(context: Context?, occurrence: Int, identifier: String, summary: String?, eventDate: Date?, userId: String?): Intent {
+			val occurrenceIdentifier = "$identifier#$occurrence"
+			val intent = Intent(context, AlarmBroadcastReceiver::class.java)
+			intent.data = Uri.fromParts("alarm", occurrenceIdentifier, "")
+			intent.putExtra(SUMMARY_EXTRA, summary)
+			intent.putExtra(EVENT_DATE_EXTRA, eventDate!!.time)
+			intent.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, userId)
+			return intent
+		}
+	}
+}
