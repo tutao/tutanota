@@ -49,6 +49,8 @@ export interface LoginController {
 
 	isFullyLoggedIn(): boolean
 
+	isAtLeastPartiallyLoggedIn(): boolean
+
 	waitForPartialLogin(): Promise<void>
 
 	waitForFullLogin(): Promise<void>
@@ -79,6 +81,7 @@ export class LoginControllerImpl implements LoginController {
 	private _isWhitelabel: boolean = !!getWhitelabelCustomizations(window)
 	private postLoginActions: Array<IPostLoginAction> = []
 	private fullyLoggedIn: boolean = false
+	private atLeastPartiallyLoggedIn: boolean = false
 
 	async init() {
 		this.waitForFullLogin().then(async () => {
@@ -145,7 +148,7 @@ export class LoginControllerImpl implements LoginController {
 				userId: initData.user._id
 			})
 		}
-
+		this.atLeastPartiallyLoggedIn = true
 		this.partialLogin.resolve()
 	}
 
@@ -198,6 +201,10 @@ export class LoginControllerImpl implements LoginController {
 
 	isFullyLoggedIn(): boolean {
 		return this.fullyLoggedIn
+	}
+
+	isAtLeastPartiallyLoggedIn(): boolean {
+		return this.atLeastPartiallyLoggedIn
 	}
 
 	waitForPartialLogin(): Promise<void> {
