@@ -4,20 +4,21 @@ import android.Manifest
 import android.annotation.TargetApi
 import android.app.Activity
 import android.app.DownloadManager
-import android.content.*
+import android.content.ContentValues
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
-import android.os.*
+import android.os.Build
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import de.tutao.tutanota.push.LocalNotificationsFacade
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.apache.commons.io.IOUtils
 import org.apache.commons.io.input.BoundedInputStream
-import org.jdeferred.DoneFilter
-import org.jdeferred.DonePipe
-import org.jdeferred.Promise
-import org.jdeferred.impl.DeferredObject
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -32,6 +33,12 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
+// Requesting android runtime permissions. (Android 5+)
+// We only need to request the read permission even if we want to get write access. There is only one permission of a permission group necessary to get
+// access to all permission of that permission group. We still have to declare write access in the manifest.
+// https://developer.android.com/guide/topics/security/permissions.html#perm-groups
+private const val WritePermission = Manifest.permission.WRITE_EXTERNAL_STORAGE
+
 class FileUtil(private val activity: MainActivity, private val localNotificationsFacade: LocalNotificationsFacade) {
 	private val backgroundTasksExecutor = ThreadPoolExecutor(
 			1,  // core pool size
@@ -40,14 +47,6 @@ class FileUtil(private val activity: MainActivity, private val localNotification
 			TimeUnit.SECONDS,
 			LinkedBlockingQueue()
 	)
-
-	private fun requestStoragePermission(): Promise<ActivityResult?, Exception, Void> {
-		// Requesting android runtime permissions. (Android 5+)
-		// We only need to request the read permission even if we want to get write access. There is only one permission of a permission group necessary to get
-		// access to all permission of that permission group. We still have to declare write access in the manifest.
-		// https://developer.android.com/guide/topics/security/permissions.html#perm-groups
-		return activity.getPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-	}
 
 	@Throws(Exception::class)
 	fun delete(fileUri: String) {
@@ -70,50 +69,51 @@ class FileUtil(private val activity: MainActivity, private val localNotification
 		return Utils.fileToUri(output)
 	}
 
-	fun openFileChooser(): Promise<Any?, Exception, Void> {
-		val intent = Intent(Intent.ACTION_GET_CONTENT)
-		intent.type = "*/*"
-		intent.addCategory(Intent.CATEGORY_OPENABLE)
-		intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-		intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true)
-		val chooser = Intent.createChooser(intent, "Select File")
-		return activity.startActivityForResult(chooser)
-				.then(DonePipe { result: ActivityResult? ->
-					val selectedFiles = JSONArray()
-					if (result!!.resultCode == Activity.RESULT_OK) {
-						val clipData = result.data.clipData
-						try {
-							if (clipData != null) {
-								var i = 0
-								while (i < clipData.itemCount) {
-									val item = clipData.getItemAt(i)
-									selectedFiles.put(item.uri.toString())
-									i++
-								}
-							} else {
-								val uri = result.data.data
-								selectedFiles.put(uri.toString())
-							}
-						} catch (e: Exception) {
-							return@DonePipe DeferredObject<Any, Exception, Void>().reject(e)
-						}
+	suspend fun openFileChooser(): JSONArray {
+		val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+			type = "*/*"
+			addCategory(Intent.CATEGORY_OPENABLE)
+			putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+			putExtra(Intent.EXTRA_LOCAL_ONLY, true)
+		}
+		val selectedFiles = JSONArray()
+
+		val result = activity.startActivityForResult(Intent.createChooser(intent, "Select File"))
+
+		if (result!!.resultCode == Activity.RESULT_OK) {
+			val clipData = result.data.clipData
+				if (clipData != null) {
+					var i = 0
+					while (i < clipData.itemCount) {
+						val item = clipData.getItemAt(i)
+						selectedFiles.put(item.uri.toString())
+						i++
 					}
-					Utils.resolvedDeferred<Any, Exception, Void>(selectedFiles)
-				} as DonePipe<ActivityResult?, Any?, Exception, Void>)
+				} else {
+					val uri = result.data.data
+					selectedFiles.put(uri.toString())
+				}
+		}
+
+		return selectedFiles
 	}
 
 	// @see: https://developer.android.com/reference/android/support/v4/content/FileProvider.html
-	fun openFile(fileUri: String?, mimeType: String?): Promise<Boolean, Exception, Void> {
-		var file = Uri.parse(fileUri)
-		val scheme = file.scheme
-		if ("file" == scheme) {
-			file = FileProvider.getUriForFile(activity, BuildConfig.FILE_PROVIDER_AUTHORITY, File(file.path))
+	suspend fun openFile(fileUri: String?, mimeType: String?): Boolean {
+		val file = Uri.parse(fileUri).let { uri ->
+			if (uri.scheme == "file") {
+				FileProvider.getUriForFile(activity, BuildConfig.FILE_PROVIDER_AUTHORITY, File(uri.path!!))
+			} else {
+				uri
+			}
 		}
-		val intent = Intent(Intent.ACTION_VIEW)
-		intent.setDataAndType(file, getCorrectedMimeType(file, mimeType))
-		intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-		return activity.startActivityForResult(intent)
-				.then(DoneFilter<ActivityResult?, Boolean> { result: ActivityResult? -> result!!.resultCode == Activity.RESULT_OK })
+
+		val intent = Intent(Intent.ACTION_VIEW).apply {
+			setDataAndType(file, getCorrectedMimeType(file, mimeType))
+			flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+		}
+
+		return activity.startActivityForResult(intent)!!.resultCode == Activity.RESULT_OK
 	}
 
 	private fun getCorrectedMimeType(fileUri: Uri, storedMimeType: String?): String {
@@ -141,40 +141,16 @@ class FileUtil(private val activity: MainActivity, private val localNotification
 		return "application/octet-stream"
 	}
 
-	fun putToDownloadFolder(fileUriString: String): Promise<Any, Exception, Void> {
-		return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-			val promise = DeferredObject<Any, Exception, Void>()
-			backgroundTasksExecutor.execute {
-				try {
-					promise.resolve(addFileToDownloadsMediaStore(fileUriString))
-				} catch (e: Exception) {
-					promise.reject(e)
-				} catch (e: Throwable) {
-					// For everything else
-					promise.reject(RuntimeException(e))
-				}
-			}
-			promise
+	suspend fun putInDownloadFolder(fileUriString: String): String = withContext(Dispatchers.IO) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+			addFileToDownloadsMediaStore(fileUriString)
 		} else {
-			requestStoragePermission().then(DonePipe { nothing: ActivityResult? ->
-				val promise = DeferredObject<Any, Exception, Void>()
-				backgroundTasksExecutor.execute {
-					try {
-						promise.resolve(addFileToDownloadsOld(fileUriString))
-					} catch (e: Exception) {
-						promise.reject(e)
-					} catch (e: Throwable) {
-						// For everything else
-						promise.reject(RuntimeException(e))
-					}
-				}
-				promise
-			} as DonePipe<ActivityResult?, Any, Exception, Void>)
+			activity.getPermission(WritePermission)
+			addFileToDownloadsOld(fileUriString)
 		}
 	}
 
 	@TargetApi(Build.VERSION_CODES.Q)
-	@Throws(IOException::class, FileOpenException::class)
 	private fun addFileToDownloadsMediaStore(fileUriString: String): String {
 		val contentResolver = activity.contentResolver
 		val fileUri = Uri.parse(fileUriString)
@@ -199,7 +175,6 @@ class FileUtil(private val activity: MainActivity, private val localNotification
 		return outputUri.toString()
 	}
 
-	@Throws(IOException::class)
 	private fun addFileToDownloadsOld(fileUri: String): String {
 		val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 		if (!downloadsDir.exists()) {

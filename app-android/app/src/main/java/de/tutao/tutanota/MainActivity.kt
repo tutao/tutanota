@@ -24,15 +24,16 @@ import android.widget.Toast
 import androidx.annotation.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutanota.alarms.SystemAlarmFacade
 import de.tutao.tutanota.data.*
 import de.tutao.tutanota.push.LocalNotificationsFacade
 import de.tutao.tutanota.push.PushNotificationService
 import de.tutao.tutanota.push.SseStorage
-import org.jdeferred.Deferred
-import org.jdeferred.Promise
-import org.jdeferred.impl.DeferredObject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -41,6 +42,10 @@ import java.net.URLEncoder
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 class MainActivity : FragmentActivity() {
 	lateinit var webView: WebView
@@ -48,7 +53,8 @@ class MainActivity : FragmentActivity() {
 	lateinit var sseStorage: SseStorage
 	lateinit var nativeImpl: Native
 
-	private val requests: MutableMap<Int, Deferred<ActivityResult?, Exception, Void>> = ConcurrentHashMap()
+	private val requests: MutableMap<Int, Continuation<ActivityResult?>> = ConcurrentHashMap()
+
 	private var firstLoaded = false
 
 	@SuppressLint("SetJavaScriptEnabled", "StaticFieldLeak")
@@ -88,20 +94,21 @@ class MainActivity : FragmentActivity() {
 		CookieManager.getInstance().setAcceptCookie(false)
 		CookieManager.getInstance().removeAllCookies(null)
 
-		nativeImpl.webAppInitialized.then { result: Any? ->
-			if (!firstLoaded) {
-				handleIntent(intent)
-			}
-			firstLoaded = true
-			webView.post { // use webView.post to switch to main thread again to be able to observe sseStorage
-				sseStorage.observeUsers().observe(this, { userInfos: List<User?>? ->
-					if (userInfos!!.isEmpty()) {
-						Log.d(TAG, "invalidateAlarms")
+		if (!firstLoaded) {
+			handleIntent(intent)
+		}
+		firstLoaded = true
+		webView.post { // use webView.post to switch to main thread again to be able to observe sseStorage
+			sseStorage.observeUsers().observe(this@MainActivity, { userInfos ->
+				if (userInfos!!.isEmpty()) {
+					Log.d(TAG, "invalidateAlarms")
+					lifecycleScope.launchWhenCreated {
 						nativeImpl.sendRequest(JsRequest.invalidateAlarms, arrayOf())
 					}
-				})
-			}
+				}
+			})
 		}
+
 
 		webView.webViewClient = object : WebViewClient() {
 			override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
@@ -131,12 +138,14 @@ class MainActivity : FragmentActivity() {
 	override fun onStart() {
 		super.onStart()
 		Log.d(TAG, "onStart")
-		nativeImpl.webAppInitialized.then { nativeImpl.sendRequest(JsRequest.visibilityChange, arrayOf(true)) }
+		lifecycleScope.launchWhenCreated {
+			nativeImpl.sendRequest(JsRequest.visibilityChange, arrayOf(true))
+		}
 	}
 
 	override fun onStop() {
 		Log.d(TAG, "onStop")
-		nativeImpl.webAppInitialized.then { nativeImpl.sendRequest(JsRequest.visibilityChange, arrayOf(false)) }
+		lifecycleScope.launch { nativeImpl.sendRequest(JsRequest.visibilityChange, arrayOf(false)) }
 		super.onStop()
 	}
 
@@ -151,14 +160,15 @@ class MainActivity : FragmentActivity() {
 		handleIntent(intent)
 	}
 
-	private fun handleIntent(intent: Intent) {
+	private fun handleIntent(intent: Intent) = lifecycleScope.launchWhenCreated {
 
 		// When we redirect to the app from outside, for example after doing payment verification,
 		// we don't want to do any kind of intent handling
 		val data = intent.data
 		if (data != null && data.toString().startsWith("tutanota://")) {
-			return
+			return@launchWhenCreated
 		}
+
 		if (intent.action != null) {
 			when (intent.action) {
 				Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE, Intent.ACTION_SENDTO, Intent.ACTION_VIEW -> share(intent)
@@ -210,7 +220,7 @@ class MainActivity : FragmentActivity() {
 		decorView.systemUiVisibility = visibilityFlags
 	}
 
-	fun askBatteryOptinmizationsIfNeeded() {
+	suspend fun askBatteryOptinmizationsIfNeeded() {
 		val powerManager = getSystemService(POWER_SERVICE) as PowerManager
 		val preferences = PreferenceManager.getDefaultSharedPreferences(this)
 
@@ -219,7 +229,9 @@ class MainActivity : FragmentActivity() {
 				&& !powerManager.isIgnoringBatteryOptimizations(packageName)
 		) {
 
-			nativeImpl.sendRequest(JsRequest.showAlertDialog, arrayOf("allowPushNotification_msg")).then {
+			nativeImpl.sendRequest(JsRequest.showAlertDialog, arrayOf("allowPushNotification_msg"))
+
+			withContext(Dispatchers.Main) {
 				saveAskedBatteryOptimizations(preferences)
 				@SuppressLint("BatteryLife")
 				val intent = Intent(
@@ -265,50 +277,47 @@ class MainActivity : FragmentActivity() {
 	private val baseUrl: String
 		get() = BuildConfig.RES_ADDRESS
 
-	fun getPermission(permission: String): Promise<ActivityResult?, Exception, Void> {
-		val p: Deferred<ActivityResult?, Exception, Void> = DeferredObject()
-		if (hasPermission(permission)) {
-			p.resolve(null)
-		} else {
-			val requestCode = requestCode
-			requests[requestCode] = p
-			requestPermissions(arrayOf(permission), requestCode)
-		}
-		return p
-	}
 
 	private fun hasPermission(permission: String): Boolean {
 		return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
 	}
 
+	suspend fun getPermission(permission: String): ActivityResult? = suspendCoroutine { continuation ->
+		if (hasPermission(permission)) {
+			continuation.resume(null)
+		} else {
+			val requestCode = getNextRequestCode()
+			requests[requestCode] = continuation
+			requestPermissions(arrayOf(permission), requestCode)
+		}
+	}
+
 	override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-		val deferred = requests.remove(requestCode)
-		if (deferred == null) {
+		val continuation = requests.remove(requestCode)
+		if (continuation == null) {
 			Log.w(TAG, "No deferred for the permission request$requestCode")
 			return
 		}
 		if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-			deferred.resolve(null)
+			continuation.resume(null)
 		} else {
-			deferred.reject(SecurityException("Permission missing: " + Arrays.toString(permissions)))
+			continuation.resumeWithException(SecurityException("Permission missing: " + Arrays.toString(permissions)))
 		}
 	}
 
-	fun startActivityForResult(@RequiresPermission intent: Intent?): Promise<ActivityResult?, *, *> {
-		val requestCode = requestCode
-		val p: Deferred<ActivityResult?, Exception, Void> = DeferredObject()
-		requests[requestCode] = p
+	suspend fun startActivityForResult(@RequiresPermission intent: Intent?): ActivityResult? = suspendCoroutine { continuation ->
+		val requestCode = getNextRequestCode()
+		requests[requestCode] = continuation
 		// deprecated but we need requestCode to identify the request which is not possible with new API
 		super.startActivityForResult(intent, requestCode)
-		return p
 	}
 
 	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 		super.onActivityResult(requestCode, resultCode, data)
-		val deferred = requests.remove(requestCode)
-		if (deferred != null) {
-			deferred.resolve(ActivityResult(resultCode, data!!))
+		val continuation = requests.remove(requestCode)
+		if (continuation != null) {
+			continuation.resume(ActivityResult(resultCode, data!!))
 		} else {
 			Log.w(TAG, "No deferred for activity request$requestCode")
 		}
@@ -328,7 +337,7 @@ class MainActivity : FragmentActivity() {
 	 * The sharing activity. Either invoked from MainActivity (if the app was not active when the
 	 * share occurred) or from onCreate.
 	 */
-	fun share(intent: Intent) {
+	suspend fun share(intent: Intent) {
 		val action = intent.action
 		val clipData = intent.clipData
 		val files: JSONArray
@@ -408,37 +417,38 @@ class MainActivity : FragmentActivity() {
 		return filesArray
 	}
 
-	fun openMailbox(intent: Intent) {
+	suspend fun openMailbox(intent: Intent) {
 		val userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY)
 		val address = intent.getStringExtra(OPEN_USER_MAILBOX_MAILADDRESS_KEY)
 		val isSummary = intent.getBooleanExtra(IS_SUMMARY_EXTRA, false)
 		if (userId == null || address == null) {
 			return
 		}
-		nativeImpl.sendRequest(JsRequest.openMailbox, arrayOf(userId, address))
 		val addresses = ArrayList<String>(1)
 		addresses.add(address)
 		startService(LocalNotificationsFacade.notificationDismissedIntent(this, addresses,
 				"MainActivity#openMailbox", isSummary))
+
+		nativeImpl.sendRequest(JsRequest.openMailbox, arrayOf(userId, address))
 	}
 
-	fun openCalendar(intent: Intent) {
+	suspend fun openCalendar(intent: Intent) {
 		val userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY) ?: return
 		nativeImpl.sendRequest(JsRequest.openCalendar, arrayOf(userId))
 	}
 
 	override fun onBackPressed() {
-		if (nativeImpl.webAppInitialized.isResolved) {
-			nativeImpl.sendRequest(JsRequest.handleBackPress, arrayOfNulls<Any>(0))
-					.then { result ->
-						try {
-							if (!(result as JSONObject).getBoolean("value")) {
-								goBack()
-							}
-						} catch (e: JSONException) {
-							Log.e(TAG, "error parsing response", e)
-						}
+		if (nativeImpl.webAppInitialized.isCompleted) {
+			lifecycleScope.launchWhenCreated {
+				val result = nativeImpl.sendRequest(JsRequest.handleBackPress, arrayOfNulls<Any>(0))
+				try {
+					if (!(result as JSONObject).getBoolean("value")) {
+						goBack()
 					}
+				} catch (e: JSONException) {
+					Log.e(TAG, "error parsing response", e)
+				}
+			}
 		} else {
 			goBack()
 		}
@@ -486,14 +496,13 @@ class MainActivity : FragmentActivity() {
 		private const val TAG = "MainActivity"
 		private var requestId = 0
 
-		@get:Synchronized
-		private val requestCode: Int
-			get() {
-				requestId++
-				if (requestId < 0) {
-					requestId = 0
-				}
-				return requestId
+		@Synchronized
+		private fun getNextRequestCode(): Int {
+			requestId++
+			if (requestId < 0) {
+				requestId = 0
 			}
+			return requestId
+		}
 	}
 }

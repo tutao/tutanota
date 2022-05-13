@@ -3,8 +3,6 @@ package de.tutao.tutanota
 import android.Manifest
 import android.provider.ContactsContract
 import android.provider.ContactsContract.CommonDataKinds.Email
-import org.jdeferred.DoneFilter
-import org.jdeferred.Promise
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -13,18 +11,19 @@ import org.json.JSONObject
  * Created by mpfau on 4/12/17.
  */
 class Contact(private val activity: MainActivity) {
-	private fun requestContactsPermission(): Promise<ActivityResult?, Exception, Void> {
-		return activity.getPermission(Manifest.permission.READ_CONTACTS)
-	}
+	suspend fun findSuggestions(queryString: String): JSONArray {
 
-	fun findSuggestions(queryString: String): Promise<Any, Exception, Void> {
+		activity.getPermission(Manifest.permission.READ_CONTACTS)
+
 		val query = "%$queryString%"
-		return requestContactsPermission().then(DoneFilter<ActivityResult?, Any> { nothing: ActivityResult? ->
-			val cr = activity.applicationContext.contentResolver
-			val selection = Email.ADDRESS + " LIKE ? OR " + ContactsContract.Contacts.DISPLAY_NAME_PRIMARY + " LIKE ?"
-			val cursor = cr.query(Email.CONTENT_URI, PROJECTION, selection, arrayOf(query, query), ContactsContract.Contacts.DISPLAY_NAME_PRIMARY + " ASC ")
-			val result = JSONArray()
-			if (cursor == null) return@DoneFilter result
+		val resolver = activity.applicationContext.contentResolver
+		val selection = Email.ADDRESS + " LIKE ? OR " + ContactsContract.Contacts.DISPLAY_NAME_PRIMARY + " LIKE ?"
+		val cursor = resolver.query(Email.CONTENT_URI, PROJECTION, selection, arrayOf(query, query), ContactsContract.Contacts.DISPLAY_NAME_PRIMARY + " ASC ")
+		val result = JSONArray()
+
+		return if (cursor == null) {
+			result
+		} else {
 			try {
 				while (cursor.moveToNext()) {
 					val c = JSONObject()
@@ -38,7 +37,7 @@ class Contact(private val activity: MainActivity) {
 				cursor.close()
 			}
 			result
-		})
+		}
 	}
 
 	companion object {
