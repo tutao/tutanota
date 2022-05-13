@@ -28,7 +28,6 @@ import {getThemeCustomizations} from "../misc/WhitelabelCustomizations"
 import {CredentialEncryptionMode} from "../misc/credentials/CredentialEncryptionMode"
 import {SecondFactorHandler} from "../misc/2fa/SecondFactorHandler"
 import {SessionType} from "../api/common/SessionType"
-import {StorageBehavior, TtlBehavior} from "../misc/UsageTestModel"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -81,11 +80,6 @@ export class PostLoginActions implements IPostLoginAction {
 			await this.credentialsProvider.setCredentialsEncryptionMode(CredentialEncryptionMode.DEVICE_LOCK)
 		}
 
-		const usageTestModel = locator.usageTestModel
-
-		usageTestModel.setStorageBehavior(StorageBehavior.Persist)
-		locator.usageTestController.setTests(await usageTestModel.loadActiveUsageTests(TtlBehavior.PossiblyOutdated))
-
 		lang.updateFormats({ // partial
 			hourCycle: getHourCycle(logins.getUserController().userSettingsGroupRoot),
 		})
@@ -131,9 +125,6 @@ export class PostLoginActions implements IPostLoginAction {
 			})
 			locator.serviceExecutor.post(ReceiveInfoService, receiveInfoData)
 		}
-
-		// Get any tests, as soon as possible even if they are stale
-		locator.usageTestController.setTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly))
 
 		// Login after signup (accept that we send a ping at login although the test was never started)
 		// Only the started test's (either free or paid clicked) stage is completed here
