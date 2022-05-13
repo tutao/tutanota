@@ -75,36 +75,21 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		reloginForExpiredSession()
 	} else if (e instanceof OutOfSyncError) {
 		const isOffline = isOfflineStorageAvailable() && logins.isUserLoggedIn() && logins.getUserController().sessionType === SessionType.Persistent
-		Dialog.showActionDialog({
-			title: lang.get("outOfSync_label"),
-			child: {
-				view(): Children {
-					return m(".pt-m.plr-l", [
-						lang.get(
-							isOffline
-								? "dataExpiredOfflineDb_msg"
-								: "dataExpired_msg"
-						),
-						m(".pt-m", m(ButtonN, {
-								label: "ok_action",
-								click: async () => {
-									const {userId} = logins.getUserController()
-									if (isDesktop()) {
-										await locator.interWindowEventBus?.send("localDataOutOfSync", {userId})
-										await locator.offlineDbFacade?.deleteDatabaseForUser(userId)
-									}
-									await logins.logout(false)
-									await windowFacade.reload({noAutoLogin: true})
-								},
-								type: ButtonType.Login
-							})
-						)
-					])
-				}
-			},
-			okAction: null,
-			allowCancel: false,
-		})
+
+		await Dialog.message("outOfSync_label", lang.get(
+			isOffline
+				? "dataExpiredOfflineDb_msg"
+				: "dataExpired_msg"
+		))
+
+		const {userId} = logins.getUserController()
+		if (isDesktop()) {
+			await locator.interWindowEventBus?.send("localDataOutOfSync", {userId})
+			await locator.offlineDbFacade?.deleteDatabaseForUser(userId)
+		}
+		await logins.logout(false)
+		await windowFacade.reload({noAutoLogin: true})
+
 	} else if (e instanceof InsufficientStorageError) {
 		if (logins.getUserController().isGlobalAdmin()) {
 			showMoreStorageNeededOrderDialog(logins, "insufficientStorageAdmin_msg")
