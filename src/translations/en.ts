@@ -1449,6 +1449,13 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"offlineLoginRequiresPremium_msg": "Offline login requires premium subscription."
+		"offlineLoginRequiresPremium_msg": "Offline login requires premium subscription.",
+		"offline_label": "Offline",
+		"lastSync_label": "Last synchronization: {date}",
+		"online_label": "Online",
+		"reconnect_action": "Reconnect",
+		"synchronizing_label": "Synchronizing: {progress}",
+		"upToDate_label": "All up to date",
+		"reconnecting_label": "Reconnecting..."
 	}
 }

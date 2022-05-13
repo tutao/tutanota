@@ -14,10 +14,12 @@ export class ProgressTracker {
 	private _idCounter: ProgressMonitorId
 
 	constructor() {
-		this.onProgressUpdate = stream(0)
+		// initially, there is no work so we are done by default.
+		this.onProgressUpdate = stream(1)
 		this._monitors = new Map()
 		this._idCounter = 0
 	}
+
 	/**
 	 * Register a monitor with the tracker, so that it's progress can be displayed
 	 * Returns an ID as a handle, useful for making calls from the worker

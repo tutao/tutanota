@@ -1453,6 +1453,13 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
-		"offlineLoginRequiresPremium_msg": "Offline-Anmeldung benötigt ein Premium-Abonnement."
+		"offlineLoginRequiresPremium_msg": "Offline-Anmeldung benötigt ein Premium-Abonnement.",
+		"offline_label": "Offline",
+		"lastSync_label": "Letzte Synchronisation: {date}",
+		"online_label": "Online",
+		"reconnect_action": "Verbinden",
+		"synchronizing_label": "Synchronisiere: {progress}",
+		"upToDate_label": "Alles aktuell",
+		"reconnecting_label": "Verbinde..."
 	}
 }
