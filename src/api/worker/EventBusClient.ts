@@ -475,6 +475,8 @@ export class EventBusClient {
 				lastIds.set(groupId, [batchId])
 				// In case we don't receive any events for the group this time we want to still download from this point next time.
 				await this.cache.setLastEntityEventBatchForGroup(groupId, batchId)
+				// We will not process any entities for this group so we consider this group "done"
+				this.progressMonitor.workDone(1)
 			}
 		}
 
