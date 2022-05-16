@@ -13,8 +13,7 @@
 	"../src/*d.ts",
 	"../libs/*d.ts",
 	"../types/*d.ts",
-	"api/**/*.ts",
-	"client/**/*.ts",
+	"tests/**/*.ts",
 	"types/*.d.ts"
   ],
   "types": [
