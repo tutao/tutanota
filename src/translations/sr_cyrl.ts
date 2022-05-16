@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2022-04-26T14:16:46Z",
+	"updated_at": "2022-05-11T12:29:25Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "О програму",
@@ -176,7 +176,6 @@ export default {
 		"choosePhotos_action": "Фотографије",
 		"choose_label": "Одабери...",
 		"clearFolder_action": "Испразни фасциклу",
-		"clickNumber_msg": "Кликните на ваш број телефона испод да бисте добили Тутанота лозинку као текстуалну поруку.",
 		"clickToUpdate_msg": "Kliknite ovde za ažuriranje.",
 		"client_label": "Клијент",
 		"closedSessions_label": "Затворене сесије",

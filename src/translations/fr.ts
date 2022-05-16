@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2022-04-26T14:27:50Z",
+	"updated_at": "2022-05-11T12:29:24Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -193,7 +193,6 @@ export default {
 		"choosePhotos_action": "Photos",
 		"choose_label": "Choisissez…",
 		"clearFolder_action": "Vider le dossier",
-		"clickNumber_msg": "Merci de cliquer sur votre numéro de téléphone ci-dessous pour recevoir votre mot de passe Tutanota par message texte (SMS).",
 		"clickToUpdate_msg": "Cliquez ici pour mettre à jour.",
 		"clientSuspensionWait_label": "Le serveur traite votre demande, s’il vous plaît soyez patient.",
 		"client_label": "Client",

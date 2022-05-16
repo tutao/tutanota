@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2022-04-26T14:12:40Z",
+	"updated_at": "2022-05-11T12:29:25Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Относно",
@@ -186,7 +186,6 @@ export default {
 		"choosePhotos_action": "Снимки",
 		"choose_label": "Изберете",
 		"clearFolder_action": "Изчистване на папката",
-		"clickNumber_msg": "Моля, посочете си телефонния номер за да получите паролата си за Тутанота като текстово съобщение.",
 		"clickToUpdate_msg": "Кликнете тук ако искате да се приложи веднага или ние автоматично ще го приложим при излизане",
 		"clientSuspensionWait_label": "Сървърът изпълнява заявката Ви, моля бъдете търпеливи.",
 		"client_label": "Потребител",

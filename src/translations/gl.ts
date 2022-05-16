@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2022-04-26T14:17:38Z",
+	"updated_at": "2022-05-11T12:29:26Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Acerca de",
@@ -219,7 +219,6 @@ export default {
 		"choosePhotos_action": "Fotografías",
 		"choose_label": "Escolla ...",
 		"clearFolder_action": "Baleirar cartafol",
-		"clickNumber_msg": "Por favor, preme no número de teléfono inferior para recibir unha mensaxe de texto co teu contrasinal Tutanota.",
 		"clickToUpdate_msg": "Preme aquí para actualizar.",
 		"clientSuspensionWait_label": "O servidor está procesando a petición, agarda por favor.",
 		"client_label": "Cliente",

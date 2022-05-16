@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2022-04-26T14:18:32Z",
+	"updated_at": "2022-05-11T12:29:25Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Tietoja",
@@ -216,7 +216,6 @@ export default {
 		"choosePhotos_action": "Valokuvat",
 		"choose_label": "Valitse ...",
 		"clearFolder_action": "Tyhjennä kansio",
-		"clickNumber_msg": "Napsauttamalla alla olevaa puhelinnumeroa Tutanota-salasanasi lähetetään sinulle tekstiviestinä.",
 		"clickToUpdate_msg": "Paina tästä asentaaksesi päivityksen.",
 		"clientSuspensionWait_label": "Palvelin käsittelee pyyntöäsi. Pyydämme odottamaan.",
 		"client_label": "Selain",
