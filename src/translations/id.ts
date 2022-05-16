@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2022-04-26T14:20:15Z",
+	"updated_at": "2022-05-11T12:29:25Z",
 	"source_locale": null,
 	"keys": {
 		"acceptInvitation_action": "Terima undangan",
@@ -194,7 +194,6 @@ export default {
 		"choosePhotos_action": "Foto",
 		"choose_label": "Pilih ...",
 		"clearFolder_action": "Kosongkan isi folder",
-		"clickNumber_msg": "Silakan klik nomor telepon Anda di bawah ini untuk menerima kata sandi Tutanota Anda sebagai pesan teks.",
 		"clickToUpdate_msg": "Klik disini untuk memperbaharui.",
 		"clientSuspensionWait_label": "Sever sedang memproses permohonan Anda, mohon sabar menunggu.",
 		"client_label": "Aplikasi",

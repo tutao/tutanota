@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2022-04-26T14:13:01Z",
+	"updated_at": "2022-05-11T12:29:25Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Palun nõustuge privaatsuspoliitikaga valides märkeruudu.",
@@ -115,7 +115,6 @@ export default {
 		"choosePhotos_action": "Pildid",
 		"choose_label": "Vali...",
 		"clearFolder_action": "Tühjenda kaust",
-		"clickNumber_msg": "Palun klikkige oma telefoninumbril allpool, et saada oma Tutanota parool sõnumina.",
 		"client_label": "Klient",
 		"closedSessions_label": "Suletud seansid",
 		"closeSession_action": "Sulge seanss",

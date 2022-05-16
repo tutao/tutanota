@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2022-04-28T06:52:21Z",
+	"updated_at": "2022-05-16T08:31:46Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -203,7 +203,6 @@ export default {
 		"choosePhotos_action": "Billeder",
 		"choose_label": "Vælg ...",
 		"clearFolder_action": "Tøm mappe",
-		"clickNumber_msg": "Klik venligst på dit telefonnummer nedenfor for at modtage dit Tutanota-adgangskode som SMS.",
 		"clickToUpdate_msg": "Klik her for at opdatere.",
 		"clientSuspensionWait_label": "Serveren er ved at behandle din forespørgelse, hav venligst toldmodighed.",
 		"client_label": "Klient",
@@ -454,6 +453,7 @@ export default {
 		"executableOpen_msg": "Denne fil lader til at være et program. Er du sikker på du vi afvikle det nu?",
 		"existingAccount_label": "Brug eksisterende konto",
 		"existingMailAddress_msg": "Følgende email adresser kunne ikke inviteres, fordi de enten er en deltager eller allerede er invitereret til kalenderen:",
+		"experienceSamplingSelectAnswer_msg": "Vælg venligst et svar til alle spørgsmål.",
 		"expiredLink_msg": "Beklager, dette link er ikke længere gyldigt. Du burde have modtaget en ny notifikations e-mail med det nuværende gyldige link. Tidligere links er deaktiveret af sikkerhedsmæssige årsager.",
 		"exportSelectedAsVCard_action": "Eksporter valgte kontakter som vCard",
 		"exportVCard_action": "Eksporter vCard",

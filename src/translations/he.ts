@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-13T07:36:09Z",
-	"updated_at": "2022-04-26T14:19:26Z",
+	"updated_at": "2022-05-11T12:29:26Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "אודות",
@@ -188,7 +188,6 @@ export default {
 		"choosePhotos_action": "תמונות",
 		"choose_label": "בחירה...",
 		"clearFolder_action": "נקה תיקייה",
-		"clickNumber_msg": "אנא הקישו על מספר הטלפון שלכם למטה כדי לקבל את סיסמתכם ל-Tutanota כהודעת טקסט.",
 		"clickToUpdate_msg": "לחצו כאן אם ברצונכם להחיל זאת כעת, או תנו לנו להתקין אוטומטית לאחר היציאה.",
 		"clientSuspensionWait_label": "השרת מעבד את הבקשה, נא להתאזר בסבלנות.",
 		"client_label": "לקוח",

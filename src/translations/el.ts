@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:55:56Z",
-	"updated_at": "2022-04-26T14:14:45Z",
+	"updated_at": "2022-05-11T12:29:24Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -218,7 +218,6 @@ export default {
 		"choosePhotos_action": "Φωτογραφίες ",
 		"choose_label": "Επιλέξε...",
 		"clearFolder_action": "Άδειασμα φακέλου",
-		"clickNumber_msg": "Κάντε κλικ στον αριθμό τηλεφώνου σας παρακάτω για να λάβετε τον κωδικό πρόσβασης σας στο Tutanota ως μήνυμα κειμένου.",
 		"clickToUpdate_msg": "Κάντε κλικ εδώ για ενημέρωση.",
 		"clientSuspensionWait_label": "Ο διακομιστής επεξεργάζεται το αίτημά σας, κάντε υπομονή.",
 		"client_label": "Πελάτης (client)",

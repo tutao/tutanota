@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2022-04-26T14:17:48Z",
+	"updated_at": "2022-05-11T12:29:25Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -198,7 +198,6 @@ export default {
 		"choosePhotos_action": "Bilder",
 		"choose_label": "Velg...",
 		"clearFolder_action": "Tøm mappe",
-		"clickNumber_msg": "Klikk på telefonnummeret ditt nedenfor for å motta Tutanota-passordet ditt som tekstmelding.",
 		"clickToUpdate_msg": "Klikk her for å oppdatere.",
 		"clientSuspensionWait_label": "Serveren behandler forespørselen din. Vær tålmodig.",
 		"client_label": "Klient",

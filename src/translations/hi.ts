@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2022-04-26T14:19:03Z",
+	"updated_at": "2022-05-11T12:29:26Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "के बारे में",
@@ -213,7 +213,6 @@ export default {
 		"choosePhotos_action": "तस्वीरें",
 		"choose_label": "चुनें",
 		"clearFolder_action": "फ़ोल्डर साफ़ करने के लिए",
-		"clickNumber_msg": "कृप्या एस०एम०एस० से अपना पासवर्ड प्राप्त करने के लिए निम्नलिखित अपने फोन नं० पर क्लिक करें",
 		"clickToUpdate_msg": "अपडेट करने के लिए यहां क्लिक करें।",
 		"clientSuspensionWait_label": "सर्वर आपके अनुरोध को संसाधित कर रहा है, कृपया धैर्य रखें।",
 		"client_label": "ग्राहक",
