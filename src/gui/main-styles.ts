@@ -1111,7 +1111,7 @@ styles.registerStyle("main", () => {
 		},
 		".nav-bar-spacer": {
 			width: "0px",
-			height: "24px",
+			height: "22px",
 			"margin-left": "2px",
 			"margin-top": "10px",
 			"border-color": theme.navigation_border,
