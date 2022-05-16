@@ -23,37 +23,25 @@ export function getTutanotaAppVersion() {
 
 /**
  * Returns the version of electron used by the app (as in package.json).
- * @returns Promise<{string}>
+ * @returns {string}
  */
-export async function getElectronVersion(log = console.log.bind(console)) {
-	return await getInstalledModuleVersion("electron", log)
+export function getElectronVersion(log = console.log.bind(console)) {
+	return getInstalledModuleVersion("electron", log)
 }
 
 /**
  * Get the installed version of a module
  * @param module {string}
- * @returns Promise<{string}>
+ * @returns {string}
  */
-export async function getInstalledModuleVersion(module, log) {
-	let json
-	const cachePath = "node_modules/.npm-deps-resolved"
-	if (await fs.exists(cachePath)) {
-		const content = await fs.readFile(cachePath, "utf8")
-		json = JSON.parse(content)
-	} else if (fs.exists(path.join("..", cachePath))) {
-		const content = await fs.readFile(path.join("..", cachePath), "utf8")
-		json = JSON.parse(content)
-	} else {
-		console.log(`Using slow method to resolve dependency version. Add a postinstall script to dump 'npm list' into ${cachePath} to speed things up.`)
-		// npm list likes to error out for no reason so we just print a warning. If it really fails, we will see it.
-		// shell: true because otherwise Windows can't find npm.
-		const {stdout, stderr, status, error} = spawnSync("npm", ["list", module, "--json"], {shell: true})
-		if (status !== 0) {
-			log(`npm list is not happy about ${module}, but it doesn't mean anything`, status, stderr, error)
-		}
-		json = JSON.parse(stdout.toString().trim())
+export function getInstalledModuleVersion(module, log) {
+	// npm list likes to error out for no reason so we just print a warning. If it really fails, we will see it.
+	// shell: true because otherwise Windows can't find npm.
+	const {stdout, stderr, status, error} = spawnSync("npm", ["list", module, "--json"], {shell: true})
+	if (status !== 0) {
+		log(`npm list is not happy about ${module}, but it doesn't mean anything`, status, stderr, error)
 	}
-
+	const json = JSON.parse(stdout.toString().trim())
 	return findVersion(json, module)
 }
 
@@ -148,15 +136,4 @@ export function getCanonicalPlatformName(platformName) {
 		default:
 			throw new Error(`Unknown platform name ${platformName}`)
 	}
-}
-
-export async function runStep(name, cmd) {
-	const before = Date.now()
-	console.log("Build >", name)
-	await cmd()
-	console.log("Build >", name, "took", Date.now() - before, "ms")
-}
-
-export function writeFile(targetFile, content) {
-	return fs.mkdir(path.dirname(targetFile), {recursive: true}).then(() => fs.writeFile(targetFile, content, 'utf-8'))
 }

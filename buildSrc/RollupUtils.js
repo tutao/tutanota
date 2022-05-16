@@ -1,7 +1,17 @@
+import {dependencyMap} from "./RollupConfig.js"
 import path from "path"
 import fs from "fs/promises"
 
-// keeping for admin client for now
+export function resolveLibs(baseDir = ".") {
+	return {
+		name: "resolve-libs",
+		resolveId(source) {
+			const resolved = dependencyMap[source]
+			return resolved && path.join(baseDir, resolved)
+		}
+	}
+}
+
 export async function writeNollupBundle(generatedBundle, log, dir = "build") {
 	await fs.mkdir(dir, {recursive: true})
 

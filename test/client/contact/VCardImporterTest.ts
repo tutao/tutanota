@@ -1,21 +1,23 @@
 import o from "ospec"
-import {ContactAddressTypeRef, ContactMailAddressTypeRef, ContactPhoneNumberTypeRef, createContact} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {createContact} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {ContactAddressTypeRef} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {neverNull} from "@tutao/tutanota-utils"
 import {vCardFileToVCards, vCardListToContacts} from "../../../src/contacts/VCardImporter"
 // @ts-ignore[untyped-import]
 import en from "../../../src/translations/en"
 import {lang} from "../../../src/misc/LanguageViewModel"
-
+import {ContactMailAddressTypeRef} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {ContactPhoneNumberTypeRef} from "../../../src/api/entities/tutanota/TypeRefs.js"
 o.spec("VCardImporterTest", function () {
     o.before(async function () {
 	    // @ts-ignore
         window.whitelabelCustomizations = null
 
-        if (globalThis.isBrowser) {
-			globalThis.TextDecoder = window.TextDecoder
+        if (global.isBrowser) {
+            global.TextDecoder = window.TextDecoder
         } else {
 	        // @ts-ignore
-			globalThis.TextDecoder = (await import("util")).TextDecoder
+            global.TextDecoder = (await import("util")).TextDecoder
         }
 
         lang.init(en)

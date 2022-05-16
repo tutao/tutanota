@@ -3,7 +3,8 @@ name: Node CI
 on: [ push ]
 
 jobs:
-  test:
+  build:
+
     runs-on: ubuntu-latest
 
     strategy:
@@ -16,26 +17,8 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - name: npm install, npm test
-        run: |
-          npm ci
-          npm test
-
-  webapp:
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [ 16.3.0 ]
-
-    steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-      - name: npm install, node webapp
+      - name: npm install, build, and test
         run: |
           npm ci
           npm run build-packages
-          node webapp --disable-minify
+          npm test

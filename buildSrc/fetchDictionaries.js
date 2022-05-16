@@ -2,12 +2,12 @@
  * Utility to download/update the dictionaries used for translations within the app.
  */
 import path from "path"
+import glob from "glob"
 import {exitOnFail, getDefaultDistDirectory, getElectronVersion} from "./buildUtils.js"
 import {program} from "commander"
 import {spawnSync} from "child_process"
 import {fileURLToPath} from "url"
 import fs from "fs-extra"
-import "zx/globals"
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	program
@@ -46,11 +46,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
  * @returns {Promise<*>}
  */
 async function getDictionaries(outDir, local) {
-	const electronVersion = await getElectronVersion()
+	const electronVersion = getElectronVersion()
 	const baseTarget = path.join((outDir), '..')
 
 	const targets = local
-		? await globby(path.join(baseTarget, 'desktop*'))
+		? glob.sync(path.join(baseTarget, 'desktop*'))
 		: [baseTarget]
 	const targetPaths = targets.map(d => path.join(d, "dictionaries"))
 	return fetchDictionaries(electronVersion, targetPaths)
@@ -59,7 +59,7 @@ async function getDictionaries(outDir, local) {
 async function publishDebPackage() {
 	const commonArgs = `-f -s dir -t deb --deb-user tutadb --deb-group tutadb`
 	const target = `/opt/tutanota`
-	const electronVersion = await getElectronVersion()
+	const electronVersion = getElectronVersion()
 	const deb = `tutanota-desktop-dicts_${electronVersion}_amd64.deb`
 
 	console.log("create " + debs.dict)

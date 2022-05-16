@@ -1,20 +1,9 @@
-// file: keeping it for admin client right now
-
 import typescript from "@rollup/plugin-typescript"
 import commonjs from "@rollup/plugin-commonjs"
 import path from "path"
 import fs from "fs-extra"
-import {dependencyMap} from "./RollupConfig"
+import {resolveLibs} from "./RollupUtils.js"
 
-export function resolveLibs(baseDir = ".") {
-	return {
-		name: "resolve-libs",
-		resolveId(source) {
-			const resolved = dependencyMap[source]
-			return resolved && path.join(baseDir, resolved)
-		}
-	}
-}
 
 export function rollupDebugPlugins(baseDir, tsOptions) {
 	return [
