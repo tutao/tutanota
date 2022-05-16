@@ -23,6 +23,13 @@ export class OfflineIndicatorViewModel {
 	private lastProgress: number = PROGRESS_DONE
 	private lastWsState: WsConnectionState = WsConnectionState.connecting
 	private lastUpdate: Date | null = null
+	/**
+	 * keeping this prevents flashing misleading states during login when
+	 * the full login succeeded but the ws connection attempt didn't
+	 * succeed or fail yet.
+	 * wsState is "connecting" both during first connect attempt and after we
+	 * disconnected.
+	 **/
 	private wsWasConnectedBefore: boolean = false
 
 	constructor(
