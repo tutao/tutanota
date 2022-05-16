@@ -97,7 +97,7 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 		return "date"
 	} else if (moduleId.includes(path.normalize("src/misc/HtmlSanitizer")) || moduleId.includes(path.normalize("libs/purify"))) {
 		return "sanitizer"
-	} else if (moduleId.includes(path.normalize("src/gui/base")) || moduleId.includes(path.normalize("src/gui/nav"))) {
+	} else if (moduleId.includes(path.normalize("src/gui/base"))) {
 		// these gui elements are used from everywhere
 		return "gui-base"
 	} else if (moduleId.includes(path.normalize("src/native/main")) || moduleId.includes("SearchInPageOverlay")) {

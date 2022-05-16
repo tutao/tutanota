@@ -1,6 +1,6 @@
 import m from "mithril"
 import {assertMainOrNode} from "../../api/common/Env"
-import {header} from "../../gui/base/Header"
+import {header} from "../../gui/Header.js"
 import {modal} from "../../gui/base/Modal"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX, SETTINGS_PREFIX} from "../../misc/RouteChange"
 import {locator} from "../../api/main/MainLocator"
