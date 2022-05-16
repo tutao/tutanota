@@ -1,6 +1,6 @@
 import m, {Children, Component, Vnode} from "mithril"
 import {theme} from "../theme"
-import {isSameDay, noOp} from "@tutao/tutanota-utils"
+import {isSameDayOfDate, noOp} from "@tutao/tutanota-utils"
 import {lang} from "../../misc/LanguageViewModel"
 
 export const enum OfflineIndicatorState {
@@ -19,6 +19,7 @@ export type OfflineIndicatorAttrs =
 /**
  * the first line of the offline indicator shows if we're offline or online and
  * adds action prompts (if any)
+ * it's returned as a span so the consumer can decide how to layout it.
  */
 function attrToFirstLine(attr: OfflineIndicatorAttrs): Children {
 	const {state} = attr
@@ -38,7 +39,8 @@ function attrToFirstLine(attr: OfflineIndicatorAttrs): Children {
 }
 
 /**
- * the second line provides additional information about the current state
+ * the second line provides additional information about the current state.
+ * it's returned as a span so the consumer can decide how to layout it.
  */
 function attrToSecondLine(a: OfflineIndicatorAttrs): Children {
 	switch (a.state) {
@@ -70,7 +72,7 @@ function formatPercentage(percentage: number): string {
 * as a date without time
  */
 function formatDate(date: Date): string {
-	return isSameDay(new Date(), date)
+	return isSameDayOfDate(new Date(), date)
 		? lang.formats.time.format(date)
 		: lang.formats.simpleDate.format(date)
 }

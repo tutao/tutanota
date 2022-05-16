@@ -57,12 +57,9 @@ class Header implements Component {
 	constructor() {
 		this.shortcuts = this.setupShortcuts()
 
-		// load worker and search bar one after another because search bar uses worker.
-		import("../../api/main/MainLocator").then(async ({locator}) => {
-			await locator.initialized
-			const worker = locator.worker
-			this.offlineIndicatorModel.setWsStateStream(worker.wsConnection())
-			await worker.initialized
+		const worker = locator.worker
+		this.offlineIndicatorModel.setWsStateStream(worker.wsConnection())
+		worker.initialized.then(() => {
 			import("../../search/SearchBar.js").then(({SearchBar}) => {
 				this.searchBar = new SearchBar()
 			})
@@ -88,8 +85,8 @@ class Header implements Component {
 						this.renderCenterContent(),
 						this.renderRightContent()
 					],
-				styles.isUsingBottomNavigation() && logins.isAtLeastPartiallyLoggedIn()
-					? this.renderOfflineIndicator(OfflineIndicatorMobile)
+				styles.isUsingBottomNavigation() && logins.isAtLeastPartiallyLoggedIn() && !this.mobileSearchBarVisible()
+					? m(OfflineIndicatorMobile, this.offlineIndicatorModel.getCurrentAttrs())
 					: null
 			],
 		)
@@ -104,11 +101,10 @@ class Header implements Component {
 	}
 
 	/**
-	 * render the new mail/contact/event icon in the top right of the one- and two-column layouts
-	 * or the offline indicator if the client is in offline mode
+	 * render the new mail/contact/event button in the top right of the one- and two-column layouts.
 	 * @private
 	 */
-	private renderSmallNavigation(): Children {
+	private renderHeaderAction(): Children {
 		return m(".header-right.pr-s.flex-end.items-center", this.currentView?.headerRightView?.())
 	}
 
@@ -118,7 +114,7 @@ class Header implements Component {
 	 */
 	private renderFullNavigation(): Children {
 		return m(".header-right.pr-l.mr-negative-m.flex-end.items-center", logins.isAtLeastPartiallyLoggedIn()
-			? [this.renderDesktopSearchBar(), this.renderOfflineIndicator(OfflineIndicatorDesktop), m(".nav-bar-spacer"), m(NavBar, this.renderButtons())]
+			? [this.renderDesktopSearchBar(), m(OfflineIndicatorDesktop, this.offlineIndicatorModel.getCurrentAttrs()), m(".nav-bar-spacer"), m(NavBar, this.renderButtons())]
 			: [this.renderDesktopSearchBar(), m(NavBar, this.renderButtons())]
 		)
 	}
@@ -254,14 +250,8 @@ class Header implements Component {
 		}
 	}
 
-	private renderOfflineIndicator(componentRef: typeof OfflineIndicatorMobile | OfflineIndicatorDesktop): Children {
-		return this.mobileSearchBarVisible()
-			? null
-			: m(componentRef, this.offlineIndicatorModel.getCurrentAttrs())
-	}
-
 	private renderRightContent(): Children {
-		return styles.isUsingBottomNavigation() ? this.renderSmallNavigation() : this.renderFullNavigation()
+		return styles.isUsingBottomNavigation() ? this.renderHeaderAction() : this.renderFullNavigation()
 	}
 
 	private renderMobileSearchBar(): Children {

@@ -34,7 +34,6 @@ export class ProgressBar implements Component<ProgressBarAttrs> {
 
 		this.lastProgress = a.progress
 		return m(".abs.accent-bg", {
-			key: "loading-indicator",
 			onbeforeremove: vn => new Promise<void>(resolve => {
 				vn.dom.addEventListener("transitionend", () => {
 					this.lastProgress = null
