@@ -1,5 +1,5 @@
 import m, {Children} from "mithril"
-import {ViewSlider} from "../../gui/base/ViewSlider"
+import {ViewSlider} from "../../gui/nav/ViewSlider.js"
 import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
@@ -53,8 +53,8 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {logins} from "../../api/main/LoginController"
 import {PageSize} from "../../gui/base/List"
 import {MultiSelectionBar} from "../../gui/base/MultiSelectionBar"
-import type {CurrentView} from "../../gui/base/Header"
-import {header} from "../../gui/base/Header"
+import type {CurrentView} from "../../gui/Header.js"
+import {header} from "../../gui/Header.js"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {isUpdateForTypeRef} from "../../api/main/EventController"
 import {getStartOfTheWeekOffsetForUser} from "../../calendar/date/CalendarUtils"
@@ -62,7 +62,7 @@ import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {ContactEditor} from "../../contacts/ContactEditor"
 import {styles} from "../../gui/styles"
-import {FolderColumnView} from "../../gui/base/FolderColumnView"
+import {FolderColumnView} from "../../gui/FolderColumnView.js"
 import {ActionBar} from "../../gui/base/ActionBar"
 import {getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
@@ -239,7 +239,7 @@ export class SearchView implements CurrentView {
 			size.third_col_min_width,
 			size.third_col_max_width,
 		)
-		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn], "ContactView")
+		this.viewSlider = new ViewSlider(header,[this.folderColumn, this.resultListColumn, this.resultDetailsColumn], "ContactView")
 
 		this.view = (): Children => {
 			return m("#search.main-view", m(this.viewSlider))

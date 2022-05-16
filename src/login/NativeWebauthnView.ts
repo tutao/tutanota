@@ -1,6 +1,6 @@
 import type {Children, Vnode} from "mithril"
 import m from "mithril"
-import type {CurrentView} from "../gui/base/Header.js"
+import type {CurrentView} from "../gui/Header.js"
 import {DialogHeaderBar, DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar.js"
 import type {WebauthnNativeBridge} from "../native/main/WebauthnNativeBridge"
 import {IWebauthn} from "../misc/2fa/webauthn/IWebauthn.js"

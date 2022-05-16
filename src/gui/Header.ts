@@ -1,27 +1,27 @@
 import m, {Children, Component} from "mithril"
-import {NavBar} from "./NavBar"
-import {NavButtonColor, NavButtonN} from "./NavButtonN"
-import {styles} from "../styles"
+import {NavBar} from "./base/NavBar.js"
+import {NavButtonColor, NavButtonN} from "./base/NavButtonN.js"
+import {styles} from "./styles.js"
 import {neverNull} from "@tutao/tutanota-utils"
-import type {Shortcut} from "../../misc/KeyManager"
-import {keyManager} from "../../misc/KeyManager"
-import {lang} from "../../misc/LanguageViewModel"
-import {logins} from "../../api/main/LoginController"
-import {theme} from "../theme"
-import {FeatureType, Keys} from "../../api/common/TutanotaConstants"
-import {px, size as sizes} from "../size"
-import {BootIcons} from "./icons/BootIcons"
-import type {SearchBar} from "../../search/SearchBar"
-import type {IMainLocator} from "../../api/main/MainLocator"
-import {locator} from "../../api/main/MainLocator"
-import {client} from "../../misc/ClientDetector"
-import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
-import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
-import type {ViewSlider} from "./ViewSlider"
-import {assertMainOrNode} from "../../api/common/Env"
-import {OfflineIndicatorDesktop, OfflineIndicatorMobile} from "./OfflineIndicator"
-import {OfflineIndicatorViewModel} from "./OfflineIndicatorViewModel.js"
-import {ProgressBar} from "./ProgressBar"
+import type {Shortcut} from "../misc/KeyManager.js"
+import {keyManager} from "../misc/KeyManager.js"
+import {lang} from "../misc/LanguageViewModel.js"
+import {logins} from "../api/main/LoginController.js"
+import {theme} from "./theme.js"
+import {FeatureType, Keys} from "../api/common/TutanotaConstants.js"
+import {px, size as sizes} from "./size.js"
+import {BootIcons} from "./base/icons/BootIcons.js"
+import type {SearchBar} from "../search/SearchBar.js"
+import type {IMainLocator} from "../api/main/MainLocator.js"
+import {locator} from "../api/main/MainLocator.js"
+import {client} from "../misc/ClientDetector.js"
+import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../misc/RouteChange.js"
+import {AriaLandmarks, landmarkAttrs} from "./AriaUtils.js"
+import type {ViewSlider} from "./nav/ViewSlider.js"
+import {assertMainOrNode} from "../api/common/Env.js"
+import {OfflineIndicatorDesktop, OfflineIndicatorMobile} from "./base/OfflineIndicator.js"
+import {OfflineIndicatorViewModel} from "./base/OfflineIndicatorViewModel.js"
+import {ProgressBar} from "./base/ProgressBar.js"
 
 const LogoutPath = "/login?noAutoLogin=true"
 export const LogoutUrl: string = location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : LogoutPath
@@ -41,7 +41,7 @@ export interface CurrentView extends Component {
 	readonly overrideBackIcon?: () => boolean
 }
 
-class Header implements Component {
+export class Header implements Component {
 	searchBar: SearchBar | null = null
 
 	private currentView: CurrentView | null = null // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
@@ -60,7 +60,7 @@ class Header implements Component {
 		const worker = locator.worker
 		this.offlineIndicatorModel.setWsStateStream(worker.wsConnection())
 		worker.initialized.then(() => {
-			import("../../search/SearchBar.js").then(({SearchBar}) => {
+			import("../search/SearchBar.js").then(({SearchBar}) => {
 				this.searchBar = new SearchBar()
 			})
 			this.offlineIndicatorModel.setProgressUpdateStream(locator.progressTracker.onProgressUpdate)
