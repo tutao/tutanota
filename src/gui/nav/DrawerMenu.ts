@@ -1,7 +1,7 @@
 import m, {Children, Component, Vnode} from "mithril"
 import {ButtonColor, ButtonN, ButtonType} from "../base/ButtonN"
 import {BootIcons} from "../base/icons/BootIcons"
-import {LogoutUrl} from "../base/Header"
+import {LogoutUrl} from "../Header.js"
 import {isNewMailActionAvailable, showSupportDialog, showUpgradeDialog, writeInviteMail} from "./NavFunctions"
 import {isDesktop, isIOSApp} from "../../api/common/Env"
 import {logins} from "../../api/main/LoginController"

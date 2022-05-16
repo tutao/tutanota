@@ -16,7 +16,7 @@ import {Logger, replaceNativeLogger} from "./api/common/Logger"
 import {init as initSW} from "./serviceworker/ServiceWorkerClient"
 import {applicationPaths} from "./ApplicationPaths"
 import {ProgrammingError} from "./api/common/error/ProgrammingError"
-import {CurrentView} from "./gui/base/Header"
+import {CurrentView} from "./gui/Header.js"
 import {NativeWebauthnView} from "./login/NativeWebauthnView"
 import {WebauthnNativeBridge} from "./native/main/WebauthnNativeBridge"
 import {PostLoginActions} from "./login/PostLoginActions"
@@ -181,7 +181,7 @@ import("./translations/en")
 							promise = Promise.resolve(cache.view)
 						}
 
-						Promise.all([promise, import("./gui/base/Header")]).then(([view, {header}]) => {
+						Promise.all([promise, import("./gui/Header.js")]).then(([view, {header}]) => {
 							view.updateUrl(args, requestedPath)
 							const currentPath = m.route.get()
 							routeChange({

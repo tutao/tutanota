@@ -2,10 +2,10 @@ import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import {assertMainOrNode, isApp, isDesktop, isIOSApp, isTutanotaDomain} from "../api/common/Env"
 import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
-import {ViewSlider} from "../gui/base/ViewSlider"
+import {ViewSlider} from "../gui/nav/ViewSlider.js"
 import {SettingsFolder} from "./SettingsFolder"
 import {lang} from "../misc/LanguageViewModel"
-import type {CurrentView} from "../gui/base/Header"
+import type {CurrentView} from "../gui/Header.js"
 import {LoginSettingsViewer} from "./LoginSettingsViewer"
 import {GlobalSettingsViewer} from "./GlobalSettingsViewer"
 import {DesktopSettingsViewer} from "./DesktopSettingsViewer"
@@ -38,7 +38,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {AboutDialog} from "./AboutDialog"
 import {navButtonRoutes, SETTINGS_PREFIX} from "../misc/RouteChange"
 import {size} from "../gui/size"
-import {FolderColumnView} from "../gui/base/FolderColumnView"
+import {FolderColumnView} from "../gui/FolderColumnView.js"
 import {getEtId, isSameId} from "../api/common/utils/EntityUtils"
 import {TemplateListView} from "./TemplateListView"
 import {KnowledgeBaseListView} from "./KnowledgeBaseListView"
@@ -60,6 +60,7 @@ import {createGroupSettings} from "../api/entities/tutanota/TypeRefs.js"
 import {createUserAreaGroupDeleteData} from "../api/entities/tutanota/TypeRefs.js"
 import {GroupInvitationFolderRow} from "../sharing/view/GroupInvitationFolderRow"
 import {TemplateGroupService} from "../api/entities/tutanota/Services"
+import {header} from "../gui/Header.js"
 
 assertMainOrNode()
 
@@ -355,7 +356,7 @@ export class SettingsView implements CurrentView {
 			2400,
 			() => lang.get("settings_label"),
 		)
-		this.viewSlider = new ViewSlider([this._settingsFoldersColumn, this._settingsColumn, this._settingsDetailsColumn], "SettingsView")
+		this.viewSlider = new ViewSlider(header, [this._settingsFoldersColumn, this._settingsColumn, this._settingsDetailsColumn], "SettingsView")
 
 		this.view = (): Vnode<any> => {
 			return m("#settings.main-view", m(this.viewSlider))

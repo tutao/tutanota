@@ -1,5 +1,5 @@
 import m, {Children} from "mithril"
-import {ViewSlider} from "../../gui/base/ViewSlider"
+import {ViewSlider} from "../../gui/nav/ViewSlider.js"
 import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
@@ -10,7 +10,7 @@ import {isNavButtonSelected, isSelectedPrefix, NavButtonColor} from "../../gui/b
 import {createMailViewerViewModel, MailViewer} from "./MailViewer"
 import {Dialog} from "../../gui/base/Dialog"
 import {FeatureType, Keys, MailFolderType, OperationType} from "../../api/common/TutanotaConstants"
-import {CurrentView} from "../../gui/base/Header"
+import {CurrentView, header} from "../../gui/Header.js"
 import type {Mail, MailFolder} from "../../api/entities/tutanota/TypeRefs.js"
 import {MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import type {lazy} from "@tutao/tutanota-utils"
@@ -46,7 +46,7 @@ import {attachDropdown, DropdownN} from "../../gui/base/DropdownN"
 import {MailFolderRow} from "./MailFolderRow"
 import {styles} from "../../gui/styles"
 import {size} from "../../gui/size"
-import {FolderColumnView} from "../../gui/base/FolderColumnView"
+import {FolderColumnView} from "../../gui/FolderColumnView.js"
 import {modal} from "../../gui/base/Modal"
 import {DomRectReadOnlyPolyfilled} from "../../gui/base/Dropdown"
 import {UserError} from "../../api/main/UserError"
@@ -184,7 +184,7 @@ export class MailView implements CurrentView {
 			mailColumnTitle,
 			() => lang.get("email_label") + " " + mailColumnTitle(),
 		)
-		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.mailColumn], "MailView")
+		this.viewSlider = new ViewSlider(header, [this.folderColumn, this.listColumn, this.mailColumn], "MailView")
 
 		this.view = (): Children => {
 			return m(

@@ -1,18 +1,18 @@
 import m, {Children, Component} from "mithril"
-import {ColumnType, ViewColumn} from "./ViewColumn"
-import type {windowSizeListener} from "../../misc/WindowFacade"
-import {windowFacade} from "../../misc/WindowFacade"
-import {size} from "../size"
-import {alpha, AlphaEnum, animations, transform, TransformEnum} from "../animation/Animations"
-import {ease} from "../animation/Easing"
-import {theme} from "../theme"
+import {ColumnType, ViewColumn} from "../base/ViewColumn.js"
+import type {windowSizeListener} from "../../misc/WindowFacade.js"
+import {windowFacade} from "../../misc/WindowFacade.js"
+import {size} from "../size.js"
+import {alpha, AlphaEnum, animations, transform, TransformEnum} from "../animation/Animations.js"
+import {ease} from "../animation/Easing.js"
+import {theme} from "../theme.js"
 import {neverNull} from "@tutao/tutanota-utils"
-import {BottomNav} from "../nav/BottomNav"
-import {header} from "./Header"
-import {styles} from "../styles"
-import {AriaLandmarks} from "../AriaUtils"
-import {LayerType} from "../../RootView"
-import {assertMainOrNode} from "../../api/common/Env"
+import {BottomNav} from "./BottomNav.js"
+import {styles} from "../styles.js"
+import {AriaLandmarks} from "../AriaUtils.js"
+import {LayerType} from "../../RootView.js"
+import {assertMainOrNode} from "../../api/common/Env.js"
+import type {Header} from "../Header.js"
 
 assertMainOrNode()
 export type GestureInfo = {
@@ -56,7 +56,7 @@ export class ViewSlider implements Component {
 	resizeListener: windowSizeListener = () => this._updateVisibleBackgroundColumns()
 	_getSideColDom: () => HTMLElement | null = () => this.columns[0]._domColumn
 
-	constructor(viewColumns: ViewColumn[], parentName: string) {
+	constructor(header: Header, viewColumns: ViewColumn[], parentName: string) {
 		this.columns = viewColumns
 		this._mainColumn = neverNull(viewColumns.find(column => column.columnType === ColumnType.Background)) // the first background column is the main column
 
