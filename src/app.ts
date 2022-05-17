@@ -356,6 +356,8 @@ import("./translations/en")
 		// If native starts telling the web side to navigate too early, mithril won't be ready and the requests will be lost
 		if (isApp() || isDesktop()) {
 			await locator.native.init()
+		}
+		if (isDesktop()) {
 			const {exposeNativeInterface} = await import("./api/common/ExposeNativeInterface")
 			logins.addPostLoginAction(exposeNativeInterface(locator.native).postLoginActions)
 		}
