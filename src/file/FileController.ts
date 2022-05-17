@@ -360,7 +360,7 @@ export class FileController {
 
 	// visible for testing
 	async downloadAndDecryptNative(tutanotaFile: TutanotaFile): Promise<FileReference> {
-		if (tutanotaFile.blobs.length === 0) {
+		if (this.isLegacyFile(tutanotaFile)) {
 			return await this.fileFacade.downloadFileContentNative(tutanotaFile)
 		} else {
 			return await this.blobFacade.downloadAndDecryptNative(ArchiveDataType.Attachments, tutanotaFile.blobs, tutanotaFile, tutanotaFile.name, neverNull(tutanotaFile.mimeType))
@@ -368,11 +368,22 @@ export class FileController {
 	}
 
 	async downloadAndDecryptBrowser(file: TutanotaFile): Promise<DataFile> {
-		if (file.blobs.length === 0) {
+		if (this.isLegacyFile(file)) {
 			return await this.fileFacade.downloadFileContent(file)
 		} else {
 			const bytes = await this.blobFacade.downloadAndDecrypt(ArchiveDataType.Attachments, file.blobs, file)
 			return convertToDataFile(file, bytes)
 		}
 	}
+
+	/**
+	 * The migration to blob attachments does not remove the FileData reference from files. This might change, therefore,
+	 * everytime we need to decide whether to treat a file as legacy, we should use this method, so that it is easier to
+	 * change this behavior in the future.
+	 * @param file
+	 */
+	isLegacyFile(file: TutanotaFile): boolean {
+		return file.blobs.length === 0;
+	}
+
 }
