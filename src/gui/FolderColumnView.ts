@@ -62,9 +62,11 @@ export class FolderColumnView implements Component<Attrs> {
 	}
 
 	private renderMainButton(attrs: Attrs): Children {
-		return attrs.button ? m(".mlr-l.mt.mb", m(FolderColumnHeaderButton, {
-			label: attrs.button.label,
-			click: attrs.button.click,
-		})) : null
+		return attrs.button
+			? m(".mlr-l.mt.mb", m(FolderColumnHeaderButton, {
+				label: attrs.button.label,
+				click: attrs.button.click,
+			}))
+			: null
 	}
 }
