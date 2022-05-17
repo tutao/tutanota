@@ -29,7 +29,7 @@ await program
 	.addArgument(new Argument("host").argOptional())
 	.addOption(new Option('-b, --buildtype <type>', 'gradle build type')
 		.choices(["debugDist", "debug", "release", "releaseTest"])
-		.default("dist"))
+		.default("release"))
 	.addOption(new Option('-w --webclient <client>', 'choose web client build')
 		.choices(["make", "dist"])
 		.default("dist"))
