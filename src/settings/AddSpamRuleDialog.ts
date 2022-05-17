@@ -5,33 +5,24 @@ import {isDomainOrTopLevelDomain, isMailAddress} from "../misc/FormatValidator"
 import {getSpamRuleField, getSpamRuleType, SpamRuleFieldType, SpamRuleType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
 import {contains, neverNull, objectEntries} from "@tutao/tutanota-utils"
 import {Dialog} from "../gui/base/Dialog"
-import {CustomerInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
+import type {EmailSenderListElement} from "../api/entities/sys/TypeRefs.js"
+import {CustomerInfoTypeRef, CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {logins} from "../api/main/LoginController"
 import stream from "mithril/stream"
 import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import type {EmailSenderListElement} from "../api/entities/sys/TypeRefs.js"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
 import {ConnectionError} from "../api/common/error/RestError"
 
 assertMainOrNode()
 
+type LoadedData = {customDomains: string[], existingSpamRules: EmailSenderListElement[]}
+
 export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderListElement | null) {
-	let existingSpamRules: EmailSenderListElement[] | null = null
-	let customDomains: string[] | null
-	locator.customerFacade.loadCustomerServerProperties().then(props => {
-		existingSpamRules = props.emailSenderList
-		locator.entityClient
-			   .load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-			   .then(customer => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
-			   .then(customerInfo => {
-				   customDomains = customerInfo.domainInfos.map(d => d.domain)
-				   m.redraw()
-			   })
-	})
+	let loadedData: LoadedData | null = null
+
 	const typeItems = getSpamRuleTypeNameMapping()
 	const selectedType = stream((existingSpamRuleOrTemplate && getSpamRuleType(existingSpamRuleOrTemplate)) || typeItems[0].value)
 	const valueFieldValue = stream(existingSpamRuleOrTemplate ? existingSpamRuleOrTemplate.value : "")
@@ -49,8 +40,7 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderLis
 			value: valueFieldValue,
 			helpLabel: () =>
 				lang.get(
-					_getInputInvalidMessage(selectedType(), valueFieldValue(), selectedField(), existingSpamRules, customDomains, existingSpamRuleOrTemplate) ||
-					"emptyString_msg",
+					validate(selectedType(), valueFieldValue(), selectedField(), loadedData, existingSpamRuleOrTemplate) ?? "emptyString_msg",
 				),
 		}),
 		m(DropDownSelectorN, {
@@ -62,58 +52,80 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderLis
 
 
 	let addSpamRuleOkAction = async (dialog: Dialog) => {
-		let spamRulePromise
-		if (existingSpamRuleOrTemplate && existingSpamRuleOrTemplate._id) {
-			spamRulePromise = locator.customerFacade.editSpamRule(
-				Object.assign({}, existingSpamRuleOrTemplate, {
-					value: valueFieldValue(),
-					field: selectedField(),
-					type: selectedType(),
-				}),
-			)
-		} else {
-			spamRulePromise = locator.customerFacade.addSpamRule(selectedField(), selectedType(), valueFieldValue())
-		}
-		spamRulePromise.then(() => {
+		try {
+			if (existingSpamRuleOrTemplate && existingSpamRuleOrTemplate._id) {
+				await locator.customerFacade.editSpamRule(
+					Object.assign({}, existingSpamRuleOrTemplate, {
+						value: valueFieldValue(),
+						field: selectedField(),
+						type: selectedType(),
+					}),
+				)
+			} else {
+				await locator.customerFacade.addSpamRule(selectedField(), selectedType(), valueFieldValue())
+			}
 			dialog.close()
-		}).catch(error => {
+		} catch (error) {
 			if (!(error instanceof ConnectionError)) {
 				dialog.close()
 			}
 			throw error
-		})
+		}
 	}
 
-	Dialog.showActionDialog({
+	const dialog = Dialog.showActionDialog({
 		title: lang.get("addSpamRule_action"),
 		child: form,
-		validator: () =>
-			_getInputInvalidMessage(selectedType(), valueFieldValue(), selectedField(), existingSpamRules, customDomains, existingSpamRuleOrTemplate),
+		validator: () => validate(selectedType(), valueFieldValue(), selectedField(), loadedData, existingSpamRuleOrTemplate),
 		allowOkWithReturn: true,
 		okAction: addSpamRuleOkAction,
 	})
+
+	// start loading in background
+	loadData().then(
+		(loaded) => {
+			loadedData = loaded
+			m.redraw()
+		},
+		(e) => {
+			// Might be an offline error, if we can't load data we should close the dialog regardless, they can try opening it again
+			dialog.close()
+			throw e
+		}
+	)
 }
 
-function _getInputInvalidMessage(
-	type: NumberString,
+async function loadData(): Promise<LoadedData> {
+	const customerServerProperties = await locator.customerFacade.loadCustomerServerProperties()
+	const customer = await locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+	const customerInfo = await locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+
+	const customDomains = customerInfo.domainInfos.map(d => d.domain)
+	const existingSpamRules = customerServerProperties.emailSenderList
+
+	return {customDomains, existingSpamRules}
+}
+
+/** @return translation key if validation fails or null if it succeeds */
+function validate(
+	type: SpamRuleType,
 	value: string,
 	field: SpamRuleFieldType,
-	existingRules: EmailSenderListElement[] | null,
-	customDomains: string[] | null,
+	loadedData: LoadedData | null,
 	existingSpamRuleOrTemplate: EmailSenderListElement | null,
 ): TranslationKey | null {
 	let currentValue = value.toLowerCase().trim()
 
-	if (!existingRules || !customDomains) {
-		return "emptyString_msg"
+	if (loadedData == null) {
+		return "loading_msg"
 	} else if (currentValue === "") {
 		return "spamRuleEnterValue_msg"
 	} else if (!isDomainOrTopLevelDomain(currentValue) && !isMailAddress(currentValue, false) && currentValue !== "*") {
 		return "invalidInputFormat_msg"
-	} else if (_isInvalidRule(type, currentValue, customDomains)) {
+	} else if (isInvalidRule(type, currentValue, loadedData.customDomains)) {
 		return "emailSenderInvalidRule_msg"
 	} else if (
-		existingRules.some(
+		loadedData.existingSpamRules.some(
 			r =>
 				r.value === currentValue && // Only collision if we don't edit existing one or existing one has different id
 				(existingSpamRuleOrTemplate == null || r._id !== existingSpamRuleOrTemplate._id) &&
@@ -126,7 +138,7 @@ function _getInputInvalidMessage(
 	return null
 }
 
-function _isInvalidRule(type: NumberString, value: string, customDomains: string[]): boolean {
+function isInvalidRule(type: NumberString, value: string, customDomains: string[]): boolean {
 	if (type !== SpamRuleType.WHITELIST) {
 		if (isDomainOrTopLevelDomain(value)) {
 			return value === "tutao.de" || contains(TUTANOTA_MAIL_ADDRESS_DOMAINS, value) || contains(customDomains, value)
