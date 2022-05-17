@@ -1,8 +1,8 @@
 import o from "ospec"
-import {LateInitializedCacheStorageImpl} from "../../../../src/api/worker/rest/CacheStorageProxy"
-import {WorkerImpl} from "../../../../src/api/worker/WorkerImpl"
+import {LateInitializedCacheStorageImpl} from "../../../../../src/api/worker/rest/CacheStorageProxy.js"
+import {WorkerImpl} from "../../../../../src/api/worker/WorkerImpl.js"
 import {func, instance, when} from "testdouble"
-import {OfflineStorage} from "../../../../src/api/worker/rest/OfflineStorage"
+import {OfflineStorage} from "../../../../../src/api/worker/rest/OfflineStorage.js"
 import {verify} from "@tutao/tutanota-test-utils"
 
 o.spec("CacheStorageProxy", function () {

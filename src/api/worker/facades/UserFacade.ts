@@ -147,7 +147,7 @@ export class UserFacade implements AuthHeadersProvider {
 
 	isFullyLoggedIn(): boolean {
 		// We have userGroupKey and we can decrypt any other key - we are good to go
-		return this.groupKeys != null
+		return this.groupKeys.size > 0
 	}
 
 	getLoggedInUser(): User {
