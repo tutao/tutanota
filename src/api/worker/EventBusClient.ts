@@ -135,7 +135,8 @@ export class EventBusClient {
 		private readonly sleepDetector: SleepDetector,
 		private readonly loginFacade: LoginFacadeImpl,
 	) {
-		this.state = EventBusState.Automatic
+		// We are not connected by default and will not try to unless connect() is called
+		this.state = EventBusState.Terminated
 		this.lastEntityEventIds = new Map()
 		this.lastAddedBatchForGroup = new Map()
 		this.socket = null

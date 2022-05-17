@@ -56,7 +56,8 @@ importScripts("./worker.js")
 			//     We can theoretically compile it separately but it will be slower and more confusing.
 			bundle: true,
 			format: 'esm',
-			sourcemap: "linked",
+			// "both" is the most reliable as in Worker or on Android linked source maps don't work
+			sourcemap: "both",
 			define: {
 				// See Env.ts for explanation
 				"NO_THREAD_ASSERTIONS": 'true',
