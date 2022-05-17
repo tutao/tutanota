@@ -1,6 +1,7 @@
 import {Argument, program} from "commander"
 import {runDevBuild} from "./buildSrc/DevBuild.js"
 import {spawn} from "child_process"
+import {chalk} from "zx"
 
 await program
 	.usage('[options] [test|prod|local|host <url>]')
@@ -42,7 +43,7 @@ await program
 				process.exit(0)
 			}
 		} catch (e) {
-			console.error("Build failed:", e)
+			console.error(chalk.red.underline("Build failed:"), e)
 			process.exit(1)
 		}
 	})

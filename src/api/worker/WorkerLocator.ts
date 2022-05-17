@@ -13,7 +13,7 @@ import {SearchFacade} from "./search/SearchFacade"
 import {CustomerFacadeImpl} from "./facades/CustomerFacade"
 import {CounterFacade} from "./facades/CounterFacade"
 import {EventBusClient} from "./EventBusClient"
-import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isDesktop, isOfflineStorageAvailable} from "../common/Env"
+import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isOfflineStorageAvailable} from "../common/Env"
 import {Const} from "../common/TutanotaConstants"
 import type {BrowserData} from "../../misc/ClientConstants"
 import {CalendarFacade} from "./facades/CalendarFacade"
@@ -48,9 +48,10 @@ import {NativeSystemApp} from "../../native/common/NativeSystemApp"
 import {DesktopConfigKey} from "../../desktop/config/ConfigKeys"
 import {CacheStorage} from "./rest/EntityRestCache.js"
 import {UserFacade} from "./facades/UserFacade"
-import {exposeRemote} from "../common/WorkerProxy"
-import {OfflineStorage} from "./rest/OfflineStorage"
+import {OfflineStorage} from "./offline/OfflineStorage.js"
 import {exposeNativeInterface} from "../common/ExposeNativeInterface"
+import {OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator} from "./offline/OfflineStorageMigrator.js"
+import {modelInfos} from "../common/EntityFunctions.js"
 
 assertWorkerOrNode()
 
@@ -110,13 +111,12 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.booking = new BookingFacade(locator.serviceExecutor)
 
 	const offlineStorageProvider = async () => {
-		if (isDesktop() && await systemApp.getConfigValue(DesktopConfigKey.offlineStorageEnabled)) {
+		if (isOfflineStorageAvailable() && await systemApp.getConfigValue(DesktopConfigKey.offlineStorageEnabled)) {
 			const {offlineDbFacade} = exposeNativeInterface(locator.native)
-			return new OfflineStorage(offlineDbFacade, new WorkerDateProvider())
+			return new OfflineStorage(offlineDbFacade, new WorkerDateProvider(), new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS, modelInfos))
 		} else {
 			return null
 		}
-
 	}
 
 	const maybeUninitializedStorage = isOfflineStorageAvailable()

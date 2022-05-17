@@ -1,29 +1,35 @@
 import o from "ospec"
-import {CacheStorage, EntityRestCache, expandId, EXTEND_RANGE_MIN_CHUNK_SIZE} from "../../../../../src/api/worker/rest/EntityRestCache.js"
-import type {Mail, MailBody} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import {ContactTypeRef, createContact, createMail, createMailBody, MailBodyTypeRef, MailTypeRef} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import {OperationType} from "../../../../../src/api/common/TutanotaConstants.js"
-import type {EntityUpdate} from "../../../../../src/api/entities/sys/TypeRefs.js"
+import {CUSTOM_MIN_ID, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getListId, stringToCustomId} from "../../../../../src/api/common/utils/EntityUtils.js"
+import {arrayOf, assertNotNull, clone, downcast, isSameTypeRef, neverNull, TypeRef} from "@tutao/tutanota-utils"
 import {
 	createCustomer,
-	createEntityUpdate,
-	createExternalUserReference,
+	createEntityUpdate, createExternalUserReference,
 	createPermission,
 	CustomerTypeRef,
-	ExternalUserReferenceTypeRef,
-	PermissionTypeRef
+	EntityUpdate,
+	ExternalUserReferenceTypeRef, PermissionTypeRef
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {arrayOf, assertNotNull, clone, downcast, isSameTypeRef, neverNull, TypeRef} from "@tutao/tutanota-utils"
-import {NotAuthorizedError, NotFoundError} from "../../../../../src/api/common/error/RestError.js"
 import {EntityRestClient, typeRefToPath} from "../../../../../src/api/worker/rest/EntityRestClient.js"
-import {CUSTOM_MIN_ID, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getListId, stringToCustomId} from "../../../../../src/api/common/utils/EntityUtils.js";
-import {assertThrows, mockAttribute, unmockAttribute} from "@tutao/tutanota-test-utils"
-import {EphemeralCacheStorage} from "../../../../../src/api/worker/rest/EphemeralCacheStorage.js"
 import {QueuedBatch} from "../../../../../src/api/worker/search/EventQueue.js"
-import {matchers, object, when} from "testdouble"
-import {OfflineStorage} from "../../../../../src/api/worker/rest/OfflineStorage.js"
+import {CacheStorage, EntityRestCache, expandId, EXTEND_RANGE_MIN_CHUNK_SIZE} from "../../../../../src/api/worker/rest/EntityRestCache.js"
+import {
+	ContactTypeRef,
+	createContact,
+	createMail,
+	createMailBody, Mail,
+	MailBody,
+	MailBodyTypeRef,
+	MailTypeRef
+} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import {instance, matchers, object, when} from "testdouble"
+import {OfflineStorage} from "../../../../../src/api/worker/offline/OfflineStorage.js"
+import {assertThrows, mockAttribute, unmockAttribute} from "@tutao/tutanota-test-utils"
+import {WorkerDateProvider} from "../../../../../src/api/worker/utils/WorkerDateProvider.js"
 import {RestClient} from "../../../../../src/api/worker/rest/RestClient.js"
-import {WorkerDateProvider} from "../../../../../src/api/worker/utils/WorkerDateProvider"
+import {NotAuthorizedError, NotFoundError} from "../../../../../src/api/common/error/RestError.js"
+import {EphemeralCacheStorage} from "../../../../../src/api/worker/rest/EphemeralCacheStorage.js"
+import {OperationType} from "../../../../../src/api/common/TutanotaConstants.js"
+import {OfflineStorageMigrator} from "../../../../../src/api/worker/offline/OfflineStorageMigrator.js"
 
 const {anything} = matchers
 
@@ -35,6 +41,7 @@ async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 	const offlineDbFactory = {
 		async create(userId: string, key) {
 			assertNotNull(userId)
+			// @ts-ignore Added by sqliteNativeBannerPlugin
 			const nativePath = buildOptions.sqliteNativePath
 			const db = new OfflineDb(nativePath)
 			//integrity check breaks for in memory database
@@ -45,9 +52,11 @@ async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 		},
 	}
 
+	const migratorMock = instance(OfflineStorageMigrator)
+
 	const offlineDbFacade = new OfflineDbFacade(offlineDbFactory)
-	const offlineStorage = new OfflineStorage(offlineDbFacade, new WorkerDateProvider())
-	await offlineStorage.init(userId, offlineDatabaseTestKey)
+	const offlineStorage = new OfflineStorage(offlineDbFacade, new WorkerDateProvider(), migratorMock)
+	await offlineStorage.init(userId, offlineDatabaseTestKey, 42)
 	return offlineStorage
 }
 

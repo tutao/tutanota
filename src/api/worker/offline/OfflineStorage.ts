@@ -8,19 +8,20 @@ import {
 	listIdPart,
 	timestampToGeneratedId
 } from "../../common/utils/EntityUtils.js"
-import {ExposedCacheStorage, CacheStorage, expandId} from "./EntityRestCache.js"
+import {ExposedCacheStorage, CacheStorage, expandId} from "../rest/EntityRestCache.js"
 import * as cborg from "cborg"
 import {EncodeOptions, Token, Type} from "cborg"
 import {assert, DAY_IN_MILLIS, groupByAndMap, mapNullable, typedKeys, TypeRef} from "@tutao/tutanota-utils"
-import type {OfflineDbFacade} from "../../../desktop/db/OfflineDbFacade"
-import {isOfflineStorageAvailable, isTest} from "../../common/Env"
-import {ProgrammingError} from "../../common/error/ProgrammingError"
-import {modelInfos} from "../../common/EntityFunctions"
-import {AccountType, MailFolderType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS} from "../../common/TutanotaConstants"
-import {DateProvider} from "../../common/DateProvider"
+import type {OfflineDbFacade} from "../../../desktop/db/OfflineDbFacade.js"
+import {isOfflineStorageAvailable, isTest} from "../../common/Env.js"
+import {ProgrammingError} from "../../common/error/ProgrammingError.js"
+import {modelInfos} from "../../common/EntityFunctions.js"
+import {AccountType, MailFolderType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS} from "../../common/TutanotaConstants.js"
+import {DateProvider} from "../../common/DateProvider.js"
 import {TokenOrNestedTokens} from "cborg/types/interface"
-import {FileTypeRef, MailBodyTypeRef, MailFolderTypeRef, MailHeadersTypeRef, MailTypeRef} from "../../entities/tutanota/TypeRefs"
-import {UserTypeRef} from "../../entities/sys/TypeRefs"
+import {FileTypeRef, MailBodyTypeRef, MailFolderTypeRef, MailHeadersTypeRef, MailTypeRef} from "../../entities/tutanota/TypeRefs.js"
+import {UserTypeRef} from "../../entities/sys/TypeRefs.js"
+import {OfflineStorageMigrator} from "./OfflineStorageMigrator.js"
 
 function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNestedTokens | null {
 	return [
@@ -45,7 +46,7 @@ export const customTypeDecoders: Array<TypeDecoder> = (() => {
 	return tags
 })()
 
-type Apps = keyof typeof modelInfos
+export type Apps = keyof typeof modelInfos
 
 type AppMetadataEntries = {
 	// Yes this is cursed, give me a break
@@ -63,30 +64,28 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	constructor(
 		private readonly offlineDbFacade: OfflineDbFacade,
 		private readonly dateProvider: DateProvider,
+		private readonly migrator: OfflineStorageMigrator,
 	) {
 		assert(isOfflineStorageAvailable() || isTest(), "Offline storage is not available.")
 	}
 
-	async init(userId: Id, databaseKey: Aes256Key): Promise<void> {
+	/**
+	 * @return {boolean} whether the database was newly created or not
+	 */
+	async init(userId: Id, databaseKey: Aes256Key, timeRangeDays: number | null): Promise<boolean> {
 		this._userId = userId
 
 		// We open database here and it is closed in the native side when the window is closed or the page is reloaded
 		await this.offlineDbFacade.openDatabaseForUser(userId, databaseKey)
 
-		for (const app of typedKeys(modelInfos)) {
-			const storedVersion = await this.getMetadata(`${app}-version`)
-			const runtimeVersion = modelInfos[app].version
-			if (storedVersion != null && storedVersion !== runtimeVersion) {
-				console.log(`Detected incompatible model version for ${app}, stored: ${storedVersion}, runtime: ${runtimeVersion}, purging db for ${userId}`)
-				await this.offlineDbFacade.deleteAll(userId)
-				break
-			}
-		}
+		await this.migrator.migrate(this)
 
-		for (const app of typedKeys(modelInfos)) {
-			const runtimeVersion = modelInfos[app].version
-			await this.putMetadata(`${app}-version`, runtimeVersion)
-		}
+		// if nothing is written here, it means it's a new database
+		const isNewOfflineDb = await this.getLastUpdateTime() == null
+
+		await this.clearExcludedData(timeRangeDays)
+
+		return isNewOfflineDb
 	}
 
 	private get userId(): Id {
@@ -197,7 +196,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	 * Clear out unneeded data from the offline database (i.e. trash and spam lists, old data)
 	 * @param timeRangeDays: the maxiumum age of days that mails should be to be kept in the database. if null, will use a default value
 	 */
-	async clearExcludedData(timeRangeDays: number | null): Promise<void> {
+	private async clearExcludedData(timeRangeDays: number | null): Promise<void> {
 
 		const user = await this.get(UserTypeRef, null, this.userId)
 
@@ -307,5 +306,14 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 
 	private async getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>> {
 		return this.deserializeList(typeRef, await this.offlineDbFacade.getWholeList(this.userId, this.getTypeId(typeRef), listId))
+	}
+
+	async dumpMetadata(): Promise<Partial<OfflineDbMeta>> {
+		const stored = await this.offlineDbFacade.dumpMetadata(this.userId)
+		return Object.fromEntries(stored.map(([key, value]) => [key, cborg.decode(value)])) as OfflineDbMeta
+	}
+
+	async setStoredModelVersion(model: keyof typeof modelInfos, version: number) {
+		return this.putMetadata(`${model}-version`, version)
 	}
 }

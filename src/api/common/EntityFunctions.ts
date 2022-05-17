@@ -54,6 +54,7 @@ export const modelInfos = {
 	gossip: gossipModelInfo,
 	storage: storageModelInfo,
 } as const
+export type ModelInfos = typeof modelInfos
 
 export async function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {
 	// @ts-ignore

@@ -1,7 +1,7 @@
 import {Database, default as sqlite} from "better-sqlite3"
 import {firstBiggerThanSecond} from "../../api/common/utils/EntityUtils"
 import {bitArrayToUint8Array, CryptoError} from "@tutao/tutanota-crypto"
-import {OfflineDbMeta} from "../../api/worker/rest/OfflineStorage"
+import {OfflineDbMeta} from "../../api/worker/offline/OfflineStorage.js"
 import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
 
 export interface PersistedEntity {
@@ -258,6 +258,12 @@ export class OfflineDb {
 
 		this.db.prepare(query)
 			.run(elementIds, {type, listId})
+	}
+
+	dumpMetadata(): Array<[string, Uint8Array]> {
+		return this.db.prepare("SELECT * from metadata")
+			.all()
+			.map(row => [row.key, new Uint8Array(row.value.buffer)])
 	}
 }
 

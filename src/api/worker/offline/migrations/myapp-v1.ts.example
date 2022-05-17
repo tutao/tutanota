@@ -1,0 +1,15 @@
+/**
+ * @file This is an example file for your migrations. Simply copy it and rename the file so that it is of format like base-v1.ts.
+ * Then add it to the OFFLINE_STORAGE_MIGRATIONS in OfflineStorageMigrator.ts
+ */
+
+import {OfflineMigration} from "../OfflineStorageMigrator.js"
+import {OfflineStorage} from "../OfflineStorage.js"
+
+export const myapp1: OfflineMigration = {
+	app: "myapp",
+	version: 1,
+	async migrate(storage: OfflineStorage) {
+	  // migration code here
+	}
+}

@@ -1,5 +1,5 @@
 import {OfflineDb, PersistedEntity} from "./OfflineDb"
-import {OfflineDbMeta} from "../../api/worker/rest/OfflineStorage"
+import {OfflineDbMeta} from "../../api/worker/offline/OfflineStorage.js"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 
 export interface OfflineDbFactory {
@@ -123,6 +123,10 @@ export class OfflineDbFacade {
 
 	async putMetadata<K extends keyof OfflineDbMeta>(userId: Id, key: K, value: Uint8Array): Promise<void> {
 		return this.getDbForUserId(userId).putMetadata(key, value)
+	}
+
+	async dumpMetadata(userId: Id): Promise<Array<[string, Uint8Array]>> {
+		return this.getDbForUserId(userId).dumpMetadata()
 	}
 
 	async deleteRange(userId: Id, type: string, listId: string) {

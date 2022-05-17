@@ -1,9 +1,10 @@
 import o from "ospec"
-import {LateInitializedCacheStorageImpl} from "../../../../../src/api/worker/rest/CacheStorageProxy.js"
-import {WorkerImpl} from "../../../../../src/api/worker/WorkerImpl.js"
 import {func, instance, when} from "testdouble"
-import {OfflineStorage} from "../../../../../src/api/worker/rest/OfflineStorage.js"
 import {verify} from "@tutao/tutanota-test-utils"
+import {LateInitializedCacheStorageImpl} from "../../../../../src/api/worker/rest/CacheStorageProxy.js"
+import {OfflineStorage} from "../../../../../src/api/worker/offline/OfflineStorage.js"
+import {WorkerImpl} from "../../../../../src/api/worker/WorkerImpl.js"
+import {uint8ArrayToBitArray} from "@tutao/tutanota-crypto"
 
 o.spec("CacheStorageProxy", function () {
 
@@ -60,30 +61,22 @@ o.spec("CacheStorageProxy", function () {
 			o(isPersistent).equals(false)
 		})
 
-		o("will flag newDatabase as true when no metdata is stored", async function () {
+		o("will flag newDatabase as true when offline storage says it is", async function () {
 			when(offlineStorageProviderMock()).thenResolve(offlineStorageMock)
-			when(offlineStorageMock.getLastUpdateTime()).thenResolve(null)
+			when(offlineStorageMock.init(userId, uint8ArrayToBitArray(databaseKey), null)).thenResolve(true)
 
 			const {isNewOfflineDb} = await proxy.initialize({userId, databaseKey, timeRangeDays: null})
 
 			o(isNewOfflineDb).equals(true)
 		})
 
-		o("will flag newDatabase as false when metdata is stored", async function () {
+		o("will flag newDatabase as false when offline storage says it is not", async function () {
 			when(offlineStorageProviderMock()).thenResolve(offlineStorageMock)
-			when(offlineStorageMock.getLastUpdateTime()).thenResolve(Date.now())
+			when(offlineStorageMock.init(userId, uint8ArrayToBitArray(databaseKey), null)).thenResolve(false)
 
 			const {isNewOfflineDb} = await proxy.initialize({userId, databaseKey, timeRangeDays: null})
 
 			o(isNewOfflineDb).equals(false)
-		})
-
-		o("will clear excluded data from the offline database with the provided time range", async function () {
-			when(offlineStorageProviderMock()).thenResolve(offlineStorageMock)
-
-			await proxy.initialize({userId, databaseKey, timeRangeDays: 42})
-
-			verify(offlineStorageMock.clearExcludedData(42))
 		})
 
 		o("will fall back to an ephemeral storage when there is an error, and error is caught but sent to the worker", async function () {

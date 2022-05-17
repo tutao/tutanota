@@ -9,6 +9,7 @@ import {externalTranslationsPlugin, keytarNativePlugin, libDeps, preludeEnvPlugi
 import {fileURLToPath} from "url"
 import * as LaunchHtml from "./LaunchHtml.js"
 import os from "os"
+import {checkOfflineDatabaseMigrations} from "./checkOfflineDbMigratons.js"
 
 export async function runDevBuild({stage, host, desktop, clean}) {
 	if (clean) {
@@ -16,6 +17,8 @@ export async function runDevBuild({stage, host, desktop, clean}) {
 			await fs.emptyDir("build")
 		})
 	}
+
+	await runStep("Validate", () => checkOfflineDatabaseMigrations())
 
 	await runStep("Packages", async () => {
 		await $`npm run build-runtime-packages`

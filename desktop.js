@@ -9,6 +9,7 @@ import {dirname} from "path"
 import {fileURLToPath} from "url"
 import {createHtml} from "./buildSrc/createHtml.js"
 import {Argument, program} from "commander"
+import {checkOfflineDatabaseMigrations} from "./buildSrc/checkOfflineDbMigratons.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -51,6 +52,8 @@ async function doBuild(opts) {
 	try {
 		measure()
 		const version = getTutanotaAppVersion()
+
+		await checkOfflineDatabaseMigrations()
 
 		if (opts.existing) {
 			console.log("Found existing option (-e). Skipping Webapp build.")

@@ -2,7 +2,7 @@ import {CacheStorage, Range} from "./EntityRestCache"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {ListElementEntity, SomeEntity} from "../../common/EntityTypes"
 import {TypeRef} from "@tutao/tutanota-utils"
-import {OfflineStorage} from "./OfflineStorage"
+import {OfflineStorage} from "../offline/OfflineStorage.js"
 import {WorkerImpl} from "../WorkerImpl"
 import {uint8ArrayToKey} from "@tutao/tutanota-crypto"
 import {EphemeralCacheStorage} from "./EphemeralCacheStorage"
@@ -69,13 +69,7 @@ export class LateInitializedCacheStorageImpl implements LateInitializedCacheStor
 			try {
 				const storage = await this.offlineStorageProvider()
 				if (storage != null) {
-					await storage.init(args.userId, uint8ArrayToKey(args.databaseKey))
-
-					// if nothing is written here, it means it's a new database
-					const isNewOfflineDb = await storage.getLastUpdateTime() == null
-
-					await storage.clearExcludedData(args.timeRangeDays)
-
+					const isNewOfflineDb = await storage.init(args.userId, uint8ArrayToKey(args.databaseKey), args.timeRangeDays)
 					return {
 						storage,
 						isPersistent: true,
