@@ -13,7 +13,6 @@ import {px, size as sizes} from "./size.js"
 import {BootIcons} from "./base/icons/BootIcons.js"
 import type {SearchBar} from "../search/SearchBar.js"
 import type {IMainLocator} from "../api/main/MainLocator.js"
-import {locator} from "../api/main/MainLocator.js"
 import {client} from "../misc/ClientDetector.js"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../misc/RouteChange.js"
 import {AriaLandmarks, landmarkAttrs} from "./AriaUtils.js"
@@ -46,25 +45,20 @@ export class Header implements Component {
 
 	private currentView: CurrentView | null = null // decoupled from ViewSlider implementation to reduce size of bootstrap bundle
 	private readonly shortcuts: Shortcut[]
-	private readonly offlineIndicatorModel = new OfflineIndicatorViewModel(
-		locator.cacheStorage,
-		locator.loginListener,
-		locator.worker,
-		logins,
-		() => m.redraw()
-	)
+	private offlineIndicatorModel: OfflineIndicatorViewModel = new OfflineIndicatorViewModel(() => m.redraw())
 
 	constructor() {
 		this.shortcuts = this.setupShortcuts()
 
-		const worker = locator.worker
-		this.offlineIndicatorModel.setWsStateStream(worker.wsConnection())
-		worker.initialized.then(() => {
-			import("../search/SearchBar.js").then(({SearchBar}) => {
-				this.searchBar = new SearchBar()
-			})
-			this.offlineIndicatorModel.setProgressUpdateStream(locator.progressTracker.onProgressUpdate)
+		import("../api/main/MainLocator.js").then(async mod => {
+			await mod.locator.initialized
+			const worker = mod.locator.worker
+			this.offlineIndicatorModel.init(mod.locator, logins)
+			await worker.initialized
+			const {SearchBar} = await import("../search/SearchBar.js")
+			this.searchBar = new SearchBar()
 		})
+
 		// we may be able to remove this when we stop creating the Header with new
 		this.view = this.view.bind(this)
 		this.onremove = this.onremove.bind(this)

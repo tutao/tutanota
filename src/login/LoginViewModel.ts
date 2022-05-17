@@ -286,7 +286,7 @@ export class LoginViewModel implements ILoginViewModel {
 						await this._onLogin()
 					} else {
 						this.state = LoginState.NotAuthenticated
-						this.helpText = "offlineLoginRequiresPremium_msg"
+						this.helpText = "offlineStoragePremiumOnly_msg"
 					}
 				}
 			}

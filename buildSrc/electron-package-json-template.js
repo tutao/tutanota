@@ -73,7 +73,7 @@ export default async function generateTemplate({nameSuffix, version, updateUrl, 
 			"electron-updater": await getInstalledModuleVersion("electron-updater", log),
 		},
 		"build": {
-			"electronVersion": getElectronVersion(log),
+			"electronVersion": await getElectronVersion(log),
 			"icon": iconPath,
 			"appId": appId,
 			"productName": nameSuffix.length > 0
