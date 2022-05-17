@@ -1,41 +1,61 @@
-import {createUser, UserTypeRef} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {createGroupMembership} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {DbTransaction} from "../../../../../src/api/worker/search/DbFacade.js"
-import {ENTITY_EVENT_BATCH_TTL_DAYS, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType,} from "../../../../../src/api/common/TutanotaConstants.js"
+import {
+	createEntityEventBatch,
+	createEntityUpdate,
+	createGroupMembership,
+	createUser,
+	EntityEventBatchTypeRef,
+	GroupInfoTypeRef,
+	UserTypeRef,
+	WhitelabelChildTypeRef
+} from "../../../../../src/api/entities/sys/TypeRefs.js"
+import {DbFacade, DbTransaction} from "../../../../../src/api/worker/search/DbFacade.js"
+import {
+	ENTITY_EVENT_BATCH_TTL_DAYS,
+	FULL_INDEXED_TIMESTAMP,
+	GroupType,
+	NOTHING_INDEXED_TIMESTAMP,
+	OperationType,
+} from "../../../../../src/api/common/TutanotaConstants.js"
 import {GroupDataOS, Indexer, Metadata, MetaDataOS} from "../../../../../src/api/worker/search/Indexer.js"
-import {createEntityEventBatch, EntityEventBatchTypeRef} from "../../../../../src/api/entities/sys/TypeRefs.js"
 import {NotAuthorizedError} from "../../../../../src/api/common/error/RestError.js"
-import {createEntityUpdate} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {GroupInfoTypeRef} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {ContactTypeRef} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import {MailTypeRef} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import {ContactListTypeRef, ContactTypeRef, createContactList, MailTypeRef} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import {OutOfSyncError} from "../../../../../src/api/common/error/OutOfSyncError.js"
 import {assertThrows, mock, spy} from "@tutao/tutanota-test-utils"
 import {browserDataStub} from "../../../TestUtils.js"
 import type {QueuedBatch} from "../../../../../src/api/worker/search/EventQueue.js"
 import {EntityRestClient} from "../../../../../src/api/worker/rest/EntityRestClient.js"
 import {MembershipRemovedError} from "../../../../../src/api/common/error/MembershipRemovedError.js"
-import {WhitelabelChildTypeRef} from "../../../../../src/api/entities/sys/TypeRefs.js"
 import {GENERATED_MAX_ID, generatedIdToTimestamp, getElementId, timestampToGeneratedId,} from "../../../../../src/api/common/utils/EntityUtils.js"
 import {daysToMillis, defer, downcast, TypeRef} from "@tutao/tutanota-utils"
 import {aes128RandomKey, aes256Encrypt, aes256RandomKey, decrypt256Key, encrypt256Key, fixedIv, IV_BYTE_LENGTH, random,} from "@tutao/tutanota-crypto"
 import {EntityRestCache} from "../../../../../src/api/worker/rest/EntityRestCache.js"
 import o from "ospec"
+import {instance, matchers, object, replace, reset, verify, when} from "testdouble"
+import {WorkerImpl} from "../../../../../src/api/worker/WorkerImpl.js"
+import {CacheInfo} from "../../../../../src/api/worker/facades/LoginFacade.js"
+import {RestClient} from "../../../../../src/api/worker/rest/RestClient.js"
+import {EntityClient} from "../../../../../src/api/common/EntityClient.js"
+import {ContactIndexer} from "../../../../../src/api/worker/search/ContactIndexer.js"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()
-const OUT_OF_DATE_SERVER_TIME = SERVER_TIME - daysToMillis(ENTITY_EVENT_BATCH_TTL_DAYS) - 1000 * 60 * 60 * 24
-const restClientMock: EntityRestClient = downcast({
-	getRestClient() {
-		return {
-			getServerTimestampMs() {
-				return SERVER_TIME
-			},
-		}
-	},
-})
-const entityRestCache: EntityRestCache = downcast({})
-
+let contactList = createContactList()
+contactList._ownerGroup = "ownerGroupId"
+contactList.contacts = "contactListId"
 o.spec("Indexer test", () => {
+
+	const OUT_OF_DATE_SERVER_TIME = SERVER_TIME - daysToMillis(ENTITY_EVENT_BATCH_TTL_DAYS) - 1000 * 60 * 60 * 24
+	const restClientMock: EntityRestClient = downcast({
+		getRestClient() {
+			return {
+				getServerTimestampMs() {
+					return SERVER_TIME
+				},
+			}
+		},
+	})
+	const entityRestCache: EntityRestCache = downcast({})
+
+
 	o("init new db", function (done) {
 		let metadata = {}
 		const expectedKeys = [Metadata.userEncDbKey, Metadata.lastEventIndexTimeMs]
@@ -88,36 +108,33 @@ o.spec("Indexer test", () => {
 					createTransaction: () => Promise.resolve(transaction),
 				}
 				mock._contact.indexFullContactList = o.spy(() => Promise.resolve())
+				mock._contact.getIndexTimestamp = o.spy(() => Promise.resolve(NOTHING_INDEXED_TIMESTAMP))
 				mock._groupInfo.indexAllUserAndTeamGroupInfosForAdmin = o.spy(() => Promise.resolve())
 				mock._mail.indexMailboxes = o.spy(() => Promise.resolve())
 				mock._whitelabelChildIndexer.indexAllWhitelabelChildrenForAdmin = o.spy(() => Promise.resolve())
 				mock._loadPersistentGroupData = o.spy(() => Promise.resolve(persistentGroupData))
 				mock._loadNewEntities = o.spy(async () => {
 				})
+				mock._entity.loadRoot = o.spy(() => Promise.resolve(contactList))
 			},
 		)
 		let user = createUser()
 		user.userGroup = createGroupMembership()
 		user.userGroup.group = "user-group-id"
 		let userGroupKey = aes128RandomKey()
+
 		indexer.init({user, userGroupKey}).then(() => {
-			// @ts-ignore
 			o(indexer._loadGroupData.args).deepEquals([user])
-			// @ts-ignore
 			o(indexer._initGroupData.args[0]).deepEquals(groupBatches)
 			o(metadata[Metadata.mailIndexingEnabled]).equals(false)
 			o(decrypt256Key(userGroupKey, metadata[Metadata.userEncDbKey])).deepEquals(indexer.db.key)
-			// @ts-ignore
-			o(indexer._contact.indexFullContactList.args).deepEquals([user.userGroup.group])
-			// @ts-ignore
+			o(indexer._entity.loadRoot.args).deepEquals([ContactListTypeRef, user.userGroup.group])
+			o(indexer._contact.indexFullContactList.callCount).equals(1)
+			o(indexer._contact.indexFullContactList.args).deepEquals([contactList])
 			o(indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin.args).deepEquals([user])
-			// @ts-ignore
 			o(indexer._whitelabelChildIndexer.indexAllWhitelabelChildrenForAdmin.callCount).equals(1)
-			// @ts-ignore
 			o(indexer._mail.indexMailboxes.callCount).equals(1)
-			// @ts-ignore
 			o(indexer._loadPersistentGroupData.args).deepEquals([user])
-			// @ts-ignore
 			o(indexer._loadNewEntities.args).deepEquals([persistentGroupData])
 			done()
 		})
@@ -174,6 +191,7 @@ o.spec("Indexer test", () => {
 				mock._updateGroups = o.spy(() => Promise.resolve())
 				mock._mail.updateCurrentIndexTimestamp = o.spy(() => Promise.resolve())
 				mock._contact.indexFullContactList = o.spy(() => Promise.resolve())
+				mock._contact.getIndexTimestamp = o.spy(() => Promise.resolve(FULL_INDEXED_TIMESTAMP))
 				mock._contact.suggestionFacade.load = o.spy(() => Promise.resolve())
 				mock._groupInfo.indexAllUserAndTeamGroupInfosForAdmin = o.spy(() => Promise.resolve())
 				mock._groupInfo.suggestionFacade.load = o.spy(() => Promise.resolve())
@@ -182,6 +200,7 @@ o.spec("Indexer test", () => {
 				mock._loadPersistentGroupData = o.spy(() => Promise.resolve(persistentGroupData))
 				mock._loadNewEntities = o.spy(async () => {
 				})
+				mock._entity.loadRoot = o.spy(() => Promise.resolve(contactList))
 			},
 		)
 		let user = createUser()
@@ -189,21 +208,14 @@ o.spec("Indexer test", () => {
 		user.userGroup.group = "user-group-id"
 		indexer.init({user, userGroupKey}).then(() => {
 			o(indexer.db.key).deepEquals(dbKey)
-			// @ts-ignore
 			o(indexer._loadGroupDiff.args).deepEquals([user])
-			// @ts-ignore
 			o(indexer._updateGroups.args).deepEquals([user, groupDiff])
-			// @ts-ignore
-			o(indexer._contact.indexFullContactList.args).deepEquals([user.userGroup.group])
-			// @ts-ignore
+			o(indexer._entity.loadRoot.args).deepEquals([ContactListTypeRef, user.userGroup.group])
+			o(indexer._contact.indexFullContactList.callCount).equals(0)
 			o(indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin.args).deepEquals([user])
-			// @ts-ignore
 			o(indexer._loadPersistentGroupData.args).deepEquals([user])
-			// @ts-ignore
 			o(indexer._loadNewEntities.args).deepEquals([persistentGroupData])
-			// @ts-ignore
 			o(indexer._contact.suggestionFacade.load.callCount).equals(1)
-			// @ts-ignore
 			o(indexer._groupInfo.suggestionFacade.load.callCount).equals(1)
 			done()
 		})
@@ -261,10 +273,12 @@ o.spec("Indexer test", () => {
 				mock._updateGroups = o.spy(() => Promise.resolve())
 				mock._mail.updateCurrentIndexTimestamp = o.spy(() => Promise.resolve())
 				mock._contact.indexFullContactList = o.spy(() => Promise.resolve())
+				mock._contact.getIndexTimestamp = o.spy(() => Promise.resolve(FULL_INDEXED_TIMESTAMP))
 				mock._groupInfo.indexAllUserAndTeamGroupInfosForAdmin = o.spy(() => Promise.resolve())
 				mock._loadPersistentGroupData = o.spy(() => Promise.resolve(persistentGroupData))
 				mock._loadNewEntities = o.spy(() => Promise.reject(new OutOfSyncError("is out of sync ;-)")))
 				mock.disableMailIndexing = o.spy()
+				mock._entity.loadRoot = o.spy(() => Promise.resolve(contactList))
 			},
 		)
 		let user = createUser()
@@ -272,17 +286,12 @@ o.spec("Indexer test", () => {
 		user.userGroup.group = "user-group-id"
 		await indexer.init({user, userGroupKey})
 		o(indexer.db.key).deepEquals(dbKey)
-		// @ts-ignore
 		o(indexer._loadGroupDiff.args).deepEquals([user])
-		// @ts-ignore
 		o(indexer._updateGroups.args).deepEquals([user, groupDiff])
-		// @ts-ignore
-		o(indexer._contact.indexFullContactList.args).deepEquals([user.userGroup.group])
-		// @ts-ignore
+		o(indexer._entity.loadRoot.args).deepEquals([ContactListTypeRef, user.userGroup.group])
+		o(indexer._contact.indexFullContactList.callCount).equals(0)
 		o(indexer._groupInfo.indexAllUserAndTeamGroupInfosForAdmin.args).deepEquals([user])
-		// @ts-ignore
 		o(indexer._loadPersistentGroupData.args).deepEquals([user])
-		// @ts-ignore
 		o(indexer._loadNewEntities.args).deepEquals([persistentGroupData])
 	})
 	o("_loadGroupDiff", function (done) {
@@ -1273,5 +1282,94 @@ o.spec("Indexer test", () => {
 		// two batches of which the oldest is very old, so the newest id is returned minus 1 ms.
 		let veryOld = timestampToGeneratedId(generatedIdToTimestamp("L0JcCm1-----") - 1000 * 60 * 10)
 		o(indexer._getStartIdForLoadingMissedEventBatches(["L0JcCm1----", veryOld])).equals(newestMinusOneMinute)
+	})
+
+
+	o.spec("Contact indexing and caching", function () {
+		let indexer: Indexer
+		let user = createUser()
+		user.userGroup = createGroupMembership()
+		user.userGroup.group = "user-group-id"
+		let userGroupKey
+
+		function makeIndexer() {
+			userGroupKey = aes128RandomKey()
+			const workerDouble = instance(WorkerImpl)
+
+			const entityRestClientDouble: EntityRestClient = instance(EntityRestClient)
+			const restClientDouble: RestClient = instance(RestClient)
+			when(restClientDouble.getServerTimestampMs()).thenReturn(SERVER_TIME)
+			when(entityRestClientDouble.getRestClient()).thenReturn(restClientDouble)
+
+			indexer = new Indexer(
+				entityRestClientDouble,
+				workerDouble,
+				browserDataStub,
+				instance(EntityRestCache),
+			)
+			const transactionDouble = object<DbTransaction>()
+			when(transactionDouble.getAll(matchers.anything())).thenResolve([{
+				key: "key",
+				value: "value",
+			}])
+			when(transactionDouble.put(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(null)
+
+
+			const dbFacadeDouble = instance(DbFacade)
+			when(dbFacadeDouble.createTransaction(matchers.anything(), matchers.anything())).thenResolve(transactionDouble)
+			replace(indexer.db, 'dbFacade', dbFacadeDouble)
+
+
+			const entityDouble = instance(EntityClient)
+			when(entityDouble.loadRoot(ContactListTypeRef, user.userGroup.group)).thenResolve(contactList)
+			replace(indexer, '_entity', entityDouble)
+
+			const contactDouble = instance(ContactIndexer)
+			replace(indexer, '_contact', contactDouble)
+		}
+
+		o.beforeEach(function () {
+			makeIndexer()
+		})
+		o.afterEach(function () {
+			reset()
+		})
+
+
+		o("When init() is called and contacts have already been indexed they are not indexed again", async function () {
+			when(indexer._contact.getIndexTimestamp(contactList)).thenResolve(FULL_INDEXED_TIMESTAMP)
+
+			await indexer.init({user, userGroupKey})
+			verify(indexer._contact.indexFullContactList(contactList), {times: 0})
+		})
+
+		o("When init() is called and contacts have not been indexed before, they are indexed", async function () {
+			when(indexer._contact.getIndexTimestamp(contactList)).thenResolve(NOTHING_INDEXED_TIMESTAMP)
+			await indexer.init({user, userGroupKey})
+			verify(indexer._contact.indexFullContactList(contactList))
+		})
+
+		o("When init() is called with a fresh db and contacts will not be indexed, they will be downloaded", async function () {
+			when(indexer._contact.getIndexTimestamp(contactList)).thenResolve(FULL_INDEXED_TIMESTAMP)
+			const cacheInfo: CacheInfo = {
+				isPersistent: true,
+				isNewOfflineDb: true
+			}
+
+			await indexer.init({user, userGroupKey, cacheInfo})
+			verify(indexer._entity.loadAll(ContactTypeRef, contactList.contacts))
+		})
+
+		o("When init() is called with a fresh db and contacts are not yet indexed, they will be indexed and not downloaded", async function () {
+			when(indexer._contact.getIndexTimestamp(contactList)).thenResolve(NOTHING_INDEXED_TIMESTAMP)
+			const cacheInfo: CacheInfo = {
+				isPersistent: true,
+				isNewOfflineDb: true
+			}
+			await indexer.init({user, userGroupKey, cacheInfo})
+			verify(indexer._contact.indexFullContactList(contactList))
+			verify(indexer._entity.loadAll(ContactTypeRef, contactList.contacts), {times: 0})
+		})
+
 	})
 })

@@ -1,6 +1,7 @@
 import {ENTITY_EVENT_BATCH_TTL_DAYS, getMembershipGroupType, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
-import {ConnectionError, NotAuthorizedError} from "../../common/error/RestError"
-import {EntityEventBatch, EntityEventBatchTypeRef} from "../../entities/sys/TypeRefs.js"
+import {ConnectionError, NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
+import type {EntityUpdate, GroupMembership, User} from "../../entities/sys/TypeRefs.js"
+import {EntityEventBatch, EntityEventBatchTypeRef, GroupInfoTypeRef, UserTypeRef, WhitelabelChildTypeRef} from "../../entities/sys/TypeRefs.js"
 import type {DatabaseEntry, DbKey, DbTransaction, ObjectStoreName} from "./DbFacade"
 import {b64UserIdHash, DbFacade} from "./DbFacade"
 import type {DeferredObject} from "@tutao/tutanota-utils"
@@ -26,11 +27,7 @@ import type {Db, GroupData} from "./SearchTypes"
 import {IndexingErrorReason} from "./SearchTypes"
 import type {WorkerImpl} from "../WorkerImpl"
 import {ContactIndexer} from "./ContactIndexer"
-import {MailTypeRef} from "../../entities/tutanota/TypeRefs.js"
-import {ContactTypeRef} from "../../entities/tutanota/TypeRefs.js"
-import {GroupInfoTypeRef} from "../../entities/sys/TypeRefs.js"
-import type {User} from "../../entities/sys/TypeRefs.js"
-import {UserTypeRef} from "../../entities/sys/TypeRefs.js"
+import {ContactList, ContactListTypeRef, ContactTypeRef, MailTypeRef} from "../../entities/tutanota/TypeRefs.js"
 import {GroupInfoIndexer} from "./GroupInfoIndexer"
 import {MailIndexer} from "./MailIndexer"
 import {IndexerCore} from "./IndexerCore"
@@ -40,19 +37,17 @@ import {SuggestionFacade} from "./SuggestionFacade"
 import {DbError} from "../../common/error/DbError"
 import type {QueuedBatch} from "./EventQueue"
 import {EventQueue} from "./EventQueue"
-import {WhitelabelChildTypeRef} from "../../entities/sys/TypeRefs.js"
 import {WhitelabelChildIndexer} from "./WhitelabelChildIndexer"
 import {CancelledError} from "../../common/error/CancelledError"
 import {MembershipRemovedError} from "../../common/error/MembershipRemovedError"
 import type {BrowserData} from "../../../misc/ClientConstants"
 import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
 import {LocalTimeDateProvider} from "../DateProvider"
-import type {GroupMembership} from "../../entities/sys/TypeRefs.js"
-import type {EntityUpdate} from "../../entities/sys/TypeRefs.js"
 import {EntityClient} from "../../common/EntityClient"
 import {deleteObjectStores} from "../utils/DbUtils"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, decrypt256Key, encrypt256Key, IV_BYTE_LENGTH, random} from "@tutao/tutanota-crypto"
 import {EntityRestCache} from "../rest/EntityRestCache"
+import {CacheInfo} from "../facades/LoginFacade.js"
 
 export const Metadata = {
 	userEncDbKey: "userEncDbKey",
@@ -82,7 +77,7 @@ interface IndexerInitParams {
 	user: User
 	userGroupKey: Aes128Key
 	retryOnError?: boolean
-	isUsingOfflineCache?: boolean
+	cacheInfo?: CacheInfo
 }
 
 export function newSearchIndexDB(): DbFacade {
@@ -178,15 +173,15 @@ export class Indexer {
 	/**
 	 * Opens a new DbFacade and initializes the metadata if it is not there yet
 	 */
-	async init({user, userGroupKey, retryOnError, isUsingOfflineCache}: IndexerInitParams): Promise<void> {
+	async init({user, userGroupKey, retryOnError, cacheInfo}: IndexerInitParams): Promise<void> {
 		this._initParams = {
 			user,
 			groupKey: userGroupKey,
 		}
 
 		try {
-			if (isUsingOfflineCache != null) {
-				this._mail.setIsUsingOfflineCache(isUsingOfflineCache)
+			if (cacheInfo?.isPersistent) {
+				this._mail.setIsUsingOfflineCache(cacheInfo.isPersistent)
 			}
 			await this.db.dbFacade.open(b64UserIdHash(user))
 			const transaction = await this.db.dbFacade.createTransaction(true, [MetaDataOS])
@@ -210,8 +205,7 @@ export class Indexer {
 			})
 
 			this._core.startProcessing()
-
-			await this._contact.indexFullContactList(user.userGroup.group)
+			await this.indexOrLoadContactListIfNeeded(user, cacheInfo)
 			await this._groupInfo.indexAllUserAndTeamGroupInfosForAdmin(user)
 			await this._whitelabelChildIndexer.indexAllWhitelabelChildrenForAdmin(user)
 			await this._mail.mailboxIndexingPromise
@@ -244,6 +238,26 @@ export class Indexer {
 
 				this._dbInitializedDeferredObject.reject(e)
 
+				throw e
+			}
+		}
+	}
+
+
+	private async indexOrLoadContactListIfNeeded(user: User, cacheInfo: CacheInfo | undefined) {
+		try {
+			const contactList: ContactList = await this._entity.loadRoot(ContactListTypeRef, user.userGroup.group)
+			const indexTimestamp = await this._contact.getIndexTimestamp(contactList)
+			if (indexTimestamp === NOTHING_INDEXED_TIMESTAMP) {
+				await this._contact.indexFullContactList(contactList)
+			}
+			//If we do not have to index the contact list we might still need to download it so we cache it in the offline storage
+			else if (cacheInfo?.isNewOfflineDb) {
+				await this._entity.loadAll(ContactTypeRef, contactList.contacts)
+			}
+		} catch (e) {
+			// external users have no contact list.
+			if (!(e instanceof NotFoundError)) {
 				throw e
 			}
 		}
