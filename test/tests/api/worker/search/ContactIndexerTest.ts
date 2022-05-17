@@ -1,12 +1,16 @@
 import o from "ospec"
-import {ContactTypeRef, createContact} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import {
+	ContactListTypeRef,
+	ContactTypeRef,
+	createContact,
+	createContactAddress,
+	createContactList,
+	createContactMailAddress,
+	createContactPhoneNumber,
+	createContactSocialId
+} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import {ContactIndexer} from "../../../../../src/api/worker/search/ContactIndexer.js"
-import {createContactAddress} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import {createContactMailAddress} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import {createContactPhoneNumber} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import {createContactSocialId} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import {NotAuthorizedError, NotFoundError} from "../../../../../src/api/common/error/RestError.js"
-import {ContactListTypeRef, createContactList} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import {DbTransaction} from "../../../../../src/api/worker/search/DbFacade.js"
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../../../../src/api/common/TutanotaConstants.js"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo} from "../../../../../src/api/worker/search/IndexUtils.js"
@@ -229,7 +233,7 @@ o.spec("ContactIndexer test", () => {
 			}
 		} as any)
 		const contactIndexer = new ContactIndexer(core, core.db, entity, suggestionFacadeMock)
-		return contactIndexer.indexFullContactList(userGroupId).then(() => {
+		return contactIndexer.indexFullContactList(contactList).then(() => {
 			// @ts-ignore
 			const [[{groupId, indexTimestamp}], indexUpdate] = core.writeIndexUpdate.args
 			o(indexTimestamp).equals(FULL_INDEXED_TIMESTAMP)
@@ -243,54 +247,6 @@ o.spec("ContactIndexer test", () => {
 			o(suggestionFacadeMock.store.callCount).equals(1)
 		})
 	})
-
-	o("indexFullContactList already indexed", function () {
-		let groupData = {indexTimestamp: FULL_INDEXED_TIMESTAMP}
-		let transaction: DbTransaction = downcast({
-			get: (os, groupId) => {
-				if (os != GroupDataOS || groupId != contactList._ownerGroup) {
-					throw new Error("unexpected params " + os
-						+ " " + groupId)
-				}
-				return Promise.resolve(groupData)
-			}
-		})
-
-		const core = makeCore({transaction}, (mocked) => {
-			mocked.writeIndexUpdate = o.spy()
-		})
-
-		let userGroupId = "userGroupId"
-		let contactList = createContactList()
-		contactList._ownerGroup = "ownerGroupId"
-		contactList.contacts = "contactListId"
-
-
-		let contacts = [createContact(), createContact()]
-		contacts[0]._id = [contactList.contacts, "c0"]
-		contacts[0]._ownerGroup = "c0owner"
-		contacts[1]._id = [contactList.contacts, "c1"]
-		contacts[1]._ownerGroup = "c1owner"
-
-		let entity = ({
-			loadRoot: (type, groupId) => {
-				if (type != ContactListTypeRef || groupId != userGroupId) {
-					throw new Error("unexpected params " + type
-						+ " " + groupId)
-				}
-				return Promise.resolve(contactList)
-			},
-			loadAll: (type, listId) => {
-				throw new Error("should not be invoked as contacts are already indexed")
-			}
-		} as any)
-		const contactIndexer = new ContactIndexer(core, core.db, entity, (null as any))
-		return contactIndexer.indexFullContactList(userGroupId).then(() => {
-			// @ts-ignore
-			o(core.writeIndexUpdate.callCount).equals(0)
-		})
-	})
-
 	o("processEntityEvents new contact", async function () {
 		const core = makeCore({}, (mocked) => {
 			mocked.writeIndexUpdate = o.spy()
