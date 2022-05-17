@@ -42,7 +42,7 @@ export class FolderColumnView implements Component<Attrs> {
 				},
 			}),
 			m(".folder-column.flex-grow.overflow-x-hidden.flex.col" + landmarkAttrs(AriaLandmarks.Navigation, lang.getMaybeLazy(attrs.ariaLabel)), [
-				m(".mlr-l.mt.mb", this.renderMainButton(attrs)),
+				this.renderMainButton(attrs),
 				m(
 					".scroll.overflow-x-hidden.flex.col.flex-grow",
 					{
@@ -62,9 +62,9 @@ export class FolderColumnView implements Component<Attrs> {
 	}
 
 	private renderMainButton(attrs: Attrs): Children {
-		return attrs.button ? m(FolderColumnHeaderButton, {
+		return attrs.button ? m(".mlr-l.mt.mb", m(FolderColumnHeaderButton, {
 			label: attrs.button.label,
 			click: attrs.button.click,
-		}) : null
+		})) : null
 	}
 }
