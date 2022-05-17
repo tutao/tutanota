@@ -227,7 +227,7 @@ o.spec("LoginViewModelTest", () => {
 	o.spec("Login with stored credentials", function () {
 		const offlineTimeRangeDays = 42
 		o.beforeEach(() => {
-			when(deviceConfigMock.getOfflineTimeRangeDays()).thenReturn(offlineTimeRangeDays)
+			when(deviceConfigMock.getOfflineTimeRangeDays(testCredentials.userId)).thenReturn(offlineTimeRangeDays)
 		})
 		o("login should succeed with valid stored credentials", async function () {
 			await credentialsProviderMock.store({credentials: testCredentials, databaseKey: null})

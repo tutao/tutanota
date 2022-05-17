@@ -93,7 +93,7 @@ o.spec("DeviceConfig", function () {
 				_testDeviceId: "testId",
 				_testAssignments: null,
 				_signupToken: "signupToken",
-				offlineTimeRangeDays: 42,
+				offlineTimeRangeDaysByUser: { "userId1": 42},
 			}
 
 			when(localStorageMock.getItem(DeviceConfig.LocalStorageKey)).thenReturn(JSON.stringify(storedInLocalStorage))

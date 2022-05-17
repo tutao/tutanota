@@ -46,7 +46,7 @@ export class OfflineStorageSettingsModel {
 
 	async setTimeRange(days: number): Promise<void> {
 		this.assertAvailable()
-		await this.deviceConfig.setOfflineTimeRangeDays(days)
+		await this.deviceConfig.setOfflineTimeRangeDays(this.userController.userId, days)
 		this.timeRange = days
 	}
 
@@ -55,7 +55,7 @@ export class OfflineStorageSettingsModel {
 			this.isEnabled = await this.systemApp().getConfigValue(DesktopConfigKey.offlineStorageEnabled)
 
 			if (this.isEnabled) {
-				const stored = this.deviceConfig.getOfflineTimeRangeDays()
+				const stored = this.deviceConfig.getOfflineTimeRangeDays(this.userController.userId)
 				if (stored != null) {
 					this.timeRange = stored
 				}
