@@ -57,6 +57,7 @@ import {AlarmService} from "../../entities/sys/Services"
 import {CalendarService} from "../../entities/tutanota/Services"
 import {resolveTypeReference} from "../../common/EntityFunctions"
 import {UserFacade} from "./UserFacade"
+import {isOfflineError} from "../../common/utils/ErrorCheckUtils.js"
 
 assertWorkerOrNode()
 
@@ -126,7 +127,7 @@ export class CalendarFacade {
 		const numEvents = eventsWrapper.length
 		const eventsWithAlarms: Array<AlarmNotificationsPerEvent> = await this._saveMultipleAlarms(user, eventsWrapper).catch(
 			ofClass(SetupMultipleError, e => {
-				if (e.errors.some(error => error instanceof ConnectionError)) {
+				if (e.errors.some(isOfflineError)) {
 					//In this case the user will not be informed about the number of failed alarms. We considered this is okay because it is not actionable anyways.
 					throw new ConnectionError("Connection lost while saving alarms")
 				} else {
@@ -176,7 +177,7 @@ export class CalendarFacade {
 		await this.worker.sendProgress(100)
 
 		if (failed !== 0) {
-			if (errors.some(error => error instanceof ConnectionError)) {
+			if (errors.some(isOfflineError)) {
 				//In this case the user will not be informed about the number of failed events. We considered this is okay because it is not actionable anyways.
 				throw new ConnectionError("Connection lost while saving events")
 			} else {

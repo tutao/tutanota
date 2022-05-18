@@ -28,7 +28,7 @@ import {createNewContact, getDisplayText, RecipientField, resolveRecipientInfo, 
 import {Bubble, BubbleTextField} from "../../gui/base/BubbleTextField"
 import type {RecipientInfoBubble, RecipientInfoBubbleFactory} from "../../misc/RecipientInfoBubbleHandler"
 import {RecipientInfoBubbleHandler} from "../../misc/RecipientInfoBubbleHandler"
-import {ConnectionError, TooManyRequestsError} from "../../api/common/error/RestError"
+import {TooManyRequestsError} from "../../api/common/error/RestError"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import type {ContactModel} from "../../contacts/model/ContactModel"
@@ -36,6 +36,7 @@ import {locator} from "../../api/main/MainLocator"
 import {FileReference} from "../../api/common/utils/FileUtils";
 import {DataFile} from "../../api/common/DataFile";
 import Stream from "mithril/stream";
+import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 
 export function chooseAndAttachFile(
 	model: SendMailModel,
@@ -259,16 +260,15 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 		} else {
 			resolveRecipientInfo(this.model.mailFacade(), recipientInfo)
 				.then(() => m.redraw())
-				.catch(
-					ofClass(ConnectionError, e => {
+				.catch((e) => {
+					if (isOfflineError(e)) {
 						// we are offline but we want to show the error dialog only when we click on send.
-					}),
-				)
-				.catch(
-					ofClass(TooManyRequestsError, e => {
-						Dialog.message("tooManyAttempts_msg")
-					}),
-				)
+					} else if (e instanceof TooManyRequestsError) {
+						return Dialog.message("tooManyAttempts_msg")
+					} else {
+						throw e
+					}
+				})
 		}
 
 		return bubble

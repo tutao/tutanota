@@ -1,13 +1,12 @@
 import {Dialog} from "../gui/base/Dialog"
 import {convertToDataFile, createDataFile, DataFile} from "../api/common/DataFile"
 import {assertMainOrNode, isAndroidApp, isApp, isDesktop, isIOSApp} from "../api/common/Env"
-import {assertNotNull, isNotNull, neverNull, noOp, ofClass, promiseMap, sortableTimestamp} from "@tutao/tutanota-utils"
+import {assertNotNull, isNotNull, neverNull, noOp, promiseMap, sortableTimestamp} from "@tutao/tutanota-utils"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {CryptoError} from "../api/common/error/CryptoError"
 import {lang, TranslationKey} from "../misc/LanguageViewModel"
 import {BrowserType} from "../misc/ClientConstants"
 import {client} from "../misc/ClientDetector"
-import {ConnectionError} from "../api/common/error/RestError"
 import {File as TutanotaFile} from "../api/entities/tutanota/TypeRefs.js"
 import {deduplicateFilenames, FileReference, sanitizeFilename} from "../api/common/utils/FileUtils"
 import {CancelledError} from "../api/common/error/CancelledError"
@@ -16,6 +15,7 @@ import {ArchiveDataType} from "../api/common/TutanotaConstants"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {BlobFacade} from "../api/worker/facades/BlobFacade"
 import {FileFacade} from "../api/worker/facades/FileFacade"
+import {isOfflineError} from "../api/common/utils/ErrorCheckUtils.js"
 
 assertMainOrNode()
 export const CALENDAR_MIME_TYPE = "text/calendar"
@@ -61,18 +61,16 @@ export class FileController {
 			}
 		})
 		return showProgressDialog("pleaseWait_msg", downloadPromise.then(noOp))
-			.catch(
-				ofClass(CryptoError, e => {
-					console.log(e)
+			.catch((e) => {
+				console.log("downloadAndOpen error", e)
+				if (e instanceof CryptoError) {
 					return Dialog.message("corrupted_msg")
-				}),
-			)
-			.catch(
-				ofClass(ConnectionError, e => {
-					console.log(e)
+				} else if (isOfflineError(e)) {
 					return Dialog.message("couldNotAttachFile_msg")
-				}),
-			)
+				} else {
+					throw e
+				}
+			})
 	}
 
 	/**
@@ -81,13 +79,22 @@ export class FileController {
 	async downloadAll(tutanotaFiles: Array<TutanotaFile>): Promise<void> {
 		const showErr = (msg: TranslationKey, name: string) => Dialog.message(() => lang.get(msg) + " " + name).then(() => null)
 
+		function handleError(e: Error, file: TutanotaFile) {
+			if (isOfflineError(e)) {
+				return showErr("couldNotAttachFile_msg", file.name)
+			} else if (e instanceof CryptoError) {
+				return showErr("corrupted_msg", file.name)
+			} else {
+				throw e
+			}
+		}
+
 		if (isAndroidApp()) {
 			const fileResults = await promiseMap(
 				tutanotaFiles,
 				(f) =>
 					this.downloadAndDecryptNative(f)
-						.catch(ofClass(CryptoError, () => showErr("corrupted_msg", f.name)))
-						.catch(ofClass(ConnectionError, () => showErr("couldNotAttachFile_msg", f.name))),
+						.catch((e) => handleError(e, f))
 			)
 			const files = fileResults.filter(isNotNull)
 			for (const file of files) {
@@ -98,8 +105,7 @@ export class FileController {
 				tutanotaFiles,
 				(f) =>
 					this.downloadAndDecryptNative(f)
-						.catch(ofClass(CryptoError, () => showErr("corrupted_msg", f.name)))
-						.catch(ofClass(ConnectionError, () => showErr("couldNotAttachFile_msg", f.name))),
+						.catch((e) => handleError(e, f))
 			)
 			const files = fileResults.filter(isNotNull)
 			for (const file of files) {
@@ -110,8 +116,7 @@ export class FileController {
 				tutanotaFiles,
 				(f) =>
 					this.downloadAndDecryptBrowser(f)
-						.catch(ofClass(CryptoError, () => showErr("corrupted_msg", f.name)))
-						.catch(ofClass(ConnectionError, () => showErr("couldNotAttachFile_msg", f.name))),
+						.catch((e) => handleError(e, f))
 			)
 			const files = fileResults.filter(isNotNull)
 			const zip = await this.zipDataFiles(files, `${sortableTimestamp()}-attachments.zip`)
@@ -289,7 +294,7 @@ export class FileController {
 			// For apps "opening" DataFile currently means saving and opening it.
 			try {
 				const fileReference = await this.fileApp.saveDataFile(file)
- 				if (isAndroidApp()) {
+				if (isAndroidApp()) {
 					await this.fileApp.putFileIntoDownloadsFolder(fileReference.location)
 					return
 				} else {

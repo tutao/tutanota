@@ -62,6 +62,7 @@ import {CancelledError} from "../../api/common/error/CancelledError"
 import {Shortcut} from "../../misc/KeyManager";
 import {DataFile} from "../../api/common/DataFile";
 import {showUserError} from "../../misc/ErrorHandlerImpl"
+import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -604,7 +605,7 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 			.then(() => saveStatus({status: SaveStatusEnum.Saved}))
 			.catch(e => {
 
-				const reason = e instanceof ConnectionError
+				const reason = isOfflineError(e)
 					? SaveErrorReason.ConnectionLost
 					: SaveErrorReason.Unknown
 

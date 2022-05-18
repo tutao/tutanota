@@ -4,13 +4,13 @@ import {px, size} from "../size"
 import {client} from "../../misc/ClientDetector"
 import {Keys, OperationType, TabIndex} from "../../api/common/TutanotaConstants"
 import type {DeferredObject, MaybeLazy} from "@tutao/tutanota-utils"
-import {addAll, arrayEquals, assertNotNull, debounceStart, defer, last, lastThrow, mapLazily, neverNull, ofClass, remove} from "@tutao/tutanota-utils"
+import {addAll, arrayEquals, assertNotNull, debounceStart, defer, last, lastThrow, mapLazily, neverNull, remove} from "@tutao/tutanota-utils"
 import ColumnEmptyMessageBox from "./ColumnEmptyMessageBox"
 import {progressIcon} from "./Icon"
 import {animations, DefaultAnimationTime, opacity, transform, TransformEnum} from "../animation/Animations"
 import {ease} from "../animation/Easing"
 import {windowFacade} from "../../misc/WindowFacade"
-import {BadRequestError, ConnectionError} from "../../api/common/error/RestError"
+import {BadRequestError} from "../../api/common/error/RestError"
 import {SwipeHandler} from "./SwipeHandler"
 import {applySafeAreaInsetMarginLR} from "../HtmlUtils"
 import {theme} from "../theme"
@@ -23,6 +23,7 @@ import {ButtonN, ButtonType} from "./ButtonN"
 import {LoadingState, LoadingStateTracker} from "../../offline/LoadingState"
 import {lang} from "../../misc/LanguageViewModel"
 import {PosRect} from "./Dropdown"
+import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 
 assertMainOrNode()
 export const ScrollBuffer = 15 // virtual elements that are used as scroll buffer in both directions
@@ -836,13 +837,19 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 	}
 
 	private async loadMore(): Promise<void> {
-		await this.loadingState.trackPromise(this.doLoadMore())
-				  .then(() =>
-					  // If we fetched just a few items we might want to try again
-					  this.loadMoreIfNecessary()
-				  )
-				  .catch(ofClass(ConnectionError, (e) => console.log("connection error in loadMore")))
-				  .finally(() => m.redraw())
+		try {
+			await this.loadingState.trackPromise(this.doLoadMore())
+			// If we fetched just a few items we might want to try again
+			this.loadMoreIfNecessary()
+		} catch (e) {
+			if (isOfflineError(e)) {
+				console.log("connection error in loadMore", e)
+			} else {
+				throw e
+			}
+		} finally {
+			m.redraw()
+		}
 	}
 
 	private async doLoadMore(): Promise<void> {
@@ -1232,9 +1239,19 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 		) {
 			return Promise.resolve(scrollTarget ?? null)
 		} else {
-			return this.loadingState.trackPromise(
-				this.doLoadMore().then(() => this.loadUntil(listElementId))
-			).catch(ofClass(ConnectionError, () => null)).finally(() => m.redraw())
+			try {
+				return await this.loadingState.trackPromise(
+					this.doLoadMore().then(() => this.loadUntil(listElementId))
+				)
+			} catch (e) {
+				if (isOfflineError(e)) {
+					return null
+				} else {
+					throw e
+				}
+			} finally {
+				m.redraw()
+			}
 		}
 	}
 

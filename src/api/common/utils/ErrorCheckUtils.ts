@@ -1,5 +1,7 @@
 import {downcast} from "@tutao/tutanota-utils"
 import type {SomeEntity} from "../EntityTypes"
+import {ConnectionError} from "../error/RestError.js"
+import {LoginIncompleteError} from "../error/LoginIncompleteError.js"
 
 /**
  * Checks if the given instance has an error in the _errors property which is usually written
@@ -11,4 +13,11 @@ import type {SomeEntity} from "../EntityTypes"
 export function hasError<K>(instance: SomeEntity, key?: K): boolean {
 	const downCastedInstance = downcast(instance)
 	return !instance || (!!downCastedInstance._errors && (!key || !!downCastedInstance._errors.key))
+}
+
+/**
+ * Checks whether {@param e} is an error that can error before we are fully logged in and connected.
+ */
+export function isOfflineError(e: Error) {
+	return e instanceof ConnectionError || e instanceof LoginIncompleteError
 }
