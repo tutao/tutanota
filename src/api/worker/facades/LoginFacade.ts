@@ -28,20 +28,25 @@ import {
 } from "../../entities/sys/Services"
 import {AccountType, CloseEventBusOption, OperationType} from "../../common/TutanotaConstants"
 import {CryptoError} from "../../common/error/CryptoError"
+import type {GroupInfo, SaltReturn, SecondFactorAuthData, User} from "../../entities/sys/TypeRefs.js"
 import {
 	createAutoLoginDataGet,
-	createChangePasswordData, createCreateSessionData, createDeleteCustomerData,
+	createChangePasswordData,
+	createCreateSessionData,
+	createDeleteCustomerData,
 	createResetFactorsDeleteData,
-	createSaltData, createSecondFactorAuthGetData, CreateSessionReturn,
-	createTakeOverDeletedAddressData, EntityUpdate, RecoverCodeTypeRef,
-	SessionTypeRef
+	createSaltData,
+	createSecondFactorAuthDeleteData,
+	createSecondFactorAuthGetData,
+	CreateSessionReturn,
+	createTakeOverDeletedAddressData,
+	EntityUpdate,
+	GroupInfoTypeRef,
+	RecoverCodeTypeRef,
+	SessionTypeRef,
+	UserTypeRef
 } from "../../entities/sys/TypeRefs.js"
-import type {SaltReturn} from "../../entities/sys/TypeRefs.js"
-import type {GroupInfo} from "../../entities/sys/TypeRefs.js"
-import {GroupInfoTypeRef} from "../../entities/sys/TypeRefs.js"
 import {createEntropyData, TutanotaPropertiesTypeRef} from "../../entities/tutanota/TypeRefs.js"
-import type {User} from "../../entities/sys/TypeRefs.js"
-import {UserTypeRef} from "../../entities/sys/TypeRefs.js"
 import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../common/Env"
 import {ConnectMode, EventBusClient} from "../EventBusClient"
@@ -75,8 +80,6 @@ import {
 } from "@tutao/tutanota-crypto"
 import {CryptoFacade, encryptBytes, encryptString} from "../crypto/CryptoFacade"
 import {InstanceMapper} from "../crypto/InstanceMapper"
-import {createSecondFactorAuthDeleteData} from "../../entities/sys/TypeRefs.js"
-import type {SecondFactorAuthData} from "../../entities/sys/TypeRefs.js"
 import {Aes128Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
 import {EntropyService} from "../../entities/tutanota/Services"
 import {IServiceExecutor} from "../../common/ServiceRequest"
@@ -84,6 +87,7 @@ import {SessionType} from "../../common/SessionType"
 import {LateInitializedCacheStorage} from "../rest/CacheStorageProxy"
 import {AuthHeadersProvider, UserFacade} from "./UserFacade"
 import {ILoginListener, LoginFailReason} from "../../main/LoginListener"
+import {LoginIncompleteError} from "../../common/error/LoginIncompleteError.js"
 
 assertWorkerOrNode()
 const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
@@ -460,7 +464,23 @@ export class LoginFacadeImpl implements LoginFacade {
 			}
 			this.userFacade.setUser(user)
 			this.loginListener.onPartialLoginSuccess()
-			const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
+
+			// Temporary workaround for the transitional period
+			// Before offline login was enabled (in 3.96.4) we didn't use cache for the login process, only afterwards.
+			// This could lead to a situation where we never loaded or saved user groupInfo but would try to use it now.
+			// We can remove this after a few versions when the bulk of people who enabled offline will upgrade.
+			let userGroupInfo: GroupInfo
+			try {
+				userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
+			} catch (e) {
+				console.log("Could not do start login, groupInfo is not cached, falling back to sync login")
+				if (e instanceof LoginIncompleteError) {
+					return this.finishResumeSession(credentials, externalUserSalt, usingOfflineStorage)
+				} else {
+					throw e
+				}
+			}
+
 			// Start full login async
 			Promise.resolve().then(() => this.asyncResumeSession(credentials, usingOfflineStorage))
 			const data = {
@@ -538,7 +558,11 @@ export class LoginFacadeImpl implements LoginFacade {
 		sessionType: SessionType,
 		usingOfflineStorage: boolean,
 	): Promise<{user: User, accessToken: string, userGroupInfo: GroupInfo}> {
-		let userIdFromFormerLogin = this.userFacade.getUser()?._id ?? null
+		// We might have userId already if:
+		// - session has expired and a new one was created
+		// - if it's an async login
+		// - if we failed an async login
+		const userIdFromFormerLogin = this.userFacade.getUser()?._id ?? null
 
 		if (userIdFromFormerLogin && userId !== userIdFromFormerLogin) {
 			throw new Error("different user is tried to login in existing other user's session")
@@ -564,6 +588,7 @@ export class LoginFacadeImpl implements LoginFacade {
 				this.userFacade.setUser(user)
 				this.loginListener.onPartialLoginSuccess()
 			}
+			const wasFullyLoggedIn = this.userFacade.isFullyLoggedIn()
 
 			this.userFacade.unlockUserGroupKey(userPassphraseKey)
 			const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
@@ -577,10 +602,11 @@ export class LoginFacadeImpl implements LoginFacade {
 
 			await this.loadEntropy()
 
-			// userIdFromFormerLogin is set if session had expired an the user has entered the correct password.
-			// close the event bus and reconnect to make sure we get all missed events
-			if (userIdFromFormerLogin) {
-				this._eventBusClient.tryReconnect(true, true)
+			// If we have been fully logged in at least once already (probably expired ephemeral session)
+			// then we just reconnnect and re-download missing events.
+			// For new connections we have special handling.
+			if (wasFullyLoggedIn) {
+				this._eventBusClient.connect(ConnectMode.Reconnect)
 			} else {
 				this._eventBusClient.connect(ConnectMode.Initial)
 			}
