@@ -62,16 +62,16 @@ async function publishDebPackage() {
 	const electronVersion = await getElectronVersion()
 	const deb = `tutanota-desktop-dicts_${electronVersion}_amd64.deb`
 
-	console.log("create " + debs.dict)
+	console.log("create", deb)
 	exitOnFail(spawnSync("/usr/local/bin/fpm", `${commonArgs} -n tutanota-desktop-dicts -v ${electronVersion} dictionaries/=${target}-desktop/dictionaries`.split(" "), {
-		cwd: __dirname + "/build",
+		cwd: path.join(process.cwd(), "build"),
 		stdio: [process.stdin, process.stdout, process.stderr]
 	}))
 
 	// copy spell checker dictionaries.
 	console.log("copying dictionaries")
 	exitOnFail(spawnSync("/bin/cp", `-f build/${deb} /opt/repository/tutanota/`.split(" "), {
-		cwd: __dirname,
+		cwd: process.cwd(),
 		stdio: [process.stdin, process.stdout, process.stderr]
 	}))
 	exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota/${deb}`.split(" "), {
