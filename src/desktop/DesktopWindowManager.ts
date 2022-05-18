@@ -72,7 +72,9 @@ export class WindowManager {
 			eml: this._tray.getIconByName("eml.png"),
 			msg: this._tray.getIconByName("msg.png"),
 		}
-		// this is the global default for window placement & scale
+		// this is the old default for window placement & scale
+		// should never be used because the config now contains
+		// a new default value.
 		this._currentBounds = {
 			scale: 1,
 			fullscreen: false,

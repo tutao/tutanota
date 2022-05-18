@@ -13,3 +13,4 @@ android-app/app/release
 app-ios/releases
 native-cache
 test/native-cache
+test/testdatabase.sqlite
