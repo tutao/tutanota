@@ -37,10 +37,17 @@ export class OfflineStorageSettingsModel {
 	}
 
 	/**
-	 * get stored time range, will error out if offlineStorage isn't available
+	 * get stored time range, will error out if offlineStorage isn't available.
+	 * if the user account is free, always returns the default time range and
+	 * resets the stored value if it's different from the default.
 	 */
 	getTimeRange(): number {
 		this.assertAvailable()
+		if (this.userController.isFreeAccount() && this.timeRange !== OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS) {
+			this.setTimeRange(OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS).catch(e => console.log("error while resetting storage time range:", e))
+			this.timeRange = OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS
+			return OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS
+		}
 		return this.timeRange
 	}
 
