@@ -85,7 +85,7 @@ import {EntropyService} from "../../entities/tutanota/Services"
 import {IServiceExecutor} from "../../common/ServiceRequest"
 import {SessionType} from "../../common/SessionType"
 import {LateInitializedCacheStorage} from "../rest/CacheStorageProxy"
-import {AuthHeadersProvider, UserFacade} from "./UserFacade"
+import {AuthDataProvider, UserFacade} from "./UserFacade"
 import {ILoginListener, LoginFailReason} from "../../main/LoginListener"
 import {LoginIncompleteError} from "../../common/error/LoginIncompleteError.js"
 
@@ -823,13 +823,16 @@ export class LoginFacadeImpl implements LoginFacade {
 		// and therefore we would not be able to read the updated user
 		// additionally we do not want to use initSession() to keep the LoginFacade stateless (except second factor handling) because we do not want to have any race conditions
 		// when logging in normally after resetting the password
-		const tempAuthHeadersProvider: AuthHeadersProvider = {
+		const tempAuthDataProvider: AuthDataProvider = {
 			createAuthHeaders(): Dict {
 				return {}
+			},
+			isFullyLoggedIn(): boolean {
+				return false
 			}
 		}
 		const eventRestClient = new EntityRestClient(
-			tempAuthHeadersProvider,
+			tempAuthDataProvider,
 			this.restClient,
 			() => this.cryptoFacade,
 			this.instanceMapper,
