@@ -425,11 +425,6 @@ o.spec("LoginFacadeTest", function () {
 
 				fullLoginDeferred = defer()
 				when(loginListener.onFullLoginSuccess()).thenDo(() => fullLoginDeferred.resolve())
-				let fullyLoggedIn = false
-				when(userFacade.unlockUserGroupKey(anything())).thenDo(() => {
-					fullyLoggedIn = true
-				})
-				when(userFacade.isFullyLoggedIn()).thenDo(() => fullyLoggedIn)
 			})
 
 			o("When successfully logged in, userFacade is initialised", async function () {
@@ -451,6 +446,7 @@ o.spec("LoginFacadeTest", function () {
 				const groupInfo = createGroupInfo()
 				when(entityClientMock.load(GroupInfoTypeRef, user.userGroup.groupInfo)).thenResolve(groupInfo)
 				const connectionError = new ConnectionError("test")
+				when(userFacade.isFullyLoggedIn()).thenReturn(false)
 
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything()))
 					// @ts-ignore
