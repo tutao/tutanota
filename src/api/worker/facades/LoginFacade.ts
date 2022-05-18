@@ -560,8 +560,7 @@ export class LoginFacadeImpl implements LoginFacade {
 	): Promise<{user: User, accessToken: string, userGroupInfo: GroupInfo}> {
 		// We might have userId already if:
 		// - session has expired and a new one was created
-		// - if it's an async login
-		// - if we failed an async login
+		// - if it's a partial login
 		const userIdFromFormerLogin = this.userFacade.getUser()?._id ?? null
 
 		if (userIdFromFormerLogin && userId !== userIdFromFormerLogin) {
