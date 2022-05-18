@@ -14,7 +14,7 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
-import {ConnectionError} from "../api/common/error/RestError"
+import {isOfflineError} from "../api/common/utils/ErrorCheckUtils.js"
 
 assertMainOrNode()
 
@@ -66,7 +66,7 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderLis
 			}
 			dialog.close()
 		} catch (error) {
-			if (!(error instanceof ConnectionError)) {
+			if (!isOfflineError(error)) {
 				dialog.close()
 			}
 			throw error

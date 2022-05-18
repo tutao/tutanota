@@ -1,5 +1,5 @@
 import stream from "mithril/stream"
-import {ConnectionError} from "../api/common/error/RestError"
+import {isOfflineError} from "../api/common/utils/ErrorCheckUtils.js"
 
 export enum LoadingState {
 	/** We have not tried to load anything, or the loading is complete */
@@ -70,7 +70,7 @@ export class LoadingStateTracker {
 		try {
 			return await promise
 		} catch (e) {
-			if (e instanceof ConnectionError) {
+			if (isOfflineError(e)) {
 				connectionLost = true
 			}
 			throw e

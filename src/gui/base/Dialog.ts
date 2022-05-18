@@ -30,9 +30,9 @@ import {$Promisable, assertNotNull, getAsLazy, mapLazily, noOp} from "@tutao/tut
 import type {DialogInjectionRightAttrs} from "./DialogInjectionRight"
 import {DialogInjectionRight} from "./DialogInjectionRight"
 import {assertMainOrNode} from "../../api/common/Env"
-import {ConnectionError} from "../../api/common/error/RestError"
 import {Icon} from "./Icon"
 import {BootIcons} from "./icons/BootIcons"
+import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 
 assertMainOrNode()
 export const INPUT = "input, textarea, div[contenteditable='true']"
@@ -799,7 +799,7 @@ export class Dialog implements ModalComponent {
 				okAction(result()).then(() => {
 					dialog.close()
 				}).catch(error => {
-					if (!(error instanceof ConnectionError)) {
+					if (!(isOfflineError(error))) {
 						dialog.close()
 					}
 					throw error

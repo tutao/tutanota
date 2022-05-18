@@ -58,6 +58,7 @@ import {SidebarSection} from "../../gui/SidebarSection"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import Stream from "mithril/stream";
 import {MailViewerViewModel} from "./MailViewerViewModel"
+import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 
 assertMainOrNode()
 type MailFolderRowData = {
@@ -802,7 +803,7 @@ export class MailView implements CurrentView {
 				}
 			}
 		} catch (e) {
-			if (e instanceof ConnectionError) {
+			if (isOfflineError(e)) {
 				console.log("Ignoring connection error when selecting mail", e)
 			} else {
 				throw e

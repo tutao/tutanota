@@ -270,7 +270,8 @@ export class CryptoFacadeImpl implements CryptoFacade {
 		const pubOrExtPermission = listPermissions.find(p => p.type === PermissionType.Public || p.type === PermissionType.External) ?? null
 
 		if (pubOrExtPermission == null) {
-			throw new SessionKeyNotFoundError("could not find permission")
+			const typeName = `${typeModel.app}/${typeModel.name}`
+			throw new SessionKeyNotFoundError(`could not find permission for instance of type ${typeName}`)
 		}
 
 		const bucketPermissions = await this.entityClient

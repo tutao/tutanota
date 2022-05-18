@@ -30,6 +30,7 @@ import {ListColumnWrapper} from "../../gui/ListColumnWrapper"
 import {assertMainOrNode} from "../../api/common/Env"
 import {WsConnectionState} from "../../api/main/WorkerClient"
 import {findAndApplyMatchingRule, isInboxList} from "../model/InboxRuleHandler.js"
+import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 
 assertMainOrNode()
 const className = "mail-list"
@@ -416,7 +417,7 @@ export class MailListView implements Component {
 			// This is generally fine but in case of offline we want to display everything that we have cached. For that we fetch directly from the cache,
 			// give it to the list and let list make another request (and almost certainly fail that request) to show a retry button. This way we both show
 			// the items we have and also show that we couldn't load everything.
-			if (e instanceof ConnectionError) {
+			if (isOfflineError(e)) {
 				const items = await locator.cacheStorage.provideFromRange(MailTypeRef, this.listId, start, count, true)
 				if (items.length === 0) throw e
 				return {items, complete: false}

@@ -69,6 +69,7 @@ import {LoadingStateTracker} from "../../offline/LoadingState"
 import {IServiceExecutor} from "../../api/common/ServiceRequest"
 import {ListUnsubscribeService} from "../../api/entities/tutanota/Services"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
+import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 
 
 export const enum ContentBlockingStatus {
@@ -165,10 +166,16 @@ export class MailViewerViewModel {
 	}
 
 	async loadAll() {
-		await this.loadingState.trackPromise(
-			this.loadMailBody(this.mail)
-				.then((inlineImageCids) => this.loadAttachments(this.mail, inlineImageCids))
-		).catch(ofClass(ConnectionError, noOp))
+		try {
+			await this.loadingState.trackPromise(
+				this.loadMailBody(this.mail)
+					.then((inlineImageCids) => this.loadAttachments(this.mail, inlineImageCids))
+			)
+		} catch (e) {
+			if (!isOfflineError(e)) {
+				throw e
+			}
+		}
 
 		m.redraw()
 
@@ -177,8 +184,15 @@ export class MailViewerViewModel {
 		// So we load it here pre-emptively to make sure it is in the cache.
 		this.entityClient
 			.load(ConversationEntryTypeRef, this.mail.conversationEntry)
-			.catch(ofClass(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e)))
-			.catch(ofClass(ConnectionError, e => console.log("failed to load conversation entry, because of a lost connection", e)))
+			.catch((e) => {
+				if (e instanceof NotFoundError) {
+					console.log("could load conversation entry as it has been moved/deleted already", e)
+				} else if (isOfflineError(e)) {
+					console.log("failed to load conversation entry, because of a lost connection", e)
+				} else {
+					throw e
+				}
+			})
 	}
 
 	isLoading(): boolean {
