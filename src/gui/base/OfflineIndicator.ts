@@ -103,10 +103,6 @@ export class OfflineIndicatorMobile implements Component<OfflineIndicatorAttrs> 
 			tabindex: "0",
 			role: "button",
 			onclick: a.state === OfflineIndicatorState.Offline ? a.reconnectAction : noOp
-		}, [
-			attrToFirstLine(a),
-			secondLine && m("span.mlr-s", "—"),
-			secondLine
-		])
+		}, attrToFirstLine(a))
 	}
 }
