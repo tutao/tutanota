@@ -6,15 +6,17 @@ import {createWebsocketLeaderStatus, GroupMembership, User, WebsocketLeaderStatu
 import {Aes128Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
 import {LoginIncompleteError} from "../../common/error/LoginIncompleteError"
 
-export interface AuthHeadersProvider {
+export interface AuthDataProvider {
 	/**
 	 * @return The map which contains authentication data for the logged in user.
 	 */
 	createAuthHeaders(): Dict
+
+	isFullyLoggedIn(): boolean
 }
 
 /** Holder for the user and session-related data on the worker side. */
-export class UserFacade implements AuthHeadersProvider {
+export class UserFacade implements AuthDataProvider {
 	private user: User | null = null
 	private accessToken: string | null = null
 	/** A cache for decrypted keys of each group. Encrypted keys are stored on membership.symEncGKey. */

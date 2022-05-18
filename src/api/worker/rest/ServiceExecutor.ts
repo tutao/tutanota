@@ -17,7 +17,8 @@ import {InstanceMapper} from "../crypto/InstanceMapper"
 import {CryptoFacade} from "../crypto/CryptoFacade"
 import {assertWorkerOrNode} from "../../common/Env"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
-import {AuthHeadersProvider} from "../facades/UserFacade"
+import {AuthDataProvider} from "../facades/UserFacade"
+import {LoginIncompleteError} from "../../common/error/LoginIncompleteError.js"
 
 assertWorkerOrNode()
 
@@ -26,7 +27,7 @@ type AnyService = GetService | PostService | PutService | DeleteService
 export class ServiceExecutor implements IServiceExecutor {
 	constructor(
 		private readonly restClient: RestClient,
-		private readonly authHeadersProvider: AuthHeadersProvider,
+		private readonly authDataProvider: AuthDataProvider,
 		private readonly instanceMapper: InstanceMapper,
 		private readonly cryptoFacade: lazy<CryptoFacade>,
 	) {
@@ -71,10 +72,15 @@ export class ServiceExecutor implements IServiceExecutor {
 		params: ExtraServiceParams | undefined,
 	): Promise<any> {
 		const methodDefinition = this.getMethodDefinition(service, method)
+		if (methodDefinition.return && (await resolveTypeReference(methodDefinition.return)).encrypted && !this.authDataProvider.isFullyLoggedIn()) {
+			// Short-circuit before we do an actual request which we can't decrypt
+			throw new LoginIncompleteError("Tried to make service request with encrypted return type but is not fully logged in yet")
+		}
+
 		const modelVersion = await this.getModelVersion(methodDefinition)
 
 		const path = `/rest/${service.app.toLowerCase()}/${service.name.toLowerCase()}`
-		const headers = {...this.authHeadersProvider.createAuthHeaders(), ...params?.extraHeaders, v: modelVersion}
+		const headers = {...this.authDataProvider.createAuthHeaders(), ...params?.extraHeaders, v: modelVersion}
 
 		const encryptedEntity = await this.encryptDataIfNeeded(methodDefinition, requestEntity, service, method, params ?? null)
 
