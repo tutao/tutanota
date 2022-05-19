@@ -197,8 +197,7 @@ async function tryDowngradePremiumToFree(switchAccountTypeData: SwitchAccountTyp
 }
 
 async function cancelSubscription(dialog: Dialog, currentSubscriptionInfo: CurrentSubscriptionInfo): Promise<void> {
-	const ok = Dialog.confirm("unsubscribeConfirm_msg")
-	if (!ok) {
+	if (!await Dialog.confirm("unsubscribeConfirm_msg")) {
 		return
 	}
 	const switchAccountTypeData = createSwitchAccountTypeData()
