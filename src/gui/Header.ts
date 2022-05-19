@@ -79,7 +79,7 @@ export class Header implements Component {
 						this.renderCenterContent(),
 						this.renderRightContent()
 					],
-				styles.isUsingBottomNavigation() && logins.isAtLeastPartiallyLoggedIn() && !this.mobileSearchBarVisible()
+				styles.isUsingBottomNavigation() && logins.isAtLeastPartiallyLoggedIn() && !this.mobileSearchBarVisible() && !injectedView
 					? m(OfflineIndicatorMobile, this.offlineIndicatorModel.getCurrentAttrs())
 					: null
 			],
