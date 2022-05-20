@@ -24,22 +24,18 @@ import {
 	WeekStart,
 } from "../../api/common/TutanotaConstants"
 import {DateTime, FixedOffsetZone, IANAZone} from "luxon"
-import type {CalendarRepeatRule} from "../../api/entities/tutanota/TypeRefs.js"
+import type {CalendarEvent, CalendarGroupRoot, CalendarRepeatRule, UserSettingsGroupRoot} from "../../api/entities/tutanota/TypeRefs.js"
 import {createCalendarRepeatRule} from "../../api/entities/tutanota/TypeRefs.js"
 import {DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes} from "../../api/common/utils/CommonCalendarUtils"
 import {lang} from "../../misc/LanguageViewModel"
 import {formatDateTime, formatDateWithMonth, formatTime, timeStringFromParts} from "../../misc/Formatter"
 import {size} from "../../gui/size"
-import type {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
-import type {CalendarGroupRoot} from "../../api/entities/tutanota/TypeRefs.js"
-import type {User} from "../../api/entities/sys/TypeRefs.js"
+import type {RepeatRule, User} from "../../api/entities/sys/TypeRefs.js"
 import {isColorLight} from "../../gui/base/Color"
 import type {GroupColors} from "../view/CalendarView"
 import {isSameId} from "../../api/common/utils/EntityUtils"
-import type {UserSettingsGroupRoot} from "../../api/entities/tutanota/TypeRefs.js"
 import type {Time} from "../../api/common/utils/Time"
 import type {SelectorItemList} from "../../gui/base/DropDownSelectorN"
-import type {RepeatRule} from "../../api/entities/sys/TypeRefs.js"
 import type {CalendarInfo} from "../model/CalendarModel"
 import {assertMainOrNode} from "../../api/common/Env"
 import {ChildArray, Children} from "mithril";
@@ -289,6 +285,7 @@ export function getValidTimeZone(zone: string, fallback?: string): string {
 export function getTimeZone(): string {
 	return DateTime.local().zoneName
 }
+
 export class DateProviderImpl implements DateProvider {
 	now(): number {
 		return Date.now()
@@ -529,6 +526,9 @@ export function getAllDayDateUTCFromZone(date: Date, timeZone: string): Date {
 }
 
 export function isLongEvent(event: CalendarEvent, zone: string): boolean {
+	// long events are longer than the event ID randomization range. we need to distinguish them
+	// to be able to still load and display the ones overlapping the query range even though their
+	// id might not be contained in the query timerange +- randomization range
 	return getEventEnd(event, zone).getTime() - getEventStart(event, zone).getTime() > DAYS_SHIFTED_MS
 }
 
