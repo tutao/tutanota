@@ -51,26 +51,3 @@ export function geEventElementMaxId(timestamp: number): string {
 export function getEventElementMinId(timestamp: number): string {
 	return createEventElementId(timestamp, -DAYS_SHIFTED_MS)
 }
-
-export function eventsAtTheSameTime(firstEvent: CalendarEvent, secondEvent: CalendarEvent): boolean {
-	if (firstEvent.startTime !== secondEvent.startTime) {
-		return false
-	}
-
-	const firstRule = firstEvent.repeatRule
-	const secondRule = secondEvent.repeatRule
-
-	if (firstRule && secondRule) {
-		return (
-			firstRule.frequency === secondRule.frequency &&
-			firstRule.interval === secondRule.interval &&
-			firstRule.endType === secondRule.endType &&
-			firstRule.endValue === secondRule.endValue &&
-			firstRule.timeZone === secondRule.timeZone
-		)
-	} else if (!firstRule && !secondRule) {
-		return true
-	} else {
-		return false
-	}
-}
