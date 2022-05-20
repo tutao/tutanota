@@ -21,6 +21,7 @@ import {Dialog, DialogType} from "../gui/base/Dialog"
 import m, {Children} from "mithril"
 import {DropDownSelectorN, SelectorItem} from "../gui/base/DropDownSelectorN"
 import {UsageTestMetricType} from "../api/common/TutanotaConstants"
+import {isOfflineError} from "../api/common/utils/ErrorCheckUtils.js"
 
 
 const PRESELECTED_LIKERT_VALUE = null
@@ -223,6 +224,9 @@ export class UsageTestModel implements PingAdapter {
 			if (e instanceof SuspensionError) {
 				console.log("rate-limit for new assignments reached, disabling tests")
 				return []
+			} else if (isOfflineError(e)) {
+				console.log("offline, disabling tests")
+				return []
 			}
 
 			throw e
@@ -316,6 +320,8 @@ export class UsageTestModel implements PingAdapter {
 						assignments: storedAssignments.assignments.filter(assignment => assignment.testId !== test.testId),
 					})
 				}
+			} else if (isOfflineError(e)) {
+				console.log("Tried to send ping, but we are offline", e)
 			} else {
 				throw e
 			}
