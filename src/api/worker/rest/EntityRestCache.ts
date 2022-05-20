@@ -20,7 +20,7 @@ import {MailTypeRef} from "../../entities/tutanota/TypeRefs.js"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId} from "../../common/utils/EntityUtils";
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {assertWorkerOrNode} from "../../common/Env"
-import type {ListElementEntity, SomeEntity} from "../../common/EntityTypes"
+import type {ListElementEntity, SomeEntity, TypeModel} from "../../common/EntityTypes"
 import {EntityUpdateData} from "../../main/EventController"
 import {QueuedBatch} from "../search/EventQueue"
 import {ENTITY_EVENT_BATCH_EXPIRE_MS} from "../EventBusClient"
@@ -35,6 +35,15 @@ assertWorkerOrNode()
  * We want to avoid that the requests are too small
  */
 export const EXTEND_RANGE_MIN_CHUNK_SIZE = 40
+const IGNORED_TYPES = [
+	EntityEventBatchTypeRef,
+	PermissionTypeRef,
+	BucketPermissionTypeRef,
+	SessionTypeRef,
+	SecondFactorTypeRef,
+	RecoverCodeTypeRef,
+	RejectedSenderTypeRef,
+] as const
 
 export interface IEntityRestCache extends EntityRestInterface {
 	/**
@@ -148,20 +157,10 @@ export interface CacheStorage extends ExposedCacheStorage {
  *
  * Range handling:
  * |          <|>        c d e f g h i j k      <|>             |
- * MIN_ID  lowerRangeId     ids in rage    upperRangeId    MAX_ID
+ * MIN_ID  lowerRangeId     ids in range    upperRangeId    MAX_ID
  * lowerRangeId may be anything from MIN_ID to c, upperRangeId may be anything from k to MAX_ID
  */
 export class EntityRestCache implements IEntityRestCache {
-
-	private readonly ignoredTypes = [
-		EntityEventBatchTypeRef,
-		PermissionTypeRef,
-		BucketPermissionTypeRef,
-		SessionTypeRef,
-		SecondFactorTypeRef,
-		RecoverCodeTypeRef,
-		RejectedSenderTypeRef,
-	] as const
 
 	constructor(
 		readonly entityRestClient: EntityRestClient,
@@ -182,7 +181,7 @@ export class EntityRestCache implements IEntityRestCache {
 			|| cachedEntity == null
 		) {
 			const entity = await this.entityRestClient.load(typeRef, id, queryParameters, extraHeaders)
-			if (typeRef.app !== "monitor" && queryParameters?.version == null && !this.ignoredTypes.some(ref => isSameTypeRef(typeRef, ref))) {
+			if (queryParameters?.version == null && !isIgnoredType(typeRef)) {
 				await this.storage.put(entity)
 			}
 			return entity
@@ -191,10 +190,7 @@ export class EntityRestCache implements IEntityRestCache {
 	}
 
 	loadMultiple<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementIds: Array<Id>): Promise<Array<T>> {
-		if (
-			typeRef.app === "monitor"
-			|| this.ignoredTypes.some(ref => isSameTypeRef(typeRef, ref))
-		) {
+		if (isIgnoredType(typeRef)) {
 			return this.entityRestClient.loadMultiple(typeRef, listId, elementIds)
 		}
 
@@ -285,11 +281,7 @@ export class EntityRestCache implements IEntityRestCache {
 
 	async loadRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
 		const typeModel = await resolveTypeReference(typeRef)
-		if (
-			typeRef.app === "monitor"
-			|| this.ignoredTypes.some(ref => isSameTypeRef(typeRef, ref))
-			|| typeModel.values._id.type !== ValueType.GeneratedId // we currently only store ranges for generated ids
-		) {
+		if (!isCachedType(typeModel, typeRef)) {
 			return this.entityRestClient.loadRange(typeRef, listId, start, count, reverse)
 		}
 
@@ -536,13 +528,12 @@ export class EntityRestCache implements IEntityRestCache {
 		const regularUpdates: EntityUpdate[] = [] // all updates not resulting from post multiple requests
 		const updatesArray = batch.events
 		for (const update of updatesArray) {
-			const {instanceListId} = getUpdateInstanceId(update)
 			if (update.application !== "monitor") {
-				//monitor application is ignored
-				// mails are ignores because move operation are handled as a special event (and no post multiple is possible)
+				// monitor application is ignored
+				// mails are ignored because move operations are handled as a special event (and no post multiple is possible)
 				if (
 					update.operation === OperationType.CREATE &&
-					instanceListId != null &&
+					getUpdateInstanceId(update) != null &&
 					!isSameTypeRef(new TypeRef(update.application, update.type), MailTypeRef)
 				) {
 					createUpdatesForLETs.push(update)
@@ -748,4 +739,24 @@ function isRangeRequestAwayFromExistingRange(range: Range, reverse: boolean, sta
 	return reverse
 		? firstBiggerThanSecond(range.lower, start)
 		: firstBiggerThanSecond(start, range.upper)
+}
+
+/**
+ * some types are completely ignored by the cache and always served from a request.
+ * Note:
+ * isCachedType(ref) ---> !isIgnoredType(ref) but
+ * isIgnoredType(ref) -/-> !isCachedType(ref) because of opted-in CustomId types.
+ */
+function isIgnoredType(typeRef: TypeRef<unknown>): boolean {
+	return typeRef.app === "monitor" || IGNORED_TYPES.some(ref => isSameTypeRef(typeRef, ref))
+}
+
+/**
+ * customId types are normally not cached, but some are opted in.
+ * Note:
+ * isCachedType(ref) ---> !isIgnoredType(ref) but
+ * isIgnoredType(ref) -/-> !isCachedType(ref)
+ */
+function isCachedType(typeModel: TypeModel, typeRef: TypeRef<unknown>): boolean {
+	return !isIgnoredType(typeRef) && typeModel.values._id.type === ValueType.GeneratedId
 }
