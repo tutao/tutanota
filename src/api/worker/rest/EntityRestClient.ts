@@ -345,7 +345,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 		if (!this.authDataProvider.isFullyLoggedIn() && typeModel.encrypted) {
 			// Short-circuit before we do an actual request which we can't decrypt
-			throw new LoginIncompleteError("Trying to do a network request with encrypted entity but is not fully logged in yet")
+			throw new LoginIncompleteError(`Trying to do a network request with encrypted entity but is not fully logged in yet, type: ${typeModel.name}`)
 		}
 
 		let path = typeRefToPath(typeRef)
