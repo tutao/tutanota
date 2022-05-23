@@ -14,7 +14,7 @@ import {InstanceMapper} from "../crypto/InstanceMapper"
 import {Aes128Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
 import {Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper} from "../../entities/sys/TypeRefs.js"
 import {FileReference} from "../../common/utils/FileUtils"
-import {ConnectionError, handleRestError} from "../../common/error/RestError"
+import {ConnectionError, handleRestError, InternalServerError} from "../../common/error/RestError"
 import {Instance} from "../../common/EntityTypes"
 import {getElementId, getEtId, getListId, isElementEntity} from "../../common/utils/EntityUtils"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
@@ -380,7 +380,8 @@ export class BlobFacade {
 			try {
 				return await mapper(server.url, index)
 			} catch (e) {
-				if (e instanceof ConnectionError) {
+				// InternalServerError is returned when accessing a corrupted archive, so we retry
+				if (e instanceof ConnectionError || e instanceof InternalServerError) {
 					console.log(`${errorMsg} ${server.url}`, e)
 					error = e
 				} else {
