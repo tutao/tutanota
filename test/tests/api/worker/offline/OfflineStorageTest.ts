@@ -5,7 +5,7 @@ import {OfflineDbFacade, OfflineDbFactory} from "../../../../../src/desktop/db/O
 import {instance, matchers, object, when} from "testdouble"
 import * as cborg from "cborg"
 import {GENERATED_MIN_ID, generatedIdToTimestamp, getElementId, getListId, timestampToGeneratedId} from "../../../../../src/api/common/utils/EntityUtils.js"
-import {firstThrow, getDayShifted, lastThrow, promiseMap} from "@tutao/tutanota-utils"
+import {firstThrow, getDayShifted, lastThrow, promiseMap, getTypeId} from "@tutao/tutanota-utils"
 import {DateProvider} from "../../../../../src/api/common/DateProvider.js"
 import {
 	createFile,
@@ -88,9 +88,9 @@ o.spec("OfflineStorage", function () {
 
 		o.spec("Clearing excluded data", function () {
 			const listId = "listId"
-			const mailType = MailTypeRef.getId()
-			const mailFolderType = MailFolderTypeRef.getId()
-			const mailBodyType = MailBodyTypeRef.getId()
+			const mailType = getTypeId(MailTypeRef)
+			const mailFolderType = getTypeId(MailFolderTypeRef)
+			const mailBodyType = getTypeId(MailBodyTypeRef)
 
 			o("old ranges will be deleted", async function () {
 				const upper = offsetId(-1)
@@ -257,7 +257,7 @@ o.spec("OfflineStorage", function () {
 
 				await storage.init(userId, databaseKey, timeRangeDays)
 				verify(dbFacadeMock.deleteIn(userId, mailType, inboxMailList, [getElementId(mailBefore)]))
-				verify(dbFacadeMock.deleteIn(userId, FileTypeRef.getId(), fileListId, [getElementId(fileBefore)]))
+				verify(dbFacadeMock.deleteIn(userId, getTypeId(FileTypeRef), fileListId, [getElementId(fileBefore)]))
 			})
 
 		})

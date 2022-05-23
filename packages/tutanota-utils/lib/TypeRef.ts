@@ -1,4 +1,6 @@
-// T should be restricted to Entity
+/**
+ * T should be restricted to Entity.
+ */
 export class TypeRef<T> {
 	readonly app: string
 	readonly type: string
@@ -15,19 +17,24 @@ export class TypeRef<T> {
 		Object.freeze(this)
 	}
 
+	/**
+	 * breaks when the object passes worker barrier
+	 */
 	toString(): string {
 		return `[TypeRef ${this.app} ${this.type}]`
 	}
 
-	getId(): string {
-		return this.app + "/" + this.type
-	}
+
 }
 
-export function isSameTypeRefByAttr(typeRef: TypeRef<any>, app: string, type: string): boolean {
+export function getTypeId(typeRef: TypeRef<unknown>) {
+	return typeRef.app + "/" + typeRef.type
+}
+
+export function isSameTypeRefByAttr(typeRef: TypeRef<unknown>, app: string, type: string): boolean {
 	return typeRef.app === app && typeRef.type === type
 }
 
-export function isSameTypeRef(typeRef1: TypeRef<any>, typeRef2: TypeRef<any>): boolean {
+export function isSameTypeRef(typeRef1: TypeRef<unknown>, typeRef2: TypeRef<unknown>): boolean {
 	return isSameTypeRefByAttr(typeRef1, typeRef2.app, typeRef2.type)
 }

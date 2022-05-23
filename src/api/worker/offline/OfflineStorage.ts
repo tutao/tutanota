@@ -8,10 +8,10 @@ import {
 	listIdPart,
 	timestampToGeneratedId
 } from "../../common/utils/EntityUtils.js"
-import {ExposedCacheStorage, CacheStorage, expandId} from "../rest/EntityRestCache.js"
+import {CacheStorage, expandId, ExposedCacheStorage} from "../rest/EntityRestCache.js"
 import * as cborg from "cborg"
 import {EncodeOptions, Token, Type} from "cborg"
-import {assert, DAY_IN_MILLIS, groupByAndMap, mapNullable, typedKeys, TypeRef} from "@tutao/tutanota-utils"
+import {assert, DAY_IN_MILLIS, groupByAndMap, mapNullable, typedKeys, TypeRef, getTypeId} from "@tutao/tutanota-utils"
 import type {OfflineDbFacade} from "../../../desktop/db/OfflineDbFacade.js"
 import {isOfflineStorageAvailable, isTest} from "../../common/Env.js"
 import {ProgrammingError} from "../../common/error/ProgrammingError.js"
@@ -97,20 +97,20 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	}
 
 	async deleteIfExists(typeRef: TypeRef<SomeEntity>, listId: Id | null, id: Id): Promise<void> {
-		return this.offlineDbFacade.delete(this.userId, this.getTypeId(typeRef), listId, id)
+		return this.offlineDbFacade.delete(this.userId, getTypeId(typeRef), listId, id)
 	}
 
 	async get<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<T | null> {
-		const loaded = await this.offlineDbFacade.get(this.userId, this.getTypeId(typeRef), listId, id) ?? null
+		const loaded = await this.offlineDbFacade.get(this.userId, getTypeId(typeRef), listId, id) ?? null
 		return loaded && this.deserialize(typeRef, loaded)
 	}
 
 	async getIdsInRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>> {
-		return this.offlineDbFacade.getIdsInRange(this.userId, this.getTypeId(typeRef), listId)
+		return this.offlineDbFacade.getIdsInRange(this.userId, getTypeId(typeRef), listId)
 	}
 
 	async getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<{lower: Id, upper: Id} | null> {
-		return this.offlineDbFacade.getRange(this.userId, this.getTypeId(typeRef), listId)
+		return this.offlineDbFacade.getRange(this.userId, getTypeId(typeRef), listId)
 	}
 
 	async isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<boolean> {
@@ -121,29 +121,25 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	}
 
 	async provideFromRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
-		return this.deserializeList(typeRef, await this.offlineDbFacade.provideFromRange(this.userId, this.getTypeId(typeRef), listId, start, count, reverse))
+		return this.deserializeList(typeRef, await this.offlineDbFacade.provideFromRange(this.userId, getTypeId(typeRef), listId, start, count, reverse))
 	}
 
 	async put(originalEntity: SomeEntity): Promise<void> {
 		const serializedEntity = this.serialize(originalEntity)
 		const {listId, elementId} = expandId(originalEntity._id)
-		return this.offlineDbFacade.put(this.userId, {type: this.getTypeId(originalEntity._type), listId, elementId, entity: serializedEntity})
+		return this.offlineDbFacade.put(this.userId, {type: getTypeId(originalEntity._type), listId, elementId, entity: serializedEntity})
 	}
 
 	async setLowerRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void> {
-		return this.offlineDbFacade.setLowerRange(this.userId, this.getTypeId(typeRef), listId, id)
+		return this.offlineDbFacade.setLowerRange(this.userId, getTypeId(typeRef), listId, id)
 	}
 
 	async setUpperRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void> {
-		return this.offlineDbFacade.setUpperRange(this.userId, this.getTypeId(typeRef), listId, id)
+		return this.offlineDbFacade.setUpperRange(this.userId, getTypeId(typeRef), listId, id)
 	}
 
 	async setNewRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, lower: Id, upper: Id): Promise<void> {
-		return this.offlineDbFacade.setNewRange(this.userId, this.getTypeId(typeRef), listId, lower, upper)
-	}
-
-	private getTypeId(typeRef: TypeRef<unknown>) {
-		return typeRef.app + "/" + typeRef.type
+		return this.offlineDbFacade.setNewRange(this.userId, getTypeId(typeRef), listId, lower, upper)
 	}
 
 	private serialize(originalEntity: SomeEntity): Uint8Array {
@@ -257,18 +253,18 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 				}
 			}
 		}
-		await this.offlineDbFacade.deleteIn(this.userId, this.getTypeId(MailBodyTypeRef), null, mailbodiesToDelete)
-		await this.offlineDbFacade.deleteIn(this.userId, this.getTypeId(MailHeadersTypeRef), null, headersToDelete)
+		await this.offlineDbFacade.deleteIn(this.userId, getTypeId(MailBodyTypeRef), null, mailbodiesToDelete)
+		await this.offlineDbFacade.deleteIn(this.userId, getTypeId(MailHeadersTypeRef), null, headersToDelete)
 		for (let [listId, elementIds] of groupByAndMap(attachmentsTodelete, listIdPart, elementIdPart).entries()) {
-			await this.offlineDbFacade.deleteIn(this.userId, this.getTypeId(FileTypeRef), listId, elementIds)
-			await this.offlineDbFacade.deleteRange(this.userId, this.getTypeId(FileTypeRef), listId)
+			await this.offlineDbFacade.deleteIn(this.userId, getTypeId(FileTypeRef), listId, elementIds)
+			await this.offlineDbFacade.deleteRange(this.userId, getTypeId(FileTypeRef), listId)
 		}
 
-		await this.offlineDbFacade.deleteIn(this.userId, this.getTypeId(MailTypeRef), listId, mailsToDelete.map(elementIdPart))
+		await this.offlineDbFacade.deleteIn(this.userId, getTypeId(MailTypeRef), listId, mailsToDelete.map(elementIdPart))
 	}
 
 	private async updateRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, cutoffId: Id): Promise<void> {
-		const type = this.getTypeId(typeRef)
+		const type = getTypeId(typeRef)
 
 		const range = await this.offlineDbFacade.getRange(this.userId, type, listId)
 		if (range == null) {
@@ -301,11 +297,11 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	}
 
 	private async getListElementsOfType<T extends ListElementEntity>(typeRef: TypeRef<T>): Promise<Array<T>> {
-		return this.deserializeList(typeRef, await this.offlineDbFacade.getListElementsOfType(this.userId, this.getTypeId(typeRef)))
+		return this.deserializeList(typeRef, await this.offlineDbFacade.getListElementsOfType(this.userId, getTypeId(typeRef)))
 	}
 
 	private async getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>> {
-		return this.deserializeList(typeRef, await this.offlineDbFacade.getWholeList(this.userId, this.getTypeId(typeRef), listId))
+		return this.deserializeList(typeRef, await this.offlineDbFacade.getWholeList(this.userId, getTypeId(typeRef), listId))
 	}
 
 	async dumpMetadata(): Promise<Partial<OfflineDbMeta>> {

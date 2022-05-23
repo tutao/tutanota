@@ -115,7 +115,7 @@ export {
 	byteLength,
 	replaceAll,
 } from "./StringUtils.js"
-export {TypeRef, isSameTypeRefByAttr, isSameTypeRef} from "./TypeRef.js"
+export {TypeRef, isSameTypeRefByAttr, isSameTypeRef, getTypeId} from "./TypeRef.js"
 export {
 	defer,
 	deferWithHandler,
