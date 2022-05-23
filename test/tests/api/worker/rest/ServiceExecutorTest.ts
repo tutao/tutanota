@@ -153,6 +153,32 @@ o.spec("ServiceExecutor", function () {
 			assertThatNoRequestsWereMade()
 		})
 
+		o("when get returns encrypted data and we are not logged in but we have a session key it returns decrypted data", async function () {
+			const getService: GetService = {
+				...service,
+				get: {
+					data: null,
+					return: AlarmServicePostTypeRef,
+				},
+			}
+			const sessionKey = [1, 2, 3]
+			fullyLoggedIn = false
+			const returnData = createSaltData({mailAddress: "test"})
+			const literal = {literal: true}
+			const saltTypeModel = await resolveTypeReference(AlarmServicePostTypeRef)
+			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, sessionKey))
+				.thenResolve(returnData)
+
+			respondWith(`{"literal":true}`)
+
+			const response = await executor.get(getService, null, {sessionKey})
+
+			o(response).equals(returnData)
+			verify(
+				restClient.request("/rest/testapp/testservice", HttpMethod.GET, matchers.argThat((p) => p.responseType === MediaType.Json))
+			)
+		})
+
 		o("when get returns unencrypted data and we are not logged in it does not throw an error", async function () {
 			const getService: GetService = {
 				...service,
@@ -242,6 +268,32 @@ o.spec("ServiceExecutor", function () {
 			fullyLoggedIn = false
 			await assertThrows(LoginIncompleteError, () => executor.post(postService, null))
 			assertThatNoRequestsWereMade()
+		})
+
+		o("when post returns encrypted data and we are not logged in but we have a session key it returns decrypted data", async function () {
+			const getService: PostService = {
+				...service,
+				post: {
+					data: null,
+					return: AlarmServicePostTypeRef,
+				},
+			}
+			const sessionKey = [1, 2, 3]
+			fullyLoggedIn = false
+			const returnData = createSaltData({mailAddress: "test"})
+			const literal = {literal: true}
+			const saltTypeModel = await resolveTypeReference(AlarmServicePostTypeRef)
+			when(instanceMapper.decryptAndMapToInstance(saltTypeModel, literal, sessionKey))
+				.thenResolve(returnData)
+
+			respondWith(`{"literal":true}`)
+
+			const response = await executor.post(getService, null, {sessionKey})
+
+			o(response).equals(returnData)
+			verify(
+				restClient.request("/rest/testapp/testservice", HttpMethod.POST, matchers.argThat((p) => p.responseType === MediaType.Json))
+			)
 		})
 	})
 

@@ -72,9 +72,15 @@ export class ServiceExecutor implements IServiceExecutor {
 		params: ExtraServiceParams | undefined,
 	): Promise<any> {
 		const methodDefinition = this.getMethodDefinition(service, method)
-		if (methodDefinition.return && (await resolveTypeReference(methodDefinition.return)).encrypted && !this.authDataProvider.isFullyLoggedIn()) {
+		if (methodDefinition.return &&
+			params?.sessionKey == null &&
+			(await resolveTypeReference(methodDefinition.return)).encrypted &&
+			!this.authDataProvider.isFullyLoggedIn()
+		) {
 			// Short-circuit before we do an actual request which we can't decrypt
-			throw new LoginIncompleteError("Tried to make service request with encrypted return type but is not fully logged in yet")
+			// If we have a session key passed it doesn't mean that it is for the return type but it is likely
+			// so we allow the request.
+			throw new LoginIncompleteError(`Tried to make service request with encrypted return type but is not fully logged in yet, service: ${service.name}`)
 		}
 
 		const modelVersion = await this.getModelVersion(methodDefinition)
