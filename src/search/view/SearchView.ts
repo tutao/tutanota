@@ -572,10 +572,10 @@ export class SearchView implements CurrentView {
 			this._doNotUpdateQuery = false
 		}
 
-		if (args.id && this._searchList.isListAvailable() && !this._searchList.isEntitySelected(args.id)) {
+		if (args.id && !this._searchList.isEntitySelected(args.id)) {
 			// the mail list is visible already, just the selected mail is changed
 			this._searchList.scrollToIdAndSelect(args.id)
-		} else if (!args.id && this._searchList.isListAvailable() && this._searchList.getSelectedEntities().length > 0) {
+		} else if (!args.id && this._searchList.getSelectedEntities().length > 0) {
 			this._searchList.selectNone()
 		}
 	}

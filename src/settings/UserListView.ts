@@ -85,7 +85,6 @@ export class UserListView implements UpdatableSettingsViewer {
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) =>
 				this.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
 			createVirtualRow: () => new UserRow(this),
-			showStatus: false,
 			className: className,
 			swipe: {
 				renderLeftSpacer: () => [],

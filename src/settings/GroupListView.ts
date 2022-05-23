@@ -90,7 +90,6 @@ export class GroupListView implements UpdatableSettingsViewer {
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) =>
 				this.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
 			createVirtualRow: () => new GroupRow(),
-			showStatus: false,
 			className: className,
 			swipe: {
 				renderLeftSpacer: () => [],

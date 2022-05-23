@@ -59,8 +59,12 @@ export class MailListView implements Component {
 		this.list = new List(
 			{
 				rowHeight: size.list_row_height,
-				fetch: (start, count) => {
-					return this.loadMailRange(start, count)
+				fetch: async (start, count) => {
+					const result = await this.loadMailRange(start, count)
+					if (result.complete) {
+						this.fixCounterIfNeeded(this.listId, this.list.getLoadedEntities().length)
+					}
+					return result
 				},
 				loadSingle: elementId => {
 					return locator.entityClient
@@ -76,7 +80,6 @@ export class MailListView implements Component {
 				elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) =>
 					mailView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
 				createVirtualRow: () => new MailRow(false),
-				showStatus: false,
 				className: className,
 				swipe: {
 					renderLeftSpacer: () =>
@@ -122,7 +125,6 @@ export class MailListView implements Component {
 				},
 				multiSelectionAllowed: true,
 				emptyMessage: lang.get("noMails_msg"),
-				listLoadedCompletly: () => this._fixCounterIfNeeded(this.listId, this.list.getLoadedEntities().length),
 				dragStart: (event, row, selected) => this._dragStart(event, row, selected),
 			})
 
@@ -282,7 +284,7 @@ export class MailListView implements Component {
 	}
 
 	// Do not start many fixes in parallel, do check after some time when counters are more likely to settle
-	_fixCounterIfNeeded: (listId: Id, listLength: number) => void = debounce(2000, async (listId: Id, listLength: number) => {
+	private fixCounterIfNeeded: (listId: Id, listLength: number) => void = debounce(2000, async (listId: Id, listLength: number) => {
 		// If folders are changed, list won't have the data we need.
 		// Do not rely on counters if we are not connected
 		if (this.listId !== listId || locator.worker.wsConnection()() !== WsConnectionState.connected) {
@@ -303,6 +305,7 @@ export class MailListView implements Component {
 		}, 0)
 		const counterValue = await locator.mailModel.getCounterValue(this.listId)
 		if (counterValue != null && counterValue !== unreadMails) {
+			console.log("Fixing up counters for list", this.listId)
 			await locator.mailModel.fixupCounterForMailList(this.listId, unreadMails)
 		}
 	})

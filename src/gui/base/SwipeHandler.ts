@@ -6,6 +6,7 @@ export const enum DirectionLock {
 	Vertical
 }
 
+/* Tool to detect swipe gestures on certain elements. */
 export class SwipeHandler {
 	startPos: {
 		x: number
