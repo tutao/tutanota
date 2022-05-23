@@ -376,7 +376,7 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 		this.loadedCompletely = false
 
 		if (this.domList) {
-			this.domList.style.height = this.calculateListHeight()
+			this.updateListHeight()
 
 			for (let row of this.virtualList) {
 				if (row.domElement) {
@@ -765,7 +765,7 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 		}
 		await this.loadMore()
 		await this.domDeferred.promise
-		this.domList.style.height = this.calculateListHeight()
+		this.updateListHeight()
 	}
 
 	private async loadMore(): Promise<void> {
@@ -804,9 +804,7 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 							   }
 						   })
 						   .finally(() => {
-							   if (this.ready) {
-								   this.updateDomElements()
-							   }
+							   this.updateDomElements()
 						   })
 		return this.loading
 	}
@@ -834,7 +832,7 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 
 		window.requestAnimationFrame(() => {
 			this.ready = true
-			this.domList.style.height = this.calculateListHeight()
+			this.updateListHeight()
 			this.updateDomElements()
 
 			if (client.isTouchSupported() && this.config.swipe.enabled) {
@@ -972,7 +970,7 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 			!this.loadingState.isConnectionLost()
 		) {
 			this.loadMore().then(() => {
-				this.domList.style.height = this.calculateListHeight()
+				this.updateListHeight()
 			})
 		}
 	}
@@ -981,7 +979,7 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 		if (this.loadingState.isConnectionLost()) {
 			await this.loadMore()
 			// We might need to remove extra space for the "retry" list item.
-			this.domList.style.height = this.calculateListHeight()
+			this.updateListHeight()
 		}
 	}
 
@@ -1009,6 +1007,10 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 	 *  Also updates message box visibility
 	 */
 	private updateDomElements() {
+		if (!this.ready) {
+			// If the list is not ready it will do this automatically on the first render.
+			return
+		}
 		this.updateMessageBoxVisibility()
 
 		this.currentPosition = this.domListContainer.scrollTop
@@ -1049,6 +1051,14 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 
 		log(Cat.debug, "repositioned list")
 		this.updateLater = false
+	}
+
+	private updateListHeight() {
+		if (!this.ready) {
+			// If the list is not ready it will do this automatically on the first render.
+			return
+		}
+		this.domList.style.height = this.calculateListHeight()
 	}
 
 	redraw(): void {
@@ -1108,7 +1118,7 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 				}
 				const scrollTarget = await this.loadUntil(listElementId)
 				await this.domDeferred.promise
-				this.domList.style.height = this.calculateListHeight()
+				this.updateListHeight()
 
 				if (scrollTarget != null) {
 					this.scrollToLoadedEntityAndSelect(scrollTarget, false)
@@ -1217,11 +1227,8 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 
 		this.loadedEntities.sort(this.config.sortCompare)
 
-		if (this.ready) {
-			this.domList.style.height = this.calculateListHeight()
-
-			this.updateDomElements()
-		}
+		this.updateListHeight()
+		this.updateDomElements()
 
 		if (this.idOfEntityToSelectWhenReceived && this.idOfEntityToSelectWhenReceived === getElementId(entity)) {
 			this.idOfEntityToSelectWhenReceived = null
@@ -1237,9 +1244,7 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 
 				this.loadedEntities.sort(this.config.sortCompare)
 
-				if (this.ready) {
-					this.updateDomElements()
-				}
+				this.updateDomElements()
 
 				break
 			}
@@ -1275,11 +1280,8 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 				remove(this.loadedEntities, entity)
 				const selectionChanged = remove(this.selectedEntities, entity)
 
-				if (this.ready) {
-					this.domList.style.height = this.calculateListHeight()
-
-					this.updateDomElements()
-				}
+				this.updateListHeight()
+				this.updateDomElements()
 
 				if (selectionChanged) {
 					this.elementSelected(this.getSelectedEntities(), false, !nextElementSelected)
