@@ -1,6 +1,5 @@
-import {Type, ValueType} from "./EntityConstants"
+import {Type} from "./EntityConstants"
 import {TypeRef} from "@tutao/tutanota-utils"
-import {customIdToString, firstBiggerThanSecond} from "./utils/EntityUtils"
 import type {TypeModel} from "./EntityTypes"
 import {typeModels as baseTypeModels} from "../entities/base/TypeModels.js"
 import {typeModels as sysTypeModels} from "../entities/sys/TypeModels.js"
@@ -65,24 +64,6 @@ export async function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeM
 		throw new Error("Cannot find TypeRef: " + JSON.stringify(typeRef))
 	} else {
 		return typeModel
-	}
-}
-
-/**
- * Return appropriate id sorting function for typeModel.
- *
- * For generated IDs we use base64ext which is sortable. For custom IDs we use base64url which is not sortable.
- *
- * Important: works only with custom IDs which are derived from strings.
- *
- * @param typeModel
- * @return {(function(string, string): boolean)}
- */
-export function getFirstIdIsBiggerFnForType(typeModel: TypeModel): (arg0: Id, arg1: Id) => boolean {
-	if (typeModel.values["_id"].type === ValueType.CustomId) {
-		return (left, right) => firstBiggerThanSecond(customIdToString(left), customIdToString(right))
-	} else {
-		return firstBiggerThanSecond
 	}
 }
 

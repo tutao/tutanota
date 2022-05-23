@@ -45,18 +45,28 @@ export const POST_MULTIPLE_LIMIT = 100
 
 /**
  * Tests if one id is bigger than another.
+ * For generated IDs we use base64ext which is sortable.
+ * For custom IDs we use base64url which is not sortable, so we convert them to string before comparing.
+ * Important: using this for custom IDs works only with custom IDs which are derived from strings.
+ *
  * @param firstId The element id that is tested if it is bigger.
  * @param secondId The element id that is tested against.
+ * @param typeModel optional - the type the Ids belong to. this can be used to compare custom IDs.
  * @return True if firstId is bigger than secondId, false otherwise.
  */
-export function firstBiggerThanSecond(firstId: Id, secondId: Id): boolean {
-	// if the number of digits is bigger, then the id is bigger, otherwise we can use the lexicographical comparison
-	if (firstId.length > secondId.length) {
-		return true
-	} else if (secondId.length > firstId.length) {
-		return false
+export function firstBiggerThanSecond(firstId: Id, secondId: Id, typeModel?: TypeModel): boolean {
+
+	if (typeModel?.values._id.type === ValueType.CustomId) {
+		return firstBiggerThanSecond(customIdToString(firstId), customIdToString(secondId))
 	} else {
-		return firstId > secondId
+		// if the number of digits is bigger, then the id is bigger, otherwise we can use the lexicographical comparison
+		if (firstId.length > secondId.length) {
+			return true
+		} else if (secondId.length > firstId.length) {
+			return false
+		} else {
+			return firstId > secondId
+		}
 	}
 }
 

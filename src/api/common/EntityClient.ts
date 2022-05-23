@@ -1,10 +1,10 @@
 import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
 import type {RootInstance} from "../entities/sys/TypeRefs.js"
 import {RootInstanceTypeRef} from "../entities/sys/TypeRefs.js"
-import {CUSTOM_MIN_ID, GENERATED_MIN_ID, getElementId, getLetId, RANGE_ITEM_LIMIT} from "./utils/EntityUtils"
+import {CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MIN_ID, getElementId, getLetId, RANGE_ITEM_LIMIT} from "./utils/EntityUtils"
 import {Type, ValueType} from "./EntityConstants"
 import {last, TypeRef} from "@tutao/tutanota-utils"
-import {getFirstIdIsBiggerFnForType, resolveTypeReference} from "./EntityFunctions"
+import { resolveTypeReference} from "./EntityFunctions"
 import type {ElementEntity, ListElementEntity, SomeEntity} from "./EntityTypes"
 import {downcast} from "@tutao/tutanota-utils";
 
@@ -50,8 +50,7 @@ export class EntityClient {
 		const typeModel = await resolveTypeReference(typeRef)
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
 		const loadedEntities = await this._target.loadRange<T>(typeRef, listId, start, rangeItemLimit, true)
-		const comparator = getFirstIdIsBiggerFnForType(typeModel)
-		const filteredEntities = loadedEntities.filter(entity => comparator(getElementId(entity), end))
+		const filteredEntities = loadedEntities.filter(entity => firstBiggerThanSecond(getElementId(entity), end, typeModel))
 
 		if (filteredEntities.length === rangeItemLimit) {
 			const lastElementId = getElementId(filteredEntities[loadedEntities.length - 1])
