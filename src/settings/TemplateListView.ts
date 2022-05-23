@@ -70,7 +70,6 @@ export class TemplateListView implements UpdatableSettingsViewer {
 			createVirtualRow: () => {
 				return new TemplateRow()
 			},
-			showStatus: false,
 			className: "template-list",
 			swipe: {
 				renderLeftSpacer: () => [],

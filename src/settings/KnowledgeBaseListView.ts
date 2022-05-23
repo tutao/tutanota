@@ -75,7 +75,6 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 			createVirtualRow: () => {
 				return new KnowledgeBaseRow()
 			},
-			showStatus: false,
 			className: "knowledgeBase-list",
 			swipe: {
 				renderLeftSpacer: () => [],

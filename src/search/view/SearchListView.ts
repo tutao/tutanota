@@ -196,7 +196,6 @@ export class SearchListView implements Component {
 				this._searchView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive)
 			},
 			createVirtualRow: () => new SearchResultListRow(m.route.param("category") === "mail" ? new MailRow(true) : new ContactRow()),
-			showStatus: false,
 			className: m.route.param("category") === "mail" ? "mail-list" : "contact-list",
 			swipe: {
 				renderLeftSpacer: () => [],
@@ -361,10 +360,6 @@ export class SearchListView implements Component {
 		if (this.list) {
 			this.list.selectNone()
 		}
-	}
-
-	isListAvailable(): boolean {
-		return this.list != null && this.list.ready
 	}
 
 	archiveSelected(): void {

@@ -58,7 +58,6 @@ export class ContactListView {
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) =>
 				contactView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
 			createVirtualRow: () => new ContactRow(),
-			showStatus: false,
 			className: className,
 			swipe: {
 				renderLeftSpacer: () => [],

@@ -44,7 +44,6 @@ o.spec("List", function () {
 				emptyMessage: "",
 				loadSingle: () => Promise.reject("stub"),
 				multiSelectionAllowed: true,
-				showStatus: false,
 				swipe: defaultSwipe,
 			})
 			list.loadInitial()
@@ -87,7 +86,6 @@ o.spec("List", function () {
 				emptyMessage: "",
 				loadSingle: () => Promise.reject("stub"),
 				multiSelectionAllowed: true,
-				showStatus: false,
 				swipe: defaultSwipe,
 			})
 
@@ -100,8 +98,8 @@ o.spec("List", function () {
 			})
 			// @ts-ignore
 			list.domLoadingRow = downcast({classList: {add: () => undefined, remove: () => undefined}, style: {}})
-			list.setDomList(downcast({style: {}}))
-			list.init()
+			list._setDomList(downcast({style: {}}))
+			list._init()
 			// @ts-ignore
 			list.domDeferred.resolve()
 
@@ -138,7 +136,6 @@ o.spec("List", function () {
 				emptyMessage: "",
 				loadSingle: () => Promise.reject("stub"),
 				multiSelectionAllowed: true,
-				showStatus: false,
 				swipe: defaultSwipe,
 			})
 			// @ts-ignore
@@ -153,12 +150,12 @@ o.spec("List", function () {
 
 			// @ts-ignore
 			list.domLoadingRow = downcast({classList: {add: () => undefined, remove: () => undefined}, style: {}})
-			list.setDomList(downcast({style: {}}))
-			list.init()
+			list._setDomList(downcast({style: {}}))
+			list._init()
 
 			await list.loadInitial()
-			list.init()
-			list.createVirtualRows()
+			list._init()
+			list._createVirtualRows()
 			o(list.virtualList.length).equals(Math.ceil(235 / 62) + ScrollBuffer * 2)
 		})
 	})

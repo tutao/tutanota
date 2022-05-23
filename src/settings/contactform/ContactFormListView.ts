@@ -81,7 +81,6 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) =>
 				this.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
 			createVirtualRow: () => new ContactFormRow(this.customerInfo),
-			showStatus: false,
 			className: className,
 			swipe: {
 				enabled: false,

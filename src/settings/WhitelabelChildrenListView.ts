@@ -76,7 +76,6 @@ export class WhitelabelChildrenListView {
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) =>
 				this.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
 			createVirtualRow: () => new WhitelabelChildRow(this),
-			showStatus: false,
 			className: className,
 			swipe: {
 				renderLeftSpacer: () => [],
