@@ -18,6 +18,7 @@ import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import {exportMails} from "../export/Exporter"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
+import {MailboxDetail} from "../model/MailModel.js"
 
 assertMainOrNode()
 
@@ -70,12 +71,12 @@ export class MultiMailViewer implements Component {
 	}
 
 	getActionBarButtons(prependCancel: boolean = false): ButtonAttrs[] {
-		const selectedEntities = () => this._mailView.mailList.list.getSelectedEntities()
+		const getSelectedMails = () => this._mailView.mailList?.list.getSelectedEntities() ?? []
 
 		const cancel: ButtonAttrs[] = prependCancel ?
 			[{
 				label: "cancel_action",
-				click: () => this._mailView.mailList.list.selectNone(),
+				click: () => this._mailView.mailList?.list.selectNone(),
 				icon: () => Icons.Cancel,
 			}]
 			: []
@@ -84,50 +85,51 @@ export class MultiMailViewer implements Component {
 			...cancel,
 			attachDropdown(
 				{
-                    mainButtonAttrs: {
-                        label: "move_action",
-                        icon: () => Icons.Folder,
-                    }, childAttrs: () => this.makeMoveMailButtons()
-                },
+					mainButtonAttrs: {
+						label: "move_action",
+						icon: () => Icons.Folder,
+					},
+					childAttrs: () => this.makeMoveMailButtons(getSelectedMails())
+				},
 			),
 			{
 				label: "delete_action",
 				click: () => {
-					let mails = selectedEntities()
-					promptAndDeleteMails(locator.mailModel, mails, () => this._mailView.mailList.list.selectNone())
+					const mails = getSelectedMails()
+					promptAndDeleteMails(locator.mailModel, mails, () => this._mailView.mailList?.list.selectNone())
 				},
 				icon: () => Icons.Trash,
 			},
 			attachDropdown(
 				{
-                    mainButtonAttrs: {
-                        label: "more_label",
-                        icon: () => Icons.More,
-                    }, childAttrs: () => [
-                        {
-                            label: "markUnread_action",
-                            click: this._actionBarAction(mails => markMails(locator.entityClient, mails, true)),
-                            icon: () => Icons.NoEye,
-                            type: ButtonType.Dropdown,
-                        },
-                        {
-                            label: "markRead_action",
-                            click: this._actionBarAction(mails => markMails(locator.entityClient, mails, false)),
-                            icon: () => Icons.Eye,
-                            type: ButtonType.Dropdown,
-                        },
-                        !isApp() && !logins.isEnabled(FeatureType.DisableMailExport)
-                            ? {
-                                label: "export_action",
-                                click: this._actionBarAction(mails =>
-                                    showProgressDialog("pleaseWait_msg", exportMails(mails, locator.entityClient, locator.fileController)),
-                                ),
-                                icon: () => Icons.Export,
-                                type: ButtonType.Dropdown,
-                            }
-                            : null,
-                    ]
-                },
+					mainButtonAttrs: {
+						label: "more_label",
+						icon: () => Icons.More,
+					}, childAttrs: () => [
+						{
+							label: "markUnread_action",
+							click: this._actionBarAction(mails => markMails(locator.entityClient, mails, true)),
+							icon: () => Icons.NoEye,
+							type: ButtonType.Dropdown,
+						},
+						{
+							label: "markRead_action",
+							click: this._actionBarAction(mails => markMails(locator.entityClient, mails, false)),
+							icon: () => Icons.Eye,
+							type: ButtonType.Dropdown,
+						},
+						!isApp() && !logins.isEnabled(FeatureType.DisableMailExport)
+							? {
+								label: "export_action",
+								click: this._actionBarAction(mails =>
+									showProgressDialog("pleaseWait_msg", exportMails(mails, locator.entityClient, locator.fileController)),
+								),
+								icon: () => Icons.Export,
+								type: ButtonType.Dropdown,
+							}
+							: null,
+					]
+				},
 			),
 		]
 	}
@@ -135,10 +137,10 @@ export class MultiMailViewer implements Component {
 	/**
 	 * Generate buttons that will move the selected mails to respective folders
 	 */
-	async makeMoveMailButtons(): Promise<ButtonAttrs[]> {
-		let selectedMailbox
+	private async makeMoveMailButtons(selectedEntities: Mail[]): Promise<ButtonAttrs[]> {
+		let selectedMailbox: MailboxDetail | null = null
 
-		for (const mail of this._mailView.mailList.list.getSelectedEntities()) {
+		for (const mail of selectedEntities) {
 			const mailBox = await locator.mailModel.getMailboxDetailsForMail(mail)
 
 			// We can't move if mails are from different mailboxes
@@ -156,7 +158,7 @@ export class MultiMailViewer implements Component {
 			.map(f => {
 				return {
 					label: () => getFolderName(f),
-					click: this._actionBarAction(mails => moveMails({mailModel : locator.mailModel, mails : mails, targetMailFolder : f})),
+					click: this._actionBarAction(mails => moveMails({mailModel: locator.mailModel, mails: mails, targetMailFolder: f})),
 					icon: getFolderIcon(f),
 					type: ButtonType.Dropdown,
 				}
@@ -172,9 +174,9 @@ export class MultiMailViewer implements Component {
 	 */
 	_actionBarAction(action: (arg0: Mail[]) => unknown): () => void {
 		return () => {
-			let mails = this._mailView.mailList.list.getSelectedEntities()
+			const mails = this._mailView.mailList?.list.getSelectedEntities() ?? []
 
-			this._mailView.mailList.list.selectNone()
+			this._mailView.mailList?.list.selectNone()
 
 			action(mails)
 		}
