@@ -202,7 +202,11 @@ import("./translations/en")
 		}
 
 		const {PostLoginActions} = await import("./login/PostLoginActions")
+		const {CachePostLoginAction} = await import("./offline/CachePostLoginAction")
 		logins.addPostLoginAction(new PostLoginActions(locator.credentialsProvider, locator.secondFactorHandler))
+		logins.addPostLoginAction(new CachePostLoginAction(
+			locator.calendarModel, locator.entityClient, locator.progressTracker, logins, isDesktop() ? locator.systemApp : null
+		))
 
 		styles.init()
 		const {usingKeychainAuthentication} = await import("./misc/credentials/CredentialsProviderFactory")

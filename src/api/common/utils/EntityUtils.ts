@@ -39,6 +39,15 @@ export const GENERATED_ID_BYTES_LENGTH = 9
  * The minimum ID for elements with custom id stored on the server
  */
 export const CUSTOM_MIN_ID = ""
+/**
+ * the maximum custom element id is enforced to be less than 256 bytes on the server. decoding this as b64url gives 255 bytes.
+ *
+ * NOTE: this is currently only used as a marker value when caching calendar events.
+ */
+export const CUSTOM_MAX_ID =
+	"_______________________________________________________________________________________________________________________________________________________" +
+	"_______________________________________________________________________________________________________________________________________________________" +
+	"______________________________________"
 export const RANGE_ITEM_LIMIT = 1000
 export const LOAD_MULTIPLE_LIMIT = 100
 export const POST_MULTIPLE_LIMIT = 100

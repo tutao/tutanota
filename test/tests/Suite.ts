@@ -95,6 +95,7 @@ import "./translations/TranslationKeysTest.js"
 import "./misc/UsageTestModelTest.js"
 import "./file/FileControllerTest.js"
 import "./api/worker/offline/OfflineStorageMigratorTest.js"
+import "./api/worker/rest/CustomCacheHandlerTest.js"
 
 import * as td from "testdouble"
 import {random} from "@tutao/tutanota-crypto"

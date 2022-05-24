@@ -24,7 +24,7 @@ import type {ListElementEntity, SomeEntity, TypeModel} from "../../common/Entity
 import {EntityUpdateData} from "../../main/EventController"
 import {QueuedBatch} from "../search/EventQueue"
 import {ENTITY_EVENT_BATCH_EXPIRE_MS} from "../EventBusClient"
-
+import {CustomCacheHandlerMap} from "./CustomCacheHandler.js"
 
 assertWorkerOrNode()
 
@@ -172,6 +172,7 @@ export class EntityRestCache implements IEntityRestCache {
 	constructor(
 		readonly entityRestClient: EntityRestClient,
 		private readonly storage: CacheStorage,
+		private readonly customCacheHandlers: CustomCacheHandlerMap,
 	) {
 	}
 
@@ -287,6 +288,10 @@ export class EntityRestCache implements IEntityRestCache {
 	}
 
 	async loadRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
+		if (this.customCacheHandlers.has(typeRef)) {
+			return await this.customCacheHandlers.get(typeRef)!.loadRange(this.storage, listId, start, count, reverse)
+		}
+
 		const typeModel = await resolveTypeReference(typeRef)
 		if (!isCachedType(typeModel, typeRef)) {
 			return this.entityRestClient.loadRange(typeRef, listId, start, count, reverse)
@@ -559,8 +564,11 @@ export class EntityRestCache implements IEntityRestCache {
 			const typeRef = new TypeRef<ListElementEntity>(firstUpdate.application, firstUpdate.type)
 			const ids = updates.map(update => update.instanceId)
 
-			//We only want to load the instances that are in cache range
-			const idsInCacheRange = await this.getElementIdsInCacheRange(typeRef, instanceListId, ids)
+			// We only want to load the instances that are in cache range
+			const idsInCacheRange = this.customCacheHandlers.has(typeRef)
+				? await this.customCacheHandlers.get(typeRef)!.getElementIdsInCacheRange(this.storage, instanceListId, ids)
+				: await this.getElementIdsInCacheRange(typeRef, instanceListId, ids)
+
 			if (idsInCacheRange.length === 0) {
 				postMultipleEventUpdates.push(updates)
 			} else {

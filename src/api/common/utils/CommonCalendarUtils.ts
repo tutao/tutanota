@@ -65,10 +65,11 @@ export function generateEventElementId(timestamp: number): string {
  * * The actual range of times supported by ECMAScript Date objects is slightly smaller: a range of +-8,640,000,000,000,000 milliseconds
  * -> this makes the element Id a string of between 1 and 17 number characters (the shiftDays are negligible)
  *
+ * exported for testing
  * @param timestamp
  * @param shiftDays
  */
-function createEventElementId(timestamp: number, shiftDays: number): string {
+export function createEventElementId(timestamp: number, shiftDays: number): string {
 	return stringToCustomId(String(timestamp + shiftDays))
 }
 

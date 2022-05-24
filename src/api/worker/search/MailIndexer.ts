@@ -34,6 +34,7 @@ import type {SomeEntity} from "../../common/EntityTypes"
 import {EntityUpdateData} from "../../main/EventController";
 import {EphemeralCacheStorage} from "../rest/EphemeralCacheStorage";
 import {IndexingErrorReason} from "./SearchTypes"
+import {CustomCacheHandlerMap} from "../rest/CustomCacheHandler.js"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20
@@ -688,7 +689,7 @@ class IndexLoader {
 			this.entityCache = cachingEntityClient
 			this._entity = new EntityClient(cachingEntityClient)
 		} else {
-			cachingEntityClient = new EntityRestCache(restClient, new EphemeralCacheStorage())
+			cachingEntityClient = new EntityRestCache(restClient, new EphemeralCacheStorage(), new CustomCacheHandlerMap())
 			this._entity = new EntityClient(restClient)
 		}
 		this.entityCache = cachingEntityClient

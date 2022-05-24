@@ -3,20 +3,24 @@ import {CUSTOM_MIN_ID, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getList
 import {arrayOf, assertNotNull, clone, downcast, isSameTypeRef, neverNull, TypeRef} from "@tutao/tutanota-utils"
 import {
 	createCustomer,
-	createEntityUpdate, createExternalUserReference,
+	createEntityUpdate,
+	createExternalUserReference,
 	createPermission,
 	CustomerTypeRef,
 	EntityUpdate,
-	ExternalUserReferenceTypeRef, PermissionTypeRef
+	ExternalUserReferenceTypeRef,
+	PermissionTypeRef
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import {EntityRestClient, typeRefToPath} from "../../../../../src/api/worker/rest/EntityRestClient.js"
 import {QueuedBatch} from "../../../../../src/api/worker/search/EventQueue.js"
 import {CacheStorage, EntityRestCache, expandId, EXTEND_RANGE_MIN_CHUNK_SIZE} from "../../../../../src/api/worker/rest/EntityRestCache.js"
 import {
-	ContactTypeRef,
+	CalendarEventTypeRef,
+	ContactTypeRef, createCalendarEvent,
 	createContact,
 	createMail,
-	createMailBody, Mail,
+	createMailBody,
+	Mail,
 	MailBody,
 	MailBodyTypeRef,
 	MailTypeRef
@@ -30,6 +34,8 @@ import {NotAuthorizedError, NotFoundError} from "../../../../../src/api/common/e
 import {EphemeralCacheStorage} from "../../../../../src/api/worker/rest/EphemeralCacheStorage.js"
 import {OperationType} from "../../../../../src/api/common/TutanotaConstants.js"
 import {OfflineStorageMigrator} from "../../../../../src/api/worker/offline/OfflineStorageMigrator.js"
+import {CustomCacheHandlerMap, CustomCalendarEventCacheHandler} from "../../../../../src/api/worker/rest/CustomCacheHandler.js"
+import {createEventElementId} from "../../../../../src/api/common/utils/CommonCalendarUtils.js"
 
 const {anything} = matchers
 
@@ -139,7 +145,11 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			userId = "userId"
 			storage = await getStorage(userId)
 			entityRestClient = mockRestClient()
-			cache = new EntityRestCache(entityRestClient, storage)
+			const customCacheHandlerMap = name === "offline" ? new CustomCacheHandlerMap({
+				ref: CalendarEventTypeRef,
+				handler: new CustomCalendarEventCacheHandler(entityRestClient)
+			}) : new CustomCacheHandlerMap()
+			cache = new EntityRestCache(entityRestClient, storage, customCacheHandlerMap)
 
 		})
 
@@ -154,6 +164,11 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			const id5 = "id5"
 			const id6 = "id6"
 			const id7 = "id7"
+
+			//Calendarevents
+			const calendarEventListId = "calendarEventListId"
+			let timestamp = Date.now()
+			const calendarEventIds = [0, 1, 2, 3, 4, 5, 6].map(n => createEventElementId(timestamp, n))
 
 			o("writes batch meta on entity update", async function () {
 				const contact1 = createContact({_id: [contactListId1, id1]})
@@ -184,6 +199,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				o.beforeEach(async function () {
 					await storage.setNewRangeForList(ContactTypeRef, contactListId1, id1, id7)
 					await storage.setNewRangeForList(ContactTypeRef, contactListId2, id1, id7)
+					//when using offline calendar ids are always in cache range
 				})
 				o("entity events received should call loadMultiple when receiving updates from a postMultiple", async function () {
 					const contact1 = createContact({_id: [contactListId1, id1]})
@@ -208,6 +224,31 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					o(updates).deepEquals(batch)
 				})
 
+				if (name === "offline") { // in the other case storage is an EphemeralCache which doesn't use custom handlers or caches calendar events.
+					o("entity events received should call loadMultiple when receiving updates from a postMultiple with CustomCacheHandler", async function () {
+						const event1 = createCalendarEvent({_id: [calendarEventListId, calendarEventIds[0]]})
+						const event2 = createCalendarEvent({_id: [calendarEventListId, calendarEventIds[1]]})
+
+						const batch = [
+							createUpdate(CalendarEventTypeRef, calendarEventListId, calendarEventIds[0], OperationType.CREATE),
+							createUpdate(ContactTypeRef, calendarEventListId, calendarEventIds[1], OperationType.CREATE)
+						]
+						const loadMultiple = o.spy(function (typeRef, listId, ids,) {
+							o(isSameTypeRef(typeRef, CalendarEventTypeRef)).equals(true)
+							o(listId).equals(calendarEventListId)
+							o(ids).deepEquals([calendarEventIds[0], calendarEventIds[1]])
+							return Promise.resolve([event1, event2])
+						})
+						const mock = mockAttribute(entityRestClient, entityRestClient.loadMultiple, loadMultiple)
+						const updates = await cache.entityEventsReceived(makeBatch(batch))
+						unmockAttribute(mock)
+						o(loadMultiple.callCount).equals(1)("loadMultiple is called")
+						o(await storage.get(CalendarEventTypeRef, calendarEventListId, calendarEventIds[0])).notEquals(null)
+						o(await storage.get(CalendarEventTypeRef, calendarEventListId, calendarEventIds[1])).notEquals(null)
+						o(updates).deepEquals(batch)
+					})
+				}
+
 				o("post multiple with different update type and list ids should make multiple load calls", async function () {
 					const batch = [
 						createUpdate(ContactTypeRef, contactListId1, id1, OperationType.CREATE),
@@ -216,6 +257,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 						createUpdate(ContactTypeRef, contactListId2, id4, OperationType.CREATE),
 						createUpdate(CustomerTypeRef, null as any, id5, OperationType.CREATE),
 						createUpdate(ContactTypeRef, contactListId1, id2, OperationType.UPDATE),
+						createUpdate(CalendarEventTypeRef, calendarEventListId, calendarEventIds[0], OperationType.CREATE),
+						createUpdate(CalendarEventTypeRef, calendarEventListId, calendarEventIds[1], OperationType.CREATE),
 					]
 					const load = o.spy(function (typeRef, id) {
 						const {listId, elementId} = expandId(id)
@@ -235,10 +278,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 								}),
 							)
 						}
-						throw new Error("should not be reached")
+						throw new Error("load: should not be reached" + typeRef)
 					})
 					const loadMultiple = o.spy(function (typeRef, listId, ids) {
-						if (isSameTypeRef(typeRef, ContactTypeRef)) {
+						if (isSameTypeRef(typeRef, ContactTypeRef) || isSameTypeRef(typeRef, CalendarEventTypeRef)) {
 							if (listId === contactListId1) {
 								o(ids).deepEquals(["id1", "id2"])
 								return Promise.resolve([
@@ -247,6 +290,16 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 									}),
 									createContact({
 										_id: [listId, id2],
+									}),
+								])
+							} else if (listId === calendarEventListId) {
+								o(ids).deepEquals([calendarEventIds[0], calendarEventIds[1]])
+								return Promise.resolve([
+									createCalendarEvent({
+										_id: [calendarEventListId, calendarEventIds[0]],
+									}),
+									createCalendarEvent({
+										_id: [calendarEventListId, calendarEventIds[1]],
 									}),
 								])
 							} else if (listId === contactListId2) {
@@ -261,7 +314,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 								])
 							}
 						}
-						throw new Error("should not be reached")
+						throw new Error(`load multiple: should not be reached, typeref is ${typeRef}, listid is ${listId} `)
 					})
 
 
@@ -271,11 +324,19 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					unmockAttribute(loadMock)
 					unmockAttribute(loadMultipleMock)
 					o(load.callCount).equals(1)("One load for the customer create")
-					o(loadMultiple.callCount).equals(2)("Two load multiple, one for each contact list")
 					o(await storage.get(ContactTypeRef, contactListId1, id1)).notEquals(null)
 					o(await storage.get(ContactTypeRef, contactListId1, id2)).notEquals(null)
 					o(await storage.get(ContactTypeRef, contactListId2, id3)).notEquals(null)
 					o(await storage.get(ContactTypeRef, contactListId2, id4)).notEquals(null)
+					if (name === "offline") {
+						o(loadMultiple.callCount).equals(3)("Three load multiple, one for each contact list and one for the calendar list")
+						o(await storage.get(CalendarEventTypeRef, calendarEventListId, calendarEventIds[0])).notEquals(null)("when using offline storage event 0 should be cached")
+						o(await storage.get(CalendarEventTypeRef, calendarEventListId, calendarEventIds[1])).notEquals(null)("when using offline storage event 1 should be cached")
+					} else {
+						o(loadMultiple.callCount).equals(2)("two load multiple, one for each contact list and none for the calendar list")
+						o(await storage.get(CalendarEventTypeRef, calendarEventListId, calendarEventIds[0])).equals(null)("when using offline storage event 0 should not be cached")
+						o(await storage.get(CalendarEventTypeRef, calendarEventListId, calendarEventIds[1])).equals(null)("when using offline storage event 1 should not be cached")
+					}
 					o(await storage.get(CustomerTypeRef, null, id5)).equals(null)
 					o(filteredUpdates.length).equals(batch.length)
 					for (const update of batch) {
@@ -1025,7 +1086,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				async function () {
 
 					const clientMock = object<EntityRestClient>()
-					const cache = new EntityRestCache(clientMock, storage)
+					const cache = new EntityRestCache(clientMock, storage, new CustomCacheHandlerMap())
 
 					const listId = "listId"
 
@@ -1068,7 +1129,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			o("When there is a non-reverse range request that loads in the direction of the existing range, the range will grow to include the startId", async function () {
 
 				const clientMock = object<EntityRestClient>()
-				const cache = new EntityRestCache(clientMock, storage)
+				const cache = new EntityRestCache(clientMock, storage, new CustomCacheHandlerMap())
 
 				const listId = "listId1"
 
@@ -1103,7 +1164,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			o("When there is a reverse range request that loads in the direction of the existing range, the range will grow to include the startId", async function () {
 
 				const clientMock = object<EntityRestClient>()
-				const cache = new EntityRestCache(clientMock, storage)
+				const cache = new EntityRestCache(clientMock, storage, new CustomCacheHandlerMap())
 
 				const listId = "listId1"
 				const mails = arrayOf(100, idx => createMailInstance(listId, createId(`${idx}`), `hola ${idx}`))
@@ -1136,7 +1197,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 
 			o("The range request starts on one end of the existing range, and would finish on the other end, so it loads from either direction of the range", async function () {
 				const clientMock = object<EntityRestClient>()
-				const cache = new EntityRestCache(clientMock, storage)
+				const cache = new EntityRestCache(clientMock, storage, new CustomCacheHandlerMap())
 
 				const id1 = createId("1")
 				const id2 = createId("2")
@@ -1228,7 +1289,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				const client = downcast<EntityRestClient>({
 					load: o.spy(() => contact),
 				})
-				const cache = new EntityRestCache(client, storage)
+				const cache = new EntityRestCache(client, storage, new CustomCacheHandlerMap())
 				await cache.load(
 					ContactTypeRef,
 					contactId,
@@ -1263,7 +1324,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 						return contactOnTheServer
 					}),
 				})
-				const cache = new EntityRestCache(client, storage)
+				const cache = new EntityRestCache(client, storage, new CustomCacheHandlerMap())
 				const firstLoaded = await cache.load(ContactTypeRef, contactId)
 				o(firstLoaded).deepEquals(contactOnTheServer)
 				// @ts-ignore
@@ -1307,7 +1368,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 						return permissionOnTheServer
 					}),
 				})
-				const cache = new EntityRestCache(client, storage)
+				const cache = new EntityRestCache(client, storage, new CustomCacheHandlerMap())
 				await cache.load(PermissionTypeRef, permissionId)
 				await cache.load(PermissionTypeRef, permissionId)
 				// @ts-ignore

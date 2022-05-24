@@ -13,7 +13,7 @@ import {SearchFacade} from "./search/SearchFacade"
 import {CustomerFacadeImpl} from "./facades/CustomerFacade"
 import {CounterFacade} from "./facades/CounterFacade"
 import {EventBusClient} from "./EventBusClient"
-import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isOfflineStorageAvailable} from "../common/Env"
+import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isDesktop, isOfflineStorageAvailable} from "../common/Env"
 import {Const} from "../common/TutanotaConstants"
 import type {BrowserData} from "../../misc/ClientConstants"
 import {CalendarFacade} from "./facades/CalendarFacade"
@@ -52,6 +52,8 @@ import {OfflineStorage} from "./offline/OfflineStorage.js"
 import {exposeNativeInterface} from "../common/ExposeNativeInterface"
 import {OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator} from "./offline/OfflineStorageMigrator.js"
 import {modelInfos} from "../common/EntityFunctions.js"
+import {CustomCacheHandlerMap, CustomCalendarEventCacheHandler} from "./rest/CustomCacheHandler.js"
+import {CalendarEventTypeRef} from "../entities/tutanota/TypeRefs.js"
 
 assertWorkerOrNode()
 
@@ -125,17 +127,23 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.cacheStorage = maybeUninitializedStorage
 
+	const fileApp = new NativeFileApp(worker)
+	const systemApp = new NativeSystemApp(worker, fileApp)
+
 	// We don't wont to cache within the admin client
-	const cache = isAdminClient() ? null : new EntityRestCache(entityRestClient, maybeUninitializedStorage)
+	let cache: EntityRestCache | null = null
+	if (!isAdminClient()) {
+		const customCacheHandlers = isDesktop() && await systemApp.getConfigValue(DesktopConfigKey.offlineStorageEnabled)
+			? new CustomCacheHandlerMap({ref: CalendarEventTypeRef, handler: new CustomCalendarEventCacheHandler(entityRestClient)})
+			: new CustomCacheHandlerMap()
+		cache = new EntityRestCache(entityRestClient, maybeUninitializedStorage, customCacheHandlers)
+	}
 
 	locator.cache = cache ?? entityRestClient
 
 	locator.cachingEntityClient = new EntityClient(locator.cache)
 	locator.indexer = new Indexer(entityRestClient, worker, browserData, locator.cache as EntityRestCache)
 	const mainInterface = worker.getMainInterface()
-
-	const fileApp = new NativeFileApp(worker)
-	const systemApp = new NativeSystemApp(worker, fileApp)
 
 	locator.crypto = new CryptoFacadeImpl(locator.user, locator.cachingEntityClient, locator.restClient, locator.rsa, locator.serviceExecutor)
 	locator.login = new LoginFacadeImpl(

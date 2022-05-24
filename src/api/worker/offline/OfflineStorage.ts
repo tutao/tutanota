@@ -199,7 +199,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		// Free users always have default time range regardless of what is stored
 		const isFreeUser = user?.accountType === AccountType.FREE
 		const timeRange = isFreeUser || timeRangeDays == null ? OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS : timeRangeDays
-		const cutoffTimestamp =  this.dateProvider.now() - timeRange * DAY_IN_MILLIS
+		const cutoffTimestamp = this.dateProvider.now() - timeRange * DAY_IN_MILLIS
 		const cutoffId = timestampToGeneratedId(cutoffTimestamp)
 
 		const folders = await this.getListElementsOfType(MailFolderTypeRef)
