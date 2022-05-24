@@ -21,7 +21,7 @@ pipeline {
 						"Uploads both to Nexus and creates a new release on google play, " +
 						"which must be manually published from play.google.com/console"
 		)
-		stringParam(
+		string(
 				name: 'MILESTONE',
 				defaultValue: '',
 				description: 'Which github milestone to reference for generating release notes. Defaults to the version number'
@@ -166,11 +166,11 @@ pipeline {
 				script {
 					def filePath = "build/app-android/tutanota-tutao-release-${VERSION}.apk"
 					def checksum = sh(returnStdout: true, script: "sha256sum ${WORKSPACE}/${filePath}")
-
+					def milestone = params.MILESTONE.trim().equals("") ? VERSION : params.MILESTONE
 					catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page') {
 						withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
 							sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (Android)' \
-																   --milestone '${VERSION}' \
+																   --milestone '${milestone}' \
 																   --tag '${tag}' \
 																   --uploadFile '${WORKSPACE}/${filePath}' \
 																   --platform android \

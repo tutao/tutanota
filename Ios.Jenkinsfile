@@ -58,9 +58,7 @@ pipeline {
 					steps {
 						script {
 							script {
-								def milestone =  params.MILESTONE.trim().equals("") ? VERSION : params.MILESTONE
-								echo "MILESTONE IS: ${milestone}"
-								doBuild('test', 'adhoctest', params.RELEASE, milestone)
+								doBuild('test', 'adhoctest', params.RELEASE, params.MILESTONE.trim().equals("") ? VERSION : params.MILESTONE)
 								stash includes: "app-ios/releases/tutanota-${VERSION}-test.ipa", name: 'ipa-staging'
 							}
 						}
@@ -123,11 +121,12 @@ pipeline {
 
 					catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page') {
 						def tag = "tutanota-ios-release-${VERSION}"
+						def milestone =  params.MILESTONE.trim().equals("") ? VERSION : params.MILESTONE
 						// need to run npm ci to install dependencies of releaseNotes.js
 						sh "npm ci"
 						withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
 							sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (IOS)' \
-																		   --milestone '${VERSION}' \
+																		   --milestone '${milestone}' \
 																		   --tag '${tag}' \
 																		   --platform ios"""
 						}
