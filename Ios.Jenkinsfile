@@ -1,27 +1,26 @@
 pipeline {
-    environment {
-    	NODE_PATH="/opt/node-v16.3.0-linux-x64/bin"
-    	NODE_MAC_PATH="/usr/local/opt/node@16/bin/"
-    	VERSION = sh(returnStdout: true, script: "${NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
-    	TAG = "tutanota-ios-release-${VERSION}"
-    	RELEASE_NOTES_PATH = "app-ios/fastlane/metadata/default/release_notes.txt"
-    }
+	environment {
+		NODE_PATH = "/opt/node-v16.3.0-linux-x64/bin"
+		NODE_MAC_PATH = "/usr/local/opt/node@16/bin/"
+		VERSION = sh(returnStdout: true, script: "${NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
+		TAG = "tutanota-ios-release-${VERSION}"
+		RELEASE_NOTES_PATH = "app-ios/fastlane/metadata/default/release_notes.txt"
+	}
 
-    agent {
-    	label 'linux'
-    }
+	agent {
+		label 'linux'
+	}
 
 	parameters {
 		booleanParam(
-		  name: 'RELEASE',
-		  defaultValue: false,
-		  description: "Build staging and production version, and upload them to nexus/testflight/appstore. " +
-		  			   "The production version will need to be released manually from appstoreconnect.apple.com"
-		  )
+				name: 'RELEASE',
+				defaultValue: false,
+				description: "Build staging and production version, and upload them to nexus/testflight/appstore. " +
+						"The production version will need to be released manually from appstoreconnect.apple.com"
+		)
 	}
 
 	stages {
-
 		stage("Check tag") {
 			when {
 				expression { params.RELEASE }
@@ -34,44 +33,43 @@ pipeline {
 			}
 		}
 
-	    stage("Run tests") {
-	        agent {
-	        	label 'mac'
-	        }
-	        environment {
-	        	LC_ALL="en_US.UTF-8"
-            	LANG="en_US.UTF-8"
-	        }
-	        steps {
-	        	script {
-	        		dir('app-ios') {
-	        			sh 'fastlane test'
-	        		}
-	        	}
-	        }
-	    }
+		stage("Run tests") {
+			agent {
+				label 'mac'
+			}
+			environment {
+				LC_ALL = "en_US.UTF-8"
+				LANG = "en_US.UTF-8"
+			}
+			steps {
+				script {
+					dir('app-ios') {
+						sh 'fastlane test'
+					}
+				}
+			}
+		}
 
 		stage("Build and upload to Apple") {
 			environment {
-				PATH="${env.NODE_MAC_PATH}:${env.PATH}"
-				MATCH_GIT_URL="git@gitlab:/tuta/apple-certificates.git"
-				LC_ALL="en_US.UTF-8"
-                LANG="en_US.UTF-8"
+				PATH = "${env.NODE_MAC_PATH}:${env.PATH}"
+				MATCH_GIT_URL = "git@gitlab:/tuta/apple-certificates.git"
+				LC_ALL = "en_US.UTF-8"
+				LANG = "en_US.UTF-8"
 			}
-		    agent {
-            	label 'mac'
-            }
-            stages {
-            	stage('Staging') {
+			agent {
+				label 'mac'
+			}
+			stages {
+				stage('Staging') {
 					steps {
 						script {
-        					doBuild('test', 'adhoctest', params.RELEASE)
+							doBuild('test', 'adhoctest', params.RELEASE)
 							stash includes: "app-ios/releases/tutanota-${VERSION}-test.ipa", name: 'ipa-staging'
 						}
 					}
-            	}
-
-            	stage('Production') {
+				}
+				stage('Production') {
 					steps {
 						script {
 							doBuild('prod', 'adhoc', params.RELEASE)
@@ -79,13 +77,13 @@ pipeline {
 
 						}
 					}
-            	}
-            }
+				}
+			}
 		}
 
 		stage('Upload to Nexus') {
 			environment {
-				PATH="${env.NODE_PATH}:${env.PATH}"
+				PATH = "${env.NODE_PATH}:${env.PATH}"
 			}
 			when {
 				expression { params.RELEASE }
@@ -111,7 +109,7 @@ pipeline {
 
 		stage('Tag and create github release page') {
 			environment {
-				PATH="${env.NODE_PATH}:${env.PATH}"
+				PATH = "${env.NODE_PATH}:${env.PATH}"
 			}
 			when {
 				expression { params.RELEASE }
@@ -163,22 +161,22 @@ void doBuild(String stage, String lane, bool release) {
 		}
 	}
 
-		script {
-			catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release notes') {
-				def tag = "tutanota-ios-release-${VERSION}"
-				// need to run npm ci to install dependencies of releaseNotes.js
-				sh "npm ci"
-				withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-					sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (IOS)' \
+	script {
+		catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release notes') {
+			def tag = "tutanota-ios-release-${VERSION}"
+			// need to run npm ci to install dependencies of releaseNotes.js
+			sh "npm ci"
+			withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
+				sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (IOS)' \
 																   --milestone '${VERSION}' \
 																   --tag '${tag}' \
 																   --platform ios \
 																   --format ios \
 																   --toFile ${RELEASE_NOTES_PATH}"""
-				}
-
 			}
+
 		}
+	}
 
 	sh "echo Created release notes for fastlane ${RELEASE_NOTES_PATH}"
 	sh "pwd"
@@ -192,12 +190,12 @@ void doBuild(String stage, String lane, bool release) {
 	sh "node buildSrc/prepareMobileBuild.js dist"
 
 	withCredentials([
-		file(credentialsId: 'appstore-api-key-json', variable: "API_KEY_JSON_FILE_PATH"),
-		string(credentialsId: 'match-password', variable: 'MATCH_PASSWORD'),
-		string(credentialsId: 'team-id', variable: 'FASTLANE_TEAM_ID'),
-		sshUserPrivateKey(credentialsId: 'jenkins', keyFileVariable: 'MATCH_GIT_PRIVATE_KEY'),
-		string(credentialsId: 'fastlane-keychain-password', variable: 'FASTLANE_KEYCHAIN_PASSWORD')
-	 ]) {
+			file(credentialsId: 'appstore-api-key-json', variable: "API_KEY_JSON_FILE_PATH"),
+			string(credentialsId: 'match-password', variable: 'MATCH_PASSWORD'),
+			string(credentialsId: 'team-id', variable: 'FASTLANE_TEAM_ID'),
+			sshUserPrivateKey(credentialsId: 'jenkins', keyFileVariable: 'MATCH_GIT_PRIVATE_KEY'),
+			string(credentialsId: 'fastlane-keychain-password', variable: 'FASTLANE_KEYCHAIN_PASSWORD')
+	]) {
 		dir('app-ios') {
 			sh "security unlock-keychain -p ${FASTLANE_KEYCHAIN_PASSWORD}"
 
@@ -214,9 +212,9 @@ void doBuild(String stage, String lane, bool release) {
 void publishToNexus(String artifactId, String ipaFileName) {
 	def util = load "jenkins-lib/util.groovy"
 	util.publishToNexus(groupId: "app",
-		artifactId: "${artifactId}",
-		version: "${VERSION}",
-		assetFilePath: "${WORKSPACE}/app-ios/releases/${ipaFileName}",
-		fileExtension: "ipa"
+			artifactId: "${artifactId}",
+			version: "${VERSION}",
+			assetFilePath: "${WORKSPACE}/app-ios/releases/${ipaFileName}",
+			fileExtension: "ipa"
 	)
 }

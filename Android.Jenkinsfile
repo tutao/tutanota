@@ -93,34 +93,36 @@ pipeline {
 			}
 			stages {
 				stage('Staging') {
-					script {
-						def util = load "jenkins-lib/util.groovy"
-						unstash 'apk-staging'
+					steps {
+						script {
+							def util = load "jenkins-lib/util.groovy"
+							unstash 'apk-staging'
 
-						util.publishToNexus(
-							groupId: "app",
-							artifactId: "android-test",
-							version: "${VERSION}",
-							assetFilePath: "${WORKSPACE}/build/app-android/tutanota-tutao-releaseTest-${VERSION}.apk",
-							fileExtension: 'apk'
-						)
+							util.publishToNexus(
+									groupId: "app",
+									artifactId: "android-test",
+									version: "${VERSION}",
+									assetFilePath: "${WORKSPACE}/build/app-android/tutanota-tutao-releaseTest-${VERSION}.apk",
+									fileExtension: 'apk'
+							)
 
-						// This doesn't publish to the main app on play store,
-						// instead it get's published to the hidden "tutanota-test" app
-						// this happens because the AppId is set to de.tutao.tutanota.test by the android build
-						// and play store knows which app to publish just based on the id
-						androidApkUpload(
-							googleCredentialsId: 'android-app-publisher-credentials',
-							apkFilesPattern: "build/app-android/tutanota-tutao-releaseTest-${VERSION}.apk",
-							trackName: 'internal',
-							rolloutPercentage: '100%',
-							recentChangeList: [
-								[
-									language: "en-US",
-									text:     "see: ${GITHUB_RELEASE_PAGE}"
-								]
-							]
-						)
+							// This doesn't publish to the main app on play store,
+							// instead it get's published to the hidden "tutanota-test" app
+							// this happens because the AppId is set to de.tutao.tutanota.test by the android build
+							// and play store knows which app to publish just based on the id
+							androidApkUpload(
+									googleCredentialsId: 'android-app-publisher-credentials',
+									apkFilesPattern: "build/app-android/tutanota-tutao-releaseTest-${VERSION}.apk",
+									trackName: 'internal',
+									rolloutPercentage: '100%',
+									recentChangeList: [
+											[
+													language: "en-US",
+													text    : "see: ${GITHUB_RELEASE_PAGE}"
+											]
+									]
+							)
+						}
 					}
 				}
 				stage('Production') {
@@ -133,26 +135,26 @@ pipeline {
 							def util = load "jenkins-lib/util.groovy"
 
 							util.publishToNexus(
-								groupId: "app",
-								artifactId: "android",
-								version: "${VERSION}",
-								assetFilePath: "${WORKSPACE}/${filePath}",
-								fileExtension: 'apk'
+									groupId: "app",
+									artifactId: "android",
+									version: "${VERSION}",
+									assetFilePath: "${WORKSPACE}/${filePath}",
+									fileExtension: 'apk'
 							)
 
 							androidApkUpload(
-								googleCredentialsId: 'android-app-publisher-credentials',
-								apkFilesPattern: "${filePath}",
-								trackName: 'production',
-								// Don't publish the app to users directly
-								// It will require manual intervention at play.google.com/console
-								rolloutPercentage: '0%',
-								recentChangeList: [
-									[
-										language: "en-US",
-										text    : "see: ${GITHUB_RELEASE_PAGE}"
+									googleCredentialsId: 'android-app-publisher-credentials',
+									apkFilesPattern: "${filePath}",
+									trackName: 'production',
+									// Don't publish the app to users directly
+									// It will require manual intervention at play.google.com/console
+									rolloutPercentage: '0%',
+									recentChangeList: [
+											[
+													language: "en-US",
+													text    : "see: ${GITHUB_RELEASE_PAGE}"
+											]
 									]
-								]
 							)
 						}
 					}
@@ -173,7 +175,7 @@ pipeline {
 
 			catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page') {
 				withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-							sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (Android)' \
+					sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (Android)' \
 																   --milestone '${VERSION}' \
 																   --tag '${tag}' \
 																   --uploadFile '${WORKSPACE}/${filePath}' \
