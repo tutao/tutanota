@@ -24,17 +24,6 @@ pipeline {
 	}
 
 	stages {
-		stage("Check tag") {
-			when {
-				expression { params.RELEASE }
-			}
-			steps {
-				script {
-					def util = load "jenkins-lib/util.groovy"
-					util.checkGitTag(TAG)
-				}
-			}
-		}
 		stage('Test') {
 			steps {
 				dir("${WORKSPACE}/app-android/") {
@@ -161,7 +150,6 @@ pipeline {
 				}
 			}
 		}
-
 		stage('Tag and publish release page') {
 			steps {
 				// Needed to generate a checksum

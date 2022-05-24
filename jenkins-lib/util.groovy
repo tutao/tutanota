@@ -12,18 +12,5 @@ def publishToNexus(Map params) {
 			"-F maven2.asset1.extension=${params.fileExtension}"
 	}
 }
-
-/**
- * Check if the given git tag exists, error out if it does
- */
-def checkGitTag(String tag) {
-	// Check if the given tag already exists, if it does then error out
-	sh "if git rev-parse ${TAG} >/dev/null 2>&1; then " +
-			"echo 'can't make release build, git tag ${TAG} already exists'; "
-			"return 1; " +
-		"else " +
-			"return 0; " +
-		"fi"
-}
 // required in order to be able to use "load" to include this script in a jenkins pipleline
 return this

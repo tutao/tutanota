@@ -21,18 +21,6 @@ pipeline {
 	}
 
 	stages {
-		stage("Check tag") {
-			when {
-				expression { params.RELEASE }
-			}
-			steps {
-				script {
-					def util = load "jenkins-lib/util.groovy"
-					util.checkGitTag(TAG)
-				}
-			}
-		}
-
 		stage("Run tests") {
 			agent {
 				label 'mac'
