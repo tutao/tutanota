@@ -26,8 +26,8 @@ class AuthenticationPrompt internal constructor() {
 	 */
 	@Throws(CredentialAuthenticationException::class)
 	fun authenticate(
-		activity: FragmentActivity,
-		promptInfo: PromptInfo,
+			activity: FragmentActivity,
+			promptInfo: PromptInfo,
 	) {
 		showPrompt(activity, promptInfo, null)
 	}
@@ -41,36 +41,39 @@ class AuthenticationPrompt internal constructor() {
 	 */
 	@Throws(CredentialAuthenticationException::class)
 	fun authenticateCryptoObject(
-		activity: FragmentActivity,
-		promptInfo: PromptInfo,
-		cryptoObject: BiometricPrompt.CryptoObject?,
+			activity: FragmentActivity,
+			promptInfo: PromptInfo,
+			cryptoObject: BiometricPrompt.CryptoObject?,
 	) {
 		showPrompt(activity, promptInfo, cryptoObject)
 	}
 
 	@Throws(CredentialAuthenticationException::class)
 	private fun showPrompt(
-		activity: FragmentActivity,
-		promptInfo: PromptInfo,
-		cryptoObject: BiometricPrompt.CryptoObject?,
+			activity: FragmentActivity,
+			promptInfo: PromptInfo,
+			cryptoObject: BiometricPrompt.CryptoObject?,
 	) {
 		sem.acquireUninterruptibly()
-		val error = arrayOf<String?>(null)
+		var error: String? = null
 		activity.runOnUiThread {
-			val biometricPrompt = BiometricPrompt(activity, ContextCompat.getMainExecutor(activity), object : BiometricPrompt.AuthenticationCallback() {
-				override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-					error[0] = errString.toString()
-					sem.release()
-				}
+			val biometricPrompt = BiometricPrompt(
+					activity,
+					ContextCompat.getMainExecutor(activity),
+					object : BiometricPrompt.AuthenticationCallback() {
+						override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+							error = errString.toString()
+							sem.release()
+						}
 
-				override fun onAuthenticationSucceeded(
-					result: BiometricPrompt.AuthenticationResult,
-				) {
-					sem.release()
-				}
+						override fun onAuthenticationSucceeded(
+								result: BiometricPrompt.AuthenticationResult,
+						) {
+							sem.release()
+						}
 
-				override fun onAuthenticationFailed() {}
-			})
+						override fun onAuthenticationFailed() {}
+					})
 			if (cryptoObject != null) {
 				biometricPrompt.authenticate(promptInfo, cryptoObject)
 			} else {
@@ -82,7 +85,7 @@ class AuthenticationPrompt internal constructor() {
 			sem.release()
 		} catch (ignored: InterruptedException) {
 		}
-		error[0]?.let {
+		error?.let {
 			throw CredentialAuthenticationException(it)
 		}
 	}

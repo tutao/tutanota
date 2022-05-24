@@ -1,7 +1,7 @@
 package de.tutao.tutanota.alarms
 
 enum class AlarmTrigger(
-	private val value: String,
+		private val value: String,
 ) {
 	FIVE_MINUTES("5M"),
 	TEN_MINUTES("10M"),

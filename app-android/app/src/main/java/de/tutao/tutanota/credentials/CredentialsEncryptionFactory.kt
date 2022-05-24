@@ -1,7 +1,6 @@
 package de.tutao.tutanota.credentials
 
 import android.os.Build
-import de.tutao.tutanota.AndroidKeyStoreFacadeFactory
 import de.tutao.tutanota.MainActivity
 
 /**
@@ -10,7 +9,7 @@ import de.tutao.tutanota.MainActivity
 object CredentialsEncryptionFactory {
 	fun create(activity: MainActivity): ICredentialsEncryption {
 		val authenticationPrompt = AuthenticationPrompt()
-		val keyStoreFacade = AndroidKeyStoreFacadeFactory.create(activity)
+		val keyStoreFacade = de.tutao.tutanota.createAndroidKeyStoreFacade(activity)
 		return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
 			CredentialsEncryptionBeforeAPI30(keyStoreFacade, activity, authenticationPrompt)
 		} else {

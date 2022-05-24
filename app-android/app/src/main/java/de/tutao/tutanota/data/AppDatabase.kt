@@ -11,11 +11,15 @@ import de.tutao.tutanota.data.AppDatabase
 abstract class AppDatabase : RoomDatabase() {
 	abstract fun keyValueDao(): KeyValueDao
 	abstract fun userInfoDao(): UserInfoDao
-	abstract val alarmInfoDao: AlarmInfoDao
+	abstract fun alarmInfoDao(): AlarmInfoDao
 
 	companion object {
 		fun getDatabase(context: Context, allowMainThreadAccess: Boolean): AppDatabase {
-			val builder = Room.databaseBuilder(context, AppDatabase::class.java, "tuta-db") // This is important because we access db across processes!
+			val builder = Room.databaseBuilder(
+					context,
+					AppDatabase::class.java,
+					"tuta-db"
+			) // This is important because we access db across processes!
 					.enableMultiInstanceInvalidation()
 			if (allowMainThreadAccess) {
 				builder.allowMainThreadQueries()

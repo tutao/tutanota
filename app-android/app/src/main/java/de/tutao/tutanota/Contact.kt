@@ -4,7 +4,6 @@ import android.Manifest
 import android.provider.ContactsContract
 import android.provider.ContactsContract.CommonDataKinds.Email
 import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
 
 /**
@@ -31,8 +30,6 @@ class Contact(private val activity: MainActivity) {
 					c.put("mailAddress", cursor.getString(2))
 					result.put(c)
 				}
-			} catch (e: JSONException) {
-				throw RuntimeException(e)
 			} finally {
 				cursor.close()
 			}

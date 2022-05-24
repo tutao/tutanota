@@ -1,22 +1,24 @@
 package de.tutao.tutanota.push
 
 import de.tutao.tutanota.alarms.AlarmNotification
-import org.json.JSONException
 import org.json.JSONObject
-import java.util.*
 
 class MissedNotification private constructor(
-	val alarmNotifications: List<AlarmNotification>,
-	val notificationInfos: List<NotificationInfo>,
-	val lastProcessedNotificationId: String,
+		val alarmNotifications: List<AlarmNotification>,
+		val notificationInfos: List<NotificationInfo>,
+		val lastProcessedNotificationId: String,
 ) {
 	companion object {
-		@Throws(JSONException::class)
 		fun fromJson(jsonObject: JSONObject): MissedNotification {
 			val alarmNotificationsJson = jsonObject.getJSONArray("alarmNotifications")
 			val alarmNotifications: MutableList<AlarmNotification> = ArrayList(alarmNotificationsJson.length())
 			for (i in 0 until alarmNotificationsJson.length()) {
-				alarmNotifications.add(AlarmNotification.fromJson(alarmNotificationsJson.getJSONObject(i), emptyList<String>()))
+				alarmNotifications.add(
+						AlarmNotification.fromJson(
+								alarmNotificationsJson.getJSONObject(i),
+								emptyList<String>()
+						)
+				)
 			}
 			val notificationInfosJson = jsonObject.getJSONArray("notificationInfos")
 			val notificationInfos: MutableList<NotificationInfo> = ArrayList(notificationInfosJson.length())

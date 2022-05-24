@@ -32,5 +32,5 @@ interface ICredentialsEncryption {
 	@Throws(KeyStoreException::class, CryptoError::class, CredentialAuthenticationException::class, KeyPermanentlyInvalidatedException::class)
 	fun decryptUsingKeychain(base64EncodedEncryptedData: String, encryptionMode: CredentialEncryptionMode): String
 
-	val supportedEncryptionModes: List<CredentialEncryptionMode>
+	fun getSupportedEncryptionModes(): List<CredentialEncryptionMode>
 }

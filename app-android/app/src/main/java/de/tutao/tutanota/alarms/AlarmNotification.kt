@@ -13,46 +13,50 @@ import java.util.*
 @Entity(primaryKeys = ["identifier"])
 @TypeConverters(OperationTypeConverter::class)
 class AlarmNotification(
-	val operation: OperationType,
-	val summary: String,
-	val eventStart: String,
-	val eventEnd: String,
-	@field:Embedded val alarmInfo: AlarmInfo,
-	@field:Embedded val repeatRule: RepeatRule?,
+		val operation: OperationType?,
+		val summary: String?,
+		val eventStart: String?,
+		val eventEnd: String?,
+		@field:Embedded val alarmInfo: AlarmInfo,
+		@field:Embedded val repeatRule: RepeatRule?,
 		// in case of a delete operation there is no session key
-	@field:Embedded(prefix = "key") val notificationSessionKey: NotificationSessionKey?,
-	val user: String,
+		@field:Embedded(prefix = "key") val notificationSessionKey: NotificationSessionKey?,
+		val user: String?,
 ) {
 
 	@Throws(CryptoError::class)
 	fun getEventStartDec(crypto: Crypto, sessionKey: ByteArray): Date {
-		return EncryptionUtils.decryptDate(eventStart, crypto, sessionKey)
+		return crypto.decryptDate(eventStart!!, sessionKey)
 	}
 
 	@Throws(CryptoError::class)
 	fun getEventEndDec(crypto: Crypto, sessionKey: ByteArray): Date {
-		return EncryptionUtils.decryptDate(eventEnd, crypto, sessionKey)
+		return crypto.decryptDate(eventEnd!!, sessionKey)
 	}
 
 	@Throws(CryptoError::class)
 	fun getSummaryDec(crypto: Crypto, sessionKey: ByteArray): String {
-		return EncryptionUtils.decryptString(summary, crypto, sessionKey)
+		return crypto.decryptString(summary!!, sessionKey)
 	}
 
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true
-		if (other == null || javaClass != other.javaClass) return false
-		val that = other as AlarmNotification
-		return alarmInfo.identifier == that.alarmInfo.identifier
+		if (javaClass != other?.javaClass) return false
+
+		other as AlarmNotification
+
+		if (alarmInfo != other.alarmInfo) return false
+
+		return true
 	}
 
 	override fun hashCode(): Int {
-		return Objects.hash(alarmInfo.identifier)
+		return alarmInfo.hashCode()
 	}
 
 	class NotificationSessionKey(
-		@field:Embedded val pushIdentifier: IdTuple,
-		val pushIdentifierSessionEncSessionKey: String,
+			@field:Embedded val pushIdentifier: IdTuple,
+			val pushIdentifierSessionEncSessionKey: String,
 	) {
 
 		companion object {
@@ -106,8 +110,10 @@ class AlarmNotification(
 				}
 			}
 			val user = jsonObject.getString("user")
-			return AlarmNotification(operationType, summaryEnc, eventStartEnc, eventEndEnc, alarmInfo,
-					repeatRule, notificationSessionKey, user)
+			return AlarmNotification(
+					operationType, summaryEnc, eventStartEnc, eventEndEnc, alarmInfo,
+					repeatRule, notificationSessionKey, user
+			)
 		}
 	}
 }

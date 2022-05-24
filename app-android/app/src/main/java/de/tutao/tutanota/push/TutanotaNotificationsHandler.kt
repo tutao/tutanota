@@ -2,13 +2,13 @@ package de.tutao.tutanota.push
 
 import android.util.Log
 import de.tutao.tutanota.R
-import de.tutao.tutanota.Utils
 import de.tutao.tutanota.addCommonHeaders
 import de.tutao.tutanota.alarms.AlarmNotification
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
+import de.tutao.tutanota.base64ToBase64Url
 import de.tutao.tutanota.data.SseInfo
+import de.tutao.tutanota.toBase64
 import org.apache.commons.io.IOUtils
-import org.json.JSONException
 import org.json.JSONObject
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -20,9 +20,9 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 class TutanotaNotificationsHandler(
-	private val localNotificationsFacade: LocalNotificationsFacade,
-	private val sseStorage: SseStorage,
-	private val alarmNotificationsManager: AlarmNotificationsManager,
+		private val localNotificationsFacade: LocalNotificationsFacade,
+		private val sseStorage: SseStorage,
+		private val alarmNotificationsManager: AlarmNotificationsManager,
 ) {
 	fun onNewNotificationAvailable(sseInfo: SseInfo?) {
 		Log.d(TAG, "onNewNotificationAvailable")
@@ -34,8 +34,8 @@ class TutanotaNotificationsHandler(
 		if (missedNotification != null) {
 			handleNotificationInfos(missedNotification.notificationInfos)
 			handleAlarmNotifications(missedNotification.alarmNotifications)
-			sseStorage.lastProcessedNotificationId = missedNotification.lastProcessedNotificationId
-			sseStorage.lastMissedNotificationCheckTime = Date()
+			sseStorage.setLastProcessedNotificationId(missedNotification.lastProcessedNotificationId)
+			sseStorage.setLastMissedNotificationCheckTime(Date())
 		}
 	}
 
@@ -46,8 +46,8 @@ class TutanotaNotificationsHandler(
 			sseStorage.clear()
 			return false
 		}
-		if (sseStorage.lastMissedNotificationCheckTime == null) {
-			sseStorage.lastMissedNotificationCheckTime = Date()
+		if (sseStorage.getLastMissedNotificationCheckTime() == null) {
+			sseStorage.setLastMissedNotificationCheckTime(Date())
 		}
 		return true
 	}
@@ -76,16 +76,20 @@ class TutanotaNotificationsHandler(
 				localNotificationsFacade.showErrorNotification(R.string.scheduleAlarmError_msg, e)
 				return null
 			} catch (e: ServiceUnavailableException) {
-				Log.d(TAG, "ServiceUnavailable when downloading missed notification, waiting " +
-						e.suspensionSeconds + "s")
+				Log.d(
+						TAG, "ServiceUnavailable when downloading missed notification, waiting " +
+						e.suspensionSeconds + "s"
+				)
 				try {
 					Thread.sleep(TimeUnit.SECONDS.toMillis(e.suspensionSeconds.toLong()))
 				} catch (ignored: InterruptedException) {
 				}
 				// tries are not decremented and we don't return, we just wait and try again.
 			} catch (e: TooManyRequestsException) {
-				Log.d(TAG, "TooManyRequestsException when downloading missed notification, waiting " +
-						e.retryAfterSeconds + "s")
+				Log.d(
+						TAG, "TooManyRequestsException when downloading missed notification, waiting " +
+						e.retryAfterSeconds + "s"
+				)
 				try {
 					Thread.sleep(TimeUnit.SECONDS.toMillis(e.retryAfterSeconds.toLong()))
 				} catch (ignored: InterruptedException) {
@@ -113,70 +117,65 @@ class TutanotaNotificationsHandler(
 
 	@Throws(IllegalArgumentException::class, IOException::class, HttpException::class)
 	private fun executeMissedNotificationDownload(sseInfo: SseInfo, userId: String?): MissedNotification {
-		try {
-			val url = makeAlarmNotificationUrl(sseInfo)
-			val urlConnection = url.openConnection() as HttpURLConnection
-			urlConnection.connectTimeout = 30 * 1000
-			urlConnection.readTimeout = 20 * 1000
-			urlConnection.setRequestProperty("userIds", userId)
-			addCommonHeaders(urlConnection)
-			val lastProcessedNotificationId = sseStorage.lastProcessedNotificationId
-			if (lastProcessedNotificationId != null) {
-				urlConnection.setRequestProperty("lastProcessedNotificationId", lastProcessedNotificationId)
-			}
-			val responseCode = urlConnection.responseCode
-			Log.d(TAG, "MissedNotification response code $responseCode")
-			handleResponseCode(urlConnection, responseCode)
-			urlConnection.inputStream.use { inputStream ->
-				val responseString = IOUtils.toString(inputStream, StandardCharsets.UTF_8)
-				Log.d(TAG, "Loaded Missed notifications response")
-				return MissedNotification.fromJson(JSONObject(responseString))
-			}
-		} catch (e: MalformedURLException) {
-			throw RuntimeException(e)
-		} catch (e: JSONException) {
-			throw RuntimeException(e)
+		val url = makeAlarmNotificationUrl(sseInfo)
+		val urlConnection = url.openConnection() as HttpURLConnection
+		urlConnection.connectTimeout = 30 * 1000
+		urlConnection.readTimeout = 20 * 1000
+		urlConnection.setRequestProperty("userIds", userId)
+		addCommonHeaders(urlConnection)
+		val lastProcessedNotificationId = sseStorage.getLastProcessedNotificationId()
+		if (lastProcessedNotificationId != null) {
+			urlConnection.setRequestProperty("lastProcessedNotificationId", lastProcessedNotificationId)
+		}
+		val responseCode = urlConnection.responseCode
+		Log.d(TAG, "MissedNotification response code $responseCode")
+		handleResponseCode(urlConnection, responseCode)
+		urlConnection.inputStream.use { inputStream ->
+			val responseString = IOUtils.toString(inputStream, StandardCharsets.UTF_8)
+			Log.d(TAG, "Loaded Missed notifications response")
+			return MissedNotification.fromJson(JSONObject(responseString))
 		}
 	}
 
-	@Throws(FileNotFoundException::class, ServerResponseException::class, ClientRequestException::class, ServiceUnavailableException::class, TooManyRequestsException::class)
+	@Throws(
+			FileNotFoundException::class,
+			ServerResponseException::class,
+			ClientRequestException::class,
+			ServiceUnavailableException::class,
+			TooManyRequestsException::class
+	)
 	private fun handleResponseCode(urlConnection: HttpURLConnection, responseCode: Int) {
 		when (responseCode) {
-			404                              -> {
+			404 -> {
 				throw FileNotFoundException("Missed notification not found: " + 404)
 			}
 			ServiceUnavailableException.CODE -> {
 				val suspensionTime = extractSuspensionTime(urlConnection)
 				throw ServiceUnavailableException(suspensionTime)
 			}
-			TooManyRequestsException.CODE    -> {
+			TooManyRequestsException.CODE -> {
 				val suspensionTime = extractSuspensionTime(urlConnection)
 				throw TooManyRequestsException(suspensionTime)
 			}
-			in 400..499                      -> {
+			in 400..499 -> {
 				throw ClientRequestException(responseCode)
 			}
-			in 500..600                      -> {
+			in 500..600 -> {
 				throw ServerResponseException(responseCode)
 			}
 		}
 	}
 
 	private fun extractSuspensionTime(urlConnection: HttpURLConnection): Int {
-		var retryAfterHeader = urlConnection.getHeaderField("Retry-After")
-		if (retryAfterHeader == null) {
-			retryAfterHeader = urlConnection.getHeaderField("Suspension-Time")
-		}
-		return try {
-			retryAfterHeader!!.toInt()
-		} catch (e: NumberFormatException) {
-			0
-		}
+		val retryAfterHeader = urlConnection.getHeaderField("Retry-After")
+				?: urlConnection.getHeaderField("Suspension-Time")
+		return retryAfterHeader.toIntOrNull() ?: 0
 	}
 
 	@Throws(MalformedURLException::class)
 	private fun makeAlarmNotificationUrl(sseInfo: SseInfo): URL {
-		val customId = Utils.base64ToBase64Url(Utils.bytesToBase64(sseInfo.pushIdentifier.toByteArray(StandardCharsets.UTF_8)))
+		val customId =
+				sseInfo.pushIdentifier.toByteArray(StandardCharsets.UTF_8).toBase64().base64ToBase64Url()
 		return URL(sseInfo.sseOrigin + "/rest/sys/missednotification/" + customId)
 	}
 
@@ -195,7 +194,7 @@ class TutanotaNotificationsHandler(
 	 * We need to unschedule all alarms and to tell web part that we would like alarms to be scheduled all over.
 	 */
 	fun hasNotificationTTLExpired(): Boolean {
-		val lastMissedNotificationCheckTime = sseStorage.lastMissedNotificationCheckTime
+		val lastMissedNotificationCheckTime = sseStorage.getLastMissedNotificationCheckTime()
 		Log.d(TAG, "check lastMissedNotificationCheckTime: $lastMissedNotificationCheckTime")
 		return lastMissedNotificationCheckTime != null && System.currentTimeMillis() - lastMissedNotificationCheckTime.time > MISSED_NOTIFICATION_TTL
 	}
@@ -206,7 +205,7 @@ class TutanotaNotificationsHandler(
 		// in PushNotificationService which restarts the connection.
 		sseStorage.removeUser(userId)
 		alarmNotificationsManager.unscheduleAlarms(userId)
-		if (sseStorage.users.isEmpty()) {
+		if (sseStorage.getUsers().isEmpty()) {
 			alarmNotificationsManager.unscheduleAlarms(null)
 			sseStorage.clear()
 		}

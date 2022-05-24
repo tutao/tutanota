@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity
-class PushIdentifierKey(@field:PrimaryKey val pushIdentifierId: String, val deviceEncPushIdentifierKey: ByteArray) {
+class PushIdentifierKey(@field:PrimaryKey val pushIdentifierId: String, val deviceEncPushIdentifierKey: ByteArray?) {
 	override fun toString(): String {
 		return "PushIdentifierKey{" +
 				"pushIdentifierId='" + pushIdentifierId + '\'' +

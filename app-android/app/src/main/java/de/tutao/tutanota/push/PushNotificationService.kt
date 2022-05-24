@@ -9,9 +9,7 @@ import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutanota.alarms.SystemAlarmFacade
 import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.data.SseInfo
-import de.tutao.tutanota.push.PushNotificationService
 import de.tutao.tutanota.push.SseClient.SseListener
-import java.util.*
 
 class PushNotificationService : LifecycleJobService() {
 	@Volatile
@@ -21,13 +19,17 @@ class PushNotificationService : LifecycleJobService() {
 	override fun onCreate() {
 		super.onCreate()
 		val appDatabase: AppDatabase = AppDatabase.getDatabase(this, allowMainThreadAccess = true)
-		val keyStoreFacade = AndroidKeyStoreFacadeFactory.create(this)
+		val keyStoreFacade = createAndroidKeyStoreFacade(this)
 		val sseStorage = SseStorage(appDatabase, keyStoreFacade)
 		localNotificationsFacade = LocalNotificationsFacade(this)
-		val alarmNotificationsManager = AlarmNotificationsManager(sseStorage, Crypto(this),
-				SystemAlarmFacade(this), localNotificationsFacade)
-		val tutanotaNotificationsHandler = TutanotaNotificationsHandler(localNotificationsFacade, sseStorage,
-				alarmNotificationsManager)
+		val alarmNotificationsManager = AlarmNotificationsManager(
+				sseStorage, Crypto(this),
+				SystemAlarmFacade(this), localNotificationsFacade
+		)
+		val tutanotaNotificationsHandler = TutanotaNotificationsHandler(
+				localNotificationsFacade, sseStorage,
+				alarmNotificationsManager
+		)
 		alarmNotificationsManager.reScheduleAlarms()
 		sseClient = SseClient(Crypto(this), sseStorage, NetworkObserver(this, this), object : SseListener {
 			override fun onStartingConnection(): Boolean {
@@ -69,14 +71,14 @@ class PushNotificationService : LifecycleJobService() {
 			} else {
 				sseClient.restartConnectionIfNeeded(
 						SseInfo(
-								sseStorage.pushIdentifier!!,
+								sseStorage.getPushIdentifier()!!,
 								userIds,
-								sseStorage.sseOrigin!!
+								sseStorage.getSseOrigin()!!
 						)
 				)
 			}
 		}
-		if (Utils.atLeastOreo()) {
+		if (atLeastOreo()) {
 			localNotificationsFacade.createNotificationChannels()
 			Log.d(TAG, "Starting foreground")
 			startForeground(1, localNotificationsFacade.makeConnectionNotification())
@@ -92,8 +94,12 @@ class PushNotificationService : LifecycleJobService() {
 		super.onStartCommand(intent, flags, startId)
 		Log.d(TAG, "Received onStartCommand, sender: " + intent?.getStringExtra("sender"))
 		if (intent != null && intent.hasExtra(LocalNotificationsFacade.NOTIFICATION_DISMISSED_ADDR_EXTRA)) {
-			val dissmissAddrs = intent.getStringArrayListExtra(LocalNotificationsFacade.NOTIFICATION_DISMISSED_ADDR_EXTRA)
-			localNotificationsFacade.notificationDismissed(dissmissAddrs, intent.getBooleanExtra(MainActivity.IS_SUMMARY_EXTRA, false))
+			val dissmissAddrs =
+					intent.getStringArrayListExtra(LocalNotificationsFacade.NOTIFICATION_DISMISSED_ADDR_EXTRA)
+			localNotificationsFacade.notificationDismissed(
+					dissmissAddrs,
+					intent.getBooleanExtra(MainActivity.IS_SUMMARY_EXTRA, false)
+			)
 		}
 
 		return START_STICKY

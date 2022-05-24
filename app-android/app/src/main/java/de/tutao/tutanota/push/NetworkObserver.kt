@@ -9,8 +9,10 @@ import android.util.Log
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 
-class NetworkObserver internal constructor(private val context: Context, lifecycleOwner: LifecycleOwner) : BroadcastReceiver(), DefaultLifecycleObserver {
-	private val connectivityManager: ConnectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+class NetworkObserver internal constructor(private val context: Context, lifecycleOwner: LifecycleOwner) :
+		BroadcastReceiver(), DefaultLifecycleObserver {
+	private val connectivityManager: ConnectivityManager =
+			context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 	private var networkConnectivityListener: NetworkConnectivityListener? = null
 
 	init {

@@ -35,9 +35,9 @@ import kotlin.coroutines.suspendCoroutine
  * Created by mpfau on 4/8/17.
  */
 class Native internal constructor(
-	private val activity: MainActivity,
-	private val sseStorage: SseStorage,
-	private val alarmNotificationsManager: AlarmNotificationsManager,
+		private val activity: MainActivity,
+		private val sseStorage: SseStorage,
+		private val alarmNotificationsManager: AlarmNotificationsManager,
 ) {
 	val themeManager = ThemeManager(activity)
 
@@ -99,13 +99,13 @@ class Native internal constructor(
 					Log.w(TAG, "No request for id $id")
 				}
 			} else {
-					try {
-						val result = invokeMethod(request.getString("requestType"), request.getJSONArray("args"))
-						sendResponse(request, result)
-					} catch (e: Throwable) {
-						Log.e(TAG, "failed invocation", e)
-						sendErrorResponse(request, e)
-					}
+				try {
+					val result = invokeMethod(request.getString("requestType"), request.getJSONArray("args"))
+					sendResponse(request, result)
+				} catch (e: Throwable) {
+					Log.e(TAG, "failed invocation", e)
+					sendErrorResponse(request, e)
+				}
 			}
 		} catch (e: JSONException) {
 			Log.e("Native", "could not parse msg:", e)
@@ -168,15 +168,23 @@ class Native internal constructor(
 			}
 			"reload" -> {
 				_webAppInitialized = CompletableDeferred()
-				activity.reload(Utils.jsonObjectToMap(args.getJSONObject(0)))
+				activity.reload(args.getJSONObject(0).toMap())
 			}
 			"initPushNotifications" -> initPushNotifications()
-			"generateRsaKey" -> crypto.generateRsaKey(Utils.base64ToBytes(args.getString(0)))
-			"rsaEncrypt" -> crypto.rsaEncrypt(args.getJSONObject(0), Utils.base64ToBytes(args.getString(1)), Utils.base64ToBytes(args.getString(2)))
-			"rsaDecrypt" -> crypto.rsaDecrypt(args.getJSONObject(0), Utils.base64ToBytes(args.getString(1)))
-			"aesEncryptFile" -> crypto.aesEncryptFile(Utils.base64ToBytes(args.getString(0)), args.getString(1), Utils.base64ToBytes(args.getString(2))).toJSON()
+			"generateRsaKey" -> crypto.generateRsaKey(args.getString(0).base64ToBytes())
+			"rsaEncrypt" -> crypto.rsaEncrypt(
+					args.getJSONObject(0),
+					args.getString(1).base64ToBytes(),
+					args.getString(2).base64ToBytes()
+			)
+			"rsaDecrypt" -> crypto.rsaDecrypt(args.getJSONObject(0), args.getString(1).base64ToBytes())
+			"aesEncryptFile" -> crypto.aesEncryptFile(
+					args.getString(0).base64ToBytes(),
+					args.getString(1),
+					args.getString(2).base64ToBytes()
+			).toJSON()
 			"aesDecryptFile" -> {
-				val key = Utils.base64ToBytes(args.getString(0))
+				val key = args.getString(0).base64ToBytes()
 				val fileUrl = args.getString(1)
 				crypto.aesDecryptFile(key, fileUrl)
 			}
@@ -219,7 +227,7 @@ class Native internal constructor(
 			"findSuggestions" -> contact.findSuggestions(args.getString(0))
 			"openLink" -> openLink(args.getString(0))
 			"shareText" -> shareText(args.getString(0), args.getString(1))
-			"getPushIdentifier" -> sseStorage.pushIdentifier
+			"getPushIdentifier" -> sseStorage.getPushIdentifier()
 			"storePushIdentifierLocally" -> {
 				val deviceIdentifier = args.getString(0)
 				val userId = args.getString(1)
@@ -236,17 +244,17 @@ class Native internal constructor(
 				cancelNotifications(addressesArray)
 				true
 			}
-			"readFile" -> Utils.bytesToBase64(Utils.readFile(File(activity.filesDir, args.getString(0))))
+			"readFile" -> File(activity.filesDir, args.getString(0)).readBytes().toBase64()
 			"writeFile" -> {
 				val filename = args.getString(0)
 				val contentInBase64 = args.getString(1)
-				Utils.writeFile(File(activity.filesDir, filename), Utils.base64ToBytes(contentInBase64))
+				File(activity.filesDir, filename).writeBytes(contentInBase64.base64ToBytes())
 				true
 			}
 			"getSelectedTheme" -> themeManager.selectedThemeId
 			"setSelectedTheme" -> {
 				val themeId = args.getString(0)
-				themeManager.setSelectedThemeId(themeId)
+				themeManager.selectedThemeId = themeId
 				activity.applyTheme()
 				null
 			}
@@ -282,10 +290,10 @@ class Native internal constructor(
 				credentialsEncryption.decryptUsingKeychain(dataToDecrypt, mode)
 			}
 			"getSupportedEncryptionModes" -> {
-				val modes = credentialsEncryption.supportedEncryptionModes
+				val modes = credentialsEncryption.getSupportedEncryptionModes()
 				JSONArray().apply {
 					for (mode in modes) {
-						put(mode.name)
+						put(mode.modeName)
 					}
 				}
 			}
@@ -303,8 +311,12 @@ class Native internal constructor(
 			notificationManager.cancel(Math.abs(addressesArray.getString(i).hashCode()))
 			emailAddresses.add(addressesArray.getString(i))
 		}
-		activity.startService(LocalNotificationsFacade.notificationDismissedIntent(activity,
-				emailAddresses, "Native", false))
+		activity.startService(
+				LocalNotificationsFacade.notificationDismissedIntent(
+						activity,
+						emailAddresses, "Native", false
+				)
+		)
 	}
 
 	@Throws(JSONException::class)
@@ -327,7 +339,8 @@ class Native internal constructor(
 		return true
 	}
 
-	private fun shareText(string: String, title: String?): Boolean {
+	private suspend fun shareText(string: String, title: String?): Boolean {
+
 		val sendIntent = Intent(Intent.ACTION_SEND)
 		sendIntent.type = "text/plain"
 		sendIntent.putExtra(Intent.EXTRA_TEXT, string)
@@ -337,27 +350,27 @@ class Native internal constructor(
 			sendIntent.putExtra(Intent.EXTRA_TITLE, title)
 		}
 
-		// In order to show a logo thumbnail with the app chooser we need to pass a URI of a file in the filesystem
-		// we just save one of our resources to the temp directory and then pass that as ClipData
-		// because you can't share non 'content' URIs with other apps
-		val imageName = "logo-solo-red.png"
-		try {
-			val logoInputStream = activity.assets.open("tutanota/images/$imageName")
-			val logoFile = files.getTempDecryptedFile(imageName)
-			files.writeFile(logoFile, logoInputStream)
-			val logoUri = FileProvider.getUriForFile(activity, BuildConfig.FILE_PROVIDER_AUTHORITY, logoFile)
-			val thumbnail = ClipData.newUri(
-					activity.contentResolver,
-					"tutanota_logo",
-					logoUri
-			)
-			sendIntent.clipData = thumbnail
-		} catch (e: IOException) {
-			Log.e(TAG, """
-     Error attaching thumbnail to share intent:
-     ${e.message}
-     """.trimIndent())
+		withContext(Dispatchers.IO) {
+			// In order to show a logo thumbnail with the app chooser we need to pass a URI of a file in the filesystem
+			// we just save one of our resources to the temp directory and then pass that as ClipData
+			// because you can't share non 'content' URIs with other apps
+			val imageName = "logo-solo-red.png"
+			try {
+				val logoInputStream = activity.assets.open("tutanota/images/$imageName")
+				val logoFile = files.getTempDecryptedFile(imageName)
+				files.writeFile(logoFile, logoInputStream)
+				val logoUri = FileProvider.getUriForFile(activity, BuildConfig.FILE_PROVIDER_AUTHORITY, logoFile)
+				val thumbnail = ClipData.newUri(
+						activity.contentResolver,
+						"tutanota_logo",
+						logoUri
+				)
+				sendIntent.clipData = thumbnail
+			} catch (e: IOException) {
+				Log.e(TAG, "Error attaching thumbnail to share intent:\n${e.message}")
+			}
 		}
+
 		sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
 		val intent = Intent.createChooser(sendIntent, null)
 		activity.startActivity(intent)
@@ -393,10 +406,12 @@ class Native internal constructor(
 		}
 
 		@Throws(JSONException::class)
-		private fun Throwable.toJSON() = JSONObject().apply {
-			put("name", javaClass.name)
-			put("message", message)
-			put("stack", getStack())
+		private fun Throwable.toJSON(): JSONObject {
+			val obj = JSONObject()
+			obj.put("name", javaClass.name)
+			obj.put("message", message)
+			obj.put("stack", getStack())
+			return obj
 		}
 
 		private fun Throwable.getStack(): String {
