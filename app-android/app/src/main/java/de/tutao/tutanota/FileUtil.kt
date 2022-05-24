@@ -29,28 +29,11 @@ import java.net.URLConnection
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.*
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.ThreadPoolExecutor
-import java.util.concurrent.TimeUnit
-
-// Requesting android runtime permissions. (Android 5+)
-// We only need to request the read permission even if we want to get write access. There is only one permission of a permission group necessary to get
-// access to all permission of that permission group. We still have to declare write access in the manifest.
-// https://developer.android.com/guide/topics/security/permissions.html#perm-groups
-private const val WritePermission = Manifest.permission.WRITE_EXTERNAL_STORAGE
 
 class FileUtil(private val activity: MainActivity, private val localNotificationsFacade: LocalNotificationsFacade) {
-	private val backgroundTasksExecutor = ThreadPoolExecutor(
-			1,  // core pool size
-			4,  // max pool size
-			10,  // keepalive time
-			TimeUnit.SECONDS,
-			LinkedBlockingQueue()
-	)
-
 	@Throws(Exception::class)
 	fun delete(fileUri: String) {
-		if (fileUri.startsWith(Uri.fromFile(Utils.getDir(activity)).toString())) {
+		if (fileUri.startsWith(Uri.fromFile(getDir(activity)).toString())) {
 			// we do not deleteAlarmNotification files that are not stored in our cache dir
 			if (!File(Uri.parse(fileUri).path!!).delete()) {
 				throw Exception("could not deleteAlarmNotification file $fileUri")
@@ -59,14 +42,14 @@ class FileUtil(private val activity: MainActivity, private val localNotification
 	}
 
 	@Throws(IOException::class)
-	fun joinFiles(fileName: String, filesToJoin: List<String>): String {
+	suspend fun joinFiles(fileName: String, filesToJoin: List<String>): String {
 		val inStreams: MutableList<InputStream> = ArrayList(filesToJoin.size)
 		for (infile in filesToJoin) {
 			inStreams.add(FileInputStream(Uri.parse(infile).path))
 		}
 		val output = getTempDecryptedFile(fileName)
 		writeFile(output, SequenceInputStream(Collections.enumeration(inStreams)))
-		return Utils.fileToUri(output)
+		return output.toUri()
 	}
 
 	suspend fun openFileChooser(): JSONArray {
@@ -82,24 +65,24 @@ class FileUtil(private val activity: MainActivity, private val localNotification
 
 		if (result!!.resultCode == Activity.RESULT_OK) {
 			val clipData = result.data.clipData
-				if (clipData != null) {
-					var i = 0
-					while (i < clipData.itemCount) {
-						val item = clipData.getItemAt(i)
-						selectedFiles.put(item.uri.toString())
-						i++
-					}
-				} else {
-					val uri = result.data.data
-					selectedFiles.put(uri.toString())
+			if (clipData != null) {
+				var i = 0
+				while (i < clipData.itemCount) {
+					val item = clipData.getItemAt(i)
+					selectedFiles.put(item.uri.toString())
+					i++
 				}
+			} else {
+				val uri = result.data.data
+				selectedFiles.put(uri.toString())
+			}
 		}
 
 		return selectedFiles
 	}
 
 	// @see: https://developer.android.com/reference/android/support/v4/content/FileProvider.html
-	suspend fun openFile(fileUri: String?, mimeType: String?): Boolean {
+	suspend fun openFile(fileUri: String, mimeType: String): Boolean {
 		val file = Uri.parse(fileUri).let { uri ->
 			if (uri.scheme == "file") {
 				FileProvider.getUriForFile(activity, BuildConfig.FILE_PROVIDER_AUTHORITY, File(uri.path!!))
@@ -113,7 +96,7 @@ class FileUtil(private val activity: MainActivity, private val localNotification
 			flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
 		}
 
-		return activity.startActivityForResult(intent)!!.resultCode == Activity.RESULT_OK
+		return activity.startActivityForResult(intent).resultCode == Activity.RESULT_OK
 	}
 
 	private fun getCorrectedMimeType(fileUri: Uri, storedMimeType: String?): String {
@@ -145,7 +128,7 @@ class FileUtil(private val activity: MainActivity, private val localNotification
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 			addFileToDownloadsMediaStore(fileUriString)
 		} else {
-			activity.getPermission(WritePermission)
+			activity.getPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
 			addFileToDownloadsOld(fileUriString)
 		}
 	}
@@ -154,7 +137,7 @@ class FileUtil(private val activity: MainActivity, private val localNotification
 	private fun addFileToDownloadsMediaStore(fileUriString: String): String {
 		val contentResolver = activity.contentResolver
 		val fileUri = Uri.parse(fileUriString)
-		val fileInfo = Utils.getFileInfo(activity, fileUri)
+		val fileInfo = getFileInfo(activity, fileUri)
 		val values = ContentValues()
 		values.put(MediaStore.MediaColumns.IS_PENDING, 1)
 		val mimeType = getMimeType(fileUri)
@@ -163,9 +146,9 @@ class FileUtil(private val activity: MainActivity, private val localNotification
 		values.put(MediaStore.MediaColumns.SIZE, fileInfo.size)
 		val outputUri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
 				?: throw FileOpenException("Could not insert into downloads, no output URI")
-		val `is` = Objects.requireNonNull(contentResolver.openInputStream(fileUri))
-		val os = contentResolver.openOutputStream(outputUri)
-		val copiedBytes = IOUtils.copyLarge(`is`, os)
+		val inputStream = contentResolver.openInputStream(fileUri)!!
+		val outputStream = contentResolver.openOutputStream(outputUri)
+		val copiedBytes = IOUtils.copyLarge(inputStream, outputStream)
 		Log.d(TAG, "Copied $copiedBytes")
 		val updateValues = ContentValues()
 		updateValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
@@ -184,125 +167,133 @@ class FileUtil(private val activity: MainActivity, private val localNotification
 			}
 		}
 		val file = Uri.parse(fileUri)
-		val fileInfo = Utils.getFileInfo(activity, file)
+		val fileInfo = getFileInfo(activity, file)
 		val newFile = File(downloadsDir, fileInfo.name)
 		IOUtils.copyLarge(activity.contentResolver.openInputStream(file), FileOutputStream(newFile), ByteArray(4096))
 		val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-		downloadManager.addCompletedDownload(newFile.name, "Tutanota download",
-				false, getMimeType(Uri.fromFile(newFile)), newFile.absolutePath, fileInfo.size, true)
+		downloadManager.addCompletedDownload(
+				newFile.name, "Tutanota download",
+				false, getMimeType(Uri.fromFile(newFile)), newFile.absolutePath, fileInfo.size, true
+		)
 		return Uri.fromFile(newFile).toString()
 	}
 
 	@Throws(FileNotFoundException::class)
 	fun getSize(fileUri: String?): Long {
-		return Utils.getFileInfo(activity, Uri.parse(fileUri)).size
+		return getFileInfo(activity, Uri.parse(fileUri)).size
 	}
 
 	@Throws(FileNotFoundException::class)
 	fun getName(fileUri: String): String {
-		return Utils.getFileInfo(activity, Uri.parse(fileUri)).name
+		return getFileInfo(activity, Uri.parse(fileUri)).name
 	}
 
 	@Throws(IOException::class, JSONException::class)
-	fun upload(fileUri: String?, targetUrl: String?, httpMethod: String?, headers: JSONObject): JSONObject {
-		val parsedUri = Uri.parse(fileUri)
-		val inputStream = activity.contentResolver.openInputStream(parsedUri)
-		val con = URL(targetUrl).openConnection() as HttpURLConnection
-		return try {
-			val fileSize = inputStream!!.available()
-			// this disables internal buffering of the output stream
-			con.setFixedLengthStreamingMode(fileSize)
-			con.connectTimeout = HTTP_TIMEOUT
-			// infinite timeout
-			// - the server stops listening after 10 minutes -> SocketException
-			// - if the internet connection dies -> SocketException
-			// we don't want to time out in case of a slow connection because we may already be
-			// waiting for the response code while the TCP stack is still busy sending our data
-			con.readTimeout = 0
-			con.requestMethod = httpMethod
-			con.doInput = true
-			con.doOutput = true
-			con.useCaches = false
-			con.setRequestProperty("Content-Type", "application/octet-stream")
-			addHeadersToRequest(con, headers)
-			con.connect()
-			IOUtils.copy(inputStream, con.outputStream)
+	suspend fun upload(fileUri: String?, targetUrl: String?, httpMethod: String?, headers: JSONObject): JSONObject =
+			withContext(Dispatchers.IO) {
+				val parsedUri = Uri.parse(fileUri)
+				val inputStream = activity.contentResolver.openInputStream(parsedUri)!!
+				val con = URL(targetUrl).openConnection() as HttpURLConnection
+				try {
+					val fileSize = inputStream.available()
+					// this disables internal buffering of the output stream
+					con.setFixedLengthStreamingMode(fileSize)
+					con.connectTimeout = HTTP_TIMEOUT
+					// infinite timeout
+					// - the server stops listening after 10 minutes -> SocketException
+					// - if the internet connection dies -> SocketException
+					// we don't want to time out in case of a slow connection because we may already be
+					// waiting for the response code while the TCP stack is still busy sending our data
+					con.readTimeout = 0
+					con.requestMethod = httpMethod
+					con.doInput = true
+					con.doOutput = true
+					con.useCaches = false
+					con.setRequestProperty("Content-Type", "application/octet-stream")
+					addHeadersToRequest(con, headers)
+					con.connect()
+					IOUtils.copy(inputStream, con.outputStream)
 
-			// this would run into the read timeout if the upload is still running
-			val responseCode = con.responseCode
-			val response = JSONObject()
-					.put("statusCode", responseCode)
-					.put("errorId", con.getHeaderField("Error-Id")) // see ResourceConstants.ERROR_ID_HEADER
-					.put("precondition", con.getHeaderField("Precondition")) // see ResourceConstants.PRECONDITION_HEADER
-					.put("suspensionTime", con.getHeaderField("Retry-After"))
-			if (responseCode >= 200 && responseCode < 300) {
-				val responseBodyStream = ByteArrayOutputStream()
-				IOUtils.copy(con.inputStream, responseBodyStream)
-				response.put("responseBody", Utils.bytesToBase64(responseBodyStream.toByteArray()))
+					// this would run into the read timeout if the upload is still running
+					val responseCode = con.responseCode
+					JSONObject().apply {
+
+						put("statusCode", responseCode)
+						put("errorId", con.getHeaderField("Error-Id")) // see ResourceConstants.ERROR_ID_HEADER
+						put("precondition", con.getHeaderField("Precondition")) // see ResourceConstants.PRECONDITION_HEADER
+						put("suspensionTime", con.getHeaderField("Retry-After"))
+						if (responseCode in 200..299) {
+							val responseBodyStream = ByteArrayOutputStream()
+							IOUtils.copy(con.inputStream, responseBodyStream)
+							put("responseBody", responseBodyStream.toByteArray().toBase64())
+						}
+						if (!has("suspensionTime")) { // enters this block if "Retry-After" header is not set
+							put("suspensionTime", con.getHeaderField("Suspension-Time"))
+						}
+					}
+				} finally {
+					con.disconnect()
+				}
 			}
-			if (!response.has("suspensionTime")) { // enters this block if "Retry-After" header is not set
-				response.put("suspensionTime", con.getHeaderField("Suspension-Time"))
-			}
-			response
-		} finally {
-			con.disconnect()
-		}
-	}
 
 	@Throws(IOException::class, JSONException::class)
-	fun download(sourceUrl: String?, filename: String, headers: JSONObject): JSONObject {
-		var con: HttpURLConnection? = null
-		return try {
-			con = URL(sourceUrl).openConnection() as HttpURLConnection
-			con.connectTimeout = HTTP_TIMEOUT
-			con.readTimeout = HTTP_TIMEOUT
-			con.requestMethod = "GET"
-			con.doInput = true
-			con.useCaches = false
-			addHeadersToRequest(con, headers)
-			con.connect()
-			var encryptedFile: File? = null
-			if (con.responseCode == 200) {
-				val inputStream = con.inputStream
-				encryptedFile = getTempEncryptedFile(filename)
-				writeFile(encryptedFile, inputStream)
+	suspend fun download(sourceUrl: String, filename: String, headers: JSONObject): JSONObject =
+			withContext(Dispatchers.IO) {
+				val con: HttpURLConnection = URL(sourceUrl).openConnection() as HttpURLConnection
+				try {
+					con.connectTimeout = HTTP_TIMEOUT
+					con.readTimeout = HTTP_TIMEOUT
+					con.requestMethod = "GET"
+					con.doInput = true
+					con.useCaches = false
+					addHeadersToRequest(con, headers)
+
+					con.connect()
+					var encryptedFile: File? = null
+					if (con.responseCode == 200) {
+						val inputStream = con.inputStream
+						encryptedFile = getTempEncryptedFile(filename)
+						writeFile(encryptedFile, inputStream)
+					}
+
+					JSONObject().apply {
+
+						put("statusCode", con.responseCode)
+						put("encryptedFileUri", if (encryptedFile != null) encryptedFile.toUri() else JSONObject.NULL)
+						// see ResourceConstants.ERROR_ID_HEADER
+						put("errorId", con.getHeaderField("Error-Id"))
+						// see ResourceConstants.PRECONDITION_HEADER
+						put("precondition", con.getHeaderField("Precondition"))
+						(con.getHeaderField("Retry-After") ?: con.getHeaderField("Suspension-Time"))?.let {
+							put("suspensionTime", it)
+						}
+
+					}
+				} finally {
+					con.disconnect()
+				}
 			}
-			val result = JSONObject()
-					.put("statusCode", con.responseCode)
-					.put("encryptedFileUri", if (encryptedFile != null) Utils.fileToUri(encryptedFile) else JSONObject.NULL)
-					.put("errorId", con.getHeaderField("Error-Id")) // see ResourceConstants.ERROR_ID_HEADER
-					.put("precondition", con.getHeaderField("Precondition")) // see ResourceConstants.PRECONDITION_HEADER
-					.put("suspensionTime", con.getHeaderField("Retry-After"))
-			if (!result.has("suspensionTime")) {
-				result.put("suspensionTime", con.getHeaderField("Suspension-Time"))
-			}
-			result
-		} finally {
-			con?.disconnect()
-		}
-	}
 
 	@Throws(IOException::class)
-	fun writeFile(filePath: File, inputStream: InputStream) {
+	suspend fun writeFile(filePath: File, inputStream: InputStream) = withContext(Dispatchers.IO) {
 		filePath.parentFile.mkdirs()
 		IOUtils.copyLarge(inputStream, FileOutputStream(filePath), ByteArray(COPY_BUFFER_SIZE))
 	}
 
 	@Throws(IOException::class)
-	fun saveDataFile(name: String, base64blob: String): String {
+	suspend fun saveDataFile(name: String, base64blob: String): String = withContext(Dispatchers.IO) {
 		val localPath = getTempDecryptedFile(name)
-		writeFile(localPath, ByteArrayInputStream(Utils.base64ToBytes(base64blob)))
-		val targetUri = Uri.fromFile(localPath)
-		return targetUri.toString()
+		writeFile(localPath, ByteArrayInputStream(base64blob.base64ToBytes()))
+		localPath.toUri()
 	}
 
-	fun clearFileData() {
+	suspend fun clearFileData() {
 		cleanupDir(Crypto.TEMP_DIR_DECRYPTED)
 		cleanupDir(Crypto.TEMP_DIR_ENCRYPTED)
 	}
 
-	private fun cleanupDir(dirname: String) {
-		val files = File(Utils.getDir(activity), dirname).listFiles()
+	private suspend fun cleanupDir(dirname: String) = withContext(Dispatchers.IO) {
+		val files = File(getDir(activity), dirname).listFiles()
 		if (files != null) {
 			for (file in files) {
 				file.delete()
@@ -310,22 +301,22 @@ class FileUtil(private val activity: MainActivity, private val localNotification
 		}
 	}
 
-	@Throws(IOException::class, NoSuchAlgorithmException::class, JSONException::class)
-	fun splitFile(fileUri: String?, maxChunkSize: Int): JSONArray {
+	@Throws(IOException::class)
+	suspend fun splitFile(fileUri: String?, maxChunkSize: Int): JSONArray = withContext(Dispatchers.IO) {
 		val file = Uri.parse(fileUri)
-		val fileSize = Utils.getFileInfo(activity, file).size
+		val fileSize = getFileInfo(activity, file).size
 		val inputStream = activity.contentResolver.openInputStream(file)
-		val chunkUris: MutableList<String?> = ArrayList()
+		val chunkUris: MutableList<String> = ArrayList()
 		var chunk = 0
 		while (chunk * maxChunkSize <= fileSize) {
 			val tmpFilename = Integer.toHexString(file.hashCode()) + "." + chunk + ".blob"
 			val chunkedInputStream = BoundedInputStream(inputStream, maxChunkSize.toLong())
 			val tmpFile = getTempDecryptedFile(tmpFilename)
 			writeFile(tmpFile, chunkedInputStream)
-			chunkUris.add(Utils.fileToUri(tmpFile))
+			chunkUris.add(tmpFile.toUri())
 			chunk++
 		}
-		return JSONArray(chunkUris)
+		JSONArray(chunkUris)
 	}
 
 	@Throws(IOException::class, NoSuchAlgorithmException::class)
@@ -337,7 +328,7 @@ class FileUtil(private val activity: MainActivity, private val localNotification
 		}
 		IOUtils.copyLarge(hashingInputStream, devNull)
 		val hash = hashingInputStream.hash()
-		return Utils.bytesToBase64(Arrays.copyOf(hash, 6))
+		return hash.copyOf(6).toBase64()
 	}
 
 	@Throws(IOException::class)
@@ -352,32 +343,30 @@ class FileUtil(private val activity: MainActivity, private val localNotification
 
 	@Throws(IOException::class)
 	private fun getTempFile(filename: String, directory: String): File {
-		val dir = File(Utils.getDir(activity), directory)
+		val dir = File(getDir(activity), directory)
 		return File(dir, filename)
 	}
 
-	companion object {
-		private const val TAG = "FileUtil"
-		private const val HTTP_TIMEOUT = 15 * 1000
+	private companion object {
+		const val TAG = "FileUtil"
+		const val HTTP_TIMEOUT = 15 * 1000
 		const val COPY_BUFFER_SIZE = 1024 * 1000
-
-		@Throws(JSONException::class)
-		private fun addHeadersToRequest(connection: URLConnection, headers: JSONObject) {
-			val iter: Iterator<*> = headers.keys()
-			while (iter.hasNext()) {
-				val headerKey = iter.next().toString()
-				var headerValues = headers.optJSONArray(headerKey)
-				if (headerValues == null) {
-					headerValues = JSONArray()
-					headerValues.put(headers.getString(headerKey))
-				}
-				connection.setRequestProperty(headerKey, headerValues.getString(0))
-				for (i in 1 until headerValues.length()) {
-					connection.addRequestProperty(headerKey, headerValues.getString(i))
-				}
-			}
-		}
 	}
 }
 
 class FileOpenException(message: String) : Exception(message)
+
+@Throws(JSONException::class)
+private fun addHeadersToRequest(connection: URLConnection, headers: JSONObject) {
+	for (headerKey in headers.keys()) {
+		var headerValues = headers.optJSONArray(headerKey)
+		if (headerValues == null) {
+			headerValues = JSONArray()
+			headerValues.put(headers.getString(headerKey))
+		}
+		connection.setRequestProperty(headerKey, headerValues.getString(0))
+		for (i in 1 until headerValues.length()) {
+			connection.addRequestProperty(headerKey, headerValues.getString(i))
+		}
+	}
+}

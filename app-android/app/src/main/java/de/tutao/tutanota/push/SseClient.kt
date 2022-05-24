@@ -1,16 +1,14 @@
 package de.tutao.tutanota.push
 
 import android.util.Log
-import de.tutao.tutanota.Crypto
-import de.tutao.tutanota.Utils
-import de.tutao.tutanota.addCommonHeaders
+import de.tutao.tutanota.*
 import de.tutao.tutanota.data.SseInfo
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.*
+import java.io.IOException
+import java.io.UnsupportedEncodingException
 import java.net.HttpURLConnection
-import java.net.MalformedURLException
 import java.net.URL
 import java.net.URLEncoder
 import java.util.*
@@ -19,10 +17,10 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
 
 class SseClient internal constructor(
-	private val crypto: Crypto,
-	private val sseStorage: SseStorage,
-	private val networkObserver: NetworkObserver,
-	private val sseListener: SseListener,
+		private val crypto: Crypto,
+		private val sseStorage: SseStorage,
+		private val networkObserver: NetworkObserver,
+		private val sseListener: SseListener,
 ) {
 	@Volatile
 	private var connectedSseInfo: SseInfo? = null
@@ -47,8 +45,11 @@ class SseClient internal constructor(
 		if (connection == null) {
 			Log.d(TAG, "ConnectionRef not available, schedule connect")
 			reschedule(0)
-		} else if (oldConnectedInfo == null || oldConnectedInfo.pushIdentifier != sseInfo.pushIdentifier
-				|| oldConnectedInfo.sseOrigin != sseInfo.sseOrigin) {
+		} else if (
+				oldConnectedInfo == null ||
+				oldConnectedInfo.pushIdentifier != sseInfo.pushIdentifier ||
+				oldConnectedInfo.sseOrigin != sseInfo.sseOrigin
+		) {
 			// If pushIdentifier or SSE origin have changed for some reason, restart the connect.
 			// If user IDs have changed, do not restart, if current user is invalid we have either oldConnectedInfo
 			Log.d(TAG, "ConnectionRef available, but SseInfo has changed, call disconnect to reschedule connection")
@@ -61,7 +62,7 @@ class SseClient internal constructor(
 	private fun connect() {
 		Log.d(TAG, "Starting SSE connection")
 		val random = Random()
-		var reader: BufferedReader? = null
+		val connectedSseInfo = this.connectedSseInfo
 		if (connectedSseInfo == null) {
 			Log.d(TAG, "sse info not available skip reconnect")
 			return
@@ -69,19 +70,17 @@ class SseClient internal constructor(
 		if (!sseListener.onStartingConnection()) {
 			return
 		}
-		timeoutInSeconds = sseStorage.connectTimeoutInSeconds
+		timeoutInSeconds = sseStorage.getConnectTimeoutInSeconds()
 		if (timeoutInSeconds == 0L) {
 			timeoutInSeconds = 90
 		}
-		val connectionData = prepareSSEConnection(connectedSseInfo!!)
+		val connectionData = prepareSSEConnection(connectedSseInfo)
 		try {
-			val httpURLConnection = openSseConnection(connectionData)
-			reader = BufferedReader(InputStreamReader(BufferedInputStream(httpURLConnection.inputStream)))
-			var event: String
-			Log.d(TAG, "SSE connection established, listening for events")
 			var notifiedEstablishedConnection = true
-			while (reader.readLine().also { event = it } != null) {
-				handleLine(event)
+			val httpURLConnection = openSseConnection(connectionData)
+			Log.d(TAG, "SSE connection established, listening for events")
+			httpURLConnection.iterateDataAsLines {
+				handleLine(it)
 				if (notifiedEstablishedConnection) {
 					sseListener.onConnectionEstablished()
 					notifiedEstablishedConnection = false
@@ -90,12 +89,6 @@ class SseClient internal constructor(
 		} catch (exception: Exception) {
 			handleException(random, exception, connectionData.userId)
 		} finally {
-			if (reader != null) {
-				try {
-					reader.close()
-				} catch (ignored: IOException) {
-				}
-			}
 			httpsURLConnectionRef.set(null)
 		}
 	}
@@ -118,14 +111,21 @@ class SseClient internal constructor(
 		when {
 			failedConnectionAttempts > RECONNECTION_ATTEMPTS -> {
 				failedConnectionAttempts = 0
-				Log.e(TAG, "Too many failed connection attempts, will try to sync notifications next time system wakes app up")
+				Log.e(
+						TAG,
+						"Too many failed connection attempts, will try to sync notifications next time system wakes app up"
+				)
 				sseListener.onStoppingReconnectionAttempts()
 			}
-			networkObserver.hasNetworkConnection()           -> {
-				Log.e(TAG, "error opening sse, rescheduling after $delay, failedConnectionAttempts: $failedConnectionAttempts", exception)
+			networkObserver.hasNetworkConnection() -> {
+				Log.e(
+						TAG,
+						"error opening sse, rescheduling after $delay, failedConnectionAttempts: $failedConnectionAttempts",
+						exception
+				)
 				reschedule(delay)
 			}
-			else                                             -> {
+			else -> {
 				Log.e(TAG, "network is not connected, do not reschedule ", exception)
 				sseListener.onStoppingReconnectionAttempts()
 			}
@@ -142,7 +142,7 @@ class SseClient internal constructor(
 		if (data.matches(Regex("^[0-9]+$"))) return
 		if (data.startsWith("heartbeatTimeout:")) {
 			timeoutInSeconds = data.split(":".toRegex()).toTypedArray()[1].toInt().toLong()
-			sseStorage.connectTimeoutInSeconds = timeoutInSeconds
+			sseStorage.setConnectTimeoutInSeconds(timeoutInSeconds)
 			sseListener.onConnectionEstablished()
 			return
 		}
@@ -172,18 +172,14 @@ class SseClient internal constructor(
 	private fun generateId(): String {
 		val bytes = ByteArray(4)
 		crypto.randomizer.nextBytes(bytes)
-		return Utils.base64ToBase64Url(Utils.bytesToBase64(bytes))
+		return bytes.toBase64().base64ToBase64Url()
 	}
 
 	private fun prepareSSEConnection(connectedSseInfo: SseInfo): ConnectionData {
 		check(!connectedSseInfo.userIds.isEmpty()) { "Push identifier but no user IDs" }
-		val userId = connectedSseInfo.userIds.iterator().next()
+		val userId = connectedSseInfo.userIds.first()
 		val json = requestJson(connectedSseInfo.pushIdentifier, userId)
-		val url: URL = try {
-			URL(connectedSseInfo.sseOrigin + "/sse?_body=" + json)
-		} catch (e: MalformedURLException) {
-			throw RuntimeException(e)
-		}
+		val url = URL(connectedSseInfo.sseOrigin + "/sse?_body=" + json)
 		return ConnectionData(userId, url)
 	}
 

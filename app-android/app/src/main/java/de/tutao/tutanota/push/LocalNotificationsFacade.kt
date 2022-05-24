@@ -9,7 +9,6 @@ import android.graphics.Color
 import android.media.AudioAttributes
 import android.media.RingtoneManager
 import android.os.Build
-import android.text.TextUtils
 import android.util.Log
 import androidx.annotation.ColorInt
 import androidx.annotation.StringRes
@@ -18,9 +17,8 @@ import androidx.core.app.NotificationManagerCompat
 import de.tutao.tutanota.BuildConfig
 import de.tutao.tutanota.MainActivity
 import de.tutao.tutanota.R
-import de.tutao.tutanota.Utils
 import de.tutao.tutanota.alarms.AlarmBroadcastReceiver
-import java.util.*
+import de.tutao.tutanota.atLeastNougat
 import java.util.concurrent.ConcurrentHashMap
 
 class LocalNotificationsFacade(private val context: Context) {
@@ -65,8 +63,10 @@ class LocalNotificationsFacade(private val context: Context) {
 			} else {
 				for (info in aliasNotification.values) {
 					if (info.counter > 0) {
-						sendSummaryNotification(notificationManager,
-								info.message, info.notificationInfo, false)
+						sendSummaryNotification(
+								notificationManager,
+								info.message, info.notificationInfo, false
+						)
 						break
 					}
 				}
@@ -81,34 +81,37 @@ class LocalNotificationsFacade(private val context: Context) {
 
 		val title = context.getString(R.string.pushNewMail_msg)
 		for (notificationInfo in notificationInfos) {
-			var counterPerAlias = aliasNotification[notificationInfo.address]
-			counterPerAlias = counterPerAlias?.incremented(notificationInfo.counter)
+			val counterPerAlias = aliasNotification[notificationInfo.address]?.incremented(notificationInfo.counter)
 					?: LocalNotificationInfo(
 							title,
-							notificationInfo.counter, notificationInfo)
+							notificationInfo.counter, notificationInfo
+					)
 
 			aliasNotification[notificationInfo.address] = counterPerAlias
 			val notificationId = makeNotificationId(notificationInfo.address)
+
 			@ColorInt val redColor = context.resources.getColor(R.color.red, context.theme)
 			val notificationBuilder = NotificationCompat.Builder(context, EMAIL_NOTIFICATION_CHANNEL_ID)
 					.setLights(redColor, 1000, 1000)
-			val addresses = ArrayList<String?>()
-			addresses.add(notificationInfo.address)
+
 			notificationBuilder.setContentTitle(title)
 					.setColor(redColor)
 					.setContentText(notificationContent(notificationInfo.address))
 					.setNumber(counterPerAlias.counter)
 					.setSmallIcon(R.drawable.ic_status)
-					.setDeleteIntent(intentForDelete(addresses))
+					.setDeleteIntent(intentForDelete(arrayListOf(notificationInfo.address)))
 					.setContentIntent(intentOpenMailbox(notificationInfo, false))
 					.setGroup(NOTIFICATION_EMAIL_GROUP)
 					.setAutoCancel(true)
-					.setGroupAlertBehavior(if (Utils.atLeastNougat()) NotificationCompat.GROUP_ALERT_CHILDREN else NotificationCompat.GROUP_ALERT_SUMMARY)
+					.setGroupAlertBehavior(if (atLeastNougat()) NotificationCompat.GROUP_ALERT_CHILDREN else NotificationCompat.GROUP_ALERT_SUMMARY)
 					.setDefaults(Notification.DEFAULT_ALL)
+
 			notificationManager.notify(notificationId, notificationBuilder.build())
 		}
-		sendSummaryNotification(notificationManager, title,
-				notificationInfos[0], true)
+		sendSummaryNotification(
+				notificationManager, title,
+				notificationInfos[0], true
+		)
 	}
 
 	@TargetApi(Build.VERSION_CODES.Q)
@@ -121,9 +124,9 @@ class LocalNotificationsFacade(private val context: Context) {
 		)
 		notificationManager.createNotificationChannel(channel)
 		val pendingIntent = PendingIntent.getActivity(
-				context,  /*requestCode*/
+				context,
 				1,
-				Intent(DownloadManager.ACTION_VIEW_DOWNLOADS),  /*flags*/
+				Intent(DownloadManager.ACTION_VIEW_DOWNLOADS),
 				PendingIntent.FLAG_IMMUTABLE
 		)
 		val notification = Notification.Builder(context, channel.id)
@@ -137,13 +140,13 @@ class LocalNotificationsFacade(private val context: Context) {
 	}
 
 	private fun sendSummaryNotification(
-		notificationManager: NotificationManager,
-		title: String,
-		notificationInfo: NotificationInfo,
-		sound: Boolean,
+			notificationManager: NotificationManager,
+			title: String,
+			notificationInfo: NotificationInfo,
+			sound: Boolean,
 	) {
 		var summaryCounter = 0
-		val addresses = ArrayList<String?>()
+		val addresses = arrayListOf<String>()
 		val inboxStyle = NotificationCompat.InboxStyle()
 		for ((key, value) in aliasNotification) {
 			val count = value.counter
@@ -171,33 +174,41 @@ class LocalNotificationsFacade(private val context: Context) {
 				// work with sound there (pehaps summary consumes it somehow?) and we must do
 				// summary with sound instead on the old versions.
 				.setDefaults(if (sound) NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_VIBRATE else 0)
-				.setGroupAlertBehavior(if (Utils.atLeastNougat()) NotificationCompat.GROUP_ALERT_CHILDREN else NotificationCompat.GROUP_ALERT_SUMMARY)
+				.setGroupAlertBehavior(if (atLeastNougat()) NotificationCompat.GROUP_ALERT_CHILDREN else NotificationCompat.GROUP_ALERT_SUMMARY)
 				.build()
 		notificationManager.notify(SUMMARY_NOTIFICATION_ID, notification)
 	}
 
 	fun showErrorNotification(@StringRes message: Int, exception: Throwable?) {
+
 		val intent = Intent(context, MainActivity::class.java)
 				.setAction(Intent.ACTION_SEND)
 				.setType("text/plain")
 				.putExtra(Intent.EXTRA_SUBJECT, "Alarm error v" + BuildConfig.VERSION_NAME)
+
 		if (exception != null) {
 			val stackTrace = Log.getStackTraceString(exception)
-			val errorString = """
-				${exception.message}
-				$stackTrace
-				""".trimIndent()
+			val errorString = "${exception.message}\n$stackTrace"
 			intent.clipData = ClipData.newPlainText("error", errorString)
 		}
-		val notification: Notification = NotificationCompat.Builder(context, AlarmBroadcastReceiver.ALARM_NOTIFICATION_CHANNEL_ID)
-				.setSmallIcon(R.drawable.ic_status)
-				.setContentTitle(context.getString(R.string.app_name))
-				.setContentText(context.getString(message))
-				.setDefaults(NotificationCompat.DEFAULT_ALL)
-				.setStyle(NotificationCompat.BigTextStyle())
-				.setContentIntent(PendingIntent.getActivity(context, (Math.random() * 20000).toInt(), intent, PendingIntent.FLAG_UPDATE_CURRENT))
-				.setAutoCancel(true)
-				.build()
+
+		val notification: Notification =
+				NotificationCompat.Builder(context, AlarmBroadcastReceiver.ALARM_NOTIFICATION_CHANNEL_ID)
+						.setSmallIcon(R.drawable.ic_status)
+						.setContentTitle(context.getString(R.string.app_name))
+						.setContentText(context.getString(message))
+						.setDefaults(NotificationCompat.DEFAULT_ALL)
+						.setStyle(NotificationCompat.BigTextStyle())
+						.setContentIntent(
+								PendingIntent.getActivity(
+										context,
+										(Math.random() * 20000).toInt(),
+										intent,
+										PendingIntent.FLAG_UPDATE_CURRENT
+								)
+						)
+						.setAutoCancel(true)
+						.build()
 		notificationManager.notify(1000, notification)
 	}
 
@@ -206,7 +217,8 @@ class LocalNotificationsFacade(private val context: Context) {
 		val mailNotificationChannel = NotificationChannel(
 				EMAIL_NOTIFICATION_CHANNEL_ID,
 				context.getString(R.string.pushNewMail_msg),
-				NotificationManager.IMPORTANCE_DEFAULT)
+				NotificationManager.IMPORTANCE_DEFAULT
+		)
 		mailNotificationChannel.setShowBadge(true)
 		val ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 		val att = AudioAttributes.Builder()
@@ -221,12 +233,14 @@ class LocalNotificationsFacade(private val context: Context) {
 		notificationManager.createNotificationChannel(mailNotificationChannel)
 		val serviceNotificationChannel = NotificationChannel(
 				PERSISTENT_NOTIFICATION_CHANNEL_ID, context.getString(R.string.notificationSync_msg),
-				NotificationManager.IMPORTANCE_LOW)
+				NotificationManager.IMPORTANCE_LOW
+		)
 		notificationManager.createNotificationChannel(serviceNotificationChannel)
 		val alarmNotificationsChannel = NotificationChannel(
 				AlarmBroadcastReceiver.ALARM_NOTIFICATION_CHANNEL_ID,
 				context.getString(R.string.reminder_label),
-				NotificationManager.IMPORTANCE_HIGH)
+				NotificationManager.IMPORTANCE_HIGH
+		)
 		alarmNotificationsChannel.setShowBadge(true)
 		alarmNotificationsChannel.setSound(ringtoneUri, att)
 		alarmNotificationsChannel.vibrationPattern = VIBRATION_PATTERN
@@ -240,36 +254,42 @@ class LocalNotificationsFacade(private val context: Context) {
 		return aliasNotification[address]!!.counter.toString() + " " + address
 	}
 
-	private fun makeNotificationId(address: String?): Int {
+	private fun makeNotificationId(address: String): Int {
 		return Math.abs(1 + address.hashCode())
 	}
 
-	private fun intentForDelete(addresses: ArrayList<String?>): PendingIntent {
+	private fun intentForDelete(addresses: ArrayList<String>): PendingIntent {
 		val deleteIntent = Intent(context, PushNotificationService::class.java)
 		deleteIntent.putStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, addresses)
 		return PendingIntent.getService(
 				context.applicationContext,
-				makeNotificationId("dismiss" + TextUtils.join("+", addresses)),
+				makeNotificationId("dismiss${addresses.joinToString("+")}"),
 				deleteIntent,
-				PendingIntent.FLAG_UPDATE_CURRENT)
+				PendingIntent.FLAG_UPDATE_CURRENT
+		)
 	}
 
 	private fun intentOpenMailbox(
-		notificationInfo: NotificationInfo,
-		isSummary: Boolean,
+			notificationInfo: NotificationInfo,
+			isSummary: Boolean,
 	): PendingIntent {
 		val openMailboxIntent = Intent(context, MainActivity::class.java)
 		openMailboxIntent.action = MainActivity.OPEN_USER_MAILBOX_ACTION
-		openMailboxIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_MAILADDRESS_KEY,
-				notificationInfo.address)
-		openMailboxIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY,
-				notificationInfo.userId)
+		openMailboxIntent.putExtra(
+				MainActivity.OPEN_USER_MAILBOX_MAILADDRESS_KEY,
+				notificationInfo.address
+		)
+		openMailboxIntent.putExtra(
+				MainActivity.OPEN_USER_MAILBOX_USERID_KEY,
+				notificationInfo.userId
+		)
 		openMailboxIntent.putExtra(MainActivity.IS_SUMMARY_EXTRA, isSummary)
 		return PendingIntent.getActivity(
 				context.applicationContext,
 				makeNotificationId(notificationInfo.address + "@isSummary" + isSummary),
 				openMailboxIntent,
-				PendingIntent.FLAG_UPDATE_CURRENT)
+				PendingIntent.FLAG_UPDATE_CURRENT
+		)
 	}
 
 	companion object {
@@ -280,10 +300,10 @@ class LocalNotificationsFacade(private val context: Context) {
 		private const val SUMMARY_NOTIFICATION_ID = 45
 		private const val PERSISTENT_NOTIFICATION_CHANNEL_ID = "service_intent"
 		fun notificationDismissedIntent(
-			context: Context?,
-			emailAddresses: ArrayList<String>?,
-			sender: String?,
-			isSummary: Boolean,
+				context: Context,
+				emailAddresses: ArrayList<String>,
+				sender: String,
+				isSummary: Boolean,
 		): Intent {
 			val deleteIntent = Intent(context, PushNotificationService::class.java)
 			deleteIntent.putStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, emailAddresses)
@@ -292,11 +312,12 @@ class LocalNotificationsFacade(private val context: Context) {
 			return deleteIntent
 		}
 
-		fun showAlarmNotification(context: Context, `when`: Long, summary: String?, intent: Intent) {
-			val contentText = String.format("%tR %s", `when`, summary)
+		fun showAlarmNotification(context: Context, timestamp: Long, summary: String, intent: Intent) {
+			val contentText = String.format("%tR %s", timestamp, summary)
 			val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 			@ColorInt val red = context.resources.getColor(R.color.red, context.theme)
-			notificationManager.notify(System.currentTimeMillis().toInt(),
+			notificationManager.notify(
+					System.currentTimeMillis().toInt(),
 					NotificationCompat.Builder(context, AlarmBroadcastReceiver.ALARM_NOTIFICATION_CHANNEL_ID)
 							.setSmallIcon(R.drawable.ic_status)
 							.setContentTitle(context.getString(R.string.reminder_label))
@@ -305,7 +326,8 @@ class LocalNotificationsFacade(private val context: Context) {
 							.setColor(red)
 							.setContentIntent(openCalendarIntent(context, intent))
 							.setAutoCancel(true)
-							.build())
+							.build()
+			)
 		}
 
 		private fun openCalendarIntent(context: Context, alarmIntent: Intent): PendingIntent {
@@ -317,7 +339,8 @@ class LocalNotificationsFacade(private val context: Context) {
 					context,
 					alarmIntent.data.toString().hashCode(),
 					openCalendarEventIntent,
-					PendingIntent.FLAG_UPDATE_CURRENT)
+					PendingIntent.FLAG_UPDATE_CURRENT
+			)
 		}
 	}
 }

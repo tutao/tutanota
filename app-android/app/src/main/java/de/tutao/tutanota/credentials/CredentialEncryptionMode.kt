@@ -1,10 +1,12 @@
 package de.tutao.tutanota.credentials
 
-enum class CredentialEncryptionMode(var modeName: String,
-									/**
-									 * Each encryption mode defines whether immediate user interaction is required to access the encryption key.
-									 */
-									var requiresAuthentication: Boolean) {
+enum class CredentialEncryptionMode(
+		var modeName: String,
+		/**
+		 * Each encryption mode defines whether immediate user interaction is required to access the encryption key.
+		 */
+		var requiresAuthentication: Boolean
+) {
 	/**
 	 * Uses the device lock to protect data, i.e. you can decrypt any data encrypted using this mode as long as the device is unlocked.
 	 */

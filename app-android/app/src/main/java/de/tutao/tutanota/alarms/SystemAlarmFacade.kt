@@ -7,13 +7,16 @@ import android.content.Intent
 import android.util.Log
 import java.util.*
 
+
 class SystemAlarmFacade(private val context: Context) {
-	fun scheduleAlarmOccurrenceWithSystem(alarmTime: Date,
-										  occurrence: Int,
-										  identifier: String,
-										  summary: String,
-										  eventDate: Date,
-										  user: String) {
+	fun scheduleAlarmOccurrenceWithSystem(
+			alarmTime: Date,
+			occurrence: Int,
+			identifier: String,
+			summary: String,
+			eventDate: Date,
+			user: String
+	) {
 		Log.d(TAG, "Scheduled notification $identifier")
 		val alarmManager = alarmManager
 		val pendingIntent = makeAlarmPendingIntent(occurrence, identifier, summary, eventDate, user)
@@ -30,9 +33,15 @@ class SystemAlarmFacade(private val context: Context) {
 	private val alarmManager: AlarmManager
 		get() = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-	private fun makeAlarmPendingIntent(occurrence: Int, identifier: String, summary: String?,
-									   eventDate: Date?, user: String?): PendingIntent {
-		val intent: Intent = AlarmBroadcastReceiver.makeAlarmIntent(context, occurrence, identifier, summary, eventDate, user)
+	private fun makeAlarmPendingIntent(
+			occurrence: Int,
+			identifier: String,
+			summary: String,
+			eventDate: Date,
+			user: String?
+	): PendingIntent {
+		val intent: Intent =
+				AlarmBroadcastReceiver.makeAlarmIntent(context, occurrence, identifier, summary, eventDate, user)
 		return PendingIntent.getBroadcast(context, 1, intent, 0)
 	}
 

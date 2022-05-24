@@ -2,38 +2,39 @@ package de.tutao.tutanota.alarms
 
 import de.tutao.tutanota.Crypto
 import de.tutao.tutanota.CryptoError
-import de.tutao.tutanota.EncryptionUtils
+import de.tutao.tutanota.decryptNumber
+import de.tutao.tutanota.decryptString
 import org.json.JSONException
 import org.json.JSONObject
 import java.util.*
 
 class RepeatRule(
-	val frequency: String,
-	val interval: String,
-	val timeZone: String,
-	val endType: String,
-	val endValue: String?,
+		val frequency: String,
+		val interval: String,
+		val timeZone: String,
+		val endType: String,
+		val endValue: String?,
 ) {
 	@Throws(CryptoError::class)
 	fun getFrequencyDec(crypto: Crypto, sessionKey: ByteArray): RepeatPeriod {
-		val frequencyNumber = EncryptionUtils.decryptNumber(frequency, crypto, sessionKey)
+		val frequencyNumber = crypto.decryptNumber(frequency, sessionKey)
 		return RepeatPeriod[frequencyNumber]
 	}
 
 	@Throws(CryptoError::class)
 	fun getIntervalDec(crypto: Crypto, sessionKey: ByteArray): Int {
-		return EncryptionUtils.decryptNumber(interval, crypto, sessionKey).toInt()
+		return crypto.decryptNumber(interval, sessionKey).toInt()
 	}
 
 	@Throws(CryptoError::class)
 	fun getTimeZoneDec(crypto: Crypto, sessionKey: ByteArray): TimeZone {
-		val timeZoneString = EncryptionUtils.decryptString(timeZone, crypto, sessionKey)
+		val timeZoneString = crypto.decryptString(timeZone, sessionKey)
 		return TimeZone.getTimeZone(timeZoneString)
 	}
 
 	@Throws(CryptoError::class)
 	fun getEndTypeDec(crypto: Crypto, sessionKey: ByteArray): EndType {
-		val endTypeNumber = EncryptionUtils.decryptNumber(endType, crypto, sessionKey)
+		val endTypeNumber = crypto.decryptNumber(endType, sessionKey)
 		return EndType[endTypeNumber]
 	}
 
@@ -41,7 +42,7 @@ class RepeatRule(
 	fun getEndValueDec(crypto: Crypto, sessionKey: ByteArray): Long {
 		return if (endValue == null) {
 			0
-		} else EncryptionUtils.decryptNumber(endValue, crypto, sessionKey)
+		} else crypto.decryptNumber(endValue, sessionKey)
 	}
 
 	companion object {

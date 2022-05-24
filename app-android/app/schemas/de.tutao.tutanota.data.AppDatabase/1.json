@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "0445716e38f0a38c4a0c96996f6110f3",
+    "identityHash": "3fdf02a27fc9c0d4d5b94be098cfdda1",
     "entities": [
       {
         "tableName": "KeyValue",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`key` TEXT NOT NULL, `value` TEXT NOT NULL, PRIMARY KEY(`key`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`key` TEXT NOT NULL, `value` TEXT, PRIMARY KEY(`key`))",
         "fields": [
           {
             "fieldPath": "key",
@@ -18,7 +18,7 @@
             "fieldPath": "value",
             "columnName": "value",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -32,7 +32,7 @@
       },
       {
         "tableName": "PushIdentifierKey",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`pushIdentifierId` TEXT NOT NULL, `deviceEncPushIdentifierKey` BLOB NOT NULL, PRIMARY KEY(`pushIdentifierId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`pushIdentifierId` TEXT NOT NULL, `deviceEncPushIdentifierKey` BLOB, PRIMARY KEY(`pushIdentifierId`))",
         "fields": [
           {
             "fieldPath": "pushIdentifierId",
@@ -44,7 +44,7 @@
             "fieldPath": "deviceEncPushIdentifierKey",
             "columnName": "deviceEncPushIdentifierKey",
             "affinity": "BLOB",
-            "notNull": true
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -58,37 +58,37 @@
       },
       {
         "tableName": "AlarmNotification",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`operation` INTEGER NOT NULL, `summary` TEXT NOT NULL, `eventStart` TEXT NOT NULL, `eventEnd` TEXT NOT NULL, `user` TEXT NOT NULL, `trigger` TEXT NOT NULL, `identifier` TEXT NOT NULL, `frequency` TEXT, `interval` TEXT, `timeZone` TEXT, `endType` TEXT, `endValue` TEXT, `keypushIdentifierSessionEncSessionKey` TEXT, `keylistId` TEXT, `keyelementId` TEXT, PRIMARY KEY(`identifier`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`operation` INTEGER, `summary` TEXT, `eventStart` TEXT, `eventEnd` TEXT, `user` TEXT, `trigger` TEXT NOT NULL, `identifier` TEXT NOT NULL, `frequency` TEXT, `interval` TEXT, `timeZone` TEXT, `endType` TEXT, `endValue` TEXT, `keypushIdentifierSessionEncSessionKey` TEXT, `keylistId` TEXT, `keyelementId` TEXT, PRIMARY KEY(`identifier`))",
         "fields": [
           {
             "fieldPath": "operation",
             "columnName": "operation",
             "affinity": "INTEGER",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "summary",
             "columnName": "summary",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "eventStart",
             "columnName": "eventStart",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "eventEnd",
             "columnName": "eventEnd",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "user",
             "columnName": "user",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "alarmInfo.trigger",
@@ -184,7 +184,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0445716e38f0a38c4a0c96996f6110f3')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3fdf02a27fc9c0d4d5b94be098cfdda1')"
     ]
   }
 }

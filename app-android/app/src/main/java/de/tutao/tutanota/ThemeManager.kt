@@ -20,12 +20,11 @@ private const val TAG = "ThemeStorage"
  * 4 methods correspond to ThemeStorage from web plus two convenience methods getCurrentTheme() and getCurrentThemeWithFallback().
  */
 class ThemeManager(private val context: Context) {
-	val selectedThemeId: String?
+	var selectedThemeId: String?
 		get() = prefs.getString(CURRENT_THEME_KEY, null)
-
-	fun setSelectedThemeId(themeId: String) {
-		prefs.edit().putString(CURRENT_THEME_KEY, themeId).apply()
-	}
+		set(value) {
+			prefs.edit().putString(CURRENT_THEME_KEY, value).apply()
+		}
 
 	val themes: List<Theme>
 		get() {
@@ -34,7 +33,7 @@ class ThemeManager(private val context: Context) {
 			for (string in themesStrings) {
 				try {
 					val jsonTheme = JSONObject(string)
-					val theme = Utils.jsonObjectToMap(jsonTheme)
+					val theme = jsonTheme.toMap()
 					themes.add(theme)
 				} catch (e: JSONException) {
 					Log.e(TAG, "Could not parse theme", e)

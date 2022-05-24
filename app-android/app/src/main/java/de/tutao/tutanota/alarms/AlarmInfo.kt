@@ -5,11 +5,10 @@ import de.tutao.tutanota.CryptoError
 import org.json.JSONException
 import org.json.JSONObject
 import java.nio.charset.StandardCharsets
-import java.util.*
 
 class AlarmInfo(
-	val trigger: String,
-	val identifier: String,
+		val trigger: String,
+		val identifier: String,
 ) {
 
 	@Throws(CryptoError::class)
@@ -19,14 +18,19 @@ class AlarmInfo(
 
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true
-		if (other == null || javaClass != other.javaClass) return false
-		val alarmInfo = other as AlarmInfo
-		return identifier == alarmInfo.identifier
+		if (javaClass != other?.javaClass) return false
+
+		other as AlarmInfo
+
+		if (identifier != other.identifier) return false
+
+		return true
 	}
 
 	override fun hashCode(): Int {
-		return Objects.hash(identifier)
+		return identifier.hashCode()
 	}
+
 
 	companion object {
 		@Throws(JSONException::class)

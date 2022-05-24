@@ -13,7 +13,7 @@ abstract class LifecycleJobService : JobService(), LifecycleOwner {
 		super.onCreate()
 	}
 
-	override fun onStart(intent: Intent, startId: Int) {
+	override fun onStart(intent: Intent?, startId: Int) {
 		lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
 		super.onStart(intent, startId)
 	}

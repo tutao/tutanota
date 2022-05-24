@@ -3,6 +3,7 @@ package de.tutao.tutanota;
 
 import static org.junit.Assert.assertEquals;
 
+import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -21,6 +22,8 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import static org.mockito.Mockito.mock;
+
 
 @RunWith(AndroidJUnit4.class)
 public class CompatibilityTest {
@@ -39,29 +42,29 @@ public class CompatibilityTest {
 
     @Test
     public void aes128() throws CryptoError, IOException {
-        Crypto crypto = new Crypto(null);
+        Crypto crypto = new Crypto(mock(Context.class));
         for (AesTestData td : CompatibilityTest.testData.getAes128Tests()) {
             byte[] key = hexToBytes(td.getHexKey());
             ByteArrayOutputStream encryptedBytes = new ByteArrayOutputStream();
             crypto.aesEncrypt(key, new ByteArrayInputStream(Utils.base64ToBytes(td.getPlainTextBase64())), encryptedBytes, Utils.base64ToBytes(td.getIvBase64()), false);
-            assertEquals(td.getCipherTextBase64(), Utils.bytesToBase64(encryptedBytes.toByteArray()));
+            assertEquals(td.getCipherTextBase64(), Utils.toBase64(encryptedBytes.toByteArray()));
             ByteArrayOutputStream decryptedBytes = new ByteArrayOutputStream();
             crypto.aesDecrypt(key, new ByteArrayInputStream(encryptedBytes.toByteArray()), decryptedBytes, encryptedBytes.size());
-            assertEquals(td.getPlainTextBase64(), Utils.bytesToBase64(decryptedBytes.toByteArray()));
+            assertEquals(td.getPlainTextBase64(), Utils.toBase64(decryptedBytes.toByteArray()));
         }
     }
 
     @Test
     public void aes128Mac() throws CryptoError, IOException {
-        Crypto crypto = new Crypto(null);
+        Crypto crypto = new Crypto(mock(Context.class));
         for (AesTestData td : CompatibilityTest.testData.getAes128MacTests()) {
             byte[] key = hexToBytes(td.getHexKey());
             ByteArrayOutputStream encryptedBytes = new ByteArrayOutputStream();
             crypto.aesEncrypt(key, new ByteArrayInputStream(Utils.base64ToBytes(td.getPlainTextBase64())), encryptedBytes, Utils.base64ToBytes(td.getIvBase64()), true);
-            assertEquals(td.getCipherTextBase64(), Utils.bytesToBase64(encryptedBytes.toByteArray()));
+            assertEquals(td.getCipherTextBase64(), Utils.toBase64(encryptedBytes.toByteArray()));
             ByteArrayOutputStream decryptedBytes = new ByteArrayOutputStream();
             crypto.aesDecrypt(key, new ByteArrayInputStream(encryptedBytes.toByteArray()), decryptedBytes, encryptedBytes.size());
-            assertEquals(td.getPlainTextBase64(), Utils.bytesToBase64(decryptedBytes.toByteArray()));
+            assertEquals(td.getPlainTextBase64(), Utils.toBase64(decryptedBytes.toByteArray()));
         }
     }
 
@@ -69,7 +72,7 @@ public class CompatibilityTest {
     public void rsa() throws CryptoError {
 
         for (EncryptionTestData testData : CompatibilityTest.testData.getRsaEncryptionTests()) {
-            Crypto crypto = new Crypto(null, stubRandom(testData.seed));
+            Crypto crypto = new Crypto(mock(Context.class), stubRandom(testData.seed));
             JSONObject publicKeyJSON = hexToPublicKey(testData.getPublicKey());
 
             String base64Result = crypto.rsaEncrypt(publicKeyJSON, hexToBytes(testData.getInput()), hexToBytes(testData.seed));
@@ -114,13 +117,13 @@ public class CompatibilityTest {
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("version", 0);
-            jsonObject.put("modulus", Utils.bytesToBase64(keyArray[0].toByteArray()));
-            jsonObject.put("privateExponent", Utils.bytesToBase64(keyArray[1].toByteArray()));
-            jsonObject.put("primeP", Utils.bytesToBase64(keyArray[2].toByteArray()));
-            jsonObject.put("primeQ", Utils.bytesToBase64(keyArray[3].toByteArray()));
-            jsonObject.put("primeExponentP", Utils.bytesToBase64(keyArray[4].toByteArray()));
-            jsonObject.put("primeExponentQ", Utils.bytesToBase64(keyArray[5].toByteArray()));
-            jsonObject.put("crtCoefficient", Utils.bytesToBase64(keyArray[6].toByteArray()));
+            jsonObject.put("modulus", Utils.toBase64(keyArray[0].toByteArray()));
+            jsonObject.put("privateExponent", Utils.toBase64(keyArray[1].toByteArray()));
+            jsonObject.put("primeP", Utils.toBase64(keyArray[2].toByteArray()));
+            jsonObject.put("primeQ", Utils.toBase64(keyArray[3].toByteArray()));
+            jsonObject.put("primeExponentP", Utils.toBase64(keyArray[4].toByteArray()));
+            jsonObject.put("primeExponentQ", Utils.toBase64(keyArray[5].toByteArray()));
+            jsonObject.put("crtCoefficient", Utils.toBase64(keyArray[6].toByteArray()));
             return jsonObject;
         } catch (JSONException e) {
             throw new RuntimeException(e);
@@ -132,7 +135,7 @@ public class CompatibilityTest {
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("version", 0);
-            jsonObject.put("modulus", Utils.bytesToBase64(keyArray[0].toByteArray()));
+            jsonObject.put("modulus", Utils.toBase64(keyArray[0].toByteArray()));
             return jsonObject;
         } catch (JSONException e) {
             throw new RuntimeException(e);

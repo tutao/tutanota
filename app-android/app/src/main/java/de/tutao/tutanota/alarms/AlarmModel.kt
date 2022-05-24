@@ -1,34 +1,47 @@
 package de.tutao.tutanota.alarms
 
-import de.tutao.tutanota.alarms.AlarmTrigger
-import de.tutao.tutanota.alarms.RepeatPeriod
 import java.util.*
 
 object AlarmModel {
 	private const val OCCURRENCES_SCHEDULED_AHEAD = 10
 
+	@JvmStatic
 	fun iterateAlarmOccurrences(
-		now: Date,
-		timeZone: TimeZone,
-		eventStart: Date,
-		eventEnd: Date,
-		frequency: RepeatPeriod,
-		interval: Int,
-		endType: EndType?,
-		endValue: Long,
-		alarmTrigger: AlarmTrigger,
-		localTimeZone: TimeZone,
-		callback: AlarmIterationCallback,
+			now: Date,
+			timeZone: TimeZone,
+			eventStart: Date,
+			eventEnd: Date,
+			frequency: RepeatPeriod,
+			interval: Int,
+			endType: EndType?,
+			endValue: Long,
+			alarmTrigger: AlarmTrigger,
+			localTimeZone: TimeZone,
+			callback: AlarmIterationCallback,
 	) {
 		val isAllDayEvent = isAllDayEventByTimes(eventStart, eventEnd)
-		val calcEventStart = if (isAllDayEvent) getAllDayDateLocal(eventStart, localTimeZone) else eventStart
-		val endDate = if (endType == EndType.UNTIL) if (isAllDayEvent) getAllDayDateLocal(Date(endValue), localTimeZone) else Date(endValue) else null
+		val calcEventStart = if (isAllDayEvent) {
+			getAllDayDateLocal(eventStart, localTimeZone)
+		} else {
+			eventStart
+		}
+
+		val endDate = if (endType == EndType.UNTIL) {
+			if (isAllDayEvent) {
+				getAllDayDateLocal(Date(endValue), localTimeZone)
+			} else {
+				Date(endValue)
+			}
+		} else {
+			null
+		}
 		val calendar = Calendar.getInstance(if (isAllDayEvent) localTimeZone else timeZone)
 		var occurrences = 0
 		var futureOccurrences = 0
 		while (futureOccurrences < OCCURRENCES_SCHEDULED_AHEAD
 				&& (endType != EndType.COUNT
-						|| occurrences < endValue)) {
+						|| occurrences < endValue)
+		) {
 			calendar.time = calcEventStart
 			incrementByRepeatPeriod(calendar, frequency, interval * occurrences)
 			if (endType == EndType.UNTIL && calendar.timeInMillis >= endDate!!.time) {
@@ -44,24 +57,25 @@ object AlarmModel {
 	}
 
 	fun incrementByRepeatPeriod(
-		calendar: Calendar, period: RepeatPeriod?,
-		interval: Int,
+			calendar: Calendar, period: RepeatPeriod?,
+			interval: Int,
 	) {
 		val field: Int
 		field = when (period) {
-			RepeatPeriod.DAILY    -> Calendar.DAY_OF_MONTH
-			RepeatPeriod.WEEKLY   -> Calendar.WEEK_OF_YEAR
-			RepeatPeriod.MONTHLY  -> Calendar.MONTH
+			RepeatPeriod.DAILY -> Calendar.DAY_OF_MONTH
+			RepeatPeriod.WEEKLY -> Calendar.WEEK_OF_YEAR
+			RepeatPeriod.MONTHLY -> Calendar.MONTH
 			RepeatPeriod.ANNUALLY -> Calendar.YEAR
-			else                  -> throw AssertionError("Unknown repeatPeriod: $period")
+			else -> throw AssertionError("Unknown repeatPeriod: $period")
 		}
 		calendar.add(field, interval)
 	}
 
+	@JvmStatic
 	fun calculateAlarmTime(
-		eventStart: Date,
-		timeZone: TimeZone?,
-		alarmTrigger: AlarmTrigger,
+			eventStart: Date,
+			timeZone: TimeZone?,
+			alarmTrigger: AlarmTrigger,
 	): Date {
 		val calendar: Calendar = if (timeZone != null) {
 			Calendar.getInstance(timeZone)
@@ -70,18 +84,19 @@ object AlarmModel {
 		}
 		calendar.time = eventStart
 		when (alarmTrigger) {
-			AlarmTrigger.FIVE_MINUTES   -> calendar.add(Calendar.MINUTE, -5)
-			AlarmTrigger.TEN_MINUTES    -> calendar.add(Calendar.MINUTE, -10)
+			AlarmTrigger.FIVE_MINUTES -> calendar.add(Calendar.MINUTE, -5)
+			AlarmTrigger.TEN_MINUTES -> calendar.add(Calendar.MINUTE, -10)
 			AlarmTrigger.THIRTY_MINUTES -> calendar.add(Calendar.MINUTE, -30)
-			AlarmTrigger.ONE_HOUR       -> calendar.add(Calendar.HOUR, -1)
-			AlarmTrigger.ONE_DAY        -> calendar.add(Calendar.DAY_OF_MONTH, -1)
-			AlarmTrigger.TWO_DAYS       -> calendar.add(Calendar.DAY_OF_MONTH, -2)
-			AlarmTrigger.THREE_DAYS     -> calendar.add(Calendar.DAY_OF_MONTH, -3)
-			AlarmTrigger.ONE_WEEK       -> calendar.add(Calendar.WEEK_OF_MONTH, -1)
+			AlarmTrigger.ONE_HOUR -> calendar.add(Calendar.HOUR, -1)
+			AlarmTrigger.ONE_DAY -> calendar.add(Calendar.DAY_OF_MONTH, -1)
+			AlarmTrigger.TWO_DAYS -> calendar.add(Calendar.DAY_OF_MONTH, -2)
+			AlarmTrigger.THREE_DAYS -> calendar.add(Calendar.DAY_OF_MONTH, -3)
+			AlarmTrigger.ONE_WEEK -> calendar.add(Calendar.WEEK_OF_MONTH, -1)
 		}
 		return calendar.time
 	}
 
+	@JvmStatic
 	fun getAllDayDateUTC(localDate: Date, localTimeZone: TimeZone): Date {
 		val calendar = Calendar.getInstance(localTimeZone)
 		calendar.time = localDate
@@ -95,8 +110,15 @@ object AlarmModel {
 		val utcCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
 		utcCalendar.time = utcDate
 		val calendar = Calendar.getInstance(localTimeZone)
-		calendar[utcCalendar[Calendar.YEAR], utcCalendar[Calendar.MONTH], utcCalendar[Calendar.DAY_OF_MONTH], 0, 0] = 0
-		calendar[Calendar.MILLISECOND] = 0
+		calendar.set(
+				utcCalendar[Calendar.YEAR],
+				utcCalendar[Calendar.MONTH],
+				utcCalendar[Calendar.DAY_OF_MONTH],
+				0,
+				0,
+				0
+		)
+		calendar.set(Calendar.MILLISECOND, 0)
 		return calendar.time
 	}
 

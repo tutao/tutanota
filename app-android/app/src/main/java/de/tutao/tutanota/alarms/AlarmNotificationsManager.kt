@@ -11,10 +11,10 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 class AlarmNotificationsManager(
-	private val sseStorage: SseStorage,
-	private val crypto: Crypto,
-	private val systemAlarmFacade: SystemAlarmFacade,
-	private val localNotificationsFacade: LocalNotificationsFacade,
+		private val sseStorage: SseStorage,
+		private val crypto: Crypto,
+		private val systemAlarmFacade: SystemAlarmFacade,
+		private val localNotificationsFacade: LocalNotificationsFacade,
 ) {
 	private val pushKeyResolver: PushKeyResolver = PushKeyResolver(sseStorage)
 
@@ -37,7 +37,8 @@ class AlarmNotificationsManager(
 			val pushIdentifierSessionKey = pushKeyResolver
 					.resolvePushSessionKey(notificationSessionKey.pushIdentifier.elementId)
 			if (pushIdentifierSessionKey != null) {
-				val encNotificationSessionKeyKey = Utils.base64ToBytes(notificationSessionKey.pushIdentifierSessionEncSessionKey)
+				val encNotificationSessionKeyKey =
+						notificationSessionKey.pushIdentifierSessionEncSessionKey.base64ToBytes()
 				return crypto.decryptKey(pushIdentifierSessionKey, encNotificationSessionKeyKey)
 			}
 		} catch (e: UnrecoverableEntryException) {
@@ -94,20 +95,33 @@ class AlarmNotificationsManager(
 					occurrenceIsTooFar(alarmTime) -> {
 						Log.d(TAG, "Alarm $identifier is too far in the future, skipping")
 					}
-					alarmTime.after(now)          -> {
-						systemAlarmFacade.scheduleAlarmOccurrenceWithSystem(alarmTime, 0, identifier, summary, eventStart, alarmNotification.user)
+					alarmTime.after(now) -> {
+						systemAlarmFacade.scheduleAlarmOccurrenceWithSystem(
+								alarmTime,
+								0,
+								identifier,
+								summary,
+								eventStart,
+								alarmNotification.user!!
+						)
 					}
-					else                          -> {
+					else -> {
 						Log.d(TAG, "Alarm $identifier is before $now, skipping")
 					}
 				}
 			} else {
-				iterateAlarmOccurrences(alarmNotification, crypto, sessionKey) { alarmTime, occurrence, eventStartTime ->
+				iterateAlarmOccurrences(
+						alarmNotification,
+						crypto,
+						sessionKey
+				) { alarmTime, occurrence, eventStartTime ->
 					if (occurrenceIsTooFar(alarmTime)) {
 						Log.d(TAG, "Alarm occurrence $identifier $occurrence is too far in the future, skipping")
 					} else {
-						systemAlarmFacade.scheduleAlarmOccurrenceWithSystem(alarmTime, occurrence, identifier, summary, eventStartTime,
-								alarmNotification.user)
+						systemAlarmFacade.scheduleAlarmOccurrenceWithSystem(
+								alarmTime, occurrence, identifier, summary, eventStartTime,
+								alarmNotification.user!!
+						)
 					}
 				}
 			}
@@ -119,8 +133,8 @@ class AlarmNotificationsManager(
 		}
 	}
 
-	private fun occurrenceIsTooFar(alarmTime: Date?): Boolean {
-		return alarmTime!!.time > System.currentTimeMillis() + TIME_IN_THE_FUTURE_LIMIT_MS
+	private fun occurrenceIsTooFar(alarmTime: Date): Boolean {
+		return alarmTime.time > System.currentTimeMillis() + TIME_IN_THE_FUTURE_LIMIT_MS
 	}
 
 	/**
@@ -129,17 +143,17 @@ class AlarmNotificationsManager(
 	 * @param alarmNotification may come from the server or may be a saved one
 	 */
 	private fun cancelScheduledAlarm(
-		alarmNotification: AlarmNotification,
-		pushKeyResolver: PushKeyResolver,
+			alarmNotification: AlarmNotification,
+			pushKeyResolver: PushKeyResolver,
 	) {
+
 		// The DELETE notification we receive from the server has only placeholder fields and no keys. We must use our saved alarm to cancel notifications.
-		val alarmNotifications = sseStorage.readAlarmNotifications()
-		val indexOfExistingAlarm = alarmNotifications.indexOf(alarmNotification)
-		if (indexOfExistingAlarm == -1) {
+		val savedAlarmNotification = sseStorage.readAlarmNotifications().find { it == alarmNotification }
+		if (savedAlarmNotification != null) {
+			cancelSavedAlarm(savedAlarmNotification, pushKeyResolver)
+		} else {
 			Log.d(TAG, "Cancelling alarm " + alarmNotification.alarmInfo.identifier)
 			systemAlarmFacade.cancelAlarm(alarmNotification.alarmInfo.identifier, 0)
-		} else {
-			cancelSavedAlarm(alarmNotifications[indexOfExistingAlarm], pushKeyResolver)
 		}
 	}
 
@@ -151,7 +165,10 @@ class AlarmNotificationsManager(
 			} else {
 				try {
 					iterateAlarmOccurrences(savedAlarmNotification, crypto, sessionKey) { _, occurrence, _ ->
-						Log.d(TAG, "Cancelling alarm " + savedAlarmNotification.alarmInfo.identifier + " # " + occurrence)
+						Log.d(
+								TAG,
+								"Cancelling alarm " + savedAlarmNotification.alarmInfo.identifier + " # " + occurrence
+						)
 						systemAlarmFacade.cancelAlarm(savedAlarmNotification.alarmInfo.identifier, occurrence)
 					}
 				} catch (cryptoError: CryptoError) {
@@ -166,10 +183,10 @@ class AlarmNotificationsManager(
 
 	@Throws(CryptoError::class)
 	private fun iterateAlarmOccurrences(
-		alarmNotification: AlarmNotification,
-		crypto: Crypto,
-		sessionKey: ByteArray,
-		callback: AlarmIterationCallback,
+			alarmNotification: AlarmNotification,
+			crypto: Crypto,
+			sessionKey: ByteArray,
+			callback: AlarmIterationCallback,
 	) {
 		val repeatRule = alarmNotification.repeatRule!!
 		val timeZone = repeatRule.getTimeZoneDec(crypto, sessionKey)
@@ -180,9 +197,11 @@ class AlarmNotificationsManager(
 		val endType = repeatRule.getEndTypeDec(crypto, sessionKey)
 		val endValue = repeatRule.getEndValueDec(crypto, sessionKey)
 		val alarmTrigger: AlarmTrigger = AlarmTrigger[alarmNotification.alarmInfo.getTriggerDec(crypto, sessionKey)]
-		AlarmModel.iterateAlarmOccurrences(Date(),
+		AlarmModel.iterateAlarmOccurrences(
+				Date(),
 				timeZone, eventStart, eventEnd, frequency, interval, endType,
-				endValue, alarmTrigger, TimeZone.getDefault(), callback)
+				endValue, alarmTrigger, TimeZone.getDefault(), callback
+		)
 	}
 
 	class PushKeyResolver(private val sseStorage: SseStorage) {
@@ -201,9 +220,11 @@ class AlarmNotificationsManager(
 		}
 	}
 
+
 	companion object {
-		@kotlin.jvm.JvmField
+		@JvmField
 		val TIME_IN_THE_FUTURE_LIMIT_MS = TimeUnit.DAYS.toMillis(14)
 		private const val TAG = "AlarmNotificationsMngr"
 	}
 }
+

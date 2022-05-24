@@ -10,7 +10,7 @@ import java.nio.charset.Charset
 object LogReader {
 	fun getLogFile(context: Context): Uri {
 		return try {
-			val tempDirectory = File(Utils.getDir(context), "temp")
+			val tempDirectory = File(getDir(context), "temp")
 			tempDirectory.mkdirs()
 			val logFile = File(tempDirectory, "log.txt")
 			logFile.delete()

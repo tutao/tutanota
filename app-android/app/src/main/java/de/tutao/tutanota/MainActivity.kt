@@ -53,14 +53,15 @@ class MainActivity : FragmentActivity() {
 	lateinit var sseStorage: SseStorage
 	lateinit var nativeImpl: Native
 
-	private val requests: MutableMap<Int, Continuation<ActivityResult?>> = ConcurrentHashMap()
+	private val permissionsRequests: MutableMap<Int, Continuation<Unit>> = ConcurrentHashMap()
+	private val activityRequests: MutableMap<Int, Continuation<ActivityResult>> = ConcurrentHashMap()
 
 	private var firstLoaded = false
 
 	@SuppressLint("SetJavaScriptEnabled", "StaticFieldLeak")
 	override fun onCreate(savedInstanceState: Bundle?) {
 		Log.d(TAG, "App started")
-		val keyStoreFacade = AndroidKeyStoreFacadeFactory.create(this)
+		val keyStoreFacade = createAndroidKeyStoreFacade(this)
 		sseStorage = SseStorage(AppDatabase.getDatabase(this,  /*allowMainThreadAccess*/false),
 				keyStoreFacade)
 
@@ -190,16 +191,16 @@ class MainActivity : FragmentActivity() {
 
 	private fun doApplyTheme(theme: Theme) {
 		Log.d(TAG, "changeTheme: " + theme["themeId"])
-		@ColorInt val backgroundColor = Utils.parseColor(theme["content_bg"]!!)
+		@ColorInt val backgroundColor = parseColor(theme["content_bg"]!!)
 		window.setBackgroundDrawable(ColorDrawable(backgroundColor))
 
 		val decorView = window.decorView
 		val headerBg = theme["header_bg"]!!
 
-		@ColorInt val statusBarColor = Utils.parseColor(headerBg)
-		val isStatusBarLight = Utils.isColorLight(headerBg)
+		@ColorInt val statusBarColor = parseColor(headerBg)
+		val isStatusBarLight = headerBg.isLightHexColor()
 		var visibilityFlags = 0
-		if (Utils.atLeastOreo()) {
+		if (atLeastOreo()) {
 			window.navigationBarColor = statusBarColor
 			if (isStatusBarLight) {
 				visibilityFlags = visibilityFlags or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
@@ -282,40 +283,40 @@ class MainActivity : FragmentActivity() {
 		return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
 	}
 
-	suspend fun getPermission(permission: String): ActivityResult? = suspendCoroutine { continuation ->
+	suspend fun getPermission(permission: String) = suspendCoroutine<Unit> { continuation ->
 		if (hasPermission(permission)) {
-			continuation.resume(null)
+			continuation.resume(Unit)
 		} else {
 			val requestCode = getNextRequestCode()
-			requests[requestCode] = continuation
+			permissionsRequests[requestCode] = continuation
 			requestPermissions(arrayOf(permission), requestCode)
 		}
 	}
 
 	override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-		val continuation = requests.remove(requestCode)
+		val continuation = permissionsRequests.remove(requestCode)
 		if (continuation == null) {
 			Log.w(TAG, "No deferred for the permission request$requestCode")
 			return
 		}
 		if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-			continuation.resume(null)
+			continuation.resume(Unit)
 		} else {
 			continuation.resumeWithException(SecurityException("Permission missing: " + Arrays.toString(permissions)))
 		}
 	}
 
-	suspend fun startActivityForResult(@RequiresPermission intent: Intent?): ActivityResult? = suspendCoroutine { continuation ->
+	suspend fun startActivityForResult(@RequiresPermission intent: Intent?): ActivityResult = suspendCoroutine { continuation ->
 		val requestCode = getNextRequestCode()
-		requests[requestCode] = continuation
+		activityRequests[requestCode] = continuation
 		// deprecated but we need requestCode to identify the request which is not possible with new API
 		super.startActivityForResult(intent, requestCode)
 	}
 
 	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 		super.onActivityResult(requestCode, resultCode, data)
-		val continuation = requests.remove(requestCode)
+		val continuation = activityRequests.remove(requestCode)
 		if (continuation != null) {
 			continuation.resume(ActivityResult(resultCode, data!!))
 		} else {
@@ -462,7 +463,7 @@ class MainActivity : FragmentActivity() {
 		runOnUiThread { startWebApp(parameters) }
 	}
 
-	override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenuInfo) {
+	override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenuInfo?) {
 		super.onCreateContextMenu(menu, v, menuInfo)
 		val hitTestResult = webView.hitTestResult
 		if (hitTestResult.type == HitTestResult.SRC_ANCHOR_TYPE) {
