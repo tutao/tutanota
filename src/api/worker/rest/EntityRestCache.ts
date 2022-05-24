@@ -99,6 +99,13 @@ export interface ExposedCacheStorage {
 	 */
 	provideFromRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]>;
 
+	/**
+	 * retrieve all list elements that are in the cache
+	 * @param typeRef
+	 * @param listId
+	 */
+	getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>>
+
 	getLastUpdateTime(): Promise<number | null>
 }
 

@@ -300,7 +300,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		return this.deserializeList(typeRef, await this.offlineDbFacade.getListElementsOfType(this.userId, getTypeId(typeRef)))
 	}
 
-	private async getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>> {
+	async getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>> {
 		return this.deserializeList(typeRef, await this.offlineDbFacade.getWholeList(this.userId, getTypeId(typeRef), listId))
 	}
 

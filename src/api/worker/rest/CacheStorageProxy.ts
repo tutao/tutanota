@@ -121,6 +121,10 @@ export class LateInitializedCacheStorageImpl implements LateInitializedCacheStor
 		return this.inner.provideFromRange(typeRef, listId, start, count, reverse)
 	}
 
+	getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>> {
+		return this.inner.getWholeList(typeRef, listId)
+	}
+
 	purgeStorage(): Promise<void> {
 		return this.inner.purgeStorage()
 	}

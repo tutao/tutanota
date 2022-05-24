@@ -209,4 +209,14 @@ export class EphemeralCacheStorage implements CacheStorage {
 	async putLastUpdateTime(value: number): Promise<void> {
 		this.lastUpdateTime = value
 	}
+
+	async getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>> {
+		const listCache = this.lists.get(typeRefToPath(typeRef))?.get(listId)
+
+		if (listCache == null) {
+			return []
+		}
+
+		return listCache.allRange.map(id => clone((listCache.elements.get(id) as T)))
+	}
 }
