@@ -21,6 +21,11 @@ pipeline {
 						"Uploads both to Nexus and creates a new release on google play, " +
 						"which must be manually published from play.google.com/console"
 		)
+		stringParam(
+				name: 'MILESTONE',
+				defaultValue: '',
+				description: 'Which github milestone to reference for generating release notes. Defaults to the version number'
+		)
 	}
 
 	stages {

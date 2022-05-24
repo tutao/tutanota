@@ -18,6 +18,11 @@ pipeline {
 				description: "Build staging and production version, and upload them to nexus/testflight/appstore. " +
 						"The production version will need to be released manually from appstoreconnect.apple.com"
 		)
+		stringParam(
+				name: 'MILESTONE',
+				defaultValue: '',
+				description: 'Which github milestone to reference for generating release notes. Defaults to the version number'
+		)
 	}
 
 	stages {
