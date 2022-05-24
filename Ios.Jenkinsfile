@@ -138,7 +138,7 @@ pipeline {
 	}
 }
 
-void doBuild(String stage, String lane, bool release, String milestone) {
+void doBuild(String stage, String lane, boolean release, String milestone) {
 
 	// Prepare the fastlane Appfile which defines the required ids for the ios app build.
 	script {
