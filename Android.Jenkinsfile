@@ -17,8 +17,8 @@ pipeline {
 	parameters {
 		booleanParam(
 				name: 'RELEASE', defaultValue: false,
-				description: "Build a test and release version of the app" +
-						"Uploads both to Nexus and creates a new release on google play," +
+				description: "Build a test and release version of the app. " +
+						"Uploads both to Nexus and creates a new release on google play, " +
 						"which must be manually published from play.google.com/console"
 		)
 	}

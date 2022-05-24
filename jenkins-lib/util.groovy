@@ -18,11 +18,11 @@ def publishToNexus(Map params) {
  */
 def checkGitTag(String tag) {
 	// Check if the given tag already exists, if it does then error out
-	sh "if git rev-parse ${TAG} >/dev/null 2>&1; then\n"+
-			"echo 'can't make release build, git tag ${TAG} already exists'"
-			"return 1\n" +
-		"else\n" +
-			"return 0\n" +
+	sh "if git rev-parse ${TAG} >/dev/null 2>&1; then " +
+			"echo 'can't make release build, git tag ${TAG} already exists'; "
+			"return 1; " +
+		"else " +
+			"return 0; " +
 		"fi"
 }
 // required in order to be able to use "load" to include this script in a jenkins pipleline
