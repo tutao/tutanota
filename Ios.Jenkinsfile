@@ -57,8 +57,12 @@ pipeline {
 				stage('Staging') {
 					steps {
 						script {
-							doBuild('test', 'adhoctest', params.RELEASE, params.MILESTONE.trim().equals("") ? VERSION : params.MILESTONE)
-							stash includes: "app-ios/releases/tutanota-${VERSION}-test.ipa", name: 'ipa-staging'
+							script {
+								def milestone =  params.MILESTONE.trim().equals("") ? VERSION : params.MILESTONE
+								echo "MILESTONE IS: ${milestone}"
+								doBuild('test', 'adhoctest', params.RELEASE, milestone)
+								stash includes: "app-ios/releases/tutanota-${VERSION}-test.ipa", name: 'ipa-staging'
+							}
 						}
 					}
 				}
