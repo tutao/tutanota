@@ -29,8 +29,10 @@ pipeline {
 				expression { params.RELEASE }
 			}
 			steps {
-				def util = load "jenkins-lib/util.groovy"
-				util.checkGitTag(TAG)
+				script {
+					def util = load "jenkins-lib/util.groovy"
+					util.checkGitTag(TAG)
+				}
 			}
 		}
 		stage('Test') {
