@@ -57,7 +57,7 @@ pipeline {
 				stage('Staging') {
 					steps {
 						script {
-							doBuild('test', 'adhoctest', params.RELEASE)
+							doBuild('test', 'adhoctest', params.RELEASE, params.MILESTONE.trim().equals("") ? VERSION : params.MILESTONE)
 							stash includes: "app-ios/releases/tutanota-${VERSION}-test.ipa", name: 'ipa-staging'
 						}
 					}
@@ -65,7 +65,7 @@ pipeline {
 				stage('Production') {
 					steps {
 						script {
-							doBuild('prod', 'adhoc', params.RELEASE)
+							doBuild('prod', 'adhoc', params.RELEASE, params.MILESTONE.trim().equals("") ? VERSION : params.MILESTONE)
 							stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc.ipa", name: 'ipa-production'
 
 						}
@@ -134,7 +134,7 @@ pipeline {
 	}
 }
 
-void doBuild(String stage, String lane, bool release) {
+void doBuild(String stage, String lane, bool release, String milestone) {
 
 	// Prepare the fastlane Appfile which defines the required ids for the ios app build.
 	script {
@@ -161,7 +161,7 @@ void doBuild(String stage, String lane, bool release) {
 			sh "npm ci"
 			withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
 				sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (IOS)' \
-																   --milestone '${VERSION}' \
+																   --milestone '${milestone}' \
 																   --tag '${tag}' \
 																   --platform ios \
 																   --format ios \
