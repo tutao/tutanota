@@ -13,15 +13,15 @@ pipeline {
 
 	parameters {
 		booleanParam(
-				name: 'RELEASE',
-				defaultValue: false,
-				description: "Build staging and production version, and upload them to nexus/testflight/appstore. " +
-						"The production version will need to be released manually from appstoreconnect.apple.com"
+			name: 'RELEASE',
+			defaultValue: false,
+			description: "Build staging and production version, and upload them to nexus/testflight/appstore. " +
+				"The production version will need to be released manually from appstoreconnect.apple.com"
 		)
 		string(
-				name: 'MILESTONE',
-				defaultValue: '',
-				description: 'Which github milestone to reference for generating release notes. Defaults to the version number'
+			name: 'MILESTONE',
+			defaultValue: '',
+			description: 'Which github milestone to reference for generating release notes. Defaults to the version number'
 		)
 	}
 
@@ -137,7 +137,7 @@ pipeline {
 	}
 }
 
-void doBuild(String stage, String lane, boolean release, String milestone) {
+void doBuild(String stage, String lane, boolean publishToAppStore, String milestone) {
 
 	// Prepare the fastlane Appfile which defines the required ids for the ios app build.
 	script {
@@ -198,7 +198,7 @@ void doBuild(String stage, String lane, boolean release, String milestone) {
 			// Set git ssh command to avoid ssh prompting to confirm an unknown host
 			// (since we don't have console access we can't confirm and it gets stuck)
 			sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane ${lane}"
-			if (release) {
+			if (publishToAppStore) {
 				sh "GIT_SSH_COMMAND=\"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\" fastlane release submit:true"
 			}
 		}
