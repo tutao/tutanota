@@ -156,6 +156,9 @@ pipeline {
 			}
 		}
 		stage('Tag and publish release page') {
+			when {
+				expression { params.RELEASE }
+			}
 			steps {
 				// Needed to generate a checksum
 				unstash 'apk-production'
