@@ -477,7 +477,7 @@ export class LoginFacadeImpl implements LoginFacade {
 			} catch (e) {
 				console.log("Could not do start login, groupInfo is not cached, falling back to sync login")
 				if (e instanceof LoginIncompleteError) {
-					return this.finishResumeSession(credentials, externalUserSalt, usingOfflineStorage)
+					return this.finishResumeSession(credentials, externalUserSalt, cacheInfo)
 				} else {
 					throw e
 				}
