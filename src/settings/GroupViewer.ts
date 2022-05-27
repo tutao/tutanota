@@ -2,26 +2,19 @@ import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
-import {assertNotNull, LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
-import type {Group} from "../api/entities/sys/TypeRefs.js"
-import {GroupTypeRef} from "../api/entities/sys/TypeRefs.js"
+import {assertNotNull, firstThrow, LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
+import type {Group, GroupInfo} from "../api/entities/sys/TypeRefs.js"
+import {AdministratedGroupTypeRef, CustomerTypeRef, GroupInfoTypeRef, GroupMemberTypeRef, GroupTypeRef, UserTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {BookingItemFeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
-import type {GroupInfo} from "../api/entities/sys/TypeRefs.js"
-import {GroupInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {BadRequestError, NotAuthorizedError, PreconditionFailedError} from "../api/common/error/RestError"
 import type {TableAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableLineAttrs, TableN} from "../gui/base/TableN"
-import {GroupMemberTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {logins} from "../api/main/LoginController"
-import {UserTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {AdministratedGroupTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {localAdminGroupInfoModel} from "./LocalAdminGroupInfoModel"
-import stream from "mithril/stream"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {compareGroupInfos, getGroupInfoDisplayName} from "../api/common/utils/GroupUtils"
 import {GENERATED_MAX_ID, GENERATED_MIN_ID, isSameId} from "../api/common/utils/EntityUtils"
 import {showBuyDialog} from "../subscription/BuyDialog"
@@ -283,27 +276,30 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 
 				if (availableUserGroupInfos.length > 0) {
 					availableUserGroupInfos.sort(compareGroupInfos)
-					let dropdownAttrs = {
-						label: "userSettings_label",
-						items: availableUserGroupInfos.map(g => {
-							return {
-								name: getGroupInfoDisplayName(g),
-								value: g,
-							}
-						}),
-						selectedValue: stream(availableUserGroupInfos[0]),
-						dropdownWidth: 250,
-					} as const
-
+					let selectedGroupInfo = firstThrow(availableUserGroupInfos)
 					let addUserToGroupOkAction = (dialog: Dialog) => {
-						showProgressDialog("pleaseWait_msg", this._addUserToGroup(dropdownAttrs.selectedValue().group))
+						showProgressDialog("pleaseWait_msg", this._addUserToGroup(selectedGroupInfo.group))
 						dialog.close()
 					}
 
 					Dialog.showActionDialog({
 						title: lang.get("addUserToGroup_label"),
 						child: {
-							view: () => m(DropDownSelectorN, dropdownAttrs),
+							view: () => m(DropDownSelectorN, {
+									label: "userSettings_label",
+									items: availableUserGroupInfos.map(g => {
+										return {
+											name: getGroupInfoDisplayName(g),
+											value: g,
+										}
+									}),
+									selectedValue: selectedGroupInfo,
+									selectionChangedHandler: (newSelected: GroupInfo) => {
+										selectedGroupInfo = newSelected
+									},
+									dropdownWidth: 250,
+								}
+							),
 						},
 						allowOkWithReturn: true,
 						okAction: addUserToGroupOkAction,
