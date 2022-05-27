@@ -4,7 +4,7 @@ import {Button} from "../gui/base/Button"
 import {Dialog} from "../gui/base/Dialog"
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
-import {PasswordForm, showChangeOwnPasswordDialog, showChangeUserPasswordAsAdminDialog} from "./PasswordForm"
+import {PasswordForm} from "./PasswordForm"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import type {Customer, GroupInfo, GroupMembership, User} from "../api/entities/sys/TypeRefs.js"
 import {CustomerTypeRef, GroupInfoTypeRef, GroupTypeRef, UserTypeRef} from "../api/entities/sys/TypeRefs.js"
@@ -39,6 +39,7 @@ import {TextFieldN} from "../gui/base/TextFieldN"
 import {locator} from "../api/main/MainLocator"
 import {SelectorItem} from "../gui/base/DropDownSelectorN";
 import {UpdatableSettingsDetailsViewer} from "./SettingsView"
+import {showChangeOwnPasswordDialog, showChangeUserPasswordAsAdminDialog} from "./ChangePasswordDialogs.js";
 
 assertMainOrNode()
 
