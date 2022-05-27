@@ -4,7 +4,7 @@ import path from "path"
 import {renderHtml} from "../buildSrc/LaunchHtml.js"
 import {$} from "zx"
 import {build as esbuild} from "esbuild"
-import {getTutanotaAppVersion, runStep, writeFile} from "../buildSrc/buildUtils.js"
+import {getTutanotaAppVersion, runStep, sh, writeFile} from "../buildSrc/buildUtils.js"
 import {esbuildPluginAliasPath} from "esbuild-plugin-alias-path"
 import {keytarNativePlugin, libDeps, preludeEnvPlugin, sqliteNativePlugin} from "../buildSrc/esbuildUtils.js"
 
@@ -20,7 +20,7 @@ export async function runTestBuild({clean}) {
 	})
 
 	await runStep("Types", async () => {
-		await $`npx tsc --incremental true --noEmit true`
+		await sh`npx tsc --incremental true --noEmit true`
 	})
 
 	const version = getTutanotaAppVersion()

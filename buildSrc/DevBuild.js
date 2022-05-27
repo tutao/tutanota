@@ -1,7 +1,7 @@
 import path from "path"
 import fs from "fs-extra"
 import {build as esbuild} from "esbuild"
-import {getTutanotaAppVersion, runStep, writeFile} from "./buildUtils.js"
+import {getTutanotaAppVersion, runStep, sh, writeFile} from "./buildUtils.js"
 import {$} from "zx"
 import "zx/globals"
 import * as env from "./env.js"
@@ -27,7 +27,7 @@ export async function runDevBuild({stage, host, desktop, clean}) {
 	const version = getTutanotaAppVersion()
 
 	await runStep("Types", async () => {
-		await $`npx tsc --incremental true --noEmit true`
+		await sh`npx tsc --incremental ${true} --noEmit true`
 	})
 
 
