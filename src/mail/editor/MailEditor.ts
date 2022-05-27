@@ -55,7 +55,7 @@ import {CancelledError} from "../../api/common/error/CancelledError"
 import {Shortcut} from "../../misc/KeyManager";
 import {DataFile} from "../../api/common/DataFile";
 import {Recipients, RecipientType} from "../../api/common/recipients/Recipient"
-import {PasswordIndicator} from "../../gui/PasswordIndicator"
+import {CompletenessIndicator} from "../../gui/CompletenessIndicator.js"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {MailRecipientsTextField} from "../../gui/MailRecipientsTextField.js"
 import {getContactDisplayName} from "../../contacts/model/ContactUtils"
@@ -512,7 +512,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						oncreate: vnode => this.animateHeight(vnode.dom as HTMLElement, true),
 						onbeforeremove: vnode => this.animateHeight(vnode.dom as HTMLElement, false),
 						label: () => lang.get("passwordFor_label", {"{1}": recipient.address,}),
-						helpLabel: () => m(PasswordIndicator, { strength: this.sendMailModel.getPasswordStrength(recipient)}),
+						helpLabel: () => m(CompletenessIndicator, { percentageCompleted: this.sendMailModel.getPasswordStrength(recipient)}),
 						value: this.sendMailModel.getPassword(recipient.address),
 						type: TextFieldType.ExternalPassword,
 						oninput: val => this.sendMailModel.setPassword(recipient.address, val),

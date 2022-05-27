@@ -537,9 +537,6 @@ styles.registerStyle("main", () => {
 			"will-change": "alpha",
 		},
 		// borders
-		".password-indicator-border": {
-			border: `1px solid ${theme.content_button}`,
-		},
 		".border-bottom": {
 			"border-bottom": `1px solid ${theme.content_border}`,
 		},
@@ -591,9 +588,6 @@ styles.registerStyle("main", () => {
 		},
 		".list-header": {
 			"border-bottom": `1px solid ${theme.list_border}`,
-		},
-		".password-indicator-bg": {
-			"background-color": theme.content_button,
 		},
 		".accent-bg": {
 			"background-color": theme.content_accent,

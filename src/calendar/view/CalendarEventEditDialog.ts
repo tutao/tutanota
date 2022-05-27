@@ -24,7 +24,7 @@ import {showBusinessFeatureRequiredDialog} from "../../misc/SubscriptionDialogs"
 import {BusinessFeatureRequiredError} from "../../api/main/BusinessFeatureRequiredError"
 import type {MailboxDetail} from "../../mail/model/MailModel"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {PasswordIndicator} from "../../gui/PasswordIndicator"
+import {CompletenessIndicator} from "../../gui/CompletenessIndicator.js"
 import {TimePicker} from "../../gui/TimePicker"
 import {getSharedGroupName} from "../../sharing/GroupUtils"
 import {logins} from "../../api/main/LoginController"
@@ -240,7 +240,7 @@ export async function showCalendarEventDialog(
 							lang.get("passwordFor_label", {
 								"{1}": guest.address.address,
 							}),
-						helpLabel: () => m(PasswordIndicator, { strength: viewModel.getPasswordStrength(guest)}),
+						helpLabel: () => m(CompletenessIndicator, { percentageCompleted: viewModel.getPasswordStrength(guest)}),
 						key: guest.address.address,
 						oninput: newValue => viewModel.updatePassword(guest, newValue),
 					})
