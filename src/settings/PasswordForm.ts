@@ -1,6 +1,6 @@
 import m, {Children, Component, Vnode} from "mithril"
 import {TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
-import {PasswordIndicator} from "../gui/PasswordIndicator"
+import {CompletenessIndicator} from "../gui/CompletenessIndicator.js"
 import {getPasswordStrength, isSecurePassword} from "../misc/PasswordUtils"
 import {Dialog} from "../gui/base/Dialog"
 import type {TranslationKey} from "../misc/LanguageViewModel"
@@ -170,7 +170,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 					oninput: (input) => attrs.model.newPassword = input,
 					type: TextFieldType.Password,
 					preventAutofill: true,
-					injectionsRight: () => m(".mb-s.mlr", m(PasswordIndicator, {strength: attrs.model.getPasswordStrength()})),
+					injectionsRight: () => m(".mb-s.mlr", m(CompletenessIndicator, {percentageCompleted: attrs.model.getPasswordStrength()})),
 				}),
 				attrs.passwordInfoKey ? m(".small.mt-s", lang.get(attrs.passwordInfoKey)) : null,
 				attrs.model.repeatInput

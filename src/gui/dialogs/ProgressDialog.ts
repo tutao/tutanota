@@ -5,7 +5,7 @@ import {DefaultAnimationTime} from "../animation/Animations"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {progressIcon} from "../base/Icon"
-import {PasswordIndicator} from "../PasswordIndicator"
+import {CompletenessIndicator} from "../CompletenessIndicator.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type {WorkerClient} from "../../api/main/WorkerClient"
@@ -41,7 +41,7 @@ export async function showProgressDialog<T>(
 				},
 			},
 			[
-				m(".flex-center", progressStream ? m(PasswordIndicator, {strength: progressStream()}) : progressIcon()),
+				m(".flex-center", progressStream ? m(CompletenessIndicator, {percentageCompleted: progressStream()}) : progressIcon()),
 				m("p#dialog-title", lang.getMaybeLazy(messageIdOrMessageFunction)),
 			],
 		),
