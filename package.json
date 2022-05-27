@@ -20,7 +20,8 @@
 		"fasttest": "cd test && node --icu-data-dir=../node_modules/full-icu fastTest",
 		"types": "tsc --incremental true --noEmit true",
 		"prebuild": "node buildSrc/prebuild.js",
-		"postinstall": "node buildSrc/postinstall.js"
+		"postinstall": "node buildSrc/postinstall.js",
+	  "bump-version": "node buildSrc/bump-version.js"
 	},
 	"dependencies": {
 		"@tutao/oxmsg": "0.0.9-beta.0",
