@@ -118,7 +118,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 				} else {
 					showProgressDialog(
 						"pleaseWait_msg",
-						locator.loginFacade.recoverLogin(cleanMailAddress, cleanRecoverCodeValue, passwordModel.newPassword, client.getIdentifier()),
+						locator.loginFacade.recoverLogin(cleanMailAddress, cleanRecoverCodeValue, passwordModel.getNewPassword(), client.getIdentifier()),
 					)
 						.then(async () => {
 							recoverDialog.close()
