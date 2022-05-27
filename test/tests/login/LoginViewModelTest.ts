@@ -92,7 +92,7 @@ o.spec("LoginViewModelTest", () => {
 		encryptedPassword: "encryptedPassword",
 		accessToken: "accessToken",
 		databaseKey: null
-	})
+	} as const)
 
 	const testCredentials: Credentials = Object.freeze({
 		userId: "user-id-1",
