@@ -17,16 +17,20 @@ export interface PasswordFormAttrs {
 	passwordInfoKey?: TranslationKey
 }
 
+export interface PasswordModelConfig {
+	readonly checkOldPassword: boolean,
+	readonly enforceStrength: boolean,
+	readonly repeatInput: boolean,
+}
+
 export class PasswordModel {
 	public newPassword = ""
 	public oldPassword = ""
 	public repeatedPassword = ""
 
 	constructor(
-		readonly checkOldPassword: boolean,
-		readonly enforceStrength: boolean,
-		readonly repeatInput: boolean,
 		private readonly logins: LoginController,
+		readonly config: PasswordModelConfig,
 	) {
 	}
 
@@ -50,7 +54,7 @@ export class PasswordModel {
 	}
 
 	getOldPasswordStatus(): Status {
-		if (this.checkOldPassword && this.oldPassword === "") {
+		if (this.config.checkOldPassword && this.oldPassword === "") {
 			return {
 				type: "neutral",
 				text: "oldPasswordNeutral_msg",
@@ -69,13 +73,13 @@ export class PasswordModel {
 				type: "neutral",
 				text: "password1Neutral_msg",
 			}
-		} else if (this.checkOldPassword && this.oldPassword === this.newPassword) {
+		} else if (this.config.checkOldPassword && this.oldPassword === this.newPassword) {
 			return {
 				type: "invalid",
 				text: "password1InvalidSame_msg",
 			}
 		} else if (this.isPasswordInsecure()) {
-			if (this.enforceStrength) {
+			if (this.config.enforceStrength) {
 				return {
 					type: "invalid",
 					text: "password1InvalidUnsecure_msg",
@@ -98,12 +102,12 @@ export class PasswordModel {
 		const repeatedPassword = this.repeatedPassword
 		const newPassword = this.newPassword
 
-		if (this.repeatInput && repeatedPassword === "") {
+		if (this.config.repeatInput && repeatedPassword === "") {
 			return {
 				type: "neutral",
 				text: "password2Neutral_msg",
 			}
-		} else if (this.repeatInput && repeatedPassword !== newPassword) {
+		} else if (this.config.repeatInput && repeatedPassword !== newPassword) {
 			return {
 				type: "invalid",
 				text: "password2Invalid_msg",
@@ -144,7 +148,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 				onremove: () => attrs.model.clear(),
 			},
 			[
-				attrs.model.checkOldPassword ?
+				attrs.model.config.checkOldPassword ?
 					m(TextFieldN, {
 						label: "oldPassword_label",
 						value: attrs.model.oldPassword,
@@ -166,7 +170,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 					injectionsRight: () => m(".mb-s.mlr", m(CompletenessIndicator, {percentageCompleted: attrs.model.getPasswordStrength()})),
 				}),
 				attrs.passwordInfoKey ? m(".small.mt-s", lang.get(attrs.passwordInfoKey)) : null,
-				attrs.model.repeatInput
+				attrs.model.config.repeatInput
 					? m(TextFieldN, {
 						label: "repeatedPassword_label",
 						value: attrs.model.repeatedPassword,
