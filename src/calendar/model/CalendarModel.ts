@@ -506,7 +506,7 @@ export class CalendarModelImpl implements CalendarModel {
 	}
 
 	_localAlarmsEnabled(): boolean {
-		return !isApp() && !isDesktop() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableCalendar) && client.calendarSupported()
+		return !isApp() && !isDesktop() && logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableCalendar)
 	}
 
 	async _scheduleUserAlarmInfo(event: CalendarEvent, userAlarmInfo: UserAlarmInfo): Promise<any> {

@@ -325,11 +325,6 @@ export class HtmlSanitizer {
 }
 
 function isAllowedLink(link: string): boolean {
-	if (client.isIE()) {
-		// No support for creating URLs in IE11
-		return true
-	}
-
 	try {
 		// We create URL without explicit base (second argument). It is an error for relative links
 		return new URL(link).protocol !== "file"

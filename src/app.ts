@@ -38,7 +38,6 @@ if (isApp() || isDesktop()) {
 }
 
 replaceNativeLogger(window, new Logger())
-type View = Record<string, any>
 let currentView: Component<unknown> | null = null
 window.tutao = {
 	client,
@@ -123,19 +122,7 @@ import("./translations/en")
 		const {locator} = await import("./api/main/MainLocator")
 		await locator.init()
 
-		if (client.isIE()) {
-			import("./gui/base/NotificationOverlay.js").then(module =>
-				module.show(
-					{
-						view: () => m("", lang.get("unsupportedBrowserOverlay_msg")),
-					},
-					{
-						label: "close_alt",
-					},
-					[],
-				),
-			)
-		} else if (isDesktop()) {
+		if (isDesktop()) {
 			import("./native/main/UpdatePrompt.js").then(({registerForUpdates}) => registerForUpdates(locator.desktopSettingsFacade))
 		}
 

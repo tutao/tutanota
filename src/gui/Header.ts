@@ -150,7 +150,7 @@ export class Header implements Component {
 						click: () => m.route.get() === navButtonRoutes.contactsUrl && this.focusMain(),
 					})
 					: null,
-				!logins.isEnabled(FeatureType.DisableCalendar) && client.calendarSupported()
+				!logins.isEnabled(FeatureType.DisableCalendar)
 					? m(NavButtonN, {
 						label: "calendar_label",
 						icon: () => BootIcons.Calendar,
