@@ -17,16 +17,17 @@ export async function showChangeUserPasswordAsAdminDialog(user: User) {
 	const model = new PasswordModel(false, false, true, logins)
 
 	const changeUserPasswordAsAdminOkAction = (dialog: Dialog) => {
-		let p = locator.userManagementFacade
-					   .changeUserPassword(user, model.newPassword)
-					   .then(() => {
-						   Dialog.message("pwChangeValid_msg")
-						   dialog.close()
-					   })
-					   .catch(e => {
-						   Dialog.message("passwordResetFailed_msg")
-					   })
-		showProgressDialog("pleaseWait_msg", p)
+		showProgressDialog("pleaseWait_msg", locator.userManagementFacade.changeUserPassword(user, model.newPassword))
+			.then(
+				() => {
+					Dialog.message("pwChangeValid_msg")
+					dialog.close()
+				},
+				(e) => {
+					console.error(e)
+					Dialog.message("passwordResetFailed_msg")
+				}
+			)
 	}
 
 	Dialog.showActionDialog({
