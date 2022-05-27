@@ -14,7 +14,7 @@ import {ofClass} from "@tutao/tutanota-utils"
  */
 export async function showChangeUserPasswordAsAdminDialog(user: User) {
 	const {logins} = await import("../api/main/LoginController.js")
-	const model = new PasswordModel(false, false, true, logins)
+	const model = new PasswordModel(logins, {checkOldPassword: false, enforceStrength: false, repeatInput: true})
 
 	const changeUserPasswordAsAdminOkAction = (dialog: Dialog) => {
 		showProgressDialog("pleaseWait_msg", locator.userManagementFacade.changeUserPassword(user, model.newPassword))
@@ -44,7 +44,7 @@ export async function showChangeUserPasswordAsAdminDialog(user: User) {
 export async function showChangeOwnPasswordDialog(allowCancel: boolean = true) {
 	const {logins} = await import("../api/main/LoginController.js")
 
-	const model = new PasswordModel(true, true, true, logins)
+	const model = new PasswordModel(logins, {checkOldPassword: true, enforceStrength: true, repeatInput: true})
 
 	const changeOwnPasswordOkAction = (dialog: Dialog) => {
 		const error = model.getErrorMessageId()

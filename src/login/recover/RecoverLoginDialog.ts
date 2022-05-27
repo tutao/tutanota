@@ -30,7 +30,7 @@ export type ResetAction = "password" | "secondFactor"
 
 export function show(mailAddress?: string | null, resetAction?: ResetAction): Dialog {
 	const selectedAction: Stream<ResetAction | null> = stream(resetAction ?? null)
-	const passwordModel = new PasswordModel(false, true, true, logins)
+	const passwordModel = new PasswordModel(logins, {checkOldPassword: false, enforceStrength: true, repeatInput: true})
 	const passwordValueStream = stream("")
 	const emailAddressStream = stream(mailAddress || "")
 	const resetPasswordAction: ButtonAttrs = {

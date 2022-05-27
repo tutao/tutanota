@@ -24,7 +24,7 @@ export function show(): Promise<void> {
 		let errorMsg: TranslationText | null = null
 		let isVerificationBusy = false
 		let userName = ""
-		const passwordModel = new PasswordModel(false, false, false, logins)
+		const passwordModel = new PasswordModel(logins, {checkOldPassword: false, enforceStrength: false, repeatInput: false})
 		const nameFieldAttrs: TextFieldAttrs = {
 			label: "name_label",
 			helpLabel: () => lang.get("loginNameInfoAdmin_msg"),
