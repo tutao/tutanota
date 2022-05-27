@@ -255,7 +255,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 					value: false,
 				},
 			],
-			selectedValue: this._offlineStorageValue,
+			selectedValue: this._offlineStorageValue(),
 			selectionChangedHandler: (v) => {
 				this._offlineStorageValue(v)
 				this.updateConfigBoolean(DesktopConfigKey.offlineStorageEnabled, v)

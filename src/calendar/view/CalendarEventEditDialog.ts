@@ -358,7 +358,7 @@ export async function showCalendarEventDialog(
 		return m(DropDownSelectorN, {
 			label: "calendarRepeating_label",
 			items: repeatValues,
-					selectedValue: (viewModel.repeat && viewModel.repeat.frequency) || null,
+			selectedValue: (viewModel.repeat && viewModel.repeat.frequency) || null,
 			selectionChangedHandler: period => viewModel.onRepeatPeriodSelected(period),
 			icon: BootIcons.Expand,
 			disabled: viewModel.isReadOnlyEvent(),
@@ -369,7 +369,7 @@ export async function showCalendarEventDialog(
 		return m(DropDownSelectorN, {
 			label: "interval_title",
 			items: intervalValues,
-					selectedValue: (viewModel.repeat && viewModel.repeat.interval) || 1,
+			selectedValue: (viewModel.repeat && viewModel.repeat.interval) || 1,
 			selectionChangedHandler: period => viewModel.onRepeatIntervalChanged(period),
 			icon: BootIcons.Expand,
 			disabled: viewModel.isReadOnlyEvent(),
@@ -380,7 +380,7 @@ export async function showCalendarEventDialog(
 		return m(DropDownSelectorN, {
 			label: () => lang.get("calendarRepeatStopCondition_label"),
 			items: endTypeValues,
-					selectedValue: repeat.endType,
+			selectedValue: repeat.endType,
 			selectionChangedHandler: period => viewModel.onRepeatEndTypeChanged(period),
 			icon: BootIcons.Expand,
 			disabled: viewModel.isReadOnlyEvent(),
@@ -447,7 +447,7 @@ export async function showCalendarEventDialog(
 								m(DropDownSelectorN, {
 									label: "reminderBeforeEvent_label",
 									items: alarmIntervalItems,
-									selectedValue: stream(downcast(a.trigger)),
+									selectedValue: a.trigger as AlarmInterval,
 									icon: BootIcons.Expand,
 									selectionChangedHandler: (value: AlarmInterval) => viewModel.changeAlarm(a.alarmIdentifier, value),
 									key: a.alarmIdentifier,
@@ -456,7 +456,7 @@ export async function showCalendarEventDialog(
 							m(DropDownSelectorN, {
 								label: "reminderBeforeEvent_label",
 								items: alarmIntervalItems,
-								selectedValue: stream(null),
+								selectedValue: null,
 								icon: BootIcons.Expand,
 								selectionChangedHandler: (value: AlarmInterval) => value && viewModel.addAlarm(value),
 							}),
@@ -712,7 +712,7 @@ function renderGuest(guest: Guest, index: number, viewModel: CalendarEventViewMo
 						m(DropDownSelectorN, {
 							label: "attending_label",
 							items: attendingItems,
-							selectedValue: stream(guest.status),
+							selectedValue: guest.status,
 							class: "",
 							selectionChangedHandler: (value: CalendarAttendeeStatus) => {
 								if (value == null) return
@@ -735,4 +735,3 @@ function renderGuest(guest: Guest, index: number, viewModel: CalendarEventViewMo
 		],
 	)
 }
-
