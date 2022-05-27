@@ -4,7 +4,7 @@ import {Button} from "../gui/base/Button"
 import {Dialog} from "../gui/base/Dialog"
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
-import {PasswordForm} from "./PasswordForm"
+import {PasswordForm, showChangeOwnPasswordDialog, showChangeUserPasswordAsAdminDialog} from "./PasswordForm"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import type {Customer, GroupInfo, GroupMembership, User} from "../api/entities/sys/TypeRefs.js"
 import {CustomerTypeRef, GroupInfoTypeRef, GroupTypeRef, UserTypeRef} from "../api/entities/sys/TypeRefs.js"
@@ -277,12 +277,12 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 
 	_changePassword(): void {
 		if (this._isItMe()) {
-			PasswordForm.showChangeOwnPasswordDialog()
+			showChangeOwnPasswordDialog()
 		} else if (this._adminStatusSelector.selectedValue()) {
 			Dialog.message("changeAdminPassword_msg")
 		} else {
 			this._user.getAsync().then(user => {
-				PasswordForm.showChangeUserPasswordAsAdminDialog(user)
+				showChangeUserPasswordAsAdminDialog(user)
 			})
 		}
 	}

@@ -3,7 +3,7 @@ import {lang, TranslationText} from "../misc/LanguageViewModel"
 import {AccountType, BookingItemFeatureType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
 import {Dialog} from "../gui/base/Dialog"
 import {logins} from "../api/main/LoginController"
-import {PasswordForm} from "./PasswordForm"
+import {PasswordForm, PasswordModel} from "./PasswordForm"
 import {SelectMailAddressForm} from "./SelectMailAddressForm"
 import {CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {CustomerInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
@@ -12,7 +12,6 @@ import {getCustomMailDomains} from "../api/common/utils/Utils"
 import {showProgressDialog, showWorkerProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {showBuyDialog} from "../subscription/BuyDialog"
-import stream from "mithril/stream"
 import {TextFieldAttrs, TextFieldN} from "../gui/base/TextFieldN"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
@@ -25,7 +24,7 @@ export function show(): Promise<void> {
 		let errorMsg: TranslationText | null = null
 		let isVerificationBusy = false
 		let userName = ""
-		const passwordForm = new PasswordForm(false, false, false)
+		const passwordModel = new PasswordModel(false, false, false, logins)
 		const nameFieldAttrs: TextFieldAttrs = {
 			label: "name_label",
 			helpLabel: () => lang.get("loginNameInfoAdmin_msg"),
@@ -50,14 +49,14 @@ export function show(): Promise<void> {
 							isVerificationBusy = isBusy
 						},
 					}),
-					m(passwordForm)
+					m(PasswordForm, {model: passwordModel})
 				]
 			},
 		}
 
 		let addUserOkAction = (dialog: Dialog) => {
 			if (isVerificationBusy) return
-			const passwordFormError = passwordForm.getErrorMessageId()
+			const passwordFormError = passwordModel.getErrorMessageId()
 
 			if (errorMsg) {
 				Dialog.message(errorMsg)
@@ -74,7 +73,7 @@ export function show(): Promise<void> {
 				reactivate: false
 			})).then(accepted => {
 				if (accepted) {
-					let p = locator.userManagementFacade.createUser(userName, assertNotNull(emailAddress), passwordForm.getNewPassword(), 0, 1)
+					let p = locator.userManagementFacade.createUser(userName, assertNotNull(emailAddress), passwordModel.newPassword(), 0, 1)
 					showWorkerProgressDialog(
 						locator.worker,
 						() =>

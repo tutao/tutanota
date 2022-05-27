@@ -4,7 +4,7 @@ import Stream from "mithril/stream"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {InfoLink, lang} from "../misc/LanguageViewModel"
-import {PasswordForm} from "./PasswordForm"
+import {PasswordForm, showChangeOwnPasswordDialog} from "./PasswordForm"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {Session, SessionTypeRef} from "../api/entities/sys/TypeRefs.js"
@@ -61,7 +61,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		}
 		const changePasswordButtonAttrs: ButtonAttrs = {
 			label: "changePassword_label",
-			click: () => PasswordForm.showChangeOwnPasswordDialog(),
+			click: () => showChangeOwnPasswordDialog(),
 			icon: () => Icons.Edit,
 		}
 		const passwordAttrs: TextFieldAttrs = {

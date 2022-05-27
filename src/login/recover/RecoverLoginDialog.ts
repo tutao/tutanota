@@ -13,7 +13,7 @@ import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {isMailAddress} from "../../misc/FormatValidator"
 import {TextFieldN, TextFieldType} from "../../gui/base/TextFieldN"
 import {lang} from "../../misc/LanguageViewModel"
-import {PasswordForm} from "../../settings/PasswordForm"
+import {PasswordForm, PasswordModel} from "../../settings/PasswordForm"
 import {Icons} from "../../gui/base/icons/Icons"
 import {Dialog, DialogType} from "../../gui/base/Dialog"
 import {HtmlEditor, HtmlEditorMode} from "../../gui/editor/HtmlEditor"
@@ -23,13 +23,14 @@ import {locator} from "../../api/main/MainLocator"
 import {windowFacade} from "../../misc/WindowFacade"
 import {assertMainOrNode} from "../../api/common/Env"
 import Stream from "mithril/stream";
+import {logins} from "../../api/main/LoginController.js"
 
 assertMainOrNode()
 export type ResetAction = "password" | "secondFactor"
 
 export function show(mailAddress?: string | null, resetAction?: ResetAction): Dialog {
 	const selectedAction: Stream<ResetAction | null> = stream(resetAction ?? null)
-	let passwordForm = new PasswordForm(false, true, true)
+	const passwordModel = new PasswordModel(false, true, true, logins)
 	const passwordValueStream = stream("")
 	const emailAddressStream = stream(mailAddress || "")
 	const resetPasswordAction: ButtonAttrs = {
@@ -91,7 +92,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 					selectedAction() == null
 						? null
 						: selectedAction() === "password"
-							? m(passwordForm)
+							? m(PasswordForm, {model: passwordModel})
 							: m(TextFieldN, {
 								label: "password_label",
 								type: TextFieldType.Password,
@@ -110,14 +111,14 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 			} else if (cleanRecoverCodeValue === "") {
 				Dialog.message("recoveryCodeEmpty_msg")
 			} else if (selectedAction() === "password") {
-				const errorMessageId = passwordForm.getErrorMessageId()
+				const errorMessageId = passwordModel.getErrorMessageId()
 
 				if (errorMessageId) {
 					Dialog.message(errorMessageId)
 				} else {
 					showProgressDialog(
 						"pleaseWait_msg",
-						locator.loginFacade.recoverLogin(cleanMailAddress, cleanRecoverCodeValue, passwordForm.getNewPassword(), client.getIdentifier()),
+						locator.loginFacade.recoverLogin(cleanMailAddress, cleanRecoverCodeValue, passwordModel.newPassword(), client.getIdentifier()),
 					)
 						.then(async () => {
 							recoverDialog.close()

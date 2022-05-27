@@ -13,7 +13,7 @@ import {AccessDeactivatedError} from "../../api/common/error/RestError"
 import {client} from "../../misc/ClientDetector"
 import {createPushIdentifier} from "../../api/entities/sys/TypeRefs.js"
 import {logins} from "../../api/main/LoginController"
-import {PasswordForm} from "../../settings/PasswordForm"
+import {PasswordForm, PasswordModel} from "../../settings/PasswordForm"
 import {HtmlEditor} from "../../gui/editor/HtmlEditor"
 import {Icons} from "../../gui/base/icons/Icons"
 import stream from "mithril/stream"
@@ -22,12 +22,10 @@ import {CheckboxN} from "../../gui/base/CheckboxN"
 import {getPrivacyStatementLink} from "../LoginView"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
-import type {File as TutanotaFile} from "../../api/entities/tutanota/TypeRefs.js"
-import type {ContactForm} from "../../api/entities/tutanota/TypeRefs.js"
+import type {ContactForm, File as TutanotaFile} from "../../api/entities/tutanota/TypeRefs.js"
 import {createDropDownButton} from "../../gui/base/Dropdown"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {getCleanedMailAddress} from "../../misc/parsing/MailAddressParser"
-import {createDraftRecipient} from "../../api/entities/tutanota/TypeRefs.js"
 import {checkAttachmentSize} from "../../mail/model/MailUtils"
 import {locator} from "../../api/main/MainLocator"
 import {assertMainOrNode} from "../../api/common/Env"
@@ -49,7 +47,7 @@ export class ContactFormRequestDialog {
 	_loadingAttachments: boolean
 	_contactForm: ContactForm
 	_notificationEmailAddress: string
-	_passwordForm: PasswordForm
+	private passwordModel = new PasswordModel(false, false, true, logins)
 	_privacyPolicyAccepted: Stream<boolean>
 	_windowCloseUnsubscribe: () => void
 
@@ -65,7 +63,6 @@ export class ContactFormRequestDialog {
 		this._subject = ""
 		this._notificationEmailAddress = ""
 		this._windowCloseUnsubscribe = noOp
-		this._passwordForm = new PasswordForm(false, false, true, "contactFormEnterPasswordInfo_msg")
 		this._privacyPolicyAccepted = stream<boolean>(false)
 		this._editor = new HtmlEditor().showBorders().setPlaceholderId("contactFormPlaceholder_label").setMinHeight(200)
 		let headerBarAttrs: DialogHeaderBarAttrs = {
@@ -167,7 +164,10 @@ export class ContactFormRequestDialog {
 						: [m(".flex-v-center", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))],
 				),
 				this._attachmentButtons.length > 0 ? m("hr") : null,
-				m(this._passwordForm),
+				m(PasswordForm, {
+					model: this.passwordModel,
+					passwordInfoKey: "contactFormEnterPasswordInfo_msg"
+				}),
 				m(".pt-l.text", m(this._editor)),
 				notificationEmailAddress,
 				getPrivacyStatementLink()
@@ -274,7 +274,7 @@ export class ContactFormRequestDialog {
 	async send(): Promise<void> {
 		const {mailFacade, customerFacade} = locator
 
-		const passwordErrorId = this._passwordForm.getErrorMessageId()
+		const passwordErrorId = this.passwordModel.getErrorMessageId()
 
 		if (passwordErrorId) {
 			Dialog.message(passwordErrorId)
@@ -286,7 +286,7 @@ export class ContactFormRequestDialog {
 			return
 		}
 
-		const passwordOk = !this._passwordForm.isPasswordUnsecure() || (await Dialog.confirm("contactFormPasswordNotSecure_msg"))
+		const passwordOk = !this.passwordModel.isPasswordInsecure() || (await Dialog.confirm("contactFormPasswordNotSecure_msg"))
 
 		if (passwordOk) {
 			const cleanedNotificationMailAddress = getCleanedMailAddress(this._notificationEmailAddress)
@@ -295,7 +295,7 @@ export class ContactFormRequestDialog {
 				return Dialog.message("mailAddressInvalid_msg")
 			}
 
-			const password = this._passwordForm.getNewPassword()
+			const password = this.passwordModel.newPassword()
 
 			const doSend = async () => {
 				const contactFormResult = await customerFacade.createContactFormUser(password, this._contactForm._id)
