@@ -46,7 +46,7 @@ export class InterWindowEventBus<Events> implements InterWindowEventHandler<Even
 			throw new ProgrammingError("Not initialized")
 		}
 		await this.sender.send(event, data).catch(e => {
-			throw new InterWindowEventBusError(`${event}`, e)
+			throw new InterWindowEventBusError(`${String(event)}`, e)
 		})
 	}
 

@@ -464,18 +464,15 @@ o.spec("crypto facade", function () {
 			)
 		})
 		o("accept null _id and _permissions value during encryption", function () {
-			let vt = {
-				name: "_id",
+			let vt: ModelValue = {
 				id: 426,
-				since: 6,
 				type: ValueType.GeneratedId,
 				cardinality: Cardinality.One,
 				final: true,
 				encrypted: false,
 			}
-			o(encryptValue(vt.name, vt, null, null)).equals(null)
-			vt.name = "_permissions"
-			o(encryptValue(vt.name, vt, null, null)).equals(null)
+			o(encryptValue("_id", vt, null, null)).equals(null)
+			o(encryptValue("_permissions", vt, null, null)).equals(null)
 		})
 		o("throw error on ONE null values (enc String)", makeTestForErrorOnNull(ValueType.String))
 		o("throw error on ONE null values (enc Date)", makeTestForErrorOnNull(ValueType.Date))
