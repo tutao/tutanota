@@ -9,7 +9,7 @@ import type {NewAccountData} from "./UpgradeSubscriptionWizard"
 import {SelectMailAddressForm, SelectMailAddressFormAttrs} from "../settings/SelectMailAddressForm"
 import {isTutanotaDomain} from "../api/common/Env"
 import {AccountType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
-import {PasswordForm} from "../settings/PasswordForm"
+import {PasswordForm, PasswordModel} from "../settings/PasswordForm"
 import type {CheckboxAttrs} from "../gui/base/CheckboxN"
 import {CheckboxN} from "../gui/base/CheckboxN"
 import type {lazy} from "@tutao/tutanota-utils"
@@ -26,6 +26,7 @@ import {locator} from "../api/main/MainLocator"
 import {deleteCampaign} from "../misc/LoginUtils"
 import {CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection} from "./TermsAndConditions"
 import {RegistrationCaptchaService} from "../api/entities/sys/Services"
+import {logins} from "../api/main/LoginController.js"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -39,7 +40,7 @@ export type SignupFormAttrs = {
 }
 
 export class SignupForm implements Component<SignupFormAttrs> {
-	private readonly _passwordForm: PasswordForm
+	private readonly passwordModel: PasswordModel
 	private readonly _confirmTerms: Stream<boolean>
 	private readonly _confirmAge: Stream<boolean>
 	private readonly _code: Stream<string>
@@ -48,7 +49,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private _isMailVerificationBusy: boolean
 
 	constructor() {
-		this._passwordForm = new PasswordForm(false, true, true, "passwordImportance_msg")
+		this.passwordModel = new PasswordModel(false, true, true, logins)
 		this._confirmTerms = stream<boolean>(false)
 		this._confirmAge = stream<boolean>(false)
 		this._code = stream("")
@@ -90,7 +91,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			}
 
 			const errorMessage =
-				this._mailAddressFormErrorId || this._passwordForm.getErrorMessageId() || (!this._confirmTerms() ? "termsAcceptedNeutral_msg" : null)
+				this._mailAddressFormErrorId || this.passwordModel.getErrorMessageId() || (!this._confirmTerms() ? "termsAcceptedNeutral_msg" : null)
 
 			if (errorMessage) {
 				Dialog.message(errorMessage)
@@ -102,7 +103,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 				if (confirmed) {
 					return signup(
 						this._mailAddress,
-						this._passwordForm.getNewPassword(),
+						this.passwordModel.newPassword(),
 						this._code(),
 						a.isBusinessUse(),
 						a.isPaidSubscription(),
@@ -125,7 +126,10 @@ export class SignupForm implements Component<SignupFormAttrs> {
 					})
 					: [
 						m(SelectMailAddressForm, mailAddressFormAttrs),
-						m(this._passwordForm),
+						m(PasswordForm, {
+							model: this.passwordModel,
+							passwordInfoKey: "passwordImportance_msg"
+						}),
 						getWhitelabelRegistrationDomains().length > 0
 							? m(TextFieldN, {
 								value: this._code(),

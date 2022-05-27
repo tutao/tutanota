@@ -240,7 +240,7 @@ export async function showCalendarEventDialog(
 							lang.get("passwordFor_label", {
 								"{1}": guest.address.address,
 							}),
-						helpLabel: () => m(new PasswordIndicator(() => viewModel.getPasswordStrength(guest))),
+						helpLabel: () => m(PasswordIndicator, { strength: viewModel.getPasswordStrength(guest)}),
 						key: guest.address.address,
 						oninput: newValue => viewModel.updatePassword(guest, newValue),
 					})

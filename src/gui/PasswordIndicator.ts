@@ -1,26 +1,25 @@
-import m from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {scaleToVisualPasswordStrength} from "../misc/PasswordUtils"
-import type {lazy} from "@tutao/tutanota-utils"
 
-export class PasswordIndicator {
-	view: (...args: Array<any>) => any
+export interface PasswordIndicatorAttrs {
+	strength: number
+}
 
-	constructor(strength: lazy<number>) {
-		this.view = () =>
-			m(
-				".password-indicator-border.mt-s",
-				{
-					style: {
-						width: "100px",
-						height: "10px",
-					},
+export class PasswordIndicator implements Component<PasswordIndicatorAttrs> {
+	view({attrs}: Vnode<PasswordIndicatorAttrs>): Children {
+		return m(".password-indicator-border.mt-s",
+			{
+				style: {
+					width: "100px",
+					height: "10px",
 				},
-				m(".password-indicator-bg", {
-					style: {
-						width: scaleToVisualPasswordStrength(strength()) + "%",
-						height: "100%",
-					},
-				}),
-			)
+			},
+			m(".password-indicator-bg", {
+				style: {
+					width: scaleToVisualPasswordStrength(attrs.strength) + "%",
+					height: "100%",
+				},
+			}),
+		)
 	}
 }

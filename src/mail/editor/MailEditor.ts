@@ -508,16 +508,12 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				.allRecipients()
 				.filter(r => r.type === RecipientType.EXTERNAL || (r.type === RecipientType.UNKNOWN && !r.isResolved())) // only show passwords for resolved contacts, otherwise we might not get the password
 				.map(recipient => {
-					const passwordStrength = this.sendMailModel.getPasswordStrength(recipient)
-					const password = this.sendMailModel.getPassword(recipient.address)
-					const passwordIndicator = new PasswordIndicator(() => passwordStrength)
-
 					return m(TextFieldN, {
 						oncreate: vnode => this.animateHeight(vnode.dom as HTMLElement, true),
 						onbeforeremove: vnode => this.animateHeight(vnode.dom as HTMLElement, false),
 						label: () => lang.get("passwordFor_label", {"{1}": recipient.address,}),
-						helpLabel: () => m(passwordIndicator),
-						value: password,
+						helpLabel: () => m(PasswordIndicator, { strength: this.sendMailModel.getPasswordStrength(recipient)}),
+						value: this.sendMailModel.getPassword(recipient.address),
 						type: TextFieldType.ExternalPassword,
 						oninput: val => this.sendMailModel.setPassword(recipient.address, val),
 					})
