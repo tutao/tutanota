@@ -250,7 +250,7 @@ export class PostLoginActions implements IPostLoginAction {
 
 	private enforcePasswordChange(): void {
 		if (logins.getUserController().user.requirePasswordUpdate) {
-			import("../settings/PasswordForm").then(({showChangeOwnPasswordDialog}) => {
+			import("../settings/ChangePasswordDialogs.js").then(({showChangeOwnPasswordDialog}) => {
 				return showChangeOwnPasswordDialog(false)
 			})
 		}

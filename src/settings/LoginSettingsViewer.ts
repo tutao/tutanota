@@ -4,7 +4,7 @@ import Stream from "mithril/stream"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {InfoLink, lang} from "../misc/LanguageViewModel"
-import {PasswordForm, showChangeOwnPasswordDialog} from "./PasswordForm"
+import {PasswordForm} from "./PasswordForm"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {Session, SessionTypeRef} from "../api/entities/sys/TypeRefs.js"
@@ -30,6 +30,7 @@ import {showCredentialsEncryptionModeDialog} from "../gui/dialogs/SelectCredenti
 import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
 import {elementIdPart, getElementId} from "../api/common/utils/EntityUtils"
+import {showChangeOwnPasswordDialog} from "./ChangePasswordDialogs.js";
 
 assertMainOrNode()
 
