@@ -73,7 +73,7 @@ export function show(): Promise<void> {
 				reactivate: false
 			})).then(accepted => {
 				if (accepted) {
-					let p = locator.userManagementFacade.createUser(userName, assertNotNull(emailAddress), passwordModel.newPassword(), 0, 1)
+					let p = locator.userManagementFacade.createUser(userName, assertNotNull(emailAddress), passwordModel.newPassword, 0, 1)
 					showWorkerProgressDialog(
 						locator.worker,
 						() =>

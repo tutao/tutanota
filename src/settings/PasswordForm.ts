@@ -15,15 +15,9 @@ import {ofClass} from "@tutao/tutanota-utils"
 import {getEtId} from "../api/common/utils/EntityUtils"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
-import stream from "mithril/stream"
 import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtils.js"
 
 assertMainOrNode()
-
-export interface PasswordInput {
-	value: string
-	onChanged: (password: string) => void
-}
 
 export interface PasswordFormAttrs {
 	model: PasswordModel
@@ -31,9 +25,9 @@ export interface PasswordFormAttrs {
 }
 
 export class PasswordModel {
-	public readonly newPassword = stream("")
-	public readonly oldPassword = stream("")
-	public readonly repeatedPassword = stream("")
+	public newPassword = ""
+	public oldPassword = ""
+	public repeatedPassword = ""
 
 	constructor(
 		readonly checkOldPassword: boolean,
@@ -44,16 +38,16 @@ export class PasswordModel {
 	}
 
 	clear() {
-		this.newPassword("")
-		this.oldPassword("")
-		this.repeatedPassword("")
+		this.newPassword = ""
+		this.oldPassword = ""
+		this.repeatedPassword = ""
 	}
 
 	getErrorMessageId(): TranslationKey | null {
 		return (
-			this.getErrorFromStatus(this.getOldPasswordStatus()) ||
-			this.getErrorFromStatus(this.getNewPasswordStatus()) ||
-			this.getErrorFromStatus(this.getRepeatedPasswordStatus())
+			this.getErrorFromStatus(this.getOldPasswordStatus())
+			?? this.getErrorFromStatus(this.getNewPasswordStatus())
+			?? this.getErrorFromStatus(this.getRepeatedPasswordStatus())
 		)
 	}
 
@@ -63,7 +57,7 @@ export class PasswordModel {
 	}
 
 	getOldPasswordStatus(): Status {
-		if (this.checkOldPassword && this.oldPassword() === "") {
+		if (this.checkOldPassword && this.oldPassword === "") {
 			return {
 				type: "neutral",
 				text: "oldPasswordNeutral_msg",
@@ -77,12 +71,12 @@ export class PasswordModel {
 	}
 
 	getNewPasswordStatus(): Status {
-		if (this.newPassword() === "") {
+		if (this.newPassword === "") {
 			return {
 				type: "neutral",
 				text: "password1Neutral_msg",
 			}
-		} else if (this.checkOldPassword && this.oldPassword() === this.newPassword()) {
+		} else if (this.checkOldPassword && this.oldPassword === this.newPassword) {
 			return {
 				type: "invalid",
 				text: "password1InvalidSame_msg",
@@ -108,8 +102,8 @@ export class PasswordModel {
 	}
 
 	getRepeatedPasswordStatus(): Status {
-		const repeatedPassword = this.repeatedPassword()
-		const newPassword = this.newPassword()
+		const repeatedPassword = this.repeatedPassword
+		const newPassword = this.newPassword
 
 		if (this.repeatInput && repeatedPassword === "") {
 			return {
@@ -142,7 +136,7 @@ export class PasswordModel {
 		}
 
 		// 80% strength is minimum. we expand it to 100%, so the password indicator if completely filled when the password is strong enough
-		return getPasswordStrength(this.newPassword(), reserved)
+		return getPasswordStrength(this.newPassword, reserved)
 	}
 }
 
@@ -153,27 +147,27 @@ export class PasswordModel {
 export class PasswordForm implements Component<PasswordFormAttrs> {
 
 	view({attrs}: Vnode<PasswordFormAttrs>): Children {
-
-		return m("",
-			{
+		return m("", {
 				onremove: () => attrs.model.clear(),
 			},
 			[
-				attrs.model.checkOldPassword ? m(TextFieldN, {
-					label: "oldPassword_label",
-					value: attrs.model.oldPassword(),
-					helpLabel: () => m(StatusField, {status: attrs.model.getOldPasswordStatus()}),
-					oninput: attrs.model.oldPassword,
-					preventAutofill: true,
-					type: TextFieldType.Password,
-				}) : null,
+				attrs.model.checkOldPassword ?
+					m(TextFieldN, {
+						label: "oldPassword_label",
+						value: attrs.model.oldPassword,
+						helpLabel: () => m(StatusField, {status: attrs.model.getOldPasswordStatus()}),
+						oninput: (input) => attrs.model.oldPassword = input,
+						preventAutofill: true,
+						type: TextFieldType.Password,
+					})
+					: null,
 				m(TextFieldN, {
 					label: "newPassword_label",
-					value: attrs.model.newPassword(),
+					value: attrs.model.newPassword,
 					helpLabel: () => m(StatusField, {
 						status: attrs.model.getNewPasswordStatus(),
 					}),
-					oninput: attrs.model.newPassword,
+					oninput: (input) => attrs.model.newPassword = input,
 					type: TextFieldType.Password,
 					preventAutofill: true,
 					injectionsRight: () => m(".mb-s.mlr", m(PasswordIndicator, {strength: attrs.model.getPasswordStrength()})),
@@ -182,12 +176,12 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 				attrs.model.repeatInput
 					? m(TextFieldN, {
 						label: "repeatedPassword_label",
-						value: attrs.model.repeatedPassword(),
+						value: attrs.model.repeatedPassword,
 						helpLabel: () =>
 							m(StatusField, {
 								status: attrs.model.getRepeatedPasswordStatus(),
 							}),
-						oninput: attrs.model.repeatedPassword,
+						oninput: (input) => attrs.model.repeatedPassword = input,
 						type: TextFieldType.Password,
 					})
 					: null,
@@ -206,7 +200,7 @@ export async function showChangeUserPasswordAsAdminDialog(user: User) {
 
 	const changeUserPasswordAsAdminOkAction = (dialog: Dialog) => {
 		let p = locator.userManagementFacade
-					   .changeUserPassword(user, model.newPassword())
+					   .changeUserPassword(user, model.newPassword)
 					   .then(() => {
 						   Dialog.message("pwChangeValid_msg")
 						   dialog.close()
@@ -240,7 +234,7 @@ export async function showChangeOwnPasswordDialog(allowCancel: boolean = true) {
 		if (error) {
 			Dialog.message(error)
 		} else {
-			showProgressDialog("pleaseWait_msg", locator.loginFacade.changePassword(model.oldPassword(), model.newPassword()))
+			showProgressDialog("pleaseWait_msg", locator.loginFacade.changePassword(model.oldPassword, model.newPassword))
 				.then(() => {
 					locator.credentialsProvider.deleteByUserId(getEtId(logins.getUserController().user))
 					Dialog.message("pwChangeValid_msg")
