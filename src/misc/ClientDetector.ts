@@ -129,48 +129,10 @@ export class ClientDetector {
 	}
 
 	/**
-	 * @see https://github.com/Modernizr/Modernizr/blob/master/feature-detects/css/flexbox.js
-	 */
-	flexbox(): boolean {
-		return typeof neverNull(document.documentElement).style.flexBasis === "string"
-	}
-
-	/**
 	 * @see https://github.com/Modernizr/Modernizr/blob/5e3f359bfc9aa511543ece60bd8a6ea8aa7defd3/feature-detects/websockets.js
 	 */
 	websockets(): boolean {
-		//require('../../node_modules/modernizr/feature-detects/websockets')
 		return "WebSocket" in window && window.WebSocket.CLOSING === 2
-	}
-
-	/**
-	 * @see https://github.com/Modernizr/Modernizr/blob/master/feature-detects/crypto/getrandomvalues.js
-	 */
-	randomNumbers(): boolean {
-		let crypto = window.crypto
-
-		if (crypto && "getRandomValues" in crypto && "Uint32Array" in window) {
-			var array = new Uint8Array(1)
-			var values = crypto.getRandomValues(array)
-			return values && typeof values[0] === "number"
-		} else {
-			return false
-		}
-	}
-
-	supportsFocus(): boolean {
-		return typeof HTMLInputElement !== "undefined" && typeof HTMLInputElement.prototype.focus === "function"
-	}
-
-	dateFormat(): boolean {
-		return typeof Intl !== "undefined"
-	}
-
-	/**
-	 * @see https://github.com/Modernizr/Modernizr/blob/master/feature-detects/blob.js
-	 */
-	blob(): boolean {
-		return typeof Blob !== "undefined"
 	}
 
 	localStorage(): boolean {
@@ -186,24 +148,6 @@ export class ClientDetector {
 	 * @see https://github.com/Modernizr/Modernizr/blob/master/feature-detects/history.js
 	 */
 	history(): boolean {
-		// Issue #733
-		// The stock browser on Android 2.2 & 2.3, and 4.0.x returns positive on history support
-		// Unfortunately support is really buggy and there is no clean way to detect
-		// these bugs, so we fall back to a user agent sniff :(
-		var ua = this.userAgent
-
-		// We only want Android 2 and 4.0, stock browser, and not Chrome which identifies
-		// itself as 'Mobile Safari' as well, nor Windows Phone (issue #1471).
-		if (
-			(ua.indexOf("Android 2.") !== -1 || ua.indexOf("Android 4.0") !== -1) &&
-			ua.indexOf("Mobile Safari") !== -1 &&
-			ua.indexOf("Chrome") === -1 &&
-			ua.indexOf("Windows Phone") === -1
-		) {
-			return false
-		}
-
-		// Return the regular check
 		return window.history && "pushState" in window.history
 	}
 
@@ -211,7 +155,7 @@ export class ClientDetector {
 	 * @see https://github.com/Modernizr/Modernizr/blob/master/feature-detects/network/xhr2.js
 	 */
 	xhr2(): boolean {
-		return "XMLHttpRequest" in window && "withCredentials" in new XMLHttpRequest()
+		return "XMLHttpRequest" in window
 	}
 
 	indexedDb(): boolean {
@@ -226,7 +170,7 @@ export class ClientDetector {
 	 * @see https://github.com/Modernizr/Modernizr/issues/1894
 	 */
 	passive(): boolean {
-		var supportsPassive = false
+		let supportsPassive = false
 
 		try {
 			// @ts-ignore
@@ -235,7 +179,7 @@ export class ClientDetector {
 				get passive() {
 					supportsPassive = true
 				},
-			} as any)
+			})
 		} catch (e) {
 		}
 
@@ -243,21 +187,18 @@ export class ClientDetector {
 	}
 
 	_setBrowserAndVersion() {
-		var operaIndex1 = this.userAgent.indexOf("Opera")
-		var operaIndex2 = this.userAgent.indexOf("OPR/")
-		var firefoxIndex = this.userAgent.indexOf("Firefox/")
-		var paleMoonIndex = this.userAgent.indexOf("PaleMoon/")
-		var iceweaselIndex = this.userAgent.indexOf("Iceweasel/")
-		var waterfoxIndex = this.userAgent.indexOf("Waterfox/")
-		var chromeIndex = this.userAgent.indexOf("Chrome/")
-		var chromeIosIndex = this.userAgent.indexOf("CriOS/")
-		var safariIndex = this.userAgent.indexOf("Safari/")
-		var ieIndex = this.userAgent.indexOf("MSIE")
-		var edgeIndex = this.userAgent.indexOf("Edge") // "Old" edge based on EdgeHTML, "new" one based on Blink has only "Edg"
+		const operaIndex1 = this.userAgent.indexOf("Opera")
+		const operaIndex2 = this.userAgent.indexOf("OPR/")
+		const firefoxIndex = this.userAgent.indexOf("Firefox/")
+		const paleMoonIndex = this.userAgent.indexOf("PaleMoon/")
+		const iceweaselIndex = this.userAgent.indexOf("Iceweasel/")
+		const chromeIndex = this.userAgent.indexOf("Chrome/")
+		const chromeIosIndex = this.userAgent.indexOf("CriOS/")
+		const safariIndex = this.userAgent.indexOf("Safari/")
+		const edgeIndex = this.userAgent.indexOf("Edge") // "Old" edge based on EdgeHTML, "new" one based on Blink has only "Edg"
 
-		var ie11Index = this.userAgent.indexOf("Trident/7.0")
-		var androidIndex = this.userAgent.indexOf("Android")
-		var versionIndex = -1
+		const androidIndex = this.userAgent.indexOf("Android")
+		let versionIndex = -1
 
 		if (edgeIndex !== -1) {
 			this.browser = BrowserType.EDGE
@@ -316,16 +257,10 @@ export class ClientDetector {
 			// Also there are a lot of browsers on iOS but they all are based on Safari so we can use the same extraction mechanism for all of them.
 			this.extractIosVersion()
 			return
-		} else if (ieIndex !== -1) {
-			this.browser = BrowserType.IE
-			versionIndex = ieIndex + 5
-		} else if (ie11Index !== -1) {
-			this.browser = BrowserType.IE
-			this.browserVersion = 11
 		}
 
 		if (versionIndex !== -1) {
-			var mainVersionEndIndex = this.userAgent.indexOf(".", versionIndex)
+			const mainVersionEndIndex = this.userAgent.indexOf(".", versionIndex)
 
 			if (mainVersionEndIndex !== -1) {
 				try {
@@ -427,10 +362,6 @@ export class ClientDetector {
 		return "Unknown"
 	}
 
-	isIE(): boolean {
-		return this.browser === BrowserType.IE
-	}
-
 	isSupportedBrowserVersion(): boolean {
 		return this.notOldFirefox() && this.notOldChrome()
 	}
@@ -443,16 +374,6 @@ export class ClientDetector {
 
 	notOldChrome(): boolean {
 		return this.browser !== BrowserType.CHROME || this.browserVersion > 55
-	}
-
-	canDownloadMultipleFiles(): boolean {
-		// appeared in ff 65 https://github.com/tutao/tutanota/issues/1097
-		return (this.browser !== BrowserType.FIREFOX || this.browserVersion < 65) && this.browser !== BrowserType.SAFARI
-	}
-
-	needsDownloadBatches(): boolean {
-		// chrome limits multiple automatic downloads to 10
-		return client.browser === BrowserType.CHROME
 	}
 
 	needsMicrotaskHack(): boolean {
@@ -469,19 +390,11 @@ export class ClientDetector {
 		return this.browser === BrowserType.SAFARI && this.browserVersion < 12.2
 	}
 
-	indexedDBSupported(): boolean {
-		return this.indexedDb() && !this.isIE()
-	}
-
-	calendarSupported(): boolean {
-		return !this.isIE()
-	}
-
 	browserData(): BrowserData {
 		return {
 			needsMicrotaskHack: this.needsMicrotaskHack(),
 			needsExplicitIDBIds: this.needsExplicitIDBIds(),
-			indexedDbSupported: this.indexedDBSupported(),
+			indexedDbSupported: this.indexedDb(),
 		}
 	}
 }

@@ -6,7 +6,6 @@ export const enum BrowserType {
 	CHROME = "Chrome",
 	FIREFOX = "Firefox",
 	PALEMOON = "PaleMoon",
-	IE = "Internet Explorer",
 	EDGE = "Edge",
 	SAFARI = "Safari",
 	ANDROID = "Android",
