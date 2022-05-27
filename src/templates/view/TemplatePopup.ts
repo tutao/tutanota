@@ -30,8 +30,7 @@ import {logins} from "../../api/main/LoginController"
 import {getSharedGroupName, hasCapabilityOnGroup} from "../../sharing/GroupUtils"
 import {createInitialTemplateListIfAllowed} from "../TemplateGroupUtils"
 import {getConfirmation} from "../../gui/base/GuiUtils"
-import {ScrollSelectList, ScrollSelectListAttrs} from "../../gui/ScrollSelectList"
-import {gm} from "../../gui/GenericRenderer"
+import {ScrollSelectList} from "../../gui/ScrollSelectList"
 
 export const TEMPLATE_POPUP_HEIGHT = 340
 export const TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH = 600
@@ -405,7 +404,7 @@ export class TemplatePopup implements ModalComponent {
 	}
 
 	_renderList(): Children {
-		return gm<ScrollSelectListAttrs<EmailTemplate>>(ScrollSelectList, {
+		return m(ScrollSelectList, {
 			items: this._templateModel.searchResults(),
 			selectedItem: this._templateModel.selectedTemplate(),
 			onItemSelected: this._templateModel.selectedTemplate,
