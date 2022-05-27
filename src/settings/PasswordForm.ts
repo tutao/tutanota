@@ -7,7 +7,6 @@ import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {Status} from "../gui/base/StatusField"
 import {StatusField} from "../gui/base/StatusField"
-import stream from "mithril/stream"
 import {logins} from "../api/main/LoginController"
 import {NotAuthenticatedError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
@@ -53,41 +52,7 @@ export class PasswordForm implements Component {
 
 		this._onRepeatedPasswordInput("")
 
-		const oldPasswordFieldAttrs: TextFieldAttrs = {
-			label: "oldPassword_label",
-			value: this._oldPassword,
-			helpLabel: () =>
-				m(StatusField, {
-					status: this._oldPasswordStatus,
-				}),
-			oninput: value => this._onOldPasswordInput(value),
-			preventAutofill: true,
-			type: TextFieldType.Password,
-		} as const
 		const passwordIndicator = new PasswordIndicator(() => this._getPasswordStrength())
-		const newPasswordFieldAttrs: TextFieldAttrs = {
-			label: "newPassword_label",
-			value: this._newPassword,
-			helpLabel: () =>
-				m(StatusField, {
-					status: this._newPasswordStatus,
-				}),
-			oninput: value => this._onNewPasswordInput(value),
-			type: TextFieldType.Password,
-			preventAutofill: true,
-			injectionsRight: () => m(".mb-s.mlr", m(passwordIndicator)),
-		} as const
-		const repeatedPasswordFieldAttrs: TextFieldAttrs = {
-			label: "repeatedPassword_label",
-			value: this._repeatedPassword,
-			helpLabel: () =>
-				m(StatusField, {
-					status: this._repeatedPasswordStatus,
-				}),
-			oninput: value => this._onRepeatedPasswordInput(value),
-			type: TextFieldType.Password,
-		} as const
-
 		this.view = () => {
 			return m(
 				"",
@@ -99,10 +64,40 @@ export class PasswordForm implements Component {
 					},
 				},
 				[
-					validateOldPassword ? m(TextFieldN, oldPasswordFieldAttrs) : null,
-					m(TextFieldN, newPasswordFieldAttrs),
+					validateOldPassword ? m(TextFieldN, {
+						label: "oldPassword_label",
+						value: this._oldPassword,
+						helpLabel: () =>
+							m(StatusField, {
+								status: this._oldPasswordStatus,
+							}),
+						oninput: (value: string) => this._onOldPasswordInput(value),
+						preventAutofill: true,
+						type: TextFieldType.Password,
+					}) : null,
+					m(TextFieldN, {
+						label: "newPassword_label",
+						value: this._newPassword,
+						helpLabel: () =>
+							m(StatusField, {
+								status: this._newPasswordStatus,
+							}),
+						oninput: (value: string) => this._onNewPasswordInput(value),
+						type: TextFieldType.Password,
+						preventAutofill: true,
+						injectionsRight: () => m(".mb-s.mlr", m(passwordIndicator)),
+					}),
 					passwordInfoTextId ? m(".small.mt-s", lang.get(passwordInfoTextId)) : null,
-					repeatPassword ? m(TextFieldN, repeatedPasswordFieldAttrs) : null,
+					repeatPassword ? m(TextFieldN, {
+						label: "repeatedPassword_label",
+						value: this._repeatedPassword,
+						helpLabel: () =>
+							m(StatusField, {
+								status: this._repeatedPasswordStatus,
+							}),
+						oninput: (value: string) => this._onRepeatedPasswordInput(value),
+						type: TextFieldType.Password,
+					}) : null,
 				],
 			)
 		}
