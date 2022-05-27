@@ -24,20 +24,50 @@ export interface PasswordModelConfig {
 }
 
 export class PasswordModel {
-	public newPassword = ""
-	public oldPassword = ""
-	public repeatedPassword = ""
+	private newPassword = ""
+	private oldPassword = ""
+	private repeatedPassword = ""
+	private passwordStrength: number
 
 	constructor(
 		private readonly logins: LoginController,
 		readonly config: PasswordModelConfig,
 	) {
+		this.passwordStrength = this.calculatePasswordStrength()
+	}
+
+	getNewPassword(): string {
+		return this.newPassword
+	}
+
+	setNewPassword(newPassword: string) {
+		this.newPassword = newPassword
+		this.passwordStrength = this.calculatePasswordStrength()
+	}
+
+	getOldPassword(): string {
+		return this.oldPassword
+	}
+
+	setOldPassword(oldPassword: string) {
+		this.oldPassword = oldPassword
+		this.passwordStrength = this.calculatePasswordStrength()
+	}
+
+	getRepeatedPassword(): string {
+		return this.repeatedPassword
+	}
+
+	setRepeatedPassword(repeatedPassword: string) {
+		this.repeatedPassword = repeatedPassword
+		this.passwordStrength = this.calculatePasswordStrength()
 	}
 
 	clear() {
 		this.newPassword = ""
 		this.oldPassword = ""
 		this.repeatedPassword = ""
+		this.passwordStrength = this.calculatePasswordStrength()
 	}
 
 	getErrorMessageId(): TranslationKey | null {
@@ -46,11 +76,6 @@ export class PasswordModel {
 			?? this.getErrorFromStatus(this.getNewPasswordStatus())
 			?? this.getErrorFromStatus(this.getRepeatedPasswordStatus())
 		)
-	}
-
-	private getErrorFromStatus(status: Status): TranslationKey | null {
-		if (!status) return null
-		return status.type !== "valid" ? status.text : null
 	}
 
 	getOldPasswordStatus(): Status {
@@ -124,7 +149,16 @@ export class PasswordModel {
 		return !isSecurePassword(this.getPasswordStrength())
 	}
 
-	getPasswordStrength() {
+	getPasswordStrength(): number {
+		return this.passwordStrength
+	}
+
+	private getErrorFromStatus(status: Status): TranslationKey | null {
+		if (!status) return null
+		return status.type !== "valid" ? status.text : null
+	}
+
+	private calculatePasswordStrength(): number {
 		let reserved: string[] = []
 
 		if (this.logins.isUserLoggedIn()) {
@@ -151,20 +185,20 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 				attrs.model.config.checkOldPassword ?
 					m(TextFieldN, {
 						label: "oldPassword_label",
-						value: attrs.model.oldPassword,
+						value: attrs.model.getOldPassword(),
 						helpLabel: () => m(StatusField, {status: attrs.model.getOldPasswordStatus()}),
-						oninput: (input) => attrs.model.oldPassword = input,
+						oninput: (input) => attrs.model.setOldPassword(input),
 						preventAutofill: true,
 						type: TextFieldType.Password,
 					})
 					: null,
 				m(TextFieldN, {
 					label: "newPassword_label",
-					value: attrs.model.newPassword,
+					value: attrs.model.getNewPassword(),
 					helpLabel: () => m(StatusField, {
 						status: attrs.model.getNewPasswordStatus(),
 					}),
-					oninput: (input) => attrs.model.newPassword = input,
+					oninput: (input) => attrs.model.setNewPassword(input),
 					type: TextFieldType.Password,
 					preventAutofill: true,
 					injectionsRight: () => m(".mb-s.mlr", m(CompletenessIndicator, {percentageCompleted: attrs.model.getPasswordStrength()})),
@@ -173,12 +207,12 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 				attrs.model.config.repeatInput
 					? m(TextFieldN, {
 						label: "repeatedPassword_label",
-						value: attrs.model.repeatedPassword,
+						value: attrs.model.getRepeatedPassword(),
 						helpLabel: () =>
 							m(StatusField, {
 								status: attrs.model.getRepeatedPasswordStatus(),
 							}),
-						oninput: (input) => attrs.model.repeatedPassword = input,
+						oninput: (input) => attrs.model.setRepeatedPassword(input),
 						type: TextFieldType.Password,
 					})
 					: null,

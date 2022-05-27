@@ -295,7 +295,7 @@ export class ContactFormRequestDialog {
 				return Dialog.message("mailAddressInvalid_msg")
 			}
 
-			const password = this.passwordModel.newPassword
+			const password = this.passwordModel.getNewPassword()
 
 			const doSend = async () => {
 				const contactFormResult = await customerFacade.createContactFormUser(password, this._contactForm._id)

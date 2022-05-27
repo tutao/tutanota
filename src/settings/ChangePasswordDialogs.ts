@@ -17,7 +17,7 @@ export async function showChangeUserPasswordAsAdminDialog(user: User) {
 	const model = new PasswordModel(logins, {checkOldPassword: false, enforceStrength: false, repeatInput: true})
 
 	const changeUserPasswordAsAdminOkAction = (dialog: Dialog) => {
-		showProgressDialog("pleaseWait_msg", locator.userManagementFacade.changeUserPassword(user, model.newPassword))
+		showProgressDialog("pleaseWait_msg", locator.userManagementFacade.changeUserPassword(user, model.getNewPassword()))
 			.then(
 				() => {
 					Dialog.message("pwChangeValid_msg")
@@ -52,7 +52,7 @@ export async function showChangeOwnPasswordDialog(allowCancel: boolean = true) {
 		if (error) {
 			Dialog.message(error)
 		} else {
-			showProgressDialog("pleaseWait_msg", locator.loginFacade.changePassword(model.oldPassword, model.newPassword))
+			showProgressDialog("pleaseWait_msg", locator.loginFacade.changePassword(model.getOldPassword(), model.getNewPassword()))
 				.then(() => {
 					locator.credentialsProvider.deleteByUserId(getEtId(logins.getUserController().user))
 					Dialog.message("pwChangeValid_msg")

@@ -103,7 +103,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 				if (confirmed) {
 					return signup(
 						this._mailAddress,
-						this.passwordModel.newPassword,
+						this.passwordModel.getNewPassword(),
 						this._code(),
 						a.isBusinessUse(),
 						a.isPaidSubscription(),
