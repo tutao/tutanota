@@ -9,7 +9,7 @@ import {
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
 } from "@tutao/tutanota-utils"
-import {CryptoFacade, CryptoFacadeImpl} from "../../../../../src/api/worker/crypto/CryptoFacade.js"
+import {CryptoFacade} from "../../../../../src/api/worker/crypto/CryptoFacade.js"
 import {ProgrammingError} from "../../../../../src/api/common/error/ProgrammingError.js"
 import {Cardinality, ValueType} from "../../../../../src/api/common/EntityConstants.js"
 import {BucketPermissionType, PermissionType} from "../../../../../src/api/common/TutanotaConstants.js"
@@ -88,7 +88,7 @@ o.spec("crypto facade", function () {
 	o.beforeEach(function () {
 		serviceExecutor = object()
 		entityClient = object()
-		crypto = new CryptoFacadeImpl(
+		crypto = new CryptoFacade(
 			userFacade,
 			entityClient,
 			restClient,
