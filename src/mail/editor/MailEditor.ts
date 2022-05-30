@@ -572,8 +572,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	}
 
 	private async getRecipientClickedContextButtons(recipient: ResolvableRecipient, field: RecipientField): Promise<DropdownChildAttrs[]> {
-
-
 		const {logins, entity, contactModel} = this.sendMailModel
 
 		const canEditBubbleRecipient = logins.getUserController().isInternalUser()

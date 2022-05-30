@@ -1,9 +1,7 @@
 import m, {Children, ClassComponent, Vnode} from "mithril"
 import {TextFieldN} from "./TextFieldN"
 import {TranslationText} from "../../misc/LanguageViewModel"
-import stream from "mithril/stream"
 import {ButtonN, ButtonType} from "./ButtonN"
-import {KeyPress} from "../../misc/KeyManager"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {attachDropdown, DropdownChildAttrs} from "./DropdownN"
 
@@ -40,14 +38,19 @@ export class BubbleTextField implements ClassComponent<BubbleTextFieldAttrs> {
 						// We need overflow: hidden on both so that ellipsis on button works.
 						// flex is for reserving space for the comma. align-items: end so that comma is pushed to the bottom.
 						return m(".flex.overflow-hidden.items-end", [
-							m(".flex-no-grow-shrink-auto.overflow-hidden", m(ButtonN, attachDropdown({
-								mainButtonAttrs: {
-									label: () => attrs.renderBubbleText(item),
-									type: ButtonType.TextBubble,
-									isSelected: () => false,
-								},
-								childAttrs: () => attrs.getBubbleDropdownAttrs(item)
-							}))),
+							m(".flex-no-grow-shrink-auto.overflow-hidden",
+								m(ButtonN,
+									attachDropdown({
+										mainButtonAttrs: {
+											label: () => attrs.renderBubbleText(item),
+											type: ButtonType.TextBubble,
+											isSelected: () => false,
+										},
+										childAttrs: () => attrs.getBubbleDropdownAttrs(item),
+										width: 250
+									})
+								)
+							),
 							// Comma is shown when there's text/another bubble afterwards or if the field is active
 							this.active || idx < items.length - 1 || attrs.text !== "" ? m("span.pr", ",") : null,
 						])
