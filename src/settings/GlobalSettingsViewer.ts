@@ -60,10 +60,10 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	_props: Stream<CustomerServerProperties>
 	_customer: Stream<Customer>
 	_customerInfo: LazyLoaded<CustomerInfo>
-	_spamRuleLines: Stream<Array<TableLineAttrs>>
-	_rejectedSenderLines: Stream<Array<TableLineAttrs>>
-	_customDomainLines: Stream<Array<TableLineAttrs>>
-	_auditLogLines: Stream<Array<TableLineAttrs>>
+	_spamRuleLines: Array<TableLineAttrs>
+	_rejectedSenderLines: Array<TableLineAttrs>
+	_customDomainLines: Array<TableLineAttrs>
+	_auditLogLines: Array<TableLineAttrs>
 
 	/**
 	 * caches the current status for the custom email domains
@@ -78,10 +78,10 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						  .then(customer => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
 		})
 		this._domainDnsStatus = {}
-		this._spamRuleLines = stream<Array<TableLineAttrs>>([])
-		this._rejectedSenderLines = stream<Array<TableLineAttrs>>([])([])
-		this._customDomainLines = stream<Array<TableLineAttrs>>([])([])
-		this._auditLogLines = stream<Array<TableLineAttrs>>([])([])
+		this._spamRuleLines = []
+		this._rejectedSenderLines = []
+		this._customDomainLines = []
+		this._auditLogLines = []
 		this._props = stream()
 		this._customer = stream()
 		let saveIpAddress = stream(false)
@@ -145,7 +145,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					click: () => showAddSpamRuleDialog(null),
 					icon: () => Icons.Add,
 				},
-				lines: this._spamRuleLines(),
+				lines: this._spamRuleLines,
 			}
 			const rejectedSenderTableAttrs: TableAttrs = {
 				columnHeading: ["emailSender_label"],
@@ -158,7 +158,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					},
 					icon: () => BootIcons.Progress,
 				},
-				lines: this._rejectedSenderLines(),
+				lines: this._rejectedSenderLines,
 			}
 			const customDomainTableAttrs: TableAttrs = {
 				columnHeading: ["adminCustomDomain_label", "catchAllMailbox_label"],
@@ -179,13 +179,13 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					},
 					icon: () => Icons.Add,
 				},
-				lines: this._customDomainLines(),
+				lines: this._customDomainLines,
 			}
 			const auditLogTableAttrs: TableAttrs = {
 				columnHeading: ["action_label", "modified_label", "time_label"],
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest, ColumnWidth.Small],
 				showActionButtonColumn: true,
-				lines: this._auditLogLines(),
+				lines: this._auditLogLines,
 			}
 			return [
 				m("#global-settings.fill-absolute.scroll.plr-l", [
@@ -243,36 +243,34 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 
 			const fieldToName = getSpamRuleFieldToName()
 
-			this._spamRuleLines(
-				props.emailSenderList.map((rule, index) => {
-					return {
-						cells: () => [
+			this._spamRuleLines = props.emailSenderList.map((rule, index) => {
+				return {
+					cells: () => [
+						{
+							main: fieldToName[getSpamRuleField(rule)],
+							info: [rule.value],
+						},
+						{
+							main: neverNull(getSpamRuleTypeNameMapping().find(t => t.value === rule.type)).name,
+						},
+					],
+					actionButtonAttrs: createRowActions(
+						{
+							getArray: () => props.emailSenderList,
+							updateInstance: () => locator.entityClient.update(props).catch(ofClass(LockedError, noOp)),
+						},
+						rule,
+						index,
+						[
 							{
-								main: fieldToName[getSpamRuleField(rule)],
-								info: [rule.value],
-							},
-							{
-								main: neverNull(getSpamRuleTypeNameMapping().find(t => t.value === rule.type)).name,
+								label: "edit_action",
+								click: () => showAddSpamRuleDialog(rule),
+								type: ButtonType.Dropdown,
 							},
 						],
-						actionButtonAttrs: createRowActions(
-							{
-								getArray: () => props.emailSenderList,
-								updateInstance: () => locator.entityClient.update(props).catch(ofClass(LockedError, noOp)),
-							},
-							rule,
-							index,
-							[
-								{
-									label: "edit_action",
-									click: () => showAddSpamRuleDialog(rule),
-									type: ButtonType.Dropdown,
-								},
-							],
-						),
-					}
-				}),
-			)
+					),
+				}
+			})
 
 			m.redraw()
 		})
@@ -345,7 +343,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 												  }
 											  })
 
-											  this._rejectedSenderLines(tableEntries)
+											  this._rejectedSenderLines = tableEntries
 										  })
 			showProgressDialog("loading_msg", loadingPromise).then(() => m.redraw())
 		}
@@ -356,18 +354,16 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			this._customer(customer)
 
 			return locator.entityClient.loadRange(AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true).then(auditLog => {
-				this._auditLogLines(
-					auditLog.map(auditLogEntry => {
-						return {
-							cells: [auditLogEntry.action, auditLogEntry.modifiedEntity, formatDateTimeFromYesterdayOn(auditLogEntry.date)],
-							actionButtonAttrs: {
-								label: "showMore_action",
-								icon: () => Icons.More,
-								click: () => this._showAuditLogDetails(auditLogEntry, customer),
-							},
-						}
-					}),
-				)
+				this._auditLogLines = auditLog.map(auditLogEntry => {
+					return {
+						cells: [auditLogEntry.action, auditLogEntry.modifiedEntity, formatDateTimeFromYesterdayOn(auditLogEntry.date)],
+						actionButtonAttrs: {
+							label: "showMore_action",
+							icon: () => Icons.More,
+							click: () => this._showAuditLogDetails(auditLogEntry, customer),
+						},
+					}
+				})
 			})
 		})
 	}
@@ -505,41 +501,41 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 							icon: () => Icons.More,
 							click: createDropdown(
 								{
-                                    lazyButtons: () => {
+									lazyButtons: () => {
 
-                                        const buttons: DropdownChildAttrs[] = [
-                                            {
-                                                type: ButtonType.Dropdown,
-                                                label: "setCatchAllMailbox_action",
-                                                click: () => this._editCatchAllMailbox(domainInfo),
-                                            },
-                                            {
-                                                type: ButtonType.Dropdown,
-                                                label: "delete_action",
-                                                click: () => this._deleteCustomDomain(domainInfo),
-                                            }
-                                        ]
+										const buttons: DropdownChildAttrs[] = [
+											{
+												type: ButtonType.Dropdown,
+												label: "setCatchAllMailbox_action",
+												click: () => this._editCatchAllMailbox(domainInfo),
+											},
+											{
+												type: ButtonType.Dropdown,
+												label: "delete_action",
+												click: () => this._deleteCustomDomain(domainInfo),
+											}
+										]
 
-                                        if (domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine()) {
-                                            buttons.unshift({
-                                                type: ButtonType.Dropdown,
-                                                label: "resumeSetup_label",
-                                                click: () => {
-                                                    showAddDomainWizard(domainDnsStatus.domain, customerInfo).then(() => {
-                                                        domainDnsStatus.loadCurrentStatus().then(() => m.redraw())
-                                                    })
-                                                },
-                                            })
-                                        }
-                                        return buttons
-                                    }, width: 260
-                                },
+										if (domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine()) {
+											buttons.unshift({
+												type: ButtonType.Dropdown,
+												label: "resumeSetup_label",
+												click: () => {
+													showAddDomainWizard(domainDnsStatus.domain, customerInfo).then(() => {
+														domainDnsStatus.loadCurrentStatus().then(() => m.redraw())
+													})
+												},
+											})
+										}
+										return buttons
+									}, width: 260
+								},
 							),
 						},
 					}
 				})
 			}).then(tableLines => {
-				this._customDomainLines(tableLines)
+				this._customDomainLines = tableLines
 
 				m.redraw()
 			})
