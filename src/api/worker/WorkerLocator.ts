@@ -30,7 +30,7 @@ import {NativeFileApp} from "../../native/common/FileApp"
 import {AesApp} from "../../native/worker/AesApp"
 import type {RsaImplementation} from "./crypto/RsaImplementation"
 import {createRsaImplementation} from "./crypto/RsaImplementation"
-import {CryptoFacade, CryptoFacadeImpl} from "./crypto/CryptoFacade"
+import {CryptoFacade} from "./crypto/CryptoFacade"
 import {InstanceMapper} from "./crypto/InstanceMapper"
 import {EphemeralCacheStorage} from "./rest/EphemeralCacheStorage"
 import {AdminClientRestCacheDummy} from "./rest/AdminClientRestCacheDummy"
@@ -141,7 +141,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.indexer = new Indexer(entityRestClient, worker, browserData, locator.cache as EntityRestCache)
 	const mainInterface = worker.getMainInterface()
 
-	locator.crypto = new CryptoFacadeImpl(locator.user, locator.cachingEntityClient, locator.restClient, locator.rsa, locator.serviceExecutor)
+	locator.crypto = new CryptoFacade(locator.user, locator.cachingEntityClient, locator.restClient, locator.rsa, locator.serviceExecutor)
 	locator.login = new LoginFacade(
 		worker,
 		locator.restClient,

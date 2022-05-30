@@ -74,34 +74,11 @@ export function encryptString(sk: Aes128Key, value: string): Uint8Array {
 	return aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
 }
 
-export interface CryptoFacade {
-	applyMigrations<T>(typeRef: TypeRef<T>, data: any): Promise<T>
-
-	applyMigrationsForInstance<T>(decryptedInstance: T): Promise<T>
-
-	setNewOwnerEncSessionKey(model: TypeModel, entity: Record<string, any>): Aes128Key | null
-
-	resolveServiceSessionKey(typeModel: TypeModel, instance: Record<string, any>): Promise<Aes128Key | null>
-
-	encryptBucketKeyForInternalRecipient(
-		bucketKey: Aes128Key,
-		recipientMailAddress: string,
-		notFoundRecipients: Array<string>,
-	): Promise<InternalRecipientKeyData | void>
-
-	resolveSessionKeyForInstance(instance: Instance): Promise<Aes128Key | null>
-
-	/** Helper for the rare cases when we needed it on the client side. */
-	resolveSessionKeyForInstanceBinary(instance: Instance): Promise<Uint8Array | null>
-
-	resolveSessionKey(typeModel: TypeModel, instance: Record<string, any>): Promise<Aes128Key | null>
-}
-
-export class CryptoFacadeImpl implements CryptoFacade {
+export class CryptoFacade {
 	// stores a mapping from mail body id to mail body session key. the mail body of a mail is encrypted with the same session key as the mail.
 	// so when resolving the session key of a mail we cache it for the mail's body to avoid that the body's permission (+ bucket permission) have to be loaded.
 	// this especially improves the performance when indexing mail bodies
-	readonly _mailBodySessionKeyCache: Record<string, Aes128Key> = {}
+	private readonly mailBodySessionKeyCache: Record<string, Aes128Key> = {}
 
 	constructor(
 		private readonly userFacade: UserFacade,
@@ -138,7 +115,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 		} else if (isSameTypeRef(typeRef, PushIdentifierTypeRef) && data._ownerEncSessionKey == null) {
 			// set sessionKey for allowing encryption when old instance (< v43) is updated
 			return resolveTypeReference(typeRef)
-				.then(typeModel => this._updateOwnerEncSessionKey(typeModel, data, this.userFacade.getUserGroupKey(), aes128RandomKey()))
+				.then(typeModel => this.updateOwnerEncSessionKey(typeModel, data, this.userFacade.getUserGroupKey(), aes128RandomKey()))
 				.then(() => data)
 		}
 
@@ -185,6 +162,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 		return this.resolveSessionKey(typeModel, instance)
 	}
 
+	/** Helper for the rare cases when we needed it on the client side. */
 	async resolveSessionKeyForInstanceBinary(instance: Instance): Promise<Uint8Array | null> {
 		const key = await this.resolveSessionKeyForInstance(instance)
 		return key == null ? null : bitArrayToUint8Array(key)
@@ -205,10 +183,10 @@ export class CryptoFacadeImpl implements CryptoFacade {
 			.then(async () => {
 				if (!typeModel.encrypted) {
 					return null
-				} else if (isSameTypeRefByAttr(MailBodyTypeRef, typeModel.app, typeModel.name) && this._mailBodySessionKeyCache[instance._id]) {
-					const sessionKey = this._mailBodySessionKeyCache[instance._id]
+				} else if (isSameTypeRefByAttr(MailBodyTypeRef, typeModel.app, typeModel.name) && this.mailBodySessionKeyCache[instance._id]) {
+					const sessionKey = this.mailBodySessionKeyCache[instance._id]
 					// the mail body instance is cached, so the session key is not needed any more
-					delete this._mailBodySessionKeyCache[instance._id]
+					delete this.mailBodySessionKeyCache[instance._id]
 					return sessionKey
 				} else if (instance._ownerEncSessionKey && this.userFacade.isFullyLoggedIn() && this.userFacade.hasGroup(instance._ownerGroup)) {
 					let gk = this.userFacade.getGroupKey(instance._ownerGroup)
@@ -237,7 +215,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 			.then(sessionKey => {
 				// store the mail session key for the mail body because it is the same
 				if (sessionKey && isSameTypeRefByAttr(MailTypeRef, typeModel.app, typeModel.name)) {
-					this._mailBodySessionKeyCache[instance.body] = sessionKey
+					this.mailBodySessionKeyCache[instance.body] = sessionKey
 				}
 
 				return sessionKey
@@ -357,7 +335,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 			// is not defined for some old AccountingInfos
 			let bucketPermissionOwnerGroupKey = this.userFacade.getGroupKey(neverNull(bucketPermission._ownerGroup))
 			let bucketPermissionGroupKey = this.userFacade.getGroupKey(bucketPermission.group)
-			await this._updateWithSymPermissionKey(
+			await this.updateWithSymPermissionKey(
 				typeModel,
 				instance,
 				pubOrExtPermission,
@@ -471,7 +449,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 	 * @param permissionGroupKey The symmetric group key of the group in the permission.
 	 * @param sessionKey The symmetric session key.
 	 */
-	_updateWithSymPermissionKey(
+	private updateWithSymPermissionKey(
 		typeModel: TypeModel,
 		instance: Record<string, any>,
 		permission: Permission,
@@ -487,7 +465,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 		}
 
 		if (!instance._ownerEncSessionKey && permission._ownerGroup === instance._ownerGroup) {
-			return this._updateOwnerEncSessionKey(typeModel, instance, permissionOwnerGroupKey, sessionKey)
+			return this.updateOwnerEncSessionKey(typeModel, instance, permissionOwnerGroupKey, sessionKey)
 		} else {
 			// instances shared via permissions (e.g. body)
 			let updateService = createUpdatePermissionKeyData()
@@ -500,7 +478,7 @@ export class CryptoFacadeImpl implements CryptoFacade {
 		}
 	}
 
-	_updateOwnerEncSessionKey(typeModel: TypeModel, instance: Record<string, any>, ownerGroupKey: Aes128Key, sessionKey: Aes128Key): Promise<void> {
+	private updateOwnerEncSessionKey(typeModel: TypeModel, instance: Record<string, any>, ownerGroupKey: Aes128Key, sessionKey: Aes128Key): Promise<void> {
 		instance._ownerEncSessionKey = uint8ArrayToBase64(encryptKey(ownerGroupKey, sessionKey))
 		// we have to call the rest client directly because instance is still the encrypted server-side version
 		const path = typeRefToPath(new TypeRef(typeModel.app, typeModel.name)) + "/" + (instance._id instanceof Array ? instance._id.join("/") : instance._id)
