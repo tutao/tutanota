@@ -6,10 +6,9 @@ export async function showSpellcheckLanguageDialog(): Promise<string> {
 	const {DesktopConfigKey} = await import("../../desktop/config/ConfigKeys")
 	const current = await getCurrentSpellcheckLanguage()
 	const {Dialog} = await import("../base/Dialog.js")
-	const stream = await import("mithril/stream")
 	const items = await getItems()
 	// this is a language code
-	const newLang = await Dialog.showDropDownSelectionDialog("spelling_label", "language_label", null, items, stream.default(current))
+	const newLang = await Dialog.showDropDownSelectionDialog("spelling_label", "language_label", null, items, current)
 	await locator.systemApp.setConfigValue(DesktopConfigKey.spellcheck, newLang)
 	// return displayable language name
 	const selectedItem = items.find(i => i.value === newLang)

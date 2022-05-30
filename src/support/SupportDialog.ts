@@ -53,17 +53,16 @@ export function showSupportDialog() {
 		left: [closeButton],
 		middle: () => lang.get("supportMenu_label"),
 	}
-	const searchInputField: TextFieldAttrs = {
-		label: () => lang.get("describeProblem_msg"),
-		value: searchValue(),
-		oninput: searchValue,
-	}
 	const child: Component = {
 		view: () => {
 			return [
 				m(".pt"),
 				m(".h1 .text-center", lang.get("howCanWeHelp_title")),
-				m(TextFieldN, searchInputField),
+				m(TextFieldN, {
+					label: () => lang.get("describeProblem_msg"),
+					value: searchValue(),
+					oninput: searchValue,
+				}),
 				m(
 					".pt",
 					searchResult().map(value => {
