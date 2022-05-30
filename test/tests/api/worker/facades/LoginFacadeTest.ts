@@ -10,7 +10,7 @@ import {
 	UserTypeRef
 } from "../../../../../src/api/entities/sys/TypeRefs"
 import {createAuthVerifier, encryptKey, generateKeyFromPassphrase, KeyLength, keyToBase64, sha256Hash} from "@tutao/tutanota-crypto"
-import {LoginFacadeImpl, ResumeSessionErrorReason} from "../../../../../src/api/worker/facades/LoginFacade"
+import {LoginFacade, ResumeSessionErrorReason} from "../../../../../src/api/worker/facades/LoginFacade"
 import {IServiceExecutor} from "../../../../../src/api/common/ServiceRequest"
 import {EntityClient} from "../../../../../src/api/common/EntityClient"
 import {RestClient} from "../../../../../src/api/worker/rest/RestClient"
@@ -54,7 +54,7 @@ function makeUser({id, passphrase, salt}) {
 }
 
 o.spec("LoginFacadeTest", function () {
-	let facade: LoginFacadeImpl
+	let facade: LoginFacade
 	let workerMock: WorkerImpl
 	let serviceExecutor: IServiceExecutor
 	let restClientMock: RestClient
@@ -100,7 +100,7 @@ o.spec("LoginFacadeTest", function () {
 		)
 		userFacade = object()
 
-		facade = new LoginFacadeImpl(
+		facade = new LoginFacade(
 			workerMock,
 			restClientMock,
 			entityClientMock,
@@ -287,6 +287,7 @@ o.spec("LoginFacadeTest", function () {
 			})
 
 			o("When using offline as premium user with stable connection, async login", async function () {
+
 				usingOfflineStorage = true
 				user.accountType = AccountType.PREMIUM
 				when(restClientMock.request(anything(), HttpMethod.GET, anything()))
@@ -295,12 +296,14 @@ o.spec("LoginFacadeTest", function () {
 						return JSON.stringify({user: userId, accessKey: keyToBase64(accessKey)})
 					})
 
-				const result = await facade.resumeSession(credentials, user.salt, dbKey, timeRangeDays)
+				const deferred = defer()
+				when(loginListener.onFullLoginSuccess()).thenDo(() => deferred.resolve(null))
 
+				const result = await facade.resumeSession(credentials, user.salt, dbKey, timeRangeDays)
 
 				o(result.type).equals("success")
 
-				await facade.asyncLoginPromise
+				await deferred.promise
 
 				// we would love to prove that part of the login is done async but without injecting some asyncExecutor it's a bit tricky to do
 				o(calls).deepEquals(["setUser", "sessionService"])
@@ -318,9 +321,13 @@ o.spec("LoginFacadeTest", function () {
 						calls.push("sessionService")
 						throw connectionError
 					})
+
+				const deferred = defer()
+				when(loginListener.onPartialLoginSuccess()).thenDo(() => deferred.resolve(null))
+
 				const result = await facade.resumeSession(credentials, user.salt, dbKey, timeRangeDays)
 
-				await facade.asyncLoginPromise
+				await deferred.promise
 
 				o(result.type).equals("success")
 				o(calls).deepEquals(["setUser", "sessionService"])
@@ -443,6 +450,10 @@ o.spec("LoginFacadeTest", function () {
 			})
 
 			o("when retrying failed login, userFacade is initialized", async function () {
+
+				const deferred = defer()
+				when(loginListener.onLoginFailure(matchers.anything())).thenDo(() => deferred.resolve(null))
+
 				const groupInfo = createGroupInfo()
 				when(entityClientMock.load(GroupInfoTypeRef, user.userGroup.groupInfo)).thenResolve(groupInfo)
 				const connectionError = new ConnectionError("test")
@@ -461,12 +472,8 @@ o.spec("LoginFacadeTest", function () {
 				verify(userFacade.unlockUserGroupKey(matchers.anything()), {times: 0})
 				verify(eventBusClientMock.connect(ConnectMode.Initial), {times: 0})
 
-				await facade.asyncLoginPromise
+				await deferred.promise
 
-				//We need to wait a bit so asyncResumeSesssion has failed - otherwise retry will not be executed
-				while (facade.asyncLoginState.state !== "failed") {
-					await Promise.resolve()
-				}
 				await facade.retryAsyncLogin()
 
 				await fullLoginDeferred.promise

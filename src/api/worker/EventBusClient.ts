@@ -1,4 +1,4 @@
-import {LoginFacadeImpl} from "./facades/LoginFacade"
+import {LoginFacade} from "./facades/LoginFacade"
 import type {MailFacade} from "./facades/MailFacade"
 import type {WorkerImpl} from "./WorkerImpl"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../common/Env"
@@ -133,7 +133,7 @@ export class EventBusClient {
 		private readonly instanceMapper: InstanceMapper,
 		private readonly socketFactory: (path: string) => WebSocket,
 		private readonly sleepDetector: SleepDetector,
-		private readonly loginFacade: LoginFacadeImpl,
+		private readonly loginFacade: LoginFacade,
 	) {
 		// We are not connected by default and will not try to unless connect() is called
 		this.state = EventBusState.Terminated

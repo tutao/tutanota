@@ -122,91 +122,13 @@ type AsyncLoginState =
 	| {state: "running"}
 	| {state: "failed", credentials: Credentials, cacheInfo: CacheInfo}
 
-export interface LoginFacade {
-	/**
-	 * Create session and log in. Changes internal state to refer to the logged in user.
-	 */
-	createSession(
-		mailAddress: string,
-		passphrase: string,
-		clientIdentifier: string,
-		sessionType: SessionType,
-		databaseKey: Uint8Array | null,
-	): Promise<NewSessionData>
-
-	/**
-	 * Create external (temporary mailbox for password-protected emails) session and log in.
-	 * Changes internal state to refer to the logged in user.
-	 */
-	createExternalSession(
-		userId: Id,
-		passphrase: string,
-		salt: Uint8Array,
-		clientIdentifier: string,
-		persistentSession: boolean
-	): Promise<NewSessionData>
-
-	/**
-	 * Resumes previously created session (using persisted credentials).
-	 * @param credentials the saved credentials to use
-	 * @param externalUserSalt
-	 * @param databaseKey key to unlock the local database (if enabled)
-	 * @param offlineTimeRangeDays the user configured time range for the offline database
-	 */
-	resumeSession(
-		credentials: Credentials,
-		externalUserSalt: Uint8Array | null,
-		databaseKey: Uint8Array | null,
-		offlineTimeRangeDays: number | null
-	): Promise<ResumeSessionResult>
-
-	deleteSession(accessToken: Base64Url): Promise<void>
-
-	changePassword(oldPassword: string, newPassword: string): Promise<void>
-
-	generateTotpSecret(): Promise<TotpSecret>
-
-	generateTotpCode(time: number, key: Uint8Array): Promise<number>
-
-	deleteAccount(password: string, reason: string, takeover: string): Promise<void>
-
-	/** Cancels 2FA process. */
-	cancelCreateSession(sessionId: IdTuple): Promise<void>
-
-	/** Finishes 2FA process either using second factor or approving session on another client. */
-	authenticateWithSecondFactor(data: SecondFactorAuthData): Promise<void>
-
-	resetSession(): Promise<void>
-
-	takeOverDeletedAddress(mailAddress: string, password: string, recoverCode: Hex | null, targetAccountMailAddress: string): Promise<void>
-
-	/** Changes user password to another one using recoverCode instead of the old password. */
-	recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, clientIdentifier: string): Promise<void>
-
-	/** Deletes second factors using recoverCode as second factor. */
-	resetSecondFactors(mailAddress: string, password: string, recoverCode: Hex): Promise<void>
-
-	decryptUserPassword(userId: string, deviceToken: string, encryptedPassword: string): Promise<string>
-
-	retryAsyncLogin(): Promise<void>
-}
-
-interface InitSessionParams {
-	userId: Id;
-	accessToken: Base64Url;
-	userPassphraseKey: Aes128Key;
-	sessionType: SessionType;
-	databaseKey: Uint8Array | null;
-	offlineTimeRangeDays: number | null;
-}
-
-export class LoginFacadeImpl implements LoginFacade {
-	private _eventBusClient!: EventBusClient
-	private _indexer!: Indexer
+export class LoginFacade {
+	private eventBusClient!: EventBusClient
+	private indexer!: Indexer
 	/**
 	 * Used for cancelling second factor and to not mix different attempts
 	 */
-	private _loginRequestSessionId: IdTuple | null = null
+	private loginRequestSessionId: IdTuple | null = null
 
 	/**
 	 * Used for cancelling second factor immediately
@@ -215,9 +137,6 @@ export class LoginFacadeImpl implements LoginFacade {
 
 	/** On platforms with offline cache we do the actual login asynchronously and we can retry it. This is the state of such async login. */
 	asyncLoginState: AsyncLoginState = {state: "idle"}
-
-	// This is really just for tests, we need to wait for async login before moving on
-	asyncLoginPromise: Promise<null> | null = null
 
 	constructor(
 		readonly worker: WorkerImpl,
@@ -239,17 +158,19 @@ export class LoginFacadeImpl implements LoginFacade {
 	}
 
 	init(indexer: Indexer, eventBusClient: EventBusClient) {
-		this._indexer = indexer
-		this._eventBusClient = eventBusClient
+		this.indexer = indexer
+		this.eventBusClient = eventBusClient
 	}
 
 
 	async resetSession(): Promise<void> {
-		this._eventBusClient.close(CloseEventBusOption.Terminate)
+		this.eventBusClient.close(CloseEventBusOption.Terminate)
 		this.userFacade.reset()
 	}
 
-	/** @inheritDoc */
+	/**
+	 * Create session and log in. Changes internal state to refer to the logged in user.
+	 */
 	async createSession(
 		mailAddress: string,
 		passphrase: string,
@@ -262,7 +183,7 @@ export class LoginFacadeImpl implements LoginFacade {
 			// check if it is the same user in _initSession()
 		}
 
-		const userPassphraseKey = await this._loadUserPassphraseKey(mailAddress, passphrase)
+		const userPassphraseKey = await this.loadUserPassphraseKey(mailAddress, passphrase)
 		// the verifier is always sent as url parameter, so it must be url encoded
 		const authVerifier = createAuthVerifierAsBase64Url(userPassphraseKey)
 		const createSessionData = createCreateSessionData({
@@ -278,7 +199,7 @@ export class LoginFacadeImpl implements LoginFacade {
 			createSessionData.accessKey = keyToUint8Array(accessKey)
 		}
 		const createSessionReturn = await this.serviceExecutor.post(SessionService, createSessionData)
-		const sessionData = await this._waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, mailAddress)
+		const sessionData = await this.waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, mailAddress)
 
 		const cacheInfo = await this.initCache(sessionData.userId, databaseKey, null)
 		const {
@@ -304,7 +225,7 @@ export class LoginFacadeImpl implements LoginFacade {
 	/**
 	 * If the second factor login has been cancelled a CancelledError is thrown.
 	 */
-	_waitUntilSecondFactorApprovedOrCancelled(
+	private waitUntilSecondFactorApprovedOrCancelled(
 		createSessionReturn: CreateSessionReturn,
 		mailAddress: string | null,
 	): Promise<{
@@ -313,14 +234,14 @@ export class LoginFacadeImpl implements LoginFacade {
 		accessToken: Base64Url
 	}> {
 		let p = Promise.resolve()
-		let sessionId = [this._getSessionListId(createSessionReturn.accessToken), this._getSessionElementId(createSessionReturn.accessToken)] as const
-		this._loginRequestSessionId = sessionId
+		let sessionId = [this.getSessionListId(createSessionReturn.accessToken), this.getSessionElementId(createSessionReturn.accessToken)] as const
+		this.loginRequestSessionId = sessionId
 
 		if (createSessionReturn.challenges.length > 0) {
 			// Show a message to the user and give them a chance to complete the challenges.
 			this.loginListener.onSecondFactorChallenge(sessionId, createSessionReturn.challenges, mailAddress)
 
-			p = this._waitUntilSecondFactorApproved(createSessionReturn.accessToken, sessionId, 0)
+			p = this.waitUntilSecondFactorApproved(createSessionReturn.accessToken, sessionId, 0)
 		}
 
 		this.loggingInPromiseWrapper = defer()
@@ -332,24 +253,24 @@ export class LoginFacadeImpl implements LoginFacade {
 		}))
 	}
 
-	_waitUntilSecondFactorApproved(accessToken: Base64Url, sessionId: IdTuple, retryOnNetworkError: number): Promise<void> {
+	private waitUntilSecondFactorApproved(accessToken: Base64Url, sessionId: IdTuple, retryOnNetworkError: number): Promise<void> {
 		let secondFactorAuthGetData = createSecondFactorAuthGetData()
 		secondFactorAuthGetData.accessToken = accessToken
 		return this.serviceExecutor.get(SecondFactorAuthService, secondFactorAuthGetData)
 				   .then(secondFactorAuthGetReturn => {
-					   if (!this._loginRequestSessionId || !isSameId(this._loginRequestSessionId, sessionId)) {
+					   if (!this.loginRequestSessionId || !isSameId(this.loginRequestSessionId, sessionId)) {
 						   return Promise.reject(new CancelledError("login cancelled"))
 					   }
 
 					   if (secondFactorAuthGetReturn.secondFactorPending) {
-						   return this._waitUntilSecondFactorApproved(accessToken, sessionId, 0)
+						   return this.waitUntilSecondFactorApproved(accessToken, sessionId, 0)
 					   }
 				   })
 				   .catch(
 					   ofClass(ConnectionError, e => {
 						   // connection error can occur on ios when switching between apps, just retry in this case.
 						   if (retryOnNetworkError < 10) {
-							   return this._waitUntilSecondFactorApproved(accessToken, sessionId, retryOnNetworkError + 1)
+							   return this.waitUntilSecondFactorApproved(accessToken, sessionId, retryOnNetworkError + 1)
 						   } else {
 							   throw e
 						   }
@@ -357,7 +278,10 @@ export class LoginFacadeImpl implements LoginFacade {
 				   )
 	}
 
-	/** @inheritDoc */
+	/**
+	 * Create external (temporary mailbox for password-protected emails) session and log in.
+	 * Changes internal state to refer to the logged in user.
+	 */
 	async createExternalSession(userId: Id, passphrase: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean): Promise<NewSessionData> {
 		if (this.userFacade.isPartiallyLoggedIn()) {
 			throw new Error("user already logged in")
@@ -383,7 +307,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		const createSessionReturn = await this.serviceExecutor.post(SessionService, sessionData)
 
 
-		let sessionId = [this._getSessionListId(createSessionReturn.accessToken), this._getSessionElementId(createSessionReturn.accessToken)] as const
+		let sessionId = [this.getSessionListId(createSessionReturn.accessToken), this.getSessionElementId(createSessionReturn.accessToken)] as const
 		const cacheInfo = await this.initCache(userId, null, null)
 		const {
 			user,
@@ -404,9 +328,9 @@ export class LoginFacadeImpl implements LoginFacade {
 		}
 	}
 
-	/** @inheritDoc */
+	/** Cancels 2FA process. */
 	async cancelCreateSession(sessionId: IdTuple): Promise<void> {
-		if (!this._loginRequestSessionId || !isSameId(this._loginRequestSessionId, sessionId)) {
+		if (!this.loginRequestSessionId || !isSameId(this.loginRequestSessionId, sessionId)) {
 			throw new Error("Trying to cancel session creation but the state is invalid")
 		}
 
@@ -419,17 +343,21 @@ export class LoginFacadeImpl implements LoginFacade {
 					  // cancel too late. No harm here anyway if the session is already gone.
 					  console.warn("Tried to cancel second factor but it was not there anymore", e)
 				  }))
-		this._loginRequestSessionId = null
+		this.loginRequestSessionId = null
 		this.loggingInPromiseWrapper?.reject(new CancelledError("login cancelled"))
 	}
 
-	/** @inheritDoc */
+	/** Finishes 2FA process either using second factor or approving session on another client. */
 	async authenticateWithSecondFactor(data: SecondFactorAuthData): Promise<void> {
 		await this.serviceExecutor.post(SecondFactorAuthService, data)
 	}
 
 	/**
-	 * Resume a session of stored credentials.
+	 * Resumes previously created session (using persisted credentials).
+	 * @param credentials the saved credentials to use
+	 * @param externalUserSalt
+	 * @param databaseKey key to unlock the local database (if enabled)
+	 * @param offlineTimeRangeDays the user configured time range for the offline database
 	 */
 	async resumeSession(
 		credentials: Credentials,
@@ -497,12 +425,10 @@ export class LoginFacadeImpl implements LoginFacade {
 	}
 
 	private getSessionId(credentials: Credentials): IdTuple {
-		return [this._getSessionListId(credentials.accessToken), this._getSessionElementId(credentials.accessToken)]
+		return [this.getSessionListId(credentials.accessToken), this.getSessionElementId(credentials.accessToken)]
 	}
 
 	private async asyncResumeSession(credentials: Credentials, cacheInfo: CacheInfo): Promise<void> {
-		const deferred = defer<null>()
-		this.asyncLoginPromise = deferred.promise
 		if (this.asyncLoginState.state === "running") {
 			throw new Error("finishLoginResume run in parallel")
 		}
@@ -519,22 +445,19 @@ export class LoginFacadeImpl implements LoginFacade {
 				if (!(e instanceof ConnectionError)) await this.worker.sendError(e)
 				await this.loginListener.onLoginFailure(LoginFailReason.Error)
 			}
-		} finally {
-			deferred.resolve(null)
-			this.asyncLoginPromise = null
 		}
 	}
 
 	private async finishResumeSession(credentials: Credentials, externalUserSalt: Uint8Array | null, cacheInfo: CacheInfo): Promise<ResumeSessionResult> {
 		const sessionId = this.getSessionId(credentials)
-		const sessionData = await this._loadSessionData(credentials.accessToken)
+		const sessionData = await this.loadSessionData(credentials.accessToken)
 		const passphrase = utf8Uint8ArrayToString(aes128Decrypt(sessionData.accessKey, base64ToUint8Array(neverNull(credentials.encryptedPassword))))
 		let userPassphraseKey: Aes128Key
 
 		if (externalUserSalt) {
 			userPassphraseKey = generateKeyFromPassphrase(passphrase, externalUserSalt, KeyLength.b128)
 		} else {
-			userPassphraseKey = await this._loadUserPassphraseKey(credentials.login, passphrase)
+			userPassphraseKey = await this.loadUserPassphraseKey(credentials.login, passphrase)
 		}
 
 		const {
@@ -599,7 +522,7 @@ export class LoginFacadeImpl implements LoginFacade {
 				// index new items in background
 				console.log("_initIndexer after log in")
 
-				this._initIndexer(cacheInfo)
+				this.initIndexer(cacheInfo)
 			}
 
 			await this.loadEntropy()
@@ -608,9 +531,9 @@ export class LoginFacadeImpl implements LoginFacade {
 			// then we just reconnnect and re-download missing events.
 			// For new connections we have special handling.
 			if (wasFullyLoggedIn) {
-				this._eventBusClient.connect(ConnectMode.Reconnect)
+				this.eventBusClient.connect(ConnectMode.Reconnect)
 			} else {
-				this._eventBusClient.connect(ConnectMode.Initial)
+				this.eventBusClient.connect(ConnectMode.Initial)
 			}
 
 			await this.storeEntropy()
@@ -630,8 +553,8 @@ export class LoginFacadeImpl implements LoginFacade {
 		}
 	}
 
-	_initIndexer(cacheInfo: CacheInfo): Promise<void> {
-		return this._indexer
+	private initIndexer(cacheInfo: CacheInfo): Promise<void> {
+		return this.indexer
 				   .init({
 						   user: assertNotNull(this.userFacade.getUser()),
 						   userGroupKey: this.userFacade.getUserGroupKey(),
@@ -643,7 +566,7 @@ export class LoginFacadeImpl implements LoginFacade {
 						   console.log("Retry init indexer in 30 seconds after ServiceUnavailableError")
 						   return delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
 							   console.log("_initIndexer after ServiceUnavailableError")
-							   return this._initIndexer(cacheInfo)
+							   return this.initIndexer(cacheInfo)
 						   })
 					   }),
 				   )
@@ -652,7 +575,7 @@ export class LoginFacadeImpl implements LoginFacade {
 						   console.log("Retry init indexer in 30 seconds after ConnectionError")
 						   return delay(RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS).then(() => {
 							   console.log("_initIndexer after ConnectionError")
-							   return this._initIndexer(cacheInfo)
+							   return this.initIndexer(cacheInfo)
 						   })
 					   }),
 				   )
@@ -661,7 +584,7 @@ export class LoginFacadeImpl implements LoginFacade {
 				   })
 	}
 
-	_loadUserPassphraseKey(mailAddress: string, passphrase: string): Promise<Aes128Key> {
+	private loadUserPassphraseKey(mailAddress: string, passphrase: string): Promise<Aes128Key> {
 		mailAddress = mailAddress.toLowerCase().trim()
 		const saltRequest = createSaltData({mailAddress})
 		return this.serviceExecutor.get(SaltService, saltRequest).then((saltReturn: SaltReturn) => {
@@ -673,7 +596,7 @@ export class LoginFacadeImpl implements LoginFacade {
 	 * We use the accessToken that should be deleted for authentication. Therefore it can be invoked while logged in or logged out.
 	 */
 	async deleteSession(accessToken: Base64Url): Promise<void> {
-		let path = typeRefToPath(SessionTypeRef) + "/" + this._getSessionListId(accessToken) + "/" + this._getSessionElementId(accessToken)
+		let path = typeRefToPath(SessionTypeRef) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
 		const sessionTypeModel = await resolveTypeReference(SessionTypeRef)
 
 		const headers = {
@@ -697,23 +620,23 @@ export class LoginFacadeImpl implements LoginFacade {
 				   )
 	}
 
-	_getSessionElementId(accessToken: Base64Url): Id {
+	private getSessionElementId(accessToken: Base64Url): Id {
 		let byteAccessToken = base64ToUint8Array(base64UrlToBase64(neverNull(accessToken)))
 		return base64ToBase64Url(uint8ArrayToBase64(sha256Hash(byteAccessToken.slice(GENERATED_ID_BYTES_LENGTH))))
 	}
 
-	_getSessionListId(accessToken: Base64Url): Id {
+	private getSessionListId(accessToken: Base64Url): Id {
 		let byteAccessToken = base64ToUint8Array(base64UrlToBase64(neverNull(accessToken)))
 		return base64ToBase64Ext(uint8ArrayToBase64(byteAccessToken.slice(0, GENERATED_ID_BYTES_LENGTH)))
 	}
 
-	async _loadSessionData(
+	private async loadSessionData(
 		accessToken: Base64Url,
 	): Promise<{
 		userId: Id
 		accessKey: Aes128Key
 	}> {
-		const path = typeRefToPath(SessionTypeRef) + "/" + this._getSessionListId(accessToken) + "/" + this._getSessionElementId(accessToken)
+		const path = typeRefToPath(SessionTypeRef) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
 		const SessionTypeModel = await resolveTypeReference(SessionTypeRef)
 
 		let headers = {
@@ -735,7 +658,7 @@ export class LoginFacadeImpl implements LoginFacade {
 	/**
 	 * Loads entropy from the last logout.
 	 */
-	loadEntropy(): Promise<void> {
+	private loadEntropy(): Promise<void> {
 		return this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId()).then(tutanotaProperties => {
 			if (tutanotaProperties.groupEncEntropy) {
 				try {
@@ -812,7 +735,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		})
 	}
 
-	/** @inheritDoc */
+	/** Changes user password to another one using recoverCode instead of the old password. */
 	recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, clientIdentifier: string): Promise<void> {
 		const sessionData = createCreateSessionData()
 		const recoverCodeKey = uint8ArrayToBitArray(hexToUint8Array(recoverCode))
@@ -842,7 +765,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		)
 		const entityClient = new EntityClient(eventRestClient)
 		return this.serviceExecutor.post(SessionService, sessionData) // Don't pass email address to avoid proposing to reset second factor when we're resetting password
-				   .then(createSessionReturn => this._waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, null))
+				   .then(createSessionReturn => this.waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, null))
 				   .then(sessionData => {
 					   return entityClient
 						   .load(UserTypeRef, sessionData.userId, undefined, {
@@ -879,9 +802,9 @@ export class LoginFacadeImpl implements LoginFacade {
 				   })
 	}
 
-	/** @inheritDoc */
+	/** Deletes second factors using recoverCode as second factor. */
 	resetSecondFactors(mailAddress: string, password: string, recoverCode: Hex): Promise<void> {
-		return this._loadUserPassphraseKey(mailAddress, password).then(passphraseReturn => {
+		return this.loadUserPassphraseKey(mailAddress, password).then(passphraseReturn => {
 			const authVerifier = createAuthVerifierAsBase64Url(passphraseReturn)
 			const recoverCodeKey = uint8ArrayToBitArray(hexToUint8Array(recoverCode))
 			const recoverCodeVerifier = createAuthVerifierAsBase64Url(recoverCodeKey)
@@ -894,7 +817,7 @@ export class LoginFacadeImpl implements LoginFacade {
 	}
 
 	takeOverDeletedAddress(mailAddress: string, password: string, recoverCode: Hex | null, targetAccountMailAddress: string): Promise<void> {
-		return this._loadUserPassphraseKey(mailAddress, password).then(passphraseReturn => {
+		return this.loadUserPassphraseKey(mailAddress, password).then(passphraseReturn => {
 			const authVerifier = createAuthVerifierAsBase64Url(passphraseReturn)
 			let recoverCodeVerifier: Base64 | null = null
 
@@ -921,7 +844,7 @@ export class LoginFacadeImpl implements LoginFacade {
 		return this.getTotpVerifier().then(totp => totp.generateTotp(time, key))
 	}
 
-	getTotpVerifier(): Promise<TotpVerifier> {
+	private getTotpVerifier(): Promise<TotpVerifier> {
 		return Promise.resolve(new TotpVerifier())
 	}
 

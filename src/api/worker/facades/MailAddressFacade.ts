@@ -1,7 +1,7 @@
 import {createMailAddressAliasServiceDataDelete} from "../../entities/sys/TypeRefs.js"
 import {createMailAddressAliasServiceData} from "../../entities/sys/TypeRefs.js"
 import {createDomainMailAddressAvailabilityData} from "../../entities/sys/TypeRefs.js"
-import type {LoginFacadeImpl} from "./LoginFacade"
+import type {LoginFacade} from "./LoginFacade"
 import {createMailAddressAvailabilityData} from "../../entities/sys/TypeRefs.js"
 import type {MailAddressAliasServiceReturn} from "../../entities/sys/TypeRefs.js"
 import {DomainMailAddressAvailabilityService, MailAddressAliasService, MailAddressAvailabilityService} from "../../entities/sys/Services.js"
