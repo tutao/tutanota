@@ -4,9 +4,9 @@
 		"declaration": false,
 		"noEmit": true,
 		"outDir": "build/dist",
-	  	"incremental": true,
+		"incremental": true
 	},
-  "include": [
+	"include": [
 		"src/",
 		"libs/*.ts",
 		"types/*.d.ts"
