@@ -4,13 +4,14 @@ import {Recipient} from "../api/common/recipients/Recipient.js"
 import {getDisplayText} from "../mail/model/MailUtils.js"
 import {px} from "./size.js"
 import {progressIcon} from "./base/Icon.js"
-import {TranslationKey} from "../misc/LanguageViewModel.js"
+import {lang, TranslationKey} from "../misc/LanguageViewModel.js"
 import {stringToNameAndMailAddress} from "../misc/parsing/MailAddressParser.js"
 import {DropdownChildAttrs} from "./base/DropdownN.js"
 import {Contact} from "../api/entities/tutanota/TypeRefs.js"
 import {RecipientsSearchDropDown} from "./RecipientsSearchDropDown.js"
 import {RecipientsSearchModel} from "../misc/RecipientsSearchModel.js"
-import {assertNotNull} from "@tutao/tutanota-utils"
+import {assertNotNull, firstThrow} from "@tutao/tutanota-utils"
+import {Dialog} from "./base/Dialog.js"
 
 export interface MailRecipientsTextFieldAttrs {
 	label: TranslationKey,
@@ -51,7 +52,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 
 				// if the new text length is more than one character longer,
 				// it means the user pasted the text in, so we want to try and resolve a list of contacts
-				const {remainingText, newRecipients} = text.length - attrs.text.length > 1
+				const {remainingText, newRecipients, errors} = text.length - attrs.text.length > 1
 					? parsePastedInput(text)
 					: parseTypedInput(text)
 
@@ -59,7 +60,15 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 					attrs.onRecipientAdded(address, name, null)
 				}
 
-				attrs.onTextChanged(remainingText)
+				if (errors.length === 1 && newRecipients.length === 0) {
+					// if there was a single recipient and it was invalid then just pretend nothing happened
+					attrs.onTextChanged(firstThrow(errors))
+				} else {
+					if (errors.length > 0) {
+						Dialog.message(() => `${lang.get("invalidPastedRecipients_msg")}\n\n${errors.join("\n")}`)
+					}
+					attrs.onTextChanged(remainingText)
+				}
 			},
 			items: attrs.recipients.map(recipient => recipient.address),
 			renderBubbleText: (address: string) => {
@@ -150,20 +159,24 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 }
 
 interface ParsedInput {
-	remainingText: string,
+	remainingText: string
 	newRecipients: Array<{address: string, name: string | null}>
+	errors: Array<string>
 }
 
 /**
  * Parse a list of valid mail addresses separated by either a semicolon or a comma.
- * If any of the mail addresses are invalid, then no new recipients will be returned,
- * and the text will remain untouched
+ * Invalid addresses will be returned as a separate list
  */
 function parsePastedInput(text: string): ParsedInput {
 	const separator = text.indexOf(";") !== -1 ? ";" : ","
 	const textParts = text.split(separator).map(part => part.trim())
 
-	const result: ParsedInput["newRecipients"] = []
+	const result: ParsedInput = {
+		remainingText: "",
+		newRecipients: [],
+		errors: []
+	}
 
 	for (let part of textParts) {
 		part = part.trim()
@@ -172,21 +185,14 @@ function parsePastedInput(text: string): ParsedInput {
 			const parsed = parseMailAddress(part)
 
 			if (!parsed) {
-				// give up early
-				return {
-					remainingText: text,
-					newRecipients: []
-				}
+				result.errors.push(part)
 			} else {
-				result.push(parsed)
+				result.newRecipients.push(parsed)
 			}
 		}
 	}
 
-	return {
-		remainingText: "",
-		newRecipients: result
-	}
+	return result
 }
 
 /**
@@ -194,6 +200,7 @@ function parsePastedInput(text: string): ParsedInput {
  * When the final character is an expected delimiter (';', ',', ' '),
  * then we attempt to parse the preceding text. If it is a valid mail address,
  * it is successfully parsed
+ * invalid input gets returned in `remainingText`, `errors` is always empty
  * @param text
  */
 function parseTypedInput(text: string): ParsedInput {
@@ -211,13 +218,15 @@ function parseTypedInput(text: string): ParsedInput {
 
 		return {
 			remainingText,
-			newRecipients: result ? [result] : []
+			newRecipients: result ? [result] : [],
+			errors: [],
 		}
-	}
-
-	return {
-		remainingText: text,
-		newRecipients: []
+	} else {
+		return {
+			remainingText: text,
+			newRecipients: [],
+			errors: [],
+		}
 	}
 }
 
