@@ -9,7 +9,7 @@ import type {LoginFacade} from "../worker/facades/LoginFacade"
 import {ResumeSessionErrorReason} from "../worker/facades/LoginFacade"
 import type {Credentials} from "../../misc/credentials/Credentials"
 import {FeatureType} from "../common/TutanotaConstants";
-import {CredentialsAndDatabaseKey} from "../../misc/credentials/CredentialsProvider"
+import {CredentialsAndDatabaseKey} from "../../misc/credentials/CredentialsProvider.js"
 import {SessionType} from "../common/SessionType"
 import {IMainLocator} from "./MainLocator"
 

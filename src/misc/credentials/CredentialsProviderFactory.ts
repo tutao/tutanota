@@ -1,5 +1,5 @@
-import type {CredentialsAndDatabaseKey, CredentialsEncryption, ICredentialsProvider, PersistentCredentials} from "./CredentialsProvider"
-import {CredentialsProvider} from "./CredentialsProvider"
+import type {CredentialsAndDatabaseKey, CredentialsEncryption, PersistentCredentials} from "./CredentialsProvider.js"
+import {CredentialsProvider} from "./CredentialsProvider.js"
 import {deviceConfig} from "../DeviceConfig"
 import {isApp, isDesktop, isOfflineStorageAvailable} from "../../api/common/Env"
 import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
@@ -32,7 +32,7 @@ export async function createCredentialsProvider(
 	deviceEncryptionFacade: DeviceEncryptionFacade,
 	nativeApp: NativeInterface | null,
 	eventBus: InterWindowEventBus<InterWindowEventTypes> | null,
-): Promise<ICredentialsProvider> {
+): Promise<CredentialsProvider> {
 	if (usingKeychainAuthentication()) {
 		const {NativeCredentialsFacadeSendDispatcher} = await import( "../../native/common/generatedipc/NativeCredentialsFacadeSendDispatcher.js")
 		const nativeCredentials = new NativeCredentialsFacadeSendDispatcher(assertNotNull(nativeApp))

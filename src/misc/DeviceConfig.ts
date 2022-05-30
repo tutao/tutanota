@@ -3,7 +3,7 @@ import {base64ToUint8Array, typedEntries, uint8ArrayToBase64} from "@tutao/tutan
 import type {LanguageCode} from "./LanguageViewModel"
 import type {ThemeId} from "../gui/theme"
 import type {CalendarViewType} from "../calendar/view/CalendarViewModel"
-import type {CredentialsStorage, PersistentCredentials} from "./credentials/CredentialsProvider"
+import type {CredentialsStorage, PersistentCredentials} from "./credentials/CredentialsProvider.js"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import type {CredentialEncryptionMode} from "./credentials/CredentialEncryptionMode"
 import {assertMainOrNodeBoot} from "../api/common/Env"

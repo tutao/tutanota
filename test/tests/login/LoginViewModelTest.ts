@@ -8,7 +8,7 @@ import {CredentialAuthenticationError} from "../../../src/api/common/error/Crede
 import type {Credentials} from "../../../src/misc/credentials/Credentials.js"
 import {SecondFactorHandler} from "../../../src/misc/2fa/SecondFactorHandler"
 import {assertThrows} from "@tutao/tutanota-test-utils"
-import type {CredentialsAndDatabaseKey, ICredentialsProvider, PersistentCredentials,} from "../../../src/misc/credentials/CredentialsProvider"
+import type {CredentialsAndDatabaseKey, CredentialsProvider, PersistentCredentials,} from "../../../src/misc/credentials/CredentialsProvider.js"
 import {SessionType} from "../../../src/api/common/SessionType.js";
 import {instance, matchers, object, replace, verify, when} from "testdouble"
 import {AccessExpiredError, NotAuthenticatedError} from "../../../src/api/common/error/RestError"
@@ -27,8 +27,8 @@ const {anything} = matchers
  * This isn't ideal because rehearsals and verifications might have an effect on the state, so it's not ideal when verifying calls to `store` (for example)
  * This means you should be careful when verifying it, but in general it works for most use cases
  */
-function getCredentialsProviderStub(): ICredentialsProvider {
-	const provider = object<ICredentialsProvider>()
+function getCredentialsProviderStub(): CredentialsProvider {
+	const provider = object<CredentialsProvider>()
 
 	let credentials = new Map<string, PersistentCredentials>()
 
@@ -103,7 +103,7 @@ o.spec("LoginViewModelTest", () => {
 	})
 
 	let loginControllerMock: LoginController
-	let credentialsProviderMock: ICredentialsProvider
+	let credentialsProviderMock: CredentialsProvider
 	let secondFactorHandlerMock: SecondFactorHandler
 	let databaseKeyFactory: DatabaseKeyFactory
 	let deviceConfigMock: DeviceConfig
