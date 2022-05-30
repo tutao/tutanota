@@ -30,7 +30,7 @@ export function showShortcutDialog(shortcuts: Array<Shortcut>): Promise<void> {
 			resolve()
 		}
 
-		const headerAttrs = {
+		const headerAttrs: DialogHeaderBarAttrs = {
 			left: [
 				{
 					label: "close_alt",
@@ -39,7 +39,7 @@ export function showShortcutDialog(shortcuts: Array<Shortcut>): Promise<void> {
 				},
 			],
 			middle: () => lang.get("keyboardShortcuts_title"),
-		} as DialogHeaderBarAttrs
+		}
 		dialog = Dialog.largeDialogN(headerAttrs, ShortcutDialog, {
 			shortcuts,
 		})

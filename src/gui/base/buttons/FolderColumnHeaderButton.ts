@@ -1,4 +1,4 @@
-import m, {Children, Component, CVnode, Vnode} from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import type {TranslationText} from "../../../misc/LanguageViewModel"
 import {lang} from "../../../misc/LanguageViewModel"
 import {addFlash, removeFlash} from "../Flash"
@@ -13,15 +13,8 @@ export interface FolderColumnHeaderButtonAttrs {
 
 export class FolderColumnHeaderButton implements Component<FolderColumnHeaderButtonAttrs> {
 	private domButton: HTMLElement | null = null
-	private attrs: FolderColumnHeaderButtonAttrs
 
-	constructor(vnode: CVnode<FolderColumnHeaderButtonAttrs>) {
-		this.attrs = vnode.attrs
-	}
-
-	view(vnode: Vnode<FolderColumnHeaderButtonAttrs>): Children {
-		this.attrs = vnode.attrs
-
+	view({attrs}: Vnode<FolderColumnHeaderButtonAttrs>): Children {
 		return m("button",
 			{
 				class: "bg-transparent button-height full-width noselect limit-width",
@@ -29,8 +22,8 @@ export class FolderColumnHeaderButton implements Component<FolderColumnHeaderBut
 					border: `2px solid ${theme.content_accent}`,
 					"border-radius": "3px",
 				},
-				onclick: (event: MouseEvent) => this.attrs.click(event, assertNotNull(this.domButton)),
-				title: lang.getMaybeLazy(this.attrs.label),
+				onclick: (event: MouseEvent) => attrs.click(event, assertNotNull(this.domButton)),
+				title: lang.getMaybeLazy(attrs.label),
 				oncreate: vnode => this.domButton = vnode.dom as HTMLButtonElement,
 			},
 			m(
@@ -43,12 +36,12 @@ export class FolderColumnHeaderButton implements Component<FolderColumnHeaderBut
 					},
 					oncreate: vnode => addFlash(vnode.dom),
 					onremove: vnode => removeFlash(vnode.dom),
-				}, this.renderLabel()
+				}, this.renderLabel(attrs)
 			),
 		)
 	}
 
-	private renderLabel(): Children {
+	private renderLabel(attrs: FolderColumnHeaderButtonAttrs): Children {
 		return m(
 			"",
 			{
@@ -58,7 +51,7 @@ export class FolderColumnHeaderButton implements Component<FolderColumnHeaderBut
 					"font-weight": "bold",
 				},
 			},
-			lang.getMaybeLazy(this.attrs.label),
+			lang.getMaybeLazy(attrs.label),
 		)
 	}
 }

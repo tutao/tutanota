@@ -19,11 +19,6 @@ export class RecipientsSearchDropDown implements ClassComponent<RecipientsSearch
 
 	private domSuggestions!: HTMLElement
 	private keyboardHeight: number = 0
-	private attrs: RecipientsSearchDropDownAttrs
-
-	constructor(vnode: Vnode<RecipientsSearchDropDownAttrs>) {
-		this.attrs = vnode.attrs
-	}
 
 	oncreate() {
 		windowFacade.addKeyboardSizeListener(newSize => {
@@ -41,19 +36,16 @@ export class RecipientsSearchDropDown implements ClassComponent<RecipientsSearch
 		})
 	}
 
-	view(vnode: Vnode<RecipientsSearchDropDownAttrs>): Children {
-
-		if (vnode.attrs.selectedSuggestionIndex !== this.attrs.selectedSuggestionIndex && this.domSuggestions) {
+	view({attrs}: Vnode<RecipientsSearchDropDownAttrs>): Children {
+		if (attrs.selectedSuggestionIndex !== attrs.selectedSuggestionIndex && this.domSuggestions) {
 			requestAnimationFrame(() => {
-				scrollListDom(this.domSuggestions, EntryHeight, vnode.attrs.selectedSuggestionIndex)
+				scrollListDom(this.domSuggestions, EntryHeight, attrs.selectedSuggestionIndex)
 			})
 		}
 
-		this.attrs = vnode.attrs
-
 		// We need to calculate how much space can be actually used for the dropdown. We cannot just add margin like we do with dialog
 		// because the suggestions dropdown is absolutely positioned.
-		let dropdownHeight = EntryHeight * Math.min(vnode.attrs.maxHeight ?? Number.MAX_VALUE, this.attrs.suggestions.length)
+		let dropdownHeight = EntryHeight * Math.min(attrs.maxHeight ?? Number.MAX_VALUE, attrs.suggestions.length)
 		if (this.domSuggestions) {
 			const top = this.domSuggestions.getBoundingClientRect().top
 			const availableHeight = window.innerHeight - top - this.keyboardHeight - size.vpad
@@ -61,7 +53,7 @@ export class RecipientsSearchDropDown implements ClassComponent<RecipientsSearch
 		}
 
 		return m(
-			`.suggestions.abs.z4.full-width.elevated-bg.scroll.text-ellipsis${this.attrs.suggestions.length ? ".dropdown-shadow" : ""}`,
+			`.suggestions.abs.z4.full-width.elevated-bg.scroll.text-ellipsis${attrs.suggestions.length ? ".dropdown-shadow" : ""}`,
 			{
 				oncreate: vnode => this.domSuggestions = vnode.dom as HTMLElement,
 				style: {
@@ -69,19 +61,19 @@ export class RecipientsSearchDropDown implements ClassComponent<RecipientsSearch
 					height: px(dropdownHeight)
 				},
 			},
-			this.attrs.suggestions.map(({name, address}, idx) => this.renderSuggestion(name, address, idx))
+			attrs.suggestions.map(({name, address}, idx) => this.renderSuggestion(attrs, name, address, idx))
 		)
 	}
 
-	private renderSuggestion(name: string | null, mailAddress: string, idx: number): Children {
+	private renderSuggestion(attrs: RecipientsSearchDropDownAttrs, name: string | null, mailAddress: string, idx: number): Children {
 
-		const selected = idx === this.attrs.selectedSuggestionIndex
+		const selected = idx === attrs.selectedSuggestionIndex
 
 		return m(
 			".pt-s.pb-s.click.content-hover",
 			{
 				class: selected ? "content-accent-fg row-selected" : "",
-				onmousedown: () => this.attrs.onSuggestionSelected(idx),
+				onmousedown: () => attrs.onSuggestionSelected(idx),
 				style: {
 					"padding-left": selected ? px(size.hpad_large - 3) : px(size.hpad_large),
 					"border-left": selected ? "3px solid" : null,

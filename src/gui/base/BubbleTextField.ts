@@ -25,8 +25,7 @@ export class BubbleTextField implements ClassComponent<BubbleTextFieldAttrs> {
 	private active: boolean = false
 	private domInput: HTMLInputElement | null = null
 
-	view(vnode: Vnode<BubbleTextFieldAttrs>) {
-		const attrs = vnode.attrs
+	view({attrs}: Vnode<BubbleTextFieldAttrs>) {
 		return m(".bubble-text-field", [
 			m(TextFieldN, {
 				label: attrs.label,

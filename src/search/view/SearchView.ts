@@ -325,44 +325,45 @@ export class SearchView implements CurrentView {
 		}
 
 		const timeDisplayValue = start + " - " + end
-		const changeTimeButtonAttrs = {
-			label: "selectPeriodOfTime_label",
-			click: async () => {
-				if (logins.getUserController().isFreeAccount()) {
-					showNotAvailableForFreeDialog(true)
-				} else {
-					const startOfWeek = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
-					const {end, start} = await showDateRangeSelectionDialog(
-						startOfWeek,
-						this._startDate ?? this._getCurrentMailIndexDate() ?? new Date(),
-						this._endDate ?? new Date(),
-					)
-
-					if (end && isToday(end)) {
-						this._endDate = null
-					} else {
-						this._endDate = end
-					}
-
-					let current = this._getCurrentMailIndexDate()
-
-					if (start && current && isSameDay(current, start)) {
-						this._startDate = null
-					} else {
-						this._startDate = start
-					}
-
-					this._searchAgain()
-				}
-			},
-			icon: () => Icons.Edit,
-		} as const
 		return m(TextFieldN, {
 			label: "periodOfTime_label",
 			value: timeDisplayValue,
 			disabled: true,
-			injectionsRight: () => [m(ButtonN, changeTimeButtonAttrs)],
+			injectionsRight: () => [m(ButtonN, {
+				label: "selectPeriodOfTime_label",
+				click: () => this.selectTimePeriod(),
+				icon: () => Icons.Edit,
+			})],
 		})
+	}
+
+	private async selectTimePeriod() {
+		if (logins.getUserController().isFreeAccount()) {
+			showNotAvailableForFreeDialog(true)
+		} else {
+			const startOfWeek = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
+			const {end, start} = await showDateRangeSelectionDialog(
+				startOfWeek,
+				this._startDate ?? this._getCurrentMailIndexDate() ?? new Date(),
+				this._endDate ?? new Date(),
+			)
+
+			if (end && isToday(end)) {
+				this._endDate = null
+			} else {
+				this._endDate = end
+			}
+
+			let current = this._getCurrentMailIndexDate()
+
+			if (start && current && isSameDay(current, start)) {
+				this._startDate = null
+			} else {
+				this._startDate = start
+			}
+
+			this._searchAgain()
+		}
 	}
 
 	_searchAgain(): void {

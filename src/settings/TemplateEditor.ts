@@ -1,5 +1,4 @@
 import m, {Children, Component, Vnode} from "mithril"
-import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
@@ -9,10 +8,9 @@ import {Icons} from "../gui/base/icons/Icons"
 import {createDropdown} from "../gui/base/DropdownN"
 import type {Language} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
-import type {EmailTemplate} from "../api/entities/tutanota/TypeRefs.js"
+import type {EmailTemplate, TemplateGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
 import {getLanguageName, TemplateEditorModel} from "./TemplateEditorModel"
 import {locator} from "../api/main/MainLocator"
-import type {TemplateGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {UserError} from "../api/main/UserError"
 import {HtmlEditor} from "../gui/editor/HtmlEditor"
@@ -66,21 +64,19 @@ type TemplateEditorAttrs = {
 }
 
 class TemplateEditor implements Component<TemplateEditorAttrs> {
-	model: TemplateEditorModel
-	_templateContentEditor: HtmlEditor
-	_enterTitleAttrs: TextFieldAttrs
-	_enterTagAttrs: TextFieldAttrs
-	_chooseLanguageAttrs: TextFieldAttrs
+	private model: TemplateEditorModel
+	private readonly templateContentEditor: HtmlEditor
 
 	constructor(vnode: Vnode<TemplateEditorAttrs>) {
 		this.model = vnode.attrs.model
-		this._templateContentEditor = new HtmlEditor("content_label", {
+		this.templateContentEditor = new HtmlEditor("content_label", {
 			enabled: true,
 		})
 			.showBorders()
 			.setMinHeight(500)
+
 		this.model.setContentProvider(() => {
-			return this._templateContentEditor.getValue()
+			return this.templateContentEditor.getValue()
 		})
 		// init all input fields
 		this.model.title(this.model.template.title)
@@ -88,95 +84,106 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 		const content = this.model.selectedContent()
 
 		if (content) {
-			this._templateContentEditor.setValue(content.text)
-		}
-
-		// Initialize Attributes for TextFields and Buttons
-		this._enterTitleAttrs = {
-			label: "title_placeholder",
-			value: this.model.title(),
-			oninput: this.model.title,
-		}
-		this._enterTagAttrs = {
-			label: "shortcut_label",
-			value: this.model.tag(),
-			oninput: this.model.tag,
-		}
-		this._chooseLanguageAttrs = {
-			label: "language_label",
-			value: this.model.selectedContent() ? getLanguageName(this.model.selectedContent()) : "",
-			injectionsRight: () => [
-				this.model.getAddedLanguages().length > 1 ? [m(ButtonN, removeButtonAttrs), m(ButtonN, selectLanguageButton)] : null,
-				m(ButtonN, addLanguageButtonAttrs),
-			],
-			disabled: true,
-		}
-		const selectLanguageButton: ButtonAttrs = {
-			label: "languages_label",
-			type: ButtonType.Action,
-			icon: () => Icons.Language,
-			click: createDropdown({
-                lazyButtons: () => {
-                    // save current content with language & create a dropdwon with all added languages & an option to add a new language
-                    this.model.updateContent()
-                    return this.model.template.contents.map(content => {
-                        return {
-                            label: () => getLanguageName(content),
-                            click: () => {
-                                this.model.selectedContent(content)
-
-                                this._templateContentEditor.setValue(content.text)
-                            },
-                            type: ButtonType.Dropdown,
-                        }
-                    })
-                }
-            }),
-		}
-		const removeButtonAttrs: ButtonAttrs = {
-			label: "removeLanguage_action",
-			icon: () => Icons.Trash,
-			type: ButtonType.Action,
-			click: () => {
-				return Dialog.confirm(() =>
-					lang.get("deleteLanguageConfirmation_msg", {
-						"{language}": getLanguageName(this.model.selectedContent()),
-					}),
-				).then(confirmed => {
-					if (confirmed) {
-						this.model.removeContent()
-						this.model.selectedContent(this.model.template.contents[0])
-
-						this._templateContentEditor.setValue(this.model.selectedContent().text)
-					}
-
-					return confirmed
-				})
-			},
-		}
-		const addLanguageButtonAttrs: ButtonAttrs = {
-			label: "addLanguage_action",
-			type: ButtonType.Action,
-			icon: () => Icons.Add,
-			click: createDropdown(
-				{
-                    lazyButtons: () =>
-                        this.model
-                            .getAdditionalLanguages()
-                            .sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
-                            .map(lang => this.createAddNewLanguageButtonAttrs(lang)), width: 250
-                },
-			),
+			this.templateContentEditor.setValue(content.text)
 		}
 	}
 
 	view(): Children {
 		return m("", [
-			m(TextFieldN, this._enterTitleAttrs),
-			m(TextFieldN, this._enterTagAttrs),
-			m(TextFieldN, this._chooseLanguageAttrs),
-			m(this._templateContentEditor),
+			m(TextFieldN, {
+					label: "title_placeholder",
+					value: this.model.title(),
+					oninput: this.model.title,
+				}
+			),
+			m(TextFieldN, {
+					label: "shortcut_label",
+					value: this.model.tag(),
+					oninput: this.model.tag,
+				}
+			),
+			m(TextFieldN, {
+					label: "language_label",
+					value: this.model.selectedContent() ? getLanguageName(this.model.selectedContent()) : "",
+					injectionsRight: () => [
+						this.model.getAddedLanguages().length > 1
+							? [this.renderRemoveLangButton(), this.renderSelectLangButton()]
+							: null,
+						this.renderAddLangButton(),
+					],
+					disabled: true,
+				}
+			),
+			m(this.templateContentEditor),
 		])
+	}
+
+	private renderAddLangButton() {
+		return m(ButtonN, {
+			label: "addLanguage_action",
+			type: ButtonType.Action,
+			icon: () => Icons.Add,
+			click: createDropdown(
+				{
+					lazyButtons: () =>
+						this.model
+							.getAdditionalLanguages()
+							.sort((a, b) => lang.get(a.textId).localeCompare(lang.get(b.textId)))
+							.map(lang => this.createAddNewLanguageButtonAttrs(lang)), width: 250
+				},
+			),
+		})
+	}
+
+	private renderSelectLangButton() {
+		return m(ButtonN, {
+			label: "languages_label",
+			type: ButtonType.Action,
+			icon: () => Icons.Language,
+			click: createDropdown({
+				lazyButtons: () => {
+					// save current content with language & create a dropdwon with all added languages & an option to add a new language
+					this.model.updateContent()
+					return this.model.template.contents.map(content => {
+						return {
+							label: () => getLanguageName(content),
+							click: () => {
+								this.model.selectedContent(content)
+
+								this.templateContentEditor.setValue(content.text)
+							},
+							type: ButtonType.Dropdown,
+						}
+					})
+				}
+			}),
+		})
+	}
+
+	private renderRemoveLangButton() {
+		return m(ButtonN, {
+			label: "removeLanguage_action",
+			icon: () => Icons.Trash,
+			type: ButtonType.Action,
+			click: () => this.removeLanguage(),
+		})
+	}
+
+	private removeLanguage() {
+		return Dialog.confirm(() =>
+			lang.get("deleteLanguageConfirmation_msg", {
+				"{language}": getLanguageName(this.model.selectedContent()),
+			}),
+		).then(confirmed => {
+			if (confirmed) {
+				this.model.removeContent()
+				this.model.selectedContent(this.model.template.contents[0])
+
+				this.templateContentEditor.setValue(this.model.selectedContent().text)
+			}
+
+			return confirmed
+		})
 	}
 
 	createAddNewLanguageButtonAttrs(lang: Language): ButtonAttrs {
@@ -189,7 +196,7 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 				const newContent = this.model.createContent(lang.code)
 				this.model.selectedContent(newContent)
 
-				this._templateContentEditor.setValue("")
+				this.templateContentEditor.setValue("")
 			},
 			type: ButtonType.Dropdown,
 		}
