@@ -59,12 +59,6 @@ export class LoginForm implements Component<LoginFormAttrs> {
 
 	view(vnode: Vnode<LoginFormAttrs>): Children {
 		const a = vnode.attrs
-		const passwordFieldAttrs: TextFieldAttrs = {
-			label: "password_label",
-			value: a.password(),
-			oninput: a.password,
-			type: TextFieldType.Password,
-		}
 		const canSaveCredentials = !!client.localStorage()
 		return m(
 			"form",
@@ -100,7 +94,12 @@ export class LoginForm implements Component<LoginFormAttrs> {
 							this.passwordTextField = child.state
 						},
 					},
-					m(TextFieldN, passwordFieldAttrs),
+					m(TextFieldN, {
+						label: "password_label",
+						value: a.password(),
+						oninput: a.password,
+						type: TextFieldType.Password,
+					}),
 				),
 				a.savePassword && !this._passwordDisabled()
 					? m(CheckboxN, {

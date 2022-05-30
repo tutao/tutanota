@@ -32,73 +32,67 @@ export interface MailRecipientsTextFieldAttrs {
  * recipients are represented as bubbles, and a contact search dropdown is shown as the user types
  */
 export class MailRecipientsTextField implements ClassComponent<MailRecipientsTextFieldAttrs> {
-	private attrs: MailRecipientsTextFieldAttrs
-	private _selectedSuggestionIdx = 0
+	private selectedSuggestionIdx = 0
 
-	constructor(vnode: Vnode<MailRecipientsTextFieldAttrs>) {
-		this.attrs = vnode.attrs
-	}
-
-	view(vnode: Vnode<MailRecipientsTextFieldAttrs>): Children {
-		this.attrs = vnode.attrs
+	view({attrs}: Vnode<MailRecipientsTextFieldAttrs>): Children {
 		return [
-			this.renderTextField(),
-			this.renderSuggestions()
+			this.renderTextField(attrs),
+			this.renderSuggestions(attrs)
 		]
 	}
 
-	private renderTextField(): Children {
+	private renderTextField(attrs: MailRecipientsTextFieldAttrs): Children {
 		return m(BubbleTextField, {
-			label: this.attrs.label,
-			text: this.attrs.text,
+			label: attrs.label,
+			text: attrs.text,
 			onInput: text => {
-				this.attrs.search.search(text).then(() => m.redraw())
+				attrs.search.search(text).then(() => m.redraw())
 
 				// if the new text length is more than one character longer,
 				// it means the user pasted the text in, so we want to try and resolve a list of contacts
-				const {remainingText, newRecipients} = text.length - this.attrs.text.length > 1
+				const {remainingText, newRecipients} = text.length - attrs.text.length > 1
 					? parsePastedInput(text)
 					: parseTypedInput(text)
 
 				for (const {address, name} of newRecipients) {
-					this.attrs.onRecipientAdded(address, name, null)
+					attrs.onRecipientAdded(address, name, null)
 				}
 
-				this.attrs.onTextChanged(remainingText)
+				attrs.onTextChanged(remainingText)
 			},
-			items: this.attrs.recipients.map(recipient => recipient.address),
+			items: attrs.recipients.map(recipient => recipient.address),
 			renderBubbleText: (address: string) => {
-				const name = this.attrs.recipients.find(recipient => recipient.address === address)?.name ?? null
+				const name = attrs.recipients.find(recipient => recipient.address === address)?.name ?? null
 				return getDisplayText(name, address, false)
 			},
-			getBubbleDropdownAttrs: async (address) => (await this.attrs.getRecipientClickedDropdownAttrs?.(address)) ?? [],
+			getBubbleDropdownAttrs: async (address) => (await attrs.getRecipientClickedDropdownAttrs?.(address)) ?? [],
 			onBackspace: () => {
-				if (this.attrs.text === "" && this.attrs.recipients.length > 0) {
-					const {address} = this.attrs.recipients.slice().pop()!
-					this.attrs.onTextChanged(address)
-					this.attrs.onRecipientRemoved(address)
+				if (attrs.text === "" && attrs.recipients.length > 0) {
+					const {address} = attrs.recipients.slice().pop()!
+					attrs.onTextChanged(address)
+					attrs.onRecipientRemoved(address)
 					return false
 				}
 				return true
 
 			},
 			onEnterKey: () => {
-				this.resolveInput()
+				this.resolveInput(attrs)
 				return true
 			},
 			onUpKey: () => {
-				this.selectedSuggestionIdx = this._selectedSuggestionIdx + 1
+				this.setSelectedSuggestionIdx(attrs, this.selectedSuggestionIdx + 1)
 				return false
 			},
 			onDownKey: () => {
-				this.selectedSuggestionIdx = this._selectedSuggestionIdx - 1
+				this.setSelectedSuggestionIdx(attrs, this.selectedSuggestionIdx - 1)
 				return false
 			},
 			onBlur: () => {
-				this.resolveInput()
+				this.resolveInput(attrs)
 				return true
 			},
-			disabled: this.attrs.disabled,
+			disabled: attrs.disabled,
 			injectionsRight: [
 				// Placeholder element for the suggestion progress icon with a fixed width and height to avoid flickering.
 				// when reaching the end of the input line and when entering a text into the second line.
@@ -109,48 +103,44 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 							width: px(20), // in case the progress icon is not shown we reserve the width of the progress icon
 						},
 					},
-					this.attrs.search.isLoading() ? progressIcon() : null,
+					attrs.search.isLoading() ? progressIcon() : null,
 				),
-				this.attrs.injectionsRight
+				attrs.injectionsRight
 			]
 		})
 	}
 
-	private renderSuggestions(): Children {
+	private renderSuggestions(attrs: MailRecipientsTextFieldAttrs): Children {
 		return m(RecipientsSearchDropDown, {
-			suggestions: this.attrs.search.results(),
+			suggestions: attrs.search.results(),
 			selectedSuggestionIndex: this.selectedSuggestionIdx,
-			onSuggestionSelected: idx => this.selectSuggestion(idx),
-			maxHeight: this.attrs.maxSuggestionsToShow ?? null
+			onSuggestionSelected: idx => this.selectSuggestion(attrs, idx),
+			maxHeight: attrs.maxSuggestionsToShow ?? null
 		})
 	}
 
-	private resolveInput() {
-		const suggestions = this.attrs.search.results()
+	private resolveInput(attrs: MailRecipientsTextFieldAttrs) {
+		const suggestions = attrs.search.results()
 		if (suggestions.length > 0) {
-			this.selectSuggestion(this.selectedSuggestionIdx)
+			this.selectSuggestion(attrs, this.selectedSuggestionIdx)
 		} else {
-			const parsed = parseMailAddress(this.attrs.text)
+			const parsed = parseMailAddress(attrs.text)
 			if (parsed != null) {
-				this.attrs.onRecipientAdded(parsed.address, parsed.name, null)
-				this.attrs.onTextChanged("")
+				attrs.onRecipientAdded(parsed.address, parsed.name, null)
+				attrs.onTextChanged("")
 			}
 		}
 	}
 
-	private selectSuggestion(index: number) {
-		const {address, name, contact} = assertNotNull(this.attrs.search.results()[index])
-		this.attrs.onRecipientAdded(address, name, contact)
-		this.attrs.search.clear()
-		this.attrs.onTextChanged("")
+	private selectSuggestion(attrs: MailRecipientsTextFieldAttrs, index: number) {
+		const {address, name, contact} = assertNotNull(attrs.search.results()[index])
+		attrs.onRecipientAdded(address, name, contact)
+		attrs.search.clear()
+		attrs.onTextChanged("")
 	}
 
-	private get selectedSuggestionIdx(): number {
-		return this._selectedSuggestionIdx
-	}
-
-	private set selectedSuggestionIdx(idx: number) {
-		this._selectedSuggestionIdx = Math.min(Math.max(idx, 0), this.attrs.search.results().length - 1)
+	private setSelectedSuggestionIdx(attrs: MailRecipientsTextFieldAttrs, idx: number) {
+		this.selectedSuggestionIdx = Math.min(Math.max(idx, 0), attrs.search.results().length - 1)
 	}
 }
 

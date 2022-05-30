@@ -3,7 +3,7 @@ import {isApp, isDesktop} from "../api/common/Env"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {assertNotNull, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
-import type {PushIdentifier} from "../api/entities/sys/TypeRefs.js"
+import type {PushIdentifier, User} from "../api/entities/sys/TypeRefs.js"
 import {createPushIdentifier, PushIdentifierTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
@@ -18,11 +18,9 @@ import type {ExpanderAttrs} from "../gui/base/Expander"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import type {User} from "../api/entities/sys/TypeRefs.js"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {getCleanedMailAddress} from "../misc/parsing/MailAddressParser"
 import {locator} from "../api/main/MainLocator"
@@ -41,22 +39,22 @@ class IdentifierRow implements Component<IdentifierRowAttrs> {
 	view(vnode: Vnode<IdentifierRowAttrs>): Children {
 		const dropdownAttrs = attachDropdown(
 			{
-                mainButtonAttrs: {
-                    label: "edit_action",
-                    icon: () => Icons.Edit,
-                }, childAttrs: () => [
-                    {
-                        label: () => lang.get(vnode.attrs.disabled ? "activate_action" : "deactivate_action"),
-                        type: ButtonType.Dropdown,
-                        click: vnode.attrs.disableClicked,
-                    },
-                    {
-                        label: "delete_action",
-                        type: ButtonType.Dropdown,
-                        click: vnode.attrs.removeClicked,
-                    },
-                ]
-            },
+				mainButtonAttrs: {
+					label: "edit_action",
+					icon: () => Icons.Edit,
+				}, childAttrs: () => [
+					{
+						label: () => lang.get(vnode.attrs.disabled ? "activate_action" : "deactivate_action"),
+						type: ButtonType.Dropdown,
+						click: vnode.attrs.disableClicked,
+					},
+					{
+						label: "delete_action",
+						type: ButtonType.Dropdown,
+						click: vnode.attrs.removeClicked,
+					},
+				]
+			},
 		)
 		return m(".flex.flex-column.full-width", [
 			m(".flex.items-center.selectable", [
@@ -176,44 +174,46 @@ export class IdentifierListViewer {
 	}
 
 	_showAddNotificationEmailAddressDialog(user: User) {
-		const mailAddress = stream("")
-
 		if (logins.getUserController().isFreeAccount()) {
 			showNotAvailableForFreeDialog(true)
 		} else {
-			let emailAddressInputFieldAttrs: TextFieldAttrs = {
-				label: "mailAddress_label",
-				value: mailAddress(),
-				oninput: mailAddress,
-			}
-			let form = {
-				view: () => [m(TextFieldN, emailAddressInputFieldAttrs), m(".small.mt-s", lang.get("emailPushNotification_msg"))],
-			}
-
-			let addNotificationEmailAddressOkAction = (dialog: Dialog) => {
-				let pushIdentifier = createPushIdentifier()
-				pushIdentifier.displayName = lang.get("adminEmailSettings_action")
-				pushIdentifier.identifier = neverNull(getCleanedMailAddress(mailAddress()))
-				pushIdentifier.language = lang.code
-				pushIdentifier.pushServiceType = PushServiceType.EMAIL
-				pushIdentifier._ownerGroup = user.userGroup.group
-				pushIdentifier._owner = user.userGroup.group // legacy
-
-				pushIdentifier._area = "0" // legacy
-
-				let p = locator.entityClient.setup(assertNotNull(user.pushIdentifierList).list, pushIdentifier)
-				showProgressDialog("pleaseWait_msg", p)
-				dialog.close()
-			}
+			let mailAddress = ""
 
 			Dialog.showActionDialog({
 				title: lang.get("notificationSettings_action"),
-				child: form,
-				validator: () => this._validateAddNotificationEmailAddressInput(mailAddress()),
+				child: {
+					view: () => [
+						m(TextFieldN, {
+							label: "mailAddress_label",
+							value: mailAddress,
+							oninput: (newValue) => mailAddress = newValue,
+						}),
+						m(".small.mt-s", lang.get("emailPushNotification_msg"))
+					],
+				},
+				validator: () => this._validateAddNotificationEmailAddressInput(mailAddress),
 				allowOkWithReturn: true,
-				okAction: addNotificationEmailAddressOkAction,
+				okAction: (dialog: Dialog) => {
+					this.createNotificationEmail(mailAddress, user)
+					dialog.close()
+				},
 			})
 		}
+	}
+
+	private createNotificationEmail(mailAddress: string, user: User) {
+		const pushIdentifier = createPushIdentifier({
+			_area: "0", // legacy
+			_owner: user.userGroup.group, // legacy
+			_ownerGroup: user.userGroup.group,
+			displayName: lang.get("adminEmailSettings_action"),
+			identifier: assertNotNull(getCleanedMailAddress(mailAddress)),
+			language: lang.code,
+			pushServiceType: PushServiceType.EMAIL,
+		})
+
+		let p = locator.entityClient.setup(assertNotNull(user.pushIdentifierList).list, pushIdentifier)
+		showProgressDialog("pleaseWait_msg", p)
 	}
 
 	_validateAddNotificationEmailAddressInput(emailAddress: string): TranslationKey | null {

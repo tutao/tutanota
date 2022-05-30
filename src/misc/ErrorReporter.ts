@@ -14,7 +14,6 @@ import {AccountType, ConversationType, MailMethod} from "../api/common/TutanotaC
 import {copyToClipboard} from "./ClipboardUtils"
 import {px} from "../gui/size"
 import {Mode} from "../api/common/Env"
-import {createDraftRecipient} from "../api/entities/tutanota/TypeRefs"
 import {RecipientType} from "../api/common/recipients/Recipient.js"
 
 type FeedbackContent = {
@@ -30,16 +29,6 @@ export function promptForFeedbackAndSend(e: Error): Promise<{ignored: boolean}> 
 		const preparedContent = prepareFeedbackContent(e, loggedIn)
 		const detailsExpanded = stream(false)
 		let userMessage = ""
-		const userMessageTextFieldAttrs: TextFieldAttrs = {
-			label: "yourMessage_label",
-			helpLabel: () => lang.get("feedbackOnErrorInfo_msg"),
-			value: userMessage,
-			type: TextFieldType.Area,
-			oninput: value => {
-				userMessage = value
-			},
-		}
-
 		let errorOkAction = (dialog: Dialog) => {
 			preparedContent.message = userMessage + "\n" + preparedContent.message
 			resolve(preparedContent)
@@ -84,7 +73,15 @@ export function promptForFeedbackAndSend(e: Error): Promise<{ignored: boolean}> 
 				child: {
 					view: () => {
 						return [
-							m(TextFieldN, userMessageTextFieldAttrs),
+							m(TextFieldN, {
+								label: "yourMessage_label",
+								helpLabel: () => lang.get("feedbackOnErrorInfo_msg"),
+								value: userMessage,
+								type: TextFieldType.Area,
+								oninput: value => {
+									userMessage = value
+								},
+							}),
 							m(
 								".flex-end",
 								m(

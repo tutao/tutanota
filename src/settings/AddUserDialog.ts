@@ -5,8 +5,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {logins} from "../api/main/LoginController"
 import {PasswordForm, PasswordModel} from "./PasswordForm"
 import {SelectMailAddressForm} from "./SelectMailAddressForm"
-import {CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {CustomerInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
+import {CustomerInfoTypeRef, CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {addAll, assertNotNull, neverNull, ofClass} from "@tutao/tutanota-utils"
 import {getCustomMailDomains} from "../api/common/utils/Utils"
 import {showProgressDialog, showWorkerProgressDialog} from "../gui/dialogs/ProgressDialog"
@@ -25,16 +24,15 @@ export function show(): Promise<void> {
 		let isVerificationBusy = false
 		let userName = ""
 		const passwordModel = new PasswordModel(logins, {checkOldPassword: false, enforceStrength: false, repeatInput: false})
-		const nameFieldAttrs: TextFieldAttrs = {
-			label: "name_label",
-			helpLabel: () => lang.get("loginNameInfoAdmin_msg"),
-			value: userName,
-			oninput: (value) => userName = value.trim(),
-		}
 		let form = {
 			view: () => {
 				return [
-					m(TextFieldN, nameFieldAttrs),
+					m(TextFieldN, {
+						label: "name_label",
+						helpLabel: () => lang.get("loginNameInfoAdmin_msg"),
+						value: userName,
+						oninput: (value) => userName = value.trim(),
+					}),
 					m(SelectMailAddressForm, {
 						availableDomains,
 						onEmailChanged: (email, verificationResult) => {
