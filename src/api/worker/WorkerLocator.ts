@@ -10,7 +10,7 @@ import {MailFacade} from "./facades/MailFacade"
 import {MailAddressFacade} from "./facades/MailAddressFacade"
 import {FileFacade} from "./facades/FileFacade"
 import {SearchFacade} from "./search/SearchFacade"
-import {CustomerFacadeImpl} from "./facades/CustomerFacade"
+import {CustomerFacade} from "./facades/CustomerFacade"
 import {CounterFacade} from "./facades/CounterFacade"
 import {EventBusClient} from "./EventBusClient"
 import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isOfflineStorageAvailable} from "../common/Env"
@@ -69,7 +69,7 @@ export type WorkerLocatorType = {
 	search: SearchFacade
 	groupManagement: GroupManagementFacadeImpl
 	userManagement: UserManagementFacade
-	customer: CustomerFacadeImpl
+	customer: CustomerFacade
 	file: FileFacade
 	blob: BlobFacade
 	mail: MailFacade
@@ -175,7 +175,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.cachingEntityClient,
 		locator.serviceExecutor,
 	)
-	locator.customer = new CustomerFacadeImpl(
+	locator.customer = new CustomerFacade(
 		worker,
 		locator.user,
 		locator.groupManagement,
