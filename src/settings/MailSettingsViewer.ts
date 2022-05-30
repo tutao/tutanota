@@ -66,7 +66,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_outOfOfficeStatus: Stream<string> // stores the status label, based on whether the notification is/ or will really be activated (checking start time/ end time)
 
 	private offlineStorageSettings = new OfflineStorageSettingsModel(
-		locator.desktopSettingsFacade,
 		logins.getUserController(),
 		deviceConfig
 	)

@@ -4,7 +4,7 @@ import {lang, languageCodeToTag, languages} from "./misc/LanguageViewModel"
 import {root} from "./RootView"
 import {disableErrorHandlingDuringLogout, handleUncaughtError} from "./misc/ErrorHandler"
 import "./gui/main-styles"
-import {assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isTutanotaDomain} from "./api/common/Env"
+import {assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageAvailable, isTutanotaDomain} from "./api/common/Env"
 import {logins} from "./api/main/LoginController"
 import type {lazy} from "@tutao/tutanota-utils"
 import {neverNull} from "@tutao/tutanota-utils"
@@ -204,9 +204,11 @@ import("./translations/en")
 		const {PostLoginActions} = await import("./login/PostLoginActions")
 		const {CachePostLoginAction} = await import("./offline/CachePostLoginAction")
 		logins.addPostLoginAction(new PostLoginActions(locator.credentialsProvider, locator.secondFactorHandler))
-		logins.addPostLoginAction(new CachePostLoginAction(
-			locator.calendarModel, locator.entityClient, locator.progressTracker, logins, locator.desktopSettingsFacade,
-		))
+		if(isOfflineStorageAvailable()) {
+			logins.addPostLoginAction(new CachePostLoginAction(
+				locator.calendarModel, locator.entityClient, locator.progressTracker, logins,
+			))
+		}
 
 		styles.init()
 		const {usingKeychainAuthentication} = await import("./misc/credentials/CredentialsProviderFactory")
