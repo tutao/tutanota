@@ -22,7 +22,6 @@ export class OfflineStorageSettingsModel {
 	// Native interfaces are lazy to allow us to unconditionally construct the SettingsModel
 	// If we are not in a native context, then they should never be accessed
 	constructor(
-		private readonly settingsFacade: SettingsFacade,
 		private readonly userController: IUserController,
 		private readonly deviceConfig: DeviceConfig,
 	) {
@@ -58,14 +57,12 @@ export class OfflineStorageSettingsModel {
 	}
 
 	async init(): Promise<void> {
-		if (isOfflineStorageAvailable()) {
-			this.isEnabled = await this.settingsFacade.getBooleanConfigValue(DesktopConfigKey.offlineStorageEnabled)
+		this.isEnabled = isOfflineStorageAvailable()
 
-			if (this.isEnabled) {
-				const stored = this.deviceConfig.getOfflineTimeRangeDays(this.userController.userId)
-				if (stored != null) {
-					this.timeRange = stored
-				}
+		if (this.isEnabled) {
+			const stored = this.deviceConfig.getOfflineTimeRangeDays(this.userController.userId)
+			if (stored != null) {
+				this.timeRange = stored
 			}
 		}
 

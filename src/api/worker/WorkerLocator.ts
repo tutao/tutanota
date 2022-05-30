@@ -13,7 +13,7 @@ import {SearchFacade} from "./search/SearchFacade"
 import {CustomerFacadeImpl} from "./facades/CustomerFacade"
 import {CounterFacade} from "./facades/CounterFacade"
 import {EventBusClient} from "./EventBusClient"
-import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isDesktop, isOfflineStorageAvailable} from "../common/Env"
+import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isOfflineStorageAvailable} from "../common/Env"
 import {Const} from "../common/TutanotaConstants"
 import type {BrowserData} from "../../misc/ClientConstants"
 import {CalendarFacade} from "./facades/CalendarFacade"
@@ -57,7 +57,6 @@ import {FileFacadeSendDispatcher} from "../../native/common/generatedipc/FileFac
 import {NativePushFacadeSendDispatcher} from "../../native/common/generatedipc/NativePushFacadeSendDispatcher.js"
 import {NativeCryptoFacadeSendDispatcher} from "../../native/common/generatedipc/NativeCryptoFacadeSendDispatcher"
 import {random} from "@tutao/tutanota-crypto"
-import {SettingsFacadeSendDispatcher} from "../../native/common/generatedipc/SettingsFacadeSendDispatcher.js"
 import {ExportFacadeSendDispatcher} from "../../native/common/generatedipc/ExportFacadeSendDispatcher.js"
 
 assertWorkerOrNode()
@@ -117,10 +116,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.native = worker
 	locator.booking = new BookingFacade(locator.serviceExecutor)
 
-	const settingsFacade = new SettingsFacadeSendDispatcher(worker)
-
 	const offlineStorageProvider = async () => {
-		if (isOfflineStorageAvailable() && await settingsFacade.getBooleanConfigValue(DesktopConfigKey.offlineStorageEnabled)) {
+		if (isOfflineStorageAvailable()) {
 			const {offlineDbFacade} = exposeNativeInterface(locator.native)
 			return new OfflineStorage(offlineDbFacade, new WorkerDateProvider(), new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS, modelInfos))
 		} else {
@@ -139,7 +136,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	// We don't wont to cache within the admin client
 	let cache: EntityRestCache | null = null
 	if (!isAdminClient()) {
-		const customCacheHandlers = isDesktop() && await settingsFacade.getBooleanConfigValue(DesktopConfigKey.offlineStorageEnabled)
+		const customCacheHandlers = isOfflineStorageAvailable()
 			? new CustomCacheHandlerMap({ref: CalendarEventTypeRef, handler: new CustomCalendarEventCacheHandler(entityRestClient)})
 			: new CustomCacheHandlerMap()
 		cache = new EntityRestCache(entityRestClient, maybeUninitializedStorage, customCacheHandlers)
