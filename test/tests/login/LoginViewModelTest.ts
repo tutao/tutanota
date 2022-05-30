@@ -2,7 +2,7 @@ import o from "ospec"
 import {DisplayMode, LoginState, LoginViewModel} from "../../../src/login/LoginViewModel.js"
 import type {LoginController} from "../../../src/api/main/LoginController.js"
 import {createGroupInfo, createUser} from "../../../src/api/entities/sys/TypeRefs.js"
-import type {IUserController} from "../../../src/api/main/UserController.js"
+import type {UserController} from "../../../src/api/main/UserController.js"
 import {KeyPermanentlyInvalidatedError} from "../../../src/api/common/error/KeyPermanentlyInvalidatedError.js"
 import {CredentialAuthenticationError} from "../../../src/api/common/error/CredentialAuthenticationError.js"
 import type {Credentials} from "../../../src/misc/credentials/Credentials.js"
@@ -110,7 +110,7 @@ o.spec("LoginViewModelTest", () => {
 
 	o.beforeEach(async () => {
 		loginControllerMock = object<LoginController>()
-		const userControllerMock = object<IUserController>()
+		const userControllerMock = object<UserController>()
 
 		replace(userControllerMock, "user", createUser())
 		replace(

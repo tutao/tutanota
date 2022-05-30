@@ -40,79 +40,35 @@ import {SessionType} from "../common/SessionType"
 
 assertMainOrNode()
 
-export interface IUserController {
-	// should be readonly but is needed for a workaround in CalendarModel
-	user: User
-	readonly userGroupInfo: GroupInfo
-	readonly props: TutanotaProperties
-	readonly sessionId: IdTuple
-	readonly accessToken: string
-	readonly userSettingsGroupRoot: UserSettingsGroupRoot
-	readonly sessionType: SessionType
-	readonly userId: Id
-
-	isGlobalAdmin(): boolean
-
-	isGlobalOrLocalAdmin(): boolean
-
-	isFreeAccount(): boolean
-
-	isPremiumAccount(): boolean
-
-	isInternalUser(): boolean
-
-	loadCustomer(): Promise<Customer>
-
-	loadCustomerInfo(): Promise<CustomerInfo>
-
-	loadAccountingInfo(): Promise<AccountingInfo>
-
-	getMailGroupMemberships(): GroupMembership[]
-
-	getCalendarMemberships(): GroupMembership[]
-
-	getUserMailGroupMembership(): GroupMembership
-
-	getLocalAdminGroupMemberships(): GroupMembership[]
-
-	getTemplateMemberships(): GroupMembership[]
-
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void>
-
-	/**
-	 * Delete the session (only if it's a non-persistent session
-	 * @param sync whether or not to delete in the main thread. For example, will be true when logging out due to closing the tab
-	 */
-	deleteSession(sync: boolean): Promise<void>
-
-	loadWhitelabelConfig(): Promise<| {
-		whitelabelConfig: WhitelabelConfig
-		domainInfo: DomainInfo
-	}
-		| null
-		| undefined>
-
-	isWhitelabelAccount(): Promise<boolean>
-
-	isPersistentSession(): boolean
-}
-
-export class UserController implements IUserController {
+export class UserController {
 
 	constructor(
+		// should be readonly but is needed for a workaround in CalendarModel
 		public user: User,
-		public userGroupInfo: GroupInfo,
-		readonly sessionId: IdTuple,
-		public props: TutanotaProperties,
-		readonly accessToken: Base64Url,
-		public userSettingsGroupRoot: UserSettingsGroupRoot,
-		readonly sessionType: SessionType,
+		private _userGroupInfo: GroupInfo,
+		public readonly sessionId: IdTuple,
+		private _props: TutanotaProperties,
+		public readonly accessToken: Base64Url,
+		private _userSettingsGroupRoot: UserSettingsGroupRoot,
+		public readonly sessionType: SessionType,
 		private readonly entityClient: EntityClient,
 	) {
 	}
 
 	get userId(): Id {
 		return this.user._id
+	}
+
+	get props(): TutanotaProperties {
+		return this._props
+	}
+
+	get userGroupInfo(): GroupInfo {
+		return this._userGroupInfo
+	}
+
+	get userSettingsGroupRoot(): UserSettingsGroupRoot {
+		return this._userSettingsGroupRoot
 	}
 
 	/**
@@ -197,11 +153,11 @@ export class UserController implements IUserController {
 				isUpdateForTypeRef(GroupInfoTypeRef, update) &&
 				isSameId(this.userGroupInfo._id, [neverNull(instanceListId), instanceId])
 			) {
-				this.userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userGroupInfo._id)
+				this._userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this._userGroupInfo._id)
 			} else if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
-				this.props = await this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.user.userGroup.group)
+				this._props = await this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.user.userGroup.group)
 			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
-				this.userSettingsGroupRoot = await this.entityClient.load(UserSettingsGroupRootTypeRef, this.user.userGroup.group)
+				this._userSettingsGroupRoot = await this.entityClient.load(UserSettingsGroupRootTypeRef, this.user.userGroup.group)
 			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update) && operation === OperationType.CREATE) {
 				// After premium upgrade customer info is deleted and created with new id. We want to make sure that it's cached for offline login.
 				await this.entityClient.load(CustomerInfoTypeRef, [update.instanceListId, update.instanceId])
@@ -209,6 +165,10 @@ export class UserController implements IUserController {
 		}
 	}
 
+	/**
+	 * Delete the session (only if it's a non-persistent session
+	 * @param sync whether or not to delete in the main thread. For example, will be true when logging out due to closing the tab
+	 */
 	async deleteSession(sync: boolean): Promise<void> {
 		// in case the tab is closed we need to delete the session in the main thread (synchronous rest request)
 		if (sync) {

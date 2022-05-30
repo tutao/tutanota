@@ -14,7 +14,7 @@ import {downcast, flat, LazyLoaded, noOp, promiseMap, SortedArray} from "@tutao/
 import {getElementId, getEtId, getLetId, isSameId} from "../../api/common/utils/EntityUtils"
 import type {TemplateGroupInstance} from "../../templates/model/TemplateGroupModel"
 import {loadTemplateGroupInstance} from "../../templates/model/TemplatePopupModel"
-import type {IUserController} from "../../api/main/UserController"
+import type {UserController} from "../../api/main/UserController"
 import {hasCapabilityOnGroup} from "../../sharing/GroupUtils"
 import Stream from "mithril/stream";
 
@@ -39,9 +39,9 @@ export class KnowledgeBaseModel {
 	readonly _entityEventReceived: EntityEventsListener
 	_groupInstances: Array<TemplateGroupInstance>
 	_initialized: LazyLoaded<KnowledgeBaseModel>
-	_userController: IUserController
+	_userController: UserController
 
-	constructor(eventController: EventController, entityClient: EntityClient, userController: IUserController) {
+	constructor(eventController: EventController, entityClient: EntityClient, userController: UserController) {
 		this._eventController = eventController
 		this._entityClient = entityClient
 		this._userController = userController

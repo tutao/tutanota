@@ -8,7 +8,7 @@ import {func, instance, object, replace, when} from "testdouble"
 import {createGroupInfo, createGroupMembership, createPublicKeyReturn, createUser} from "../../../src/api/entities/sys/TypeRefs.js"
 import {Recipient, RecipientType} from "../../../src/api/common/recipients/Recipient.js"
 import {ContactTypeRef, createContact, createContactMailAddress} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {IUserController} from "../../../src/api/main/UserController.js"
+import {UserController} from "../../../src/api/main/UserController.js"
 import {GroupType} from "../../../src/api/common/TutanotaConstants.js"
 import {verify} from "@tutao/tutanota-test-utils"
 import {defer, delay} from "@tutao/tutanota-utils"
@@ -22,7 +22,7 @@ o.spec("RecipientsModel", function () {
 	const otherAddress = "test@dudanoda.com"
 
 	let contactModelMock: ContactModel
-	let userControllerMock: IUserController
+	let userControllerMock: UserController
 	let loginControllerMock: LoginController
 	let mailFacadeMock: MailFacade
 	let entityClientMock: EntityClient

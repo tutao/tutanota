@@ -9,7 +9,7 @@ import {InvalidDataError, PreconditionFailedError} from "../api/common/error/Res
 import {BusinessFeatureRequiredError} from "../api/main/BusinessFeatureRequiredError"
 import type {EntityClient} from "../api/common/EntityClient"
 import type {LanguageViewModel} from "../misc/LanguageViewModel"
-import type {IUserController} from "../api/main/UserController"
+import type {UserController} from "../api/main/UserController"
 import {appendEmailSignature} from "../mail/signature/Signature"
 import {UserError} from "../api/main/UserError"
 import {ofClass} from "@tutao/tutanota-utils"
@@ -36,13 +36,13 @@ export class EditOutOfOfficeNotificationDialogModel {
 	defaultMessage: Stream<string> = stream("")
 	recipientMessageTypes: Stream<RecipientMessageType> = stream<RecipientMessageType>(RecipientMessageType.EXTERNAL_TO_EVERYONE)
 	_entityClient: EntityClient
-	_userController: IUserController
+	_userController: UserController
 	_languageViewModel: LanguageViewModel
 
 	constructor(
 		outOfOfficeNotification: OutOfOfficeNotification | null,
 		entityClient: EntityClient,
-		userController: IUserController,
+		userController: UserController,
 		languageViewModel: LanguageViewModel,
 	) {
 		this._entityClient = entityClient

@@ -23,7 +23,7 @@ import {AccountType, AlarmInterval, assertEnumValue, CalendarAttendeeStatus, Sha
 import type {User} from "../../../src/api/entities/sys/TypeRefs.js"
 import {createGroupMembership, createPublicKeyReturn, createRepeatRule} from "../../../src/api/entities/sys/TypeRefs.js"
 import type {CalendarUpdateDistributor} from "../../../src/calendar/date/CalendarUpdateDistributor.js"
-import type {IUserController} from "../../../src/api/main/UserController.js"
+import type {UserController} from "../../../src/api/main/UserController.js"
 import type {CalendarInfo} from "../../../src/calendar/model/CalendarModel.js"
 import {CalendarModel} from "../../../src/calendar/model/CalendarModel.js"
 import {getAllDayDateUTCFromZone, getTimeZone} from "../../../src/calendar/date/CalendarUtils.js"
@@ -90,7 +90,7 @@ o.spec("CalendarEventViewModel", function () {
 							mail = null,
 							existingContacts = []
 						}: {
-		userController?: IUserController
+		userController?: UserController
 		distributor?: CalendarUpdateDistributor
 		mailboxDetail?: MailboxDetail
 		calendars: Map<Id, CalendarInfo>

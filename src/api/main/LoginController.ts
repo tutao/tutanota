@@ -1,7 +1,7 @@
 import type {DeferredObject} from "@tutao/tutanota-utils"
 import {assertNotNull, defer} from "@tutao/tutanota-utils"
 import {assertMainOrNodeBoot} from "../common/Env"
-import type {IUserController, UserControllerInitData} from "./UserController"
+import type {UserController, UserControllerInitData} from "./UserController"
 import {getWhitelabelCustomizations} from "../../misc/WhitelabelCustomizations"
 import {NotFoundError} from "../common/error/RestError"
 import {client} from "../../misc/ClientDetector"
@@ -59,7 +59,7 @@ export interface LoginController {
 
 	isGlobalAdminUserLoggedIn(): boolean
 
-	getUserController(): IUserController
+	getUserController(): UserController
 
 	isEnabled(feature: FeatureType): boolean
 
@@ -75,7 +75,7 @@ export interface LoginController {
 }
 
 export class LoginControllerImpl implements LoginController {
-	private userController: IUserController | null = null
+	private userController: UserController | null = null
 	private customizations: NumberString[] | null = null
 	private partialLogin: DeferredObject<void> = defer()
 	private _isWhitelabel: boolean = !!getWhitelabelCustomizations(window)
@@ -227,7 +227,7 @@ export class LoginControllerImpl implements LoginController {
 		return this.isUserLoggedIn() && this.getUserController().isGlobalAdmin()
 	}
 
-	getUserController(): IUserController {
+	getUserController(): UserController {
 		return assertNotNull(this.userController) // only to be used after login (when user is defined)
 	}
 
