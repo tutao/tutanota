@@ -39,7 +39,7 @@ import {WsConnectionState} from "../main/WorkerClient";
 import {RestClient} from "./rest/RestClient"
 import {IServiceExecutor} from "../common/ServiceRequest.js"
 import {BlobFacade} from "./facades/BlobFacade"
-import {ExposedCacheStorage} from "./rest/EntityRestCache.js"
+import {ExposedCacheStorage} from "./rest/DefaultEntityRestCache.js"
 import {ILoginListener} from "../main/LoginListener"
 
 assertWorkerOrNode()

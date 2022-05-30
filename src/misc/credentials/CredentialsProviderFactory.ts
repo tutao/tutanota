@@ -3,7 +3,6 @@ import {CredentialsProvider} from "./CredentialsProvider.js"
 import {deviceConfig} from "../DeviceConfig"
 import {isApp, isDesktop, isOfflineStorageAvailable} from "../../api/common/Env"
 import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
-import {CredentialsKeyMigrator, CredentialsKeyMigratorStub} from "./CredentialsKeyMigrator"
 import {CredentialsKeyProvider} from "./CredentialsKeyProvider"
 import {NativeCredentialsEncryption} from "./NativeCredentialsEncryption"
 import type {ExposedNativeInterface, NativeInterface} from "../../native/common/NativeInterface"
@@ -13,6 +12,7 @@ import {exposeRemote} from "../../api/common/WorkerProxy"
 import {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade"
 import {InterWindowEventBus} from "../../native/common/InterWindowEventBus"
 import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes"
+import {StubCredentialsKeyMigrator, DefaultCredentialsKeyMigrator} from "./CredentialsKeyMigrator.js"
 
 export function usingKeychainAuthentication(): boolean {
 	return isApp() || isDesktop()
@@ -38,7 +38,7 @@ export async function createCredentialsProvider(
 		const nativeCredentials = new NativeCredentialsFacadeSendDispatcher(assertNotNull(nativeApp))
 		const credentialsKeyProvider = new CredentialsKeyProvider(nativeCredentials, deviceConfig, deviceEncryptionFacade)
 		const credentialsEncryption = new NativeCredentialsEncryption(credentialsKeyProvider, deviceEncryptionFacade, nativeCredentials)
-		const credentialsKeyMigrator = new CredentialsKeyMigrator(nativeCredentials)
+		const credentialsKeyMigrator = new DefaultCredentialsKeyMigrator(nativeCredentials)
 		let offlineDbFacade: OfflineDbFacade | null
 		if (isOfflineStorageAvailable()) {
 			const remoteInterface = exposeRemote<ExposedNativeInterface>(
@@ -60,7 +60,7 @@ export async function createCredentialsProvider(
 		return new CredentialsProvider(
 			new CredentialsEncryptionStub(),
 			deviceConfig,
-			new CredentialsKeyMigratorStub(),
+			new StubCredentialsKeyMigrator(),
 			new DatabaseKeyFactory(deviceEncryptionFacade),
 			null,
 			null,

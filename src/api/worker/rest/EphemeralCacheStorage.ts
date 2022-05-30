@@ -1,7 +1,7 @@
 import {ElementEntity, ListElementEntity, SomeEntity} from "../../common/EntityTypes.js"
 import {EntityRestClient, typeRefToPath} from "./EntityRestClient.js"
 import {firstBiggerThanSecond, getElementId, getListId, isElementEntity} from "../../common/utils/EntityUtils.js"
-import {CacheStorage} from "./EntityRestCache.js"
+import {CacheStorage} from "./DefaultEntityRestCache.js"
 import {clone, getFromMap, remove, TypeRef} from "@tutao/tutanota-utils"
 import {CustomCacheHandlerMap} from "./CustomCacheHandler.js"
 

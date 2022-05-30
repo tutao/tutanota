@@ -21,7 +21,7 @@ import {
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
 import {EntityRestClient, typeRefToPath} from "../../../../../src/api/worker/rest/EntityRestClient.js"
 import {QueuedBatch} from "../../../../../src/api/worker/search/EventQueue.js"
-import {CacheStorage, EntityRestCache, expandId, EXTEND_RANGE_MIN_CHUNK_SIZE} from "../../../../../src/api/worker/rest/EntityRestCache.js"
+import {CacheStorage, DefaultEntityRestCache, expandId, EXTEND_RANGE_MIN_CHUNK_SIZE} from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 import {
 	CalendarEventTypeRef,
 	ContactTypeRef,
@@ -87,7 +87,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 	const batchId = "batchId"
 	o.spec("entity rest cache " + name, function () {
 		let storage: CacheStorage
-		let cache: EntityRestCache
+		let cache: DefaultEntityRestCache
 
 		// The entity client will assert to throwing if an unexpected method is called
 		// You can mock it's attributes if you want to assert that a given method will be called
@@ -154,7 +154,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			userId = "userId"
 			storage = await getStorage(userId)
 			entityRestClient = mockRestClient()
-			cache = new EntityRestCache(entityRestClient, storage)
+			cache = new DefaultEntityRestCache(entityRestClient, storage)
 		})
 
 		o.spec("entityEventsReceived", function () {
@@ -1095,7 +1095,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				async function () {
 
 					const clientMock = object<EntityRestClient>()
-					const cache = new EntityRestCache(clientMock, storage)
+					const cache = new DefaultEntityRestCache(clientMock, storage)
 
 					const listId = "listId"
 
@@ -1138,7 +1138,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			o("When there is a non-reverse range request that loads in the direction of the existing range, the range will grow to include the startId", async function () {
 
 				const clientMock = object<EntityRestClient>()
-				const cache = new EntityRestCache(clientMock, storage)
+				const cache = new DefaultEntityRestCache(clientMock, storage)
 
 				const listId = "listId1"
 
@@ -1173,7 +1173,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			o("When there is a reverse range request that loads in the direction of the existing range, the range will grow to include the startId", async function () {
 
 				const clientMock = object<EntityRestClient>()
-				const cache = new EntityRestCache(clientMock, storage)
+				const cache = new DefaultEntityRestCache(clientMock, storage)
 
 				const listId = "listId1"
 				const mails = arrayOf(100, idx => createMailInstance(listId, createId(`${idx}`), `hola ${idx}`))
@@ -1206,7 +1206,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 
 			o("The range request starts on one end of the existing range, and would finish on the other end, so it loads from either direction of the range", async function () {
 				const clientMock = object<EntityRestClient>()
-				const cache = new EntityRestCache(clientMock, storage)
+				const cache = new DefaultEntityRestCache(clientMock, storage)
 
 				const id1 = createId("1")
 				const id2 = createId("2")
@@ -1298,7 +1298,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				const client = downcast<EntityRestClient>({
 					load: o.spy(() => contact),
 				})
-				const cache = new EntityRestCache(client, storage)
+				const cache = new DefaultEntityRestCache(client, storage)
 				await cache.load(
 					ContactTypeRef,
 					contactId,
@@ -1333,7 +1333,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 						return contactOnTheServer
 					}),
 				})
-				const cache = new EntityRestCache(client, storage)
+				const cache = new DefaultEntityRestCache(client, storage)
 				const firstLoaded = await cache.load(ContactTypeRef, contactId)
 				o(firstLoaded).deepEquals(contactOnTheServer)
 				// @ts-ignore
@@ -1377,7 +1377,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 						return permissionOnTheServer
 					}),
 				})
-				const cache = new EntityRestCache(client, storage)
+				const cache = new DefaultEntityRestCache(client, storage)
 				await cache.load(PermissionTypeRef, permissionId)
 				await cache.load(PermissionTypeRef, permissionId)
 				// @ts-ignore

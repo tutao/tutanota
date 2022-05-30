@@ -1,6 +1,5 @@
 import o from "ospec"
 import {NativeCredentialsEncryption} from "../../../../src/misc/credentials/NativeCredentialsEncryption.js"
-import {ICredentialsKeyProvider} from "../../../../src/misc/credentials/CredentialsKeyProvider.js"
 import type {DeviceEncryptionFacade} from "../../../../src/api/worker/facades/DeviceEncryptionFacade.js"
 import n from "../../nodemocker.js"
 import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
@@ -8,16 +7,17 @@ import type {CredentialsAndDatabaseKey, PersistentCredentials} from "../../../..
 import {assertThrows} from "@tutao/tutanota-test-utils"
 import {KeyPermanentlyInvalidatedError} from "../../../../src/api/common/error/KeyPermanentlyInvalidatedError.js"
 import {CryptoError} from "../../../../src/api/common/error/CryptoError.js"
+import {CredentialsKeyProvider} from "../../../../src/misc/credentials/CredentialsKeyProvider.js"
 import {object} from "testdouble"
 
 //TODO test databasekey encryption
 o.spec("NativeCredentialsEncryptionTest", function () {
 	const credentialsKey = new Uint8Array([1, 2, 3])
-	let credentialsKeyProvider: ICredentialsKeyProvider
+	let credentialsKeyProvider: CredentialsKeyProvider
 	let deviceEncryptionFacade: DeviceEncryptionFacade
 	let encryption: NativeCredentialsEncryption
 	o.beforeEach(function () {
-		credentialsKeyProvider = n.mock<ICredentialsKeyProvider>("omg delete me", {
+		credentialsKeyProvider = n.mock<CredentialsKeyProvider>("omg delete me", {
 			async getCredentialsKey() {
 				return credentialsKey
 			}

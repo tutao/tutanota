@@ -28,7 +28,7 @@ import {MembershipRemovedError} from "../../../../../src/api/common/error/Member
 import {GENERATED_MAX_ID, generatedIdToTimestamp, getElementId, timestampToGeneratedId,} from "../../../../../src/api/common/utils/EntityUtils.js"
 import {daysToMillis, defer, downcast, TypeRef} from "@tutao/tutanota-utils"
 import {aes128RandomKey, aes256Encrypt, aes256RandomKey, decrypt256Key, encrypt256Key, fixedIv, IV_BYTE_LENGTH, random,} from "@tutao/tutanota-crypto"
-import {EntityRestCache} from "../../../../../src/api/worker/rest/EntityRestCache.js"
+import {DefaultEntityRestCache} from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 import o from "ospec"
 import {instance, matchers, object, replace, reset, verify, when} from "testdouble"
 import {WorkerImpl} from "../../../../../src/api/worker/WorkerImpl.js"
@@ -53,7 +53,7 @@ o.spec("Indexer test", () => {
 			}
 		},
 	})
-	const entityRestCache: EntityRestCache = downcast({})
+	const entityRestCache: DefaultEntityRestCache = downcast({})
 
 
 	o("init new db", function (done) {
@@ -1305,7 +1305,7 @@ o.spec("Indexer test", () => {
 				entityRestClientDouble,
 				workerDouble,
 				browserDataStub,
-				instance(EntityRestCache),
+				instance(DefaultEntityRestCache),
 			)
 			const transactionDouble = object<DbTransaction>()
 			when(transactionDouble.getAll(matchers.anything())).thenResolve([{

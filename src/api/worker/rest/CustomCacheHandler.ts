@@ -3,7 +3,7 @@ import {CalendarEvent, CalendarEventTypeRef} from "../../entities/tutanota/TypeR
 import {freezeMap, getTypeId, TypeRef} from "@tutao/tutanota-utils"
 import {CUSTOM_MAX_ID, CUSTOM_MIN_ID, firstBiggerThanSecond, getElementId, LOAD_MULTIPLE_LIMIT} from "../../common/utils/EntityUtils.js"
 import {resolveTypeReference} from "../../common/EntityFunctions.js"
-import {ExposedCacheStorage, Range} from "./EntityRestCache.js"
+import {ExposedCacheStorage, Range} from "./DefaultEntityRestCache.js"
 import {EntityRestClient} from "./EntityRestClient.js"
 import {LateInitializedCacheStorage} from "./CacheStorageProxy.js"
 import {ProgrammingError} from "../../common/error/ProgrammingError.js"

@@ -8,7 +8,7 @@ import {
 	listIdPart,
 	timestampToGeneratedId
 } from "../../common/utils/EntityUtils.js"
-import {CacheStorage, expandId, ExposedCacheStorage} from "../rest/EntityRestCache.js"
+import {CacheStorage, expandId, ExposedCacheStorage} from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
 import {EncodeOptions, Token, Type} from "cborg"
 import {assert, DAY_IN_MILLIS, getTypeId, groupByAndMap, mapNullable, TypeRef} from "@tutao/tutanota-utils"

@@ -45,7 +45,7 @@ const IGNORED_TYPES = [
 	RejectedSenderTypeRef,
 ] as const
 
-export interface IEntityRestCache extends EntityRestInterface {
+export interface EntityRestCache extends EntityRestInterface {
 	/**
 	 * Clear out the contents of the cache.
 	 */
@@ -173,7 +173,7 @@ export interface CacheStorage extends ExposedCacheStorage {
  * MIN_ID  lowerRangeId     ids in range    upperRangeId    MAX_ID
  * lowerRangeId may be anything from MIN_ID to c, upperRangeId may be anything from k to MAX_ID
  */
-export class EntityRestCache implements IEntityRestCache {
+export class DefaultEntityRestCache implements EntityRestCache {
 
 	constructor(
 		readonly entityRestClient: EntityRestClient,

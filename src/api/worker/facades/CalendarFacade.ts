@@ -39,7 +39,7 @@ import {
 	createCalendarDeleteData,
 	createUserAreaGroupPostData
 } from "../../entities/tutanota/TypeRefs.js"
-import {EntityRestCache} from "../rest/EntityRestCache"
+import {DefaultEntityRestCache} from "../rest/DefaultEntityRestCache.js"
 import {ConnectionError, NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {EntityClient} from "../../common/EntityClient"
 import {elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToCustomId} from "../../common/utils/EntityUtils"
@@ -82,7 +82,7 @@ export class CalendarFacade {
 		private readonly userFacade: UserFacade,
 		private readonly groupManagementFacade: GroupManagementFacade,
 		// We inject cache directly because we need to delete user from it for a hack
-		private readonly entityRestCache: EntityRestCache,
+		private readonly entityRestCache: DefaultEntityRestCache,
 		private readonly nativePushFacade: NativePushFacade,
 		private readonly worker: WorkerImpl,
 		private readonly instanceMapper: InstanceMapper,

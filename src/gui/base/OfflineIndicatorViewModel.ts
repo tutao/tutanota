@@ -1,7 +1,7 @@
 import {PROGRESS_DONE} from "./ProgressBar.js"
 import Stream from "mithril/stream"
 import {WorkerClient, WsConnectionState} from "../../api/main/WorkerClient.js"
-import {ExposedCacheStorage} from "../../api/worker/rest/EntityRestCache.js"
+import {ExposedCacheStorage} from "../../api/worker/rest/DefaultEntityRestCache.js"
 import {ILoginListener} from "../../api/main/LoginListener.js"
 import {LoginController} from "../../api/main/LoginController.js"
 import {OfflineIndicatorAttrs, OfflineIndicatorState} from "./OfflineIndicator.js"
