@@ -1,5 +1,5 @@
 import {AccountType, FeatureType, GroupType, TimeFormat} from "../../../src/api/common/TutanotaConstants.js"
-import type {IUserController} from "../../../src/api/main/UserController.js"
+import type {UserController} from "../../../src/api/main/UserController.js"
 import {
 	createBookingsRef,
 	createCustomer,
@@ -33,7 +33,7 @@ export function makeUserController(
 	accountType: AccountType = AccountType.PREMIUM,
 	defaultSender?: string,
 	businessFeatureOrdered: boolean = false,
-): IUserController {
+): UserController {
 	const bookingsRef = createBookingsRef({
 		items: GENERATED_MAX_ID,
 	})

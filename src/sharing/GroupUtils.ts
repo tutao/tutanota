@@ -16,7 +16,7 @@ import type {ReceivedGroupInvitation} from "../api/entities/sys/TypeRefs.js"
 import {ReceivedGroupInvitationTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {UserGroupRootTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {NotFoundError} from "../api/common/error/RestError"
-import type {IUserController} from "../api/main/UserController"
+import type {UserController} from "../api/main/UserController"
 
 /**
  * Whether or not a user has a given capability for a shared group. If the group type is not shareable, this will always return false
@@ -107,7 +107,7 @@ export function getDefaultGroupName(groupType: GroupType): string {
 }
 
 export function loadReceivedGroupInvitations(
-	userController: IUserController,
+	userController: UserController,
 	entityClient: EntityClient,
 	type: GroupType,
 ): Promise<Array<ReceivedGroupInvitation>> {

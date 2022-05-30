@@ -1,7 +1,7 @@
 import {OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS} from "../api/common/TutanotaConstants.js";
 import {isOfflineStorageAvailable} from "../api/common/Env.js";
 import {assert} from "@tutao/tutanota-utils";
-import {IUserController} from "../api/main/UserController"
+import {UserController} from "../api/main/UserController"
 import {DesktopConfigKey} from "../desktop/config/ConfigKeys"
 import {DeviceConfig} from "../misc/DeviceConfig"
 import {SettingsFacade} from "../native/common/generatedipc/SettingsFacade.js"
@@ -22,7 +22,7 @@ export class OfflineStorageSettingsModel {
 	// Native interfaces are lazy to allow us to unconditionally construct the SettingsModel
 	// If we are not in a native context, then they should never be accessed
 	constructor(
-		private readonly userController: IUserController,
+		private readonly userController: UserController,
 		private readonly deviceConfig: DeviceConfig,
 	) {
 	}

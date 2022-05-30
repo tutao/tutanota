@@ -27,11 +27,11 @@ import {BookingTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {isWhitelabelActive} from "../subscription/SubscriptionUtils"
 import {showWhitelabelBuyDialog} from "../subscription/BuyDialog"
-import type {IUserController} from "../api/main/UserController"
+import type {UserController} from "../api/main/UserController"
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
 import {locator} from "../api/main/MainLocator"
 
-export function showAddOrEditNotificationEmailDialog(userController: IUserController, selectedNotificationLanguage?: string) {
+export function showAddOrEditNotificationEmailDialog(userController: UserController, selectedNotificationLanguage?: string) {
 	let existingTemplate: NotificationMailTemplate | undefined = undefined
 	userController.loadCustomer().then(customer => {
 		if (customer.properties) {

@@ -24,7 +24,7 @@ import {createCalendarEventAttendee} from "../../../src/api/entities/tutanota/Ty
 import {createEncryptedMailAddress} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {createAlarmInfo} from "../../../src/api/entities/sys/TypeRefs.js"
 import {EntityRestClientMock} from "../api/worker/rest/EntityRestClientMock.js"
-import type {IUserController} from "../../../src/api/main/UserController.js"
+import type {UserController} from "../../../src/api/main/UserController.js"
 import {createUser} from "../../../src/api/entities/sys/TypeRefs.js"
 import {createUserAlarmInfoListType} from "../../../src/api/entities/sys/TypeRefs.js"
 import {createUserAlarmInfo} from "../../../src/api/entities/sys/TypeRefs.js"
@@ -1376,7 +1376,7 @@ function makeWorkerClient(): WorkerClient {
 	return downcast({})
 }
 
-function makeLoginController(props: Partial<IUserController> = {}): LoginController {
+function makeLoginController(props: Partial<UserController> = {}): LoginController {
 	const userController = downcast(
 			Object.assign(props, {
 				user: createUser({

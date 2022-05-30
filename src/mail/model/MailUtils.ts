@@ -25,7 +25,7 @@ import {getContactDisplayName} from "../../contacts/model/ContactUtils"
 import type {lazyIcon} from "../../gui/base/Icon"
 import type {MailFolder} from "../../api/entities/tutanota/TypeRefs.js"
 import type {GroupInfo} from "../../api/entities/sys/TypeRefs.js"
-import type {IUserController} from "../../api/main/UserController"
+import type {UserController} from "../../api/main/UserController"
 import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import type {ContactModel} from "../../contacts/model/ContactModel"
 import type {User} from "../../api/entities/sys/TypeRefs.js"
@@ -128,7 +128,7 @@ export function isExcludedMailAddress(mailAddress: string): boolean {
 /**
  * @return {string} default mail address
  */
-export function getDefaultSenderFromUser({props, userGroupInfo}: IUserController): string {
+export function getDefaultSenderFromUser({props, userGroupInfo}: UserController): string {
 	return props.defaultSender && contains(getEnabledMailAddressesForGroupInfo(userGroupInfo), props.defaultSender)
 		? props.defaultSender
 		: neverNull(userGroupInfo.mailAddress)
@@ -267,7 +267,7 @@ export function getSenderName(mailboxDetails: MailboxDetail): string {
 	return getSenderNameForUser(mailboxDetails, globalLogins.getUserController())
 }
 
-export function getSenderNameForUser(mailboxDetails: MailboxDetail, userController: IUserController): string {
+export function getSenderNameForUser(mailboxDetails: MailboxDetail, userController: UserController): string {
 	if (isUserMailbox(mailboxDetails)) {
 		// external users do not have access to the user group info
 		return userController.userGroupInfo.name

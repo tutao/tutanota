@@ -34,7 +34,7 @@ import {isMailAddress} from "../../misc/FormatValidator"
 import type {ContactModel} from "../../contacts/model/ContactModel"
 import type {Language, TranslationKey, TranslationText} from "../../misc/LanguageViewModel"
 import {getAvailableLanguageCode, getSubstitutedLanguageCode, lang, languages} from "../../misc/LanguageViewModel"
-import type {IUserController} from "../../api/main/UserController"
+import type {UserController} from "../../api/main/UserController"
 import {RecipientsNotFoundError} from "../../api/common/error/RecipientsNotFoundError"
 import {checkApprovalStatus} from "../../misc/LoginUtils"
 import {EntityClient} from "../../api/common/EntityClient"
@@ -167,7 +167,7 @@ export class SendMailModel {
 		}
 	}
 
-	user(): IUserController {
+	user(): UserController {
 		return this.logins.getUserController()
 	}
 

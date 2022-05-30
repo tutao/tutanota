@@ -53,7 +53,7 @@ import {DateTime} from "luxon"
 import {NotFoundError, PayloadTooLargeError, TooManyRequestsError} from "../../api/common/error/RestError"
 import type {CalendarUpdateDistributor} from "./CalendarUpdateDistributor"
 import {calendarUpdateDistributor} from "./CalendarUpdateDistributor"
-import type {IUserController} from "../../api/main/UserController"
+import type {UserController} from "../../api/main/UserController"
 import type {SendMailModel} from "../../mail/editor/SendMailModel"
 import {UserError} from "../../api/main/UserError"
 import {logins} from "../../api/main/LoginController"
@@ -128,7 +128,7 @@ export class CalendarEventViewModel {
 	alarms: ReadonlyArray<AlarmInfo>
 	// UserController already keeps track of user updates, it is better to not have our own reference to the user, we might miss
 	// important updates like premium upgrade
-	readonly _userController: IUserController
+	readonly _userController: UserController
 	readonly _eventType: EventType
 	readonly _distributor: CalendarUpdateDistributor
 	readonly _calendarModel: CalendarModel
@@ -152,7 +152,7 @@ export class CalendarEventViewModel {
 	readonly initialized: Promise<CalendarEventViewModel>
 
 	constructor(
-		userController: IUserController,
+		userController: UserController,
 		distributor: CalendarUpdateDistributor,
 		calendarModel: CalendarModel,
 		entityClient: EntityClient,
@@ -330,7 +330,7 @@ export class CalendarEventViewModel {
 	 *
 	 *   **** The creator of the event. Will be overwritten with owner of the calendar by this function.
 	 */
-	private initEventTypeAndOrganizers(existingEvent: CalendarEvent | null, calendars: ReadonlyMap<Id, CalendarInfo>, mailboxDetail: MailboxDetail, userController: IUserController): InitEventTypeReturn {
+	private initEventTypeAndOrganizers(existingEvent: CalendarEvent | null, calendars: ReadonlyMap<Id, CalendarInfo>, mailboxDetail: MailboxDetail, userController: UserController): InitEventTypeReturn {
 		const ownDefaultSender = addressToMailAddress(getDefaultSenderFromUser(userController), mailboxDetail, userController)
 
 		if (!existingEvent) {
@@ -466,7 +466,7 @@ export class CalendarEventViewModel {
 		this.endTime = Time.fromDate(endTimeDate)
 	}
 
-	_ownPossibleOrganizers(mailboxDetail: MailboxDetail, userController: IUserController): Array<EncryptedMailAddress> {
+	_ownPossibleOrganizers(mailboxDetail: MailboxDetail, userController: UserController): Array<EncryptedMailAddress> {
 		return this._ownMailAddresses.map(address => addressToMailAddress(address, mailboxDetail, userController))
 	}
 
@@ -1256,7 +1256,7 @@ function areRepeatRulesEqual(r1: CalendarRepeatRule | null, r2: CalendarRepeatRu
 	)
 }
 
-function addressToMailAddress(address: string, mailboxDetail: MailboxDetail, userController: IUserController): EncryptedMailAddress {
+function addressToMailAddress(address: string, mailboxDetail: MailboxDetail, userController: UserController): EncryptedMailAddress {
 	return createEncryptedMailAddress({
 		address,
 		name: getSenderNameForUser(mailboxDetail, userController),

@@ -1,7 +1,7 @@
 import o from "ospec"
 // @ts-ignore[untyped-import]
 import en from "../../../src/translations/en.js"
-import type {IUserController} from "../../../src/api/main/UserController.js"
+import type {UserController} from "../../../src/api/main/UserController.js"
 import type {LoginController} from "../../../src/api/main/LoginController.js"
 import {MailModel} from "../../../src/mail/model/MailModel.js"
 import {
@@ -144,7 +144,7 @@ o.spec("SendMailModel", function () {
 			],
 		})
 
-		const userController = object<IUserController>()
+		const userController = object<UserController>()
 		replace(userController, "user", user)
 		replace(userController, "props", tutanotaProperties)
 		when(userController.loadCustomer()).thenResolve(createCustomer())
