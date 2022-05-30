@@ -30,11 +30,11 @@ export const enum ColumnWidth {
  */
 export type TableAttrs = {
 	columnHeading?: Array<lazy<string> | TranslationKey>
-	columnWidths: ColumnWidth[]
+	columnWidths: ReadonlyArray<ColumnWidth>
 	columnAlignments?: Array<boolean>
 	showActionButtonColumn: boolean
 	addButtonAttrs?: ButtonAttrs | null
-	lines: TableLineAttrs[] | null
+	lines: ReadonlyArray<TableLineAttrs> | null
 }
 export type CellTextData = {
 	main: string
@@ -83,7 +83,7 @@ export class TableN implements Component<TableAttrs> {
 	_createLine(
 		lineAttrs: TableLineAttrs,
 		showActionButtonColumn: boolean,
-		columnWidths: ColumnWidth[],
+		columnWidths: ReadonlyArray<ColumnWidth>,
 		bold: boolean,
 		columnAlignments: Array<boolean>,
 	): Children {
