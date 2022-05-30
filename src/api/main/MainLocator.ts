@@ -17,7 +17,7 @@ import {defer} from "@tutao/tutanota-utils"
 import {ProgressTracker} from "./ProgressTracker"
 import {MinimizedMailEditorViewModel} from "../../mail/model/MinimizedMailEditorViewModel"
 import {SchedulerImpl} from "../common/utils/Scheduler.js"
-import type {ICredentialsProvider} from "../../misc/credentials/CredentialsProvider"
+import type {CredentialsProvider} from "../../misc/credentials/CredentialsProvider.js"
 import {createCredentialsProvider} from "../../misc/credentials/CredentialsProviderFactory"
 import type {LoginFacade} from "../worker/facades/LoginFacade"
 import type {CustomerFacade} from "../worker/facades/CustomerFacade"
@@ -81,7 +81,7 @@ export interface IMainLocator {
 	readonly contactModel: ContactModel
 	readonly entityClient: EntityClient
 	readonly progressTracker: ProgressTracker
-	readonly credentialsProvider: ICredentialsProvider
+	readonly credentialsProvider: CredentialsProvider
 	readonly worker: WorkerClient
 	readonly native: NativeInterfaceMain
 	readonly fileController: FileController
@@ -135,7 +135,7 @@ class MainLocator implements IMainLocator {
 	contactModel!: ContactModel
 	entityClient!: EntityClient
 	progressTracker!: ProgressTracker
-	credentialsProvider!: ICredentialsProvider
+	credentialsProvider!: CredentialsProvider
 	worker!: WorkerClient
 	fileController!: FileController
 	secondFactorHandler!: SecondFactorHandler

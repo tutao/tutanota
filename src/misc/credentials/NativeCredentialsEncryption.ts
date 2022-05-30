@@ -1,5 +1,5 @@
-import type {CredentialsEncryption, PersistentCredentials} from "./CredentialsProvider"
-import {CredentialsAndDatabaseKey} from "./CredentialsProvider"
+import type {CredentialsEncryption, PersistentCredentials} from "./CredentialsProvider.js"
+import {CredentialsAndDatabaseKey} from "./CredentialsProvider.js"
 import type {ICredentialsKeyProvider} from "./CredentialsKeyProvider"
 import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
 import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"

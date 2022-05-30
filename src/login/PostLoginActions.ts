@@ -21,7 +21,7 @@ import {showMoreStorageNeededOrderDialog} from "../misc/SubscriptionDialogs"
 import {notifications} from "../gui/Notifications"
 import {CustomerInfoTypeRef, CustomerPropertiesTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {LockedError} from "../api/common/error/RestError"
-import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
+import type {CredentialsProvider} from "../misc/credentials/CredentialsProvider.js"
 import {usingKeychainAuthentication} from "../misc/credentials/CredentialsProviderFactory"
 import type {ThemeCustomizations} from "../misc/WhitelabelCustomizations"
 import {getThemeCustomizations} from "../misc/WhitelabelCustomizations"
@@ -36,7 +36,7 @@ import {TtlBehavior} from "../misc/UsageTestModel"
 
 export class PostLoginActions implements IPostLoginAction {
 	constructor(
-		public readonly credentialsProvider: ICredentialsProvider,
+		public readonly credentialsProvider: CredentialsProvider,
 		public secondFactorHandler: SecondFactorHandler,
 	) {
 	}

@@ -29,7 +29,7 @@ import {SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
 import {formatPrice, getPaymentMethodName, getSubscriptionPrice} from "../PriceUtils"
 import {TextField} from "../../gui/base/TextField.js"
 import {elementIdPart, isSameId} from "../../api/common/utils/EntityUtils"
-import type {CredentialsInfo, ICredentialsProvider} from "../../misc/credentials/CredentialsProvider"
+import type {CredentialsInfo, ICredentialsProvider} from "../../misc/credentials/CredentialsProvider.js"
 import {SessionType} from "../../api/common/SessionType.js";
 import {NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError.js"
 import {GiftCardFacade} from "../../api/worker/facades/GiftCardFacade.js"

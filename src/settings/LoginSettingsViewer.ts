@@ -24,7 +24,7 @@ import {ColumnWidth, Table} from "../gui/base/Table.js"
 import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
 import type {UpdatableSettingsViewer} from "./SettingsView"
 import {CredentialEncryptionMode} from "../misc/credentials/CredentialEncryptionMode"
-import type {ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
+import type {CredentialsProvider} from "../misc/credentials/CredentialsProvider.js"
 import {hasKeychainAuthenticationOptions} from "../misc/credentials/CredentialsProviderFactory"
 import {showCredentialsEncryptionModeDialog} from "../gui/dialogs/SelectCredentialsEncryptionModeDialog"
 import {assertMainOrNode} from "../api/common/Env"
@@ -40,9 +40,9 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	private readonly _closedSessionsExpanded: Stream<boolean>
 	private _sessions: Session[]
 	private readonly _secondFactorsForm: EditSecondFactorsForm
-	private readonly _credentialsProvider: ICredentialsProvider
+	private readonly _credentialsProvider: CredentialsProvider
 
-	constructor(credentialsProvider: ICredentialsProvider) {
+	constructor(credentialsProvider: CredentialsProvider) {
 		this._credentialsProvider = credentialsProvider
 		this._mailAddress = stream(neverNull(logins.getUserController().userGroupInfo.mailAddress))
 		this._stars = stream("***")

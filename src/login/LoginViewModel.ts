@@ -6,7 +6,7 @@ import type {LoginController} from "../api/main/LoginController"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
-import type {CredentialsInfo, ICredentialsProvider} from "../misc/credentials/CredentialsProvider"
+import type {CredentialsInfo, CredentialsProvider} from "../misc/credentials/CredentialsProvider.js"
 import {CredentialAuthenticationError} from "../api/common/error/CredentialAuthenticationError"
 import {first, noOp} from "@tutao/tutanota-utils"
 import {KeyPermanentlyInvalidatedError} from "../api/common/error/KeyPermanentlyInvalidatedError"
@@ -131,7 +131,7 @@ export class LoginViewModel implements ILoginViewModel {
 
 	constructor(
 		private readonly loginController: LoginController,
-		private readonly credentialsProvider: ICredentialsProvider,
+		private readonly credentialsProvider: CredentialsProvider,
 		private readonly secondFactorHandler: SecondFactorHandler,
 		private readonly databaseKeyFactory: DatabaseKeyFactory,
 		private readonly deviceConfig: DeviceConfig,

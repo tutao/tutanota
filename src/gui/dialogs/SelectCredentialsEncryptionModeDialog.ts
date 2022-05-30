@@ -1,6 +1,6 @@
 import {CredentialEncryptionMode} from "../../misc/credentials/CredentialEncryptionMode"
 import {Dialog, DialogType} from "../base/Dialog"
-import type {ICredentialsProvider} from "../../misc/credentials/CredentialsProvider"
+import type {CredentialsProvider} from "../../misc/credentials/CredentialsProvider.js"
 import m, {Children, Component, Vnode} from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {theme} from "../theme"
@@ -17,12 +17,12 @@ import {windowFacade} from "../../misc/WindowFacade"
 
 const DEFAULT_MODE = CredentialEncryptionMode.DEVICE_LOCK
 
-export async function showCredentialsEncryptionModeDialog(credentialsProvider: ICredentialsProvider) {
+export async function showCredentialsEncryptionModeDialog(credentialsProvider: CredentialsProvider) {
 	await CredentialEncryptionMethodDialog.showAndWaitForSelection(credentialsProvider)
 }
 
 class CredentialEncryptionMethodDialog {
-	readonly _credentialsProvider: ICredentialsProvider
+	readonly _credentialsProvider: CredentialsProvider
 	_error: string | null
 	readonly _finished: DeferredObject<void>
 	readonly _dialog: Dialog
@@ -31,7 +31,7 @@ class CredentialEncryptionMethodDialog {
 
 	/** @private */
 	constructor(
-		credentialsProvider: ICredentialsProvider,
+		credentialsProvider: CredentialsProvider,
 		supportedModes: ReadonlyArray<CredentialEncryptionMode>,
 		previousSelection: CredentialEncryptionMode | null,
 	) {
@@ -76,7 +76,7 @@ class CredentialEncryptionMethodDialog {
 		})
 	}
 
-	static async showAndWaitForSelection(credentialsProvider: ICredentialsProvider) {
+	static async showAndWaitForSelection(credentialsProvider: CredentialsProvider) {
 		const supportedModes = await credentialsProvider.getSupportedEncryptionModes()
 		const previousSelection = credentialsProvider.getCredentialsEncryptionMode()
 		const credentialsDialog = new CredentialEncryptionMethodDialog(credentialsProvider, supportedModes, previousSelection)
