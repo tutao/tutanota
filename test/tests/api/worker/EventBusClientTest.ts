@@ -19,7 +19,7 @@ import {EntityRestClientMock} from "./rest/EntityRestClientMock.js"
 import {EntityClient} from "../../../../src/api/common/EntityClient.js"
 import {defer, noOp} from "@tutao/tutanota-utils"
 import {WorkerImpl} from "../../../../src/api/worker/WorkerImpl.js"
-import {LoginFacadeImpl} from "../../../../src/api/worker/facades/LoginFacade.js"
+import {LoginFacade} from "../../../../src/api/worker/facades/LoginFacade.js"
 import {InstanceMapper} from "../../../../src/api/worker/crypto/InstanceMapper.js"
 import {EntityRestCache} from "../../../../src/api/worker/rest/EntityRestCache.js"
 import {QueuedBatch} from "../../../../src/api/worker/search/EventQueue.js"
@@ -37,7 +37,7 @@ o.spec("EventBusClient test", function () {
 	let cacheMock: EntityRestCache
 	let restClient: EntityRestClientMock
 	let workerMock: WorkerImpl
-	let loginMock: LoginFacadeImpl
+	let loginMock: LoginFacade
 	let userMock: UserFacade
 	let mailMock: MailFacade
 	let indexerMock: Indexer

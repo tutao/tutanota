@@ -1,6 +1,6 @@
 import type {ObjectStoreName} from "../search/DbFacade"
 import {b64UserIdHash, DbFacade} from "../search/DbFacade"
-import {LoginFacadeImpl} from "./LoginFacade"
+import {LoginFacade} from "./LoginFacade"
 import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {Metadata} from "../search/Indexer"
 import {LazyLoaded} from "@tutao/tutanota-utils"
