@@ -24,8 +24,7 @@ import {EntityClient} from "../common/EntityClient"
 import {GiftCardFacade} from "./facades/GiftCardFacade"
 import {ConfigurationDatabase} from "./facades/ConfigurationDatabase"
 import {ContactFormFacade} from "./facades/ContactFormFacade"
-import type {DeviceEncryptionFacade} from "./facades/DeviceEncryptionFacade"
-import {Aes256DeviceEncryptionFacade} from "./facades/DeviceEncryptionFacade"
+import {DeviceEncryptionFacade} from "./facades/DeviceEncryptionFacade"
 import type {NativeInterface} from "../../native/common/NativeInterface"
 import {NativeFileApp} from "../../native/common/FileApp"
 import {AesApp} from "../../native/worker/AesApp"
@@ -218,7 +217,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.giftCards = new GiftCardFacade(locator.user, locator.customer, locator.serviceExecutor, locator.crypto)
 	locator.configFacade = new ConfigurationDatabase(locator.user)
 	locator.contactFormFacade = new ContactFormFacade(locator.restClient, locator.instanceMapper)
-	locator.deviceEncryptionFacade = new Aes256DeviceEncryptionFacade()
+	locator.deviceEncryptionFacade = new DeviceEncryptionFacade()
 }
 
 export async function resetLocator(): Promise<void> {
