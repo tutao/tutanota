@@ -1,43 +1,42 @@
 import m from "mithril"
-import stream from "mithril/stream"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {InvalidDataError, LockedError, PreconditionFailedError} from "../api/common/error/RestError"
 import {TextFieldAttrs, TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
-import {neverNull} from "@tutao/tutanota-utils"
+import {neverNull, ofClass} from "@tutao/tutanota-utils"
 import {logins} from "../api/main/LoginController"
 import {getCleanedMailAddress} from "../misc/parsing/MailAddressParser"
-import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 import {getEtId} from "../api/common/utils/EntityUtils"
 
 export function showDeleteAccountDialog() {
 	let why = ""
-	const whyFieldAttrs: TextFieldAttrs = {
-		label: "deleteAccountReason_label",
-		value: why,
-		oninput: value => (why = value),
-		helpLabel: () => lang.get("deleteAccountReasonInfo_msg"),
-	} as const
 	let takeover = ""
-	const takeoverFieldAttrs: TextFieldAttrs = {
-		label: "targetAddress_label",
-		value: takeover,
-		oninput: value => (takeover = value),
-		helpLabel: () => lang.get("takeoverMailAddressInfo_msg"),
-	} as const
 	let password = ""
-	const passwordFieldAttrs: TextFieldAttrs = {
-		label: "password_label",
-		value: password,
-		oninput: value => (password = value),
-		helpLabel: () => lang.get("passwordEnterNeutral_msg"),
-		type: TextFieldType.Password,
-	} as const
 	Dialog.showActionDialog({
 		title: lang.get("adminDeleteAccount_action"),
 		child: {
-			view: () => m("#delete-account-dialog", [m(TextFieldN, whyFieldAttrs), m(TextFieldN, takeoverFieldAttrs), m(TextFieldN, passwordFieldAttrs)]),
+			view: () => m("#delete-account-dialog", [
+				m(TextFieldN, {
+					label: "deleteAccountReason_label",
+					value: why,
+					oninput: value => (why = value),
+					helpLabel: () => lang.get("deleteAccountReasonInfo_msg"),
+				}),
+				m(TextFieldN, {
+					label: "targetAddress_label",
+					value: takeover,
+					oninput: value => (takeover = value),
+					helpLabel: () => lang.get("takeoverMailAddressInfo_msg"),
+				}),
+				m(TextFieldN, {
+					label: "password_label",
+					value: password,
+					oninput: value => (password = value),
+					helpLabel: () => lang.get("passwordEnterNeutral_msg"),
+					type: TextFieldType.Password,
+				}),
+			]),
 		},
 		okAction: () => {
 			deleteAccount(why, takeover, password).then(isDeleted => {

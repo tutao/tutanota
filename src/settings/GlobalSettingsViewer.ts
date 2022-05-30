@@ -582,13 +582,13 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				)
 			}),
 		).then(availableAndSelectedGroupDatas => {
-			const valueStream = stream(availableAndSelectedGroupDatas.selected ? availableAndSelectedGroupDatas.selected.groupId : null)
+			const initialValue = availableAndSelectedGroupDatas.selected ? availableAndSelectedGroupDatas.selected.groupId : null
 			return Dialog.showDropDownSelectionDialog(
 				"setCatchAllMailbox_action",
 				"catchAllMailbox_label",
 				null,
 				availableAndSelectedGroupDatas.available,
-				valueStream,
+				initialValue,
 				250,
 			).then(selectedMailGroupId => {
 				return locator.customerFacade.setCatchAllGroup(domainInfo.domain, selectedMailGroupId)

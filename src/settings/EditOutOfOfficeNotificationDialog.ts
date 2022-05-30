@@ -72,7 +72,7 @@ export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: O
 		],
 		middle: () => lang.get("outOfOfficeNotification_title"),
 	}
-	const dialog = Dialog.largeDialogN(dialogHeaderAttrs, EditoOutOfOfficeNotificationDialog, {
+	const dialog = Dialog.largeDialogN(dialogHeaderAttrs, EditOutOfOfficeNotificationDialog, {
 		model: dialogModel,
 		organizationMessageEditor,
 		defaultMessageEditor,
@@ -91,52 +91,108 @@ export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: O
 	dialog.show()
 }
 
-type EditoOutOfOfficeNotificationDialogAttrs = {
+type EditOutOfOfficeNotificationDialogAttrs = {
 	model: EditOutOfOfficeNotificationDialogModel
 	defaultMessageEditor: HtmlEditor
 	organizationMessageEditor: HtmlEditor
 }
 
-class EditoOutOfOfficeNotificationDialog implements Component<EditoOutOfOfficeNotificationDialogAttrs> {
-	_statusSelectorAttrs: DropDownSelectorAttrs<boolean>
-	_recipientSelectorAttrs: DropDownSelectorAttrs<RecipientMessageType>
-	_timeRangeCheckboxAttrs: CheckboxAttrs
-	_defaultSubjectAttrs: TextFieldAttrs
-	_organizationSubjectAttrs: TextFieldAttrs
+class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNotificationDialogAttrs> {
+	view(vnode: Vnode<EditOutOfOfficeNotificationDialogAttrs>): Children {
+		const {model, defaultMessageEditor, organizationMessageEditor} = vnode.attrs
+		const defaultEnabled = model.isDefaultMessageEnabled()
+		const organizationEnabled = model.isOrganizationMessageEnabled()
+		const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
+		return [
+			this.renderEnabled(model),
+			this.renderRecipients(model),
+			m(".mt.flex-start", m(CheckboxN, {
+					label: () => lang.get("outOfOfficeTimeRange_msg"),
+					checked: model.timeRangeEnabled(),
+					onChecked: model.timeRangeEnabled,
+					helpLabel: () => lang.get("outOfOfficeTimeRangeHelp_msg"),
+				}
+			)),
+			model.timeRangeEnabled() ? this.renderTimeRangeSelector(model, startOfTheWeekOffset) : null,
+			m(".mt-l", lang.get("outOfOfficeUnencrypted_msg")),
+			organizationEnabled
+				? this.renderOrganizations(model, organizationMessageEditor)
+				: null,
+			defaultEnabled
+				? this.renderDefault(organizationEnabled, model, defaultMessageEditor)
+				: null,
+			m(".pb", ""),
+		]
+	}
 
-	constructor(vnode: Vnode<EditoOutOfOfficeNotificationDialogAttrs>) {
-		const {model} = vnode.attrs
+	private renderEnabled(model: EditOutOfOfficeNotificationDialogModel) {
 		const statusItems = [
-			{
-				name: lang.get("deactivated_label"),
-				value: false,
-			},
-			{
-				name: lang.get("activated_label"),
-				value: true,
-			},
+			{name: lang.get("deactivated_label"), value: false},
+			{name: lang.get("activated_label"), value: true},
 		]
-		this._statusSelectorAttrs = {
-			label: "state_label",
-			items: statusItems,
-			selectedValue: model.enabled(),
-			selectionChangedHandler: model.enabled,
-		}
-		const recipientItems = [
-			{
-				name: lang.get("everyone_label"),
-				value: RecipientMessageType.EXTERNAL_TO_EVERYONE,
-			},
-			{
-				name: lang.get("insideOutside_label"),
-				value: RecipientMessageType.INTERNAL_AND_EXTERNAL,
-			},
-			{
-				name: lang.get("insideOnly_label"),
-				value: RecipientMessageType.INTERNAL_ONLY,
-			},
-		]
+		return m(DropDownSelectorN, {
+				label: "state_label",
+				items: statusItems,
+				selectedValue: model.enabled(),
+				selectionChangedHandler: model.enabled,
+			}
+		)
+	}
 
+	private renderDefault(organizationEnabled: boolean, model: EditOutOfOfficeNotificationDialogModel, defaultMessageEditor: HtmlEditor) {
+		return [
+			m(".h4.text-center.mt-l", getDefaultNotificationLabel(organizationEnabled)),
+			m(TextFieldN, {
+					label: "subject_label",
+					value: model.defaultSubject(),
+					oninput: model.defaultSubject,
+					injectionsLeft: () =>
+						m(
+							".flex-no-grow-no-shrink-auto.pr-s",
+							{
+								style: {
+									"line-height": px(24),
+									opacity: "1",
+								},
+							},
+							OUT_OF_OFFICE_SUBJECT_PREFIX,
+						),
+				}
+			),
+			m(defaultMessageEditor),
+		]
+	}
+
+	private renderOrganizations(model: EditOutOfOfficeNotificationDialogModel, organizationMessageEditor: HtmlEditor) {
+		return [
+			m(".h4.text-center.mt-l", lang.get("outOfOfficeInternal_msg")),
+			m(TextFieldN, {
+					label: "subject_label",
+					value: model.organizationSubject(),
+					oninput: model.organizationSubject,
+					injectionsLeft: () =>
+						m(
+							".flex-no-grow-no-shrink-auto.pr-s",
+							{
+								style: {
+									"line-height": px(24),
+									opacity: "1",
+								},
+							},
+							OUT_OF_OFFICE_SUBJECT_PREFIX,
+						),
+				}
+			),
+			m(organizationMessageEditor)
+		]
+	}
+
+	private renderRecipients(model: EditOutOfOfficeNotificationDialogModel) {
+		const recipientItems = [
+			{name: lang.get("everyone_label"), value: RecipientMessageType.EXTERNAL_TO_EVERYONE},
+			{name: lang.get("insideOutside_label"), value: RecipientMessageType.INTERNAL_AND_EXTERNAL},
+			{name: lang.get("insideOnly_label"), value: RecipientMessageType.INTERNAL_ONLY},
+		]
 		const recipientHelpLabel: lazy<string> = () => {
 			switch (model.recipientMessageTypes()) {
 				case RecipientMessageType.EXTERNAL_TO_EVERYONE:
@@ -153,83 +209,16 @@ class EditoOutOfOfficeNotificationDialog implements Component<EditoOutOfOfficeNo
 			}
 		}
 
-		this._recipientSelectorAttrs = {
+		return m(DropDownSelectorN, {
 			label: "outOfOfficeRecipients_label",
 			items: recipientItems,
 			selectedValue: model.recipientMessageTypes(),
 			selectionChangedHandler: model.recipientMessageTypes,
 			helpLabel: recipientHelpLabel,
-		}
-		this._timeRangeCheckboxAttrs = {
-			label: () => lang.get("outOfOfficeTimeRange_msg"),
-			checked: model.timeRangeEnabled(),
-			onChecked: model.timeRangeEnabled,
-			helpLabel: () => lang.get("outOfOfficeTimeRangeHelp_msg"),
-		}
-		this._defaultSubjectAttrs = {
-			label: "subject_label",
-			value: model.defaultSubject(),
-			oninput: model.defaultSubject,
-			injectionsLeft: () =>
-				m(
-					".flex-no-grow-no-shrink-auto.pr-s",
-					{
-						style: {
-							"line-height": px(24),
-							opacity: "1",
-						},
-					},
-					OUT_OF_OFFICE_SUBJECT_PREFIX,
-				),
-		}
-		this._organizationSubjectAttrs = {
-			label: "subject_label",
-			value: model.organizationSubject(),
-			oninput: model.organizationSubject,
-			injectionsLeft: () =>
-				m(
-					".flex-no-grow-no-shrink-auto.pr-s",
-					{
-						style: {
-							"line-height": px(24),
-							opacity: "1",
-						},
-					},
-					OUT_OF_OFFICE_SUBJECT_PREFIX,
-				),
-		}
+		})
 	}
 
-	view(vnode: Vnode<EditoOutOfOfficeNotificationDialogAttrs>): Children {
-		const {model, defaultMessageEditor, organizationMessageEditor} = vnode.attrs
-		const defaultEnabled = model.isDefaultMessageEnabled()
-		const organizationEnabled = model.isOrganizationMessageEnabled()
-		const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
-		return [
-			m(DropDownSelectorN, this._statusSelectorAttrs),
-			m(DropDownSelectorN, this._recipientSelectorAttrs),
-			m(".mt.flex-start", m(CheckboxN, this._timeRangeCheckboxAttrs)),
-			model.timeRangeEnabled() ? this.renderTimeRangeSelector(model, startOfTheWeekOffset) : null,
-			m(".mt-l", lang.get("outOfOfficeUnencrypted_msg")),
-			organizationEnabled
-				? [
-					m(".h4.text-center.mt-l", lang.get("outOfOfficeInternal_msg")),
-					m(TextFieldN, this._organizationSubjectAttrs),
-					m(organizationMessageEditor)
-				]
-				: null,
-			defaultEnabled
-				? [
-					m(".h4.text-center.mt-l", getDefaultNotificationLabel(organizationEnabled)),
-					m(TextFieldN, this._defaultSubjectAttrs),
-					m(defaultMessageEditor),
-				]
-				: null,
-			m(".pb", ""),
-		]
-	}
-
-	renderTimeRangeSelector(model: EditOutOfOfficeNotificationDialogModel, startOfTheWeekOffset: number): Children {
+	private renderTimeRangeSelector(model: EditOutOfOfficeNotificationDialogModel, startOfTheWeekOffset: number): Children {
 		return m(".flex.col", [
 			m(DatePicker, {
 				date: model.startDate(),
