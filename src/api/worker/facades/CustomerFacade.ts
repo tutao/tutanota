@@ -56,75 +56,12 @@ import {UserFacade} from "./UserFacade"
 
 assertWorkerOrNode()
 
-export interface CustomerFacade {
-	generateSignupKeys(): Promise<[RsaKeyPair, RsaKeyPair, RsaKeyPair]>
-
-	signup(
-		keyPairs: [RsaKeyPair, RsaKeyPair, RsaKeyPair],
-		accountType: AccountType,
-		authToken: string,
-		mailAddress: string,
-		password: string,
-		registrationCode: string,
-		currentLanguage: string,
-	): Promise<Hex>
-
-	/**
-	 * Reads the used storage of a customer in bytes.
-	 * @return The amount of used storage in byte.
-	 */
-	readUsedCustomerStorage(customerId: Id): Promise<number>
-
-	/**
-	 * Reads the available storage capacity of a customer in bytes.
-	 * @return The amount of available storage capacity in byte.
-	 */
-	readAvailableCustomerStorage(customerId: Id): Promise<number>
-
-	loadCustomerServerProperties(): Promise<CustomerServerProperties>
-
-	loadAccountingInfo(): Promise<AccountingInfo>
-
-	editSpamRule(spamRule: EmailSenderListElement): Promise<void>
-
-	setCatchAllGroup(domainName: string, mailGroupId: Id | null): Promise<void>
-
-	removeDomain(domainName: string): Promise<void>
-
-	orderWhitelabelCertificate(domainName: string): Promise<void>
-
-	addSpamRule(field: SpamRuleFieldType, type: SpamRuleType, value: string): Promise<void>
-
-	downloadInvoice(invoiceNumber: string): Promise<DataFile>
-
-	updatePaymentData(
-		paymentInterval: number,
-		invoiceData: InvoiceData,
-		paymentData: PaymentData | null,
-		confirmedInvoiceCountry: Country | null,
-	): Promise<PaymentDataServicePutReturn>
-
-	switchFreeToPremiumGroup(): Promise<void>
-
-	createContactFormUser(password: string, contactFormId: IdTuple): Promise<ContactFormAccountReturn>
-
-	createContactFormUserGroupData(): Promise<void>
-
-	switchPremiumToFreeGroup(): Promise<void>
-
-	getDomainValidationRecord(domainName: string): Promise<string>
-
-	addDomain(domainName: string): Promise<CustomDomainReturn>
-
-	deleteCertificate(domainName: string): Promise<void>
-}
-
 interface ContactFormUserGroupData {
 	userGroupKey: Aes128Key
 	userGroupData: InternalGroupData
 }
 
-export class CustomerFacadeImpl implements CustomerFacade {
+export class CustomerFacade {
 	private contactFormUserGroupData: Promise<ContactFormUserGroupData> | null
 
 	constructor(
@@ -202,7 +139,10 @@ export class CustomerFacadeImpl implements CustomerFacade {
 		})
 		await this.serviceExecutor.delete(BrandingDomainService, data)
 	}
-
+	/**
+	 * Reads the used storage of a customer in bytes.
+	 * @return The amount of used storage in byte.
+	 */
 	readUsedCustomerStorage(customerId: Id): Promise<number> {
 		return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY_INTERNAL, customerId).then(usedMemoryInternal => {
 			return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY_EXTERNAL, customerId).then(usedMemoryExternal => {
@@ -211,6 +151,10 @@ export class CustomerFacadeImpl implements CustomerFacade {
 		})
 	}
 
+	/**
+	 * Reads the available storage capacity of a customer in bytes.
+	 * @return The amount of available storage capacity in byte.
+	 */
 	readAvailableCustomerStorage(customerId: Id): Promise<number> {
 		return this.entityClient.load(CustomerTypeRef, customerId).then(customer => {
 			return this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
@@ -385,7 +329,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 		return Promise.resolve()
 	}
 
-	async _getContactFormUserGroupData(): Promise<ContactFormUserGroupData> {
+	private async getContactFormUserGroupData(): Promise<ContactFormUserGroupData> {
 		if (this.contactFormUserGroupData) {
 			return this.contactFormUserGroupData
 		} else {
@@ -398,7 +342,7 @@ export class CustomerFacadeImpl implements CustomerFacade {
 	 * @pre CustomerFacade#createContactFormUserGroupData has been invoked before
 	 */
 	async createContactFormUser(password: string, contactFormId: IdTuple): Promise<ContactFormAccountReturn> {
-		const contactFormUserGroupData = await this._getContactFormUserGroupData()
+		const contactFormUserGroupData = await this.getContactFormUserGroupData()
 		let {userGroupKey, userGroupData} = contactFormUserGroupData
 		await this.worker.sendProgress(35)
 		let data = createContactFormAccountData()
