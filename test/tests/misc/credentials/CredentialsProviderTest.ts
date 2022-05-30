@@ -8,7 +8,6 @@ import type {
 import {CredentialsProvider} from "../../../../src/misc/credentials/CredentialsProvider.js"
 import {assertNotNull, base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {CredentialEncryptionMode} from "../../../../src/misc/credentials/CredentialEncryptionMode.js"
-import type {ICredentialsKeyMigrator} from "../../../../src/misc/credentials/CredentialsKeyMigrator.js"
 import type {Credentials} from "../../../../src/misc/credentials/Credentials.js"
 import {instance, object, when} from "testdouble"
 import {DatabaseKeyFactory} from "../../../../src/misc/credentials/DatabaseKeyFactory.js"
@@ -17,6 +16,7 @@ import {OfflineDbFacade} from "../../../../src/desktop/db/OfflineDbFacade.js"
 import {InterWindowEventBus} from "../../../../src/native/common/InterWindowEventBus.js"
 import {verify} from "@tutao/tutanota-test-utils"
 import {InterWindowEventTypes} from "../../../../src/native/common/InterWindowEventTypes"
+import {CredentialsKeyMigrator} from "../../../../src/misc/credentials/CredentialsKeyMigrator.js"
 
 const encryptionKey = new Uint8Array([1, 2, 5, 8])
 
@@ -73,7 +73,7 @@ o.spec("CredentialsProvider", function () {
 	let encryptedInternalCredentials: PersistentCredentials
 	let encryptedExternalCredentials: PersistentCredentials
 	let encryptedInternalCredentialsWithoutDatabaseKey: Omit<PersistentCredentials, "databaseKey">
-	let keyMigratorMock: ICredentialsKeyMigrator
+	let keyMigratorMock: CredentialsKeyMigrator
 	let databaseKeyFactoryMock: DatabaseKeyFactory
 	let offlineDbFacadeMock: OfflineDbFacade
 	let interWindowEventBusMock: InterWindowEventBus<InterWindowEventTypes>
@@ -131,7 +131,7 @@ o.spec("CredentialsProvider", function () {
 		encryption = new CredentialsEncryptionStub()
 		storageMock = object<CredentialsStorage>()
 
-		keyMigratorMock = object<ICredentialsKeyMigrator>()
+		keyMigratorMock = object<CredentialsKeyMigrator>()
 		databaseKeyFactoryMock = instance(DatabaseKeyFactory)
 		offlineDbFacadeMock = object()
 		interWindowEventBusMock = object()

@@ -14,7 +14,7 @@ import {IndexerCore} from "./IndexerCore"
 import {ElementDataOS, GroupDataOS, Metadata, MetaDataOS} from "./Indexer"
 import type {WorkerImpl} from "../WorkerImpl"
 import {DbError} from "../../common/error/DbError"
-import {EntityRestCache} from "../rest/EntityRestCache"
+import {DefaultEntityRestCache} from "../rest/DefaultEntityRestCache.js"
 import type {DateProvider} from "../DateProvider"
 import type {EntityUpdate, GroupMembership, User} from "../../entities/sys/TypeRefs.js"
 import {EntityRestClient} from "../rest/EntityRestClient"
@@ -41,7 +41,7 @@ export class MailIndexer {
 	_db: Db
 	_worker: WorkerImpl
 	_entityRestClient: EntityRestClient
-	_defaultCachingEntityRestClient: EntityRestCache
+	_defaultCachingEntityRestClient: DefaultEntityRestCache
 	_defaultCachingEntity: EntityClient
 	_dateProvider: DateProvider
 
@@ -52,7 +52,7 @@ export class MailIndexer {
 		db: Db,
 		worker: WorkerImpl,
 		entityRestClient: EntityRestClient,
-		defaultCachingRestClient: EntityRestCache,
+		defaultCachingRestClient: DefaultEntityRestCache,
 		dateProvider: DateProvider,
 	) {
 		this._core = core
@@ -663,21 +663,21 @@ type MboxIndexData = {
 }
 
 class IndexLoader {
-	private readonly entityCache: EntityRestCache
+	private readonly entityCache: DefaultEntityRestCache
 	// modified in tests
 	_entity: EntityClient
 	private readonly cachingEntity: EntityClient
 
 	constructor(
 		restClient: EntityRestClient,
-		cachingEntityClient: EntityRestCache,
+		cachingEntityClient: DefaultEntityRestCache,
 		private isUsingOfflineCache: boolean
 	) {
 		if (isUsingOfflineCache) {
 			this.entityCache = cachingEntityClient
 			this._entity = new EntityClient(cachingEntityClient)
 		} else {
-			cachingEntityClient = new EntityRestCache(restClient, new EphemeralCacheStorage())
+			cachingEntityClient = new DefaultEntityRestCache(restClient, new EphemeralCacheStorage())
 			this._entity = new EntityClient(restClient)
 		}
 		this.entityCache = cachingEntityClient

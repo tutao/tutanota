@@ -1,7 +1,7 @@
 import type {Base64, Base64Url} from "@tutao/tutanota-utils"
 
 /** Data obtained after logging in. */
-export type Credentials = {
+export interface Credentials {
 	/**
 	 * Identifier which we use for logging in.
 	 * Email address used to log in for internal users, userId for external users.

@@ -8,15 +8,7 @@ import {NativeCredentialsFacade} from "../../native/common/generatedipc/NativeCr
  * Interface for obtaining the key that is used to encrypt credentials. Any access to that key should always be done using this interface
  * rather than directly accessing device storage.
  */
-export interface ICredentialsKeyProvider {
-	/**
-	 * Return the key that is used for encrypting credentials on the device. If no key exists on the device, a new key will be created
-	 * and also stored in the device's credentials storage.
-	 */
-	getCredentialsKey(): Promise<Uint8Array>
-}
-
-export class CredentialsKeyProvider implements ICredentialsKeyProvider {
+export class CredentialsKeyProvider {
 
 	constructor(
 		private readonly nativeCredentials: NativeCredentialsFacade,
@@ -25,20 +17,24 @@ export class CredentialsKeyProvider implements ICredentialsKeyProvider {
 	) {
 	}
 
+	/**
+	 * Return the key that is used for encrypting credentials on the device. If no key exists on the device, a new key will be created
+	 * and also stored in the device's credentials storage.
+	 */
 	async getCredentialsKey(): Promise<Uint8Array> {
 		const encryptedCredentialsKey = this.credentialsStorage.getCredentialsEncryptionKey()
 
 		if (encryptedCredentialsKey) {
 			const credentialsKey = await this.nativeCredentials.decryptUsingKeychain(
 				encryptedCredentialsKey,
-				this._getEncryptionMode()
+				this.getEncryptionMode()
 			)
 			return credentialsKey
 		} else {
 			const credentialsKey = await this.deviceEncryptionFacade.generateKey()
 			const encryptedCredentialsKey = await this.nativeCredentials.encryptUsingKeychain(
 				credentialsKey,
-				this._getEncryptionMode()
+				this.getEncryptionMode()
 			)
 
 			this.credentialsStorage.setCredentialsEncryptionKey(encryptedCredentialsKey)
@@ -47,7 +43,7 @@ export class CredentialsKeyProvider implements ICredentialsKeyProvider {
 		}
 	}
 
-	_getEncryptionMode(): CredentialEncryptionMode {
+	private getEncryptionMode(): CredentialEncryptionMode {
 		const encryptionMode = this.credentialsStorage.getCredentialEncryptionMode()
 
 		if (!encryptionMode) {

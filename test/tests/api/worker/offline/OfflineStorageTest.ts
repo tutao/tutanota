@@ -22,7 +22,7 @@ import {
 import {MailFolderType} from "../../../../../src/api/common/TutanotaConstants.js"
 import {OfflineDb} from "../../../../../src/desktop/db/OfflineDb.js"
 import {aes256RandomKey} from "@tutao/tutanota-crypto"
-import {expandId} from "../../../../../src/api/worker/rest/EntityRestCache.js"
+import {expandId} from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 import {OfflineStorageMigrator} from "../../../../../src/api/worker/offline/OfflineStorageMigrator.js"
 
 const {anything} = matchers

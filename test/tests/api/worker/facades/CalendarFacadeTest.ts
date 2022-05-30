@@ -2,7 +2,7 @@ import o from "ospec"
 import type {EventWithAlarmInfos} from "../../../../../src/api/worker/facades/CalendarFacade.js"
 import {CalendarFacade} from "../../../../../src/api/worker/facades/CalendarFacade.js"
 import {EntityRestClientMock} from "../rest/EntityRestClientMock.js"
-import {EntityRestCache} from "../../../../../src/api/worker/rest/EntityRestCache.js"
+import {DefaultEntityRestCache} from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 import {downcast, isSameTypeRef, neverNull, noOp} from "@tutao/tutanota-utils"
 import type {AlarmInfo, User, UserAlarmInfo} from "../../../../../src/api/entities/sys/TypeRefs.js"
 import {
@@ -37,7 +37,7 @@ o.spec("CalendarFacadeTest", async function () {
 	let userFacade: UserFacade
 	let groupManagementFacade: GroupManagementFacade
 	let restClientMock: EntityRestClientMock
-	let entityRestCache: EntityRestCache
+	let entityRestCache: DefaultEntityRestCache
 	let calendarFacade: CalendarFacade
 	let progressMonitor: ProgressMonitor
 	let entityRequest: Function

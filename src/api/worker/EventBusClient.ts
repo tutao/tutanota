@@ -37,7 +37,7 @@ import {NoopProgressMonitor} from "../common/utils/ProgressMonitor"
 import {compareOldestFirst, firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, isSameId} from "../common/utils/EntityUtils"
 import {InstanceMapper} from "./crypto/InstanceMapper"
 import {WsConnectionState} from "../main/WorkerClient";
-import {IEntityRestCache} from "./rest/EntityRestCache"
+import {EntityRestCache} from "./rest/DefaultEntityRestCache.js"
 import {SleepDetector} from "./utils/SleepDetector.js"
 import sysModelInfo from "../entities/sys/ModelInfo.js"
 import tutanotaModelInfo from "../entities/tutanota/ModelInfo.js"
@@ -126,7 +126,7 @@ export class EventBusClient {
 	constructor(
 		private readonly worker: WorkerImpl,
 		private readonly indexer: Indexer,
-		private readonly cache: IEntityRestCache,
+		private readonly cache: EntityRestCache,
 		private readonly mail: MailFacade,
 		private readonly userFacade: UserFacade,
 		private readonly entity: EntityClient,

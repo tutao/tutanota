@@ -49,7 +49,7 @@ import {EntityRestClientMock} from "../rest/EntityRestClientMock.js"
 import type {DateProvider} from "../../../../../src/api/worker/DateProvider.js"
 import {LocalTimeDateProvider} from "../../../../../src/api/worker/DateProvider.js"
 import {aes256RandomKey, fixedIv} from "@tutao/tutanota-crypto"
-import {EntityRestCache} from "../../../../../src/api/worker/rest/EntityRestCache.js"
+import {DefaultEntityRestCache} from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 import {resolveTypeReference} from "../../../../../src/api/common/EntityFunctions.js"
 
 class FixedDateProvider implements DateProvider {
@@ -77,7 +77,7 @@ const emptyFutureActionsObj = {
 const mailId = "L-dNNLe----0"
 o.spec("MailIndexer test", () => {
     let entityMock: EntityRestClientMock
-	let entityCache: EntityRestCache
+	let entityCache: DefaultEntityRestCache
     let dateProvider: DateProvider
     o.beforeEach(function () {
         entityMock = new EntityRestClientMock()
@@ -833,7 +833,7 @@ async function indexMailboxTest(
     let mailListId = ["mail-list-id"]
     mailbox._id = "mailbox-id"
     const entityMock = new EntityRestClientMock()
-	const entityCacheMock = downcast<EntityRestCache>(entityMock)
+	const entityCacheMock = downcast<DefaultEntityRestCache>(entityMock)
     entityMock.addElementInstances(mailbox, mailboxGroupRoot)
     const dbMock = createSearchIndexDbStub()
     const t = dbMock.createTransaction()

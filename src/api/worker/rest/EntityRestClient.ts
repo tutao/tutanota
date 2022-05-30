@@ -12,7 +12,7 @@ import type {ListElementEntity, SomeEntity, TypeModel} from "../../common/Entity
 import {LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT} from "../../common/utils/EntityUtils"
 import {Type} from "../../common/EntityConstants"
 import {SetupMultipleError} from "../../common/error/SetupMultipleError"
-import {expandId} from "./EntityRestCache"
+import {expandId} from "./DefaultEntityRestCache.js"
 import {InstanceMapper} from "../crypto/InstanceMapper"
 import {QueuedBatch} from "../search/EventQueue"
 import {AuthDataProvider} from "../facades/UserFacade"

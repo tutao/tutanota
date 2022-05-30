@@ -4,7 +4,7 @@ import {Indexer} from "./search/Indexer"
 import type {EntityRestInterface} from "./rest/EntityRestClient"
 import {EntityRestClient} from "./rest/EntityRestClient"
 import {UserManagementFacade} from "./facades/UserManagementFacade"
-import {EntityRestCache} from "./rest/EntityRestCache"
+import {DefaultEntityRestCache} from "./rest/DefaultEntityRestCache.js"
 import {GroupManagementFacade} from "./facades/GroupManagementFacade"
 import {MailFacade} from "./facades/MailFacade"
 import {MailAddressFacade} from "./facades/MailAddressFacade"
@@ -33,7 +33,7 @@ import {createRsaImplementation} from "./crypto/RsaImplementation"
 import {CryptoFacade} from "./crypto/CryptoFacade"
 import {InstanceMapper} from "./crypto/InstanceMapper"
 import {EphemeralCacheStorage} from "./rest/EphemeralCacheStorage"
-import {AdminClientRestCacheDummy} from "./rest/AdminClientRestCacheDummy"
+import {AdminClientDummyEntityRestCache} from "./rest/AdminClientDummyEntityRestCache.js"
 import {SleepDetector} from "./utils/SleepDetector.js"
 import {SchedulerImpl} from "../common/utils/Scheduler.js"
 import {WorkerDateProvider} from "./utils/WorkerDateProvider.js"
@@ -42,7 +42,7 @@ import {IServiceExecutor} from "../common/ServiceRequest"
 import {ServiceExecutor} from "./rest/ServiceExecutor"
 import {BookingFacade} from "./facades/BookingFacade"
 import {BlobFacade} from "./facades/BlobFacade"
-import {CacheStorage} from "./rest/EntityRestCache.js"
+import {CacheStorage} from "./rest/DefaultEntityRestCache.js"
 import {UserFacade} from "./facades/UserFacade"
 import {OfflineStorage} from "./offline/OfflineStorage.js"
 import {exposeNativeInterface} from "../common/ExposeNativeInterface"
@@ -130,15 +130,15 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	const fileApp = new NativeFileApp(new FileFacadeSendDispatcher(worker), new ExportFacadeSendDispatcher(worker))
 
 	// We don't wont to cache within the admin client
-	let cache: EntityRestCache | null = null
+	let cache: DefaultEntityRestCache | null = null
 	if (!isAdminClient()) {
-		cache = new EntityRestCache(entityRestClient, maybeUninitializedStorage)
+		cache = new DefaultEntityRestCache(entityRestClient, maybeUninitializedStorage)
 	}
 
 	locator.cache = cache ?? entityRestClient
 
 	locator.cachingEntityClient = new EntityClient(locator.cache)
-	locator.indexer = new Indexer(entityRestClient, worker, browserData, locator.cache as EntityRestCache)
+	locator.indexer = new Indexer(entityRestClient, worker, browserData, locator.cache as DefaultEntityRestCache)
 	const mainInterface = worker.getMainInterface()
 
 	locator.crypto = new CryptoFacade(locator.user, locator.cachingEntityClient, locator.restClient, locator.rsa, locator.serviceExecutor)
@@ -202,7 +202,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.eventBusClient = new EventBusClient(
 		worker,
 		locator.indexer,
-		cache ?? new AdminClientRestCacheDummy(),
+		cache ?? new AdminClientDummyEntityRestCache(),
 		locator.mail,
 		locator.user,
 		locator.cachingEntityClient,

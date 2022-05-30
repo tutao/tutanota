@@ -1,5 +1,4 @@
 import type {CredentialEncryptionMode} from "./CredentialEncryptionMode"
-import type {ICredentialsKeyMigrator} from "./CredentialsKeyMigrator"
 import type {Base64, Base64Url} from "@tutao/tutanota-utils"
 import {assertNotNull} from "@tutao/tutanota-utils"
 import type {Credentials} from "./Credentials"
@@ -7,6 +6,7 @@ import {DatabaseKeyFactory} from "./DatabaseKeyFactory"
 import {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade"
 import {InterWindowEventBus} from "../../native/common/InterWindowEventBus"
 import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes"
+import {CredentialsKeyMigrator} from "./CredentialsKeyMigrator.js"
 
 /**
  * Type for persistent credentials, that contain the full credentials data.
@@ -114,7 +114,7 @@ export class CredentialsProvider {
 	constructor(
 		private readonly credentialsEncryption: CredentialsEncryption,
 		private readonly storage: CredentialsStorage,
-		private readonly keyMigrator: ICredentialsKeyMigrator,
+		private readonly keyMigrator: CredentialsKeyMigrator,
 		private readonly databaseKeyFactory: DatabaseKeyFactory,
 		private readonly offlineDbFacade: OfflineDbFacade | null,
 		private readonly interWindowEventBus: InterWindowEventBus<InterWindowEventTypes> | null,

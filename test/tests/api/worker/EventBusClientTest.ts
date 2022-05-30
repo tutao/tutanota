@@ -21,7 +21,7 @@ import {defer, noOp} from "@tutao/tutanota-utils"
 import {WorkerImpl} from "../../../../src/api/worker/WorkerImpl.js"
 import {LoginFacade} from "../../../../src/api/worker/facades/LoginFacade.js"
 import {InstanceMapper} from "../../../../src/api/worker/crypto/InstanceMapper.js"
-import {EntityRestCache} from "../../../../src/api/worker/rest/EntityRestCache.js"
+import {DefaultEntityRestCache} from "../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 import {QueuedBatch} from "../../../../src/api/worker/search/EventQueue.js"
 import {OutOfSyncError} from "../../../../src/api/common/error/OutOfSyncError.js"
 import {matchers, object, verify, when} from "testdouble"
@@ -34,7 +34,7 @@ import {UserFacade} from "../../../../src/api/worker/facades/UserFacade"
 
 o.spec("EventBusClient test", function () {
 	let ebc: EventBusClient
-	let cacheMock: EntityRestCache
+	let cacheMock: DefaultEntityRestCache
 	let restClient: EntityRestClientMock
 	let workerMock: WorkerImpl
 	let loginMock: LoginFacade
@@ -99,7 +99,7 @@ o.spec("EventBusClient test", function () {
 			async isOutOfSync(): Promise<boolean> {
 				return false
 			}
-		} as EntityRestCache)
+		} as DefaultEntityRestCache)
 
 		user = createUser({
 			userGroup: createGroupMembership({

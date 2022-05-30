@@ -1,11 +1,11 @@
 import type {CredentialsEncryption, PersistentCredentials} from "./CredentialsProvider.js"
 import {CredentialsAndDatabaseKey} from "./CredentialsProvider.js"
-import type {ICredentialsKeyProvider} from "./CredentialsKeyProvider"
 import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
 import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
 import type {CredentialEncryptionMode} from "./CredentialEncryptionMode"
 import {CryptoError} from "../../api/common/error/CryptoError.js"
 import {KeyPermanentlyInvalidatedError} from "../../api/common/error/KeyPermanentlyInvalidatedError.js"
+import {CredentialsKeyProvider} from "./CredentialsKeyProvider.js"
 import {NativeCredentialsFacade} from "../../native/common/generatedipc/NativeCredentialsFacade.js"
 
 /**
@@ -15,7 +15,7 @@ import {NativeCredentialsFacade} from "../../native/common/generatedipc/NativeCr
 export class NativeCredentialsEncryption implements CredentialsEncryption {
 
 	constructor(
-		private readonly credentialsKeyProvider: ICredentialsKeyProvider,
+		private readonly credentialsKeyProvider: CredentialsKeyProvider,
 		private readonly deviceEncryptionFacade: DeviceEncryptionFacade,
 		private readonly nativeCredentials: NativeCredentialsFacade,
 	) {

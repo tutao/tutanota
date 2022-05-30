@@ -1,4 +1,4 @@
-import {CacheStorage, Range} from "./EntityRestCache"
+import {CacheStorage, Range} from "./DefaultEntityRestCache.js"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {ListElementEntity, SomeEntity} from "../../common/EntityTypes"
 import {TypeRef} from "@tutao/tutanota-utils"

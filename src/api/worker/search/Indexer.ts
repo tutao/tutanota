@@ -46,7 +46,7 @@ import {LocalTimeDateProvider} from "../DateProvider"
 import {EntityClient} from "../../common/EntityClient"
 import {deleteObjectStores} from "../utils/DbUtils"
 import {aes256Decrypt, aes256Encrypt, aes256RandomKey, decrypt256Key, encrypt256Key, IV_BYTE_LENGTH, random} from "@tutao/tutanota-crypto"
-import {EntityRestCache} from "../rest/EntityRestCache"
+import {DefaultEntityRestCache} from "../rest/DefaultEntityRestCache.js"
 import {CacheInfo} from "../facades/LoginFacade.js"
 
 export const Metadata = {
@@ -133,7 +133,7 @@ export class Indexer {
 		entityRestClient: EntityRestClient,
 		worker: WorkerImpl,
 		browserData: BrowserData,
-		defaultEntityRestCache: EntityRestCache,
+		defaultEntityRestCache: DefaultEntityRestCache,
 	) {
 		let deferred = defer<void>()
 		this._dbInitializedDeferredObject = deferred
