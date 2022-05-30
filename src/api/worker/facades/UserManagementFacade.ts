@@ -13,7 +13,7 @@ import {encryptBytes, encryptString} from "../crypto/CryptoFacade"
 import {assertNotNull, neverNull, uint8ArrayToHex} from "@tutao/tutanota-utils"
 import type {ContactFormUserData, UserAccountUserData} from "../../entities/tutanota/TypeRefs.js"
 import {createContactFormUserData, createUserAccountCreateData, createUserAccountUserData} from "../../entities/tutanota/TypeRefs.js"
-import type {GroupManagementFacadeImpl} from "./GroupManagementFacade"
+import type {GroupManagementFacade} from "./GroupManagementFacade"
 import type {RecoverData} from "./LoginFacade"
 import type {WorkerImpl} from "../WorkerImpl"
 import {CounterFacade} from "./CounterFacade"
@@ -48,7 +48,7 @@ export class UserManagementFacade {
 	constructor(
 		private readonly worker: WorkerImpl,
 		private readonly userFacade: UserFacade,
-		private readonly groupManagement: GroupManagementFacadeImpl,
+		private readonly groupManagement: GroupManagementFacade,
 		private readonly counters: CounterFacade,
 		private readonly rsa: RsaImplementation,
 		private readonly entityClient: EntityClient,

@@ -39,7 +39,7 @@ import {
 import type {ContactFormAccountReturn, InternalGroupData} from "../../entities/tutanota/TypeRefs.js"
 import {createContactFormAccountData, createCustomerAccountCreateData} from "../../entities/tutanota/TypeRefs.js"
 import type {UserManagementFacade} from "./UserManagementFacade"
-import type {GroupManagementFacadeImpl} from "./GroupManagementFacade"
+import type {GroupManagementFacade} from "./GroupManagementFacade"
 import type {WorkerImpl} from "../WorkerImpl"
 import {CounterFacade} from "./CounterFacade"
 import type {Country} from "../../common/CountryList"
@@ -67,7 +67,7 @@ export class CustomerFacade {
 	constructor(
 		private readonly worker: WorkerImpl,
 		private readonly userFacade: UserFacade,
-		private readonly groupManagement: GroupManagementFacadeImpl,
+		private readonly groupManagement: GroupManagementFacade,
 		private readonly userManagement: UserManagementFacade,
 		private readonly counters: CounterFacade,
 		private readonly rsa: RsaImplementation,

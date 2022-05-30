@@ -44,7 +44,7 @@ import {ConnectionError, NotAuthorizedError, NotFoundError} from "../../common/e
 import {EntityClient} from "../../common/EntityClient"
 import {elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToCustomId} from "../../common/utils/EntityUtils"
 import {Request} from "../../common/MessageDispatcher"
-import {GroupManagementFacadeImpl} from "./GroupManagementFacade"
+import {GroupManagementFacade} from "./GroupManagementFacade"
 import type {NativeInterface} from "../../../native/common/NativeInterface"
 import type {WorkerImpl} from "../WorkerImpl"
 import {SetupMultipleError} from "../../common/error/SetupMultipleError"
@@ -80,7 +80,7 @@ export class CalendarFacade {
 
 	constructor(
 		private readonly userFacade: UserFacade,
-		private readonly groupManagementFacade: GroupManagementFacadeImpl,
+		private readonly groupManagementFacade: GroupManagementFacade,
 		// We inject cache directly because we need to delete user from it for a hack
 		private readonly entityRestCache: EntityRestCache,
 		private readonly nativePushFacade: NativePushFacade,
