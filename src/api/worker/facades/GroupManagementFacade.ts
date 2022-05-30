@@ -27,23 +27,7 @@ import {UserFacade} from "./UserFacade"
 
 assertWorkerOrNode()
 
-export interface GroupManagementFacade {
-	createMailGroup(name: string, mailAddress: string): Promise<void>
-
-	createLocalAdminGroup(name: string): Promise<void>
-
-	createTemplateGroup(name: string): Promise<Id>
-
-	deactivateGroup(group: Group, restore: boolean): Promise<void>
-
-	removeUserFromGroup(userId: Id, groupId: Id): Promise<void>
-
-	addUserToGroup(user: User, groupId: Id): Promise<void>
-
-	readUsedGroupStorage(groupId: Id): Promise<number>
-}
-
-export class GroupManagementFacadeImpl {
+export class GroupManagementFacade {
 
 	constructor(
 		private readonly user: UserFacade,

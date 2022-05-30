@@ -23,7 +23,7 @@ import {assertThrows, mockAttribute, unmockAttribute} from "@tutao/tutanota-test
 import {ImportError} from "../../../../../src/api/common/error/ImportError.js"
 import {SetupMultipleError} from "../../../../../src/api/common/error/SetupMultipleError.js"
 import {InstanceMapper} from "../../../../../src/api/worker/crypto/InstanceMapper.js"
-import {GroupManagementFacadeImpl} from "../../../../../src/api/worker/facades/GroupManagementFacade.js";
+import {GroupManagementFacade} from "../../../../../src/api/worker/facades/GroupManagementFacade.js";
 import {object} from "testdouble"
 import {IServiceExecutor} from "../../../../../src/api/common/ServiceRequest"
 import {CryptoFacade} from "../../../../../src/api/worker/crypto/CryptoFacade"
@@ -35,7 +35,7 @@ o.spec("CalendarFacadeTest", async function () {
 	let userAlarmInfoListId: Id
 	let user: User
 	let userFacade: UserFacade
-	let groupManagementFacade: GroupManagementFacadeImpl
+	let groupManagementFacade: GroupManagementFacade
 	let restClientMock: EntityRestClientMock
 	let entityRestCache: EntityRestCache
 	let calendarFacade: CalendarFacade
