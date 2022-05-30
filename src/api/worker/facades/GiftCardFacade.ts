@@ -20,22 +20,10 @@ import {UserFacade} from "./UserFacade"
 import {ProgrammingError} from "../../common/error/ProgrammingError.js"
 import {CustomerFacade} from "./CustomerFacade.js"
 
-export interface GiftCardFacade {
-	generateGiftCard(message: string, value: NumberString): Promise<IdTuple>
-
-	getGiftCardInfo(id: Id, key: string): Promise<GiftCardRedeemGetReturn>
-
-	redeemGiftCard(id: Id, key: string, forCountry: string | null): Promise<void>
-
-	encodeGiftCardToken(giftCard: GiftCard): Promise<string>
-
-	decodeGiftCardToken(token: string): Promise<{id: Id, key: Base64}>
-}
-
 const ID_LENGTH = GENERATED_MAX_ID.length
 const KEY_LENGTH_B64 = 24
 
-export class GiftCardFacadeImpl implements GiftCardFacade {
+export class GiftCardFacade {
 	constructor(
 		private readonly user: UserFacade,
 		private customer: CustomerFacade,
