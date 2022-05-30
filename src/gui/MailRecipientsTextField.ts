@@ -33,11 +33,12 @@ export interface MailRecipientsTextFieldAttrs {
  */
 export class MailRecipientsTextField implements ClassComponent<MailRecipientsTextFieldAttrs> {
 	private selectedSuggestionIdx = 0
+	private focused = false
 
 	view({attrs}: Vnode<MailRecipientsTextFieldAttrs>): Children {
 		return [
 			this.renderTextField(attrs),
-			this.renderSuggestions(attrs)
+			this.focused ? this.renderSuggestions(attrs) : null
 		]
 	}
 
@@ -88,7 +89,11 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 				this.setSelectedSuggestionIdx(attrs, this.selectedSuggestionIdx - 1)
 				return false
 			},
+			onFocus: () => {
+				this.focused = true
+			},
 			onBlur: () => {
+				this.focused = false
 				this.resolveInput(attrs)
 				return true
 			},

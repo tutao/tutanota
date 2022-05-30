@@ -18,6 +18,7 @@ export interface BubbleTextFieldAttrs {
 	onDownKey: () => boolean
 	disabled: boolean
 	injectionsRight?: Children | null
+	onFocus: () => void
 	onBlur: () => void
 }
 
@@ -71,6 +72,7 @@ export class BubbleTextField implements ClassComponent<BubbleTextFieldAttrs> {
 				onDomInputCreated: dom => this.domInput = dom,
 				onfocus: () => {
 					this.active = true
+					attrs.onFocus()
 				},
 				onblur: () => {
 					this.active = false
