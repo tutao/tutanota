@@ -95,6 +95,8 @@ class IosNativeTransport implements Transport<NativeRequestType, JsRequestType> 
 		if (handler) {
 			const msg = utf8Uint8ArrayToString(base64ToUint8Array(msg64))
 			handler(JSON.parse(msg))
+		} else {
+			console.warn("Request from native but no handler is set!")
 		}
 	}
 }
