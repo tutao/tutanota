@@ -143,8 +143,9 @@ class WebViewBridge : NSObject {
         self.webviewInitialized = true
         // Start another task async that will execute everything else after web app (hopefully) thinks that we are initialized
         Task {
-          sleep(200)
-          
+          // 200 ms
+          try? await Task.sleep(nanoseconds: 200_000_000)
+
           for callback in requestsBeforeInit {
             callback()
           }
@@ -300,8 +301,8 @@ class WebViewBridge : NSObject {
     try bytes.write(to: fileUrl, options: .atomic)
     return fileUrl.path
   }
-  
-  
+
+
   @MainActor
   private func openLink(_ link: String) async -> Bool {
     return await withCheckedContinuation({ continuation in
