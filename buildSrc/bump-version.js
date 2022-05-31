@@ -111,8 +111,12 @@ function makeNewVersion(currentVersion, which) {
 	const newVersion = currentVersion.slice()
 	if (which === "patch") {
 		newVersion[2]++
-	} else {
+	} else if (which === "minor") {
 		newVersion[1]++
+		newVersion[2] = 0
+	} else {
+		newVersion[0]++
+		newVersion[1] = 0
 		newVersion[2] = 0
 	}
 	return newVersion
