@@ -33,6 +33,8 @@ export interface MailRecipientsTextFieldAttrs {
  * recipients are represented as bubbles, and a contact search dropdown is shown as the user types
  */
 export class MailRecipientsTextField implements ClassComponent<MailRecipientsTextFieldAttrs> {
+
+	// don't access me directly, use getter and setter
 	private selectedSuggestionIdx = 0
 	private focused = false
 
@@ -91,11 +93,11 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 				return true
 			},
 			onUpKey: () => {
-				this.setSelectedSuggestionIdx(attrs, this.selectedSuggestionIdx + 1)
+				this.setSelectedSuggestionIdx(this.getSelectedSuggestionIdx(attrs) + 1)
 				return false
 			},
 			onDownKey: () => {
-				this.setSelectedSuggestionIdx(attrs, this.selectedSuggestionIdx - 1)
+				this.setSelectedSuggestionIdx(this.getSelectedSuggestionIdx(attrs) - 1)
 				return false
 			},
 			onFocus: () => {
@@ -127,7 +129,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 	private renderSuggestions(attrs: MailRecipientsTextFieldAttrs): Children {
 		return m(RecipientsSearchDropDown, {
 			suggestions: attrs.search.results(),
-			selectedSuggestionIndex: this.selectedSuggestionIdx,
+			selectedSuggestionIndex: this.getSelectedSuggestionIdx(attrs),
 			onSuggestionSelected: idx => this.selectSuggestion(attrs, idx),
 			maxHeight: attrs.maxSuggestionsToShow ?? null
 		})
@@ -136,7 +138,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 	private resolveInput(attrs: MailRecipientsTextFieldAttrs) {
 		const suggestions = attrs.search.results()
 		if (suggestions.length > 0) {
-			this.selectSuggestion(attrs, this.selectedSuggestionIdx)
+			this.selectSuggestion(attrs, this.getSelectedSuggestionIdx(attrs))
 		} else {
 			const parsed = parseMailAddress(attrs.text)
 			if (parsed != null) {
@@ -147,14 +149,23 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 	}
 
 	private selectSuggestion(attrs: MailRecipientsTextFieldAttrs, index: number) {
-		const {address, name, contact} = assertNotNull(attrs.search.results()[index])
+		const selection = attrs.search.results()[index]
+		if (selection == null) {
+			return
+		}
+
+		const {address, name, contact} = selection
 		attrs.onRecipientAdded(address, name, contact)
 		attrs.search.clear()
 		attrs.onTextChanged("")
 	}
 
-	private setSelectedSuggestionIdx(attrs: MailRecipientsTextFieldAttrs, idx: number) {
-		this.selectedSuggestionIdx = Math.min(Math.max(idx, 0), attrs.search.results().length - 1)
+	private getSelectedSuggestionIdx(attrs: MailRecipientsTextFieldAttrs): number {
+		return Math.min(Math.max(this.selectedSuggestionIdx, 0), attrs.search.results().length - 1)
+	}
+
+	private setSelectedSuggestionIdx(idx: number) {
+		this.selectedSuggestionIdx = idx
 	}
 }
 
