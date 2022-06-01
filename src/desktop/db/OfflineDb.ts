@@ -112,7 +112,7 @@ export class OfflineDb {
 	}
 
 	setNewRange(type: string, listId: Id, lower: Id, upper: Id) {
-		this.db.prepare("INSERT INTO ranges VALUES (:type,:listId,:lower,:upper)").run({type, listId, lower, upper})
+		this.db.prepare("INSERT OR REPLACE INTO ranges VALUES (:type,:listId,:lower,:upper)").run({type, listId, lower, upper})
 	}
 
 	setUpperRange(type: string, listId: Id, upper: Id) {
@@ -262,8 +262,8 @@ export class OfflineDb {
 
 	dumpMetadata(): Array<[string, Uint8Array]> {
 		return this.db.prepare("SELECT * from metadata")
-			.all()
-			.map(row => [row.key, new Uint8Array(row.value.buffer)])
+				   .all()
+				   .map(row => [row.key, new Uint8Array(row.value.buffer)])
 	}
 }
 

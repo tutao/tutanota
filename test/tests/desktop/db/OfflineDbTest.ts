@@ -1,6 +1,6 @@
 import o from "ospec"
 import {OfflineDb} from "../../../../src/desktop/db/OfflineDb.js"
-import {ContactTypeRef, MailBodyTypeRef, MailTypeRef} from "../../../../src/api/entities/tutanota/TypeRefs.js"
+import {ContactTypeRef, MailTypeRef} from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import {GENERATED_MAX_ID, GENERATED_MIN_ID} from "../../../../src/api/common/utils/EntityUtils.js"
 import {UserTypeRef} from "../../../../src/api/entities/sys/TypeRefs.js"
 import {concat, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
@@ -71,6 +71,14 @@ o.spec("OfflineDb ", function () {
 		db.setNewRange(ContactTypeRef.type, listId, "lowerId", "upperId")
 		const received = db.getRange(ContactTypeRef.type, listId)
 		o(received!).deepEquals({lower: "lowerId", upper: "upperId"})
+	})
+
+	o("set new range overwrites range", function () {
+		db.setNewRange(ContactTypeRef.type, listId, "lowerId", "upperId")
+		db.setNewRange(ContactTypeRef.type, listId, "updatedLowerId", "updatedUpperId")
+
+		const received = db.getRange(ContactTypeRef.type, listId)
+		o(received!).deepEquals({lower: "updatedLowerId", upper: "updatedUpperId"})
 	})
 
 	o("set lower range works", function () {
@@ -314,7 +322,7 @@ o.spec("OfflineDb ", function () {
 			o(db.getRange(type, listId)).equals(null)
 		})
 
-		o("delete range works", function() {
+		o("delete range works", function () {
 			db.setNewRange(MailTypeRef.type, "listId", "aaa", "eee")
 			db.deleteRange(MailTypeRef.type, "listId")
 			o(db.getRange(MailTypeRef.type, "listId")).equals(null)
