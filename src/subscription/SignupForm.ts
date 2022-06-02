@@ -302,12 +302,6 @@ function runCaptcha(
 						],
 						middle: () => lang.get("captchaDisplay_label"),
 					}
-					const captchaInputAttrs: TextFieldAttrs = {
-						label: () => lang.get("captchaInput_label") + " (hh:mm)",
-						helpLabel: () => lang.get("captchaInfo_msg"),
-						value: captchaInput,
-						oninput: (value) => (captchaInput = value),
-					}
 					dialog = new Dialog(DialogType.EditSmall, {
 						view: (): Children => [
 							m(".dialog-header.plr-l", m(DialogHeaderBar, actionBarAttrs)),
@@ -316,7 +310,12 @@ function runCaptcha(
 									src: "data:image/png;base64," + uint8ArrayToBase64(neverNull(captchaReturn.challenge)),
 									alt: lang.get("captchaDisplay_label"),
 								}),
-								m(TextFieldN, captchaInputAttrs),
+								m(TextFieldN, {
+									label: () => lang.get("captchaInput_label") + " (hh:mm)",
+									helpLabel: () => lang.get("captchaInfo_msg"),
+									value: captchaInput,
+									oninput: (value) => (captchaInput = value),
+								}),
 							]),
 						],
 					})
