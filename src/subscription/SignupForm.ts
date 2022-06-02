@@ -1,7 +1,7 @@
 import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {Dialog, DialogType} from "../gui/base/Dialog"
+import {Dialog} from "../gui/base/Dialog"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {getWhitelabelRegistrationDomains} from "../login/LoginView"
@@ -13,20 +13,16 @@ import {PasswordForm, PasswordModel} from "../settings/PasswordForm"
 import type {CheckboxAttrs} from "../gui/base/CheckboxN"
 import {CheckboxN} from "../gui/base/CheckboxN"
 import type {lazy} from "@tutao/tutanota-utils"
-import {ofClass, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {ofClass} from "@tutao/tutanota-utils"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
-import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
-import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {showWorkerProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {AccessDeactivatedError, AccessExpiredError, InvalidDataError} from "../api/common/error/RestError"
-import {createRegistrationCaptchaServiceData, createRegistrationCaptchaServiceGetData} from "../api/entities/sys/TypeRefs.js"
-import {deviceConfig} from "../misc/DeviceConfig"
+import {InvalidDataError} from "../api/common/error/RestError"
 import {locator} from "../api/main/MainLocator"
 import {deleteCampaign} from "../misc/LoginUtils"
 import {CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection} from "./TermsAndConditions"
-import {RegistrationCaptchaService} from "../api/entities/sys/Services"
 import {logins} from "../api/main/LoginController.js"
+import {runCaptchaFlow} from "./Captcha.js"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -195,143 +191,4 @@ function signup(
 			Dialog.message("invalidRegistrationCode_msg")
 		}),
 	)
-}
-
-/**
- * Accepts multiple formats for a time of day and always returns 12h-format with leading zeros.
- * @param captchaInput
- * @returns {string} HH:MM if parsed, null otherwise
- */
-export function parseCaptchaInput(captchaInput: string): string | null {
-	if (captchaInput.match(/^[0-2]?[0-9]:[0-5]?[05]$/)) {
-		let [h, m] = captchaInput
-			.trim()
-			.split(":")
-			.map(t => Number(t))
-		return [h % 12, m % 60].map(a => String(a).padStart(2, "0")).join(":")
-	} else {
-		return null
-	}
-}
-
-/**
- * @returns the auth token for the signup if the captcha was solved or no captcha was necessary, null otherwise
- *
- * TODO:
- *  * Refactor token usage
- */
-async function runCaptchaFlow(
-	mailAddress: string,
-	isBusinessUse: boolean,
-	isPaidSubscription: boolean,
-	campaignToken: string | null,
-): Promise<string | null> {
-	try {
-		const captchaReturn = await locator
-			.serviceExecutor
-			.get(RegistrationCaptchaService, createRegistrationCaptchaServiceGetData({
-				token: campaignToken,
-				mailAddress,
-				signupToken: deviceConfig.getSignupToken(),
-				businessUseSelected: isBusinessUse,
-				paidSubscriptionSelected: isPaidSubscription,
-			}))
-		if (captchaReturn.challenge) {
-			try {
-				return await showCaptchaDialog(captchaReturn.challenge, captchaReturn.token)
-			} catch (e) {
-				if (e instanceof InvalidDataError) {
-					await Dialog.message("createAccountInvalidCaptcha_msg")
-					return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaignToken)
-				} else if (e instanceof AccessExpiredError) {
-					await Dialog.message("createAccountAccessDeactivated_msg")
-					return null
-				} else {
-					throw e
-				}
-			}
-		} else {
-			return captchaReturn.token
-		}
-	} catch (e) {
-		if (e instanceof AccessDeactivatedError) {
-			await Dialog.message("createAccountAccessDeactivated_msg")
-			return null
-		} else {
-			throw e
-		}
-	}
-}
-
-function showCaptchaDialog(challenge: Uint8Array, token: string): Promise<string | null> {
-	return new Promise<string | null>((resolve, reject) => {
-		let dialog: Dialog
-		let captchaInput = ""
-
-		const cancelAction = () => {
-			dialog.close()
-			resolve(null)
-		}
-
-		const okAction = () => {
-			let parsedInput = parseCaptchaInput(captchaInput)
-
-			if (parsedInput) {
-				dialog.close()
-
-				locator
-					.serviceExecutor
-					.post(RegistrationCaptchaService, createRegistrationCaptchaServiceData({token, response: parsedInput}))
-					.then(() => {
-						resolve(token)
-					})
-					.catch(e => {
-						reject(e)
-					})
-			} else {
-				Dialog.message("captchaEnter_msg")
-			}
-		}
-
-		let actionBarAttrs: DialogHeaderBarAttrs = {
-			left: [
-				{
-					label: "cancel_action",
-					click: cancelAction,
-					type: ButtonType.Secondary,
-				},
-			],
-			right: [
-				{
-					label: "ok_action",
-					click: okAction,
-					type: ButtonType.Primary,
-				},
-			],
-			middle: () => lang.get("captchaDisplay_label"),
-		}
-		const imageData = `data:image/png;base64,${uint8ArrayToBase64(challenge)}`
-
-		dialog = new Dialog(DialogType.EditSmall, {
-			view: (): Children => {
-				return [
-					m(".dialog-header.plr-l", m(DialogHeaderBar, actionBarAttrs)),
-					m(".plr-l.pb", [
-						m("img.mt-l", {
-							src: imageData,
-							alt: lang.get("captchaDisplay_label"),
-						}),
-						m(TextFieldN, {
-							label: () => lang.get("captchaInput_label") + " (hh:mm)",
-							helpLabel: () => lang.get("captchaInfo_msg"),
-							value: captchaInput,
-							oninput: (value) => (captchaInput = value),
-						}),
-					]),
-				]
-			},
-		})
-			.setCloseHandler(cancelAction)
-			.show()
-	})
 }
