@@ -158,22 +158,6 @@ function confirmFreeSubscription(): Promise<boolean> {
 	return new Promise(resolve => {
 		let oneAccountValue = stream(false)
 		let privateUseValue = stream(false)
-		const buttons: Array<ButtonAttrs> = [
-			{
-				label: "cancel_action",
-				click: () => closeAction(false),
-				type: ButtonType.Secondary,
-			},
-			{
-				label: "ok_action",
-				click: () => {
-					if (oneAccountValue() && privateUseValue()) {
-						closeAction(true)
-					}
-				},
-				type: ButtonType.Primary,
-			},
-		]
 		let dialog: Dialog
 
 		const closeAction = (confirmed: boolean) => {
@@ -199,7 +183,22 @@ function confirmFreeSubscription(): Promise<boolean> {
 				]),
 				m(
 					".flex-center.dialog-buttons",
-					buttons.map(a => m(ButtonN, a)),
+					[
+						m(ButtonN, {
+							label: "cancel_action",
+							click: () => closeAction(false),
+							type: ButtonType.Secondary,
+						}),
+						m(ButtonN, {
+							label: "ok_action",
+							click: () => {
+								if (oneAccountValue() && privateUseValue()) {
+									closeAction(true)
+								}
+							},
+							type: ButtonType.Primary,
+						}),
+					]
 				),
 			],
 		})

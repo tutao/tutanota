@@ -4,7 +4,7 @@ import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {lang, TranslationKey} from "../misc/LanguageViewModel"
 import {InvalidDataError, LimitReachedError, PreconditionFailedError} from "../api/common/error/RestError"
-import {noOp} from "@tutao/tutanota-utils"
+import {firstThrow, noOp, ofClass} from "@tutao/tutanota-utils"
 import {SelectMailAddressForm, SelectMailAddressFormAttrs} from "./SelectMailAddressForm"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
@@ -17,15 +17,10 @@ import stream from "mithril/stream"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
-import type {GroupInfo} from "../api/entities/sys/TypeRefs.js"
-import type {MailAddressAlias} from "../api/entities/sys/TypeRefs.js"
+import type {GroupInfo, MailAddressAlias} from "../api/entities/sys/TypeRefs.js"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
-import {firstThrow} from "@tutao/tutanota-utils"
-import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
-import Stream from "mithril/stream";
-import {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {isTutanotaMailAddress} from "../mail/model/MailUtils.js";
 
 assertMainOrNode()
@@ -101,20 +96,6 @@ export class EditAliasesFormN implements Component<EditAliasesFormAttrs> {
 				let formErrorId: TranslationKey | null = null
 				let formDomain = stream(firstThrow(domains))
 
-				const mailAddressFormAttrs: SelectMailAddressFormAttrs = {
-					availableDomains: domains,
-					onEmailChanged: (email, validationResult) => {
-						if (validationResult.isValid) {
-							mailAddress = email
-							formErrorId = null
-						} else {
-							formErrorId = validationResult.errorId
-						}
-					},
-					onBusyStateChanged: isBusy => (isVerificationBusy = isBusy),
-					onDomainChanged: domain => formDomain(domain),
-				}
-
 				const addEmailAliasOkAction = (dialog: Dialog) => {
 					if (isVerificationBusy) return
 
@@ -134,7 +115,19 @@ export class EditAliasesFormN implements Component<EditAliasesFormAttrs> {
 					child: {
 						view: () => {
 							return [
-								m(SelectMailAddressForm, mailAddressFormAttrs),
+								m(SelectMailAddressForm, {
+									availableDomains: domains,
+									onEmailChanged: (email, validationResult) => {
+										if (validationResult.isValid) {
+											mailAddress = email
+											formErrorId = null
+										} else {
+											formErrorId = validationResult.errorId
+										}
+									},
+									onBusyStateChanged: isBusy => (isVerificationBusy = isBusy),
+									onDomainChanged: domain => formDomain(domain),
+								}),
 								m(ExpanderPanelN, {
 										expanded: isTutanotaDomain(),
 									},

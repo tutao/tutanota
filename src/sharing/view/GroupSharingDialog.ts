@@ -46,15 +46,14 @@ export function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNameOverr
 		),
 	).then(model => {
 		model.onEntityUpdate.map(m.redraw.bind(m))
-		const contentAttrs: GroupSharingDialogAttrs = {
-			model,
-			allowGroupNameOverride,
-			texts,
-		}
 		Dialog.showActionDialog({
 			title: lang.get("sharing_label"),
 			type: DialogType.EditMedium,
-			child: () => m(GroupSharingDialogContent, contentAttrs),
+			child: () => m(GroupSharingDialogContent, {
+				model,
+				allowGroupNameOverride,
+				texts,
+			}),
 			okAction: null,
 			cancelAction: () => model.dispose(),
 			cancelActionTextId: "close_alt",
