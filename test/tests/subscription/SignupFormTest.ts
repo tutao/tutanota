@@ -1,6 +1,6 @@
 // Note: This file is not included yet because importing SingupForm breaks test and also because test does not work
 import o from "ospec"
-import {parseCaptchaInput} from "../../../src/subscription/SignupForm.js"
+import {parseCaptchaInput} from "../../../src/subscription/Captcha.js";
 o.spec("CaptchaInputParse", function () {
     o("Hour", function () {
         o(parseCaptchaInput("nonsense")).equals(null)
