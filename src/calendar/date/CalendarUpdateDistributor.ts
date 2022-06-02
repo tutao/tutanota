@@ -9,15 +9,11 @@ import {
 	mailMethodToCalendarMethod
 } from "../../api/common/TutanotaConstants"
 import {calendarAttendeeStatusSymbol, formatEventDuration, getTimeZone} from "./CalendarUtils"
-import type {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
+import type {CalendarEvent, CalendarEventAttendee, EncryptedMailAddress, Mail} from "../../api/entities/tutanota/TypeRefs.js"
+import {createCalendarEventAttendee} from "../../api/entities/tutanota/TypeRefs.js"
 import {assertNotNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {SendMailModel} from "../../mail/editor/SendMailModel"
-import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {windowFacade} from "../../misc/WindowFacade"
-import type {EncryptedMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
-import type {CalendarEventAttendee} from "../../api/entities/tutanota/TypeRefs.js"
-import {createCalendarEventAttendee} from "../../api/entities/tutanota/TypeRefs.js"
-import {createMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
 import {themeController} from "../../gui/theme"
 import {RecipientsNotFoundError} from "../../api/common/error/RecipientsNotFoundError"
 import {isTutanotaMailAddress, RecipientField} from "../../mail/model/MailUtils"
@@ -276,26 +272,17 @@ function descriptionLine(event: CalendarEvent): string {
 }
 
 function makeInviteEmailBody(sender: string, event: CalendarEvent, message: string) {
-	// Take whitelabel logo if set otherwise take default theme logo
-	const logo = isTutanotaMailAddress(sender)
-		? `
-  <img style="width: 200px; max-height: 38px; display: block; background-color: white; padding: 4px 8px; border-radius: 4px; margin: 16px auto 0"
-  src="data:image/svg+xml;base64,${uint8ArrayToBase64(stringToUtf8Uint8Array(themeController.getDefaultTheme().logo))}"
-  alt="logo"/>
-`
-		: ""
-	return `<div style="max-width: 685px; margin: 0 auto">
-  <h2 style="text-align: center">${message}</h2>
-  <div style="margin: 0 auto">
-  	${summaryLine(event)}
-    ${whenLine(event)}
-    ${locationLine(event)}
-    ${attendeesLine(event)}
-    ${descriptionLine(event)}
-  </div>
-  <hr style="border: 0; height: 1px; background-color: #ddd">
-${logo}
-</div>`
+	return `
+	<div style="max-width: 685px; margin: 0 auto">
+	  	<h2 style="text-align: center">${message}</h2>
+  		<div style="margin: 0 auto">
+  			${summaryLine(event)}
+    		${whenLine(event)}
+    		${locationLine(event)}
+    		${attendeesLine(event)}
+    		${descriptionLine(event)}
+  		</div>
+	</div>`
 }
 
 function assertOrganizer(event: CalendarEvent): EncryptedMailAddress {
