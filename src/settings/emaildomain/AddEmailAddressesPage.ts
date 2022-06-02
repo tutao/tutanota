@@ -5,12 +5,11 @@ import {getAliasLineAttrs, updateNbrOfAliases} from "../EditAliasesFormN"
 import type {AddDomainData} from "./AddDomainWizard"
 import type {EntityEventsListener} from "../../api/main/EventController"
 import {isUpdateForTypeRef} from "../../api/main/EventController"
-import {GroupInfoTypeRef} from "../../api/entities/sys/TypeRefs.js"
+import {CustomerTypeRef, GroupInfoTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import {OperationType} from "../../api/common/TutanotaConstants"
 import {neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
-import {ActionDialogProps, Dialog} from "../../gui/base/Dialog"
+import {Dialog} from "../../gui/base/Dialog"
 import {locator} from "../../api/main/MainLocator"
-import {CustomerTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import type {TableAttrs} from "../../gui/base/TableN"
@@ -23,7 +22,6 @@ import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {InvalidDataError, LimitReachedError} from "../../api/common/error/RestError"
 import {isSameId} from "../../api/common/utils/EntityUtils"
 import {assertMainOrNode} from "../../api/common/Env"
-import {downcast} from "@tutao/tutanota-utils";
 import {Icons} from "../../gui/base/icons/Icons";
 
 assertMainOrNode()
@@ -81,20 +79,6 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 				}
 			}),
 		}
-		const addUsersDialogAttrs: ActionDialogProps = {
-			title: lang.get("addUsers_title"),
-			child: {
-				view: () => {
-					return [m("p", lang.get("userManagementRedirect_msg"))]
-				},
-			},
-			okAction: confirmationDialog => {
-				m.route.set("/settings/users")
-				confirmationDialog.close()
-				const vnodeDom = vnode as VnodeDOM<AddEmailAddressesPageAttrs>
-				emitWizardEvent(vnodeDom.dom as HTMLElement, WizardEventType.CLOSEDIALOG)
-			},
-		}
 		const mailFormAttrs: SelectMailAddressFormAttrs = {
 			availableDomains: [a.data.domain()],
 			onEmailChanged: (email, validationResult) => {
@@ -141,7 +125,7 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 							color: theme.content_accent,
 						},
 						onclick: (e: MouseEvent) => {
-							Dialog.showActionDialog(addUsersDialogAttrs)
+							this.showAddUsersDialog(e.target as HTMLElement)
 						},
 					},
 					lang.get("adminUserList_action"),
@@ -167,6 +151,22 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 				),
 			),
 		])
+	}
+
+	private showAddUsersDialog(dom: HTMLElement) {
+		Dialog.showActionDialog({
+			title: lang.get("addUsers_title"),
+			child: {
+				view: () => {
+					return [m("p", lang.get("userManagementRedirect_msg"))]
+				},
+			},
+			okAction: confirmationDialog => {
+				m.route.set("/settings/users")
+				confirmationDialog.close()
+				emitWizardEvent(dom, WizardEventType.CLOSEDIALOG)
+			},
+		})
 	}
 }
 

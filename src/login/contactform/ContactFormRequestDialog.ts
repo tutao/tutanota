@@ -365,16 +365,15 @@ function showConfirmDialog(userEmailAddress: string): Promise<void> {
 			dialog.close()
 			resolve()
 		}).setType(ButtonType.Login)
-		const requestId = m(TextFieldN, {
-			label: "mailAddress_label",
-			value: userEmailAddress,
-			disabled: true,
-		})
 		const dialog = new Dialog(DialogType.EditMedium, {
 			view: () =>
 				m("", [
 					m(".dialog-header.plr-l.flex.justify-center.items-center.b", lang.get("loginCredentials_label")),
-					m(".plr-l.pb.text-break", m(".pt", lang.get("contactFormSubmitConfirm_msg")), requestId),
+					m(".plr-l.pb.text-break", m(".pt", lang.get("contactFormSubmitConfirm_msg")), m(TextFieldN, {
+						label: "mailAddress_label",
+						value: userEmailAddress,
+						disabled: true,
+					})),
 					m(confirm),
 				]),
 		})
