@@ -9,13 +9,14 @@ import {Icons} from "./icons/Icons"
 import type {DropdownChildAttrs} from "./DropdownN"
 import {attachDropdown} from "./DropdownN"
 import type {$Promisable, lazy, MaybeLazy} from "@tutao/tutanota-utils"
-import {assertNotNull, mapLazily, noOp} from "@tutao/tutanota-utils"
+import {assertNotNull, lazyMemoized, mapLazily, memoized, noOp} from "@tutao/tutanota-utils"
 import {Dialog} from "./Dialog"
 import {logins} from "../../api/main/LoginController"
 import type {AllIcons} from "./Icon"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
-import {Children} from "mithril";
+import m, {Children} from "mithril";
 import Stream from "mithril/stream";
+import {DropDownSelectorN} from "./DropDownSelectorN.js"
 
 export type dropHandler = (dragData: string) => void
 // not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
@@ -41,6 +42,36 @@ export function createCountryDropdown(
 		.setSelectionChangedHandler(value => {
 			selectedCountry(value)
 		})
+}
+
+// lazy because it depends on `lang`, which can cause troubles at load time
+const dropdownCountries = lazyMemoized(() => [
+	...Countries.map(c => ({
+		value: c,
+		name: c.n,
+	})),
+	{
+		value: null,
+		name: lang.get("choose_label"),
+	}
+])
+
+
+export function renderCountryDropdown(
+	params: {
+		selectedCountry: Country | null,
+		onSelectionChanged: (country: Country) => void,
+		helpLabel?: lazy<string>,
+		label?: TranslationKey | lazy<string>
+	},
+): Children {
+	return m(DropDownSelectorN, {
+		label: params.label ?? "invoiceCountry_label",
+		helpLabel: params.helpLabel,
+		items: dropdownCountries(),
+		selectedValue: params.selectedCountry,
+		selectionChangedHandler: params.onSelectionChanged
+	})
 }
 
 export function createMoreSecondaryButtonAttrs(
