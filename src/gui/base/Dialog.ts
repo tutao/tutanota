@@ -874,7 +874,7 @@ export class Dialog implements ModalComponent {
 						})),
 				},
 				okAction: (dialog: Dialog) => {
-					resolve(initialValue)
+					resolve(selectedValue)
 					dialog.close()
 				},
 			})
