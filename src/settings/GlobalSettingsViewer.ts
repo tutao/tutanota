@@ -23,7 +23,7 @@ import {logins} from "../api/main/LoginController"
 import {formatDateTime, formatDateTimeFromYesterdayOn} from "../misc/Formatter"
 import {Dialog} from "../gui/base/Dialog"
 import {LockedError, NotAuthorizedError, PreconditionFailedError} from "../api/common/error/RestError"
-import {loadEnabledTeamMailGroups, loadEnabledUserMailGroups, loadGroupDisplayName} from "./LoadingUtils"
+import {GroupData, loadEnabledTeamMailGroups, loadEnabledUserMailGroups, loadGroupDisplayName} from "./LoadingUtils"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {EntityUpdateData} from "../api/main/EventController"
@@ -45,6 +45,7 @@ import {getDomainPart} from "../misc/parsing/MailAddressParser"
 import type {UpdatableSettingsViewer} from "./SettingsView"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
+import {SelectorItemList} from "../gui/base/DropDownSelectorN.js"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -448,7 +449,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private updateDomains(): Promise<void> {
+	private async updateDomains(): Promise<void> {
 		return this.customerInfo.getAsync().then(customerInfo => {
 			let customDomainInfos = getCustomMailDomains(customerInfo)
 			// remove dns status instances for all removed domains
@@ -537,64 +538,55 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	private editCatchAllMailbox(domainInfo: DomainInfo) {
-		showProgressDialog(
-			"pleaseWait_msg",
-			locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-				return loadEnabledTeamMailGroups(customer).then(teamMailGroups =>
-					loadEnabledUserMailGroups(customer).then(userMailGroups => {
-						let allMailGroups = teamMailGroups.concat(userMailGroups)
-						const options = [
-							{
-								name: lang.get("comboBoxSelectionNone_msg"),
-								value: null,
-							},
-							...allMailGroups.map(groupData => {
-								return {
-									name: groupData.displayName,
-									value: groupData.groupId,
-								}
-							})
-						]
-						let selectedPromise: Promise<unknown> = Promise.resolve(null) // default is no selection
-
-						if (domainInfo.catchAllMailGroup) {
-							// the catch all group may be a user group, so load the mail group in that case
-							selectedPromise = locator.entityClient.load(GroupTypeRef, domainInfo.catchAllMailGroup).then(catchAllGroup => {
-								if (catchAllGroup.type === GroupType.User) {
-									return locator.entityClient.load(UserTypeRef, neverNull(catchAllGroup.user)).then(user => {
-										return getUserGroupMemberships(user, GroupType.Mail)[0].group // the first is the users personal mail group
-									})
-								} else {
-									return domainInfo.catchAllMailGroup
-								}
-							})
-						}
-
-						return selectedPromise.then(catchAllMailGroupId => {
-							let selected = allMailGroups.find(g => g.groupId === catchAllMailGroupId)
-							return {
-								available: options,
-								selected: selected,
-							}
-						})
-					}),
-				)
-			}),
-		).then(availableAndSelectedGroupDatas => {
-			const initialValue = availableAndSelectedGroupDatas.selected ? availableAndSelectedGroupDatas.selected.groupId : null
-			return Dialog.showDropDownSelectionDialog(
-				"setCatchAllMailbox_action",
-				"catchAllMailbox_label",
-				null,
-				availableAndSelectedGroupDatas.available,
-				initialValue,
-				250,
-			).then(selectedMailGroupId => {
-				return locator.customerFacade.setCatchAllGroup(domainInfo.domain, selectedMailGroupId)
-			})
-		})
+	private async editCatchAllMailbox(domainInfo: DomainInfo) {
+		const groupDatas = await showProgressDialog("pleaseWait_msg", this.loadMailboxGroupDataAndCatchAllId(domainInfo))
+		const initialValue = groupDatas.selected?.groupId ?? null
+		const selectedMailGroupId = await Dialog.showDropDownSelectionDialog(
+			"setCatchAllMailbox_action",
+			"catchAllMailbox_label",
+			null,
+			[
+				{
+					name: lang.get("comboBoxSelectionNone_msg"),
+					value: null,
+				},
+				...groupDatas.available.map(groupData => {
+					return {
+						name: groupData.displayName,
+						value: groupData.groupId,
+					}
+				})
+			],
+			initialValue,
+			250,
+		)
+		return locator.customerFacade.setCatchAllGroup(domainInfo.domain, selectedMailGroupId)
 	}
+
+	private async loadMailboxGroupDataAndCatchAllId(domainInfo: DomainInfo): Promise<{available: Array<GroupData>, selected: GroupData | null}> {
+		const customer = await locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+		const teamMailGroups = await loadEnabledTeamMailGroups(customer)
+		const userMailGroups = await loadEnabledUserMailGroups(customer)
+		const allMailGroups = teamMailGroups.concat(userMailGroups)
+		let catchAllMailGroupId: Id | null = null
+		if (domainInfo.catchAllMailGroup) {
+
+			const catchAllGroup = await locator.entityClient.load(GroupTypeRef, domainInfo.catchAllMailGroup)
+			if (catchAllGroup.type === GroupType.User) {
+				// the catch all group may be a user group, so load the mail group in that case
+				const user = await locator.entityClient.load(UserTypeRef, neverNull(catchAllGroup.user))
+				catchAllMailGroupId = getUserGroupMemberships(user, GroupType.Mail)[0].group // the first is the users personal mail group
+			} else {
+				catchAllMailGroupId = domainInfo.catchAllMailGroup
+			}
+		}
+
+		return {
+			available: allMailGroups,
+			selected: allMailGroups.find(g => g.groupId === catchAllMailGroupId) ?? null,
+		}
+	}
+
 
 	private deleteCustomDomain(domainInfo: DomainInfo) {
 		Dialog.confirm(() =>
