@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @ts-check
 
-import {Argument, program} from "commander"
+import {Argument, Option, program} from "commander"
 import fs from "fs"
 import path from "path"
 import {$} from "zx"
@@ -11,9 +11,9 @@ await program
 		.choices(["major", "minor", "patch"])
 		.default("patch")
 		.argOptional())
-	.addArgument(new Argument("platform", "version for which platform to bump")
-		.choices(["webdesktop", "android", "ios"])
-		.argOptional())
+	.addOption(new Option("-p, --platform <platform>", "version for which platform to bump")
+		.choices(["all", "webdesktop", "android", "ios"])
+		.default("all"))
 	.action(run)
 	.parseAsync(process.argv)
 
@@ -27,14 +27,14 @@ await program
  * @param platform {undefined | "webdesktop" | "android" | "ios"}
  * @return {Promise<void>}
  */
-async function run(which, platform) {
+async function run(which, {platform}) {
 	console.log(`bumping ${which} version for ${platform ?? "all"}`)
 	const currentVersionString = await readCurrentVersion()
 	const currentVersion = parseCurrentVersion(currentVersionString)
 	const newVersion = makeNewVersion(currentVersion, which)
 	const newVersionString = newVersion.join(".")
 
-	if (platform == null || platform === "webdesktop") {
+	if (platform === "all" || platform === "webdesktop") {
 		await bumpWorkspaces(newVersionString)
 		await $`npm version --no-git-tag-version ${newVersionString}`
 
@@ -42,11 +42,11 @@ async function run(which, platform) {
 		await $`npm i`
 	}
 
-	if (platform == null || platform === "ios") {
-		await bumpIosVersion(currentVersion, newVersionString)
+	if (platform === "all" || platform === "ios") {
+		await bumpIosVersion(newVersionString)
 	}
 
-	if (platform == null || platform === "android") {
+	if (platform === "all" || platform === "android") {
 		await bumpAndroidVersion(currentVersion, newVersionString)
 	}
 
@@ -66,14 +66,27 @@ function parseCurrentVersion(currentVersionString) {
 }
 
 /**
- * @param currentVersion {number[]}
  * @param newVersionString {string}
  */
-async function bumpIosVersion(currentVersion, newVersionString) {
+async function bumpIosVersion(newVersionString) {
 	const infoPlistName = "app-ios/tutanota/Info.plist"
 	const infoPlistContents = await fs.promises.readFile(infoPlistName, "utf8")
-	const newInfoPlistContents = infoPlistContents.replace(new RegExp(currentVersion.join("\\."), "g"), newVersionString)
-	await fs.promises.writeFile(infoPlistName, newInfoPlistContents)
+
+	let found = 0
+	const newInfoPlistContents = infoPlistContents.replaceAll(
+		/<key>CFBundle(Short)?Version(String)?<\/key>\s+<string>(\d+\.\d+\.\d+)<\/string>/g,
+		(match, _, __, version) => {
+			found += 1
+			return match.replace(version, newVersionString)
+		}
+	)
+
+	if (found !== 2) {
+		console.warn("app-ios/tutanota/Info.plist had an unexpected format and couldn't be updated. Is it corrupted?")
+	} else {
+		console.log(`iOS: Updated app-ios/tutanota/Info.plist to ${newVersionString}`)
+		await fs.promises.writeFile(infoPlistName, newInfoPlistContents)
+	}
 }
 
 /**
