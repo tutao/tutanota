@@ -136,7 +136,7 @@ dependencies {
 
 	testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 	testImplementation 'junit:junit:4.13.2'
-	testImplementation "org.robolectric:robolectric:4.6.1"
+	testImplementation "org.robolectric:robolectric:4.8.1"
 	testImplementation "org.mockito.kotlin:mockito-kotlin:4.0.0"
 
 	androidTestImplementation "org.mockito:mockito-android:4.5.1"
