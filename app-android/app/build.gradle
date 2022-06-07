@@ -84,15 +84,17 @@ android {
 		sourceCompatibility JavaVersion.VERSION_1_8
 		targetCompatibility JavaVersion.VERSION_1_8
 	}
-
 	packagingOptions {
-		exclude 'META-INF/LICENSE'
-		exclude 'META-INF/ASL2.0'
+		resources {
+			excludes += ['META-INF/LICENSE', 'META-INF/ASL2.0']
+		}
 	}
-
-	lintOptions {
+	lint {
 		disable 'MissingTranslation'
 	}
+
+	namespace 'de.tutao.tutanota'
+
 }
 
 task copyResourcesToClasses(type: Copy) {
