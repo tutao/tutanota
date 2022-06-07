@@ -219,11 +219,8 @@ export function deleteCampaign(): void {
 }
 
 async function loadRedeemGiftCardWizard(urlHash: string): Promise<Dialog> {
-	const {getTokenFromUrl} = await import("../subscription/giftcards/GiftCardUtils")
-	const {id, key} = await getTokenFromUrl(urlHash)
-	const giftCardInfo = await locator.giftCardFacade.getGiftCardInfo(id, key)
 	const wizard = await import("../subscription/giftcards/RedeemGiftCardWizard")
-	return wizard.loadRedeemGiftCardWizard(giftCardInfo, key)
+	return wizard.loadRedeemGiftCardWizard(urlHash)
 }
 
 export async function showGiftCardDialog(urlHash: string) {

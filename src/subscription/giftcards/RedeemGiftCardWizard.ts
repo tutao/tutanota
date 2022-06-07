@@ -1,33 +1,23 @@
 import m, {Children, Vnode, VnodeDOM} from "mithril"
 import stream from "mithril/stream"
-import {neverNull, noOp} from "@tutao/tutanota-utils"
+import {mapNullable, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
 import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialogN"
-import {
-	createWizardDialog,
-	emitWizardEvent,
-	WizardEventType,
-	wizardPageWrapper,
-	WizardPageWrapper
-} from "../../gui/base/WizardDialogN"
-import {logins} from "../../api/main/LoginController"
+import {createWizardDialog, emitWizardEvent, WizardEventType, wizardPageWrapper} from "../../gui/base/WizardDialogN"
+import {LoginController, logins} from "../../api/main/LoginController"
 import type {NewAccountData} from "../UpgradeSubscriptionWizard"
 import {loadUpgradePrices} from "../UpgradeSubscriptionWizard"
 import {Dialog} from "../../gui/base/Dialog"
-import {LoginForm, LoginFormAttrs} from "../../login/LoginForm"
-import type {CredentialsSelectorAttrs} from "../../login/CredentialsSelector"
+import {LoginForm} from "../../login/LoginForm"
 import {CredentialsSelector} from "../../login/CredentialsSelector"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {ButtonAttrs, ButtonN, ButtonType} from "../../gui/base/ButtonN"
-import type {SignupFormAttrs} from "../SignupForm"
+import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {SignupForm} from "../SignupForm"
-import {NotAuthorizedError} from "../../api/common/error/RestError"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
-import {CustomerInfoTypeRef} from "../../api/entities/sys/TypeRefs.js"
+import type {AccountingInfo, GiftCardRedeemGetReturn} from "../../api/entities/sys/TypeRefs.js"
+import {AccountingInfoTypeRef, CustomerInfoTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import {locator} from "../../api/main/MainLocator"
-import {AccountingInfoTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import type {GiftCardRedeemGetReturn} from "../../api/entities/sys/TypeRefs.js"
-import {redeemGiftCard, renderAcceptGiftCardTermsCheckbox, renderGiftCardSvg} from "./GiftCardUtils"
+import {getTokenFromUrl, renderAcceptGiftCardTermsCheckbox, renderGiftCardSvg} from "./GiftCardUtils"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import {lang} from "../../misc/LanguageViewModel"
 import {getLoginErrorMessage, handleExpectedLoginError} from "../../misc/LoginUtils"
@@ -37,31 +27,156 @@ import {PaymentMethodType} from "../../api/common/TutanotaConstants"
 import type {SubscriptionData, SubscriptionOptions, SubscriptionPlanPrices} from "../SubscriptionUtils"
 import {SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
 import {formatPrice, getPaymentMethodName, getSubscriptionPrice} from "../PriceUtils"
-import {TextFieldAttrs, TextFieldN} from "../../gui/base/TextFieldN"
-import {getByAbbreviation} from "../../api/common/CountryList"
-import {isSameId} from "../../api/common/utils/EntityUtils"
-import {ofClass} from "@tutao/tutanota-utils"
-import type {CredentialsInfo} from "../../misc/credentials/CredentialsProvider"
-import Stream from "mithril/stream";
-import {downcast} from "@tutao/tutanota-utils";
+import {TextFieldN} from "../../gui/base/TextFieldN"
+import {elementIdPart, isSameId} from "../../api/common/utils/EntityUtils"
+import type {CredentialsInfo, ICredentialsProvider} from "../../misc/credentials/CredentialsProvider"
 import {SessionType} from "../../api/common/SessionType.js";
+import {NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError.js"
+import {GiftCardFacade} from "../../api/worker/facades/GiftCardFacade.js"
+import {EntityClient} from "../../api/common/EntityClient.js"
+import {Country, getByAbbreviation} from "../../api/common/CountryList.js"
+import {renderCountryDropdown} from "../../gui/base/GuiUtils.js"
 
-type GetCredentialsMethod = "login" | "signup"
-type RedeemGiftCardWizardData = {
-	mailAddress: Stream<string>
-	giftCardInfo: GiftCardRedeemGetReturn
-	credentialsMethod: GetCredentialsMethod
-	newAccountData: Stream<NewAccountData | null>
-	key: string
-	premiumPrice: number
+
+const enum GetCredentialsMethod {
+	Login,
+	Signup
 }
-type GiftCardRedeemAttrs = WizardPageAttrs<RedeemGiftCardWizardData>
+
+class RedeemGiftCardModel {
+	mailAddress = ""
+	newAccountData: NewAccountData | null = null
+	credentialsMethod = GetCredentialsMethod.Signup
+
+	// accountingInfo is loaded after the user logs in, before redeeming the gift card
+	accountingInfo: AccountingInfo | null = null
+
+	constructor(
+		private readonly config: {
+			giftCardInfo: GiftCardRedeemGetReturn
+			key: string
+			premiumPrice: number,
+			storedCredentials: ReadonlyArray<CredentialsInfo>
+		},
+		private readonly giftCardFacade: GiftCardFacade,
+		private readonly credentialsProvider: ICredentialsProvider,
+		private readonly logins: LoginController,
+		private readonly entityClient: EntityClient,
+	) {
+	}
+
+	get giftCardInfo(): GiftCardRedeemGetReturn {
+		return this.config.giftCardInfo
+	}
+
+	get giftCardId(): Id {
+		return elementIdPart(this.giftCardInfo.giftCard)
+	}
+
+	get key(): string {
+		return this.config.key
+	}
+
+	get premiumPrice(): number {
+		return this.config.premiumPrice
+	}
+
+	get message(): string {
+		return this.config.giftCardInfo.message
+	}
+
+	get paymentMethod(): PaymentMethodType {
+		return this.accountingInfo?.paymentMethod as PaymentMethodType | null
+			?? PaymentMethodType.AccountBalance
+	}
+
+	get storedCredentials(): ReadonlyArray<CredentialsInfo> {
+		return this.config.storedCredentials
+	}
+
+	async loginWithStoredCredentials(encryptedCredentials: CredentialsInfo) {
+		if (logins.isUserLoggedIn() && isSameId(logins.getUserController().user._id, encryptedCredentials.userId)) {
+			// If the user is logged in already (because they selected credentials and then went back) we dont have to do
+			// anything, so just move on
+			await this.postLogin()
+		} else {
+			await this.logins.logout(false)
+			const credentials = await this.credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
+
+			if (credentials) {
+				await this.logins.resumeSession(credentials, null, null)
+				await this.postLogin()
+			}
+		}
+
+	}
+
+	async loginWithFormCredentials(mailAddress: string, password: string) {
+		this.mailAddress = mailAddress
+		// If they try to login with a mail address that is stored, we want to swap out the old session with a new one
+		await this.logins.logout(false)
+		await this.logins.createSession(mailAddress, password, SessionType.Temporary)
+		await this.postLogin()
+	}
+
+	async handleNewSignup(newAccountData: NewAccountData | null) {
+		if (newAccountData || this.newAccountData) {
+			// if there's an existing account it means the signup form was readonly
+			// because we came back from the next page after having already signed up
+			if (!this.newAccountData) {
+				this.newAccountData = newAccountData
+			}
+
+			const {mailAddress, password} = neverNull(newAccountData || this.newAccountData)
+
+			this.mailAddress = mailAddress
+
+			await this.logins.createSession(mailAddress, password, SessionType.Temporary)
+			await this.postLogin()
+		}
+	}
+
+	private async postLogin(): Promise<void> {
+		if (!this.logins.getUserController().isGlobalAdmin()) {
+			throw new UserError("onlyAccountAdminFeature_msg")
+		}
+
+		const customer = await this.logins.getUserController().loadCustomer()
+		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+		this.accountingInfo = await this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+
+		if (customer.businessUse || this.accountingInfo.business) {
+			throw new UserError("onlyPrivateAccountFeature_msg")
+		}
+	}
+
+	async redeemGiftCard(country: Country | null): Promise<void> {
+		if (country == null && this.accountingInfo?.invoiceCountry == null) {
+			throw new UserError("invoiceCountryInfoBusiness_msg")
+		}
+
+		return this.giftCardFacade
+				   .redeemGiftCard(this.giftCardId, this.key, country?.a ?? null)
+				   .catch(
+					   ofClass(NotFoundError, () => {
+						   throw new UserError("invalidGiftCard_msg")
+					   }),
+				   )
+				   .catch(
+					   ofClass(NotAuthorizedError, e => {
+						   throw new UserError(() => e.message)
+					   }),
+				   )
+	}
+}
+
+type GiftCardRedeemAttrs = WizardPageAttrs<RedeemGiftCardModel>
 
 /**
  * This page gives the user the option to either signup or login to an account with which to redeem their gift card.
  */
 
-class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardWizardData> {
+class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardModel> {
 	private dom!: HTMLElement;
 
 	oncreate(vnodeDOM: VnodeDOM<GiftCardRedeemAttrs>) {
@@ -78,33 +193,25 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardWizardData> {
 			})
 		}
 
-		let message = a.data.giftCardInfo.message
 		return [
-			m(
-				".flex-center.full-width.pt-l",
-				m(
-					"",
+			m(".flex-center.full-width.pt-l",
+				m("",
 					{
 						style: {
 							width: "480px",
-						},
+						}
 					},
-					m(
-						".pt-l",
+					m(".pt-l",
 						renderGiftCardSvg(
 							parseFloat(a.data.giftCardInfo.value),
-							neverNull(getByAbbreviation(a.data.giftCardInfo.country)),
-							/*link=*/
 							null,
-							message,
+							a.data.message,
 						),
 					),
 				),
 			),
-			m(
-				".flex-center.full-width.pt-l",
-				m(
-					"",
+			m(".flex-center.full-width.pt-l",
+				m("",
 					{
 						style: {
 							width: "260px",
@@ -112,15 +219,13 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardWizardData> {
 					},
 					m(ButtonN, {
 						label: "existingAccount_label",
-						click: () => nextPage("login"),
+						click: () => nextPage(GetCredentialsMethod.Login),
 						type: ButtonType.Login,
 					}),
 				),
 			),
-			m(
-				".flex-center.full-width.pt-l.pb-m",
-				m(
-					"",
+			m(".flex-center.full-width.pt-l.pb-m",
+				m("",
 					{
 						style: {
 							width: "260px",
@@ -128,7 +233,7 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardWizardData> {
 					},
 					m(ButtonN, {
 						label: "register_label",
-						click: () => nextPage("signup"),
+						click: () => nextPage(GetCredentialsMethod.Signup),
 						type: ButtonType.Login,
 					}),
 				),
@@ -142,185 +247,130 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardWizardData> {
  * When they go to the next page the will be logged in.
  */
 
-class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardWizardData> {
-	private _domElement: HTMLElement | null = null
-	private _loginFormHelpText: string
-	private readonly _password: Stream<string>
-	private _storedCredentials: Array<CredentialsInfo>
-
-	constructor() {
-		this._loginFormHelpText = lang.get("emptyString_msg")
-		this._password = stream("")
-		this._storedCredentials = []
-		locator.credentialsProvider.getInternalCredentialsInfos().then(credentials => {
-			this._storedCredentials = credentials
-			m.redraw()
-		})
-	}
+class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardModel> {
+	private domElement: HTMLElement | null = null
+	private loginFormHelpText = lang.get("emptyString_msg")
+	private mailAddress = stream<string>("")
+	private password = stream<string>("")
 
 	oncreate(vnode: VnodeDOM<GiftCardRedeemAttrs>) {
-		this._domElement = vnode.dom as HTMLElement
+		this.domElement = vnode.dom as HTMLElement
 	}
 
 	view(vnode: Vnode<GiftCardRedeemAttrs>): Children {
 		const data = vnode.attrs.data
 
 		switch (data.credentialsMethod) {
-			case "login":
-				return this._renderLoginPage(data)
+			case GetCredentialsMethod.Login:
+				return this.renderLoginPage(data)
 
-			case "signup":
-				return this._renderSignupPage(data)
+			case GetCredentialsMethod.Signup:
+				return this.renderSignupPage(data)
 		}
 	}
 
 	onremove() {
-		this._password("")
+		this.password("")
 	}
 
-	_renderLoginPage(data: RedeemGiftCardWizardData): Children {
-		const loginFormAttrs: LoginFormAttrs = {
-			onSubmit: (mailAddress, password) => {
-				if (mailAddress === "" || password === "") {
-					this._loginFormHelpText = lang.get("loginFailed_msg")
-				} else {
-					const loginPromise = logins
-						.logout(false)
-						.then(() => logins.createSession(mailAddress, password, SessionType.Temporary))
-						.then(() => this._postLogin())
-						.catch(e => {
-							this._loginFormHelpText = lang.getMaybeLazy(getLoginErrorMessage(e, false))
-						})
-					// If they try to login with a mail address that is stored, we want to swap out the old session with a new one
-					showProgressDialog("pleaseWait_msg", loginPromise)
-				}
-			},
-			mailAddress: data.mailAddress,
-			password: this._password,
-			helpText: this._loginFormHelpText,
-		}
-
-		const loginWithStoredCredentials = async (encryptedCredentials: CredentialsInfo) => {
-			try {
-				await logins.logout(false)
-				const credentials = await locator.credentialsProvider.getCredentialsByUserId(encryptedCredentials.userId)
-
-				if (credentials) {
-					await logins.resumeSession(credentials, null, null)
-					await this._postLogin()
-				}
-
-			} catch (e) {
-				this._loginFormHelpText = lang.getMaybeLazy(getLoginErrorMessage(e, false))
-				handleExpectedLoginError(e, noOp)
-			}
-		}
-
-		const credentialsSelectorAttrs: CredentialsSelectorAttrs = {
-			credentials: this._storedCredentials,
-			onCredentialsSelected: async encryptedCredentials => {
-				if (logins.isUserLoggedIn() && isSameId(logins.getUserController().user._id, encryptedCredentials.userId)) {
-					// If the user is logged in already (because they selected credentials and then went back) we dont have to do
-					// anything, so just move on
-					await this._postLogin()
-				} else {
-					await showProgressDialog("pleaseWait_msg", loginWithStoredCredentials(encryptedCredentials))
-				}
-			},
-		}
+	private renderLoginPage(model: RedeemGiftCardModel): Children {
 		return [
 			m(
 				".flex-grow.flex-center.scroll",
 				m(".flex-grow-shrink-auto.max-width-s.pt.plr-l", [
-					m(LoginForm, loginFormAttrs),
-					this._storedCredentials.length > 0 ? m(CredentialsSelector, credentialsSelectorAttrs) : null,
+					this.renderLoginForm(model),
+					this.renderCredentialsSelector(model),
 				]),
 			),
 		]
 	}
 
-	_renderSignupPage(data: RedeemGiftCardWizardData): Children {
-		const existingAccountData = data.newAccountData()
-		const isReadOnly = existingAccountData != null
-		const signupFormAttrs: SignupFormAttrs = {
-			// After having an account created we log them in to be in the same state as if they had selected an existing account
-			newSignupHandler: newAccountData => {
-				if (newAccountData || existingAccountData) {
-					// if there's an existing account it means the signup form was readonly
-					// because we came back from the next page after having already signed up
-					if (!existingAccountData) {
-						data.newAccountData(newAccountData)
+	private renderLoginForm(model: RedeemGiftCardModel): Children {
+		return m(LoginForm, {
+			onSubmit: async (mailAddress, password) => {
+				if (mailAddress === "" || password === "") {
+					this.loginFormHelpText = lang.get("loginFailed_msg")
+				} else {
+					try {
+						// If they try to login with a mail address that is stored, we want to swap out the old session with a new one
+						await showProgressDialog("pleaseWait_msg", model.loginWithFormCredentials(this.mailAddress(), this.password()))
+						emitWizardEvent(this.domElement, WizardEventType.SHOWNEXTPAGE)
+					} catch (e) {
+						if (e instanceof UserError) {
+							Dialog.message(() => e.message)
+						} else {
+							this.loginFormHelpText = lang.getMaybeLazy(getLoginErrorMessage(e, false))
+						}
 					}
-
-					const {mailAddress, password, recoverCode} = neverNull(newAccountData || existingAccountData)
-
-					this._password(password)
-
-					data.mailAddress(mailAddress)
-					logins
-						.createSession(mailAddress, password, SessionType.Temporary)
-						.then(() => {
-							emitWizardEvent(this._domElement, WizardEventType.SHOWNEXTPAGE)
-							m.redraw()
-						})
-						.catch(e => {
-							// TODO when would login fail here and how does it get handled? can we attempt to login again?
-							Dialog.message("giftCardLoginError_msg")
-							m.route.set("/login", {
-								noAutoLogin: true,
-							})
-						})
 				}
 			},
-			readonly: isReadOnly,
-			prefilledMailAddress: existingAccountData ? existingAccountData.mailAddress : "",
+			mailAddress: this.mailAddress,
+			password: this.password,
+			helpText: this.loginFormHelpText,
+		})
+	}
+
+	private renderCredentialsSelector(model: RedeemGiftCardModel): Children {
+		if (model.storedCredentials.length === 0) {
+			return null
+		}
+
+		return m(CredentialsSelector, {
+			credentials: model.storedCredentials,
+			onCredentialsSelected: async encryptedCredentials => {
+				try {
+					await showProgressDialog("pleaseWait_msg", model.loginWithStoredCredentials(encryptedCredentials))
+					emitWizardEvent(this.domElement, WizardEventType.SHOWNEXTPAGE)
+				} catch (e) {
+					this.loginFormHelpText = lang.getMaybeLazy(getLoginErrorMessage(e, false))
+					handleExpectedLoginError(e, noOp)
+				}
+			},
+		})
+	}
+
+	private renderSignupPage(model: RedeemGiftCardModel): Children {
+		return m(SignupForm, {
+			// After having an account created we log them in to be in the same state as if they had selected an existing account
+			newSignupHandler: newAccountData => {
+				showProgressDialog(
+					"pleaseWait_msg",
+					model.handleNewSignup(newAccountData)
+						 .then(() => {
+							 emitWizardEvent(this.domElement, WizardEventType.SHOWNEXTPAGE)
+							 m.redraw()
+						 })
+						 .catch(e => {
+							 // TODO when would login fail here and how does it get handled? can we attempt to login again?
+							 Dialog.message("giftCardLoginError_msg")
+							 m.route.set("/login", {
+								 noAutoLogin: true,
+							 })
+						 })
+				)
+			},
+			readonly: model.newAccountData != null,
+			prefilledMailAddress: model.newAccountData ? model.newAccountData.mailAddress : "",
 			isBusinessUse: () => false,
 			isPaidSubscription: () => false,
 			campaign: () => null,
-		}
-		return m(SignupForm, signupFormAttrs)
-	}
-
-	_postLogin(): Promise<void> {
-		return Promise.resolve()
-					  .then(() => {
-						  if (!logins.getUserController().isGlobalAdmin()) throw new UserError("onlyAccountAdminFeature_msg")
-					  })
-					  .then(() => logins.getUserController().loadCustomer())
-					  .then(customer => {
-						  return locator.entityClient
-										.load(CustomerInfoTypeRef, customer.customerInfo)
-										.then(customerInfo => locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo))
-										.then(accountingInfo => {
-											if (customer.businessUse || accountingInfo.business) {
-												throw new UserError("onlyPrivateAccountFeature_msg")
-											}
-										})
-					  })
-					  .then(() => {
-						  emitWizardEvent(this._domElement, WizardEventType.SHOWNEXTPAGE)
-					  })
-					  .catch(ofClass(UserError, showUserError))
+		})
 	}
 }
 
-class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
-	isConfirmed: Stream<boolean>
-	paymentMethod: string
+class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
+	private confirmed = false
+	private showCountryDropdown: boolean
+	private country: Country | null
 	private dom!: HTMLElement;
 
-	constructor() {
-		this.isConfirmed = stream<boolean>(false)
-		this.paymentMethod = ""
-		logins
-			.getUserController()
-			.loadAccountingInfo()
-			.then(accountingInfo => {
-				this.paymentMethod = accountingInfo.paymentMethod
-					? getPaymentMethodName(downcast<PaymentMethodType>(accountingInfo.paymentMethod))
-					: getPaymentMethodName(PaymentMethodType.AccountBalance)
-				m.redraw()
-			})
+	constructor({attrs}: Vnode<GiftCardRedeemAttrs>) {
+		// we expect that the accounting info is actually available by now,
+		// but we optional chain because invoiceCountry is nullable anyway
+		this.country = mapNullable(attrs.data.accountingInfo?.invoiceCountry, getByAbbreviation)
+
+		// if a country is already set, then we don't need to ask for one
+		this.showCountryDropdown = this.country == null
 	}
 
 	oncreate(vnodeDOM: VnodeDOM<GiftCardRedeemAttrs>) {
@@ -328,94 +378,22 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
 	}
 
 	view(vnode: Vnode<GiftCardRedeemAttrs>): Children {
-		const data = vnode.attrs.data
-		const wasFree = logins.getUserController().isFreeAccount()
-		const confirmButtonAttrs: ButtonAttrs = {
-			label: "redeem_label",
-			click: () => {
-				if (!this.isConfirmed()) {
-					Dialog.message("termsAcceptedNeutral_msg")
-					return
-				}
+		const model = vnode.attrs.data
+		const isFree = logins.getUserController().isFreeAccount()
 
-				redeemGiftCard(data.giftCardInfo.giftCard, data.key, data.giftCardInfo.country, Dialog.confirm)
-					.then(() => emitWizardEvent(this.dom, WizardEventType.CLOSEDIALOG))
-					.catch(ofClass(UserError, showUserError))
-					.catch(ofClass(CancelledError, noOp))
-			},
-			type: ButtonType.Login,
-		}
 		return m("", [
-			data.newAccountData()
-				? m(
-					".pt-l.plr-l",
+			mapNullable(
+				model.newAccountData?.recoverCode, code => m(".pt-l.plr-l",
 					m(RecoverCodeField, {
 						showMessage: true,
-						recoverCode: neverNull(data.newAccountData()).recoverCode,
+						recoverCode: code,
 					}),
 				)
-				: null,
-			wasFree
-				? [
-					m(
-						".pt-l.plr-l",
-						`${lang.get("giftCardUpgradeNotify_msg", {
-							"{price}": formatPrice(data.premiumPrice, true),
-							"{credit}": formatPrice(Number(data.giftCardInfo.value) - data.premiumPrice, true),
-						})} ${lang.get("creditUsageOptions_msg")}`,
-					),
-					m(".center.h4.pt", lang.get("upgradeConfirm_msg")),
-					m(".flex-space-around.flex-wrap", [
-						m(".flex-grow-shrink-half.plr-l", [
-							m(TextFieldN, {
-								label: "subscription_label",
-								value: "Premium",
-								disabled: true,
-							}),
-							m(TextFieldN, {
-								label: "paymentInterval_label",
-								value: lang.get("pricing.yearly_label"),
-								disabled: true,
-							}),
-							m(TextFieldN, {
-								label: "price_label",
-								value: formatPrice(Number(data.premiumPrice), true) + " " + lang.get("pricing.perYear_label"),
-								disabled: true,
-							}),
-							m(TextFieldN, {
-								label: "paymentMethod_label",
-								value: this.paymentMethod,
-								disabled: true,
-							}),
-						]),
-						m(
-							".flex-grow-shrink-half.plr-l.flex-center.items-end",
-							m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {
-								style: {
-									width: "200px",
-								},
-							}),
-						),
-					]),
-				]
-				: [
-					m(
-						".pt-l.plr-l.flex-center",
-						`${lang.get("giftCardCreditNotify_msg", {
-							"{credit}": formatPrice(Number(data.giftCardInfo.value), true),
-						})} ${lang.get("creditUsageOptions_msg")}`,
-					),
-					m(
-						".flex-grow-shrink-half.plr-l.flex-center.items-end",
-						m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {
-							style: {
-								width: "200px",
-							},
-						}),
-					),
-				],
-			m(
-				".flex-center.full-width.pt-l",
+			),
+			isFree
+				? this.renderInfoForFreeAccounts(model)
+				: this.renderInfoForPaidAccounts(model),
+			m(".flex-center.full-width.pt-l",
 				m(
 					"",
 					{
@@ -423,11 +401,19 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
 							maxWidth: "620px",
 						},
 					},
-					renderAcceptGiftCardTermsCheckbox(this.isConfirmed),
+					[
+						this.showCountryDropdown
+							? renderCountryDropdown({
+								selectedCountry: this.country,
+								onSelectionChanged: country => this.country = country,
+								helpLabel: () => lang.get("invoiceCountryInfoConsumer_msg")
+							})
+							: null,
+						renderAcceptGiftCardTermsCheckbox(this.confirmed, confirmed => this.confirmed = confirmed),
+					]
 				),
 			),
-			m(
-				".flex-center.full-width.pt-s.pb",
+			m(".flex-center.full-width.pt-s.pb",
 				m(
 					"",
 					{
@@ -435,68 +421,157 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardWizardData> {
 							width: "260px",
 						},
 					},
-					m(ButtonN, confirmButtonAttrs),
+					m(ButtonN, {
+						label: "redeem_label",
+						click: () => {
+							if (!this.confirmed) {
+								Dialog.message("termsAcceptedNeutral_msg")
+								return
+							}
+
+							model.redeemGiftCard(this.country)
+								 .then(() => emitWizardEvent(this.dom, WizardEventType.CLOSEDIALOG))
+								 .catch(ofClass(UserError, showUserError))
+								 .catch(ofClass(CancelledError, noOp))
+						},
+						type: ButtonType.Login,
+					}),
 				),
 			),
 		])
 	}
+
+	private renderInfoForFreeAccounts(model: RedeemGiftCardModel): Children {
+		return [
+			m(".pt-l.plr-l",
+				`${lang.get("giftCardUpgradeNotify_msg", {
+					"{price}": formatPrice(model.premiumPrice, true),
+					"{credit}": formatPrice(Number(model.giftCardInfo.value) - model.premiumPrice, true),
+				})} ${lang.get("creditUsageOptions_msg")}`,
+			),
+			m(".center.h4.pt", lang.get("upgradeConfirm_msg")),
+			m(".flex-space-around.flex-wrap", [
+				m(".flex-grow-shrink-half.plr-l", [
+					m(TextFieldN, {
+						label: "subscription_label",
+						value: "Premium",
+						disabled: true,
+					}),
+					m(TextFieldN, {
+						label: "paymentInterval_label",
+						value: lang.get("pricing.yearly_label"),
+						disabled: true,
+					}),
+					m(TextFieldN, {
+						label: "price_label",
+						value: formatPrice(Number(model.premiumPrice), true) + " " + lang.get("pricing.perYear_label"),
+						disabled: true,
+					}),
+					m(TextFieldN, {
+						label: "paymentMethod_label",
+						value: getPaymentMethodName(model.paymentMethod),
+						disabled: true,
+					}),
+				]),
+				m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
+					m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {
+						style: {
+							width: "200px",
+						},
+					}),
+				),
+			]),
+		]
+	}
+
+	private renderInfoForPaidAccounts(model: RedeemGiftCardModel): Children {
+		return [
+			m(".pt-l.plr-l.flex-center",
+				`${lang.get("giftCardCreditNotify_msg", {
+					"{credit}": formatPrice(Number(model.giftCardInfo.value), true),
+				})} ${lang.get("creditUsageOptions_msg")}`,
+			),
+			m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
+				m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {
+					style: {
+						width: "200px",
+					},
+				}),
+			),
+		]
+	}
 }
 
-export function loadRedeemGiftCardWizard(giftCardInfo: GiftCardRedeemGetReturn, key: string): Promise<Dialog> {
-	return loadUpgradePrices(null).then(prices => {
-		const priceData: SubscriptionPlanPrices = {
-			Premium: prices.premiumPrices,
-			PremiumBusiness: prices.premiumBusinessPrices,
-			Teams: prices.teamsPrices,
-			TeamsBusiness: prices.teamsBusinessPrices,
-			Pro: prices.proPrices,
-		}
-		const subscriptionData: SubscriptionData = {
-			options: {
-				businessUse: () => false,
-				paymentInterval: () => 12,
-			} as SubscriptionOptions,
-			planPrices: priceData,
-		}
-		const giftCardRedeemData: RedeemGiftCardWizardData = {
-			newAccountData: stream(null as NewAccountData | null),
-			mailAddress: stream(""),
-			credentialsMethod: "signup",
-			giftCardInfo: giftCardInfo,
+export async function loadRedeemGiftCardWizard(hashFromUrl: string): Promise<Dialog> {
+
+	const model = await loadModel(hashFromUrl)
+
+	const wizardPages = [
+		wizardPageWrapper(GiftCardWelcomePage, {
+			data: model,
+			headerTitle: () => lang.get("giftCard_label"),
+			nextAction: async () => true,
+			isSkipAvailable: () => false,
+			isEnabled: () => true,
+		}),
+		wizardPageWrapper(GiftCardCredentialsPage, {
+			data: model,
+			headerTitle: () => lang.get(model.credentialsMethod === GetCredentialsMethod.Signup ? "register_label" : "login_label"),
+			nextAction: async () => true,
+			isSkipAvailable: () => false,
+			isEnabled: () => true,
+		}),
+		wizardPageWrapper(RedeemGiftCardPage, {
+			data: model,
+			headerTitle: () => lang.get("redeem_label"),
+			nextAction: async () => true,
+			isSkipAvailable: () => false,
+			isEnabled: () => true,
+		}),
+	]
+	return createWizardDialog(model, wizardPages, async () => {
+		const urlParams =
+			!!model.mailAddress
+				? {loginWith: model.mailAddress, noAutoLogin: true}
+				: {}
+		m.route.set("/login", urlParams)
+	}).dialog
+}
+
+async function loadModel(hashFromUrl: string): Promise<RedeemGiftCardModel> {
+
+	const {id, key} = await getTokenFromUrl(hashFromUrl)
+	const giftCardInfo = await locator.giftCardFacade.getGiftCardInfo(id, key)
+	const prices = await loadUpgradePrices(null)
+
+	const priceData: SubscriptionPlanPrices = {
+		Premium: prices.premiumPrices,
+		PremiumBusiness: prices.premiumBusinessPrices,
+		Teams: prices.teamsPrices,
+		TeamsBusiness: prices.teamsBusinessPrices,
+		Pro: prices.proPrices,
+	}
+
+	const subscriptionData: SubscriptionData = {
+		options: {
+			businessUse: () => false,
+			paymentInterval: () => 12,
+		} as SubscriptionOptions,
+		planPrices: priceData,
+	}
+
+	const storedCredentials = await locator.credentialsProvider.getInternalCredentialsInfos()
+
+	return new RedeemGiftCardModel(
+		{
+			giftCardInfo,
 			key,
 			premiumPrice: getSubscriptionPrice(subscriptionData, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice),
-		}
-		const wizardPages = [
-			wizardPageWrapper(GiftCardWelcomePage, {
-				data: giftCardRedeemData,
-				headerTitle: () => lang.get("giftCard_label"),
-				nextAction: _ => Promise.resolve(true),
-				isSkipAvailable: () => false,
-				isEnabled: () => true,
-			}),
-			wizardPageWrapper(GiftCardCredentialsPage, {
-				data: giftCardRedeemData,
-				headerTitle: () => lang.get(giftCardRedeemData.credentialsMethod === "signup" ? "register_label" : "login_label"),
-				nextAction: (showErrorDialog: boolean) => Promise.resolve(true),
-				isSkipAvailable: () => false,
-				isEnabled: () => true,
-			}),
-			wizardPageWrapper(RedeemGiftCardPage, {
-				data: giftCardRedeemData,
-				headerTitle: () => lang.get("redeem_label"),
-				nextAction: _ => Promise.resolve(true),
-				isSkipAvailable: () => false,
-				isEnabled: () => true,
-			}),
-		]
-		return createWizardDialog(giftCardRedeemData, wizardPages, () => {
-			const urlParams =
-				giftCardRedeemData.credentialsMethod === "signup"
-					? {
-						loginWith: giftCardRedeemData.mailAddress(),
-					}
-					: {}
-			return Promise.resolve(m.route.set("/login", urlParams))
-		}).dialog
-	})
+			storedCredentials
+		},
+		locator.giftCardFacade,
+		locator.credentialsProvider,
+		logins,
+		locator.entityClient,
+	)
 }

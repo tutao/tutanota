@@ -4,19 +4,12 @@ import {Icons} from "../../gui/base/icons/Icons"
 import type {CustomerInfo, GiftCard} from "../../api/entities/sys/TypeRefs.js"
 import {CustomerInfoTypeRef, CustomerTypeRef, GiftCardTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import {locator} from "../../api/main/MainLocator"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang, TranslationText} from "../../misc/LanguageViewModel"
 import {UserError} from "../../api/main/UserError"
 import {Dialog} from "../../gui/base/Dialog"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {px} from "../../gui/size"
-import type {lazy} from "@tutao/tutanota-utils"
-import {assertNotNull, neverNull, ofClass} from "@tutao/tutanota-utils"
-import type {Country} from "../../api/common/CountryList"
-import {getByAbbreviation} from "../../api/common/CountryList"
-import {NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
-import {CancelledError} from "../../api/common/error/CancelledError"
 import {theme} from "../../gui/theme"
 import {DefaultAnimationTime} from "../../gui/animation/Animations"
 import {copyToClipboard} from "../../misc/ClipboardUtils"
@@ -24,11 +17,17 @@ import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {getWebRoot, isAndroidApp, isApp} from "../../api/common/Env"
 import {CheckboxN} from "../../gui/base/CheckboxN"
 import {Keys} from "../../api/common/TutanotaConstants"
-import {elementIdPart} from "../../api/common/utils/EntityUtils"
 import {formatPrice} from "../PriceUtils"
-import Stream from "mithril/stream";
 import {CURRENT_GIFT_CARD_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection} from "../TermsAndConditions"
-import {LocationService} from "../../api/entities/sys/Services.js"
+
+export const enum GiftCardStatus {
+	Deactivated = "0",
+	Usable = "1",
+	Redeemed = "2",
+	Refunded = "3",
+	Disputed = "4",
+}
+
 
 export async function getTokenFromUrl(url: string): Promise<{id: Id, key: string}> {
 	const token = url.substring(url.indexOf("#") + 1)
@@ -42,53 +41,6 @@ export async function getTokenFromUrl(url: string): Promise<{id: Id, key: string
 	} catch (e) {
 		throw new UserError("invalidGiftCard_msg")
 	}
-}
-
-export function redeemGiftCard(
-	giftCardId: IdTuple,
-	key: string,
-	validCountryCode: string,
-	getConfirmation: (_: TranslationKey | lazy<string>) => Promise<boolean>,
-): Promise<void> {
-	// Check that the country matches
-	return locator.serviceExecutor.get(LocationService, null)
-				  .then(userLocation => {
-					  const validCountry = getByAbbreviation(validCountryCode)
-
-					  if (!validCountry) {
-						  throw new UserError("invalidGiftCard_msg")
-					  }
-
-					  const validCountryName = validCountry.n
-					  const userCountry = getByAbbreviation(userLocation.country)
-					  const userCountryName = assertNotNull(userCountry).n
-					  return (
-						  userCountryName === validCountryName ||
-						  getConfirmation(() =>
-							  lang.get("validGiftCardCountry_msg", {
-								  "{valid}": validCountryName,
-								  "{actual}": userCountryName,
-							  }),
-						  )
-					  )
-				  })
-				  .then(confirmed => {
-					  if (!confirmed) throw new CancelledError("")
-				  })
-				  .then(() => {
-					  return locator.giftCardFacade
-									.redeemGiftCard(elementIdPart(giftCardId), key)
-									.catch(
-										ofClass(NotFoundError, () => {
-											throw new UserError("invalidGiftCard_msg")
-										}),
-									)
-									.catch(
-										ofClass(NotAuthorizedError, e => {
-											throw new UserError(() => e.message)
-										}),
-									)
-				  })
 }
 
 export function loadGiftCards(customerId: Id): Promise<GiftCard[]> {
@@ -147,7 +99,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 											giftCardDomElement = domChild.dom as SVGElement
 										},
 									},
-									renderGiftCardSvg(parseFloat(giftCard.value), neverNull(getByAbbreviation(giftCard.country)), link, message),
+									renderGiftCardSvg(parseFloat(giftCard.value), link, message),
 								),
 							),
 						]),
@@ -213,7 +165,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 	})
 }
 
-export function renderGiftCardSvg(price: number, country: Country, link: string | null, message: string): Children {
+export function renderGiftCardSvg(price: number, link: string | null, message: string): Children {
 	let qrCode: string | null = null
 	const qrCodeSize = 80
 
@@ -346,9 +298,6 @@ export function renderGiftCardSvg(price: number, country: Country, link: string 
 					fill: theme.elevated_bg,
 					"font-size": ".4rem",
 				},
-				lang.get("validInCountry_msg", {
-					"{country}": country.n,
-				}),
 			),
 			qrCode
 				? m(
@@ -369,10 +318,10 @@ export function renderGiftCardSvg(price: number, country: Country, link: string 
 	)
 }
 
-export function renderAcceptGiftCardTermsCheckbox(confirmed: Stream<boolean>): Children {
+export function renderAcceptGiftCardTermsCheckbox(checked: boolean, onChecked: (checked: boolean) => void): Children {
 	return m(CheckboxN, {
-		checked: confirmed(),
-		onChecked: confirmed,
+		checked,
+		onChecked,
 		label: () => [
 			m("", lang.get("termsAndConditions_label")),
 			m(

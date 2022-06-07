@@ -217,7 +217,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.login.init(locator.indexer, locator.eventBusClient)
 	locator.Const = Const
 	locator.share = new ShareFacade(locator.user, locator.crypto, locator.serviceExecutor, locator.cachingEntityClient)
-	locator.giftCards = new GiftCardFacadeImpl(locator.user, locator.serviceExecutor, locator.crypto)
+	locator.giftCards = new GiftCardFacadeImpl(locator.user, locator.customer, locator.serviceExecutor, locator.crypto)
 	locator.configFacade = new ConfigurationDatabase(locator.user)
 	locator.contactFormFacade = new ContactFormFacadeImpl(locator.restClient, locator.instanceMapper)
 	locator.deviceEncryptionFacade = new Aes256DeviceEncryptionFacade()

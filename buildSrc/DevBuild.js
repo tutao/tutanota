@@ -11,14 +11,21 @@ import * as LaunchHtml from "./LaunchHtml.js"
 import os from "os"
 import {checkOfflineDatabaseMigrations} from "./checkOfflineDbMigratons.js"
 
-export async function runDevBuild({stage, host, desktop, clean}) {
+export async function runDevBuild({stage, host, desktop, clean, ignoreMigrations}) {
 	if (clean) {
 		await runStep("Clean", async () => {
 			await fs.emptyDir("build")
 		})
 	}
 
-	await runStep("Validate", () => checkOfflineDatabaseMigrations())
+
+	await runStep("Validate", () => {
+		if (ignoreMigrations) {
+			console.warn("CAUTION: Offline migrations are not being validated.")
+		} else {
+			checkOfflineDatabaseMigrations()
+		}
+	})
 
 	await runStep("Packages", async () => {
 		await $`npm run build-runtime-packages`

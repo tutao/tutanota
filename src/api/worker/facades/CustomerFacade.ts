@@ -1,6 +1,12 @@
 import type {InvoiceData, PaymentData, SpamRuleFieldType, SpamRuleType} from "../../common/TutanotaConstants"
 import {AccountType, BookingItemFeatureType, Const, GroupType} from "../../common/TutanotaConstants"
-import type {CustomDomainReturn, CustomerServerProperties, EmailSenderListElement, PaymentDataServicePutReturn} from "../../entities/sys/TypeRefs.js"
+import type {
+	AccountingInfo,
+	CustomDomainReturn,
+	CustomerServerProperties,
+	EmailSenderListElement,
+	PaymentDataServicePutReturn
+} from "../../entities/sys/TypeRefs.js"
 import {
 	AccountingInfoTypeRef,
 	createBrandingDomainData,
@@ -76,6 +82,8 @@ export interface CustomerFacade {
 	readAvailableCustomerStorage(customerId: Id): Promise<number>
 
 	loadCustomerServerProperties(): Promise<CustomerServerProperties>
+
+	loadAccountingInfo(): Promise<AccountingInfo>
 
 	editSpamRule(spamRule: EmailSenderListElement): Promise<void>
 
@@ -493,5 +501,11 @@ export class CustomerFacadeImpl implements CustomerFacade {
 				id: undefined,
 			}
 		})
+	}
+
+	async loadAccountingInfo(): Promise<AccountingInfo> {
+		const customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(this.userFacade.getUser()?.customer))
+		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+		return this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
 	}
 }

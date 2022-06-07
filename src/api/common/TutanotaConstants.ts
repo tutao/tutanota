@@ -496,6 +496,7 @@ export const enum PostingType {
 	Payment = "5",
 	Refund = "6",
 	SuspensionCancel = "7",
+	GiftCard = "8",
 }
 
 export const CounterType_UnreadMails = "2"

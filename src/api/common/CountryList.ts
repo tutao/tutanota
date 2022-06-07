@@ -8,15 +8,21 @@ export const DecimalSeparator = {
 	DOT: 1,
 	UNKNOWN: 2,
 }
-// n = name, a = abbreviation, t = type, shortened to reduce size
+/**
+ * parameter names are shortened to reduce size
+ */
 export type Country = {
+	/** name */
 	n: string
+	/** abbreviation */
 	a: string
+	/** type */
 	t: number
+	/** ??? */
 	d: number
 }
 // taken from https://en.wikipedia.org/wiki/ISO_3166-1
-export const Countries: Array<Country> = [
+export const Countries: ReadonlyArray<Country> = Object.freeze([
 	{
 		n: "Afghanistan",
 		a: "AF",
@@ -1511,8 +1517,7 @@ export const Countries: Array<Country> = [
 		t: 2,
 		d: 1,
 	},
-]
-Object.freeze(Countries) // prevent modifying the array
+])
 
 export function getByAbbreviation(abbreviation: string): Country | null {
 	return Countries.find(c => c.a === abbreviation) ?? null

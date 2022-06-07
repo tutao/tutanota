@@ -2,6 +2,8 @@ import {Apps, OfflineStorage} from "./OfflineStorage.js"
 import {ModelInfos} from "../../common/EntityFunctions.js"
 import {typedKeys} from "@tutao/tutanota-utils"
 import {ProgrammingError} from "../../common/error/ProgrammingError.js"
+import {sys75} from "./migrations/sys-v75.js"
+import {sys76} from "./migrations/sys-v76.js"
 
 export interface OfflineMigration {
 	readonly app: Apps
@@ -11,9 +13,8 @@ export interface OfflineMigration {
 
 /** List of migrations that will be run when needed. Please add your migrations to the list. */
 export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
-	// example:
-	// myapp1,
-	// and your migrations below
+	sys75,
+	sys76
 ]
 
 /**

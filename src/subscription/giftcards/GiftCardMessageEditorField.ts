@@ -1,12 +1,12 @@
 import m, {Children, Component, Vnode} from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
-import Stream from "mithril/stream";
 import {assertNotNull} from "@tutao/tutanota-utils"
 
 const GIFT_CARD_MESSAGE_COLS = 26
 const GIFT_CARD_MESSAGE_HEIGHT = 5
 type GiftCardMessageEditorFieldAttrs = {
-	message: Stream<string>
+	message: string,
+	onMessageChanged: (message: string) => void
 	cols?: number
 	rows?: number
 }
@@ -28,7 +28,7 @@ export class GiftCardMessageEditorField implements Component<GiftCardMessageEdit
 				rows: a.rows || GIFT_CARD_MESSAGE_HEIGHT,
 				oncreate: vnode => {
 					this.textAreaDom = vnode.dom as HTMLTextAreaElement
-					this.textAreaDom.value = a.message()
+					this.textAreaDom.value = a.message
 				},
 				onfocus: () => {
 					this.isActive = true
@@ -46,7 +46,7 @@ export class GiftCardMessageEditorField implements Component<GiftCardMessageEdit
 						textAreaDom.value = textAreaDom.value.substr(0, textAreaDom.value.length - 1)
 					}
 
-					a.message(textAreaDom.value)
+					a.onMessageChanged(textAreaDom.value)
 
 					// the cursor gets pushed to the end when we chew up tailing characters so we put it back where it started in that case
 					if (textAreaDom.selectionStart - origStart > 1) {

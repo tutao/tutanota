@@ -44,18 +44,8 @@ export function createCountryDropdown(
 		})
 }
 
-// lazy because it depends on `lang`, which can cause troubles at load time
-const dropdownCountries = lazyMemoized(() => [
-	...Countries.map(c => ({
-		value: c,
-		name: c.n,
-	})),
-	{
-		value: null,
-		name: lang.get("choose_label"),
-	}
-])
-
+// lazy because of global dependencies
+const dropdownCountries = lazyMemoized(() => Countries.map(c => ({value: c, name: c.n})))
 
 export function renderCountryDropdown(
 	params: {
@@ -68,7 +58,13 @@ export function renderCountryDropdown(
 	return m(DropDownSelectorN, {
 		label: params.label ?? "invoiceCountry_label",
 		helpLabel: params.helpLabel,
-		items: dropdownCountries(),
+		items: [
+			...dropdownCountries(),
+			{
+				value: null,
+				name: lang.get("choose_label"),
+			}
+		],
 		selectedValue: params.selectedCountry,
 		selectionChangedHandler: params.onSelectionChanged
 	})

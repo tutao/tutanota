@@ -462,6 +462,11 @@ function getPostingTypeText(posting: CustomerAccountPosting): string {
 		case PostingType.Refund:
 			return lang.get("refund_label")
 
+		case PostingType.GiftCard:
+			return Number(posting.amount) < 0
+				? lang.get("boughtGiftCardPosting_label")
+				: lang.get("redeemedGiftCardPosting_label")
+
 		default:
 			return ""
 		// Generic, Dispute, Suspension, SuspensionCancel

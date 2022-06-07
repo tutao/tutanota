@@ -349,6 +349,10 @@ export class LoginView implements CurrentView {
 			}
 		}
 
+		if (args.loginWith) {
+			this._viewModel.showLoginForm()
+		}
+
 		this._viewModel.mailAddress(args.loginWith ?? "")
 
 		this._viewModel.password("")

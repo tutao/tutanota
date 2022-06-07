@@ -1460,6 +1460,9 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"invalidPastedRecipients_msg": "The input contained the following invalid email addresses:"
+		"invalidPastedRecipients_msg": "The input contained the following invalid email addresses:",
+		"redeemedGiftCardPosting_label": "Redeemed gift card",
+		"boughtGiftCardPosting_label": "Purchase gift card"
+
 	}
 }
