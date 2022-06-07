@@ -1,4 +1,4 @@
-import {GroupType} from "../../common/TutanotaConstants"
+import {AccountType, GroupType} from "../../common/TutanotaConstants"
 import {
 	assertNotNull,
 	Base64,
@@ -11,20 +11,21 @@ import {
 } from "@tutao/tutanota-utils"
 import type {GiftCardRedeemGetReturn} from "../../entities/sys/TypeRefs.js"
 import {createGiftCardCreateData, createGiftCardRedeemData, GiftCard} from "../../entities/sys/TypeRefs.js"
-import type {LoginFacadeImpl} from "./LoginFacade"
 import {aes128RandomKey, base64ToKey, bitArrayToUint8Array, encryptKey, sha256Hash} from "@tutao/tutanota-crypto"
 import {IServiceExecutor} from "../../common/ServiceRequest"
 import {GiftCardRedeemService, GiftCardService} from "../../entities/sys/Services"
 import {elementIdPart, GENERATED_MAX_ID} from "../../common/utils/EntityUtils"
 import {CryptoFacade} from "../crypto/CryptoFacade"
 import {UserFacade} from "./UserFacade"
+import {ProgrammingError} from "../../common/error/ProgrammingError.js"
+import {CustomerFacade} from "./CustomerFacade.js"
 
 export interface GiftCardFacade {
-	generateGiftCard(message: string, value: NumberString, countryCode: string): Promise<IdTuple>
+	generateGiftCard(message: string, value: NumberString): Promise<IdTuple>
 
 	getGiftCardInfo(id: Id, key: string): Promise<GiftCardRedeemGetReturn>
 
-	redeemGiftCard(id: Id, key: string): Promise<void>
+	redeemGiftCard(id: Id, key: string, forCountry: string | null): Promise<void>
 
 	encodeGiftCardToken(giftCard: GiftCard): Promise<string>
 
@@ -37,16 +38,15 @@ const KEY_LENGTH_B64 = 24
 export class GiftCardFacadeImpl implements GiftCardFacade {
 	constructor(
 		private readonly user: UserFacade,
+		private customer: CustomerFacade,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly cryptoFacade: CryptoFacade,
 	) {
 	}
 
-	generateGiftCard(message: string, value: NumberString, countryCode: string): Promise<IdTuple> {
-		const sessionKey = aes128RandomKey()
-		const keyHash = sha256Hash(bitArrayToUint8Array(sessionKey))
+	async generateGiftCard(message: string, value: NumberString): Promise<IdTuple> {
 
-		let adminGroupIds = this.user.getGroupIds(GroupType.Admin)
+		const adminGroupIds = this.user.getGroupIds(GroupType.Admin)
 
 		if (adminGroupIds.length === 0) {
 			throw new Error("missing admin membership")
@@ -54,36 +54,56 @@ export class GiftCardFacadeImpl implements GiftCardFacade {
 
 		const ownerKey = this.user.getGroupKey(firstThrow(adminGroupIds)) // adminGroupKey
 
-		const ownerEncSessionKey = encryptKey(ownerKey, sessionKey)
-		const data = createGiftCardCreateData({
-			message: message,
-			keyHash,
-			value,
-			country: countryCode,
-			ownerEncSessionKey,
-		})
-		return this.serviceExecutor.post(GiftCardService, data, {sessionKey})
-				   .then((returnData) => returnData.giftCard)
+		const sessionKey = aes128RandomKey()
+		const {giftCard} = await this.serviceExecutor.post(
+			GiftCardService,
+			createGiftCardCreateData({
+				message: message,
+				keyHash: sha256Hash(bitArrayToUint8Array(sessionKey)),
+				value,
+				ownerEncSessionKey: encryptKey(ownerKey, sessionKey),
+			}),
+			{sessionKey}
+		)
+
+		return giftCard
 	}
 
 	getGiftCardInfo(id: Id, key: string): Promise<GiftCardRedeemGetReturn> {
-		const bitKey = base64ToKey(key)
-		const keyHash = sha256Hash(bitArrayToUint8Array(bitKey))
-		const data = createGiftCardRedeemData({
-			giftCardInfo: id,
-			keyHash: keyHash,
-		})
-		return this.serviceExecutor.get(GiftCardRedeemService, data, {sessionKey: bitKey})
+		return this.serviceExecutor.get(
+			GiftCardRedeemService,
+			createGiftCardRedeemData({
+				giftCardInfo: id,
+				keyHash: sha256Hash(bitArrayToUint8Array(base64ToKey(key))),
+			}),
+			{
+				sessionKey: base64ToKey(key)
+			}
+		)
 	}
 
-	async redeemGiftCard(id: Id, key: string): Promise<void> {
-		const bitKey = base64ToKey(key)
-		const keyHash = sha256Hash(bitArrayToUint8Array(bitKey))
-		const data = createGiftCardRedeemData({
-			giftCardInfo: id,
-			keyHash: keyHash,
-		})
-		await this.serviceExecutor.post(GiftCardRedeemService, data)
+	async redeemGiftCard(
+		giftCardInfoId: Id,
+		key: string,
+		/** Country code to use if a free user is being upgraded to premium (required if accountType is free) */
+		countryCode: string | null
+	): Promise<void> {
+
+		if (
+			(await this.customer.loadAccountingInfo()).invoiceCountry == null
+			&& countryCode == null
+		) {
+			throw new ProgrammingError("User must provide a country")
+		}
+
+		await this.serviceExecutor.post(
+			GiftCardRedeemService,
+			createGiftCardRedeemData({
+				giftCardInfo: giftCardInfoId,
+				keyHash: sha256Hash(bitArrayToUint8Array(base64ToKey(key))),
+				countryCode
+			})
+		)
 	}
 
 	async encodeGiftCardToken(giftCard: GiftCard): Promise<string> {

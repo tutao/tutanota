@@ -13,13 +13,14 @@ await program
 	.option('-c, --clean', 'Clean build directory')
 	.option('-d, --desktop', 'Assemble & start desktop client')
 	.option('-s, --serve', 'Start a local server to serve the website')
+	.option('--ignore-migrations', "Dont check offline database migrations.")
 	.action(async (stage, host, options) => {
 		if (stage === "host" && host == null || stage !== "host" && host != null) {
 			program.outputHelp()
 			process.exit(1)
 		}
 
-		const {clean, watch, serve, desktop} = options
+		const {clean, watch, serve, desktop, ignoreMigrations} = options
 
 		if (serve) {
 			console.error("--serve is currently disabled, point any server to ./build directory instead or build desktop")
@@ -32,7 +33,8 @@ await program
 				clean,
 				watch,
 				serve,
-				desktop
+				desktop,
+				ignoreMigrations
 			})
 
 			if (desktop) {

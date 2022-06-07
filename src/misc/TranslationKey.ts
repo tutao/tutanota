@@ -1447,3 +1447,5 @@ export type TranslationKeyType =
 	| "you_label"
 	| "emptyString_msg"
 	| "invalidPastedRecipients_msg"
+	| "redeemedGiftCardPosting_label"
+	| "boughtGiftCardPosting_label"

@@ -49,7 +49,7 @@ import {TextFieldN} from "../gui/base/TextFieldN"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {showPurchaseGiftCardDialog} from "./giftcards/PurchaseGiftCardDialog"
-import {loadGiftCards, showGiftCardToShare} from "./giftcards/GiftCardUtils"
+import {GiftCardStatus, loadGiftCards, showGiftCardToShare} from "./giftcards/GiftCardUtils"
 import {locator} from "../api/main/MainLocator"
 import {GiftCardMessageEditorField} from "./giftcards/GiftCardMessageEditorField"
 import {attachDropdown} from "../gui/base/DropdownN"
@@ -794,7 +794,7 @@ function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => bo
 	const columnHeading: [TranslationKey, TranslationKey] = ["purchaseDate_label", "value_label"]
 	const columnWidths = [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small]
 	const lines = giftCards
-		.filter(giftCard => giftCard.usable)
+		.filter(giftCard => giftCard.status === GiftCardStatus.Usable)
 		.map(giftCard => {
 			return {
 				cells: [formatDate(giftCard.orderDate), formatPrice(parseFloat(giftCard.value), true)],
@@ -821,7 +821,8 @@ function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => bo
 											m(
 												".flex-center",
 												m(GiftCardMessageEditorField, {
-													message,
+													message: message(),
+													onMessageChanged: message
 												}),
 											),
 										okAction: (dialog: Dialog) => {

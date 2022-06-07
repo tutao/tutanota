@@ -1,4 +1,35 @@
 {
 	"app": "sys",
-	"versions": []
+	"versions": [
+		{
+			"version": 75,
+			"changes": [
+				{
+					"name": "BooleanToNumberValue",
+					"sourceType": "GiftCard",
+					"info": "BooleanToNumberValue GiftCard/usable."
+				},
+				{
+					"name": "RenameAttribute",
+					"sourceType": "GiftCard",
+					"info": "RenameAttribute GiftCard: usable -> status."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "GiftCard",
+					"info": "AddValue GiftCard/migrated/1993."
+				}
+			]
+		},
+		{
+			"version": 76,
+			"changes": [
+				{
+					"name": "RenameAttribute",
+					"sourceType": "GiftCard",
+					"info": "RenameAttribute GiftCard: country -> country_deleted."
+				}
+			]
+		}
+	]
 }

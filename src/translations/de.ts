@@ -1464,6 +1464,8 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
-		"invalidPastedRecipients_msg": "Die folgende E-Mail-Adressen sind ungültig:"
+		"invalidPastedRecipients_msg": "Die folgende E-Mail-Adressen sind ungültig:",
+		"redeemedGiftCardPosting_label": "Gutschein eingelöst",
+		"boughtGiftCardPosting_label": "Gutschein gekauft"
 	}
 }

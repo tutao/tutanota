@@ -10,7 +10,7 @@ import {
 	SessionExpiredError,
 } from "../api/common/error/RestError"
 import {Dialog} from "../gui/base/Dialog"
-import {lang} from "./LanguageViewModel"
+import {lang, TranslationKey} from "./LanguageViewModel"
 import {assertMainOrNode, isDesktop, isOfflineStorageAvailable} from "../api/common/Env"
 import {neverNull, noOp} from "@tutao/tutanota-utils"
 import {logins} from "../api/main/LoginController"
