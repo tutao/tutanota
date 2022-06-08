@@ -165,9 +165,9 @@ export class NativeInterfaceMain implements NativeInterface {
 	/**
 	 * Send a request to the native side.
 	 */
-	async invokeNative(msg: Request<NativeRequestType>): Promise<any> {
+	async invokeNative(requestType: NativeRequestType, args: ReadonlyArray<unknown>): Promise<any> {
 		const dispatch = await this._dispatchDeferred.promise
-		return dispatch.postRequest(msg)
+		return dispatch.postRequest(new Request<NativeRequestType>(requestType, args))
 	}
 
 	/**

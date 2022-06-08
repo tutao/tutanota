@@ -7,7 +7,7 @@ import type {MailView} from "./MailView"
 import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {canDoDragAndDropExport, getArchiveFolder, getFolderName, getInboxFolder} from "../model/MailUtils"
-import {ConnectionError, NotFoundError} from "../../api/common/error/RestError"
+import {NotFoundError} from "../../api/common/error/RestError"
 import {size} from "../../gui/size"
 import {styles} from "../../gui/styles"
 import {Icon} from "../../gui/base/Icon"
@@ -22,7 +22,6 @@ import {getLetId, haveSameId, sortCompareByReverseId} from "../../api/common/uti
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
 import {MailRow} from "./MailRow"
 import {makeTrackedProgressMonitor} from "../../api/common/utils/ProgressMonitor"
-import {Request} from "../../api/common/MessageDispatcher"
 import {generateExportFileName, generateMailFile, getMailExportMode} from "../export/Exporter"
 import {deduplicateFilenames} from "../../api/common/utils/FileUtils"
 import {makeMailBundle} from "../export/Bundler"
@@ -177,7 +176,7 @@ export class MailListView implements Component {
 		if (didComplete) {
 			await locator.fileApp.startNativeDrag(fileNames as string[])
 		} else {
-			await locator.native.invokeNative(new Request("focusApplicationWindow", []))
+			await locator.native.invokeNative("focusApplicationWindow", [])
 			Dialog.message("unsuccessfulDrop_msg")
 		}
 

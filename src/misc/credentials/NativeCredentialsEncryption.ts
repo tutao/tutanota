@@ -4,7 +4,6 @@ import type {ICredentialsKeyProvider} from "./CredentialsKeyProvider"
 import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
 import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
 import type {CredentialEncryptionMode} from "./CredentialEncryptionMode"
-import {Request} from "../../api/common/MessageDispatcher"
 import type {NativeInterface} from "../../native/common/NativeInterface"
 import {CryptoError} from "../../api/common/error/CryptoError.js"
 import {KeyPermanentlyInvalidatedError} from "../../api/common/error/KeyPermanentlyInvalidatedError.js"
@@ -88,6 +87,6 @@ export class NativeCredentialsEncryption implements CredentialsEncryption {
 	}
 
 	async getSupportedEncryptionModes(): Promise<Array<CredentialEncryptionMode>> {
-		return this.nativeApp.invokeNative(new Request("getSupportedEncryptionModes", []))
+		return this.nativeApp.invokeNative("getSupportedEncryptionModes", [])
 	}
 }

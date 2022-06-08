@@ -1,9 +1,8 @@
-import {Request} from "../../api/common/MessageDispatcher"
 import {promiseMap, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {MailBundle} from "../../mail/export/Bundler"
 import type {NativeInterface} from "./NativeInterface"
-import {FileReference} from "../../api/common/utils/FileUtils";
-import {DataFile} from "../../api/common/DataFile";
+import {FileReference} from "../../api/common/utils/FileUtils"
+import {DataFile} from "../../api/common/DataFile"
 import {HttpMethod} from "../../api/common/EntityFunctions"
 
 
@@ -36,7 +35,7 @@ export class NativeFileApp {
 	 * @param mimeType The mimeType of the file
 	 */
 	open(file: FileReference): Promise<void> {
-		return this.native.invokeNative(new Request("open", [file.location, file.mimeType]))
+		return this.native.invokeNative("open", [file.location, file.mimeType])
 	}
 
 	/**
@@ -55,12 +54,12 @@ export class NativeFileApp {
 			height: boundingRect.height,
 		}
 		return this.native
-				   .invokeNative(new Request("openFileChooser", [srcRect, false]))
+				   .invokeNative("openFileChooser", [srcRect, false])
 				   .then((response: Array<string>) => promiseMap(response, this.uriToFileRef.bind(this)))
 	}
 
 	openFolderChooser(): Promise<Array<string>> {
-		return this.native.invokeNative(new Request("openFileChooser", [null, true]))
+		return this.native.invokeNative("openFileChooser", [null, true])
 	}
 
 	/**
@@ -68,7 +67,7 @@ export class NativeFileApp {
 	 * @param  file The uri of the file to delete.
 	 */
 	deleteFile(file: FileUri): Promise<void> {
-		return this.native.invokeNative(new Request("deleteFile", [file]))
+		return this.native.invokeNative("deleteFile", [file])
 	}
 
 	/**
@@ -76,7 +75,7 @@ export class NativeFileApp {
 	 * @param file The uri of the file
 	 */
 	getName(file: FileUri): Promise<string> {
-		return this.native.invokeNative(new Request("getName", [file]))
+		return this.native.invokeNative("getName", [file])
 	}
 
 	/**
@@ -84,7 +83,7 @@ export class NativeFileApp {
 	 * @param file The uri of the file
 	 */
 	getMimeType(file: FileUri): Promise<string> {
-		return this.native.invokeNative(new Request("getMimeType", [file]))
+		return this.native.invokeNative("getMimeType", [file])
 	}
 
 	/**
@@ -92,7 +91,7 @@ export class NativeFileApp {
 	 * @param file The uri of the file
 	 */
 	getSize(file: FileUri): Promise<number> {
-		return this.native.invokeNative(new Request("getSize", [file])).then(sizeString => Number(sizeString))
+		return this.native.invokeNative("getSize", [file]).then(sizeString => Number(sizeString))
 	}
 
 	/**
@@ -101,11 +100,11 @@ export class NativeFileApp {
 	 * @returns {*} absolute path of the destination file
 	 */
 	putFileIntoDownloadsFolder(localFileUri: FileUri): Promise<string> {
-		return this.native.invokeNative(new Request("putFileIntoDownloads", [localFileUri]))
+		return this.native.invokeNative("putFileIntoDownloads", [localFileUri])
 	}
 
 	async saveDataFile(data: DataFile): Promise<FileReference> {
-		const fileUri = await this.native.invokeNative(new Request("saveDataFile", [data.name, uint8ArrayToBase64(data.data)]))
+		const fileUri = await this.native.invokeNative("saveDataFile", [data.name, uint8ArrayToBase64(data.data)])
 		return {
 			_type: "FileReference",
 			name: data.name,
@@ -119,7 +118,7 @@ export class NativeFileApp {
 	 * Uploads the binary data of a file to tutadb
 	 */
 	upload(fileUrl: string, targetUrl: string, method: HttpMethod, headers: Dict): Promise<UploadTaskResponse> {
-		return this.native.invokeNative(new Request("upload", [fileUrl, targetUrl, method, headers]))
+		return this.native.invokeNative("upload", [fileUrl, targetUrl, method, headers])
 	}
 
 	/**
@@ -127,7 +126,7 @@ export class NativeFileApp {
 	 * @returns Resolves to the URI of the downloaded file
 	 */
 	download(sourceUrl: FileUri, filename: string, headers: Dict): Promise<DownloadTaskResponse> {
-		return this.native.invokeNative(new Request("download", [sourceUrl, filename, headers]))
+		return this.native.invokeNative("download", [sourceUrl, filename, headers])
 	}
 
 	/**
@@ -136,15 +135,15 @@ export class NativeFileApp {
 	 * @return Base64 encoded, shortened SHA256 hash of the file
 	 */
 	hashFile(fileUri: FileUri): Promise<string> {
-		return this.native.invokeNative(new Request('hashFile', [fileUri]))
+		return this.native.invokeNative('hashFile', [fileUri])
 	}
 
 	clearFileData(): Promise<any> {
-		return this.native.invokeNative(new Request("clearFileData", []))
+		return this.native.invokeNative("clearFileData", [])
 	}
 
 	readDataFile(uriOrPath: string): Promise<DataFile | null> {
-		return this.native.invokeNative(new Request("readDataFile", [uriOrPath]))
+		return this.native.invokeNative("readDataFile", [uriOrPath])
 	}
 
 	/**
@@ -154,7 +153,7 @@ export class NativeFileApp {
 	 * @returns {Promise<*>}
 	 */
 	mailToMsg(bundle: MailBundle, fileName: string): Promise<DataFile> {
-		return this.native.invokeNative(new Request("mailToMsg", [bundle, fileName]))
+		return this.native.invokeNative("mailToMsg", [bundle, fileName])
 	}
 
 	/**
@@ -163,18 +162,18 @@ export class NativeFileApp {
 	 * @param fileNames: relative paths to files from the export directory
 	 */
 	startNativeDrag(fileNames: Array<string>): Promise<void> {
-		return this.native.invokeNative(new Request("startNativeDrag", [fileNames]))
+		return this.native.invokeNative("startNativeDrag", [fileNames])
 	}
 
 	saveToExportDir(file: DataFile): Promise<void> {
-		return this.native.invokeNative(new Request("saveToExportDir", [file]))
+		return this.native.invokeNative("saveToExportDir", [file])
 	}
 
 	checkFileExistsInExportDirectory(path: string): Promise<boolean> {
-		return this.native.invokeNative(new Request("checkFileExistsInExportDirectory", [path]))
+		return this.native.invokeNative("checkFileExistsInExportDirectory", [path])
 	}
 
-	getFilesMetaData(filesUris: string[]): Promise<Array<FileReference>> {
+	getFilesMetaData(filesUris: ReadonlyArray<string>): Promise<Array<FileReference>> {
 		return promiseMap(filesUris, async uri => {
 			const [name, mimeType, size] = await Promise.all([this.getName(uri), this.getMimeType(uri), this.getSize(uri)])
 			return {
@@ -204,7 +203,7 @@ export class NativeFileApp {
 	 *
 	 */
 	joinFiles(filename: string, files: Array<FileUri>): Promise<FileUri> {
-		return this.native.invokeNative(new Request('joinFiles', [filename, files]))
+		return this.native.invokeNative('joinFiles', [filename, files])
 	}
 
 	/**
@@ -212,9 +211,7 @@ export class NativeFileApp {
 	 * @param fileUri
 	 * @param maxChunkSizeBytes
 	 */
-	async splitFile(fileUri: FileUri, maxChunkSizeBytes: number): Promise<FileUri[]> {
-		return this.native.invokeNative(new Request("splitFile", [fileUri, maxChunkSizeBytes]))
+	async splitFile(fileUri: FileUri, maxChunkSizeBytes: number): Promise<Array<FileUri>> {
+		return this.native.invokeNative("splitFile", [fileUri, maxChunkSizeBytes])
 	}
-
-
 }

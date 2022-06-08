@@ -1,9 +1,7 @@
 import {DeviceConfig} from "../DeviceConfig"
 import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
 import {CredentialEncryptionMode} from "./CredentialEncryptionMode"
-import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import {promiseMap} from "@tutao/tutanota-utils"
-import {Request} from "../../api/common/MessageDispatcher"
+import {base64ToUint8Array, promiseMap, stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {NativeInterface} from "../../native/common/NativeInterface"
 
 /**
@@ -44,7 +42,7 @@ export class CredentialsMigration {
 			return {...credentials, accessToken: uint8ArrayToBase64(encryptedAccessToken)}
 		})
 		const encryptedKeyB64 = await this._nativeApp.invokeNative(
-			new Request("encryptUsingKeychain", [CredentialEncryptionMode.DEVICE_LOCK, uint8ArrayToBase64(encryptionKey)]),
+			"encryptUsingKeychain", [CredentialEncryptionMode.DEVICE_LOCK, uint8ArrayToBase64(encryptionKey)],
 		)
 
 		this._deviceConfig.setCredentialEncryptionMode(CredentialEncryptionMode.DEVICE_LOCK)

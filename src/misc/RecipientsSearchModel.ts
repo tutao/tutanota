@@ -8,7 +8,6 @@ import {DbError} from "../api/common/error/DbError.js";
 import {locator} from "../api/main/MainLocator.js";
 import {ContactTypeRef} from "../api/entities/tutanota/TypeRefs.js";
 import {isApp, Mode} from "../api/common/Env.js";
-import {Request} from "../api/common/MessageDispatcher.js";
 import {PermissionError} from "../api/common/error/PermissionError.js";
 import {LoginIncompleteError} from "../api/common/error/LoginIncompleteError.js"
 
@@ -127,7 +126,7 @@ export class RecipientsSearchModel {
 		if (!this.native) {
 			return []
 		}
-		const recipients: Array<NativeContact> = await this.native.invokeNative(new Request("findSuggestions", [text])).catch(ofClass(PermissionError, () => []))
+		const recipients: Array<NativeContact> = await this.native.invokeNative("findSuggestions", [text]).catch(ofClass(PermissionError, () => []))
 		return recipients.map(({name, mailAddress}) => ({name, address: mailAddress}))
 	}
 }

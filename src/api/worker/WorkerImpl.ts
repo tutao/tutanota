@@ -280,8 +280,8 @@ export class WorkerImpl implements NativeInterface {
 		}
 	}
 
-	invokeNative(msg: Request<NativeRequestType>): Promise<any> {
-		return this._dispatcher.postRequest(new Request("execNative", [msg.requestType, msg.args]))
+	invokeNative(requestType: string, args: ReadonlyArray<unknown>): Promise<any> {
+		return this._dispatcher.postRequest(new Request("execNative", [requestType, args]))
 	}
 
 	getMainInterface(): MainInterface {

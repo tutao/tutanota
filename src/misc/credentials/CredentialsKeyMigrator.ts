@@ -1,4 +1,3 @@
-import {Request} from "../../api/common/MessageDispatcher"
 import type {CredentialEncryptionMode} from "./CredentialEncryptionMode"
 import {base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {NativeInterface} from "../../native/common/NativeInterface"
@@ -33,8 +32,8 @@ export class CredentialsKeyMigrator implements ICredentialsKeyMigrator {
 		oldMode: CredentialEncryptionMode,
 		newMode: CredentialEncryptionMode,
 	): Promise<Uint8Array> {
-		const oldKeyDecryptedKeyBase64 = await this._nativeApp.invokeNative(new Request("decryptUsingKeychain", [oldMode, uint8ArrayToBase64(oldKeyEncrypted)]))
-		const newlyEncryptedKeyBase64 = await this._nativeApp.invokeNative(new Request("encryptUsingKeychain", [newMode, oldKeyDecryptedKeyBase64]))
+		const oldKeyDecryptedKeyBase64 = await this._nativeApp.invokeNative("decryptUsingKeychain", [oldMode, uint8ArrayToBase64(oldKeyEncrypted)])
+		const newlyEncryptedKeyBase64 = await this._nativeApp.invokeNative("encryptUsingKeychain", [newMode, oldKeyDecryptedKeyBase64])
 		return base64ToUint8Array(newlyEncryptedKeyBase64)
 	}
 }

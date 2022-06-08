@@ -91,7 +91,7 @@ export class WorkerClient {
 
 	queueCommands(locator: IMainLocator): Commands<MainRequestType> {
 		return {
-			execNative: (message: MainRequest) => locator.native.invokeNative(new Request(downcast(message.args[0]), downcast(message.args[1]))),
+			execNative: (message: MainRequest) => locator.native.invokeNative(downcast(message.args[0]), downcast(message.args[1])),
 			entityEvent: (message: MainRequest) => {
 				return locator.eventController.notificationReceived(downcast(message.args[0]), downcast(message.args[1]))
 			},

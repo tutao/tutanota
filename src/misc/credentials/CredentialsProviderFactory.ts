@@ -41,7 +41,7 @@ export function createCredentialsProvider(
 		let offlineDbFacade: OfflineDbFacade | null
 		if (isOfflineStorageAvailable()) {
 			const remoteInterface = exposeRemote<ExposedNativeInterface>(
-				(request) => nonNullNativeApp.invokeNative(request)
+				(request) => nonNullNativeApp.invokeNative(request.requestType, request.args)
 			)
 			offlineDbFacade = remoteInterface.offlineDbFacade
 		} else {

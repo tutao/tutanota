@@ -4,7 +4,6 @@ import {assertNotNull, neverNull, uint8ArrayToBase64} from "@tutao/tutanota-util
 import {PushServiceType} from "../../api/common/TutanotaConstants"
 import {lang} from "../../misc/LanguageViewModel"
 import {getHttpOrigin, isAndroidApp, isDesktop, isIOSApp} from "../../api/common/Env"
-import {Request} from "../../api/common/MessageDispatcher"
 import {logins} from "../../api/main/LoginController"
 import {client} from "../../misc/ClientDetector"
 import {deviceConfig} from "../../misc/DeviceConfig"
@@ -76,7 +75,7 @@ export class NativePushServiceApp {
 
 	_loadPushIdentifierFromNative(): Promise<string | null> {
 		return this._native.invokeNative(
-			new Request("getPushIdentifier", [logins.getUserController().user._id, logins.getUserController().userGroupInfo.mailAddress]),
+			"getPushIdentifier", [logins.getUserController().user._id, logins.getUserController().userGroupInfo.mailAddress]
 		)
 	}
 
@@ -86,7 +85,7 @@ export class NativePushServiceApp {
 		return locator.cryptoFacade.resolveSessionKeyForInstanceBinary(pushIdentifier).then(sk => {
 			const skB64 = uint8ArrayToBase64(assertNotNull(sk))
 			return this._native.invokeNative(
-				new Request("storePushIdentifierLocally", [pushIdentifier.identifier, userId, getHttpOrigin(), getElementId(pushIdentifier), skB64]),
+				"storePushIdentifierLocally", [pushIdentifier.identifier, userId, getHttpOrigin(), getElementId(pushIdentifier), skB64]
 			)
 		})
 	}
@@ -130,7 +129,7 @@ export class NativePushServiceApp {
 	}
 
 	closePushNotification(addresses: string[]) {
-		this._native.invokeNative(new Request("closePushNotifications", [addresses]))
+		this._native.invokeNative("closePushNotifications", [addresses])
 	}
 
 	getPushIdentifier(): string | null {
@@ -138,7 +137,7 @@ export class NativePushServiceApp {
 	}
 
 	_initPushNotifications(): Promise<void> {
-		return this._native.invokeNative(new Request("initPushNotifications", []))
+		return this._native.invokeNative("initPushNotifications", [])
 	}
 
 	_scheduleAlarmsIfNeeded(pushIdentifier: PushIdentifier): Promise<void> {

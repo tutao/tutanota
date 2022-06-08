@@ -62,7 +62,7 @@ export class FileController {
 		})
 		return showProgressDialog("pleaseWait_msg", downloadPromise.then(noOp))
 			.catch((e) => {
-				console.log("downloadAndOpen error", e)
+				console.log("downloadAndOpen error", e.message)
 				if (e instanceof CryptoError) {
 					return Dialog.message("corrupted_msg")
 				} else if (isOfflineError(e)) {
