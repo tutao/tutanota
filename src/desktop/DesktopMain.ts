@@ -44,6 +44,7 @@ import {OfflineDbFacade, OfflineDbFactory} from "./db/OfflineDbFacade"
 import {OfflineDb} from "./db/OfflineDb"
 import {DesktopInterWindowEventSender} from "./ipc/DesktopInterWindowEventSender"
 import {DesktopPostLoginActions} from "./DesktopPostLoginActions"
+import {CommonNativeFacadeSendDispatcher} from "../native/common/generatedipc/CommonNativeFacadeSendDispatcher.js"
 
 /**
  * Should be injected during build time.
@@ -198,7 +199,7 @@ async function createComponents(): Promise<Components> {
 		credentialsEncryption,
 		exposedInterfaceFactory
 	)
-	wm.setIPC(ipc)
+	wm.lateInit(ipc, (windowId) => ipc.getNativeInterfaceForWindow(windowId))
 	conf.getConst(BuildConfigKey.appUserModelId).then(appUserModelId => {
 		app.setAppUserModelId(appUserModelId)
 	})
@@ -309,6 +310,7 @@ async function handleMailto(mailtoArg: string | null, {wm, ipc}: Components) {
 	if (mailtoArg) {
 		/*[filesUris, text, addresses, subject, mailToUrl]*/
 		const w = await wm.getLastFocused(true)
-		return ipc.sendRequest(w.id, "createMailEditor", [[], "", "", "", mailtoArg])
+		return new CommonNativeFacadeSendDispatcher(ipc.getNativeInterfaceForWindow(w.id))
+			.createMailEditor([], "", [], "", mailtoArg)
 	}
 }

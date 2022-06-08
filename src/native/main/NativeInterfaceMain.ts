@@ -10,7 +10,7 @@ import {exposeLocal} from "../../api/common/WorkerProxy"
 import {IosNativeTransport} from './IosNativeTransport.js'
 import {AndroidNativeTransport} from "./AndroidNativeTransport.js"
 import {DesktopNativeTransport} from "./DesktopNativeTransport.js"
-import {appCommands, desktopCommands} from "./NativeWrapperCommands.js"
+import {WebGlobalDispatcher} from "../common/generatedipc/WebGlobalDispatcher.js"
 
 assertMainOrNode()
 
@@ -19,7 +19,8 @@ export class NativeInterfaceMain implements NativeInterface {
 	private _appUpdateListener: (() => void) | null = null
 
 	constructor(
-		private readonly webInterface: ExposedWebInterface
+		private readonly webInterface: ExposedWebInterface,
+		private readonly globalDispatcher: WebGlobalDispatcher
 	) {
 	}
 
@@ -38,12 +39,11 @@ export class NativeInterfaceMain implements NativeInterface {
 			throw new ProgrammingError("Tried to create a native interface in the browser")
 		}
 
-		// All possible commands are in a big pile together, but we only need certain ones for either app or desktop
-		// Typescript doesn't like this, we could be more specific
-		const commands = downcast<Commands<JsRequestType>>(isApp() ? appCommands : desktopCommands)
-		commands["facade"] = exposeLocal(this.webInterface)
 		// Ensure that we have messaged native with "init" before we allow anyone else to make native requests
-		const queue = new MessageDispatcher<NativeRequestType, JsRequestType>(transport, commands)
+		const queue = new MessageDispatcher<NativeRequestType, JsRequestType>(transport, {
+			"facade": exposeLocal(this.webInterface),
+			"ipc": (request: Request<JsRequestType>) => this.globalDispatcher.dispatch(request.args[0], request.args[1], request.args.slice(2))
+		})
 		await queue.postRequest(new Request("init", []))
 
 		this._dispatchDeferred.resolve(queue)

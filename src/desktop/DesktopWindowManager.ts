@@ -22,6 +22,8 @@ import {downcast} from "@tutao/tutanota-utils"
 import {ThemeManager} from "./ThemeManager"
 import {ElectronExports, WebContentsEvent} from "./ElectronExportTypes";
 import {OfflineDbFacade} from "./db/OfflineDbFacade"
+import {CommonNativeFacadeSendDispatcher} from "../native/common/generatedipc/CommonNativeFacadeSendDispatcher.js"
+import {NativeInterface} from "../native/common/NativeInterface.js"
 
 export type WindowBounds = {
 	rect: Rectangle
@@ -30,11 +32,14 @@ export type WindowBounds = {
 }
 const windows: ApplicationWindow[] = []
 
+export type NativeInterfaceFactory = (windowId: number) => NativeInterface
+
 export class WindowManager {
 	private readonly _conf: DesktopConfig
 	private readonly _tray: DesktopTray
 	private readonly _notifier: DesktopNotifier
 	private _contextMenu!: DesktopContextMenu
+	private nativeInterfaceFactory!: NativeInterfaceFactory
 	private readonly _electron: ElectronExports
 	private readonly _themeManager: ThemeManager
 	ipc!: IPC
@@ -90,9 +95,10 @@ export class WindowManager {
 	/**
 	 * Late initialization to break the dependency cycle.
 	 */
-	setIPC(ipc: IPC) {
+	lateInit(ipc: IPC, nativeInterfaceFactory: NativeInterfaceFactory) {
 		this.ipc = ipc
 		this._contextMenu = new DesktopContextMenu(this._electron, ipc)
+		this.nativeInterfaceFactory = nativeInterfaceFactory
 	}
 
 	async newWindow(showWhenReady: boolean, noAutoLogin?: boolean): Promise<ApplicationWindow> {
@@ -175,7 +181,7 @@ export class WindowManager {
 	async invalidateAlarms(windowId?: number): Promise<void> {
 		if (windowId != null) {
 			log.debug("invalidating alarms for window", windowId)
-			await this.ipc.sendRequest(windowId, "invalidateAlarms", [])
+			await new CommonNativeFacadeSendDispatcher(this.nativeInterfaceFactory(windowId)).invalidateAlarms()
 		} else {
 			log.debug("invalidating alarms for all windows")
 			await Promise.all(this.getAll().map(w => this.invalidateAlarms(w.id).catch(e => log.debug("couldn't invalidate alarms for window", w.id, e))))
@@ -289,7 +295,7 @@ export class WindowManager {
 		const dictUrl = updateUrl && updateUrl !== "" ? updateUrl : "https://mail.tutanota.com/desktop/"
 		// custom builds get the dicts from us as well
 		const icon = await this.getIcon()
-		return new ApplicationWindow(this, desktopHtml, icon, electron, localShortcut, this._themeManager, this.offlineDbFacade, dictUrl, noAutoLogin)
+		return new ApplicationWindow(this, desktopHtml, icon, electron, localShortcut, this._themeManager, this.offlineDbFacade, this.nativeInterfaceFactory, dictUrl, noAutoLogin)
 	}
 
 	async startNativeDrag(filenames: Array<string>, windowId: number) {

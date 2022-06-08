@@ -130,7 +130,9 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
 
   private func onAnyKeyboardSizeChange(newHeight: CGFloat) {
     self.keyboardSize = Int(newHeight)
-    self.bridge.sendRequest(method: "keyboardSizeChanged", args: [self.keyboardSize], completion: nil)
+    Task {
+      try await MobileFacadeSendDispatcher(transport: self.bridge).keyboardSizeChanged(self.keyboardSize)
+    }
   }
 
   override func viewDidLoad() {

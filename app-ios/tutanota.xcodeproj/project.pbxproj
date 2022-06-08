@@ -122,6 +122,15 @@
 		3DBE94BA273147830077A6EA /* WebViewBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBE94B9273147830077A6EA /* WebViewBridge.swift */; };
 		3DC299FA267358AF00E1E79F /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC299F9267358AF00E1E79F /* ThemeManager.swift */; };
 		3DC299FD2673668000E1E79F /* QueryUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC299FC2673668000E1E79F /* QueryUtils.swift */; };
+		3DC5DEB728510BEB007364FF /* MobileFacadeSendDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEAE28510BEB007364FF /* MobileFacadeSendDispatcher.swift */; };
+		3DC5DEB828510BEB007364FF /* MobileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEAF28510BEB007364FF /* MobileFacade.swift */; };
+		3DC5DEB928510BEB007364FF /* NativeShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEB028510BEB007364FF /* NativeShortcut.swift */; };
+		3DC5DEBA28510BEB007364FF /* IosGlobalDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEB128510BEB007364FF /* IosGlobalDispatcher.swift */; };
+		3DC5DEBB28510BEB007364FF /* CommonNativeFacadeSendDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEB228510BEB007364FF /* CommonNativeFacadeSendDispatcher.swift */; };
+		3DC5DEBC28510BEB007364FF /* ErrorInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEB328510BEB007364FF /* ErrorInfo.swift */; };
+		3DC5DEBD28510BEB007364FF /* ElectronResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEB428510BEB007364FF /* ElectronResult.swift */; };
+		3DC5DEBE28510BEB007364FF /* NativeKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEB528510BEB007364FF /* NativeKey.swift */; };
+		3DC5DEBF28510BEB007364FF /* CommonNativeFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEB628510BEB007364FF /* CommonNativeFacade.swift */; };
 		3DCE7AA22719D04B0085E40D /* UserPreferenceFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE7AA12719D04B0085E40D /* UserPreferenceFacade.swift */; };
 		3DCE7AA7271D63BF0085E40D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE7AA6271D63BF0085E40D /* ViewController.swift */; };
 		3DCE7AAB27200E0A0085E40D /* WebviewHacks.h in Headers */ = {isa = PBXBuildFile; fileRef = 3DCE7AA927200E0A0085E40D /* WebviewHacks.h */; };
@@ -272,6 +281,15 @@
 		3DBE94B9273147830077A6EA /* WebViewBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewBridge.swift; sourceTree = "<group>"; };
 		3DC299F9267358AF00E1E79F /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
 		3DC299FC2673668000E1E79F /* QueryUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryUtils.swift; sourceTree = "<group>"; };
+		3DC5DEAE28510BEB007364FF /* MobileFacadeSendDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileFacadeSendDispatcher.swift; sourceTree = "<group>"; };
+		3DC5DEAF28510BEB007364FF /* MobileFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileFacade.swift; sourceTree = "<group>"; };
+		3DC5DEB028510BEB007364FF /* NativeShortcut.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeShortcut.swift; sourceTree = "<group>"; };
+		3DC5DEB128510BEB007364FF /* IosGlobalDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IosGlobalDispatcher.swift; sourceTree = "<group>"; };
+		3DC5DEB228510BEB007364FF /* CommonNativeFacadeSendDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonNativeFacadeSendDispatcher.swift; sourceTree = "<group>"; };
+		3DC5DEB328510BEB007364FF /* ErrorInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ErrorInfo.swift; sourceTree = "<group>"; };
+		3DC5DEB428510BEB007364FF /* ElectronResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ElectronResult.swift; sourceTree = "<group>"; };
+		3DC5DEB528510BEB007364FF /* NativeKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeKey.swift; sourceTree = "<group>"; };
+		3DC5DEB628510BEB007364FF /* CommonNativeFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonNativeFacade.swift; sourceTree = "<group>"; };
 		3DCE7AA12719D04B0085E40D /* UserPreferenceFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPreferenceFacade.swift; sourceTree = "<group>"; };
 		3DCE7AA6271D63BF0085E40D /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		3DCE7AA927200E0A0085E40D /* WebviewHacks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebviewHacks.h; sourceTree = "<group>"; };
@@ -351,6 +369,7 @@
 		3D74536121089D2200B16F2E /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				3DC5DEAD28510BEA007364FF /* GeneratedIpc */,
 				3D73DA2F2731951F008E7A8A /* Remote */,
 				3D57BEB322B796AC00205B1B /* Alarms */,
 				3D6C6D0522B7707B00289576 /* Keychain */,
@@ -941,6 +960,22 @@
 			path = Base.lproj;
 			sourceTree = "<group>";
 		};
+		3DC5DEAD28510BEA007364FF /* GeneratedIpc */ = {
+			isa = PBXGroup;
+			children = (
+				3DC5DEAE28510BEB007364FF /* MobileFacadeSendDispatcher.swift */,
+				3DC5DEAF28510BEB007364FF /* MobileFacade.swift */,
+				3DC5DEB028510BEB007364FF /* NativeShortcut.swift */,
+				3DC5DEB128510BEB007364FF /* IosGlobalDispatcher.swift */,
+				3DC5DEB228510BEB007364FF /* CommonNativeFacadeSendDispatcher.swift */,
+				3DC5DEB328510BEB007364FF /* ErrorInfo.swift */,
+				3DC5DEB428510BEB007364FF /* ElectronResult.swift */,
+				3DC5DEB528510BEB007364FF /* NativeKey.swift */,
+				3DC5DEB628510BEB007364FF /* CommonNativeFacade.swift */,
+			);
+			path = GeneratedIpc;
+			sourceTree = "<group>";
+		};
 		3DD4A07A20F8C6240086EB36 = {
 			isa = PBXGroup;
 			children = (
@@ -1336,11 +1371,13 @@
 				3D9B12A027218AF9002B46A1 /* RepeatRule.swift in Sources */,
 				3D4F1BFA26EBADE500E87BF5 /* TUTBigNum.m in Sources */,
 				3D73DA312731953E008E7A8A /* RemoteProtocol.swift in Sources */,
+				3DC5DEBE28510BEB007364FF /* NativeKey.swift in Sources */,
 				3DB07C7B27303F0600BFBB4D /* Keys.swift in Sources */,
 				3D84F5822723225C00858A58 /* Utils.swift in Sources */,
 				3D9B12B42721A1E2002B46A1 /* TUTErrorFactory.m in Sources */,
 				3D4E16F4273D2F8A00256630 /* SyncCompletion.swift in Sources */,
 				3D84F56B2721B92C00858A58 /* MissedNotification.swift in Sources */,
+				3DC5DEBC28510BEB007364FF /* ErrorInfo.swift in Sources */,
 				3DCE7AAC27200E0A0085E40D /* WebviewHacks.m in Sources */,
 				3DCE7AA22719D04B0085E40D /* UserPreferenceFacade.swift in Sources */,
 				3D0EB1F626F489AD002E5102 /* KeychainManager.swift in Sources */,
@@ -1348,11 +1385,14 @@
 				3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */,
 				3D9B12AF2721966C002B46A1 /* IdTuple.swift in Sources */,
 				3D92867F273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift in Sources */,
+				3DC5DEBA28510BEB007364FF /* IosGlobalDispatcher.swift in Sources */,
 				3D9B12A6272192C2002B46A1 /* AlarmNotification.swift in Sources */,
 				3D87ECE6212D9EB000FD7315 /* TUTIcons.m in Sources */,
 				3D9B12A32721926E002B46A1 /* ValueEncryption.swift in Sources */,
+				3DC5DEBF28510BEB007364FF /* CommonNativeFacade.swift in Sources */,
 				3D891F0D2105B12F0031E528 /* TUTEncodingConverter.m in Sources */,
 				3D0EB1FC26F4BEE4002E5102 /* AlarmManager.swift in Sources */,
+				3DC5DEB828510BEB007364FF /* MobileFacade.swift in Sources */,
 				3DC299FD2673668000E1E79F /* QueryUtils.swift in Sources */,
 				3D891F0E2105B12F0031E528 /* TUTAes128Facade.m in Sources */,
 				3DC299FA267358AF00E1E79F /* ThemeManager.swift in Sources */,
@@ -1363,14 +1403,18 @@
 				3D97821A2739600700DB639C /* URLSession+Sync.swift in Sources */,
 				3D84F57C27231F1F00858A58 /* Serialization.swift in Sources */,
 				3D2DB91B2733F43B00BCEF4C /* CredentialsEncryption.swift in Sources */,
+				3DC5DEB728510BEB007364FF /* MobileFacadeSendDispatcher.swift in Sources */,
 				3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */,
 				3D84F56D2722CEF900858A58 /* FileUtils.swift in Sources */,
 				3DCE7AA7271D63BF0085E40D /* ViewController.swift in Sources */,
 				3D73DA3427319A91008E7A8A /* Operation.swift in Sources */,
+				3DC5DEBD28510BEB007364FF /* ElectronResult.swift in Sources */,
 				3DBE94BA273147830077A6EA /* WebViewBridge.swift in Sources */,
 				3D84F5762723112400858A58 /* FileViewer.swift in Sources */,
 				3D891F0B2105B12F0031E528 /* TUTCrypto.m in Sources */,
+				3DC5DEBB28510BEB007364FF /* CommonNativeFacadeSendDispatcher.swift in Sources */,
 				3D63A0E3233D009E00D05259 /* TUTLog.m in Sources */,
+				3DC5DEB928510BEB007364FF /* NativeShortcut.swift in Sources */,
 				3D9B129D272189BB002B46A1 /* AlarmModel.swift in Sources */,
 				3DE1E44526666F0A0018C9DE /* UIColor+utils.swift in Sources */,
 				3D84F57927231E8600858A58 /* SSEInfo.swift in Sources */,

@@ -6,6 +6,7 @@ import {log} from "./DesktopLog"
 import type {TimeoutSetter} from "@tutao/tutanota-utils"
 import {NetExports} from "./ElectronExportTypes";
 import {Server, Socket} from "net"
+import {DesktopFacadeSendDispatcher} from "../native/common/generatedipc/DesktopFacadeSendDispatcher.js"
 
 const SOCKET_PATH = "/tmp/tutadb.sock"
 
@@ -40,7 +41,8 @@ export class Socketeer {
 
 			if (typeof mailAddress === "string" && isMailAddress(mailAddress, false)) {
 				const targetWindowId = (await wm.getLastFocused(false)).id
-				ipc.sendRequest(targetWindowId, "openCustomer", [mailAddress])
+				const dispatcher = new DesktopFacadeSendDispatcher(ipc.getNativeInterfaceForWindow(targetWindowId))
+				dispatcher.openCustomer(mailAddress)
 			}
 		})
 	}

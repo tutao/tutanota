@@ -7,6 +7,7 @@ import os from "os"
 import type {IPC} from "./IPC"
 import type {WindowManager} from "./DesktopWindowManager"
 import {log} from "./DesktopLog"
+import {DesktopFacadeSendDispatcher} from "../native/common/generatedipc/DesktopFacadeSendDispatcher.js"
 
 type ErrorLog = {
 	name: string
@@ -111,12 +112,13 @@ export class DesktopErrorHandler {
 			})
 	}
 
-	sendErrorReport(windowId: number): Promise<any> {
+	async sendErrorReport(windowId: number): Promise<any> {
 		if (!this.lastErrorLog) {
 			return Promise.resolve()
 		}
-
-		return this._ipc.sendRequest(windowId, "reportError", [this.lastErrorLog]).then(() => (this.lastErrorLog = null))
+		const facade = new DesktopFacadeSendDispatcher(this._ipc.getNativeInterfaceForWindow(windowId))
+		await facade.reportError(this.lastErrorLog)
+		this.lastErrorLog = null
 	}
 
 	// replace absolute file paths in stack trace with nicer ones relative to the app

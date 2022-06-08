@@ -1,0 +1,8 @@
+{
+  "name": "ElectronResult",
+  "type": "struct",
+  "fields": {
+	"matches": "number",
+	"activeMatchOrdinal": "number"
+  }
+}

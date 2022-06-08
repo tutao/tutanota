@@ -1,0 +1,8 @@
+{
+  "name": "NativeKey",
+  "type": "struct",
+  "fields": {
+	"code": "number",
+	"name": "string"
+  }
+}

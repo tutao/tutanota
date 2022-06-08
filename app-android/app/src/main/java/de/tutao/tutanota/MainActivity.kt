@@ -32,6 +32,10 @@ import androidx.lifecycle.lifecycleScope
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutanota.alarms.SystemAlarmFacade
 import de.tutao.tutanota.data.AppDatabase
+import de.tutao.tutanota.ipc.CommonNativeFacade
+import de.tutao.tutanota.ipc.CommonNativeFacadeSendDispatcher
+import de.tutao.tutanota.ipc.MobileFacade
+import de.tutao.tutanota.ipc.MobileFacadeSendDispatcher
 import de.tutao.tutanota.push.LocalNotificationsFacade
 import de.tutao.tutanota.push.PushNotificationService
 import de.tutao.tutanota.push.SseStorage
@@ -58,6 +62,8 @@ class MainActivity : FragmentActivity() {
 		private set
 	lateinit var sseStorage: SseStorage
 	lateinit var nativeImpl: Native
+	lateinit var mobileFacade: MobileFacade
+	lateinit var commonNativeFacade: CommonNativeFacade
 
 	private val permissionsRequests: MutableMap<Int, Continuation<Unit>> = ConcurrentHashMap()
 	private val activityRequests: MutableMap<Int, Continuation<ActivityResult>> = ConcurrentHashMap()
@@ -79,6 +85,9 @@ class MainActivity : FragmentActivity() {
 		doApplyTheme(nativeImpl.themeManager.currentThemeWithFallback)
 
 		super.onCreate(savedInstanceState)
+
+		mobileFacade = MobileFacadeSendDispatcher(nativeImpl)
+		commonNativeFacade = CommonNativeFacadeSendDispatcher(nativeImpl)
 
 		setupPushNotifications()
 
@@ -106,14 +115,14 @@ class MainActivity : FragmentActivity() {
 		}
 		firstLoaded = true
 		webView.post { // use webView.post to switch to main thread again to be able to observe sseStorage
-			sseStorage.observeUsers().observe(this@MainActivity, { userInfos ->
+			sseStorage.observeUsers().observe(this@MainActivity) { userInfos ->
 				if (userInfos!!.isEmpty()) {
 					Log.d(TAG, "invalidateAlarms")
 					lifecycleScope.launchWhenCreated {
-						nativeImpl.sendRequest(JsRequest.invalidateAlarms, listOf<String>())
+						commonNativeFacade.invalidateAlarms()
 					}
 				}
-			})
+			}
 		}
 
 
@@ -146,13 +155,13 @@ class MainActivity : FragmentActivity() {
 		super.onStart()
 		Log.d(TAG, "onStart")
 		lifecycleScope.launchWhenCreated {
-			nativeImpl.sendRequest(JsRequest.visibilityChange, listOf("true"))
+			mobileFacade.visibilityChange(true)
 		}
 	}
 
 	override fun onStop() {
 		Log.d(TAG, "onStop")
-		lifecycleScope.launch { nativeImpl.sendRequest(JsRequest.visibilityChange, listOf("false")) }
+		lifecycleScope.launch { mobileFacade.visibilityChange(false) }
 		super.onStop()
 	}
 
@@ -236,7 +245,7 @@ class MainActivity : FragmentActivity() {
 				&& !powerManager.isIgnoringBatteryOptimizations(packageName)
 		) {
 
-			nativeImpl.sendRequest(JsRequest.showAlertDialog, listOf("\"allowPushNotification_msg\""))
+			commonNativeFacade.showAlertDialog("allowPushNotification_msg")
 
 			withContext(Dispatchers.Main) {
 				saveAskedBatteryOptimizations(preferences)
@@ -347,9 +356,9 @@ class MainActivity : FragmentActivity() {
 	suspend fun share(intent: Intent) {
 		val action = intent.action
 		val clipData = intent.clipData
-		val files: JSONArray
+		val files: List<String>
 		var text: String? = null
-		val addresses = intent.getStringArrayExtra(Intent.EXTRA_EMAIL)
+		val addresses: List<String> = intent.getStringArrayExtra(Intent.EXTRA_EMAIL)?.toList() ?: listOf()
 		val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
 		if (Intent.ACTION_SEND == action) {
 			// Try to read text from the clipboard before fall back on intent.getStringExtra
@@ -368,46 +377,32 @@ class MainActivity : FragmentActivity() {
 		} else if (Intent.ACTION_SEND_MULTIPLE == action) {
 			files = getFilesFromIntent(intent)
 		} else {
-			files = JSONArray()
+			files = listOf()
 		}
-		val mailToUrlString: String?
-		mailToUrlString = if (intent.data != null && MailTo.isMailTo(intent.dataString)) {
-			intent.dataString
+		val mailToUrlString: String = if (intent.data != null && MailTo.isMailTo(intent.dataString)) {
+			intent.dataString ?: ""
 		} else {
-			null
-		}
-		var jsonAddresses: JSONArray? = null
-		if (addresses != null) {
-			jsonAddresses = JSONArray()
-			for (address in addresses) {
-				jsonAddresses.put(address)
-			}
+			""
 		}
 
-		// Satisfy Java's lambda requirements
-		val fText = text
-		val fJsonAddresses = jsonAddresses
-		val json = Json.Default
-		val args = listOf(
-				files.toString(),
-				json.encodeToString(fText),
-				fJsonAddresses?.toString() ?: json.encodeToString<Boolean?>(null),
-				json.encodeToString(subject),
-				json.encodeToString(mailToUrlString)
+		commonNativeFacade.createMailEditor(
+				files,
+				text ?: "",
+				addresses,
+				subject ?: "",
+				mailToUrlString
 		)
-
-		nativeImpl.sendRequest(JsRequest.createMailEditor, args)
 	}
 
-	private fun getFilesFromIntent(intent: Intent): JSONArray {
+	private fun getFilesFromIntent(intent: Intent): List<String> {
 		val clipData = intent.clipData
-		val filesArray = JSONArray()
+		val filesArray: MutableList<String> = mutableListOf()
 		if (clipData != null) {
 			for (i in 0 until clipData.itemCount) {
 				val item = clipData.getItemAt(i)
 				val uri = item.uri
 				if (uri != null) {
-					filesArray.put(uri.toString())
+					filesArray.add(uri.toString())
 				}
 			}
 		} else {
@@ -417,15 +412,15 @@ class MainActivity : FragmentActivity() {
 				val uris = intent.extras!![Intent.EXTRA_STREAM] as ArrayList<Uri>?
 				if (uris != null) {
 					for (uri in uris) {
-						filesArray.put(uri.toString())
+						filesArray.add(uri.toString())
 					}
 				}
 			} else if (intent.hasExtra(Intent.EXTRA_STREAM)) {
 				val uri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
-				filesArray.put(uri.toString())
+				filesArray.add(uri.toString())
 			} else if (intent.data != null) {
 				val uri = intent.data
-				filesArray.put(uri.toString())
+				filesArray.add(uri.toString())
 			} else {
 				Log.w(TAG, "Did not find files in the intent")
 			}
@@ -445,20 +440,20 @@ class MainActivity : FragmentActivity() {
 		startService(LocalNotificationsFacade.notificationDismissedIntent(this, addresses,
 				"MainActivity#openMailbox", isSummary))
 
-		nativeImpl.sendRequest(JsRequest.openMailbox, listOf("\"$userId\"", "\"$address\""))
+		commonNativeFacade.openMailBox(userId, address, null)
 	}
 
 	suspend fun openCalendar(intent: Intent) {
 		val userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY) ?: return
-		nativeImpl.sendRequest(JsRequest.openCalendar, listOf("\"$userId\""))
+		commonNativeFacade.openCalendar(userId)
 	}
 
 	override fun onBackPressed() {
 		if (nativeImpl.webAppInitialized.isCompleted) {
 			lifecycleScope.launchWhenCreated {
-				val result = nativeImpl.sendRequest(JsRequest.handleBackPress, listOf())
+				val result = mobileFacade.handleBackPress()
 				try {
-					if (!(result as JSONObject).getBoolean("value")) {
+					if (!result) {
 						goBack()
 					}
 				} catch (e: JSONException) {
@@ -474,8 +469,8 @@ class MainActivity : FragmentActivity() {
 		moveTaskToBack(false)
 	}
 
-	fun reload(parameters: MutableMap<String, String>) {
-		runOnUiThread { startWebApp(parameters) }
+	fun reload(parameters: Map<String, String>) {
+		runOnUiThread { startWebApp(parameters.toMutableMap()) }
 	}
 
 	override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenuInfo?) {

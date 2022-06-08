@@ -5,6 +5,10 @@ import type {NativeFileApp} from "../../native/common/FileApp"
 import {isBrowser} from "../common/Env"
 import {ProgrammingError} from "../common/error/ProgrammingError"
 import {ExposedWebInterface} from "../../native/common/NativeInterface"
+import {MobileFacade} from "../../native/common/generatedipc/MobileFacade.js"
+import {DesktopFacade} from "../../native/common/generatedipc/DesktopFacade.js"
+import {CommonNativeFacade} from "../../native/common/generatedipc/CommonNativeFacade.js"
+import {WebGlobalDispatcher} from "../../native/common/generatedipc/WebGlobalDispatcher.js"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
@@ -19,13 +23,23 @@ export type NativeInterfaces = {
  * @returns NativeInterfaces
  * @throws ProgrammingError when you try to call this in the web browser
  */
-export async function createNativeInterfaces(webInterface: ExposedWebInterface): Promise<NativeInterfaces> {
+export async function createNativeInterfaces(
+	webInterface: ExposedWebInterface,
+	mobileFacade: MobileFacade,
+	desktopFacade: DesktopFacade,
+	commonNativeFacade: CommonNativeFacade,
+): Promise<NativeInterfaces> {
 	if (!isBrowser()) {
 		const {NativeInterfaceMain} = await import("../../native/main/NativeInterfaceMain")
 		const {NativeFileApp} = await import("../../native/common/FileApp")
 		const {NativePushServiceApp} = await import("../../native/main/NativePushServiceApp")
 		const {NativeSystemApp} = await import("../../native/common/NativeSystemApp")
-		const native = new NativeInterfaceMain(webInterface)
+		const dispatcher = new WebGlobalDispatcher(
+			commonNativeFacade,
+			desktopFacade,
+			mobileFacade,
+		)
+		const native = new NativeInterfaceMain(webInterface, dispatcher)
 		const fileApp = new NativeFileApp(native)
 		const pushService = new NativePushServiceApp(native)
 		const systemApp = new NativeSystemApp(native, fileApp)
