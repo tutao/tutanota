@@ -19,6 +19,8 @@ import de.tutao.tutanota.credentials.CredentialsEncryptionFactory
 import de.tutao.tutanota.push.LocalNotificationsFacade
 import de.tutao.tutanota.push.SseStorage
 import kotlinx.coroutines.*
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -41,10 +43,11 @@ class Native internal constructor(
 ) {
 	val themeManager = ThemeManager(activity)
 
+	private val json = Json.Default
 	private val crypto = Crypto(activity)
 	private val files = FileUtil(activity, LocalNotificationsFacade(activity))
 	private val contact = Contact(activity)
-	private val requests = mutableMapOf<String, Continuation<Any>>()
+	private val requests = mutableMapOf<String, Continuation<JSONObject>>()
 	private val credentialsEncryption = CredentialsEncryptionFactory.create(activity)
 
 	@Volatile
@@ -82,212 +85,233 @@ class Native internal constructor(
 		)
 	}
 
+
+	private fun makeCursedJsonArray(args: List<String>): JSONArray {
+		val cursedJsonArray = args.joinToString(prefix = "[", postfix = "]")
+		return JSONArray(cursedJsonArray)
+	}
+
+	private fun makeCursedJsonObject(value: String): JSONObject {
+
+		val cursedObject = if (value == "") {
+			"{\"value\": null}"
+		} else {
+			"{\"value\": $value}"
+		}
+		return JSONObject(cursedObject)
+	}
+
 	/**
-	 * Invokes method with args. The returned response is a JSON of the following format:
+	 * Invokes method with args.
 	 *
 	 * @param msg A request (see WorkerProtocol)
 	 */
-	suspend fun handleMessageFromWeb(msg: String?) {
-		try {
-			val request = JSONObject(msg)
-			if (request["type"] == "response") {
-				val id = request.getString("id")
+	suspend fun handleMessageFromWeb(msg: String) {
+		val (type, id, rest) = msg.split("\n", limit = 3)
+		when (type) {
+			"response" -> {
 				val continuation = requests.remove(id)
 				if (continuation != null) {
-					continuation.resume(request)
+					continuation.resume(makeCursedJsonObject(rest))
 				} else {
 					Log.w(TAG, "No request for id $id")
 				}
-			} else {
+			}
+			"request" -> {
+				val requestParts = rest.split("\n")
+				val requestType = requestParts[0]
+				val args = requestParts.slice(1..requestParts.lastIndex)
 				try {
-					val result = invokeMethod(request.getString("requestType"), request.getJSONArray("args"))
-					sendResponse(request, result)
+					val result = invokeMethod(requestType, args)
+					sendResponse(id, result)
 				} catch (e: Throwable) {
 					Log.e(TAG, "failed invocation", e)
-					sendErrorResponse(request, e)
+					sendErrorResponse(id, e)
 				}
 			}
-		} catch (e: JSONException) {
-			Log.e("Native", "could not parse msg:", e)
+			else -> error("unknown message type")
 		}
 	}
 
-	suspend fun sendRequest(type: JsRequest, args: Array<Any?>): Any {
+	suspend fun sendRequest(requestType: JsRequest, args: List<String>): JSONObject {
 		webAppInitialized.await()
-
-		val request = JSONObject()
 		val requestId = createRequestId()
-		val arguments = JSONArray()
+		val builder = StringBuilder()
+		builder.appendLine("request")
+		builder.appendLine(requestId)
+		builder.appendLine(requestType)
 		for (arg in args) {
-			arguments.put(arg)
+			builder.appendLine(arg)
 		}
-		request.put("id", requestId)
-		request.put("type", "request")
-		request.put("requestType", type.toString())
-		request.put("args", arguments)
-		postMessage(request)
+		// remove last newline
+		if (builder.isNotEmpty()) {
+			builder.setLength(builder.length - 1);
+		}
+
+		postMessage(builder.toString())
 
 		return suspendCoroutine { continuation ->
 			requests[requestId] = continuation
 		}
 	}
 
-	private fun sendResponse(request: JSONObject, value: Any?) {
-		val response = JSONObject()
-		try {
-			response.put("id", request.getString("id"))
-			response.put("type", "response")
-			response.put("value", value)
-			postMessage(response)
-		} catch (e: JSONException) {
-			throw RuntimeException(e)
-		}
+	private fun sendResponse(requestId: String, value: String) {
+		Log.d(TAG, "sending response with val=$value")
+		val result = StringBuilder()
+		result.appendLine("response")
+		result.appendLine(requestId)
+		result.append(value)
+
+		postMessage(result.toString())
 	}
 
-	private fun sendErrorResponse(request: JSONObject, ex: Throwable) {
-		val response = JSONObject()
-		try {
-			response.put("id", request.getString("id"))
-			response.put("type", "requestError")
-			response.put("error", ex.toJSON())
-			postMessage(response)
-		} catch (e: JSONException) {
-			throw RuntimeException(e)
-		}
+	private fun sendErrorResponse(requestId: String, ex: Throwable) {
+		val builder = StringBuilder()
+		builder.appendLine("requestError")
+		builder.appendLine(requestId)
+		builder.appendLine(ex.toJSON().toString())
+		postMessage(builder.toString())
 	}
 
-	private fun postMessage(json: JSONObject) {
+	private fun postMessage(message: String) {
 		val port = checkNotNull(webMessagePort) { "Web bridge is not initialized yet!" }
-		port.postMessage(WebMessage(json.toString()))
+		port.postMessage(WebMessage(message))
 	}
 
-	private suspend fun invokeMethod(method: String, args: JSONArray): Any? {
+	private suspend fun invokeMethod(method: String, args: List<String>): String {
+		val jsonArray = makeCursedJsonArray(args)
+		Log.d(TAG, "method=$method with cursedJson: $jsonArray")
+
 		return when (method) {
 			"init" -> {
-				_webAppInitialized.complete(Unit)
+				json.encodeToString(_webAppInitialized.complete(Unit))
 			}
 			"reload" -> {
 				_webAppInitialized = CompletableDeferred()
-				activity.reload(args.getJSONObject(0).toMap())
+				activity.reload(jsonArray.getJSONObject(0).toMap())
+				json.encodeToString<Boolean?>(null)
 			}
-			"initPushNotifications" -> initPushNotifications()
-			"generateRsaKey" -> crypto.generateRsaKey(args.getString(0).base64ToBytes())
-			"rsaEncrypt" -> crypto.rsaEncrypt(
-					args.getJSONObject(0),
-					args.getString(1).base64ToBytes(),
-					args.getString(2).base64ToBytes()
-			)
-			"rsaDecrypt" -> crypto.rsaDecrypt(args.getJSONObject(0), args.getString(1).base64ToBytes())
+			"initPushNotifications" -> {
+				initPushNotifications()
+				json.encodeToString<Boolean?>(null)
+			}
+			"generateRsaKey" -> crypto.generateRsaKey(jsonArray.getString(0).base64ToBytes()).toString()
+			"rsaEncrypt" -> json.encodeToString(crypto.rsaEncrypt(
+					jsonArray.getJSONObject(0),
+					jsonArray.getString(1).base64ToBytes(),
+					jsonArray.getString(2).base64ToBytes()
+			))
+			"rsaDecrypt" -> json.encodeToString(crypto.rsaDecrypt(jsonArray.getJSONObject(0), jsonArray.getString(1).base64ToBytes()))
 			"aesEncryptFile" -> crypto.aesEncryptFile(
-					args.getString(0).base64ToBytes(),
-					args.getString(1),
-					args.getString(2).base64ToBytes()
-			).toJSON()
+					jsonArray.getString(0).base64ToBytes(),
+					jsonArray.getString(1),
+					jsonArray.getString(2).base64ToBytes()
+			).toJSON().toString()
 			"aesDecryptFile" -> {
-				val key = args.getString(0).base64ToBytes()
-				val fileUrl = args.getString(1)
-				crypto.aesDecryptFile(key, fileUrl)
+				val key = jsonArray.getString(0).base64ToBytes()
+				val fileUrl = jsonArray.getString(1)
+				json.encodeToString(crypto.aesDecryptFile(key, fileUrl))
 			}
-			"open" -> files.openFile(args.getString(0), args.getString(1))
-			"openFileChooser" -> files.openFileChooser()
+			"open" -> json.encodeToString(files.openFile(jsonArray.getString(0), jsonArray.getString(1)))
+			"openFileChooser" -> files.openFileChooser().toString()
 			"deleteFile" -> {
-				files.delete(args.getString(0))
-				null
+				files.delete(jsonArray.getString(0))
+				json.encodeToString<Boolean?>(null)
 			}
-			"getName" -> files.getName(args.getString(0))
-			"getMimeType" -> files.getMimeType(Uri.parse(args.getString(0)))
-			"getSize" -> files.getSize(args.getString(0)).toString() + ""
+			"getName" -> json.encodeToString(files.getName(jsonArray.getString(0)))
+			"getMimeType" -> json.encodeToString(files.getMimeType(Uri.parse(jsonArray.getString(0))))
+			"getSize" -> json.encodeToString(files.getSize(jsonArray.getString(0)).toString() + "")
 			"upload" -> {
-				val fileUri = args.getString(0)
-				val targetUrl = args.getString(1)
-				val httpMethod = args.getString(2)
-				val headers = args.getJSONObject(3)
-				files.upload(fileUri, targetUrl, httpMethod, headers)
+				val fileUri = jsonArray.getString(0)
+				val targetUrl = jsonArray.getString(1)
+				val httpMethod = jsonArray.getString(2)
+				val headers = jsonArray.getJSONObject(3)
+				files.upload(fileUri, targetUrl, httpMethod, headers).toString()
 			}
 			"download" -> {
-				val url = args.getString(0)
-				val filename = args.getString(1)
-				val headers = args.getJSONObject(2)
-				files.download(url, filename, headers)
+				val url = jsonArray.getString(0)
+				val filename = jsonArray.getString(1)
+				val headers = jsonArray.getJSONObject(2)
+				files.download(url, filename, headers).toString()
 			}
 			"joinFiles" -> {
-				val filename = args.getString(0)
-				val filesTojoin = jsonArrayToTypedList<String>(args.getJSONArray(1))
-				files.joinFiles(filename, filesTojoin)
+				val filename = jsonArray.getString(0)
+				val filesTojoin = jsonArrayToTypedList<String>(jsonArray.getJSONArray(1))
+				json.encodeToString(files.joinFiles(filename, filesTojoin))
 			}
 			"splitFile" -> {
-				val fileUri = args.getString(0)
-				val maxChunkSize = args.getInt(1)
-				files.splitFile(fileUri, maxChunkSize)
+				val fileUri = jsonArray.getString(0)
+				val maxChunkSize = jsonArray.getInt(1)
+				files.splitFile(fileUri, maxChunkSize).toString()
 			}
 			"clearFileData" -> {
 				files.clearFileData()
-				null
+				json.encodeToString<Boolean?>(null)
 			}
-			"findSuggestions" -> contact.findSuggestions(args.getString(0))
-			"openLink" -> openLink(args.getString(0))
-			"shareText" -> shareText(args.getString(0), args.getString(1))
-			"getPushIdentifier" -> sseStorage.getPushIdentifier()
+			"findSuggestions" -> contact.findSuggestions(jsonArray.getString(0)).toString()
+			"openLink" -> json.encodeToString(openLink(jsonArray.getString(0)))
+			"shareText" -> json.encodeToString(shareText(jsonArray.getString(0), jsonArray.getString(1)))
+			"getPushIdentifier" -> json.encodeToString(sseStorage.getPushIdentifier())
 			"storePushIdentifierLocally" -> {
-				val deviceIdentifier = args.getString(0)
-				val userId = args.getString(1)
-				val sseOrigin = args.getString(2)
+				val deviceIdentifier = jsonArray.getString(0)
+				val userId = jsonArray.getString(1)
+				val sseOrigin = jsonArray.getString(2)
 				Log.d(TAG, "storePushIdentifierLocally")
 				sseStorage.storePushIdentifier(deviceIdentifier, sseOrigin)
-				val pushIdentifierId = args.getString(3)
-				val pushIdentifierSessionKeyB64 = args.getString(4)
+				val pushIdentifierId = jsonArray.getString(3)
+				val pushIdentifierSessionKeyB64 = jsonArray.getString(4)
 				sseStorage.storePushIdentifierSessionKey(userId, pushIdentifierId, pushIdentifierSessionKeyB64)
-				true
+				json.encodeToString(true)
 			}
 			"closePushNotifications" -> {
-				val addressesArray = args.getJSONArray(0)
+				val addressesArray = jsonArray.getJSONArray(0)
 				cancelNotifications(addressesArray)
-				true
+				json.encodeToString(true)
 			}
-			"readFile" -> File(activity.filesDir, args.getString(0)).readBytes().toBase64()
+			"readFile" -> json.encodeToString(File(activity.filesDir, jsonArray.getString(0)).readBytes().toBase64())
 			"writeFile" -> {
-				val filename = args.getString(0)
-				val contentInBase64 = args.getString(1)
+				val filename = jsonArray.getString(0)
+				val contentInBase64 = jsonArray.getString(1)
 				File(activity.filesDir, filename).writeBytes(contentInBase64.base64ToBytes())
-				true
+				json.encodeToString(true)
 			}
-			"getSelectedTheme" -> themeManager.selectedThemeId
+			"getSelectedTheme" -> json.encodeToString(themeManager.selectedThemeId)
 			"setSelectedTheme" -> {
-				val themeId = args.getString(0)
+				val themeId = jsonArray.getString(0)
 				themeManager.selectedThemeId = themeId
 				activity.applyTheme()
-				null
+				json.encodeToString<Boolean?>(null)
 			}
 			"getThemes" -> {
 				val themesList = themeManager.themes
-				JSONArray(themesList)
+				JSONArray(themesList).toString()
 			}
 			"setThemes" -> {
-				val jsonThemes = args.getJSONArray(0)
+				val jsonThemes = jsonArray.getJSONArray(0)
 				themeManager.setThemes(jsonThemes)
 				activity.applyTheme() // reapply theme in case the current selected theme definition has changed
-				null
+				json.encodeToString<Boolean?>(null)
 			}
-			"saveDataFile" -> files.saveDataFile(args.getString(0), args.getString(1))
-			"putFileIntoDownloads" -> files.putInDownloadFolder(args.getString(0))
-			"getDeviceLog" -> LogReader.getLogFile(activity).toString()
-			"changeLanguage" -> null
+			"saveDataFile" -> json.encodeToString(files.saveDataFile(jsonArray.getString(0), jsonArray.getString(1)))
+			"putFileIntoDownloads" -> json.encodeToString(files.putInDownloadFolder(jsonArray.getString(0)))
+			"getDeviceLog" -> json.encodeToString(LogReader.getLogFile(activity).toString())
+			"changeLanguage" -> json.encodeToString<Boolean?>(null)
 			"scheduleAlarms" -> {
-				scheduleAlarms(args.getJSONArray(0))
-				null
+				scheduleAlarms(jsonArray.getJSONArray(0))
+				json.encodeToString<Boolean?>(null)
 			}
 			"encryptUsingKeychain" -> {
-				val encryptionMode = args.getString(0)
-				val dataToEncrypt = args.getString(1)
+				val encryptionMode = jsonArray.getString(0)
+				val dataToEncrypt = jsonArray.getString(1)
 				val mode = CredentialEncryptionMode.fromName(encryptionMode)
 				val encryptedData = credentialsEncryption.encryptUsingKeychain(dataToEncrypt, mode)
-				encryptedData
+				json.encodeToString(encryptedData)
 			}
 			"decryptUsingKeychain" -> {
-				val encryptionMode = args.getString(0)
-				val dataToDecrypt = args.getString(1)
+				val encryptionMode = jsonArray.getString(0)
+				val dataToDecrypt = jsonArray.getString(1)
 				val mode = CredentialEncryptionMode.fromName(encryptionMode)
-				credentialsEncryption.decryptUsingKeychain(dataToDecrypt, mode)
+				json.encodeToString(credentialsEncryption.decryptUsingKeychain(dataToDecrypt, mode))
 			}
 			"getSupportedEncryptionModes" -> {
 				val modes = credentialsEncryption.getSupportedEncryptionModes()
@@ -295,9 +319,9 @@ class Native internal constructor(
 					for (mode in modes) {
 						put(mode.modeName)
 					}
-				}
+				}.toString()
 			}
-			"hashFile" -> files.hashFile(args.getString(0))
+			"hashFile" -> json.encodeToString(files.hashFile(jsonArray.getString(0)))
 			else -> throw Exception("unsupported method: $method")
 		}
 	}
