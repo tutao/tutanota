@@ -317,7 +317,7 @@ export class CalendarFacade {
 		})
 		const AlarmServicePostTypeModel = await resolveTypeReference(AlarmServicePostTypeRef)
 		const encEntity = await this.instanceMapper.encryptAndMapToLiteral(AlarmServicePostTypeModel, requestEntity, notificationKey)
-		return this.native.invokeNative(new Request("scheduleAlarms", [downcast(encEntity).alarmNotifications]))
+		return this.native.invokeNative("scheduleAlarms", [downcast(encEntity).alarmNotifications])
 	}
 
 	/**

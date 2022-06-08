@@ -38,7 +38,7 @@ export class FolderColumnView implements Component<Attrs> {
 			m(DrawerMenu, {
 				openNewWindow: async () => {
 					const {locator} = await import("../api/main/MainLocator.js")
-					return locator.native.invokeNative(new Request("openNewWindow", []))
+					return locator.native.invokeNative("openNewWindow", [])
 				},
 			}),
 			m(".folder-column.flex-grow.overflow-x-hidden.flex.col" + landmarkAttrs(AriaLandmarks.Navigation, lang.getMaybeLazy(attrs.ariaLabel)), [

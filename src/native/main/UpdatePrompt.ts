@@ -1,4 +1,3 @@
-import {Request} from "../../api/common/MessageDispatcher"
 import m from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {ButtonType} from "../../gui/base/ButtonN"
@@ -9,7 +8,7 @@ import {show} from "../../gui/base/NotificationOverlay"
 assertMainOrNode()
 
 export async function registerForUpdates(nativeInterface: NativeInterface) {
-	const updateInfo = await nativeInterface.invokeNative(new Request("isUpdateAvailable", []))
+	const updateInfo = await nativeInterface.invokeNative("isUpdateAvailable", [])
 
 	if (updateInfo) {
 		let message = {
@@ -29,7 +28,7 @@ export async function registerForUpdates(nativeInterface: NativeInterface) {
 			[
 				{
 					label: "installNow_action",
-					click: () => nativeInterface.invokeNative(new Request("manualUpdate", [])),
+					click: () => nativeInterface.invokeNative("manualUpdate", []),
 					type: ButtonType.Primary,
 				},
 			],

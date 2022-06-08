@@ -241,7 +241,7 @@ export class NativeThemeStorage implements ThemeStorage {
 		// Theme initialization happens concurrently with locator initialization, so we have to wait or native may not yet be defined when we first get here.
 		// It would be nice to move all the global theme handling onto the locator as well so we can have more control over this
 		await locator.initialized
-		return locator.native.invokeNative(new Request(method, args))
+		return locator.native.invokeNative(method, args)
 	}
 }
 

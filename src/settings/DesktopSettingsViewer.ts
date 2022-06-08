@@ -2,7 +2,6 @@ import m, {Children} from "mithril"
 import {InfoLink, lang} from "../misc/LanguageViewModel"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {Request} from "../api/common/MessageDispatcher"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {noOp} from "@tutao/tutanota-utils"
 import {Icons} from "../gui/base/icons/Icons"
@@ -191,7 +190,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		}
 		const updateHelpLabelAttrs: UpdateHelpLabelAttrs = {
 			updateAvailable: this._updateAvailable,
-			manualUpdate: () => locator.native.invokeNative(new Request("manualUpdate", [])),
+			manualUpdate: () => locator.native.invokeNative("manualUpdate", []),
 		}
 		const setAutoUpdateAttrs: DropDownSelectorAttrs<boolean> = {
 			label: "autoUpdate_label",
@@ -283,22 +282,22 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private _toggleAutoLaunchInNative(enable: boolean): Promise<any> {
-		return locator.native.invokeNative(new Request(enable ? "enableAutoLaunch" : "disableAutoLaunch", []))
+		return locator.native.invokeNative(enable ? "enableAutoLaunch" : "disableAutoLaunch", [])
 	}
 
 	private _updateDefaultMailtoHandler(shouldBeDefaultMailtoHandler: boolean): Promise<void> {
 		if (shouldBeDefaultMailtoHandler) {
-			return locator.native.invokeNative(new Request("registerMailto", []))
+			return locator.native.invokeNative("registerMailto", [])
 		} else {
-			return locator.native.invokeNative(new Request("unregisterMailto", []))
+			return locator.native.invokeNative("unregisterMailto", [])
 		}
 	}
 
 	private _updateDesktopIntegration(shouldIntegrate: boolean): Promise<void> {
 		if (shouldIntegrate) {
-			return locator.native.invokeNative(new Request("integrateDesktop", []))
+			return locator.native.invokeNative("integrateDesktop", [])
 		} else {
-			return locator.native.invokeNative(new Request("unIntegrateDesktop", []))
+			return locator.native.invokeNative("unIntegrateDesktop", [])
 		}
 	}
 

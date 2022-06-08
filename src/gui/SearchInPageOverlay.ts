@@ -5,7 +5,6 @@ import {displayOverlay} from "./base/Overlay"
 import {px, size} from "./size"
 import {Icons} from "./base/icons/Icons"
 import {assertMainOrNode} from "../api/common/Env"
-import {Request} from "../api/common/MessageDispatcher"
 import {lang} from "../misc/LanguageViewModel"
 import {transform, TransformEnum} from "./animation/Animations"
 import {ButtonN, ButtonType} from "./base/ButtonN"
@@ -57,7 +56,7 @@ export class SearchInPageOverlay {
 		if (this._closeFunction) {
 			this._closeFunction()
 
-			locator.native.invokeNative(new Request("stopFindInPage", []))
+			locator.native.invokeNative("stopFindInPage", [])
 			this._closeFunction = null
 		}
 
@@ -89,10 +88,10 @@ export class SearchInPageOverlay {
 
 						this._domInput.focus()
 					} else {
-						locator.native.invokeNative(new Request("setSearchOverlayState", [false, false]))
+						locator.native.invokeNative("setSearchOverlayState", [false, false])
 					}
 				},
-				onfocus: () => locator.native.invokeNative(new Request("setSearchOverlayState", [true, false])),
+				onfocus: () => locator.native.invokeNative("setSearchOverlayState", [true, false]),
 				oninput: () => this._find(true, true),
 				style: {
 					width: px(250),
@@ -108,14 +107,14 @@ export class SearchInPageOverlay {
 		this._skipNextBlur = true
 		return locator.native
 					  .invokeNative(
-						  new Request("findInPage", [
+						  "findInPage", [
 							  this._domInput.value,
 							  {
 								  forward,
 								  matchCase: this._matchCase,
 								  findNext,
 							  },
-						  ]),
+						  ],
 					  )
 					  .then(r => this.applyNextResult(r))
 	}
@@ -228,7 +227,7 @@ export class SearchInPageOverlay {
 	 */
 	handleMouseUp(e: Event) {
 		if (!(e.target instanceof Element && e.target.id !== "search-overlay-input")) return
-		locator.native.invokeNative(new Request("setSearchOverlayState", [false, true]))
+		locator.native.invokeNative("setSearchOverlayState", [false, true])
 	}
 }
 

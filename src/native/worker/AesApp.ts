@@ -1,5 +1,4 @@
 import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import {Request} from "../../api/common/MessageDispatcher"
 import {keyToBase64} from "@tutao/tutanota-crypto"
 import type {NativeInterface} from "../common/NativeInterface"
 import {FileUri} from "../common/FileApp"
@@ -22,7 +21,7 @@ export class AesApp {
 	 */
 	aesEncryptFile(key: Aes128Key, fileUrl: FileUri, iv: Uint8Array): Promise<EncryptedFileInfo> {
 		let encodedKey = keyToBase64(key)
-		return this._native.invokeNative(new Request("aesEncryptFile", [encodedKey, fileUrl, uint8ArrayToBase64(iv)]))
+		return this._native.invokeNative("aesEncryptFile", [encodedKey, fileUrl, uint8ArrayToBase64(iv)])
 	}
 
 	/**
@@ -31,6 +30,6 @@ export class AesApp {
 	 */
 	aesDecryptFile(key: Aes128Key, fileUrl: FileUri): Promise<FileUri> {
 		let encodedKey = keyToBase64(key)
-		return this._native.invokeNative(new Request("aesDecryptFile", [encodedKey, fileUrl]))
+		return this._native.invokeNative("aesDecryptFile", [encodedKey, fileUrl])
 	}
 }

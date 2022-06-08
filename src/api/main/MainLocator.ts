@@ -204,7 +204,7 @@ class MainLocator implements IMainLocator {
 		}
 
 		if (this._exposedNativeInterfaces == null) {
-			this._exposedNativeInterfaces = exposeRemote<ExposedNativeInterface>((msg) => this.native.invokeNative(msg))
+			this._exposedNativeInterfaces = exposeRemote<ExposedNativeInterface>((msg) => this.native.invokeNative(msg.requestType, msg.args))
 		}
 
 		return this._exposedNativeInterfaces

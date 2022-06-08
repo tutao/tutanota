@@ -1,7 +1,19 @@
-import {Mail} from "../../api/entities/tutanota/TypeRefs.js"
-import {MailBody, MailBodyTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {File as TutanotaFile, FileTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
+import {
+	CalendarEvent,
+	ConversationEntryTypeRef,
+	createEncryptedMailAddress,
+	createListUnsubscribeData,
+	createMailAddress,
+	EncryptedMailAddress,
+	File as TutanotaFile,
+	FileTypeRef,
+	Mail,
+	MailAddress,
+	MailBody,
+	MailBodyTypeRef,
+	MailHeadersTypeRef,
+	MailRestriction
+} from "../../api/entities/tutanota/TypeRefs.js"
 import {
 	CalendarMethod,
 	ConversationType,
@@ -21,10 +33,9 @@ import {ContactModel} from "../../contacts/model/ContactModel"
 import {ConfigurationDatabase} from "../../api/worker/facades/ConfigurationDatabase"
 import {InlineImages} from "./MailViewer"
 import {isDesktop} from "../../api/common/Env"
-import {Request} from "../../api/common/MessageDispatcher"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {addAll, contains, defer, DeferredObject, downcast, neverNull, noOp, ofClass, startsWith} from "@tutao/tutanota-utils"
+import {addAll, contains, downcast, neverNull, noOp, ofClass, startsWith} from "@tutao/tutanota-utils"
 import {lang} from "../../misc/LanguageViewModel"
 import {
 	getArchiveFolder,
@@ -38,8 +49,7 @@ import {
 } from "../model/MailUtils"
 import {LoginController} from "../../api/main/LoginController"
 import m from "mithril"
-import {ConversationEntryTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {ConnectionError, LockedError, NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
+import {LockedError, NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
 import {NativeInterface} from "../../native/common/NativeInterface"
 import {elementIdPart, listIdPart} from "../../api/common/utils/EntityUtils"
 import {getReferencedAttachments, loadInlineImages, moveMails, revokeInlineImages} from "./MailGuiUtils"
@@ -47,23 +57,17 @@ import {locator} from "../../api/main/MainLocator"
 import {SanitizeResult} from "../../misc/HtmlSanitizer"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {CALENDAR_MIME_TYPE, FileController} from "../../file/FileController"
-import {createMailAddress, MailAddress} from "../../api/entities/tutanota/TypeRefs.js"
 import {getMailBodyText, getMailHeaders} from "../../api/common/utils/Utils"
-import {MailHeadersTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {createEncryptedMailAddress, EncryptedMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
 import {exportMails} from "../export/Exporter.js"
 import {FileFacade} from "../../api/worker/facades/FileFacade"
 import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
 import {FileOpenError} from "../../api/common/error/FileOpenError"
 import {Dialog} from "../../gui/base/Dialog"
-import {createListUnsubscribeData} from "../../api/entities/tutanota/TypeRefs.js"
 import {checkApprovalStatus} from "../../misc/LoginUtils"
 import {formatDateTime, urlEncodeHtmlTags} from "../../misc/Formatter"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
-import {GroupInfo} from "../../api/entities/sys/TypeRefs.js"
-import {CustomerTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import {MailRestriction} from "../../api/entities/tutanota/TypeRefs.js"
+import {CustomerTypeRef, GroupInfo} from "../../api/entities/sys/TypeRefs.js"
 import {LoadingStateTracker} from "../../offline/LoadingState"
 import {IServiceExecutor} from "../../api/common/ServiceRequest"
 import {ListUnsubscribeService} from "../../api/entities/tutanota/Services"
@@ -136,13 +140,7 @@ export class MailViewerViewModel {
 		)
 		if (isDesktop()) {
 			// Notify the admin client about the mail being selected
-			native?.invokeNative(
-				new Request("sendSocketMessage", [
-					{
-						mailAddress: mail.sender.address,
-					},
-				]),
-			)
+			native?.invokeNative("sendSocketMessage", [{mailAddress: mail.sender.address,}])
 		}
 
 		this.folderText = null
@@ -669,7 +667,7 @@ export class MailViewerViewModel {
 			recipients,
 			attachments: this.attachments.slice(),
 			subject: "FWD: " + mailSubject,
-				bodyText: addSignature ? prependEmailSignature(body, this.logins) : body,
+			bodyText: addSignature ? prependEmailSignature(body, this.logins) : body,
 			replyTos,
 		}
 	}
@@ -853,7 +851,7 @@ export class MailViewerViewModel {
 				   }),
 			   )
 			   .catch(e => {
-				   const msg = e || "unknown error"
+				   const msg = e.message || "unknown error"
 				   console.error("could not open file:", msg)
 				   return Dialog.message("errorDuringFileOpen_msg")
 			   })

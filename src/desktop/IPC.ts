@@ -120,14 +120,14 @@ export class IPC {
 			} else {
 				this._invokeMethod(windowId, request.requestType, request.args)
 					.then(result => {
-						const response = new Response(request, result)
+						const response = new Response(request.id, result)
 
 						const w = this._wm.get(windowId)
 
 						if (w) w.sendMessageToWebContents(response)
 					})
 					.catch(e => {
-						const response = new RequestError(request, e)
+						const response = new RequestError(request.id, e)
 
 						const w = this._wm.get(windowId)
 						if (w) w.sendMessageToWebContents(response)
