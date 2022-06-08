@@ -152,7 +152,7 @@ export {
 	mapNullable,
 } from "./Utils.js"
 export type {
-	DeferredObject, lazy, lazyAsync, Thunk, DeferredObjectWithHandler, MaybeLazy, TimeoutSetter
+	DeferredObject, lazy, lazyAsync, Thunk, DeferredObjectWithHandler, MaybeLazy, TimeoutSetter, ErrorInfo
 } from "./Utils.js"
 
 export {
