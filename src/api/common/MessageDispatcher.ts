@@ -62,9 +62,9 @@ export class Response<T> {
 	readonly id: string
 	readonly value: any
 
-	constructor(request: Request<T>, value: any) {
+	constructor(id: string, value: any) {
 		this.type = "response"
-		this.id = request.id
+		this.id = id
 		this.value = value
 	}
 }
@@ -74,9 +74,9 @@ export class RequestError<T> {
 	readonly id: string
 	readonly error: Record<string, any>
 
-	constructor(request: Request<T>, error: Error) {
+	constructor(id: string, error: Error) {
 		this.type = "requestError"
-		this.id = request.id
+		this.id = id
 		this.error = errorToObj(error) // the structured clone algorithm is not able to clone errors
 	}
 }
@@ -153,16 +153,16 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 				commandResult
 					.then(
 						(value) => {
-							this._transport.postMessage(new Response(message, value))
+							this._transport.postMessage(new Response(message.id, value))
 						},
 						(error) => {
-							this._transport.postMessage(new RequestError(message, error))
+							this._transport.postMessage(new RequestError(message.id, error))
 						})
 			} else {
 				let error = new Error(`unexpected request: ${message.id}, ${message.requestType}`)
 
 				if (isWorker()) {
-					this._transport.postMessage(new RequestError(message, error))
+					this._transport.postMessage(new RequestError(message.id, error))
 				} else {
 					throw error
 				}

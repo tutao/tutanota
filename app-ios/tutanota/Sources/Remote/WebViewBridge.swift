@@ -17,7 +17,7 @@ class WebViewBridge : NSObject {
   private let blobUtils: BlobUtil
 
   private var requestId = 0
-  private var requests = [String : ((Any?) -> Void)]()
+  private var requests = [String : ((String) -> Void)]()
   private var requestsBeforeInit = [() -> Void]()
   private var webviewInitialized = false
 
@@ -61,7 +61,7 @@ class WebViewBridge : NSObject {
   func sendRequest(
     method: String,
     args: [Encodable],
-    completion: ((Any?) -> Void)?
+    completion: ((String) -> Void)?
   ) {
     if !self.webviewInitialized {
       let callback = { self.sendRequest(method: method, args: args, completion: completion) }
@@ -74,23 +74,30 @@ class WebViewBridge : NSObject {
     if let completion = completion {
       self.requests[requestId] = completion
     }
-    let bridgeMessage = RemoteMessage.request(
-      id: requestId,
-      requestType: method,
-      args: args
-    )
-    self.postMessage(bridgeMessage: bridgeMessage)
+    var parts = ["request", requestId, method]
+    for arg in args {
+      parts.append(json(arg))
+    }
+    self.postMessage(encodedMessage: parts.joined(separator: "\n"))
+  }
+
+  func invokeRemote(method: String, args: [Encodable]) async throws -> String {
+    return try await withCheckedThrowingContinuation { continuation in
+      self.sendRequest(method: method, args: args, completion: continuation.resume(returning:))
+    }
   }
 
   private func sendResponse(requestId: String, value: Encodable) {
-    let response = RemoteMessage.response(id: requestId, value: value)
-    self.postMessage(bridgeMessage: response)
+    let parts: [String] = ["response", requestId, json(value)]
+
+    self.postMessage(encodedMessage: parts.joined(separator: "\n"))
   }
 
   private func sendErrorResponse(requestId: String, err: Error) {
     TUTSLog("Error: \(err)")
 
     let responseError: ResponseError
+    var parts : [String] = ["requestError", requestId]
     if let err = err as? TutanotaError {
       responseError = ResponseError(name: err.name, message: err.message, stack: err.underlyingError.debugDescription)
     } else {
@@ -105,28 +112,28 @@ class WebViewBridge : NSObject {
         stack:  underlyingError?.debugDescription ?? ""
       )
     }
+    parts.append(json(responseError))
 
-    let bridgeMessage = RemoteMessage.requestError(id: requestId, error: responseError)
-    self.postMessage(bridgeMessage: bridgeMessage)
+    let bridgeMessage = parts.joined(separator: "\n")
+    self.postMessage(encodedMessage: bridgeMessage)
   }
 
-  private func postMessage(bridgeMessage: RemoteMessage) {
-    let data = try! JSONEncoder().encode(bridgeMessage)
+  private func postMessage(encodedMessage: String) {
     DispatchQueue.main.async {
-      let base64 = data.base64EncodedString()
-      let js = "tutao.nativeApp.sendMessageFromApp('\(base64)')"
+      let base64 = encodedMessage.data(using: .utf8)!.base64EncodedString()
+      let js = "tutao.nativeApp.receiveMessageFromApp('\(base64)')"
       self.webView.evaluateJavaScript(js, completionHandler: nil)
     }
   }
 
-  private func handleResponse(id: String, value: Any?) {
+  private func handleResponse(id: String, value: String) {
     if let request = self.requests[id] {
       self.requests.removeValue(forKey: id)
       request(value)
     }
   }
 
-  private func handleRequest(type: String, requestId: String, args: [Any]) {
+  private func handleRequest(type: String, requestId: String, args: String) {
     Task {
       do {
         let value: Encodable = try await self.handleRequest(type: type, args: args) ?? NullReturn()
@@ -137,7 +144,12 @@ class WebViewBridge : NSObject {
     }
   }
 
-  private func handleRequest(type: String, args: [Any]) async throws -> Encodable? {
+  private func handleRequest(type: String, args encodedArgs: String) async throws -> Encodable? {
+
+    let args = encodedArgs.split(separator: "\n").map { strArg in
+      return try! JSONSerialization.jsonObject(with: strArg.data(using: .utf8)!, options: [.fragmentsAllowed])
+    }
+
       switch type {
       case "init":
         self.webviewInitialized = true
@@ -282,7 +294,7 @@ class WebViewBridge : NSObject {
         let inFileUri = args[0] as! String
         return try await self.blobUtils.hashFile(fileUri: inFileUri)
       default:
-        let message = "Unknown comand: \(type)"
+        let message = "Unknown command: \(type)"
         TUTSLog(message)
         let error = NSError(domain: "tutanota", code: 5, userInfo: ["message": message])
         throw error
@@ -317,24 +329,30 @@ class WebViewBridge : NSObject {
 
 extension WebViewBridge : WKScriptMessageHandler {
   func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-    let jsonString = message.body as! String
-    let json = try! JSONSerialization.jsonObject(with: jsonString.data(using: .utf8)!, options: []) as! [String : Any]
-    let type = json["type"] as! String
-    let requestId = json["id"] as! String
+    let body = message.body as! String
+    let parts = body.split(separator: "\n", maxSplits: 2, omittingEmptySubsequences: false)
+    // type
+    // requestId
+    // ...rest
+    let type = parts[0]
+    let requestId = String(parts[1])
 
     switch type {
     case "response":
-      let value = json["value"]
-      self.handleResponse(id: requestId, value: value)
+      let value = parts[2]
+      self.handleResponse(id: requestId, value: String(value))
     case "errorResponse":
       TUTSLog("Request failed: \(type) \(requestId)")
       // We don't "reject" requests right now
       self.requests.removeValue(forKey: requestId)
     case "requestError":
-      fatalError(jsonString)
+      fatalError(body)
     case "request":
-      let requestType = json["requestType"] as! String
-      let arguments = json["args"] as! [Any]
+      // requestType
+      // arguments
+      let requestParams = parts[2].split(separator: "\n", maxSplits: 1, omittingEmptySubsequences: false)
+      let requestType = String(requestParams[0])
+      let arguments = String(requestParams[1])
       self.handleRequest(type: requestType, requestId: requestId, args: arguments)
     default:
       fatalError("unknown message type \(type)")
@@ -343,7 +361,7 @@ extension WebViewBridge : WKScriptMessageHandler {
 }
 
 /// Little zero-sized struct that encodes to null so that it's easier to pass around when we return stuff
-fileprivate struct NullReturn {
+struct NullReturn {
 }
 
 extension NullReturn : Encodable {
@@ -361,4 +379,11 @@ extension Result where Success == Void {
   fileprivate func asNull() -> Result<NullReturn, Failure> {
     return self.map { _ in NullReturn() }
   }
+}
+
+
+fileprivate func json(_ value: Encodable) -> String {
+  let wrapper = ExistentialEncodable(value: value)
+  let valueData = try! JSONEncoder().encode(wrapper)
+  return String(data: valueData, encoding: .utf8)!
 }

@@ -18,22 +18,28 @@ import android.view.ContextMenu
 import android.view.ContextMenu.ContextMenuInfo
 import android.view.MenuItem
 import android.view.View
-import android.webkit.*
+import android.webkit.CookieManager
+import android.webkit.WebView
 import android.webkit.WebView.HitTestResult
+import android.webkit.WebViewClient
 import android.widget.Toast
-import androidx.annotation.*
+import androidx.annotation.ColorInt
+import androidx.annotation.MainThread
+import androidx.annotation.RequiresPermission
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutanota.alarms.SystemAlarmFacade
-import de.tutao.tutanota.data.*
+import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.push.LocalNotificationsFacade
 import de.tutao.tutanota.push.PushNotificationService
 import de.tutao.tutanota.push.SseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -104,7 +110,7 @@ class MainActivity : FragmentActivity() {
 				if (userInfos!!.isEmpty()) {
 					Log.d(TAG, "invalidateAlarms")
 					lifecycleScope.launchWhenCreated {
-						nativeImpl.sendRequest(JsRequest.invalidateAlarms, arrayOf())
+						nativeImpl.sendRequest(JsRequest.invalidateAlarms, listOf<String>())
 					}
 				}
 			})
@@ -140,13 +146,13 @@ class MainActivity : FragmentActivity() {
 		super.onStart()
 		Log.d(TAG, "onStart")
 		lifecycleScope.launchWhenCreated {
-			nativeImpl.sendRequest(JsRequest.visibilityChange, arrayOf(true))
+			nativeImpl.sendRequest(JsRequest.visibilityChange, listOf("true"))
 		}
 	}
 
 	override fun onStop() {
 		Log.d(TAG, "onStop")
-		lifecycleScope.launch { nativeImpl.sendRequest(JsRequest.visibilityChange, arrayOf(false)) }
+		lifecycleScope.launch { nativeImpl.sendRequest(JsRequest.visibilityChange, listOf("false")) }
 		super.onStop()
 	}
 
@@ -230,7 +236,7 @@ class MainActivity : FragmentActivity() {
 				&& !powerManager.isIgnoringBatteryOptimizations(packageName)
 		) {
 
-			nativeImpl.sendRequest(JsRequest.showAlertDialog, arrayOf("allowPushNotification_msg"))
+			nativeImpl.sendRequest(JsRequest.showAlertDialog, listOf("\"allowPushNotification_msg\""))
 
 			withContext(Dispatchers.Main) {
 				saveAskedBatteryOptimizations(preferences)
@@ -381,7 +387,16 @@ class MainActivity : FragmentActivity() {
 		// Satisfy Java's lambda requirements
 		val fText = text
 		val fJsonAddresses = jsonAddresses
-		nativeImpl.sendRequest(JsRequest.createMailEditor, arrayOf(files, fText, fJsonAddresses, subject, mailToUrlString))
+		val json = Json.Default
+		val args = listOf(
+				files.toString(),
+				json.encodeToString(fText),
+				fJsonAddresses?.toString() ?: json.encodeToString<Boolean?>(null),
+				json.encodeToString(subject),
+				json.encodeToString(mailToUrlString)
+		)
+
+		nativeImpl.sendRequest(JsRequest.createMailEditor, args)
 	}
 
 	private fun getFilesFromIntent(intent: Intent): JSONArray {
@@ -430,18 +445,18 @@ class MainActivity : FragmentActivity() {
 		startService(LocalNotificationsFacade.notificationDismissedIntent(this, addresses,
 				"MainActivity#openMailbox", isSummary))
 
-		nativeImpl.sendRequest(JsRequest.openMailbox, arrayOf(userId, address))
+		nativeImpl.sendRequest(JsRequest.openMailbox, listOf("\"$userId\"", "\"$address\""))
 	}
 
 	suspend fun openCalendar(intent: Intent) {
 		val userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY) ?: return
-		nativeImpl.sendRequest(JsRequest.openCalendar, arrayOf(userId))
+		nativeImpl.sendRequest(JsRequest.openCalendar, listOf("\"$userId\""))
 	}
 
 	override fun onBackPressed() {
 		if (nativeImpl.webAppInitialized.isCompleted) {
 			lifecycleScope.launchWhenCreated {
-				val result = nativeImpl.sendRequest(JsRequest.handleBackPress, arrayOfNulls<Any>(0))
+				val result = nativeImpl.sendRequest(JsRequest.handleBackPress, listOf())
 				try {
 					if (!(result as JSONObject).getBoolean("value")) {
 						goBack()
