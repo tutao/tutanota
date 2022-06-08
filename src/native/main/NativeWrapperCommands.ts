@@ -2,7 +2,7 @@ import {Request} from "../../api/common/MessageDispatcher"
 import {CloseEventBusOption, SECOND_MS} from "../../api/common/TutanotaConstants"
 import {showSpellcheckLanguageDialog} from "../../gui/dialogs/SpellcheckLanguageDialog"
 import {CancelledError} from "../../api/common/error/CancelledError"
-import {noOp, ofClass} from "@tutao/tutanota-utils"
+import {ErrorInfo, noOp, ofClass} from "@tutao/tutanota-utils"
 import m from "mithril";
 
 type JsRequest = Request<JsRequestType>
@@ -113,7 +113,7 @@ async function reportError(msg: JsRequest): Promise<void> {
 	const {promptForFeedbackAndSend} = await import("../../misc/ErrorReporter.js")
 	const {logins} = await import("../../api/main/LoginController.js")
 	await logins.waitForPartialLogin()
-	await promptForFeedbackAndSend(msg.args[0] as Error)
+	await promptForFeedbackAndSend(msg.args[0] as ErrorInfo)
 }
 
 let disconnectTimeoutId: TimeoutID | null

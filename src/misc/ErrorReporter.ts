@@ -1,6 +1,6 @@
 import {logins} from "../api/main/LoginController"
 import stream from "mithril/stream"
-import {TextFieldAttrs, TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
+import {TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
 import {lang} from "./LanguageViewModel"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
@@ -15,13 +15,14 @@ import {copyToClipboard} from "./ClipboardUtils"
 import {px} from "../gui/size"
 import {Mode} from "../api/common/Env"
 import {RecipientType} from "../api/common/recipients/Recipient.js"
+import {ErrorInfo} from "@tutao/tutanota-utils"
 
 type FeedbackContent = {
 	message: string
 	subject: string
 }
 
-export function promptForFeedbackAndSend(e: Error): Promise<{ignored: boolean}> {
+export function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ignored: boolean}> {
 	const loggedIn = logins.isUserLoggedIn()
 	let ignoreChecked = false
 
@@ -120,7 +121,7 @@ export function promptForFeedbackAndSend(e: Error): Promise<{ignored: boolean}> 
 	})
 }
 
-export function showErrorDialogNotLoggedIn(e: Error): Promise<void> {
+export function showErrorDialogNotLoggedIn(e: ErrorInfo): Promise<void> {
 	const content = prepareFeedbackContent(e, false)
 	const expanded = stream(false)
 	const message = content.subject + "\n\n" + content.message
@@ -214,7 +215,7 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 	)
 }
 
-function prepareFeedbackContent(error: Error, loggedIn: boolean): FeedbackContent {
+function prepareFeedbackContent(error: ErrorInfo, loggedIn: boolean): FeedbackContent {
 	const timestamp = new Date()
 	let {message, client, type} = clientInfoString(timestamp, loggedIn)
 

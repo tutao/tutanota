@@ -1,5 +1,11 @@
 import {TypeRef} from "./TypeRef.js"
 
+export interface ErrorInfo {
+	readonly name: string | null
+	readonly message: string | null
+	readonly stack: string | null
+}
+
 export type lazy<T> = () => T
 export type lazyAsync<T> = () => Promise<T>
 export type Thunk = () => unknown
@@ -234,7 +240,7 @@ export function randomIntFromInterval(min: number, max: number): number {
 	return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
-export function errorToString(error: Error): string {
+export function errorToString(error: ErrorInfo): string {
 	let errorString = error.name ? error.name : "?"
 
 	if (error.message) {

@@ -119,7 +119,8 @@ export async function handleUncaughtErrorImpl(e: Error) {
 
 			// only logged in users can report errors
 			if (logins.isUserLoggedIn()) {
-				promptForFeedbackAndSend(e)
+				const errorInfo = Object.assign({stack: null}, e)
+				promptForFeedbackAndSend(errorInfo)
 					.then(({ignored}) => {
 						unknownErrorDialogActive = false
 						if (ignored) {
@@ -128,7 +129,8 @@ export async function handleUncaughtErrorImpl(e: Error) {
 					})
 			} else {
 				console.log("Unknown error", e)
-				showErrorDialogNotLoggedIn(e)
+				const errorInfo = Object.assign({stack: null}, e)
+				showErrorDialogNotLoggedIn(errorInfo)
 					.then(() => unknownErrorDialogActive = false)
 			}
 		}
