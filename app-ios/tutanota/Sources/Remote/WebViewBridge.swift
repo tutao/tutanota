@@ -3,7 +3,7 @@ import DictionaryCoding
 import CryptoTokenKit
 
 /// Gateway for communicating with Javascript code in WebView. Can send messages and handle requests.
-class WebViewBridge : NSObject {
+class WebViewBridge : NSObject, NativeInterface {
   private let webView: WKWebView
   private let viewController: ViewController
   private let crypto: CryptoFacade
@@ -15,6 +15,8 @@ class WebViewBridge : NSObject {
   private let alarmManager: AlarmManager
   private let credentialsEncryption: CredentialsEncryption
   private let blobUtils: BlobUtil
+  private var mobileFacade: MobileFacade!
+  private var commonNativeFacade: CommonNativeFacade!
 
   private var requestId = 0
   private var requests = [String : ((String) -> Void)]()
@@ -45,8 +47,13 @@ class WebViewBridge : NSObject {
     self.fileFacade = fileFacade
     self.credentialsEncryption = credentialsEncryption
     self.blobUtils = blobUtils
-
+    self.mobileFacade = nil
+    self.commonNativeFacade = nil
+    
+    
     super.init()
+    self.mobileFacade = MobileFacadeSendDispatcher(transport: self)
+    self.commonNativeFacade = CommonNativeFacadeSendDispatcher(transport: self)
     self.webView.configuration.userContentController.add(self, name: "nativeApp")
     let js =
       """
@@ -164,7 +171,7 @@ class WebViewBridge : NSObject {
           requestsBeforeInit.removeAll()
           if let sseInfo = userPreferences.sseInfo, sseInfo.userIds.isEmpty {
             TUTSLog("Sending alarm invalidation")
-            self.sendRequest(method: "invalidateAlarms", args: [] as Array<String>, completion: nil)
+            try await self.commonNativeFacade.invalidateAlarms()
           }
         }
         return "ios"

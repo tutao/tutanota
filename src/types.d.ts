@@ -101,27 +101,12 @@ declare type NativeRequestType = 'init'
 	| 'facade' // only for desktop
 	| 'joinFiles'
 	| 'splitFile'
+	| 'ipc'
 
 /** Requests from native to web */
 declare type JsRequestType =
 	| 'facade' // only for desktop
-	| 'createMailEditor'
-	| 'handleBackPress'
-	| 'showAlertDialog'
-	| 'openMailbox'
-	| 'keyboardSizeChanged'
-	| 'print'
-	| 'openFindInPage'
-	| 'reportError'
-	| 'openCalendar'
-	| 'visibilityChange'
-	| 'invalidateAlarms'
-	| 'applySearchResultToOverlay'
-	| 'addShortcuts'
-	| 'appUpdateDownloaded'
-	| 'openCustomer' // only for admin clients
-	| 'updateTargetUrl'
-	| 'showSpellcheckDropdown'
+	| 'ipc'
 
 
 // see https://bitwiseshiftleft.github.io/sjcl/doc/symbols/sjcl.bitArray.html

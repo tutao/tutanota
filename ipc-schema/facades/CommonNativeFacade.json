@@ -1,0 +1,40 @@
+{
+  "name": "CommonNativeFacade",
+  "type": "facade",
+  "senders": ["ios", "desktop", "android"],
+  "receivers": ["web"],
+  "methods": {
+	"createMailEditor": {
+	  "arg": [
+		{"filesUris": "List<string>"},
+		{"text": "string"},
+		{"addresses": "List<string>"},
+		{"subject": "string"},
+		{"mailToUrlString": "string"}
+	  ],
+	  "ret": "void"
+	},
+	"openMailBox": {
+	  "arg": [
+		{"userId": "string"},
+		{"address": "string"},
+		{"requestedPath": "string?"}
+	  ],
+	  "ret": "void"
+	},
+	"openCalendar": {
+	  "arg": [
+		{"userId": "string"}
+	  ],
+	  "ret": "void"
+	},
+	"showAlertDialog": {
+	  "arg": [{"translationKey": "string"}],
+	  "ret": "void"
+	},
+	"invalidateAlarms": {
+	  "arg": [],
+	  "ret": "void"
+	}
+  }
+}

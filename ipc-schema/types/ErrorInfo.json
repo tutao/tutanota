@@ -1,0 +1,9 @@
+{
+  "name": "ErrorInfo",
+  "type": "struct",
+  "fields": {
+	"name": "string?",
+	"message": "string?",
+	"stack": "string?"
+  }
+}

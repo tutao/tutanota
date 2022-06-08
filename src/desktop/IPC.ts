@@ -28,8 +28,9 @@ import {DataFile} from "../api/common/DataFile";
 import {Logger} from "../api/common/Logger"
 import {DektopCredentialsEncryption} from "./credentials/DektopCredentialsEncryption"
 import {exposeLocal} from "../api/common/WorkerProxy"
-import {ExposedNativeInterface} from "../native/common/NativeInterface"
+import {ExposedNativeInterface, NativeInterface} from "../native/common/NativeInterface"
 import {FileUri} from "../native/common/FileApp"
+import {DesktopFacadeSendDispatcher} from "../native/common/generatedipc/DesktopFacadeSendDispatcher.js"
 
 type FacadeHandler = (message: Request<"facade">) => Promise<any>
 
@@ -96,7 +97,9 @@ export class IPC {
 
 		if (!!this._updater) {
 			this._updater.setUpdateDownloadedListener(() => {
-				this._wm.getAll().forEach(w => this.sendRequest(w.id, "appUpdateDownloaded", []))
+				for (let applicationWindow of this._wm.getAll()) {
+					new DesktopFacadeSendDispatcher(this.getNativeInterfaceForWindow(applicationWindow.id)).appUpdateDownloaded()
+				}
 			})
 		}
 
@@ -143,7 +146,6 @@ export class IPC {
 				// This simplifies some cases e.g. testing.
 				Promise.resolve().then(() => this._initialized[windowId].resolve())
 				return null
-
 			case "findInPage":
 				return this.initialized(windowId).then(() => {
 					const w = this._wm.get(windowId)
@@ -482,7 +484,7 @@ export class IPC {
 		}
 	}
 
-	sendRequest(windowId: number, type: JsRequestType, args: Array<any>): Promise<Record<string, any>> {
+	sendRequest(windowId: number, type: JsRequestType, args: ReadonlyArray<any>): Promise<Record<string, any>> {
 		return this.initialized(windowId).then(() => {
 			const requestId = this._createRequestId()
 
@@ -498,6 +500,14 @@ export class IPC {
 				this._queue[requestId] = (err, result) => (err ? reject(err) : resolve(result))
 			})
 		})
+	}
+
+	getNativeInterfaceForWindow(windowId: number): NativeInterface {
+		return {
+			invokeNative: (requestType: string, args: ReadonlyArray<unknown>): Promise<any> => {
+				return this.sendRequest(windowId, requestType as JsRequestType, args)
+			}
+		}
 	}
 
 	_createRequestId(): string {

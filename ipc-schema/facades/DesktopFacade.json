@@ -1,0 +1,44 @@
+{
+  "name": "DesktopFacade",
+  "type": "facade",
+  "senders": ["desktop"],
+  "receivers": ["web"],
+  "methods": {
+	"print": {
+	  "arg": [],
+	  "ret": "void"
+	},
+	"showSpellcheckDropdown": {
+	  "arg": [],
+	  "ret": "void"
+	},
+	"openFindInPage": {
+	  "arg": [],
+	  "ret": "void"
+	},
+	"applySearchResultToOverlay": {
+	  "arg": [{"result": "ElectronResult?"}],
+	  "ret": "void"
+	},
+	"reportError": {
+	  "arg": [{"errorInfo": "ErrorInfo"}],
+	  "ret": "void"
+	},
+	"updateTargetUrl": {
+	  "arg": [{"url": "string"}, {"appPath": "string"}],
+	  "ret": "void"
+	},
+	"openCustomer": {
+	  "arg": [{"mailAddress": "string?"}],
+	  "ret": "void"
+	},
+	"addShortcuts": {
+	  "arg": [{"shortcuts": "List<NativeShortcut>"}],
+	  "ret": "void"
+	},
+	"appUpdateDownloaded": {
+	  "arg": [],
+	  "ret": "void"
+	}
+  }
+}

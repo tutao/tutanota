@@ -10,7 +10,7 @@ import {transform, TransformEnum} from "./animation/Animations"
 import {ButtonN, ButtonType} from "./base/ButtonN"
 import {Keys} from "../api/common/TutanotaConstants"
 import {locator} from "../api/main/MainLocator"
-import type {Result} from "electron"
+import {ElectronResult} from "../native/common/generatedipc/ElectronResult.js"
 
 assertMainOrNode()
 
@@ -119,7 +119,7 @@ export class SearchInPageOverlay {
 					  .then(r => this.applyNextResult(r))
 	}
 
-	applyNextResult(result: Result | null): void {
+	applyNextResult(result: ElectronResult | null): void {
 		if (result == null) {
 			this._numberOfMatches = 0
 			this._currentMatch = 0

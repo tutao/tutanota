@@ -1,6 +1,7 @@
 import type {ContextMenuParams, Menu, WebContents} from "electron"
 import {lang} from "../misc/LanguageViewModel"
 import type {IPC} from "./IPC"
+import {DesktopFacadeSendDispatcher} from "../native/common/generatedipc/DesktopFacadeSendDispatcher.js"
 
 type Electron = typeof Electron.CrossProcessExports
 
@@ -121,11 +122,11 @@ export class DesktopContextMenu {
 		return submenu
 	}
 
-	_changeSpellcheckLanguage(wc: WebContents) {
+	async _changeSpellcheckLanguage(wc: WebContents) {
 		const window = this._electron.BrowserWindow.fromWebContents(wc)
 
 		if (window) {
-			this._ipc.sendRequest(window.id, "showSpellcheckDropdown", []).then()
+			await new DesktopFacadeSendDispatcher(this._ipc.getNativeInterfaceForWindow(window.id)).showSpellcheckDropdown()
 		}
 	}
 }

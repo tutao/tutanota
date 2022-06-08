@@ -1,5 +1,5 @@
 import type {BrowserWindow, ContextMenuParams, NativeImage, Result,} from "electron"
-import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
+import type {NativeInterfaceFactory, WindowBounds, WindowManager} from "./DesktopWindowManager"
 import type {IPC} from "./IPC"
 import url from "url"
 import type {lazy} from "@tutao/tutanota-utils"
@@ -16,6 +16,10 @@ import {CancelledError} from "../api/common/error/CancelledError"
 import {ElectronExports} from "./ElectronExportTypes";
 import {OfflineDbFacade} from "./db/OfflineDbFacade"
 import HandlerDetails = Electron.HandlerDetails
+import {DesktopFacade} from "../native/common/generatedipc/DesktopFacade.js"
+import {CommonNativeFacade} from "../native/common/generatedipc/CommonNativeFacade.js"
+import {DesktopFacadeSendDispatcher} from "../native/common/generatedipc/DesktopFacadeSendDispatcher.js"
+import {CommonNativeFacadeSendDispatcher} from "../native/common/generatedipc/CommonNativeFacadeSendDispatcher.js"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 export type UserInfo = {
@@ -54,18 +58,11 @@ export class ApplicationWindow {
 	private _setBoundsTimeout: ReturnType<typeof setTimeout> | null = null
 	private _findingInPage: boolean = false
 	private _skipNextSearchBarBlur: boolean = false
-	private _lastSearchRequest:
-		| [
-		string,
-		{
-			forward: boolean
-			matchCase: boolean
-		},
-	]
-		| null
-		| undefined = null
+	private _lastSearchRequest: [string, {forward: boolean, matchCase: boolean}] | null = null
 	private _lastSearchPromiseReject: (arg0: Error | null) => void
 	private _shortcuts: Array<LocalShortcut>
+	private readonly desktopFacade: DesktopFacade
+	private readonly commonNativeFacade: CommonNativeFacade
 	id!: number
 
 	constructor(
@@ -76,6 +73,7 @@ export class ApplicationWindow {
 		localShortcutManager: LocalShortcutManager,
 		themeManager: ThemeManager,
 		private readonly offlineDbFacade: OfflineDbFacade,
+		nativeInterfaceFactory: NativeInterfaceFactory,
 		dictUrl: string,
 		noAutoLogin?: boolean | null,
 	) {
@@ -170,6 +168,11 @@ export class ApplicationWindow {
 			dictUrl,
 		})
 
+		// remove once each window has its own ipc transport instance
+		const interfaceFactory = nativeInterfaceFactory(this.id)
+		this.desktopFacade = new DesktopFacadeSendDispatcher(interfaceFactory)
+		this.commonNativeFacade = new CommonNativeFacadeSendDispatcher(interfaceFactory)
+
 		this._loadInitialUrl(noAutoLogin ?? false)
 
 		this._electron.Menu.setApplicationMenu(null)
@@ -188,8 +191,6 @@ export class ApplicationWindow {
 		const theme = await this._themeManager.getCurrentThemeWithFallback()
 
 		if (theme) {
-			// It currently does not work
-			// see https://github.com/electron/electron/issues/26842
 			this._browserWindow.setBackgroundColor(theme.content_bg)
 		}
 	}
@@ -331,7 +332,7 @@ export class ApplicationWindow {
 
 					this._browserWindow.webContents
 						.once("found-in-page", (ev, res) => {
-							this._ipc.sendRequest(this.id, "applySearchResultToOverlay", [res])
+							this.desktopFacade.applySearchResultToOverlay(res)
 						})
 						.findInPage(searchTerm, options)
 				}
@@ -370,7 +371,7 @@ export class ApplicationWindow {
 			.on("did-navigate-in-page", () => this._browserWindow.emit("did-navigate"))
 			.on("zoom-changed", (ev, direction: "in" | "out") => this._browserWindow.emit("zoom-changed", ev, direction))
 			.on("update-target-url", (ev, url) => {
-				this._ipc.sendRequest(this.id, "updateTargetUrl", [url, this._startFileURLString])
+				this.desktopFacade.updateTargetUrl(url, this._startFileURLString)
 			})
 
 		this._browserWindow.webContents.setWindowOpenHandler(details => this._onNewWindow(details))
@@ -439,7 +440,7 @@ export class ApplicationWindow {
 			}),
 		)
 
-		this._ipc.sendRequest(this.id, "addShortcuts", webShortcuts)
+		this.desktopFacade.addShortcuts(webShortcuts)
 	}
 
 	_tryGoBack(): void {
@@ -455,7 +456,7 @@ export class ApplicationWindow {
 	openMailBox(info: UserInfo, path?: string | null): Promise<void> {
 		return this._ipc
 				   .initialized(this.id)
-				   .then(() => this._ipc.sendRequest(this.id, "openMailbox", [info.userId, info.mailAddress, path]))
+				   .then(() => this.commonNativeFacade.openMailBox(info.userId, info.mailAddress!, path ?? null))
 				   .then(() => this.show())
 	}
 
@@ -463,7 +464,7 @@ export class ApplicationWindow {
 	openCalendar(info: UserInfo): Promise<void> {
 		return this._ipc
 				   .initialized(this.id)
-				   .then(() => this._ipc.sendRequest(this.id, "openCalendar", [info.userId]))
+				   .then(() => this.commonNativeFacade.openCalendar(info.userId))
 				   .then(() => this.show())
 	}
 
@@ -581,11 +582,11 @@ export class ApplicationWindow {
 	}
 
 	_printMail() {
-		this._ipc.sendRequest(this.id, "print", [])
+		this.desktopFacade.print()
 	}
 
 	_openFindInPage(): void {
-		this._ipc.sendRequest(this.id, "openFindInPage", [])
+		this.desktopFacade.openFindInPage()
 	}
 
 	isVisible(): boolean {

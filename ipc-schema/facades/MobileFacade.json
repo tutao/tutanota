@@ -1,0 +1,20 @@
+{
+  "name": "MobileFacade",
+  "type": "facade",
+  "receivers": ["web"],
+  "senders": ["android", "ios"],
+  "methods": {
+	"handleBackPress": {
+	  "arg": [],
+	  "ret": "boolean"
+	},
+	"visibilityChange": {
+	  "arg": [{"visibility": "boolean"}],
+	  "ret": "void"
+	},
+	"keyboardSizeChanged": {
+	  "arg": [{"newSize": "number"}],
+	  "ret": "void"
+	}
+  }
+}

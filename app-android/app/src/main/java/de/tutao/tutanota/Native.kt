@@ -16,6 +16,7 @@ import de.tutao.tutanota.alarms.AlarmNotification
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutanota.credentials.CredentialEncryptionMode
 import de.tutao.tutanota.credentials.CredentialsEncryptionFactory
+import de.tutao.tutanota.ipc.NativeInterface
 import de.tutao.tutanota.push.LocalNotificationsFacade
 import de.tutao.tutanota.push.SseStorage
 import kotlinx.coroutines.*
@@ -40,14 +41,14 @@ class Native internal constructor(
 		private val activity: MainActivity,
 		private val sseStorage: SseStorage,
 		private val alarmNotificationsManager: AlarmNotificationsManager,
-) {
+) : NativeInterface {
 	val themeManager = ThemeManager(activity)
 
 	private val json = Json.Default
 	private val crypto = Crypto(activity)
 	private val files = FileUtil(activity, LocalNotificationsFacade(activity))
 	private val contact = Contact(activity)
-	private val requests = mutableMapOf<String, Continuation<JSONObject>>()
+	private val requests = mutableMapOf<String, Continuation<String>>()
 	private val credentialsEncryption = CredentialsEncryptionFactory.create(activity)
 
 	@Volatile
@@ -91,16 +92,6 @@ class Native internal constructor(
 		return JSONArray(cursedJsonArray)
 	}
 
-	private fun makeCursedJsonObject(value: String): JSONObject {
-
-		val cursedObject = if (value == "") {
-			"{\"value\": null}"
-		} else {
-			"{\"value\": $value}"
-		}
-		return JSONObject(cursedObject)
-	}
-
 	/**
 	 * Invokes method with args.
 	 *
@@ -112,7 +103,7 @@ class Native internal constructor(
 			"response" -> {
 				val continuation = requests.remove(id)
 				if (continuation != null) {
-					continuation.resume(makeCursedJsonObject(rest))
+					continuation.resume(rest)
 				} else {
 					Log.w(TAG, "No request for id $id")
 				}
@@ -133,7 +124,7 @@ class Native internal constructor(
 		}
 	}
 
-	suspend fun sendRequest(requestType: JsRequest, args: List<String>): JSONObject {
+	override suspend fun sendRequest(requestType: String, args: List<String>): String {
 		webAppInitialized.await()
 		val requestId = createRequestId()
 		val builder = StringBuilder()
@@ -401,12 +392,11 @@ class Native internal constructor(
 		return true
 	}
 
-	private suspend fun initPushNotifications(): Unit? {
+	private suspend fun initPushNotifications() {
 		withContext(Dispatchers.Main) {
 			activity.askBatteryOptinmizationsIfNeeded()
 			activity.setupPushNotifications()
 		}
-		return null
 	}
 
 	@Throws(JSONException::class)
