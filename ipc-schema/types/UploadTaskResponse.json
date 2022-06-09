@@ -1,0 +1,11 @@
+{
+  "name": "UploadTaskResponse",
+  "type": "struct",
+  "fields": {
+	"statusCode": "number",
+	"errorId": "string?",
+	"precondition": "string?",
+	"suspensionTime": "string?",
+	"responseBody": "string"
+  }
+}

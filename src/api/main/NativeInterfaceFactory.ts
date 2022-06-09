@@ -9,6 +9,7 @@ import {WebGlobalDispatcher} from "../../native/common/generatedipc/WebGlobalDis
 import {DesktopFacade} from "../../native/common/generatedipc/DesktopFacade"
 import {MobileFacade} from "../../native/common/generatedipc/MobileFacade.js"
 import {CommonNativeFacade} from "../../native/common/generatedipc/CommonNativeFacade.js"
+import {FileFacadeSendDispatcher} from "../../native/common/generatedipc/FileFacadeSendDispatcher.js"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
@@ -41,7 +42,7 @@ export async function createNativeInterfaces(
 		)
 		const native = new NativeInterfaceMain(webInterface, dispatcher)
 		const pushService = new NativePushServiceApp(native)
-		const fileApp = new NativeFileApp(native)
+		const fileApp = new NativeFileApp(native, new FileFacadeSendDispatcher(native))
 		const systemApp = new NativeSystemApp(native, fileApp)
 		return {
 			native,

@@ -1,0 +1,11 @@
+{
+  "name": "DownloadTaskResponse",
+  "type": "struct",
+  "fields": {
+	"statusCode": "number",
+	"errorId": "string?",
+	"precondition": "string?",
+	"suspensionTime": "string?",
+	"encryptedFileUri": "string?"
+  }
+}

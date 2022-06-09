@@ -7,7 +7,6 @@ class WebViewBridge : NSObject, NativeInterface {
   private let webView: WKWebView
   private let viewController: ViewController
   private let crypto: CryptoFacade
-  private let fileFacade: FileFacade
   private let contactsSource: ContactsSource
   private let keychainManager: KeychainManager
   private let userPreferences: UserPreferenceFacade
@@ -31,7 +30,6 @@ class WebViewBridge : NSObject, NativeInterface {
     keychainManager: KeychainManager,
     userPreferences: UserPreferenceFacade,
     alarmManager: AlarmManager,
-    fileFacade: FileFacade,
     credentialsEncryption: CredentialsEncryption,
     blobUtils: BlobUtil,
     globalDispatcher: IosGlobalDispatcher
@@ -43,7 +41,6 @@ class WebViewBridge : NSObject, NativeInterface {
     self.keychainManager = keychainManager
     self.userPreferences = userPreferences
     self.alarmManager = alarmManager
-    self.fileFacade = fileFacade
     self.credentialsEncryption = credentialsEncryption
     self.globalDispatcher = globalDispatcher
     self.blobUtils = blobUtils
@@ -201,49 +198,12 @@ class WebViewBridge : NSObject, NativeInterface {
         return nil
       case "generateRsaKey":
         return try await self.crypto.generateRsaKey(seed: args[0] as! Base64)
-      case "openFileChooser":
-        let rectDict = args[0] as! [String : Int]
-        let rect = CGRect(
-          x: rectDict["x"]!,
-          y: rectDict["y"]!,
-          width: rectDict["width"]!,
-          height: rectDict["height"]!
-        )
-        return try await self.fileFacade.openFileChooser(anchor: rect)
-      case "getName":
-        return try await self.fileFacade.getName(path: args[0] as! String)
       case "changeLanguage":
         return nil
-      case "getSize":
-        return try await self.fileFacade.getSize(path: args[0] as! String)
-      case "getMimeType":
-        return try await self.fileFacade.getMimeType(path: args[0] as! String)
       case "aesEncryptFile":
         return try await self.crypto.encryptFile(key: args[0] as! String, atPath: args[1] as! String)
       case "aesDecryptFile":
         return try await self.crypto.decryptFile(key: args[0] as! String, atPath: args[1] as! String)
-      case "upload":
-        return try await self.fileFacade.uploadFile(
-          atPath: args[0] as! String,
-          toUrl: args[1] as! String,
-          method: args[2] as! String,
-          withHeaders: args[3] as! [String : String]
-        )
-      case "deleteFile":
-        try await self.fileFacade.deleteFile(path: args[0] as! String)
-        return nil
-      case "clearFileData":
-        try await self.fileFacade.clearFileData()
-        return nil
-      case "download":
-        return try await self.fileFacade.downloadFile(
-          fromUrl: args[0] as! String,
-          forName: args[1] as! String,
-          withHeaders: args[2] as! [String : String]
-        )
-      case "open":
-        await self.fileFacade.openFile(path: args[0] as! String)
-        return nil
       case "getPushIdentifier":
         return try await self.viewController.appDelegate.registerForPushNotifications()
       case "storePushIdentifierLocally":
@@ -264,10 +224,6 @@ class WebViewBridge : NSObject, NativeInterface {
         return nil
       case "openLink":
         return await self.openLink(args[0] as! String)
-      case "saveDataFile":
-        let fileDataB64 = args[1] as! Base64
-        let fileData = Data(base64Encoded: fileDataB64)!
-        return try await self.fileFacade.saveDataFile(name: args[0] as! String, data: fileData)
       case "getDeviceLog":
         return try self.getLogfile()
       case "scheduleAlarms":
@@ -282,17 +238,6 @@ class WebViewBridge : NSObject, NativeInterface {
         return try await self.credentialsEncryption.decryptUsingKeychain(encryptedData: args[1] as! Base64, encryptionMode: encryptionMode)
       case "getSupportedEncryptionModes":
         return await self.credentialsEncryption.getSupportedEncryptionModes()
-      case "joinFiles":
-        let outFileName = args[0] as! String
-        let filesToJoin = args[1] as! [String]
-        return try await self.blobUtils.joinFiles(fileName: outFileName, filePathsToJoin: filesToJoin)
-      case "splitFile":
-        let inFileName = args[0] as! String
-        let maxBlobSize = args[1] as! Int
-        return try await self.blobUtils.splitFile(fileUri: inFileName, maxBlobSize: maxBlobSize)
-      case "hashFile":
-        let inFileUri = args[0] as! String
-        return try await self.blobUtils.hashFile(fileUri: inFileUri)
       default:
         let message = "Unknown command: \(type)"
         TUTSLog(message)

@@ -18,7 +18,7 @@ import {DesktopUtils} from "../../../src/desktop/DesktopUtils.js";
 import {DesktopErrorHandler} from "../../../src/desktop/DesktopErrorHandler.js";
 import {DesktopIntegrator} from "../../../src/desktop/integration/DesktopIntegrator.js";
 import {DesktopAlarmScheduler} from "../../../src/desktop/sse/DesktopAlarmScheduler.js";
-import {ThemeManager} from "../../../src/desktop/ThemeManager.js";
+import {ThemeManager} from "../../../src/desktop/DesktopThemeFacade.js";
 import {OfflineDbFacade} from "../../../src/desktop/db/OfflineDbFacade.js"
 import {DektopCredentialsEncryption, DesktopCredentialsEncryptionStub} from "../../../src/desktop/credentials/DektopCredentialsEncryption.js"
 import {object} from "testdouble"

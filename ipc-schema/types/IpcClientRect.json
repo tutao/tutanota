@@ -1,0 +1,10 @@
+{
+  "name": "IpcClientRect",
+  "type": "struct",
+  "fields": {
+	"x": "number",
+	"y": "number",
+	"width": "number",
+	"height": "number"
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "name": "FileFacade",
+  "type": "facade",
+  "receivers": ["ios", "desktop", "android"],
+  "senders": ["web"],
+  "methods": {
+	"open": {
+	  "arg": [
+		{"location": "string"},
+		{"mimeType": "string"}
+	  ],
+	  "ret": "void"
+	},
+	"openFileChooser": {
+	  "arg": [{"boundingRect": "IpcClientRect"}],
+	  "ret": "List<string>"
+	},
+	"deleteFile": {
+	  "arg": [{"file": "string"}],
+	  "ret": "void"
+	},
+	"getName": {
+	  "arg": [{"file": "string"}],
+	  "ret": "string"
+	},
+	"getMimeType": {
+	  "arg": [{"file": "string"}],
+	  "ret": "string"
+	},
+	"getSize": {
+	  "arg": [{"file": "string"}],
+	  "ret": "number"
+	},
+	"putFileIntoDownloadsFolder": {
+	  "arg": [{"localFileUri": "string"}],
+	  "ret": "string"
+	},
+	"upload": {
+	  "arg": [
+		{"fileUrl": "string"},
+		{"targetUrl": "string"},
+		{"method": "string"},
+		{"headers": "Map<string, string>"}
+	  ],
+	  "ret": "UploadTaskResponse"
+	},
+	"download": {
+	  "arg": [
+		{"sourceUrl": "string"},
+		{"filename": "string"},
+		{"headers": "Map<string, string>"}
+	  ],
+	  "ret": "DownloadTaskResponse"
+	},
+	"hashFile": {
+	  "arg": [{"fileUri": "string"}],
+	  "ret": "string"
+	},
+	"clearFileData": {
+	  "arg": [],
+	  "ret": "void"
+	},
+	"joinFiles": {
+	  "arg": [
+		{"filename": "string"},
+		{"files": "List<string>"}
+	  ],
+	  "ret": "string"
+	},
+	"splitFile": {
+	  "arg": [
+		{"fileUri": "string"},
+		{"maxChunkSizeBytes": "number"}
+	  ],
+	  "ret": "List<string>"
+	},
+	"saveDataFile": {
+	  "arg": [
+		{"name": "string"},
+		{"dataBase64": "string"}
+	  ],
+	  "ret": "string"
+	},
+	"writeFile": {
+	  "arg": [
+		{"file": "string"},
+		{"contentB64": "string"}
+	  ],
+	  "ret": "void"
+	},
+	"readFile": {
+	  "arg": [
+		{"file": "string"}
+	  ],
+	  "ret": "string"
+	}
+  }
+}

@@ -3,7 +3,7 @@ import n from "../nodemocker.js"
 import {defer, DeferredObject, delay, downcast} from "@tutao/tutanota-utils"
 import {ApplicationWindow} from "../../../src/desktop/ApplicationWindow.js"
 import type {NativeImage} from "electron"
-import {ThemeManager} from "../../../src/desktop/ThemeManager.js"
+import {ThemeManager} from "../../../src/desktop/DesktopThemeFacade.js"
 import type {Theme, ThemeId} from "../../../src/gui/theme.js"
 import {DesktopConfig} from "../../../src/desktop/config/DesktopConfig.js"
 import {WindowManager} from "../../../src/desktop/DesktopWindowManager.js";

@@ -9,8 +9,7 @@ import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import {lang} from "../../misc/LanguageViewModel"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColor, ButtonType} from "../../gui/base/ButtonN"
-import type {Contact, File as TutanotaFile} from "../../api/entities/tutanota/TypeRefs.js"
-import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
+import type {File as TutanotaFile} from "../../api/entities/tutanota/TypeRefs.js"
 import {FileOpenError} from "../../api/common/error/FileOpenError"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -26,6 +25,10 @@ export function chooseAndAttachFile(
 	boundingRect: ClientRect,
 	fileTypes?: Array<string>,
 ): Promise<ReadonlyArray<FileReference | DataFile> | void> {
+	boundingRect.height = Math.round(boundingRect.height)
+	boundingRect.width = Math.round(boundingRect.width)
+	boundingRect.x = Math.round(boundingRect.x)
+	boundingRect.y = Math.round(boundingRect.y)
 	return showFileChooserForAttachments(boundingRect, fileTypes)
 		.then(async files => {
 			if (files) {
