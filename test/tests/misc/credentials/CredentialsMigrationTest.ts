@@ -104,8 +104,8 @@ o.spec("CredentialsMigrationTest", function () {
 		o(Array.from(deviceEncryptionFacade.encrypt.calls[1].args[0])).deepEquals(Array.from(encryptionKey))
 		o(Array.from(deviceEncryptionFacade.encrypt.calls[1].args[1])).deepEquals(Array.from(stringToUtf8Uint8Array(externalCredentials.accessToken)))
 
-		const request = nativeApp.invokeNative.args[0]
-		o(request.args).deepEquals([
+		const request = nativeApp.invokeNative.args[1]
+		o(request).deepEquals([
 			CredentialEncryptionMode.DEVICE_LOCK,
 			uint8ArrayToBase64(encryptionKey),
 		])

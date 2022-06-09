@@ -49,7 +49,7 @@ async function setupNode() {
 	globalThis.window = browserMock.default()
 	globalThis.window.getElementsByTagName = function () {
 	} // for styles.js
-	globalThis.window.location = {hostname: "tutanota.com", search: "", href: "http://tutanota.com"}
+	globalThis.window.location = {hostname: "tutanota.com", search: "", href: "http://tutanota.com", hash: ""}
 	globalThis.window.document.addEventListener = function () {
 	}
 	globalThis.document = globalThis.window.document

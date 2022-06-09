@@ -22,15 +22,15 @@ o.spec("CredentialsKeyProviderTest", function () {
 		encryptedCredentialsKey = null
 
 		nativeWrapper = n.mock<NativeInterface>("aaaaa", {
-			async invokeNative(request) {
-				if (request.requestType === "decryptUsingKeychain") {
-					const credentialsKey = request.args[1]
+			async invokeNative(request, args) {
+				if (request === "decryptUsingKeychain") {
+					const credentialsKey = args[1]
 					return credentialsKey
-				} else if (request.requestType === "encryptUsingKeychain") {
-					const credentialsKey = request.args[1]
+				} else if (request === "encryptUsingKeychain") {
+					const credentialsKey = args[1]
 					return credentialsKey
 				} else {
-					throw new Error("stub!")
+					throw new Error("stub! " + request)
 				}
 			}
 		}).set()
@@ -62,9 +62,9 @@ o.spec("CredentialsKeyProviderTest", function () {
 
 			o(Array.from(returnedKey)).deepEquals(Array.from(key))
 
-			const request = nativeWrapper.invokeNative.args[0]
-			o(request.requestType).equals("decryptUsingKeychain")
-			o(request.args).deepEquals([credentialEncryptionMode, uint8ArrayToBase64(key)])
+			const request = nativeWrapper.invokeNative.args
+			o(request[0]).equals("decryptUsingKeychain")
+			o(request[1]).deepEquals([credentialEncryptionMode, uint8ArrayToBase64(key)])
 		})
 
 		o("if key does not exist it shall be generated and saved", async function () {
@@ -74,9 +74,9 @@ o.spec("CredentialsKeyProviderTest", function () {
 
 			o(Array.from(returnedKey)).deepEquals(Array.from(generatedKey))
 
-			const request = nativeWrapper.invokeNative.args[0]
-			o(request.requestType).equals("encryptUsingKeychain")
-			o(request.args).deepEquals([credentialEncryptionMode, uint8ArrayToBase64(generatedKey)])
+			const request = nativeWrapper.invokeNative.args
+			o(request[0]).equals("encryptUsingKeychain")
+			o(request[1]).deepEquals([credentialEncryptionMode, uint8ArrayToBase64(generatedKey)])
 			o(Array.from(credentialsStorage.setCredentialsEncryptionKey.args[0])).deepEquals(Array.from(generatedKey))
 		})
 	})
