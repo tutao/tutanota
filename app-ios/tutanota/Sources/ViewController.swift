@@ -28,10 +28,6 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
       self.bridge = nil
 
     super.init(nibName: nil, bundle: nil)
-      let fileFacade = FileFacade(
-          chooser: TUTFileChooser(viewController: self),
-          viewer: FileViewer(viewController: self)
-      )
       let webViewConfig = WKWebViewConfiguration()
       webViewConfig.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
 
@@ -44,6 +40,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
       webView.scrollView.contentInsetAdjustmentBehavior = .never
 
       let globalDispatcher = IosGlobalDispatcher(
+        fileFacade: IosFileFacade(chooser: TUTFileChooser(viewController: self), viewer: FileViewer(viewController: self)),
         themeFacade: IosThemeFacade(themeManager: themeManager, viewController: self)
       )
 
@@ -55,7 +52,6 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
         keychainManager: keychainManager,
         userPreferences: userPreferences,
         alarmManager: alarmManager,
-        fileFacade: fileFacade,
         credentialsEncryption: credentialsEncryption,
         blobUtils:blobUtils,
         globalDispatcher: globalDispatcher

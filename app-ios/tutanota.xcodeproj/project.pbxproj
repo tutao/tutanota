@@ -24,7 +24,6 @@
 		3D73DA3427319A91008E7A8A /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D73DA3327319A91008E7A8A /* Operation.swift */; };
 		3D84F56B2721B92C00858A58 /* MissedNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F56A2721B92C00858A58 /* MissedNotification.swift */; };
 		3D84F56D2722CEF900858A58 /* FileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F56C2722CEF900858A58 /* FileUtils.swift */; };
-		3D84F5702722E4B700858A58 /* FileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F56F2722E4B700858A58 /* FileFacade.swift */; };
 		3D84F5732722F35600858A58 /* CryptoFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F5722722F35600858A58 /* CryptoFacade.swift */; };
 		3D84F5762723112400858A58 /* FileViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F5752723112400858A58 /* FileViewer.swift */; };
 		3D84F57927231E8600858A58 /* SSEInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F57827231E8600858A58 /* SSEInfo.swift */; };
@@ -119,21 +118,25 @@
 		3DA047BF212C1BBE0062C36C /* CompatibilityTestData.json in Resources */ = {isa = PBXBuildFile; fileRef = 3DA047BE212C1BBD0062C36C /* CompatibilityTestData.json */; };
 		3DAA23A9267A208200219051 /* UIColorExtensionsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DAA23A8267A208200219051 /* UIColorExtensionsTest.swift */; };
 		3DB07C7B27303F0600BFBB4D /* Keys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DB07C7A27303F0600BFBB4D /* Keys.swift */; };
+		3DBA56C72850AAA6004416BE /* FileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBA56B72850AAA6004416BE /* FileFacade.swift */; };
+		3DBA56C82850AAA6004416BE /* MobileFacadeSendDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBA56B82850AAA6004416BE /* MobileFacadeSendDispatcher.swift */; };
+		3DBA56C92850AAA6004416BE /* DownloadTaskResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBA56B92850AAA6004416BE /* DownloadTaskResponse.swift */; };
+		3DBA56CA2850AAA6004416BE /* IpcClientRect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBA56BA2850AAA6004416BE /* IpcClientRect.swift */; };
+		3DBA56CB2850AAA6004416BE /* MobileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBA56BB2850AAA6004416BE /* MobileFacade.swift */; };
+		3DBA56CC2850AAA6004416BE /* ThemeFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBA56BC2850AAA6004416BE /* ThemeFacadeReceiveDispatcher.swift */; };
+		3DBA56CD2850AAA6004416BE /* NativeShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBA56BD2850AAA6004416BE /* NativeShortcut.swift */; };
+		3DBA56CE2850AAA6004416BE /* IosGlobalDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBA56BE2850AAA6004416BE /* IosGlobalDispatcher.swift */; };
+		3DBA56CF2850AAA6004416BE /* FileFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBA56BF2850AAA6004416BE /* FileFacadeReceiveDispatcher.swift */; };
+		3DBA56D02850AAA6004416BE /* ThemeFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBA56C02850AAA6004416BE /* ThemeFacade.swift */; };
+		3DBA56D12850AAA6004416BE /* CommonNativeFacadeSendDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBA56C12850AAA6004416BE /* CommonNativeFacadeSendDispatcher.swift */; };
+		3DBA56D22850AAA6004416BE /* ErrorInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBA56C22850AAA6004416BE /* ErrorInfo.swift */; };
+		3DBA56D32850AAA6004416BE /* ElectronResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBA56C32850AAA6004416BE /* ElectronResult.swift */; };
+		3DBA56D42850AAA6004416BE /* UploadTaskResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBA56C42850AAA6004416BE /* UploadTaskResponse.swift */; };
+		3DBA56D52850AAA6004416BE /* NativeKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBA56C52850AAA6004416BE /* NativeKey.swift */; };
+		3DBA56D62850AAA6004416BE /* CommonNativeFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBA56C62850AAA6004416BE /* CommonNativeFacade.swift */; };
 		3DBE94BA273147830077A6EA /* WebViewBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DBE94B9273147830077A6EA /* WebViewBridge.swift */; };
 		3DC299FA267358AF00E1E79F /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC299F9267358AF00E1E79F /* ThemeManager.swift */; };
 		3DC299FD2673668000E1E79F /* QueryUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC299FC2673668000E1E79F /* QueryUtils.swift */; };
-		3DC5DEB728510BEB007364FF /* MobileFacadeSendDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEAE28510BEB007364FF /* MobileFacadeSendDispatcher.swift */; };
-		3DC5DEB828510BEB007364FF /* MobileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEAF28510BEB007364FF /* MobileFacade.swift */; };
-		3DC5DEB928510BEB007364FF /* NativeShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEB028510BEB007364FF /* NativeShortcut.swift */; };
-		3DC5DEBA28510BEB007364FF /* IosGlobalDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEB128510BEB007364FF /* IosGlobalDispatcher.swift */; };
-		3DC5DEBB28510BEB007364FF /* CommonNativeFacadeSendDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEB228510BEB007364FF /* CommonNativeFacadeSendDispatcher.swift */; };
-		3DC5DEBC28510BEB007364FF /* ErrorInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEB328510BEB007364FF /* ErrorInfo.swift */; };
-		3DC5DEBD28510BEB007364FF /* ElectronResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEB428510BEB007364FF /* ElectronResult.swift */; };
-		3DC5DEBE28510BEB007364FF /* NativeKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEB528510BEB007364FF /* NativeKey.swift */; };
-		3DC5DEBF28510BEB007364FF /* CommonNativeFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEB628510BEB007364FF /* CommonNativeFacade.swift */; };
-		3DC5DEC22851D004007364FF /* ThemeFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEC02851D004007364FF /* ThemeFacadeReceiveDispatcher.swift */; };
-		3DC5DEC32851D004007364FF /* ThemeFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEC12851D004007364FF /* ThemeFacade.swift */; };
-		3DC5DEC52851D0E2007364FF /* IosThemeFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEC42851D0E2007364FF /* IosThemeFacade.swift */; };
 		3DCE7AA22719D04B0085E40D /* UserPreferenceFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE7AA12719D04B0085E40D /* UserPreferenceFacade.swift */; };
 		3DCE7AA7271D63BF0085E40D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE7AA6271D63BF0085E40D /* ViewController.swift */; };
 		3DCE7AAB27200E0A0085E40D /* WebviewHacks.h in Headers */ = {isa = PBXBuildFile; fileRef = 3DCE7AA927200E0A0085E40D /* WebviewHacks.h */; };
@@ -144,6 +147,8 @@
 		3DD4EA3B2726F41200D58207 /* DictionaryCoding in Frameworks */ = {isa = PBXBuildFile; productRef = 3DD4EA3A2726F41200D58207 /* DictionaryCoding */; };
 		3DE1E44526666F0A0018C9DE /* UIColor+utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */; };
 		3DE2E47822D5F198009A9368 /* Info-Debug.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3DE2E47722D5F198009A9368 /* Info-Debug.plist */; };
+		3DE46D2B2848EBDA00DC9D43 /* IosFileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE46D2A2848EBDA00DC9D43 /* IosFileFacade.swift */; };
+		3DE46D2E2849E33000DC9D43 /* IosThemeFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE46D2D2849E33000DC9D43 /* IosThemeFacade.swift */; };
 		3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DE7B3432135855F003415BE /* TUTSubKeys.m */; };
 /* End PBXBuildFile section */
 
@@ -180,7 +185,6 @@
 		3D73DA3327319A91008E7A8A /* Operation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Operation.swift; sourceTree = "<group>"; };
 		3D84F56A2721B92C00858A58 /* MissedNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissedNotification.swift; sourceTree = "<group>"; };
 		3D84F56C2722CEF900858A58 /* FileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUtils.swift; sourceTree = "<group>"; };
-		3D84F56F2722E4B700858A58 /* FileFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileFacade.swift; sourceTree = "<group>"; };
 		3D84F5722722F35600858A58 /* CryptoFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoFacade.swift; sourceTree = "<group>"; };
 		3D84F5752723112400858A58 /* FileViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileViewer.swift; sourceTree = "<group>"; };
 		3D84F57827231E8600858A58 /* SSEInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSEInfo.swift; sourceTree = "<group>"; };
@@ -281,21 +285,25 @@
 		3DAA23A5267A202000219051 /* tutanotaTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "tutanotaTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		3DAA23A8267A208200219051 /* UIColorExtensionsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColorExtensionsTest.swift; sourceTree = "<group>"; };
 		3DB07C7A27303F0600BFBB4D /* Keys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keys.swift; sourceTree = "<group>"; };
+		3DBA56B72850AAA6004416BE /* FileFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileFacade.swift; sourceTree = "<group>"; };
+		3DBA56B82850AAA6004416BE /* MobileFacadeSendDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileFacadeSendDispatcher.swift; sourceTree = "<group>"; };
+		3DBA56B92850AAA6004416BE /* DownloadTaskResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadTaskResponse.swift; sourceTree = "<group>"; };
+		3DBA56BA2850AAA6004416BE /* IpcClientRect.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IpcClientRect.swift; sourceTree = "<group>"; };
+		3DBA56BB2850AAA6004416BE /* MobileFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileFacade.swift; sourceTree = "<group>"; };
+		3DBA56BC2850AAA6004416BE /* ThemeFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThemeFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3DBA56BD2850AAA6004416BE /* NativeShortcut.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeShortcut.swift; sourceTree = "<group>"; };
+		3DBA56BE2850AAA6004416BE /* IosGlobalDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IosGlobalDispatcher.swift; sourceTree = "<group>"; };
+		3DBA56BF2850AAA6004416BE /* FileFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3DBA56C02850AAA6004416BE /* ThemeFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThemeFacade.swift; sourceTree = "<group>"; };
+		3DBA56C12850AAA6004416BE /* CommonNativeFacadeSendDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonNativeFacadeSendDispatcher.swift; sourceTree = "<group>"; };
+		3DBA56C22850AAA6004416BE /* ErrorInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ErrorInfo.swift; sourceTree = "<group>"; };
+		3DBA56C32850AAA6004416BE /* ElectronResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ElectronResult.swift; sourceTree = "<group>"; };
+		3DBA56C42850AAA6004416BE /* UploadTaskResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UploadTaskResponse.swift; sourceTree = "<group>"; };
+		3DBA56C52850AAA6004416BE /* NativeKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeKey.swift; sourceTree = "<group>"; };
+		3DBA56C62850AAA6004416BE /* CommonNativeFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonNativeFacade.swift; sourceTree = "<group>"; };
 		3DBE94B9273147830077A6EA /* WebViewBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewBridge.swift; sourceTree = "<group>"; };
 		3DC299F9267358AF00E1E79F /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
 		3DC299FC2673668000E1E79F /* QueryUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryUtils.swift; sourceTree = "<group>"; };
-		3DC5DEAE28510BEB007364FF /* MobileFacadeSendDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileFacadeSendDispatcher.swift; sourceTree = "<group>"; };
-		3DC5DEAF28510BEB007364FF /* MobileFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MobileFacade.swift; sourceTree = "<group>"; };
-		3DC5DEB028510BEB007364FF /* NativeShortcut.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeShortcut.swift; sourceTree = "<group>"; };
-		3DC5DEB128510BEB007364FF /* IosGlobalDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IosGlobalDispatcher.swift; sourceTree = "<group>"; };
-		3DC5DEB228510BEB007364FF /* CommonNativeFacadeSendDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonNativeFacadeSendDispatcher.swift; sourceTree = "<group>"; };
-		3DC5DEB328510BEB007364FF /* ErrorInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ErrorInfo.swift; sourceTree = "<group>"; };
-		3DC5DEB428510BEB007364FF /* ElectronResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ElectronResult.swift; sourceTree = "<group>"; };
-		3DC5DEB528510BEB007364FF /* NativeKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeKey.swift; sourceTree = "<group>"; };
-		3DC5DEB628510BEB007364FF /* CommonNativeFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonNativeFacade.swift; sourceTree = "<group>"; };
-		3DC5DEC02851D004007364FF /* ThemeFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThemeFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
-		3DC5DEC12851D004007364FF /* ThemeFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThemeFacade.swift; sourceTree = "<group>"; };
-		3DC5DEC42851D0E2007364FF /* IosThemeFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IosThemeFacade.swift; sourceTree = "<group>"; };
 		3DCE7AA12719D04B0085E40D /* UserPreferenceFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPreferenceFacade.swift; sourceTree = "<group>"; };
 		3DCE7AA6271D63BF0085E40D /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		3DCE7AA927200E0A0085E40D /* WebviewHacks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebviewHacks.h; sourceTree = "<group>"; };
@@ -309,6 +317,8 @@
 		3DD4A0A120F8C6260086EB36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+utils.swift"; sourceTree = "<group>"; };
 		3DE2E47722D5F198009A9368 /* Info-Debug.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-Debug.plist"; sourceTree = "<group>"; };
+		3DE46D2A2848EBDA00DC9D43 /* IosFileFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosFileFacade.swift; sourceTree = "<group>"; };
+		3DE46D2D2849E33000DC9D43 /* IosThemeFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosThemeFacade.swift; sourceTree = "<group>"; };
 		3DE7B3422135855F003415BE /* TUTSubKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTSubKeys.h; sourceTree = "<group>"; };
 		3DE7B3432135855F003415BE /* TUTSubKeys.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTSubKeys.m; sourceTree = "<group>"; };
 		3DF304A62535D172002B9E79 /* tutanota copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "tutanota copy-Info.plist"; path = "/Users/tutao/dev/repositories/tutanota-3/app-ios/tutanota copy-Info.plist"; sourceTree = "<absolute>"; };
@@ -375,8 +385,7 @@
 		3D74536121089D2200B16F2E /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				3DC5DEC42851D0E2007364FF /* IosThemeFacade.swift */,
-				3DC5DEAD28510BEA007364FF /* GeneratedIpc */,
+				3DBA56B62850AAA6004416BE /* GeneratedIpc */,
 				3D73DA2F2731951F008E7A8A /* Remote */,
 				3D57BEB322B796AC00205B1B /* Alarms */,
 				3D6C6D0522B7707B00289576 /* Keychain */,
@@ -388,6 +397,7 @@
 				3D0EB1F826F49E36002E5102 /* AppDelegate.swift */,
 				3DCE7AA6271D63BF0085E40D /* ViewController.swift */,
 				3D378ED22536F3A80001F1F3 /* tutanota-Bridging-Header.h */,
+				3DE46D2D2849E33000DC9D43 /* IosThemeFacade.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -416,10 +426,10 @@
 			isa = PBXGroup;
 			children = (
 				3DD10DB127EA148D0076C9A2 /* BlobUtil.swift */,
-				3D84F56F2722E4B700858A58 /* FileFacade.swift */,
 				3D378EE62536F51F0001F1F3 /* FileChooser.swift */,
 				3D84F56C2722CEF900858A58 /* FileUtils.swift */,
 				3D84F5752723112400858A58 /* FileViewer.swift */,
+				3DE46D2A2848EBDA00DC9D43 /* IosFileFacade.swift */,
 			);
 			path = Files;
 			sourceTree = "<group>";
@@ -967,20 +977,25 @@
 			path = Base.lproj;
 			sourceTree = "<group>";
 		};
-		3DC5DEAD28510BEA007364FF /* GeneratedIpc */ = {
+		3DBA56B62850AAA6004416BE /* GeneratedIpc */ = {
 			isa = PBXGroup;
 			children = (
-				3DC5DEC12851D004007364FF /* ThemeFacade.swift */,
-				3DC5DEC02851D004007364FF /* ThemeFacadeReceiveDispatcher.swift */,
-				3DC5DEAE28510BEB007364FF /* MobileFacadeSendDispatcher.swift */,
-				3DC5DEAF28510BEB007364FF /* MobileFacade.swift */,
-				3DC5DEB028510BEB007364FF /* NativeShortcut.swift */,
-				3DC5DEB128510BEB007364FF /* IosGlobalDispatcher.swift */,
-				3DC5DEB228510BEB007364FF /* CommonNativeFacadeSendDispatcher.swift */,
-				3DC5DEB328510BEB007364FF /* ErrorInfo.swift */,
-				3DC5DEB428510BEB007364FF /* ElectronResult.swift */,
-				3DC5DEB528510BEB007364FF /* NativeKey.swift */,
-				3DC5DEB628510BEB007364FF /* CommonNativeFacade.swift */,
+				3DBA56B72850AAA6004416BE /* FileFacade.swift */,
+				3DBA56B82850AAA6004416BE /* MobileFacadeSendDispatcher.swift */,
+				3DBA56B92850AAA6004416BE /* DownloadTaskResponse.swift */,
+				3DBA56BA2850AAA6004416BE /* IpcClientRect.swift */,
+				3DBA56BB2850AAA6004416BE /* MobileFacade.swift */,
+				3DBA56BC2850AAA6004416BE /* ThemeFacadeReceiveDispatcher.swift */,
+				3DBA56BD2850AAA6004416BE /* NativeShortcut.swift */,
+				3DBA56BE2850AAA6004416BE /* IosGlobalDispatcher.swift */,
+				3DBA56BF2850AAA6004416BE /* FileFacadeReceiveDispatcher.swift */,
+				3DBA56C02850AAA6004416BE /* ThemeFacade.swift */,
+				3DBA56C12850AAA6004416BE /* CommonNativeFacadeSendDispatcher.swift */,
+				3DBA56C22850AAA6004416BE /* ErrorInfo.swift */,
+				3DBA56C32850AAA6004416BE /* ElectronResult.swift */,
+				3DBA56C42850AAA6004416BE /* UploadTaskResponse.swift */,
+				3DBA56C52850AAA6004416BE /* NativeKey.swift */,
+				3DBA56C62850AAA6004416BE /* CommonNativeFacade.swift */,
 			);
 			path = GeneratedIpc;
 			sourceTree = "<group>";
@@ -1380,57 +1395,62 @@
 				3D9B12A027218AF9002B46A1 /* RepeatRule.swift in Sources */,
 				3D4F1BFA26EBADE500E87BF5 /* TUTBigNum.m in Sources */,
 				3D73DA312731953E008E7A8A /* RemoteProtocol.swift in Sources */,
-				3DC5DEBE28510BEB007364FF /* NativeKey.swift in Sources */,
 				3DB07C7B27303F0600BFBB4D /* Keys.swift in Sources */,
+				3DBA56D32850AAA6004416BE /* ElectronResult.swift in Sources */,
+				3DBA56C92850AAA6004416BE /* DownloadTaskResponse.swift in Sources */,
+				3DBA56CE2850AAA6004416BE /* IosGlobalDispatcher.swift in Sources */,
+				3DBA56CD2850AAA6004416BE /* NativeShortcut.swift in Sources */,
 				3D84F5822723225C00858A58 /* Utils.swift in Sources */,
 				3D9B12B42721A1E2002B46A1 /* TUTErrorFactory.m in Sources */,
 				3D4E16F4273D2F8A00256630 /* SyncCompletion.swift in Sources */,
 				3D84F56B2721B92C00858A58 /* MissedNotification.swift in Sources */,
-				3DC5DEBC28510BEB007364FF /* ErrorInfo.swift in Sources */,
 				3DCE7AAC27200E0A0085E40D /* WebviewHacks.m in Sources */,
 				3DCE7AA22719D04B0085E40D /* UserPreferenceFacade.swift in Sources */,
 				3D0EB1F626F489AD002E5102 /* KeychainManager.swift in Sources */,
+				3DBA56D22850AAA6004416BE /* ErrorInfo.swift in Sources */,
 				3D92867C273A7D19006B8FB2 /* TutanotaError.swift in Sources */,
 				3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */,
 				3D9B12AF2721966C002B46A1 /* IdTuple.swift in Sources */,
 				3D92867F273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift in Sources */,
-				3DC5DEBA28510BEB007364FF /* IosGlobalDispatcher.swift in Sources */,
 				3D9B12A6272192C2002B46A1 /* AlarmNotification.swift in Sources */,
 				3D87ECE6212D9EB000FD7315 /* TUTIcons.m in Sources */,
 				3D9B12A32721926E002B46A1 /* ValueEncryption.swift in Sources */,
-				3DC5DEBF28510BEB007364FF /* CommonNativeFacade.swift in Sources */,
 				3D891F0D2105B12F0031E528 /* TUTEncodingConverter.m in Sources */,
 				3D0EB1FC26F4BEE4002E5102 /* AlarmManager.swift in Sources */,
-				3DC5DEB828510BEB007364FF /* MobileFacade.swift in Sources */,
+				3DBA56CA2850AAA6004416BE /* IpcClientRect.swift in Sources */,
 				3DC299FD2673668000E1E79F /* QueryUtils.swift in Sources */,
 				3D891F0E2105B12F0031E528 /* TUTAes128Facade.m in Sources */,
+				3DBA56D42850AAA6004416BE /* UploadTaskResponse.swift in Sources */,
+				3DBA56CC2850AAA6004416BE /* ThemeFacadeReceiveDispatcher.swift in Sources */,
 				3DC299FA267358AF00E1E79F /* ThemeManager.swift in Sources */,
 				3D9B129727216D60002B46A1 /* ContactsSource.swift in Sources */,
 				3D9B12A927219538002B46A1 /* AlarmInfo.swift in Sources */,
-				3D84F5702722E4B700858A58 /* FileFacade.swift in Sources */,
-				3DC5DEC32851D004007364FF /* ThemeFacade.swift in Sources */,
 				3DD10DB227EA148D0076C9A2 /* BlobUtil.swift in Sources */,
+				3DBA56D02850AAA6004416BE /* ThemeFacade.swift in Sources */,
 				3D97821A2739600700DB639C /* URLSession+Sync.swift in Sources */,
 				3D84F57C27231F1F00858A58 /* Serialization.swift in Sources */,
 				3D2DB91B2733F43B00BCEF4C /* CredentialsEncryption.swift in Sources */,
-				3DC5DEB728510BEB007364FF /* MobileFacadeSendDispatcher.swift in Sources */,
 				3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */,
 				3D84F56D2722CEF900858A58 /* FileUtils.swift in Sources */,
 				3DCE7AA7271D63BF0085E40D /* ViewController.swift in Sources */,
+				3DBA56CF2850AAA6004416BE /* FileFacadeReceiveDispatcher.swift in Sources */,
 				3D73DA3427319A91008E7A8A /* Operation.swift in Sources */,
-				3DC5DEBD28510BEB007364FF /* ElectronResult.swift in Sources */,
-				3DC5DEC52851D0E2007364FF /* IosThemeFacade.swift in Sources */,
+				3DE46D2B2848EBDA00DC9D43 /* IosFileFacade.swift in Sources */,
+				3DBA56D52850AAA6004416BE /* NativeKey.swift in Sources */,
 				3DBE94BA273147830077A6EA /* WebViewBridge.swift in Sources */,
 				3D84F5762723112400858A58 /* FileViewer.swift in Sources */,
+				3DBA56C72850AAA6004416BE /* FileFacade.swift in Sources */,
+				3DBA56D12850AAA6004416BE /* CommonNativeFacadeSendDispatcher.swift in Sources */,
 				3D891F0B2105B12F0031E528 /* TUTCrypto.m in Sources */,
-				3DC5DEBB28510BEB007364FF /* CommonNativeFacadeSendDispatcher.swift in Sources */,
 				3D63A0E3233D009E00D05259 /* TUTLog.m in Sources */,
-				3DC5DEB928510BEB007364FF /* NativeShortcut.swift in Sources */,
+				3DBA56CB2850AAA6004416BE /* MobileFacade.swift in Sources */,
 				3D9B129D272189BB002B46A1 /* AlarmModel.swift in Sources */,
-				3DC5DEC22851D004007364FF /* ThemeFacadeReceiveDispatcher.swift in Sources */,
+				3DBA56D62850AAA6004416BE /* CommonNativeFacade.swift in Sources */,
 				3DE1E44526666F0A0018C9DE /* UIColor+utils.swift in Sources */,
+				3DE46D2E2849E33000DC9D43 /* IosThemeFacade.swift in Sources */,
 				3D84F57927231E8600858A58 /* SSEInfo.swift in Sources */,
 				3D84F5732722F35600858A58 /* CryptoFacade.swift in Sources */,
+				3DBA56C82850AAA6004416BE /* MobileFacadeSendDispatcher.swift in Sources */,
 				3D0EB1F926F49E36002E5102 /* AppDelegate.swift in Sources */,
 				3D9B129A27216DE0002B46A1 /* Response.swift in Sources */,
 				3D9B12AC27219623002B46A1 /* NotificationSessionKey.swift in Sources */,

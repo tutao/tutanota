@@ -43,6 +43,7 @@ import path from "path"
 import {OfflineDbFacade, OfflineDbFactory} from "./db/OfflineDbFacade"
 import {OfflineDb} from "./db/OfflineDb"
 import {DesktopInterWindowEventSender} from "./ipc/DesktopInterWindowEventSender"
+import {DesktopFileFacade} from "./DesktopFileFacade.js"
 import {DesktopPostLoginActions} from "./DesktopPostLoginActions"
 import {DesktopGlobalDispatcher} from "../native/common/generatedipc/DesktopGlobalDispatcher.js"
 import {CommonNativeFacadeSendDispatcher} from "../native/common/generatedipc/CommonNativeFacadeSendDispatcher.js"
@@ -182,6 +183,7 @@ async function createComponents(): Promise<Components> {
 	}
 
 	const dispatcher = new DesktopGlobalDispatcher(
+		new DesktopFileFacade(dl, electron, fs),
 		themeFacade
 	)
 

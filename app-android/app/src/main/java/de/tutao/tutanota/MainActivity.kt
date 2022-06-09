@@ -70,6 +70,7 @@ class MainActivity : FragmentActivity() {
 		sseStorage = SseStorage(AppDatabase.getDatabase(this,  /*allowMainThreadAccess*/false),
 				keyStoreFacade)
 
+		val fileFacade = FileUtil(this, LocalNotificationsFacade(this))
 		val alarmNotificationsManager = AlarmNotificationsManager(
 				sseStorage,
 				Crypto(this),
@@ -79,6 +80,7 @@ class MainActivity : FragmentActivity() {
 
 		themeFacade = AndroidThemeFacade(this, this)
 		val globalDispatcher = AndroidGlobalDispatcher(
+				fileFacade,
 				themeFacade
 		)
 		nativeImpl = Native(
@@ -86,6 +88,7 @@ class MainActivity : FragmentActivity() {
 				sseStorage,
 				alarmNotificationsManager,
 				globalDispatcher,
+				fileFacade
 		)
 
 		themeFacade.applyCurrentTheme()

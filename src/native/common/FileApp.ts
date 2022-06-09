@@ -4,6 +4,7 @@ import type {NativeInterface} from "./NativeInterface"
 import {FileReference} from "../../api/common/utils/FileUtils"
 import {DataFile} from "../../api/common/DataFile"
 import {HttpMethod} from "../../api/common/EntityFunctions"
+import {FileFacade} from "./generatedipc/FileFacade.js"
 
 
 export type DataTaskResponse = {
@@ -23,10 +24,11 @@ export type UploadTaskResponse = DataTaskResponse & {
 export type FileUri = string
 
 export class NativeFileApp {
-	native: NativeInterface
 
-	constructor(nativeInterface: NativeInterface) {
-		this.native = nativeInterface
+	constructor(
+		private readonly native: NativeInterface,
+		private readonly fileFacade: FileFacade
+	) {
 	}
 
 	/**
@@ -35,27 +37,25 @@ export class NativeFileApp {
 	 * @param mimeType The mimeType of the file
 	 */
 	open(file: FileReference): Promise<void> {
-		return this.native.invokeNative("open", [file.location, file.mimeType])
+		return this.fileFacade.open(file.location, file.mimeType)
 	}
 
 	/**
 	 * Opens a file chooser to select a file.
-	 * @param button The file chooser is opened next to the rectangle
+	 * @param boundingRect The file chooser is opened next to the rectangle.
 	 */
-	openFileChooser(boundingRect: ClientRect): Promise<Array<FileReference>> {
+	async openFileChooser(boundingRect: DOMRect): Promise<Array<FileReference>> {
 		/* The file chooser opens next to a location specified by srcRect on larger devices (iPad).
 		 * The rectangle must be specifed using values for x, y, height and width.
-		 * @param  srcRect Dictionary containing the location of the button which has been pressed to open the file chooser.
 		 */
-		let srcRect = {
-			x: boundingRect.left,
-			y: boundingRect.top,
-			width: boundingRect.width,
-			height: boundingRect.height,
+		const srcRect = {
+			x: Math.round(boundingRect.left),
+			y: Math.round(boundingRect.top),
+			width: Math.round(boundingRect.width),
+			height: Math.round(boundingRect.height),
 		}
-		return this.native
-				   .invokeNative("openFileChooser", [srcRect, false])
-				   .then((response: Array<string>) => promiseMap(response, this.uriToFileRef.bind(this)))
+		const files = await this.fileFacade.openFileChooser(srcRect)
+		return promiseMap(files, this.uriToFileRef.bind(this))
 	}
 
 	openFolderChooser(): Promise<Array<string>> {
@@ -67,7 +67,7 @@ export class NativeFileApp {
 	 * @param  file The uri of the file to delete.
 	 */
 	deleteFile(file: FileUri): Promise<void> {
-		return this.native.invokeNative("deleteFile", [file])
+		return this.fileFacade.deleteFile(file)
 	}
 
 	/**
@@ -75,7 +75,7 @@ export class NativeFileApp {
 	 * @param file The uri of the file
 	 */
 	getName(file: FileUri): Promise<string> {
-		return this.native.invokeNative("getName", [file])
+		return this.fileFacade.getName(file)
 	}
 
 	/**
@@ -83,7 +83,7 @@ export class NativeFileApp {
 	 * @param file The uri of the file
 	 */
 	getMimeType(file: FileUri): Promise<string> {
-		return this.native.invokeNative("getMimeType", [file])
+		return this.fileFacade.getMimeType(file)
 	}
 
 	/**
@@ -91,7 +91,7 @@ export class NativeFileApp {
 	 * @param file The uri of the file
 	 */
 	getSize(file: FileUri): Promise<number> {
-		return this.native.invokeNative("getSize", [file]).then(sizeString => Number(sizeString))
+		return this.fileFacade.getSize(file)
 	}
 
 	/**
@@ -100,11 +100,11 @@ export class NativeFileApp {
 	 * @returns {*} absolute path of the destination file
 	 */
 	putFileIntoDownloadsFolder(localFileUri: FileUri): Promise<string> {
-		return this.native.invokeNative("putFileIntoDownloads", [localFileUri])
+		return this.fileFacade.putFileIntoDownloadsFolder(localFileUri)
 	}
 
 	async saveDataFile(data: DataFile): Promise<FileReference> {
-		const fileUri = await this.native.invokeNative("saveDataFile", [data.name, uint8ArrayToBase64(data.data)])
+		const fileUri = await this.fileFacade.saveDataFile(data.name, uint8ArrayToBase64(data.data))
 		return {
 			_type: "FileReference",
 			name: data.name,
@@ -118,7 +118,7 @@ export class NativeFileApp {
 	 * Uploads the binary data of a file to tutadb
 	 */
 	upload(fileUrl: string, targetUrl: string, method: HttpMethod, headers: Dict): Promise<UploadTaskResponse> {
-		return this.native.invokeNative("upload", [fileUrl, targetUrl, method, headers])
+		return this.fileFacade.upload(fileUrl, targetUrl, method, headers)
 	}
 
 	/**
@@ -126,7 +126,7 @@ export class NativeFileApp {
 	 * @returns Resolves to the URI of the downloaded file
 	 */
 	download(sourceUrl: FileUri, filename: string, headers: Dict): Promise<DownloadTaskResponse> {
-		return this.native.invokeNative("download", [sourceUrl, filename, headers])
+		return this.fileFacade.download(sourceUrl, filename, headers)
 	}
 
 	/**
@@ -135,11 +135,11 @@ export class NativeFileApp {
 	 * @return Base64 encoded, shortened SHA256 hash of the file
 	 */
 	hashFile(fileUri: FileUri): Promise<string> {
-		return this.native.invokeNative('hashFile', [fileUri])
+		return this.fileFacade.hashFile(fileUri)
 	}
 
 	clearFileData(): Promise<any> {
-		return this.native.invokeNative("clearFileData", [])
+		return this.fileFacade.clearFileData()
 	}
 
 	readDataFile(uriOrPath: string): Promise<DataFile | null> {
@@ -203,7 +203,7 @@ export class NativeFileApp {
 	 *
 	 */
 	joinFiles(filename: string, files: Array<FileUri>): Promise<FileUri> {
-		return this.native.invokeNative('joinFiles', [filename, files])
+		return this.fileFacade.joinFiles(filename, files)
 	}
 
 	/**
@@ -211,7 +211,7 @@ export class NativeFileApp {
 	 * @param fileUri
 	 * @param maxChunkSizeBytes
 	 */
-	async splitFile(fileUri: FileUri, maxChunkSizeBytes: number): Promise<Array<FileUri>> {
-		return this.native.invokeNative("splitFile", [fileUri, maxChunkSizeBytes])
+	async splitFile(fileUri: FileUri, maxChunkSizeBytes: number): Promise<ReadonlyArray<FileUri>> {
+		return this.fileFacade.splitFile(fileUri, maxChunkSizeBytes)
 	}
 }

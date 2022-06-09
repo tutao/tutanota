@@ -220,28 +220,9 @@ export class IPC {
 					return Promise.resolve([])
 				}
 
-			case "open": {
-				// itemPath, mimeType
-				const itemPath = args[0].toString()
-				return this._dl.open(itemPath)
-			}
-
 			case "readDataFile": {
 				const location = args[0]
 				return this._desktopUtils.readDataFile(location)
-			}
-
-			case "download": {
-				const url: string = downcast(args[0])
-				const filename: string = downcast(args[1])
-				const headers: Dict = downcast(args[2])
-				return this._dl.downloadNative(url, filename, headers)
-			}
-
-			case 'joinFiles': {
-				const filename: string = downcast(args[0])
-				const files: Array<FileUri> = downcast(args[1])
-				return this._dl.joinFiles(filename, files)
 			}
 
 			case "saveDataFile": {
@@ -249,16 +230,6 @@ export class IPC {
 				const filename: string = downcast(args[0])
 				const data: Uint8Array = base64ToUint8Array(downcast(args[1]))
 				return this._dl.saveDataFile(filename, data)
-			}
-
-			case "putFileIntoDownloads": {
-				const fileUri: FileUri = args[0]
-				return this._dl.putFileIntoDownloadsFolder(fileUri)
-			}
-
-			case 'deleteFile' : {
-				const filename: string = downcast(args[0])
-				return this._dl.deleteFile(filename)
 			}
 
 			case "aesDecryptFile": {
@@ -374,12 +345,6 @@ export class IPC {
 				return fileExists(path.join(await getExportDirectoryPath(this._dl), fileName))
 			}
 
-			case "clearFileData": {
-				this._dl.deleteTutanotaTempDirectory()
-
-				return Promise.resolve()
-			}
-
 			case "scheduleAlarms": {
 				const alarms = args[0]
 
@@ -416,11 +381,6 @@ export class IPC {
 
 			case "getSupportedEncryptionModes": {
 				return this._credentialsEncryption.getSupportedEncryptionModes()
-			}
-
-			case 'hashFile': {
-				const file: FileUri = args[0]
-				return this._dl.hashFile(file)
 			}
 
 			case 'getSize': {

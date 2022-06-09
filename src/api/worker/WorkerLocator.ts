@@ -54,6 +54,7 @@ import {OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator} from "./offline/Offl
 import {modelInfos} from "../common/EntityFunctions.js"
 import {CustomCacheHandlerMap, CustomCalendarEventCacheHandler} from "./rest/CustomCacheHandler.js"
 import {CalendarEventTypeRef} from "../entities/tutanota/TypeRefs.js"
+import {FileFacadeSendDispatcher} from "../../native/common/generatedipc/FileFacadeSendDispatcher.js"
 
 assertWorkerOrNode()
 
@@ -127,7 +128,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.cacheStorage = maybeUninitializedStorage
 
-	const fileApp = new NativeFileApp(worker)
+	const fileApp = new NativeFileApp(worker, new FileFacadeSendDispatcher(worker))
 	const systemApp = new NativeSystemApp(worker, fileApp)
 
 	// We don't wont to cache within the admin client

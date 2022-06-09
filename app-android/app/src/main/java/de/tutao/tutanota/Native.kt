@@ -23,10 +23,10 @@ import de.tutao.tutanota.push.SseStorage
 import kotlinx.coroutines.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.File
 import java.io.IOException
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -43,11 +43,11 @@ class Native internal constructor(
 		private val sseStorage: SseStorage,
 		private val alarmNotificationsManager: AlarmNotificationsManager,
 		private val globalDispatcher: AndroidGlobalDispatcher,
+		private val files: FileUtil
 ) : NativeInterface {
 
 	private val json = Json.Default
 	private val crypto = Crypto(activity)
-	private val files = FileUtil(activity, LocalNotificationsFacade(activity))
 	private val contact = Contact(activity)
 	private val requests = mutableMapOf<String, Continuation<String>>()
 	private val credentialsEncryption = CredentialsEncryptionFactory.create(activity)
@@ -92,7 +92,6 @@ class Native internal constructor(
 		val cursedJsonArray = args.joinToString(prefix = "[", postfix = "]")
 		return JSONArray(cursedJsonArray)
 	}
-
 	/**
 	 * Invokes method with args.
 	 *
@@ -183,18 +182,18 @@ class Native internal constructor(
 
 		return when (method) {
 			"init" -> {
-				json.encodeToString(_webAppInitialized.complete(Unit))
+				_webAppInitialized.complete(Unit)
+				json.encodeToString<Boolean?>(null)
 			}
 			"reload" -> {
 				_webAppInitialized = CompletableDeferred()
-				activity.reload(jsonArray.getJSONObject(0).toMap())
-				json.encodeToString<Boolean?>(null)
+				json.encodeToString(activity.reload(jsonArray.getJSONObject(0).toMap()))
 			}
 			"initPushNotifications" -> {
 				initPushNotifications()
 				json.encodeToString<Boolean?>(null)
 			}
-			"generateRsaKey" -> crypto.generateRsaKey(jsonArray.getString(0).base64ToBytes()).toString()
+			"generateRsaKey" -> json.encodeToString(crypto.generateRsaKey(jsonArray.getString(0).base64ToBytes()))
 			"rsaEncrypt" -> json.encodeToString(crypto.rsaEncrypt(
 					jsonArray.getJSONObject(0),
 					jsonArray.getString(1).base64ToBytes(),
@@ -211,72 +210,26 @@ class Native internal constructor(
 				val fileUrl = jsonArray.getString(1)
 				json.encodeToString(crypto.aesDecryptFile(key, fileUrl))
 			}
-			"open" -> json.encodeToString(files.openFile(jsonArray.getString(0), jsonArray.getString(1)))
-			"openFileChooser" -> files.openFileChooser().toString()
-			"deleteFile" -> {
-				files.delete(jsonArray.getString(0))
-				json.encodeToString<Boolean?>(null)
-			}
-			"getName" -> json.encodeToString(files.getName(jsonArray.getString(0)))
-			"getMimeType" -> json.encodeToString(files.getMimeType(Uri.parse(jsonArray.getString(0))))
-			"getSize" -> json.encodeToString(files.getSize(jsonArray.getString(0)).toString() + "")
-			"upload" -> {
-				val fileUri = jsonArray.getString(0)
-				val targetUrl = jsonArray.getString(1)
-				val httpMethod = jsonArray.getString(2)
-				val headers = jsonArray.getJSONObject(3)
-				files.upload(fileUri, targetUrl, httpMethod, headers).toString()
-			}
-			"download" -> {
-				val url = jsonArray.getString(0)
-				val filename = jsonArray.getString(1)
-				val headers = jsonArray.getJSONObject(2)
-				files.download(url, filename, headers).toString()
-			}
-			"joinFiles" -> {
-				val filename = jsonArray.getString(0)
-				val filesTojoin = jsonArrayToTypedList<String>(jsonArray.getJSONArray(1))
-				json.encodeToString(files.joinFiles(filename, filesTojoin))
-			}
-			"splitFile" -> {
-				val fileUri = jsonArray.getString(0)
-				val maxChunkSize = jsonArray.getInt(1)
-				files.splitFile(fileUri, maxChunkSize).toString()
-			}
-			"clearFileData" -> {
-				files.clearFileData()
-				json.encodeToString<Boolean?>(null)
-			}
 			"findSuggestions" -> contact.findSuggestions(jsonArray.getString(0)).toString()
-			"openLink" -> json.encodeToString(openLink(jsonArray.getString(0)))
-			"shareText" -> json.encodeToString(shareText(jsonArray.getString(0), jsonArray.getString(1)))
-			"getPushIdentifier" -> json.encodeToString(sseStorage.getPushIdentifier())
+			"openLink" -> JsonPrimitive(openLink(jsonArray.getString(0))).toString()
+			"shareText" -> JsonPrimitive(shareText(jsonArray.getString(0), jsonArray.getString(1))).toString()
+			"getPushIdentifier" -> JsonPrimitive(sseStorage.getPushIdentifier()).toString()
 			"storePushIdentifierLocally" -> {
 				val deviceIdentifier = jsonArray.getString(0)
 				val userId = jsonArray.getString(1)
 				val sseOrigin = jsonArray.getString(2)
-				Log.d(TAG, "storePushIdentifierLocally")
 				sseStorage.storePushIdentifier(deviceIdentifier, sseOrigin)
 				val pushIdentifierId = jsonArray.getString(3)
 				val pushIdentifierSessionKeyB64 = jsonArray.getString(4)
 				sseStorage.storePushIdentifierSessionKey(userId, pushIdentifierId, pushIdentifierSessionKeyB64)
-				json.encodeToString(true)
+				json.encodeToString<Boolean?>(null)
 			}
 			"closePushNotifications" -> {
 				val addressesArray = jsonArray.getJSONArray(0)
 				cancelNotifications(addressesArray)
-				json.encodeToString(true)
+				json.encodeToString<Boolean?>(null)
 			}
-			"readFile" -> json.encodeToString(File(activity.filesDir, jsonArray.getString(0)).readBytes().toBase64())
-			"writeFile" -> {
-				val filename = jsonArray.getString(0)
-				val contentInBase64 = jsonArray.getString(1)
-				File(activity.filesDir, filename).writeBytes(contentInBase64.base64ToBytes())
-				json.encodeToString(true)
-			}
-			"saveDataFile" -> json.encodeToString(files.saveDataFile(jsonArray.getString(0), jsonArray.getString(1)))
-			"putFileIntoDownloads" -> json.encodeToString(files.putInDownloadFolder(jsonArray.getString(0)))
-			"getDeviceLog" -> json.encodeToString(LogReader.getLogFile(activity).toString())
+			"getDeviceLog" -> json.encodeToString<String>(LogReader.getLogFile(activity).toString())
 			"changeLanguage" -> json.encodeToString<Boolean?>(null)
 			"scheduleAlarms" -> {
 				scheduleAlarms(jsonArray.getJSONArray(0))
@@ -287,23 +240,19 @@ class Native internal constructor(
 				val dataToEncrypt = jsonArray.getString(1)
 				val mode = CredentialEncryptionMode.fromName(encryptionMode)
 				val encryptedData = credentialsEncryption.encryptUsingKeychain(dataToEncrypt, mode)
-				json.encodeToString(encryptedData)
+				JsonPrimitive(encryptedData).toString()
 			}
 			"decryptUsingKeychain" -> {
 				val encryptionMode = jsonArray.getString(0)
 				val dataToDecrypt = jsonArray.getString(1)
 				val mode = CredentialEncryptionMode.fromName(encryptionMode)
-				json.encodeToString(credentialsEncryption.decryptUsingKeychain(dataToDecrypt, mode))
+				val decryptedData = credentialsEncryption.decryptUsingKeychain(dataToDecrypt, mode)
+				JsonPrimitive(decryptedData).toString()
 			}
 			"getSupportedEncryptionModes" -> {
 				val modes = credentialsEncryption.getSupportedEncryptionModes()
-				JSONArray().apply {
-					for (mode in modes) {
-						put(mode.modeName)
-					}
-				}.toString()
+				json.encodeToString(modes.map { it.modeName })
 			}
-			"hashFile" -> json.encodeToString(files.hashFile(jsonArray.getString(0)))
 			else -> throw Exception("unsupported method: $method")
 		}
 	}
@@ -364,7 +313,7 @@ class Native internal constructor(
 			try {
 				val logoInputStream = activity.assets.open("tutanota/images/$imageName")
 				val logoFile = files.getTempDecryptedFile(imageName)
-				files.writeFile(logoFile, logoInputStream)
+				files.writeFileStream(logoFile, logoInputStream)
 				val logoUri = FileProvider.getUriForFile(activity, BuildConfig.FILE_PROVIDER_AUTHORITY, logoFile)
 				val thumbnail = ClipData.newUri(
 						activity.contentResolver,
