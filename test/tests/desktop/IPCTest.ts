@@ -18,11 +18,12 @@ import {DesktopUtils} from "../../../src/desktop/DesktopUtils.js";
 import {DesktopErrorHandler} from "../../../src/desktop/DesktopErrorHandler.js";
 import {DesktopIntegrator} from "../../../src/desktop/integration/DesktopIntegrator.js";
 import {DesktopAlarmScheduler} from "../../../src/desktop/sse/DesktopAlarmScheduler.js";
-import {ThemeManager} from "../../../src/desktop/DesktopThemeFacade.js";
 import {OfflineDbFacade} from "../../../src/desktop/db/OfflineDbFacade.js"
 import {DektopCredentialsEncryption, DesktopCredentialsEncryptionStub} from "../../../src/desktop/credentials/DektopCredentialsEncryption.js"
 import {object} from "testdouble"
 import {ExposedNativeInterface} from "../../../src/native/common/NativeInterface.js"
+import {DesktopGlobalDispatcher} from "../../../src/native/common/generatedipc/DesktopGlobalDispatcher.js"
+import {DesktopThemeFacade} from "../../../src/desktop/DesktopThemeFacade.js"
 
 o.spec("IPC tests", function () {
 	const CALLBACK_ID = "to-main"
@@ -182,7 +183,8 @@ o.spec("IPC tests", function () {
 			sendErrorReport: () => Promise.resolve(),
 		}
 		const alarmScheduler = {}
-		const themeManager = {}
+		const themeFacade = {}
+		const globalDispatcher = {}
 		type ElectronMock = typeof import("electron") & {ipcMain: Electron.IpcMain & {callbacks: any}}
 		return {
 			electronMock: n.mock<ElectronMock>("electron", electron).set(),
@@ -202,9 +204,10 @@ o.spec("IPC tests", function () {
 			utilsMock: n.mock("@tutao/tutanota-utils", utils).set(),
 			autoUpdaterMock: n.mock<ElectronUpdater>("__updater", autoUpdater).set(),
 			alarmSchedulerMock: n.mock<DesktopAlarmScheduler>("__alarmScheduler", alarmScheduler).set(),
-			themeManagerMock: n.mock<ThemeManager>("__themeManager", themeManager).set(),
+			themeFacadeMock: n.mock<DesktopThemeFacade>("__themeFacade", themeFacade).set(),
 			offlineDbFacadeMock: n.mock<OfflineDbFacade>("__offlineDbFacade", {}).set(),
-			credentialsEncryption: n.mock<DektopCredentialsEncryption>("__credentialsEncryption", new DesktopCredentialsEncryptionStub()).set()
+			credentialsEncryption: n.mock<DektopCredentialsEncryption>("__credentialsEncryption", new DesktopCredentialsEncryptionStub()).set(),
+			globalDispatcher: n.mock<DesktopGlobalDispatcher>("__desktopGlobalDispatcher", globalDispatcher).set()
 		}
 	}
 
@@ -225,9 +228,10 @@ o.spec("IPC tests", function () {
 			desktopUtilsMock,
 			desktopIntegratorMock,
 			alarmSchedulerMock,
-			themeManagerMock,
+			themeFacadeMock,
 			offlineDbFacadeMock,
-			credentialsEncryption
+			credentialsEncryption,
+			globalDispatcher
 		} = sm
 		const ipc = new IPC(
 			confMock,
@@ -244,9 +248,9 @@ o.spec("IPC tests", function () {
 			errMock,
 			desktopIntegratorMock,
 			alarmSchedulerMock,
-			themeManagerMock,
 			credentialsEncryption,
-			() => object<ExposedNativeInterface>()
+			() => object<ExposedNativeInterface>(),
+			globalDispatcher
 		)
 		o(electronMock.ipcMain.on.callCount).equals(0)
 		ipc.addWindow(WINDOW_ID)
@@ -278,11 +282,11 @@ o.spec("IPC tests", function () {
 		o(windowMock.sendMessageToWebContents.callCount).equals(0)
 		await ipc.initialized(WINDOW_ID)
 		o(windowMock.sendMessageToWebContents.callCount).equals(1)
-		const requestPromise = ipc.sendRequest(WINDOW_ID, "print", ["nothing", "useful"])
+		const requestPromise = ipc.sendRequest(WINDOW_ID, "ipc", ["nothing", "useful"])
 		await delay(10)
 		o(windowMock.sendMessageToWebContents.callCount).equals(2)
 		const request = windowMock.sendMessageToWebContents.args[0]
-		o(request.requestType).equals("print")
+		o(request.requestType).equals("ipc")
 		o(request.args).deepEquals(["nothing", "useful"])
 		//simulate the window answering
 		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {
@@ -295,11 +299,11 @@ o.spec("IPC tests", function () {
 	o("sendRequest with requestError response", async function () {
 		const {ipc, electronMock} = setUpWithWindowAndInit()
 		await ipc.initialized(WINDOW_ID)
-		const requestPromise = ipc.sendRequest(WINDOW_ID, "print", ["nothing", "useful"])
+		const requestPromise = ipc.sendRequest(WINDOW_ID, "ipc", ["nothing", "useful"])
 		await delay(10)
 		o(windowMock.sendMessageToWebContents.callCount).equals(2)
 		const request = windowMock.sendMessageToWebContents.args[0]
-		o(request.requestType).equals("print")
+		o(request.requestType).equals("ipc")
 		o(request.args).deepEquals(["nothing", "useful"])
 		//simulate the window answering
 		electronMock.ipcMain.callbacks[CALLBACK_ID](dummyEvent(WINDOW_ID), {

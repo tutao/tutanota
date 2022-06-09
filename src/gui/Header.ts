@@ -23,7 +23,7 @@ import {OfflineIndicatorViewModel} from "./base/OfflineIndicatorViewModel.js"
 import {ProgressBar} from "./base/ProgressBar.js"
 
 const LogoutPath = "/login?noAutoLogin=true"
-export const LogoutUrl: string = location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : LogoutPath
+export const LogoutUrl: string = window.location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : LogoutPath
 assertMainOrNode()
 
 export interface CurrentView extends Component {

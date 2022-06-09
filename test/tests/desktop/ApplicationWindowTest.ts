@@ -3,14 +3,15 @@ import n from "../nodemocker.js"
 import {defer, DeferredObject, delay, downcast} from "@tutao/tutanota-utils"
 import {ApplicationWindow} from "../../../src/desktop/ApplicationWindow.js"
 import type {NativeImage} from "electron"
-import {ThemeManager} from "../../../src/desktop/DesktopThemeFacade.js"
 import type {Theme, ThemeId} from "../../../src/gui/theme.js"
-import {DesktopConfig} from "../../../src/desktop/config/DesktopConfig.js"
 import {WindowManager} from "../../../src/desktop/DesktopWindowManager.js";
 import {LocalShortcutManager} from "../../../src/desktop/electron-localshortcut/LocalShortcut.js";
 import {object} from "testdouble"
 import {OfflineDbFacade} from "../../../src/desktop/db/OfflineDbFacade.js"
 import {verify} from "@tutao/tutanota-test-utils"
+import {ThemeFacade} from "../../../src/native/common/generatedipc/ThemeFacade.js"
+import {DesktopThemeFacade} from "../../../src/desktop/DesktopThemeFacade.js"
+import {NativeInterface} from "../../../src/native/common/NativeInterface.js"
 import Rectangle = Electron.Rectangle
 
 
@@ -55,16 +56,13 @@ o.spec("ApplicationWindow Test", function () {
 		},
 		getIcon: () => icon,
 	} as const
-	const themeManager = new (class extends ThemeManager {
-		constructor() {
-			super(downcast<DesktopConfig>({}))
-		}
+	const themeFacadeInstance = new (class implements ThemeFacade {
 
-		async getSelectedThemeId(): Promise<ThemeId | null> {
+		async getSelectedTheme(): Promise<ThemeId | null> {
 			return "light"
 		}
 
-		async setSelectedThemeId(themeId: ThemeId) {
+		async setSelectedTheme(themeId: ThemeId) {
 		}
 
 		async getThemes(): Promise<Array<Theme>> {
@@ -291,7 +289,11 @@ o.spec("ApplicationWindow Test", function () {
 		const langMock = n.mock("../misc/LanguageViewModel", lang).set()
 		// instances
 		const wmMock = n.mock<WindowManager>("__wm", wm).set()
-		const themeManagerMock = n.mock<ThemeManager>("__themeManager", themeManager).set()
+		const themeFacade = n.mock<DesktopThemeFacade>("__themeFacade", themeFacadeInstance).set()
+		const nativeInterface = n.mock<NativeInterface>(
+			"__nativeInterface",
+			{invokeNative: (requestType: string, args: Array<any>) => Promise.resolve()}
+		).set()
 		const offlineDbFacade = object<OfflineDbFacade>()
 		return {
 			electronMock,
@@ -299,21 +301,24 @@ o.spec("ApplicationWindow Test", function () {
 			desktopTrayMock,
 			langMock,
 			wmMock,
-			themeManagerMock,
+			themeFacade,
 			offlineDbFacade,
+			nativeInterface,
 		}
 	}
 
 	o("construction", async function () {
-		const {electronMock, wmMock, electronLocalshortcutMock, themeManagerMock, offlineDbFacade} = standardMocks()
+		const {electronMock, wmMock, electronLocalshortcutMock, offlineDbFacade, themeFacade, nativeInterface} = standardMocks()
+		const nativeInterfaceFactory = (id) => nativeInterface
 		const w = new ApplicationWindow(
 			wmMock,
 			desktopHtml,
 			icon,
 			electronMock,
 			electronLocalshortcutMock,
-			themeManagerMock,
+			themeFacade,
 			offlineDbFacade,
+			nativeInterfaceFactory,
 			"dictUrl",
 		)
 		o(electronMock.BrowserWindow.mockedInstances.length).equals(1)
@@ -321,7 +326,7 @@ o.spec("ApplicationWindow Test", function () {
 		// We load some things async before loading URL so we wait for it. __loadedUrl comes from our mock
 		await (bwInstance as any).__loadedUrl.promise
 		o(bwInstance.loadURL.callCount).equals(1)
-		const theme = await themeManager.getCurrentThemeWithFallback()
+		const theme = await themeFacade.getCurrentThemeWithFallback()
 		const themeJson = JSON.stringify(theme)
 		const query = new URLSearchParams({
 			noAutoLogin: "false",
@@ -379,7 +384,8 @@ o.spec("ApplicationWindow Test", function () {
 		])("webContents registered callbacks dont match")
 	})
 	o("construction, noAutoLogin", async function () {
-		const {electronMock, wmMock, electronLocalshortcutMock, themeManagerMock, offlineDbFacade} = standardMocks()
+		const {electronMock, wmMock, electronLocalshortcutMock, offlineDbFacade, themeFacade, nativeInterface} = standardMocks()
+		const nativeInterfaceFactory = (id) => nativeInterface
 		// noAutoLogin=true
 		const w2 = new ApplicationWindow(
 			wmMock,
@@ -387,15 +393,16 @@ o.spec("ApplicationWindow Test", function () {
 			icon,
 			electronMock,
 			electronLocalshortcutMock,
-			themeManagerMock,
+			themeFacade,
 			offlineDbFacade,
+			nativeInterfaceFactory,
 			"dictUrl",
 			true,
 		)
 		const bwInstance2 = electronMock.BrowserWindow.mockedInstances[0]
 		await bwInstance2.__loadedUrl.promise
 		o(bwInstance2.loadURL.callCount).equals(1)
-		const themeJson = JSON.stringify(await themeManagerMock.getCurrentThemeWithFallback())
+		const themeJson = JSON.stringify(await themeFacade.getCurrentThemeWithFallback())
 		const url = new URL(bwInstance2.loadURL.args[0])
 		o(url.searchParams.get("noAutoLogin")).equals("true")
 		o(url.searchParams.get("platformId")).equals(process.platform)
@@ -404,15 +411,17 @@ o.spec("ApplicationWindow Test", function () {
 	})
 
 	o("redirect to start page after failing to load a page due to 404", async function () {
-		const {wmMock, electronMock, electronLocalshortcutMock, themeManagerMock, offlineDbFacade,} = standardMocks()
+		const {wmMock, electronMock, electronLocalshortcutMock, offlineDbFacade, themeFacade, nativeInterface} = standardMocks()
+		const nativeInterfaceFactory = (id) => nativeInterface
 		const w = new ApplicationWindow(
 			wmMock,
 			desktopHtml,
 			icon,
 			electronMock,
 			electronLocalshortcutMock,
-			themeManagerMock,
+			themeFacade,
 			offlineDbFacade,
+			nativeInterfaceFactory,
 			"dictUrl",
 		)
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
@@ -421,7 +430,7 @@ o.spec("ApplicationWindow Test", function () {
 		bwInstance.webContents.callbacks["did-fail-load"]({}, -6, "ERR_FILE_NOT_FOUND")
 		await bwInstance.__loadedUrl.promise
 		o(bwInstance.loadURL.callCount).equals(2)
-		const themeJson = JSON.stringify(await themeManagerMock.getCurrentThemeWithFallback())
+		const themeJson = JSON.stringify(await themeFacade.getCurrentThemeWithFallback())
 		const url = new URL(bwInstance.loadURL.args[0])
 		o(url.searchParams.get("noAutoLogin")).equals("true")
 		o(url.searchParams.get("theme")).equals(themeJson)
@@ -432,15 +441,17 @@ o.spec("ApplicationWindow Test", function () {
 
 	o("shortcut creation, linux", function () {
 		n.setPlatform("linux")
-		const {electronLocalshortcutMock, wmMock, electronMock, themeManagerMock, offlineDbFacade,} = standardMocks()
+		const {electronLocalshortcutMock, wmMock, electronMock, themeFacade, offlineDbFacade, nativeInterface} = standardMocks()
+		const nativeInterfaceFactory = (id) => nativeInterface
 		const w = new ApplicationWindow(
 			wmMock,
 			desktopHtml,
 			icon,
 			electronMock,
 			electronLocalshortcutMock,
-			themeManagerMock,
+			themeFacade,
 			offlineDbFacade,
+			nativeInterfaceFactory,
 			"dictUrl",
 		)
 		downcast(w._browserWindow.webContents).callbacks["did-finish-load"]()
@@ -458,15 +469,17 @@ o.spec("ApplicationWindow Test", function () {
 	})
 	o("shortcut creation, windows", function () {
 		n.setPlatform("win32")
-		const {electronLocalshortcutMock, wmMock, electronMock, themeManagerMock, offlineDbFacade,} = standardMocks()
+		const {electronLocalshortcutMock, wmMock, electronMock, themeFacade, offlineDbFacade, nativeInterface} = standardMocks()
+		const nativeInterfaceFactory = (id) => nativeInterface
 		const w = new ApplicationWindow(
 			wmMock,
 			desktopHtml,
 			icon,
 			electronMock,
 			electronLocalshortcutMock,
-			themeManagerMock,
+			themeFacade,
 			offlineDbFacade,
+			nativeInterfaceFactory,
 			"dictUrl",
 		)
 		downcast(w._browserWindow.webContents).callbacks["did-finish-load"]()
@@ -484,15 +497,17 @@ o.spec("ApplicationWindow Test", function () {
 	})
 	o("shortcut creation, mac", function () {
 		n.setPlatform("darwin")
-		const {electronLocalshortcutMock, wmMock, electronMock, themeManagerMock, offlineDbFacade,} = standardMocks()
+		const {electronLocalshortcutMock, wmMock, electronMock, themeFacade, offlineDbFacade, nativeInterface} = standardMocks()
+		const nativeInterfaceFactory = (id) => nativeInterface
 		const w = new ApplicationWindow(
 			wmMock,
 			desktopHtml,
 			icon,
 			electronMock,
 			electronLocalshortcutMock,
-			themeManagerMock,
+			themeFacade,
 			offlineDbFacade,
+			nativeInterfaceFactory,
 			"dictUrl",
 		)
 		downcast(w._browserWindow.webContents).callbacks["did-finish-load"]()
@@ -504,65 +519,123 @@ o.spec("ApplicationWindow Test", function () {
 			"Command+Control+F",
 		])
 	})
-	o("shortcuts are used, linux & win", async function () {
-		n.setPlatform("linux")
-		const {electronMock, electronLocalshortcutMock, wmMock, themeManagerMock, offlineDbFacade,} = standardMocks()
-		const w = new ApplicationWindow(
-			wmMock,
-			desktopHtml,
-			icon,
-			electronMock,
-			electronLocalshortcutMock,
-			themeManagerMock,
-			offlineDbFacade,
-			"dictUrl",
-		)
-		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
-		;(bwInstance.webContents as any).callbacks["did-finish-load"]()
-		// ApplicationWindow waits for IPC and this is a reliable way to also wait for it
-		await wmMock.ipc.initialized(bwInstance.id)
-		// call all the shortcut callbacks
-		electronLocalshortcutMock.callbacks["Control+F"]()
-		o(wmMock.ipc.sendRequest.callCount).equals(2)
-		o(wmMock.ipc.sendRequest.args).deepEquals([w.id, "openFindInPage", []])
-		electronLocalshortcutMock.callbacks["Control+P"]()
-		o(wmMock.ipc.sendRequest.callCount).equals(3)
-		o(wmMock.ipc.sendRequest.args).deepEquals([w.id, "print", []])
-		electronLocalshortcutMock.callbacks["F12"]()
-		o(bwInstance.webContents.isDevToolsOpened.callCount).equals(1)
-		o(bwInstance.webContents.openDevTools.callCount).equals(1)
-		o(bwInstance.webContents.closeDevTools.callCount).equals(0)
-		bwInstance.webContents.devToolsOpened = true
-		electronLocalshortcutMock.callbacks["F12"]()
-		o(bwInstance.webContents.isDevToolsOpened.callCount).equals(2)
-		o(bwInstance.webContents.openDevTools.callCount).equals(1)
-		o(bwInstance.webContents.closeDevTools.callCount).equals(1)
-		electronLocalshortcutMock.callbacks["Control+H"]()
-		o(wmMock.minimize.callCount).equals(1)
-		electronLocalshortcutMock.callbacks["Control+N"]()
-		o(wmMock.newWindow.callCount).equals(1)
-		o(wmMock.newWindow.args[0]).equals(true)
-		electronLocalshortcutMock.callbacks["F11"]()
-		o(bwInstance.setFullScreen.callCount).equals(1)
-		o(bwInstance.isFullScreen.callCount).equals(1)
-		o(bwInstance.setFullScreen.args[0]).equals(true)
-		electronLocalshortcutMock.callbacks["Alt+Left"]()
-		o(bwInstance.webContents.goBack.callCount).equals(1)
-		electronLocalshortcutMock.callbacks["Alt+Right"]()
-		o(bwInstance.webContents.goForward.callCount).equals(1)
+
+	function testShortcut(shortcuts: Array<string>, assertion: (sm: ReturnType<typeof standardMocks>) => void) {
+		o("[" + shortcuts.join(" >> ") + "]", async function () {
+			const sm = standardMocks()
+			const {electronMock, electronLocalshortcutMock, wmMock, themeFacade, offlineDbFacade, nativeInterface} = sm
+			const nativeInterfaceFactory = (id) => nativeInterface
+			const w = new ApplicationWindow(
+				wmMock,
+				desktopHtml,
+				icon,
+				electronMock,
+				electronLocalshortcutMock,
+				themeFacade,
+				offlineDbFacade,
+				nativeInterfaceFactory,
+				"dictUrl",
+			)
+			const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+			;(bwInstance.webContents as any).callbacks["did-finish-load"]()
+			// ApplicationWindow waits for IPC and this is a reliable way to also wait for it
+			await wmMock.ipc.initialized(bwInstance.id)
+			for (const shortcut of shortcuts) {
+				electronLocalshortcutMock.callbacks[shortcut]()
+			}
+			assertion(sm)
+		})
+	}
+
+	o.spec("shortcuts are used, linux & win", async function () {
+		o.beforeEach(() => n.setPlatform("linux"))
+		testShortcut(["Control+F"], ({nativeInterface}) => {
+			o(nativeInterface.invokeNative.callCount).equals(2)
+			o(nativeInterface.invokeNative.args).deepEquals(["ipc", ["DesktopFacade", "openFindInPage"]])
+		})
+		testShortcut(["Control+P"], ({nativeInterface}) => {
+			o(nativeInterface.invokeNative.callCount).equals(2)
+			o(nativeInterface.invokeNative.args).deepEquals(["ipc", ["DesktopFacade", "print"]])
+		})
+		testShortcut(["F12"], ({electronMock}) => {
+			const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+			o(bwInstance.webContents.isDevToolsOpened.callCount).equals(1)
+			o(bwInstance.webContents.openDevTools.callCount).equals(1)
+			o(bwInstance.webContents.closeDevTools.callCount).equals(0)
+			bwInstance.webContents.devToolsOpened = true
+		})
+		testShortcut(["F12", "F12"], ({electronMock}) => {
+			const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+			o(bwInstance.webContents.isDevToolsOpened.callCount).equals(2)
+			o(bwInstance.webContents.openDevTools.callCount).equals(1)
+			o(bwInstance.webContents.closeDevTools.callCount).equals(1)
+		})
+
+		testShortcut(["Control+H"], ({wmMock}) => o(wmMock.minimize.callCount).equals(1))
+		testShortcut(["Control+N"], ({wmMock}) => {
+			o(wmMock.newWindow.callCount).equals(1)
+			o(wmMock.newWindow.args[0]).equals(true)
+		})
+		testShortcut(["F11"], ({electronMock}) => {
+			const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+			o(bwInstance.setFullScreen.callCount).equals(1)
+			o(bwInstance.isFullScreen.callCount).equals(1)
+			o(bwInstance.setFullScreen.args[0]).equals(true)
+		})
+		testShortcut(["Alt+Left"], ({electronMock}) => {
+			const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+			o(bwInstance.webContents.goBack.callCount).equals(1)
+		})
+		testShortcut(["Alt+Right"], ({electronMock}) => {
+			const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+			o(bwInstance.webContents.goForward.callCount).equals(1)
+		})
+	})
+
+	o.spec("shortcuts are used, mac", async function () {
+		o.beforeEach(() => n.setPlatform("darwin"))
+		testShortcut(["Command+F"], ({nativeInterface}) => {
+			o(nativeInterface.invokeNative.callCount).equals(2)
+			o(nativeInterface.invokeNative.args).deepEquals(["ipc", ["DesktopFacade", "openFindInPage"]])
+		})
+		testShortcut(["Command+P"], ({nativeInterface}) => {
+			o(nativeInterface.invokeNative.callCount).equals(2)
+			o(nativeInterface.invokeNative.args).deepEquals(["ipc", ["DesktopFacade", "print"]])
+		})
+		testShortcut(["F12"], ({electronMock}) => {
+			const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+			o(bwInstance.webContents.isDevToolsOpened.callCount).equals(1)
+			o(bwInstance.webContents.openDevTools.callCount).equals(1)
+			o(bwInstance.webContents.closeDevTools.callCount).equals(0)
+			bwInstance.webContents.devToolsOpened = true
+		})
+		testShortcut(["F12", "F12"], ({electronMock}) => {
+			const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+			o(bwInstance.webContents.isDevToolsOpened.callCount).equals(2)
+			o(bwInstance.webContents.openDevTools.callCount).equals(1)
+			o(bwInstance.webContents.closeDevTools.callCount).equals(1)
+		})
+		testShortcut(["Command+Control+F"], ({electronMock}) => {
+			const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+			o(bwInstance.setFullScreen.callCount).equals(1)
+			o(bwInstance.isFullScreen.callCount).equals(1)
+			o(bwInstance.setFullScreen.args[0]).equals(true)
+		})
 	})
 
 	o("shortcuts are set on window reload", async function () {
 		n.setPlatform("linux")
-		const {electronMock, electronLocalshortcutMock, wmMock, themeManagerMock, offlineDbFacade,} = standardMocks()
+		const {electronMock, electronLocalshortcutMock, wmMock, themeFacade, offlineDbFacade, nativeInterface} = standardMocks()
+		const nativeInterfaceFactory = (id) => nativeInterface
 		const w = new ApplicationWindow(
 			wmMock,
 			desktopHtml,
 			icon,
 			electronMock,
 			electronLocalshortcutMock,
-			themeManagerMock,
+			themeFacade,
 			offlineDbFacade,
+			nativeInterfaceFactory,
 			"dictUrl",
 		)
 		o(wmMock.ipc.sendRequest.callCount).equals(0)
@@ -571,8 +644,8 @@ o.spec("ApplicationWindow Test", function () {
 		o(wmMock.ipc.sendRequest.callCount).equals(0)
 		// ApplicationWindow waits for IPC and this is a reliable way to also wait for it
 		await wmMock.ipc.initialized(bwInstance.id)
-		o(wmMock.ipc.sendRequest.callCount).equals(1)
-		o(wmMock.ipc.sendRequest.calls[0].args[1]).equals("addShortcuts")
+		o(nativeInterface.invokeNative.callCount).equals(1)
+		o(nativeInterface.invokeNative.calls[0].args[1][1]).equals("addShortcuts")
 		// Simulating reload from here
 		// Reset IPC
 		const initialized = defer<void>()
@@ -581,55 +654,18 @@ o.spec("ApplicationWindow Test", function () {
 
 		bwInstance.webContents.callbacks["did-finish-load"]()
 		// Still equals 1, ipc is not ready yet
-		o(wmMock.ipc.sendRequest.callCount).equals(1)
+		o(nativeInterface.invokeNative.callCount).equals(1)
 		// Init IPC
 		initialized.resolve()
 		await initialized.promise
 		// Shortcuts should be added again because page has been reloaded
-		o(wmMock.ipc.sendRequest.callCount).equals(2)
-		o(wmMock.ipc.sendRequest.calls[1].args[1]).equals("addShortcuts")
-	})
-
-	o("shortcuts are used, mac", async function () {
-		n.setPlatform("darwin")
-		const {electronMock, electronLocalshortcutMock, wmMock, themeManagerMock, offlineDbFacade,} = standardMocks()
-		const w = new ApplicationWindow(
-			wmMock,
-			desktopHtml,
-			icon,
-			electronMock,
-			electronLocalshortcutMock,
-			themeManagerMock,
-			offlineDbFacade,
-			"dictUrl",
-		)
-		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
-		bwInstance.webContents.callbacks["did-finish-load"]()
-		await wmMock.ipc.initialized(bwInstance.id)
-		// call all the shortcut callbacks
-		electronLocalshortcutMock.callbacks["Command+F"]()
-		o(wmMock.ipc.sendRequest.callCount).equals(2)
-		o(wmMock.ipc.sendRequest.args).deepEquals([w.id, "openFindInPage", []])
-		electronLocalshortcutMock.callbacks["Command+P"]()
-		o(wmMock.ipc.sendRequest.callCount).equals(3)
-		o(wmMock.ipc.sendRequest.args).deepEquals([w.id, "print", []])
-		electronLocalshortcutMock.callbacks["F12"]()
-		o(bwInstance.webContents.isDevToolsOpened.callCount).equals(1)
-		o(bwInstance.webContents.openDevTools.callCount).equals(1)
-		o(bwInstance.webContents.closeDevTools.callCount).equals(0)
-		bwInstance.webContents.devToolsOpened = true
-		electronLocalshortcutMock.callbacks["F12"]()
-		o(bwInstance.webContents.isDevToolsOpened.callCount).equals(2)
-		o(bwInstance.webContents.openDevTools.callCount).equals(1)
-		o(bwInstance.webContents.closeDevTools.callCount).equals(1)
-		electronLocalshortcutMock.callbacks["Command+Control+F"]()
-		o(bwInstance.setFullScreen.callCount).equals(1)
-		o(bwInstance.isFullScreen.callCount).equals(1)
-		o(bwInstance.setFullScreen.args[0]).equals(true)
+		o(nativeInterface.invokeNative.callCount).equals(2)
+		o(nativeInterface.invokeNative.calls[1].args[1][1]).equals("addShortcuts")
 	})
 
 	o("will-navigate", function () {
-		const {electronMock, wmMock, electronLocalshortcutMock, themeManagerMock, offlineDbFacade,} = standardMocks()
+		const {electronMock, wmMock, electronLocalshortcutMock, themeFacade, offlineDbFacade, nativeInterface} = standardMocks()
+		const nativeInterfaceFactory = (id) => nativeInterface
 		const e = {
 			preventDefault: o.spy(),
 		}
@@ -639,8 +675,9 @@ o.spec("ApplicationWindow Test", function () {
 			icon,
 			electronMock,
 			electronLocalshortcutMock,
-			themeManagerMock,
+			themeFacade,
 			offlineDbFacade,
+			nativeInterfaceFactory,
 			"dictUrl",
 		)
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
@@ -649,15 +686,17 @@ o.spec("ApplicationWindow Test", function () {
 	})
 
 	o("attaching webView is denied", function () {
-		const {electronMock, wmMock, electronLocalshortcutMock, themeManagerMock, offlineDbFacade,} = standardMocks()
+		const {electronMock, wmMock, electronLocalshortcutMock, themeFacade, offlineDbFacade, nativeInterface} = standardMocks()
+		const nativeInterfaceFactory = (id) => nativeInterface
 		const w = new ApplicationWindow(
 			wmMock,
 			desktopHtml,
 			icon,
 			electronMock,
 			electronLocalshortcutMock,
-			themeManagerMock,
+			themeFacade,
 			offlineDbFacade,
+			nativeInterfaceFactory,
 			"dictUrl",
 		)
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
@@ -683,15 +722,17 @@ o.spec("ApplicationWindow Test", function () {
 		o.beforeEach(function () {
 			const sm = standardMocks()
 			electronMock = sm.electronMock
-			let {wmMock, electronLocalshortcutMock, themeManagerMock, offlineDbFacade,} = sm
+			let {wmMock, electronLocalshortcutMock, themeFacade, offlineDbFacade, nativeInterface} = sm
+			const nativeInterfaceFactory = (id) => nativeInterface
 			new ApplicationWindow(
 				wmMock,
 				desktopHtml,
 				icon,
 				electronMock,
 				electronLocalshortcutMock,
-				themeManagerMock,
+				themeFacade,
 				offlineDbFacade,
+				nativeInterfaceFactory,
 				"dictUrl",
 			)
 			bwInstance = electronMock.BrowserWindow.mockedInstances[0]
@@ -755,15 +796,17 @@ o.spec("ApplicationWindow Test", function () {
 		})
 	})
 	o("sendMessageToWebContents checks if webContents is there", async function () {
-		const {electronMock, wmMock, electronLocalshortcutMock, themeManagerMock, offlineDbFacade,} = standardMocks()
+		const {electronMock, wmMock, electronLocalshortcutMock, themeFacade, offlineDbFacade, nativeInterface} = standardMocks()
+		const nativeInterfaceFactory = (id) => nativeInterface
 		const w = new ApplicationWindow(
 			wmMock,
 			desktopHtml,
 			icon,
 			electronMock,
 			electronLocalshortcutMock,
-			themeManagerMock,
+			themeFacade,
 			offlineDbFacade,
+			nativeInterfaceFactory,
 			"dictUrl",
 		)
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
@@ -797,15 +840,17 @@ o.spec("ApplicationWindow Test", function () {
 		o(bwInstance.webContents.send.callCount).equals(3)
 	})
 	o("context-menu is passed to handler", function () {
-		const {electronMock, wmMock, electronLocalshortcutMock, themeManagerMock, offlineDbFacade,} = standardMocks()
+		const {electronMock, wmMock, electronLocalshortcutMock, themeFacade, offlineDbFacade, nativeInterface} = standardMocks()
+		const nativeInterfaceFactory = (id) => nativeInterface
 		const w = new ApplicationWindow(
 			wmMock,
 			desktopHtml,
 			icon,
 			electronMock,
 			electronLocalshortcutMock,
-			themeManagerMock,
+			themeFacade,
 			offlineDbFacade,
+			nativeInterfaceFactory,
 			"dictUrl",
 		)
 		const handlerMock = n.spyify(() => {
@@ -830,15 +875,17 @@ o.spec("ApplicationWindow Test", function () {
 		])
 	})
 	o("openMailbox sends mailbox info and shows window", function (done) {
-		const {electronMock, wmMock, electronLocalshortcutMock, themeManagerMock, offlineDbFacade,} = standardMocks()
+		const {electronMock, wmMock, electronLocalshortcutMock, themeFacade, offlineDbFacade, nativeInterface} = standardMocks()
+		const nativeInterfaceFactory = (id) => nativeInterface
 		const w = new ApplicationWindow(
 			wmMock,
 			desktopHtml,
 			icon,
 			electronMock,
 			electronLocalshortcutMock,
-			themeManagerMock,
+			themeFacade,
 			offlineDbFacade,
+			nativeInterfaceFactory,
 			"dictUrl",
 		)
 		w.openMailBox(
@@ -851,10 +898,9 @@ o.spec("ApplicationWindow Test", function () {
 		setTimeout(() => {
 			o(wmMock.ipc.initialized.callCount).equals(1)
 			o(wmMock.ipc.initialized.args[0]).equals(w.id)
-			o(wmMock.ipc.sendRequest.callCount).equals(1)
-			o(wmMock.ipc.sendRequest.args[0]).equals(w.id)
-			o(wmMock.ipc.sendRequest.args[1]).equals("openMailbox")
-			o(wmMock.ipc.sendRequest.args[2]).deepEquals(["userId", "a@b.c", "path"])
+			o(nativeInterface.invokeNative.callCount).equals(1)
+			o(nativeInterface.invokeNative.args[0]).equals("ipc")
+			o(nativeInterface.invokeNative.args[1]).deepEquals(["CommonNativeFacade", "openMailBox", "userId", "a@b.c", "path"])
 			o(electronMock.BrowserWindow.mockedInstances[0].show.callCount).equals(1)
 			done()
 		}, 10)
@@ -862,15 +908,17 @@ o.spec("ApplicationWindow Test", function () {
 	o("setBounds and getBounds", function (done) {
 		o.timeout(300)
 		n.setPlatform("linux")
-		const {electronMock, wmMock, electronLocalshortcutMock, themeManagerMock, offlineDbFacade,} = standardMocks()
+		const {electronMock, wmMock, electronLocalshortcutMock, themeFacade, offlineDbFacade, nativeInterface} = standardMocks()
+		const nativeInterfaceFactory = (id) => nativeInterface
 		const w = new ApplicationWindow(
 			wmMock,
 			desktopHtml,
 			icon,
 			electronMock,
 			electronLocalshortcutMock,
-			themeManagerMock,
+			themeFacade,
 			offlineDbFacade,
+			nativeInterfaceFactory,
 			"dictUrl",
 		)
 		o(w.getBounds()).deepEquals({
@@ -956,15 +1004,17 @@ o.spec("ApplicationWindow Test", function () {
 		}, 250)
 	})
 	o("findInPage, setSearchOverlayState & stopFindInPage", function () {
-		const {electronMock, wmMock, electronLocalshortcutMock, themeManagerMock, offlineDbFacade,} = standardMocks()
+		const {electronMock, wmMock, electronLocalshortcutMock, themeFacade, offlineDbFacade, nativeInterface} = standardMocks()
+		const nativeInterfaceFactory = (id) => nativeInterface
 		const w = new ApplicationWindow(
 			wmMock,
 			desktopHtml,
 			icon,
 			electronMock,
 			electronLocalshortcutMock,
-			themeManagerMock,
+			themeFacade,
 			offlineDbFacade,
+			nativeInterfaceFactory,
 			"dictUrl",
 		)
 		const wcMock = electronMock.BrowserWindow.mockedInstances[0].webContents
@@ -1028,15 +1078,17 @@ o.spec("ApplicationWindow Test", function () {
 	})
 
 	o("getPath returns correct substring", function () {
-		const {electronMock, wmMock, electronLocalshortcutMock, themeManagerMock, offlineDbFacade,} = standardMocks()
+		const {electronMock, wmMock, electronLocalshortcutMock, themeFacade, offlineDbFacade, nativeInterface} = standardMocks()
+		const nativeInterfaceFactory = (id) => nativeInterface
 		const w = new ApplicationWindow(
 			wmMock,
 			desktopHtml,
 			icon,
 			electronMock,
 			electronLocalshortcutMock,
-			themeManagerMock,
+			themeFacade,
 			offlineDbFacade,
+			nativeInterfaceFactory,
 			"dictUrl",
 		)
 		const wcMock = electronMock.BrowserWindow.mockedInstances[0].webContents
@@ -1052,15 +1104,17 @@ o.spec("ApplicationWindow Test", function () {
 		o(w.getPath()).equals("desktophtml/meh/more")
 	})
 	o("show", function () {
-		const {electronMock, wmMock, electronLocalshortcutMock, themeManagerMock, offlineDbFacade,} = standardMocks()
+		const {electronMock, wmMock, electronLocalshortcutMock, themeFacade, offlineDbFacade, nativeInterface} = standardMocks()
+		const nativeInterfaceFactory = (id) => nativeInterface
 		const w = new ApplicationWindow(
 			wmMock,
 			desktopHtml,
 			icon,
 			electronMock,
 			electronLocalshortcutMock,
-			themeManagerMock,
+			themeFacade,
 			offlineDbFacade,
+			nativeInterfaceFactory,
 			"dictUrl",
 		)
 		const bwMock = electronMock.BrowserWindow.mockedInstances[0]
@@ -1093,15 +1147,17 @@ o.spec("ApplicationWindow Test", function () {
 	o(
 		"on, once, getTitle, setZoomFactor, isFullScreen, isMinimized, minimize, hide, center, showInactive, isFocused",
 		function () {
-			const {electronMock, wmMock, electronLocalshortcutMock, themeManagerMock, offlineDbFacade,} = standardMocks()
+			const {electronMock, wmMock, electronLocalshortcutMock, themeFacade, offlineDbFacade, nativeInterface} = standardMocks()
+			const nativeInterfaceFactory = (id) => nativeInterface
 			const w = new ApplicationWindow(
 				wmMock,
 				desktopHtml,
 				icon,
 				electronMock,
 				electronLocalshortcutMock,
-				themeManagerMock,
+				themeFacade,
 				offlineDbFacade,
+				nativeInterfaceFactory,
 				"dictUrl",
 			)
 			const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
@@ -1141,15 +1197,17 @@ o.spec("ApplicationWindow Test", function () {
 	)
 
 	o("when closing, database is closed", function () {
-		const {electronMock, wmMock, electronLocalshortcutMock, themeManagerMock, offlineDbFacade} = standardMocks()
+		const {electronMock, wmMock, electronLocalshortcutMock, themeFacade, offlineDbFacade, nativeInterface} = standardMocks()
+		const nativeInterfaceFactory = (id) => nativeInterface
 		const w = new ApplicationWindow(
 			wmMock,
 			desktopHtml,
 			icon,
 			electronMock,
 			electronLocalshortcutMock,
-			themeManagerMock,
+			themeFacade,
 			offlineDbFacade,
+			nativeInterfaceFactory,
 			"dictUrl",
 		)
 		const userId = "123"
@@ -1161,15 +1219,17 @@ o.spec("ApplicationWindow Test", function () {
 	})
 
 	o("when reloading, database is closed", async function () {
-		const {electronMock, wmMock, electronLocalshortcutMock, themeManagerMock, offlineDbFacade} = standardMocks()
+		const {electronMock, wmMock, electronLocalshortcutMock, offlineDbFacade, themeFacade, nativeInterface} = standardMocks()
+		const nativeInterfaceFactory = (id) => nativeInterface
 		const w = new ApplicationWindow(
 			wmMock,
 			desktopHtml,
 			icon,
 			electronMock,
 			electronLocalshortcutMock,
-			themeManagerMock,
+			themeFacade,
 			offlineDbFacade,
+			nativeInterfaceFactory,
 			"dictUrl",
 		)
 		const userId = "123"

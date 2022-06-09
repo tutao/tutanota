@@ -12,7 +12,7 @@ export type JsMessageHandler = (message: JsMessage) => unknown
  * @param message
  */
 export function encodeNativeMessage(message: NativeMessage): string {
-	let encodedMessage = []
+	let encodedMessage: Array<string> = []
 	encodedMessage.push(message.type)
 	encodedMessage.push(message.id)
 	switch (message.type) {

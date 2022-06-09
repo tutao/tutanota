@@ -97,7 +97,6 @@ import "./file/FileControllerTest.js"
 import "./api/worker/offline/OfflineStorageMigratorTest.js"
 import "./api/worker/rest/CustomCacheHandlerTest.js"
 import "./misc/RecipientsModelTest.js"
-
 import * as td from "testdouble"
 import {random} from "@tutao/tutanota-crypto"
 import {Mode} from "../../src/api/common/Env.js"
