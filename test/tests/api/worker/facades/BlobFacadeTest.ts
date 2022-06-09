@@ -302,7 +302,7 @@ o.spec("BlobFacade test", function () {
 			const mapperMock = func<Mapper<string, object>>()
 			const expectedResult = {response: "response-from-server"}
 			when(mapperMock(anything(), anything())).thenResolve(expectedResult)
-			const result = await facade.tryServers(servers, mapperMock, "error")
+			const result = await facade.tryServers(servers, mapperMock, "error", HttpMethod.GET)
 			o(result).equals(expectedResult)
 			verify(mapperMock("w1", 0), {times: 1})
 			verify(mapperMock("w2", 1), {times: 0})
@@ -312,7 +312,7 @@ o.spec("BlobFacade test", function () {
 			let servers = [createBlobServerUrl({url: "w1"}), createBlobServerUrl({url: "w2"})]
 			const mapperMock = func<Mapper<string, object>>()
 			when(mapperMock("w1", 0)).thenReject(new ProgrammingError("test"))
-			const e = await assertThrows(ProgrammingError, () => facade.tryServers(servers, mapperMock, "error"))
+			const e = await assertThrows(ProgrammingError, () => facade.tryServers(servers, mapperMock, "error", HttpMethod.GET))
 			o(e.message).equals("test")
 			verify(mapperMock(anything(), anything()), {times: 1})
 		})
@@ -323,7 +323,7 @@ o.spec("BlobFacade test", function () {
 			const expectedResult = {response: "response-from-server"}
 			when(mapperMock("w1", 0)).thenReject(new ConnectionError("test"))
 			when(mapperMock("w2", 1)).thenResolve(expectedResult)
-			const result = await facade.tryServers(servers, mapperMock, "error")
+			const result = await facade.tryServers(servers, mapperMock, "error", HttpMethod.GET)
 			o(result).deepEquals(expectedResult)
 			verify(mapperMock(anything(), anything()), {times: 2})
 		})
@@ -333,7 +333,7 @@ o.spec("BlobFacade test", function () {
 			const mapperMock = func<Mapper<string, object>>()
 			when(mapperMock("w1", 0)).thenReject(new ConnectionError("test"))
 			when(mapperMock("w2", 1)).thenReject(new ConnectionError("test"))
-			const e = await assertThrows(ConnectionError, () => facade.tryServers(servers, mapperMock, "error log msg"))
+			const e = await assertThrows(ConnectionError, () => facade.tryServers(servers, mapperMock, "error log msg", HttpMethod.GET))
 			o(e.message).equals("test")
 			verify(mapperMock(anything(), anything()), {times: 2})
 		})

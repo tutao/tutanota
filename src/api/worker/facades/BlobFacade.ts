@@ -14,7 +14,7 @@ import {InstanceMapper} from "../crypto/InstanceMapper"
 import {Aes128Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
 import {Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper} from "../../entities/sys/TypeRefs.js"
 import {FileReference} from "../../common/utils/FileUtils"
-import {ConnectionError, handleRestError, InternalServerError} from "../../common/error/RestError"
+import {ConnectionError, handleRestError, InternalServerError, NotFoundError} from "../../common/error/RestError"
 import {Instance} from "../../common/EntityTypes"
 import {getElementId, getEtId, getListId, isElementEntity} from "../../common/utils/EntityUtils"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
@@ -226,7 +226,7 @@ export class BlobFacade {
 					baseUrl: serverUrl,
 				})
 			return await this.parseBlobPostOutResponse(response)
-		}, `can't upload to server`)
+		}, `can't upload to server`, HttpMethod.POST)
 	}
 
 	private async encryptAndUploadNativeChunk(fileUri: FileUri, blobAccessInfo: BlobServerAccessInfo, sessionKey: Aes128Key): Promise<BlobReferenceTokenWrapper> {
@@ -240,7 +240,7 @@ export class BlobFacade {
 			const serviceUrl = new URL(BLOB_SERVICE_REST_PATH, serverUrl)
 			const fullUrl = addParamsToUrl(serviceUrl, queryParams)
 			return await this.uploadNative(encryptedChunkUri, fullUrl);
-		}, `can't upload to server from native`)
+		}, `can't upload to server from native`, HttpMethod.POST)
 	}
 
 	private async uploadNative(location: string, fullUrl: URL): Promise<BlobReferenceTokenWrapper> {
@@ -295,7 +295,7 @@ export class BlobFacade {
 				noCORS: true,
 			})
 			return aes128Decrypt(sessionKey, data)
-		}, `can't download from server `)
+		}, `can't download from server `, HttpMethod.GET)
 	}
 
 	private async createParams(options: {blobAccessToken: string, blobHash?: string, _body?: string}) {
@@ -327,7 +327,7 @@ export class BlobFacade {
 
 		return this.tryServers(servers, async (serverUrl) => {
 			return await this.downloadNative(serverUrl, queryParams, sessionKey, blobFilename)
-		}, `can't download native from server `)
+		}, `can't download native from server `, HttpMethod.GET)
 	}
 
 	/**
@@ -373,7 +373,7 @@ export class BlobFacade {
 	 * successfully, the result is returned. In case of an ConnectionError, the next
 	 * server is tried. Throws in all other cases.
 	 */
-	async tryServers<T>(servers: BlobServerUrl[], mapper: Mapper<string, T>, errorMsg: string): Promise<T> {
+	async tryServers<T>(servers: BlobServerUrl[], mapper: Mapper<string, T>, errorMsg: string, method: string): Promise<T> {
 		let index = 0
 		let error: Error | null = null
 		for (const server of servers) {
@@ -381,7 +381,9 @@ export class BlobFacade {
 				return await mapper(server.url, index)
 			} catch (e) {
 				// InternalServerError is returned when accessing a corrupted archive, so we retry
-				if (e instanceof ConnectionError || e instanceof InternalServerError) {
+				if (e instanceof ConnectionError
+					|| e instanceof InternalServerError
+					|| (e instanceof NotFoundError && method === HttpMethod.GET)) {
 					console.log(`${errorMsg} ${server.url}`, e)
 					error = e
 				} else {
