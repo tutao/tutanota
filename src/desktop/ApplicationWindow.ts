@@ -11,7 +11,7 @@ import type {TranslationKey} from "../misc/LanguageViewModel"
 import {log} from "./DesktopLog"
 import {parseUrlOrNull} from "./PathUtils"
 import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
-import {ThemeManager} from "./ThemeManager"
+import {DesktopThemeFacade} from "./DesktopThemeFacade"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {ElectronExports} from "./ElectronExportTypes";
 import {OfflineDbFacade} from "./db/OfflineDbFacade"
@@ -48,7 +48,7 @@ export class ApplicationWindow {
 	private readonly _startFileURLString: string
 	private readonly _electron: ElectronExports
 	private readonly _localShortcut: LocalShortcutManager
-	private readonly _themeManager: ThemeManager
+	private readonly _themeFacade: DesktopThemeFacade
 	private readonly _startFileURL: URL
 	_browserWindow!: BrowserWindow
 
@@ -71,13 +71,13 @@ export class ApplicationWindow {
 		icon: NativeImage,
 		electron: typeof Electron.CrossProcessExports,
 		localShortcutManager: LocalShortcutManager,
-		themeManager: ThemeManager,
+		themeFacade: DesktopThemeFacade,
 		private readonly offlineDbFacade: OfflineDbFacade,
 		nativeInterfaceFactory: NativeInterfaceFactory,
 		dictUrl: string,
 		noAutoLogin?: boolean | null,
 	) {
-		this._themeManager = themeManager
+		this._themeFacade = themeFacade
 		this._userInfo = null
 		this._ipc = assertNotNull(wm.ipc)
 		this._electron = electron
@@ -188,7 +188,7 @@ export class ApplicationWindow {
 	}
 
 	async updateBackgroundColor() {
-		const theme = await this._themeManager.getCurrentThemeWithFallback()
+		const theme = await this._themeFacade.getCurrentThemeWithFallback()
 
 		if (theme) {
 			this._browserWindow.setBackgroundColor(theme.content_bg)
@@ -639,7 +639,7 @@ export class ApplicationWindow {
 		}
 
 		url.searchParams.append("platformId", process.platform)
-		const theme = await this._themeManager.getCurrentThemeWithFallback()
+		const theme = await this._themeFacade.getCurrentThemeWithFallback()
 		url.searchParams.append("theme", JSON.stringify(theme))
 		return url.toString()
 	}

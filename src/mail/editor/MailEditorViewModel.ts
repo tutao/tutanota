@@ -110,7 +110,7 @@ async function _downloadAttachment(attachment: Attachment) {
 		if (e instanceof FileOpenError) {
 			return Dialog.message("canNotOpenFileOnDevice_msg")
 		} else {
-			const msg = e || "unknown error"
+			const msg = e.message || "unknown error"
 			console.error("could not open file:", msg)
 			return Dialog.message("errorDuringFileOpen_msg")
 		}

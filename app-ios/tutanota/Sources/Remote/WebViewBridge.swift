@@ -9,11 +9,11 @@ class WebViewBridge : NSObject, NativeInterface {
   private let crypto: CryptoFacade
   private let fileFacade: FileFacade
   private let contactsSource: ContactsSource
-  private let themeManager: ThemeManager
   private let keychainManager: KeychainManager
   private let userPreferences: UserPreferenceFacade
   private let alarmManager: AlarmManager
   private let credentialsEncryption: CredentialsEncryption
+  private let globalDispatcher: IosGlobalDispatcher
   private let blobUtils: BlobUtil
   private var mobileFacade: MobileFacade!
   private var commonNativeFacade: CommonNativeFacade!
@@ -28,24 +28,24 @@ class WebViewBridge : NSObject, NativeInterface {
     viewController: ViewController,
     crypto: CryptoFacade,
     contactsSource: ContactsSource,
-    themeManager: ThemeManager,
     keychainManager: KeychainManager,
     userPreferences: UserPreferenceFacade,
     alarmManager: AlarmManager,
     fileFacade: FileFacade,
     credentialsEncryption: CredentialsEncryption,
-    blobUtils: BlobUtil
+    blobUtils: BlobUtil,
+    globalDispatcher: IosGlobalDispatcher
   ) {
     self.webView = webView
     self.viewController = viewController
     self.crypto = crypto
     self.contactsSource = contactsSource
-    self.themeManager = themeManager
     self.keychainManager = keychainManager
     self.userPreferences = userPreferences
     self.alarmManager = alarmManager
     self.fileFacade = fileFacade
     self.credentialsEncryption = credentialsEncryption
+    self.globalDispatcher = globalDispatcher
     self.blobUtils = blobUtils
     self.mobileFacade = nil
     self.commonNativeFacade = nil
@@ -153,6 +153,13 @@ class WebViewBridge : NSObject, NativeInterface {
 
   private func handleRequest(type: String, args encodedArgs: String) async throws -> Encodable? {
 
+    if (type == "ipc") {
+      let ipcArgs = encodedArgs.split(separator: "\n").map { String($0) }
+      let facade = try! JSONDecoder().decode(String.self, from: ipcArgs[0].data(using: .utf8)!)
+      let method = try! JSONDecoder().decode(String.self, from: ipcArgs[1].data(using: .utf8)!)
+      return try await self.globalDispatcher.dispatch(facadeName: facade, methodName: method, args: Array(ipcArgs[2..<ipcArgs.endIndex]))
+    }
+    
     let args = encodedArgs.split(separator: "\n").map { strArg in
       return try! JSONSerialization.jsonObject(with: strArg.data(using: .utf8)!, options: [.fragmentsAllowed])
     }
@@ -266,20 +273,6 @@ class WebViewBridge : NSObject, NativeInterface {
       case "scheduleAlarms":
         let alarms = try! EncryptedAlarmNotification.arrayFrom(nsArray: args[0] as! NSArray)
         try await self.alarmManager.processNewAlarms(alarms)
-        return nil
-      case "getSelectedTheme":
-        return self.themeManager.selectedThemeId
-      case "setSelectedTheme":
-        let themeId = args[0] as! String
-        self.themeManager.selectedThemeId = themeId
-        await self.viewController.applyTheme(self.themeManager.currentThemeWithFallback)
-        return nil
-      case "getThemes":
-        return self.themeManager.themes
-      case "setThemes":
-        let themes = args[0] as! [Theme]
-        self.themeManager.themes = themes
-        await self.viewController.applyTheme(self.themeManager.currentThemeWithFallback)
         return nil
       case "encryptUsingKeychain":
         let encryptionMode = CredentialEncryptionMode(rawValue: args[0] as! String)!

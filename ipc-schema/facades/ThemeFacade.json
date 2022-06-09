@@ -1,0 +1,24 @@
+{
+  "name": "ThemeFacade",
+  "type": "facade",
+  "senders": ["web"],
+  "receivers": ["ios", "desktop", "android"],
+  "methods": {
+	"getThemes": {
+	  "arg": [],
+	  "ret": "List<Map<string, string>>"
+	},
+	"setThemes": {
+	  "arg": [{"themes": "List<Map<string, string>>"}],
+	  "ret": "void"
+	},
+	"getSelectedTheme": {
+	  "arg": [],
+	  "ret": "string?"
+	},
+	"setSelectedTheme": {
+	  "arg": [{"themeId": "string"}],
+	  "ret": "void"
+	}
+  }
+}

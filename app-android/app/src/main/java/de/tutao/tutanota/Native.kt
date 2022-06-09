@@ -16,6 +16,7 @@ import de.tutao.tutanota.alarms.AlarmNotification
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutanota.credentials.CredentialEncryptionMode
 import de.tutao.tutanota.credentials.CredentialsEncryptionFactory
+import de.tutao.tutanota.ipc.AndroidGlobalDispatcher
 import de.tutao.tutanota.ipc.NativeInterface
 import de.tutao.tutanota.push.LocalNotificationsFacade
 import de.tutao.tutanota.push.SseStorage
@@ -41,8 +42,8 @@ class Native internal constructor(
 		private val activity: MainActivity,
 		private val sseStorage: SseStorage,
 		private val alarmNotificationsManager: AlarmNotificationsManager,
+		private val globalDispatcher: AndroidGlobalDispatcher,
 ) : NativeInterface {
-	val themeManager = ThemeManager(activity)
 
 	private val json = Json.Default
 	private val crypto = Crypto(activity)
@@ -172,6 +173,13 @@ class Native internal constructor(
 	private suspend fun invokeMethod(method: String, args: List<String>): String {
 		val jsonArray = makeCursedJsonArray(args)
 		Log.d(TAG, "method=$method with cursedJson: $jsonArray")
+		if (method == "ipc") {
+			return globalDispatcher.dispatch(
+					jsonArray.getString(0),
+					jsonArray.getString(1),
+					args.slice(2..args.lastIndex)
+			)
+		}
 
 		return when (method) {
 			"init" -> {
@@ -265,23 +273,6 @@ class Native internal constructor(
 				val contentInBase64 = jsonArray.getString(1)
 				File(activity.filesDir, filename).writeBytes(contentInBase64.base64ToBytes())
 				json.encodeToString(true)
-			}
-			"getSelectedTheme" -> json.encodeToString(themeManager.selectedThemeId)
-			"setSelectedTheme" -> {
-				val themeId = jsonArray.getString(0)
-				themeManager.selectedThemeId = themeId
-				activity.applyTheme()
-				json.encodeToString<Boolean?>(null)
-			}
-			"getThemes" -> {
-				val themesList = themeManager.themes
-				JSONArray(themesList).toString()
-			}
-			"setThemes" -> {
-				val jsonThemes = jsonArray.getJSONArray(0)
-				themeManager.setThemes(jsonThemes)
-				activity.applyTheme() // reapply theme in case the current selected theme definition has changed
-				json.encodeToString<Boolean?>(null)
 			}
 			"saveDataFile" -> json.encodeToString(files.saveDataFile(jsonArray.getString(0), jsonArray.getString(1)))
 			"putFileIntoDownloads" -> json.encodeToString(files.putInDownloadFolder(jsonArray.getString(0)))

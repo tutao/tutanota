@@ -2,7 +2,7 @@ import {deviceConfig} from "../misc/DeviceConfig"
 import {assertMainOrNodeBoot, isApp, isDesktop, isTest} from "../api/common/Env"
 import {downcast} from "@tutao/tutanota-utils"
 import type {HtmlSanitizer} from "../misc/HtmlSanitizer"
-import {NativeThemeStorage, ThemeController, WebThemeStorage} from "./ThemeController"
+import {NativeThemeFacade, ThemeController, WebThemeFacade} from "./ThemeController"
 import {isColorLight} from "./base/Color"
 import {logo_text_bright_grey, logo_text_dark_grey} from "./builtinThemes"
 import {getLogoSvg} from "./base/Logo"
@@ -52,7 +52,7 @@ export type Theme = {
 	navigation_menu_bg?: string
 	navigation_menu_icon?: string
 }
-const selectedThemeStorage = isApp() || isDesktop() ? new NativeThemeStorage() : new WebThemeStorage(deviceConfig)
+const selectedThemeFacade = isApp() || isDesktop() ? new NativeThemeFacade() : new WebThemeFacade(deviceConfig)
 // We need it because we want to run tests in node and real HTMLSanitizer does not work there.
 const sanitizerStub: Partial<HtmlSanitizer> = {
 	sanitizeHTML: () => {
@@ -71,7 +71,7 @@ const sanitizerStub: Partial<HtmlSanitizer> = {
 	}
 }
 export const themeController: ThemeController = new ThemeController(
-	selectedThemeStorage,
+	selectedThemeFacade,
 	isTest() ? () => Promise.resolve(downcast<HtmlSanitizer>(sanitizerStub)) : () => import("../misc/HtmlSanitizer").then(({htmlSanitizer}) => htmlSanitizer),
 )
 // ThemeManager.updateTheme updates the object in place, so this will always be current

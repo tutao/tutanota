@@ -6,7 +6,6 @@ import android.app.job.JobScheduler
 import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.net.MailTo
 import android.net.Uri
 import android.os.Bundle
@@ -23,7 +22,6 @@ import android.webkit.WebView
 import android.webkit.WebView.HitTestResult
 import android.webkit.WebViewClient
 import android.widget.Toast
-import androidx.annotation.ColorInt
 import androidx.annotation.MainThread
 import androidx.annotation.RequiresPermission
 import androidx.core.content.ContextCompat
@@ -32,19 +30,13 @@ import androidx.lifecycle.lifecycleScope
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutanota.alarms.SystemAlarmFacade
 import de.tutao.tutanota.data.AppDatabase
-import de.tutao.tutanota.ipc.CommonNativeFacade
-import de.tutao.tutanota.ipc.CommonNativeFacadeSendDispatcher
-import de.tutao.tutanota.ipc.MobileFacade
-import de.tutao.tutanota.ipc.MobileFacadeSendDispatcher
+import de.tutao.tutanota.ipc.*
 import de.tutao.tutanota.push.LocalNotificationsFacade
 import de.tutao.tutanota.push.PushNotificationService
 import de.tutao.tutanota.push.SseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
@@ -61,6 +53,7 @@ class MainActivity : FragmentActivity() {
 	lateinit var webView: WebView
 		private set
 	lateinit var sseStorage: SseStorage
+	lateinit var themeFacade: AndroidThemeFacade
 	lateinit var nativeImpl: Native
 	lateinit var mobileFacade: MobileFacade
 	lateinit var commonNativeFacade: CommonNativeFacade
@@ -77,12 +70,25 @@ class MainActivity : FragmentActivity() {
 		sseStorage = SseStorage(AppDatabase.getDatabase(this,  /*allowMainThreadAccess*/false),
 				keyStoreFacade)
 
-		val alarmNotificationsManager = AlarmNotificationsManager(sseStorage,
-				Crypto(this), SystemAlarmFacade(this), LocalNotificationsFacade(this))
+		val alarmNotificationsManager = AlarmNotificationsManager(
+				sseStorage,
+				Crypto(this),
+				SystemAlarmFacade(this),
+				LocalNotificationsFacade(this)
+		)
 
-		nativeImpl = Native(this, sseStorage, alarmNotificationsManager)
+		themeFacade = AndroidThemeFacade(this, this)
+		val globalDispatcher = AndroidGlobalDispatcher(
+				themeFacade
+		)
+		nativeImpl = Native(
+				this,
+				sseStorage,
+				alarmNotificationsManager,
+				globalDispatcher,
+		)
 
-		doApplyTheme(nativeImpl.themeManager.currentThemeWithFallback)
+		themeFacade.applyCurrentTheme()
 
 		super.onCreate(savedInstanceState)
 
@@ -167,7 +173,7 @@ class MainActivity : FragmentActivity() {
 
 	@MainThread
 	private fun startWebApp(parameters: MutableMap<String, String>) {
-		webView.loadUrl(getInitialUrl(parameters))
+		webView.loadUrl(getInitialUrl(parameters, themeFacade.currentThemeWithFallback))
 		nativeImpl.setup()
 	}
 
@@ -199,43 +205,6 @@ class MainActivity : FragmentActivity() {
 		webView.saveState(outState)
 	}
 
-	fun applyTheme() {
-		val theme = nativeImpl.themeManager.currentThemeWithFallback
-		runOnUiThread { doApplyTheme(theme) }
-	}
-
-	private fun doApplyTheme(theme: Theme) {
-		Log.d(TAG, "changeTheme: " + theme["themeId"])
-		@ColorInt val backgroundColor = parseColor(theme["content_bg"]!!)
-		window.setBackgroundDrawable(ColorDrawable(backgroundColor))
-
-		val decorView = window.decorView
-		val headerBg = theme["header_bg"]!!
-
-		@ColorInt val statusBarColor = parseColor(headerBg)
-		val isStatusBarLight = headerBg.isLightHexColor()
-		var visibilityFlags = 0
-		if (atLeastOreo()) {
-			window.navigationBarColor = statusBarColor
-			if (isStatusBarLight) {
-				visibilityFlags = visibilityFlags or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
-			}
-		}
-
-		// Changing status bar color
-		// Before Android M there was no flag to use lightStatusBar (so that text is white or
-		// black). As our primary color is red, Android thinks that the status bar color text
-		// should be white. So we cannot use white status bar color.
-		// So for Android M and above we alternate between white and dark status bar colors and
-		// we change lightStatusBar flag accordingly.
-		window.statusBarColor = statusBarColor
-		if (isStatusBarLight) {
-			visibilityFlags = visibilityFlags or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-		}
-
-		decorView.systemUiVisibility = visibilityFlags
-	}
-
 	suspend fun askBatteryOptinmizationsIfNeeded() {
 		val powerManager = getSystemService(POWER_SERVICE) as PowerManager
 		val preferences = PreferenceManager.getDefaultSharedPreferences(this)
@@ -263,8 +232,7 @@ class MainActivity : FragmentActivity() {
 		preferences.edit().putBoolean(ASKED_BATTERY_OPTIMIZTAIONS_PREF, true).apply()
 	}
 
-	private fun getInitialUrl(parameters: MutableMap<String, String>): String {
-		val theme = nativeImpl.themeManager.currentTheme
+	private fun getInitialUrl(parameters: MutableMap<String, String>, theme: Theme?): String {
 		if (theme != null) {
 			parameters["theme"] = JSONObject.wrap(theme)!!.toString()
 		}

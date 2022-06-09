@@ -2,7 +2,7 @@ import {lang} from "../misc/LanguageViewModel"
 import type {WindowManager} from "./DesktopWindowManager"
 import {objToError} from "../api/common/utils/Utils"
 import type {DeferredObject} from "@tutao/tutanota-utils"
-import {base64ToUint8Array, defer, downcast, getFromMap, mapNullable, noOp} from "@tutao/tutanota-utils"
+import {base64ToUint8Array, defer, downcast, getFromMap, noOp} from "@tutao/tutanota-utils"
 import {Request, RequestError, Response} from "../api/common/MessageDispatcher"
 import type {DesktopConfig} from "./config/DesktopConfig"
 import type {DesktopSseClient} from "./sse/DesktopSseClient"
@@ -20,12 +20,10 @@ import {getExportDirectoryPath, makeMsgFile, writeFile} from "./DesktopFileExpor
 import {fileExists} from "./PathUtils"
 import path from "path"
 import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
-import {ProgrammingError} from "../api/common/error/ProgrammingError"
-import {ThemeManager} from "./ThemeManager"
-import type {ThemeId} from "../gui/theme"
 import {ElectronExports, WebContentsEvent} from "./ElectronExportTypes";
 import {DataFile} from "../api/common/DataFile";
 import {Logger} from "../api/common/Logger"
+import {DesktopGlobalDispatcher} from "../native/common/generatedipc/DesktopGlobalDispatcher"
 import {DektopCredentialsEncryption} from "./credentials/DektopCredentialsEncryption"
 import {exposeLocal} from "../api/common/WorkerProxy"
 import {ExposedNativeInterface, NativeInterface} from "../native/common/NativeInterface"
@@ -52,7 +50,6 @@ export class IPC {
 	readonly _desktopUtils: DesktopUtils
 	readonly _err: DesktopErrorHandler
 	readonly _integrator: DesktopIntegrator
-	readonly _themeManager: ThemeManager
 	readonly _credentialsEncryption: DektopCredentialsEncryption
 	_initialized: Array<DeferredObject<void>>
 	_requestId: number = 0
@@ -74,9 +71,9 @@ export class IPC {
 		errorHandler: DesktopErrorHandler,
 		integrator: DesktopIntegrator,
 		alarmScheduler: DesktopAlarmScheduler,
-		themeManager: ThemeManager,
 		credentialsEncryption: DektopCredentialsEncryption,
 		private readonly exposedInterfaceFactory: (windowId: number, ipc: IPC) => ExposedNativeInterface,
+		private readonly dispatcher: DesktopGlobalDispatcher,
 	) {
 		this._conf = conf
 		this._sse = sse
@@ -92,7 +89,6 @@ export class IPC {
 		this._err = errorHandler
 		this._integrator = integrator
 		this._alarmScheduler = alarmScheduler
-		this._themeManager = themeManager
 		this._credentialsEncryption = credentialsEncryption
 
 		if (!!this._updater) {
@@ -408,37 +404,6 @@ export class IPC {
 				return
 			}
 
-			case "getSelectedTheme": {
-				return this._themeManager.getSelectedThemeId()
-			}
-
-			case "setSelectedTheme": {
-				const newThemeId = args[0]
-
-				if (typeof newThemeId !== "string") {
-					return Promise.reject(new ProgrammingError(`Argument is not a string for ${method}, ${typeof args[0]}`))
-				}
-
-				await this._applyTheme(newThemeId)
-				return
-			}
-
-			case "getThemes": {
-				return this._themeManager.getThemes()
-			}
-
-			case "setThemes": {
-				const themes = args[0]
-
-				if (!Array.isArray(themes)) {
-					return Promise.reject(new ProgrammingError("Argument is not an array"))
-				}
-
-				await this._themeManager.setThemes(themes)
-				await mapNullable(await this._themeManager.getSelectedThemeId(), id => this._applyTheme(id))
-				return
-			}
-
 			case "encryptUsingKeychain": {
 				const [mode, decryptedKey] = args
 				return this._credentialsEncryption.encryptUsingKeychain(decryptedKey, mode)
@@ -466,6 +431,10 @@ export class IPC {
 			case "facade": {
 				return this.getHandlerForWindow(windowId)(new Request(method, args))
 			}
+			case "ipc": {
+				const [facade, method, ...methodArgs] = args
+				return this.dispatcher.dispatch(facade, method, methodArgs)
+			}
 			default: {
 				return Promise.reject(new Error(`Invalid Method invocation: ${method}`))
 			}
@@ -474,14 +443,6 @@ export class IPC {
 
 	private getHandlerForWindow(windowId: number): FacadeHandler {
 		return getFromMap(this.facadeHandlerPerWindow, windowId, () => exposeLocal(this.exposedInterfaceFactory(windowId, this)))
-	}
-
-	async _applyTheme(newThemeId: ThemeId) {
-		await this._themeManager.setSelectedThemeId(newThemeId)
-
-		for (const window of this._wm.getAll()) {
-			await window.updateBackgroundColor()
-		}
 	}
 
 	sendRequest(windowId: number, type: JsRequestType, args: ReadonlyArray<any>): Promise<Record<string, any>> {
