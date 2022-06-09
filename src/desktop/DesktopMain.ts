@@ -33,7 +33,7 @@ import {KeyStoreFacadeImpl} from "./KeyStoreFacadeImpl"
 import {AlarmSchedulerImpl} from "../calendar/date/AlarmScheduler"
 import {SchedulerImpl} from "../api/common/utils/Scheduler.js"
 import {DateProviderImpl} from "../calendar/date/CalendarUtils"
-import {ThemeManager} from "./ThemeManager"
+import {DesktopThemeFacade} from "./DesktopThemeFacade"
 import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys";
 import {DektopCredentialsEncryption, DesktopCredentialsEncryptionImpl} from "./credentials/DektopCredentialsEncryption"
 import {DesktopWebauthn} from "./2fa/DesktopWebauthn.js"
@@ -44,6 +44,7 @@ import {OfflineDbFacade, OfflineDbFactory} from "./db/OfflineDbFacade"
 import {OfflineDb} from "./db/OfflineDb"
 import {DesktopInterWindowEventSender} from "./ipc/DesktopInterWindowEventSender"
 import {DesktopPostLoginActions} from "./DesktopPostLoginActions"
+import {DesktopGlobalDispatcher} from "../native/common/generatedipc/DesktopGlobalDispatcher.js"
 import {CommonNativeFacadeSendDispatcher} from "../native/common/generatedipc/CommonNativeFacadeSendDispatcher.js"
 
 /**
@@ -67,7 +68,7 @@ type Components = {
 	readonly updater: ElectronUpdater
 	readonly integrator: DesktopIntegrator
 	readonly tray: DesktopTray
-	readonly themeManager: ThemeManager
+	readonly desktopThemeFacade: DesktopThemeFacade
 	readonly credentialsEncryption: DektopCredentialsEncryption
 }
 const desktopCrypto = new DesktopCryptoFacade(fs, cryptoFns)
@@ -127,7 +128,6 @@ async function createComponents(): Promise<Components> {
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, tray, new UpdaterWrapperImpl())
 	const shortcutManager = new LocalShortcutManager()
-	const themeManager = new ThemeManager(conf)
 	const credentialsEncryption = new DesktopCredentialsEncryptionImpl(keyStoreFacade, desktopCrypto)
 
 	const offlineDbFactory: OfflineDbFactory = {
@@ -153,7 +153,8 @@ async function createComponents(): Promise<Components> {
 
 	const offlineDbFacade = new OfflineDbFacade(offlineDbFactory)
 
-	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, dl, themeManager, offlineDbFacade)
+	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, dl, offlineDbFacade)
+	const themeFacade = new DesktopThemeFacade(conf, wm)
 	const alarmScheduler = new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, global, global))
 	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler)
 	desktopAlarmScheduler.rescheduleAll().catch(e => {
@@ -180,6 +181,10 @@ async function createComponents(): Promise<Components> {
 		}
 	}
 
+	const dispatcher = new DesktopGlobalDispatcher(
+		themeFacade
+	)
+
 	const ipc = new IPC(
 		conf,
 		notifier,
@@ -195,11 +200,11 @@ async function createComponents(): Promise<Components> {
 		err,
 		integrator,
 		desktopAlarmScheduler,
-		themeManager,
 		credentialsEncryption,
-		exposedInterfaceFactory
+		exposedInterfaceFactory,
+		dispatcher,
 	)
-	wm.lateInit(ipc, (windowId) => ipc.getNativeInterfaceForWindow(windowId))
+	wm.lateInit(ipc, themeFacade, (windowId) => ipc.getNativeInterfaceForWindow(windowId))
 	conf.getConst(BuildConfigKey.appUserModelId).then(appUserModelId => {
 		app.setAppUserModelId(appUserModelId)
 	})
@@ -216,7 +221,7 @@ async function createComponents(): Promise<Components> {
 		updater,
 		integrator,
 		tray,
-		themeManager,
+		desktopThemeFacade: themeFacade,
 		credentialsEncryption
 	}
 }

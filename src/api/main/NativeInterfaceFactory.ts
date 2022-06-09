@@ -5,10 +5,10 @@ import type {NativeFileApp} from "../../native/common/FileApp"
 import {isBrowser} from "../common/Env"
 import {ProgrammingError} from "../common/error/ProgrammingError"
 import {ExposedWebInterface} from "../../native/common/NativeInterface"
+import {WebGlobalDispatcher} from "../../native/common/generatedipc/WebGlobalDispatcher"
+import {DesktopFacade} from "../../native/common/generatedipc/DesktopFacade"
 import {MobileFacade} from "../../native/common/generatedipc/MobileFacade.js"
-import {DesktopFacade} from "../../native/common/generatedipc/DesktopFacade.js"
 import {CommonNativeFacade} from "../../native/common/generatedipc/CommonNativeFacade.js"
-import {WebGlobalDispatcher} from "../../native/common/generatedipc/WebGlobalDispatcher.js"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
@@ -40,8 +40,8 @@ export async function createNativeInterfaces(
 			mobileFacade,
 		)
 		const native = new NativeInterfaceMain(webInterface, dispatcher)
-		const fileApp = new NativeFileApp(native)
 		const pushService = new NativePushServiceApp(native)
+		const fileApp = new NativeFileApp(native)
 		const systemApp = new NativeSystemApp(native, fileApp)
 		return {
 			native,

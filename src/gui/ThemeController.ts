@@ -3,38 +3,29 @@ import type {HtmlSanitizer} from "../misc/HtmlSanitizer"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {assertMainOrNodeBoot, isApp, isDesktop} from "../api/common/Env"
-import {downcast, findAndRemove, mapAndFilterNull, neverNull, typedValues} from "@tutao/tutanota-utils"
+import {downcast, findAndRemove, LazyLoaded, mapAndFilterNull, neverNull, typedValues} from "@tutao/tutanota-utils"
 import m from "mithril"
 import type {BaseThemeId, Theme, ThemeId} from "./theme"
 import {logo_text_bright_grey, logo_text_dark_grey, themes} from "./builtinThemes"
 import type {ThemeCustomizations} from "../misc/WhitelabelCustomizations"
 import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
 import {getLogoSvg} from "./base/Logo"
+import {ThemeFacade} from "../native/common/generatedipc/ThemeFacade"
+import {ThemeFacadeSendDispatcher} from "../native/common/generatedipc/ThemeFacadeSendDispatcher"
 
 assertMainOrNodeBoot()
-
-export interface ThemeStorage {
-	getSelectedTheme(): Promise<ThemeId | null>
-
-	setSelectedTheme(theme: ThemeId): Promise<void>
-
-	getThemes(): Promise<Array<Theme>>
-
-	setThemes(themes: ReadonlyArray<Theme>): Promise<void>
-}
 
 export class ThemeController {
 	_theme: Theme
 	_themeId: ThemeId
-	readonly _themeStorage: ThemeStorage
-	readonly _htmlSanitizer: () => Promise<HtmlSanitizer>
 	// Subscribe to this to get theme change events. Cannot be used to update the theme
 	themeIdChangedStream: Stream<ThemeId>
 	initialized: Promise<any>
 
-	constructor(themeStorage: ThemeStorage, htmlSanitizer: () => Promise<HtmlSanitizer>) {
-		this._themeStorage = themeStorage
-		this._htmlSanitizer = htmlSanitizer
+	constructor(
+		private readonly themeFacade: ThemeFacade,
+		private readonly htmlSanitizer: () => Promise<HtmlSanitizer>
+	) {
 		// this will change soon
 		this._themeId = defaultThemeId
 		this._theme = this.getDefaultTheme()
@@ -82,7 +73,7 @@ export class ThemeController {
 	}
 
 	async reloadTheme() {
-		const themeId = await this._themeStorage.getSelectedTheme()
+		const themeId = await this.themeFacade.getSelectedTheme()
 		if (!themeId) return
 		await this.setThemeId(themeId, false)
 	}
@@ -96,7 +87,7 @@ export class ThemeController {
 			// Make a defensive copy so that original theme definition is not modified.
 			return Object.assign({}, themes[themeId])
 		} else {
-			const loadedThemes = await this._themeStorage.getThemes()
+			const loadedThemes = await this.themeFacade.getThemes() as ReadonlyArray<Theme>
 			const customTheme = loadedThemes.find(t => t.themeId === themeId)
 
 			if (customTheme) {
@@ -121,7 +112,7 @@ export class ThemeController {
 		this._applyTrustedTheme(newTheme, newThemeId)
 
 		if (permanent) {
-			await this._themeStorage.setSelectedTheme(newThemeId)
+			await this.themeFacade.setSelectedTheme(newThemeId)
 		}
 	}
 
@@ -153,14 +144,14 @@ export class ThemeController {
 
 		if (permanent) {
 			await this.updateSavedThemeDefinition(updatedTheme)
-			await this._themeStorage.setSelectedTheme(updatedTheme.themeId)
+			await this.themeFacade.setSelectedTheme(updatedTheme.themeId)
 		}
 	}
 
 	async _sanitizeTheme(theme: Theme) {
 		if (theme.logo) {
 			const logo = theme.logo
-			const htmlSanitizer = await this._htmlSanitizer()
+			const htmlSanitizer = await this.htmlSanitizer()
 			theme.logo = htmlSanitizer.sanitizeHTML(logo).text
 		}
 	}
@@ -171,10 +162,10 @@ export class ThemeController {
 	async updateSavedThemeDefinition(updatedTheme: Theme): Promise<Theme> {
 		const nonNullTheme = Object.assign({}, this.getDefaultTheme(), updatedTheme)
 		await this._sanitizeTheme(nonNullTheme)
-		const oldThemes = await this._themeStorage.getThemes()
+		const oldThemes = await this.themeFacade.getThemes() as Array<Theme>
 		findAndRemove(oldThemes, t => t.themeId === updatedTheme.themeId)
 		oldThemes.push(nonNullTheme)
-		await this._themeStorage.setThemes(oldThemes)
+		await this.themeFacade.setThemes(oldThemes)
 		return nonNullTheme
 	}
 
@@ -200,52 +191,61 @@ export class ThemeController {
 		} else if (customizations.base && customizations.logo) {
 			return Object.assign({}, this.getBaseTheme(customizations.base), customizations)
 		} else {
-			const themeWithoutLogo = Object.assign({}, this.getBaseTheme(neverNull(customizations.base)), customizations)
+			const themeWithoutLogo = Object.assign({}, this.getBaseTheme(customizations.base), customizations)
 			const coloredTutanotaLogo = getLogoSvg(themeWithoutLogo.content_accent, customizations.base === "light" ? logo_text_dark_grey : logo_text_bright_grey)
 			return {...themeWithoutLogo, ...{logo: coloredTutanotaLogo}}
 		}
 	}
 
 	async getCustomThemes(): Promise<Array<ThemeId>> {
-		return mapAndFilterNull(await this._themeStorage.getThemes(), theme => {
+		return mapAndFilterNull(await this.themeFacade.getThemes(), theme => {
 			return !(theme.themeId in themes) ? theme.themeId : null
 		})
 	}
 
 	async removeCustomThemes() {
-		await this._themeStorage.setThemes([])
+		await this.themeFacade.setThemes([])
 		await this.setThemeId(defaultThemeId, true)
 	}
 }
 
-export class NativeThemeStorage implements ThemeStorage {
+export class NativeThemeFacade implements ThemeFacade {
+	private readonly themeFacade: LazyLoaded<ThemeFacadeSendDispatcher>
+
+	constructor() {
+		this.themeFacade = new LazyLoaded<ThemeFacadeSendDispatcher>(async () => {
+			const {locator} = await import("../api/main/MainLocator")
+			// Theme initialization happens concurrently with locator initialization,
+			// so we have to wait or native may not yet be defined when we first get here.
+			// It would be nice to move all the global theme handling onto the locator as
+			// well so we can have more control over this
+			await locator.initialized
+			return new ThemeFacadeSendDispatcher(locator.native)
+		})
+	}
+
 	async getSelectedTheme(): Promise<ThemeId | null> {
-		return this._callWith("getSelectedTheme", [])
+		const dispatcher = await this.themeFacade.getAsync()
+		return dispatcher.getSelectedTheme()
 	}
 
 	async setSelectedTheme(theme: ThemeId): Promise<void> {
-		return this._callWith("setSelectedTheme", [theme])
+		const dispatcher = await this.themeFacade.getAsync()
+		return dispatcher.setSelectedTheme(theme)
 	}
 
 	async getThemes(): Promise<Array<Theme>> {
-		return this._callWith("getThemes", [])
+		const dispatcher = await this.themeFacade.getAsync()
+		return dispatcher.getThemes()
 	}
 
 	async setThemes(themes: ReadonlyArray<Theme>): Promise<void> {
-		return this._callWith("setThemes", [themes])
-	}
-
-	async _callWith<R>(method: NativeRequestType, args: ReadonlyArray<unknown>): Promise<R> {
-		const {Request} = await import("../api/common/MessageDispatcher")
-		const {locator} = await import("../api/main/MainLocator")
-		// Theme initialization happens concurrently with locator initialization, so we have to wait or native may not yet be defined when we first get here.
-		// It would be nice to move all the global theme handling onto the locator as well so we can have more control over this
-		await locator.initialized
-		return locator.native.invokeNative(method, args)
+		const dispatcher = await this.themeFacade.getAsync()
+		return dispatcher.setThemes(themes)
 	}
 }
 
-export class WebThemeStorage implements ThemeStorage {
+export class WebThemeFacade implements ThemeFacade {
 	readonly _deviceConfig: DeviceConfig
 
 	constructor(deviceConfig: DeviceConfig) {

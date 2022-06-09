@@ -43,18 +43,22 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
       webView.isOpaque = false
       webView.scrollView.contentInsetAdjustmentBehavior = .never
 
+      let globalDispatcher = IosGlobalDispatcher(
+        themeFacade: IosThemeFacade(themeManager: themeManager, viewController: self)
+      )
+
       self.bridge = WebViewBridge(
         webView: self.webView,
         viewController: self,
         crypto: crypto,
         contactsSource: contactsSource,
-        themeManager: themeManager,
         keychainManager: keychainManager,
         userPreferences: userPreferences,
         alarmManager: alarmManager,
         fileFacade: fileFacade,
         credentialsEncryption: credentialsEncryption,
-        blobUtils:blobUtils
+        blobUtils:blobUtils,
+        globalDispatcher: globalDispatcher
       )
   }
 

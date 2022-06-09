@@ -1,17 +1,17 @@
 import o from "ospec"
 import type {Theme, ThemeId} from "../../../src/gui/theme.js"
 import n from "../nodemocker.js"
-import type {ThemeStorage} from "../../../src/gui/ThemeController.js"
 import {ThemeController} from "../../../src/gui/ThemeController.js"
 import type {ThemeCustomizations} from "../../../src/misc/WhitelabelCustomizations.js"
 import {downcast} from "@tutao/tutanota-utils"
+import {ThemeFacade} from "../../../src/native/common/generatedipc/ThemeFacade"
 
 o.spec("Theme Controller", function () {
     let themeManager: ThemeController
-    let themeStorageMock
+    let themeFacadeMock
     let htmlSanitizerMock
     o.beforeEach(function () {
-        const themeStorage: ThemeStorage = {
+        const themeFacade: ThemeFacade = {
             async getSelectedTheme(): Promise<ThemeId | null> {
                 return null
             },
@@ -24,7 +24,7 @@ o.spec("Theme Controller", function () {
 
             async setThemes(themes: ReadonlyArray<Theme>): Promise<void> {},
         }
-        themeStorageMock = n.mock("__themeStorage", themeStorage).set()
+        themeFacadeMock = n.mock("__themeFacade", themeFacade).set()
         htmlSanitizerMock = n
             .mock("__htmlSanitizer", {
                 sanitizeHTML: () => {
@@ -37,7 +37,7 @@ o.spec("Theme Controller", function () {
                 },
             })
             .set()
-        themeManager = new ThemeController(themeStorageMock, () => Promise.resolve(htmlSanitizerMock))
+        themeManager = new ThemeController(themeFacadeMock, () => Promise.resolve(htmlSanitizerMock))
     })
     o("updateCustomTheme", async function () {
         await themeManager.initialized
@@ -48,7 +48,7 @@ o.spec("Theme Controller", function () {
             base: "light",
         })
         await themeManager.updateCustomTheme(theme)
-        const savedTheme = themeStorageMock.setThemes.args[0][0]
+        const savedTheme = themeFacadeMock.setThemes.args[0][0]
         o(savedTheme.themeId).equals("HelloFancyId")
         o(savedTheme.content_bg).equals("#fffeee")
         o(savedTheme.logo).equals("sanitized")

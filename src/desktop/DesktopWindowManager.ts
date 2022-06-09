@@ -19,11 +19,11 @@ import {BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey} from "./config/Co
 import type {SseInfo} from "./sse/DesktopSseClient"
 import {isRectContainedInRect} from "./DesktopUtils"
 import {downcast} from "@tutao/tutanota-utils"
-import {ThemeManager} from "./ThemeManager"
+import {DesktopThemeFacade} from "./DesktopThemeFacade"
 import {ElectronExports, WebContentsEvent} from "./ElectronExportTypes";
 import {OfflineDbFacade} from "./db/OfflineDbFacade"
+import {NativeInterface} from "../native/common/NativeInterface"
 import {CommonNativeFacadeSendDispatcher} from "../native/common/generatedipc/CommonNativeFacadeSendDispatcher.js"
-import {NativeInterface} from "../native/common/NativeInterface.js"
 
 export type WindowBounds = {
 	rect: Rectangle
@@ -41,7 +41,7 @@ export class WindowManager {
 	private _contextMenu!: DesktopContextMenu
 	private nativeInterfaceFactory!: NativeInterfaceFactory
 	private readonly _electron: ElectronExports
-	private readonly _themeManager: ThemeManager
+	private themeFacade!: DesktopThemeFacade
 	ipc!: IPC
 	readonly dl: DesktopDownloadManager
 	private readonly _newWindowFactory: (noAutoLogin?: boolean) => Promise<ApplicationWindow>
@@ -55,7 +55,6 @@ export class WindowManager {
 		electron: ElectronExports,
 		localShortcut: LocalShortcutManager,
 		dl: DesktopDownloadManager,
-		themeManager: ThemeManager,
 		private readonly offlineDbFacade: OfflineDbFacade,
 	) {
 		this._conf = conf
@@ -69,7 +68,6 @@ export class WindowManager {
 		this._notifier = notifier
 		this.dl = dl
 		this._electron = electron
-		this._themeManager = themeManager
 
 		this._newWindowFactory = noAutoLogin => this._newWindow(electron, localShortcut, noAutoLogin ?? null)
 
@@ -95,8 +93,9 @@ export class WindowManager {
 	/**
 	 * Late initialization to break the dependency cycle.
 	 */
-	lateInit(ipc: IPC, nativeInterfaceFactory: NativeInterfaceFactory) {
+	lateInit(ipc: IPC, themeFacade: DesktopThemeFacade, nativeInterfaceFactory: NativeInterfaceFactory) {
 		this.ipc = ipc
+		this.themeFacade = themeFacade
 		this._contextMenu = new DesktopContextMenu(this._electron, ipc)
 		this.nativeInterfaceFactory = nativeInterfaceFactory
 	}
@@ -295,7 +294,7 @@ export class WindowManager {
 		const dictUrl = updateUrl && updateUrl !== "" ? updateUrl : "https://mail.tutanota.com/desktop/"
 		// custom builds get the dicts from us as well
 		const icon = await this.getIcon()
-		return new ApplicationWindow(this, desktopHtml, icon, electron, localShortcut, this._themeManager, this.offlineDbFacade, this.nativeInterfaceFactory, dictUrl, noAutoLogin)
+		return new ApplicationWindow(this, desktopHtml, icon, electron, localShortcut, this.themeFacade, this.offlineDbFacade, this.nativeInterfaceFactory, dictUrl, noAutoLogin)
 	}
 
 	async startNativeDrag(filenames: Array<string>, windowId: number) {
