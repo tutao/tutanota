@@ -1,4 +1,4 @@
-import {AccountType, GroupType} from "../../common/TutanotaConstants"
+import {GroupType} from "../../common/TutanotaConstants"
 import {
 	assertNotNull,
 	Base64,
@@ -86,7 +86,7 @@ export class GiftCardFacadeImpl implements GiftCardFacade {
 		giftCardInfoId: Id,
 		key: string,
 		/** Country code to use if a free user is being upgraded to premium (required if accountType is free) */
-		countryCode: string | null
+		countryCode: string
 	): Promise<void> {
 
 		if (

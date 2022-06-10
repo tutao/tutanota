@@ -1135,7 +1135,6 @@ export type GiftCard = {
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
 	_permissions: Id;
-	country_deleted: string;
 	message: string;
 	migrated: boolean;
 	orderDate: Date;
@@ -1153,7 +1152,6 @@ export type GiftCardCreateData = {
 	_errors: Object;
 
 	_format: NumberString;
-	country_deleted: string;
 	keyHash: Uint8Array;
 	message: string;
 	ownerEncSessionKey: Uint8Array;
@@ -1222,7 +1220,7 @@ export type GiftCardRedeemData = {
 	_type: TypeRef<GiftCardRedeemData>;
 
 	_format: NumberString;
-	countryCode: null | string;
+	countryCode: string;
 	keyHash: Uint8Array;
 
 	giftCardInfo: Id;
@@ -1238,7 +1236,6 @@ export type GiftCardRedeemGetReturn = {
 	_errors: Object;
 
 	_format: NumberString;
-	country_deleted: string;
 	message: string;
 	value: NumberString;
 
