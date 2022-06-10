@@ -185,10 +185,58 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 	}
 }
 
+function pushToMapEntry(map, key, value) {
+	let entry = []
+	if (map.has(key)) {
+		entry = map.get(key)
+	}
+	entry.push(value)
+	map.set(key, entry)
+}
+
 /**
  * Creates a plugin which checks that all imports satisfy the rules that are defined in {@link allowedImports}.
  */
 export function bundleDependencyCheckPlugin() {
+	const illegalImports = new Map()
+	const staticLangImports = new Map()
+	const unknownChunks = []
+
+	const reportErrors = () => {
+		let shouldThrow = false
+		if (illegalImports.size > 0) {
+			console.log("\nIllegal imports:")
+			shouldThrow = true
+			for (const [importer, importees] of Array.from(illegalImports.entries()).filter(([_, importees]) => importees.length > 0)) {
+				console.log(`\n in ${importer}:`)
+				for (const importee of importees) {
+					console.log("\t", importee)
+				}
+			}
+		}
+
+		if (staticLangImports.size > 0) {
+			console.log(shouldThrow ? "\n" : "", "Illegal static translation file dependencies:")
+			shouldThrow = true
+			for (const [importer, importees] of Array.from(staticLangImports.entries()).filter(([_, importees]) => importees.length > 0)) {
+				console.log(`\n in ${importer}:`)
+				for (const importee of importees) {
+					console.log("\t", importee)
+				}
+			}
+		}
+
+		if (unknownChunks.length > 0) {
+			console.log(shouldThrow ? "\n" : "", "Unknown chunks:")
+			shouldThrow = true
+			for (const unknownChunk of unknownChunks) {
+				console.log("\t", unknownChunk)
+			}
+		}
+
+		if (shouldThrow) throw new Error("fix illegal imports or unknown chunks (see above) and rerun")
+	}
+
 	return {
 		name: "bundle-dependency-check",
 		generateBundle(outOpts, bundle) {
@@ -206,24 +254,26 @@ export function bundleDependencyCheckPlugin() {
 					}
 					const ownChunk = getChunkName(moduleId, {getModuleInfo})
 					if (!allowedImports[ownChunk]) {
-						throw new Error(`Unknown chunk: ${ownChunk} of ${moduleId}`)
+						unknownChunks.push(`${ownChunk} of ${importedId}`)
 					}
 
 					for (const importedId of getModuleInfo(moduleId).importedIds) {
 						// static dependencies on translation files are not allowed
 						if (importedId.includes(path.normalize("src/translations"))) {
-							throw new Error(`Static dependency of ${importedId} is not allowed from ${moduleId}`)
+							pushToMapEntry(staticLangImports, moduleId, importedId)
 						}
 						const importedChunk = getChunkName(importedId, {getModuleInfo})
 						if (!allowedImports[importedChunk]) {
-							throw new Error(`Unknown chunk: ${importedChunk} of ${importedId}`)
+							unknownChunks.push(`${importedChunk} of ${importedId}`)
 						}
 						if (ownChunk !== importedChunk && !allowedImports[ownChunk].includes(importedChunk)) {
-							throw new Error(`${moduleId} (from ${ownChunk}) imports ${importedId} (from ${importedChunk}) which is not allowed`)
+							pushToMapEntry(illegalImports, `${moduleId} [${ownChunk}]`, `${importedId} [${importedChunk}]`)
 						}
 					}
 				}
 			}
+
+			reportErrors()
 		}
 	}
 }
