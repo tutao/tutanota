@@ -218,12 +218,29 @@ export class DesktopUtils {
 	}
 
 	/**
-	 * Get a path to a directory under tutanota's temporary directory. Will not create if it doesn't exist
+	 * Get a path to a directory under tutanota's temporary directory.
+	 * the hierarchy is
+	 * [electron tmp dir]
+	 * [tutanota tmp]
+	 * [user-specific dir (omitted on windows)]
+	 * subdirs[0]
+	 * ...
+	 *
+	 * the levels marked with [] will be created if they don't exist, any subdirs
+	 * below that must be created by the caller if needed.
+	 *
 	 * @param subdirs
 	 * @returns {string}
 	 */
 	getTutanotaTempPath(...subdirs: string[]): string {
-		return path.join(this.electron.app.getPath("temp"), this.topLevelDownloadDir, ...subdirs)
+		const mainTmpDir = path.join(this.electron.app.getPath("temp"), this.topLevelDownloadDir)
+		// windows already gives us a user-specific tmp dir by default
+		const userTmpDir = process.platform === "win32"
+			? mainTmpDir
+			: path.join(mainTmpDir, path.basename(this.electron.app.getPath("home")))
+		// only readable by owner (current user)
+		this.fs.mkdirSync(userTmpDir, {recursive: true, mode: 0o700})
+		return path.join(userTmpDir, ...subdirs)
 	}
 
 	getLockFilePath() {
