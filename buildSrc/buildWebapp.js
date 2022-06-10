@@ -59,7 +59,6 @@ export async function buildWebapp({version, stage, host, measure, minify, projec
 	await fs.copy(path.join(projectDir, '/resources/favicon'), path.join(projectDir, 'build/dist/images'))
 	await fs.copy(path.join(projectDir, '/src/braintree.html'), path.join(projectDir, '/build/dist/braintree.html'))
 
-
 	console.log("started bundling", measure())
 	const bundle = await rollup({
 		input: ["src/app.ts", "src/api/worker/worker.ts"],
@@ -78,6 +77,7 @@ export async function buildWebapp({version, stage, host, measure, minify, projec
 			nodeResolve(),
 		],
 	})
+
 	console.log("bundling timings: ")
 	for (let [k, v] of Object.entries(bundle.getTimings())) {
 		console.log(k, v[0])
