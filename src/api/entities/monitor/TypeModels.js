@@ -1,3 +1,10 @@
+// This is an automatically generated file, please do not edit by hand!
+
+// You should not use it directly, please use `resolveTypReference()` instead.	
+// We do not want tsc to spend time either checking or inferring type of these huge expressions. Even when it does try to infer them they are still wrong.
+// The actual type is an object with keys as entities names and values as TypeModel.
+
+/** @type {any} */
 export const typeModels = {
     "ApprovalMail": {
         "name": "ApprovalMail",
@@ -85,7 +92,7 @@ export const typeModels = {
             }
         },
         "app": "monitor",
-        "version": "19"
+        "version": "20"
     },
     "ReadCounterData": {
         "name": "ReadCounterData",
@@ -126,7 +133,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "monitor",
-        "version": "19"
+        "version": "20"
     },
     "ReadCounterReturn": {
         "name": "ReadCounterReturn",
@@ -158,7 +165,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "monitor",
-        "version": "19"
+        "version": "20"
     },
     "WriteCounterData": {
         "name": "WriteCounterData",
@@ -217,6 +224,6 @@ export const typeModels = {
         },
         "associations": {},
         "app": "monitor",
-        "version": "19"
+        "version": "20"
     }
 }

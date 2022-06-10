@@ -25,9 +25,9 @@
 			"version": 76,
 			"changes": [
 				{
-					"name": "RenameAttribute",
+					"name": "RemoveValue",
 					"sourceType": "GiftCard",
-					"info": "RenameAttribute GiftCard: country -> country_deleted."
+					"info": "RemoveValue GiftCard/country/1780."
 				}
 			]
 		}

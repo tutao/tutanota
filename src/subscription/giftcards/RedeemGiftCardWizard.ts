@@ -151,7 +151,7 @@ class RedeemGiftCardModel {
 	}
 
 	async redeemGiftCard(country: Country | null): Promise<void> {
-		if (country == null && this.accountingInfo?.invoiceCountry == null) {
+		if (country == null) {
 			throw new UserError("invoiceCountryInfoBusiness_msg")
 		}
 
@@ -297,7 +297,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardModel> {
 						emitWizardEvent(this.domElement, WizardEventType.SHOWNEXTPAGE)
 					} catch (e) {
 						if (e instanceof UserError) {
-							Dialog.message(() => e.message)
+							showUserError(e)
 						} else {
 							this.loginFormHelpText = lang.getMaybeLazy(getLoginErrorMessage(e, false))
 						}
@@ -322,8 +322,12 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardModel> {
 					await showProgressDialog("pleaseWait_msg", model.loginWithStoredCredentials(encryptedCredentials))
 					emitWizardEvent(this.domElement, WizardEventType.SHOWNEXTPAGE)
 				} catch (e) {
-					this.loginFormHelpText = lang.getMaybeLazy(getLoginErrorMessage(e, false))
-					handleExpectedLoginError(e, noOp)
+					if (e instanceof UserError) {
+						showUserError(e)
+					} else {
+						this.loginFormHelpText = lang.getMaybeLazy(getLoginErrorMessage(e, false))
+						handleExpectedLoginError(e, noOp)
+					}
 				}
 			},
 		})
