@@ -13,7 +13,7 @@ public class IosGlobalDispatcher {
 		self.themeFacade = ThemeFacadeReceiveDispatcher(facade: themeFacade)
 	}
 	
-	func dispatch(facadeName: String, methodName: String, args: Array<String>) async throws -> Encodable {
+	func dispatch(facadeName: String, methodName: String, args: Array<String>) async throws -> String {
 		switch facadeName {
 			case "FileFacade":
 				return try await self.fileFacade.dispatch(method: methodName, arg: args)

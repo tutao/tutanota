@@ -8,14 +8,14 @@ import kotlinx.serialization.json.*
 
 class FileFacadeReceiveDispatcher(
 	private val facade: FileFacade
-){
+) {
 	
 	suspend fun dispatch(method: String, arg: List<String>): String {
 		when (method) {
 			"open" -> {
 				val location: String = Json.decodeFromString(arg[0])
 				val mimeType: String = Json.decodeFromString(arg[1])
-				val result : Unit = this.facade.open(
+				val result: Unit = this.facade.open(
 					location,
 					mimeType,
 				)
@@ -23,42 +23,42 @@ class FileFacadeReceiveDispatcher(
 			}
 			"openFileChooser" -> {
 				val boundingRect: IpcClientRect = Json.decodeFromString(arg[0])
-				val result : List<String> = this.facade.openFileChooser(
+				val result: List<String> = this.facade.openFileChooser(
 					boundingRect,
 				)
 				return Json.encodeToString(result)
 			}
 			"deleteFile" -> {
 				val file: String = Json.decodeFromString(arg[0])
-				val result : Unit = this.facade.deleteFile(
+				val result: Unit = this.facade.deleteFile(
 					file,
 				)
 				return Json.encodeToString(result)
 			}
 			"getName" -> {
 				val file: String = Json.decodeFromString(arg[0])
-				val result : String = this.facade.getName(
+				val result: String = this.facade.getName(
 					file,
 				)
 				return Json.encodeToString(result)
 			}
 			"getMimeType" -> {
 				val file: String = Json.decodeFromString(arg[0])
-				val result : String = this.facade.getMimeType(
+				val result: String = this.facade.getMimeType(
 					file,
 				)
 				return Json.encodeToString(result)
 			}
 			"getSize" -> {
 				val file: String = Json.decodeFromString(arg[0])
-				val result : Int = this.facade.getSize(
+				val result: Int = this.facade.getSize(
 					file,
 				)
 				return Json.encodeToString(result)
 			}
 			"putFileIntoDownloadsFolder" -> {
 				val localFileUri: String = Json.decodeFromString(arg[0])
-				val result : String = this.facade.putFileIntoDownloadsFolder(
+				val result: String = this.facade.putFileIntoDownloadsFolder(
 					localFileUri,
 				)
 				return Json.encodeToString(result)
@@ -68,7 +68,7 @@ class FileFacadeReceiveDispatcher(
 				val targetUrl: String = Json.decodeFromString(arg[1])
 				val method: String = Json.decodeFromString(arg[2])
 				val headers: Map<String, String> = Json.decodeFromString(arg[3])
-				val result : UploadTaskResponse = this.facade.upload(
+				val result: UploadTaskResponse = this.facade.upload(
 					fileUrl,
 					targetUrl,
 					method,
@@ -80,7 +80,7 @@ class FileFacadeReceiveDispatcher(
 				val sourceUrl: String = Json.decodeFromString(arg[0])
 				val filename: String = Json.decodeFromString(arg[1])
 				val headers: Map<String, String> = Json.decodeFromString(arg[2])
-				val result : DownloadTaskResponse = this.facade.download(
+				val result: DownloadTaskResponse = this.facade.download(
 					sourceUrl,
 					filename,
 					headers,
@@ -89,20 +89,20 @@ class FileFacadeReceiveDispatcher(
 			}
 			"hashFile" -> {
 				val fileUri: String = Json.decodeFromString(arg[0])
-				val result : String = this.facade.hashFile(
+				val result: String = this.facade.hashFile(
 					fileUri,
 				)
 				return Json.encodeToString(result)
 			}
 			"clearFileData" -> {
-				val result : Unit = this.facade.clearFileData(
+				val result: Unit = this.facade.clearFileData(
 				)
 				return Json.encodeToString(result)
 			}
 			"joinFiles" -> {
 				val filename: String = Json.decodeFromString(arg[0])
 				val files: List<String> = Json.decodeFromString(arg[1])
-				val result : String = this.facade.joinFiles(
+				val result: String = this.facade.joinFiles(
 					filename,
 					files,
 				)
@@ -111,7 +111,7 @@ class FileFacadeReceiveDispatcher(
 			"splitFile" -> {
 				val fileUri: String = Json.decodeFromString(arg[0])
 				val maxChunkSizeBytes: Int = Json.decodeFromString(arg[1])
-				val result : List<String> = this.facade.splitFile(
+				val result: List<String> = this.facade.splitFile(
 					fileUri,
 					maxChunkSizeBytes,
 				)
@@ -120,7 +120,7 @@ class FileFacadeReceiveDispatcher(
 			"saveDataFile" -> {
 				val name: String = Json.decodeFromString(arg[0])
 				val dataBase64: String = Json.decodeFromString(arg[1])
-				val result : String = this.facade.saveDataFile(
+				val result: String = this.facade.saveDataFile(
 					name,
 					dataBase64,
 				)
@@ -129,7 +129,7 @@ class FileFacadeReceiveDispatcher(
 			"writeFile" -> {
 				val file: String = Json.decodeFromString(arg[0])
 				val contentB64: String = Json.decodeFromString(arg[1])
-				val result : Unit = this.facade.writeFile(
+				val result: Unit = this.facade.writeFile(
 					file,
 					contentB64,
 				)
@@ -137,7 +137,7 @@ class FileFacadeReceiveDispatcher(
 			}
 			"readFile" -> {
 				val file: String = Json.decodeFromString(arg[0])
-				val result : String = this.facade.readFile(
+				val result: String = this.facade.readFile(
 					file,
 				)
 				return Json.encodeToString(result)

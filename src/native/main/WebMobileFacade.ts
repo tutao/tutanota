@@ -18,7 +18,7 @@ assertMainOrNode()
 export class WebMobileFacade implements MobileFacade {
 
 
-	disconnectTimeoutId: TimeoutID | null
+	private disconnectTimeoutId: TimeoutID | null
 
 	async handleBackPress(): Promise<boolean> {
 		return Promise.resolve().then(() => {

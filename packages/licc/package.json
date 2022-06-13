@@ -8,7 +8,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-	"postinstall": "tsc -b",
+	"build": "tsc -b",
 	"test": "rm -rf ./test/build && tsc -b test && cd test/build && node test/Suite.js"
   },
   "author": "",

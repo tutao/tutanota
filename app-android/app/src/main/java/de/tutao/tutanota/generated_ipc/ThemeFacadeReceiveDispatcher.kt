@@ -8,30 +8,30 @@ import kotlinx.serialization.json.*
 
 class ThemeFacadeReceiveDispatcher(
 	private val facade: ThemeFacade
-){
+) {
 	
 	suspend fun dispatch(method: String, arg: List<String>): String {
 		when (method) {
 			"getThemes" -> {
-				val result : List<Map<String, String>> = this.facade.getThemes(
+				val result: List<Map<String, String>> = this.facade.getThemes(
 				)
 				return Json.encodeToString(result)
 			}
 			"setThemes" -> {
 				val themes: List<Map<String, String>> = Json.decodeFromString(arg[0])
-				val result : Unit = this.facade.setThemes(
+				val result: Unit = this.facade.setThemes(
 					themes,
 				)
 				return Json.encodeToString(result)
 			}
 			"getSelectedTheme" -> {
-				val result : String? = this.facade.getSelectedTheme(
+				val result: String? = this.facade.getSelectedTheme(
 				)
 				return Json.encodeToString(result)
 			}
 			"setSelectedTheme" -> {
 				val themeId: String = Json.decodeFromString(arg[0])
-				val result : Unit = this.facade.setSelectedTheme(
+				val result: Unit = this.facade.setSelectedTheme(
 					themeId,
 				)
 				return Json.encodeToString(result)

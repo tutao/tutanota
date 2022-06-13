@@ -11,11 +11,13 @@ assertMainOrNode()
  */
 
 export class AndroidNativeTransport implements Transport<NativeRequestType, JsRequestType> {
-	private _messageHandler: JsMessageHandler | null = null
-	private _deferredPort: DeferredObject<MessagePort> = defer()
+	private messageHandler: JsMessageHandler | null = null
+	private deferredPort: DeferredObject<MessagePort> = defer()
 
-	get port(): Promise<MessagePort> {
-		return this._deferredPort.promise
+	constructor(
+		private readonly window: Window
+	) {
+
 	}
 
 	/**
@@ -24,12 +26,12 @@ export class AndroidNativeTransport implements Transport<NativeRequestType, JsRe
 	start() {
 		// We will receive a message from native after the call to
 		// window.nativeApp.startWebMessageChannel
-		window.onmessage = (message: MessageEvent) => {
+		this.window.onmessage = (message: MessageEvent) => {
 			// All further messages to and from native will be via this port
 			const port = message.ports[0]
 
 			port.onmessage = (messageEvent: MessageEvent) => {
-				const handler = this._messageHandler
+				const handler = this.messageHandler
 
 				if (handler) {
 					// We can be sure we have a string here, because
@@ -39,21 +41,21 @@ export class AndroidNativeTransport implements Transport<NativeRequestType, JsRe
 				}
 			}
 
-			this._deferredPort.resolve(port)
+			this.deferredPort.resolve(port)
 		}
 
 		// window.nativeApp is defined in Native.java using WebView.addJavaScriptInterface
 		// The native side needs to initialize the WebMessagePorts
 		// We have to tell it when we are ready, otherwise it will happen too early and we won't receive the message event
-		window.nativeApp.startWebMessageChannel()
+		this.window.nativeApp.startWebMessageChannel()
 	}
 
 	postMessage(message: NativeMessage): void {
 		const encoded = encodeNativeMessage(message)
-		this.port.then(port => port.postMessage(encoded))
+		this.deferredPort.promise.then(port => port.postMessage(encoded))
 	}
 
 	setMessageHandler(handler: JsMessageHandler): void {
-		this._messageHandler = handler
+		this.messageHandler = handler
 	}
 }

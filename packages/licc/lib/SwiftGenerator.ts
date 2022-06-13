@@ -55,7 +55,7 @@ export class SwiftGenerator implements LangGenerator {
 		methodAcc.indent().line(`self.facade = facade`)
 		methodAcc.line(`}`)
 
-		methodAcc.line(`func dispatch(method: String, arg: [String]) async throws -> Encodable {`)
+		methodAcc.line(`func dispatch(method: String, arg: [String]) async throws -> String {`)
 		const switchAcc = methodAcc.indent()
 		switchAcc.line(`switch method {`)
 		const caseAcc = switchAcc.indent()
@@ -75,7 +75,7 @@ export class SwiftGenerator implements LangGenerator {
 			if (method.ret === "void") {
 				caseAcc.line(`try await self.facade.${methodName}(`)
 			} else {
-				caseAcc.line(`return try await self.facade.${methodName}(`)
+				caseAcc.line(`let result = try await self.facade.${methodName}(`)
 			}
 			for (let i = 0; i < arg.length; i++) {
 				const comma = i === arg.length - 1 ? "" : ","
@@ -83,7 +83,9 @@ export class SwiftGenerator implements LangGenerator {
 			}
 			caseAcc.line(")")
 			if (method.ret === "void") {
-				caseAcc.line(`return NullReturn()`)
+				caseAcc.line(`return "null"`)
+			} else {
+				caseAcc.line(`return toJson(result)`)
 			}
 		}
 		switchAcc.line(`default:`)
@@ -117,7 +119,7 @@ export class SwiftGenerator implements LangGenerator {
 		methodAcc.line(`}`)
 		methodAcc.line()
 
-		methodAcc.line(`func dispatch(facadeName: String, methodName: String, args: Array<String>) async throws -> Encodable {`)
+		methodAcc.line(`func dispatch(facadeName: String, methodName: String, args: Array<String>) async throws -> String {`)
 		const switchAcc = methodAcc.indent()
 		switchAcc.line(`switch facadeName {`)
 		const caseAcc = switchAcc.indent()
@@ -141,22 +143,32 @@ export class SwiftGenerator implements LangGenerator {
 		const classBodyAcc = acc.indent()
 		classBodyAcc.line(`private let transport: NativeInterface`)
 		classBodyAcc.line(`init(transport: NativeInterface) { self.transport = transport }`)
+		classBodyAcc.line()
 		for (const [methodName, methodDefinition] of Object.entries(definition.methods)) {
 			SwiftGenerator.generateMethodSignature(classBodyAcc, methodName, methodDefinition)
 			const methodBodyAcc = classBodyAcc.indent()
 			methodBodyAcc.line("{")
-			methodBodyAcc.line("var args = [Encodable]()")
-			for (let arg of getArgs(methodName, methodDefinition)) {
-				methodBodyAcc.line(`args.append(${arg.name})`)
+			const args = getArgs(methodName, methodDefinition)
+			if (args.length > 0) {
+				methodBodyAcc.line("var args = [String]()")
+			} else {
+				// let instead of var so that it shuts up about mutability unused
+				methodBodyAcc.line("let args = [String]()")
 			}
+			for (let arg of args) {
+				methodBodyAcc.line(`args.append(toJson(${arg.name}))`)
+			}
+			methodBodyAcc.line(`let encodedFacadeName = toJson("${definition.name}")`)
+			methodBodyAcc.line(`let encodedMethodName = toJson("${methodName}")`)
 			if (methodDefinition.ret !== "void") {
-				methodBodyAcc.line(`let returnValue = try await self.transport.invokeRemote(method: "ipc",  args: ["${definition.name}", "${methodName}"] + args)`)
+				methodBodyAcc.line(`let returnValue = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)`)
 				methodBodyAcc.line(`return try! JSONDecoder().decode(${typeNameSwift(methodDefinition.ret).name}.self, from: returnValue.data(using: .utf8)!)`)
 			} else {
-				methodBodyAcc.line(`let _ = try await self.transport.invokeRemote(method: "ipc",  args: ["${definition.name}", "${methodName}"] + args)`)
+				methodBodyAcc.line(`let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)`)
 			}
 
 			methodBodyAcc.line(`}`)
+			classBodyAcc.line()
 		}
 
 		acc.line(`}`)
@@ -164,7 +176,22 @@ export class SwiftGenerator implements LangGenerator {
 	}
 
 	generateExtraFiles(): Record<string, string> {
-		return {};
+		return {
+			"NativeInterface": SwiftGenerator.generateNativeInterface()
+		}
+	}
+
+	private static generateNativeInterface(): string {
+		const acc = new Accumulator()
+		acc.line(`protocol NativeInterface {`)
+		acc.indent().line(`func sendRequest(requestType: String, args: [String]) async throws -> String`)
+		acc.line(`}`)
+		acc.line()
+		acc.line("func toJson<T>(_ thing: T) -> String where T : Encodable {")
+		acc.indent().line("return String(data: try! JSONEncoder().encode(thing), encoding: .utf8)!")
+		acc.line("}")
+		acc.line()
+		return acc.finish()
 	}
 }
 

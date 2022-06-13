@@ -22,7 +22,7 @@
 		"prebuild": "node buildSrc/prebuild.js",
 		"postinstall": "node buildSrc/postinstall.js",
 		"bump-version": "node buildSrc/bump-version.js",
-	  	"generate-ipc": "licc ./ipc-schema"
+		"generate-ipc": "npm run build -w @tutao/licc && licc ./ipc-schema"
 	},
 	"dependencies": {
 		"@tutao/oxmsg": "0.0.9-beta.0",

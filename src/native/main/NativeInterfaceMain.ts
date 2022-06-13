@@ -28,11 +28,11 @@ export class NativeInterfaceMain implements NativeInterface {
 		let transport: Transport<NativeRequestType, JsRequestType>
 
 		if (isAndroidApp()) {
-			const androidTransport = new AndroidNativeTransport()
+			const androidTransport = new AndroidNativeTransport(window)
 			androidTransport.start()
 			transport = androidTransport
 		} else if (isIOSApp()) {
-			transport = new IosNativeTransport()
+			transport = new IosNativeTransport(window)
 		} else if (isDesktop() || isAdminClient()) {
 			transport = new DesktopNativeTransport(window.nativeApp)
 		} else {

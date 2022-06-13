@@ -12,23 +12,26 @@ assertMainOrNode()
  */
 
 export class IosNativeTransport implements Transport<NativeRequestType, JsRequestType> {
-	private _messageHandler: JsMessageHandler | null = null
+	private messageHandler: JsMessageHandler | null = null
 
-	constructor() {
-		window.tutao.nativeApp = this
+	constructor(
+		private readonly window: Window
+	) {
+		this.window.tutao.nativeApp = this
 	}
 
 	postMessage(message: NativeMessage) {
 		const encoded = encodeNativeMessage(message)
-		window.nativeApp.invoke(encoded)
+		// @ts-ignore this is set in the WebViewBrigde on Ios
+		this.window.webkit.messageHandlers.nativeApp.postMessage(encoded)
 	}
 
 	setMessageHandler(handler: JsMessageHandler): void {
-		this._messageHandler = handler
+		this.messageHandler = handler
 	}
 
 	receiveMessageFromApp(msg64: Base64): void {
-		const handler = this._messageHandler
+		const handler = this.messageHandler
 
 		if (handler) {
 			const msg = utf8Uint8ArrayToString(base64ToUint8Array(msg64))

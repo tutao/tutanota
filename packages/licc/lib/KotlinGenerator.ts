@@ -74,7 +74,7 @@ export class KotlinGenerator implements LangGenerator {
 		KotlinGenerator.generateImports(acc)
 		acc.line(`class ${definition.name}ReceiveDispatcher(`)
 		acc.indent().line(`private val facade: ${definition.name}`)
-		acc.line(`){`)
+		acc.line(`) {`)
 		const methAcc = acc.indent()
 		methAcc.line()
 		methAcc.line(`suspend fun dispatch(method: String, arg: List<String>): String {`)
@@ -95,7 +95,7 @@ export class KotlinGenerator implements LangGenerator {
 				const [argName, renderedType] = decodedArgs[i]
 				varAcc.line(`val ${argName}: ${renderedType.name} = Json.decodeFromString(arg[${i}])`)
 			}
-			varAcc.line(`val result : ${typeNameKotlin(methodDef.ret).name} = this.facade.${methodName}(`)
+			varAcc.line(`val result: ${typeNameKotlin(methodDef.ret).name} = this.facade.${methodName}(`)
 			for (let i = 0; i < arg.length; i++) {
 				const [argName] = decodedArgs[i]
 				varAcc.indent().line(`${argName},`)
