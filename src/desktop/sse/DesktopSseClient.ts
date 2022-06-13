@@ -210,11 +210,11 @@ export class DesktopSseClient {
 		})
 			.on("response", async res => {
 				this._reconnectAttempts = 1
-				log.debug("established SSE connection")
+				log.debug("established SSE connection with code", res.statusCode)
 
-				if (res.statusCode === 403) {
+				if (res.statusCode === 403 || res.statusCode === 401) {
 					// invalid userids
-					log.debug("sse: got NotAuthenticated, deleting userId")
+					log.debug("sse: got NotAuthenticated or NotAuthorized, deleting userId")
 					const sseInfo = await this._removeUserId(userId)
 
 					// If we don't remove _connectedSseInfo then timeout loop will restart connection automatiicaly
@@ -306,6 +306,7 @@ export class DesktopSseClient {
 				.then(() => this._reschedule())
 				.catch(async e => {
 					if (e instanceof NotAuthenticatedError || e instanceof NotAuthorizedError) {
+						log.error("Not authorized or not authenticated")
 						// Reset the queue so that the previous error will not be handled again
 						await this._removeUserId(userId)
 						this._handlingPushMessage = Promise.resolve()
