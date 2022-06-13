@@ -6,8 +6,8 @@ import {ElectronExports, FsExports} from "./ElectronExportTypes.js"
 import {UploadTaskResponse} from "../native/common/generatedipc/UploadTaskResponse.js"
 import {base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 
-function TODO() {
-	return new Error("not implemented")
+function Unimplemented() {
+	return new Error("not implemented for this platform")
 }
 
 export class DesktopFileFacade implements FileFacade {
@@ -33,11 +33,11 @@ export class DesktopFileFacade implements FileFacade {
 	}
 
 	getMimeType(file: string): Promise<string> {
-		throw TODO()
+		throw Unimplemented()
 	}
 
 	getName(file: string): Promise<string> {
-		throw TODO()
+		throw Unimplemented()
 	}
 
 	getSize(file: string): Promise<number> {
@@ -57,7 +57,7 @@ export class DesktopFileFacade implements FileFacade {
 	}
 
 	openFileChooser(boundingRect: IpcClientRect): Promise<Array<string>> {
-		throw TODO()
+		throw Unimplemented()
 	}
 
 	openFolderChooser(): Promise<Array<string>> {
@@ -74,11 +74,11 @@ export class DesktopFileFacade implements FileFacade {
 	}
 
 	splitFile(fileUri: string, maxChunkSizeBytes: number): Promise<Array<string>> {
-		throw TODO()
+		throw Unimplemented()
 	}
 
 	upload(fileUrl: string, targetUrl: string, method: string, headers: Record<string, string>): Promise<UploadTaskResponse> {
-		throw TODO()
+		throw Unimplemented()
 	}
 
 	saveDataFile(name: string, dataBase64: string): Promise<string> {

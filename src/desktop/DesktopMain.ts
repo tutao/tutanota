@@ -47,6 +47,7 @@ import {DesktopFileFacade} from "./DesktopFileFacade.js"
 import {DesktopPostLoginActions} from "./DesktopPostLoginActions"
 import {DesktopGlobalDispatcher} from "../native/common/generatedipc/DesktopGlobalDispatcher.js"
 import {CommonNativeFacadeSendDispatcher} from "../native/common/generatedipc/CommonNativeFacadeSendDispatcher.js"
+import {DesktopContextMenu} from "./DesktopContextMenu.js"
 
 /**
  * Should be injected during build time.
@@ -206,7 +207,8 @@ async function createComponents(): Promise<Components> {
 		exposedInterfaceFactory,
 		dispatcher,
 	)
-	wm.lateInit(ipc, themeFacade, (windowId) => ipc.getNativeInterfaceForWindow(windowId))
+	const contextMenu = new DesktopContextMenu(electron, id => ipc.getNativeInterfaceForWindow(id))
+	wm.lateInit(ipc, contextMenu, themeFacade, (windowId) => ipc.getNativeInterfaceForWindow(windowId))
 	conf.getConst(BuildConfigKey.appUserModelId).then(appUserModelId => {
 		app.setAppUserModelId(appUserModelId)
 	})

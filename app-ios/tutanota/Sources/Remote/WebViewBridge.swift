@@ -52,19 +52,19 @@ class WebViewBridge : NSObject, NativeInterface {
     self.mobileFacade = MobileFacadeSendDispatcher(transport: self)
     self.commonNativeFacade = CommonNativeFacadeSendDispatcher(transport: self)
     self.webView.configuration.userContentController.add(self, name: "nativeApp")
-    let js =
-      """
-      window.nativeApp = {
-        invoke: (message) => window.webkit.messageHandlers.nativeApp.postMessage(message)
-      }
-      """
-    let script = WKUserScript(source: js, injectionTime: .atDocumentStart, forMainFrameOnly: true)
-    self.webView.configuration.userContentController.addUserScript(script)
   }
 
-  func sendRequest(
+  /** Part of the NativeInterface. Sends request to the web part. Should not be used directly but through the send dispatchers. */
+  func sendRequest(requestType: String, args: [String]) async throws -> String {
+    return try await withCheckedThrowingContinuation { continuation in
+      self.sendRequest(method: requestType, args: args, completion: continuation.resume(returning:))
+    }
+  }
+  
+  /** Private version with callback, may call itself when bridge is ready. */
+  private func sendRequest(
     method: String,
-    args: [Encodable],
+    args: [String],
     completion: ((String) -> Void)?
   ) {
     if !self.webviewInitialized {
@@ -80,19 +80,13 @@ class WebViewBridge : NSObject, NativeInterface {
     }
     var parts = ["request", requestId, method]
     for arg in args {
-      parts.append(json(arg))
+      parts.append(arg)
     }
     self.postMessage(encodedMessage: parts.joined(separator: "\n"))
   }
 
-  func invokeRemote(method: String, args: [Encodable]) async throws -> String {
-    return try await withCheckedThrowingContinuation { continuation in
-      self.sendRequest(method: method, args: args, completion: continuation.resume(returning:))
-    }
-  }
-
-  private func sendResponse(requestId: String, value: Encodable) {
-    let parts: [String] = ["response", requestId, json(value)]
+  private func sendResponse(requestId: String, value: String) {
+    let parts: [String] = ["response", requestId, value]
 
     self.postMessage(encodedMessage: parts.joined(separator: "\n"))
   }
@@ -116,7 +110,7 @@ class WebViewBridge : NSObject, NativeInterface {
         stack:  underlyingError?.debugDescription ?? ""
       )
     }
-    parts.append(json(responseError))
+    parts.append(toJson(responseError))
 
     let bridgeMessage = parts.joined(separator: "\n")
     self.postMessage(encodedMessage: bridgeMessage)
@@ -140,7 +134,7 @@ class WebViewBridge : NSObject, NativeInterface {
   private func handleRequest(type: String, requestId: String, args: String) {
     Task {
       do {
-        let value: Encodable = try await self.handleRequest(type: type, args: args) ?? NullReturn()
+        let value: String = try await self.handleRequest(type: type, args: args)
         self.sendResponse(requestId: requestId, value: value)
       } catch {
         self.sendErrorResponse(requestId: requestId, err: error)
@@ -148,7 +142,7 @@ class WebViewBridge : NSObject, NativeInterface {
     }
   }
 
-  private func handleRequest(type: String, args encodedArgs: String) async throws -> Encodable? {
+  private func handleRequest(type: String, args encodedArgs: String) async throws -> String {
 
     if (type == "ipc") {
       let ipcArgs = encodedArgs.split(separator: "\n").map { String($0) }
@@ -156,7 +150,15 @@ class WebViewBridge : NSObject, NativeInterface {
       let method = try! JSONDecoder().decode(String.self, from: ipcArgs[1].data(using: .utf8)!)
       return try await self.globalDispatcher.dispatch(facadeName: facade, methodName: method, args: Array(ipcArgs[2..<ipcArgs.endIndex]))
     }
-    
+    let legacyResult = try await self.invokeLegacyMethod(type: type, args: encodedArgs)
+    if let legacyResult = legacyResult {
+      return encodableToJson(legacyResult)
+    } else {
+      return "null"
+    }
+  }
+  
+  private func invokeLegacyMethod(type: String, args encodedArgs: String) async throws -> Encodable? {
     let args = encodedArgs.split(separator: "\n").map { strArg in
       return try! JSONSerialization.jsonObject(with: strArg.data(using: .utf8)!, options: [.fragmentsAllowed])
     }
@@ -327,7 +329,7 @@ extension Result where Success == Void {
 }
 
 
-fileprivate func json(_ value: Encodable) -> String {
+fileprivate func encodableToJson(_ value: Encodable) -> String {
   let wrapper = ExistentialEncodable(value: value)
   let valueData = try! JSONEncoder().encode(wrapper)
   return String(data: valueData, encoding: .utf8)!

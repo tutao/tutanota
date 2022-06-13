@@ -16,12 +16,6 @@ struct ResponseError : Codable {
   let stack: String
 }
 
-protocol NativeInterface {
-  func invokeRemote(
-    method: String,
-    args: [Encodable]
-  ) async throws -> String
-}
 
 /// Swift magic
 /// Swift does not allow protocol to conform to itself, even when it's fine so we can't pass erased Encodable variable into

@@ -405,21 +405,18 @@ export class IPC {
 		return getFromMap(this.facadeHandlerPerWindow, windowId, () => exposeLocal(this.exposedInterfaceFactory(windowId, this)))
 	}
 
-	sendRequest(windowId: number, type: JsRequestType, args: ReadonlyArray<any>): Promise<Record<string, any>> {
-		return this.initialized(windowId).then(() => {
-			const requestId = this._createRequestId()
+	async sendRequest(windowId: number, type: JsRequestType, args: ReadonlyArray<any>): Promise<Record<string, any>> {
+		await this.initialized(windowId)
+		const requestId = this._createRequestId()
 
-			const request = new Request(type, args, requestId)
+		const request = new Request(type, args, requestId)
 
-			const w = this._wm.get(windowId)
+		const w = this._wm.get(windowId)
 
-			if (w) {
-				w.sendMessageToWebContents(request)
-			}
+		w?.sendMessageToWebContents(request)
 
-			return new Promise((resolve, reject) => {
-				this._queue[requestId] = (err, result) => (err ? reject(err) : resolve(result))
-			})
+		return new Promise((resolve, reject) => {
+			this._queue[requestId] = (err, result) => (err ? reject(err) : resolve(result))
 		})
 	}
 

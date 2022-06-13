@@ -7,15 +7,15 @@ class IosFileFacade : FileFacade {
     let data = Data(base64Encoded: contentB64)!
     try data.write(to: fileURL, options: .atomic)
   }
-  
+
   func readFile(_ file: String) async throws -> String {
     let data = try Data(contentsOf: URL(string: file)!)
     return data.base64EncodedString()
   }
-  
+
   let chooser: TUTFileChooser
   let viewer: FileViewer
-  
+
   init(
     chooser: TUTFileChooser,
     viewer: FileViewer
@@ -23,20 +23,20 @@ class IosFileFacade : FileFacade {
     self.chooser = chooser
     self.viewer = viewer
   }
-  
+
   func open(_ location: String, _ mimeType: String) async throws {
       await self.viewer.openFile(path: location)
   }
-  
+
   func openFileChooser(_ boundingRect: IpcClientRect) async throws -> [String] {
     let anchor = CGRect(x: boundingRect.x, y: boundingRect.y, width: boundingRect.width, height: boundingRect.height)
     return try await self.chooser.open(withAnchorRect: anchor)
   }
- 
+
   func deleteFile(_ file: String) async throws {
       try FileManager.default.removeItem(atPath: file)
   }
-  
+
   func getName(_ file: String) async throws -> String {
     let fileName = (file as NSString).lastPathComponent
     if FileUtils.fileExists(atPath: file) {
@@ -48,11 +48,11 @@ class IosFileFacade : FileFacade {
       )
     }
   }
-  
+
   func getMimeType(_ file: String) async throws -> String {
       return getFileMIMEType(path: file) ?? "application/octet-stream"
   }
-  
+
   func getSize(_ file: String) async throws -> Int {
     let attrs = try FileManager.default.attributesOfItem(atPath: file)
     let size = attrs[.size] as! UInt64
@@ -61,11 +61,11 @@ class IosFileFacade : FileFacade {
     // If we somehow overflow we will actually crash.
     return Int(size)
   }
-  
+
   func putFileIntoDownloadsFolder(_ localFileUri: String) async throws -> String {
-    fatalError("TODO")
+    fatalError("not implemented on this platform")
   }
-  
+
   func upload(_ sourceFileUrl: String, _ remoteUrl: String, _ method: String, _ headers: [String : String]) async throws -> UploadTaskResponse {
     // async upload is iOS 15+
     return try await withCheckedThrowingContinuation { continuation in
@@ -92,7 +92,7 @@ class IosFileFacade : FileFacade {
       task.resume()
     }
   }
-  
+
   func download(_ sourceUrl: String, _ filename: String, _ headers: [String : String]) async throws -> DownloadTaskResponse {
         return try await withCheckedThrowingContinuation { continuation in
           DispatchQueue.global(qos: .default).async {
@@ -136,7 +136,7 @@ class IosFileFacade : FileFacade {
   func hashFile(_ fileUri: String) async throws -> String {
     return try await BlobUtil().hashFile(fileUri: fileUri)
   }
-  
+
   func clearFileData() async throws {
     let _ = await (
       try self.clearDirectory(folderPath: FileUtils.getEncryptedFolder()),
@@ -144,22 +144,22 @@ class IosFileFacade : FileFacade {
       try self.clearDirectory(folderPath: NSTemporaryDirectory())
     )
   }
-  
+
   func joinFiles(_ filename: String, _ files: [String]) async throws -> String {
     return try await BlobUtil().joinFiles(fileName: filename, filePathsToJoin: files)
   }
-  
+
   func splitFile(_ fileUri: String, _ maxChunkSizeBytes: Int) async throws -> [String] {
     return try await BlobUtil().splitFile(fileUri: fileUri, maxBlobSize: maxChunkSizeBytes)
   }
-  
+
   func saveDataFile(_ name: String, _ dataBase64: String) async throws -> String {
     let decryptedFolder = try FileUtils.getDecryptedFolder()
     let filePath = (decryptedFolder as NSString).appendingPathComponent(name)
     try await self.writeFile(filePath, dataBase64)
     return filePath
   }
-  
+
   private func clearDirectory(folderPath: String) async throws {
     let fileManager = FileManager.default
     let folderUrl = URL(fileURLWithPath: folderPath)

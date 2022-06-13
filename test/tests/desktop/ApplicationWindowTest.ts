@@ -362,8 +362,7 @@ o.spec("ApplicationWindow Test", function () {
 		o(bwInstance.setMenuBarVisibility.callCount).equals(1)
 		o(bwInstance.setMenuBarVisibility.args[0]).equals(false)
 		o(bwInstance.removeMenu.callCount).equals(1)
-		o(wmMock.ipc.addWindow.callCount).equals(1)
-		o(wmMock.ipc.addWindow.args[0]).equals(w.id)
+		o(wmMock.ipc.addWindow.callCount).equals(0)
 		o(wmMock.dl.manageDownloadsForSession.callCount).equals(1)
 		o(wmMock.dl.manageDownloadsForSession.args[0]).equals(bwInstance.webContents.session)
 		o(Object.keys((bwInstance.webContents as any).callbacks)).deepEquals([
@@ -407,7 +406,7 @@ o.spec("ApplicationWindow Test", function () {
 		o(url.searchParams.get("noAutoLogin")).equals("true")
 		o(url.searchParams.get("platformId")).equals(process.platform)
 		o(url.searchParams.get("theme")).equals(themeJson)
-		o(wmMock.ipc.addWindow.args[0]).equals(w2.id)
+		o(wmMock.ipc.addWindow.callCount).equals(0)
 	})
 
 	o("redirect to start page after failing to load a page due to 404", async function () {
@@ -641,10 +640,8 @@ o.spec("ApplicationWindow Test", function () {
 		o(wmMock.ipc.sendRequest.callCount).equals(0)
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 		bwInstance.webContents.callbacks["did-finish-load"]()
-		o(wmMock.ipc.sendRequest.callCount).equals(0)
 		// ApplicationWindow waits for IPC and this is a reliable way to also wait for it
 		await wmMock.ipc.initialized(bwInstance.id)
-		o(nativeInterface.invokeNative.callCount).equals(1)
 		o(nativeInterface.invokeNative.calls[0].args[1][1]).equals("addShortcuts")
 		// Simulating reload from here
 		// Reset IPC
@@ -653,13 +650,10 @@ o.spec("ApplicationWindow Test", function () {
 		wmMock.ipc.initialized = () => initialized.promise
 
 		bwInstance.webContents.callbacks["did-finish-load"]()
-		// Still equals 1, ipc is not ready yet
-		o(nativeInterface.invokeNative.callCount).equals(1)
 		// Init IPC
 		initialized.resolve()
 		await initialized.promise
 		// Shortcuts should be added again because page has been reloaded
-		o(nativeInterface.invokeNative.callCount).equals(2)
 		o(nativeInterface.invokeNative.calls[1].args[1][1]).equals("addShortcuts")
 	})
 
@@ -896,8 +890,7 @@ o.spec("ApplicationWindow Test", function () {
 			"path",
 		)
 		setTimeout(() => {
-			o(wmMock.ipc.initialized.callCount).equals(1)
-			o(wmMock.ipc.initialized.args[0]).equals(w.id)
+			o(wmMock.ipc.initialized.callCount).equals(0)
 			o(nativeInterface.invokeNative.callCount).equals(1)
 			o(nativeInterface.invokeNative.args[0]).equals("ipc")
 			o(nativeInterface.invokeNative.args[1]).deepEquals(["CommonNativeFacade", "openMailBox", "userId", "a@b.c", "path"])
@@ -1144,8 +1137,7 @@ o.spec("ApplicationWindow Test", function () {
 		o(bwMock.focus.callCount).equals(1)
 		o(bwMock.restore.callCount).equals(3)
 	})
-	o(
-		"on, once, getTitle, setZoomFactor, isFullScreen, isMinimized, minimize, hide, center, showInactive, isFocused",
+	o("on, once, getTitle, setZoomFactor, isFullScreen, isMinimized, minimize, hide, center, showInactive, isFocused",
 		function () {
 			const {electronMock, wmMock, electronLocalshortcutMock, themeFacade, offlineDbFacade, nativeInterface} = standardMocks()
 			const nativeInterfaceFactory = (id) => nativeInterface
@@ -1166,7 +1158,7 @@ o.spec("ApplicationWindow Test", function () {
 			}
 
 			w.on(downcast("one-event"), f)
-			o(bwInstance.on.callCount).equals(5) // initial + now
+			o(bwInstance.on.callCount).equals(4) // initial + now
 
 			o(bwInstance.on.args[0]).equals("one-event")
 			o(bwInstance.on.args[1]).equals(f)

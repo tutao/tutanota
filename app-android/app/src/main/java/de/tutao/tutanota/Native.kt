@@ -87,7 +87,9 @@ class Native internal constructor(
 		)
 	}
 
-
+	/**
+	* remove when all methods are ported to generated facades
+	*/
 	private fun makeCursedJsonArray(args: List<String>): JSONArray {
 		val cursedJsonArray = args.joinToString(prefix = "[", postfix = "]")
 		return JSONArray(cursedJsonArray)
@@ -147,7 +149,6 @@ class Native internal constructor(
 	}
 
 	private fun sendResponse(requestId: String, value: String) {
-		Log.d(TAG, "sending response with val=$value")
 		val result = StringBuilder()
 		result.appendLine("response")
 		result.appendLine(requestId)
@@ -171,7 +172,6 @@ class Native internal constructor(
 
 	private suspend fun invokeMethod(method: String, args: List<String>): String {
 		val jsonArray = makeCursedJsonArray(args)
-		Log.d(TAG, "method=$method with cursedJson: $jsonArray")
 		if (method == "ipc") {
 			return globalDispatcher.dispatch(
 					jsonArray.getString(0),

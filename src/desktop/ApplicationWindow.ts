@@ -1,9 +1,8 @@
 import type {BrowserWindow, ContextMenuParams, NativeImage, Result,} from "electron"
 import type {NativeInterfaceFactory, WindowBounds, WindowManager} from "./DesktopWindowManager"
-import type {IPC} from "./IPC"
 import url from "url"
 import type {lazy} from "@tutao/tutanota-utils"
-import {assertNotNull, capitalizeFirstLetter, noOp, typedEntries, typedKeys} from "@tutao/tutanota-utils"
+import {capitalizeFirstLetter, noOp, typedEntries, typedKeys} from "@tutao/tutanota-utils"
 import {Keys} from "../api/common/TutanotaConstants"
 import type {Key} from "../misc/KeyManager"
 import path from "path"
@@ -15,11 +14,11 @@ import {DesktopThemeFacade} from "./DesktopThemeFacade"
 import {CancelledError} from "../api/common/error/CancelledError"
 import {ElectronExports} from "./ElectronExportTypes";
 import {OfflineDbFacade} from "./db/OfflineDbFacade"
-import HandlerDetails = Electron.HandlerDetails
 import {DesktopFacade} from "../native/common/generatedipc/DesktopFacade.js"
 import {CommonNativeFacade} from "../native/common/generatedipc/CommonNativeFacade.js"
 import {DesktopFacadeSendDispatcher} from "../native/common/generatedipc/DesktopFacadeSendDispatcher.js"
 import {CommonNativeFacadeSendDispatcher} from "../native/common/generatedipc/CommonNativeFacadeSendDispatcher.js"
+import HandlerDetails = Electron.HandlerDetails
 
 const MINIMUM_WINDOW_SIZE: number = 350
 export type UserInfo = {
@@ -44,7 +43,6 @@ type LocalShortcut = {
 const TAG = "[ApplicationWindow]"
 
 export class ApplicationWindow {
-	private readonly _ipc: IPC
 	private readonly _startFileURLString: string
 	private readonly _electron: ElectronExports
 	private readonly _localShortcut: LocalShortcutManager
@@ -79,7 +77,6 @@ export class ApplicationWindow {
 	) {
 		this._themeFacade = themeFacade
 		this._userInfo = null
-		this._ipc = assertNotNull(wm.ipc)
 		this._electron = electron
 		this._localShortcut = localShortcutManager
 		this._startFileURL = url.pathToFileURL(path.join(this._electron.app.getAppPath(), desktophtml))
@@ -287,8 +284,6 @@ export class ApplicationWindow {
 
 		this.id = this._browserWindow.id
 
-		this._ipc.addWindow(this.id)
-
 		this._browserWindow.webContents.session.setPermissionRequestHandler(
 			(webContents, permission, callback: (_: boolean) => void) => callback(false),
 		)
@@ -298,11 +293,6 @@ export class ApplicationWindow {
 		this._browserWindow
 			.on("close", () => {
 				this.closeDb()
-			})
-			.on("closed", () => {
-				this.setUserInfo(null)
-
-				this._ipc.removeWindow(this.id)
 			})
 			.on("focus", () => this._localShortcut.enableAll(this._browserWindow))
 			.on("blur", (_: FocusEvent) => this._localShortcut.disableAll(this._browserWindow))
@@ -340,8 +330,7 @@ export class ApplicationWindow {
 			.on("did-finish-load", () => {
 				// This also covers the case when window was reloaded.
 				// the webContents needs to know on which channel to listen
-				// Wait for IPC to be initialized so that render process can process our messages.
-				this._ipc.initialized(this.id).then(() => this._sendShortcutstoRender())
+				this._sendShortcutstoRender()
 			})
 			.on("did-fail-load", (evt, errorCode, errorDesc, validatedURL) => {
 				log.debug(TAG, "failed to load resource: ", validatedURL, errorDesc)
@@ -433,7 +422,7 @@ export class ApplicationWindow {
 
 	_sendShortcutstoRender(): void {
 		// delete exec since functions don't cross IPC anyway.
-		// it will be replaced by () => true in the renderer thread.
+		// it will be replaced by () => true in the renderer thread
 		const webShortcuts = this._shortcuts.map(s =>
 			Object.assign({}, s, {
 				exec: null,
@@ -453,19 +442,15 @@ export class ApplicationWindow {
 		}
 	}
 
-	openMailBox(info: UserInfo, path?: string | null): Promise<void> {
-		return this._ipc
-				   .initialized(this.id)
-				   .then(() => this.commonNativeFacade.openMailBox(info.userId, info.mailAddress!, path ?? null))
-				   .then(() => this.show())
+	async openMailBox(info: UserInfo, path?: string | null): Promise<void> {
+		await this.commonNativeFacade.openMailBox(info.userId, info.mailAddress!, path ?? null)
+		this.show()
 	}
 
 	// open at date?
-	openCalendar(info: UserInfo): Promise<void> {
-		return this._ipc
-				   .initialized(this.id)
-				   .then(() => this.commonNativeFacade.openCalendar(info.userId))
-				   .then(() => this.show())
+	async openCalendar(info: UserInfo): Promise<void> {
+		await this.commonNativeFacade.openCalendar(info.userId)
+		this.show()
 	}
 
 	setContextMenuHandler(handler: (arg0: ContextMenuParams) => void) {
@@ -484,8 +469,8 @@ export class ApplicationWindow {
 			return
 		}
 
-		// need to wait for the nativeApp to register itself
-		return this._ipc.initialized(this.id).then(() => this._browserWindow.webContents.send("to-renderer", msg))
+		// calls to this already await ipc.initialized
+		this._browserWindow.webContents.send("to-renderer", msg)
 	}
 
 	setUserInfo(info: UserInfo | null) {

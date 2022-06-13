@@ -93,10 +93,10 @@ export class WindowManager {
 	/**
 	 * Late initialization to break the dependency cycle.
 	 */
-	lateInit(ipc: IPC, themeFacade: DesktopThemeFacade, nativeInterfaceFactory: NativeInterfaceFactory) {
+	lateInit(ipc: IPC, contextMenu: DesktopContextMenu, themeFacade: DesktopThemeFacade,nativeInterfaceFactory: NativeInterfaceFactory) {
 		this.ipc = ipc
 		this.themeFacade = themeFacade
-		this._contextMenu = new DesktopContextMenu(this._electron, ipc)
+		this._contextMenu = contextMenu
 		this.nativeInterfaceFactory = nativeInterfaceFactory
 	}
 
@@ -108,6 +108,8 @@ export class WindowManager {
 			this.saveBounds(w.getBounds())
 		})
 		 .on("closed", () => {
+			 w.setUserInfo(null)
+			 this.ipc.removeWindow(w.id)
 			 windows.splice(windows.indexOf(w), 1)
 
 			 this._tray.update(this._notifier)
@@ -294,7 +296,9 @@ export class WindowManager {
 		const dictUrl = updateUrl && updateUrl !== "" ? updateUrl : "https://mail.tutanota.com/desktop/"
 		// custom builds get the dicts from us as well
 		const icon = await this.getIcon()
-		return new ApplicationWindow(this, desktopHtml, icon, electron, localShortcut, this.themeFacade, this.offlineDbFacade, this.nativeInterfaceFactory, dictUrl, noAutoLogin)
+		const newWindow = new ApplicationWindow(this, desktopHtml, icon, electron, localShortcut, this.themeFacade, this.offlineDbFacade, this.nativeInterfaceFactory, dictUrl, noAutoLogin)
+		this.ipc.addWindow(newWindow.id)
+		return newWindow
 	}
 
 	async startNativeDrag(filenames: Array<string>, windowId: number) {
