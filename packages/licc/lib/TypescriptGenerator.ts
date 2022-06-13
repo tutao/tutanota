@@ -1,6 +1,7 @@
 import {Accumulator} from "./Accumulator.js"
-import {FacadeDefinition, getArgs, LangGenerator, minusculize, RenderedType, StructDefitinion} from "./common.js"
+import {FacadeDefinition, getArgs, LangGenerator, minusculize, RenderedType, StructDefitinion, TypeRefDefinition} from "./common.js"
 import {ParsedType, parseType} from "./Parser.js"
+import path from "path"
 
 export class TypescriptGenerator implements LangGenerator {
 
@@ -143,6 +144,17 @@ export class TypescriptGenerator implements LangGenerator {
 
 	generateExtraFiles(): Record<string, string> {
 		return {};
+	}
+
+	generateTypeRef(outDir: string, definitionPath: string, definition: TypeRefDefinition): string {
+		const acc = new Accumulator()
+		const actualPath = path.relative(
+			path.resolve(outDir),
+			path.resolve(definitionPath, definition.location.typescript)
+		)
+		acc.line(`export {${definition.name}} from "${actualPath}"`)
+
+		return acc.finish()
 	}
 }
 

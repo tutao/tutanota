@@ -1,8 +1,9 @@
-import {FacadeDefinition, getArgs, LangGenerator, MethodDefinition, minusculize, RenderedType, StructDefitinion} from "./common.js"
+import {FacadeDefinition, getArgs, LangGenerator, MethodDefinition, minusculize, RenderedType, StructDefitinion, TypeRefDefinition} from "./common.js"
 import {Accumulator} from "./Accumulator.js"
 import {ParsedType, parseType} from "./Parser.js"
 
 export class SwiftGenerator implements LangGenerator {
+
 	handleStructDefinition(definition: StructDefitinion): string {
 		const generator = new Accumulator()
 		generator.line(`public struct ${definition.name} : Codable {`)
@@ -192,6 +193,10 @@ export class SwiftGenerator implements LangGenerator {
 		acc.line("}")
 		acc.line()
 		return acc.finish()
+	}
+
+	generateTypeRef(outDir: string, definitionPath: string, definition: TypeRefDefinition): string | null {
+		return null
 	}
 }
 

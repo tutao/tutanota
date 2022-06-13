@@ -1,11 +1,11 @@
 import {TypescriptGenerator} from "./TypescriptGenerator.js"
-import {capitalize, FacadeDefinition, LangGenerator, Platform, StructDefitinion} from "./common.js"
+import {capitalize, FacadeDefinition, LangGenerator, Language, Platform, StructDefitinion, TypeRefDefinition} from "./common.js"
 import {SwiftGenerator} from "./SwiftGenerator.js"
 import {KotlinGenerator} from "./KotlinGenerator.js"
 import * as path from "path"
 import * as fs from "fs"
 
-function generatorForLang(lang: string): LangGenerator {
+function generatorForLang(lang: Language): LangGenerator {
 	switch (lang) {
 		case "typescript":
 			return new TypescriptGenerator()
@@ -18,7 +18,7 @@ function generatorForLang(lang: string): LangGenerator {
 	}
 }
 
-function mapPlatformToLang(platform: string) {
+function mapPlatformToLang(platform: string): Language {
 	switch (platform) {
 		case "ios":
 			return "swift"
@@ -44,14 +44,14 @@ export function generate(platform: Platform, sources: Map<string, string>, outDi
 	const ext = getFileExtensionForLang(lang)
 	const generator = generatorForLang(lang)
 	const facadesToImplement: Array<string> = []
-	for (const [inputName, source] of Array.from(sources.entries())) {
-		console.log("handling ipc schema file", inputName)
-		const definition = JSON.parse(source) as FacadeDefinition | StructDefitinion
-		if (!("name" in definition) || definition.name !== inputName) {
-			throw new Error(`inconsistent naming: ${inputName} !== ${definition["name"]}`)
+	for (const [inputPath, source] of Array.from(sources.entries())) {
+		console.log("handling ipc schema file", inputPath)
+		const definition = JSON.parse(source) as FacadeDefinition | StructDefitinion | TypeRefDefinition
+		if (!("name" in definition)) {
+			throw new Error(`malformed definition: ${inputPath} doesn't have name field`)
 		}
 		if (!("type" in definition)) {
-			throw new Error(`missing type declaration: ${inputName}`)
+			throw new Error(`missing type declaration: ${inputPath}`)
 		}
 		switch (definition.type) {
 			case "facade":
@@ -62,23 +62,29 @@ export function generate(platform: Platform, sources: Map<string, string>, outDi
 					continue
 				}
 				const facadeOutput = generator.generateFacade(definition)
-				write(facadeOutput, outDir, inputName + ext)
+				write(facadeOutput, outDir, definition.name + ext)
 				if (isReceiving) {
 					const receiveOutput = generator.generateReceiveDispatcher(definition)
-					write(receiveOutput, outDir, inputName + "ReceiveDispatcher" + ext)
+					write(receiveOutput, outDir, definition.name + "ReceiveDispatcher" + ext)
 					facadesToImplement.push(definition.name)
 				}
 				if (isSending) {
 					const sendOutput = generator.generateSendDispatcher(definition)
-					write(sendOutput, outDir, inputName + "SendDispatcher" + ext)
+					write(sendOutput, outDir, definition.name + "SendDispatcher" + ext)
 				}
 				break
 			case "struct":
 				const structOutput = generator.handleStructDefinition(definition)
-				write(structOutput, outDir, inputName + ext)
+				write(structOutput, outDir, definition.name + ext)
+				break
+			case "typeref":
+				const refOutput = generator.generateTypeRef(outDir, inputPath, definition)
+				if (refOutput != null) {
+					write(refOutput, outDir, definition.name + ext)
+				}
 				break
 			default:
-				throw new Error(`unknown definition type in ${inputName}: ` + (definition as any).type)
+				throw new Error(`unknown definition type in ${inputPath}: ` + (definition as any).type)
 		}
 	}
 

@@ -1,4 +1,4 @@
-import {FacadeDefinition, getArgs, LangGenerator, MethodDefinition, minusculize, RenderedType, StructDefitinion} from "./common.js"
+import {FacadeDefinition, getArgs, LangGenerator, MethodDefinition, minusculize, RenderedType, StructDefitinion, TypeRefDefinition} from "./common.js"
 import {Accumulator} from "./Accumulator.js"
 import {ParsedType, parseType} from "./Parser.js"
 
@@ -168,6 +168,13 @@ export class KotlinGenerator implements LangGenerator {
 		return {
 			"NativeInterface": KotlinGenerator.generateNativeInterface()
 		}
+	}
+
+	generateTypeRef(outDir: string, definitionPath: string, definition: TypeRefDefinition): string {
+		const acc = new Accumulator()
+		acc.line(`package de.tutao.tutanota.ipc`)
+		acc.line(`typealias ${definition.name} = ${definition.location.kotlin}`)
+		return acc.finish()
 	}
 }
 

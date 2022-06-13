@@ -25,9 +25,15 @@ export interface LangGenerator {
 	 * generate extra type definitions needed to make the interface work
 	 */
 	generateExtraFiles(): Record<string, string>
+
+	/**
+	 * external types that don't get generated but are located somewhere else
+	 */
+	generateTypeRef(outDir: string, definitionPath: string, definition: TypeRefDefinition): string | null
 }
 
 export type Platform = "ios" | "web" | "android" | "desktop"
+export type Language = "kotlin" | "swift" | "typescript"
 
 export interface StructDefitinion {
 	type: "struct"
@@ -41,6 +47,12 @@ export interface FacadeDefinition {
 	senders: Array<Platform>,
 	receivers: Array<Platform>
 	methods: Record<string, MethodDefinition>
+}
+
+export interface TypeRefDefinition {
+	"type": "typeref",
+	"name": string,
+	"location": Record<Language, string>
 }
 
 export interface MethodDefinition {
