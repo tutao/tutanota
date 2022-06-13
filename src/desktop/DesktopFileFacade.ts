@@ -60,13 +60,13 @@ export class DesktopFileFacade implements FileFacade {
 		throw Unimplemented()
 	}
 
-	openFolderChooser(): Promise<Array<string>> {
+	openFolderChooser(): Promise<string | null> {
 		// open folder dialog
 		return this.electron.dialog
 				   .showOpenDialog({
 					   properties: ["openDirectory"],
 				   })
-				   .then(({filePaths}) => filePaths)
+				   .then(({filePaths}) => filePaths[0] ?? null)
 	}
 
 	putFileIntoDownloadsFolder(localFileUri: string): Promise<string> {

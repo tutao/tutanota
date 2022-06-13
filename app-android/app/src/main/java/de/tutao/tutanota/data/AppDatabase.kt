@@ -4,10 +4,9 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import de.tutao.tutanota.alarms.AlarmNotification
-import de.tutao.tutanota.data.AppDatabase
+import de.tutao.tutanota.alarms.AlarmNotificationEntity
 
-@Database(version = 1, entities = [KeyValue::class, PushIdentifierKey::class, AlarmNotification::class, User::class])
+@Database(version = 1, entities = [KeyValue::class, PushIdentifierKey::class, AlarmNotificationEntity::class, User::class])
 abstract class AppDatabase : RoomDatabase() {
 	abstract fun keyValueDao(): KeyValueDao
 	abstract fun userInfoDao(): UserInfoDao

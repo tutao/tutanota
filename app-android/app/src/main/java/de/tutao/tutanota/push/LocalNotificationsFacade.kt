@@ -81,14 +81,14 @@ class LocalNotificationsFacade(private val context: Context) {
 
 		val title = context.getString(R.string.pushNewMail_msg)
 		for (notificationInfo in notificationInfos) {
-			val counterPerAlias = aliasNotification[notificationInfo.address]?.incremented(notificationInfo.counter)
+			val counterPerAlias = aliasNotification[notificationInfo.mailAddress]?.incremented(notificationInfo.counter)
 					?: LocalNotificationInfo(
 							title,
 							notificationInfo.counter, notificationInfo
 					)
 
-			aliasNotification[notificationInfo.address] = counterPerAlias
-			val notificationId = makeNotificationId(notificationInfo.address)
+			aliasNotification[notificationInfo.mailAddress] = counterPerAlias
+			val notificationId = makeNotificationId(notificationInfo.mailAddress)
 
 			@ColorInt val redColor = context.resources.getColor(R.color.red, context.theme)
 			val notificationBuilder = NotificationCompat.Builder(context, EMAIL_NOTIFICATION_CHANNEL_ID)
@@ -96,10 +96,10 @@ class LocalNotificationsFacade(private val context: Context) {
 
 			notificationBuilder.setContentTitle(title)
 					.setColor(redColor)
-					.setContentText(notificationContent(notificationInfo.address))
+					.setContentText(notificationContent(notificationInfo.mailAddress))
 					.setNumber(counterPerAlias.counter)
 					.setSmallIcon(R.drawable.ic_status)
-					.setDeleteIntent(intentForDelete(arrayListOf(notificationInfo.address)))
+					.setDeleteIntent(intentForDelete(arrayListOf(notificationInfo.mailAddress)))
 					.setContentIntent(intentOpenMailbox(notificationInfo, false))
 					.setGroup(NOTIFICATION_EMAIL_GROUP)
 					.setAutoCancel(true)
@@ -160,7 +160,7 @@ class LocalNotificationsFacade(private val context: Context) {
 				.setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
 		@ColorInt val red = context.resources.getColor(R.color.red, context.theme)
 		val notification = builder.setContentTitle(title)
-				.setContentText(notificationContent(notificationInfo.address))
+				.setContentText(notificationContent(notificationInfo.mailAddress))
 				.setSmallIcon(R.drawable.ic_status)
 				.setGroup(NOTIFICATION_EMAIL_GROUP)
 				.setGroupSummary(true)
@@ -277,7 +277,7 @@ class LocalNotificationsFacade(private val context: Context) {
 		openMailboxIntent.action = MainActivity.OPEN_USER_MAILBOX_ACTION
 		openMailboxIntent.putExtra(
 				MainActivity.OPEN_USER_MAILBOX_MAILADDRESS_KEY,
-				notificationInfo.address
+				notificationInfo.mailAddress
 		)
 		openMailboxIntent.putExtra(
 				MainActivity.OPEN_USER_MAILBOX_USERID_KEY,
@@ -286,7 +286,7 @@ class LocalNotificationsFacade(private val context: Context) {
 		openMailboxIntent.putExtra(MainActivity.IS_SUMMARY_EXTRA, isSummary)
 		return PendingIntent.getActivity(
 				context.applicationContext,
-				makeNotificationId(notificationInfo.address + "@isSummary" + isSummary),
+				makeNotificationId(notificationInfo.mailAddress + "@isSummary" + isSummary),
 				openMailboxIntent,
 				PendingIntent.FLAG_UPDATE_CURRENT
 		)

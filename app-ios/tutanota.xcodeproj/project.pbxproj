@@ -138,6 +138,9 @@
 		3DC299FA267358AF00E1E79F /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC299F9267358AF00E1E79F /* ThemeManager.swift */; };
 		3DC299FD2673668000E1E79F /* QueryUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC299FC2673668000E1E79F /* QueryUtils.swift */; };
 		3DC5DEC728576621007364FF /* NativeInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEC628576621007364FF /* NativeInterface.swift */; };
+		3DC5DECA2858C12D007364FF /* NativePushFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEC82858C12D007364FF /* NativePushFacade.swift */; };
+		3DC5DECB2858C12D007364FF /* NativePushFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEC92858C12D007364FF /* NativePushFacadeReceiveDispatcher.swift */; };
+		3DC5DECD2858C1F5007364FF /* IosNativePushFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DECC2858C1F5007364FF /* IosNativePushFacade.swift */; };
 		3DCE7AA22719D04B0085E40D /* UserPreferenceFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE7AA12719D04B0085E40D /* UserPreferenceFacade.swift */; };
 		3DCE7AA7271D63BF0085E40D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE7AA6271D63BF0085E40D /* ViewController.swift */; };
 		3DCE7AAB27200E0A0085E40D /* WebviewHacks.h in Headers */ = {isa = PBXBuildFile; fileRef = 3DCE7AA927200E0A0085E40D /* WebviewHacks.h */; };
@@ -306,6 +309,9 @@
 		3DC299F9267358AF00E1E79F /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
 		3DC299FC2673668000E1E79F /* QueryUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryUtils.swift; sourceTree = "<group>"; };
 		3DC5DEC628576621007364FF /* NativeInterface.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeInterface.swift; sourceTree = "<group>"; };
+		3DC5DEC82858C12D007364FF /* NativePushFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativePushFacade.swift; sourceTree = "<group>"; };
+		3DC5DEC92858C12D007364FF /* NativePushFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativePushFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3DC5DECC2858C1F5007364FF /* IosNativePushFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosNativePushFacade.swift; sourceTree = "<group>"; };
 		3DCE7AA12719D04B0085E40D /* UserPreferenceFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPreferenceFacade.swift; sourceTree = "<group>"; };
 		3DCE7AA6271D63BF0085E40D /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		3DCE7AA927200E0A0085E40D /* WebviewHacks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebviewHacks.h; sourceTree = "<group>"; };
@@ -361,6 +367,7 @@
 				3D9B12AE2721966C002B46A1 /* IdTuple.swift */,
 				3D84F56A2721B92C00858A58 /* MissedNotification.swift */,
 				3D73DA3327319A91008E7A8A /* Operation.swift */,
+				3DC5DECC2858C1F5007364FF /* IosNativePushFacade.swift */,
 			);
 			path = Alarms;
 			sourceTree = "<group>";
@@ -982,6 +989,8 @@
 		3DBA56B62850AAA6004416BE /* GeneratedIpc */ = {
 			isa = PBXGroup;
 			children = (
+				3DC5DEC82858C12D007364FF /* NativePushFacade.swift */,
+				3DC5DEC92858C12D007364FF /* NativePushFacadeReceiveDispatcher.swift */,
 				3DC5DEC628576621007364FF /* NativeInterface.swift */,
 				3DBA56B72850AAA6004416BE /* FileFacade.swift */,
 				3DBA56B82850AAA6004416BE /* MobileFacadeSendDispatcher.swift */,
@@ -1403,6 +1412,7 @@
 				3DBA56C92850AAA6004416BE /* DownloadTaskResponse.swift in Sources */,
 				3DBA56CE2850AAA6004416BE /* IosGlobalDispatcher.swift in Sources */,
 				3DBA56CD2850AAA6004416BE /* NativeShortcut.swift in Sources */,
+				3DC5DECD2858C1F5007364FF /* IosNativePushFacade.swift in Sources */,
 				3D84F5822723225C00858A58 /* Utils.swift in Sources */,
 				3D9B12B42721A1E2002B46A1 /* TUTErrorFactory.m in Sources */,
 				3D4E16F4273D2F8A00256630 /* SyncCompletion.swift in Sources */,
@@ -1414,6 +1424,7 @@
 				3DBA56D22850AAA6004416BE /* ErrorInfo.swift in Sources */,
 				3D92867C273A7D19006B8FB2 /* TutanotaError.swift in Sources */,
 				3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */,
+				3DC5DECB2858C12D007364FF /* NativePushFacadeReceiveDispatcher.swift in Sources */,
 				3D9B12AF2721966C002B46A1 /* IdTuple.swift in Sources */,
 				3D92867F273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift in Sources */,
 				3D9B12A6272192C2002B46A1 /* AlarmNotification.swift in Sources */,
@@ -1453,6 +1464,7 @@
 				3DE1E44526666F0A0018C9DE /* UIColor+utils.swift in Sources */,
 				3DE46D2E2849E33000DC9D43 /* IosThemeFacade.swift in Sources */,
 				3D84F57927231E8600858A58 /* SSEInfo.swift in Sources */,
+				3DC5DECA2858C12D007364FF /* NativePushFacade.swift in Sources */,
 				3D84F5732722F35600858A58 /* CryptoFacade.swift in Sources */,
 				3DBA56C82850AAA6004416BE /* MobileFacadeSendDispatcher.swift in Sources */,
 				3D0EB1F926F49E36002E5102 /* AppDelegate.swift in Sources */,

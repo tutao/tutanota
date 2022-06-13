@@ -3,13 +3,14 @@ package de.tutao.tutanota.push
 import android.util.Log
 import de.tutao.tutanota.R
 import de.tutao.tutanota.addCommonHeaders
-import de.tutao.tutanota.alarms.AlarmNotification
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
+import de.tutao.tutanota.alarms.EncryptedAlarmNotification
 import de.tutao.tutanota.base64ToBase64Url
 import de.tutao.tutanota.data.SseInfo
 import de.tutao.tutanota.toBase64
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import org.apache.commons.io.IOUtils
-import org.json.JSONObject
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -24,6 +25,9 @@ class TutanotaNotificationsHandler(
 		private val sseStorage: SseStorage,
 		private val alarmNotificationsManager: AlarmNotificationsManager,
 ) {
+
+	private val json = Json { ignoreUnknownKeys = true }
+
 	fun onNewNotificationAvailable(sseInfo: SseInfo?) {
 		Log.d(TAG, "onNewNotificationAvailable")
 		if (sseInfo == null) {
@@ -133,7 +137,7 @@ class TutanotaNotificationsHandler(
 		urlConnection.inputStream.use { inputStream ->
 			val responseString = IOUtils.toString(inputStream, StandardCharsets.UTF_8)
 			Log.d(TAG, "Loaded Missed notifications response")
-			return MissedNotification.fromJson(JSONObject(responseString))
+			return json.decodeFromString(responseString)
 		}
 	}
 
@@ -184,7 +188,7 @@ class TutanotaNotificationsHandler(
 		localNotificationsFacade.sendEmailNotifications(notificationInfos)
 	}
 
-	private fun handleAlarmNotifications(alarmNotifications: List<AlarmNotification>) {
+	private fun handleAlarmNotifications(alarmNotifications: List<EncryptedAlarmNotification>) {
 		alarmNotificationsManager.scheduleNewAlarms(alarmNotifications)
 	}
 

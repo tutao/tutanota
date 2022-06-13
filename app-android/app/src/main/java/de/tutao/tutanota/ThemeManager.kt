@@ -9,8 +9,6 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.util.*
 
-typealias Theme = Map<String, String>
-
 private const val CURRENT_THEME_KEY = "theme"
 private const val THEMES_KEY = "themes"
 private const val TAG = "ThemeStorage"

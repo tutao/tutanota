@@ -1,0 +1,37 @@
+{
+  "name": "NativePushFacade",
+  "type": "facade",
+  "senders": ["web"],
+  "receivers": ["android", "desktop", "ios"],
+  "methods": {
+	"getPushIdentifier": {
+	  "arg": [
+		{"userId": "string"},
+		{"mailAddress": "string"}
+	  ],
+	  "ret": "string?"
+	},
+	"storePushIdentifierLocally": {
+	  "arg": [
+		{"identifier": "string"},
+		{"userId": "string"},
+		{"sseOrigin": "string"},
+		{"pushIdentifierId": "string"},
+		{"pushIdentifierSessionKeyB64": "string"}
+	  ],
+	  "ret": "void"
+	},
+	"initPushNotifications": {
+	  "arg": [],
+	  "ret": "void"
+	},
+	"closePushNotifications": {
+	  "arg": [{"addressesArray": "List<string>"}],
+	  "ret": "void"
+	},
+	"scheduleAlarms": {
+	  "arg": [{"alarms": "List<EncryptedAlarmNotification>"}],
+	  "ret": "void"
+	}
+  }
+}

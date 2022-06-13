@@ -206,30 +206,9 @@ export class IPC {
 					isUpdateAvailable,
 				}
 
-			case "openFileChooser":
-				const openFolderDialog = args[1]
-				if (openFolderDialog) {
-					// open folder dialog
-					return this._electron.dialog
-							   .showOpenDialog({
-								   properties: ["openDirectory"],
-							   })
-							   .then(({filePaths}) => filePaths)
-				} else {
-					// open file
-					return Promise.resolve([])
-				}
-
 			case "readDataFile": {
 				const location = args[0]
 				return this._desktopUtils.readDataFile(location)
-			}
-
-			case "saveDataFile": {
-				// args: [data.name, uint8ArrayToBase64(data.data)]
-				const filename: string = downcast(args[0])
-				const data: Uint8Array = base64ToUint8Array(downcast(args[1]))
-				return this._dl.saveDataFile(filename, data)
 			}
 
 			case "aesDecryptFile": {
@@ -257,43 +236,6 @@ export class IPC {
 				return this._integrator.disableAutoLaunch().catch(e => {
 					log.debug("could not disable auto launch:", e)
 				})
-			}
-			case "getPushIdentifier": {
-				const uInfo = {
-					userId: args[0].toString(),
-					mailAddress: args[1].toString(),
-				}
-				// we know there's a logged in window
-				// first, send error report if there is one
-				return this._err.sendErrorReport(windowId).then(async () => {
-					const w = this._wm.get(windowId)
-
-					if (!w) return
-					w.setUserInfo(uInfo)
-
-					if (!w.isHidden()) {
-						this._notifier.resolveGroupedNotification(uInfo.userId)
-					}
-
-					const sseInfo = await this._sse.getSseInfo()
-					return sseInfo && sseInfo.identifier
-				})
-			}
-			case "storePushIdentifierLocally": {
-				return Promise.all([
-					this._sse.storePushIdentifier(args[0].toString(), args[1].toString(), args[2].toString()),
-					this._alarmStorage.storePushIdentifierSessionKey(args[3].toString(), args[4].toString()),
-				]).then(() => {
-				})
-			}
-			case "initPushNotifications": {
-				// Nothing to do here because sse connection is opened when starting the native part.
-				return Promise.resolve()
-			}
-			case "closePushNotifications": {
-				// only gets called in the app
-				// the desktop client closes notifications on window focus
-				return Promise.resolve()
 			}
 			case "sendSocketMessage": {
 				// for admin client integration
@@ -344,17 +286,6 @@ export class IPC {
 				const fileName = args[0]
 				return fileExists(path.join(await getExportDirectoryPath(this._dl), fileName))
 			}
-
-			case "scheduleAlarms": {
-				const alarms = args[0]
-
-				for (const alarm of alarms) {
-					await this._alarmScheduler.handleAlarmNotification(alarm)
-				}
-
-				return
-			}
-
 			case "reload": {
 				// Response to this message will come to the web but it won't have a handler for it. We accept it for now.
 				this.removeWindow(windowId)
@@ -382,12 +313,6 @@ export class IPC {
 			case "getSupportedEncryptionModes": {
 				return this._credentialsEncryption.getSupportedEncryptionModes()
 			}
-
-			case 'getSize': {
-				const file: FileUri = args[0]
-				return this._dl.getSize(file)
-			}
-
 			case "facade": {
 				return this.getHandlerForWindow(windowId)(new Request(method, args))
 			}

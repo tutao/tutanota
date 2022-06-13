@@ -5,7 +5,7 @@ import {InterWindowEventTypes} from "./InterWindowEventTypes"
 import {IPostLoginAction} from "../../api/main/LoginController"
 
 export interface NativeInterface {
-	invokeNative(requestType: string, args: ReadonlyArray<unknown>): Promise<any>
+	invokeNative(requestType: NativeRequestType, args: ReadonlyArray<unknown>): Promise<any>
 }
 
 /** What native interfaces can be accessed by the web part. */

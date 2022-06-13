@@ -67,9 +67,7 @@ export function decodeNativeMessage(encoded: string): JsMessage {
 	let parsedMessage: Message<any>
 	switch (type) {
 		case "request":
-			console.log("encoded:", encoded)
 			const [requestType, ...args] = rest
-			console.log("type", requestType, "args", args)
 			parsedMessage = new Request(requestType, args.map(s => JSON.parse(s)), messageId)
 			break
 		case "response":

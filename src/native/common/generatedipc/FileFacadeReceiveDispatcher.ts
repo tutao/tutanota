@@ -21,6 +21,10 @@ export class FileFacadeReceiveDispatcher {
 					boundingRect,
 				)
 			}
+			case "openFolderChooser": {
+				return this.facade.openFolderChooser(
+				)
+			}
 			case "deleteFile": {
 				const file: string = arg[0]
 				return this.facade.deleteFile(

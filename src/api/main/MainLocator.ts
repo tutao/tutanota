@@ -247,26 +247,6 @@ class MainLocator implements IMainLocator {
 	}
 
 	async _createInstances() {
-		if (!isBrowser()) {
-			if (isDesktop()) {
-				const {InterWindowEventBus} = await import("../../native/common/InterWindowEventBus.js")
-				this._interWindowEventBus = new InterWindowEventBus()
-			}
-			const webInterface: ExposedWebInterface = {
-				interWindowEventHandler: this._interWindowEventBus,
-			}
-			this._nativeInterfaces = await createNativeInterfaces(
-				webInterface,
-				new WebMobileFacade(),
-				new WebDesktopFacade(),
-				new WebCommonNativeFacade()
-			)
-
-			if (isDesktop()) {
-				this.interWindowEventBus.init(this.getExposedNativeInterface().interWindowEventSender)
-			}
-		}
-
 		const {
 			loginFacade,
 			customerFacade,
@@ -316,6 +296,33 @@ class MainLocator implements IMainLocator {
 		this.entityClient = new EntityClient(restInterface)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
+
+		if (!isBrowser()) {
+			if (isDesktop()) {
+				const {InterWindowEventBus} = await import("../../native/common/InterWindowEventBus.js")
+				this._interWindowEventBus = new InterWindowEventBus()
+			}
+			const webInterface: ExposedWebInterface = {
+				interWindowEventHandler: this._interWindowEventBus,
+			}
+
+			const {WebDesktopFacade} = await import("../../native/main/WebDesktopFacade")
+			const {WebMobileFacade} = await import("../../native/main/WebMobileFacade.js")
+			const {WebCommonNativeFacade} = await import("../../native/main/WebCommonNativeFacade.js")
+			this._nativeInterfaces = await createNativeInterfaces(
+				webInterface,
+				new WebMobileFacade(),
+				new WebDesktopFacade(),
+				new WebCommonNativeFacade(),
+				cryptoFacade,
+				calendarFacade,
+				this.entityClient,
+			)
+
+			if (isDesktop()) {
+				this.interWindowEventBus.init(this.getExposedNativeInterface().interWindowEventSender)
+			}
+		}
 
 		this.webauthnClient = new WebauthnClient(this.webauthnController, getWebRoot())
 		this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, this.webauthnClient, this.loginFacade)

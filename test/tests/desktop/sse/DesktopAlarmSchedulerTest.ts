@@ -1,7 +1,7 @@
 import o from "ospec"
 import n from '../../nodemocker.js'
 import {EndType, RepeatPeriod} from "../../../../src/api/common/TutanotaConstants.js"
-import {DesktopAlarmScheduler, EncryptedAlarmNotification} from "../../../../src/desktop/sse/DesktopAlarmScheduler.js"
+import {DesktopAlarmScheduler} from "../../../../src/desktop/sse/DesktopAlarmScheduler.js"
 import type {AlarmScheduler} from "../../../../src/calendar/date/AlarmScheduler.js"
 import {CryptoError} from "../../../../src/api/common/error/CryptoError.js"
 import {downcast, lastThrow} from "@tutao/tutanota-utils"
@@ -10,6 +10,7 @@ import {DesktopNotifier, NotificationResult} from "../../../../src/desktop/Deskt
 import {DesktopAlarmStorage} from "../../../../src/desktop/sse/DesktopAlarmStorage.js";
 import {DesktopCryptoFacade} from "../../../../src/desktop/DesktopCryptoFacade.js";
 import {assertThrows} from "@tutao/tutanota-test-utils";
+import {EncryptedAlarmNotification} from "../../../../src/native/common/EncryptedAlarmNotification.js";
 
 const START_DATE = new Date(2019, 9, 10, 14).getTime()
 const oldTimezone = process.env.TZ

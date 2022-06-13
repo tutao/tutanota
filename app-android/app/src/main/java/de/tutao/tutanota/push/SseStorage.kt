@@ -4,7 +4,7 @@ import androidx.annotation.WorkerThread
 import androidx.lifecycle.LiveData
 import de.tutao.tutanota.AndroidKeyStoreFacade
 import de.tutao.tutanota.CryptoError
-import de.tutao.tutanota.alarms.AlarmNotification
+import de.tutao.tutanota.alarms.AlarmNotificationEntity
 import de.tutao.tutanota.base64ToBytes
 import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.data.PushIdentifierKey
@@ -51,11 +51,11 @@ class SseStorage(
 		return db.userInfoDao().observeUsers()
 	}
 
-	fun readAlarmNotifications(): List<AlarmNotification> {
+	fun readAlarmNotifications(): List<AlarmNotificationEntity> {
 		return db.alarmInfoDao().alarmNotifications
 	}
 
-	fun insertAlarmNotification(alarmNotification: AlarmNotification) {
+	fun insertAlarmNotification(alarmNotification: AlarmNotificationEntity) {
 		db.alarmInfoDao().insertAlarmNotification(alarmNotification)
 	}
 

@@ -55,6 +55,7 @@ import {modelInfos} from "../common/EntityFunctions.js"
 import {CustomCacheHandlerMap, CustomCalendarEventCacheHandler} from "./rest/CustomCacheHandler.js"
 import {CalendarEventTypeRef} from "../entities/tutanota/TypeRefs.js"
 import {FileFacadeSendDispatcher} from "../../native/common/generatedipc/FileFacadeSendDispatcher.js"
+import {NativePushFacadeSendDispatcher} from "../../native/common/generatedipc/NativePushFacadeSendDispatcher.js"
 
 assertWorkerOrNode()
 
@@ -194,9 +195,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.blob = new BlobFacade(locator.user, locator.serviceExecutor, locator.restClient, suspensionHandler, fileApp, aesApp, locator.instanceMapper, locator.crypto)
 	locator.file = new FileFacade(locator.user, locator.restClient, suspensionHandler, fileApp, aesApp, locator.instanceMapper, locator.serviceExecutor, locator.crypto)
 	locator.mail = new MailFacade(locator.user, locator.file, locator.cachingEntityClient, locator.crypto, locator.serviceExecutor, locator.blob)
+	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)
 	// not needed for admin client
 	if (cache) {
-		locator.calendar = new CalendarFacade(locator.user, locator.groupManagement, cache, worker, worker, locator.instanceMapper, locator.serviceExecutor, locator.crypto)
+		locator.calendar = new CalendarFacade(locator.user, locator.groupManagement, cache, nativePushFacade, worker, locator.instanceMapper, locator.serviceExecutor, locator.crypto)
 	}
 	locator.mailAddress = new MailAddressFacade(locator.user, locator.serviceExecutor)
 

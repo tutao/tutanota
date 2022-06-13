@@ -12,20 +12,7 @@ import {CryptoError} from "../../api/common/error/CryptoError"
 import {elementIdPart} from "../../api/common/utils/EntityUtils"
 import {hasError} from "../../api/common/utils/ErrorCheckUtils"
 import {resolveTypeReference} from "../../api/common/EntityFunctions"
-
-export type NotificationSessionKey = {
-	pushIdentifierSessionEncSessionKey: string
-	pushIdentifier: IdTuple
-}
-export type EncryptedAlarmInfo = {
-	alarmIdentifier: string
-}
-export type EncryptedAlarmNotification = {
-	operation: OperationType
-	notificationSessionKeys: Array<NotificationSessionKey>
-	alarmInfo: EncryptedAlarmInfo
-	user: Id
-}
+import {EncryptedAlarmNotification} from "../../native/common/EncryptedAlarmNotification.js"
 
 export class DesktopAlarmScheduler {
 	readonly _wm: WindowManager
@@ -78,7 +65,6 @@ export class DesktopAlarmScheduler {
 			}
 
 			const decAn: AlarmNotification = await this._crypto.decryptAndMapToInstance(
-				// await resolveTypeReference(AlarmNotificationTypeRef),
 				await resolveTypeReference(AlarmNotificationTypeRef),
 				an,
 				pushIdentifierSessionKey,
