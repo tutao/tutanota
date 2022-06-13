@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2022-05-13T13:43:31Z",
+	"updated_at": "2022-05-31T07:18:36Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -645,6 +645,7 @@ export default {
 		"invalidLink_msg": "Leider ist dieser Link ungültig.",
 		"invalidMailAddress_msg": "Die folgenden Personen konnten nicht eingeladen werden, da die E-Mail-Adressen ungültig sind:",
 		"invalidPassword_msg": "Das Passwort ist leider ungültig.",
+		"invalidPastedRecipients_msg": "Die folgenden E-Mail-Adressen sind ungültig:",
 		"invalidRecipients_msg": "Bitte korrigieren Sie die ungültigen E-Mail-Adressen:",
 		"invalidRegexSyntax_msg": "Ungültige Regex-Syntax",
 		"invalidRegistrationCode_msg": "Der Registrierungs-Code is ungültig.",
@@ -1463,9 +1464,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie",
-		"invalidPastedRecipients_msg": "Die folgende E-Mail-Adressen sind ungültig:",
-		"redeemedGiftCardPosting_label": "Gutschein eingelöst",
-		"boughtGiftCardPosting_label": "Gutschein gekauft"
+		"you_label": "Sie"
 	}
 }

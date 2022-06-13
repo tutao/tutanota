@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2022-05-13T14:59:48Z",
+	"updated_at": "2022-05-31T10:27:05Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -641,6 +641,7 @@ export default {
 		"invalidLink_msg": "Tyvärr är denna länk inte giltigt.",
 		"invalidMailAddress_msg": "Följande e-postadresser kunde inte bjudas in eftersom de är ogiltiga:",
 		"invalidPassword_msg": "Ogiltig lösenord. Kontrollera det igen.",
+		"invalidPastedRecipients_msg": "Följande e-postadresser var ogiltiga:",
 		"invalidRecipients_msg": "Rätta eller ta bort ogiltig e-postadress:",
 		"invalidRegexSyntax_msg": "Ogiltig syntax för regex",
 		"invalidRegistrationCode_msg": "Registreringskoden är ogiltig.",

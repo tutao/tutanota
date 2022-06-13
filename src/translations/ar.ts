@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2022-05-16T14:13:28Z",
+	"updated_at": "2022-05-30T16:39:36Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -645,6 +645,7 @@ export default {
 		"invalidLink_msg": "عفوا، هذا الرابط غير صالح.",
 		"invalidMailAddress_msg": "لا يمكن دعوة عناوين البريد الإلكتروني التالية لأنها غير صالحة : ",
 		"invalidPassword_msg": "كلمة المرور غير صحيحة. يرجى التأكد منها ثم إعادة المحاولة.",
+		"invalidPastedRecipients_msg": "عناوين البريد الإلكتروني التالية غير صالحة:",
 		"invalidRecipients_msg": "يرجى تصحيح أو إزالة عناوين البريد الإلكتروني غير الصالحة : ",
 		"invalidRegexSyntax_msg": "بنية regex غير صالحة",
 		"invalidRegistrationCode_msg": "كود التسجيل هذا غير صالح.",

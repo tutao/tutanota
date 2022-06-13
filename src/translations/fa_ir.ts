@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2022-05-14T04:43:06Z",
+	"updated_at": "2022-05-31T03:26:37Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "درباره",
@@ -639,6 +639,7 @@ export default {
 		"invalidLink_msg": "متاسفانه، این لینک نامعتبر است.",
 		"invalidMailAddress_msg": "آدرس های ایمیل زیر به دلیل نامعتبر بودن نمی توانند دعوت شوند:",
 		"invalidPassword_msg": "رمز عبور نامعتبر است. دوباره امتحال کنید.",
+		"invalidPastedRecipients_msg": "آدرس‌های ایمیلی که در ادامه آمده‌اند غیرمعتبر بودند:",
 		"invalidRecipients_msg": "لطفاً آدرس‌های ایمیل نامعتبر را تصحیح یا حذف کنید:",
 		"invalidRegexSyntax_msg": "خطای عبارات باقاعده غیرمعتبر",
 		"invalidRegistrationCode_msg": "این کد ثبت‌نام نامعتبر است.",

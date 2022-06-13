@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2022-05-13T18:09:41Z",
+	"updated_at": "2022-06-05T20:44:11Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -71,7 +71,7 @@ export default {
 		"addStatisticsField_action": "Dodaj pole statystyki",
 		"addTemplate_label": "Nowy szablon",
 		"addToDict_action": "Dodaj \"{word}\" do słownika",
-		"addUsers_action": "Dodaj użytkowników",
+		"addUsers_action": "Dodaj użytkownika",
 		"addUsers_title": "Dodać użytkownika?",
 		"addUserToGroup_label": "Dodaj członka",
 		"add_action": "Dodaj",
@@ -645,6 +645,7 @@ export default {
 		"invalidLink_msg": "Niestety, szukana zawartość nie istnieje.",
 		"invalidMailAddress_msg": "Poniższe adresy e-mail nie mogły być zaproszone ponieważ są nieważne:",
 		"invalidPassword_msg": "Hasło nieprawidłowe! Sprawdź hasło ponownie.",
+		"invalidPastedRecipients_msg": "Następujące adresy e-mail były nieprawidłowe:",
 		"invalidRecipients_msg": "Popraw lub usuń nieprawidłowy adres e-mail:",
 		"invalidRegexSyntax_msg": "Nieprawidłowy zapis wyrażenia regularnego",
 		"invalidRegistrationCode_msg": "Ten kod rejestracyjny jest nieważny.",

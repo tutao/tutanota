@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2022-05-13T14:11:33Z",
+	"updated_at": "2022-05-31T06:15:26Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",
@@ -641,6 +641,7 @@ export default {
 		"invalidLink_msg": "Bohužel, tento odkaz je neplatný.",
 		"invalidMailAddress_msg": "Tyto e-mailové adresy nelze pozvat, protože jsou neplatné:",
 		"invalidPassword_msg": "Neplatné heslo. Prosím znovu zkontrolujte.",
+		"invalidPastedRecipients_msg": "Následující e-mailové adresy nejsou platné:",
 		"invalidRecipients_msg": "Opravte nebo odstraňte prosím neplatné e-mailové adresy.",
 		"invalidRegexSyntax_msg": "Neplatná syntaxe regulárního výraz",
 		"invalidRegistrationCode_msg": "Tento registrační kód je neplatný.",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2022-05-13T13:43:26Z",
+	"updated_at": "2022-06-13T12:15:14Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -132,6 +132,7 @@ export default {
 		"bookingItemUsers_label": "Benutzer",
 		"bookingOrder_label": "Buchung",
 		"bookingSummary_label": "Buchungsübersicht",
+		"boughtGiftCardPosting_label": "Gutschein gekauft",
 		"breakLink_action": "Hyperlink entfernen",
 		"businessBooking_label": "Business-Feature für {1} Benutzer",
 		"businessChangeInfo_msg": "Bitte bestätige deine Rechnungsdaten für die geschäftliche Nutzung.",
@@ -645,6 +646,7 @@ export default {
 		"invalidLink_msg": "Leider ist dieser Link ungültig.",
 		"invalidMailAddress_msg": "Die folgenden Personen konnten nicht eingeladen werden, da die E-Mail-Adressen ungültig sind:",
 		"invalidPassword_msg": "Das Passwort ist leider ungültig.",
+		"invalidPastedRecipients_msg": "Die folgenden E-Mail-Adressen sind ungültig:",
 		"invalidRecipients_msg": "Bitte korrigiere die ungültigen E-Mail-Adressen:",
 		"invalidRegexSyntax_msg": "Ungültige Regex-Syntax",
 		"invalidRegistrationCode_msg": "Der Registrierungs-Code is ungültig.",
@@ -1092,6 +1094,7 @@ export default {
 		"recoveryCode_label": "Wiederherstellungs-Code",
 		"recoveryCode_msg": "Bitte nimm dir die Zeit um den Wiederherstellungs-Code aufzuschreiben. Dieser ist die einzige Möglichkeit, um den Zugang zu deinem Account wiederherzustellen, falls du das Passwort oder den zweiten Faktor verlieren solltest.",
 		"recover_label": "Wiederherstellen",
+		"redeemedGiftCardPosting_label": "Gutschein eingelöst",
 		"redeemedToPremium_msg": "Dein Account wurde auf einen Premium Account umgestellt.",
 		"redeem_label": "Einlösen",
 		"redo_action": "Wiederholen",
@@ -1463,9 +1466,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du",
-		"invalidPastedRecipients_msg": "Die folgende E-Mail-Adressen sind ungültig:",
-		"redeemedGiftCardPosting_label": "Gutschein eingelöst",
-		"boughtGiftCardPosting_label": "Gutschein gekauft"
+		"you_label": "Du"
 	}
 }

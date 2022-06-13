@@ -11,3 +11,4 @@ TutaoCancelAction = "キャンセル";
 TutaoSettingsAction = "設定";
 TutaoCalendarAlarmTitle = "リマインダー";
 TutaoScheduleAlarmError = "アラームを設定できませんでした。 アプリケーションを更新してください。";
+TutaoUnlockCredentialsAction = "クレデンシャルを復号化する";

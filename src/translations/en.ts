@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2022-05-13T13:37:24Z",
+	"updated_at": "2022-06-13T12:14:58Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -128,6 +128,7 @@ export default {
 		"bookingItemUsers_label": "Users",
 		"bookingOrder_label": "Booking",
 		"bookingSummary_label": "Booking summary",
+		"boughtGiftCardPosting_label": "Purchase gift card",
 		"breakLink_action": "Remove hyperlink",
 		"businessBooking_label": "Business feature for {1} users",
 		"businessChangeInfo_msg": "Please verify your invoice data to switch your account to business use.",
@@ -641,6 +642,7 @@ export default {
 		"invalidLink_msg": "Sorry, this link is not valid.",
 		"invalidMailAddress_msg": "The following email addresses could not be invited because they are invalid:",
 		"invalidPassword_msg": "Invalid password. Please check it again.",
+		"invalidPastedRecipients_msg": "The following email addresses were invalid:",
 		"invalidRecipients_msg": "Please correct or remove the invalid email addresses:",
 		"invalidRegexSyntax_msg": "Invalid regex syntax",
 		"invalidRegistrationCode_msg": "This registration code is invalid.",
@@ -1088,6 +1090,7 @@ export default {
 		"recoveryCode_label": "Recovery code",
 		"recoveryCode_msg": "Please take a minute to write down your recovery code. The recovery code is the only option to reset your password or second factor in case you lose either.",
 		"recover_label": "Recover",
+		"redeemedGiftCardPosting_label": "Redeemed gift card",
 		"redeemedToPremium_msg": "You now have a premium account.",
 		"redeem_label": "Redeem",
 		"redo_action": "Redo",
@@ -1459,10 +1462,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"invalidPastedRecipients_msg": "The input contained the following invalid email addresses:",
-		"redeemedGiftCardPosting_label": "Redeemed gift card",
-		"boughtGiftCardPosting_label": "Purchase gift card"
-
+		"you_label": "You"
 	}
 }

@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2022-05-15T21:35:57Z",
+	"updated_at": "2022-06-08T17:10:20Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -645,6 +645,7 @@ export default {
 		"invalidLink_msg": "Această legătură nu e valabilă.",
 		"invalidMailAddress_msg": "Următoarele adrese de e-mail nu au putut fi invitate din motiv că sunt incorecte:",
 		"invalidPassword_msg": "Parolă greșită. Te rugăm să o verifici din nou.",
+		"invalidPastedRecipients_msg": "Următoarele adrese de e-mail nu au fost corecte:",
 		"invalidRecipients_msg": "Corectează sau elimină adresele de e-mail incorecte:",
 		"invalidRegexSyntax_msg": "Expresia regulată e greșită",
 		"invalidRegistrationCode_msg": "Acest cod de înregistrare nu e corect.",

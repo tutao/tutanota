@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2022-05-15T17:30:41Z",
+	"updated_at": "2022-06-10T09:49:30Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -643,6 +643,7 @@ export default {
 		"invalidLink_msg": "Purtroppo questo link non è valido.",
 		"invalidMailAddress_msg": "Non è stato possibile invitare i seguenti indirizzi email perché non sono validi:",
 		"invalidPassword_msg": "Password non valida. Riprovare.",
+		"invalidPastedRecipients_msg": "I seguenti indirizzi email non erano validi:",
 		"invalidRecipients_msg": "Prego correggi o rimuovi gli indirizzi email non validi:",
 		"invalidRegexSyntax_msg": "Sintassi regex non valida",
 		"invalidRegistrationCode_msg": "Questo codice di registrazione non è valido.",
