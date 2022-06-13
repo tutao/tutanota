@@ -206,32 +206,13 @@ class WebViewBridge : NSObject, NativeInterface {
         return try await self.crypto.encryptFile(key: args[0] as! String, atPath: args[1] as! String)
       case "aesDecryptFile":
         return try await self.crypto.decryptFile(key: args[0] as! String, atPath: args[1] as! String)
-      case "getPushIdentifier":
-        return try await self.viewController.appDelegate.registerForPushNotifications()
-      case "storePushIdentifierLocally":
-        self.userPreferences.store(
-          pushIdentifier: args[0] as! String,
-          userId: args[1] as! String,
-          sseOrigin: args[2] as! String
-        )
-        let keyData = Data(base64Encoded: args[4] as! Base64)!
-        try self.keychainManager.storeKey(keyData, withId: args[3] as! String)
-        return nil
       case "findSuggestions":
         return try await self.contactsSource.search(query: args[0] as! String)
-      case "closePushNotifications":
-        await MainActor.run {
-          UIApplication.shared.applicationIconBadgeNumber = 0
-        }
-        return nil
       case "openLink":
         return await self.openLink(args[0] as! String)
       case "getDeviceLog":
         return try self.getLogfile()
-      case "scheduleAlarms":
-        let alarms = try! EncryptedAlarmNotification.arrayFrom(nsArray: args[0] as! NSArray)
-        try await self.alarmManager.processNewAlarms(alarms)
-        return nil
+
       case "encryptUsingKeychain":
         let encryptionMode = CredentialEncryptionMode(rawValue: args[0] as! String)!
         return try await self.credentialsEncryption.encryptUsingKeychain(data: args[1] as! Base64, encryptionMode: encryptionMode)

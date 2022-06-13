@@ -58,6 +58,8 @@ import {CalendarService} from "../../entities/tutanota/Services"
 import {resolveTypeReference} from "../../common/EntityFunctions"
 import {UserFacade} from "./UserFacade"
 import {isOfflineError} from "../../common/utils/ErrorCheckUtils.js"
+import {EncryptedAlarmNotification} from "../../../native/common/EncryptedAlarmNotification.js"
+import {NativePushFacade} from "../../../native/common/generatedipc/NativePushFacade.js"
 
 assertWorkerOrNode()
 
@@ -81,7 +83,7 @@ export class CalendarFacade {
 		private readonly groupManagementFacade: GroupManagementFacadeImpl,
 		// We inject cache directly because we need to delete user from it for a hack
 		private readonly entityRestCache: EntityRestCache,
-		private readonly native: NativeInterface,
+		private readonly nativePushFacade: NativePushFacade,
 		private readonly worker: WorkerImpl,
 		private readonly instanceMapper: InstanceMapper,
 		private readonly serviceExecutor: IServiceExecutor,
@@ -317,7 +319,8 @@ export class CalendarFacade {
 		})
 		const AlarmServicePostTypeModel = await resolveTypeReference(AlarmServicePostTypeRef)
 		const encEntity = await this.instanceMapper.encryptAndMapToLiteral(AlarmServicePostTypeModel, requestEntity, notificationKey)
-		return this.native.invokeNative("scheduleAlarms", [downcast(encEntity).alarmNotifications])
+		const encryptedAlarms: EncryptedAlarmNotification[] = downcast(encEntity).alarmNotifications
+		await this.nativePushFacade.scheduleAlarms(encryptedAlarms)
 	}
 
 	/**

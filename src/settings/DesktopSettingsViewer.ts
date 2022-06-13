@@ -365,8 +365,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		if (v === DownloadLocationStrategy.ALWAYS_ASK) {
 			savePath = null
 		} else {
-			const chosenPaths = await locator.fileApp.openFolderChooser()
-			savePath = chosenPaths[0] ?? null
+			savePath = await locator.fileApp.openFolderChooser()
 		}
 
 		this._defaultDownloadPath(savePath ?? lang.get("alwaysAsk_action"))

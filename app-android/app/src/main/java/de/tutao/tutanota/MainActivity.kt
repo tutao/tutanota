@@ -31,12 +31,14 @@ import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutanota.alarms.SystemAlarmFacade
 import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.ipc.*
+import de.tutao.tutanota.push.AndroidNativePushFacade
 import de.tutao.tutanota.push.LocalNotificationsFacade
 import de.tutao.tutanota.push.PushNotificationService
 import de.tutao.tutanota.push.SseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
@@ -77,16 +79,22 @@ class MainActivity : FragmentActivity() {
 				SystemAlarmFacade(this),
 				LocalNotificationsFacade(this)
 		)
+		val nativePushFacade = AndroidNativePushFacade(
+				this,
+				sseStorage,
+				alarmNotificationsManager
+		)
 
 		themeFacade = AndroidThemeFacade(this, this)
+		val ipcJson = Json { ignoreUnknownKeys = true }
 		val globalDispatcher = AndroidGlobalDispatcher(
+				ipcJson,
 				fileFacade,
+				nativePushFacade,
 				themeFacade
 		)
 		nativeImpl = Native(
 				this,
-				sseStorage,
-				alarmNotificationsManager,
 				globalDispatcher,
 				fileFacade
 		)
@@ -95,8 +103,8 @@ class MainActivity : FragmentActivity() {
 
 		super.onCreate(savedInstanceState)
 
-		mobileFacade = MobileFacadeSendDispatcher(nativeImpl)
-		commonNativeFacade = CommonNativeFacadeSendDispatcher(nativeImpl)
+		mobileFacade = MobileFacadeSendDispatcher(ipcJson, nativeImpl)
+		commonNativeFacade = CommonNativeFacadeSendDispatcher(ipcJson, nativeImpl)
 
 		setupPushNotifications()
 
@@ -208,7 +216,7 @@ class MainActivity : FragmentActivity() {
 		webView.saveState(outState)
 	}
 
-	suspend fun askBatteryOptinmizationsIfNeeded() {
+	suspend fun askBatteryOptimizationsIfNeeded() {
 		val powerManager = getSystemService(POWER_SERVICE) as PowerManager
 		val preferences = PreferenceManager.getDefaultSharedPreferences(this)
 

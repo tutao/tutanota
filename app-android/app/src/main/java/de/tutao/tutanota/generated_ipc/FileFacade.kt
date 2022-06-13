@@ -14,6 +14,8 @@ interface FileFacade {
 	 suspend fun openFileChooser(
 		boundingRect: IpcClientRect,
 	): List<String>
+	 suspend fun openFolderChooser(
+	): String?
 	 suspend fun deleteFile(
 		file: String,
 	): Unit

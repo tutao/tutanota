@@ -1,37 +1,24 @@
 import type {App} from "electron"
 import type {TimeoutSetter} from "@tutao/tutanota-utils"
-import {
-	base64ToBase64Url,
-	filterInt,
-	neverNull,
-	randomIntFromInterval,
-	remove,
-	stringToUtf8Uint8Array,
-	uint8ArrayToBase64
-} from "@tutao/tutanota-utils"
+import {base64ToBase64Url, filterInt, neverNull, randomIntFromInterval, remove, stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {DesktopNotifier} from "../DesktopNotifier"
+import {NotificationResult} from "../DesktopNotifier";
 import type {WindowManager} from "../DesktopWindowManager"
 import type {DesktopConfig} from "../config/DesktopConfig"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
-import type {DesktopAlarmScheduler, EncryptedAlarmNotification} from "./DesktopAlarmScheduler"
+import type {DesktopAlarmScheduler} from "./DesktopAlarmScheduler"
 import type {DesktopNetworkClient} from "../DesktopNetworkClient"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {typeModels} from "../../api/entities/sys/TypeModels"
 import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
 import type {LanguageViewModelType} from "../../misc/LanguageViewModel"
 import type {NotificationInfo} from "../../api/entities/sys/TypeRefs.js"
-import {
-	handleRestError,
-	NotAuthenticatedError,
-	NotAuthorizedError,
-	ServiceUnavailableError,
-	TooManyRequestsError
-} from "../../api/common/error/RestError"
+import {handleRestError, NotAuthenticatedError, NotAuthorizedError, ServiceUnavailableError, TooManyRequestsError} from "../../api/common/error/RestError"
 import {TutanotaError} from "../../api/common/error/TutanotaError"
 import {log} from "../DesktopLog"
 import {BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey} from "../config/ConfigKeys"
-import {NotificationResult} from "../DesktopNotifier";
 import http from "http";
+import {EncryptedAlarmNotification} from "../../native/common/EncryptedAlarmNotification.js"
 
 export type SseInfo = {
 	identifier: string

@@ -2,7 +2,7 @@ import Foundation
 
 typealias Base64 = String
 
-struct EncryptedAlarmNotification : Codable {
+public struct EncryptedAlarmNotification : Codable {
   let operation: Operation
   let summary: Base64
   let eventStart: Base64
@@ -14,13 +14,13 @@ struct EncryptedAlarmNotification : Codable {
 }
 
 extension EncryptedAlarmNotification: Equatable {
-  static func == (lhs: EncryptedAlarmNotification, rhs: EncryptedAlarmNotification) -> Bool {
+  public static func == (lhs: EncryptedAlarmNotification, rhs: EncryptedAlarmNotification) -> Bool {
     return lhs.alarmInfo.alarmIdentifier == rhs.alarmInfo.alarmIdentifier
   }
 }
 
 extension EncryptedAlarmNotification: Hashable {
-  func hash(into hasher: inout Hasher) {
+  public func hash(into hasher: inout Hasher) {
     self.alarmInfo.alarmIdentifier.hash(into: &hasher)
   }
 }

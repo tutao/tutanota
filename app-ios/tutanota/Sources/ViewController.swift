@@ -41,6 +41,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
 
       let globalDispatcher = IosGlobalDispatcher(
         fileFacade: IosFileFacade(chooser: TUTFileChooser(viewController: self), viewer: FileViewer(viewController: self)),
+        nativePushFacade: IosNativePushFacade(appDelegate: self.appDelegate, alarmManager: self.alarmManager, userPreferences: userPreferences, keychainManager: keychainManager),
         themeFacade: IosThemeFacade(themeManager: themeManager, viewController: self)
       )
 

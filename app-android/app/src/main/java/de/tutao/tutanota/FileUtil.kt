@@ -90,6 +90,10 @@ class FileUtil(
 		return selectedFiles
 	}
 
+	override suspend fun openFolderChooser(): String? {
+		error("not implemented for this platform")
+	}
+
 	// @see: https://developer.android.com/reference/android/support/v4/content/FileProvider.html
 	override suspend fun open(location: String, mimeType: String): Unit {
 		val file = File(location).toUri().let { uri ->

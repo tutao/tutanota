@@ -15,6 +15,10 @@
 	  "arg": [{"boundingRect": "IpcClientRect"}],
 	  "ret": "List<string>"
 	},
+	"openFolderChooser": {
+	  "arg": [],
+	  "ret": "string?"
+	},
 	"deleteFile": {
 	  "arg": [{"file": "string"}],
 	  "ret": "void"

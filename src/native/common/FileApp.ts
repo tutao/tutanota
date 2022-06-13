@@ -58,8 +58,8 @@ export class NativeFileApp {
 		return promiseMap(files, this.uriToFileRef.bind(this))
 	}
 
-	openFolderChooser(): Promise<Array<string>> {
-		return this.native.invokeNative("openFileChooser", [null, true])
+	openFolderChooser(): Promise<string | null> {
+		return this.fileFacade.openFolderChooser()
 	}
 
 	/**

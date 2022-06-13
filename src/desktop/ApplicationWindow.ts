@@ -51,7 +51,6 @@ export class ApplicationWindow {
 	_browserWindow!: BrowserWindow
 
 	/** User logged in in this window. Reset from WindowManager. */
-	private _userInfo: UserInfo | null
 	private userId: Id | null = null
 	private _setBoundsTimeout: ReturnType<typeof setTimeout> | null = null
 	private _findingInPage: boolean = false
@@ -76,7 +75,6 @@ export class ApplicationWindow {
 		noAutoLogin?: boolean | null,
 	) {
 		this._themeFacade = themeFacade
-		this._userInfo = null
 		this._electron = electron
 		this._localShortcut = localShortcutManager
 		this._startFileURL = url.pathToFileURL(path.join(this._electron.app.getAppPath(), desktophtml))
@@ -371,7 +369,7 @@ export class ApplicationWindow {
 
 	async reload(queryParams: Record<string, string | boolean>) {
 		await this.closeDb()
-		this._userInfo = null
+		this.userId = null
 		const url = await this._getInitialUrl(queryParams)
 		await this._browserWindow.loadURL(url)
 	}
@@ -473,19 +471,11 @@ export class ApplicationWindow {
 		this._browserWindow.webContents.send("to-renderer", msg)
 	}
 
-	setUserInfo(info: UserInfo | null) {
-		this._userInfo = info
-	}
-
-	getUserInfo(): UserInfo | null {
-		return this._userInfo
-	}
-
 	getUserId(): Id | null {
 		return this.userId
 	}
 
-	setUserId(id: Id) {
+	setUserId(id: Id | null) {
 		this.userId = id
 	}
 

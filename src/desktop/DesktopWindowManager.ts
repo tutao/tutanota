@@ -93,7 +93,7 @@ export class WindowManager {
 	/**
 	 * Late initialization to break the dependency cycle.
 	 */
-	lateInit(ipc: IPC, contextMenu: DesktopContextMenu, themeFacade: DesktopThemeFacade,nativeInterfaceFactory: NativeInterfaceFactory) {
+	lateInit(ipc: IPC, contextMenu: DesktopContextMenu, themeFacade: DesktopThemeFacade, nativeInterfaceFactory: NativeInterfaceFactory) {
 		this.ipc = ipc
 		this.themeFacade = themeFacade
 		this._contextMenu = contextMenu
@@ -108,7 +108,7 @@ export class WindowManager {
 			this.saveBounds(w.getBounds())
 		})
 		 .on("closed", () => {
-			 w.setUserInfo(null)
+			 w.setUserId(null)
 			 this.ipc.removeWindow(w.id)
 			 windows.splice(windows.indexOf(w), 1)
 
@@ -124,7 +124,7 @@ export class WindowManager {
 		 })
 		 .on("page-title-updated", ev => {
 			 if (w.getTitle() === LOGIN_TITLE) {
-				 w.setUserInfo(null)
+				 w.setUserId(null)
 			 }
 
 			 this._tray.update(this._notifier)
@@ -254,7 +254,7 @@ export class WindowManager {
 	}
 
 	async findWindowWithUserId(userId: string): Promise<ApplicationWindow> {
-		return windows.find(w => w.getUserId() === userId) || windows.find(w => w.getUserInfo() === null) || this.newWindow(true, true)
+		return windows.find(w => w.getUserId() === userId) ?? windows.find(w => w.getUserId() === null) ?? this.newWindow(true, true)
 	}
 
 	/**

@@ -11,12 +11,13 @@ export class KotlinGenerator implements LangGenerator {
 		acc.line()
 		acc.line(`class ${name} (`)
 		const methodAcc = acc.indent()
+		methodAcc.line(`json: Json,`)
 		for (let facadeName of facadeNames) {
 			methodAcc.line(`${minusculize(facadeName)} : ${facadeName},`)
 		}
 		acc.line(") {")
 		for (let facadeName of facadeNames) {
-			methodAcc.line(`private val ${minusculize(facadeName)} : ${facadeName}ReceiveDispatcher = ${facadeName}ReceiveDispatcher(${minusculize(facadeName)})`)
+			methodAcc.line(`private val ${minusculize(facadeName)}: ${facadeName}ReceiveDispatcher = ${facadeName}ReceiveDispatcher(json, ${minusculize(facadeName)})`)
 		}
 		methodAcc.line()
 
@@ -73,7 +74,8 @@ export class KotlinGenerator implements LangGenerator {
 		const acc = new Accumulator()
 		KotlinGenerator.generateImports(acc)
 		acc.line(`class ${definition.name}ReceiveDispatcher(`)
-		acc.indent().line(`private val facade: ${definition.name}`)
+		acc.indent().line(`private val json: Json,`)
+		acc.indent().line(`private val facade: ${definition.name},`)
 		acc.line(`) {`)
 		const methAcc = acc.indent()
 		methAcc.line()
@@ -93,7 +95,7 @@ export class KotlinGenerator implements LangGenerator {
 			const varAcc = caseAcc.indent()
 			for (let i = 0; i < arg.length; i++) {
 				const [argName, renderedType] = decodedArgs[i]
-				varAcc.line(`val ${argName}: ${renderedType.name} = Json.decodeFromString(arg[${i}])`)
+				varAcc.line(`val ${argName}: ${renderedType.name} = json.decodeFromString(arg[${i}])`)
 			}
 			varAcc.line(`val result: ${typeNameKotlin(methodDef.ret).name} = this.facade.${methodName}(`)
 			for (let i = 0; i < arg.length; i++) {
@@ -101,7 +103,7 @@ export class KotlinGenerator implements LangGenerator {
 				varAcc.indent().line(`${argName},`)
 			}
 			varAcc.line(`)`)
-			varAcc.line(`return Json.encodeToString(result)`)
+			varAcc.line(`return json.encodeToString(result)`)
 			caseAcc.line(`}`)
 		}
 		caseAcc.line(`else -> throw Error("unknown method for ${definition.name}: $method")`)
@@ -136,22 +138,23 @@ export class KotlinGenerator implements LangGenerator {
 		KotlinGenerator.generateImports(acc)
 		const classBodyAcc = acc.indent()
 		acc.line(`class ${definition.name}SendDispatcher (`)
-		classBodyAcc.line(`private val transport : NativeInterface`)
+		classBodyAcc.line(`private val json: Json,`)
+		classBodyAcc.line(`private val transport : NativeInterface,`)
 		acc.line(`) : ${definition.name} {`)
-		classBodyAcc.line(`private val encodedFacade = Json.encodeToString("${definition.name}")`)
+		classBodyAcc.line(`private val encodedFacade = json.encodeToString("${definition.name}")`)
 		for (const [methodName, methodDefinition] of Object.entries(definition.methods)) {
 			KotlinGenerator.generateMethodSignature(classBodyAcc, methodName, methodDefinition, "override")
 			classBodyAcc.line("{")
 
 			const methodBodyAcc = classBodyAcc.indent()
-			methodBodyAcc.line(`val encodedMethod = Json.encodeToString("${methodName}")`)
+			methodBodyAcc.line(`val encodedMethod = json.encodeToString("${methodName}")`)
 			methodBodyAcc.line("val args : MutableList<String> = mutableListOf()")
 			for (let arg of getArgs(methodName, methodDefinition)) {
-				methodBodyAcc.line(`args.add(Json.encodeToString(${arg.name}))`)
+				methodBodyAcc.line(`args.add(json.encodeToString(${arg.name}))`)
 			}
 			methodBodyAcc.line(`val result = this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)`)
 			if (methodDefinition.ret !== "void") {
-				methodBodyAcc.line(`return Json.decodeFromString(result)`)
+				methodBodyAcc.line(`return json.decodeFromString(result)`)
 			} else {
 				methodBodyAcc.line(`return`)
 			}

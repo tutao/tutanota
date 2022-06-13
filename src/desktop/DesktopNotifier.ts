@@ -97,13 +97,13 @@ export class DesktopNotifier {
 		}
 	}
 
-	resolveGroupedNotification(id: string | null) {
-		if (id && "function" === typeof this._notificationCloseFunctions[id]) {
-			this._notificationCloseFunctions[id]?.()
+	resolveGroupedNotification(userId: string | null) {
+		if (userId && "function" === typeof this._notificationCloseFunctions[userId]) {
+			this._notificationCloseFunctions[userId]?.()
 
 			this._tray.update(this)
 
-			delete this._notificationCloseFunctions[id]
+			delete this._notificationCloseFunctions[userId]
 		}
 	}
 

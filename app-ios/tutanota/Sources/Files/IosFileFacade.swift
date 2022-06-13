@@ -2,17 +2,7 @@ import Foundation
 import MobileCoreServices
 
 class IosFileFacade : FileFacade {
-  func writeFile(_ file: String, _ contentB64: String) async throws {
-    let fileURL = URL(fileURLWithPath: file)
-    let data = Data(base64Encoded: contentB64)!
-    try data.write(to: fileURL, options: .atomic)
-  }
-
-  func readFile(_ file: String) async throws -> String {
-    let data = try Data(contentsOf: URL(string: file)!)
-    return data.base64EncodedString()
-  }
-
+  
   let chooser: TUTFileChooser
   let viewer: FileViewer
 
@@ -22,6 +12,21 @@ class IosFileFacade : FileFacade {
   ) {
     self.chooser = chooser
     self.viewer = viewer
+  }
+  
+  func openFolderChooser() async throws -> String? {
+    fatalError("not implemented for this platform")
+  }
+  
+  func writeFile(_ file: String, _ contentB64: String) async throws {
+    let fileURL = URL(fileURLWithPath: file)
+    let data = Data(base64Encoded: contentB64)!
+    try data.write(to: fileURL, options: .atomic)
+  }
+
+  func readFile(_ file: String) async throws -> String {
+    let data = try Data(contentsOf: URL(string: file)!)
+    return data.base64EncodedString()
   }
 
   func open(_ location: String, _ mimeType: String) async throws {

@@ -4,15 +4,15 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import de.tutao.tutanota.alarms.AlarmNotification
+import de.tutao.tutanota.alarms.AlarmNotificationEntity
 
 @Dao
 interface AlarmInfoDao {
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
-	fun insertAlarmNotification(alarmNotification: AlarmNotification)
+	fun insertAlarmNotification(alarmNotification: AlarmNotificationEntity)
 
 	@get:Query("SELECT * FROM AlarmNotification")
-	val alarmNotifications: List<AlarmNotification>
+	val alarmNotifications: List<AlarmNotificationEntity>
 
 	@Query("DELETE FROM AlarmNotification WHERE identifier = :identifier")
 	fun deleteAlarmNotification(identifier: String)

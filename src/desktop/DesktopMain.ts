@@ -48,6 +48,7 @@ import {DesktopPostLoginActions} from "./DesktopPostLoginActions"
 import {DesktopGlobalDispatcher} from "../native/common/generatedipc/DesktopGlobalDispatcher.js"
 import {CommonNativeFacadeSendDispatcher} from "../native/common/generatedipc/CommonNativeFacadeSendDispatcher.js"
 import {DesktopContextMenu} from "./DesktopContextMenu.js"
+import {DesktopNativePushFacade} from "./sse/DesktopNativePushFacade.js"
 
 /**
  * Should be injected during build time.
@@ -179,12 +180,13 @@ async function createComponents(): Promise<Components> {
 			webauthn: new DesktopWebauthn(windowId, webDialogController),
 			offlineDbFacade,
 			interWindowEventSender: new DesktopInterWindowEventSender(ipc, wm, windowId),
-			postLoginActions: new DesktopPostLoginActions(wm, windowId)
+			postLoginActions: new DesktopPostLoginActions(wm, err, notifier, windowId)
 		}
 	}
 
 	const dispatcher = new DesktopGlobalDispatcher(
 		new DesktopFileFacade(dl, electron, fs),
+		new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage),
 		themeFacade
 	)
 

@@ -1,38 +1,44 @@
 import type {PushIdentifier} from "../../api/entities/sys/TypeRefs.js"
 import {createPushIdentifier, PushIdentifierTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import {assertNotNull, neverNull, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {assertNotNull, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {PushServiceType} from "../../api/common/TutanotaConstants"
 import {lang} from "../../misc/LanguageViewModel"
 import {getHttpOrigin, isAndroidApp, isDesktop, isIOSApp} from "../../api/common/Env"
-import {logins} from "../../api/main/LoginController"
+import {LoginController, logins} from "../../api/main/LoginController"
 import {client} from "../../misc/ClientDetector"
-import {deviceConfig} from "../../misc/DeviceConfig"
+import {DeviceConfig, deviceConfig} from "../../misc/DeviceConfig"
 import {getElementId} from "../../api/common/utils/EntityUtils"
 import {locator} from "../../api/main/MainLocator"
-import type {NativeInterface} from "../common/NativeInterface"
 import {DeviceStorageUnavailableError} from "../../api/common/error/DeviceStorageUnavailableError"
+import {NativePushFacade} from "../common/generatedipc/NativePushFacade.js"
+import {CryptoFacade} from "../../api/worker/crypto/CryptoFacade.js"
+import {EntityClient} from "../../api/common/EntityClient.js"
+import {CalendarFacade} from "../../api/worker/facades/CalendarFacade.js"
 
 export class NativePushServiceApp {
-	private _pushNotification: Record<string, any> | null
 	private _currentIdentifier: string | null = null
-	private _native: NativeInterface
 
-	constructor(nativeInterface: NativeInterface) {
-		this._pushNotification = null
-		this._native = nativeInterface
+	constructor(
+		private readonly nativePushFacade: NativePushFacade,
+		private readonly logins: LoginController,
+		private readonly cryptoFacade: CryptoFacade,
+		private readonly entityClient: EntityClient,
+		private readonly deviceConfig: DeviceConfig,
+		private readonly calendarFacade: CalendarFacade,
+	) {
 	}
 
 	async register(): Promise<void> {
 		console.log("Registering for push notifications")
 		if (isAndroidApp() || isDesktop()) {
 			try {
-				const identifier = (await this._loadPushIdentifierFromNative()) ?? (await locator.worker.generateSsePushIdentifer())
+				const identifier = (await this.loadPushIdentifierFromNative()) ?? (await locator.worker.generateSsePushIdentifer())
 				this._currentIdentifier = identifier
 				const pushIdentifier =
-					(await this._loadPushIdentifier(identifier)) ?? (await this._createPushIdentiferInstance(identifier, PushServiceType.SSE))
-				await this._storePushIdentifierLocally(pushIdentifier)
-				await this._scheduleAlarmsIfNeeded(pushIdentifier)
-				await this._initPushNotifications()
+					(await this.loadPushIdentifier(identifier)) ?? (await this.createPushIdentiferInstance(identifier, PushServiceType.SSE))
+				await this.storePushIdentifierLocally(pushIdentifier)
+				await this.scheduleAlarmsIfNeeded(pushIdentifier)
+				await this.initPushNotifications()
 			} catch (e) {
 				if (e instanceof DeviceStorageUnavailableError) {
 					console.warn("Device storage is unavailable, cannot register for push notifications", e)
@@ -41,20 +47,20 @@ export class NativePushServiceApp {
 				}
 			}
 		} else if (isIOSApp()) {
-			const identifier = await this._loadPushIdentifierFromNative()
+			const identifier = await this.loadPushIdentifierFromNative()
 
 			if (identifier) {
 				this._currentIdentifier = identifier
 				const pushIdentifier =
-					(await this._loadPushIdentifier(identifier)) ?? (await this._createPushIdentiferInstance(identifier, PushServiceType.IOS))
+					(await this.loadPushIdentifier(identifier)) ?? (await this.createPushIdentiferInstance(identifier, PushServiceType.IOS))
 
 				if (pushIdentifier.language !== lang.code) {
 					pushIdentifier.language = lang.code
 					locator.entityClient.update(pushIdentifier)
 				}
 
-				await this._storePushIdentifierLocally(pushIdentifier)
-				await this._scheduleAlarmsIfNeeded(pushIdentifier)
+				await this.storePushIdentifierLocally(pushIdentifier)
+				await this.scheduleAlarmsIfNeeded(pushIdentifier)
 			} else {
 				console.log("Push notifications were rejected by user")
 			}
@@ -73,81 +79,63 @@ export class NativePushServiceApp {
 		}
 	}
 
-	_loadPushIdentifierFromNative(): Promise<string | null> {
-		return this._native.invokeNative(
-			"getPushIdentifier", [logins.getUserController().user._id, logins.getUserController().userGroupInfo.mailAddress]
+	private loadPushIdentifierFromNative(): Promise<string | null> {
+		return this.nativePushFacade.getPushIdentifier(
+			this.logins.getUserController().user._id,
+			assertNotNull(this.logins.getUserController().userGroupInfo.mailAddress, "No email address on userGroupInfo!"),
 		)
 	}
 
-	_storePushIdentifierLocally(pushIdentifier: PushIdentifier): Promise<void> {
-		const userId = logins.getUserController().user._id
+	private async storePushIdentifierLocally(pushIdentifier: PushIdentifier): Promise<void> {
+		const userId = this.logins.getUserController().user._id
 
-		return locator.cryptoFacade.resolveSessionKeyForInstanceBinary(pushIdentifier).then(sk => {
-			const skB64 = uint8ArrayToBase64(assertNotNull(sk))
-			return this._native.invokeNative(
-				"storePushIdentifierLocally", [pushIdentifier.identifier, userId, getHttpOrigin(), getElementId(pushIdentifier), skB64]
-			)
+		const sk = await this.cryptoFacade.resolveSessionKeyForInstanceBinary(pushIdentifier)
+		const skB64 = uint8ArrayToBase64(assertNotNull(sk))
+		console.log("storing push identifier:", pushIdentifier, userId, getHttpOrigin(), getElementId(pushIdentifier), skB64)
+		await this.nativePushFacade.storePushIdentifierLocally(pushIdentifier.identifier, userId, getHttpOrigin(), getElementId(pushIdentifier), skB64)
+	}
+
+	private async loadPushIdentifier(identifier: string): Promise<PushIdentifier | null> {
+		const list = assertNotNull(this.logins.getUserController().user.pushIdentifierList)
+		const identifiers = await this.entityClient.loadAll(PushIdentifierTypeRef, list.list)
+		return identifiers.find(i => i.identifier === identifier) ?? null
+	}
+
+	private async createPushIdentiferInstance(identifier: string, pushServiceType: PushServiceType): Promise<PushIdentifier> {
+		const list = assertNotNull(this.logins.getUserController().user.pushIdentifierList?.list)
+		const pushIdentifier = createPushIdentifier({
+			_area: "0",
+			_owner: this.logins.getUserController().userGroupInfo.group,
+			_ownerGroup: this.logins.getUserController().userGroupInfo.group,
+			displayName: client.getIdentifier(),
+			pushServiceType: pushServiceType,
+			identifier,
+			language: lang.code,
 		})
+		const id = await this.entityClient.setup(list, pushIdentifier)
+		return this.entityClient.load(PushIdentifierTypeRef, [list, id])
 	}
 
-	_loadPushIdentifier(identifier: string): Promise<PushIdentifier | null> {
-		let list = logins.getUserController().user.pushIdentifierList
-		return locator.entityClient.loadAll(PushIdentifierTypeRef, neverNull(list).list).then(identifiers => {
-			return identifiers.find(i => i.identifier === identifier) ?? null
-		})
-	}
 
-	_createPushIdentiferInstance(identifier: string, pushServiceType: PushServiceType): Promise<PushIdentifier> {
-		let list = logins.getUserController().user.pushIdentifierList
-		let pushIdentifier = createPushIdentifier()
-		pushIdentifier.displayName = client.getIdentifier()
-		pushIdentifier._owner = logins.getUserController().userGroupInfo.group // legacy
-
-		pushIdentifier._ownerGroup = logins.getUserController().userGroupInfo.group
-		pushIdentifier._area = "0"
-		pushIdentifier.pushServiceType = pushServiceType
-		pushIdentifier.identifier = identifier
-		pushIdentifier.language = lang.code
-		return locator.entityClient
-					  .setup(neverNull(list).list, pushIdentifier)
-					  .then(id => locator.entityClient.load(PushIdentifierTypeRef, [neverNull(list).list, id]))
-	}
-
-	updateBadge(newValue: number): void {
-		if (this._pushNotification != null) {
-			// not supported on all android devices.
-			this._pushNotification.setApplicationIconBadgeNumber(
-				() => {
-					//success
-				},
-				() => {
-					//error
-				},
-				newValue,
-			)
-		}
-	}
-
-	closePushNotification(addresses: string[]) {
-		this._native.invokeNative("closePushNotifications", [addresses])
+	async closePushNotification(addresses: string[]) {
+		await this.nativePushFacade.closePushNotifications(addresses)
 	}
 
 	getPushIdentifier(): string | null {
 		return this._currentIdentifier
 	}
 
-	_initPushNotifications(): Promise<void> {
-		return this._native.invokeNative("initPushNotifications", [])
+	private initPushNotifications(): Promise<void> {
+		return this.nativePushFacade.initPushNotifications()
 	}
 
-	_scheduleAlarmsIfNeeded(pushIdentifier: PushIdentifier): Promise<void> {
-		const userId = logins.getUserController().user._id
+	private async scheduleAlarmsIfNeeded(pushIdentifier: PushIdentifier): Promise<void> {
+		const userId = this.logins.getUserController().user._id
 
-		if (!deviceConfig.hasScheduledAlarmsForUser(userId)) {
+		if (!this.deviceConfig.hasScheduledAlarmsForUser(userId)) {
 			console.log("Alarms not scheduled for user, scheduling!")
-			return locator.calendarFacade.scheduleAlarmsForNewDevice(pushIdentifier).then(() => deviceConfig.setAlarmsScheduledForUser(userId, true))
-		} else {
-			return Promise.resolve()
+			await this.calendarFacade.scheduleAlarmsForNewDevice(pushIdentifier)
+			deviceConfig.setAlarmsScheduledForUser(userId, true)
 		}
 	}
 }

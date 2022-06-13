@@ -7,9 +7,10 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
 class CommonNativeFacadeSendDispatcher (
-	private val transport : NativeInterface
+	private val json: Json,
+	private val transport : NativeInterface,
 ) : CommonNativeFacade {
-	private val encodedFacade = Json.encodeToString("CommonNativeFacade")
+	private val encodedFacade = json.encodeToString("CommonNativeFacade")
 	override suspend fun createMailEditor(
 		filesUris: List<String>,
 		text: String,
@@ -18,13 +19,13 @@ class CommonNativeFacadeSendDispatcher (
 		mailToUrlString: String,
 	): Unit
 	{
-		val encodedMethod = Json.encodeToString("createMailEditor")
+		val encodedMethod = json.encodeToString("createMailEditor")
 		val args : MutableList<String> = mutableListOf()
-		args.add(Json.encodeToString(filesUris))
-		args.add(Json.encodeToString(text))
-		args.add(Json.encodeToString(addresses))
-		args.add(Json.encodeToString(subject))
-		args.add(Json.encodeToString(mailToUrlString))
+		args.add(json.encodeToString(filesUris))
+		args.add(json.encodeToString(text))
+		args.add(json.encodeToString(addresses))
+		args.add(json.encodeToString(subject))
+		args.add(json.encodeToString(mailToUrlString))
 		val result = this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 		return
 	}
@@ -35,11 +36,11 @@ class CommonNativeFacadeSendDispatcher (
 		requestedPath: String?,
 	): Unit
 	{
-		val encodedMethod = Json.encodeToString("openMailBox")
+		val encodedMethod = json.encodeToString("openMailBox")
 		val args : MutableList<String> = mutableListOf()
-		args.add(Json.encodeToString(userId))
-		args.add(Json.encodeToString(address))
-		args.add(Json.encodeToString(requestedPath))
+		args.add(json.encodeToString(userId))
+		args.add(json.encodeToString(address))
+		args.add(json.encodeToString(requestedPath))
 		val result = this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 		return
 	}
@@ -48,9 +49,9 @@ class CommonNativeFacadeSendDispatcher (
 		userId: String,
 	): Unit
 	{
-		val encodedMethod = Json.encodeToString("openCalendar")
+		val encodedMethod = json.encodeToString("openCalendar")
 		val args : MutableList<String> = mutableListOf()
-		args.add(Json.encodeToString(userId))
+		args.add(json.encodeToString(userId))
 		val result = this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 		return
 	}
@@ -59,9 +60,9 @@ class CommonNativeFacadeSendDispatcher (
 		translationKey: String,
 	): Unit
 	{
-		val encodedMethod = Json.encodeToString("showAlertDialog")
+		val encodedMethod = json.encodeToString("showAlertDialog")
 		val args : MutableList<String> = mutableListOf()
-		args.add(Json.encodeToString(translationKey))
+		args.add(json.encodeToString(translationKey))
 		val result = this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 		return
 	}
@@ -69,7 +70,7 @@ class CommonNativeFacadeSendDispatcher (
 	override suspend fun invalidateAlarms(
 	): Unit
 	{
-		val encodedMethod = Json.encodeToString("invalidateAlarms")
+		val encodedMethod = json.encodeToString("invalidateAlarms")
 		val args : MutableList<String> = mutableListOf()
 		val result = this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 		return

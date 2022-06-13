@@ -2,7 +2,7 @@ package de.tutao.tutanota.alarms
 
 import android.util.Log
 import de.tutao.tutanota.*
-import de.tutao.tutanota.alarms.AlarmModel.AlarmIterationCallback
+import de.tutao.tutanota.ipc.EncryptedAlarmNotification
 import de.tutao.tutanota.push.LocalNotificationsFacade
 import de.tutao.tutanota.push.SseStorage
 import java.security.KeyStoreException
@@ -22,24 +22,24 @@ class AlarmNotificationsManager(
 		val pushKeyResolver = PushKeyResolver(sseStorage)
 		val alarmInfos = sseStorage.readAlarmNotifications()
 		for (alarmNotification in alarmInfos) {
-			val sessionKey = resolveSessionKey(alarmNotification, pushKeyResolver)
+			val sessionKey = resolveNotificationSessionKey(alarmNotification, pushKeyResolver)
 			if (sessionKey != null) {
-				schedule(alarmNotification, sessionKey)
+				schedule(alarmNotification.decrypt(crypto, sessionKey))
 			} else {
 				Log.d(TAG, "Failed to resolve session key for saved alarm notification")
 			}
 		}
 	}
 
-	private fun resolveSessionKey(notification: AlarmNotification, pushKeyResolver: PushKeyResolver): ByteArray? {
-		val notificationSessionKey = notification.notificationSessionKey ?: return null
+	private fun resolveNotificationSessionKey(notification: AlarmNotificationEntity, pushKeyResolver: PushKeyResolver): ByteArray? {
+		val encNotificationSessionKey = notification.notificationSessionKey ?: return null
 		try {
 			val pushIdentifierSessionKey = pushKeyResolver
-					.resolvePushSessionKey(notificationSessionKey.pushIdentifier.elementId)
+					.resolvePushSessionKey(encNotificationSessionKey.pushIdentifier.elementId)
 			if (pushIdentifierSessionKey != null) {
-				val encNotificationSessionKeyKey =
-						notificationSessionKey.pushIdentifierSessionEncSessionKey.base64ToBytes()
-				return crypto.decryptKey(pushIdentifierSessionKey, encNotificationSessionKeyKey)
+				val pushIdentifierSessionEncSessionKey =
+						encNotificationSessionKey.pushIdentifierSessionEncSessionKey.base64ToBytes()
+				return crypto.decryptKey(pushIdentifierSessionKey, pushIdentifierSessionEncSessionKey)
 			}
 		} catch (e: UnrecoverableEntryException) {
 			Log.w(TAG, "could not decrypt session key", e)
@@ -51,16 +51,17 @@ class AlarmNotificationsManager(
 		return null
 	}
 
-	fun scheduleNewAlarms(alarmNotifications: List<AlarmNotification>) {
+	fun scheduleNewAlarms(alarmNotifications: List<EncryptedAlarmNotification>) {
 		for (alarmNotification in alarmNotifications) {
 			if (alarmNotification.operation == OperationType.CREATE) {
-				val sessionKey = resolveSessionKey(alarmNotification, pushKeyResolver)
+				val alarmNotificationEntity = alarmNotification.toEntity()
+				val sessionKey = resolveNotificationSessionKey(alarmNotificationEntity, pushKeyResolver)
 				if (sessionKey == null) {
 					Log.d(TAG, "Failed to resolve session key for alarm notification")
 					return
 				}
-				schedule(alarmNotification, sessionKey)
-				sseStorage.insertAlarmNotification(alarmNotification)
+				schedule(alarmNotificationEntity.decrypt(crypto, sessionKey))
+				sseStorage.insertAlarmNotification(alarmNotificationEntity)
 			} else {
 				cancelScheduledAlarm(alarmNotification, pushKeyResolver)
 				sseStorage.deleteAlarmNotification(alarmNotification.alarmInfo.identifier)
@@ -81,15 +82,11 @@ class AlarmNotificationsManager(
 		}
 	}
 
-	private fun schedule(alarmNotification: AlarmNotification, sessionKey: ByteArray) {
+	private fun schedule(alarmNotification: AlarmNotification) {
 		try {
-			val trigger = alarmNotification.alarmInfo.getTriggerDec(crypto, sessionKey)
-			val alarmTrigger: AlarmTrigger = AlarmTrigger[trigger]
-			val summary = alarmNotification.getSummaryDec(crypto, sessionKey)
-			val identifier = alarmNotification.alarmInfo.identifier
-			val eventStart = alarmNotification.getEventStartDec(crypto, sessionKey)
+			val identifier = alarmNotification.alarmInfo.alarmIdentifer
 			if (alarmNotification.repeatRule == null) {
-				val alarmTime = AlarmModel.calculateAlarmTime(eventStart, null, alarmTrigger)
+				val alarmTime = AlarmModel.calculateAlarmTime(alarmNotification.eventStart, null, alarmNotification.alarmInfo.trigger)
 				val now = Date()
 				when {
 					occurrenceIsTooFar(alarmTime) -> {
@@ -100,9 +97,9 @@ class AlarmNotificationsManager(
 								alarmTime,
 								0,
 								identifier,
-								summary,
-								eventStart,
-								alarmNotification.user!!
+								alarmNotification.summary,
+								alarmNotification.eventStart,
+								alarmNotification.user
 						)
 					}
 					else -> {
@@ -110,17 +107,13 @@ class AlarmNotificationsManager(
 					}
 				}
 			} else {
-				iterateAlarmOccurrences(
-						alarmNotification,
-						crypto,
-						sessionKey
-				) { alarmTime, occurrence, eventStartTime ->
+				iterateAlarmOccurrences(alarmNotification) { alarmTime, occurrence, eventStartTime ->
 					if (occurrenceIsTooFar(alarmTime)) {
 						Log.d(TAG, "Alarm occurrence $identifier $occurrence is too far in the future, skipping")
 					} else {
 						systemAlarmFacade.scheduleAlarmOccurrenceWithSystem(
-								alarmTime, occurrence, identifier, summary, eventStartTime,
-								alarmNotification.user!!
+								alarmTime, occurrence, identifier, alarmNotification.summary, eventStartTime,
+								alarmNotification.user
 						)
 					}
 				}
@@ -143,12 +136,14 @@ class AlarmNotificationsManager(
 	 * @param alarmNotification may come from the server or may be a saved one
 	 */
 	private fun cancelScheduledAlarm(
-			alarmNotification: AlarmNotification,
+			alarmNotification: EncryptedAlarmNotification,
 			pushKeyResolver: PushKeyResolver,
 	) {
 
 		// The DELETE notification we receive from the server has only placeholder fields and no keys. We must use our saved alarm to cancel notifications.
-		val savedAlarmNotification = sseStorage.readAlarmNotifications().find { it == alarmNotification }
+		val savedAlarmNotification = sseStorage.readAlarmNotifications().find {
+			it.alarmInfo.identifier == alarmNotification.alarmInfo.identifier
+		}
 		if (savedAlarmNotification != null) {
 			cancelSavedAlarm(savedAlarmNotification, pushKeyResolver)
 		} else {
@@ -157,14 +152,15 @@ class AlarmNotificationsManager(
 		}
 	}
 
-	private fun cancelSavedAlarm(savedAlarmNotification: AlarmNotification, pushKeyResolver: PushKeyResolver) {
+	private fun cancelSavedAlarm(savedAlarmNotification: AlarmNotificationEntity, pushKeyResolver: PushKeyResolver) {
 		if (savedAlarmNotification.repeatRule != null) {
-			val sessionKey = resolveSessionKey(savedAlarmNotification, pushKeyResolver)
+			val sessionKey = resolveNotificationSessionKey(savedAlarmNotification, pushKeyResolver)
 			if (sessionKey == null) {
 				Log.w(TAG, "Failed to resolve session key to cancel alarm ")
 			} else {
+				val alarmNotification: AlarmNotification = savedAlarmNotification.decrypt(crypto, sessionKey)
 				try {
-					iterateAlarmOccurrences(savedAlarmNotification, crypto, sessionKey) { _, occurrence, _ ->
+					iterateAlarmOccurrences(alarmNotification) { _, occurrence, _ ->
 						Log.d(
 								TAG,
 								"Cancelling alarm " + savedAlarmNotification.alarmInfo.identifier + " # " + occurrence
@@ -184,19 +180,17 @@ class AlarmNotificationsManager(
 	@Throws(CryptoError::class)
 	private fun iterateAlarmOccurrences(
 			alarmNotification: AlarmNotification,
-			crypto: Crypto,
-			sessionKey: ByteArray,
-			callback: AlarmIterationCallback,
+			callback: AlarmModel.AlarmIterationCallback,
 	) {
 		val repeatRule = alarmNotification.repeatRule!!
-		val timeZone = repeatRule.getTimeZoneDec(crypto, sessionKey)
-		val eventStart = alarmNotification.getEventStartDec(crypto, sessionKey)
-		val eventEnd = alarmNotification.getEventEndDec(crypto, sessionKey)
-		val frequency = repeatRule.getFrequencyDec(crypto, sessionKey)
-		val interval = repeatRule.getIntervalDec(crypto, sessionKey)
-		val endType = repeatRule.getEndTypeDec(crypto, sessionKey)
-		val endValue = repeatRule.getEndValueDec(crypto, sessionKey)
-		val alarmTrigger: AlarmTrigger = AlarmTrigger[alarmNotification.alarmInfo.getTriggerDec(crypto, sessionKey)]
+		val timeZone = repeatRule.timeZone
+		val eventStart = alarmNotification.eventStart
+		val eventEnd = alarmNotification.eventEnd
+		val frequency = repeatRule.frequency
+		val interval = repeatRule.interval
+		val endType = repeatRule.endType
+		val endValue = repeatRule.endValue
+		val alarmTrigger: AlarmTrigger = alarmNotification.alarmInfo.trigger
 		AlarmModel.iterateAlarmOccurrences(
 				Date(),
 				timeZone, eventStart, eventEnd, frequency, interval, endType,

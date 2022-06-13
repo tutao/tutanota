@@ -11,6 +11,8 @@ public protocol FileFacade {
 	func openFileChooser(
 		_ boundingRect: IpcClientRect
 	) async throws -> [String]
+	func openFolderChooser(
+	) async throws -> String?
 	func deleteFile(
 		_ file: String
 	) async throws -> Void

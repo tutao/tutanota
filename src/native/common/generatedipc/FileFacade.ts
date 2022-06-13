@@ -14,6 +14,9 @@ export interface FileFacade {
 		boundingRect: IpcClientRect,
 	): Promise<ReadonlyArray<string>>
 	
+	openFolderChooser(
+	): Promise<string | null>
+	
 	deleteFile(
 		file: string,
 	): Promise<void>

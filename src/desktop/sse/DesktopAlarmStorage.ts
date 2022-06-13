@@ -1,5 +1,4 @@
 import type {DesktopConfig} from "../config/DesktopConfig"
-import type {EncryptedAlarmNotification, NotificationSessionKey} from "./DesktopAlarmScheduler"
 import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
 import {elementIdPart} from "../../api/common/utils/EntityUtils"
 import {DesktopConfigKey} from "../config/ConfigKeys"
@@ -7,6 +6,7 @@ import type {DesktopKeyStoreFacade} from "../KeyStoreFacadeImpl"
 import type {Base64} from "@tutao/tutanota-utils"
 import {findAllAndRemove} from "@tutao/tutanota-utils"
 import {log} from "../DesktopLog"
+import {EncryptedAlarmNotification, NotificationSessionKey} from "../../native/common/EncryptedAlarmNotification.js"
 
 /**
  * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk
