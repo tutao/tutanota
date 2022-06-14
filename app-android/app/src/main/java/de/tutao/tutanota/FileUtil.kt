@@ -68,12 +68,16 @@ class FileUtil(
 			putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
 			putExtra(Intent.EXTRA_LOCAL_ONLY, true)
 		}
-		var selectedFiles: MutableList<String> = mutableListOf()
+		val selectedFiles: MutableList<String> = mutableListOf()
 
 		val result = activity.startActivityForResult(Intent.createChooser(intent, "Select File"))
 
-		if (result!!.resultCode == Activity.RESULT_OK) {
-			val clipData = result.data.clipData
+		if (result.resultCode == Activity.RESULT_OK) {
+			val data = result.data ?: run {
+				Log.w(TAG, "File chooser result doesn't have data!")
+				return listOf()
+			}
+			val clipData = data.clipData
 			if (clipData != null) {
 				var i = 0
 				while (i < clipData.itemCount) {
