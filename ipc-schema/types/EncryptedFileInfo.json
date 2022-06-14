@@ -1,0 +1,8 @@
+{
+  "name": "EncryptedFileInfo",
+  "type": "struct",
+  "fields": {
+	"uri": "string",
+	"unencryptedSize": "number"
+  }
+}

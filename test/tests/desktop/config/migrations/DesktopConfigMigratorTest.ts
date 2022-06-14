@@ -1,13 +1,13 @@
 import o from "ospec"
 import {DesktopConfigMigrator} from "../../../../../src/desktop/config/migrations/DesktopConfigMigrator.js"
-import {DesktopCryptoFacade} from "../../../../../src/desktop/DesktopCryptoFacade.js"
+import {DesktopNativeCryptoFacade} from "../../../../../src/desktop/DesktopNativeCryptoFacade.js"
 import {downcast} from "@tutao/tutanota-utils"
 import {makeKeyStoreFacade} from "../../../TestUtils.js"
 import {DesktopKeyStoreFacade} from "../../../../../src/desktop/KeyStoreFacadeImpl.js";
 
 o.spec('DesktopConfigMigrator', function () {
 	let migrator
-	let crypto: DesktopCryptoFacade
+	let crypto: DesktopNativeCryptoFacade
 	let keyStoreFacade: DesktopKeyStoreFacade
 	const key = new Uint8Array([1, 2, 3])
 

@@ -1,12 +1,5 @@
 import Foundation
 
-struct PublicKey : Codable {
-  let version: Int
-  let keyLength: Int
-  let modulus: String
-  let publicExponent: Int
-}
-
 extension PublicKey {
   init(_ objcKey: TUTPublicKey) {
     self.init(
@@ -25,18 +18,6 @@ extension PublicKey {
       publicExponent: publicExponent
     )
   }
-}
-
-struct PrivateKey : Codable {
-  let version: Int
-  let keyLength: Int
-  let modulus: String
-  let privateExponent: String
-  let primeP: String
-  let primeQ: String
-  let primeExponentP: String
-  let primeExponentQ: String
-  let crtCoefficient: String
 }
 
 extension PrivateKey {
@@ -67,12 +48,7 @@ extension PrivateKey {
   }
 }
 
-struct KeyPair : Codable {
-  let publicKey: PublicKey
-  let privateKey: PrivateKey
-}
-
-extension KeyPair {
+extension RsaKeyPair {
   init(_ objcKeyPair: TUTKeyPair) {
     let publicKey = PublicKey(objcKeyPair.publicKey)
     let privateKey = PrivateKey(objcKeyPair.privateKey)

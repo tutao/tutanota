@@ -1,0 +1,15 @@
+{
+  "name": "PrivateKey",
+  "type": "struct",
+  "fields": {
+	"version": "number",
+	"keyLength": "number",
+	"modulus": "string",
+	"privateExponent": "string",
+	"primeP": "string",
+	"primeQ": "string",
+	"primeExponentP": "string",
+	"primeExponentQ": "string",
+	"crtCoefficient": "string"
+  }
+}

@@ -56,6 +56,8 @@ import {CustomCacheHandlerMap, CustomCalendarEventCacheHandler} from "./rest/Cus
 import {CalendarEventTypeRef} from "../entities/tutanota/TypeRefs.js"
 import {FileFacadeSendDispatcher} from "../../native/common/generatedipc/FileFacadeSendDispatcher.js"
 import {NativePushFacadeSendDispatcher} from "../../native/common/generatedipc/NativePushFacadeSendDispatcher.js"
+import {NativeCryptoFacadeSendDispatcher} from "../../native/common/generatedipc/NativeCryptoFacadeSendDispatcher"
+import {random} from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()
 
@@ -191,7 +193,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.booking,
 		locator.crypto,
 	)
-	const aesApp = new AesApp(worker)
+	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
 	locator.blob = new BlobFacade(locator.user, locator.serviceExecutor, locator.restClient, suspensionHandler, fileApp, aesApp, locator.instanceMapper, locator.crypto)
 	locator.file = new FileFacade(locator.user, locator.restClient, suspensionHandler, fileApp, aesApp, locator.instanceMapper, locator.serviceExecutor, locator.crypto)
 	locator.mail = new MailFacade(locator.user, locator.file, locator.cachingEntityClient, locator.crypto, locator.serviceExecutor, locator.blob)

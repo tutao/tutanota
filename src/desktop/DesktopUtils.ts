@@ -3,13 +3,13 @@ import {spawn} from "child_process"
 import type {Rectangle} from "electron"
 import {defer, delay, noOp, uint8ArrayToHex} from "@tutao/tutanota-utils"
 import {log} from "./DesktopLog"
-import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import {fileExists, swapFilename} from "./PathUtils"
 import url from "url"
 import {makeRegisterKeysScript, makeUnregisterKeysScript, RegistryRoot} from "./reg-templater"
 import type {ElectronExports, FsExports} from "./ElectronExportTypes";
 import {DataFile} from "../api/common/DataFile";
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
+import {CryptoFunctions} from "./CryptoFns"
 
 export class DesktopUtils {
 	private readonly topLevelDownloadDir: string = "tutanota"
@@ -17,7 +17,7 @@ export class DesktopUtils {
 	constructor(
 		private readonly fs: FsExports,
 		private readonly electron: ElectronExports,
-		private readonly desktopCrypto: DesktopCryptoFacade
+		private readonly cryptoFunctions: CryptoFunctions,
 	) {
 	}
 
@@ -190,7 +190,7 @@ export class DesktopUtils {
 	 * @returns path to the written file
 	 */
 	private async _writeToDisk(contents: string): Promise<string> {
-		const filename = uint8ArrayToHex(this.desktopCrypto.randomBytes(12))
+		const filename = uint8ArrayToHex(this.cryptoFunctions.randomBytes(12))
 		const tmpPath = this.getTutanotaTempPath("reg")
 		await this.fs.promises.mkdir(tmpPath, {recursive: true})
 		const filePath = path.join(tmpPath, filename)

@@ -5,7 +5,7 @@ import {downcast, neverNull} from "@tutao/tutanota-utils"
 import type {DesktopTray} from "./tray/DesktopTray"
 import {Mode} from "../api/common/Env"
 import {log} from "./DesktopLog";
-import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
+import {DesktopNativeCryptoFacade} from "./DesktopNativeCryptoFacade"
 import type {App} from "electron"
 import type {UpdaterWrapper} from "./UpdaterWrapper"
 import {UpdateInfo} from "electron-updater";
@@ -36,7 +36,7 @@ export type IntervalSetter = (fn: (...arr: Array<unknown>) => unknown, time?: nu
 export class ElectronUpdater {
 	private readonly _conf: DesktopConfig;
 	private readonly _notifier: DesktopNotifier;
-	private readonly _crypto: DesktopCryptoFacade;
+	private readonly _crypto: DesktopNativeCryptoFacade;
 	private _updatePollInterval: IntervalID | null = null;
 	private _checkUpdateSignature: boolean = false;
 	private _errorCount: number;
@@ -51,8 +51,8 @@ export class ElectronUpdater {
 		return this._updateInfo
 	}
 
-	constructor(conf: DesktopConfig, notifier: DesktopNotifier, crypto: DesktopCryptoFacade, app: App, tray: DesktopTray,
-				updater: UpdaterWrapper, scheduler: IntervalSetter = setInterval) {
+	constructor(conf: DesktopConfig, notifier: DesktopNotifier, crypto: DesktopNativeCryptoFacade, app: App, tray: DesktopTray,
+                updater: UpdaterWrapper, scheduler: IntervalSetter = setInterval) {
 		this._conf = conf
 		this._notifier = notifier
 		this._errorCount = 0

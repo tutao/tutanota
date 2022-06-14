@@ -24,7 +24,7 @@
 		3D73DA3427319A91008E7A8A /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D73DA3327319A91008E7A8A /* Operation.swift */; };
 		3D84F56B2721B92C00858A58 /* MissedNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F56A2721B92C00858A58 /* MissedNotification.swift */; };
 		3D84F56D2722CEF900858A58 /* FileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F56C2722CEF900858A58 /* FileUtils.swift */; };
-		3D84F5732722F35600858A58 /* CryptoFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F5722722F35600858A58 /* CryptoFacade.swift */; };
+		3D84F5732722F35600858A58 /* IosNativeCryptoFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F5722722F35600858A58 /* IosNativeCryptoFacade.swift */; };
 		3D84F5762723112400858A58 /* FileViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F5752723112400858A58 /* FileViewer.swift */; };
 		3D84F57927231E8600858A58 /* SSEInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F57827231E8600858A58 /* SSEInfo.swift */; };
 		3D84F57C27231F1F00858A58 /* Serialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F57B27231F1F00858A58 /* Serialization.swift */; };
@@ -141,6 +141,12 @@
 		3DC5DECA2858C12D007364FF /* NativePushFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEC82858C12D007364FF /* NativePushFacade.swift */; };
 		3DC5DECB2858C12D007364FF /* NativePushFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEC92858C12D007364FF /* NativePushFacadeReceiveDispatcher.swift */; };
 		3DC5DECD2858C1F5007364FF /* IosNativePushFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DECC2858C1F5007364FF /* IosNativePushFacade.swift */; };
+		3DC5DED52858CB58007364FF /* NativeCryptoFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DECF2858CB58007364FF /* NativeCryptoFacade.swift */; };
+		3DC5DED62858CB58007364FF /* PrivateKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DED02858CB58007364FF /* PrivateKey.swift */; };
+		3DC5DED72858CB58007364FF /* EncryptedFileInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DED12858CB58007364FF /* EncryptedFileInfo.swift */; };
+		3DC5DED82858CB58007364FF /* NativeCryptoFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DED22858CB58007364FF /* NativeCryptoFacadeReceiveDispatcher.swift */; };
+		3DC5DED92858CB58007364FF /* PublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DED32858CB58007364FF /* PublicKey.swift */; };
+		3DC5DEDB2858D6A9007364FF /* RsaKeyPair.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEDA2858D6A9007364FF /* RsaKeyPair.swift */; };
 		3DCE7AA22719D04B0085E40D /* UserPreferenceFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE7AA12719D04B0085E40D /* UserPreferenceFacade.swift */; };
 		3DCE7AA7271D63BF0085E40D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE7AA6271D63BF0085E40D /* ViewController.swift */; };
 		3DCE7AAB27200E0A0085E40D /* WebviewHacks.h in Headers */ = {isa = PBXBuildFile; fileRef = 3DCE7AA927200E0A0085E40D /* WebviewHacks.h */; };
@@ -189,7 +195,7 @@
 		3D73DA3327319A91008E7A8A /* Operation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Operation.swift; sourceTree = "<group>"; };
 		3D84F56A2721B92C00858A58 /* MissedNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissedNotification.swift; sourceTree = "<group>"; };
 		3D84F56C2722CEF900858A58 /* FileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUtils.swift; sourceTree = "<group>"; };
-		3D84F5722722F35600858A58 /* CryptoFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoFacade.swift; sourceTree = "<group>"; };
+		3D84F5722722F35600858A58 /* IosNativeCryptoFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosNativeCryptoFacade.swift; sourceTree = "<group>"; };
 		3D84F5752723112400858A58 /* FileViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileViewer.swift; sourceTree = "<group>"; };
 		3D84F57827231E8600858A58 /* SSEInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSEInfo.swift; sourceTree = "<group>"; };
 		3D84F57B27231F1F00858A58 /* Serialization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Serialization.swift; sourceTree = "<group>"; };
@@ -312,6 +318,12 @@
 		3DC5DEC82858C12D007364FF /* NativePushFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativePushFacade.swift; sourceTree = "<group>"; };
 		3DC5DEC92858C12D007364FF /* NativePushFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativePushFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
 		3DC5DECC2858C1F5007364FF /* IosNativePushFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosNativePushFacade.swift; sourceTree = "<group>"; };
+		3DC5DECF2858CB58007364FF /* NativeCryptoFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeCryptoFacade.swift; sourceTree = "<group>"; };
+		3DC5DED02858CB58007364FF /* PrivateKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrivateKey.swift; sourceTree = "<group>"; };
+		3DC5DED12858CB58007364FF /* EncryptedFileInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EncryptedFileInfo.swift; sourceTree = "<group>"; };
+		3DC5DED22858CB58007364FF /* NativeCryptoFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeCryptoFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3DC5DED32858CB58007364FF /* PublicKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicKey.swift; sourceTree = "<group>"; };
+		3DC5DEDA2858D6A9007364FF /* RsaKeyPair.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RsaKeyPair.swift; sourceTree = "<group>"; };
 		3DCE7AA12719D04B0085E40D /* UserPreferenceFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPreferenceFacade.swift; sourceTree = "<group>"; };
 		3DCE7AA6271D63BF0085E40D /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		3DCE7AA927200E0A0085E40D /* WebviewHacks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebviewHacks.h; sourceTree = "<group>"; };
@@ -425,7 +437,7 @@
 				3D891F1D2105BB200031E528 /* rsa_oaep_sha256.h */,
 				3D891EFD2105B12E0031E528 /* rsa_oaep_sha256.c */,
 				3D9B12A22721926E002B46A1 /* ValueEncryption.swift */,
-				3D84F5722722F35600858A58 /* CryptoFacade.swift */,
+				3D84F5722722F35600858A58 /* IosNativeCryptoFacade.swift */,
 				3DB07C7A27303F0600BFBB4D /* Keys.swift */,
 			);
 			path = Crypto;
@@ -989,6 +1001,12 @@
 		3DBA56B62850AAA6004416BE /* GeneratedIpc */ = {
 			isa = PBXGroup;
 			children = (
+				3DC5DEDA2858D6A9007364FF /* RsaKeyPair.swift */,
+				3DC5DED12858CB58007364FF /* EncryptedFileInfo.swift */,
+				3DC5DECF2858CB58007364FF /* NativeCryptoFacade.swift */,
+				3DC5DED22858CB58007364FF /* NativeCryptoFacadeReceiveDispatcher.swift */,
+				3DC5DED02858CB58007364FF /* PrivateKey.swift */,
+				3DC5DED32858CB58007364FF /* PublicKey.swift */,
 				3DC5DEC82858C12D007364FF /* NativePushFacade.swift */,
 				3DC5DEC92858C12D007364FF /* NativePushFacadeReceiveDispatcher.swift */,
 				3DC5DEC628576621007364FF /* NativeInterface.swift */,
@@ -1406,8 +1424,10 @@
 				3D378EE72536F51F0001F1F3 /* FileChooser.swift in Sources */,
 				3D9B12A027218AF9002B46A1 /* RepeatRule.swift in Sources */,
 				3D4F1BFA26EBADE500E87BF5 /* TUTBigNum.m in Sources */,
+				3DC5DED72858CB58007364FF /* EncryptedFileInfo.swift in Sources */,
 				3D73DA312731953E008E7A8A /* RemoteProtocol.swift in Sources */,
 				3DB07C7B27303F0600BFBB4D /* Keys.swift in Sources */,
+				3DC5DED62858CB58007364FF /* PrivateKey.swift in Sources */,
 				3DBA56D32850AAA6004416BE /* ElectronResult.swift in Sources */,
 				3DBA56C92850AAA6004416BE /* DownloadTaskResponse.swift in Sources */,
 				3DBA56CE2850AAA6004416BE /* IosGlobalDispatcher.swift in Sources */,
@@ -1417,6 +1437,7 @@
 				3D9B12B42721A1E2002B46A1 /* TUTErrorFactory.m in Sources */,
 				3D4E16F4273D2F8A00256630 /* SyncCompletion.swift in Sources */,
 				3D84F56B2721B92C00858A58 /* MissedNotification.swift in Sources */,
+				3DC5DED52858CB58007364FF /* NativeCryptoFacade.swift in Sources */,
 				3DC5DEC728576621007364FF /* NativeInterface.swift in Sources */,
 				3DCE7AAC27200E0A0085E40D /* WebviewHacks.m in Sources */,
 				3DCE7AA22719D04B0085E40D /* UserPreferenceFacade.swift in Sources */,
@@ -1443,6 +1464,7 @@
 				3DD10DB227EA148D0076C9A2 /* BlobUtil.swift in Sources */,
 				3DBA56D02850AAA6004416BE /* ThemeFacade.swift in Sources */,
 				3D97821A2739600700DB639C /* URLSession+Sync.swift in Sources */,
+				3DC5DEDB2858D6A9007364FF /* RsaKeyPair.swift in Sources */,
 				3D84F57C27231F1F00858A58 /* Serialization.swift in Sources */,
 				3D2DB91B2733F43B00BCEF4C /* CredentialsEncryption.swift in Sources */,
 				3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */,
@@ -1450,6 +1472,7 @@
 				3DCE7AA7271D63BF0085E40D /* ViewController.swift in Sources */,
 				3DBA56CF2850AAA6004416BE /* FileFacadeReceiveDispatcher.swift in Sources */,
 				3D73DA3427319A91008E7A8A /* Operation.swift in Sources */,
+				3DC5DED82858CB58007364FF /* NativeCryptoFacadeReceiveDispatcher.swift in Sources */,
 				3DE46D2B2848EBDA00DC9D43 /* IosFileFacade.swift in Sources */,
 				3DBA56D52850AAA6004416BE /* NativeKey.swift in Sources */,
 				3DBE94BA273147830077A6EA /* WebViewBridge.swift in Sources */,
@@ -1465,8 +1488,9 @@
 				3DE46D2E2849E33000DC9D43 /* IosThemeFacade.swift in Sources */,
 				3D84F57927231E8600858A58 /* SSEInfo.swift in Sources */,
 				3DC5DECA2858C12D007364FF /* NativePushFacade.swift in Sources */,
-				3D84F5732722F35600858A58 /* CryptoFacade.swift in Sources */,
+				3D84F5732722F35600858A58 /* IosNativeCryptoFacade.swift in Sources */,
 				3DBA56C82850AAA6004416BE /* MobileFacadeSendDispatcher.swift in Sources */,
+				3DC5DED92858CB58007364FF /* PublicKey.swift in Sources */,
 				3D0EB1F926F49E36002E5102 /* AppDelegate.swift in Sources */,
 				3D9B129A27216DE0002B46A1 /* Response.swift in Sources */,
 				3D9B12AC27219623002B46A1 /* NotificationSessionKey.swift in Sources */,

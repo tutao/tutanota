@@ -1,6 +1,6 @@
 import {CredentialEncryptionMode} from "../../misc/credentials/CredentialEncryptionMode"
 import {DesktopKeyStoreFacade} from "../KeyStoreFacadeImpl"
-import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
+import {DesktopNativeCryptoFacade} from "../DesktopNativeCryptoFacade"
 import {assert} from "@tutao/tutanota-utils"
 
 export interface DektopCredentialsEncryption {
@@ -21,9 +21,9 @@ export interface DektopCredentialsEncryption {
 export class DesktopCredentialsEncryptionImpl implements DektopCredentialsEncryption {
 
 	private readonly _desktopKeyStoreFacade: DesktopKeyStoreFacade
-	private readonly _crypto: DesktopCryptoFacade
+	private readonly _crypto: DesktopNativeCryptoFacade
 
-	constructor(keyStoreFacade: DesktopKeyStoreFacade, crypto: DesktopCryptoFacade) {
+	constructor(keyStoreFacade: DesktopKeyStoreFacade, crypto: DesktopNativeCryptoFacade) {
 		this._desktopKeyStoreFacade = keyStoreFacade
 		this._crypto = crypto
 	}

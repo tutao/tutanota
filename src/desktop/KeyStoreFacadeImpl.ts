@@ -1,5 +1,5 @@
 import type {SecretStorage} from "./sse/SecretStorage"
-import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
+import {DesktopNativeCryptoFacade} from "./DesktopNativeCryptoFacade"
 import {log} from "./DesktopLog"
 import {Base64, base64ToUint8Array, getFromMap, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {base64ToKey, keyToBase64,} from "@tutao/tutanota-crypto"
@@ -50,7 +50,7 @@ export class KeyStoreFacadeImpl implements DesktopKeyStoreFacade {
 
 	constructor(
 		private readonly secretStorage: SecretStorage,
-		private readonly crypto: DesktopCryptoFacade
+		private readonly crypto: DesktopNativeCryptoFacade,
 	) {
 	}
 

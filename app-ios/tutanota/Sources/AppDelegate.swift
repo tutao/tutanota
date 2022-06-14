@@ -44,7 +44,7 @@ class AppDelegate : UIResponder,
     self.window = UIWindow(frame: UIScreen.main.bounds)
     let credentialsEncryption = CredentialsEncryption(keychainManager: keychainManager)
     self.viewController = ViewController(
-      crypto: CryptoFacade(),
+      crypto: IosNativeCryptoFacade(),
       contactsSource: ContactsSource(),
       themeManager: ThemeManager(),
       keychainManager: keychainManager,

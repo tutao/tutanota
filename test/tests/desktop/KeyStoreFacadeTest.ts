@@ -1,6 +1,6 @@
 import o from "ospec"
 import {CredentialsKeySpec, DeviceKeySpec, KeyStoreFacadeImpl} from "../../../src/desktop/KeyStoreFacadeImpl.js"
-import {DesktopCryptoFacade} from "../../../src/desktop/DesktopCryptoFacade.js"
+import {DesktopNativeCryptoFacade} from "../../../src/desktop/DesktopNativeCryptoFacade.js"
 import type {SecretStorage} from "../../../src/desktop/sse/SecretStorage.js"
 import {spyify} from "../nodemocker.js"
 import {keyToBase64, uint8ArrayToKey} from "@tutao/tutanota-crypto"
@@ -8,16 +8,16 @@ import {CancelledError} from "../../../src/api/common/error/CancelledError.js"
 import {assertThrows} from "@tutao/tutanota-test-utils"
 import {DeviceStorageUnavailableError} from "../../../src/api/common/error/DeviceStorageUnavailableError.js"
 
-function initKeyStoreFacade(secretStorage: SecretStorage, crypto: DesktopCryptoFacade): KeyStoreFacadeImpl {
+function initKeyStoreFacade(secretStorage: SecretStorage, crypto: DesktopNativeCryptoFacade): KeyStoreFacadeImpl {
 	return new KeyStoreFacadeImpl(secretStorage, crypto)
 }
 
 o.spec("KeyStoreFacade test", function () {
 	const aes256Key = uint8ArrayToKey(new Uint8Array([1, 2]))
-	let cryptoFacadeSpy: DesktopCryptoFacade
+	let cryptoFacadeSpy: DesktopNativeCryptoFacade
 
 	o.beforeEach(function () {
-		const stub = {generateDeviceKey: () => uint8ArrayToKey(new Uint8Array([0, 0]))} as DesktopCryptoFacade
+		const stub = {generateDeviceKey: () => uint8ArrayToKey(new Uint8Array([0, 0]))} as DesktopNativeCryptoFacade
 		cryptoFacadeSpy = spyify(stub)
 	})
 
@@ -57,7 +57,7 @@ o.spec("KeyStoreFacade test", function () {
 					generateDeviceKey() {
 						return aes256Key
 					},
-				} as DesktopCryptoFacade
+				} as DesktopNativeCryptoFacade
 				const keyStoreFacade = initKeyStoreFacade(secretStorageSpy, cryptoFacadeSpy)
 				await keyStoreFacade[opName]()
 				o(secretStorageSpy.setPassword.args).deepEquals([spec.serviceName, spec.accountName, keyToBase64(aes256Key)])

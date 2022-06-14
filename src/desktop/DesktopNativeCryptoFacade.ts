@@ -6,16 +6,22 @@ import {Aes256Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
 import {aes256Decrypt256Key, aes256Encrypt256Key, base64ToKey, IV_BYTE_LENGTH} from "@tutao/tutanota-crypto"
 import {FileUri} from "../native/common/FileApp"
 import path from "path"
+import {NativeCryptoFacade} from "../native/common/generatedipc/NativeCryptoFacade"
+import {EncryptedFileInfo} from "../native/common/generatedipc/EncryptedFileInfo"
+import {PrivateKey} from "../native/common/generatedipc/PrivateKey"
+import {PublicKey} from "../native/common/generatedipc/PublicKey"
+import {RsaKeyPair} from "../native/common/generatedipc/RsaKeyPair"
+import {DesktopUtils} from "./DesktopUtils"
 
 type FsExports = typeof FsModule
 
-export class DesktopCryptoFacade {
-	readonly fs: typeof FsModule
-	readonly cryptoFns: CryptoFunctions
+export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 
-	constructor(fs: FsExports, cryptoFns: CryptoFunctions) {
-		this.fs = fs
-		this.cryptoFns = cryptoFns
+	constructor(
+		private readonly fs: FsExports,
+		private readonly cryptoFns: CryptoFunctions,
+		private readonly utils: DesktopUtils,
+	) {
 	}
 
 	aes256Encrypt256Key(encryptionKey: Aes256Key, keyToEncrypt: Aes256Key): Uint8Array {
@@ -50,10 +56,10 @@ export class DesktopCryptoFacade {
 	 * decrypts a file and returns the decrypted files path
 	 * @param encodedKey
 	 * @param encryptedFileUri
-	 * @param targetDir
 	 * @returns {Promise<FileUri>}
 	 */
-	async aesDecryptFile(encodedKey: string, encryptedFileUri: FileUri, targetDir: FileUri): Promise<FileUri> {
+	async aesDecryptFile(encodedKey: string, encryptedFileUri: FileUri): Promise<FileUri> {
+		const targetDir = this.utils.getTutanotaTempPath("decrypted")
 		const encData = await this.fs.promises.readFile(encryptedFileUri)
 		const key = this.cryptoFns.base64ToKey(encodedKey)
 		const decData = await this.cryptoFns.aes128Decrypt(key, encData, true)
@@ -105,5 +111,21 @@ export class DesktopCryptoFacade {
 
 	randomBytes(count: number): Uint8Array {
 		return this.cryptoFns.randomBytes(count)
+	}
+
+	async aesEncryptFile(key: string, fileUri: string): Promise<EncryptedFileInfo> {
+		throw new Error("not implemented for this platform")
+	}
+
+	async generateRsaKey(seed: string): Promise<RsaKeyPair> {
+		throw new Error("not implemented for this platform")
+	}
+
+	async rsaDecrypt(privateKey: PrivateKey, base64Data: string): Promise<string> {
+		throw new Error("not implemented for this platform")
+	}
+
+	async rsaEncrypt(publicKey: PublicKey, base64Data: string, base64Seed: string): Promise<string> {
+		throw new Error("not implemented for this platform")
 	}
 }

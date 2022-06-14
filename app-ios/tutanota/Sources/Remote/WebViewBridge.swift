@@ -6,7 +6,7 @@ import CryptoTokenKit
 class WebViewBridge : NSObject, NativeInterface {
   private let webView: WKWebView
   private let viewController: ViewController
-  private let crypto: CryptoFacade
+  private let crypto: IosNativeCryptoFacade
   private let contactsSource: ContactsSource
   private let keychainManager: KeychainManager
   private let userPreferences: UserPreferenceFacade
@@ -25,7 +25,7 @@ class WebViewBridge : NSObject, NativeInterface {
   init(
     webView: WKWebView,
     viewController: ViewController,
-    crypto: CryptoFacade,
+    crypto: IosNativeCryptoFacade,
     contactsSource: ContactsSource,
     keychainManager: KeychainManager,
     userPreferences: UserPreferenceFacade,
@@ -181,31 +181,12 @@ class WebViewBridge : NSObject, NativeInterface {
           }
         }
         return "ios"
-      case "rsaEncrypt":
-        let publicKey = try! DictionaryDecoder().decode(PublicKey.self, from: args[0] as! NSDictionary)
-        return try await self.crypto.rsaEncrypt(
-          publicKey: publicKey,
-          base64Data: args[1] as! Base64,
-          base64Seed: args[2] as! Base64
-          )
-      case "rsaDecrypt":
-        let privateKey = try! DictionaryDecoder().decode(PrivateKey.self, from: args[0] as! NSDictionary)
-        return try await self.crypto.rsaDecrypt(
-          privateKey: privateKey,
-          base64Data: args[1] as! Base64
-        )
       case "reload":
         self.webviewInitialized = false
         await self.viewController.loadMainPage(params: args[0] as! [String : String])
         return nil
-      case "generateRsaKey":
-        return try await self.crypto.generateRsaKey(seed: args[0] as! Base64)
       case "changeLanguage":
         return nil
-      case "aesEncryptFile":
-        return try await self.crypto.encryptFile(key: args[0] as! String, atPath: args[1] as! String)
-      case "aesDecryptFile":
-        return try await self.crypto.decryptFile(key: args[0] as! String, atPath: args[1] as! String)
       case "findSuggestions":
         return try await self.contactsSource.search(query: args[0] as! String)
       case "openLink":
