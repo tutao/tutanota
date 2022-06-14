@@ -39,11 +39,6 @@ declare type MainRequestType =
 
 /** Requests from web to native */
 declare type NativeRequestType = 'init'
-	| 'generateRsaKey'
-	| 'rsaEncrypt'
-	| 'rsaDecrypt'
-	| 'aesEncryptFile'
-	| 'aesDecryptFile'
 	| 'findSuggestions'
 	| 'openLink'
 	| 'shareText'

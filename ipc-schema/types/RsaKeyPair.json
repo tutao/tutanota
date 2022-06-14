@@ -1,0 +1,8 @@
+{
+  "name": "RsaKeyPair",
+  "type": "struct",
+  "fields": {
+	"publicKey": "PublicKey",
+	"privateKey": "PrivateKey"
+  }
+}

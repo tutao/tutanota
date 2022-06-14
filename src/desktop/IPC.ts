@@ -2,24 +2,18 @@ import {lang} from "../misc/LanguageViewModel"
 import type {WindowManager} from "./DesktopWindowManager"
 import {objToError} from "../api/common/utils/Utils"
 import type {DeferredObject} from "@tutao/tutanota-utils"
-import {base64ToUint8Array, defer, downcast, getFromMap, noOp} from "@tutao/tutanota-utils"
+import {defer, downcast, getFromMap, noOp} from "@tutao/tutanota-utils"
 import {Request, RequestError, Response} from "../api/common/MessageDispatcher"
 import type {DesktopConfig} from "./config/DesktopConfig"
-import type {DesktopSseClient} from "./sse/DesktopSseClient"
-import type {DesktopNotifier} from "./DesktopNotifier"
 import type {Socketeer} from "./Socketeer"
-import type {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
-import type {DesktopCryptoFacade} from "./DesktopCryptoFacade"
 import type {DesktopDownloadManager} from "./DesktopDownloadManager"
 import type {ElectronUpdater} from "./ElectronUpdater"
 import {log} from "./DesktopLog"
 import type {DesktopUtils} from "./DesktopUtils"
-import type {DesktopErrorHandler} from "./DesktopErrorHandler"
 import type {DesktopIntegrator} from "./integration/DesktopIntegrator"
 import {getExportDirectoryPath, makeMsgFile, writeFile} from "./DesktopFileExport"
 import {fileExists} from "./PathUtils"
 import path from "path"
-import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
 import {ElectronExports, WebContentsEvent} from "./ElectronExportTypes";
 import {DataFile} from "../api/common/DataFile";
 import {Logger} from "../api/common/Logger"
@@ -27,7 +21,6 @@ import {DesktopGlobalDispatcher} from "../native/common/generatedipc/DesktopGlob
 import {DektopCredentialsEncryption} from "./credentials/DektopCredentialsEncryption"
 import {exposeLocal} from "../api/common/WorkerProxy"
 import {ExposedNativeInterface, NativeInterface} from "../native/common/NativeInterface"
-import {FileUri} from "../native/common/FileApp"
 import {DesktopFacadeSendDispatcher} from "../native/common/generatedipc/DesktopFacadeSendDispatcher.js"
 
 type FacadeHandler = (message: Request<"facade">) => Promise<any>
@@ -37,18 +30,12 @@ type FacadeHandler = (message: Request<"facade">) => Promise<any>
  */
 export class IPC {
 	readonly _conf: DesktopConfig
-	readonly _sse: DesktopSseClient
 	readonly _wm: WindowManager
-	readonly _notifier: DesktopNotifier
 	readonly _sock: Socketeer
-	readonly _alarmStorage: DesktopAlarmStorage
-	readonly _alarmScheduler: DesktopAlarmScheduler
-	readonly _crypto: DesktopCryptoFacade
 	readonly _dl: DesktopDownloadManager
 	readonly _updater: ElectronUpdater | null
 	readonly _electron: ElectronExports
 	readonly _desktopUtils: DesktopUtils
-	readonly _err: DesktopErrorHandler
 	readonly _integrator: DesktopIntegrator
 	readonly _credentialsEncryption: DektopCredentialsEncryption
 	_initialized: Array<DeferredObject<void>>
@@ -58,37 +45,25 @@ export class IPC {
 
 	constructor(
 		conf: DesktopConfig,
-		notifier: DesktopNotifier,
-		sse: DesktopSseClient,
 		wm: WindowManager,
 		sock: Socketeer,
-		alarmStorage: DesktopAlarmStorage,
-		desktopCryptoFacade: DesktopCryptoFacade,
 		dl: DesktopDownloadManager,
 		updater: ElectronUpdater | null,
 		electron: ElectronExports,
 		desktopUtils: DesktopUtils,
-		errorHandler: DesktopErrorHandler,
 		integrator: DesktopIntegrator,
-		alarmScheduler: DesktopAlarmScheduler,
 		credentialsEncryption: DektopCredentialsEncryption,
 		private readonly exposedInterfaceFactory: (windowId: number, ipc: IPC) => ExposedNativeInterface,
 		private readonly dispatcher: DesktopGlobalDispatcher,
 	) {
 		this._conf = conf
-		this._sse = sse
 		this._wm = wm
-		this._notifier = notifier
 		this._sock = sock
-		this._alarmStorage = alarmStorage
-		this._crypto = desktopCryptoFacade
 		this._dl = dl
 		this._updater = updater
 		this._electron = electron
 		this._desktopUtils = desktopUtils
-		this._err = errorHandler
 		this._integrator = integrator
-		this._alarmScheduler = alarmScheduler
 		this._credentialsEncryption = credentialsEncryption
 
 		if (!!this._updater) {
@@ -101,8 +76,6 @@ export class IPC {
 
 		this._initialized = []
 		this._queue = {}
-		this._err = errorHandler
-
 		this._electron.ipcMain.handle("to-main", (ev: WebContentsEvent, request: any) => {
 			const senderWindow = this._wm.getEventSender(ev)
 
@@ -209,13 +182,6 @@ export class IPC {
 			case "readDataFile": {
 				const location = args[0]
 				return this._desktopUtils.readDataFile(location)
-			}
-
-			case "aesDecryptFile": {
-				const encodedKey: string = args[0]
-				const fileUri: FileUri = args[1]
-				const targetDir = this._desktopUtils.getTutanotaTempPath("decrypted")
-				return this._crypto.aesDecryptFile(encodedKey, fileUri, targetDir)
 			}
 
 			case "setConfigValue": {

@@ -8,7 +8,7 @@ import type {DesktopConfig} from "../config/DesktopConfig"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import type {DesktopAlarmScheduler} from "./DesktopAlarmScheduler"
 import type {DesktopNetworkClient} from "../DesktopNetworkClient"
-import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
+import {DesktopNativeCryptoFacade} from "../DesktopNativeCryptoFacade"
 import {typeModels} from "../../api/entities/sys/TypeModels"
 import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
 import type {LanguageViewModelType} from "../../misc/LanguageViewModel"
@@ -37,7 +37,7 @@ export class DesktopSseClient {
 	private readonly _alarmStorage: DesktopAlarmStorage
 	private readonly _delayHandler: TimeoutSetter
 	private readonly _lang: LanguageViewModelType
-	private readonly _crypto: DesktopCryptoFacade
+	private readonly _crypto: DesktopNativeCryptoFacade
 	private _connectedSseInfo: SseInfo | null = null
 	private _connection: http.ClientRequest | null = null
 	_readTimeoutInSeconds!: number
@@ -56,7 +56,7 @@ export class DesktopSseClient {
 		wm: WindowManager,
 		alarmScheduler: DesktopAlarmScheduler,
 		net: DesktopNetworkClient,
-		desktopCrypto: DesktopCryptoFacade,
+		desktopCrypto: DesktopNativeCryptoFacade,
 		alarmStorage: DesktopAlarmStorage,
 		lang: LanguageViewModelType,
 		delayHandler: TimeoutSetter = setTimeout,

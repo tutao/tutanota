@@ -148,9 +148,9 @@ export class FileFacade {
 			return this.suspensionHandler.deferRequest(() => this.uploadFileDataNative(fileReference, sessionKey))
 		}
 
-		const encryptedFileInfo = await this.aesApp.aesEncryptFile(sessionKey, fileReference.location, random.generateRandomData(16))
+		const encryptedFileInfo = await this.aesApp.aesEncryptFile(sessionKey, fileReference.location)
 		const fileData = createFileDataDataPost({
-			size: encryptedFileInfo.unencSize.toString(),
+			size: encryptedFileInfo.unencryptedSize.toString(),
 			group: this.user.getGroupId(GroupType.Mail), // currently only used for attachments
 		})
 		const fileDataPostReturn = await this.serviceExecutor.post(FileDataService, fileData, {sessionKey})

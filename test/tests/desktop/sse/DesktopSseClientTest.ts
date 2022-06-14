@@ -14,7 +14,7 @@ import type {DesktopConfig} from "../../../../src/desktop/config/DesktopConfig.j
 import type {DesktopNotifier} from "../../../../src/desktop/DesktopNotifier.js"
 import type {WindowManager} from "../../../../src/desktop/DesktopWindowManager.js"
 import type {DesktopAlarmScheduler} from "../../../../src/desktop/sse/DesktopAlarmScheduler.js"
-import type {DesktopCryptoFacade} from "../../../../src/desktop/DesktopCryptoFacade.js"
+import type {DesktopNativeCryptoFacade} from "../../../../src/desktop/DesktopNativeCryptoFacade.js"
 import type {DesktopAlarmStorage} from "../../../../src/desktop/sse/DesktopAlarmStorage.js"
 import type {LanguageViewModel} from "../../../../src/misc/LanguageViewModel.js"
 import type {DesktopNetworkClient} from "../../../../src/desktop/DesktopNetworkClient.js"
@@ -33,7 +33,7 @@ o.spec("DesktopSseClient Test", function () {
 	let wmMock: WindowManager
 	let netMock: DesktopNetworkClient & {requestMade: DeferredObject<void>}
 	let alarmSchedulerMock: DesktopAlarmScheduler
-	let cryptoMock: DesktopCryptoFacade
+	let cryptoMock: DesktopNativeCryptoFacade
 	let alarmStorageMock: DesktopAlarmStorage
 	let timeoutMock: TimeoutMock
 	let langMock: LanguageViewModel

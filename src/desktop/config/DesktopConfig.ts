@@ -8,7 +8,7 @@ import type {Config} from "./ConfigCommon"
 import {BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey} from "./ConfigKeys"
 import type {App} from "electron"
 import type {DesktopKeyStoreFacade} from "../KeyStoreFacadeImpl"
-import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
+import {DesktopNativeCryptoFacade} from "../DesktopNativeCryptoFacade"
 import {CryptoError} from "../../api/common/error/CryptoError"
 import {log} from "../DesktopLog"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
@@ -29,12 +29,12 @@ export class DesktopConfig {
 	_desktopConfig: DeferredObject<Config>; // user preferences as set for this installation
 	_desktopConfigFile: ConfigFileType;
 	_keyStoreFacade: DesktopKeyStoreFacade
-	_cryptoFacade: DesktopCryptoFacade
+	_cryptoFacade: DesktopNativeCryptoFacade
 	_app: App
 	_migrator: DesktopConfigMigrator
 	_onValueSetListeners: OnValueSetListeners
 
-	constructor(app: App, migrator: DesktopConfigMigrator, keyStoreFacade: DesktopKeyStoreFacade, cryptFacade: DesktopCryptoFacade) {
+	constructor(app: App, migrator: DesktopConfigMigrator, keyStoreFacade: DesktopKeyStoreFacade, cryptFacade: DesktopNativeCryptoFacade) {
 		this._keyStoreFacade = keyStoreFacade
 		this._cryptoFacade = cryptFacade
 		this._app = app

@@ -14,7 +14,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
   private var isDarkTheme = false
 
   init(
-    crypto: CryptoFacade,
+    crypto: IosNativeCryptoFacade,
     contactsSource: ContactsSource,
     themeManager: ThemeManager,
     keychainManager: KeychainManager,
@@ -41,6 +41,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
 
       let globalDispatcher = IosGlobalDispatcher(
         fileFacade: IosFileFacade(chooser: TUTFileChooser(viewController: self), viewer: FileViewer(viewController: self)),
+        nativeCryptoFacade: crypto,
         nativePushFacade: IosNativePushFacade(appDelegate: self.appDelegate, alarmManager: self.alarmManager, userPreferences: userPreferences, keychainManager: keychainManager),
         themeFacade: IosThemeFacade(themeManager: themeManager, viewController: self)
       )

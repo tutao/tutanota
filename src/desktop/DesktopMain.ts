@@ -14,7 +14,7 @@ import {DesktopAlarmStorage} from "./sse/DesktopAlarmStorage"
 import {DesktopAlarmScheduler} from "./sse/DesktopAlarmScheduler"
 import {lang} from "../misc/LanguageViewModel"
 import {DesktopNetworkClient} from "./DesktopNetworkClient"
-import {DesktopCryptoFacade} from "./DesktopCryptoFacade"
+import {DesktopNativeCryptoFacade} from "./DesktopNativeCryptoFacade"
 import {DesktopDownloadManager} from "./DesktopDownloadManager"
 import {DesktopTray} from "./tray/DesktopTray"
 import {log} from "./DesktopLog"
@@ -74,8 +74,8 @@ type Components = {
 	readonly desktopThemeFacade: DesktopThemeFacade
 	readonly credentialsEncryption: DektopCredentialsEncryption
 }
-const desktopCrypto = new DesktopCryptoFacade(fs, cryptoFns)
-const desktopUtils = new DesktopUtils(fs, electron, desktopCrypto)
+const desktopUtils = new DesktopUtils(fs, electron, cryptoFns)
+const desktopCrypto = new DesktopNativeCryptoFacade(fs, cryptoFns, desktopUtils)
 const opts = {
 	registerAsMailHandler: process.argv.some(arg => arg === "-r"),
 	unregisterAsMailHandler: process.argv.some(arg => arg === "-u"),
@@ -186,25 +186,20 @@ async function createComponents(): Promise<Components> {
 
 	const dispatcher = new DesktopGlobalDispatcher(
 		new DesktopFileFacade(dl, electron, fs),
+		desktopCrypto,
 		new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage),
 		themeFacade
 	)
 
 	const ipc = new IPC(
 		conf,
-		notifier,
-		sse,
 		wm,
 		sock,
-		alarmStorage,
-		desktopCrypto,
 		dl,
 		updater,
 		electron,
 		desktopUtils,
-		err,
 		integrator,
-		desktopAlarmScheduler,
 		credentialsEncryption,
 		exposedInterfaceFactory,
 		dispatcher,

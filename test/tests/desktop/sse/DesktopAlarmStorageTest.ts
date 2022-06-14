@@ -2,18 +2,18 @@ import o from "ospec"
 import {instance, matchers, verify, when} from "testdouble"
 import {DesktopAlarmStorage} from "../../../../src/desktop/sse/DesktopAlarmStorage.js"
 import {DesktopConfig} from "../../../../src/desktop/config/DesktopConfig.js"
-import {DesktopCryptoFacade} from "../../../../src/desktop/DesktopCryptoFacade.js"
+import {DesktopNativeCryptoFacade} from "../../../../src/desktop/DesktopNativeCryptoFacade.js"
 import type {DesktopKeyStoreFacade} from "../../../../src/desktop/KeyStoreFacadeImpl.js"
 import {makeKeyStoreFacade} from "../../TestUtils.js"
 import {DesktopConfigKey} from "../../../../src/desktop/config/ConfigKeys.js"
 
 o.spec("DesktopAlarmStorageTest", function () {
 
-	let cryptoMock: DesktopCryptoFacade
+	let cryptoMock: DesktopNativeCryptoFacade
 	let confMock: DesktopConfig
 
 	o.beforeEach(function () {
-		cryptoMock = instance(DesktopCryptoFacade)
+		cryptoMock = instance(DesktopNativeCryptoFacade)
 		when(cryptoMock.aes256DecryptKeyToB64(matchers.anything(), "user3pw=")).thenReturn("decryptedKey")
 		when(cryptoMock.aes256EncryptKeyToB64(matchers.anything(), matchers.anything())).thenReturn("password")
 

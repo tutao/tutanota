@@ -1,66 +1,62 @@
 import Foundation
 
-struct EncryptedFileInfo {
-  let uri: Base64
-  let unencSize: Int64
-}
-extension EncryptedFileInfo : Codable {}
-
 /// High-level cryptographic operations API
 /// Is an actor because we want to have serial execution for all the cryptogaphic operations, doing them in parallel is usually too
 /// much for the device.
-actor CryptoFacade {
+actor IosNativeCryptoFacade: NativeCryptoFacade {
+
   private let crypto: TUTCrypto = TUTCrypto()
 
-  func encryptFile(key: Base64, atPath filePath: String) async throws -> EncryptedFileInfo {
+  func aesEncryptFile(_ key: Base64, _ fileUri: String, _ iv: String) async throws -> EncryptedFileInfo {
     guard let keyData = Data(base64Encoded: key) else {
       throw CryptoError(message: "Invalid key data")
     }
 
-    if !FileUtils.fileExists(atPath: filePath) {
-      throw CryptoError(message: "File to encrypt does not exist \(filePath)")
+    if !FileUtils.fileExists(atPath: fileUri) {
+      throw CryptoError(message: "File to encrypt does not exist \(fileUri)")
     }
     let encryptedFolder = try FileUtils.getEncryptedFolder()
-    let fileName = (filePath as NSString).lastPathComponent
+    let fileName = (fileUri as NSString).lastPathComponent
     let encryptedFilePath = (encryptedFolder as NSString).appendingPathComponent(fileName)
-    let iv = self.generateIv()
-    let plainTextData = try Data(contentsOf: URL(fileURLWithPath: filePath))
-    let outputData = try TUTAes128Facade.encrypt(plainTextData, withKey: keyData, withIv: iv, withMac: true)
-    let result = EncryptedFileInfo(uri: encryptedFilePath, unencSize: Int64(plainTextData.count))
+    let ivData = Data(base64Encoded: iv)
+    let plainTextData = try Data(contentsOf: URL(fileURLWithPath: fileUri))
+    let outputData = try TUTAes128Facade.encrypt(plainTextData, withKey: keyData, withIv: ivData!, withMac: true)
+    let result = EncryptedFileInfo(uri: encryptedFilePath, unencryptedSize: plainTextData.count)
 
     try outputData.write(to: URL(fileURLWithPath: encryptedFilePath))
 
     return result
   }
 
-  func decryptFile(key: Base64, atPath filePath: String) async throws -> String {
+  func aesDecryptFile(_ key: Base64, _ fileUri: String) async throws -> String {
     guard let key = Data(base64Encoded: key) else {
       throw CryptoError(message: "Invalid key data")
     }
-    if !FileUtils.fileExists(atPath: filePath) {
+    if !FileUtils.fileExists(atPath: fileUri) {
       throw CryptoError(message: "File to decrypt does not exist")
     }
 
-    let encryptedData = try Data(contentsOf: URL(fileURLWithPath: filePath))
+    let encryptedData = try Data(contentsOf: URL(fileURLWithPath: fileUri))
     let plaintextData = try TUTAes128Facade.decrypt(encryptedData, withKey: key)
 
     let decryptedFolder = try FileUtils.getDecryptedFolder()
-    let fileName = (filePath as NSString).lastPathComponent
+    let fileName = (fileUri as NSString).lastPathComponent
     let plaintextPath = (decryptedFolder as NSString).appendingPathComponent(fileName)
     try plaintextData.write(to: URL(fileURLWithPath: plaintextPath), options: .atomic)
 
     return plaintextPath
   }
 
-  func generateRsaKey(seed: Base64) async throws -> KeyPair {
+  func generateRsaKey(_ seed: Base64) async throws -> RsaKeyPair {
     let tutKeyPair = try self.crypto.generateRsaKey(withSeed: seed)
-    return KeyPair(tutKeyPair)
+    return RsaKeyPair(tutKeyPair)
   }
 
   func rsaEncrypt(
-    publicKey: PublicKey,
-    base64Data: Base64,
-    base64Seed: Base64) async throws -> String {
+    _ publicKey: PublicKey,
+    _ base64Data: Base64,
+    _ base64Seed: Base64
+  ) async throws -> String {
       return try self.crypto.rsaEncrypt(
         with: publicKey.toObjcKey(),
         base64Data: base64Data,
@@ -69,17 +65,14 @@ actor CryptoFacade {
     }
 
   func rsaDecrypt(
-    privateKey: PrivateKey,
-    base64Data: Base64) async throws -> String {
+    _ privateKey: PrivateKey,
+    _ base64Data: Base64
+  ) async throws -> String {
       return try self.crypto.rsaDecrypt(
         with: privateKey.toObjcKey(),
         base64Data: base64Data
       )
     }
-
-  private func generateIv() -> Data {
-    return TUTCrypto.generateIv()
-  }
 }
 
 private func CryptoError(message: String) -> Error {

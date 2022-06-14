@@ -185,7 +185,7 @@ o.spec("BlobFacade test", function () {
 				uri: 'encryptedChunkUri',
 				unencSize: 3
 			}
-			when(aesAppMock.aesEncryptFile(sessionKey, chunkUris[0], anything())).thenResolve(encryptedFileInfo)
+			when(aesAppMock.aesEncryptFile(sessionKey, chunkUris[0])).thenResolve(encryptedFileInfo)
 			const blobHash = "blobHash"
 			when(fileAppMock.hashFile(encryptedFileInfo.uri)).thenResolve(blobHash)
 			when(fileAppMock.upload(anything(), anything(), anything(), anything())).thenResolve({

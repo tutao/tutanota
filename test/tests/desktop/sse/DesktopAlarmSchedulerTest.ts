@@ -8,7 +8,7 @@ import {downcast, lastThrow} from "@tutao/tutanota-utils"
 import {WindowManager} from "../../../../src/desktop/DesktopWindowManager.js";
 import {DesktopNotifier, NotificationResult} from "../../../../src/desktop/DesktopNotifier.js";
 import {DesktopAlarmStorage} from "../../../../src/desktop/sse/DesktopAlarmStorage.js";
-import {DesktopCryptoFacade} from "../../../../src/desktop/DesktopCryptoFacade.js";
+import {DesktopNativeCryptoFacade} from "../../../../src/desktop/DesktopNativeCryptoFacade.js";
 import {assertThrows} from "@tutao/tutanota-test-utils";
 import {EncryptedAlarmNotification} from "../../../../src/native/common/EncryptedAlarmNotification.js";
 
@@ -53,7 +53,7 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 		// our modules
 		const langMock = n.mock("__lang", lang).set()
 		const alarmNotificationMock = n.mock("__alarmNotification", alarmNotification).set()
-		const cryptoMock = n.mock<DesktopCryptoFacade>('__crypto', crypto).set()
+		const cryptoMock = n.mock<DesktopNativeCryptoFacade>('__crypto', crypto).set()
 
 		// instances
 		const wmMock = n.mock<WindowManager>('__wm', wm).set()
@@ -246,7 +246,7 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 
 		o("alarmnotification with corrupt fields", async function () {
 			const {wmMock, notifierMock, alarmStorageMock} = standardMocks()
-			const cryptoMock = n.mock<DesktopCryptoFacade>('__crypto', crypto).with({
+			const cryptoMock = n.mock<DesktopNativeCryptoFacade>('__crypto', crypto).with({
 				decryptAndMapToInstance: (tm, an) => Promise.resolve(Object.assign({"_errors": {}}, an))
 			}).set()
 			const alarmScheduler = makeAlarmScheduler()

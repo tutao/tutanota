@@ -231,7 +231,7 @@ export class BlobFacade {
 
 	private async encryptAndUploadNativeChunk(fileUri: FileUri, blobAccessInfo: BlobServerAccessInfo, sessionKey: Aes128Key): Promise<BlobReferenceTokenWrapper> {
 		const {blobAccessToken, servers} = blobAccessInfo
-		const encryptedFileInfo = await this.aesApp.aesEncryptFile(sessionKey, fileUri, random.generateRandomData(16))
+		const encryptedFileInfo = await this.aesApp.aesEncryptFile(sessionKey, fileUri)
 		const encryptedChunkUri = encryptedFileInfo.uri
 		const blobHash = await this.fileApp.hashFile(encryptedChunkUri)
 

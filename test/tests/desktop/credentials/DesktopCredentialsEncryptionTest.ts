@@ -3,7 +3,7 @@ import n from "../../nodemocker.js"
 
 import {DesktopCredentialsEncryptionImpl} from "../../../../src/desktop/credentials/DektopCredentialsEncryption.js"
 import {DesktopKeyStoreFacade} from "../../../../src/desktop/KeyStoreFacadeImpl.js"
-import {DesktopCryptoFacade} from "../../../../src/desktop/DesktopCryptoFacade.js"
+import {DesktopNativeCryptoFacade} from "../../../../src/desktop/DesktopNativeCryptoFacade.js"
 import {CredentialEncryptionMode} from "../../../../src/misc/credentials/CredentialEncryptionMode.js"
 import {makeKeyStoreFacade} from "../../TestUtils.js"
 import {assertThrows} from "@tutao/tutanota-test-utils"
@@ -18,7 +18,7 @@ o.spec("DesktopCredentialsEncryption Test", () => {
 
 	const getSubject = (): DesktopCredentialsEncryptionImpl => new DesktopCredentialsEncryptionImpl(
 		n.mock<DesktopKeyStoreFacade>("__keyStoreFacade", keyStoreFacade).set(),
-		n.mock<DesktopCryptoFacade>("__crypto", crypto).set()
+		n.mock<DesktopNativeCryptoFacade>("__crypto", crypto).set()
 	)
 
 	o("throws when using wrong encryption mode", async function () {

@@ -12,18 +12,18 @@ import * as migration0005 from "./migration-0005"
 import * as migration0006 from "./migration-0006"
 import * as migration0007 from "./migration-0007"
 import type {Config, ConfigMigration} from "../ConfigCommon"
-import {DesktopCryptoFacade} from "../../DesktopCryptoFacade"
+import {DesktopNativeCryptoFacade} from "../../DesktopNativeCryptoFacade"
 import type {DesktopKeyStoreFacade} from "../../KeyStoreFacadeImpl"
 
 export type MigrationKind = "migrateClient" | "migrateAdmin"
 export type ElectronExports = typeof Electron.CrossProcessExports;
 
 export class DesktopConfigMigrator {
-	readonly crypto: DesktopCryptoFacade
+	readonly crypto: DesktopNativeCryptoFacade
 	_keyStoreFacade: DesktopKeyStoreFacade
 	_electron: ElectronExports
 
-	constructor(crypto: DesktopCryptoFacade, keyStoreFacade: DesktopKeyStoreFacade, electron: ElectronExports) {
+	constructor(crypto: DesktopNativeCryptoFacade, keyStoreFacade: DesktopKeyStoreFacade, electron: ElectronExports) {
 		this.crypto = crypto
 		this._keyStoreFacade = keyStoreFacade
 		this._electron = electron

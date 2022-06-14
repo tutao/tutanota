@@ -1,5 +1,5 @@
 import type {DesktopConfig} from "../config/DesktopConfig"
-import {DesktopCryptoFacade} from "../DesktopCryptoFacade"
+import {DesktopNativeCryptoFacade} from "../DesktopNativeCryptoFacade"
 import {elementIdPart} from "../../api/common/utils/EntityUtils"
 import {DesktopConfigKey} from "../config/ConfigKeys"
 import type {DesktopKeyStoreFacade} from "../KeyStoreFacadeImpl"
@@ -14,10 +14,10 @@ import {EncryptedAlarmNotification, NotificationSessionKey} from "../../native/c
 export class DesktopAlarmStorage {
 	_desktopKeyStoreFacade: DesktopKeyStoreFacade
 	_conf: DesktopConfig
-	_crypto: DesktopCryptoFacade
+	_crypto: DesktopNativeCryptoFacade
 	_sessionKeysB64: Record<string, string>
 
-	constructor(conf: DesktopConfig, desktopCryptoFacade: DesktopCryptoFacade, keyStoreFacade: DesktopKeyStoreFacade) {
+	constructor(conf: DesktopConfig, desktopCryptoFacade: DesktopNativeCryptoFacade, keyStoreFacade: DesktopKeyStoreFacade) {
 		this._desktopKeyStoreFacade = keyStoreFacade
 		this._conf = conf
 		this._crypto = desktopCryptoFacade

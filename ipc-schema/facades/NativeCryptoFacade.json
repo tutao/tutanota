@@ -1,0 +1,72 @@
+{
+  "name": "NativeCryptoFacade",
+  "type": "facade",
+  "senders": [
+	"web"
+  ],
+  "receivers": [
+	"ios",
+	"desktop",
+	"android"
+  ],
+  "methods": {
+	"rsaEncrypt": {
+	  "arg": [
+		{
+		  "publicKey": "PublicKey"
+		},
+		{
+		  "base64Data": "string"
+		},
+		{
+		  "base64Seed": "string"
+		}
+	  ],
+	  "ret": "string"
+	},
+	"rsaDecrypt": {
+	  "arg": [
+		{
+		  "privateKey": "PrivateKey"
+		},
+		{
+		  "base64Data": "string"
+		}
+	  ],
+	  "ret": "string"
+	},
+	"aesEncryptFile": {
+	  "arg": [
+		{
+		  "key": "string"
+		},
+		{
+		  "fileUri": "string"
+		},
+		{
+		  "iv": "string"
+		}
+	  ],
+	  "ret": "EncryptedFileInfo"
+	},
+	"aesDecryptFile": {
+	  "arg": [
+		{
+		  "key": "string"
+		},
+		{
+		  "fileUri": "string"
+		}
+	  ],
+	  "ret": "string"
+	},
+	"generateRsaKey": {
+	  "arg": [
+		{
+		  "seed": "string"
+		}
+	  ],
+	  "ret": "RsaKeyPair"
+	}
+  }
+}

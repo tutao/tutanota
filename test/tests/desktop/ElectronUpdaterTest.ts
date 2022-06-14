@@ -1,6 +1,6 @@
 import o from "ospec"
 import type {App} from "electron"
-import type {DesktopCryptoFacade} from "../../../src/desktop/DesktopCryptoFacade.js"
+import type {DesktopNativeCryptoFacade} from "../../../src/desktop/DesktopNativeCryptoFacade.js"
 import {downcast} from "@tutao/tutanota-utils"
 import {ElectronUpdater} from "../../../src/desktop/ElectronUpdater.js"
 import type {DesktopTray} from "../../../src/desktop/tray/DesktopTray.js"
@@ -86,7 +86,7 @@ o.spec("ElectronUpdater Test", function () {
         wrongKey = {
             verify: o.spy(() => false),
         }
-        crypto = downcast<DesktopCryptoFacade>({
+        crypto = downcast<DesktopNativeCryptoFacade>({
             publicKeyFromPem: o.spy((pem: string) => (pem === "yes" ? rightKey : wrongKey)),
         })
         autoUpdater = {

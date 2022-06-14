@@ -5,7 +5,7 @@ import type {DesktopNotifier} from "../DesktopNotifier"
 import {NotificationResult} from "../DesktopNotifier";
 import type {WindowManager} from "../DesktopWindowManager"
 import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
-import type {DesktopCryptoFacade} from "../DesktopCryptoFacade"
+import type {DesktopNativeCryptoFacade} from "../DesktopNativeCryptoFacade"
 import {log} from "../DesktopLog"
 import type {AlarmScheduler} from "../../calendar/date/AlarmScheduler"
 import {CryptoError} from "../../api/common/error/CryptoError"
@@ -18,14 +18,14 @@ export class DesktopAlarmScheduler {
 	readonly _wm: WindowManager
 	readonly _notifier: DesktopNotifier
 	readonly _alarmStorage: DesktopAlarmStorage
-	readonly _crypto: DesktopCryptoFacade
+	readonly _crypto: DesktopNativeCryptoFacade
 	readonly _alarmScheduler: AlarmScheduler
 
 	constructor(
 		wm: WindowManager,
 		notifier: DesktopNotifier,
 		alarmStorage: DesktopAlarmStorage,
-		desktopCrypto: DesktopCryptoFacade,
+		desktopCrypto: DesktopNativeCryptoFacade,
 		alarmScheduler: AlarmScheduler,
 	) {
 		this._wm = wm
