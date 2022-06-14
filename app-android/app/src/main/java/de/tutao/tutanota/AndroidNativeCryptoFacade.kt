@@ -3,9 +3,11 @@ package de.tutao.tutanota
 import android.content.Context
 import android.net.Uri
 import androidx.annotation.VisibleForTesting
+import de.tutao.tutanota.ipc.EncryptedFileInfo
+import de.tutao.tutanota.ipc.NativeCryptoFacade
+import de.tutao.tutanota.ipc.RsaKeyPair
 import org.apache.commons.io.IOUtils
 import org.apache.commons.io.input.CountingInputStream
-import org.json.JSONObject
 import java.io.*
 import java.math.BigInteger
 import java.security.*
@@ -22,7 +24,12 @@ import javax.crypto.spec.OAEPParameterSpec
 import javax.crypto.spec.PSource
 import javax.crypto.spec.SecretKeySpec
 
-class Crypto @VisibleForTesting constructor(private val context: Context, val randomizer: SecureRandom) {
+class AndroidNativeCryptoFacade
+@VisibleForTesting
+constructor(
+		private val context: Context,
+		val randomizer: SecureRandom,
+) : NativeCryptoFacade {
 
 	constructor(context: Context) : this(context, SecureRandom())
 
@@ -91,76 +98,46 @@ class Crypto @VisibleForTesting constructor(private val context: Context, val ra
 		}
 	}
 
-	@Synchronized
-	fun generateRsaKey(seed: ByteArray): JSONObject {
-		randomizer.setSeed(seed)
+	override suspend fun generateRsaKey(seed: String): RsaKeyPair {
+		randomizer.setSeed(seed.base64ToBytes())
 		val generator = KeyPairGenerator.getInstance("RSA")
 		generator.initialize(RSA_KEY_LENGTH_IN_BITS, randomizer)
 		val keyPair = generator.generateKeyPair()
-		return keyPairToJson(keyPair)
+		return RsaKeyPair(
+				PublicKey(keyPair.public as RSAPublicKey),
+				PrivateKey(keyPair.private as RSAPrivateCrtKey)
+		)
 	}
 
-	private fun privateKeyToJson(key: RSAPrivateCrtKey): JSONObject {
-		val json = JSONObject()
-		json.put("version", 0)
-		json.put("modulus", key.modulus.toByteArray().toBase64())
-		json.put("privateExponent", key.privateExponent.toByteArray().toBase64())
-		json.put("primeP", key.primeP.toByteArray().toBase64())
-		json.put("primeQ", key.primeQ.toByteArray().toBase64())
-		json.put("primeExponentP", key.primeExponentP.toByteArray().toBase64())
-		json.put("primeExponentQ", key.primeExponentQ.toByteArray().toBase64())
-		json.put("crtCoefficient", key.crtCoefficient.toByteArray().toBase64())
-		return json
-	}
-
-	private fun publicKeyToJson(key: RSAPublicKey): JSONObject {
-		val json = JSONObject()
-		json.put("version", 0)
-		json.put("modulus", key.modulus.toByteArray().toBase64())
-		return json
-	}
-
-	private fun keyPairToJson(keyPair: KeyPair): JSONObject {
-		val json = JSONObject()
-		json.put("publicKey", publicKeyToJson(keyPair.public as RSAPublicKey))
-		json.put("privateKey", privateKeyToJson(keyPair.private as RSAPrivateCrtKey))
-		return json
-	}
-
-	private fun jsonToPublicKey(json: JSONObject): PublicKey {
-		val modulus = BigInteger(json.getString("modulus").base64ToBytes())
-		val keyFactory = KeyFactory.getInstance("RSA")
-		return keyFactory.generatePublic(RSAPublicKeySpec(modulus, BigInteger.valueOf(RSA_PUBLIC_EXPONENT.toLong())))
-	}
-
-	@Throws(InvalidKeySpecException::class)
-	private fun jsonToPrivateKey(json: JSONObject): PrivateKey {
-		val modulus = BigInteger(json.getString("modulus").base64ToBytes())
-		val privateExponent = BigInteger(json.getString("privateExponent").base64ToBytes())
-		val keyFactory = KeyFactory.getInstance("RSA")
-		return keyFactory.generatePrivate(RSAPrivateKeySpec(modulus, privateExponent))
+	@Throws(CryptoError::class)
+	override suspend fun rsaEncrypt(
+			publicKey: de.tutao.tutanota.ipc.PublicKey,
+			base64Data: String,
+			base64Seed: String,
+	): String {
+		try {
+			return this.rsaEncrypt(
+					javaPublicKey(publicKey),
+					base64Data.base64ToBytes(),
+					base64Data.base64ToBytes()
+			).toBase64()
+		} catch (e: InvalidKeySpecException) {
+			// These types of errors can happen and that's okay, they should be handled gracefully.
+			throw CryptoError(e)
+		}
 	}
 
 	/**
 	 * Encrypts an aes key with RSA to a byte array.
 	 */
 	@Throws(CryptoError::class)
-	fun rsaEncrypt(publicKeyJson: JSONObject, data: ByteArray?, random: ByteArray?): String {
-		val publicKey = jsonToPublicKey(publicKeyJson)
-		return this.rsaEncrypt(publicKey, data, random)
-	}
-
-	/**
-	 * Encrypts an aes key with RSA to a byte array.
-	 */
-	@Throws(CryptoError::class)
-	fun rsaEncrypt(publicKey: PublicKey, data: ByteArray?, random: ByteArray?): String {
+	fun rsaEncrypt(publicKey: PublicKey, data: ByteArray, random: ByteArray): ByteArray {
 		randomizer.setSeed(random)
-		return rsaEncrypt(data, publicKey, randomizer).toBase64()
+		return rsaEncrypt(data, publicKey, randomizer)
 	}
 
 	@Throws(CryptoError::class)
-	private fun rsaEncrypt(data: ByteArray?, publicKey: PublicKey, randomizer: SecureRandom): ByteArray {
+	private fun rsaEncrypt(data: ByteArray, publicKey: PublicKey, randomizer: SecureRandom): ByteArray {
 		return try {
 			val cipher = Cipher.getInstance(RSA_ALGORITHM)
 			cipher.init(Cipher.ENCRYPT_MODE, publicKey, OAEP_PARAMETER_SPEC, randomizer)
@@ -174,24 +151,21 @@ class Crypto @VisibleForTesting constructor(private val context: Context, val ra
 		}
 	}
 
-	/**
-	 * Decrypts a byte array with RSA to an AES key.
-	 */
 	@Throws(CryptoError::class)
-	fun rsaDecrypt(jsonPrivateKey: JSONObject, encryptedKey: ByteArray?): String {
-		return try {
-			val privateKey = jsonToPrivateKey(jsonPrivateKey)
-			rsaDecrypt(privateKey, encryptedKey).toBase64()
+	override suspend fun rsaDecrypt(privateKey: de.tutao.tutanota.ipc.PrivateKey, base64Data: String): String {
+		try {
+			return rsaDecrypt(
+					javaPrivateKey(privateKey),
+					base64Data.base64ToBytes(),
+			).toBase64()
 		} catch (e: InvalidKeySpecException) {
 			// These types of errors can happen and that's okay, they should be handled gracefully.
 			throw CryptoError(e)
-		} catch (e: NoSuchAlgorithmException) {
-			throw RuntimeException("rsaDecrypt error", e)
 		}
 	}
 
 	@Throws(CryptoError::class)
-	fun rsaDecrypt(privateKey: PrivateKey?, encryptedKey: ByteArray?): ByteArray {
+	fun rsaDecrypt(privateKey: PrivateKey, encryptedKey: ByteArray): ByteArray {
 		return try {
 			val cipher = Cipher.getInstance(RSA_ALGORITHM)
 			cipher.init(Cipher.DECRYPT_MODE, privateKey, OAEP_PARAMETER_SPEC, randomizer)
@@ -202,28 +176,20 @@ class Crypto @VisibleForTesting constructor(private val context: Context, val ra
 			throw CryptoError(e)
 		} catch (e: IllegalBlockSizeException) {
 			throw CryptoError(e)
-		} catch (e: NoSuchAlgorithmException) {
-			// These errors are not expected, fatal for the whole application and should be
-			// reported.
-			throw RuntimeException("rsaDecrypt error", e)
-		} catch (e: NoSuchPaddingException) {
-			throw RuntimeException("rsaDecrypt error", e)
-		} catch (e: InvalidAlgorithmParameterException) {
-			throw RuntimeException("rsaDecrypt error", e)
 		}
 	}
 
 	@Throws(IOException::class, CryptoError::class)
-	fun aesEncryptFile(key: ByteArray, fileUrl: String, iv: ByteArray): EncryptedFileInfo {
-		val fileUri = Uri.parse(fileUrl)
-		val file = getFileInfo(context, fileUri)
+	override suspend fun aesEncryptFile(key: String, fileUri: String, iv: String): EncryptedFileInfo {
+		val parsedFileUri = Uri.parse(fileUri)
+		val file = getFileInfo(context, parsedFileUri)
 		val encryptedDir = File(getDir(context), TEMP_DIR_ENCRYPTED)
 		encryptedDir.mkdirs()
 		val outputFile = File(encryptedDir, file.name)
-		val inputStream = CountingInputStream(context.contentResolver.openInputStream(fileUri))
+		val inputStream = CountingInputStream(context.contentResolver.openInputStream(parsedFileUri))
 		val out: OutputStream = FileOutputStream(outputFile)
-		aesEncrypt(key, inputStream, out, iv, true)
-		return EncryptedFileInfo(outputFile.toUri(), inputStream.byteCount)
+		aesEncrypt(key.base64ToBytes(), inputStream, out, iv.base64ToBytes(), useMac = true)
+		return EncryptedFileInfo(outputFile.toUri(), inputStream.byteCount.toInt())
 	}
 
 	@Throws(CryptoError::class, IOException::class)
@@ -257,15 +223,15 @@ class Crypto @VisibleForTesting constructor(private val context: Context, val ra
 	}
 
 	@Throws(IOException::class, CryptoError::class)
-	fun aesDecryptFile(key: ByteArray, fileUrl: String): String {
-		val fileUri = Uri.parse(fileUrl)
-		val file = getFileInfo(context, fileUri)
+	override suspend fun aesDecryptFile(key: String, fileUri: String): String {
+		val parsedFileUri = Uri.parse(fileUri)
+		val file = getFileInfo(context, parsedFileUri)
 		val decryptedDir = File(getDir(context), TEMP_DIR_DECRYPTED)
 		decryptedDir.mkdirs()
 		val outputFile = File(decryptedDir, file.name)
-		val input = context.contentResolver.openInputStream(Uri.parse(fileUrl))!!
+		val input = context.contentResolver.openInputStream(parsedFileUri)!!
 		val out: OutputStream = FileOutputStream(outputFile)
-		aesDecrypt(key, input, out, file.size)
+		aesDecrypt(key.base64ToBytes(), input, out, file.size)
 		return Uri.fromFile(outputFile).toString()
 	}
 
@@ -325,7 +291,7 @@ class Crypto @VisibleForTesting constructor(private val context: Context, val ra
 
 	@Throws(IOException::class, CryptoError::class)
 	fun aesDecrypt(key: ByteArray, input: InputStream, out: OutputStream, inputSize: Long) {
-		var input = input
+		var inputWithoutMac = input
 		var decrypted: InputStream? = null
 		try {
 			var cKey = key
@@ -334,7 +300,7 @@ class Crypto @VisibleForTesting constructor(private val context: Context, val ra
 				val subKeys = getSubKeys(bytesToKey(key), true)
 				cKey = subKeys.cKey!!.encoded
 				val tempOut = ByteArrayOutputStream()
-				IOUtils.copyLarge(input, tempOut)
+				IOUtils.copyLarge(inputWithoutMac, tempOut)
 				val cipherText = tempOut.toByteArray()
 				val cipherTextWithoutMac = cipherText.copyOfRange(1, cipherText.size - 32)
 				val providedMacBytes = cipherText.copyOfRange(cipherText.size - 32, cipherText.size)
@@ -342,34 +308,62 @@ class Crypto @VisibleForTesting constructor(private val context: Context, val ra
 				if (!Arrays.equals(computedMacBytes, providedMacBytes)) {
 					throw CryptoError("invalid mac")
 				}
-				input = ByteArrayInputStream(cipherTextWithoutMac)
+				inputWithoutMac = ByteArrayInputStream(cipherTextWithoutMac)
 			}
 			val iv = ByteArray(AES_KEY_LENGTH_BYTES)
-			IOUtils.read(input, iv)
+			IOUtils.read(inputWithoutMac, iv)
 			val cipher = Cipher.getInstance(AES_MODE_PADDING)
 			val params = IvParameterSpec(iv)
 			cipher.init(Cipher.DECRYPT_MODE, bytesToKey(cKey), params)
-			decrypted = CipherInputStream(input, cipher)
+			decrypted = CipherInputStream(inputWithoutMac, cipher)
 			IOUtils.copyLarge(decrypted, out, ByteArray(1024 * 1000))
 		} catch (e: InvalidKeyException) {
 			throw CryptoError(e)
 		} finally {
-			IOUtils.closeQuietly(input)
+			IOUtils.closeQuietly(inputWithoutMac)
 			IOUtils.closeQuietly(decrypted)
 			IOUtils.closeQuietly(out)
 		}
 	}
 
-	class EncryptedFileInfo(val uri: String, val unencSize: Long) {
-		fun toJSON(): JSONObject {
-			val json = JSONObject()
-			json.put("uri", uri)
-			json.put("unencSize", unencSize)
-			return json
-		}
+	@Throws(InvalidKeySpecException::class)
+	private fun javaPublicKey(key: de.tutao.tutanota.ipc.PublicKey): PublicKey {
+		val modulus = BigInteger(key.modulus.base64ToBytes())
+		val keyFactory = KeyFactory.getInstance("RSA")
+		return keyFactory.generatePublic(RSAPublicKeySpec(modulus, BigInteger.valueOf(RSA_PUBLIC_EXPONENT.toLong())))
 	}
 
+	@Throws(InvalidKeySpecException::class)
+	private fun javaPrivateKey(key: de.tutao.tutanota.ipc.PrivateKey): PrivateKey {
+		val modulus = BigInteger(key.modulus.base64ToBytes())
+		val privateExponent = BigInteger(key.privateExponent.base64ToBytes())
+		val keyFactory = KeyFactory.getInstance("RSA")
+		return keyFactory.generatePrivate(RSAPrivateKeySpec(modulus, privateExponent))
+	}
+
+	private fun BigInteger.toBase64() = toByteArray().toBase64()
+
+	private fun PrivateKey(javaKey: RSAPrivateCrtKey) = de.tutao.tutanota.ipc.PrivateKey(
+			version = 0,
+			// TODO: is this correct?
+			keyLength = RSA_KEY_LENGTH_IN_BITS,
+			modulus = javaKey.modulus.toBase64(),
+			privateExponent = javaKey.privateExponent.toBase64(),
+			primeP = javaKey.primeP.toBase64(),
+			primeQ = javaKey.primeQ.toBase64(),
+			primeExponentP = javaKey.primeExponentP.toBase64(),
+			primeExponentQ = javaKey.primeExponentQ.toBase64(),
+			crtCoefficient = javaKey.crtCoefficient.toBase64(),
+	)
+
+	private fun PublicKey(javaKey: RSAPublicKey) = de.tutao.tutanota.ipc.PublicKey(
+			version = 0,
+			keyLength = RSA_KEY_LENGTH_IN_BITS,
+			modulus = javaKey.modulus.toBase64(),
+			publicExponent = RSA_PUBLIC_EXPONENT,
+	)
 }
+
 
 private class SubKeys(
 		var cKey: SecretKeySpec?,

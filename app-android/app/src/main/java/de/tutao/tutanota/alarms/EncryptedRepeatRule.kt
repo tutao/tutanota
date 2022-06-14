@@ -1,6 +1,6 @@
 package de.tutao.tutanota.alarms
 
-import de.tutao.tutanota.Crypto
+import de.tutao.tutanota.AndroidNativeCryptoFacade
 import de.tutao.tutanota.decryptNumber
 import de.tutao.tutanota.decryptString
 import kotlinx.serialization.Serializable
@@ -15,7 +15,7 @@ class EncryptedRepeatRule(
 		val endValue: String?,
 )
 
-fun EncryptedRepeatRule.decrypt(crypto: Crypto, sessionKey: ByteArray): RepeatRule {
+fun EncryptedRepeatRule.decrypt(crypto: AndroidNativeCryptoFacade, sessionKey: ByteArray): RepeatRule {
 	val repeatPeriodNumber = crypto.decryptNumber(frequency, sessionKey)
 	val repeatPeriod = RepeatPeriod.get(repeatPeriodNumber)
 

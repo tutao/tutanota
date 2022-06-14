@@ -5,7 +5,6 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
 import android.util.Log
-import de.tutao.tutanota.CryptoError
 import de.tutao.tutanota.credentials.CredentialEncryptionMode
 import de.tutao.tutanota.credentials.DataKeyGenerator
 import java.io.ByteArrayOutputStream
@@ -21,7 +20,7 @@ import javax.crypto.spec.IvParameterSpec
  */
 class AndroidKeyStoreFacade(context: Context, private val dataKeyGenerator: DataKeyGenerator) {
 
-	private val crypto: Crypto = Crypto(context)
+	private val crypto: AndroidNativeCryptoFacade = AndroidNativeCryptoFacade(context)
 
 	val keyStore: KeyStore by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
 		try {
@@ -234,10 +233,10 @@ class AndroidKeyStoreFacade(context: Context, private val dataKeyGenerator: Data
 		}
 	}
 
-	private fun getIV(dataAndIV: ByteArray) = dataAndIV.copyOfRange(0, Crypto.AES_BLOCK_SIZE_BYTES)
+	private fun getIV(dataAndIV: ByteArray) = dataAndIV.copyOfRange(0, AndroidNativeCryptoFacade.AES_BLOCK_SIZE_BYTES)
 
 	private fun getData(dataAndIV: ByteArray) =
-			dataAndIV.copyOfRange(Crypto.AES_BLOCK_SIZE_BYTES, dataAndIV.lastIndex + 1)
+			dataAndIV.copyOfRange(AndroidNativeCryptoFacade.AES_BLOCK_SIZE_BYTES, dataAndIV.lastIndex + 1)
 
 	companion object {
 		const val TAG = "AndroidKeyStoreFacade"

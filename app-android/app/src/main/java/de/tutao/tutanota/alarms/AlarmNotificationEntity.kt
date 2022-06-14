@@ -120,7 +120,7 @@ fun EncryptedAlarmNotification.toEntity(): AlarmNotificationEntity {
 	)
 }
 
-fun AlarmNotificationEntity.decrypt(crypto: Crypto, sessionKey: ByteArray): AlarmNotification {
+fun AlarmNotificationEntity.decrypt(crypto: AndroidNativeCryptoFacade, sessionKey: ByteArray): AlarmNotification {
 	return AlarmNotification(
 			summary = crypto.decryptString(summary!!, sessionKey),
 			eventStart = crypto.decryptDate(eventStart!!, sessionKey),

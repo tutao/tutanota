@@ -29,7 +29,7 @@ class AlarmNotificationsManagerTest {
 
 	private lateinit var systemAlarmFacade: SystemAlarmFacade
 	private lateinit var sseStorage: SseStorage
-	private lateinit var crypto: Crypto
+	private lateinit var crypto: AndroidNativeCryptoFacade
 
 	private val userId = "userId"
 	private val pushIdentifierElementId = "elementId"
@@ -40,7 +40,7 @@ class AlarmNotificationsManagerTest {
 	fun setUp() {
 		systemAlarmFacade = Mockito.mock(SystemAlarmFacade::class.java)
 		sseStorage = Mockito.mock(SseStorage::class.java)
-		crypto = Mockito.mock(Crypto::class.java)
+		crypto = Mockito.mock(AndroidNativeCryptoFacade::class.java)
 		manager = AlarmNotificationsManager(sseStorage, crypto, systemAlarmFacade, Mockito.mock(LocalNotificationsFacade::class.java))
 		Mockito.`when`(crypto.aesDecrypt(any(), Mockito.anyString())).thenAnswer(Answer { invocation: InvocationOnMock -> (invocation.getArgument<Any>(1) as String).toByteArray() } as Answer<ByteArray>)
 		Mockito.`when`(sseStorage.getPushIdentifierSessionKey(pushIdentifierElementId)).thenReturn(pushIdentifierKey)

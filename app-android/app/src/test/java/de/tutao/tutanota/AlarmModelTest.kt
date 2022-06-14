@@ -11,6 +11,7 @@ import java.util.*
 
 class AlarmModelTest {
 	private val timeZone = TimeZone.getTimeZone("Europe/Berlin")
+
 	@Test
 	fun testIterates() {
 		val occurrences: MutableList<Date> = ArrayList()
@@ -18,7 +19,7 @@ class AlarmModelTest {
 		val eventStart = getDate(timeZone, 2019, 4, 2, 12, 0)
 		iterateAlarmOccurrences(now, timeZone, eventStart, eventStart, RepeatPeriod.WEEKLY,
 				1, EndType.NEVER, 0, AlarmTrigger.ONE_HOUR, timeZone
-		) { time: Date, occurrence: Int, occurenceTime: Date? -> occurrences.add(time) }
+		) { time: Date, _: Int, _: Date? -> occurrences.add(time) }
 		Assert.assertArrayEquals(Arrays.asList(
 				getDate(timeZone, 2019, 4, 2, 11, 0),
 				getDate(timeZone, 2019, 4, 9, 11, 0),
@@ -38,7 +39,7 @@ class AlarmModelTest {
 		val repeatEnd = getAllDayDateUTC(getDate(timeZone, 2019, 4, 4, 0, 0), timeZone)
 		iterateAlarmOccurrences(now, repeatTimeZone, eventStart, eventEnd, RepeatPeriod.DAILY,
 				1, EndType.UNTIL, repeatEnd.time, AlarmTrigger.ONE_DAY, timeZone
-		) { time: Date, occurrence: Int, occurrenceTime: Date? -> occurrences.add(time) }
+		) { time: Date, _: Int, _: Date? -> occurrences.add(time) }
 		val expected = Arrays.asList( // Event on 2nd, alarm on 1st
 				getDate(timeZone, 2019, 4, 1, 0, 0),  // Event on 3rd, alarm on 2d
 				getDate(timeZone, 2019, 4, 2, 0, 0) // No even on 4rd (because endDate is 4th)
