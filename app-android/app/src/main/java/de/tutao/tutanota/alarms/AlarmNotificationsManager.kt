@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
 
 class AlarmNotificationsManager(
 		private val sseStorage: SseStorage,
-		private val crypto: Crypto,
+		private val crypto: AndroidNativeCryptoFacade,
 		private val systemAlarmFacade: SystemAlarmFacade,
 		private val localNotificationsFacade: LocalNotificationsFacade,
 ) {

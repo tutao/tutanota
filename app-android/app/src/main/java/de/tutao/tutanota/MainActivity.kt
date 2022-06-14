@@ -75,7 +75,7 @@ class MainActivity : FragmentActivity() {
 		val fileFacade = FileUtil(this, LocalNotificationsFacade(this))
 		val alarmNotificationsManager = AlarmNotificationsManager(
 				sseStorage,
-				Crypto(this),
+				AndroidNativeCryptoFacade(this),
 				SystemAlarmFacade(this),
 				LocalNotificationsFacade(this)
 		)
@@ -90,6 +90,7 @@ class MainActivity : FragmentActivity() {
 		val globalDispatcher = AndroidGlobalDispatcher(
 				ipcJson,
 				fileFacade,
+				AndroidNativeCryptoFacade(this),
 				nativePushFacade,
 				themeFacade
 		)
@@ -312,7 +313,7 @@ class MainActivity : FragmentActivity() {
 		super.onActivityResult(requestCode, resultCode, data)
 		val continuation = activityRequests.remove(requestCode)
 		if (continuation != null) {
-			continuation.resume(ActivityResult(resultCode, data!!))
+			continuation.resume(ActivityResult(resultCode, data))
 		} else {
 			Log.w(TAG, "No deferred for activity request$requestCode")
 		}

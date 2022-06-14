@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
 
 class SseClient internal constructor(
-		private val crypto: Crypto,
+		private val crypto: AndroidNativeCryptoFacade,
 		private val sseStorage: SseStorage,
 		private val networkObserver: NetworkObserver,
 		private val sseListener: SseListener,

@@ -38,7 +38,6 @@ class Native internal constructor(
 ) : NativeInterface {
 
 	private val json = Json.Default
-	private val crypto = Crypto(activity)
 	private val contact = Contact(activity)
 	private val requests = mutableMapOf<String, Continuation<String>>()
 	private val credentialsEncryption = CredentialsEncryptionFactory.create(activity)
@@ -181,27 +180,10 @@ class Native internal constructor(
 				_webAppInitialized = CompletableDeferred()
 				json.encodeToString(activity.reload(jsonArray.getJSONObject(0).toMap()))
 			}
-			"generateRsaKey" -> json.encodeToString(crypto.generateRsaKey(jsonArray.getString(0).base64ToBytes()))
-			"rsaEncrypt" -> json.encodeToString(crypto.rsaEncrypt(
-					jsonArray.getJSONObject(0),
-					jsonArray.getString(1).base64ToBytes(),
-					jsonArray.getString(2).base64ToBytes()
-			))
-			"rsaDecrypt" -> json.encodeToString(crypto.rsaDecrypt(jsonArray.getJSONObject(0), jsonArray.getString(1).base64ToBytes()))
-			"aesEncryptFile" -> crypto.aesEncryptFile(
-					jsonArray.getString(0).base64ToBytes(),
-					jsonArray.getString(1),
-					jsonArray.getString(2).base64ToBytes()
-			).toJSON().toString()
-			"aesDecryptFile" -> {
-				val key = jsonArray.getString(0).base64ToBytes()
-				val fileUrl = jsonArray.getString(1)
-				json.encodeToString(crypto.aesDecryptFile(key, fileUrl))
-			}
 			"findSuggestions" -> contact.findSuggestions(jsonArray.getString(0)).toString()
 			"openLink" -> JsonPrimitive(openLink(jsonArray.getString(0))).toString()
 			"shareText" -> JsonPrimitive(shareText(jsonArray.getString(0), jsonArray.getString(1))).toString()
-			"getDeviceLog" -> json.encodeToString<String>(LogReader.getLogFile(activity).toString())
+			"getDeviceLog" -> json.encodeToString(LogReader.getLogFile(activity).toString())
 			"changeLanguage" -> json.encodeToString<Boolean?>(null)
 			"encryptUsingKeychain" -> {
 				val encryptionMode = jsonArray.getString(0)

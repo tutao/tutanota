@@ -23,7 +23,7 @@ class PushNotificationService : LifecycleJobService() {
 		val sseStorage = SseStorage(appDatabase, keyStoreFacade)
 		localNotificationsFacade = LocalNotificationsFacade(this)
 		val alarmNotificationsManager = AlarmNotificationsManager(
-				sseStorage, Crypto(this),
+				sseStorage, AndroidNativeCryptoFacade(this),
 				SystemAlarmFacade(this), localNotificationsFacade
 		)
 		val tutanotaNotificationsHandler = TutanotaNotificationsHandler(
@@ -31,7 +31,7 @@ class PushNotificationService : LifecycleJobService() {
 				alarmNotificationsManager
 		)
 		alarmNotificationsManager.reScheduleAlarms()
-		sseClient = SseClient(Crypto(this), sseStorage, NetworkObserver(this, this), object : SseListener {
+		sseClient = SseClient(AndroidNativeCryptoFacade(this), sseStorage, NetworkObserver(this, this), object : SseListener {
 			override fun onStartingConnection(): Boolean {
 				return tutanotaNotificationsHandler.onConnect()
 			}

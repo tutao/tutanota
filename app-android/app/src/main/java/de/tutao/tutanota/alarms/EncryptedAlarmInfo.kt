@@ -1,11 +1,9 @@
 package de.tutao.tutanota.alarms
 
-import de.tutao.tutanota.Crypto
+import de.tutao.tutanota.AndroidNativeCryptoFacade
 import de.tutao.tutanota.decryptString
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.json.JSONException
-import org.json.JSONObject
 
 @Serializable
 class EncryptedAlarmInfo(
@@ -30,7 +28,7 @@ class EncryptedAlarmInfo(
 	}
 }
 
-fun EncryptedAlarmInfo.decrypt(crypto: Crypto, sessionKey: ByteArray) = AlarmInfo(
+fun EncryptedAlarmInfo.decrypt(crypto: AndroidNativeCryptoFacade, sessionKey: ByteArray) = AlarmInfo(
 		alarmIdentifer = identifier,
 		trigger = AlarmTrigger.get(crypto.decryptString(trigger, sessionKey)),
 )

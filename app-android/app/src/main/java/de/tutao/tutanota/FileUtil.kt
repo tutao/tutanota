@@ -302,8 +302,8 @@ class FileUtil(
 	}
 
 	override suspend fun clearFileData() {
-		cleanupDir(Crypto.TEMP_DIR_DECRYPTED)
-		cleanupDir(Crypto.TEMP_DIR_ENCRYPTED)
+		cleanupDir(AndroidNativeCryptoFacade.TEMP_DIR_DECRYPTED)
+		cleanupDir(AndroidNativeCryptoFacade.TEMP_DIR_ENCRYPTED)
 	}
 
 	private suspend fun cleanupDir(dirname: String) = withContext(Dispatchers.IO) {
@@ -347,12 +347,12 @@ class FileUtil(
 
 	@Throws(IOException::class)
 	fun getTempDecryptedFile(filename: String): File {
-		return getTempFile(filename, Crypto.TEMP_DIR_DECRYPTED)
+		return getTempFile(filename, AndroidNativeCryptoFacade.TEMP_DIR_DECRYPTED)
 	}
 
 	@Throws(IOException::class)
 	private fun getTempEncryptedFile(filename: String): File {
-		return getTempFile(filename, Crypto.TEMP_DIR_ENCRYPTED)
+		return getTempFile(filename, AndroidNativeCryptoFacade.TEMP_DIR_ENCRYPTED)
 	}
 
 	@Throws(IOException::class)
