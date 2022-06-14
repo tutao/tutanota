@@ -13,7 +13,7 @@
 	},
 	"scripts": {
 		"build-packages": "npm run build -ws",
-		"build-runtime-packages": "npm run build -w @tutao/tutanota-utils && npm run build -w @tutao/tutanota-crypto",
+		"build-runtime-packages": "npm run build -w @tutao/tutanota-utils && npm run build -w @tutao/tutanota-crypto && npm run build -w @tutao/tutanota-usagetests",
 		"start": "./start-desktop.sh",
 		"test": "npm run --if-present test -ws && cd test && node test",
 		"test:app": "cd test && node test",
