@@ -6,7 +6,8 @@ import type {WebContents} from "electron"
  * Implementation of Transport which delegates to CenterIpcHandler/WebContents.
  * Should be instantiated per WebContents.
  */
-export class ElectronWebContentsTransport<IpcConfigType extends IpcConfig<string, string>,
+export class ElectronWebContentsTransport<
+	IpcConfigType extends IpcConfig<string, string>,
 	OutgoingRequestType extends string,
 	IncomingRequestType extends string> implements Transport<OutgoingRequestType, IncomingRequestType> {
 
