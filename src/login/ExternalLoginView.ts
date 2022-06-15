@@ -1,8 +1,6 @@
 import m, {Children} from "mithril"
-import stream from "mithril/stream"
-import Stream from "mithril/stream"
 import {AccessExpiredError,} from "../api/common/error/RestError"
-import {assertNotNull, base64ToUint8Array, base64UrlToBase64} from "@tutao/tutanota-utils"
+import {assertNotNull, base64ToUint8Array, base64UrlToBase64, noOp} from "@tutao/tutanota-utils"
 import type {TranslationText} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {keyManager, Shortcut} from "../misc/KeyManager"
@@ -28,126 +26,75 @@ import {ResumeSessionErrorReason} from "../api/worker/facades/LoginFacade"
 
 assertMainOrNode()
 
-export class ExternalLoginView implements CurrentView {
-	private readonly _credentialsProvider: ICredentialsProvider
-	private _password: Stream<string>
-	private _savePassword: Stream<boolean>
-	private _helpText: TranslationText
-	private _errorMessageId: TranslationText | null
+class ExternalLoginViewModel {
+
+	password: string = ""
+	doSavePassword: boolean = false
+	helpText: TranslationText = "emptyString_msg"
+	errorMessageId: TranslationText | null = null
+	autologinInProgress = false
+	showAutoLoginButton = false
+
 	private _urlData: {userId: Id, salt: Uint8Array} | null = null
-	view: CurrentView["view"]
-	oncreate: CurrentView["oncreate"]
-	onremove: CurrentView["onremove"]
-	private _symKeyForPasswordTransmission: Aes128Key | null
-	private _autologinInProgress: boolean
-
-	constructor() {
-		this._autologinInProgress = false
-		this._errorMessageId = null
-		this._helpText = "emptyString_msg"
-		this._password = stream("")
-		this._savePassword = stream<boolean>(false)
-		this._symKeyForPasswordTransmission = null
-		this._credentialsProvider = locator.credentialsProvider
-
-		this._setupShortcuts()
-
-		this.view = (): Children => {
-			return m(".main-view", [m(header), m(".flex-center.scroll.pt-responsive", m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l", this._getView()))])
-		}
+	get urlData(): {userId: Id, salt: Uint8Array} {
+		return assertNotNull(this._urlData)
 	}
 
-	_getView(): Children {
-		if (this._autologinInProgress) {
-			return m("p.center", progressIcon())
-		} else if (this._errorMessageId) {
-			return m("p.center", m(MessageBoxN, {}, this._errorMessageId && lang.getMaybeLazy(this._errorMessageId)))
+	constructor(
+		private readonly credentialsProvider: ICredentialsProvider
+	) {
+	}
+
+	formLogin() {
+		if (this.password === "") {
+			this.helpText = "loginFailed_msg"
 		} else {
-			return [
-				m(TextFieldN, {
-					type: TextFieldType.Password,
-					label: "password_label",
-					helpLabel: () => lang.get("enterPresharedPassword_msg"),
-					value: this._password(),
-					oninput: this._password,
-				}),
-				m(CheckboxN, {
-					label: () => lang.get("storePassword_action"),
-					helpLabel: () => lang.get("onlyPrivateComputer_msg"),
-					checked: this._savePassword(),
-					onChecked: this._savePassword,
-				}),
-				m(
-					".pt",
-					m(ButtonN, {
-						label: "showMail_action",
-						click: () => this._formLogin(),
-						type: ButtonType.Login,
-					}),
-				),
-				m("p.center.statusTextColor", m("small", lang.getMaybeLazy(this._helpText))),
-				renderPrivacyAndImprintLinks(),
-			]
+			this.helpText = "login_msg"
+			this.handleLoginPromise(showProgressDialog("login_msg", this.doFormLogin()), noOp)
 		}
 	}
 
-	_setupShortcuts() {
-		let shortcuts: Shortcut[] = [
-			{
-				key: Keys.RETURN,
-				exec: () => {
-					this._formLogin()
-				},
-				help: "login_label",
-			},
-		]
+	private async doFormLogin() {
+		const password = this.password
+		const clientIdentifier = client.browser + " " + client.device
+		const persistentSession = this.doSavePassword
 
-		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
+		const sessionType = persistentSession ? SessionType.Persistent : SessionType.Login
+		const {userId, salt} = this.urlData
+		const newCredentials = await logins.createExternalSession(userId, password, salt, clientIdentifier, sessionType)
 
-		this.onremove = () => {
-			this._password("")
+		this.password = ""
 
-			keyManager.unregisterShortcuts(shortcuts)
+		const storedCredentials = await this.credentialsProvider.getCredentialsByUserId(userId)
+
+		// For external users userId is used instead of email address
+		if (persistentSession) {
+			await this.credentialsProvider.store({credentials: newCredentials})
 		}
-	}
 
-	updateUrl(args: Record<string, any>) {
-		let userIdLength = GENERATED_MIN_ID.length
+		if (storedCredentials) {
+			// delete persistent session if a new session is created
+			await logins.deleteOldSession(storedCredentials.credentials)
 
-		try {
-			let id = decodeURIComponent(location.hash).substring(6) // cutoff #mail/ from #mail/KduzrgF----0S3BTO2gypfDMketWB_PbqQ
-
-			this._urlData = {
-				userId: id.substring(0, userIdLength),
-				salt: base64ToUint8Array(base64UrlToBase64(id.substring(userIdLength)))
+			if (!persistentSession) {
+				await this.credentialsProvider.deleteByUserId(userId)
 			}
-
-			this._credentialsProvider.getCredentialsByUserId(this._urlData.userId).then(credentials => {
-				if (credentials && args.noAutoLogin !== true) {
-					this._autologin(credentials.credentials)
-				} else {
-					m.redraw()
-				}
-			})
-		} catch (e) {
-			this._errorMessageId = "invalidLink_msg"
-			m.redraw()
 		}
 	}
 
-	_autologin(credentials: Credentials): void {
-		this._autologinInProgress = true
-		showProgressDialog(
+	async autologin(credentials: Credentials) {
+		this.autologinInProgress = true
+		await showProgressDialog(
 			"login_msg",
-			this._handleSession(this.resumeSession(credentials), () => {
-				this._autologinInProgress = false
+			this.handleLoginPromise(this.resumeSession(credentials), () => {
+				this.autologinInProgress = false
 				m.redraw()
 			}),
 		)
 	}
 
 	private async resumeSession(credentials: Credentials): Promise<void> {
-		const result = await logins.resumeSession({credentials, databaseKey: null}, assertNotNull(this._urlData).salt, null)
+		const result = await logins.resumeSession({credentials, databaseKey: null}, this.urlData.salt, null)
 		if (result.type === "error") {
 			switch (result.reason) {
 				case ResumeSessionErrorReason.OfflineNotAvailableForFree:
@@ -156,68 +103,158 @@ export class ExternalLoginView implements CurrentView {
 		}
 	}
 
-	async _formLogin() {
-		if (this._password() === "") {
-			this._helpText = "loginFailed_msg"
-		} else {
-			this._helpText = "login_msg"
-
-			const createSessionPromise = this._doFormLogin()
-
-			this._handleSession(showProgressDialog("login_msg", createSessionPromise), () => {
-				// don't do anything additionally on errors
-			})
-		}
-	}
-
-	async _doFormLogin() {
-		const pw = this._password()
-
-		let clientIdentifier = client.browser + " " + client.device
-
-		let persistentSession = this._savePassword()
-
-		const sessionType = persistentSession ? SessionType.Persistent : SessionType.Login
-		const {userId, salt} = assertNotNull(this._urlData)
-		const newCredentials = await logins.createExternalSession(userId, pw, salt, clientIdentifier, sessionType)
-
-		this._password("")
-
-		let storedCredentials = await this._credentialsProvider.getCredentialsByUserId(userId)
-
-		// For external users userId is used instead of email address
-		if (persistentSession) {
-			await this._credentialsProvider.store({credentials: newCredentials})
-		}
-
-		if (storedCredentials) {
-			// delete persistent session if a new session is created
-			await logins.deleteOldSession(storedCredentials.credentials)
-
-			if (!persistentSession) {
-				await this._credentialsProvider.deleteByUserId(userId)
+	async loginWithStoredCredentials() {
+		try {
+			const credentials = await this.credentialsProvider.getCredentialsByUserId(this.urlData.userId)
+			if (credentials) {
+				await this.autologin(credentials.credentials)
 			}
+		} finally {
+			// in case there is an error or there are no credentials we should show the form
+			this.showAutoLoginButton = false
+			m.redraw()
 		}
 	}
 
-	_handleSession(login: Promise<void>, errorAction: () => void): Promise<void> {
-		return login
-			.then(() => {
-				m.route.set(`/mail${location.hash}`)
-				this._helpText = "emptyString_msg"
-			})
-			.catch(e => {
-				const messageId = getLoginErrorMessage(e, true)
+	private async handleLoginPromise(loginPromise: Promise<void>, errorAction: () => void) {
+		try {
+			await loginPromise
+			m.route.set(`/mail${location.hash}`)
+			this.helpText = "emptyString_msg"
+		} catch (e) {
+			const messageId = getLoginErrorMessage(e, true)
 
-				if (e instanceof AccessExpiredError) {
-					this._errorMessageId = messageId
-				} else {
-					this._helpText = messageId
-				}
+			if (e instanceof AccessExpiredError) {
+				this.errorMessageId = messageId
+			} else {
+				this.helpText = messageId
+			}
 
+			m.redraw()
+
+			handleExpectedLoginError(e, errorAction)
+		}
+	}
+
+	async updateUrl(args: Record<string, any>): Promise<void> {
+		try {
+			const id = decodeURIComponent(location.hash).substring(6) // cutoff #mail/ from #mail/KduzrgF----0S3BTO2gypfDMketWB_PbqQ
+
+			this._urlData = {
+				userId: id.substring(0, GENERATED_MIN_ID.length),
+				salt: base64ToUint8Array(base64UrlToBase64(id.substring(GENERATED_MIN_ID.length)))
+			}
+
+			const credentials = await this.credentialsProvider.getCredentialsByUserId(this.urlData.userId)
+
+			if (credentials && args.noAutoLogin !== true) {
+				await this.autologin(credentials.credentials)
+			} else {
+				this.showAutoLoginButton = credentials != null
 				m.redraw()
+			}
+		} catch (e) {
+			this.errorMessageId = "invalidLink_msg"
+			m.redraw()
+		}
+	}
+}
 
-				handleExpectedLoginError(e, errorAction)
-			})
+export class ExternalLoginView implements CurrentView {
+
+	private readonly viewModel = new ExternalLoginViewModel(locator.credentialsProvider)
+	private readonly shortcuts: Array<Shortcut> = [
+		{
+			key: Keys.RETURN,
+			exec: () => {
+				this.viewModel.formLogin()
+			},
+			help: "login_label",
+		},
+	]
+
+	constructor() {
+		this.view = this.view.bind(this)
+		this.oncreate = this.oncreate.bind(this)
+		this.onremove = this.onremove.bind(this)
+	}
+
+	oncreate() {
+		keyManager.registerShortcuts(this.shortcuts)
+	}
+
+	onremove() {
+		this.viewModel.password = ""
+		keyManager.unregisterShortcuts(this.shortcuts)
+	}
+
+	view(): Children {
+		return m(".main-view",
+			[
+				m(header),
+				m(".flex-center.scroll.pt-responsive",
+					m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l",
+						this.renderContent()
+					)
+				)
+			]
+		)
+	}
+
+	private renderContent(): Children {
+		if (this.viewModel.autologinInProgress) {
+			return m("p.center", progressIcon())
+		} else if (this.viewModel.errorMessageId) {
+			return m("p.center", m(MessageBoxN, {}, lang.getMaybeLazy(this.viewModel.errorMessageId)))
+		} else {
+			return [
+				this.viewModel.showAutoLoginButton
+					? this.renderAutoLoginButton()
+					: this.renderForm(),
+				m("p.center.statusTextColor", m("small", lang.getMaybeLazy(this.viewModel.helpText))),
+				renderPrivacyAndImprintLinks(),
+			]
+		}
+	}
+
+	renderAutoLoginButton(): Children {
+		return m(
+			".pt",
+			m(ButtonN, {
+				label: "showMail_action",
+				click: () => this.viewModel.loginWithStoredCredentials(),
+				type: ButtonType.Login,
+			}),
+		)
+	}
+
+	renderForm(): Children {
+		return [
+			m(TextFieldN, {
+				type: TextFieldType.Password,
+				label: "password_label",
+				helpLabel: () => lang.get("enterPresharedPassword_msg"),
+				value: this.viewModel.password,
+				oninput: input => this.viewModel.password = input,
+			}),
+			m(CheckboxN, {
+				label: () => lang.get("storePassword_action"),
+				helpLabel: () => lang.get("onlyPrivateComputer_msg"),
+				checked: this.viewModel.doSavePassword,
+				onChecked: checked => this.viewModel.doSavePassword = checked,
+			}),
+			m(
+				".pt",
+				m(ButtonN, {
+					label: "showMail_action",
+					click: () => this.viewModel.formLogin(),
+					type: ButtonType.Login,
+				}),
+			)
+		]
+	}
+
+	updateUrl(args: Record<string, any>) {
+		this.viewModel.updateUrl(args)
 	}
 }
