@@ -319,7 +319,6 @@ o.spec("SendMailModel", function () {
 			o(model.isConfidential()).equals(true)
 			o(model.containsExternalRecipients()).equals(true)
 			o(initializedModel.getAttachments().length).equals(0)
-			o(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
 	})
 	o.spec("Adding and removing recipients", function () {
