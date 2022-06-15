@@ -4,7 +4,6 @@ import {getLanguage, lang, languageCodeToTag, languages} from "../misc/LanguageV
 import {styles} from "../gui/styles"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN, SelectorItemList} from "../gui/base/DropDownSelectorN"
-import stream from "mithril/stream"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {TimeFormat, WeekStart} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
@@ -60,7 +59,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 				await lang.setLanguage(newLanguage)
 
 				if (isDesktop()) {
-					await locator.systemApp.changeSystemLanguage(newLanguage)
+					await locator.desktopSettingsFacade.changeLanguage(newLanguage.code, newLanguage.languageTag)
 				}
 
 				styles.updateStyle("main")

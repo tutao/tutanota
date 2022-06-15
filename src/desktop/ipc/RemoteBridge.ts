@@ -26,21 +26,17 @@ import {NativeCredentialsFacade} from "../../native/common/generatedipc/NativeCr
 import {NativeCryptoFacade} from "../../native/common/generatedipc/NativeCryptoFacade.js"
 import {NativePushFacade} from "../../native/common/generatedipc/NativePushFacade.js"
 import {ThemeFacade} from "../../native/common/generatedipc/ThemeFacade.js"
-import {DesktopConfig} from "../config/DesktopConfig.js"
-import {ElectronUpdater} from "../ElectronUpdater.js"
-import {log} from "../DesktopLog.js"
 import {Logger} from "../../api/common/Logger.js"
-import {lang} from "../../misc/LanguageViewModel.js"
 import {getExportDirectoryPath, makeMsgFile, writeFile} from "../DesktopFileExport.js"
 import {DataFile} from "../../api/common/DataFile.js"
 import {fileExists} from "../PathUtils.js"
 import path from "path"
 import {DesktopUtils} from "../DesktopUtils.js"
-import {DesktopIntegrator} from "../integration/DesktopIntegrator.js"
 import {Socketeer} from "../Socketeer.js"
 import {InterWindowEventSender} from "../../native/common/InterWindowEventBus.js"
 import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes.js"
 import {DesktopSearchTextInAppFacade} from "../DesktopSearchTextInAppFacade.js"
+import {SettingsFacade} from "../../native/common/generatedipc/SettingsFacade.js"
 
 export interface SendingFacades {
 	desktopFacade: DesktopFacade
@@ -63,16 +59,14 @@ export class RemoteBridge {
 		private readonly offlineDbFacade: OfflineDbFacade,
 		private readonly wm: WindowManager,
 		private readonly dl: DesktopDownloadManager,
-		private readonly conf: DesktopConfig,
-		private readonly updater: ElectronUpdater,
 		private readonly desktopUtils: DesktopUtils,
-		private readonly integrator: DesktopIntegrator,
 		private readonly sock: Socketeer,
 		private readonly webDialogController: WebDialogController,
 		private readonly notifier: DesktopNotifier,
 		private readonly nativeCredentialsFacade: NativeCredentialsFacade,
 		private readonly desktopCrypto: NativeCryptoFacade,
 		private readonly pushFacade: NativePushFacade,
+		private readonly settingsFacade: SettingsFacade,
 		private readonly themeFacade: ThemeFacade,
 	) {
 	}
@@ -94,6 +88,7 @@ export class RemoteBridge {
 			this.desktopCrypto,
 			this.pushFacade,
 			new DesktopSearchTextInAppFacade(window),
+			this.settingsFacade,
 			this.themeFacade
 		)
 		let initDefer = defer()
@@ -111,52 +106,6 @@ export class RemoteBridge {
 				await initDefer
 				return dispatcher.dispatch(facade, method, methodArgs)
 			},
-			"getConfigValue": async ({args}) => {
-				return this.conf.getVar(args[0])
-			},
-			"setConfigValue": async ({args}) => {
-				const [key, value] = args.slice(0, 2)
-				return this.conf.setVar(key, value)
-			},
-			"isUpdateAvailable": async () => {
-				return !!this.updater ? Promise.resolve(this.updater.updateInfo) : Promise.resolve(null)
-			},
-			"registerMailto": ({args}) => {
-				return this.desktopUtils.registerAsMailtoHandler()
-			},
-
-			"unregisterMailto": ({args}) => {
-				return this.desktopUtils.unregisterAsMailtoHandler()
-			},
-
-			"integrateDesktop": ({args}) => {
-				return this.integrator.integrate()
-			},
-
-			"unIntegrateDesktop": ({args}) => {
-				return this.integrator.unintegrate()
-			},
-
-			"getSpellcheckLanguages": ({args}) => {
-				const ses = electron.session.defaultSession
-				return Promise.resolve(ses.availableSpellCheckerLanguages)
-			},
-			"getIntegrationInfo": async ({args}) => {
-				const [isMailtoHandler, isAutoLaunchEnabled, isIntegrated, isUpdateAvailable] = await Promise.all([
-					this.desktopUtils.checkIsMailtoHandler(),
-					this.integrator.isAutoLaunchEnabled(),
-					this.integrator.isIntegrated(),
-					Boolean(this.updater && this.updater.updateInfo),
-				])
-
-				return {
-					isMailtoHandler,
-					isAutoLaunchEnabled,
-					isIntegrated,
-					isUpdateAvailable,
-				}
-			},
-
 			"readDataFile": ({args}) => {
 				const location = args[0]
 				return this.desktopUtils.readDataFile(location)
@@ -165,16 +114,6 @@ export class RemoteBridge {
 			"openNewWindow": ({args}) => {
 				this.wm.newWindow(true)
 				return Promise.resolve()
-			},
-			"enableAutoLaunch": ({args}) => {
-				return this.integrator.enableAutoLaunch().catch(e => {
-					log.debug("could not enable auto launch:", e)
-				})
-			},
-			"disableAutoLaunch": ({args}) => {
-				return this.integrator.disableAutoLaunch().catch(e => {
-					log.debug("could not disable auto launch:", e)
-				})
 			},
 			"sendSocketMessage": ({args}) => {
 				// for admin client integration
@@ -186,13 +125,6 @@ export class RemoteBridge {
 				const logger: Logger = global.logger
 				return Promise.resolve(logger.getEntries())
 			},
-			"changeLanguage": ({args}) => {
-				return lang.setLanguage(args[0])
-			},
-			"manualUpdate": ({args}) => {
-				return !!this.updater ? this.updater.manualUpdate() : Promise.resolve(false)
-			},
-
 			"mailToMsg": ({args}) => {
 				const bundle = args[0]
 				const fileName = args[1]

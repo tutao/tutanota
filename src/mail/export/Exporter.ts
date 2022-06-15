@@ -28,7 +28,7 @@ export async function generateMailFile(bundle: MailBundle, fileName: string, mod
 export async function getMailExportMode(): Promise<MailExportMode> {
 	if (isDesktop()) {
 		const ConfigKeys = await import("../../desktop/config/ConfigKeys")
-		const mailExportMode = await locator.systemApp.getConfigValue(ConfigKeys.DesktopConfigKey.mailExportMode).catch(noOp)
+		const mailExportMode = (await locator.desktopSettingsFacade.getStringConfigValue(ConfigKeys.DesktopConfigKey.mailExportMode).catch(noOp)) as MailExportMode
 		return mailExportMode ?? "eml"
 	} else {
 		return "eml"

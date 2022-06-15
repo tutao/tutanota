@@ -11,6 +11,8 @@ import {NativePushFacade} from "./NativePushFacade.js"
 import {NativePushFacadeReceiveDispatcher} from "./NativePushFacadeReceiveDispatcher.js"
 import {SearchTextInAppFacade} from "./SearchTextInAppFacade.js"
 import {SearchTextInAppFacadeReceiveDispatcher} from "./SearchTextInAppFacadeReceiveDispatcher.js"
+import {SettingsFacade} from "./SettingsFacade.js"
+import {SettingsFacadeReceiveDispatcher} from "./SettingsFacadeReceiveDispatcher.js"
 import {ThemeFacade} from "./ThemeFacade.js"
 import {ThemeFacadeReceiveDispatcher} from "./ThemeFacadeReceiveDispatcher.js"
 
@@ -20,6 +22,7 @@ export class DesktopGlobalDispatcher {
 	private readonly nativeCryptoFacade : NativeCryptoFacadeReceiveDispatcher
 	private readonly nativePushFacade : NativePushFacadeReceiveDispatcher
 	private readonly searchTextInAppFacade : SearchTextInAppFacadeReceiveDispatcher
+	private readonly settingsFacade : SettingsFacadeReceiveDispatcher
 	private readonly themeFacade : ThemeFacadeReceiveDispatcher
 	constructor(
 		fileFacade : FileFacade,
@@ -27,6 +30,7 @@ export class DesktopGlobalDispatcher {
 		nativeCryptoFacade : NativeCryptoFacade,
 		nativePushFacade : NativePushFacade,
 		searchTextInAppFacade : SearchTextInAppFacade,
+		settingsFacade : SettingsFacade,
 		themeFacade : ThemeFacade,
 	) {
 		this.fileFacade = new FileFacadeReceiveDispatcher(fileFacade)
@@ -34,6 +38,7 @@ export class DesktopGlobalDispatcher {
 		this.nativeCryptoFacade = new NativeCryptoFacadeReceiveDispatcher(nativeCryptoFacade)
 		this.nativePushFacade = new NativePushFacadeReceiveDispatcher(nativePushFacade)
 		this.searchTextInAppFacade = new SearchTextInAppFacadeReceiveDispatcher(searchTextInAppFacade)
+		this.settingsFacade = new SettingsFacadeReceiveDispatcher(settingsFacade)
 		this.themeFacade = new ThemeFacadeReceiveDispatcher(themeFacade)
 	}
 	
@@ -49,6 +54,8 @@ export class DesktopGlobalDispatcher {
 				return this.nativePushFacade.dispatch(methodName, args)
 			case "SearchTextInAppFacade":
 				return this.searchTextInAppFacade.dispatch(methodName, args)
+			case "SettingsFacade":
+				return this.settingsFacade.dispatch(methodName, args)
 			case "ThemeFacade":
 				return this.themeFacade.dispatch(methodName, args)
 			default:

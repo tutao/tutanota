@@ -109,7 +109,7 @@ export const LanguageNames: Record<string, TranslationKey> = Object.freeze({
 	vi: "languageVietnamese_label",
 	zh: "languageChineseSimplified_label",
 	zh_hant: "languageChineseTraditional_label",
-})
+} as const)
 export type LanguageCode = keyof typeof LanguageNames
 export type Language = {
 	code: LanguageCode

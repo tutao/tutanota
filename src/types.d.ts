@@ -45,28 +45,15 @@ declare type NativeRequestType = 'init'
 	| 'reload'
 	| 'readDataFile'
 	| 'putFileIntoDownloads'
-	| 'registerMailto'
-	| 'unregisterMailto'
 	| 'openNewWindow'
-	| 'setConfigValue'
-	| 'enableAutoLaunch'
-	| 'disableAutoLaunch'
 	| 'sendSocketMessage'
 	| 'getDeviceLog' // for mobile apps
 	| 'getLog' // for desktop
-	| 'integrateDesktop'
-	| 'unIntegrateDesktop'
-	| 'changeLanguage'
-	| 'isUpdateAvailable' // check if update is ready to install
-	| 'manualUpdate' // progress update process (check, dl, install)
 	| 'startNativeDrag'
 	| 'mailToMsg'
 	| 'focusApplicationWindow'
 	| 'saveToExportDir'
 	| 'checkFileExistsInExportDirectory'
-	| 'getConfigValue'
-	| 'getIntegrationInfo'
-	| 'getSpellcheckLanguages'
 	| 'facade' // only for desktop
 	| 'ipc'
 
