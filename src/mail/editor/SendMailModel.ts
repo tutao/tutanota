@@ -386,23 +386,17 @@ export class SendMailModel {
 			bcc = recipients.bcc ?? []
 		}
 
-		const recipientsTransform = (recipientList: Array<PartialRecipient>): Array<ResolvableRecipient> => {
-			const recipients = deduplicate(
-				recipientList.filter(r => isMailAddress(r.address, false)),
-				(a, b) => a.address === b.address,
-			).map(recipient => this.recipientsModel.resolve(recipient, ResolveMode.Eager))
+		const recipientsFilter = (recipientList: Array<PartialRecipient>) => deduplicate(
+			recipientList.filter(r => isMailAddress(r.address, false)),
+			(a, b) => a.address === b.address,
+		)
 
-			Promise.all(recipients.map(recipient => recipient.resolved())).then(() => this.mailChanged = false)
-
-			return recipients
-		}
-
-		this.recipients.set(RecipientField.TO, recipientsTransform(to))
-		this.recipients.set(RecipientField.CC, recipientsTransform(cc))
-		this.recipients.set(RecipientField.BCC, recipientsTransform(bcc))
+		recipientsFilter(to).map(r => this.addRecipient(RecipientField.TO, r))
+		recipientsFilter(cc).map(r => this.addRecipient(RecipientField.CC, r))
+		recipientsFilter(bcc).map(r => this.addRecipient(RecipientField.BCC, r))
 
 		this.senderAddress = senderMailAddress || this.getDefaultSender()
-		this.confidential = confidential == null ? !this.user().props.defaultUnconfidential : confidential
+		this.confidential = confidential ?? !this.user().props.defaultUnconfidential
 		this.attachments = []
 
 		if (attachments) {
@@ -410,7 +404,7 @@ export class SendMailModel {
 			this.mailChanged = false
 		}
 
-		this.replyTos = recipientsTransform(replyTos ?? [])
+		this.replyTos = recipientsFilter(replyTos ?? []).map(recipient => this.recipientsModel.resolve(recipient, ResolveMode.Eager))
 		this.previousMail = previousMail || null
 		this.previousMessageId = previousMessageId || null
 		this.mailChanged = false
