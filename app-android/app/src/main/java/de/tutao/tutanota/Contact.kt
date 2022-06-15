@@ -3,14 +3,13 @@ package de.tutao.tutanota
 import android.Manifest
 import android.provider.ContactsContract
 import android.provider.ContactsContract.CommonDataKinds.Email
-import org.json.JSONArray
-import org.json.JSONObject
+import de.tutao.tutanota.ipc.NativeContact
 
 /**
  * Created by mpfau on 4/12/17.
  */
 class Contact(private val activity: MainActivity) {
-	suspend fun findSuggestions(queryString: String): JSONArray {
+	suspend fun findSuggestions(queryString: String): List<NativeContact> {
 
 		activity.getPermission(Manifest.permission.READ_CONTACTS)
 
@@ -18,17 +17,18 @@ class Contact(private val activity: MainActivity) {
 		val resolver = activity.applicationContext.contentResolver
 		val selection = Email.ADDRESS + " LIKE ? OR " + ContactsContract.Contacts.DISPLAY_NAME_PRIMARY + " LIKE ?"
 		val cursor = resolver.query(Email.CONTENT_URI, PROJECTION, selection, arrayOf(query, query), ContactsContract.Contacts.DISPLAY_NAME_PRIMARY + " ASC ")
-		val result = JSONArray()
+		val result = mutableListOf<NativeContact>()
 
 		return if (cursor == null) {
 			result
 		} else {
 			try {
 				while (cursor.moveToNext()) {
-					val c = JSONObject()
-					c.put("name", cursor.getString(1))
-					c.put("mailAddress", cursor.getString(2))
-					result.put(c)
+					val c = NativeContact(
+							name = cursor.getString(1),
+							mailAddress = cursor.getString(2)
+					)
+					result.add(c)
 				}
 			} finally {
 				cursor.close()

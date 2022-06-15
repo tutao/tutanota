@@ -69,7 +69,8 @@ export class AboutDialog implements Component {
 		}
 
 		if (isApp()) {
-			const fileReference = await locator.systemApp.getDeviceLogs()
+			const fileUri = await locator.systemFacade.getLog()
+			const fileReference = await locator.fileApp.uriToFileRef(fileUri)
 			fileReference.name = `${timestamp.getTime()}_device_tutanota.log`
 			attachments.push(fileReference)
 		}

@@ -39,15 +39,11 @@ declare type MainRequestType =
 
 /** Requests from web to native */
 declare type NativeRequestType = 'init'
-	| 'findSuggestions'
-	| 'openLink'
-	| 'shareText'
 	| 'reload'
 	| 'readDataFile'
 	| 'putFileIntoDownloads'
 	| 'openNewWindow'
 	| 'sendSocketMessage'
-	| 'getDeviceLog' // for mobile apps
 	| 'getLog' // for desktop
 	| 'startNativeDrag'
 	| 'mailToMsg'

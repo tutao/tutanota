@@ -20,7 +20,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     keychainManager: KeychainManager,
     userPreferences: UserPreferenceFacade,
     alarmManager: AlarmManager,
-    credentialsEncryption: CredentialsEncryption,
+    credentialsEncryption: IosNativeCredentialsFacade,
     blobUtils:BlobUtil
     ) {
       self.themeManager = themeManager
@@ -41,8 +41,10 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
 
       let globalDispatcher = IosGlobalDispatcher(
         fileFacade: IosFileFacade(chooser: TUTFileChooser(viewController: self), viewer: FileViewer(viewController: self)),
+        nativeCredentialsFacade: credentialsEncryption,
         nativeCryptoFacade: crypto,
         nativePushFacade: IosNativePushFacade(appDelegate: self.appDelegate, alarmManager: self.alarmManager, userPreferences: userPreferences, keychainManager: keychainManager),
+        systemFacade: IosSystemFacade(contactsSource: contactsSource),
         themeFacade: IosThemeFacade(themeManager: themeManager, viewController: self)
       )
 

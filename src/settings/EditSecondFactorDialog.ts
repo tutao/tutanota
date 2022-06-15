@@ -264,7 +264,7 @@ export class EditSecondFactorDialog {
 
 	private async openOtpLink() {
 		const {url} = await this.otpInfo.getAsync()
-		const successful = await locator.systemApp.openLinkNative(url)
+		const successful = await locator.systemFacade.openLink(url)
 
 		if (!successful) {
 			Dialog.message("noAppAvailable_msg")

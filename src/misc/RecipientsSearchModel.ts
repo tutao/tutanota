@@ -1,7 +1,6 @@
 import {PartialRecipient, Recipient} from "../api/common/recipients/Recipient.js";
 import {RecipientsModel, ResolveMode} from "../api/main/RecipientsModel.js";
 import {ContactModel} from "../contacts/model/ContactModel.js";
-import {NativeInterfaceMain} from "../native/main/NativeInterfaceMain.js";
 import {isMailAddress} from "./FormatValidator.js";
 import {ofClass} from "@tutao/tutanota-utils";
 import {DbError} from "../api/common/error/DbError.js";
@@ -10,13 +9,9 @@ import {ContactTypeRef} from "../api/entities/tutanota/TypeRefs.js";
 import {isApp, Mode} from "../api/common/Env.js";
 import {PermissionError} from "../api/common/error/PermissionError.js";
 import {LoginIncompleteError} from "../api/common/error/LoginIncompleteError.js"
+import {SystemFacade} from "../native/common/generatedipc/SystemFacade.js"
 
 const MaxNativeSuggestions = 10
-
-type NativeContact = {
-	name: string,
-	mailAddress: string
-}
 
 export class RecipientsSearchModel {
 
@@ -30,7 +25,7 @@ export class RecipientsSearchModel {
 	constructor(
 		private readonly recipientsModel: RecipientsModel,
 		private readonly contactModel: ContactModel,
-		private readonly native: NativeInterfaceMain | null,
+		private readonly systemFacade: SystemFacade | null,
 	) {
 	}
 
@@ -123,10 +118,10 @@ export class RecipientsSearchModel {
 	}
 
 	private async findNativeContacts(text: string): Promise<Array<PartialRecipient>> {
-		if (!this.native) {
+		if (!this.systemFacade) {
 			return []
 		}
-		const recipients: Array<NativeContact> = await this.native.invokeNative("findSuggestions", [text]).catch(ofClass(PermissionError, () => []))
+		const recipients = await this.systemFacade.findSuggestions(text).catch(ofClass(PermissionError, () => []))
 		return recipients.map(({name, mailAddress}) => ({name, address: mailAddress}))
 	}
 }
@@ -134,6 +129,6 @@ export class RecipientsSearchModel {
 export async function getRecipientsSearchModel(): Promise<RecipientsSearchModel> {
 	const {locator} = await import("../api/main/MainLocator.js")
 	const {recipientsModel, contactModel} = locator
-	const native = isApp() ? locator.native : null
-	return new RecipientsSearchModel(recipientsModel, contactModel, native)
+	const systemFacade = isApp() ? locator.systemFacade : null
+	return new RecipientsSearchModel(recipientsModel, contactModel, systemFacade)
 }

@@ -29,14 +29,12 @@ import kotlin.coroutines.suspendCoroutine
 /**
  * Created by mpfau on 4/8/17.
  */
-class Native internal constructor(
+class RemoteBridge internal constructor(
 		private val activity: MainActivity,
 		private val globalDispatcher: AndroidGlobalDispatcher,
-		private val files: FileUtil
 ) : NativeInterface {
 
 	private val json = Json.Default
-	private val contact = Contact(activity)
 	private val requests = mutableMapOf<String, Continuation<String>>()
 
 	@Volatile
@@ -177,64 +175,9 @@ class Native internal constructor(
 				_webAppInitialized = CompletableDeferred()
 				json.encodeToString(activity.reload(jsonArray.getJSONObject(0).toMap()))
 			}
-			"findSuggestions" -> contact.findSuggestions(jsonArray.getString(0)).toString()
-			"openLink" -> JsonPrimitive(openLink(jsonArray.getString(0))).toString()
-			"shareText" -> JsonPrimitive(shareText(jsonArray.getString(0), jsonArray.getString(1))).toString()
-			"getDeviceLog" -> json.encodeToString(LogReader.getLogFile(activity).toString())
-			"changeLanguage" -> json.encodeToString<Boolean?>(null)
 			else -> throw Exception("unsupported method: $method")
 		}
 	}
-
-	private fun openLink(uri: String?): Boolean {
-		val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
-		try {
-			activity.startActivity(intent)
-		} catch (e: ActivityNotFoundException) {
-			Log.i(TAG, "Activity for intent $uri not found.", e)
-			return false
-		}
-		return true
-	}
-
-	private suspend fun shareText(string: String, title: String?): Boolean {
-
-		val sendIntent = Intent(Intent.ACTION_SEND)
-		sendIntent.type = "text/plain"
-		sendIntent.putExtra(Intent.EXTRA_TEXT, string)
-
-		// Shows a text title in the app chooser
-		if (title != null) {
-			sendIntent.putExtra(Intent.EXTRA_TITLE, title)
-		}
-
-		withContext(Dispatchers.IO) {
-			// In order to show a logo thumbnail with the app chooser we need to pass a URI of a file in the filesystem
-			// we just save one of our resources to the temp directory and then pass that as ClipData
-			// because you can't share non 'content' URIs with other apps
-			val imageName = "logo-solo-red.png"
-			try {
-				val logoInputStream = activity.assets.open("tutanota/images/$imageName")
-				val logoFile = files.getTempDecryptedFile(imageName)
-				files.writeFileStream(logoFile, logoInputStream)
-				val logoUri = FileProvider.getUriForFile(activity, BuildConfig.FILE_PROVIDER_AUTHORITY, logoFile)
-				val thumbnail = ClipData.newUri(
-						activity.contentResolver,
-						"tutanota_logo",
-						logoUri
-				)
-				sendIntent.clipData = thumbnail
-			} catch (e: IOException) {
-				Log.e(TAG, "Error attaching thumbnail to share intent:\n${e.message}")
-			}
-		}
-
-		sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-		val intent = Intent.createChooser(sendIntent, null)
-		activity.startActivity(intent)
-		return true
-	}
-
 	companion object {
 		private const val JS_NAME = "nativeApp"
 		private const val TAG = "Native"
