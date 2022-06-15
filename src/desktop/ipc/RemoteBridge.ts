@@ -157,10 +157,6 @@ export class RemoteBridge {
 				initDefer = defer()
 				window.reload(args[0])
 			},
-			shareText: NOT_IMPLEMENTED,
-			openLink: NOT_IMPLEMENTED,
-			findSuggestions: NOT_IMPLEMENTED,
-			getDeviceLog: NOT_IMPLEMENTED,
 			putFileIntoDownloads: NOT_IMPLEMENTED,
 		})
 		const nativeInterface = {

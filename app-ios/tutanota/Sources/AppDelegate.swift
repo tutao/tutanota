@@ -42,7 +42,7 @@ class AppDelegate : UIResponder,
     
     self.alarmManager = AlarmManager(keychainManager: keychainManager, userPreference: userPreferences)
     self.window = UIWindow(frame: UIScreen.main.bounds)
-    let credentialsEncryption = CredentialsEncryption(keychainManager: keychainManager)
+    let credentialsEncryption = IosNativeCredentialsFacade(keychainManager: keychainManager)
     self.viewController = ViewController(
       crypto: IosNativeCryptoFacade(),
       contactsSource: ContactsSource(),

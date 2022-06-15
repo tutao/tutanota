@@ -1,27 +1,27 @@
 import Foundation
 import LocalAuthentication
 
-enum CredentialEncryptionMode: String, Encodable {
+public enum CredentialEncryptionMode: String, Codable {
   case deviceLock = "DEVICE_LOCK"
   case systemPassword = "SYSTEM_PASSWORD"
   case biometrics = "BIOMETRICS"
 }
 
-class CredentialsEncryption {
+class IosNativeCredentialsFacade : NativeCredentialsFacade {
   private let keychainManager: KeychainManager
   
   init(keychainManager: KeychainManager) {
     self.keychainManager = keychainManager
   }
   
-  func encryptUsingKeychain(data base64Data: Base64, encryptionMode: CredentialEncryptionMode) async throws -> Base64 {
+  func encryptUsingKeychain(_ base64Data: Base64, _ encryptionMode: CredentialEncryptionMode) async throws -> Base64 {
     let data = Data(base64Encoded: base64Data)!
     
     let encryptedData = try self.keychainManager.encryptData(encryptionMode: encryptionMode, data: data)
     return encryptedData.base64EncodedString()
   }
   
-  func decryptUsingKeychain(encryptedData encryptedBase64Data: Base64, encryptionMode: CredentialEncryptionMode) async throws -> Base64 {
+  func decryptUsingKeychain(_ encryptedBase64Data: Base64, _ encryptionMode: CredentialEncryptionMode) async throws -> Base64 {
     let encryptedData = Data(base64Encoded: encryptedBase64Data)!
     
     

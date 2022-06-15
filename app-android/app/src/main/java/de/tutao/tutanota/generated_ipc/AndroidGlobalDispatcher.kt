@@ -14,12 +14,14 @@ class AndroidGlobalDispatcher (
 	nativeCredentialsFacade : NativeCredentialsFacade,
 	nativeCryptoFacade : NativeCryptoFacade,
 	nativePushFacade : NativePushFacade,
+	systemFacade : SystemFacade,
 	themeFacade : ThemeFacade,
 ) {
 	private val fileFacade: FileFacadeReceiveDispatcher = FileFacadeReceiveDispatcher(json, fileFacade)
 	private val nativeCredentialsFacade: NativeCredentialsFacadeReceiveDispatcher = NativeCredentialsFacadeReceiveDispatcher(json, nativeCredentialsFacade)
 	private val nativeCryptoFacade: NativeCryptoFacadeReceiveDispatcher = NativeCryptoFacadeReceiveDispatcher(json, nativeCryptoFacade)
 	private val nativePushFacade: NativePushFacadeReceiveDispatcher = NativePushFacadeReceiveDispatcher(json, nativePushFacade)
+	private val systemFacade: SystemFacadeReceiveDispatcher = SystemFacadeReceiveDispatcher(json, systemFacade)
 	private val themeFacade: ThemeFacadeReceiveDispatcher = ThemeFacadeReceiveDispatcher(json, themeFacade)
 	
 	suspend fun dispatch(facadeName: String, methodName: String, args: List<String>): String {
@@ -28,6 +30,7 @@ class AndroidGlobalDispatcher (
 			"NativeCredentialsFacade" -> this.nativeCredentialsFacade.dispatch(methodName, args)
 			"NativeCryptoFacade" -> this.nativeCryptoFacade.dispatch(methodName, args)
 			"NativePushFacade" -> this.nativePushFacade.dispatch(methodName, args)
+			"SystemFacade" -> this.systemFacade.dispatch(methodName, args)
 			"ThemeFacade" -> this.themeFacade.dispatch(methodName, args)
 			else -> throw Error("unknown facade: $facadeName")
 		}

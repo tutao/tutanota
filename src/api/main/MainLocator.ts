@@ -66,6 +66,7 @@ import {SearchTextInAppFacade} from "../../native/common/generatedipc/SearchText
 import {SearchTextInAppFacadeSendDispatcher} from "../../native/common/generatedipc/SearchTextInAppFacadeSendDispatcher.js"
 import {SettingsFacade} from "../../native/common/generatedipc/SettingsFacade.js"
 import {SettingsFacadeSendDispatcher} from "../../native/common/generatedipc/SettingsFacadeSendDispatcher.js"
+import {SystemFacade} from "../../native/common/generatedipc/SystemFacade.js"
 
 assertMainOrNode()
 
@@ -86,6 +87,7 @@ export interface IMainLocator {
 	readonly fileApp: NativeFileApp
 	readonly pushService: NativePushServiceApp
 	readonly systemApp: NativeSystemApp
+	readonly systemFacade: SystemFacade
 	readonly secondFactorHandler: SecondFactorHandler
 	readonly webauthnClient: IWebauthnClient
 	readonly loginFacade: LoginFacade
@@ -185,6 +187,10 @@ class MainLocator implements IMainLocator {
 
 	get systemApp(): NativeSystemApp {
 		return this._getNativeInterface("systemApp")
+	}
+
+	get systemFacade(): SystemFacade {
+		return this._getNativeInterface("systemFacade")
 	}
 
 	get interWindowEventBus(): InterWindowEventBus<InterWindowEventTypes> {

@@ -173,11 +173,15 @@ export class KotlinGenerator implements LangGenerator {
 		}
 	}
 
-	generateTypeRef(outDir: string, definitionPath: string, definition: TypeRefDefinition): string {
-		const acc = new Accumulator()
-		acc.line(`package de.tutao.tutanota.ipc`)
-		acc.line(`typealias ${definition.name} = ${definition.location.kotlin}`)
-		return acc.finish()
+	generateTypeRef(outDir: string, definitionPath: string, definition: TypeRefDefinition): string | null {
+		if (definition.location.kotlin) {
+			const acc = new Accumulator()
+			acc.line(`package de.tutao.tutanota.ipc`)
+			acc.line(`typealias ${definition.name} = ${definition.location.kotlin}`)
+			return acc.finish()
+		} else {
+			return null
+		}
 	}
 }
 

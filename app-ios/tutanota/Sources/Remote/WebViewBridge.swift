@@ -11,7 +11,7 @@ class WebViewBridge : NSObject, NativeInterface {
   private let keychainManager: KeychainManager
   private let userPreferences: UserPreferenceFacade
   private let alarmManager: AlarmManager
-  private let credentialsEncryption: CredentialsEncryption
+  private let credentialsEncryption: IosNativeCredentialsFacade
   private let globalDispatcher: IosGlobalDispatcher
   private let blobUtils: BlobUtil
   private var mobileFacade: MobileFacade!
@@ -30,7 +30,7 @@ class WebViewBridge : NSObject, NativeInterface {
     keychainManager: KeychainManager,
     userPreferences: UserPreferenceFacade,
     alarmManager: AlarmManager,
-    credentialsEncryption: CredentialsEncryption,
+    credentialsEncryption: IosNativeCredentialsFacade,
     blobUtils: BlobUtil,
     globalDispatcher: IosGlobalDispatcher
   ) {
@@ -185,54 +185,12 @@ class WebViewBridge : NSObject, NativeInterface {
         self.webviewInitialized = false
         await self.viewController.loadMainPage(params: args[0] as! [String : String])
         return nil
-      case "changeLanguage":
-        return nil
-      case "findSuggestions":
-        return try await self.contactsSource.search(query: args[0] as! String)
-      case "openLink":
-        return await self.openLink(args[0] as! String)
-      case "getDeviceLog":
-        return try self.getLogfile()
-
-      case "encryptUsingKeychain":
-        let encryptionMode = CredentialEncryptionMode(rawValue: args[0] as! String)!
-        return try await self.credentialsEncryption.encryptUsingKeychain(data: args[1] as! Base64, encryptionMode: encryptionMode)
-      case "decryptUsingKeychain":
-        let encryptionMode = CredentialEncryptionMode(rawValue: args[0] as! String)!
-        return try await self.credentialsEncryption.decryptUsingKeychain(encryptedData: args[1] as! Base64, encryptionMode: encryptionMode)
-      case "getSupportedEncryptionModes":
-        return await self.credentialsEncryption.getSupportedEncryptionModes()
       default:
         let message = "Unknown command: \(type)"
         TUTSLog(message)
         let error = NSError(domain: "tutanota", code: 5, userInfo: ["message": message])
         throw error
     }
-  }
-
-  /// - Returns path to the generated logfile
-  private func getLogfile() throws -> String {
-    let entries = TUTLogger.sharedInstance().entries()
-    let directory = try FileUtils.getDecryptedFolder()
-    let directoryUrl = URL(fileURLWithPath: directory)
-    let fileName = "\(Date().timeIntervalSince1970)_device_tutanota_log"
-    let fileUrl = directoryUrl.appendingPathComponent(fileName, isDirectory: false)
-    let stringContent = entries.joined(separator: "\n")
-    let bytes = stringContent.data(using: .utf8)!
-    try bytes.write(to: fileUrl, options: .atomic)
-    return fileUrl.path
-  }
-
-
-  @MainActor
-  private func openLink(_ link: String) async -> Bool {
-    return await withCheckedContinuation({ continuation in
-      UIApplication.shared.open(
-        URL(string: link)!,
-        options: [:]) { success in
-          continuation.resume(returning: success)
-      }
-    })
   }
 }
 

@@ -57,7 +57,7 @@ class MainActivity : FragmentActivity() {
 		private set
 	lateinit var sseStorage: SseStorage
 	lateinit var themeFacade: AndroidThemeFacade
-	lateinit var nativeImpl: Native
+	lateinit var remoteBridge: RemoteBridge
 	lateinit var mobileFacade: MobileFacade
 	lateinit var commonNativeFacade: CommonNativeFacade
 
@@ -88,26 +88,27 @@ class MainActivity : FragmentActivity() {
 
 		themeFacade = AndroidThemeFacade(this, this)
 		val ipcJson = Json { ignoreUnknownKeys = true }
+		val contact = Contact(this)
 		val globalDispatcher = AndroidGlobalDispatcher(
 				ipcJson,
 				fileFacade,
 				CredentialsEncryptionFactory.create(this),
 				AndroidNativeCryptoFacade(this),
 				nativePushFacade,
-				themeFacade
+				AndroidSystemFacade(contact, fileFacade, this),
+				themeFacade,
 		)
-		nativeImpl = Native(
+		remoteBridge = RemoteBridge(
 				this,
 				globalDispatcher,
-				fileFacade
 		)
 
 		themeFacade.applyCurrentTheme()
 
 		super.onCreate(savedInstanceState)
 
-		mobileFacade = MobileFacadeSendDispatcher(ipcJson, nativeImpl)
-		commonNativeFacade = CommonNativeFacadeSendDispatcher(ipcJson, nativeImpl)
+		mobileFacade = MobileFacadeSendDispatcher(ipcJson, remoteBridge)
+		commonNativeFacade = CommonNativeFacadeSendDispatcher(ipcJson, remoteBridge)
 
 		setupPushNotifications()
 
@@ -188,7 +189,7 @@ class MainActivity : FragmentActivity() {
 	@MainThread
 	private fun startWebApp(parameters: MutableMap<String, String>) {
 		webView.loadUrl(getInitialUrl(parameters, themeFacade.currentThemeWithFallback))
-		nativeImpl.setup()
+		remoteBridge.setup()
 	}
 
 	override fun onNewIntent(intent: Intent) {
@@ -431,7 +432,7 @@ class MainActivity : FragmentActivity() {
 	}
 
 	override fun onBackPressed() {
-		if (nativeImpl.webAppInitialized.isCompleted) {
+		if (remoteBridge.webAppInitialized.isCompleted) {
 			lifecycleScope.launchWhenCreated {
 				val result = mobileFacade.handleBackPress()
 				try {

@@ -1,0 +1,31 @@
+{
+  "name": "SystemFacade",
+  "type": "facade",
+  "senders": ["web"],
+  "receivers": ["ios", "android"],
+  "methods": {
+	"findSuggestions": {
+	  "arg": [
+		{"query": "string"}
+	  ],
+	  "ret": "List<NativeContact>"
+	},
+	"openLink": {
+	  "arg": [
+		{"uri":  "string"}
+	  ],
+	  "ret": "boolean"
+	},
+	"shareText": {
+	  "arg": [
+		{"text":  "string"},
+		{"title":  "string"}
+	  ],
+	  "ret": "boolean"
+	},
+	"getLog": {
+	  "arg": [],
+	  "ret": "string"
+	}
+  }
+}
