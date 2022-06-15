@@ -6,7 +6,8 @@ import n from "../../nodemocker.js"
 import type {PersistentCredentials} from "../../../../src/misc/credentials/CredentialsProvider.js"
 import {CredentialEncryptionMode} from "../../../../src/misc/credentials/CredentialEncryptionMode.js"
 import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import type {NativeInterface} from "../../../../src/native/common/NativeInterface.js"
+import {object, when} from "testdouble"
+import {NativeCredentialsFacade} from "../../../../src/native/common/generatedipc/NativeCredentialsFacade.js"
 
 o.spec("CredentialsMigrationTest", function () {
 	let encryptionKey: Uint8Array
@@ -15,8 +16,8 @@ o.spec("CredentialsMigrationTest", function () {
 	let deviceConfig: DeviceConfig
 	let deviceEncryptionFacade: DeviceEncryptionFacade
 	let credentialsMigration: CredentialsMigration
-	let nativeApp: NativeInterface
 	let storedCredentialsEncryptionKey
+	let nativeCredentialsFacade: NativeCredentialsFacade
 
 	o.beforeEach(function () {
 		deviceConfig = n.mock<DeviceConfig>("", {
@@ -44,13 +45,9 @@ o.spec("CredentialsMigrationTest", function () {
 				return data.slice().reverse()
 			},
 		}).set()
-		nativeApp = n.mock<NativeInterface>("", {
-			async invokeNative() {
-				return uint8ArrayToBase64(encryptedKey)
-			}
-		}).set()
 
-		credentialsMigration = new CredentialsMigration(deviceConfig, deviceEncryptionFacade, nativeApp)
+		nativeCredentialsFacade = object()
+		credentialsMigration = new CredentialsMigration(deviceConfig, deviceEncryptionFacade, nativeCredentialsFacade)
 	})
 
 	o("Should not crash if no credentials are stored", async function () {
@@ -66,7 +63,6 @@ o.spec("CredentialsMigrationTest", function () {
 
 		o(deviceEncryptionFacade.generateKey.callCount).equals(0)
 		o(deviceEncryptionFacade.encrypt.callCount).equals(0)
-		o(nativeApp.invokeNative.callCount).equals(0)
 		o(deviceConfig.setCredentialsEncryptionKey.callCount).equals(0)
 		o(deviceConfig.store.callCount).equals(0)
 	})
@@ -93,6 +89,8 @@ o.spec("CredentialsMigrationTest", function () {
 
 		storedCredentialsEncryptionKey = null
 		encryptionKey = new Uint8Array([1, 2, 5, 8])
+		when(nativeCredentialsFacade.encryptUsingKeychain(uint8ArrayToBase64(encryptionKey), CredentialEncryptionMode.DEVICE_LOCK))
+			.thenResolve(uint8ArrayToBase64(encryptedKey))
 		storedCredentials = [internalCredentials, externalCredentials]
 
 		await credentialsMigration.migrateCredentials()
@@ -103,12 +101,6 @@ o.spec("CredentialsMigrationTest", function () {
 
 		o(Array.from(deviceEncryptionFacade.encrypt.calls[1].args[0])).deepEquals(Array.from(encryptionKey))
 		o(Array.from(deviceEncryptionFacade.encrypt.calls[1].args[1])).deepEquals(Array.from(stringToUtf8Uint8Array(externalCredentials.accessToken)))
-
-		const request = nativeApp.invokeNative.args[1]
-		o(request).deepEquals([
-			CredentialEncryptionMode.DEVICE_LOCK,
-			uint8ArrayToBase64(encryptionKey),
-		])
 
 		o(Array.from(deviceConfig.setCredentialsEncryptionKey.args[0])).deepEquals(Array.from(encryptedKey))
 		o(deviceConfig.setCredentialEncryptionMode.args[0]).equals(CredentialEncryptionMode.DEVICE_LOCK)

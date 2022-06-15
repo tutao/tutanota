@@ -210,9 +210,9 @@ class AndroidKeyStoreFacade(context: Context, private val dataKeyGenerator: Data
 
 	private fun keyAliasForEncryptionMode(encryptionMode: CredentialEncryptionMode): String {
 		return when (encryptionMode) {
-			CredentialEncryptionMode.ENCRYPTION_MODE_DEVICE_LOCK -> DEVICE_LOCK_DATA_KEY_ALIAS
-			CredentialEncryptionMode.ENCRYPTION_MODE_SYSTEM_PASSWORD -> SYSTEM_PASSWORD_DATA_KEY_ALIAS
-			CredentialEncryptionMode.ENCRYPTION_MODE_BIOMETRICS -> BIOMETRICS_DATA_KEY_ALIAS
+			CredentialEncryptionMode.DEVICE_LOCK -> DEVICE_LOCK_DATA_KEY_ALIAS
+			CredentialEncryptionMode.SYSTEM_PASSWORD -> SYSTEM_PASSWORD_DATA_KEY_ALIAS
+			CredentialEncryptionMode.BIOMETRICS -> BIOMETRICS_DATA_KEY_ALIAS
 		}
 	}
 

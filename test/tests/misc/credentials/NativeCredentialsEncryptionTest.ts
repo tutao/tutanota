@@ -5,10 +5,10 @@ import type {DeviceEncryptionFacade} from "../../../../src/api/worker/facades/De
 import n from "../../nodemocker.js"
 import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {CredentialsAndDatabaseKey, PersistentCredentials} from "../../../../src/misc/credentials/CredentialsProvider.js"
-import type {NativeInterface} from "../../../../src/native/common/NativeInterface.js"
 import {assertThrows} from "@tutao/tutanota-test-utils"
 import {KeyPermanentlyInvalidatedError} from "../../../../src/api/common/error/KeyPermanentlyInvalidatedError.js"
 import {CryptoError} from "../../../../src/api/common/error/CryptoError.js"
+import {object} from "testdouble"
 
 //TODO test databasekey encryption
 o.spec("NativeCredentialsEncryptionTest", function () {
@@ -16,7 +16,6 @@ o.spec("NativeCredentialsEncryptionTest", function () {
 	let credentialsKeyProvider: ICredentialsKeyProvider
 	let deviceEncryptionFacade: DeviceEncryptionFacade
 	let encryption: NativeCredentialsEncryption
-	let nativeApp: NativeInterface
 	o.beforeEach(function () {
 		credentialsKeyProvider = n.mock<ICredentialsKeyProvider>("omg delete me", {
 			async getCredentialsKey() {
@@ -31,12 +30,7 @@ o.spec("NativeCredentialsEncryptionTest", function () {
 				return encryptedData
 			},
 		}).set()
-		nativeApp = n.mock<NativeInterface>("calabunga!", {
-			async invokeNative() {
-				return []
-			}
-		}).set()
-		encryption = new NativeCredentialsEncryption(credentialsKeyProvider, deviceEncryptionFacade, nativeApp)
+		encryption = new NativeCredentialsEncryption(credentialsKeyProvider, deviceEncryptionFacade, object())
 	})
 
 	o.spec("encrypt", function () {

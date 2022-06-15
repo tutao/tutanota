@@ -18,7 +18,6 @@ import {ElectronExports, WebContentsEvent} from "./ElectronExportTypes";
 import {DataFile} from "../api/common/DataFile";
 import {Logger} from "../api/common/Logger"
 import {DesktopGlobalDispatcher} from "../native/common/generatedipc/DesktopGlobalDispatcher"
-import {DektopCredentialsEncryption} from "./credentials/DektopCredentialsEncryption"
 import {exposeLocal} from "../api/common/WorkerProxy"
 import {ExposedNativeInterface, NativeInterface} from "../native/common/NativeInterface"
 import {DesktopFacadeSendDispatcher} from "../native/common/generatedipc/DesktopFacadeSendDispatcher.js"
@@ -37,7 +36,6 @@ export class IPC {
 	readonly _electron: ElectronExports
 	readonly _desktopUtils: DesktopUtils
 	readonly _integrator: DesktopIntegrator
-	readonly _credentialsEncryption: DektopCredentialsEncryption
 	_initialized: Array<DeferredObject<void>>
 	_requestId: number = 0
 	readonly _queue: Record<string, (...args: Array<any>) => any>
@@ -52,7 +50,6 @@ export class IPC {
 		electron: ElectronExports,
 		desktopUtils: DesktopUtils,
 		integrator: DesktopIntegrator,
-		credentialsEncryption: DektopCredentialsEncryption,
 		private readonly exposedInterfaceFactory: (windowId: number, ipc: IPC) => ExposedNativeInterface,
 		private readonly dispatcher: DesktopGlobalDispatcher,
 	) {
@@ -64,7 +61,6 @@ export class IPC {
 		this._electron = electron
 		this._desktopUtils = desktopUtils
 		this._integrator = integrator
-		this._credentialsEncryption = credentialsEncryption
 
 		if (!!this._updater) {
 			this._updater.setUpdateDownloadedListener(() => {
@@ -264,20 +260,6 @@ export class IPC {
 				}
 
 				return
-			}
-
-			case "encryptUsingKeychain": {
-				const [mode, decryptedKey] = args
-				return this._credentialsEncryption.encryptUsingKeychain(decryptedKey, mode)
-			}
-
-			case "decryptUsingKeychain": {
-				const [mode, encryptedKey] = args
-				return this._credentialsEncryption.decryptUsingKeychain(encryptedKey, mode)
-			}
-
-			case "getSupportedEncryptionModes": {
-				return this._credentialsEncryption.getSupportedEncryptionModes()
 			}
 			case "facade": {
 				return this.getHandlerForWindow(windowId)(new Request(method, args))

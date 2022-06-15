@@ -47,7 +47,7 @@ export interface CredentialsEncryption {
 	/**
 	 * Returns all credentials encryption modes that are supported by the device.
 	 */
-	getSupportedEncryptionModes(): Promise<Array<CredentialEncryptionMode>>
+	getSupportedEncryptionModes(): Promise<ReadonlyArray<CredentialEncryptionMode>>
 }
 
 /**
@@ -153,7 +153,7 @@ export interface ICredentialsProvider {
 	/**
 	 * Returns all credentials encryption modes that are supported by the device.
 	 */
-	getSupportedEncryptionModes(): Promise<Array<CredentialEncryptionMode>>
+	getSupportedEncryptionModes(): Promise<ReadonlyArray<CredentialEncryptionMode>>
 
 	/**
 	 * Removes all stored credentials as well as any settings associated with credentials encryption.
@@ -248,7 +248,7 @@ export class CredentialsProvider implements ICredentialsProvider {
 		return this.storage.getCredentialEncryptionMode()
 	}
 
-	async getSupportedEncryptionModes(): Promise<Array<CredentialEncryptionMode>> {
+	async getSupportedEncryptionModes(): Promise<ReadonlyArray<CredentialEncryptionMode>> {
 		return await this.credentialsEncryption.getSupportedEncryptionModes()
 	}
 

@@ -2,23 +2,10 @@ import {CredentialEncryptionMode} from "../../misc/credentials/CredentialEncrypt
 import {DesktopKeyStoreFacade} from "../KeyStoreFacadeImpl"
 import {DesktopNativeCryptoFacade} from "../DesktopNativeCryptoFacade"
 import {assert} from "@tutao/tutanota-utils"
+import {NativeCredentialsFacade} from "../../native/common/generatedipc/NativeCredentialsFacade.js"
 
-export interface DektopCredentialsEncryption {
-	/**
-	 * Decrypts arbitrary data using keychain keys, prompting for authentication if needed.
-	 */
-	decryptUsingKeychain(base64EncodedEncryptedData: string, encryptionMode: CredentialEncryptionMode): Promise<string>
 
-	/**
-	 * Encrypts arbitrary data using keychain keys, prompting for authentication if needed.
-	 */
-	encryptUsingKeychain(base64EncodedData: string, encryptionMode: CredentialEncryptionMode): Promise<string>
-
-	getSupportedEncryptionModes(): Promise<Array<CredentialEncryptionMode>>
-
-}
-
-export class DesktopCredentialsEncryptionImpl implements DektopCredentialsEncryption {
+export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 
 	private readonly _desktopKeyStoreFacade: DesktopKeyStoreFacade
 	private readonly _crypto: DesktopNativeCryptoFacade
@@ -50,7 +37,7 @@ export class DesktopCredentialsEncryptionImpl implements DektopCredentialsEncryp
 
 }
 
-export class DesktopCredentialsEncryptionStub implements DektopCredentialsEncryption {
+export class NativeCredentialsFacadeStub implements NativeCredentialsFacade {
 	decryptUsingKeychain(base64EncodedEncryptedData: string, encryptionMode: CredentialEncryptionMode): Promise<string> {
 		return Promise.resolve(base64EncodedEncryptedData)
 	}

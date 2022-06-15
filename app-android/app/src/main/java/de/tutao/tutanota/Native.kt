@@ -10,8 +10,6 @@ import android.webkit.WebMessage
 import android.webkit.WebMessagePort
 import android.webkit.WebMessagePort.WebMessageCallback
 import androidx.core.content.FileProvider
-import de.tutao.tutanota.credentials.CredentialEncryptionMode
-import de.tutao.tutanota.credentials.CredentialsEncryptionFactory
 import de.tutao.tutanota.ipc.AndroidGlobalDispatcher
 import de.tutao.tutanota.ipc.NativeInterface
 import kotlinx.coroutines.*
@@ -40,7 +38,6 @@ class Native internal constructor(
 	private val json = Json.Default
 	private val contact = Contact(activity)
 	private val requests = mutableMapOf<String, Continuation<String>>()
-	private val credentialsEncryption = CredentialsEncryptionFactory.create(activity)
 
 	@Volatile
 	private var _webAppInitialized = CompletableDeferred<Unit>()
@@ -185,24 +182,6 @@ class Native internal constructor(
 			"shareText" -> JsonPrimitive(shareText(jsonArray.getString(0), jsonArray.getString(1))).toString()
 			"getDeviceLog" -> json.encodeToString(LogReader.getLogFile(activity).toString())
 			"changeLanguage" -> json.encodeToString<Boolean?>(null)
-			"encryptUsingKeychain" -> {
-				val encryptionMode = jsonArray.getString(0)
-				val dataToEncrypt = jsonArray.getString(1)
-				val mode = CredentialEncryptionMode.fromName(encryptionMode)
-				val encryptedData = credentialsEncryption.encryptUsingKeychain(dataToEncrypt, mode)
-				JsonPrimitive(encryptedData).toString()
-			}
-			"decryptUsingKeychain" -> {
-				val encryptionMode = jsonArray.getString(0)
-				val dataToDecrypt = jsonArray.getString(1)
-				val mode = CredentialEncryptionMode.fromName(encryptionMode)
-				val decryptedData = credentialsEncryption.decryptUsingKeychain(dataToDecrypt, mode)
-				JsonPrimitive(decryptedData).toString()
-			}
-			"getSupportedEncryptionModes" -> {
-				val modes = credentialsEncryption.getSupportedEncryptionModes()
-				json.encodeToString(modes.map { it.modeName })
-			}
 			else -> throw Exception("unsupported method: $method")
 		}
 	}

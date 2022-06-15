@@ -13,6 +13,7 @@ import {exposeRemote} from "../../api/common/WorkerProxy"
 import {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade"
 import {InterWindowEventBus} from "../../native/common/InterWindowEventBus"
 import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes"
+import {NativeCredentialsFacadeSendDispatcher} from "../../native/common/generatedipc/NativeCredentialsFacadeSendDispatcher.js"
 
 export function usingKeychainAuthentication(): boolean {
 	return isApp() || isDesktop()
@@ -34,14 +35,14 @@ export function createCredentialsProvider(
 	eventBus: InterWindowEventBus<InterWindowEventTypes> | null,
 ): ICredentialsProvider {
 	if (usingKeychainAuthentication()) {
-		const nonNullNativeApp = assertNotNull(nativeApp)
-		const credentialsKeyProvider = new CredentialsKeyProvider(nonNullNativeApp, deviceConfig, deviceEncryptionFacade)
-		const credentialsEncryption = new NativeCredentialsEncryption(credentialsKeyProvider, deviceEncryptionFacade, nonNullNativeApp)
-		const credentialsKeyMigrator = new CredentialsKeyMigrator(nonNullNativeApp)
+		const nativeCredentials = new NativeCredentialsFacadeSendDispatcher(assertNotNull(nativeApp))
+		const credentialsKeyProvider = new CredentialsKeyProvider(nativeCredentials, deviceConfig, deviceEncryptionFacade)
+		const credentialsEncryption = new NativeCredentialsEncryption(credentialsKeyProvider, deviceEncryptionFacade, nativeCredentials)
+		const credentialsKeyMigrator = new CredentialsKeyMigrator(nativeCredentials)
 		let offlineDbFacade: OfflineDbFacade | null
 		if (isOfflineStorageAvailable()) {
 			const remoteInterface = exposeRemote<ExposedNativeInterface>(
-				(request) => nonNullNativeApp.invokeNative(request.requestType, request.args)
+				(request) => assertNotNull(nativeApp).invokeNative(request.requestType, request.args)
 			)
 			offlineDbFacade = remoteInterface.offlineDbFacade
 		} else {

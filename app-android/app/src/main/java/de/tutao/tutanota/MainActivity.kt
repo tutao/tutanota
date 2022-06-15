@@ -29,6 +29,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutanota.alarms.SystemAlarmFacade
+import de.tutao.tutanota.credentials.CredentialsEncryptionFactory
 import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.ipc.*
 import de.tutao.tutanota.push.AndroidNativePushFacade
@@ -90,6 +91,7 @@ class MainActivity : FragmentActivity() {
 		val globalDispatcher = AndroidGlobalDispatcher(
 				ipcJson,
 				fileFacade,
+				CredentialsEncryptionFactory.create(this),
 				AndroidNativeCryptoFacade(this),
 				nativePushFacade,
 				themeFacade
