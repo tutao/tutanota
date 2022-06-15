@@ -20,6 +20,7 @@ import {CurrentView} from "./gui/Header.js"
 import {NativeWebauthnView} from "./login/NativeWebauthnView"
 import {WebauthnNativeBridge} from "./native/main/WebauthnNativeBridge"
 import {PostLoginActions} from "./login/PostLoginActions"
+import {NativeCredentialsFacadeSendDispatcher} from "./native/common/generatedipc/NativeCredentialsFacadeSendDispatcher.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -223,7 +224,8 @@ import("./translations/en")
 			if (!hasAlreadyMigrated && hasCredentials) {
 				const migrationModule = await import("./misc/credentials/CredentialsMigration")
 				await locator.native.init()
-				const migration = new migrationModule.CredentialsMigration(deviceConfig, locator.deviceEncryptionFacade, locator.native)
+				const nativeCredentials = new NativeCredentialsFacadeSendDispatcher(locator.native)
+				const migration = new migrationModule.CredentialsMigration(deviceConfig, locator.deviceEncryptionFacade, nativeCredentials)
 				await migration.migrateCredentials()
 				// Reload the app just to make sure we are in the right state and don't init nativeApp twice
 				windowFacade.reload({})

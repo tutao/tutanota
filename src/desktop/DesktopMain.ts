@@ -35,7 +35,7 @@ import {SchedulerImpl} from "../api/common/utils/Scheduler.js"
 import {DateProviderImpl} from "../calendar/date/CalendarUtils"
 import {DesktopThemeFacade} from "./DesktopThemeFacade"
 import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys";
-import {DektopCredentialsEncryption, DesktopCredentialsEncryptionImpl} from "./credentials/DektopCredentialsEncryption"
+import {DesktopNativeCredentialsFacade} from "./credentials/DesktopNativeCredentialsFacade.js"
 import {DesktopWebauthn} from "./2fa/DesktopWebauthn.js"
 import {webauthnIpcHandler, WebDialogController} from "./WebDialog.js"
 import {ExposedNativeInterface} from "../native/common/NativeInterface.js"
@@ -49,6 +49,7 @@ import {DesktopGlobalDispatcher} from "../native/common/generatedipc/DesktopGlob
 import {CommonNativeFacadeSendDispatcher} from "../native/common/generatedipc/CommonNativeFacadeSendDispatcher.js"
 import {DesktopContextMenu} from "./DesktopContextMenu.js"
 import {DesktopNativePushFacade} from "./sse/DesktopNativePushFacade.js"
+import {NativeCredentialsFacade} from "../native/common/generatedipc/NativeCredentialsFacade.js"
 
 /**
  * Should be injected during build time.
@@ -72,7 +73,7 @@ type Components = {
 	readonly integrator: DesktopIntegrator
 	readonly tray: DesktopTray
 	readonly desktopThemeFacade: DesktopThemeFacade
-	readonly credentialsEncryption: DektopCredentialsEncryption
+	readonly credentialsEncryption: NativeCredentialsFacade
 }
 const desktopUtils = new DesktopUtils(fs, electron, cryptoFns)
 const desktopCrypto = new DesktopNativeCryptoFacade(fs, cryptoFns, desktopUtils)
@@ -131,7 +132,7 @@ async function createComponents(): Promise<Components> {
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, tray, new UpdaterWrapperImpl())
 	const shortcutManager = new LocalShortcutManager()
-	const credentialsEncryption = new DesktopCredentialsEncryptionImpl(keyStoreFacade, desktopCrypto)
+	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(keyStoreFacade, desktopCrypto)
 
 	const offlineDbFactory: OfflineDbFactory = {
 		async create(userid: string, key: Aes256Key): Promise<OfflineDb> {
@@ -186,6 +187,7 @@ async function createComponents(): Promise<Components> {
 
 	const dispatcher = new DesktopGlobalDispatcher(
 		new DesktopFileFacade(dl, electron, fs),
+		nativeCredentialsFacade,
 		desktopCrypto,
 		new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage),
 		themeFacade
@@ -200,7 +202,6 @@ async function createComponents(): Promise<Components> {
 		electron,
 		desktopUtils,
 		integrator,
-		credentialsEncryption,
 		exposedInterfaceFactory,
 		dispatcher,
 	)
@@ -223,7 +224,7 @@ async function createComponents(): Promise<Components> {
 		integrator,
 		tray,
 		desktopThemeFacade: themeFacade,
-		credentialsEncryption
+		credentialsEncryption: nativeCredentialsFacade
 	}
 }
 

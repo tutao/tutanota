@@ -4,9 +4,9 @@ import type {ICredentialsKeyProvider} from "./CredentialsKeyProvider"
 import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
 import {base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
 import type {CredentialEncryptionMode} from "./CredentialEncryptionMode"
-import type {NativeInterface} from "../../native/common/NativeInterface"
 import {CryptoError} from "../../api/common/error/CryptoError.js"
 import {KeyPermanentlyInvalidatedError} from "../../api/common/error/KeyPermanentlyInvalidatedError.js"
+import {NativeCredentialsFacade} from "../../native/common/generatedipc/NativeCredentialsFacade.js"
 
 /**
  * Credentials encryption implementation that uses the native (platform-specific) keychain implementation. It uses an intermediate key to
@@ -17,7 +17,7 @@ export class NativeCredentialsEncryption implements CredentialsEncryption {
 	constructor(
 		private readonly credentialsKeyProvider: ICredentialsKeyProvider,
 		private readonly deviceEncryptionFacade: DeviceEncryptionFacade,
-		private readonly nativeApp: NativeInterface
+		private readonly nativeCredentials: NativeCredentialsFacade,
 	) {
 	}
 
@@ -86,7 +86,7 @@ export class NativeCredentialsEncryption implements CredentialsEncryption {
 		}
 	}
 
-	async getSupportedEncryptionModes(): Promise<Array<CredentialEncryptionMode>> {
-		return this.nativeApp.invokeNative("getSupportedEncryptionModes", [])
+	async getSupportedEncryptionModes(): Promise<ReadonlyArray<CredentialEncryptionMode>> {
+		return this.nativeCredentials.getSupportedEncryptionModes()
 	}
 }

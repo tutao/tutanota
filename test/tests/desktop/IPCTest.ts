@@ -13,7 +13,6 @@ import {ElectronUpdater} from "../../../src/desktop/ElectronUpdater.js";
 import {DesktopUtils} from "../../../src/desktop/DesktopUtils.js";
 import {DesktopIntegrator} from "../../../src/desktop/integration/DesktopIntegrator.js";
 import {OfflineDbFacade} from "../../../src/desktop/db/OfflineDbFacade.js"
-import {DektopCredentialsEncryption, DesktopCredentialsEncryptionStub} from "../../../src/desktop/credentials/DektopCredentialsEncryption.js"
 import {object} from "testdouble"
 import {ExposedNativeInterface} from "../../../src/native/common/NativeInterface.js"
 import {DesktopGlobalDispatcher} from "../../../src/native/common/generatedipc/DesktopGlobalDispatcher.js"
@@ -166,7 +165,6 @@ o.spec("IPC tests", function () {
 			utilsMock: n.mock("@tutao/tutanota-utils", utils).set(),
 			autoUpdaterMock: n.mock<ElectronUpdater>("__updater", autoUpdater).set(),
 			offlineDbFacadeMock: n.mock<OfflineDbFacade>("__offlineDbFacade", {}).set(),
-			credentialsEncryption: n.mock<DektopCredentialsEncryption>("__credentialsEncryption", new DesktopCredentialsEncryptionStub()).set(),
 			globalDispatcher: n.mock<DesktopGlobalDispatcher>("__desktopGlobalDispatcher", globalDispatcher).set()
 		}
 	}
@@ -182,7 +180,6 @@ o.spec("IPC tests", function () {
 			autoUpdaterMock,
 			desktopUtilsMock,
 			desktopIntegratorMock,
-			credentialsEncryption,
 			globalDispatcher
 		} = sm
 		const ipc = new IPC(
@@ -194,7 +191,6 @@ o.spec("IPC tests", function () {
 			electronMock,
 			desktopUtilsMock,
 			desktopIntegratorMock,
-			credentialsEncryption,
 			() => object<ExposedNativeInterface>(),
 			globalDispatcher
 		)

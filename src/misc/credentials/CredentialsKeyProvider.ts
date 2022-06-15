@@ -2,7 +2,7 @@ import type {CredentialsStorage} from "./CredentialsProvider"
 import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
 import {base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import type {CredentialEncryptionMode} from "./CredentialEncryptionMode"
-import type {NativeInterface} from "../../native/common/NativeInterface"
+import {NativeCredentialsFacade} from "../../native/common/generatedipc/NativeCredentialsFacade.js"
 
 /**
  * Interface for obtaining the key that is used to encrypt credentials. Any access to that key should always be done using this interface
@@ -19,7 +19,7 @@ export interface ICredentialsKeyProvider {
 export class CredentialsKeyProvider implements ICredentialsKeyProvider {
 
 	constructor(
-		private readonly nativeApp: NativeInterface,
+		private readonly nativeCredentials: NativeCredentialsFacade,
 		private readonly credentialsStorage: CredentialsStorage,
 		private readonly deviceEncryptionFacade: DeviceEncryptionFacade
 	) {
@@ -29,14 +29,16 @@ export class CredentialsKeyProvider implements ICredentialsKeyProvider {
 		const encryptedCredentialsKey = this.credentialsStorage.getCredentialsEncryptionKey()
 
 		if (encryptedCredentialsKey) {
-			const base64CredentialsKey = await this.nativeApp.invokeNative(
-				"decryptUsingKeychain", [this._getEncryptionMode(), uint8ArrayToBase64(encryptedCredentialsKey)],
+			const base64CredentialsKey = await this.nativeCredentials.decryptUsingKeychain(
+				uint8ArrayToBase64(encryptedCredentialsKey),
+				this._getEncryptionMode()
 			)
 			return base64ToUint8Array(base64CredentialsKey)
 		} else {
 			const credentialsKey = await this.deviceEncryptionFacade.generateKey()
-			const encryptedCredentialsKey = await this.nativeApp.invokeNative(
-				"encryptUsingKeychain", [this._getEncryptionMode(), uint8ArrayToBase64(credentialsKey)],
+			const encryptedCredentialsKey = await this.nativeCredentials.encryptUsingKeychain(
+				uint8ArrayToBase64(credentialsKey),
+				this._getEncryptionMode()
 			)
 
 			this.credentialsStorage.setCredentialsEncryptionKey(base64ToUint8Array(encryptedCredentialsKey))

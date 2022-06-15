@@ -14,13 +14,13 @@ class DataKeyGeneratorBeforeAPI30 : DataKeyGenerator {
 						.setRandomizedEncryptionRequired(true)
 						.setUserAuthenticationRequired(credentialEncryptionMode.requiresAuthentication)
 		when (credentialEncryptionMode) {
-			CredentialEncryptionMode.ENCRYPTION_MODE_BIOMETRICS -> builder.setUserAuthenticationValidityDurationSeconds(
+			CredentialEncryptionMode.BIOMETRICS -> builder.setUserAuthenticationValidityDurationSeconds(
 					-1
 			)
-			CredentialEncryptionMode.ENCRYPTION_MODE_SYSTEM_PASSWORD -> builder.setUserAuthenticationValidityDurationSeconds(
+			CredentialEncryptionMode.SYSTEM_PASSWORD -> builder.setUserAuthenticationValidityDurationSeconds(
 					10
 			)
-			CredentialEncryptionMode.ENCRYPTION_MODE_DEVICE_LOCK -> {}
+			CredentialEncryptionMode.DEVICE_LOCK -> {}
 		}
 		return KeyGenerator.getInstance("AES", "AndroidKeyStore").run {
 			init(builder.build())

@@ -1,12 +1,13 @@
 import o from "ospec"
 import n from "../../nodemocker.js"
 
-import {DesktopCredentialsEncryptionImpl} from "../../../../src/desktop/credentials/DektopCredentialsEncryption.js"
+import {DesktopNativeCredentialsFacade} from "../../../../src/desktop/credentials/DesktopNativeCredentialsFacade.js"
 import {DesktopKeyStoreFacade} from "../../../../src/desktop/KeyStoreFacadeImpl.js"
 import {DesktopNativeCryptoFacade} from "../../../../src/desktop/DesktopNativeCryptoFacade.js"
 import {CredentialEncryptionMode} from "../../../../src/misc/credentials/CredentialEncryptionMode.js"
 import {makeKeyStoreFacade} from "../../TestUtils.js"
 import {assertThrows} from "@tutao/tutanota-test-utils"
+import {NativeCredentialsFacade} from "../../../../src/native/common/generatedipc/NativeCredentialsFacade.js"
 
 o.spec("DesktopCredentialsEncryption Test", () => {
 	const crypto = {
@@ -16,7 +17,7 @@ o.spec("DesktopCredentialsEncryption Test", () => {
 	const key = new Uint8Array([1, 2, 3])
 	const keyStoreFacade = makeKeyStoreFacade(key)
 
-	const getSubject = (): DesktopCredentialsEncryptionImpl => new DesktopCredentialsEncryptionImpl(
+	const getSubject = (): NativeCredentialsFacade => new DesktopNativeCredentialsFacade(
 		n.mock<DesktopKeyStoreFacade>("__keyStoreFacade", keyStoreFacade).set(),
 		n.mock<DesktopNativeCryptoFacade>("__crypto", crypto).set()
 	)

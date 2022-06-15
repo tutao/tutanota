@@ -1,6 +1,6 @@
 import type {CredentialEncryptionMode} from "./CredentialEncryptionMode"
 import {base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import type {NativeInterface} from "../../native/common/NativeInterface"
+import {NativeCredentialsFacade} from "../../native/common/generatedipc/NativeCredentialsFacade.js"
 
 /**
  * Interface for credentials key migration. Migration becomes necessary when the encryption mode for a device is changed,
@@ -21,10 +21,10 @@ export interface ICredentialsKeyMigrator {
  * Platform-independent implementation for of ICredentialsKeyMigrator.
  */
 export class CredentialsKeyMigrator implements ICredentialsKeyMigrator {
-	readonly _nativeApp: NativeInterface
 
-	constructor(nativeApp: NativeInterface) {
-		this._nativeApp = nativeApp
+	constructor(
+		private readonly nativeCredentials: NativeCredentialsFacade
+	) {
 	}
 
 	async migrateCredentialsKey(
@@ -32,8 +32,8 @@ export class CredentialsKeyMigrator implements ICredentialsKeyMigrator {
 		oldMode: CredentialEncryptionMode,
 		newMode: CredentialEncryptionMode,
 	): Promise<Uint8Array> {
-		const oldKeyDecryptedKeyBase64 = await this._nativeApp.invokeNative("decryptUsingKeychain", [oldMode, uint8ArrayToBase64(oldKeyEncrypted)])
-		const newlyEncryptedKeyBase64 = await this._nativeApp.invokeNative("encryptUsingKeychain", [newMode, oldKeyDecryptedKeyBase64])
+		const oldKeyDecryptedKeyBase64 = await this.nativeCredentials.decryptUsingKeychain(uint8ArrayToBase64(oldKeyEncrypted), oldMode)
+		const newlyEncryptedKeyBase64 = await this.nativeCredentials.encryptUsingKeychain(oldKeyDecryptedKeyBase64, newMode)
 		return base64ToUint8Array(newlyEncryptedKeyBase64)
 	}
 }

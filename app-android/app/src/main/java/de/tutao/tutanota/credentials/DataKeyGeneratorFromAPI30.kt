@@ -15,9 +15,9 @@ class DataKeyGeneratorFromAPI30 : DataKeyGenerator {
 				.setRandomizedEncryptionRequired(true)
 				.setUserAuthenticationRequired(credentialEncryptionMode.requiresAuthentication)
 		when (credentialEncryptionMode) {
-			CredentialEncryptionMode.ENCRYPTION_MODE_BIOMETRICS -> builder.setUserAuthenticationParameters(0, KeyProperties.AUTH_BIOMETRIC_STRONG)
-			CredentialEncryptionMode.ENCRYPTION_MODE_SYSTEM_PASSWORD -> builder.setUserAuthenticationParameters(0, KeyProperties.AUTH_DEVICE_CREDENTIAL or KeyProperties.AUTH_BIOMETRIC_STRONG)
-			CredentialEncryptionMode.ENCRYPTION_MODE_DEVICE_LOCK -> {}
+			CredentialEncryptionMode.BIOMETRICS -> builder.setUserAuthenticationParameters(0, KeyProperties.AUTH_BIOMETRIC_STRONG)
+			CredentialEncryptionMode.SYSTEM_PASSWORD -> builder.setUserAuthenticationParameters(0, KeyProperties.AUTH_DEVICE_CREDENTIAL or KeyProperties.AUTH_BIOMETRIC_STRONG)
+			CredentialEncryptionMode.DEVICE_LOCK -> {}
 		}
 		return KeyGenerator.getInstance("AES", "AndroidKeyStore").run {
 			init(builder.build())

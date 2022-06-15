@@ -70,9 +70,6 @@ declare type NativeRequestType = 'init'
 	| 'getConfigValue'
 	| 'getIntegrationInfo'
 	| 'getSpellcheckLanguages'
-	| 'encryptUsingKeychain'
-	| 'decryptUsingKeychain'
-	| 'getSupportedEncryptionModes'
 	| 'facade' // only for desktop
 	| 'ipc'
 

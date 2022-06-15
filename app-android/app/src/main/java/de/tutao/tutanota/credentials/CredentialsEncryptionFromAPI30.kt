@@ -10,6 +10,7 @@ import androidx.biometric.BiometricPrompt.PromptInfo
 import androidx.fragment.app.FragmentActivity
 import de.tutao.tutanota.*
 import de.tutao.tutanota.CryptoError
+import de.tutao.tutanota.ipc.NativeCredentialsFacade
 import java.security.KeyStoreException
 import javax.crypto.Cipher
 
@@ -19,14 +20,14 @@ class CredentialsEncryptionFromAPI30(
 		private val keyStoreFacade: AndroidKeyStoreFacade,
 		private val activity: FragmentActivity,
 		private val authenticationPrompt: AuthenticationPrompt
-) : ICredentialsEncryption {
+) : NativeCredentialsFacade {
 	@Throws(
 			KeyStoreException::class,
 			CryptoError::class,
 			CredentialAuthenticationException::class,
 			KeyPermanentlyInvalidatedException::class
 	)
-	override fun encryptUsingKeychain(base64EncodedData: String, encryptionMode: CredentialEncryptionMode): String {
+	override suspend fun encryptUsingKeychain(base64EncodedData: String, encryptionMode: CredentialEncryptionMode): String {
 		val dataToEncrypt = base64EncodedData.base64ToBytes()
 		val cipher = getAuthenticatedCipherForEncryptionModelWithFallback(encryptionMode)
 		val encryptedBytes = keyStoreFacade.encryptData(dataToEncrypt, cipher)
@@ -39,7 +40,7 @@ class CredentialsEncryptionFromAPI30(
 			CredentialAuthenticationException::class,
 			KeyPermanentlyInvalidatedException::class
 	)
-	override fun decryptUsingKeychain(
+	override suspend fun decryptUsingKeychain(
 			base64EncodedEncryptedData: String,
 			encryptionMode: CredentialEncryptionMode
 	): String {
@@ -49,15 +50,15 @@ class CredentialsEncryptionFromAPI30(
 		return decryptedBytes.toBase64()
 	}
 
-	override fun getSupportedEncryptionModes(): List<CredentialEncryptionMode> {
+	override suspend fun getSupportedEncryptionModes(): List<CredentialEncryptionMode> {
 		val supportedModes: MutableList<CredentialEncryptionMode> = ArrayList()
-		supportedModes.add(CredentialEncryptionMode.ENCRYPTION_MODE_DEVICE_LOCK)
+		supportedModes.add(CredentialEncryptionMode.DEVICE_LOCK)
 		val biometricManager = from(activity)
 		if (biometricManager.canAuthenticate(Authenticators.BIOMETRIC_STRONG) == BIOMETRIC_SUCCESS) {
-			supportedModes.add(CredentialEncryptionMode.ENCRYPTION_MODE_BIOMETRICS)
+			supportedModes.add(CredentialEncryptionMode.BIOMETRICS)
 		}
 		if (biometricManager.canAuthenticate(Authenticators.DEVICE_CREDENTIAL or Authenticators.BIOMETRIC_STRONG) == BIOMETRIC_SUCCESS) {
-			supportedModes.add(CredentialEncryptionMode.ENCRYPTION_MODE_SYSTEM_PASSWORD)
+			supportedModes.add(CredentialEncryptionMode.SYSTEM_PASSWORD)
 		}
 		return supportedModes
 	}
@@ -65,17 +66,17 @@ class CredentialsEncryptionFromAPI30(
 	@Throws(CredentialAuthenticationException::class)
 	private fun authenticateCipher(cipher: Cipher, encryptionMode: CredentialEncryptionMode) {
 		when (encryptionMode) {
-			CredentialEncryptionMode.ENCRYPTION_MODE_BIOMETRICS -> authenticateUsingBiometrics(
+			CredentialEncryptionMode.BIOMETRICS -> authenticateUsingBiometrics(
 					BiometricPrompt.CryptoObject(
 							cipher
 					), encryptionMode
 			)
-			CredentialEncryptionMode.ENCRYPTION_MODE_SYSTEM_PASSWORD -> authenticateUsingBiometrics(
+			CredentialEncryptionMode.SYSTEM_PASSWORD -> authenticateUsingBiometrics(
 					BiometricPrompt.CryptoObject(
 							cipher
 					), encryptionMode
 			)
-			CredentialEncryptionMode.ENCRYPTION_MODE_DEVICE_LOCK -> {}
+			CredentialEncryptionMode.DEVICE_LOCK -> {}
 		}
 	}
 
@@ -86,11 +87,11 @@ class CredentialsEncryptionFromAPI30(
 	) {
 		// see AuthentorUtils#isSupportedCombination from androidx.biometrics
 		val allowedAuthenticators =
-				if (encryptionMode == CredentialEncryptionMode.ENCRYPTION_MODE_BIOMETRICS) Authenticators.BIOMETRIC_STRONG else Authenticators.DEVICE_CREDENTIAL or Authenticators.BIOMETRIC_STRONG
+				if (encryptionMode == CredentialEncryptionMode.BIOMETRICS) Authenticators.BIOMETRIC_STRONG else Authenticators.DEVICE_CREDENTIAL or Authenticators.BIOMETRIC_STRONG
 		val promptInfoBuilder = PromptInfo.Builder()
 				.setTitle(activity.getString(R.string.unlockCredentials_action))
 				.setAllowedAuthenticators(allowedAuthenticators)
-		if (encryptionMode == CredentialEncryptionMode.ENCRYPTION_MODE_BIOMETRICS) {
+		if (encryptionMode == CredentialEncryptionMode.BIOMETRICS) {
 			promptInfoBuilder.setNegativeButtonText(activity.getString(android.R.string.cancel))
 		}
 		val promptInfo = promptInfoBuilder.build()
@@ -159,13 +160,13 @@ class CredentialsEncryptionFromAPI30(
 	 * it.
 	 */
 	private fun createPromptInfo(mode: CredentialEncryptionMode): PromptInfo {
-		return if (mode === CredentialEncryptionMode.ENCRYPTION_MODE_BIOMETRICS) {
+		return if (mode === CredentialEncryptionMode.BIOMETRICS) {
 			val promptInfoBuilder = PromptInfo.Builder()
 					.setTitle(activity.getString(R.string.unlockCredentials_action)) // see AuthentorUtils#isSupportedCombination from androidx.biometrics
 					.setAllowedAuthenticators(Authenticators.BIOMETRIC_STRONG)
 					.setNegativeButtonText(activity.getString(android.R.string.cancel))
 			promptInfoBuilder.build()
-		} else if (mode === CredentialEncryptionMode.ENCRYPTION_MODE_SYSTEM_PASSWORD) {
+		} else if (mode === CredentialEncryptionMode.SYSTEM_PASSWORD) {
 			val promptInfoBuilder = PromptInfo.Builder()
 					.setTitle(activity.getString(R.string.unlockCredentials_action)) // see AuthentorUtils#isSupportedCombination from androidx.biometrics
 					.setAllowedAuthenticators(Authenticators.DEVICE_CREDENTIAL or Authenticators.BIOMETRIC_WEAK)
