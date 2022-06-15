@@ -434,7 +434,10 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				buttons: [
 					{
 						label: "retry_action",
-						click: () => this.viewModel.loadAll()
+						click: async () => {
+							await this.viewModel.loadAll()
+							await this.replaceInlineImages()
+						}
 					}
 				]
 			})
