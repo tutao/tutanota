@@ -151,7 +151,7 @@ import("./translations/en")
 				console.error("Failed to fetch translation: " + userLanguage.code, e)
 			})
 
-			if (isApp() || isDesktop()) {
+			if (isDesktop()) {
 				locator.systemApp.changeSystemLanguage(language)
 			}
 		}

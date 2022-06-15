@@ -1,0 +1,28 @@
+{
+  "name": "SearchTextInAppFacade",
+  "type": "facade",
+  "senders": ["web"],
+  "receivers": ["desktop"],
+  "methods": {
+	"findInPage": {
+	  "arg": [
+		{"searchTerm": "string"},
+		{"forward": "boolean"},
+		{"matchCase": "boolean"},
+		{"findNext": "boolean"}
+	  ],
+	  "ret": "Result?"
+	},
+	"stopFindInPage": {
+	  "arg": [],
+	  "ret": "void"
+	},
+	"setSearchOverlayState": {
+	  "arg": [
+		{"isFocused": "boolean"},
+		{"force": "boolean"}
+	  ],
+	  "ret": "void"
+	}
+  }
+}
