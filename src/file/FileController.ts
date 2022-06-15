@@ -1,7 +1,7 @@
 import {Dialog} from "../gui/base/Dialog"
 import {convertToDataFile, createDataFile, DataFile} from "../api/common/DataFile"
 import {assertMainOrNode, isAndroidApp, isApp, isDesktop, isIOSApp} from "../api/common/Env"
-import {assertNotNull, isNotNull, neverNull, noOp, promiseMap, sortableTimestamp} from "@tutao/tutanota-utils"
+import {assertNotNull, isNotNull, neverNull, noOp, promiseMap, sortableTimestamp, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {CryptoError} from "../api/common/error/CryptoError"
 import {lang, TranslationKey} from "../misc/LanguageViewModel"
@@ -318,6 +318,11 @@ export class FileController {
 				throw new ProgrammingError("can't open FileReference in browser")
 			}
 		}
+	}
+
+	async saveStringAsFile(contents: string, name: string, mimeType: string) {
+		const dataFile = createDataFile(name, mimeType, stringToUtf8Uint8Array(contents))
+		await this.saveDataFile(dataFile)
 	}
 
 	private deleteFile(filePath: string) {

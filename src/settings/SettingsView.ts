@@ -6,13 +6,14 @@ import {ViewSlider} from "../gui/nav/ViewSlider.js"
 import {SettingsFolder} from "./SettingsFolder"
 import {lang} from "../misc/LanguageViewModel"
 import type {CurrentView} from "../gui/Header.js"
+import {header} from "../gui/Header.js"
 import {LoginSettingsViewer} from "./LoginSettingsViewer"
 import {GlobalSettingsViewer} from "./GlobalSettingsViewer"
 import {DesktopSettingsViewer} from "./DesktopSettingsViewer"
 import {MailSettingsViewer} from "./MailSettingsViewer"
 import {UserListView} from "./UserListView"
-import type {User} from "../api/entities/sys/TypeRefs.js"
-import {UserTypeRef} from "../api/entities/sys/TypeRefs.js"
+import type {ReceivedGroupInvitation, User} from "../api/entities/sys/TypeRefs.js"
+import {CustomerInfoTypeRef, UserTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {logins} from "../api/main/LoginController"
 import {GroupListView} from "./GroupListView"
 import {ContactFormListView} from "./contactform/ContactFormListView.js"
@@ -30,7 +31,6 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {showUserImportDialog} from "./UserViewer"
 import {LazyLoaded, partition, promiseMap} from "@tutao/tutanota-utils"
 import {getAvailableDomains} from "./AddUserDialog"
-import {CustomerInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {AppearanceSettingsViewer} from "./AppearanceSettingsViewer"
 import type {NavButtonAttrs} from "../gui/base/NavButtonN"
 import {NavButtonColor} from "../gui/base/NavButtonN";
@@ -52,15 +52,14 @@ import {getDefaultGroupName, getSharedGroupName, isSharedGroupOwner} from "../sh
 import {DummyTemplateListView} from "./DummyTemplateListView"
 import {SettingsFolderRow} from "./SettingsFolderRow"
 import {isCustomizationEnabledForCustomer} from "../api/common/utils/Utils"
-import type {ReceivedGroupInvitation} from "../api/entities/sys/TypeRefs.js"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {HttpMethod} from "../api/common/EntityFunctions"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {createGroupSettings} from "../api/entities/tutanota/TypeRefs.js"
-import {createUserAreaGroupDeleteData} from "../api/entities/tutanota/TypeRefs.js"
+import {createGroupSettings, createUserAreaGroupDeleteData} from "../api/entities/tutanota/TypeRefs.js"
 import {GroupInvitationFolderRow} from "../sharing/view/GroupInvitationFolderRow"
 import {TemplateGroupService} from "../api/entities/tutanota/Services"
-import {header} from "../gui/Header.js"
+import {attachDropdown} from "../gui/base/DropdownN.js"
+import {exportUserCsv} from "./UserDataExporter.js"
+import {ButtonType} from "../gui/base/ButtonN.js"
 
 assertMainOrNode()
 
@@ -452,11 +451,29 @@ export class SettingsView implements CurrentView {
 						mainButtonAttrs: buttonAttrs,
 						extraButtonAttrs:
 							canImportUsers && folder.path === "users"
-								? {
-									label: "importUsers_action",
-									click: () => showUserImportDialog(this._customDomains.getLoaded()),
-									icon: () => Icons.ContactImport,
-								}
+								? attachDropdown({
+									mainButtonAttrs: {
+										label: "importExport_action",
+										icon: () => Icons.More,
+									},
+									childAttrs: () => [
+										{
+											label: "importUsers_action",
+											click: () => showUserImportDialog(this._customDomains.getLoaded()),
+											type: ButtonType.Dropdown
+										},
+										{
+											label: "exportUsers_action",
+											click: () => exportUserCsv(
+												locator.entityClient,
+												locator.userManagementFacade,
+												logins,
+												locator.fileController
+											),
+											type: ButtonType.Dropdown
+										},
+									]
+								})
 								: null,
 					})
 				}),
