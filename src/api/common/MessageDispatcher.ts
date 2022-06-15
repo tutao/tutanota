@@ -184,8 +184,10 @@ function _createRequestId() {
 
 	if (isWorker()) {
 		prefix = "worker"
-	} else {
+	} else if (typeof window != "undefined") {
 		prefix = "main"
+	} else {
+		prefix = "desktop"
 	}
 
 	return prefix + requestId++

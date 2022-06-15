@@ -1,12 +1,10 @@
 import type {App} from "electron"
 import type {WindowManager} from "./DesktopWindowManager"
-import type {IPC} from "./IPC"
 import {isMailAddress} from "../misc/FormatValidator"
 import {log} from "./DesktopLog"
 import type {TimeoutSetter} from "@tutao/tutanota-utils"
 import {NetExports} from "./ElectronExportTypes";
 import {Server, Socket} from "net"
-import {DesktopFacadeSendDispatcher} from "../native/common/generatedipc/DesktopFacadeSendDispatcher.js"
 
 const SOCKET_PATH = "/tmp/tutadb.sock"
 
@@ -35,14 +33,13 @@ export class Socketeer {
 		})
 	}
 
-	attach(wm: WindowManager, ipc: IPC) {
+	attach(wm: WindowManager) {
 		this.startClient(async msg => {
 			const mailAddress = JSON.parse(msg).mailAddress
 
 			if (typeof mailAddress === "string" && isMailAddress(mailAddress, false)) {
-				const targetWindowId = (await wm.getLastFocused(false)).id
-				const dispatcher = new DesktopFacadeSendDispatcher(ipc.getNativeInterfaceForWindow(targetWindowId))
-				dispatcher.openCustomer(mailAddress)
+				const targetWindow = (await wm.getLastFocused(false))
+				targetWindow.desktopFacade.openCustomer(mailAddress)
 			}
 		})
 	}

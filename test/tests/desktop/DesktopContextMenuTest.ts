@@ -2,7 +2,8 @@ import o from "ospec"
 import n from "../nodemocker.js"
 import {DesktopContextMenu} from "../../../src/desktop/DesktopContextMenu.js"
 import {downcast} from "@tutao/tutanota-utils"
-import {IPC} from "../../../src/desktop/IPC.js";
+import {object} from "testdouble"
+import {WindowManager} from "../../../src/desktop/DesktopWindowManager.js"
 import ContextMenuParams = Electron.ContextMenuParams
 
 o.spec("DesktopContextMenu Test", () => {
@@ -32,18 +33,16 @@ o.spec("DesktopContextMenu Test", () => {
 				statics: {},
 			}),
 		}
-		const ipc = {}
 		const electronMock = n.mock<typeof import("electron")>("electron", electron).set()
-		const ipcMock = n.mock<IPC>("__ipc", ipc).set()
 		return {
 			electronMock,
-			ipcMock,
 		}
 	}
 
 	o("can handle undefined browserWindow and webContents in callback", () => {
-		const {electronMock, ipcMock} = standardMocks()
-		const contextMenu = new DesktopContextMenu(electronMock, id => ipcMock.getNativeInterfaceForWindow(id))
+		const {electronMock} = standardMocks()
+		const wm = object<WindowManager>()
+		const contextMenu = new DesktopContextMenu(electronMock, wm)
 		const contextMenuParams: Partial<ContextMenuParams> = {
 			linkURL: "nourl",
 			editFlags: {

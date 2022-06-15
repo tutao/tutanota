@@ -1,5 +1,5 @@
-import type {BrowserWindow, ContextMenuParams, NativeImage, Result,} from "electron"
-import type {NativeInterfaceFactory, WindowBounds, WindowManager} from "./DesktopWindowManager"
+import type {BrowserWindow, ContextMenuParams, NativeImage, Result} from "electron"
+import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
 import url from "url"
 import type {lazy} from "@tutao/tutanota-utils"
 import {capitalizeFirstLetter, noOp, typedEntries, typedKeys} from "@tutao/tutanota-utils"
@@ -16,8 +16,9 @@ import {ElectronExports} from "./ElectronExportTypes";
 import {OfflineDbFacade} from "./db/OfflineDbFacade"
 import {DesktopFacade} from "../native/common/generatedipc/DesktopFacade.js"
 import {CommonNativeFacade} from "../native/common/generatedipc/CommonNativeFacade.js"
-import {DesktopFacadeSendDispatcher} from "../native/common/generatedipc/DesktopFacadeSendDispatcher.js"
-import {CommonNativeFacadeSendDispatcher} from "../native/common/generatedipc/CommonNativeFacadeSendDispatcher.js"
+import {RemoteBridge} from "./ipc/RemoteBridge.js"
+import {InterWindowEventSender} from "../native/common/InterWindowEventBus.js"
+import {InterWindowEventTypes} from "../native/common/InterWindowEventTypes.js"
 import HandlerDetails = Electron.HandlerDetails
 
 const MINIMUM_WINDOW_SIZE: number = 350
@@ -48,6 +49,10 @@ export class ApplicationWindow {
 	private readonly _localShortcut: LocalShortcutManager
 	private readonly _themeFacade: DesktopThemeFacade
 	private readonly _startFileURL: URL
+	private _desktopFacade!: DesktopFacade
+	private _commonNativeFacade!: CommonNativeFacade
+	private _interWindowEventSender!: InterWindowEventSender<InterWindowEventTypes>
+
 	_browserWindow!: BrowserWindow
 
 	/** User logged in in this window. Reset from WindowManager. */
@@ -58,8 +63,6 @@ export class ApplicationWindow {
 	private _lastSearchRequest: [string, {forward: boolean, matchCase: boolean}] | null = null
 	private _lastSearchPromiseReject: (arg0: Error | null) => void
 	private _shortcuts: Array<LocalShortcut>
-	private readonly desktopFacade: DesktopFacade
-	private readonly commonNativeFacade: CommonNativeFacade
 	id!: number
 
 	constructor(
@@ -70,7 +73,7 @@ export class ApplicationWindow {
 		localShortcutManager: LocalShortcutManager,
 		themeFacade: DesktopThemeFacade,
 		private readonly offlineDbFacade: OfflineDbFacade,
-		nativeInterfaceFactory: NativeInterfaceFactory,
+		private readonly remoteBridge: RemoteBridge,
 		dictUrl: string,
 		noAutoLogin?: boolean | null,
 	) {
@@ -162,15 +165,30 @@ export class ApplicationWindow {
 			icon,
 			dictUrl,
 		})
-
-		// remove once each window has its own ipc transport instance
-		const interfaceFactory = nativeInterfaceFactory(this.id)
-		this.desktopFacade = new DesktopFacadeSendDispatcher(interfaceFactory)
-		this.commonNativeFacade = new CommonNativeFacadeSendDispatcher(interfaceFactory)
+		this.initFacades()
 
 		this._loadInitialUrl(noAutoLogin ?? false)
 
 		this._electron.Menu.setApplicationMenu(null)
+	}
+
+	get desktopFacade(): DesktopFacade {
+		return this._desktopFacade
+	}
+
+	get commonNativeFacade(): CommonNativeFacade {
+		return this._commonNativeFacade
+	}
+
+	get interWindowEventSender(): InterWindowEventSender<InterWindowEventTypes> {
+		return this._interWindowEventSender
+	}
+
+	private initFacades() {
+		const sendingFacades = this.remoteBridge.createBridge(this)
+		this._desktopFacade = sendingFacades.desktopFacade
+		this._commonNativeFacade = sendingFacades.commonNativeFacade
+		this._interWindowEventSender = sendingFacades.interWindowEventSender
 	}
 
 	async _loadInitialUrl(noAutoLogin: boolean) {
@@ -291,6 +309,7 @@ export class ApplicationWindow {
 		this._browserWindow
 			.on("close", () => {
 				this.closeDb()
+				this.remoteBridge.destroyBridge(this)
 			})
 			.on("focus", () => this._localShortcut.enableAll(this._browserWindow))
 			.on("blur", (_: FocusEvent) => this._localShortcut.disableAll(this._browserWindow))
@@ -320,7 +339,7 @@ export class ApplicationWindow {
 
 					this._browserWindow.webContents
 						.once("found-in-page", (ev, res) => {
-							this.desktopFacade.applySearchResultToOverlay(res)
+							this._desktopFacade.applySearchResultToOverlay(res)
 						})
 						.findInPage(searchTerm, options)
 				}
@@ -358,7 +377,7 @@ export class ApplicationWindow {
 			.on("did-navigate-in-page", () => this._browserWindow.emit("did-navigate"))
 			.on("zoom-changed", (ev, direction: "in" | "out") => this._browserWindow.emit("zoom-changed", ev, direction))
 			.on("update-target-url", (ev, url) => {
-				this.desktopFacade.updateTargetUrl(url, this._startFileURLString)
+				this._desktopFacade.updateTargetUrl(url, this._startFileURLString)
 			})
 
 		this._browserWindow.webContents.setWindowOpenHandler(details => this._onNewWindow(details))
@@ -369,7 +388,9 @@ export class ApplicationWindow {
 
 	async reload(queryParams: Record<string, string | boolean>) {
 		await this.closeDb()
+		this.remoteBridge.destroyBridge(this)
 		this.userId = null
+		this.initFacades()
 		const url = await this._getInitialUrl(queryParams)
 		await this._browserWindow.loadURL(url)
 	}
@@ -427,7 +448,7 @@ export class ApplicationWindow {
 			}),
 		)
 
-		this.desktopFacade.addShortcuts(webShortcuts)
+		this._desktopFacade.addShortcuts(webShortcuts)
 	}
 
 	_tryGoBack(): void {
@@ -441,13 +462,13 @@ export class ApplicationWindow {
 	}
 
 	async openMailBox(info: UserInfo, path?: string | null): Promise<void> {
-		await this.commonNativeFacade.openMailBox(info.userId, info.mailAddress!, path ?? null)
+		await this._commonNativeFacade.openMailBox(info.userId, info.mailAddress!, path ?? null)
 		this.show()
 	}
 
 	// open at date?
 	async openCalendar(info: UserInfo): Promise<void> {
-		await this.commonNativeFacade.openCalendar(info.userId)
+		await this._commonNativeFacade.openCalendar(info.userId)
 		this.show()
 	}
 
@@ -557,11 +578,11 @@ export class ApplicationWindow {
 	}
 
 	_printMail() {
-		this.desktopFacade.print()
+		this._desktopFacade.print()
 	}
 
 	_openFindInPage(): void {
-		this.desktopFacade.openFindInPage()
+		this._desktopFacade.openFindInPage()
 	}
 
 	isVisible(): boolean {

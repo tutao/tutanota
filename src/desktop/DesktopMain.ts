@@ -4,7 +4,6 @@ import {DesktopConfig} from "./config/DesktopConfig"
 import * as electron from "electron"
 import {app} from "electron"
 import {DesktopUtils} from "./DesktopUtils"
-import {IPC} from "./IPC"
 import {WindowManager} from "./DesktopWindowManager"
 import {DesktopNotifier} from "./DesktopNotifier"
 import {ElectronUpdater} from "./ElectronUpdater"
@@ -36,20 +35,14 @@ import {DateProviderImpl} from "../calendar/date/CalendarUtils"
 import {DesktopThemeFacade} from "./DesktopThemeFacade"
 import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys";
 import {DesktopNativeCredentialsFacade} from "./credentials/DesktopNativeCredentialsFacade.js"
-import {DesktopWebauthn} from "./2fa/DesktopWebauthn.js"
 import {webauthnIpcHandler, WebDialogController} from "./WebDialog.js"
-import {ExposedNativeInterface} from "../native/common/NativeInterface.js"
 import path from "path"
 import {OfflineDbFacade, OfflineDbFactory} from "./db/OfflineDbFacade"
 import {OfflineDb} from "./db/OfflineDb"
-import {DesktopInterWindowEventSender} from "./ipc/DesktopInterWindowEventSender"
-import {DesktopFileFacade} from "./DesktopFileFacade.js"
-import {DesktopPostLoginActions} from "./DesktopPostLoginActions"
-import {DesktopGlobalDispatcher} from "../native/common/generatedipc/DesktopGlobalDispatcher.js"
-import {CommonNativeFacadeSendDispatcher} from "../native/common/generatedipc/CommonNativeFacadeSendDispatcher.js"
 import {DesktopContextMenu} from "./DesktopContextMenu.js"
 import {DesktopNativePushFacade} from "./sse/DesktopNativePushFacade.js"
 import {NativeCredentialsFacade} from "../native/common/generatedipc/NativeCredentialsFacade.js"
+import {RemoteBridge} from "./ipc/RemoteBridge.js"
 
 /**
  * Should be injected during build time.
@@ -62,7 +55,6 @@ declare const buildOptions: {
 mp()
 type Components = {
 	readonly wm: WindowManager
-	readonly ipc: IPC
 	readonly dl: DesktopDownloadManager
 	readonly sse: DesktopSseClient
 	readonly conf: DesktopConfig
@@ -134,6 +126,12 @@ async function createComponents(): Promise<Components> {
 	const shortcutManager = new LocalShortcutManager()
 	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(keyStoreFacade, desktopCrypto)
 
+	updater.setUpdateDownloadedListener(() => {
+		for (let applicationWindow of wm.getAll()) {
+			applicationWindow.desktopFacade.appUpdateDownloaded()
+		}
+	})
+
 	const offlineDbFactory: OfflineDbFactory = {
 		async create(userid: string, key: Aes256Key): Promise<OfflineDb> {
 			const db = new OfflineDb(buildOptions.sqliteNativePath)
@@ -172,48 +170,35 @@ async function createComponents(): Promise<Components> {
 	// It should be ok to await this, all we are waiting for is dynamic imports
 	const integrator = await getDesktopIntegratorForPlatform(electron, fs, child_process, () => import("winreg"))
 
+	const remoteBridge = new RemoteBridge(
+		offlineDbFacade,
+		wm,
+		dl,
+		conf,
+		updater,
+		desktopUtils,
+		integrator,
+		sock,
+		webDialogController,
+		notifier,
+		new DesktopNativeCredentialsFacade(keyStoreFacade, desktopCrypto),
+		new DesktopNativeCryptoFacade(fs, cryptoFns, desktopUtils),
+		new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage),
+		new DesktopThemeFacade(conf, wm)
+	)
+
 	function makeDbPath(userId: string): string {
 		return path.join(app.getPath("userData"), `offline_${userId}.sqlite`)
 	}
 
-	const exposedInterfaceFactory = (windowId: number, ipc: IPC): ExposedNativeInterface => {
-		return {
-			webauthn: new DesktopWebauthn(windowId, webDialogController),
-			offlineDbFacade,
-			interWindowEventSender: new DesktopInterWindowEventSender(ipc, wm, windowId),
-			postLoginActions: new DesktopPostLoginActions(wm, err, notifier, windowId)
-		}
-	}
-
-	const dispatcher = new DesktopGlobalDispatcher(
-		new DesktopFileFacade(dl, electron, fs),
-		nativeCredentialsFacade,
-		desktopCrypto,
-		new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage),
-		themeFacade
-	)
-
-	const ipc = new IPC(
-		conf,
-		wm,
-		sock,
-		dl,
-		updater,
-		electron,
-		desktopUtils,
-		integrator,
-		exposedInterfaceFactory,
-		dispatcher,
-	)
-	const contextMenu = new DesktopContextMenu(electron, id => ipc.getNativeInterfaceForWindow(id))
-	wm.lateInit(ipc, contextMenu, themeFacade, (windowId) => ipc.getNativeInterfaceForWindow(windowId))
+	const contextMenu = new DesktopContextMenu(electron, wm)
+	wm.lateInit(contextMenu, themeFacade, remoteBridge)
 	conf.getConst(BuildConfigKey.appUserModelId).then(appUserModelId => {
 		app.setAppUserModelId(appUserModelId)
 	})
 	log.debug("version:  ", app.getVersion())
 	return {
 		wm,
-		ipc,
 		dl,
 		sse,
 		conf,
@@ -267,7 +252,7 @@ async function startupInstance(components: Components) {
 }
 
 async function onAppReady(components: Components) {
-	const {ipc, wm, keyStoreFacade, conf} = components
+	const {wm, keyStoreFacade, conf} = components
 	keyStoreFacade.getDeviceKey().catch(() => {
 		electron.dialog.showErrorBox("Could not access secret storage", "Please see the FAQ at tutanota.com/faq/#secretstorage")
 	})
@@ -276,12 +261,12 @@ async function onAppReady(components: Components) {
 			app.quit()
 		}
 	})
-	err.init(wm, ipc)
+	err.init(wm)
 	// only create a window if there are none (may already have created one, e.g. for mailto handling)
 	// also don't show the window when we're an autolaunched tray app
 	const w = await wm.getLastFocused(!((await conf.getVar(DesktopConfigKey.runAsTrayApp)) && opts.wasAutoLaunched))
 	log.debug("default mailto handler:", app.isDefaultProtocolClient("mailto"))
-	ipc.initialized(w.id).then(() => main(components))
+	main(components)
 }
 
 async function main(components: Components) {
@@ -313,11 +298,10 @@ function findMailToUrlInArgv(argv: string[]): string | null {
 	return argv.find(arg => arg.startsWith("mailto")) ?? null
 }
 
-async function handleMailto(mailtoArg: string | null, {wm, ipc}: Components) {
+async function handleMailto(mailtoArg: string | null, {wm}: Components) {
 	if (mailtoArg) {
 		/*[filesUris, text, addresses, subject, mailToUrl]*/
 		const w = await wm.getLastFocused(true)
-		return new CommonNativeFacadeSendDispatcher(ipc.getNativeInterfaceForWindow(w.id))
-			.createMailEditor([], "", [], "", mailtoArg)
+		return w.commonNativeFacade.createMailEditor([], "", [], "", mailtoArg)
 	}
 }

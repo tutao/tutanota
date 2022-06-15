@@ -1,7 +1,6 @@
 import type {ContextMenuParams, Menu, WebContents} from "electron"
 import {lang} from "../misc/LanguageViewModel"
-import {DesktopFacadeSendDispatcher} from "../native/common/generatedipc/DesktopFacadeSendDispatcher.js"
-import {NativeInterfaceFactory} from "./DesktopWindowManager.js"
+import {WindowManager} from "./DesktopWindowManager.js"
 
 type Electron = typeof Electron.CrossProcessExports
 
@@ -9,7 +8,7 @@ export class DesktopContextMenu {
 
 	constructor(
 		private readonly electron: Electron,
-		private readonly nativeInterfaceFactory: NativeInterfaceFactory,
+		private readonly windowManager: WindowManager,
 	) {
 	}
 
@@ -53,7 +52,7 @@ export class DesktopContextMenu {
 		})
 		const spellingItem = new this.electron.MenuItem({
 			label: lang.get("spelling_label"),
-			submenu: this._spellingSubmenu(misspelledWord, dictionarySuggestions),
+			submenu: this.spellingSubmenu(misspelledWord, dictionarySuggestions),
 		})
 		menu.append(copyItem)
 		menu.append(cutItem)
@@ -80,7 +79,7 @@ export class DesktopContextMenu {
 		menu.popup()
 	}
 
-	_spellingSubmenu(misspelledWord: string, dictionarySuggestions: Array<string>): Menu {
+	private spellingSubmenu(misspelledWord: string, dictionarySuggestions: Array<string>): Menu {
 		const submenu = new this.electron.Menu()
 
 		if (misspelledWord !== "") {
@@ -113,7 +112,7 @@ export class DesktopContextMenu {
 			submenu.append(
 				new this.electron.MenuItem({
 					label: lang.get("changeSpellCheckLang_action"),
-					click: (mi, bw) => bw && bw.webContents && this._changeSpellcheckLanguage(bw.webContents),
+					click: (mi, bw) => bw && bw.webContents && this.changeSpellcheckLanguage(bw.webContents),
 				}),
 			)
 		}
@@ -121,11 +120,10 @@ export class DesktopContextMenu {
 		return submenu
 	}
 
-	async _changeSpellcheckLanguage(wc: WebContents) {
-		const window = this.electron.BrowserWindow.fromWebContents(wc)
-
-		if (window) {
-			await new DesktopFacadeSendDispatcher(this.nativeInterfaceFactory(window.id)).showSpellcheckDropdown()
-		}
+	private async changeSpellcheckLanguage(wc: WebContents) {
+		const windowId = this.electron.BrowserWindow.fromWebContents(wc)?.id
+		if (windowId == null) return
+		const window = this.windowManager.get(windowId)
+		window?.desktopFacade.showSpellcheckDropdown()
 	}
 }
