@@ -137,7 +137,7 @@ import("./translations/en")
 				),
 			)
 		} else if (isDesktop()) {
-			import("./native/main/UpdatePrompt.js").then(({registerForUpdates}) => registerForUpdates(locator.native))
+			import("./native/main/UpdatePrompt.js").then(({registerForUpdates}) => registerForUpdates(locator.desktopSettingsFacade))
 		}
 
 		const userLanguage = deviceConfig.getLanguage() && languages.find(l => l.code === deviceConfig.getLanguage())
@@ -152,7 +152,7 @@ import("./translations/en")
 			})
 
 			if (isDesktop()) {
-				locator.systemApp.changeSystemLanguage(language)
+				locator.desktopSettingsFacade.changeLanguage(language.code, language.languageTag)
 			}
 		}
 
@@ -206,7 +206,7 @@ import("./translations/en")
 		const {CachePostLoginAction} = await import("./offline/CachePostLoginAction")
 		logins.addPostLoginAction(new PostLoginActions(locator.credentialsProvider, locator.secondFactorHandler))
 		logins.addPostLoginAction(new CachePostLoginAction(
-			locator.calendarModel, locator.entityClient, locator.progressTracker, logins, isDesktop() ? locator.systemApp : null
+			locator.calendarModel, locator.entityClient, locator.progressTracker, logins, locator.desktopSettingsFacade,
 		))
 
 		styles.init()

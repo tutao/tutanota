@@ -1,10 +1,10 @@
 import {OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS} from "../api/common/TutanotaConstants.js";
 import {isOfflineStorageAvailable} from "../api/common/Env.js";
-import {assert, lazy} from "@tutao/tutanota-utils";
+import {assert} from "@tutao/tutanota-utils";
 import {IUserController} from "../api/main/UserController"
-import {NativeSystemApp} from "../native/common/NativeSystemApp"
 import {DesktopConfigKey} from "../desktop/config/ConfigKeys"
 import {DeviceConfig} from "../misc/DeviceConfig"
+import {SettingsFacade} from "../native/common/generatedipc/SettingsFacade.js"
 
 /**
  * A model for handling offline storage configuration
@@ -22,7 +22,7 @@ export class OfflineStorageSettingsModel {
 	// Native interfaces are lazy to allow us to unconditionally construct the SettingsModel
 	// If we are not in a native context, then they should never be accessed
 	constructor(
-		private readonly systemApp: lazy<NativeSystemApp>,
+		private readonly settingsFacade: SettingsFacade,
 		private readonly userController: IUserController,
 		private readonly deviceConfig: DeviceConfig,
 	) {
@@ -59,7 +59,7 @@ export class OfflineStorageSettingsModel {
 
 	async init(): Promise<void> {
 		if (isOfflineStorageAvailable()) {
-			this.isEnabled = await this.systemApp().getConfigValue(DesktopConfigKey.offlineStorageEnabled)
+			this.isEnabled = await this.settingsFacade.getBooleanConfigValue(DesktopConfigKey.offlineStorageEnabled)
 
 			if (this.isEnabled) {
 				const stored = this.deviceConfig.getOfflineTimeRangeDays(this.userController.userId)

@@ -43,6 +43,7 @@ import {DesktopContextMenu} from "./DesktopContextMenu.js"
 import {DesktopNativePushFacade} from "./sse/DesktopNativePushFacade.js"
 import {NativeCredentialsFacade} from "../native/common/generatedipc/NativeCredentialsFacade.js"
 import {RemoteBridge} from "./ipc/RemoteBridge.js"
+import {DesktopSettingsFacade} from "./config/DesktopSettingsFacade.js"
 
 /**
  * Should be injected during build time.
@@ -174,16 +175,14 @@ async function createComponents(): Promise<Components> {
 		offlineDbFacade,
 		wm,
 		dl,
-		conf,
-		updater,
 		desktopUtils,
-		integrator,
 		sock,
 		webDialogController,
 		notifier,
 		new DesktopNativeCredentialsFacade(keyStoreFacade, desktopCrypto),
 		new DesktopNativeCryptoFacade(fs, cryptoFns, desktopUtils),
 		new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage),
+		new DesktopSettingsFacade(conf, desktopUtils, integrator, updater, lang),
 		new DesktopThemeFacade(conf, wm)
 	)
 

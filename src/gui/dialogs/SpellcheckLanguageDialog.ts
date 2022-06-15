@@ -9,7 +9,7 @@ export async function showSpellcheckLanguageDialog(): Promise<string> {
 	const items = await getItems()
 	// this is a language code
 	const newLang = await Dialog.showDropDownSelectionDialog("spelling_label", "language_label", null, items, current)
-	await locator.systemApp.setConfigValue(DesktopConfigKey.spellcheck, newLang)
+	await locator.desktopSettingsFacade.setStringConfigValue(DesktopConfigKey.spellcheck, newLang)
 	// return displayable language name
 	const selectedItem = items.find(i => i.value === newLang)
 	return selectedItem ? selectedItem.name : items[0].name
@@ -24,12 +24,12 @@ export async function getCurrentSpellcheckLanguageLabel(): Promise<string> {
 
 async function getCurrentSpellcheckLanguage(): Promise<string> {
 	const {DesktopConfigKey} = await import("../../desktop/config/ConfigKeys")
-	return locator.systemApp.getConfigValue(DesktopConfigKey.spellcheck)
+	return (await locator.desktopSettingsFacade.getStringConfigValue(DesktopConfigKey.spellcheck)) ?? ""
 }
 
 async function getItems(): Promise<Array<SelectorItem<string>>> {
 	const {languages, lang} = await import("../../misc/LanguageViewModel.js")
-	const options = await locator.systemApp.getSpellcheckLanguages()
+	const options = await locator.desktopSettingsFacade.getSpellcheckLanguages()
 	return [
 		{
 			name: lang.get("comboBoxSelectionNone_msg"),

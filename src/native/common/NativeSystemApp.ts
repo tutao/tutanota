@@ -1,6 +1,3 @@
-import {isDesktop} from "../../api/common/Env"
-import type {DesktopConfigEncKey, DesktopConfigKey} from "../../desktop/config/ConfigKeys"
-import type {LanguageCode} from "../../misc/LanguageViewModel"
 import type {NativeInterface} from "./NativeInterface"
 import type {NativeFileApp} from "./FileApp"
 import {FileReference} from "../../api/common/utils/FileUtils";
@@ -13,12 +10,10 @@ export type IntegrationInfo = {
 }
 
 export class NativeSystemApp {
-	_native: NativeInterface
-	_fileApp: NativeFileApp
-
-	constructor(native: NativeInterface, fileApp: NativeFileApp) {
-		this._native = native
-		this._fileApp = fileApp
+	constructor(
+		private readonly native: NativeInterface,
+		private readonly fileApp: NativeFileApp
+	) {
 	}
 
 	/**
@@ -26,48 +21,26 @@ export class NativeSystemApp {
 	 * @param uri The uri
 	 */
 	openLinkNative(uri: string): Promise<boolean> {
-		return this._native.invokeNative("openLink", [uri])
+		return this.native.invokeNative("openLink", [uri])
 	}
 
 	shareTextNative(text: string, title: string): Promise<boolean> {
-		return this._native.invokeNative("shareText", [text, title])
+		return this.native.invokeNative("shareText", [text, title])
 	}
 
 	reloadNative(queryParams: Record<string, string>): Promise<void> {
-		return this._native.invokeNative("reload", [queryParams])
-	}
-
-	async changeSystemLanguage(language: {code: LanguageCode; languageTag: string}): Promise<void> {
-		if (isDesktop()) {
-			return this._native.invokeNative("changeLanguage", [language])
-		}
+		return this.native.invokeNative("reload", [queryParams])
 	}
 
 	/**
 	 * Get device logs. Returns URI of the file
 	 */
 	async getDeviceLogs(): Promise<FileReference> {
-		const log = await this._native.invokeNative("getDeviceLog", [])
-		return this._fileApp.uriToFileRef(log)
+		const log = await this.native.invokeNative("getDeviceLog", [])
+		return this.fileApp.uriToFileRef(log)
 	}
 
 	getDesktopLogs(): Promise<Array<string>> {
-		return this._native.invokeNative("getLog", [])
-	}
-
-	getConfigValue(key: DesktopConfigKey | DesktopConfigEncKey): Promise<any> {
-		return this._native.invokeNative("getConfigValue", [key])
-	}
-
-	getIntegrationInfo(): Promise<IntegrationInfo> {
-		return this._native.invokeNative("getIntegrationInfo", [])
-	}
-
-	setConfigValue(key: DesktopConfigKey | DesktopConfigEncKey, value: any): Promise<any> {
-		return this._native.invokeNative("setConfigValue", [key, value])
-	}
-
-	getSpellcheckLanguages(): Promise<Array<string>> {
-		return this._native.invokeNative("getSpellcheckLanguages", [])
+		return this.native.invokeNative("getLog", [])
 	}
 }

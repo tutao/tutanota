@@ -1,0 +1,10 @@
+{
+  "name": "IntegrationInfo",
+  "type": "struct",
+  "fields": {
+	"isMailtoHandler": "boolean",
+	"isAutoLaunchEnabled": "boolean",
+	"isIntegrated": "boolean",
+	"isUpdateAvailable": "boolean"
+  }
+}

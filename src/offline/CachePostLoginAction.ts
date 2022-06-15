@@ -4,8 +4,8 @@ import {CalendarEventTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import {CUSTOM_MIN_ID} from "../api/common/utils/EntityUtils.js"
 import {EntityClient} from "../api/common/EntityClient.js"
 import {DesktopConfigKey} from "../desktop/config/ConfigKeys.js"
-import {NativeSystemApp} from "../native/common/NativeSystemApp.js"
 import {ProgressTracker} from "../api/main/ProgressTracker.js"
+import {SettingsFacade} from "../native/common/generatedipc/SettingsFacade.js"
 
 
 export class CachePostLoginAction implements IPostLoginAction {
@@ -15,13 +15,13 @@ export class CachePostLoginAction implements IPostLoginAction {
 		private readonly entityClient: EntityClient,
 		private readonly progressTracker: ProgressTracker,
 		private readonly logins: LoginController,
-		private readonly systemApp: NativeSystemApp | null
+		private readonly desktopSettingsFacade: SettingsFacade | null
 	) {
 
 	}
 
 	async onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
-		if (await this.systemApp?.getConfigValue(DesktopConfigKey.offlineStorageEnabled)) {
+		if (await this.desktopSettingsFacade?.getBooleanConfigValue(DesktopConfigKey.offlineStorageEnabled)) {
 			// 3 work to load calendar info, 2 work to load short and long events
 			const workPerCalendar = 3 + 2
 			const totalWork = this.logins.getUserController().getCalendarMemberships().length * workPerCalendar
