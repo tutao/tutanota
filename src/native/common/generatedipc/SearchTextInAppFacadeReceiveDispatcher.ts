@@ -11,10 +11,12 @@ export class SearchTextInAppFacadeReceiveDispatcher {
 				const searchTerm: string = arg[0]
 				const forward: boolean = arg[1]
 				const matchCase: boolean = arg[2]
+				const findNext: boolean = arg[3]
 				return this.facade.findInPage(
 					searchTerm,
 					forward,
 					matchCase,
+					findNext,
 				)
 			}
 			case "stopFindInPage": {

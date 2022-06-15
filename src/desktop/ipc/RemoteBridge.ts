@@ -12,7 +12,7 @@ import {ElectronWebContentsTransport} from "./ElectronWebContentsTransport.js"
 import {DesktopGlobalDispatcher} from "../../native/common/generatedipc/DesktopGlobalDispatcher.js"
 import {DesktopFileFacade} from "../DesktopFileFacade.js"
 import fs from "fs"
-import {defer, downcast} from "@tutao/tutanota-utils"
+import {defer} from "@tutao/tutanota-utils"
 import {MessageDispatcher, Request} from "../../api/common/MessageDispatcher.js"
 import {DesktopFacadeSendDispatcher} from "../../native/common/generatedipc/DesktopFacadeSendDispatcher.js"
 import {CommonNativeFacadeSendDispatcher} from "../../native/common/generatedipc/CommonNativeFacadeSendDispatcher.js"
@@ -40,6 +40,7 @@ import {DesktopIntegrator} from "../integration/DesktopIntegrator.js"
 import {Socketeer} from "../Socketeer.js"
 import {InterWindowEventSender} from "../../native/common/InterWindowEventBus.js"
 import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes.js"
+import {DesktopSearchTextInAppFacade} from "../DesktopSearchTextInAppFacade.js"
 
 export interface SendingFacades {
 	desktopFacade: DesktopFacade
@@ -92,6 +93,7 @@ export class RemoteBridge {
 			this.nativeCredentialsFacade,
 			this.desktopCrypto,
 			this.pushFacade,
+			new DesktopSearchTextInAppFacade(window),
 			this.themeFacade
 		)
 		let initDefer = defer()
@@ -119,24 +121,6 @@ export class RemoteBridge {
 			"isUpdateAvailable": async () => {
 				return !!this.updater ? Promise.resolve(this.updater.updateInfo) : Promise.resolve(null)
 			},
-			"findInPage": ({args}) => {
-				return window.findInPage(downcast(args))
-			},
-
-			"stopFindInPage": async ({args}) => {
-				return window.stopFindInPage()
-			},
-
-			"setSearchOverlayState": ({args}) => {
-				if (window) {
-					const state: boolean = downcast(args[0])
-					const force: boolean = downcast(args[1])
-					window.setSearchOverlayState(state, force)
-				}
-
-				return Promise.resolve()
-			},
-
 			"registerMailto": ({args}) => {
 				return this.desktopUtils.registerAsMailtoHandler()
 			},

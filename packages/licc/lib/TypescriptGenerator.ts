@@ -148,11 +148,15 @@ export class TypescriptGenerator implements LangGenerator {
 
 	generateTypeRef(outDir: string, definitionPath: string, definition: TypeRefDefinition): string {
 		const acc = new Accumulator()
-		const actualPath = path.relative(
-			path.resolve(outDir),
-			path.resolve(definitionPath, definition.location.typescript)
-		)
-		acc.line(`export {${definition.name}} from "${actualPath}"`)
+		let tsPath = definition.location.typescript
+		const isRelative = tsPath.startsWith(".")
+		const actualPath = (isRelative)
+			? path.relative(
+				path.resolve(outDir),
+				path.resolve(definitionPath, tsPath)
+			)
+			: tsPath
+			acc.line(`export {${definition.name}} from "${actualPath}"`)
 
 		return acc.finish()
 	}

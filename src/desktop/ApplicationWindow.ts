@@ -504,7 +504,8 @@ export class ApplicationWindow {
 		return this._browserWindow.webContents.getURL().substring(this._startFileURLString.length)
 	}
 
-	findInPage([searchTerm, options]: [string, {forward: boolean, matchCase: boolean}]): Promise<Result | null> {
+	findInPage(searchTerm: string, forward: boolean, matchCase: boolean, findNext: boolean): Promise<Result | null> {
+		const options = {forward, matchCase, findNext}
 		this._findingInPage = true
 
 		if (searchTerm !== "") {

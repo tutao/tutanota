@@ -45,8 +45,6 @@ declare type NativeRequestType = 'init'
 	| 'reload'
 	| 'readDataFile'
 	| 'putFileIntoDownloads'
-	| 'findInPage'
-	| 'stopFindInPage'
 	| 'registerMailto'
 	| 'unregisterMailto'
 	| 'openNewWindow'
@@ -58,7 +56,6 @@ declare type NativeRequestType = 'init'
 	| 'getLog' // for desktop
 	| 'integrateDesktop'
 	| 'unIntegrateDesktop'
-	| 'setSearchOverlayState'
 	| 'changeLanguage'
 	| 'isUpdateAvailable' // check if update is ready to install
 	| 'manualUpdate' // progress update process (check, dl, install)

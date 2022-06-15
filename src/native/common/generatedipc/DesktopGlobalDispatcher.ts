@@ -9,6 +9,8 @@ import {NativeCryptoFacade} from "./NativeCryptoFacade.js"
 import {NativeCryptoFacadeReceiveDispatcher} from "./NativeCryptoFacadeReceiveDispatcher.js"
 import {NativePushFacade} from "./NativePushFacade.js"
 import {NativePushFacadeReceiveDispatcher} from "./NativePushFacadeReceiveDispatcher.js"
+import {SearchTextInAppFacade} from "./SearchTextInAppFacade.js"
+import {SearchTextInAppFacadeReceiveDispatcher} from "./SearchTextInAppFacadeReceiveDispatcher.js"
 import {ThemeFacade} from "./ThemeFacade.js"
 import {ThemeFacadeReceiveDispatcher} from "./ThemeFacadeReceiveDispatcher.js"
 
@@ -17,18 +19,21 @@ export class DesktopGlobalDispatcher {
 	private readonly nativeCredentialsFacade : NativeCredentialsFacadeReceiveDispatcher
 	private readonly nativeCryptoFacade : NativeCryptoFacadeReceiveDispatcher
 	private readonly nativePushFacade : NativePushFacadeReceiveDispatcher
+	private readonly searchTextInAppFacade : SearchTextInAppFacadeReceiveDispatcher
 	private readonly themeFacade : ThemeFacadeReceiveDispatcher
 	constructor(
 		fileFacade : FileFacade,
 		nativeCredentialsFacade : NativeCredentialsFacade,
 		nativeCryptoFacade : NativeCryptoFacade,
 		nativePushFacade : NativePushFacade,
+		searchTextInAppFacade : SearchTextInAppFacade,
 		themeFacade : ThemeFacade,
 	) {
 		this.fileFacade = new FileFacadeReceiveDispatcher(fileFacade)
 		this.nativeCredentialsFacade = new NativeCredentialsFacadeReceiveDispatcher(nativeCredentialsFacade)
 		this.nativeCryptoFacade = new NativeCryptoFacadeReceiveDispatcher(nativeCryptoFacade)
 		this.nativePushFacade = new NativePushFacadeReceiveDispatcher(nativePushFacade)
+		this.searchTextInAppFacade = new SearchTextInAppFacadeReceiveDispatcher(searchTextInAppFacade)
 		this.themeFacade = new ThemeFacadeReceiveDispatcher(themeFacade)
 	}
 	
@@ -42,6 +47,8 @@ export class DesktopGlobalDispatcher {
 				return this.nativeCryptoFacade.dispatch(methodName, args)
 			case "NativePushFacade":
 				return this.nativePushFacade.dispatch(methodName, args)
+			case "SearchTextInAppFacade":
+				return this.searchTextInAppFacade.dispatch(methodName, args)
 			case "ThemeFacade":
 				return this.themeFacade.dispatch(methodName, args)
 			default:

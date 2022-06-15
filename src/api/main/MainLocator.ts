@@ -62,9 +62,8 @@ import {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade"
 import {ExposedCacheStorage} from "../worker/rest/EntityRestCache.js"
 import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes"
 import {LoginListener} from "./LoginListener"
-import {WebDesktopFacade} from "../../native/main/WebDesktopFacade"
-import {WebMobileFacade} from "../../native/main/WebMobileFacade.js"
-import {WebCommonNativeFacade} from "../../native/main/WebCommonNativeFacade.js"
+import {SearchTextInAppFacade} from "../../native/common/generatedipc/SearchTextInAppFacade.js"
+import {SearchTextInAppFacadeSendDispatcher} from "../../native/common/generatedipc/SearchTextInAppFacadeSendDispatcher.js"
 
 assertMainOrNode()
 
@@ -114,6 +113,7 @@ export interface IMainLocator {
 	readonly offlineDbFacade: OfflineDbFacade
 	readonly cacheStorage: ExposedCacheStorage
 	readonly recipientsModel: RecipientsModel
+	readonly searchTextFacade: SearchTextInAppFacade
 	readonly init: () => Promise<void>
 	readonly initialized: Promise<void>
 }
@@ -155,6 +155,7 @@ class MainLocator implements IMainLocator {
 	serviceExecutor!: IServiceExecutor
 	cryptoFacade!: CryptoFacade
 	recipientsModel!: RecipientsModel
+	searchTextFacade!: SearchTextInAppFacade
 	cacheStorage!: ExposedCacheStorage
 	_interWindowEventBus!: InterWindowEventBus<InterWindowEventTypes>
 	loginListener!: LoginListener
@@ -321,6 +322,7 @@ class MainLocator implements IMainLocator {
 
 			if (isDesktop()) {
 				this.interWindowEventBus.init(this.getExposedNativeInterface().interWindowEventSender)
+				this.searchTextFacade = new SearchTextInAppFacadeSendDispatcher(this.native)
 			}
 		}
 

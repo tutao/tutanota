@@ -7,6 +7,7 @@ export interface SearchTextInAppFacade {
 		searchTerm: string,
 		forward: boolean,
 		matchCase: boolean,
+		findNext: boolean,
 	): Promise<Result | null>
 	
 	stopFindInPage(
