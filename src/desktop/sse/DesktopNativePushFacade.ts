@@ -1,13 +1,13 @@
 import {NativePushFacade} from "../../native/common/generatedipc/NativePushFacade.js"
 import {DesktopSseClient} from "./DesktopSseClient.js"
 import {EncryptedAlarmNotification} from "../../native/common/EncryptedAlarmNotification.js"
-import {DesktopAlarmScheduler} from "./DesktopAlarmScheduler.js"
+import {NativeAlarmScheduler} from "./DesktopAlarmScheduler.js"
 import {DesktopAlarmStorage} from "./DesktopAlarmStorage.js"
 
 export class DesktopNativePushFacade implements NativePushFacade {
 	constructor(
 		private readonly sse: DesktopSseClient,
-		private readonly alarmScheduler: DesktopAlarmScheduler,
+		private readonly alarmScheduler: NativeAlarmScheduler,
 		private readonly alarmStorage: DesktopAlarmStorage,
 	) {
 	}
