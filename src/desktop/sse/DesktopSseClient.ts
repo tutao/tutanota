@@ -6,7 +6,7 @@ import {NotificationResult} from "../DesktopNotifier";
 import type {WindowManager} from "../DesktopWindowManager"
 import type {DesktopConfig} from "../config/DesktopConfig"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
-import type {DesktopAlarmScheduler} from "./DesktopAlarmScheduler"
+import type {NativeAlarmScheduler} from "./DesktopAlarmScheduler"
 import type {DesktopNetworkClient} from "../DesktopNetworkClient"
 import {DesktopNativeCryptoFacade} from "../DesktopNativeCryptoFacade"
 import {typeModels} from "../../api/entities/sys/TypeModels"
@@ -32,7 +32,7 @@ export class DesktopSseClient {
 	private readonly _conf: DesktopConfig
 	private readonly _wm: WindowManager
 	private readonly _notifier: DesktopNotifier
-	private readonly _alarmScheduler: DesktopAlarmScheduler
+	private readonly _alarmScheduler: NativeAlarmScheduler
 	private readonly _net: DesktopNetworkClient
 	private readonly _alarmStorage: DesktopAlarmStorage
 	private readonly _delayHandler: TimeoutSetter
@@ -54,7 +54,7 @@ export class DesktopSseClient {
 		conf: DesktopConfig,
 		notifier: DesktopNotifier,
 		wm: WindowManager,
-		alarmScheduler: DesktopAlarmScheduler,
+		alarmScheduler: NativeAlarmScheduler,
 		net: DesktopNetworkClient,
 		desktopCrypto: DesktopNativeCryptoFacade,
 		alarmStorage: DesktopAlarmStorage,

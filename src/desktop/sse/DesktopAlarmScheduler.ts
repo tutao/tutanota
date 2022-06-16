@@ -15,25 +15,23 @@ import {resolveTypeReference} from "../../api/common/EntityFunctions"
 import {EncryptedAlarmNotification} from "../../native/common/EncryptedAlarmNotification.js"
 import {base64ToUint8Array} from "@tutao/tutanota-utils"
 
-export class DesktopAlarmScheduler {
-	readonly _wm: WindowManager
-	readonly _notifier: DesktopNotifier
-	readonly _alarmStorage: DesktopAlarmStorage
-	readonly _crypto: DesktopNativeCryptoFacade
-	readonly _alarmScheduler: AlarmScheduler
+export interface NativeAlarmScheduler {
+	handleAlarmNotification(an: EncryptedAlarmNotification): Promise<void>
+
+	unscheduleAllAlarms(userId?: Id | null): Promise<void>
+
+	rescheduleAll(): Promise<void>
+}
+
+export class DesktopAlarmScheduler implements NativeAlarmScheduler {
 
 	constructor(
-		wm: WindowManager,
-		notifier: DesktopNotifier,
-		alarmStorage: DesktopAlarmStorage,
-		desktopCrypto: DesktopNativeCryptoFacade,
-		alarmScheduler: AlarmScheduler,
+		private readonly wm: WindowManager,
+		private readonly notifier: DesktopNotifier,
+		private readonly alarmStorage: DesktopAlarmStorage,
+		private readonly desktopCrypto: DesktopNativeCryptoFacade,
+		private readonly alarmScheduler: AlarmScheduler,
 	) {
-		this._wm = wm
-		this._notifier = notifier
-		this._alarmStorage = alarmStorage
-		this._crypto = desktopCrypto
-		this._alarmScheduler = alarmScheduler
 	}
 
 	/**
@@ -42,11 +40,11 @@ export class DesktopAlarmScheduler {
 	 */
 	async handleAlarmNotification(an: EncryptedAlarmNotification): Promise<void> {
 		if (an.operation === OperationType.CREATE) {
-			await this._handleCreateAlarm(an)
+			await this.handleCreateAlarm(an)
 		} else if (an.operation === OperationType.DELETE) {
 			log.debug(`deleting alarm notifications for ${an.alarmInfo.alarmIdentifier}!`)
 
-			this._handleDeleteAlarm(an)
+			this.handleDeleteAlarm(an)
 		} else {
 			console.warn(
 				`received AlarmNotification (alarmInfo identifier ${an.alarmInfo.alarmIdentifier}) with unsupported operation ${an.operation}, ignoring`,
@@ -54,9 +52,30 @@ export class DesktopAlarmScheduler {
 		}
 	}
 
-	async _decryptAndSchedule(an: EncryptedAlarmNotification): Promise<void> {
+	async unscheduleAllAlarms(userId: Id | null = null): Promise<void> {
+		const alarms = await this.alarmStorage.getScheduledAlarms()
+		alarms.forEach(alarm => {
+			if (userId == null || alarm.user === userId) {
+				this.cancelAlarms(alarm)
+			}
+		})
+		return this.alarmStorage.deleteAllAlarms(userId)
+	}
+
+	/**
+	 * read all stored alarms and reschedule the notifications
+	 */
+	async rescheduleAll(): Promise<void> {
+		const alarms = await this.alarmStorage.getScheduledAlarms()
+
+		for (const alarm of alarms) {
+			await this.decryptAndSchedule(alarm)
+		}
+	}
+
+	private async decryptAndSchedule(an: EncryptedAlarmNotification): Promise<void> {
 		for (const currentKey of an.notificationSessionKeys) {
-			const pushIdentifierSessionKey = await this._alarmStorage.getPushIdentifierSessionKey(currentKey)
+			const pushIdentifierSessionKey = await this.alarmStorage.getPushIdentifierSessionKey(currentKey)
 
 			if (!pushIdentifierSessionKey) {
 				// this key is either not for us (we don't have the right PushIdentifierSessionKey in our local storage)
@@ -65,7 +84,7 @@ export class DesktopAlarmScheduler {
 				continue
 			}
 
-			const decAn: AlarmNotification = await this._crypto.decryptAndMapToInstance(
+			const decAn: AlarmNotification = await this.desktopCrypto.decryptAndMapToInstance(
 				await resolveTypeReference(AlarmNotificationTypeRef),
 				an,
 				pushIdentifierSessionKey,
@@ -75,13 +94,13 @@ export class DesktopAlarmScheduler {
 			if (hasError(decAn)) {
 				// some property of the AlarmNotification couldn't be decrypted with the selected key
 				// throw away the key that caused the error and try the next one
-				await this._alarmStorage.removePushIdentifierKey(elementIdPart(currentKey.pushIdentifier))
+				await this.alarmStorage.removePushIdentifierKey(elementIdPart(currentKey.pushIdentifier))
 				continue
 			}
 
 			// we just want to keep the key that can decrypt the AlarmNotification
 			an.notificationSessionKeys = [currentKey]
-			return this._scheduleAlarms(decAn)
+			return this.scheduleAlarms(decAn)
 		}
 
 		// none of the NotificationSessionKeys in the AlarmNotification worked.
@@ -91,54 +110,33 @@ export class DesktopAlarmScheduler {
 		throw new CryptoError("could not decrypt alarmNotification")
 	}
 
-	async unscheduleAllAlarms(userId: Id | null = null): Promise<void> {
-		const alarms = await this._alarmStorage.getScheduledAlarms()
-		alarms.forEach(alarm => {
-			if (userId == null || alarm.user === userId) {
-				this._cancelAlarms(alarm)
-			}
-		})
-		return this._alarmStorage.deleteAllAlarms(userId)
+	private handleDeleteAlarm(an: EncryptedAlarmNotification) {
+		this.cancelAlarms(an)
+
+		this.alarmStorage.deleteAlarm(an.alarmInfo.alarmIdentifier)
 	}
 
-	/**
-	 * read all stored alarms and reschedule the notifications
-	 */
-	async rescheduleAll(): Promise<void> {
-		const alarms = await this._alarmStorage.getScheduledAlarms()
-
-		for (const alarm of alarms) {
-			await this._decryptAndSchedule(alarm)
-		}
-	}
-
-	_handleDeleteAlarm(an: EncryptedAlarmNotification) {
-		this._cancelAlarms(an)
-
-		this._alarmStorage.deleteAlarm(an.alarmInfo.alarmIdentifier)
-	}
-
-	async _handleCreateAlarm(an: EncryptedAlarmNotification) {
+	private async handleCreateAlarm(an: EncryptedAlarmNotification) {
 		log.debug("creating alarm notification!")
-		await this._decryptAndSchedule(an)
-		await this._alarmStorage.storeAlarm(an)
+		await this.decryptAndSchedule(an)
+		await this.alarmStorage.storeAlarm(an)
 	}
 
-	_cancelAlarms(an: AlarmNotification | EncryptedAlarmNotification): void {
-		this._alarmScheduler.cancelAlarm(an.alarmInfo.alarmIdentifier)
+	private cancelAlarms(an: AlarmNotification | EncryptedAlarmNotification): void {
+		this.alarmScheduler.cancelAlarm(an.alarmInfo.alarmIdentifier)
 	}
 
-	_scheduleAlarms(decAn: AlarmNotification): void {
+	private scheduleAlarms(decAn: AlarmNotification): void {
 		const eventInfo = {
 			startTime: decAn.eventStart,
 			endTime: decAn.eventEnd,
 			summary: decAn.summary,
 		}
 
-		this._alarmScheduler.scheduleAlarm(eventInfo, decAn.alarmInfo, decAn.repeatRule, (title, message) => {
-			this._notifier.submitGroupedNotification(title, message, decAn.alarmInfo.alarmIdentifier, res => {
+		this.alarmScheduler.scheduleAlarm(eventInfo, decAn.alarmInfo, decAn.repeatRule, (title, message) => {
+			this.notifier.submitGroupedNotification(title, message, decAn.alarmInfo.alarmIdentifier, res => {
 				if (res === NotificationResult.Click) {
-					this._wm.openCalendar({
+					this.wm.openCalendar({
 						userId: decAn.user,
 					})
 				}
