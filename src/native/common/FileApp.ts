@@ -5,6 +5,7 @@ import {FileReference} from "../../api/common/utils/FileUtils"
 import {DataFile} from "../../api/common/DataFile"
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import {FileFacade} from "./generatedipc/FileFacade.js"
+import {ExportFacade} from "./generatedipc/ExportFacade.js"
 
 
 export type DataTaskResponse = {
@@ -27,7 +28,8 @@ export class NativeFileApp {
 
 	constructor(
 		private readonly native: NativeInterface,
-		private readonly fileFacade: FileFacade
+		private readonly fileFacade: FileFacade,
+		private readonly exportFacade: ExportFacade,
 	) {
 	}
 
@@ -153,7 +155,7 @@ export class NativeFileApp {
 	 * @returns {Promise<*>}
 	 */
 	mailToMsg(bundle: MailBundle, fileName: string): Promise<DataFile> {
-		return this.native.invokeNative("mailToMsg", [bundle, fileName])
+		return this.exportFacade.mailToMsg(bundle, fileName)
 	}
 
 	/**
@@ -162,15 +164,15 @@ export class NativeFileApp {
 	 * @param fileNames: relative paths to files from the export directory
 	 */
 	startNativeDrag(fileNames: Array<string>): Promise<void> {
-		return this.native.invokeNative("startNativeDrag", [fileNames])
+		return this.exportFacade.startNativeDrag(fileNames)
 	}
 
 	saveToExportDir(file: DataFile): Promise<void> {
-		return this.native.invokeNative("saveToExportDir", [file])
+		return this.exportFacade.saveToExportDir(file)
 	}
 
-	checkFileExistsInExportDirectory(path: string): Promise<boolean> {
-		return this.native.invokeNative("checkFileExistsInExportDirectory", [path])
+	checkFileExistsInExportDir(path: string): Promise<boolean> {
+		return this.exportFacade.checkFileExistsInExportDir(path)
 	}
 
 	getFilesMetaData(filesUris: ReadonlyArray<string>): Promise<Array<FileReference>> {

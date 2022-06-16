@@ -291,7 +291,7 @@ export class WindowManager {
 		return new ApplicationWindow(this, desktopHtml, icon, electron, localShortcut, this.themeFacade, this.offlineDbFacade, this.remoteBridge, dictUrl, noAutoLogin)
 	}
 
-	async startNativeDrag(filenames: Array<string>, windowId: number) {
+	async startNativeDrag(filenames: ReadonlyArray<string>, windowId: number) {
 		const exportDir = await getExportDirectoryPath(this.dl)
 		const files = filenames.map(fileName => path.join(exportDir, fileName)).filter(fileExists)
 		const window = this.get(windowId)

@@ -58,6 +58,7 @@ import {NativePushFacadeSendDispatcher} from "../../native/common/generatedipc/N
 import {NativeCryptoFacadeSendDispatcher} from "../../native/common/generatedipc/NativeCryptoFacadeSendDispatcher"
 import {random} from "@tutao/tutanota-crypto"
 import {SettingsFacadeSendDispatcher} from "../../native/common/generatedipc/SettingsFacadeSendDispatcher.js"
+import {ExportFacadeSendDispatcher} from "../../native/common/generatedipc/ExportFacadeSendDispatcher.js"
 
 assertWorkerOrNode()
 
@@ -133,7 +134,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.cacheStorage = maybeUninitializedStorage
 
-	const fileApp = new NativeFileApp(worker, new FileFacadeSendDispatcher(worker))
+	const fileApp = new NativeFileApp(worker, new FileFacadeSendDispatcher(worker), new ExportFacadeSendDispatcher(worker))
 
 	// We don't wont to cache within the admin client
 	let cache: EntityRestCache | null = null

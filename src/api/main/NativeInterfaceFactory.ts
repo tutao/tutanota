@@ -15,6 +15,7 @@ import {deviceConfig} from "../../misc/DeviceConfig.js"
 import {CalendarFacade} from "../worker/facades/CalendarFacade.js"
 import {SystemFacade} from "../../native/common/generatedipc/SystemFacade.js"
 import {SystemFacadeSendDispatcher} from "../../native/common/generatedipc/SystemFacadeSendDispatcher.js"
+import {ExportFacadeSendDispatcher} from "../../native/common/generatedipc/ExportFacadeSendDispatcher.js"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
@@ -55,7 +56,7 @@ export async function createNativeInterfaces(
 		const native = new NativeInterfaceMain(webInterface, dispatcher)
 		const nativePushFacadeSendDispatcher = new NativePushFacadeSendDispatcher(native)
 		const pushService = new NativePushServiceApp(nativePushFacadeSendDispatcher, logins, cryptoFacade, entityClient, deviceConfig, calendarFacade)
-		const fileApp = new NativeFileApp(native, new FileFacadeSendDispatcher(native))
+		const fileApp = new NativeFileApp(native, new FileFacadeSendDispatcher(native), new ExportFacadeSendDispatcher(native))
 		const systemApp = new NativeSystemApp(native, fileApp)
 		const systemFacade = new SystemFacadeSendDispatcher(native)
 		return {

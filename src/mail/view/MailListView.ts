@@ -239,7 +239,7 @@ export class MailListView implements Component {
 
 					case "complete": {
 						// We have downloaded it, but we need to check if it still exists
-						const exists = await locator.fileApp.checkFileExistsInExportDirectory(existing.fileName)
+						const exists = await locator.fileApp.checkFileExistsInExportDir(existing.fileName)
 
 						if (exists) {
 							handleDownloaded(existing.fileName, Promise.resolve(mail))

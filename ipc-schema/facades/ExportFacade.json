@@ -1,0 +1,33 @@
+{
+  "name": "ExportFacade",
+  "type": "facade",
+  "senders": ["web"],
+  "receivers": ["desktop"],
+  "methods": {
+	"mailToMsg": {
+	  "arg": [
+		{"bundle": "MailBundle"},
+		{"fileName": "string"}
+	  ],
+	  "ret": "DataFile"
+	},
+	"saveToExportDir": {
+	  "arg": [
+		{"file": "DataFile"}
+	  ],
+	  "ret": "void"
+	},
+	"startNativeDrag": {
+	  "arg": [
+		{"fileNames": "List<string>"}
+	  ],
+	  "ret": "void"
+	},
+	"checkFileExistsInExportDir": {
+	  "arg": [
+		{"fileName": "string"}
+	  ],
+	  "ret": "boolean"
+	}
+  }
+}
