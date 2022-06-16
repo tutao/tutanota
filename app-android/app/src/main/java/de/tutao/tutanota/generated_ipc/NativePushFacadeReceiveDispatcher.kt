@@ -27,13 +27,13 @@ class NativePushFacadeReceiveDispatcher(
 				val userId: String = json.decodeFromString(arg[1])
 				val sseOrigin: String = json.decodeFromString(arg[2])
 				val pushIdentifierId: String = json.decodeFromString(arg[3])
-				val pushIdentifierSessionKeyB64: String = json.decodeFromString(arg[4])
+				val pushIdentifierSessionKey: DataWrapper = json.decodeFromString(arg[4])
 				val result: Unit = this.facade.storePushIdentifierLocally(
 					identifier,
 					userId,
 					sseOrigin,
 					pushIdentifierId,
-					pushIdentifierSessionKeyB64,
+					pushIdentifierSessionKey,
 				)
 				return json.encodeToString(result)
 			}

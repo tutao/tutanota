@@ -76,9 +76,8 @@ static const NSString *const PUBLIC_EXPONENT_STRING = @"65537";
 
 @implementation TUTCrypto
 
-- (TUTKeyPair *_Nullable)generateRsaKeyWithSeed:(NSString * _Nonnull)base64Seed error:(NSError **)error {
+- (TUTKeyPair *_Nullable)generateRsaKeyWithSeed:(NSData * _Nonnull)seed error:(NSError **)error {
   // seeds the PRNG (pseudorandom number generator)
-  NSData * seed = [[NSData alloc] initWithBase64EncodedString:base64Seed options:0];
   RAND_seed([seed bytes], (int) [seed length]);
   
   
@@ -101,48 +100,45 @@ static const NSString *const PUBLIC_EXPONENT_STRING = @"65537";
   return keyPair;
 }
 
-- (NSString *_Nullable)rsaEncryptWithPublicKey:(TUTPublicKey * _Nonnull)publicKey
-                     base64Data:(NSString * _Nonnull)base64Data
-                     base64Seed:(NSString * _Nonnull)base64Seed
+- (NSData *_Nullable)rsaEncryptWithPublicKey:(TUTPublicKey * _Nonnull)publicKey
+                     data:(NSData * _Nonnull)data
+                     seed:(NSData * _Nonnull)seed
                           error: (NSError **)error {
 	//convert json data to private key;
 	RSA* publicRsaKey = [TUTCrypto createPublicRSAKey:publicKey];
 
-	// convert base64 data to bytes.
-	NSData *decodedData = [[NSData alloc] initWithBase64EncodedString:base64Data options: 0];
 
   int rsaSize = RSA_size(publicRsaKey); // should be 256 for a 2048 bit rsa key
   NSMutableData *paddingBuffer = [NSMutableData dataWithLength:rsaSize];
   int paddingLength = (int) [paddingBuffer length];
   
   // seeds the PRNG (pseudorandom number generator)
-  NSData *seed = [[NSData alloc] initWithBase64EncodedString:base64Seed options:0];
   RAND_seed([seed bytes], (int) [seed length]);
   
   // add padding
-  int status = RSA_padding_add_PKCS1_OAEP_SHA256([paddingBuffer mutableBytes], paddingLength, [decodedData bytes], (int) [decodedData length], NULL, 0);
+  int status = RSA_padding_add_PKCS1_OAEP_SHA256([paddingBuffer mutableBytes], paddingLength, [data bytes], (int) [data length], NULL, 0);
   
   NSMutableData *encryptedData = [NSMutableData dataWithLength:rsaSize];
   if (status >= 0) {
     // encrypt
     status = RSA_public_encrypt(paddingLength, [paddingBuffer bytes], [encryptedData mutableBytes], publicRsaKey,  RSA_NO_PADDING);
   }
-  NSString *encryptedBase64;
+  NSData *_Nullable returnData = nil;
   if (status >= 0) {
     // Success
-    encryptedBase64 = [encryptedData base64EncodedStringWithOptions:0];
+    returnData = encryptedData;
   } else {
     // Error handling
     *error = [TUTCrypto logOpenSslError:@"rsa encryption failed" statusCode:status];
   }
   RSA_free(publicRsaKey);
-  return encryptedBase64;
+  return returnData;
 }
 
 
-- (NSString *_Nullable)rsaDecryptWithPrivateKey:(TUTPrivateKey * )privateKey
-                                     base64Data:(NSString *)base64Data
-                                          error:(NSError **)error {
+- (NSData *_Nullable)rsaDecryptWithPrivateKey:(TUTPrivateKey * )privateKey
+                                         data:(NSData *)data
+                                        error:(NSError **)error {
   //convert json data to private key;
   RSA* privateRsaKey = [TUTCrypto createPrivateRSAKey:privateKey];
   
@@ -153,14 +149,11 @@ static const NSString *const PUBLIC_EXPONENT_STRING = @"65537";
     return nil;
   }
   
-  // convert encrypted base64 data to bytes.
-  NSData *decodedData =  [[NSData alloc] initWithBase64EncodedString:base64Data options: 0];
-  
   int rsaSize = RSA_size(privateRsaKey); // should be 256 for a 2048 bit rsa key
   NSMutableData *decryptedBuffer = [NSMutableData dataWithLength:rsaSize];
   
   // Decrypt
-  int status = RSA_private_decrypt((int) [decodedData length], [decodedData bytes], [decryptedBuffer mutableBytes], privateRsaKey, RSA_NO_PADDING);
+  int status = RSA_private_decrypt((int) [data length], [data bytes], [decryptedBuffer mutableBytes], privateRsaKey, RSA_NO_PADDING);
   
   NSMutableData *paddingBuffer =[NSMutableData dataWithLength:rsaSize];
   // decryption succesfull remove padding
@@ -172,18 +165,17 @@ static const NSString *const PUBLIC_EXPONENT_STRING = @"65537";
     status = RSA_padding_check_PKCS1_OAEP_SHA256([paddingBuffer mutableBytes], (int) [paddingBuffer length], [decryptedBuffer bytes], flen, rsaSize, NULL, 0);
   }
   
-  NSString* decryptedBase64;
+  NSData*_Nullable returnData = nil;
   if (status > 0) {
     // Success
-    NSData* decryptedData = [NSData dataWithBytes:[paddingBuffer bytes] length:status];
-    decryptedBase64 = [decryptedData base64EncodedStringWithOptions:0];
+    returnData = [NSData dataWithBytes:[paddingBuffer bytes] length:status];
   } else {
     // Error handling
     *error = [TUTCrypto logOpenSslError:@"rsa decryption failed" statusCode:status];
   }
   RSA_free(privateRsaKey);
   
-  return decryptedBase64;
+  return returnData;
 }
 
 

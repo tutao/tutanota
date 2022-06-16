@@ -90,6 +90,9 @@ all type names must be valid identifiers in all supported output languages.
 
 ## Known issues
 
+* the `bytes` primitive types is generating `DataWrapper` types for mobile, because we can't directly send byte arrays
+  over the bridge and need some kind of marker that distinguishes plain strings from encoded byte arrays. Currently,
+  this requirement to wrap byte arrays leaks out to consumers of the generated classes.
 * struct definitions are generated for every language regardless if they're mentioned in that languages' generated
   files.
 * it's theoretically possible two separate compilations of the same source files to yield different output because field

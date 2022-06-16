@@ -3,7 +3,7 @@ import type {CryptoFunctions} from "./CryptoFns"
 import type {TypeModel} from "../api/common/EntityTypes"
 import type * as FsModule from "fs"
 import {Aes256Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
-import {aes256Decrypt256Key, aes256Encrypt256Key, base64ToKey, IV_BYTE_LENGTH} from "@tutao/tutanota-crypto"
+import {aes256Decrypt256Key, aes256Encrypt256Key, IV_BYTE_LENGTH, uint8ArrayToKey} from "@tutao/tutanota-crypto"
 import {FileUri} from "../native/common/FileApp"
 import path from "path"
 import {NativeCryptoFacade} from "../native/common/generatedipc/NativeCryptoFacade"
@@ -54,15 +54,12 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 
 	/**
 	 * decrypts a file and returns the decrypted files path
-	 * @param encodedKey
-	 * @param encryptedFileUri
-	 * @returns {Promise<FileUri>}
 	 */
-	async aesDecryptFile(encodedKey: string, encryptedFileUri: FileUri): Promise<FileUri> {
+	async aesDecryptFile(key: Uint8Array, encryptedFileUri: FileUri): Promise<FileUri> {
 		const targetDir = this.utils.getTutanotaTempPath("decrypted")
 		const encData = await this.fs.promises.readFile(encryptedFileUri)
-		const key = this.cryptoFns.base64ToKey(encodedKey)
-		const decData = await this.cryptoFns.aes128Decrypt(key, encData, true)
+		const bitKey = this.cryptoFns.bytesToKey(key)
+		const decData = await this.cryptoFns.aes128Decrypt(bitKey, encData, true)
 		await this.fs.promises.mkdir(targetDir, {recursive: true})
 		const decryptedFileUri = path.join(targetDir, path.basename(encryptedFileUri))
 		await this.fs.promises.writeFile(decryptedFileUri, decData, {
@@ -71,17 +68,15 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		return decryptedFileUri
 	}
 
-	aes256DecryptKeyToB64(encryptionKey: Aes256Key, keyToDecryptB64: string): string {
-		return uint8ArrayToBase64(this.cryptoFns.aes256Decrypt(encryptionKey, base64ToUint8Array(keyToDecryptB64), false, false))
+	aes256DecryptKey(encryptionKey: Aes256Key, keyToDecrypt: Uint8Array): Uint8Array {
+		return this.cryptoFns.aes256Decrypt(encryptionKey, keyToDecrypt, false, false)
 	}
 
-	aes256EncryptKeyToB64(encryptionKey: Aes256Key, keyToEncryptB64: string): string {
-		return uint8ArrayToBase64(
-			this.cryptoFns.aes256Encrypt(encryptionKey, base64ToUint8Array(keyToEncryptB64), this.cryptoFns.randomBytes(16), false, false),
-		)
+	aes256EncryptKey(encryptionKey: Aes256Key, keyToEncrypt: Uint8Array): Uint8Array {
+		return this.cryptoFns.aes256Encrypt(encryptionKey, keyToEncrypt, this.cryptoFns.randomBytes(16), false, false)
 	}
 
-	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, piSessionKey: string, piSessionKeyEncSessionKey: string): Promise<T> {
+	decryptAndMapToInstance<T>(model: TypeModel, instance: Record<string, any>, piSessionKey: Uint8Array, piSessionKeyEncSessionKey: Uint8Array): Promise<T> {
 		const sk = this._decrypt256KeyToArray(piSessionKey, piSessionKeyEncSessionKey)
 
 		return this.cryptoFns.decryptAndMapToInstance(model, instance, sk)
@@ -99,10 +94,9 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		return this.cryptoFns.publicKeyFromPem(pem)
 	}
 
-	_decrypt256KeyToArray(encryptionKey: string, keyB64: string): Aes256Key {
-		const encryptionKeyArray = base64ToKey(encryptionKey)
-		const keyArray = base64ToUint8Array(keyB64)
-		return this.cryptoFns.decrypt256Key(encryptionKeyArray, keyArray)
+	_decrypt256KeyToArray(encryptionKey: Uint8Array, key: Uint8Array): Aes256Key {
+		const encryptionKeyArray = uint8ArrayToKey(encryptionKey)
+		return this.cryptoFns.decrypt256Key(encryptionKeyArray, key)
 	}
 
 	generateDeviceKey(): Aes256Key {
@@ -113,19 +107,19 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		return this.cryptoFns.randomBytes(count)
 	}
 
-	async aesEncryptFile(key: string, fileUri: string): Promise<EncryptedFileInfo> {
+	async aesEncryptFile(key: Uint8Array, fileUri: string): Promise<EncryptedFileInfo> {
 		throw new Error("not implemented for this platform")
 	}
 
-	async generateRsaKey(seed: string): Promise<RsaKeyPair> {
+	async generateRsaKey(seed: Uint8Array): Promise<RsaKeyPair> {
 		throw new Error("not implemented for this platform")
 	}
 
-	async rsaDecrypt(privateKey: PrivateKey, base64Data: string): Promise<string> {
+	async rsaDecrypt(privateKey: PrivateKey, data: Uint8Array): Promise<Uint8Array> {
 		throw new Error("not implemented for this platform")
 	}
 
-	async rsaEncrypt(publicKey: PublicKey, base64Data: string, base64Seed: string): Promise<string> {
+	async rsaEncrypt(publicKey: PublicKey, data: Uint8Array, seed: Uint8Array): Promise<Uint8Array> {
 		throw new Error("not implemented for this platform")
 	}
 }

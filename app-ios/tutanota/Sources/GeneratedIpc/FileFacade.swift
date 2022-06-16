@@ -54,11 +54,11 @@ public protocol FileFacade {
 	) async throws -> [String]
 	func saveDataFile(
 		_ name: String,
-		_ dataBase64: String
+		_ data: DataWrapper
 	) async throws -> String
 	func writeFile(
 		_ file: String,
-		_ contentB64: String
+		_ data: DataWrapper
 	) async throws -> Void
 	func readFile(
 		_ file: String

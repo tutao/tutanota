@@ -1,6 +1,16 @@
 import {addParamsToUrl, isSuspensionResponse, RestClient} from "../rest/RestClient"
 import {CryptoFacade, encryptBytes} from "../crypto/CryptoFacade"
-import {concat, decodeBase64, downcast, Mapper, neverNull, promiseMap, splitUint8ArrayInChunks, uint8ArrayToBase64,} from "@tutao/tutanota-utils"
+import {
+	concat,
+	decodeBase64,
+	downcast,
+	Mapper,
+	neverNull,
+	promiseMap,
+	splitUint8ArrayInChunks,
+	uint8ArrayToBase64,
+	uint8ArrayToString,
+} from "@tutao/tutanota-utils"
 import {ArchiveDataType, MAX_BLOB_SIZE_BYTES} from "../../common/TutanotaConstants"
 
 import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
@@ -256,7 +266,7 @@ export class BlobFacade {
 		} = await this.fileApp.upload(location, fullUrl.toString(), HttpMethod.POST, {}) // blobReferenceToken in the response body
 
 		if (statusCode === 201 && responseBody != null) {
-			return this.parseBlobPostOutResponse(decodeBase64("utf-8", responseBody))
+			return this.parseBlobPostOutResponse(uint8ArrayToString("utf-8", responseBody))
 		} else if (responseBody == null) {
 			throw new Error("no response body")
 		} else if (isSuspensionResponse(statusCode, suspensionTime)) {

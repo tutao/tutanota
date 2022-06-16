@@ -15,28 +15,28 @@ class NativeCryptoFacadeReceiveDispatcher(
 		when (method) {
 			"rsaEncrypt" -> {
 				val publicKey: PublicKey = json.decodeFromString(arg[0])
-				val base64Data: String = json.decodeFromString(arg[1])
-				val base64Seed: String = json.decodeFromString(arg[2])
-				val result: String = this.facade.rsaEncrypt(
+				val data: DataWrapper = json.decodeFromString(arg[1])
+				val seed: DataWrapper = json.decodeFromString(arg[2])
+				val result: DataWrapper = this.facade.rsaEncrypt(
 					publicKey,
-					base64Data,
-					base64Seed,
+					data,
+					seed,
 				)
 				return json.encodeToString(result)
 			}
 			"rsaDecrypt" -> {
 				val privateKey: PrivateKey = json.decodeFromString(arg[0])
-				val base64Data: String = json.decodeFromString(arg[1])
-				val result: String = this.facade.rsaDecrypt(
+				val data: DataWrapper = json.decodeFromString(arg[1])
+				val result: DataWrapper = this.facade.rsaDecrypt(
 					privateKey,
-					base64Data,
+					data,
 				)
 				return json.encodeToString(result)
 			}
 			"aesEncryptFile" -> {
-				val key: String = json.decodeFromString(arg[0])
+				val key: DataWrapper = json.decodeFromString(arg[0])
 				val fileUri: String = json.decodeFromString(arg[1])
-				val iv: String = json.decodeFromString(arg[2])
+				val iv: DataWrapper = json.decodeFromString(arg[2])
 				val result: EncryptedFileInfo = this.facade.aesEncryptFile(
 					key,
 					fileUri,
@@ -45,7 +45,7 @@ class NativeCryptoFacadeReceiveDispatcher(
 				return json.encodeToString(result)
 			}
 			"aesDecryptFile" -> {
-				val key: String = json.decodeFromString(arg[0])
+				val key: DataWrapper = json.decodeFromString(arg[0])
 				val fileUri: String = json.decodeFromString(arg[1])
 				val result: String = this.facade.aesDecryptFile(
 					key,
@@ -54,7 +54,7 @@ class NativeCryptoFacadeReceiveDispatcher(
 				return json.encodeToString(result)
 			}
 			"generateRsaKey" -> {
-				val seed: String = json.decodeFromString(arg[0])
+				val seed: DataWrapper = json.decodeFromString(arg[0])
 				val result: RsaKeyPair = this.facade.generateRsaKey(
 					seed,
 				)

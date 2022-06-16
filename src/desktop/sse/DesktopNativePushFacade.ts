@@ -32,8 +32,8 @@ export class DesktopNativePushFacade implements NativePushFacade {
 		}
 	}
 
-	async storePushIdentifierLocally(identifier: string, userId: string, sseOrigin: string, pushIdentifierId: string, pushIdentifierSessionKeyB64: string): Promise<void> {
+	async storePushIdentifierLocally(identifier: string, userId: string, sseOrigin: string, pushIdentifierId: string, pushIdentifierSessionKey: Uint8Array): Promise<void> {
 		await this.sse.storePushIdentifier(identifier, userId, sseOrigin)
-		await this.alarmStorage.storePushIdentifierSessionKey(pushIdentifierId, pushIdentifierSessionKeyB64)
+		await this.alarmStorage.storePushIdentifierSessionKey(pushIdentifierId, pushIdentifierSessionKey)
 	}
 }

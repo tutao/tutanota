@@ -6,6 +6,6 @@
 	"errorId": "string?",
 	"precondition": "string?",
 	"suspensionTime": "string?",
-	"responseBody": "string"
+	"responseBody": "bytes"
   }
 }

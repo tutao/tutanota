@@ -2,6 +2,7 @@ package de.tutao.tutanota.push
 
 import de.tutao.tutanota.MainActivity
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
+import de.tutao.tutanota.ipc.DataWrapper
 import de.tutao.tutanota.ipc.EncryptedAlarmNotification
 import de.tutao.tutanota.ipc.NativePushFacade
 import kotlinx.coroutines.Dispatchers
@@ -17,9 +18,9 @@ class AndroidNativePushFacade(
 		return sseStorage.getPushIdentifier()
 	}
 
-	override suspend fun storePushIdentifierLocally(identifier: String, userId: String, sseOrigin: String, pushIdentifierId: String, pushIdentifierSessionKeyB64: String) {
+	override suspend fun storePushIdentifierLocally(identifier: String, userId: String, sseOrigin: String, pushIdentifierId: String, pushIdentifierSessionKey: DataWrapper) {
 		sseStorage.storePushIdentifier(identifier, sseOrigin)
-		sseStorage.storePushIdentifierSessionKey(userId, pushIdentifierId, pushIdentifierSessionKeyB64)
+		sseStorage.storePushIdentifierSessionKey(userId, pushIdentifierId, pushIdentifierSessionKey.data)
 	}
 
 	override suspend fun initPushNotifications() {

@@ -13,5 +13,5 @@ data class UploadTaskResponse(
 	val errorId: String?,
 	val precondition: String?,
 	val suspensionTime: String?,
-	val responseBody: String,
+	val responseBody: DataWrapper,
 )

@@ -12,7 +12,6 @@ import {DesktopNativeCryptoFacade} from "../../../../src/desktop/DesktopNativeCr
 import {assertThrows} from "@tutao/tutanota-test-utils";
 import {EncryptedAlarmNotification} from "../../../../src/native/common/EncryptedAlarmNotification.js";
 
-const START_DATE = new Date(2019, 9, 10, 14).getTime()
 const oldTimezone = process.env.TZ
 
 o.spec("DesktopAlarmSchedulerTest", function () {
@@ -291,7 +290,7 @@ function createAlarmNotification({startTime, endTime, trigger, endType, endValue
 		notificationSessionKeys: [
 			{
 				_id: `notificationSessionKeysId${alarmIdCounter}`,
-				pushIdentifierSessionEncSessionKey: `pushIdentifierSessionEncSessionKey${alarmIdCounter}`,
+				pushIdentifierSessionEncSessionKey: `pushIdentifierSessionEncSessionKey${alarmIdCounter}=`,
 				pushIdentifier: [
 					`pushIdentifier${alarmIdCounter}Part1`,
 					`pushIdentifier${alarmIdCounter}Part2`

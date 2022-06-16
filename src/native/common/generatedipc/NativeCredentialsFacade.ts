@@ -4,14 +4,14 @@ import {CredentialEncryptionMode} from "./CredentialEncryptionMode.js"
 export interface NativeCredentialsFacade {
 
 	encryptUsingKeychain(
-		base64EncodedData: string,
+		data: Uint8Array,
 		encryptionMode: CredentialEncryptionMode,
-	): Promise<string>
+	): Promise<Uint8Array>
 	
 	decryptUsingKeychain(
-		base64EncodedEncryptedData: string,
+		encryptedData: Uint8Array,
 		encryptionMode: CredentialEncryptionMode,
-	): Promise<string>
+	): Promise<Uint8Array>
 	
 	getSupportedEncryptionModes(
 	): Promise<ReadonlyArray<CredentialEncryptionMode>>

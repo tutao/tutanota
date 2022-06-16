@@ -29,19 +29,19 @@ export class CredentialsKeyProvider implements ICredentialsKeyProvider {
 		const encryptedCredentialsKey = this.credentialsStorage.getCredentialsEncryptionKey()
 
 		if (encryptedCredentialsKey) {
-			const base64CredentialsKey = await this.nativeCredentials.decryptUsingKeychain(
-				uint8ArrayToBase64(encryptedCredentialsKey),
+			const credentialsKey = await this.nativeCredentials.decryptUsingKeychain(
+				encryptedCredentialsKey,
 				this._getEncryptionMode()
 			)
-			return base64ToUint8Array(base64CredentialsKey)
+			return credentialsKey
 		} else {
 			const credentialsKey = await this.deviceEncryptionFacade.generateKey()
 			const encryptedCredentialsKey = await this.nativeCredentials.encryptUsingKeychain(
-				uint8ArrayToBase64(credentialsKey),
+				credentialsKey,
 				this._getEncryptionMode()
 			)
 
-			this.credentialsStorage.setCredentialsEncryptionKey(base64ToUint8Array(encryptedCredentialsKey))
+			this.credentialsStorage.setCredentialsEncryptionKey(encryptedCredentialsKey)
 
 			return credentialsKey
 		}

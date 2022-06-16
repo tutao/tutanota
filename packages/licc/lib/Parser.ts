@@ -1,4 +1,4 @@
-export const PRIMITIVES = ["string", "boolean", "number",/* "bytes" this needs more work to function on ios and android, */ "void"]
+export const PRIMITIVES = ["string", "boolean", "number", "bytes", "void"]
 const KOTLIN_KEYWORDS = [
 	"as", "break", "class", "continue", "do", "else", "false", "for", "fun", "if", "in", "interface", "is", "null", "object", "package", "return", "super",
 	"this", "throw", "true", "try", "typealias", "typeof", "val", "var", "when", "while"

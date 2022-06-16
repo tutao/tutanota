@@ -1,6 +1,6 @@
 import type {PushIdentifier} from "../../api/entities/sys/TypeRefs.js"
 import {createPushIdentifier, PushIdentifierTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import {assertNotNull, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {assertNotNull} from "@tutao/tutanota-utils"
 import {PushServiceType} from "../../api/common/TutanotaConstants"
 import {lang} from "../../misc/LanguageViewModel"
 import {getHttpOrigin, isAndroidApp, isDesktop, isIOSApp} from "../../api/common/Env"
@@ -89,10 +89,8 @@ export class NativePushServiceApp {
 	private async storePushIdentifierLocally(pushIdentifier: PushIdentifier): Promise<void> {
 		const userId = this.logins.getUserController().user._id
 
-		const sk = await this.cryptoFacade.resolveSessionKeyForInstanceBinary(pushIdentifier)
-		const skB64 = uint8ArrayToBase64(assertNotNull(sk))
-		console.log("storing push identifier:", pushIdentifier, userId, getHttpOrigin(), getElementId(pushIdentifier), skB64)
-		await this.nativePushFacade.storePushIdentifierLocally(pushIdentifier.identifier, userId, getHttpOrigin(), getElementId(pushIdentifier), skB64)
+		const sk = assertNotNull(await this.cryptoFacade.resolveSessionKeyForInstanceBinary(pushIdentifier))
+		await this.nativePushFacade.storePushIdentifierLocally(pushIdentifier.identifier, userId, getHttpOrigin(), getElementId(pushIdentifier), sk)
 	}
 
 	private async loadPushIdentifier(identifier: string): Promise<PushIdentifier | null> {

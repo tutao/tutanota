@@ -6,7 +6,7 @@ import crypto from "crypto"
 import {InstanceMapper} from "../api/worker/crypto/InstanceMapper"
 import type {TypeModel} from "../api/common/EntityTypes"
 import type {Base64} from "@tutao/tutanota-utils"
-import {aes128Decrypt, aes256Decrypt, aes256Encrypt, aes256RandomKey, base64ToKey, decrypt256Key, random} from "@tutao/tutanota-crypto"
+import {aes128Decrypt, aes256Decrypt, aes256Encrypt, aes256RandomKey, base64ToKey, decrypt256Key, random, uint8ArrayToKey} from "@tutao/tutanota-crypto"
 
 // the prng throws if it doesn't have enough entropy
 // it may be called very early, so we need to seed it
@@ -35,6 +35,8 @@ export interface CryptoFunctions {
 	aes256Decrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean, useMac: boolean): Uint8Array
 
 	decrypt256Key(encryptionKey: Aes128Key, key: Uint8Array): Aes256Key
+
+	bytesToKey(bytes: Uint8Array): BitArray
 
 	base64ToKey(base64: Base64): BitArray
 
@@ -67,6 +69,10 @@ export const cryptoFns: CryptoFunctions = {
 
 	decrypt256Key(encryptionKey: Aes128Key, key: Uint8Array): Aes256Key {
 		return decrypt256Key(encryptionKey, key)
+	},
+
+	bytesToKey(bytes: Uint8Array): BitArray {
+		return uint8ArrayToKey(bytes)
 	},
 
 	base64ToKey(base64: Base64): BitArray {

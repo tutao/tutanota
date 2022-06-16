@@ -13,11 +13,12 @@ import {CancelledError} from "../api/common/error/CancelledError.js"
 import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys.js"
 import {WriteStream} from "fs-extra"
 // Make sure to only import the type
-import type {DownloadTaskResponse, FileUri} from "../native/common/FileApp.js"
+import type {FileUri} from "../native/common/FileApp.js"
 import type http from "http"
 import type * as stream from "stream"
 import {DateProvider} from "../api/common/DateProvider"
 import {sha256Hash} from "@tutao/tutanota-crypto"
+import {DownloadTaskResponse} from "../native/common/generatedipc/DownloadTaskResponse"
 
 type FsExports = typeof FsModule
 type ElectronExports = typeof Electron.CrossProcessExports

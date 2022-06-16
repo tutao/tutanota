@@ -20,6 +20,7 @@
 		3D3AFAE5285B0C350077F302 /* SystemFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3AFADF285B0C340077F302 /* SystemFacadeReceiveDispatcher.swift */; };
 		3D3AFAE6285B0C350077F302 /* NativeCredentialsFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3AFAE0285B0C340077F302 /* NativeCredentialsFacade.swift */; };
 		3D3AFAE8285B0DB60077F302 /* IosSystemFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3AFAE7285B0DB60077F302 /* IosSystemFacade.swift */; };
+		3D3AFAEA285B292C0077F302 /* DataWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3AFAE9285B292C0077F302 /* DataWrapper.swift */; };
 		3D4E16F4273D2F8A00256630 /* SyncCompletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */; };
 		3D4F1BFA26EBADE500E87BF5 /* TUTBigNum.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */; };
 		3D4F1BFB26EBADE500E87BF5 /* TUTBigNum.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */; };
@@ -195,6 +196,7 @@
 		3D3AFADF285B0C340077F302 /* SystemFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SystemFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
 		3D3AFAE0285B0C340077F302 /* NativeCredentialsFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeCredentialsFacade.swift; sourceTree = "<group>"; };
 		3D3AFAE7285B0DB60077F302 /* IosSystemFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosSystemFacade.swift; sourceTree = "<group>"; };
+		3D3AFAE9285B292C0077F302 /* DataWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataWrapper.swift; sourceTree = "<group>"; };
 		3D4D3204210747000081813A /* PSPDFFastEnumeration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PSPDFFastEnumeration.h; sourceTree = "<group>"; };
 		3D4D3205210747240081813A /* Swiftier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Swiftier.h; sourceTree = "<group>"; };
 		3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncCompletion.swift; sourceTree = "<group>"; };
@@ -413,6 +415,7 @@
 			children = (
 				3DBE94B9273147830077A6EA /* WebViewBridge.swift */,
 				3D73DA302731953E008E7A8A /* RemoteProtocol.swift */,
+				3D3AFAE9285B292C0077F302 /* DataWrapper.swift */,
 			);
 			path = Remote;
 			sourceTree = "<group>";
@@ -1488,6 +1491,7 @@
 				3D3AFAE8285B0DB60077F302 /* IosSystemFacade.swift in Sources */,
 				3D9B129727216D60002B46A1 /* ContactsSource.swift in Sources */,
 				3D9B12A927219538002B46A1 /* AlarmInfo.swift in Sources */,
+				3D3AFAEA285B292C0077F302 /* DataWrapper.swift in Sources */,
 				3DD10DB227EA148D0076C9A2 /* BlobUtil.swift in Sources */,
 				3DBA56D02850AAA6004416BE /* ThemeFacade.swift in Sources */,
 				3D97821A2739600700DB639C /* URLSession+Sync.swift in Sources */,

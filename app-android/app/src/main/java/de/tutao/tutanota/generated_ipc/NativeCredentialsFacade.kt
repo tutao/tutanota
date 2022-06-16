@@ -8,13 +8,13 @@ import kotlinx.serialization.json.*
 
 interface NativeCredentialsFacade {
 	 suspend fun encryptUsingKeychain(
-		base64EncodedData: String,
+		data: DataWrapper,
 		encryptionMode: CredentialEncryptionMode,
-	): String
+	): DataWrapper
 	 suspend fun decryptUsingKeychain(
-		base64EncodedEncryptedData: String,
+		encryptedData: DataWrapper,
 		encryptionMode: CredentialEncryptionMode,
-	): String
+	): DataWrapper
 	 suspend fun getSupportedEncryptionModes(
 	): List<CredentialEncryptionMode>
 }

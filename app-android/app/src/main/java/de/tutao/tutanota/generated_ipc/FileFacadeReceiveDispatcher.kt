@@ -125,19 +125,19 @@ class FileFacadeReceiveDispatcher(
 			}
 			"saveDataFile" -> {
 				val name: String = json.decodeFromString(arg[0])
-				val dataBase64: String = json.decodeFromString(arg[1])
+				val data: DataWrapper = json.decodeFromString(arg[1])
 				val result: String = this.facade.saveDataFile(
 					name,
-					dataBase64,
+					data,
 				)
 				return json.encodeToString(result)
 			}
 			"writeFile" -> {
 				val file: String = json.decodeFromString(arg[0])
-				val contentB64: String = json.decodeFromString(arg[1])
+				val data: DataWrapper = json.decodeFromString(arg[1])
 				val result: Unit = this.facade.writeFile(
 					file,
-					contentB64,
+					data,
 				)
 				return json.encodeToString(result)
 			}

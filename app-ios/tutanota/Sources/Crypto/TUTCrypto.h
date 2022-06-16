@@ -50,16 +50,16 @@ static NSInteger const PUBLIC_EXPONENT = 65537;
  */
 @interface TUTCrypto : NSObject
 
-- (TUTKeyPair *_Nullable)generateRsaKeyWithSeed:(NSString * _Nonnull)base64Seed error:(NSError **)error;
+- (TUTKeyPair *_Nullable)generateRsaKeyWithSeed:(NSData * _Nonnull)seed error:(NSError **)error;
 
-- (NSString *_Nullable)rsaEncryptWithPublicKey:(TUTPublicKey *_Nonnull)publicKey
-                                    base64Data:(NSString * _Nonnull)base64Data
-                                    base64Seed:(NSString * _Nonnull)base64Seed
-                                         error: (NSError **)error;
+- (NSData *_Nullable)rsaEncryptWithPublicKey:(TUTPublicKey *_Nonnull)publicKey
+                                        data:(NSData * _Nonnull)data
+                                        seed:(NSData * _Nonnull)seed
+                                       error: (NSError **)error;
 
-- (NSString *_Nullable)rsaDecryptWithPrivateKey:(TUTPrivateKey *)privateKey
-                                     base64Data:(NSString *)base64Data
-                                          error:(NSError **)error;
+- (NSData *_Nullable)rsaDecryptWithPrivateKey:(TUTPrivateKey *)privateKey
+                                         data:(NSData *)data
+                                        error:(NSError **)error;
 
 + (NSData * )sha256:(NSData *)data;
 

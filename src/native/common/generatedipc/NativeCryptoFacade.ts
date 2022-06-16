@@ -8,28 +8,28 @@ export interface NativeCryptoFacade {
 
 	rsaEncrypt(
 		publicKey: PublicKey,
-		base64Data: string,
-		base64Seed: string,
-	): Promise<string>
+		data: Uint8Array,
+		seed: Uint8Array,
+	): Promise<Uint8Array>
 	
 	rsaDecrypt(
 		privateKey: PrivateKey,
-		base64Data: string,
-	): Promise<string>
+		data: Uint8Array,
+	): Promise<Uint8Array>
 	
 	aesEncryptFile(
-		key: string,
+		key: Uint8Array,
 		fileUri: string,
-		iv: string,
+		iv: Uint8Array,
 	): Promise<EncryptedFileInfo>
 	
 	aesDecryptFile(
-		key: string,
+		key: Uint8Array,
 		fileUri: string,
 	): Promise<string>
 	
 	generateRsaKey(
-		seed: string,
+		seed: Uint8Array,
 	): Promise<RsaKeyPair>
 	
 }

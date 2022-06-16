@@ -17,7 +17,7 @@
 		{"userId": "string"},
 		{"sseOrigin": "string"},
 		{"pushIdentifierId": "string"},
-		{"pushIdentifierSessionKeyB64": "string"}
+		{"pushIdentifierSessionKey": "bytes"}
 	  ],
 	  "ret": "void"
 	},

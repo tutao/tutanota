@@ -69,12 +69,12 @@ export interface FileFacade {
 	
 	saveDataFile(
 		name: string,
-		dataBase64: string,
+		data: Uint8Array,
 	): Promise<string>
 	
 	writeFile(
 		file: string,
-		contentB64: string,
+		data: Uint8Array,
 	): Promise<void>
 	
 	readFile(

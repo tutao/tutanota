@@ -15,19 +15,19 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 		this._crypto = crypto
 	}
 
-	async decryptUsingKeychain(base64EncodedEncryptedData: string, encryptionMode: CredentialEncryptionMode.DEVICE_LOCK): Promise<string> {
+	async decryptUsingKeychain(data: Uint8Array, encryptionMode: CredentialEncryptionMode.DEVICE_LOCK): Promise<Uint8Array> {
 		// making extra sure that the mode is the right one since this comes over IPC
 		assert(encryptionMode === CredentialEncryptionMode.DEVICE_LOCK, "should not use unsupported encryption mode")
 		const key = await this._desktopKeyStoreFacade.getCredentialsKey()
-		const decryptedData = this._crypto.aes256DecryptKeyToB64(key, base64EncodedEncryptedData)
+		const decryptedData = this._crypto.aes256DecryptKey(key, data)
 		return Promise.resolve(decryptedData)
 	}
 
-	async encryptUsingKeychain(base64EncodedData: string, encryptionMode: CredentialEncryptionMode.DEVICE_LOCK): Promise<string> {
+	async encryptUsingKeychain(data: Uint8Array, encryptionMode: CredentialEncryptionMode.DEVICE_LOCK): Promise<Uint8Array> {
 		// making extra sure that the mode is the right one since this comes over IPC
 		assert(encryptionMode === CredentialEncryptionMode.DEVICE_LOCK, "should not use unsupported encryption mode")
 		const key = await this._desktopKeyStoreFacade.getCredentialsKey()
-		const encryptedData = this._crypto.aes256EncryptKeyToB64(key, base64EncodedData)
+		const encryptedData = this._crypto.aes256EncryptKey(key, data)
 		return Promise.resolve(encryptedData)
 	}
 
@@ -35,18 +35,4 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 		return Promise.resolve([CredentialEncryptionMode.DEVICE_LOCK])
 	}
 
-}
-
-export class NativeCredentialsFacadeStub implements NativeCredentialsFacade {
-	decryptUsingKeychain(base64EncodedEncryptedData: string, encryptionMode: CredentialEncryptionMode): Promise<string> {
-		return Promise.resolve(base64EncodedEncryptedData)
-	}
-
-	encryptUsingKeychain(base64EncodedData: string, encryptionMode: CredentialEncryptionMode): Promise<string> {
-		return Promise.resolve(base64EncodedData)
-	}
-
-	getSupportedEncryptionModes(): Promise<Array<CredentialEncryptionMode>> {
-		return Promise.resolve([CredentialEncryptionMode.DEVICE_LOCK])
-	}
 }

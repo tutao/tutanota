@@ -10,26 +10,26 @@ export class NativeCryptoFacadeReceiveDispatcher {
 		switch(method) {
 			case "rsaEncrypt": {
 				const publicKey: PublicKey = arg[0]
-				const base64Data: string = arg[1]
-				const base64Seed: string = arg[2]
+				const data: Uint8Array = arg[1]
+				const seed: Uint8Array = arg[2]
 				return this.facade.rsaEncrypt(
 					publicKey,
-					base64Data,
-					base64Seed,
+					data,
+					seed,
 				)
 			}
 			case "rsaDecrypt": {
 				const privateKey: PrivateKey = arg[0]
-				const base64Data: string = arg[1]
+				const data: Uint8Array = arg[1]
 				return this.facade.rsaDecrypt(
 					privateKey,
-					base64Data,
+					data,
 				)
 			}
 			case "aesEncryptFile": {
-				const key: string = arg[0]
+				const key: Uint8Array = arg[0]
 				const fileUri: string = arg[1]
-				const iv: string = arg[2]
+				const iv: Uint8Array = arg[2]
 				return this.facade.aesEncryptFile(
 					key,
 					fileUri,
@@ -37,7 +37,7 @@ export class NativeCryptoFacadeReceiveDispatcher {
 				)
 			}
 			case "aesDecryptFile": {
-				const key: string = arg[0]
+				const key: Uint8Array = arg[0]
 				const fileUri: string = arg[1]
 				return this.facade.aesDecryptFile(
 					key,
@@ -45,7 +45,7 @@ export class NativeCryptoFacadeReceiveDispatcher {
 				)
 			}
 			case "generateRsaKey": {
-				const seed: string = arg[0]
+				const seed: Uint8Array = arg[0]
 				return this.facade.generateRsaKey(
 					seed,
 				)

@@ -2,10 +2,10 @@ import n from "../nodemocker.js"
 import o from "ospec"
 import {DesktopNativeCryptoFacade} from "../../../src/desktop/DesktopNativeCryptoFacade.js"
 import type {Base64} from "@tutao/tutanota-utils"
-import {arrayEquals, downcast, stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {arrayEquals, downcast, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import type {CryptoFunctions} from "../../../src/desktop/CryptoFns.js"
 import type {TypeModel} from "../../../src/api/common/EntityTypes.js"
-import {keyToBase64, uint8ArrayToBitArray} from "@tutao/tutanota-crypto"
+import {keyToUint8Array, uint8ArrayToBitArray} from "@tutao/tutanota-crypto"
 import {object, when} from "testdouble"
 import {DesktopUtils} from "../../../src/desktop/DesktopUtils.js"
 
@@ -15,8 +15,8 @@ o.spec("DesktopCryptoFacadeTest", () => {
 	const aes256Key = [2, 5, 6]
 	const aes256DecryptedKey = new Uint8Array([2, 5, 6, 2])
 	const aes256EncryptedKey = new Uint8Array([2, 5, 6, 1])
-	const aes256EncryptedKeyb64 = uint8ArrayToBase64(aes256EncryptedKey)
 	const decryptedUint8 = stringToUtf8Uint8Array("decrypted")
+	const someKey = new Uint8Array([1, 2])
 	const cryptoFns: CryptoFunctions = {
 		aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array {
 			if (key === aes128Key) {
@@ -56,12 +56,16 @@ o.spec("DesktopCryptoFacadeTest", () => {
 			}
 		},
 
-		base64ToKey(base64: Base64): BitArray {
-			if (base64 === "b64_somekey") {
+		bytesToKey(bytes: Uint8Array): BitArray {
+			if (arrayEquals(bytes, someKey)) {
 				return aes128Key
 			} else {
 				throw new Error("stub!")
 			}
+		},
+
+		base64ToKey(base64: Base64): BitArray {
+			throw new Error("stub!")
 		},
 
 		publicKeyFromPem(
@@ -130,19 +134,19 @@ o.spec("DesktopCryptoFacadeTest", () => {
 
 	o("aesDecryptFile", async function () {
 		const {desktopCrypto, fsMock} = setupSubject()
-		const file = await desktopCrypto.aesDecryptFile("b64_somekey", "/some/path/to/file.pdf")
+		const file = await desktopCrypto.aesDecryptFile(someKey, "/some/path/to/file.pdf")
 		o(file).equals("/some/other/path/to/file.pdf")
 		o(fsMock.promises.writeFile.callCount).equals(1)
 	})
-	o("aes256DecryptKeyToB64", function () {
+	o("aes256DecryptKey", function () {
 		const {desktopCrypto} = setupSubject()
-		const key = desktopCrypto.aes256DecryptKeyToB64(aes256Key, aes256EncryptedKeyb64)
-		o(key).equals(uint8ArrayToBase64(aes256DecryptedKey))
+		const key = desktopCrypto.aes256DecryptKey(aes256Key, aes256EncryptedKey)
+		o(Array.from(key)).deepEquals(Array.from(aes256DecryptedKey))
 	})
-	o("aes256EncryptKeyToB64", function () {
+	o("aes256EncryptKey", function () {
 		const {desktopCrypto, cryptoFnsMock} = setupSubject()
-		const key = desktopCrypto.aes256EncryptKeyToB64(aes256Key, uint8ArrayToBase64(aes256DecryptedKey))
-		o(key).equals(aes256EncryptedKeyb64)
+		const key = desktopCrypto.aes256EncryptKey(aes256Key, aes256DecryptedKey)
+		o(Array.from(key)).deepEquals(Array.from(aes256EncryptedKey))
 		o(cryptoFnsMock.randomBytes.callCount).equals(1)
 	})
 	o("decryptAndMapToInstance", async function () {
@@ -154,8 +158,8 @@ o.spec("DesktopCryptoFacadeTest", () => {
 				b: true,
 				c: 42,
 			},
-			keyToBase64(aes128Key),
-			aes256EncryptedKeyb64,
+			keyToUint8Array(aes128Key),
+			aes256EncryptedKey,
 		)
 		o(instance as any).deepEquals({
 			a: "property_a",

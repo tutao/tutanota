@@ -16,13 +16,13 @@
 		  "publicKey": "PublicKey"
 		},
 		{
-		  "base64Data": "string"
+		  "data": "bytes"
 		},
 		{
-		  "base64Seed": "string"
+		  "seed": "bytes"
 		}
 	  ],
-	  "ret": "string"
+	  "ret": "bytes"
 	},
 	"rsaDecrypt": {
 	  "arg": [
@@ -30,21 +30,21 @@
 		  "privateKey": "PrivateKey"
 		},
 		{
-		  "base64Data": "string"
+		  "data": "bytes"
 		}
 	  ],
-	  "ret": "string"
+	  "ret": "bytes"
 	},
 	"aesEncryptFile": {
 	  "arg": [
 		{
-		  "key": "string"
+		  "key": "bytes"
 		},
 		{
 		  "fileUri": "string"
 		},
 		{
-		  "iv": "string"
+		  "iv": "bytes"
 		}
 	  ],
 	  "ret": "EncryptedFileInfo"
@@ -52,7 +52,7 @@
 	"aesDecryptFile": {
 	  "arg": [
 		{
-		  "key": "string"
+		  "key": "bytes"
 		},
 		{
 		  "fileUri": "string"
@@ -63,7 +63,7 @@
 	"generateRsaKey": {
 	  "arg": [
 		{
-		  "seed": "string"
+		  "seed": "bytes"
 		}
 	  ],
 	  "ret": "RsaKeyPair"

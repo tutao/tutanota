@@ -5,7 +5,6 @@ import androidx.lifecycle.LiveData
 import de.tutao.tutanota.AndroidKeyStoreFacade
 import de.tutao.tutanota.CryptoError
 import de.tutao.tutanota.alarms.AlarmNotificationEntity
-import de.tutao.tutanota.base64ToBytes
 import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.data.PushIdentifierKey
 import de.tutao.tutanota.data.User
@@ -34,9 +33,9 @@ class SseStorage(
 	fun storePushIdentifierSessionKey(
 			userId: String,
 			pushIdentifierId: String,
-			pushIdentifierSessionKeyB64: String,
+			pushIdentifierSessionKey: ByteArray,
 	) {
-		val deviceEncSessionKey = keyStoreFacade.encryptKey(pushIdentifierSessionKeyB64.base64ToBytes())
+		val deviceEncSessionKey = keyStoreFacade.encryptKey(pushIdentifierSessionKey)
 		db.userInfoDao().insertPushIdentifierKey(PushIdentifierKey(pushIdentifierId, deviceEncSessionKey))
 		db.userInfoDao().insertUser(User(userId))
 	}

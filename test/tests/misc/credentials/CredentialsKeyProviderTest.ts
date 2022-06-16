@@ -2,7 +2,7 @@ import o from "ospec"
 import {CredentialsKeyProvider} from "../../../../src/misc/credentials/CredentialsKeyProvider.js"
 import {CredentialEncryptionMode} from "../../../../src/misc/credentials/CredentialEncryptionMode.js"
 import type {DeviceEncryptionFacade} from "../../../../src/api/worker/facades/DeviceEncryptionFacade.js"
-import {concat, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {concat} from "@tutao/tutanota-utils"
 import type {CredentialsStorage} from "../../../../src/misc/credentials/CredentialsProvider.js"
 import {NativeCredentialsFacade} from "../../../../src/native/common/generatedipc/NativeCredentialsFacade.js"
 import {object, when} from "testdouble"
@@ -36,8 +36,8 @@ o.spec("CredentialsKeyProviderTest", function () {
 			const encryptedCredentialsKey = new Uint8Array([1, 2, 6, 9])
 			when(credentialsStorage.getCredentialsEncryptionKey()).thenReturn(encryptedCredentialsKey)
 			const decryptedKey = concat(encryptedCredentialsKey, new Uint8Array([1]))
-			when(nativeCredentialsFacade.decryptUsingKeychain(uint8ArrayToBase64(encryptedCredentialsKey), credentialEncryptionMode))
-				.thenResolve(uint8ArrayToBase64(decryptedKey))
+			when(nativeCredentialsFacade.decryptUsingKeychain(encryptedCredentialsKey, credentialEncryptionMode))
+				.thenResolve(decryptedKey)
 
 			const returnedKey = await credentialsProvider.getCredentialsKey()
 
@@ -47,8 +47,8 @@ o.spec("CredentialsKeyProviderTest", function () {
 		o("if key does not exist it shall be generated, encrypted and saved", async function () {
 			when(credentialsStorage.getCredentialsEncryptionKey()).thenReturn(null)
 			const encryptedGeneratedKey = concat(generatedKey, new Uint8Array([2]))
-			when(nativeCredentialsFacade.encryptUsingKeychain(uint8ArrayToBase64(generatedKey), credentialEncryptionMode))
-				.thenResolve(uint8ArrayToBase64(encryptedGeneratedKey))
+			when(nativeCredentialsFacade.encryptUsingKeychain(generatedKey, credentialEncryptionMode))
+				.thenResolve(encryptedGeneratedKey)
 
 			const returnedKey = await credentialsProvider.getCredentialsKey()
 

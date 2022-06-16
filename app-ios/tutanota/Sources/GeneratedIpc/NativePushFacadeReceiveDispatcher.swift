@@ -23,13 +23,13 @@ public class NativePushFacadeReceiveDispatcher {
 			let userId = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
 			let sseOrigin = try! JSONDecoder().decode(String.self, from: arg[2].data(using: .utf8)!)
 			let pushIdentifierId = try! JSONDecoder().decode(String.self, from: arg[3].data(using: .utf8)!)
-			let pushIdentifierSessionKeyB64 = try! JSONDecoder().decode(String.self, from: arg[4].data(using: .utf8)!)
+			let pushIdentifierSessionKey = try! JSONDecoder().decode(DataWrapper.self, from: arg[4].data(using: .utf8)!)
 			try await self.facade.storePushIdentifierLocally(
 				identifier,
 				userId,
 				sseOrigin,
 				pushIdentifierId,
-				pushIdentifierSessionKeyB64
+				pushIdentifierSessionKey
 			)
 			return "null"
 		case "initPushNotifications":

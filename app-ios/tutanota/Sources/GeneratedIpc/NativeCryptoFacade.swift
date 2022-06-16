@@ -6,23 +6,23 @@ import Foundation
 public protocol NativeCryptoFacade {
 	func rsaEncrypt(
 		_ publicKey: PublicKey,
-		_ base64Data: String,
-		_ base64Seed: String
-	) async throws -> String
+		_ data: DataWrapper,
+		_ seed: DataWrapper
+	) async throws -> DataWrapper
 	func rsaDecrypt(
 		_ privateKey: PrivateKey,
-		_ base64Data: String
-	) async throws -> String
+		_ data: DataWrapper
+	) async throws -> DataWrapper
 	func aesEncryptFile(
-		_ key: String,
+		_ key: DataWrapper,
 		_ fileUri: String,
-		_ iv: String
+		_ iv: DataWrapper
 	) async throws -> EncryptedFileInfo
 	func aesDecryptFile(
-		_ key: String,
+		_ key: DataWrapper,
 		_ fileUri: String
 	) async throws -> String
 	func generateRsaKey(
-		_ seed: String
+		_ seed: DataWrapper
 	) async throws -> RsaKeyPair
 }

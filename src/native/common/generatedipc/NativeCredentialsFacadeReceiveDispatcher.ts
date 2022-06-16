@@ -8,18 +8,18 @@ export class NativeCredentialsFacadeReceiveDispatcher {
 	async dispatch(method: string, arg: Array<any>) : Promise<any> {
 		switch(method) {
 			case "encryptUsingKeychain": {
-				const base64EncodedData: string = arg[0]
+				const data: Uint8Array = arg[0]
 				const encryptionMode: CredentialEncryptionMode = arg[1]
 				return this.facade.encryptUsingKeychain(
-					base64EncodedData,
+					data,
 					encryptionMode,
 				)
 			}
 			case "decryptUsingKeychain": {
-				const base64EncodedEncryptedData: string = arg[0]
+				const encryptedData: Uint8Array = arg[0]
 				const encryptionMode: CredentialEncryptionMode = arg[1]
 				return this.facade.decryptUsingKeychain(
-					base64EncodedEncryptedData,
+					encryptedData,
 					encryptionMode,
 				)
 			}

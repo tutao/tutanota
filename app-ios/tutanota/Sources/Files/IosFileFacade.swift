@@ -18,10 +18,9 @@ class IosFileFacade : FileFacade {
     fatalError("not implemented for this platform")
   }
   
-  func writeFile(_ file: String, _ contentB64: String) async throws {
+  func writeFile(_ file: String, _ content: DataWrapper) async throws {
     let fileURL = URL(fileURLWithPath: file)
-    let data = Data(base64Encoded: contentB64)!
-    try data.write(to: fileURL, options: .atomic)
+    try content.data.write(to: fileURL, options: .atomic)
   }
 
   func readFile(_ file: String) async throws -> String {
@@ -89,8 +88,7 @@ class IosFileFacade : FileFacade {
           return
         }
         let httpResponse = response as! HTTPURLResponse
-        let base64Response = data!.base64EncodedString()
-        let apiResponse = UploadTaskResponse(httpResponse: httpResponse, responseBody: base64Response)
+        let apiResponse = UploadTaskResponse(httpResponse: httpResponse, responseBody: data!)
 
         continuation.resume(with: .success(apiResponse))
       }
@@ -158,10 +156,10 @@ class IosFileFacade : FileFacade {
     return try await BlobUtil().splitFile(fileUri: fileUri, maxBlobSize: maxChunkSizeBytes)
   }
 
-  func saveDataFile(_ name: String, _ dataBase64: String) async throws -> String {
+  func saveDataFile(_ name: String, _ data: DataWrapper) async throws -> String {
     let decryptedFolder = try FileUtils.getDecryptedFolder()
     let filePath = (decryptedFolder as NSString).appendingPathComponent(name)
-    try await self.writeFile(filePath, dataBase64)
+    try await self.writeFile(filePath, data)
     return filePath
   }
 
@@ -178,13 +176,13 @@ class IosFileFacade : FileFacade {
 }
 
 extension UploadTaskResponse {
-  init(httpResponse: HTTPURLResponse, responseBody: String) {
+  init(httpResponse: HTTPURLResponse, responseBody: Data) {
     self.init(
       statusCode: httpResponse.statusCode,
       errorId: httpResponse.valueForHeaderField("Error-Id"),
       precondition: httpResponse.valueForHeaderField("Precondition"),
       suspensionTime: httpResponse.valueForHeaderField("Retry-After") ?? httpResponse.valueForHeaderField("Suspension-Time"),
-      responseBody: responseBody
+      responseBody: responseBody.wrap()
     )
   }
 }

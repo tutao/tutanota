@@ -1,5 +1,4 @@
-import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import {IV_BYTE_LENGTH, keyToBase64, Randomizer} from "@tutao/tutanota-crypto"
+import {IV_BYTE_LENGTH, keyToUint8Array, Randomizer} from "@tutao/tutanota-crypto"
 import {FileUri} from "../common/FileApp"
 import {NativeCryptoFacade} from "../common/generatedipc/NativeCryptoFacade"
 import {EncryptedFileInfo} from "../common/generatedipc/EncryptedFileInfo"
@@ -18,8 +17,8 @@ export class AesApp {
 	 */
 	aesEncryptFile(key: Aes128Key, fileUrl: FileUri): Promise<EncryptedFileInfo> {
 		const iv = this.random.generateRandomData(IV_BYTE_LENGTH)
-		let encodedKey = keyToBase64(key)
-		return this.nativeCryptoFacade.aesEncryptFile(encodedKey, fileUrl, uint8ArrayToBase64(iv))
+		const encodedKey = keyToUint8Array(key)
+		return this.nativeCryptoFacade.aesEncryptFile(encodedKey, fileUrl, iv)
 	}
 
 	/**
@@ -27,7 +26,7 @@ export class AesApp {
 	 * @return Returns the URI of the decrypted file. Resolves to an exception if the encryption failed.
 	 */
 	aesDecryptFile(key: Aes128Key, fileUrl: FileUri): Promise<FileUri> {
-		let encodedKey = keyToBase64(key)
+		const encodedKey = keyToUint8Array(key)
 		return this.nativeCryptoFacade.aesDecryptFile(encodedKey, fileUrl)
 	}
 }

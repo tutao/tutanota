@@ -57,11 +57,11 @@ interface FileFacade {
 	): List<String>
 	 suspend fun saveDataFile(
 		name: String,
-		dataBase64: String,
+		data: DataWrapper,
 	): String
 	 suspend fun writeFile(
 		file: String,
-		contentB64: String,
+		data: DataWrapper,
 	): Unit
 	 suspend fun readFile(
 		file: String,

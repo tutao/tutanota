@@ -13,6 +13,7 @@ import {elementIdPart} from "../../api/common/utils/EntityUtils"
 import {hasError} from "../../api/common/utils/ErrorCheckUtils"
 import {resolveTypeReference} from "../../api/common/EntityFunctions"
 import {EncryptedAlarmNotification} from "../../native/common/EncryptedAlarmNotification.js"
+import {base64ToUint8Array} from "@tutao/tutanota-utils"
 
 export class DesktopAlarmScheduler {
 	readonly _wm: WindowManager
@@ -68,7 +69,7 @@ export class DesktopAlarmScheduler {
 				await resolveTypeReference(AlarmNotificationTypeRef),
 				an,
 				pushIdentifierSessionKey,
-				currentKey.pushIdentifierSessionEncSessionKey,
+				base64ToUint8Array(currentKey.pushIdentifierSessionEncSessionKey),
 			)
 
 			if (hasError(decAn)) {

@@ -7,10 +7,7 @@ actor IosNativeCryptoFacade: NativeCryptoFacade {
 
   private let crypto: TUTCrypto = TUTCrypto()
 
-  func aesEncryptFile(_ key: Base64, _ fileUri: String, _ iv: String) async throws -> EncryptedFileInfo {
-    guard let keyData = Data(base64Encoded: key) else {
-      throw CryptoError(message: "Invalid key data")
-    }
+  func aesEncryptFile(_ key: DataWrapper, _ fileUri: String, _ iv: DataWrapper) async throws -> EncryptedFileInfo {
 
     if !FileUtils.fileExists(atPath: fileUri) {
       throw CryptoError(message: "File to encrypt does not exist \(fileUri)")
@@ -18,9 +15,8 @@ actor IosNativeCryptoFacade: NativeCryptoFacade {
     let encryptedFolder = try FileUtils.getEncryptedFolder()
     let fileName = (fileUri as NSString).lastPathComponent
     let encryptedFilePath = (encryptedFolder as NSString).appendingPathComponent(fileName)
-    let ivData = Data(base64Encoded: iv)
     let plainTextData = try Data(contentsOf: URL(fileURLWithPath: fileUri))
-    let outputData = try TUTAes128Facade.encrypt(plainTextData, withKey: keyData, withIv: ivData!, withMac: true)
+    let outputData = try TUTAes128Facade.encrypt(plainTextData, withKey: key.data, withIv: iv.data, withMac: true)
     let result = EncryptedFileInfo(uri: encryptedFilePath, unencryptedSize: plainTextData.count)
 
     try outputData.write(to: URL(fileURLWithPath: encryptedFilePath))
@@ -28,16 +24,13 @@ actor IosNativeCryptoFacade: NativeCryptoFacade {
     return result
   }
 
-  func aesDecryptFile(_ key: Base64, _ fileUri: String) async throws -> String {
-    guard let key = Data(base64Encoded: key) else {
-      throw CryptoError(message: "Invalid key data")
-    }
+  func aesDecryptFile(_ key: DataWrapper, _ fileUri: String) async throws -> String {
     if !FileUtils.fileExists(atPath: fileUri) {
       throw CryptoError(message: "File to decrypt does not exist")
     }
 
     let encryptedData = try Data(contentsOf: URL(fileURLWithPath: fileUri))
-    let plaintextData = try TUTAes128Facade.decrypt(encryptedData, withKey: key)
+    let plaintextData = try TUTAes128Facade.decrypt(encryptedData, withKey: key.data)
 
     let decryptedFolder = try FileUtils.getDecryptedFolder()
     let fileName = (fileUri as NSString).lastPathComponent
@@ -47,31 +40,31 @@ actor IosNativeCryptoFacade: NativeCryptoFacade {
     return plaintextPath
   }
 
-  func generateRsaKey(_ seed: Base64) async throws -> RsaKeyPair {
-    let tutKeyPair = try self.crypto.generateRsaKey(withSeed: seed)
+  func generateRsaKey(_ seed: DataWrapper) async throws -> RsaKeyPair {
+    let tutKeyPair = try self.crypto.generateRsaKey(withSeed: seed.data)
     return RsaKeyPair(tutKeyPair)
   }
 
   func rsaEncrypt(
     _ publicKey: PublicKey,
-    _ base64Data: Base64,
-    _ base64Seed: Base64
-  ) async throws -> String {
+    _ data: DataWrapper,
+    _ seed: DataWrapper
+  ) async throws -> DataWrapper {
       return try self.crypto.rsaEncrypt(
         with: publicKey.toObjcKey(),
-        base64Data: base64Data,
-        base64Seed: base64Seed
-      )
+        data: data.data,
+        seed: seed.data
+      ).wrap()
     }
 
   func rsaDecrypt(
     _ privateKey: PrivateKey,
-    _ base64Data: Base64
-  ) async throws -> String {
+    _ data: DataWrapper
+  ) async throws -> DataWrapper {
       return try self.crypto.rsaDecrypt(
         with: privateKey.toObjcKey(),
-        base64Data: base64Data
-      )
+        data: data.data
+      ).wrap()
     }
 }
 

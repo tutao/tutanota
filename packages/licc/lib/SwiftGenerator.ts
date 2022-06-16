@@ -225,7 +225,7 @@ function renderSwiftType(parsed: ParsedType): RenderedType {
 		case "number":
 			return {externals: [], name: maybeNullable("Int", nullable)}
 		case "bytes":
-			return {externals: [], name: maybeNullable("Data", nullable)}
+			return {externals: [], name: maybeNullable("DataWrapper", nullable)}
 		case "void":
 			return {externals: [], name: maybeNullable("Void", nullable)}
 		default:

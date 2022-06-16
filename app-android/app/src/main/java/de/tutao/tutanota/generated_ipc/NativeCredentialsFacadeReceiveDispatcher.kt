@@ -14,19 +14,19 @@ class NativeCredentialsFacadeReceiveDispatcher(
 	suspend fun dispatch(method: String, arg: List<String>): String {
 		when (method) {
 			"encryptUsingKeychain" -> {
-				val base64EncodedData: String = json.decodeFromString(arg[0])
+				val data: DataWrapper = json.decodeFromString(arg[0])
 				val encryptionMode: CredentialEncryptionMode = json.decodeFromString(arg[1])
-				val result: String = this.facade.encryptUsingKeychain(
-					base64EncodedData,
+				val result: DataWrapper = this.facade.encryptUsingKeychain(
+					data,
 					encryptionMode,
 				)
 				return json.encodeToString(result)
 			}
 			"decryptUsingKeychain" -> {
-				val base64EncodedEncryptedData: String = json.decodeFromString(arg[0])
+				val encryptedData: DataWrapper = json.decodeFromString(arg[0])
 				val encryptionMode: CredentialEncryptionMode = json.decodeFromString(arg[1])
-				val result: String = this.facade.decryptUsingKeychain(
-					base64EncodedEncryptedData,
+				val result: DataWrapper = this.facade.decryptUsingKeychain(
+					encryptedData,
 					encryptionMode,
 				)
 				return json.encodeToString(result)

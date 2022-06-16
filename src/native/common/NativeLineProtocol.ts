@@ -22,6 +22,7 @@
  */
 import {Message, Request, RequestError, Response} from "../../api/common/MessageDispatcher.js"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
+import {base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 
 
 export type NativeMessage = Message<NativeRequestType>
@@ -44,19 +45,67 @@ export function encodeNativeMessage(message: NativeMessage): string {
 				encodedMessage.push("")
 			}
 			for (const arg of message.args) {
-				encodedMessage.push(JSON.stringify(arg))
+				encodedMessage.push(encodeValueForNative(arg))
 			}
 			break
 		case "response":
-			encodedMessage.push(JSON.stringify(message.value))
+			encodedMessage.push(encodeValueForNative(message.value))
 			break
 		case "requestError":
-			encodedMessage.push(JSON.stringify(message.error))
+			encodedMessage.push(encodeValueForNative(message.error))
 			break
 	}
 	return encodedMessage.join("\n")
 }
 
+function encodeValueForNative(value: unknown): string {
+	return JSON.stringify(replaceBytesWithWrapper(value))
+}
+
+const BYTES_MARKER = "__bytes"
+
+export function replaceBytesWithWrapper(value: unknown): unknown {
+	if (value == null) {
+		return null
+	} else if (value instanceof Uint8Array) {
+		return {data: uint8ArrayToBase64(value), marker: BYTES_MARKER}
+	} else if (Array.isArray(value)) {
+		return value.map(replaceBytesWithWrapper)
+	} else if (typeof value === "object") {
+		const newObject: Record<string, any> = {}
+		for (const [key, field] of Object.entries(value)) {
+			newObject[key] = replaceBytesWithWrapper(field)
+		}
+		return newObject
+	} else {
+		return value
+	}
+}
+
+export function replaceWrapperByBytes(value: unknown): unknown {
+	if (value == null) {
+		return null
+	} else if (isByteWrapper(value)) {
+		return base64ToUint8Array(value.data)
+	} else if (Array.isArray(value)) {
+		return value.map(replaceWrapperByBytes)
+	} else if (typeof value === "object") {
+		const newObject: Record<string, any> = {}
+		for (const [key, field] of Object.entries(value)) {
+			newObject[key] = replaceWrapperByBytes(field)
+		}
+		return newObject
+	} else {
+		return value
+	}
+}
+
+function isByteWrapper(value: unknown) : value is {marker: typeof BYTES_MARKER, data: string} {
+	return value != null
+		&& typeof value === "object"
+		&& (value as Record<string, unknown>).marker === BYTES_MARKER
+		&& typeof (value as Record<string, unknown>).data === "string"
+}
 
 /**
  * decode a string received over the native bridge in the apps into a native message object
@@ -68,18 +117,22 @@ export function decodeNativeMessage(encoded: string): JsMessage {
 	switch (type) {
 		case "request":
 			const [requestType, ...args] = rest
-			parsedMessage = new Request(requestType, args.map(s => JSON.parse(s)), messageId)
+			parsedMessage = new Request(requestType, args.map(s => decodeValueFromNative(s)), messageId)
 			break
 		case "response":
 			const [value] = rest
-			parsedMessage = new Response(messageId, JSON.parse(value))
+			parsedMessage = new Response(messageId, decodeValueFromNative(value))
 			break
 		case "requestError":
 			const [error] = rest
-			parsedMessage = new RequestError(messageId, JSON.parse(error))
+			parsedMessage = new RequestError(messageId, decodeValueFromNative(error) as Error)
 			break
 		default:
 			throw new ProgrammingError(`unknown message type: ${type}`)
 	}
 	return parsedMessage
+}
+
+function decodeValueFromNative(encoded: string): unknown {
+	return replaceWrapperByBytes(JSON.parse(encoded))
 }

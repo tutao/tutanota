@@ -6,5 +6,5 @@ public struct UploadTaskResponse : Codable {
 	let errorId: String?
 	let precondition: String?
 	let suspensionTime: String?
-	let responseBody: String
+	let responseBody: DataWrapper
 }

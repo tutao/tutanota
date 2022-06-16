@@ -108,18 +108,18 @@ public class FileFacadeReceiveDispatcher {
 			return toJson(result)
 		case "saveDataFile":
 			let name = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
-			let dataBase64 = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
+			let data = try! JSONDecoder().decode(DataWrapper.self, from: arg[1].data(using: .utf8)!)
 			let result = try await self.facade.saveDataFile(
 				name,
-				dataBase64
+				data
 			)
 			return toJson(result)
 		case "writeFile":
 			let file = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
-			let contentB64 = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
+			let data = try! JSONDecoder().decode(DataWrapper.self, from: arg[1].data(using: .utf8)!)
 			try await self.facade.writeFile(
 				file,
-				contentB64
+				data
 			)
 			return "null"
 		case "readFile":
