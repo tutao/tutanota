@@ -1,0 +1,7 @@
+{
+  "name": "MailBundle",
+  "type": "typeref",
+  "location": {
+	"typescript": "../src/mail/export/Bundler.js"
+  }
+}

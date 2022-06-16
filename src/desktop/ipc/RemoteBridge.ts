@@ -27,16 +27,13 @@ import {NativeCryptoFacade} from "../../native/common/generatedipc/NativeCryptoF
 import {NativePushFacade} from "../../native/common/generatedipc/NativePushFacade.js"
 import {ThemeFacade} from "../../native/common/generatedipc/ThemeFacade.js"
 import {Logger} from "../../api/common/Logger.js"
-import {getExportDirectoryPath, makeMsgFile, writeFile} from "../DesktopFileExport.js"
-import {DataFile} from "../../api/common/DataFile.js"
-import {fileExists} from "../PathUtils.js"
-import path from "path"
 import {DesktopUtils} from "../DesktopUtils.js"
 import {Socketeer} from "../Socketeer.js"
 import {InterWindowEventSender} from "../../native/common/InterWindowEventBus.js"
 import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes.js"
 import {DesktopSearchTextInAppFacade} from "../DesktopSearchTextInAppFacade.js"
 import {SettingsFacade} from "../../native/common/generatedipc/SettingsFacade.js"
+import {DesktopExportFacade} from "../DesktopExportFacade.js"
 
 export interface SendingFacades {
 	desktopFacade: DesktopFacade
@@ -51,7 +48,6 @@ const primaryIpcConfig: IpcConfig<"to-main", "to-renderer"> = {
 } as const
 // Must be created only once
 const primaryIpcHandler = new CentralIpcHandler(electron.ipcMain, primaryIpcConfig)
-export type PrimaryIpcHandler = typeof primaryIpcHandler
 
 export class RemoteBridge {
 
@@ -83,6 +79,7 @@ export class RemoteBridge {
 
 		const transport = new ElectronWebContentsTransport<typeof primaryIpcConfig, JsRequestType, NativeRequestType>(webContents, primaryIpcHandler)
 		const dispatcher = new DesktopGlobalDispatcher(
+			new DesktopExportFacade(this.dl, this.wm, window.id),
 			new DesktopFileFacade(this.dl, electron, fs),
 			this.nativeCredentialsFacade,
 			this.desktopCrypto,
@@ -92,9 +89,6 @@ export class RemoteBridge {
 			this.themeFacade
 		)
 		let initDefer = defer()
-		const NOT_IMPLEMENTED = async () => {
-			throw new Error("Not implemented!")
-		}
 		const messageDispatcher = new MessageDispatcher<JsRequestType, NativeRequestType>(transport, {
 			"init": async () => {
 				initDefer.resolve(null)
@@ -125,39 +119,17 @@ export class RemoteBridge {
 				const logger: Logger = global.logger
 				return Promise.resolve(logger.getEntries())
 			},
-			"mailToMsg": ({args}) => {
-				const bundle = args[0]
-				const fileName = args[1]
-				return makeMsgFile(bundle, fileName)
-			},
-
-			"saveToExportDir": async ({args}) => {
-				const file: DataFile = args[0]
-				const exportDir = await getExportDirectoryPath(this.dl)
-				return writeFile(exportDir, file)
-			},
-			"startNativeDrag": async ({args}) => {
-				const filenames = args[0]
-				await this.wm.startNativeDrag(filenames, windowId)
-				return Promise.resolve()
-			},
 			"focusApplicationWindow": ({args}) => {
 				const window = this.wm.get(windowId)
 
 				window && window.focus()
 				return Promise.resolve()
 			},
-
-			"checkFileExistsInExportDirectory": async ({args}) => {
-				const fileName = args[0]
-				return fileExists(path.join(await getExportDirectoryPath(this.dl), fileName))
-			},
 			"reload": async ({args}) => {
 				// Response to this message will come to the web but it won't have a handler for it. We accept it for now.
 				initDefer = defer()
 				window.reload(args[0])
 			},
-			putFileIntoDownloads: NOT_IMPLEMENTED,
 		})
 		const nativeInterface = {
 			invokeNative: (requestType: string, args: ReadonlyArray<unknown>): Promise<any> => {

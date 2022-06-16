@@ -41,15 +41,10 @@ declare type MainRequestType =
 declare type NativeRequestType = 'init'
 	| 'reload'
 	| 'readDataFile'
-	| 'putFileIntoDownloads'
 	| 'openNewWindow'
 	| 'sendSocketMessage'
 	| 'getLog' // for desktop
-	| 'startNativeDrag'
-	| 'mailToMsg'
 	| 'focusApplicationWindow'
-	| 'saveToExportDir'
-	| 'checkFileExistsInExportDirectory'
 	| 'facade' // only for desktop
 	| 'ipc'
 
