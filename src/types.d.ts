@@ -40,7 +40,6 @@ declare type MainRequestType =
 /** Requests from web to native */
 declare type NativeRequestType = 'init'
 	| 'reload'
-	| 'readDataFile'
 	| 'openNewWindow'
 	| 'sendSocketMessage'
 	| 'getLog' // for desktop

@@ -5,6 +5,8 @@ import {DesktopDownloadManager} from "./DesktopDownloadManager.js"
 import {ElectronExports, FsExports} from "./ElectronExportTypes.js"
 import {UploadTaskResponse} from "../native/common/generatedipc/UploadTaskResponse.js"
 import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {DataFile} from "../api/common/DataFile.js"
+import {FileUri} from "../native/common/FileApp.js"
 
 function Unimplemented() {
 	return new Error("not implemented for this platform")
@@ -81,16 +83,11 @@ export class DesktopFileFacade implements FileFacade {
 		throw Unimplemented()
 	}
 
-	saveDataFile(name: string, data: Uint8Array): Promise<string> {
-		return this.dl.saveDataFile(name, data)
+	writeDataFile(file: DataFile): Promise<string> {
+		return this.dl.writeDataFile(file)
 	}
 
-	async readFile(file: string): Promise<string> {
-		const data = await this.fs.promises.readFile(file)
-		return uint8ArrayToBase64(data)
-	}
-
-	async writeFile(file: string, data: Uint8Array): Promise<void> {
-		return this.fs.promises.writeFile(file, data)
+	readDataFile(fileUri: FileUri): Promise<DataFile | null> {
+		return this.dl.readDataFile(fileUri)
 	}
 }

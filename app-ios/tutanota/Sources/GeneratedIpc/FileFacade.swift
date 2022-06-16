@@ -52,15 +52,10 @@ public protocol FileFacade {
 		_ fileUri: String,
 		_ maxChunkSizeBytes: Int
 	) async throws -> [String]
-	func saveDataFile(
-		_ name: String,
-		_ data: DataWrapper
+	func writeDataFile(
+		_ file: DataFile
 	) async throws -> String
-	func writeFile(
-		_ file: String,
-		_ data: DataWrapper
-	) async throws -> Void
-	func readFile(
-		_ file: String
-	) async throws -> String
+	func readDataFile(
+		_ filePath: String
+	) async throws -> DataFile?
 }

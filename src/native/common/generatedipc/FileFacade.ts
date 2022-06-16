@@ -3,6 +3,7 @@
 import {IpcClientRect} from "./IpcClientRect.js"
 import {UploadTaskResponse} from "./UploadTaskResponse.js"
 import {DownloadTaskResponse} from "./DownloadTaskResponse.js"
+import {DataFile} from "./DataFile.js"
 export interface FileFacade {
 
 	open(
@@ -67,18 +68,12 @@ export interface FileFacade {
 		maxChunkSizeBytes: number,
 	): Promise<ReadonlyArray<string>>
 	
-	saveDataFile(
-		name: string,
-		data: Uint8Array,
+	writeDataFile(
+		file: DataFile,
 	): Promise<string>
 	
-	writeFile(
-		file: string,
-		data: Uint8Array,
-	): Promise<void>
-	
-	readFile(
-		file: string,
-	): Promise<string>
+	readDataFile(
+		filePath: string,
+	): Promise<DataFile | null>
 	
 }

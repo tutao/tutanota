@@ -293,7 +293,7 @@ export class FileController {
 		if (isApp() || isDesktop()) {
 			// For apps "opening" DataFile currently means saving and opening it.
 			try {
-				const fileReference = await this.fileApp.saveDataFile(file)
+				const fileReference = await this.fileApp.writeDataFile(file)
 				if (isAndroidApp()) {
 					await this.fileApp.putFileIntoDownloadsFolder(fileReference.location)
 					return

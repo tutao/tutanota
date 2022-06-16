@@ -55,15 +55,10 @@ interface FileFacade {
 		fileUri: String,
 		maxChunkSizeBytes: Int,
 	): List<String>
-	 suspend fun saveDataFile(
-		name: String,
-		data: DataWrapper,
+	 suspend fun writeDataFile(
+		file: DataFile,
 	): String
-	 suspend fun writeFile(
-		file: String,
-		data: DataWrapper,
-	): Unit
-	 suspend fun readFile(
-		file: String,
-	): String
+	 suspend fun readDataFile(
+		filePath: String,
+	): DataFile?
 }

@@ -27,7 +27,6 @@ import {NativeCryptoFacade} from "../../native/common/generatedipc/NativeCryptoF
 import {NativePushFacade} from "../../native/common/generatedipc/NativePushFacade.js"
 import {ThemeFacade} from "../../native/common/generatedipc/ThemeFacade.js"
 import {Logger} from "../../api/common/Logger.js"
-import {DesktopUtils} from "../DesktopUtils.js"
 import {Socketeer} from "../Socketeer.js"
 import {InterWindowEventSender} from "../../native/common/InterWindowEventBus.js"
 import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes.js"
@@ -55,7 +54,6 @@ export class RemoteBridge {
 		private readonly offlineDbFacade: OfflineDbFacade,
 		private readonly wm: WindowManager,
 		private readonly dl: DesktopDownloadManager,
-		private readonly desktopUtils: DesktopUtils,
 		private readonly sock: Socketeer,
 		private readonly webDialogController: WebDialogController,
 		private readonly notifier: DesktopNotifier,
@@ -100,11 +98,6 @@ export class RemoteBridge {
 				await initDefer
 				return dispatcher.dispatch(facade, method, methodArgs)
 			},
-			"readDataFile": ({args}) => {
-				const location = args[0]
-				return this.desktopUtils.readDataFile(location)
-			},
-
 			"openNewWindow": ({args}) => {
 				this.wm.newWindow(true)
 				return Promise.resolve()

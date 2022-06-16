@@ -18,14 +18,14 @@ class IosFileFacade : FileFacade {
     fatalError("not implemented for this platform")
   }
   
-  func writeFile(_ file: String, _ content: DataWrapper) async throws {
+  private func writeFile(_ file: String, _ content: DataWrapper) async throws {
     let fileURL = URL(fileURLWithPath: file)
     try content.data.write(to: fileURL, options: .atomic)
   }
 
-  func readFile(_ file: String) async throws -> String {
-    let data = try Data(contentsOf: URL(string: file)!)
-    return data.base64EncodedString()
+  private func readFile(_ file: String) async throws -> DataWrapper? {
+    let data = try? Data(contentsOf: URL(string: file)!)
+    return data?.wrap()
   }
 
   func open(_ location: String, _ mimeType: String) async throws {
@@ -156,11 +156,24 @@ class IosFileFacade : FileFacade {
     return try await BlobUtil().splitFile(fileUri: fileUri, maxBlobSize: maxChunkSizeBytes)
   }
 
-  func saveDataFile(_ name: String, _ data: DataWrapper) async throws -> String {
+  func writeDataFile(_ file: DataFile) async throws -> String {
     let decryptedFolder = try FileUtils.getDecryptedFolder()
-    let filePath = (decryptedFolder as NSString).appendingPathComponent(name)
-    try await self.writeFile(filePath, data)
+    let filePath = (decryptedFolder as NSString).appendingPathComponent(file.name)
+    try await self.writeFile(filePath, file.data)
     return filePath
+  }
+  
+  func readDataFile(_ filePath: String) async throws -> DataFile? {
+    if let data = try await readFile(filePath) {
+      return DataFile(
+        name: try await getName(filePath),
+        mimeType: try await getMimeType(filePath),
+        size: try await getSize(filePath),
+        data: data
+      )
+    } else {
+      return nil
+    }
   }
 
   private func clearDirectory(folderPath: String) async throws {

@@ -2,7 +2,7 @@ import type {File as TutanotaFile} from "../entities/tutanota/TypeRefs.js"
 
 
 export interface DataFile {
-	readonly _type: 'DataFile',
+	readonly _type: "DataFile",
 	name: string,
 	mimeType: string,
 	data: Uint8Array,
