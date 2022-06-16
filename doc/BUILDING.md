@@ -23,7 +23,7 @@ own. If you prefer the auto-update feature, you can use the official [mail](http
 ## Building and running your own Tutanota Android app
 
 If you build and install the Tutanota Android app by yourself, keep in mind that you will not get updates automatically.
-If you prefer the auto-update feature, download the app from the Google Play Store or F-Droid.
+If you prefer the auto-update feature, download the app from the Google Play Store, F-Droid or the GitHub releases page https://github.com/tutao/tutanota/releases.
 
 #### Pre-requisites:
 
