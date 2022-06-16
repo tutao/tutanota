@@ -1,4 +1,4 @@
-import {ListElementEntity, SomeEntity} from "../../common/EntityTypes.js"
+import {ElementEntity, ListElementEntity, SomeEntity} from "../../common/EntityTypes.js"
 import {
 	elementIdPart,
 	firstBiggerThanSecond,
@@ -239,6 +239,12 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 
 	async getListElementsOfType<T extends ListElementEntity>(typeRef: TypeRef<T>): Promise<Array<T>> {
 		const {query, params} = sql`SELECT entity from list_entities WHERE type = ${getTypeId(typeRef)}`
+		const items = await this.sqlCipherFacade.all(query, params) ?? []
+		return this.deserializeList(typeRef, items.map(row => row.entity.value as Uint8Array))
+	}
+
+	async getElementsOfType<T extends ElementEntity>(typeRef: TypeRef<T>): Promise<Array<T>> {
+		const {query, params} = sql`SELECT entity from entities WHERE type = ${getTypeId(typeRef)}`
 		const items = await this.sqlCipherFacade.all(query, params) ?? []
 		return this.deserializeList(typeRef, items.map(row => row.entity.value as Uint8Array))
 	}

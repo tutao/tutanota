@@ -295,7 +295,6 @@ export class Header implements Component {
 
 		let content: Children = null
 		if (viewSlider && viewSlider.isFocusPreviousPossible()) {
-			// FIXME Check whether user has opted in to usage testing here
 			content = m(".news-button", [
 				m(NavButton, {
 					label: () => {
@@ -319,15 +318,17 @@ export class Header implements Component {
 					},
 					hideLabel: true,
 				}),
-				m(CounterBadge, {
-					count: 1,
-					position: {
-						top: px(4),
-						right: px(9),
-					},
-					color: "white",
-					background: theme.list_accent_fg,
-				}),
+				logins.getUserController().userSettingsGroupRoot.usageDataOptedIn === null
+					? m(CounterBadge, {
+						count: 1,
+						position: {
+							top: px(4),
+							right: px(9),
+						},
+						color: "white",
+						background: theme.list_accent_fg,
+					})
+					: null,
 			])
 
 		} else if (!styles.isUsingBottomNavigation() && (!viewSlider || viewSlider.isUsingOverlayColumns())) {

@@ -1,5 +1,4 @@
 import m, {Children, Component} from "mithril"
-import type Stream from "mithril/stream"
 import type {ModalComponent} from "./Modal"
 import {modal} from "./Modal"
 import {alpha, AlphaEnum, AnimationPromise, animations, DefaultAnimationTime, opacity, transform, TransformEnum} from "../animation/Animations"
@@ -897,7 +896,7 @@ export class Dialog implements ModalComponent {
 		return new Dialog(DialogType.EditLarge, {
 			view: () => {
 				return m("", [
-					m(".dialog-header.plr-l", m(DialogHeaderBar, headerBarAttrs)),
+					headerBarAttrs.noHeader ? null : m(".dialog-header.plr-l", m(DialogHeaderBar, headerBarAttrs)),
 					m(".dialog-container.scroll", m(".fill-absolute.plr-l", m(child, childAttrs))),
 				])
 			},

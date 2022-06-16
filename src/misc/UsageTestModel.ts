@@ -22,6 +22,15 @@ import m, {Children} from "mithril"
 import {DropDownSelector, SelectorItem} from "../gui/base/DropDownSelector"
 import {UsageTestMetricType} from "../api/common/TutanotaConstants"
 import {isOfflineError} from "../api/common/utils/ErrorCheckUtils.js"
+import {Dialog} from "../gui/base/Dialog.js"
+import m, {Component, Vnode} from "mithril"
+import {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar.js"
+import {theme} from "../gui/theme.js"
+import {px} from "../gui/size.js"
+import {InfoLink} from "./LanguageViewModel.js"
+import {ButtonColor, ButtonN, ButtonType} from "../gui/base/ButtonN.js"
+import {logins} from "../api/main/LoginController.js"
+import {locator} from "../api/main/MainLocator.js"
 
 
 const PRESELECTED_LIKERT_VALUE = null
@@ -102,6 +111,121 @@ export async function showExperienceSamplingDialog(stage: Stage, experienceSampl
 
 			return children
 		},
+	})
+}
+
+type UsageTestOptInDialogAttrs = {
+	closeAction: (optedIn?: boolean) => void
+}
+
+class UsageTestOptInDialog implements Component<UsageTestOptInDialogAttrs> {
+	view(vnode: Vnode<UsageTestOptInDialogAttrs>) {
+		const lnk = InfoLink.Privacy
+
+		const userSettingsGroupRoot = logins.getUserController().userSettingsGroupRoot
+
+		return m(
+			".center",
+			[
+				m(
+					".pl",
+					{
+						style: {
+							height: px(200),
+						},
+					},
+					m.trust(theme.logo),
+				),
+				m("h1", "Help us improve Tutanota"),
+				m("p", "Share anonymous usage data and help us test new features as well as find issues with existing functionality. We will generate and store a random identifier on your device that is shared across all logged-in accounts."),
+				m("ul.usage-test-opt-in-bullets", [
+					m("li.list-item-check", "We don't collect any personally identifying data"),
+					m("li.list-item-check", "We don't share your usage data with anyone"),
+					m("li.list-item-info", "Your usage data may be used for research purposes"),
+					m("li.list-item-info", "You can turn this off anytime in settings"),
+				]),
+				m("p", "More information on this is in our privacy statement: ", m("small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])),
+				m("", [
+					m(ButtonN, {
+						label: () => "Enable",
+						title: () => "Enable",
+						click: () => {
+							userSettingsGroupRoot.usageDataOptedIn = true
+							locator.entityClient.update(userSettingsGroupRoot)
+
+							vnode.attrs.closeAction(true)
+						},
+						colors: ButtonColor.Elevated,
+						type: ButtonType.Primary,
+					}),
+					m(ButtonN, {
+						label: () => "Disable",
+						title: () => "Disable",
+						click: () => {
+							userSettingsGroupRoot.usageDataOptedIn = false
+							locator.entityClient.update(userSettingsGroupRoot)
+
+							vnode.attrs.closeAction(false)
+						},
+						colors: ButtonColor.Content,
+						type: ButtonType.Secondary,
+					}),
+					m(ButtonN, {
+						label: () => "Not now",
+						title: () => "Not now",
+						click: () => vnode.attrs.closeAction(),
+						colors: ButtonColor.Content,
+						type: ButtonType.Secondary,
+					}),
+				])
+			]
+		)
+	}
+}
+
+export function showUsageTestOptInDialog(): Promise<void> {
+	return new Promise(resolve => {
+		let dialog: Dialog
+
+		const close = (optedIn?: boolean) => {
+			dialog.close()
+
+			if (optedIn) {
+				Dialog.showActionDialog({
+					title: () => "Thanks!",
+					allowCancel: false,
+					okAction: dialog => dialog.close(),
+					child: {
+						view: () => m("", [
+							m("", "Thanks for opting in and sending us your usage data."),
+							m("", "You can turn this off anytime in settings."),
+						])
+					}
+				})
+			} else if (optedIn !== undefined) {
+				Dialog.showActionDialog({
+					title: () => "Thanks!",
+					allowCancel: false,
+					okAction: dialog => dialog.close(),
+					child: {
+						view: () => m("", [
+							m("", "Your decision not to send us your usage data has been stored."),
+							m("", "You can enable it anytime in settings should you change your mind."),
+						])
+					}
+				})
+			}
+
+			m.redraw()
+
+			resolve()
+		}
+
+		const headerAttrs: DialogHeaderBarAttrs = {
+			noHeader: true,
+		}
+
+		dialog = Dialog.largeDialogN(headerAttrs, UsageTestOptInDialog, {closeAction: close}).show()
 	})
 }
 
