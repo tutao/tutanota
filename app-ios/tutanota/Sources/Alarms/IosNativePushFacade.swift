@@ -23,14 +23,13 @@ class IosNativePushFacade : NativePushFacade {
     return try await self.appDelegate.registerForPushNotifications()
   }
 
-  func storePushIdentifierLocally(_ identifier: String, _ userId: String, _ sseOrigin: String, _ pushIdentifierId: String, _ pushIdentifierSessionKeyB64: String) async throws {
+  func storePushIdentifierLocally(_ identifier: String, _ userId: String, _ sseOrigin: String, _ pushIdentifierId: String, _ pushIdentifierSessionKey: DataWrapper) async throws {
     self.userPreferences.store(
       pushIdentifier: identifier,
       userId: userId,
       sseOrigin: sseOrigin
     )
-    let keyData = Data(base64Encoded: pushIdentifierSessionKeyB64)!
-    try self.keychainManager.storeKey(keyData, withId: pushIdentifierId)
+    try self.keychainManager.storeKey(pushIdentifierSessionKey.data, withId: pushIdentifierId)
   }
 
   func initPushNotifications() async throws {

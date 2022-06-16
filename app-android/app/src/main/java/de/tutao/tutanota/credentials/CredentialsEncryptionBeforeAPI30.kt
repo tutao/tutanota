@@ -7,7 +7,9 @@ import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricPrompt.PromptInfo
 import androidx.fragment.app.FragmentActivity
 import de.tutao.tutanota.*
+import de.tutao.tutanota.ipc.DataWrapper
 import de.tutao.tutanota.ipc.NativeCredentialsFacade
+import de.tutao.tutanota.ipc.wrap
 import java.security.KeyStoreException
 import javax.crypto.Cipher
 
@@ -22,8 +24,7 @@ class CredentialsEncryptionBeforeAPI30(
 			CredentialAuthenticationException::class,
 			KeyPermanentlyInvalidatedException::class
 	)
-	override suspend fun encryptUsingKeychain(base64EncodedData: String, encryptionMode: CredentialEncryptionMode): String {
-		val dataToEncrypt = base64EncodedData.base64ToBytes()
+	override suspend fun encryptUsingKeychain(data: DataWrapper, encryptionMode: CredentialEncryptionMode): DataWrapper {
 
 		var cipher: Cipher
 		try {
@@ -40,7 +41,7 @@ class CredentialsEncryptionBeforeAPI30(
 				throw e
 			}
 		}
-		return keyStoreFacade.encryptData(dataToEncrypt, cipher).toBase64()
+		return keyStoreFacade.encryptData(data.data, cipher).wrap()
 	}
 
 	@Throws(
@@ -50,11 +51,11 @@ class CredentialsEncryptionBeforeAPI30(
 			KeyPermanentlyInvalidatedException::class
 	)
 	override suspend fun decryptUsingKeychain(
-			base64EncodedEncryptedData: String,
+			encryptedData: DataWrapper,
 			encryptionMode: CredentialEncryptionMode
-	): String {
-		val dataToDecrypt = base64EncodedEncryptedData.base64ToBytes()
+	): DataWrapper {
 		var cipher: Cipher
+		val dataToDecrypt = encryptedData.data
 		try {
 			cipher = keyStoreFacade.getCipherForDecryptionMode(encryptionMode, dataToDecrypt)
 			if (encryptionMode == CredentialEncryptionMode.BIOMETRICS) {
@@ -69,7 +70,7 @@ class CredentialsEncryptionBeforeAPI30(
 				throw e
 			}
 		}
-		return keyStoreFacade.decryptData(dataToDecrypt, cipher).toBase64()
+		return keyStoreFacade.decryptData(dataToDecrypt, cipher).wrap()
 	}
 
 	override suspend fun getSupportedEncryptionModes(): List<CredentialEncryptionMode> = buildList {

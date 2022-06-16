@@ -13,7 +13,7 @@ export interface NativePushFacade {
 		userId: string,
 		sseOrigin: string,
 		pushIdentifierId: string,
-		pushIdentifierSessionKeyB64: string,
+		pushIdentifierSessionKey: Uint8Array,
 	): Promise<void>
 	
 	initPushNotifications(

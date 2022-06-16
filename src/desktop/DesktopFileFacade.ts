@@ -4,7 +4,7 @@ import {IpcClientRect} from "../native/common/generatedipc/IpcClientRect.js"
 import {DesktopDownloadManager} from "./DesktopDownloadManager.js"
 import {ElectronExports, FsExports} from "./ElectronExportTypes.js"
 import {UploadTaskResponse} from "../native/common/generatedipc/UploadTaskResponse.js"
-import {base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
 
 function Unimplemented() {
 	return new Error("not implemented for this platform")
@@ -81,8 +81,8 @@ export class DesktopFileFacade implements FileFacade {
 		throw Unimplemented()
 	}
 
-	saveDataFile(name: string, dataBase64: string): Promise<string> {
-		return this.dl.saveDataFile(name, base64ToUint8Array(dataBase64))
+	saveDataFile(name: string, data: Uint8Array): Promise<string> {
+		return this.dl.saveDataFile(name, data)
 	}
 
 	async readFile(file: string): Promise<string> {
@@ -90,8 +90,7 @@ export class DesktopFileFacade implements FileFacade {
 		return uint8ArrayToBase64(data)
 	}
 
-	async writeFile(file: string, contentB64: string): Promise<void> {
-		const data = base64ToUint8Array(contentB64)
+	async writeFile(file: string, data: Uint8Array): Promise<void> {
 		return this.fs.promises.writeFile(file, data)
 	}
 }

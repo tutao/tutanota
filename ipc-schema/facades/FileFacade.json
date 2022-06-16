@@ -81,14 +81,14 @@
 	"saveDataFile": {
 	  "arg": [
 		{"name": "string"},
-		{"dataBase64": "string"}
+		{"data": "bytes"}
 	  ],
 	  "ret": "string"
 	},
 	"writeFile": {
 	  "arg": [
 		{"file": "string"},
-		{"contentB64": "string"}
+		{"data": "bytes"}
 	  ],
 	  "ret": "void"
 	},

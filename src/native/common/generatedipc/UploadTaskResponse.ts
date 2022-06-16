@@ -6,5 +6,5 @@ export interface UploadTaskResponse {
 	readonly errorId: string | null
 	readonly precondition: string | null
 	readonly suspensionTime: string | null
-	readonly responseBody: string
+	readonly responseBody: Uint8Array
 }

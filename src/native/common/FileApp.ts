@@ -1,4 +1,4 @@
-import {promiseMap, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {promiseMap} from "@tutao/tutanota-utils"
 import type {MailBundle} from "../../mail/export/Bundler"
 import type {NativeInterface} from "./NativeInterface"
 import {FileReference} from "../../api/common/utils/FileUtils"
@@ -6,21 +6,8 @@ import {DataFile} from "../../api/common/DataFile"
 import {HttpMethod} from "../../api/common/EntityFunctions"
 import {FileFacade} from "./generatedipc/FileFacade.js"
 import {ExportFacade} from "./generatedipc/ExportFacade.js"
-
-
-export type DataTaskResponse = {
-	statusCode: number
-	errorId: string | null
-	precondition: string | null
-	suspensionTime: string | null
-}
-export type DownloadTaskResponse = DataTaskResponse & {
-	encryptedFileUri: string | null
-}
-
-export type UploadTaskResponse = DataTaskResponse & {
-	responseBody: string
-}
+import {DownloadTaskResponse} from "./generatedipc/DownloadTaskResponse"
+import {UploadTaskResponse} from "./generatedipc/UploadTaskResponse"
 
 export type FileUri = string
 
@@ -36,7 +23,6 @@ export class NativeFileApp {
 	/**
 	 * Open the file
 	 * @param file The uri of the file
-	 * @param mimeType The mimeType of the file
 	 */
 	open(file: FileReference): Promise<void> {
 		return this.fileFacade.open(file.location, file.mimeType)
@@ -106,7 +92,7 @@ export class NativeFileApp {
 	}
 
 	async saveDataFile(data: DataFile): Promise<FileReference> {
-		const fileUri = await this.fileFacade.saveDataFile(data.name, uint8ArrayToBase64(data.data))
+		const fileUri = await this.fileFacade.saveDataFile(data.name, data.data)
 		return {
 			_type: "FileReference",
 			name: data.name,

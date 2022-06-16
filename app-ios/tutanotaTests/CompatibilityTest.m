@@ -86,19 +86,18 @@ static int mock_rand_bytes(unsigned char *buf, int num)
 	for	(NSDictionary *testCase in testsCases ) {
 
 		let publicKey = [CompatibilityTest hexToPublicKey: testCase[@"publicKey"]];
-		let plainTextB64 = [self hexToB64:testCase[@"input"]];
-		let encResultB64 = [self hexToB64:testCase[@"result"]];
-		let seedB64 = [self hexToB64:testCase[@"seed"]];
+		let plainText = [TUTEncodingConverter hexToBytes:testCase[@"input"]];
+		let encResult = [TUTEncodingConverter hexToBytes:testCase[@"result"]];
+		let seed = [TUTEncodingConverter hexToBytes:testCase[@"seed"]];
 
-		NSData *seed = [[NSData alloc] initWithBase64EncodedString:seedB64 options:0];
 		randValueMock = (unsigned char *)seed.bytes;
     
     NSError *error;
-    let encryptedBase64 = [crypto rsaEncryptWithPublicKey:publicKey base64Data:plainTextB64 base64Seed:seedB64 error:&error];
-    XCTAssertEqualObjects(encryptedBase64, encResultB64);
+    let encrypted = [crypto rsaEncryptWithPublicKey:publicKey data:plainText seed:seed error:&error];
+    XCTAssertEqualObjects(encrypted, encResult);
     let privateKey = [CompatibilityTest hexToPrivateKey:testCase[@"privateKey"]];
-    let decryptedBase64 = [crypto rsaDecryptWithPrivateKey:privateKey base64Data:encryptedBase64 error:&error];
-    XCTAssertEqualObjects(decryptedBase64, plainTextB64);
+    let decryptedBase64 = [crypto rsaDecryptWithPrivateKey:privateKey data:encrypted error:&error];
+    XCTAssertEqualObjects(decryptedBase64, plainText);
 	}
 }
 

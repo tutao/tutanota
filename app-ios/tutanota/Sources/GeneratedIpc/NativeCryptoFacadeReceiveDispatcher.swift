@@ -12,26 +12,26 @@ public class NativeCryptoFacadeReceiveDispatcher {
 		switch method {
 		case "rsaEncrypt":
 			let publicKey = try! JSONDecoder().decode(PublicKey.self, from: arg[0].data(using: .utf8)!)
-			let base64Data = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
-			let base64Seed = try! JSONDecoder().decode(String.self, from: arg[2].data(using: .utf8)!)
+			let data = try! JSONDecoder().decode(DataWrapper.self, from: arg[1].data(using: .utf8)!)
+			let seed = try! JSONDecoder().decode(DataWrapper.self, from: arg[2].data(using: .utf8)!)
 			let result = try await self.facade.rsaEncrypt(
 				publicKey,
-				base64Data,
-				base64Seed
+				data,
+				seed
 			)
 			return toJson(result)
 		case "rsaDecrypt":
 			let privateKey = try! JSONDecoder().decode(PrivateKey.self, from: arg[0].data(using: .utf8)!)
-			let base64Data = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
+			let data = try! JSONDecoder().decode(DataWrapper.self, from: arg[1].data(using: .utf8)!)
 			let result = try await self.facade.rsaDecrypt(
 				privateKey,
-				base64Data
+				data
 			)
 			return toJson(result)
 		case "aesEncryptFile":
-			let key = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let key = try! JSONDecoder().decode(DataWrapper.self, from: arg[0].data(using: .utf8)!)
 			let fileUri = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
-			let iv = try! JSONDecoder().decode(String.self, from: arg[2].data(using: .utf8)!)
+			let iv = try! JSONDecoder().decode(DataWrapper.self, from: arg[2].data(using: .utf8)!)
 			let result = try await self.facade.aesEncryptFile(
 				key,
 				fileUri,
@@ -39,7 +39,7 @@ public class NativeCryptoFacadeReceiveDispatcher {
 			)
 			return toJson(result)
 		case "aesDecryptFile":
-			let key = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let key = try! JSONDecoder().decode(DataWrapper.self, from: arg[0].data(using: .utf8)!)
 			let fileUri = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
 			let result = try await self.facade.aesDecryptFile(
 				key,
@@ -47,7 +47,7 @@ public class NativeCryptoFacadeReceiveDispatcher {
 			)
 			return toJson(result)
 		case "generateRsaKey":
-			let seed = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let seed = try! JSONDecoder().decode(DataWrapper.self, from: arg[0].data(using: .utf8)!)
 			let result = try await self.facade.generateRsaKey(
 				seed
 			)

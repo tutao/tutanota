@@ -40,14 +40,14 @@ export class CredentialsMigration {
 			const encryptedAccessToken = await this.deviceEncryptionFacade.encrypt(encryptionKey, stringToUtf8Uint8Array(credentials.accessToken))
 			return {...credentials, accessToken: uint8ArrayToBase64(encryptedAccessToken)}
 		})
-		const encryptedKeyB64 = await this.nativeCredentialsFacade.encryptUsingKeychain(
-			uint8ArrayToBase64(encryptionKey),
+		const encryptedKey = await this.nativeCredentialsFacade.encryptUsingKeychain(
+			encryptionKey,
 			CredentialEncryptionMode.DEVICE_LOCK
 		)
 
 		this.deviceConfig.setCredentialEncryptionMode(CredentialEncryptionMode.DEVICE_LOCK)
 
-		this.deviceConfig.setCredentialsEncryptionKey(base64ToUint8Array(encryptedKeyB64))
+		this.deviceConfig.setCredentialsEncryptionKey(encryptedKey)
 
 		for (let encryptedCredential of encryptedCredentials) {
 			this.deviceConfig.store(encryptedCredential)

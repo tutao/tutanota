@@ -89,8 +89,8 @@ o.spec("CredentialsMigrationTest", function () {
 
 		storedCredentialsEncryptionKey = null
 		encryptionKey = new Uint8Array([1, 2, 5, 8])
-		when(nativeCredentialsFacade.encryptUsingKeychain(uint8ArrayToBase64(encryptionKey), CredentialEncryptionMode.DEVICE_LOCK))
-			.thenResolve(uint8ArrayToBase64(encryptedKey))
+		when(nativeCredentialsFacade.encryptUsingKeychain(encryptionKey, CredentialEncryptionMode.DEVICE_LOCK))
+			.thenResolve(encryptedKey)
 		storedCredentials = [internalCredentials, externalCredentials]
 
 		await credentialsMigration.migrateCredentials()

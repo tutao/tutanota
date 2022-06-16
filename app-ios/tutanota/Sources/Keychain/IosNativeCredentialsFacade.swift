@@ -14,19 +14,14 @@ class IosNativeCredentialsFacade : NativeCredentialsFacade {
     self.keychainManager = keychainManager
   }
   
-  func encryptUsingKeychain(_ base64Data: Base64, _ encryptionMode: CredentialEncryptionMode) async throws -> Base64 {
-    let data = Data(base64Encoded: base64Data)!
-    
-    let encryptedData = try self.keychainManager.encryptData(encryptionMode: encryptionMode, data: data)
-    return encryptedData.base64EncodedString()
+  func encryptUsingKeychain(_ data: DataWrapper, _ encryptionMode: CredentialEncryptionMode) async throws -> DataWrapper {
+    let encryptedData = try self.keychainManager.encryptData(encryptionMode: encryptionMode, data: data.data)
+    return DataWrapper(data: encryptedData)
   }
   
-  func decryptUsingKeychain(_ encryptedBase64Data: Base64, _ encryptionMode: CredentialEncryptionMode) async throws -> Base64 {
-    let encryptedData = Data(base64Encoded: encryptedBase64Data)!
-    
-    
-    let data = try self.keychainManager.decryptData(encryptionMode: encryptionMode, encryptedData: encryptedData)
-    return data.base64EncodedString()
+  func decryptUsingKeychain(_ encryptedData: DataWrapper, _ encryptionMode: CredentialEncryptionMode) async throws -> DataWrapper {
+    let data = try self.keychainManager.decryptData(encryptionMode: encryptionMode, encryptedData: encryptedData.data)
+    return DataWrapper(data: data)
   }
   
   func getSupportedEncryptionModes() async -> [CredentialEncryptionMode] {

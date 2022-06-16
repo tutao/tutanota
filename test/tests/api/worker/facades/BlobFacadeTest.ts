@@ -14,7 +14,7 @@ import {HttpMethod} from "../../../../../src/api/common/EntityFunctions.js"
 import {BlobAccessTokenService} from "../../../../../src/api/entities/storage/Services.js"
 import {getElementId, getEtId, getListId} from "../../../../../src/api/common/utils/EntityUtils.js"
 import {aes128Decrypt, aes128Encrypt, aes128RandomKey, generateIV, sha256Hash} from "@tutao/tutanota-crypto"
-import {arrayEquals, Mapper, stringToBase64, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {arrayEquals, Mapper, stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {Mode} from "../../../../../src/api/common/Env.js"
 import {CryptoFacade} from "../../../../../src/api/worker/crypto/CryptoFacade.js"
 import {FileReference} from "../../../../../src/api/common/utils/FileUtils.js"
@@ -190,7 +190,7 @@ o.spec("BlobFacade test", function () {
 			when(fileAppMock.hashFile(encryptedFileInfo.uri)).thenResolve(blobHash)
 			when(fileAppMock.upload(anything(), anything(), anything(), anything())).thenResolve({
 				statusCode: 201,
-				responseBody: stringToBase64(JSON.stringify(blobServiceResponse))
+				responseBody: stringToUtf8Uint8Array(JSON.stringify(blobServiceResponse))
 			})
 
 			env.mode = Mode.Desktop

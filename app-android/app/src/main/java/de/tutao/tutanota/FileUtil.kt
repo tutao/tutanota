@@ -15,10 +15,7 @@ import android.util.Log
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
-import de.tutao.tutanota.ipc.DownloadTaskResponse
-import de.tutao.tutanota.ipc.FileFacade
-import de.tutao.tutanota.ipc.IpcClientRect
-import de.tutao.tutanota.ipc.UploadTaskResponse
+import de.tutao.tutanota.ipc.*
 import de.tutao.tutanota.push.LocalNotificationsFacade
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -230,9 +227,9 @@ class FileUtil(
 					val responseBody = if (responseCode in 200..299) {
 						val responseBodyStream = ByteArrayOutputStream()
 						IOUtils.copy(con.inputStream, responseBodyStream)
-						responseBodyStream.toByteArray().toBase64()
+						responseBodyStream.toByteArray().wrap()
 					} else {
-						""
+						byteArrayOf().wrap()
 					}
 					UploadTaskResponse(
 							statusCode = responseCode,
@@ -279,8 +276,8 @@ class FileUtil(
 			}
 
 	@Throws(IOException::class)
-	override suspend fun writeFile(file: String, contentB64: String): Unit {
-		File(activity.filesDir, file).writeBytes(contentB64.base64ToBytes())
+	override suspend fun writeFile(file: String, content: DataWrapper) {
+		File(activity.filesDir, file).writeBytes(content.data)
 	}
 
 	@Throws(IOException::class)
@@ -295,9 +292,9 @@ class FileUtil(
 	}
 
 	@Throws(IOException::class)
-	override suspend fun saveDataFile(name: String, dataBase64: String): String = withContext(Dispatchers.IO) {
+	override suspend fun saveDataFile(name: String, data: DataWrapper): String = withContext(Dispatchers.IO) {
 		val localPath = getTempDecryptedFile(name)
-		writeFileStream(localPath, ByteArrayInputStream(dataBase64.base64ToBytes()))
+		writeFileStream(localPath, ByteArrayInputStream(data.data))
 		localPath.toUri().toString()
 	}
 

@@ -5,13 +5,13 @@ import Foundation
 
 public protocol NativeCredentialsFacade {
 	func encryptUsingKeychain(
-		_ base64EncodedData: String,
+		_ data: DataWrapper,
 		_ encryptionMode: CredentialEncryptionMode
-	) async throws -> String
+	) async throws -> DataWrapper
 	func decryptUsingKeychain(
-		_ base64EncodedEncryptedData: String,
+		_ encryptedData: DataWrapper,
 		_ encryptionMode: CredentialEncryptionMode
-	) async throws -> String
+	) async throws -> DataWrapper
 	func getSupportedEncryptionModes(
 	) async throws -> [CredentialEncryptionMode]
 }

@@ -105,18 +105,18 @@ export class FileFacadeReceiveDispatcher {
 			}
 			case "saveDataFile": {
 				const name: string = arg[0]
-				const dataBase64: string = arg[1]
+				const data: Uint8Array = arg[1]
 				return this.facade.saveDataFile(
 					name,
-					dataBase64,
+					data,
 				)
 			}
 			case "writeFile": {
 				const file: string = arg[0]
-				const contentB64: string = arg[1]
+				const data: Uint8Array = arg[1]
 				return this.facade.writeFile(
 					file,
-					contentB64,
+					data,
 				)
 			}
 			case "readFile": {

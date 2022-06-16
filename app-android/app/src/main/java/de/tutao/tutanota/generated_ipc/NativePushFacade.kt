@@ -16,7 +16,7 @@ interface NativePushFacade {
 		userId: String,
 		sseOrigin: String,
 		pushIdentifierId: String,
-		pushIdentifierSessionKeyB64: String,
+		pushIdentifierSessionKey: DataWrapper,
 	): Unit
 	 suspend fun initPushNotifications(
 	): Unit

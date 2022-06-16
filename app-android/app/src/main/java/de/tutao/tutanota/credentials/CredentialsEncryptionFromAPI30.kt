@@ -8,9 +8,13 @@ import androidx.biometric.BiometricManager.*
 import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricPrompt.PromptInfo
 import androidx.fragment.app.FragmentActivity
-import de.tutao.tutanota.*
+import de.tutao.tutanota.AndroidKeyStoreFacade
+import de.tutao.tutanota.CredentialAuthenticationException
 import de.tutao.tutanota.CryptoError
+import de.tutao.tutanota.R
+import de.tutao.tutanota.ipc.DataWrapper
 import de.tutao.tutanota.ipc.NativeCredentialsFacade
+import de.tutao.tutanota.ipc.wrap
 import java.security.KeyStoreException
 import javax.crypto.Cipher
 
@@ -27,11 +31,11 @@ class CredentialsEncryptionFromAPI30(
 			CredentialAuthenticationException::class,
 			KeyPermanentlyInvalidatedException::class
 	)
-	override suspend fun encryptUsingKeychain(base64EncodedData: String, encryptionMode: CredentialEncryptionMode): String {
-		val dataToEncrypt = base64EncodedData.base64ToBytes()
+	override suspend fun encryptUsingKeychain(data: DataWrapper, encryptionMode: CredentialEncryptionMode): DataWrapper {
+		val dataToEncrypt = data.data
 		val cipher = getAuthenticatedCipherForEncryptionModelWithFallback(encryptionMode)
 		val encryptedBytes = keyStoreFacade.encryptData(dataToEncrypt, cipher)
-		return encryptedBytes.toBase64()
+		return encryptedBytes.wrap()
 	}
 
 	@Throws(
@@ -41,13 +45,13 @@ class CredentialsEncryptionFromAPI30(
 			KeyPermanentlyInvalidatedException::class
 	)
 	override suspend fun decryptUsingKeychain(
-			base64EncodedEncryptedData: String,
+			encryptedData: DataWrapper,
 			encryptionMode: CredentialEncryptionMode
-	): String {
-		val dataToDecrypt = base64EncodedEncryptedData.base64ToBytes()
+	): DataWrapper {
+		val dataToDecrypt = encryptedData.data
 		val cipher = this.getAuthenticatedCipherForDecryptionModelWithFallback(dataToDecrypt, encryptionMode)
 		val decryptedBytes = keyStoreFacade.decryptData(dataToDecrypt, cipher)
-		return decryptedBytes.toBase64()
+		return decryptedBytes.wrap()
 	}
 
 	override suspend fun getSupportedEncryptionModes(): List<CredentialEncryptionMode> {
@@ -134,8 +138,7 @@ class CredentialsEncryptionFromAPI30(
 			dataToDecrypt: ByteArray,
 			encryptionMode: CredentialEncryptionMode
 	): Cipher {
-		val cipher: Cipher
-		cipher = try {
+		val cipher = try {
 			keyStoreFacade.getCipherForDecryptionMode(encryptionMode, dataToDecrypt)
 		} catch (e: KeyStoreException) {
 			// If the key was created with the old Android version then we need to use old mechanism

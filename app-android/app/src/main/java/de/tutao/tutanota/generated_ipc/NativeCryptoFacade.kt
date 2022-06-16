@@ -9,23 +9,23 @@ import kotlinx.serialization.json.*
 interface NativeCryptoFacade {
 	 suspend fun rsaEncrypt(
 		publicKey: PublicKey,
-		base64Data: String,
-		base64Seed: String,
-	): String
+		data: DataWrapper,
+		seed: DataWrapper,
+	): DataWrapper
 	 suspend fun rsaDecrypt(
 		privateKey: PrivateKey,
-		base64Data: String,
-	): String
+		data: DataWrapper,
+	): DataWrapper
 	 suspend fun aesEncryptFile(
-		key: String,
+		key: DataWrapper,
 		fileUri: String,
-		iv: String,
+		iv: DataWrapper,
 	): EncryptedFileInfo
 	 suspend fun aesDecryptFile(
-		key: String,
+		key: DataWrapper,
 		fileUri: String,
 	): String
 	 suspend fun generateRsaKey(
-		seed: String,
+		seed: DataWrapper,
 	): RsaKeyPair
 }

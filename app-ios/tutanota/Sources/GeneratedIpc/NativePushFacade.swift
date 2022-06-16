@@ -13,7 +13,7 @@ public protocol NativePushFacade {
 		_ userId: String,
 		_ sseOrigin: String,
 		_ pushIdentifierId: String,
-		_ pushIdentifierSessionKeyB64: String
+		_ pushIdentifierSessionKey: DataWrapper
 	) async throws -> Void
 	func initPushNotifications(
 	) async throws -> Void

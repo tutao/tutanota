@@ -20,13 +20,13 @@ export class NativePushFacadeReceiveDispatcher {
 				const userId: string = arg[1]
 				const sseOrigin: string = arg[2]
 				const pushIdentifierId: string = arg[3]
-				const pushIdentifierSessionKeyB64: string = arg[4]
+				const pushIdentifierSessionKey: Uint8Array = arg[4]
 				return this.facade.storePushIdentifierLocally(
 					identifier,
 					userId,
 					sseOrigin,
 					pushIdentifierId,
-					pushIdentifierSessionKeyB64,
+					pushIdentifierSessionKey,
 				)
 			}
 			case "initPushNotifications": {
