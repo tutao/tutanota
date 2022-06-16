@@ -11,6 +11,9 @@ import {Icons} from "../base/icons/Icons"
 import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 import {createDropdown} from "../base/Dropdown.js"
 import {keyManager} from "../../misc/KeyManager"
+import {CounterBadge} from "../base/CounterBadge.js"
+import {px} from "../size.js"
+import {theme} from "../theme.js"
 
 type Attrs = {
 	openNewWindow(): unknown
@@ -27,6 +30,29 @@ export class DrawerMenu implements Component<Attrs> {
 			},
 			m(".flex.col.height-100p.items-center.pt.pb", [
 				m(".flex-grow"),
+				logins.isUserLoggedIn() // FIXME Check whether user has opted in to usage testing here
+					?
+					m(".news-button", [
+						m(ButtonN, {
+							icon: () => Icons.QuestionMark,
+							label: () => "Usage testing opt-in", // FIXME Add translation string
+							click: () => {
+								// nuffin
+							},
+							type: ButtonType.ActionLarge,
+							colors: ButtonColor.DrawerNav,
+						}),
+						m(CounterBadge, {
+							count: 1,
+							position: {
+								top: px(0),
+								right: px(3),
+							},
+							color: "white",
+							background: theme.list_accent_fg,
+						}),
+					])
+					: null,
 				logins.isGlobalAdminUserLoggedIn() && logins.getUserController().isPremiumAccount()
 					? m(Button, {
 						icon: () => Icons.Gift,

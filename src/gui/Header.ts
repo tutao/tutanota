@@ -20,6 +20,7 @@ import {assertMainOrNode} from "../api/common/Env.js"
 import {OfflineIndicatorDesktop, OfflineIndicatorMobile} from "./base/OfflineIndicator.js"
 import {OfflineIndicatorViewModel} from "./base/OfflineIndicatorViewModel.js"
 import {ProgressBar} from "./base/ProgressBar.js"
+import {CounterBadge} from "./base/CounterBadge.js"
 import {SessionType} from "../api/common/SessionType.js"
 
 const LogoutPath = "/login?noAutoLogin=true"
@@ -294,28 +295,41 @@ export class Header implements Component {
 
 		let content: Children = null
 		if (viewSlider && viewSlider.isFocusPreviousPossible()) {
-			content = m(NavButton, {
-				label: () => {
-					const prevColumn = viewSlider.getPreviousColumn()
-					return prevColumn ? prevColumn.getTitle() : ""
-				},
-				icon: () =>
-					(
-						this.currentView && this.currentView.overrideBackIcon
-							? this.currentView.overrideBackIcon()
-							: !viewSlider.getBackgroundColumns()[0].visible
-					)
-						? BootIcons.Back
-						: BootIcons.MoreVertical,
-				colors: NavButtonColor.Header,
-				href: () => m.route.get(),
-				click: () => {
-					if (!this.currentView || !this.currentView.handleBackButton || !this.currentView.handleBackButton()) {
-						viewSlider.focusPreviousColumn()
-					}
-				},
-				hideLabel: true,
-			})
+			// FIXME Check whether user has opted in to usage testing here
+			content = m(".news-button", [
+				m(NavButton, {
+					label: () => {
+						const prevColumn = viewSlider.getPreviousColumn()
+						return prevColumn ? prevColumn.getTitle() : ""
+					},
+					icon: () =>
+						(
+							this.currentView && this.currentView.overrideBackIcon
+								? this.currentView.overrideBackIcon()
+								: !viewSlider.getBackgroundColumns()[0].visible
+						)
+							? BootIcons.Back
+							: BootIcons.MoreVertical,
+					colors: NavButtonColor.Header,
+					href: () => m.route.get(),
+					click: () => {
+						if (!this.currentView || !this.currentView.handleBackButton || !this.currentView.handleBackButton()) {
+							viewSlider.focusPreviousColumn()
+						}
+					},
+					hideLabel: true,
+				}),
+				m(CounterBadge, {
+					count: 1,
+					position: {
+						top: px(4),
+						right: px(9),
+					},
+					color: "white",
+					background: theme.list_accent_fg,
+				}),
+			])
+
 		} else if (!styles.isUsingBottomNavigation() && (!viewSlider || viewSlider.isUsingOverlayColumns())) {
 			content = m(
 				".logo.logo-height.pl" + landmarkAttrs(AriaLandmarks.Banner, "Tutanota logo"),
