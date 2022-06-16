@@ -961,17 +961,21 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 		}
 	}
 
-	private loadMoreIfNecessary() {
-		let lastBunchVisible = this.currentPosition > this.loadedEntities.length * this.config.rowHeight - this.visibleElementsHeight * 2
+	private async loadMoreIfNecessary() {
+		// WARNING this is hacky:
+		// lastBunchVisible depends on visibleElementsHeight which is set inside _createVirtualRows which might not have completed by the time we
+		// reach here, so waiting for domDeferred guarantees that oncreate has finished running, and in turn that _createVirtualRows has completed
+		await this.domDeferred.promise
+
+		const lastBunchVisible = this.currentPosition > this.loadedEntities.length * this.config.rowHeight - this.visibleElementsHeight * 2
 
 		if (lastBunchVisible &&
 			!this.loadingState.isLoading() &&
 			!this.loadedCompletely &&
 			!this.loadingState.isConnectionLost()
 		) {
-			this.loadMore().then(() => {
-				this.updateListHeight()
-			})
+			await this.loadMore()
+			this.updateListHeight()
 		}
 	}
 
