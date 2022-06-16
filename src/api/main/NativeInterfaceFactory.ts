@@ -56,7 +56,7 @@ export async function createNativeInterfaces(
 		const native = new NativeInterfaceMain(webInterface, dispatcher)
 		const nativePushFacadeSendDispatcher = new NativePushFacadeSendDispatcher(native)
 		const pushService = new NativePushServiceApp(nativePushFacadeSendDispatcher, logins, cryptoFacade, entityClient, deviceConfig, calendarFacade)
-		const fileApp = new NativeFileApp(native, new FileFacadeSendDispatcher(native), new ExportFacadeSendDispatcher(native))
+		const fileApp = new NativeFileApp(new FileFacadeSendDispatcher(native), new ExportFacadeSendDispatcher(native))
 		const systemApp = new NativeSystemApp(native, fileApp)
 		const systemFacade = new SystemFacadeSendDispatcher(native)
 		return {

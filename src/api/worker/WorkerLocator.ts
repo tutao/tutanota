@@ -134,7 +134,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.cacheStorage = maybeUninitializedStorage
 
-	const fileApp = new NativeFileApp(worker, new FileFacadeSendDispatcher(worker), new ExportFacadeSendDispatcher(worker))
+	const fileApp = new NativeFileApp(new FileFacadeSendDispatcher(worker), new ExportFacadeSendDispatcher(worker))
 
 	// We don't wont to cache within the admin client
 	let cache: EntityRestCache | null = null

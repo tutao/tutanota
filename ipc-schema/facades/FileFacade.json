@@ -78,25 +78,17 @@
 	  ],
 	  "ret": "List<string>"
 	},
-	"saveDataFile": {
+	"writeDataFile": {
 	  "arg": [
-		{"name": "string"},
-		{"data": "bytes"}
+		{"file": "DataFile"}
 	  ],
 	  "ret": "string"
 	},
-	"writeFile": {
+	"readDataFile": {
 	  "arg": [
-		{"file": "string"},
-		{"data": "bytes"}
+		{"filePath": "string"}
 	  ],
-	  "ret": "void"
-	},
-	"readFile": {
-	  "arg": [
-		{"file": "string"}
-	  ],
-	  "ret": "string"
+	  "ret": "DataFile?"
 	}
   }
 }

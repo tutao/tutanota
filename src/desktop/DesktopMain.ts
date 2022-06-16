@@ -175,7 +175,6 @@ async function createComponents(): Promise<Components> {
 		offlineDbFacade,
 		wm,
 		dl,
-		desktopUtils,
 		sock,
 		webDialogController,
 		notifier,
@@ -183,7 +182,7 @@ async function createComponents(): Promise<Components> {
 		new DesktopNativeCryptoFacade(fs, cryptoFns, desktopUtils),
 		new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage),
 		new DesktopSettingsFacade(conf, desktopUtils, integrator, updater, lang),
-		new DesktopThemeFacade(conf, wm)
+		new DesktopThemeFacade(conf, wm),
 	)
 
 	function makeDbPath(userId: string): string {

@@ -1,6 +1,7 @@
 /* generated file, don't edit. */
 
 import {IpcClientRect} from "./IpcClientRect.js"
+import {DataFile} from "./DataFile.js"
 import {FileFacade} from "./FileFacade.js"
 
 export class FileFacadeReceiveDispatcher {
@@ -103,26 +104,16 @@ export class FileFacadeReceiveDispatcher {
 					maxChunkSizeBytes,
 				)
 			}
-			case "saveDataFile": {
-				const name: string = arg[0]
-				const data: Uint8Array = arg[1]
-				return this.facade.saveDataFile(
-					name,
-					data,
+			case "writeDataFile": {
+				const file: DataFile = arg[0]
+				return this.facade.writeDataFile(
+					file,
 				)
 			}
-			case "writeFile": {
-				const file: string = arg[0]
-				const data: Uint8Array = arg[1]
-				return this.facade.writeFile(
-					file,
-					data,
-				)
-			}
-			case "readFile": {
-				const file: string = arg[0]
-				return this.facade.readFile(
-					file,
+			case "readDataFile": {
+				const filePath: string = arg[0]
+				return this.facade.readDataFile(
+					filePath,
 				)
 			}
 		}

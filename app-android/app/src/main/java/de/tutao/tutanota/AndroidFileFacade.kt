@@ -14,6 +14,7 @@ import android.provider.MediaStore
 import android.util.Log
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
+import androidx.core.net.toFile
 import androidx.core.net.toUri
 import de.tutao.tutanota.ipc.*
 import de.tutao.tutanota.push.LocalNotificationsFacade
@@ -32,7 +33,7 @@ import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.*
 
-class FileUtil(
+class AndroidFileFacade(
 		private val activity: MainActivity,
 		private val localNotificationsFacade: LocalNotificationsFacade
 ) : FileFacade {
@@ -97,7 +98,7 @@ class FileUtil(
 
 	// @see: https://developer.android.com/reference/android/support/v4/content/FileProvider.html
 	override suspend fun open(location: String, mimeType: String): Unit {
-		val file = File(location).toUri().let { uri ->
+		val file = location.toUri().let { uri ->
 			if (uri.scheme == "file") {
 				FileProvider.getUriForFile(activity, BuildConfig.FILE_PROVIDER_AUTHORITY, File(uri.path!!))
 			} else {
@@ -143,7 +144,7 @@ class FileUtil(
 	@TargetApi(Build.VERSION_CODES.Q)
 	private suspend fun addFileToDownloadsMediaStore(fileUriString: String): String {
 		val contentResolver = activity.contentResolver
-		val fileUri = File(fileUriString).toUri()
+		val fileUri = fileUriString.toUri()
 		val fileInfo = getFileInfo(activity, fileUri)
 		val values = ContentValues()
 		values.put(MediaStore.MediaColumns.IS_PENDING, 1)
@@ -276,26 +277,33 @@ class FileUtil(
 			}
 
 	@Throws(IOException::class)
-	override suspend fun writeFile(file: String, content: DataWrapper) {
-		File(activity.filesDir, file).writeBytes(content.data)
+	override suspend fun writeDataFile(dataFile: DataFile): String = withContext(Dispatchers.IO) {
+		val file = getTempDecryptedFile(dataFile.name)
+		file.writeBytes(dataFile.data.data)
+		file.toUri().toString()
 	}
 
 	@Throws(IOException::class)
-	override suspend fun readFile(file: String): String {
-		return File(activity.filesDir, file).readBytes().toBase64()
+	override suspend fun readDataFile(fileUri: String): DataFile? = withContext(Dispatchers.IO) {
+		// This impl is not really used and is untested so expect anything
+		try {
+			val file = fileUri.toUri().toFile()
+			val data = file.readBytes()
+			DataFile(
+					name = getName(fileUri),
+					mimeType = getMimeType(fileUri),
+					data = data.wrap(),
+					size = getSize(fileUri)
+			)
+		} catch (e: IOException) {
+			null
+		}
 	}
 
 	@Throws(IOException::class)
 	suspend fun writeFileStream(filePath: File, inputStream: InputStream) = withContext(Dispatchers.IO) {
 		filePath.parentFile.mkdirs()
 		IOUtils.copyLarge(inputStream, FileOutputStream(filePath), ByteArray(COPY_BUFFER_SIZE))
-	}
-
-	@Throws(IOException::class)
-	override suspend fun saveDataFile(name: String, data: DataWrapper): String = withContext(Dispatchers.IO) {
-		val localPath = getTempDecryptedFile(name)
-		writeFileStream(localPath, ByteArrayInputStream(data.data))
-		localPath.toUri().toString()
 	}
 
 	override suspend fun clearFileData() {

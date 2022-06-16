@@ -14,7 +14,6 @@ export type FileUri = string
 export class NativeFileApp {
 
 	constructor(
-		private readonly native: NativeInterface,
 		private readonly fileFacade: FileFacade,
 		private readonly exportFacade: ExportFacade,
 	) {
@@ -91,8 +90,8 @@ export class NativeFileApp {
 		return this.fileFacade.putFileIntoDownloadsFolder(localFileUri)
 	}
 
-	async saveDataFile(data: DataFile): Promise<FileReference> {
-		const fileUri = await this.fileFacade.saveDataFile(data.name, data.data)
+	async writeDataFile(data: DataFile): Promise<FileReference> {
+		const fileUri = await this.fileFacade.writeDataFile(data)
 		return {
 			_type: "FileReference",
 			name: data.name,
@@ -131,7 +130,7 @@ export class NativeFileApp {
 	}
 
 	readDataFile(uriOrPath: string): Promise<DataFile | null> {
-		return this.native.invokeNative("readDataFile", [uriOrPath])
+		return this.fileFacade.readDataFile(uriOrPath)
 	}
 
 	/**

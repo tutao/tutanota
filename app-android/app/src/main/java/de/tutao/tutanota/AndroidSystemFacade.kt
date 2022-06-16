@@ -15,7 +15,7 @@ import java.io.IOException
 
 class AndroidSystemFacade(
 		private val contact: Contact,
-		private val fileUtil: FileUtil,
+		private val androidFileFacade: AndroidFileFacade,
 		private val activity: Activity,
 ) : SystemFacade {
 	override suspend fun findSuggestions(query: String): List<NativeContact> {
@@ -50,8 +50,8 @@ class AndroidSystemFacade(
 			val imageName = "logo-solo-red.png"
 			try {
 				val logoInputStream = activity.assets.open("tutanota/images/$imageName")
-				val logoFile = fileUtil.getTempDecryptedFile(imageName)
-				fileUtil.writeFileStream(logoFile, logoInputStream)
+				val logoFile = androidFileFacade.getTempDecryptedFile(imageName)
+				androidFileFacade.writeFileStream(logoFile, logoInputStream)
 				val logoUri = FileProvider.getUriForFile(activity, BuildConfig.FILE_PROVIDER_AUTHORITY, logoFile)
 				val thumbnail = ClipData.newUri(
 						activity.contentResolver,

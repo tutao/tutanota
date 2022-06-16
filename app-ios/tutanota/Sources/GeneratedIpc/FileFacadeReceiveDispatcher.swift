@@ -106,26 +106,16 @@ public class FileFacadeReceiveDispatcher {
 				maxChunkSizeBytes
 			)
 			return toJson(result)
-		case "saveDataFile":
-			let name = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
-			let data = try! JSONDecoder().decode(DataWrapper.self, from: arg[1].data(using: .utf8)!)
-			let result = try await self.facade.saveDataFile(
-				name,
-				data
+		case "writeDataFile":
+			let file = try! JSONDecoder().decode(DataFile.self, from: arg[0].data(using: .utf8)!)
+			let result = try await self.facade.writeDataFile(
+				file
 			)
 			return toJson(result)
-		case "writeFile":
-			let file = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
-			let data = try! JSONDecoder().decode(DataWrapper.self, from: arg[1].data(using: .utf8)!)
-			try await self.facade.writeFile(
-				file,
-				data
-			)
-			return "null"
-		case "readFile":
-			let file = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
-			let result = try await self.facade.readFile(
-				file
+		case "readDataFile":
+			let filePath = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let result = try await self.facade.readDataFile(
+				filePath
 			)
 			return toJson(result)
 		default:

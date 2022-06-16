@@ -8,6 +8,7 @@ import {PreconditionFailedError, TooManyRequestsError} from "../../../src/api/co
 import type * as fs from "fs"
 import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {sha256Hash} from "@tutao/tutanota-crypto"
+import {createDataFile} from "../../../src/api/common/DataFile.js"
 
 const DEFAULT_DOWNLOAD_PATH = "/a/download/path/"
 
@@ -233,7 +234,8 @@ o.spec("DesktopDownloadManagerTest", function () {
 				})
 				.set()
 			const dl = makeMockedDownloadManager(mocks)
-			await dl.saveDataFile("blob", new Uint8Array([1]))
+			const dataFile = createDataFile("blob", "application/octet-stream", new Uint8Array([1]))
+			await dl.writeDataFile(dataFile)
 			o(mocks.fsMock.promises.mkdir.args).deepEquals([
 				"parentDir",
 				{
@@ -266,13 +268,15 @@ o.spec("DesktopDownloadManagerTest", function () {
 				})
 
 			const dl = makeMockedDownloadManager(mocks)
-			await assertThrows(CancelledError, () => dl.saveDataFile("blob", new Uint8Array([1])))
+			const dataFile = createDataFile("blob", "application/octet-stream", new Uint8Array([1]))
+			await assertThrows(CancelledError, () => dl.writeDataFile(dataFile))
 		})
 
 		o("with default download path", async function () {
 			const mocks = standardMocks()
 			const dl = makeMockedDownloadManager(mocks)
-			await dl.saveDataFile("blob", new Uint8Array([1]))
+			const dataFile = createDataFile("blob", "application/octet-stream", new Uint8Array([1]))
+			await dl.writeDataFile(dataFile)
 			o(mocks.fsMock.promises.mkdir.args).deepEquals([
 				"/a/download/path",
 				{
@@ -288,7 +292,8 @@ o.spec("DesktopDownloadManagerTest", function () {
 
 			mocks.fsMock.promises.readdir = () => Promise.resolve(["blob"] as any)
 
-			await dl.saveDataFile("blob", new Uint8Array([1]))
+			const dataFile = createDataFile("blob", "application/octet-stream", new Uint8Array([1]))
+			await dl.writeDataFile(dataFile)
 			o(mocks.fsMock.promises.mkdir.args).deepEquals([
 				"/a/download/path",
 				{

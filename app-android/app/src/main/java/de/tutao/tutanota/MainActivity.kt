@@ -73,7 +73,7 @@ class MainActivity : FragmentActivity() {
 		sseStorage = SseStorage(AppDatabase.getDatabase(this,  /*allowMainThreadAccess*/false),
 				keyStoreFacade)
 
-		val fileFacade = FileUtil(this, LocalNotificationsFacade(this))
+		val fileFacade = AndroidFileFacade(this, LocalNotificationsFacade(this))
 		val alarmNotificationsManager = AlarmNotificationsManager(
 				sseStorage,
 				AndroidNativeCryptoFacade(this),
