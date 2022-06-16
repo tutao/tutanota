@@ -894,6 +894,7 @@ export type CustomerProperties = {
 	_permissions: Id;
 	externalUserWelcomeMessage: string;
 	lastUpgradeReminder: null | Date;
+	usageDataOptedOut: boolean;
 
 	bigLogo:  null | File;
 	notificationMailTemplates: NotificationMailTemplate[];

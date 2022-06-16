@@ -1925,6 +1925,7 @@ export type UserSettingsGroupRoot = {
 	_permissions: Id;
 	startOfTheWeek: NumberString;
 	timeFormat: NumberString;
+	usageDataOptedIn: null | boolean;
 
 	groupSettings: GroupSettings[];
 }

@@ -1,10 +1,22 @@
 import {OfflineStorage} from "./OfflineStorage.js"
 import {modelInfos} from "../../common/EntityFunctions.js"
 import {typedKeys, TypeRef} from "@tutao/tutanota-utils"
-import {ListElementEntity, SomeEntity} from "../../common/EntityTypes.js"
+import {ElementEntity, ListElementEntity, SomeEntity} from "../../common/EntityTypes.js"
 
 export async function migrateAllListElements<T extends ListElementEntity>(typeRef: TypeRef<T>, storage: OfflineStorage, migrations: Array<Migration<T>>) {
 	let entities = await storage.getListElementsOfType(typeRef)
+
+	for (const migration of migrations) {
+		entities = entities.map(migration)
+	}
+
+	for (const entity of entities) {
+		await storage.put(entity)
+	}
+}
+
+export async function migrateAllElements<T extends ElementEntity>(typeRef: TypeRef<T>, storage: OfflineStorage, migrations: Array<Migration<T>>) {
+	let entities = await storage.getElementsOfType(typeRef)
 
 	for (const migration of migrations) {
 		entities = entities.map(migration)

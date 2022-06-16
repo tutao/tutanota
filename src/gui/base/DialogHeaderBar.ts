@@ -10,6 +10,7 @@ export type DialogHeaderBarAttrs = {
 	middle?: lazy<string>
 	create?: () => void
 	remove?: () => void
+	noHeader?: boolean
 }
 
 /**

@@ -1,4 +1,15 @@
 {
 	"app": "tutanota",
-	"versions": []
+	"versions": [
+		{
+			"version": 54,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "UserSettingsGroupRoot",
+					"info": "AddValue UserSettingsGroupRoot/usageDataOptedIn/1234."
+				}
+			]
+		}
+	]
 }
