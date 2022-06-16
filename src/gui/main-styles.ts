@@ -1139,6 +1139,9 @@ styles.registerStyle("main", () => {
 			overflow: "hidden",
 			"margin-top": px(6),
 		},
+		".news-button": {
+			position: "relative",
+		},
 		".logo": {
 			height: px(size.header_logo_height),
 		},
