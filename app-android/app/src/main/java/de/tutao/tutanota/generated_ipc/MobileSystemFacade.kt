@@ -6,7 +6,7 @@ package de.tutao.tutanota.ipc
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
-interface SystemFacade {
+interface MobileSystemFacade {
 	 suspend fun findSuggestions(
 		query: String,
 	): List<NativeContact>

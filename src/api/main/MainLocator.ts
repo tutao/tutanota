@@ -66,7 +66,7 @@ import {SearchTextInAppFacade} from "../../native/common/generatedipc/SearchText
 import {SearchTextInAppFacadeSendDispatcher} from "../../native/common/generatedipc/SearchTextInAppFacadeSendDispatcher.js"
 import {SettingsFacade} from "../../native/common/generatedipc/SettingsFacade.js"
 import {SettingsFacadeSendDispatcher} from "../../native/common/generatedipc/SettingsFacadeSendDispatcher.js"
-import {SystemFacade} from "../../native/common/generatedipc/SystemFacade.js"
+import {MobileSystemFacade} from "../../native/common/generatedipc/MobileSystemFacade.js"
 
 assertMainOrNode()
 
@@ -87,7 +87,7 @@ export interface IMainLocator {
 	readonly fileApp: NativeFileApp
 	readonly pushService: NativePushServiceApp
 	readonly systemApp: NativeSystemApp
-	readonly systemFacade: SystemFacade
+	readonly systemFacade: MobileSystemFacade
 	readonly secondFactorHandler: SecondFactorHandler
 	readonly webauthnClient: IWebauthnClient
 	readonly loginFacade: LoginFacade
@@ -189,7 +189,7 @@ class MainLocator implements IMainLocator {
 		return this._getNativeInterface("systemApp")
 	}
 
-	get systemFacade(): SystemFacade {
+	get systemFacade(): MobileSystemFacade {
 		return this._getNativeInterface("systemFacade")
 	}
 

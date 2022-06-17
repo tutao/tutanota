@@ -1,6 +1,6 @@
 import Foundation
 
-class IosSystemFacade : SystemFacade {
+class IosMobileSystemFacade : MobileSystemFacade {
   private let contactsSource: ContactsSource
   
   init(contactsSource: ContactsSource) {

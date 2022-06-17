@@ -3,9 +3,9 @@
 
 import Foundation
 
-public class SystemFacadeReceiveDispatcher {
-	let facade: SystemFacade
-	init(facade: SystemFacade) {
+public class MobileSystemFacadeReceiveDispatcher {
+	let facade: MobileSystemFacade
+	init(facade: MobileSystemFacade) {
 		self.facade = facade
 	}
 	func dispatch(method: String, arg: [String]) async throws -> String {

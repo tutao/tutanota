@@ -3,7 +3,7 @@
 
 import Foundation
 
-public protocol SystemFacade {
+public protocol MobileSystemFacade {
 	func findSuggestions(
 		_ query: String
 	) async throws -> [NativeContact]
