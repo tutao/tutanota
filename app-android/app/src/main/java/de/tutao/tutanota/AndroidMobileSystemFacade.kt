@@ -8,16 +8,16 @@ import android.net.Uri
 import android.util.Log
 import androidx.core.content.FileProvider
 import de.tutao.tutanota.ipc.NativeContact
-import de.tutao.tutanota.ipc.SystemFacade
+import de.tutao.tutanota.ipc.MobileSystemFacade
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
-class AndroidSystemFacade(
+class AndroidMobileSystemFacade(
 		private val contact: Contact,
 		private val androidFileFacade: AndroidFileFacade,
 		private val activity: Activity,
-) : SystemFacade {
+) : MobileSystemFacade {
 	override suspend fun findSuggestions(query: String): List<NativeContact> {
 		return contact.findSuggestions(query)
 	}

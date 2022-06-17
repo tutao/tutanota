@@ -1,5 +1,5 @@
 {
-  "name": "SystemFacade",
+  "name": "MobileSystemFacade",
   "type": "facade",
   "senders": ["web"],
   "receivers": ["ios", "android"],

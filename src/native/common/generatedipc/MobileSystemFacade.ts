@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 import {NativeContact} from "./NativeContact.js"
-export interface SystemFacade {
+export interface MobileSystemFacade {
 
 	findSuggestions(
 		query: string,

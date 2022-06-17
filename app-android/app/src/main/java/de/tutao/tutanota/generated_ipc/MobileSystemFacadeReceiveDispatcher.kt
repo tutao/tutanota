@@ -6,9 +6,9 @@ package de.tutao.tutanota.ipc
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
-class SystemFacadeReceiveDispatcher(
+class MobileSystemFacadeReceiveDispatcher(
 	private val json: Json,
-	private val facade: SystemFacade,
+	private val facade: MobileSystemFacade,
 ) {
 	
 	suspend fun dispatch(method: String, arg: List<String>): String {
@@ -41,7 +41,7 @@ class SystemFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
-			else -> throw Error("unknown method for SystemFacade: $method")
+			else -> throw Error("unknown method for MobileSystemFacade: $method")
 		}
 	}
 }

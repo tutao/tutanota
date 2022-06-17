@@ -92,10 +92,10 @@ class MainActivity : FragmentActivity() {
 		val globalDispatcher = AndroidGlobalDispatcher(
 				ipcJson,
 				fileFacade,
+				AndroidMobileSystemFacade(contact, fileFacade, this),
 				CredentialsEncryptionFactory.create(this),
 				AndroidNativeCryptoFacade(this),
 				nativePushFacade,
-				AndroidSystemFacade(contact, fileFacade, this),
 				themeFacade,
 		)
 		remoteBridge = RemoteBridge(

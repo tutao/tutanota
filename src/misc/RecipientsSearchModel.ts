@@ -9,7 +9,7 @@ import {ContactTypeRef} from "../api/entities/tutanota/TypeRefs.js";
 import {isApp, Mode} from "../api/common/Env.js";
 import {PermissionError} from "../api/common/error/PermissionError.js";
 import {LoginIncompleteError} from "../api/common/error/LoginIncompleteError.js"
-import {SystemFacade} from "../native/common/generatedipc/SystemFacade.js"
+import {MobileSystemFacade} from "../native/common/generatedipc/MobileSystemFacade.js"
 
 const MaxNativeSuggestions = 10
 
@@ -25,7 +25,7 @@ export class RecipientsSearchModel {
 	constructor(
 		private readonly recipientsModel: RecipientsModel,
 		private readonly contactModel: ContactModel,
-		private readonly systemFacade: SystemFacade | null,
+		private readonly systemFacade: MobileSystemFacade | null,
 	) {
 	}
 

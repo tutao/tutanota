@@ -13,8 +13,8 @@ import {CryptoFacade} from "../worker/crypto/CryptoFacade.js"
 import {EntityClient} from "../common/EntityClient.js"
 import {deviceConfig} from "../../misc/DeviceConfig.js"
 import {CalendarFacade} from "../worker/facades/CalendarFacade.js"
-import {SystemFacade} from "../../native/common/generatedipc/SystemFacade.js"
-import {SystemFacadeSendDispatcher} from "../../native/common/generatedipc/SystemFacadeSendDispatcher.js"
+import {MobileSystemFacade} from "../../native/common/generatedipc/MobileSystemFacade.js"
+import {MobileSystemFacadeSendDispatcher} from "../../native/common/generatedipc/MobileSystemFacadeSendDispatcher.js"
 import {ExportFacadeSendDispatcher} from "../../native/common/generatedipc/ExportFacadeSendDispatcher.js"
 
 export type NativeInterfaces = {
@@ -22,7 +22,7 @@ export type NativeInterfaces = {
 	fileApp: NativeFileApp
 	pushService: NativePushServiceApp
 	systemApp: NativeSystemApp
-	systemFacade: SystemFacade
+	systemFacade: MobileSystemFacade
 }
 
 /**
@@ -58,7 +58,7 @@ export async function createNativeInterfaces(
 		const pushService = new NativePushServiceApp(nativePushFacadeSendDispatcher, logins, cryptoFacade, entityClient, deviceConfig, calendarFacade)
 		const fileApp = new NativeFileApp(new FileFacadeSendDispatcher(native), new ExportFacadeSendDispatcher(native))
 		const systemApp = new NativeSystemApp(native, fileApp)
-		const systemFacade = new SystemFacadeSendDispatcher(native)
+		const systemFacade = new MobileSystemFacadeSendDispatcher(native)
 		return {
 			native,
 			fileApp,
