@@ -3,6 +3,8 @@
 
 import {CommonSystemFacade} from "./CommonSystemFacade.js"
 import {CommonSystemFacadeReceiveDispatcher} from "./CommonSystemFacadeReceiveDispatcher.js"
+import {DesktopSystemFacade} from "./DesktopSystemFacade.js"
+import {DesktopSystemFacadeReceiveDispatcher} from "./DesktopSystemFacadeReceiveDispatcher.js"
 import {ExportFacade} from "./ExportFacade.js"
 import {ExportFacadeReceiveDispatcher} from "./ExportFacadeReceiveDispatcher.js"
 import {FileFacade} from "./FileFacade.js"
@@ -22,6 +24,7 @@ import {ThemeFacadeReceiveDispatcher} from "./ThemeFacadeReceiveDispatcher.js"
 
 export class DesktopGlobalDispatcher {
 	private readonly commonSystemFacade : CommonSystemFacadeReceiveDispatcher
+	private readonly desktopSystemFacade : DesktopSystemFacadeReceiveDispatcher
 	private readonly exportFacade : ExportFacadeReceiveDispatcher
 	private readonly fileFacade : FileFacadeReceiveDispatcher
 	private readonly nativeCredentialsFacade : NativeCredentialsFacadeReceiveDispatcher
@@ -32,6 +35,7 @@ export class DesktopGlobalDispatcher {
 	private readonly themeFacade : ThemeFacadeReceiveDispatcher
 	constructor(
 		commonSystemFacade : CommonSystemFacade,
+		desktopSystemFacade : DesktopSystemFacade,
 		exportFacade : ExportFacade,
 		fileFacade : FileFacade,
 		nativeCredentialsFacade : NativeCredentialsFacade,
@@ -42,6 +46,7 @@ export class DesktopGlobalDispatcher {
 		themeFacade : ThemeFacade,
 	) {
 		this.commonSystemFacade = new CommonSystemFacadeReceiveDispatcher(commonSystemFacade)
+		this.desktopSystemFacade = new DesktopSystemFacadeReceiveDispatcher(desktopSystemFacade)
 		this.exportFacade = new ExportFacadeReceiveDispatcher(exportFacade)
 		this.fileFacade = new FileFacadeReceiveDispatcher(fileFacade)
 		this.nativeCredentialsFacade = new NativeCredentialsFacadeReceiveDispatcher(nativeCredentialsFacade)
@@ -56,6 +61,8 @@ export class DesktopGlobalDispatcher {
 		switch (facadeName) {
 			case "CommonSystemFacade":
 				return this.commonSystemFacade.dispatch(methodName, args)
+			case "DesktopSystemFacade":
+				return this.desktopSystemFacade.dispatch(methodName, args)
 			case "ExportFacade":
 				return this.exportFacade.dispatch(methodName, args)
 			case "FileFacade":

@@ -176,7 +176,7 @@ export class MailListView implements Component {
 		if (didComplete) {
 			await locator.fileApp.startNativeDrag(fileNames as string[])
 		} else {
-			await locator.native.invokeNative("focusApplicationWindow", [])
+			await locator.desktopSystemFacade.focusApplicationWindow()
 			Dialog.message("unsuccessfulDrop_msg")
 		}
 

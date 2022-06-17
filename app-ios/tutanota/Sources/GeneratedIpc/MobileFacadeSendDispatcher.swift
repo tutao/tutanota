@@ -13,7 +13,7 @@ class MobileFacadeSendDispatcher : MobileFacade {
 		let args = [String]()
 		let encodedFacadeName = toJson("MobileFacade")
 		let encodedMethodName = toJson("handleBackPress")
-		let returnValue = try await self.transport.sendRequest(method: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		let returnValue = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		return try! JSONDecoder().decode(Bool.self, from: returnValue.data(using: .utf8)!)
 		}
 	
@@ -25,7 +25,7 @@ class MobileFacadeSendDispatcher : MobileFacade {
 		args.append(toJson(visibility))
 		let encodedFacadeName = toJson("MobileFacade")
 		let encodedMethodName = toJson("visibilityChange")
-		let _ = try await self.transport.sendRequest(method: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
 	func keyboardSizeChanged(
@@ -36,7 +36,7 @@ class MobileFacadeSendDispatcher : MobileFacade {
 		args.append(toJson(newSize))
 		let encodedFacadeName = toJson("MobileFacade")
 		let encodedMethodName = toJson("keyboardSizeChanged")
-		let _ = try await self.transport.sendRequest(method: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
 }

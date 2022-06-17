@@ -33,6 +33,7 @@ import {DesktopSearchTextInAppFacade} from "../DesktopSearchTextInAppFacade.js"
 import {SettingsFacade} from "../../native/common/generatedipc/SettingsFacade.js"
 import {DesktopExportFacade} from "../DesktopExportFacade.js"
 import {DesktopCommonSystemFacade} from "../DesktopCommonSystemFacade.js"
+import {DesktopDesktopSystemFacade} from "../DesktopDesktopSystemFacade.js"
 
 export interface SendingFacades {
 	desktopFacade: DesktopFacade
@@ -81,6 +82,7 @@ export class RemoteBridge {
 		const desktopCommonSystemFacade = new DesktopCommonSystemFacade(window, logger)
 		const dispatcher = new DesktopGlobalDispatcher(
 			desktopCommonSystemFacade,
+			new DesktopDesktopSystemFacade(this.wm, window, this.sock),
 			new DesktopExportFacade(this.dl, this.wm, window.id),
 			new DesktopFileFacade(this.dl, electron, fs),
 			this.nativeCredentialsFacade,
@@ -95,22 +97,7 @@ export class RemoteBridge {
 			"ipc": async ({args}) => {
 				const [facade, method, ...methodArgs] = args
 				return await dispatcher.dispatch(facade, method, methodArgs)
-			},
-			"openNewWindow": ({args}) => {
-				this.wm.newWindow(true)
-				return Promise.resolve()
-			},
-			"sendSocketMessage": ({args}) => {
-				// for admin client integration
-				this.sock.sendSocketMessage(args[0])
-				return Promise.resolve()
-			},
-			"focusApplicationWindow": ({args}) => {
-				const window = this.wm.get(windowId)
-
-				window && window.focus()
-				return Promise.resolve()
-			},
+			}
 		})
 		const nativeInterface = {
 			invokeNative: async (requestType: string, args: ReadonlyArray<unknown>): Promise<any> => {
