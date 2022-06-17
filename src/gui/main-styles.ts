@@ -2018,5 +2018,9 @@ styles.registerStyle("main", () => {
 		".MsoListParagraph, .MsoListParagraphCxSpFirst, .MsoListParagraphCxSpMiddle, .MsoListParagraphCxSpLast": {
 			"margin-left": "36.0pt",
 		},
+		"span.vertical-text": {
+			transform: "rotate(180deg)",
+			"writing-mode": "vertical-rl",
+		},
 	}
 })
