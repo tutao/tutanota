@@ -1,0 +1,22 @@
+{
+  "name": "CommonSystemFacade",
+  "type": "facade",
+  "senders": ["web"],
+  "receivers": ["ios", "android", "desktop"],
+  "methods": {
+	"initializeRemoteBridge": {
+	  "arg": [],
+	  "ret": "void"
+	},
+	"reload": {
+	  "arg": [
+		{"query": "Map<string, string>"}
+	  ],
+	  "ret": "void"
+	},
+	"getLog": {
+	  "arg": [],
+	  "ret": "string"
+	}
+  }
+}

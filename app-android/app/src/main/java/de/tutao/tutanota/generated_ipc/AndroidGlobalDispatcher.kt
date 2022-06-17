@@ -10,6 +10,7 @@ import de.tutao.tutanota.ipc.*
 
 class AndroidGlobalDispatcher (
 	json: Json,
+	commonSystemFacade : CommonSystemFacade,
 	fileFacade : FileFacade,
 	mobileSystemFacade : MobileSystemFacade,
 	nativeCredentialsFacade : NativeCredentialsFacade,
@@ -17,6 +18,7 @@ class AndroidGlobalDispatcher (
 	nativePushFacade : NativePushFacade,
 	themeFacade : ThemeFacade,
 ) {
+	private val commonSystemFacade: CommonSystemFacadeReceiveDispatcher = CommonSystemFacadeReceiveDispatcher(json, commonSystemFacade)
 	private val fileFacade: FileFacadeReceiveDispatcher = FileFacadeReceiveDispatcher(json, fileFacade)
 	private val mobileSystemFacade: MobileSystemFacadeReceiveDispatcher = MobileSystemFacadeReceiveDispatcher(json, mobileSystemFacade)
 	private val nativeCredentialsFacade: NativeCredentialsFacadeReceiveDispatcher = NativeCredentialsFacadeReceiveDispatcher(json, nativeCredentialsFacade)
@@ -26,6 +28,7 @@ class AndroidGlobalDispatcher (
 	
 	suspend fun dispatch(facadeName: String, methodName: String, args: List<String>): String {
 		return when (facadeName) {
+			"CommonSystemFacade" -> this.commonSystemFacade.dispatch(methodName, args)
 			"FileFacade" -> this.fileFacade.dispatch(methodName, args)
 			"MobileSystemFacade" -> this.mobileSystemFacade.dispatch(methodName, args)
 			"NativeCredentialsFacade" -> this.nativeCredentialsFacade.dispatch(methodName, args)

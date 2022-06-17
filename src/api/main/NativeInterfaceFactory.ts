@@ -1,6 +1,5 @@
 import type {NativeInterfaceMain} from "../../native/main/NativeInterfaceMain"
 import type {NativePushServiceApp} from "../../native/main/NativePushServiceApp"
-import type {NativeSystemApp} from "../../native/common/NativeSystemApp"
 import type {NativeFileApp} from "../../native/common/FileApp"
 import {isBrowser} from "../common/Env"
 import {ProgrammingError} from "../common/error/ProgrammingError"
@@ -16,13 +15,15 @@ import {CalendarFacade} from "../worker/facades/CalendarFacade.js"
 import {MobileSystemFacade} from "../../native/common/generatedipc/MobileSystemFacade.js"
 import {MobileSystemFacadeSendDispatcher} from "../../native/common/generatedipc/MobileSystemFacadeSendDispatcher.js"
 import {ExportFacadeSendDispatcher} from "../../native/common/generatedipc/ExportFacadeSendDispatcher.js"
+import {CommonSystemFacade} from "../../native/common/generatedipc/CommonSystemFacade.js"
+import {CommonSystemFacadeSendDispatcher} from "../../native/common/generatedipc/CommonSystemFacadeSendDispatcher.js"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
 	fileApp: NativeFileApp
 	pushService: NativePushServiceApp
-	systemApp: NativeSystemApp
-	systemFacade: MobileSystemFacade
+	mobileSystemFacade: MobileSystemFacade
+	commonSystemFacade: CommonSystemFacade
 }
 
 /**
@@ -44,7 +45,6 @@ export async function createNativeInterfaces(
 		const {NativeInterfaceMain} = await import("../../native/main/NativeInterfaceMain")
 		const {NativeFileApp} = await import("../../native/common/FileApp")
 		const {NativePushServiceApp} = await import("../../native/main/NativePushServiceApp")
-		const {NativeSystemApp} = await import("../../native/common/NativeSystemApp")
 		const {WebGlobalDispatcher} = await import("../../native/common/generatedipc/WebGlobalDispatcher")
 		const {FileFacadeSendDispatcher} = await import("../../native/common/generatedipc/FileFacadeSendDispatcher.js")
 		const {NativePushFacadeSendDispatcher} = await import("../../native/common/generatedipc/NativePushFacadeSendDispatcher.js")
@@ -57,14 +57,14 @@ export async function createNativeInterfaces(
 		const nativePushFacadeSendDispatcher = new NativePushFacadeSendDispatcher(native)
 		const pushService = new NativePushServiceApp(nativePushFacadeSendDispatcher, logins, cryptoFacade, entityClient, deviceConfig, calendarFacade)
 		const fileApp = new NativeFileApp(new FileFacadeSendDispatcher(native), new ExportFacadeSendDispatcher(native))
-		const systemApp = new NativeSystemApp(native, fileApp)
-		const systemFacade = new MobileSystemFacadeSendDispatcher(native)
+		const commonSystemFacade = new CommonSystemFacadeSendDispatcher(native)
+		const mobileSystemFacade = new MobileSystemFacadeSendDispatcher(native)
 		return {
 			native,
 			fileApp,
 			pushService,
-			systemApp,
-			systemFacade
+			mobileSystemFacade: mobileSystemFacade,
+			commonSystemFacade,
 		}
 	} else {
 		throw new ProgrammingError("Tried to make native interfaces in non-native")

@@ -12,20 +12,16 @@
 	},
 	"openLink": {
 	  "arg": [
-		{"uri":  "string"}
+		{"uri": "string"}
 	  ],
 	  "ret": "boolean"
 	},
 	"shareText": {
 	  "arg": [
-		{"text":  "string"},
-		{"title":  "string"}
+		{"text": "string"},
+		{"title": "string"}
 	  ],
 	  "ret": "boolean"
-	},
-	"getLog": {
-	  "arg": [],
-	  "ret": "string"
 	}
   }
 }

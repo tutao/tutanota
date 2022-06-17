@@ -17,6 +17,4 @@ interface MobileSystemFacade {
 		text: String,
 		title: String,
 	): Boolean
-	 suspend fun getLog(
-	): String
 }

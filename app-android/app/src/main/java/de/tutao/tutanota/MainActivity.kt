@@ -60,6 +60,7 @@ class MainActivity : FragmentActivity() {
 	lateinit var remoteBridge: RemoteBridge
 	lateinit var mobileFacade: MobileFacade
 	lateinit var commonNativeFacade: CommonNativeFacade
+	lateinit var commonSystemFacade: AndroidCommonSystemFacade
 
 	private val permissionsRequests: MutableMap<Int, Continuation<Unit>> = ConcurrentHashMap()
 	private val activityRequests: MutableMap<Int, Continuation<ActivityResult>> = ConcurrentHashMap()
@@ -86,11 +87,15 @@ class MainActivity : FragmentActivity() {
 				alarmNotificationsManager
 		)
 
-		themeFacade = AndroidThemeFacade(this, this)
 		val ipcJson = Json { ignoreUnknownKeys = true }
+
+		themeFacade = AndroidThemeFacade(this, this)
+		commonSystemFacade = AndroidCommonSystemFacade(this)
 		val contact = Contact(this)
+
 		val globalDispatcher = AndroidGlobalDispatcher(
 				ipcJson,
+				commonSystemFacade,
 				fileFacade,
 				AndroidMobileSystemFacade(contact, fileFacade, this),
 				CredentialsEncryptionFactory.create(this),
@@ -99,8 +104,10 @@ class MainActivity : FragmentActivity() {
 				themeFacade,
 		)
 		remoteBridge = RemoteBridge(
+				ipcJson,
 				this,
 				globalDispatcher,
+				commonSystemFacade,
 		)
 
 		themeFacade.applyCurrentTheme()
@@ -432,7 +439,7 @@ class MainActivity : FragmentActivity() {
 	}
 
 	override fun onBackPressed() {
-		if (remoteBridge.webAppInitialized.isCompleted) {
+		if (commonSystemFacade.initialized) {
 			lifecycleScope.launchWhenCreated {
 				val result = mobileFacade.handleBackPress()
 				try {

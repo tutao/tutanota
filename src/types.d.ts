@@ -38,11 +38,8 @@ declare type MainRequestType =
 	| 'progressWorkDone'
 
 /** Requests from web to native */
-declare type NativeRequestType = 'init'
-	| 'reload'
-	| 'openNewWindow'
+declare type NativeRequestType = 'openNewWindow'
 	| 'sendSocketMessage'
-	| 'getLog' // for desktop
 	| 'focusApplicationWindow'
 	| 'facade' // only for desktop
 	| 'ipc'

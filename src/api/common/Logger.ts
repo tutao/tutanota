@@ -68,8 +68,7 @@ export class Logger {
 	}
 }
 
-export function createLogFile(timestamp: number, entries: Array<string>, scope: string): DataFile {
-	const content = entries.join("\n")
+export function createLogFile(timestamp: number, content: string, scope: string): DataFile {
 	const data = stringToUtf8Uint8Array(content)
 	return {
 		_type: "DataFile",

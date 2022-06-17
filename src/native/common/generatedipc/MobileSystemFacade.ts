@@ -16,7 +16,4 @@ export interface MobileSystemFacade {
 		title: string,
 	): Promise<boolean>
 	
-	getLog(
-	): Promise<string>
-	
 }

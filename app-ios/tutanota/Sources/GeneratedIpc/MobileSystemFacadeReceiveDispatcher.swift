@@ -30,10 +30,6 @@ public class MobileSystemFacadeReceiveDispatcher {
 				title
 			)
 			return toJson(result)
-		case "getLog":
-			let result = try await self.facade.getLog(
-			)
-			return toJson(result)
 		default:
 			fatalError("licc messed up! \(method)")
 		}
