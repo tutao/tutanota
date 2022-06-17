@@ -1,6 +1,8 @@
 /* generated file, don't edit. */
 
 
+import {CommonSystemFacade} from "./CommonSystemFacade.js"
+import {CommonSystemFacadeReceiveDispatcher} from "./CommonSystemFacadeReceiveDispatcher.js"
 import {ExportFacade} from "./ExportFacade.js"
 import {ExportFacadeReceiveDispatcher} from "./ExportFacadeReceiveDispatcher.js"
 import {FileFacade} from "./FileFacade.js"
@@ -19,6 +21,7 @@ import {ThemeFacade} from "./ThemeFacade.js"
 import {ThemeFacadeReceiveDispatcher} from "./ThemeFacadeReceiveDispatcher.js"
 
 export class DesktopGlobalDispatcher {
+	private readonly commonSystemFacade : CommonSystemFacadeReceiveDispatcher
 	private readonly exportFacade : ExportFacadeReceiveDispatcher
 	private readonly fileFacade : FileFacadeReceiveDispatcher
 	private readonly nativeCredentialsFacade : NativeCredentialsFacadeReceiveDispatcher
@@ -28,6 +31,7 @@ export class DesktopGlobalDispatcher {
 	private readonly settingsFacade : SettingsFacadeReceiveDispatcher
 	private readonly themeFacade : ThemeFacadeReceiveDispatcher
 	constructor(
+		commonSystemFacade : CommonSystemFacade,
 		exportFacade : ExportFacade,
 		fileFacade : FileFacade,
 		nativeCredentialsFacade : NativeCredentialsFacade,
@@ -37,6 +41,7 @@ export class DesktopGlobalDispatcher {
 		settingsFacade : SettingsFacade,
 		themeFacade : ThemeFacade,
 	) {
+		this.commonSystemFacade = new CommonSystemFacadeReceiveDispatcher(commonSystemFacade)
 		this.exportFacade = new ExportFacadeReceiveDispatcher(exportFacade)
 		this.fileFacade = new FileFacadeReceiveDispatcher(fileFacade)
 		this.nativeCredentialsFacade = new NativeCredentialsFacadeReceiveDispatcher(nativeCredentialsFacade)
@@ -49,6 +54,8 @@ export class DesktopGlobalDispatcher {
 	
 	async dispatch(facadeName: string, methodName: string, args: Array<any>) {
 		switch (facadeName) {
+			case "CommonSystemFacade":
+				return this.commonSystemFacade.dispatch(methodName, args)
 			case "ExportFacade":
 				return this.exportFacade.dispatch(methodName, args)
 			case "FileFacade":

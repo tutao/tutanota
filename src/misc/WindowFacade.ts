@@ -231,7 +231,14 @@ class WindowFacade {
 			// Convert all values to strings so that native has easier time dealing with it
 			const preparedArgs = Object.fromEntries(Object.entries(args).map(([k, v]) => [k, String(v)]))
 			const {locator} = await import("../api/main/MainLocator")
-			locator.systemApp.reloadNative(preparedArgs)
+
+			const stringifiedArgs: Record<string, string> = {}
+			for (const [k, v] of Object.entries(args)) {
+				if (v != null) {
+					stringifiedArgs[k] = String(v)
+				}
+			}
+			locator.commonSystemFacade.reload(stringifiedArgs)
 		} else {
 			window.location.reload()
 		}

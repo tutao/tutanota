@@ -2,6 +2,7 @@
 
 
 public class IosGlobalDispatcher {
+	private let commonSystemFacade: CommonSystemFacadeReceiveDispatcher
 	private let fileFacade: FileFacadeReceiveDispatcher
 	private let mobileSystemFacade: MobileSystemFacadeReceiveDispatcher
 	private let nativeCredentialsFacade: NativeCredentialsFacadeReceiveDispatcher
@@ -10,6 +11,7 @@ public class IosGlobalDispatcher {
 	private let themeFacade: ThemeFacadeReceiveDispatcher
 	
 	init(
+		commonSystemFacade : CommonSystemFacade,
 		fileFacade : FileFacade,
 		mobileSystemFacade : MobileSystemFacade,
 		nativeCredentialsFacade : NativeCredentialsFacade,
@@ -17,6 +19,7 @@ public class IosGlobalDispatcher {
 		nativePushFacade : NativePushFacade,
 		themeFacade : ThemeFacade
 	) {
+		self.commonSystemFacade = CommonSystemFacadeReceiveDispatcher(facade: commonSystemFacade)
 		self.fileFacade = FileFacadeReceiveDispatcher(facade: fileFacade)
 		self.mobileSystemFacade = MobileSystemFacadeReceiveDispatcher(facade: mobileSystemFacade)
 		self.nativeCredentialsFacade = NativeCredentialsFacadeReceiveDispatcher(facade: nativeCredentialsFacade)
@@ -27,6 +30,8 @@ public class IosGlobalDispatcher {
 	
 	func dispatch(facadeName: String, methodName: String, args: Array<String>) async throws -> String {
 		switch facadeName {
+			case "CommonSystemFacade":
+				return try await self.commonSystemFacade.dispatch(method: methodName, arg: args)
 			case "FileFacade":
 				return try await self.fileFacade.dispatch(method: methodName, arg: args)
 			case "MobileSystemFacade":

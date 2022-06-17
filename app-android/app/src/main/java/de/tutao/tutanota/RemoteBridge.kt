@@ -1,25 +1,21 @@
 package de.tutao.tutanota
 
-import android.content.ActivityNotFoundException
-import android.content.ClipData
-import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebMessage
 import android.webkit.WebMessagePort
 import android.webkit.WebMessagePort.WebMessageCallback
-import androidx.core.content.FileProvider
 import de.tutao.tutanota.ipc.AndroidGlobalDispatcher
 import de.tutao.tutanota.ipc.NativeInterface
-import kotlinx.coroutines.*
-import kotlinx.serialization.encodeToString
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonPrimitive
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.IOException
 import java.io.PrintWriter
 import java.io.StringWriter
 import kotlin.coroutines.Continuation
@@ -30,16 +26,13 @@ import kotlin.coroutines.suspendCoroutine
  * Created by mpfau on 4/8/17.
  */
 class RemoteBridge internal constructor(
+		private val json: Json,
 		private val activity: MainActivity,
 		private val globalDispatcher: AndroidGlobalDispatcher,
+		private val commonSystemFacade: AndroidCommonSystemFacade,
 ) : NativeInterface {
 
-	private val json = Json.Default
 	private val requests = mutableMapOf<String, Continuation<String>>()
-
-	@Volatile
-	private var _webAppInitialized = CompletableDeferred<Unit>()
-	val webAppInitialized: Deferred<Unit> get() = _webAppInitialized
 
 	private var webMessagePort: WebMessagePort? = null
 
@@ -113,7 +106,7 @@ class RemoteBridge internal constructor(
 	}
 
 	override suspend fun sendRequest(requestType: String, args: List<String>): String {
-		webAppInitialized.await()
+		this.commonSystemFacade.awaitForInit()
 		val requestId = createRequestId()
 		val builder = StringBuilder()
 		builder.appendLine("request")
@@ -157,27 +150,16 @@ class RemoteBridge internal constructor(
 	}
 
 	private suspend fun invokeMethod(method: String, args: List<String>): String {
-		val jsonArray = makeCursedJsonArray(args)
-		if (method == "ipc") {
-			return globalDispatcher.dispatch(
-					jsonArray.getString(0),
-					jsonArray.getString(1),
-					args.slice(2..args.lastIndex)
-			)
+		require(method == "ipc") {
+			"remote request method must be 'ipc', got $method"
 		}
-
-		return when (method) {
-			"init" -> {
-				_webAppInitialized.complete(Unit)
-				json.encodeToString<Boolean?>(null)
-			}
-			"reload" -> {
-				_webAppInitialized = CompletableDeferred()
-				json.encodeToString(activity.reload(jsonArray.getJSONObject(0).toMap()))
-			}
-			else -> throw Exception("unsupported method: $method")
-		}
+		return globalDispatcher.dispatch(
+				json.decodeFromString(args[0]),
+				json.decodeFromString(args[1]),
+				args.slice(2..args.lastIndex),
+		)
 	}
+
 	companion object {
 		private const val JS_NAME = "nativeApp"
 		private const val TAG = "Native"

@@ -7,7 +7,7 @@ import DictionaryCoding
 class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDelegate {
   private let themeManager: ThemeManager
   private let alarmManager: AlarmManager
-  private var bridge: WebViewBridge!
+  private var bridge: RemoteBridge!
   private var webView: WKWebView!
 
   private var keyboardSize = 0
@@ -15,7 +15,6 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
 
   init(
     crypto: IosNativeCryptoFacade,
-    contactsSource: ContactsSource,
     themeManager: ThemeManager,
     keychainManager: KeychainManager,
     userPreferences: UserPreferenceFacade,
@@ -39,26 +38,19 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
       webView.isOpaque = false
       webView.scrollView.contentInsetAdjustmentBehavior = .never
 
-      let globalDispatcher = IosGlobalDispatcher(
-        fileFacade: IosFileFacade(chooser: TUTFileChooser(viewController: self), viewer: FileViewer(viewController: self)),
-        mobileSystemFacade: IosMobileSystemFacade(contactsSource: contactsSource),
-        nativeCredentialsFacade: credentialsEncryption,
-        nativeCryptoFacade: crypto,
-        nativePushFacade: IosNativePushFacade(appDelegate: self.appDelegate, alarmManager: self.alarmManager, userPreferences: userPreferences, keychainManager: keychainManager),
-        themeFacade: IosThemeFacade(themeManager: themeManager, viewController: self)
-      )
-
-      self.bridge = WebViewBridge(
+      let commonSystemFacade = IosCommonSystemFacade(viewController: self)
+      self.bridge = RemoteBridge(
         webView: self.webView,
         viewController: self,
-        crypto: crypto,
-        contactsSource: contactsSource,
-        keychainManager: keychainManager,
+        commonSystemFacade: commonSystemFacade,
+        fileFacade: IosFileFacade(chooser: TUTFileChooser(viewController: self), viewer: FileViewer(viewController: self)),
+        nativeCredentialsFacade: credentialsEncryption,
+        nativeCryptoFacade: crypto,
+        themeFacade: IosThemeFacade(themeManager: themeManager, viewController: self),
+        appDelegate: self.appDelegate,
+        alarmManager: self.alarmManager,
         userPreferences: userPreferences,
-        alarmManager: alarmManager,
-        credentialsEncryption: credentialsEncryption,
-        blobUtils:blobUtils,
-        globalDispatcher: globalDispatcher
+        keychainManager: keychainManager
       )
   }
 

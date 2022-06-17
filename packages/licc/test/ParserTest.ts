@@ -108,6 +108,13 @@ o.spec('Parser', function () {
 			], nullable: true
 		})
 
+		stringToTest("Map<string, string>", {
+			baseName: "Map", external: false, generics: [
+				{baseName: "string", nullable: false, external: false, generics: []},
+				{baseName: "string", nullable: false, external: false, generics: []}
+			], nullable: false
+		})
+
 		stringToTest("Map<List<number>?, number?>", {
 			baseName: "Map", external: false, generics: [
 				{

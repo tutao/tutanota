@@ -37,7 +37,6 @@ import type {DeviceEncryptionFacade} from "../worker/facades/DeviceEncryptionFac
 import {FileController} from "../../file/FileController"
 import type {NativeFileApp} from "../../native/common/FileApp"
 import type {NativePushServiceApp} from "../../native/main/NativePushServiceApp"
-import type {NativeSystemApp} from "../../native/common/NativeSystemApp"
 import type {NativeInterfaceMain} from "../../native/main/NativeInterfaceMain"
 import type {NativeInterfaces} from "./NativeInterfaceFactory"
 import {createNativeInterfaces} from "./NativeInterfaceFactory"
@@ -67,6 +66,7 @@ import {SearchTextInAppFacadeSendDispatcher} from "../../native/common/generated
 import {SettingsFacade} from "../../native/common/generatedipc/SettingsFacade.js"
 import {SettingsFacadeSendDispatcher} from "../../native/common/generatedipc/SettingsFacadeSendDispatcher.js"
 import {MobileSystemFacade} from "../../native/common/generatedipc/MobileSystemFacade.js"
+import {CommonSystemFacade} from "../../native/common/generatedipc/CommonSystemFacade.js"
 
 assertMainOrNode()
 
@@ -86,7 +86,7 @@ export interface IMainLocator {
 	readonly fileController: FileController
 	readonly fileApp: NativeFileApp
 	readonly pushService: NativePushServiceApp
-	readonly systemApp: NativeSystemApp
+	readonly commonSystemFacade: CommonSystemFacade
 	readonly systemFacade: MobileSystemFacade
 	readonly secondFactorHandler: SecondFactorHandler
 	readonly webauthnClient: IWebauthnClient
@@ -185,12 +185,12 @@ class MainLocator implements IMainLocator {
 		return this._getNativeInterface("pushService")
 	}
 
-	get systemApp(): NativeSystemApp {
-		return this._getNativeInterface("systemApp")
+	get commonSystemFacade(): CommonSystemFacade {
+		return this._getNativeInterface("commonSystemFacade")
 	}
 
 	get systemFacade(): MobileSystemFacade {
-		return this._getNativeInterface("systemFacade")
+		return this._getNativeInterface("mobileSystemFacade")
 	}
 
 	get interWindowEventBus(): InterWindowEventBus<InterWindowEventTypes> {

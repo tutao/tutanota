@@ -14,6 +14,4 @@ public protocol MobileSystemFacade {
 		_ text: String,
 		_ title: String
 	) async throws -> Bool
-	func getLog(
-	) async throws -> String
 }

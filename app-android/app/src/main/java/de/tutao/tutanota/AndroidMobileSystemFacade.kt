@@ -72,10 +72,6 @@ class AndroidMobileSystemFacade(
 		return true
 	}
 
-	override suspend fun getLog(): String {
-		return LogReader.getLogFile(activity).toString()
-	}
-
 	companion object {
 		private const val TAG = "SystemFacade"
 	}

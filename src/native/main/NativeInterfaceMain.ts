@@ -20,7 +20,7 @@ export class NativeInterfaceMain implements NativeInterface {
 
 	constructor(
 		private readonly webInterface: ExposedWebInterface,
-		private readonly globalDispatcher: WebGlobalDispatcher
+		private readonly globalDispatcher: WebGlobalDispatcher,
 	) {
 	}
 
@@ -44,8 +44,7 @@ export class NativeInterfaceMain implements NativeInterface {
 			"facade": exposeLocal(this.webInterface),
 			"ipc": (request: Request<JsRequestType>) => this.globalDispatcher.dispatch(request.args[0], request.args[1], request.args.slice(2))
 		})
-		await queue.postRequest(new Request("init", []))
-
+		await queue.postRequest(new Request("ipc", ["CommonSystemFacade", "initializeRemoteBridge"]))
 		this._dispatchDeferred.resolve(queue)
 	}
 

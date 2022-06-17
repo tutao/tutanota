@@ -55,24 +55,21 @@ export class AboutDialog implements Component {
 
 		if (global.logger) {
 			const mainEntries = global.logger.getEntries()
-			const mainLogFile = createLogFile(timestamp.getTime(), mainEntries, "main")
+			const mainLogFile = createLogFile(timestamp.getTime(), mainEntries.join("\n"), "main")
 			attachments.push(mainLogFile)
 			const workerLogEntries = await locator.worker.getLog()
-			const workerLogFile = await createLogFile(timestamp.getTime(), workerLogEntries, "worker")
+			const workerLogFile = await createLogFile(timestamp.getTime(), workerLogEntries.join("\n"), "worker")
 			attachments.push(workerLogFile)
 		}
 
-		if (isDesktop()) {
-			const desktopEntries = await locator.systemApp.getDesktopLogs()
-			const desktopLogFile = createLogFile(timestamp.getTime(), desktopEntries, "desktop")
-			attachments.push(desktopLogFile)
-		}
-
-		if (isApp()) {
-			const fileUri = await locator.systemFacade.getLog()
-			const fileReference = await locator.fileApp.uriToFileRef(fileUri)
-			fileReference.name = `${timestamp.getTime()}_device_tutanota.log`
-			attachments.push(fileReference)
+		if (isDesktop() || isApp()) {
+			const nativeLog = await locator.commonSystemFacade.getLog()
+			const nativeLogFile = createLogFile(
+				timestamp.getTime(),
+				nativeLog,
+				isDesktop() ? "desktop" : "device"
+			)
+			attachments.push(nativeLogFile)
 		}
 
 		const mailboxDetails = await locator.mailModel.getUserMailboxDetails()

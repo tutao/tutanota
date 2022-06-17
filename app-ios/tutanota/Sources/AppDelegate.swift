@@ -45,7 +45,6 @@ class AppDelegate : UIResponder,
     let credentialsEncryption = IosNativeCredentialsFacade(keychainManager: keychainManager)
     self.viewController = ViewController(
       crypto: IosNativeCryptoFacade(),
-      contactsSource: ContactsSource(),
       themeManager: ThemeManager(),
       keychainManager: keychainManager,
       userPreferences: userPreferences,

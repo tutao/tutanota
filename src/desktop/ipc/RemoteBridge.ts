@@ -12,7 +12,6 @@ import {ElectronWebContentsTransport} from "./ElectronWebContentsTransport.js"
 import {DesktopGlobalDispatcher} from "../../native/common/generatedipc/DesktopGlobalDispatcher.js"
 import {DesktopFileFacade} from "../DesktopFileFacade.js"
 import fs from "fs"
-import {defer} from "@tutao/tutanota-utils"
 import {MessageDispatcher, Request} from "../../api/common/MessageDispatcher.js"
 import {DesktopFacadeSendDispatcher} from "../../native/common/generatedipc/DesktopFacadeSendDispatcher.js"
 import {CommonNativeFacadeSendDispatcher} from "../../native/common/generatedipc/CommonNativeFacadeSendDispatcher.js"
@@ -33,6 +32,7 @@ import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes.j
 import {DesktopSearchTextInAppFacade} from "../DesktopSearchTextInAppFacade.js"
 import {SettingsFacade} from "../../native/common/generatedipc/SettingsFacade.js"
 import {DesktopExportFacade} from "../DesktopExportFacade.js"
+import {DesktopCommonSystemFacade} from "../DesktopCommonSystemFacade.js"
 
 export interface SendingFacades {
 	desktopFacade: DesktopFacade
@@ -76,7 +76,11 @@ export class RemoteBridge {
 		})
 
 		const transport = new ElectronWebContentsTransport<typeof primaryIpcConfig, JsRequestType, NativeRequestType>(webContents, primaryIpcHandler)
+		// @ts-ignore
+		const logger: Logger = global.logger
+		const desktopCommonSystemFacade = new DesktopCommonSystemFacade(window, logger)
 		const dispatcher = new DesktopGlobalDispatcher(
+			desktopCommonSystemFacade,
 			new DesktopExportFacade(this.dl, this.wm, window.id),
 			new DesktopFileFacade(this.dl, electron, fs),
 			this.nativeCredentialsFacade,
@@ -86,17 +90,11 @@ export class RemoteBridge {
 			this.settingsFacade,
 			this.themeFacade
 		)
-		let initDefer = defer()
 		const messageDispatcher = new MessageDispatcher<JsRequestType, NativeRequestType>(transport, {
-			"init": async () => {
-				initDefer.resolve(null)
-				return "desktop"
-			},
 			"facade": facadeHandler,
 			"ipc": async ({args}) => {
 				const [facade, method, ...methodArgs] = args
-				await initDefer
-				return dispatcher.dispatch(facade, method, methodArgs)
+				return await dispatcher.dispatch(facade, method, methodArgs)
 			},
 			"openNewWindow": ({args}) => {
 				this.wm.newWindow(true)
@@ -107,25 +105,16 @@ export class RemoteBridge {
 				this.sock.sendSocketMessage(args[0])
 				return Promise.resolve()
 			},
-			"getLog": ({args}) => {
-				// @ts-ignore
-				const logger: Logger = global.logger
-				return Promise.resolve(logger.getEntries())
-			},
 			"focusApplicationWindow": ({args}) => {
 				const window = this.wm.get(windowId)
 
 				window && window.focus()
 				return Promise.resolve()
 			},
-			"reload": async ({args}) => {
-				// Response to this message will come to the web but it won't have a handler for it. We accept it for now.
-				initDefer = defer()
-				window.reload(args[0])
-			},
 		})
 		const nativeInterface = {
-			invokeNative: (requestType: string, args: ReadonlyArray<unknown>): Promise<any> => {
+			invokeNative: async (requestType: string, args: ReadonlyArray<unknown>): Promise<any> => {
+				await desktopCommonSystemFacade.awaitForInit()
 				return messageDispatcher.postRequest(new Request(requestType as JsRequestType, args))
 			}
 		}

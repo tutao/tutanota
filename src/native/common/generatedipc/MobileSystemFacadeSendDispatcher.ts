@@ -17,7 +17,4 @@ export class MobileSystemFacadeSendDispatcher implements MobileSystemFacade {
 	async shareText(...args: Parameters<MobileSystemFacade["shareText"]>) {
 		return this.transport.invokeNative("ipc",  ["MobileSystemFacade", "shareText", ...args])
 	}
-	async getLog(...args: Parameters<MobileSystemFacade["getLog"]>) {
-		return this.transport.invokeNative("ipc",  ["MobileSystemFacade", "getLog", ...args])
-	}
 }

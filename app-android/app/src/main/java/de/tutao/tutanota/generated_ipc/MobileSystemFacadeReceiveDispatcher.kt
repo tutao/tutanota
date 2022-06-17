@@ -36,11 +36,6 @@ class MobileSystemFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
-			"getLog" -> {
-				val result: String = this.facade.getLog(
-				)
-				return json.encodeToString(result)
-			}
 			else -> throw Error("unknown method for MobileSystemFacade: $method")
 		}
 	}

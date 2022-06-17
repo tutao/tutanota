@@ -6,20 +6,28 @@ class IosNativePushFacade : NativePushFacade {
   private let alarmManager: AlarmManager
   private let userPreferences: UserPreferenceFacade
   private let keychainManager: KeychainManager
+  private let commonNativeFacade: CommonNativeFacade
 
   init(
     appDelegate: AppDelegate,
     alarmManager: AlarmManager,
     userPreferences: UserPreferenceFacade,
-    keychainManager: KeychainManager
+    keychainManager: KeychainManager,
+    commonNativeFacade: CommonNativeFacade
   ) {
     self.appDelegate = appDelegate
     self.alarmManager = alarmManager
     self.userPreferences = userPreferences
     self.keychainManager = keychainManager
+    self.commonNativeFacade = commonNativeFacade
   }
 
   func getPushIdentifier(_ userId: String, _ mailAddress: String) async throws -> String? {
+    if let sseInfo = userPreferences.sseInfo, sseInfo.userIds.isEmpty {
+      TUTSLog("Sending alarm invalidation")
+      try await self.commonNativeFacade.invalidateAlarms()
+    }
+    
     return try await self.appDelegate.registerForPushNotifications()
   }
 
