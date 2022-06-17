@@ -35,7 +35,7 @@ export class Socketeer {
 
 	attach(wm: WindowManager) {
 		this.startClient(async msg => {
-			const mailAddress = JSON.parse(msg).mailAddress
+		const mailAddress = JSON.parse(msg)
 
 			if (typeof mailAddress === "string" && isMailAddress(mailAddress, false)) {
 				const targetWindow = (await wm.getLastFocused(false))

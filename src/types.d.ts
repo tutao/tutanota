@@ -38,16 +38,10 @@ declare type MainRequestType =
 	| 'progressWorkDone'
 
 /** Requests from web to native */
-declare type NativeRequestType = 'openNewWindow'
-	| 'sendSocketMessage'
-	| 'focusApplicationWindow'
-	| 'facade' // only for desktop
-	| 'ipc'
+declare type NativeRequestType = 'ipc' | 'facade'
 
 /** Requests from native to web */
-declare type JsRequestType =
-	| 'facade' // only for desktop
-	| 'ipc'
+declare type JsRequestType = NativeRequestType
 
 
 // see https://bitwiseshiftleft.github.io/sjcl/doc/symbols/sjcl.bitArray.html

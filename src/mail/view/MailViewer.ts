@@ -1523,7 +1523,7 @@ export function createMailViewerViewModel({mail, showFolder, delayBodyRenderingU
 		locator.mailModel,
 		locator.contactModel,
 		locator.configFacade,
-		isDesktop() ? locator.native : null,
+		isDesktop() ? locator.desktopSystemFacade : null,
 		locator.fileFacade,
 		locator.fileController,
 		logins,

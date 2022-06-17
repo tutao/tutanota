@@ -1,0 +1,20 @@
+{
+  "name": "DesktopSystemFacade",
+  "type": "facade",
+  "senders": ["web"],
+  "receivers": ["desktop"],
+  "methods": {
+	"openNewWindow": {
+	  "arg": [],
+	  "ret": "void"
+	},
+	"focusApplicationWindow": {
+	  "arg": [],
+	  "ret": "void"
+	},
+	"sendSocketMessage": {
+	  "arg": [{"message": "string"}],
+	  "ret": "void"
+	}
+  }
+}

@@ -2,7 +2,7 @@
 
 
 protocol NativeInterface {
-	func sendRequest(method: String, args: [String]) async throws -> String
+	func sendRequest(requestType: String, args: [String]) async throws -> String
 }
 
 func toJson<T>(_ thing: T) -> String where T : Encodable {

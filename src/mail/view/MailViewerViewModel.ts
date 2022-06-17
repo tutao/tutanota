@@ -50,7 +50,6 @@ import {
 import {LoginController} from "../../api/main/LoginController"
 import m from "mithril"
 import {LockedError, NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
-import {NativeInterface} from "../../native/common/NativeInterface"
 import {elementIdPart, listIdPart} from "../../api/common/utils/EntityUtils"
 import {getReferencedAttachments, loadInlineImages, moveMails, revokeInlineImages} from "./MailGuiUtils"
 import {locator} from "../../api/main/MainLocator"
@@ -74,6 +73,7 @@ import {ListUnsubscribeService} from "../../api/entities/tutanota/Services"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {InitAsResponseArgs} from "../editor/SendMailModel"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
+import {DesktopSystemFacade} from "../../native/common/generatedipc/DesktopSystemFacade.js"
 
 
 export const enum ContentBlockingStatus {
@@ -127,7 +127,7 @@ export class MailViewerViewModel {
 		public readonly mailModel: MailModel,
 		readonly contactModel: ContactModel,
 		private readonly configFacade: ConfigurationDatabase,
-		native: NativeInterface | null,
+		desktopSystemFacade: DesktopSystemFacade | null,
 		private readonly fileFacade: FileFacade,
 		private readonly fileController: FileController,
 		readonly logins: LoginController,
@@ -140,7 +140,7 @@ export class MailViewerViewModel {
 		)
 		if (isDesktop()) {
 			// Notify the admin client about the mail being selected
-			native?.invokeNative("sendSocketMessage", [{mailAddress: mail.sender.address,}])
+			desktopSystemFacade?.sendSocketMessage(mail.sender.address)
 		}
 
 		this.folderText = null

@@ -67,6 +67,8 @@ import {SettingsFacade} from "../../native/common/generatedipc/SettingsFacade.js
 import {SettingsFacadeSendDispatcher} from "../../native/common/generatedipc/SettingsFacadeSendDispatcher.js"
 import {MobileSystemFacade} from "../../native/common/generatedipc/MobileSystemFacade.js"
 import {CommonSystemFacade} from "../../native/common/generatedipc/CommonSystemFacade.js"
+import {DesktopSystemFacade} from "../../native/common/generatedipc/DesktopSystemFacade.js"
+import {DesktopSystemFacadeSendDispatcher} from "../../native/common/generatedipc/DesktopSystemFacadeSendDispatcher.js"
 
 assertMainOrNode()
 
@@ -119,6 +121,7 @@ export interface IMainLocator {
 	readonly recipientsModel: RecipientsModel
 	readonly searchTextFacade: SearchTextInAppFacade
 	readonly desktopSettingsFacade: SettingsFacade
+	readonly desktopSystemFacade: DesktopSystemFacade
 	readonly init: () => Promise<void>
 	readonly initialized: Promise<void>
 }
@@ -162,6 +165,7 @@ class MainLocator implements IMainLocator {
 	recipientsModel!: RecipientsModel
 	searchTextFacade!: SearchTextInAppFacade
 	desktopSettingsFacade!: SettingsFacade
+	desktopSystemFacade!: DesktopSystemFacade
 	cacheStorage!: ExposedCacheStorage
 	_interWindowEventBus!: InterWindowEventBus<InterWindowEventTypes>
 	loginListener!: LoginListener
@@ -334,6 +338,7 @@ class MainLocator implements IMainLocator {
 				this.interWindowEventBus.init(this.getExposedNativeInterface().interWindowEventSender)
 				this.searchTextFacade = new SearchTextInAppFacadeSendDispatcher(this.native)
 				this.desktopSettingsFacade = new SettingsFacadeSendDispatcher(this.native)
+				this.desktopSystemFacade = new DesktopSystemFacadeSendDispatcher(this.native)
 			}
 		}
 
