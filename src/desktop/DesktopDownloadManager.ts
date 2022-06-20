@@ -43,18 +43,6 @@ export class DesktopDownloadManager {
 		this.lastOpenedFileManagerAt = null
 	}
 
-	manageDownloadsForSession(session: Session, dictUrl: string) {
-		dictUrl = dictUrl + "/dictionaries/"
-		log.debug(TAG, "getting dictionaries from:", dictUrl)
-		session.setSpellCheckerDictionaryDownloadURL(dictUrl)
-		session
-			.removeAllListeners("spellcheck-dictionary-download-failure")
-			.on("spellcheck-dictionary-initialized", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-initialized", lcode))
-			.on("spellcheck-dictionary-download-begin", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-begin", lcode))
-			.on("spellcheck-dictionary-download-success", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-success", lcode))
-			.on("spellcheck-dictionary-download-failure", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-failure", lcode))
-	}
-
 	/**
 	 * SHA256 of the file found at given URI
 	 * @throws Error if file is not found

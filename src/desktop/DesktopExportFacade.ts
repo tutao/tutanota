@@ -5,15 +5,20 @@ import {DataFile} from "../api/common/DataFile.js"
 import {fileExists} from "./PathUtils.js"
 import path from "path"
 import {DesktopDownloadManager} from "./DesktopDownloadManager.js"
-import {WindowManager} from "./DesktopWindowManager.js"
+import {MailExportMode} from "../mail/export/Exporter.js"
+import {DesktopConfigKey} from "./config/ConfigKeys.js"
+import {DesktopConfig} from "./config/DesktopConfig.js"
+import {NativeImage} from "electron"
+import {ApplicationWindow} from "./ApplicationWindow.js"
 
 
 export class DesktopExportFacade implements ExportFacade {
 
 	constructor(
 		private readonly dl: DesktopDownloadManager,
-		private readonly wm: WindowManager,
-		private readonly windowId: number,
+		private readonly conf: DesktopConfig,
+		private readonly window: ApplicationWindow,
+		private readonly dragIcons: Record<MailExportMode, NativeImage>,
 	) {
 
 	}
@@ -32,8 +37,15 @@ export class DesktopExportFacade implements ExportFacade {
 	}
 
 	async startNativeDrag(fileNames: ReadonlyArray<string>): Promise<void> {
-		await this.wm.startNativeDrag(fileNames, this.windowId)
-		return Promise.resolve()
+		const exportDir = await getExportDirectoryPath(this.dl)
+		const files = fileNames.map(fileName => path.join(exportDir, fileName)).filter(fileExists)
+		const exportMode: MailExportMode = await this.conf.getVar(DesktopConfigKey.mailExportMode)
+		const icon = this.dragIcons[exportMode]
+		this.window._browserWindow.webContents.startDrag({
+			file: '',
+			files,
+			icon,
+		})
 	}
 
 }

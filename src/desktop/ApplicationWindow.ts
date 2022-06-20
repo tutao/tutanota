@@ -1,4 +1,4 @@
-import type {BrowserWindow, ContextMenuParams, NativeImage, Result} from "electron"
+import type {BrowserWindow, ContextMenuParams, NativeImage, Result, Session} from "electron"
 import type {WindowBounds, WindowManager} from "./DesktopWindowManager"
 import url from "url"
 import type {lazy} from "@tutao/tutanota-utils"
@@ -304,7 +304,7 @@ export class ApplicationWindow {
 			(webContents, permission, callback: (_: boolean) => void) => callback(false),
 		)
 
-		wm.dl.manageDownloadsForSession(this._browserWindow.webContents.session, dictUrl)
+		this.manageDownloadsForSession(this._browserWindow.webContents.session, dictUrl)
 
 		this._browserWindow
 			.on("close", () => {
@@ -449,6 +449,18 @@ export class ApplicationWindow {
 		)
 
 		this._desktopFacade.addShortcuts(webShortcuts)
+	}
+
+	private manageDownloadsForSession(session: Session, dictUrl: string) {
+		dictUrl = dictUrl + "/dictionaries/"
+		log.debug(TAG, "getting dictionaries from:", dictUrl)
+		session.setSpellCheckerDictionaryDownloadURL(dictUrl)
+		session
+			.removeAllListeners("spellcheck-dictionary-download-failure")
+			.on("spellcheck-dictionary-initialized", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-initialized", lcode))
+			.on("spellcheck-dictionary-download-begin", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-begin", lcode))
+			.on("spellcheck-dictionary-download-success", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-success", lcode))
+			.on("spellcheck-dictionary-download-failure", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-failure", lcode))
 	}
 
 	_tryGoBack(): void {

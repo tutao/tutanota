@@ -4,12 +4,12 @@ import type {Rectangle} from "electron"
 import {defer, delay, noOp, uint8ArrayToHex} from "@tutao/tutanota-utils"
 import {log} from "./DesktopLog"
 import {fileExists, swapFilename} from "./PathUtils"
-import url from "url"
 import {makeRegisterKeysScript, makeUnregisterKeysScript, RegistryRoot} from "./reg-templater"
 import type {ElectronExports, FsExports} from "./ElectronExportTypes";
-import {DataFile} from "../api/common/DataFile";
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {CryptoFunctions} from "./CryptoFns"
+import {getResourcePath} from "./resources.js"
+import {NativeImage} from "electron"
 
 export class DesktopUtils {
 	private readonly topLevelDownloadDir: string = "tutanota"
@@ -230,6 +230,11 @@ export class DesktopUtils {
 		// don't get temp dir path from DesktopDownloadManager because the path returned from there may be deleted at some point,
 		// we want to put the lockfile in root tmp so it persists
 		return path.join(this.electron.app.getPath("temp"), "tutanota_desktop_lockfile")
+	}
+
+	getIconByName(iconName: string): NativeImage {
+		const iconPath = getResourcePath(`icons/${iconName}`)
+		return this.electron.nativeImage.createFromPath(iconPath)
 	}
 
 }
