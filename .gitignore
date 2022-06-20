@@ -1,5 +1,6 @@
 build
-dist
+**/dist/*
+!packages/licc/dist/cli.js
 node_modules
 .idea
 .gradle
