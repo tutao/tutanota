@@ -3,6 +3,7 @@
   "type": "facade",
   "senders": ["web"],
   "receivers": ["desktop"],
+  "doc": "Operations for in-app search.",
   "methods": {
 	"findInPage": {
 	  "arg": [

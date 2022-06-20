@@ -22,7 +22,7 @@ class IosNativePushFacade : NativePushFacade {
     self.commonNativeFacade = commonNativeFacade
   }
 
-  func getPushIdentifier(_ userId: String, _ mailAddress: String) async throws -> String? {
+  func getPushIdentifier() async throws -> String? {
     if let sseInfo = userPreferences.sseInfo, sseInfo.userIds.isEmpty {
       TUTSLog("Sending alarm invalidation")
       try await self.commonNativeFacade.invalidateAlarms()

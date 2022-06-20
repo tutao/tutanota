@@ -6,15 +6,24 @@ import {DownloadTaskResponse} from "./DownloadTaskResponse.js"
 import {DataFile} from "./DataFile.js"
 export interface FileFacade {
 
+	/**
+	 * Opens the file with the built-in viewer or external program.
+	 */
 	open(
 		location: string,
 		mimeType: string,
 	): Promise<void>
 	
+	/**
+	 * Opens OS file picker. Returns the list of URIs for the selected files.
+	 */
 	openFileChooser(
 		boundingRect: IpcClientRect,
 	): Promise<ReadonlyArray<string>>
 	
+	/**
+	 * Opens OS file picker for selecting a folder. Only on desktop.
+	 */
 	openFolderChooser(
 	): Promise<string | null>
 	
@@ -51,6 +60,9 @@ export interface FileFacade {
 		headers: Record<string, string>,
 	): Promise<DownloadTaskResponse>
 	
+	/**
+	 * Calculates specified file hash (with SHA-256). Returns first 6 bytes of it as Base64.
+	 */
 	hashFile(
 		fileUri: string,
 	): Promise<string>

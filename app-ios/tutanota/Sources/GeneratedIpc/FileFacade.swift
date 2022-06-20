@@ -4,13 +4,22 @@
 import Foundation
 
 public protocol FileFacade {
+	/**
+	 * Opens the file with the built-in viewer or external program.
+	 */
 	func open(
 		_ location: String,
 		_ mimeType: String
 	) async throws -> Void
+	/**
+	 * Opens OS file picker. Returns the list of URIs for the selected files.
+	 */
 	func openFileChooser(
 		_ boundingRect: IpcClientRect
 	) async throws -> [String]
+	/**
+	 * Opens OS file picker for selecting a folder. Only on desktop.
+	 */
 	func openFolderChooser(
 	) async throws -> String?
 	func deleteFile(
@@ -39,6 +48,9 @@ public protocol FileFacade {
 		_ filename: String,
 		_ headers: [String : String]
 	) async throws -> DownloadTaskResponse
+	/**
+	 * Calculates specified file hash (with SHA-256). Returns first 6 bytes of it as Base64.
+	 */
 	func hashFile(
 		_ fileUri: String
 	) async throws -> String

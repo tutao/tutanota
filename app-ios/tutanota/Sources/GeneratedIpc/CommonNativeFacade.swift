@@ -3,7 +3,13 @@
 
 import Foundation
 
+/**
+ * Common operations used by all native platforms.
+ */
 public protocol CommonNativeFacade {
+	/**
+	 * Opens mail editor to write a new email. If `mailToUrlString` is specified it takes priority.
+	 */
 	func createMailEditor(
 		_ filesUris: [String],
 		_ text: String,
@@ -22,6 +28,9 @@ public protocol CommonNativeFacade {
 	func showAlertDialog(
 		_ translationKey: String
 	) async throws -> Void
+	/**
+	 * All local alarms have been deleted, reschedule alarms for the current user.
+	 */
 	func invalidateAlarms(
 	) async throws -> Void
 }

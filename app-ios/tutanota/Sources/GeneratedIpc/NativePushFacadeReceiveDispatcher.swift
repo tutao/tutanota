@@ -11,11 +11,7 @@ public class NativePushFacadeReceiveDispatcher {
 	func dispatch(method: String, arg: [String]) async throws -> String {
 		switch method {
 		case "getPushIdentifier":
-			let userId = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
-			let mailAddress = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
 			let result = try await self.facade.getPushIdentifier(
-				userId,
-				mailAddress
 			)
 			return toJson(result)
 		case "storePushIdentifierLocally":

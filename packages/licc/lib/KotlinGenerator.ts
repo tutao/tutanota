@@ -61,7 +61,8 @@ export class KotlinGenerator implements LangGenerator {
 		acc.line()
 	}
 
-	private generateDocComment(acc: Accumulator, comment: string) {
+	private generateDocComment(acc: Accumulator, comment: string | null | undefined) {
+		if (!comment) return
 		acc.line("/**")
 		acc.line(` * ${comment}`)
 		acc.line(" */")
@@ -70,10 +71,12 @@ export class KotlinGenerator implements LangGenerator {
 	generateFacade(definition: FacadeDefinition): string {
 		const acc = new Accumulator()
 		KotlinGenerator.generateImports(acc)
+		this.generateDocComment(acc, definition.doc)
 		acc.line(`interface ${definition.name} {`)
-		const methodGenerator = acc.indent()
+		const methodAcc = acc.indent()
 		for (const [name, methodDefinition] of Object.entries(definition.methods)) {
-			KotlinGenerator.generateMethodSignature(methodGenerator, name, methodDefinition)
+			this.generateDocComment(methodAcc, methodDefinition.doc)
+			KotlinGenerator.generateMethodSignature(methodAcc, name, methodDefinition)
 		}
 		acc.line("}")
 		return acc.finish()

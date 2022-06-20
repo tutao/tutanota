@@ -14,7 +14,7 @@ class AndroidNativePushFacade(
 		private val alarmNotificationsManager: AlarmNotificationsManager,
 ) : NativePushFacade {
 
-	override suspend fun getPushIdentifier(userId: String, mailAddress: String): String? {
+	override suspend fun getPushIdentifier(): String? {
 		return sseStorage.getPushIdentifier()
 	}
 

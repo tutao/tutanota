@@ -3,18 +3,22 @@
   "type": "facade",
   "senders": ["web"],
   "receivers": ["ios", "android", "desktop"],
+  "doc": "Common operations implemented by each platform.",
   "methods": {
 	"initializeRemoteBridge": {
+	  "doc": "Must be called before any other methods are called.",
 	  "arg": [],
 	  "ret": "void"
 	},
 	"reload": {
+	  "doc": "Reload the webpage with the specified query arguments.",
 	  "arg": [
 		{"query": "Map<string, string>"}
 	  ],
 	  "ret": "void"
 	},
 	"getLog": {
+	  "doc": "Returns the log contents of the native process.",
 	  "arg": [],
 	  "ret": "string"
 	}

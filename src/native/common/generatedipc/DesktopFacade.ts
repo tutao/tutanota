@@ -22,11 +22,17 @@ export interface DesktopFacade {
 		errorInfo: ErrorInfo,
 	): Promise<void>
 	
+	/**
+	 * Updates the link-reveal on hover when the main thread detects that he hovered url changed. Will _not_ update if hovering a in link app (starts with 2nd argument)
+	 */
 	updateTargetUrl(
 		url: string,
 		appPath: string,
 	): Promise<void>
 	
+	/**
+	 * Implemented for the admin client.
+	 */
 	openCustomer(
 		mailAddress: string | null,
 	): Promise<void>

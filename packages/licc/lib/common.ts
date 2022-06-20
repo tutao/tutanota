@@ -37,28 +37,30 @@ export type Language = "kotlin" | "swift" | "typescript"
 
 export interface StructDefinition {
 	type: "struct"
-	name: string,
-	fields: Record<string, string>,
+	name: string
+	fields: Record<string, string>
 	doc?: string
 }
 
 export interface FacadeDefinition {
 	type: "facade"
-	name: string,
-	senders: Array<Platform>,
+	name: string
+	senders: Array<Platform>
 	receivers: Array<Platform>
 	methods: Record<string, MethodDefinition>
+	doc?: string,
 }
 
 export interface TypeRefDefinition {
-	"type": "typeref",
-	"name": string,
+	"type": "typeref"
+	"name": string
 	"location": Record<Language, string>
 }
 
 export interface MethodDefinition {
-	arg: Array<ArgumentDefinition>,
+	arg: Array<ArgumentDefinition>
 	ret: string
+	doc?: string
 }
 
 export type ArgumentDefinition = Record<string, string>

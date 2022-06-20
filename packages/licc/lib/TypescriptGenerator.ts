@@ -46,9 +46,7 @@ export class TypescriptGenerator implements LangGenerator {
 
 	handleStructDefinition(definition: StructDefinition): string {
 		let acc = new Accumulator()
-		if (definition.doc) {
-			this.generateDocComment(acc, definition.doc)
-		}
+		this.generateDocComment(acc, definition.doc)
 		acc.line(`export interface ${definition.name} {`)
 		let bodyGenerator = acc.indent()
 		for (const [fieldName, fieldType] of Object.entries(definition.fields)) {
@@ -64,7 +62,9 @@ export class TypescriptGenerator implements LangGenerator {
 
 	}
 
-	private generateDocComment(acc: Accumulator, comment: string) {
+	private generateDocComment(acc: Accumulator, comment: string | null | undefined) {
+		if (!comment) return
+
 		acc.line("/**")
 		acc.line(` * ${comment}`)
 		acc.line(" */")
@@ -79,18 +79,20 @@ export class TypescriptGenerator implements LangGenerator {
 
 	generateFacade(definition: FacadeDefinition): string {
 		const acc = new Accumulator()
+		this.generateDocComment(acc, definition.doc)
 		acc.line(`export interface ${definition.name} {\n`)
-		let methodAccumulator = acc.indent()
+		let methodAcc = acc.indent()
 		for (const [name, method] of Object.entries(definition.methods)) {
-			methodAccumulator.line(`${name}(`)
-			let argAccumulator = methodAccumulator.indent()
+			this.generateDocComment(methodAcc, method.doc)
+			methodAcc.line(`${name}(`)
+			let argAccumulator = methodAcc.indent()
 			for (const arg of getArgs(name, method)) {
 				const name = renderTypeAndAddImports(arg.type, acc)
 				argAccumulator.line(`${arg.name}: ${name},`)
 			}
 			const resolvedReturnType = renderTypeAndAddImports(method.ret, acc)
-			methodAccumulator.line(`): Promise<${resolvedReturnType}>`)
-			methodAccumulator.line()
+			methodAcc.line(`): Promise<${resolvedReturnType}>`)
+			methodAcc.line()
 		}
 		acc.line("}")
 		return acc.finish()

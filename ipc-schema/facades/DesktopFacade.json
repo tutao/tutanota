@@ -25,10 +25,12 @@
 	  "ret": "void"
 	},
 	"updateTargetUrl": {
+	  "doc": "Updates the link-reveal on hover when the main thread detects that he hovered url changed. Will _not_ update if hovering a in link app (starts with 2nd argument)",
 	  "arg": [{"url": "string"}, {"appPath": "string"}],
 	  "ret": "void"
 	},
 	"openCustomer": {
+	  "doc": "Implemented for the admin client.",
 	  "arg": [{"mailAddress": "string?"}],
 	  "ret": "void"
 	},

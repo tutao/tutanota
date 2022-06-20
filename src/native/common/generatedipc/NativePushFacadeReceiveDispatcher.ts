@@ -8,11 +8,7 @@ export class NativePushFacadeReceiveDispatcher {
 	async dispatch(method: string, arg: Array<any>) : Promise<any> {
 		switch(method) {
 			case "getPushIdentifier": {
-				const userId: string = arg[0]
-				const mailAddress: string = arg[1]
 				return this.facade.getPushIdentifier(
-					userId,
-					mailAddress,
 				)
 			}
 			case "storePushIdentifierLocally": {
