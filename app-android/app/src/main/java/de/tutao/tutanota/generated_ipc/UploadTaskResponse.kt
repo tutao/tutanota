@@ -7,6 +7,9 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
 
+/**
+ * Result of the file upload operation done via native. 'suspensionTime' is from either 'Retry-After' or 'Suspension-Time' headers.
+ */
 @Serializable
 data class UploadTaskResponse(
 	val statusCode: Int,

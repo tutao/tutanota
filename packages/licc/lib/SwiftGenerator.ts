@@ -1,19 +1,28 @@
-import {FacadeDefinition, getArgs, LangGenerator, MethodDefinition, minusculize, RenderedType, StructDefitinion, TypeRefDefinition} from "./common.js"
+import {FacadeDefinition, getArgs, LangGenerator, MethodDefinition, minusculize, RenderedType, StructDefinition, TypeRefDefinition} from "./common.js"
 import {Accumulator} from "./Accumulator.js"
 import {ParsedType, parseType} from "./Parser.js"
 
 export class SwiftGenerator implements LangGenerator {
 
-	handleStructDefinition(definition: StructDefitinion): string {
-		const generator = new Accumulator()
-		generator.line(`public struct ${definition.name} : Codable {`)
-		const fieldGenerator = generator.indent()
+	handleStructDefinition(definition: StructDefinition): string {
+		const acc = new Accumulator()
+		if (definition.doc) {
+			this.generateDocComment(acc, definition.doc)
+		}
+		acc.line(`public struct ${definition.name} : Codable {`)
+		const fieldGenerator = acc.indent()
 		for (const [name, fieldDefinition] of Object.entries(definition.fields)) {
 			const renderedType = typeNameSwift(fieldDefinition)
 			fieldGenerator.line(`let ${name}: ${renderedType.name}`)
 		}
-		generator.line("}")
-		return generator.finish()
+		acc.line("}")
+		return acc.finish()
+	}
+
+	private generateDocComment(acc: Accumulator, comment: string) {
+		acc.line("/**")
+		acc.line(` * ${comment}`)
+		acc.line(" */")
 	}
 
 	generateFacade(definition: FacadeDefinition): string {

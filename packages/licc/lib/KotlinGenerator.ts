@@ -1,4 +1,4 @@
-import {FacadeDefinition, getArgs, LangGenerator, MethodDefinition, minusculize, RenderedType, StructDefitinion, TypeRefDefinition} from "./common.js"
+import {FacadeDefinition, getArgs, LangGenerator, MethodDefinition, minusculize, RenderedType, StructDefinition, TypeRefDefinition} from "./common.js"
 import {Accumulator} from "./Accumulator.js"
 import {ParsedType, parseType} from "./Parser.js"
 
@@ -35,10 +35,13 @@ export class KotlinGenerator implements LangGenerator {
 		return acc.finish()
 	}
 
-	handleStructDefinition(definition: StructDefitinion): string {
+	handleStructDefinition(definition: StructDefinition): string {
 		const acc = new Accumulator()
 		KotlinGenerator.generateImports(acc)
 		acc.line()
+		if (definition.doc) {
+			this.generateDocComment(acc, definition.doc)
+		}
 		acc.line("@Serializable")
 		acc.line(`data class ${definition.name}(`)
 		const fieldGenerator = acc.indent()
@@ -56,6 +59,12 @@ export class KotlinGenerator implements LangGenerator {
 		acc.line("import kotlinx.serialization.*")
 		acc.line("import kotlinx.serialization.json.*")
 		acc.line()
+	}
+
+	private generateDocComment(acc: Accumulator, comment: string) {
+		acc.line("/**")
+		acc.line(` * ${comment}`)
+		acc.line(" */")
 	}
 
 	generateFacade(definition: FacadeDefinition): string {

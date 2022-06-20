@@ -1,6 +1,7 @@
 {
   "name": "ElectronResult",
   "type": "struct",
+  "doc": "Search-in-page result by Electron.",
   "fields": {
 	"matches": "number",
 	"activeMatchOrdinal": "number"

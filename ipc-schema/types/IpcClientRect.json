@@ -1,6 +1,7 @@
 {
   "name": "IpcClientRect",
   "type": "struct",
+  "doc": "Position and size of the active element. Used e.g. as an anchor for file picker popup.",
   "fields": {
 	"x": "number",
 	"y": "number",
