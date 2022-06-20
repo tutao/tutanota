@@ -6,7 +6,7 @@
   "methods": {
 	"rsaEncrypt": {
 	  "arg": [
-		{"publicKey": "PublicKey"},
+		{"publicKey": "RsaPublicKey"},
 		{"data": "bytes"},
 		{"seed": "bytes"}
 	  ],
@@ -14,7 +14,7 @@
 	},
 	"rsaDecrypt": {
 	  "arg": [
-		{"privateKey": "PrivateKey"},
+		{"privateKey": "RsaPrivateKey"},
 		{"data": "bytes"}
 	  ],
 	  "ret": "bytes"

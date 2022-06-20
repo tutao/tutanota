@@ -1,6 +1,6 @@
 import Foundation
 
-extension PublicKey {
+extension RsaPublicKey {
   init(_ objcKey: TUTPublicKey) {
     self.init(
       version: objcKey.version,
@@ -20,7 +20,7 @@ extension PublicKey {
   }
 }
 
-extension PrivateKey {
+extension RsaPrivateKey {
   init(_ objcKey: TUTPrivateKey) {
     self.init(version: objcKey.version,
               keyLength: objcKey.keyLength,
@@ -50,8 +50,8 @@ extension PrivateKey {
 
 extension RsaKeyPair {
   init(_ objcKeyPair: TUTKeyPair) {
-    let publicKey = PublicKey(objcKeyPair.publicKey)
-    let privateKey = PrivateKey(objcKeyPair.privateKey)
+    let publicKey = RsaPublicKey(objcKeyPair.publicKey)
+    let privateKey = RsaPrivateKey(objcKeyPair.privateKey)
     self.init(publicKey: publicKey, privateKey: privateKey)
   }
 }

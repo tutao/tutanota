@@ -11,7 +11,7 @@ public class NativeCryptoFacadeReceiveDispatcher {
 	func dispatch(method: String, arg: [String]) async throws -> String {
 		switch method {
 		case "rsaEncrypt":
-			let publicKey = try! JSONDecoder().decode(PublicKey.self, from: arg[0].data(using: .utf8)!)
+			let publicKey = try! JSONDecoder().decode(RsaPublicKey.self, from: arg[0].data(using: .utf8)!)
 			let data = try! JSONDecoder().decode(DataWrapper.self, from: arg[1].data(using: .utf8)!)
 			let seed = try! JSONDecoder().decode(DataWrapper.self, from: arg[2].data(using: .utf8)!)
 			let result = try await self.facade.rsaEncrypt(
@@ -21,7 +21,7 @@ public class NativeCryptoFacadeReceiveDispatcher {
 			)
 			return toJson(result)
 		case "rsaDecrypt":
-			let privateKey = try! JSONDecoder().decode(PrivateKey.self, from: arg[0].data(using: .utf8)!)
+			let privateKey = try! JSONDecoder().decode(RsaPrivateKey.self, from: arg[0].data(using: .utf8)!)
 			let data = try! JSONDecoder().decode(DataWrapper.self, from: arg[1].data(using: .utf8)!)
 			let result = try await self.facade.rsaDecrypt(
 				privateKey,

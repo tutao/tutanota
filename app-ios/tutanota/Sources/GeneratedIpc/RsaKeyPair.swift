@@ -2,6 +2,6 @@
 
 
 public struct RsaKeyPair : Codable {
-	let publicKey: PublicKey
-	let privateKey: PrivateKey
+	let publicKey: RsaPublicKey
+	let privateKey: RsaPrivateKey
 }

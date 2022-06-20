@@ -46,7 +46,7 @@ actor IosNativeCryptoFacade: NativeCryptoFacade {
   }
 
   func rsaEncrypt(
-    _ publicKey: PublicKey,
+    _ publicKey: RsaPublicKey,
     _ data: DataWrapper,
     _ seed: DataWrapper
   ) async throws -> DataWrapper {
@@ -58,7 +58,7 @@ actor IosNativeCryptoFacade: NativeCryptoFacade {
     }
 
   func rsaDecrypt(
-    _ privateKey: PrivateKey,
+    _ privateKey: RsaPrivateKey,
     _ data: DataWrapper
   ) async throws -> DataWrapper {
       return try self.crypto.rsaDecrypt(

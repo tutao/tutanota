@@ -14,7 +14,7 @@ class NativeCryptoFacadeReceiveDispatcher(
 	suspend fun dispatch(method: String, arg: List<String>): String {
 		when (method) {
 			"rsaEncrypt" -> {
-				val publicKey: PublicKey = json.decodeFromString(arg[0])
+				val publicKey: RsaPublicKey = json.decodeFromString(arg[0])
 				val data: DataWrapper = json.decodeFromString(arg[1])
 				val seed: DataWrapper = json.decodeFromString(arg[2])
 				val result: DataWrapper = this.facade.rsaEncrypt(
@@ -25,7 +25,7 @@ class NativeCryptoFacadeReceiveDispatcher(
 				return json.encodeToString(result)
 			}
 			"rsaDecrypt" -> {
-				val privateKey: PrivateKey = json.decodeFromString(arg[0])
+				val privateKey: RsaPrivateKey = json.decodeFromString(arg[0])
 				val data: DataWrapper = json.decodeFromString(arg[1])
 				val result: DataWrapper = this.facade.rsaDecrypt(
 					privateKey,

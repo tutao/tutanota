@@ -3,8 +3,8 @@ package de.tutao.tutanota
 import android.content.Context
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
-import de.tutao.tutanota.ipc.PrivateKey
-import de.tutao.tutanota.ipc.PublicKey
+import de.tutao.tutanota.ipc.RsaPrivateKey
+import de.tutao.tutanota.ipc.RsaPublicKey
 import de.tutao.tutanota.ipc.wrap
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.io.output.ByteArrayOutputStream
@@ -81,11 +81,11 @@ class CompatibilityTest {
 			testData = om.readValue(inputStream, TestData::class.java)
 		}
 
-		private fun hexToPrivateKey(hex: String): PrivateKey {
+		private fun hexToPrivateKey(hex: String): RsaPrivateKey {
 			return arrayToPrivateKey(hexToKeyArray(hex))
 		}
 
-		private fun hexToPublicKey(hex: String): PublicKey {
+		private fun hexToPublicKey(hex: String): RsaPublicKey {
 			return arrayToPublicKey(hexToKeyArray(hex))
 		}
 
@@ -101,9 +101,9 @@ class CompatibilityTest {
 			return key.toArray(arrayOf())
 		}
 
-		private fun arrayToPrivateKey(keyArray: Array<BigInteger>): PrivateKey {
+		private fun arrayToPrivateKey(keyArray: Array<BigInteger>): RsaPrivateKey {
 			val keyParts = keyArray.map { it.toByteArray().toBase64() }
-			return PrivateKey(
+			return RsaPrivateKey(
 					version = 0,
 					modulus = keyParts[0],
 					privateExponent = keyParts[1],
@@ -116,8 +116,8 @@ class CompatibilityTest {
 			)
 		}
 
-		private fun arrayToPublicKey(keyArray: Array<BigInteger>): PublicKey {
-			return PublicKey(
+		private fun arrayToPublicKey(keyArray: Array<BigInteger>): RsaPublicKey {
+			return RsaPublicKey(
 					version = 0,
 					modulus = keyArray[0].toByteArray().toBase64(),
 					keyLength = AndroidNativeCryptoFacade.RSA_KEY_LENGTH_IN_BITS,

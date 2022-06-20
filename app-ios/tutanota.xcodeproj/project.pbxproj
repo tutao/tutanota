@@ -154,10 +154,10 @@
 		3DC5DECB2858C12D007364FF /* NativePushFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEC92858C12D007364FF /* NativePushFacadeReceiveDispatcher.swift */; };
 		3DC5DECD2858C1F5007364FF /* IosNativePushFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DECC2858C1F5007364FF /* IosNativePushFacade.swift */; };
 		3DC5DED52858CB58007364FF /* NativeCryptoFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DECF2858CB58007364FF /* NativeCryptoFacade.swift */; };
-		3DC5DED62858CB58007364FF /* PrivateKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DED02858CB58007364FF /* PrivateKey.swift */; };
+		3DC5DED62858CB58007364FF /* RsaPrivateKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DED02858CB58007364FF /* RsaPrivateKey.swift */; };
 		3DC5DED72858CB58007364FF /* EncryptedFileInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DED12858CB58007364FF /* EncryptedFileInfo.swift */; };
 		3DC5DED82858CB58007364FF /* NativeCryptoFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DED22858CB58007364FF /* NativeCryptoFacadeReceiveDispatcher.swift */; };
-		3DC5DED92858CB58007364FF /* PublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DED32858CB58007364FF /* PublicKey.swift */; };
+		3DC5DED92858CB58007364FF /* RsaPublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DED32858CB58007364FF /* RsaPublicKey.swift */; };
 		3DC5DEDB2858D6A9007364FF /* RsaKeyPair.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEDA2858D6A9007364FF /* RsaKeyPair.swift */; };
 		3DCE7AA22719D04B0085E40D /* UserPreferenceFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE7AA12719D04B0085E40D /* UserPreferenceFacade.swift */; };
 		3DCE7AA7271D63BF0085E40D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE7AA6271D63BF0085E40D /* ViewController.swift */; };
@@ -343,10 +343,10 @@
 		3DC5DEC92858C12D007364FF /* NativePushFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativePushFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
 		3DC5DECC2858C1F5007364FF /* IosNativePushFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosNativePushFacade.swift; sourceTree = "<group>"; };
 		3DC5DECF2858CB58007364FF /* NativeCryptoFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeCryptoFacade.swift; sourceTree = "<group>"; };
-		3DC5DED02858CB58007364FF /* PrivateKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrivateKey.swift; sourceTree = "<group>"; };
+		3DC5DED02858CB58007364FF /* RsaPrivateKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RsaPrivateKey.swift; sourceTree = "<group>"; };
 		3DC5DED12858CB58007364FF /* EncryptedFileInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EncryptedFileInfo.swift; sourceTree = "<group>"; };
 		3DC5DED22858CB58007364FF /* NativeCryptoFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeCryptoFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
-		3DC5DED32858CB58007364FF /* PublicKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PublicKey.swift; sourceTree = "<group>"; };
+		3DC5DED32858CB58007364FF /* RsaPublicKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RsaPublicKey.swift; sourceTree = "<group>"; };
 		3DC5DEDA2858D6A9007364FF /* RsaKeyPair.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RsaKeyPair.swift; sourceTree = "<group>"; };
 		3DCE7AA12719D04B0085E40D /* UserPreferenceFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPreferenceFacade.swift; sourceTree = "<group>"; };
 		3DCE7AA6271D63BF0085E40D /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -1041,8 +1041,8 @@
 				3DC5DED12858CB58007364FF /* EncryptedFileInfo.swift */,
 				3DC5DECF2858CB58007364FF /* NativeCryptoFacade.swift */,
 				3DC5DED22858CB58007364FF /* NativeCryptoFacadeReceiveDispatcher.swift */,
-				3DC5DED02858CB58007364FF /* PrivateKey.swift */,
-				3DC5DED32858CB58007364FF /* PublicKey.swift */,
+				3DC5DED02858CB58007364FF /* RsaPrivateKey.swift */,
+				3DC5DED32858CB58007364FF /* RsaPublicKey.swift */,
 				3DC5DEC82858C12D007364FF /* NativePushFacade.swift */,
 				3DC5DEC92858C12D007364FF /* NativePushFacadeReceiveDispatcher.swift */,
 				3DC5DEC628576621007364FF /* NativeInterface.swift */,
@@ -1465,7 +1465,7 @@
 				3D73DA312731953E008E7A8A /* RemoteProtocol.swift in Sources */,
 				3DB07C7B27303F0600BFBB4D /* Keys.swift in Sources */,
 				3D3AFAE5285B0C350077F302 /* MobileSystemFacadeReceiveDispatcher.swift in Sources */,
-				3DC5DED62858CB58007364FF /* PrivateKey.swift in Sources */,
+				3DC5DED62858CB58007364FF /* RsaPrivateKey.swift in Sources */,
 				3DBA56D32850AAA6004416BE /* ElectronResult.swift in Sources */,
 				3DBA56C92850AAA6004416BE /* DownloadTaskResponse.swift in Sources */,
 				3DBA56CE2850AAA6004416BE /* IosGlobalDispatcher.swift in Sources */,
@@ -1537,7 +1537,7 @@
 				3DC5DECA2858C12D007364FF /* NativePushFacade.swift in Sources */,
 				3D84F5732722F35600858A58 /* IosNativeCryptoFacade.swift in Sources */,
 				3DBA56C82850AAA6004416BE /* MobileFacadeSendDispatcher.swift in Sources */,
-				3DC5DED92858CB58007364FF /* PublicKey.swift in Sources */,
+				3DC5DED92858CB58007364FF /* RsaPublicKey.swift in Sources */,
 				3D0EB1F926F49E36002E5102 /* AppDelegate.swift in Sources */,
 				3D3AFAE3285B0C350077F302 /* MobileSystemfacade.swift in Sources */,
 				3D9B129A27216DE0002B46A1 /* Response.swift in Sources */,

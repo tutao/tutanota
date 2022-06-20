@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 
-public struct PrivateKey : Codable {
+public struct RsaPrivateKey : Codable {
 	let version: Int
 	let keyLength: Int
 	let modulus: String

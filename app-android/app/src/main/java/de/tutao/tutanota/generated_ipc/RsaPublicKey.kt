@@ -8,7 +8,7 @@ import kotlinx.serialization.json.*
 
 
 @Serializable
-data class PublicKey(
+data class RsaPublicKey(
 	val version: Int,
 	val keyLength: Int,
 	val modulus: String,

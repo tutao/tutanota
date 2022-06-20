@@ -8,12 +8,12 @@ import kotlinx.serialization.json.*
 
 interface NativeCryptoFacade {
 	 suspend fun rsaEncrypt(
-		publicKey: PublicKey,
+		publicKey: RsaPublicKey,
 		data: DataWrapper,
 		seed: DataWrapper,
 	): DataWrapper
 	 suspend fun rsaDecrypt(
-		privateKey: PrivateKey,
+		privateKey: RsaPrivateKey,
 		data: DataWrapper,
 	): DataWrapper
 	/**

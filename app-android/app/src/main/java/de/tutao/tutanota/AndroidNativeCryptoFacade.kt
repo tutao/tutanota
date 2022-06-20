@@ -111,7 +111,7 @@ constructor(
 
 	@Throws(CryptoError::class)
 	override suspend fun rsaEncrypt(
-			publicKey: de.tutao.tutanota.ipc.PublicKey,
+			publicKey: de.tutao.tutanota.ipc.RsaPublicKey,
 			data: DataWrapper,
 			seed: DataWrapper,
 	): DataWrapper {
@@ -152,7 +152,7 @@ constructor(
 	}
 
 	@Throws(CryptoError::class)
-	override suspend fun rsaDecrypt(privateKey: de.tutao.tutanota.ipc.PrivateKey, data: DataWrapper): DataWrapper {
+	override suspend fun rsaDecrypt(privateKey: de.tutao.tutanota.ipc.RsaPrivateKey, data: DataWrapper): DataWrapper {
 		try {
 			return rsaDecrypt(
 					javaPrivateKey(privateKey),
@@ -327,14 +327,14 @@ constructor(
 	}
 
 	@Throws(InvalidKeySpecException::class)
-	private fun javaPublicKey(key: de.tutao.tutanota.ipc.PublicKey): PublicKey {
+	private fun javaPublicKey(key: de.tutao.tutanota.ipc.RsaPublicKey): PublicKey {
 		val modulus = BigInteger(key.modulus.base64ToBytes())
 		val keyFactory = KeyFactory.getInstance("RSA")
 		return keyFactory.generatePublic(RSAPublicKeySpec(modulus, BigInteger.valueOf(RSA_PUBLIC_EXPONENT.toLong())))
 	}
 
 	@Throws(InvalidKeySpecException::class)
-	private fun javaPrivateKey(key: de.tutao.tutanota.ipc.PrivateKey): PrivateKey {
+	private fun javaPrivateKey(key: de.tutao.tutanota.ipc.RsaPrivateKey): PrivateKey {
 		val modulus = BigInteger(key.modulus.base64ToBytes())
 		val privateExponent = BigInteger(key.privateExponent.base64ToBytes())
 		val keyFactory = KeyFactory.getInstance("RSA")
@@ -343,7 +343,7 @@ constructor(
 
 	private fun BigInteger.toBase64() = toByteArray().toBase64()
 
-	private fun PrivateKey(javaKey: RSAPrivateCrtKey) = de.tutao.tutanota.ipc.PrivateKey(
+	private fun PrivateKey(javaKey: RSAPrivateCrtKey) = de.tutao.tutanota.ipc.RsaPrivateKey(
 			version = 0,
 			// TODO: is this correct?
 			keyLength = RSA_KEY_LENGTH_IN_BITS,
@@ -356,7 +356,7 @@ constructor(
 			crtCoefficient = javaKey.crtCoefficient.toBase64(),
 	)
 
-	private fun PublicKey(javaKey: RSAPublicKey) = de.tutao.tutanota.ipc.PublicKey(
+	private fun PublicKey(javaKey: RSAPublicKey) = de.tutao.tutanota.ipc.RsaPublicKey(
 			version = 0,
 			keyLength = RSA_KEY_LENGTH_IN_BITS,
 			modulus = javaKey.modulus.toBase64(),

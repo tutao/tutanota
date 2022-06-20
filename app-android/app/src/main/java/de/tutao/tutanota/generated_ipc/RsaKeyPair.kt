@@ -9,6 +9,6 @@ import kotlinx.serialization.json.*
 
 @Serializable
 data class RsaKeyPair(
-	val publicKey: PublicKey,
-	val privateKey: PrivateKey,
+	val publicKey: RsaPublicKey,
+	val privateKey: RsaPrivateKey,
 )
