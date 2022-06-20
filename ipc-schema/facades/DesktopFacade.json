@@ -13,14 +13,17 @@
 	  "ret": "void"
 	},
 	"openFindInPage": {
+	  "doc": "open the in-page search bar",
 	  "arg": [],
 	  "ret": "void"
 	},
 	"applySearchResultToOverlay": {
+	  "doc": "set the search result to be displayed in the search bar",
 	  "arg": [{"result": "ElectronResult?"}],
 	  "ret": "void"
 	},
 	"reportError": {
+	  "doc": "report an error that was stored from the previous run of the app",
 	  "arg": [{"errorInfo": "ErrorInfo"}],
 	  "ret": "void"
 	},

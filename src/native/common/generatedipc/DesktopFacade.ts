@@ -11,13 +11,22 @@ export interface DesktopFacade {
 	showSpellcheckDropdown(
 	): Promise<void>
 	
+	/**
+	 * open the in-page search bar
+	 */
 	openFindInPage(
 	): Promise<void>
 	
+	/**
+	 * set the search result to be displayed in the search bar
+	 */
 	applySearchResultToOverlay(
 		result: ElectronResult | null,
 	): Promise<void>
 	
+	/**
+	 * report an error that was stored from the previous run of the app
+	 */
 	reportError(
 		errorInfo: ErrorInfo,
 	): Promise<void>

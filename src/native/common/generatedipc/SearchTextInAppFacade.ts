@@ -6,6 +6,9 @@ import {Result} from "./Result.js"
  */
 export interface SearchTextInAppFacade {
 
+	/**
+	 * send a search request to the native search api on the current window
+	 */
 	findInPage(
 		searchTerm: string,
 		forward: boolean,
@@ -13,9 +16,15 @@ export interface SearchTextInAppFacade {
 		findNext: boolean,
 	): Promise<Result | null>
 	
+	/**
+	 * cancel all previously sent search requests
+	 */
 	stopFindInPage(
 	): Promise<void>
 	
+	/**
+	 * make current overlay state known to properly handle key events
+	 */
 	setSearchOverlayState(
 		isFocused: boolean,
 		force: boolean,

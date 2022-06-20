@@ -6,6 +6,7 @@
   "doc": "Operations for in-app search.",
   "methods": {
 	"findInPage": {
+	  "doc": "send a search request to the native search api on the current window",
 	  "arg": [
 		{"searchTerm": "string"},
 		{"forward": "boolean"},
@@ -15,10 +16,12 @@
 	  "ret": "Result?"
 	},
 	"stopFindInPage": {
+	  "doc": "cancel all previously sent search requests",
 	  "arg": [],
 	  "ret": "void"
 	},
 	"setSearchOverlayState": {
+	  "doc": "make current overlay state known to properly handle key events",
 	  "arg": [
 		{"isFocused": "boolean"},
 		{"force": "boolean"}
