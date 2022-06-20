@@ -49,12 +49,6 @@ o.spec('Parser', function () {
 			nullable: false,
 			external: false
 		})
-		stringToTest("List<boolean>", {
-			baseName: "List",
-			generics: [{baseName: "boolean", nullable: false, generics: [], external: false}],
-			nullable: false,
-			external: false
-		})
 		stringToTest("List<string?>", {
 			baseName: "List",
 			generics: [{baseName: "string", nullable: true, generics: [], external: false}],
