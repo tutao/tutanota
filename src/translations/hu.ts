@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2022-05-31T17:51:21Z",
+	"updated_at": "2022-06-17T09:09:26Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Körülbelül",
@@ -128,6 +128,7 @@ export default {
 		"bookingItemUsers_label": "Felhasználói fiókok",
 		"bookingOrder_label": "Könyvelés",
 		"bookingSummary_label": "Könyvelés összesítés",
+		"boughtGiftCardPosting_label": "Ajándékutalvány vásárlása.",
 		"breakLink_action": "Hivatkozás törlése",
 		"businessBooking_label": "Üzleti funkció {1} felhasználónak.",
 		"businessChangeInfo_msg": "Kérjük, ellenőrizze számlaadatait fiókjának üzleti használatra való átállításához!",
@@ -1088,6 +1089,7 @@ export default {
 		"recoveryCode_label": "Helyreállítási kód",
 		"recoveryCode_msg": "Kérjük, szánjon egy percet arra, hogy felírja biztonsági kódját! A biztonsági kód az egyetlen lehetősége arra, hogy visszaállítsa jelszavát vagy a kétlépcsős azonosítását, amennyiben elfelejtené valamelyiket.",
 		"recover_label": "Helyreállítás",
+		"redeemedGiftCardPosting_label": "Beváltott ajándékkártya.",
 		"redeemedToPremium_msg": "Mostantól prémium fiókja van.",
 		"redeem_label": "Beváltás",
 		"redo_action": "Ismételt végrehajtás",

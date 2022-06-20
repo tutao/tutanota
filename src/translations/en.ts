@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2022-06-13T12:14:58Z",
+	"updated_at": "2022-06-17T09:09:24Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -503,6 +503,7 @@ export default {
 		"experienceSamplingThankYou_msg": "Thank you for your participation!",
 		"expiredLink_msg": "Sorry, this link is not valid anymore. You should have received a new notification email with the currently valid link. Previous links are deactivated for security reasons.",
 		"exportSelectedAsVCard_action": "Export selected contacts as vCard",
+		"exportUsers_action": "Export users",
 		"exportVCard_action": "Export vCard",
 		"export_action": "Export",
 		"externalFormattingInfo_msg": "Configure if all messages should be sent including formattings (HTML) or converted to plain text.",
@@ -596,6 +597,7 @@ export default {
 		"importContactsError_msg": "{amount} of {total} contacts could not be imported.",
 		"importEventExistingUid_msg": "{amount} of {total} events already exist and are not overwritten. Will continue with the remaining events...",
 		"importEventsError_msg": "{amount} of {total} events could not be imported.",
+		"importExport_action": "Import/export",
 		"importReadFileError_msg": "Sorry, the file {filename} is not readable.",
 		"importUsers_action": "Import users",
 		"importVCardError_msg": "Can not read vCard file.",
@@ -666,7 +668,7 @@ export default {
 		"invoiceMailBodyOnAccount_msg": "There is a new invoice with the number {1} for you available. You can download it in {2}. The payment is due 7 days after the invoice date.",
 		"invoiceMailSubject_msg": "New invoice for Tutanota",
 		"invoiceNotPaidUser_msg": "Sorry, you are currently not allowed to send emails.",
-		"invoiceNotPaid_msg": "Sorry, you are currently not allowed to send emails because at least one of your invoices is not paid. Please update your payment data in 'Settings' ⇨ 'Payment data' and trigger the payment there afterwards.",
+		"invoiceNotPaid_msg": "Sorry, you are currently not allowed to send or receive emails because at least one of your invoices is not paid. Please update your payment data in 'Settings' ⇨ 'Payment data' and trigger the payment there afterwards.",
 		"invoicePayConfirm_msg": "We will now debit the following amount:",
 		"invoicePaymentMethodInfo_msg": "Please choose a payment method. More options will be added in the future.",
 		"invoicePay_action": "Pay",

@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2022-05-11T12:29:25Z",
+	"updated_at": "2022-06-17T09:09:26Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "О програму",

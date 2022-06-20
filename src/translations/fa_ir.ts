@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2022-05-31T03:26:37Z",
+	"updated_at": "2022-06-17T09:09:26Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "درباره",
@@ -128,6 +128,7 @@ export default {
 		"bookingItemUsers_label": "کاربرها",
 		"bookingOrder_label": "رزرو",
 		"bookingSummary_label": "خلاصه وضعیت رزرو",
+		"boughtGiftCardPosting_label": "کارت هدیه بخرید",
 		"breakLink_action": "  ابَرپیوند را حذف کنید",
 		"businessBooking_label": "قابلیت‌های تجاری برای {1} کاربر",
 		"businessChangeInfo_msg": "لطفاً برای تعویض حساب‌تان به استفادهٔ تجاری، دادهٔ صورت‌حساب‌تان را تأیید کنید.",
@@ -1086,6 +1087,7 @@ export default {
 		"recoveryCode_label": "کد  بازیابی",
 		"recoveryCode_msg": "لطفا یک دقیقه تان را جهت یادداشت کد بازیابی اختصاص دهید.کد بازیابی تنها راه بازنشانی رمز عبور  یا دومین عامل در صورت از دست دادن رمز می باشد.",
 		"recover_label": "بازیابی",
+		"redeemedGiftCardPosting_label": "کارت هدیه مصرف شده",
 		"redeemedToPremium_msg": "اینک شما دارای یک حساب ویژه هستید.",
 		"redeem_label": "خرج کردن",
 		"redo_action": "رجوع به عمل پیش",
