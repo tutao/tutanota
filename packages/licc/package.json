@@ -9,7 +9,8 @@
   "type": "module",
   "scripts": {
 	"build": "tsc -b",
-	"test": "rm -rf ./test/build && tsc -b test && cd test/build && node test/Suite.js"
+	"test": "rm -rf ./test/build && tsc -b test && cd test/build && node test/Suite.js",
+	"preinstall": "mkdir dist && touch dist/cli.js"
   },
   "author": "",
   "license": "GPL-3.0",
