@@ -13,7 +13,6 @@ import {exposeRemote} from "../../api/common/WorkerProxy"
 import {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade"
 import {InterWindowEventBus} from "../../native/common/InterWindowEventBus"
 import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes"
-import {NativeCredentialsFacadeSendDispatcher} from "../../native/common/generatedipc/NativeCredentialsFacadeSendDispatcher.js"
 
 export function usingKeychainAuthentication(): boolean {
 	return isApp() || isDesktop()
@@ -29,12 +28,13 @@ export function hasKeychainAuthenticationOptions(): boolean {
  * @param nativeApp: If {@code usingKeychainAuthentication} would return true, this _must not_ be null
  * @param eventBus
  */
-export function createCredentialsProvider(
+export async function createCredentialsProvider(
 	deviceEncryptionFacade: DeviceEncryptionFacade,
 	nativeApp: NativeInterface | null,
 	eventBus: InterWindowEventBus<InterWindowEventTypes> | null,
-): ICredentialsProvider {
+): Promise<ICredentialsProvider> {
 	if (usingKeychainAuthentication()) {
+		const {NativeCredentialsFacadeSendDispatcher} = await import( "../../native/common/generatedipc/NativeCredentialsFacadeSendDispatcher.js")
 		const nativeCredentials = new NativeCredentialsFacadeSendDispatcher(assertNotNull(nativeApp))
 		const credentialsKeyProvider = new CredentialsKeyProvider(nativeCredentials, deviceConfig, deviceEncryptionFacade)
 		const credentialsEncryption = new NativeCredentialsEncryption(credentialsKeyProvider, deviceEncryptionFacade, nativeCredentials)
