@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2022-06-08T10:42:28Z",
+	"updated_at": "2022-06-17T09:09:26Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O službe",
@@ -130,6 +130,7 @@ export default {
 		"bookingItemUsers_label": "Používatelia",
 		"bookingOrder_label": "Objednávka",
 		"bookingSummary_label": "Zhrnutie objednávky",
+		"boughtGiftCardPosting_label": "Kúpiť darčekový poukaz",
 		"breakLink_action": "Odstrániť odkaz",
 		"businessBooking_label": "Firemná funkcia pre {1} používateľov",
 		"businessChangeInfo_msg": "Prosím, over svoje fakturačné údaje, aby si účet mohol využívať na firemné účely.",
@@ -1088,6 +1089,7 @@ export default {
 		"recoveryCode_label": "Kód na obnovenie",
 		"recoveryCode_msg": "Prosím, nájdi si chvíľu čas na zapísanie kódu na obnovenie. Je totiž jedinou možnosťou na obnovenie hesla alebo druhého faktora, ak niektorý z nich stratíš.",
 		"recover_label": "Obnoviť",
+		"redeemedGiftCardPosting_label": "Uplatnený darčekový poukaz",
 		"redeemedToPremium_msg": "Teraz máš prémiový účet.",
 		"redeem_label": "Uplatniť",
 		"redo_action": "Znova",

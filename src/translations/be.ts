@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2022-02-03T06:52:08Z",
-	"updated_at": "2022-06-08T20:36:18Z",
+	"updated_at": "2022-06-17T09:09:27Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Пра нас",

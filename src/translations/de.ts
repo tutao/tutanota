@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2022-06-13T12:15:14Z",
+	"updated_at": "2022-06-17T09:10:01Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -507,6 +507,7 @@ export default {
 		"experienceSamplingThankYou_msg": "Vielen Dank für deine Teilnahme!",
 		"expiredLink_msg": "Leider ist dieser Link nicht mehr gültig. Du hast eine neue Benachrichtigungs-E-Mail mit einem aktuellen Link bekommen. Vorhergehende Links werden aus Sicherheitsgründen deaktiviert.",
 		"exportSelectedAsVCard_action": "Ausgewählte Kontakte als vCard exportieren",
+		"exportUsers_action": "Benutzer exportieren",
 		"exportVCard_action": "VCard exportieren",
 		"export_action": "Exportieren",
 		"externalFormattingInfo_msg": "Konfiguriere, ob alle Nachrichten in plain text konvertiert oder mit Formatierungen (HTML) versendet werden.",
@@ -600,6 +601,7 @@ export default {
 		"importContactsError_msg": "{amount} von {total} Kontakten konnten nicht importiert werden.",
 		"importEventExistingUid_msg": "{amount} von {total} Terminen existieren bereits und werden nicht überschrieben. Importiere die übrigen Termine...",
 		"importEventsError_msg": "{amount} von {total} Terminen konnten nicht importiert werden.",
+		"importExport_action": "Importieren/exportieren",
 		"importReadFileError_msg": "Die Datei {filename} ist leider nicht lesbar.",
 		"importUsers_action": "Benutzer importieren",
 		"importVCardError_msg": "VCard-Datei konnte nicht gelesen werden.",
@@ -670,7 +672,7 @@ export default {
 		"invoiceMailBodyOnAccount_msg": "es ist eine neue Rechnung mit der Nummer {1} verfügbar. Die Rechnung kann in  {2} abgerufen werden. Der Rechnungsbetrag ist 7 Tage nach Rechnungsdatum fällig.",
 		"invoiceMailSubject_msg": "Neue Rechnung für Tutanota",
 		"invoiceNotPaidUser_msg": "Du darfst gerade leider keine E-Mails senden.",
-		"invoiceNotPaid_msg": "Du darfst leider keine E-Mails senden, da mindestens eine deiner Rechnungen nicht bezahlt ist. Bitte aktualisiere deine Zahlungsdaten unter 'Einstellungen' ⇨ 'Zahlungsdaten' und löse die Zahlung dort aus.",
+		"invoiceNotPaid_msg": "Du kannst leider keine E-Mails senden oder empfangen, da mindestens eine deiner Rechnungen nicht bezahlt ist. Bitte aktualisiere deine Zahlungsdaten unter 'Einstellungen' ⇨ 'Zahlungsdaten' und löse die Zahlung dort aus.",
 		"invoicePayConfirm_msg": "Wir werden jetzt den folgenden Betrag abbuchen:",
 		"invoicePaymentMethodInfo_msg": "Bitte wähle eine Zahlungsmethode. Weitere Zahlungsoptionen werden in Zukunft hinzugefügt.",
 		"invoicePay_action": "Bezahlen",

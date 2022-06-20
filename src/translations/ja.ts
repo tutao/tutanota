@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2022-05-30T21:20:16Z",
+	"updated_at": "2022-06-13T12:51:00Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "アプリについて",
@@ -127,6 +127,7 @@ export default {
 		"bookingItemUsers_label": "ユーザーアカウント",
 		"bookingOrder_label": "予約",
 		"bookingSummary_label": "予約の概要",
+		"boughtGiftCardPosting_label": "ギフトカードを購入する",
 		"breakLink_action": "ハイパーリンクを削除",
 		"businessBooking_label": "{1} ユーザーのためのビジネス機能",
 		"businessChangeInfo_msg": "アカウントを業務用に切り替えるには、請求書データを確認してください。",
@@ -931,7 +932,7 @@ export default {
 		"outOfOfficeReminder_label": "自動応答がアクティブ化されました。",
 		"outOfOfficeTimeRangeHelp_msg": "日付を選択する場合にチェックします。",
 		"outOfOfficeTimeRange_msg": "この時間範囲の間でのみ送信します。",
-		"outOfOfficeUnencrypted_msg": "不在通知は暗号化されずに送信されることに注意してください。",
+		"outOfOfficeUnencrypted_msg": "自動返信は平文で送信されます。ご注意ください。",
 		"outOfSync_label": "データの有効期限が切れています",
 		"owner_label": "オーナー",
 		"packageDowngradeUserAccounts_label": "パッケージを{1}ユーザーにダウングレードします。",
@@ -1082,6 +1083,7 @@ export default {
 		"recoveryCode_label": "リカバリーコード",
 		"recoveryCode_msg": "リカバリーコードの設定をお勧めします。それを使うとあなたがパスワードや二段階認証手段をなくした時でもアカウントにログインできるようになります。",
 		"recover_label": "回復",
+		"redeemedGiftCardPosting_label": "ギフトカードの交換",
 		"redeemedToPremium_msg": "プレミアムアカウントが追加されました。",
 		"redeem_label": "ギフトを使う",
 		"redo_action": "やり直す",
