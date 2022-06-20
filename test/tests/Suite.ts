@@ -35,8 +35,6 @@ import "./api/worker/rest/CborDateEncoderTest.js"
 import "./api/worker/facades/BlobFacadeTest.js"
 import "./api/worker/utils/SleepDetectorTest.js"
 import "./api/worker/rest/ServiceExecutorTest.js"
-import "./api/worker/offline/OfflineStorageTest.js"
-import "./api/worker/offline/OfflineStorageMigrationsTest.js"
 import "./api/worker/rest/CacheStorageProxyTest.js"
 import "./contacts/VCardExporterTest.js"
 import "./contacts/VCardImporterTest.js"
@@ -94,7 +92,6 @@ import "./misc/webauthn/WebauthnClientTest.js"
 import "./translations/TranslationKeysTest.js"
 import "./misc/UsageTestModelTest.js"
 import "./file/FileControllerTest.js"
-import "./api/worker/offline/OfflineStorageMigratorTest.js"
 import "./api/worker/rest/CustomCacheHandlerTest.js"
 import "./misc/RecipientsModelTest.js"
 import * as td from "testdouble"
@@ -145,6 +142,8 @@ async function setupSuite() {
 		await import("./desktop/db/OfflineDbTest.js")
 		await import("./desktop/db/OfflineDbFacadeTest.js")
 		await import ("./desktop/credentials/DesktopCredentialsEncryptionTest.js")
+		await import("./api/worker/offline/OfflineStorageMigratorTest.js")
+		await import("./api/worker/offline/OfflineStorageTest.js")
 	}
 
 	// testdouble complains about certain mocking related code smells, and also prints a warning whenever you replace a property on an object.
