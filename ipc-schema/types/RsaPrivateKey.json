@@ -1,5 +1,5 @@
 {
-  "name": "PrivateKey",
+  "name": "RsaPrivateKey",
   "type": "struct",
   "fields": {
 	"version": "number",

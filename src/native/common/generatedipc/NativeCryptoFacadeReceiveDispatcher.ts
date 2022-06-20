@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
-import {PublicKey} from "./PublicKey.js"
-import {PrivateKey} from "./PrivateKey.js"
+import {RsaPublicKey} from "./RsaPublicKey.js"
+import {RsaPrivateKey} from "./RsaPrivateKey.js"
 import {NativeCryptoFacade} from "./NativeCryptoFacade.js"
 
 export class NativeCryptoFacadeReceiveDispatcher {
@@ -9,7 +9,7 @@ export class NativeCryptoFacadeReceiveDispatcher {
 	async dispatch(method: string, arg: Array<any>) : Promise<any> {
 		switch(method) {
 			case "rsaEncrypt": {
-				const publicKey: PublicKey = arg[0]
+				const publicKey: RsaPublicKey = arg[0]
 				const data: Uint8Array = arg[1]
 				const seed: Uint8Array = arg[2]
 				return this.facade.rsaEncrypt(
@@ -19,7 +19,7 @@ export class NativeCryptoFacadeReceiveDispatcher {
 				)
 			}
 			case "rsaDecrypt": {
-				const privateKey: PrivateKey = arg[0]
+				const privateKey: RsaPrivateKey = arg[0]
 				const data: Uint8Array = arg[1]
 				return this.facade.rsaDecrypt(
 					privateKey,

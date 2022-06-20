@@ -1,8 +1,8 @@
 /* generated file, don't edit. */
 
-import {PublicKey} from "./PublicKey.js"
-import {PrivateKey} from "./PrivateKey.js"
+import {RsaPublicKey} from "./RsaPublicKey.js"
+import {RsaPrivateKey} from "./RsaPrivateKey.js"
 export interface RsaKeyPair {
-	readonly publicKey: PublicKey
-	readonly privateKey: PrivateKey
+	readonly publicKey: RsaPublicKey
+	readonly privateKey: RsaPrivateKey
 }

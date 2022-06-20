@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 
-export interface PrivateKey {
+export interface RsaPrivateKey {
 	readonly version: number
 	readonly keyLength: number
 	readonly modulus: string

@@ -8,8 +8,8 @@ import {FileUri} from "../native/common/FileApp"
 import path from "path"
 import {NativeCryptoFacade} from "../native/common/generatedipc/NativeCryptoFacade"
 import {EncryptedFileInfo} from "../native/common/generatedipc/EncryptedFileInfo"
-import {PrivateKey} from "../native/common/generatedipc/PrivateKey"
-import {PublicKey} from "../native/common/generatedipc/PublicKey"
+import {RsaPrivateKey} from "../native/common/generatedipc/RsaPrivateKey.js"
+import {RsaPublicKey} from "../native/common/generatedipc/RsaPublicKey.js"
 import {RsaKeyPair} from "../native/common/generatedipc/RsaKeyPair"
 import {DesktopUtils} from "./DesktopUtils"
 
@@ -115,11 +115,11 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		throw new Error("not implemented for this platform")
 	}
 
-	async rsaDecrypt(privateKey: PrivateKey, data: Uint8Array): Promise<Uint8Array> {
+	async rsaDecrypt(privateKey: RsaPrivateKey, data: Uint8Array): Promise<Uint8Array> {
 		throw new Error("not implemented for this platform")
 	}
 
-	async rsaEncrypt(publicKey: PublicKey, data: Uint8Array, seed: Uint8Array): Promise<Uint8Array> {
+	async rsaEncrypt(publicKey: RsaPublicKey, data: Uint8Array, seed: Uint8Array): Promise<Uint8Array> {
 		throw new Error("not implemented for this platform")
 	}
 }

@@ -5,12 +5,12 @@ import Foundation
 
 public protocol NativeCryptoFacade {
 	func rsaEncrypt(
-		_ publicKey: PublicKey,
+		_ publicKey: RsaPublicKey,
 		_ data: DataWrapper,
 		_ seed: DataWrapper
 	) async throws -> DataWrapper
 	func rsaDecrypt(
-		_ privateKey: PrivateKey,
+		_ privateKey: RsaPrivateKey,
 		_ data: DataWrapper
 	) async throws -> DataWrapper
 	/**

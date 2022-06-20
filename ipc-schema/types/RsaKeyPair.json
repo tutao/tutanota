@@ -2,7 +2,7 @@
   "name": "RsaKeyPair",
   "type": "struct",
   "fields": {
-	"publicKey": "PublicKey",
-	"privateKey": "PrivateKey"
+	"publicKey": "RsaPublicKey",
+	"privateKey": "RsaPrivateKey"
   }
 }
