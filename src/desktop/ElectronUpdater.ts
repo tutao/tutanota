@@ -1,16 +1,15 @@
 import type {DesktopNotifier} from "./DesktopNotifier"
+import {NotificationResult} from "./DesktopNotifier";
 import {lang} from '../misc/LanguageViewModel'
 import type {DesktopConfig} from './config/DesktopConfig'
 import {downcast, neverNull} from "@tutao/tutanota-utils"
-import type {DesktopTray} from "./tray/DesktopTray"
 import {Mode} from "../api/common/Env"
 import {log} from "./DesktopLog";
 import {DesktopNativeCryptoFacade} from "./DesktopNativeCryptoFacade"
-import type {App} from "electron"
+import type {App, NativeImage} from "electron"
 import type {UpdaterWrapper} from "./UpdaterWrapper"
 import {UpdateInfo} from "electron-updater";
 import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys";
-import {NotificationResult} from "./DesktopNotifier";
 
 
 /**
@@ -44,21 +43,21 @@ export class ElectronUpdater {
 	private _updateInfo: UpdateInfo | null = null;
 	private _logger: UpdaterLogger;
 	private readonly _app: App;
-	private readonly _tray: DesktopTray
+	private readonly icon: NativeImage
 	private readonly _updater: UpdaterWrapper
 
 	get updateInfo(): UpdateInfo | null {
 		return this._updateInfo
 	}
 
-	constructor(conf: DesktopConfig, notifier: DesktopNotifier, crypto: DesktopNativeCryptoFacade, app: App, tray: DesktopTray,
-                updater: UpdaterWrapper, scheduler: IntervalSetter = setInterval) {
+	constructor(conf: DesktopConfig, notifier: DesktopNotifier, crypto: DesktopNativeCryptoFacade, app: App, icon: NativeImage,
+				updater: UpdaterWrapper, scheduler: IntervalSetter = setInterval) {
 		this._conf = conf
 		this._notifier = notifier
 		this._errorCount = 0
 		this._crypto = crypto
 		this._app = app
-		this._tray = tray
+		this.icon = icon
 		this._updater = updater
 		this._setInterval = scheduler
 
@@ -305,7 +304,7 @@ export class ElectronUpdater {
 			.showOneShot({
 				title: lang.get('updateAvailable_label', {"{version}": info.version}),
 				body: lang.get('clickToUpdate_msg'),
-				icon: await this._tray.getIconByName(await this._conf.getConst(BuildConfigKey.iconName))
+				icon: this.icon
 			})
 			.then((res) => {
 				if (res === NotificationResult.Click) {
@@ -334,7 +333,7 @@ export class ElectronUpdater {
 		this._notifier.showOneShot({
 			title: lang.get("errorReport_label"),
 			body: lang.get("errorDuringUpdate_msg"),
-			icon: this._tray.getIconByName(await this._conf.getConst(BuildConfigKey.iconName))
+			icon: this.icon
 		}).catch(e => this._logger.error("Error Notification failed,", e.message))
 	}
 }

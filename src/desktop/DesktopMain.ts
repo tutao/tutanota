@@ -42,8 +42,20 @@ import {OfflineDb} from "./db/OfflineDb"
 import {DesktopContextMenu} from "./DesktopContextMenu.js"
 import {DesktopNativePushFacade} from "./sse/DesktopNativePushFacade.js"
 import {NativeCredentialsFacade} from "../native/common/generatedipc/NativeCredentialsFacade.js"
-import {RemoteBridge} from "./ipc/RemoteBridge.js"
+import {FacadeHandler, RemoteBridge} from "./ipc/RemoteBridge.js"
 import {DesktopSettingsFacade} from "./config/DesktopSettingsFacade.js"
+import {ApplicationWindow} from "./ApplicationWindow.js"
+import {DesktopCommonSystemFacade} from "./DesktopCommonSystemFacade.js"
+import {DesktopGlobalDispatcher} from "../native/common/generatedipc/DesktopGlobalDispatcher.js"
+import {DesktopDesktopSystemFacade} from "./DesktopDesktopSystemFacade.js"
+import {DesktopExportFacade} from "./DesktopExportFacade.js"
+import {DesktopFileFacade} from "./DesktopFileFacade.js"
+import {DesktopSearchTextInAppFacade} from "./DesktopSearchTextInAppFacade.js"
+import {exposeLocal} from "../api/common/WorkerProxy.js"
+import {ExposedNativeInterface} from "../native/common/NativeInterface.js"
+import {DesktopWebauthn} from "./2fa/DesktopWebauthn.js"
+import {DesktopInterWindowEventSender} from "./ipc/DesktopInterWindowEventSender.js"
+import {DesktopPostLoginActions} from "./DesktopPostLoginActions.js"
 
 /**
  * Should be injected during build time.
@@ -116,6 +128,7 @@ async function createComponents(): Promise<Components> {
 		console.error("Could not load config", e)
 		process.exit(1)
 	})
+	const appIcon = desktopUtils.getIconByName(await conf.getConst(BuildConfigKey.iconName))
 	const desktopNet = new DesktopNetworkClient()
 	const sock = new Socketeer(net, app)
 	const tray = new DesktopTray(conf)
@@ -123,7 +136,7 @@ async function createComponents(): Promise<Components> {
 	const dateProvider = new DateProviderImpl()
 	const dl = new DesktopDownloadManager(conf, desktopNet, desktopUtils, dateProvider, fs, electron)
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade)
-	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, tray, new UpdaterWrapperImpl())
+	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapperImpl())
 	const shortcutManager = new LocalShortcutManager()
 	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(keyStoreFacade, desktopCrypto)
 
@@ -156,7 +169,7 @@ async function createComponents(): Promise<Components> {
 
 	const offlineDbFacade = new OfflineDbFacade(offlineDbFactory)
 
-	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, dl, offlineDbFacade)
+	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon, offlineDbFacade)
 	const themeFacade = new DesktopThemeFacade(conf, wm)
 	const alarmScheduler = new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, global, global))
 	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler)
@@ -171,18 +184,45 @@ async function createComponents(): Promise<Components> {
 	// It should be ok to await this, all we are waiting for is dynamic imports
 	const integrator = await getDesktopIntegratorForPlatform(electron, fs, child_process, () => import("winreg"))
 
+	const dragIcons = {
+		eml: desktopUtils.getIconByName("eml.png"),
+		msg: desktopUtils.getIconByName("msg.png"),
+	}
+	const pushFacade = new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage)
+	const settingsFacade = new DesktopSettingsFacade(conf, desktopUtils, integrator, updater, lang)
+	const fileFacade = new DesktopFileFacade(dl, electron, fs)
+
+	const dispatcherFactory = (window: ApplicationWindow) => {
+		// @ts-ignore
+		const logger: Logger = global.logger
+		const desktopCommonSystemFacade = new DesktopCommonSystemFacade(window, logger)
+		const dispatcher = new DesktopGlobalDispatcher(
+			desktopCommonSystemFacade,
+			new DesktopDesktopSystemFacade(wm, window, sock),
+			new DesktopExportFacade(dl, conf, window, dragIcons),
+			fileFacade,
+			nativeCredentialsFacade,
+			desktopCrypto,
+			pushFacade,
+			new DesktopSearchTextInAppFacade(window),
+			settingsFacade,
+			themeFacade
+		)
+		return {desktopCommonSystemFacade, dispatcher}
+	}
+
+	const facadeHandlerFactory = (window: ApplicationWindow): FacadeHandler => {
+		return exposeLocal<ExposedNativeInterface, "facade">({
+			webauthn: new DesktopWebauthn(window.id, webDialogController),
+			offlineDbFacade: offlineDbFacade,
+			interWindowEventSender: new DesktopInterWindowEventSender(wm, window.id),
+			postLoginActions: new DesktopPostLoginActions(wm, err, notifier, window.id)
+		})
+	}
+
 	const remoteBridge = new RemoteBridge(
-		offlineDbFacade,
-		wm,
-		dl,
-		sock,
-		webDialogController,
-		notifier,
-		new DesktopNativeCredentialsFacade(keyStoreFacade, desktopCrypto),
-		new DesktopNativeCryptoFacade(fs, cryptoFns, desktopUtils),
-		new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage),
-		new DesktopSettingsFacade(conf, desktopUtils, integrator, updater, lang),
-		new DesktopThemeFacade(conf, wm),
+		dispatcherFactory,
+		facadeHandlerFactory,
 	)
 
 	function makeDbPath(userId: string): string {

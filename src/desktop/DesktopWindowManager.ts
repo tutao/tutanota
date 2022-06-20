@@ -6,14 +6,9 @@ import type {DesktopConfig} from "./config/DesktopConfig"
 import {DesktopTray} from "./tray/DesktopTray"
 import type {DesktopNotifier} from "./DesktopNotifier"
 import {LOGIN_TITLE} from "../api/common/Env"
-import type {DesktopDownloadManager} from "./DesktopDownloadManager"
 import {DesktopContextMenu} from "./DesktopContextMenu"
 import {log} from "./DesktopLog"
 import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
-import {getExportDirectoryPath} from "./DesktopFileExport"
-import path from "path"
-import {fileExists} from "./PathUtils"
-import type {MailExportMode} from "../mail/export/Exporter"
 import {BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey} from "./config/ConfigKeys"
 import type {SseInfo} from "./sse/DesktopSseClient"
 import {isRectContainedInRect} from "./DesktopUtils"
@@ -37,9 +32,7 @@ export class WindowManager {
 	private _contextMenu!: DesktopContextMenu
 	private readonly _electron: ElectronExports
 	private themeFacade!: DesktopThemeFacade
-	readonly dl: DesktopDownloadManager
 	private readonly _newWindowFactory: (noAutoLogin?: boolean) => Promise<ApplicationWindow>
-	private readonly _dragIcons: Record<MailExportMode, NativeImage>
 	private _currentBounds: WindowBounds
 	private remoteBridge!: RemoteBridge
 
@@ -49,7 +42,7 @@ export class WindowManager {
 		notifier: DesktopNotifier,
 		electron: ElectronExports,
 		localShortcut: LocalShortcutManager,
-		dl: DesktopDownloadManager,
+		private readonly icon: NativeImage,
 		private readonly offlineDbFacade: OfflineDbFacade,
 	) {
 		this._conf = conf
@@ -61,15 +54,9 @@ export class WindowManager {
 
 		this._tray = tray
 		this._notifier = notifier
-		this.dl = dl
 		this._electron = electron
 
 		this._newWindowFactory = noAutoLogin => this._newWindow(electron, localShortcut, noAutoLogin ?? null)
-
-		this._dragIcons = {
-			eml: this._tray.getIconByName("eml.png"),
-			msg: this._tray.getIconByName("msg.png"),
-		}
 		// this is the old default for window placement & scale
 		// should never be used because the config now contains
 		// a new default value.
@@ -202,10 +189,6 @@ export class WindowManager {
 		windows.forEach(w => w.setZoomFactor(scale))
 	}
 
-	async getIcon(): Promise<NativeImage> {
-		return this._tray.getIconByName(await this._conf.getConst(BuildConfigKey.iconName))
-	}
-
 	get(id: number): ApplicationWindow | null {
 		const w = windows.find(w => w.id === id)
 		return w ? w : null
@@ -287,24 +270,6 @@ export class WindowManager {
 		const updateUrl = await this._conf.getConst(BuildConfigKey.updateUrl)
 		const dictUrl = updateUrl && updateUrl !== "" ? updateUrl : "https://mail.tutanota.com/desktop/"
 		// custom builds get the dicts from us as well
-		const icon = await this.getIcon()
-		return new ApplicationWindow(this, desktopHtml, icon, electron, localShortcut, this.themeFacade, this.offlineDbFacade, this.remoteBridge, dictUrl, noAutoLogin)
-	}
-
-	async startNativeDrag(filenames: ReadonlyArray<string>, windowId: number) {
-		const exportDir = await getExportDirectoryPath(this.dl)
-		const files = filenames.map(fileName => path.join(exportDir, fileName)).filter(fileExists)
-		const window = this.get(windowId)
-
-		if (window) {
-			const exportMode: MailExportMode = await this._conf.getVar(DesktopConfigKey.mailExportMode)
-			const icon = this._dragIcons[exportMode]
-
-			window._browserWindow.webContents.startDrag({
-				file: '',
-				files,
-				icon,
-			})
-		}
+		return new ApplicationWindow(this, desktopHtml, this.icon, electron, localShortcut, this.themeFacade, this.offlineDbFacade, this.remoteBridge, dictUrl, noAutoLogin)
 	}
 }

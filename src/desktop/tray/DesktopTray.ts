@@ -108,11 +108,6 @@ export class DesktopTray {
 		return this._icon
 	}
 
-	getIconByName(iconName: string): NativeImage {
-		const iconPath = getResourcePath(`icons/${iconName}`)
-		return nativeImage.createFromPath(iconPath)
-	}
-
 	setWindowManager(wm: WindowManager) {
 		this._wm = wm
 	}

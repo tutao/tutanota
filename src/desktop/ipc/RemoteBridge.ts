@@ -2,38 +2,17 @@ import * as electron from "electron"
 import {DesktopFacade} from "../../native/common/generatedipc/DesktopFacade.js"
 import {CommonNativeFacade} from "../../native/common/generatedipc/CommonNativeFacade.js"
 import {ApplicationWindow} from "../ApplicationWindow.js"
-import {exposeLocal, exposeRemote} from "../../api/common/WorkerProxy.js"
+import {exposeRemote} from "../../api/common/WorkerProxy.js"
 import {ExposedNativeInterface} from "../../native/common/NativeInterface.js"
-import {DesktopWebauthn} from "../2fa/DesktopWebauthn.js"
-import {DesktopInterWindowEventSender} from "./DesktopInterWindowEventSender.js"
-import {DesktopPostLoginActions} from "../DesktopPostLoginActions.js"
-import {err} from "../DesktopErrorHandler.js"
 import {ElectronWebContentsTransport} from "./ElectronWebContentsTransport.js"
 import {DesktopGlobalDispatcher} from "../../native/common/generatedipc/DesktopGlobalDispatcher.js"
-import {DesktopFileFacade} from "../DesktopFileFacade.js"
-import fs from "fs"
 import {MessageDispatcher, Request} from "../../api/common/MessageDispatcher.js"
 import {DesktopFacadeSendDispatcher} from "../../native/common/generatedipc/DesktopFacadeSendDispatcher.js"
 import {CommonNativeFacadeSendDispatcher} from "../../native/common/generatedipc/CommonNativeFacadeSendDispatcher.js"
 import {CentralIpcHandler, IpcConfig} from "./CentralIpcHandler.js"
-import {OfflineDbFacade} from "../db/OfflineDbFacade.js"
-import {WindowManager} from "../DesktopWindowManager.js"
-import {DesktopDownloadManager} from "../DesktopDownloadManager.js"
-import {WebDialogController} from "../WebDialog.js"
-import {DesktopNotifier} from "../DesktopNotifier.js"
-import {NativeCredentialsFacade} from "../../native/common/generatedipc/NativeCredentialsFacade.js"
-import {NativeCryptoFacade} from "../../native/common/generatedipc/NativeCryptoFacade.js"
-import {NativePushFacade} from "../../native/common/generatedipc/NativePushFacade.js"
-import {ThemeFacade} from "../../native/common/generatedipc/ThemeFacade.js"
-import {Logger} from "../../api/common/Logger.js"
-import {Socketeer} from "../Socketeer.js"
 import {InterWindowEventSender} from "../../native/common/InterWindowEventBus.js"
 import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes.js"
-import {DesktopSearchTextInAppFacade} from "../DesktopSearchTextInAppFacade.js"
-import {SettingsFacade} from "../../native/common/generatedipc/SettingsFacade.js"
-import {DesktopExportFacade} from "../DesktopExportFacade.js"
 import {DesktopCommonSystemFacade} from "../DesktopCommonSystemFacade.js"
-import {DesktopDesktopSystemFacade} from "../DesktopDesktopSystemFacade.js"
 
 export interface SendingFacades {
 	desktopFacade: DesktopFacade
@@ -49,49 +28,24 @@ const primaryIpcConfig: IpcConfig<"to-main", "to-renderer"> = {
 // Must be created only once
 const primaryIpcHandler = new CentralIpcHandler(electron.ipcMain, primaryIpcConfig)
 
+export type DispatcherFactory = (window: ApplicationWindow) => {desktopCommonSystemFacade: DesktopCommonSystemFacade; dispatcher: DesktopGlobalDispatcher}
+export type FacadeHandler = (message: Request<"facade">) => Promise<any>
+export type FacadeHandlerFactory = (window: ApplicationWindow) => FacadeHandler
+
 export class RemoteBridge {
 
 	constructor(
-		private readonly offlineDbFacade: OfflineDbFacade,
-		private readonly wm: WindowManager,
-		private readonly dl: DesktopDownloadManager,
-		private readonly sock: Socketeer,
-		private readonly webDialogController: WebDialogController,
-		private readonly notifier: DesktopNotifier,
-		private readonly nativeCredentialsFacade: NativeCredentialsFacade,
-		private readonly desktopCrypto: NativeCryptoFacade,
-		private readonly pushFacade: NativePushFacade,
-		private readonly settingsFacade: SettingsFacade,
-		private readonly themeFacade: ThemeFacade,
+		private readonly dispatcherFactory: DispatcherFactory,
+		private readonly facadeHandlerFactory: FacadeHandlerFactory,
 	) {
 	}
 
 	createBridge(window: ApplicationWindow): SendingFacades {
 		const webContents = window._browserWindow.webContents
-		const windowId = window.id
-		const facadeHandler = exposeLocal<ExposedNativeInterface, "facade">({
-			webauthn: new DesktopWebauthn(windowId, this.webDialogController),
-			offlineDbFacade: this.offlineDbFacade,
-			interWindowEventSender: new DesktopInterWindowEventSender(this.wm, windowId),
-			postLoginActions: new DesktopPostLoginActions(this.wm, err, this.notifier, windowId)
-		})
+		const {desktopCommonSystemFacade, dispatcher} = this.dispatcherFactory(window)
+		const facadeHandler = this.facadeHandlerFactory(window)
 
 		const transport = new ElectronWebContentsTransport<typeof primaryIpcConfig, JsRequestType, NativeRequestType>(webContents, primaryIpcHandler)
-		// @ts-ignore
-		const logger: Logger = global.logger
-		const desktopCommonSystemFacade = new DesktopCommonSystemFacade(window, logger)
-		const dispatcher = new DesktopGlobalDispatcher(
-			desktopCommonSystemFacade,
-			new DesktopDesktopSystemFacade(this.wm, window, this.sock),
-			new DesktopExportFacade(this.dl, this.wm, window.id),
-			new DesktopFileFacade(this.dl, electron, fs),
-			this.nativeCredentialsFacade,
-			this.desktopCrypto,
-			this.pushFacade,
-			new DesktopSearchTextInAppFacade(window),
-			this.settingsFacade,
-			this.themeFacade
-		)
 		const messageDispatcher = new MessageDispatcher<JsRequestType, NativeRequestType>(transport, {
 			"facade": facadeHandler,
 			"ipc": async ({args}) => {

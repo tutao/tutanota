@@ -16,6 +16,7 @@ import Rectangle = Electron.Rectangle
 
 const {anything} = matchers
 
+const dictUrl = "dictUrl"
 o.spec("ApplicationWindow Test", function () {
 	const electronLocalshortcut = {
 		callbacks: Object.create(null),
@@ -176,6 +177,12 @@ o.spec("ApplicationWindow Test", function () {
 								},
 								setSpellCheckerDictionaryDownloadURL: () => {
 								},
+								on() {
+									return this
+								},
+								removeAllListeners() {
+									return this
+								},
 							},
 							findInPage: () => {
 							},
@@ -325,7 +332,7 @@ o.spec("ApplicationWindow Test", function () {
 			themeFacade,
 			offlineDbFacade,
 			remoteBridge,
-			"dictUrl",
+			dictUrl,
 		)
 		o(electronMock.BrowserWindow.mockedInstances.length).equals(1)
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
@@ -368,8 +375,8 @@ o.spec("ApplicationWindow Test", function () {
 		o(bwInstance.setMenuBarVisibility.callCount).equals(1)
 		o(bwInstance.setMenuBarVisibility.args[0]).equals(false)
 		o(bwInstance.removeMenu.callCount).equals(1)
-		o(wmMock.dl.manageDownloadsForSession.callCount).equals(1)
-		o(wmMock.dl.manageDownloadsForSession.args[0]).equals(bwInstance.webContents.session)
+		o(bwInstance.webContents.session.setSpellCheckerDictionaryDownloadURL.callCount).equals(1)
+		o(bwInstance.webContents.session.setSpellCheckerDictionaryDownloadURL.args[0]).equals(dictUrl + "/dictionaries/")
 		o(Object.keys((bwInstance.webContents as any).callbacks)).deepEquals([
 			"will-attach-webview",
 			"will-navigate",
@@ -399,7 +406,7 @@ o.spec("ApplicationWindow Test", function () {
 			themeFacade,
 			offlineDbFacade,
 			remoteBridge,
-			"dictUrl",
+			dictUrl,
 			true,
 		)
 		const bwInstance2 = electronMock.BrowserWindow.mockedInstances[0]
@@ -423,7 +430,7 @@ o.spec("ApplicationWindow Test", function () {
 			themeFacade,
 			offlineDbFacade,
 			remoteBridge,
-			"dictUrl",
+			dictUrl,
 		)
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 		await bwInstance.__loadedUrl.promise
@@ -453,7 +460,7 @@ o.spec("ApplicationWindow Test", function () {
 			themeFacade,
 			offlineDbFacade,
 			remoteBridge,
-			"dictUrl",
+			dictUrl,
 		)
 		downcast(w._browserWindow.webContents).callbacks["did-finish-load"]()
 		o(Object.keys(electronLocalshortcutMock.callbacks)).deepEquals([
@@ -480,7 +487,7 @@ o.spec("ApplicationWindow Test", function () {
 			themeFacade,
 			offlineDbFacade,
 			remoteBridge,
-			"dictUrl",
+			dictUrl,
 		)
 		downcast(w._browserWindow.webContents).callbacks["did-finish-load"]()
 		o(Object.keys(electronLocalshortcutMock.callbacks)).deepEquals([
@@ -508,7 +515,7 @@ o.spec("ApplicationWindow Test", function () {
 			themeFacade,
 			offlineDbFacade,
 			remoteBridge,
-			"dictUrl",
+			dictUrl,
 		)
 		downcast(w._browserWindow.webContents).callbacks["did-finish-load"]()
 		o(Object.keys(electronLocalshortcutMock.callbacks)).deepEquals([
@@ -534,7 +541,7 @@ o.spec("ApplicationWindow Test", function () {
 				themeFacade,
 				offlineDbFacade,
 				remoteBridge,
-				"dictUrl",
+				dictUrl,
 			)
 			const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 			;(bwInstance.webContents as any).callbacks["did-finish-load"]()
@@ -631,7 +638,7 @@ o.spec("ApplicationWindow Test", function () {
 			themeFacade,
 			offlineDbFacade,
 			remoteBridge,
-			"dictUrl",
+			dictUrl,
 		)
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 		bwInstance.webContents.callbacks["did-finish-load"]()
@@ -665,7 +672,7 @@ o.spec("ApplicationWindow Test", function () {
 			themeFacade,
 			offlineDbFacade,
 			remoteBridge,
-			"dictUrl",
+			dictUrl,
 		)
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 		bwInstance.webContents.callbacks["will-navigate"](e, "http://test.com")
@@ -684,7 +691,7 @@ o.spec("ApplicationWindow Test", function () {
 			themeFacade,
 			offlineDbFacade,
 			remoteBridge,
-			"dictUrl",
+			dictUrl,
 		)
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 		const e = {
@@ -720,7 +727,7 @@ o.spec("ApplicationWindow Test", function () {
 				themeFacade,
 				offlineDbFacade,
 				remoteBridge,
-				"dictUrl",
+				dictUrl,
 			)
 			bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 		})
@@ -794,7 +801,7 @@ o.spec("ApplicationWindow Test", function () {
 			themeFacade,
 			offlineDbFacade,
 			remoteBridge,
-			"dictUrl",
+			dictUrl,
 		)
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 		let args: any = {
@@ -838,7 +845,7 @@ o.spec("ApplicationWindow Test", function () {
 			themeFacade,
 			offlineDbFacade,
 			remoteBridge,
-			"dictUrl",
+			dictUrl,
 		)
 		const handlerMock = n.spyify(() => {
 		})
@@ -873,7 +880,7 @@ o.spec("ApplicationWindow Test", function () {
 			themeFacade,
 			offlineDbFacade,
 			remoteBridge,
-			"dictUrl",
+			dictUrl,
 		)
 		w.openMailBox(
 			{
@@ -902,7 +909,7 @@ o.spec("ApplicationWindow Test", function () {
 			themeFacade,
 			offlineDbFacade,
 			remoteBridge,
-			"dictUrl",
+			dictUrl,
 		)
 		o(w.getBounds()).deepEquals({
 			rect: {
@@ -998,7 +1005,7 @@ o.spec("ApplicationWindow Test", function () {
 			themeFacade,
 			offlineDbFacade,
 			remoteBridge,
-			"dictUrl",
+			dictUrl,
 		)
 		const wcMock = electronMock.BrowserWindow.mockedInstances[0].webContents
 		w.stopFindInPage()
@@ -1071,7 +1078,7 @@ o.spec("ApplicationWindow Test", function () {
 			themeFacade,
 			offlineDbFacade,
 			remoteBridge,
-			"dictUrl",
+			dictUrl,
 		)
 		const wcMock = electronMock.BrowserWindow.mockedInstances[0].webContents
 		o(w.getPath()).equals("/meh/more")
@@ -1097,7 +1104,7 @@ o.spec("ApplicationWindow Test", function () {
 			themeFacade,
 			offlineDbFacade,
 			remoteBridge,
-			"dictUrl",
+			dictUrl,
 		)
 		const bwMock = electronMock.BrowserWindow.mockedInstances[0]
 		o(bwMock.devToolsOpened).equals(false)
@@ -1139,7 +1146,7 @@ o.spec("ApplicationWindow Test", function () {
 				themeFacade,
 				offlineDbFacade,
 				remoteBridge,
-				"dictUrl",
+				dictUrl,
 			)
 			const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 
@@ -1189,7 +1196,7 @@ o.spec("ApplicationWindow Test", function () {
 			themeFacade,
 			offlineDbFacade,
 			remoteBridge,
-			"dictUrl",
+			dictUrl,
 		)
 		const userId = "123"
 		w.setUserId(userId)
@@ -1211,7 +1218,7 @@ o.spec("ApplicationWindow Test", function () {
 			themeFacade,
 			offlineDbFacade,
 			remoteBridge,
-			"dictUrl",
+			dictUrl,
 		)
 		const userId = "123"
 		w.setUserId(userId)
