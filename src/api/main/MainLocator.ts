@@ -38,8 +38,7 @@ import {FileController} from "../../file/FileController"
 import type {NativeFileApp} from "../../native/common/FileApp"
 import type {NativePushServiceApp} from "../../native/main/NativePushServiceApp"
 import type {NativeInterfaceMain} from "../../native/main/NativeInterfaceMain"
-import type {NativeInterfaces} from "./NativeInterfaceFactory"
-import {createNativeInterfaces} from "./NativeInterfaceFactory"
+import type {NativeInterfaces} from "../../native/main/NativeInterfaceFactory.js"
 import {ProgrammingError} from "../common/error/ProgrammingError"
 import {SecondFactorHandler} from "../../misc/2fa/SecondFactorHandler"
 import {IWebauthnClient, WebauthnClient} from "../../misc/2fa/webauthn/WebauthnClient"
@@ -62,13 +61,11 @@ import {ExposedCacheStorage} from "../worker/rest/EntityRestCache.js"
 import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes"
 import {LoginListener} from "./LoginListener"
 import {SearchTextInAppFacade} from "../../native/common/generatedipc/SearchTextInAppFacade.js"
-import {SearchTextInAppFacadeSendDispatcher} from "../../native/common/generatedipc/SearchTextInAppFacadeSendDispatcher.js"
 import {SettingsFacade} from "../../native/common/generatedipc/SettingsFacade.js"
-import {SettingsFacadeSendDispatcher} from "../../native/common/generatedipc/SettingsFacadeSendDispatcher.js"
 import {MobileSystemFacade} from "../../native/common/generatedipc/MobileSystemFacade.js"
 import {CommonSystemFacade} from "../../native/common/generatedipc/CommonSystemFacade.js"
 import {DesktopSystemFacade} from "../../native/common/generatedipc/DesktopSystemFacade.js"
-import {DesktopSystemFacadeSendDispatcher} from "../../native/common/generatedipc/DesktopSystemFacadeSendDispatcher.js"
+import {ThemeFacade} from "../../native/common/generatedipc/ThemeFacade.js"
 
 assertMainOrNode()
 
@@ -89,6 +86,7 @@ export interface IMainLocator {
 	readonly fileApp: NativeFileApp
 	readonly pushService: NativePushServiceApp
 	readonly commonSystemFacade: CommonSystemFacade
+	readonly themeFacade: ThemeFacade
 	readonly systemFacade: MobileSystemFacade
 	readonly secondFactorHandler: SecondFactorHandler
 	readonly webauthnClient: IWebauthnClient
@@ -191,6 +189,10 @@ class MainLocator implements IMainLocator {
 
 	get commonSystemFacade(): CommonSystemFacade {
 		return this._getNativeInterface("commonSystemFacade")
+	}
+
+	get themeFacade(): ThemeFacade {
+		return this._getNativeInterface("themeFacade")
 	}
 
 	get systemFacade(): MobileSystemFacade {
@@ -324,7 +326,8 @@ class MainLocator implements IMainLocator {
 			const {WebDesktopFacade} = await import("../../native/main/WebDesktopFacade")
 			const {WebMobileFacade} = await import("../../native/main/WebMobileFacade.js")
 			const {WebCommonNativeFacade} = await import("../../native/main/WebCommonNativeFacade.js")
-			this._nativeInterfaces = await createNativeInterfaces(
+			const {createNativeInterfaces, createDesktopInterfaces} = await import("../../native/main/NativeInterfaceFactory.js")
+			this._nativeInterfaces = createNativeInterfaces(
 				webInterface,
 				new WebMobileFacade(),
 				new WebDesktopFacade(),
@@ -336,9 +339,10 @@ class MainLocator implements IMainLocator {
 
 			if (isDesktop()) {
 				this.interWindowEventBus.init(this.getExposedNativeInterface().interWindowEventSender)
-				this.searchTextFacade = new SearchTextInAppFacadeSendDispatcher(this.native)
-				this.desktopSettingsFacade = new SettingsFacadeSendDispatcher(this.native)
-				this.desktopSystemFacade = new DesktopSystemFacadeSendDispatcher(this.native)
+				const desktopInterfaces = createDesktopInterfaces(this.native)
+				this.searchTextFacade = desktopInterfaces.searchTextFacade
+				this.desktopSettingsFacade = desktopInterfaces.desktopSettingsFacade
+				this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
 			}
 		}
 

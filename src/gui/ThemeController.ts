@@ -3,7 +3,7 @@ import type {HtmlSanitizer} from "../misc/HtmlSanitizer"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {assertMainOrNodeBoot, isApp, isDesktop} from "../api/common/Env"
-import {downcast, findAndRemove, LazyLoaded, mapAndFilterNull, neverNull, typedValues} from "@tutao/tutanota-utils"
+import {downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues} from "@tutao/tutanota-utils"
 import m from "mithril"
 import type {BaseThemeId, Theme, ThemeId} from "./theme"
 import {logo_text_bright_grey, logo_text_dark_grey, themes} from "./builtinThemes"
@@ -11,7 +11,6 @@ import type {ThemeCustomizations} from "../misc/WhitelabelCustomizations"
 import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
 import {getLogoSvg} from "./base/Logo"
 import {ThemeFacade} from "../native/common/generatedipc/ThemeFacade"
-import {ThemeFacadeSendDispatcher} from "../native/common/generatedipc/ThemeFacadeSendDispatcher"
 
 assertMainOrNodeBoot()
 
@@ -210,17 +209,17 @@ export class ThemeController {
 }
 
 export class NativeThemeFacade implements ThemeFacade {
-	private readonly themeFacade: LazyLoaded<ThemeFacadeSendDispatcher>
+	private readonly themeFacade: LazyLoaded<ThemeFacade>
 
 	constructor() {
-		this.themeFacade = new LazyLoaded<ThemeFacadeSendDispatcher>(async () => {
+		this.themeFacade = new LazyLoaded<ThemeFacade>(async () => {
 			const {locator} = await import("../api/main/MainLocator")
 			// Theme initialization happens concurrently with locator initialization,
 			// so we have to wait or native may not yet be defined when we first get here.
 			// It would be nice to move all the global theme handling onto the locator as
 			// well so we can have more control over this
 			await locator.initialized
-			return new ThemeFacadeSendDispatcher(locator.native)
+			return locator.themeFacade
 		})
 	}
 
@@ -236,7 +235,7 @@ export class NativeThemeFacade implements ThemeFacade {
 
 	async getThemes(): Promise<Array<Theme>> {
 		const dispatcher = await this.themeFacade.getAsync()
-		return dispatcher.getThemes()
+		return await dispatcher.getThemes() as Theme[]
 	}
 
 	async setThemes(themes: ReadonlyArray<Theme>): Promise<void> {

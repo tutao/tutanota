@@ -20,7 +20,6 @@ import {CurrentView} from "./gui/Header.js"
 import {NativeWebauthnView} from "./login/NativeWebauthnView"
 import {WebauthnNativeBridge} from "./native/main/WebauthnNativeBridge"
 import {PostLoginActions} from "./login/PostLoginActions"
-import {NativeCredentialsFacadeSendDispatcher} from "./native/common/generatedipc/NativeCredentialsFacadeSendDispatcher.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -223,6 +222,7 @@ import("./translations/en")
 
 			if (!hasAlreadyMigrated && hasCredentials) {
 				const migrationModule = await import("./misc/credentials/CredentialsMigration")
+				const {NativeCredentialsFacadeSendDispatcher} = await import("./native/common/generatedipc/NativeCredentialsFacadeSendDispatcher.js")
 				await locator.native.init()
 				const nativeCredentials = new NativeCredentialsFacadeSendDispatcher(locator.native)
 				const migration = new migrationModule.CredentialsMigration(deviceConfig, locator.deviceEncryptionFacade, nativeCredentials)
