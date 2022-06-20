@@ -1,6 +1,7 @@
 {
   "name": "IntegrationInfo",
   "type": "struct",
+  "doc": "Status of desktop integration.",
   "fields": {
 	"isMailtoHandler": "boolean",
 	"isAutoLaunchEnabled": "boolean",

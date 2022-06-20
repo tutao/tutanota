@@ -1,6 +1,7 @@
 {
   "name": "UploadTaskResponse",
   "type": "struct",
+  "doc": "Result of the file upload operation done via native. 'suspensionTime' is from either 'Retry-After' or 'Suspension-Time' headers.",
   "fields": {
 	"statusCode": "number",
 	"errorId": "string?",

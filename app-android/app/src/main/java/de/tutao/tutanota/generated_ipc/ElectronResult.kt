@@ -7,6 +7,9 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
 
+/**
+ * Search-in-page result by Electron.
+ */
 @Serializable
 data class ElectronResult(
 	val matches: Int,

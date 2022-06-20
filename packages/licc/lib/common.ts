@@ -3,7 +3,7 @@ export interface LangGenerator {
 	 * generate a structured type definition
 	 * @param definition
 	 */
-	handleStructDefinition(definition: StructDefitinion): string
+	handleStructDefinition(definition: StructDefinition): string
 
 	/**
 	 * generate a collection of methods with arguments and return types
@@ -35,10 +35,11 @@ export interface LangGenerator {
 export type Platform = "ios" | "web" | "android" | "desktop"
 export type Language = "kotlin" | "swift" | "typescript"
 
-export interface StructDefitinion {
+export interface StructDefinition {
 	type: "struct"
 	name: string,
-	fields: Record<string, string>
+	fields: Record<string, string>,
+	doc?: string
 }
 
 export interface FacadeDefinition {

@@ -1,5 +1,5 @@
 import {TypescriptGenerator} from "./TypescriptGenerator.js"
-import {capitalize, FacadeDefinition, LangGenerator, Language, Platform, StructDefitinion, TypeRefDefinition} from "./common.js"
+import {capitalize, FacadeDefinition, LangGenerator, Language, Platform, StructDefinition, TypeRefDefinition} from "./common.js"
 import {SwiftGenerator} from "./SwiftGenerator.js"
 import {KotlinGenerator} from "./KotlinGenerator.js"
 import * as path from "path"
@@ -46,7 +46,7 @@ export function generate(platform: Platform, sources: Map<string, string>, outDi
 	const facadesToImplement: Array<string> = []
 	for (const [inputPath, source] of Array.from(sources.entries())) {
 		console.log("handling ipc schema file", inputPath)
-		const definition = JSON.parse(source) as FacadeDefinition | StructDefitinion | TypeRefDefinition
+		const definition = JSON.parse(source) as FacadeDefinition | StructDefinition | TypeRefDefinition
 		if (!("name" in definition)) {
 			throw new Error(`malformed definition: ${inputPath} doesn't have name field`)
 		}

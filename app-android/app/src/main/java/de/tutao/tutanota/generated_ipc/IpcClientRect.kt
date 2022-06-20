@@ -7,6 +7,9 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
 
+/**
+ * Position and size of the active element. Used e.g. as an anchor for file picker popup.
+ */
 @Serializable
 data class IpcClientRect(
 	val x: Int,

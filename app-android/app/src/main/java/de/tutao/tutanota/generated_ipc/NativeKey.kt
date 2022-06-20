@@ -7,6 +7,9 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
 
+/**
+ * Key definition for shortcuts.
+ */
 @Serializable
 data class NativeKey(
 	val code: Int,

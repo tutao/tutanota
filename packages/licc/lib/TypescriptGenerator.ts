@@ -1,5 +1,5 @@
 import {Accumulator} from "./Accumulator.js"
-import {FacadeDefinition, getArgs, LangGenerator, minusculize, RenderedType, StructDefitinion, TypeRefDefinition} from "./common.js"
+import {FacadeDefinition, getArgs, LangGenerator, minusculize, RenderedType, StructDefinition, TypeRefDefinition} from "./common.js"
 import {ParsedType, parseType} from "./Parser.js"
 import path from "path"
 
@@ -44,8 +44,11 @@ export class TypescriptGenerator implements LangGenerator {
 		return acc.finish()
 	}
 
-	handleStructDefinition(definition: StructDefitinion): string {
+	handleStructDefinition(definition: StructDefinition): string {
 		let acc = new Accumulator()
+		if (definition.doc) {
+			this.generateDocComment(acc, definition.doc)
+		}
 		acc.line(`export interface ${definition.name} {`)
 		let bodyGenerator = acc.indent()
 		for (const [fieldName, fieldType] of Object.entries(definition.fields)) {
@@ -59,6 +62,12 @@ export class TypescriptGenerator implements LangGenerator {
 
 		return acc.finish()
 
+	}
+
+	private generateDocComment(acc: Accumulator, comment: string) {
+		acc.line("/**")
+		acc.line(` * ${comment}`)
+		acc.line(" */")
 	}
 
 	private static generateNativeInterface(accumulator: Accumulator) {
@@ -156,7 +165,7 @@ export class TypescriptGenerator implements LangGenerator {
 				path.resolve(definitionPath, tsPath)
 			)
 			: tsPath
-			acc.line(`export {${definition.name}} from "${actualPath}"`)
+		acc.line(`export {${definition.name}} from "${actualPath}"`)
 
 		return acc.finish()
 	}
