@@ -7,13 +7,22 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
 interface FileFacade {
+	/**
+	 * Opens the file with the built-in viewer or external program.
+	 */
 	 suspend fun open(
 		location: String,
 		mimeType: String,
 	): Unit
+	/**
+	 * Opens OS file picker. Returns the list of URIs for the selected files.
+	 */
 	 suspend fun openFileChooser(
 		boundingRect: IpcClientRect,
 	): List<String>
+	/**
+	 * Opens OS file picker for selecting a folder. Only on desktop.
+	 */
 	 suspend fun openFolderChooser(
 	): String?
 	 suspend fun deleteFile(
@@ -42,6 +51,9 @@ interface FileFacade {
 		filename: String,
 		headers: Map<String, String>,
 	): DownloadTaskResponse
+	/**
+	 * Calculates specified file hash (with SHA-256). Returns first 6 bytes of it as Base64.
+	 */
 	 suspend fun hashFile(
 		fileUri: String,
 	): String

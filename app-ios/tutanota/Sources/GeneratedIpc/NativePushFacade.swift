@@ -3,10 +3,11 @@
 
 import Foundation
 
+/**
+ * Push notifications and alarms operations
+ */
 public protocol NativePushFacade {
 	func getPushIdentifier(
-		_ userId: String,
-		_ mailAddress: String
 	) async throws -> String?
 	func storePushIdentifierLocally(
 		_ identifier: String,
@@ -15,6 +16,9 @@ public protocol NativePushFacade {
 		_ pushIdentifierId: String,
 		_ pushIdentifierSessionKey: DataWrapper
 	) async throws -> Void
+	/**
+	 * Called at some point after login to initialize push notifications.
+	 */
 	func initPushNotifications(
 	) async throws -> Void
 	func closePushNotifications(

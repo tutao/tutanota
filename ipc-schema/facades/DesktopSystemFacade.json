@@ -9,10 +9,12 @@
 	  "ret": "void"
 	},
 	"focusApplicationWindow": {
+	  "doc": "Focuses sending window on the OS level",
 	  "arg": [],
 	  "ret": "void"
 	},
 	"sendSocketMessage": {
+	  "doc": "Sends message to the admin socket.",
 	  "arg": [{"message": "string"}],
 	  "ret": "void"
 	}

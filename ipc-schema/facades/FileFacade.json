@@ -5,6 +5,7 @@
   "senders": ["web"],
   "methods": {
 	"open": {
+	  "doc": "Opens the file with the built-in viewer or external program.",
 	  "arg": [
 		{"location": "string"},
 		{"mimeType": "string"}
@@ -12,10 +13,12 @@
 	  "ret": "void"
 	},
 	"openFileChooser": {
+	  "doc": "Opens OS file picker. Returns the list of URIs for the selected files.",
 	  "arg": [{"boundingRect": "IpcClientRect"}],
 	  "ret": "List<string>"
 	},
 	"openFolderChooser": {
+	  "doc": "Opens OS file picker for selecting a folder. Only on desktop.",
 	  "arg": [],
 	  "ret": "string?"
 	},
@@ -57,6 +60,7 @@
 	  "ret": "DownloadTaskResponse"
 	},
 	"hashFile": {
+	  "doc": "Calculates specified file hash (with SHA-256). Returns first 6 bytes of it as Base64.",
 	  "arg": [{"fileUri": "string"}],
 	  "ret": "string"
 	},

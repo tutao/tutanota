@@ -1,6 +1,9 @@
 /* generated file, don't edit. */
 
 import {Result} from "./Result.js"
+/**
+ * Operations for in-app search.
+ */
 export interface SearchTextInAppFacade {
 
 	findInPage(

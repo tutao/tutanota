@@ -6,9 +6,7 @@ export class SwiftGenerator implements LangGenerator {
 
 	handleStructDefinition(definition: StructDefinition): string {
 		const acc = new Accumulator()
-		if (definition.doc) {
-			this.generateDocComment(acc, definition.doc)
-		}
+		this.generateDocComment(acc, definition.doc)
 		acc.line(`public struct ${definition.name} : Codable {`)
 		const fieldGenerator = acc.indent()
 		for (const [name, fieldDefinition] of Object.entries(definition.fields)) {
@@ -19,7 +17,8 @@ export class SwiftGenerator implements LangGenerator {
 		return acc.finish()
 	}
 
-	private generateDocComment(acc: Accumulator, comment: string) {
+	private generateDocComment(acc: Accumulator, comment: string | null | undefined) {
+		if (!comment) return
 		acc.line("/**")
 		acc.line(` * ${comment}`)
 		acc.line(" */")
@@ -29,10 +28,12 @@ export class SwiftGenerator implements LangGenerator {
 		const acc = new Accumulator()
 		acc.line("import Foundation")
 		acc.line()
+		this.generateDocComment(acc, definition.doc)
 		acc.line(`public protocol ${definition.name} {`)
-		const methodGenerator = acc.indent()
+		const methodAcc = acc.indent()
 		for (const [name, methodDefinition] of Object.entries(definition.methods)) {
-			SwiftGenerator.generateMethodSignature(methodGenerator, name, methodDefinition)
+			this.generateDocComment(methodAcc, methodDefinition.doc)
+			SwiftGenerator.generateMethodSignature(methodAcc, name, methodDefinition)
 		}
 		acc.line("}")
 		return acc.finish()

@@ -13,11 +13,17 @@ public protocol NativeCryptoFacade {
 		_ privateKey: PrivateKey,
 		_ data: DataWrapper
 	) async throws -> DataWrapper
+	/**
+	 * Encrypt file specified by the `fileUri`. Returns URI of the encrypted file.
+	 */
 	func aesEncryptFile(
 		_ key: DataWrapper,
 		_ fileUri: String,
 		_ iv: DataWrapper
 	) async throws -> EncryptedFileInfo
+	/**
+	 * Decrypt file specified by the `fileUri`. Returns URI of the decrypted file.
+	 */
 	func aesDecryptFile(
 		_ key: DataWrapper,
 		_ fileUri: String

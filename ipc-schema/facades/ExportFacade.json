@@ -5,6 +5,7 @@
   "receivers": ["desktop"],
   "methods": {
 	"mailToMsg": {
+	  "doc": "Convert mail to .msg format.",
 	  "arg": [
 		{"bundle": "MailBundle"},
 		{"fileName": "string"}
@@ -18,6 +19,7 @@
 	  "ret": "void"
 	},
 	"startNativeDrag": {
+	  "doc": "Sets specified fileNames as the current 'drag' items.",
 	  "arg": [
 		{"fileNames": "List<string>"}
 	  ],

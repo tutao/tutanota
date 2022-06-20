@@ -14,11 +14,7 @@ class NativePushFacadeReceiveDispatcher(
 	suspend fun dispatch(method: String, arg: List<String>): String {
 		when (method) {
 			"getPushIdentifier" -> {
-				val userId: String = json.decodeFromString(arg[0])
-				val mailAddress: String = json.decodeFromString(arg[1])
 				val result: String? = this.facade.getPushIdentifier(
-					userId,
-					mailAddress,
 				)
 				return json.encodeToString(result)
 			}

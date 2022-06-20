@@ -16,7 +16,7 @@ class AndroidCommonSystemFacade(
 	val initialized: Boolean
 		get() = webAppInitialized.isCompleted
 
-	override suspend fun init() {
+	override suspend fun initializeRemoteBridge() {
 		this.webAppInitialized.complete(Unit)
 	}
 

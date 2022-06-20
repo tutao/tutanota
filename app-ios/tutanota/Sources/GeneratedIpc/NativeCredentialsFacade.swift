@@ -3,6 +3,9 @@
 
 import Foundation
 
+/**
+ * Operations for credential encryption operations using OS keychain.
+ */
 public protocol NativeCredentialsFacade {
 	func encryptUsingKeychain(
 		_ data: DataWrapper,

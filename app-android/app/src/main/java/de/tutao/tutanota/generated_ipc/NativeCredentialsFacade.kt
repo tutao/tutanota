@@ -6,6 +6,9 @@ package de.tutao.tutanota.ipc
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
+/**
+ * Operations for credential encryption operations using OS keychain.
+ */
 interface NativeCredentialsFacade {
 	 suspend fun encryptUsingKeychain(
 		data: DataWrapper,

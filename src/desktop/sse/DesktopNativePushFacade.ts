@@ -17,7 +17,7 @@ export class DesktopNativePushFacade implements NativePushFacade {
 		// the desktop client closes notifications on window focus
 	}
 
-	async getPushIdentifier(userId: string, mailAddress: string): Promise<string | null> {
+	async getPushIdentifier(): Promise<string | null> {
 		const sseInfo = await this.sse.getSseInfo()
 		return sseInfo?.identifier ?? null
 	}

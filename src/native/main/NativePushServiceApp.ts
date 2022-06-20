@@ -80,10 +80,7 @@ export class NativePushServiceApp {
 	}
 
 	private loadPushIdentifierFromNative(): Promise<string | null> {
-		return this.nativePushFacade.getPushIdentifier(
-			this.logins.getUserController().user._id,
-			assertNotNull(this.logins.getUserController().userGroupInfo.mailAddress, "No email address on userGroupInfo!"),
-		)
+		return this.nativePushFacade.getPushIdentifier()
 	}
 
 	private async storePushIdentifierLocally(pushIdentifier: PushIdentifier): Promise<void> {

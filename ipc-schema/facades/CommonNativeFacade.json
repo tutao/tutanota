@@ -3,8 +3,10 @@
   "type": "facade",
   "senders": ["ios", "desktop", "android"],
   "receivers": ["web"],
+  "doc": "Common operations used by all native platforms.",
   "methods": {
 	"createMailEditor": {
+	  "doc": "Opens mail editor to write a new email. If `mailToUrlString` is specified it takes priority.",
 	  "arg": [
 		{"filesUris": "List<string>"},
 		{"text": "string"},
@@ -33,6 +35,7 @@
 	  "ret": "void"
 	},
 	"invalidateAlarms": {
+	  "doc": "All local alarms have been deleted, reschedule alarms for the current user.",
 	  "arg": [],
 	  "ret": "void"
 	}

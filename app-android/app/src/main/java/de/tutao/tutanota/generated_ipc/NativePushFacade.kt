@@ -6,10 +6,11 @@ package de.tutao.tutanota.ipc
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
+/**
+ * Push notifications and alarms operations
+ */
 interface NativePushFacade {
 	 suspend fun getPushIdentifier(
-		userId: String,
-		mailAddress: String,
 	): String?
 	 suspend fun storePushIdentifierLocally(
 		identifier: String,
@@ -18,6 +19,9 @@ interface NativePushFacade {
 		pushIdentifierId: String,
 		pushIdentifierSessionKey: DataWrapper,
 	): Unit
+	/**
+	 * Called at some point after login to initialize push notifications.
+	 */
 	 suspend fun initPushNotifications(
 	): Unit
 	 suspend fun closePushNotifications(

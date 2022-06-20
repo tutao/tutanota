@@ -3,12 +3,10 @@
   "type": "facade",
   "senders": ["web"],
   "receivers": ["android", "desktop", "ios"],
+  "doc": "Push notifications and alarms operations",
   "methods": {
 	"getPushIdentifier": {
-	  "arg": [
-		{"userId": "string"},
-		{"mailAddress": "string"}
-	  ],
+	  "arg": [],
 	  "ret": "string?"
 	},
 	"storePushIdentifierLocally": {
@@ -22,6 +20,7 @@
 	  "ret": "void"
 	},
 	"initPushNotifications": {
+	  "doc": "Called at some point after login to initialize push notifications.",
 	  "arg": [],
 	  "ret": "void"
 	},

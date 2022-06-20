@@ -3,16 +3,20 @@
   "type": "facade",
   "receivers": ["web"],
   "senders": ["android", "ios"],
+  "doc": "Common operations used by mobile platforms.",
   "methods": {
 	"handleBackPress": {
+	  "doc": "Android: Called when 'hardware' back key is pressed. Returns `true` if the web app consumed the event.",
 	  "arg": [],
 	  "ret": "boolean"
 	},
 	"visibilityChange": {
+	  "doc": "Android: called when the app becomes completely visible/hidden (not just covered by dialog).",
 	  "arg": [{"visibility": "boolean"}],
 	  "ret": "void"
 	},
 	"keyboardSizeChanged": {
+	  "doc": "iOS: called when keyboard opens/closes/resizes. Passes the height of the keyboard.",
 	  "arg": [{"newSize": "number"}],
 	  "ret": "void"
 	}

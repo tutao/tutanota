@@ -1,11 +1,12 @@
 /* generated file, don't edit. */
 
 import {EncryptedAlarmNotification} from "./EncryptedAlarmNotification.js"
+/**
+ * Push notifications and alarms operations
+ */
 export interface NativePushFacade {
 
 	getPushIdentifier(
-		userId: string,
-		mailAddress: string,
 	): Promise<string | null>
 	
 	storePushIdentifierLocally(
@@ -16,6 +17,9 @@ export interface NativePushFacade {
 		pushIdentifierSessionKey: Uint8Array,
 	): Promise<void>
 	
+	/**
+	 * Called at some point after login to initialize push notifications.
+	 */
 	initPushNotifications(
 	): Promise<void>
 	

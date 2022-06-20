@@ -38,8 +38,7 @@ export class WebDesktopFacade implements DesktopFacade {
 	}
 
 	/**
-	 * /**
-	 * this updates the link-reveal on hover when the main thread detects that
+	 * Updates the link-reveal on hover when the main thread detects that
 	 * the hovered url changed. Will _not_ update if hovering a in link app (starts with 2nd argument)
 	 */
 	async updateTargetUrl(url: string, appPath: string): Promise<void> {
