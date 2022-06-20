@@ -16,6 +16,8 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
+      - name: install npm
+        run: npm i -g npm@8.5.2
       - name: npm install, npm test
         run: |
           npm ci
@@ -34,6 +36,8 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
+      - name: install npm
+        run: npm i -g npm@8.5.2
       - name: npm install, node webapp
         run: |
           npm ci
