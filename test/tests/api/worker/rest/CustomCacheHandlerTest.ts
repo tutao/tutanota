@@ -32,8 +32,6 @@ o.spec("Custom calendar events handler", function () {
 		o("load range returns n elements following but excluding start id", async function () {
 			const res = await cacheHandler.loadRange(offlineStorageMock, listId, ids[0], 3, false)
 			o(res.map(toElementId)).deepEquals(allList.map(toElementId).slice(1, 4))
-
-
 		})
 
 		o("load range reverse returns n elements before but excluding start id in reverse order", async function () {
@@ -53,7 +51,6 @@ o.spec("Custom calendar events handler", function () {
 			o(res.map(toElementId)).deepEquals(allList.map(toElementId).slice(1, 4))("count elements are returned")
 			verify(offlineStorageMock.put(matchers.anything()), {times: allList.length})
 			verify(offlineStorageMock.setNewRangeForList(CalendarEventTypeRef, listId, CUSTOM_MIN_ID, CUSTOM_MAX_ID))
-
 		})
 
 		o("result of server request is inserted into cache and the range is set. Loads more than 100, but only count elements are returned.", async function () {
