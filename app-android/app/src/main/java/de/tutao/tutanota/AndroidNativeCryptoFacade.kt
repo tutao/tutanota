@@ -9,8 +9,6 @@ import org.apache.commons.io.input.CountingInputStream
 import java.io.*
 import java.math.BigInteger
 import java.security.*
-import java.security.PrivateKey
-import java.security.PublicKey
 import java.security.interfaces.RSAPrivateCrtKey
 import java.security.interfaces.RSAPublicKey
 import java.security.spec.InvalidKeySpecException
@@ -37,7 +35,7 @@ constructor(
 		const val TEMP_DIR_ENCRYPTED = "temp/encrypted"
 		const val TEMP_DIR_DECRYPTED = "temp/decrypted"
 		const val AES_BLOCK_SIZE_BYTES = 16
-		private val FIXED_IV = ByteArray(AES_BLOCK_SIZE_BYTES).apply { fill(0x80.toByte()) }
+		private val FIXED_IV = ByteArray(AES_BLOCK_SIZE_BYTES).apply { fill(0x88.toByte()) }
 		const val RSA_KEY_LENGTH_IN_BITS = 2048
 		const val RSA_ALGORITHM = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding"
 		const val RSA_PUBLIC_EXPONENT = 65537
