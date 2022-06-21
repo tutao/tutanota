@@ -98,6 +98,24 @@ o.spec("user data export", function () {
 		)
 	})
 
+	o.only("should escape semicolons in names", function() {
+		const data = [
+			{
+				name: "mr; semicolon",
+				mailAddress: "mail1@mail.com",
+				created: new Date("2022-06-15 12:00:00 GMT+0"),
+				deleted: new Date("2022-06-17 12:30:00 GMT +0"),
+				usedStorage: 100,
+				aliases: ["alias1@alias.com", "alias2@alias.com"]
+			}
+		]
+
+		o(renderExportDataCsv(data)).equals(
+			USER_EXPORT_CSV_HEADER + "\n"
+			+ "mr\\; semicolon; mail1@mail.com; 20220615T120000Z; 20220617T123000Z; 100MB; alias1@alias.com alias2@alias.com"
+		)
+	})
+
 	function addUser(name, mailAddress, created, deleted, usedStorage, aliases, userId, groupId) {
 		allUserGroupInfos.push({
 			name,
