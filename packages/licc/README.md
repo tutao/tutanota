@@ -65,6 +65,7 @@ struct fields are given as an object with `"fieldName": "fieldType"` properties.
 {
 	"name": "Foo",
 	"type": "struct",
+	"doc": "optional doc comment that explains the type's purpose",
 	"fields": {
 		"fieldName": "fieldType",
 		...
@@ -74,8 +75,45 @@ struct fields are given as an object with `"fieldName": "fieldType"` properties.
 
 ### facades
 
-method arg must be given as a list of single-property objects `[{"argname": "argtype"}, {"argname2": "argtype2"}]` to
-preserve argument order.
+```json
+{
+	"name": "BarFacade",
+	"type": "facade",
+	"senders": ["web"],
+	"receivers": ["desktop", "ios"],
+	"doc": "optional doc comment explaining the scope of the facade",
+	"methods": {
+		"methodName": {
+			"doc": "optional comment explaining the contract and purpose of the method",
+			"arg": [
+				{"argName1": "argType1"},
+				{"argName2": "argType2"},
+				...
+			],
+			"ret": "returnType"
+		},
+		...
+	}
+}
+```
+
+Note: method arg must be given as a list of single-property objects as above to preserve argument order.
+
+### typerefs
+
+```json
+{
+	"name": "BazType",
+	"type": "typeref",
+	"location": {
+		"typescript": "../../src/somedir/BazType.js",
+		"kotlin": "de.tutao.tutanota.BazType"
+	}
+}
+```
+
+Note the `.js` extension on the typescript reference. Reference paths are resolved relative to the `json` file
+containing the typeref.
 
 ### supported types:
 
