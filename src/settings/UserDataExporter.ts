@@ -16,7 +16,7 @@ interface UserExportData {
 	mailAddress: string
 	created: Date
 	deleted: Date | null
-	usedStorage: number | null
+	usedStorage: number
 	aliases: Array<string>
 }
 
@@ -42,27 +42,26 @@ export async function loadUserExportData(
 	const {user} = logins.getUserController()
 	const {userGroups} = await entityClient.load(CustomerTypeRef, assertNotNull(user.customer))
 
-	const localAdminGroupIds = logins
-		.getUserController()
-		.getLocalAdminGroupMemberships()
-		.map(gm => gm.group)
+	const localAdminGroupIds = new Set(
+		logins
+			.getUserController()
+			.getLocalAdminGroupMemberships()
+			.map(gm => gm.group)
+	)
 
+	const groupsAdministeredByUser = (await entityClient.loadAll(GroupInfoTypeRef, userGroups)).filter(
+		// if we are a global admin we keep all group infos
+		// otherwise we only keep group infos of users who the logged in user administrates
+		info => logins.getUserController().isGlobalAdmin()
+			|| (info.localAdmin && localAdminGroupIds.has(info.localAdmin))
+	)
 	return promiseMap(
-		(await entityClient.loadAll(GroupInfoTypeRef, userGroups))
-			.filter(
-				// if we are a global admin we keep all group infos
-				// otherwise we only keep group infos of users who the logged in user administrates
-				info => logins.getUserController().isGlobalAdmin()
-					|| (info.localAdmin && localAdminGroupIds.includes(info.localAdmin))
-			),
+		groupsAdministeredByUser,
 		async info => {
-			let usedStorage: number | null = null
 
 			const group = await entityClient.load(GroupTypeRef, info.group)
-			if (group.user != null) {
-				const user = await entityClient.load(UserTypeRef, group.user)
-				usedStorage = await userManagementFacade.readUsedUserStorage(user)
-			}
+			const user = await entityClient.load(UserTypeRef, assertNotNull(group.user))
+			const usedStorage = await userManagementFacade.readUsedUserStorage(user)
 
 			return {
 				name: info.name,
@@ -84,7 +83,7 @@ export function renderExportDataCsv(userData: Array<UserExportData>) {
 			data => {
 				const created = formatDateTimeUTC(data.created)
 				const deleted = mapNullable(data.deleted, formatDateTimeUTC)
-				const usedStorage = data.usedStorage ? `${data.usedStorage}MB` : null
+				const usedStorage = data.usedStorage ? `${data.usedStorage}B` : null
 				return `${replaceAll(data.name, ";", "\\;")}; ${data.mailAddress}; ${created}; ${deleted}; ${usedStorage}; ${data.aliases.join(" ")}`
 			}
 		)

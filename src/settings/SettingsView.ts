@@ -453,7 +453,7 @@ export class SettingsView implements CurrentView {
 							canImportUsers && folder.path === "users"
 								? attachDropdown({
 									mainButtonAttrs: {
-										label: "importExport_action",
+										label: "more_label",
 										icon: () => Icons.More,
 									},
 									childAttrs: () => [

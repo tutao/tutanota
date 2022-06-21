@@ -1,5 +1,5 @@
 import o from "ospec"
-import {loadUserExportData, renderExportDataCsv, USER_CSV_FILENAME, USER_EXPORT_CSV_HEADER} from "../../../src/settings/UserDataExporter.js"
+import {loadUserExportData, renderExportDataCsv, USER_EXPORT_CSV_HEADER} from "../../../src/settings/UserDataExporter.js"
 import {EntityClient} from "../../../src/api/common/EntityClient.js"
 import {UserManagementFacade} from "../../../src/api/worker/facades/UserManagementFacade.js"
 import {LoginController} from "../../../src/api/main/LoginController.js"
@@ -86,19 +86,19 @@ o.spec("user data export", function () {
 				mailAddress: "mail2@mail.com",
 				created: new Date("2022-07-15 12:00:00 GMT+0"),
 				deleted: null,
-				usedStorage: null,
+				usedStorage: 200,
 				aliases: []
 			},
 		]
 
 		o(renderExportDataCsv(data)).equals(
 			USER_EXPORT_CSV_HEADER + "\n"
-			+ "my name; mail1@mail.com; 20220615T120000Z; 20220617T123000Z; 100MB; alias1@alias.com alias2@alias.com\n"
-			+ "eman ym; mail2@mail.com; 20220715T120000Z; null; null; "
+			+ "my name; mail1@mail.com; 20220615T120000Z; 20220617T123000Z; 100B; alias1@alias.com alias2@alias.com\n"
+			+ "eman ym; mail2@mail.com; 20220715T120000Z; null; 200B; "
 		)
 	})
 
-	o.only("should escape semicolons in names", function() {
+	o("should escape semicolons in names", function() {
 		const data = [
 			{
 				name: "mr; semicolon",
@@ -112,7 +112,7 @@ o.spec("user data export", function () {
 
 		o(renderExportDataCsv(data)).equals(
 			USER_EXPORT_CSV_HEADER + "\n"
-			+ "mr\\; semicolon; mail1@mail.com; 20220615T120000Z; 20220617T123000Z; 100MB; alias1@alias.com alias2@alias.com"
+			+ "mr\\; semicolon; mail1@mail.com; 20220615T120000Z; 20220617T123000Z; 100B; alias1@alias.com alias2@alias.com"
 		)
 	})
 
