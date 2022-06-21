@@ -545,7 +545,7 @@ export class EntityRestCache implements IEntityRestCache {
 				// mails are ignored because move operations are handled as a special event (and no post multiple is possible)
 				if (
 					update.operation === OperationType.CREATE &&
-					getUpdateInstanceId(update) != null &&
+					getUpdateInstanceId(update).instanceListId != null &&
 					!isSameTypeRef(new TypeRef(update.application, update.type), MailTypeRef)
 				) {
 					createUpdatesForLETs.push(update)
@@ -572,7 +572,6 @@ export class EntityRestCache implements IEntityRestCache {
 			if (idsInCacheRange.length === 0) {
 				postMultipleEventUpdates.push(updates)
 			} else {
-
 				const updatesNotInCacheRange = idsInCacheRange.length === updates.length
 					? []
 					: updates.filter(update => !idsInCacheRange.includes(update.instanceId))
@@ -656,6 +655,7 @@ export class EntityRestCache implements IEntityRestCache {
 				return update
 			} else if (await this.storage.isElementIdInCacheRange(typeRef, instanceListId, instanceId)) {
 				// No need to try to download something that's not there anymore
+				// We do not consult custom handlers here because they are only needed for list elements.
 				return this.entityRestClient.load(typeRef, [instanceListId, instanceId])
 						   .then(entity => this.storage.put(entity))
 						   .then(() => update)
