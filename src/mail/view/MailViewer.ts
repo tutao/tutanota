@@ -362,7 +362,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				},
 				onupdate: vnode => {
 					const dom = vnode.dom as HTMLElement
-						this.setDomBody(dom)
+					this.setDomBody(dom)
 
 					// Only measure and update line height once.
 					// BUT we need to do in from onupdate too if we swap mailViewer but mithril does not realize
@@ -434,10 +434,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				buttons: [
 					{
 						label: "retry_action",
-						click: async () => {
-							await this.viewModel.loadAll()
-							await this.replaceInlineImages()
-						}
+						click: () => this.load()
 					}
 				]
 			})
