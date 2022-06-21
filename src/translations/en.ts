@@ -597,7 +597,6 @@ export default {
 		"importContactsError_msg": "{amount} of {total} contacts could not be imported.",
 		"importEventExistingUid_msg": "{amount} of {total} events already exist and are not overwritten. Will continue with the remaining events...",
 		"importEventsError_msg": "{amount} of {total} events could not be imported.",
-		"importExport_action": "Import/export",
 		"importReadFileError_msg": "Sorry, the file {filename} is not readable.",
 		"importUsers_action": "Import users",
 		"importVCardError_msg": "Can not read vCard file.",
