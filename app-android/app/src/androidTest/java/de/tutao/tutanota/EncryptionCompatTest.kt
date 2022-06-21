@@ -3,6 +3,7 @@ package de.tutao.tutanota
 import android.content.Context
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
+import de.tutao.tutanota.AndroidNativeCryptoFacade.Companion.bytesToKey
 import de.tutao.tutanota.ipc.RsaPrivateKey
 import de.tutao.tutanota.ipc.RsaPublicKey
 import de.tutao.tutanota.ipc.wrap
@@ -19,6 +20,7 @@ import java.io.IOException
 import java.math.BigInteger
 import java.security.SecureRandom
 
+
 @RunWith(AndroidJUnit4::class)
 class CompatibilityTest {
 	@Test
@@ -33,6 +35,30 @@ class CompatibilityTest {
 			val decryptedBytes = ByteArrayOutputStream()
 			crypto.aesDecrypt(key, ByteArrayInputStream(encryptedBytes.toByteArray()), decryptedBytes, encryptedBytes.size().toLong())
 			Assert.assertEquals(td.plainTextBase64, decryptedBytes.toByteArray().toBase64())
+		}
+	}
+
+	@Test
+	@Throws(CryptoError::class, IOException::class)
+	fun aes128Key128Encryption() {
+		val crypto = AndroidNativeCryptoFacade(Mockito.mock(Context::class.java))
+		for (td in testData!!.getAes128Tests()) {
+			val key = bytesToKey(hexToBytes(td.hexKey))
+			val keyToEncrypt128 = hexToBytes(td.keyToEncrypt128)
+			val encryptedKey = crypto.encryptKey(key, keyToEncrypt128)
+			Assert.assertEquals(td.encryptedKey128, encryptedKey.toBase64())
+		}
+	}
+
+	@Test
+	@Throws(CryptoError::class, IOException::class)
+	fun aes128Key256Encryption() {
+		val crypto = AndroidNativeCryptoFacade(Mockito.mock(Context::class.java))
+		for (td in testData!!.getAes128Tests()) {
+			val key = bytesToKey(hexToBytes(td.hexKey))
+			val keyToEncrypt256 = hexToBytes(td.keyToEncrypt256)
+			val encryptedKey = crypto.encryptKey(key, keyToEncrypt256)
+			Assert.assertEquals(td.encryptedKey256, encryptedKey.toBase64())
 		}
 	}
 
