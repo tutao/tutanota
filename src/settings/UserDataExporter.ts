@@ -1,6 +1,6 @@
 import {LoginController} from "../api/main/LoginController.js"
 import {CustomerTypeRef, GroupInfoTypeRef, GroupTypeRef, UserTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {assertNotNull, mapNullable, promiseMap} from "@tutao/tutanota-utils"
+import {assertNotNull, mapNullable, promiseMap, replaceAll} from "@tutao/tutanota-utils"
 import {UserManagementFacade} from "../api/worker/facades/UserManagementFacade.js"
 import {EntityClient} from "../api/common/EntityClient.js"
 import {FileController} from "../file/FileController.js"
@@ -85,7 +85,7 @@ export function renderExportDataCsv(userData: Array<UserExportData>) {
 				const created = formatDateTimeUTC(data.created)
 				const deleted = mapNullable(data.deleted, formatDateTimeUTC)
 				const usedStorage = data.usedStorage ? `${data.usedStorage}MB` : null
-				return `${data.name}; ${data.mailAddress}; ${created}; ${deleted}; ${usedStorage}; ${data.aliases.join(" ")}`
+				return `${replaceAll(data.name, ";", "\\;")}; ${data.mailAddress}; ${created}; ${deleted}; ${usedStorage}; ${data.aliases.join(" ")}`
 			}
 		)
 	]
