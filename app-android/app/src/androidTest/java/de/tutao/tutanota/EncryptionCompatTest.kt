@@ -10,7 +10,7 @@ import de.tutao.tutanota.ipc.wrap
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.codehaus.jackson.map.ObjectMapper
-import org.junit.Assert
+import org.junit.Assert.assertEquals
 import org.junit.BeforeClass
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,14 +27,14 @@ class CompatibilityTest {
 	@Throws(CryptoError::class, IOException::class)
 	fun aes128() {
 		val crypto = AndroidNativeCryptoFacade(Mockito.mock(Context::class.java))
-		for (td in testData!!.getAes128Tests()) {
+		for (td in testData.aes128Tests) {
 			val key = hexToBytes(td.hexKey)
 			val encryptedBytes = ByteArrayOutputStream()
 			crypto.aesEncrypt(key, ByteArrayInputStream(td.plainTextBase64.base64ToBytes()), encryptedBytes, td.ivBase64.base64ToBytes(), false)
-			Assert.assertEquals(td.cipherTextBase64, encryptedBytes.toByteArray().toBase64())
+			assertEquals(td.cipherTextBase64, encryptedBytes.toByteArray().toBase64())
 			val decryptedBytes = ByteArrayOutputStream()
 			crypto.aesDecrypt(key, ByteArrayInputStream(encryptedBytes.toByteArray()), decryptedBytes, encryptedBytes.size().toLong())
-			Assert.assertEquals(td.plainTextBase64, decryptedBytes.toByteArray().toBase64())
+			assertEquals(td.plainTextBase64, decryptedBytes.toByteArray().toBase64())
 		}
 	}
 
@@ -42,11 +42,11 @@ class CompatibilityTest {
 	@Throws(CryptoError::class, IOException::class)
 	fun aes128Key128Encryption() {
 		val crypto = AndroidNativeCryptoFacade(Mockito.mock(Context::class.java))
-		for (td in testData!!.getAes128Tests()) {
+		for (td in testData.aes128Tests) {
 			val key = bytesToKey(hexToBytes(td.hexKey))
 			val keyToEncrypt128 = hexToBytes(td.keyToEncrypt128)
 			val encryptedKey = crypto.encryptKey(key, keyToEncrypt128)
-			Assert.assertEquals(td.encryptedKey128, encryptedKey.toBase64())
+			assertEquals(td.encryptedKey128, encryptedKey.toBase64())
 		}
 	}
 
@@ -54,11 +54,11 @@ class CompatibilityTest {
 	@Throws(CryptoError::class, IOException::class)
 	fun aes128Key256Encryption() {
 		val crypto = AndroidNativeCryptoFacade(Mockito.mock(Context::class.java))
-		for (td in testData!!.getAes128Tests()) {
+		for (td in testData.aes128Tests) {
 			val key = bytesToKey(hexToBytes(td.hexKey))
 			val keyToEncrypt256 = hexToBytes(td.keyToEncrypt256)
 			val encryptedKey = crypto.encryptKey(key, keyToEncrypt256)
-			Assert.assertEquals(td.encryptedKey256, encryptedKey.toBase64())
+			assertEquals(td.encryptedKey256, encryptedKey.toBase64())
 		}
 	}
 
@@ -66,38 +66,38 @@ class CompatibilityTest {
 	@Throws(CryptoError::class, IOException::class)
 	fun aes128Mac() {
 		val crypto = AndroidNativeCryptoFacade(Mockito.mock(Context::class.java))
-		for (td in testData!!.getAes128MacTests()) {
+		for (td in testData.aes128MacTests) {
 			val key = hexToBytes(td.hexKey)
 			val encryptedBytes = ByteArrayOutputStream()
 			crypto.aesEncrypt(key, ByteArrayInputStream(td.plainTextBase64.base64ToBytes()), encryptedBytes, td.ivBase64.base64ToBytes(), true)
-			Assert.assertEquals(td.cipherTextBase64, encryptedBytes.toByteArray().toBase64())
+			assertEquals(td.cipherTextBase64, encryptedBytes.toByteArray().toBase64())
 			val decryptedBytes = ByteArrayOutputStream()
 			crypto.aesDecrypt(key, ByteArrayInputStream(encryptedBytes.toByteArray()), decryptedBytes, encryptedBytes.size().toLong())
-			Assert.assertEquals(td.plainTextBase64, decryptedBytes.toByteArray().toBase64())
+			assertEquals(td.plainTextBase64, decryptedBytes.toByteArray().toBase64())
 		}
 	}
 
 	@Test
 	@Throws(CryptoError::class)
 	fun rsa() = runBlocking {
-		for (testData in testData!!.getRsaEncryptionTests()) {
+		for (testData in testData.rsaEncryptionTests) {
 			val crypto = AndroidNativeCryptoFacade(Mockito.mock(Context::class.java), stubRandom(testData.seed))
-			val publicKeyJSON = hexToPublicKey(testData.getPublicKey())
-			val encryptedResult: ByteArray = crypto.rsaEncrypt(publicKeyJSON, hexToBytes(testData.getInput()).wrap(), hexToBytes(testData.seed).wrap()).data
+			val publicKeyJSON = hexToPublicKey(testData.publicKey)
+			val encryptedResult: ByteArray = crypto.rsaEncrypt(publicKeyJSON, hexToBytes(testData.input).wrap(), hexToBytes(testData.seed).wrap()).data
 			//String hexResult = bytesToHex(encryptedResultBytes);
 			//assertEquals(testData.getResult(), hexResult);
 			//cannot compare encrypted test data because default android implementation ignores randomizer
-			val plainText = crypto.rsaDecrypt(hexToPrivateKey(testData.getPrivateKey()), encryptedResult.wrap()).data
-			Assert.assertEquals(testData.input, bytesToHex(plainText))
-			val plainTextFromTestData = crypto.rsaDecrypt(hexToPrivateKey(testData.getPrivateKey()), hexToBytes(testData.getResult()).wrap()).data
-			Assert.assertEquals(testData.input, bytesToHex(plainTextFromTestData))
+			val plainText = crypto.rsaDecrypt(hexToPrivateKey(testData.privateKey), encryptedResult.wrap()).data
+			assertEquals(testData.input, bytesToHex(plainText))
+			val plainTextFromTestData = crypto.rsaDecrypt(hexToPrivateKey(testData.privateKey), hexToBytes(testData.result).wrap()).data
+			assertEquals(testData.input, bytesToHex(plainTextFromTestData))
 		}
 	}
 
 	companion object {
 		private const val TEST_DATA = "CompatibilityTestData.json"
 		private val om = ObjectMapper()
-		private var testData: TestData? = null
+		private lateinit var testData: TestData
 
 		@BeforeClass
 		@Throws(IOException::class)
