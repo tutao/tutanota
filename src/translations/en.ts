@@ -1465,7 +1465,5 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"exportUsers_action": "Export users",
-		"importExport_action": "Import/export"
 	}
 }
