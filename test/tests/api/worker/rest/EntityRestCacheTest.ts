@@ -1,5 +1,13 @@
 import o from "ospec"
-import {CUSTOM_MIN_ID, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId, getListId, stringToCustomId} from "../../../../../src/api/common/utils/EntityUtils.js"
+import {
+	CUSTOM_MAX_ID,
+	CUSTOM_MIN_ID,
+	GENERATED_MAX_ID,
+	GENERATED_MIN_ID,
+	getElementId,
+	getListId,
+	stringToCustomId
+} from "../../../../../src/api/common/utils/EntityUtils.js"
 import {arrayOf, assertNotNull, clone, downcast, isSameTypeRef, neverNull, TypeRef} from "@tutao/tutanota-utils"
 import {
 	createCustomer,
@@ -16,7 +24,8 @@ import {QueuedBatch} from "../../../../../src/api/worker/search/EventQueue.js"
 import {CacheStorage, EntityRestCache, expandId, EXTEND_RANGE_MIN_CHUNK_SIZE} from "../../../../../src/api/worker/rest/EntityRestCache.js"
 import {
 	CalendarEventTypeRef,
-	ContactTypeRef, createCalendarEvent,
+	ContactTypeRef,
+	createCalendarEvent,
 	createContact,
 	createMail,
 	createMailBody,
@@ -145,12 +154,13 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			userId = "userId"
 			storage = await getStorage(userId)
 			entityRestClient = mockRestClient()
-			const customCacheHandlerMap = name === "offline" ? new CustomCacheHandlerMap({
-				ref: CalendarEventTypeRef,
-				handler: new CustomCalendarEventCacheHandler(entityRestClient)
-			}) : new CustomCacheHandlerMap()
+			const customCacheHandlerMap = name === "offline"
+				? new CustomCacheHandlerMap({
+					ref: CalendarEventTypeRef,
+					handler: new CustomCalendarEventCacheHandler(entityRestClient)
+				})
+				: new CustomCacheHandlerMap()
 			cache = new EntityRestCache(entityRestClient, storage, customCacheHandlerMap)
-
 		})
 
 		o.spec("entityEventsReceived", function () {
@@ -228,6 +238,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 					o("entity events received should call loadMultiple when receiving updates from a postMultiple with CustomCacheHandler", async function () {
 						const event1 = createCalendarEvent({_id: [calendarEventListId, calendarEventIds[0]]})
 						const event2 = createCalendarEvent({_id: [calendarEventListId, calendarEventIds[1]]})
+						// We only consider events to be in the range if we do actually have correct range
+						await storage.setNewRangeForList(CalendarEventTypeRef, calendarEventListId, CUSTOM_MIN_ID, CUSTOM_MAX_ID)
 
 						const batch = [
 							createUpdate(CalendarEventTypeRef, calendarEventListId, calendarEventIds[0], OperationType.CREATE),
@@ -317,6 +329,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 						throw new Error(`load multiple: should not be reached, typeref is ${typeRef}, listid is ${listId} `)
 					})
 
+					if (name === "offline") {
+						await storage.setNewRangeForList(CalendarEventTypeRef, calendarEventListId, CUSTOM_MIN_ID, CUSTOM_MAX_ID)
+					}
 
 					const loadMock = mockAttribute(entityRestClient, entityRestClient.load, load)
 					const loadMultipleMock = mockAttribute(entityRestClient, entityRestClient.loadMultiple, loadMultiple)
