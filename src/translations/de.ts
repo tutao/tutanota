@@ -1469,7 +1469,5 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
-		"exportUsers_action": "Benutzer exportieren",
-		"importExport_action": "Importieren/exportieren"
 	}
 }
