@@ -94,6 +94,9 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			if (this._isMailVerificationBusy) return
 
 			if (a.readonly) {
+				// Email field is read-only, account has already been created but user switched from different subscription.
+				this.__completePreviousStages()
+
 				return a.newSignupHandler(null)
 			}
 
@@ -108,29 +111,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			const ageConfirmPromise = this._confirmAge() ? Promise.resolve(true) : Dialog.confirm("parentConfirmation_msg", "paymentDataValidation_action")
 			ageConfirmPromise.then(confirmed => {
 				if (confirmed) {
-					// Only the started test's (either free or paid clicked) stages are completed here
-					if (this.__signupFreeTest) {
-						// Make sure that the previous two pings (valid email + valid passwords) have been sent in the correct order
-						this.__signupFreeTest.getStage(2).complete()
-						this.__signupFreeTest.getStage(3).complete()
-
-						// Credentials confirmation (click on next)
-						const credentialsConfirmationStageFree = this.__signupFreeTest.getStage(4)
-						credentialsConfirmationStageFree?.setMetric({
-							name: "switchedFromPaid",
-							value: (this.__signupPaidTest?.isStarted() ?? false).toString(),
-						})
-						credentialsConfirmationStageFree?.complete()
-					}
-
-					if (this.__signupPaidTest) {
-						// Make sure that the previous two pings (valid email + valid passwords) have been sent in the correct order
-						this.__signupPaidTest.getStage(1).complete()
-						this.__signupPaidTest.getStage(2).complete()
-
-						// Credentials confirmation (click on next)
-						this.__signupPaidTest.getStage(3).complete()
-					}
+					this.__completePreviousStages()
 
 					return signup(
 						this._mailAddress,
@@ -181,6 +162,32 @@ export class SignupForm implements Component<SignupFormAttrs> {
 				),
 			]),
 		)
+	}
+
+	private async __completePreviousStages() {
+		// Only the started test's (either free or paid clicked) stages are completed here
+		if (this.__signupFreeTest) {
+			// Make sure that the previous two pings (valid email + valid passwords) have been sent in the correct order
+			await this.__signupFreeTest.getStage(2).complete()
+			await this.__signupFreeTest.getStage(3).complete()
+
+			// Credentials confirmation (click on next)
+			const credentialsConfirmationStageFree = this.__signupFreeTest.getStage(4)
+			credentialsConfirmationStageFree?.setMetric({
+				name: "switchedFromPaid",
+				value: (this.__signupPaidTest?.wasStarted ?? false).toString(),
+			})
+			await credentialsConfirmationStageFree?.complete()
+		}
+
+		if (this.__signupPaidTest) {
+			// Make sure that the previous two pings (valid email + valid passwords) have been sent in the correct order
+			await this.__signupPaidTest.getStage(1).complete()
+			await this.__signupPaidTest.getStage(2).complete()
+
+			// Credentials confirmation (click on next)
+			await this.__signupPaidTest.getStage(3).complete()
+		}
 	}
 }
 

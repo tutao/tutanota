@@ -73,7 +73,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 				})
 				orderConfirmationStage?.setMetric({
 					name: "switchedFromFree",
-					value: (this.__signupFreeTest?.isStarted() ?? false).toString(),
+					value: (this.__signupFreeTest?.wasStarted ?? false).toString(),
 				})
 				orderConfirmationStage?.complete()
 
