@@ -361,7 +361,7 @@ export class EntityRestClient implements EntityRestInterface {
 		const headers = Object.assign({}, this.authDataProvider.createAuthHeaders(), extraHeaders)
 
 		if (Object.keys(headers).length === 0) {
-			throw new NotAuthenticatedError("user must be authenticated for entity requests")
+			throw new NotAuthenticatedError(`user must be authenticated for entity requests (path ${path})`)
 		}
 
 		headers.v = typeModel.version

@@ -3,6 +3,82 @@ import WebKit
 import UserNotifications
 import DictionaryCoding
 
+struct AssetError : Error {
+  let url: URL?
+}
+
+class AssetSchemeHandler : NSObject, WKURLSchemeHandler {
+  func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
+    guard let url = urlSchemeTask.request.url else {
+      TUTSLog("Assets: No URL for task \(urlSchemeTask)")
+      urlSchemeTask.didFailWithError(AssetError(url: nil))
+      return
+    }
+    guard let fileUrl = fileUrlFromUrl(url) else {
+      TUTSLog("Assets: Could not find file for URL \(url)")
+      urlSchemeTask.didFailWithError(AssetError(url: url))
+      return
+    }
+//    TUTSLog("Assets: \(url) -> \(fileUrl)")
+    let mimeType = getFileMIMEType(forExtension: fileUrl.pathExtension) ?? "applicaion/octet-stream"
+    
+    guard let data = try? Data(contentsOf: fileUrl) else {
+      TUTSLog("Assets: Could not read file for URL \(url)")
+      urlSchemeTask.didFailWithError(AssetError(url: url))
+      return
+    }
+    let response = HTTPURLResponse(url: url, mimeType: mimeType, expectedContentLength: data.count, textEncodingName: nil)
+    urlSchemeTask.didReceive(response)
+    urlSchemeTask.didReceive(data)
+    urlSchemeTask.didFinish()
+  }
+  
+  func webView(_ webView: WKWebView, stop urlSchemeTask: WKURLSchemeTask) {
+    
+  }
+  
+  private func fileUrlFromUrl(_ url: URL) -> URL? {
+    return Bundle.main.url(forResource: url.path, withExtension: "", subdirectory: "build")
+  }
+}
+
+class ApiSchemeHandler : NSObject, WKURLSchemeHandler {
+  func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
+    if urlSchemeTask.request.httpMethod == "OPTIONS" {
+      urlSchemeTask.didFinish()
+      return
+    }
+    guard let originalUrl = urlSchemeTask.request.url else {
+      return
+    }
+    guard var urlComponents = URLComponents(url: originalUrl, resolvingAgainstBaseURL: false) else {
+      return
+    }
+    // FIXME: unhardcode
+    urlComponents.scheme = "https"
+    urlComponents.host = "test.tutanota.com"
+    let newUrl = urlComponents.url!
+
+    var newRequest = urlSchemeTask.request
+    newRequest.url = newUrl
+    
+    let session = URLSession.shared
+    session.dataTask(with: newRequest) { data, response, error in
+      if let error = error {
+        urlSchemeTask.didFailWithError(error)
+      } else {
+        urlSchemeTask.didReceive(response!)
+        urlSchemeTask.didReceive(data!)
+        urlSchemeTask.didFinish()
+      }
+    }.resume()
+  }
+  
+  func webView(_ webView: WKWebView, stop urlSchemeTask: WKURLSchemeTask) {
+    
+  }
+}
+
 /// Main screen of the app.
 class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDelegate {
   private let themeManager: ThemeManager
@@ -28,7 +104,10 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
 
     super.init(nibName: nil, bundle: nil)
       let webViewConfig = WKWebViewConfiguration()
-      webViewConfig.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
+      // FIXME: needed?
+//      webViewConfig.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
+      webViewConfig.setURLSchemeHandler(AssetSchemeHandler(), forURLScheme: "assets")
+      webViewConfig.setURLSchemeHandler(ApiSchemeHandler(), forURLScheme: "api")
 
       self.webView = WKWebView(frame: CGRect.zero, configuration: webViewConfig)
       webView.navigationDelegate = self
@@ -76,18 +155,25 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
       decisionHandler(.cancel)
       return
     }
-
-    if requestUrl.scheme == "file" && requestUrl.path == self.appUrl().path {
+    
+    if requestUrl.scheme == "assets" {
       decisionHandler(.allow)
-    } else if requestUrl.scheme == "file" && requestUrl.absoluteString.hasPrefix(self.appUrl().absoluteString) {
-	  // If the app is removed from memory, the URL won't point to the file but will have additional path.
-	  // We ignore additional path for now.
-      decisionHandler(.cancel)
-      self.loadMainPage(params:[:])
     } else {
       decisionHandler(.cancel)
       UIApplication.shared.open(requestUrl, options:[:])
     }
+
+//    if requestUrl.scheme == "file" && requestUrl.path == self.appUrl().path {
+//      decisionHandler(.allow)
+//    } else if requestUrl.scheme == "file" && requestUrl.absoluteString.hasPrefix(self.appUrl().absoluteString) {
+//	  // If the app is removed from memory, the URL won't point to the file but will have additional path.
+//	  // We ignore additional path for now.
+//      decisionHandler(.cancel)
+//      self.loadMainPage(params:[:])
+//    } else {
+//      decisionHandler(.cancel)
+//      UIApplication.shared.open(requestUrl, options:[:])
+//    }
 
   }
 
@@ -149,7 +235,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
 
   private func _loadMainPage(params: [String : String]) {
     let fileUrl = self.appUrl()
-    let folderUrl = (fileUrl as NSURL).deletingLastPathComponent!
+    let baseUrl = URL(string: "assets://")!
 
     var mutableParams = params
     if let theme = self.themeManager.currentTheme {
@@ -157,12 +243,14 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
       mutableParams["theme"] = encodedTheme
     }
     mutableParams["platformId"] = "ios"
-    let queryParams = NSURLQueryItem.from(dict: mutableParams)
-    var components = URLComponents.init(url: fileUrl, resolvingAgainstBaseURL: false)!
+    let queryParams = URLQueryItem.from(dict: mutableParams)
+    var components = URLComponents.init(url: baseUrl, resolvingAgainstBaseURL: false)!
+    
     components.queryItems = queryParams
 
     let url = components.url!
-    webView.loadFileURL(url, allowingReadAccessTo: folderUrl)
+    let fileContent = try! String(contentsOf: fileUrl)
+    webView.loadHTMLString(fileContent, baseURL: url)
   }
 
   private func dictToJson(dictionary: [String : String]) -> String {

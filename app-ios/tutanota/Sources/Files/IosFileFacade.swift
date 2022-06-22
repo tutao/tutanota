@@ -54,7 +54,7 @@ class IosFileFacade : FileFacade {
   }
 
   func getMimeType(_ file: String) async throws -> String {
-      return getFileMIMEType(path: file) ?? "application/octet-stream"
+      return getFileMIMEType(forPath: file) ?? "application/octet-stream"
   }
 
   func getSize(_ file: String) async throws -> Int {
@@ -212,7 +212,11 @@ extension DownloadTaskResponse {
   }
 }
 
-fileprivate func getFileMIMEType(path: String) -> String? {
+func getFileMIMEType(forPath path: String) -> String? {
+  return getFileMIMEType(forExtension: (path as NSString).pathExtension)
+}
+
+func getFileMIMEType(forExtension pathExtension: String) -> String? {
   // UTType is only available since iOS 15.
   // We take retainedValue because both functions create new object and we
   // are responsible for deallocating them.
@@ -220,7 +224,7 @@ fileprivate func getFileMIMEType(path: String) -> String? {
   // see https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFMemoryMgmt/Concepts/Ownership.html#//apple_ref/doc/uid/20001148
   let UTI = UTTypeCreatePreferredIdentifierForTag(
     kUTTagClassFilenameExtension,
-    (path as NSString).pathExtension as CFString,
+    pathExtension as CFString,
     nil
   )!.takeRetainedValue()
   let MIMEUTI = UTTypeCopyPreferredTagWithClass(UTI, kUTTagClassMIMEType)?.takeRetainedValue()

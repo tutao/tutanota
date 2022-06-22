@@ -12,8 +12,14 @@ export const Mode: Record<EnvMode, EnvMode> = Object.freeze({
 })
 
 export function getWebsocketOrigin(): string {
+	// FIXME: we need a real ws URL so we need to get a domain from somewhere?
 	// replace "http" by "ws"
-	return "ws" + getHttpOrigin().substring(4)
+	// const oldOrigin = getHttpOrigin()
+	// const oldProtocol = new URL(oldOrigin).protocol
+	// const newOrigin = "ws:" + oldOrigin.slice(0, oldProtocol.length)
+	// console.log("ws new origin", newOrigin)
+	// return newOrigin
+	return getHttpOrigin()
 }
 
 export function getHttpOrigin(): string {

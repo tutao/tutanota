@@ -1,6 +1,6 @@
 import Foundation
 
-extension NSURLQueryItem {
+extension URLQueryItem {
   public static func from(dict: Dictionary<String, String>) -> Array<URLQueryItem> {
     var result: Array<URLQueryItem> = []
     for (key, value) in dict {
