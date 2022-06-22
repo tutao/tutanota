@@ -29,6 +29,6 @@ class EncryptedAlarmInfo(
 }
 
 fun EncryptedAlarmInfo.decrypt(crypto: AndroidNativeCryptoFacade, sessionKey: ByteArray) = AlarmInfo(
-		alarmIdentifer = identifier,
+		alarmIdentifier = identifier,
 		trigger = AlarmTrigger.get(crypto.decryptString(trigger, sessionKey)),
 )

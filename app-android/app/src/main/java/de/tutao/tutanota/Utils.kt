@@ -2,7 +2,6 @@
 
 package de.tutao.tutanota
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.os.Build
@@ -52,7 +51,6 @@ suspend fun File.writeBytes(bytes: ByteArray) = withContext(Dispatchers.IO) {
 	FileOutputStream(this@writeBytes).use { it.write(bytes) }
 }
 
-@SuppressLint("Range")
 @Throws(FileNotFoundException::class)
 fun getFileInfo(context: Context, fileUri: Uri): FileInfo {
 	val scheme = fileUri.scheme
@@ -64,9 +62,9 @@ fun getFileInfo(context: Context, fileUri: Uri): FileInfo {
 			context.contentResolver.query(fileUri, null, null, null, null).use { cursor ->
 				if (cursor != null && cursor.moveToFirst()) {
 					val filename =
-							cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+							cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
 									?: fileUri.lastPathSegment
-					return FileInfo(filename!!, cursor.getLong(cursor.getColumnIndex(OpenableColumns.SIZE)))
+					return FileInfo(filename!!, cursor.getLong(cursor.getColumnIndexOrThrow(OpenableColumns.SIZE)))
 				}
 			}
 		} catch (e: SecurityException) {
@@ -109,9 +107,8 @@ fun String.isLightHexColor(): Boolean {
 /** parse #RGB or #RRGGBB color codes into an 0xAARRGGBB int  */
 @ColorInt
 fun parseColor(color: String): Int {
-	var color = color
-	require(!(color[0] != '#' || color.length != 4 && color.length != 7)) { "Invalid color format: $color" }
-	if (color.length == 4) {
+	require(color[0] == '#' && (color.length == 4 || color.length == 7)) { "Invalid color format: $color" }
+	val normalizedColor = if (color.length == 4) {
 		val chars = charArrayOf(
 				'#',
 				color[1],
@@ -121,9 +118,11 @@ fun parseColor(color: String): Int {
 				color[3],
 				color[3]
 		)
-		color = String(chars)
+		String(chars)
+	} else {
+		color
 	}
-	val rgb = color.substring(1).toInt(16)
+	val rgb = normalizedColor.substring(1).toInt(16)
 
 	// alpha channel is always max
 	return rgb or -0x1000000

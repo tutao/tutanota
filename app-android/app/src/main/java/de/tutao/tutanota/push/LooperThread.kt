@@ -12,7 +12,7 @@ internal class LooperThread(private val initRunnable: Runnable) : Thread() {
 	override fun run() {
 		Log.d("LooperThread", "LooperThread is started")
 		Looper.prepare()
-		handler = Handler()
+		handler = Handler(Looper.myLooper()!!)
 		handler!!.post(initRunnable)
 		Looper.loop()
 	}

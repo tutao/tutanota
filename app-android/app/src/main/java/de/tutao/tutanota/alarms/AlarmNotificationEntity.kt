@@ -18,7 +18,7 @@ class RepeatRule(
 )
 
 class AlarmInfo(
-		val alarmIdentifer: String,
+		val alarmIdentifier: String,
 		val trigger: AlarmTrigger,
 )
 
@@ -102,7 +102,7 @@ class AlarmNotificationEntity(
 }
 
 fun EncryptedAlarmNotification.toEntity(): AlarmNotificationEntity {
-	// Server agggregate still has an array but it is always a single element (they are filtered before we get them
+	// Server aggregate still has an array but it is always a single element (they are filtered before we get them
 	// here)
 	require(notificationSessionKeys.size == 1) {
 		"Invalid notificationSessionKeys, must have exactly one key, has ${notificationSessionKeys.size}"

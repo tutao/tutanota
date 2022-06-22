@@ -8,6 +8,7 @@ import android.webkit.WebMessagePort
 import android.webkit.WebMessagePort.WebMessageCallback
 import de.tutao.tutanota.ipc.AndroidGlobalDispatcher
 import de.tutao.tutanota.ipc.NativeInterface
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -46,7 +47,8 @@ class RemoteBridge internal constructor(
 		activity.webView.post { initMessageChannel() }
 	}
 
-	fun initMessageChannel() {
+	@OptIn(DelicateCoroutinesApi::class)
+	private fun initMessageChannel() {
 		val webView = activity.webView
 		val channel = webView.createWebMessageChannel()
 		val outgoingPort = channel[0]

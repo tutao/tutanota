@@ -6,7 +6,10 @@ import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricPrompt.PromptInfo
 import androidx.fragment.app.FragmentActivity
-import de.tutao.tutanota.*
+import de.tutao.tutanota.AndroidKeyStoreFacade
+import de.tutao.tutanota.CredentialAuthenticationException
+import de.tutao.tutanota.CryptoError
+import de.tutao.tutanota.R
 import de.tutao.tutanota.ipc.DataWrapper
 import de.tutao.tutanota.ipc.NativeCredentialsFacade
 import de.tutao.tutanota.ipc.wrap
@@ -90,14 +93,14 @@ class CredentialsEncryptionBeforeAPI30(
 		return when (mode) {
 			CredentialEncryptionMode.BIOMETRICS -> {
 				val promptInfoBuilder = PromptInfo.Builder()
-						.setTitle(activity.getString(R.string.unlockCredentials_action)) // see AuthentorUtils#isSupportedCombination from androidx.biometrics
+						.setTitle(activity.getString(R.string.unlockCredentials_action)) // see AuthenticatorUtils#isSupportedCombination from androidx.biometrics
 						.setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
 						.setNegativeButtonText(activity.getString(android.R.string.cancel))
 				promptInfoBuilder.build()
 			}
 			CredentialEncryptionMode.SYSTEM_PASSWORD -> {
 				val promptInfoBuilder = PromptInfo.Builder()
-						.setTitle(activity.getString(R.string.unlockCredentials_action)) // see AuthentorUtils#isSupportedCombination from androidx.biometrics
+						.setTitle(activity.getString(R.string.unlockCredentials_action)) // see AuthenticatorUtils#isSupportedCombination from androidx.biometrics
 						.setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL or BiometricManager.Authenticators.BIOMETRIC_WEAK)
 				promptInfoBuilder.build()
 			}

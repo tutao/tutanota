@@ -78,7 +78,7 @@ class AndroidThemeFacade(
 		activity.runOnUiThread { doApplyTheme(theme) }
 	}
 
-	public fun applyCurrentTheme() {
+	fun applyCurrentTheme() {
 		doApplyTheme(currentThemeWithFallback)
 	}
 

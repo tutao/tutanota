@@ -84,7 +84,7 @@ class AlarmNotificationsManager(
 
 	private fun schedule(alarmNotification: AlarmNotification) {
 		try {
-			val identifier = alarmNotification.alarmInfo.alarmIdentifer
+			val identifier = alarmNotification.alarmInfo.alarmIdentifier
 			if (alarmNotification.repeatRule == null) {
 				val alarmTime = AlarmModel.calculateAlarmTime(alarmNotification.eventStart, null, alarmNotification.alarmInfo.trigger)
 				val now = Date()
