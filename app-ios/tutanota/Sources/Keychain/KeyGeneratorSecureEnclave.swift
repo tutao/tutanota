@@ -1,7 +1,4 @@
 import Foundation
-#if !targetEnvironment(simulator)
-import CryptoTokenKit
-#endif
 import LocalAuthentication
 
 /// Secure enclave and also CryptoTokenKit are unavailable in the simulator. We need to conditionally compile based on the target environment
@@ -34,34 +31,4 @@ class KeyGenerator {
     return privateKey
 
   }
- 
-  func parseKeychainError(_ error: Unmanaged<CFError>) -> KeychainError {
-    let e = error.takeRetainedValue() as Error as NSError
-    
-    #if !targetEnvironment(simulator)
-    if #available(iOS 13, *) {
-      if e.domain == TKError.errorDomain && e.code == TKError.Code.corruptedData.rawValue {
-        return .keyPermanentlyInvalidated(error: e)
-      }
-    }
-    #endif
-    
-    if e.domain == LAError.errorDomain && e.code == LAError.Code.biometryLockout.rawValue {
-      return .lockout(error: e)
-    }
-    
-    if e.domain == LAError.errorDomain {
-      return .authFailure(error: e)
-    }
-    
-    return .unknown(error: e)
-  }
-}
-
-internal enum KeychainError {
-  case authFailure(error: NSError)
-  /// Too many attempts to use biometrics, user must authenticate with password before trying again
-  case lockout(error: NSError)
-  case keyPermanentlyInvalidated(error: NSError)
-  case unknown(error: NSError)
 }
