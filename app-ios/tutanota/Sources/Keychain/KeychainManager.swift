@@ -268,10 +268,8 @@ class KeychainManager : NSObject {
     let e = error.takeRetainedValue() as Error as NSError
 
     #if !targetEnvironment(simulator)
-    if #available(iOS 13, *) {
-      if e.domain == TKError.errorDomain && e.code == TKError.Code.corruptedData.rawValue {
-        return .keyPermanentlyInvalidated(error: e)
-      }
+    if e.domain == TKError.errorDomain && e.code == TKError.Code.corruptedData.rawValue {
+      return .keyPermanentlyInvalidated(error: e)
     }
     #endif
 
