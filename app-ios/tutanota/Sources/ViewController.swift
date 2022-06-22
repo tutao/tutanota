@@ -203,11 +203,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     if self.isDarkTheme {
       return .lightContent
     } else {
-      if #available(iOS 13, *) {
-        return .darkContent
-      } else {
-        return .default
-      }
+      return .darkContent
     }
   }
 }

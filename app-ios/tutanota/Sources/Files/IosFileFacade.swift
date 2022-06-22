@@ -232,10 +232,6 @@ fileprivate func getFileMIMEType(path: String) -> String? {
 /// For older iOS we use this NSDictionary cast workaround as suggested by a commenter in the bug report.
 public extension HTTPURLResponse {
     func valueForHeaderField(_ headerField: String) -> String? {
-        if #available(iOS 13.0, *) {
-            return value(forHTTPHeaderField: headerField)
-        } else {
-            return (allHeaderFields as NSDictionary)[headerField] as? String
-        }
+      return value(forHTTPHeaderField: headerField)
     }
 }
