@@ -37,6 +37,10 @@ o.spec("OfflineStorageMigrator", async function () {
 			version: 1,
 			compatibleSince: 0,
 		},
+		usage: {
+			version: 1,
+			compatibleSince: 0,
+		}
 	}
 	let migrations: OfflineMigration[]
 	let migrator: OfflineStorageMigrator
