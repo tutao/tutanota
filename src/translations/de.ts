@@ -601,7 +601,6 @@ export default {
 		"importContactsError_msg": "{amount} von {total} Kontakten konnten nicht importiert werden.",
 		"importEventExistingUid_msg": "{amount} von {total} Terminen existieren bereits und werden nicht überschrieben. Importiere die übrigen Termine...",
 		"importEventsError_msg": "{amount} von {total} Terminen konnten nicht importiert werden.",
-		"importExport_action": "Importieren/exportieren",
 		"importReadFileError_msg": "Die Datei {filename} ist leider nicht lesbar.",
 		"importUsers_action": "Benutzer importieren",
 		"importVCardError_msg": "VCard-Datei konnte nicht gelesen werden.",
