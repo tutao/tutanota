@@ -26,8 +26,7 @@ class CommonNativeFacadeSendDispatcher (
 		args.add(json.encodeToString(addresses))
 		args.add(json.encodeToString(subject))
 		args.add(json.encodeToString(mailToUrlString))
-		val result = this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
-		return
+		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
 	
 	override suspend fun openMailBox(
@@ -41,8 +40,7 @@ class CommonNativeFacadeSendDispatcher (
 		args.add(json.encodeToString(userId))
 		args.add(json.encodeToString(address))
 		args.add(json.encodeToString(requestedPath))
-		val result = this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
-		return
+		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
 	
 	override suspend fun openCalendar(
@@ -52,8 +50,7 @@ class CommonNativeFacadeSendDispatcher (
 		val encodedMethod = json.encodeToString("openCalendar")
 		val args : MutableList<String> = mutableListOf()
 		args.add(json.encodeToString(userId))
-		val result = this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
-		return
+		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
 	
 	override suspend fun showAlertDialog(
@@ -63,8 +60,7 @@ class CommonNativeFacadeSendDispatcher (
 		val encodedMethod = json.encodeToString("showAlertDialog")
 		val args : MutableList<String> = mutableListOf()
 		args.add(json.encodeToString(translationKey))
-		val result = this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
-		return
+		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
 	
 	override suspend fun invalidateAlarms(
@@ -72,8 +68,7 @@ class CommonNativeFacadeSendDispatcher (
 	{
 		val encodedMethod = json.encodeToString("invalidateAlarms")
 		val args : MutableList<String> = mutableListOf()
-		val result = this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
-		return
+		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
 	
 }

@@ -89,7 +89,7 @@ class CredentialsEncryptionFromAPI30(
 			cryptoObject: BiometricPrompt.CryptoObject,
 			encryptionMode: CredentialEncryptionMode,
 	) {
-		// see AuthentorUtils#isSupportedCombination from androidx.biometrics
+		// see AuthenticatorUtils#isSupportedCombination from androidx.biometrics
 		val allowedAuthenticators =
 				if (encryptionMode == CredentialEncryptionMode.BIOMETRICS) Authenticators.BIOMETRIC_STRONG else Authenticators.DEVICE_CREDENTIAL or Authenticators.BIOMETRIC_STRONG
 		val promptInfoBuilder = PromptInfo.Builder()
@@ -165,13 +165,13 @@ class CredentialsEncryptionFromAPI30(
 	private fun createPromptInfo(mode: CredentialEncryptionMode): PromptInfo {
 		return if (mode === CredentialEncryptionMode.BIOMETRICS) {
 			val promptInfoBuilder = PromptInfo.Builder()
-					.setTitle(activity.getString(R.string.unlockCredentials_action)) // see AuthentorUtils#isSupportedCombination from androidx.biometrics
+					.setTitle(activity.getString(R.string.unlockCredentials_action)) // see AuthenticatorUtils#isSupportedCombination from androidx.biometrics
 					.setAllowedAuthenticators(Authenticators.BIOMETRIC_STRONG)
 					.setNegativeButtonText(activity.getString(android.R.string.cancel))
 			promptInfoBuilder.build()
 		} else if (mode === CredentialEncryptionMode.SYSTEM_PASSWORD) {
 			val promptInfoBuilder = PromptInfo.Builder()
-					.setTitle(activity.getString(R.string.unlockCredentials_action)) // see AuthentorUtils#isSupportedCombination from androidx.biometrics
+					.setTitle(activity.getString(R.string.unlockCredentials_action)) // see AuthenticatorUtils#isSupportedCombination from androidx.biometrics
 					.setAllowedAuthenticators(Authenticators.DEVICE_CREDENTIAL or Authenticators.BIOMETRIC_WEAK)
 			promptInfoBuilder.build()
 		} else {

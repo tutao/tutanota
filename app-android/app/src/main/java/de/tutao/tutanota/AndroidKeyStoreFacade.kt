@@ -22,7 +22,7 @@ class AndroidKeyStoreFacade(context: Context, private val dataKeyGenerator: Data
 
 	private val crypto: AndroidNativeCryptoFacade = AndroidNativeCryptoFacade(context)
 
-	val keyStore: KeyStore by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+	private val keyStore: KeyStore by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
 		try {
 			val keyStore = KeyStore.getInstance(AndroidKeyStore)
 
@@ -255,6 +255,7 @@ class AndroidKeyStoreFacade(context: Context, private val dataKeyGenerator: Data
 		private const val SYMMETRIC_KEY_ALIAS = "TutanotaAppDeviceKey"
 		private const val DEVICE_LOCK_DATA_KEY_ALIAS = "DeviceLockDataKey"
 		private const val SYSTEM_PASSWORD_DATA_KEY_ALIAS = "SystemPasswordDataKey"
+		/** Yes it has a typo which we have to live with. */
 		private const val BIOMETRICS_DATA_KEY_ALIAS = "BIometricsDataKey"
 		private const val ASYMMETRIC_KEY_ALIAS = "TutanotaAppDeviceAsymmetricKey"
 		private const val RSA_ALGORITHM = "RSA/ECB/PKCS1Padding"

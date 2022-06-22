@@ -167,6 +167,7 @@ class AndroidFileFacade(
 	}
 
 	private suspend fun addFileToDownloadsOld(fileUri: String): String {
+		@Suppress("DEPRECATION")
 		val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 		if (!downloadsDir.exists()) {
 			val created = downloadsDir.mkdirs()
@@ -179,6 +180,7 @@ class AndroidFileFacade(
 		val newFile = File(downloadsDir, fileInfo.name)
 		IOUtils.copyLarge(activity.contentResolver.openInputStream(file), FileOutputStream(newFile), ByteArray(4096))
 		val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+		@Suppress("DEPRECATION")
 		downloadManager.addCompletedDownload(
 				newFile.name, "Tutanota download",
 				false, getMimeType(newFile.absolutePath), newFile.absolutePath, fileInfo.size, true
@@ -277,23 +279,23 @@ class AndroidFileFacade(
 			}
 
 	@Throws(IOException::class)
-	override suspend fun writeDataFile(dataFile: DataFile): String = withContext(Dispatchers.IO) {
-		val file = getTempDecryptedFile(dataFile.name)
-		file.writeBytes(dataFile.data.data)
-		file.toUri().toString()
+	override suspend fun writeDataFile(file: DataFile): String = withContext(Dispatchers.IO) {
+		val fileHandle = getTempDecryptedFile(file.name)
+		fileHandle.writeBytes(file.data.data)
+		fileHandle.toUri().toString()
 	}
 
 	@Throws(IOException::class)
-	override suspend fun readDataFile(fileUri: String): DataFile? = withContext(Dispatchers.IO) {
+	override suspend fun readDataFile(filePath: String): DataFile? = withContext(Dispatchers.IO) {
 		// This impl is not really used and is untested so expect anything
 		try {
-			val file = fileUri.toUri().toFile()
-			val data = file.readBytes()
+			val fileHandle = filePath.toUri().toFile()
+			val data = fileHandle.readBytes()
 			DataFile(
-					name = getName(fileUri),
-					mimeType = getMimeType(fileUri),
+					name = getName(filePath),
+					mimeType = getMimeType(filePath),
 					data = data.wrap(),
-					size = getSize(fileUri)
+					size = getSize(filePath)
 			)
 		} catch (e: IOException) {
 			null
@@ -302,7 +304,7 @@ class AndroidFileFacade(
 
 	@Throws(IOException::class)
 	suspend fun writeFileStream(filePath: File, inputStream: InputStream) = withContext(Dispatchers.IO) {
-		filePath.parentFile.mkdirs()
+		filePath.parentFile!!.mkdirs()
 		IOUtils.copyLarge(inputStream, FileOutputStream(filePath), ByteArray(COPY_BUFFER_SIZE))
 	}
 

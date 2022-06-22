@@ -44,7 +44,6 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.Continuation
@@ -308,18 +307,21 @@ class MainActivity : FragmentActivity() {
 		if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 			continuation.resume(Unit)
 		} else {
-			continuation.resumeWithException(SecurityException("Permission missing: " + Arrays.toString(permissions)))
+			continuation.resumeWithException(SecurityException("Permission missing: " + permissions.contentToString()))
 		}
 	}
 
 	suspend fun startActivityForResult(@RequiresPermission intent: Intent?): ActivityResult = suspendCoroutine { continuation ->
 		val requestCode = getNextRequestCode()
 		activityRequests[requestCode] = continuation
-		// deprecated but we need requestCode to identify the request which is not possible with new API
+		// we need requestCode to identify the request which is not possible with new API
+		@Suppress("DEPRECATION")
 		super.startActivityForResult(intent, requestCode)
 	}
 
+	@Deprecated("Deprecated in Java")
 	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+		@Suppress("DEPRECATION")
 		super.onActivityResult(requestCode, resultCode, data)
 		val continuation = activityRequests.remove(requestCode)
 		if (continuation != null) {
@@ -399,7 +401,8 @@ class MainActivity : FragmentActivity() {
 			// Intent documentation claims that data is copied to ClipData if it's not there
 			// but we want to be sure
 			if (Intent.ACTION_SEND_MULTIPLE == intent.action) {
-				val uris = intent.extras!![Intent.EXTRA_STREAM] as ArrayList<Uri>?
+				@Suppress("UNCHECKED_CAST")
+				val uris = intent.extras!!.getParcelableArrayList<Uri>(Intent.EXTRA_STREAM)
 				if (uris != null) {
 					for (uri in uris) {
 						filesArray.add(uri.toString())
@@ -472,12 +475,12 @@ class MainActivity : FragmentActivity() {
 				return
 			}
 			menu.setHeaderTitle(link)
-			menu.add(0, 0, 0, "Copy link").setOnMenuItemClickListener { item: MenuItem? ->
+			menu.add(0, 0, 0, "Copy link").setOnMenuItemClickListener {
 				(getSystemService(CLIPBOARD_SERVICE) as ClipboardManager)
 						.setPrimaryClip(ClipData.newPlainText(link, link))
 				true
 			}
-			menu.add(0, 2, 0, "Share").setOnMenuItemClickListener { item: MenuItem? ->
+			menu.add(0, 2, 0, "Share").setOnMenuItemClickListener {
 				val intent = Intent(Intent.ACTION_SEND)
 				intent.putExtra(Intent.EXTRA_TEXT, link)
 				intent.setTypeAndNormalize("text/plain")

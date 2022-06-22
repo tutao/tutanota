@@ -1,9 +1,6 @@
 package de.tutao.tutanota
 
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
+import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -31,6 +28,7 @@ class IdTuple(
 		val elementId: String
 ) {
 
+	@OptIn(ExperimentalSerializationApi::class)
 	@Serializer(forClass = IdTuple::class)
 	companion object IdTupleSerializer : KSerializer<IdTuple> {
 		override val descriptor: SerialDescriptor = listSerialDescriptor<String>()
@@ -56,7 +54,7 @@ class IdTuple(
 						0 -> listId = decodeStringElement(descriptor, 0)
 						1 -> elementId = decodeStringElement(descriptor, 1)
 						CompositeDecoder.DECODE_DONE -> break
-						else -> error("Unknown index ${index}")
+						else -> error("Unknown index $index")
 					}
 				}
 				IdTuple(listId, elementId)

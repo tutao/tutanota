@@ -56,12 +56,11 @@ object AlarmModel {
 		}
 	}
 
-	fun incrementByRepeatPeriod(
+	private fun incrementByRepeatPeriod(
 			calendar: Calendar, period: RepeatPeriod?,
 			interval: Int,
 	) {
-		val field: Int
-		field = when (period) {
+		val field: Int = when (period) {
 			RepeatPeriod.DAILY -> Calendar.DAY_OF_MONTH
 			RepeatPeriod.WEEKLY -> Calendar.WEEK_OF_YEAR
 			RepeatPeriod.MONTHLY -> Calendar.MONTH

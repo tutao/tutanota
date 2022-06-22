@@ -27,8 +27,7 @@ class MobileFacadeSendDispatcher (
 		val encodedMethod = json.encodeToString("visibilityChange")
 		val args : MutableList<String> = mutableListOf()
 		args.add(json.encodeToString(visibility))
-		val result = this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
-		return
+		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
 	
 	override suspend fun keyboardSizeChanged(
@@ -38,8 +37,7 @@ class MobileFacadeSendDispatcher (
 		val encodedMethod = json.encodeToString("keyboardSizeChanged")
 		val args : MutableList<String> = mutableListOf()
 		args.add(json.encodeToString(newSize))
-		val result = this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
-		return
+		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
 	
 }

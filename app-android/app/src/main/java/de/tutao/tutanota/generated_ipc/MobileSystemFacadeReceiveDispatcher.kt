@@ -1,6 +1,7 @@
 /* generated file, don't edit. */
 
 
+@file:Suppress("NAME_SHADOWING")
 package de.tutao.tutanota.ipc
 
 import kotlinx.serialization.*

@@ -103,7 +103,7 @@ class TutanotaNotificationsHandler(
 				triesLeft--
 				Log.w(TAG, e)
 			} catch (e: ClientRequestException) {
-				if (e.code == ResponseCodes.NOT_AUTHENTICATED) {
+				if (e.code == ResponseCodes.NOT_AUTHENTICATED || e.code == ResponseCodes.NOT_AUTHORIZED) {
 					Log.i(TAG, "Not authenticated to download missed notification with user $userId", e)
 					// This will initiate reconnect so we don't have to try again here
 					onNotAuthorized(userId)
@@ -197,7 +197,7 @@ class TutanotaNotificationsHandler(
 	 * expired, we certainly missed some updates.
 	 * We need to unschedule all alarms and to tell web part that we would like alarms to be scheduled all over.
 	 */
-	fun hasNotificationTTLExpired(): Boolean {
+	private fun hasNotificationTTLExpired(): Boolean {
 		val lastMissedNotificationCheckTime = sseStorage.getLastMissedNotificationCheckTime()
 		Log.d(TAG, "check lastMissedNotificationCheckTime: $lastMissedNotificationCheckTime")
 		return lastMissedNotificationCheckTime != null && System.currentTimeMillis() - lastMissedNotificationCheckTime.time > MISSED_NOTIFICATION_TTL

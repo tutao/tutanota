@@ -84,6 +84,8 @@ export class KotlinGenerator implements LangGenerator {
 
 	generateReceiveDispatcher(definition: FacadeDefinition): string {
 		const acc = new Accumulator()
+		// Some names might clash, we don't read this file, we don't care
+		acc.line(`@file:Suppress("NAME_SHADOWING")`)
 		KotlinGenerator.generateImports(acc)
 		acc.line(`class ${definition.name}ReceiveDispatcher(`)
 		acc.indent().line(`private val json: Json,`)
@@ -164,11 +166,12 @@ export class KotlinGenerator implements LangGenerator {
 			for (let arg of getArgs(methodName, methodDefinition)) {
 				methodBodyAcc.line(`args.add(json.encodeToString(${arg.name}))`)
 			}
-			methodBodyAcc.line(`val result = this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)`)
+
 			if (methodDefinition.ret !== "void") {
+				methodBodyAcc.line(`val result = this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)`)
 				methodBodyAcc.line(`return json.decodeFromString(result)`)
 			} else {
-				methodBodyAcc.line(`return`)
+				methodBodyAcc.line(`this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)`)
 			}
 			classBodyAcc.line(`}`)
 			classBodyAcc.line()

@@ -1,8 +1,8 @@
 package de.tutao.tutanota
 
 import android.content.Context
-import android.support.test.InstrumentationRegistry
-import android.support.test.runner.AndroidJUnit4
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import de.tutao.tutanota.AndroidNativeCryptoFacade.Companion.bytesToKey
 import de.tutao.tutanota.ipc.RsaPrivateKey
 import de.tutao.tutanota.ipc.RsaPublicKey
@@ -103,7 +103,10 @@ class CompatibilityTest {
 		@Throws(IOException::class)
 		@JvmStatic
 		fun readTestData() {
-			val inputStream = InstrumentationRegistry.getContext().assets.open(TEST_DATA)
+			val instrumentation = InstrumentationRegistry.getInstrumentation()
+			val pm = instrumentation.context.packageManager
+			val resources = pm.getResourcesForApplication(instrumentation.context.applicationInfo)
+			val inputStream = resources.assets.open(TEST_DATA)
 			testData = om.readValue(inputStream, TestData::class.java)
 		}
 
