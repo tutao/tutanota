@@ -1,15 +1,12 @@
 import {LoginController} from "../api/main/LoginController.js"
 import {CustomerTypeRef, GroupInfoTypeRef, GroupTypeRef, UserTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {assertNotNull, mapNullable, promiseMap, replaceAll} from "@tutao/tutanota-utils"
+import {assertNotNull, mapNullable, pad, promiseMap, renderCsv} from "@tutao/tutanota-utils"
 import {UserManagementFacade} from "../api/worker/facades/UserManagementFacade.js"
 import {EntityClient} from "../api/common/EntityClient.js"
 import {FileController} from "../file/FileController.js"
-import {formatDateTimeUTC} from "../calendar/export/CalendarImporter.js"
 
 export const CSV_MIMETYPE = "text/csv"
 export const USER_CSV_FILENAME = "users.csv"
-export const USER_EXPORT_CSV_HEADER = "name; mail address; date created; date deleted; storage used; aliases"
-
 
 interface UserExportData {
 	name: string
@@ -27,8 +24,28 @@ export async function exportUserCsv(
 	fileController: FileController
 ) {
 	const data = await loadUserExportData(entityClient, userManagementFacade, logins)
-	const csv = renderExportDataCsv(data)
+	const csv = renderCsv([
+			"name",
+			"mail address",
+			"date created",
+			"date deleted",
+			"storage used (in bytes)",
+			"aliases"
+		],
+		data.map(user => [
+			user.name,
+			user.mailAddress,
+			formatDate(user.created),
+			mapNullable(user.deleted, formatDate) ?? "",
+			`${user.usedStorage}`,
+			user.aliases.join(" ")
+		])
+	)
 	await fileController.saveStringAsFile(csv, USER_CSV_FILENAME, CSV_MIMETYPE)
+}
+
+function formatDate(date: Date): string {
+	return `${date.getFullYear()}-${pad(date.getMonth() + 1, 2)}-${pad(date.getDate(), 2)}`
 }
 
 /**
@@ -73,21 +90,4 @@ export async function loadUserExportData(
 			}
 		}
 	)
-}
-
-export function renderExportDataCsv(userData: Array<UserExportData>) {
-
-	const lines = [
-		USER_EXPORT_CSV_HEADER,
-		...userData.map(
-			data => {
-				const created = formatDateTimeUTC(data.created)
-				const deleted = mapNullable(data.deleted, formatDateTimeUTC)
-				const usedStorage = data.usedStorage ? `${data.usedStorage}B` : null
-				return `${replaceAll(data.name, ";", "\\;")}; ${data.mailAddress}; ${created}; ${deleted}; ${usedStorage}; ${data.aliases.join(" ")}`
-			}
-		)
-	]
-
-	return lines.join("\n")
 }

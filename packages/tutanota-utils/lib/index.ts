@@ -158,3 +158,7 @@ export type {
 export {
 	mod, clamp
 } from "./MathUtils.js"
+
+export {
+	renderCsv
+} from "./Csv.js"
