@@ -12,6 +12,7 @@ import {object} from "testdouble"
 import {OfflineDbFacade} from "../../../src/desktop/db/OfflineDbFacade.js"
 import {verify} from "@tutao/tutanota-test-utils"
 import Rectangle = Electron.Rectangle
+import BrowserWindow = Electron.BrowserWindow
 
 
 o.spec("ApplicationWindow Test", function () {
@@ -177,6 +178,14 @@ o.spec("ApplicationWindow Test", function () {
 								},
 								setSpellCheckerDictionaryDownloadURL: () => {
 								},
+								protocol: {
+									isProtocolIntercepted() {
+										return false
+									},
+									interceptFileProtocol() {
+										return true
+									}
+								},
 							},
 							findInPage: () => {
 							},
@@ -317,7 +326,7 @@ o.spec("ApplicationWindow Test", function () {
 			"dictUrl",
 		)
 		o(electronMock.BrowserWindow.mockedInstances.length).equals(1)
-		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+		const bwInstance: BrowserWindow = electronMock.BrowserWindow.mockedInstances[0]
 		// We load some things async before loading URL so we wait for it. __loadedUrl comes from our mock
 		await (bwInstance as any).__loadedUrl.promise
 		o(bwInstance.loadURL.callCount).equals(1)
@@ -377,6 +386,7 @@ o.spec("ApplicationWindow Test", function () {
 			"zoom-changed",
 			"update-target-url",
 		])("webContents registered callbacks dont match")
+		o(bwInstance.webContents.session.protocol.interceptFileProtocol.args[0]).equals("file")
 	})
 	o("construction, noAutoLogin", async function () {
 		const {electronMock, wmMock, electronLocalshortcutMock, themeManagerMock, offlineDbFacade} = standardMocks()
