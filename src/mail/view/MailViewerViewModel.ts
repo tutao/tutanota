@@ -54,7 +54,6 @@ import {elementIdPart, listIdPart} from "../../api/common/utils/EntityUtils"
 import {getReferencedAttachments, loadInlineImages, moveMails, revokeInlineImages} from "./MailGuiUtils"
 import {locator} from "../../api/main/MainLocator"
 import {SanitizeResult} from "../../misc/HtmlSanitizer"
-import {stringifyFragment} from "../../gui/HtmlUtils"
 import {CALENDAR_MIME_TYPE, FileController} from "../../file/FileController"
 import {getMailBodyText, getMailHeaders} from "../../api/common/utils/Utils"
 import {exportMails} from "../export/Exporter.js"
@@ -73,6 +72,7 @@ import {ListUnsubscribeService} from "../../api/entities/tutanota/Services"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {InitAsResponseArgs} from "../editor/SendMailModel"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
+import {stringifyFragment} from "../../gui/HtmlUtils.js"
 import {DesktopSystemFacade} from "../../native/common/generatedipc/DesktopSystemFacade.js"
 
 
@@ -764,7 +764,8 @@ export class MailViewerViewModel {
 
 	private async setSanitizedMailBodyFromMail(mail: Mail, blockExternalContent: boolean): Promise<SanitizeResult> {
 		const {htmlSanitizer} = await import("../../misc/HtmlSanitizer")
-		const sanitizeResult = htmlSanitizer.sanitizeFragment(this.getMailBody(), {
+		const urlified = await locator.worker.urlify(this.getMailBody())
+		const sanitizeResult = htmlSanitizer.sanitizeFragment(urlified, {
 			blockExternalContent,
 			allowRelativeLinks: isTutanotaTeamMail(mail),
 		})
@@ -781,10 +782,10 @@ export class MailViewerViewModel {
 			Array.from(html.querySelectorAll("*[style]"), e => (e as HTMLElement).style).some(
 				s => (s.color && s.color !== "inherit") || (s.backgroundColor && s.backgroundColor !== "inherit"),
 			) || html.querySelectorAll("font[color]").length > 0
-		const text = await locator.worker.urlify(stringifyFragment(html))
+
 		m.redraw()
 		return {
-			text,
+			text: stringifyFragment(html),
 			inlineImageCids,
 			links,
 			externalContent,
