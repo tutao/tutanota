@@ -1,11 +1,11 @@
 import o from "ospec"
-import {loadUserExportData, renderExportDataCsv, USER_EXPORT_CSV_HEADER} from "../../../src/settings/UserDataExporter.js"
+import {loadUserExportData} from "../../../src/settings/UserDataExporter.js"
 import {EntityClient} from "../../../src/api/common/EntityClient.js"
 import {UserManagementFacade} from "../../../src/api/worker/facades/UserManagementFacade.js"
 import {LoginController} from "../../../src/api/main/LoginController.js"
 import {FileController} from "../../../src/file/FileController.js"
 import {object, when} from "testdouble"
-import {CustomerTypeRef, Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef, User, UserTypeRef} from "../../../src/api/entities/sys/TypeRefs.js"
+import {CustomerTypeRef, GroupInfo, GroupInfoTypeRef, GroupTypeRef, User, UserTypeRef} from "../../../src/api/entities/sys/TypeRefs.js"
 import {formatDateTimeUTC} from "../../../src/calendar/export/CalendarImporter.js"
 
 o.spec("user data export", function () {
@@ -69,51 +69,6 @@ o.spec("user data export", function () {
 
 		o(first.aliases).deepEquals(["alias1@alias.com", "alias2@alias.com"])
 		o(second.aliases).deepEquals([])
-	})
-
-	o("should correctly render csv", async function () {
-		const data = [
-			{
-				name: "my name",
-				mailAddress: "mail1@mail.com",
-				created: new Date("2022-06-15 12:00:00 GMT+0"),
-				deleted: new Date("2022-06-17 12:30:00 GMT +0"),
-				usedStorage: 100,
-				aliases: ["alias1@alias.com", "alias2@alias.com"]
-			},
-			{
-				name: "eman ym",
-				mailAddress: "mail2@mail.com",
-				created: new Date("2022-07-15 12:00:00 GMT+0"),
-				deleted: null,
-				usedStorage: 200,
-				aliases: []
-			},
-		]
-
-		o(renderExportDataCsv(data)).equals(
-			USER_EXPORT_CSV_HEADER + "\n"
-			+ "my name; mail1@mail.com; 20220615T120000Z; 20220617T123000Z; 100B; alias1@alias.com alias2@alias.com\n"
-			+ "eman ym; mail2@mail.com; 20220715T120000Z; null; 200B; "
-		)
-	})
-
-	o("should escape semicolons in names", function() {
-		const data = [
-			{
-				name: "mr; semicolon",
-				mailAddress: "mail1@mail.com",
-				created: new Date("2022-06-15 12:00:00 GMT+0"),
-				deleted: new Date("2022-06-17 12:30:00 GMT +0"),
-				usedStorage: 100,
-				aliases: ["alias1@alias.com", "alias2@alias.com"]
-			}
-		]
-
-		o(renderExportDataCsv(data)).equals(
-			USER_EXPORT_CSV_HEADER + "\n"
-			+ "mr\\; semicolon; mail1@mail.com; 20220615T120000Z; 20220617T123000Z; 100B; alias1@alias.com alias2@alias.com"
-		)
 	})
 
 	function addUser(name, mailAddress, created, deleted, usedStorage, aliases, userId, groupId) {

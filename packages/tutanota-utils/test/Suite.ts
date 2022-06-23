@@ -8,5 +8,5 @@ import "./PromiseUtilTest.js"
 import "./SortedArrayTest.js"
 import "./MathUtilsTest.js"
 import "./LazyLoadedTest.js"
-
+import "./CsvTest.js"
 o.run()
