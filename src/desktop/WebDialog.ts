@@ -8,6 +8,7 @@ import {exposeRemote} from "../api/common/WorkerProxy.js"
 import {CancelledError} from "../api/common/error/CancelledError.js"
 import {CentralIpcHandler} from "./ipc/CentralIpcHandler.js"
 import {register} from "./electron-localshortcut/LocalShortcut.js"
+import {ProgrammingError} from "../api/common/error/ProgrammingError.js"
 
 /**
  * a browserWindow wrapper that
@@ -106,7 +107,7 @@ export class WebDialogController implements IWebDialogController {
 	private async createBrowserWindow(parentWindowId: number) {
 		const active = BrowserWindow.fromId(parentWindowId)
 
-		return new BrowserWindow({
+		const window = new BrowserWindow({
 			parent: active ?? undefined,
 			modal: true,
 			skipTaskbar: true,
@@ -140,8 +141,21 @@ export class WebDialogController implements IWebDialogController {
 				autoplayPolicy: "user-gesture-required",
 				enableWebSQL: false,
 				spellcheck: false,
+				partition: "webdialog",
 			},
 		})
+		const session = window.webContents.session
+		// Intercepts all file:// requests and forbids them
+		if (!session.protocol.isProtocolIntercepted("file")) {
+			const intercepting = session.protocol.interceptFileProtocol("file", (request, cb) => {
+				cb({statusCode: 403})
+			})
+			if (!intercepting) {
+				throw new ProgrammingError("Cannot intercept file: protocol for WebDialog!")
+			}
+		}
+
+		return window
 	}
 
 	async initRemoteWebauthn<FacadeType>(webContents: WebContents): Promise<FacadeType> {

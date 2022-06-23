@@ -19,6 +19,7 @@ import {CommonNativeFacade} from "../native/common/generatedipc/CommonNativeFaca
 import {RemoteBridge} from "./ipc/RemoteBridge.js"
 import {InterWindowEventSender} from "../native/common/InterWindowEventBus.js"
 import {InterWindowEventTypes} from "../native/common/InterWindowEventTypes.js"
+import {ProgrammingError} from "../api/common/error/ProgrammingError.js"
 import HandlerDetails = Electron.HandlerDetails
 
 const MINIMUM_WINDOW_SIZE: number = 350
@@ -304,7 +305,32 @@ export class ApplicationWindow {
 			(webContents, permission, callback: (_: boolean) => void) => callback(false),
 		)
 
-		this.manageDownloadsForSession(this._browserWindow.webContents.session, dictUrl)
+		const session = this._browserWindow.webContents.session
+		session.setPermissionRequestHandler(
+			(webContents, permission, callback: (_: boolean) => void) => callback(false),
+		)
+
+		const assetDir = path.dirname(url.fileURLToPath(this._startFileURLString))
+
+		// Intercepts all file:// requests
+		// Default session is  shared between all windows so we only register it once
+		if (!session.protocol.isProtocolIntercepted("file")) {
+			const intercepting = session.protocol.interceptFileProtocol("file", (request, cb) => {
+				const requestedPath = url.fileURLToPath(request.url)
+				const resolvedPath = path.resolve(assetDir, requestedPath)
+				if (!resolvedPath.startsWith(assetDir)) {
+					console.log("Invalid asset URL", request.url.toString())
+					cb({statusCode: 404})
+				} else {
+					cb({path: resolvedPath})
+				}
+			})
+			if (!intercepting) {
+				throw new ProgrammingError("Cannot intercept file: protocol!")
+			}
+		}
+
+		this.manageDownloadsForSession(session, dictUrl)
 
 		this._browserWindow
 			.on("close", () => {
