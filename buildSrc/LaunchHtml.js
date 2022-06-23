@@ -65,7 +65,7 @@ function csp(env) {
 				+ " img-src http: blob: data: *;"
 				+ " style-src 'unsafe-inline';"
 				+ "base-uri 'none';"
-				+ ` connect-src 'self' ${getUrls(env)} https://tutanota.com;`
+				+ ` connect-src 'self' ${getUrls(env)} https://tutanota.com; api://`
 
 			return `<meta http-equiv="Content-Security-Policy" content="${cspContent}">`
 		} else {

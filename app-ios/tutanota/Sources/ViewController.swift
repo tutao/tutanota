@@ -55,8 +55,12 @@ class ApiSchemeHandler : NSObject, WKURLSchemeHandler {
       return
     }
     // FIXME: unhardcode
-    urlComponents.scheme = "https"
-    urlComponents.host = "test.tutanota.com"
+//    urlComponents.scheme = "https"
+//    urlComponents.host = "test.tutanota.com"
+    
+    urlComponents.scheme = "http"
+    urlComponents.host = "ivk"
+    urlComponents.port = 9000
     let newUrl = urlComponents.url!
 
     var newRequest = urlSchemeTask.request
@@ -67,6 +71,8 @@ class ApiSchemeHandler : NSObject, WKURLSchemeHandler {
       if let error = error {
         urlSchemeTask.didFailWithError(error)
       } else {
+        let actualResponse = (response! as! HTTPURLResponse)
+        let newResponse = HTTPURLResponse(url: actualResponse.url, statusCode: actualResponse.statusCode, httpVersion: <#T##String?#>, headerFields: <#T##[String : String]?#>)
         urlSchemeTask.didReceive(response!)
         urlSchemeTask.didReceive(data!)
         urlSchemeTask.didFinish()

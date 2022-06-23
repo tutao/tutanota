@@ -19,11 +19,13 @@ export function getWebsocketOrigin(): string {
 	// const newOrigin = "ws:" + oldOrigin.slice(0, oldProtocol.length)
 	// console.log("ws new origin", newOrigin)
 	// return newOrigin
-	return getHttpOrigin()
+	return getHttpOrigin().replace(/^https?:\/\//, "ws:")
 }
 
 export function getHttpOrigin(): string {
-	if (env.staticUrl) {
+	if (isApp()) {
+		return "api://"
+	} else if (env.staticUrl) {
 		return env.staticUrl
 	} else {
 		return location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "")
