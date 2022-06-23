@@ -13,6 +13,7 @@ import {ThemeFacade} from "../../../src/native/common/generatedipc/ThemeFacade.j
 import {DesktopThemeFacade} from "../../../src/desktop/DesktopThemeFacade.js"
 import {RemoteBridge, SendingFacades} from "../../../src/desktop/ipc/RemoteBridge.js"
 import Rectangle = Electron.Rectangle
+import BrowserWindow = Electron.BrowserWindow
 
 const {anything} = matchers
 
@@ -177,6 +178,13 @@ o.spec("ApplicationWindow Test", function () {
 								},
 								setSpellCheckerDictionaryDownloadURL: () => {
 								},
+								protocol: {
+									isProtocolIntercepted() {
+										return false
+									},
+									interceptFileProtocol() {
+										return true
+									}},
 								on() {
 									return this
 								},
@@ -335,7 +343,7 @@ o.spec("ApplicationWindow Test", function () {
 			dictUrl,
 		)
 		o(electronMock.BrowserWindow.mockedInstances.length).equals(1)
-		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
+		const bwInstance: BrowserWindow = electronMock.BrowserWindow.mockedInstances[0]
 		// We load some things async before loading URL so we wait for it. __loadedUrl comes from our mock
 		await (bwInstance as any).__loadedUrl.promise
 		o(bwInstance.loadURL.callCount).equals(1)
@@ -393,6 +401,7 @@ o.spec("ApplicationWindow Test", function () {
 			"zoom-changed",
 			"update-target-url",
 		])("webContents registered callbacks dont match")
+		o(bwInstance.webContents.session.protocol.interceptFileProtocol.args[0]).equals("file")
 	})
 	o("construction, noAutoLogin", async function () {
 		const {electronMock, wmMock, electronLocalshortcutMock, offlineDbFacade, themeFacade, remoteBridge} = standardMocks()
