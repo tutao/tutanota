@@ -206,14 +206,18 @@ async function downloadLatestMapirs(dllName, dllTrg) {
 		owner: "tutao",
 		repo: "mapirs"
 	}
+	console.log("getting latest mapirs release")
 	const res = await octokit.request('GET /repos/{owner}/{repo}/releases/latest', opts)
+	console.log("latest mapirs release", res)
 	const asset_id = res.data.assets.find(a => a.name.startsWith(dllName)).id
+	console.log("Downloading mapirs asset", asset_id)
 	const asset = await octokit.repos.getReleaseAsset(Object.assign(opts, {
 		asset_id,
 		headers: {
 			"Accept": "application/octet-stream"
 		}
 	}))
-
+	console.log("Writing mapirs asset")
 	await fs.promises.writeFile(dllTrg, Buffer.from(asset.data))
+	console.log("Mapirs downloaded")
 }
