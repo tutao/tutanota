@@ -200,24 +200,29 @@ async function getMapirs(distDir) {
  * @returns {Promise<void>}
  */
 async function downloadLatestMapirs(dllName, dllTrg) {
-	const {Octokit} = await import("@octokit/rest")
-	const octokit = new Octokit();
-	const opts = {
-		owner: "tutao",
-		repo: "mapirs"
-	}
-	console.log("getting latest mapirs release")
-	const res = await octokit.request('GET /repos/{owner}/{repo}/releases/latest', opts)
-	console.log("latest mapirs release", res)
-	const asset_id = res.data.assets.find(a => a.name.startsWith(dllName)).id
-	console.log("Downloading mapirs asset", asset_id)
-	const asset = await octokit.repos.getReleaseAsset(Object.assign(opts, {
-		asset_id,
-		headers: {
-			"Accept": "application/octet-stream"
+	try {
+		const {Octokit} = await import("@octokit/rest")
+		const octokit = new Octokit();
+		const opts = {
+			owner: "tutao",
+			repo: "mapirs"
 		}
-	}))
-	console.log("Writing mapirs asset")
-	await fs.promises.writeFile(dllTrg, Buffer.from(asset.data))
-	console.log("Mapirs downloaded")
+		console.log("getting latest mapirs release")
+		const res = await octokit.request('GET /repos/{owner}/{repo}/releases/latest', opts)
+		console.log("latest mapirs release", res.url)
+		const asset_id = res.data.assets.find(a => a.name.startsWith(dllName)).id
+		console.log("Downloading mapirs asset", asset_id)
+		const asset = await octokit.repos.getReleaseAsset(Object.assign(opts, {
+			asset_id,
+			headers: {
+				"Accept": "application/octet-stream"
+			}
+		}))
+		console.log("Writing mapirs asset")
+		await fs.promises.writeFile(dllTrg, Buffer.from(asset.data))
+		console.log("Mapirs downloaded")
+	} catch (e) {
+		console.error("Failed to download mapirs!", e)
+		throw e
+	}
 }
