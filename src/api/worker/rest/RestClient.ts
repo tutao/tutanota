@@ -4,7 +4,7 @@ import {HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {assertNotNull, typedEntries, uint8ArrayToArrayBuffer} from "@tutao/tutanota-utils"
 import {SuspensionHandler} from "../SuspensionHandler"
 import {REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP} from "../../common/TutanotaConstants"
-import {SuspensionError} from "../../common/error/SuspensionError"
+import {SuspensionError} from "../../common/error/SuspensionError.js"
 
 assertWorkerOrNode()
 
@@ -40,14 +40,12 @@ export interface RestClientOptions {
  * upload progress with fetch (see https://stackoverflow.com/a/69400632)
  */
 export class RestClient {
-	private readonly url: string
 	private id: number
 	private suspensionHandler: SuspensionHandler
 	// accurate to within a few seconds, depending on network speed
 	private serverTimeOffsetMs: number | null = null
 
 	constructor(suspensionHandler: SuspensionHandler) {
-		this.url = getHttpOrigin()
 		this.id = 0
 		this.suspensionHandler = suspensionHandler
 	}
@@ -76,13 +74,16 @@ export class RestClient {
 					options.queryParams["cv"] = env.versionNumber
 				}
 
-				const url = addParamsToUrl(new URL((options.baseUrl ?? this.url) + path), options.queryParams)
+				const origin = options.baseUrl ?? getHttpOrigin()
+				const url = addParamsToUrl(new URL(origin + path), options.queryParams)
 				const xhr = new XMLHttpRequest()
 				xhr.open(method, url.toString())
 
 				this.setHeaders(xhr, options)
 
-				xhr.responseType = options.responseType === MediaType.Json || options.responseType === MediaType.Text ? "text" : "arraybuffer"
+				xhr.responseType = options.responseType === MediaType.Json || options.responseType === MediaType.Text
+					? "text"
+					: "arraybuffer"
 
 				const abortAfterTimeout = () => {
 					const res = {
@@ -100,15 +101,19 @@ export class RestClient {
 				t.timeoutId = timeout
 
 				// self.debug doesn't typecheck in the fdroid build, but it does when running locally due to devDependencies
-				// @ts-ignore
-				if (isWorker() && self.debug) {
+				if (isWorker() &&
+					// @ts-ignore
+					self.debug
+				) {
 					console.log(`${this.id}: set initial timeout ${String(timeout)} of ${env.timeout}`)
 				}
 
 				xhr.onload = () => {
 					// XMLHttpRequestProgressEvent, but not needed
-					// @ts-ignore
-					if (isWorker() && self.debug) {
+					if (isWorker() &&
+						// @ts-ignore
+						self.debug
+					) {
 						console.log(`${this.id}: ${String(new Date())} finished request. Clearing Timeout ${String(timeout)}.`)
 					}
 

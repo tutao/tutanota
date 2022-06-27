@@ -17,8 +17,8 @@ import {OfflineDbFacade} from "./db/OfflineDbFacade"
 import {DesktopFacade} from "../native/common/generatedipc/DesktopFacade.js"
 import {CommonNativeFacade} from "../native/common/generatedipc/CommonNativeFacade.js"
 import {RemoteBridge} from "./ipc/RemoteBridge.js"
-import {ProgrammingError} from "../api/common/error/ProgrammingError.js"
 import {InterWindowEventFacadeSendDispatcher} from "../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import {handleProtocols} from "./net/ProtocolProxy.js"
 import HandlerDetails = Electron.HandlerDetails
 
 const MINIMUM_WINDOW_SIZE: number = 350
@@ -309,25 +309,7 @@ export class ApplicationWindow {
 			(webContents, permission, callback: (_: boolean) => void) => callback(false),
 		)
 
-		const assetDir = path.dirname(url.fileURLToPath(this._startFileURLString))
-
-		// Intercepts all file:// requests
-		// Default session is  shared between all windows so we only register it once
-		if (!session.protocol.isProtocolIntercepted("file")) {
-			const intercepting = session.protocol.interceptFileProtocol("file", (request, cb) => {
-				const requestedPath = url.fileURLToPath(request.url)
-				const resolvedPath = path.resolve(assetDir, requestedPath)
-				if (!resolvedPath.startsWith(assetDir)) {
-					console.log("Invalid asset URL", request.url.toString())
-					cb({statusCode: 404})
-				} else {
-					cb({path: resolvedPath})
-				}
-			})
-			if (!intercepting) {
-				throw new ProgrammingError("Cannot intercept file: protocol!")
-			}
-		}
+		handleProtocols(session, path.dirname(url.fileURLToPath(this._startFileURLString)))
 
 		this.manageDownloadsForSession(session, dictUrl)
 
@@ -663,7 +645,7 @@ export class ApplicationWindow {
 	}
 
 	async _getInitialUrl(additionalQueryParams: Record<string, string | boolean>): Promise<string> {
-		const url = new URL(this._startFileURLString)
+		const url = new URL("asset://app/index-desktop.html")
 
 		for (const [key, value] of typedEntries(additionalQueryParams)) {
 			url.searchParams.append(key, String(value))

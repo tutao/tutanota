@@ -9,7 +9,6 @@ const SERVER_TIME_IN_HEADER = "Mon, 12 Jul 2021 13:18:39 GMT"
 const SERVER_TIMESTAMP = 1626095919000
 
 o.spec("rest client", function () {
-	env.staticUrl = "http://localhost:3000"
 	const suspensionHandlerMock = {
 		activateSuspensionIfInactive: o.spy(),
 		isSuspended: o.spy(() => false),
@@ -28,8 +27,6 @@ o.spec("rest client", function () {
 				if (server) {
 					server.close(function (err) {
 						if (err) console.log(err)
-						// @ts-ignore
-						env.staticUrl = null
 						done()
 					})
 				}
@@ -45,6 +42,7 @@ o.spec("rest client", function () {
 				})
 				const res = await restClient.request("/get/json", HttpMethod.GET, {
 					responseType: MediaType.Json,
+					baseUrl: "http://localhost:3000"
 				})
 				o(res).equals(responseText)
 			})
@@ -60,6 +58,7 @@ o.spec("rest client", function () {
 				restClient.request("/get/with-body", HttpMethod.GET, {
 					body: request,
 					responseType: MediaType.Json,
+					baseUrl: "http://localhost:3000"
 				})
 			})
 			o("GET binary", function (done) {
@@ -75,6 +74,7 @@ o.spec("rest client", function () {
 				restClient.request("/get/binary", HttpMethod.GET, {
 					queryParams: {},
 					responseType: MediaType.Binary,
+					baseUrl: "http://localhost:3000",
 				}).then(res => {
 					o(res instanceof Uint8Array).equals(true)
 					o(Array.from(res as any)).deepEquals(Array.from(response))
@@ -105,6 +105,7 @@ o.spec("rest client", function () {
 					restClient.request(url, method, {
 						body: requestText,
 						responseType: MediaType.Json,
+						baseUrl: "http://localhost:3000",
 					}).then(res => {
 						o(res).equals(responseText)
 						done()
@@ -135,6 +136,7 @@ o.spec("rest client", function () {
 					restClient.request(url, method, {
 						body: new Uint8Array(request),
 						responseType: MediaType.Binary,
+						baseUrl: "http://localhost:3000",
 					}).then(res => {
 						o(res instanceof Uint8Array).equals(true)
 						o(Array.from(res as any)).deepEquals(Array.from(response))
@@ -159,7 +161,9 @@ o.spec("rest client", function () {
 							res.set("Date", SERVER_TIME_IN_HEADER)
 							res.send()
 						})
-						restClient.request(url, method).then(res => {
+						restClient.request(url, method, {
+							baseUrl: "http://localhost:3000"
+						}).then(res => {
 							o(res).equals(null)
 							resolve(null)
 						})
@@ -181,7 +185,7 @@ o.spec("rest client", function () {
 							res.status(205).send() // every status code !== 200 is currently handled as error
 						})
 						restClient
-							.request(url, method)
+							.request(url, method, {baseUrl: "http://localhost:3000"})
 							.then(reject)
 							.catch(e => {
 								o(e instanceof ResourceError).equals(true)
