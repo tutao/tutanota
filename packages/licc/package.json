@@ -1,25 +1,25 @@
 {
-  "name": "@tutao/licc",
-  "version": "0.0.1",
-  "bin": {
-	"licc": "dist/cli.js"
-  },
-  "description": "little interface compiler",
-  "main": "index.js",
-  "type": "module",
-  "scripts": {
-	"build": "tsc -b",
-	"test": "rm -rf ./test/build && tsc -b test && cd test/build && node test/Suite.js",
-	"preinstall": "mkdir -p dist && touch dist/cli.js"
-  },
-  "author": "",
-  "license": "GPL-3.0",
-  "dependencies": {
-	"zx": "6.1.0",
-	"commander": "9.3.0"
-  },
-  "devDependencies": {
-	"@tutao/tutanota-test-utils": "3.96.13",
-	"ospec": "https://github.com/tutao/ospec.git#0472107629ede33be4c4d19e89f237a6d7b0cb11"
-  }
+	"name": "@tutao/licc",
+	"version": "3.98.2",
+	"bin": {
+		"licc": "dist/cli.js"
+	},
+	"description": "little interface compiler",
+	"main": "index.js",
+	"type": "module",
+	"scripts": {
+		"build": "tsc -b",
+		"test": "rm -rf ./test/build && tsc -b test && cd test/build && node test/Suite.js",
+		"preinstall": "mkdir -p dist && touch dist/cli.js"
+	},
+	"author": "",
+	"license": "GPL-3.0",
+	"dependencies": {
+		"zx": "6.1.0",
+		"commander": "9.3.0"
+	},
+	"devDependencies": {
+		"@tutao/tutanota-test-utils": "3.98.2",
+		"ospec": "https://github.com/tutao/ospec.git#0472107629ede33be4c4d19e89f237a6d7b0cb11"
+	}
 }
