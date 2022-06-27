@@ -30,6 +30,8 @@ import {elementIdPart, getElementId} from "../api/common/utils/EntityUtils"
 import {showChangeOwnPasswordDialog} from "./ChangePasswordDialogs.js";
 import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js"
+import {DropDownSelectorAttrs, DropDownSelector} from "../gui/base/DropDownSelector.js"
+import {showUsageTestOptInDialog} from "../misc/UsageTestModel.js"
 
 assertMainOrNode()
 
@@ -103,6 +105,35 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			disabled: true,
 			injectionsRight: () => m(IconButton, recoveryCodeDropdownButtonAttrs),
 		}
+		const usageDataOptInAttrs: DropDownSelectorAttrs<boolean | null> = {
+			label: "userUsageDataOptIn_label",
+			items: [
+				{
+					name: lang.get("activated_label"),
+					value: true,
+				},
+				{
+					name: lang.get("deactivated_label"),
+					value: false,
+				},
+				{
+					name: lang.get("undecided_label"),
+					value: null,
+					selectable: false,
+				},
+			],
+			selectedValue: logins.getUserController().userSettingsGroupRoot.usageDataOptedIn,
+			selectionChangedHandler: v => {
+				logins.getUserController().userSettingsGroupRoot.usageDataOptedIn = v
+				locator.entityClient.update(logins.getUserController().userSettingsGroupRoot)
+			},
+			helpLabel: () => m("", [
+				lang.get("userUsageDataOptInInfo_msg") + " ",
+				m("span.text-break", {onclick: showUsageTestOptInDialog}, lang.get("clickHereForMoreInfo_msg"))
+			]),
+			dropdownWidth: 250,
+		}
+
 		// Might be not there when we are logging out
 		if (logins.isUserLoggedIn()) {
 			const user = logins.getUserController()
@@ -133,6 +164,8 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					),
 					m(".small", lang.get("sessionsWillBeDeleted_msg")),
 					m(".small", lang.get("sessionsInfo_msg")),
+					m(".h4.mt-l", "Usage data"),
+					m(DropDownSelector, usageDataOptInAttrs),
 				]),
 			])
 		} else {
