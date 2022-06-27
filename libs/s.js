@@ -5,7 +5,7 @@
 (function () {
 
   function errMsg(errCode, msg) {
-    return (msg || "") + " (SystemJS https://github.com/systemjs/systemjs/blob/master/docs/errors.md#" + errCode + ")";
+    return (msg || "") + " (SystemJS https://git.io/JvFET#" + errCode + ")";
   }
 
   var hasSymbol = typeof Symbol !== 'undefined';
@@ -526,7 +526,7 @@
         System.import(script.src.slice(0, 7) === 'import:' ? script.src.slice(7) : resolveUrl(script.src, baseUrl)).catch(function (e) {
           // if there is a script load error, dispatch an "error" event
           // on the script tag.
-          if (e.message.indexOf('https://github.com/systemjs/systemjs/blob/master/docs/errors.md#3') > -1) {
+          if (e.message.indexOf('https://git.io/JvFET#3') > -1) {
             var event = document.createEvent('Event');
             event.initEvent('error', false, false);
             script.dispatchEvent(event);

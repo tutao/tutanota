@@ -32,7 +32,6 @@ export async function runTestBuild({clean}) {
 		await fs.copyFile(pjPath, inBuildDir("package.json"))
 		await createUnitTestHtml(localEnv)
 	})
-
 	await runStep("Esbuild", async () => {
 		await esbuild({
 			entryPoints: ["tests/bootstrapTests.ts"],
@@ -57,6 +56,7 @@ export async function runTestBuild({clean}) {
 				"express",
 				"server-destroy",
 				"body-parser",
+				"jsdom",
 			],
 			// even though tests might be running in browser we set it to node so that it ignores all builtins
 			platform: "node",
