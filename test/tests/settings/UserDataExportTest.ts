@@ -46,9 +46,11 @@ o.spec("user data export", function () {
 	})
 
 	o("should load and return correct user data ", async function () {
-
-		addUser("my name", "mail1@mail.com", new Date("2022-06-15 12:00:00 GMT+0"), new Date("2022-06-17 12:30:00 GMT +0"), 100, ["alias1@alias.com", "alias2@alias.com"], "user1", "group1")
-		addUser("eman ym", "mail2@mail.com", new Date("2022-07-15 12:00:00 GMT+0"), null, null, [], "user2", "group2")
+		const oneCreated = new Date(1655294400000) // 2022-06-15 12:00:00 GMT+0
+		const oneDeleted = new Date(1655469000000) // "2022-06-17 12:30:00 GMT +0"
+		const twoCreated = new Date(1657886400000) // "2022-07-15 12:00:00 GMT+0"
+		addUser("my name", "mail1@mail.com", oneCreated, oneDeleted, 100, ["alias1@alias.com", "alias2@alias.com"], "user1", "group1")
+		addUser("eman ym", "mail2@mail.com", twoCreated, null, null, [], "user2", "group2")
 
 		const [first, second] = await loadUserExportData(entityClientMock, userManagementFacadeMock, loginsMock)
 
@@ -81,8 +83,8 @@ o.spec("user data export", function () {
 			group: groupId
 		} as GroupInfo)
 
-		const user = { _id: userId } as User
-		when(entityClientMock.load(GroupTypeRef, groupId)).thenResolve({ user: userId })
+		const user = {_id: userId} as User
+		when(entityClientMock.load(GroupTypeRef, groupId)).thenResolve({user: userId})
 		when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
 		when(userManagementFacadeMock.readUsedUserStorage(user)).thenResolve(usedStorage)
 	}
