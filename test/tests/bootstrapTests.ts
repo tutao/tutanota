@@ -45,11 +45,17 @@ async function setupNode() {
 	 */
 	globalThis.node = (func) => func
 
-	const browserMock = await import("mithril/test-utils/browserMock.js")
-	globalThis.window = browserMock.default()
+	const {JSDOM} = await import("jsdom")
+	var dom = new JSDOM("", {
+		// So we can get `requestAnimationFrame`
+		pretendToBeVisual: true,
+	})
+
+	globalThis.requestAnimationFrame = dom.window.requestAnimationFrame
+	globalThis.window = dom.window
+	dom.reconfigure({"url": "http://tutanota.com"})
 	globalThis.window.getElementsByTagName = function () {
 	} // for styles.js
-	globalThis.window.location = {hostname: "tutanota.com", search: "", href: "http://tutanota.com", hash: ""}
 	globalThis.window.document.addEventListener = function () {
 	}
 	globalThis.document = globalThis.window.document
@@ -83,7 +89,6 @@ async function setupNode() {
 			bytes.set(randomBytes)
 		}
 	}
-	window.crypto = globalThis.crypto
 	globalThis.XMLHttpRequest = (await import("xhr2")).default
 	process.on("unhandledRejection", function (e) {
 		console.log("Uncaught (in promise) " + e.stack)

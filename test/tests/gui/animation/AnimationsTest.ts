@@ -1,14 +1,6 @@
 import o from "ospec"
 import type {DomMutation} from "../../../../src/gui/animation/Animations.js"
-import {
-	alpha,
-	AlphaEnum,
-	Animation,
-	animations,
-	DefaultAnimationTime,
-	transform,
-	TransformEnum
-} from "../../../../src/gui/animation/Animations.js"
+import {alpha, AlphaEnum, Animation, animations, DefaultAnimationTime, transform, TransformEnum} from "../../../../src/gui/animation/Animations.js"
 import {ease} from "../../../../src/gui/animation/Easing.js"
 import {client} from "../../../../src/misc/ClientDetector.js"
 import {DeviceType} from "../../../../src/misc/ClientConstants.js"
@@ -40,18 +32,26 @@ o.spec("Animations", function () {
 	o.spec("base", function () {
 		let originalRequestAnimationFrame = window.requestAnimationFrame
 		let originalPerformance = window.performance
+		let newPerformance = {
+			now: () => time
+		}
 
 		let time
 		o.beforeEach(function () {
 			animations.activeAnimations = []
-			// @ts-ignore
-			window.performance = {
-				now: () => time
-			}
+			Object.defineProperty(window, "performance", {
+				get() {
+					return newPerformance
+				}
+			})
 		})
 		o.after(function () {
 			window.requestAnimationFrame = originalRequestAnimationFrame
-			window.performance = originalPerformance
+			Object.defineProperty(window, "performance", {
+				get() {
+					return originalPerformance
+				}
+			})
 		})
 
 		o("animation is created on add with default delay of 0", function () {
