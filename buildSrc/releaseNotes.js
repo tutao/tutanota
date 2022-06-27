@@ -119,13 +119,16 @@ async function getIssuesForMilestone(octokit, milestone) {
 
 /**
  * Filter the issues for the given platform.
- * If an issue has no label, then it will be included
+ * If an issue has no platform label, then it will be included
  * If an issue has a label for a different platform, it won't be included,
- * _unless_ it also has the label for the specified paltform
+ * _unless_ it also has the label for the specified platform.
+ *
+ * issues that have the "dev bug" label won't be included in any case.
  */
 function filterIssues(issues, platform) {
 
 	const allPlatforms = ["android", "ios", "desktop"]
+	issues = issues.filter(issue => !issue.labels.some(label => label.name === "dev bug"))
 
 	if (platform === "all") {
 		return issues
