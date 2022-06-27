@@ -87,14 +87,18 @@ class UserPreferenceFacade {
     let sseInfo = self.sseInfo
     if var sseInfo = sseInfo {
       sseInfo.userIds = []
-      self.put(sseInfo: sseInfo)
+      self.put(sseInfo: nil)
       self.lastMissedNotificationCheckTime = nil
       self.store(alarms: [])
     }
   }
   
-  private func put(sseInfo: SSEInfo) {
-    let dict: NSDictionary = try! DictionaryEncoder().encode(sseInfo)
-    UserDefaults.standard.setValue(dict, forKey: SSE_INFO_KEY)
+  private func put(sseInfo: SSEInfo?) {
+    if let sseInfo = sseInfo {
+      let dict: NSDictionary = try! DictionaryEncoder().encode(sseInfo)
+      UserDefaults.standard.setValue(dict, forKey: SSE_INFO_KEY)
+    } else {
+      UserDefaults.standard.setValue(nil, forKey: SSE_INFO_KEY)
+    }
   }
 }
