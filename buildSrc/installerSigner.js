@@ -63,10 +63,10 @@ export function sign(filePath, signatureFileName, ymlFileName) {
 	if (ymlFileName) {
 		console.log(`attaching signature to yml...`, ymlFileName)
 		const ymlPath = path.join(dir, ymlFileName)
-		let yml = jsyaml.safeLoad(fs.readFileSync(ymlPath, 'utf8'))
+		let yml = jsyaml.load(fs.readFileSync(ymlPath, 'utf8'))
 		const signatureContent = fs.readFileSync(sigOutPath)
 		yml.signature = signatureContent.toString('base64')
-		fs.writeFileSync(ymlPath, jsyaml.safeDump(yml), 'utf8')
+		fs.writeFileSync(ymlPath, jsyaml.dump(yml), 'utf8')
 	} else {
 		console.log("Not attaching signature to yml")
 	}
