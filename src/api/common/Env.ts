@@ -12,13 +12,17 @@ export const Mode: Record<EnvMode, EnvMode> = Object.freeze({
 })
 
 export function getWebsocketOrigin(): string {
-	// replace "http" by "ws"
-	return "ws" + getHttpOrigin().substring(4)
+	return getHttpOrigin()
+		// replaces http: with ws: and https: with wss:
+		.replace(/^http/, "ws")
+		// for ios app custom protocol
+		.replace(/^api/, "ws")
 }
 
+/** Returns the origin which should be used for API requests. */
 export function getHttpOrigin(): string {
 	if (env.staticUrl) {
-		return env.staticUrl
+		return env.staticUrl.replace(/^https?:/, "api:")
 	} else {
 		return location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "")
 	}

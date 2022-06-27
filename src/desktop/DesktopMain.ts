@@ -56,6 +56,7 @@ import {ExposedNativeInterface} from "../native/common/NativeInterface.js"
 import {DesktopWebauthn} from "./2fa/DesktopWebauthn.js"
 import {DesktopPostLoginActions} from "./DesktopPostLoginActions.js"
 import {DesktopInterWindowEventFacade} from "./ipc/DesktopInterWindowEventFacade.js"
+import {ASSET_PROTOCOL} from "./net/ProtocolProxy.js"
 
 /**
  * Should be injected during build time.
@@ -64,6 +65,11 @@ import {DesktopInterWindowEventFacade} from "./ipc/DesktopInterWindowEventFacade
 declare const buildOptions: {
 	readonly sqliteNativePath: string
 }
+
+electron.protocol.registerSchemesAsPrivileged([{
+	scheme: ASSET_PROTOCOL,
+	privileges: {standard: true}
+}])
 
 mp()
 type Components = {

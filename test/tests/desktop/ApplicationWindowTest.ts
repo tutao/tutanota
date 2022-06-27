@@ -182,9 +182,19 @@ o.spec("ApplicationWindow Test", function () {
 									isProtocolIntercepted() {
 										return false
 									},
+									isProtocolRegistered() {
+										return false
+									},
 									interceptFileProtocol() {
 										return true
-									}},
+									},
+									interceptStreamProtocol() {
+										return true
+									},
+									registerFileProtocol() {
+										return true
+									}
+								},
 								on() {
 									return this
 								},
@@ -354,7 +364,7 @@ o.spec("ApplicationWindow Test", function () {
 			platformId: process.platform,
 			theme: themeJson,
 		})
-		o(bwInstance.loadURL.args[0]).equals(`file:///path/to/app/desktophtml?${query.toString()}`)
+		o(bwInstance.loadURL.args[0]).equals(`asset://app/index-desktop.html?${query.toString()}`)
 		o((bwInstance as any).opts).deepEquals({
 			icon,
 			show: false,
@@ -401,7 +411,8 @@ o.spec("ApplicationWindow Test", function () {
 			"zoom-changed",
 			"update-target-url",
 		])("webContents registered callbacks dont match")
-		o(bwInstance.webContents.session.protocol.interceptFileProtocol.args[0]).equals("file")
+		o(bwInstance.webContents.session.protocol.interceptStreamProtocol.callCount).equals(2)
+		o(bwInstance.webContents.session.protocol.registerFileProtocol.args[0]).equals("asset")
 	})
 	o("construction, noAutoLogin", async function () {
 		const {electronMock, wmMock, electronLocalshortcutMock, offlineDbFacade, themeFacade, remoteBridge} = standardMocks()

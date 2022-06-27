@@ -1,13 +1,16 @@
 import o from "ospec"
 import {GroupType} from "../../src/api/common/TutanotaConstants.js"
-import {ContactTypeRef, createContact} from "../../src/api/entities/tutanota/TypeRefs.js"
-import {MailTypeRef} from "../../src/api/entities/tutanota/TypeRefs.js"
-import {createContactAddress} from "../../src/api/entities/tutanota/TypeRefs.js"
 import type {MailFolder} from "../../src/api/entities/tutanota/TypeRefs.js"
-import {MailFolderTypeRef} from "../../src/api/entities/tutanota/TypeRefs.js"
-import {MailBoxTypeRef} from "../../src/api/entities/tutanota/TypeRefs.js"
+import {
+	ContactListTypeRef,
+	ContactTypeRef,
+	createContact,
+	createContactAddress,
+	MailBoxTypeRef,
+	MailFolderTypeRef,
+	MailTypeRef
+} from "../../src/api/entities/tutanota/TypeRefs.js"
 import {neverNull} from "@tutao/tutanota-utils"
-import {ContactListTypeRef} from "../../src/api/entities/tutanota/TypeRefs.js"
 import {initLocator, locator} from "../../src/api/worker/WorkerLocator.js"
 import {browserDataStub} from "./TestUtils.js"
 import {SessionType} from "../../src/api/common/SessionType.js"
