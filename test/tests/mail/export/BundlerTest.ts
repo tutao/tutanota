@@ -1,28 +1,31 @@
 import o from "ospec"
 import {makeMailBundle} from "../../../../src/mail/export/Bundler.js"
-import {createMail} from "../../../../src/api/entities/tutanota/TypeRefs.js"
+import {
+	createEncryptedMailAddress,
+	createMail,
+	createMailAddress,
+	FileTypeRef,
+	MailBodyTypeRef,
+	MailHeadersTypeRef
+} from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import {MailState} from "../../../../src/api/common/TutanotaConstants.js"
-import {createMailAddress} from "../../../../src/api/entities/tutanota/TypeRefs.js"
-import {createEncryptedMailAddress} from "../../../../src/api/entities/tutanota/TypeRefs.js"
-import {downcast} from "@tutao/tutanota-utils"
-import {MailBodyTypeRef} from "../../../../src/api/entities/tutanota/TypeRefs.js"
-import {MailHeadersTypeRef} from "../../../../src/api/entities/tutanota/TypeRefs.js"
-import {isSameTypeRef} from "@tutao/tutanota-utils"
-import {isSameId} from "../../../../src/api/common/utils/EntityUtils.js"
-import {FileTypeRef} from "../../../../src/api/entities/tutanota/TypeRefs.js"
 import {DataFile} from "../../../../src/api/common/DataFile.js";
 import {HtmlSanitizer} from "../../../../src/misc/HtmlSanitizer.js"
+import {EntityClient} from "../../../../src/api/common/EntityClient.js"
+import {FileController} from "../../../../src/file/FileController.js"
+import {object, when} from "testdouble"
 
 o.spec("Bundler", function () {
-	const anAttachmnet: DataFile = {
-		_type: "DataFile",
-		id: undefined,
-		name: "attachment",
-		cid: "cid",
-		data: new Uint8Array(),
-		size: 4,
-		mimeType: "test"
-	}
+
+	let entityClientMock: EntityClient
+	let fileControllerMock: FileController
+	let sanitizerMock: HtmlSanitizer
+
+	o.beforeEach(function () {
+		entityClientMock = object()
+		fileControllerMock = object()
+		sanitizerMock = object()
+	})
 	o("make mail bundle non compressed headers", async function () {
 		const mailId: IdTuple = ["maillistid", "maillid"]
 		const subject = "hello"
@@ -37,21 +40,20 @@ o.spec("Bundler", function () {
 		const sentOn = new Date()
 		const receivedOn = new Date()
 		const headers = "this is the headers"
-		const entityClient = {
-			load: o.spy(() => Promise.resolve({text: body, headers})),
-		}
-
-		const fileController = {
-			downloadAndDecryptBrowser: o.spy(() => {
-				return anAttachmnet
-			})
-		}
-
-		const sanitizer = ({
-				sanitizeHTML: o.spy(text => ({text: sanitizedBodyText})) as any
-			} as Partial<HtmlSanitizer>) as HtmlSanitizer
 		const mailHeadersId = "mailheadersid"
-		const attachmentIds: IdTuple[] = [["listid", "attachid1"], ["listid", "attachid2"], ["listid", "attachid3"]]
+		const attachmentListId = "attachmentListId"
+		const attachmentIds = ["attachmentId1", "attachmentId2", "attachmentId3"]
+		const attachments: Array<DataFile> = attachmentIds.map(id => {
+			return {
+				_type: "DataFile",
+				id: undefined,
+				name: id,
+				cid: id,
+				data: new Uint8Array(),
+				size: 4,
+				mimeType: "test"
+			}
+		})
 		const mail = createMail({
 			_id: mailId,
 			body: mailBodyId,
@@ -66,31 +68,42 @@ o.spec("Bundler", function () {
 			receivedDate: receivedOn,
 			sentDate: sentOn,
 			headers: mailHeadersId,
-			attachments: attachmentIds,
+			attachments: attachmentIds.map(id => [attachmentListId, id]),
 
 		})
 
-		const bundle = await makeMailBundle(mail, downcast(entityClient), downcast(fileController), downcast(sanitizer))
+		when(entityClientMock.load(MailHeadersTypeRef, mailHeadersId)).thenResolve({headers})
 
-		o(bundle.mailId).deepEquals(mailId)
-		o(bundle.subject).equals(subject)
-		o(bundle.sender).deepEquals(sender)
-		o(bundle.body).equals(sanitizedBodyText)
-		o(bundle.to).deepEquals(to)
-		o(bundle.cc).deepEquals(cc)
-		o(bundle.bcc).deepEquals(bcc)
-		o(bundle.replyTo).deepEquals(replyTo)
-		o(bundle.isDraft).equals(false)("isDraft")
-		o(bundle.isRead).equals(true)("isRead")
-		o(bundle.headers).equals(headers)
-		o(bundle.attachments).deepEquals([anAttachmnet, anAttachmnet, anAttachmnet])
-		const compareCall = (typeRef, id) => call => isSameTypeRef(call.args[0], typeRef) && isSameId(call.args[1], id)
-		const assertLoaded = (typeRef, id) => o(entityClient.load.calls.find(compareCall(typeRef, id))).notEquals(undefined)(`assertLoaded TypeRef(${typeRef.app}, ${typeRef.type}) ${id.toString()}`)
-		assertLoaded(MailBodyTypeRef, mailBodyId)
-		assertLoaded(MailHeadersTypeRef, mailHeadersId)
-		attachmentIds.forEach(assertLoaded.bind(null, FileTypeRef))
-		o(sanitizer.sanitizeHTML.calls[0].args).deepEquals([
-			body, {blockExternalContent: false, allowRelativeLinks: false, usePlaceholderForInlineImages: false}
-		])
+		for (const attachment of attachments) {
+			// the file is only needed to pass to the fileController and is not kept, so we mock it as a string for convenience
+			when(entityClientMock.load(FileTypeRef, [attachmentListId, attachment.name])).thenResolve(`file ${attachment.name}` as any)
+			when(fileControllerMock.downloadAndDecryptBrowser((`file ${attachment.name}` as any))).thenResolve(attachment)
+		}
+
+		when(entityClientMock.load(MailBodyTypeRef, mailBodyId)).thenResolve({text: body})
+		when(sanitizerMock.sanitizeHTML(body, {
+			blockExternalContent: false,
+			allowRelativeLinks: false,
+			usePlaceholderForInlineImages: false,
+		})).thenReturn({html: sanitizedBodyText})
+
+		const bundle = await makeMailBundle(mail, entityClientMock, fileControllerMock, sanitizerMock)
+
+		o(bundle).deepEquals({
+			mailId: mailId,
+			subject: subject,
+			sender: sender,
+			body: sanitizedBodyText,
+			to: to,
+			cc: cc,
+			bcc: bcc,
+			replyTo: replyTo,
+			isDraft: false,
+			isRead: true,
+			headers: headers,
+			attachments: attachments,
+			sentOn: sentOn.getTime(),
+			receivedOn: receivedOn.getTime(),
+		})
 	})
 })

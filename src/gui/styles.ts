@@ -3,20 +3,28 @@ import {size} from "./size"
 import {assertMainOrNodeBoot, isAdminClient, isTest} from "../api/common/Env"
 import {windowFacade} from "../misc/WindowFacade"
 import {theme, themeController} from "./theme"
-import {neverNull} from "@tutao/tutanota-utils"
+import {assertNotNull, neverNull} from "@tutao/tutanota-utils"
 import {client} from "../misc/ClientDetector"
 
 assertMainOrNodeBoot()
+
+export type StyleSheetId = "main" | "outline"
 
 /**
  * Writes all styles to a single dom <style>-tag
  */
 
 class Styles {
-	styles: Map<string, (...args: Array<any>) => any>
+	styles: Map<StyleSheetId, (...args: Array<any>) => any>
 	initialized: boolean
 	bodyWidth: number
 	bodyHeight: number
+
+	private styleSheets = new Map<StyleSheetId, HTMLElement>()
+
+	getStyleSheetElement(id: StyleSheetId): Node {
+		return assertNotNull(this.styleSheets.get(id)).cloneNode(true)
+	}
 
 	constructor() {
 		this.initialized = false
@@ -39,7 +47,7 @@ class Styles {
 		this._updateDomStyles()
 	}
 
-	registerStyle(id: string, styleCreator: (...args: Array<any>) => any) {
+	registerStyle(id: StyleSheetId, styleCreator: (...args: Array<any>) => any) {
 		if (!this.initialized && this.styles.has(id)) {
 			throw new Error("duplicate style definition: " + id)
 		}
@@ -53,7 +61,7 @@ class Styles {
 		}
 	}
 
-	updateStyle(id: string) {
+	updateStyle(id: StyleSheetId) {
 		if (!this.initialized || !this.styles.has(id)) {
 			throw new Error("cannot update nonexistent style " + id)
 		}
@@ -77,8 +85,10 @@ class Styles {
 		log(Cat.css, "creation time", time())
 	}
 
-	_updateDomStyle(id: string, styleCreator: (...args: Array<any>) => any) {
-		this._getDomStyleSheet(id).textContent = toCss(styleCreator())
+	_updateDomStyle(id: StyleSheetId, styleCreator: (...args: Array<any>) => any) {
+		const styleSheet = this._getDomStyleSheet(id)
+		styleSheet.textContent = toCss(styleCreator())
+		this.styleSheets.set(id, styleSheet)
 	}
 
 	_getDomStyleSheet(id: string): HTMLElement {

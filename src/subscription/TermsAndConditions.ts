@@ -75,7 +75,7 @@ export async function showServiceTerms(section: TermsSection, version: string) {
 	function getSection(): string {
 		return htmlSanitizer.sanitizeHTML(termsFromWebsite[visibleLang], {
 			blockExternalContent: false,
-		}).text
+		}).html
 	}
 
 	let headerBarAttrs: DialogHeaderBarAttrs = {

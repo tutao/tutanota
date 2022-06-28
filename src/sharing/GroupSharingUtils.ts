@@ -80,7 +80,7 @@ function _sendNotificationEmail(recipients: Recipients, subject: string, body: s
 			blockExternalContent: false,
 			allowRelativeLinks: false,
 			usePlaceholderForInlineImages: false,
-		}).text
+		}).html
 		locator.mailModel.getUserMailboxDetails().then(mailboxDetails => {
 			const sender = getEnabledMailAddresses(mailboxDetails).includes(senderMailAddress) ? senderMailAddress : getDefaultSender(logins, mailboxDetails)
 

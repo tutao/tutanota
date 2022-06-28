@@ -5,7 +5,7 @@ import {search} from "../api/common/utils/PlainTextSearch"
 import {LazyLoaded} from "@tutao/tutanota-utils"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {delay, promiseMap} from "@tutao/tutanota-utils"
-import type {SanitizeResult} from "../misc/HtmlSanitizer"
+import type {SanitizedHTML} from "../misc/HtmlSanitizer"
 
 export type FaqEntry = {
 	id: string
@@ -69,13 +69,13 @@ export class FaqModel {
 			assert(typeof entry === "string", "invalid translation entry")
 			const unsanitizedText = downcast(entry)
 			// Declaring some types manually because there seem to be a bug where types are not checked
-			const sanitized: SanitizeResult = htmlSanitizer.sanitizeHTML(unsanitizedText, {
+			const sanitized: SanitizedHTML = htmlSanitizer.sanitizeHTML(unsanitizedText, {
 				blockExternalContent: false,
 			})
 			// Delay to spread sanitize() calls between event loops.
 			// Otherwise we stop main thread for way too long and UI gets laggy.
 			await delay(1)
-			return [key, sanitized.text]
+			return [key, sanitized.html]
 		})
 		const translations = Object.fromEntries(entries)
 		return {

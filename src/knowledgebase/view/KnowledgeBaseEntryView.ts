@@ -31,7 +31,7 @@ export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewA
 			return {
 				content: htmlSanitizer.sanitizeHTML(entry.description, {
 					blockExternalContent: true,
-				}).text,
+				}).html,
 			}
 		})
 	}

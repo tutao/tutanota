@@ -180,7 +180,7 @@ export function renderGiftCardSvg(price: number, link: string | null, message: s
 			container: "none",
 		})
 		const svg = qrcodeGenerator.svg()
-		qrCode = htmlSanitizer.sanitizeSVG(svg).text
+		qrCode = htmlSanitizer.sanitizeSVG(svg).html
 	}
 
 	const formattedPrice = formatPrice(price, true)

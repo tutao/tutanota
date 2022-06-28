@@ -57,7 +57,7 @@ const selectedThemeFacade = isApp() || isDesktop() ? new NativeThemeFacade() : n
 const sanitizerStub: Partial<HtmlSanitizer> = {
 	sanitizeHTML: () => {
 		return {
-			text: "", externalContent: [],
+			html: "", externalContent: [],
 			inlineImageCids: [],
 			links: [],
 		}

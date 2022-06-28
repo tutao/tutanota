@@ -19,8 +19,8 @@ const DEFAULT_CONFIG_EXTRA: SanitizeConfigExtra = {
 	usePlaceholderForInlineImages: true,
 }
 
-export type SanitizeResult = {
-	text: string
+export type SanitizedHTML = {
+	html: string
 	externalContent: Array<string>
 	inlineImageCids: Array<string>
 	links: Array<HTMLElement>
@@ -29,8 +29,8 @@ type SanitizeConfig = SanitizeConfigExtra & DOMPurify.Config
 
 export type Link = HTMLElement
 
-export type SanitizedHTML = {
-	html: DocumentFragment
+export type SanitizedFragment = {
+	fragment: DocumentFragment
 	externalContent: Array<string>
 	inlineImageCids: Array<string>
 	links: Array<Link>
@@ -84,11 +84,11 @@ export class HtmlSanitizer {
 	/**
 	 * Sanitizes the given html. Returns as HTML
 	 */
-	sanitizeHTML(html: string, configExtra?: Partial<SanitizeConfigExtra>): SanitizeResult {
+	sanitizeHTML(html: string, configExtra?: Partial<SanitizeConfigExtra>): SanitizedHTML {
 		const config = this.init(HTML_CONFIG, configExtra ?? {})
 		const cleanHtml = this.purifier.sanitize(html, config)
 		return {
-			text: cleanHtml,
+			html: cleanHtml,
 			externalContent: this.externalContent,
 			inlineImageCids: this.inlineImageCids,
 			links: this.links,
@@ -98,11 +98,11 @@ export class HtmlSanitizer {
 	/**
 	 * Sanitizes the given SVG. Returns as SVG
 	 */
-	sanitizeSVG(svg: string, configExtra?: Partial<SanitizeConfigExtra>): SanitizeResult {
+	sanitizeSVG(svg: string, configExtra?: Partial<SanitizeConfigExtra>): SanitizedHTML {
 		const config = this.init(SVG_CONFIG, configExtra ?? {})
 		const cleanSvg = this.purifier.sanitize(svg, config)
 		return {
-			text: cleanSvg,
+			html: cleanSvg,
 			externalContent: this.externalContent,
 			inlineImageCids: this.inlineImageCids,
 			links: this.links,
@@ -156,11 +156,11 @@ export class HtmlSanitizer {
 	/**
 	 * Sanitizes given HTML. Returns a DocumentFragment instead of an HTML string
 	 */
-	sanitizeFragment(html: string, configExtra?: Partial<SanitizeConfigExtra>): SanitizedHTML {
+	sanitizeFragment(html: string, configExtra?: Partial<SanitizeConfigExtra>): SanitizedFragment {
 		const config = this.init(FRAGMENT_CONFIG, configExtra ?? {})
 		const cleanFragment = this.purifier.sanitize(html, config)
 		return {
-			html: cleanFragment,
+			fragment: cleanFragment,
 			externalContent: this.externalContent,
 			inlineImageCids: this.inlineImageCids,
 			links: this.links,
