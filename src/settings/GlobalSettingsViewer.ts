@@ -4,11 +4,12 @@ import {InfoLink, lang} from "../misc/LanguageViewModel"
 import {getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog} from "./AddSpamRuleDialog"
 import {getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType} from "../api/common/TutanotaConstants"
 import {getCustomMailDomains} from "../api/common/utils/Utils"
-import type {AuditLogEntry, Customer, CustomerInfo, CustomerServerProperties, DomainInfo, GroupInfo} from "../api/entities/sys/TypeRefs.js"
+import type {AuditLogEntry, Customer, CustomerInfo, CustomerProperties, CustomerServerProperties, DomainInfo, GroupInfo} from "../api/entities/sys/TypeRefs.js"
 import {
 	AuditLogEntryTypeRef,
 	createEmailSenderListElement,
 	CustomerInfoTypeRef,
+	CustomerPropertiesTypeRef,
 	CustomerServerPropertiesTypeRef,
 	CustomerTypeRef,
 	GroupInfoTypeRef,
@@ -45,6 +46,7 @@ import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
 import {DropDownSelector} from "../gui/base/DropDownSelector.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js"
+import {SettingsExpander} from "./SettingsExpander.js"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -71,12 +73,18 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 
 	private requirePasswordUpdateAfterReset = false
 	private saveIpAddress = false
+	private readonly usageDataExpanded = stream(false)
+	private readonly customerProperties = new LazyLoaded(() =>
+	locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))),
+)
 
 	constructor() {
 		this.props.map(props => {
 			this.requirePasswordUpdateAfterReset = props.requirePasswordUpdateAfterReset
 			this.saveIpAddress = props.saveEncryptedIpAddressInSession
 		})
+
+		this.customerProperties.getAsync().then(m.redraw)
 
 		this.view = this.view.bind(this)
 
@@ -242,6 +250,38 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						])
 						: null,
 				]),
+				m(SettingsExpander, {
+						title: "usageData_label",
+						expanded: this.usageDataExpanded,
+					}, this.customerProperties.isLoaded()
+						? m(DropDownSelector, {
+							label: "customerUsageDataOptOut_label",
+							items: [
+								{
+									name: lang.get("activated_label"),
+									value: true,
+								},
+								{
+									name: lang.get("deactivated_label"),
+									value: false,
+								},
+							],
+							selectedValue: this.customerProperties.getSync()!.usageDataOptedOut,
+							selectionChangedHandler: v => {
+								if (this.customerProperties.isLoaded()) {
+									const customerProps = this.customerProperties.getSync()!
+									customerProps.usageDataOptedOut = v as boolean
+									locator.entityClient.update(customerProps)
+								}
+							},
+							helpLabel: () => m("", [
+								lang.get("customerUsageDataOptOutInfo_msg"),
+							]),
+							dropdownWidth: 250,
+						})
+						: null
+				)
+
 			]),
 		]
 	}
