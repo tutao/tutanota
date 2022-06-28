@@ -10,6 +10,7 @@
 		3D0EB1F626F489AD002E5102 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0EB1F526F48854002E5102 /* KeychainManager.swift */; };
 		3D0EB1F926F49E36002E5102 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0EB1F826F49E36002E5102 /* AppDelegate.swift */; };
 		3D0EB1FC26F4BEE4002E5102 /* AlarmManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0EB1FB26F4BEE4002E5102 /* AlarmManager.swift */; };
+		3D239302287EC96200DD7396 /* CustomSchemeHandlers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D239301287EC96200DD7396 /* CustomSchemeHandlers.swift */; };
 		3D2DB91B2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2DB91A2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift */; };
 		3D36BCC2274E4A6100428878 /* CryptoTokenKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D36BCC1274E4A6100428878 /* CryptoTokenKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		3D378EE72536F51F0001F1F3 /* FileChooser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D378EE62536F51F0001F1F3 /* FileChooser.swift */; };
@@ -188,6 +189,7 @@
 		3D0EB1F526F48854002E5102 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		3D0EB1F826F49E36002E5102 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3D0EB1FB26F4BEE4002E5102 /* AlarmManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmManager.swift; sourceTree = "<group>"; };
+		3D239301287EC96200DD7396 /* CustomSchemeHandlers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomSchemeHandlers.swift; sourceTree = "<group>"; };
 		3D2DB91A2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosNativeCredentialsFacade.swift; sourceTree = "<group>"; };
 		3D36BCC1274E4A6100428878 /* CryptoTokenKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoTokenKit.framework; path = System/Library/Frameworks/CryptoTokenKit.framework; sourceTree = SDKROOT; };
 		3D378ED22536F3A80001F1F3 /* tutanota-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "tutanota-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -446,6 +448,7 @@
 				3D378ED22536F3A80001F1F3 /* tutanota-Bridging-Header.h */,
 				3DE46D2D2849E33000DC9D43 /* IosThemeFacade.swift */,
 				3D3AFAE7285B0DB60077F302 /* IosMobileSystemFacade.swift */,
+				3D239301287EC96200DD7396 /* CustomSchemeHandlers.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -1535,6 +1538,7 @@
 				3DE46D2E2849E33000DC9D43 /* IosThemeFacade.swift in Sources */,
 				3D84F57927231E8600858A58 /* SSEInfo.swift in Sources */,
 				3DC5DECA2858C12D007364FF /* NativePushFacade.swift in Sources */,
+				3D239302287EC96200DD7396 /* CustomSchemeHandlers.swift in Sources */,
 				3D84F5732722F35600858A58 /* IosNativeCryptoFacade.swift in Sources */,
 				3DBA56C82850AAA6004416BE /* MobileFacadeSendDispatcher.swift in Sources */,
 				3DC5DED92858CB58007364FF /* RsaPublicKey.swift in Sources */,
