@@ -561,7 +561,3 @@ o.spec(
 		})
 	}),
 )
-
-function replaceHtmlEntities(src: string): string {
-	return src.replace(/</g, "&lt;").replace(/>/g, "&gt;")
-}

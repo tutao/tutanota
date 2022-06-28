@@ -45,25 +45,22 @@ const ADD_URI_SAFE_ATTR = ["poster"] as const
 const FORBID_TAGS = ["style"] as const
 
 const HTML_CONFIG: DOMPurify.Config & {RETURN_DOM_FRAGMENT?: undefined, RETURN_DOM?: undefined} = {
-	ADD_ATTR,
-	// @ts-ignore This should be in the type definition, but it isn't
-	ADD_URI_SAFE_ATTR,
-	FORBID_TAGS,
+	ADD_ATTR: ADD_ATTR.slice(),
+	ADD_URI_SAFE_ATTR: ADD_URI_SAFE_ATTR.slice(),
+	FORBID_TAGS: FORBID_TAGS.slice(),
 } as const
 
 const SVG_CONFIG: DOMPurify.Config & {RETURN_DOM_FRAGMENT?: undefined, RETURN_DOM?: undefined} = {
-	ADD_ATTR,
-	// @ts-ignore This should be in the type definition, but it isn't
-	ADD_URI_SAFE_ATTR,
-	FORBID_TAGS,
+	ADD_ATTR: ADD_ATTR.slice(),
+	ADD_URI_SAFE_ATTR: ADD_URI_SAFE_ATTR.slice(),
+	FORBID_TAGS: FORBID_TAGS.slice(),
 	NAMESPACE: "http://www.w3.org/2000/svg"
 } as const
 
 const FRAGMENT_CONFIG: DOMPurify.Config & {RETURN_DOM_FRAGMENT: true} = {
-	ADD_ATTR,
-	// @ts-ignore This should be in the type definition, but it isn't
-	ADD_URI_SAFE_ATTR,
-	FORBID_TAGS,
+	ADD_ATTR: ADD_ATTR.slice(),
+	ADD_URI_SAFE_ATTR: ADD_URI_SAFE_ATTR.slice(),
+	FORBID_TAGS: FORBID_TAGS.slice(),
 	RETURN_DOM_FRAGMENT: true,
 	ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|tutatemplate):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
 } as const
