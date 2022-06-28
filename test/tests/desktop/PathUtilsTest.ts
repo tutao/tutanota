@@ -1,5 +1,5 @@
 import o from "ospec"
-import {nonClobberingFilename, swapFilename} from "../../../src/desktop/PathUtils.js"
+import {EXECUTABLE_EXTENSIONS, looksExecutable, nonClobberingFilename, swapFilename} from "../../../src/desktop/PathUtils.js"
 import path from "path"
 o.spec("PathUtils", function () {
     o.spec("nonClobberingFileName Test", function () {
@@ -142,4 +142,25 @@ o.spec("PathUtils", function () {
             o(swapFilename("C:\\", "text.txt", path.win32)).equals("C:\\text.txt")
         })
     })
+
+	o.spec("looksExecutable", function() {
+		function testDoesLookExecutable(filename) {
+			o(`should detect "${filename}" as looking executable`, function() {
+				o(looksExecutable(filename)).equals(true)
+			})
+		}
+
+		EXECUTABLE_EXTENSIONS
+			.map(extension => `someFile.${extension}`)
+			.forEach(testDoesLookExecutable)
+
+		EXECUTABLE_EXTENSIONS
+			.map(extension => `.${extension}`)
+			.forEach(testDoesLookExecutable)
+
+		o("should not detect non executable extensions as looking executable", function() {
+			o(looksExecutable("picture.jpg")).equals(false)
+			o(looksExecutable(".jpg")).equals(false)
+		})
+	})
 })
