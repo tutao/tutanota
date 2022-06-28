@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2022-06-17T09:10:01Z",
+	"updated_at": "2022-06-28T09:24:16Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -601,6 +601,7 @@ export default {
 		"importContactsError_msg": "{amount} von {total} Kontakten konnten nicht importiert werden.",
 		"importEventExistingUid_msg": "{amount} von {total} Terminen existieren bereits und werden nicht überschrieben. Importiere die übrigen Termine...",
 		"importEventsError_msg": "{amount} von {total} Terminen konnten nicht importiert werden.",
+		"importExport_action": "Importieren/exportieren",
 		"importReadFileError_msg": "Die Datei {filename} ist leider nicht lesbar.",
 		"importUsers_action": "Benutzer importieren",
 		"importVCardError_msg": "VCard-Datei konnte nicht gelesen werden.",
@@ -891,6 +892,7 @@ export default {
 		"npoDiscount_msg": "Angebot für NPOs: 50% Benutzer-Rabatt für Premium und 20 Aliasse kostenfrei!",
 		"npoDonation_msg": "Spende für NPOs: Bis zu 50 Benutzer für Premium und 100 Aliasse kostenfrei!",
 		"number_label": "Nummer",
+		"offlineLoginPremiumOnly_msg": "Du bist offline. Wechsle zu einem bezahlten Account, um die Offline-Anmeldung zu aktivieren.",
 		"offlineStoragePremiumOnly_msg": "Du benötigst ein bezahltes Konto, um den Offline-Speicher zu konfigurieren. Nach dem Upgrade kannst du dich auch offline anmelden.",
 		"offlineStorage_label": "Offline Speicherung",
 		"offline_label": "Offline",
@@ -1467,6 +1469,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du",
+		"you_label": "Du"
 	}
 }

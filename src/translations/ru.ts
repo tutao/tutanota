@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2022-06-17T09:09:26Z",
+	"updated_at": "2022-06-28T09:21:47Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -839,7 +839,7 @@ export default {
 		"nbrOfContactsSelected_msg": "{1} контактов выбрано.",
 		"nbrOfInboxRules_msg": "Вы определили {1} правила для входящего(их) сообщения(ий).",
 		"nbrOfMailsSelected_msg": "Выбрано писем - {1}",
-		"net_label": "Сеть",
+		"net_label": "Нэтто",
 		"neverReport_action": "Никогда не сообщать",
 		"newContact_action": "Новый контакт",
 		"newEvent_action": "Новое событие",

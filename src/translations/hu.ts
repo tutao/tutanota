@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2022-06-17T09:09:26Z",
+	"updated_at": "2022-06-28T09:21:46Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Körülbelül",
@@ -502,6 +502,7 @@ export default {
 		"experienceSamplingThankYou_msg": "Köszönjük a részvételét!",
 		"expiredLink_msg": "Sajnálom, ez a hivatkozás már nem érvényes. Kapnia kellett egy értesítést, mely az érvényes hivatkozást tartalmazza. A korábbi hivatkozások biztonsági okokból kikapcsolásra kerültek.",
 		"exportSelectedAsVCard_action": "A kiválasztott kapcsolatok exportálása \"vCard\" formátumba.",
+		"exportUsers_action": "Felhasználók exportálása.",
 		"exportVCard_action": "vCard exportálása",
 		"export_action": "Export",
 		"externalFormattingInfo_msg": "Állítsa be, hogy az üzenetek formázással (HTML) együtt vagy egyszerű szöveggé alakítva kerüljenek elküldésre!",
@@ -595,6 +596,7 @@ export default {
 		"importContactsError_msg": "A {total} helyről a névjegyértékek {amount} nem importálhatóak.",
 		"importEventExistingUid_msg": "A {total} hely eseményeinek értékei {amount} már léteznek, és nincsenek felülírva. Folytatás következik a többi eseménnyel...",
 		"importEventsError_msg": "A {total} helyről az események értékei {amount} nem importálhatóak.",
+		"importExport_action": "Importálás/exportálás.",
 		"importReadFileError_msg": "A megadott fájl: {filename} nem nyitható meg.",
 		"importUsers_action": "Felhasználók importálása",
 		"importVCardError_msg": "Olvashatatlan vCard fájl.",
@@ -665,7 +667,7 @@ export default {
 		"invoiceMailBodyOnAccount_msg": "új számla érkezett, {1} elérhető a 'Beállítások' -> 'Számlázás' menüpontban.  A számla kiegyenlítése a rajta szereplő dátumtól számított 7 napon belül esedékes.",
 		"invoiceMailSubject_msg": "Új Tutanota-számla",
 		"invoiceNotPaidUser_msg": "Sajnos, jelenleg nem engedélyezett üzenetek küldése.",
-		"invoiceNotPaid_msg": "Sajnáljuk, de jelenleg nem engedélyezett a levélküldés, mert legalább egy számla nincs kiegyenlítve. Kérjük frissítse fizetése adatait a \"Beállítások\" -> \"Fizetési adatok\" menüpontban, majd onnan indítsa el a megbízást.",
+		"invoiceNotPaid_msg": "Sajnáljuk, de jelenleg nem engedélyezett a levélküldés vagy fogadás, mert legalább egy számla nincs kiegyenlítve. Kérjük frissítse fizetése adatait a \"Beállítások\" -> \"Fizetési adatok\" menüpontban, majd onnan indítsa el a megbízást.",
 		"invoicePayConfirm_msg": "A számlát megterheljük a következő összeggel:",
 		"invoicePaymentMethodInfo_msg": "Válasszon egy fizetési módot! A jövőben további lehetőségek kerülnek hozzáadásra.",
 		"invoicePay_action": "Fizetés",

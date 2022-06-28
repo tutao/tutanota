@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2022-06-13T12:51:00Z",
+	"updated_at": "2022-06-28T09:21:47Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "アプリについて",
