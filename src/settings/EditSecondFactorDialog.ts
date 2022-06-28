@@ -81,7 +81,7 @@ export class EditSecondFactorDialog {
 					// We don't want <xml> around the content, we actually enforce <svg> namespace and we want it to be parsed as such.
 					xmlDeclaration: false,
 				})
-				totpQRCodeSvg = htmlSanitizer.sanitizeSVG(qrcodeGenerator.svg()).text
+				totpQRCodeSvg = htmlSanitizer.sanitizeSVG(qrcodeGenerator.svg()).html
 			} else {
 				totpQRCodeSvg = null
 			}

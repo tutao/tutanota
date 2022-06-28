@@ -43,10 +43,6 @@ export type MailBundle = {
 
 /**
  * Downloads the mail body and the attachments for an email, to prepare for exporting
- * @param mail
- * @param entityClient
- * @param worker
- * @param sanitizer
  */
 export function makeMailBundle(mail: Mail, entityClient: EntityClient, fileController: FileController, sanitizer: HtmlSanitizer): Promise<MailBundle> {
 	const bodyTextPromise = entityClient
@@ -58,7 +54,7 @@ export function makeMailBundle(mail: Mail, entityClient: EntityClient, fileContr
 					blockExternalContent: false,
 					allowRelativeLinks: false,
 					usePlaceholderForInlineImages: false,
-				}).text,
+				}).html,
 		)
 	const attachmentsPromise: Promise<Array<DataFile>> = promiseMap(mail.attachments, fileId =>
 		entityClient.load(FileTypeRef, fileId).then(file => fileController.downloadAndDecryptBrowser(file)),

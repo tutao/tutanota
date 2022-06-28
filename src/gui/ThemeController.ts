@@ -151,7 +151,7 @@ export class ThemeController {
 		if (theme.logo) {
 			const logo = theme.logo
 			const htmlSanitizer = await this.htmlSanitizer()
-			theme.logo = htmlSanitizer.sanitizeHTML(logo).text
+			theme.logo = htmlSanitizer.sanitizeHTML(logo).html
 		}
 	}
 

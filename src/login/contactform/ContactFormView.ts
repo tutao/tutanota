@@ -151,13 +151,13 @@ class ContactFormView implements CurrentView {
 						   document.title = language.pageTitle
 						   this._headerHtml = htmlSanitizer.sanitizeHTML(language.headerHtml, {
 							   blockExternalContent: false,
-						   }).text
+						   }).html
 						   this._footerHtml = htmlSanitizer.sanitizeHTML(language.footerHtml, {
 							   blockExternalContent: false,
-						   }).text
+						   }).html
 						   this._helpHtml = htmlSanitizer.sanitizeHTML(language.helpHtml, {
 							   blockExternalContent: false,
-						   }).text
+						   }).html
 						   this._loading = false
 						   m.redraw()
 					   })

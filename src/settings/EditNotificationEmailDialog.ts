@@ -165,7 +165,7 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 	})
 	// Even though savedHtml is always sanitized changing it might lead to mXSS
 	const sanitizePreview = memoized<string, string>(html => {
-		return htmlSanitizer.sanitizeHTML(html).text
+		return htmlSanitizer.sanitizeHTML(html).html
 	})
 
 	const previewTabContent = () => [
@@ -224,10 +224,10 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 
 					template.subject = htmlSanitizer.sanitizeHTML(subject(), {
 						blockExternalContent: false,
-					}).text
+					}).html
 					template.body = htmlSanitizer.sanitizeHTML(editor.getValue(), {
 						blockExternalContent: false,
-					}).text
+					}).html
 					template.language = selectedLanguageStream()
 					return locator.entityClient.update(customerProperties).then(() => dialog.close())
 				}),

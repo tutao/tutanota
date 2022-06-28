@@ -48,7 +48,7 @@ export class CalendarEventPopup implements ModalComponent {
 		this._sanitizedDescription = preparedDescription
 			? htmlSanitizer.sanitizeHTML(preparedDescription, {
 				blockExternalContent: true,
-			}).text
+			}).html
 			: ""
 		this._isPersistentEvent = !!calendarEvent._ownerGroup
 		this._isExternal = !this._viewModel

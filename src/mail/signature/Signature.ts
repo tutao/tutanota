@@ -16,7 +16,7 @@ export function getDefaultSignature(): string {
 			lang.get("defaultEmailSignature_msg", {
 				"{1}": InfoLink.HomePage,
 			}),
-		).text
+		).html
 	)
 }
 

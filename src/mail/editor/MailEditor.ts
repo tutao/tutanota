@@ -130,7 +130,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				blockExternalContent: !isPaste && a.doBlockExternalContent(),
 			})
 			this.mentionedInlineImages = sanitized.inlineImageCids
-			return sanitized.html
+			return sanitized.fragment
 		})
 
 		const onEditorChanged = () => {

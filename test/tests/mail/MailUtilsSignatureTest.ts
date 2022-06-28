@@ -24,7 +24,7 @@ o.spec("MailUtilsSignatureTest", function () {
         mockedAttributes.push(
             mockAttribute(htmlSanitizer, htmlSanitizer.sanitizeHTML, function (text) {
                 return {
-                    text,
+                    html: text,
                     externalContent: [],
                     inlineImageCids: [],
                     links: [],
