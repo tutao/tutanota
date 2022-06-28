@@ -1,11 +1,9 @@
-import type {Session} from "electron"
 import type {DesktopConfig} from "./config/DesktopConfig.js"
 import path from "path"
 import {assertNotNull, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {lang} from "../misc/LanguageViewModel.js"
 import type {DesktopNetworkClient} from "./DesktopNetworkClient.js"
 import {FileOpenError} from "../api/common/error/FileOpenError.js"
-import {log} from "./DesktopLog.js"
 import {looksExecutable, nonClobberingFilename} from "./PathUtils.js"
 import type {DesktopUtils} from "./DesktopUtils.js"
 import type * as FsModule from "fs"
@@ -103,7 +101,8 @@ export class DesktopDownloadManager {
 				.catch(() => "failed to open path.")
 				.then(errMsg => (errMsg === "" ? Promise.resolve() : Promise.reject(new FileOpenError("Could not open " + itemPath + ", " + errMsg))))
 
-		if (looksExecutable(itemPath)) {
+		// only windows will happily execute a just downloaded program
+		if (process.platform === "win32" && looksExecutable(itemPath)) {
 			return this.electron.dialog
 					   .showMessageBox({
 						   type: "warning",
