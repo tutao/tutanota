@@ -53,7 +53,7 @@ import {LockedError, NotAuthorizedError, NotFoundError} from "../../api/common/e
 import {elementIdPart, listIdPart} from "../../api/common/utils/EntityUtils"
 import {getReferencedAttachments, loadInlineImages, moveMails, revokeInlineImages} from "./MailGuiUtils"
 import {locator} from "../../api/main/MainLocator"
-import {SanitizeResult} from "../../misc/HtmlSanitizer"
+import {SanitizedHTML} from "../../misc/HtmlSanitizer"
 import {CALENDAR_MIME_TYPE, FileController} from "../../file/FileController"
 import {getMailBodyText, getMailHeaders} from "../../api/common/utils/Utils"
 import {exportMails} from "../export/Exporter.js"
@@ -72,8 +72,9 @@ import {ListUnsubscribeService} from "../../api/entities/tutanota/Services"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {InitAsResponseArgs} from "../editor/SendMailModel"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
-import {stringifyFragment} from "../../gui/HtmlUtils.js"
 import {DesktopSystemFacade} from "../../native/common/generatedipc/DesktopSystemFacade.js"
+import { styles } from "../../gui/styles.js"
+import {stringifyFragment} from "../../gui/HtmlUtils.js"
 
 
 export const enum ContentBlockingStatus {
@@ -88,8 +89,8 @@ export class MailViewerViewModel {
 	private mailBody: MailBody | null = null
 	private contrastFixNeeded: boolean = false
 
-	// always sanitized in this.setSanitizedMailBodyFromMail
-	private sanitizeResult: SanitizeResult | null = null
+	// always sanitized in this.sanitizeMailBody
+	private sanitizeResult: SanitizedHTML | null = null
 	private loadingAttachments: boolean = false
 
 	private attachments: TutanotaFile[] = []
@@ -113,6 +114,9 @@ export class MailViewerViewModel {
 	private readonly loadingState = new LoadingStateTracker()
 
 	private renderIsDelayed: boolean = true
+	// We render the mailbody to a shadowdom, which doesn't inherit styles from the global stylesheet
+	// So we just copy it and put it in the shadowdom
+	private styleSheet: Node = styles.getStyleSheetElement("main")
 
 	constructor(
 		public readonly mail: Mail,
@@ -251,7 +255,7 @@ export class MailViewerViewModel {
 	}
 
 	getSanitizedMailBody(): string | null {
-		return this.sanitizeResult?.text ?? null
+		return this.sanitizeResult?.html ?? null
 	}
 
 	getMailBody(): string {
@@ -369,7 +373,7 @@ export class MailViewerViewModel {
 
 		// We don't check mail authentication status here because the user has manually called this
 
-		this.sanitizeResult = await this.setSanitizedMailBodyFromMail(this.mail, this.isBlockingExternalImages())
+		this.sanitizeResult = await this.sanitizeMailBody(this.mail, this.isBlockingExternalImages())
 	}
 
 	async markAsNotPhishing(): Promise<void> {
@@ -511,7 +515,7 @@ export class MailViewerViewModel {
 		// We should not try to sanitize body while we still animate because it's a heavy operation.
 		await this.delayBodyRenderingUntil
 
-		this.sanitizeResult = await this.setSanitizedMailBodyFromMail(mail, !isAllowedAndAuthenticatedExternalSender)
+		this.sanitizeResult = await this.sanitizeMailBody(mail, !isAllowedAndAuthenticatedExternalSender)
 
 		this.checkMailForPhishing(mail, this.sanitizeResult.links)
 
@@ -762,14 +766,14 @@ export class MailViewerViewModel {
 		}
 	}
 
-	private async setSanitizedMailBodyFromMail(mail: Mail, blockExternalContent: boolean): Promise<SanitizeResult> {
+	private async sanitizeMailBody(mail: Mail, blockExternalContent: boolean): Promise<SanitizedHTML> {
 		const {htmlSanitizer} = await import("../../misc/HtmlSanitizer")
 		const urlified = await locator.worker.urlify(this.getMailBody())
 		const sanitizeResult = htmlSanitizer.sanitizeFragment(urlified, {
 			blockExternalContent,
 			allowRelativeLinks: isTutanotaTeamMail(mail),
 		})
-		const {html, inlineImageCids, links, externalContent} = sanitizeResult
+		const {fragment, inlineImageCids, links, externalContent} = sanitizeResult
 
 		/**
 		 * Check if we need to improve contrast for dark theme. We apply the contrast fix if any of the following is contained in
@@ -779,13 +783,16 @@ export class MailViewerViewModel {
 		 *  * any font tag with the color attribute set
 		 */
 		this.contrastFixNeeded =
-			Array.from(html.querySelectorAll("*[style]"), e => (e as HTMLElement).style).some(
+			Array.from(fragment.querySelectorAll("*[style]"), e => (e as HTMLElement).style).some(
 				s => (s.color && s.color !== "inherit") || (s.backgroundColor && s.backgroundColor !== "inherit"),
-			) || html.querySelectorAll("font[color]").length > 0
+			) || fragment.querySelectorAll("font[color]").length > 0
 
 		m.redraw()
 		return {
-			text: stringifyFragment(html),
+			// We want to stringify and return the fragment here, because once a fragment is appended to a DOM Node, it's children are moved
+			// and the fragment is left empty. If we cache the fragment and then append that directly to the DOM tree when rendering, there are cases where
+			// we would try to do so twice, and on the second pass the mail body will be left blank
+			html: stringifyFragment(fragment),
 			inlineImageCids,
 			links,
 			externalContent,
@@ -901,5 +908,9 @@ export class MailViewerViewModel {
 
 	private getMailOwnerGroup(): Id | null {
 		return this.mail._ownerGroup
+	}
+
+	getStyleSheet(): Node {
+		return this.styleSheet
 	}
 }
