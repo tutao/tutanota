@@ -15,10 +15,6 @@ export class UsageTest {
 	public lastCompletedStage = ASSIGNMENT_STAGE
 
 	public strictStageOrder = false
-	/**
-	 * True iff the test has been started before.
-	 */
-	public wasStarted = false
 
 	constructor(
 		readonly testId: string,
@@ -69,10 +65,6 @@ export class UsageTest {
 		console.log(`Completing stage: ${stage.number}, variant: ${this.variant}`)
 		this.lastCompletedStage = stage.number === (this.stages.size - 1) ? ASSIGNMENT_STAGE : stage.number
 		await this.pingAdapter.sendPing(this, stage)
-
-		if (!this.wasStarted && stage.number === 0) {
-			this.wasStarted = true
-		}
 
 		return true
 	}

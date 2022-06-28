@@ -73,7 +73,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 				})
 				orderConfirmationStage?.setMetric({
 					name: "switchedFromFree",
-					value: (this.__signupFreeTest?.wasStarted ?? false).toString(),
+					value: (this.__signupFreeTest?.isStarted() ?? false).toString(),
 				})
 				orderConfirmationStage?.complete()
 
@@ -186,7 +186,16 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 					},
 					m(Button, {
 						label: "ok_action",
-						click: () => this.close(attrs.data, this.dom),
+						click: () => {
+							const recoveryConfirmationStageFree = this.__signupFreeTest?.getStage(5)
+							recoveryConfirmationStageFree?.setMetric({
+								name: "switchedFromPaid",
+								value: (this.__signupPaidTest?.isStarted() ?? false).toString(),
+							})
+							recoveryConfirmationStageFree?.complete()
+
+							this.close(attrs.data, this.dom)
+						},
 						type: ButtonType.Login,
 					}),
 				),

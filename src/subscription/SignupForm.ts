@@ -172,12 +172,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			await this.__signupFreeTest.getStage(3).complete()
 
 			// Credentials confirmation (click on next)
-			const credentialsConfirmationStageFree = this.__signupFreeTest.getStage(4)
-			credentialsConfirmationStageFree?.setMetric({
-				name: "switchedFromPaid",
-				value: (this.__signupPaidTest?.wasStarted ?? false).toString(),
-			})
-			await credentialsConfirmationStageFree?.complete()
+			await this.__signupFreeTest.getStage(4).complete()
 		}
 
 		if (this.__signupPaidTest) {
