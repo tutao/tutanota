@@ -69,6 +69,7 @@ import {animations, DomMutation, scroll} from "../../gui/animation/Animations"
 import {ease} from "../../gui/animation/Easing"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {CancelledError} from "../../api/common/error/CancelledError"
+import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
 
 assertMainOrNode()
 // map of inline image cid to InlineImageReference
@@ -130,6 +131,9 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 	private domBodyDeferred: DeferredObject<HTMLElement> = defer()
 	private domBody: HTMLElement | null = null
+
+	private shadowDomRoot: ShadowRoot | null = null
+	private currentlyRenderedMailBody: string | null = null
 
 	constructor(vnode: Vnode<MailViewerAttrs>) {
 		this.setViewModel(vnode.attrs.viewModel)
@@ -350,15 +354,14 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private renderMailBody(sanitizedMailBody: string): Children {
-		return m(
-			"#mail-body.selectable.touch-callout.break-word-links" + (client.isMobileDevice() ? ".break-pre" : ""),
+		return m("#mail-body.selectable.touch-callout.break-word-links" + (client.isMobileDevice() ? ".break-pre" : ""),
 			{
 				oncreate: vnode => {
 					const dom = vnode.dom as HTMLElement
-
 					this.setDomBody(dom)
 					this.updateLineHeight(dom)
 					this.rescale(false)
+					this.renderToShadowRoot(sanitizedMailBody)
 				},
 				onupdate: vnode => {
 					const dom = vnode.dom as HTMLElement
@@ -372,6 +375,14 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					}
 
 					this.rescale(false)
+
+					assertNonNull(this.shadowDomRoot)
+					if (this.currentlyRenderedMailBody !== sanitizedMailBody) {
+						for (const child of Array.from(this.shadowDomRoot.childNodes)) {
+							this.shadowDomRoot.removeChild(child)
+						}
+						this.renderToShadowRoot(sanitizedMailBody)
+					}
 				},
 				onbeforeremove: () => {
 					// Clear dom body in case there will be a new one, we want promise to be up-to-date
@@ -387,17 +398,37 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					"line-height": this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height,
 					"transform-origin": "top left",
 				},
-			},
-			m.trust(sanitizedMailBody),
+			}
 		)
+	}
+
+	/**
+	 * We render the sanitized mail body to a shadow dom to ensure that any styles don't leak into the rest of the app.
+	 * Styles in mailbodies *should* get sanitized out, but even with sanitization, there is always the possibility of bugs,
+	 * either our own or in the sanitization, so we do this as a safety precaution
+	 */
+	private renderToShadowRoot(sanitizedMailBody: string) {
+		assertNonNull(this.shadowDomRoot)
+		this.shadowDomRoot.appendChild(this.viewModel.getStyleSheet())
+		const childNode = document.createElement("div")
+		this.shadowDomRoot.appendChild(childNode)
+		m.render(childNode, m.trust(sanitizedMailBody))
+		this.currentlyRenderedMailBody = sanitizedMailBody
 	}
 
 	private clearDomBody() {
 		this.domBodyDeferred = defer()
 		this.domBody = null
+		this.shadowDomRoot = null
 	}
 
 	private setDomBody(dom: HTMLElement) {
+		if (dom !== this.domBody || this.shadowDomRoot == null) {
+			// If the dom element hasn't been created anew in onupdate
+			// then trying to create a new shadow root on the same node will cause an error
+			this.shadowDomRoot = dom.attachShadow({mode: "open"})
+		}
+
 		this.domBodyDeferred.resolve(dom)
 		this.domBody = dom
 	}
@@ -612,7 +643,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		const loadedInlineImages = await this.viewModel.getLoadedInlineImages()
 		const domBody = await this.domBodyDeferred.promise
 
-		replaceCidsWithInlineImages(domBody, loadedInlineImages, (cid, event, dom) => {
+		replaceCidsWithInlineImages(domBody, loadedInlineImages, (cid, event) => {
 			const inlineAttachment = this.viewModel.getAttachments().find(attachment => attachment.cid === cid)
 
 			if (inlineAttachment) {
@@ -1537,4 +1568,10 @@ export function createMailViewerViewModel({mail, showFolder, delayBodyRenderingU
  * */
 function isSettingsLink(anchor: HTMLAnchorElement, mail: Mail): boolean {
 	return (anchor.getAttribute("href")?.startsWith("/settings/") ?? false) && isTutanotaTeamMail(mail)
+}
+
+function assertNonNull<T extends {}>(value: T | null | undefined): asserts value is T {
+	if (value == null) {
+		throw new ProgrammingError("it is null")
+	}
 }
