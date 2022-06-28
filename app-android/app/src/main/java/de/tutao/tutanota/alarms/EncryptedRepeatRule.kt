@@ -17,15 +17,15 @@ class EncryptedRepeatRule(
 
 fun EncryptedRepeatRule.decrypt(crypto: AndroidNativeCryptoFacade, sessionKey: ByteArray): RepeatRule {
 	val repeatPeriodNumber = crypto.decryptNumber(frequency, sessionKey)
-	val repeatPeriod = RepeatPeriod.get(repeatPeriodNumber)
+	val repeatPeriod = RepeatPeriod[repeatPeriodNumber]
 
 	val endTypeNumber = crypto.decryptNumber(endType, sessionKey)
-	val endType = EndType.get(endTypeNumber)
+	val endType = EndType[endTypeNumber]
 	return RepeatRule(
 			frequency = repeatPeriod,
 			interval = crypto.decryptNumber(interval, sessionKey).toInt(),
 			timeZone = TimeZone.getTimeZone(crypto.decryptString(timeZone, sessionKey)),
-			endValue = crypto.decryptNumber(endValue!!, sessionKey),
+			endValue = if (endValue != null) crypto.decryptNumber(endValue, sessionKey) else null,
 			endType = endType,
 	)
 }
