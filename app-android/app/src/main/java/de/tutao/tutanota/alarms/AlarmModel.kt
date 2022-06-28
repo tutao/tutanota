@@ -14,7 +14,7 @@ object AlarmModel {
 			frequency: RepeatPeriod,
 			interval: Int,
 			endType: EndType?,
-			endValue: Long,
+			endValue: Long?,
 			alarmTrigger: AlarmTrigger,
 			localTimeZone: TimeZone,
 			callback: AlarmIterationCallback,
@@ -28,9 +28,9 @@ object AlarmModel {
 
 		val endDate = if (endType == EndType.UNTIL) {
 			if (isAllDayEvent) {
-				getAllDayDateLocal(Date(endValue), localTimeZone)
+				getAllDayDateLocal(Date(endValue!!), localTimeZone)
 			} else {
-				Date(endValue)
+				Date(endValue!!)
 			}
 		} else {
 			null
@@ -38,9 +38,9 @@ object AlarmModel {
 		val calendar = Calendar.getInstance(if (isAllDayEvent) localTimeZone else timeZone)
 		var occurrences = 0
 		var futureOccurrences = 0
-		while (futureOccurrences < OCCURRENCES_SCHEDULED_AHEAD
-				&& (endType != EndType.COUNT
-						|| occurrences < endValue)
+		while (
+				futureOccurrences < OCCURRENCES_SCHEDULED_AHEAD &&
+				(endType != EndType.COUNT || occurrences < endValue!!)
 		) {
 			calendar.time = calcEventStart
 			incrementByRepeatPeriod(calendar, frequency, interval * occurrences)

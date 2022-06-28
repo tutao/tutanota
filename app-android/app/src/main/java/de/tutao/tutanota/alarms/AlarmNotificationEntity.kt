@@ -13,7 +13,7 @@ class RepeatRule(
 		val frequency: RepeatPeriod,
 		val interval: Int,
 		val timeZone: TimeZone,
-		val endValue: Long,
+		val endValue: Long?,
 		val endType: EndType,
 )
 
