@@ -1,6 +1,8 @@
 //@bundleInto:common-min
 
 // keep in sync with LaunchHtml.js meta tag title
+import {ProgrammingError} from "./error/ProgrammingError.js"
+
 export const LOGIN_TITLE = "Mail. Done. Right. Tutanota Login & Sign up for an Ad-free Mailbox"
 export const Mode: Record<EnvMode, EnvMode> = Object.freeze({
 	Browser: "Browser",
@@ -22,12 +24,20 @@ export function getWebsocketOrigin(): string {
 /** Returns the origin which should be used for API requests. */
 export function getHttpOrigin(): string {
 	if (env.staticUrl) {
-		return env.staticUrl.replace(/^https?:/, "api:")
+		if (isIOSApp()) {
+			// http:// -> api:// and https:// -> apis://
+			return env.staticUrl.replace(/^http/, "api")
+		} else {
+			return env.staticUrl
+		}
 	} else {
 		return location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "")
 	}
 }
 
+/**
+ * root used for gift cards and as the webauthn registered domain
+ */
 export function getWebRoot(): string {
 	const origin = getHttpOrigin()
 	return origin + (origin.includes("localhost") || origin.includes("local.tutanota.com") ? "/client/build" : "")
@@ -49,16 +59,15 @@ export function isTutanotaDomain(): boolean {
 }
 
 export function isIOSApp(): boolean {
-	if (isWorker()) {
-		throw new Error("isIOSApp is not available in the worker yet (platformId is not set)")
+	if (isApp() && env.platformId == null) {
+		throw new ProgrammingError("PlatformId is not set!")
 	}
-
 	return env.mode === Mode.App && env.platformId === "ios"
 }
 
 export function isAndroidApp(): boolean {
-	if (isWorker()) {
-		throw new Error("isAndroidApp is not available in the worker yet (platformId is not set)")
+	if (isApp() && env.platformId == null) {
+		throw new ProgrammingError("PlatformId is not set!")
 	}
 
 	return env.mode === Mode.App && env.platformId === "android"

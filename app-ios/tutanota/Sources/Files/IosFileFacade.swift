@@ -54,7 +54,7 @@ class IosFileFacade : FileFacade {
   }
 
   func getMimeType(_ file: String) async throws -> String {
-      return getFileMIMEType(path: file) ?? "application/octet-stream"
+      return getFileMIMETypeWithDefault(path: file)
   }
 
   func getSize(_ file: String) async throws -> Int {
@@ -212,7 +212,11 @@ extension DownloadTaskResponse {
   }
 }
 
-fileprivate func getFileMIMEType(path: String) -> String? {
+func getFileMIMETypeWithDefault(path: String) -> String {
+  return getFileMIMEType(path: path) ?? "application/octet-stream"
+}
+
+func getFileMIMEType(path: String) -> String? {
   // UTType is only available since iOS 15.
   // We take retainedValue because both functions create new object and we
   // are responsible for deallocating them.

@@ -28,7 +28,12 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
 
     super.init(nibName: nil, bundle: nil)
       let webViewConfig = WKWebViewConfiguration()
-      webViewConfig.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
+      let folderPath: String = (self.appUrl() as NSURL).deletingLastPathComponent!.path
+      webViewConfig.preferences.setValue(false, forKey: "allowFileAccessFromFileURLs")
+      let apiSchemeHandler = ApiSchemeHandler()
+      webViewConfig.setURLSchemeHandler(apiSchemeHandler, forURLScheme: "api")
+      webViewConfig.setURLSchemeHandler(apiSchemeHandler, forURLScheme: "apis")
+      webViewConfig.setURLSchemeHandler(AssetSchemeHandler(folderPath: folderPath), forURLScheme: "asset")
 
       self.webView = WKWebView(frame: CGRect.zero, configuration: webViewConfig)
       webView.navigationDelegate = self
@@ -77,9 +82,9 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
       return
     }
 
-    if requestUrl.scheme == "file" && requestUrl.path == self.appUrl().path {
+    if requestUrl.scheme == "asset" && requestUrl.path == self.getAssetUrl().path {
       decisionHandler(.allow)
-    } else if requestUrl.scheme == "file" && requestUrl.absoluteString.hasPrefix(self.appUrl().absoluteString) {
+    } else if requestUrl.scheme == "asset" && requestUrl.absoluteString.hasPrefix(self.getAssetUrl().absoluteString) {
 	  // If the app is removed from memory, the URL won't point to the file but will have additional path.
 	  // We ignore additional path for now.
       decisionHandler(.cancel)
@@ -148,8 +153,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
   }
 
   private func _loadMainPage(params: [String : String]) {
-    let fileUrl = self.appUrl()
-    let folderUrl = (fileUrl as NSURL).deletingLastPathComponent!
+    let fileUrl = self.getAssetUrl()
 
     var mutableParams = params
     if let theme = self.themeManager.currentTheme {
@@ -162,7 +166,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     components.queryItems = queryParams
 
     let url = components.url!
-    webView.loadFileURL(url, allowingReadAccessTo: folderUrl)
+    webView.load(URLRequest(url: url))
   }
 
   private func dictToJson(dictionary: [String : String]) -> String {
@@ -184,6 +188,10 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     } else {
       return NSURL.fileURL(withPath: path!)
     }
+  }
+  
+  private func getAssetUrl() -> URL {
+    return URL(string: "asset://app/index-app.html")!
   }
 
   func applyTheme(_ theme: [String : String]) {
