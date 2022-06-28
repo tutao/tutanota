@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2022-06-17T09:09:26Z",
+	"updated_at": "2022-06-28T09:21:48Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O službe",
@@ -503,6 +503,7 @@ export default {
 		"experienceSamplingThankYou_msg": "Ďakujeme za vašu účasť!",
 		"expiredLink_msg": "Je nám ľúto, ale tento odkaz už viac neplatí. Mal/a by si dostať nové e-mailové oznámenie s aktuálne platným odkazom. Predchádzajúce odkazy sú deaktivované z bezpečnostných dôvodov.",
 		"exportSelectedAsVCard_action": "Exportovať vybraté kontakty ako vCard",
+		"exportUsers_action": "Exportovať používateľov",
 		"exportVCard_action": "Exportovať vCard",
 		"export_action": "Exportovať",
 		"externalFormattingInfo_msg": "Konfiguruj, ak všetky správy majú byť odoslané vrátane formátovania (HTML) alebo konvertované na obyčajný text.",
@@ -596,6 +597,7 @@ export default {
 		"importContactsError_msg": "Nepodarilo sa importovať {amount} z {total} kontaktov.",
 		"importEventExistingUid_msg": "{amount} z {total} udalostí už existuje a nie sú prepísané. Bude sa pokračovať so zvyšnými udalosťami...",
 		"importEventsError_msg": "Nepodarilo sa importovať {amount} z {total} udalostí.",
+		"importExport_action": "Importovať/exportovať",
 		"importReadFileError_msg": "Ľutujeme, ale súbor {filename} nie je čitateľný.",
 		"importUsers_action": "Importovať používateľov",
 		"importVCardError_msg": "Nemožno načítať súbor vizitky (vCard).",
@@ -666,7 +668,7 @@ export default {
 		"invoiceMailBodyOnAccount_msg": "je dostupná nová faktúra s číslom {1}. Môžeš si ju stiahnuť v časti {2}. Platbu je potrebné vykonať do 7 dní od vystavenia faktúry.",
 		"invoiceMailSubject_msg": "Nová faktúra od Tutanoty",
 		"invoiceNotPaidUser_msg": "Ľutujeme, momentálne nemáš povolenie posielať e-maily.",
-		"invoiceNotPaid_msg": "Je nám ľúto, ale momentálne nemôžeš odosielať e-maily, pretože minimálne jedna z tvojich faktúr nie je uhradená. Prosím, aktualizuj si platobné údaje v časti „Nastavenia“ ⇨ „Platobné údaje“ a následne odtiaľ uskutočni platbu.",
+		"invoiceNotPaid_msg": "Je nám ľúto, ale momentálne nemôžeš odosielať ani prijímať e-maily, pretože minimálne jedna z tvojich faktúr nie je uhradená. Prosím, aktualizuj si platobné údaje v časti „Nastavenia“ ⇨ „Platobné údaje“ a následne odtiaľ uskutočni platbu.",
 		"invoicePayConfirm_msg": "Teraz zaúčtujeme na ťarchu účtu túto sumu:",
 		"invoicePaymentMethodInfo_msg": "Zvoľte si spôsob platby. Ďalšie možnosti budú pridané neskôr.",
 		"invoicePay_action": "Zaplatiť",

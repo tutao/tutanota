@@ -873,6 +873,7 @@ export type TranslationKeyType =
 	| "npoDiscount_msg"
 	| "npoDonation_msg"
 	| "number_label"
+	| "offlineLoginPremiumOnly_msg"
 	| "offlineStoragePremiumOnly_msg"
 	| "offlineStorage_label"
 	| "offline_label"

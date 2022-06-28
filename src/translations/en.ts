@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2022-06-17T09:09:24Z",
+	"updated_at": "2022-06-28T09:22:24Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -597,6 +597,7 @@ export default {
 		"importContactsError_msg": "{amount} of {total} contacts could not be imported.",
 		"importEventExistingUid_msg": "{amount} of {total} events already exist and are not overwritten. Will continue with the remaining events...",
 		"importEventsError_msg": "{amount} of {total} events could not be imported.",
+		"importExport_action": "Import/export",
 		"importReadFileError_msg": "Sorry, the file {filename} is not readable.",
 		"importUsers_action": "Import users",
 		"importVCardError_msg": "Can not read vCard file.",
@@ -887,6 +888,7 @@ export default {
 		"npoDiscount_msg": "Offer for NPOs: 50% user discount for Premium and 20 aliases free of charge!",
 		"npoDonation_msg": "Donation for NPOs: up to 50 users for Premium and 100 aliases free of charge!",
 		"number_label": "Number",
+		"offlineLoginPremiumOnly_msg": "You are offline. Upgrade to a premium account to enable offline login.",
 		"offlineStoragePremiumOnly_msg": "You need a paid account to configure offline storage. Upgrading will also enable you to login while offline.",
 		"offlineStorage_label": "Offline storage",
 		"offline_label": "Offline",
@@ -1463,6 +1465,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
+		"you_label": "You"
 	}
 }

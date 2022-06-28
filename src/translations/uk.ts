@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2022-06-19T11:11:37Z",
+	"updated_at": "2022-06-28T09:21:48Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Про",

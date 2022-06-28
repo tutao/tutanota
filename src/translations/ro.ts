@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2022-06-17T09:09:26Z",
+	"updated_at": "2022-06-28T09:21:47Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -507,6 +507,7 @@ export default {
 		"experienceSamplingThankYou_msg": "Mulțumim pentru participare!",
 		"expiredLink_msg": "Scuze, această legătură nu mai e valabilă. Ar fi trebuit să fi primit un e-mail nou de notificare, cu legătura actuală valabilă. Legăturile anterioare sunt dezactivate din rațiuni de securitate.",
 		"exportSelectedAsVCard_action": "Exportă contactele alese ca vCard",
+		"exportUsers_action": "Exportă utilizatori",
 		"exportVCard_action": "Exportă vCard",
 		"export_action": "Exportă",
 		"externalFormattingInfo_msg": "Stabilește dacă toate mesajele trebuie trimise cu formatare (HTML) sau convertite în text simplu.",
@@ -600,6 +601,7 @@ export default {
 		"importContactsError_msg": "{amount} din {total} contacte nu au putut fi importate.",
 		"importEventExistingUid_msg": "{amount} din {total} evenimente există deja și nu se suprascriu. Va continua cu evenimentele rămase...",
 		"importEventsError_msg": "{amount} din {total} evenimente nu au putut fi importate.",
+		"importExport_action": "importă/exportă",
 		"importReadFileError_msg": "Ne pare rău, dar fișierul {filename} nu poate fi citit.",
 		"importUsers_action": "Importă utilizatori",
 		"importVCardError_msg": "Fișierul vCard nu poate fi citit.",
@@ -670,7 +672,7 @@ export default {
 		"invoiceMailBodyOnAccount_msg": "Este disponibilă o nouă factură cu numarul {1}. O poți descărca în {2}. Plata trebuie făcută în 7 zile de la data facturii.",
 		"invoiceMailSubject_msg": "Factură nouă pentru Tutanota",
 		"invoiceNotPaidUser_msg": "Ne pare rău, dar momentan nu ai voie să trimiți e-mailuri.",
-		"invoiceNotPaid_msg": "Ne pare rău, dar momentan nu ai voie să trimiți e-mailuri, deoarece cel puțin una dintre facturile tale nu este plătită. Actualizează datele de plată în 'Opțiuni' ⇨ 'Metoda de plată' și apoi plătește facturile.",
+		"invoiceNotPaid_msg": "Momentan nu ai voie să trimiți sau să primești e-mailuri, deoarece cel puțin una dintre facturile tale nu este plătită. Actualizează datele de plată în „Opțiuni” ⇨ „Metoda de plată” și apoi plătește facturile.",
 		"invoicePayConfirm_msg": "Suma debitată pentru acest cont:",
 		"invoicePaymentMethodInfo_msg": "Te rugăm sa alegi o metodă de plată.Mai multe opțiuni vor fi adăugate în viitor.",
 		"invoicePay_action": "Plătește",
