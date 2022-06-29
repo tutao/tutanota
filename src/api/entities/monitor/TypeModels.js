@@ -92,7 +92,7 @@ export const typeModels = {
             }
         },
         "app": "monitor",
-        "version": "20"
+        "version": "21"
     },
     "ReadCounterData": {
         "name": "ReadCounterData",
@@ -133,7 +133,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "monitor",
-        "version": "20"
+        "version": "21"
     },
     "ReadCounterReturn": {
         "name": "ReadCounterReturn",
@@ -165,7 +165,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "monitor",
-        "version": "20"
+        "version": "21"
     },
     "WriteCounterData": {
         "name": "WriteCounterData",
@@ -224,6 +224,6 @@ export const typeModels = {
         },
         "associations": {},
         "app": "monitor",
-        "version": "20"
+        "version": "21"
     }
 }

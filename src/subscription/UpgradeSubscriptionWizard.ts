@@ -20,7 +20,6 @@ import {InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs} from "./Invoi
 import {UpgradeConfirmPage, UpgradeConfirmPageAttrs} from "./UpgradeConfirmPage"
 import {SignupPage, SignupPageAttrs} from "./SignupPage"
 import {assertMainOrNode} from "../api/common/Env"
-import {getCampaignFromLocalStorage} from "../misc/LoginUtils"
 import {locator} from "../api/main/MainLocator"
 import {TtlBehavior} from "../misc/UsageTestModel"
 import {UpgradePriceService} from "../api/entities/sys/Services.js"
@@ -56,7 +55,7 @@ export type UpgradeSubscriptionData = {
 	customer: Customer | null
 	// not initially set for signup but loaded in InvoiceAndPaymentDataPage
 	newAccountData: NewAccountData | null
-	campaign: string | null
+	registrationDataId: string | null
 	campaignInfoTextId: TranslationKey | null
 	upgradeType: UpgradeType
 	planPrices: SubscriptionPlanPrices
@@ -64,10 +63,10 @@ export type UpgradeSubscriptionData = {
 	subscriptionParameters: SubscriptionParameters | null
 }
 
-export function loadUpgradePrices(campaign: string | null): Promise<UpgradePriceServiceReturn> {
+export function loadUpgradePrices(registrationDataId: string | null): Promise<UpgradePriceServiceReturn> {
 	const data = createUpgradePriceServiceData({
 		date: Const.CURRENT_DATE,
-		campaign,
+		campaign: registrationDataId,
 	})
 	return locator.serviceExecutor.get(UpgradePriceService, data)
 }
@@ -92,8 +91,7 @@ function loadCustomerAndInfo(): Promise<{
 
 export function showUpgradeWizard(): void {
 	loadCustomerAndInfo().then(({customer, accountingInfo}) => {
-		const campaign = getCampaignFromLocalStorage()
-		return loadUpgradePrices(campaign).then(prices => {
+		return loadUpgradePrices(null).then(prices => {
 			const planPrices: SubscriptionPlanPrices = {
 				Premium: prices.premiumPrices,
 				PremiumBusiness: prices.premiumBusinessPrices,
@@ -121,7 +119,7 @@ export function showUpgradeWizard(): void {
 				accountingInfo: accountingInfo,
 				customer: customer,
 				newAccountData: null,
-				campaign,
+				registrationDataId: null,
 				campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
 				upgradeType: UpgradeType.Initial,
 				planPrices: planPrices,
@@ -139,10 +137,10 @@ export function showUpgradeWizard(): void {
 	})
 }
 
-export async function loadSignupWizard(subscriptionParameters: SubscriptionParameters | null, campaign: string | null): Promise<Dialog> {
+export async function loadSignupWizard(subscriptionParameters: SubscriptionParameters | null, registrationDataId: string | null): Promise<Dialog> {
 	locator.usageTestController.addTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly))
 
-	const prices = await loadUpgradePrices(campaign)
+	const prices = await loadUpgradePrices(registrationDataId)
 	const planPrices: SubscriptionPlanPrices = {
 		Premium: prices.premiumPrices,
 		PremiumBusiness: prices.premiumBusinessPrices,
@@ -170,7 +168,7 @@ export async function loadSignupWizard(subscriptionParameters: SubscriptionParam
 		accountingInfo: null,
 		customer: null,
 		newAccountData: null,
-		campaign,
+		registrationDataId,
 		campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
 		upgradeType: UpgradeType.Signup,
 		planPrices: planPrices,

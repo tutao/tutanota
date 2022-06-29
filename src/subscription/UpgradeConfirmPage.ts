@@ -1,5 +1,4 @@
 import m, {Children, Vnode, VnodeDOM} from "mithril"
-import stream from "mithril/stream"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {formatPriceWithInfo, getPaymentMethodName, isYearlyPayment} from "./PriceUtils"
@@ -7,7 +6,6 @@ import {HabReminderImage} from "../gui/base/icons/Icons"
 import {createSwitchAccountTypeData} from "../api/entities/sys/TypeRefs.js"
 import {AccountType, Const, PaidSubscriptionType} from "../api/common/TutanotaConstants"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {HttpMethod} from "../api/common/EntityFunctions"
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
 import {BadGatewayError, PreconditionFailedError} from "../api/common/error/RestError"
 import {RecoverCodeField} from "../settings/RecoverCodeDialog"
@@ -20,7 +18,6 @@ import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialog.js"
 import {TextField} from "../gui/base/TextField.js"
 import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
-import {deleteCampaign} from "../misc/LoginUtils"
 import {SwitchAccountTypeService} from "../api/entities/sys/Services"
 
 export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> {
@@ -53,8 +50,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 		const serviceData = createSwitchAccountTypeData({
 			accountType: AccountType.PREMIUM,
 			subscriptionType: this.subscriptionTypeToPaidSubscriptionType(data.type),
-			date: Const.CURRENT_DATE,
-			campaign: data.campaign,
+			date: Const.CURRENT_DATE
 		})
 		showProgressDialog(
 			"pleaseWait_msg",
@@ -63,7 +59,6 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 			}),
 		)
 			.then(() => {
-				deleteCampaign()
 				return this.close(data, this.dom)
 			})
 			.catch(ofClass(PreconditionFailedError, e => {
