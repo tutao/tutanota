@@ -4,7 +4,6 @@ import {IpcClientRect} from "../native/common/generatedipc/IpcClientRect.js"
 import {DesktopDownloadManager} from "./DesktopDownloadManager.js"
 import {ElectronExports, FsExports} from "./ElectronExportTypes.js"
 import {UploadTaskResponse} from "../native/common/generatedipc/UploadTaskResponse.js"
-import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {DataFile} from "../api/common/DataFile.js"
 import {FileUri} from "../native/common/FileApp.js"
 
@@ -17,7 +16,6 @@ export class DesktopFileFacade implements FileFacade {
 	constructor(
 		private readonly dl: DesktopDownloadManager,
 		private readonly electron: ElectronExports,
-		private readonly fs: FsExports
 	) {
 	}
 
