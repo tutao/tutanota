@@ -1,6 +1,6 @@
 import type {DesktopConfig} from "./config/DesktopConfig.js"
 import path from "path"
-import {assertNotNull, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {assertNotNull, base64ToBase64Url, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {lang} from "../misc/LanguageViewModel.js"
 import type {DesktopNetworkClient} from "./DesktopNetworkClient.js"
 import {FileOpenError} from "../api/common/error/FileOpenError.js"
@@ -19,6 +19,7 @@ import {sha256Hash} from "@tutao/tutanota-crypto"
 import {DownloadTaskResponse} from "../native/common/generatedipc/DownloadTaskResponse"
 import {DataFile} from "../api/common/DataFile.js"
 import url from "url"
+import {CryptoFunctions} from "./CryptoFns.js"
 
 type FsExports = typeof FsModule
 type ElectronExports = typeof Electron.CrossProcessExports
@@ -29,6 +30,8 @@ export class DesktopDownloadManager {
 	/** We don't want to spam opening file manager all the time so we throttle it. This field is set to the last time we opened it. */
 	private lastOpenedFileManagerAt: number | null
 
+	/** we save all temporary files to a random location per-session, as a security measure */
+	private readonly randomizedDirectory: string
 
 	constructor(
 		private readonly conf: DesktopConfig,
@@ -37,8 +40,10 @@ export class DesktopDownloadManager {
 		private readonly dateProvider: DateProvider,
 		private readonly fs: FsExports,
 		private readonly electron: ElectronExports,
+		cryptoFunctions: CryptoFunctions
 	) {
 		this.lastOpenedFileManagerAt = null
+		this.randomizedDirectory = base64ToBase64Url(uint8ArrayToBase64(cryptoFunctions.randomBytes(32)))
 	}
 
 	/**
@@ -71,7 +76,8 @@ export class DesktopDownloadManager {
 
 		let encryptedFilePath
 		if (statusCode == 200) {
-			const downloadDirectory = await this.getTutanotaTempDirectory("encrypted")
+			const downloadDirectory = path.join(this.desktopUtils.getTutanotaTempPath(), "encrypted")
+			await this.fs.promises.mkdir(downloadDirectory, {recursive: true})
 			encryptedFilePath = path.join(downloadDirectory, fileName)
 			await this.pipeIntoFile(response, encryptedFilePath)
 		} else {
@@ -128,7 +134,7 @@ export class DesktopDownloadManager {
 	 * in {@param file}.
 	 */
 	async writeDataFile(file: DataFile): Promise<FileUri> {
-		const savePath = await this._pickSavePath(file.name)
+		const savePath = await this.pickSavePath(file.name)
 		await this.fs.promises.mkdir(path.dirname(savePath), {
 			recursive: true,
 		})
@@ -170,7 +176,7 @@ export class DesktopDownloadManager {
 	 */
 	async putFileIntoDownloadsFolder(fileUri: string): Promise<FileUri> {
 		const filename = path.basename(fileUri)
-		const savePath = await this._pickSavePath(filename)
+		const savePath = await this.pickSavePath(filename)
 		await this.fs.promises.mkdir(path.dirname(savePath), {
 			recursive: true,
 		})
@@ -191,7 +197,7 @@ export class DesktopDownloadManager {
 	}
 
 
-	private async _pickSavePath(filename: string): Promise<string> {
+	private async pickSavePath(filename: string): Promise<string> {
 		const defaultDownloadPath = await this.conf.getVar(DesktopConfigKey.defaultDownloadPath)
 
 		if (defaultDownloadPath != null) {
@@ -207,26 +213,6 @@ export class DesktopDownloadManager {
 			} else {
 				return assertNotNull(filePath)
 			}
-		}
-	}
-
-	/**
-	 * Get a directory under tutanota's temporary directory, will create it if it doesn't exist
-	 */
-	async getTutanotaTempDirectory(...subdirs: string[]): Promise<string> {
-		const dirPath = this.desktopUtils.getTutanotaTempPath(...subdirs)
-
-		await this.fs.promises.mkdir(dirPath, {
-			recursive: true,
-		})
-		return dirPath
-	}
-
-	deleteTutanotaTempDirectory() {
-		if (this.fs.existsSync(this.desktopUtils.getTutanotaTempPath())) {
-			this.fs.rmSync(this.desktopUtils.getTutanotaTempPath(), {
-				recursive: true,
-			})
 		}
 	}
 
@@ -248,7 +234,9 @@ export class DesktopDownloadManager {
 	}
 
 	async joinFiles(filename: string, files: Array<FileUri>): Promise<string> {
-		const downloadDirectory = await this.getTutanotaTempDirectory("download")
+		const downloadDirectory = path.join(this.desktopUtils.getTutanotaTempPath(), "download")
+		await this.fs.promises.mkdir(downloadDirectory, {recursive: true,})
+
 		const fileUri = path.join(downloadDirectory, filename)
 		const outStream = this.fs.createWriteStream(fileUri, {autoClose: false})
 
@@ -274,6 +262,10 @@ export class DesktopDownloadManager {
 	async getSize(fileUri: FileUri): Promise<number> {
 		const stats = await this.fs.promises.stat(fileUri)
 		return stats.size
+	}
+
+	deleteTutanotaTempDirectory() {
+		return this.desktopUtils.deleteTutanotaTempDir()
 	}
 }
 

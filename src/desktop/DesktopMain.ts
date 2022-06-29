@@ -134,7 +134,7 @@ async function createComponents(): Promise<Components> {
 	const tray = new DesktopTray(conf)
 	const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory())
 	const dateProvider = new DateProviderImpl()
-	const dl = new DesktopDownloadManager(conf, desktopNet, desktopUtils, dateProvider, fs, electron)
+	const dl = new DesktopDownloadManager(conf, desktopNet, desktopUtils, dateProvider, fs, electron, cryptoFns)
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapperImpl())
 	const shortcutManager = new LocalShortcutManager()
@@ -190,7 +190,7 @@ async function createComponents(): Promise<Components> {
 	}
 	const pushFacade = new DesktopNativePushFacade(sse, desktopAlarmScheduler, alarmStorage)
 	const settingsFacade = new DesktopSettingsFacade(conf, desktopUtils, integrator, updater, lang)
-	const fileFacade = new DesktopFileFacade(dl, electron, fs)
+	const fileFacade = new DesktopFileFacade(dl, electron)
 
 	const dispatcherFactory = (window: ApplicationWindow) => {
 		// @ts-ignore
@@ -199,7 +199,7 @@ async function createComponents(): Promise<Components> {
 		const dispatcher = new DesktopGlobalDispatcher(
 			desktopCommonSystemFacade,
 			new DesktopDesktopSystemFacade(wm, window, sock),
-			new DesktopExportFacade(dl, conf, window, dragIcons),
+			new DesktopExportFacade(desktopUtils, conf, window, dragIcons),
 			fileFacade,
 			nativeCredentialsFacade,
 			desktopCrypto,

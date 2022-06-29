@@ -56,11 +56,12 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 	 * decrypts a file and returns the decrypted files path
 	 */
 	async aesDecryptFile(key: Uint8Array, encryptedFileUri: FileUri): Promise<FileUri> {
-		const targetDir = this.utils.getTutanotaTempPath("decrypted")
+		const targetDir = path.join(this.utils.getTutanotaTempPath(), "decrypted")
+		await this.fs.promises.mkdir(targetDir, {recursive: true})
+
 		const encData = await this.fs.promises.readFile(encryptedFileUri)
 		const bitKey = this.cryptoFns.bytesToKey(key)
 		const decData = await this.cryptoFns.aes128Decrypt(bitKey, encData, true)
-		await this.fs.promises.mkdir(targetDir, {recursive: true})
 		const decryptedFileUri = path.join(targetDir, path.basename(encryptedFileUri))
 		await this.fs.promises.writeFile(decryptedFileUri, decData, {
 			encoding: "binary",

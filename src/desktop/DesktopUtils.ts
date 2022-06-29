@@ -1,7 +1,8 @@
 import path from "path"
 import {spawn} from "child_process"
 import type {Rectangle} from "electron"
-import {defer, delay, noOp, uint8ArrayToHex} from "@tutao/tutanota-utils"
+import {NativeImage} from "electron"
+import {base64ToBase64Url, defer, delay, noOp, uint8ArrayToBase64, uint8ArrayToHex} from "@tutao/tutanota-utils"
 import {log} from "./DesktopLog"
 import {fileExists, swapFilename} from "./PathUtils"
 import {makeRegisterKeysScript, makeUnregisterKeysScript, RegistryRoot} from "./reg-templater"
@@ -9,16 +10,17 @@ import type {ElectronExports, FsExports} from "./ElectronExportTypes";
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {CryptoFunctions} from "./CryptoFns"
 import {getResourcePath} from "./resources.js"
-import {NativeImage} from "electron"
 
 export class DesktopUtils {
-	private readonly topLevelDownloadDir: string = "tutanota"
-
+	private readonly topLevelTempDir ="tutanota"
+	/** we store all temporary files in a directory with a random name, so that the download location is not predictable */
+	private readonly randomDirectoryName: string
 	constructor(
 		private readonly fs: FsExports,
 		private readonly electron: ElectronExports,
 		private readonly cryptoFunctions: CryptoFunctions,
 	) {
+		this.randomDirectoryName = base64ToBase64Url(uint8ArrayToBase64(cryptoFunctions.randomBytes(16)))
 	}
 
 	checkIsMailtoHandler(): Promise<boolean> {
@@ -163,7 +165,7 @@ export class DesktopUtils {
 	 */
 	private async _writeToDisk(contents: string): Promise<string> {
 		const filename = uint8ArrayToHex(this.cryptoFunctions.randomBytes(12))
-		const tmpPath = this.getTutanotaTempPath("reg")
+		const tmpPath = path.join(this.getTutanotaTempPath(), "reg")
 		await this.fs.promises.mkdir(tmpPath, {recursive: true})
 		const filePath = path.join(tmpPath, filename)
 
@@ -191,7 +193,7 @@ export class DesktopUtils {
 		// with the value of the USERPROFILE env var.
 		const appData = path.join("%USERPROFILE%", "AppData")
 		const logPath = path.join(appData, "Roaming", this.electron.app.getName(), "logs")
-		const tmpPath = path.join(appData, "Local", "Temp", this.topLevelDownloadDir, "attach")
+		const tmpPath = path.join(appData, "Local", "Temp", this.topLevelTempDir, "attach")
 		const tmpRegScript = makeRegisterKeysScript(RegistryRoot.CURRENT_USER, {execPath, dllPath, logPath, tmpPath})
 		await this._executeRegistryScript(tmpRegScript)
 		this.electron.app.setAsDefaultProtocolClient("mailto")
@@ -218,29 +220,34 @@ export class DesktopUtils {
 	}
 
 	/**
-	 * Get a path to a directory under tutanota's temporary directory.
+	 * Get a path to the tutanota temporary directory
 	 * the hierarchy is
 	 * [electron tmp dir]
 	 * [tutanota tmp]
-	 * [user-specific dir (omitted on windows)]
-	 * subdirs[0]
-	 * ...
 	 *
-	 * the levels marked with [] will be created if they don't exist, any subdirs
-	 * below that must be created by the caller if needed.
+	 * the directory will be created if it doesn't already exist
 	 *
-	 * @param subdirs
+	 * a randomly named subdirectory will be included
+	 *
+	 * if `noRandomDirectory` then random directory will not be included in the path,
+	 * and the whole directory will not be created
 	 * @returns {string}
 	 */
-	getTutanotaTempPath(...subdirs: string[]): string {
-		const mainTmpDir = path.join(this.electron.app.getPath("temp"), this.topLevelDownloadDir)
-		// windows already gives us a user-specific tmp dir by default
-		const userTmpDir = process.platform === "win32"
-			? mainTmpDir
-			: path.join(mainTmpDir, path.basename(this.electron.app.getPath("home")))
+	getTutanotaTempPath(): string {
+		const directory = path.join(this.electron.app.getPath("temp"), this.topLevelTempDir, this.randomDirectoryName)
+
 		// only readable by owner (current user)
-		this.fs.mkdirSync(userTmpDir, {recursive: true, mode: 0o700})
-		return path.join(userTmpDir, ...subdirs)
+		this.fs.mkdirSync(directory, {recursive: true, mode: 0o700})
+
+		return path.join(directory)
+	}
+
+	deleteTutanotaTempDir() {
+		if (this.fs.existsSync(this.topLevelTempDir)) {
+			this.fs.rmSync(this.topLevelTempDir, {
+				recursive: true,
+			})
+		}
 	}
 
 	getLockFilePath() {
