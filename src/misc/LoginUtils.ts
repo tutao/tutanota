@@ -25,7 +25,6 @@ import {showUserError} from "./ErrorHandlerImpl"
 import type {SubscriptionParameters} from "../subscription/UpgradeSubscriptionWizard"
 import {locator} from "../api/main/MainLocator"
 import {CredentialAuthenticationError} from "../api/common/error/CredentialAuthenticationError"
-import {client} from "./ClientDetector"
 import type {Params} from "mithril";
 
 /**
@@ -160,16 +159,15 @@ export function handleExpectedLoginError<E extends Error>(error: E, handler: (er
 	}
 }
 
-const CAMPAIGN_KEY = "campaign"
 
 export async function showSignupDialog(hashParams: Params) {
 	const subscriptionParams = getSubscriptionParameters(hashParams)
-	const campaign = getCampaignFromParams(hashParams) ?? getCampaignFromLocalStorage()
+	const registrationDataId = getRegistrationDataIdFromParams(hashParams)
 	const dialog = await showProgressDialog(
 		"loading_msg",
 		locator.worker.initialized.then(async () => {
 			const {loadSignupWizard} = await import("../subscription/UpgradeSubscriptionWizard")
-			return loadSignupWizard(subscriptionParams, campaign)
+			return loadSignupWizard(subscriptionParams, registrationDataId)
 		}),
 	)
 	dialog.show()
@@ -188,35 +186,14 @@ function getSubscriptionParameters(hashParams: Params): SubscriptionParameters |
 	}
 }
 
-export function getCampaignFromParams(hashParams: Params): string | null {
+export function getRegistrationDataIdFromParams(hashParams: Params): string | null {
 	if (typeof hashParams.token === "string") {
-		// we store the campaing token inside local storage to be able to use that key later when upgrading a Free account to Premium.
-		// This might happen if the user decide to not upgrade to premium during signup.
-		const token = hashParams.token
-
-		if (client.localStorage()) {
-			localStorage.setItem(CAMPAIGN_KEY, token)
-		}
-
-		return token
+		return hashParams.token
 	}
 
 	return null
 }
 
-export function getCampaignFromLocalStorage(): string | null {
-	if (client.localStorage()) {
-		return localStorage.getItem(CAMPAIGN_KEY)
-	}
-
-	return null
-}
-
-export function deleteCampaign(): void {
-	if (client.localStorage()) {
-		localStorage.removeItem(CAMPAIGN_KEY)
-	}
-}
 
 async function loadRedeemGiftCardWizard(urlHash: string): Promise<Dialog> {
 	const wizard = await import("../subscription/giftcards/RedeemGiftCardWizard")

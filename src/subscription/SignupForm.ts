@@ -19,7 +19,6 @@ import {lang} from "../misc/LanguageViewModel"
 import {showWorkerProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {InvalidDataError} from "../api/common/error/RestError"
 import {locator} from "../api/main/MainLocator"
-import {deleteCampaign} from "../misc/LoginUtils"
 import {CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection} from "./TermsAndConditions"
 import {logins} from "../api/main/LoginController.js"
 import {runCaptchaFlow} from "./Captcha.js"
@@ -177,7 +176,6 @@ function signup(
 			return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaign).then(regDataId => {
 				if (regDataId) {
 					return customerFacade.signup(keyPairs, AccountType.FREE, regDataId, mailAddress, pw, registrationCode, lang.code).then(recoverCode => {
-						deleteCampaign()
 						return {
 							mailAddress,
 							password: pw,

@@ -1964,7 +1964,6 @@ export type PriceServiceData = {
 	_type: TypeRef<PriceServiceData>;
 
 	_format: NumberString;
-	campaign: null | string;
 	date: null | Date;
 
 	priceRequest:  null | PriceRequestData;
@@ -2527,7 +2526,6 @@ export type SwitchAccountTypeData = {
 
 	_format: NumberString;
 	accountType: NumberString;
-	campaign: null | string;
 	date: null | Date;
 	subscriptionType: NumberString;
 }
