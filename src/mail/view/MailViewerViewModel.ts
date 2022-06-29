@@ -53,7 +53,7 @@ import {LockedError, NotAuthorizedError, NotFoundError} from "../../api/common/e
 import {elementIdPart, listIdPart} from "../../api/common/utils/EntityUtils"
 import {getReferencedAttachments, loadInlineImages, moveMails, revokeInlineImages} from "./MailGuiUtils"
 import {locator} from "../../api/main/MainLocator"
-import {SanitizedHTML} from "../../misc/HtmlSanitizer"
+import {SanitizedFragment, SanitizedHTML} from "../../misc/HtmlSanitizer"
 import {CALENDAR_MIME_TYPE, FileController} from "../../file/FileController"
 import {getMailBodyText, getMailHeaders} from "../../api/common/utils/Utils"
 import {exportMails} from "../export/Exporter.js"
@@ -90,7 +90,7 @@ export class MailViewerViewModel {
 	private contrastFixNeeded: boolean = false
 
 	// always sanitized in this.sanitizeMailBody
-	private sanitizeResult: SanitizedHTML | null = null
+	private sanitizeResult: SanitizedFragment | null = null
 	private loadingAttachments: boolean = false
 
 	private attachments: TutanotaFile[] = []
@@ -114,9 +114,6 @@ export class MailViewerViewModel {
 	private readonly loadingState = new LoadingStateTracker()
 
 	private renderIsDelayed: boolean = true
-	// We render the mailbody to a shadowdom, which doesn't inherit styles from the global stylesheet
-	// So we just copy it and put it in the shadowdom
-	private styleSheet: Node = styles.getStyleSheetElement("main")
 
 	constructor(
 		public readonly mail: Mail,
@@ -254,8 +251,8 @@ export class MailViewerViewModel {
 		return this.mail._id
 	}
 
-	getSanitizedMailBody(): string | null {
-		return this.sanitizeResult?.html ?? null
+	getSanitizedMailBody(): DocumentFragment | null {
+		return this.sanitizeResult?.fragment ?? null
 	}
 
 	getMailBody(): string {
@@ -766,7 +763,7 @@ export class MailViewerViewModel {
 		}
 	}
 
-	private async sanitizeMailBody(mail: Mail, blockExternalContent: boolean): Promise<SanitizedHTML> {
+	private async sanitizeMailBody(mail: Mail, blockExternalContent: boolean): Promise<SanitizedFragment> {
 		const {htmlSanitizer} = await import("../../misc/HtmlSanitizer")
 		const urlified = await locator.worker.urlify(this.getMailBody())
 		const sanitizeResult = htmlSanitizer.sanitizeFragment(urlified, {
@@ -792,7 +789,7 @@ export class MailViewerViewModel {
 			// We want to stringify and return the fragment here, because once a fragment is appended to a DOM Node, it's children are moved
 			// and the fragment is left empty. If we cache the fragment and then append that directly to the DOM tree when rendering, there are cases where
 			// we would try to do so twice, and on the second pass the mail body will be left blank
-			html: stringifyFragment(fragment),
+			fragment,
 			inlineImageCids,
 			links,
 			externalContent,
@@ -908,9 +905,5 @@ export class MailViewerViewModel {
 
 	private getMailOwnerGroup(): Id | null {
 		return this.mail._ownerGroup
-	}
-
-	getStyleSheet(): Node {
-		return this.styleSheet
 	}
 }

@@ -20,11 +20,7 @@ class Styles {
 	bodyWidth: number
 	bodyHeight: number
 
-	private styleSheets = new Map<StyleSheetId, HTMLElement>()
-
-	getStyleSheetElement(id: StyleSheetId): Node {
-		return assertNotNull(this.styleSheets.get(id)).cloneNode(true)
-	}
+	private styleSheets = new Map<StyleSheetId, HTMLStyleElement>()
 
 	constructor() {
 		this.initialized = false
@@ -36,7 +32,7 @@ class Styles {
 			this.bodyHeight = height
 		})
 		themeController.themeIdChangedStream.map(() => {
-			this._updateDomStyles()
+			this.updateDomStyles()
 		})
 	}
 
@@ -44,7 +40,24 @@ class Styles {
 		if (this.initialized) return
 		this.initialized = true
 
-		this._updateDomStyles()
+		this.updateDomStyles()
+	}
+
+	getStyleSheetElement(id: StyleSheetId): Node {
+		return assertNotNull(this.styleSheets.get(id)).cloneNode(true)
+	}
+
+
+	isDesktopLayout(): boolean {
+		return this.bodyWidth >= size.desktop_layout_width
+	}
+
+	isSingleColumnLayout(): boolean {
+		return this.bodyWidth < size.two_column_layout_width
+	}
+
+	isUsingBottomNavigation(): boolean {
+		return !isAdminClient() && (client.isMobileDevice() || !this.isDesktopLayout())
 	}
 
 	registerStyle(id: StyleSheetId, styleCreator: (...args: Array<any>) => any) {
@@ -57,7 +70,7 @@ class Styles {
 		if (this.initialized) {
 			log(Cat.css, "update style", id, styleCreator(theme))
 
-			this._updateDomStyle(id, styleCreator)
+			this.updateDomStyle(id, styleCreator)
 		}
 	}
 
@@ -69,10 +82,10 @@ class Styles {
 		const creator = neverNull(this.styles.get(id))
 		log(Cat.css, "update style", id, creator(theme))
 
-		this._updateDomStyle(id, creator)
+		this.updateDomStyle(id, creator)
 	}
 
-	_updateDomStyles() {
+	private updateDomStyles() {
 		// This is hacking but we currently import gui stuff from a lot of tested things
 		if (isTest()) {
 			return
@@ -80,40 +93,28 @@ class Styles {
 
 		let time = timer(Cat.css)
 		Array.from(this.styles.entries()).map(entry => {
-			this._updateDomStyle(entry[0], entry[1])
+			this.updateDomStyle(entry[0], entry[1])
 		})
 		log(Cat.css, "creation time", time())
 	}
 
-	_updateDomStyle(id: StyleSheetId, styleCreator: (...args: Array<any>) => any) {
-		const styleSheet = this._getDomStyleSheet(id)
+	private updateDomStyle(id: StyleSheetId, styleCreator: (...args: Array<any>) => any) {
+		const styleSheet = this.getDomStyleSheet(`css-${id}`)
 		styleSheet.textContent = toCss(styleCreator())
 		this.styleSheets.set(id, styleSheet)
 	}
 
-	_getDomStyleSheet(id: string): HTMLElement {
-		let styleDomElement = document.getElementById("css-" + id)
+	private getDomStyleSheet(id: string): HTMLStyleElement {
+		let styleDomElement = document.getElementById(id)
 
 		if (!styleDomElement) {
 			styleDomElement = document.createElement("style")
 			styleDomElement.setAttribute("type", "text/css")
-			styleDomElement.id = "css-" + id
+			styleDomElement.id = id
 			styleDomElement = document.getElementsByTagName("head")[0].appendChild(styleDomElement)
 		}
 
-		return styleDomElement
-	}
-
-	isDesktopLayout(): boolean {
-		return this.bodyWidth >= size.desktop_layout_width
-	}
-
-	isSingleColumnLayout(): boolean {
-		return this.bodyWidth < size.two_column_layout_width
-	}
-
-	isUsingBottomNavigation(): boolean {
-		return !isAdminClient() && (client.isMobileDevice() || !this.isDesktopLayout())
+		return styleDomElement as HTMLStyleElement
 	}
 }
 
