@@ -1,5 +1,5 @@
 import m, {Params} from "mithril"
-import {assertMainOrNodeBoot, isAdminClient, isApp, isDesktop, isIOSApp, Mode} from "../api/common/Env"
+import {assertMainOrNodeBoot, isApp, isElectronClient, isIOSApp, Mode} from "../api/common/Env"
 import {lang} from "./LanguageViewModel"
 import type {WorkerClient} from "../api/main/WorkerClient"
 import {client} from "./ClientDetector"
@@ -223,7 +223,7 @@ class WindowFacade {
 	}
 
 	async reload(args: Params) {
-		if (isApp() || isDesktop() || isAdminClient()) {
+		if (isApp() || isElectronClient()) {
 			if (!args.hasOwnProperty("noAutoLogin")) {
 				args.noAutoLogin = true
 			}

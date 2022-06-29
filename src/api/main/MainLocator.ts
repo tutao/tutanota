@@ -4,7 +4,7 @@ import {EventController} from "./EventController"
 import {EntropyCollector} from "./EntropyCollector"
 import {SearchModel} from "../../search/model/SearchModel"
 import {MailModel} from "../../mail/model/MailModel"
-import {assertMainOrNode, assertOfflineStorageAvailable, getWebRoot, isAdminClient, isBrowser, isDesktop} from "../common/Env"
+import {assertMainOrNode, assertOfflineStorageAvailable, getWebRoot, isBrowser, isDesktop, isElectronClient} from "../common/Env"
 import {notifications} from "../../gui/Notifications"
 import {logins} from "./LoginController"
 import type {ContactModel} from "../../contacts/model/ContactModel"
@@ -200,15 +200,15 @@ class MainLocator implements IMainLocator {
 	}
 
 	get interWindowEventBus(): InterWindowEventBus<InterWindowEventTypes> {
-		if (!isDesktop() && !isAdminClient()) {
-			throw new ProgrammingError("Trying to use InterWindowEventBus not on desktop")
+		if (!isElectronClient()) {
+			throw new ProgrammingError("Trying to use InterWindowEventBus not in electron")
 		}
 		return this._interWindowEventBus
 	}
 
 	get webauthnController(): IWebauthn {
 		const creds = navigator.credentials
-		return isDesktop() || isAdminClient()
+		return isElectronClient()
 			? this.getExposedNativeInterface().webauthn
 			: new BrowserWebauthn(creds, window.location.hostname)
 	}
@@ -315,7 +315,7 @@ class MainLocator implements IMainLocator {
 		this.cacheStorage = cacheStorage
 
 		if (!isBrowser()) {
-			if (isDesktop() || isAdminClient()) {
+			if (isElectronClient()) {
 				const {InterWindowEventBus} = await import("../../native/common/InterWindowEventBus.js")
 				this._interWindowEventBus = new InterWindowEventBus()
 			}
@@ -337,7 +337,7 @@ class MainLocator implements IMainLocator {
 				this.entityClient,
 			)
 
-			if (isDesktop() || isAdminClient()) {
+			if (isElectronClient()) {
 				const desktopInterfaces = createDesktopInterfaces(this.native)
 				this.searchTextFacade = desktopInterfaces.searchTextFacade
 				this.interWindowEventBus.init(this.getExposedNativeInterface().interWindowEventSender)

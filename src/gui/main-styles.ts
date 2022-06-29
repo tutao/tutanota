@@ -3,7 +3,7 @@ import {px, size} from "./size"
 import {client} from "../misc/ClientDetector"
 import {lang} from "../misc/LanguageViewModel"
 import {noselect, position_absolute, positionValue} from "./mixins"
-import {assertMainOrNodeBoot, isAdminClient, isApp, isDesktop} from "../api/common/Env"
+import {assertMainOrNodeBoot, isAdminClient, isApp, isElectronClient} from "../api/common/Env"
 import {getContentButtonIconBackground, getElevatedBackground, getNavigationMenuBg, theme} from "./theme"
 import {BrowserType} from "../misc/ClientConstants"
 
@@ -36,7 +36,7 @@ const boxShadow = `0 2px 12px rgba(0, 0, 0, 0.4), 0 10px 40px rgba(0, 0, 0, 0.3)
 styles.registerStyle("main", () => {
 	return {
 		"#link-tt":
-			isDesktop() || isAdminClient()
+			isElectronClient()
 				? {
 					"pointer-events": "none",
 					"font-size": px(size.font_size_small),
@@ -57,7 +57,7 @@ styles.registerStyle("main", () => {
 				}
 				: {},
 		"#link-tt.reveal":
-			isDesktop() || isAdminClient()
+			isElectronClient()
 				? {
 					opacity: 1,
 					transition: "opacity .1s linear",

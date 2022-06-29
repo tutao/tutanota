@@ -5,7 +5,7 @@ import type {CertificateInfo, CreditCard, EmailSenderListElement, GroupMembershi
 import {AccountingInfo, Customer} from "../entities/sys/TypeRefs.js";
 import type {CalendarEventAttendee, UserSettingsGroupRoot} from "../entities/tutanota/TypeRefs.js"
 import {ContactSocialId, MailFolder} from "../entities/tutanota/TypeRefs.js";
-import {isAdminClient, isApp, isDesktop} from "./Env"
+import {isAdminClient, isApp, isDesktop, isElectronClient} from "./Env"
 import type {Country} from "./CountryList"
 import {ProgrammingError} from "./error/ProgrammingError";
 
@@ -910,7 +910,7 @@ export const enum ClientType {
 }
 
 export function getClientType(): ClientType {
-	return isApp() ? ClientType.App : isDesktop() || isAdminClient() ? ClientType.Desktop : ClientType.Browser
+	return isApp() ? ClientType.App : isElectronClient() ? ClientType.Desktop : ClientType.Browser
 }
 
 export const enum ExternalImageRule {
