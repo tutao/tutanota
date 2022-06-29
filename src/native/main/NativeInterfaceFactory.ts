@@ -1,7 +1,7 @@
 import {NativeInterfaceMain} from "./NativeInterfaceMain.js"
 import {NativePushServiceApp} from "./NativePushServiceApp.js"
 import {NativeFileApp} from "../common/FileApp.js"
-import {isAdminClient, isBrowser, isDesktop} from "../../api/common/Env.js"
+import {isBrowser, isElectronClient} from "../../api/common/Env.js"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
 import {ExposedWebInterface} from "../common/NativeInterface.js"
 import {DesktopFacade} from "../common/generatedipc/DesktopFacade.js"
@@ -83,8 +83,8 @@ export function createNativeInterfaces(
 }
 
 export function createDesktopInterfaces(native: NativeInterfaceMain): DesktopInterfaces {
-	if (!isDesktop() && !isAdminClient()) {
-		throw new ProgrammingError("tried to create desktop interfaces in non-desktop")
+	if (!isElectronClient()) {
+		throw new ProgrammingError("tried to create desktop interfaces in non-electron client")
 	}
 	return {
 		searchTextFacade: new SearchTextInAppFacadeSendDispatcher(native),

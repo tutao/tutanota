@@ -1,4 +1,4 @@
-import {assertMainOrNode, isAdminClient, isAndroidApp, isDesktop, isIOSApp} from "../../api/common/Env"
+import {assertMainOrNode, isAndroidApp, isElectronClient, isIOSApp} from "../../api/common/Env"
 import type {Transport} from "../../api/common/MessageDispatcher"
 import {MessageDispatcher, Request} from "../../api/common/MessageDispatcher"
 import type {DeferredObject} from "@tutao/tutanota-utils"
@@ -33,7 +33,7 @@ export class NativeInterfaceMain implements NativeInterface {
 			transport = androidTransport
 		} else if (isIOSApp()) {
 			transport = new IosNativeTransport(window)
-		} else if (isDesktop() || isAdminClient()) {
+		} else if (isElectronClient()) {
 			transport = new DesktopNativeTransport(window.nativeApp)
 		} else {
 			throw new ProgrammingError("Tried to create a native interface in the browser")

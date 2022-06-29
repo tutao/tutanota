@@ -87,6 +87,10 @@ export function isAdminClient(): boolean {
 	return env.mode === Mode.Admin
 }
 
+export function isElectronClient(): boolean {
+	return isDesktop() || isAdminClient()
+}
+
 export function isMainOrNode(): boolean {
 	return !worker || node || env.mode === Mode.Test
 }
