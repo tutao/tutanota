@@ -200,7 +200,7 @@ class MainLocator implements IMainLocator {
 	}
 
 	get interWindowEventBus(): InterWindowEventBus<InterWindowEventTypes> {
-		if (!isDesktop()) {
+		if (!isDesktop() && !isAdminClient()) {
 			throw new ProgrammingError("Trying to use InterWindowEventBus not on desktop")
 		}
 		return this._interWindowEventBus
@@ -315,7 +315,7 @@ class MainLocator implements IMainLocator {
 		this.cacheStorage = cacheStorage
 
 		if (!isBrowser()) {
-			if (isDesktop()) {
+			if (isDesktop() || isAdminClient()) {
 				const {InterWindowEventBus} = await import("../../native/common/InterWindowEventBus.js")
 				this._interWindowEventBus = new InterWindowEventBus()
 			}
@@ -337,12 +337,14 @@ class MainLocator implements IMainLocator {
 				this.entityClient,
 			)
 
-			if (isDesktop()) {
-				this.interWindowEventBus.init(this.getExposedNativeInterface().interWindowEventSender)
+			if (isDesktop() || isAdminClient()) {
 				const desktopInterfaces = createDesktopInterfaces(this.native)
 				this.searchTextFacade = desktopInterfaces.searchTextFacade
-				this.desktopSettingsFacade = desktopInterfaces.desktopSettingsFacade
-				this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
+				this.interWindowEventBus.init(this.getExposedNativeInterface().interWindowEventSender)
+				if (isDesktop()) {
+					this.desktopSettingsFacade = desktopInterfaces.desktopSettingsFacade
+					this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
+				}
 			}
 		}
 
