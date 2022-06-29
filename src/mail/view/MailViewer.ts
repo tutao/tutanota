@@ -133,7 +133,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private domBody: HTMLElement | null = null
 
 	private shadowDomRoot: ShadowRoot | null = null
-	private currentlyRenderedMailBody: string | null = null
+	private currentlyRenderedMailBody: DocumentFragment | null = null
 
 	constructor(vnode: Vnode<MailViewerAttrs>) {
 		this.setViewModel(vnode.attrs.viewModel)
@@ -353,7 +353,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		}
 	}
 
-	private renderMailBody(sanitizedMailBody: string): Children {
+	private renderMailBody(sanitizedMailBody: DocumentFragment): Children {
 		return m("#mail-body.selectable.touch-callout.break-word-links" + (client.isMobileDevice() ? ".break-pre" : ""),
 			{
 				oncreate: vnode => {
@@ -361,7 +361,10 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					this.setDomBody(dom)
 					this.updateLineHeight(dom)
 					this.rescale(false)
-					this.renderToShadowRoot(sanitizedMailBody)
+					assertNonNull(this.shadowDomRoot)
+					this.shadowDomRoot.appendChild(styles.getStyleSheetElement("main"))
+					this.shadowDomRoot.appendChild(sanitizedMailBody.cloneNode(true))
+					this.currentlyRenderedMailBody = sanitizedMailBody
 				},
 				onupdate: vnode => {
 					const dom = vnode.dom as HTMLElement
@@ -378,10 +381,12 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 					assertNonNull(this.shadowDomRoot)
 					if (this.currentlyRenderedMailBody !== sanitizedMailBody) {
-						for (const child of Array.from(this.shadowDomRoot.childNodes)) {
-							this.shadowDomRoot.removeChild(child)
+						while (this.shadowDomRoot.firstChild) {
+							this.shadowDomRoot.firstChild.remove()
 						}
-						this.renderToShadowRoot(sanitizedMailBody)
+						this.shadowDomRoot.appendChild(styles.getStyleSheetElement("main"))
+						this.shadowDomRoot.appendChild(sanitizedMailBody.cloneNode(true))
+						this.currentlyRenderedMailBody = sanitizedMailBody
 					}
 				},
 				onbeforeremove: () => {
@@ -400,20 +405,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				},
 			}
 		)
-	}
-
-	/**
-	 * We render the sanitized mail body to a shadow dom to ensure that any styles don't leak into the rest of the app.
-	 * Styles in mailbodies *should* get sanitized out, but even with sanitization, there is always the possibility of bugs,
-	 * either our own or in the sanitization, so we do this as a safety precaution
-	 */
-	private renderToShadowRoot(sanitizedMailBody: string) {
-		assertNonNull(this.shadowDomRoot)
-		this.shadowDomRoot.appendChild(this.viewModel.getStyleSheet())
-		const childNode = document.createElement("div")
-		this.shadowDomRoot.appendChild(childNode)
-		m.render(childNode, m.trust(sanitizedMailBody))
-		this.currentlyRenderedMailBody = sanitizedMailBody
 	}
 
 	private clearDomBody() {
