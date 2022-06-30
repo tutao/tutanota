@@ -1,9 +1,10 @@
 import {LoginController} from "../api/main/LoginController.js"
 import {CustomerTypeRef, GroupInfoTypeRef, GroupTypeRef, UserTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {assertNotNull, mapNullable, pad, promiseMap, renderCsv} from "@tutao/tutanota-utils"
+import {assertNotNull, mapNullable, pad, promiseMap, renderCsv, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {UserManagementFacade} from "../api/worker/facades/UserManagementFacade.js"
 import {EntityClient} from "../api/common/EntityClient.js"
 import {FileController} from "../file/FileController.js"
+import {createDataFile} from "../api/common/DataFile.js"
 
 export const CSV_MIMETYPE = "text/csv"
 export const USER_CSV_FILENAME = "users.csv"
@@ -41,7 +42,8 @@ export async function exportUserCsv(
 			user.aliases.join(" ")
 		])
 	)
-	await fileController.saveStringAsFile(csv, USER_CSV_FILENAME, CSV_MIMETYPE)
+	const dataFile = createDataFile(USER_CSV_FILENAME, CSV_MIMETYPE, stringToUtf8Uint8Array(csv))
+	await fileController.saveDataFile(dataFile)
 }
 
 function formatDate(date: Date): string {

@@ -125,7 +125,7 @@ o.spec("DesktopCryptoFacadeTest", () => {
 	const setupSubject = () => {
 		const sm = standardMocks()
 		const utils = object<DesktopUtils>()
-		when(utils.getTutanotaTempPath("decrypted")).thenReturn("/some/other/path/to")
+		when(utils.getTutanotaTempPath()).thenReturn("/some/other/path/to")
 		const desktopCrypto = new DesktopNativeCryptoFacade(sm.fsMock, sm.cryptoFnsMock, utils)
 		return Object.assign({}, sm, {
 			desktopCrypto,
@@ -135,7 +135,7 @@ o.spec("DesktopCryptoFacadeTest", () => {
 	o("aesDecryptFile", async function () {
 		const {desktopCrypto, fsMock} = setupSubject()
 		const file = await desktopCrypto.aesDecryptFile(someKey, "/some/path/to/file.pdf")
-		o(file).equals("/some/other/path/to/file.pdf")
+		o(file).equals("/some/other/path/to/decrypted/file.pdf")
 		o(fsMock.promises.writeFile.callCount).equals(1)
 	})
 	o("aes256DecryptKey", function () {

@@ -54,7 +54,7 @@ export async function makeMailBundle(mail: Mail, entityClient: EntityClient, fil
 		mail.attachments,
 		async fileId => {
 			const file = await entityClient.load(FileTypeRef, fileId)
-			return await fileController.downloadAndDecryptBrowser(file)
+			return await fileController.downloadAndDecrypt(file)
 		},
 	)
 

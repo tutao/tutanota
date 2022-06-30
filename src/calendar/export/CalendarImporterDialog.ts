@@ -1,5 +1,5 @@
 import type {CalendarGroupRoot} from "../../api/entities/tutanota/TypeRefs.js"
-import {CALENDAR_MIME_TYPE} from "../../file/FileController"
+import {CALENDAR_MIME_TYPE, showFileChooser} from "../../file/FileController"
 import type {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
 import {CalendarEventTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {generateEventElementId} from "../../api/common/utils/CommonCalendarUtils"
@@ -22,7 +22,7 @@ export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupR
 	let parsedEvents: ParsedEvent[][]
 
 	try {
-		const dataFiles = await locator.fileController.showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
+		const dataFiles = await showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
 		parsedEvents = dataFiles.map(file => parseCalendarFile(file).contents)
 	} catch (e) {
 		if (e instanceof ParserError) {

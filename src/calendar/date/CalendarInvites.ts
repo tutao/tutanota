@@ -67,7 +67,7 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 }
 
 export async function getEventFromFile(file: TutanotaFile): Promise<CalendarEvent | null> {
-	const dataFile = await locator.fileController.downloadAndDecryptBrowser(file)
+	const dataFile = await locator.fileController.downloadAndDecrypt(file)
 	const parsedEvent = getParsedEvent(dataFile)
 	return parsedEvent?.event ?? null
 }

@@ -77,7 +77,7 @@ o.spec("Bundler", function () {
 		for (const attachment of attachments) {
 			// the file is only needed to pass to the fileController and is not kept, so we mock it as a string for convenience
 			when(entityClientMock.load(FileTypeRef, [attachmentListId, attachment.name])).thenResolve(`file ${attachment.name}` as any)
-			when(fileControllerMock.downloadAndDecryptBrowser((`file ${attachment.name}` as any))).thenResolve(attachment)
+			when(fileControllerMock.downloadAndDecrypt((`file ${attachment.name}` as any))).thenResolve(attachment)
 		}
 
 		when(entityClientMock.load(MailBodyTypeRef, mailBodyId)).thenResolve({text: body})
@@ -87,7 +87,12 @@ o.spec("Bundler", function () {
 			usePlaceholderForInlineImages: false,
 		})).thenReturn({html: sanitizedBodyText})
 
-		const bundle = await makeMailBundle(mail, entityClientMock, fileControllerMock, sanitizerMock)
+		const bundle = await makeMailBundle(
+			mail,
+			entityClientMock,
+			fileControllerMock,
+			sanitizerMock
+		)
 
 		o(bundle).deepEquals({
 			mailId: mailId,

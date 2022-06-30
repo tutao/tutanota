@@ -19,6 +19,7 @@ import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {locator} from "../../api/main/MainLocator"
 import {FileReference} from "../../api/common/utils/FileUtils";
 import {DataFile} from "../../api/common/DataFile";
+import {showFileChooser} from "../../file/FileController.js"
 
 export function chooseAndAttachFile(
 	model: SendMailModel,
@@ -44,7 +45,7 @@ export function showFileChooserForAttachments(
 	boundingRect: ClientRect,
 	fileTypes?: Array<string>,
 ): Promise<ReadonlyArray<FileReference | DataFile> | void> {
-	const fileSelector = env.mode === Mode.App ? locator.fileApp.openFileChooser(boundingRect) : locator.fileController.showFileChooser(true, fileTypes)
+	const fileSelector = env.mode === Mode.App ? locator.fileApp.openFileChooser(boundingRect) : showFileChooser(true, fileTypes)
 	return fileSelector
 		.catch(
 			ofClass(PermissionError, () => {
@@ -107,7 +108,7 @@ async function _downloadAttachment(attachment: Attachment) {
 		} else if (attachment._type === "DataFile") {
 			await locator.fileController.saveDataFile(downcast(attachment))
 		} else {
-			await locator.fileController.downloadAndOpen((attachment as any) as TutanotaFile, true)
+			await locator.fileController.open(attachment  as TutanotaFile)
 		}
 	} catch (e) {
 		if (e instanceof FileOpenError) {

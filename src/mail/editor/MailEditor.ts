@@ -62,6 +62,7 @@ import {getContactDisplayName} from "../../contacts/model/ContactUtils"
 import {ResolvableRecipient} from "../../api/main/RecipientsModel"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 import {getRecipientsSearchModel, RecipientsSearchModel} from "../../misc/RecipientsSearchModel.js"
+import {readLocalFiles} from "../../file/FileController"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -207,7 +208,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 
 								if (inlineAttachment && isTutanotaFile(inlineAttachment)) {
 									locator.fileController
-										   .downloadAndOpen(downcast(inlineAttachment), true)
+										   .open(inlineAttachment)
 										   .catch(ofClass(FileOpenError, () => Dialog.message("canNotOpenFileOnDevice_msg")))
 								}
 							},
@@ -381,16 +382,15 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				},
 				ondrop: (ev: DragEvent) => {
 					if (ev.dataTransfer?.files && ev.dataTransfer.files.length > 0) {
-						locator.fileController
-							   .readLocalFiles(ev.dataTransfer.files)
-							   .then(dataFiles => {
-								   model.attachFiles(dataFiles as any)
-								   m.redraw()
-							   })
-							   .catch(e => {
-								   console.log(e)
-								   return Dialog.message("couldNotAttachFile_msg")
-							   })
+						readLocalFiles(ev.dataTransfer.files)
+							.then(dataFiles => {
+								model.attachFiles(dataFiles as any)
+								m.redraw()
+							})
+							.catch(e => {
+								console.log(e)
+								return Dialog.message("couldNotAttachFile_msg")
+							})
 						ev.stopPropagation()
 						ev.preventDefault()
 					}
@@ -512,7 +512,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						oncreate: vnode => this.animateHeight(vnode.dom as HTMLElement, true),
 						onbeforeremove: vnode => this.animateHeight(vnode.dom as HTMLElement, false),
 						label: () => lang.get("passwordFor_label", {"{1}": recipient.address,}),
-						helpLabel: () => m(CompletenessIndicator, { percentageCompleted: this.sendMailModel.getPasswordStrength(recipient)}),
+						helpLabel: () => m(CompletenessIndicator, {percentageCompleted: this.sendMailModel.getPasswordStrength(recipient)}),
 						value: this.sendMailModel.getPassword(recipient.address),
 						type: TextFieldType.ExternalPassword,
 						oninput: val => this.sendMailModel.setPassword(recipient.address, val),
@@ -903,7 +903,11 @@ export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: bo
 
 	if (mailTo.attach) {
 		const attach = mailTo.attach
-		dataFiles = (await Promise.all(attach.map(uri => locator.fileController.getDataFile(uri)))).filter(isNotNull)
+
+		if (isDesktop()) {
+			const files = await Promise.all(attach.map(uri => locator.fileApp.readDataFile(uri)))
+			dataFiles = files.filter(isNotNull)
+		}
 		// make sure the user is aware that (and which) files have been attached
 		const keepAttachments =
 			dataFiles.length === 0 ||
