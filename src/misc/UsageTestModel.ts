@@ -2,6 +2,8 @@ import {
 	createUsageTestAssignmentIn,
 	createUsageTestMetricData,
 	createUsageTestParticipationIn,
+	CustomerPropertiesTypeRef,
+	CustomerTypeRef,
 	UsageTestAssignment,
 	UsageTestAssignmentOut,
 	UsageTestAssignmentTypeRef,
@@ -9,6 +11,9 @@ import {
 import {PingAdapter, Stage, UsageTest} from "@tutao/tutanota-usagetests"
 import {filterInt, lazy} from "@tutao/tutanota-utils"
 import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
+import {UsageTestState} from "../api/common/TutanotaConstants"
+import {filterInt, neverNull, ofClass} from "@tutao/tutanota-utils"
+import {PreconditionFailedError} from "../api/common/error/RestError"
 import {SuspensionError} from "../api/common/error/SuspensionError"
 import {SuspensionBehavior} from "../api/worker/rest/RestClient"
 import {DateProvider} from "../api/common/DateProvider.js"
@@ -293,6 +298,19 @@ export class UsageTestModel implements PingAdapter {
 
 	private storage() {
 		return this.storages[this.storageBehavior]
+	}
+
+	async getOptInDecision(): Promise<boolean> {
+		const userOptIn = logins.getUserController().userSettingsGroupRoot.usageDataOptedIn
+		if (!userOptIn) {
+			// shortcut if userOptIn not set or equal to false
+			return false
+		}
+
+		const customerProperties = await locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
+
+		// customer opt out overrides the user setting
+		return !customerProperties.usageDataOptedOut
 	}
 
 	async loadActiveUsageTests(ttlBehavior: TtlBehavior): Promise<UsageTest[]> {
