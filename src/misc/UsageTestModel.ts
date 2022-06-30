@@ -27,7 +27,7 @@ import m, {Component, Vnode} from "mithril"
 import {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar.js"
 import {theme} from "../gui/theme.js"
 import {px} from "../gui/size.js"
-import {InfoLink} from "./LanguageViewModel.js"
+import {InfoLink, lang} from "./LanguageViewModel.js"
 import {ButtonColor, ButtonN, ButtonType} from "../gui/base/ButtonN.js"
 import {logins} from "../api/main/LoginController.js"
 import {locator} from "../api/main/MainLocator.js"
@@ -136,19 +136,19 @@ class UsageTestOptInDialog implements Component<UsageTestOptInDialogAttrs> {
 					},
 					m.trust(theme.logo),
 				),
-				m("h1", "Help us improve Tutanota"),
-				m("p", "Share anonymous usage data and help us test new features as well as find issues with existing functionality. We will generate and store a random identifier on your device that is shared across all logged-in accounts."),
+				m("h1", lang.get("userUsageDataOptIn_title")),
+				m("p", lang.get("userUsageDataOptInExplanation_msg")),
 				m("ul.usage-test-opt-in-bullets", [
-					m("li.list-item-check", "We don't collect any personally identifying data"),
-					m("li.list-item-check", "We don't share your usage data with anyone"),
-					m("li.list-item-info", "Your usage data may be used for research purposes"),
-					m("li.list-item-info", "You can turn this off anytime in settings"),
+					m("li.list-item-check", lang.get("userUsageDataOptInStatement1_msg")),
+					m("li.list-item-check", lang.get("userUsageDataOptInStatement2_msg")),
+					m("li.list-item-info", lang.get("userUsageDataOptInStatement3_msg")),
+					m("li.list-item-info", lang.get("userUsageDataOptInStatement4_msg")),
 				]),
-				m("p", "More information on this is in our privacy statement: ", m("small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])),
+				m("p", lang.get("moreInfo_msg") + " ", m("small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])),
 				m("", [
 					m(ButtonN, {
-						label: () => "Enable",
-						title: () => "Enable",
+						label: "activate_action",
+						title: "activate_action",
 						click: () => {
 							userSettingsGroupRoot.usageDataOptedIn = true
 							locator.entityClient.update(userSettingsGroupRoot)
@@ -159,8 +159,8 @@ class UsageTestOptInDialog implements Component<UsageTestOptInDialogAttrs> {
 						type: ButtonType.Primary,
 					}),
 					m(ButtonN, {
-						label: () => "Disable",
-						title: () => "Disable",
+						label: "deactivate_action",
+						title: "deactivate_action",
 						click: () => {
 							userSettingsGroupRoot.usageDataOptedIn = false
 							locator.entityClient.update(userSettingsGroupRoot)
@@ -171,8 +171,8 @@ class UsageTestOptInDialog implements Component<UsageTestOptInDialogAttrs> {
 						type: ButtonType.Secondary,
 					}),
 					m(ButtonN, {
-						label: () => "Not now",
-						title: () => "Not now",
+						label: "decideLater_action",
+						title: "decideLater_action",
 						click: () => vnode.attrs.closeAction(),
 						colors: ButtonColor.Content,
 						type: ButtonType.Secondary,
@@ -192,26 +192,20 @@ export function showUsageTestOptInDialog(): Promise<void> {
 
 			if (optedIn) {
 				Dialog.showActionDialog({
-					title: () => "Thanks!",
+					title: lang.get("thankYou_label"),
 					allowCancel: false,
 					okAction: dialog => dialog.close(),
 					child: {
-						view: () => m("", [
-							m("", "Thanks for opting in and sending us your usage data."),
-							m("", "You can turn this off anytime in settings."),
-						])
+						view: () => m("", lang.get("userUsageDataOptInThankYouOptedIn_msg"))
 					}
 				})
 			} else if (optedIn !== undefined) {
 				Dialog.showActionDialog({
-					title: () => "Thanks!",
+					title: lang.get("thankYou_label"),
 					allowCancel: false,
 					okAction: dialog => dialog.close(),
 					child: {
-						view: () => m("", [
-							m("", "Your decision not to send us your usage data has been stored."),
-							m("", "You can enable it anytime in settings should you change your mind."),
-						])
+						view: () => m("", lang.get("userUsageDataOptInThankYouOptedOut_msg"))
 					}
 				})
 			}
