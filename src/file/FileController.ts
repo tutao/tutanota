@@ -1,7 +1,7 @@
 import {Dialog} from "../gui/base/Dialog"
 import {convertToDataFile, createDataFile, DataFile} from "../api/common/DataFile"
 import {assertMainOrNode, isAndroidApp, isApp, isDesktop, isIOSApp} from "../api/common/Env"
-import {assertNotNull, isNotNull, neverNull, noOp, promiseMap, sortableTimestamp, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
+import {assertNotNull, isNotNull, neverNull, promiseMap, sortableTimestamp, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {CryptoError} from "../api/common/error/CryptoError"
 import {lang, TranslationKey} from "../misc/LanguageViewModel"
@@ -36,58 +36,49 @@ export class FileController {
 	/**
 	 * Temporary files are deleted afterwards in apps.
 	 */
-	downloadAndOpen(tutanotaFile: TutanotaFile, open: boolean): Promise<void> {
-		const downloadPromise = Promise.resolve().then(async () => {
-			if (isApp() || isDesktop()) {
-				let file: FileReference | null = null
-				try {
-					file = await this.downloadAndDecryptNative(tutanotaFile)
-					if (open) {
-						await this.fileApp.open(file)
-					} else if (isAndroidApp() || isDesktop()) {
-						await this.fileApp.putFileIntoDownloadsFolder(file.location)
-					} else if (isIOSApp()) {
-						await this.fileApp.open(file)
-					}
-				} finally {
-					if (file && (isApp() || !open)) { // can't delete on desktop as we can't wait until the viewer has actually loaded the file
-						this.deleteFile(file.location)
-					}
-				}
-			} else {
-				// web client
-				let file = await this.downloadAndDecryptBrowser(tutanotaFile)
-				await this.saveDataFile(file)
-			}
-		})
-		return showProgressDialog("pleaseWait_msg", downloadPromise.then(noOp))
-			.catch((e) => {
-				console.log("downloadAndOpen error", e.message)
-				if (e instanceof CryptoError) {
-					return Dialog.message("corrupted_msg")
-				} else if (isOfflineError(e)) {
-					return Dialog.message("couldNotAttachFile_msg")
-				} else {
-					throw e
-				}
-			})
+	async downloadAndOpen(tutanotaFile: TutanotaFile, open: boolean) {
+		try {
+			await showProgressDialog("pleaseWait_msg", this.doDownloadAndOpen(tutanotaFile, open))
+		} catch (e) {
+			console.log("downloadAndOpen error", e.message)
+			this.handleDownloadErrors(e, Dialog.message)
+
+		}
 	}
 
+	// downloadAndOpen is split up because we are running it in a progress dialog
+	// this should be factored out so the progress dialog is created on the outside
+	private async doDownloadAndOpen(tutanotaFile: TutanotaFile, open: boolean) {
+		if (isApp() || isDesktop()) {
+			let file: FileReference | null = null
+			try {
+				file = await this.downloadAndDecryptNative(tutanotaFile)
+				if (open) {
+					await this.fileApp.open(file)
+				} else if (isAndroidApp() || isDesktop()) {
+					await this.fileApp.putFileIntoDownloadsFolder(file.location)
+				} else if (isIOSApp()) {
+					await this.fileApp.open(file)
+				}
+			} finally {
+				if (file && (isApp() || !open)) { // can't delete on desktop as we can't wait until the viewer has actually loaded the file
+					this.deleteFile(file.location)
+				}
+			}
+		} else {
+			// web client
+			let file = await this.downloadAndDecryptBrowser(tutanotaFile)
+			await this.saveDataFile(file)
+		}
+	}
 	/**
 	 * Temporary files are deleted afterwards in apps.
 	 */
 	async downloadAll(tutanotaFiles: Array<TutanotaFile>): Promise<void> {
-		const showErr = (msg: TranslationKey, name: string) => Dialog.message(() => lang.get(msg) + " " + name).then(() => null)
-
-		function handleError(e: Error, file: TutanotaFile) {
-			if (isOfflineError(e)) {
-				return showErr("couldNotAttachFile_msg", file.name)
-			} else if (e instanceof CryptoError) {
-				return showErr("corrupted_msg", file.name)
-			} else {
-				throw e
-			}
-		}
+		const handleError = (error: Error, file: TutanotaFile) => this.handleDownloadErrors(
+			error,
+			msg => Dialog.message(() => lang.get(msg) + " " + file.name).then(() => null)
+		)
 
 		if (isAndroidApp()) {
 			const fileResults = await promiseMap(
@@ -121,6 +112,17 @@ export class FileController {
 			const files = fileResults.filter(isNotNull)
 			const zip = await this.zipDataFiles(files, `${sortableTimestamp()}-attachments.zip`)
 			await this.openDataFileInBrowser(zip)
+		}
+	}
+
+
+	private handleDownloadErrors<R>(e: Error, errorAction: (msg: TranslationKey) => R): R {
+		if (isOfflineError(e)) {
+			return errorAction("couldNotAttachFile_msg")
+		} else if (e instanceof CryptoError) {
+			return errorAction("corrupted_msg")
+		} else {
+			throw e
 		}
 	}
 
