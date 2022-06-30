@@ -5,9 +5,10 @@ import {lang} from "../../misc/LanguageViewModel"
 import {Dialog} from "../../gui/base/Dialog"
 import {locator} from "../../api/main/MainLocator"
 import {DataFile} from "../../api/common/DataFile"
+import {showFileChooser} from "../../file/FileController.js"
 
 export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {
-	locator.fileController.showFileChooser(true, ALLOWED_IMAGE_FORMATS).then(files => {
+	showFileChooser(true, ALLOWED_IMAGE_FORMATS).then(files => {
 		const tooBig: DataFile[] = []
 
 		for (let file of files) {

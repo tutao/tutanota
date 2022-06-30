@@ -66,6 +66,8 @@ import {MobileSystemFacade} from "../../native/common/generatedipc/MobileSystemF
 import {CommonSystemFacade} from "../../native/common/generatedipc/CommonSystemFacade.js"
 import {DesktopSystemFacade} from "../../native/common/generatedipc/DesktopSystemFacade.js"
 import {ThemeFacade} from "../../native/common/generatedipc/ThemeFacade.js"
+import {FileControllerBrowser} from "../../file/FileControllerBrowser.js"
+import {FileControllerNative} from "../../file/FileControllerNative.js"
 
 assertMainOrNode()
 
@@ -372,7 +374,10 @@ class MainLocator implements IMainLocator {
 			return new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, window, window))
 		}
 
-		this.fileController = new FileController(this._nativeInterfaces?.fileApp ?? null, blobFacade, fileFacade)
+		this.fileController = this._nativeInterfaces == null
+			? new FileControllerBrowser(blobFacade, fileFacade)
+			: new FileControllerNative(this._nativeInterfaces.fileApp, blobFacade, fileFacade)
+
 		this.calendarModel = new CalendarModelImpl(
 			notifications,
 			lazyScheduler,

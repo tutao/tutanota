@@ -290,7 +290,7 @@ export class CalendarModelImpl implements CalendarModel {
 	_handleCalendarEventUpdate(update: CalendarEventUpdate): Promise<void> {
 		return this._entityClient
 				   .load(FileTypeRef, update.file)
-				   .then(file => this.fileController.downloadAndDecryptBrowser(file))
+				   .then(file => this.fileController.downloadAndDecrypt(file))
 				   .then((dataFile: DataFile) => import("../export/CalendarImporter").then(({parseCalendarFile}) => parseCalendarFile(dataFile)))
 				   .then(parsedCalendarData => this.processCalendarUpdate(update.sender, parsedCalendarData))
 				   .catch(e => {

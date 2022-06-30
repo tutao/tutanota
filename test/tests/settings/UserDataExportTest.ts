@@ -27,7 +27,7 @@ o.spec("user data export", function () {
 
 		allUserGroupInfos = []
 
-		loginsMock = object<LoginController>()
+		loginsMock = object()
 		when(loginsMock.getUserController()).thenReturn({
 			user,
 			// we only test the case where we are global admin for now
@@ -35,14 +35,14 @@ o.spec("user data export", function () {
 			getLocalAdminGroupMemberships: () => []
 		})
 
-		entityClientMock = object<EntityClient>()
+		entityClientMock = object()
 		when(entityClientMock.load(CustomerTypeRef, customerId)).thenResolve({
 			userGroups: userGroupsId
 		})
 		when(entityClientMock.loadAll(GroupInfoTypeRef, userGroupsId)).thenResolve(allUserGroupInfos)
 
-		userManagementFacadeMock = object<UserManagementFacade>()
-		fileControllerMock = object<FileController>()
+		userManagementFacadeMock = object()
+		fileControllerMock = object()
 	})
 
 	o("should load and return correct user data ", async function () {

@@ -286,20 +286,8 @@ class AndroidFileFacade(
 	}
 
 	@Throws(IOException::class)
-	override suspend fun readDataFile(filePath: String): DataFile? = withContext(Dispatchers.IO) {
-		// This impl is not really used and is untested so expect anything
-		try {
-			val fileHandle = filePath.toUri().toFile()
-			val data = fileHandle.readBytes()
-			DataFile(
-					name = getName(filePath),
-					mimeType = getMimeType(filePath),
-					data = data.wrap(),
-					size = getSize(filePath)
-			)
-		} catch (e: IOException) {
-			null
-		}
+	override suspend fun readDataFile(filePath: String): DataFile? {
+		throw Error("FileFacade.readDataFile should not be used in Android")
 	}
 
 	@Throws(IOException::class)

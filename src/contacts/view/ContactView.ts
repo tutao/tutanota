@@ -43,6 +43,7 @@ import {ActionBar} from "../../gui/base/ActionBar"
 import {SidebarSection} from "../../gui/SidebarSection"
 import {SetupMultipleError} from "../../api/common/error/SetupMultipleError"
 import {header} from "../../gui/Header.js"
+import {showFileChooser} from "../../file/FileController.js"
 
 assertMainOrNode()
 
@@ -284,7 +285,7 @@ export class ContactView implements CurrentView {
 	}
 
 	_importAsVCard() {
-		locator.fileController.showFileChooser(true, ["vcf"]).then(contactFiles => {
+		showFileChooser(true, ["vcf"]).then(contactFiles => {
 			let numberOfContacts: number
 
 			try {

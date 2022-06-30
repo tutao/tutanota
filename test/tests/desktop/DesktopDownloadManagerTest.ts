@@ -9,6 +9,8 @@ import type * as fs from "fs"
 import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {sha256Hash} from "@tutao/tutanota-crypto"
 import {createDataFile} from "../../../src/api/common/DataFile.js"
+import {object, when} from "testdouble"
+import {CryptoFunctions} from "../../../src/desktop/CryptoFns.js"
 
 const DEFAULT_DOWNLOAD_PATH = "/a/download/path/"
 
@@ -201,6 +203,8 @@ o.spec("DesktopDownloadManagerTest", function () {
 		dateProvider = {
 			now: () => time,
 		}
+		const cryptoMock = object<CryptoFunctions>()
+		when(cryptoMock.randomBytes(32)).thenResolve(new Uint8Array([0, 1, 2, 3]))
 		return {
 			netMock: n.mock<typeof DesktopNetworkClient & Writeable<typeof net>>("__net", net).set(),
 			confMock: n.mock("__conf", conf).set(),
@@ -209,11 +213,12 @@ o.spec("DesktopDownloadManagerTest", function () {
 			desktopUtilsMock: n.mock("./DesktopUtils", desktopUtils).set(),
 			langMock: n.mock("../misc/LanguageViewModel", lang).set(),
 			dateProviderMock: n.mock("__dateProvider", dateProvider).set(),
+			cryptoMock
 		}
 	}
 
-	function makeMockedDownloadManager({electronMock, desktopUtilsMock, confMock, netMock, fsMock, dateProviderMock}) {
-		return new DesktopDownloadManager(confMock, netMock, desktopUtilsMock, dateProviderMock, fsMock, electronMock)
+	function makeMockedDownloadManager({electronMock, desktopUtilsMock, confMock, netMock, fsMock, dateProviderMock, cryptoMock}) {
+		return new DesktopDownloadManager(confMock, netMock, desktopUtilsMock, dateProviderMock, fsMock, electronMock, cryptoMock)
 	}
 
 	o.spec("saveDataFile", function () {

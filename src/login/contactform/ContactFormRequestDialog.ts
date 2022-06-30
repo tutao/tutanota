@@ -33,6 +33,7 @@ import {DataFile} from "../../api/common/DataFile";
 import {FileReference} from "../../api/common/utils/FileUtils";
 import {SessionType} from "../../api/common/SessionType.js";
 import {RecipientType} from "../../api/common/recipients/Recipient"
+import {readLocalFiles, showFileChooser} from "../../file/FileController.js"
 
 assertMainOrNode()
 
@@ -139,17 +140,16 @@ export class ContactFormRequestDialog {
 				},
 				ondrop: (ev: DragEvent) => {
 					if (ev.dataTransfer?.files && ev.dataTransfer.files.length > 0) {
-						locator.fileController
-							   .readLocalFiles(ev.dataTransfer.files)
-							   .then(dataFiles => {
-								   this._attachFiles(dataFiles as any)
+						readLocalFiles(ev.dataTransfer.files)
+							.then(dataFiles => {
+								this._attachFiles(dataFiles as any)
 
-								   m.redraw()
-							   })
-							   .catch(e => {
-								   console.log(e)
-								   return Dialog.message("couldNotAttachFile_msg")
-							   })
+								m.redraw()
+							})
+							.catch(e => {
+								console.log(e)
+								return Dialog.message("couldNotAttachFile_msg")
+							})
 						ev.stopPropagation()
 						ev.preventDefault()
 					}
@@ -206,7 +206,7 @@ export class ContactFormRequestDialog {
 	}
 
 	_showFileChooserForAttachments(): Promise<void> {
-		return locator.fileController.showFileChooser(true).then(files => {
+		return showFileChooser(true).then(files => {
 			this._attachFiles(files as any)
 
 			m.redraw()
@@ -240,7 +240,7 @@ export class ContactFormRequestDialog {
 						if (file._type === "DataFile") {
 							locator.fileController.saveDataFile(downcast(file))
 						} else {
-							locator.fileController.downloadAndOpen((file as any) as TutanotaFile, true)
+							locator.fileController.open(file as TutanotaFile)
 						}
 					},
 				).setType(ButtonType.Secondary),

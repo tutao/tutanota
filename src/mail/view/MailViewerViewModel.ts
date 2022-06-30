@@ -53,7 +53,7 @@ import {LockedError, NotAuthorizedError, NotFoundError} from "../../api/common/e
 import {elementIdPart, listIdPart} from "../../api/common/utils/EntityUtils"
 import {getReferencedAttachments, loadInlineImages, moveMails, revokeInlineImages} from "./MailGuiUtils"
 import {locator} from "../../api/main/MainLocator"
-import {SanitizedFragment, SanitizedHTML} from "../../misc/HtmlSanitizer"
+import {SanitizedFragment} from "../../misc/HtmlSanitizer"
 import {CALENDAR_MIME_TYPE, FileController} from "../../file/FileController"
 import {getMailBodyText, getMailHeaders} from "../../api/common/utils/Utils"
 import {exportMails} from "../export/Exporter.js"
@@ -73,8 +73,6 @@ import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {InitAsResponseArgs} from "../editor/SendMailModel"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 import {DesktopSystemFacade} from "../../native/common/generatedipc/DesktopSystemFacade.js"
-import { styles } from "../../gui/styles.js"
-import {stringifyFragment} from "../../gui/HtmlUtils.js"
 
 
 export const enum ContentBlockingStatus {
@@ -846,20 +844,22 @@ export class MailViewerViewModel {
 		await this.fileController.downloadAll(nonInlineFiles)
 	}
 
-	downloadAndOpenAttachment(file: TutanotaFile, open: boolean): void {
-		locator.fileController
-			   .downloadAndOpen(file, open)
-			   .catch(
-				   ofClass(FileOpenError, e => {
-					   console.warn("FileOpenError", e)
-					   Dialog.message("canNotOpenFileOnDevice_msg")
-				   }),
-			   )
-			   .catch(e => {
-				   const msg = e.message || "unknown error"
-				   console.error("could not open file:", msg)
-				   return Dialog.message("errorDuringFileOpen_msg")
-			   })
+	async downloadAndOpenAttachment(file: TutanotaFile, open: boolean) {
+		try {
+			if (open) {
+				await this.fileController.open(file)
+			} else {
+				await this.fileController.download(file)
+			}
+		} catch (e) {
+			if (e instanceof FileOpenError) {
+				console.warn("FileOpenError", e)
+				await Dialog.message("canNotOpenFileOnDevice_msg")
+			} else {
+				console.error("could not open file:", e.message ?? "unknown error")
+				await Dialog.message("errorDuringFileOpen_msg")
+			}
+		}
 	}
 
 	/** Special feature for contact forms with shared mailboxes. */

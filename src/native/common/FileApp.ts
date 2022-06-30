@@ -8,6 +8,8 @@ import {FileFacade} from "./generatedipc/FileFacade.js"
 import {ExportFacade} from "./generatedipc/ExportFacade.js"
 import {DownloadTaskResponse} from "./generatedipc/DownloadTaskResponse"
 import {UploadTaskResponse} from "./generatedipc/UploadTaskResponse"
+import {isDesktop} from "../../api/common/Env.js"
+import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
 
 export type FileUri = string
 
@@ -129,7 +131,20 @@ export class NativeFileApp {
 		return this.fileFacade.clearFileData()
 	}
 
-	readDataFile(uriOrPath: string): Promise<DataFile | null> {
+	/**
+	 * take a file location in the form of
+	 *   - a uri like file:///home/user/cat.jpg
+	 *   - an absolute file path like C:\Users\cat.jpg
+	 * and return a DataFile populated
+	 * with data and metadata of that file on disk.
+	 *
+	 * returns null
+	 *   - if invoked in apps, because they use FileRef, not DataFile
+	 *   - if file can't be opened for any reason
+	 *   - if path is not absolute
+	 */
+	async readDataFile(uriOrPath: string): Promise<DataFile | null> {
+		if (!isDesktop()) throw new ProgrammingError("Don't call readDataFile when not in Desktop")
 		return this.fileFacade.readDataFile(uriOrPath)
 	}
 

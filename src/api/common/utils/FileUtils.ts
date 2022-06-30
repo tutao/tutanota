@@ -127,7 +127,7 @@ export function isReservedFilename(filename: string): boolean {
 	return (env.platformId === "win32" && winReservedRe.test(filename)) || reservedRe.test(filename)
 }
 
-export function isTutanotaFile(file: TutanotaFile | DataFile | FileReference): boolean {
+export function isTutanotaFile(file: TutanotaFile | DataFile | FileReference): file is TutanotaFile {
 	return file._type && file._type.hasOwnProperty("app") && file._type.hasOwnProperty("name") && isSameTypeRef(downcast(file._type), TutanotaFileTypeRef)
 }
 

@@ -59,6 +59,7 @@ import {CancelledError} from "../../api/common/error/CancelledError"
 import Stream from "mithril/stream";
 import {MailViewerViewModel} from "./MailViewerViewModel"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
+import { readLocalFiles } from "../../file/FileController.js"
 
 assertMainOrNode()
 
@@ -211,7 +212,7 @@ export class MailView implements CurrentView {
 						if (isNewMailActionAvailable() && ev.dataTransfer?.files && ev.dataTransfer.files.length > 0) {
 							Promise.all([
 								this.getMailboxDetails(),
-								locator.fileController.readLocalFiles(ev.dataTransfer.files),
+								readLocalFiles(ev.dataTransfer.files),
 								import("../signature/Signature"),
 								import("../editor/MailEditor"),
 							])
