@@ -56,7 +56,7 @@ class AndroidFileFacade(
 		}
 		val output = getTempDecryptedFile(filename)
 		writeFileStream(output, SequenceInputStream(Collections.enumeration(inStreams)))
-		return output.toString()
+		return output.toUri().toString()
 	}
 
 	override suspend fun openFileChooser(boundingRect: IpcClientRect): List<String> {
