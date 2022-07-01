@@ -15,7 +15,6 @@ import android.provider.Settings
 import android.util.Log
 import android.view.ContextMenu
 import android.view.ContextMenu.ContextMenuInfo
-import android.view.MenuItem
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.WebView
@@ -44,6 +43,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
+import java.security.SecureRandom
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.Continuation
@@ -69,14 +69,16 @@ class MainActivity : FragmentActivity() {
 	@SuppressLint("SetJavaScriptEnabled", "StaticFieldLeak")
 	override fun onCreate(savedInstanceState: Bundle?) {
 		Log.d(TAG, "App started")
-		val keyStoreFacade = createAndroidKeyStoreFacade(this)
-		sseStorage = SseStorage(AppDatabase.getDatabase(this,  /*allowMainThreadAccess*/false),
-				keyStoreFacade)
 
-		val fileFacade = AndroidFileFacade(this, LocalNotificationsFacade(this))
+		val fileFacade = AndroidFileFacade(this, LocalNotificationsFacade(this), SecureRandom())
+		val cryptoFacade = AndroidNativeCryptoFacade(this, fileFacade.tempDir)
+		sseStorage = SseStorage(
+				AppDatabase.getDatabase(this, false),
+				createAndroidKeyStoreFacade(cryptoFacade)
+		)
 		val alarmNotificationsManager = AlarmNotificationsManager(
 				sseStorage,
-				AndroidNativeCryptoFacade(this),
+				cryptoFacade,
 				SystemAlarmFacade(this),
 				LocalNotificationsFacade(this)
 		)
@@ -89,7 +91,7 @@ class MainActivity : FragmentActivity() {
 		val ipcJson = Json { ignoreUnknownKeys = true }
 
 		themeFacade = AndroidThemeFacade(this, this)
-		commonSystemFacade = AndroidCommonSystemFacade(this)
+		commonSystemFacade = AndroidCommonSystemFacade(this, fileFacade.tempDir)
 		val contact = Contact(this)
 
 		val globalDispatcher = AndroidGlobalDispatcher(
@@ -97,8 +99,8 @@ class MainActivity : FragmentActivity() {
 				commonSystemFacade,
 				fileFacade,
 				AndroidMobileSystemFacade(contact, fileFacade, this),
-				CredentialsEncryptionFactory.create(this),
-				AndroidNativeCryptoFacade(this),
+				CredentialsEncryptionFactory.create(this, cryptoFacade),
+				cryptoFacade,
 				nativePushFacade,
 				themeFacade,
 		)

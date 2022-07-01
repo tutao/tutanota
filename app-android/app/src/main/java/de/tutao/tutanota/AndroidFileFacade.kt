@@ -14,7 +14,6 @@ import android.provider.MediaStore
 import android.util.Log
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
-import androidx.core.net.toFile
 import androidx.core.net.toUri
 import de.tutao.tutanota.ipc.*
 import de.tutao.tutanota.push.LocalNotificationsFacade
@@ -31,19 +30,37 @@ import java.net.URL
 import java.net.URLConnection
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
+import java.security.SecureRandom
 import java.util.*
+
+class TempDir(
+		private val context: Context,
+		random: SecureRandom = SecureRandom()
+) {
+	private val randomTempDirectory = random.bytes(16).toBase64().base64ToBase64Url()
+
+	// We can only read from the temp/ subdir as configured in paths.xml
+	val root get() = File(context.filesDir, "temp/$this.randomTempDirectory").apply { mkdirs() }
+	val encrypt get() = File(context.filesDir, "temp/$randomTempDirectory/encrypted").apply { mkdirs() }
+	val decrypt get() = File(context.filesDir, "temp/$randomTempDirectory/decrypted").apply { mkdirs() }
+}
 
 class AndroidFileFacade(
 		private val activity: MainActivity,
-		private val localNotificationsFacade: LocalNotificationsFacade
+		private val localNotificationsFacade: LocalNotificationsFacade,
+		random: SecureRandom
 ) : FileFacade {
+
+	constructor(activity: MainActivity, localNotificationsFacade: LocalNotificationsFacade) : this(activity, localNotificationsFacade, SecureRandom())
+
+	val tempDir = TempDir(activity, random)
 
 	@Throws(Exception::class)
 	override suspend fun deleteFile(file: String) {
-		if (file.startsWith(Uri.fromFile(getDir(activity)).toString())) {
+		if (file.startsWith(Uri.fromFile(activity.filesDir).toString())) {
 			// we do not deleteAlarmNotification files that are not stored in our cache dir
 			if (!File(Uri.parse(file).path!!).delete()) {
-				throw Exception("could not deleteAlarmNotification file $file")
+				throw Exception("could not delete file $file")
 			}
 		}
 	}
@@ -54,7 +71,7 @@ class AndroidFileFacade(
 		for (infile in files) {
 			inStreams.add(FileInputStream(Uri.parse(infile).path))
 		}
-		val output = getTempDecryptedFile(filename)
+		val output = File(tempDir.decrypt, filename)
 		writeFileStream(output, SequenceInputStream(Collections.enumeration(inStreams)))
 		return output.toUri().toString()
 	}
@@ -146,21 +163,28 @@ class AndroidFileFacade(
 		val contentResolver = activity.contentResolver
 		val fileUri = fileUriString.toUri()
 		val fileInfo = getFileInfo(activity, fileUri)
-		val values = ContentValues()
-		values.put(MediaStore.MediaColumns.IS_PENDING, 1)
-		val mimeType = getMimeType(fileUri.toString())
-		values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-		values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileInfo.name)
-		values.put(MediaStore.MediaColumns.SIZE, fileInfo.size)
-		val outputUri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
-				?: throw FileOpenException("Could not insert into downloads, no output URI")
+		val outputUri = contentResolver.insert(
+				MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+				ContentValues().apply {
+					put(MediaStore.MediaColumns.IS_PENDING, 1)
+					put(MediaStore.MediaColumns.MIME_TYPE, getMimeType(fileUri.toString()))
+					put(MediaStore.MediaColumns.DISPLAY_NAME, fileInfo.name)
+					put(MediaStore.MediaColumns.SIZE, fileInfo.size)
+				},
+		) ?: throw FileOpenException("Could not insert into downloads, no output URI")
+
 		val inputStream = contentResolver.openInputStream(fileUri)!!
 		val outputStream = contentResolver.openOutputStream(outputUri)
 		val copiedBytes = IOUtils.copyLarge(inputStream, outputStream)
 		Log.d(TAG, "Copied $copiedBytes")
-		val updateValues = ContentValues()
-		updateValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
-		val updated = contentResolver.update(outputUri, updateValues, null, null)
+		val updated = contentResolver.update(
+				outputUri,
+				ContentValues().apply {
+					put(MediaStore.MediaColumns.IS_PENDING, 0)
+				},
+				null,
+				null
+		)
 		Log.d(TAG, "Updated with not pending: $updated")
 		localNotificationsFacade.sendDownloadFinishedNotification(fileInfo.name)
 		return outputUri.toString()
@@ -262,7 +286,7 @@ class AndroidFileFacade(
 					var encryptedFile: File? = null
 					if (con.responseCode == 200) {
 						val inputStream = con.inputStream
-						encryptedFile = getTempEncryptedFile(filename)
+						encryptedFile = File(tempDir.encrypt, filename)
 						writeFileStream(encryptedFile, inputStream)
 					}
 
@@ -280,7 +304,7 @@ class AndroidFileFacade(
 
 	@Throws(IOException::class)
 	override suspend fun writeDataFile(file: DataFile): String = withContext(Dispatchers.IO) {
-		val fileHandle = getTempDecryptedFile(file.name)
+		val fileHandle = File(tempDir.decrypt, file.name)
 		fileHandle.writeBytes(file.data.data)
 		fileHandle.toUri().toString()
 	}
@@ -297,15 +321,16 @@ class AndroidFileFacade(
 	}
 
 	override suspend fun clearFileData() {
-		cleanupDir(AndroidNativeCryptoFacade.TEMP_DIR_DECRYPTED)
-		cleanupDir(AndroidNativeCryptoFacade.TEMP_DIR_ENCRYPTED)
+		clearDirectory(tempDir.root)
 	}
 
-	private suspend fun cleanupDir(dirname: String) = withContext(Dispatchers.IO) {
-		val files = File(getDir(activity), dirname).listFiles()
-		if (files != null) {
-			for (file in files) {
-				file.delete()
+	private fun clearDirectory(file: File) {
+		file.listFiles()?.let { children ->
+			for (child in children) {
+				if (child.isDirectory) {
+					clearDirectory(child)
+				}
+				child.delete()
 			}
 		}
 	}
@@ -320,7 +345,7 @@ class AndroidFileFacade(
 		while (chunk * maxChunkSizeBytes <= fileSize) {
 			val tmpFilename = Integer.toHexString(file.hashCode()) + "." + chunk + ".blob"
 			val chunkedInputStream = BoundedInputStream(inputStream, maxChunkSizeBytes.toLong())
-			val tmpFile = getTempDecryptedFile(tmpFilename)
+			val tmpFile = File(tempDir.decrypt, tmpFilename)
 			writeFileStream(tmpFile, chunkedInputStream)
 			chunkUris.add(tmpFile.toUri().toString())
 			chunk++
@@ -338,22 +363,6 @@ class AndroidFileFacade(
 		IOUtils.copyLarge(hashingInputStream, devNull)
 		val hash = hashingInputStream.hash()
 		return hash.copyOf(6).toBase64()
-	}
-
-	@Throws(IOException::class)
-	fun getTempDecryptedFile(filename: String): File {
-		return getTempFile(filename, AndroidNativeCryptoFacade.TEMP_DIR_DECRYPTED)
-	}
-
-	@Throws(IOException::class)
-	private fun getTempEncryptedFile(filename: String): File {
-		return getTempFile(filename, AndroidNativeCryptoFacade.TEMP_DIR_ENCRYPTED)
-	}
-
-	@Throws(IOException::class)
-	private fun getTempFile(filename: String, directory: String): File {
-		val dir = File(getDir(activity), directory)
-		return File(dir, filename)
 	}
 
 	private companion object {
