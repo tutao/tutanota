@@ -2,6 +2,7 @@
 
 package de.tutao.tutanota
 
+import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.os.Build
@@ -15,6 +16,13 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.*
 import java.net.HttpURLConnection
+import java.security.SecureRandom
+
+fun SecureRandom.bytes(numBytes: Int): ByteArray {
+	val array = ByteArray(numBytes)
+	nextBytes(array)
+	return array
+}
 
 fun ByteArray.toBase64(): String = Base64.encodeToString(this, Base64.NO_WRAP)
 
@@ -74,8 +82,6 @@ fun getFileInfo(context: Context, fileUri: Uri): FileInfo {
 	}
 	throw RuntimeException("could not resolve file name / size for uri $fileUri")
 }
-
-fun getDir(context: Context): File = context.filesDir
 
 fun atLeastOreo(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
 

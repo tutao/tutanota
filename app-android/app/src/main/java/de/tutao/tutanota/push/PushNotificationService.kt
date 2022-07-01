@@ -11,53 +11,34 @@ import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.data.SseInfo
 import de.tutao.tutanota.push.SseClient.SseListener
 
-class PushNotificationService : LifecycleJobService() {
+class PushNotificationService() : LifecycleJobService() {
 	@Volatile
 	private var jobParameters: JobParameters? = null
 	private lateinit var localNotificationsFacade: LocalNotificationsFacade
 	private lateinit var sseClient: SseClient
+
 	override fun onCreate() {
 		super.onCreate()
-		val appDatabase: AppDatabase = AppDatabase.getDatabase(this, allowMainThreadAccess = true)
-		val keyStoreFacade = createAndroidKeyStoreFacade(this)
-		val sseStorage = SseStorage(appDatabase, keyStoreFacade)
+
 		localNotificationsFacade = LocalNotificationsFacade(this)
+
+		val appDatabase: AppDatabase = AppDatabase.getDatabase(this, allowMainThreadAccess = true)
+		val crypto = AndroidNativeCryptoFacade(this)
+		val keyStoreFacade = createAndroidKeyStoreFacade(crypto)
+		val sseStorage = SseStorage(appDatabase, keyStoreFacade)
 		val alarmNotificationsManager = AlarmNotificationsManager(
-				sseStorage, AndroidNativeCryptoFacade(this),
-				SystemAlarmFacade(this), localNotificationsFacade
-		)
-		val tutanotaNotificationsHandler = TutanotaNotificationsHandler(
-				localNotificationsFacade, sseStorage,
-				alarmNotificationsManager
+				sseStorage,
+				crypto,
+				SystemAlarmFacade(this),
+				localNotificationsFacade
 		)
 		alarmNotificationsManager.reScheduleAlarms()
-		sseClient = SseClient(AndroidNativeCryptoFacade(this), sseStorage, NetworkObserver(this, this), object : SseListener {
-			override fun onStartingConnection(): Boolean {
-				return tutanotaNotificationsHandler.onConnect()
-			}
-
-			override fun onMessage(data: String, sseInfo: SseInfo?) {
-				if ("notification" == data) {
-					tutanotaNotificationsHandler.onNewNotificationAvailable(sseInfo)
-				}
-				removeBackgroundServiceNotification()
-			}
-
-			override fun onConnectionEstablished() {
-				removeBackgroundServiceNotification()
-				// After establishing connection we finish in some time.
-				scheduleJobFinish()
-			}
-
-			override fun onNotAuthorized(userId: String) {
-				tutanotaNotificationsHandler.onNotAuthorized(userId)
-			}
-
-			override fun onStoppingReconnectionAttempts() {
-				removeBackgroundServiceNotification()
-				finishJobIfNeeded()
-			}
-		})
+		sseClient = SseClient(
+				crypto,
+				sseStorage,
+				NetworkObserver(this, this),
+				NotificationSseListener(localNotificationsFacade, sseStorage, alarmNotificationsManager)
+		)
 		sseStorage.observeUsers().observeForever { userInfos ->
 			Log.d(TAG, "sse storage updated " + userInfos.size)
 			val userIds: MutableSet<String> = HashSet()
@@ -148,6 +129,41 @@ class PushNotificationService : LifecycleJobService() {
 			val intent = Intent(context, PushNotificationService::class.java)
 			intent.putExtra("sender", sender)
 			return intent
+		}
+	}
+
+	private inner class NotificationSseListener(
+			notificationsFacade: LocalNotificationsFacade,
+			sseStorage: SseStorage,
+			alarmNotificationsManager: AlarmNotificationsManager
+	) : SseListener {
+
+		private val tutanotaNotificationsHandler = TutanotaNotificationsHandler(notificationsFacade, sseStorage, alarmNotificationsManager)
+
+		override fun onStartingConnection(): Boolean {
+			return tutanotaNotificationsHandler.onConnect()
+		}
+
+		override fun onMessage(data: String, sseInfo: SseInfo?) {
+			if ("notification" == data) {
+				tutanotaNotificationsHandler.onNewNotificationAvailable(sseInfo)
+			}
+			removeBackgroundServiceNotification()
+		}
+
+		override fun onConnectionEstablished() {
+			removeBackgroundServiceNotification()
+			// After establishing connection we finish in some time.
+			scheduleJobFinish()
+		}
+
+		override fun onNotAuthorized(userId: String) {
+			tutanotaNotificationsHandler.onNotAuthorized(userId)
+		}
+
+		override fun onStoppingReconnectionAttempts() {
+			removeBackgroundServiceNotification()
+			finishJobIfNeeded()
 		}
 	}
 }

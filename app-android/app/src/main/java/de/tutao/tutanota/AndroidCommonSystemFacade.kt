@@ -7,7 +7,8 @@ import java.io.File
 import java.nio.charset.Charset
 
 class AndroidCommonSystemFacade(
-		private val activity: MainActivity
+		private val activity: MainActivity,
+		private val tempDir: TempDir
 ) : CommonSystemFacade {
 
 	@Volatile
@@ -26,9 +27,7 @@ class AndroidCommonSystemFacade(
 	}
 
 	override suspend fun getLog(): String {
-		val tempDirectory = File(getDir(activity), "temp")
-		tempDirectory.mkdirs()
-		val logFile = File(tempDirectory, "log.txt")
+		val logFile = File(tempDir.root, "log.txt")
 		logFile.delete()
 		logFile.createNewFile()
 		// -d means print and exit, -T gets last lines, -f outputs to file

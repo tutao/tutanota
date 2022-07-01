@@ -11,11 +11,12 @@ import de.tutao.tutanota.ipc.NativeContact
 import de.tutao.tutanota.ipc.MobileSystemFacade
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.IOException
 
 class AndroidMobileSystemFacade(
 		private val contact: Contact,
-		private val androidFileFacade: AndroidFileFacade,
+		private val fileFacade: AndroidFileFacade,
 		private val activity: Activity,
 ) : MobileSystemFacade {
 	override suspend fun findSuggestions(query: String): List<NativeContact> {
@@ -50,8 +51,8 @@ class AndroidMobileSystemFacade(
 			val imageName = "logo-solo-red.png"
 			try {
 				val logoInputStream = activity.assets.open("tutanota/images/$imageName")
-				val logoFile = androidFileFacade.getTempDecryptedFile(imageName)
-				androidFileFacade.writeFileStream(logoFile, logoInputStream)
+				val logoFile = File(fileFacade.tempDir.decrypt, imageName)
+				fileFacade.writeFileStream(logoFile, logoInputStream)
 				val logoUri = FileProvider.getUriForFile(activity, BuildConfig.FILE_PROVIDER_AUTHORITY, logoFile)
 				val thumbnail = ClipData.newUri(
 						activity.contentResolver,

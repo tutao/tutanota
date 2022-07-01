@@ -26,14 +26,11 @@ class AndroidNativeCryptoFacade
 @VisibleForTesting
 constructor(
 		private val context: Context,
-		val randomizer: SecureRandom,
+		private val tempDir: TempDir = TempDir(context),
+		val randomizer: SecureRandom = SecureRandom(),
 ) : NativeCryptoFacade {
 
-	constructor(context: Context) : this(context, SecureRandom())
-
 	companion object {
-		const val TEMP_DIR_ENCRYPTED = "temp/encrypted"
-		const val TEMP_DIR_DECRYPTED = "temp/decrypted"
 		const val AES_BLOCK_SIZE_BYTES = 16
 		private val FIXED_IV = ByteArray(AES_BLOCK_SIZE_BYTES).apply { fill(0x88.toByte()) }
 		const val RSA_KEY_LENGTH_IN_BITS = 2048
@@ -109,7 +106,7 @@ constructor(
 
 	@Throws(CryptoError::class)
 	override suspend fun rsaEncrypt(
-			publicKey: de.tutao.tutanota.ipc.RsaPublicKey,
+			publicKey: RsaPublicKey,
 			data: DataWrapper,
 			seed: DataWrapper,
 	): DataWrapper {
@@ -150,7 +147,7 @@ constructor(
 	}
 
 	@Throws(CryptoError::class)
-	override suspend fun rsaDecrypt(privateKey: de.tutao.tutanota.ipc.RsaPrivateKey, data: DataWrapper): DataWrapper {
+	override suspend fun rsaDecrypt(privateKey: RsaPrivateKey, data: DataWrapper): DataWrapper {
 		try {
 			return rsaDecrypt(
 					javaPrivateKey(privateKey),
@@ -180,10 +177,7 @@ constructor(
 	@Throws(IOException::class, CryptoError::class)
 	override suspend fun aesEncryptFile(key: DataWrapper, fileUri: String, iv: DataWrapper): EncryptedFileInfo {
 		val parsedFileUri = Uri.parse(fileUri)
-		val file = getFileInfo(context, parsedFileUri)
-		val encryptedDir = File(getDir(context), TEMP_DIR_ENCRYPTED)
-		encryptedDir.mkdirs()
-		val outputFile = File(encryptedDir, file.name)
+		val outputFile = File(tempDir.encrypt, getFileInfo(context, parsedFileUri).name)
 		val inputStream = CountingInputStream(context.contentResolver.openInputStream(parsedFileUri))
 		val out: OutputStream = FileOutputStream(outputFile)
 		aesEncrypt(key.data, inputStream, out, iv.data, useMac = true)
@@ -224,9 +218,7 @@ constructor(
 	override suspend fun aesDecryptFile(key: DataWrapper, fileUri: String): String {
 		val parsedFileUri = Uri.parse(fileUri)
 		val file = getFileInfo(context, parsedFileUri)
-		val decryptedDir = File(getDir(context), TEMP_DIR_DECRYPTED)
-		decryptedDir.mkdirs()
-		val outputFile = File(decryptedDir, file.name)
+		val outputFile = File(tempDir.decrypt, file.name)
 		val input = context.contentResolver.openInputStream(parsedFileUri)!!
 		val out: OutputStream = FileOutputStream(outputFile)
 		aesDecrypt(key.data, input, out, file.size)
@@ -325,14 +317,14 @@ constructor(
 	}
 
 	@Throws(InvalidKeySpecException::class)
-	private fun javaPublicKey(key: de.tutao.tutanota.ipc.RsaPublicKey): PublicKey {
+	private fun javaPublicKey(key: RsaPublicKey): PublicKey {
 		val modulus = BigInteger(key.modulus.base64ToBytes())
 		val keyFactory = KeyFactory.getInstance("RSA")
 		return keyFactory.generatePublic(RSAPublicKeySpec(modulus, BigInteger.valueOf(RSA_PUBLIC_EXPONENT.toLong())))
 	}
 
 	@Throws(InvalidKeySpecException::class)
-	private fun javaPrivateKey(key: de.tutao.tutanota.ipc.RsaPrivateKey): PrivateKey {
+	private fun javaPrivateKey(key: RsaPrivateKey): PrivateKey {
 		val modulus = BigInteger(key.modulus.base64ToBytes())
 		val privateExponent = BigInteger(key.privateExponent.base64ToBytes())
 		val keyFactory = KeyFactory.getInstance("RSA")
@@ -341,7 +333,7 @@ constructor(
 
 	private fun BigInteger.toBase64() = toByteArray().toBase64()
 
-	private fun PrivateKey(javaKey: RSAPrivateCrtKey) = de.tutao.tutanota.ipc.RsaPrivateKey(
+	private fun PrivateKey(javaKey: RSAPrivateCrtKey) = RsaPrivateKey(
 			version = 0,
 			// TODO: is this correct?
 			keyLength = RSA_KEY_LENGTH_IN_BITS,
@@ -354,7 +346,7 @@ constructor(
 			crtCoefficient = javaKey.crtCoefficient.toBase64(),
 	)
 
-	private fun PublicKey(javaKey: RSAPublicKey) = de.tutao.tutanota.ipc.RsaPublicKey(
+	private fun PublicKey(javaKey: RSAPublicKey) = RsaPublicKey(
 			version = 0,
 			keyLength = RSA_KEY_LENGTH_IN_BITS,
 			modulus = javaKey.modulus.toBase64(),

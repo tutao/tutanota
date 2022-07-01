@@ -11,22 +11,31 @@ import kotlinx.coroutines.runBlocking
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.codehaus.jackson.map.ObjectMapper
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito
+import org.mockito.Mockito.mock
 import java.io.ByteArrayInputStream
+import java.io.File
 import java.io.IOException
 import java.math.BigInteger
 import java.security.SecureRandom
 
-
 @RunWith(AndroidJUnit4::class)
 class CompatibilityTest {
+
+	lateinit var crypto: AndroidNativeCryptoFacade
+
+	@Before
+	fun setup() {
+		val context = mock(Context::class.java)
+		crypto = AndroidNativeCryptoFacade(context, TempDir(context))
+	}
+
 	@Test
 	@Throws(CryptoError::class, IOException::class)
 	fun aes128() {
-		val crypto = AndroidNativeCryptoFacade(Mockito.mock(Context::class.java))
 		for (td in testData.aes128Tests) {
 			val key = hexToBytes(td.hexKey)
 			val encryptedBytes = ByteArrayOutputStream()
@@ -41,7 +50,6 @@ class CompatibilityTest {
 	@Test
 	@Throws(CryptoError::class, IOException::class)
 	fun aes128Key128Encryption() {
-		val crypto = AndroidNativeCryptoFacade(Mockito.mock(Context::class.java))
 		for (td in testData.aes128Tests) {
 			val key = bytesToKey(hexToBytes(td.hexKey))
 			val keyToEncrypt128 = hexToBytes(td.keyToEncrypt128)
@@ -53,7 +61,6 @@ class CompatibilityTest {
 	@Test
 	@Throws(CryptoError::class, IOException::class)
 	fun aes128Key256Encryption() {
-		val crypto = AndroidNativeCryptoFacade(Mockito.mock(Context::class.java))
 		for (td in testData.aes128Tests) {
 			val key = bytesToKey(hexToBytes(td.hexKey))
 			val keyToEncrypt256 = hexToBytes(td.keyToEncrypt256)
@@ -65,7 +72,6 @@ class CompatibilityTest {
 	@Test
 	@Throws(CryptoError::class, IOException::class)
 	fun aes128Mac() {
-		val crypto = AndroidNativeCryptoFacade(Mockito.mock(Context::class.java))
 		for (td in testData.aes128MacTests) {
 			val key = hexToBytes(td.hexKey)
 			val encryptedBytes = ByteArrayOutputStream()
@@ -81,7 +87,6 @@ class CompatibilityTest {
 	@Throws(CryptoError::class)
 	fun rsa() = runBlocking {
 		for (testData in testData.rsaEncryptionTests) {
-			val crypto = AndroidNativeCryptoFacade(Mockito.mock(Context::class.java), stubRandom(testData.seed))
 			val publicKeyJSON = hexToPublicKey(testData.publicKey)
 			val encryptedResult: ByteArray = crypto.rsaEncrypt(publicKeyJSON, hexToBytes(testData.input).wrap(), hexToBytes(testData.seed).wrap()).data
 			//String hexResult = bytesToHex(encryptedResultBytes);

@@ -18,9 +18,11 @@ import javax.crypto.spec.IvParameterSpec
 /**
  * Used to access keys stored in Android KeyStore and do cryptographic operations with them.
  */
-class AndroidKeyStoreFacade(context: Context, private val dataKeyGenerator: DataKeyGenerator) {
+class AndroidKeyStoreFacade(
+		private val crypto: AndroidNativeCryptoFacade,
+		private val dataKeyGenerator: DataKeyGenerator
+		) {
 
-	private val crypto: AndroidNativeCryptoFacade = AndroidNativeCryptoFacade(context)
 
 	private val keyStore: KeyStore by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
 		try {
