@@ -98,7 +98,7 @@ export class RecipientsSearchModel {
 			const recipientsOfContact = contact.mailAddresses
 											   .map(({address}) => address)
 											   .filter(filter)
-											   .map(address => this.recipientsModel.resolve({name, address, contact}, ResolveMode.Eager))
+											   .map(address => this.recipientsModel.resolve({name, address, contact}, ResolveMode.Lazy))
 
 			suggestions = suggestions.concat(recipientsOfContact)
 		}
