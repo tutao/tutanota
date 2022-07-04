@@ -11,7 +11,7 @@ import {
 import {CacheStorage, expandId, ExposedCacheStorage} from "../rest/EntityRestCache.js"
 import * as cborg from "cborg"
 import {EncodeOptions, Token, Type} from "cborg"
-import {assert, DAY_IN_MILLIS, groupByAndMap, mapNullable, typedKeys, TypeRef, getTypeId} from "@tutao/tutanota-utils"
+import {assert, DAY_IN_MILLIS, getTypeId, groupByAndMap, mapNullable, TypeRef} from "@tutao/tutanota-utils"
 import type {OfflineDbFacade} from "../../../desktop/db/OfflineDbFacade.js"
 import {isOfflineStorageAvailable, isTest} from "../../common/Env.js"
 import {ProgrammingError} from "../../common/error/ProgrammingError.js"
@@ -19,9 +19,11 @@ import {modelInfos} from "../../common/EntityFunctions.js"
 import {AccountType, MailFolderType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS} from "../../common/TutanotaConstants.js"
 import {DateProvider} from "../../common/DateProvider.js"
 import {TokenOrNestedTokens} from "cborg/types/interface"
-import {FileTypeRef, MailBodyTypeRef, MailFolderTypeRef, MailHeadersTypeRef, MailTypeRef} from "../../entities/tutanota/TypeRefs.js"
+import {CalendarEventTypeRef, FileTypeRef, MailBodyTypeRef, MailFolderTypeRef, MailHeadersTypeRef, MailTypeRef} from "../../entities/tutanota/TypeRefs.js"
 import {UserTypeRef} from "../../entities/sys/TypeRefs.js"
 import {OfflineStorageMigrator} from "./OfflineStorageMigrator.js"
+import {CustomCacheHandlerMap, CustomCalendarEventCacheHandler} from "../rest/CustomCacheHandler.js"
+import {EntityRestClient} from "../rest/EntityRestClient.js"
 
 function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNestedTokens | null {
 	return [
@@ -60,6 +62,7 @@ export interface OfflineDbMeta extends AppMetadataEntries {
 
 export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	private _userId: Id | null = null
+	private customCacheHandler: CustomCacheHandlerMap | null = null
 
 	constructor(
 		private readonly offlineDbFacade: OfflineDbFacade,
@@ -311,5 +314,12 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 
 	async setStoredModelVersion(model: keyof typeof modelInfos, version: number) {
 		return this.putMetadata(`${model}-version`, version)
+	}
+
+	getCustomCacheHandlerMap(entityRestClient: EntityRestClient): CustomCacheHandlerMap {
+		if (this.customCacheHandler == null) {
+			this.customCacheHandler = new CustomCacheHandlerMap({ref: CalendarEventTypeRef, handler: new CustomCalendarEventCacheHandler(entityRestClient)})
+		}
+		return this.customCacheHandler
 	}
 }

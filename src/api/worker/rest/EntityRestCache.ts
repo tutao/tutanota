@@ -116,6 +116,12 @@ export interface CacheStorage extends ExposedCacheStorage {
 	 */
 	get<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<T | null>;
 
+	/**
+	 * get a map with cache handlers for the customId types this storage implementation supports
+	 * customId types that don't have a custom handler don't get served from the cache
+	 */
+	getCustomCacheHandlerMap(entityRestClient: EntityRestClient): CustomCacheHandlerMap;
+
 	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>;
 
 	isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<boolean>;
@@ -172,7 +178,6 @@ export class EntityRestCache implements IEntityRestCache {
 	constructor(
 		readonly entityRestClient: EntityRestClient,
 		private readonly storage: CacheStorage,
-		private readonly customCacheHandlers: CustomCacheHandlerMap,
 	) {
 	}
 
@@ -288,8 +293,8 @@ export class EntityRestCache implements IEntityRestCache {
 	}
 
 	async loadRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
-		if (this.customCacheHandlers.has(typeRef)) {
-			return await this.customCacheHandlers.get(typeRef)!.loadRange(this.storage, listId, start, count, reverse)
+		if (this.storage.getCustomCacheHandlerMap(this.entityRestClient).has(typeRef)) {
+			return await this.storage.getCustomCacheHandlerMap(this.entityRestClient).get(typeRef)!.loadRange(this.storage, listId, start, count, reverse)
 		}
 
 		const typeModel = await resolveTypeReference(typeRef)
@@ -565,8 +570,9 @@ export class EntityRestCache implements IEntityRestCache {
 			const ids = updates.map(update => update.instanceId)
 
 			// We only want to load the instances that are in cache range
-			const idsInCacheRange = this.customCacheHandlers.has(typeRef)
-				? await this.customCacheHandlers.get(typeRef)!.getElementIdsInCacheRange(this.storage, instanceListId, ids)
+			const customHandlers = this.storage.getCustomCacheHandlerMap(this.entityRestClient)
+			const idsInCacheRange = customHandlers.has(typeRef)
+				? await customHandlers.get(typeRef)!.getElementIdsInCacheRange(this.storage, instanceListId, ids)
 				: await this.getElementIdsInCacheRange(typeRef, instanceListId, ids)
 
 			if (idsInCacheRange.length === 0) {

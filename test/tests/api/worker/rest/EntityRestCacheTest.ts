@@ -154,13 +154,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			userId = "userId"
 			storage = await getStorage(userId)
 			entityRestClient = mockRestClient()
-			const customCacheHandlerMap = name === "offline"
-				? new CustomCacheHandlerMap({
-					ref: CalendarEventTypeRef,
-					handler: new CustomCalendarEventCacheHandler(entityRestClient)
-				})
-				: new CustomCacheHandlerMap()
-			cache = new EntityRestCache(entityRestClient, storage, customCacheHandlerMap)
+			cache = new EntityRestCache(entityRestClient, storage)
 		})
 
 		o.spec("entityEventsReceived", function () {
@@ -1101,7 +1095,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				async function () {
 
 					const clientMock = object<EntityRestClient>()
-					const cache = new EntityRestCache(clientMock, storage, new CustomCacheHandlerMap())
+					const cache = new EntityRestCache(clientMock, storage)
 
 					const listId = "listId"
 
@@ -1144,7 +1138,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			o("When there is a non-reverse range request that loads in the direction of the existing range, the range will grow to include the startId", async function () {
 
 				const clientMock = object<EntityRestClient>()
-				const cache = new EntityRestCache(clientMock, storage, new CustomCacheHandlerMap())
+				const cache = new EntityRestCache(clientMock, storage)
 
 				const listId = "listId1"
 
@@ -1179,7 +1173,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			o("When there is a reverse range request that loads in the direction of the existing range, the range will grow to include the startId", async function () {
 
 				const clientMock = object<EntityRestClient>()
-				const cache = new EntityRestCache(clientMock, storage, new CustomCacheHandlerMap())
+				const cache = new EntityRestCache(clientMock, storage)
 
 				const listId = "listId1"
 				const mails = arrayOf(100, idx => createMailInstance(listId, createId(`${idx}`), `hola ${idx}`))
@@ -1212,7 +1206,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 
 			o("The range request starts on one end of the existing range, and would finish on the other end, so it loads from either direction of the range", async function () {
 				const clientMock = object<EntityRestClient>()
-				const cache = new EntityRestCache(clientMock, storage, new CustomCacheHandlerMap())
+				const cache = new EntityRestCache(clientMock, storage)
 
 				const id1 = createId("1")
 				const id2 = createId("2")
@@ -1304,7 +1298,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				const client = downcast<EntityRestClient>({
 					load: o.spy(() => contact),
 				})
-				const cache = new EntityRestCache(client, storage, new CustomCacheHandlerMap())
+				const cache = new EntityRestCache(client, storage)
 				await cache.load(
 					ContactTypeRef,
 					contactId,
@@ -1339,7 +1333,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 						return contactOnTheServer
 					}),
 				})
-				const cache = new EntityRestCache(client, storage, new CustomCacheHandlerMap())
+				const cache = new EntityRestCache(client, storage)
 				const firstLoaded = await cache.load(ContactTypeRef, contactId)
 				o(firstLoaded).deepEquals(contactOnTheServer)
 				// @ts-ignore
@@ -1383,7 +1377,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 						return permissionOnTheServer
 					}),
 				})
-				const cache = new EntityRestCache(client, storage, new CustomCacheHandlerMap())
+				const cache = new EntityRestCache(client, storage)
 				await cache.load(PermissionTypeRef, permissionId)
 				await cache.load(PermissionTypeRef, permissionId)
 				// @ts-ignore

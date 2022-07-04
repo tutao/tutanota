@@ -6,6 +6,8 @@ import {OfflineStorage} from "../offline/OfflineStorage.js"
 import {WorkerImpl} from "../WorkerImpl"
 import {uint8ArrayToKey} from "@tutao/tutanota-crypto"
 import {EphemeralCacheStorage} from "./EphemeralCacheStorage"
+import {EntityRestClient} from "./EntityRestClient.js"
+import {CustomCacheHandlerMap} from "./CustomCacheHandler.js"
 
 interface OfflineStorageInitArgs {
 	userId: Id
@@ -152,5 +154,9 @@ export class LateInitializedCacheStorageImpl implements LateInitializedCacheStor
 
 	setUpperRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void> {
 		return this.inner.setUpperRangeForList(typeRef, listId, id)
+	}
+
+	getCustomCacheHandlerMap(entityRestClient: EntityRestClient): CustomCacheHandlerMap {
+		return this.inner.getCustomCacheHandlerMap(entityRestClient)
 	}
 }
