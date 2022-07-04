@@ -1,8 +1,9 @@
 import {ElementEntity, ListElementEntity, SomeEntity} from "../../common/EntityTypes.js"
-import {typeRefToPath} from "./EntityRestClient.js"
+import {EntityRestClient, typeRefToPath} from "./EntityRestClient.js"
 import {firstBiggerThanSecond, getElementId, getListId, isElementEntity} from "../../common/utils/EntityUtils.js"
 import {CacheStorage} from "./EntityRestCache.js"
 import {clone, getFromMap, remove, TypeRef} from "@tutao/tutanota-utils"
+import {CustomCacheHandlerMap} from "./CustomCacheHandler.js"
 
 type ListTypeCache = Map<Id, {
 	/** All entities loaded inside the range. */
@@ -16,6 +17,7 @@ type ListTypeCache = Map<Id, {
 export class EphemeralCacheStorage implements CacheStorage {
 	private readonly entities: Map<string, Map<Id, ElementEntity>> = new Map()
 	private readonly lists: Map<string, ListTypeCache> = new Map()
+	private readonly customCacheHandlerMap: CustomCacheHandlerMap = new CustomCacheHandlerMap()
 	private lastUpdateTime: number | null = null
 
 	/**
@@ -218,5 +220,9 @@ export class EphemeralCacheStorage implements CacheStorage {
 		}
 
 		return listCache.allRange.map(id => clone((listCache.elements.get(id) as T)))
+	}
+
+	getCustomCacheHandlerMap(entityRestClient: EntityRestClient): CustomCacheHandlerMap {
+		return this.customCacheHandlerMap
 	}
 }

@@ -44,20 +44,18 @@ import {IServiceExecutor} from "../common/ServiceRequest"
 import {ServiceExecutor} from "./rest/ServiceExecutor"
 import {BookingFacade} from "./facades/BookingFacade"
 import {BlobFacade} from "./facades/BlobFacade"
-import {DesktopConfigKey} from "../../desktop/config/ConfigKeys"
 import {CacheStorage} from "./rest/EntityRestCache.js"
 import {UserFacade} from "./facades/UserFacade"
 import {OfflineStorage} from "./offline/OfflineStorage.js"
 import {exposeNativeInterface} from "../common/ExposeNativeInterface"
 import {OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator} from "./offline/OfflineStorageMigrator.js"
 import {modelInfos} from "../common/EntityFunctions.js"
-import {CustomCacheHandlerMap, CustomCalendarEventCacheHandler} from "./rest/CustomCacheHandler.js"
-import {CalendarEventTypeRef} from "../entities/tutanota/TypeRefs.js"
 import {FileFacadeSendDispatcher} from "../../native/common/generatedipc/FileFacadeSendDispatcher.js"
 import {NativePushFacadeSendDispatcher} from "../../native/common/generatedipc/NativePushFacadeSendDispatcher.js"
 import {NativeCryptoFacadeSendDispatcher} from "../../native/common/generatedipc/NativeCryptoFacadeSendDispatcher"
 import {random} from "@tutao/tutanota-crypto"
 import {ExportFacadeSendDispatcher} from "../../native/common/generatedipc/ExportFacadeSendDispatcher.js"
+import {assertNotNull} from "@tutao/tutanota-utils"
 
 assertWorkerOrNode()
 
@@ -136,10 +134,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	// We don't wont to cache within the admin client
 	let cache: EntityRestCache | null = null
 	if (!isAdminClient()) {
-		const customCacheHandlers = isOfflineStorageAvailable()
-			? new CustomCacheHandlerMap({ref: CalendarEventTypeRef, handler: new CustomCalendarEventCacheHandler(entityRestClient)})
-			: new CustomCacheHandlerMap()
-		cache = new EntityRestCache(entityRestClient, maybeUninitializedStorage, customCacheHandlers)
+		cache = new EntityRestCache(entityRestClient, maybeUninitializedStorage)
 	}
 
 	locator.cache = cache ?? entityRestClient
@@ -198,8 +193,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.mail = new MailFacade(locator.user, locator.file, locator.cachingEntityClient, locator.crypto, locator.serviceExecutor, locator.blob)
 	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)
 	// not needed for admin client
-	if (cache) {
-		locator.calendar = new CalendarFacade(locator.user, locator.groupManagement, cache, nativePushFacade, worker, locator.instanceMapper, locator.serviceExecutor, locator.crypto)
+	if (!isAdminClient()) {
+		locator.calendar = new CalendarFacade(locator.user, locator.groupManagement, assertNotNull(cache), nativePushFacade, worker, locator.instanceMapper, locator.serviceExecutor, locator.crypto)
 	}
 	locator.mailAddress = new MailAddressFacade(locator.user, locator.serviceExecutor)
 

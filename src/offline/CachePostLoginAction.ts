@@ -6,6 +6,7 @@ import {EntityClient} from "../api/common/EntityClient.js"
 import {ProgressTracker} from "../api/main/ProgressTracker.js"
 import {promiseMap} from "@tutao/tutanota-utils"
 import {NoopProgressMonitor} from "../api/common/utils/ProgressMonitor.js"
+import {SessionType} from "../api/common/SessionType.js"
 
 
 export class CachePostLoginAction implements IPostLoginAction {
@@ -20,7 +21,10 @@ export class CachePostLoginAction implements IPostLoginAction {
 	}
 
 	async onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
-			// 3 work to load calendar info, 2 work to load short and long events
+		// we use an ephemeral cache for non-persistent sessions which doesn't
+		// support or save calendar events, so it's pointless to preload them.
+		if (loggedInEvent.sessionType !== SessionType.Persistent) return
+		// 3 work to load calendar info, 2 work to load short and long events
 		const workPerCalendar = 3 + 2
 		const totalWork = this.logins.getUserController().getCalendarMemberships().length * workPerCalendar
 		const monitorHandle = this.progressTracker.registerMonitor(totalWork)
