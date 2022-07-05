@@ -269,8 +269,6 @@ export const enum TtlBehavior {
 	UpToDateOnly,
 }
 
-const USAGE_TESTS_ENABLED = true
-
 export const enum StorageBehavior {
 	Persist,
 	Ephemeral,
@@ -319,7 +317,7 @@ export class UsageTestModel implements PingAdapter {
 	}
 
 	async loadActiveUsageTests(ttlBehavior: TtlBehavior): Promise<UsageTest[]> {
-		if (!USAGE_TESTS_ENABLED) return []
+		if (this.storageBehavior === StorageBehavior.Persist && !(await this.getOptInDecision())) return []
 
 		const persistedData = await this.storage().getAssignments()
 		const modelVersion = await this.modelVersion()
