@@ -292,6 +292,17 @@ export class UsageTestModel implements PingAdapter {
 	) {
 	}
 
+	async showOptInIndicator(): Promise<boolean> {
+		const customerProperties = await locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
+
+		if (customerProperties.usageDataOptedOut) {
+			// shortcut if customer has opted out
+			return false
+		}
+
+		return logins.getUserController().userSettingsGroupRoot.usageDataOptedIn === null
+	}
+
 	setStorageBehavior(storageBehavior: StorageBehavior) {
 		this.storageBehavior = storageBehavior
 	}
@@ -309,7 +320,7 @@ export class UsageTestModel implements PingAdapter {
 
 		const customerProperties = await locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
 
-		// customer opt out overrides the user setting
+		// customer opt-out overrides the user setting
 		return !customerProperties.usageDataOptedOut
 	}
 
