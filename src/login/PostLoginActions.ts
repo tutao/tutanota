@@ -28,6 +28,7 @@ import {getThemeCustomizations} from "../misc/WhitelabelCustomizations"
 import {CredentialEncryptionMode} from "../misc/credentials/CredentialEncryptionMode"
 import {SecondFactorHandler} from "../misc/2fa/SecondFactorHandler"
 import {SessionType} from "../api/common/SessionType"
+import {StorageBehavior, TtlBehavior} from "../misc/UsageTestModel.js"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -81,6 +82,11 @@ export class PostLoginActions implements IPostLoginAction {
 			await this.credentialsProvider.setCredentialsEncryptionMode(CredentialEncryptionMode.DEVICE_LOCK)
 		}
 
+		const usageTestModel = locator.usageTestModel
+
+		usageTestModel.setStorageBehavior(StorageBehavior.Persist)
+		locator.usageTestController.setTests(await usageTestModel.loadActiveUsageTests(TtlBehavior.PossiblyOutdated))
+
 		lang.updateFormats({ // partial
 			hourCycle: getHourCycle(logins.getUserController().userSettingsGroupRoot),
 		})
@@ -128,6 +134,8 @@ export class PostLoginActions implements IPostLoginAction {
 		}
 
 		this.enforcePasswordChange()
+
+		locator.usageTestController.setTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly))
 	}
 
 	private deactivateOutOfOfficeNotification(notification: OutOfOfficeNotification): Promise<void> {
