@@ -2,40 +2,34 @@ import {
 	createUsageTestAssignmentIn,
 	createUsageTestMetricData,
 	createUsageTestParticipationIn,
-	CustomerPropertiesTypeRef,
-	CustomerTypeRef,
 	UsageTestAssignment,
 	UsageTestAssignmentOut,
 	UsageTestAssignmentTypeRef,
 } from "../api/entities/usage/TypeRefs.js"
 import {PingAdapter, Stage, UsageTest} from "@tutao/tutanota-usagetests"
-import {filterInt, lazy} from "@tutao/tutanota-utils"
+import {filterInt, lazy, neverNull} from "@tutao/tutanota-utils"
 import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
-import {UsageTestState} from "../api/common/TutanotaConstants"
-import {filterInt, neverNull, ofClass} from "@tutao/tutanota-utils"
-import {PreconditionFailedError} from "../api/common/error/RestError"
+import {UsageTestMetricType} from "../api/common/TutanotaConstants"
 import {SuspensionError} from "../api/common/error/SuspensionError"
 import {SuspensionBehavior} from "../api/worker/rest/RestClient"
 import {DateProvider} from "../api/common/DateProvider.js"
 import {IServiceExecutor} from "../api/common/ServiceRequest"
 import {UsageTestAssignmentService, UsageTestParticipationService} from "../api/entities/usage/Services.js"
 import {resolveTypeReference} from "../api/common/EntityFunctions"
-import {lang, TranslationKey} from "./LanguageViewModel"
+import {InfoLink, lang, TranslationKey} from "./LanguageViewModel"
 import stream from "mithril/stream"
 import {Dialog, DialogType} from "../gui/base/Dialog"
-import m, {Children} from "mithril"
 import {DropDownSelector, SelectorItem} from "../gui/base/DropDownSelector"
 import {UsageTestMetricType} from "../api/common/TutanotaConstants"
+import m, {Children, Component, Vnode} from "mithril"
 import {isOfflineError} from "../api/common/utils/ErrorCheckUtils.js"
-import {Dialog} from "../gui/base/Dialog.js"
-import m, {Component, Vnode} from "mithril"
 import {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar.js"
 import {theme} from "../gui/theme.js"
 import {px} from "../gui/size.js"
-import {InfoLink, lang} from "./LanguageViewModel.js"
 import {ButtonColor, ButtonN, ButtonType} from "../gui/base/ButtonN.js"
 import {logins} from "../api/main/LoginController.js"
 import {locator} from "../api/main/MainLocator.js"
+import {CustomerPropertiesTypeRef, CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
 
 
 const PRESELECTED_LIKERT_VALUE = null
@@ -292,6 +286,14 @@ export class UsageTestModel implements PingAdapter {
 	) {
 	}
 
+	setStorageBehavior(storageBehavior: StorageBehavior) {
+		this.storageBehavior = storageBehavior
+	}
+
+	private storage() {
+		return this.storages[this.storageBehavior]
+	}
+
 	async showOptInIndicator(): Promise<boolean> {
 		const customerProperties = await locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
 
@@ -301,14 +303,6 @@ export class UsageTestModel implements PingAdapter {
 		}
 
 		return logins.getUserController().userSettingsGroupRoot.usageDataOptedIn === null
-	}
-
-	setStorageBehavior(storageBehavior: StorageBehavior) {
-		this.storageBehavior = storageBehavior
-	}
-
-	private storage() {
-		return this.storages[this.storageBehavior]
 	}
 
 	async getOptInDecision(): Promise<boolean> {
