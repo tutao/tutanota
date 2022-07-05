@@ -3641,6 +3641,15 @@ export const typeModels = {
                 "type": "Date",
                 "cardinality": "ZeroOrOne",
                 "encrypted": false
+            },
+            "usageDataOptedOut": {
+                "final": false,
+                "name": "usageDataOptedOut",
+                "id": 1996,
+                "since": 77,
+                "type": "Boolean",
+                "cardinality": "One",
+                "encrypted": false
             }
         },
         "associations": {

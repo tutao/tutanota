@@ -2072,5 +2072,29 @@ styles.registerStyle("main", () => {
 			transform: "rotate(180deg)",
 			"writing-mode": "vertical-rl",
 		},
+		"ul.usage-test-opt-in-bullets": {
+			"list-style": "none",
+			"text-align": "left",
+			width: "90%",
+			"margin-left": "12%",
+			"padding-inline-start": px(0),
+		},
+		".usage-test-opt-in-bullets li": {
+			"padding-left": "1rem",
+			"text-indent": "-0.75rem",
+		},
+		".list-item-check:before": {
+			display: "inline-block",
+			"margin-left": px(13),
+			content: "\"\u2714 \"",
+		},
+		".list-item-info": {
+			"margin-left": px(3),
+		},
+		".list-item-info:before": {
+			display: "inline-block",
+			"margin-left": px(13),
+			content: "\"\u2139 \"",
+		}
 	}
 })
