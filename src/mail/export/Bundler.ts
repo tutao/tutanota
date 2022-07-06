@@ -1,16 +1,12 @@
-import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
+import type {EncryptedMailAddress, Mail} from "../../api/entities/tutanota/TypeRefs.js"
+import {FileTypeRef, MailAddress, MailBodyTypeRef, MailHeadersTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import type {EntityClient} from "../../api/common/EntityClient"
-import {MailBodyTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {getMailBodyText, getMailHeaders} from "../../api/common/utils/Utils"
-import {FileTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {MailHeadersTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {MailState} from "../../api/common/TutanotaConstants"
 import {getLetId} from "../../api/common/utils/EntityUtils"
 import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
 import {promiseMap} from "@tutao/tutanota-utils"
-import type {FileFacade} from "../../api/worker/facades/FileFacade"
 import {DataFile} from "../../api/common/DataFile";
-import {MailAddress} from "../../api/entities/tutanota/TypeRefs.js"
 import {FileController} from "../../file/FileController"
 
 /**
@@ -44,46 +40,44 @@ export type MailBundle = {
 /**
  * Downloads the mail body and the attachments for an email, to prepare for exporting
  */
-export function makeMailBundle(mail: Mail, entityClient: EntityClient, fileController: FileController, sanitizer: HtmlSanitizer): Promise<MailBundle> {
-	const bodyTextPromise = entityClient
-		.load(MailBodyTypeRef, mail.body)
-		.then(getMailBodyText)
-		.then(
-			body =>
-				sanitizer.sanitizeHTML(body, {
-					blockExternalContent: false,
-					allowRelativeLinks: false,
-					usePlaceholderForInlineImages: false,
-				}).html,
-		)
-	const attachmentsPromise: Promise<Array<DataFile>> = promiseMap(mail.attachments, fileId =>
-		entityClient.load(FileTypeRef, fileId).then(file => fileController.downloadAndDecryptBrowser(file)),
+export async function makeMailBundle(mail: Mail, entityClient: EntityClient, fileController: FileController, sanitizer: HtmlSanitizer): Promise<MailBundle> {
+	const body = sanitizer.sanitizeHTML(
+		getMailBodyText(await entityClient.load(MailBodyTypeRef, mail.body)),
+		{
+			blockExternalContent: false,
+			allowRelativeLinks: false,
+			usePlaceholderForInlineImages: false,
+		},
+	).html
+
+	const attachments = await promiseMap(
+		mail.attachments,
+		async fileId => {
+			const file = await entityClient.load(FileTypeRef, fileId)
+			return await fileController.downloadAndDecryptBrowser(file)
+		},
 	)
-	const headersPromise = mail.headers ? entityClient.load(MailHeadersTypeRef, mail.headers) : Promise.resolve(null)
 
-	const recipientMapper = (addr: MailAddress) => ({
-		address: addr.address,
-		name: addr.name,
-	})
+	const headers = mail.headers != null
+		? getMailHeaders(await entityClient.load(MailHeadersTypeRef, mail.headers))
+		: null
 
-	return Promise.all([bodyTextPromise, attachmentsPromise, headersPromise]).then(([bodyText, attachments, headers]) => {
-		return {
-			mailId: getLetId(mail),
-			subject: mail.subject,
-			body: bodyText,
-			sender: recipientMapper(mail.sender),
-			to: mail.toRecipients.map(recipientMapper),
-			cc: mail.ccRecipients.map(recipientMapper),
-			bcc: mail.bccRecipients.map(recipientMapper),
-			replyTo: mail.replyTos.map(({address, name}) => {
-				return {address, name}
-			}),
-			isDraft: mail.state === MailState.DRAFT,
-			isRead: !mail.unread,
-			sentOn: mail.sentDate.getTime(),
-			receivedOn: mail.receivedDate.getTime(),
-			headers: headers && getMailHeaders(headers),
-			attachments: attachments,
-		}
-	})
+	const recipientMapper = ({address, name}: MailAddress | EncryptedMailAddress) => ({address, name})
+
+	return {
+		mailId: getLetId(mail),
+		subject: mail.subject,
+		body,
+		sender: recipientMapper(mail.sender),
+		to: mail.toRecipients.map(recipientMapper),
+		cc: mail.ccRecipients.map(recipientMapper),
+		bcc: mail.bccRecipients.map(recipientMapper),
+		replyTo: mail.replyTos.map(recipientMapper),
+		isDraft: mail.state === MailState.DRAFT,
+		isRead: !mail.unread,
+		sentOn: mail.sentDate.getTime(),
+		receivedOn: mail.receivedDate.getTime(),
+		headers,
+		attachments,
+	}
 }
