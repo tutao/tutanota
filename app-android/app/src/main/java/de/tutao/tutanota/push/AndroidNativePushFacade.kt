@@ -32,9 +32,11 @@ class AndroidNativePushFacade(
 
 	override suspend fun closePushNotifications(addressesArray: List<String>) {
 		activity.startService(
-				LocalNotificationsFacade.notificationDismissedIntent(
+				notificationDismissedIntent(
 						activity,
-						ArrayList(addressesArray), "Native", false
+						ArrayList(addressesArray),
+						"Native",
+						false
 				)
 		)
 	}

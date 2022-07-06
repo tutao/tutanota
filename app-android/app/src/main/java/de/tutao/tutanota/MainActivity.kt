@@ -31,10 +31,7 @@ import de.tutao.tutanota.alarms.SystemAlarmFacade
 import de.tutao.tutanota.credentials.CredentialsEncryptionFactory
 import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.ipc.*
-import de.tutao.tutanota.push.AndroidNativePushFacade
-import de.tutao.tutanota.push.LocalNotificationsFacade
-import de.tutao.tutanota.push.PushNotificationService
-import de.tutao.tutanota.push.SseStorage
+import de.tutao.tutanota.push.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -432,7 +429,7 @@ class MainActivity : FragmentActivity() {
 		}
 		val addresses = ArrayList<String>(1)
 		addresses.add(address)
-		startService(LocalNotificationsFacade.notificationDismissedIntent(this, addresses,
+		startService(notificationDismissedIntent(this, addresses,
 				"MainActivity#openMailbox", isSummary))
 
 		commonNativeFacade.openMailBox(userId, address, null)

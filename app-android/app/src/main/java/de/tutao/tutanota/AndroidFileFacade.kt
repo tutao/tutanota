@@ -3,7 +3,6 @@ package de.tutao.tutanota
 import android.Manifest
 import android.annotation.TargetApi
 import android.app.Activity
-import android.app.DownloadManager
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -17,6 +16,7 @@ import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import de.tutao.tutanota.ipc.*
 import de.tutao.tutanota.push.LocalNotificationsFacade
+import de.tutao.tutanota.push.showDownloadNotification
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.apache.commons.io.IOUtils
@@ -48,7 +48,7 @@ class TempDir(
 class AndroidFileFacade(
 		private val activity: MainActivity,
 		private val localNotificationsFacade: LocalNotificationsFacade,
-		random: SecureRandom
+		private val random: SecureRandom
 ) : FileFacade {
 
 	constructor(activity: MainActivity, localNotificationsFacade: LocalNotificationsFacade) : this(activity, localNotificationsFacade, SecureRandom())
@@ -114,7 +114,7 @@ class AndroidFileFacade(
 	}
 
 	// @see: https://developer.android.com/reference/android/support/v4/content/FileProvider.html
-	override suspend fun open(location: String, mimeType: String): Unit {
+	override suspend fun open(location: String, mimeType: String) {
 		val file = location.toUri().let { uri ->
 			if (uri.scheme == "file") {
 				FileProvider.getUriForFile(activity, BuildConfig.FILE_PROVIDER_AUTHORITY, File(uri.path!!))
@@ -131,23 +131,7 @@ class AndroidFileFacade(
 		activity.startActivityForResult(intent)
 	}
 
-	override suspend fun getMimeType(file: String): String {
-		val fileUri = file.toUri()
-		val scheme = fileUri.scheme
-		if ("file" == scheme) {
-			val extension = MimeTypeMap.getFileExtensionFromUrl(fileUri.toString())
-			val type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
-			if (type != null) {
-				return type
-			}
-		} else if ("content" == scheme) {
-			val type = activity.contentResolver.getType(fileUri)
-			if (type != null) {
-				return type
-			}
-		}
-		return "application/octet-stream"
-	}
+	override suspend fun getMimeType(fileUri: String): String = getMimeType(fileUri.toUri(), activity)
 
 	override suspend fun putFileIntoDownloadsFolder(localFileUri: String): String = withContext(Dispatchers.IO) {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -190,26 +174,39 @@ class AndroidFileFacade(
 		return outputUri.toString()
 	}
 
-	private suspend fun addFileToDownloadsOld(fileUri: String): String {
-		@Suppress("DEPRECATION")
-		val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-		if (!downloadsDir.exists()) {
-			val created = downloadsDir.mkdirs()
-			if (!created) {
-				throw IOException("Could not create downloads folder")
-			}
-		}
+	private fun addFileToDownloadsOld(fileUri: String): String {
+		val downloadsDir = ensureRandomDownloadDir()
 		val file = Uri.parse(fileUri)
 		val fileInfo = getFileInfo(activity, file)
 		val newFile = File(downloadsDir, fileInfo.name)
 		IOUtils.copyLarge(activity.contentResolver.openInputStream(file), FileOutputStream(newFile), ByteArray(4096))
-		val downloadManager = activity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-		@Suppress("DEPRECATION")
-		downloadManager.addCompletedDownload(
-				newFile.name, "Tutanota download",
-				false, getMimeType(newFile.absolutePath), newFile.absolutePath, fileInfo.size, true
-		)
+		showDownloadNotification(activity, newFile)
 		return Uri.fromFile(newFile).toString()
+	}
+
+	/**
+	 * on Android < 10, the download location of attachments is predictable.
+	 * in the spirit of defense-in-depth we create a random dl directory inside
+	 * the system Download dir to make the loading of downloaded files impossible in
+	 * case of exploits that would trick the app into executing anything but our assets.
+	 */
+	private fun ensureRandomDownloadDir(): File {
+		@Suppress("DEPRECATION")
+		val publicDownloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+		val matchingDirectories = publicDownloadsDir.listFiles { file: File ->
+			// tutanota-dl-0f0f0f0f0f (prefix with 5 bytes of randomness)
+			file.isDirectory && file.name.startsWith("tutanota-") && file.name.length == 22
+		}
+		val privateDownloadsDir = matchingDirectories?.firstOrNull()
+				?: File(publicDownloadsDir, "tutanota-dl-${random.bytes(5).toHexString()}")
+		if (!privateDownloadsDir.exists()) {
+			val created = privateDownloadsDir.mkdirs()
+			if (!created) {
+				throw IOException("Could not create downloads folder")
+			}
+		}
+
+		return privateDownloadsDir
 	}
 
 	@Throws(FileNotFoundException::class)
@@ -373,7 +370,7 @@ class AndroidFileFacade(
 
 	private suspend fun getCorrectedMimeType(fileUri: Uri, storedMimeType: String?): String {
 		return if (storedMimeType == null || storedMimeType.isEmpty() || storedMimeType == "application/octet-stream") {
-			getMimeType(fileUri.toString())
+			getMimeType(fileUri, activity)
 		} else {
 			storedMimeType
 		}
@@ -395,4 +392,21 @@ private fun addHeadersToRequest(connection: URLConnection, headers: JSONObject) 
 			connection.addRequestProperty(headerKey, headerValues.getString(i))
 		}
 	}
+}
+
+fun getMimeType(fileUri: Uri, context: Context): String {
+	val scheme = fileUri.scheme
+	if ("file" == scheme) {
+		val extension = MimeTypeMap.getFileExtensionFromUrl(fileUri.toString())
+		val type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+		if (type != null) {
+			return type
+		}
+	} else if ("content" == scheme) {
+		val type = context.contentResolver.getType(fileUri)
+		if (type != null) {
+			return type
+		}
+	}
+	return "application/octet-stream"
 }
