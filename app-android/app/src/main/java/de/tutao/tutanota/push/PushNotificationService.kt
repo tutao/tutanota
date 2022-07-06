@@ -11,7 +11,7 @@ import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.data.SseInfo
 import de.tutao.tutanota.push.SseClient.SseListener
 
-class PushNotificationService() : LifecycleJobService() {
+class PushNotificationService : LifecycleJobService() {
 	@Volatile
 	private var jobParameters: JobParameters? = null
 	private lateinit var localNotificationsFacade: LocalNotificationsFacade
@@ -74,9 +74,9 @@ class PushNotificationService() : LifecycleJobService() {
 	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 		super.onStartCommand(intent, flags, startId)
 		Log.d(TAG, "Received onStartCommand, sender: " + intent?.getStringExtra("sender"))
-		if (intent != null && intent.hasExtra(LocalNotificationsFacade.NOTIFICATION_DISMISSED_ADDR_EXTRA)) {
+		if (intent != null && intent.hasExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA)) {
 			val dissmissAddrs =
-					intent.getStringArrayListExtra(LocalNotificationsFacade.NOTIFICATION_DISMISSED_ADDR_EXTRA)
+					intent.getStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA)
 			localNotificationsFacade.notificationDismissed(
 					dissmissAddrs,
 					intent.getBooleanExtra(MainActivity.IS_SUMMARY_EXTRA, false)

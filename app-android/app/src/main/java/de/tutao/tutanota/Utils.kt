@@ -2,7 +2,6 @@
 
 package de.tutao.tutanota
 
-import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.os.Build
@@ -25,6 +24,9 @@ fun SecureRandom.bytes(numBytes: Int): ByteArray {
 }
 
 fun ByteArray.toBase64(): String = Base64.encodeToString(this, Base64.NO_WRAP)
+
+fun ByteArray.toHexString() = joinToString("") { java.lang.String.format("%02x", it) }
+
 
 fun File.toUri(): String = Uri.fromFile(this).toString()
 

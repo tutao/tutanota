@@ -14,14 +14,23 @@ import androidx.annotation.ColorInt
 import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import de.tutao.tutanota.BuildConfig
-import de.tutao.tutanota.MainActivity
-import de.tutao.tutanota.R
-import de.tutao.tutanota.alarms.AlarmBroadcastReceiver
-import de.tutao.tutanota.atLeastNougat
+import androidx.core.content.FileProvider
+import androidx.core.net.toUri
+import de.tutao.tutanota.*
+import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
+const val NOTIFICATION_DISMISSED_ADDR_EXTRA = "notificationDismissed"
+private const val EMAIL_NOTIFICATION_CHANNEL_ID = "notifications"
+private val VIBRATION_PATTERN = longArrayOf(100, 200, 100, 200)
+private const val NOTIFICATION_EMAIL_GROUP = "de.tutao.tutanota.email"
+private const val SUMMARY_NOTIFICATION_ID = 45
+private const val PERSISTENT_NOTIFICATION_CHANNEL_ID = "service_intent"
+private const val ALARM_NOTIFICATION_CHANNEL_ID = "alarms"
+private const val DOWNLOAD_NOTIFICATION_CHANNEL_ID = "downloads"
+
 class LocalNotificationsFacade(private val context: Context) {
+
 	private val notificationManager: NotificationManager
 		get() = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -193,7 +202,7 @@ class LocalNotificationsFacade(private val context: Context) {
 		}
 
 		val notification: Notification =
-				NotificationCompat.Builder(context, AlarmBroadcastReceiver.ALARM_NOTIFICATION_CHANNEL_ID)
+				NotificationCompat.Builder(context, ALARM_NOTIFICATION_CHANNEL_ID)
 						.setSmallIcon(R.drawable.ic_status)
 						.setContentTitle(context.getString(R.string.app_name))
 						.setContentText(context.getString(message))
@@ -218,36 +227,46 @@ class LocalNotificationsFacade(private val context: Context) {
 				EMAIL_NOTIFICATION_CHANNEL_ID,
 				context.getString(R.string.pushNewMail_msg),
 				NotificationManager.IMPORTANCE_DEFAULT
-		)
-		mailNotificationChannel.setShowBadge(true)
-		val ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-		val att = AudioAttributes.Builder()
-				.setUsage(AudioAttributes.USAGE_NOTIFICATION)
-				.setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
-				.build()
-		mailNotificationChannel.setSound(ringtoneUri, att)
-		mailNotificationChannel.vibrationPattern = VIBRATION_PATTERN
-		mailNotificationChannel.enableLights(true)
-		mailNotificationChannel.lightColor = Color.RED
-		mailNotificationChannel.setShowBadge(true)
+		).default()
+
 		notificationManager.createNotificationChannel(mailNotificationChannel)
 		val serviceNotificationChannel = NotificationChannel(
 				PERSISTENT_NOTIFICATION_CHANNEL_ID, context.getString(R.string.notificationSync_msg),
 				NotificationManager.IMPORTANCE_LOW
 		)
 		notificationManager.createNotificationChannel(serviceNotificationChannel)
+
 		val alarmNotificationsChannel = NotificationChannel(
-				AlarmBroadcastReceiver.ALARM_NOTIFICATION_CHANNEL_ID,
+				ALARM_NOTIFICATION_CHANNEL_ID,
 				context.getString(R.string.reminder_label),
 				NotificationManager.IMPORTANCE_HIGH
-		)
-		alarmNotificationsChannel.setShowBadge(true)
-		alarmNotificationsChannel.setSound(ringtoneUri, att)
-		alarmNotificationsChannel.vibrationPattern = VIBRATION_PATTERN
-		alarmNotificationsChannel.enableLights(true)
-		alarmNotificationsChannel.lightColor = Color.RED
-		alarmNotificationsChannel.setShowBadge(true)
+		).default()
 		notificationManager.createNotificationChannel(alarmNotificationsChannel)
+
+		val downloadNotificationsChannel = NotificationChannel(
+				DOWNLOAD_NOTIFICATION_CHANNEL_ID,
+				context.getString(R.string.downloadCompleted_msg),
+				NotificationManager.IMPORTANCE_DEFAULT
+		)
+		downloadNotificationsChannel.setShowBadge(false)
+		notificationManager.createNotificationChannel(downloadNotificationsChannel)
+	}
+
+	@TargetApi(Build.VERSION_CODES.O)
+	private fun NotificationChannel.default(): NotificationChannel {
+		val ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+		val att = AudioAttributes.Builder()
+				.setUsage(AudioAttributes.USAGE_NOTIFICATION)
+				.setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
+				.build()
+
+		setShowBadge(true)
+		setSound(ringtoneUri, att)
+		enableLights(true)
+		vibrationPattern = VIBRATION_PATTERN
+		lightColor = Color.RED
+
+		return this
 	}
 
 	private fun notificationContent(address: String): String {
@@ -292,55 +311,72 @@ class LocalNotificationsFacade(private val context: Context) {
 		)
 	}
 
-	companion object {
-		const val NOTIFICATION_DISMISSED_ADDR_EXTRA = "notificationDismissed"
-		private const val EMAIL_NOTIFICATION_CHANNEL_ID = "notifications"
-		private val VIBRATION_PATTERN = longArrayOf(100, 200, 100, 200)
-		private const val NOTIFICATION_EMAIL_GROUP = "de.tutao.tutanota.email"
-		private const val SUMMARY_NOTIFICATION_ID = 45
-		private const val PERSISTENT_NOTIFICATION_CHANNEL_ID = "service_intent"
-		fun notificationDismissedIntent(
-				context: Context,
-				emailAddresses: ArrayList<String>,
-				sender: String,
-				isSummary: Boolean,
-		): Intent {
-			val deleteIntent = Intent(context, PushNotificationService::class.java)
-			deleteIntent.putStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, emailAddresses)
-			deleteIntent.putExtra("sender", sender)
-			deleteIntent.putExtra(MainActivity.IS_SUMMARY_EXTRA, isSummary)
-			return deleteIntent
-		}
+}
 
-		fun showAlarmNotification(context: Context, timestamp: Long, summary: String, intent: Intent) {
-			val contentText = String.format("%tR %s", timestamp, summary)
-			val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-			@ColorInt val red = context.resources.getColor(R.color.red, context.theme)
-			notificationManager.notify(
-					System.currentTimeMillis().toInt(),
-					NotificationCompat.Builder(context, AlarmBroadcastReceiver.ALARM_NOTIFICATION_CHANNEL_ID)
-							.setSmallIcon(R.drawable.ic_status)
-							.setContentTitle(context.getString(R.string.reminder_label))
-							.setContentText(contentText)
-							.setDefaults(NotificationCompat.DEFAULT_ALL)
-							.setColor(red)
-							.setContentIntent(openCalendarIntent(context, intent))
-							.setAutoCancel(true)
-							.build()
-			)
-		}
+fun notificationDismissedIntent(
+		context: Context,
+		emailAddresses: ArrayList<String>,
+		sender: String,
+		isSummary: Boolean,
+): Intent {
+	val deleteIntent = Intent(context, PushNotificationService::class.java)
+	deleteIntent.putStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA, emailAddresses)
+	deleteIntent.putExtra("sender", sender)
+	deleteIntent.putExtra(MainActivity.IS_SUMMARY_EXTRA, isSummary)
+	return deleteIntent
+}
 
-		private fun openCalendarIntent(context: Context, alarmIntent: Intent): PendingIntent {
-			val userId = alarmIntent.getStringExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY)
-			val openCalendarEventIntent = Intent(context, MainActivity::class.java)
-			openCalendarEventIntent.action = MainActivity.OPEN_CALENDAR_ACTION
-			openCalendarEventIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, userId)
-			return PendingIntent.getActivity(
-					context,
-					alarmIntent.data.toString().hashCode(),
-					openCalendarEventIntent,
-					PendingIntent.FLAG_UPDATE_CURRENT
-			)
-		}
+fun showAlarmNotification(context: Context, timestamp: Long, summary: String, intent: Intent) {
+	val contentText = String.format("%tR %s", timestamp, summary)
+	val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+	@ColorInt val red = context.resources.getColor(R.color.red, context.theme)
+	notificationManager.notify(
+			System.currentTimeMillis().toInt(),
+			NotificationCompat.Builder(context, ALARM_NOTIFICATION_CHANNEL_ID)
+					.setSmallIcon(R.drawable.ic_status)
+					.setContentTitle(context.getString(R.string.reminder_label))
+					.setContentText(contentText)
+					.setDefaults(NotificationCompat.DEFAULT_ALL)
+					.setColor(red)
+					.setContentIntent(openCalendarIntent(context, intent))
+					.setAutoCancel(true)
+					.build()
+	)
+}
+
+private fun openCalendarIntent(context: Context, alarmIntent: Intent): PendingIntent {
+	val userId = alarmIntent.getStringExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY)
+	val openCalendarEventIntent = Intent(context, MainActivity::class.java)
+	openCalendarEventIntent.action = MainActivity.OPEN_CALENDAR_ACTION
+	openCalendarEventIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, userId)
+	return PendingIntent.getActivity(
+			context,
+			alarmIntent.data.toString().hashCode(),
+			openCalendarEventIntent,
+			PendingIntent.FLAG_UPDATE_CURRENT
+	)
+}
+
+/**
+ * create a notification that starts a new task and gives it access to the downloaded file
+ * to view it.
+ */
+fun showDownloadNotification(context: Context, file: File) {
+	val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+	val uri = FileProvider.getUriForFile(context, BuildConfig.FILE_PROVIDER_AUTHORITY, file)
+	val mimeType = getMimeType(file.toUri(), context)
+	val intent = Intent(Intent.ACTION_VIEW).apply {
+		flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
+		setDataAndType(uri, mimeType)
 	}
+	val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+	notificationManager.notify(System.currentTimeMillis().toInt(),
+			NotificationCompat.Builder(context, DOWNLOAD_NOTIFICATION_CHANNEL_ID)
+					.setSmallIcon(R.drawable.ic_download)
+					.setContentTitle(context.getString(R.string.downloadCompleted_msg))
+					.setContentText(file.name)
+					.setContentIntent(pendingIntent)
+					.setAutoCancel(true)
+					.build()
+	)
 }
