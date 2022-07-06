@@ -83,6 +83,7 @@ export class PostLoginActions implements IPostLoginAction {
 		}
 
 		const usageTestModel = locator.usageTestModel
+		await usageTestModel.init()
 
 		usageTestModel.setStorageBehavior(StorageBehavior.Persist)
 		locator.usageTestController.setTests(await usageTestModel.loadActiveUsageTests(TtlBehavior.PossiblyOutdated))

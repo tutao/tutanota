@@ -15,6 +15,7 @@ import {CounterBadge} from "../base/CounterBadge.js"
 import {px} from "../size.js"
 import {theme} from "../theme.js"
 import {showUsageTestOptInDialog} from "../../misc/UsageTestModel.js"
+import {locator} from "../../api/main/MainLocator.js"
 
 type Attrs = {
 	openNewWindow(): unknown
@@ -22,6 +23,8 @@ type Attrs = {
 
 export class DrawerMenu implements Component<Attrs> {
 	view(vnode: Vnode<Attrs>): Children {
+		const showUsageDataOptInIndicator = locator.usageTestModel ? locator.usageTestModel.showOptInIndicator() : false
+
 		return m(
 			"drawer-menu" + landmarkAttrs(AriaLandmarks.Contentinfo, "drawer menu"),
 			{
@@ -31,7 +34,7 @@ export class DrawerMenu implements Component<Attrs> {
 			},
 			m(".flex.col.height-100p.items-center.pt.pb", [
 				m(".flex-grow"),
-				logins.isUserLoggedIn() && logins.getUserController().userSettingsGroupRoot.usageDataOptedIn === null
+				logins.isUserLoggedIn() && showUsageDataOptInIndicator
 					?
 					m(".news-button", [
 						m(ButtonN, {
