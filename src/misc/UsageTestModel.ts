@@ -27,9 +27,10 @@ import {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar.js"
 import {theme} from "../gui/theme.js"
 import {px} from "../gui/size.js"
 import {ButtonColor, ButtonN, ButtonType} from "../gui/base/ButtonN.js"
-import {logins} from "../api/main/LoginController.js"
+import {LoginController, logins} from "../api/main/LoginController.js"
 import {locator} from "../api/main/MainLocator.js"
 import {CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
+import {EntityClient} from "../api/common/EntityClient.js"
 
 
 const PRESELECTED_LIKERT_VALUE = null
@@ -286,6 +287,8 @@ export class UsageTestModel implements PingAdapter {
 		private readonly storages: { [key in StorageBehavior]: UsageTestStorage },
 		private readonly dateProvider: DateProvider,
 		private readonly serviceExecutor: IServiceExecutor,
+		private readonly entityClient: EntityClient,
+		private readonly loginController: LoginController,
 	) {
 	}
 
@@ -293,7 +296,7 @@ export class UsageTestModel implements PingAdapter {
 	 * Needs to be called after construction, ideally after login, so that the logged-in user's CustomerProperties are loaded.
 	 */
 	async init() {
-		this.customerProperties = await locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
+		this.customerProperties = await this.entityClient.load(CustomerTypeRef, neverNull(this.loginController.getUserController().user.customer)).then(customer => this.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
 	}
 
 	setStorageBehavior(storageBehavior: StorageBehavior) {
@@ -314,11 +317,12 @@ export class UsageTestModel implements PingAdapter {
 			return false
 		}
 
-		return logins.getUserController().userSettingsGroupRoot.usageDataOptedIn === null
+		return this.loginController.getUserController().userSettingsGroupRoot.usageDataOptedIn === null
 	}
 
 	private getOptInDecision(): boolean {
-		const userOptIn = logins.getUserController().userSettingsGroupRoot.usageDataOptedIn
+		const userOptIn = this.loginController.getUserController().userSettingsGroupRoot.usageDataOptedIn
+
 		if (!userOptIn) {
 			// shortcut if userOptIn not set or equal to false
 			return false

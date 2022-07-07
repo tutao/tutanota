@@ -15,13 +15,18 @@ import {
 	createUsageTestMetricData,
 	createUsageTestParticipationIn
 } from "../../../src/api/entities/usage/TypeRefs.js"
-import {matchers, object, verify, when} from "testdouble"
+import {matchers, object, replace, verify, when} from "testdouble"
 import {clone} from "@tutao/tutanota-utils"
 import {Stage, UsageTest} from "@tutao/tutanota-usagetests"
 import {SuspensionBehavior} from "../../../src/api/worker/rest/RestClient.js"
 import {UsageTestAssignmentService, UsageTestParticipationService} from "../../../src/api/entities/usage/Services.js"
 import {IServiceExecutor} from "../../../src/api/common/ServiceRequest.js"
 import modelInfo from "../../../src/api/entities/usage/ModelInfo.js"
+import {EntityClient} from "../../../src/api/common/EntityClient.js"
+import {LoginController} from "../../../src/api/main/LoginController.js"
+import {createCustomerProperties} from "../../../src/api/entities/sys/TypeRefs.js"
+import {UserController} from "../../../src/api/main/UserController.js"
+import {createUserSettingsGroupRoot} from "../../../src/api/entities/tutanota/TypeRefs.js"
 
 const {anything} = matchers
 
@@ -29,8 +34,11 @@ const {anything} = matchers
 o.spec("UsageTestModel", function () {
 	let usageTestModel: UsageTestModel
 	let serviceExecutor: IServiceExecutor
+	let entityClient: EntityClient
 	let persistentStorage: UsageTestStorage
 	let ephemeralStorage: UsageTestStorage
+	let userControllerMock: UserController
+	let loginControllerMock: LoginController
 	const testDeviceId = "123testDeviceId321"
 
 	const dateProvider = {
@@ -65,6 +73,13 @@ o.spec("UsageTestModel", function () {
 
 	o.beforeEach(function () {
 		serviceExecutor = object()
+		entityClient = object()
+
+		userControllerMock = object()
+		loginControllerMock = object()
+
+		when(loginControllerMock.getUserController()).thenReturn(userControllerMock)
+
 		ephemeralStorage = new EphemeralUsageTestStorage()
 		persistentStorage = new EphemeralUsageTestStorage()
 		usageTestModel = new UsageTestModel({
@@ -72,7 +87,13 @@ o.spec("UsageTestModel", function () {
 				[StorageBehavior.Ephemeral]: ephemeralStorage,
 			},
 			dateProvider,
-			serviceExecutor)
+			serviceExecutor,
+			entityClient,
+			loginControllerMock,
+		)
+
+		replace(usageTestModel, "customerProperties", createCustomerProperties({usageDataOptedOut: false}))
+		replace(userControllerMock, "userSettingsGroupRoot", createUserSettingsGroupRoot({usageDataOptedIn: true}))
 	})
 
 	async function assertStored(storage, result, assignment) {
