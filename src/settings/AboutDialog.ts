@@ -1,5 +1,5 @@
 import m, {Children, Component, Vnode} from "mithril"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import {getColouredTutanotaLogo} from "../gui/theme"
 import {isApp, isDesktop} from "../api/common/Env"
 import {createLogFile} from "../api/common/Logger"
@@ -29,7 +29,7 @@ export class AboutDialog implements Component {
 	_sendLogsLink(): Children {
 		return m(
 			".mt.right",
-			m(ButtonN, {
+			m(Button, {
 				label: () => "Send Logs",
 				click: () => this._sendDeviceLogs(),
 				type: ButtonType.Primary,

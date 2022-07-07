@@ -3,8 +3,8 @@ import {ViewSlider} from "../../gui/nav/ViewSlider.js"
 import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import type {ButtonAttrs} from "../../gui/base/ButtonN"
-import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import type {ButtonAttrs} from "../../gui/base/Button.js"
+import {ButtonColor, Button, ButtonType} from "../../gui/base/Button.js"
 import type {NavButtonAttrs} from "../../gui/base/NavButtonN"
 import {isNavButtonSelected, isSelectedPrefix, NavButtonColor} from "../../gui/base/NavButtonN"
 import {createMailViewerViewModel, MailViewer} from "./MailViewer"
@@ -42,7 +42,7 @@ import type {EntityUpdateData} from "../../api/main/EventController"
 import {isUpdateForTypeRef} from "../../api/main/EventController"
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {MAIL_PREFIX, navButtonRoutes, throttleRoute} from "../../misc/RouteChange"
-import {attachDropdown, DomRectReadOnlyPolyfilled, DropdownN} from "../../gui/base/DropdownN"
+import {attachDropdown, DomRectReadOnlyPolyfilled, Dropdown} from "../../gui/base/Dropdown.js"
 import {MailFolderRow} from "./MailFolderRow"
 import {styles} from "../../gui/styles"
 import {size} from "../../gui/size"
@@ -308,7 +308,7 @@ export class MailView implements CurrentView {
 			icon: () => Icons.PencilSquare,
 			colors: ButtonColor.Header,
 		}
-		return isNewMailActionAvailable() ? m(ButtonN, openMailButtonAttrs) : null
+		return isNewMailActionAvailable() ? m(Button, openMailButtonAttrs) : null
 	}
 
 	_getShortcuts(): Array<Shortcut> {
@@ -436,7 +436,7 @@ export class MailView implements CurrentView {
 		}
 
 		locator.mailModel.getMailboxFolders(selectedMails[0]).then(folders => {
-			let dropdown = new DropdownN(() => {
+			let dropdown = new Dropdown(() => {
 				const mailList = getListId(selectedMails[0])
 
 				if (selectedMails.some(m => !isSameId(getListId(m), mailList))) {

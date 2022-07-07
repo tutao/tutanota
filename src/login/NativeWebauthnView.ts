@@ -7,7 +7,7 @@ import {IWebauthn} from "../misc/2fa/webauthn/IWebauthn.js"
 import {SecondFactorImage} from "../gui/base/icons/Icons.js"
 import {progressIcon} from "../gui/base/Icon.js"
 import {lang} from "../misc/LanguageViewModel.js"
-import {ButtonType} from "../gui/base/ButtonN.js"
+import {ButtonType} from "../gui/base/Button.js"
 
 /** This is a special view which is not used by the web client directly but is loaded remotely by desktop client in a dialog. See DesktopWebauthn. */
 export class NativeWebauthnView implements CurrentView {

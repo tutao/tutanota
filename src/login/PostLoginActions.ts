@@ -13,7 +13,7 @@ import type {OutOfOfficeNotification} from "../api/entities/tutanota/TypeRefs.js
 import {createReceiveInfoServiceData} from "../api/entities/tutanota/TypeRefs.js"
 import {isNotificationCurrentlyActive, loadOutOfOfficeNotification} from "../misc/OutOfOfficeNotificationUtils"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
-import {ButtonType} from "../gui/base/ButtonN"
+import {ButtonType} from "../gui/base/Button.js"
 import {themeController} from "../gui/theme"
 import {Dialog} from "../gui/base/Dialog"
 import {CloseEventBusOption, Const} from "../api/common/TutanotaConstants"

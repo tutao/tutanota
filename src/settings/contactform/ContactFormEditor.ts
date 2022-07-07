@@ -32,14 +32,14 @@ import {getDefaultContactFormLanguage} from "./ContactFormUtils"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {windowFacade} from "../../misc/WindowFacade"
-import {ButtonAttrs, ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {ButtonAttrs, Button, ButtonType} from "../../gui/base/Button.js"
 import {compareGroupInfos, getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
 import {isSameId, stringToCustomId} from "../../api/common/utils/EntityUtils"
 import {showBuyDialog} from "../../subscription/BuyDialog"
 import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {locator} from "../../api/main/MainLocator"
-import {attachDropdown, DropdownChildAttrs} from "../../gui/base/DropdownN.js"
+import {attachDropdown, DropdownChildAttrs} from "../../gui/base/Dropdown.js"
 
 assertMainOrNode()
 // keep in sync with ContactFormAccessor.java
@@ -421,9 +421,9 @@ export class ContactFormEditor {
 			value: this._languageDisplayValue,
 			disabled: true,
 			injectionsRight: () => [
-				m(ButtonN, selectLanguageButtonAttrs),
+				m(Button, selectLanguageButtonAttrs),
 				this._languages.length > 1
-					? m(ButtonN, {
+					? m(Button, {
 						label: "delete_action",
 						click: () => {
 							remove(this._languages, this._language())
@@ -497,8 +497,8 @@ export class ContactFormEditor {
 			value: this._receivingMailboxDisplayValue,
 			disabled: true,
 			injectionsRight: () => groupsDropdownAttrs
-				? [m(ButtonN, userDropdownAttrs), m(ButtonN, groupsDropdownAttrs)]
-				: [m(ButtonN, userDropdownAttrs)],
+				? [m(Button, userDropdownAttrs), m(Button, groupsDropdownAttrs)]
+				: [m(Button, userDropdownAttrs)],
 		}
 	}
 

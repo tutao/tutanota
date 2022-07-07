@@ -1,7 +1,7 @@
 import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import {Dialog, DialogType} from "../../gui/base/Dialog"
-import {ButtonType} from "../../gui/base/ButtonN"
+import {ButtonType} from "../../gui/base/Button.js"
 import {isMailAddress} from "../../misc/FormatValidator"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"

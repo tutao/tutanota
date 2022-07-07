@@ -14,11 +14,11 @@ import {SessionState} from "../api/common/TutanotaConstants"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import type {ButtonAttrs} from "../gui/base/Button.js"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import {NotFoundError} from "../api/common/error/RestError"
 import * as RecoverCodeDialog from "./RecoverCodeDialog"
-import {attachDropdown} from "../gui/base/DropdownN"
+import {attachDropdown} from "../gui/base/Dropdown.js"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
@@ -70,7 +70,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			value: this._stars(),
 			oninput: this._stars,
 			disabled: true,
-			injectionsRight: () => m(ButtonN, changePasswordButtonAttrs),
+			injectionsRight: () => m(Button, changePasswordButtonAttrs),
 		}
 		const recoveryCodeDropdownButtonAttrs: ButtonAttrs = attachDropdown(
 			{
@@ -105,7 +105,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			value: this._stars(),
 			oninput: this._stars,
 			disabled: true,
-			injectionsRight: () => m(ButtonN, recoveryCodeDropdownButtonAttrs),
+			injectionsRight: () => m(Button, recoveryCodeDropdownButtonAttrs),
 		}
 		// Might be not there when we are logging out
 		if (logins.isUserLoggedIn()) {
@@ -161,7 +161,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			value: this._credentialsEncryptionModeName(usedMode),
 			disabled: true,
 			injectionsRight: () =>
-				m(ButtonN, {
+				m(Button, {
 					label: "edit_action",
 					icon: () => Icons.Edit,
 					click: () => showCredentialsEncryptionModeDialog(this._credentialsProvider).then(m.redraw),

@@ -1,5 +1,5 @@
 import m, {Children} from "mithril"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import {lang} from "../misc/LanguageViewModel"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
@@ -94,7 +94,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 					? m(".flex.flex-end.center-vertically", [
 						m(
 							".mr-negative-s.align-self-end",
-							m(ButtonN, {
+							m(Button, {
 								label: "addTemplate_label",
 								type: ButtonType.Primary,
 								click: () => {

@@ -2,8 +2,8 @@ import m, {Component, Vnode} from "mithril"
 import {px, size} from "../size"
 import {DefaultAnimationTime, transform, TransformEnum} from "../animation/Animations"
 import {displayOverlay} from "./Overlay"
-import type {ButtonAttrs} from "./ButtonN"
-import {ButtonN, ButtonType} from "./ButtonN"
+import type {ButtonAttrs} from "./Button.js"
+import {Button, ButtonType} from "./Button.js"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {styles} from "../styles"
@@ -32,7 +32,7 @@ class SnackBar implements Component<SnackBarAttrs> {
 		// use same padding as MinimizedEditor
 		return m(".snackbar-content.flex.flex-space-between.border-radius.plr.pb-xs.pt-xs", [
 			m(".flex.center-vertically.smaller", lang.getMaybeLazy(vnode.attrs.message)),
-			vnode.attrs.button ? m(".flex-end.center-vertically.pl", m(ButtonN, vnode.attrs.button)) : null,
+			vnode.attrs.button ? m(".flex-end.center-vertically.pl", m(Button, vnode.attrs.button)) : null,
 		])
 	}
 }

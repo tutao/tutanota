@@ -3,7 +3,7 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {Dialog} from "../gui/base/Dialog"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import {getWhitelabelRegistrationDomains} from "../login/LoginView"
 import type {NewAccountData} from "./UpgradeSubscriptionWizard"
 import {SelectMailAddressForm, SelectMailAddressFormAttrs} from "../settings/SelectMailAddressForm"
@@ -138,7 +138,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 					],
 				m(
 					".mt-l.mb-l",
-					m(ButtonN, {
+					m(Button, {
 						label: "next_action",
 						click: submit,
 						type: ButtonType.Login,

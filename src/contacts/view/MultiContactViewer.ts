@@ -7,7 +7,7 @@ import {exportContacts} from "../VCardExporter"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {theme} from "../../gui/theme"
 import {isNotNull, NBSP, noOp, Thunk} from "@tutao/tutanota-utils"
-import type {ButtonAttrs} from "../../gui/base/ButtonN"
+import type {ButtonAttrs} from "../../gui/base/Button.js"
 import {ActionBar} from "../../gui/base/ActionBar"
 import {assertMainOrNode} from "../../api/common/Env"
 

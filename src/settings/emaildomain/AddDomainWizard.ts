@@ -14,7 +14,7 @@ import {DomainDnsStatus} from "../DomainDnsStatus"
 import {VerifyOwnershipPage, VerifyOwnershipPageAttrs} from "./VerifyOwnershipPage"
 import {VerifyDnsRecordsPage, VerifyDnsRecordsPageAttrs} from "./VerifyDnsRecordsPage"
 import {EnterDomainPage, EnterDomainPageAttrs} from "./EnterDomainPage"
-import type {ButtonAttrs} from "../../gui/base/ButtonN"
+import type {ButtonAttrs} from "../../gui/base/Button.js"
 import {createWizardDialog, wizardPageWrapper} from "../../gui/base/WizardDialogN"
 import {assertMainOrNode} from "../../api/common/Env"
 

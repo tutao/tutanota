@@ -19,11 +19,11 @@ import {isKeyPressed, keyManager} from "../../misc/KeyManager"
 import type {ListElement} from "../../api/common/utils/EntityUtils"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, getLetId} from "../../api/common/utils/EntityUtils"
 import {assertMainOrNode} from "../../api/common/Env"
-import {ButtonN, ButtonType} from "./ButtonN"
+import {Button, ButtonType} from "./Button.js"
 import {LoadingState, LoadingStateTracker} from "../../offline/LoadingState"
 import {lang} from "../../misc/LanguageViewModel"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
-import {PosRect} from "./DropdownN.js"
+import {PosRect} from "./Dropdown.js"
 
 assertMainOrNode()
 export const ScrollBuffer = 15 // virtual elements that are used as scroll buffer in both directions
@@ -429,7 +429,7 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 			},
 			[
 				m("", lang.get("connectionLost_msg")),
-				m(ButtonN, {
+				m(Button, {
 					label: "retry_action",
 					type: ButtonType.Primary,
 					click: () => this.retryLoading()

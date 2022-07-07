@@ -3,10 +3,10 @@ import Stream from "mithril/stream"
 import {Icons} from "./icons/Icons"
 import type {lazy} from "@tutao/tutanota-utils"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
-import {ButtonN, ButtonType} from "./ButtonN"
+import {Button, ButtonType} from "./Button.js"
 import {TextFieldN} from "./TextFieldN"
 import {assertMainOrNode} from "../../api/common/Env"
-import {attachDropdown} from "./DropdownN.js"
+import {attachDropdown} from "./Dropdown.js"
 
 assertMainOrNode()
 
@@ -44,7 +44,7 @@ export class DropDownSelector<T> implements Component {
 				helpLabel: helpLabel,
 				disabled: true,
 				value: this._selectedValueDisplayValue,
-				injectionsRight: () => [m(ButtonN, attachDropdown({
+				injectionsRight: () => [m(Button, attachDropdown({
 					mainButtonAttrs: {
 						label: labelIdOrLabelTextFunction,
 						icon: () => Icons.Edit,

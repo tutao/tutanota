@@ -16,7 +16,7 @@ import {formatPrice, getPaymentMethodInfoText, getPaymentMethodName} from "./Pri
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {Icons} from "../gui/base/icons/Icons"
 import {ColumnWidth, TableLineAttrs, TableN} from "../gui/base/TableN"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import {formatDate, formatNameAndAddress} from "../misc/Formatter"
 import {getPaymentMethodType, PaymentMethodType, PostingType} from "../api/common/TutanotaConstants"
 import {BadGatewayError, LockedError, PreconditionFailedError, TooManyRequestsError} from "../api/common/error/RestError"
@@ -144,7 +144,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				[
 					m(".flex-space-between.items-center.mt-l.mb-s", [
 						m(".h4", lang.get("invoiceData_msg")),
-						m(".mr-negative-s", m(ButtonN, changeInvoiceDataButtonAttrs)),
+						m(".mr-negative-s", m(Button, changeInvoiceDataButtonAttrs)),
 					]),
 					m(this._invoiceAddressField),
 					this._accountingInfo && this._accountingInfo.invoiceVatIdNo.trim().length > 0
@@ -159,7 +159,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						value: paymentMethod,
 						helpLabel: paymentMethodHelpLabel,
 						disabled: true,
-						injectionsRight: () => [m(ButtonN, changePaymentDataButtonAttrs)],
+						injectionsRight: () => [m(Button, changePaymentDataButtonAttrs)],
 					}),
 					this._renderPostings(postingExpanded),
 				],
@@ -213,7 +213,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 									width: "200px",
 								},
 							},
-							m(ButtonN, {
+							m(Button, {
 								label: "invoicePay_action",
 								type: ButtonType.Login,
 								click: () => this._showPayDialog(this._amountOwed()),

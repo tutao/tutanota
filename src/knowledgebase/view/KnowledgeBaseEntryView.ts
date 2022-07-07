@@ -2,8 +2,8 @@ import m, {Children, Component, Vnode} from "mithril"
 import type {KnowledgeBaseEntry} from "../../api/entities/tutanota/TypeRefs.js"
 import {memoized, neverNull, noOp, ofClass, startsWith} from "@tutao/tutanota-utils"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
-import type {ButtonAttrs} from "../../gui/base/ButtonN"
-import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import type {ButtonAttrs} from "../../gui/base/Button.js"
+import {Button, ButtonType} from "../../gui/base/Button.js"
 import {Icons} from "../../gui/base/icons/Icons"
 import {TemplateGroupRootTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {locator} from "../../api/main/MainLocator"
@@ -73,7 +73,7 @@ export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewA
 				m(
 					".flex.mt-l.center-vertically.selectable",
 					m(".h4.text-ellipsis", entry.title),
-					!readonly ? [m(".flex.flex-grow.justify-end", [m(ButtonN, editButtonAttrs), m(ButtonN, removeButtonAttrs)])] : null,
+					!readonly ? [m(".flex.flex-grow.justify-end", [m(Button, editButtonAttrs), m(Button, removeButtonAttrs)])] : null,
 				),
 				m("", [
 					m(".mt-s.flex.mt-s.wrap", [

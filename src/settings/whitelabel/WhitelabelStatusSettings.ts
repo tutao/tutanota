@@ -5,7 +5,7 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {lang} from "../../misc/LanguageViewModel"
 import stream from "mithril/stream"
 import m, {Children, Component, Vnode} from "mithril"
-import {ButtonN} from "../../gui/base/ButtonN"
+import {Button} from "../../gui/base/Button.js"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 
 export type WhitelabelStatusSettingsAttrs = {
@@ -45,7 +45,7 @@ export class WhitelabelStatusSettings implements Component<WhitelabelStatusSetti
 			label: "state_label",
 			value: value,
 			disabled: true,
-			injectionsRight: () => (isWhitelabelActive ? m(ButtonN, disableWhiteLabelAction) : m(ButtonN, enableWhiteLabelAction)),
+			injectionsRight: () => (isWhitelabelActive ? m(Button, disableWhiteLabelAction) : m(Button, enableWhiteLabelAction)),
 		} as const
 		return m(TextFieldN, textFieldAttrs)
 	}

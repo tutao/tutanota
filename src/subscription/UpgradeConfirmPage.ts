@@ -14,7 +14,7 @@ import {RecoverCodeField} from "../settings/RecoverCodeDialog"
 import {logins} from "../api/main/LoginController"
 import type {SubscriptionOptions} from "./SubscriptionUtils"
 import {getDisplayNameOfSubscriptionType, getPreconditionFailedPaymentMsg, SubscriptionType, UpgradeType} from "./SubscriptionUtils"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
 import {TextFieldN} from "../gui/base/TextFieldN"
@@ -134,7 +134,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 							width: "260px",
 						},
 					},
-					m(ButtonN, {
+					m(Button, {
 						label: "buy_action",
 						click: () => this.upgrade(attrs.data),
 						type: ButtonType.Login,
@@ -171,7 +171,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 							width: "260px",
 						},
 					},
-					m(ButtonN, {
+					m(Button, {
 						label: "ok_action",
 						click: () => this.close(attrs.data, this.dom),
 						type: ButtonType.Login,

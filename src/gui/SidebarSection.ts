@@ -2,8 +2,8 @@ import m, {Children, Component, Vnode} from "mithril"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {theme} from "./theme"
-import type {ButtonAttrs} from "./base/ButtonN"
-import {ButtonN} from "./base/ButtonN"
+import type {ButtonAttrs} from "./base/Button.js"
+import {Button} from "./base/Button.js"
 import type {lazy} from "@tutao/tutanota-utils"
 
 export type SidebarSectionAttrs = {
@@ -25,7 +25,7 @@ export class SidebarSection implements Component<SidebarSectionAttrs> {
 			[
 				m(".folder-row.flex-space-between.plr-l.pt-s.button-height", [
 					m("small.b.align-self-center.text-ellipsis", lang.getMaybeLazy(name).toLocaleUpperCase()),
-					buttonAttrs ? m(ButtonN, buttonAttrs) : null,
+					buttonAttrs ? m(Button, buttonAttrs) : null,
 				]),
 				content,
 			],

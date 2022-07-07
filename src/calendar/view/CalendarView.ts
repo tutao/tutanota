@@ -13,7 +13,7 @@ import {logins} from "../../api/main/LoginController"
 import {defaultCalendarColor, GroupType, Keys, ShareCapability, TimeFormat} from "../../api/common/TutanotaConstants"
 import {locator} from "../../api/main/MainLocator"
 import {getEventStart, getStartOfTheWeekOffset, getStartOfWeek, getTimeZone, shouldDefaultToAmPmTimeFormat} from "../date/CalendarUtils"
-import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {ButtonColor, Button, ButtonType} from "../../gui/base/Button.js"
 import {formatDateWithWeekday, formatDateWithWeekdayAndYearLong, formatMonthWithFullYear} from "../../misc/Formatter"
 import {NavButtonColor, NavButtonN} from "../../gui/base/NavButtonN"
 import {CalendarMonthView} from "./CalendarMonthView"
@@ -490,7 +490,7 @@ export class CalendarView implements CurrentView {
 	}
 
 	headerRightView(): Children {
-		return m(ButtonN, {
+		return m(Button, {
 			label: "newEvent_action",
 			click: () => this._createNewEventDialog(),
 			icon: () => Icons.Add,
@@ -599,7 +599,7 @@ export class CalendarView implements CurrentView {
 		const {group, groupInfo, groupRoot} = calendarInfo
 		const user = logins.getUserController().user
 		return m(
-			ButtonN,
+			Button,
 			createMoreActionButtonAttrs(() => [
 				{
 					label: "edit_action",

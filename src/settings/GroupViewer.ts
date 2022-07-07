@@ -20,7 +20,7 @@ import {GENERATED_MAX_ID, GENERATED_MIN_ID, isSameId} from "../api/common/utils/
 import {showBuyDialog} from "../subscription/BuyDialog"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {ButtonAttrs, ButtonN} from "../gui/base/ButtonN"
+import {ButtonAttrs, Button} from "../gui/base/Button.js"
 import type {DropDownSelectorAttrs, SelectorItemList} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import type {EntityClient} from "../api/common/EntityClient"
@@ -245,7 +245,7 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 			label: "name_label",
 			value: this._name,
 			disabled: true,
-			injectionsRight: () => [m(ButtonN, editNameButtonAttrs)],
+			injectionsRight: () => [m(Button, editNameButtonAttrs)],
 		}
 	}
 

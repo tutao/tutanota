@@ -1,7 +1,7 @@
 import m, {Children, Component, Vnode} from "mithril"
 import {MessageBoxN} from "../../gui/base/MessageBoxN"
 import {px, size} from "../../gui/size"
-import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {Button, ButtonType} from "../../gui/base/Button.js"
 import {CalendarAttendeeStatus, CalendarMethod} from "../../api/common/TutanotaConstants"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
@@ -52,7 +52,7 @@ export class EventBanner implements Component<Attrs> {
 				),
 				m(
 					".ml-negative-s.limit-width.align-self-start",
-					m(ButtonN, {
+					m(Button, {
 						label: "viewEvent_action",
 						type: ButtonType.Secondary,
 						click: (e, dom) =>

@@ -1,258 +1,380 @@
-import {size} from "../size"
-import m, {Children, Component} from "mithril"
+import m, {Children, ClassComponent, CVnode} from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {addFlash, removeFlash} from "./Flash"
 import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
-import {theme} from "../theme"
-import {ButtonColor, ButtonType, getColors} from "./ButtonN"
-import type {clickHandler} from "./GuiUtils"
+import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, getNavigationMenuIcon, theme} from "../theme"
 import type {lazy} from "@tutao/tutanota-utils"
-import {assertMainOrNode} from "../../api/common/Env"
 import {assertNotNull} from "@tutao/tutanota-utils"
+import type {clickHandler} from "./GuiUtils"
+import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 
-const TRUE_CLOSURE: lazy<boolean> = () => true
+export const enum BorderStyle {
+	Rounded,
+	Sharp
+}
 
-const FALSE_CLOSURE: lazy<boolean> = () => false
+export const enum ButtonType {
+	Action = "action",
+	ActionLarge = "action-large",
+	// action button with large icon
+	Primary = "primary",
+	Secondary = "secondary",
+	Dropdown = "dropdown",
+	Login = "login",
+	Floating = "floating",
+	Bubble = "bubble",
+	TextBubble = "textBubble",
+	Toggle = "toggle",
+}
 
+export const enum ButtonColor {
+	Header = "header",
+	Nav = "nav",
+	Content = "content",
+	Elevated = "elevated",
+	DrawerNav = "drawernav",
+}
+
+export function getColors(
+	buttonColors: ButtonColor | null | undefined,
+): {
+	border: string
+	button: string
+	button_icon_bg: string
+	button_selected: string
+	icon: string
+	icon_selected: string
+} {
+	switch (buttonColors) {
+		case ButtonColor.Nav:
+			return {
+				button: theme.navigation_button,
+				button_selected: theme.navigation_button_selected,
+				button_icon_bg: getNavButtonIconBackground(),
+				icon: theme.navigation_button_icon,
+				icon_selected: theme.navigation_button_icon_selected,
+				border: theme.navigation_bg,
+			}
+
+		case ButtonColor.DrawerNav:
+			return {
+				button: theme.content_button,
+				button_selected: theme.content_button_selected,
+				button_icon_bg: "transparent",
+				icon: getNavigationMenuIcon(),
+				icon_selected: theme.content_button_icon_selected,
+				border: getElevatedBackground(),
+			}
+
+		case ButtonColor.Elevated:
+			return {
+				button: theme.content_button,
+				button_selected: theme.content_button_selected,
+				button_icon_bg: getContentButtonIconBackground(),
+				icon: theme.content_button_icon,
+				icon_selected: theme.content_button_icon_selected,
+				border: getElevatedBackground(),
+			}
+
+		case ButtonColor.Header:
+			return {
+				button: theme.content_button,
+				button_selected: theme.content_button_selected,
+				button_icon_bg: "transparent",
+				icon: theme.header_button_selected,
+				icon_selected: theme.content_button_icon_selected,
+				border: theme.content_bg,
+			}
+
+		case ButtonColor.Content:
+		default:
+			return {
+				button: theme.content_button,
+				button_selected: theme.content_button_selected,
+				button_icon_bg: getContentButtonIconBackground(),
+				icon: theme.content_button_icon,
+				icon_selected: theme.content_button_icon_selected,
+				border: theme.content_bg,
+			}
+	}
+}
+
+export interface ButtonAttrs {
+	label: TranslationKey | lazy<string>
+	title?: TranslationKey | lazy<string>
+	click?: clickHandler
+	icon?: lazyIcon | null
+	type?: ButtonType
+	colors?: ButtonColor
+	isSelected?: lazy<boolean>
+	noBubble?: boolean
+	staticRightText?: string,
+	style?: Record<string, string>
+
+	// this is just an annoying side effect of doing UI cleanup
+	// old Button with Login type had sharp edges, ButtonN with Login type has rounded edges
+	// we need the edges to be sharp for the contact form request dialog submit button
+	// I could go through and cleanup and improve it but for now this will do.
+	borders?: BorderStyle
+}
 
 /**
  * A button.
  */
-export class Button implements Component {
-	private _type: ButtonType;
-	clickHandler: clickHandler;
-	propagateClickEvents: boolean;
-	icon: lazyIcon | null;
-	isVisible: lazy<boolean>;
-	isActive: boolean;
-	isSelected: lazy<boolean>;
-	getLabel: lazy<string>;
-	/// used by Dropdown
-	_domButton: HTMLElement | null = null
-	view: Component["view"];
-	private _staticRightText: string | null;
-	private _colors: ButtonColor;
+export class Button implements ClassComponent<ButtonAttrs> {
+	private _domButton: HTMLElement | null = null
 
-	constructor(labelTextIdOrTextFunction: TranslationKey | lazy<string>, click: clickHandler, icon?: lazyIcon) {
-		this._type = ButtonType.Action
-		this.clickHandler = click
-
-		this.icon = icon ?? null
-		this._colors = ButtonColor.Content
-		this._staticRightText = null
-
-		this.isVisible = TRUE_CLOSURE
-		this.isActive = true
-		this.isSelected = FALSE_CLOSURE
-		this.propagateClickEvents = true
-		this.getLabel = typeof labelTextIdOrTextFunction === "function"
-			? labelTextIdOrTextFunction : lang.get.bind(lang, labelTextIdOrTextFunction)
-
-		this.view = (): Children => {
-
-			return m("button.limit-width.noselect" + ((this._type === ButtonType.Bubble) ? ".print" : ""
-				+ (this._type === ButtonType.Floating ? ".z2" : "")), {
-					class: this.getButtonClasses().join(' '),
-					style: (this._type === ButtonType.Login) ? {
-						'background-color': theme.content_accent,
-					} : {},
-					onclick: (event: MouseEvent) => this.click(event),
-					title: (this._type === ButtonType.Action
-						|| this._type === ButtonType.Bubble
-						|| this._type === ButtonType.Dropdown
-						|| this._type === ButtonType.Login
-						|| this._type === ButtonType.Floating)
-						? this.getLabel()
-						: "",
-					oncreate: (vnode) => {
-						this._domButton = vnode.dom as HTMLButtonElement
+	view(vnode: CVnode<ButtonAttrs>): Children {
+		const a = vnode.attrs
+		const type = this.getType(a.type)
+		const title = a.title !== undefined ? this.getTitle(a.title) : lang.getMaybeLazy(a.label)
+		return m(
+			"button.limit-width.noselect",
+			{
+				class: this.getButtonClasses(a).join(" "),
+				style: this._getStyle(a),
+				onclick: (event: MouseEvent) => this.click(event, a, assertNotNull(this._domButton)),
+				title:
+					type === ButtonType.Action || type === ButtonType.Dropdown || type === ButtonType.Login || type === ButtonType.Floating
+						? lang.getMaybeLazy(a.label)
+						: title,
+				oncreate: vnode => {
+					this._domButton = vnode.dom as HTMLButtonElement
+				},
+				onremove: vnode => removeFlash(vnode.dom),
+			},
+			m(
+				"",
+				{
+					// additional wrapper for flex box styling as safari does not support flex box on buttons.
+					class: this.getWrapperClasses(a).join(" "),
+					style: {
+						borderColor: getColors(a.colors).border,
 					},
-					onremove: (vnode) => removeFlash(vnode.dom)
-				}, m("", {// additional wrapper for flex box styling as safari does not support flex box on buttons.
-					class: this.getWrapperClasses().join(' '),
-					oncreate: (vnode) => {
-						addFlash(vnode.dom)
-					}
-				}, [
-					this.getIcon(),
-					this._getLabelElement(),
-					(this._staticRightText) ? m(".pl-s", {style: this._getLabelStyle()}, this._staticRightText) : null
-				])
-			)
-		}
+					oncreate: vnode => {
+						if (type !== ButtonType.Toggle) {
+							addFlash(vnode.dom)
+						}
+					},
+					onremove: vnode => removeFlash(vnode.dom),
+				},
+				[
+					this.getIcon(a),
+					this._getLabelElement(a),
+					a.staticRightText
+						? m(
+							".pl-s",
+							{
+								style: this._getLabelStyle(a),
+							},
+							a.staticRightText,
+						)
+						: null,
+				],
+			),
+		)
 	}
 
-	getIcon(): Children {
-		return (this.icon instanceof Function && this.icon()) ? m(Icon, {
-			icon: this.icon(),
-			class: this.getIconClass(),
-			style: {
-				fill: this.getIconColor(),
-				'background-color': this.getIconBackgroundColor()
+	_getStyle(a: ButtonAttrs): {} {
+		return a.type === ButtonType.Login
+			? {
+				"border-radius": a.borders === BorderStyle.Rounded ? "3px" : "0px",
+				"background-color": theme.content_accent,
 			}
-		}) : null
+			: {}
 	}
 
-	getIconColor(): string {
-		if (this._type === ButtonType.Bubble) {
+	getTitle(title: TranslationKey | lazy<string>): string {
+		return lang.getMaybeLazy(title)
+	}
+
+	getType(type: ButtonType | null | undefined): ButtonType {
+		return type ? type : ButtonType.Action
+	}
+
+	getIcon(a: ButtonAttrs): Children {
+		const icon = a.icon?.()
+		return icon
+			? m(Icon, {
+				icon,
+				class: this.getIconClass(a),
+				style: {
+					fill: this.getIconColor(a),
+					"background-color": this.getIconBackgroundColor(a),
+				},
+			})
+			: null
+	}
+
+	getIconColor(a: ButtonAttrs): string {
+		const type = this.getType(a.type)
+
+		if (type === ButtonType.Bubble) {
 			return theme.button_bubble_fg
-		} else if (this.isSelected() || this._type === ButtonType.Floating) {
-			return getColors(this._colors).icon_selected
+		} else if (type === ButtonType.Login) {
+			return theme.content_button_icon_selected
+		} else if (a.isSelected?.() || type === ButtonType.Floating) {
+			return getColors(a.colors).icon_selected
 		} else {
-			return getColors(this._colors).icon
+			return getColors(a.colors).icon
 		}
 	}
 
-	getIconBackgroundColor(): string {
-		if (this._type === ButtonType.Bubble) {
-			return 'initial'
-		} else if (this.isSelected() || this._type === ButtonType.Floating) {
-			return getColors(this._colors).button_selected
-		} else if (this._type === ButtonType.Action || this._type === ButtonType.Dropdown || this._type === ButtonType.ActionLarge) {
-			return getColors(this._colors).button_icon_bg
+	getIconBackgroundColor(a: ButtonAttrs): string {
+		const type = this.getType(a.type)
+
+		if ([ButtonType.Toggle, ButtonType.Bubble, ButtonType.Login].includes(type)) {
+			return "initial"
+		} else if (a.isSelected?.() || type === ButtonType.Floating) {
+			return getColors(a.colors).button_selected
+		} else if (type === ButtonType.Action || type === ButtonType.Dropdown || type === ButtonType.ActionLarge) {
+			return getColors(a.colors).button_icon_bg
 		} else {
-			return getColors(this._colors).button
+			return getColors(a.colors).button
 		}
 	}
 
-	getIconClass(): string {
-		if (this._type === ButtonType.ActionLarge) {
+	getIconClass(a: ButtonAttrs): string {
+		const type = this.getType(a.type)
+
+		if (type === ButtonType.Login) {
+			return "flex-center items-center button-icon icon-xl pr-s"
+		}
+
+		if (type === ButtonType.ActionLarge) {
 			return "flex-center items-center button-icon icon-large"
-		} else if (this._type === ButtonType.Floating) {
+		} else if (type === ButtonType.Floating) {
 			return "flex-center items-center button-icon floating icon-large"
-		} else if (this._type === ButtonType.Bubble) {
+		} else if (a.colors === ButtonColor.Header) {
+			return "flex-end items-center button-icon icon-xl"
+		} else if (a.colors === ButtonColor.DrawerNav) {
+			return "flex-end items-end button-icon"
+		} else if (type === ButtonType.Bubble) {
 			return "pr-s"
 		} else {
 			return "flex-center items-center button-icon"
 		}
 	}
 
-	getButtonClasses(): Array<string> {
+	getButtonClasses(a: ButtonAttrs): Array<string> {
+		const type = this.getType(a.type)
 		let buttonClasses = ["bg-transparent"]
-		if (this._type === ButtonType.Floating) {
+
+		if (type === ButtonType.Floating) {
 			buttonClasses.push("fixed-bottom-right")
 			buttonClasses.push("large-button-height")
 			buttonClasses.push("large-button-width")
 			buttonClasses.push("floating")
-		} else if (this._type === ButtonType.Action || this._type === ButtonType.ActionLarge) {
+		} else if ([ButtonType.Action, ButtonType.ActionLarge].includes(type)) {
 			buttonClasses.push("button-width-fixed") // set the button width for firefox browser
+
 			buttonClasses.push("button-height") // set the button height for firefox browser
 		} else {
 			buttonClasses.push("button-height") // set the button height for firefox browser
 		}
-		if (this._type === ButtonType.Login) {
+
+		if (type === ButtonType.Login) {
 			buttonClasses.push("full-width")
 		}
+
 		return buttonClasses
 	}
 
-	getWrapperClasses(): Array<string> {
-		let wrapperClasses = ["button-content", "flex", "items-center", this._type]
-		if (this._type !== ButtonType.Floating && this._type !== ButtonType.TextBubble) {
+	getWrapperClasses(a: ButtonAttrs): Array<string> {
+		const type = this.getType(a.type)
+		let wrapperClasses = ["button-content", "flex", "items-center", type]
+
+		if (![ButtonType.Floating, ButtonType.TextBubble, ButtonType.Toggle].includes(type)) {
 			wrapperClasses.push("plr-button")
 		}
-		if (this._type === ButtonType.Dropdown) {
+
+		if (type === ButtonType.Dropdown) {
 			wrapperClasses.push("justify-start")
 		} else {
 			wrapperClasses.push("justify-center")
 		}
+
+		if (type === ButtonType.Toggle) {
+			wrapperClasses.push(a.isSelected?.() ? "on" : "off")
+		}
+
 		return wrapperClasses
 	}
 
-	_getLabelElement(): Children {
-		let classes = ["text-ellipsis"]
-		if (this._type === ButtonType.Dropdown) {
-			classes.push("pl-m")
-		}
-		if ([ButtonType.Action, ButtonType.Floating].indexOf(this._type) === -1) {
+	_getLabelElement(a: ButtonAttrs): Children {
+		const type = this.getType(a.type)
+		const label = lang.getMaybeLazy(a.label)
 
-			return m("", {
-				class: classes.join(' '),
-				style: this._getLabelStyle()
-			}, this.getLabel())
-		} else {
+		if (label.trim() === "" || [ButtonType.Action, ButtonType.Floating].includes(type)) {
 			return null
 		}
+
+		let classes = ["text-ellipsis"]
+
+		if (type === ButtonType.Dropdown) {
+			classes.push("pl-m")
+		}
+
+		if (type === ButtonType.Toggle) {
+			classes.push("pr-s pb-2")
+
+			if (!a.icon) {
+				classes.push("pl-s")
+			}
+		}
+
+		return m(
+			"",
+			{
+				class: classes.join(" "),
+				style: this._getLabelStyle(a),
+			},
+			label,
+		)
 	}
 
-	_getLabelStyle(): {} {
+	_getLabelStyle(a: ButtonAttrs): {} {
+		const type = this.getType(a.type)
 		let color
-		if (this._type === ButtonType.Primary || this._type === ButtonType.Secondary) {
-			color = theme.content_accent
-		} else if (this._type === ButtonType.Login) {
-			color = theme.content_button_icon_selected
-		} else if (this._type === ButtonType.Bubble || this._type === ButtonType.TextBubble) {
-			color = this.isSelected() ? getColors(this._colors).button_selected : theme.content_fg
-		} else {
-			color = this.isSelected() ? getColors(this._colors).button_selected : getColors(this._colors).button
+
+		switch (type) {
+			case ButtonType.Primary:
+			case ButtonType.Secondary:
+				color = theme.content_accent
+				break
+
+			case ButtonType.Toggle:
+				color = theme.content_button_icon
+				break
+
+			case ButtonType.Login:
+				color = theme.content_button_icon_selected
+				break
+
+			case ButtonType.Bubble:
+			case ButtonType.TextBubble:
+				color = theme.content_fg
+				break
+
+			default:
+				color = a.isSelected?.() ? getColors(a.colors).button_selected : getColors(a.colors).button
 		}
+
 		return {
 			color,
-			'font-weight': (this._type === ButtonType.Primary) ? 'bold' : 'normal'
+			"font-weight": type === ButtonType.Primary ? "bold" : "normal",
 		}
 	}
 
-	/**
-	 * This text is shown on the right of the main button label and never cut off (no ellipsis)
-	 */
-	setStaticRightText(text: string): Button {
-		this._staticRightText = text
-		m.redraw()
-		return this
-	}
+	click(event: MouseEvent, a: ButtonAttrs, dom: HTMLElement) {
+		a.click?.(event, dom)
 
-	/**
-	 * Only to be invoked by the DialogHeaderBar!
-	 * @param {ButtonType} type
-	 */
-	setType(type: ButtonType): Button {
-		this._type = type
-		return this
-	}
-
-	setColors(colors: ButtonColor): Button {
-		this._colors = colors
-		return this
-	}
-
-	setSelected(selected: lazy<boolean>): Button {
-		this.isSelected = selected
-		return this
-	}
-
-	/**
-	 * @param {function: boolean} isVisible The button is displayed, if this function returns true
-	 * @returns {Button}
-	 */
-	setIsVisibleHandler(isVisible: lazy<boolean>): Button {
-		this.isVisible = isVisible
-		return this;
-	}
-
-	disableBubbling(): Button {
-		this.propagateClickEvents = false
-		return this
-	}
-
-	getWidth(): number {
-		if (this._type !== ButtonType.Action) throw new Error("width is not defined for buttons with type != action")
-		return size.button_height
-	}
-
-	getHeight(): number {
-		return size.button_height
-	}
-
-	click(event: MouseEvent) {
-		this.clickHandler(event, assertNotNull(this._domButton))
-		// in IE the activeElement might not be defined and blur might not exist
-		if (!this.propagateClickEvents) {
+		if (a.noBubble) {
 			event.stopPropagation()
 		}
 	}
 }
-

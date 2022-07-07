@@ -15,9 +15,9 @@ import {logins} from "../../api/main/LoginController"
 import {ALLOWED_IMAGE_FORMATS, ConversationType, FeatureType, Keys, MailMethod} from "../../api/common/TutanotaConstants"
 import {TooManyRequestsError} from "../../api/common/error/RestError"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
-import type {ButtonAttrs} from "../../gui/base/ButtonN"
-import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
-import {attachDropdown, createDropdown, DropdownChildAttrs, DropdownInfoAttrs} from "../../gui/base/DropdownN"
+import type {ButtonAttrs} from "../../gui/base/Button.js"
+import {Button, ButtonType} from "../../gui/base/Button.js"
+import {attachDropdown, createDropdown, DropdownChildAttrs, DropdownInfoAttrs} from "../../gui/base/Dropdown.js"
 import {RichTextToolbar} from "../../gui/base/RichTextToolbar"
 import {isApp, isBrowser, isDesktop} from "../../api/common/Env"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -303,7 +303,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 
 		const toolbarButton = () =>
 			!plaintextFormatting
-				? m(ButtonN, {
+				? m(Button, {
 					label: "showRichTextToolbar_action",
 					icon: () => Icons.FontSize,
 					click: event => {
@@ -324,9 +324,9 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			oninput: val => model.setSubject(val),
 			injectionsRight: () => {
 				return [
-					showConfidentialButton ? m(ButtonN, confidentialButtonAttrs) : null,
-					this.openKnowledgeBaseButtonAttrs ? m(ButtonN, this.openKnowledgeBaseButtonAttrs) : null,
-					m(ButtonN, attachFilesButtonAttrs),
+					showConfidentialButton ? m(Button, confidentialButtonAttrs) : null,
+					this.openKnowledgeBaseButtonAttrs ? m(Button, this.openKnowledgeBaseButtonAttrs) : null,
+					m(Button, attachFilesButtonAttrs),
 					toolbarButton(),
 				]
 			},
@@ -463,7 +463,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 									dropdownWidth: 250,
 								})),
 								editCustomNotificationMailAttrs
-									? m(".flex-no-grow.col.flex-end.border-bottom", m(".mr-negative-s", m(ButtonN, editCustomNotificationMailAttrs)))
+									? m(".flex-no-grow.col.flex-end.border-bottom", m(".mr-negative-s", m(Button, editCustomNotificationMailAttrs)))
 									: null,
 							],
 						)
@@ -475,7 +475,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				m(".row", m(TextFieldN, subjectFieldAttrs)),
 				m(
 					".flex-start.flex-wrap.ml-negative-RecipientInfoBubble",
-					attachmentButtonAttrs.map(a => m(ButtonN, a)),
+					attachmentButtonAttrs.map(a => m(Button, a)),
 				),
 				model.getAttachments().length > 0 ? m("hr.hr") : null,
 				a.doShowToolbar() // Toolbar is not removed from DOM directly, only it's parent (array) is so we have to animate it manually.

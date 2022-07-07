@@ -11,9 +11,9 @@ import {PushServiceType} from "../api/common/TutanotaConstants"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {Dialog} from "../gui/base/Dialog"
 import {NotFoundError} from "../api/common/error/RestError"
-import {attachDropdown} from "../gui/base/DropdownN"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {attachDropdown} from "../gui/base/Dropdown.js"
+import type {ButtonAttrs} from "../gui/base/Button.js"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import type {ExpanderAttrs} from "../gui/base/Expander"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import stream from "mithril/stream"
@@ -61,7 +61,7 @@ class IdentifierRow implements Component<IdentifierRowAttrs> {
 				m("span" + (vnode.attrs.current ? ".b" : ""), vnode.attrs.name),
 				vnode.attrs.disabled ? m(".mlr", `(${lang.get("notificationsDisabled_label")})`) : null,
 				m(".flex-grow"),
-				m(ButtonN, dropdownAttrs),
+				m(Button, dropdownAttrs),
 			]),
 			this._identifier(vnode),
 		])
@@ -107,7 +107,7 @@ export class IdentifierListViewer {
 					click: () => this._showAddNotificationEmailAddressDialog(this._user),
 					icon: () => Icons.Add,
 				}
-				const rowAdd = m(".full-width.flex-space-between.items-center.mb-s", [lang.get("emailPushNotification_action"), m(ButtonN, buttonAddAttrs)])
+				const rowAdd = m(".full-width.flex-space-between.items-center.mb-s", [lang.get("emailPushNotification_action"), m(Button, buttonAddAttrs)])
 
 				const rows = this._identifiers
 								 .map(identifier => {

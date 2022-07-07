@@ -1,7 +1,7 @@
 import m, {Children, Component, Vnode} from "mithril"
 import type {TranslationKey} from "../LanguageViewModel"
 import {lang} from "../LanguageViewModel"
-import {ButtonAttrs, ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {ButtonAttrs, Button, ButtonType} from "../../gui/base/Button.js"
 import {Icon, progressIcon} from "../../gui/base/Icon"
 import {Icons, SecondFactorImage} from "../../gui/base/icons/Icons"
 import {theme} from "../../gui/theme"
@@ -94,7 +94,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 				items = [
 					m(
 						".align-self-center",
-						m(ButtonN, doWebauthnButtonAttrs),
+						m(Button, doWebauthnButtonAttrs),
 					),
 				]
 				break
@@ -119,7 +119,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 							),
 							m("", lang.get(state.error)),
 						]),
-						m(ButtonN, doWebauthnButtonAttrs),
+						m(Button, doWebauthnButtonAttrs),
 					]),
 				]
 				break

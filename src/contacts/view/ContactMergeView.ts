@@ -8,7 +8,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import {formatBirthdayOfContact} from "../model/ContactUtils"
 import {defer, DeferredObject, downcast, Thunk} from "@tutao/tutanota-utils"
 import {HtmlEditor, HtmlEditorMode} from "../../gui/editor/HtmlEditor"
-import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {Button, ButtonType} from "../../gui/base/Button.js"
 import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
 import {getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel} from "./ContactGuiUtils"
 import {TextFieldN} from "../../gui/base/TextFieldN"
@@ -136,7 +136,7 @@ export class ContactMergeView {
 			[
 				m(".flex-center.mt", [
 					m(".full-width.max-width-s", [
-						m(ButtonN, {
+						m(Button, {
 							label: "mergeContacts_action",
 							click: () => this._close(ContactMergeAction.Merge),
 							type: ButtonType.Login,
@@ -287,7 +287,7 @@ export class ContactMergeView {
 	}
 
 	_createDeleteContactButton(action: ContactMergeAction): Children {
-		return m(ButtonN, {
+		return m(Button, {
 			label: "delete_action",
 			click: () => {
 				Dialog.confirm("deleteContact_msg").then(confirmed => {

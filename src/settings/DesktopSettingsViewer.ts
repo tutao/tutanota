@@ -7,9 +7,9 @@ import {noOp} from "@tutao/tutanota-utils"
 import {Icons} from "../gui/base/icons/Icons"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {attachDropdown} from "../gui/base/DropdownN"
+import type {ButtonAttrs} from "../gui/base/Button.js"
+import {Button, ButtonType} from "../gui/base/Button.js"
+import {attachDropdown} from "../gui/base/Dropdown.js"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {Dialog} from "../gui/base/Dialog"
@@ -142,7 +142,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			value: this.spellCheckLang(),
 			oninput: this.spellCheckLang,
 			disabled: true,
-			injectionsRight: () => [m(ButtonN, editSpellcheckLanguageButtonAttrs)],
+			injectionsRight: () => [m(Button, editSpellcheckLanguageButtonAttrs)],
 			helpLabel: () => lang.get("requiresNewWindow_msg"),
 		}
 		const setDesktopIntegrationAttrs: DropDownSelectorAttrs<boolean> = {
@@ -237,7 +237,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			label: "defaultDownloadPath_label",
 			value: this.defaultDownloadPath(),
 			oninput: this.defaultDownloadPath,
-			injectionsRight: () => m(ButtonN, changeDefaultDownloadPathAttrs),
+			injectionsRight: () => m(Button, changeDefaultDownloadPathAttrs),
 			disabled: true,
 		}
 

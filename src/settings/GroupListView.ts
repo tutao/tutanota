@@ -22,7 +22,7 @@ import {isAdministratedGroup} from "../search/model/SearchUtils"
 import {GroupMemberTypeRef} from "../api/entities/sys/TypeRefs.js"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import type {GroupMembership} from "../api/entities/sys/TypeRefs.js"
 import {compareGroupInfos} from "../api/common/utils/GroupUtils"
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
@@ -108,7 +108,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 				{
 					headerContent: m(
 						".mr-negative-s.align-self-end",
-						m(ButtonN, {
+						m(Button, {
 							label: "addGroup_label",
 							type: ButtonType.Primary,
 							click: () => this.addButtonClicked(),

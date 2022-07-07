@@ -39,7 +39,7 @@ import {header} from "../../gui/Header.js"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {isUpdateForTypeRef} from "../../api/main/EventController"
 import {getStartOfTheWeekOffsetForUser} from "../../calendar/date/CalendarUtils"
-import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {ButtonColor, Button, ButtonType} from "../../gui/base/Button.js"
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {ContactEditor} from "../../contacts/ContactEditor"
 import {styles} from "../../gui/styles"
@@ -251,7 +251,7 @@ export class SearchView implements CurrentView {
 		const restriction = getRestriction(m.route.get())
 		return styles.isUsingBottomNavigation()
 			? isSameTypeRef(restriction.type, MailTypeRef) && isNewMailActionAvailable()
-				? m(ButtonN, {
+				? m(Button, {
 					click: () => {
 						newMailEditor()
 							.then(editor => editor.show())
@@ -263,7 +263,7 @@ export class SearchView implements CurrentView {
 					icon: () => Icons.PencilSquare,
 				})
 				: isSameTypeRef(restriction.type, ContactTypeRef)
-					? m(ButtonN, {
+					? m(Button, {
 						click: () => {
 							locator.contactModel.contactListId().then(contactListId => {
 								new ContactEditor(locator.entityClient, null, contactListId ?? undefined).show()
@@ -329,7 +329,7 @@ export class SearchView implements CurrentView {
 			label: "periodOfTime_label",
 			value: timeDisplayValue,
 			disabled: true,
-			injectionsRight: () => [m(ButtonN, {
+			injectionsRight: () => [m(Button, {
 				label: "selectPeriodOfTime_label",
 				click: () => this.selectTimePeriod(),
 				icon: () => Icons.Edit,

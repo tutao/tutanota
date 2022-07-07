@@ -8,7 +8,7 @@ import {TextFieldN, TextFieldType as TextFieldType} from "../../gui/base/TextFie
 import {lang} from "../../misc/LanguageViewModel"
 import type {DropDownSelectorAttrs, SelectorItemList} from "../../gui/base/DropDownSelectorN"
 import {Icons} from "../../gui/base/icons/Icons"
-import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {ButtonColor, Button, ButtonType} from "../../gui/base/Button.js"
 import {AlarmInterval, CalendarAttendeeStatus, EndType, Keys, RepeatPeriod} from "../../api/common/TutanotaConstants"
 import {createRepeatRuleEndTypeValues, createRepeatRuleFrequencyValues, getStartOfTheWeekOffsetForUser} from "../date/CalendarUtils"
 import {AllIcons, Icon} from "../../gui/base/Icon"
@@ -35,7 +35,7 @@ import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {RecipientType} from "../../api/common/recipients/Recipient"
 import {MailRecipientsTextField} from "../../gui/MailRecipientsTextField.js"
 import {downcast, memoized, noOp, numberRange, ofClass} from "@tutao/tutanota-utils"
-import {createDropdown} from "../../gui/base/DropdownN.js"
+import {createDropdown} from "../../gui/base/Dropdown.js"
 import {CalendarEvent, createEncryptedMailAddress, Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {getRecipientsSearchModel, RecipientsSearchModel} from "../../misc/RecipientsSearchModel.js"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
@@ -138,7 +138,7 @@ export async function showCalendarEventDialog(
 		fontSizeEnabled: false,
 	}
 	const descriptionEditor = new HtmlEditor("description_label", editorOptions, () =>
-		m(ButtonN, {
+		m(Button, {
 			label: "emptyString_msg",
 			title: "showRichTextToolbar_action",
 			icon: () => Icons.FontSize,
@@ -322,7 +322,7 @@ export async function showCalendarEventDialog(
 					return null
 				}
 
-				return m(ButtonN, {
+				return m(Button, {
 					label: "showAddress_alt",
 					icon: () => Icons.Pin,
 					click: () => {
@@ -590,7 +590,7 @@ function renderAddAttendeesField(
 		},
 		injectionsRight: [
 			viewModel.isForceUpdateAvailable()
-				? m(ButtonN, {
+				? m(Button, {
 					label: "sendUpdates_label",
 					click: () => viewModel.isForceUpdates(!viewModel.isForceUpdates()),
 					icon: () => BootIcons.Mail,
@@ -599,7 +599,7 @@ function renderAddAttendeesField(
 				})
 				: null,
 			viewModel.attendees().find(a => a.type === RecipientType.EXTERNAL)
-				? m(ButtonN, {
+				? m(Button, {
 					label: "confidential_action",
 					click: () => viewModel.setConfidential(!viewModel.isConfidential()),
 					icon: () => (viewModel.isConfidential() ? Icons.Lock : Icons.Unlock),
@@ -723,7 +723,7 @@ function renderGuest(guest: Guest, index: number, viewModel: CalendarEventViewMo
 					: viewModel.canModifyGuests()
 						? m(
 							".mr-negative-s",
-							m(ButtonN, {
+							m(Button, {
 								label: "remove_action",
 								type: ButtonType.Action,
 								icon: () => Icons.Cancel,

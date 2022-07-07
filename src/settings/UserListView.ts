@@ -17,7 +17,7 @@ import {BootIcons} from "../gui/base/icons/BootIcons.js"
 import {header} from "../gui/Header.js"
 import type {EntityUpdateData} from "../api/main/EventController.js"
 import {isUpdateForTypeRef} from "../api/main/EventController.js"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN.js"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import {compareGroupInfos} from "../api/common/utils/GroupUtils.js"
 import {elementIdPart, GENERATED_MAX_ID} from "../api/common/utils/EntityUtils.js"
 import {ListColumnWrapper} from "../gui/ListColumnWrapper.js"
@@ -122,7 +122,7 @@ export class UserListView implements UpdatableSettingsViewer {
 
 		return m(ListColumnWrapper, {
 				headerContent: m(".mr-negative-s.align-self-end",
-					m(ButtonN, {
+					m(Button, {
 						label: "addUsers_action",
 						type: ButtonType.Primary,
 						click: () => this.addButtonClicked(),

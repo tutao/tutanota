@@ -10,7 +10,7 @@ import {CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {CustomerInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {logins} from "../api/main/LoginController"
 import {Dialog} from "../gui/base/Dialog"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {showBuyDialog} from "./BuyDialog"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
@@ -98,7 +98,7 @@ function createStorageCapacityBoxAttr(
 		heading: formatStorageCapacity(Math.max(amount, freeAmount)),
 		actionButton: {
 			view: () => {
-				return m(ButtonN, {
+				return m(Button, {
 					label: "pricing.select_action",
 					type: ButtonType.Login,
 					click: () => buyAction(amount),

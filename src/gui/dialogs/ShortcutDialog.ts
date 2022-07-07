@@ -5,7 +5,7 @@ import {Dialog} from "../base/Dialog"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {TextFieldN} from "../base/TextFieldN"
 import type {Shortcut} from "../../misc/KeyManager"
-import {ButtonType} from "../base/ButtonN"
+import {ButtonType} from "../base/Button.js"
 import {DialogHeaderBarAttrs} from "../base/DialogHeaderBar";
 
 function makeShortcutName(shortcut: Shortcut): string {

@@ -21,7 +21,7 @@ import {UpdatableSettingsDetailsViewer} from "../SettingsView"
 import {assertMainOrNode} from "../../api/common/Env"
 import {locator} from "../../api/main/MainLocator"
 import {ContactFormLanguage} from "../../api/entities/tutanota/TypeRefs.js"
-import {ButtonAttrs} from "../../gui/base/ButtonN"
+import {ButtonAttrs} from "../../gui/base/Button.js"
 
 assertMainOrNode()
 

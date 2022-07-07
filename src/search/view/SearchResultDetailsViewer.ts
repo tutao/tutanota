@@ -15,7 +15,7 @@ import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {isSameTypeRef, noOp, ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
 import {isSameId} from "../../api/common/utils/EntityUtils"
-import type {ButtonAttrs} from "../../gui/base/ButtonN"
+import type {ButtonAttrs} from "../../gui/base/Button.js"
 import {MailViewerViewModel} from "../../mail/view/MailViewerViewModel"
 
 assertMainOrNode()

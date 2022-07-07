@@ -1,7 +1,7 @@
 import m, {Children, ClassComponent, Vnode} from "mithril"
 import {TextFieldN} from "./TextFieldN"
-import {ButtonColor, ButtonN, ButtonType} from "./ButtonN"
-import {createDropdown} from "./DropdownN"
+import {ButtonColor, Button, ButtonType} from "./Button.js"
+import {createDropdown} from "./Dropdown.js"
 import type {AllIcons} from "./Icon"
 import type {lazy} from "@tutao/tutanota-utils"
 import {lazyStringValue, noOp} from "@tutao/tutanota-utils"
@@ -50,7 +50,7 @@ export class DropDownSelectorN<T> implements ClassComponent<DropDownSelectorAttr
 			injectionsRight: () =>
 				a.disabled
 					? null
-					: m(ButtonN, {
+					: m(Button, {
 						label: a.label,
 						icon: () => (a.icon ? a.icon : BootIcons.Expand),
 						click: noOp,

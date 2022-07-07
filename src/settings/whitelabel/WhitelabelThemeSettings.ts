@@ -7,7 +7,7 @@ import {ALLOWED_IMAGE_FORMATS, MAX_LOGO_SIZE} from "../../api/common/TutanotaCon
 import {contains} from "@tutao/tutanota-utils"
 import {uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
 import m, {Children, Component, Vnode} from "mithril"
-import {ButtonN} from "../../gui/base/ButtonN"
+import {Button} from "../../gui/base/Button.js"
 import {TextFieldAttrs, TextFieldN} from "../../gui/base/TextFieldN"
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
 import {CustomColorsEditorViewModel} from "./CustomColorsEditorViewModel"
@@ -48,7 +48,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 	renderCustomColorsFieldButtons({customTheme, whitelabelConfig, whitelabelDomainInfo}: WhitelabelData): Children {
 		return [
 			this.areCustomColorsDefined(customTheme)
-				? m(ButtonN, {
+				? m(Button, {
 					label: "deactivate_action",
 					click: async () => {
 						const confirmed = await Dialog.confirm("confirmDeactivateCustomColors_msg")
@@ -69,7 +69,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 					icon: () => Icons.Cancel,
 				})
 				: null,
-			m(ButtonN, {
+			m(Button, {
 				label: "edit_action",
 				click: () => this.showCustomColorsDialog(customTheme, whitelabelConfig, whitelabelDomainInfo),
 				icon: () => Icons.Edit,
@@ -91,7 +91,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 	renderCustomLogoFieldButtons({customTheme, whitelabelDomainInfo, whitelabelConfig}: WhitelabelData): Children {
 		return [
 			customTheme.logo
-				? m(ButtonN, {
+				? m(Button, {
 					label: "deactivate_action",
 					click: async () => {
 						const confirmed = await Dialog.confirm("confirmDeactivateCustomLogo_msg")
@@ -108,7 +108,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 					icon: () => Icons.Cancel,
 				})
 				: null,
-			m(ButtonN, {
+			m(Button, {
 				label: "edit_action",
 				click: async () => {
 					const files = await showFileChooser(false)

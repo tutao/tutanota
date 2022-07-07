@@ -2,7 +2,7 @@ import m, {Children} from "mithril"
 import type {SettingsView, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer} from "./SettingsView"
 import type {KnowledgeBaseEntry, TemplateGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
 import {KnowledgeBaseEntryTypeRef} from "../api/entities/tutanota/TypeRefs.js"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import {lang} from "../misc/LanguageViewModel"
 import type {ListConfig, VirtualRow} from "../gui/base/List"
 import {List} from "../gui/base/List"
@@ -101,7 +101,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 				headerContent: this.userCanEdit()
 					? m(
 						".mr-negative-s.align-self-end",
-						m(ButtonN, {
+						m(Button, {
 							label: "addEntry_label",
 							type: ButtonType.Primary,
 							click: () => {

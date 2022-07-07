@@ -10,7 +10,7 @@ import {Dialog} from "../../gui/base/Dialog"
 import {LoginForm} from "../../login/LoginForm"
 import {CredentialsSelector} from "../../login/CredentialsSelector"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {Button, ButtonType} from "../../gui/base/Button.js"
 import {SignupForm} from "../SignupForm"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
@@ -217,7 +217,7 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardModel> {
 							width: "260px",
 						},
 					},
-					m(ButtonN, {
+					m(Button, {
 						label: "existingAccount_label",
 						click: () => nextPage(GetCredentialsMethod.Login),
 						type: ButtonType.Login,
@@ -231,7 +231,7 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardModel> {
 							width: "260px",
 						},
 					},
-					m(ButtonN, {
+					m(Button, {
 						label: "register_label",
 						click: () => nextPage(GetCredentialsMethod.Signup),
 						type: ButtonType.Login,
@@ -425,7 +425,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 							width: "260px",
 						},
 					},
-					m(ButtonN, {
+					m(Button, {
 						label: "redeem_label",
 						click: () => {
 							if (!this.confirmed) {

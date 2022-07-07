@@ -9,7 +9,7 @@ import {assertEnumValue, SecondFactorType} from "../api/common/TutanotaConstants
 import {logins} from "../api/main/LoginController"
 import {appIdToLoginDomain} from "../misc/2fa/SecondFactorHandler"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
+import type {ButtonAttrs} from "../gui/base/Button.js"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, TableN} from "../gui/base/TableN"
 import {NotFoundError} from "../api/common/error/RestError"

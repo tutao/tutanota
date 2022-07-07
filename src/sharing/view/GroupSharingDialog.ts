@@ -7,7 +7,7 @@ import {assert, assertNotNull, downcast, findAndRemove, neverNull, remove} from 
 import {Icons} from "../../gui/base/icons/Icons"
 import {lang} from "../../misc/LanguageViewModel"
 import {getDisplayText} from "../../mail/model/MailUtils"
-import {ButtonType} from "../../gui/base/ButtonN"
+import {ButtonType} from "../../gui/base/Button.js"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {ShareCapability} from "../../api/common/TutanotaConstants"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"

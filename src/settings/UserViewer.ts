@@ -29,8 +29,8 @@ import {compareGroupInfos, getGroupInfoDisplayName} from "../api/common/utils/Gr
 import {CUSTOM_MIN_ID, isSameId} from "../api/common/utils/EntityUtils"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {showBuyDialog} from "../subscription/BuyDialog"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN} from "../gui/base/ButtonN"
+import type {ButtonAttrs} from "../gui/base/Button.js"
+import {Button} from "../gui/base/Button.js"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {locator} from "../api/main/MainLocator"
 import {SelectorItem} from "../gui/base/DropDownSelectorN";
@@ -226,7 +226,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			label: "mailName_label",
 			value: this._senderName,
 			disabled: true,
-			injectionsRight: () => [m(ButtonN, editSenderNameButtonAttrs)],
+			injectionsRight: () => [m(Button, editSenderNameButtonAttrs)],
 		} as const
 		const changePasswordButtonAttrs: ButtonAttrs = {
 			label: "changePassword_label",
@@ -236,7 +236,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		const passwordFieldAttrs = {
 			label: "password_label",
 			value: "***",
-			injectionsRight: () => [m(ButtonN, changePasswordButtonAttrs)],
+			injectionsRight: () => [m(Button, changePasswordButtonAttrs)],
 			disabled: true,
 		} as const
 		const whitelistProtection = this._whitelistProtection

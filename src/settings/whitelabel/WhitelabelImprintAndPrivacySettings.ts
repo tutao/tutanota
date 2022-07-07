@@ -3,7 +3,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import m, {Children, Component, Vnode} from "mithril"
 import {TextFieldAttrs, TextFieldN} from "../../gui/base/TextFieldN"
 import {Icons} from "../../gui/base/icons/Icons"
-import {ButtonAttrs, ButtonN} from "../../gui/base/ButtonN"
+import {ButtonAttrs, Button} from "../../gui/base/Button.js"
 
 export type WhitelabelImprintAndPrivacySettingsAttrs = {
 	privacyStatementUrl: string
@@ -57,7 +57,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 			label: "privacyPolicyUrl_label",
 			value: privacyStatementUrl,
 			disabled: true,
-			injectionsRight: () => [editPrivacyUrlButtonAttrs ? m(ButtonN, editPrivacyUrlButtonAttrs) : null],
+			injectionsRight: () => [editPrivacyUrlButtonAttrs ? m(Button, editPrivacyUrlButtonAttrs) : null],
 		} as const
 		return m(TextFieldN, privacyPolicyConfigTextfieldAttrs)
 	}
@@ -95,7 +95,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 			label: "imprintUrl_label",
 			value: imprintUrl,
 			disabled: true,
-			injectionsRight: () => [editImprintUrlButtonAttrs ? m(ButtonN, editImprintUrlButtonAttrs) : null],
+			injectionsRight: () => [editImprintUrlButtonAttrs ? m(Button, editImprintUrlButtonAttrs) : null],
 		} as const
 		return m(TextFieldN, whitelabelImprintTextfieldAttrs)
 	}

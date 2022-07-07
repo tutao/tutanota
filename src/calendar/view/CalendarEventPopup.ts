@@ -1,7 +1,7 @@
 import type {Shortcut} from "../../misc/KeyManager"
 import m, {Children, Vnode} from "mithril"
 import {px} from "../../gui/size"
-import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {ButtonColor, Button, ButtonType} from "../../gui/base/Button.js"
 import {Icons} from "../../gui/base/icons/Icons"
 import type {ModalComponent} from "../../gui/base/Modal"
 import {modal} from "../../gui/base/Modal"
@@ -11,7 +11,7 @@ import {Dialog} from "../../gui/base/Dialog"
 import type {EventCreateResult} from "../date/CalendarEventViewModel"
 import {CalendarEventViewModel} from "../date/CalendarEventViewModel"
 import {UserError} from "../../api/main/UserError"
-import {DROPDOWN_MARGIN, PosRect, showDropdown} from "../../gui/base/DropdownN"
+import {DROPDOWN_MARGIN, PosRect, showDropdown} from "../../gui/base/Dropdown.js"
 import {Keys} from "../../api/common/TutanotaConstants"
 import type {HtmlSanitizer} from "../../misc/HtmlSanitizer"
 import {prepareCalendarDescription} from "../date/CalendarUtils"
@@ -112,7 +112,7 @@ export class CalendarEventPopup implements ModalComponent {
 				[
 					m(".flex.flex-end", [
 						!!this._viewModel && this._viewModel.isForceUpdateAvailable()
-							? m(ButtonN, {
+							? m(Button, {
 								label: "sendUpdates_label",
 								click: () => this._forceSendingUpdatesToAttendees(),
 								type: ButtonType.ActionLarge,
@@ -121,7 +121,7 @@ export class CalendarEventPopup implements ModalComponent {
 							})
 							: null,
 						!this._isExternal
-							? m(ButtonN, {
+							? m(Button, {
 								label: "edit_action",
 								click: () => {
 									this._onEditEvent()
@@ -134,7 +134,7 @@ export class CalendarEventPopup implements ModalComponent {
 							})
 							: null,
 						this._isDeleteAvailable()
-							? m(ButtonN, {
+							? m(Button, {
 								label: "delete_action",
 								click: () => this._deleteEvent(),
 								type: ButtonType.ActionLarge,
@@ -142,7 +142,7 @@ export class CalendarEventPopup implements ModalComponent {
 								colors: ButtonColor.DrawerNav,
 							})
 							: null,
-						m(ButtonN, {
+						m(Button, {
 							label: "close_alt",
 							click: () => this._close(),
 							type: ButtonType.ActionLarge,

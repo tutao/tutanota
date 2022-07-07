@@ -9,7 +9,7 @@ import {Keys, OUT_OF_OFFICE_SUBJECT_PREFIX} from "../api/common/TutanotaConstant
 import type {CheckboxAttrs} from "../gui/base/CheckboxN"
 import {CheckboxN} from "../gui/base/CheckboxN"
 import {px} from "../gui/size"
-import {ButtonType} from "../gui/base/ButtonN"
+import {ButtonType} from "../gui/base/Button.js"
 import {getDefaultNotificationLabel} from "../misc/OutOfOfficeNotificationUtils"
 import {showBusinessFeatureRequiredDialog} from "../misc/SubscriptionDialogs"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
