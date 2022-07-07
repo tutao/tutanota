@@ -6,7 +6,7 @@ import {ContactFormRequestDialog} from "./ContactFormRequestDialog"
 import {Dialog} from "../../gui/base/Dialog"
 import {getLanguage, lang} from "../../misc/LanguageViewModel"
 import {progressIcon} from "../../gui/base/Icon"
-import {InfoView} from "../../gui/base/InfoView"
+import {NotFoundPage} from "../../gui/base/NotFoundPage.js"
 import {getDefaultContactFormLanguage} from "../../settings/contactform/ContactFormUtils"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {renderPrivacyAndImprintLinks} from "../LoginView"
@@ -129,12 +129,7 @@ class ContactFormView implements CurrentView {
 				],
 			)
 		} else {
-			return m(
-				new InfoView(
-					() => "404",
-					() => [m("p", lang.get("notFound404_msg")), m(".pb")],
-				),
-			)
+			return m(NotFoundPage)
 		}
 	}
 

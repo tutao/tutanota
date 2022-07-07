@@ -191,7 +191,7 @@ import("./translations/en")
 		const {PostLoginActions} = await import("./login/PostLoginActions")
 		const {CachePostLoginAction} = await import("./offline/CachePostLoginAction")
 		logins.addPostLoginAction(new PostLoginActions(locator.credentialsProvider, locator.secondFactorHandler))
-		if(isOfflineStorageAvailable()) {
+		if (isOfflineStorageAvailable()) {
 			logins.addPostLoginAction(new CachePostLoginAction(
 				locator.calendarModel, locator.entityClient, locator.progressTracker, logins,
 			))
@@ -316,32 +316,11 @@ import("./translations/en")
 
 		// append catch all at the end because mithril will stop at the first match
 		resolvers["/:path"] = {
-			onmatch: (): Promise<Component> => {
-				return Promise.all([import("./gui/base/InfoView"), import("./gui/base/Button.js")]).then(([{InfoView}, {
-					ButtonType,
-					Button
-				}]) => {
-					return {
-						view() {
-							return m(
-								root,
-								m(
-									new InfoView(
-										() => "404",
-										() => [
-											m("p", lang.get("notFound404_msg")),
-											m(Button, {
-												label: "back_action",
-												click: () => window.history.back(),
-												type: ButtonType.Primary,
-											}),
-										],
-									),
-								),
-							)
-						},
-					}
-				})
+			onmatch: async () => {
+				const {NotFoundPage} = await import("./gui/base/NotFoundPage.js")
+				return {
+					view: () => m(root, m(NotFoundPage)),
+				}
 			},
 		}
 		// keep in sync with RewriteAppResourceUrlHandler.java
