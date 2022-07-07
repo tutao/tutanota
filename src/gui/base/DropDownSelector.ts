@@ -1,15 +1,12 @@
 import m, {Component} from "mithril"
-import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {Button} from "./Button"
 import {Icons} from "./icons/Icons"
 import type {lazy} from "@tutao/tutanota-utils"
-import {lazyStringValue} from "@tutao/tutanota-utils"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
-import {ButtonType} from "./ButtonN"
-import {createDropDownButton} from "./Dropdown"
+import {ButtonN, ButtonType} from "./ButtonN"
 import {TextFieldN} from "./TextFieldN"
 import {assertMainOrNode} from "../../api/common/Env"
+import {attachDropdown} from "./DropdownN.js"
 
 assertMainOrNode()
 
@@ -31,52 +28,44 @@ export class DropDownSelector<T> implements Component {
 		this._items = items
 
 		this.view = () => {
-			const itemChooser = createDropDownButton(
-				labelIdOrLabelTextFunction,
-				() => Icons.Edit,
-				() => {
-					return items.map(item =>
-						new Button(
-							() => item.name,
-							() => {
-								if (this.selectedValue() !== item.value) {
-									if (this._changeHandler) {
-										this._changeHandler(item.value)
-									} else {
-										this.selectedValue(item.value)
-										m.redraw()
-									}
-								}
-							},
-						)
-							.setType(ButtonType.Dropdown)
-							.setSelected(() => this.selectedValue() === item.value),
-					)
-				},
-				dropdownWidth ? dropdownWidth : undefined,
-			)
 			this._selectedValueDisplayValue = this.selectedValue.map(value => {
 				const selectedItem = items.find(item => item.value === this.selectedValue())
 
 				if (selectedItem) {
 					return selectedItem.name
 				} else {
-					console.log(`Dropdown ${lazyStringValue({
-						label: labelIdOrLabelTextFunction,
-						helpLabel: helpLabel,
-						disabled: true,
-						value: this._selectedValueDisplayValue,
-						injectionsRight: () => [m(itemChooser)],
-					}.label)} couldn't find element for value: ${String(value)}`)
+					console.log(`Dropdown ${labelIdOrLabelTextFunction} couldn't find element for value: ${String(value)}`)
 					return ""
 				}
 			})()
+
 			return m(TextFieldN, {
 				label: labelIdOrLabelTextFunction,
 				helpLabel: helpLabel,
 				disabled: true,
 				value: this._selectedValueDisplayValue,
-				injectionsRight: () => [m(itemChooser)],
+				injectionsRight: () => [m(ButtonN, attachDropdown({
+					mainButtonAttrs: {
+						label: labelIdOrLabelTextFunction,
+						icon: () => Icons.Edit,
+					},
+					childAttrs: () => items.map(item => ({
+						label: () => item.name,
+						click: () => {
+							if (this.selectedValue() !== item.value) {
+								if (this._changeHandler) {
+									this._changeHandler(item.value)
+								} else {
+									this.selectedValue(item.value)
+									m.redraw()
+								}
+							}
+						},
+						type: ButtonType.Dropdown,
+						isSelected: () => this.selectedValue() === item.value
+					})),
+					width: dropdownWidth
+				}))],
 			})
 		}
 	}
