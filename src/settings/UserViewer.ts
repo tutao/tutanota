@@ -1,10 +1,8 @@
 import m, {Children} from "mithril"
 import {assertMainOrNode} from "../api/common/Env"
-import {Button} from "../gui/base/Button"
 import {Dialog} from "../gui/base/Dialog"
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
-import {PasswordForm} from "./PasswordForm"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import type {Customer, GroupInfo, GroupMembership, User} from "../api/entities/sys/TypeRefs.js"
 import {CustomerTypeRef, GroupInfoTypeRef, GroupTypeRef, UserTypeRef} from "../api/entities/sys/TypeRefs.js"
@@ -14,9 +12,7 @@ import {BadRequestError, NotAuthorizedError, PreconditionFailedError} from "../a
 import {logins} from "../api/main/LoginController"
 import type {ContactForm} from "../api/entities/tutanota/TypeRefs.js"
 import {ContactFormTypeRef, CustomerContactFormGroupRootTypeRef, MailboxGroupRootTypeRef} from "../api/entities/tutanota/TypeRefs.js"
-import {Table} from "../gui/base/Table"
-import {ColumnWidth} from "../gui/base/TableN"
-import TableLine from "../gui/base/TableLine"
+import {ColumnWidth, TableAttrs, TableN} from "../gui/base/TableN"
 import {getGroupTypeName} from "./GroupViewer"
 import {Icons} from "../gui/base/icons/Icons"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
@@ -49,8 +45,8 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	private readonly _customer: LazyLoaded<Customer>
 	private readonly _teamGroupInfos: LazyLoaded<GroupInfo[]>
 	private _senderName: string
-	private _groupsTable: Table | null = null
-	private _contactFormsTable: Table | null = null
+	private _groupsTableAttrs: TableAttrs | null = null
+	private _contactFormsTableAttrs: TableAttrs | null = null
 	private readonly _adminStatusSelector: DropDownSelector<boolean>
 	private _administratedBy!: DropDownSelector<Id | null>
 	private readonly _userStatusSelector: DropDownSelector<boolean>
@@ -90,7 +86,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		).setSelectionChangedHandler(makeAdmin => {
 			if (this.userGroupInfo.deleted) {
 				Dialog.message("userAccountDeactivated_msg")
-			} else if (this._isItMe()) {
+			} else if (this.isItMe()) {
 				Dialog.message("removeOwnAdminFlagInfo_msg")
 			} else if (this.userGroupInfo.localAdmin != null) {
 				Dialog.message("assignAdminRightsToLocallyAdministratedUserError_msg")
@@ -119,21 +115,25 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			if (this._adminStatusSelector.selectedValue()) {
 				Dialog.message("deactivateOwnAccountInfo_msg")
 			} else {
-				this._deleteUser(!deactivate)
+				this.deleteUser(!deactivate)
 			}
 		})
 		this._secondFactorsForm = new EditSecondFactorsForm(this._user)
 
 		this._teamGroupInfos.getAsync().then(availableTeamGroupInfos => {
 			if (availableTeamGroupInfos.length > 0) {
-				let addGroupButton = new Button(
-					"addGroup_label",
-					() => this._showAddUserToGroupDialog(),
-					() => Icons.Add,
-				)
-				this._groupsTable = new Table(["name_label", "groupType_label"], [ColumnWidth.Largest, ColumnWidth.Small], true, addGroupButton)
-
-				this._updateGroups()
+				this._groupsTableAttrs = {
+					columnHeading: ["name_label", "groupType_label"],
+					columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
+					showActionButtonColumn: true,
+					addButtonAttrs: {
+						label: "addGroup_label",
+						icon: () => Icons.Add,
+						click: () => this.showAddUserToGroupDialog()
+					},
+					lines: []
+				}
+				this.updateGroups()
 
 				let adminGroupIdToName: {name: string, value: Id | null}[] = [
 					{
@@ -159,9 +159,9 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 					return this._user.getAsync().then(user => {
 						if (this.userGroupInfo.deleted) {
 							Dialog.message("userAccountDeactivated_msg")
-						} else if (this._isItMe()) {
+						} else if (this.isItMe()) {
 							Dialog.message("updateOwnAdminship_msg")
-						} else if (this._isAdmin(user)) {
+						} else if (this.isAdmin(user)) {
 							Dialog.message("updateAdminshipGlobalAdmin_msg")
 						} else {
 							showProgressDialog(
@@ -183,13 +183,18 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			return locator.entityClient.load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(contactFormGroupRoot => {
 				return locator.entityClient.loadRange(ContactFormTypeRef, contactFormGroupRoot.contactForms, CUSTOM_MIN_ID, 1, false).then(cf => {
 					if (cf.length > 0) {
-						let contactFormsAddButton = new Button(
-							"addResponsiblePerson_label",
-							() => this._showAddUserToContactFormDialog(),
-							() => Icons.Add,
-						)
-						this._contactFormsTable = new Table(["contactForms_label"], [ColumnWidth.Largest, ColumnWidth.Small], true, contactFormsAddButton)
-						return this._updateContactForms()
+						this._contactFormsTableAttrs = {
+							columnHeading: ["contactForms_label"],
+							columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
+							showActionButtonColumn: true,
+							addButtonAttrs: {
+								label: "addResponsiblePerson_label",
+								icon: () => Icons.Add,
+								click: () => this.showAddUserToContactFormDialog()
+							},
+							lines: []
+						}
+						return this.updateContactForms()
 					}
 				})
 			})
@@ -201,7 +206,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			updateNbrOfAliases(this._editAliasFormAttrs)
 		}
 
-		this._updateUsedStorageAndAdminFlag()
+		this.updateUsedStorageAndAdminFlag()
 	}
 
 	view(): Children {
@@ -225,7 +230,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		} as const
 		const changePasswordButtonAttrs: ButtonAttrs = {
 			label: "changePassword_label",
-			click: () => this._changePassword(),
+			click: () => this.changePassword(),
 			icon: () => Icons.Edit,
 		} as const
 		const passwordFieldAttrs = {
@@ -261,10 +266,10 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				m(this._userStatusSelector),
 			]),
 			m(this._secondFactorsForm),
-			this._groupsTable ? m(".h4.mt-l.mb-s", lang.get("groups_label")) : null,
-			this._groupsTable ? m(this._groupsTable) : null,
-			this._contactFormsTable ? m(".h4.mt-l.mb-s", lang.get("contactForms_label")) : null,
-			this._contactFormsTable ? m(this._contactFormsTable) : null,
+			this._groupsTableAttrs ? m(".h4.mt-l.mb-s", lang.get("groups_label")) : null,
+			this._groupsTableAttrs ? m(TableN, this._groupsTableAttrs) : null,
+			this._contactFormsTableAttrs ? m(".h4.mt-l.mb-s", lang.get("contactForms_label")) : null,
+			this._contactFormsTableAttrs ? m(TableN, this._contactFormsTableAttrs) : null,
 			m(EditAliasesFormN, this._editAliasFormAttrs),
 			logins.getUserController().isPremiumAccount() && whitelistProtection
 				? [m(".h4.mt-l", lang.get("mailSettings_label")), m(whitelistProtection)]
@@ -272,12 +277,12 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		])
 	}
 
-	_isItMe(): boolean {
+	private isItMe(): boolean {
 		return isSameId(logins.getUserController().userGroupInfo._id, this.userGroupInfo._id)
 	}
 
-	_changePassword(): void {
-		if (this._isItMe()) {
+	private changePassword(): void {
+		if (this.isItMe()) {
 			showChangeOwnPasswordDialog()
 		} else if (this._adminStatusSelector.selectedValue()) {
 			Dialog.message("changeAdminPassword_msg")
@@ -288,93 +293,71 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		}
 	}
 
-	_updateGroups(): Promise<void> {
-		if (this._groupsTable) {
-			return this._user.getAsync().then(user => {
-				return this._customer.getAsync().then(customer => {
-					return promiseMap(
-						this._getTeamMemberships(user, customer),
-						m => {
-							return locator.entityClient.load(GroupInfoTypeRef, m.groupInfo).then(groupInfo => {
-								let removeButton
-								removeButton = new Button(
-									"remove_action",
-									() => {
-										showProgressDialog(
-											"pleaseWait_msg",
-											locator.groupManagementFacade.removeUserFromGroup(user._id, groupInfo.group),
-										).catch(
-											ofClass(NotAuthorizedError, e => {
-												Dialog.message("removeUserFromGroupNotAdministratedUserError_msg")
-											}),
-										)
-									},
-									() => Icons.Cancel,
+	private async updateGroups() {
+		if (this._groupsTableAttrs) {
+			const user = await this._user.getAsync()
+			const customer = await this._customer.getAsync()
+			this._groupsTableAttrs.lines = await promiseMap(
+				this.getTeamMemberships(user, customer),
+				async m => {
+					const groupInfo = await locator.entityClient.load(GroupInfoTypeRef, m.groupInfo)
+					return {
+						cells: [getGroupInfoDisplayName(groupInfo), getGroupTypeName(neverNull(m.groupType))],
+						actionButtonAttrs: {
+							label: "remove_action",
+							click: () => {
+								showProgressDialog(
+									"pleaseWait_msg",
+									locator.groupManagementFacade.removeUserFromGroup(user._id, groupInfo.group),
+								).catch(
+									ofClass(NotAuthorizedError, e => {
+										Dialog.message("removeUserFromGroupNotAdministratedUserError_msg")
+									}),
 								)
-								return new TableLine([getGroupInfoDisplayName(groupInfo), getGroupTypeName(neverNull(m.groupType))], removeButton)
-							})
-						},
-						{
-							concurrency: 5,
-						},
-					).then(tableLines => {
-						if (this._groupsTable) {
-							this._groupsTable.updateEntries(tableLines)
-						}
-					})
-				})
-			})
-		} else {
-			return Promise.resolve()
+							},
+							icon: () => Icons.Cancel
+						} as const
+					}
+				},
+				{
+					concurrency: 5,
+				},
+			)
 		}
 	}
 
-	_updateContactForms(): Promise<void> {
-		if (this._contactFormsTable) {
-			return this._user.getAsync().then(user => {
-				let userMailGroupMembership = neverNull(user.memberships.find(m => m.groupType === GroupType.Mail))
-				return locator.entityClient
-							  .load(MailboxGroupRootTypeRef, userMailGroupMembership.group)
-							  .then(mailboxGroupRoot => {
-								  if (mailboxGroupRoot.participatingContactForms.length > 0) {
-									  return locator.entityClient.loadMultiple(
-										  ContactFormTypeRef,
-										  mailboxGroupRoot.participatingContactForms[0][0],
-										  mailboxGroupRoot.participatingContactForms.map(idTuple => idTuple[1]),
-									  )
-								  }
+	private async updateContactForms() {
+		if (this._contactFormsTableAttrs) {
+			const user = await this._user.getAsync()
+			const userMailGroupMembership = neverNull(user.memberships.find(m => m.groupType === GroupType.Mail))
+			const mailboxGroupRoot = await locator.entityClient.load(MailboxGroupRootTypeRef, userMailGroupMembership.group)
+			if (mailboxGroupRoot.participatingContactForms.length > 0) {
+				const forms = await locator.entityClient.loadMultiple(
+					ContactFormTypeRef,
+					mailboxGroupRoot.participatingContactForms[0][0],
+					mailboxGroupRoot.participatingContactForms.map(idTuple => idTuple[1]),
+				)
+				this._contactFormsTableAttrs.lines = forms.map(cf => ({
+					cells: [cf.path],
+					actionButtonAttrs: {
+						label: "remove_action",
+						click: () => {
+							let match = cf.participantGroupInfos.find(id => isSameId(id, user.userGroup.groupInfo))
 
-								  return []
-							  })
-							  .then(forms => {
-								  const tableLines = forms.map(cf => {
-									  let removeButton = new Button(
-										  "remove_action",
-										  () => {
-											  let match = cf.participantGroupInfos.find(id => isSameId(id, user.userGroup.groupInfo))
+							if (match) {
+								remove(cf.participantGroupInfos, match)
+							}
 
-											  if (match) {
-												  remove(cf.participantGroupInfos, match)
-											  }
-
-											  showProgressDialog("pleaseWait_msg", locator.entityClient.update(cf))
-										  },
-										  () => Icons.Cancel,
-									  )
-									  return new TableLine([cf.path], removeButton)
-								  })
-
-								  if (this._contactFormsTable) {
-									  this._contactFormsTable.updateEntries(tableLines)
-								  }
-							  })
-			})
-		} else {
-			return Promise.resolve()
+							showProgressDialog("pleaseWait_msg", locator.entityClient.update(cf))
+						},
+						icons: Icons.Cancel
+					}
+				}))
+			}
 		}
 	}
 
-	_showAddUserToGroupDialog() {
+	private showAddUserToGroupDialog() {
 		this._user.getAsync().then(user => {
 			if (this.userGroupInfo.deleted) {
 				Dialog.message("userAccountDeactivated_msg")
@@ -432,7 +415,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		})
 	}
 
-	_showAddUserToContactFormDialog() {
+	private showAddUserToContactFormDialog() {
 		this._user.getAsync().then(user => {
 			this._customer.getAsync().then(customer => {
 				return locator.entityClient.load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(contactFormGroupRoot => {
@@ -477,9 +460,9 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		})
 	}
 
-	_updateUsedStorageAndAdminFlag(): Promise<void> {
+	private updateUsedStorageAndAdminFlag(): Promise<void> {
 		return this._user.getAsync().then(user => {
-			let isAdmin = this._isAdmin(user)
+			let isAdmin = this.isAdmin(user)
 
 			this._adminStatusSelector.selectedValue(isAdmin)
 
@@ -497,15 +480,15 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		})
 	}
 
-	_getTeamMemberships(user: User, customer: Customer): GroupMembership[] {
+	private getTeamMemberships(user: User, customer: Customer): GroupMembership[] {
 		return user.memberships.filter(m => m.groupInfo[0] === customer.teamGroups)
 	}
 
-	_isAdmin(user: User): boolean {
+	private isAdmin(user: User): boolean {
 		return user.memberships.find(m => m.groupType === GroupType.Admin) != null
 	}
 
-	_deleteUser(restore: boolean): Promise<void> {
+	private deleteUser(restore: boolean): Promise<void> {
 		return showProgressDialog(
 			"pleaseWait_msg",
 			showBuyDialog({featureType: BookingItemFeatureType.Users, count: restore ? 1 : -1, freeAmount: 0, reactivate: restore}).then(confirmed => {
@@ -542,7 +525,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 
 					this._userStatusSelector.selectedValue(updatedUserGroupInfo.deleted != null)
 
-					return this._updateUsedStorageAndAdminFlag().then(() => {
+					return this.updateUsedStorageAndAdminFlag().then(() => {
 						if (this._administratedBy) {
 							this._administratedBy.selectedValue(this.userGroupInfo.localAdmin)
 						}
@@ -559,11 +542,11 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			) {
 				this._user.reset()
 
-				promise = this._updateUsedStorageAndAdminFlag().then(() => {
-					return this._updateGroups()
+				promise = this.updateUsedStorageAndAdminFlag().then(() => {
+					return this.updateGroups()
 				})
 			} else if (isUpdateForTypeRef(MailboxGroupRootTypeRef, update)) {
-				promise = this._updateContactForms()
+				promise = this.updateContactForms()
 			}
 
 			return promise.then(() => {
