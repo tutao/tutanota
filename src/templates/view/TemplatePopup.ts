@@ -16,10 +16,10 @@ import type {windowSizeListener} from "../../misc/WindowFacade"
 import {windowFacade} from "../../misc/WindowFacade"
 import type {EmailTemplate, TemplateGroupRoot} from "../../api/entities/tutanota/TypeRefs.js"
 import {TemplateGroupRootTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import type {ButtonAttrs} from "../../gui/base/ButtonN"
-import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import type {ButtonAttrs} from "../../gui/base/Button.js"
+import {ButtonColor, Button, ButtonType} from "../../gui/base/Button.js"
 import {SELECT_NEXT_TEMPLATE, SELECT_PREV_TEMPLATE, TEMPLATE_SHORTCUT_PREFIX, TemplatePopupModel} from "../model/TemplatePopupModel"
-import {attachDropdown, DomRectReadOnlyPolyfilled, PosRect} from "../../gui/base/DropdownN"
+import {attachDropdown, DomRectReadOnlyPolyfilled, PosRect} from "../../gui/base/Dropdown.js"
 import {debounce, downcast, neverNull, noOp} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
 import {TemplateSearchBar} from "./TemplateSearchBar"
@@ -269,7 +269,7 @@ export class TemplatePopup implements ModalComponent {
 					}
 				},
 			},
-			attrs ? m(ButtonN, attrs as ButtonAttrs) : null,
+			attrs ? m(Button, attrs as ButtonAttrs) : null,
 		)
 	}
 
@@ -334,7 +334,7 @@ export class TemplatePopup implements ModalComponent {
 		const canEdit = !!selectedGroup && hasCapabilityOnGroup(logins.getUserController().user, selectedGroup.group, ShareCapability.Write)
 		return [
 			m(
-				ButtonN,
+				Button,
 				attachDropdown(
 					{
 						mainButtonAttrs: {
@@ -362,7 +362,7 @@ export class TemplatePopup implements ModalComponent {
 			),
 			canEdit
 				? [
-					m(ButtonN, {
+					m(Button, {
 						label: "editTemplate_action",
 						click: () =>
 							locator.entityClient
@@ -372,7 +372,7 @@ export class TemplatePopup implements ModalComponent {
 						icon: () => Icons.Edit,
 						colors: ButtonColor.DrawerNav,
 					}),
-					m(ButtonN, {
+					m(Button, {
 						label: "remove_action",
 						click: () => {
 							getConfirmation("deleteTemplate_msg").confirmed(() => locator.entityClient.erase(selectedTemplate))
@@ -396,7 +396,7 @@ export class TemplatePopup implements ModalComponent {
 						}
 					},
 				},
-				m(ButtonN, this._selectTemplateButtonAttrs),
+				m(Button, this._selectTemplateButtonAttrs),
 			),
 		]
 	}

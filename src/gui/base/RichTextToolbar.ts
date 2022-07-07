@@ -2,10 +2,10 @@ import m, {Children, Component, VnodeDOM} from "mithril"
 import {Icons} from "./icons/Icons"
 import type {Editor} from "../editor/Editor"
 import {noOp, numberRange} from "@tutao/tutanota-utils"
-import type {ButtonAttrs} from "./ButtonN"
-import {ButtonColor, ButtonN, ButtonType} from "./ButtonN"
+import type {ButtonAttrs} from "./Button.js"
+import {ButtonColor, Button, ButtonType} from "./Button.js"
 import {size} from "../size"
-import {attachDropdown, DropdownButtonAttrs} from "./DropdownN"
+import {attachDropdown, DropdownButtonAttrs} from "./Dropdown.js"
 import {lang} from "../../misc/LanguageViewModel"
 import {animations, height, opacity} from "../animation/Animations"
 import {client} from "../../misc/ClientDetector"
@@ -249,7 +249,7 @@ export class RichTextToolbar implements Component<Options> {
 				[
 					m(
 						".flex-end.wrap",
-						allButtonAttrs.map(t => m(ButtonN, t)),
+						allButtonAttrs.map(t => m(Button, t)),
 					),
 				],
 			)

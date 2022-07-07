@@ -13,8 +13,8 @@ import {styles} from "../../gui/styles"
 import {Icon} from "../../gui/base/Icon"
 import {Icons} from "../../gui/base/icons/Icons"
 import {logins} from "../../api/main/LoginController"
-import type {ButtonAttrs} from "../../gui/base/ButtonN"
-import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import type {ButtonAttrs} from "../../gui/base/Button.js"
+import {ButtonColor, Button, ButtonType} from "../../gui/base/Button.js"
 import {Dialog} from "../../gui/base/Dialog"
 import {assertNotNull, AsyncResult, debounce, downcast, neverNull, ofClass, promiseFilter, promiseMap} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
@@ -370,7 +370,7 @@ export class MailListView implements Component {
 					{
 						headerContent: [
 							m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
-							m(".mr-negative-s.align-self-end", m(ButtonN, purgeButtonAttrs)),
+							m(".mr-negative-s.align-self-end", m(Button, purgeButtonAttrs)),
 						],
 					},
 					m(this.list),

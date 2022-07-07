@@ -6,7 +6,7 @@ import {Dialog, DialogType} from "../gui/base/Dialog"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import m from "mithril"
 import {CheckboxN} from "../gui/base/CheckboxN"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {errorToString, neverNull, typedKeys} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
@@ -153,7 +153,7 @@ export function showErrorDialogNotLoggedIn(e: ErrorInfo): Promise<void> {
 			[
 				m(
 					".flex-end.plr",
-					m(ButtonN, {
+					m(Button, {
 						label: "copy_action",
 						click: () => copyToClipboard(message),
 						type: ButtonType.Secondary,

@@ -1,7 +1,7 @@
 import {Dialog} from "../gui/base/Dialog"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import type {ButtonAttrs} from "../gui/base/Button.js"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import {lang} from "../misc/LanguageViewModel"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
@@ -84,7 +84,7 @@ export function showSupportDialog() {
 				searchExecuted
 					? m(".pb", [
 						m(".h1 .text-center", lang.get("noSolution_msg")),
-						m(".flex.center-horizontally.pt", m(".flex-grow-shrink-auto.max-width-200", m(ButtonN, contactSupport))),
+						m(".flex.center-horizontally.pt", m(".flex-grow-shrink-auto.max-width-200", m(Button, contactSupport))),
 					])
 					: null,
 			]

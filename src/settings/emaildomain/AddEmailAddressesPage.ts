@@ -17,7 +17,7 @@ import {ColumnWidth, TableN} from "../../gui/base/TableN"
 import {theme} from "../../gui/theme"
 import type {WizardPageAttrs} from "../../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialogN"
-import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {Button, ButtonType} from "../../gui/base/Button.js"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {InvalidDataError, LimitReachedError} from "../../api/common/error/RestError"
 import {isSameId} from "../../api/common/utils/EntityUtils"
@@ -140,7 +140,7 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 							width: "260px",
 						},
 					},
-					m(ButtonN, {
+					m(Button, {
 						type: ButtonType.Login,
 						label: "next_action",
 						click: () => emitWizardEvent(

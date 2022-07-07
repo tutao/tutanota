@@ -3,8 +3,8 @@ import type {lazy} from "@tutao/tutanota-utils"
 import {neverNull} from "@tutao/tutanota-utils"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {EntityUpdateData} from "../api/main/EventController"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import type {ButtonAttrs} from "../gui/base/Button.js"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import {Icons} from "../gui/base/icons/Icons"
 import {getLanguageCode} from "./TemplateEditorModel"
 import {showTemplateEditor} from "./TemplateEditor"
@@ -29,13 +29,13 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 					m(".h4.text-ellipsis", template.title),
 					!this.isReadOnly()
 						? m(".flex.flex-grow.justify-end", [
-							m(ButtonN, {
+							m(Button, {
 								label: "edit_action",
 								icon: () => Icons.Edit,
 								type: ButtonType.Action,
 								click: () => this.editTemplate(template),
 							}),
-							m(ButtonN, {
+							m(Button, {
 								label: "remove_action",
 								icon: () => Icons.Trash,
 								type: ButtonType.Action,

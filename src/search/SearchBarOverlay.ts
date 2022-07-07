@@ -1,7 +1,7 @@
 import type {Entry, SearchBarState, ShowMoreAction} from "./SearchBar"
 import {px, size} from "../gui/size"
 import {lang} from "../misc/LanguageViewModel"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import {Icons} from "../gui/base/icons/Icons"
 import {isEmpty, isSameTypeRef, TypeRef} from "@tutao/tutanota-utils"
 import {logins} from "../api/main/LoginController"
@@ -110,7 +110,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 							{
 								onmousedown: () => attrs.skipNextBlur(true),
 							},
-							m(ButtonN, {
+							m(Button, {
 								label: "cancel_action",
 								click: () => locator.indexerFacade.cancelMailIndexing(),
 								//icon: () => Icons.Cancel
@@ -152,7 +152,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 						{
 							onmousedown: () => attrs.skipNextBlur(true),
 						},
-						m(ButtonN, {
+						m(Button, {
 							label: "retry_action",
 							click: () => locator.indexerFacade.extendMailIndex(failedIndexingUpTo),
 							type: ButtonType.Secondary,

@@ -21,8 +21,8 @@ import {assertMainOrNode} from "../api/common/Env"
 import {windowFacade} from "../misc/WindowFacade"
 import {logins} from "../api/main/LoginController"
 import {NotFoundError, PayloadTooLargeError} from "../api/common/error/RestError"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonType} from "../gui/base/ButtonN"
+import type {ButtonAttrs} from "../gui/base/Button.js"
+import {ButtonType} from "../gui/base/Button.js"
 import {birthdayToIsoDate} from "../api/common/utils/BirthdayUtils"
 import {
 	ContactMailAddressTypeToLabel,

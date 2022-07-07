@@ -9,8 +9,8 @@ import type {TextFieldAttrs} from "../gui/base/TextFieldN.js"
 import {TextFieldN} from "../gui/base/TextFieldN.js"
 import {isApp, isTutanotaDomain} from "../api/common/Env.js"
 import m, {Children} from "mithril"
-import type {ButtonAttrs} from "../gui/base/ButtonN.js"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN.js"
+import type {ButtonAttrs} from "../gui/base/Button.js"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import {copyToClipboard} from "../misc/ClipboardUtils.js"
 import {Icons} from "../gui/base/icons/Icons.js"
 import QRCode from "qrcode-svg"
@@ -225,7 +225,7 @@ export class EditSecondFactorDialog {
 			label: "totpSecret_label",
 			helpLabel: () => lang.get(isApp() ? "totpTransferSecretApp_msg" : "totpTransferSecret_msg"),
 			value: this.totpKeys.readableKey,
-			injectionsRight: () => m(ButtonN, copyButtonAttrs),
+			injectionsRight: () => m(Button, copyButtonAttrs),
 			disabled: true,
 		}
 		const copyButtonAttrs: ButtonAttrs = {
@@ -245,7 +245,7 @@ export class EditSecondFactorDialog {
 		}
 		return m(".mb", [
 			m(TextFieldN, totpSecretFieldAttrs),
-			isApp() ? m(".pt", m(ButtonN, openTOTPAppAttrs)) : this.renderOtpQrCode(),
+			isApp() ? m(".pt", m(Button, openTOTPAppAttrs)) : this.renderOtpQrCode(),
 			m(TextFieldN, totpCodeAttrs),
 		])
 	}

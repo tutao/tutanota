@@ -7,7 +7,7 @@ import {locator} from "../../api/main/MainLocator"
 import {lang, TranslationText} from "../../misc/LanguageViewModel"
 import {UserError} from "../../api/main/UserError"
 import {Dialog} from "../../gui/base/Dialog"
-import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {Button, ButtonType} from "../../gui/base/Button.js"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {px} from "../../gui/size"
 import {theme} from "../../gui/theme"
@@ -104,7 +104,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 							),
 						]),
 						m(".flex-center", [
-							m(ButtonN, {
+							m(Button, {
 								click: () => {
 									dialog.close()
 									setTimeout(
@@ -116,7 +116,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 								icon: () => BootIcons.Mail,
 							}),
 							isAndroidApp()
-								? m(ButtonN, {
+								? m(Button, {
 									click: () => {
 										locator.systemFacade.shareText(
 											lang.get("nativeShareGiftCard_msg", {
@@ -128,7 +128,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 									label: "share_action",
 									icon: () => BootIcons.Share,
 								})
-								: m(ButtonN, {
+								: m(Button, {
 									click: () => {
 										copyToClipboard(link)
 											.then(() => {
@@ -142,7 +142,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 									icon: () => Icons.Clipboard,
 								}),
 							!isApp()
-								? m(ButtonN, {
+								? m(Button, {
 									click: () => {
 										infoMessage = "emptyString_msg"
 										window.print()

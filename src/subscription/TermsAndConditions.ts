@@ -8,7 +8,7 @@ import {requestFromWebsite} from "../misc/Website"
 import {Dialog} from "../gui/base/Dialog"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
-import {ButtonType} from "../gui/base/ButtonN"
+import {ButtonType} from "../gui/base/Button.js"
 
 
 /**

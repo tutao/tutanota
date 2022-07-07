@@ -1,8 +1,8 @@
 import m, {Children, Component, Vnode} from "mithril"
 import type {NavButtonAttrs} from "../gui/base/NavButtonN"
 import {isNavButtonSelected, NavButtonN} from "../gui/base/NavButtonN"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN} from "../gui/base/ButtonN"
+import type {ButtonAttrs} from "../gui/base/Button.js"
+import {Button} from "../gui/base/Button.js"
 
 export type SettingsFolderRowAttrs = {
 	mainButtonAttrs: NavButtonAttrs
@@ -19,7 +19,7 @@ export class SettingsFolderRow implements Component<SettingsFolderRowAttrs> {
 		const selector = `.folder-row.flex-start.pl-l.pr-m${isSelected ? ".row-selected" : ""}`
 		return m(selector, [
 			m(NavButtonN, mainButtonAttrs),
-			extraButtonAttrs && isSelected ? m(ButtonN, extraButtonAttrs) : null
+			extraButtonAttrs && isSelected ? m(Button, extraButtonAttrs) : null
 		])
 	}
 }

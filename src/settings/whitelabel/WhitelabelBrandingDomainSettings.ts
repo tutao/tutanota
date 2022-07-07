@@ -11,7 +11,7 @@ import * as SetCustomDomainCertificateDialog from "../SetDomainCertificateDialog
 import stream from "mithril/stream"
 import {lang} from "../../misc/LanguageViewModel"
 import m, {Children, Component, Vnode} from "mithril"
-import {ButtonN} from "../../gui/base/ButtonN"
+import {Button} from "../../gui/base/Button.js"
 import type {CustomerInfo} from "../../api/entities/sys/TypeRefs.js"
 import type {CertificateInfo} from "../../api/entities/sys/TypeRefs.js"
 import {CertificateState, CertificateType} from "../../api/common/TutanotaConstants"
@@ -68,7 +68,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 			},
 			icon: () => Icons.Cancel,
 		} as const
-		return m(ButtonN, deactivateButtonAttrs)
+		return m(Button, deactivateButtonAttrs)
 	}
 
 	_renderEditButton(customerInfo: CustomerInfo, certificateInfo: CertificateInfo | null, isWhitelabelFeatureEnabled: boolean): Children {
@@ -88,7 +88,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 			},
 			icon: () => Icons.Edit,
 		} as const
-		return m(ButtonN, editActionAttrs)
+		return m(Button, editActionAttrs)
 	}
 
 	_renderWhitelabelInfo(certificateInfo: CertificateInfo | null): () => Children {

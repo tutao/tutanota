@@ -9,7 +9,7 @@ import Stream from "mithril/stream"
 import {isCustomizationEnabledForCustomer} from "../../api/common/utils/Utils"
 import {downcast} from "@tutao/tutanota-utils"
 import {Dialog} from "../../gui/base/Dialog"
-import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {Button, ButtonType} from "../../gui/base/Button.js"
 import type {ReceivedGroupInvitation} from "../../api/entities/sys/TypeRefs.js"
 import {isSameId} from "../../api/common/utils/EntityUtils"
 import {sendAcceptNotificationEmail, sendRejectNotificationEmail} from "../GroupSharingUtils"
@@ -94,7 +94,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 					]),
 					isMember
 						? null
-						: m(ButtonN, {
+						: m(Button, {
 							label: "acceptInvitation_action",
 							type: ButtonType.Login,
 							click: onAcceptClicked,

@@ -57,9 +57,9 @@ import {TextFieldN} from "../gui/base/TextFieldN"
 import {createGroupSettings, createUserAreaGroupDeleteData} from "../api/entities/tutanota/TypeRefs.js"
 import {GroupInvitationFolderRow} from "../sharing/view/GroupInvitationFolderRow"
 import {TemplateGroupService} from "../api/entities/tutanota/Services"
-import {attachDropdown} from "../gui/base/DropdownN.js"
+import {attachDropdown} from "../gui/base/Dropdown.js"
 import {exportUserCsv} from "./UserDataExporter.js"
-import {ButtonType} from "../gui/base/ButtonN.js"
+import {ButtonType} from "../gui/base/Button.js"
 
 assertMainOrNode()
 

@@ -10,7 +10,7 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {windowFacade} from "../misc/WindowFacade"
 import {DeviceType} from "../misc/ClientConstants"
-import {ButtonAttrs, ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {ButtonAttrs, Button, ButtonType} from "../gui/base/Button.js"
 import {CurrentView, header} from "../gui/Header.js"
 import {AriaLandmarks, landmarkAttrs, liveDataAttrs} from "../gui/AriaUtils"
 import type {ILoginViewModel} from "./LoginViewModel"
@@ -19,7 +19,7 @@ import {LoginForm} from "./LoginForm"
 import {CredentialsSelector} from "./CredentialsSelector"
 import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
 import {themeController} from "../gui/theme"
-import {createAsyncDropdown} from "../gui/base/DropdownN"
+import {createAsyncDropdown} from "../gui/base/Dropdown.js"
 import type {clickHandler} from "../gui/base/GuiUtils"
 
 assertMainOrNode()
@@ -109,7 +109,7 @@ export class LoginView implements CurrentView {
 				[
 					m(".flex-center.flex-column", [
 						this._loginAnotherLinkVisible()
-							? m(ButtonN, {
+							? m(Button, {
 								label: "loginOtherAccount_action",
 								type: ButtonType.Secondary,
 								click: () => {
@@ -118,35 +118,35 @@ export class LoginView implements CurrentView {
 							})
 							: null,
 						this._deleteCredentialsLinkVisible()
-							? m(ButtonN, {
+							? m(Button, {
 								label: this._viewModel.displayMode === DisplayMode.DeleteCredentials ? "cancel_action" : "deleteCredentials_action",
 								type: ButtonType.Secondary,
 								click: () => this._switchDeleteCredentialsState(),
 							})
 							: null,
 						this._knownCredentialsLinkVisible()
-							? m(ButtonN, {
+							? m(Button, {
 								label: "knownCredentials_label",
 								type: ButtonType.Secondary,
 								click: () => this._viewModel.showCredentials(),
 							})
 							: null,
 						this._signupLinkVisible()
-							? m(ButtonN, {
+							? m(Button, {
 								label: "register_label",
 								type: ButtonType.Secondary,
 								click: () => m.route.set("/signup"),
 							})
 							: null,
 						this._switchThemeLinkVisible()
-							? m(ButtonN, {
+							? m(Button, {
 								label: "switchColorTheme_action",
 								type: ButtonType.Secondary,
 								click: this.themeSwitchListener(),
 							})
 							: null,
 						this._recoverLoginVisible()
-							? m(ButtonN, {
+							? m(Button, {
 								label: "recoverAccountAccess_action",
 								click: () => {
 									m.route.set("/recover")
@@ -281,7 +281,7 @@ export class LoginView implements CurrentView {
 	_renderAppButtons(): Children {
 		return m(".flex-center.pt-l", [
 			client.isDesktopDevice() || client.device === DeviceType.ANDROID
-				? m(ButtonN, {
+				? m(Button, {
 					label: "appInfoAndroidImageAlt_alt",
 					click: e => {
 						this._openUrl("https://play.google.com/store/apps/details?id=de.tutao.tutanota")
@@ -293,7 +293,7 @@ export class LoginView implements CurrentView {
 				})
 				: null,
 			client.isDesktopDevice() || client.device === DeviceType.IPAD || client.device === DeviceType.IPHONE
-				? m(ButtonN, {
+				? m(Button, {
 					label: "appInfoIosImageAlt_alt",
 					click: e => {
 						this._openUrl("https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb")
@@ -305,7 +305,7 @@ export class LoginView implements CurrentView {
 				})
 				: null,
 			client.isDesktopDevice() || client.device === DeviceType.ANDROID
-				? m(ButtonN, {
+				? m(Button, {
 					label: "appInfoFDroidImageAlt_alt",
 					click: e => {
 						this._openUrl("https://f-droid.org/packages/de.tutao.tutanota/")

@@ -12,7 +12,7 @@ import {Dialog} from "../gui/base/Dialog"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {isSameId} from "../api/common/utils/EntityUtils"
-import {ButtonN} from "../gui/base/ButtonN"
+import {Button} from "../gui/base/Button.js"
 import {DropDownSelectorAttrs, DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
@@ -63,7 +63,7 @@ export class WhitelabelChildViewer implements UpdatableSettingsDetailsViewer {
 				value: this.whitelabelChild.comment,
 				disabled: true,
 				type: TextFieldType.Area,
-				injectionsRight: () => [m(ButtonN, {
+				injectionsRight: () => [m(Button, {
 					label: "edit_action",
 					click: () => {
 						Dialog.showTextAreaInputDialog("edit_action", "comment_label", null, this.whitelabelChild.comment).then(newComment => {

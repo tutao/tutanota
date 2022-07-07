@@ -4,7 +4,7 @@ import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import {ContactViewer} from "./ContactViewer"
 import type {CurrentView} from "../../gui/Header.js"
 import {header} from "../../gui/Header.js"
-import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {ButtonColor, Button, ButtonType} from "../../gui/base/Button.js"
 import {ContactEditor} from "../ContactEditor"
 import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
 import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
@@ -41,7 +41,7 @@ import type {ContactModel} from "../model/ContactModel"
 import {ActionBar} from "../../gui/base/ActionBar"
 import {SidebarSection} from "../../gui/SidebarSection"
 import {SetupMultipleError} from "../../api/common/error/SetupMultipleError"
-import {attachDropdown, DropdownButtonAttrs} from "../../gui/base/DropdownN.js"
+import {attachDropdown, DropdownButtonAttrs} from "../../gui/base/Dropdown.js"
 import {showFileChooser} from "../../file/FileController.js"
 
 assertMainOrNode()
@@ -146,7 +146,7 @@ export class ContactView implements CurrentView {
 
 	headerRightView(): Children {
 		if (this._contactList) {
-			return m(ButtonN, {
+			return m(Button, {
 				label: "newContact_action",
 				click: () => this.createNewContact(),
 				type: ButtonType.Action,
@@ -248,7 +248,7 @@ export class ContactView implements CurrentView {
 	}
 
 	private renderFolderMoreButton(): Children {
-		return m(ButtonN, attachDropdown({
+		return m(Button, attachDropdown({
 			mainButtonAttrs: {
 				label: "more_label",
 				icon: () => Icons.More,

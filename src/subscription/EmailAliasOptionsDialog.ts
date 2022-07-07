@@ -8,7 +8,7 @@ import {CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {CustomerInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {logins} from "../api/main/LoginController"
 import {Dialog, DialogType} from "../gui/base/Dialog"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import {showBuyDialogToBookItem} from "./BuyDialog"
 import {locator} from "../api/main/MainLocator"
 
@@ -68,7 +68,7 @@ function createEmailAliasPackageBox(
 		}),
 		actionButton: {
 			view: () => {
-				return m(ButtonN, {
+				return m(Button, {
 					label: "pricing.select_action",
 					type: ButtonType.Login,
 					click: () => buyAction(amount),

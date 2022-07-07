@@ -3,7 +3,7 @@ import {size} from "../../gui/size"
 import {getCapabilityText} from "../GroupUtils"
 import {downcast} from "@tutao/tutanota-utils"
 import {getDisplayText} from "../../mail/model/MailUtils"
-import {ButtonN} from "../../gui/base/ButtonN"
+import {Button} from "../../gui/base/Button.js"
 import {showGroupInvitationDialog} from "./ReceivedGroupInvitationDialog"
 import {Icons} from "../../gui/base/icons/Icons"
 import type {ReceivedGroupInvitation} from "../../api/entities/sys/TypeRefs.js"
@@ -45,7 +45,7 @@ export class GroupInvitationFolderRow implements Component<GroupInvitationFolder
 						),
 					],
 				),
-				m(ButtonN, {
+				m(Button, {
 					label: "show_action",
 					click: () => showGroupInvitationDialog(invitation),
 					icon: () => (icon ? icon : Icons.Eye),

@@ -1,6 +1,6 @@
 import m, {Children, Component} from "mithril"
 import {px, size} from "../../gui/size"
-import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {Button, ButtonType} from "../../gui/base/Button.js"
 import {createMail} from "../../api/entities/tutanota/TypeRefs.js"
 import {createMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
 import {MailRow} from "../../mail/view/MailRow"
@@ -35,14 +35,14 @@ export class CustomColorEditorPreview implements Component {
 							width: px(BUTTON_WIDTH),
 						},
 					},
-					m(ButtonN, {
+					m(Button, {
 						label: "login_action",
 						click: noOp,
 						type: ButtonType.Login,
 					}),
 				),
 				m(".pt-m", [
-					m(ButtonN, {
+					m(Button, {
 						style: {
 							width: px(BUTTON_WIDTH),
 						},
@@ -50,7 +50,7 @@ export class CustomColorEditorPreview implements Component {
 						click: noOp,
 						type: ButtonType.Secondary,
 					}),
-					m(ButtonN, {
+					m(Button, {
 						style: {
 							width: px(BUTTON_WIDTH),
 						},

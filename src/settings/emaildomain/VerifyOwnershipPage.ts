@@ -8,7 +8,7 @@ import {Dialog} from "../../gui/base/Dialog"
 import {getCustomMailDomains} from "../../api/common/utils/Utils"
 import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialogN"
-import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {Button, ButtonType} from "../../gui/base/Button.js"
 import {PreconditionFailedError} from "../../api/common/error/RestError"
 import {showBusinessFeatureRequiredDialog} from "../../misc/SubscriptionDialogs"
 import {ofClass} from "@tutao/tutanota-utils"
@@ -56,7 +56,7 @@ export class VerifyOwnershipPage implements WizardPageN<AddDomainData> {
 							width: "260px",
 						},
 					},
-					m(ButtonN, {
+					m(Button, {
 						type: ButtonType.Login,
 						label: "next_action",
 						click: () => emitWizardEvent(this.dom, WizardEventType.SHOWNEXTPAGE),

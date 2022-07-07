@@ -4,7 +4,7 @@ import type {SelectorItemList} from "../../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
 import {Dialog} from "../../gui/base/Dialog"
 import {Icons} from "../../gui/base/icons/Icons"
-import {ButtonAttrs, ButtonN} from "../../gui/base/ButtonN"
+import {ButtonAttrs, Button} from "../../gui/base/Button.js"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 
 export type WhitelabelRegistrationSettingsAttrs = {
@@ -70,7 +70,7 @@ export class WhitelabelRegistrationSettings implements Component<WhitelabelRegis
 			label: "whitelabelRegistrationCode_label",
 			value: whitelabelCode,
 			disabled: true,
-			injectionsRight: () => [editButtonAttrs ? m(ButtonN, editButtonAttrs) : null],
+			injectionsRight: () => [editButtonAttrs ? m(Button, editButtonAttrs) : null],
 		} as const
 		return m(TextFieldN, whitelabelRegistrationTextfieldAttrs)
 	}

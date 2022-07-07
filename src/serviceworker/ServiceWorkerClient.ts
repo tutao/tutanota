@@ -26,7 +26,7 @@ function showUpdateOverlay(onUpdate: () => void) {
 			])
 		},
 	}
-	Promise.all([import("../gui/base/NotificationOverlay"), import("../gui/base/ButtonN")]).then(([notificationOverlay, {ButtonType}]) => {
+	Promise.all([import("../gui/base/NotificationOverlay"), import("../gui/base/Button.js")]).then(([notificationOverlay, {ButtonType}]) => {
 		notificationOverlay.show(
 			notificationMessage,
 			{

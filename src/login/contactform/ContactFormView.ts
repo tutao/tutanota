@@ -12,7 +12,7 @@ import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {renderPrivacyAndImprintLinks} from "../LoginView"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {CurrentView, header} from "../../gui/Header.js"
-import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {Button, ButtonType} from "../../gui/base/Button.js"
 import {Keys} from "../../api/common/TutanotaConstants"
 import type {ContactForm} from "../../api/entities/tutanota/TypeRefs.js"
 import {locator} from "../../api/main/MainLocator"
@@ -98,7 +98,7 @@ class ContactFormView implements CurrentView {
 						m(".max-width-m.flex-grow-shrink-auto", [
 							m(
 								".pt-l",
-								m(ButtonN, {
+								m(Button, {
 									label: "createContactRequest_action",
 									click: () => new ContactFormRequestDialog(neverNull(this._contactForm)).show(),
 									type: ButtonType.Login,
@@ -106,7 +106,7 @@ class ContactFormView implements CurrentView {
 							),
 							m(
 								".pt-l",
-								m(ButtonN, {
+								m(Button, {
 									label: "readResponse_action",
 									click: () => m.route.set("/login"),
 									type: ButtonType.Login,
@@ -115,7 +115,7 @@ class ContactFormView implements CurrentView {
 							this._helpHtml
 								? m(
 									".pt-l.flex-center",
-									m(ButtonN, {
+									m(Button, {
 										label: "moreInformation_action",
 										click: () => this._moreInformationDialog.show(),
 										type: ButtonType.Secondary,

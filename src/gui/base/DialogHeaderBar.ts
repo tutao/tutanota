@@ -1,6 +1,6 @@
 import m, {Children, Component, Vnode} from "mithril"
-import type {ButtonAttrs} from "./ButtonN"
-import {ButtonN} from "./ButtonN"
+import type {ButtonAttrs} from "./Button.js"
+import {Button} from "./Button.js"
 import type {lazy, MaybeLazy} from "@tutao/tutanota-utils"
 import {resolveMaybeLazy} from "@tutao/tutanota-utils"
 
@@ -39,12 +39,12 @@ export class DialogHeaderBar implements Component<DialogHeaderBarAttrs> {
 			[
 				m(
 					columnClass + ".ml-negative-s",
-					resolveMaybeLazy(a.left).map((a) => m(ButtonN, a)),
+					resolveMaybeLazy(a.left).map((a) => m(Button, a)),
 				), // ellipsis is not working if the text is directly in the flex element, so create a child div for it
 				a.middle ? m("#dialog-title.flex-third-middle.overflow-hidden.flex.justify-center.items-center.b", [m(".text-ellipsis", a.middle())]) : null,
 				m(
 					columnClass + ".mr-negative-s.flex.justify-end",
-					resolveMaybeLazy(a.right).map((a) => m(ButtonN, a)),
+					resolveMaybeLazy(a.right).map((a) => m(Button, a)),
 				),
 			],
 		)

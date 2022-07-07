@@ -7,8 +7,8 @@ import {neverNull} from "@tutao/tutanota-utils"
 import {Icon} from "../gui/base/Icon"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN} from "../gui/base/ButtonN"
+import type {ButtonAttrs} from "../gui/base/Button.js"
+import {Button} from "../gui/base/Button.js"
 import type {BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {formatMonthlyPrice, getCountFromPriceData, getPriceFromPriceData, isYearlyPayment} from "./PriceUtils"
 import type {BookingFacade} from "../api/worker/facades/BookingFacade"
@@ -131,7 +131,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 									},
 								},
 								typeof vnode.attrs.actionButton === "function"
-									? m(ButtonN, vnode.attrs.actionButton())
+									? m(Button, vnode.attrs.actionButton())
 									: m(neverNull(vnode.attrs.actionButton)),
 							)
 							: null,

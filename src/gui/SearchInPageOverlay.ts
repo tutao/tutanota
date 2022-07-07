@@ -7,7 +7,7 @@ import {Icons} from "./base/icons/Icons"
 import {assertMainOrNode} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {transform, TransformEnum} from "./animation/Animations"
-import {ButtonN, ButtonType} from "./base/ButtonN"
+import {Button, ButtonType} from "./base/Button.js"
 import {Keys} from "../api/common/TutanotaConstants"
 import {locator} from "../api/main/MainLocator"
 import {ElectronResult} from "../native/common/generatedipc/ElectronResult.js"
@@ -193,13 +193,13 @@ export class SearchInPageOverlay {
 							},
 							[
 								this._inputField(),
-								m(ButtonN, backwardButtonAttrs),
-								m(ButtonN, forwardButtonAttrs),
-								m(ButtonN, caseButtonAttrs),
+								m(Button, backwardButtonAttrs),
+								m(Button, forwardButtonAttrs),
+								m(Button, caseButtonAttrs),
 								m("div.pl-m", this._numberOfMatches > 0 ? `${this._currentMatch}/${this._numberOfMatches}` : lang.get("searchNoResults_msg")),
 							],
 						),
-						m(ButtonN, closeButtonAttrs),
+						m(Button, closeButtonAttrs),
 					],
 				)
 			},

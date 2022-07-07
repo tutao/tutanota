@@ -2,7 +2,7 @@ import m, {Children, Component, Vnode} from "mithril"
 import {CounterBadge} from "../../gui/base/CounterBadge"
 import {getNavButtonIconBackground, theme} from "../../gui/theme"
 import {lang} from "../../misc/LanguageViewModel"
-import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {ButtonColor, Button, ButtonType} from "../../gui/base/Button.js"
 import type {MinimizedEditor, MinimizedMailEditorViewModel} from "../model/MinimizedMailEditorViewModel"
 import {SaveErrorReason, SaveStatus, SaveStatusEnum} from "../model/MinimizedMailEditorViewModel"
 import {px} from "../../gui/size"
@@ -78,7 +78,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 					".flex.items-center.justify-right",
 					[
 						!styles.isSingleColumnLayout()
-							? m(ButtonN, {
+							? m(Button, {
 								label: "edit_action",
 								click: () => viewModel.reopenMinimizedEditor(minimizedEditor),
 								type: ButtonType.ActionLarge,
@@ -86,14 +86,14 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 								colors: ButtonColor.DrawerNav,
 							})
 							: null,
-						m(ButtonN, {
+						m(Button, {
 							label: "delete_action",
 							click: () => this._onDeleteClicked(minimizedEditor, viewModel),
 							type: ButtonType.ActionLarge,
 							icon: () => Icons.Trash,
 							colors: ButtonColor.DrawerNav,
 						}),
-						m(ButtonN, {
+						m(Button, {
 							label: "close_alt",
 							click: () => viewModel.removeMinimizedEditor(minimizedEditor),
 							type: ButtonType.ActionLarge,

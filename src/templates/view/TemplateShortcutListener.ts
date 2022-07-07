@@ -4,8 +4,8 @@ import {downcast} from "@tutao/tutanota-utils"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {TEMPLATE_SHORTCUT_PREFIX, TemplatePopupModel} from "../model/TemplatePopupModel"
 import {lang, languageByCode, LanguageViewModel} from "../../misc/LanguageViewModel"
-import {ButtonType} from "../../gui/base/ButtonN"
-import {DropdownN} from "../../gui/base/DropdownN"
+import {ButtonType} from "../../gui/base/Button.js"
+import {Dropdown} from "../../gui/base/Dropdown.js"
 import {modal} from "../../gui/base/Modal"
 import {showTemplatePopupInEditor} from "./TemplatePopup"
 import {firstThrow} from "@tutao/tutanota-utils"
@@ -74,7 +74,7 @@ class TemplateShortcutListener {
 								type: ButtonType.Dropdown,
 							}
 						})
-						const dropdown = new DropdownN(() => buttons, 200)
+						const dropdown = new Dropdown(() => buttons, 200)
 						dropdown.setOrigin(this._editor.getCursorPosition())
 						modal.displayUnique(dropdown, false)
 					} else {

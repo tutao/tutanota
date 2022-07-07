@@ -1,8 +1,8 @@
 import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
 import type {NavButtonAttrs} from "../../gui/base/NavButtonN"
 import {isNavButtonSelected, NavButtonN} from "../../gui/base/NavButtonN"
-import type {ButtonAttrs} from "../../gui/base/ButtonN"
-import {ButtonN} from "../../gui/base/ButtonN"
+import type {ButtonAttrs} from "../../gui/base/Button.js"
+import {Button} from "../../gui/base/Button.js"
 import {animations, opacity} from "../../gui/animation/Animations"
 import {CounterBadge} from "../../gui/base/CounterBadge"
 import {getNavButtonIconBackground, theme} from "../../gui/theme"
@@ -30,7 +30,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 			m(NavButtonN, button),
 			rightButton
 				? m(
-					ButtonN,
+					Button,
 					Object.assign({}, rightButton, {
 						oncreate: (vnode: VnodeDOM<ButtonAttrs>) => {
 							const dom = vnode.dom as HTMLElement

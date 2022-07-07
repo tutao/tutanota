@@ -24,7 +24,7 @@ import {CustomerContactFormGroupRootTypeRef} from "../../api/entities/tutanota/T
 import {getAdministratedGroupIds, getDefaultContactFormLanguage} from "./ContactFormUtils"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {isUpdateForTypeRef} from "../../api/main/EventController"
-import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {Button, ButtonType} from "../../gui/base/Button.js"
 import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
 import {GENERATED_MAX_ID, isSameId} from "../../api/common/utils/EntityUtils"
 import {ListColumnWrapper} from "../../gui/ListColumnWrapper"
@@ -109,7 +109,7 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 			{
 				headerContent: m(
 					".mr-negative-s.align-self-end",
-					m(ButtonN, {
+					m(Button, {
 						label: "createContactForm_label",
 						type: ButtonType.Primary,
 						click: () => this.addButtonClicked(),

@@ -8,7 +8,7 @@ import {client} from "../misc/ClientDetector"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {Keys} from "../api/common/TutanotaConstants"
 import {progressIcon} from "../gui/base/Icon"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import {TextFieldN, TextFieldType as TextFieldType} from "../gui/base/TextFieldN"
 import {CheckboxN} from "../gui/base/CheckboxN"
 import {logins} from "../api/main/LoginController"
@@ -220,7 +220,7 @@ export class ExternalLoginView implements CurrentView {
 	renderAutoLoginButton(): Children {
 		return m(
 			".pt",
-			m(ButtonN, {
+			m(Button, {
 				label: "showMail_action",
 				click: () => this.viewModel.loginWithStoredCredentials(),
 				type: ButtonType.Login,
@@ -245,7 +245,7 @@ export class ExternalLoginView implements CurrentView {
 			}),
 			m(
 				".pt",
-				m(ButtonN, {
+				m(Button, {
 					label: "showMail_action",
 					click: () => this.viewModel.formLogin(),
 					type: ButtonType.Login,

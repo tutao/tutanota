@@ -13,8 +13,8 @@ import {px, size} from "../size"
 import {HabReminderImage} from "./icons/Icons"
 import {windowFacade} from "../../misc/WindowFacade"
 import {requiresStatusBarHack} from "../main-styles"
-import type {ButtonAttrs} from "./ButtonN"
-import {ButtonN, ButtonType} from "./ButtonN"
+import type {ButtonAttrs} from "./Button.js"
+import {Button, ButtonType} from "./Button.js"
 import type {DialogHeaderBarAttrs} from "./DialogHeaderBar"
 import {DialogHeaderBar} from "./DialogHeaderBar"
 import {TextFieldN, TextFieldType} from "./TextFieldN"
@@ -344,7 +344,7 @@ export class Dialog implements ModalComponent {
 							typeof infoToAppend == "function" ? infoToAppend() : null
 						]
 					),
-					m(".flex-center.dialog-buttons", m(ButtonN, buttonAttrs)),
+					m(".flex-center.dialog-buttons", m(Button, buttonAttrs)),
 				],
 			})
 				.setCloseHandler(closeAction)
@@ -396,8 +396,8 @@ export class Dialog implements ModalComponent {
 			dialog = new Dialog(DialogType.Alert, {
 				view: () =>
 					m("", [
-						m(".dialog-contentButtonsBottom.text-break", [m(ButtonN, downloadButtonAttrs), m(".pt", lang.get("saveDownloadNotPossibleIos_msg"))]),
-						m(".flex-center.dialog-buttons", m(ButtonN, closeButtonAttrs)),
+						m(".dialog-contentButtonsBottom.text-break", [m(Button, downloadButtonAttrs), m(".pt", lang.get("saveDownloadNotPossibleIos_msg"))]),
+						m(".flex-center.dialog-buttons", m(Button, closeButtonAttrs)),
 					]),
 			})
 				.setCloseHandler(closeAction)
@@ -476,7 +476,7 @@ export class Dialog implements ModalComponent {
 				m("#dialog-message.dialog-max-height.dialog-contentButtonsBottom.text-break.text-prewrap.selectable.scroll", getContent()),
 				m(
 					".flex-center.dialog-buttons",
-					buttons.map(a => m(ButtonN, a)),
+					buttons.map(a => m(Button, a)),
 				),
 			],
 		})
@@ -594,7 +594,7 @@ export class Dialog implements ModalComponent {
 					]),
 					m(
 						".flex-center.dialog-buttons.flex-no-grow-no-shrink-auto",
-						buttonAttrs.map(a => m(ButtonN, a)),
+						buttonAttrs.map(a => m(Button, a)),
 					),
 				],
 			})

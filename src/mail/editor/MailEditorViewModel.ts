@@ -7,10 +7,10 @@ import {PermissionError} from "../../api/common/error/PermissionError"
 import {Dialog} from "../../gui/base/Dialog"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import {lang} from "../../misc/LanguageViewModel"
-import type {ButtonAttrs} from "../../gui/base/ButtonN"
-import {ButtonColor, ButtonType} from "../../gui/base/ButtonN"
+import type {ButtonAttrs} from "../../gui/base/Button.js"
+import {ButtonColor, ButtonType} from "../../gui/base/Button.js"
 import {FileOpenError} from "../../api/common/error/FileOpenError"
-import {attachDropdown} from "../../gui/base/DropdownN"
+import {attachDropdown} from "../../gui/base/Dropdown.js"
 import {Icons} from "../../gui/base/icons/Icons"
 import {formatStorageSize} from "../../misc/Formatter"
 import {UserError} from "../../api/main/UserError"
@@ -102,7 +102,6 @@ export function createAttachmentButtonAttrs(model: SendMailModel, inlineImageEle
 }
 
 async function _downloadAttachment(attachment: Attachment) {
-	console.log("attachment", attachment)
 	try {
 		if (isFileReference(attachment)) {
 			await locator.fileApp.open(attachment)

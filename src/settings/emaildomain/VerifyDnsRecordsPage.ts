@@ -7,7 +7,7 @@ import {createDnsRecordTableN} from "./AddDomainWizard"
 import {Dialog} from "../../gui/base/Dialog"
 import type {WizardPageAttrs} from "../../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType, WizardPageN} from "../../gui/base/WizardDialogN"
-import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {Button, ButtonType} from "../../gui/base/Button.js"
 import type {DnsRecord} from "../../api/entities/sys/TypeRefs.js"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {assertMainOrNode} from "../../api/common/Env"
@@ -40,7 +40,7 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 									width: "260px",
 								},
 							},
-							m(ButtonN, {
+							m(Button, {
 								type: ButtonType.Login,
 								label: "finish_action",
 								// We check if all DNS records are set correctly and let the user confirm before leaving if not
@@ -53,7 +53,7 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 					lang.get("loadingDNSRecords_msg"),
 					m(
 						".flex-center.full-width.pt-l.mb-l",
-						m(ButtonN, {
+						m(Button, {
 							type: ButtonType.Secondary,
 							label: "refresh_action",
 							click: () => _updateDnsStatus(a.data.domainStatus),

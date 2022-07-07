@@ -21,7 +21,7 @@ import {appendEmailSignature} from "../../mail/signature/Signature"
 import {formatBirthdayOfContact} from "../model/ContactUtils"
 import stream from "mithril/stream"
 import type {ContactAddress} from "../../api/entities/tutanota/TypeRefs.js"
-import {ButtonAttrs, ButtonN} from "../../gui/base/ButtonN"
+import {ButtonAttrs, Button} from "../../gui/base/Button.js"
 import type {ContactPhoneNumber} from "../../api/entities/tutanota/TypeRefs.js"
 import {assertMainOrNode} from "../../api/common/Env"
 
@@ -153,7 +153,7 @@ export class ContactViewer implements ClassComponent {
 	}
 
 	_createSocialId(contactSocialId: ContactSocialId): Children {
-		const showButton = m(ButtonN, {
+		const showButton = m(Button, {
 			label: "showURL_alt",
 			click: noOp,
 			icon: () => Icons.ArrowForward,
@@ -167,7 +167,7 @@ export class ContactViewer implements ClassComponent {
 	}
 
 	_createMailAddress(address: ContactAddress): Child {
-		const newMailButton = m(ButtonN, {
+		const newMailButton = m(Button, {
 			label: "sendMail_alt",
 			click: () => this._writeMail(address.address),
 			icon: () => BootIcons.Mail,
@@ -181,7 +181,7 @@ export class ContactViewer implements ClassComponent {
 	}
 
 	_createPhone(phone: ContactPhoneNumber): Children {
-		const callButton = m(ButtonN, {
+		const callButton = m(Button, {
 			label: "callNumber_alt",
 			click: () => null,
 			icon: () => Icons.Call,
@@ -203,7 +203,7 @@ export class ContactViewer implements ClassComponent {
 			prepAddress = encodeURIComponent(address.address)
 		}
 
-		const showButton = m(ButtonN, {
+		const showButton = m(Button, {
 			label: "showAddress_alt",
 			click: () => null,
 			icon: () => Icons.Pin,

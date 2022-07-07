@@ -2,8 +2,8 @@ import m, {Children, Component, Vnode} from "mithril"
 import {px} from "../size"
 import {DefaultAnimationTime, transform, TransformEnum} from "../animation/Animations"
 import {displayOverlay} from "./Overlay"
-import type {ButtonAttrs} from "./ButtonN"
-import {ButtonN, ButtonType} from "./ButtonN"
+import type {ButtonAttrs} from "./Button.js"
+import {Button, ButtonType} from "./Button.js"
 import {assertMainOrNode} from "../../api/common/Env"
 import {clickHandler} from "./GuiUtils"
 
@@ -27,7 +27,7 @@ class NotificationOverlay implements Component<NotificationOverlayAttrs> {
 			m(vnode.attrs.message),
 			m(
 				".flex.justify-end.flex-wrap",
-				vnode.attrs.buttons.map(b => m(ButtonN, b)),
+				vnode.attrs.buttons.map(b => m(Button, b)),
 			),
 		])
 	}

@@ -1,9 +1,9 @@
 import m, {Children, ClassComponent, Vnode} from "mithril"
 import {TextFieldN} from "./TextFieldN"
 import {TranslationText} from "../../misc/LanguageViewModel"
-import {ButtonN, ButtonType} from "./ButtonN"
+import {Button, ButtonType} from "./Button.js"
 import {Keys} from "../../api/common/TutanotaConstants"
-import {attachDropdown, DropdownChildAttrs} from "./DropdownN"
+import {attachDropdown, DropdownChildAttrs} from "./Dropdown.js"
 
 export interface BubbleTextFieldAttrs {
 	label: TranslationText
@@ -39,7 +39,7 @@ export class BubbleTextField implements ClassComponent<BubbleTextFieldAttrs> {
 						// flex is for reserving space for the comma. align-items: end so that comma is pushed to the bottom.
 						return m(".flex.overflow-hidden.items-end", [
 							m(".flex-no-grow-shrink-auto.overflow-hidden",
-								m(ButtonN,
+								m(Button,
 									attachDropdown({
 										mainButtonAttrs: {
 											label: () => attrs.renderBubbleText(item),

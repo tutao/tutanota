@@ -2,7 +2,7 @@ import m, {ChildArray, Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {BootstrapFeatureType} from "../api/common/TutanotaConstants"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import {liveDataAttrs} from "../gui/AriaUtils"
 import {lang, TranslationKey} from "../misc/LanguageViewModel"
 import {TextFieldAttrs, TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
@@ -114,7 +114,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 					: null,
 				m(
 					".pt",
-					m(ButtonN, {
+					m(Button, {
 						label: "login_action",
 						click: () => a.onSubmit(a.mailAddress(), a.password()),
 						type: ButtonType.Login,

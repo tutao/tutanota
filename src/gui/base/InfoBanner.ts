@@ -3,8 +3,8 @@ import m, {Children, Component, Vnode} from "mithril"
 import {theme} from "../theme"
 import type {InfoLink, TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import type {ButtonAttrs} from "./ButtonN"
-import {ButtonN, ButtonType} from "./ButtonN"
+import type {ButtonAttrs} from "./Button.js"
+import {Button, ButtonType} from "./Button.js"
 import {NavButtonN} from "./NavButtonN"
 import {isNotNull, mapNullable} from "@tutao/tutanota-utils"
 import {Icons} from "./icons/Icons"
@@ -79,7 +79,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 	}
 
 	renderButtons(buttons: ReadonlyArray<ButtonAttrs | null>): Children {
-		return buttons.filter(isNotNull).map(attrs => m(ButtonN, {...attrs, type: ButtonType.Secondary}))
+		return buttons.filter(isNotNull).map(attrs => m(Button, {...attrs, type: ButtonType.Secondary}))
 	}
 
 	renderHelpLink(helpLink: InfoLink): Children | null {

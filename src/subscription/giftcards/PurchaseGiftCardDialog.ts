@@ -6,7 +6,7 @@ import {GiftCardTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {locator} from "../../api/main/MainLocator"
 import {BuyOptionBox} from "../BuyOptionBox"
-import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {Button, ButtonType} from "../../gui/base/Button.js"
 import type {SubscriptionData, SubscriptionOptions, SubscriptionPlanPrices} from "../SubscriptionUtils"
 import {getPreconditionFailedPaymentMsg, SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
 import {renderAcceptGiftCardTermsCheckbox, showGiftCardToShare} from "./GiftCardUtils"
@@ -163,7 +163,7 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 					m(".pt", renderAcceptGiftCardTermsCheckbox(model.confirmed, checked => model.confirmed = checked)),
 					m(
 						".mt-l.mb-l",
-						m(ButtonN, {
+						m(Button, {
 							label: "buy_action",
 							click: () => this.onBuyButtonPressed(model, onGiftCardPurchased)
 											 .catch(ofClass(UserError, showUserError)),

@@ -20,7 +20,7 @@ import Stream from "mithril/stream"
 import {CheckboxN} from "../../gui/base/CheckboxN"
 import {getPrivacyStatementLink} from "../LoginView"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
-import {BorderStyle, ButtonAttrs, ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {BorderStyle, ButtonAttrs, Button, ButtonType} from "../../gui/base/Button.js"
 import type {ContactForm, File as TutanotaFile} from "../../api/entities/tutanota/TypeRefs.js"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {getCleanedMailAddress} from "../../misc/parsing/MailAddressParser"
@@ -31,7 +31,7 @@ import {DataFile} from "../../api/common/DataFile";
 import {FileReference} from "../../api/common/utils/FileUtils";
 import {SessionType} from "../../api/common/SessionType.js";
 import {RecipientType} from "../../api/common/recipients/Recipient"
-import {attachDropdown} from "../../gui/base/DropdownN.js"
+import {attachDropdown} from "../../gui/base/Dropdown.js"
 import {readLocalFiles, showFileChooser} from "../../file/FileController.js"
 
 assertMainOrNode()
@@ -101,7 +101,7 @@ export class ContactFormRequestDialog {
 	}
 
 	view: (...args: Array<any>) => any = () => {
-		const attachFilesButton = m(ButtonN, {
+		const attachFilesButton = m(Button, {
 			label: "attachFiles_action",
 			click: () => {
 				this._showFileChooserForAttachments()
@@ -157,7 +157,7 @@ export class ContactFormRequestDialog {
 				m(".row", subject),
 				m(".flex-start.flex-wrap.ml-negative-bubble" + (this._attachmentButtonAttrs.length > 0 ? ".pt" : ""),
 					!this._loadingAttachments
-						? this._attachmentButtonAttrs.map(attrs => m(ButtonN, attrs))
+						? this._attachmentButtonAttrs.map(attrs => m(Button, attrs))
 						: [m(".flex-v-center", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))],
 				),
 				this._attachmentButtonAttrs.length > 0 ? m("hr") : null,
@@ -367,7 +367,7 @@ function showConfirmDialog(userEmailAddress: string): Promise<void> {
 						value: userEmailAddress,
 						disabled: true,
 					})),
-					m(ButtonN, {
+					m(Button, {
 						label: "contactFormSubmitConfirm_action",
 						click: () => {
 							dialog.close()

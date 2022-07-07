@@ -1,8 +1,8 @@
 import m from "mithril"
 import stream from "mithril/stream"
-import type {ButtonAttrs} from "../../gui/base/ButtonN"
-import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
-import {createDropdown} from "../../gui/base/DropdownN"
+import type {ButtonAttrs} from "../../gui/base/Button.js"
+import {Button, ButtonType} from "../../gui/base/Button.js"
+import {createDropdown} from "../../gui/base/Dropdown.js"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -86,7 +86,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 						label: "action_label",
 						value: selectedValueLabelStream(),
 						oninput: selectedValueLabelStream,
-						injectionsRight: () => m(ButtonN, resetActionButtonAttrs),
+						injectionsRight: () => m(Button, resetActionButtonAttrs),
 						disabled: true,
 					}),
 					selectedAction() == null

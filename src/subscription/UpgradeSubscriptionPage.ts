@@ -6,8 +6,8 @@ import {SubscriptionTypeParameter} from "./UpgradeSubscriptionWizard"
 import {SubscriptionSelector} from "./SubscriptionSelector"
 import {isApp, isTutanotaDomain} from "../api/common/Env"
 import {client} from "../misc/ClientDetector"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import type {ButtonAttrs} from "../gui/base/Button.js"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import type {SubscriptionActionButtons} from "./SubscriptionUtils"
 import {SubscriptionType, UpgradePriceType, UpgradeType} from "./SubscriptionUtils"
 import {Dialog, DialogType} from "../gui/base/Dialog"
@@ -38,7 +38,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		const subscriptionActionButtons: SubscriptionActionButtons = {
 			Free: {
 				view: () => {
-					return m(ButtonN, {
+					return m(Button, {
 						label: "pricing.select_action",
 						click: () => this.selectFree(data),
 						type: ButtonType.Login,
@@ -144,7 +144,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 	createUpgradeButton(data: UpgradeSubscriptionData, subscriptionType: SubscriptionType): Component {
 		return {
 			view: () => {
-				return m(ButtonN, {
+				return m(Button, {
 					label: "pricing.select_action",
 					click: () => this.setNonFreeDataAndGoToNextPage(data, subscriptionType),
 					type: ButtonType.Login,
@@ -184,12 +184,12 @@ function confirmFreeSubscription(): Promise<boolean> {
 				m(
 					".flex-center.dialog-buttons",
 					[
-						m(ButtonN, {
+						m(Button, {
 							label: "cancel_action",
 							click: () => closeAction(false),
 							type: ButtonType.Secondary,
 						}),
-						m(ButtonN, {
+						m(Button, {
 							label: "ok_action",
 							click: () => {
 								if (oneAccountValue() && privateUseValue()) {

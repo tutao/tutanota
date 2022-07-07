@@ -1,7 +1,7 @@
 import m, {Component} from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import type {AccountingInfo, Booking, Customer, CustomerInfo, SwitchAccountTypeData} from "../api/entities/sys/TypeRefs.js"
 import {createSwitchAccountTypeData} from "../api/entities/sys/TypeRefs.js"
 import {AccountType, BookingItemFeatureByCode, BookingItemFeatureType, Const, Keys, UnsubscribeFailureReason} from "../api/common/TutanotaConstants"
@@ -90,7 +90,7 @@ export async function showSwitchDialog(customer: Customer, customerInfo: Custome
 	const subscriptionActionButtons: SubscriptionActionButtons = {
 		Free: {
 			view: () => {
-				return m(ButtonN, {
+				return m(Button, {
 					label: "pricing.select_action",
 					click: () => cancelSubscription(dialog, currentSubscriptionInfo),
 					type: ButtonType.Login,
@@ -113,7 +113,7 @@ function createSubscriptionPlanButton(
 ): Component {
 	return {
 		view: () => {
-			return m(ButtonN, {
+			return m(Button, {
 				label: "pricing.select_action",
 				click: () => {
 					switchSubscription(targetSubscription, dialog, currentSubscriptionInfo)

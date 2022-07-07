@@ -317,9 +317,9 @@ import("./translations/en")
 		// append catch all at the end because mithril will stop at the first match
 		resolvers["/:path"] = {
 			onmatch: (): Promise<Component> => {
-				return Promise.all([import("./gui/base/InfoView"), import("./gui/base/ButtonN")]).then(([{InfoView}, {
+				return Promise.all([import("./gui/base/InfoView"), import("./gui/base/Button.js")]).then(([{InfoView}, {
 					ButtonType,
-					ButtonN
+					Button
 				}]) => {
 					return {
 						view() {
@@ -330,7 +330,7 @@ import("./translations/en")
 										() => "404",
 										() => [
 											m("p", lang.get("notFound404_msg")),
-											m(ButtonN, {
+											m(Button, {
 												label: "back_action",
 												click: () => window.history.back(),
 												type: ButtonType.Primary,

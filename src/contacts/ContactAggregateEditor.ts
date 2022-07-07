@@ -3,10 +3,10 @@ import {TextFieldN} from "../gui/base/TextFieldN"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import {Icons} from "../gui/base/icons/Icons"
 import {animations, height, opacity} from "../gui/animation/Animations"
-import {attachDropdown} from "../gui/base/DropdownN"
+import {attachDropdown} from "../gui/base/Dropdown.js"
 import Stream from "mithril/stream";
 
 export type AggregateEditorAttrs<AggregateType> = {
@@ -57,7 +57,7 @@ export class ContactAggregateEditor implements Component<AggregateEditorAttrs<an
 
 	_cancelButtonFor(attrs: AggregateEditorAttrs<any>): Children {
 		if (!this._doesAllowCancel(attrs)) return null
-		return m(ButtonN, {
+		return m(Button, {
 			label: "cancel_action",
 			click: () => attrs.cancelAction(),
 			icon: () => Icons.Cancel,
@@ -79,7 +79,7 @@ export class ContactAggregateEditor implements Component<AggregateEditorAttrs<an
 					}
 				})
 		})
-		return m(ButtonN, moreButtonAttrs)
+		return m(Button, moreButtonAttrs)
 	}
 
 	animate(domElement: HTMLElement, fadein: boolean): Promise<any> {

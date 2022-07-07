@@ -15,7 +15,7 @@ import type {AccountingInfo, Braintree3ds2Request} from "../api/entities/sys/Typ
 import {AccountingInfoTypeRef, CustomerInfoTypeRef, CustomerTypeRef, InvoiceInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {assertNotNull, neverNull, noOp, promiseMap} from "@tutao/tutanota-utils"
 import {getPreconditionFailedPaymentMsg, SubscriptionType, UpgradeType} from "./SubscriptionUtils"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
@@ -192,7 +192,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 									width: "260px",
 								},
 							},
-							m(ButtonN, {
+							m(Button, {
 								label: "next_action",
 								click: onNextClick,
 								type: ButtonType.Login,
@@ -315,7 +315,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 				m(".dialog-contentButtonsBottom.text-break.selectable", lang.get("creditCardPendingVerification_msg")),
 				m(
 					".flex-center.dialog-buttons",
-					m(ButtonN, {
+					m(Button, {
 						label: "cancel_action",
 						click: closeAction,
 						type: ButtonType.Primary,

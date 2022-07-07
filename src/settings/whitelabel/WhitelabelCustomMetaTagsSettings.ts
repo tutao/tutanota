@@ -3,7 +3,7 @@ import {Dialog} from "../../gui/base/Dialog"
 import {lang} from "../../misc/LanguageViewModel"
 import m, {Children, Component, Vnode} from "mithril"
 import {Icons} from "../../gui/base/icons/Icons"
-import {ButtonAttrs, ButtonN} from "../../gui/base/ButtonN"
+import {ButtonAttrs, Button} from "../../gui/base/Button.js"
 
 export type WhitelabelCustomMetaTagsSettingsAttrs = {
 	metaTags: string
@@ -55,7 +55,7 @@ export class WhitelabelCustomMetaTagsSettings implements Component<WhitelabelCus
 			label: "customMetaTags_label",
 			value: customMetaTagsDefined ? lang.get("activated_label") : lang.get("deactivated_label"),
 			disabled: true,
-			injectionsRight: () => [editCustomMetaTagsButtonAttrs ? m(ButtonN, editCustomMetaTagsButtonAttrs) : null],
+			injectionsRight: () => [editCustomMetaTagsButtonAttrs ? m(Button, editCustomMetaTagsButtonAttrs) : null],
 		} as const
 		return m(TextFieldN, customMetaTagsTextfieldAttrs)
 	}

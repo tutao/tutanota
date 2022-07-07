@@ -9,7 +9,7 @@ import m, {Children, Vnode} from "mithril"
 import {assertMainOrNode, isApp} from "../api/common/Env"
 import {Icons} from "../gui/base/icons/Icons"
 import {copyToClipboard} from "../misc/ClipboardUtils"
-import {ButtonN} from "../gui/base/ButtonN"
+import {Button} from "../gui/base/Button.js"
 import {AccessBlockedError, NotAuthenticatedError} from "../api/common/error/RestError"
 import {locator} from "../api/main/MainLocator"
 
@@ -79,14 +79,14 @@ export class RecoverCodeField {
 				neverNull(vnode.attrs.recoverCode.match(/.{4}/g)).map((el, i) => m("span.pr-s.no-wrap" + (i % 2 === 0 ? "" : ""), el)),
 			),
 			m(".flex.flex-end.mt-m", [
-				m(ButtonN, {
+				m(Button, {
 					label: "copy_action",
 					icon: () => Icons.Clipboard,
 					click: () => copyToClipboard(vnode.attrs.recoverCode),
 				}),
 				isApp() || typeof window.print !== "function"
 					? null
-					: m(ButtonN, {
+					: m(Button, {
 						label: "print_action",
 						icon: () => Icons.Print,
 						click: () => window.print(),

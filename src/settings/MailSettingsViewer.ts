@@ -24,8 +24,8 @@ import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import type {ButtonAttrs} from "../gui/base/Button.js"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
 import {ColumnWidth, createRowActions, TableN} from "../gui/base/TableN"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
@@ -144,7 +144,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			value: this._senderName(),
 			oninput: this._senderName,
 			disabled: true,
-			injectionsRight: () => (logins.getUserController().isGlobalAdmin() ? [m(ButtonN, editSenderNameButtonAttrs)] : []),
+			injectionsRight: () => (logins.getUserController().isGlobalAdmin() ? [m(Button, editSenderNameButtonAttrs)] : []),
 		}
 		const changeSignatureButtonAttrs: ButtonAttrs = {
 			label: "userEmailSignature_label",
@@ -156,14 +156,14 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			value: this._signature(),
 			oninput: this._signature,
 			disabled: true,
-			injectionsRight: () => [m(ButtonN, changeSignatureButtonAttrs)],
+			injectionsRight: () => [m(Button, changeSignatureButtonAttrs)],
 		}
 		const outOfOfficeAttrs: TextFieldAttrs = {
 			label: "outOfOfficeNotification_title",
 			value: this._outOfOfficeStatus(),
 			oninput: this._outOfOfficeStatus,
 			disabled: true,
-			injectionsRight: () => [m(ButtonN, editOutOfOfficeNotificationButtonAttrs)],
+			injectionsRight: () => [m(Button, editOutOfOfficeNotificationButtonAttrs)],
 		}
 
 		const editOutOfOfficeNotificationButtonAttrs: ButtonAttrs = {
@@ -347,7 +347,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				class: "mt-negative-s",
 				value: lang.get("storedDataTimeRange_label", {"{numDays}": this.offlineStorageSettings.getTimeRange()}),
 				disabled: true,
-				injectionsRight: () => [m(ButtonN, {
+				injectionsRight: () => [m(Button, {
 					label: "edit_action",
 					click: () => this.onEditStoredDataTimeRangeClicked(),
 					icon: () => Icons.Edit,

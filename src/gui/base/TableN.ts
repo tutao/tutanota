@@ -3,11 +3,11 @@ import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {px, size} from "../size"
 import {progressIcon} from "./Icon"
-import type {ButtonAttrs} from "./ButtonN"
-import {ButtonN, ButtonType} from "./ButtonN"
+import type {ButtonAttrs} from "./Button.js"
+import {Button, ButtonType} from "./Button.js"
 import type {lazy} from "@tutao/tutanota-utils"
 import {downcast, neverNull} from "@tutao/tutanota-utils"
-import {createDropdown} from "./DropdownN"
+import {createDropdown} from "./Dropdown.js"
 import {Icons} from "./icons/Icons"
 import type {clickHandler} from "./GuiUtils"
 import {assertMainOrNode} from "../../api/common/Env"
@@ -150,7 +150,7 @@ export class TableN implements Component<TableAttrs> {
 										right: px(-size.hpad_button), // same as .mr-negative-s
 									},
 								},
-								m(ButtonN, lineAttrs.actionButtonAttrs),
+								m(Button, lineAttrs.actionButtonAttrs),
 							),
 						]
 						: [],

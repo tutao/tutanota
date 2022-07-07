@@ -1,5 +1,5 @@
 import m, {Children, Component, Vnode} from "mithril"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import type {CredentialsInfo} from "../misc/credentials/CredentialsProvider"
 
 export type CredentialsSelectorAttrs = {
@@ -16,7 +16,7 @@ export class CredentialsSelector implements Component<CredentialsSelectorAttrs> 
 			const buttons: Children = []
 			const onCredentialsDeleted = a.onCredentialsDeleted
 			buttons.push(
-				m(ButtonN, {
+				m(Button, {
 					label: () => c.login,
 					click: () => a.onCredentialsSelected(c),
 					type: ButtonType.Login,
@@ -25,7 +25,7 @@ export class CredentialsSelector implements Component<CredentialsSelectorAttrs> 
 
 			if (onCredentialsDeleted) {
 				buttons.push(
-					m(ButtonN, {
+					m(Button, {
 						label: "delete_action",
 						click: () => onCredentialsDeleted(c),
 						type: ButtonType.Secondary,

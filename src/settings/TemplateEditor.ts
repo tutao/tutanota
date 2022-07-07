@@ -1,11 +1,11 @@
 import m, {Children, Component, Vnode} from "mithril"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import type {ButtonAttrs} from "../gui/base/Button.js"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import {Dialog} from "../gui/base/Dialog"
 import {Icons} from "../gui/base/icons/Icons"
-import {createDropdown} from "../gui/base/DropdownN"
+import {createDropdown} from "../gui/base/Dropdown.js"
 import type {Language} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {EmailTemplate, TemplateGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
@@ -119,7 +119,7 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 	}
 
 	private renderAddLangButton() {
-		return m(ButtonN, {
+		return m(Button, {
 			label: "addLanguage_action",
 			type: ButtonType.Action,
 			icon: () => Icons.Add,
@@ -136,7 +136,7 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 	}
 
 	private renderSelectLangButton() {
-		return m(ButtonN, {
+		return m(Button, {
 			label: "languages_label",
 			type: ButtonType.Action,
 			icon: () => Icons.Language,
@@ -161,7 +161,7 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 	}
 
 	private renderRemoveLangButton() {
-		return m(ButtonN, {
+		return m(Button, {
 			label: "removeLanguage_action",
 			icon: () => Icons.Trash,
 			type: ButtonType.Action,

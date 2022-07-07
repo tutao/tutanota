@@ -1,6 +1,6 @@
 import m, {Children, Component, Vnode} from "mithril"
 import {ListColumnWrapper} from "../gui/ListColumnWrapper"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {Button, ButtonType} from "../gui/base/Button.js"
 import {theme} from "../gui/theme"
 import ColumnEmptyMessageBox from "../gui/base/ColumnEmptyMessageBox"
 import {createInitialTemplateListIfAllowed} from "../templates/TemplateGroupUtils"
@@ -15,7 +15,7 @@ export class DummyTemplateListView implements Component<DummyTemplateListViewAtt
 			{
 				headerContent: m(
 					".mr-negative-s.align-self-end",
-					m(ButtonN, {
+					m(Button, {
 						label: "addTemplate_label",
 						type: ButtonType.Primary,
 						click: () => {

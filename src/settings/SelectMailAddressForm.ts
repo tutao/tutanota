@@ -7,9 +7,9 @@ import {isMailAddress} from "../misc/FormatValidator"
 import {Icons} from "../gui/base/icons/Icons"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import type {ButtonAttrs} from "../gui/base/ButtonN"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {attachDropdown} from "../gui/base/DropdownN"
+import type {ButtonAttrs} from "../gui/base/Button.js"
+import {Button, ButtonType} from "../gui/base/Button.js"
+import {attachDropdown} from "../gui/base/Dropdown.js"
 import {AccessDeactivatedError} from "../api/common/error/RestError"
 import {firstThrow, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
 import {formatMailAddressFromParts} from "../misc/Formatter"
@@ -103,9 +103,9 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 					`@${this._domain()}`,
 				),
 				attrs.availableDomains.length > 1
-					? m(ButtonN, domainChooserAttrs)
+					? m(Button, domainChooserAttrs)
 					: attrs.injectionsRightButtonAttrs
-						? m(ButtonN, attrs.injectionsRightButtonAttrs)
+						? m(Button, attrs.injectionsRightButtonAttrs)
 						: null,
 			],
 		}

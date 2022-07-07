@@ -7,7 +7,7 @@ import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialogN"
-import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {Button, ButtonType} from "../../gui/base/Button.js"
 import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
@@ -50,7 +50,7 @@ export class EnterDomainPage implements WizardPageN<AddDomainData> {
 							width: "260px",
 						},
 					},
-					m(ButtonN, {
+					m(Button, {
 						type: ButtonType.Login,
 						label: "next_action",
 						click: () => emitWizardEvent(this.dom as HTMLElement, WizardEventType.SHOWNEXTPAGE),

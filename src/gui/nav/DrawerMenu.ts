@@ -1,5 +1,5 @@
 import m, {Children, Component, Vnode} from "mithril"
-import {ButtonColor, ButtonN, ButtonType} from "../base/ButtonN"
+import {ButtonColor, Button, ButtonType} from "../base/Button.js"
 import {BootIcons} from "../base/icons/BootIcons"
 import {LogoutUrl} from "../Header.js"
 import {isNewMailActionAvailable, showSupportDialog, showUpgradeDialog, writeInviteMail} from "./NavFunctions"
@@ -9,7 +9,7 @@ import {navButtonRoutes} from "../../misc/RouteChange"
 import {getSafeAreaInsetLeft} from "../HtmlUtils"
 import {Icons} from "../base/icons/Icons"
 import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
-import {attachDropdown} from "../base/DropdownN"
+import {attachDropdown} from "../base/Dropdown.js"
 import {keyManager} from "../../misc/KeyManager"
 
 type Attrs = {
@@ -28,7 +28,7 @@ export class DrawerMenu implements Component<Attrs> {
 			m(".flex.col.height-100p.items-center.pt.pb", [
 				m(".flex-grow"),
 				logins.isGlobalAdminUserLoggedIn() && logins.getUserController().isPremiumAccount()
-					? m(ButtonN, {
+					? m(Button, {
 						icon: () => Icons.Gift,
 						label: "buyGiftCard_label",
 						click: () => {
@@ -42,7 +42,7 @@ export class DrawerMenu implements Component<Attrs> {
 					})
 					: null,
 				isDesktop()
-					? m(ButtonN, {
+					? m(Button, {
 						icon: () => Icons.NewWindow,
 						label: "openNewWindow_action",
 						click: () => {
@@ -53,7 +53,7 @@ export class DrawerMenu implements Component<Attrs> {
 					})
 					: null,
 				!isIOSApp() && logins.isUserLoggedIn() && logins.getUserController().isFreeAccount()
-					? m(ButtonN, {
+					? m(Button, {
 						icon: () => BootIcons.Premium,
 						label: "upgradePremium_label",
 						click: () => showUpgradeDialog(),
@@ -62,7 +62,7 @@ export class DrawerMenu implements Component<Attrs> {
 					})
 					: null,
 				m(
-					ButtonN,
+					Button,
 					attachDropdown(
 						{
                             mainButtonAttrs: {
@@ -93,7 +93,7 @@ export class DrawerMenu implements Component<Attrs> {
 					),
 				),
 				isNewMailActionAvailable() && logins.getUserController().isGlobalAdmin()
-					? m(ButtonN, {
+					? m(Button, {
 						icon: () => BootIcons.Share,
 						label: "invite_alt",
 						click: () => writeInviteMail(),
@@ -102,7 +102,7 @@ export class DrawerMenu implements Component<Attrs> {
 					})
 					: null,
 				logins.isInternalUserLoggedIn()
-					? m(ButtonN, {
+					? m(Button, {
 						icon: () => BootIcons.Settings,
 						label: "settings_label",
 						click: () => m.route.set(navButtonRoutes.settingsUrl),
@@ -110,7 +110,7 @@ export class DrawerMenu implements Component<Attrs> {
 						colors: ButtonColor.DrawerNav,
 					})
 					: null,
-				m(ButtonN, {
+				m(Button, {
 					icon: () => BootIcons.Logout,
 					label: "logout_label",
 					click: () => m.route.set(LogoutUrl),
