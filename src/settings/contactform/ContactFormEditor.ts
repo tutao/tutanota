@@ -1,50 +1,45 @@
 import m from "mithril"
 import {Dialog} from "../../gui/base/Dialog"
-import {Button} from "../../gui/base/Button"
+import type {LanguageCode} from "../../misc/LanguageViewModel"
 import {lang, languages} from "../../misc/LanguageViewModel"
 import {BookingItemFeatureType, GroupType, Keys} from "../../api/common/TutanotaConstants"
 import {getWhitelabelDomain} from "../../api/common/utils/Utils"
-import {neverNull} from "@tutao/tutanota-utils"
+import {mapAndFilterNull, neverNull, ofClass, remove} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../../api/common/Env"
 import {logins} from "../../api/main/LoginController"
-import {CustomerTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import type {GroupInfo} from "../../api/entities/sys/TypeRefs.js"
-import {GroupInfoTypeRef} from "../../api/entities/sys/TypeRefs.js"
+import {CustomerInfoTypeRef, CustomerTypeRef, GroupInfoTypeRef, GroupTypeRef, UserTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import {DropDownSelector} from "../../gui/base/DropDownSelector"
-import {GroupTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import type {TableAttrs, TableLineAttrs} from "../../gui/base/TableN"
 import {ColumnWidth, TableN} from "../../gui/base/TableN"
-import type {ContactForm} from "../../api/entities/tutanota/TypeRefs.js"
-import {ContactFormTypeRef, createContactForm} from "../../api/entities/tutanota/TypeRefs.js"
-import {mapAndFilterNull, remove} from "@tutao/tutanota-utils"
+import type {ContactForm, ContactFormLanguage} from "../../api/entities/tutanota/TypeRefs.js"
+import {
+	ContactFormTypeRef,
+	createContactForm,
+	createContactFormLanguage,
+	CustomerContactFormGroupRootTypeRef,
+	MailboxGroupRootTypeRef
+} from "../../api/entities/tutanota/TypeRefs.js"
 import {getContactFormUrl} from "./ContactFormViewer"
 import {HtmlEditor} from "../../gui/editor/HtmlEditor"
 import {Icons} from "../../gui/base/icons/Icons"
-import {CustomerContactFormGroupRootTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {NotFoundError} from "../../api/common/error/RestError"
-import {MailboxGroupRootTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {UserTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import stream from "mithril/stream"
-import type {ContactFormLanguage} from "../../api/entities/tutanota/TypeRefs.js"
-import {createContactFormLanguage} from "../../api/entities/tutanota/TypeRefs.js"
+import Stream from "mithril/stream"
 import {DefaultAnimationTime} from "../../gui/animation/Animations"
 import {getDefaultContactFormLanguage} from "./ContactFormUtils"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
-import {CustomerInfoTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {windowFacade} from "../../misc/WindowFacade"
-import {ButtonType} from "../../gui/base/ButtonN"
+import {ButtonAttrs, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {compareGroupInfos, getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
 import {isSameId, stringToCustomId} from "../../api/common/utils/EntityUtils"
-import {createDropDownButton} from "../../gui/base/Dropdown"
-import type {LanguageCode} from "../../misc/LanguageViewModel"
 import {showBuyDialog} from "../../subscription/BuyDialog"
 import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
 import {TextFieldN} from "../../gui/base/TextFieldN"
-import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
-import Stream from "mithril/stream";
+import {attachDropdown, DropdownChildAttrs} from "../../gui/base/DropdownN.js"
 
 assertMainOrNode()
 // keep in sync with ContactFormAccessor.java
@@ -208,8 +203,7 @@ export class ContactFormEditor {
 		let windowCloseUnsubscribe: () => void
 
 		this.view = () => {
-			return m(
-				"#contact-editor.pb",
+			return m("#contact-editor.pb",
 				{
 					oncreate: vnode => (windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {
 					})),
@@ -356,21 +350,24 @@ export class ContactFormEditor {
 	}
 
 	_createLanguageFieldAttrs(): TextFieldAttrs {
-		const selectLanguageButton = createDropDownButton(
-			"more_label",
-			() => Icons.More,
-			() => {
-				const buttons: Array<Button> = this._languages
-												   .map(l => {
-													   return new Button(
-														   () => getLanguageName(l.code),
-														   e => this._language(l),
-													   ).setType(ButtonType.Dropdown)
-												   })
-												   .sort((a: Button, b: Button) => a.getLabel().localeCompare(b.getLabel()))
+		const selectLanguageButtonAttrs = attachDropdown({
+			mainButtonAttrs: {
+				label: "more_label",
+				icon: () => Icons.More,
+			},
+			childAttrs: () => {
+				const childAttrs: Array<DropdownChildAttrs> = this._languages
+																  .map(lang => ({
+																	  label: () => getLanguageName(lang.code),
+																	  click: () => this._language(lang),
+																	  type: ButtonType.Dropdown
+																  }))
+																  .sort((a, b) => a.label().localeCompare(b.label()))
 
-				buttons.push(
-					new Button("addLanguage_action", e => {
+				childAttrs.push({
+					label: "addLanguage_action",
+					type: ButtonType.Dropdown,
+					click: () => {
 						const additionalLanguages = languages
 							.filter(t => {
 								if (t.code.endsWith("_sie")) {
@@ -411,26 +408,32 @@ export class ContactFormEditor {
 								okAction: addLanguageOkAction,
 							})
 						}, DefaultAnimationTime) // wait till the dropdown is hidden
-					}).setType(ButtonType.Dropdown),
-				)
-				return buttons
-			},
-			250,
-		)
-		const deleteLanguageButton = new Button(
-			"delete_action",
-			() => {
-				remove(this._languages, this._language())
+					}
+				})
 
-				this._language(this._languages[0])
+				return childAttrs
 			},
-			() => Icons.Cancel,
-		)
+			width: 250
+		})
+
 		return {
 			label: "language_label",
 			value: this._languageDisplayValue,
 			disabled: true,
-			injectionsRight: () => [m(selectLanguageButton), this._languages.length > 1 ? m(deleteLanguageButton) : null],
+			injectionsRight: () => [
+				m(ButtonN, selectLanguageButtonAttrs),
+				this._languages.length > 1
+					? m(ButtonN, {
+						label: "delete_action",
+						click: () => {
+							remove(this._languages, this._language())
+
+							this._language(this._languages[0])
+						},
+						icon: () => Icons.Cancel,
+					})
+					: null
+			],
 		}
 	}
 
@@ -452,50 +455,50 @@ export class ContactFormEditor {
 	}
 
 	_createReceivingMailboxFieldAttrs(): TextFieldAttrs {
-		let userDropdown = createDropDownButton(
-			"account_label",
-			() => BootIcons.Contacts,
-			() => {
-				return this._allUserGroupInfos.map(gi =>
-					new Button(
-						() => getGroupInfoDisplayName(gi),
-						() => {
-							this._participantGroupInfoList.length = 0
-
-							this._receivingMailbox(gi)
-						},
-					)
-						.setType(ButtonType.Dropdown)
-						.setSelected(() => this._receivingMailbox() === gi),
-				)
+		const userDropdownAttrs = attachDropdown({
+			mainButtonAttrs: {
+				label: "account_label",
+				icon: () => BootIcons.Contacts,
 			},
-			250,
-		)
-		let groupsDropdown: Button | null = null
+			childAttrs: () =>
+				this._allUserGroupInfos.map(gi => ({
+					label: () => getGroupInfoDisplayName(gi),
+					click: () => {
+						this._participantGroupInfoList.length = 0
 
+						this._receivingMailbox(gi)
+					},
+					type: ButtonType.Dropdown,
+					isSelected: () => this._receivingMailbox() === gi
+				})),
+			width: 250
+		})
+
+		let groupsDropdownAttrs: ButtonAttrs | null = null
 		if (this._allSharedMailboxGroupInfos.length > 0) {
-			groupsDropdown = createDropDownButton(
-				"groups_label",
-				() => Icons.People,
-				() => {
-					return this._allSharedMailboxGroupInfos.map(gi =>
-						new Button(
-							() => getGroupInfoDisplayName(gi),
-							() => this._receivingMailbox(gi),
-						)
-							.setType(ButtonType.Dropdown)
-							.setSelected(() => this._receivingMailbox() === gi),
-					)
+			groupsDropdownAttrs = attachDropdown({
+				mainButtonAttrs: {
+					label: "groups_label",
+					icon: () => Icons.People,
 				},
-				250,
-			)
+				childAttrs: () => this._allSharedMailboxGroupInfos.map(gi => ({
+					label: () => getGroupInfoDisplayName(gi),
+					click: () => this._receivingMailbox(gi),
+					type: ButtonType.Dropdown,
+					isSelected: () => this._receivingMailbox() === gi,
+				})),
+
+				width: 250,
+			})
 		}
 
 		return {
 			label: "receivingMailbox_label",
 			value: this._receivingMailboxDisplayValue,
 			disabled: true,
-			injectionsRight: () => (groupsDropdown ? [m(userDropdown), m(groupsDropdown)] : [m(userDropdown)]),
+			injectionsRight: () => groupsDropdownAttrs
+				? [m(ButtonN, userDropdownAttrs), m(ButtonN, groupsDropdownAttrs)]
+				: [m(ButtonN, userDropdownAttrs)],
 		}
 	}
 
