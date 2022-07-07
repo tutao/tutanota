@@ -244,6 +244,47 @@ o.spec("UsageTestModel", function () {
 				await assertStored(persistentStorage, result, newAssignment)
 				verify(ephemeralStorage.getTestDeviceId(), {times: 0})
 			})
+
+			o("nothing is stored if customer has opted out", async function () {
+				replace(usageTestModel, "customerProperties", createCustomerProperties({usageDataOptedOut: true}))
+
+				usageTestModel.setStorageBehavior(StorageBehavior.Persist)
+
+				when(serviceExecutor.post(UsageTestAssignmentService, createUsageTestAssignmentIn({}), {
+					suspensionBehavior: SuspensionBehavior.Throw,
+				})).thenResolve(
+					createUsageTestAssignmentOut({
+						assignments: [newAssignment],
+						testDeviceId: testDeviceId,
+					})
+				)
+
+				await usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly)
+
+				o(await persistentStorage.getAssignments()).equals(null)
+				verify(ephemeralStorage.getTestDeviceId(), {times: 0})
+			})
+
+			o("nothing is stored if user has not opted in", async function () {
+				replace(userControllerMock, "userSettingsGroupRoot", createUserSettingsGroupRoot({usageDataOptedIn: false}))
+
+				usageTestModel.setStorageBehavior(StorageBehavior.Persist)
+
+				when(serviceExecutor.post(UsageTestAssignmentService, createUsageTestAssignmentIn({}), {
+					suspensionBehavior: SuspensionBehavior.Throw,
+				})).thenResolve(
+					createUsageTestAssignmentOut({
+						assignments: [newAssignment],
+						testDeviceId: testDeviceId,
+					})
+				)
+
+				await usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly)
+
+				o(await persistentStorage.getAssignments()).equals(null)
+				verify(ephemeralStorage.getTestDeviceId(), {times: 0})
+			})
 		})
+
 	})
 })
