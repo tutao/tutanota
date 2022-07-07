@@ -6,7 +6,7 @@ import type {DnsRecord} from "../../api/entities/sys/TypeRefs.js"
 import {createDnsRecord} from "../../api/entities/sys/TypeRefs.js"
 import {DnsRecordType} from "../../api/common/TutanotaConstants"
 import m, {Children} from "mithril"
-import {ColumnWidth, TableN} from "../../gui/base/TableN"
+import {ColumnWidth, Table} from "../../gui/base/Table.js"
 import type {EditAliasesFormAttrs} from "../EditAliasesFormN"
 import {createEditAliasFormAttrs} from "../EditAliasesFormN"
 import {AddEmailAddressesPage, AddEmailAddressesPageAttrs} from "./AddEmailAddressesPage"
@@ -91,7 +91,7 @@ export const DnsRecordTypeToDnsType: Record<DnsRecordType, ActualDnsRecordType> 
 })
 
 export function createDnsRecordTableN(records: ValidatedDnSRecord[], refreshButtonAttrs: ButtonAttrs | null): Children {
-	return m(TableN, {
+	return m(Table, {
 		columnHeading: ["type_label", "dnsRecordHostOrName_label", "dnsRecordValueOrPointsTo_label"],
 		addButtonAttrs: refreshButtonAttrs,
 		columnWidths: [ColumnWidth.Small, ColumnWidth.Small, ColumnWidth.Largest],
@@ -116,7 +116,7 @@ export function createDnsRecordTableN(records: ValidatedDnSRecord[], refreshButt
 }
 
 export function createDnsRecordTable(records: DnsRecord[]): Children {
-	return m(TableN, {
+	return m(Table, {
 		columnHeading: ["type_label", "dnsRecordHostOrName_label", "dnsRecordValueOrPointsTo_label"],
 		columnWidths: [ColumnWidth.Small, ColumnWidth.Small, ColumnWidth.Largest],
 		showActionButtonColumn: false,

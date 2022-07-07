@@ -1,8 +1,8 @@
 import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import type {InfoLink, TranslationKey} from "../misc/LanguageViewModel"
-import type {TableAttrs} from "../gui/base/TableN"
-import {TableN} from "../gui/base/TableN"
+import type {TableAttrs} from "../gui/base/Table.js"
+import {Table} from "../gui/base/Table.js"
 import {SettingsExpander} from "./SettingsExpander"
 import type {lazy} from "@tutao/tutanota-utils"
 import Stream from "mithril/stream";
@@ -35,7 +35,7 @@ export class ExpandableTable implements Component<ExpandableTableAttrs> {
 				onExpand,
 				expanded: expanded || this.expanded,
 			},
-			m(TableN, table),
+			m(Table, table),
 		)
 	}
 }

@@ -46,7 +46,7 @@ import {
 import {Button, ButtonType} from "../gui/base/Button.js"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import {Dialog, DialogType} from "../gui/base/Dialog"
-import {ColumnWidth, TableN} from "../gui/base/TableN"
+import {ColumnWidth, Table} from "../gui/base/Table.js"
 import {showPurchaseGiftCardDialog} from "./giftcards/PurchaseGiftCardDialog"
 import {GiftCardStatus, loadGiftCards, showGiftCardToShare} from "./giftcards/GiftCardUtils"
 import {locator} from "../api/main/MainLocator"
@@ -842,7 +842,7 @@ function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => bo
 			}
 		})
 	return [
-		m(TableN, {
+		m(Table, {
 			addButtonAttrs,
 			columnHeading,
 			columnWidths,

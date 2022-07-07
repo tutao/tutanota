@@ -1,7 +1,7 @@
 import m, {Children, Component, Vnode} from "mithril"
 import {Dialog} from "../gui/base/Dialog"
-import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
-import {ColumnWidth, TableN} from "../gui/base/TableN"
+import type {TableAttrs, TableLineAttrs} from "../gui/base/Table.js"
+import {ColumnWidth, Table} from "../gui/base/Table.js"
 import {lang, TranslationKey} from "../misc/LanguageViewModel"
 import {InvalidDataError, LimitReachedError, PreconditionFailedError} from "../api/common/error/RestError"
 import {firstThrow, noOp, ofClass} from "@tutao/tutanota-utils"
@@ -63,7 +63,7 @@ export class EditAliasesFormN implements Component<EditAliasesFormAttrs> {
 			m(ExpanderPanelN, {
 					expanded: this.expanded,
 				},
-				m(TableN, aliasesTableAttrs),
+				m(Table, aliasesTableAttrs),
 			),
 			m(
 				".small",

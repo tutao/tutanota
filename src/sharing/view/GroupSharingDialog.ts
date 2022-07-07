@@ -1,8 +1,8 @@
 import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import {Dialog, DialogType} from "../../gui/base/Dialog"
-import type {TableLineAttrs} from "../../gui/base/TableN"
-import {ColumnWidth, TableN} from "../../gui/base/TableN"
+import type {TableLineAttrs} from "../../gui/base/Table.js"
+import {ColumnWidth, Table} from "../../gui/base/Table.js"
 import {assert, assertNotNull, downcast, findAndRemove, neverNull, remove} from "@tutao/tutanota-utils"
 import {Icons} from "../../gui/base/icons/Icons"
 import {lang} from "../../misc/LanguageViewModel"
@@ -72,7 +72,7 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 		const {model, allowGroupNameOverride, texts} = vnode.attrs
 		const groupName = getSharedGroupName(model.info, allowGroupNameOverride)
 		return m(".flex.col.pt-s", [
-			m(TableN, {
+			m(Table, {
 				columnHeading: [() => texts.participantsLabel(groupName)],
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
 				lines: this._renderMemberInfos(model, texts, groupName).concat(this._renderGroupInvitations(model, texts, groupName)),

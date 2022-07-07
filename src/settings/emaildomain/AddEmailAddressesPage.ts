@@ -12,8 +12,8 @@ import {Dialog} from "../../gui/base/Dialog"
 import {locator} from "../../api/main/MainLocator"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import type {TableAttrs} from "../../gui/base/TableN"
-import {ColumnWidth, TableN} from "../../gui/base/TableN"
+import type {TableAttrs} from "../../gui/base/Table.js"
+import {ColumnWidth, Table} from "../../gui/base/Table.js"
 import {theme} from "../../gui/theme"
 import type {WizardPageAttrs} from "../../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialogN"
@@ -113,7 +113,7 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 						"{1}": a.data.editAliasFormAttrs.aliasCount.availableToCreate,
 					}),
 			),
-			logins.getUserController().userGroupInfo.mailAddressAliases.length ? m(TableN, aliasesTableAttrs) : null,
+			logins.getUserController().userGroupInfo.mailAddressAliases.length ? m(Table, aliasesTableAttrs) : null,
 			m(".h4.mt", lang.get("bookingItemUsers_label")),
 			m(".mt", [
 				lang.get("addCustomDomainUsers_msg"),
