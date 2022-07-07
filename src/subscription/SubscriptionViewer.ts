@@ -15,7 +15,6 @@ import {
 import {assertNotNull, downcast, incrementDate, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {logins} from "../api/main/LoginController"
 import {lang, TranslationKey} from "../misc/LanguageViewModel"
-import {Button} from "../gui/base/Button"
 import {Icons} from "../gui/base/icons/Icons"
 import {formatPrice, formatPriceDataWithInfo, getCurrentCount} from "./PriceUtils"
 import {formatDate, formatNameAndAddress, formatStorageSize} from "../misc/Formatter"
@@ -101,16 +100,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	private _giftCardsExpanded: Stream<boolean>
 
 	constructor() {
-		let subscriptionAction = new Button(
-			"subscription_label",
-			() => {
-				if (this._accountingInfo && this._customer && this._customerInfo && this._lastBooking) {
-					showSwitchDialog(this._customer, this._customerInfo, this._accountingInfo, this._lastBooking)
-				}
-			},
-			() => Icons.Edit,
-		)
-
 		const isPremiumPredicate = () => logins.getUserController().isPremiumAccount()
 
 		const deleteAccountExpanded = stream(false)
@@ -133,7 +122,15 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							label: "upgrade_action",
 							click: showUpgradeWizard,
 							icon: () => Icons.Edit,
-						} as const) : !this._isCancelled ? [m(subscriptionAction)] : null,
+						} as const) : !this._isCancelled ? [m(ButtonN, {
+							label: "subscription_label",
+							click: 			() => {
+								if (this._accountingInfo && this._customer && this._customerInfo && this._lastBooking) {
+									showSwitchDialog(this._customer, this._customerInfo, this._accountingInfo, this._lastBooking)
+								}
+							},
+							icon: () => Icons.Edit,
+						})] : null,
 				}),
 				this._showPriceData()
 					? m(TextFieldN, {
