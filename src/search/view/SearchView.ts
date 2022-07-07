@@ -220,7 +220,7 @@ export class SearchView implements CurrentView {
 			size.third_col_min_width,
 			size.third_col_max_width,
 		)
-		this.viewSlider = new ViewSlider(header,[this.folderColumn, this.resultListColumn, this.resultDetailsColumn], "ContactView")
+		this.viewSlider = new ViewSlider(header, [this.folderColumn, this.resultListColumn, this.resultDetailsColumn], "ContactView")
 
 		this.view = (): Children => {
 			return m("#search.main-view", m(this.viewSlider))
@@ -603,12 +603,9 @@ export class SearchView implements CurrentView {
 			? m(MultiSelectionBar, {
 				selectNoneHandler: () => this._searchList.selectNone(),
 				selectedEntiesLength: this._searchList.getSelectedEntities().length,
-				content: {
-					view: () =>
-						m(ActionBar, {
-							buttons: this._viewer.multiSearchActionBarButtons(),
-						}),
-				},
+				children: m(ActionBar, {
+					buttons: this._viewer.multiSearchActionBarButtons(),
+				}),
 			})
 			: null
 	}

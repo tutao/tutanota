@@ -48,7 +48,6 @@ import {styles} from "../../gui/styles"
 import {size} from "../../gui/size"
 import {FolderColumnView} from "../../gui/FolderColumnView.js"
 import {modal} from "../../gui/base/Modal"
-import {DomRectReadOnlyPolyfilled} from "../../gui/base/Dropdown"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {archiveMails, moveMails, moveToInbox, promptAndDeleteMails} from "./MailGuiUtils"
@@ -59,6 +58,7 @@ import {CancelledError} from "../../api/common/error/CancelledError"
 import Stream from "mithril/stream";
 import {MailViewerViewModel} from "./MailViewerViewModel"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
+import { DomRectReadOnlyPolyfilled } from "../../gui/base/Dropdown.js"
 import { readLocalFiles } from "../../file/FileController.js"
 
 assertMainOrNode()
@@ -882,12 +882,7 @@ export class MailView implements CurrentView {
 			? m(MultiSelectionBar, {
 				selectNoneHandler: () => this.mailList?.list.selectNone(),
 				selectedEntiesLength: this.mailList.list.getSelectedEntities().length,
-				content: {
-					view: () =>
-						m(ActionBar, {
-							buttons: this.actionBarButtons(),
-						}),
-				},
+				children: m(ActionBar, {buttons: this.actionBarButtons()}),
 			})
 			: null
 	}
