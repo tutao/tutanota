@@ -39,7 +39,7 @@ export class DrawerMenu implements Component<Attrs> {
 					m(".news-button", [
 						m(ButtonN, {
 							icon: () => Icons.Bulb,
-							label: () => "Usage testing opt-in", // FIXME Add translation string
+							label: "userUsageDataOptIn_label",
 							click: showUsageTestOptInDialog,
 							type: ButtonType.ActionLarge,
 							colors: ButtonColor.DrawerNav,
