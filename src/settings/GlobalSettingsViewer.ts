@@ -1,5 +1,5 @@
-import m from "mithril"
-import {DAY_IN_MILLIS, LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
+import m, {Children} from "mithril"
+import {assertNotNull, DAY_IN_MILLIS, LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {InfoLink, lang} from "../misc/LanguageViewModel"
 import {getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog} from "./AddSpamRuleDialog"
 import {getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType} from "../api/common/TutanotaConstants"
@@ -16,7 +16,6 @@ import {
 	RejectedSenderTypeRef,
 	UserTypeRef
 } from "../api/entities/sys/TypeRefs.js"
-import {DropDownSelector} from "../gui/base/DropDownSelector"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {logins} from "../api/main/LoginController"
@@ -45,7 +44,7 @@ import {getDomainPart} from "../misc/parsing/MailAddressParser"
 import type {UpdatableSettingsViewer} from "./SettingsView"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
-import {SelectorItemList} from "../gui/base/DropDownSelectorN.js"
+import {DropDownSelectorN} from "../gui/base/DropDownSelectorN.js"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -54,186 +53,180 @@ const REJECTED_SENDERS_TO_LOAD_MS = 5 * DAY_IN_MILLIS
 const REJECTED_SENDERS_MAX_NUMBER = 100
 
 export class GlobalSettingsViewer implements UpdatableSettingsViewer {
-	view: UpdatableSettingsViewer["view"]
-	private readonly props: Stream<CustomerServerProperties>
-	private customer: Customer | null
-	private readonly customerInfo: LazyLoaded<CustomerInfo>
-	private spamRuleLines: ReadonlyArray<TableLineAttrs>
-	private rejectedSenderLines: ReadonlyArray<TableLineAttrs>
-	private customDomainLines: ReadonlyArray<TableLineAttrs>
-	private auditLogLines: ReadonlyArray<TableLineAttrs>
+	private readonly props = stream<Readonly<CustomerServerProperties>>()
+	private customer: Customer | null = null
+	private readonly customerInfo = new LazyLoaded<CustomerInfo>(() => this.loadCustomerInfo())
+
+	private spamRuleLines: ReadonlyArray<TableLineAttrs> = []
+	private rejectedSenderLines: ReadonlyArray<TableLineAttrs> = []
+	private customDomainLines: ReadonlyArray<TableLineAttrs> = []
+	private auditLogLines: ReadonlyArray<TableLineAttrs> = []
 	/**
 	 * caches the current status for the custom email domains
 	 * map from domain name to status
 	 */
-	private readonly domainDnsStatus: Record<string, DomainDnsStatus>
+	private readonly domainDnsStatus: Record<string, DomainDnsStatus> = {}
+
+	private requirePasswordUpdateAfterReset = false
+	private saveIpAddress = false
 
 	constructor() {
-		this.customerInfo = new LazyLoaded(() => {
-			return locator.entityClient
-						  .load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-						  .then(customer => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
-		})
-		this.domainDnsStatus = {}
-		this.spamRuleLines = []
-		this.rejectedSenderLines = []
-		this.customDomainLines = []
-		this.auditLogLines = []
-		this.props = stream()
-		this.customer = null
-
-		let saveIpAddress = stream(false)
-
-		this.props.map(props => saveIpAddress(props.saveEncryptedIpAddressInSession))
-
-		let saveIpAddressDropdown = new DropDownSelector(
-			"saveEncryptedIpAddress_label",
-			null,
-			[
-				{
-					name: lang.get("yes_label"),
-					value: true,
-				},
-				{
-					name: lang.get("no_label"),
-					value: false,
-				},
-			],
-			saveIpAddress,
-			250,
-		).setSelectionChangedHandler(v => {
-			const newProps: CustomerServerProperties = Object.assign({}, this.props(), {
-				saveEncryptedIpAddressInSession: v,
-			})
-			locator.entityClient.update(newProps)
-		})
-		let requirePasswordUpdateAfterReset = stream(false)
-
-		this.props.map(props => requirePasswordUpdateAfterReset(props.requirePasswordUpdateAfterReset))
-
-		let requirePasswordUpdateAfterResetDropdown = new DropDownSelector(
-			"enforcePasswordUpdate_title",
-			() => lang.get("enforcePasswordUpdate_msg"),
-			[
-				{
-					name: lang.get("yes_label"),
-					value: true,
-				},
-				{
-					name: lang.get("no_label"),
-					value: false,
-				},
-			],
-			requirePasswordUpdateAfterReset,
-			250,
-		).setSelectionChangedHandler(v => {
-			const newProps: CustomerServerProperties = Object.assign({}, this.props(), {
-				requirePasswordUpdateAfterReset: v,
-			})
-			locator.entityClient.update(newProps)
+		this.props.map(props => {
+			this.requirePasswordUpdateAfterReset = props.requirePasswordUpdateAfterReset
+			this.saveIpAddress = props.saveEncryptedIpAddressInSession
 		})
 
-		this.view = () => {
-			const spamRuleTableAttrs: TableAttrs = {
-				columnHeading: ["emailSender_label", "emailSenderRule_label"],
-				columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
-				showActionButtonColumn: true,
-				addButtonAttrs: {
-					label: "addSpamRule_action",
-					click: () => showAddSpamRuleDialog(null),
-					icon: () => Icons.Add,
-				},
-				lines: this.spamRuleLines,
-			}
-			const rejectedSenderTableAttrs: TableAttrs = {
-				columnHeading: ["emailSender_label"],
-				columnWidths: [ColumnWidth.Largest],
-				showActionButtonColumn: true,
-				addButtonAttrs: {
-					label: "refresh_action",
-					click: () => {
-						this.updateRejectedSenderTable()
-					},
-					icon: () => BootIcons.Progress,
-				},
-				lines: this.rejectedSenderLines,
-			}
-			const customDomainTableAttrs: TableAttrs = {
-				columnHeading: ["adminCustomDomain_label", "catchAllMailbox_label"],
-				columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
-				showActionButtonColumn: true,
-				addButtonAttrs: {
-					label: "addCustomDomain_action",
-					click: () => {
-						this.customerInfo.getAsync().then(customerInfo => {
-							if (logins.getUserController().isFreeAccount()) {
-								showNotAvailableForFreeDialog(getCustomMailDomains(customerInfo).length === 0)
-							} else {
-								showAddDomainWizard("", customerInfo).then(() => {
-									this.updateDomains()
-								})
-							}
-						})
-					},
-					icon: () => Icons.Add,
-				},
-				lines: this.customDomainLines,
-			}
-			const auditLogTableAttrs: TableAttrs = {
-				columnHeading: ["action_label", "modified_label", "time_label"],
-				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest, ColumnWidth.Small],
-				showActionButtonColumn: true,
-				lines: this.auditLogLines,
-			}
-			return [
-				m("#global-settings.fill-absolute.scroll.plr-l", [
-					m(ExpandableTable, {
-						title: "adminSpam_action",
-						table: spamRuleTableAttrs,
-						infoMsg: "adminSpamRuleInfo_msg",
-						infoLinkId: InfoLink.SpamRules,
-					}),
-					m(ExpandableTable, {
-						title: "rejectedEmails_label",
-						table: rejectedSenderTableAttrs,
-						infoMsg: "rejectedSenderListInfo_msg",
-						onExpand: () => this.updateRejectedSenderTable(),
-					}),
-					m(ExpandableTable, {
-						title: "customEmailDomains_label",
-						table: customDomainTableAttrs,
-						infoMsg: "moreInfo_msg",
-						infoLinkId: InfoLink.DomainInfo,
-					}),
-					m(".mt-l", [
-						m(".h4", lang.get("security_title")),
-						m(saveIpAddressDropdown),
-						logins.getUserController().isGlobalAdmin() && logins.getUserController().isPremiumAccount()
-							? m("", [
-								m(requirePasswordUpdateAfterResetDropdown),
-								this.customer
-									? m(
-										".mt-l",
-										m(ExpandableTable, {
-											title: "auditLog_title",
-											table: auditLogTableAttrs,
-											infoMsg: "auditLogInfo_msg",
-										}),
-									)
-									: null,
-							])
-							: null,
-					]),
-				]),
-			]
-		}
+		this.view = this.view.bind(this)
 
 		this.updateDomains()
-
 		this.updateCustomerServerProperties()
-
 		this.updateAuditLog()
 	}
+
+	view(): Children {
+		const spamRuleTableAttrs: TableAttrs = {
+			columnHeading: ["emailSender_label", "emailSenderRule_label"],
+			columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
+			showActionButtonColumn: true,
+			addButtonAttrs: {
+				label: "addSpamRule_action",
+				click: () => showAddSpamRuleDialog(null),
+				icon: () => Icons.Add,
+			},
+			lines: this.spamRuleLines,
+		}
+		const rejectedSenderTableAttrs: TableAttrs = {
+			columnHeading: ["emailSender_label"],
+			columnWidths: [ColumnWidth.Largest],
+			showActionButtonColumn: true,
+			addButtonAttrs: {
+				label: "refresh_action",
+				click: () => {
+					this.updateRejectedSenderTable()
+				},
+				icon: () => BootIcons.Progress,
+			},
+			lines: this.rejectedSenderLines,
+		}
+		const customDomainTableAttrs: TableAttrs = {
+			columnHeading: ["adminCustomDomain_label", "catchAllMailbox_label"],
+			columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
+			showActionButtonColumn: true,
+			addButtonAttrs: {
+				label: "addCustomDomain_action",
+				click: () => {
+					this.customerInfo.getAsync().then(customerInfo => {
+						if (logins.getUserController().isFreeAccount()) {
+							showNotAvailableForFreeDialog(getCustomMailDomains(customerInfo).length === 0)
+						} else {
+							showAddDomainWizard("", customerInfo).then(() => {
+								this.updateDomains()
+							})
+						}
+					})
+				},
+				icon: () => Icons.Add,
+			},
+			lines: this.customDomainLines,
+		}
+		const auditLogTableAttrs: TableAttrs = {
+			columnHeading: ["action_label", "modified_label", "time_label"],
+			columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest, ColumnWidth.Small],
+			showActionButtonColumn: true,
+			lines: this.auditLogLines,
+		}
+		return [
+			m("#global-settings.fill-absolute.scroll.plr-l", [
+				m(ExpandableTable, {
+					title: "adminSpam_action",
+					table: spamRuleTableAttrs,
+					infoMsg: "adminSpamRuleInfo_msg",
+					infoLinkId: InfoLink.SpamRules,
+				}),
+				m(ExpandableTable, {
+					title: "rejectedEmails_label",
+					table: rejectedSenderTableAttrs,
+					infoMsg: "rejectedSenderListInfo_msg",
+					onExpand: () => this.updateRejectedSenderTable(),
+				}),
+				m(ExpandableTable, {
+					title: "customEmailDomains_label",
+					table: customDomainTableAttrs,
+					infoMsg: "moreInfo_msg",
+					infoLinkId: InfoLink.DomainInfo,
+				}),
+				m(".mt-l", [
+					m(".h4", lang.get("security_title")),
+					m(DropDownSelectorN, {
+						label: "saveEncryptedIpAddress_label",
+						selectedValue: this.saveIpAddress,
+						selectionChangedHandler: value => {
+							const newProps = Object.assign(
+								{},
+								this.props(),
+								{
+									saveEncryptedIpAddressInSession: value,
+								}
+							)
+							locator.entityClient.update(newProps)
+						},
+						items: [
+							{
+								name: lang.get("yes_label"),
+								value: true,
+							},
+							{
+								name: lang.get("no_label"),
+								value: false,
+							},
+						],
+						dropdownWidth: 250
+					}),
+					logins.getUserController().isGlobalAdmin() && logins.getUserController().isPremiumAccount()
+						? m("", [
+							m(DropDownSelectorN, {
+								label: "enforcePasswordUpdate_title",
+								helpLabel: () => lang.get("enforcePasswordUpdate_msg"),
+								selectedValue: this.requirePasswordUpdateAfterReset,
+								selectionChangedHandler: value => {
+									const newProps: CustomerServerProperties = Object.assign(
+										{},
+										this.props(),
+										{
+											requirePasswordUpdateAfterReset: value,
+										}
+									)
+									locator.entityClient.update(newProps)
+								},
+								items: [
+									{
+										name: lang.get("yes_label"),
+										value: true,
+									},
+									{
+										name: lang.get("no_label"),
+										value: false,
+									},
+								],
+								dropdownWidth: 250
+							}),
+							this.customer
+								? m(
+									".mt-l",
+									m(ExpandableTable, {
+										title: "auditLog_title",
+										table: auditLogTableAttrs,
+										infoMsg: "auditLogInfo_msg",
+									}),
+								)
+								: null,
+						])
+						: null,
+				]),
+			]),
+		]
+	}
+
 
 	private updateCustomerServerProperties(): Promise<void> {
 		return locator.customerFacade.loadCustomerServerProperties().then(props => {
@@ -620,6 +613,12 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					   .catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
 			}
 		})
+	}
+
+	private loadCustomerInfo(): Promise<CustomerInfo> {
+		return locator.entityClient
+					  .load(CustomerTypeRef, assertNotNull(logins.getUserController().user.customer))
+					  .then(customer => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
 	}
 
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
