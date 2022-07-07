@@ -134,7 +134,7 @@ async function createComponents(): Promise<Components> {
 	const tray = new DesktopTray(conf)
 	const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory())
 	const dateProvider = new DateProviderImpl()
-	const dl = new DesktopDownloadManager(conf, desktopNet, desktopUtils, dateProvider, fs, electron, cryptoFns)
+	const dl = new DesktopDownloadManager(conf, desktopNet, desktopUtils, dateProvider, fs, electron)
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapperImpl())
 	const shortcutManager = new LocalShortcutManager()
