@@ -43,13 +43,18 @@ import {LockedError} from "../../api/common/error/RestError"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {theme} from "../../gui/theme"
 import {client} from "../../misc/ClientDetector"
-import {DomRectReadOnlyPolyfilled} from "../../gui/base/Dropdown"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import Badge from "../../gui/base/Badge"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {styles} from "../../gui/styles"
-import {attachDropdown, createAsyncDropdown, createDropdown, showDropdownAtPosition} from "../../gui/base/DropdownN"
+import {
+    attachDropdown,
+    createAsyncDropdown,
+    createDropdown,
+    DomRectReadOnlyPolyfilled,
+    showDropdownAtPosition
+} from "../../gui/base/DropdownN"
 import {navButtonRoutes} from "../../misc/RouteChange"
 import {RecipientButton} from "../../gui/base/RecipientButton"
 import {EventBanner} from "./EventBanner"

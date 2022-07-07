@@ -8,8 +8,6 @@ import {focusNext, focusPrevious} from "../../misc/KeyManager"
 import type {ButtonAttrs} from "./ButtonN"
 import {ButtonN} from "./ButtonN"
 import {lang} from "../../misc/LanguageViewModel"
-import type {PosRect} from "./Dropdown"
-import {DomRectReadOnlyPolyfilled} from "./Dropdown"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {newMouseEvent} from "../HtmlUtils"
 import type {$Promisable, lazy, lazyAsync} from "@tutao/tutanota-utils"
@@ -38,6 +36,47 @@ export type DropdownChildAttrs = DropdownInfoAttrs | ButtonAttrs
 
 function isDropDownInfo(dropdownChild: DropdownChildAttrs): dropdownChild is DropdownInfoAttrs {
 	return dropdownChild.hasOwnProperty("info") && dropdownChild.hasOwnProperty("center") && dropdownChild.hasOwnProperty("bold")
+}
+
+export interface PosRect {
+    readonly height: number
+    readonly width: number
+    readonly top: number
+    readonly left: number
+    readonly right: number
+    readonly bottom: number
+}
+
+// Some Android WebViews still don't support DOMRect so we polyfill that
+// Implemented according to https://developer.mozilla.org/en-US/docs/Web/API/DOMRectReadOnly and common sense
+export class DomRectReadOnlyPolyfilled implements PosRect {
+    x: number
+    y: number
+    width: number
+    height: number
+
+    constructor(x: number, y: number, width: number, height: number) {
+        this.x = x
+        this.y = y
+        this.width = width
+        this.height = height
+    }
+
+    get top(): number {
+        return this.height > 0 ? this.y : this.y + this.height
+    }
+
+    get bottom(): number {
+        return this.height > 0 ? this.y + this.height : this.y
+    }
+
+    get left(): number {
+        return this.width > 0 ? this.x : this.x + this.width
+    }
+
+    get right(): number {
+        return this.width > 0 ? this.x + this.width : this.x
+    }
 }
 
 // TODO: add resize listener like in the old Dropdown

@@ -22,8 +22,8 @@ import {assertMainOrNode} from "../../api/common/Env"
 import {ButtonN, ButtonType} from "./ButtonN"
 import {LoadingState, LoadingStateTracker} from "../../offline/LoadingState"
 import {lang} from "../../misc/LanguageViewModel"
-import {PosRect} from "./Dropdown"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
+import {PosRect} from "./DropdownN.js"
 
 assertMainOrNode()
 export const ScrollBuffer = 15 // virtual elements that are used as scroll buffer in both directions
