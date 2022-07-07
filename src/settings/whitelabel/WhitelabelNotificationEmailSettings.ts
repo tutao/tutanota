@@ -2,7 +2,7 @@ import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import {lang, languageByCode} from "../../misc/LanguageViewModel"
 import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
-import {ColumnWidth, TableN} from "../../gui/base/TableN"
+import {ColumnWidth, Table} from "../../gui/base/Table.js"
 import {ButtonType} from "../../gui/base/Button.js"
 import {Icons} from "../../gui/base/icons/Icons"
 import {attachDropdown} from "../../gui/base/Dropdown.js"
@@ -48,7 +48,7 @@ export class WhitelabelNotificationEmailSettings implements Component<Whitelabel
 			m(ExpanderPanelN, {
 					expanded: this._notificationEmailsExpanded(),
 				},
-				m(TableN, {
+				m(Table, {
 					columnHeading: ["language_label", "subject_label"],
 					columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
 					showActionButtonColumn: true,

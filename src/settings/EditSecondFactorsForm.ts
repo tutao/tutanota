@@ -10,8 +10,8 @@ import {logins} from "../api/main/LoginController"
 import {appIdToLoginDomain} from "../misc/2fa/SecondFactorHandler"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {ButtonAttrs} from "../gui/base/Button.js"
-import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
-import {ColumnWidth, TableN} from "../gui/base/TableN"
+import type {TableAttrs, TableLineAttrs} from "../gui/base/Table.js"
+import {ColumnWidth, Table} from "../gui/base/Table.js"
 import {NotFoundError} from "../api/common/error/RestError"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
@@ -47,7 +47,7 @@ export class EditSecondFactorsForm {
 		}
 		return [
 			m(".h4.mt-l", lang.get("secondFactorAuthentication_label")),
-			m(TableN, secondFactorTableAttrs),
+			m(Table, secondFactorTableAttrs),
 			isTutanotaDomain()
 				? [
 					m("span.small", lang.get("moreInfo_msg") + " "),

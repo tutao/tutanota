@@ -20,7 +20,7 @@ import {NotFoundError} from "../api/common/error/RestError"
 import * as RecoverCodeDialog from "./RecoverCodeDialog"
 import {attachDropdown} from "../gui/base/Dropdown.js"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
-import {ColumnWidth, TableN} from "../gui/base/TableN"
+import {ColumnWidth, Table} from "../gui/base/Table.js"
 import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
 import type {UpdatableSettingsViewer} from "./SettingsView"
 import {CredentialEncryptionMode} from "../misc/credentials/CredentialEncryptionMode"
@@ -177,7 +177,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private _renderActiveSessions(): Children {
-		return m(TableN, {
+		return m(Table, {
 			columnHeading: ["client_label", "lastAccess_label", "IpAddress_label"],
 			columnWidths: [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small],
 			showActionButtonColumn: true,
@@ -243,7 +243,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 								  ],
 							  }
 						  })
-		return m(TableN, {
+		return m(Table, {
 			columnHeading: ["client_label", "lastAccess_label", "IpAddress_label"],
 			columnWidths: [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small],
 			showActionButtonColumn: true,

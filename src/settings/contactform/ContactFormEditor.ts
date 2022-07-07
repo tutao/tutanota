@@ -10,8 +10,8 @@ import {logins} from "../../api/main/LoginController"
 import type {GroupInfo} from "../../api/entities/sys/TypeRefs.js"
 import {CustomerInfoTypeRef, CustomerTypeRef, GroupInfoTypeRef, GroupTypeRef, UserTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import {DropDownSelector} from "../../gui/base/DropDownSelector"
-import type {TableAttrs, TableLineAttrs} from "../../gui/base/TableN"
-import {ColumnWidth, TableN} from "../../gui/base/TableN"
+import type {TableAttrs, TableLineAttrs} from "../../gui/base/Table.js"
+import {ColumnWidth, Table} from "../../gui/base/Table.js"
 import type {ContactForm, ContactFormLanguage} from "../../api/entities/tutanota/TypeRefs.js"
 import {
 	ContactFormTypeRef,
@@ -214,7 +214,7 @@ export class ContactFormEditor {
 					m(TextFieldN, this._createReceivingMailboxFieldAttrs()),
 					this._receivingMailbox() && neverNull(this._receivingMailbox()).groupType === GroupType.User
 						? null
-						: m(".mt-l", [m(TableN, this._createParticipantGroupInfosTableAttrs()), m(".small", lang.get("responsiblePersonsInfo_msg"))]),
+						: m(".mt-l", [m(Table, this._createParticipantGroupInfosTableAttrs()), m(".small", lang.get("responsiblePersonsInfo_msg"))]),
 					m(".h4.mt-l", lang.get("display_action")),
 					m(TextFieldN, this._createPathFieldAttrs()),
 					m(TextFieldN, this._createLanguageFieldAttrs()),

@@ -12,7 +12,7 @@ import {BadRequestError, NotAuthorizedError, PreconditionFailedError} from "../a
 import {logins} from "../api/main/LoginController"
 import type {ContactForm} from "../api/entities/tutanota/TypeRefs.js"
 import {ContactFormTypeRef, CustomerContactFormGroupRootTypeRef, MailboxGroupRootTypeRef} from "../api/entities/tutanota/TypeRefs.js"
-import {ColumnWidth, TableAttrs, TableN} from "../gui/base/TableN"
+import {ColumnWidth, TableAttrs, Table} from "../gui/base/Table.js"
 import {getGroupTypeName} from "./GroupViewer"
 import {Icons} from "../gui/base/icons/Icons"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
@@ -267,9 +267,9 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			]),
 			m(this._secondFactorsForm),
 			this._groupsTableAttrs ? m(".h4.mt-l.mb-s", lang.get("groups_label")) : null,
-			this._groupsTableAttrs ? m(TableN, this._groupsTableAttrs) : null,
+			this._groupsTableAttrs ? m(Table, this._groupsTableAttrs) : null,
 			this._contactFormsTableAttrs ? m(".h4.mt-l.mb-s", lang.get("contactForms_label")) : null,
-			this._contactFormsTableAttrs ? m(TableN, this._contactFormsTableAttrs) : null,
+			this._contactFormsTableAttrs ? m(Table, this._contactFormsTableAttrs) : null,
 			m(EditAliasesFormN, this._editAliasFormAttrs),
 			logins.getUserController().isPremiumAccount() && whitelistProtection
 				? [m(".h4.mt-l", lang.get("mailSettings_label")), m(whitelistProtection)]

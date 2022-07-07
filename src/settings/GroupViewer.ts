@@ -7,8 +7,8 @@ import type {Group, GroupInfo} from "../api/entities/sys/TypeRefs.js"
 import {AdministratedGroupTypeRef, CustomerTypeRef, GroupInfoTypeRef, GroupMemberTypeRef, GroupTypeRef, UserTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {BookingItemFeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
 import {BadRequestError, NotAuthorizedError, PreconditionFailedError} from "../api/common/error/RestError"
-import type {TableAttrs} from "../gui/base/TableN"
-import {ColumnWidth, TableLineAttrs, TableN} from "../gui/base/TableN"
+import type {TableAttrs} from "../gui/base/Table.js"
+import {ColumnWidth, TableLineAttrs, Table} from "../gui/base/Table.js"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
@@ -105,7 +105,7 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 						m(DropDownSelectorN, this._createStatusSelectorAttrs()),
 					]),
 					!this.groupInfo.deleted ? m(".h4.mt-l.mb-s", lang.get("groupMembers_label")) : null,
-					!this.groupInfo.deleted ? m(TableN, this._createMembersTableAttrs()) : null,
+					!this.groupInfo.deleted ? m(Table, this._createMembersTableAttrs()) : null,
 					this._isMailGroup()
 						? [
 							m(".h4.mt-l", lang.get("mailSettings_label")),
@@ -122,7 +122,7 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 						: null,
 					this.groupInfo.groupType !== GroupType.LocalAdmin
 						? null
-						: [m(".h4.mt-l.mb-s", lang.get("administratedGroups_label")), m(TableN, this._createAdministratedGroupsTableAttrs())],
+						: [m(".h4.mt-l.mb-s", lang.get("administratedGroups_label")), m(Table, this._createAdministratedGroupsTableAttrs())],
 				]),
 			]
 		}

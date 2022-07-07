@@ -26,8 +26,8 @@ import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
 import type {ButtonAttrs} from "../gui/base/Button.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
-import type {TableAttrs, TableLineAttrs} from "../gui/base/TableN"
-import {ColumnWidth, createRowActions, TableN} from "../gui/base/TableN"
+import type {TableAttrs, TableLineAttrs} from "../gui/base/Table.js"
+import {ColumnWidth, createRowActions, Table} from "../gui/base/Table.js"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import {createInboxRuleTemplate} from "./AddInboxRuleDialog"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
@@ -319,7 +319,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 							m(ExpanderPanelN, {
 									expanded: this._inboxRulesExpanded(),
 								},
-								m(TableN, inboxRulesTableAttrs),
+								m(Table, inboxRulesTableAttrs),
 							),
 							m(
 								".small",

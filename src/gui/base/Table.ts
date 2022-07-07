@@ -51,7 +51,7 @@ export type TableLineAttrs = {
  * Shows a table of TableLine entries. The last column of the table may show action buttons for each TableLine and/or an add button.
  * The table shows a loading spinner until updateEntries() is called the first time.
  */
-export class TableN implements Component<TableAttrs> {
+export class Table implements Component<TableAttrs> {
 	view(vnode: Vnode<TableAttrs>): Children {
 		const a = vnode.attrs
 		const loading = !a.lines

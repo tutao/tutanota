@@ -15,7 +15,7 @@ import {HtmlEditor, HtmlEditorMode} from "../gui/editor/HtmlEditor"
 import {formatPrice, getPaymentMethodInfoText, getPaymentMethodName} from "./PriceUtils"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {Icons} from "../gui/base/icons/Icons"
-import {ColumnWidth, TableLineAttrs, TableN} from "../gui/base/TableN"
+import {ColumnWidth, TableLineAttrs, Table} from "../gui/base/Table.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import {formatDate, formatNameAndAddress} from "../misc/Formatter"
 import {getPaymentMethodType, PaymentMethodType, PostingType} from "../api/common/TutanotaConstants"
@@ -239,7 +239,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				m(ExpanderPanelN, {
 						expanded: postingExpanded(),
 					},
-					m(TableN, {
+					m(Table, {
 						columnHeading: ["type_label", "amount_label"],
 						columnWidths: [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small],
 						columnAlignments: [false, true, false],
