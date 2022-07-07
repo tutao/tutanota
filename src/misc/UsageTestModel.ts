@@ -265,12 +265,16 @@ export class EphemeralUsageTestStorage implements UsageTestStorage {
 export const ASSIGNMENT_UPDATE_INTERVAL_MS = 1000 * 60 * 60 // 1h
 
 export const enum TtlBehavior {
+	/* Prefer loading usage test assignments from cache even if they are slightly stale (according to ASSIGNMENT_UPDATE_INTERVAL_MS). */
 	PossiblyOutdated,
+	/* Always fetch the latest assignments from the server. */
 	UpToDateOnly,
 }
 
 export const enum StorageBehavior {
+	/* Store usage test assignments in the "persistent" storage. Currently, this is the client's instance of DeviceConfig, which uses the browser's local storage. */
 	Persist,
+	/* Store usage test assignments in the "ephemeral" storage. Currently, this is an instance of EphemeralUsageTestStorage. */
 	Ephemeral,
 }
 
@@ -285,6 +289,9 @@ export class UsageTestModel implements PingAdapter {
 	) {
 	}
 
+	/**
+	 * Needs to be called after construction, ideally after login, so that the logged-in user's CustomerProperties are loaded.
+	 */
 	async init() {
 		this.customerProperties = await locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
 	}
@@ -297,6 +304,10 @@ export class UsageTestModel implements PingAdapter {
 		return this.storages[this.storageBehavior]
 	}
 
+	/**
+	 * Returns true if the opt-in dialog indicator should be shown, depending on the user's and the customer's decisions.
+	 * Defaults to false if init() has not been called.
+	 */
 	showOptInIndicator(): boolean {
 		if (!this.customerProperties || this.customerProperties.usageDataOptedOut) {
 			// shortcut if customer has opted out
@@ -306,7 +317,7 @@ export class UsageTestModel implements PingAdapter {
 		return logins.getUserController().userSettingsGroupRoot.usageDataOptedIn === null
 	}
 
-	getOptInDecision(): boolean {
+	private getOptInDecision(): boolean {
 		const userOptIn = logins.getUserController().userSettingsGroupRoot.usageDataOptedIn
 		if (!userOptIn) {
 			// shortcut if userOptIn not set or equal to false
@@ -317,8 +328,11 @@ export class UsageTestModel implements PingAdapter {
 		return !assertNotNull(this.customerProperties).usageDataOptedOut
 	}
 
+	/**
+	 * If the storageBehavior is set to StorageBehavior.Persist, then init() must have been called before calling this method.
+	 */
 	async loadActiveUsageTests(ttlBehavior: TtlBehavior): Promise<UsageTest[]> {
-		if (this.storageBehavior === StorageBehavior.Persist && !(await this.getOptInDecision())) return []
+		if (this.storageBehavior === StorageBehavior.Persist && !this.getOptInDecision()) return []
 
 		const persistedData = await this.storage().getAssignments()
 		const modelVersion = await this.modelVersion()
