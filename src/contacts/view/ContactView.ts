@@ -3,7 +3,7 @@ import {ViewSlider} from "../../gui/nav/ViewSlider.js"
 import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import {ContactViewer} from "./ContactViewer"
 import type {CurrentView} from "../../gui/Header.js"
-import {Button} from "../../gui/base/Button"
+import {header} from "../../gui/Header.js"
 import {ButtonColor, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {ContactEditor} from "../ContactEditor"
 import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
@@ -38,11 +38,10 @@ import {FolderColumnView} from "../../gui/FolderColumnView.js"
 import {getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
 import {isSameId} from "../../api/common/utils/EntityUtils"
 import type {ContactModel} from "../model/ContactModel"
-import {createDropDownButton} from "../../gui/base/Dropdown"
 import {ActionBar} from "../../gui/base/ActionBar"
 import {SidebarSection} from "../../gui/SidebarSection"
 import {SetupMultipleError} from "../../api/common/error/SetupMultipleError"
-import {header} from "../../gui/Header.js"
+import {attachDropdown, DropdownButtonAttrs} from "../../gui/base/DropdownN.js"
 import {showFileChooser} from "../../file/FileController.js"
 
 assertMainOrNode()
@@ -124,7 +123,7 @@ export class ContactView implements CurrentView {
 			contactColumnTitle,
 			() => lang.get("contacts_label") + " " + contactColumnTitle(),
 		)
-		this.viewSlider = new ViewSlider(header,[this.folderColumn, this.listColumn, this.contactColumn], "ContactView")
+		this.viewSlider = new ViewSlider(header, [this.folderColumn, this.listColumn, this.contactColumn], "ContactView")
 
 		this.view = (): Children => {
 			return m("#contact.main-view", [m(this.viewSlider)])
@@ -236,7 +235,6 @@ export class ContactView implements CurrentView {
 	}
 
 	createContactFoldersExpanderChildren(): Children {
-		let folderMoreButton = this.createFolderMoreButton()
 		return m(".folders", [
 			m(".folder-row.flex-space-between.plr-l.row-selected", [
 				m(NavButtonN, {
@@ -244,44 +242,47 @@ export class ContactView implements CurrentView {
 					icon: () => BootIcons.Contacts,
 					href: () => m.route.get(),
 				}),
-				m(folderMoreButton),
+				this.renderFolderMoreButton(),
 			]),
 		])
 	}
 
-	createFolderMoreButton(): Button {
-		return createDropDownButton(
-			"more_label",
-			() => Icons.More,
-			() =>
-				this._vcardButtons().concat([
-					new Button(
-						"merge_action",
-						() => this._mergeAction(),
-						() => Icons.People,
-					).setType(ButtonType.Dropdown),
-				]),
-			250,
-		).setColors(ButtonColor.Nav)
-	}
+	private renderFolderMoreButton(): Children {
+		return m(ButtonN, attachDropdown({
+			mainButtonAttrs: {
+				label: "more_label",
+				icon: () => Icons.More,
+				colors: ButtonColor.Nav
+			},
+			childAttrs: () => {
+				const vcardButtons: Array<DropdownButtonAttrs> = isApp()
+					? []
+					: [
+						{
+							label: "importVCard_action",
+							click: () => this._importAsVCard(),
+							icon: () => Icons.ContactImport,
+							type: ButtonType.Dropdown
+						},
+						{
+							label: "exportVCard_action",
+							click: () => exportAsVCard(locator.contactModel),
+							icon: () => Icons.Export,
+							type: ButtonType.Dropdown
+						}
+					]
 
-	_vcardButtons(): Button[] {
-		if (isApp()) {
-			return []
-		} else {
-			return [
-				new Button(
-					"importVCard_action",
-					() => this._importAsVCard(),
-					() => Icons.ContactImport,
-				).setType(ButtonType.Dropdown),
-				new Button(
-					"exportVCard_action",
-					() => exportAsVCard(locator.contactModel),
-					() => Icons.Export,
-				).setType(ButtonType.Dropdown),
-			]
-		}
+				return vcardButtons.concat([
+					{
+						label: "merge_action",
+						icon: () => Icons.People,
+						click: () => this._mergeAction(),
+						type: ButtonType.Dropdown
+					}
+				])
+			},
+			width: 250,
+		}))
 	}
 
 	_importAsVCard() {
