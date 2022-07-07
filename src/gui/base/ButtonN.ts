@@ -1,4 +1,4 @@
-import m, {Children, ClassComponent, Component, CVnode, Vnode} from "mithril"
+import m, {Children, ClassComponent, CVnode} from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {addFlash, removeFlash} from "./Flash"
@@ -6,11 +6,16 @@ import type {lazyIcon} from "./Icon"
 import {Icon} from "./Icon"
 import {getContentButtonIconBackground, getElevatedBackground, getNavButtonIconBackground, getNavigationMenuIcon, theme} from "../theme"
 import type {lazy} from "@tutao/tutanota-utils"
+import {assertNotNull} from "@tutao/tutanota-utils"
 import type {clickHandler} from "./GuiUtils"
 import {assertMainOrNode} from "../../api/common/Env"
-import {assertNotNull} from "@tutao/tutanota-utils"
 
 assertMainOrNode()
+
+export const enum BorderStyle {
+	Rounded,
+	Sharp
+}
 
 export const enum ButtonType {
 	Action = "action",
@@ -109,6 +114,12 @@ export interface ButtonAttrs {
 	noBubble?: boolean
 	staticRightText?: string,
 	style?: Record<string, string>
+
+	// this is just an annoying side effect of doing UI cleanup
+	// old Button with Login type had sharp edges, ButtonN with Login type has rounded edges
+	// we need the edges to be sharp for the contact form request dialog submit button
+	// I could go through and cleanup and improve it but for now this will do.
+	borders?: BorderStyle
 }
 
 /**
@@ -171,7 +182,7 @@ export class ButtonN implements ClassComponent<ButtonAttrs> {
 	_getStyle(a: ButtonAttrs): {} {
 		return a.type === ButtonType.Login
 			? {
-				"border-radius": "3px",
+				"border-radius": a.borders === BorderStyle.Rounded ? "3px" : "0px",
 				"background-color": theme.content_accent,
 			}
 			: {}

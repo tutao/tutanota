@@ -1,6 +1,5 @@
 import m, {Children} from "mithril"
 import {Dialog, DialogType} from "../../gui/base/Dialog"
-import {Button} from "../../gui/base/Button"
 import {TextFieldN, TextFieldType} from "../../gui/base/TextFieldN"
 import {lang} from "../../misc/LanguageViewModel"
 import {formatStorageSize} from "../../misc/Formatter"
@@ -21,9 +20,8 @@ import Stream from "mithril/stream"
 import {CheckboxN} from "../../gui/base/CheckboxN"
 import {getPrivacyStatementLink} from "../LoginView"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
-import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {BorderStyle, ButtonAttrs, ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import type {ContactForm, File as TutanotaFile} from "../../api/entities/tutanota/TypeRefs.js"
-import {createDropDownButton} from "../../gui/base/Dropdown"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {getCleanedMailAddress} from "../../misc/parsing/MailAddressParser"
 import {checkAttachmentSize} from "../../mail/model/MailUtils"
@@ -33,6 +31,7 @@ import {DataFile} from "../../api/common/DataFile";
 import {FileReference} from "../../api/common/utils/FileUtils";
 import {SessionType} from "../../api/common/SessionType.js";
 import {RecipientType} from "../../api/common/recipients/Recipient"
+import {attachDropdown} from "../../gui/base/DropdownN.js"
 import {readLocalFiles, showFileChooser} from "../../file/FileController.js"
 
 assertMainOrNode()
@@ -43,7 +42,7 @@ export class ContactFormRequestDialog {
 	_editor: HtmlEditor
 	_attachments: Array<TutanotaFile | DataFile | FileReference> // contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 
-	_attachmentButtons: Button[] // these map 1:1 to the _attachments
+	_attachmentButtonAttrs: Array<ButtonAttrs> = []// these map 1:1 to the _attachments
 
 	_loadingAttachments: boolean
 	_contactForm: ContactForm
@@ -59,7 +58,6 @@ export class ContactFormRequestDialog {
 	constructor(contactForm: ContactForm) {
 		this._contactForm = contactForm
 		this._attachments = []
-		this._attachmentButtons = []
 		this._loadingAttachments = false
 		this._subject = ""
 		this._notificationEmailAddress = ""
@@ -157,13 +155,12 @@ export class ContactFormRequestDialog {
 			},
 			[
 				m(".row", subject),
-				m(
-					".flex-start.flex-wrap.ml-negative-bubble" + (this._attachmentButtons.length > 0 ? ".pt" : ""),
+				m(".flex-start.flex-wrap.ml-negative-bubble" + (this._attachmentButtonAttrs.length > 0 ? ".pt" : ""),
 					!this._loadingAttachments
-						? this._attachmentButtons.map(b => m(b))
+						? this._attachmentButtonAttrs.map(attrs => m(ButtonN, attrs))
 						: [m(".flex-v-center", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))],
 				),
-				this._attachmentButtons.length > 0 ? m("hr") : null,
+				this._attachmentButtonAttrs.length > 0 ? m("hr") : null,
 				m(PasswordForm, {
 					model: this.passwordModel,
 					passwordInfoKey: "contactFormEnterPasswordInfo_msg"
@@ -231,40 +228,40 @@ export class ContactFormRequestDialog {
 	}
 
 	_updateAttachmentButtons() {
-		this._attachmentButtons = this._attachments.map(file => {
-			let lazyButtons: Button[] = []
-			lazyButtons.push(
-				new Button(
-					"download_action",
-					() => {
-						if (file._type === "DataFile") {
-							locator.fileController.saveDataFile(downcast(file))
-						} else {
+		this._attachmentButtonAttrs = this._attachments.map(file =>
+			attachDropdown({
+				mainButtonAttrs: {
+					label: () => file.name,
+					icon: () => Icons.Attachment,
+					type: ButtonType.Bubble,
+					staticRightText: "(" + formatStorageSize(Number(file.size)) + ")"
+				},
+				childAttrs: () => [
+					{
+						label: "download_action",
+						click: () => {
+							if (file._type === "DataFile") {
+								locator.fileController.saveDataFile(downcast(file))
+							} else {
 							locator.fileController.open(file as TutanotaFile)
-						}
+							}
+						},
+						type: ButtonType.Secondary
 					},
-				).setType(ButtonType.Secondary),
-			)
-			lazyButtons.push(
-				new Button(
-					"remove_action",
-					() => {
-						remove(this._attachments, file)
+					{
+						label: "remove_action",
+						click: () => {
+							remove(this._attachments, file)
 
-						this._updateAttachmentButtons()
+							this._updateAttachmentButtons()
 
-						m.redraw()
-					},
-				).setType(ButtonType.Secondary),
-			)
-			return createDropDownButton(
-				() => file.name,
-				() => Icons.Attachment,
-				() => lazyButtons,
-			)
-				.setType(ButtonType.Bubble)
-				.setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
-		})
+							m.redraw()
+						},
+						type: ButtonType.Secondary
+					}
+				]
+			})
+		)
 	}
 
 	getConfidentialStateMessage(): string {
@@ -361,10 +358,6 @@ function showConfirmDialog(userEmailAddress: string): Promise<void> {
 		// This old button has type login. New buttons with this type have rounded corner but this one should probably not have because
 		// it fills the dialog in the bottom (unless we want dialogs to have rounded corners in the future.
 		// Anyway, if you decide to replace it, take care of it.
-		const confirm = new Button("contactFormSubmitConfirm_action", () => {
-			dialog.close()
-			resolve()
-		}).setType(ButtonType.Login)
 		const dialog = new Dialog(DialogType.EditMedium, {
 			view: () =>
 				m("", [
@@ -374,7 +367,15 @@ function showConfirmDialog(userEmailAddress: string): Promise<void> {
 						value: userEmailAddress,
 						disabled: true,
 					})),
-					m(confirm),
+					m(ButtonN, {
+						label: "contactFormSubmitConfirm_action",
+						click: () => {
+							dialog.close()
+							resolve()
+						},
+						type: ButtonType.Login,
+						borders: BorderStyle.Sharp
+					}),
 				]),
 		})
 			.setCloseHandler(() => {
