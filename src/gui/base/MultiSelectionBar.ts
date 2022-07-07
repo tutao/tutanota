@@ -1,16 +1,15 @@
 import {Icons} from "./icons/Icons"
-import m, {Children, Component, Vnode} from "mithril"
-import {Button} from "./Button"
+import m, {Children, Vnode} from "mithril"
+import {ButtonN} from "./ButtonN.js"
 
-type MultiSelectionBarAttrs = {
+interface MultiSelectionBarAttrs {
 	selectNoneHandler: () => void
 	selectedEntiesLength: number
-	content: Component
+	children: Children
 }
 
 export class MultiSelectionBar {
 	view(vnode: Vnode<MultiSelectionBarAttrs>): Children {
-		const cancelButton = new Button("cancel_action", vnode.attrs.selectNoneHandler, () => Icons.Cancel)
 		return m(
 			".flex.items-center.justify-between.pl-s.pr-s",
 			{
@@ -20,9 +19,13 @@ export class MultiSelectionBar {
 			},
 
 			[
-				m(cancelButton),
+				m(ButtonN, {
+					label: "cancel_action",
+					click: vnode.attrs.selectNoneHandler,
+					icon: () => Icons.Cancel,
+				}),
 				m(".ml-s.b", vnode.attrs.selectedEntiesLength),
-				m(vnode.attrs.content)
+				vnode.attrs.children
 			],
 		)
 	}
