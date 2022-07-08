@@ -7,8 +7,9 @@ import m, {Children} from "mithril"
 import {TextField, TextFieldType as TextFieldType} from "../../gui/base/TextField.js"
 import {lang} from "../../misc/LanguageViewModel"
 import type {DropDownSelectorAttrs, SelectorItemList} from "../../gui/base/DropDownSelector.js"
+import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
 import {Icons} from "../../gui/base/icons/Icons"
-import {ButtonColor, Button, ButtonType} from "../../gui/base/Button.js"
+import {Button, ButtonColor, ButtonType} from "../../gui/base/Button.js"
 import {AlarmInterval, CalendarAttendeeStatus, EndType, Keys, RepeatPeriod} from "../../api/common/TutanotaConstants"
 import {createRepeatRuleEndTypeValues, createRepeatRuleFrequencyValues, getStartOfTheWeekOffsetForUser} from "../date/CalendarUtils"
 import {AllIcons, Icon} from "../../gui/base/Icon"
@@ -34,11 +35,11 @@ import type {CalendarInfo} from "../model/CalendarModel"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {RecipientType} from "../../api/common/recipients/Recipient"
 import {MailRecipientsTextField} from "../../gui/MailRecipientsTextField.js"
-import {downcast, memoized, noOp, numberRange, ofClass} from "@tutao/tutanota-utils"
+import {noOp, numberRange, ofClass} from "@tutao/tutanota-utils"
 import {createDropdown} from "../../gui/base/Dropdown.js"
 import {CalendarEvent, createEncryptedMailAddress, Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {getRecipientsSearchModel, RecipientsSearchModel} from "../../misc/RecipientsSearchModel.js"
-import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
+import type {HtmlEditor} from "../../gui/editor/HtmlEditor.js"
 
 export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
@@ -110,7 +111,7 @@ export async function showCalendarEventDialog(
 			return m(DropDownSelector, {
 				label: "emptyString_msg",
 				items: intervalValues,
-						selectedValue: viewModel.repeat.endValue,
+				selectedValue: viewModel.repeat.endValue,
 				selectionChangedHandler: (endValue: number) => viewModel.onEndOccurencesSelected(endValue),
 				icon: BootIcons.Expand,
 			})
@@ -132,27 +133,29 @@ export async function showCalendarEventDialog(
 		}
 	}
 
-	const editorOptions = {
-		enabled: false,
-		alignmentEnabled: false,
-		fontSizeEnabled: false,
-	}
-	const descriptionEditor = new HtmlEditor("description_label", editorOptions, () =>
-		m(Button, {
-			label: "emptyString_msg",
-			title: "showRichTextToolbar_action",
-			icon: () => Icons.FontSize,
-			click: () => (editorOptions.enabled = !editorOptions.enabled),
-			isSelected: () => editorOptions.enabled,
-			noBubble: true,
-			type: ButtonType.Toggle,
-			colors: ButtonColor.Elevated,
-		}),
+	const descriptionEditor: HtmlEditor = new HtmlEditor(
+		"description_label",
+		() =>
+			m(Button, {
+				label: "emptyString_msg",
+				title: "showRichTextToolbar_action",
+				icon: () => Icons.FontSize,
+				click: () => descriptionEditor.toggleToolbar(),
+				isSelected: () => descriptionEditor.isToolbarEnabled(),
+				noBubble: true,
+				type: ButtonType.Toggle,
+				colors: ButtonColor.Elevated,
+			}),
 	)
 		.setMinHeight(400)
 		.showBorders()
-		.setEnabled(!viewModel.isReadOnlyEvent()) // We only set it once, we don't viewModel on every change, that would be slow
+		.setEnabled(!viewModel.isReadOnlyEvent())
+		// We only set it once, we don't viewModel on every change, that would be slow
 		.setValue(viewModel.note)
+		.setToolbarOptions({
+			alignmentEnabled: false,
+			fontSizeEnabled: false,
+		})
 
 	const okAction = () => {
 		if (finished) {
@@ -234,13 +237,13 @@ export async function showCalendarEventDialog(
 				.filter(a => a.type === RecipientType.EXTERNAL)
 				.map(guest => {
 					return m(TextField, {
-								value: viewModel.getGuestPassword(guest),
+						value: viewModel.getGuestPassword(guest),
 						type: TextFieldType.ExternalPassword,
 						label: () =>
 							lang.get("passwordFor_label", {
 								"{1}": guest.address.address,
 							}),
-						helpLabel: () => m(CompletenessIndicator, { percentageCompleted: viewModel.getPasswordStrength(guest)}),
+						helpLabel: () => m(CompletenessIndicator, {percentageCompleted: viewModel.getPasswordStrength(guest)}),
 						key: guest.address.address,
 						oninput: newValue => viewModel.updatePassword(guest, newValue),
 					})
@@ -312,8 +315,8 @@ export async function showCalendarEventDialog(
 	const renderLocationField = () =>
 		m(TextField, {
 			label: "location_label",
-					value: viewModel.location(),
-					oninput: viewModel.location,
+			value: viewModel.location(),
+			oninput: viewModel.location,
 			disabled: viewModel.isReadOnlyEvent(),
 			injectionsRight: () => {
 				let address = encodeURIComponent(viewModel.location())
@@ -345,8 +348,8 @@ export async function showCalendarEventDialog(
 							value: calendarInfo,
 						}
 					}),
-							selectedValue: viewModel.selectedCalendar(),
-							selectionChangedHandler: viewModel.selectedCalendar,
+					selectedValue: viewModel.selectedCalendar(),
+					selectionChangedHandler: viewModel.selectedCalendar,
 					icon: BootIcons.Expand,
 					disabled: viewModel.isReadOnlyEvent(),
 				} as DropDownSelectorAttrs<CalendarInfo>)
@@ -422,8 +425,8 @@ export async function showCalendarEventDialog(
 				renderChangesMessage(),
 				m(
 					".mb.rel",
-							m(ExpanderPanelN, {
-									expanded: attendeesExpanded(),
+					m(ExpanderPanelN, {
+							expanded: attendeesExpanded(),
 						},
 						[m(".flex-grow", renderInvitationField()), m(".flex-grow", renderAttendees())],
 					),
@@ -431,8 +434,8 @@ export async function showCalendarEventDialog(
 				renderDateTimePickers(),
 				m(".flex.items-center.mt-s", [
 					m(Checkbox, {
-								checked: viewModel.allDay(),
-								onChecked: viewModel.allDay,
+						checked: viewModel.allDay(),
+						onChecked: viewModel.allDay,
 						disabled: viewModel.isReadOnlyEvent(),
 						label: () => lang.get("allDay_label"),
 					}),
@@ -478,8 +481,8 @@ export async function showCalendarEventDialog(
 	function renderHeading() {
 		return m(TextField, {
 			label: "title_placeholder",
-					value: viewModel.summary(),
-					oninput: viewModel.summary,
+			value: viewModel.summary(),
+			oninput: viewModel.summary,
 			disabled: viewModel.isReadOnlyEvent(),
 			class: "big-input pt flex-grow",
 			injectionsRight: () =>
@@ -487,8 +490,8 @@ export async function showCalendarEventDialog(
 					".mr-s",
 					m(ExpanderButtonN, {
 						label: "guests_label",
-								expanded: attendeesExpanded(),
-								onExpandedChange: attendeesExpanded,
+						expanded: attendeesExpanded(),
+						onExpandedChange: attendeesExpanded,
 						style: {
 							paddingTop: 0,
 						},

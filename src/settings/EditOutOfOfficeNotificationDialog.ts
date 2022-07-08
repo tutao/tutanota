@@ -28,18 +28,16 @@ import {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar";
 
 export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: OutOfOfficeNotification | null) {
 	const dialogModel = new EditOutOfOfficeNotificationDialogModel(outOfOfficeNotification, locator.entityClient, logins.getUserController(), lang)
-	const organizationMessageEditor = new HtmlEditor("message_label", {
-		enabled: true,
-	})
+	const organizationMessageEditor = new HtmlEditor("message_label")
 		.setMinHeight(100)
 		.showBorders()
 		.setValue(dialogModel.organizationMessage())
-	const defaultMessageEditor = new HtmlEditor("message_label", {
-		enabled: true,
-	})
+		.enableToolbar()
+	const defaultMessageEditor = new HtmlEditor("message_label")
 		.setMinHeight(100)
 		.showBorders()
 		.setValue(dialogModel.defaultMessage())
+		.enableToolbar()
 
 	const saveOutOfOfficeNotification = () => {
 		dialogModel.organizationMessage(organizationMessageEditor.getValue())

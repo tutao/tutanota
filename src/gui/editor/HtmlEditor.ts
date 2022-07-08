@@ -5,21 +5,17 @@ import type {TranslationKey, TranslationText} from "../../misc/LanguageViewModel
 import {lang} from "../../misc/LanguageViewModel"
 import {px} from "../size"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
-import type {Options as ToolbarOptions} from "../base/RichTextToolbar"
-import {RichTextToolbar} from "../base/RichTextToolbar"
 import {assertNotNull} from "@tutao/tutanota-utils"
 import {DropDownSelector} from "../base/DropDownSelector.js"
+import {RichTextToolbarAttrs, RichTextToolbar} from "../base/RichTextToolbar.js"
 
 export enum HtmlEditorMode {
 	HTML = "html",
 	WYSIWYG = "what you see is what you get",
 }
 
-type RichToolbarOptions = {enabled: boolean} & ToolbarOptions
-
 export class HtmlEditor implements Component {
 	editor: Editor
-	private toolbar: RichTextToolbar
 	private mode = HtmlEditorMode.WYSIWYG
 	private active = false
 	private domTextArea: HTMLTextAreaElement | null = null
@@ -30,14 +26,14 @@ export class HtmlEditor implements Component {
 	private value = stream("")
 	private htmlMonospace = true
 	private modeSwitcherLabel: TranslationText | null = null
+	private toolbarEnabled = false
+	private toolbarAttrs: Omit<RichTextToolbarAttrs, "editor"> = {}
 
 	constructor(
 		private label?: TranslationText,
-		private readonly richToolbarOptions: RichToolbarOptions = {enabled: false},
 		private readonly injections?: () => Children
 	) {
 		this.editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, {blockExternalContent: false}).fragment)
-		this.toolbar = new RichTextToolbar(this.editor, richToolbarOptions)
 		this.view = this.view.bind(this)
 	}
 
@@ -104,10 +100,12 @@ export class HtmlEditor implements Component {
 				getPlaceholder(),
 				this.mode === HtmlEditorMode.WYSIWYG
 					? m(".wysiwyg.rel.overflow-hidden.selectable", [
-						(this.editor.isEnabled() && (this.richToolbarOptions.enabled || renderedInjections))
+						this.editor.isEnabled() && (this.toolbarEnabled || renderedInjections)
 							? [
 								m(".flex-end.mr-negative-s.sticky.pb-2", [
-									(this.richToolbarOptions.enabled) ? m(this.toolbar) : null,
+									this.toolbarEnabled
+										? m(RichTextToolbar, Object.assign({editor: this.editor}, this.toolbarAttrs))
+										: null,
 									renderedInjections,
 								]),
 								m("hr.hr.mb-s")
@@ -222,6 +220,27 @@ export class HtmlEditor implements Component {
 
 	setHtmlMonospace(monospace: boolean): HtmlEditor {
 		this.htmlMonospace = monospace
+		return this
+	}
+
+	/** show the rich text toolbar */
+	enableToolbar(): this {
+		this.toolbarEnabled = true
+		return this
+	}
+
+	isToolbarEnabled(): boolean {
+		return this.toolbarEnabled
+	}
+
+	/** toggle the visibility of the rich text toolbar */
+	toggleToolbar(): this {
+		this.toolbarEnabled = !this.toolbarEnabled
+		return this
+	}
+
+	setToolbarOptions(attrs: Omit<RichTextToolbarAttrs, "editor">): this {
+		this.toolbarAttrs = attrs
 		return this
 	}
 }

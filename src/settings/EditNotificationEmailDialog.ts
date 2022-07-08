@@ -94,14 +94,15 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 		template = existingTemplate
 	}
 
-	const editor = new HtmlEditor(undefined, {
-		enabled: true,
-		imageButtonClickHandler: insertInlineImageB64ClickHandler,
-	})
+	const editor = new HtmlEditor()
 		.setMinHeight(400)
 		.showBorders()
 		.setModeSwitcher("mailBody_label")
 		.setValue(template.body)
+		.enableToolbar()
+		.setToolbarOptions({
+			imageButtonClickHandler: insertInlineImageB64ClickHandler
+		})
 	const editSegment = {
 		name: lang.get("edit_action"),
 		value: "edit",
