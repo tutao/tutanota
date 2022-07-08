@@ -1,11 +1,9 @@
 import m from "mithril"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
-import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {EmailSignatureType, FeatureType} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
 import {HtmlEditor} from "../gui/editor/HtmlEditor"
-import stream from "mithril/stream"
 import type {TutanotaProperties} from "../api/entities/tutanota/TypeRefs.js"
 import {insertInlineImageB64ClickHandler} from "../mail/view/MailViewerUtils"
 import {PayloadTooLargeError} from "../api/common/error/RestError"
@@ -14,6 +12,7 @@ import {neverNull} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 import {ofClass} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../api/common/Env"
+import {DropDownSelectorN} from "../gui/base/DropDownSelectorN.js"
 
 assertMainOrNode()
 // signatures can become large, for example if they include a base64 embedded image. we ask for confirmation in such cases
@@ -28,33 +27,42 @@ export function show(props: TutanotaProperties) {
 			currentCustomSignature = defaultSignature
 		}
 
-		let previousType = logins.getUserController().props.emailSignatureType
+		let selectedType = logins.getUserController().props.emailSignatureType as EmailSignatureType
 		const editor = new HtmlEditor("preview_label", {
 			enabled: true,
 			imageButtonClickHandler: insertInlineImageB64ClickHandler,
 		})
 			.showBorders()
 			.setMinHeight(200)
-			.setValue(getSignature(previousType, defaultSignature, currentCustomSignature))
-		let typeField = new DropDownSelector("userEmailSignature_label", null, getSignatureTypes(props), stream(previousType))
-		typeField.selectedValue.map(type => {
-			if (previousType === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM) {
-				currentCustomSignature = editor.getValue()
-			}
+			.setValue(getSignature(selectedType, defaultSignature, currentCustomSignature))
 
-			previousType = type
-			editor.setValue(getSignature(type, defaultSignature, currentCustomSignature))
-			editor.setEnabled(type === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM)
-		})
-		let form = {
+		const signatureTypes = getSignatureTypes(props)
+
+		const form = {
 			view: () => {
-				return [m(typeField), m(editor)]
+				return [
+					m(DropDownSelectorN, {
+						label: "userEmailSignature_label",
+						items: signatureTypes,
+						selectedValue: selectedType,
+						selectionChangedHandler: (type: EmailSignatureType) => {
+							if (selectedType === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM) {
+								currentCustomSignature = editor.getValue()
+							}
+
+							selectedType = type
+							editor.setValue(getSignature(type, defaultSignature, currentCustomSignature))
+							editor.setEnabled(type === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM)
+						}
+					}),
+					m(editor)
+				]
 			},
 		}
 
 		let editSignatureOkAction = (dialog: Dialog) => {
 			const props = logins.getUserController().props
-			const newType = typeField.selectedValue()
+			const newType = selectedType
 			const newCustomValue = editor.getValue()
 			const oldType = props.emailSignatureType
 			const oldCustomValue = props.customEmailSignature
