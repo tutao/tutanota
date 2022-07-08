@@ -127,7 +127,7 @@ export class LoginViewModel implements ILoginViewModel {
 	state: LoginState
 	helpText: TranslationText
 	readonly savePassword: Stream<boolean>
-	_savedInternalCredentials: Array<CredentialsInfo>
+	private savedInternalCredentials: ReadonlyArray<CredentialsInfo>
 
 	constructor(
 		private readonly loginController: LoginController,
@@ -143,7 +143,7 @@ export class LoginViewModel implements ILoginViewModel {
 		this.password = stream("")
 		this._autoLoginCredentials = null
 		this.savePassword = stream(false)
-		this._savedInternalCredentials = []
+		this.savedInternalCredentials = []
 	}
 
 	_autoLoginCredentials: CredentialsInfo | null
@@ -169,7 +169,7 @@ export class LoginViewModel implements ILoginViewModel {
 
 	canLogin(): boolean {
 		if (this.displayMode === DisplayMode.Credentials) {
-			return this._autoLoginCredentials != null || this._savedInternalCredentials.length === 1
+			return this._autoLoginCredentials != null || this.savedInternalCredentials.length === 1
 		} else if (this.displayMode === DisplayMode.Form) {
 			return Boolean(this.mailAddress() && this.password())
 		} else {
@@ -233,7 +233,7 @@ export class LoginViewModel implements ILoginViewModel {
 	}
 
 	getSavedCredentials(): ReadonlyArray<CredentialsInfo> {
-		return this._savedInternalCredentials
+		return this.savedInternalCredentials
 	}
 
 	switchDeleteState() {
@@ -257,10 +257,10 @@ export class LoginViewModel implements ILoginViewModel {
 	}
 
 	async _updateCachedCredentials() {
-		this._savedInternalCredentials = await this.credentialsProvider.getInternalCredentialsInfos()
+		this.savedInternalCredentials = await this.credentialsProvider.getInternalCredentialsInfos()
 		this._autoLoginCredentials = null
 
-		if (this._savedInternalCredentials.length > 0) {
+		if (this.savedInternalCredentials.length > 0) {
 			if (this.displayMode !== DisplayMode.DeleteCredentials) {
 				this.displayMode = DisplayMode.Credentials
 			}
@@ -338,7 +338,7 @@ export class LoginViewModel implements ILoginViewModel {
 			// we don't want to have multiple credentials that
 			// * share the same userId with different mail addresses (may happen if a user chooses a different alias to log in than the one they saved)
 			// * share the same mail address (may happen if mail aliases are moved between users)
-			const storedCredentialsToDelete = this._savedInternalCredentials.filter(c => c.login === mailAddress || c.userId === newCredentials.userId)
+			const storedCredentialsToDelete = this.savedInternalCredentials.filter(c => c.login === mailAddress || c.userId === newCredentials.userId)
 
 			for (const credentialToDelete of storedCredentialsToDelete) {
 				const credentials = await this.credentialsProvider.getCredentialsByUserId(credentialToDelete.userId)

@@ -29,13 +29,14 @@ import {SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
 import {formatPrice, getPaymentMethodName, getSubscriptionPrice} from "../PriceUtils"
 import {TextField} from "../../gui/base/TextField.js"
 import {elementIdPart, isSameId} from "../../api/common/utils/EntityUtils"
-import type {CredentialsInfo, ICredentialsProvider} from "../../misc/credentials/CredentialsProvider.js"
+import type {CredentialsInfo} from "../../misc/credentials/CredentialsProvider.js"
 import {SessionType} from "../../api/common/SessionType.js";
 import {NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError.js"
 import {GiftCardFacade} from "../../api/worker/facades/GiftCardFacade.js"
 import {EntityClient} from "../../api/common/EntityClient.js"
 import {Country, getByAbbreviation} from "../../api/common/CountryList.js"
 import {renderCountryDropdown} from "../../gui/base/GuiUtils.js"
+import {CredentialsProvider} from "../../misc/credentials/CredentialsProvider.js"
 
 
 const enum GetCredentialsMethod {
@@ -59,7 +60,7 @@ class RedeemGiftCardModel {
 			storedCredentials: ReadonlyArray<CredentialsInfo>
 		},
 		private readonly giftCardFacade: GiftCardFacade,
-		private readonly credentialsProvider: ICredentialsProvider,
+		private readonly credentialsProvider: CredentialsProvider,
 		private readonly logins: LoginController,
 		private readonly entityClient: EntityClient,
 	) {
