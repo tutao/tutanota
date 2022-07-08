@@ -75,12 +75,13 @@ class KnowledgeBaseEditor implements Component<KnowledgeBaseEditorModel> {
                 }, childAttrs: () => this._createDropdownChildAttrs(model)
             },
 		)
-		this.entryContentEditor = new HtmlEditor("content_label", {
-			enabled: true,
-			customButtonAttrs: [this.linkedTemplateButtonAttrs],
-		})
+		this.entryContentEditor = new HtmlEditor("content_label")
 			.showBorders()
 			.setMinHeight(500)
+			.enableToolbar()
+			.setToolbarOptions({
+				customButtonAttrs: [this.linkedTemplateButtonAttrs],
+			})
 		model.setDescriptionProvider(() => {
 			return this.entryContentEditor.getValue()
 		})

@@ -144,24 +144,24 @@ export class ContactFormEditor {
 		let language = getDefaultContactFormLanguage(this._languages)
 		this._language = stream(language)
 		this._languageDisplayValue = getLanguageName(this._language().code)
-		this._headerField = new HtmlEditor(undefined, {
-			enabled: true,
-		})
+		this._headerField = new HtmlEditor()
 			.setModeSwitcher("header_label")
 			.setMinHeight(200)
 			.showBorders()
-		this._footerField = new HtmlEditor(undefined, {
-			enabled: true,
-		})
+			.enableToolbar()
+
+		this._footerField = new HtmlEditor()
 			.setModeSwitcher("footer_label")
 			.setMinHeight(200)
 			.showBorders()
-		this._helpField = new HtmlEditor(undefined, {
-			enabled: true,
-		})
+			.enableToolbar()
+
+		this._helpField = new HtmlEditor()
 			.setModeSwitcher("helpPage_label")
 			.setMinHeight(200)
 			.showBorders()
+			.enableToolbar()
+
 		this._pageTitle = ""
 
 		this._language.map((l: ContactFormLanguage) => {

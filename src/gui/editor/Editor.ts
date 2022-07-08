@@ -9,9 +9,9 @@ import {Keys, TabIndex} from "../../api/common/TutanotaConstants"
 import {isKeyPressed} from "../../misc/KeyManager"
 
 type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
-type Style = "b" | "i" | "u" | "c" | "a"
-type Alignment = "left" | "center" | "right" | "justify"
-type Listing = "ol" | "ul"
+export type Style = "b" | "i" | "u" | "c" | "a"
+export type Alignment = "left" | "center" | "right" | "justify"
+export type Listing = "ol" | "ul"
 type Styles = {
     [key in Style]: boolean
 } & {

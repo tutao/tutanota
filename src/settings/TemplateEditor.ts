@@ -69,11 +69,10 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 
 	constructor(vnode: Vnode<TemplateEditorAttrs>) {
 		this.model = vnode.attrs.model
-		this.templateContentEditor = new HtmlEditor("content_label", {
-			enabled: true,
-		})
+		this.templateContentEditor = new HtmlEditor("content_label")
 			.showBorders()
 			.setMinHeight(500)
+			.enableToolbar()
 
 		this.model.setContentProvider(() => {
 			return this.templateContentEditor.getValue()

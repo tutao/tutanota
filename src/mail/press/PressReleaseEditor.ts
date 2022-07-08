@@ -1,5 +1,6 @@
 import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {Dialog, DialogType} from "../../gui/base/Dialog"
 import {ButtonType} from "../../gui/base/Button.js"
 import {isMailAddress} from "../../misc/FormatValidator"
@@ -12,12 +13,11 @@ import {getDefaultSender} from "../model/MailUtils"
 import {logins} from "../../api/main/LoginController"
 import {progressIcon} from "../../gui/base/Icon"
 import {Editor} from "../../gui/editor/Editor"
-import {RichTextToolbar} from "../../gui/base/RichTextToolbar"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {replaceInlineImagesWithCids} from "../view/MailGuiUtils"
 import {TextField} from "../../gui/base/TextField.js"
 import {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar";
-import Stream from "mithril/stream";
+import {RichTextToolbar} from "../../gui/base/RichTextToolbar.js"
 
 type PressContact = {
 	email: string
@@ -211,7 +211,6 @@ export type PressReleaseFormAttrs = {
 
 export class PressReleaseForm implements Component<PressReleaseFormAttrs> {
 	editor: Editor
-	toolbar: RichTextToolbar
 
 	constructor(vnode: Vnode<PressReleaseFormAttrs>) {
 		const {bodyHtml} = vnode.attrs
@@ -226,7 +225,6 @@ export class PressReleaseForm implements Component<PressReleaseFormAttrs> {
 			this.editor.setHTML(bodyHtml())
 			this.editor.addChangeListener(() => bodyHtml(replaceInlineImagesWithCids(this.editor.getDOM()).innerHTML))
 		})
-		this.toolbar = new RichTextToolbar(this.editor)
 	}
 
 	view(vnode: Vnode<PressReleaseFormAttrs>): Children {
@@ -246,7 +244,7 @@ export class PressReleaseForm implements Component<PressReleaseFormAttrs> {
 				value: subject(),
 				oninput: subject,
 			}),
-			m(this.toolbar),
+			m(RichTextToolbar, {editor: this.editor}),
 			m(".border-top", m(this.editor)),
 		])
 	}
