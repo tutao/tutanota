@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2022-07-11T12:46:18Z",
+	"updated_at": "2022-07-20T04:56:37Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",
@@ -106,6 +106,7 @@ export default {
 		"appInfoAndroidImageAlt_alt": "Aplikace pro Android na službě Google Play",
 		"appInfoFDroidImageAlt_alt": "Aplikace pro Android na portálu F-Droid",
 		"appInfoIosImageAlt_alt": "Aplikace iOS na Apple store",
+		"apply_action": "Použít",
 		"archive_action": "Archiv",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Nemůžete přidělit globální administrátorská práva místně spravovanému uživateli.",
 		"attachFiles_action": "Připojit soubory",
@@ -231,6 +232,7 @@ export default {
 		"comment_label": "Komentář",
 		"community_label": "Komunita",
 		"company_label": "Společnost",
+		"concealPassword_action": "Skrýt heslo",
 		"confidentialStatus_msg": "Tato zpráva bude odeslána koncově šifrovaná.",
 		"confidential_action": "Důvěrné",
 		"confirmCountry_msg": "Pro výpočet daně z přidané hodnoty musíte potvrdit svou zemi: {1}.",
@@ -1143,6 +1145,7 @@ export default {
 		"restartBefore_action": "Před odesláním restartujte Tutanotu",
 		"resumeSetup_label": "Pokračovat v nastavení",
 		"retry_action": "Zkuste to prosím znovu",
+		"revealPassword_action": "Zobrazit heslo",
 		"richText_label": "RTF text",
 		"role_placeholder": "Role",
 		"runInBackground_action": "Spustit na pozadí",
