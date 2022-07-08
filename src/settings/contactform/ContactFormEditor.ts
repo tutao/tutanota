@@ -1,6 +1,5 @@
 import m from "mithril"
 import {Dialog} from "../../gui/base/Dialog"
-import type {LanguageCode} from "../../misc/LanguageViewModel"
 import {lang, languages} from "../../misc/LanguageViewModel"
 import {BookingItemFeatureType, GroupType, Keys} from "../../api/common/TutanotaConstants"
 import {getWhitelabelDomain} from "../../api/common/utils/Utils"
@@ -9,7 +8,6 @@ import {assertMainOrNode} from "../../api/common/Env"
 import {logins} from "../../api/main/LoginController"
 import type {GroupInfo} from "../../api/entities/sys/TypeRefs.js"
 import {CustomerInfoTypeRef, CustomerTypeRef, GroupInfoTypeRef, GroupTypeRef, UserTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import {DropDownSelector} from "../../gui/base/DropDownSelector"
 import type {TableAttrs, TableLineAttrs} from "../../gui/base/Table.js"
 import {ColumnWidth, Table} from "../../gui/base/Table.js"
 import type {ContactForm, ContactFormLanguage} from "../../api/entities/tutanota/TypeRefs.js"
@@ -32,7 +30,7 @@ import {getDefaultContactFormLanguage} from "./ContactFormUtils"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {windowFacade} from "../../misc/WindowFacade"
-import {ButtonAttrs, Button, ButtonType} from "../../gui/base/Button.js"
+import {Button, ButtonAttrs, ButtonType} from "../../gui/base/Button.js"
 import {compareGroupInfos, getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
 import {isSameId, stringToCustomId} from "../../api/common/utils/EntityUtils"
 import {showBuyDialog} from "../../subscription/BuyDialog"
@@ -40,6 +38,7 @@ import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
 import {TextFieldN} from "../../gui/base/TextFieldN"
 import {locator} from "../../api/main/MainLocator"
 import {attachDropdown, DropdownChildAttrs} from "../../gui/base/Dropdown.js"
+import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN.js"
 
 assertMainOrNode()
 // keep in sync with ContactFormAccessor.java
@@ -385,24 +384,27 @@ export class ContactFormEditor {
 								}
 							})
 							.sort((a, b) => a.name.localeCompare(b.name))
-						const newLanguageCode: Stream<LanguageCode> = stream(additionalLanguages[0].value)
-						const tagName = new DropDownSelector("addLanguage_action", null, additionalLanguages, newLanguageCode, 250)
+
+						let newLanguageCode = additionalLanguages[0].value
 						setTimeout(() => {
-							let addLanguageOkAction = (dialog: Dialog) => {
+							const addLanguageOkAction = (dialog: Dialog) => {
 								const newLang = createContactFormLanguage()
-								newLang.code = newLanguageCode()
-
+								newLang.code = newLanguageCode
 								this._languages.push(newLang)
-
 								this._language(newLang)
-
 								dialog.close()
 							}
 
 							Dialog.showActionDialog({
 								title: lang.get("addLanguage_action"),
 								child: {
-									view: () => m(tagName),
+									view: () => m(DropDownSelectorN, {
+										label: "addLanguage_action",
+										items: additionalLanguages,
+										selectedValue: newLanguageCode,
+										selectionChangedHandler: (value: string) => newLanguageCode = value,
+										dropdownWidth: 250
+									}),
 								},
 								allowOkWithReturn: true,
 								okAction: addLanguageOkAction,
@@ -511,32 +513,32 @@ export class ContactFormEditor {
 				)
 
 				if (availableGroupInfos.length > 0) {
-					let dropdown = new DropDownSelector(
-						"group_label",
-						null,
-						availableGroupInfos.map(g => {
-							return {
-								name: getGroupInfoDisplayName(g),
-								value: g,
-							}
-						}),
-						stream(availableGroupInfos[0]),
-						250,
-					)
 
-					let addResponsiblePersonOkAction = (dialog: Dialog) => {
-						this._participantGroupInfoList.push(dropdown.selectedValue())
+					let selectedGroupInfo = availableGroupInfos[0]
 
-						dialog.close()
-					}
+					const dropdownItems = availableGroupInfos.map(g => {
+						return {
+							name: getGroupInfoDisplayName(g),
+							value: g,
+						}
+					})
 
 					Dialog.showActionDialog({
 						title: lang.get("responsiblePersons_label"),
 						child: {
-							view: () => m(dropdown),
+							view: () => m(DropDownSelectorN, {
+								label: "group_label",
+								items: dropdownItems,
+								selectedValue: selectedGroupInfo,
+								selectionChangedHandler: (value: GroupInfo) => selectedGroupInfo = value,
+								dropdownWidth: 250
+							}),
 						},
 						allowOkWithReturn: true,
-						okAction: addResponsiblePersonOkAction,
+						okAction: (dialog: Dialog) => {
+							this._participantGroupInfoList.push(selectedGroupInfo)
+							dialog.close()
+						},
 					})
 				}
 			},
