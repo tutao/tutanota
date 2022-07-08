@@ -33,8 +33,8 @@ import {
 	getContactSocialTypeLabel,
 } from "./view/ContactGuiUtils"
 import {parseBirthday} from "../misc/DateParser"
-import type {TextFieldAttrs} from "../gui/base/TextFieldN"
-import {TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
+import type {TextFieldAttrs} from "../gui/base/TextField.js"
+import {TextField, TextFieldType} from "../gui/base/TextField.js"
 import {EntityClient} from "../api/common/EntityClient"
 import {timestampToGeneratedId} from "../api/common/utils/EntityUtils"
 import type {AggregateEditorAttrs} from "./ContactAggregateEditor"
@@ -117,13 +117,13 @@ export class ContactEditor {
 		const presharedPasswordAttrs = this._createPresharedPasswordAttrs()
 
 		return m("#contact-editor", [
-			m(".wrapping-row", [m(TextFieldN, this._createFirstNameAttrs()), m(TextFieldN, this._createLastNameAttrs())]),
-			m(".wrapping-row", [m(TextFieldN, this._createTitleAttrs()), m(TextFieldN, this._createBirthdayAttrs())]),
+			m(".wrapping-row", [m(TextField, this._createFirstNameAttrs()), m(TextField, this._createLastNameAttrs())]),
+			m(".wrapping-row", [m(TextField, this._createTitleAttrs()), m(TextField, this._createBirthdayAttrs())]),
 			m(".wrapping-row", [
-				m(TextFieldN, this._createRoleAttrs()),
-				m(TextFieldN, this._createCompanyAttrs()),
-				m(TextFieldN, this._createNickNameAttrs()),
-				m(TextFieldN, this._createCommentAttrs()),
+				m(TextField, this._createRoleAttrs()),
+				m(TextField, this._createCompanyAttrs()),
+				m(TextField, this._createNickNameAttrs()),
+				m(TextField, this._createCommentAttrs()),
 			]),
 			m(".wrapping-row", [
 				m(".mail.mt-xl", [
@@ -167,7 +167,7 @@ export class ContactEditor {
 			]),
 			presharedPasswordAttrs
 				? m(".wrapping-row", [
-					m(".passwords.mt-xl", [m(".h4", lang.get("presharedPassword_label")), m(TextFieldN, presharedPasswordAttrs)]),
+					m(".passwords.mt-xl", [m(".h4", lang.get("presharedPassword_label")), m(TextField, presharedPasswordAttrs)]),
 					m(".spacer"),
 				])
 				: null,

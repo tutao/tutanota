@@ -1,12 +1,12 @@
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog.js"
 import stream from "mithril/stream"
 import {GroupType, SecondFactorType} from "../api/common/TutanotaConstants.js"
-import type {DropDownSelectorAttrs, SelectorItem} from "../gui/base/DropDownSelectorN.js"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN.js"
+import type {DropDownSelectorAttrs, SelectorItem} from "../gui/base/DropDownSelector.js"
+import {DropDownSelector} from "../gui/base/DropDownSelector.js"
 import type {TranslationKey} from "../misc/LanguageViewModel.js"
 import {lang} from "../misc/LanguageViewModel.js"
-import type {TextFieldAttrs} from "../gui/base/TextFieldN.js"
-import {TextFieldN} from "../gui/base/TextFieldN.js"
+import type {TextFieldAttrs} from "../gui/base/TextField.js"
+import {TextField} from "../gui/base/TextField.js"
 import {isApp, isTutanotaDomain} from "../api/common/Env.js"
 import m, {Children} from "mithril"
 import type {ButtonAttrs} from "../gui/base/Button.js"
@@ -195,7 +195,7 @@ export class EditSecondFactorDialog {
 				this.name = value
 			},
 		}
-		return [m(DropDownSelectorN, typeDropdownAttrs), m(TextFieldN, nameFieldAttrs), this.renderTypeSpecificFields()]
+		return [m(DropDownSelector, typeDropdownAttrs), m(TextField, nameFieldAttrs), this.renderTypeSpecificFields()]
 	}
 
 	private renderTypeSpecificFields(): Children {
@@ -244,9 +244,9 @@ export class EditSecondFactorDialog {
 			type: ButtonType.Login,
 		}
 		return m(".mb", [
-			m(TextFieldN, totpSecretFieldAttrs),
+			m(TextField, totpSecretFieldAttrs),
 			isApp() ? m(".pt", m(Button, openTOTPAppAttrs)) : this.renderOtpQrCode(),
-			m(TextFieldN, totpCodeAttrs),
+			m(TextField, totpCodeAttrs),
 		])
 	}
 

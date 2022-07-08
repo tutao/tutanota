@@ -34,11 +34,11 @@ import {Button, ButtonAttrs, ButtonType} from "../../gui/base/Button.js"
 import {compareGroupInfos, getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
 import {isSameId, stringToCustomId} from "../../api/common/utils/EntityUtils"
 import {showBuyDialog} from "../../subscription/BuyDialog"
-import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
-import {TextFieldN} from "../../gui/base/TextFieldN"
+import type {TextFieldAttrs} from "../../gui/base/TextField.js"
+import {TextField} from "../../gui/base/TextField.js"
 import {locator} from "../../api/main/MainLocator"
 import {attachDropdown, DropdownChildAttrs} from "../../gui/base/Dropdown.js"
-import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN.js"
+import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
 
 assertMainOrNode()
 // keep in sync with ContactFormAccessor.java
@@ -210,14 +210,14 @@ export class ContactFormEditor {
 				},
 				[
 					m(".h4.mt-l", lang.get("emailProcessing_label")),
-					m(TextFieldN, this._createReceivingMailboxFieldAttrs()),
+					m(TextField, this._createReceivingMailboxFieldAttrs()),
 					this._receivingMailbox() && neverNull(this._receivingMailbox()).groupType === GroupType.User
 						? null
 						: m(".mt-l", [m(Table, this._createParticipantGroupInfosTableAttrs()), m(".small", lang.get("responsiblePersonsInfo_msg"))]),
 					m(".h4.mt-l", lang.get("display_action")),
-					m(TextFieldN, this._createPathFieldAttrs()),
-					m(TextFieldN, this._createLanguageFieldAttrs()),
-					m(TextFieldN, this._createPageTitleAttrs()),
+					m(TextField, this._createPathFieldAttrs()),
+					m(TextField, this._createLanguageFieldAttrs()),
+					m(TextField, this._createPageTitleAttrs()),
 					m(this._headerField),
 					m(this._footerField),
 					m(this._helpField),
@@ -398,7 +398,7 @@ export class ContactFormEditor {
 							Dialog.showActionDialog({
 								title: lang.get("addLanguage_action"),
 								child: {
-									view: () => m(DropDownSelectorN, {
+									view: () => m(DropDownSelector, {
 										label: "addLanguage_action",
 										items: additionalLanguages,
 										selectedValue: newLanguageCode,
@@ -526,7 +526,7 @@ export class ContactFormEditor {
 					Dialog.showActionDialog({
 						title: lang.get("responsiblePersons_label"),
 						child: {
-							view: () => m(DropDownSelectorN, {
+							view: () => m(DropDownSelector, {
 								label: "group_label",
 								items: dropdownItems,
 								selectedValue: selectedGroupInfo,

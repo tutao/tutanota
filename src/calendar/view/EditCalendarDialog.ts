@@ -1,7 +1,7 @@
 import {Dialog} from "../../gui/base/Dialog"
 import m, {Children} from "mithril"
 import stream from "mithril/stream"
-import {TextFieldN} from "../../gui/base/TextFieldN"
+import {TextField} from "../../gui/base/TextField.js"
 import {lang} from "../../misc/LanguageViewModel"
 import type {TranslationKeyType} from "../../misc/TranslationKey"
 import {downcast} from "@tutao/tutanota-utils"
@@ -29,7 +29,7 @@ export function showEditCalendarDialog(
 			view: () =>
 				m(".flex.col", [
 					warningMessage ? warningMessage() : null,
-					m(TextFieldN, {
+					m(TextField, {
 						value: nameStream(),
 						oninput: nameStream,
 						label: "calendarName_label",

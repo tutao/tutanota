@@ -31,7 +31,7 @@ import {MultiSelectionBar} from "../../gui/base/MultiSelectionBar"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {isUpdateForTypeRef} from "../../api/main/EventController"
 import {navButtonRoutes, throttleRoute} from "../../misc/RouteChange"
-import {NavButtonN} from "../../gui/base/NavButtonN"
+import {NavButton} from "../../gui/base/NavButton.js"
 import {styles} from "../../gui/styles"
 import {size} from "../../gui/size"
 import {FolderColumnView} from "../../gui/FolderColumnView.js"
@@ -237,7 +237,7 @@ export class ContactView implements CurrentView {
 	createContactFoldersExpanderChildren(): Children {
 		return m(".folders", [
 			m(".folder-row.flex-space-between.plr-l.row-selected", [
-				m(NavButtonN, {
+				m(NavButton, {
 					label: "all_contacts_label",
 					icon: () => BootIcons.Contacts,
 					href: () => m.route.get(),

@@ -1,6 +1,6 @@
 import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
-import type {NavButtonAttrs} from "../../gui/base/NavButtonN"
-import {isNavButtonSelected, NavButtonN} from "../../gui/base/NavButtonN"
+import type {NavButtonAttrs} from "../../gui/base/NavButton.js"
+import {isNavButtonSelected, NavButton} from "../../gui/base/NavButton.js"
 import type {ButtonAttrs} from "../../gui/base/Button.js"
 import {Button} from "../../gui/base/Button.js"
 import {animations, opacity} from "../../gui/animation/Animations"
@@ -27,7 +27,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 				color: theme.navigation_button_icon,
 				background: getNavButtonIconBackground(),
 			}),
-			m(NavButtonN, button),
+			m(NavButton, button),
 			rightButton
 				? m(
 					Button,

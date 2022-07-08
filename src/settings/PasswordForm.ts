@@ -1,5 +1,5 @@
 import m, {Children, Component, Vnode} from "mithril"
-import {TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
+import {TextField, TextFieldType} from "../gui/base/TextField.js"
 import {CompletenessIndicator} from "../gui/CompletenessIndicator.js"
 import {getPasswordStrength, isSecurePassword} from "../misc/PasswordUtils"
 import type {TranslationKey} from "../misc/LanguageViewModel"
@@ -183,7 +183,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 			},
 			[
 				attrs.model.config.checkOldPassword ?
-					m(TextFieldN, {
+					m(TextField, {
 						label: "oldPassword_label",
 						value: attrs.model.getOldPassword(),
 						helpLabel: () => m(StatusField, {status: attrs.model.getOldPasswordStatus()}),
@@ -192,7 +192,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 						type: TextFieldType.Password,
 					})
 					: null,
-				m(TextFieldN, {
+				m(TextField, {
 					label: "newPassword_label",
 					value: attrs.model.getNewPassword(),
 					helpLabel: () => m(StatusField, {
@@ -205,7 +205,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 				}),
 				attrs.passwordInfoKey ? m(".small.mt-s", lang.get(attrs.passwordInfoKey)) : null,
 				attrs.model.config.repeatInput
-					? m(TextFieldN, {
+					? m(TextField, {
 						label: "repeatedPassword_label",
 						value: attrs.model.getRepeatedPassword(),
 						helpLabel: () =>

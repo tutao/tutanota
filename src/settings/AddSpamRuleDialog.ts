@@ -9,9 +9,9 @@ import type {EmailSenderListElement} from "../api/entities/sys/TypeRefs.js"
 import {CustomerInfoTypeRef, CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {logins} from "../api/main/LoginController"
 import stream from "mithril/stream"
-import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import type {SelectorItemList} from "../gui/base/DropDownSelector.js"
+import {DropDownSelector} from "../gui/base/DropDownSelector.js"
+import {TextField} from "../gui/base/TextField.js"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
 import {isOfflineError} from "../api/common/utils/ErrorCheckUtils.js"
@@ -30,13 +30,13 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderLis
 	const selectedField = stream(existingSpamRuleOrTemplate ? getSpamRuleField(existingSpamRuleOrTemplate) : fieldValues[0].value)
 
 	let form = () => [
-		m(DropDownSelectorN, {
+		m(DropDownSelector, {
 			items: fieldValues,
 			label: "field_label",
 			selectedValue: selectedField(),
 			selectionChangedHandler: selectedField,
 		}),
-		m(TextFieldN, {
+		m(TextField, {
 			label: "emailSenderPlaceholder_label",
 			value: valueFieldValue(),
 			oninput: valueFieldValue,
@@ -45,7 +45,7 @@ export function showAddSpamRuleDialog(existingSpamRuleOrTemplate: EmailSenderLis
 					validate(selectedType(), valueFieldValue(), selectedField(), loadedData, existingSpamRuleOrTemplate) ?? "emptyString_msg",
 				),
 		}),
-		m(DropDownSelectorN, {
+		m(DropDownSelector, {
 			items: typeItems,
 			label: "emailSenderRule_label",
 			selectedValue: selectedType(),

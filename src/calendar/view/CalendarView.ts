@@ -15,7 +15,7 @@ import {locator} from "../../api/main/MainLocator"
 import {getEventStart, getStartOfTheWeekOffset, getStartOfWeek, getTimeZone, shouldDefaultToAmPmTimeFormat} from "../date/CalendarUtils"
 import {ButtonColor, Button, ButtonType} from "../../gui/base/Button.js"
 import {formatDateWithWeekday, formatDateWithWeekdayAndYearLong, formatMonthWithFullYear} from "../../misc/Formatter"
-import {NavButtonColor, NavButtonN} from "../../gui/base/NavButtonN"
+import {NavButtonColor, NavButton} from "../../gui/base/NavButton.js"
 import {CalendarMonthView} from "./CalendarMonthView"
 import {DateTime} from "luxon"
 import {NotFoundError} from "../../api/common/error/RestError"
@@ -471,7 +471,7 @@ export class CalendarView implements CurrentView {
 				".folder-row.flex-start.plr-l", // undo the padding of NavButton and prevent .folder-row > a from selecting NavButton
 				m(
 					".flex-grow.ml-negative-s",
-					m(NavButtonN, {
+					m(NavButton, {
 						label: () => viewType.name,
 						icon: () => viewType.icon,
 						href: m.route.get(),

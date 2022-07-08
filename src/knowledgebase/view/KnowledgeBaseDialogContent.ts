@@ -8,8 +8,8 @@ import {KnowledgeBaseEntryView} from "./KnowledgeBaseEntryView"
 import type {EmailTemplate} from "../../api/entities/tutanota/TypeRefs.js"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {Dialog} from "../../gui/base/Dialog"
-import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
-import {TextFieldN} from "../../gui/base/TextFieldN"
+import type {TextFieldAttrs} from "../../gui/base/TextField.js"
+import {TextField} from "../../gui/base/TextField.js"
 import {makeListSelectionChangedScrollHandler} from "../../gui/base/GuiUtils"
 import {ofClass} from "@tutao/tutanota-utils"
 import Stream from "mithril/stream";
@@ -64,7 +64,7 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 				readonly: model.isReadOnly(selectedEntry),
 			})
 			: [
-				m(TextFieldN, {
+				m(TextField, {
 						label: () => lang.get("filter_label"),
 						value: this.filterValue,
 						oninput: (value) => {

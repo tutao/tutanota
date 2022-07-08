@@ -11,11 +11,11 @@ import {Button, ButtonType} from "../gui/base/Button.js"
 import type {SubscriptionActionButtons} from "./SubscriptionUtils"
 import {SubscriptionType, UpgradePriceType, UpgradeType} from "./SubscriptionUtils"
 import {Dialog, DialogType} from "../gui/base/Dialog"
-import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
-import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
+import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialog.js"
+import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialog.js"
 import {DefaultAnimationTime} from "../gui/animation/Animations"
 import {Keys} from "../api/common/TutanotaConstants"
-import {CheckboxN} from "../gui/base/CheckboxN"
+import {Checkbox} from "../gui/base/Checkbox.js"
 import {getSubscriptionPrice} from "./PriceUtils"
 
 export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
@@ -170,12 +170,12 @@ function confirmFreeSubscription(): Promise<boolean> {
 				// m(".h2.pb", lang.get("confirmFreeAccount_label")),
 				m("#dialog-message.dialog-contentButtonsBottom.text-break.text-prewrap.selectable", lang.getMaybeLazy("freeAccountInfo_msg")),
 				m(".dialog-contentButtonsBottom", [
-					m(CheckboxN, {
+					m(Checkbox, {
 						label: () => lang.get("confirmNoOtherFreeAccount_msg"),
 						checked: oneAccountValue(),
 						onChecked: oneAccountValue,
 					}),
-					m(CheckboxN, {
+					m(Checkbox, {
 						label: () => lang.get("confirmPrivateUse_msg"),
 						checked: privateUseValue(),
 						onChecked: privateUseValue,

@@ -48,7 +48,7 @@ export const inputLineHeight: number = size.font_size_base + 8
 const inputMarginTop = size.font_size_small + size.hpad_small + 3
 export const baseLabelPosition = size.text_field_label_top
 
-export class TextFieldN implements ClassComponent<TextFieldAttrs> {
+export class TextField implements ClassComponent<TextFieldAttrs> {
 	active: boolean
 	onblur: EventListener | null = null
 	domInput!: HTMLInputElement

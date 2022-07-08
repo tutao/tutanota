@@ -18,7 +18,7 @@ import type {ExpanderAttrs} from "../gui/base/Expander"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import {TextField} from "../gui/base/TextField.js"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
@@ -183,7 +183,7 @@ export class IdentifierListViewer {
 				title: lang.get("notificationSettings_action"),
 				child: {
 					view: () => [
-						m(TextFieldN, {
+						m(TextField, {
 							label: "mailAddress_label",
 							value: mailAddress,
 							oninput: (newValue) => mailAddress = newValue,

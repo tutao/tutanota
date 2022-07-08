@@ -8,7 +8,7 @@ import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import type {Options as ToolbarOptions} from "../base/RichTextToolbar"
 import {RichTextToolbar} from "../base/RichTextToolbar"
 import {assertNotNull} from "@tutao/tutanota-utils"
-import {DropDownSelectorN} from "../base/DropDownSelectorN.js"
+import {DropDownSelector} from "../base/DropDownSelector.js"
 
 export enum HtmlEditorMode {
 	HTML = "html",
@@ -79,7 +79,7 @@ export class HtmlEditor implements Component {
 
 
 		return m(".html-editor" + (this.mode === HtmlEditorMode.WYSIWYG ? ".text-break" : ""), [
-			modeSwitcherLabel != null ? m(DropDownSelectorN, {
+			modeSwitcherLabel != null ? m(DropDownSelector, {
 					label: () => lang.getMaybeLazy(modeSwitcherLabel),
 					items: [
 						{name: lang.get("richText_label"), value: HtmlEditorMode.WYSIWYG},

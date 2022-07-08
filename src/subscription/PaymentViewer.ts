@@ -31,7 +31,7 @@ import Stream from "mithril/stream"
 import {getPreconditionFailedPaymentMsg} from "./SubscriptionUtils"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import {TextField} from "../gui/base/TextField.js"
 import {logins} from "../api/main/LoginController"
 import type {CustomerAccountPosting} from "../api/entities/accounting/TypeRefs"
 import {createCustomerAccountPosting} from "../api/entities/accounting/TypeRefs"
@@ -148,13 +148,13 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					]),
 					m(this._invoiceAddressField),
 					this._accountingInfo && this._accountingInfo.invoiceVatIdNo.trim().length > 0
-						? m(TextFieldN, {
+						? m(TextField, {
 							label: "invoiceVatIdNo_label",
 							value: invoiceVatId,
 							disabled: true,
 						})
 						: null,
-					m(TextFieldN, {
+					m(TextField, {
 						label: "paymentMethod_label",
 						value: paymentMethod,
 						helpLabel: paymentMethodHelpLabel,
@@ -434,7 +434,7 @@ function _showPayConfirmDialog(price: number): Promise<boolean> {
 					".plr-l.pb",
 					m("", [
 						m(".pt", lang.get("invoicePayConfirm_msg")),
-						m(TextFieldN, {
+						m(TextField, {
 							label: "price_label",
 							value: formatPrice(-price, true),
 							disabled: true,

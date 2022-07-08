@@ -8,7 +8,7 @@ import {contains} from "@tutao/tutanota-utils"
 import {uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
 import m, {Children, Component, Vnode} from "mithril"
 import {Button} from "../../gui/base/Button.js"
-import {TextFieldAttrs, TextFieldN} from "../../gui/base/TextFieldN"
+import {TextFieldAttrs, TextField} from "../../gui/base/TextField.js"
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
 import {CustomColorsEditorViewModel} from "./CustomColorsEditorViewModel"
 import type {WhitelabelConfig} from "../../api/entities/sys/TypeRefs.js"
@@ -35,7 +35,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 	}
 
 	_renderCustomColorsField(data: WhitelabelData | null): Children {
-		return m(TextFieldN, {
+		return m(TextField, {
 			label: "customColors_label",
 			value: this.areCustomColorsDefined(data?.customTheme ?? null)
 				? lang.get("activated_label")
@@ -85,7 +85,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 			disabled: true,
 			injectionsRight: () => (data ? this.renderCustomLogoFieldButtons(data) : null),
 		}
-		return m(TextFieldN, customLogoTextfieldAttrs)
+		return m(TextField, customLogoTextfieldAttrs)
 	}
 
 	renderCustomLogoFieldButtons({customTheme, whitelabelDomainInfo, whitelabelConfig}: WhitelabelData): Children {

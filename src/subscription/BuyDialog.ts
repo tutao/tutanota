@@ -1,7 +1,7 @@
 import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import {assertNotNull, filterInt, incrementDate, neverNull, ofClass} from "@tutao/tutanota-utils"
-import {TextFieldN, TextFieldType} from "../gui/base/TextFieldN.js"
+import {TextField, TextFieldType} from "../gui/base/TextField.js"
 import {Dialog, DialogType} from "../gui/base/Dialog.js"
 import {lang, TranslationKey} from "../misc/LanguageViewModel.js"
 import {AccountType, BookingItemFeatureType, FeatureType} from "../api/common/TutanotaConstants.js"
@@ -159,21 +159,21 @@ class ConfirmSubscriptionView implements Component<ConfirmAttrs> {
 		const chargeDate = incrementDate(priceChangeModel.periodEndDate(), 1)
 
 		return m("", [
-			m(TextFieldN, {
+			m(TextField, {
 				label: "bookingOrder_label",
 				value: this.getBookingText(priceChangeModel, count, freeAmount),
 				type: TextFieldType.Area,
 				disabled: true,
 			}),
 			priceChangeModel.isBuy()
-				? m(TextFieldN, {
+				? m(TextField, {
 					label: "subscription_label",
 					helpLabel: () => lang.get("nextChargeOn_label", {"{chargeDate}": formatDate(chargeDate)}),
 					value: this.getSubscriptionText(priceChangeModel),
 					disabled: true,
 				})
 				: null,
-			m(TextFieldN, {
+			m(TextField, {
 				label: "price_label",
 				helpLabel: () => this.getPriceInfoText(priceChangeModel),
 				value: this.getPriceText(priceChangeModel),

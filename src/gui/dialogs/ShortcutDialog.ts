@@ -3,7 +3,7 @@ import m, {Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import {Dialog} from "../base/Dialog"
 import {Keys} from "../../api/common/TutanotaConstants"
-import {TextFieldN} from "../base/TextFieldN"
+import {TextField} from "../base/TextField.js"
 import type {Shortcut} from "../../misc/KeyManager"
 import {ButtonType} from "../base/Button.js"
 import {DialogHeaderBarAttrs} from "../base/DialogHeaderBar";
@@ -74,7 +74,7 @@ class ShortcutDialog implements Component<ShortcutDialogAttrs> {
 			}))
 		return m(
 			"div.pb",
-			textFieldAttrs.map(t => m(TextFieldN, t)),
+			textFieldAttrs.map(t => m(TextField, t)),
 		)
 	}
 }

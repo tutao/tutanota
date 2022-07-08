@@ -1,7 +1,7 @@
 import m from "mithril"
 import type {lazy} from "@tutao/tutanota-utils"
 import {neverNull} from "@tutao/tutanota-utils"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import {TextField} from "../gui/base/TextField.js"
 import type {EntityUpdateData} from "../api/main/EventController"
 import type {ButtonAttrs} from "../gui/base/Button.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
@@ -45,7 +45,7 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 						: null,
 				]),
 				m("", [
-					m(TextFieldN, {
+					m(TextField, {
 						label: "shortcut_label",
 						value: TEMPLATE_SHORTCUT_PREFIX + neverNull(template.tag),
 						disabled: true,

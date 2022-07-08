@@ -1,5 +1,5 @@
 import m, {Children, Component, Vnode} from "mithril"
-import {NavButtonN} from "../base/NavButtonN"
+import {NavButton} from "../base/NavButton.js"
 import {size} from "../size"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
 import {logins} from "../../api/main/LoginController"
@@ -13,7 +13,7 @@ export class BottomNav implements Component<Attrs> {
 	view(vnode: Vnode<Attrs>): Children {
 		// Using bottom-nav class too to match it inside media queries like @print, otherwise it's not matched
 		return m("bottom-nav.bottom-nav.flex.items-center.z1", [
-			m(NavButtonN, {
+			m(NavButton, {
 				label: "emails_label",
 				icon: () => BootIcons.Mail,
 				href: navButtonRoutes.mailUrl,
@@ -21,7 +21,7 @@ export class BottomNav implements Component<Attrs> {
 				fontSize,
 			}),
 			logins.isInternalUserLoggedIn()
-				? m(NavButtonN, {
+				? m(NavButton, {
 					label: "search_label",
 					icon: () => BootIcons.Search,
 					href: m.route.get().startsWith(SEARCH_PREFIX)
@@ -35,7 +35,7 @@ export class BottomNav implements Component<Attrs> {
 				})
 				: null,
 			logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)
-				? m(NavButtonN, {
+				? m(NavButton, {
 					label: "contacts_label",
 					icon: () => BootIcons.Contacts,
 					href: () => navButtonRoutes.contactsUrl,
@@ -45,7 +45,7 @@ export class BottomNav implements Component<Attrs> {
 				})
 				: null,
 			logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableCalendar)
-				? m(NavButtonN, {
+				? m(NavButton, {
 					label: "calendar_label",
 					icon: () => BootIcons.Calendar,
 					href: CALENDAR_PREFIX,

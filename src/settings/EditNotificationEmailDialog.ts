@@ -6,9 +6,9 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import m from "mithril"
-import type {SelectorItemList} from "../gui/base/DropDownSelectorN"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import type {SelectorItemList} from "../gui/base/DropDownSelector.js"
+import {DropDownSelector} from "../gui/base/DropDownSelector.js"
+import {TextField} from "../gui/base/TextField.js"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {assertNotNull, LazyLoaded, memoized, neverNull, ofClass} from "@tutao/tutanota-utils"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
@@ -136,19 +136,19 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 	const editTabContent = () => [
 		m(".small.mt-s", lang.get("templateHelp_msg")),
 		existingTemplate
-			? m(TextFieldN, {
+			? m(TextField, {
 				label: "notificationMailLanguage_label",
 				disabled: true,
 				value: selectedLanguage.name,
 			})
-			: m(DropDownSelectorN, {
+			: m(DropDownSelector, {
 				label: "notificationMailLanguage_label",
 				items: sortedLanguages,
 				selectedValue: selectedLanguageStream(),
 				selectionChangedHandler: selectedLanguageStream,
 				dropdownWidth: 250,
 			}),
-		m(TextFieldN, {
+		m(TextField, {
 			label: "subject_label",
 			value: subject(),
 			oninput: subject,
@@ -169,7 +169,7 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 	})
 
 	const previewTabContent = () => [
-		m(TextFieldN, {
+		m(TextField, {
 			label: "subject_label",
 			value: subject().replace(/{sender}/g, senderName),
 			disabled: true,

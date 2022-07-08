@@ -14,7 +14,7 @@ import type {AccountingInfo, Customer} from "../api/entities/sys/TypeRefs.js"
 import {createPaymentDataServiceGetData} from "../api/entities/sys/TypeRefs.js"
 import {locator} from "../api/main/MainLocator"
 import {PaymentDataService} from "../api/entities/sys/Services"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN.js"
+import {DropDownSelector} from "../gui/base/DropDownSelector.js"
 
 /**
  * @returns {boolean} true if the payment data update was successful
@@ -92,7 +92,7 @@ export function show(customer: Customer, accountingInfo: AccountingInfo, price: 
 							},
 						},
 						[
-							m(DropDownSelectorN, {
+							m(DropDownSelector, {
 								label: "paymentMethod_label",
 								items: availablePaymentMethods,
 								selectedValue: selectedPaymentMethod,

@@ -15,7 +15,7 @@ import {Editor} from "../../gui/editor/Editor"
 import {RichTextToolbar} from "../../gui/base/RichTextToolbar"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {replaceInlineImagesWithCids} from "../view/MailGuiUtils"
-import {TextFieldN} from "../../gui/base/TextFieldN"
+import {TextField} from "../../gui/base/TextField.js"
 import {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar";
 import Stream from "mithril/stream";
 
@@ -241,7 +241,7 @@ export class PressReleaseForm implements Component<PressReleaseFormAttrs> {
 				oninput: (e: InputEvent) => recipientsJson((e.target as HTMLTextAreaElement).value),
 				value: recipientsJson(),
 			}),
-			m(TextFieldN, {
+			m(TextField, {
 				label: "subject_label",
 				value: subject(),
 				oninput: subject,

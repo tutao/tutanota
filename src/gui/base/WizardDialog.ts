@@ -57,7 +57,7 @@ export function emitWizardEvent(dom: HTMLElement | null, eventType: WizardEventT
 	}
 }
 
-class WizardDialogN<T> implements Component<WizardDialogAttrs<T>> {
+class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 	private _closeWizardDialogListener!: EventListener
 	private _showNextWizardDialogPageListener!: EventListener
 
@@ -290,7 +290,7 @@ export function createWizardDialog<T>(data: T, pages: ReadonlyArray<WizardPageWr
 		headerBarAttrs[key] = value
 	})
 
-	view = () => m(WizardDialogN, wizardDialogAttrs)
+	view = () => m(WizardDialog, wizardDialogAttrs)
 
 	wizardDialog
 		.addShortcut({

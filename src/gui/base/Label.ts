@@ -1,6 +1,6 @@
 import m, {Component, Vnode} from "mithril"
 import {px, size} from "../size"
-import {inputLineHeight} from "./TextFieldN"
+import {inputLineHeight} from "./TextField.js"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import type {lazy} from "@tutao/tutanota-utils"

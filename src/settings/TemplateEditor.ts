@@ -1,5 +1,5 @@
 import m, {Children, Component, Vnode} from "mithril"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import {TextField} from "../gui/base/TextField.js"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import type {ButtonAttrs} from "../gui/base/Button.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
@@ -90,19 +90,19 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 
 	view(): Children {
 		return m("", [
-			m(TextFieldN, {
+			m(TextField, {
 					label: "title_placeholder",
 					value: this.model.title(),
 					oninput: this.model.title,
 				}
 			),
-			m(TextFieldN, {
+			m(TextField, {
 					label: "shortcut_label",
 					value: this.model.tag(),
 					oninput: this.model.tag,
 				}
 			),
-			m(TextFieldN, {
+			m(TextField, {
 					label: "language_label",
 					value: this.model.selectedContent() ? getLanguageName(this.model.selectedContent()) : "",
 					injectionsRight: () => [

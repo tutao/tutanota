@@ -4,16 +4,16 @@ import Stream from "mithril/stream"
 import {DatePicker} from "../../gui/date/DatePicker"
 import {Dialog} from "../../gui/base/Dialog"
 import m, {Children} from "mithril"
-import {TextFieldN, TextFieldType as TextFieldType} from "../../gui/base/TextFieldN"
+import {TextField, TextFieldType as TextFieldType} from "../../gui/base/TextField.js"
 import {lang} from "../../misc/LanguageViewModel"
-import type {DropDownSelectorAttrs, SelectorItemList} from "../../gui/base/DropDownSelectorN"
+import type {DropDownSelectorAttrs, SelectorItemList} from "../../gui/base/DropDownSelector.js"
 import {Icons} from "../../gui/base/icons/Icons"
 import {ButtonColor, Button, ButtonType} from "../../gui/base/Button.js"
 import {AlarmInterval, CalendarAttendeeStatus, EndType, Keys, RepeatPeriod} from "../../api/common/TutanotaConstants"
 import {createRepeatRuleEndTypeValues, createRepeatRuleFrequencyValues, getStartOfTheWeekOffsetForUser} from "../date/CalendarUtils"
 import {AllIcons, Icon} from "../../gui/base/Icon"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
-import {CheckboxN} from "../../gui/base/CheckboxN"
+import {Checkbox} from "../../gui/base/Checkbox.js"
 import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
 import {client} from "../../misc/ClientDetector"
 import type {Guest, RepeatData} from "../date/CalendarEventViewModel"
@@ -38,7 +38,7 @@ import {downcast, memoized, noOp, numberRange, ofClass} from "@tutao/tutanota-ut
 import {createDropdown} from "../../gui/base/Dropdown.js"
 import {CalendarEvent, createEncryptedMailAddress, Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {getRecipientsSearchModel, RecipientsSearchModel} from "../../misc/RecipientsSearchModel.js"
-import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
+import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
 
 export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
@@ -107,7 +107,7 @@ export async function showCalendarEventDialog(
 		if (viewModel.repeat == null || viewModel.repeat.endType === EndType.Never) {
 			return null
 		} else if (viewModel.repeat.endType === EndType.Count) {
-			return m(DropDownSelectorN, {
+			return m(DropDownSelector, {
 				label: "emptyString_msg",
 				items: intervalValues,
 						selectedValue: viewModel.repeat.endValue,
@@ -233,7 +233,7 @@ export async function showCalendarEventDialog(
 			? guests
 				.filter(a => a.type === RecipientType.EXTERNAL)
 				.map(guest => {
-					return m(TextFieldN, {
+					return m(TextField, {
 								value: viewModel.getGuestPassword(guest),
 						type: TextFieldType.ExternalPassword,
 						label: () =>
@@ -310,7 +310,7 @@ export async function showCalendarEventDialog(
 		)
 
 	const renderLocationField = () =>
-		m(TextFieldN, {
+		m(TextField, {
 			label: "location_label",
 					value: viewModel.location(),
 					oninput: viewModel.location,
@@ -337,7 +337,7 @@ export async function showCalendarEventDialog(
 		return m(
 			".flex-half.pr-s",
 			availableCalendars.length
-				? m(DropDownSelectorN, {
+				? m(DropDownSelector, {
 					label: "calendar_label",
 					items: availableCalendars.map(calendarInfo => {
 						return {
@@ -355,7 +355,7 @@ export async function showCalendarEventDialog(
 	}
 
 	function renderRepeatPeriod() {
-		return m(DropDownSelectorN, {
+		return m(DropDownSelector, {
 			label: "calendarRepeating_label",
 			items: repeatValues,
 			selectedValue: (viewModel.repeat && viewModel.repeat.frequency) || null,
@@ -366,7 +366,7 @@ export async function showCalendarEventDialog(
 	}
 
 	function renderRepeatInterval() {
-		return m(DropDownSelectorN, {
+		return m(DropDownSelector, {
 			label: "interval_title",
 			items: intervalValues,
 			selectedValue: (viewModel.repeat && viewModel.repeat.interval) || 1,
@@ -377,7 +377,7 @@ export async function showCalendarEventDialog(
 	}
 
 	function renderEndType(repeat: RepeatData) {
-		return m(DropDownSelectorN, {
+		return m(DropDownSelector, {
 			label: () => lang.get("calendarRepeatStopCondition_label"),
 			items: endTypeValues,
 			selectedValue: repeat.endType,
@@ -430,7 +430,7 @@ export async function showCalendarEventDialog(
 				),
 				renderDateTimePickers(),
 				m(".flex.items-center.mt-s", [
-					m(CheckboxN, {
+					m(Checkbox, {
 								checked: viewModel.allDay(),
 								onChecked: viewModel.allDay,
 						disabled: viewModel.isReadOnlyEvent(),
@@ -444,7 +444,7 @@ export async function showCalendarEventDialog(
 					viewModel.canModifyAlarms()
 						? m(".flex.col.flex-half.pl-s", [
 							viewModel.alarms.map(a =>
-								m(DropDownSelectorN, {
+								m(DropDownSelector, {
 									label: "reminderBeforeEvent_label",
 									items: alarmIntervalItems,
 									selectedValue: a.trigger as AlarmInterval,
@@ -453,7 +453,7 @@ export async function showCalendarEventDialog(
 									key: a.alarmIdentifier,
 								}),
 							),
-							m(DropDownSelectorN, {
+							m(DropDownSelector, {
 								label: "reminderBeforeEvent_label",
 								items: alarmIntervalItems,
 								selectedValue: null,
@@ -476,7 +476,7 @@ export async function showCalendarEventDialog(
 	}
 
 	function renderHeading() {
-		return m(TextFieldN, {
+		return m(TextField, {
 			label: "title_placeholder",
 					value: viewModel.summary(),
 					oninput: viewModel.summary,
@@ -709,7 +709,7 @@ function renderGuest(guest: Guest, index: number, viewModel: CalendarEventViewMo
 								minWidth: "120px",
 							},
 						},
-						m(DropDownSelectorN, {
+						m(DropDownSelector, {
 							label: "attending_label",
 							items: attendingItems,
 							selectedValue: guest.status,

@@ -1,6 +1,6 @@
 import type {Mail, MailboxProperties} from "../../api/entities/tutanota/TypeRefs.js"
-import type {CheckboxAttrs} from "../../gui/base/CheckboxN"
-import {CheckboxN} from "../../gui/base/CheckboxN"
+import type {CheckboxAttrs} from "../../gui/base/Checkbox.js"
+import {Checkbox} from "../../gui/base/Checkbox.js"
 import {lang} from "../../misc/LanguageViewModel"
 import m from "mithril"
 import {MailReportType, ReportMovedMailsType} from "../../api/common/TutanotaConstants"
@@ -13,7 +13,7 @@ import {showSnackBar} from "../../gui/base/SnackBar"
 function confirmMailReportDialog(mailboxProperties: MailboxProperties | null): Promise<boolean> {
 	return new Promise(resolve => {
 		let shallRememberDecision = false
-		const child = () => m(CheckboxN, {
+		const child = () => m(Checkbox, {
 			label: () => lang.get("rememberDecision_msg"),
 			checked: shallRememberDecision,
 			onChecked: (v) => shallRememberDecision = v,

@@ -22,15 +22,15 @@ import {RichTextToolbar} from "../../gui/base/RichTextToolbar"
 import {isApp, isBrowser, isDesktop} from "../../api/common/Env"
 import {Icons} from "../../gui/base/icons/Icons"
 import {AnimationPromise, animations, height, opacity} from "../../gui/animation/Animations"
-import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
-import {TextFieldN, TextFieldType} from "../../gui/base/TextFieldN"
+import type {TextFieldAttrs} from "../../gui/base/TextField.js"
+import {TextField, TextFieldType} from "../../gui/base/TextField.js"
 import {chooseAndAttachFile, cleanupInlineAttachments, createAttachmentButtonAttrs, getConfidentialStateMessage,} from "./MailEditorViewModel"
 import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
 import {windowFacade} from "../../misc/WindowFacade"
 import {UserError} from "../../api/main/UserError"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
-import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
+import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
 import type {File as TutanotaFile, Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import type {InlineImages} from "../view/MailViewer"
@@ -418,7 +418,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 								"min-width": "250px",
 							},
 						},
-						m(DropDownSelectorN, {
+						m(DropDownSelector, {
 							label: "sender_label",
 							items: getEnabledMailAddressesWithUser(model.mailboxDetails, model.user().userGroupInfo)
 								.sort()
@@ -450,7 +450,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 								},
 							},
 							[
-								m(".flex-grow", m(DropDownSelectorN, {
+								m(".flex-grow", m(DropDownSelector, {
 									label: "notificationMailLanguage_label",
 									items: model.getAvailableNotificationTemplateLanguages().map(language => {
 										return {
@@ -472,7 +472,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				isConfidential
 					? this.renderPasswordFields()
 					: null,
-				m(".row", m(TextFieldN, subjectFieldAttrs)),
+				m(".row", m(TextField, subjectFieldAttrs)),
 				m(
 					".flex-start.flex-wrap.ml-negative-RecipientInfoBubble",
 					attachmentButtonAttrs.map(a => m(Button, a)),
@@ -509,7 +509,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				.allRecipients()
 				.filter(r => r.type === RecipientType.EXTERNAL || (r.type === RecipientType.UNKNOWN && !r.isResolved())) // only show passwords for resolved contacts, otherwise we might not get the password
 				.map(recipient => {
-					return m(TextFieldN, {
+					return m(TextField, {
 						oncreate: vnode => this.animateHeight(vnode.dom as HTMLElement, true),
 						onbeforeremove: vnode => this.animateHeight(vnode.dom as HTMLElement, false),
 						label: () => lang.get("passwordFor_label", {"{1}": recipient.address,}),

@@ -6,7 +6,7 @@ import {Icon, progressIcon} from "../../gui/base/Icon"
 import {Icons, SecondFactorImage} from "../../gui/base/icons/Icons"
 import {theme} from "../../gui/theme"
 import type {Thunk} from "@tutao/tutanota-utils"
-import {TextFieldN} from "../../gui/base/TextFieldN"
+import {TextField} from "../../gui/base/TextField.js"
 import stream from "mithril/stream"
 
 type WebauthnState =
@@ -56,7 +56,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 
 		return m(
 			".left.mb",
-			m(TextFieldN, {
+			m(TextField, {
 				label: "totpCode_label",
 				value: otp.codeFieldValue,
 				oninput: value => otp.onValueChanged(value.trim()),

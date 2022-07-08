@@ -1,4 +1,4 @@
-import {TextFieldN} from "../../gui/base/TextFieldN"
+import {TextField} from "../../gui/base/TextField.js"
 import {Dialog} from "../../gui/base/Dialog"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {neverNull} from "@tutao/tutanota-utils"
@@ -44,7 +44,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 				customerInfo ? this._renderEditButton(customerInfo, certificateInfo, isWhitelabelFeatureEnabled) : null,
 			],
 		} as const
-		return m(TextFieldN, whitelabelDomainConfigAttrs)
+		return m(TextField, whitelabelDomainConfigAttrs)
 	}
 
 	_renderDeactivateButton(whitelabelDomain: string): Children {

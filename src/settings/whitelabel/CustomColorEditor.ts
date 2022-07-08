@@ -1,9 +1,9 @@
 import m, {Child, Children, Component, Vnode, VnodeDOM} from "mithril"
-import type {TextFieldAttrs} from "../../gui/base/TextFieldN"
-import {TextFieldN} from "../../gui/base/TextFieldN"
+import type {TextFieldAttrs} from "../../gui/base/TextField.js"
+import {TextField} from "../../gui/base/TextField.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
+import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
 import {lang} from "../../misc/LanguageViewModel"
 import type {CustomColor} from "./CustomColorsEditorViewModel"
 import {CustomColorsEditorViewModel} from "./CustomColorsEditorViewModel"
@@ -74,10 +74,10 @@ export class CustomColorEditor implements Component<SimpleCustomColorEditorAttrs
 		return m("", [
 			m("", [
 				m(".flex", [
-					m(".mr-s.flex-grow", m(TextFieldN, simpleColorPickerAttrs)),
+					m(".mr-s.flex-grow", m(TextField, simpleColorPickerAttrs)),
 					m(
 						".ml-s.flex-grow",
-						m(DropDownSelectorN, {
+						m(DropDownSelector, {
 							label: "baseTheme_label",
 							items: [
 								{
@@ -166,7 +166,7 @@ function renderCustomColorField(model: CustomColorsEditorViewModel, {name, value
 			},
 		},
 		[
-			m(TextFieldN, {
+			m(TextField, {
 				label: () => name,
 				value: value,
 				injectionsRight: () =>

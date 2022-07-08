@@ -1,6 +1,6 @@
 import m, {Children, Component} from "mithril"
 import {NavBar} from "./base/NavBar.js"
-import {NavButtonColor, NavButtonN} from "./base/NavButtonN.js"
+import {NavButtonColor, NavButton} from "./base/NavButton.js"
 import {styles} from "./styles.js"
 import {neverNull} from "@tutao/tutanota-utils"
 import type {Shortcut} from "../misc/KeyManager.js"
@@ -132,7 +132,7 @@ export class Header implements Component {
 		// We assign click listeners to buttons to move focus correctly if the view is already open
 		return logins.isInternalUserLoggedIn() && isNotSignup()
 			? [
-				m(NavButtonN, {
+				m(NavButton, {
 					label: "emails_label",
 					icon: () => BootIcons.Mail,
 					href: navButtonRoutes.mailUrl,
@@ -141,7 +141,7 @@ export class Header implements Component {
 					click: () => m.route.get() === navButtonRoutes.mailUrl && this.focusMain(),
 				}),
 				!logins.isEnabled(FeatureType.DisableContacts)
-					? m(NavButtonN, {
+					? m(NavButton, {
 						label: "contacts_label",
 						icon: () => BootIcons.Contacts,
 						href: navButtonRoutes.contactsUrl,
@@ -151,7 +151,7 @@ export class Header implements Component {
 					})
 					: null,
 				!logins.isEnabled(FeatureType.DisableCalendar)
-					? m(NavButtonN, {
+					? m(NavButton, {
 						label: "calendar_label",
 						icon: () => BootIcons.Calendar,
 						href: CALENDAR_PREFIX,
@@ -281,7 +281,7 @@ export class Header implements Component {
 
 		let content: Children = null
 		if (viewSlider && viewSlider.isFocusPreviousPossible()) {
-			content = m(NavButtonN, {
+			content = m(NavButton, {
 				label: () => {
 					const prevColumn = viewSlider.getPreviousColumn()
 					return prevColumn ? prevColumn.getTitle() : ""

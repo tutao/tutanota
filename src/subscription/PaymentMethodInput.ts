@@ -14,7 +14,7 @@ import {AccountingInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {locator} from "../api/main/MainLocator"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {SubscriptionOptions} from "./SubscriptionUtils"
-import {MessageBoxN} from "../gui/base/MessageBoxN"
+import {MessageBox} from "../gui/base/MessageBox.js"
 import {px} from "../gui/size"
 import type {EntityEventsListener} from "../api/main/EventController"
 import {isValidCreditCardNumber} from "../misc/FormatValidator"
@@ -77,7 +77,7 @@ export class PaymentMethodInput {
 			return m(
 				".flex-center",
 				m(
-					MessageBoxN,
+					MessageBox,
 					{
 						style: {
 							marginTop: px(16),
@@ -92,7 +92,7 @@ export class PaymentMethodInput {
 			return m(
 				".flex-center",
 				m(
-					MessageBoxN,
+					MessageBox,
 					{
 						style: {
 							marginTop: px(16),

@@ -2,7 +2,7 @@ import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {Dialog} from "../gui/base/Dialog"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import {TextField} from "../gui/base/TextField.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import {getWhitelabelRegistrationDomains} from "../login/LoginView"
 import type {NewAccountData} from "./UpgradeSubscriptionWizard"
@@ -10,8 +10,8 @@ import {SelectMailAddressForm, SelectMailAddressFormAttrs} from "../settings/Sel
 import {isTutanotaDomain} from "../api/common/Env"
 import {AccountType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
 import {PasswordForm, PasswordModel} from "../settings/PasswordForm"
-import type {CheckboxAttrs} from "../gui/base/CheckboxN"
-import {CheckboxN} from "../gui/base/CheckboxN"
+import type {CheckboxAttrs} from "../gui/base/Checkbox.js"
+import {Checkbox} from "../gui/base/Checkbox.js"
 import type {lazy} from "@tutao/tutanota-utils"
 import {ofClass} from "@tutao/tutanota-utils"
 import type {TranslationKey} from "../misc/LanguageViewModel"
@@ -115,7 +115,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			"#signup-account-dialog.flex-center",
 			m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [
 				a.readonly
-					? m(TextFieldN, {
+					? m(TextField, {
 						label: "mailAddress_label",
 						value: a.prefilledMailAddress ?? "",
 						disabled: true,
@@ -127,14 +127,14 @@ export class SignupForm implements Component<SignupFormAttrs> {
 							passwordInfoKey: "passwordImportance_msg"
 						}),
 						getWhitelabelRegistrationDomains().length > 0
-							? m(TextFieldN, {
+							? m(TextField, {
 								value: this._code(),
 								oninput: this._code,
 								label: "whitelabelRegistrationCode_label",
 							})
 							: null,
-						m(CheckboxN, confirmTermsCheckBoxAttrs),
-						m(CheckboxN, confirmAgeCheckBoxAttrs),
+						m(Checkbox, confirmTermsCheckBoxAttrs),
+						m(Checkbox, confirmAgeCheckBoxAttrs),
 					],
 				m(
 					".mt-l.mb-l",

@@ -15,9 +15,9 @@ import {logins} from "../api/main/LoginController"
 import type {SubscriptionOptions} from "./SubscriptionUtils"
 import {getDisplayNameOfSubscriptionType, getPreconditionFailedPaymentMsg, SubscriptionType, UpgradeType} from "./SubscriptionUtils"
 import {Button, ButtonType} from "../gui/base/Button.js"
-import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
-import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialog.js"
+import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialog.js"
+import {TextField} from "../gui/base/TextField.js"
 import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 import {deleteCampaign} from "../misc/LoginUtils"
@@ -92,23 +92,23 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 			m(".center.h4.pt", lang.get("upgradeConfirm_msg")),
 			m(".flex-space-around.flex-wrap", [
 				m(".flex-grow-shrink-half.plr-l", [
-					m(TextFieldN, {
+					m(TextField, {
 						label: "subscription_label",
 						value: getDisplayNameOfSubscriptionType(attrs.data.type),
 						disabled: true,
 					}),
-					m(TextFieldN, {
+					m(TextField, {
 						label: "paymentInterval_label",
 						value: subscription,
 						disabled: true,
 					}),
-					m(TextFieldN, {
+					m(TextField, {
 						label: isYearly ? "priceFirstYear_label" : "price_label",
 						value: buildPriceString(attrs.data.price, attrs.data.options),
 						disabled: true,
 					}),
 					this.renderPriceNextYear(attrs),
-					m(TextFieldN, {
+					m(TextField, {
 						label: "paymentMethod_label",
 						value: getPaymentMethodName(attrs.data.paymentData.paymentMethod),
 						disabled: true,
@@ -146,7 +146,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 
 	private renderPriceNextYear(attrs: WizardPageAttrs<UpgradeSubscriptionData>) {
 		return attrs.data.priceNextYear
-			? m(TextFieldN, {
+			? m(TextField, {
 				label: "priceForNextYear_label",
 				value: buildPriceString(attrs.data.priceNextYear, attrs.data.options),
 				disabled: true,

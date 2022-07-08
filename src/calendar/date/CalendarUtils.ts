@@ -35,7 +35,7 @@ import {isColorLight} from "../../gui/base/Color"
 import type {GroupColors} from "../view/CalendarView"
 import {isSameId} from "../../api/common/utils/EntityUtils"
 import type {Time} from "../../api/common/utils/Time"
-import type {SelectorItemList} from "../../gui/base/DropDownSelectorN"
+import type {SelectorItemList} from "../../gui/base/DropDownSelector.js"
 import type {CalendarInfo} from "../model/CalendarModel"
 import {assertMainOrNode} from "../../api/common/Env"
 import {ChildArray, Children} from "mithril";

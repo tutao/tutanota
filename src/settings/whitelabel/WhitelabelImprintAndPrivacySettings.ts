@@ -1,7 +1,7 @@
 import {Dialog} from "../../gui/base/Dialog"
 import {lang} from "../../misc/LanguageViewModel"
 import m, {Children, Component, Vnode} from "mithril"
-import {TextFieldAttrs, TextFieldN} from "../../gui/base/TextFieldN"
+import {TextFieldAttrs, TextField} from "../../gui/base/TextField.js"
 import {Icons} from "../../gui/base/icons/Icons"
 import {ButtonAttrs, Button} from "../../gui/base/Button.js"
 
@@ -34,7 +34,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 					let dialog = Dialog.showActionDialog({
 						title: lang.get("privacyLink_label"),
 						child: {
-							view: () => m(TextFieldN, {
+							view: () => m(TextField, {
 								label: "privacyPolicyUrl_label",
 								value: privacyStatementUrl,
 								oninput: (value) => (privacyStatementUrl = value.trim()),
@@ -59,7 +59,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 			disabled: true,
 			injectionsRight: () => [editPrivacyUrlButtonAttrs ? m(Button, editPrivacyUrlButtonAttrs) : null],
 		} as const
-		return m(TextFieldN, privacyPolicyConfigTextfieldAttrs)
+		return m(TextField, privacyPolicyConfigTextfieldAttrs)
 	}
 
 	_renderWhitelabelImprintSetting(imprintUrl: string, onImprintUrlChanged: ((arg0: string) => unknown) | null): Children {
@@ -72,7 +72,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 					const dialog = Dialog.showActionDialog({
 						title: lang.get("imprintUrl_label"),
 						child: {
-							view: () => m(TextFieldN, {
+							view: () => m(TextField, {
 								label: "imprintUrl_label",
 								value: imprintUrl,
 								oninput: value => (imprintUrl = value.trim()),
@@ -97,6 +97,6 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 			disabled: true,
 			injectionsRight: () => [editImprintUrlButtonAttrs ? m(Button, editImprintUrlButtonAttrs) : null],
 		} as const
-		return m(TextFieldN, whitelabelImprintTextfieldAttrs)
+		return m(TextField, whitelabelImprintTextfieldAttrs)
 	}
 }

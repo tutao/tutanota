@@ -15,7 +15,7 @@ import {DefaultAnimationTime} from "../../gui/animation/Animations"
 import {copyToClipboard} from "../../misc/ClipboardUtils"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {getWebRoot, isAndroidApp, isApp} from "../../api/common/Env"
-import {CheckboxN} from "../../gui/base/CheckboxN"
+import {Checkbox} from "../../gui/base/Checkbox.js"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {formatPrice} from "../PriceUtils"
 import {CURRENT_GIFT_CARD_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection} from "../TermsAndConditions"
@@ -319,7 +319,7 @@ export function renderGiftCardSvg(price: number, link: string | null, message: s
 }
 
 export function renderAcceptGiftCardTermsCheckbox(checked: boolean, onChecked: (checked: boolean) => void): Children {
-	return m(CheckboxN, {
+	return m(Checkbox, {
 		checked,
 		onChecked,
 		label: () => [

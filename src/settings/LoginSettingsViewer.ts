@@ -1,8 +1,8 @@
 import m, {Children} from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import type {TextFieldAttrs} from "../gui/base/TextFieldN"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import type {TextFieldAttrs} from "../gui/base/TextField.js"
+import {TextField} from "../gui/base/TextField.js"
 import {InfoLink, lang} from "../misc/LanguageViewModel"
 import {PasswordForm} from "./PasswordForm"
 import {logins} from "../api/main/LoginController"
@@ -113,9 +113,9 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			return m("", [
 				m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
 					m(".h4.mt-l", lang.get("loginCredentials_label")),
-					m(TextFieldN, mailAddressAttrs),
-					m(TextFieldN, passwordAttrs),
-					user.isGlobalAdmin() ? m(TextFieldN, recoveryCodeFieldAttrs) : null,
+					m(TextField, mailAddressAttrs),
+					m(TextField, passwordAttrs),
+					user.isGlobalAdmin() ? m(TextField, recoveryCodeFieldAttrs) : null,
 					this._renderEncryptionModeField(),
 					m(this._secondFactorsForm),
 					m(".h4.mt-l", lang.get("activeSessions_label")),
@@ -156,7 +156,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			return null
 		}
 
-		return m(TextFieldN, {
+		return m(TextField, {
 			label: "credentialsEncryptionMode_label",
 			value: this._credentialsEncryptionModeName(usedMode),
 			disabled: true,

@@ -16,7 +16,7 @@ import type {EntityUpdateData} from "../../api/main/EventController"
 import {getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
 import {showBuyDialog} from "../../subscription/BuyDialog"
 import stream from "mithril/stream"
-import {TextFieldN} from "../../gui/base/TextFieldN"
+import {TextField} from "../../gui/base/TextField.js"
 import {UpdatableSettingsDetailsViewer} from "../SettingsView"
 import {assertMainOrNode} from "../../api/common/Env"
 import {locator} from "../../api/main/MainLocator"
@@ -54,19 +54,19 @@ export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
 					m(".h4", lang.get("emailProcessing_label")),
 					this.renderActionBar(),
 				]),
-				m(TextFieldN, {
+				m(TextField, {
 					label: "receivingMailbox_label",
 					value: this.mailGroupInfo ? getGroupInfoDisplayName(this.mailGroupInfo) : lang.get("loading_msg"),
 					disabled: true,
 				}),
 				this.renderParticipation(),
 				m(".h4.mt-l", lang.get("display_action")),
-				m(TextFieldN, {
+				m(TextField, {
 					label: "url_label",
 					value: getContactFormUrl(this.brandingDomain, this.contactForm.path),
 					disabled: true,
 				} as const),
-				m(TextFieldN, {
+				m(TextField, {
 					label: "pageTitle_label",
 					value: this.language.pageTitle,
 					disabled: true,
@@ -107,7 +107,7 @@ export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
 			return null
 		} else {
 			const mailGroupNames = this.participationGroupInfos.map(groupInfo => getGroupInfoDisplayName(groupInfo))
-			return m(".mt-l", m(TextFieldN, {
+			return m(".mt-l", m(TextField, {
 				label: "responsiblePersons_label",
 				value: mailGroupNames.join("; "),
 				disabled: true,

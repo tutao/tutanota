@@ -11,7 +11,7 @@ import {
 } from "../../api/common/error/RestError"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {isMailAddress} from "../../misc/FormatValidator"
-import {TextFieldN, TextFieldType} from "../../gui/base/TextFieldN"
+import {TextField, TextFieldType} from "../../gui/base/TextField.js"
 import {lang} from "../../misc/LanguageViewModel"
 import {PasswordForm, PasswordModel} from "../../settings/PasswordForm"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -76,13 +76,13 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 		child: {
 			view: () => {
 				return [
-					m(TextFieldN, {
+					m(TextField, {
 						label: "mailAddress_label",
 						value: emailAddressStream(),
 						oninput: emailAddressStream,
 					}),
 					m(editor),
-					m(TextFieldN, {
+					m(TextField, {
 						label: "action_label",
 						value: selectedValueLabelStream(),
 						oninput: selectedValueLabelStream,
@@ -93,7 +93,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 						? null
 						: selectedAction() === "password"
 							? m(PasswordForm, {model: passwordModel})
-							: m(TextFieldN, {
+							: m(TextField, {
 								label: "password_label",
 								type: TextFieldType.Password,
 								value: passwordValueStream(),
