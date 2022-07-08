@@ -24,7 +24,7 @@ import {AnimationPromise, animations, height, opacity} from "../../gui/animation
 import type {TextFieldAttrs} from "../../gui/base/TextField.js"
 import {TextField, TextFieldType} from "../../gui/base/TextField.js"
 import {chooseAndAttachFile, cleanupInlineAttachments, createAttachmentButtonAttrs, getConfidentialStateMessage,} from "./MailEditorViewModel"
-import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
+import {ExpanderButton, ExpanderPanel} from "../../gui/base/Expander"
 import {windowFacade} from "../../misc/WindowFacade"
 import {UserError} from "../../api/main/UserError"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
@@ -363,7 +363,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				m(".rel", this.renderRecipientField(RecipientField.TO, this.recipientFieldTexts.to, a.search)),
 				m(
 					".rel",
-					m(ExpanderPanelN, {
+					m(ExpanderPanel, {
 							expanded: this.areDetailsExpanded,
 						},
 						m(".details", [
@@ -564,7 +564,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			injectionsRight: field === RecipientField.TO && this.sendMailModel.logins.isInternalUserLoggedIn()
 				? m(
 					".mr-s",
-					m(ExpanderButtonN, {
+					m(ExpanderButton, {
 						label: "show_action",
 						expanded: this.areDetailsExpanded,
 						onExpandedChange: expanded => this.areDetailsExpanded = expanded

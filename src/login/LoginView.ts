@@ -5,7 +5,7 @@ import {assertMainOrNode, isApp, isDesktop, isTutanotaDomain} from "../api/commo
 import {InfoLink, lang} from "../misc/LanguageViewModel"
 import type {DeferredObject} from "@tutao/tutanota-utils"
 import {defer, mapNullable} from "@tutao/tutanota-utils"
-import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
+import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {windowFacade} from "../misc/WindowFacade"
@@ -95,14 +95,14 @@ export class LoginView implements CurrentView {
 		return [
 			m(
 				".flex-center.pt-l",
-				m(ExpanderButtonN, {
+				m(ExpanderButton, {
 					label: "more_label",
 					expanded: this._moreExpanded(),
 					onExpandedChange: this._moreExpanded,
 				}),
 			),
 			m(
-				ExpanderPanelN,
+				ExpanderPanel,
 				{
 					expanded: this._moreExpanded(),
 				},

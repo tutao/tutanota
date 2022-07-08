@@ -1,7 +1,7 @@
 import {size} from "../../gui/size"
 import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
-import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
+import {ExpanderButton, ExpanderPanel} from "../../gui/base/Expander"
 import {formatDateWithWeekday, formatStorageSize, formatTime} from "../../misc/Formatter"
 import {windowFacade, windowSizeListener} from "../../misc/WindowFacade"
 import {
@@ -240,7 +240,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 						]),
 						m(
 							".mb-m",
-							m(ExpanderPanelN, {
+							m(ExpanderPanel, {
 									expanded: this.detailsExpanded(),
 								},
 								this.renderDetails({bubbleMenuWidth: 300}),
@@ -485,7 +485,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private renderShowMoreButton() {
-		return m(ExpanderButtonN, {
+		return m(ExpanderButton, {
 			label: "showMore_action",
 			expanded: this.detailsExpanded(),
 			onExpandedChange: this.detailsExpanded,
@@ -969,7 +969,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				attachments.length > spoilerLimit
 					? [
 						attachments.slice(0, spoilerLimit).map(attachment => this.renderAttachmentButton(attachment)),
-						m(ExpanderButtonN, {
+						m(ExpanderButton, {
 							style: {
 								paddingTop: "0px",
 								margin: "0px 6px",
@@ -978,7 +978,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 							expanded: this.filesExpanded(),
 							onExpandedChange: this.filesExpanded,
 						}),
-						m(ExpanderPanelN, {
+						m(ExpanderPanel, {
 								expanded: this.filesExpanded(),
 							},
 							attachments.slice(spoilerLimit).map(attachment => this.renderAttachmentButton(attachment)),

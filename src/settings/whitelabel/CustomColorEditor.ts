@@ -7,7 +7,7 @@ import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
 import {lang} from "../../misc/LanguageViewModel"
 import type {CustomColor} from "./CustomColorsEditorViewModel"
 import {CustomColorsEditorViewModel} from "./CustomColorsEditorViewModel"
-import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
+import {ExpanderButton, ExpanderPanel} from "../../gui/base/Expander"
 import {CustomColorEditorPreview} from "./CustomColorEditorPreview"
 import {downcast} from "@tutao/tutanota-utils"
 import {expandHexTriplet} from "../../gui/base/Color"
@@ -99,12 +99,12 @@ export class CustomColorEditor implements Component<SimpleCustomColorEditorAttrs
 				m(CustomColorEditorPreview),
 			]),
 			m("", [
-				m(ExpanderButtonN, {
+				m(ExpanderButton, {
 					label: "advanced_label",
 					expanded: this._advancedSettingsEnabled(),
 					onExpandedChange: this._advancedSettingsEnabled,
 				}),
-				m(ExpanderPanelN, {
+				m(ExpanderPanel, {
 						expanded: this._advancedSettingsEnabled(),
 					},
 					[

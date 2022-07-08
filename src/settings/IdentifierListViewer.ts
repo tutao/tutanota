@@ -15,7 +15,7 @@ import {attachDropdown} from "../gui/base/Dropdown.js"
 import type {ButtonAttrs} from "../gui/base/Button.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import type {ExpanderAttrs} from "../gui/base/Expander"
-import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
+import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {TextField} from "../gui/base/TextField.js"
@@ -133,9 +133,9 @@ export class IdentifierListViewer {
 		return [
 			m(".flex-space-between.items-center.mt-l.mb-s", [
 				m(".h4", lang.get("notificationSettings_action")),
-				m(ExpanderButtonN, pushIdentifiersExpanderAttrs),
+				m(ExpanderButton, pushIdentifiersExpanderAttrs),
 			]),
-			m(ExpanderPanelN, {
+			m(ExpanderPanel, {
 					expanded: this._expanded(),
 				},
 				m(expanderContent),

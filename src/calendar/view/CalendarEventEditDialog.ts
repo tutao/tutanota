@@ -15,7 +15,7 @@ import {createRepeatRuleEndTypeValues, createRepeatRuleFrequencyValues, getStart
 import {AllIcons, Icon} from "../../gui/base/Icon"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {Checkbox} from "../../gui/base/Checkbox.js"
-import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
+import {ExpanderButton, ExpanderPanel} from "../../gui/base/Expander"
 import {client} from "../../misc/ClientDetector"
 import type {Guest, RepeatData} from "../date/CalendarEventViewModel"
 import {CalendarEventViewModel, createCalendarEventViewModel} from "../date/CalendarEventViewModel"
@@ -425,7 +425,7 @@ export async function showCalendarEventDialog(
 				renderChangesMessage(),
 				m(
 					".mb.rel",
-					m(ExpanderPanelN, {
+					m(ExpanderPanel, {
 							expanded: attendeesExpanded(),
 						},
 						[m(".flex-grow", renderInvitationField()), m(".flex-grow", renderAttendees())],
@@ -488,7 +488,7 @@ export async function showCalendarEventDialog(
 			injectionsRight: () =>
 				m(
 					".mr-s",
-					m(ExpanderButtonN, {
+					m(ExpanderButton, {
 						label: "guests_label",
 						expanded: attendeesExpanded(),
 						onExpandedChange: attendeesExpanded,

@@ -7,7 +7,7 @@ import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import m from "mithril"
 import {Checkbox} from "../gui/base/Checkbox.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
-import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
+import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {errorToString, neverNull, typedKeys} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 import {AccountType, ConversationType, MailMethod} from "../api/common/TutanotaConstants"
@@ -87,7 +87,7 @@ export function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ignored: boolea
 								".flex-end",
 								m(
 									".right",
-									m(ExpanderButtonN, {
+									m(ExpanderButton, {
 										label: "details_label",
 										expanded: detailsExpanded(),
 										onExpandedChange: detailsExpanded,
@@ -95,7 +95,7 @@ export function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ignored: boolea
 								),
 							),
 							m(
-								ExpanderPanelN,
+								ExpanderPanel,
 								{
 									expanded: detailsExpanded(),
 								},
@@ -137,7 +137,7 @@ export function showErrorDialogNotLoggedIn(e: ErrorInfo): Promise<void> {
 			[
 				m(
 					"div.mr-negative-xs",
-					m(ExpanderButtonN, {
+					m(ExpanderButton, {
 						expanded: expanded(),
 						onExpandedChange: expanded,
 						label: "showMore_action",
@@ -146,7 +146,7 @@ export function showErrorDialogNotLoggedIn(e: ErrorInfo): Promise<void> {
 			],
 		),
 		m(
-			ExpanderPanelN,
+			ExpanderPanel,
 			{
 				expanded: expanded(),
 			},
