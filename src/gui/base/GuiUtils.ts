@@ -1,6 +1,5 @@
 import type {Country} from "../../api/common/CountryList"
 import {Countries} from "../../api/common/CountryList"
-import {DropDownSelector} from "./DropDownSelector"
 import type {InfoLink, TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import type {ButtonAttrs} from "./Button.js"
@@ -21,28 +20,6 @@ import {DropDownSelectorN} from "./DropDownSelectorN.js"
 export type dropHandler = (dragData: string) => void
 // not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
 export type clickHandler = (event: MouseEvent, dom: HTMLElement) => void
-
-// TODO Use DropDownSelectorN
-export function createCountryDropdown(
-	selectedCountry: Stream<Country | null>,
-	helpLabel?: lazy<string>,
-	label: TranslationKey | lazy<string> = "invoiceCountry_label",
-): DropDownSelector<Country | null> {
-	const countries: Array<{name: string, value: Country | null}> = [
-		...Countries.map(c => ({
-			value: c,
-			name: c.n,
-		})),
-		{
-			value: null,
-			name: lang.get("choose_label"),
-		}
-	]
-	return new DropDownSelector(label, helpLabel ?? null, countries, selectedCountry, 250)
-		.setSelectionChangedHandler(value => {
-			selectedCountry(value)
-		})
-}
 
 // lazy because of global dependencies
 const dropdownCountries = lazyMemoized(() => Countries.map(c => ({value: c, name: c.n})))
