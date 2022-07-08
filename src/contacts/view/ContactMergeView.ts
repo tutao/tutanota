@@ -11,7 +11,7 @@ import {HtmlEditor, HtmlEditorMode} from "../../gui/editor/HtmlEditor"
 import {Button, ButtonType} from "../../gui/base/Button.js"
 import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
 import {getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel} from "./ContactGuiUtils"
-import {TextFieldN} from "../../gui/base/TextFieldN"
+import {TextField} from "../../gui/base/TextField.js"
 import stream from "mithril/stream"
 import {TextDisplayArea} from "../../gui/base/TextDisplayArea"
 import {delay} from "@tutao/tutanota-utils"
@@ -78,7 +78,7 @@ export class ContactMergeView {
 		} = this._createContactFields(this.contact2)
 
 		//empty.. placeholders are used if one contact has an attribute while the other does not have it, so an empty one is shown for comparison
-		let emptyFieldPlaceholder = m(TextFieldN, {
+		let emptyFieldPlaceholder = m(TextField, {
 			label: "emptyString_msg",
 			value: "",
 			disabled: true,
@@ -232,14 +232,14 @@ export class ContactMergeView {
 		socials: ChildArray
 	} {
 		const mailAddresses = contact.mailAddresses.map(element => {
-			return m(TextFieldN, {
+			return m(TextField, {
 				label: () => getContactAddressTypeLabel(element.type as any, element.customTypeName),
 				value: element.address,
 				disabled: true,
 			})
 		})
 		const phones = contact.phoneNumbers.map(element => {
-			return m(TextFieldN, {
+			return m(TextField, {
 				label: () => getContactPhoneNumberTypeLabel(element.type as any, element.customTypeName),
 				value: element.number,
 				disabled: true,
@@ -253,7 +253,7 @@ export class ContactMergeView {
 			})
 		})
 		const socials = contact.socialIds.map(element => {
-			return m(TextFieldN, {
+			return m(TextField, {
 				label: () => getContactSocialTypeLabel(getContactSocialType(element), element.customTypeName),
 				value: element.socialId,
 				disabled: true,
@@ -270,12 +270,12 @@ export class ContactMergeView {
 	_createTextFields(value1: string | null, value2: string | null, labelTextId: TranslationKey): Children {
 		if (value1 || value2) {
 			return [
-				m(TextFieldN, {
+				m(TextField, {
 					label: labelTextId,
 					value: value1 || "",
 					disabled: true,
 				}),
-				m(TextFieldN, {
+				m(TextField, {
 					label: labelTextId,
 					value: value2 || "",
 					disabled: true,

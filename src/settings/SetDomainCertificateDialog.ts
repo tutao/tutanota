@@ -7,7 +7,7 @@ import {isDomainName} from "../misc/FormatValidator"
 import stream from "mithril/stream"
 import {getWhitelabelDomain} from "../api/common/utils/Utils"
 import type {CustomerInfo} from "../api/entities/sys/TypeRefs.js"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import {TextField} from "../gui/base/TextField.js"
 import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
@@ -62,7 +62,7 @@ export function show(customerInfo: CustomerInfo): void {
 	const domain = whitelabelDomainInfo ? stream(whitelabelDomainInfo.domain) : stream("")
 	let form = {
 		view: () => {
-			return m(TextFieldN, {
+			return m(TextField, {
 				label: "whitelabelDomain_label",
 				value: domain(),
 				oninput: domain,

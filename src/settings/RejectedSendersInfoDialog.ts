@@ -1,6 +1,6 @@
 import m from "mithril"
 import type {RejectedSender} from "../api/entities/sys/TypeRefs.js"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import {TextField} from "../gui/base/TextField.js"
 import stream from "mithril/stream"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
@@ -26,22 +26,22 @@ export function showRejectedSendersInfoDialog(rejectedSender: RejectedSender) {
 		child: {
 			view: () => {
 				return [
-					m(TextFieldN, {
+					m(TextField, {
 						label: "emailSender_label",
 						value: rejectedSender.senderMailAddress,
 						disabled: true,
 					}),
-					m(TextFieldN, {
+					m(TextField, {
 						label: "mailServer_label",
 						value: `${rejectedSender.senderHostname} (${rejectedSender.senderIp})`,
 						disabled: true,
 					}),
-					m(TextFieldN, {
+					m(TextField, {
 						label: "emailRecipient_label",
 						value: rejectedSender.recipientMailAddress,
 						disabled: true,
 					}),
-					m(TextFieldN, {
+					m(TextField, {
 						label: "rejectReason_label",
 						value: rejectedSender.reason,
 						disabled: true,

@@ -2,7 +2,7 @@ import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {InvalidDataError, LockedError, PreconditionFailedError} from "../api/common/error/RestError"
-import {TextFieldAttrs, TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
+import {TextFieldAttrs, TextField, TextFieldType} from "../gui/base/TextField.js"
 import {neverNull, ofClass} from "@tutao/tutanota-utils"
 import {logins} from "../api/main/LoginController"
 import {getCleanedMailAddress} from "../misc/parsing/MailAddressParser"
@@ -17,19 +17,19 @@ export function showDeleteAccountDialog() {
 		title: lang.get("adminDeleteAccount_action"),
 		child: {
 			view: () => m("#delete-account-dialog", [
-				m(TextFieldN, {
+				m(TextField, {
 					label: "deleteAccountReason_label",
 					value: why,
 					oninput: value => (why = value),
 					helpLabel: () => lang.get("deleteAccountReasonInfo_msg"),
 				}),
-				m(TextFieldN, {
+				m(TextField, {
 					label: "targetAddress_label",
 					value: takeover,
 					oninput: value => (takeover = value),
 					helpLabel: () => lang.get("takeoverMailAddressInfo_msg"),
 				}),
-				m(TextFieldN, {
+				m(TextField, {
 					label: "password_label",
 					value: password,
 					oninput: value => (password = value),

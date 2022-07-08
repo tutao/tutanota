@@ -2,8 +2,8 @@ import m, {Children} from "mithril"
 import type {LanguageCode} from "../misc/LanguageViewModel"
 import {getLanguage, lang, languageCodeToTag, languages} from "../misc/LanguageViewModel"
 import {styles} from "../gui/styles"
-import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
-import {DropDownSelectorN, SelectorItemList} from "../gui/base/DropDownSelectorN"
+import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelector.js"
+import {DropDownSelector, SelectorItemList} from "../gui/base/DropDownSelector.js"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {TimeFormat, WeekStart} from "../api/common/TutanotaConstants"
 import {logins} from "../api/main/LoginController"
@@ -119,11 +119,11 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 		}
 		return m(".fill-absolute.scroll.plr-l.pb-xl", [
 			m(".h4.mt-l", lang.get("settingsForDevice_label")),
-			m(DropDownSelectorN, languageDropDownAttrs),
+			m(DropDownSelector, languageDropDownAttrs),
 			this._renderThemeSelector(),
 			m(".h4.mt-l", lang.get("userSettings_label")),
-			m(DropDownSelectorN, hourFormatDropDownAttrs),
-			m(DropDownSelectorN, weekStartDropDownAttrs),
+			m(DropDownSelector, hourFormatDropDownAttrs),
+			m(DropDownSelector, weekStartDropDownAttrs),
 		])
 	}
 
@@ -159,7 +159,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			selectionChangedHandler: value => themeController.setThemeId(value),
 			dropdownWidth: 300,
 		}
-		return m(DropDownSelectorN, themeDropDownAttrs)
+		return m(DropDownSelector, themeDropDownAttrs)
 	}
 
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {

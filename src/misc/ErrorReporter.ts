@@ -1,11 +1,11 @@
 import {logins} from "../api/main/LoginController"
 import stream from "mithril/stream"
-import {TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
+import {TextField, TextFieldType} from "../gui/base/TextField.js"
 import {lang} from "./LanguageViewModel"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import m from "mithril"
-import {CheckboxN} from "../gui/base/CheckboxN"
+import {Checkbox} from "../gui/base/Checkbox.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {errorToString, neverNull, typedKeys} from "@tutao/tutanota-utils"
@@ -41,7 +41,7 @@ export function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ignored: boolea
 				view: () =>
 					m("", [
 						"An error occurred",
-						m(CheckboxN, {
+						m(Checkbox, {
 							label: () => "Ignore the error for this session",
 							checked: ignoreChecked,
 							onChecked: (checked) => {
@@ -74,7 +74,7 @@ export function promptForFeedbackAndSend(e: ErrorInfo): Promise<{ignored: boolea
 				child: {
 					view: () => {
 						return [
-							m(TextFieldN, {
+							m(TextField, {
 								label: "yourMessage_label",
 								helpLabel: () => lang.get("feedbackOnErrorInfo_msg"),
 								value: userMessage,

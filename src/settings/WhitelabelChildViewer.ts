@@ -1,5 +1,5 @@
 import m, {Children} from "mithril"
-import {TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
+import {TextField, TextFieldType} from "../gui/base/TextField.js"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
 import {identity, neverNull} from "@tutao/tutanota-utils"
@@ -13,7 +13,7 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {isSameId} from "../api/common/utils/EntityUtils"
 import {Button} from "../gui/base/Button.js"
-import {DropDownSelectorAttrs, DropDownSelectorN} from "../gui/base/DropDownSelectorN"
+import {DropDownSelectorAttrs, DropDownSelector} from "../gui/base/DropDownSelector.js"
 import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
 import {UpdatableSettingsDetailsViewer} from "./SettingsView"
@@ -30,17 +30,17 @@ export class WhitelabelChildViewer implements UpdatableSettingsDetailsViewer {
 	view(): Children {
 		return m("#whitelabel-child-viewer.fill-absolute.scroll.plr-l", [
 			m(".h4.mt-l", lang.get("whitelabelAccount_label")),
-			m(TextFieldN, {
+			m(TextField, {
 				label: "mailAddress_label",
 				value: this.whitelabelChild.mailAddress,
 				disabled: true,
 			}),
-			m(TextFieldN, {
+			m(TextField, {
 				label: "created_label",
 				value: formatDateWithMonth(this.whitelabelChild.createdDate),
 				disabled: true,
 			}),
-			m(DropDownSelectorN, identity<DropDownSelectorAttrs<boolean>>({
+			m(DropDownSelector, identity<DropDownSelectorAttrs<boolean>>({
 				label: "state_label",
 				items: [
 					{
@@ -58,7 +58,7 @@ export class WhitelabelChildViewer implements UpdatableSettingsDetailsViewer {
 					return showProgressDialog("pleaseWait_msg", locator.entityClient.update(this.whitelabelChild))
 				},
 			})),
-			m(TextFieldN, {
+			m(TextField, {
 				label: "comment_label",
 				value: this.whitelabelChild.comment,
 				disabled: true,

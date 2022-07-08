@@ -12,7 +12,7 @@ import {size} from "../../gui/size"
 import {locator} from "../../api/main/MainLocator"
 import {GENERATED_MAX_ID} from "../../api/common/utils/EntityUtils"
 import {ListColumnWrapper} from "../../gui/ListColumnWrapper"
-import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
+import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
 import {compareContacts} from "./ContactGuiUtils"
 import {ofClass} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../../api/common/Env"
@@ -74,7 +74,7 @@ export class ContactListView {
 			return m(
 				ListColumnWrapper,
 				{
-					headerContent: m(DropDownSelectorN, {
+					headerContent: m(DropDownSelector, {
 						label: "sortBy_label",
 						selectedValue: sortByFirstName(),
 						selectionChangedHandler: sortByFirstName,

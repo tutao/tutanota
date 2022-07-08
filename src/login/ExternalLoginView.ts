@@ -9,10 +9,10 @@ import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {Keys} from "../api/common/TutanotaConstants"
 import {progressIcon} from "../gui/base/Icon"
 import {Button, ButtonType} from "../gui/base/Button.js"
-import {TextFieldN, TextFieldType as TextFieldType} from "../gui/base/TextFieldN"
-import {CheckboxN} from "../gui/base/CheckboxN"
+import {TextField, TextFieldType as TextFieldType} from "../gui/base/TextField.js"
+import {Checkbox} from "../gui/base/Checkbox.js"
 import {logins} from "../api/main/LoginController"
-import {MessageBoxN} from "../gui/base/MessageBoxN"
+import {MessageBox} from "../gui/base/MessageBox.js"
 import {renderPrivacyAndImprintLinks} from "./LoginView"
 import {CurrentView, header} from "../gui/Header.js"
 import {GENERATED_MIN_ID} from "../api/common/utils/EntityUtils"
@@ -205,7 +205,7 @@ export class ExternalLoginView implements CurrentView {
 		if (this.viewModel.autologinInProgress) {
 			return m("p.center", progressIcon())
 		} else if (this.viewModel.errorMessageId) {
-			return m("p.center", m(MessageBoxN, {}, lang.getMaybeLazy(this.viewModel.errorMessageId)))
+			return m("p.center", m(MessageBox, {}, lang.getMaybeLazy(this.viewModel.errorMessageId)))
 		} else {
 			return [
 				this.viewModel.showAutoLoginButton
@@ -230,14 +230,14 @@ export class ExternalLoginView implements CurrentView {
 
 	renderForm(): Children {
 		return [
-			m(TextFieldN, {
+			m(TextField, {
 				type: TextFieldType.Password,
 				label: "password_label",
 				helpLabel: () => lang.get("enterPresharedPassword_msg"),
 				value: this.viewModel.password,
 				oninput: input => this.viewModel.password = input,
 			}),
-			m(CheckboxN, {
+			m(Checkbox, {
 				label: () => lang.get("storePassword_action"),
 				helpLabel: () => lang.get("onlyPrivateComputer_msg"),
 				checked: this.viewModel.doSavePassword,

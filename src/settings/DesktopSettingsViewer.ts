@@ -5,13 +5,13 @@ import Stream from "mithril/stream"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {noOp} from "@tutao/tutanota-utils"
 import {Icons} from "../gui/base/icons/Icons"
-import type {TextFieldAttrs} from "../gui/base/TextFieldN"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import type {TextFieldAttrs} from "../gui/base/TextField.js"
+import {TextField} from "../gui/base/TextField.js"
 import type {ButtonAttrs} from "../gui/base/Button.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import {attachDropdown} from "../gui/base/Dropdown.js"
-import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
+import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelector.js"
+import {DropDownSelector} from "../gui/base/DropDownSelector.js"
 import {Dialog} from "../gui/base/Dialog"
 import type {UpdateHelpLabelAttrs} from "./DesktopUpdateHelpLabel"
 import {DesktopUpdateHelpLabel} from "./DesktopUpdateHelpLabel"
@@ -245,17 +245,17 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
 				m(".h4.mt-l", lang.get("desktopSettings_label")),
 				// spell check is done via OS on mac
-				env.platformId === "darwin" ? null : m(TextFieldN, spellcheckLanguageAttrs),
+				env.platformId === "darwin" ? null : m(TextField, spellcheckLanguageAttrs),
 				// setting protocol handler via Electron does not work on Linux
-				env.platformId === "linux" ? null : m(DropDownSelectorN, setDefaultMailtoHandlerAttrs),
+				env.platformId === "linux" ? null : m(DropDownSelector, setDefaultMailtoHandlerAttrs),
 				// mac doesn't really have run in background, you can just close a window
-				env.platformId === "darwin" ? null : m(DropDownSelectorN, setRunInBackgroundAttrs),
-				m(DropDownSelectorN, setRunOnStartupAttrs),
-				m(TextFieldN, defaultDownloadPathAttrs),
-				m(DropDownSelectorN, setMailExportModeAttrs),
+				env.platformId === "darwin" ? null : m(DropDownSelector, setRunInBackgroundAttrs),
+				m(DropDownSelector, setRunOnStartupAttrs),
+				m(TextField, defaultDownloadPathAttrs),
+				m(DropDownSelector, setMailExportModeAttrs),
 				// AppImage is kind of a portable install so we optionally add desktop icons etc
-				env.platformId === "linux" ? m(DropDownSelectorN, setDesktopIntegrationAttrs) : null,
-				this.showAutoUpdateOption ? m(DropDownSelectorN, setAutoUpdateAttrs) : null,
+				env.platformId === "linux" ? m(DropDownSelector, setDesktopIntegrationAttrs) : null,
+				this.showAutoUpdateOption ? m(DropDownSelector, setAutoUpdateAttrs) : null,
 			]),
 		]
 	}

@@ -46,7 +46,7 @@ import type {ThemeCustomizations} from "../../misc/WhitelabelCustomizations"
 import {getThemeCustomizations} from "../../misc/WhitelabelCustomizations"
 import {EntityClient} from "../../api/common/EntityClient"
 import {locator} from "../../api/main/MainLocator"
-import {SelectorItem, SelectorItemList} from "../../gui/base/DropDownSelectorN";
+import {SelectorItem, SelectorItemList} from "../../gui/base/DropDownSelector.js";
 import {BrandingDomainService} from "../../api/entities/sys/Services"
 
 assertMainOrNode()

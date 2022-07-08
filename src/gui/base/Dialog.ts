@@ -17,9 +17,9 @@ import type {ButtonAttrs} from "./Button.js"
 import {Button, ButtonType} from "./Button.js"
 import type {DialogHeaderBarAttrs} from "./DialogHeaderBar"
 import {DialogHeaderBar} from "./DialogHeaderBar"
-import {TextFieldN, TextFieldType} from "./TextFieldN"
-import type {DropDownSelectorAttrs, SelectorItemList} from "./DropDownSelectorN"
-import {DropDownSelectorN} from "./DropDownSelectorN"
+import {TextField, TextFieldType} from "./TextField.js"
+import type {DropDownSelectorAttrs, SelectorItemList} from "./DropDownSelector.js"
+import {DropDownSelector} from "./DropDownSelector.js"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {dialogAttrs} from "../AriaUtils"
 import {styles} from "../styles"
@@ -749,7 +749,7 @@ export class Dialog implements ModalComponent {
 			let result = value
 			Dialog.showActionDialog({
 				title: lang.getMaybeLazy(titleId),
-				child: () => m(TextFieldN, {
+				child: () => m(TextField, {
 					label: labelIdOrLabelFunction,
 					value: result,
 					oninput: (newValue) => result = newValue,
@@ -785,7 +785,7 @@ export class Dialog implements ModalComponent {
 		let result = value
 		Dialog.showActionDialog({
 			title: lang.getMaybeLazy(titleId),
-			child: () => m(TextFieldN, {
+			child: () => m(TextField, {
 				label: labelIdOrLabelFunction,
 				value: result,
 				oninput: (newValue) => result = newValue,
@@ -825,7 +825,7 @@ export class Dialog implements ModalComponent {
 			Dialog.showActionDialog({
 				title: lang.get(titleId),
 				child: {
-					view: () => m(TextFieldN, {
+					view: () => m(TextField, {
 						label: labelIdOrLabelFunction,
 						helpLabel: () => (infoMsgId ? lang.get(infoMsgId) : ""),
 						value: result,
@@ -866,7 +866,7 @@ export class Dialog implements ModalComponent {
 				child: {
 					view: () =>
 						// identity as type assertion
-						m(DropDownSelectorN, identity<DropDownSelectorAttrs<T>>({
+						m(DropDownSelector, identity<DropDownSelectorAttrs<T>>({
 							label,
 							items,
 							selectedValue: selectedValue,
@@ -931,7 +931,7 @@ export class Dialog implements ModalComponent {
 			view: () => {
 				const savedState = state
 				return (savedState.type == "idle")
-					? m(TextFieldN, {
+					? m(TextField, {
 						label: "password_label",
 						helpLabel: () => savedState.message,
 						value: value,

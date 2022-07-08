@@ -5,7 +5,7 @@ import type {InfoLink, TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import type {ButtonAttrs} from "./Button.js"
 import {Button, ButtonType} from "./Button.js"
-import {NavButtonN} from "./NavButtonN"
+import {NavButton} from "./NavButton.js"
 import {isNotNull, mapNullable} from "@tutao/tutanota-utils"
 import {Icons} from "./icons/Icons"
 import {ifAllowedTutanotaLinks} from "./GuiUtils"
@@ -91,7 +91,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 						marginRight: "-10px",
 					},
 				},
-				m(NavButtonN, {
+				m(NavButton, {
 					icon: () => Icons.QuestionMark,
 					href: link,
 					small: true,

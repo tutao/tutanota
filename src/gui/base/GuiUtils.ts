@@ -15,7 +15,7 @@ import type {AllIcons} from "./Icon"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import m, {Children} from "mithril";
 import Stream from "mithril/stream";
-import {DropDownSelectorN} from "./DropDownSelectorN.js"
+import {DropDownSelector} from "./DropDownSelector.js"
 
 export type dropHandler = (dragData: string) => void
 // not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
@@ -32,7 +32,7 @@ export function renderCountryDropdown(
 		label?: TranslationKey | lazy<string>
 	},
 ): Children {
-	return m(DropDownSelectorN, {
+	return m(DropDownSelector, {
 		label: params.label ?? "invoiceCountry_label",
 		helpLabel: params.helpLabel,
 		items: [

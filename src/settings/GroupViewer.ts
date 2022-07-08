@@ -18,11 +18,11 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {compareGroupInfos, getGroupInfoDisplayName} from "../api/common/utils/GroupUtils"
 import {GENERATED_MAX_ID, GENERATED_MIN_ID, isSameId} from "../api/common/utils/EntityUtils"
 import {showBuyDialog} from "../subscription/BuyDialog"
-import type {TextFieldAttrs} from "../gui/base/TextFieldN"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import type {TextFieldAttrs} from "../gui/base/TextField.js"
+import {TextField} from "../gui/base/TextField.js"
 import {ButtonAttrs, Button} from "../gui/base/Button.js"
-import type {DropDownSelectorAttrs, SelectorItemList} from "../gui/base/DropDownSelectorN"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
+import type {DropDownSelectorAttrs, SelectorItemList} from "../gui/base/DropDownSelector.js"
+import {DropDownSelector} from "../gui/base/DropDownSelector.js"
 import type {EntityClient} from "../api/common/EntityClient"
 import type {UpdatableSettingsDetailsViewer} from "./SettingsView"
 import {locator} from "../api/main/MainLocator"
@@ -92,17 +92,17 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 				m("#user-viewer.fill-absolute.scroll.plr-l", [
 					m(".h4.mt-l", this._group.isLoaded() ? getGroupTypeName(this._group.getLoaded().type) : lang.get("emptyString_msg")),
 					m("", [
-						m(TextFieldN, {
+						m(TextField, {
 							label: "created_label",
 							value: formatDateWithMonth(this.groupInfo.created),
 							disabled: true,
 						}),
-						this._isMailGroup() ? m(TextFieldN, this._createUsedStorageFieldAttrs()) : null,
+						this._isMailGroup() ? m(TextField, this._createUsedStorageFieldAttrs()) : null,
 					]),
 					m("", [
-						m(TextFieldN, this._createNameFieldAttrs()),
-						logins.getUserController().isGlobalAdmin() && administratedBySelectorAttrs ? m(DropDownSelectorN, administratedBySelectorAttrs) : null,
-						m(DropDownSelectorN, this._createStatusSelectorAttrs()),
+						m(TextField, this._createNameFieldAttrs()),
+						logins.getUserController().isGlobalAdmin() && administratedBySelectorAttrs ? m(DropDownSelector, administratedBySelectorAttrs) : null,
+						m(DropDownSelector, this._createStatusSelectorAttrs()),
 					]),
 					!this.groupInfo.deleted ? m(".h4.mt-l.mb-s", lang.get("groupMembers_label")) : null,
 					!this.groupInfo.deleted ? m(Table, this._createMembersTableAttrs()) : null,
@@ -111,7 +111,7 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 							m(".h4.mt-l", lang.get("mailSettings_label")),
 							m(".wrapping-row", [
 								m("", [
-									m(TextFieldN, {
+									m(TextField, {
 										label: "mailAddress_label",
 										value: this.groupInfo.mailAddress ?? "",
 										disabled: true,
@@ -285,7 +285,7 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 					Dialog.showActionDialog({
 						title: lang.get("addUserToGroup_label"),
 						child: {
-							view: () => m(DropDownSelectorN, {
+							view: () => m(DropDownSelector, {
 									label: "userSettings_label",
 									items: availableUserGroupInfos.map(g => {
 										return {

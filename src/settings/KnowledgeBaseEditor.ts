@@ -4,7 +4,7 @@ import {ButtonColor, Button, ButtonType} from "../gui/base/Button.js"
 import type {ButtonAttrs} from "../gui/base/Button.js"
 import {KnowledgeBaseEditorModel} from "./KnowledgeBaseEditorModel"
 import {noOp} from "@tutao/tutanota-utils"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import {TextField} from "../gui/base/TextField.js"
 import type {EmailTemplate} from "../api/entities/tutanota/TypeRefs.js"
 import {Dialog} from "../gui/base/Dialog"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
@@ -115,12 +115,12 @@ class KnowledgeBaseEditor implements Component<KnowledgeBaseEditorModel> {
 	view(vnode: Vnode<KnowledgeBaseEditorModel>): Children {
 		const model = vnode.attrs
 		return m("", [
-			m(TextFieldN, {
+			m(TextField, {
 				label: "title_placeholder",
 				value: model.title(),
 				oninput: model.title,
 			}),
-			m(TextFieldN, {
+			m(TextField, {
 				label: "keywords_label",
 				value: model.keywords(),
 				oninput: model.keywords,

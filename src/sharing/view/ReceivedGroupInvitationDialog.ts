@@ -3,7 +3,7 @@ import {logins} from "../../api/main/LoginController"
 import {createGroupSettings} from "../../api/entities/tutanota/TypeRefs.js"
 import m, {Children} from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
-import {TextFieldN} from "../../gui/base/TextFieldN"
+import {TextField} from "../../gui/base/TextField.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {isCustomizationEnabledForCustomer} from "../../api/common/utils/Utils"
@@ -70,22 +70,22 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 				m(".flex.col", [
 					m(".mb", [
 						m(".pt.selectable", isMember ? lang.getMaybeLazy(texts.alreadyGroupMemberMessage) : texts.receivedGroupInvitationMessage),
-						m(TextFieldN, {
+						m(TextField, {
 							value: nameStream(),
 							oninput: nameStream,
 							label: texts.groupNameLabel,
 						}),
-						m(TextFieldN, {
+						m(TextField, {
 							value: getDisplayText(invitation.inviterName, invitation.inviterMailAddress, false),
 							label: "sender_label",
 							disabled: true,
 						}),
-						m(TextFieldN, {
+						m(TextField, {
 							value: invitation.inviteeMailAddress,
 							label: "to_label",
 							disabled: true,
 						}),
-						m(TextFieldN, {
+						m(TextField, {
 							value: getCapabilityText(downcast(invitation.capability)),
 							label: "permissions_label",
 							disabled: true,

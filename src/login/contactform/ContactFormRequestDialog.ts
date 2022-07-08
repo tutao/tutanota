@@ -1,6 +1,6 @@
 import m, {Children} from "mithril"
 import {Dialog, DialogType} from "../../gui/base/Dialog"
-import {TextFieldN, TextFieldType} from "../../gui/base/TextFieldN"
+import {TextField, TextFieldType} from "../../gui/base/TextField.js"
 import {lang} from "../../misc/LanguageViewModel"
 import {formatStorageSize} from "../../misc/Formatter"
 import {ConversationType, Keys, MailMethod, MAX_ATTACHMENT_SIZE, PushServiceType} from "../../api/common/TutanotaConstants"
@@ -17,7 +17,7 @@ import {HtmlEditor} from "../../gui/editor/HtmlEditor"
 import {Icons} from "../../gui/base/icons/Icons"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {CheckboxN} from "../../gui/base/CheckboxN"
+import {Checkbox} from "../../gui/base/Checkbox.js"
 import {getPrivacyStatementLink} from "../LoginView"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {BorderStyle, ButtonAttrs, Button, ButtonType} from "../../gui/base/Button.js"
@@ -108,14 +108,14 @@ export class ContactFormRequestDialog {
 			},
 			icon: () => Icons.Attachment,
 		})
-		const subject = m(TextFieldN, {
+		const subject = m(TextField, {
 			label: "subject_label",
 			value: this._subject,
 			helpLabel: this.getConfidentialStateMessage,
 			injectionsRight: () => [attachFilesButton],
 			oninput: value => (this._subject = value),
 		})
-		const notificationEmailAddress = m(TextFieldN, {
+		const notificationEmailAddress = m(TextField, {
 			label: "mailAddress_label",
 			value: this._notificationEmailAddress,
 			helpLabel: () => lang.get("contactFormMailAddressInfo_msg"),
@@ -168,7 +168,7 @@ export class ContactFormRequestDialog {
 				m(".pt-l.text", m(this._editor)),
 				notificationEmailAddress,
 				getPrivacyStatementLink()
-					? m(CheckboxN, {
+					? m(Checkbox, {
 						label: () => this._getPrivacyPolicyCheckboxContent(),
 						checked: this._privacyPolicyAccepted(),
 						onChecked: this._privacyPolicyAccepted,
@@ -362,7 +362,7 @@ function showConfirmDialog(userEmailAddress: string): Promise<void> {
 			view: () =>
 				m("", [
 					m(".dialog-header.plr-l.flex.justify-center.items-center.b", lang.get("loginCredentials_label")),
-					m(".plr-l.pb.text-break", m(".pt", lang.get("contactFormSubmitConfirm_msg")), m(TextFieldN, {
+					m(".plr-l.pb.text-break", m(".pt", lang.get("contactFormSubmitConfirm_msg")), m(TextField, {
 						label: "mailAddress_label",
 						value: userEmailAddress,
 						disabled: true,

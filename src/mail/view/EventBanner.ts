@@ -1,5 +1,5 @@
 import m, {Children, Component, Vnode} from "mithril"
-import {MessageBoxN} from "../../gui/base/MessageBoxN"
+import {MessageBox} from "../../gui/base/MessageBox.js"
 import {px, size} from "../../gui/size"
 import {Button, ButtonType} from "../../gui/base/Button.js"
 import {CalendarAttendeeStatus, CalendarMethod} from "../../api/common/TutanotaConstants"
@@ -24,7 +24,7 @@ export class EventBanner implements Component<Attrs> {
 	view({attrs: {event, mail, recipient, method}}: Vnode<Attrs>): Children {
 		const ownAttendee = event.attendees.find(a => a.address.address === recipient)
 		return m(
-			MessageBoxN,
+			MessageBox,
 			{
 				style: {
 					alignItems: "start",

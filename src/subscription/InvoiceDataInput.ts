@@ -6,7 +6,7 @@ import {Countries, CountryType} from "../api/common/CountryList"
 import {HtmlEditor, HtmlEditorMode} from "../gui/editor/HtmlEditor"
 import type {LocationServiceGetReturn} from "../api/entities/sys/TypeRefs.js"
 import {renderCountryDropdown} from "../gui/base/GuiUtils"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import {TextField} from "../gui/base/TextField.js"
 import type {InvoiceData} from "../api/common/TutanotaConstants"
 import {LocationService} from "../api/entities/sys/Services"
 import {locator} from "../api/main/MainLocator"
@@ -46,7 +46,7 @@ export class InvoiceDataInput implements Component {
 				helpLabel: () => lang.get("invoiceCountryInfoConsumer_msg")
 			}),
 			this.isVatIdFieldVisible()
-				? m(TextFieldN, {
+				? m(TextField, {
 					label: "invoiceVatIdNo_label",
 					value: this.vatNumber,
 					oninput: value => this.vatNumber = value,

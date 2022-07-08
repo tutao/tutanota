@@ -1,5 +1,5 @@
 import m, {Children, ClassComponent, Vnode} from "mithril"
-import {TextFieldN} from "./TextFieldN"
+import {TextField} from "./TextField.js"
 import {TranslationText} from "../../misc/LanguageViewModel"
 import {Button, ButtonType} from "./Button.js"
 import {Keys} from "../../api/common/TutanotaConstants"
@@ -28,7 +28,7 @@ export class BubbleTextField implements ClassComponent<BubbleTextFieldAttrs> {
 
 	view({attrs}: Vnode<BubbleTextFieldAttrs>) {
 		return m(".bubble-text-field", [
-			m(TextFieldN, {
+			m(TextField, {
 				label: attrs.label,
 				disabled: attrs.disabled,
 				value: attrs.text,

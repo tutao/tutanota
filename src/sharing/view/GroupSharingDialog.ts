@@ -10,9 +10,9 @@ import {getDisplayText} from "../../mail/model/MailUtils"
 import {ButtonType} from "../../gui/base/Button.js"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {ShareCapability} from "../../api/common/TutanotaConstants"
-import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
+import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
 import {PreconditionFailedError, TooManyRequestsError} from "../../api/common/error/RestError"
-import {TextFieldN} from "../../gui/base/TextFieldN"
+import {TextField} from "../../gui/base/TextField.js"
 import type {GroupInfo} from "../../api/entities/sys/TypeRefs.js"
 import {getCapabilityText, getMemberCabability, getSharedGroupName, hasCapabilityOnGroup, isShareableGroupType, isSharedGroupOwner} from "../GroupUtils"
 import {sendShareNotificationEmail} from "../GroupSharingUtils"
@@ -187,7 +187,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 				search,
 				maxSuggestionsToShow: 3
 			})),
-			m(DropDownSelectorN, {
+			m(DropDownSelector, {
 				label: "permissions_label",
 				items: [
 					{
@@ -207,7 +207,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 				selectionChangedHandler: capability,
 				dropdownWidth: 300,
 			}),
-			m(TextFieldN, {
+			m(TextField, {
 				value: realGroupName,
 				label: texts.groupNameLabel,
 				disabled: true,

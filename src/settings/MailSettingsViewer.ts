@@ -20,10 +20,10 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
-import type {TextFieldAttrs} from "../gui/base/TextFieldN"
-import {TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
+import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelector.js"
+import {DropDownSelector} from "../gui/base/DropDownSelector.js"
+import type {TextFieldAttrs} from "../gui/base/TextField.js"
+import {TextField, TextFieldType} from "../gui/base/TextField.js"
 import type {ButtonAttrs} from "../gui/base/Button.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/Table.js"
@@ -294,15 +294,15 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				},
 				[
 					m(".h4.mt-l", lang.get("emailSending_label")),
-					m(DropDownSelectorN, defaultSenderAttrs),
-					m(TextFieldN, senderNameAttrs),
-					m(TextFieldN, signatureAttrs),
-					logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelectorN, defaultUnconfidentialAttrs),
-					logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelectorN, sendPlaintextAttrs),
-					logins.isEnabled(FeatureType.DisableContacts) ? null : m(DropDownSelectorN, noAutomaticContactsAttrs),
-					m(DropDownSelectorN, enableMailIndexingAttrs),
-					m(DropDownSelectorN, reportMovedMailsAttrs),
-					m(TextFieldN, outOfOfficeAttrs),
+					m(DropDownSelector, defaultSenderAttrs),
+					m(TextField, senderNameAttrs),
+					m(TextField, signatureAttrs),
+					logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, defaultUnconfidentialAttrs),
+					logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, sendPlaintextAttrs),
+					logins.isEnabled(FeatureType.DisableContacts) ? null : m(DropDownSelector, noAutomaticContactsAttrs),
+					m(DropDownSelector, enableMailIndexingAttrs),
+					m(DropDownSelector, reportMovedMailsAttrs),
+					m(TextField, outOfOfficeAttrs),
 					this.renderLocalDataSection(),
 					logins.getUserController().isGlobalAdmin() ? m(EditAliasesFormN, this._editAliasFormAttrs) : null,
 					logins.isEnabled(FeatureType.InternalCommunication)
@@ -341,7 +341,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 		return [
 			m(".h4.mt-l", lang.get("localDataSection_label")),
-			m(TextFieldN, {
+			m(TextField, {
 				label: "emptyString_msg",
 				// Negative upper margin to make up for no label
 				class: "mt-negative-s",
@@ -497,7 +497,7 @@ async function showEditStoredDataTimeRangeDialog(settings: OfflineStorageSetting
 	const newTimeRangeDeferred = defer<number>()
 	const dialog = Dialog.showActionDialog({
 		title: "",
-		child: () => m(TextFieldN, {
+		child: () => m(TextField, {
 			label: () => capitalizeFirstLetter(lang.get("days_label")),
 			helpLabel: () => lang.get("storedDataTimeRangeHelpText_msg"),
 			type: TextFieldType.Number,

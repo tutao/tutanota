@@ -1,11 +1,11 @@
 import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
-import type {SelectorItemList} from "../../gui/base/DropDownSelectorN"
-import {DropDownSelectorN} from "../../gui/base/DropDownSelectorN"
+import type {SelectorItemList} from "../../gui/base/DropDownSelector.js"
+import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
 import {Dialog} from "../../gui/base/Dialog"
 import {Icons} from "../../gui/base/icons/Icons"
 import {ButtonAttrs, Button} from "../../gui/base/Button.js"
-import {TextFieldN} from "../../gui/base/TextFieldN"
+import {TextField} from "../../gui/base/TextField.js"
 
 export type WhitelabelRegistrationSettingsAttrs = {
 	whitelabelCode: string
@@ -38,7 +38,7 @@ export class WhitelabelRegistrationSettings implements Component<WhitelabelRegis
 		possibleRegistrationDomains: SelectorItemList<string | null>,
 		onRegistrationDomainSelected: (arg0: string | null) => unknown,
 	): Children {
-		return m(DropDownSelectorN, {
+		return m(DropDownSelector, {
 			label: "whitelabelRegistrationEmailDomain_label",
 			selectedValue: currentRegistrationDomain,
 			items: possibleRegistrationDomains,
@@ -72,6 +72,6 @@ export class WhitelabelRegistrationSettings implements Component<WhitelabelRegis
 			disabled: true,
 			injectionsRight: () => [editButtonAttrs ? m(Button, editButtonAttrs) : null],
 		} as const
-		return m(TextFieldN, whitelabelRegistrationTextfieldAttrs)
+		return m(TextField, whitelabelRegistrationTextfieldAttrs)
 	}
 }

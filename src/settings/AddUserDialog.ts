@@ -11,7 +11,7 @@ import {getCustomMailDomains} from "../api/common/utils/Utils"
 import {showProgressDialog, showWorkerProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {showBuyDialog} from "../subscription/BuyDialog"
-import {TextFieldAttrs, TextFieldN} from "../gui/base/TextFieldN"
+import {TextFieldAttrs, TextField} from "../gui/base/TextField.js"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
 
@@ -27,7 +27,7 @@ export function show(): Promise<void> {
 		let form = {
 			view: () => {
 				return [
-					m(TextFieldN, {
+					m(TextField, {
 						label: "name_label",
 						helpLabel: () => lang.get("loginNameInfoAdmin_msg"),
 						value: userName,

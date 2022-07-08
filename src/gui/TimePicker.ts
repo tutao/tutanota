@@ -1,5 +1,5 @@
 import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
-import {TextFieldN, TextFieldType as TextFieldType} from "./base/TextFieldN"
+import {TextField, TextFieldType as TextFieldType} from "./base/TextField.js"
 import {theme} from "./theme"
 import {client} from "../misc/ClientDetector"
 import {Keys} from "../api/common/TutanotaConstants"
@@ -63,7 +63,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 
 		this._value = timeAsString
 
-		return m(TextFieldN, {
+		return m(TextField, {
 			label: "emptyString_msg",
 			value: this._value,
 			type: TextFieldType.Time,
@@ -81,7 +81,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	}
 
 	_renderInputField(attrs: TimePickerAttrs): Children {
-		return m(TextFieldN, {
+		return m(TextField, {
 			label: "emptyString_msg",
 			value: this._value,
 			oninput: (v) => this._value = v,

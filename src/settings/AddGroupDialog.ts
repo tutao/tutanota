@@ -14,8 +14,8 @@ import {PreconditionFailedError} from "../api/common/error/RestError"
 import {showBusinessFeatureRequiredDialog} from "../misc/SubscriptionDialogs"
 import {TemplateGroupPreconditionFailedReason} from "../sharing/GroupUtils"
 import * as AddUserDialog from "./AddUserDialog"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import {DropDownSelector} from "../gui/base/DropDownSelector.js"
+import {TextField} from "../gui/base/TextField.js"
 import {firstThrow, ofClass} from "@tutao/tutanota-utils"
 import type {GroupManagementFacade} from "../api/worker/facades/GroupManagementFacade"
 import {locator} from "../api/main/MainLocator"
@@ -38,7 +38,7 @@ export class AddGroupDialog implements Component<AddGroupDialogAttrs> {
 	view(vnode: Vnode<AddGroupDialogAttrs>): Children {
 		const {availableGroupTypes, groupType, availableDomains, onEmailChanged, onBusyStateChanged} = vnode.attrs
 		return [
-			m(DropDownSelectorN, {
+			m(DropDownSelector, {
 				label: "groupType_label",
 				items: availableGroupTypes.map(t => {
 					return {
@@ -49,7 +49,7 @@ export class AddGroupDialog implements Component<AddGroupDialogAttrs> {
 				selectedValue: groupType,
 				selectionChangedHandler: vnode.attrs.onGroupTypeChanged,
 			}),
-			m(TextFieldN, {
+			m(TextField, {
 				label: "name_label",
 				value: vnode.attrs.name,
 				oninput: vnode.attrs.onGroupNameChanged,

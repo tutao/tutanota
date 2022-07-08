@@ -1,8 +1,8 @@
 import m, {Children, Vnode, VnodeDOM} from "mithril"
 import stream from "mithril/stream"
 import {mapNullable, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
-import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialogN"
-import {createWizardDialog, emitWizardEvent, WizardEventType, wizardPageWrapper} from "../../gui/base/WizardDialogN"
+import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialog.js"
+import {createWizardDialog, emitWizardEvent, WizardEventType, wizardPageWrapper} from "../../gui/base/WizardDialog.js"
 import {LoginController, logins} from "../../api/main/LoginController"
 import type {NewAccountData} from "../UpgradeSubscriptionWizard"
 import {loadUpgradePrices} from "../UpgradeSubscriptionWizard"
@@ -27,7 +27,7 @@ import {PaymentMethodType} from "../../api/common/TutanotaConstants"
 import type {SubscriptionData, SubscriptionOptions, SubscriptionPlanPrices} from "../SubscriptionUtils"
 import {SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
 import {formatPrice, getPaymentMethodName, getSubscriptionPrice} from "../PriceUtils"
-import {TextFieldN} from "../../gui/base/TextFieldN"
+import {TextField} from "../../gui/base/TextField.js"
 import {elementIdPart, isSameId} from "../../api/common/utils/EntityUtils"
 import type {CredentialsInfo, ICredentialsProvider} from "../../misc/credentials/CredentialsProvider"
 import {SessionType} from "../../api/common/SessionType.js";
@@ -456,22 +456,22 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 			m(".center.h4.pt", lang.get("upgradeConfirm_msg")),
 			m(".flex-space-around.flex-wrap", [
 				m(".flex-grow-shrink-half.plr-l", [
-					m(TextFieldN, {
+					m(TextField, {
 						label: "subscription_label",
 						value: "Premium",
 						disabled: true,
 					}),
-					m(TextFieldN, {
+					m(TextField, {
 						label: "paymentInterval_label",
 						value: lang.get("pricing.yearly_label"),
 						disabled: true,
 					}),
-					m(TextFieldN, {
+					m(TextField, {
 						label: "price_label",
 						value: formatPrice(Number(model.premiumPrice), true) + " " + lang.get("pricing.perYear_label"),
 						disabled: true,
 					}),
-					m(TextFieldN, {
+					m(TextField, {
 						label: "paymentMethod_label",
 						value: getPaymentMethodName(model.paymentMethod),
 						disabled: true,

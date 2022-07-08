@@ -1,12 +1,12 @@
 import m, {Children, Vnode, VnodeDOM} from "mithril"
-import {TextFieldN} from "../../gui/base/TextFieldN"
+import {TextField} from "../../gui/base/TextField.js"
 import {isDomainName} from "../../misc/FormatValidator"
 import {Dialog} from "../../gui/base/Dialog"
 import type {AddDomainData} from "./AddDomainWizard"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialogN"
-import {emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialogN"
+import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialog.js"
+import {emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialog.js"
 import {Button, ButtonType} from "../../gui/base/Button.js"
 import {assertMainOrNode} from "../../api/common/Env"
 
@@ -24,7 +24,7 @@ export class EnterDomainPage implements WizardPageN<AddDomainData> {
 			m("h4.mt-l.text-center", lang.get("enterCustomDomain_title")),
 			m(".mt", lang.get("enterDomainIntroduction_msg")),
 			m(".mt", lang.get("enterDomainGetReady_msg")),
-			m(TextFieldN, {
+			m(TextField, {
 				label: "customDomain_label",
 				value: vnode.attrs.data.domain(),
 				oninput: vnode.attrs.data.domain,

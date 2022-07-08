@@ -10,8 +10,8 @@ import {logins} from "../api/main/LoginController"
 import {getArchiveFolder, getExistingRuleForType, getFolderName} from "../mail/model/MailUtils"
 import type {MailboxDetail} from "../mail/model/MailModel"
 import stream from "mithril/stream"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import {DropDownSelector} from "../gui/base/DropDownSelector.js"
+import {TextField} from "../gui/base/TextField.js"
 import {neverNull} from "@tutao/tutanota-utils"
 import {ConnectionError, LockedError} from "../api/common/error/RestError"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
@@ -40,13 +40,13 @@ export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
 		const inboxRuleTarget = stream(selectedFolder || getArchiveFolder(mailBoxDetails.folders))
 
 		let form = () => [
-			m(DropDownSelectorN, {
+			m(DropDownSelector, {
 				items: getInboxRuleTypeNameMapping(),
 				label: "inboxRuleField_label",
 				selectedValue: inboxRuleType(),
 				selectionChangedHandler: inboxRuleType,
 			}),
-			m(TextFieldN, {
+			m(TextField, {
 				label: "inboxRuleValue_label",
 				value: inboxRuleValue(),
 				oninput: inboxRuleValue,
@@ -55,7 +55,7 @@ export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
 						? lang.get("emailSenderPlaceholder_label")
 						: lang.get("emptyString_msg"),
 			}),
-			m(DropDownSelectorN, {
+			m(DropDownSelector, {
 				label: "inboxRuleTargetFolder_label",
 				items: targetFolders,
 				selectedValue: inboxRuleTarget(),

@@ -1,5 +1,5 @@
-import type {TextFieldType} from "../gui/base/TextFieldN"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import type {TextFieldType} from "../gui/base/TextField.js"
+import {TextField} from "../gui/base/TextField.js"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
@@ -38,7 +38,7 @@ export class ContactAggregateEditor implements Component<AggregateEditorAttrs<an
 		const attrs = vnode.attrs
 		return m(
 			".wrapper.child-grow",
-			m(TextFieldN, {
+			m(TextField, {
 				value: attrs.value,
 				label: () => attrs.label,
 				type: attrs.fieldType,

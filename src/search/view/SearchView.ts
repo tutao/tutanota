@@ -6,8 +6,8 @@ import {lang} from "../../misc/LanguageViewModel"
 import {FeatureType, FULL_INDEXED_TIMESTAMP, Keys, MailFolderType, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../../api/common/Env"
 import {keyManager, Shortcut} from "../../misc/KeyManager"
-import type {NavButtonAttrs} from "../../gui/base/NavButtonN"
-import {isNavButtonSelected, NavButtonColor, NavButtonN} from "../../gui/base/NavButtonN"
+import type {NavButtonAttrs} from "../../gui/base/NavButton.js"
+import {isNavButtonSelected, NavButtonColor, NavButton} from "../../gui/base/NavButton.js"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {ContactTypeRef, MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {SearchListView, SearchResultListEntry} from "./SearchListView"
@@ -46,11 +46,11 @@ import {ActionBar} from "../../gui/base/ActionBar"
 import {getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs"
-import {TextFieldN} from "../../gui/base/TextFieldN"
+import {TextField} from "../../gui/base/TextField.js"
 import {SidebarSection} from "../../gui/SidebarSection"
 import type {clickHandler} from "../../gui/base/GuiUtils"
 import {SomeEntity} from "../../api/common/EntityTypes"
-import {DropDownSelectorN, SelectorItem} from "../../gui/base/DropDownSelectorN.js"
+import {DropDownSelector, SelectorItem} from "../../gui/base/DropDownSelector.js"
 
 assertMainOrNode()
 
@@ -134,14 +134,14 @@ export class SearchView implements CurrentView {
 										{
 											class: isNavButtonSelected(this.mailFolder) ? "row-selected" : "",
 										},
-										m(NavButtonN, this.mailFolder),
+										m(NavButton, this.mailFolder),
 									),
 									m(
 										".folder-row.flex-start.plr-l",
 										{
 											class: isNavButtonSelected(this.contactFolder) ? "row-selected" : "",
 										},
-										m(NavButtonN, this.contactFolder),
+										m(NavButton, this.contactFolder),
 									),
 								],
 							),
@@ -201,7 +201,7 @@ export class SearchView implements CurrentView {
 	_renderSearchFilters(): Children {
 		return [
 			this._getUpdatedTimeField(),
-			m(DropDownSelectorN, {
+			m(DropDownSelector, {
 				label: "field_label",
 				items: this.availableMailFields,
 				selectedValue: this.selectedMailField,
@@ -219,7 +219,7 @@ export class SearchView implements CurrentView {
 				dropdownWidth: 250
 			}),
 			this.availableMailFolders.length > 0
-				? m(DropDownSelectorN, {
+				? m(DropDownSelector, {
 					label: "mailFolder_label",
 					items: this.availableMailFolders,
 					selectedValue: this.selectedMailFolder,
@@ -322,7 +322,7 @@ export class SearchView implements CurrentView {
 		}
 
 		const timeDisplayValue = start + " - " + end
-		return m(TextFieldN, {
+		return m(TextField, {
 			label: "periodOfTime_label",
 			value: timeDisplayValue,
 			disabled: true,

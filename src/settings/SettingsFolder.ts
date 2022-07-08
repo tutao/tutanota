@@ -1,6 +1,6 @@
 import type {lazyIcon} from "../gui/base/Icon"
 import type {TranslationKey} from "../misc/LanguageViewModel"
-import {isSelectedPrefix} from "../gui/base/NavButtonN"
+import {isSelectedPrefix} from "../gui/base/NavButton.js"
 import type {UpdatableSettingsViewer} from "./SettingsView"
 import type {lazy} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../api/common/Env"

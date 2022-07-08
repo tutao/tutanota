@@ -2,18 +2,18 @@ import m, {Children, Component, Vnode} from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {getStartOfTheWeekOffsetForUser} from "../calendar/date/CalendarUtils"
 import type {OutOfOfficeNotification} from "../api/entities/tutanota/TypeRefs.js"
-import type {TextFieldAttrs} from "../gui/base/TextFieldN"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import type {TextFieldAttrs} from "../gui/base/TextField.js"
+import {TextField} from "../gui/base/TextField.js"
 import {lang} from "../misc/LanguageViewModel"
 import {Keys, OUT_OF_OFFICE_SUBJECT_PREFIX} from "../api/common/TutanotaConstants"
-import type {CheckboxAttrs} from "../gui/base/CheckboxN"
-import {CheckboxN} from "../gui/base/CheckboxN"
+import type {CheckboxAttrs} from "../gui/base/Checkbox.js"
+import {Checkbox} from "../gui/base/Checkbox.js"
 import {px} from "../gui/size"
 import {ButtonType} from "../gui/base/Button.js"
 import {getDefaultNotificationLabel} from "../misc/OutOfOfficeNotificationUtils"
 import {showBusinessFeatureRequiredDialog} from "../misc/SubscriptionDialogs"
-import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelectorN"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
+import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelector.js"
+import {DropDownSelector} from "../gui/base/DropDownSelector.js"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {BusinessFeatureRequiredError} from "../api/main/BusinessFeatureRequiredError"
 import {locator} from "../api/main/MainLocator"
@@ -106,7 +106,7 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 		return [
 			this.renderEnabled(model),
 			this.renderRecipients(model),
-			m(".mt.flex-start", m(CheckboxN, {
+			m(".mt.flex-start", m(Checkbox, {
 					label: () => lang.get("outOfOfficeTimeRange_msg"),
 					checked: model.timeRangeEnabled(),
 					onChecked: model.timeRangeEnabled,
@@ -130,7 +130,7 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 			{name: lang.get("deactivated_label"), value: false},
 			{name: lang.get("activated_label"), value: true},
 		]
-		return m(DropDownSelectorN, {
+		return m(DropDownSelector, {
 				label: "state_label",
 				items: statusItems,
 				selectedValue: model.enabled(),
@@ -142,7 +142,7 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 	private renderDefault(organizationEnabled: boolean, model: EditOutOfOfficeNotificationDialogModel, defaultMessageEditor: HtmlEditor) {
 		return [
 			m(".h4.text-center.mt-l", getDefaultNotificationLabel(organizationEnabled)),
-			m(TextFieldN, {
+			m(TextField, {
 					label: "subject_label",
 					value: model.defaultSubject(),
 					oninput: model.defaultSubject,
@@ -166,7 +166,7 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 	private renderOrganizations(model: EditOutOfOfficeNotificationDialogModel, organizationMessageEditor: HtmlEditor) {
 		return [
 			m(".h4.text-center.mt-l", lang.get("outOfOfficeInternal_msg")),
-			m(TextFieldN, {
+			m(TextField, {
 					label: "subject_label",
 					value: model.organizationSubject(),
 					oninput: model.organizationSubject,
@@ -209,7 +209,7 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 			}
 		}
 
-		return m(DropDownSelectorN, {
+		return m(DropDownSelector, {
 			label: "outOfOfficeRecipients_label",
 			items: recipientItems,
 			selectedValue: model.recipientMessageTypes(),
@@ -227,7 +227,7 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 				nullSelectionText: "emptyString_msg",
 				startOfTheWeekOffset,
 			}),
-			m(CheckboxN, {
+			m(Checkbox, {
 				label: () => lang.get("unlimited_label"),
 				checked: model.indefiniteTimeRange(),
 				onChecked: model.indefiniteTimeRange,

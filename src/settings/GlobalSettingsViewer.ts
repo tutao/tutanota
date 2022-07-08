@@ -44,7 +44,7 @@ import {getDomainPart} from "../misc/parsing/MailAddressParser"
 import type {UpdatableSettingsViewer} from "./SettingsView"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN.js"
+import {DropDownSelector} from "../gui/base/DropDownSelector.js"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -157,7 +157,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				}),
 				m(".mt-l", [
 					m(".h4", lang.get("security_title")),
-					m(DropDownSelectorN, {
+					m(DropDownSelector, {
 						label: "saveEncryptedIpAddress_label",
 						selectedValue: this.saveIpAddress,
 						selectionChangedHandler: value => {
@@ -184,7 +184,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					}),
 					logins.getUserController().isGlobalAdmin() && logins.getUserController().isPremiumAccount()
 						? m("", [
-							m(DropDownSelectorN, {
+							m(DropDownSelector, {
 								label: "enforcePasswordUpdate_title",
 								helpLabel: () => lang.get("enforcePasswordUpdate_msg"),
 								selectedValue: this.requirePasswordUpdateAfterReset,

@@ -6,7 +6,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import stream from "mithril/stream"
 import m, {Children, Component, Vnode} from "mithril"
 import {Button} from "../../gui/base/Button.js"
-import {TextFieldN} from "../../gui/base/TextFieldN"
+import {TextField} from "../../gui/base/TextField.js"
 
 export type WhitelabelStatusSettingsAttrs = {
 	isWhitelabelActive: boolean
@@ -47,6 +47,6 @@ export class WhitelabelStatusSettings implements Component<WhitelabelStatusSetti
 			disabled: true,
 			injectionsRight: () => (isWhitelabelActive ? m(Button, disableWhiteLabelAction) : m(Button, enableWhiteLabelAction)),
 		} as const
-		return m(TextFieldN, textFieldAttrs)
+		return m(TextField, textFieldAttrs)
 	}
 }

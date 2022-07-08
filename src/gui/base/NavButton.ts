@@ -36,7 +36,7 @@ const navButtonSelector = (vertical: boolean | undefined, centred?: boolean) =>
 	(vertical ? ".col" : "") +
 	(!centred ? ".flex-start" : ".flex-center")
 
-export class NavButtonN implements Component<NavButtonAttrs> {
+export class NavButton implements Component<NavButtonAttrs> {
 	private _domButton!: HTMLElement
 	private _draggedOver: boolean
 	private _dropCounter: number // we also get drag enter/leave events from subelements, so we need to count to know when the drag leaves this button

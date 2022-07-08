@@ -12,7 +12,7 @@ import {neverNull} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 import {ofClass} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../api/common/Env"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN.js"
+import {DropDownSelector} from "../gui/base/DropDownSelector.js"
 
 assertMainOrNode()
 // signatures can become large, for example if they include a base64 embedded image. we ask for confirmation in such cases
@@ -41,7 +41,7 @@ export function show(props: TutanotaProperties) {
 		const form = {
 			view: () => {
 				return [
-					m(DropDownSelectorN, {
+					m(DropDownSelector, {
 						label: "userEmailSignature_label",
 						items: signatureTypes,
 						selectedValue: selectedType,

@@ -1,4 +1,4 @@
-import {TextFieldType} from "../gui/base/TextFieldN"
+import {TextFieldType} from "../gui/base/TextField.js"
 import m, {Children, Component, Vnode} from "mithril"
 import {Icons} from "../gui/base/icons/Icons"
 import {logins} from "../api/main/LoginController"

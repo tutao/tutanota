@@ -11,7 +11,7 @@ import {DialogHeaderBar, DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar
 import {ButtonType} from "../gui/base/Button.js"
 import {lang} from "../misc/LanguageViewModel.js"
 import m, {Children} from "mithril"
-import {TextFieldN} from "../gui/base/TextFieldN.js"
+import {TextField} from "../gui/base/TextField.js"
 import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
 
 /**
@@ -138,7 +138,7 @@ function showCaptchaDialog(challenge: Uint8Array, token: string): Promise<string
 							src: imageData,
 							alt: lang.get("captchaDisplay_label"),
 						}),
-						m(TextFieldN, {
+						m(TextField, {
 							label: () => lang.get("captchaInput_label") + " (hh:mm)",
 							helpLabel: () => lang.get("captchaInfo_msg"),
 							value: captchaInput,

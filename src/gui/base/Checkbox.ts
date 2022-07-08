@@ -14,7 +14,7 @@ export type CheckboxAttrs = {
 	disabled?: boolean
 }
 
-export class CheckboxN implements Component<CheckboxAttrs> {
+export class Checkbox implements Component<CheckboxAttrs> {
 	private focused: boolean
 	private _domInput: HTMLElement | null = null
 	private _domIcon: HTMLElement | null = null

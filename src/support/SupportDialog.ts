@@ -3,8 +3,8 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import type {ButtonAttrs} from "../gui/base/Button.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import {lang} from "../misc/LanguageViewModel"
-import type {TextFieldAttrs} from "../gui/base/TextFieldN"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import type {TextFieldAttrs} from "../gui/base/TextField.js"
+import {TextField} from "../gui/base/TextField.js"
 import m, {Component} from "mithril"
 import stream from "mithril/stream"
 import {faq, FaqEntry} from "./FaqModel"
@@ -58,7 +58,7 @@ export function showSupportDialog() {
 			return [
 				m(".pt"),
 				m(".h1 .text-center", lang.get("howCanWeHelp_title")),
-				m(TextFieldN, {
+				m(TextField, {
 					label: () => lang.get("describeProblem_msg"),
 					value: searchValue(),
 					oninput: searchValue,

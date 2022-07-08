@@ -29,9 +29,9 @@ import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {showBuyDialog} from "../subscription/BuyDialog"
 import type {ButtonAttrs} from "../gui/base/Button.js"
 import {Button} from "../gui/base/Button.js"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import {TextField} from "../gui/base/TextField.js"
 import {locator} from "../api/main/MainLocator"
-import {DropDownSelectorN, SelectorItem} from "../gui/base/DropDownSelectorN";
+import {DropDownSelector, SelectorItem} from "../gui/base/DropDownSelector.js";
 import {UpdatableSettingsDetailsViewer} from "./SettingsView"
 import {showChangeOwnPasswordDialog, showChangeUserPasswordAsAdminDialog} from "./ChangePasswordDialogs.js";
 
@@ -139,25 +139,25 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		return m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
 			m(".h4.mt-l", lang.get("userSettings_label")),
 			m("", [
-				m(TextFieldN, {
+				m(TextField, {
 					label: "mailAddress_label",
 					value: this.userGroupInfo.mailAddress ?? "",
 					disabled: true,
 				}),
-				m(TextFieldN, {
+				m(TextField, {
 					label: "created_label",
 					value: formatDateWithMonth(this.userGroupInfo.created),
 					disabled: true,
 				}),
-				m(TextFieldN, {
+				m(TextField, {
 					label: "storageCapacityUsed_label",
 					value: this.usedStorage ? formatStorageSize(this.usedStorage) : lang.get("loading_msg"),
 					disabled: true,
 				} as const)
 			]),
 			m("", [
-				m(TextFieldN, senderNameFieldAttrs),
-				m(TextFieldN, passwordFieldAttrs),
+				m(TextField, senderNameFieldAttrs),
+				m(TextField, passwordFieldAttrs),
 				logins.getUserController().isGlobalAdmin()
 					? [
 						this.renderAdminStatusSelector(),
@@ -176,7 +176,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	private renderAdminStatusSelector(): Children {
-		return m(DropDownSelectorN, {
+		return m(DropDownSelector, {
 			label: "globalAdmin_label",
 			items: [
 				{
@@ -207,7 +207,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	private renderAdministratedBySelector(): Children {
-		return m(DropDownSelectorN, {
+		return m(DropDownSelector, {
 			label: "administratedBy_label",
 			items: [
 				{
@@ -244,7 +244,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	private renderUserStatusSelector(): Children {
-		return m(DropDownSelectorN, {
+		return m(DropDownSelector, {
 			label: "state_label",
 			items: [
 				{
@@ -379,7 +379,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				Dialog.showActionDialog({
 					title: lang.get("addUserToGroup_label"),
 					child: {
-						view: () => m(DropDownSelectorN, {
+						view: () => m(DropDownSelector, {
 							label: "group_label",
 							items: dropdownItems,
 							selectedValue: selectedGroupInfo,
@@ -410,7 +410,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		Dialog.showActionDialog({
 			title: lang.get("responsiblePersons_label"),
 			child: {
-				view: () => m(DropDownSelectorN, {
+				view: () => m(DropDownSelector, {
 					label: "contactForms_label",
 					items: dropdownItems,
 					selectedValue: selectedContactForm,

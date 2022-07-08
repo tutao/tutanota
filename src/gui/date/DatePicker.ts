@@ -11,7 +11,7 @@ import {Icon} from "../base/Icon"
 import {getStartOfDay, isSameDayOfDate} from "@tutao/tutanota-utils"
 import {DateTime} from "luxon"
 import {getAllDayDateLocal} from "../../api/common/utils/CommonCalendarUtils"
-import {TextFieldN} from "../base/TextFieldN"
+import {TextField} from "../base/TextField.js"
 import {Keys} from "../../api/common/TutanotaConstants"
 import type {CalendarDay} from "../../calendar/date/CalendarUtils"
 import {getCalendarMonth, getDateIndicator} from "../../calendar/date/CalendarUtils"
@@ -84,7 +84,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					}
 				},
 			},
-			m(TextFieldN, {
+			m(TextField, {
 				value: this.inputText,
 				label,
 				helpLabel: () => this.renderHelpLabel(date, nullSelectionText ?? null),

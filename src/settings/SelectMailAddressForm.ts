@@ -5,8 +5,8 @@ import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {isMailAddress} from "../misc/FormatValidator"
 import {Icons} from "../gui/base/icons/Icons"
-import type {TextFieldAttrs} from "../gui/base/TextFieldN"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import type {TextFieldAttrs} from "../gui/base/TextField.js"
+import {TextField} from "../gui/base/TextField.js"
 import type {ButtonAttrs} from "../gui/base/Button.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import {attachDropdown} from "../gui/base/Dropdown.js"
@@ -109,7 +109,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 						: null,
 			],
 		}
-		return m(TextFieldN, userNameAttrs)
+		return m(TextField, userNameAttrs)
 	}
 
 	_createCleanMailAddressStream(): Stream<string> {

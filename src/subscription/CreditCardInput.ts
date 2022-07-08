@@ -3,7 +3,7 @@ import stream from "mithril/stream"
 import {lang} from "../misc/LanguageViewModel"
 import type {CreditCard} from "../api/entities/sys/TypeRefs.js"
 import {createCreditCard} from "../api/entities/sys/TypeRefs.js"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import {TextField} from "../gui/base/TextField.js"
 import Stream from "mithril/stream";
 
 export class CreditCardAttrs {
@@ -52,22 +52,22 @@ export class CreditCardInput implements Component<CreditCardAttrs> {
 	view(vnode: Vnode<CreditCardAttrs>): Children {
 		let attrs = vnode.attrs
 		return [
-			m(TextFieldN, {
+			m(TextField, {
 				label: "creditCardNumber_label",
 				value: attrs.creditCardNumber(),
 				oninput: attrs.creditCardNumber,
 			}),
-			m(TextFieldN, {
+			m(TextField, {
 				label: "creditCardCardHolderName_label",
 				value: attrs.cardHolderName(),
 				oninput: attrs.cardHolderName,
 			}),
-			m(TextFieldN, {
+			m(TextField, {
 				label: "creditCardCVV_label",
 				value: attrs.cvv(),
 				oninput: attrs.cvv,
 			}),
-			m(TextFieldN, {
+			m(TextField, {
 				label: "creditCardExpirationDate_label",
 				helpLabel: () => lang.get("creditCardExpirationDateFormat_msg"),
 				value: attrs.expirationDate(),

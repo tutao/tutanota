@@ -32,8 +32,8 @@ import {showUserImportDialog} from "./UserViewer"
 import {LazyLoaded, partition, promiseMap} from "@tutao/tutanota-utils"
 import {getAvailableDomains} from "./AddUserDialog"
 import {AppearanceSettingsViewer} from "./AppearanceSettingsViewer"
-import type {NavButtonAttrs} from "../gui/base/NavButtonN"
-import {NavButtonColor} from "../gui/base/NavButtonN";
+import type {NavButtonAttrs} from "../gui/base/NavButton.js"
+import {NavButtonColor} from "../gui/base/NavButton.js";
 import {Dialog} from "../gui/base/Dialog"
 import {AboutDialog} from "./AboutDialog"
 import {navButtonRoutes, SETTINGS_PREFIX} from "../misc/RouteChange"
@@ -53,7 +53,7 @@ import {DummyTemplateListView} from "./DummyTemplateListView"
 import {SettingsFolderRow} from "./SettingsFolderRow"
 import {isCustomizationEnabledForCustomer} from "../api/common/utils/Utils"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import {TextField} from "../gui/base/TextField.js"
 import {createGroupSettings, createUserAreaGroupDeleteData} from "../api/entities/tutanota/TypeRefs.js"
 import {GroupInvitationFolderRow} from "../sharing/view/GroupInvitationFolderRow"
 import {TemplateGroupService} from "../api/entities/tutanota/Services"
@@ -688,7 +688,7 @@ function showRenameTemplateListDialog(instance: TemplateGroupInstance) {
 		allowOkWithReturn: true,
 		child: {
 			view: () =>
-				m(TextFieldN, {
+				m(TextField, {
 					value: name(),
 					oninput: name,
 					label: "templateGroupName_label",

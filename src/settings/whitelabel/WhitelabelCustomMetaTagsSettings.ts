@@ -1,4 +1,4 @@
-import {TextFieldN, TextFieldType} from "../../gui/base/TextFieldN"
+import {TextField, TextFieldType} from "../../gui/base/TextField.js"
 import {Dialog} from "../../gui/base/Dialog"
 import {lang} from "../../misc/LanguageViewModel"
 import m, {Children, Component, Vnode} from "mithril"
@@ -29,7 +29,7 @@ export class WhitelabelCustomMetaTagsSettings implements Component<WhitelabelCus
 					let dialog = Dialog.showActionDialog({
 						title: lang.get("customMetaTags_label"),
 						child: {
- 							view: () => m(TextFieldN, {
+ 							view: () => m(TextField, {
 								label: "customMetaTags_label",
 								value: metaTags,
 								type: TextFieldType.Area,
@@ -57,6 +57,6 @@ export class WhitelabelCustomMetaTagsSettings implements Component<WhitelabelCus
 			disabled: true,
 			injectionsRight: () => [editCustomMetaTagsButtonAttrs ? m(Button, editCustomMetaTagsButtonAttrs) : null],
 		} as const
-		return m(TextFieldN, customMetaTagsTextfieldAttrs)
+		return m(TextField, customMetaTagsTextfieldAttrs)
 	}
 }

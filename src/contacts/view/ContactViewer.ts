@@ -1,7 +1,7 @@
 import m, {Child, Children, ClassComponent, Component} from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {ContactEditor} from "../ContactEditor"
-import {TextFieldN, TextFieldType} from "../../gui/base/TextFieldN"
+import {TextField, TextFieldType} from "../../gui/base/TextField.js"
 import {keyManager, Shortcut} from "../../misc/KeyManager"
 import {Dialog} from "../../gui/base/Dialog"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -158,7 +158,7 @@ export class ContactViewer implements ClassComponent {
 			click: noOp,
 			icon: () => Icons.ArrowForward,
 		})
-		return m(TextFieldN, {
+		return m(TextField, {
 			label: () => getContactSocialTypeLabel(getContactSocialType(contactSocialId), contactSocialId.customTypeName),
 			value: contactSocialId.socialId,
 			disabled: true,
@@ -172,7 +172,7 @@ export class ContactViewer implements ClassComponent {
 			click: () => this._writeMail(address.address),
 			icon: () => BootIcons.Mail,
 		})
-		return m(TextFieldN, {
+		return m(TextField, {
 			label: () => getContactAddressTypeLabel(address.type as any, address.customTypeName),
 			value: address.address,
 			disabled: true,
@@ -186,7 +186,7 @@ export class ContactViewer implements ClassComponent {
 			click: () => null,
 			icon: () => Icons.Call,
 		})
-		return m(TextFieldN, {
+		return m(TextField, {
 			label: () => getContactPhoneNumberTypeLabel(phone.type as any, phone.customTypeName),
 			value: phone.number,
 			disabled: true,
@@ -208,7 +208,7 @@ export class ContactViewer implements ClassComponent {
 			click: () => null,
 			icon: () => Icons.Pin,
 		})
-		return m(TextFieldN, {
+		return m(TextField, {
 			label: () => getContactAddressTypeLabel(downcast<ContactAddressType>(address.type), address.customTypeName),
 			value: address.address,
 			disabled: true,

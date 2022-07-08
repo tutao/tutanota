@@ -5,8 +5,8 @@ import {BootstrapFeatureType} from "../api/common/TutanotaConstants"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import {liveDataAttrs} from "../gui/AriaUtils"
 import {lang, TranslationKey} from "../misc/LanguageViewModel"
-import {TextFieldAttrs, TextFieldN, TextFieldType} from "../gui/base/TextFieldN"
-import {CheckboxN} from "../gui/base/CheckboxN"
+import {TextFieldAttrs, TextField, TextFieldType} from "../gui/base/TextField.js"
+import {Checkbox} from "../gui/base/Checkbox.js"
 import {client} from "../misc/ClientDetector"
 import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
 import {assertNotNull} from "@tutao/tutanota-utils"
@@ -24,8 +24,8 @@ export type LoginFormAttrs = {
 }
 
 export class LoginForm implements Component<LoginFormAttrs> {
-	mailAddressTextField!: TextFieldN
-	passwordTextField!: TextFieldN
+	mailAddressTextField!: TextField
+	passwordTextField!: TextField
 	// When iOS does auto-filling (always in WebView as of iOS 12.2 and in older Safari)
 	// it only sends one input/change event for all fields so we didn't know if fields
 	// were updated. So we kindly ask our fields to update themselves with real DOM values.
@@ -74,11 +74,11 @@ export class LoginForm implements Component<LoginFormAttrs> {
 					{
 						oncreate: vnode => {
 							const childArray = assertNotNull(vnode.children) as ChildArray
-							const child = childArray[0] as Vnode<unknown, TextFieldN>
+							const child = childArray[0] as Vnode<unknown, TextField>
 							this.mailAddressTextField = child.state
 						},
 					},
-					m(TextFieldN, {
+					m(TextField, {
 						label: "mailAddress_label" as TranslationKey,
 						value: a.mailAddress(),
 						oninput: a.mailAddress,
@@ -90,11 +90,11 @@ export class LoginForm implements Component<LoginFormAttrs> {
 					{
 						oncreate: vnode => {
 							const childArray = assertNotNull(vnode.children) as ChildArray
-							const child = childArray[0] as Vnode<unknown, TextFieldN>
+							const child = childArray[0] as Vnode<unknown, TextField>
 							this.passwordTextField = child.state
 						},
 					},
-					m(TextFieldN, {
+					m(TextField, {
 						label: "password_label",
 						value: a.password(),
 						oninput: a.password,
@@ -102,7 +102,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 					}),
 				),
 				a.savePassword && !this._passwordDisabled()
-					? m(CheckboxN, {
+					? m(Checkbox, {
 						label: () => lang.get("storePassword_action"),
 						checked: a.savePassword(),
 						onChecked: a.savePassword,

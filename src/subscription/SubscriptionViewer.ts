@@ -44,7 +44,7 @@ import {
 	isWhitelabelActive,
 } from "./SubscriptionUtils"
 import {Button, ButtonType} from "../gui/base/Button.js"
-import {TextFieldN} from "../gui/base/TextFieldN"
+import {TextField} from "../gui/base/TextField.js"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {ColumnWidth, Table} from "../gui/base/Table.js"
 import {showPurchaseGiftCardDialog} from "./giftcards/PurchaseGiftCardDialog"
@@ -66,7 +66,7 @@ import {
 	TermsSection
 } from "./TermsAndConditions"
 import {MailAddressAliasService} from "../api/entities/sys/Services"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
+import {DropDownSelector} from "../gui/base/DropDownSelector.js"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
@@ -112,7 +112,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this.view = (): Children => {
 			return m("#subscription-settings.fill-absolute.scroll.plr-l", [
 				m(".h4.mt-l", lang.get("currentlyBooked_label")),
-				m(TextFieldN, {
+				m(TextField, {
 					label: "subscription_label",
 					value: this._subscriptionFieldValue(),
 					oninput: this._subscriptionFieldValue,
@@ -133,7 +133,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						})] : null,
 				}),
 				this._showPriceData()
-					? m(TextFieldN, {
+					? m(TextField, {
 						label: "businessOrPrivateUsage_label",
 						value: this._usageTypeFieldValue(),
 						oninput: this._usageTypeFieldValue,
@@ -155,7 +155,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					? this.renderIntervals()
 					: null,
 				this._showPriceData() && this._nextPeriodPriceVisible && this._periodEndDate
-					? m(TextFieldN, {
+					? m(TextField, {
 						label: () =>
 							lang.get("priceFrom_label", {
 								"{date}": formatDate(new Date(neverNull(this._periodEndDate).getTime() + DAY)),
@@ -178,7 +178,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					renderGiftCardTable(Array.from(this._giftCards.values()), isPremiumPredicate),
 				),
 				m(".h4.mt-l", lang.get("adminPremiumFeatures_action")),
-				m(TextFieldN, {
+				m(TextField, {
 					label: "bookingItemUsers_label",
 					value: this._usersFieldValue(),
 					oninput: this._usersFieldValue,
@@ -195,7 +195,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						type: ButtonType.Action,
 					} as const)],
 				}),
-				m(TextFieldN, {
+				m(TextField, {
 					label: "storageCapacity_label",
 					value: this._storageFieldValue(),
 					oninput: this._storageFieldValue,
@@ -207,7 +207,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						type: ButtonType.Action,
 					} as const),
 				}),
-				m(TextFieldN, {
+				m(TextField, {
 					label: "mailAddressAliases_label",
 					value: this._emailAliasFieldValue(),
 					oninput: this._emailAliasFieldValue,
@@ -218,7 +218,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						icon: () => Icons.Edit,
 					} as const),
 				}),
-				m(TextFieldN, {
+				m(TextField, {
 					label: "groups_label",
 					value: this._groupsFieldValue(),
 					oninput: this._groupsFieldValue,
@@ -233,7 +233,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						icon: () => Icons.Edit,
 					} as const)],
 				}),
-				m(TextFieldN, {
+				m(TextField, {
 					label: "whitelabelFeature_label",
 					value: this._whitelabelFieldValue(),
 					oninput: this._whitelabelFieldValue,
@@ -251,7 +251,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 								icon: () => Icons.Cancel,
 							} as const),
 				}),
-				m(TextFieldN, {
+				m(TextField, {
 					label: "sharingFeature_label",
 					value: this._sharingFieldValue(),
 					oninput: this._sharingFieldValue,
@@ -269,7 +269,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 								icon: () => Icons.Cancel,
 							} as const),
 				}),
-				m(TextFieldN, {
+				m(TextField, {
 					label: "businessFeature_label",
 					value: this._businessFeatureFieldValue(),
 					oninput: this._businessFeatureFieldValue,
@@ -293,7 +293,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						}
 					},
 				}),
-				m(TextFieldN, {
+				m(TextField, {
 					label: "contactForms_label",
 					value: this._contactFormsFieldValue(),
 					oninput: this._contactFormsFieldValue,
@@ -377,7 +377,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			},
 		]
 		return [
-			m(DropDownSelectorN, {
+			m(DropDownSelector, {
 				label: "paymentInterval_label",
 				helpLabel: () => this.getChargeDateText(),
 				items: subscriptionPeriods,
@@ -389,7 +389,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					}
 				},
 			}),
-			m(TextFieldN, {
+			m(TextField, {
 				label: () =>
 					this._nextPeriodPriceVisible && this._periodEndDate
 						? lang.get("priceTill_label", {
@@ -407,7 +407,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderAgreement() {
-		return m(TextFieldN, {
+		return m(TextField, {
 			label: "orderProcessingAgreement_label",
 			helpLabel: () => lang.get("orderProcessingAgreementInfo_msg"),
 			value: this._orderAgreementFieldValue(),

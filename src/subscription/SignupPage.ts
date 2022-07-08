@@ -2,8 +2,8 @@ import m, {Children, Vnode, VnodeDOM} from "mithril"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
 import {getDisplayNameOfSubscriptionType, SubscriptionType} from "./SubscriptionUtils"
-import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
-import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
+import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialog.js"
+import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialog.js"
 import {SignupForm} from "./SignupForm"
 
 type ConfirmStatus = {
