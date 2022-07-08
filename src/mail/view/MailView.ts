@@ -58,7 +58,7 @@ import {CancelledError} from "../../api/common/error/CancelledError"
 import Stream from "mithril/stream";
 import {MailViewerViewModel} from "./MailViewerViewModel"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
-import { readLocalFiles } from "../../file/FileController.js"
+import {readLocalFiles} from "../../file/FileController.js"
 
 assertMainOrNode()
 
@@ -350,6 +350,13 @@ export class MailView implements CurrentView {
 					return this.moveMails()
 				},
 				help: "move_action",
+			},
+			{
+				key: Keys.U,
+				exec: () => {
+					this.mailList && this.toggleUnreadMails(this.mailList.list.getSelectedEntities())
+				},
+				help: "toggleUnread_action",
 			},
 			{
 				key: Keys.ONE,
@@ -799,12 +806,8 @@ export class MailView implements CurrentView {
 			}
 
 			if (this.mailViewerViewModel && !multiSelectOperation) {
-				if (mails[0].unread && !mails[0]._errors) {
-					mails[0].unread = false
-					locator.entityClient
-						   .update(mails[0])
-						   .catch(ofClass(NotFoundError, e => console.log("could not set read flag as mail has been moved/deleted already", e)))
-						   .catch(ofClass(LockedError, noOp))
+				if (mails[0].unread) {
+					await this.toggleUnreadMails(mails)
 				}
 
 				if (elementClicked) {
@@ -820,6 +823,23 @@ export class MailView implements CurrentView {
 			}
 		} finally {
 			animationOverDeferred.resolve()
+		}
+	}
+
+	private async toggleUnreadMails(mails: Mail[]): Promise<void> {
+		if (mails.length == 0) {
+			return
+		}
+
+		let firstMailUnreadStatus = mails[0].unread
+		let newStatus = !firstMailUnreadStatus
+
+		for (let mail of mails) {
+			mail.unread = newStatus
+			await locator.entityClient
+						 .update(mail)
+						 .catch(ofClass(NotFoundError, e => console.log("could not set read flag as mail has been moved/deleted already", e)))
+						 .catch(ofClass(LockedError, noOp))
 		}
 	}
 

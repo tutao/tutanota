@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2022-07-19T09:48:53Z",
+	"updated_at": "2022-07-20T23:36:09Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -236,6 +236,7 @@ export default {
 		"comment_label": "Комментарий",
 		"community_label": "Сообщество",
 		"company_label": "Компания",
+		"concealPassword_action": "Скрыть пароль",
 		"confidentialStatus_msg": "Это сообщение отправляется из конца в конец в зашифрованном виде.",
 		"confidential_action": "Конфиденциально",
 		"confirmCountry_msg": "Для подсчёта налога, подтвердите вашу страну: {1}.",
@@ -560,6 +561,7 @@ export default {
 		"freeAccountInfo_msg": "Одним человеком может быть использован только один бесплатный аккаунт. Бесплатные аккаунты могут быть использованы только для личной переписки. Если вы хотите использовать Tutanota для бизнеса или как фрилансер, пожалуйста, оплатите подписку. Также обратите внимание, что бесплатные аккаунты удаляются, если вы не входили в них в течение шести месяцев.",
 		"from_label": "От",
 		"functionNotSupported_msg": "Функция не поддерживается вашим устройством или браузером.",
+		"generatePassphrase_action": "Сгенерировать парольную фразу",
 		"germanLanguageFile_label": "Файл немецкой локализации",
 		"giftCardCopied_msg": "Ссылка на подарок скопирована!",
 		"giftCardCreditNotify_msg": "Счёт вашей учётной записи будет пополнен на {credit}",
@@ -1149,6 +1151,7 @@ export default {
 		"restartBefore_action": "Перезапустить Tutanota перед отправкой",
 		"resumeSetup_label": "Продолжить настройку",
 		"retry_action": "Попробуйте снова",
+		"revealPassword_action": "Показать пароль",
 		"richText_label": "Форматированный текст",
 		"role_placeholder": "Роль",
 		"runInBackground_action": "Выполнять в фоне",
