@@ -14,7 +14,7 @@ import {getAvailableDomains} from "./AddUserDialog"
 import type {ButtonAttrs} from "../gui/base/Button.js"
 import {ButtonType} from "../gui/base/Button.js"
 import stream from "mithril/stream"
-import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
+import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {attachDropdown} from "../gui/base/Dropdown.js"
 import {TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
 import type {GroupInfo, MailAddressAlias} from "../api/entities/sys/TypeRefs.js"
@@ -54,13 +54,13 @@ export class EditAliasesFormN implements Component<EditAliasesFormAttrs> {
 		return [
 			m(".flex-space-between.items-center.mt-l.mb-s", [
 				m(".h4", lang.get("mailAddressAliases_label")),
-				m(ExpanderButtonN, {
+				m(ExpanderButton, {
 					label: "showEmailAliases_action",
 					expanded: this.expanded,
 					onExpandedChange: (v) => this.expanded = v
 				}),
 			]),
-			m(ExpanderPanelN, {
+			m(ExpanderPanel, {
 					expanded: this.expanded,
 				},
 				m(Table, aliasesTableAttrs),
@@ -128,7 +128,7 @@ export class EditAliasesFormN implements Component<EditAliasesFormAttrs> {
 									onBusyStateChanged: isBusy => (isVerificationBusy = isBusy),
 									onDomainChanged: domain => formDomain(domain),
 								}),
-								m(ExpanderPanelN, {
+								m(ExpanderPanel, {
 										expanded: isTutanotaDomain(),
 									},
 									m(".pt-m", lang.get("permanentAliasWarning_msg")),

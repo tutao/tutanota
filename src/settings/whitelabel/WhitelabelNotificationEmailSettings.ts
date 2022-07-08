@@ -1,7 +1,7 @@
 import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import {lang, languageByCode} from "../../misc/LanguageViewModel"
-import {ExpanderButtonN, ExpanderPanelN} from "../../gui/base/Expander"
+import {ExpanderButton, ExpanderPanel} from "../../gui/base/Expander"
 import {ColumnWidth, Table} from "../../gui/base/Table.js"
 import {ButtonType} from "../../gui/base/Button.js"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -39,13 +39,13 @@ export class WhitelabelNotificationEmailSettings implements Component<Whitelabel
 		return [
 			m(".flex-space-between.items-center.mt-l.mb-s", [
 				m(".h4", lang.get("customNotificationEmails_label")),
-				m(ExpanderButtonN, {
+				m(ExpanderButton, {
 					label: "show_action",
 					expanded: this._notificationEmailsExpanded(),
 					onExpandedChange: this._notificationEmailsExpanded,
 				}),
 			]),
-			m(ExpanderPanelN, {
+			m(ExpanderPanel, {
 					expanded: this._notificationEmailsExpanded(),
 				},
 				m(Table, {

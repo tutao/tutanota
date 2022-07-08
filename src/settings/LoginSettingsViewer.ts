@@ -19,7 +19,7 @@ import {Button, ButtonType} from "../gui/base/Button.js"
 import {NotFoundError} from "../api/common/error/RestError"
 import * as RecoverCodeDialog from "./RecoverCodeDialog"
 import {attachDropdown} from "../gui/base/Dropdown.js"
-import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
+import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {ColumnWidth, Table} from "../gui/base/Table.js"
 import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
 import type {UpdatableSettingsViewer} from "./SettingsView"
@@ -123,14 +123,14 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					m(".small", lang.get("sessionsInfo_msg")),
 					m(".flex-space-between.items-center.mt-l.mb-s", [
 						m(".h4", lang.get("closedSessions_label")),
-						m(ExpanderButtonN, {
+						m(ExpanderButton, {
 							label: "show_action",
 							expanded: this._closedSessionsExpanded(),
 							onExpandedChange: this._closedSessionsExpanded,
 							showWarning: false,
 						}),
 					]),
-					m(ExpanderPanelN, {
+					m(ExpanderPanel, {
 							expanded: this._closedSessionsExpanded(),
 						},
 						this._renderClosedSessions(),

@@ -35,7 +35,7 @@ import {TextField} from "../gui/base/TextField.js"
 import {logins} from "../api/main/LoginController"
 import type {CustomerAccountPosting} from "../api/entities/accounting/TypeRefs"
 import {createCustomerAccountPosting} from "../api/entities/accounting/TypeRefs"
-import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
+import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {locator} from "../api/main/MainLocator"
 import {createNotAvailableForFreeClickHandler} from "../misc/SubscriptionDialogs"
 import type {UpdatableSettingsViewer} from "../settings/SettingsView"
@@ -230,13 +230,13 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					: null,
 				m(".flex-space-between.items-center.mt-l.mb-s", [
 					m(".h4", lang.get("postings_label")),
-					m(ExpanderButtonN, {
+					m(ExpanderButton, {
 						label: "show_action",
 						expanded: postingExpanded(),
 						onExpandedChange: postingExpanded,
 					}),
 				]),
-				m(ExpanderPanelN, {
+				m(ExpanderPanel, {
 						expanded: postingExpanded(),
 					},
 					m(Table, {

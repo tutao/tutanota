@@ -1,7 +1,7 @@
 import type {InfoLink, TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import m, {Children, Component, Vnode} from "mithril"
-import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
+import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
 import type {lazy, Thunk} from "@tutao/tutanota-utils"
 import Stream from "mithril/stream";
@@ -29,13 +29,13 @@ export class SettingsExpander implements Component<SettingsExpanderAttrs> {
 		return [
 			m(".flex-space-between.items-center.mb-s.mt-l", [
 				m(".h4", lang.getMaybeLazy(title)),
-				m(ExpanderButtonN, {
+				m(ExpanderButton, {
 					label: buttonText || "show_action",
 					expanded: expanded(),
 					onExpandedChange: expanded,
 				}),
 			]),
-			m(ExpanderPanelN, {
+			m(ExpanderPanel, {
 					expanded: expanded(),
 				},
 				vnode.children,

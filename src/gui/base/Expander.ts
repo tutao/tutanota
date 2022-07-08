@@ -23,7 +23,7 @@ export type ExpanderPanelAttrs = {
 	expanded: boolean
 }
 
-export class ExpanderButtonN implements Component<ExpanderAttrs> {
+export class ExpanderButton implements Component<ExpanderAttrs> {
 	view(vnode: Vnode<ExpanderAttrs>): Children {
 		const a = vnode.attrs
 		return m(".flex.limit-width", [
@@ -78,7 +78,7 @@ export class ExpanderButtonN implements Component<ExpanderAttrs> {
 /**
  * Panel which shows or hides content depending on the attrs.expanded and animates transitions.
  */
-export class ExpanderPanelN implements Component<ExpanderPanelAttrs> {
+export class ExpanderPanel implements Component<ExpanderPanelAttrs> {
 	childDiv: HTMLElement | null = null
 	// There are some cases where the child div will be added to and a redraw won't be triggered, in which case
 	// the expander panel wont update until some kind of interaction happens

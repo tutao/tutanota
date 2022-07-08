@@ -30,7 +30,7 @@ import type {TableAttrs, TableLineAttrs} from "../gui/base/Table.js"
 import {ColumnWidth, createRowActions, Table} from "../gui/base/Table.js"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import {createInboxRuleTemplate} from "./AddInboxRuleDialog"
-import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
+import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {IdentifierListViewer} from "./IdentifierListViewer"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import {LockedError} from "../api/common/error/RestError"
@@ -310,13 +310,13 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 						: [
 							m(".flex-space-between.items-center.mt-l.mb-s", [
 								m(".h4", lang.get("inboxRulesSettings_action")),
-								m(ExpanderButtonN, {
+								m(ExpanderButton, {
 									label: "showInboxRules_action",
 									expanded: this._inboxRulesExpanded(),
 									onExpandedChange: this._inboxRulesExpanded,
 								}),
 							]),
-							m(ExpanderPanelN, {
+							m(ExpanderPanel, {
 									expanded: this._inboxRulesExpanded(),
 								},
 								m(Table, inboxRulesTableAttrs),
