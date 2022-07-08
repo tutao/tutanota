@@ -3,25 +3,25 @@ import stream from "mithril/stream"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {getByAbbreviation} from "../api/common/CountryList"
-import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {PaymentMethodInput} from "./PaymentMethodInput"
 import {updatePaymentData} from "./InvoiceAndPaymentDataPage"
 import {px} from "../gui/size"
 import {formatNameAndAddress} from "../misc/Formatter"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {getClientType, PaymentMethodType} from "../api/common/TutanotaConstants"
-import {downcast, LazyLoaded, neverNull} from "@tutao/tutanota-utils"
+import {LazyLoaded, neverNull} from "@tutao/tutanota-utils"
 import type {AccountingInfo, Customer} from "../api/entities/sys/TypeRefs.js"
 import {createPaymentDataServiceGetData} from "../api/entities/sys/TypeRefs.js"
 import {locator} from "../api/main/MainLocator"
 import {PaymentDataService} from "../api/entities/sys/Services"
+import {DropDownSelectorN} from "../gui/base/DropDownSelectorN.js"
 
 /**
  * @returns {boolean} true if the payment data update was successful
  */
 export function show(customer: Customer, accountingInfo: AccountingInfo, price: number): Promise<boolean> {
-	let payPalRequestUrl = getLazyLoadedPayPalUrl()
-	let invoiceData = {
+	const payPalRequestUrl = getLazyLoadedPayPalUrl()
+	const invoiceData = {
 		invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 		country: accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null,
 		vatNumber: accountingInfo.invoiceVatIdNo,
@@ -32,26 +32,20 @@ export function show(customer: Customer, accountingInfo: AccountingInfo, price: 
 	}
 	const paymentMethodInput = new PaymentMethodInput(subscriptionOptions, stream(invoiceData.country), neverNull(accountingInfo), payPalRequestUrl)
 	const availablePaymentMethods = paymentMethodInput.getVisiblePaymentMethods()
-	const paymentMethod = downcast<PaymentMethodType>(accountingInfo.paymentMethod)
-	const selectedPaymentMethod = stream(paymentMethod)
-	paymentMethodInput.updatePaymentMethod(paymentMethod)
-	const paymentMethodSelector = new DropDownSelector("paymentMethod_label", null, availablePaymentMethods, selectedPaymentMethod, 250)
-	paymentMethodSelector.setSelectionChangedHandler(value => {
+
+	let selectedPaymentMethod = accountingInfo.paymentMethod as PaymentMethodType
+	paymentMethodInput.updatePaymentMethod(selectedPaymentMethod)
+	const selectedPaymentMethodChangedHandler = async (value: PaymentMethodType) => {
 		if (value === PaymentMethodType.Paypal && !payPalRequestUrl.isLoaded()) {
-			showProgressDialog(
-				"pleaseWait_msg",
-				payPalRequestUrl.getAsync().then(() => {
-					selectedPaymentMethod(value)
-					paymentMethodInput.updatePaymentMethod(value)
-				}),
-			)
-		} else {
-			selectedPaymentMethod(value)
-			paymentMethodInput.updatePaymentMethod(value)
+			await showProgressDialog("pleaseWait_msg", payPalRequestUrl.getAsync())
 		}
-	})
+		selectedPaymentMethod = value
+		paymentMethodInput.updatePaymentMethod(value)
+	}
+
+	const didLinkPaypal = () => selectedPaymentMethod === PaymentMethodType.Paypal && paymentMethodInput.isPaypalAssigned()
+
 	return new Promise(resolve => {
-		const didLinkPaypal = () => selectedPaymentMethod() === PaymentMethodType.Paypal && paymentMethodInput.isPaypalAssigned()
 
 		const confirmAction = () => {
 			let error = paymentMethodInput.validatePaymentData()
@@ -97,7 +91,16 @@ export function show(customer: Customer, accountingInfo: AccountingInfo, price: 
 								minHeight: px(310),
 							},
 						},
-						[m(paymentMethodSelector), m(paymentMethodInput)],
+						[
+							m(DropDownSelectorN, {
+								label: "paymentMethod_label",
+								items: availablePaymentMethods,
+								selectedValue: selectedPaymentMethod,
+								selectionChangedHandler: selectedPaymentMethodChangedHandler,
+								dropdownWidth: 250
+							}),
+							m(paymentMethodInput)
+						],
 					),
 			},
 			okAction: confirmAction,
