@@ -97,7 +97,7 @@ class KnowledgeBaseEditor implements Component<KnowledgeBaseEditorModel> {
 					return {
 						label: () => template.tag,
 						type: ButtonType.Dropdown,
-						click: () => this.entryContentEditor._editor.insertHTML(createTemplateLink(template)),
+						click: () => this.entryContentEditor.editor.insertHTML(createTemplateLink(template)),
 					}
 				})
 			} else {
