@@ -12,6 +12,7 @@ await program
 	.addArgument(new Argument("host").argOptional())
 	.option('-c, --clean', 'Clean build directory')
 	.option('-d, --desktop', 'Assemble & start desktop client')
+	.option('-v, --verbose', "activate verbose loggin in desktop client")
 	.option('-s, --serve', 'Start a local server to serve the website')
 	.option('--ignore-migrations', "Dont check offline database migrations.")
 	.action(async (stage, host, options) => {
@@ -39,7 +40,12 @@ await program
 
 			if (desktop) {
 				// we don't want to quit here because we want to keep piping output to our stdout.
-				spawn("./start-desktop.sh", {stdio: "inherit"})
+				spawn("./start-desktop.sh", {
+					stdio: "inherit",
+					env: options.verbose
+						? Object.assign({}, process.env, {"ELECTRON_ENABLE_LOGGING": 1})
+						: process.env
+				})
 			} else if (!watch) {
 				// Don't wait for spawned child processes to exit (because they never will)
 				process.exit(0)
