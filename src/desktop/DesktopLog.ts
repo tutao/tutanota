@@ -6,12 +6,14 @@ export const log: {
 	debug: LogFn
 	warn: LogFn
 	error: LogFn
+	info: LogFn
 } =
 	typeof env !== "undefined" && env.mode === Mode.Test
 		? {
 			debug: noOp,
 			warn: noOp,
 			error: noOp,
+			info: noOp,
 		}
 		: makeLog()
 
@@ -24,5 +26,6 @@ function makeLog() {
 		debug: console.log.bind(console),
 		warn: console.warn.bind(console),
 		error: console.error.bind(console),
+		info: console.info.bind(console)
 	}
 }

@@ -104,6 +104,9 @@ export function replaceNativeLogger(global: any, loggerInstance: Logger, force: 
 			trace(...args: any[]) {
 				globalConsole.trace(...args)
 			},
+			info(...args: any[]) {
+				globalConsole.info(...args)
+			}
 		}
 	}
 }
