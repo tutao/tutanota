@@ -132,7 +132,7 @@ async function setupSuite() {
 		await import("./desktop/sse/DesktopSseClientTest.js")
 		await import("./desktop/sse/DesktopAlarmStorageTest.js")
 		await import("./desktop/sse/DesktopAlarmSchedulerTest.js")
-		await import("./desktop/DesktopDownloadManagerTest.js")
+		await import("./desktop/net/DesktopDownloadManagerTest.js")
 		await import("./desktop/SocketeerTest.js")
 		await import("./desktop/integration/DesktopIntegratorTest.js")
 		await import("./desktop/integration/RegistryScriptGeneratorTest.js")

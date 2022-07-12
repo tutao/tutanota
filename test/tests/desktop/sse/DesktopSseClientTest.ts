@@ -17,7 +17,7 @@ import type {DesktopAlarmScheduler} from "../../../../src/desktop/sse/DesktopAla
 import type {DesktopNativeCryptoFacade} from "../../../../src/desktop/DesktopNativeCryptoFacade.js"
 import type {DesktopAlarmStorage} from "../../../../src/desktop/sse/DesktopAlarmStorage.js"
 import type {LanguageViewModel} from "../../../../src/misc/LanguageViewModel.js"
-import type {DesktopNetworkClient} from "../../../../src/desktop/DesktopNetworkClient.js"
+import type {DesktopNetworkClient} from "../../../../src/desktop/net/DesktopNetworkClient.js"
 import {ServiceUnavailableError, TooManyRequestsError} from "../../../../src/api/common/error/RestError.js"
 import modelInfo from "../../../../src/api/entities/sys/ModelInfo.js"
 
