@@ -1,7 +1,7 @@
 import {FileFacade} from "../native/common/generatedipc/FileFacade.js"
 import {DownloadTaskResponse} from "../native/common/generatedipc/DownloadTaskResponse.js"
 import {IpcClientRect} from "../native/common/generatedipc/IpcClientRect.js"
-import {DesktopDownloadManager} from "./DesktopDownloadManager.js"
+import {DesktopDownloadManager} from "./net/DesktopDownloadManager.js"
 import {ElectronExports, FsExports} from "./ElectronExportTypes.js"
 import {UploadTaskResponse} from "../native/common/generatedipc/UploadTaskResponse.js"
 import {DataFile} from "../api/common/DataFile.js"
