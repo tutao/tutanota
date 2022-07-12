@@ -12,9 +12,10 @@ import {CryptoFunctions} from "./CryptoFns"
 import {getResourcePath} from "./resources.js"
 
 export class DesktopUtils {
-	private readonly topLevelTempDir ="tutanota"
+	private readonly topLevelTempDir = "tutanota"
 	/** we store all temporary files in a directory with a random name, so that the download location is not predictable */
 	private readonly randomDirectoryName: string
+
 	constructor(
 		private readonly fs: FsExports,
 		private readonly electron: ElectronExports,
@@ -243,10 +244,22 @@ export class DesktopUtils {
 	}
 
 	deleteTutanotaTempDir() {
-		if (this.fs.existsSync(this.topLevelTempDir)) {
-			this.fs.rmSync(this.topLevelTempDir, {
-				recursive: true,
-			})
+		const topLvlTmpDir = path.join(this.electron.app.getPath("temp"), this.topLevelTempDir)
+		try {
+			const tmps = this.fs.readdirSync(topLvlTmpDir)
+			for (const tmp of tmps) {
+				const tmpSubPath = path.join(topLvlTmpDir, tmp)
+				try {
+					this.fs.rmSync(tmpSubPath, {recursive: true})
+				} catch (e) {
+					// ignore if the file was deleted between readdir and delete
+					// or if it's not our tmp dir
+					if (e.code !== "ENOENT" && e.code !== "EACCES") throw e
+				}
+			}
+		} catch (e) {
+			// the tmp dir doesn't exist, everything's fine
+			if (e.code !== "ENOENT") throw e
 		}
 	}
 

@@ -79,7 +79,6 @@ import "./subscription/PriceUtilsTest.js"
 import "./misc/parsing/MailAddressParserTest.js"
 import "./misc/FormatValidatorTest.js"
 import "./settings/whitelabel/CustomColorEditorTest.js"
-import "./settings/whitelabel/CustomColorEditorTest.js"
 import "./login/LoginViewModelTest.js"
 import "./misc/credentials/CredentialsProviderTest.js"
 import "./misc/DeviceConfigTest.js"
@@ -125,6 +124,7 @@ async function setupSuite() {
 		// setup the Entropy for all testcases
 		await random.addEntropy([{data: 36, entropy: 256, source: "key"}])
 		await import("./desktop/PathUtilsTest.js")
+		await import("./desktop/DesktopUtilsTest.js")
 		await import("./desktop/config/migrations/DesktopConfigMigratorTest.js")
 		await import("./desktop/ElectronUpdaterTest.js")
 		await import("./desktop/DesktopNotifierTest.js")
