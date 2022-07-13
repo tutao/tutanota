@@ -1,11 +1,14 @@
-import {downcast, isSameTypeRef, toLowerCase} from "@tutao/tutanota-utils"
+import {downcast, intersection, isSameTypeRef, toLowerCase} from "@tutao/tutanota-utils"
 import type {File as TutanotaFile} from "../../entities/tutanota/TypeRefs.js"
 import {FileTypeRef as TutanotaFileTypeRef} from "../../entities/tutanota/TypeRefs.js"
-import {intersection} from "@tutao/tutanota-utils"
 import {DataFile} from "../DataFile";
+import {Attachment} from "../../../mail/editor/SendMailModel.js"
 
 type StringPredicate = (arg0: string) => boolean
 
+/**
+ * a reference by path to a file on disk
+ */
 export interface FileReference {
 	readonly _type: 'FileReference',
 	name: string,
@@ -127,14 +130,17 @@ export function isReservedFilename(filename: string): boolean {
 	return (env.platformId === "win32" && winReservedRe.test(filename)) || reservedRe.test(filename)
 }
 
-export function isTutanotaFile(file: TutanotaFile | DataFile | FileReference): file is TutanotaFile {
-	return file._type && file._type.hasOwnProperty("app") && file._type.hasOwnProperty("name") && isSameTypeRef(downcast(file._type), TutanotaFileTypeRef)
+export function isTutanotaFile(file: Attachment): file is TutanotaFile {
+	return file._type
+		&& file._type.hasOwnProperty("app")
+		&& file._type.hasOwnProperty("type")
+		&& isSameTypeRef(downcast(file._type), TutanotaFileTypeRef)
 }
 
-export function isDataFile(file: TutanotaFile | DataFile | FileReference): boolean {
+export function isDataFile(file: Attachment): file is DataFile {
 	return file._type === "DataFile"
 }
 
-export function isFileReference(file: TutanotaFile | DataFile | FileReference): boolean {
+export function isFileReference(file: Attachment): file is FileReference {
 	return file._type === "FileReference"
 }

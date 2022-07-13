@@ -1,7 +1,7 @@
 import m from "mithril"
 import type {Attachment} from "./SendMailModel"
 import {SendMailModel} from "./SendMailModel"
-import {debounce, downcast, findAllAndRemove, ofClass, remove} from "@tutao/tutanota-utils"
+import {debounce, findAllAndRemove, ofClass, remove} from "@tutao/tutanota-utils"
 import {Mode} from "../../api/common/Env"
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {Dialog} from "../../gui/base/Dialog"
@@ -9,7 +9,6 @@ import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import {lang} from "../../misc/LanguageViewModel"
 import type {ButtonAttrs} from "../../gui/base/ButtonN"
 import {ButtonColor, ButtonType} from "../../gui/base/ButtonN"
-import type {File as TutanotaFile} from "../../api/entities/tutanota/TypeRefs.js"
 import {FileOpenError} from "../../api/common/error/FileOpenError"
 import {attachDropdown} from "../../gui/base/DropdownN"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -17,9 +16,10 @@ import {formatStorageSize} from "../../misc/Formatter"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {locator} from "../../api/main/MainLocator"
-import {FileReference} from "../../api/common/utils/FileUtils";
+import {FileReference, isDataFile, isFileReference, isTutanotaFile} from "../../api/common/utils/FileUtils";
 import {DataFile} from "../../api/common/DataFile";
 import {showFileChooser} from "../../file/FileController.js"
+import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
 
 export function chooseAndAttachFile(
 	model: SendMailModel,
@@ -102,13 +102,16 @@ export function createAttachmentButtonAttrs(model: SendMailModel, inlineImageEle
 }
 
 async function _downloadAttachment(attachment: Attachment) {
+	console.log("attachment", attachment)
 	try {
-		if (attachment._type === "FileReference") {
-			await locator.fileApp.open(downcast(attachment))
-		} else if (attachment._type === "DataFile") {
-			await locator.fileController.saveDataFile(downcast(attachment))
+		if (isFileReference(attachment)) {
+			await locator.fileApp.open(attachment)
+		} else if (isDataFile(attachment)) {
+			await locator.fileController.saveDataFile(attachment)
+		} else if (isTutanotaFile(attachment)) {
+			await locator.fileController.download(attachment)
 		} else {
-			await locator.fileController.open(attachment  as TutanotaFile)
+			throw new ProgrammingError("attachment is neither reference, datafile nor tutanotafile!")
 		}
 	} catch (e) {
 		if (e instanceof FileOpenError) {
