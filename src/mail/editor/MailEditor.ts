@@ -198,7 +198,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		})
 
 		this.editor.initialized.promise.then(() => {
-			this.inlineImageElements = replaceCidsWithInlineImages(this.editor.getDOM(), model.loadedInlineImages, (cid, event, dom) => {
+			const dom = this.editor.getDOM()
+			this.inlineImageElements = replaceCidsWithInlineImages(dom, model.loadedInlineImages, (cid, event, dom) => {
 				const downloadClickHandler = createDropdown({
 					lazyButtons: () => [
 						{

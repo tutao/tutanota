@@ -633,7 +633,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	async replaceInlineImages() {
 		const loadedInlineImages = await this.viewModel.getLoadedInlineImages()
 		const domBody = await this.domBodyDeferred.promise
-
 		replaceCidsWithInlineImages(domBody, loadedInlineImages, (cid, event) => {
 			const inlineAttachment = this.viewModel.getAttachments().find(attachment => attachment.cid === cid)
 
