@@ -354,17 +354,14 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private renderMailBody(sanitizedMailBody: DocumentFragment): Children {
-		return m("#mail-body.selectable.touch-callout.break-word-links" + (client.isMobileDevice() ? ".break-pre" : ""),
+		return m("#mail-body",
 			{
 				oncreate: vnode => {
 					const dom = vnode.dom as HTMLElement
 					this.setDomBody(dom)
 					this.updateLineHeight(dom)
 					this.rescale(false)
-					assertNonNull(this.shadowDomRoot)
-					this.shadowDomRoot.appendChild(styles.getStyleSheetElement("main"))
-					this.shadowDomRoot.appendChild(sanitizedMailBody.cloneNode(true))
-					this.currentlyRenderedMailBody = sanitizedMailBody
+					this.renderShadowMailBody(sanitizedMailBody)
 				},
 				onupdate: vnode => {
 					const dom = vnode.dom as HTMLElement
@@ -378,16 +375,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					}
 
 					this.rescale(false)
-
-					assertNonNull(this.shadowDomRoot)
-					if (this.currentlyRenderedMailBody !== sanitizedMailBody) {
-						while (this.shadowDomRoot.firstChild) {
-							this.shadowDomRoot.firstChild.remove()
-						}
-						this.shadowDomRoot.appendChild(styles.getStyleSheetElement("main"))
-						this.shadowDomRoot.appendChild(sanitizedMailBody.cloneNode(true))
-						this.currentlyRenderedMailBody = sanitizedMailBody
-					}
+					this.renderShadowMailBody(sanitizedMailBody)
 				},
 				onbeforeremove: () => {
 					// Clear dom body in case there will be a new one, we want promise to be up-to-date
@@ -405,6 +393,27 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				},
 			}
 		)
+	}
+
+	/**
+	 * manually wrap and style a mail body to display correctly inside a shadow root
+	 * @param sanitizedMailBody the mail body to display
+	 * @private
+	 */
+	private renderShadowMailBody(sanitizedMailBody: DocumentFragment) {
+		if (this.currentlyRenderedMailBody === sanitizedMailBody) return
+		assertNonNull(this.shadowDomRoot)
+		while (this.shadowDomRoot.firstChild) {
+			this.shadowDomRoot.firstChild.remove()
+		}
+		const wrapNode = document.createElement("div")
+		wrapNode.className = "selectable touch-callout break-word-links" + (client.isMobileDevice() ? " break-pre" : "")
+		wrapNode.style.lineHeight = String(this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height)
+		wrapNode.style.transformOrigin = "top left"
+		wrapNode.appendChild(sanitizedMailBody.cloneNode(true))
+		this.shadowDomRoot.appendChild(styles.getStyleSheetElement("main"))
+		this.shadowDomRoot.appendChild(wrapNode)
+		this.currentlyRenderedMailBody = sanitizedMailBody
 	}
 
 	private clearDomBody() {
