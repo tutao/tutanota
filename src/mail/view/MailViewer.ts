@@ -74,10 +74,6 @@ import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
 assertMainOrNode()
 // map of inline image cid to InlineImageReference
 export type InlineImages = Map<string, InlineImageReference>
-// synthetic events are fired in code to distinguish between double and single click events
-type MaybeSyntheticEvent = TouchEvent & {
-	synthetic?: boolean
-}
 
 const SCROLL_FACTOR = 4 / 5
 const DOUBLE_TAP_TIME_MS = 350
@@ -294,32 +290,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 						(client.isMobileDevice() ? "" : ".scroll-no-overlay") +
 						(this.viewModel.isContrastFixNeeded() ? ".bg-white.content-black" : " "),
 						{
-							ontouchstart: (event: EventRedraw<TouchEvent>) => {
-								event.redraw = false
-								const touch = event.touches[0]
-								this.lastTouchStart.x = touch.clientX
-								this.lastTouchStart.y = touch.clientY
-								this.lastTouchStart.time = Date.now()
-							},
 							oncreate: (vnode) => {
 								this.scrollDom = vnode.dom as HTMLElement
-							},
-							ontouchend: (event: EventRedraw<TouchEvent>) => {
-								if (client.isMobileDevice()) {
-									this.handleDoubleTap(
-										event,
-										e => this.handleAnchorClick(e, true),
-										() => this.rescale(true),
-									)
-								}
-
-								// Avoid redraws for this event listener, we don't need it for either opening links or rescaling
-								event.redraw = false
-							},
-							onclick: (event: MouseEvent) => {
-								if (!client.isMobileDevice()) {
-									this.handleAnchorClick(event, false)
-								}
 							},
 						},
 						this.renderMailBodySection(),
@@ -411,6 +383,27 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		wrapNode.style.lineHeight = String(this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height)
 		wrapNode.style.transformOrigin = "top left"
 		wrapNode.appendChild(sanitizedMailBody.cloneNode(true))
+		if (client.isMobileDevice()) {
+			wrapNode.addEventListener("touchstart", (event) => {
+				const touch = event.touches[0]
+				this.lastTouchStart.x = touch.clientX
+				this.lastTouchStart.y = touch.clientY
+				this.lastTouchStart.time = Date.now()
+			})
+			wrapNode.addEventListener("touchend", (event) => {
+				const href = (event.target as Element | null)?.closest("a")?.getAttribute("href") ?? null
+				this.handleDoubleTap(
+					event,
+					e => this.handleAnchorClick(e, href, true),
+					() => this.rescale(true),
+				)
+			})
+		} else {
+			wrapNode.addEventListener("click", (event) => {
+				const href = (event.target as Element | null)?.closest("a")?.getAttribute("href") ?? null
+				this.handleAnchorClick(event, href, false)
+			})
+		}
 		this.shadowDomRoot.appendChild(styles.getStyleSheetElement("main"))
 		this.shadowDomRoot.appendChild(wrapNode)
 		this.currentlyRenderedMailBody = sanitizedMailBody
@@ -1261,7 +1254,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		}
 	}
 
-	private handleDoubleTap(e: MaybeSyntheticEvent, singleClickAction: (e: MaybeSyntheticEvent) => void, doubleClickAction: (e: MaybeSyntheticEvent) => void) {
+	private handleDoubleTap(e: TouchEvent, singleClickAction: (e: TouchEvent) => void, doubleClickAction: (e: TouchEvent) => void) {
 		const lastClick = this.lastBodyTouchEndTime
 		const now = Date.now()
 		const touch = e.changedTouches[0]
@@ -1270,7 +1263,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		// much then do nothing
 		if (
 			!touch ||
-			e.synthetic ||
 			!e.cancelable ||
 			Date.now() - this.lastTouchStart.time > DOUBLE_TAP_TIME_MS ||
 			touch.clientX - this.lastTouchStart.x > 40 ||
@@ -1284,7 +1276,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		if (now - lastClick < DOUBLE_TAP_TIME_MS) {
 			this.isScaling = !this.isScaling
 			this.lastBodyTouchEndTime = 0
-			;(e as any).redraw = false
 			doubleClickAction(e)
 		} else {
 			setTimeout(() => {
@@ -1507,32 +1498,29 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		}
 	}
 
-	private handleAnchorClick(event: Event, shouldDispatchSyntheticClick: boolean): void {
-		const target = event.target as Element | undefined
-
-		if (target?.closest) {
-			const anchorElement = target.closest("a")
-
-			if (anchorElement && anchorElement.href.startsWith("mailto:")) {
+	private handleAnchorClick(event: Event, href: string | null, shouldDispatchSyntheticClick: boolean): void {
+		if (href) {
+			if (href.startsWith("mailto:")) {
 				event.preventDefault()
 
 				if (isNewMailActionAvailable()) {
 					// disable new mails for external users.
 					import("../editor/MailEditor").then(({newMailtoUrlMailEditor}) => {
-						newMailtoUrlMailEditor(anchorElement.href, !logins.getUserController().props.defaultUnconfidential)
+						newMailtoUrlMailEditor(href, !logins.getUserController().props.defaultUnconfidential)
 							.then(editor => editor.show())
 							.catch(ofClass(CancelledError, noOp))
 					})
 				}
-			} else if (anchorElement && isSettingsLink(anchorElement, this.viewModel.mail)) {
+			} else if (isSettingsLink(href, this.viewModel.mail)) {
 				// Navigate to the settings menu if they are linked within an email.
-				const newRoute = anchorElement.href.substring(anchorElement.href.indexOf("/settings/"))
+				const newRoute = href.substring(href.indexOf("/settings/"))
 				m.route.set(newRoute)
 				event.preventDefault()
-			} else if (anchorElement && shouldDispatchSyntheticClick) {
-				const newClickEvent: MouseEvent & {synthetic?: true} = new MouseEvent("click")
-				newClickEvent.synthetic = true
-				anchorElement.dispatchEvent(newClickEvent)
+			} else if (shouldDispatchSyntheticClick) {
+				const syntheticTag = document.createElement("a")
+				syntheticTag.setAttribute("href", href)
+				const newClickEvent = new MouseEvent("click")
+				syntheticTag.dispatchEvent(newClickEvent)
 			}
 		}
 	}
@@ -1565,8 +1553,8 @@ export function createMailViewerViewModel({mail, showFolder, delayBodyRenderingU
  * support and invoice mails can contain links to the settings page.
  * we don't want normal mails to be able to link places in the app, though.
  * */
-function isSettingsLink(anchor: HTMLAnchorElement, mail: Mail): boolean {
-	return (anchor.getAttribute("href")?.startsWith("/settings/") ?? false) && isTutanotaTeamMail(mail)
+function isSettingsLink(href: string, mail: Mail): boolean {
+	return (href.startsWith("/settings/") ?? false) && isTutanotaTeamMail(mail)
 }
 
 function assertNonNull<T extends {}>(value: T | null | undefined): asserts value is T {
