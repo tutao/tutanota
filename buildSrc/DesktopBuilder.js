@@ -131,7 +131,7 @@ async function rollupDesktop(dirname, outDir, version, platform, disableMinify) 
 		input: path.join(dirname, "src/desktop/DesktopMain.ts"),
 		// some transitive dep of a transitive dev-dep requires https://www.npmjs.com/package/url
 		// which rollup for some reason won't distinguish from the node builtin.
-		external: ['url'],
+		external: ['url', 'util', 'path', 'fs', 'os', 'http', 'https', 'crypto', 'child_process'],
 		preserveEntrySignatures: false,
 		plugins: [
 			typescript({
