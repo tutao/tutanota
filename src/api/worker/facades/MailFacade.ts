@@ -10,7 +10,6 @@ import {
 	ReportMailService,
 	SendDraftService
 } from "../../entities/tutanota/Services.js"
-import {LoginFacadeImpl} from "./LoginFacade"
 import type {ConversationType} from "../../common/TutanotaConstants"
 import {
 	AccountType,

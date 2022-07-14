@@ -23,6 +23,14 @@ export interface RichTextToolbarAttrs {
 export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 	selectedSize = size.font_size_base
 
+	constructor({attrs}: Vnode<RichTextToolbarAttrs>) {
+		try {
+			this.selectedSize = parseInt(attrs.editor.squire.getFontInfo().size.slice(0, -2))
+		} catch (e) {
+			this.selectedSize = size.font_size_base
+		}
+	}
+
 	oncreate(vnode: VnodeDOM<any>): void {
 		const dom = vnode.dom as HTMLElement
 		dom.style.height = "0"
@@ -34,13 +42,6 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 	}
 
 	view({attrs}: Vnode<RichTextToolbarAttrs>): Children {
-
-		try {
-			this.selectedSize = parseInt(attrs.editor.squire.getFontInfo().size.slice(0, -2))
-		} catch (e) {
-			this.selectedSize = size.font_size_base
-		}
-
 		return m(".elevated-bg.overflow-hidden",
 			{
 				style: {
@@ -206,10 +207,8 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 						type: ButtonType.Dropdown,
 						click: () => {
 							editor.squire.setFontSize(n)
-
 							this.selectedSize = n
 							setTimeout(() => editor.squire.focus(), 100) // blur for the editor is fired after the handler for some reason
-
 							m.redraw()
 						},
 					}

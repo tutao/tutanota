@@ -182,7 +182,7 @@ export class Button implements ClassComponent<ButtonAttrs> {
 	_getStyle(a: ButtonAttrs): {} {
 		return a.type === ButtonType.Login
 			? {
-				"border-radius": a.borders === BorderStyle.Rounded ? "3px" : "0px",
+				"border-radius": a.borders === BorderStyle.Sharp ? "0px" : "3px",
 				"background-color": theme.content_accent,
 			}
 			: {}

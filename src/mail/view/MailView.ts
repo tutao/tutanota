@@ -58,7 +58,6 @@ import {CancelledError} from "../../api/common/error/CancelledError"
 import Stream from "mithril/stream";
 import {MailViewerViewModel} from "./MailViewerViewModel"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
-import { DomRectReadOnlyPolyfilled } from "../../gui/base/Dropdown.js"
 import { readLocalFiles } from "../../file/FileController.js"
 
 assertMainOrNode()
@@ -882,8 +881,7 @@ export class MailView implements CurrentView {
 			? m(MultiSelectionBar, {
 				selectNoneHandler: () => this.mailList?.list.selectNone(),
 				selectedEntiesLength: this.mailList.list.getSelectedEntities().length,
-				children: m(ActionBar, {buttons: this.actionBarButtons()}),
-			})
+			}, m(ActionBar, {buttons: this.actionBarButtons()}))
 			: null
 	}
 }

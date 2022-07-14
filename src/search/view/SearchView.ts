@@ -7,7 +7,7 @@ import {FeatureType, FULL_INDEXED_TIMESTAMP, Keys, MailFolderType, NOTHING_INDEX
 import {assertMainOrNode} from "../../api/common/Env"
 import {keyManager, Shortcut} from "../../misc/KeyManager"
 import type {NavButtonAttrs} from "../../gui/base/NavButton.js"
-import {isNavButtonSelected, NavButtonColor, NavButton} from "../../gui/base/NavButton.js"
+import {isNavButtonSelected, NavButton, NavButtonColor} from "../../gui/base/NavButton.js"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {ContactTypeRef, MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {SearchListView, SearchResultListEntry} from "./SearchListView"
@@ -74,7 +74,7 @@ export class SearchView implements CurrentView {
 		colors: NavButtonColor.Nav,
 	}
 
-	private readonly contactFolder: NavButtonAttrs  = {
+	private readonly contactFolder: NavButtonAttrs = {
 		label: "contacts_label",
 		icon: () => BootIcons.Contacts,
 		href: "/search/contact",
@@ -595,10 +595,9 @@ export class SearchView implements CurrentView {
 			? m(MultiSelectionBar, {
 				selectNoneHandler: () => this.searchList.selectNone(),
 				selectedEntiesLength: this.searchList.getSelectedEntities().length,
-				children: m(ActionBar, {
-					buttons: this.viewer.multiSearchActionBarButtons(),
-				}),
-			})
+			}, m(ActionBar, {
+				buttons: this.viewer.multiSearchActionBarButtons(),
+			}))
 			: null
 	}
 

@@ -4,7 +4,7 @@ import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import {ContactViewer} from "./ContactViewer"
 import type {CurrentView} from "../../gui/Header.js"
 import {header} from "../../gui/Header.js"
-import {ButtonColor, Button, ButtonType} from "../../gui/base/Button.js"
+import {Button, ButtonColor, ButtonType} from "../../gui/base/Button.js"
 import {ContactEditor} from "../ContactEditor"
 import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
 import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
@@ -602,16 +602,16 @@ export class ContactView implements CurrentView {
 			contactList.list.isMobileMultiSelectionActionActive()
 		) {
 			return m(MultiSelectionBar, {
-				selectNoneHandler: () => {
-					contactList.list.selectNone()
-				},
-				selectedEntiesLength: contactList.list.getSelectedEntities().length,
-				children: m(ActionBar, {
+					selectNoneHandler: () => {
+						contactList.list.selectNone()
+					},
+					selectedEntiesLength: contactList.list.getSelectedEntities().length,
+				}, m(ActionBar, {
 					buttons: this._multiContactViewer.createActionBarButtons(() => {
 						if (contactList) contactList.list.selectNone()
 					}, false),
-				}),
-			})
+				})
+			)
 		} else {
 			return null
 		}
