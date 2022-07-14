@@ -103,4 +103,32 @@ platform :ios do
 				devices: ["iphone-6s-ios-15.4"]
 		)
  	end
+
+ 	desc "Renew adhoc cert"
+ 	lane :renewadhoccert do
+		match(
+			app_identifier: "de.tutao.tutanota",
+			type: "adhoc",
+			verbose: true,
+			readonly: false,
+			generate_apple_certs: true,
+			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+			api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
+			platform: "ios"
+		)
+ 	end
+
+	desc "Renew appstore cert"
+	lane :renewappstorecert do
+		match(
+			app_identifier: "de.tutao.tutanota",
+			type: "appstore",
+			verbose: true,
+			readonly: false,
+			generate_apple_certs: true,
+			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
+			api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
+			platform: "ios"
+		)
+	end
 end
