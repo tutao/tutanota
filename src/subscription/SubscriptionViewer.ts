@@ -118,19 +118,23 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					oninput: this._subscriptionFieldValue,
 					disabled: true,
 					injectionsRight: () =>
-						logins.getUserController().isFreeAccount() ? m(Button, {
-							label: "upgrade_action",
-							click: showUpgradeWizard,
-							icon: () => Icons.Edit,
-						} as const) : !this._isCancelled ? [m(Button, {
-							label: "subscription_label",
-							click: 			() => {
-								if (this._accountingInfo && this._customer && this._customerInfo && this._lastBooking) {
-									showSwitchDialog(this._customer, this._customerInfo, this._accountingInfo, this._lastBooking)
-								}
-							},
-							icon: () => Icons.Edit,
-						})] : null,
+						logins.getUserController().isFreeAccount()
+							? m(Button, {
+								label: "upgrade_action",
+								click: showUpgradeWizard,
+								icon: () => Icons.Edit,
+							} as const)
+							: !this._isCancelled
+								? [m(Button, {
+									label: "subscription_label",
+									click: () => {
+										if (this._accountingInfo && this._customer && this._customerInfo && this._lastBooking) {
+											showSwitchDialog(this._customer, this._customerInfo, this._accountingInfo, this._lastBooking)
+										}
+									},
+									icon: () => Icons.Edit,
+								})]
+								: null,
 				}),
 				this._showPriceData()
 					? m(TextField, {

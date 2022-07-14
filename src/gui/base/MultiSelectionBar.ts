@@ -5,7 +5,6 @@ import {Button} from "./Button.js"
 interface MultiSelectionBarAttrs {
 	selectNoneHandler: () => void
 	selectedEntiesLength: number
-	children: Children
 }
 
 export class MultiSelectionBar {
@@ -25,7 +24,7 @@ export class MultiSelectionBar {
 					icon: () => Icons.Cancel,
 				}),
 				m(".ml-s.b", vnode.attrs.selectedEntiesLength),
-				vnode.attrs.children
+				vnode.children
 			],
 		)
 	}

@@ -7,7 +7,7 @@ import {px} from "../size"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {assertNotNull} from "@tutao/tutanota-utils"
 import {DropDownSelector} from "../base/DropDownSelector.js"
-import {RichTextToolbarAttrs, RichTextToolbar} from "../base/RichTextToolbar.js"
+import {RichTextToolbar, RichTextToolbarAttrs} from "../base/RichTextToolbar.js"
 
 export enum HtmlEditorMode {
 	HTML = "html",
@@ -62,17 +62,16 @@ export class HtmlEditor implements Component {
 			}
 		}
 
-		const getPlaceholder = () => {
-			return (!this.active && this.isEmpty()) ? m(".abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {
+		const getPlaceholder = () => !this.active && this.isEmpty()
+			? m(".abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {
 					oncreate: vnode => this.placeholderDomElement = vnode.dom as HTMLElement,
 					onclick: () => this.mode === HtmlEditorMode.WYSIWYG
 						? assertNotNull(this.editor.domElement).focus()
 						: assertNotNull(this.domTextArea).focus()
 				},
-				(this.placeholderId ? lang.get(this.placeholderId) : "")
-			) : null
-		}
-
+				this.placeholderId ? lang.get(this.placeholderId) : ""
+			)
+			: null
 
 		return m(".html-editor" + (this.mode === HtmlEditorMode.WYSIWYG ? ".text-break" : ""), [
 			modeSwitcherLabel != null ? m(DropDownSelector, {
