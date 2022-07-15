@@ -1519,6 +1519,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			} else if (shouldDispatchSyntheticClick) {
 				const syntheticTag = document.createElement("a")
 				syntheticTag.setAttribute("href", href)
+				syntheticTag.setAttribute("target", "_blank")
+				syntheticTag.setAttribute("rel", "noopener noreferrer")
 				const newClickEvent = new MouseEvent("click")
 				syntheticTag.dispatchEvent(newClickEvent)
 			}
