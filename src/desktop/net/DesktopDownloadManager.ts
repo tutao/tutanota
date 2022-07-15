@@ -19,9 +19,11 @@ import {sha256Hash} from "@tutao/tutanota-crypto"
 import {DownloadTaskResponse} from "../../native/common/generatedipc/DownloadTaskResponse.js"
 import {DataFile} from "../../api/common/DataFile.js"
 import url from "url"
+import {log} from "../DesktopLog.js"
 
 type FsExports = typeof FsModule
 type ElectronExports = typeof Electron.CrossProcessExports
+const TAG = "[DesktopDownloadManager]"
 
 export class DesktopDownloadManager {
 	/** We don't want to spam opening file manager all the time so we throttle it. This field is set to the last time we opened it. */
@@ -65,7 +67,6 @@ export class DesktopDownloadManager {
 
 		// Must always be set for our types of requests
 		const statusCode = assertNotNull(response.statusCode)
-
 		let encryptedFilePath
 		if (statusCode == 200) {
 			const downloadDirectory = path.join(this.desktopUtils.getTutanotaTempPath(), "encrypted")
@@ -84,8 +85,7 @@ export class DesktopDownloadManager {
 			suspensionTime: getHttpHeader(response.headers, "suspension-time") ?? getHttpHeader(response.headers, "retry-after"),
 		}
 
-		console.log("Download finished", result.statusCode, result.suspensionTime)
-
+		log.info(TAG, "Download finished", result.statusCode, result.suspensionTime)
 		return result
 	}
 
@@ -273,7 +273,9 @@ function getHttpHeader(headers: http.IncomingHttpHeaders, name: string): string 
 
 function pipeStream(stream: stream.Readable, into: stream.Writable): Promise<void> {
 	return new Promise((resolve, reject) => {
+		stream.on("error", reject)
 		stream.pipe(into)
+			  // pipe returns destination
 			  .on("finish", resolve)
 			  .on("error", reject)
 	})

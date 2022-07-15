@@ -8,6 +8,7 @@ import {Duplex, PassThrough} from "stream"
 const TAG = "[ProtocolProxy]"
 
 export const ASSET_PROTOCOL = "asset"
+const PROXIED_REQUEST_READ_TIMEOUT = 20000
 
 // https://source.chromium.org/chromium/chromium/src/+/main:net/base/net_error_list.h
 const enum NetErrorCode {
@@ -60,14 +61,18 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 	const agent = new net.Agent({
 		keepAlive: true,
 		maxSockets: 1,
-		keepAliveMsecs: 7000 * 1000 // server has a 7200s tls session ticket timeout, so we keep the socket for 7000s
+		keepAliveMsecs: 7000 * 1000, // server has a 7200s tls session ticket timeout, so we keep the socket for 7000s
+		timeout: PROXIED_REQUEST_READ_TIMEOUT // this is an idle timeout (empirically determined)
 	})
 
-	const handler = ({method, headers, url, uploadData, referrer}: ProtocolRequest, sendResponse: (resp: ProtocolResponse) => void) => {
+	const handler = async ({method, headers, url, uploadData, referrer}: ProtocolRequest, sendResponse: (resp: ProtocolResponse) => void) => {
+		const startTime: number = Date.now()
 		const handleError = (e: Error) => {
 			const parsedUrl = new URL(url)
 			const noQueryUrl = `${parsedUrl.protocol}//${parsedUrl.host}${parsedUrl.pathname}`
-			log.debug(TAG, "error for", noQueryUrl, ":\n", e)
+			log.debug(TAG, "error for", noQueryUrl, ":")
+			log.debug(TAG, e)
+			log.debug(TAG, `failed after ${Date.now() - startTime}ms`)
 			// Passing anything but the codes mentioned in https://source.chromium.org/chromium/chromium/src/+/main:net/base/net_error_list.h
 			// will lead to an immediate crash of the renderer without warning.
 			if (e instanceof ProxyError) {
@@ -76,6 +81,7 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 				sendResponse({error: NetErrorCode.OTHER})
 			}
 		}
+
 		if (!url.startsWith(protocol)) {
 			handleError(new ProxyError(NetErrorCode.INVALID_ARGUMENT))
 			return
@@ -85,12 +91,16 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 			// but we'll handle it anyway.
 			log.debug(TAG, "intercepted options request, returning canned response")
 			return sendResponse({
-				statusCode: 200, headers: {
+				statusCode: 200,
+				headers: {
 					"Access-Control-Allow-Origin": "*",
 					"Access-Control-Allow-Methods": "POST, GET, PUT, DELETE",
 					"Access-Control-Allow-Headers": "*",
 				}
 			})
+		}
+		if (uploadData) {
+			headers["Content-Length"] = String(uploadData[0].bytes.length)
 		}
 		const clientRequest: http.ClientRequest = net.request(url, {method, headers, agent})
 		clientRequest.on("response", (res: http.IncomingMessage) => {
@@ -98,7 +108,7 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 			res.on("data", (d) => responseStream.push(d))
 			res.on("end", () => responseStream.end())
 			res.on("error", (e) => {
-				log.debug(TAG, `response error`)
+				log.debug(TAG, `response error`, url)
 				responseStream.end()
 			})
 			// casting because typescript doesn't accept http.IncomingHttpHeaders as a Record even though it's just an object.
@@ -107,7 +117,7 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 		})
 		clientRequest.on("error", (e) => handleError(e))
 		clientRequest.on("timeout", () => clientRequest.destroy(new ProxyError(NetErrorCode.TIMED_OUT)))
-		clientRequest.end(uploadData?.[0].bytes ?? undefined)
+		clientRequest.end(uploadData?.[0]?.bytes ?? undefined)
 	}
 	return session.protocol.interceptStreamProtocol(protocol, handler)
 }
