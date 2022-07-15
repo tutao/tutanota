@@ -11,7 +11,7 @@ import path from "path"
  * @param env Object with the following keys:
  * 	mode: String of value "App" or "Desktop" or "Browser"
  * 	dist: Boolean
- * 	staticUrl: String defining app base url for non-production environments
+ * 	staticUrl: String defining app base url for non-production environments and the native clients.
  * 	versionNumber: String containing the app's version number
  * @returns {Promise<Awaited<void>[]>}
  */

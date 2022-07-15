@@ -10,16 +10,13 @@ import android.net.MailTo
 import android.net.Uri
 import android.os.Bundle
 import android.os.PowerManager
-import android.preference.PreferenceManager
 import android.provider.Settings
 import android.util.Log
 import android.view.ContextMenu
 import android.view.ContextMenu.ContextMenuInfo
 import android.view.View
-import android.webkit.CookieManager
-import android.webkit.WebView
+import android.webkit.*
 import android.webkit.WebView.HitTestResult
-import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.annotation.MainThread
 import androidx.annotation.RequiresPermission
@@ -38,6 +35,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.File
+import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 import java.security.SecureRandom
@@ -51,12 +50,12 @@ import kotlin.coroutines.suspendCoroutine
 class MainActivity : FragmentActivity() {
 	lateinit var webView: WebView
 		private set
-	lateinit var sseStorage: SseStorage
-	lateinit var themeFacade: AndroidThemeFacade
-	lateinit var remoteBridge: RemoteBridge
-	lateinit var mobileFacade: MobileFacade
-	lateinit var commonNativeFacade: CommonNativeFacade
-	lateinit var commonSystemFacade: AndroidCommonSystemFacade
+	private lateinit var sseStorage: SseStorage
+	private lateinit var themeFacade: AndroidThemeFacade
+	private lateinit var remoteBridge: RemoteBridge
+	private lateinit var mobileFacade: MobileFacade
+	private lateinit var commonNativeFacade: CommonNativeFacade
+	private lateinit var commonSystemFacade: AndroidCommonSystemFacade
 
 	private val permissionsRequests: MutableMap<Int, Continuation<Unit>> = ConcurrentHashMap()
 	private val activityRequests: MutableMap<Int, Continuation<ActivityResult>> = ConcurrentHashMap()
@@ -129,8 +128,14 @@ class MainActivity : FragmentActivity() {
 			javaScriptEnabled = true
 			domStorageEnabled = true
 			javaScriptCanOpenWindowsAutomatically = false
-			allowUniversalAccessFromFileURLs = true
+			allowFileAccess = false
+			allowContentAccess = false
+			cacheMode = WebSettings.LOAD_NO_CACHE
+			// needed for external content in mail
+			mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
 		}
+
+		webView.clearCache(true)
 
 		// Reject cookies by external content
 		CookieManager.getInstance().setAcceptCookie(false)
@@ -151,9 +156,13 @@ class MainActivity : FragmentActivity() {
 			}
 		}
 
-
 		webView.webViewClient = object : WebViewClient() {
+			@Deprecated("shouldOverrideUrlLoading is deprecated")
 			override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
+				Log.d(TAG, "see if should override $url")
+				if (url.startsWith(BASE_WEBVIEW_URL)) {
+					return false
+				}
 				val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
 				try {
 					startActivity(intent)
@@ -162,6 +171,60 @@ class MainActivity : FragmentActivity() {
 							.show()
 				}
 				return true
+			}
+
+			override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+				val url = request.url
+				return if (request.method == "OPTIONS") {
+					Log.v(TAG, "replacing OPTIONS response to ${url}")
+					WebResourceResponse(
+							"text/html",
+							"UTF-8",
+							200,
+							"OK",
+							mutableMapOf(
+									"Access-Control-Allow-Origin" to "*",
+									"Access-Control-Allow-Methods" to "POST, GET, PUT, DELETE",
+									"Access-Control-Allow-Headers" to "*"
+							),
+							null
+					)
+				} else if (request.method == "GET" && url.toString().startsWith(BASE_WEBVIEW_URL)) {
+					Log.v(TAG, "replacing asset GET response to ${url.path}")
+					val assetPath = File(BuildConfig.RES_ADDRESS + url.path!!).canonicalPath.run {
+						slice(1..lastIndex)
+					}
+					try {
+						if (!assetPath.startsWith(BuildConfig.RES_ADDRESS)) throw IOException("can't find this")
+						val ext = MimeTypeMap.getFileExtensionFromUrl(url.toString())
+						val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
+						WebResourceResponse(
+								mimeType,
+								null,
+								200,
+								"OK",
+								null,
+								assets.open(assetPath)
+						)
+					} catch (e: IOException) {
+						Log.w(TAG, "Resource not found ${url.path}")
+						WebResourceResponse(
+								null,
+								null,
+								404,
+								"Not Found",
+								null,
+								null
+						)
+					}
+				} else {
+					Log.v(TAG, "forwarding ${request.method} request to $url")
+					null
+				}
+			}
+
+			override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+				Log.e(TAG, "Error loading WebView $error with ${error?.errorCode} @ ${request?.url?.path}")
 			}
 		}
 
@@ -227,10 +290,12 @@ class MainActivity : FragmentActivity() {
 
 	suspend fun askBatteryOptimizationsIfNeeded() {
 		val powerManager = getSystemService(POWER_SERVICE) as PowerManager
-		val preferences = PreferenceManager.getDefaultSharedPreferences(this)
+
+		@Suppress("DEPRECATION")
+		val preferences = android.preference.PreferenceManager.getDefaultSharedPreferences(this)
 
 		if (
-				!preferences.getBoolean(ASKED_BATTERY_OPTIMIZTAIONS_PREF, false)
+				!preferences.getBoolean(ASKED_BATTERY_OPTIMIZATIONS_PREF, false)
 				&& !powerManager.isIgnoringBatteryOptimizations(packageName)
 		) {
 
@@ -249,7 +314,7 @@ class MainActivity : FragmentActivity() {
 	}
 
 	private fun saveAskedBatteryOptimizations(preferences: SharedPreferences) {
-		preferences.edit().putBoolean(ASKED_BATTERY_OPTIMIZTAIONS_PREF, true).apply()
+		preferences.edit().putBoolean(ASKED_BATTERY_OPTIMIZATIONS_PREF, true).apply()
 	}
 
 	private fun getInitialUrl(parameters: MutableMap<String, String>, theme: Theme?): String {
@@ -261,7 +326,7 @@ class MainActivity : FragmentActivity() {
 		for ((key, value) in parameters) {
 			try {
 				val escapedValue = URLEncoder.encode(value, "UTF-8")
-				if (queryBuilder.length == 0) {
+				if (queryBuilder.isEmpty()) {
 					queryBuilder.append("?")
 				} else {
 					queryBuilder.append("&")
@@ -273,12 +338,12 @@ class MainActivity : FragmentActivity() {
 				throw RuntimeException(e)
 			}
 		}
-		// additional path information like app.html/login are not handled properly by the webview
+		// additional path information like app.html/login are not handled properly by the WebView
 		// when loaded from local file system. so we are just adding parameters to the Url e.g. ../app.html?noAutoLogin=true.
-		return baseUrl + queryBuilder.toString()
+		return BASE_WEBVIEW_URL + "index-app.html" + queryBuilder.toString()
 	}
 
-	private val baseUrl: String
+	private val baseAssetPath: String
 		get() = BuildConfig.RES_ADDRESS
 
 
@@ -286,7 +351,7 @@ class MainActivity : FragmentActivity() {
 		return ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
 	}
 
-	suspend fun getPermission(permission: String) = suspendCoroutine<Unit> { continuation ->
+	suspend fun getPermission(permission: String) = suspendCoroutine { continuation ->
 		if (hasPermission(permission)) {
 			continuation.resume(Unit)
 		} else {
@@ -344,7 +409,7 @@ class MainActivity : FragmentActivity() {
 	 * The sharing activity. Either invoked from MainActivity (if the app was not active when the
 	 * share occurred) or from onCreate.
 	 */
-	suspend fun share(intent: Intent) {
+	private suspend fun share(intent: Intent) {
 		val action = intent.action
 		val clipData = intent.clipData
 		val files: List<String>
@@ -420,9 +485,9 @@ class MainActivity : FragmentActivity() {
 		return filesArray
 	}
 
-	suspend fun openMailbox(intent: Intent) {
+	private suspend fun openMailbox(intent: Intent) {
 		val userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY)
-		val address = intent.getStringExtra(OPEN_USER_MAILBOX_MAILADDRESS_KEY)
+		val address = intent.getStringExtra(OPEN_USER_MAILBOX_MAIL_ADDRESS_KEY)
 		val isSummary = intent.getBooleanExtra(IS_SUMMARY_EXTRA, false)
 		if (userId == null || address == null) {
 			return
@@ -435,7 +500,7 @@ class MainActivity : FragmentActivity() {
 		commonNativeFacade.openMailBox(userId, address, null)
 	}
 
-	suspend fun openCalendar(intent: Intent) {
+	private suspend fun openCalendar(intent: Intent) {
 		val userId = intent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY) ?: return
 		commonNativeFacade.openCalendar(userId)
 	}
@@ -470,7 +535,7 @@ class MainActivity : FragmentActivity() {
 		val hitTestResult = webView.hitTestResult
 		if (hitTestResult.type == HitTestResult.SRC_ANCHOR_TYPE) {
 			val link = hitTestResult.extra ?: return
-			if (link.startsWith(baseUrl)) {
+			if (link.startsWith(baseAssetPath)) {
 				return
 			}
 			menu.setHeaderTitle(link)
@@ -490,12 +555,14 @@ class MainActivity : FragmentActivity() {
 	}
 
 	companion object {
+		// don't remove the trailing slash because otherwise longer domains might match our asset check
+		const val BASE_WEBVIEW_URL = "https://assets.tutanota.com/"
 		const val OPEN_USER_MAILBOX_ACTION = "de.tutao.tutanota.OPEN_USER_MAILBOX_ACTION"
 		const val OPEN_CALENDAR_ACTION = "de.tutao.tutanota.OPEN_CALENDAR_ACTION"
-		const val OPEN_USER_MAILBOX_MAILADDRESS_KEY = "mailAddress"
+		const val OPEN_USER_MAILBOX_MAIL_ADDRESS_KEY = "mailAddress"
 		const val OPEN_USER_MAILBOX_USERID_KEY = "userId"
 		const val IS_SUMMARY_EXTRA = "isSummary"
-		private const val ASKED_BATTERY_OPTIMIZTAIONS_PREF = "askedBatteryOptimizations"
+		private const val ASKED_BATTERY_OPTIMIZATIONS_PREF = "askedBatteryOptimizations"
 		private const val TAG = "MainActivity"
 		private var requestId = 0
 
