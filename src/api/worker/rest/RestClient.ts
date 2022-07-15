@@ -1,4 +1,4 @@
-import {assertWorkerOrNode, getHttpOrigin, isAdminClient, isWorker} from "../../common/Env"
+import {assertWorkerOrNode, getHttpOrigin, isAdminClient, isElectronClient, isWorker} from "../../common/Env"
 import {ConnectionError, handleRestError, PayloadTooLargeError, ServiceUnavailableError, TooManyRequestsError} from "../../common/error/RestError"
 import {HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {assertNotNull, typedEntries, uint8ArrayToArrayBuffer} from "@tutao/tutanota-utils"
@@ -89,8 +89,10 @@ export class RestClient {
 					const res = {
 						timeoutId: 0 as TimeoutID,
 						abortFunction: () => {
-							console.log(`${this.id}: ${String(new Date())} aborting ` + String(res.timeoutId))
-							xhr.abort()
+							if (!isElectronClient()) {
+								console.log(`${this.id}: ${String(new Date())} aborting ` + String(res.timeoutId))
+								xhr.abort()
+							}
 						},
 					}
 					return res

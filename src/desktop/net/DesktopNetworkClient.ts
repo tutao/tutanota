@@ -1,5 +1,9 @@
 import http from "http"
 import https from "https"
+import {ConnectionError} from "../../api/common/error/RestError.js"
+import {log} from "../DesktopLog.js"
+
+const TAG = "[DesktopNetworkClient]"
 
 /**
  * Manually re-doing http$requestOptions because built-in definition is crap.
@@ -26,12 +30,33 @@ export class DesktopNetworkClient {
 		return this.getModule(url).request(url, opts)
 	}
 
+	/**
+	 * resolves when we get the first part of the response
+	 * rejects on errors that happen before that point
+	 *
+	 * later errors must be handled on the response onerror handler
+	 */
 	executeRequest(url: string, opts: ClientRequestOptions): Promise<http.IncomingMessage> {
 		return new Promise<http.IncomingMessage>((resolve, reject) => {
-			this.request(url, opts)
-				.on("response", resolve)
-				.on("error", reject)
-				.end()
+			let resp: http.IncomingMessage | null = null
+			const req: http.ClientRequest = this.request(url, opts)
+												.on("response", r => {
+													resp = r
+													resolve(r)
+												})
+												.on("error", (e) => {
+													log.debug(TAG, `aborting req due to err`, e)
+													if (resp != null) {
+														resp.destroy(e)
+														return
+													}
+													reject(e)
+												})
+												.on("timeout", () => {
+													log.debug(TAG, "timed out req")
+													req.destroy(new ConnectionError("timed out"))
+												})
+												.end()
 		})
 	}
 
