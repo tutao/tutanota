@@ -177,6 +177,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     let env = ProcessInfo.processInfo.environment
 
     let pagePath: String
+    // this var is set in the debug scheme: Product > Scheme > Manage Schemes in xcode.
     if let envPath = env["TUT_PAGE_PATH"] {
       pagePath = envPath
     } else {
