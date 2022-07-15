@@ -7,7 +7,7 @@ import "./gui/main-styles"
 import {assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageAvailable, isTutanotaDomain} from "./api/common/Env"
 import {logins} from "./api/main/LoginController"
 import type {lazy} from "@tutao/tutanota-utils"
-import {neverNull} from "@tutao/tutanota-utils"
+import {assertNotNull, neverNull} from "@tutao/tutanota-utils"
 import {routeChange} from "./misc/RouteChange"
 import {windowFacade} from "./misc/WindowFacade"
 import {styles} from "./gui/styles"
@@ -60,42 +60,36 @@ if (!client.isSupported()) {
 setupExceptionHandling()
 // this needs to stay after client.init
 windowFacade.init()
-export const state: {
-	prefix: string | null
-	prefixWithoutFile: string | null
-} = {
-	prefix: null,
-	prefixWithoutFile: null,
-}
+const prefix = location.pathname[location.pathname.length - 1] !== "/"
+	? location.pathname
+	: location.pathname.substring(0, location.pathname.length - 1)
+const prefixWithoutFile = prefix.includes(".")
+	? prefix.substring(0, prefix.lastIndexOf("/"))
+	: prefix
+
+export const state: {prefix: string, prefixWithoutFile: string} = {prefix, prefixWithoutFile}
 let startRoute = "/"
+let redirectTo = urlQueryParams["r"] // redirection triggered by the server (e.g. the user reloads /mail/id by pressing F5)
+if (redirectTo) {
+	delete urlQueryParams["r"]
 
-if (state.prefix == null) {
-	const prefix = (state.prefix =
-		location.pathname[location.pathname.length - 1] !== "/" ? location.pathname : location.pathname.substring(0, location.pathname.length - 1))
-	state.prefixWithoutFile = prefix.includes(".") ? prefix.substring(0, prefix.lastIndexOf("/")) : prefix
-	let redirectTo = urlQueryParams["r"] // redirection triggered by the server (e.g. the user reloads /mail/id by pressing F5)
-
-	if (redirectTo) {
-		delete urlQueryParams["r"]
-
-		if (typeof redirectTo !== "string") {
-			redirectTo = ""
-		}
-	} else {
+	if (typeof redirectTo !== "string") {
 		redirectTo = ""
 	}
-
-	let newQueryString = m.buildQueryString(urlQueryParams)
-
-	if (newQueryString.length > 0) {
-		newQueryString = "?" + newQueryString
-	}
-
-	let target = redirectTo + newQueryString + location.hash
-	if (target === "" || target[0] !== "/") target = "/" + target
-	history.replaceState(null, "", neverNull(state.prefix) + target)
-	startRoute = target
+} else {
+	redirectTo = ""
 }
+
+let newQueryString = m.buildQueryString(urlQueryParams)
+
+if (newQueryString.length > 0) {
+	newQueryString = "?" + newQueryString
+}
+
+let target = redirectTo + newQueryString + location.hash
+if (target === "" || target[0] !== "/") target = "/" + target
+history.replaceState(null, "", assertNotNull(state.prefix) + target)
+startRoute = target
 
 // Write it here for the WorkerClient so that it can load relative worker easily. Should do it here so that it doesn't break after HMR.
 window.tutao.appState = state

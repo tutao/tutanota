@@ -1,6 +1,6 @@
 global.window = undefined
 
-function getUrls(env) {
+function getCspUrls(env) {
 	if (env.staticUrl) {
 		const staticUrlParts = env.staticUrl.split("//")
 		const apiUrl = staticUrlParts[0] + "//*.api." + staticUrlParts[1]
@@ -65,7 +65,7 @@ function csp(env) {
 				+ " img-src http: blob: data: *;"
 				+ " style-src 'unsafe-inline';"
 				+ "base-uri 'none';"
-				+ ` connect-src 'self' ${getUrls(env)} https://tutanota.com;`
+				+ ` connect-src 'self' ${getCspUrls(env)} https://tutanota.com;`
 
 			return `<meta http-equiv="Content-Security-Policy" content="${cspContent}">`
 		} else {
@@ -78,7 +78,7 @@ function csp(env) {
 			+ " media-src * data: blob: 'unsafe-inline';"
 			+ " style-src * 'unsafe-inline';"
 			+ " frame-src *;"
-			+ ` connect-src 'self' 'unsafe-inline' ${getUrls(env)} ws://localhost:9001;`
+			+ ` connect-src 'self' 'unsafe-inline' ${getCspUrls(env)} ws://localhost:9001;`
 
 		return `<meta http-equiv="Content-Security-Policy" content="${cspContent}">`
 	}

@@ -295,7 +295,7 @@ class LocalNotificationsFacade(private val context: Context) {
 		val openMailboxIntent = Intent(context, MainActivity::class.java)
 		openMailboxIntent.action = MainActivity.OPEN_USER_MAILBOX_ACTION
 		openMailboxIntent.putExtra(
-				MainActivity.OPEN_USER_MAILBOX_MAILADDRESS_KEY,
+				MainActivity.OPEN_USER_MAILBOX_MAIL_ADDRESS_KEY,
 				notificationInfo.mailAddress
 		)
 		openMailboxIntent.putExtra(
