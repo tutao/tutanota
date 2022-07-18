@@ -11,9 +11,8 @@ import {assertMainOrNode} from "../api/common/Env"
 import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtils.js"
 import {showPasswordGeneratorDialog} from "../misc/passwords/PasswordGeneratorDialog"
 import {theme} from "../gui/theme"
-import {px} from "../gui/size"
 import {Icons} from "../gui/base/icons/Icons"
-import {Icon} from "../gui/base/Icon"
+import {ButtonAttrs, ButtonN} from "../gui/base/ButtonN.js"
 
 assertMainOrNode()
 
@@ -214,11 +213,11 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 						this.renderPasswordGeneratorHelp(attrs)
 					]),
 					oninput: (input) => attrs.model.setNewPassword(input),
-					type: TextFieldType.Password,
+					type: attrs.model.getRevealPassword() ? TextFieldType.Text : TextFieldType.Password,
 					preventAutofill: true,
-					injectionsRight: () => m(".mb-s.mlr", [
+					injectionsRight: () => m(".flex.items-center", [
+						m(".mlr-s", m(CompletenessIndicator, {percentageCompleted: attrs.model.getPasswordStrength()})),
 						this.renderRevealIcon(attrs),
-						m(CompletenessIndicator, {percentageCompleted: attrs.model.getPasswordStrength()}),
 					]),
 				}),
 				attrs.passwordInfoKey ? m(".small.mt-s", lang.get(attrs.passwordInfoKey)) : null,
@@ -248,24 +247,20 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 					attrs.model.setNewPassword(await showPasswordGeneratorDialog())
 					m.redraw()
 				}
-			}, "Generate"),
+			}, "Generate"), // FIXME: translate
 			m("", {style: {display: "inline-block"}}, "a passphrase!")
 		])
 	}
 
 	private renderRevealIcon(attrs: PasswordFormAttrs): Children {
-		return m("span.click.ml-s", {
-			style: {
-				// Needs to be exactly 4px as pt-xs is 3px and its 1px too high
-				paddingTop: px(4)
-			},
-			onclick: () => {
+		const buttonAttrs: ButtonAttrs = {
+			// FIXME
+			label: "emptyString_msg",
+			click: () => {
 				attrs.model.toggleRevealPassword()
-				m.redraw()
-			}
-		}, m(Icon, {
-			icon: Icons.Eye,
-			class: attrs.model.getRevealPassword() ? "translucent" : "opaque",
-		}))
+			},
+			icon: () => attrs.model.getRevealPassword() ? Icons.NoEye : Icons.Eye,
+		}
+		return m(ButtonN, buttonAttrs)
 	}
 }
