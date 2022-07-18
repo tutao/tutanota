@@ -12,7 +12,6 @@ import {parseUrlOrNull} from "./PathUtils"
 import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 import {DesktopThemeFacade} from "./DesktopThemeFacade"
 import {CancelledError} from "../api/common/error/CancelledError"
-import {ElectronExports} from "./ElectronExportTypes";
 import {OfflineDbFacade} from "./db/OfflineDbFacade"
 import {DesktopFacade} from "../native/common/generatedipc/DesktopFacade.js"
 import {CommonNativeFacade} from "../native/common/generatedipc/CommonNativeFacade.js"
@@ -44,11 +43,8 @@ type LocalShortcut = {
 const TAG = "[ApplicationWindow]"
 
 export class ApplicationWindow {
-	private readonly _startFileURLString: string
-	private readonly _electron: ElectronExports
-	private readonly _localShortcut: LocalShortcutManager
-	private readonly _themeFacade: DesktopThemeFacade
-	private readonly _startFileURL: URL
+	private readonly startFileURLString: string
+	private readonly startFileURL: URL
 	private _desktopFacade!: DesktopFacade
 	private _commonNativeFacade!: CommonNativeFacade
 	private _interWindowEventSender!: InterWindowEventFacadeSendDispatcher
@@ -57,51 +53,50 @@ export class ApplicationWindow {
 
 	/** User logged in in this window. Reset from WindowManager. */
 	private userId: Id | null = null
-	private _setBoundsTimeout: ReturnType<typeof setTimeout> | null = null
-	private _findingInPage: boolean = false
-	private _skipNextSearchBarBlur: boolean = false
-	private _lastSearchRequest: [string, {forward: boolean, matchCase: boolean}] | null = null
-	private _lastSearchPromiseReject: (arg0: Error | null) => void
-	private _shortcuts: Array<LocalShortcut>
+	private setBoundsTimeout: ReturnType<typeof setTimeout> | null = null
+	private findingInPage: boolean = false
+	private skipNextSearchBarBlur: boolean = false
+	private lastSearchRequest: [string, {forward: boolean, matchCase: boolean}] | null = null
+	private lastSearchPromiseReject: (err: Error | null) => void
+	private shortcuts: Array<LocalShortcut>
 	id!: number
 
 	constructor(
 		wm: WindowManager,
 		desktophtml: string,
 		icon: NativeImage,
-		electron: typeof Electron.CrossProcessExports,
-		localShortcutManager: LocalShortcutManager,
-		themeFacade: DesktopThemeFacade,
+		private readonly electron: typeof Electron.CrossProcessExports,
+		private readonly localShortcut: LocalShortcutManager,
+		private readonly themeFacade: DesktopThemeFacade,
 		private readonly offlineDbFacade: OfflineDbFacade,
 		private readonly remoteBridge: RemoteBridge,
 		dictUrl: string,
 		noAutoLogin?: boolean | null,
 	) {
-		this._themeFacade = themeFacade
-		this._electron = electron
-		this._localShortcut = localShortcutManager
-		this._startFileURL = url.pathToFileURL(path.join(this._electron.app.getAppPath(), desktophtml))
-		this._startFileURLString = this._startFileURL.toString()
-		this._lastSearchPromiseReject = noOp
+		this.themeFacade = themeFacade
+		this.electron = electron
+		this.startFileURL = url.pathToFileURL(path.join(this.electron.app.getAppPath(), desktophtml))
+		this.startFileURLString = this.startFileURL.toString()
+		this.lastSearchPromiseReject = noOp
 		const isMac = process.platform === "darwin"
-		this._shortcuts = ([
+		this.shortcuts = ([
 			{
 				key: Keys.F,
 				meta: isMac,
 				ctrl: !isMac,
-				exec: () => this._openFindInPage(),
+				exec: () => this.openFindInPage(),
 				help: "searchPage_label",
 			},
 			{
 				key: Keys.P,
 				meta: isMac,
 				ctrl: !isMac,
-				exec: () => this._printMail(),
+				exec: () => this.printMail(),
 				help: "print_action",
 			},
 			{
 				key: Keys.F12,
-				exec: () => this._toggleDevTools(),
+				exec: () => this.toggleDevTools(),
 				help: "toggleDevTools_action",
 			},
 			{
@@ -119,14 +114,14 @@ export class ApplicationWindow {
 					key: Keys.F,
 					meta: true,
 					ctrl: true,
-					exec: () => this._toggleFullScreen(),
+					exec: () => this.toggleFullScreen(),
 					help: "toggleFullScreen_action",
 				},
 			]
 			: [
 				{
 					key: Keys.F11,
-					exec: () => this._toggleFullScreen(),
+					exec: () => this.toggleFullScreen(),
 					help: "toggleFullScreen_action",
 				},
 				{
@@ -138,7 +133,7 @@ export class ApplicationWindow {
 				{
 					key: Keys.LEFT,
 					alt: true,
-					exec: () => this._tryGoBack(),
+					exec: () => this.tryGoBack(),
 					help: "pageBackward_label",
 				},
 				{
@@ -157,19 +152,19 @@ export class ApplicationWindow {
 				},
 			],
 		)
-		log.debug(TAG, "startFile: ", this._startFileURLString)
-		const preloadPath = path.join(this._electron.app.getAppPath(), "./desktop/preload.js")
+		log.debug(TAG, "startFile: ", this.startFileURLString)
+		const preloadPath = path.join(this.electron.app.getAppPath(), "./desktop/preload.js")
 
-		this._createBrowserWindow(wm, {
+		this.createBrowserWindow(wm, {
 			preloadPath,
 			icon,
 			dictUrl,
 		})
 		this.initFacades()
 
-		this._loadInitialUrl(noAutoLogin ?? false)
+		this.loadInitialUrl(noAutoLogin ?? false)
 
-		this._electron.Menu.setApplicationMenu(null)
+		this.electron.Menu.setApplicationMenu(null)
 	}
 
 	get desktopFacade(): DesktopFacade {
@@ -191,8 +186,8 @@ export class ApplicationWindow {
 		this._interWindowEventSender = sendingFacades.interWindowEventSender
 	}
 
-	async _loadInitialUrl(noAutoLogin: boolean) {
-		const initialUrl = await this._getInitialUrl({
+	private async loadInitialUrl(noAutoLogin: boolean) {
+		const initialUrl = await this.getInitialUrl({
 			noAutoLogin,
 		})
 		await this.updateBackgroundColor()
@@ -201,7 +196,7 @@ export class ApplicationWindow {
 	}
 
 	async updateBackgroundColor() {
-		const theme = await this._themeFacade.getCurrentThemeWithFallback()
+		const theme = await this.themeFacade.getCurrentThemeWithFallback()
 
 		if (theme) {
 			this._browserWindow.setBackgroundColor(theme.content_bg)
@@ -256,7 +251,7 @@ export class ApplicationWindow {
 		}
 	}
 
-	_createBrowserWindow(
+	private createBrowserWindow(
 		wm: WindowManager,
 		opts: {
 			preloadPath: string
@@ -265,7 +260,7 @@ export class ApplicationWindow {
 		},
 	) {
 		const {preloadPath, dictUrl, icon} = opts
-		this._browserWindow = new this._electron.BrowserWindow({
+		this._browserWindow = new this.electron.BrowserWindow({
 			icon,
 			show: false,
 			autoHideMenuBar: true,
@@ -309,7 +304,7 @@ export class ApplicationWindow {
 			(webContents, permission, callback: (_: boolean) => void) => callback(false),
 		)
 
-		handleProtocols(session, path.dirname(url.fileURLToPath(this._startFileURLString)))
+		handleProtocols(session, path.dirname(url.fileURLToPath(this.startFileURLString)))
 
 		this.manageDownloadsForSession(session, dictUrl)
 
@@ -318,8 +313,9 @@ export class ApplicationWindow {
 				await this.closeDb()
 				this.remoteBridge.destroyBridge(this)
 			})
-			.on("focus", () => this._localShortcut.enableAll(this._browserWindow))
-			.on("blur", (_: FocusEvent) => this._localShortcut.disableAll(this._browserWindow))
+			.on("focus", () => this.localShortcut.enableAll(this._browserWindow))
+			.on("blur", (_: FocusEvent) => this.localShortcut.disableAll(this._browserWindow))
+
 		this._browserWindow.webContents
 			.on("will-attach-webview", e => e.preventDefault())
 			.on("will-navigate", (e, url) => {
@@ -338,9 +334,9 @@ export class ApplicationWindow {
 				e.preventDefault()
 			})
 			.on("before-input-event", (ev, input) => {
-				if (this._lastSearchRequest && this._findingInPage && input.type === "keyDown" && input.key === "Enter") {
-					this._skipNextSearchBarBlur = true
-					const [searchTerm, options] = this._lastSearchRequest
+				if (this.lastSearchRequest && this.findingInPage && input.type === "keyDown" && input.key === "Enter") {
+					this.skipNextSearchBarBlur = true
+					const [searchTerm, options] = this.lastSearchRequest
 					options.forward = true
 
 					this._browserWindow.webContents
@@ -353,13 +349,13 @@ export class ApplicationWindow {
 			.on("did-finish-load", () => {
 				// This also covers the case when window was reloaded.
 				// the webContents needs to know on which channel to listen
-				this._sendShortcutstoRender()
+				this.sendShortcutstoRender()
 			})
 			.on("did-fail-load", (evt, errorCode, errorDesc, validatedURL) => {
 				log.debug(TAG, "failed to load resource: ", validatedURL, errorDesc)
 
 				if (errorDesc === "ERR_FILE_NOT_FOUND") {
-					this._getInitialUrl({
+					this.getInitialUrl({
 						noAutoLogin: true,
 					})
 						.then(initialUrl => {
@@ -383,13 +379,13 @@ export class ApplicationWindow {
 			.on("did-navigate-in-page", () => this._browserWindow.emit("did-navigate"))
 			.on("zoom-changed", (ev, direction: "in" | "out") => this._browserWindow.emit("zoom-changed", ev, direction))
 			.on("update-target-url", (ev, url) => {
-				this._desktopFacade.updateTargetUrl(url, this._startFileURLString)
+				this._desktopFacade.updateTargetUrl(url, this.startFileURLString)
 			})
 
-		this._browserWindow.webContents.setWindowOpenHandler(details => this._onNewWindow(details))
+		this._browserWindow.webContents.setWindowOpenHandler(details => this.onNewWindow(details))
 
 		// Shortcuts but be registered here, before "focus" or "blur" event fires, otherwise localShortcut fails
-		this._reRegisterShortcuts()
+		this.reRegisterShortcuts()
 	}
 
 	async reload(queryParams: Record<string, string | boolean>) {
@@ -397,7 +393,7 @@ export class ApplicationWindow {
 		this.remoteBridge.destroyBridge(this)
 		this.userId = null
 		this.initFacades()
-		const url = await this._getInitialUrl(queryParams)
+		const url = await this.getInitialUrl(queryParams)
 		await this._browserWindow.loadURL(url)
 	}
 
@@ -408,7 +404,7 @@ export class ApplicationWindow {
 		}
 	}
 
-	_onNewWindow(details: HandlerDetails): {action: "deny"} {
+	private onNewWindow(details: HandlerDetails): {action: "deny"} {
 		const parsedUrl = parseUrlOrNull(details.url)
 
 		if (parsedUrl == null) {
@@ -419,7 +415,7 @@ export class ApplicationWindow {
 		} else {
 			// we never open any new windows directly from the renderer
 			// except for links in mails etc. so open them in the browser
-			this._electron.shell.openExternal(parsedUrl.toString())
+			this.electron.shell.openExternal(parsedUrl.toString())
 		}
 
 		return {
@@ -427,10 +423,10 @@ export class ApplicationWindow {
 		}
 	}
 
-	_reRegisterShortcuts() {
-		this._localShortcut.unregisterAll(this._browserWindow)
+	private reRegisterShortcuts() {
+		this.localShortcut.unregisterAll(this._browserWindow)
 
-		this._shortcuts.forEach(s => {
+		this.shortcuts.forEach(s => {
 			// build the accelerator string localShortcut understands
 			let shortcutString = ""
 			shortcutString += s.meta ? "Command+" : ""
@@ -439,14 +435,14 @@ export class ApplicationWindow {
 			shortcutString += s.shift ? "Shift+" : ""
 			shortcutString += capitalizeFirstLetter(typedKeys(Keys).filter(k => s.key === Keys[k])[0])
 
-			this._localShortcut.register(this._browserWindow, shortcutString, s.exec)
+			this.localShortcut.register(this._browserWindow, shortcutString, s.exec)
 		})
 	}
 
-	_sendShortcutstoRender(): void {
+	private sendShortcutstoRender(): void {
 		// delete exec since functions don't cross IPC anyway.
 		// it will be replaced by () => true in the renderer thread
-		const webShortcuts = this._shortcuts.map(s =>
+		const webShortcuts = this.shortcuts.map(s =>
 			Object.assign({}, s, {
 				exec: null,
 			}),
@@ -467,7 +463,7 @@ export class ApplicationWindow {
 			.on("spellcheck-dictionary-download-failure", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-failure", lcode))
 	}
 
-	_tryGoBack(): void {
+	private tryGoBack(): void {
 		const parsedUrl = url.parse(this._browserWindow.webContents.getURL())
 
 		if (parsedUrl.pathname && !parsedUrl.pathname.endsWith("login")) {
@@ -493,21 +489,6 @@ export class ApplicationWindow {
 		wc.on("context-menu", (e, params) => handler(params))
 	}
 
-	async sendMessageToWebContents(msg: any): Promise<void> {
-		if (!this._browserWindow || this._browserWindow.isDestroyed()) {
-			log.warn(`BrowserWindow unavailable, not sending message:\n${msg && msg.type}`)
-			return
-		}
-
-		if (!this._browserWindow.webContents || this._browserWindow.webContents.isDestroyed()) {
-			log.warn(`WebContents unavailable, not sending message:\n${msg && msg.type}`)
-			return
-		}
-
-		// calls to this already await ipc.initialized
-		this._browserWindow.webContents.send("to-renderer", msg)
-	}
-
 	getUserId(): Id | null {
 		return this.userId
 	}
@@ -516,16 +497,12 @@ export class ApplicationWindow {
 		this.userId = id
 	}
 
-	getPath(): string {
-		return this._browserWindow.webContents.getURL().substring(this._startFileURLString.length)
-	}
-
 	findInPage(searchTerm: string, forward: boolean, matchCase: boolean, findNext: boolean): Promise<Result | null> {
 		const options = {forward, matchCase, findNext}
-		this._findingInPage = true
+		this.findingInPage = true
 
 		if (searchTerm !== "") {
-			this._lastSearchRequest = [searchTerm, options]
+			this.lastSearchRequest = [searchTerm, options]
 
 			this._browserWindow.webContents.findInPage(searchTerm, options)
 
@@ -533,15 +510,15 @@ export class ApplicationWindow {
 				// if the last search request is still ongoing, this will reject that requests' promise
 				// we obviously don't care about that requests' result since we are already handling a new one
 				// if the last request is done, this is a noOp
-				this._lastSearchPromiseReject(new CancelledError("search request was superseded"))
+				this.lastSearchPromiseReject(new CancelledError("search request was superseded"))
 
 				// make sure we can cancel this promise if we get a new search request before this one is done.
-				this._lastSearchPromiseReject = reject
+				this.lastSearchPromiseReject = reject
 
 				this._browserWindow.webContents // the last listener might not have fired yet
 					.removeAllListeners("found-in-page")
 					.once("found-in-page", (ev, res: Result) => {
-						this._lastSearchPromiseReject = noOp
+						this.lastSearchPromiseReject = noOp
 						resolve(res)
 					})
 			}).catch(e => {
@@ -557,8 +534,8 @@ export class ApplicationWindow {
 	}
 
 	stopFindInPage() {
-		this._findingInPage = false
-		this._lastSearchRequest = null
+		this.findingInPage = false
+		this.lastSearchRequest = null
 
 		this._browserWindow.webContents.stopFindInPage("keepSelection")
 	}
@@ -570,15 +547,15 @@ export class ApplicationWindow {
 	 * @param force ignores skipnextblur
 	 */
 	setSearchOverlayState(state: boolean, force: boolean) {
-		if (!force && !state && this._skipNextSearchBarBlur) {
-			this._skipNextSearchBarBlur = false
+		if (!force && !state && this.skipNextSearchBarBlur) {
+			this.skipNextSearchBarBlur = false
 			return
 		}
 
-		this._findingInPage = state
+		this.findingInPage = state
 	}
 
-	_toggleDevTools(): void {
+	private toggleDevTools(): void {
 		const wc = this._browserWindow.webContents
 
 		if (wc.isDevToolsOpened()) {
@@ -590,25 +567,16 @@ export class ApplicationWindow {
 		}
 	}
 
-	_toggleFullScreen(): void {
+	private toggleFullScreen(): void {
 		this._browserWindow.setFullScreen(!this._browserWindow.isFullScreen())
 	}
 
-	_printMail() {
+	private printMail() {
 		this._desktopFacade.print()
 	}
 
-	_openFindInPage(): void {
+	private openFindInPage(): void {
 		this._desktopFacade.openFindInPage()
-	}
-
-	isVisible(): boolean {
-		return this._browserWindow.isVisible() && !this._browserWindow.isMinimized()
-	}
-
-	// browserWindow.hide() was called (or it was created with showWhenReady = false)
-	isHidden(): boolean {
-		return !this._browserWindow.isVisible() && !this._browserWindow.isMinimized()
 	}
 
 	setBounds(bounds: WindowBounds) {
@@ -620,8 +588,8 @@ export class ApplicationWindow {
 		this._browserWindow.setBounds(bounds.rect)
 
 		if (process.platform !== "linux") return
-		this._setBoundsTimeout && clearTimeout(this._setBoundsTimeout)
-		this._setBoundsTimeout = setTimeout(() => {
+		this.setBoundsTimeout && clearTimeout(this.setBoundsTimeout)
+		this.setBoundsTimeout = setTimeout(() => {
 			if (this._browserWindow.isDestroyed()) {
 				return
 			}
@@ -644,7 +612,7 @@ export class ApplicationWindow {
 		}
 	}
 
-	async _getInitialUrl(additionalQueryParams: Record<string, string | boolean>): Promise<string> {
+	private async getInitialUrl(additionalQueryParams: Record<string, string | boolean>): Promise<string> {
 		const url = new URL("asset://app/index-desktop.html")
 
 		for (const [key, value] of typedEntries(additionalQueryParams)) {
@@ -652,7 +620,7 @@ export class ApplicationWindow {
 		}
 
 		url.searchParams.append("platformId", process.platform)
-		const theme = await this._themeFacade.getCurrentThemeWithFallback()
+		const theme = await this.themeFacade.getCurrentThemeWithFallback()
 		url.searchParams.append("theme", JSON.stringify(theme))
 		return url.toString()
 	}
