@@ -809,50 +809,7 @@ o.spec("ApplicationWindow Test", function () {
 			o(electronMock.shell.openExternal.callCount).equals(0)
 		})
 	})
-	o("sendMessageToWebContents checks if webContents is there", async function () {
-		const {electronMock, wmMock, electronLocalshortcutMock, themeFacade, offlineDbFacade, remoteBridge} = standardMocks()
 
-		const w = new ApplicationWindow(
-			wmMock,
-			desktopHtml,
-			icon,
-			electronMock,
-			electronLocalshortcutMock,
-			themeFacade,
-			offlineDbFacade,
-			remoteBridge,
-			dictUrl,
-		)
-		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
-		let args: any = {
-			p: "args",
-		}
-		await w.sendMessageToWebContents(args)
-		o(bwInstance.isDestroyed.callCount).equals(1)
-		o(bwInstance.webContents.isDestroyed.callCount).equals(1)
-		o(bwInstance.webContents.send.callCount).equals(1)
-		args = undefined
-		await w.sendMessageToWebContents(args)
-		o(bwInstance.isDestroyed.callCount).equals(2)
-		o(bwInstance.webContents.isDestroyed.callCount).equals(2)
-		o(bwInstance.webContents.send.callCount).equals(2)
-		args = []
-		await w.sendMessageToWebContents(args)
-		o(bwInstance.isDestroyed.callCount).equals(3)
-		o(bwInstance.webContents.isDestroyed.callCount).equals(3)
-		o(bwInstance.webContents.send.callCount).equals(3)
-		let args2 = "hello"
-		bwInstance.webContents.destroyed = true
-		await w.sendMessageToWebContents(args2)
-		o(bwInstance.isDestroyed.callCount).equals(4)
-		o(bwInstance.webContents.isDestroyed.callCount).equals(4)
-		o(bwInstance.webContents.send.callCount).equals(3)
-		bwInstance.destroyed = true
-		await w.sendMessageToWebContents(args2)
-		o(bwInstance.isDestroyed.callCount).equals(5)
-		o(bwInstance.webContents.isDestroyed.callCount).equals(4)
-		o(bwInstance.webContents.send.callCount).equals(3)
-	})
 	o("context-menu is passed to handler", function () {
 		const {electronMock, wmMock, electronLocalshortcutMock, themeFacade, offlineDbFacade, remoteBridge} = standardMocks()
 
@@ -1086,32 +1043,6 @@ o.spec("ApplicationWindow Test", function () {
 		o(wcMock.stopFindInPage.args[0]).equals("keepSelection")
 	})
 
-	o("getPath returns correct substring", function () {
-		const {electronMock, wmMock, electronLocalshortcutMock, themeFacade, offlineDbFacade, remoteBridge} = standardMocks()
-
-		const w = new ApplicationWindow(
-			wmMock,
-			desktopHtml,
-			icon,
-			electronMock,
-			electronLocalshortcutMock,
-			themeFacade,
-			offlineDbFacade,
-			remoteBridge,
-			dictUrl,
-		)
-		const wcMock = electronMock.BrowserWindow.mockedInstances[0].webContents
-		o(w.getPath()).equals("/meh/more")
-
-		wcMock.getURL = () => "desktophtml"
-
-		o(w.getPath()).equals("")
-
-		wcMock.getURL = () => "desktophtml/meh/more"
-
-		downcast(w)._startFileURLString = ""
-		o(w.getPath()).equals("desktophtml/meh/more")
-	})
 	o("show", function () {
 		const {electronMock, wmMock, electronLocalshortcutMock, themeFacade, offlineDbFacade, remoteBridge} = standardMocks()
 
