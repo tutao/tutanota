@@ -48,7 +48,7 @@ export default async function generateTemplate({nameSuffix, version, updateUrl, 
 				debugkey
 			],
 			"pollingInterval": 1000 * 60 * 60 * 3, // 3 hours
-			"desktophtml": "./index-desktop.html",
+			"webAssetsPath": ".",
 			"iconName": "logo-solo-red.png",
 			"fileManagerTimeout": 30000,
 			// true if this version checks its updates. use to prevent local builds from checking sigs.

@@ -271,7 +271,7 @@ export class WindowManager {
 	}
 
 	async _newWindow(electron: ElectronExports, localShortcut: LocalShortcutManager, noAutoLogin: boolean | null): Promise<ApplicationWindow> {
-		const desktopHtml = await this._conf.getConst(BuildConfigKey.desktophtml)
+		const desktopHtml = await this._conf.getConst(BuildConfigKey.webAssetsPath)
 		const updateUrl = await this._conf.getConst(BuildConfigKey.updateUrl)
 		const dictUrl = updateUrl && updateUrl !== "" ? updateUrl : "https://mail.tutanota.com/desktop/"
 		// custom builds get the dicts from us as well
