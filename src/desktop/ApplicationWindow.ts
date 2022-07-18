@@ -42,9 +42,10 @@ type LocalShortcut = {
 }
 const TAG = "[ApplicationWindow]"
 
+const VIRTUAL_APP_URL_BASE = "asset://app"
+const VIRTUAL_APP_URL = VIRTUAL_APP_URL_BASE + "/index-desktop.html"
+
 export class ApplicationWindow {
-	private readonly startFileURLString: string
-	private readonly startFileURL: URL
 	private _desktopFacade!: DesktopFacade
 	private _commonNativeFacade!: CommonNativeFacade
 	private _interWindowEventSender!: InterWindowEventFacadeSendDispatcher
@@ -63,7 +64,8 @@ export class ApplicationWindow {
 
 	constructor(
 		wm: WindowManager,
-		desktophtml: string,
+		/** Path to web assets (html, js etc) relate to the appPath. */
+		private readonly webAssetsPath: string,
 		icon: NativeImage,
 		private readonly electron: typeof Electron.CrossProcessExports,
 		private readonly localShortcut: LocalShortcutManager,
@@ -73,10 +75,6 @@ export class ApplicationWindow {
 		dictUrl: string,
 		noAutoLogin?: boolean | null,
 	) {
-		this.themeFacade = themeFacade
-		this.electron = electron
-		this.startFileURL = url.pathToFileURL(path.join(this.electron.app.getAppPath(), desktophtml))
-		this.startFileURLString = this.startFileURL.toString()
 		this.lastSearchPromiseReject = noOp
 		const isMac = process.platform === "darwin"
 		this.shortcuts = ([
@@ -152,7 +150,7 @@ export class ApplicationWindow {
 				},
 			],
 		)
-		log.debug(TAG, "startFile: ", this.startFileURLString)
+		log.debug(TAG, "webAssetsPath: ", this.webAssetsPath)
 		const preloadPath = path.join(this.electron.app.getAppPath(), "./desktop/preload.js")
 
 		this.createBrowserWindow(wm, {
@@ -304,7 +302,8 @@ export class ApplicationWindow {
 			(webContents, permission, callback: (_: boolean) => void) => callback(false),
 		)
 
-		handleProtocols(session, path.dirname(url.fileURLToPath(this.startFileURLString)))
+		const absoluteAssetsPath = path.join(this.electron.app.getAppPath(), this.webAssetsPath)
+		handleProtocols(session, absoluteAssetsPath)
 
 		this.manageDownloadsForSession(session, dictUrl)
 
@@ -379,7 +378,7 @@ export class ApplicationWindow {
 			.on("did-navigate-in-page", () => this._browserWindow.emit("did-navigate"))
 			.on("zoom-changed", (ev, direction: "in" | "out") => this._browserWindow.emit("zoom-changed", ev, direction))
 			.on("update-target-url", (ev, url) => {
-				this._desktopFacade.updateTargetUrl(url, this.startFileURLString)
+				this._desktopFacade.updateTargetUrl(url, VIRTUAL_APP_URL_BASE)
 			})
 
 		this._browserWindow.webContents.setWindowOpenHandler(details => this.onNewWindow(details))
@@ -613,7 +612,7 @@ export class ApplicationWindow {
 	}
 
 	private async getInitialUrl(additionalQueryParams: Record<string, string | boolean>): Promise<string> {
-		const url = new URL("asset://app/index-desktop.html")
+		const url = new URL(VIRTUAL_APP_URL)
 
 		for (const [key, value] of typedEntries(additionalQueryParams)) {
 			url.searchParams.append(key, String(value))
