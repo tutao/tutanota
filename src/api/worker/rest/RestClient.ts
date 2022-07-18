@@ -1,4 +1,4 @@
-import {assertWorkerOrNode, getHttpOrigin, isAdminClient, isElectronClient, isWorker} from "../../common/Env"
+import {assertWorkerOrNode, getHttpOrigin, isAdminClient, isAndroidApp, isWebClient, isWorker} from "../../common/Env"
 import {ConnectionError, handleRestError, PayloadTooLargeError, ServiceUnavailableError, TooManyRequestsError} from "../../common/error/RestError"
 import {HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {assertNotNull, typedEntries, uint8ArrayToArrayBuffer} from "@tutao/tutanota-utils"
@@ -55,6 +55,10 @@ export class RestClient {
 		method: HttpMethod,
 		options: RestClientOptions = {},
 	): Promise<any | null> {
+		// @ts-ignore
+		const debug = typeof self !== "undefined" && self.debug
+		const verbose = isWorker() && debug
+
 		this.checkRequestSizeLimit(path, method, options.body ?? null)
 
 		if (this.suspensionHandler.isSuspended()) {
@@ -89,7 +93,7 @@ export class RestClient {
 					const res = {
 						timeoutId: 0 as TimeoutID,
 						abortFunction: () => {
-							if (!isElectronClient()) {
+							if (this.usingTimeoutAbort()) {
 								console.log(`${this.id}: ${String(new Date())} aborting ` + String(res.timeoutId))
 								xhr.abort()
 							}
@@ -102,20 +106,13 @@ export class RestClient {
 				let timeout = setTimeout(t.abortFunction, env.timeout)
 				t.timeoutId = timeout
 
-				// self.debug doesn't typecheck in the fdroid build, but it does when running locally due to devDependencies
-				if (isWorker() &&
-					// @ts-ignore
-					self.debug
-				) {
+				if (verbose) {
 					console.log(`${this.id}: set initial timeout ${String(timeout)} of ${env.timeout}`)
 				}
 
 				xhr.onload = () => {
 					// XMLHttpRequestProgressEvent, but not needed
-					if (isWorker() &&
-						// @ts-ignore
-						self.debug
-					) {
+					if (verbose) {
 						console.log(`${this.id}: ${String(new Date())} finished request. Clearing Timeout ${String(timeout)}.`)
 					}
 
@@ -161,7 +158,7 @@ export class RestClient {
 				if (!options.noCORS) {
 					xhr.upload.onprogress = (pe: ProgressEvent) => {
 						// @ts-ignore
-						if (isWorker() && self.debug) {
+						if (verbose) {
 							console.log(`${this.id}: ${String(new Date())} upload progress. Clearing Timeout ${String(timeout)}`, pe)
 						}
 
@@ -171,7 +168,7 @@ export class RestClient {
 						t.timeoutId = timeout
 
 						// @ts-ignore
-						if (isWorker() && self.debug) {
+						if (verbose) {
 							console.log(`${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
 						}
 
@@ -184,7 +181,7 @@ export class RestClient {
 
 				xhr.onprogress = (pe: ProgressEvent) => {
 					// @ts-ignore
-					if (isWorker() && self.debug) {
+					if (verbose) {
 						console.log(`${this.id}: ${String(new Date())} download progress. Clearing Timeout ${String(timeout)}`, pe)
 					}
 
@@ -194,7 +191,7 @@ export class RestClient {
 					t.timeoutId = timeout
 
 					// @ts-ignore
-					if (isWorker() && self.debug) {
+					if (verbose) {
 						console.log(`${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
 					}
 
@@ -216,6 +213,11 @@ export class RestClient {
 				}
 			})
 		}
+	}
+
+	/** We only need to track timeout directly here on some platforms. Other platforms do it inside their network driver. */
+	private usingTimeoutAbort() {
+		return isWebClient() || isAndroidApp()
 	}
 
 	private saveServerTimeOffsetFromRequest(xhr: XMLHttpRequest) {

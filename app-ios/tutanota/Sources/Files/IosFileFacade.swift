@@ -99,12 +99,15 @@ class IosFileFacade : FileFacade {
   func download(_ sourceUrl: String, _ filename: String, _ headers: [String : String]) async throws -> DownloadTaskResponse {
         return try await withCheckedThrowingContinuation { continuation in
           DispatchQueue.global(qos: .default).async {
-            let url1 = URL(string: sourceUrl)!
-            var request = URLRequest(url: url1)
+            let httpUrl = sourceUrl.replacingOccurrences(of: "api", with: "http", options: [.caseInsensitive, .anchored], range: nil)
+            let urlStruct = URL(string: httpUrl)!
+            var request = URLRequest(url: urlStruct)
             request.httpMethod = "GET"
             request.allHTTPHeaderFields = headers
 
-            let session = URLSession(configuration: .ephemeral)
+            let configuration = URLSessionConfiguration.ephemeral
+            configuration.timeoutIntervalForRequest = 20
+            let session = URLSession(configuration: configuration)
             let task = session.dataTask(with: request) { data, response, error in
               if let error = error {
                 continuation.resume(with: .failure(error))

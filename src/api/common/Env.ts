@@ -96,6 +96,10 @@ export function isMain(): boolean {
 	return !worker && !node
 }
 
+export function isWebClient() {
+	return env.mode === Mode.Browser
+}
+
 export function isAdminClient(): boolean {
 	return env.mode === Mode.Admin
 }

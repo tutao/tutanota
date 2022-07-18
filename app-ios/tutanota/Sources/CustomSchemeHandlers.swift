@@ -12,7 +12,9 @@ class ApiSchemeHandler : NSObject, WKURLSchemeHandler {
   override init() {
     // docs say that schemes are case insensitive
     self.regex = try! NSRegularExpression(pattern: "^api", options: .caseInsensitive)
-    self.urlSession = URLSession(configuration: .ephemeral)
+    let configuration = URLSessionConfiguration.ephemeral
+    configuration.timeoutIntervalForRequest = 20
+    self.urlSession = URLSession(configuration: configuration)
     super.init()
   }
   
