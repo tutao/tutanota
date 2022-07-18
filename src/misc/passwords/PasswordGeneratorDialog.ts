@@ -4,11 +4,10 @@ import {PasswordGenerator} from "./PasswordGenerator"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {locator} from "../../api/main/MainLocator"
 import {px} from "../../gui/size"
-import {HttpMethod, MediaType} from "../../api/common/EntityFunctions"
 import {copyToClipboard} from "../ClipboardUtils"
-import type Stream from "mithril/stream"
-import stream from "mithril/stream"
-import {getWebRoot} from "../../api/common/Env.js"
+import {getWebRoot, isApp, isDesktop} from "../../api/common/Env.js"
+import {state} from "../../app.js"
+import {assertNotNull} from "@tutao/tutanota-utils"
 
 let dictionary: string[] | null = null
 
@@ -16,32 +15,28 @@ let dictionary: string[] | null = null
  * Show a dialog to generate a random passphrase
  * @returns a promise containing the generated password
  */
-export function showPasswordGeneratorDialog(): Promise<string> {
-	return new Promise(async (resolve) => {
-		if (dictionary == null) {
-			const dictionaryJson = await locator.worker.restRequest(`/wordlibrary.json`, HttpMethod.GET, {
-				responseType: MediaType.Json,
-				baseUrl: getWebRoot(),
-			})
-			dictionary = JSON.parse(dictionaryJson)
-		}
+export async function showPasswordGeneratorDialog(): Promise<string> {
+	if (dictionary == null) {
+		const baseUrl = location.protocol + "//" + location.hostname + (location.port ? (":" + location.port) : "") + assertNotNull(state.prefixWithoutFile)
+		dictionary = await fetch(baseUrl + "/wordlibrary.json").then((response) => response.json())
+	}
 
-		const password = stream("")
-		const pwGenerator = new PasswordGenerator(locator.random, dictionary!)
+	let password = ""
+	const pwGenerator = new PasswordGenerator(locator.random, dictionary!)
 
+	return new Promise((resolve) => {
 		const insertPasswordOkAction = () => {
-			resolve(password())
+			resolve(password)
 			dialog.close()
 		}
 
-		const updateAction = () => {
-			pwGenerator.generateRandomPassphrase()
-					   .then((passphrase) => {
-						   password(passphrase)
-						   m.redraw()
-					   })
+		const updateAction = async () => {
+			password = await pwGenerator.generateRandomPassphrase()
+			m.redraw()
 		}
+
 		updateAction()
+
 		const dialog = Dialog.showActionDialog({
 			title: () => "Passphrase",
 			child: {
@@ -56,10 +51,10 @@ export function showPasswordGeneratorDialog(): Promise<string> {
 	})
 }
 
-type PasswordGeneratorDialogAttrs = {
-	okAction: () => void,
-	updateAction: () => void,
-	password: Stream<string>
+interface PasswordGeneratorDialogAttrs {
+	okAction: () => void
+	updateAction: () => void
+	password: string
 }
 
 class PasswordGeneratorDialog implements Component<PasswordGeneratorDialogAttrs> {
@@ -70,7 +65,7 @@ class PasswordGeneratorDialog implements Component<PasswordGeneratorDialogAttrs>
 				style: {
 					minHeight: px(65) // needs 65px for displaying two rows
 				}
-			}, m(".center.b.monospace", password())),
+			}, m(".center.b.monospace", password)),
 			m(".small.mt-xs", "This is a secure and easy to remember passphrase generated from a large dictionary. Find out why it is secure FAQ."), // TODO add link to FAQ
 			m(".flex.mt", m(ButtonN, {
 				label: () => "Confirm",
@@ -84,7 +79,7 @@ class PasswordGeneratorDialog implements Component<PasswordGeneratorDialogAttrs>
 					type: ButtonType.Secondary
 				}),
 				m(ButtonN, {
-					click: () => copyToClipboard(password()),
+					click: () => copyToClipboard(password),
 					label: () => "Copy",
 					type: ButtonType.Secondary,
 				}),

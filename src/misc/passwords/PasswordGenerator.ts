@@ -10,12 +10,10 @@ export const NUMBER_OF_BYTES: number = 2
 export const BYTE_RANGE: number = Math.pow(2, (8 * NUMBER_OF_BYTES))
 
 export class PasswordGenerator {
-	_random: WorkerRandomizer
-	_dictionary: Array<string>
-
-	constructor(randomizer: WorkerRandomizer, dictionary: Array<string>) {
-		this._random = randomizer
-		this._dictionary = dictionary
+	constructor(
+		private randomizer: WorkerRandomizer,
+		private dictionary: Array<string>,
+	) {
 	}
 
 	async generateRandomPassphrase(): Promise<string> {
@@ -30,8 +28,8 @@ export class PasswordGenerator {
 	}
 
 	async pickRandomWordFromDictionary(): Promise<string> {
-		const length = this._dictionary.length
-		return this._dictionary[await this.generateRandomNumberInRange(length)]
+		const length = this.dictionary.length
+		return this.dictionary[await this.generateRandomNumberInRange(length)]
 	}
 
 	// The Randomizer generates a number within range := {0, ..., BYTE_RANGE - 1} (1Byte -> {0, ..., 255} for BYTE_RANGE = 256)
@@ -40,7 +38,7 @@ export class PasswordGenerator {
 	// This is necessary to keep the distribution of numbers even, as well as ensuring that we do not access any invalid Index
 	async generateRandomNumberInRange(range: number): Promise<number> {
 		assert(range > 0, "range must be greater than 0")
-		const byteNumber = await this._random.generateRandomNumber(NUMBER_OF_BYTES)
+		const byteNumber = await this.randomizer.generateRandomNumber(NUMBER_OF_BYTES)
 		return Math.floor((byteNumber / BYTE_RANGE) * range)
 	}
 }
