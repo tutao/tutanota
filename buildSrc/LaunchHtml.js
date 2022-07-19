@@ -35,13 +35,13 @@ export async function renderHtml(scripts, env) {
 	<meta name="twitter:site" content="@TutanotaTeam">
 	<meta name="twitter:domain" content="tutanota.com">
 	<meta name="twitter:image" content="https://tutanota.com/images/share_image.png">
-	<meta stream="og:site_name" content="Tutanota">
-	<meta stream="og:title" content="Secure Emails Become a Breeze">
-	<meta stream="og:description" content="Get your encrypted mailbox for free and show the Internet spies that you won&amp;#39;t make it easy for them! Why? Because you simply can.">
-	<meta stream="og:locale" content="en_US">
-	<meta stream="og:url" content="https://tutanota.com/">
-	<meta stream="og:image" content="https://tutanota.com/images/share_image.png">
-	<meta stream="article:publisher" content="https://www.facebook.com/tutanota">
+	<meta property="og:site_name" content="Tutanota">
+	<meta property="og:title" content="Secure Emails Become a Breeze">
+	<meta property="og:description" content="Get your encrypted mailbox for free and show the Internet spies that you won&amp;#39;t make it easy for them! Why? Because you simply can.">
+	<meta property="og:locale" content="en_US">
+	<meta property="og:url" content="https://tutanota.com/">
+	<meta property="og:image" content="https://tutanota.com/images/share_image.png">
+	<meta property="article:publisher" content="https://www.facebook.com/tutanota">
 	<meta itemprop="name" content="Secure Emails Become a Breeze.">
 	<meta itemprop="description" content="Get your encrypted mailbox for free and show the Internet spies that you won&amp;#39;t make it easy for them! Why? Because you simply can.">
 	<meta itemprop="image" content="https://tutanota.com/images/share_image.png">
