@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2022-06-28T09:21:48Z",
+	"updated_at": "2022-07-15T08:35:32Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O službe",
@@ -888,7 +888,8 @@ export default {
 		"npoDiscount_msg": "Ponuka pre neziskovky: 50 % používateľská zľava na balík Premium a 20 aliasov zadarmo!",
 		"npoDonation_msg": "Dar pre neziskovky: až do 50 používateľov Premium a 100 aliasov zadarmo!",
 		"number_label": "Číslo",
-		"offlineStoragePremiumOnly_msg": "Na konfiguráciu offline úložiska je potrebný platený účet. Upgrade ti tiež umožní prihlásiť sa, i keď budeš offline.",
+		"offlineLoginPremiumOnly_msg": "Si offline. Pre zapnutie offline prihlasovania upgraduj na prémiový účet.",
+		"offlineStoragePremiumOnly_msg": "Na konfiguráciu offline úložiska musíš mať platený účet. Upgrade ti tiež umožní prihlasovať sa v offline režime.",
 		"offlineStorage_label": "Offline úložisko",
 		"offline_label": "Offline",
 		"ok_action": "OK",
@@ -1343,6 +1344,7 @@ export default {
 		"today_label": "Dnes",
 		"toggleDevTools_action": "Prepnúť na konzolu",
 		"toggleFullScreen_action": "Prepnúť na celú obrazovku",
+		"toggleUnread_action": "Označiť ako neprečítané",
 		"tomorrow_label": "Zajtra",
 		"tooBigAttachment_msg": "Nasledujúce prílohy nemôžu byť pripojené pretože celková veľkosť presahuje 25MB:",
 		"tooBigInlineImages_msg": "Povolené sú iba súbory do veľkosti {size} KB.",

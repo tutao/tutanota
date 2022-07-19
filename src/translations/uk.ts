@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2022-06-28T09:21:48Z",
+	"updated_at": "2022-07-17T11:15:57Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Про",
@@ -888,6 +888,7 @@ export default {
 		"npoDiscount_msg": "Пропозицiя для НКО: 50% знижка на Premium та 20 псевдонiмiв безкоштовно!",
 		"npoDonation_msg": "Пожертвування для НПО: до 50 користувачів для Премiум аккаунту та 100 псевдонімів безкоштовно!",
 		"number_label": "Номер",
+		"offlineLoginPremiumOnly_msg": "Ви перебуваєте в автономному режимі. Щоб увімкнути автономний вхід, перейдіть до облікового запису преміум, .",
 		"offlineStoragePremiumOnly_msg": "Для настроювання автономного сховища потрібен платний обліковий запис. Оновлення також дозволить вам входити в автономному режимі.",
 		"offlineStorage_label": "Автономне сховище",
 		"offline_label": "Автономний режим",
@@ -1343,6 +1344,7 @@ export default {
 		"today_label": "Сьогодні",
 		"toggleDevTools_action": "Увімкнути консоль",
 		"toggleFullScreen_action": "Увімкнути повноекранний екран",
+		"toggleUnread_action": "Перемкнути непрочитані",
 		"tomorrow_label": "Завтра",
 		"tooBigAttachment_msg": "Наведені файли вкласти неможливо тому, що їх загальний розмір перевищує 25 Мб:",
 		"tooBigInlineImages_msg": "Дозволені лише файли розміром до {size} Кб.",

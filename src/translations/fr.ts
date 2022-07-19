@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2022-06-28T09:21:46Z",
+	"updated_at": "2022-07-12T17:25:00Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -927,6 +927,8 @@ export default {
 		"recipients_label": "Destinataires.",
 		"recommendedDmarcRecord_msg": "Nous recommandons de définir l'entrée TXT suivante pour DMARC, mais vous pouvez également choisir votre propre configuration :",
 		"recommendedDNSValue_label": "Valeur recommandée",
+		"reconnecting_label": "Reconnexion...",
+		"reconnect_action": "Reconnecter",
 		"recoverAccountAccess_action": "Accès à un compte perdu",
 		"recoverResetFactors_action": "Réinitialiser le second facteur",
 		"recoverSetNewPassword_action": "Définir un nouveau mot de passe",

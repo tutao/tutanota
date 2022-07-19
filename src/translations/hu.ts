@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2022-06-28T09:21:46Z",
+	"updated_at": "2022-07-13T04:09:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Körülbelül",
@@ -887,6 +887,7 @@ export default {
 		"npoDiscount_msg": "Ajánlat non-profit szervezeteknek: 50% árengedmény a Prémium előfizetésből és 20 álnév díjmentesen!",
 		"npoDonation_msg": "Adományunk a civil szervezeteknek: Prémium fiókok akár 50 felhasználónak, valalamint 100 alias, díjmentesen!",
 		"number_label": "Szám",
+		"offlineLoginPremiumOnly_msg": "Offline állapotban van. Frissítsen prémium fiókra az offline bejelentkezés engedélyezéséhez!",
 		"offlineStoragePremiumOnly_msg": "Az offline tárolás konfigurálásához fizetős számlára van szüksége. A frissítés lehetővé teszi Önnek a bejelentkezést offline üzemmódban is.",
 		"offlineStorage_label": "Kapcsolat nélküli tárolás.",
 		"offline_label": "Offline.",
@@ -1343,6 +1344,7 @@ export default {
 		"today_label": "Mai nap",
 		"toggleDevTools_action": "Konzol ki/be kapcsolása",
 		"toggleFullScreen_action": "Teljes képernyő kapcsoló",
+		"toggleUnread_action": "Váltás olvasatlanra.",
 		"tomorrow_label": "Holnap",
 		"tooBigAttachment_msg": "Az alábbi fájlok nem csatolhatóak, mivel összesített méretük meghaladja a 25 MB-ot:",
 		"tooBigInlineImages_msg": "Maximum {size} KB-os fileméret engedélyezett!",

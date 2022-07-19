@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2022-06-28T09:21:45Z",
+	"updated_at": "2022-07-15T14:57:59Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -892,7 +892,8 @@ export default {
 		"npoDiscount_msg": "عرض لـ NPOs: خصم 50٪ على بريميوم و 20 اسم مستعار مجاني!",
 		"npoDonation_msg": "التبرع لـ NPOs: ما يصل إلى 50 مستخدمًا لـ بريميوم و 100 اسم مستعار مجاني!",
 		"number_label": "عدد",
-		"offlineStoragePremiumOnly_msg": "تحتاج إلى حساب مدفوع لتكوين مساحة التخزين في وضع أثناء عدم الاتصال. ستمكنك الترقية أيضا من تسجيل الدخول في أثناء عدم الاتصال.",
+		"offlineLoginPremiumOnly_msg": "أنت غير متصل بالإنترنت. قم بالترقية إلى حساب متميز لتمكين تسجيل الدخول في وضع عدم الاتصال.",
+		"offlineStoragePremiumOnly_msg": "تحتاج إلى حساب مدفوع لتكوين مساحة التخزين في وضع عدم الاتصال. ستمكنك الترقية أيضا من تسجيل الدخول أثناء عدم الاتصال.",
 		"offlineStorage_label": "التخزين غير المتصل",
 		"offline_label": "غير متصل",
 		"ok_action": "موافق",
@@ -1347,6 +1348,7 @@ export default {
 		"today_label": "يوم",
 		"toggleDevTools_action": "تبديل وحدة التحكم",
 		"toggleFullScreen_action": " تبديل ملء الشاشة",
+		"toggleUnread_action": "تبديل غير مقروء",
 		"tomorrow_label": "غدا",
 		"tooBigAttachment_msg": "الملفات التالية لا يمكن إرفاقها لأن حجمها يتجاوز 25 ميجابايت:",
 		"tooBigInlineImages_msg": "يُسمح بملفات بحجم أقصى{size} كيلوبايت فقط.",

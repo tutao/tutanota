@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2022-06-28T09:21:46Z",
+	"updated_at": "2022-07-13T11:08:57Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -670,7 +670,7 @@ export default {
 		"invoiceMailBodyOnAccount_msg": "hay disponible una nueva factura con el número {1}. Puedes descargarla en el siguiente enlace, {2}. El pago vence a los 7 días de la fecha de la factura.\n",
 		"invoiceMailSubject_msg": "Nueva factura para Tutanota",
 		"invoiceNotPaidUser_msg": "Lo sentimos, actualmente no se te permite enviar correos electrónicos.",
-		"invoiceNotPaid_msg": "Lo sentimos, actualmente no tienes permitido enviar correos porque tienes una factura sin pagar. Por favor actualiza tus datos de pago en 'Ajustes -> Pago' y luego activa tus pagos siguientes.",
+		"invoiceNotPaid_msg": "Lo sentimos, actualmente no tienes permitido enviar o recibir correos porque tienes una o más facturas sin pagar. Por favor actualiza tus datos de pago en 'Ajustes -> Pago' y luego activa tus pagos siguientes.",
 		"invoicePayConfirm_msg": "Procedemos al adeudar la siguiente cantidad:",
 		"invoicePaymentMethodInfo_msg": "Por favor, elija un método de pago. Se añadirán más opciones en el futuro.",
 		"invoicePay_action": "Pagar",
@@ -890,6 +890,7 @@ export default {
 		"npoDiscount_msg": "Oferta para ONGs: ¡50% de descuento para los usuarios Premium y 20 alias de forma gratuita!",
 		"npoDonation_msg": "Donación para ONGs: ¡hasta 50 usuarios para usuarios Premium y 100 alias de forma gratuita!",
 		"number_label": "Número",
+		"offlineLoginPremiumOnly_msg": "Estás desconectado. Actualiza a una cuenta prémium para habilitar el inicio de sesión sin conexión.",
 		"offlineStoragePremiumOnly_msg": "Necesitas una cuenta prémium para configurar el almacenamiento sin conexión. La actualización también te permitirá iniciar sesión sin conexión.",
 		"offlineStorage_label": "Almacenamiento sin conexión",
 		"offline_label": "Fuera de línea",
@@ -1345,6 +1346,7 @@ export default {
 		"today_label": "Hoy",
 		"toggleDevTools_action": "Alternar consola",
 		"toggleFullScreen_action": "Alternar pantalla completa",
+		"toggleUnread_action": "Alternar no leído",
 		"tomorrow_label": "Mañana",
 		"tooBigAttachment_msg": "Los siguientes archivos no se adjuntarán porque el conjunto excede el límite de 25 MB:",
 		"tooBigInlineImages_msg": "Solo se permiten archivos de hasta {size} KB.",
