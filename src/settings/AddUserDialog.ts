@@ -35,7 +35,7 @@ export function show(): Promise<void> {
 					}),
 					m(SelectMailAddressForm, {
 						availableDomains,
-						onEmailChanged: (email, verificationResult) => {
+						onValidationResult: (email, verificationResult) => {
 							if (verificationResult.isValid) {
 								emailAddress = email
 								errorMsg = null

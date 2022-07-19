@@ -117,7 +117,7 @@ export class EditAliasesFormN implements Component<EditAliasesFormAttrs> {
 							return [
 								m(SelectMailAddressForm, {
 									availableDomains: domains,
-									onEmailChanged: (email, validationResult) => {
+									onValidationResult: (email, validationResult) => {
 										if (validationResult.isValid) {
 											mailAddress = email
 											formErrorId = null

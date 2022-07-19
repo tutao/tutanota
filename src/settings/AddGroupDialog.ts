@@ -57,7 +57,7 @@ export class AddGroupDialog implements Component<AddGroupDialogAttrs> {
 			groupType === GroupType.Mail
 				? m(SelectMailAddressForm, {
 					availableDomains,
-					onEmailChanged,
+					onValidationResult: onEmailChanged,
 					onBusyStateChanged,
 				})
 				: m(""),
