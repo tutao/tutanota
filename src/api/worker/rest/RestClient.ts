@@ -157,7 +157,6 @@ export class RestClient {
 				// don't add an EventListener for non-CORS requests, otherwise it would not meet the 'CORS-Preflight simple request' requirements
 				if (!options.noCORS) {
 					xhr.upload.onprogress = (pe: ProgressEvent) => {
-						// @ts-ignore
 						if (verbose) {
 							console.log(`${this.id}: ${String(new Date())} upload progress. Clearing Timeout ${String(timeout)}`, pe)
 						}
@@ -167,7 +166,6 @@ export class RestClient {
 						timeout = setTimeout(t.abortFunction, env.timeout)
 						t.timeoutId = timeout
 
-						// @ts-ignore
 						if (verbose) {
 							console.log(`${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
 						}
@@ -177,10 +175,30 @@ export class RestClient {
 							options.progressListener.upload((1 / pe.total) * pe.loaded)
 						}
 					}
+
+					xhr.upload.ontimeout = (e) => {
+						if (verbose) {
+							console.log(`${this.id}: ${String(new Date())} upload timeout. calling error handler.`, e)
+						}
+						xhr.onerror?.(e)
+					}
+
+					xhr.upload.onerror = (e) => {
+						if (verbose) {
+							console.log(`${this.id}: ${String(new Date())} upload error. calling error handler.`, e)
+						}
+						xhr.onerror?.(e)
+					}
+
+					xhr.upload.onabort = (e) => {
+						if (verbose) {
+							console.log(`${this.id}: ${String(new Date())} upload aborted. calling error handler.`, e)
+						}
+						xhr.onerror?.(e)
+					}
 				}
 
 				xhr.onprogress = (pe: ProgressEvent) => {
-					// @ts-ignore
 					if (verbose) {
 						console.log(`${this.id}: ${String(new Date())} download progress. Clearing Timeout ${String(timeout)}`, pe)
 					}
@@ -190,7 +208,6 @@ export class RestClient {
 					timeout = setTimeout(t.abortFunction, env.timeout)
 					t.timeoutId = timeout
 
-					// @ts-ignore
 					if (verbose) {
 						console.log(`${this.id}: set new timeout ${String(timeout)} of ${env.timeout}`)
 					}
