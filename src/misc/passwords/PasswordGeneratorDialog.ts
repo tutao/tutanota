@@ -88,7 +88,7 @@ class PasswordGeneratorDialog implements Component<PasswordGeneratorDialogAttrs>
 				}),
 			]),
 			m(".flex", m(Button, {
-				label: () => "confirmPassword_action",
+				label: () => "apply_action",
 				click: () => okAction(),
 				type: ButtonType.Login
 			})),

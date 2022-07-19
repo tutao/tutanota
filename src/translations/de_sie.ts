@@ -1473,7 +1473,7 @@ export default {
 		"generatePassphrase_action": "Generate passphrase",
 		"revealPassword_action": "Reveal the password",
 		"concealPassword_action": "Conceal the password",
-		"confirmPassword_action": "Confirm",
+		"apply_action": "Apply",
 		"regeneratePassword_action": "Regenerate",
 		"faqEntry_label": "FAQ entry",
 		"passphraseGeneratorHelp_msg": "This is a secure and easy to remember passphrase generated from a large dictionary."
