@@ -81,7 +81,7 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 		}
 		const mailFormAttrs: SelectMailAddressFormAttrs = {
 			availableDomains: [a.data.domain()],
-			onEmailChanged: (email, validationResult) => {
+			onValidationResult: (email, validationResult) => {
 				if (validationResult.isValid) {
 					a.mailAddress = email
 					a.errorMessageId = null
