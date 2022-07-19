@@ -1,7 +1,7 @@
 import m, {Children, Component, Vnode} from "mithril"
 import {Dialog} from "../../gui/base/Dialog"
 import {PasswordGenerator} from "./PasswordGenerator"
-import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
+import {Button, ButtonType} from "../../gui/base/Button.js"
 import {locator} from "../../api/main/MainLocator"
 import {px} from "../../gui/size"
 import {copyToClipboard} from "../ClipboardUtils"
@@ -67,18 +67,18 @@ class PasswordGeneratorDialog implements Component<PasswordGeneratorDialogAttrs>
 			}, m(".center.b.monospace", password)),
 			m(".small.mt-xs", "This is a secure and easy to remember passphrase generated from a large dictionary. Find out why it is secure FAQ."), // TODO add link to FAQ
 			m(".flex-end", [
-				m(ButtonN, {
+				m(Button, {
 					label: () => "Regenerate",
 					click: () => updateAction(),
 					type: ButtonType.Secondary
 				}),
-				m(ButtonN, {
+				m(Button, {
 					click: () => copyToClipboard(password),
 					label: () => "Copy",
 					type: ButtonType.Secondary,
 				}),
 			]),
-			m(".flex", m(ButtonN, {
+			m(".flex", m(Button, {
 				label: () => "Confirm",
 				click: () => okAction(),
 				type: ButtonType.Login

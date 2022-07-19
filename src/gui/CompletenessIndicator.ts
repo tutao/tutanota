@@ -3,16 +3,17 @@ import {scaleToVisualPasswordStrength} from "../misc/passwords/PasswordUtils"
 import {theme} from "./theme.js"
 
 export interface CompletenessIndicatorAttrs {
-	percentageCompleted: number
+	percentageCompleted: number,
+	width?: string,
 }
 
 export class CompletenessIndicator implements Component<CompletenessIndicatorAttrs> {
 	view({attrs}: Vnode<CompletenessIndicatorAttrs>): Children {
-		return m(".mt-s",
+		return m("",
 			{
 				style: {
 					border: `1px solid ${theme.content_button}`,
-					width: "100px",
+					width: attrs.width ?? "100px",
 					height: "10px",
 				},
 			},

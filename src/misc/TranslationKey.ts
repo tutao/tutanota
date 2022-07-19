@@ -1452,3 +1452,6 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "generatePassphrase_action"
+	| "revealPassword_action"
+	| "concealPassword_action"
