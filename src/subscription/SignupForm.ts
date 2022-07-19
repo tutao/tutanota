@@ -45,7 +45,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private _isMailVerificationBusy: boolean
 
 	constructor() {
-		this.passwordModel = new PasswordModel(logins, {checkOldPassword: false, enforceStrength: true, repeatInput: true})
+		this.passwordModel = new PasswordModel(logins, {checkOldPassword: false, enforceStrength: true, repeatInput: false})
 		this._confirmTerms = stream<boolean>(false)
 		this._confirmAge = stream<boolean>(false)
 		this._code = stream("")
