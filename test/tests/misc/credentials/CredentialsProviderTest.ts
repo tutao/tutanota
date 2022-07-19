@@ -13,10 +13,9 @@ import {instance, object, when} from "testdouble"
 import {DatabaseKeyFactory} from "../../../../src/misc/credentials/DatabaseKeyFactory.js"
 import {keyToBase64} from "@tutao/tutanota-crypto"
 import {OfflineDbFacade} from "../../../../src/desktop/db/OfflineDbFacade.js"
-import {InterWindowEventBus} from "../../../../src/native/common/InterWindowEventBus.js"
 import {verify} from "@tutao/tutanota-test-utils"
-import {InterWindowEventTypes} from "../../../../src/native/common/InterWindowEventTypes"
 import {CredentialsKeyMigrator} from "../../../../src/misc/credentials/CredentialsKeyMigrator.js"
+import {InterWindowEventFacadeSendDispatcher} from "../../../../src/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 
 const encryptionKey = new Uint8Array([1, 2, 5, 8])
 
@@ -76,7 +75,7 @@ o.spec("CredentialsProvider", function () {
 	let keyMigratorMock: CredentialsKeyMigrator
 	let databaseKeyFactoryMock: DatabaseKeyFactory
 	let offlineDbFacadeMock: OfflineDbFacade
-	let interWindowEventBusMock: InterWindowEventBus<InterWindowEventTypes>
+	let interWindowEventSenderMock: InterWindowEventFacadeSendDispatcher
 	o.beforeEach(function () {
 		internalCredentials = {
 			login: "test@example.com",
@@ -134,9 +133,9 @@ o.spec("CredentialsProvider", function () {
 		keyMigratorMock = object<CredentialsKeyMigrator>()
 		databaseKeyFactoryMock = instance(DatabaseKeyFactory)
 		offlineDbFacadeMock = object()
-		interWindowEventBusMock = object()
+		interWindowEventSenderMock = object()
 		credentialsProvider = new CredentialsProvider(encryption, storageMock, keyMigratorMock, databaseKeyFactoryMock,
-			offlineDbFacadeMock, interWindowEventBusMock)
+			offlineDbFacadeMock, interWindowEventSenderMock)
 	})
 
 	o.spec("Storing credentials", function () {
@@ -192,7 +191,7 @@ o.spec("CredentialsProvider", function () {
 		})
 		o("Sends event over EventBus", async function () {
 			await credentialsProvider.deleteByUserId(internalCredentials.userId)
-			verify(interWindowEventBusMock.send("credentialsDeleted", {userId: internalCredentials.userId}))
+			verify(interWindowEventSenderMock.localUserDataInvalidated(internalCredentials.userId))
 		})
 	})
 
@@ -239,8 +238,8 @@ o.spec("CredentialsProvider", function () {
 		})
 		o("Sends event over EventBus", async function () {
 			await credentialsProvider.clearCredentials("testing")
-			verify(interWindowEventBusMock.send("credentialsDeleted", {userId: internalCredentials.userId}))
-			verify(interWindowEventBusMock.send("credentialsDeleted", {userId: externalCredentials.userId}))
+			verify(interWindowEventSenderMock.localUserDataInvalidated(internalCredentials.userId))
+			verify(interWindowEventSenderMock.localUserDataInvalidated(externalCredentials.userId))
 		})
 	})
 })

@@ -4,9 +4,7 @@ import {MessageDispatcher, Request} from "../../api/common/MessageDispatcher"
 import type {DeferredObject} from "@tutao/tutanota-utils"
 import {defer} from "@tutao/tutanota-utils"
 import type {NativeInterface} from "../common/NativeInterface"
-import {ExposedWebInterface} from "../common/NativeInterface"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
-import {exposeLocal} from "../../api/common/WorkerProxy"
 import {IosNativeTransport} from './IosNativeTransport.js'
 import {AndroidNativeTransport} from "./AndroidNativeTransport.js"
 import {DesktopNativeTransport} from "./DesktopNativeTransport.js"
@@ -19,7 +17,6 @@ export class NativeInterfaceMain implements NativeInterface {
 	private _appUpdateListener: (() => void) | null = null
 
 	constructor(
-		private readonly webInterface: ExposedWebInterface,
 		private readonly globalDispatcher: WebGlobalDispatcher,
 	) {
 	}
@@ -41,7 +38,6 @@ export class NativeInterfaceMain implements NativeInterface {
 
 		// Ensure that we have messaged native with "init" before we allow anyone else to make native requests
 		const queue = new MessageDispatcher<NativeRequestType, JsRequestType>(transport, {
-			"facade": exposeLocal(this.webInterface),
 			"ipc": (request: Request<JsRequestType>) => this.globalDispatcher.dispatch(request.args[0], request.args[1], request.args.slice(2))
 		})
 		await queue.postRequest(new Request("ipc", ["CommonSystemFacade", "initializeRemoteBridge"]))

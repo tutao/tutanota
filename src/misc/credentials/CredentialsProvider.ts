@@ -4,9 +4,8 @@ import {assertNotNull} from "@tutao/tutanota-utils"
 import type {Credentials} from "./Credentials"
 import {DatabaseKeyFactory} from "./DatabaseKeyFactory"
 import {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade"
-import {InterWindowEventBus} from "../../native/common/InterWindowEventBus"
-import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes"
 import {CredentialsKeyMigrator} from "./CredentialsKeyMigrator.js"
+import {InterWindowEventFacadeSendDispatcher} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 
 /**
  * Type for persistent credentials, that contain the full credentials data.
@@ -117,7 +116,7 @@ export class CredentialsProvider {
 		private readonly keyMigrator: CredentialsKeyMigrator,
 		private readonly databaseKeyFactory: DatabaseKeyFactory,
 		private readonly offlineDbFacade: OfflineDbFacade | null,
-		private readonly interWindowEventBus: InterWindowEventBus<InterWindowEventTypes> | null,
+		private readonly interWindowEventSender: InterWindowEventFacadeSendDispatcher | null,
 	) {
 	}
 
@@ -181,8 +180,8 @@ export class CredentialsProvider {
 	 * @param opts.deleteOfflineDb whether to delete offline database. Will delete by default.
 	 */
 	async deleteByUserId(userId: Id, opts: {deleteOfflineDb: boolean} = {deleteOfflineDb: true}): Promise<void> {
-		await this.interWindowEventBus?.send("credentialsDeleted", {userId})
-		if (opts?.deleteOfflineDb) {
+		await this.interWindowEventSender?.localUserDataInvalidated(userId)
+		if (opts.deleteOfflineDb) {
 			await this.offlineDbFacade?.deleteDatabaseForUser(userId)
 		}
 		this.storage.deleteByUserId(userId)

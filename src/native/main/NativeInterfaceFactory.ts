@@ -3,7 +3,6 @@ import {NativePushServiceApp} from "./NativePushServiceApp.js"
 import {NativeFileApp} from "../common/FileApp.js"
 import {isBrowser, isElectronClient} from "../../api/common/Env.js"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
-import {ExposedWebInterface} from "../common/NativeInterface.js"
 import {DesktopFacade} from "../common/generatedipc/DesktopFacade.js"
 import {MobileFacade} from "../common/generatedipc/MobileFacade.js"
 import {CommonNativeFacade} from "../common/generatedipc/CommonNativeFacade.js"
@@ -27,6 +26,8 @@ import {SettingsFacadeSendDispatcher} from "../common/generatedipc/SettingsFacad
 import {DesktopSystemFacadeSendDispatcher} from "../common/generatedipc/DesktopSystemFacadeSendDispatcher.js"
 import {SearchTextInAppFacade} from "../common/generatedipc/SearchTextInAppFacade.js"
 import {DesktopSystemFacade} from "../common/generatedipc/DesktopSystemFacade.js"
+import {InterWindowEventFacade} from "../common/generatedipc/InterWindowEventFacade.js"
+import {InterWindowEventFacadeSendDispatcher} from "../common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 
 export type NativeInterfaces = {
 	native: NativeInterfaceMain
@@ -41,6 +42,7 @@ export type DesktopInterfaces = {
 	searchTextFacade: SearchTextInAppFacade,
 	desktopSettingsFacade: SettingsFacadeSendDispatcher,
 	desktopSystemFacade: DesktopSystemFacade,
+	interWindowEventSender: InterWindowEventFacadeSendDispatcher,
 }
 
 /**
@@ -48,9 +50,9 @@ export type DesktopInterfaces = {
  * @throws ProgrammingError when you try to call this in the web browser
  */
 export function createNativeInterfaces(
-	webInterface: ExposedWebInterface,
 	mobileFacade: MobileFacade,
 	desktopFacade: DesktopFacade,
+	interWindowEventFacade: InterWindowEventFacade,
 	commonNativeFacade: CommonNativeFacade,
 	cryptoFacade: CryptoFacade,
 	calendarFacade: CalendarFacade,
@@ -63,9 +65,10 @@ export function createNativeInterfaces(
 	const dispatcher = new WebGlobalDispatcher(
 		commonNativeFacade,
 		desktopFacade,
+		interWindowEventFacade,
 		mobileFacade,
 	)
-	const native = new NativeInterfaceMain(webInterface, dispatcher)
+	const native = new NativeInterfaceMain(dispatcher)
 	const nativePushFacadeSendDispatcher = new NativePushFacadeSendDispatcher(native)
 	const pushService = new NativePushServiceApp(nativePushFacadeSendDispatcher, logins, cryptoFacade, entityClient, deviceConfig, calendarFacade)
 	const fileApp = new NativeFileApp(new FileFacadeSendDispatcher(native), new ExportFacadeSendDispatcher(native))
@@ -90,5 +93,6 @@ export function createDesktopInterfaces(native: NativeInterfaceMain): DesktopInt
 		searchTextFacade: new SearchTextInAppFacadeSendDispatcher(native),
 		desktopSettingsFacade: new SettingsFacadeSendDispatcher(native),
 		desktopSystemFacade: new DesktopSystemFacadeSendDispatcher(native),
+		interWindowEventSender: new InterWindowEventFacadeSendDispatcher(native),
 	}
 }

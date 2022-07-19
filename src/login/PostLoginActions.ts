@@ -132,17 +132,6 @@ export class PostLoginActions implements IPostLoginAction {
 		locator.usageTestController.addTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly))
 
 		this.enforcePasswordChange()
-
-		if (isDesktop()) {
-			const eventHandler = async (data: {userId: Id}) => {
-				if (data.userId === logins.getUserController().userId) {
-					await logins.logout(false)
-					await windowFacade.reload({noAutoLogin: true})
-				}
-			}
-			locator.interWindowEventBus.addListener("credentialsDeleted", eventHandler)
-			locator.interWindowEventBus.addListener("localDataOutOfSync", eventHandler)
-		}
 	}
 
 	private deactivateOutOfOfficeNotification(notification: OutOfOfficeNotification): Promise<void> {

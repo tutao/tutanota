@@ -46,7 +46,7 @@ import {UserManagementFacade} from "../worker/facades/UserManagementFacade"
 import {GroupManagementFacade} from "../worker/facades/GroupManagementFacade"
 import {WorkerRandomizer} from "../worker/WorkerImpl"
 import {exposeRemote} from "../common/WorkerProxy"
-import {ExposedNativeInterface, ExposedWebInterface} from "../../native/common/NativeInterface"
+import {ExposedNativeInterface} from "../../native/common/NativeInterface"
 import {IWebauthn} from "../../misc/2fa/webauthn/IWebauthn.js"
 import {BrowserWebauthn} from "../../misc/2fa/webauthn/BrowserWebauthn.js"
 import {UsageTestController} from "@tutao/tutanota-usagetests"
@@ -55,11 +55,9 @@ import {deviceConfig} from "../../misc/DeviceConfig"
 import {IServiceExecutor} from "../common/ServiceRequest.js"
 import {BlobFacade} from "../worker/facades/BlobFacade"
 import {CryptoFacade} from "../worker/crypto/CryptoFacade"
-import type {InterWindowEventBus} from "../../native/common/InterWindowEventBus"
 import {RecipientsModel} from "./RecipientsModel"
 import {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade"
 import {ExposedCacheStorage} from "../worker/rest/DefaultEntityRestCache.js"
-import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes"
 import {LoginListener} from "./LoginListener"
 import {SearchTextInAppFacade} from "../../native/common/generatedipc/SearchTextInAppFacade.js"
 import {SettingsFacade} from "../../native/common/generatedipc/SettingsFacade.js"
@@ -69,6 +67,9 @@ import {DesktopSystemFacade} from "../../native/common/generatedipc/DesktopSyste
 import {ThemeFacade} from "../../native/common/generatedipc/ThemeFacade.js"
 import {FileControllerBrowser} from "../../file/FileControllerBrowser.js"
 import {FileControllerNative} from "../../file/FileControllerNative.js"
+import {windowFacade} from "../../misc/WindowFacade.js"
+import {InterWindowEventFacade} from "../../native/common/generatedipc/InterWindowEventFacade.js"
+import {InterWindowEventFacadeSendDispatcher} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 
 assertMainOrNode()
 
@@ -115,7 +116,6 @@ export interface IMainLocator {
 	readonly usageTestModel: UsageTestModel
 	readonly serviceExecutor: IServiceExecutor
 	readonly cryptoFacade: CryptoFacade
-	readonly interWindowEventBus: InterWindowEventBus<InterWindowEventTypes>
 	readonly loginListener: LoginListener
 	readonly offlineDbFacade: OfflineDbFacade
 	readonly cacheStorage: ExposedCacheStorage
@@ -123,6 +123,7 @@ export interface IMainLocator {
 	readonly searchTextFacade: SearchTextInAppFacade
 	readonly desktopSettingsFacade: SettingsFacade
 	readonly desktopSystemFacade: DesktopSystemFacade
+	readonly interWindowEventSender: InterWindowEventFacade
 	readonly random: WorkerRandomizer;
 	readonly init: () => Promise<void>
 	readonly initialized: Promise<void>
@@ -168,10 +169,10 @@ class MainLocator implements IMainLocator {
 	searchTextFacade!: SearchTextInAppFacade
 	desktopSettingsFacade!: SettingsFacade
 	desktopSystemFacade!: DesktopSystemFacade
+	interWindowEventSender!: InterWindowEventFacadeSendDispatcher
 	cacheStorage!: ExposedCacheStorage
-	_interWindowEventBus!: InterWindowEventBus<InterWindowEventTypes>
 	loginListener!: LoginListener
-	random!:WorkerRandomizer
+	random!: WorkerRandomizer
 
 	/**
 	 * @deprecated
@@ -202,13 +203,6 @@ class MainLocator implements IMainLocator {
 
 	get systemFacade(): MobileSystemFacade {
 		return this._getNativeInterface("mobileSystemFacade")
-	}
-
-	get interWindowEventBus(): InterWindowEventBus<InterWindowEventTypes> {
-		if (!isElectronClient()) {
-			throw new ProgrammingError("Trying to use InterWindowEventBus not in electron")
-		}
-		return this._interWindowEventBus
 	}
 
 	get webauthnController(): IWebauthn {
@@ -321,22 +315,15 @@ class MainLocator implements IMainLocator {
 		this.cacheStorage = cacheStorage
 
 		if (!isBrowser()) {
-			if (isElectronClient()) {
-				const {InterWindowEventBus} = await import("../../native/common/InterWindowEventBus.js")
-				this._interWindowEventBus = new InterWindowEventBus()
-			}
-			const webInterface: ExposedWebInterface = {
-				interWindowEventHandler: this._interWindowEventBus,
-			}
-
 			const {WebDesktopFacade} = await import("../../native/main/WebDesktopFacade")
 			const {WebMobileFacade} = await import("../../native/main/WebMobileFacade.js")
 			const {WebCommonNativeFacade} = await import("../../native/main/WebCommonNativeFacade.js")
+			const {WebInterWindowEventFacade} = await import("../../native/main/WebInterWindowEventFacade.js")
 			const {createNativeInterfaces, createDesktopInterfaces} = await import("../../native/main/NativeInterfaceFactory.js")
 			this._nativeInterfaces = createNativeInterfaces(
-				webInterface,
 				new WebMobileFacade(),
 				new WebDesktopFacade(),
+				new WebInterWindowEventFacade(logins, windowFacade),
 				new WebCommonNativeFacade(),
 				cryptoFacade,
 				calendarFacade,
@@ -346,7 +333,7 @@ class MainLocator implements IMainLocator {
 			if (isElectronClient()) {
 				const desktopInterfaces = createDesktopInterfaces(this.native)
 				this.searchTextFacade = desktopInterfaces.searchTextFacade
-				this.interWindowEventBus.init(this.getExposedNativeInterface().interWindowEventSender)
+				this.interWindowEventSender = desktopInterfaces.interWindowEventSender
 				if (isDesktop()) {
 					this.desktopSettingsFacade = desktopInterfaces.desktopSettingsFacade
 					this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
@@ -357,7 +344,11 @@ class MainLocator implements IMainLocator {
 		this.webauthnClient = new WebauthnClient(this.webauthnController, getWebRoot())
 		this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, this.webauthnClient, this.loginFacade)
 		this.loginListener = new LoginListener(this.secondFactorHandler)
-		this.credentialsProvider = await createCredentialsProvider(deviceEncryptionFacade, this._nativeInterfaces?.native ?? null, isDesktop() ? this.interWindowEventBus : null)
+		this.credentialsProvider = await createCredentialsProvider(
+			deviceEncryptionFacade,
+			this._nativeInterfaces?.native ?? null,
+			isDesktop() ? this.interWindowEventSender : null
+		)
 		this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient)
 		this.random = random
 		this.usageTestModel = new UsageTestModel(

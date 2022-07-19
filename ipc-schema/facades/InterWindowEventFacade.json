@@ -1,0 +1,14 @@
+{
+  "name": "InterWindowEventFacade",
+  "type": "facade",
+  "doc": "messages to be sent from one desktop window to another, transferred through the native part.",
+  "senders": ["web", "desktop"],
+  "receivers": ["web", "desktop"],
+  "methods": {
+	"localUserDataInvalidated": {
+	  "doc": "stored credentials for this user Id were deleted, so they are unusable",
+	  "arg": [{"userId": "string"}],
+	  "ret": "void"
+	}
+  }
+}

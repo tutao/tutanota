@@ -115,7 +115,11 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	const offlineStorageProvider = async () => {
 		if (isOfflineStorageAvailable()) {
 			const {offlineDbFacade} = exposeNativeInterface(locator.native)
-			return new OfflineStorage(offlineDbFacade, new WorkerDateProvider(), new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS, modelInfos))
+			return new OfflineStorage(
+				offlineDbFacade,
+				new WorkerDateProvider(),
+				new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS, modelInfos),
+			)
 		} else {
 			return null
 		}
