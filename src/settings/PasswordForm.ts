@@ -210,21 +210,20 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 				m(TextField, {
 					label: "newPassword_label",
 					value: attrs.model.getNewPassword(),
-					helpLabel: () => m("", [
-						m(StatusField, {status: attrs.model.getNewPasswordStatus()}),
+					helpLabel: () => m(".flex.col.mt-s", [
+						m(".flex.items-center", [
+							m(".mr-s", m(CompletenessIndicator, {
+								percentageCompleted: attrs.model.getPasswordStrength(),
+							})),
+							m(StatusField, {status: attrs.model.getNewPasswordStatus()}),
+						]),
 						this.renderPasswordGeneratorHelp(attrs)
 					]),
 					oninput: (input) => attrs.model.setNewPassword(input),
 					type: attrs.model.isPasswordRevealed() ? TextFieldType.Text : TextFieldType.Password,
 					preventAutofill: true,
 					fontSize: px(size.font_size_smaller),
-					injectionsRight: () => m(".flex.items-center", [
-						m(".mlr-s", m(CompletenessIndicator, {
-							percentageCompleted: attrs.model.getPasswordStrength(),
-							width: "50px",
-						})),
-						this.renderRevealIcon(attrs),
-					]),
+					injectionsRight: () => this.renderRevealIcon(attrs),
 				}),
 				attrs.passwordInfoKey ? m(".small.mt-s", lang.get(attrs.passwordInfoKey)) : null,
 				attrs.model.config.repeatInput
@@ -246,7 +245,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 
 	private renderPasswordGeneratorHelp(attrs: PasswordFormAttrs): Children {
 		return m("", [
-			m(".b.mr-xs.hover.click.darkest-hover", {
+			m(".b.mr-xs.hover.click.darkest-hover.mt-s", {
 				style: {display: "inline-block", color: theme.navigation_button_selected},
 				onclick: async () => {
 					attrs.model.setNewPassword(await showPasswordGeneratorDialog())
