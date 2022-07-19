@@ -12,7 +12,8 @@ import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtil
 import {showPasswordGeneratorDialog} from "../misc/passwords/PasswordGeneratorDialog"
 import {theme} from "../gui/theme"
 import {Icons} from "../gui/base/icons/Icons"
-import {ButtonAttrs, ButtonN} from "../gui/base/ButtonN.js"
+import {Button, ButtonAttrs} from "../gui/base/Button.js"
+import {px, size} from "../gui/size.js"
 
 assertMainOrNode()
 
@@ -179,7 +180,7 @@ export class PasswordModel {
 		this.revealPassword = !this.revealPassword
 	}
 
-	getRevealPassword(): boolean {
+	isPasswordRevealed(): boolean {
 		return this.revealPassword
 	}
 }
@@ -203,6 +204,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 						oninput: (input) => attrs.model.setOldPassword(input),
 						preventAutofill: true,
 						type: TextFieldType.Password,
+						fontSize: px(size.font_size_smaller),
 					})
 					: null,
 				m(TextField, {
@@ -213,10 +215,14 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 						this.renderPasswordGeneratorHelp(attrs)
 					]),
 					oninput: (input) => attrs.model.setNewPassword(input),
-					type: attrs.model.getRevealPassword() ? TextFieldType.Text : TextFieldType.Password,
+					type: attrs.model.isPasswordRevealed() ? TextFieldType.Text : TextFieldType.Password,
 					preventAutofill: true,
+					fontSize: px(size.font_size_smaller),
 					injectionsRight: () => m(".flex.items-center", [
-						m(".mlr-s", m(CompletenessIndicator, {percentageCompleted: attrs.model.getPasswordStrength()})),
+						m(".mlr-s", m(CompletenessIndicator, {
+							percentageCompleted: attrs.model.getPasswordStrength(),
+							width: "50px",
+						})),
 						this.renderRevealIcon(attrs),
 					]),
 				}),
@@ -240,27 +246,24 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 
 	private renderPasswordGeneratorHelp(attrs: PasswordFormAttrs): Children {
 		return m("", [
-			m(".mr-xs", {style: {display: "inline-block"}}, "Having trouble creating a password?"),
 			m(".b.mr-xs.hover.click.darkest-hover", {
 				style: {display: "inline-block", color: theme.navigation_button_selected},
 				onclick: async () => {
 					attrs.model.setNewPassword(await showPasswordGeneratorDialog())
 					m.redraw()
 				}
-			}, "Generate"), // FIXME: translate
-			m("", {style: {display: "inline-block"}}, "a passphrase!")
+			}, lang.get("generatePassphrase_action")),
 		])
 	}
 
 	private renderRevealIcon(attrs: PasswordFormAttrs): Children {
 		const buttonAttrs: ButtonAttrs = {
-			// FIXME
-			label: "emptyString_msg",
+			label: attrs.model.isPasswordRevealed() ? "concealPassword_action" : "revealPassword_action",
 			click: () => {
 				attrs.model.toggleRevealPassword()
 			},
-			icon: () => attrs.model.getRevealPassword() ? Icons.NoEye : Icons.Eye,
+			icon: () => attrs.model.isPasswordRevealed() ? Icons.NoEye : Icons.Eye,
 		}
-		return m(ButtonN, buttonAttrs)
+		return m(Button, buttonAttrs)
 	}
 }

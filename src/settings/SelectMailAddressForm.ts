@@ -18,6 +18,7 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
 import {isTutanotaMailAddress} from "../mail/model/MailUtils.js";
+import {px, size} from "../gui/size.js"
 
 assertMainOrNode()
 const VALID_MESSAGE_ID = "mailAddressAvailable_msg"
@@ -87,6 +88,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			value: this._username(),
 			alignRight: true,
 			helpLabel: () => this._addressHelpLabel(),
+			fontSize: px(size.font_size_smaller),
 			oninput: (value) => {
 				this._username(value)
 				validate()
@@ -98,6 +100,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 						style: {
 							"padding-bottom": "1px",
 							flex: "1 1 auto",
+							fontSize: px(size.font_size_smaller)
 						},
 					},
 					`@${this._domain()}`,

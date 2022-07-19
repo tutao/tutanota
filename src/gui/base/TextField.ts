@@ -31,7 +31,8 @@ export type TextFieldAttrs = {
 	disabled?: boolean
 	oninput?: (value: string, input: HTMLInputElement) => unknown
 	onclick?: clickHandler
-	doShowBorder?: boolean | null
+	doShowBorder?: boolean | null,
+	fontSize?: string
 }
 
 export const enum TextFieldType {
@@ -250,6 +251,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							minWidth: px(20),
 							// fix for edge browser. buttons are cut off in small windows otherwise
 							lineHeight: px(inputLineHeight),
+							fontSize: a.fontSize,
 						},
 					}),
 					this._shouldShowPasswordOverlay(a)
@@ -320,6 +322,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 					marginTop: px(inputMarginTop),
 					lineHeight: px(inputLineHeight),
 					minWidth: px(20), // fix for edge browser. buttons are cut off in small windows otherwise
+					fontSize: a.fontSize,
 				},
 			})
 		}
