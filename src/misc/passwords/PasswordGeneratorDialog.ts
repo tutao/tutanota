@@ -5,7 +5,6 @@ import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
 import {locator} from "../../api/main/MainLocator"
 import {px} from "../../gui/size"
 import {copyToClipboard} from "../ClipboardUtils"
-import {getWebRoot, isApp, isDesktop} from "../../api/common/Env.js"
 import {state} from "../../app.js"
 import {assertNotNull} from "@tutao/tutanota-utils"
 
@@ -67,12 +66,7 @@ class PasswordGeneratorDialog implements Component<PasswordGeneratorDialogAttrs>
 				}
 			}, m(".center.b.monospace", password)),
 			m(".small.mt-xs", "This is a secure and easy to remember passphrase generated from a large dictionary. Find out why it is secure FAQ."), // TODO add link to FAQ
-			m(".flex.mt", m(ButtonN, {
-				label: () => "Confirm",
-				click: () => okAction(),
-				type: ButtonType.Login
-			})),
-			m(".flex-space-between", [
+			m(".flex-end", [
 				m(ButtonN, {
 					label: () => "Regenerate",
 					click: () => updateAction(),
@@ -83,7 +77,12 @@ class PasswordGeneratorDialog implements Component<PasswordGeneratorDialogAttrs>
 					label: () => "Copy",
 					type: ButtonType.Secondary,
 				}),
-			])
+			]),
+			m(".flex", m(ButtonN, {
+				label: () => "Confirm",
+				click: () => okAction(),
+				type: ButtonType.Login
+			})),
 		])
 	}
 }
