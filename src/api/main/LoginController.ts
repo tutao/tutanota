@@ -174,7 +174,11 @@ export class LoginControllerImpl implements LoginController {
 		return credentials
 	}
 
-	async resumeSession({credentials, databaseKey}: CredentialsAndDatabaseKey, externalUserSalt?: Uint8Array | null, offlineTimeRangeDays?: number | null): Promise<ResumeSessionResult> {
+	async resumeSession(
+		{credentials, databaseKey}: CredentialsAndDatabaseKey,
+		externalUserSalt?: Uint8Array | null,
+		offlineTimeRangeDays?: number | null,
+	): Promise<ResumeSessionResult> {
 		const loginFacade = await this.getLoginFacade()
 		const resumeResult = await loginFacade.resumeSession(credentials, externalUserSalt ?? null, databaseKey ?? null, offlineTimeRangeDays ?? null)
 		if (resumeResult.type === "error") {

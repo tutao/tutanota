@@ -5,7 +5,7 @@ import type {CertificateInfo, CreditCard, EmailSenderListElement, GroupMembershi
 import {AccountingInfo, Customer} from "../entities/sys/TypeRefs.js";
 import type {CalendarEventAttendee, UserSettingsGroupRoot} from "../entities/tutanota/TypeRefs.js"
 import {ContactSocialId, MailFolder} from "../entities/tutanota/TypeRefs.js";
-import {isAdminClient, isApp, isDesktop, isElectronClient} from "./Env"
+import {isApp, isElectronClient} from "./Env"
 import type {Country} from "./CountryList"
 import {ProgrammingError} from "./error/ProgrammingError";
 

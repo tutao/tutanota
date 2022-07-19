@@ -41,7 +41,7 @@ declare type MainRequestType =
 declare type NativeRequestType = 'ipc' | 'facade'
 
 /** Requests from native to web */
-declare type JsRequestType = NativeRequestType
+declare type JsRequestType = 'ipc'
 
 
 // see https://bitwiseshiftleft.github.io/sjcl/doc/symbols/sjcl.bitArray.html

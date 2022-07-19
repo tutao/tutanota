@@ -37,7 +37,7 @@ export function exposeLocal<T, IncomingRequestType>(impls: T): (message: Request
 		const impl = downcast(impls)[facade]
 
 		if (impl == null) {
-			throw new ProgrammingError(`Facade is not exposed: ${facade} (exposeLocal)`)
+			throw new ProgrammingError(`Facade is not exposed: ${facade}.${fn} (exposeLocal)`)
 		}
 
 		return downcast(impl)[fn](...args)

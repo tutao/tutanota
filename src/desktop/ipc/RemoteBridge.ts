@@ -2,22 +2,19 @@ import * as electron from "electron"
 import {DesktopFacade} from "../../native/common/generatedipc/DesktopFacade.js"
 import {CommonNativeFacade} from "../../native/common/generatedipc/CommonNativeFacade.js"
 import {ApplicationWindow} from "../ApplicationWindow.js"
-import {exposeRemote} from "../../api/common/WorkerProxy.js"
-import {ExposedNativeInterface} from "../../native/common/NativeInterface.js"
 import {ElectronWebContentsTransport} from "./ElectronWebContentsTransport.js"
 import {DesktopGlobalDispatcher} from "../../native/common/generatedipc/DesktopGlobalDispatcher.js"
 import {MessageDispatcher, Request} from "../../api/common/MessageDispatcher.js"
 import {DesktopFacadeSendDispatcher} from "../../native/common/generatedipc/DesktopFacadeSendDispatcher.js"
 import {CommonNativeFacadeSendDispatcher} from "../../native/common/generatedipc/CommonNativeFacadeSendDispatcher.js"
 import {CentralIpcHandler, IpcConfig} from "./CentralIpcHandler.js"
-import {InterWindowEventSender} from "../../native/common/InterWindowEventBus.js"
-import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes.js"
 import {DesktopCommonSystemFacade} from "../DesktopCommonSystemFacade.js"
+import {InterWindowEventFacadeSendDispatcher} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 
 export interface SendingFacades {
 	desktopFacade: DesktopFacade
 	commonNativeFacade: CommonNativeFacade
-	interWindowEventSender: InterWindowEventSender<InterWindowEventTypes>
+	interWindowEventSender: InterWindowEventFacadeSendDispatcher
 }
 
 
@@ -59,11 +56,10 @@ export class RemoteBridge {
 				return messageDispatcher.postRequest(new Request(requestType as JsRequestType, args))
 			}
 		}
-		const exposedNativeInterface = exposeRemote<ExposedNativeInterface>((message) => messageDispatcher.postRequest(message))
 		return {
 			desktopFacade: new DesktopFacadeSendDispatcher(nativeInterface),
 			commonNativeFacade: new CommonNativeFacadeSendDispatcher(nativeInterface),
-			interWindowEventSender: exposedNativeInterface.interWindowEventSender
+			interWindowEventSender: new InterWindowEventFacadeSendDispatcher(nativeInterface)
 		}
 	}
 

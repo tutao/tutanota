@@ -54,8 +54,8 @@ import {DesktopSearchTextInAppFacade} from "./DesktopSearchTextInAppFacade.js"
 import {exposeLocal} from "../api/common/WorkerProxy.js"
 import {ExposedNativeInterface} from "../native/common/NativeInterface.js"
 import {DesktopWebauthn} from "./2fa/DesktopWebauthn.js"
-import {DesktopInterWindowEventSender} from "./ipc/DesktopInterWindowEventSender.js"
 import {DesktopPostLoginActions} from "./DesktopPostLoginActions.js"
+import {DesktopInterWindowEventFacade} from "./ipc/DesktopInterWindowEventFacade.js"
 
 /**
  * Should be injected during build time.
@@ -201,6 +201,7 @@ async function createComponents(): Promise<Components> {
 			new DesktopDesktopSystemFacade(wm, window, sock),
 			new DesktopExportFacade(desktopUtils, conf, window, dragIcons),
 			fileFacade,
+			new DesktopInterWindowEventFacade(window, wm),
 			nativeCredentialsFacade,
 			desktopCrypto,
 			pushFacade,
@@ -215,7 +216,6 @@ async function createComponents(): Promise<Components> {
 		return exposeLocal<ExposedNativeInterface, "facade">({
 			webauthn: new DesktopWebauthn(window.id, webDialogController),
 			offlineDbFacade: offlineDbFacade,
-			interWindowEventSender: new DesktopInterWindowEventSender(wm, window.id),
 			postLoginActions: new DesktopPostLoginActions(wm, err, notifier, window.id)
 		})
 	}

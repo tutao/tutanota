@@ -10,9 +10,8 @@ import {assertNotNull} from "@tutao/tutanota-utils"
 import {DatabaseKeyFactory} from "./DatabaseKeyFactory"
 import {exposeRemote} from "../../api/common/WorkerProxy"
 import {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade"
-import {InterWindowEventBus} from "../../native/common/InterWindowEventBus"
-import {InterWindowEventTypes} from "../../native/common/InterWindowEventTypes"
-import {StubCredentialsKeyMigrator, DefaultCredentialsKeyMigrator} from "./CredentialsKeyMigrator.js"
+import {DefaultCredentialsKeyMigrator, StubCredentialsKeyMigrator} from "./CredentialsKeyMigrator.js"
+import {InterWindowEventFacadeSendDispatcher} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 
 export function usingKeychainAuthentication(): boolean {
 	return isApp() || isDesktop()
@@ -26,12 +25,12 @@ export function hasKeychainAuthenticationOptions(): boolean {
  * Factory method for credentials provider that will return an instance injected with the implementations appropriate for the platform.
  * @param deviceEncryptionFacade
  * @param nativeApp: If {@code usingKeychainAuthentication} would return true, this _must not_ be null
- * @param eventBus
+ * @param interWindowEventSender
  */
 export async function createCredentialsProvider(
 	deviceEncryptionFacade: DeviceEncryptionFacade,
 	nativeApp: NativeInterface | null,
-	eventBus: InterWindowEventBus<InterWindowEventTypes> | null,
+	interWindowEventSender: InterWindowEventFacadeSendDispatcher | null,
 ): Promise<CredentialsProvider> {
 	if (usingKeychainAuthentication()) {
 		const {NativeCredentialsFacadeSendDispatcher} = await import( "../../native/common/generatedipc/NativeCredentialsFacadeSendDispatcher.js")
@@ -54,7 +53,7 @@ export async function createCredentialsProvider(
 			credentialsKeyMigrator,
 			new DatabaseKeyFactory(deviceEncryptionFacade),
 			offlineDbFacade,
-			isDesktop() ? eventBus : null,
+			isDesktop() ? interWindowEventSender : null,
 		)
 	} else {
 		return new CredentialsProvider(

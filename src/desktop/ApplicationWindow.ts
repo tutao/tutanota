@@ -17,9 +17,8 @@ import {OfflineDbFacade} from "./db/OfflineDbFacade"
 import {DesktopFacade} from "../native/common/generatedipc/DesktopFacade.js"
 import {CommonNativeFacade} from "../native/common/generatedipc/CommonNativeFacade.js"
 import {RemoteBridge} from "./ipc/RemoteBridge.js"
-import {InterWindowEventSender} from "../native/common/InterWindowEventBus.js"
-import {InterWindowEventTypes} from "../native/common/InterWindowEventTypes.js"
 import {ProgrammingError} from "../api/common/error/ProgrammingError.js"
+import {InterWindowEventFacadeSendDispatcher} from "../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import HandlerDetails = Electron.HandlerDetails
 
 const MINIMUM_WINDOW_SIZE: number = 350
@@ -52,7 +51,7 @@ export class ApplicationWindow {
 	private readonly _startFileURL: URL
 	private _desktopFacade!: DesktopFacade
 	private _commonNativeFacade!: CommonNativeFacade
-	private _interWindowEventSender!: InterWindowEventSender<InterWindowEventTypes>
+	private _interWindowEventSender!: InterWindowEventFacadeSendDispatcher
 
 	_browserWindow!: BrowserWindow
 
@@ -181,7 +180,7 @@ export class ApplicationWindow {
 		return this._commonNativeFacade
 	}
 
-	get interWindowEventSender(): InterWindowEventSender<InterWindowEventTypes> {
+	get interWindowEventSender(): InterWindowEventFacadeSendDispatcher {
 		return this._interWindowEventSender
 	}
 

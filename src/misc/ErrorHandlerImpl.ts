@@ -10,7 +10,7 @@ import {
 	SessionExpiredError,
 } from "../api/common/error/RestError"
 import {Dialog} from "../gui/base/Dialog"
-import {lang, TranslationKey} from "./LanguageViewModel"
+import {lang} from "./LanguageViewModel"
 import {assertMainOrNode, isDesktop, isOfflineStorageAvailable} from "../api/common/Env"
 import {neverNull, noOp} from "@tutao/tutanota-utils"
 import {logins} from "../api/main/LoginController"
@@ -82,7 +82,7 @@ export async function handleUncaughtErrorImpl(e: Error) {
 
 		const {userId} = logins.getUserController()
 		if (isDesktop()) {
-			await locator.interWindowEventBus?.send("localDataOutOfSync", {userId})
+			await locator.interWindowEventSender?.localUserDataInvalidated(userId)
 			await locator.offlineDbFacade?.deleteDatabaseForUser(userId)
 		}
 		await logins.logout(false)

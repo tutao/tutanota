@@ -179,7 +179,8 @@ export class LoginFacade {
 		databaseKey: Uint8Array | null,
 	): Promise<NewSessionData> {
 		if (this.userFacade.isPartiallyLoggedIn()) {
-			console.log("session already exists, reuse data") // do not reset here because the event bus client needs to be kept if the same user is logged in as before
+			// do not reset here because the event bus client needs to be kept if the same user is logged in as before
+			console.log("session already exists, reuse data")
 			// check if it is the same user in _initSession()
 		}
 

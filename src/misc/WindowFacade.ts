@@ -10,7 +10,7 @@ assertMainOrNodeBoot()
 export type KeyboardSizeListener = (keyboardSize: number) => unknown
 export type windowSizeListener = (width: number, height: number) => unknown
 
-class WindowFacade {
+export class WindowFacade {
 	private _windowSizeListeners: windowSizeListener[]
 	resizeTimeout: (AnimationFrameID | null) | (TimeoutID | null)
 	windowCloseConfirmation: boolean
@@ -228,8 +228,6 @@ class WindowFacade {
 				args.noAutoLogin = true
 			}
 
-			// Convert all values to strings so that native has easier time dealing with it
-			const preparedArgs = Object.fromEntries(Object.entries(args).map(([k, v]) => [k, String(v)]))
 			const {locator} = await import("../api/main/MainLocator")
 
 			const stringifiedArgs: Record<string, string> = {}
@@ -238,7 +236,7 @@ class WindowFacade {
 					stringifiedArgs[k] = String(v)
 				}
 			}
-			locator.commonSystemFacade.reload(stringifiedArgs)
+			await locator.commonSystemFacade.reload(stringifiedArgs)
 		} else {
 			window.location.reload()
 		}
