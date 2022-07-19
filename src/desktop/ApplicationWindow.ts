@@ -425,8 +425,6 @@ export class ApplicationWindow {
 		if (this.userId) {
 			console.log(`closing offline db for ${this.userId}`)
 			await this.offlineDbFacade.closeDatabaseForUser(this.userId)
-		} else {
-			console.error("couldn't close db for window, no userId is set!!!!")
 		}
 	}
 

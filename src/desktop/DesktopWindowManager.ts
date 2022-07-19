@@ -102,10 +102,6 @@ export class WindowManager {
 			 this._notifier.resolveGroupedNotification(w.getUserId())
 		 })
 		 .on("page-title-updated", ev => {
-			 if (w.getTitle() === LOGIN_TITLE) {
-				 w.setUserId(null)
-			 }
-
 			 this._tray.update(this._notifier)
 		 })
 		 .once("ready-to-show", async () => {
@@ -129,7 +125,16 @@ export class WindowManager {
 			 // electron likes to override the zoom factor when the URL changes.
 			 windows.forEach(w => w.setZoomFactor(this._currentBounds.scale))
 		 })
+
 		w.setContextMenuHandler(params => this._contextMenu.open(params))
+
+		const afterNavigation = (url: string) => {
+			if (url.includes("/login")) {
+				w.setUserId(null)
+			}
+		}
+		w._browserWindow.webContents.on("did-navigate", (_, url) => afterNavigation(url))
+		w._browserWindow.webContents.on("did-navigate-in-page", (_, url) => afterNavigation(url))
 
 		this._registerUserListener(w.id)
 
