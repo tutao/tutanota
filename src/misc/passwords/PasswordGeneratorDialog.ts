@@ -7,6 +7,7 @@ import {px} from "../../gui/size"
 import {copyToClipboard} from "../ClipboardUtils"
 import {state} from "../../app.js"
 import {assertNotNull} from "@tutao/tutanota-utils"
+import {lang} from "../LanguageViewModel.js"
 
 let dictionary: string[] | null = null
 
@@ -65,21 +66,29 @@ class PasswordGeneratorDialog implements Component<PasswordGeneratorDialogAttrs>
 					minHeight: px(65) // needs 65px for displaying two rows
 				}
 			}, m(".center.b.monospace", password)),
-			m(".small.mt-xs", "This is a secure and easy to remember passphrase generated from a large dictionary. Find out why it is secure FAQ."), // TODO add link to FAQ
+			m(".small.mt-xs", [
+				lang.get("passphraseGeneratorHelp_msg"),
+				" ",
+				m("a", {
+					href: "https://tutanota.com/faq#passphrase-generator",
+					target: "_blank",
+					rel: "nooopener noreferer"
+				}, lang.get("faqEntry_label"))
+			]),
 			m(".flex-end", [
 				m(Button, {
-					label: () => "Regenerate",
+					label: () => "regeneratePassword_action",
 					click: () => updateAction(),
 					type: ButtonType.Secondary
 				}),
 				m(Button, {
 					click: () => copyToClipboard(password),
-					label: () => "Copy",
+					label: "copy_action",
 					type: ButtonType.Secondary,
 				}),
 			]),
 			m(".flex", m(Button, {
-				label: () => "Confirm",
+				label: () => "confirmPassword_action",
 				click: () => okAction(),
 				type: ButtonType.Login
 			})),

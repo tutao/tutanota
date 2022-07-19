@@ -1455,3 +1455,7 @@ export type TranslationKeyType =
 	| "generatePassphrase_action"
 	| "revealPassword_action"
 	| "concealPassword_action"
+	| "regeneratePassword_action"
+	| "confirmPassword_action"
+	| "faqEntry_label"
+	| "passphraseGeneratorHelp_msg"
