@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2022-06-28T09:21:47Z",
+	"updated_at": "2022-07-11T21:43:30Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -891,7 +891,8 @@ export default {
 		"npoDiscount_msg": "Oferta dla organizacji non-profit: 50% zniżki na wersję Premium i 20 aliasów za darmo!",
 		"npoDonation_msg": "Darowizna dla organizacji pozarządowych: do 50 użytkowników dla wersji Premium i 100 aliasów bezpłatnie!",
 		"number_label": "Numer",
-		"offlineStoragePremiumOnly_msg": "Potrzebujesz płatnego konta by skonfigurować przechowywanie danych offline. Ulepszenie konta pozwoli ci także logować się offline.",
+		"offlineLoginPremiumOnly_msg": "Jesteś w trybie offline. Uaktualnij konto do wersji premium, aby umożliwić logowanie w trybie offline.",
+		"offlineStoragePremiumOnly_msg": "Potrzebujesz płatnego konta, aby skonfigurować przechowywanie danych w trybie offline. Ulepszenie konta umożliwi ci także logowanie się w trybie offline.",
 		"offlineStorage_label": "Miejsce offline",
 		"offline_label": "Rozłączono",
 		"ok_action": "OK",
@@ -1346,6 +1347,7 @@ export default {
 		"today_label": "Dzisiaj",
 		"toggleDevTools_action": "Przełącz konsolę",
 		"toggleFullScreen_action": "Włącz pełen ekran",
+		"toggleUnread_action": "Przełącz nieprzeczytane",
 		"tomorrow_label": "Jutro",
 		"tooBigAttachment_msg": "Następujące pliki nie mogły zostać dołączone, ponieważ całkowity rozmiar załącznika przekracza 25 MB.",
 		"tooBigInlineImages_msg": "Tylko pliki o rozmiarze maksymanym {size} KB są dozwolone.",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2022-06-28T09:22:25Z",
+	"updated_at": "2022-07-17T12:20:05Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -1009,7 +1009,7 @@ export default {
 		"registerU2fDevice_msg": "Forbind din sikkerhedsnøgle og tryk på knappen for at registrere din konto.",
 		"register_label": "Tilmeld dig",
 		"registrationHeadline_msg": "Tilmeld dig",
-		"rejectedEmails_label": "Afvister e-mail",
+		"rejectedEmails_label": "Afviste e-mails",
 		"rejectedSenderListInfo_msg": "Liste over e-mails der er blevet afvist af Tutanota mailservere. Du kan tilføje en spamregel for at hvidliste en afsender.",
 		"rejectReason_label": "Begrundelse for afvisning",
 		"releaseNotes_action": "Udgivelsesnoter",
