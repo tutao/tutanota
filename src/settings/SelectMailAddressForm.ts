@@ -173,6 +173,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 				},
 				onValidationResult,
 			)
+			this._onBusyStateChanged(false, onBusyStateChanged)
 
 			return
 		} else if (!isMailAddress(cleanMailAddress, true) || (isTutanotaMailAddress(cleanMailAddress) && cleanUsername.length < 3)) {
@@ -184,6 +185,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 				},
 				onValidationResult,
 			)
+			this._onBusyStateChanged(false, onBusyStateChanged)
 
 			return
 		}
