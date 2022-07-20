@@ -358,6 +358,7 @@ class MainLocator implements IMainLocator {
 			this.serviceExecutor,
 			this.entityClient,
 			logins,
+			this.eventController,
 		)
 
 		const lazyScheduler = async () => {

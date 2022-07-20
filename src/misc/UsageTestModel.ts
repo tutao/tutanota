@@ -31,6 +31,7 @@ import {LoginController, logins} from "../api/main/LoginController.js"
 import {locator} from "../api/main/MainLocator.js"
 import {CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {EntityClient} from "../api/common/EntityClient.js"
+import {EntityUpdateData, EventController, isUpdateForTypeRef} from "../api/main/EventController.js"
 
 
 const PRESELECTED_LIKERT_VALUE = null
@@ -273,9 +274,11 @@ export const enum TtlBehavior {
 }
 
 export const enum StorageBehavior {
-	/* Store usage test assignments in the "persistent" storage. Currently, this is the client's instance of DeviceConfig, which uses the browser's local storage. */
+	/* Store usage test assignments in the "persistent" storage. Currently, this is the client's instance of DeviceConfig, which uses the browser's local storage.
+	Use if the user is logged in and has opted in to sending usage data. */
 	Persist,
-	/* Store usage test assignments in the "ephemeral" storage. Currently, this is an instance of EphemeralUsageTestStorage. */
+	/* Store usage test assignments in the "ephemeral" storage. Currently, this is an instance of EphemeralUsageTestStorage.
+	Use if the user is not logged in. */
 	Ephemeral,
 }
 
@@ -289,14 +292,30 @@ export class UsageTestModel implements PingAdapter {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly entityClient: EntityClient,
 		private readonly loginController: LoginController,
+		private readonly eventController: EventController,
 	) {
+		eventController.addEntityListener((updates: ReadonlyArray<EntityUpdateData>) => {
+			return this.entityEventsReceived(updates)
+		})
+	}
+
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
+		for (const update of updates) {
+			if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update)) {
+				await this.updateCustomerProperties()
+			}
+		}
+	}
+
+	private async updateCustomerProperties() {
+		this.customerProperties = await this.entityClient.load(CustomerTypeRef, neverNull(this.loginController.getUserController().user.customer)).then(customer => this.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
 	}
 
 	/**
 	 * Needs to be called after construction, ideally after login, so that the logged-in user's CustomerProperties are loaded.
 	 */
 	async init() {
-		this.customerProperties = await this.entityClient.load(CustomerTypeRef, neverNull(this.loginController.getUserController().user.customer)).then(customer => this.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
+		await this.updateCustomerProperties()
 	}
 
 	setStorageBehavior(storageBehavior: StorageBehavior) {
@@ -308,12 +327,20 @@ export class UsageTestModel implements PingAdapter {
 	}
 
 	/**
+	 * Returns true if the customer has opted out.
+	 * Defaults to true if init() has not been called.
+	 */
+	isCustomerOptedOut(): boolean {
+		return this.customerProperties?.usageDataOptedOut ?? true
+	}
+
+	/**
 	 * Returns true if the opt-in dialog indicator should be shown, depending on the user's and the customer's decisions.
 	 * Defaults to false if init() has not been called.
 	 */
 	showOptInIndicator(): boolean {
-		if (!this.customerProperties || this.customerProperties.usageDataOptedOut) {
-			// shortcut if customer has opted out
+		if (!this.loginController.isUserLoggedIn() || this.isCustomerOptedOut()) {
+			// shortcut if customer has opted out (or is not logged in)
 			return false
 		}
 
@@ -321,6 +348,10 @@ export class UsageTestModel implements PingAdapter {
 	}
 
 	private getOptInDecision(): boolean {
+		if (!this.loginController.isUserLoggedIn()) {
+			return false
+		}
+
 		const userOptIn = this.loginController.getUserController().userSettingsGroupRoot.usageDataOptedIn
 
 		if (!userOptIn) {
@@ -336,7 +367,9 @@ export class UsageTestModel implements PingAdapter {
 	 * If the storageBehavior is set to StorageBehavior.Persist, then init() must have been called before calling this method.
 	 */
 	async loadActiveUsageTests(ttlBehavior: TtlBehavior): Promise<UsageTest[]> {
-		if (this.storageBehavior === StorageBehavior.Persist && !this.getOptInDecision()) return []
+		if (this.storageBehavior === StorageBehavior.Persist && !this.getOptInDecision()) {
+			return []
+		}
 
 		const persistedData = await this.storage().getAssignments()
 		const modelVersion = await this.modelVersion()
@@ -424,6 +457,12 @@ export class UsageTestModel implements PingAdapter {
 	}
 
 	async sendPing(test: UsageTest, stage: Stage): Promise<void> {
+		// Immediately stop sending pings if the user has opted out.
+		// Only applicable if the user opts out and then does not re-log.
+		if (this.storageBehavior === StorageBehavior.Persist && !this.getOptInDecision()) {
+			return
+		}
+
 		const testDeviceId = await this.storage().getTestDeviceId()
 		if (testDeviceId == null) {
 			console.warn("No device id set before sending pings")
