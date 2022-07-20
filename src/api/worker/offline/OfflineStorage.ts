@@ -24,6 +24,9 @@ import {UserTypeRef} from "../../entities/sys/TypeRefs.js"
 import {OfflineStorageMigrator} from "./OfflineStorageMigrator.js"
 import {CustomCacheHandlerMap, CustomCalendarEventCacheHandler} from "../rest/CustomCacheHandler.js"
 import {EntityRestClient} from "../rest/EntityRestClient.js"
+import {OfflineStorageInitArgs} from "../rest/CacheStorageProxy.js"
+import {uint8ArrayToKey} from "@tutao/tutanota-crypto"
+import {InterWindowEventFacadeSendDispatcher} from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 
 function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNestedTokens | null {
 	return [
@@ -66,6 +69,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 
 	constructor(
 		private readonly offlineDbFacade: OfflineDbFacade,
+		private readonly interWindowEventSender: InterWindowEventFacadeSendDispatcher,
 		private readonly dateProvider: DateProvider,
 		private readonly migrator: OfflineStorageMigrator,
 	) {
@@ -75,20 +79,26 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	/**
 	 * @return {boolean} whether the database was newly created or not
 	 */
-	async init(userId: Id, databaseKey: Aes256Key, timeRangeDays: number | null): Promise<boolean> {
+	async init({userId, databaseKey, timeRangeDays, forceNewDatabase}: OfflineStorageInitArgs): Promise<boolean> {
+		const key = uint8ArrayToKey(databaseKey)
 		this._userId = userId
 
+		if (forceNewDatabase) {
+			await this.interWindowEventSender.localUserDataInvalidated(userId)
+			await this.offlineDbFacade.deleteDatabaseForUser(userId)
+		}
 		// We open database here and it is closed in the native side when the window is closed or the page is reloaded
-		await this.offlineDbFacade.openDatabaseForUser(userId, databaseKey)
-
+		await this.offlineDbFacade.openDatabaseForUser(userId, key)
 		await this.migrator.migrate(this)
-
 		// if nothing is written here, it means it's a new database
 		const isNewOfflineDb = await this.getLastUpdateTime() == null
-
 		await this.clearExcludedData(timeRangeDays)
-
 		return isNewOfflineDb
+	}
+
+	async deinit() {
+		this._userId && await this.offlineDbFacade.closeDatabaseForUser(this._userId)
+		this._userId = null
 	}
 
 	private get userId(): Id {

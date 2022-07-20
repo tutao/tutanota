@@ -332,13 +332,12 @@ export class ApplicationWindow {
 		this.manageDownloadsForSession(session, dictUrl)
 
 		this._browserWindow
-			.on("close", () => {
-				this.closeDb()
+			.on("close", async () => {
+				await this.closeDb()
 				this.remoteBridge.destroyBridge(this)
 			})
 			.on("focus", () => this._localShortcut.enableAll(this._browserWindow))
 			.on("blur", (_: FocusEvent) => this._localShortcut.disableAll(this._browserWindow))
-
 		this._browserWindow.webContents
 			.on("will-attach-webview", e => e.preventDefault())
 			.on("will-navigate", (e, url) => {
@@ -422,7 +421,7 @@ export class ApplicationWindow {
 
 	private async closeDb() {
 		if (this.userId) {
-			console.log(`closing offline db for ${this.userId}`)
+			log.debug(TAG, `closing offline db for ${this.userId}`)
 			await this.offlineDbFacade.closeDatabaseForUser(this.userId)
 		}
 	}
@@ -431,10 +430,10 @@ export class ApplicationWindow {
 		const parsedUrl = parseUrlOrNull(details.url)
 
 		if (parsedUrl == null) {
-			log.warn("Could not parse url for new-window, will not open")
+			log.warn(TAG, "Could not parse url for new-window, will not open")
 		} else if (parsedUrl.protocol === "file:") {
 			// this also works for raw file paths without protocol
-			log.warn("prevented file url from being opened by shell")
+			log.warn(TAG, "prevented file url from being opened by shell")
 		} else {
 			// we never open any new windows directly from the renderer
 			// except for links in mails etc. so open them in the browser

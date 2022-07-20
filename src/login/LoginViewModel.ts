@@ -345,7 +345,8 @@ export class LoginViewModel implements ILoginViewModel {
 
 				if (credentials) {
 					await this.loginController.deleteOldSession(credentials.credentials)
-					await this.credentialsProvider.deleteByUserId(credentials.credentials.userId)
+					// we handled the deletion of the offlineDb in createSession already
+					await this.credentialsProvider.deleteByUserId(credentials.credentials.userId, {deleteOfflineDb: false})
 				}
 			}
 

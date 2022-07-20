@@ -4,15 +4,13 @@ import {ListElementEntity, SomeEntity} from "../../common/EntityTypes"
 import {TypeRef} from "@tutao/tutanota-utils"
 import {OfflineStorage} from "../offline/OfflineStorage.js"
 import {WorkerImpl} from "../WorkerImpl"
-import {uint8ArrayToKey} from "@tutao/tutanota-crypto"
 import {EphemeralCacheStorage} from "./EphemeralCacheStorage"
 import {EntityRestClient} from "./EntityRestClient.js"
 import {CustomCacheHandlerMap} from "./CustomCacheHandler.js"
+import {InitCacheOptions} from "../facades/LoginFacade.js"
 
-interface OfflineStorageInitArgs {
-	userId: Id
+export type OfflineStorageInitArgs = InitCacheOptions & {
 	databaseKey: Uint8Array
-	timeRangeDays: number | null
 }
 
 interface CacheStorageInitReturn {
@@ -22,9 +20,12 @@ interface CacheStorageInitReturn {
 	isNewOfflineDb: boolean
 }
 
-export interface LateInitializedCacheStorage extends CacheStorage {
+export interface CacheStorageLateInitializer {
 	initialize(args: OfflineStorageInitArgs | null): Promise<CacheStorageInitReturn>;
+	deInitialize(): Promise<void>;
 }
+
+type SomeStorage = OfflineStorage | EphemeralCacheStorage
 
 /**
  * This is necessary so that we can release offline storage mode without having to rewrite the credentials handling system. Since it's possible that
@@ -33,13 +34,13 @@ export interface LateInitializedCacheStorage extends CacheStorage {
  * remove the initialize parameter from the LoginFacade, and tidy up the WorkerLocator init
  *
  * Create a proxy to a cache storage object.
- * It will be uninitialized, and unusable until {@method LateInitializedCacheStorage.initializeCacheStorage} has been called on the returned object
+ * It will be uninitialized, and unusable until {@method CacheStorageLateInitializer.initializeCacheStorage} has been called on the returned object
  * Once it is initialized, then it is safe to use
  * @param factory A factory function to get a CacheStorage implementation when initialize is called
- * @return {LateInitializedCacheStorage} The uninitialized proxy and a function to initialize it
+ * @return {CacheStorageLateInitializer} The uninitialized proxy and a function to initialize it
  */
-export class LateInitializedCacheStorageImpl implements LateInitializedCacheStorage {
-	private _inner: CacheStorage | null = null
+export class LateInitializedCacheStorageImpl implements CacheStorageLateInitializer, CacheStorage {
+	private _inner: SomeStorage | null = null
 
 	constructor(
 		private readonly worker: WorkerImpl,
@@ -66,12 +67,16 @@ export class LateInitializedCacheStorageImpl implements LateInitializedCacheStor
 		}
 	}
 
-	private async getStorage(args: OfflineStorageInitArgs | null): Promise<{storage: CacheStorage, isPersistent: boolean, isNewOfflineDb: boolean}> {
+	async deInitialize(): Promise<void> {
+		this._inner?.deinit()
+	}
+
+	private async getStorage(args: OfflineStorageInitArgs | null): Promise<{storage: SomeStorage, isPersistent: boolean, isNewOfflineDb: boolean}> {
 		if (args != null) {
 			try {
 				const storage = await this.offlineStorageProvider()
 				if (storage != null) {
-					const isNewOfflineDb = await storage.init(args.userId, uint8ArrayToKey(args.databaseKey), args.timeRangeDays)
+					const isNewOfflineDb = await storage.init(args)
 					return {
 						storage,
 						isPersistent: true,

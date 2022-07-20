@@ -397,7 +397,7 @@ o.spec("LoginViewModelTest", () => {
 				await viewModel.login()
 
 				o(viewModel.state).equals(LoginState.LoggedIn)
-				verify(credentialsProviderMock.deleteByUserId(oldCredentials.userId))
+				verify(credentialsProviderMock.deleteByUserId(oldCredentials.userId, {deleteOfflineDb: false}))
 				verify(loginControllerMock.deleteOldSession(oldCredentials))
 			}
 		})

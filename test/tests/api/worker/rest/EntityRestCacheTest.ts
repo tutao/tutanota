@@ -43,12 +43,12 @@ import {NotAuthorizedError, NotFoundError} from "../../../../../src/api/common/e
 import {EphemeralCacheStorage} from "../../../../../src/api/worker/rest/EphemeralCacheStorage.js"
 import {OperationType} from "../../../../../src/api/common/TutanotaConstants.js"
 import {OfflineStorageMigrator} from "../../../../../src/api/worker/offline/OfflineStorageMigrator.js"
-import {CustomCacheHandlerMap, CustomCalendarEventCacheHandler} from "../../../../../src/api/worker/rest/CustomCacheHandler.js"
 import {createEventElementId} from "../../../../../src/api/common/utils/CommonCalendarUtils.js"
+import {InterWindowEventFacadeSendDispatcher} from "../../../../../src/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 
 const {anything} = matchers
 
-const offlineDatabaseTestKey = [3957386659, 354339016, 3786337319, 3366334248]
+const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 
 async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 	const {OfflineDbFacade} = await import("../../../../../src/desktop/db/OfflineDbFacade.js")
@@ -70,8 +70,9 @@ async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 	const migratorMock = instance(OfflineStorageMigrator)
 
 	const offlineDbFacade = new OfflineDbFacade(offlineDbFactory)
-	const offlineStorage = new OfflineStorage(offlineDbFacade, new WorkerDateProvider(), migratorMock)
-	await offlineStorage.init(userId, offlineDatabaseTestKey, 42)
+	const interWindowEventSender = instance(InterWindowEventFacadeSendDispatcher)
+	const offlineStorage = new OfflineStorage(offlineDbFacade, interWindowEventSender, new WorkerDateProvider(), migratorMock)
+	await offlineStorage.init({userId, databaseKey: offlineDatabaseTestKey, timeRangeDays: 42, forceNewDatabase: false})
 	return offlineStorage
 }
 

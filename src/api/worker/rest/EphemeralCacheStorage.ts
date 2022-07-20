@@ -20,6 +20,12 @@ export class EphemeralCacheStorage implements CacheStorage {
 	private readonly customCacheHandlerMap: CustomCacheHandlerMap = new CustomCacheHandlerMap()
 	private lastUpdateTime: number | null = null
 
+	deinit() {
+		this.entities.clear()
+		this.lists.clear()
+		this.lastUpdateTime = null
+	}
+
 	/**
 	 * Get a given entity from the cache, expects that you have already checked for existence
 	 */

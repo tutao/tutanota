@@ -84,7 +84,7 @@ import {Aes128Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
 import {EntropyService} from "../../entities/tutanota/Services"
 import {IServiceExecutor} from "../../common/ServiceRequest"
 import {SessionType} from "../../common/SessionType"
-import {LateInitializedCacheStorage} from "../rest/CacheStorageProxy"
+import {CacheStorageLateInitializer} from "../rest/CacheStorageProxy"
 import {AuthDataProvider, UserFacade} from "./UserFacade"
 import {ILoginListener, LoginFailReason} from "../../main/LoginListener"
 import {LoginIncompleteError} from "../../common/error/LoginIncompleteError.js"
@@ -111,6 +111,13 @@ interface ResumeSessionResultData {
 
 export const enum ResumeSessionErrorReason {
 	OfflineNotAvailableForFree
+}
+
+export type InitCacheOptions = {
+	userId: Id,
+	databaseKey: Uint8Array | null,
+	timeRangeDays: number | null,
+	forceNewDatabase: boolean
 }
 
 type ResumeSessionResult =
@@ -150,7 +157,7 @@ export class LoginFacade {
 		 *  This is necessary because we don't know if we'll be persistent or not until the user tries to login
 		 *  Once the credentials handling has been changed to *always* save in desktop, then this should become obsolete
 		 */
-		private readonly initializeCacheStorage: LateInitializedCacheStorage["initialize"],
+		private readonly cacheInitializer: CacheStorageLateInitializer,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly userFacade: UserFacade,
 	) {
@@ -165,6 +172,7 @@ export class LoginFacade {
 
 	async resetSession(): Promise<void> {
 		this.eventBusClient.close(CloseEventBusOption.Terminate)
+		await this.deInitCache()
 		this.userFacade.reset()
 	}
 
@@ -201,8 +209,12 @@ export class LoginFacade {
 		}
 		const createSessionReturn = await this.serviceExecutor.post(SessionService, createSessionData)
 		const sessionData = await this.waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, mailAddress)
-
-		const cacheInfo = await this.initCache(sessionData.userId, databaseKey, null)
+		const cacheInfo = await this.initCache({
+			userId: sessionData.userId,
+			databaseKey,
+			timeRangeDays: null,
+			forceNewDatabase: true
+		})
 		const {
 			user,
 			userGroupInfo,
@@ -309,7 +321,12 @@ export class LoginFacade {
 
 
 		let sessionId = [this.getSessionListId(createSessionReturn.accessToken), this.getSessionElementId(createSessionReturn.accessToken)] as const
-		const cacheInfo = await this.initCache(userId, null, null)
+		const cacheInfo = await this.initCache({
+			userId,
+			databaseKey: null,
+			timeRangeDays: null,
+			forceNewDatabase: true
+		})
 		const {
 			user,
 			userGroupInfo,
@@ -364,64 +381,79 @@ export class LoginFacade {
 		credentials: Credentials,
 		externalUserSalt: Uint8Array | null,
 		databaseKey: Uint8Array | null,
-		offlineTimeRangeDays: number | null
+		timeRangeDays: number | null
 	): Promise<ResumeSessionResult> {
 		this.userFacade.setAccessToken(credentials.accessToken)
-		const cacheInfo = await this.initCache(credentials.userId, databaseKey, offlineTimeRangeDays)
-
+		const cacheInfo = await this.initCache({
+			userId: credentials.userId,
+			databaseKey,
+			timeRangeDays,
+			forceNewDatabase: false
+		})
 		const sessionId = this.getSessionId(credentials)
+		try {
+			// using offline, free, have connection         -> sync login
+			// using offline, free, no connection           -> indicate that offline login is not for free customers
+			// using offline, premium, have connection      -> async login
+			// using offline, premium, no connection        -> async login w/ later retry
+			// no offline, free, have connection            -> sync login
+			// no offline, free, no connection              -> sync login, fail with connection error
+			// no offline, premium, have connection         -> sync login
+			// no offline, premium, no connection           -> sync login, fail with connection error
 
-		// using offline, free, have connection         -> sync login
-		// using offline, free, no connection           -> indicate that offline login is not for free customers
-		// using offline, premium, have connection      -> async login
-		// using offline, premium, no connection        -> async login w/ later retry
-		// no offline, free, have connection            -> sync login
-		// no offline, free, no connection              -> sync login, fail with connection error
-		// no offline, premium, have connection         -> sync login
-		// no offline, premium, no connection           -> sync login, fail with connection error
-
-		// If a user enables offline storage for the first time, after already having saved credentials
-		// then upon their next login, they won't have an offline database available, meaning we have to do
-		// synchronous login in order to load all of the necessary keys and such
-		// the next time they login they will be able to do asynchronous login
-		if (cacheInfo?.isPersistent && !cacheInfo.isNewOfflineDb) {
-			const user = await this.entityClient.load(UserTypeRef, credentials.userId)
-			if (user.accountType !== AccountType.PREMIUM) {
-				// if account is free do not start offline login/async login workflow
-				return this.finishResumeSession(credentials, externalUserSalt, cacheInfo)
-						   .catch(ofClass(ConnectionError, (e) => {
-							   return {type: "error", reason: ResumeSessionErrorReason.OfflineNotAvailableForFree}
-						   }))
-			}
-			this.userFacade.setUser(user)
-			this.loginListener.onPartialLoginSuccess()
-
-			// Temporary workaround for the transitional period
-			// Before offline login was enabled (in 3.96.4) we didn't use cache for the login process, only afterwards.
-			// This could lead to a situation where we never loaded or saved user groupInfo but would try to use it now.
-			// We can remove this after a few versions when the bulk of people who enabled offline will upgrade.
-			let userGroupInfo: GroupInfo
-			try {
-				userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
-			} catch (e) {
-				console.log("Could not do start login, groupInfo is not cached, falling back to sync login")
-				if (e instanceof LoginIncompleteError) {
-					return this.finishResumeSession(credentials, externalUserSalt, cacheInfo)
-				} else {
-					throw e
+			// If a user enables offline storage for the first time, after already having saved credentials
+			// then upon their next login, they won't have an offline database available, meaning we have to do
+			// synchronous login in order to load all of the necessary keys and such
+			// the next time they login they will be able to do asynchronous login
+			if (cacheInfo?.isPersistent && !cacheInfo.isNewOfflineDb) {
+				const user = await this.entityClient.load(UserTypeRef, credentials.userId)
+				if (user.accountType !== AccountType.PREMIUM) {
+					// if account is free do not start offline login/async login workflow.
+					// await before return to catch errors here instead of up the stack
+					return await this.finishResumeSession(credentials, externalUserSalt, cacheInfo)
+									 .catch(ofClass(ConnectionError, (e) => {
+										 return {type: "error", reason: ResumeSessionErrorReason.OfflineNotAvailableForFree}
+									 }))
 				}
-			}
+				this.userFacade.setUser(user)
+				this.loginListener.onPartialLoginSuccess()
 
-			// Start full login async
-			Promise.resolve().then(() => this.asyncResumeSession(credentials, cacheInfo))
-			const data = {
-				user,
-				userGroupInfo,
-				sessionId,
+				// Temporary workaround for the transitional period
+				// Before offline login was enabled (in 3.96.4) we didn't use cache for the login process, only afterwards.
+				// This could lead to a situation where we never loaded or saved user groupInfo but would try to use it now.
+				// We can remove this after a few versions when the bulk of people who enabled offline will upgrade.
+				let userGroupInfo: GroupInfo
+				try {
+					userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
+				} catch (e) {
+					console.log("Could not do start login, groupInfo is not cached, falling back to sync login")
+					if (e instanceof LoginIncompleteError) {
+						// await before return to catch errors here instead of up the stack
+						return await this.finishResumeSession(credentials, externalUserSalt, cacheInfo)
+					} else {
+						throw e
+					}
+				}
+
+				// Start full login async
+				Promise.resolve().then(() => this.asyncResumeSession(credentials, cacheInfo))
+				const data = {
+					user,
+					userGroupInfo,
+					sessionId,
+				}
+				return {type: "success", data}
+			} else {
+				// await before return to catch errors here instead of up the stack
+				return await this.finishResumeSession(credentials, externalUserSalt, cacheInfo)
 			}
-			return {type: "success", data}
-		} else {
-			return this.finishResumeSession(credentials, externalUserSalt, cacheInfo)
+		} catch (e) {
+			if (e instanceof NotAuthenticatedError) {
+				// If we initialized the cache but then we couldn't authenticate we should de-initialize
+				// the cache again because we will initialize it for the next attempt.
+				await this.deInitCache()
+			}
+			throw e
 		}
 	}
 
@@ -546,12 +578,16 @@ export class LoginFacade {
 		}
 	}
 
-	private async initCache(userId: string, databaseKey: Uint8Array | null, timeRangeDays: number | null): Promise<CacheInfo> {
+	private async initCache({userId, databaseKey, timeRangeDays, forceNewDatabase}: InitCacheOptions): Promise<CacheInfo> {
 		if (databaseKey != null) {
-			return this.initializeCacheStorage({userId, databaseKey, timeRangeDays})
+			return this.cacheInitializer.initialize({userId, databaseKey, timeRangeDays, forceNewDatabase})
 		} else {
-			return this.initializeCacheStorage(null)
+			return this.cacheInitializer.initialize(null)
 		}
+	}
+
+	private async deInitCache(): Promise<void> {
+		return this.cacheInitializer.deInitialize()
 	}
 
 	private initIndexer(cacheInfo: CacheInfo): Promise<void> {

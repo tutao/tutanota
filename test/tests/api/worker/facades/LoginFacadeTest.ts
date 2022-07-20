@@ -1,5 +1,5 @@
 import o from "ospec"
-import {func, instance, matchers, object, when} from "testdouble"
+import {instance, matchers, object, when} from "testdouble"
 import {
 	createCreateSessionReturn,
 	createGroupInfo,
@@ -17,14 +17,14 @@ import {RestClient} from "../../../../../src/api/worker/rest/RestClient"
 import {WorkerImpl} from "../../../../../src/api/worker/WorkerImpl"
 import {InstanceMapper} from "../../../../../src/api/worker/crypto/InstanceMapper"
 import {CryptoFacade, encryptString} from "../../../../../src/api/worker/crypto/CryptoFacade"
-import {LateInitializedCacheStorage} from "../../../../../src/api/worker/rest/CacheStorageProxy"
+import {CacheStorageLateInitializer} from "../../../../../src/api/worker/rest/CacheStorageProxy"
 import {UserFacade} from "../../../../../src/api/worker/facades/UserFacade"
 import {SaltService, SessionService} from "../../../../../src/api/entities/sys/Services"
 import {ILoginListener} from "../../../../../src/api/main/LoginListener"
 import {Credentials} from "../../../../../src/misc/credentials/Credentials"
 import {defer, DeferredObject, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {AccountType} from "../../../../../src/api/common/TutanotaConstants"
-import {ConnectionError} from "../../../../../src/api/common/error/RestError"
+import {ConnectionError, NotAuthenticatedError} from "../../../../../src/api/common/error/RestError"
 import {assertThrows, verify} from "@tutao/tutanota-test-utils"
 import {SessionType} from "../../../../../src/api/common/SessionType"
 import {HttpMethod} from "../../../../../src/api/common/EntityFunctions"
@@ -62,7 +62,7 @@ o.spec("LoginFacadeTest", function () {
 	let loginListener: ILoginListener
 	let instanceMapperMock: InstanceMapper
 	let cryptoFacadeMock: CryptoFacade
-	let initializeCacheStorageMock: LateInitializedCacheStorage["initialize"]
+	let cacheStorageInitializerMock: CacheStorageLateInitializer
 	let indexerMock: Indexer
 	let eventBusClientMock: EventBusClient
 	let usingOfflineStorage: boolean
@@ -85,14 +85,19 @@ o.spec("LoginFacadeTest", function () {
 		instanceMapperMock = instance(InstanceMapper)
 		cryptoFacadeMock = object<CryptoFacade>()
 		usingOfflineStorage = false
-		initializeCacheStorageMock = func() as LateInitializedCacheStorage["initialize"]
-		when(initializeCacheStorageMock({userId: anything(), databaseKey: anything(), timeRangeDays: anything()})).thenDo(async () => {
+		cacheStorageInitializerMock = object()
+		when(cacheStorageInitializerMock.initialize({
+			userId: anything(),
+			databaseKey: anything(),
+			timeRangeDays: anything(),
+			forceNewDatabase: anything()
+		})).thenDo(async () => {
 			return {
 				isPersistent: usingOfflineStorage,
 				isNewOfflineDb: false
 			}
 		})
-		when(initializeCacheStorageMock(null)).thenResolve(
+		when(cacheStorageInitializerMock.initialize(null)).thenResolve(
 			{
 				isPersistent: false,
 				isNewOfflineDb: false
@@ -107,7 +112,7 @@ o.spec("LoginFacadeTest", function () {
 			loginListener,
 			instanceMapperMock,
 			cryptoFacadeMock,
-			initializeCacheStorageMock,
+			cacheStorageInitializerMock,
 			serviceExecutor,
 			userFacade,
 		)
@@ -134,13 +139,17 @@ o.spec("LoginFacadeTest", function () {
 				}))
 			})
 
-			o("When a database key is provided it is passed to the offline storage initializer", async function () {
+			o("When a database key is provided and session is persistent it is passed to the offline storage initializer", async function () {
 				await facade.createSession("born.slippy@tuta.io", passphrase, "client", SessionType.Persistent, dbKey)
-				verify(initializeCacheStorageMock({databaseKey: dbKey, userId, timeRangeDays: null}))
+				verify(cacheStorageInitializerMock.initialize({databaseKey: dbKey, userId, timeRangeDays: null, forceNewDatabase: true}))
 			})
-			o("When no database key is provided, nothing is passed to the offline storage initializer", async function () {
+			o("When no database key is provided and session is persistent, nothing is passed to the offline storage initializer", async function () {
 				await facade.createSession("born.slippy@tuta.io", passphrase, "client", SessionType.Persistent, null)
-				verify(initializeCacheStorageMock(null))
+				verify(cacheStorageInitializerMock.initialize(null))
+			})
+			o("When no database key is provided and session is Login, nothing is passed to the offline storage initialzier", async function () {
+				await facade.createSession("born.slippy@tuta.io", passphrase, "client", SessionType.Login, null)
+				verify(cacheStorageInitializerMock.initialize(null))
 			})
 		})
 	})
@@ -180,24 +189,27 @@ o.spec("LoginFacadeTest", function () {
 				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
 
 				// The call to /sys/session/...
-				when(restClientMock.request(matchers.argThat(path => path.startsWith("/rest/sys/session/")), HttpMethod.GET, anything()))
+				when(restClientMock.request(matchers.argThat(path => typeof path === "string" && path.startsWith("/rest/sys/session/")), HttpMethod.GET, anything()))
 					.thenResolve(JSON.stringify({user: userId, accessKey: keyToBase64(accessKey)}))
 			})
 
 			o("When resuming a session and there is a database key, it is passed to offline storage initialization", async function () {
 				usingOfflineStorage = true
 				await facade.resumeSession(credentials, SALT, dbKey, timeRangeDays)
-				verify(initializeCacheStorageMock({databaseKey: dbKey, userId, timeRangeDays}))
+				verify(cacheStorageInitializerMock.initialize({databaseKey: dbKey, userId, timeRangeDays, forceNewDatabase: false}))
 			})
 			o("When resuming a session and there is no database key, nothing is passed to offline storage initialization", async function () {
 				usingOfflineStorage = true
 				await facade.resumeSession(credentials, SALT, null, timeRangeDays)
-				verify(initializeCacheStorageMock(null))
+				verify(cacheStorageInitializerMock.initialize(null))
 			})
 			o("when resuming a session and the offline initialization has created a new database, we do synchronous login", async function () {
 				usingOfflineStorage = true
 				user.accountType = AccountType.PREMIUM
-				when(initializeCacheStorageMock({databaseKey: dbKey, userId, timeRangeDays})).thenResolve({isPersistent: true, isNewOfflineDb: true})
+				when(cacheStorageInitializerMock.initialize({databaseKey: dbKey, userId, timeRangeDays, forceNewDatabase: false})).thenResolve({
+					isPersistent: true,
+					isNewOfflineDb: true
+				})
 
 				await facade.resumeSession(credentials, SALT, dbKey, timeRangeDays)
 
@@ -207,12 +219,23 @@ o.spec("LoginFacadeTest", function () {
 				usingOfflineStorage = true
 				user.accountType = AccountType.PREMIUM
 
-				when(initializeCacheStorageMock({databaseKey: dbKey, userId, timeRangeDays})).thenResolve({isPersistent: true, isNewOfflineDb: false})
+				when(cacheStorageInitializerMock.initialize({databaseKey: dbKey, userId, timeRangeDays, forceNewDatabase: false})).thenResolve({
+					isPersistent: true,
+					isNewOfflineDb: false
+				})
 
 				await facade.resumeSession(credentials, SALT, dbKey, timeRangeDays)
 
 				o(facade.asyncLoginState).deepEquals({state: "running"})("Async login occurred so it is still running")
 
+			})
+			o("when resuming a session and a notauthenticatedError is thrown, the offline db is deleted", async function () {
+				usingOfflineStorage = true
+				user.accountType = AccountType.FREE
+				when(restClientMock.request(matchers.argThat(path => path.startsWith("/rest/sys/session/")), HttpMethod.GET, anything()))
+					.thenReject(new NotAuthenticatedError("not your cheese"))
+				await assertThrows(NotAuthenticatedError, () => facade.resumeSession(credentials, SALT, dbKey, timeRangeDays))
+				verify(cacheStorageInitializerMock.deInitialize())
 			})
 		})
 
