@@ -140,7 +140,7 @@ export const enum InfoLink {
 	About = "https://tutanota.com/imprint",
 	//terms
 	Terms = "https://tutanota.com/terms",
-	Privacy = "https://tutanota.com/privacy",
+	Privacy = "https://tutanota.com/privacy-policy",
 	GiftCardsTerms = "https://tutanota.com/giftCardsTerms",
 	//faq
 	RecoverCode = "https://tutanota.com/faq#reset",
