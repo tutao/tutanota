@@ -147,10 +147,16 @@ async function createComponents(): Promise<Components> {
 	})
 
 	const offlineDbFactory: OfflineDbFactory = {
-		async create(userid: string, key: Aes256Key): Promise<OfflineDb> {
+		async create(userId: string, key: Aes256Key, retry: boolean = true): Promise<OfflineDb> {
 			const db = new OfflineDb(buildOptions.sqliteNativePath)
-			const dbPath = makeDbPath(userid)
-			await db.init(dbPath, key)
+			const dbPath = makeDbPath(userId)
+			try {
+				await db.init(dbPath, key)
+			} catch (e) {
+				if (!retry) throw e
+				await this.delete(userId)
+				return this.create(userId, key, false)
+			}
 			return db
 		},
 		async delete(userId: string): Promise<void> {

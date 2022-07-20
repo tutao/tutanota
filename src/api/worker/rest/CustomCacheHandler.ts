@@ -3,9 +3,8 @@ import {CalendarEvent, CalendarEventTypeRef} from "../../entities/tutanota/TypeR
 import {freezeMap, getTypeId, TypeRef} from "@tutao/tutanota-utils"
 import {CUSTOM_MAX_ID, CUSTOM_MIN_ID, firstBiggerThanSecond, getElementId, LOAD_MULTIPLE_LIMIT} from "../../common/utils/EntityUtils.js"
 import {resolveTypeReference} from "../../common/EntityFunctions.js"
-import {ExposedCacheStorage, Range} from "./DefaultEntityRestCache.js"
+import {CacheStorage, ExposedCacheStorage, Range} from "./DefaultEntityRestCache.js"
 import {EntityRestClient} from "./EntityRestClient.js"
-import {LateInitializedCacheStorage} from "./CacheStorageProxy.js"
 import {ProgrammingError} from "../../common/error/ProgrammingError.js"
 
 /**
@@ -82,7 +81,7 @@ export class CustomCalendarEventCacheHandler implements CustomCacheHandler<Calen
 
 	}
 
-	async loadRange(storage: LateInitializedCacheStorage, listId: Id, start: Id, count: number, reverse: boolean): Promise<CalendarEvent[]> {
+	async loadRange(storage: CacheStorage, listId: Id, start: Id, count: number, reverse: boolean): Promise<CalendarEvent[]> {
 		const range = await storage.getRangeForList(CalendarEventTypeRef, listId)
 
 		//if offline db for this list is empty load from server
@@ -124,7 +123,7 @@ export class CustomCalendarEventCacheHandler implements CustomCacheHandler<Calen
 		}
 	}
 
-	async getElementIdsInCacheRange(storage: LateInitializedCacheStorage, listId: Id, ids: Array<Id>): Promise<Array<Id>> {
+	async getElementIdsInCacheRange(storage: CacheStorage, listId: Id, ids: Array<Id>): Promise<Array<Id>> {
 		const range = await storage.getRangeForList(CalendarEventTypeRef, listId)
 		if (range) {
 			this.assertCorrectRange(range)

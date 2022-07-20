@@ -5,7 +5,7 @@ import {OfflineDbFacade, OfflineDbFactory} from "../../../../../src/desktop/db/O
 import {instance, matchers, object, when} from "testdouble"
 import * as cborg from "cborg"
 import {GENERATED_MIN_ID, generatedIdToTimestamp, getElementId, getListId, timestampToGeneratedId} from "../../../../../src/api/common/utils/EntityUtils.js"
-import {firstThrow, getDayShifted, lastThrow, promiseMap, getTypeId} from "@tutao/tutanota-utils"
+import {firstThrow, getDayShifted, getTypeId, lastThrow, promiseMap} from "@tutao/tutanota-utils"
 import {DateProvider} from "../../../../../src/api/common/DateProvider.js"
 import {
 	createFile,
@@ -21,9 +21,10 @@ import {
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import {MailFolderType} from "../../../../../src/api/common/TutanotaConstants.js"
 import {OfflineDb} from "../../../../../src/desktop/db/OfflineDb.js"
-import {aes256RandomKey} from "@tutao/tutanota-crypto"
-import {expandId} from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
+import {aes256RandomKey, bitArrayToUint8Array} from "@tutao/tutanota-crypto"
 import {OfflineStorageMigrator} from "../../../../../src/api/worker/offline/OfflineStorageMigrator.js"
+import {InterWindowEventFacadeSendDispatcher} from "../../../../../src/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import {expandId} from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 
 const {anything} = matchers
 
@@ -53,7 +54,7 @@ o.spec("OfflineStorage", function () {
 	const now = new Date("2022-01-01 00:00:00 UTC")
 	const timeRangeDays = 10
 	const userId = "userId"
-	const databaseKey = [0, 1, 2, 3, 4, 5, 6, 7]
+	const databaseKey = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7])
 
 	/** get an id based on a timestamp that is {@param days} days away from the time range cutoff */
 	const offsetId = days => timestampToGeneratedId(getDayShifted(now, 0 - timeRangeDays + days).getTime())
@@ -66,6 +67,7 @@ o.spec("OfflineStorage", function () {
 		let dbFacadeMock: OfflineDbFacade
 		let dateProviderMock: DateProvider
 		let migratorMock: OfflineStorageMigrator
+		let interWindowEventSenderMock: InterWindowEventFacadeSendDispatcher
 
 		o.beforeEach(async function () {
 			dbFacadeMock = instance(OfflineDbFacade)
@@ -77,12 +79,15 @@ o.spec("OfflineStorage", function () {
 
 			dateProviderMock = object<DateProvider>()
 			migratorMock = instance(OfflineStorageMigrator)
+			interWindowEventSenderMock = instance(InterWindowEventFacadeSendDispatcher)
 			when(dateProviderMock.now()).thenReturn(now.getTime())
-			storage = new OfflineStorage(dbFacadeMock, dateProviderMock, migratorMock)
+			storage = new OfflineStorage(dbFacadeMock, interWindowEventSenderMock, dateProviderMock, migratorMock)
 		})
 
 		o("migrations are run", async function () {
-			await storage.init(userId, databaseKey, timeRangeDays)
+			await storage.init(
+				{userId, databaseKey, timeRangeDays, forceNewDatabase: false}
+			)
 			verify(migratorMock.migrate(storage))
 		})
 
@@ -102,7 +107,7 @@ o.spec("OfflineStorage", function () {
 				when(dbFacadeMock.getWholeList(userId, mailType, anything())).thenResolve([])
 				when(dbFacadeMock.getRange(userId, mailType, listId)).thenResolve({upper, lower})
 
-				await storage.init(userId, databaseKey, timeRangeDays)
+				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
 
 				verify(dbFacadeMock.deleteRange(userId, mailType, listId))
 			})
@@ -117,7 +122,7 @@ o.spec("OfflineStorage", function () {
 				when(dbFacadeMock.getWholeList(userId, mailType, anything())).thenResolve([])
 				when(dbFacadeMock.getRange(userId, mailType, listId)).thenResolve({upper, lower})
 
-				await storage.init(userId, databaseKey, timeRangeDays)
+				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
 
 				verify(dbFacadeMock.setLowerRange(userId, mailType, listId, cutoffId))
 			})
@@ -132,7 +137,7 @@ o.spec("OfflineStorage", function () {
 				when(dbFacadeMock.getWholeList(userId, mailType, anything())).thenResolve([])
 				when(dbFacadeMock.getRange(userId, mailType, listId)).thenResolve({upper, lower})
 
-				await storage.init(userId, databaseKey, timeRangeDays)
+				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
 
 				verify(dbFacadeMock.setLowerRange(userId, mailType, listId, anything()), {times: 0})
 				verify(dbFacadeMock.deleteRange(userId, mailType, listId), {times: 0})
@@ -147,7 +152,7 @@ o.spec("OfflineStorage", function () {
 					encode({_id: [listId, offsetId(1)]})
 				])
 
-				await storage.init(userId, databaseKey, timeRangeDays)
+				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
 
 				verify(dbFacadeMock.setLowerRange(userId, mailType, listId, anything()), {times: 0})
 				verify(dbFacadeMock.deleteRange(userId, mailType, listId), {times: 0})
@@ -173,7 +178,7 @@ o.spec("OfflineStorage", function () {
 					encode(trashMail)
 				])
 
-				await storage.init(userId, databaseKey, timeRangeDays)
+				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
 
 				// Spam mail was deleted even though it's after the cutoff
 				verify(dbFacadeMock.deleteIn(userId, mailType, getListId(spamMail), [getElementId(spamMail)]))
@@ -209,7 +214,7 @@ o.spec("OfflineStorage", function () {
 					encode(mailAfter),
 				])
 
-				await storage.init(userId, databaseKey, timeRangeDays)
+				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
 
 				verify(dbFacadeMock.deleteIn(userId, mailType, inboxMailList, [getElementId(mailBefore)]))
 				verify(dbFacadeMock.deleteIn(userId, mailType, inboxMailList, [getElementId(mailAfter)]), {times: 0})
@@ -231,7 +236,7 @@ o.spec("OfflineStorage", function () {
 					encode(mail2),
 				])
 
-				await storage.init(userId, databaseKey, timeRangeDays)
+				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
 
 				verify(dbFacadeMock.deleteIn(userId, mailType, inboxMailList, [getElementId(mail1), getElementId(mail2)]))
 				verify(dbFacadeMock.deleteIn(userId, mailBodyType, null, [mailBodyId1, mailBodyId2]))
@@ -255,7 +260,7 @@ o.spec("OfflineStorage", function () {
 					encode(mailAfter),
 				])
 
-				await storage.init(userId, databaseKey, timeRangeDays)
+				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
 				verify(dbFacadeMock.deleteIn(userId, mailType, inboxMailList, [getElementId(mailBefore)]))
 				verify(dbFacadeMock.deleteIn(userId, getTypeId(FileTypeRef), fileListId, [getElementId(fileBefore)]))
 			})
@@ -358,10 +363,11 @@ o.spec("OfflineStorage", function () {
 			}
 
 			const migratorMock = instance(OfflineStorageMigrator)
+			const interWindowEventSenderMock = instance(InterWindowEventFacadeSendDispatcher)
 
-			let offlineStorage = new OfflineStorage(offlineDbFacade, dateProvider, migratorMock)
+			let offlineStorage = new OfflineStorage(offlineDbFacade, interWindowEventSenderMock, dateProvider, migratorMock)
 
-			await offlineStorage.init(userId, aes256RandomKey(), timeRangeDays)
+			await offlineStorage.init({userId, databaseKey: bitArrayToUint8Array(aes256RandomKey()), timeRangeDays, forceNewDatabase: false})
 
 			for (let entity of everyEntity) {
 				await offlineStorage.put(entity)
@@ -373,8 +379,8 @@ o.spec("OfflineStorage", function () {
 
 			// We need to create a new OfflineStorage because clearExcludedData gets run in `init`,
 			// And the easiest way to put data in the database is to create an OfflineStorage
-			offlineStorage = new OfflineStorage(offlineDbFacade, dateProvider, migratorMock)
-			await offlineStorage.init(userId, aes256RandomKey(), timeRangeDays)
+			offlineStorage = new OfflineStorage(offlineDbFacade, interWindowEventSenderMock, dateProvider, migratorMock)
+			await offlineStorage.init({userId, databaseKey: bitArrayToUint8Array(aes256RandomKey()), timeRangeDays, forceNewDatabase: false})
 
 			const assertContents = async ({_id, _type}, expected, msg) => {
 				const {listId, elementId} = expandId(_id)

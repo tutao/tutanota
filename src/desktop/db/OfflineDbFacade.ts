@@ -1,12 +1,16 @@
 import {OfflineDb, PersistedEntity} from "./OfflineDb"
 import {OfflineDbMeta} from "../../api/worker/offline/OfflineStorage.js"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
+import {delay} from "@tutao/tutanota-utils"
+import {log} from "../DesktopLog.js"
 
 export interface OfflineDbFactory {
-	create(userid: string, key: Aes256Key): Promise<OfflineDb>
+	create(userid: string, key: Aes256Key, retry?: boolean): Promise<OfflineDb>
 
 	delete(userId: string): Promise<void>
 }
+
+const TAG = "[OfflineDbFacade]"
 
 type CacheEntry = {
 	readonly db: OfflineDb,
@@ -52,8 +56,9 @@ export class OfflineDbFacade {
 	async deleteDatabaseForUser(userId: Id): Promise<void> {
 		const entry = this.cache.get(userId)
 		if (entry != null) {
-			if (entry.counter != 1) {
-				throw new ProgrammingError(`Trying to delete database that is opened ${entry.counter} times`)
+			while (this.cache.has(userId)) {
+				log.debug(TAG, `waiting for other windows to close db before deleting it for user ${userId}`)
+				await delay(100)
 			}
 			await this.closeDatabaseForUser(userId)
 		}

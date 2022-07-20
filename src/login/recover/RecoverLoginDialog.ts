@@ -1,14 +1,8 @@
 import m from "mithril"
 import stream from "mithril/stream"
-import type {ButtonAttrs} from "../../gui/base/Button.js"
-import {Button, ButtonType} from "../../gui/base/Button.js"
-import {createDropdown} from "../../gui/base/Dropdown.js"
-import {
-	AccessBlockedError,
-	AccessDeactivatedError,
-	NotAuthenticatedError,
-	TooManyRequestsError
-} from "../../api/common/error/RestError"
+import Stream from "mithril/stream"
+import {Button, ButtonAttrs, ButtonType} from "../../gui/base/Button.js"
+import {AccessBlockedError, AccessDeactivatedError, NotAuthenticatedError, TooManyRequestsError} from "../../api/common/error/RestError"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {isMailAddress} from "../../misc/FormatValidator"
 import {TextField, TextFieldType} from "../../gui/base/TextField.js"
@@ -22,8 +16,8 @@ import {CancelledError} from "../../api/common/error/CancelledError"
 import {locator} from "../../api/main/MainLocator"
 import {windowFacade} from "../../misc/WindowFacade"
 import {assertMainOrNode} from "../../api/common/Env"
-import Stream from "mithril/stream";
 import {logins} from "../../api/main/LoginController.js"
+import {createDropdown} from "../../gui/base/Dropdown.js"
 
 assertMainOrNode()
 export type ResetAction = "password" | "secondFactor"

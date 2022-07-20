@@ -37,7 +37,7 @@ import {AdminClientDummyEntityRestCache} from "./rest/AdminClientDummyEntityRest
 import {SleepDetector} from "./utils/SleepDetector.js"
 import {SchedulerImpl} from "../common/utils/Scheduler.js"
 import {WorkerDateProvider} from "./utils/WorkerDateProvider.js"
-import {LateInitializedCacheStorage, LateInitializedCacheStorageImpl} from "./rest/CacheStorageProxy"
+import {CacheStorageLateInitializer, LateInitializedCacheStorageImpl} from "./rest/CacheStorageProxy"
 import {IServiceExecutor} from "../common/ServiceRequest"
 import {ServiceExecutor} from "./rest/ServiceExecutor"
 import {BookingFacade} from "./facades/BookingFacade"
@@ -54,6 +54,7 @@ import {NativeCryptoFacadeSendDispatcher} from "../../native/common/generatedipc
 import {random} from "@tutao/tutanota-crypto"
 import {ExportFacadeSendDispatcher} from "../../native/common/generatedipc/ExportFacadeSendDispatcher.js"
 import {assertNotNull} from "@tutao/tutanota-utils"
+import {InterWindowEventFacadeSendDispatcher} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 
 assertWorkerOrNode()
 
@@ -117,6 +118,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			const {offlineDbFacade} = exposeNativeInterface(locator.native)
 			return new OfflineStorage(
 				offlineDbFacade,
+				new InterWindowEventFacadeSendDispatcher(worker),
 				new WorkerDateProvider(),
 				new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS, modelInfos),
 			)
@@ -156,7 +158,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		mainInterface.loginListener,
 		locator.instanceMapper,
 		locator.crypto,
-		maybeUninitializedStorage.initialize.bind(maybeUninitializedStorage),
+		maybeUninitializedStorage,
 		locator.serviceExecutor,
 		locator.user,
 	)
@@ -234,11 +236,15 @@ if (typeof self !== "undefined") {
 }
 
 // for cases where we know offlineStorage won't be available
-class AlwaysInitializedStorage extends EphemeralCacheStorage implements LateInitializedCacheStorage {
+class AlwaysInitializedStorage extends EphemeralCacheStorage implements CacheStorageLateInitializer {
 	async initialize(): Promise<{isPersistent: false, isNewOfflineDb: false}> {
 		return {
 			isPersistent: false,
 			isNewOfflineDb: false
 		}
+	}
+
+	async deInitialize(): Promise<void> {
+		return
 	}
 }
