@@ -8,6 +8,7 @@ import {MacTray} from "./MacTray"
 import {NonMacTray} from "./NonMacTray"
 import {getResourcePath} from "../resources"
 import {BuildConfigKey, DesktopConfigKey} from "../config/ConfigKeys";
+import {log} from "../DesktopLog.js"
 
 export interface PlatformTray {
 	setBadge(): void
@@ -42,8 +43,8 @@ export class DesktopTray {
 
 				this._tray = null
 			}
-		}).on("ready", async () => {
-			if (!this._wm) console.warn("Tray: No WM set before 'ready'!")
+		}).whenReady().then(async () => {
+			if (!this._wm) log.warn("Tray: No WM set before 'ready'!")
 			this._tray = platformTray.getTray(this._wm, await this.getAppIcon())
 		})
 	}
