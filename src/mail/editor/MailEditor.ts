@@ -713,6 +713,13 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 	}
 
 	const minimize = () => {
+		// If the mail is unchanged, close instead of saving
+		if (!model.hasMailChanged()) {
+			dispose()
+			dialog.close()
+			return
+		}
+
 		const saveStatus = stream<SaveStatus>({status: SaveStatusEnum.Saving})
 		save(false)
 			.then(() => saveStatus({status: SaveStatusEnum.Saved}))
