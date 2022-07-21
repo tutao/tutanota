@@ -718,6 +718,7 @@ export type TranslationKeyType =
 	| "languageRussian_label"
 	| "languageSerbian_label"
 	| "languageSerboCroatian_label"
+	| "languageSinhalese_label"
 	| "languageSlovak_label"
 	| "languageSlovenian_label"
 	| "languageSpanish_label"

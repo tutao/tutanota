@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2022-07-19T09:35:48Z",
+	"updated_at": "2022-07-21T14:29:36Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "About",
@@ -733,6 +733,7 @@ export default {
 		"languageRussian_label": "Russian",
 		"languageSerbian_label": "Serbian",
 		"languageSerboCroatian_label": "Serbo-Croatian",
+		"languageSinhalese_label": "Sinhalese",
 		"languageSlovak_label": "Slovak",
 		"languageSlovenian_label": "Slovenian",
 		"languageSpanish_label": "Spanish",

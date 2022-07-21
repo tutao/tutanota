@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2022-07-19T09:54:49Z",
+	"updated_at": "2022-07-21T14:29:45Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -737,6 +737,7 @@ export default {
 		"languageRussian_label": "Russisch",
 		"languageSerbian_label": "Serbisch",
 		"languageSerboCroatian_label": "Serbokroatisch",
+		"languageSinhalese_label": "Singhalesisch",
 		"languageSlovak_label": "Slowakisch",
 		"languageSlovenian_label": "Slowenisch",
 		"languageSpanish_label": "Spanisch",
@@ -1477,6 +1478,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du",
+		"you_label": "Du"
 	}
 }
