@@ -32,7 +32,7 @@ await program
 	.addOption(new Option('-w --webclient <client>', 'choose web client build')
 		.choices(["make", "dist"])
 		.default("dist"))
-	.action(async (stage, host, {webclient, buildtype}) => {
+	.action(async (stage, host, {webclient, buildtype, install}) => {
 		if (stage === "host" && host == null || stage !== "host" && host != null) {
 			program.outputHelp()
 			process.exit(1)
@@ -45,7 +45,7 @@ await program
 			buildType: buildtype,
 		})
 
-		if (options.install) {
+		if (install) {
 			await $`adb install ${apk}`
 			// would be cool, but needs to figure out the correct app to start:
 			// await $`adb shell am start -n de.tutao.tutanota/de.tutao.tutanota.MainActivity`
