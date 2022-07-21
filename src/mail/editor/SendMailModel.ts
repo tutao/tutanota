@@ -179,9 +179,8 @@ export class SendMailModel {
 	}
 
 	setPassword(mailAddress: string, password: string) {
+		this.markAsChangedIfNecessary(!this.passwords.has(mailAddress) || this.passwords.get(mailAddress) !== password)
 		this.passwords.set(mailAddress, password)
-
-		this.markAsChangedIfNecessary(true)
 	}
 
 	getPassword(mailAddress: string): string {
@@ -193,7 +192,7 @@ export class SendMailModel {
 	}
 
 	setSubject(subject: string) {
-		this.mailChanged = subject !== this.subject
+		this.markAsChangedIfNecessary(subject !== this.subject)
 		this.subject = subject
 	}
 
@@ -202,13 +201,13 @@ export class SendMailModel {
 	}
 
 	setBody(body: string) {
+		this.markAsChangedIfNecessary(this.body !== body)
 		this.body = body
-		this.markAsChangedIfNecessary(true)
 	}
 
 	setSender(senderAddress: string) {
+		this.markAsChangedIfNecessary(this.senderAddress !== senderAddress)
 		this.senderAddress = senderAddress
-		this.markAsChangedIfNecessary(true)
 	}
 
 	getSender(): string {
@@ -227,6 +226,10 @@ export class SendMailModel {
 		return this.mailChanged
 	}
 
+	/**
+	 * update the changed state of the mail.
+	 * will only be reset when saving.
+	 */
 	markAsChangedIfNecessary(hasChanged: boolean) {
 		if (!hasChanged) return
 		this.mailChanged = true
@@ -388,9 +391,11 @@ export class SendMailModel {
 			(a, b) => a.address === b.address,
 		)
 
-		recipientsFilter(to).map(r => this.addRecipient(RecipientField.TO, r))
-		recipientsFilter(cc).map(r => this.addRecipient(RecipientField.CC, r))
-		recipientsFilter(bcc).map(r => this.addRecipient(RecipientField.BCC, r))
+		await Promise.all([
+			promiseMap(recipientsFilter(to), async r => this.addRecipient(RecipientField.TO, r)),
+			promiseMap(recipientsFilter(cc), async r => this.addRecipient(RecipientField.CC, r)),
+			promiseMap(recipientsFilter(bcc), async r => this.addRecipient(RecipientField.BCC, r))
+		])
 
 		this.senderAddress = senderMailAddress || this.getDefaultSender()
 		this.confidential = confidential ?? !this.user().props.defaultUnconfidential
@@ -398,7 +403,6 @@ export class SendMailModel {
 
 		if (attachments) {
 			this.attachFiles(attachments)
-			this.mailChanged = false
 		}
 
 		this.replyTos = recipientsFilter(replyTos ?? []).map(recipient => this.recipientsModel.resolve(recipient, ResolveMode.Eager))
@@ -474,13 +478,12 @@ export class SendMailModel {
 
 			recipient.resolved().then(({address, contact}) => {
 				if (!this.passwords.has(address) && contact != null) {
+					this.markAsChangedIfNecessary(true)
 					this.setPassword(address, contact.presharedPassword ?? "")
 				}
-				this.markAsChangedIfNecessary(true)
 			})
 
 			this.markAsChangedIfNecessary(true)
-
 		}
 
 		await recipient.resolved()
@@ -497,6 +500,10 @@ export class SendMailModel {
 		}
 	}
 
+	/**
+	 * remove recipient from the recipient list
+	 * @return true if the recipient was removed
+	 */
 	removeRecipient(recipient: Recipient, type: RecipientField, notify: boolean = true): boolean {
 		const recipients = this.recipients.get(type) ?? []
 		const didRemove = findAndRemove(recipients, r => r.address === recipient.address)
@@ -532,8 +539,7 @@ export class SendMailModel {
 		const sizeCheckResult = checkAttachmentSize(files, sizeLeft)
 
 		this.attachments.push(...sizeCheckResult.attachableFiles)
-
-		this.markAsChangedIfNecessary(true)
+		this.markAsChangedIfNecessary(sizeCheckResult.attachableFiles.length > 0)
 
 		if (sizeCheckResult.tooBigFiles.length > 0) {
 			throw new UserError(() => lang.get("tooBigAttachment_msg") + "\n" + sizeCheckResult.tooBigFiles.join("\n"))
@@ -541,9 +547,7 @@ export class SendMailModel {
 	}
 
 	removeAttachment(file: Attachment): void {
-		if (remove(this.attachments, file)) {
-			this.markAsChangedIfNecessary(true)
-		}
+		this.markAsChangedIfNecessary(remove(this.attachments, file))
 	}
 
 	getSenderName(): string {
@@ -613,6 +617,7 @@ export class SendMailModel {
 	}
 
 	setConfidential(confidential: boolean): void {
+		this.markAsChangedIfNecessary(this.confidential !== confidential)
 		this.confidential = confidential
 	}
 
@@ -854,6 +859,7 @@ export class SendMailModel {
 	}
 
 	setSelectedNotificationLanguageCode(code: string) {
+		this.markAsChangedIfNecessary(this.selectedNotificationLanguage !== code)
 		this.selectedNotificationLanguage = code
 		this.markAsChangedIfNecessary(true)
 	}
@@ -931,6 +937,7 @@ export class SendMailModel {
 	handleEntityEvent(update: EntityUpdateData): Promise<void> {
 		const {operation, instanceId, instanceListId} = update
 		let contactId: IdTuple = [neverNull(instanceListId), instanceId]
+		let changed = false
 
 		if (isUpdateForTypeRef(ContactTypeRef, update)) {
 			if (operation === OperationType.UPDATE) {
@@ -940,11 +947,12 @@ export class SendMailModel {
 						matching.forEach(recipient => {
 							// if the mail address no longer exists on the contact then delete the recipient
 							if (!contact.mailAddresses.find(ma => cleanMatch(ma.address, recipient.address))) {
-								this.removeRecipient(recipient, fieldType, true)
+								changed = changed || this.removeRecipient(recipient, fieldType, true)
 							} else {
 								// else just modify the recipient
 								recipient.setName(getContactDisplayName(contact))
 								recipient.setContact(contact)
+								changed = true
 							}
 						})
 					}
@@ -956,7 +964,7 @@ export class SendMailModel {
 					const toDelete = recipients.filter(recipient => (recipient.contact && isSameId(recipient.contact._id, contactId)) || false)
 
 					for (const r of toDelete) {
-						this.removeRecipient(r, fieldType, true)
+						changed = changed || this.removeRecipient(r, fieldType, true)
 					}
 				}
 			}
@@ -965,7 +973,7 @@ export class SendMailModel {
 		} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update)) {
 			this.updateAvailableNotificationTemplateLanguages()
 		}
-
+		this.markAsChangedIfNecessary(changed)
 		return Promise.resolve()
 	}
 
