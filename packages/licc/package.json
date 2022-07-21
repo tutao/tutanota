@@ -10,7 +10,7 @@
 	"scripts": {
 		"build": "tsc -b",
 		"test": "rm -rf ./test/build && tsc -b test && cd test/build && node test/Suite.js",
-		"preinstall": "mkdir -p dist && touch dist/cli.js"
+		"preinstall": "node preinstall.js"
 	},
 	"author": "",
 	"license": "GPL-3.0",
