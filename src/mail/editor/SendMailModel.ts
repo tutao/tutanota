@@ -181,7 +181,7 @@ export class SendMailModel {
 	setPassword(mailAddress: string, password: string) {
 		this.passwords.set(mailAddress, password)
 
-		this.setMailChanged(true)
+		this.markAsChangedIfNecessary(true)
 	}
 
 	getPassword(mailAddress: string): string {
@@ -203,12 +203,12 @@ export class SendMailModel {
 
 	setBody(body: string) {
 		this.body = body
-		this.setMailChanged(true)
+		this.markAsChangedIfNecessary(true)
 	}
 
 	setSender(senderAddress: string) {
 		this.senderAddress = senderAddress
-		this.setMailChanged(true)
+		this.markAsChangedIfNecessary(true)
 	}
 
 	getSender(): string {
@@ -227,9 +227,11 @@ export class SendMailModel {
 		return this.mailChanged
 	}
 
-	setMailChanged(hasChanged: boolean) {
-		this.mailChanged = hasChanged
-		this.onMailChanged(hasChanged) // if this method is called wherever state gets changed, onMailChanged should function properly
+	markAsChangedIfNecessary(hasChanged: boolean) {
+		if (!hasChanged) return
+		this.mailChanged = true
+		// if this method is called wherever state gets changed, onMailChanged should function properly
+		this.onMailChanged(true)
 	}
 
 	/**
@@ -474,10 +476,10 @@ export class SendMailModel {
 				if (!this.passwords.has(address) && contact != null) {
 					this.setPassword(address, contact.presharedPassword ?? "")
 				}
-				this.setMailChanged(true)
+				this.markAsChangedIfNecessary(true)
 			})
 
-			this.setMailChanged(true)
+			this.markAsChangedIfNecessary(true)
 
 		}
 
@@ -498,7 +500,7 @@ export class SendMailModel {
 	removeRecipient(recipient: Recipient, type: RecipientField, notify: boolean = true): boolean {
 		const recipients = this.recipients.get(type) ?? []
 		const didRemove = findAndRemove(recipients, r => r.address === recipient.address)
-		this.setMailChanged(didRemove)
+		this.markAsChangedIfNecessary(didRemove)
 
 		if (didRemove && notify) {
 			this.onRecipientDeleted({
@@ -531,7 +533,7 @@ export class SendMailModel {
 
 		this.attachments.push(...sizeCheckResult.attachableFiles)
 
-		this.setMailChanged(true)
+		this.markAsChangedIfNecessary(true)
 
 		if (sizeCheckResult.tooBigFiles.length > 0) {
 			throw new UserError(() => lang.get("tooBigAttachment_msg") + "\n" + sizeCheckResult.tooBigFiles.join("\n"))
@@ -540,7 +542,7 @@ export class SendMailModel {
 
 	removeAttachment(file: Attachment): void {
 		if (remove(this.attachments, file)) {
-			this.setMailChanged(true)
+			this.markAsChangedIfNecessary(true)
 		}
 	}
 
@@ -853,7 +855,7 @@ export class SendMailModel {
 
 	setSelectedNotificationLanguageCode(code: string) {
 		this.selectedNotificationLanguage = code
-		this.setMailChanged(true)
+		this.markAsChangedIfNecessary(true)
 	}
 
 	private updateExternalLanguage() {
@@ -959,7 +961,7 @@ export class SendMailModel {
 				}
 			}
 
-			this.setMailChanged(true)
+			this.markAsChangedIfNecessary(true)
 		} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update)) {
 			this.updateAvailableNotificationTemplateLanguages()
 		}
