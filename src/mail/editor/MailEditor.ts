@@ -385,12 +385,13 @@ export class MailEditor implements Component<MailEditorAttrs> {
 							items: getEnabledMailAddressesWithUser(model.mailboxDetails, model.user().userGroupInfo)
 								.sort()
 								.map(mailAddress => ({
-									name: mailAddress,
+									name: a.model.getSenderWithName(mailAddress),
 									value: mailAddress,
 								})),
 							selectedValue: a.model.getSender(),
 							selectionChangedHandler: (selection: string) => model.setSender(selection),
 							dropdownWidth: 250,
+							dropdownShowOnlyValuesAsString: true
 						}),
 					),
 					isConfidential

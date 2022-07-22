@@ -11,8 +11,8 @@ import {
 import {UserError} from "../../api/main/UserError"
 import {getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE} from "../../misc/passwords/PasswordUtils"
 import {cleanMatch, deduplicate, downcast, findAndRemove, getFromMap, neverNull, noOp, ofClass, promiseMap, remove, typedValues} from "@tutao/tutanota-utils"
-import {checkAttachmentSize, getDefaultSender, getSenderNameForUser, getTemplateLanguages,} from "../model/MailUtils"
-import type {File as TutanotaFile, Mail} from "../../api/entities/tutanota/TypeRefs.js"
+import {checkAttachmentSize, getDefaultSender, getEnabledMailAddressesWithUser, getSenderNameForUser, getTemplateLanguages,} from "../model/MailUtils"
+import type {Contact, File as TutanotaFile, Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {ContactTypeRef, ConversationEntryTypeRef, FileTypeRef, MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import type {LoginController} from "../../api/main/LoginController"
@@ -48,6 +48,8 @@ import {createApprovalMail} from "../../api/entities/monitor/TypeRefs"
 import {DateProvider} from "../../api/common/DateProvider.js"
 import {NoZoneDateProvider} from "../../api/common/utils/NoZoneDateProvider.js"
 import {RecipientField} from "../model/MailUtils.js"
+import {LoginIncompleteError} from "../../api/common/error/LoginIncompleteError"
+import {DbError} from "../../api/common/error/DbError"
 
 assertMainOrNode()
 export const TOO_MANY_VISIBLE_RECIPIENTS = 10
@@ -98,6 +100,9 @@ export class SendMailModel {
 	private senderAddress: string
 	private confidential: boolean
 
+	// contains contacts that matches user aliases for sender names
+	private senderContacts: Contact[]
+
 	// contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	private attachments: Array<Attachment> = []
 
@@ -135,6 +140,7 @@ export class SendMailModel {
 	) {
 		const userProps = logins.getUserController().props
 		this.senderAddress = this.getDefaultSender()
+		this.senderContacts = []
 		this.confidential = !userProps.defaultUnconfidential
 
 		this.selectedNotificationLanguage = getAvailableLanguageCode(userProps.notificationMailLanguage || lang.code)
@@ -211,6 +217,10 @@ export class SendMailModel {
 
 	getSender(): string {
 		return this.senderAddress
+	}
+
+	getSenderWithName(mail: string) : string {
+		return this.getSenderName() ? `${this.getSenderName()} <${mail}>` : mail
 	}
 
 	/**
@@ -397,6 +407,8 @@ export class SendMailModel {
 		])
 
 		this.senderAddress = senderMailAddress || this.getDefaultSender()
+		this.updateSenderContacts()
+
 		this.confidential = confidential ?? !this.user().props.defaultUnconfidential
 		this.attachments = []
 
@@ -489,6 +501,37 @@ export class SendMailModel {
 		await recipient.resolved()
 	}
 
+	async getSenderContacts() : Promise<Contact[]> {
+		let senderContacts: Contact[] = []
+		const emails = getEnabledMailAddressesWithUser(this.mailboxDetails, this.user().userGroupInfo)
+
+		emails.map(async (email): Promise<void> => { 
+			const contact = await this.contactModel.searchForContact(email)
+			if(contact) senderContacts.push(contact)
+		})
+
+		return senderContacts
+	}
+
+	async getContactNameFromSenderMail(senderMail: string) : Promise<string> {
+		const contacts = await this.contactModel.searchForContacts(senderMail, "recipient", 1).catch(
+			ofClass(DbError, async () => {
+				const listId = await this.contactModel.contactListId()
+				if (listId) {
+					return locator.entityClient.loadAll(ContactTypeRef, listId)
+				} else {
+					return []
+				}
+			}),
+		).catch(ofClass(LoginIncompleteError, () => []))
+
+		for (const contact of contacts) {
+			return `${contact.firstName} ${contact.lastName} <${senderMail}>`
+		}
+
+		return senderMail
+	}
+
 	getRecipient(type: RecipientField, address: string): ResolvableRecipient | null {
 		return this.getRecipientList(type).find(recipient => recipient.address === address) ?? null
 	}
@@ -551,7 +594,14 @@ export class SendMailModel {
 	}
 
 	getSenderName(): string {
-		return getSenderNameForUser(this.mailboxDetails, this.user())
+		let senderName = null;
+		for(var contact of this.senderContacts) {
+			if(contact.mailAddresses.find(m => m.address == this.senderAddress)) {
+				senderName = `${contact.firstName} ${contact.lastName}`
+				break
+			}
+		}
+		return senderName ?? getSenderNameForUser(this.mailboxDetails, this.user())
 	}
 
 	getDraft(): Readonly<Mail> | null {
@@ -916,6 +966,10 @@ export class SendMailModel {
 				await this.entity.update(contact)
 			}
 		}
+	}
+
+	async updateSenderContacts() {
+		this.senderContacts = await this.getSenderContacts()
 	}
 
 	allRecipients(): Array<ResolvableRecipient> {

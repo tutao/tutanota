@@ -70,6 +70,7 @@ export class MinimizedMailEditorViewModel {
 
 	// fully removes and reopens clicked mail
 	reopenMinimizedEditor(editor: MinimizedEditor): void {
+		editor.sendMailModel.updateSenderContacts()
 		editor.closeOverlayFunction()
 		editor.dialog.show()
 		remove(this._minimizedEditors, editor)

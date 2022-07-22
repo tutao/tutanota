@@ -31,6 +31,7 @@ export interface DropDownSelectorAttrs<T> {
 	selectionChangedHandler?: ((newValue: T) => unknown) | null
 	helpLabel?: lazy<Children>
 	dropdownWidth?: number
+	dropdownShowOnlyValuesAsString?: boolean
 	icon?: AllIcons
 	disabled?: boolean
 	class?: string
@@ -67,7 +68,7 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 						.filter(item => item.selectable !== false)
 						.map(item => {
 							return {
-								label: () => item.name,
+								label: () => a.dropdownShowOnlyValuesAsString ? String(item.value) : item.name,
 								click: () => {
 									a.selectionChangedHandler?.(item.value)
 									m.redraw()
