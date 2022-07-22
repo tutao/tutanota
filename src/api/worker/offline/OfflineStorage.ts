@@ -14,7 +14,6 @@ import {EncodeOptions, Token, Type} from "cborg"
 import {assert, DAY_IN_MILLIS, getTypeId, groupByAndMap, mapNullable, TypeRef} from "@tutao/tutanota-utils"
 import type {OfflineDbFacade} from "../../../desktop/db/OfflineDbFacade.js"
 import {isOfflineStorageAvailable, isTest} from "../../common/Env.js"
-import {ProgrammingError} from "../../common/error/ProgrammingError.js"
 import {modelInfos} from "../../common/EntityFunctions.js"
 import {AccountType, MailFolderType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS} from "../../common/TutanotaConstants.js"
 import {DateProvider} from "../../common/DateProvider.js"
@@ -27,6 +26,7 @@ import {EntityRestClient} from "../rest/EntityRestClient.js"
 import {OfflineStorageInitArgs} from "../rest/CacheStorageProxy.js"
 import {uint8ArrayToKey} from "@tutao/tutanota-crypto"
 import {InterWindowEventFacadeSendDispatcher} from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import {OfflineDbClosedError} from "../../common/error/OfflineDbClosedError.js"
 
 function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNestedTokens | null {
 	return [
@@ -103,7 +103,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 
 	private get userId(): Id {
 		if (this._userId == null) {
-			throw new ProgrammingError("Offline storage not initialized")
+			throw new OfflineDbClosedError("Offline storage not initialized")
 		}
 
 		return this._userId
