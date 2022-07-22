@@ -66,7 +66,7 @@ import {
 	TermsSection
 } from "./TermsAndConditions"
 import {MailAddressAliasService} from "../api/entities/sys/Services"
-import {DropDownSelector} from "../gui/base/DropDownSelector.js"
+import {DropDownSelector, SelectorItemList} from "../gui/base/DropDownSelector.js"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
@@ -370,7 +370,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderIntervals() {
-		const subscriptionPeriods = [
+		const subscriptionPeriods: SelectorItemList<number | null> = [
 			{
 				name: lang.get("pricing.yearly_label"),
 				value: 12,
@@ -379,6 +379,11 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				name: lang.get("pricing.monthly_label"),
 				value: 1,
 			},
+			{
+				name: lang.get("loading_msg"),
+				value: null,
+				selectable: false,
+			}
 		]
 		return [
 			m(DropDownSelector, {
