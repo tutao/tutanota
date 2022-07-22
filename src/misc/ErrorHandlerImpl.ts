@@ -29,6 +29,7 @@ import {CancelledError} from "../api/common/error/CancelledError"
 import {getLoginErrorMessage} from "./LoginUtils"
 import {isOfflineError} from "../api/common/utils/ErrorCheckUtils.js"
 import {SessionType} from "../api/common/SessionType.js"
+import {OfflineDbClosedError} from "../api/common/error/OfflineDbClosedError.js"
 
 assertMainOrNode()
 
@@ -110,6 +111,10 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		if (!shownQuotaError) {
 			shownQuotaError = true
 			Dialog.message("storageQuotaExceeded_msg")
+		}
+	} else if (e instanceof OfflineDbClosedError) {
+		if (!loginDialogActive) {
+			throw e
 		}
 	} else if (ignoredError(e)) {
 		// ignore, this is not our code

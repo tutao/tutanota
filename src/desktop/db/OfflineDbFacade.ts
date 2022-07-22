@@ -1,8 +1,8 @@
 import {OfflineDb, PersistedEntity} from "./OfflineDb"
 import {OfflineDbMeta} from "../../api/worker/offline/OfflineStorage.js"
-import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {delay} from "@tutao/tutanota-utils"
 import {log} from "../DesktopLog.js"
+import {OfflineDbClosedError} from "../../api/common/error/OfflineDbClosedError.js"
 
 export interface OfflineDbFactory {
 	create(userid: string, key: Aes256Key, retry?: boolean): Promise<OfflineDb>
@@ -154,7 +154,7 @@ export class OfflineDbFacade {
 		const entry = this.cache.get(userId)
 
 		if (!entry) {
-			throw new ProgrammingError(`Db for user ${userId} is not open. must call openDataBaseForUser first :)`)
+			throw new OfflineDbClosedError(`Db for user ${userId} is not open :(`)
 		}
 
 		return entry.db

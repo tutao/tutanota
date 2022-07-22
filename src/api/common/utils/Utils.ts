@@ -50,6 +50,7 @@ import {ImportError} from "../error/ImportError"
 import {WebauthnError} from "../error/WebauthnError"
 import {SuspensionError} from "../error/SuspensionError.js"
 import {LoginIncompleteError} from "../error/LoginIncompleteError.js"
+import {OfflineDbClosedError} from "../error/OfflineDbClosedError.js"
 
 export function getWhitelabelDomain(customerInfo: CustomerInfo, domainName?: string): DomainInfo | null {
 	return customerInfo.domainInfos.find(info => info.whitelabelConfig != null && (domainName == null || info.domain === domainName)) ?? null
@@ -103,6 +104,7 @@ const ErrorNameToType = {
 	ProgrammingError,
 	RecipientsNotFoundError,
 	RecipientNotResolvedError,
+	OfflineDbClosedError,
 	OutOfSyncError,
 	ServiceUnavailableError,
 	DbError,
