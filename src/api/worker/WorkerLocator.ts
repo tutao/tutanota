@@ -36,7 +36,7 @@ import {EphemeralCacheStorage} from "./rest/EphemeralCacheStorage"
 import {AdminClientDummyEntityRestCache} from "./rest/AdminClientDummyEntityRestCache.js"
 import {SleepDetector} from "./utils/SleepDetector.js"
 import {SchedulerImpl} from "../common/utils/Scheduler.js"
-import {WorkerDateProvider} from "../common/utils/WorkerDateProvider.js"
+import {NoZoneDateProvider} from "../common/utils/NoZoneDateProvider.js"
 import {CacheStorageLateInitializer, LateInitializedCacheStorageImpl} from "./rest/CacheStorageProxy"
 import {IServiceExecutor} from "../common/ServiceRequest"
 import {ServiceExecutor} from "./rest/ServiceExecutor"
@@ -119,7 +119,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			return new OfflineStorage(
 				offlineDbFacade,
 				new InterWindowEventFacadeSendDispatcher(worker),
-				new WorkerDateProvider(),
+				new NoZoneDateProvider(),
 				new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS, modelInfos),
 			)
 		} else {
@@ -202,7 +202,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	}
 	locator.mailAddress = new MailAddressFacade(locator.user, locator.serviceExecutor)
 
-	const dateProvider = new WorkerDateProvider()
+	const dateProvider = new NoZoneDateProvider()
 	const scheduler = new SchedulerImpl(dateProvider, self, self)
 
 	locator.eventBusClient = new EventBusClient(

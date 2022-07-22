@@ -37,7 +37,7 @@ import {
 import {instance, matchers, object, when} from "testdouble"
 import {OfflineStorage} from "../../../../../src/api/worker/offline/OfflineStorage.js"
 import {assertThrows, mockAttribute, unmockAttribute} from "@tutao/tutanota-test-utils"
-import {WorkerDateProvider} from "../../../../../src/api/common/utils/WorkerDateProvider.js"
+import {NoZoneDateProvider} from "../../../../../src/api/common/utils/NoZoneDateProvider.js"
 import {RestClient} from "../../../../../src/api/worker/rest/RestClient.js"
 import {NotAuthorizedError, NotFoundError} from "../../../../../src/api/common/error/RestError.js"
 import {EphemeralCacheStorage} from "../../../../../src/api/worker/rest/EphemeralCacheStorage.js"
@@ -71,7 +71,7 @@ async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 
 	const offlineDbFacade = new OfflineDbFacade(offlineDbFactory)
 	const interWindowEventSender = instance(InterWindowEventFacadeSendDispatcher)
-	const offlineStorage = new OfflineStorage(offlineDbFacade, interWindowEventSender, new WorkerDateProvider(), migratorMock)
+	const offlineStorage = new OfflineStorage(offlineDbFacade, interWindowEventSender, new NoZoneDateProvider(), migratorMock)
 	await offlineStorage.init({userId, databaseKey: offlineDatabaseTestKey, timeRangeDays: 42, forceNewDatabase: false})
 	return offlineStorage
 }
