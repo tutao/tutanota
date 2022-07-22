@@ -5,7 +5,6 @@ import {ApplicationWindow} from "./ApplicationWindow"
 import type {DesktopConfig} from "./config/DesktopConfig"
 import {DesktopTray} from "./tray/DesktopTray"
 import type {DesktopNotifier} from "./DesktopNotifier"
-import {LOGIN_TITLE} from "../api/common/Env"
 import {DesktopContextMenu} from "./DesktopContextMenu"
 import {log} from "./DesktopLog"
 import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
@@ -17,6 +16,18 @@ import {DesktopThemeFacade} from "./DesktopThemeFacade"
 import {ElectronExports, WebContentsEvent} from "./ElectronExportTypes";
 import {OfflineDbFacade} from "./db/OfflineDbFacade"
 import {RemoteBridge} from "./ipc/RemoteBridge.js"
+import {ASSET_PROTOCOL} from "./net/ProtocolProxy.js"
+
+
+/**
+ * this must be called before electron.app.ready event to be useful
+ */
+export function setupAssetProtocol(electron: ElectronExports) {
+	electron.protocol.registerSchemesAsPrivileged([{
+		scheme: ASSET_PROTOCOL,
+		privileges: {standard: true, supportFetchAPI: true}
+	}])
+}
 
 export type WindowBounds = {
 	rect: Rectangle

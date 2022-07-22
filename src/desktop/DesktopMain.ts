@@ -4,7 +4,7 @@ import {DesktopConfig} from "./config/DesktopConfig"
 import * as electron from "electron"
 import {app} from "electron"
 import {DesktopUtils} from "./DesktopUtils"
-import {WindowManager} from "./DesktopWindowManager"
+import {setupAssetProtocol, WindowManager} from "./DesktopWindowManager"
 import {DesktopNotifier} from "./DesktopNotifier"
 import {ElectronUpdater} from "./ElectronUpdater.js"
 import {DesktopSseClient} from "./sse/DesktopSseClient"
@@ -56,7 +56,6 @@ import {ExposedNativeInterface} from "../native/common/NativeInterface.js"
 import {DesktopWebauthn} from "./2fa/DesktopWebauthn.js"
 import {DesktopPostLoginActions} from "./DesktopPostLoginActions.js"
 import {DesktopInterWindowEventFacade} from "./ipc/DesktopInterWindowEventFacade.js"
-import {ASSET_PROTOCOL} from "./net/ProtocolProxy.js"
 
 /**
  * Should be injected during build time.
@@ -66,10 +65,7 @@ declare const buildOptions: {
 	readonly sqliteNativePath: string
 }
 
-electron.protocol.registerSchemesAsPrivileged([{
-	scheme: ASSET_PROTOCOL,
-	privileges: {standard: true}
-}])
+setupAssetProtocol(electron)
 
 mp()
 type Components = {
