@@ -11,6 +11,7 @@ import {UserError} from "../../api/main/UserError"
 import {NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 import {CalendarEventViewModel, createCalendarEventViewModel} from "./CalendarEventViewModel"
 import {DataFile} from "../../api/common/DataFile";
+import {NoZoneDateProvider} from "../../api/common/utils/NoZoneDateProvider.js"
 
 function getParsedEvent(
 	fileData: DataFile,
@@ -124,7 +125,8 @@ export function replyToEventInvitation(
 				locator.contactModel,
 				locator.eventController,
 				mailboxDetails,
-				locator.recipientsModel
+				locator.recipientsModel,
+				new NoZoneDateProvider(),
 			)
 			return calendarUpdateDistributor
 				.sendResponse(eventClone, sendMailModel, foundAttendee.address.address, previousMail, decision)

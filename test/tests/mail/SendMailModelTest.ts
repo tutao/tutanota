@@ -46,6 +46,7 @@ import {RecipientField} from "../../../src/mail/model/MailUtils.js"
 import {func, instance, matchers, object, replace, when} from "testdouble"
 import {RecipientsModel, ResolveMode} from "../../../src/api/main/RecipientsModel"
 import {ResolvableRecipientMock} from "./ResolvableRecipientMock.js"
+import {NoZoneDateProvider} from "../../../src/api/common/utils/NoZoneDateProvider.js"
 
 const {anything, argThat} = matchers
 
@@ -185,7 +186,8 @@ o.spec("SendMailModel", function () {
 			contactModel,
 			eventController,
 			mailboxDetails,
-			recipientsModel
+			recipientsModel,
+			new NoZoneDateProvider()
 		)
 
 		replace(model, "getDefaultSender", () => DEFAULT_SENDER_FOR_TESTING)

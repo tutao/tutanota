@@ -50,7 +50,8 @@ import {RecipientsModel, ResolvableRecipient} from "../../../src/api/main/Recipi
 import {instance, matchers, object, when} from "testdouble"
 import {ContactModel} from "../../../src/contacts/model/ContactModel"
 import {ResolvableRecipientMock} from "../mail/ResolvableRecipientMock.js"
-import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
+import {EntityRestClientMock} from "../api/worker/rest/EntityRestClientMock.js"
+import {NoZoneDateProvider} from "../../../src/api/common/utils/NoZoneDateProvider.js"
 
 const now = new Date(2020, 4, 25, 13, 40)
 const zone = getTimeZone()
@@ -150,6 +151,7 @@ o.spec("CalendarEventViewModel", function () {
 			eventController,
 			mailboxDetail,
 			recipientsModel,
+			new NoZoneDateProvider(),
 		)
 		updateModel = new SendMailModel(
 			mailFacadeMock,
@@ -160,6 +162,7 @@ o.spec("CalendarEventViewModel", function () {
 			eventController,
 			mailboxDetail,
 			recipientsModel,
+			new NoZoneDateProvider(),
 		)
 		cancelModel = new SendMailModel(
 			mailFacadeMock,
@@ -170,6 +173,7 @@ o.spec("CalendarEventViewModel", function () {
 			eventController,
 			mailboxDetail,
 			recipientsModel,
+			new NoZoneDateProvider(),
 		)
 		responseModel = new SendMailModel(
 			mailFacadeMock,
@@ -180,6 +184,7 @@ o.spec("CalendarEventViewModel", function () {
 			eventController,
 			mailboxDetail,
 			recipientsModel,
+			new NoZoneDateProvider(),
 		)
 
 		const sendFactory = (_, purpose) => {

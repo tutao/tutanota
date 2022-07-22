@@ -11,13 +11,7 @@ import {
 import {UserError} from "../../api/main/UserError"
 import {getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE} from "../../misc/passwords/PasswordUtils"
 import {cleanMatch, deduplicate, downcast, findAndRemove, getFromMap, neverNull, noOp, ofClass, promiseMap, remove, typedValues} from "@tutao/tutanota-utils"
-import {
-	checkAttachmentSize,
-	getDefaultSender,
-	getSenderNameForUser,
-	getTemplateLanguages,
-	RecipientField,
-} from "../model/MailUtils"
+import {checkAttachmentSize, getDefaultSender, getSenderNameForUser, getTemplateLanguages,} from "../model/MailUtils"
 import type {File as TutanotaFile, Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {ContactTypeRef, ConversationEntryTypeRef, FileTypeRef, MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
@@ -51,6 +45,9 @@ import {FileReference} from "../../api/common/utils/FileUtils"
 import {PartialRecipient, Recipient, RecipientList, Recipients, RecipientType} from "../../api/common/recipients/Recipient"
 import {RecipientsModel, ResolvableRecipient, ResolveMode} from "../../api/main/RecipientsModel"
 import {createApprovalMail} from "../../api/entities/monitor/TypeRefs"
+import {DateProvider} from "../../api/common/DateProvider.js"
+import {NoZoneDateProvider} from "../../api/common/utils/NoZoneDateProvider.js"
+import {RecipientField} from "../model/MailUtils.js"
 
 assertMainOrNode()
 export const TOO_MANY_VISIBLE_RECIPIENTS = 10
@@ -112,7 +109,8 @@ export class SendMailModel {
 	private previousMail: Mail | null = null
 	private selectedNotificationLanguage: string
 	private availableNotificationTemplateLanguages: Array<Language> = []
-	private mailChanged: boolean = false
+	private mailChangedAt: number = 0
+	private mailSavedAt: number = 1
 	private passwords: Map<string, string> = new Map()
 
 	// The promise for the draft currently being saved
@@ -133,6 +131,7 @@ export class SendMailModel {
 		private readonly eventController: EventController,
 		public readonly mailboxDetails: MailboxDetail,
 		private readonly recipientsModel: RecipientsModel,
+		private readonly dateProvider: DateProvider,
 	) {
 		const userProps = logins.getUserController().props
 		this.senderAddress = this.getDefaultSender()
@@ -223,7 +222,7 @@ export class SendMailModel {
 	}
 
 	hasMailChanged(): boolean {
-		return this.mailChanged
+		return this.mailChangedAt > this.mailSavedAt
 	}
 
 	/**
@@ -232,7 +231,7 @@ export class SendMailModel {
 	 */
 	markAsChangedIfNecessary(hasChanged: boolean) {
 		if (!hasChanged) return
-		this.mailChanged = true
+		this.mailChangedAt = this.dateProvider.now()
 		// if this method is called wherever state gets changed, onMailChanged should function properly
 		this.onMailChanged(true)
 	}
@@ -408,7 +407,8 @@ export class SendMailModel {
 		this.replyTos = recipientsFilter(replyTos ?? []).map(recipient => this.recipientsModel.resolve(recipient, ResolveMode.Eager))
 		this.previousMail = previousMail || null
 		this.previousMessageId = previousMessageId || null
-		this.mailChanged = false
+		this.mailChangedAt = this.dateProvider.now()
+		this.mailSavedAt = this.mailChangedAt + 1
 		return this
 	}
 
@@ -771,7 +771,7 @@ export class SendMailModel {
 					// If there is an error, we still need to reset currentSavePromise
 					this.currentSavePromise = null
 				}
-				if (this.mailChanged && this.doSaveAgain) {
+				if (this.hasMailChanged() && this.doSaveAgain) {
 					this.doSaveAgain = false
 					await this.saveDraft(saveAttachments, mailMethod)
 				}
@@ -795,11 +795,6 @@ export class SendMailModel {
 		saveAttachments: boolean,
 		mailMethod: MailMethod,
 	): Promise<void> {
-
-		// Allow any changes that might occur while the mail is being saved to be accounted for
-		// if saved is called before this has completed
-		this.mailChanged = false
-
 		try {
 			const attachments = saveAttachments ? this.attachments : null
 
@@ -819,6 +814,9 @@ export class SendMailModel {
 			this.attachments = [] // attachFiles will push to existing files but we want to overwrite them
 			this.attachFiles(newAttachments)
 
+			// Allow any changes that might occur while the mail is being saved to be accounted for
+			// if saved is called before this has completed
+			this.mailSavedAt = this.dateProvider.now()
 		} catch (e) {
 			if (e instanceof PayloadTooLargeError) {
 				throw new UserError("requestTooLarge_msg")
@@ -991,6 +989,7 @@ export function defaultSendMailModel(mailboxDetails: MailboxDetail): SendMailMod
 		locator.contactModel,
 		locator.eventController,
 		mailboxDetails,
-		locator.recipientsModel
+		locator.recipientsModel,
+		new NoZoneDateProvider(),
 	)
 }
