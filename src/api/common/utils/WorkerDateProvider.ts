@@ -1,5 +1,5 @@
-import {ProgrammingError} from "../../common/error/ProgrammingError.js"
-import {DateProvider} from "../../common/DateProvider.js"
+import {ProgrammingError} from "../error/ProgrammingError.js"
+import {DateProvider} from "../DateProvider.js"
 
 export class WorkerDateProvider implements DateProvider {
 	now(): number {
