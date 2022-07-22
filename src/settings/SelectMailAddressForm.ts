@@ -6,7 +6,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import type {ButtonAttrs} from "../gui/base/Button.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import {AccessDeactivatedError} from "../api/common/error/RestError"
-import {firstThrow, ofClass} from "@tutao/tutanota-utils"
+import {firstThrow} from "@tutao/tutanota-utils"
 import {formatMailAddressFromParts} from "../misc/Formatter"
 import {Icon} from "../gui/base/Icon"
 import {BootIcons} from "../gui/base/icons/BootIcons"
@@ -177,48 +177,28 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 
 		this.onBusyStateChanged(true, onBusyStateChanged)
 
-		this.checkAddressTimeout = setTimeout(() => {
+		this.checkAddressTimeout = setTimeout(async () => {
 			if (this.getCleanMailAddress() !== cleanMailAddress) return
-			locator.mailAddressFacade
-				   .isMailAddressAvailable(cleanMailAddress)
-				   .then(available => {
-					   if (this.getCleanMailAddress() === cleanMailAddress) {
-						   if (available) {
-							   this.onValidationFinished(
-								   cleanMailAddress,
-								   {
-									   isValid: true,
-									   errorId: null,
-								   },
-								   onValidationResult,
-							   )
-						   } else {
-							   this.onValidationFinished(
-								   cleanMailAddress,
-								   {
-									   isValid: false,
-									   errorId: "mailAddressNA_msg",
-								   },
-								   onValidationResult,
-							   )
-						   }
-					   }
-				   })
-				   .catch(
-					   ofClass(AccessDeactivatedError, () => {
-						   this.onValidationFinished(
-							   cleanMailAddress,
-							   {
-								   isValid: false,
-								   errorId: "mailAddressDelay_msg",
-							   },
-							   onValidationResult,
-						   )
-					   }),
-				   )
-				   .finally(() => {
-					   this.onBusyStateChanged(false, onBusyStateChanged)
-				   })
+
+			let result: ValidationResult
+			try {
+				const available = await locator.mailAddressFacade.isMailAddressAvailable(cleanMailAddress)
+				result = available ? {isValid: true, errorId: null} : {isValid: false, errorId: "mailAddressNA_msg"}
+			} catch (e) {
+				if (e instanceof AccessDeactivatedError) {
+					result = {isValid: false, errorId: "mailAddressDelay_msg"}
+				} else {
+					throw e
+				}
+			} finally {
+				if (this.getCleanMailAddress() === cleanMailAddress) {
+					this.onBusyStateChanged(false, onBusyStateChanged)
+				}
+			}
+
+			if (this.getCleanMailAddress() === cleanMailAddress) {
+				this.onValidationFinished(cleanMailAddress, result, onValidationResult)
+			}
 		}, 500)
 	}
 }
