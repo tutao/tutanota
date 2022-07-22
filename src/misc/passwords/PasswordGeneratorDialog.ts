@@ -5,8 +5,6 @@ import {Button, ButtonType} from "../../gui/base/Button.js"
 import {locator} from "../../api/main/MainLocator"
 import {px} from "../../gui/size"
 import {copyToClipboard} from "../ClipboardUtils"
-import {state} from "../../app.js"
-import {assertNotNull} from "@tutao/tutanota-utils"
 import {lang} from "../LanguageViewModel.js"
 
 let dictionary: string[] | null = null
@@ -17,7 +15,8 @@ let dictionary: string[] | null = null
  */
 export async function showPasswordGeneratorDialog(): Promise<string> {
 	if (dictionary == null) {
-		const baseUrl = location.protocol + "//" + location.hostname + (location.port ? (":" + location.port) : "") + assertNotNull(state.prefixWithoutFile)
+		const appState = window.tutao.appState
+		const baseUrl = location.protocol + "//" + location.hostname + (location.port ? (":" + location.port) : "") + appState.prefixWithoutFile
 		dictionary = await fetch(baseUrl + "/wordlibrary.json").then((response) => response.json())
 	}
 
