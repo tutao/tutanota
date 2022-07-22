@@ -35,6 +35,7 @@ export class HtmlEditor implements Component {
 	) {
 		this.editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, {blockExternalContent: false}).fragment)
 		this.view = this.view.bind(this)
+		this.initializeEditorListeners()
 	}
 
 	view(): Children {
@@ -47,20 +48,6 @@ export class HtmlEditor implements Component {
 			: ""
 
 		const renderedInjections = this.injections?.() ?? null
-
-		const focus = () => {
-			this.active = true
-			m.redraw()
-		}
-
-		const blur = () => {
-			this.active = false
-			if (this.mode === HtmlEditorMode.WYSIWYG) {
-				this.value(this.editor.getValue())
-			} else {
-				this.value(assertNotNull(this.domTextArea).value)
-			}
-		}
 
 		const getPlaceholder = () => !this.active && this.isEmpty()
 			? m(".abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {
@@ -84,11 +71,7 @@ export class HtmlEditor implements Component {
 					selectionChangedHandler: (mode: HtmlEditorMode) => {
 						this.mode = mode
 						this.setValue(this.value())
-						this.editor.initialized.promise.then(() => {
-							const dom = assertNotNull(this.editor?.domElement)
-							dom.onfocus = (_) => focus()
-							dom.onblur = (_) => blur()
-						})
+						this.initializeEditorListeners()
 					}
 				}
 			) : null,
@@ -128,8 +111,8 @@ export class HtmlEditor implements Component {
 								this.domTextArea.value = this.value()
 							}
 						},
-						onfocus: () => focus(),
-						onblur: () => blur(),
+						onfocus: () => this.focus(),
+						onblur: () => this.blur(),
 						oninput: () => {
 							if (this.domTextArea) {
 								this.domTextArea.style.height = '0px'
@@ -146,6 +129,28 @@ export class HtmlEditor implements Component {
 		])
 	}
 
+
+	private initializeEditorListeners() {
+		this.editor.initialized.promise.then(() => {
+			const dom = assertNotNull(this.editor?.domElement)
+			dom.onfocus = () => this.focus()
+			dom.onblur = () => this.blur()
+		})
+	}
+
+	private focus() {
+		this.active = true
+		m.redraw()
+	}
+
+	private blur() {
+		this.active = false
+		if (this.mode === HtmlEditorMode.WYSIWYG) {
+			this.value(this.editor.getValue())
+		} else {
+			this.value(assertNotNull(this.domTextArea).value)
+		}
+	}
 
 	setModeSwitcher(label: TranslationText): this {
 		this.modeSwitcherLabel = label
@@ -200,7 +205,8 @@ export class HtmlEditor implements Component {
 	}
 
 	isEmpty(): boolean {
-		return this.value() === ""
+		// either nothing or default squire content
+		return this.value() === "" || this.value() === "<div dir=\"auto\"><br></div>"
 	}
 
 
