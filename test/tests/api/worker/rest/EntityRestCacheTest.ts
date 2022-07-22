@@ -37,7 +37,7 @@ import {
 import {instance, matchers, object, when} from "testdouble"
 import {OfflineStorage} from "../../../../../src/api/worker/offline/OfflineStorage.js"
 import {assertThrows, mockAttribute, unmockAttribute} from "@tutao/tutanota-test-utils"
-import {WorkerDateProvider} from "../../../../../src/api/worker/utils/WorkerDateProvider.js"
+import {WorkerDateProvider} from "../../../../../src/api/common/utils/WorkerDateProvider.js"
 import {RestClient} from "../../../../../src/api/worker/rest/RestClient.js"
 import {NotAuthorizedError, NotFoundError} from "../../../../../src/api/common/error/RestError.js"
 import {EphemeralCacheStorage} from "../../../../../src/api/worker/rest/EphemeralCacheStorage.js"
