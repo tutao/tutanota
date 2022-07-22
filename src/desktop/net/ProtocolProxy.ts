@@ -4,6 +4,7 @@ import path from "path"
 import {log} from "../DesktopLog.js"
 import {ProtocolRequest, ProtocolResponse, Session} from "electron"
 import {Duplex, PassThrough} from "stream"
+import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
 
 const TAG = "[ProtocolProxy]"
 
@@ -99,8 +100,17 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 				}
 			})
 		}
+		let actualData: Buffer | null = null
 		if (uploadData) {
-			headers["Content-Length"] = String(uploadData[0].bytes.length)
+			const firstData = uploadData[0]
+			if (firstData.blobUUID) {
+				actualData = await session.getBlobData(firstData.blobUUID)
+			} else if (firstData.file) {
+				throw new ProgrammingError("Uploading files by path is not implemented")
+			} else {
+				actualData = firstData.bytes
+			}
+			headers["Content-Length"] = String(actualData.length)
 		}
 		const clientRequest: http.ClientRequest = net.request(url, {method, headers, agent})
 		clientRequest.on("response", (res: http.IncomingMessage) => {
@@ -117,7 +127,7 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 		})
 		clientRequest.on("error", (e) => handleError(e))
 		clientRequest.on("timeout", () => clientRequest.destroy(new ProxyError(NetErrorCode.TIMED_OUT)))
-		clientRequest.end(uploadData?.[0]?.bytes ?? undefined)
+		clientRequest.end(actualData ?? undefined)
 	}
 	return session.protocol.interceptStreamProtocol(protocol, handler)
 }
