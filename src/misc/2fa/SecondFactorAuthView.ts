@@ -1,13 +1,12 @@
 import m, {Children, Component, Vnode} from "mithril"
 import type {TranslationKey} from "../LanguageViewModel"
 import {lang} from "../LanguageViewModel"
-import {ButtonAttrs, Button, ButtonType} from "../../gui/base/Button.js"
+import {Button, ButtonAttrs, ButtonType} from "../../gui/base/Button.js"
 import {Icon, progressIcon} from "../../gui/base/Icon"
 import {Icons, SecondFactorImage} from "../../gui/base/icons/Icons"
 import {theme} from "../../gui/theme"
 import type {Thunk} from "@tutao/tutanota-utils"
 import {TextField} from "../../gui/base/TextField.js"
-import stream from "mithril/stream"
 
 type WebauthnState =
 	| {state: "init"}
@@ -72,7 +71,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 			return null
 		}
 
-		if (webauthn.canLogin === true) {
+		if (webauthn.canLogin) {
 			return this.renderWebauthnLogin(webauthn)
 		} else {
 			return this._renderOtherDomainLogin(webauthn)
