@@ -88,11 +88,11 @@ export class WebDialogController {
 
 		// Don't wait for the facade to init here, because that only happens after we call `bw.loadUrl`
 		// But we need setup the listener beforehand in case the app in the webDialog loads too fast and we miss it
-		const facadePromise = this.initRemoteWebauthn<FacadeType>(bw.webContents)
+		const facadePromise = this.initRemoteFacade<FacadeType>(bw.webContents)
 		await bw.loadURL(urlToOpen.toString())
 
 		webContents.on("destroyed", () => {
-			this.uninitRemoteWebauthn(webContents)
+			this.uninitRemoteFacade(webContents)
 		})
 
 		// We can confidently await here because we're sure that the bridge will be finished being setup in the webDialog
@@ -154,7 +154,10 @@ export class WebDialogController {
 		return window
 	}
 
-	private async initRemoteWebauthn<FacadeType>(webContents: WebContents): Promise<FacadeType> {
+	/**
+	 * initialize the facade impl that's displayed in the webContents
+	 */
+	private async initRemoteFacade<FacadeType>(webContents: WebContents): Promise<FacadeType> {
 		const deferred = defer<void>()
 		const transport = new ElectronWebContentsTransport<WebDialogIpcConfig, "facade", "init">(webContents, this.ipcHandler)
 		const dispatcher = new MessageDispatcher<NativeToWebRequest, WebToNativeRequest>(transport, {
@@ -168,7 +171,7 @@ export class WebDialogController {
 		return facade
 	}
 
-	private async uninitRemoteWebauthn(webContents: WebContents) {
+	private async uninitRemoteFacade(webContents: WebContents) {
 		this.ipcHandler.removeHandler(webContents.id)
 	}
 }

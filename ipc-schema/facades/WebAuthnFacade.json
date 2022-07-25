@@ -1,0 +1,39 @@
+{
+  "name": "WebAuthnFacade",
+  "doc": "implementation of the WebAuthn protocol",
+  "type": "facade",
+  "senders": ["web"],
+  "receivers": ["desktop"],
+  "methods": {
+	"register": {
+	  "doc": "register for webauthn",
+	  "arg": [{"challenge": "WebAuthnRegistrationChallenge"}],
+	  "ret": "WebAuthnRegistrationResult"
+	},
+	"sign": {
+	  "doc": "sign a webauthn challenge",
+	  "arg": [{"challenge": "WebAuthnSignChallenge"}],
+	  "ret": "WebAuthnSignResult"
+	},
+	"abortCurrentOperation": {
+	  "doc": "cancels the current sign/registration operation",
+	  "arg": [],
+	  "ret": "void"
+	},
+	"isSupported": {
+	  "doc": "return whether this platform supports webAuthn",
+	  "arg": [],
+	  "ret": "boolean"
+	},
+	"canAttemptChallengeForRpId": {
+	  "doc": "return whether we can attempt a challenge for a given RpId",
+	  "arg": [{"rpId": "string"}],
+	  "ret": "boolean"
+	},
+	"canAttemptChallengeForU2FAppId": {
+	  "doc": "return whether we can attempt a challenge for a given U2FAppId",
+	  "arg": [{"appId": "string"}],
+	  "ret": "boolean"
+	}
+  }
+}

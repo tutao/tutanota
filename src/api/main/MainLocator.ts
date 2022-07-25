@@ -47,7 +47,6 @@ import {GroupManagementFacade} from "../worker/facades/GroupManagementFacade"
 import {WorkerRandomizer} from "../worker/WorkerImpl"
 import {exposeRemote} from "../common/WorkerProxy"
 import {ExposedNativeInterface} from "../../native/common/NativeInterface"
-import {WebAuthn} from "../../misc/2fa/webauthn/WebAuthn.js"
 import {BrowserWebauthn} from "../../misc/2fa/webauthn/BrowserWebauthn.js"
 import {UsageTestController} from "@tutao/tutanota-usagetests"
 import {UsageTestModel} from "../../misc/UsageTestModel"
@@ -70,6 +69,7 @@ import {FileControllerNative} from "../../file/FileControllerNative.js"
 import {windowFacade} from "../../misc/WindowFacade.js"
 import {InterWindowEventFacade} from "../../native/common/generatedipc/InterWindowEventFacade.js"
 import {InterWindowEventFacadeSendDispatcher} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import {WebAuthnFacadeSendDispatcher} from "../../native/common/generatedipc/WebAuthnFacadeSendDispatcher.js"
 
 assertMainOrNode()
 
@@ -93,7 +93,7 @@ export interface IMainLocator {
 	readonly themeFacade: ThemeFacade
 	readonly systemFacade: MobileSystemFacade
 	readonly secondFactorHandler: SecondFactorHandler
-	readonly webauthnClient: WebauthnClient
+	readonly webAuthn: WebauthnClient
 	readonly loginFacade: LoginFacade
 	readonly customerFacade: CustomerFacade
 	readonly giftCardFacade: GiftCardFacade
@@ -142,7 +142,7 @@ class MainLocator implements IMainLocator {
 	worker!: WorkerClient
 	fileController!: FileController
 	secondFactorHandler!: SecondFactorHandler
-	webauthnClient!: WebauthnClient
+	webAuthn!: WebauthnClient
 	loginFacade!: LoginFacade
 	customerFacade!: CustomerFacade
 	giftCardFacade!: GiftCardFacade
@@ -203,13 +203,6 @@ class MainLocator implements IMainLocator {
 
 	get systemFacade(): MobileSystemFacade {
 		return this._getNativeInterface("mobileSystemFacade")
-	}
-
-	get webauthnController(): WebAuthn {
-		const creds = navigator.credentials
-		return isElectronClient()
-			? this.getExposedNativeInterface().webauthn
-			: new BrowserWebauthn(creds, window.location.hostname)
 	}
 
 	get offlineDbFacade(): OfflineDbFacade {
@@ -341,8 +334,12 @@ class MainLocator implements IMainLocator {
 			}
 		}
 
-		this.webauthnClient = new WebauthnClient(this.webauthnController, getWebRoot())
-		this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, this.webauthnClient, this.loginFacade)
+		this.webAuthn = new WebauthnClient(isElectronClient()
+				? new WebAuthnFacadeSendDispatcher(this.native)
+				: new BrowserWebauthn(navigator.credentials, window.location.hostname),
+			getWebRoot()
+		)
+		this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, this.webAuthn, this.loginFacade)
 		this.loginListener = new LoginListener(this.secondFactorHandler)
 		this.credentialsProvider = await createCredentialsProvider(
 			deviceEncryptionFacade,

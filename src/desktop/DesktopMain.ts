@@ -53,7 +53,7 @@ import {DesktopFileFacade} from "./DesktopFileFacade.js"
 import {DesktopSearchTextInAppFacade} from "./DesktopSearchTextInAppFacade.js"
 import {exposeLocal} from "../api/common/WorkerProxy.js"
 import {ExposedNativeInterface} from "../native/common/NativeInterface.js"
-import {DesktopWebauthn} from "./2fa/DesktopWebauthn.js"
+import {DesktopWebauthnFacade} from "./2fa/DesktopWebauthnFacade.js"
 import {DesktopPostLoginActions} from "./DesktopPostLoginActions.js"
 import {DesktopInterWindowEventFacade} from "./ipc/DesktopInterWindowEventFacade.js"
 
@@ -215,14 +215,14 @@ async function createComponents(): Promise<Components> {
 			pushFacade,
 			new DesktopSearchTextInAppFacade(window),
 			settingsFacade,
-			themeFacade
+			themeFacade,
+			new DesktopWebauthnFacade(window, webDialogController)
 		)
 		return {desktopCommonSystemFacade, dispatcher}
 	}
 
 	const facadeHandlerFactory = (window: ApplicationWindow): FacadeHandler => {
 		return exposeLocal<ExposedNativeInterface, "facade">({
-			webauthn: new DesktopWebauthn(window.id, webDialogController),
 			offlineDbFacade: offlineDbFacade,
 			postLoginActions: new DesktopPostLoginActions(wm, err, notifier, window.id)
 		})

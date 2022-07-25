@@ -2,14 +2,15 @@ import {COSEAlgorithmIdentifier} from "./WebauthnTypes.js"
 import {ProgrammingError} from "../../../api/common/error/ProgrammingError.js"
 import {getHttpOrigin} from "../../../api/common/Env.js"
 import {
-	WebAuthn,
-	U2F_APPID, U2f_APPID_SUFFIX,
+	U2F_APPID,
+	U2f_APPID_SUFFIX,
 	WEBAUTHN_RP_ID,
 	WebAuthnRegistrationChallenge,
-	WebauthnRegistrationResult,
+	WebAuthnRegistrationResult,
 	WebAuthnSignChallenge,
-	WebauthnSignResult
+	WebAuthnSignResult
 } from "./WebAuthn.js"
+import {WebAuthnFacade} from "../../../native/common/generatedipc/WebAuthnFacade.js"
 import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {CancelledError} from "../../../api/common/error/CancelledError.js"
 import {WebauthnError} from "../../../api/common/error/WebauthnError.js"
@@ -17,7 +18,7 @@ import {WebauthnError} from "../../../api/common/error/WebauthnError.js"
 const WEBAUTHN_TIMEOUT_MS = 60000
 
 /** An actual webauthn implementation in browser. */
-export class BrowserWebauthn implements WebAuthn {
+export class BrowserWebauthn implements WebAuthnFacade {
 	/**
 	 * Relying Party Identifier
 	 * see https://www.w3.org/TR/webauthn-2/#public-key-credential-source-rpid
@@ -50,7 +51,7 @@ export class BrowserWebauthn implements WebAuthn {
 			!BigInt.polyfilled
 	}
 
-	async register({challenge, userId, name, displayName}: WebAuthnRegistrationChallenge): Promise<WebauthnRegistrationResult> {
+	async register({challenge, userId, name, displayName}: WebAuthnRegistrationChallenge): Promise<WebAuthnRegistrationResult> {
 		const publicKeyCredentialCreationOptions: PublicKeyCredentialCreationOptions = {
 			challenge,
 			rp: {
@@ -88,7 +89,7 @@ export class BrowserWebauthn implements WebAuthn {
 		}
 	}
 
-	async sign({challenge, keys}: WebAuthnSignChallenge): Promise<WebauthnSignResult> {
+	async sign({challenge, keys}: WebAuthnSignChallenge): Promise<WebAuthnSignResult> {
 		const publicKeyCredentialRequestOptions: PublicKeyCredentialRequestOptions = {
 			challenge: challenge,
 			rpId: this.rpId,

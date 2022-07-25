@@ -1,15 +1,18 @@
 import {Commands, MessageDispatcher, Request} from "../../api/common/MessageDispatcher.js"
 import {exposeLocal} from "../../api/common/WorkerProxy"
-import {WebAuthn} from "../../misc/2fa/webauthn/WebAuthn.js"
 import {assertNotNull} from "@tutao/tutanota-utils"
 import {DesktopNativeTransport} from "./DesktopNativeTransport.js"
+import {BrowserWebauthn} from "../../misc/2fa/webauthn/BrowserWebauthn.js"
 
 export type WebToNativeRequest = "init"
 export type NativeToWebRequest = "facade"
 
+/**
+ * this is hosted on the server, but will only be used inside a WebDialog for the desktop client.
+ */
 export class WebauthnNativeBridge {
 	private readonly dispatcher: MessageDispatcher<WebToNativeRequest, NativeToWebRequest>
-	private impl!: WebAuthn
+	private impl!: BrowserWebauthn
 
 	constructor() {
 		const nativeApp = assertNotNull(window.nativeAppWebDialog)
@@ -17,7 +20,7 @@ export class WebauthnNativeBridge {
 		const that = this
 		const commands: Commands<NativeToWebRequest> = {
 			"facade": exposeLocal({
-				get webauthn(): WebAuthn {
+				get WebAuthnFacade(): BrowserWebauthn {
 					return that.impl
 				}
 			})
@@ -25,7 +28,7 @@ export class WebauthnNativeBridge {
 		this.dispatcher = new MessageDispatcher<WebToNativeRequest, NativeToWebRequest>(transport, commands)
 	}
 
-	init(impl: WebAuthn): Promise<void> {
+	async init(impl: BrowserWebauthn): Promise<void> {
 		this.impl = impl
 		return this.dispatcher.postRequest(new Request("init", []))
 	}

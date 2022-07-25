@@ -1,19 +1,14 @@
 import {decode} from "cborg"
-import {assert, downcast, firstThrow} from "@tutao/tutanota-utils"
-import type {U2fRegisteredDevice} from "../../../api/entities/sys/TypeRefs.js"
-import {createU2fRegisteredDevice} from "../../../api/entities/sys/TypeRefs.js"
-import type {U2fChallenge} from "../../../api/entities/sys/TypeRefs.js"
-import type {WebauthnResponseData} from "../../../api/entities/sys/TypeRefs.js"
-import {createWebauthnResponseData} from "../../../api/entities/sys/TypeRefs.js"
-import type {WebAuthn} from "./WebAuthn.js"
+import {assert, downcast, firstThrow, partitionAsync} from "@tutao/tutanota-utils"
+import type {U2fChallenge, U2fRegisteredDevice, WebauthnResponseData} from "../../../api/entities/sys/TypeRefs.js"
+import {createU2fRegisteredDevice, createWebauthnResponseData, U2fKey} from "../../../api/entities/sys/TypeRefs.js"
+import {WebAuthnFacade} from "../../../native/common/generatedipc/WebAuthnFacade.js"
 import {U2F_APPID, U2f_APPID_SUFFIX, WEBAUTHN_RP_ID} from "./WebAuthn.js"
-import {U2fKey} from "../../../api/entities/sys/TypeRefs.js"
-import {partitionAsync} from "@tutao/tutanota-utils"
 
 /** Web authentication entry point for the rest of the app. */
 export class WebauthnClient {
 	constructor(
-		private readonly webauthn: WebAuthn,
+		private readonly webauthn: WebAuthnFacade,
 		private readonly clientWebRoot: string,
 	) {
 	}

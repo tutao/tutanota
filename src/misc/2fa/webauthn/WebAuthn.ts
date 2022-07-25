@@ -14,7 +14,7 @@ export interface WebAuthnRegistrationChallenge {
  * 2. We need rpId which was actually used
  * 3. More precise: we know that attestationObject is there
  */
-export interface WebauthnRegistrationResult {
+export interface WebAuthnRegistrationResult {
 	rpId: string
 	rawId: ArrayBuffer
 	attestationObject: ArrayBuffer
@@ -29,32 +29,13 @@ export interface WebAuthnSignChallenge {
 /**
  * Result of Webauthn authentication with hardware key.
  *
- * See {@link WebauthnRegistrationResult} for motivation.
+ * See {@link WebAuthnRegistrationResult} for motivation.
  */
-export interface WebauthnSignResult {
+export interface WebAuthnSignResult {
 	rawId: ArrayBuffer
 	clientDataJSON: ArrayBuffer
 	signature: ArrayBuffer
 	authenticatorData: ArrayBuffer
-}
-
-export interface ExposedWebauthnInterface {
-	webauthn: WebAuthn
-}
-
-/** Actual web authentication implementation. Should not be used directly. */
-export interface WebAuthn {
-	isSupported(): Promise<boolean>;
-
-	canAttemptChallengeForRpId(rpId: string): Promise<boolean>;
-
-	canAttemptChallengeForU2FAppId(appId: string): Promise<boolean>;
-
-	register(challenge: WebAuthnRegistrationChallenge): Promise<WebauthnRegistrationResult>;
-
-	sign(challenge: WebAuthnSignChallenge): Promise<WebauthnSignResult>;
-
-	abortCurrentOperation(): Promise<void>;
 }
 
 export const WEBAUTHN_RP_ID = "tutanota.com"
