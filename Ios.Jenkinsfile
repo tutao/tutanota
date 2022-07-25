@@ -67,6 +67,9 @@ pipeline {
 						script {
 							script {
 								doBuild('test', 'adhoctest', false, params.MILESTONE.trim().equals("") ? VERSION : params.MILESTONE)
+								if(params.RELEASE) {
+									installOnDevice("${WORKSPACE}/app-ios/releases/tutanota-${VERSION}-test.ipa")
+								}
 								stash includes: "app-ios/releases/tutanota-${VERSION}-test.ipa", name: 'ipa-staging'
 							}
 						}
@@ -76,6 +79,9 @@ pipeline {
 					steps {
 						script {
 							doBuild('prod', 'adhoc', params.RELEASE, params.MILESTONE.trim().equals("") ? VERSION : params.MILESTONE)
+							if(params.RELEASE) {
+								installOnDevice("${WORKSPACE}/app-ios/releases/tutanota-${VERSION}-adhoc.ipa")
+							}
 							stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc.ipa", name: 'ipa-production'
 
 						}
@@ -224,4 +230,14 @@ void publishToNexus(String artifactId, String ipaFileName) {
 			assetFilePath: "${WORKSPACE}/app-ios/releases/${ipaFileName}",
 			fileExtension: "ipa"
 	)
+}
+
+void installOnDevice(String assetFilePath) {
+	catchError(
+		stageResult: 'UNSTABLE',
+		buildResult: 'SUCCESS',
+		message: 'There was an error with installing the test version to the test device'
+	) {
+		sh "cfgutil install ${assetFilePath}"
+	}
 }
