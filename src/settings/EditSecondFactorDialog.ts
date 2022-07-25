@@ -295,8 +295,8 @@ export class EditSecondFactorDialog {
 	private static async loadWebauthnClient(entityClient: EntityClient, lazyUser: LazyLoaded<User>, mailAddress: string): Promise<EditSecondFactorDialog> {
 		const totpKeys = await locator.loginFacade.generateTotpSecret()
 		const user = await lazyUser.getAsync()
-		const webauthnSupported = await locator.webauthnClient.isSupported()
-		return new EditSecondFactorDialog(entityClient, user, mailAddress, locator.webauthnClient, totpKeys, webauthnSupported)
+		const webauthnSupported = await locator.webAuthn.isSupported()
+		return new EditSecondFactorDialog(entityClient, user, mailAddress, locator.webAuthn, totpKeys, webauthnSupported)
 	}
 
 	private showRecoveryInfoDialog(user: User) {

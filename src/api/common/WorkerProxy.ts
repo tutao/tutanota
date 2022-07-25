@@ -53,7 +53,7 @@ function facadeProxy(requestSender: RequestSender<"facade">, facadeName: string)
 		{
 			get: (target: {}, property: string) => {
 				// We generate whatever property is asked from us and we assume it is a function. It is normally enforced by the type system
-				// but runtime also tests for certain peroperties e.g. when returning a value from a promise it will try to test whether it
+				// but runtime also tests for certain properties e.g. when returning a value from a promise it will try to test whether it
 				// is "promisable". It is doing so by checking whether there's a "then" function. So we explicitly say we don't have such
 				// a function.
 				if (property === "then") {

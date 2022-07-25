@@ -23,6 +23,8 @@ import {SettingsFacade} from "./SettingsFacade.js"
 import {SettingsFacadeReceiveDispatcher} from "./SettingsFacadeReceiveDispatcher.js"
 import {ThemeFacade} from "./ThemeFacade.js"
 import {ThemeFacadeReceiveDispatcher} from "./ThemeFacadeReceiveDispatcher.js"
+import {WebAuthnFacade} from "./WebAuthnFacade.js"
+import {WebAuthnFacadeReceiveDispatcher} from "./WebAuthnFacadeReceiveDispatcher.js"
 
 export class DesktopGlobalDispatcher {
 	private readonly commonSystemFacade : CommonSystemFacadeReceiveDispatcher
@@ -36,6 +38,7 @@ export class DesktopGlobalDispatcher {
 	private readonly searchTextInAppFacade : SearchTextInAppFacadeReceiveDispatcher
 	private readonly settingsFacade : SettingsFacadeReceiveDispatcher
 	private readonly themeFacade : ThemeFacadeReceiveDispatcher
+	private readonly webAuthnFacade : WebAuthnFacadeReceiveDispatcher
 	constructor(
 		commonSystemFacade : CommonSystemFacade,
 		desktopSystemFacade : DesktopSystemFacade,
@@ -48,6 +51,7 @@ export class DesktopGlobalDispatcher {
 		searchTextInAppFacade : SearchTextInAppFacade,
 		settingsFacade : SettingsFacade,
 		themeFacade : ThemeFacade,
+		webAuthnFacade : WebAuthnFacade,
 	) {
 		this.commonSystemFacade = new CommonSystemFacadeReceiveDispatcher(commonSystemFacade)
 		this.desktopSystemFacade = new DesktopSystemFacadeReceiveDispatcher(desktopSystemFacade)
@@ -60,6 +64,7 @@ export class DesktopGlobalDispatcher {
 		this.searchTextInAppFacade = new SearchTextInAppFacadeReceiveDispatcher(searchTextInAppFacade)
 		this.settingsFacade = new SettingsFacadeReceiveDispatcher(settingsFacade)
 		this.themeFacade = new ThemeFacadeReceiveDispatcher(themeFacade)
+		this.webAuthnFacade = new WebAuthnFacadeReceiveDispatcher(webAuthnFacade)
 	}
 	
 	async dispatch(facadeName: string, methodName: string, args: Array<any>) {
@@ -86,6 +91,8 @@ export class DesktopGlobalDispatcher {
 				return this.settingsFacade.dispatch(methodName, args)
 			case "ThemeFacade":
 				return this.themeFacade.dispatch(methodName, args)
+			case "WebAuthnFacade":
+				return this.webAuthnFacade.dispatch(methodName, args)
 			default:
 				throw new Error("licc messed up! " + facadeName)
 		}

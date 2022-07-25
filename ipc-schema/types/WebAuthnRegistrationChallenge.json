@@ -1,0 +1,7 @@
+{
+  "name": "WebAuthnRegistrationChallenge",
+  "type": "typeref",
+  "location": {
+	"typescript": "../src/misc/2fa/webauthn/WebAuthn.js"
+  }
+}
