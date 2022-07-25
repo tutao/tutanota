@@ -14,7 +14,7 @@ import type {Challenge} from "../../api/entities/sys/TypeRefs.js"
 import {isSameId} from "../../api/common/utils/EntityUtils"
 import {assertMainOrNode} from "../../api/common/Env"
 import type {EntityClient} from "../../api/common/EntityClient"
-import {IWebauthnClient} from "./webauthn/WebauthnClient"
+import {WebauthnClient} from "./webauthn/WebauthnClient"
 import {SecondFactorAuthDialog} from "./SecondFactorAuthDialog"
 import type {LoginFacade} from "../../api/worker/facades/LoginFacade"
 
@@ -29,14 +29,14 @@ assertMainOrNode()
 export class SecondFactorHandler {
 	readonly _eventController: EventController
 	readonly _entityClient: EntityClient
-	readonly _webauthnClient: IWebauthnClient
+	readonly _webauthnClient: WebauthnClient
 	readonly _loginFacade: LoginFacade
 	_otherLoginSessionId: IdTuple | null
 	_otherLoginDialog: Dialog | null
 	_otherLoginListenerInitialized: boolean
 	_waitingForSecondFactorDialog: SecondFactorAuthDialog | null
 
-	constructor(eventController: EventController, entityClient: EntityClient, webauthnClient: IWebauthnClient, loginFacade: LoginFacade) {
+	constructor(eventController: EventController, entityClient: EntityClient, webauthnClient: WebauthnClient, loginFacade: LoginFacade) {
 		this._eventController = eventController
 		this._entityClient = entityClient
 		this._webauthnClient = webauthnClient

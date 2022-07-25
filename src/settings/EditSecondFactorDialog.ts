@@ -25,7 +25,7 @@ import type {User} from "../api/entities/sys/TypeRefs.js"
 import {getEtId, isSameId} from "../api/common/utils/EntityUtils.js"
 import {logins} from "../api/main/LoginController.js"
 import * as RecoverCodeDialog from "./RecoverCodeDialog.js"
-import {IWebauthnClient} from "../misc/2fa/webauthn/WebauthnClient.js"
+import {WebauthnClient} from "../misc/2fa/webauthn/WebauthnClient.js"
 import type {U2fRegisteredDevice} from "../api/entities/sys/TypeRefs.js"
 import {GroupInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {EntityClient} from "../api/common/EntityClient.js"
@@ -63,7 +63,7 @@ export class EditSecondFactorDialog {
 		private readonly entityClient: EntityClient,
 		private readonly user: User,
 		private readonly mailAddress: string,
-		private readonly webauthnClient: IWebauthnClient,
+		private readonly webauthnClient: WebauthnClient,
 		private readonly totpKeys: TotpSecret,
 		private readonly webauthnSupported: boolean,
 	) {

@@ -41,13 +41,13 @@ import type {NativeInterfaceMain} from "../../native/main/NativeInterfaceMain"
 import type {NativeInterfaces} from "../../native/main/NativeInterfaceFactory.js"
 import {ProgrammingError} from "../common/error/ProgrammingError"
 import {SecondFactorHandler} from "../../misc/2fa/SecondFactorHandler"
-import {IWebauthnClient, WebauthnClient} from "../../misc/2fa/webauthn/WebauthnClient"
+import {WebauthnClient} from "../../misc/2fa/webauthn/WebauthnClient"
 import {UserManagementFacade} from "../worker/facades/UserManagementFacade"
 import {GroupManagementFacade} from "../worker/facades/GroupManagementFacade"
 import {WorkerRandomizer} from "../worker/WorkerImpl"
 import {exposeRemote} from "../common/WorkerProxy"
 import {ExposedNativeInterface} from "../../native/common/NativeInterface"
-import {IWebauthn} from "../../misc/2fa/webauthn/IWebauthn.js"
+import {WebAuthn} from "../../misc/2fa/webauthn/WebAuthn.js"
 import {BrowserWebauthn} from "../../misc/2fa/webauthn/BrowserWebauthn.js"
 import {UsageTestController} from "@tutao/tutanota-usagetests"
 import {UsageTestModel} from "../../misc/UsageTestModel"
@@ -93,7 +93,7 @@ export interface IMainLocator {
 	readonly themeFacade: ThemeFacade
 	readonly systemFacade: MobileSystemFacade
 	readonly secondFactorHandler: SecondFactorHandler
-	readonly webauthnClient: IWebauthnClient
+	readonly webauthnClient: WebauthnClient
 	readonly loginFacade: LoginFacade
 	readonly customerFacade: CustomerFacade
 	readonly giftCardFacade: GiftCardFacade
@@ -142,7 +142,7 @@ class MainLocator implements IMainLocator {
 	worker!: WorkerClient
 	fileController!: FileController
 	secondFactorHandler!: SecondFactorHandler
-	webauthnClient!: IWebauthnClient
+	webauthnClient!: WebauthnClient
 	loginFacade!: LoginFacade
 	customerFacade!: CustomerFacade
 	giftCardFacade!: GiftCardFacade
@@ -205,7 +205,7 @@ class MainLocator implements IMainLocator {
 		return this._getNativeInterface("mobileSystemFacade")
 	}
 
-	get webauthnController(): IWebauthn {
+	get webauthnController(): WebAuthn {
 		const creds = navigator.credentials
 		return isElectronClient()
 			? this.getExposedNativeInterface().webauthn

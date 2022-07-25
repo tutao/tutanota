@@ -39,11 +39,11 @@ export interface WebauthnSignResult {
 }
 
 export interface ExposedWebauthnInterface {
-	webauthn: IWebauthn
+	webauthn: WebAuthn
 }
 
 /** Actual web authentication implementation. Should not be used directly. */
-export interface IWebauthn {
+export interface WebAuthn {
 	isSupported(): Promise<boolean>;
 
 	canAttemptChallengeForRpId(rpId: string): Promise<boolean>;

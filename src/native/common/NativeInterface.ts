@@ -1,5 +1,5 @@
 import type {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade"
-import {IWebauthn} from "../../misc/2fa/webauthn/IWebauthn.js"
+import {WebAuthn} from "../../misc/2fa/webauthn/WebAuthn.js"
 import {IPostLoginAction} from "../../api/main/LoginController"
 
 export interface NativeInterface {
@@ -8,7 +8,7 @@ export interface NativeInterface {
 
 /** What native interfaces can be accessed by the web part. */
 export interface ExposedNativeInterface {
-	webauthn: IWebauthn
+	webauthn: WebAuthn
 	offlineDbFacade: OfflineDbFacade
 	postLoginActions: IPostLoginAction
 }
