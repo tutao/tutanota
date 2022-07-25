@@ -150,6 +150,9 @@ void doBuild(String stage, String lane, boolean publishToAppStore, String milest
 	// Prepare the fastlane Appfile which defines the required ids for the ios app build.
 	script {
 		def app_identifier = 'de.tutao.tutanota'
+		if(stage == "test") {
+			app_identifier = 'de.tutao.tutanota-test'
+		}
 		def appfile = './app-ios/fastlane/Appfile'
 
 		sh "echo \"app_identifier('${app_identifier}')\" > ${appfile}"

@@ -70,8 +70,15 @@ platform :ios do
 
 	desc "Build against test system"
 	lane :adhoctest do
+		# modify Info.plist to be able to install test/prod in parallel
+		update_info_plist(
+			plist_path: "tutanota/Info.plist",
+			app_identifier: "de.tutao.tutanota-test",
+		 	display_name: "Tutanota-Test"
+		)
+
 		match(
-			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension"],
+			app_identifier: ["de.tutao.tutanota-test", "de.tutao.tutanota.TutanotaShareExtension-test"],
 			type: "adhoc",
 			verbose: false,
 			readonly: true,
