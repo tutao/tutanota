@@ -1,20 +1,20 @@
 import {
 	ExposedWebauthnInterface,
-	IWebauthn,
+	WebAuthn,
 	WebAuthnRegistrationChallenge,
 	WebauthnRegistrationResult,
 	WebAuthnSignChallenge,
 	WebauthnSignResult
-} from "../../misc/2fa/webauthn/IWebauthn.js"
-import type {IWebDialogController} from "../WebDialog.js"
+} from "../../misc/2fa/webauthn/WebAuthn.js"
+import type {WebDialogController} from "../WebDialog.js"
 import {WebDialog} from "../WebDialog.js"
 
-export class DesktopWebauthn implements IWebauthn {
+export class DesktopWebauthn implements WebAuthn {
 	private currentDialog: Promise<WebDialog<ExposedWebauthnInterface>> | null = null
 
 	constructor(
 		private readonly parentWindowId: number,
-		private readonly webDialogController: IWebDialogController,
+		private readonly webDialogController: WebDialogController,
 	) {
 	}
 
@@ -49,7 +49,7 @@ export class DesktopWebauthn implements IWebauthn {
 		}
 	}
 
-	private async withDialog<T>(baseDomain: string, request: (webauthn: IWebauthn) => Promise<T>): Promise<T> {
+	private async withDialog<T>(baseDomain: string, request: (webauthn: WebAuthn) => Promise<T>): Promise<T> {
 		this.currentDialog = this.webDialogController.create(this.parentWindowId, new URL(baseDomain + "/webauthn"))
 
 		const dialog = await this.currentDialog

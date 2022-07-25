@@ -3,7 +3,7 @@ import m from "mithril"
 import type {CurrentView} from "../gui/Header.js"
 import {DialogHeaderBar, DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar.js"
 import type {WebauthnNativeBridge} from "../native/main/WebauthnNativeBridge"
-import {IWebauthn} from "../misc/2fa/webauthn/IWebauthn.js"
+import {WebAuthn} from "../misc/2fa/webauthn/WebAuthn.js"
 import {SecondFactorImage} from "../gui/base/icons/Icons.js"
 import {progressIcon} from "../gui/base/Icon.js"
 import {lang} from "../misc/LanguageViewModel.js"
@@ -12,7 +12,7 @@ import {ButtonType} from "../gui/base/Button.js"
 /** This is a special view which is not used by the web client directly but is loaded remotely by desktop client in a dialog. See DesktopWebauthn. */
 export class NativeWebauthnView implements CurrentView {
 	constructor(
-		private readonly webauthn: IWebauthn,
+		private readonly webauthn: WebAuthn,
 		private readonly nativeTransport: WebauthnNativeBridge
 	) {
 		this.view = this.view.bind(this)

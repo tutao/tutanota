@@ -8,7 +8,7 @@ import {AccessBlockedError, BadRequestError, NotAuthenticatedError} from "../../
 import {Dialog} from "../../gui/base/Dialog.js"
 import m from "mithril"
 import {SecondFactorAuthView} from "./SecondFactorAuthView.js"
-import {IWebauthnClient} from "./webauthn/WebauthnClient.js"
+import {WebauthnClient} from "./webauthn/WebauthnClient.js"
 import type {LoginFacade} from "../../api/worker/facades/LoginFacade.js"
 import {CancelledError} from "../../api/common/error/CancelledError.js"
 import {WebauthnError} from "../../api/common/error/WebauthnError.js"
@@ -45,7 +45,7 @@ export class SecondFactorAuthDialog {
 
 	/** @private */
 	private constructor(
-		private readonly webauthnClient: IWebauthnClient,
+		private readonly webauthnClient: WebauthnClient,
 		private readonly loginFacade: LoginFacade,
 		private readonly authData: AuthData,
 		private readonly onClose: Thunk,
@@ -58,7 +58,7 @@ export class SecondFactorAuthDialog {
 	 * @param authData
 	 * @param onClose will be called when the dialog is closed (one way or another).
 	 */
-	static show(webauthnClient: IWebauthnClient, loginFacade: LoginFacade, authData: AuthData, onClose: Thunk): SecondFactorAuthDialog {
+	static show(webauthnClient: WebauthnClient, loginFacade: LoginFacade, authData: AuthData, onClose: Thunk): SecondFactorAuthDialog {
 		const dialog = new SecondFactorAuthDialog(webauthnClient, loginFacade, authData, onClose)
 
 		dialog.show()

@@ -2,12 +2,12 @@ import o from "ospec"
 import {matchers, object, when} from "testdouble"
 import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {WebauthnClient} from "../../../../src/misc/2fa/webauthn/WebauthnClient.js"
-import {IWebauthn} from "../../../../src/misc/2fa/webauthn/IWebauthn.js"
+import {WebAuthn} from "../../../../src/misc/2fa/webauthn/WebAuthn.js"
 import {createU2fChallenge} from "../../../../src/api/entities/sys/TypeRefs.js"
 import {createU2fKey} from "../../../../src/api/entities/sys/TypeRefs.js"
 
 o.spec("WebauthnClient", function () {
-	let webauthn: IWebauthn
+	let webauthn: WebAuthn
 	let client: WebauthnClient
 	let clientWebRoot = "https://test-web-root.tutanota.com"
 

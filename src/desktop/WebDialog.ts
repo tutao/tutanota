@@ -10,18 +10,6 @@ import {CentralIpcHandler} from "./ipc/CentralIpcHandler.js"
 import {register} from "./electron-localshortcut/LocalShortcut.js"
 import {ProgrammingError} from "../api/common/error/ProgrammingError.js"
 
-/**
- * a browserWindow wrapper that
- * * opens a specific website
- * * installs a nativeBrigde
- * * sends a request to the webContents
- * * returns the result of the call
- */
-
-export interface IWebDialogController {
-	create<FacadeType extends object>(parentWindowId: number, urlToOpen: URL): Promise<WebDialog<FacadeType>>
-}
-
 export const webauthnIpcConfig = Object.freeze({
 	renderToMainEvent: "to-main-webdialog",
 	mainToRenderEvent: "to-renderer-webdialog"
@@ -66,7 +54,15 @@ export class WebDialog<FacadeType extends object> {
 	}
 }
 
-export class WebDialogController implements IWebDialogController {
+
+/**
+ * a browserWindow wrapper that
+ * * opens a specific website
+ * * installs a nativeBrigde
+ * * sends a request to the webContents
+ * * returns the result of the call
+ */
+export class WebDialogController {
 	constructor(
 		private readonly ipcHandler: WebDialogIpcHandler
 	) {
@@ -158,7 +154,7 @@ export class WebDialogController implements IWebDialogController {
 		return window
 	}
 
-	async initRemoteWebauthn<FacadeType>(webContents: WebContents): Promise<FacadeType> {
+	private async initRemoteWebauthn<FacadeType>(webContents: WebContents): Promise<FacadeType> {
 		const deferred = defer<void>()
 		const transport = new ElectronWebContentsTransport<WebDialogIpcConfig, "facade", "init">(webContents, this.ipcHandler)
 		const dispatcher = new MessageDispatcher<NativeToWebRequest, WebToNativeRequest>(transport, {

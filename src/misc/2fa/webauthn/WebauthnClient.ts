@@ -5,28 +5,15 @@ import {createU2fRegisteredDevice} from "../../../api/entities/sys/TypeRefs.js"
 import type {U2fChallenge} from "../../../api/entities/sys/TypeRefs.js"
 import type {WebauthnResponseData} from "../../../api/entities/sys/TypeRefs.js"
 import {createWebauthnResponseData} from "../../../api/entities/sys/TypeRefs.js"
-import type {IWebauthn} from "./IWebauthn.js"
-import {U2F_APPID, U2f_APPID_SUFFIX, WEBAUTHN_RP_ID} from "./IWebauthn.js"
+import type {WebAuthn} from "./WebAuthn.js"
+import {U2F_APPID, U2f_APPID_SUFFIX, WEBAUTHN_RP_ID} from "./WebAuthn.js"
 import {U2fKey} from "../../../api/entities/sys/TypeRefs.js"
 import {partitionAsync} from "@tutao/tutanota-utils"
 
 /** Web authentication entry point for the rest of the app. */
-export interface IWebauthnClient {
-	isSupported(): Promise<boolean>;
-
-	/** Whether it's possible to attempt a challenge. It might not be possible if there are not keys for this domain. */
-	canAttemptChallenge(challenge: U2fChallenge): Promise<{canAttempt: Array<U2fKey>, cannotAttempt: Array<U2fKey>}>;
-
-	register(userId: Id, name: string, mailAddress: string): Promise<U2fRegisteredDevice>;
-
-	authenticate(challenge: U2fChallenge): Promise<WebauthnResponseData>;
-
-	abortCurrentOperation(): Promise<void>;
-}
-
-export class WebauthnClient implements IWebauthnClient {
+export class WebauthnClient {
 	constructor(
-		private readonly webauthn: IWebauthn,
+		private readonly webauthn: WebAuthn,
 		private readonly clientWebRoot: string,
 	) {
 	}
@@ -35,6 +22,7 @@ export class WebauthnClient implements IWebauthnClient {
 		return this.webauthn.isSupported()
 	}
 
+	/** Whether it's possible to attempt a challenge. It might not be possible if there are not keys for this domain. */
 	async canAttemptChallenge(challenge: U2fChallenge): Promise<{canAttempt: Array<U2fKey>, cannotAttempt: Array<U2fKey>}> {
 		// Whitelabel keys can ge registered other (whitelabel) domains.
 		// If it's a new Webauthn key it will match rpId, otherwise it will match legacy appId.
