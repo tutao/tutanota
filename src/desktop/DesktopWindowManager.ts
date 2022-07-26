@@ -11,13 +11,16 @@ import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 import {BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey} from "./config/ConfigKeys"
 import type {SseInfo} from "./sse/DesktopSseClient"
 import {isRectContainedInRect} from "./DesktopUtils"
-import {downcast} from "@tutao/tutanota-utils"
+import {defer, downcast} from "@tutao/tutanota-utils"
 import {DesktopThemeFacade} from "./DesktopThemeFacade"
 import {ElectronExports, WebContentsEvent} from "./ElectronExportTypes";
 import {OfflineDbFacade} from "./db/OfflineDbFacade"
 import {RemoteBridge} from "./ipc/RemoteBridge.js"
-import {ASSET_PROTOCOL} from "./net/ProtocolProxy.js"
+import {ASSET_PROTOCOL, handleProtocols} from "./net/ProtocolProxy.js"
+import path from "path"
+import url from "url"
 
+const TAG = "[DesktopWindowManager]"
 
 /**
  * this must be called before electron.app.ready event to be useful
@@ -93,6 +96,11 @@ export class WindowManager {
 	}
 
 	async newWindow(showWhenReady: boolean, noAutoLogin?: boolean): Promise<ApplicationWindow> {
+		try {
+			await this.migrateOldLocalStorage()
+		} catch (e) {
+			log.debug(TAG, "storage migration failed", e)
+		}
 		await this.loadStartingBounds()
 		const w: ApplicationWindow = await this._newWindowFactory(noAutoLogin)
 		windows.unshift(w)
@@ -156,7 +164,7 @@ export class WindowManager {
 		const sseValueListener = (value: SseInfo | null) => {
 			if (value && value.userIds.length === 0) {
 				this.invalidateAlarms(windowId).catch(e => {
-					log.debug("Could not invalidate alarms for window ", windowId, e)
+					log.debug(TAG, "Could not invalidate alarms for window ", windowId, e)
 
 					this._conf.removeListener(DesktopConfigEncKey.sseInfo, sseValueListener)
 				})
@@ -166,7 +174,7 @@ export class WindowManager {
 		this._conf.on(DesktopConfigEncKey.sseInfo, sseValueListener)
 
 		// call with value initially
-		this._conf.getVar(DesktopConfigEncKey.sseInfo).then(sseValueListener, e => log.error("Failed to get sseInfo", e))
+		this._conf.getVar(DesktopConfigEncKey.sseInfo).then(sseValueListener, e => log.error(TAG, "Failed to get sseInfo", e))
 	}
 
 	/**
@@ -176,11 +184,11 @@ export class WindowManager {
 	 */
 	async invalidateAlarms(windowId?: number): Promise<void> {
 		if (windowId != null) {
-			log.debug("invalidating alarms for window", windowId)
+			log.debug(TAG, "invalidating alarms for window", windowId)
 			await this.get(windowId)?.commonNativeFacade.invalidateAlarms()
 		} else {
-			log.debug("invalidating alarms for all windows")
-			await Promise.all(this.getAll().map(w => this.invalidateAlarms(w.id).catch(e => log.debug("couldn't invalidate alarms for window", w.id, e))))
+			log.debug(TAG, "invalidating alarms for all windows")
+			await Promise.all(this.getAll().map(w => this.invalidateAlarms(w.id).catch(e => log.debug(TAG, "couldn't invalidate alarms for window", w.id, e))))
 		}
 	}
 
@@ -281,11 +289,109 @@ export class WindowManager {
 		this.saveBounds(result)
 	}
 
-	async _newWindow(electron: ElectronExports, localShortcut: LocalShortcutManager, noAutoLogin: boolean | null): Promise<ApplicationWindow> {
-		const desktopHtml = await this._conf.getConst(BuildConfigKey.webAssetsPath)
+	private async _newWindow(electron: ElectronExports, localShortcut: LocalShortcutManager, noAutoLogin: boolean | null): Promise<ApplicationWindow> {
+		const absoluteWebAssetsPath = await this.getAbsoluteWebAssetsPath()
 		const updateUrl = await this._conf.getConst(BuildConfigKey.updateUrl)
 		const dictUrl = updateUrl && updateUrl !== "" ? updateUrl : "https://mail.tutanota.com/desktop/"
 		// custom builds get the dicts from us as well
-		return new ApplicationWindow(this, desktopHtml, this.icon, electron, localShortcut, this.themeFacade, this.offlineDbFacade, this.remoteBridge, dictUrl, noAutoLogin)
+		return new ApplicationWindow(this, absoluteWebAssetsPath, this.icon, electron, localShortcut, this.themeFacade, this.offlineDbFacade, this.remoteBridge, dictUrl, noAutoLogin)
+	}
+
+	private async getAbsoluteWebAssetsPath() {
+		const webAssetsPath = await this._conf.getConst(BuildConfigKey.webAssetsPath)
+		return path.join(this._electron.app.getAppPath(), webAssetsPath)
+	}
+
+	/**
+	 * needed to get the credentials out of the old file:// origin localStorage from
+	 * before we used the asset://app origin
+	 * they can't be accessed directly from the new origin.
+	 * can be removed once minVersion > 3.98.14.
+	 */
+	private async migrateOldLocalStorage(): Promise<void> {
+		const localStorageLocation = await this._conf.getVar(DesktopConfigKey.webConfigLocation)
+		if (localStorageLocation === "assetOrigin") return
+		const session = this._electron.session.defaultSession
+		let oldContent: string
+		try {
+			oldContent = await this.executeJavaScriptInOrigin(
+				// loading polyfill.js will not execute it but treat it as a text
+				// file, which means the page will essentially be blank from a js point of view.
+				url.pathToFileURL(path.join(this._electron.app.getAppPath(), "polyfill.js")).toString(),
+				`localStorage.getItem('tutanotaConfig') ? btoa(localStorage.getItem('tutanotaConfig')) : 'null'`
+			) as string
+			if (oldContent === "null") {
+				log.debug(TAG, "no old local storage to migrate")
+				return
+			}
+		} catch (e) {
+			log.debug(TAG, "getting old tutanotaConfig failed")
+			return
+		} finally {
+			session.clearStorageData({origin: "file://", storages: undefined, quotas: undefined})
+		}
+		const absoluteWebAssetsPath = await this.getAbsoluteWebAssetsPath()
+		handleProtocols(session, absoluteWebAssetsPath)
+		try {
+			await this.executeJavaScriptInOrigin(
+				"asset://app/polyfill.js",
+				`localStorage.setItem('tutanotaConfig', atob('${oldContent}'))`
+			)
+		} catch (ignored) {
+			log.debug(TAG, "setting new origin tutanotaConfig failed")
+		}
+
+		await this._conf.setVar(DesktopConfigKey.webConfigLocation, "assetOrigin")
+	}
+
+	private async executeJavaScriptInOrigin(origin: string, js: string): Promise<unknown> {
+		log.debug(TAG, "try executing with url:", origin)
+		let executionResult: unknown = null
+		const deferred = defer<unknown>()
+		const migWin = new this._electron.BrowserWindow({
+			show: false,
+			autoHideMenuBar: true,
+			webPreferences: {
+				nodeIntegration: false,
+				nodeIntegrationInWorker: false,
+				nodeIntegrationInSubFrames: false,
+				sandbox: true,
+				contextIsolation: true,
+				webSecurity: true,
+				// @ts-ignore see: https://github.com/electron/electron/issues/30789
+				enableRemoteModule: false,
+				allowRunningInsecureContent: false,
+				webgl: false,
+				plugins: false,
+				experimentalFeatures: false,
+				webviewTag: false,
+				disableDialogs: true,
+				navigateOnDragDrop: false,
+				autoplayPolicy: "user-gesture-required",
+				enableWebSQL: false,
+			},
+		})
+		migWin.webContents.loadURL(origin)
+		migWin.webContents.on("did-finish-load", async () => {
+			origin = await migWin.webContents.executeJavaScript("window.location.origin")
+			migWin.webContents.on("console-message", (ev, level, message, line, file) => {
+				log.debug(TAG, `[${origin}]: ${message}`)
+			})
+			try {
+				executionResult = await migWin.webContents.executeJavaScript(js)
+				log.debug(TAG, "execution succeeded in origin:", origin)
+			} catch (e) {
+				deferred.reject(e)
+				migWin.removeAllListeners()
+			} finally {
+				log.debug(TAG, `closing window for ${origin}`)
+				migWin.close()
+			}
+		})
+
+		migWin.on("close", () => {
+			deferred.resolve(executionResult)
+		})
+		return deferred.promise
 	}
 }

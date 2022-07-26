@@ -64,8 +64,8 @@ export class ApplicationWindow {
 
 	constructor(
 		wm: WindowManager,
-		/** Path to web assets (html, js etc) relate to the appPath. */
-		private readonly webAssetsPath: string,
+		/** absolute path to web assets (html, js etc) */
+		private readonly absoluteAssetsPath: string,
 		icon: NativeImage,
 		private readonly electron: typeof Electron.CrossProcessExports,
 		private readonly localShortcut: LocalShortcutManager,
@@ -150,7 +150,7 @@ export class ApplicationWindow {
 				},
 			],
 		)
-		log.debug(TAG, "webAssetsPath: ", this.webAssetsPath)
+		log.debug(TAG, "webAssetsPath: ", this.absoluteAssetsPath)
 		const preloadPath = path.join(this.electron.app.getAppPath(), "./desktop/preload.js")
 
 		this.createBrowserWindow(wm, {
@@ -302,8 +302,7 @@ export class ApplicationWindow {
 			(webContents, permission, callback: (_: boolean) => void) => callback(false),
 		)
 
-		const absoluteAssetsPath = path.join(this.electron.app.getAppPath(), this.webAssetsPath)
-		handleProtocols(session, absoluteAssetsPath)
+		handleProtocols(session, this.absoluteAssetsPath)
 
 		this.manageDownloadsForSession(session, dictUrl)
 

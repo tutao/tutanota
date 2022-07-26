@@ -294,7 +294,8 @@ async function startupInstance(components: Components) {
 	   .on("will-quit", e => {
 		   dl.deleteTutanotaTempDirectory()
 	   })
-	app.whenReady().then(() => onAppReady(components))
+	await app.whenReady()
+	await onAppReady(components)
 }
 
 async function onAppReady(components: Components) {
@@ -312,7 +313,7 @@ async function onAppReady(components: Components) {
 	// also don't show the window when we're an autolaunched tray app
 	const w = await wm.getLastFocused(!((await conf.getVar(DesktopConfigKey.runAsTrayApp)) && opts.wasAutoLaunched))
 	log.debug("default mailto handler:", app.isDefaultProtocolClient("mailto"))
-	main(components)
+	await main(components)
 }
 
 async function main(components: Components) {
