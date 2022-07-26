@@ -46,15 +46,9 @@ import {client} from "../../misc/ClientDetector"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import Badge from "../../gui/base/Badge"
 import type {ButtonAttrs} from "../../gui/base/Button.js"
-import {ButtonColor, Button, ButtonType} from "../../gui/base/Button.js"
+import {Button, ButtonColor, ButtonType} from "../../gui/base/Button.js"
 import {styles} from "../../gui/styles"
-import {
-    attachDropdown,
-    createAsyncDropdown,
-    createDropdown,
-    DomRectReadOnlyPolyfilled,
-    showDropdownAtPosition
-} from "../../gui/base/Dropdown.js"
+import {attachDropdown, createAsyncDropdown, createDropdown, DomRectReadOnlyPolyfilled, showDropdownAtPosition} from "../../gui/base/Dropdown.js"
 import {navButtonRoutes} from "../../misc/RouteChange"
 import {RecipientButton} from "../../gui/base/RecipientButton"
 import {EventBanner} from "./EventBanner"

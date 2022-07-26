@@ -61,7 +61,7 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 
 	const agent = new net.Agent({
 		keepAlive: true,
-		maxSockets: 1,
+		maxSockets: 4,
 		keepAliveMsecs: 7000 * 1000, // server has a 7200s tls session ticket timeout, so we keep the socket for 7000s
 		timeout: PROXIED_REQUEST_READ_TIMEOUT // this is an idle timeout (empirically determined)
 	})
@@ -71,7 +71,7 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 		const handleError = (e: Error) => {
 			const parsedUrl = new URL(url)
 			const noQueryUrl = `${parsedUrl.protocol}//${parsedUrl.host}${parsedUrl.pathname}`
-			log.debug(TAG, "error for", noQueryUrl, ":")
+			log.debug(TAG, "error for", method, noQueryUrl, ":")
 			log.debug(TAG, e)
 			log.debug(TAG, `failed after ${Date.now() - startTime}ms`)
 			// Passing anything but the codes mentioned in https://source.chromium.org/chromium/chromium/src/+/main:net/base/net_error_list.h
