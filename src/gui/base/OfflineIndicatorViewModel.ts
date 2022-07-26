@@ -2,7 +2,7 @@ import {PROGRESS_DONE} from "./ProgressBar.js"
 import Stream from "mithril/stream"
 import {WorkerClient, WsConnectionState} from "../../api/main/WorkerClient.js"
 import {ExposedCacheStorage} from "../../api/worker/rest/DefaultEntityRestCache.js"
-import {ILoginListener} from "../../api/main/LoginListener.js"
+import {LoginListener} from "../../api/main/LoginListener.js"
 import {LoginController} from "../../api/main/LoginController.js"
 import {OfflineIndicatorAttrs, OfflineIndicatorState} from "./OfflineIndicator.js"
 import {IMainLocator} from "../../api/main/MainLocator.js"
@@ -21,7 +21,7 @@ import {IMainLocator} from "../../api/main/MainLocator.js"
  */
 export class OfflineIndicatorViewModel {
 	private cacheStorage: ExposedCacheStorage | null = null
-	private loginListener: ILoginListener | null = null
+	private loginListener: LoginListener | null = null
 	private worker: WorkerClient | null = null
 	private logins: LoginController | null = null
 	private isInit = false

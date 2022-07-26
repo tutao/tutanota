@@ -86,7 +86,7 @@ import {IServiceExecutor} from "../../common/ServiceRequest"
 import {SessionType} from "../../common/SessionType"
 import {CacheStorageLateInitializer} from "../rest/CacheStorageProxy"
 import {AuthDataProvider, UserFacade} from "./UserFacade"
-import {ILoginListener, LoginFailReason} from "../../main/LoginListener"
+import {LoginListener, LoginFailReason} from "../../main/LoginListener"
 import {LoginIncompleteError} from "../../common/error/LoginIncompleteError.js"
 
 assertWorkerOrNode()
@@ -149,7 +149,7 @@ export class LoginFacade {
 		readonly worker: WorkerImpl,
 		private readonly restClient: RestClient,
 		private readonly entityClient: EntityClient,
-		private readonly loginListener: ILoginListener,
+		private readonly loginListener: LoginListener,
 		private readonly instanceMapper: InstanceMapper,
 		private readonly cryptoFacade: CryptoFacade,
 		/**

@@ -40,7 +40,7 @@ import {RestClient} from "./rest/RestClient"
 import {IServiceExecutor} from "../common/ServiceRequest.js"
 import {BlobFacade} from "./facades/BlobFacade"
 import {ExposedCacheStorage} from "./rest/DefaultEntityRestCache.js"
-import {ILoginListener} from "../main/LoginListener"
+import {LoginListener} from "../main/LoginListener"
 
 assertWorkerOrNode()
 
@@ -77,7 +77,7 @@ export interface WorkerInterface {
 
 /** Interface for the "main"/webpage context of the app, interface for the worker client. */
 export interface MainInterface {
-	readonly loginListener: ILoginListener
+	readonly loginListener: LoginListener
 }
 
 type WorkerRequest = Request<WorkerRequestType>
