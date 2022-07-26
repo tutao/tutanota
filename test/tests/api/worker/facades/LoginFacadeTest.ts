@@ -20,7 +20,7 @@ import {CryptoFacade, encryptString} from "../../../../../src/api/worker/crypto/
 import {CacheStorageLateInitializer} from "../../../../../src/api/worker/rest/CacheStorageProxy"
 import {UserFacade} from "../../../../../src/api/worker/facades/UserFacade"
 import {SaltService, SessionService} from "../../../../../src/api/entities/sys/Services"
-import {ILoginListener} from "../../../../../src/api/main/LoginListener"
+import {LoginListener} from "../../../../../src/api/main/LoginListener"
 import {Credentials} from "../../../../../src/misc/credentials/Credentials"
 import {defer, DeferredObject, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {AccountType} from "../../../../../src/api/common/TutanotaConstants"
@@ -59,7 +59,7 @@ o.spec("LoginFacadeTest", function () {
 	let serviceExecutor: IServiceExecutor
 	let restClientMock: RestClient
 	let entityClientMock: EntityClient
-	let loginListener: ILoginListener
+	let loginListener: LoginListener
 	let instanceMapperMock: InstanceMapper
 	let cryptoFacadeMock: CryptoFacade
 	let cacheStorageInitializerMock: CacheStorageLateInitializer
@@ -81,7 +81,7 @@ o.spec("LoginFacadeTest", function () {
 		entityClientMock = instance(EntityClient)
 		when(entityClientMock.loadRoot(TutanotaPropertiesTypeRef, anything())).thenResolve(createTutanotaProperties())
 
-		loginListener = object<ILoginListener>()
+		loginListener = object<LoginListener>()
 		instanceMapperMock = instance(InstanceMapper)
 		cryptoFacadeMock = object<CryptoFacade>()
 		usingOfflineStorage = false

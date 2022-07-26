@@ -8,40 +8,7 @@ export const enum LoginFailReason {
 }
 
 /** Listener for the login events from the worker side. */
-export interface ILoginListener {
-	/**
-	 * Partial login reached: cached entities and user are available.
-	 */
-	onPartialLoginSuccess(): Promise<void>
-
-	/**
-	 * Full login reached: any network requests can be made
-	 */
-	onFullLoginSuccess(): Promise<void>
-
-	/**
-	 * call when the login fails for invalid session or other reasons
-	 */
-	onLoginFailure(reason: LoginFailReason): Promise<void>
-
-	/*
-	* call when retrying full login
-	 */
-	onRetryLogin(): void
-
-	/**
-	 * Shows a dialog with possibility to use second factor and with a message that the login can be approved from another client.
-	 */
-	onSecondFactorChallenge(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null): Promise<void>
-
-	/**
-	 * true if the last full login attempt failed
-	 * may revert to false when retrying.
-	 */
-	getFullLoginFailed(): boolean
-}
-
-export class LoginListener implements ILoginListener {
+export class LoginListener {
 
 	private loginPromise: DeferredObject<void> = defer()
 	private fullLoginFailed: boolean = false
@@ -55,15 +22,24 @@ export class LoginListener implements ILoginListener {
 		return this.loginPromise.promise
 	}
 
+	/**
+	 * Partial login reached: cached entities and user are available.
+	 */
 	onPartialLoginSuccess(): Promise<void> {
 		return Promise.resolve()
 	}
 
+	/**
+	 * Full login reached: any network requests can be made
+	 */
 	async onFullLoginSuccess(): Promise<void> {
 		this.fullLoginFailed = false
 		this.loginPromise.resolve()
 	}
 
+	/**
+	 * call when the login fails for invalid session or other reasons
+	 */
 	async onLoginFailure(reason: LoginFailReason): Promise<void> {
 		this.fullLoginFailed = true
 		if (reason === LoginFailReason.SessionExpired) {
@@ -72,14 +48,24 @@ export class LoginListener implements ILoginListener {
 		}
 	}
 
+	/**
+	 * call when retrying full login
+	 */
 	onRetryLogin(): void {
 		this.fullLoginFailed = false
 	}
 
+	/**
+	 * Shows a dialog with possibility to use second factor and with a message that the login can be approved from another client.
+	 */
 	onSecondFactorChallenge(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null): Promise<void> {
 		return this.secondFactorHandler.showSecondFactorAuthenticationDialog(sessionId, challenges, mailAddress)
 	}
 
+	/**
+	 * true if the last full login attempt failed
+	 * may revert to false when retrying.
+	 */
 	getFullLoginFailed(): boolean {
 		return this.fullLoginFailed
 	}
