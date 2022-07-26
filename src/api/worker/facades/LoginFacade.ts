@@ -266,29 +266,25 @@ export class LoginFacade {
 		}))
 	}
 
-	private waitUntilSecondFactorApproved(accessToken: Base64Url, sessionId: IdTuple, retryOnNetworkError: number): Promise<void> {
+	private async waitUntilSecondFactorApproved(accessToken: Base64Url, sessionId: IdTuple, retryOnNetworkError: number): Promise<void> {
 		let secondFactorAuthGetData = createSecondFactorAuthGetData()
 		secondFactorAuthGetData.accessToken = accessToken
-		return this.serviceExecutor.get(SecondFactorAuthService, secondFactorAuthGetData)
-				   .then(secondFactorAuthGetReturn => {
-					   if (!this.loginRequestSessionId || !isSameId(this.loginRequestSessionId, sessionId)) {
-						   return Promise.reject(new CancelledError("login cancelled"))
-					   }
+		try {
+			const secondFactorAuthGetReturn = await this.serviceExecutor.get(SecondFactorAuthService, secondFactorAuthGetData)
+			if (!this.loginRequestSessionId || !isSameId(this.loginRequestSessionId, sessionId)) {
+				throw new CancelledError("login cancelled")
+			}
 
-					   if (secondFactorAuthGetReturn.secondFactorPending) {
-						   return this.waitUntilSecondFactorApproved(accessToken, sessionId, 0)
-					   }
-				   })
-				   .catch(
-					   ofClass(ConnectionError, e => {
-						   // connection error can occur on ios when switching between apps, just retry in this case.
-						   if (retryOnNetworkError < 10) {
-							   return this.waitUntilSecondFactorApproved(accessToken, sessionId, retryOnNetworkError + 1)
-						   } else {
-							   throw e
-						   }
-					   }),
-				   )
+			if (secondFactorAuthGetReturn.secondFactorPending) {
+				return this.waitUntilSecondFactorApproved(accessToken, sessionId, 0)
+			}
+		} catch (e) {
+			if (e instanceof ConnectionError && retryOnNetworkError < 10) {
+				// connection error can occur on ios when switching between apps, just retry in this case.
+				return this.waitUntilSecondFactorApproved(accessToken, sessionId, retryOnNetworkError + 1)
+			}
+			throw e
+		}
 	}
 
 	/**
