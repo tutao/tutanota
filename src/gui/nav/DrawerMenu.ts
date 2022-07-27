@@ -39,7 +39,7 @@ export class DrawerMenu implements Component<Attrs> {
 					m(".news-button", [
 						m(ButtonN, {
 							icon: () => Icons.Bulb,
-							label: "userUsageDataOptIn_label",
+							label: "news_label",
 							click: showUsageTestOptInDialog,
 							type: ButtonType.ActionLarge,
 							colors: ButtonColor.DrawerNav,

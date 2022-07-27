@@ -2075,8 +2075,6 @@ styles.registerStyle("main", () => {
 		"ul.usage-test-opt-in-bullets": {
 			"list-style": "none",
 			"text-align": "left",
-			width: "90%",
-			"margin-left": "12%",
 			"padding-inline-start": px(0),
 		},
 		".usage-test-opt-in-bullets li": {

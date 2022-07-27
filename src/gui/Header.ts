@@ -300,7 +300,7 @@ export class Header implements Component {
 
 		let content: Children = null
 		if (viewSlider && viewSlider.isFocusPreviousPossible()) {
-			content = m(".news-button", [
+			content = m("", [
 				m(NavButton, {
 					label: () => {
 						const prevColumn = viewSlider.getPreviousColumn()
@@ -327,8 +327,8 @@ export class Header implements Component {
 					? m(CounterBadge, {
 						count: 1,
 						position: {
-							top: px(4),
-							right: px(9),
+							top: px(2),
+							right: px(0),
 						},
 						color: "white",
 						background: theme.list_accent_fg,
