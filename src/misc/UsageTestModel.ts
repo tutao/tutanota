@@ -9,7 +9,7 @@ import {
 import {PingAdapter, Stage, UsageTest} from "@tutao/tutanota-usagetests"
 import {assertNotNull, filterInt, lazy, neverNull} from "@tutao/tutanota-utils"
 import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
-import {UsageTestMetricType} from "../api/common/TutanotaConstants"
+import {Keys, UsageTestMetricType} from "../api/common/TutanotaConstants"
 import {SuspensionError} from "../api/common/error/SuspensionError"
 import {SuspensionBehavior} from "../api/worker/rest/RestClient"
 import {DateProvider} from "../api/common/DateProvider.js"
@@ -23,10 +23,7 @@ import {DropDownSelector, SelectorItem} from "../gui/base/DropDownSelector"
 import {UsageTestMetricType} from "../api/common/TutanotaConstants"
 import m, {Children, Component, Vnode} from "mithril"
 import {isOfflineError} from "../api/common/utils/ErrorCheckUtils.js"
-import {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar.js"
-import {theme} from "../gui/theme.js"
-import {px} from "../gui/size.js"
-import {ButtonColor, ButtonN, ButtonType} from "../gui/base/ButtonN.js"
+import {ButtonAttrs, ButtonN, ButtonType} from "../gui/base/ButtonN.js"
 import {LoginController, logins} from "../api/main/LoginController.js"
 import {locator} from "../api/main/MainLocator.js"
 import {CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
@@ -115,112 +112,80 @@ export async function showExperienceSamplingDialog(stage: Stage, experienceSampl
 	})
 }
 
-type UsageTestOptInDialogAttrs = {
-	closeAction: (optedIn?: boolean) => void
-}
-
-class UsageTestOptInDialog implements Component<UsageTestOptInDialogAttrs> {
-	view(vnode: Vnode<UsageTestOptInDialogAttrs>) {
-		const lnk = InfoLink.Privacy
-
-		const userSettingsGroupRoot = logins.getUserController().userSettingsGroupRoot
-
-		return m(
-			".center",
-			[
-				m(
-					".pl",
-					{
-						style: {
-							height: px(200),
-						},
-					},
-					m.trust(theme.logo),
-				),
-				m("h1", lang.get("userUsageDataOptIn_title")),
-				m("p", lang.get("userUsageDataOptInExplanation_msg")),
-				m("ul.usage-test-opt-in-bullets", [
-					m("li.list-item-check", lang.get("userUsageDataOptInStatement1_msg")),
-					m("li.list-item-check", lang.get("userUsageDataOptInStatement2_msg")),
-					m("li.list-item-info", lang.get("userUsageDataOptInStatement3_msg")),
-					m("li.list-item-info", lang.get("userUsageDataOptInStatement4_msg")),
-				]),
-				m("p", lang.get("moreInfo_msg") + " ", m("small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])),
-				m("", [
-					m(ButtonN, {
-						label: "activate_action",
-						title: "activate_action",
-						click: () => {
-							userSettingsGroupRoot.usageDataOptedIn = true
-							locator.entityClient.update(userSettingsGroupRoot)
-
-							vnode.attrs.closeAction(true)
-						},
-						colors: ButtonColor.Elevated,
-						type: ButtonType.Primary,
-					}),
-					m(ButtonN, {
-						label: "deactivate_action",
-						title: "deactivate_action",
-						click: () => {
-							userSettingsGroupRoot.usageDataOptedIn = false
-							locator.entityClient.update(userSettingsGroupRoot)
-
-							vnode.attrs.closeAction(false)
-						},
-						colors: ButtonColor.Content,
-						type: ButtonType.Secondary,
-					}),
-					m(ButtonN, {
-						label: "decideLater_action",
-						title: "decideLater_action",
-						click: () => vnode.attrs.closeAction(),
-						colors: ButtonColor.Content,
-						type: ButtonType.Secondary,
-					}),
-				])
-			]
-		)
-	}
-}
 
 export function showUsageTestOptInDialog(): Promise<void> {
 	return new Promise(resolve => {
+		const lnk = InfoLink.Privacy
+		const userSettingsGroupRoot = logins.getUserController().userSettingsGroupRoot
 		let dialog: Dialog
 
-		const close = (optedIn?: boolean) => {
+		const closeAction = (optedIn?: boolean) => {
 			dialog.close()
 
 			if (optedIn) {
-				Dialog.showActionDialog({
-					title: lang.get("thankYou_label"),
-					allowCancel: false,
-					okAction: dialog => dialog.close(),
-					child: {
-						view: () => m("", lang.get("userUsageDataOptInThankYouOptedIn_msg"))
-					}
-				})
+				Dialog.message("userUsageDataOptInThankYouOptedIn_msg")
 			} else if (optedIn !== undefined) {
-				Dialog.showActionDialog({
-					title: lang.get("thankYou_label"),
-					allowCancel: false,
-					okAction: dialog => dialog.close(),
-					child: {
-						view: () => m("", lang.get("userUsageDataOptInThankYouOptedOut_msg"))
-					}
-				})
+				Dialog.message("userUsageDataOptInThankYouOptedOut_msg")
 			}
-
-			m.redraw()
 
 			resolve()
 		}
 
-		const headerAttrs: DialogHeaderBarAttrs = {
-			noHeader: true,
-		}
+		const buttonAttrs: Array<ButtonAttrs> = [
+			{
+				label: "decideLater_action",
+				click: () => closeAction(),
+				type: ButtonType.Secondary,
+			},
+			{
+				label: "deactivate_action",
+				click: () => {
+					userSettingsGroupRoot.usageDataOptedIn = false
+					locator.entityClient.update(userSettingsGroupRoot)
 
-		dialog = Dialog.largeDialogN(headerAttrs, UsageTestOptInDialog, {closeAction: close}).show()
+					closeAction(false)
+				},
+				type: ButtonType.Secondary,
+			},
+			{
+				label: "activate_action",
+				click: () => {
+					userSettingsGroupRoot.usageDataOptedIn = true
+					locator.entityClient.update(userSettingsGroupRoot)
+
+					closeAction(true)
+				},
+				type: ButtonType.Primary,
+			},
+		]
+		dialog = new Dialog(DialogType.Reminder, {
+			view: () => [
+				m(".dialog-contentButtonsBottom.text-break.scroll", [
+					m("h1", lang.get("userUsageDataOptIn_title")),
+					m("p", lang.get("userUsageDataOptInExplanation_msg")),
+					m("ul.usage-test-opt-in-bullets", [
+						m("li.list-item-check", lang.get("userUsageDataOptInStatement1_msg")),
+						m("li.list-item-check", lang.get("userUsageDataOptInStatement2_msg")),
+						m("li.list-item-info", lang.get("userUsageDataOptInStatement3_msg")),
+						m("li.list-item-info", lang.get("userUsageDataOptInStatement4_msg")),
+					]),
+					m("p", lang.get("moreInfo_msg") + " ", m("small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])),
+
+				]),
+				m(
+					".flex-center.dialog-buttons.flex-no-grow-no-shrink-auto",
+					buttonAttrs.map(a => m(ButtonN, a)),
+				),
+			],
+		})
+			.setCloseHandler(() => closeAction())
+			.addShortcut({
+				key: Keys.ESC,
+				shift: false,
+				exec: () => closeAction(),
+				help: "cancel_action",
+			})
+			.show()
 	})
 }
 

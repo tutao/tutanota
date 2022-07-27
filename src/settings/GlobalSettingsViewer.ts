@@ -280,8 +280,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 							dropdownWidth: 250,
 						})
 						: null
-				)
-
+				),
 			]),
 		]
 	}
