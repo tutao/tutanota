@@ -67,7 +67,7 @@ class PushNotificationService : LifecycleJobService() {
 	}
 
 	private fun removeBackgroundServiceNotification() {
-		Log.d(TAG, "Stopping foregroud")
+		Log.d(TAG, "Stopping foreground")
 		stopForeground(true)
 	}
 
@@ -75,10 +75,10 @@ class PushNotificationService : LifecycleJobService() {
 		super.onStartCommand(intent, flags, startId)
 		Log.d(TAG, "Received onStartCommand, sender: " + intent?.getStringExtra("sender"))
 		if (intent != null && intent.hasExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA)) {
-			val dissmissAddrs =
+			val dismissAddresses =
 					intent.getStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA)
 			localNotificationsFacade.notificationDismissed(
-					dissmissAddrs,
+					dismissAddresses,
 					intent.getBooleanExtra(MainActivity.IS_SUMMARY_EXTRA, false)
 			)
 		}

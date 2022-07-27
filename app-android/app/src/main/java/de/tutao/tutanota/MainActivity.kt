@@ -160,7 +160,7 @@ class MainActivity : FragmentActivity() {
 			@Deprecated("shouldOverrideUrlLoading is deprecated")
 			override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
 				Log.d(TAG, "see if should override $url")
-				if (url.startsWith(BASE_WEBVIEW_URL)) {
+				if (url.startsWith(BASE_WEB_VIEW_URL)) {
 					return false
 				}
 				val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
@@ -176,7 +176,7 @@ class MainActivity : FragmentActivity() {
 			override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
 				val url = request.url
 				return if (request.method == "OPTIONS") {
-					Log.v(TAG, "replacing OPTIONS response to ${url}")
+					Log.v(TAG, "replacing OPTIONS response to $url")
 					WebResourceResponse(
 							"text/html",
 							"UTF-8",
@@ -189,7 +189,7 @@ class MainActivity : FragmentActivity() {
 							),
 							null
 					)
-				} else if (request.method == "GET" && url.toString().startsWith(BASE_WEBVIEW_URL)) {
+				} else if (request.method == "GET" && url.toString().startsWith(BASE_WEB_VIEW_URL)) {
 					Log.v(TAG, "replacing asset GET response to ${url.path}")
 					val assetPath = File(BuildConfig.RES_ADDRESS + url.path!!).canonicalPath.run {
 						slice(1..lastIndex)
@@ -340,7 +340,7 @@ class MainActivity : FragmentActivity() {
 		}
 		// additional path information like app.html/login are not handled properly by the WebView
 		// when loaded from local file system. so we are just adding parameters to the Url e.g. ../app.html?noAutoLogin=true.
-		return BASE_WEBVIEW_URL + "index-app.html" + queryBuilder.toString()
+		return BASE_WEB_VIEW_URL + "index-app.html" + queryBuilder.toString()
 	}
 
 	private val baseAssetPath: String
@@ -556,7 +556,7 @@ class MainActivity : FragmentActivity() {
 
 	companion object {
 		// don't remove the trailing slash because otherwise longer domains might match our asset check
-		const val BASE_WEBVIEW_URL = "https://assets.tutanota.com/"
+		const val BASE_WEB_VIEW_URL = "https://assets.tutanota.com/"
 		const val OPEN_USER_MAILBOX_ACTION = "de.tutao.tutanota.OPEN_USER_MAILBOX_ACTION"
 		const val OPEN_CALENDAR_ACTION = "de.tutao.tutanota.OPEN_CALENDAR_ACTION"
 		const val OPEN_USER_MAILBOX_MAIL_ADDRESS_KEY = "mailAddress"
