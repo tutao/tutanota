@@ -2,7 +2,6 @@ package de.tutao.tutanota
 
 import android.content.Context
 import android.net.Uri
-import androidx.annotation.VisibleForTesting
 import de.tutao.tutanota.ipc.*
 import org.apache.commons.io.IOUtils
 import org.apache.commons.io.input.CountingInputStream
@@ -23,7 +22,6 @@ import javax.crypto.spec.PSource
 import javax.crypto.spec.SecretKeySpec
 
 class AndroidNativeCryptoFacade
-@VisibleForTesting
 constructor(
 		private val context: Context,
 		private val tempDir: TempDir = TempDir(context),
