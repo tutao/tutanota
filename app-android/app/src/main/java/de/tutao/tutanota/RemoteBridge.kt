@@ -94,6 +94,10 @@ class RemoteBridge internal constructor(
 					sendErrorResponse(id, e)
 				}
 			}
+			"requestError" -> {
+				val continuation = requests.remove(id)
+				continuation?.resumeWith(Result.failure(RemoteExecutionException(rest)))
+			}
 			else -> error("unknown message type")
 		}
 	}
@@ -178,3 +182,5 @@ class RemoteBridge internal constructor(
 		}
 	}
 }
+
+private class RemoteExecutionException(message: String) : Exception(message)
