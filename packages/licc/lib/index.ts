@@ -1,5 +1,5 @@
 import {TypescriptGenerator} from "./TypescriptGenerator.js"
-import {capitalize, FacadeDefinition, LangGenerator, Language, Platform, StructDefinition, TypeRefDefinition} from "./common.js"
+import {capitalize, EnumDefinition, FacadeDefinition, LangGenerator, Language, Platform, StructDefinition, TypeRefDefinition} from "./common.js"
 import {SwiftGenerator} from "./SwiftGenerator.js"
 import {KotlinGenerator} from "./KotlinGenerator.js"
 import * as path from "path"
@@ -47,7 +47,7 @@ export function generate(platform: Platform, sources: Map<string, string>, outDi
 	const facadesToImplement: Array<string> = []
 	for (const [inputPath, source] of Array.from(sources.entries())) {
 		console.log("handling ipc schema file", inputPath)
-		const definition = JSON5.parse(source) as FacadeDefinition | StructDefinition | TypeRefDefinition
+		const definition = JSON5.parse(source) as FacadeDefinition | StructDefinition | TypeRefDefinition | EnumDefinition
 		if (!("name" in definition)) {
 			throw new Error(`malformed definition: ${inputPath} doesn't have name field`)
 		}
@@ -83,6 +83,10 @@ export function generate(platform: Platform, sources: Map<string, string>, outDi
 				if (refOutput != null) {
 					write(refOutput, outDir, definition.name + ext)
 				}
+				break
+			case "enum":
+				const enumOutput = generator.generateEnum(definition)
+				write(enumOutput, outDir, definition.name + ext)
 				break
 			default:
 				throw new Error(`unknown definition type in ${inputPath}: ` + (definition as any).type)
