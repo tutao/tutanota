@@ -5,6 +5,7 @@ import * as path from "path"
 import {globby} from "zx"
 import {Platform} from "./common"
 import {Argument, Option, program} from "commander"
+import JSON5 from "json5"
 
 const PLATFORMS: Array<Platform> = ["ios", "web", "android", "desktop"]
 
@@ -36,7 +37,7 @@ await program
 			// check if there's a .liccc file that states the desired platforms and output dirs
 			const confPath = path.join(from_dir, ".liccc")
 			try {
-				const relConf: Record<Platform, string> = JSON.parse(await fs.promises.readFile(confPath, {encoding: "utf-8"}))
+				const relConf: Record<Platform, string> = JSON5.parse(await fs.promises.readFile(confPath, {encoding: "utf-8"}))
 				for (let [relPlatform, relPath] of Object.entries(relConf) as [Platform | "__comment", string][]) {
 					if (relPlatform === "__comment") continue
 					assert(PLATFORMS.includes(relPlatform), `invalid platform in .liccc: ${relPlatform}`)
@@ -52,10 +53,12 @@ await program
 	.parseAsync(process.argv)
 
 async function run(from_dir: string, conf: Record<Platform, string>): Promise<void> {
-	const inputFiles = await globby(path.join(process.cwd(), from_dir, "*/**/*.json"))
-	const inputMap = new Map(inputFiles.map((n: string) => (
-		[path.basename(n, ".json"), fs.readFileSync(n, "utf8")]
-	)))
+	const inputFiles = await globby(["*/**/*.json", "*/**/*.json5"].map(glob => path.join(process.cwd(), from_dir, glob)))
+	const inputMap = new Map(
+		inputFiles.map((n: string) => (
+			[path.basename(n, n.endsWith("5") ? ".json5" : ".json"), fs.readFileSync(n, "utf8")]
+		))
+	)
 
 	// doing it here because some platforms generate into the same dir.
 	for (let outDir of Object.values(conf)) {

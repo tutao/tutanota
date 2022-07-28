@@ -15,8 +15,9 @@
 	"author": "",
 	"license": "GPL-3.0",
 	"dependencies": {
-		"zx": "6.1.0",
-		"commander": "9.3.0"
+		"commander": "9.3.0",
+		"json5": "^2.2.1",
+		"zx": "6.1.0"
 	},
 	"devDependencies": {
 		"@tutao/tutanota-test-utils": "3.98.21",
