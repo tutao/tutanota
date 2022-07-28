@@ -1,9 +1,18 @@
-import {FacadeDefinition, getArgs, LangGenerator, MethodDefinition, minusculize, RenderedType, StructDefinition, TypeRefDefinition} from "./common.js"
+import {
+	EnumDefinition,
+	FacadeDefinition,
+	getArgs,
+	LangGenerator,
+	MethodDefinition,
+	minusculize,
+	RenderedType,
+	StructDefinition,
+	TypeRefDefinition
+} from "./common.js"
 import {Accumulator} from "./Accumulator.js"
 import {ParsedType, parseType} from "./Parser.js"
 
 export class SwiftGenerator implements LangGenerator {
-
 	handleStructDefinition(definition: StructDefinition): string {
 		const acc = new Accumulator()
 		this.generateDocComment(acc, definition.doc)
@@ -109,41 +118,45 @@ export class SwiftGenerator implements LangGenerator {
 	}
 
 	generateGlobalDispatcher(name: string, facadeNames: Array<string>): string {
-		const acc = new Accumulator()
-		acc.line(`public class ${name} {`)
-		const methodAcc = acc.indent()
-
-		for (let facadeName of facadeNames) {
-			methodAcc.line(`private let ${minusculize(facadeName)}: ${facadeName}ReceiveDispatcher`)
-		}
-		methodAcc.line()
-		methodAcc.line(`init(`)
-		const lastFacadeName = facadeNames[facadeNames.length - 1]
-		for (let facadeName of facadeNames) {
-			const comma = facadeName === lastFacadeName ? "" : ","
-			methodAcc.indent().line(`${minusculize(facadeName)} : ${facadeName}${comma}`)
-		}
-		methodAcc.line(`) {`)
-		for (let facadeName of facadeNames) {
-			methodAcc.indent().line(`self.${minusculize(facadeName)} = ${facadeName}ReceiveDispatcher(facade: ${minusculize(facadeName)})`)
-		}
-		methodAcc.line(`}`)
-		methodAcc.line()
-
-		methodAcc.line(`func dispatch(facadeName: String, methodName: String, args: Array<String>) async throws -> String {`)
-		const switchAcc = methodAcc.indent()
-		switchAcc.line(`switch facadeName {`)
-		const caseAcc = switchAcc.indent()
-		for (let facadeName of facadeNames) {
-			caseAcc.line(`case "${facadeName}":`)
-			caseAcc.indent().line(`return try await self.${minusculize(facadeName)}.dispatch(method: methodName, arg: args)`)
-		}
-		caseAcc.line(`default:`)
-		caseAcc.indent().line(`fatalError("licc messed up! " + facadeName)`)
-		switchAcc.line(`}`)
-		methodAcc.line(`}`)
-		acc.line(`}`)
-		return acc.finish()
+		return new Accumulator()
+			.line(`public class ${name} {`)
+			.indented(acc => acc
+				.lines(facadeNames.map(facadeName => `private let ${minusculize(facadeName)}: ${facadeName}ReceiveDispatcher`))
+				.line()
+				.line(`init(`)
+				.indented(acc => acc
+					.lines(
+						facadeNames.map(name => `${minusculize(name)} : ${name}`,),
+						{suffix: ",", trailing: false}
+					)
+				)
+				.line(`) {`)
+				.indented(acc => acc
+					.lines(facadeNames.map(name =>
+						`self.${minusculize(name)} = ${name}ReceiveDispatcher(facade: ${minusculize(name)})`
+					))
+				)
+				.line(`}`)
+				.line()
+				.line(`func dispatch(facadeName: String, methodName: String, args: Array<String>) async throws -> String {`)
+				.indented(acc => acc
+					.line(`switch facadeName {`)
+					.indented(acc => {
+						for (let facadeName of facadeNames) {
+							acc.line(`case "${facadeName}":`)
+							   .indent()
+							   .line(`return try await self.${minusculize(facadeName)}.dispatch(method: methodName, arg: args)`)
+						}
+						acc.line(`default:`)
+						   .indent()
+						   .line(`fatalError("licc messed up! " + facadeName)`)
+					})
+					.line(`}`)
+				)
+				.line(`}`)
+			)
+			.line(`}`)
+			.finish()
 	}
 
 	generateSendDispatcher(definition: FacadeDefinition): string {
@@ -207,6 +220,15 @@ export class SwiftGenerator implements LangGenerator {
 
 	generateTypeRef(outDir: string, definitionPath: string, definition: TypeRefDefinition): string | null {
 		return null
+	}
+
+	generateEnum({name, values, doc}: EnumDefinition): string {
+		return new Accumulator()
+			.do(acc => this.generateDocComment(acc, doc))
+			.line(`public enum ${name}: String {`)
+			.indented(acc => acc.lines(values.map(value => `case ${value}`)))
+			.line("}")
+			.finish()
 	}
 }
 

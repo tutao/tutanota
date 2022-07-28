@@ -1,5 +1,5 @@
 import {Accumulator} from "./Accumulator.js"
-import {FacadeDefinition, getArgs, LangGenerator, minusculize, RenderedType, StructDefinition, TypeRefDefinition} from "./common.js"
+import {EnumDefinition, FacadeDefinition, getArgs, LangGenerator, minusculize, RenderedType, StructDefinition, TypeRefDefinition} from "./common.js"
 import {ParsedType, parseType} from "./Parser.js"
 import path from "path"
 
@@ -170,6 +170,15 @@ export class TypescriptGenerator implements LangGenerator {
 		acc.line(`export {${definition.name}} from "${actualPath}"`)
 
 		return acc.finish()
+	}
+
+	generateEnum({name, values, doc}: EnumDefinition): string {
+		return new Accumulator()
+			.do(acc => this.generateDocComment(acc, doc))
+			.line(`export const enum ${name} {`)
+			.indented(acc => acc.lines(values.map(value => `${value} = "${value}",`)))
+			.line("}")
+			.finish()
 	}
 }
 

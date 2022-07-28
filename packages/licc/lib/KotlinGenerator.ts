@@ -1,9 +1,18 @@
-import {FacadeDefinition, getArgs, LangGenerator, MethodDefinition, minusculize, RenderedType, StructDefinition, TypeRefDefinition} from "./common.js"
+import {
+	EnumDefinition,
+	FacadeDefinition,
+	getArgs,
+	LangGenerator,
+	MethodDefinition,
+	minusculize,
+	RenderedType,
+	StructDefinition,
+	TypeRefDefinition
+} from "./common.js"
 import {Accumulator} from "./Accumulator.js"
 import {ParsedType, parseType} from "./Parser.js"
 
 export class KotlinGenerator implements LangGenerator {
-
 	generateGlobalDispatcher(name: string, facadeNames: string[]): string {
 		const acc = new Accumulator()
 		KotlinGenerator.generateImports(acc)
@@ -197,6 +206,15 @@ export class KotlinGenerator implements LangGenerator {
 		} else {
 			return null
 		}
+	}
+
+	generateEnum({name, values, doc}: EnumDefinition): string {
+		return new Accumulator()
+			.do(acc => this.generateDocComment(acc, doc))
+			.line(`enum ${name} {`)
+			.indented(acc => acc.lines(values.map(value => `${value},`)))
+			.line("}")
+			.finish()
 	}
 }
 

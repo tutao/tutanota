@@ -30,6 +30,8 @@ export interface LangGenerator {
 	 * external types that don't get generated but are located somewhere else
 	 */
 	generateTypeRef(outDir: string, definitionPath: string, definition: TypeRefDefinition): string | null
+
+	generateEnum(definition: EnumDefinition): string
 }
 
 export type Platform = "ios" | "web" | "android" | "desktop"
@@ -52,14 +54,21 @@ export interface FacadeDefinition {
 }
 
 export interface TypeRefDefinition {
-	"type": "typeref"
-	"name": string
-	"location": Record<Language, string>
+	type: "typeref"
+	name: string
+	location: Record<Language, string>
 }
 
 export interface MethodDefinition {
 	arg: Array<ArgumentDefinition>
 	ret: string
+	doc?: string
+}
+
+export interface EnumDefinition {
+	type: "enum",
+	name: string,
+	values: Array<string>
 	doc?: string
 }
 

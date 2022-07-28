@@ -54,6 +54,20 @@ export function parseType(typeString: string): ParsedType {
 	return {baseName: typeString, generics: [], external, nullable}
 } // frontend type
 
+/**
+ * Assure that the given string is a valid identifier for all languages
+ */
+export function assertValidIdentifier(ident: string): string {
+	if (FORBIDDEN_IDENTIFIERS.has(ident)) {
+		throw new Error(`identifier "${ident}" is forbidden`)
+	}
+
+	if (!ident.match(/^[_a-zA-Z][_a-zA-Z0-9]*$/)) {
+		throw new Error(`identifier ${ident} contains forbidden characters`)
+	}
+
+	return ident
+}
 
 // {basename: List, generics: [{basename: string, generics: []}]>
 export interface ParsedType {
