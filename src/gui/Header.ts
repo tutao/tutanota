@@ -290,13 +290,14 @@ export class Header implements Component {
 	}
 
 	private renderLeftContent(): Children {
-		// manual margin to align the hamburger icon on mobile devices
-		const style = styles.isUsingBottomNavigation()
-			? {"margin-left": px(-15)}
-			: null
 		const viewSlider = this.getViewSlider()
+		const showBackButton = this.isBackButtonVisible()
+		const showNewsIndicator = this.usageTestModel && this.usageTestModel.showOptInIndicator() && !showBackButton && styles.isUsingBottomNavigation()
 
-		const showUsageDataOptInIndicator = this.usageTestModel ? this.usageTestModel.showOptInIndicator() : false
+		const style = {
+			"margin-left": styles.isUsingBottomNavigation() ? px(-15) : null, // manual margin to align the hamburger icon on mobile devices
+			"overflow": showNewsIndicator ? "visible" : "hidden", // Unsure whether we actually need overflow: visible here
+		}
 
 		let content: Children = null
 		if (viewSlider && viewSlider.isFocusPreviousPossible()) {
@@ -307,11 +308,7 @@ export class Header implements Component {
 						return prevColumn ? prevColumn.getTitle() : ""
 					},
 					icon: () =>
-						(
-							this.currentView && this.currentView.overrideBackIcon
-								? this.currentView.overrideBackIcon()
-								: !viewSlider.getBackgroundColumns()[0].visible
-						)
+						this.isBackButtonVisible()
 							? BootIcons.Back
 							: BootIcons.MoreVertical,
 					colors: NavButtonColor.Header,
@@ -323,12 +320,12 @@ export class Header implements Component {
 					},
 					hideLabel: true,
 				}),
-				showUsageDataOptInIndicator
+				showNewsIndicator
 					? m(CounterBadge, {
 						count: 1,
 						position: {
-							top: px(2),
-							right: px(0),
+							top: px(4),
+							right: px(-3),
 						},
 						color: "white",
 						background: theme.list_accent_fg,
@@ -348,7 +345,23 @@ export class Header implements Component {
 			) // the custom logo is already sanitized in theme.js
 		}
 
-		return m(".header-left.pl-l.ml-negative-s.flex-start.items-center.overflow-hidden", {style}, content)
+		return m(".header-left.pl-l.ml-negative-s.flex-start.items-center", {style}, content)
+	}
+
+	/**
+	 * Returns true iff the menu icon should be replaced by the back button.
+	 * Calls overrideBackIcon().
+	 */
+	private isBackButtonVisible() {
+		const viewSlider = this.getViewSlider()
+
+		if (!viewSlider) {
+			return false
+		}
+
+		return this.currentView && this.currentView.overrideBackIcon
+			? this.currentView.overrideBackIcon()
+			: !viewSlider.getBackgroundColumns()[0].visible
 	}
 
 	updateCurrentView(currentView: CurrentView) {
