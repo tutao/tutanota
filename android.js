@@ -32,7 +32,8 @@ await program
 	.addOption(new Option('-w --webclient <client>', 'choose web client build')
 		.choices(["make", "dist"])
 		.default("dist"))
-	.action(async (stage, host, {webclient, buildtype, install}) => {
+	.option('-e, --existing', 'Use existing prebuilt web client files')
+	.action(async (stage, host, {webclient, buildtype, install, existing}) => {
 		if (stage === "host" && host == null || stage !== "host" && host != null) {
 			program.outputHelp()
 			process.exit(1)
@@ -42,7 +43,9 @@ await program
 			stage: stage ?? 'prod',
 			host: host,
 			webClient: webclient,
+			existing,
 			buildType: buildtype,
+
 		})
 
 		if (install) {
@@ -53,30 +56,33 @@ await program
 	})
 	.parseAsync(process.argv)
 
-async function buildAndroid({stage, host, buildType, webClient}) {
+async function buildAndroid({stage, host, buildType, existing, webClient}) {
 	log(`Starting ${stage} build with build type: ${buildType}, webclient: ${webClient}, host: ${host}`)
-
-	if (webClient === "make") {
-		await runDevBuild({
-			stage,
-			host,
-			desktop: false,
-			clean: false,
-			watch: false,
-			serve: false
-		})
-	} else {
-		const version = getTutanotaAppVersion()
-		await buildWebapp(
-			{
-				version,
+	if (!existing) {
+		if (webClient === "make") {
+			await runDevBuild({
 				stage,
 				host,
-				minify: true,
-				projectDir: path.resolve("."),
-				measure
-			}
-		)
+				desktop: false,
+				clean: false,
+				watch: false,
+				serve: false
+			})
+		} else {
+			const version = getTutanotaAppVersion()
+			await buildWebapp(
+				{
+					version,
+					stage,
+					host,
+					minify: true,
+					projectDir: path.resolve("."),
+					measure
+				}
+			)
+		}
+	} else {
+		console.log("skipped webapp build")
 	}
 
 	await prepareMobileBuild(webClient)
