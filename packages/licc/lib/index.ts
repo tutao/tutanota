@@ -4,6 +4,7 @@ import {SwiftGenerator} from "./SwiftGenerator.js"
 import {KotlinGenerator} from "./KotlinGenerator.js"
 import * as path from "path"
 import * as fs from "fs"
+import JSON5 from "json5"
 
 function generatorForLang(lang: Language): LangGenerator {
 	switch (lang) {
@@ -46,7 +47,7 @@ export function generate(platform: Platform, sources: Map<string, string>, outDi
 	const facadesToImplement: Array<string> = []
 	for (const [inputPath, source] of Array.from(sources.entries())) {
 		console.log("handling ipc schema file", inputPath)
-		const definition = JSON.parse(source) as FacadeDefinition | StructDefinition | TypeRefDefinition
+		const definition = JSON5.parse(source) as FacadeDefinition | StructDefinition | TypeRefDefinition
 		if (!("name" in definition)) {
 			throw new Error(`malformed definition: ${inputPath} doesn't have name field`)
 		}
