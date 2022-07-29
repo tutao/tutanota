@@ -71,3 +71,7 @@ de.tutao.tutanota.IdTuple # <-- List serializable classes with named companions.
 -keepnames class <1>$$serializer { # -keepnames suffices; class is kept when serializer() is kept.
     static <1>$$serializer INSTANCE;
 }
+
+# we dynamically load sqlcipher, so we should keep the classes around
+-keep,includedescriptorclasses class net.sqlcipher.** { *; }
+-keep,includedescriptorclasses interface net.sqlcipher.** { *; }

@@ -11,7 +11,7 @@ import {getElectronVersion, getInstalledModuleVersion} from "./buildUtils.js"
 export default async function generateTemplate({nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked}) {
 	const appName = "tutanota-desktop" + nameSuffix
 	const appId = "de.tutao.tutanota" + nameSuffix
-	if (process.env.JENKINS && process.env.DEBUG_SIGN) throw new Error("Tried to DEBUG_SIGN in CI!")
+	if (process.env.JENKINS_HOME && process.env.DEBUG_SIGN) throw new Error("Tried to DEBUG_SIGN in CI!")
 	const debugkey = process.env.DEBUG_SIGN
 		? readFileSync(path.join(process.env.DEBUG_SIGN, "test.pubkey"), {encoding: 'utf8'})
 		: undefined

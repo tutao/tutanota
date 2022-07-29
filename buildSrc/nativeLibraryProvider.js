@@ -194,7 +194,7 @@ export async function getPrebuiltNativeModuleForWindows(
 	}
 ) {
 	// We never want to use prebuilt native modules when building on jenkins, so it is considered an error as a safeguard
-	if (process.env.JENKINS) {
+	if (process.env.JENKINS_HOME) {
 		throw new Error("Should not be getting prebuilt native modules in CI")
 	}
 

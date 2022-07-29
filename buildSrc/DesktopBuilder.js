@@ -69,7 +69,7 @@ export async function buildDesktop(
 		iconPath: path.join(dirname, "/resources/desktop-icons/logo-solo-red.png"),
 		notarize,
 		unpacked,
-		sign: (process.env.DEBUG_SIGN && updateUrl !== "") || !!process.env.JENKINS,
+		sign: (process.env.DEBUG_SIGN && updateUrl !== "") || !!process.env.JENKINS_HOME,
 	})
 	console.log("updateUrl is", updateUrl)
 	await fs.promises.writeFile("./build/dist/package.json", JSON.stringify(content), 'utf-8')

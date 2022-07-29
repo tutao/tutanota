@@ -76,7 +76,6 @@ pipeline {
 
 								withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
 									sh '''
-									export JENKINS=TRUE;
 									export HSM_USER_PIN=${PW};
 									export WIN_CSC_FILE="/opt/etc/codesign.crt";
 									node desktop --existing --platform win '''
@@ -110,7 +109,6 @@ pipeline {
 							script {
 								def stage = params.RELEASE ? 'release' : 'prod'
 								sh '''
-								export JENKINS=TRUE;
 								export APPLEID=${APPLEIDVAR};
 								export APPLEIDPASS=${APPLEIDPASSVAR};
 								export APPLETEAMID=${APPLETEAMIDVAR};
