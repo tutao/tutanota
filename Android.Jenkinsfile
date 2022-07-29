@@ -49,6 +49,14 @@ pipeline {
 					steps {
 						sh 'npm ci'
 						sh 'npm run build-packages'
+						script {
+							def util = load "jenkins-lib/util.groovy"
+							util.downloadFromNexus(	groupId: "lib",
+													artifactId: "android-database-sqlcipher",
+													version: "4.5.0",
+													outFile: "${WORKSPACE}/app-android/libs/android-database-sqlcipher-4.5.0.aar",
+													fileExtension: 'aar')
+						}
 						withCredentials([
 								string(credentialsId: 'apk-sign-store-pass', variable: "APK_SIGN_STORE_PASS"),
 								string(credentialsId: 'apk-sign-key-pass', variable: "APK_SIGN_KEY_PASS")
@@ -69,6 +77,14 @@ pipeline {
 						echo "Building ${VERSION}"
 						sh 'npm ci'
 						sh 'npm run build-packages'
+						script {
+							def util = load "jenkins-lib/util.groovy"
+							util.downloadFromNexus(	groupId: "lib",
+													artifactId: "android-database-sqlcipher",
+													version: "4.5.0",
+													outFile: "${WORKSPACE}/app-android/libs/android-database-sqlcipher-4.5.0.aar",
+													fileExtension: 'aar')
+						}
 						withCredentials([
 								string(credentialsId: 'apk-sign-store-pass', variable: "APK_SIGN_STORE_PASS"),
 								string(credentialsId: 'apk-sign-key-pass', variable: "APK_SIGN_KEY_PASS")

@@ -109,8 +109,6 @@ dependencies {
 	def lifecycle_version = "2.4.1"
 	def activity_version = "1.4.0"
 
-	implementation fileTree(dir: 'libs', include: ['*.jar'])
-
 	// Important: cannot be updated without additional measures as Android 6 and 7 do not have Java 9
 	//noinspection GradleDependency
 	implementation 'commons-io:commons-io:2.5'
@@ -118,6 +116,13 @@ dependencies {
 	implementation 'androidx.core:core-ktx:1.8.0'
 	implementation "androidx.activity:activity-ktx:$activity_version"
 	implementation "androidx.biometric:biometric:1.1.0"
+
+	if (file("../libs/android-database-sqlcipher-4.5.0.aar").exists()) {
+		implementation fileTree(include: ['*.aar'], dir: '../libs')
+	} else {
+		implementation "net.zetetic:android-database-sqlcipher:4.5.0"
+	}
+	implementation "androidx.sqlite:sqlite:2.0.1"
 
 	implementation "androidx.room:room-runtime:$room_version"
 	// For Kotlin use kapt instead of annotationProcessor
