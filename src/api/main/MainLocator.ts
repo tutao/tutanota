@@ -69,7 +69,6 @@ import {FileControllerNative} from "../../file/FileControllerNative.js"
 import {windowFacade} from "../../misc/WindowFacade.js"
 import {InterWindowEventFacade} from "../../native/common/generatedipc/InterWindowEventFacade.js"
 import {InterWindowEventFacadeSendDispatcher} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
-import {WebAuthnFacadeSendDispatcher} from "../../native/common/generatedipc/WebAuthnFacadeSendDispatcher.js"
 
 assertMainOrNode()
 
@@ -312,6 +311,7 @@ class MainLocator implements IMainLocator {
 			const {WebMobileFacade} = await import("../../native/main/WebMobileFacade.js")
 			const {WebCommonNativeFacade} = await import("../../native/main/WebCommonNativeFacade.js")
 			const {WebInterWindowEventFacade} = await import("../../native/main/WebInterWindowEventFacade.js")
+			const {WebAuthnFacadeSendDispatcher} = await import("../../native/common/generatedipc/WebAuthnFacadeSendDispatcher.js")
 			const {createNativeInterfaces, createDesktopInterfaces} = await import("../../native/main/NativeInterfaceFactory.js")
 			this._nativeInterfaces = createNativeInterfaces(
 				new WebMobileFacade(),
@@ -327,6 +327,7 @@ class MainLocator implements IMainLocator {
 				const desktopInterfaces = createDesktopInterfaces(this.native)
 				this.searchTextFacade = desktopInterfaces.searchTextFacade
 				this.interWindowEventSender = desktopInterfaces.interWindowEventSender
+				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), getWebRoot())
 				if (isDesktop()) {
 					this.desktopSettingsFacade = desktopInterfaces.desktopSettingsFacade
 					this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
@@ -334,11 +335,9 @@ class MainLocator implements IMainLocator {
 			}
 		}
 
-		this.webAuthn = new WebauthnClient(isElectronClient()
-				? new WebAuthnFacadeSendDispatcher(this.native)
-				: new BrowserWebauthn(navigator.credentials, window.location.hostname),
-			getWebRoot()
-		)
+		if (this.webAuthn == null) {
+			this.webAuthn = new WebauthnClient(new BrowserWebauthn(navigator.credentials, window.location.hostname), getWebRoot())
+		}
 		this.secondFactorHandler = new SecondFactorHandler(this.eventController, this.entityClient, this.webAuthn, this.loginFacade)
 		this.loginListener = new LoginListener(this.secondFactorHandler)
 		this.credentialsProvider = await createCredentialsProvider(
