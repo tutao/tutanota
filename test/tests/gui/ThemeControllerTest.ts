@@ -12,22 +12,23 @@ o.spec("Theme Controller", function () {
 	let themeFacadeMock: ThemeFacade
 	let htmlSanitizerMock: HtmlSanitizer
 
-	o.beforeEach(function () {
+	o.beforeEach(async function () {
 		themeFacadeMock = object()
 		when(themeFacadeMock.getThemes()).thenResolve([])
 
 		htmlSanitizerMock = object()
-		themeManager = new ThemeController(themeFacadeMock, () => Promise.resolve(htmlSanitizerMock))
-	})
-	o("updateCustomTheme", async function () {
+		// this is called in the constructor. Eh!
 		when(htmlSanitizerMock.sanitizeHTML(matchers.anything())).thenReturn({
 			html: "sanitized",
 			externalContent: [],
 			inlineImageCids: [],
 			links: [],
 		})
-
+		themeManager = new ThemeController(themeFacadeMock, () => Promise.resolve(htmlSanitizerMock))
 		await themeManager.initialized
+	})
+
+	o("updateCustomTheme", async function () {
 		const theme: ThemeCustomizations = downcast({
 			themeId: "HelloFancyId",
 			content_bg: "#fffeee",
