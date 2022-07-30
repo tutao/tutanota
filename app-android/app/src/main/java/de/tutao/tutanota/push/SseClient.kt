@@ -90,6 +90,7 @@ class SseClient internal constructor(
 			handleException(random, exception, connectionData.userId)
 		} finally {
 			httpsURLConnectionRef.set(null)
+			reschedule(0)
 		}
 	}
 
