@@ -1,6 +1,5 @@
 import {assertMainOrNodeBoot, Mode} from "../api/common/Env"
 import {BrowserData, BrowserType, DeviceType} from "./ClientConstants"
-import {neverNull} from "@tutao/tutanota-utils"
 
 assertMainOrNodeBoot()
 
@@ -215,10 +214,7 @@ export class ClientDetector {
 		} else if (operaIndex2 !== -1) {
 			this.browser = BrowserType.OPERA
 			versionIndex = operaIndex2 + 4
-		} else if (paleMoonIndex !== -1) {
-			this.browser = BrowserType.PALEMOON
-			versionIndex = paleMoonIndex + 9
-		} else if ((firefoxIndex !== -1 || iceweaselIndex !== -1) && operaIndex1 === -1 && operaIndex2 === -1) {
+		} else if ((firefoxIndex !== -1 || iceweaselIndex !== -1) && operaIndex1 === -1 && operaIndex2 === -1 && paleMoonIndex === -1) {
 			// Opera may pretend to be Firefox, so it is skipped
 			this.browser = BrowserType.FIREFOX
 
@@ -380,7 +376,6 @@ export class ClientDetector {
 		return (
 			this.isIos() ||
 			this.browser === BrowserType.SAFARI ||
-			this.browser === BrowserType.PALEMOON ||
 			(this.browser === BrowserType.FIREFOX && this.browserVersion <= 60) ||
 			(this.browser === BrowserType.CHROME && this.browserVersion < 59)
 		)

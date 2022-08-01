@@ -5,7 +5,6 @@ assertMainOrNodeBoot()
 export const enum BrowserType {
 	CHROME = "Chrome",
 	FIREFOX = "Firefox",
-	PALEMOON = "PaleMoon",
 	EDGE = "Edge",
 	SAFARI = "Safari",
 	ANDROID = "Android",
