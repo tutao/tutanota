@@ -162,6 +162,10 @@ async function guiDownload(downloadPromise: Promise<void>) {
 	try {
 		await showProgressDialog("pleaseWait_msg", downloadPromise)
 	} catch (e) {
+		// handle the user cancelling the dialog
+		if (e instanceof CancelledError) {
+			return
+		}
 		console.log("downloadAndOpen error", e.message)
 		await handleDownloadErrors(e, Dialog.message)
 	}
