@@ -45,11 +45,11 @@ export class WhitelabelChildViewer implements UpdatableSettingsDetailsViewer {
 				items: [
 					{
 						name: lang.get("activated_label"),
-						value: false,
+						value: true,
 					},
 					{
 						name: lang.get("deactivated_label"),
-						value: true,
+						value: false,
 					},
 				],
 				selectedValue: this.isChildActive(),
