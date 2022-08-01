@@ -61,6 +61,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	private rejectedSenderLines: ReadonlyArray<TableLineAttrs> = []
 	private customDomainLines: ReadonlyArray<TableLineAttrs> = []
 	private auditLogLines: ReadonlyArray<TableLineAttrs> = []
+	private auditLogLoaded = false
+
 	/**
 	 * caches the current status for the custom email domains
 	 * map from domain name to status
@@ -134,6 +136,11 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest, ColumnWidth.Small],
 			showActionButtonColumn: true,
 			lines: this.auditLogLines,
+			addButtonAttrs: {
+				label: "refresh_action",
+				click: () => showProgressDialog("loading_msg", this.updateAuditLog()).then(() => m.redraw()),
+				icon: () => BootIcons.Progress,
+			},
 		}
 		return [
 			m("#global-settings.fill-absolute.scroll.plr-l", [
@@ -217,6 +224,12 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 										title: "auditLog_title",
 										table: auditLogTableAttrs,
 										infoMsg: "auditLogInfo_msg",
+										onExpand: () => {
+											// if the user did not load this when the view was created (i.e. due to a lost connection), attempt to reload it
+											if (!this.auditLogLoaded) {
+												showProgressDialog("loading_msg", this.updateAuditLog()).then(() => m.redraw())
+											}
+										},
 									}),
 								)
 								: null,
@@ -343,6 +356,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			this.customer = customer
 
 			return locator.entityClient.loadRange(AuditLogEntryTypeRef, neverNull(customer.auditLog).items, GENERATED_MAX_ID, 200, true).then(auditLog => {
+				this.auditLogLoaded = true // indicate that we do not need to reload the list again when we expand
 				this.auditLogLines = auditLog.map(auditLogEntry => {
 					return {
 						cells: [auditLogEntry.action, auditLogEntry.modifiedEntity, formatDateTimeFromYesterdayOn(auditLogEntry.date)],
