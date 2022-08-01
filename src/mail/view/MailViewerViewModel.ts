@@ -837,11 +837,14 @@ export class MailViewerViewModel {
 		return moveMails({mailModel: this.mailModel, mails: [this.mail], targetMailFolder: getArchiveFolder(folders)})
 	}
 
-	async downloadAll(): Promise<void> {
+	getNonInlineAttachments(): TutanotaFile[] {
 		// If we have attachments it is safe to assume that we already have body and referenced cids from it
 		const inlineFileIds = this.sanitizeResult?.inlineImageCids ?? []
-		const nonInlineFiles = this.attachments.filter(a => a.cid == null || !inlineFileIds.includes(a.cid))
-		await this.fileController.downloadAll(nonInlineFiles)
+		return this.attachments.filter(a => a.cid == null || !inlineFileIds.includes(a.cid))
+	}
+
+	async downloadAll(): Promise<void> {
+		await this.fileController.downloadAll(this.getNonInlineAttachments())
 	}
 
 	async downloadAndOpenAttachment(file: TutanotaFile, open: boolean) {

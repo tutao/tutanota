@@ -1034,7 +1034,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private renderDownloadAllButton(): Children {
-		return !isIOSApp() && this.viewModel.getAttachments().length > 2
+		return !isIOSApp() && this.viewModel.getNonInlineAttachments().length > 2
 			? m(
 				".limit-width",
 				m(Button, {
