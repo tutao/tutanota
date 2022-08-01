@@ -11,7 +11,7 @@ import {getCustomMailDomains} from "../api/common/utils/Utils"
 import {showProgressDialog, showWorkerProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {showBuyDialog} from "../subscription/BuyDialog"
-import {TextFieldAttrs, TextField} from "../gui/base/TextField.js"
+import {TextField} from "../gui/base/TextField.js"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
 
@@ -31,7 +31,7 @@ export function show(): Promise<void> {
 						label: "name_label",
 						helpLabel: () => lang.get("loginNameInfoAdmin_msg"),
 						value: userName,
-						oninput: (value) => userName = value.trim(),
+						oninput: (value) => userName = value,
 					}),
 					m(SelectMailAddressForm, {
 						availableDomains,
@@ -71,7 +71,7 @@ export function show(): Promise<void> {
 				reactivate: false
 			})).then(accepted => {
 				if (accepted) {
-					let p = locator.userManagementFacade.createUser(userName, assertNotNull(emailAddress), passwordModel.getNewPassword(), 0, 1)
+					let p = locator.userManagementFacade.createUser(userName.trim(), assertNotNull(emailAddress), passwordModel.getNewPassword(), 0, 1)
 					showWorkerProgressDialog(
 						locator.worker,
 						() =>
