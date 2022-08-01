@@ -419,6 +419,9 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			// If the dom element hasn't been created anew in onupdate
 			// then trying to create a new shadow root on the same node will cause an error
 			this.shadowDomRoot = dom.attachShadow({mode: "open"})
+
+			// Allow forms inside of mail bodies to be filled out without resulting in keystrokes being interpreted as shortcuts
+			this.shadowDomRoot.getRootNode().addEventListener("keydown", (event: Event) => event.stopPropagation())
 		}
 
 		this.domBodyDeferred.resolve(dom)
