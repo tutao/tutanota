@@ -1,6 +1,6 @@
 import {COSEAlgorithmIdentifier} from "./WebauthnTypes.js"
 import {ProgrammingError} from "../../../api/common/error/ProgrammingError.js"
-import {getHttpOrigin} from "../../../api/common/Env.js"
+import {getHttpOrigin, isApp} from "../../../api/common/Env.js"
 import {
 	U2F_APPID,
 	U2f_APPID_SUFFIX,
@@ -44,8 +44,11 @@ export class BrowserWebauthn implements WebAuthnFacade {
 		return this.appId === appId
 	}
 
+	/**
+	 * test whether hardware key second factors are supported for this client
+	 */
 	async isSupported(): Promise<boolean> {
-		return this.api != null &&
+		return !isApp() && this.api != null &&
 			// @ts-ignore see polyfill.js
 			// We just stub BigInt in order to import cborg without issues but we can't actually use it
 			!BigInt.polyfilled
