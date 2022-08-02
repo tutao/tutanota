@@ -454,3 +454,15 @@ export function mapNullable<T, U>(val: T | null | undefined, action: (arg0: T) =
 
 /** Helper to take instead of `typeof setTimeout` which is hellish to reproduce */
 export type TimeoutSetter = (fn: () => unknown, arg1: number) => ReturnType<typeof setTimeout>
+
+
+export function mapObject<K extends string | number | symbol, V, R>(mapper: (arg0: V) => R, obj: Record<K, V>): Record<K, R> {
+	const newObj = {} as Record<K, R>
+
+	for (const key of Object.keys(obj)) {
+		const typedKey = key as K
+		newObj[typedKey] = mapper(obj[typedKey])
+	}
+
+	return newObj
+}

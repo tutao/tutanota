@@ -150,6 +150,7 @@ export {
 	filterInt,
 	insideRect,
 	mapNullable,
+	mapObject,
 } from "./Utils.js"
 export type {
 	DeferredObject, lazy, lazyAsync, Thunk, DeferredObjectWithHandler, MaybeLazy, TimeoutSetter, ErrorInfo

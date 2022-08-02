@@ -11,9 +11,5 @@
 	"tsBuildInfoFile": "dist/tsbuildinfo",
 	"incremental": true
   },
-  "references": [
-	{
-	  "path": "../tutanota-test-utils/tsconfig.json"
-	}
-  ]
+  "references": []
 }
