@@ -50,6 +50,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 		this._confirmAge = stream<boolean>(false)
 		this._code = stream("")
 		this._isMailVerificationBusy = false
+		this._mailAddressFormErrorId = "mailAddressNeutral_msg"
 	}
 
 	view(vnode: Vnode<SignupFormAttrs>): Children {

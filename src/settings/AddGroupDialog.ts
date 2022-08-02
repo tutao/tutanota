@@ -82,7 +82,7 @@ export class AddGroupDialogViewModel {
 		this.groupType = firstThrow(this.groupTypes)
 		this.groupName = availableDomains[0]
 		this.mailAddress = ""
-		this.errorMessageId = null
+		this.errorMessageId = "mailAddressNeutral_msg"
 		this.isVerifactionBusy = false
 	}
 
