@@ -1,5 +1,6 @@
 import o from "ospec"
 import * as td from "testdouble"
+import {mapObject} from "@tutao/tutanota-utils"
 
 
 /**
@@ -73,16 +74,6 @@ export function mapToObject<K extends string | number | symbol, V>(map: Map<K, V
 		obj[key] = value
 	})
 	return obj
-}
-
-export function mapObject<K extends string | number | symbol, V, R>(mapper: (arg0: V) => R, obj: Record<K, V>): Record<K, R> {
-	const newObj = {} as Record<K, R>
-
-	for (let key of Object.keys(obj)) {
-		newObj[key] = mapper(obj[key])
-	}
-
-	return newObj
 }
 
 export function replaceAllMaps(toReplace: any): any {
@@ -176,5 +167,6 @@ export function verify(demonstration: any, config?: td.VerificationConfig) {
 			}
 		}
 	}
+
 	o(demonstration).satisfies(check)
 }

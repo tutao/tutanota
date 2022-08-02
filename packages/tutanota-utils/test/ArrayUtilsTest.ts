@@ -18,7 +18,6 @@ import {
 	splitInChunks,
 	symmetricDifference,
 } from "../lib/ArrayUtils.js"
-import {assertThrows} from "@tutao/tutanota-test-utils"
 
 type ObjectWithId = {
 	v: number
@@ -28,12 +27,12 @@ type ObjectWithId = {
 o.spec("array utils", function () {
 	o("concat arrays", function () {
 		o(Array.from(concat(new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])))).deepEquals([1, 2, 3, 4, 5, 6])
-		o(Array.from(concat(new Uint8Array([]), new Uint8Array([1]))) ).deepEquals([1])
+		o(Array.from(concat(new Uint8Array([]), new Uint8Array([1])))).deepEquals([1])
 		o(Array.from(concat(new Uint8Array([1]), new Uint8Array([])))).deepEquals([1])
 		o(Array.from(concat(new Uint8Array(0), new Uint8Array(0)))).deepEquals([])
 		o([1, 2, 3]).deepEquals(Array.from(concat(new Uint8Array([1, 2, 3]))))
 		o([1, 2, 3, 4, 5, 6]).deepEquals(
-				Array.from(concat(new Uint8Array([1, 2]), new Uint8Array([3, 4]), new Uint8Array([5, 6]))),
+			Array.from(concat(new Uint8Array([1, 2]), new Uint8Array([3, 4]), new Uint8Array([5, 6]))),
 		)
 	})
 	o("ArrayEquals ", function () {
@@ -48,101 +47,101 @@ o.spec("array utils", function () {
 
 		o(arrayEqualsWithPredicate([], [], predicate)).equals(true)
 		o(
-				arrayEqualsWithPredicate(
-						[
-							{
-								value: "a",
-							},
-						],
-						[
-							{
-								value: "a",
-							},
-						],
-						predicate,
-				),
+			arrayEqualsWithPredicate(
+				[
+					{
+						value: "a",
+					},
+				],
+				[
+					{
+						value: "a",
+					},
+				],
+				predicate,
+			),
 		).equals(true)
 		o(
-				arrayEqualsWithPredicate(
-						[
-							{
-								value: "a",
-							},
-						],
-						[
-							{
-								value: "b",
-							},
-						],
-						predicate,
-				),
+			arrayEqualsWithPredicate(
+				[
+					{
+						value: "a",
+					},
+				],
+				[
+					{
+						value: "b",
+					},
+				],
+				predicate,
+			),
 		).equals(false)
 		o(
-				arrayEqualsWithPredicate(
-						[
-							{
-								value: "a",
-							},
-						],
-						[],
-						predicate,
-				),
+			arrayEqualsWithPredicate(
+				[
+					{
+						value: "a",
+					},
+				],
+				[],
+				predicate,
+			),
 		).equals(false)
 		o(
-				arrayEqualsWithPredicate(
-						[
-							{
-								value: "a",
-							},
-						],
-						[
-							{
-								someOtherValue: "a",
-							},
-						],
-						predicate,
-				),
+			arrayEqualsWithPredicate(
+				[
+					{
+						value: "a",
+					},
+				],
+				[
+					{
+						someOtherValue: "a",
+					},
+				],
+				predicate,
+			),
 		).equals(false)
 		o(
-				arrayEqualsWithPredicate(
-						[
-							{
-								someOtherValue: "a",
-							},
-						],
-						[
-							{
-								value: "a",
-							},
-						],
-						predicate,
-				),
+			arrayEqualsWithPredicate(
+				[
+					{
+						someOtherValue: "a",
+					},
+				],
+				[
+					{
+						value: "a",
+					},
+				],
+				predicate,
+			),
 		).equals(false)
 		o(
-				arrayEqualsWithPredicate(
-						[
-							{
-								someOtherValue: "a",
-							},
-						],
-						[
-							{
-								someOtherValue: "a",
-							},
-						],
-						predicate,
-				),
+			arrayEqualsWithPredicate(
+				[
+					{
+						someOtherValue: "a",
+					},
+				],
+				[
+					{
+						someOtherValue: "a",
+					},
+				],
+				predicate,
+			),
 		).equals(true)
 		o(
-				arrayEqualsWithPredicate(
-						[],
-						[
-							{
-								value: "a",
-							},
-						],
-						predicate,
-				),
+			arrayEqualsWithPredicate(
+				[],
+				[
+					{
+						value: "a",
+					},
+				],
+				predicate,
+			),
 		).equals(false)
 	})
 	o("splitInChunks", function () {
@@ -176,10 +175,10 @@ o.spec("array utils", function () {
 		const same = (l, r) => l.id === r.id
 
 		function test(
-				arr: Array<ObjectWithId>,
-				insert: ObjectWithId,
-				expect: Array<ObjectWithId>,
-				equalsFn?: (arg0: ObjectWithId, arg1: ObjectWithId) => boolean,
+			arr: Array<ObjectWithId>,
+			insert: ObjectWithId,
+			expect: Array<ObjectWithId>,
+			equalsFn?: (arg0: ObjectWithId, arg1: ObjectWithId) => boolean,
 		) {
 			insertIntoSortedArray(insert, arr, comparator, equalsFn)
 			o(arr).deepEquals(expect)
@@ -188,426 +187,426 @@ o.spec("array utils", function () {
 		o("appends in the beginning", function () {
 			// Here is takes the last matching position, not the first one
 			test(
-					[
-						{
-							v: 1,
-							id: 0,
-						},
-						{
-							v: 2,
-							id: 1,
-						},
-						{
-							v: 8,
-							id: 3,
-						},
-						{
-							v: 10,
-							id: 4,
-						},
-					],
+				[
+					{
+						v: 1,
+						id: 0,
+					},
+					{
+						v: 2,
+						id: 1,
+					},
+					{
+						v: 8,
+						id: 3,
+					},
+					{
+						v: 10,
+						id: 4,
+					},
+				],
+				{
+					v: 1,
+					id: -1,
+				},
+				[
+					{
+						v: 1,
+						id: 0,
+					},
 					{
 						v: 1,
 						id: -1,
 					},
-					[
-						{
-							v: 1,
-							id: 0,
-						},
-						{
-							v: 1,
-							id: -1,
-						},
-						{
-							v: 2,
-							id: 1,
-						},
-						{
-							v: 8,
-							id: 3,
-						},
-						{
-							v: 10,
-							id: 4,
-						},
-					],
+					{
+						v: 2,
+						id: 1,
+					},
+					{
+						v: 8,
+						id: 3,
+					},
+					{
+						v: 10,
+						id: 4,
+					},
+				],
 			)
 		})
 		o("appends in the middle", function () {
 			test(
-					[
-						{
-							v: 1,
-							id: 0,
-						},
-						{
-							v: 2,
-							id: 1,
-						},
-						{
-							v: 8,
-							id: 3,
-						},
-						{
-							v: 10,
-							id: 4,
-						},
-					],
+				[
+					{
+						v: 1,
+						id: 0,
+					},
+					{
+						v: 2,
+						id: 1,
+					},
+					{
+						v: 8,
+						id: 3,
+					},
+					{
+						v: 10,
+						id: 4,
+					},
+				],
+				{
+					v: 4,
+					id: -1,
+				},
+				[
+					{
+						v: 1,
+						id: 0,
+					},
+					{
+						v: 2,
+						id: 1,
+					},
 					{
 						v: 4,
 						id: -1,
 					},
-					[
-						{
-							v: 1,
-							id: 0,
-						},
-						{
-							v: 2,
-							id: 1,
-						},
-						{
-							v: 4,
-							id: -1,
-						},
-						{
-							v: 8,
-							id: 3,
-						},
-						{
-							v: 10,
-							id: 4,
-						},
-					],
+					{
+						v: 8,
+						id: 3,
+					},
+					{
+						v: 10,
+						id: 4,
+					},
+				],
 			)
 		})
 		o("appends in the end", function () {
 			test(
-					[
-						{
-							v: 1,
-							id: 0,
-						},
-						{
-							v: 2,
-							id: 1,
-						},
-						{
-							v: 8,
-							id: 3,
-						},
-						{
-							v: 10,
-							id: 4,
-						},
-					],
+				[
+					{
+						v: 1,
+						id: 0,
+					},
+					{
+						v: 2,
+						id: 1,
+					},
+					{
+						v: 8,
+						id: 3,
+					},
+					{
+						v: 10,
+						id: 4,
+					},
+				],
+				{
+					v: 10,
+					id: -1,
+				},
+				[
+					{
+						v: 1,
+						id: 0,
+					},
+					{
+						v: 2,
+						id: 1,
+					},
+					{
+						v: 8,
+						id: 3,
+					},
+					{
+						v: 10,
+						id: 4,
+					},
 					{
 						v: 10,
 						id: -1,
 					},
-					[
-						{
-							v: 1,
-							id: 0,
-						},
-						{
-							v: 2,
-							id: 1,
-						},
-						{
-							v: 8,
-							id: 3,
-						},
-						{
-							v: 10,
-							id: 4,
-						},
-						{
-							v: 10,
-							id: -1,
-						},
-					],
+				],
 			)
 			test(
-					[
-						{
-							v: 1,
-							id: 0,
-						},
-						{
-							v: 2,
-							id: 1,
-						},
-						{
-							v: 8,
-							id: 3,
-						},
-						{
-							v: 10,
-							id: 4,
-						},
-					],
+				[
+					{
+						v: 1,
+						id: 0,
+					},
+					{
+						v: 2,
+						id: 1,
+					},
+					{
+						v: 8,
+						id: 3,
+					},
+					{
+						v: 10,
+						id: 4,
+					},
+				],
+				{
+					v: 12,
+					id: -1,
+				},
+				[
+					{
+						v: 1,
+						id: 0,
+					},
+					{
+						v: 2,
+						id: 1,
+					},
+					{
+						v: 8,
+						id: 3,
+					},
+					{
+						v: 10,
+						id: 4,
+					},
 					{
 						v: 12,
 						id: -1,
 					},
-					[
-						{
-							v: 1,
-							id: 0,
-						},
-						{
-							v: 2,
-							id: 1,
-						},
-						{
-							v: 8,
-							id: 3,
-						},
-						{
-							v: 10,
-							id: 4,
-						},
-						{
-							v: 12,
-							id: -1,
-						},
-					],
+				],
 			)
 		})
 		o("works with empty array", function () {
 			test(
-					[],
+				[],
+				{
+					v: 4,
+					id: -1,
+				},
+				[
 					{
 						v: 4,
 						id: -1,
 					},
-					[
-						{
-							v: 4,
-							id: -1,
-						},
-					],
+				],
 			)
 		})
 		o("replaces in the beginning", function () {
 			test(
-					[
-						{
-							v: 1,
-							id: 0,
-						},
-						{
-							v: 2,
-							id: 1,
-						},
-						{
-							v: 8,
-							id: 3,
-						},
-						{
-							v: 10,
-							id: 4,
-						},
-					],
+				[
+					{
+						v: 1,
+						id: 0,
+					},
+					{
+						v: 2,
+						id: 1,
+					},
+					{
+						v: 8,
+						id: 3,
+					},
+					{
+						v: 10,
+						id: 4,
+					},
+				],
+				{
+					v: 1,
+					id: 0,
+					replaced: true,
+				},
+				[
 					{
 						v: 1,
 						id: 0,
 						replaced: true,
 					},
-					[
-						{
-							v: 1,
-							id: 0,
-							replaced: true,
-						},
-						{
-							v: 2,
-							id: 1,
-						},
-						{
-							v: 8,
-							id: 3,
-						},
-						{
-							v: 10,
-							id: 4,
-						},
-					],
-					same,
+					{
+						v: 2,
+						id: 1,
+					},
+					{
+						v: 8,
+						id: 3,
+					},
+					{
+						v: 10,
+						id: 4,
+					},
+				],
+				same,
 			)
 		})
 		o("replaced in the beginning even if the last is equal", function () {
 			test(
-					[
-						{
-							v: 1,
-							id: 0,
-						},
-						{
-							v: 1,
-							id: 1,
-						},
-					],
+				[
+					{
+						v: 1,
+						id: 0,
+					},
+					{
+						v: 1,
+						id: 1,
+					},
+				],
+				{
+					v: 1,
+					id: 0,
+					replaced: true,
+				},
+				[
 					{
 						v: 1,
 						id: 0,
 						replaced: true,
 					},
-					[
-						{
-							v: 1,
-							id: 0,
-							replaced: true,
-						},
-						{
-							v: 1,
-							id: 1,
-						},
-					],
-					same,
+					{
+						v: 1,
+						id: 1,
+					},
+				],
+				same,
 			)
 		})
 		o("replaces in the middle", function () {
 			test(
-					[
-						{
-							v: 1,
-							id: 0,
-						},
-						{
-							v: 2,
-							id: 1,
-						},
-						{
-							v: 8,
-							id: 3,
-						},
-						{
-							v: 10,
-							id: 4,
-						},
-					],
+				[
+					{
+						v: 1,
+						id: 0,
+					},
+					{
+						v: 2,
+						id: 1,
+					},
+					{
+						v: 8,
+						id: 3,
+					},
+					{
+						v: 10,
+						id: 4,
+					},
+				],
+				{
+					v: 2,
+					id: 1,
+					replaced: true,
+				},
+				[
+					{
+						v: 1,
+						id: 0,
+					},
 					{
 						v: 2,
 						id: 1,
 						replaced: true,
 					},
-					[
-						{
-							v: 1,
-							id: 0,
-						},
-						{
-							v: 2,
-							id: 1,
-							replaced: true,
-						},
-						{
-							v: 8,
-							id: 3,
-						},
-						{
-							v: 10,
-							id: 4,
-						},
-					],
-					same,
+					{
+						v: 8,
+						id: 3,
+					},
+					{
+						v: 10,
+						id: 4,
+					},
+				],
+				same,
 			)
 		})
 		o("replaces in the end", function () {
 			test(
-					[
-						{
-							v: 1,
-							id: 0,
-						},
-						{
-							v: 2,
-							id: 1,
-						},
-						{
-							v: 8,
-							id: 3,
-						},
-						{
-							v: 10,
-							id: 4,
-						},
-					],
+				[
+					{
+						v: 1,
+						id: 0,
+					},
+					{
+						v: 2,
+						id: 1,
+					},
+					{
+						v: 8,
+						id: 3,
+					},
+					{
+						v: 10,
+						id: 4,
+					},
+				],
+				{
+					v: 10,
+					id: 4,
+					replaced: true,
+				},
+				[
+					{
+						v: 1,
+						id: 0,
+					},
+					{
+						v: 2,
+						id: 1,
+					},
+					{
+						v: 8,
+						id: 3,
+					},
 					{
 						v: 10,
 						id: 4,
 						replaced: true,
 					},
-					[
-						{
-							v: 1,
-							id: 0,
-						},
-						{
-							v: 2,
-							id: 1,
-						},
-						{
-							v: 8,
-							id: 3,
-						},
-						{
-							v: 10,
-							id: 4,
-							replaced: true,
-						},
-					],
-					same,
+				],
+				same,
 			)
 			test(
-					[
-						{
-							v: 1,
-							id: 0,
-						},
-						{
-							v: 2,
-							id: 1,
-						},
-						{
-							v: 8,
-							id: 3,
-						},
-						{
-							v: 10,
-							id: 4,
-						},
-					],
+				[
+					{
+						v: 1,
+						id: 0,
+					},
+					{
+						v: 2,
+						id: 1,
+					},
+					{
+						v: 8,
+						id: 3,
+					},
+					{
+						v: 10,
+						id: 4,
+					},
+				],
+				{
+					v: 12,
+					id: 5,
+				},
+				[
+					{
+						v: 1,
+						id: 0,
+					},
+					{
+						v: 2,
+						id: 1,
+					},
+					{
+						v: 8,
+						id: 3,
+					},
+					{
+						v: 10,
+						id: 4,
+					},
 					{
 						v: 12,
 						id: 5,
 					},
-					[
-						{
-							v: 1,
-							id: 0,
-						},
-						{
-							v: 2,
-							id: 1,
-						},
-						{
-							v: 8,
-							id: 3,
-						},
-						{
-							v: 10,
-							id: 4,
-						},
-						{
-							v: 12,
-							id: 5,
-						},
-					],
-					same,
+				],
+				same,
 			)
 		})
 	})
@@ -631,31 +630,31 @@ o.spec("array utils", function () {
 			a: 20,
 		}
 		o(
-				deduplicate([
-					null,
-					1,
-					null,
-					2,
-					3,
-					0,
-					0,
-					"word",
-					"word",
-					"anotherword",
-					undefined,
-					undefined,
-					{
-						a: 10,
-					},
-					{
-						a: 10,
-					},
-					object,
-					object,
-					{
-						a: 20,
-					},
-				]),
+			deduplicate([
+				null,
+				1,
+				null,
+				2,
+				3,
+				0,
+				0,
+				"word",
+				"word",
+				"anotherword",
+				undefined,
+				undefined,
+				{
+					a: 10,
+				},
+				{
+					a: 10,
+				},
+				object,
+				object,
+				{
+					a: 20,
+				},
+			]),
 		).deepEquals([
 			null,
 			1,
@@ -683,15 +682,15 @@ o.spec("array utils", function () {
 		o(flat([[0, 1, 2, 3]])).deepEquals([0, 1, 2, 3])
 		o(flat([[], [0], [1, 2, 3], [4, 5, 6], [], [7, 8, 9]])).deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 		o(
-				flat([
-					[[0]],
-					[
-						[1, 2, 3],
-						[4, 5, 6],
-					],
-					[],
-					[[]],
-				]),
+			flat([
+				[[0]],
+				[
+					[1, 2, 3],
+					[4, 5, 6],
+				],
+				[],
+				[[]],
+			]),
 		).deepEquals([[0], [1, 2, 3], [4, 5, 6], []])
 	})
 	o("flatMap", function () {
@@ -706,13 +705,13 @@ o.spec("array utils", function () {
 			[3, 9],
 		])
 		o(
-				flatMap(
-						[
-							[0, 1, 2],
-							[3, 4, 5],
-						],
-						v => v,
-				),
+			flatMap(
+				[
+					[0, 1, 2],
+					[3, 4, 5],
+				],
+				v => v,
+			),
 		).deepEquals([0, 1, 2, 3, 4, 5])
 	})
 	o("groupBy", function () {
@@ -828,15 +827,22 @@ o.spec("array utils", function () {
 		testcases.forEach(test)
 
 		o("rejection in partitionAsync is propagated", async function () {
-			await assertThrows(Error, () => partitionAsync(
-				[3, 1, 4, 1, 5, 9, 2, 6, 5, 3],
-				e => e === 9 ? Promise.reject(new Error()) : Promise.resolve(true))
-			)
+			// can't use assertThrows because of circular dependency
+			try {
+				await partitionAsync(
+					[3, 1, 4, 1, 5, 9, 2, 6, 5, 3],
+					e => e === 9 ? Promise.reject(new Error()) : Promise.resolve(true))
+			} catch (e) {
+				return
+			}
+			throw new Error("Did not throw!")
 		})
 	})
 
-	o("arrayOf test", function() {
-		o(arrayOf(0, () => { throw new Error("I shouldn'ta been called!!!")}))
+	o("arrayOf test", function () {
+		o(arrayOf(0, () => {
+			throw new Error("I shouldn'ta been called!!!")
+		}))
 			.deepEquals([])
 
 		o(arrayOf(1, idx => (idx + 1) + " one thousand"))

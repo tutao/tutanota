@@ -4,7 +4,6 @@ export {
 	spy,
 	mock,
 	mapToObject,
-	mapObject,
 	replaceAllMaps,
 	asResult,
 	assertThrows,
