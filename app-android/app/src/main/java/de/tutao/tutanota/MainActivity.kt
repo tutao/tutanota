@@ -251,22 +251,26 @@ class MainActivity : FragmentActivity() {
 	@Suppress("DEPRECATION")
 	private suspend fun migrateCredentialsFromOldOrigin() {
 		val preferences = android.preference.PreferenceManager.getDefaultSharedPreferences(this)
-		if (preferences.getBoolean(MIGRATED_OLD_LOCAL_STORAGE_PREF, false)) {
+		if (preferences.getString(MIGRATED_OLD_LOCAL_STORAGE_PREF, "") == "assetOrigin") {
 			return
 		} else {
-			Log.d(TAG, "migrating credentials")
-			val oldTutanotaConfig = evalJavaScriptForResult(
-					"let s = localStorage.getItem('tutanotaConfig'); s ? btoa(s) : null",
-					"file:///dummy.html"
-			)
-			WebStorage.getInstance().deleteAllData()
-			if (oldTutanotaConfig == "null") {
-				Log.d(TAG, "no credentials to migrate")
-			} else {
-				evalJavaScriptForResult(
-						"localStorage.setItem('tutanotaConfig', atob($oldTutanotaConfig))",
-						"https://assets.tutanota.com/dummy.html"
+			try {
+				Log.d(TAG, "migrating credentials")
+				val oldTutanotaConfig = evalJavaScriptForResult(
+						"let s = localStorage.getItem('tutanotaConfig'); s ? btoa(s) : null",
+						"file:///dummy.html"
 				)
+				WebStorage.getInstance().deleteAllData()
+				if (oldTutanotaConfig == "null") {
+					Log.d(TAG, "no credentials to migrate")
+				} else {
+					evalJavaScriptForResult(
+							"localStorage.setItem('tutanotaConfig', atob($oldTutanotaConfig))",
+							"https://assets.tutanota.com/dummy.html"
+					)
+				}
+			} finally {
+				preferences.edit().putString(MIGRATED_OLD_LOCAL_STORAGE_PREF, "assetOrigin").apply()
 			}
 		}
 	}
