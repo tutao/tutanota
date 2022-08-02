@@ -1,4 +1,4 @@
-import m, {Children, ClassComponent, Component, CVnode, Vnode} from "mithril"
+import m, {Children, ClassComponent, CVnode} from "mithril"
 import {px, size} from "../size"
 import {DefaultAnimationTime} from "../animation/Animations"
 import {theme} from "../theme"
@@ -85,7 +85,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 			},
 			[
 				m(
-					"label.abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s",
+					"label.abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s.text",
 					{
 						class: this.active ? "content-accent-fg" : "",
 						oncreate: vnode => {
