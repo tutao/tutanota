@@ -20,7 +20,7 @@ assertMainOrNode()
 export function show(): Promise<void> {
 	return getAvailableDomains().then(availableDomains => {
 		let emailAddress: string | null = null
-		let errorMsg: TranslationText | null = null
+		let errorMsg: TranslationText | null = "mailAddressNeutral_msg"
 		let isVerificationBusy = false
 		let userName = ""
 		const passwordModel = new PasswordModel(logins, {checkOldPassword: false, enforceStrength: false, repeatInput: false})

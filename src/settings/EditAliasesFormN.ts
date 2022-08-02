@@ -5,7 +5,7 @@ import {ColumnWidth, Table} from "../gui/base/Table.js"
 import {lang, TranslationKey} from "../misc/LanguageViewModel"
 import {InvalidDataError, LimitReachedError, PreconditionFailedError} from "../api/common/error/RestError"
 import {firstThrow, noOp, ofClass} from "@tutao/tutanota-utils"
-import {SelectMailAddressForm, SelectMailAddressFormAttrs} from "./SelectMailAddressForm"
+import {SelectMailAddressForm} from "./SelectMailAddressForm"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
@@ -93,7 +93,7 @@ export class EditAliasesFormN implements Component<EditAliasesFormAttrs> {
 			getAvailableDomains().then(domains => {
 				let isVerificationBusy = false
 				let mailAddress: string
-				let formErrorId: TranslationKey | null = null
+				let formErrorId: TranslationKey | null = "mailAddressNeutral_msg"
 				let formDomain = stream(firstThrow(domains))
 
 				const addEmailAliasOkAction = (dialog: Dialog) => {
@@ -151,33 +151,33 @@ export function getAliasLineAttrs(editAliasAttrs: EditAliasesFormAttrs): Array<T
 						 .map(alias => {
 							 const actionButtonAttrs: ButtonAttrs = attachDropdown(
 								 {
-                                     mainButtonAttrs: {
-                                         label: "edit_action",
-                                         icon: () => Icons.Edit,
-                                         click: noOp,
-                                     }, childAttrs: () => [
-                                         {
-                                             label: "activate_action",
-                                             click: () => {
-                                                 if (!alias.enabled) {
-                                                     switchAliasStatus(alias, editAliasAttrs)
-                                                 }
-                                             },
-                                             type: ButtonType.Dropdown,
-                                             isSelected: () => alias.enabled,
-                                         },
-                                         {
-                                             label: isTutanotaMailAddress(alias.mailAddress) ? "deactivate_action" : "delete_action",
-                                             click: () => {
-                                                 if (alias.enabled) {
-                                                     switchAliasStatus(alias, editAliasAttrs)
-                                                 }
-                                             },
-                                             type: ButtonType.Dropdown,
-                                             isSelected: () => !alias.enabled,
-                                         },
-                                     ], showDropdown: () => true, width: 250
-                                 },
+									 mainButtonAttrs: {
+										 label: "edit_action",
+										 icon: () => Icons.Edit,
+										 click: noOp,
+									 }, childAttrs: () => [
+										 {
+											 label: "activate_action",
+											 click: () => {
+												 if (!alias.enabled) {
+													 switchAliasStatus(alias, editAliasAttrs)
+												 }
+											 },
+											 type: ButtonType.Dropdown,
+											 isSelected: () => alias.enabled,
+										 },
+										 {
+											 label: isTutanotaMailAddress(alias.mailAddress) ? "deactivate_action" : "delete_action",
+											 click: () => {
+												 if (alias.enabled) {
+													 switchAliasStatus(alias, editAliasAttrs)
+												 }
+											 },
+											 type: ButtonType.Dropdown,
+											 isSelected: () => !alias.enabled,
+										 },
+									 ], showDropdown: () => true, width: 250
+								 },
 							 )
 							 return {
 								 cells: [alias.mailAddress, alias.enabled ? lang.get("activated_label") : lang.get("deactivated_label")],
