@@ -399,7 +399,8 @@ class PriceChangeModel {
 	}
 
 	periodEndDate(): Date {
-		return this.price.periodEndDate
+		// return a copy to prevent the date from being changed by the caller
+		return new Date(this.price.periodEndDate)
 	}
 
 	addedPriceForCurrentPeriod(): number {
