@@ -21,7 +21,7 @@ export class AboutDialog implements Component {
 				this._aboutLink(InfoLink.HomePage, "Website"),
 				this._aboutLink("https://github.com/tutao/tutanota/releases", "Releases"),
 			]),
-			m(".flex.justify-center.flex-wrap", [m("p.center.mt.mlr", `v${env.versionNumber}`), m("p.text-center.mlr", "GPL-v3"), m("p", "© 2021 Tutao GmbH")]),
+			m(".flex.justify-center.flex-wrap", [m("p.center.mt.mlr", `v${env.versionNumber}`), m("p.text-center.mlr", "GPL-v3"), m("p", "© 2022 Tutao GmbH")]),
 			this._sendLogsLink(),
 		])
 	}
