@@ -72,8 +72,8 @@ function csp(env) {
 			return ""
 		}
 	} else {
-		const cspContent = "default-src * 'unsafe-inline' 'unsafe-eval';"
-			+ " script-src * 'unsafe-inline' 'unsafe-eval';"
+		const cspContent = "default-src * 'unsafe-inline';"
+			+ " script-src * 'unsafe-inline';"
 			+ " img-src * data: blob: 'unsafe-inline';"
 			+ " media-src * data: blob: 'unsafe-inline';"
 			+ " style-src * 'unsafe-inline';"
