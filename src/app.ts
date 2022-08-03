@@ -355,8 +355,17 @@ function forceLogin(args: Record<string, Dict>, requestedPath: string) {
 
 function setupExceptionHandling() {
 	window.addEventListener("error", function (evt) {
-		// evt.error is not always set, e.g. not for "content.js:1963 Uncaught DOMException: Failed to read the 'selectionStart' property from 'HTMLInputElement': The input element's type ('email') does not support selection."
-		if (evt.error) {
+		/**
+		 * evt.error is not always set, e.g. not for "content.js:1963 Uncaught DOMException: Failed to read
+		 * the 'selectionStart' property from 'HTMLInputElement': The input element's type ('email')
+		 * does not support selection."
+		 *
+		 * checking for defaultPrevented is necessary to prevent devTools eval errors to be thrown in here until
+		 * https://chromium-review.googlesource.com/c/v8/v8/+/3660253
+		 * is in the chromium version used by our electron client.
+		 * see https://stackoverflow.com/questions/72396527/evalerror-possible-side-effect-in-debug-evaluate-in-google-chrome
+		 * */
+		if (evt.error && !evt.defaultPrevented) {
 			handleUncaughtError(evt.error)
 			evt.preventDefault()
 		}
