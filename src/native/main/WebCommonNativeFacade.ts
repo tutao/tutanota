@@ -47,6 +47,9 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 				subject || (files.length > 0 ? files[0].name : ""),
 				signatureModule.appendEmailSignature(text || "", logins.getUserController().props),
 				files,
+				undefined,
+				undefined,
+				true // we want emails created in this method to always default to saving changes
 			)
 		}
 

@@ -455,51 +455,51 @@ export class MailEditor implements Component<MailEditorAttrs> {
 
 	private renderToolbar(model: SendMailModel): Children {
 // Toolbar is not removed from DOM directly, only it's parent (array) is so we have to animate it manually.
-			// m.fragment() gives us a vnode without actual DOM element so that we can run callback on removal
-			return m.fragment(
-				{
-					onbeforeremove: ({dom}) => animateToolbar(dom.children[0] as HTMLElement, false),
-				},
-				[
-					m(RichTextToolbar, {
-						editor: this.editor,
-						imageButtonClickHandler: isApp()
-							? null
-							: (event: Event) =>
-								chooseAndAttachFile(model, (event.target as HTMLElement).getBoundingClientRect(), ALLOWED_IMAGE_FORMATS).then(files => {
-									files &&
-									files.forEach(file => {
-										// Let's assume it's DataFile for now... Editor bar is available for apps but image button is not
-										if (isDataFile(file)) {
-											const img = createInlineImage(file as DataFile)
-											model.loadedInlineImages.set(img.cid, img)
-											this.inlineImageElements.push(
-												this.editor.insertImage(img.objectUrl, {
-													cid: img.cid,
-													style: "max-width: 100%",
-												}),
-											)
-										}
-									})
-									m.redraw()
-								}),
-						customButtonAttrs: this.templateModel
-							? [
-								{
-									label: "emptyString_msg",
-									title: "openTemplatePopup_msg",
-									click: () => {
-										this.openTemplates()
-									},
-									type: ButtonType.Toggle,
-									icon: () => Icons.ListAlt,
+		// m.fragment() gives us a vnode without actual DOM element so that we can run callback on removal
+		return m.fragment(
+			{
+				onbeforeremove: ({dom}) => animateToolbar(dom.children[0] as HTMLElement, false),
+			},
+			[
+				m(RichTextToolbar, {
+					editor: this.editor,
+					imageButtonClickHandler: isApp()
+						? null
+						: (event: Event) =>
+							chooseAndAttachFile(model, (event.target as HTMLElement).getBoundingClientRect(), ALLOWED_IMAGE_FORMATS).then(files => {
+								files &&
+								files.forEach(file => {
+									// Let's assume it's DataFile for now... Editor bar is available for apps but image button is not
+									if (isDataFile(file)) {
+										const img = createInlineImage(file as DataFile)
+										model.loadedInlineImages.set(img.cid, img)
+										this.inlineImageElements.push(
+											this.editor.insertImage(img.objectUrl, {
+												cid: img.cid,
+												style: "max-width: 100%",
+											}),
+										)
+									}
+								})
+								m.redraw()
+							}),
+					customButtonAttrs: this.templateModel
+						? [
+							{
+								label: "emptyString_msg",
+								title: "openTemplatePopup_msg",
+								click: () => {
+									this.openTemplates()
 								},
-							]
-							: [],
-					}),
-					m("hr.hr")
-				],
-			)
+								type: ButtonType.Toggle,
+								icon: () => Icons.ListAlt,
+							},
+						]
+						: [],
+				}),
+				m("hr.hr")
+			],
+		)
 	}
 
 	private renderPasswordFields(): Children {
@@ -956,6 +956,8 @@ export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: bo
 		appendEmailSignature(mailTo.body || "", logins.getUserController().props),
 		dataFiles,
 		confidential,
+		undefined,
+		true // emails created with mailto should always save as draft
 	)
 }
 
@@ -967,9 +969,10 @@ export function newMailEditorFromTemplate(
 	attachments?: ReadonlyArray<Attachment>,
 	confidential?: boolean,
 	senderMailAddress?: string,
+	initialChangedState?: boolean
 ): Promise<Dialog> {
 	return defaultSendMailModel(mailboxDetails)
-		.initWithTemplate(recipients, subject, bodyText, attachments, confidential, senderMailAddress)
+		.initWithTemplate(recipients, subject, bodyText, attachments, confidential, senderMailAddress, initialChangedState)
 		.then(model => createMailEditorDialog(model))
 }
 
