@@ -71,7 +71,7 @@ export async function showSwitchDialog(customer: Customer, customerInfo: Custome
 					},
 					campaignInfoTextId: null,
 					boxWidth: 230,
-					boxHeight: 230,
+					boxHeight: 270,
 					currentSubscriptionType: currentSubscriptionInfo.subscriptionType,
 					currentlySharingOrdered: currentSubscriptionInfo.currentlySharingOrdered,
 					currentlyBusinessOrdered: currentSubscriptionInfo.currentlyBusinessOrdered,
