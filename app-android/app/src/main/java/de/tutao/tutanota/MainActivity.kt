@@ -180,8 +180,7 @@ class MainActivity : FragmentActivity() {
 					}
 					try {
 						if (!assetPath.startsWith(BuildConfig.RES_ADDRESS)) throw IOException("can't find this")
-						val ext = MimeTypeMap.getFileExtensionFromUrl(url.toString())
-						val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
+						val mimeType = getMimeTypeForUrl(url.toString())
 						WebResourceResponse(
 								mimeType,
 								null,
@@ -246,6 +245,20 @@ class MainActivity : FragmentActivity() {
 			handleIntent(intent)
 		}
 		firstLoaded = true
+	}
+
+	private fun getMimeTypeForUrl(url: String): String {
+		val ext = MimeTypeMap.getFileExtensionFromUrl(url)
+		// on old android mimetypemap doesn't contain js and returns null
+		// we add a few more for safety.
+		val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
+		return mimeType ?: when (ext) {
+			"js" -> "text/javascript"
+			"json" -> "application/json"
+			"html" -> "text/html"
+			"ttf" -> "font/ttf"
+			else -> error("Unknown extension $ext")
+		}
 	}
 
 	@Suppress("DEPRECATION")
