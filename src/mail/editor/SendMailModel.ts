@@ -77,6 +77,7 @@ type InitArgs = {
 	replyTos?: RecipientList
 	previousMail?: Mail | null
 	previousMessageId?: string | null
+	initialChangedState: boolean | null
 }
 
 /**
@@ -244,6 +245,7 @@ export class SendMailModel {
 	 * @param attachments
 	 * @param confidential
 	 * @param senderMailAddress
+	 * @param initialChangedState
 	 * @returns {Promise<SendMailModel>}
 	 */
 	initWithTemplate(
@@ -253,6 +255,7 @@ export class SendMailModel {
 		attachments?: ReadonlyArray<Attachment>,
 		confidential?: boolean,
 		senderMailAddress?: string,
+		initialChangedState?: boolean
 	): Promise<SendMailModel> {
 		return this.init({
 			conversationType: ConversationType.NEW,
@@ -262,6 +265,7 @@ export class SendMailModel {
 			attachments,
 			confidential: confidential ?? null,
 			senderMailAddress,
+			initialChangedState: initialChangedState ?? null
 		})
 	}
 
@@ -301,6 +305,7 @@ export class SendMailModel {
 			replyTos,
 			previousMail,
 			previousMessageId,
+			initialChangedState: false
 		})
 	}
 
@@ -348,6 +353,7 @@ export class SendMailModel {
 			replyTos,
 			previousMail,
 			previousMessageId,
+			initialChangedState: false
 		})
 	}
 
@@ -364,6 +370,7 @@ export class SendMailModel {
 			replyTos,
 			previousMail,
 			previousMessageId,
+			initialChangedState
 		}: InitArgs
 	): Promise<SendMailModel> {
 		this.conversationType = conversationType
@@ -408,7 +415,15 @@ export class SendMailModel {
 		this.previousMail = previousMail || null
 		this.previousMessageId = previousMessageId || null
 		this.mailChangedAt = this.dateProvider.now()
-		this.mailSavedAt = this.mailChangedAt + 1
+
+		// Determine if we should have this mail already be detected as modified so it saves.
+		if (initialChangedState) {
+			this.onMailChanged(true)
+			this.mailSavedAt = this.mailChangedAt - 1
+		} else {
+			this.mailSavedAt = this.mailChangedAt + 1
+		}
+
 		return this
 	}
 
