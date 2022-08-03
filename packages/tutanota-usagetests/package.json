@@ -1,6 +1,6 @@
 {
 	"name": "@tutao/tutanota-usagetests",
-	"version": "3.98.18",
+	"version": "3.98.19",
 	"license": "GLP-3.0",
 	"description": "",
 	"main": "./dist/index.js",
