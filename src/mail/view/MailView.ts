@@ -4,7 +4,7 @@ import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import type {ButtonAttrs} from "../../gui/base/Button.js"
-import {ButtonColor, Button, ButtonType} from "../../gui/base/Button.js"
+import {Button, ButtonColor, ButtonType} from "../../gui/base/Button.js"
 import type {NavButtonAttrs} from "../../gui/base/NavButton.js"
 import {isNavButtonSelected, isSelectedPrefix, NavButtonColor} from "../../gui/base/NavButton.js"
 import {createMailViewerViewModel, MailViewer} from "./MailViewer"
@@ -22,7 +22,7 @@ import {keyManager} from "../../misc/KeyManager"
 import {MultiMailViewer} from "./MultiMailViewer"
 import {logins} from "../../api/main/LoginController"
 import {Icons} from "../../gui/base/icons/Icons"
-import {LockedError, NotFoundError, PreconditionFailedError} from "../../api/common/error/RestError"
+import {NotFoundError, PreconditionFailedError} from "../../api/common/error/RestError"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {
 	canDoDragAndDropExport,
@@ -33,6 +33,7 @@ import {
 	getMailboxName,
 	getSortedCustomFolders,
 	getSortedSystemFolders,
+	markMails,
 } from "../model/MailUtils"
 import type {MailboxDetail} from "../model/MailModel"
 import {locator} from "../../api/main/MainLocator"
@@ -830,17 +831,8 @@ export class MailView implements CurrentView {
 		if (mails.length == 0) {
 			return
 		}
-
-		let firstMailUnreadStatus = mails[0].unread
-		let newStatus = !firstMailUnreadStatus
-
-		for (let mail of mails) {
-			mail.unread = newStatus
-			await locator.entityClient
-						 .update(mail)
-						 .catch(ofClass(NotFoundError, e => console.log("could not set read flag as mail has been moved/deleted already", e)))
-						 .catch(ofClass(LockedError, noOp))
-		}
+		// set all selected emails to the opposite of the first email's unread state
+		return markMails(locator.entityClient, mails, !mails[0].unread)
 	}
 
 	private deleteMails(mails: Mail[]): Promise<boolean> {
