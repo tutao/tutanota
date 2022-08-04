@@ -176,7 +176,7 @@ pipeline {
 				expression { params.RELEASE }
 			}
 			steps {
-				// Needed to generate a checksum
+				// Needed to upload it
 				unstash 'apk-production'
 
 				sh "git tag ${TAG}"
@@ -184,7 +184,6 @@ pipeline {
 
 				script {
 					def filePath = "build/app-android/tutanota-tutao-release-${VERSION}.apk"
-					def checksum = sh(returnStdout: true, script: "sha256sum ${WORKSPACE}/${filePath}")
 					def milestone = params.MILESTONE.trim().equals("") ? VERSION : params.MILESTONE
 					catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page') {
 						withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
@@ -192,8 +191,7 @@ pipeline {
 																   --milestone '${milestone}' \
 																   --tag '${tag}' \
 																   --uploadFile '${WORKSPACE}/${filePath}' \
-																   --platform android \
-																   --apkChecksum ${checksum}"""
+																   --platform android"""
 						}
 					}
 				}

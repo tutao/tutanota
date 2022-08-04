@@ -3,8 +3,14 @@ import {Option, program} from "commander"
 import {fileURLToPath} from "url"
 import path from "path"
 import fs from "fs"
+import crypto from "crypto"
 
 const wasRunFromCli = fileURLToPath(import.meta.url).startsWith(process.argv[1])
+
+function hashFileSha256(filePath) {
+	const input = fs.readFileSync(filePath)
+	return crypto.createHash('sha256').update(input).digest('hex')
+}
 
 if (wasRunFromCli) {
 	program
@@ -12,12 +18,13 @@ if (wasRunFromCli) {
 		.requiredOption('--milestone <milestone>', "Milestone to reference")
 		.requiredOption('--tag <tag>', "The commit tag to reference")
 		.addOption(
-			new Option("--platform <platform>", 'Which platform to build')
+			new Option("--platform <platform>", 'label filter for the issues to include in the notes')
 				.choices(["android", "ios", "desktop", "all"])
 				.default("all")
 		)
-		.option('--uploadFile <filePath>', "Path to a file to upload")
-		.option('--apkChecksum <checksum>', "Checksum for the APK")
+		.addOption(new Option("--uploadFile <filePath>", "path to a file to upload. can be passed multiple times.")
+			.argParser((cur, prev) => prev ? prev.concat(cur) : [cur]).default([])
+		)
 		.option('--toFile <toFile>', "If provided, the release notes will be written to the given file path. Implies `--dryRun`")
 		.option('--dryRun', "Don't make any changes to github")
 		.option('--format <format>', "Format to generate notes in", "github")
@@ -34,7 +41,6 @@ async function createReleaseNotes(
 		tag,
 		platform,
 		uploadFile,
-		apkChecksum,
 		toFile,
 		dryRun,
 		format
@@ -65,7 +71,7 @@ async function createReleaseNotes(
 			milestoneUrl: githubMilestone.html_url,
 			bugIssues: bugs,
 			otherIssues: other,
-			apkChecksum: apkChecksum
+			files: uploadFile
 		})
 	}
 
@@ -76,10 +82,9 @@ async function createReleaseNotes(
 		const draftResponse = await createReleaseDraft(octokit, releaseName, tag, releaseNotes)
 
 		const {upload_url, id} = draftResponse.data
-
-		if (uploadFile) {
-			console.log(`Uploading asset "${uploadFile}"`)
-			await uploadAsset(octokit, upload_url, id, uploadFile)
+		for (const filePath of uploadFile) {
+			console.log(`Uploading asset "${filePath}"`)
+			await uploadAsset(octokit, upload_url, id, filePath)
 		}
 	}
 
@@ -160,7 +165,7 @@ function sortIssues(issues) {
 	return {bugs, other}
 }
 
-function renderGithubReleaseNotes({milestoneUrl, bugIssues, otherIssues, apkChecksum}) {
+function renderGithubReleaseNotes({milestoneUrl, bugIssues, otherIssues, files}) {
 
 	const whatsNewListRendered = otherIssues.map(issue => {
 		return ` - ${issue.title} #${issue.number}`
@@ -173,7 +178,16 @@ function renderGithubReleaseNotes({milestoneUrl, bugIssues, otherIssues, apkChec
 	const milestoneUrlObject = new URL(milestoneUrl)
 	milestoneUrlObject.searchParams.append("closed", "1")
 
-	const apkSection = apkChecksum ? `# APK Checksum\nSHA256: ${apkChecksum}` : ""
+	let apkSection = ""
+	if (files.length > 0) {
+		apkSection += "# Asset Checksums (SHA256)\n"
+		for (const f of files) {
+			const hash = hashFileSha256(f)
+			const filename = path.basename(f)
+			console.log(`hash of ${filename}: `, hash)
+			apkSection += `**${filename}:**\n${hash}\n\n`
+		}
+	}
 
 	return `
 # What's new
