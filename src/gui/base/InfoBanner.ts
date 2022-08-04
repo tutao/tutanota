@@ -6,10 +6,11 @@ import {lang} from "../../misc/LanguageViewModel"
 import type {ButtonAttrs} from "./Button.js"
 import {Button, ButtonType} from "./Button.js"
 import {NavButton} from "./NavButton.js"
+import type {lazy} from "@tutao/tutanota-utils"
 import {isNotNull, mapNullable} from "@tutao/tutanota-utils"
 import {Icons} from "./icons/Icons"
 import {ifAllowedTutanotaLinks} from "./GuiUtils"
-import type {lazy} from "@tutao/tutanota-utils"
+import {px, size} from "../size.js"
 
 const WARNING_RED = "#ca0606"
 
@@ -41,10 +42,11 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 				},
 			},
 			[
-				m(".flex", [
-					m(".mt-s.mr-s", this.renderIcon(icon, type ?? null)),
-					m(".flex-grow", [
-						m(".mr.pt-s", [m(".small", lang.getMaybeLazy(message))]),
+				m(".mt-s.mr-s.abs", this.renderIcon(icon, type ?? null)), // absolute position makes the icon fixed to the top left corner of the banner
+				m("",
+					{style: {"margin-left": px(size.icon_size_large + 1)}}, // allow room for the icon
+					[
+						m(".mr.pt-s", [m(".small.text-break", lang.getMaybeLazy(message))]),
 						m(
 							".flex.ml-negative-s",
 							{
@@ -63,7 +65,6 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 							],
 						),
 					]),
-				]),
 			],
 		)
 	}
