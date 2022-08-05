@@ -151,62 +151,104 @@ pipeline {
             }
         }
 
-            stage('Build deb and publish') {
-                when {
-                    expression { params.RELEASE }
-                }
-                agent {
-                    label 'linux'
-                }
-                environment {
-                    PATH = "${env.NODE_PATH}:${env.PATH}"
-                }
-                steps {
-                   	sh 'npm ci'
-                   	sh 'rm -rf ./build/*'
+		stage('Build deb and publish') {
+			when { expression { params.RELEASE } }
+			agent { label 'linux' }
+			environment { PATH = "${env.NODE_PATH}:${env.PATH}" }
+			steps {
+				sh 'npm ci'
+				sh 'rm -rf ./build/*'
 
-                   	dir('build') {
-                   		unstash 'linux_installer'
-                   		unstash 'mac_installer'
-                   		unstash 'win_installer'
-                   		unstash 'linux_installer_test'
-                   		unstash 'mac_installer_test'
-                   		unstash 'win_installer_test'
-                   	}
+				dir('build') {
+					unstash 'linux_installer'
+					unstash 'mac_installer'
+					unstash 'win_installer'
+					unstash 'linux_installer_test'
+					unstash 'mac_installer_test'
+					unstash 'win_installer_test'
+				}
 
-                   	script {
-                   		if (params.UPDATE_DICTIONARIES) {
-                   			sh 'node buildSrc/fetchDictionaries.js --publish'
-                   		}
-                   	}
+				script {
+					if (params.UPDATE_DICTIONARIES) {
+						sh 'node buildSrc/fetchDictionaries.js --publish'
+					}
+				}
 
-                   	withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
-                   		sh '''export HSM_USER_PIN=${PW}; node buildSrc/signDesktopClients.js'''
-                   	}
+				withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
+					sh '''export HSM_USER_PIN=${PW}; node buildSrc/signDesktopClients.js'''
+				}
 
-                   	sh 'node buildSrc/publish.js desktop'
+				sh 'node buildSrc/publish.js desktop'
 
-					script {
-						def desktopLinux = "build/desktop/tutanota-desktop-linux.AppImage"
-						def desktopWin = "build/desktop/tutanota-desktop-win.exe"
-						def desktopMac = "build/desktop/tutanota-desktop-mac.dmg"
-						def milestone = params.MILESTONE.trim().equals("") ? VERSION : params.MILESTONE
-						catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page') {
-							withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-								sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (Desktop)' \
-																	   --milestone '${milestone}' \
-																	   --tag '${TAG}' \
-																	   --uploadFile '${WORKSPACE}/${desktopLinux}' \
-																	   --uploadFile '${WORKSPACE}/${desktopWin}' \
-																	   --uploadFile '${WORKSPACE}/${desktopMac}' \
-																	   --platform desktop"""
-							} // withCredentials
-						} // catchError
-					} // script
-                }
-            }
-        }
-    }
+				script { // create release notes
+					def desktopLinux = "build/desktop/tutanota-desktop-linux.AppImage"
+					def desktopWin = "build/desktop/tutanota-desktop-win.exe"
+					def desktopMac = "build/desktop/tutanota-desktop-mac.dmg"
+					def milestone = params.MILESTONE.trim().equals("") ? VERSION : params.MILESTONE
+					catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page') {
+						withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
+							sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (Desktop)' \
+																   --milestone '${milestone}' \
+																   --tag '${TAG}' \
+																   --uploadFile '${WORKSPACE}/${desktopLinux}' \
+																   --uploadFile '${WORKSPACE}/${desktopWin}' \
+																   --uploadFile '${WORKSPACE}/${desktopMac}' \
+																   --platform desktop"""
+						} // withCredentials
+					} // catchError
+				} // script release notes
+
+				script { // upload to nexus
+					def util = load "jenkins-lib/util.groovy"
+
+					util.publishToNexus(
+							groupId: "app",
+							artifactId: "desktop-linux-test",
+							version: "${VERSION}",
+							assetFilePath: "${WORKSPACE}/build/desktop-test/tutanota-desktop-test-linux.AppImage",
+							fileExtension: 'AppImage'
+					)
+					util.publishToNexus(
+							groupId: "app",
+							artifactId: "desktop-win-test",
+							version: "${VERSION}",
+							assetFilePath: "${WORKSPACE}/build/desktop-test/tutanota-desktop-test-win.exe",
+							fileExtension: 'exe'
+					)
+					util.publishToNexus(
+							groupId: "app",
+							artifactId: "desktop-mac-test",
+							version: "${VERSION}",
+							assetFilePath: "${WORKSPACE}/build/desktop-test/tutanota-desktop-test-mac.dmg",
+							fileExtension: 'dmg'
+					)
+					util.publishToNexus(
+							groupId: "app",
+							artifactId: "desktop-linux",
+							version: "${VERSION}",
+							assetFilePath: "${WORKSPACE}/build/desktop/tutanota-desktop-linux.AppImage",
+							fileExtension: 'AppImage'
+					)
+					util.publishToNexus(
+							groupId: "app",
+							artifactId: "desktop-win",
+							version: "${VERSION}",
+							assetFilePath: "${WORKSPACE}/build/desktop/tutanota-desktop-win.exe",
+							fileExtension: 'exe'
+					)
+					util.publishToNexus(
+							groupId: "app",
+							artifactId: "desktop-mac",
+							version: "${VERSION}",
+							assetFilePath: "${WORKSPACE}/build/desktop/tutanota-desktop-mac.dmg",
+							fileExtension: 'dmg'
+					)
+				} // script upload to nexus
+
+			} // steps
+		} // stage build deb & publish
+    } // stages
+} // pipeline
 
 void initBuildArea() {
     sh 'npm ci'
