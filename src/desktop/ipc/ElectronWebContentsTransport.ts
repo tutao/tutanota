@@ -6,8 +6,7 @@ import type {WebContents} from "electron"
  * Implementation of Transport which delegates to CenterIpcHandler/WebContents.
  * Should be instantiated per WebContents.
  */
-export class ElectronWebContentsTransport<
-	IpcConfigType extends IpcConfig<string, string>,
+export class ElectronWebContentsTransport<IpcConfigType extends IpcConfig<string, string>,
 	OutgoingRequestType extends string,
 	IncomingRequestType extends string> implements Transport<OutgoingRequestType, IncomingRequestType> {
 
@@ -18,10 +17,10 @@ export class ElectronWebContentsTransport<
 	}
 
 	postMessage(message: Message<OutgoingRequestType>): void {
-		this.ipcHandler.sendTo(this.webContents.id, message)
+		this.ipcHandler.sendTo(this.webContents, message)
 	}
 
 	setMessageHandler(handler: (message: Message<IncomingRequestType>) => unknown): void {
-		this.ipcHandler.addHandler(this.webContents.id, handler)
+		this.ipcHandler.addHandler(this.webContents, handler)
 	}
 }

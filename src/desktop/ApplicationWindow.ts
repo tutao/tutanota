@@ -309,7 +309,6 @@ export class ApplicationWindow {
 		this._browserWindow
 			.on("close", async () => {
 				await this.closeDb()
-				this.remoteBridge.destroyBridge(this)
 			})
 			.on("focus", () => this.localShortcut.enableAll(this._browserWindow))
 			.on("blur", (_: FocusEvent) => this.localShortcut.disableAll(this._browserWindow))
@@ -387,8 +386,9 @@ export class ApplicationWindow {
 	}
 
 	async reload(queryParams: Record<string, string | boolean>) {
-		await this.closeDb()
+		// do this immediately as to not get the window destroyed on us
 		this.remoteBridge.destroyBridge(this)
+		await this.closeDb()
 		this.userId = null
 		this.initFacades()
 		const url = await this.getInitialUrl(queryParams)

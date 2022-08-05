@@ -172,6 +172,6 @@ export class WebDialogController {
 	}
 
 	private async uninitRemoteFacade(webContents: WebContents) {
-		this.ipcHandler.removeHandler(webContents.id)
+		this.ipcHandler.removeHandler(webContents)
 	}
 }
