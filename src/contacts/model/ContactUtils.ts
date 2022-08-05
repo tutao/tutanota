@@ -1,9 +1,9 @@
 import {lang} from "../../misc/LanguageViewModel"
-import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
-import type {Birthday} from "../../api/entities/tutanota/TypeRefs.js"
+import type {Birthday, Contact, ContactSocialId} from "../../api/entities/tutanota/TypeRefs.js"
 import {formatDate} from "../../misc/Formatter"
 import {isoDateToBirthday} from "../../api/common/utils/BirthdayUtils"
 import {assertMainOrNode} from "../../api/common/Env"
+import { ContactSocialType } from '../../api/common/TutanotaConstants'
 
 assertMainOrNode()
 
@@ -51,4 +51,42 @@ export function formatBirthdayOfContact(contact: Contact): string {
 	}
 
 	return ""
+}
+
+export function getSocialUrl(contactId: ContactSocialId): string {
+	let socialUrlType = ""
+	let http = "https://"
+	let worldwidew = "www."
+
+	const isSchemePrefixed = contactId.socialId.indexOf("http") !== -1
+	const isWwwDotPrefixed = contactId.socialId.indexOf(worldwidew) !== -1
+
+	if (!isSchemePrefixed && !isWwwDotPrefixed) {
+		switch (contactId.type) {
+			case ContactSocialType.TWITTER:
+				socialUrlType = "twitter.com/"
+				break
+
+			case ContactSocialType.FACEBOOK:
+				socialUrlType = "facebook.com/"
+				break
+
+			case ContactSocialType.XING:
+				socialUrlType = "xing.com/profile/"
+				break
+
+			case ContactSocialType.LINKED_IN:
+				socialUrlType = "linkedin.com/in/"
+		}
+	}
+
+	if (isSchemePrefixed) {
+		http = ""
+	}
+
+	if (isSchemePrefixed || isWwwDotPrefixed) {
+		worldwidew = ""
+	}
+
+	return `${http}${worldwidew}${socialUrlType}${contactId.socialId.trim()}`
 }
