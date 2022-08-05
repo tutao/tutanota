@@ -66,7 +66,7 @@ export async function buildDesktop(
 		nameSuffix,
 		version,
 		updateUrl,
-		iconPath: path.join(dirname, "/resources/desktop-icons/logo-solo-red.png"),
+		iconPath: path.join(dirname, "/resources/desktop-icons/logo-solo-red.png" + (platform === "win32" ? ".ico" : "")),
 		notarize,
 		unpacked,
 		sign: (process.env.DEBUG_SIGN && updateUrl !== "") || !!process.env.JENKINS_HOME,
