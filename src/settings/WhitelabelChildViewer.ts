@@ -53,8 +53,8 @@ export class WhitelabelChildViewer implements UpdatableSettingsDetailsViewer {
 					},
 				],
 				selectedValue: this.isChildActive(),
-				selectionChangedHandler: (deactivate: boolean) => {
-					this.whitelabelChild.deletedDate = deactivate ? new Date() : null
+				selectionChangedHandler: (activate: boolean) => {
+					this.whitelabelChild.deletedDate = activate ? null : new Date()
 					return showProgressDialog("pleaseWait_msg", locator.entityClient.update(this.whitelabelChild))
 				},
 			})),
