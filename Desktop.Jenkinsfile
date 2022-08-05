@@ -3,6 +3,7 @@ pipeline {
         NODE_PATH = '/opt/node-v16.3.0-linux-x64/bin'
         NODE_MAC_PATH = '/usr/local/opt/node@16/bin/'
         VERSION = sh(returnStdout: true, script: "${NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
+		TAG = "tutanota-desktop-release-${VERSION}"
     }
     options {
         preserveStashes()
@@ -19,6 +20,11 @@ pipeline {
             defaultValue: false,
             description: 'pull the spellcheck dictionaries from github when producing .debs'
         )
+		string(
+				name: 'MILESTONE',
+				defaultValue: '',
+				description: 'Which github milestone to reference for generating release notes. Defaults to the version number'
+		)
     }
 
     agent {
@@ -180,14 +186,23 @@ pipeline {
 
                    	sh 'node buildSrc/publish.js desktop'
 
-                   	catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page') {
-                   		withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-                   			sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (Desktop)' \
-                   														--milestone '${VERSION}' \
-                   														--tag 'tutanota-desktop-release-${VERSION}' \
-                   														--platform desktop"""
-                   		}
-                   	}
+					script {
+						def desktopLinux = "build/desktop/tutanota-desktop-linux.AppImage"
+						def desktopWin = "build/desktop/tutanota-desktop-win.exe"
+						def desktopMac = "build/desktop/tutanota-desktop-mac.dmg"
+						def milestone = params.MILESTONE.trim().equals("") ? VERSION : params.MILESTONE
+						catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS', message: 'Failed to create github release page') {
+							withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
+								sh """node buildSrc/releaseNotes.js --releaseName '${VERSION} (Desktop)' \
+																	   --milestone '${milestone}' \
+																	   --tag '${TAG}' \
+																	   --uploadFile '${WORKSPACE}/${desktopLinux}' \
+																	   --uploadFile '${WORKSPACE}/${desktopWin}' \
+																	   --uploadFile '${WORKSPACE}/${desktopMac}' \
+																	   --platform desktop"""
+							} // withCredentials
+						} // catchError
+					} // script
                 }
             }
         }
