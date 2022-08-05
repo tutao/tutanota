@@ -39,6 +39,7 @@ export class RemoteBridge {
 
 	createBridge(window: ApplicationWindow): SendingFacades {
 		const webContents = window._browserWindow.webContents
+		webContents.on("destroyed", () => primaryIpcHandler.removeHandler(webContents))
 		const {desktopCommonSystemFacade, dispatcher} = this.dispatcherFactory(window)
 		const facadeHandler = this.facadeHandlerFactory(window)
 
@@ -64,6 +65,8 @@ export class RemoteBridge {
 	}
 
 	destroyBridge(window: ApplicationWindow) {
-		primaryIpcHandler.removeHandler(window._browserWindow.webContents.id)
+		// in this case, we can't get a ref to the wc anymore
+		if (!window._browserWindow || window._browserWindow.isDestroyed()) return
+		primaryIpcHandler.removeHandler(window._browserWindow.webContents)
 	}
 }
