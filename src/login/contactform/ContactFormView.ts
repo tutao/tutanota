@@ -1,4 +1,4 @@
-import m, {Children} from "mithril"
+import m, {Children, Component} from "mithril"
 import {animations, opacity} from "../../gui/animation/Animations"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {downcast, neverNull, ofClass} from "@tutao/tutanota-utils"
@@ -11,17 +11,17 @@ import {getDefaultContactFormLanguage} from "../../settings/contactform/ContactF
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {renderPrivacyAndImprintLinks} from "../LoginView"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
-import {CurrentView, header} from "../../gui/Header.js"
 import {Button, ButtonType} from "../../gui/base/Button.js"
 import {Keys} from "../../api/common/TutanotaConstants"
 import type {ContactForm} from "../../api/entities/tutanota/TypeRefs.js"
 import {locator} from "../../api/main/MainLocator"
 import {assertMainOrNode} from "../../api/common/Env"
+import {DefaultHeader} from "../../gui/Header.js"
 
 assertMainOrNode()
 
-class ContactFormView implements CurrentView {
-	view: CurrentView["view"]
+class ContactFormView {
+	view: Component["view"]
 	private _contactForm: ContactForm | null
 	private _moreInformationDialog: Dialog
 	private _formId: string | null = null
@@ -63,7 +63,7 @@ class ContactFormView implements CurrentView {
 
 		this.view = (): Children => {
 			return m(".main-view.flex.col", [
-				m(header),
+				m(DefaultHeader, {}),
 				m(".flex-center.scroll", m(".flex-grow-shrink-auto.max-width-l.third.pb.plr-l", this._getContactFormContent())),
 			])
 		}

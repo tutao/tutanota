@@ -1,9 +1,7 @@
-import m, {Children} from "mithril"
+import m, {Children, Component} from "mithril"
 import {ViewSlider} from "../../gui/nav/ViewSlider.js"
 import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import {ContactViewer} from "./ContactViewer"
-import type {CurrentView} from "../../gui/Header.js"
-import {header} from "../../gui/Header.js"
 import {Button, ButtonColor, ButtonType} from "../../gui/base/Button.js"
 import {ContactEditor} from "../ContactEditor"
 import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
@@ -43,10 +41,11 @@ import {SidebarSection} from "../../gui/SidebarSection"
 import {SetupMultipleError} from "../../api/common/error/SetupMultipleError"
 import {attachDropdown, DropdownButtonAttrs} from "../../gui/base/Dropdown.js"
 import {showFileChooser} from "../../file/FileController.js"
+import {DefaultHeader, Header} from "../../gui/Header.js"
 
 assertMainOrNode()
 
-export class ContactView implements CurrentView {
+export class ContactView implements Component {
 	listColumn: ViewColumn
 	contactColumn: ViewColumn
 	folderColumn: ViewColumn
@@ -54,9 +53,9 @@ export class ContactView implements CurrentView {
 	viewSlider: ViewSlider
 	_contactList: ContactListView | null = null
 	private _multiContactViewer: MultiContactViewer
-	view: CurrentView["view"]
-	oncreate: CurrentView["oncreate"]
-	onremove: CurrentView["onremove"]
+	view: Component["view"]
+	oncreate: Component["oncreate"]
+	onremove: Component["onremove"]
 	private _throttledSetUrl: (url: string) => void
 
 	constructor() {
@@ -123,7 +122,11 @@ export class ContactView implements CurrentView {
 			contactColumnTitle,
 			() => lang.get("contacts_label") + " " + contactColumnTitle(),
 		)
-		this.viewSlider = new ViewSlider(header, [this.folderColumn, this.listColumn, this.contactColumn], "ContactView")
+		this.viewSlider = new ViewSlider({
+			header: () => this.renderHeader(),
+			viewColumns: [this.folderColumn, this.listColumn, this.contactColumn],
+			parentName: "ContactView"
+		})
 
 		this.view = (): Children => {
 			return m("#contact.main-view", [m(this.viewSlider)])
@@ -141,20 +144,6 @@ export class ContactView implements CurrentView {
 
 		if (contactList) {
 			new ContactEditor(locator.entityClient, null, contactList.listId, contactId => contactList.list.scrollToIdAndSelectWhenReceived(contactId)).show()
-		}
-	}
-
-	headerRightView(): Children {
-		if (this._contactList) {
-			return m(Button, {
-				label: "newContact_action",
-				click: () => this.createNewContact(),
-				type: ButtonType.Action,
-				icon: () => Icons.Add,
-				colors: ButtonColor.Header,
-			})
-		} else {
-			return null
 		}
 	}
 
@@ -569,30 +558,11 @@ export class ContactView implements CurrentView {
 		}
 	}
 
-	getViewSlider(): ViewSlider | null {
-		return this.viewSlider
-	}
-
-	handleBackButton(): boolean {
-		// only handle back button if viewing contact
-		if (this.contactViewer) {
-			this.contactViewer = null
-			this.viewSlider.focus(this.listColumn)
-			return true
-		} else if (this._contactList && this._contactList.list.isMobileMultiSelectionActionActive()) {
-			this._contactList.list.selectNone()
-
-			return true
-		}
-
-		return false
-	}
-
 	/**
 	 * Used by Header to figure out when content needs to be injected there
 	 * @returns {Children} Mithril children or null
 	 */
-	headerView(): Children {
+	renderHeader(): Children {
 		const contactList = this._contactList
 
 		if (
@@ -601,19 +571,45 @@ export class ContactView implements CurrentView {
 			contactList.list &&
 			contactList.list.isMobileMultiSelectionActionActive()
 		) {
-			return m(MultiSelectionBar, {
-					selectNoneHandler: () => {
-						contactList.list.selectNone()
-					},
-					selectedEntiesLength: contactList.list.getSelectedEntities().length,
-				}, m(ActionBar, {
-					buttons: this._multiContactViewer.createActionBarButtons(() => {
-						if (contactList) contactList.list.selectNone()
-					}, false),
-				})
+			return m(Header,
+				m(MultiSelectionBar, {
+						selectNoneHandler: () => {
+							contactList.list.selectNone()
+						},
+						selectedEntiesLength: contactList.list.getSelectedEntities().length,
+					}, m(ActionBar, {
+						buttons: this._multiContactViewer.createActionBarButtons(() => {
+							if (contactList) contactList.list.selectNone()
+						}, false),
+					})
+				)
 			)
 		} else {
-			return null
+			return m(DefaultHeader, {
+				viewSlider: this.viewSlider,
+				handleBackButton: () => {
+					// only handle back button if viewing contact
+					if (this.contactViewer) {
+						this.contactViewer = null
+						this.viewSlider.focus(this.listColumn)
+						return true
+					} else if (this._contactList && this._contactList.list.isMobileMultiSelectionActionActive()) {
+						this._contactList.list.selectNone()
+
+						return true
+					}
+
+					return false
+				},
+				mobileContentRight: () => this._contactList && m(Button, {
+					label: "newContact_action",
+					click: () => this.createNewContact(),
+					type: ButtonType.Action,
+					icon: () => Icons.Add,
+					colors: ButtonColor.Header,
+				})
+
+			})
 		}
 	}
 }

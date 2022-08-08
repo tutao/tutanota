@@ -14,7 +14,6 @@ import {Checkbox} from "../gui/base/Checkbox.js"
 import {logins} from "../api/main/LoginController"
 import {MessageBox} from "../gui/base/MessageBox.js"
 import {renderPrivacyAndImprintLinks} from "./LoginView"
-import {CurrentView, header} from "../gui/Header.js"
 import {GENERATED_MIN_ID} from "../api/common/utils/EntityUtils"
 import {getLoginErrorMessage, handleExpectedLoginError} from "../misc/LoginUtils"
 import {locator} from "../api/main/MainLocator"
@@ -23,6 +22,7 @@ import {assertMainOrNode} from "../api/common/Env"
 import type {Credentials} from "../misc/credentials/Credentials"
 import {SessionType} from "../api/common/SessionType.js";
 import {ResumeSessionErrorReason} from "../api/worker/facades/LoginFacade"
+import {DefaultHeader} from "../gui/Header.js"
 
 assertMainOrNode()
 
@@ -160,7 +160,7 @@ class ExternalLoginViewModel {
 	}
 }
 
-export class ExternalLoginView implements CurrentView {
+export class ExternalLoginView {
 
 	private readonly viewModel = new ExternalLoginViewModel(locator.credentialsProvider)
 	private readonly shortcuts: Array<Shortcut> = [
@@ -191,7 +191,7 @@ export class ExternalLoginView implements CurrentView {
 	view(): Children {
 		return m(".main-view",
 			[
-				m(header),
+				m(DefaultHeader),
 				m(".flex-center.scroll.pt-responsive",
 					m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l",
 						this.renderContent()

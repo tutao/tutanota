@@ -6,12 +6,11 @@ import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
 import type {WhitelabelChild} from "../api/entities/sys/TypeRefs.js"
 import {CustomerTypeRef, WhitelabelChildTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
+import {assertNotNull, LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {SettingsView} from "./SettingsView"
 import {logins} from "../api/main/LoginController"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
-import {header} from "../gui/Header.js"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {WhitelabelChildViewer} from "./WhitelabelChildViewer"
 import type {EntityUpdateData} from "../api/main/EventController"
@@ -92,7 +91,7 @@ export class WhitelabelChildrenListView {
 		}
 
 		this.list.loadInitial()
-		this._searchResultStreamDependency = neverNull(header.searchBar).lastSelectedWhitelabelChildrenInfoResult.map(whitelabelChild => {
+		this._searchResultStreamDependency = assertNotNull(locator.searchBar).lastSelectedWhitelabelChildrenInfoResult.map(whitelabelChild => {
 			if (this._listId.isLoaded() && this._listId.getSync() === whitelabelChild._id[0]) {
 				this.list.scrollToIdAndSelect(whitelabelChild._id[1])
 			}

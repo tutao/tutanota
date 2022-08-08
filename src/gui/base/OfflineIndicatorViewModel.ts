@@ -1,11 +1,10 @@
 import {PROGRESS_DONE} from "./ProgressBar.js"
-import Stream from "mithril/stream"
 import {WorkerClient, WsConnectionState} from "../../api/main/WorkerClient.js"
 import {ExposedCacheStorage} from "../../api/worker/rest/DefaultEntityRestCache.js"
 import {LoginListener} from "../../api/main/LoginListener.js"
 import {LoginController} from "../../api/main/LoginController.js"
 import {OfflineIndicatorAttrs, OfflineIndicatorState} from "./OfflineIndicator.js"
-import {IMainLocator} from "../../api/main/MainLocator.js"
+import type {ProgressTracker} from "../../api/main/ProgressTracker.js"
 
 /**
  * the offline indicator must take into account information
@@ -20,12 +19,6 @@ import {IMainLocator} from "../../api/main/MainLocator.js"
  * is maintained in this class
  */
 export class OfflineIndicatorViewModel {
-	private cacheStorage: ExposedCacheStorage | null = null
-	private loginListener: LoginListener | null = null
-	private worker: WorkerClient | null = null
-	private logins: LoginController | null = null
-	private isInit = false
-
 	private lastProgress: number = PROGRESS_DONE
 	private lastWsState: WsConnectionState = WsConnectionState.connecting
 	private lastUpdate: Date | null = null
@@ -37,40 +30,32 @@ export class OfflineIndicatorViewModel {
 	 * disconnected.
 	 **/
 	private wsWasConnectedBefore: boolean = false
+	private callback: () => void = () => {
+	}
 
 	constructor(
-		private readonly cb: () => void
+		private readonly cacheStorage: ExposedCacheStorage,
+		private readonly loginListener: LoginListener,
+		private readonly worker: WorkerClient,
+		private readonly logins: LoginController,
+		progressTracker: ProgressTracker
 	) {
-	}
-
-	init(
-		locator: IMainLocator,
-		logins: LoginController
-	): void {
 		logins.waitForFullLogin().then(() => this.cb())
-		this.cacheStorage = locator.cacheStorage
-		this.loginListener = locator.loginListener
-		this.worker = locator.worker
-		this.logins = logins
-		logins.waitForFullLogin().then(() => this.cb())
-		this.isInit = true
 
-		this.setProgressUpdateStream(locator.progressTracker.onProgressUpdate)
-		this.setWsStateStream(this.worker.wsConnection())
+		progressTracker.onProgressUpdate.map(progress => this.onProgressUpdate(progress))
+		this.onProgressUpdate(progressTracker.onProgressUpdate())
+
+		this.worker.wsConnection().map(state => this.onWsStateChange(state))
+		this.onWsStateChange(this.worker.wsConnection()())
 	}
 
-	private setProgressUpdateStream(progressStream: Stream<number>): void {
-		progressStream.map(progress => this.onProgressUpdate(progress))
-		this.onProgressUpdate(progressStream())
+	setCallback(cb: () => void) {
+		this.callback = cb
 	}
 
-	private setWsStateStream(wsStream: Stream<WsConnectionState>): void {
-		wsStream.map(state => {
-			this.onWsStateChange(state)
-		})
-		this.onWsStateChange(wsStream()).then()
+	private cb() {
+		this.callback()
 	}
-
 
 	private onProgressUpdate(progress: number): void {
 		this.lastProgress = progress
@@ -93,9 +78,6 @@ export class OfflineIndicatorViewModel {
 	}
 
 	getCurrentAttrs(): OfflineIndicatorAttrs {
-		if (!this.isInit) {
-			return {state: OfflineIndicatorState.Connecting,}
-		}
 		if (this.logins!.isFullyLoggedIn() && this.wsWasConnectedBefore) {
 			if (this.lastWsState === WsConnectionState.connected) {
 				// normal, full login with a connected websocket
@@ -141,7 +123,7 @@ export class OfflineIndicatorViewModel {
 		//getting the progress like this ensures that
 		// the progress bar and sync percentage are consistent
 		const a = this.getCurrentAttrs()
-		return this.isInit && a.state === OfflineIndicatorState.Synchronizing
+		return a.state === OfflineIndicatorState.Synchronizing
 			? a.progress
 			: 1
 	}

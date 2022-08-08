@@ -69,6 +69,8 @@ import {windowFacade} from "../../misc/WindowFacade.js"
 import {InterWindowEventFacade} from "../../native/common/generatedipc/InterWindowEventFacade.js"
 import {InterWindowEventFacadeSendDispatcher} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import {SqlCipherFacade} from "../../native/common/generatedipc/SqlCipherFacade.js"
+import type {OfflineIndicatorViewModel} from "../../gui/base/OfflineIndicatorViewModel.js"
+import type { SearchBar } from "../../search/SearchBar"
 
 assertMainOrNode()
 
@@ -123,6 +125,16 @@ export interface IMainLocator {
 	readonly desktopSettingsFacade: SettingsFacade
 	readonly desktopSystemFacade: DesktopSystemFacade
 	readonly interWindowEventSender: InterWindowEventFacade
+	readonly offlineIndicatorModel: OfflineIndicatorViewModel
+
+	// TODO The search bar used to live globally on the Header
+	//		this is no longer possible since the header refactoring
+	//      it also depends on the locator being initialized before it's created,
+	//		so we are just slapping it on the locator.
+	//		what needs to happen is to have a model extracted from the SearchBar so that it itself can just be another dumb component
+	//		but that itself could be a large task so I will save it for afterwards
+	readonly searchBar: SearchBar | null
+
 	readonly random: WorkerRandomizer;
 	readonly init: () => Promise<void>
 	readonly initialized: Promise<void>
@@ -173,6 +185,8 @@ class MainLocator implements IMainLocator {
 	loginListener!: LoginListener
 	random!: WorkerRandomizer
 	sqlCipherFacade!: SqlCipherFacade
+	offlineIndicatorModel!: OfflineIndicatorViewModel
+	searchBar: SearchBar | null = null
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private exposedNativeInterfaces: ExposedNativeInterface | null = null
@@ -381,6 +395,18 @@ class MainLocator implements IMainLocator {
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 		this.recipientsModel = new RecipientsModel(this.contactModel, logins, this.mailFacade, this.entityClient)
+		import("../../gui/base/OfflineIndicatorViewModel.js").then(({OfflineIndicatorViewModel}) => {
+			this.offlineIndicatorModel = new OfflineIndicatorViewModel(
+				this.cacheStorage,
+				this.loginListener,
+				this.worker,
+				logins,
+				this.progressTracker
+			)
+		})
+
+		// TODO extract model
+		import("../../search/SearchBar").then(({SearchBar}) => this.searchBar = new SearchBar())
 	}
 }
 

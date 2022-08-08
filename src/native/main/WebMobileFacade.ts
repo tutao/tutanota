@@ -1,6 +1,5 @@
 import m from "mithril"
 import {assertMainOrNode} from "../../api/common/Env"
-import {header} from "../../gui/Header.js"
 import {modal} from "../../gui/base/Modal"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX, SETTINGS_PREFIX} from "../../misc/RouteChange"
 import {IMainLocator, locator} from "../../api/main/MainLocator"
@@ -17,7 +16,6 @@ assertMainOrNode()
  */
 export class WebMobileFacade implements MobileFacade {
 
-
 	private disconnectTimeoutId: TimeoutID | null
 
 	async handleBackPress(): Promise<boolean> {
@@ -30,13 +28,11 @@ export class WebMobileFacade implements MobileFacade {
 				return true
 			} else {
 				// otherwise try to navigate back in the current view
-				const viewSlider = header.getViewSlider()
-
 				const currentRoute = m.route.get()
 
 				// If the sidebar is opened, close it
-				if (viewSlider && viewSlider.isForegroundColumnFocused()) {
-					viewSlider.focusNextColumn()
+				if (window.tutao.currentView.viewSlider.isForegroundColumnFocused()) {
+					window.tutao.currentView.viewSlider.focusNextColumn()
 					return true
 				} else if (window.tutao.currentView && window.tutao.currentView.handleBackButton && window.tutao.currentView.handleBackButton()) {
 					return true
@@ -49,7 +45,7 @@ export class WebMobileFacade implements MobileFacade {
 					// go back to mail from other paths
 					m.route.set(navButtonRoutes.mailUrl)
 					return true
-				} else if (viewSlider && viewSlider.isFirstBackgroundColumnFocused()) {
+				} else if (window.tutao.currentView.viewSlider?.isFirstBackgroundColumnFocused()) {
 					// If the first background column is focused in mail view (showing a folder), move to inbox.
 					// If in inbox already, quit
 					if (m.route.get().startsWith(MAIL_PREFIX)) {
@@ -74,9 +70,9 @@ export class WebMobileFacade implements MobileFacade {
 					}
 
 					return false
-				} else if (viewSlider && viewSlider.isFocusPreviousPossible()) {
+				} else if (window.tutao.currentView.viewSlider.isFocusPreviousPossible()) {
 					// current view can navigate back
-					viewSlider.focusPreviousColumn()
+					window.tutao.currentView.viewSlider.focusPreviousColumn()
 					return true
 				} else {
 					return false

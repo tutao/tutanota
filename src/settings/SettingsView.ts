@@ -5,8 +5,6 @@ import {ColumnType, ViewColumn} from "../gui/base/ViewColumn"
 import {ViewSlider} from "../gui/nav/ViewSlider.js"
 import {SettingsFolder} from "./SettingsFolder"
 import {lang} from "../misc/LanguageViewModel"
-import type {CurrentView} from "../gui/Header.js"
-import {header} from "../gui/Header.js"
 import {LoginSettingsViewer} from "./LoginSettingsViewer"
 import {GlobalSettingsViewer} from "./GlobalSettingsViewer"
 import {DesktopSettingsViewer} from "./DesktopSettingsViewer"
@@ -60,6 +58,7 @@ import {TemplateGroupService} from "../api/entities/tutanota/Services"
 import {attachDropdown} from "../gui/base/Dropdown.js"
 import {exportUserCsv} from "./UserDataExporter.js"
 import {ButtonType} from "../gui/base/Button.js"
+import {DefaultHeader} from "../gui/Header.js"
 
 assertMainOrNode()
 
@@ -76,8 +75,8 @@ export interface UpdatableSettingsDetailsViewer {
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<unknown>
 }
 
-export class SettingsView implements CurrentView {
-	readonly view: CurrentView["view"]
+export class SettingsView implements Component {
+	readonly view: Component["view"]
 	viewSlider: ViewSlider
 	private readonly _settingsFoldersColumn: ViewColumn
 	private readonly _settingsColumn: ViewColumn
@@ -355,7 +354,14 @@ export class SettingsView implements CurrentView {
 			2400,
 			() => lang.get("settings_label"),
 		)
-		this.viewSlider = new ViewSlider(header, [this._settingsFoldersColumn, this._settingsColumn, this._settingsDetailsColumn], "SettingsView")
+		this.viewSlider = new ViewSlider({
+			header: () => m(DefaultHeader, {
+				viewSlider: this.viewSlider,
+
+			}),
+			viewColumns: [this._settingsFoldersColumn, this._settingsColumn, this._settingsDetailsColumn],
+			parentName: "SettingsView"
+		})
 
 		this.view = (): Vnode<any> => {
 			return m("#settings.main-view", m(this.viewSlider))
@@ -594,10 +600,6 @@ export class SettingsView implements CurrentView {
 					return this.detailsViewer.entityEventsReceived(updates)
 				}
 			})
-	}
-
-	getViewSlider(): ViewSlider | null {
-		return this.viewSlider
 	}
 
 	_aboutThisSoftwareLink(): Children {

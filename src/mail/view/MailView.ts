@@ -1,4 +1,4 @@
-import m, {Children} from "mithril"
+import m, {Children, Component} from "mithril"
 import {ViewSlider} from "../../gui/nav/ViewSlider.js"
 import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
@@ -10,7 +10,6 @@ import {isNavButtonSelected, isSelectedPrefix, NavButtonColor} from "../../gui/b
 import {createMailViewerViewModel, MailViewer} from "./MailViewer"
 import {Dialog} from "../../gui/base/Dialog"
 import {FeatureType, Keys, MailFolderType, OperationType} from "../../api/common/TutanotaConstants"
-import {CurrentView, header} from "../../gui/Header.js"
 import type {Mail, MailFolder} from "../../api/entities/tutanota/TypeRefs.js"
 import {MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import type {lazy} from "@tutao/tutanota-utils"
@@ -59,6 +58,7 @@ import Stream from "mithril/stream";
 import {MailViewerViewModel} from "./MailViewerViewModel"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 import {readLocalFiles} from "../../file/FileController.js"
+import {DefaultHeader, Header} from "../../gui/Header.js"
 
 assertMainOrNode()
 
@@ -78,18 +78,18 @@ type MailboxSection = {
 /**
  * Top-level view for displaying mailboxes.
  */
-export class MailView implements CurrentView {
+export class MailView implements Component {
 	private readonly listColumn: ViewColumn
 	private readonly folderColumn: ViewColumn
 	private readonly mailColumn: ViewColumn
-	private readonly viewSlider: ViewSlider
+	readonly viewSlider: ViewSlider
 	// Not initialized until we get list id from updateUrl and/or getMailboxDetails()
 	mailList: MailListView | null = null
-	readonly view: CurrentView["view"]
+	readonly view: Component["view"]
 	selectedFolder: MailFolder | null = null
 
-	readonly oncreate: CurrentView["oncreate"]
-	readonly onremove: CurrentView["onremove"]
+	readonly oncreate: Component["oncreate"]
+	readonly onremove: Component["onremove"]
 	/**  mailGroupId -> section */
 	private readonly mailboxSections: Map<Id, MailboxSection>
 
@@ -196,7 +196,11 @@ export class MailView implements CurrentView {
 			mailColumnTitle,
 			() => lang.get("email_label") + " " + mailColumnTitle(),
 		)
-		this.viewSlider = new ViewSlider(header, [this.folderColumn, this.listColumn, this.mailColumn], "MailView")
+		this.viewSlider = new ViewSlider({
+			header: () => this.renderHeader(),
+			viewColumns: [this.folderColumn, this.listColumn, this.mailColumn],
+			parentName: "MailView"
+		})
 
 		this.view = (): Children => {
 			return m(
@@ -293,21 +297,6 @@ export class MailView implements CurrentView {
 				return this.entityEventReceived(update)
 			}).then(noOp)
 		})
-	}
-
-	getViewSlider(): ViewSlider | null {
-		return this.viewSlider
-	}
-
-	headerRightView(): Children {
-		const openMailButtonAttrs: ButtonAttrs = {
-			label: "newMail_action",
-			click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
-			type: ButtonType.Action,
-			icon: () => Icons.PencilSquare,
-			colors: ButtonColor.Header,
-		}
-		return isNewMailActionAvailable() ? m(Button, openMailButtonAttrs) : null
 	}
 
 	_getShortcuts(): Array<Shortcut> {
@@ -883,17 +872,28 @@ export class MailView implements CurrentView {
 		}
 	}
 
-	/**
-	 * Used by Header to figure out when content needs to be injected there
-	 * @returns {Children} Mithril children or null
-	 */
-	headerView(): Children {
-		return this.viewSlider.getVisibleBackgroundColumns().length === 1 &&
-		this.mailList?.list.isMobileMultiSelectionActionActive()
-			? m(MultiSelectionBar, {
-				selectNoneHandler: () => this.mailList?.list.selectNone(),
-				selectedEntiesLength: this.mailList.list.getSelectedEntities().length,
-			}, m(ActionBar, {buttons: this.actionBarButtons()}))
-			: null
+	private renderHeader() {
+		if (this.viewSlider.getVisibleBackgroundColumns().length === 1 &&
+			this.mailList?.list.isMobileMultiSelectionActionActive()) {
+			return m(Header,
+				m(MultiSelectionBar, {
+					selectNoneHandler: () => this.mailList?.list.selectNone(),
+					selectedEntiesLength: this.mailList.list.getSelectedEntities().length,
+				}, m(ActionBar, {buttons: this.actionBarButtons()}))
+			)
+		} else {
+			return m(DefaultHeader, {
+				viewSlider: this.viewSlider,
+				mobileContentRight: () => isNewMailActionAvailable()
+					? m(Button, {
+						label: "newMail_action",
+						click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
+						type: ButtonType.Action,
+						icon: () => Icons.PencilSquare,
+						colors: ButtonColor.Header,
+					})
+					: null
+			})
+		}
 	}
 }

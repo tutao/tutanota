@@ -14,7 +14,6 @@ import {logins} from "../api/main/LoginController.js"
 import {Icon} from "../gui/base/Icon.js"
 import {Icons} from "../gui/base/icons/Icons.js"
 import {BootIcons} from "../gui/base/icons/BootIcons.js"
-import {header} from "../gui/Header.js"
 import type {EntityUpdateData} from "../api/main/EventController.js"
 import {isUpdateForTypeRef} from "../api/main/EventController.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
@@ -99,7 +98,7 @@ export class UserListView implements UpdatableSettingsViewer {
 
 
 		this.list.loadInitial()
-		const searchBar = neverNull(header.searchBar)
+		const searchBar = assertNotNull(locator.searchBar)
 
 		this.listId.getAsync().then(listId => {
 			searchBar.setGroupInfoRestrictionListId(listId)

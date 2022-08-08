@@ -16,10 +16,10 @@ import {Logger, replaceNativeLogger} from "./api/common/Logger"
 import {init as initSW} from "./serviceworker/ServiceWorkerClient"
 import {applicationPaths} from "./ApplicationPaths"
 import {ProgrammingError} from "./api/common/error/ProgrammingError"
-import {CurrentView} from "./gui/Header.js"
 import {NativeWebauthnView} from "./login/NativeWebauthnView"
 import {WebauthnNativeBridge} from "./native/main/WebauthnNativeBridge"
 import {PostLoginActions} from "./login/PostLoginActions"
+import type {ViewSlider} from "./gui/nav/ViewSlider.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -109,6 +109,11 @@ if (!isDesktop() && typeof navigator.registerProtocolHandler === "function") {
 	}
 }
 
+type TopLevelView = Component & {
+	updateUrl: (args: any, requestedPath: string) => void,
+	viewSlider?: ViewSlider | null
+}
+
 import("./translations/en")
 	.then(en => lang.init(en.default))
 	.then(async () => {
@@ -136,8 +141,12 @@ import("./translations/en")
 			}
 		}
 
-		function createViewResolver(getView: lazy<Promise<CurrentView>>, requireLogin: boolean = true, doNotCache: boolean = false): RouteResolver {
-			let cache: {view: CurrentView | null} = {view: null}
+		function createViewResolver(
+			getView: lazy<Promise<TopLevelView>>,
+			requireLogin: boolean = true,
+			doNotCache: boolean = false
+		): RouteResolver {
+			let cache: {view: TopLevelView | null} = {view: null}
 			return {
 				onmatch: async (args, requestedPath) => {
 					if (requireLogin && !logins.isUserLoggedIn()) {
@@ -148,32 +157,22 @@ import("./translations/en")
 							windowFacade.reload(args)
 						})
 					} else {
-						let promise: Promise<CurrentView>
+						const view = cache.view ?? await getView()
 
-						if (cache.view == null) {
-							promise = getView().then(view => {
-								if (!doNotCache) {
-									cache.view = view
-								}
-
-								return view
-							})
-						} else {
-							promise = Promise.resolve(cache.view)
+						if (!doNotCache) {
+							cache.view = view
 						}
 
-						Promise.all([promise, import("./gui/Header.js")]).then(([view, {header}]) => {
-							view.updateUrl(args, requestedPath)
-							const currentPath = m.route.get()
-							routeChange({
-								args,
-								requestedPath,
-								currentPath,
-							})
-							header.updateCurrentView(view)
-							window.tutao.currentView = view
+						view.updateUrl(args, requestedPath)
+
+						const currentPath = m.route.get()
+						routeChange({
+							args,
+							requestedPath,
+							currentPath,
 						})
-						return promise
+						window.tutao.currentView = view
+						return view
 					}
 				},
 				render: vnode => {

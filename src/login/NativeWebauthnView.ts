@@ -1,6 +1,5 @@
 import type {Children, Vnode} from "mithril"
-import m from "mithril"
-import type {CurrentView} from "../gui/Header.js"
+import m, {Component} from "mithril"
 import {DialogHeaderBar, DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar.js"
 import type {WebauthnNativeBridge} from "../native/main/WebauthnNativeBridge"
 import {SecondFactorImage} from "../gui/base/icons/Icons.js"
@@ -14,7 +13,7 @@ import {BrowserWebauthn} from "../misc/2fa/webauthn/BrowserWebauthn.js"
  * directly but is loaded remotely by desktop client in a dialog.
  * See DesktopWebauthnFacade.
  */
-export class NativeWebauthnView implements CurrentView {
+export class NativeWebauthnView implements Component {
 	constructor(
 		private readonly webauthn: BrowserWebauthn,
 		private readonly nativeTransport: WebauthnNativeBridge

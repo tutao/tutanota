@@ -1,4 +1,4 @@
-import m, {Children} from "mithril"
+import m, {Children, Component} from "mithril"
 import {ViewSlider} from "../../gui/nav/ViewSlider.js"
 import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
@@ -32,8 +32,6 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {logins} from "../../api/main/LoginController"
 import {PageSize} from "../../gui/base/List"
 import {MultiSelectionBar} from "../../gui/base/MultiSelectionBar"
-import type {CurrentView} from "../../gui/Header.js"
-import {header} from "../../gui/Header.js"
 import type {EntityUpdateData} from "../../api/main/EventController"
 import {isUpdateForTypeRef} from "../../api/main/EventController"
 import {getStartOfTheWeekOffsetForUser} from "../../calendar/date/CalendarUtils"
@@ -51,19 +49,20 @@ import {SidebarSection} from "../../gui/SidebarSection"
 import type {clickHandler} from "../../gui/base/GuiUtils"
 import {SomeEntity} from "../../api/common/EntityTypes"
 import {DropDownSelector, SelectorItem} from "../../gui/base/DropDownSelector.js"
+import {DefaultHeader, Header} from "../../gui/Header.js"
 
 assertMainOrNode()
 
-export class SearchView implements CurrentView {
-	view: CurrentView["view"]
-	oncreate: CurrentView["oncreate"]
-	onremove: CurrentView["onremove"]
+export class SearchView implements Component {
+	view: Component["view"]
+	oncreate: Component["oncreate"]
+	onremove: Component["onremove"]
 
 	private resultListColumn: ViewColumn
 	private resultDetailsColumn: ViewColumn
 	private folderColumn: ViewColumn
 	private viewer: SearchResultDetailsViewer
-	private viewSlider: ViewSlider
+	viewSlider: ViewSlider
 	private searchList: SearchListView
 
 	private readonly mailFolder: NavButtonAttrs = {
@@ -183,7 +182,12 @@ export class SearchView implements CurrentView {
 			size.third_col_min_width,
 			size.third_col_max_width,
 		)
-		this.viewSlider = new ViewSlider(header, [this.folderColumn, this.resultListColumn, this.resultDetailsColumn], "ContactView")
+		this.viewSlider = new ViewSlider({
+				header: () => this.renderHeader(),
+				viewColumns: [this.folderColumn, this.resultListColumn, this.resultDetailsColumn],
+				parentName: "ContactView"
+			}
+		)
 
 		this.view = (): Children => {
 			return m("#search.main-view", m(this.viewSlider))
@@ -238,41 +242,6 @@ export class SearchView implements CurrentView {
 				})
 				: null,
 		].map(row => m(".folder-row.plr-l.content-fg", row))
-	}
-
-	getViewSlider(): ViewSlider | null {
-		return this.viewSlider
-	}
-
-	headerRightView(): Children {
-		const restriction = getRestriction(m.route.get())
-		return styles.isUsingBottomNavigation()
-			? isSameTypeRef(restriction.type, MailTypeRef) && isNewMailActionAvailable()
-				? m(Button, {
-					click: () => {
-						newMailEditor()
-							.then(editor => editor.show())
-							.catch(ofClass(PermissionError, noOp))
-					},
-					label: "newMail_action",
-					type: ButtonType.Action,
-					colors: ButtonColor.Header,
-					icon: () => Icons.PencilSquare,
-				})
-				: isSameTypeRef(restriction.type, ContactTypeRef)
-					? m(Button, {
-						click: () => {
-							locator.contactModel.contactListId().then(contactListId => {
-								new ContactEditor(locator.entityClient, null, contactListId ?? undefined).show()
-							})
-						},
-						label: "newContact_action",
-						type: ButtonType.Action,
-						colors: ButtonColor.Header,
-						icon: () => Icons.Add,
-					})
-					: null
-			: null
 	}
 
 	/**
@@ -473,12 +442,12 @@ export class SearchView implements CurrentView {
 
 		this.oncreate = () => {
 			keyManager.registerShortcuts(shortcuts)
-			neverNull(header.searchBar).setReturnListener(() => this.resultListColumn.focus())
+			neverNull(locator.searchBar).setReturnListener(() => this.resultListColumn.focus())
 		}
 
 		this.onremove = () => {
 			keyManager.unregisterShortcuts(shortcuts)
-			neverNull(header.searchBar).setReturnListener(noOp)
+			neverNull(locator.searchBar).setReturnListener(noOp)
 		}
 	}
 
@@ -590,15 +559,50 @@ export class SearchView implements CurrentView {
 	 * Used by Header to figure out when content needs to be injected there
 	 * @returns {Children} Mithril children or null
 	 */
-	headerView(): Children {
-		return this.viewSlider.getVisibleBackgroundColumns().length === 1 && this.searchList.list && this.searchList.list.isMobileMultiSelectionActionActive()
-			? m(MultiSelectionBar, {
-				selectNoneHandler: () => this.searchList.selectNone(),
-				selectedEntiesLength: this.searchList.getSelectedEntities().length,
-			}, m(ActionBar, {
-				buttons: this.viewer.multiSearchActionBarButtons(),
-			}))
-			: null
+	renderHeader(): Children {
+		if (this.viewSlider.getVisibleBackgroundColumns().length === 1 && this.searchList.list && this.searchList.list.isMobileMultiSelectionActionActive()) {
+			return m(Header, m(MultiSelectionBar, {
+					selectNoneHandler: () => this.searchList.selectNone(),
+					selectedEntiesLength: this.searchList.getSelectedEntities().length,
+				}, m(ActionBar, {
+					buttons: this.viewer.multiSearchActionBarButtons(),
+				}))
+			)
+		} else {
+			return m(DefaultHeader, {
+				viewSlider: this.viewSlider,
+				mobileContentRight: () => {
+					const restriction = getRestriction(m.route.get())
+					if (isSameTypeRef(restriction.type, MailTypeRef) && isNewMailActionAvailable()) {
+						return m(Button, {
+							click: () => {
+								newMailEditor()
+									.then(editor => editor.show())
+									.catch(ofClass(PermissionError, noOp))
+							},
+							label: "newMail_action",
+							type: ButtonType.Action,
+							colors: ButtonColor.Header,
+							icon: () => Icons.PencilSquare,
+						})
+					} else {
+						if (isSameTypeRef(restriction.type, ContactTypeRef)) {
+							return m(Button, {
+								click: () => {
+									locator.contactModel.contactListId().then(contactListId => {
+										new ContactEditor(locator.entityClient, null, contactListId ?? undefined).show()
+									})
+								},
+								label: "newContact_action",
+								type: ButtonType.Action,
+								colors: ButtonColor.Header,
+								icon: () => Icons.Add,
+							})
+						}
+					}
+				}
+			})
+		}
 	}
 
 	getMainButton(

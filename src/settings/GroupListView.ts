@@ -4,12 +4,10 @@ import {List} from "../gui/base/List"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
-import type {GroupInfo} from "../api/entities/sys/TypeRefs.js"
-import {GroupInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {neverNull, noOp} from "@tutao/tutanota-utils"
+import type {GroupInfo, GroupMembership} from "../api/entities/sys/TypeRefs.js"
+import {CustomerTypeRef, GroupInfoTypeRef, GroupMemberTypeRef} from "../api/entities/sys/TypeRefs.js"
+import {LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {SettingsView, UpdatableSettingsViewer} from "./SettingsView"
-import {LazyLoaded} from "@tutao/tutanota-utils"
 import {logins} from "../api/main/LoginController"
 import {GroupViewer} from "./GroupViewer"
 import * as AddGroupDialog from "./AddGroupDialog"
@@ -17,21 +15,18 @@ import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import {OperationType} from "../api/common/TutanotaConstants"
 import {BootIcons} from "../gui/base/icons/BootIcons"
-import {header} from "../gui/Header.js"
 import {isAdministratedGroup} from "../search/model/SearchUtils"
-import {GroupMemberTypeRef} from "../api/entities/sys/TypeRefs.js"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {Button, ButtonType} from "../gui/base/Button.js"
-import type {GroupMembership} from "../api/entities/sys/TypeRefs.js"
 import {compareGroupInfos} from "../api/common/utils/GroupUtils"
 import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {locator} from "../api/main/MainLocator"
 import {ListColumnWrapper} from "../gui/ListColumnWrapper"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../api/common/Env"
 import Stream from "mithril/stream";
+import {assertNotNull} from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 const className = "group-list"
@@ -120,7 +115,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 		}
 
 		this.list.loadInitial()
-		const searchBar = neverNull(header.searchBar)
+		const searchBar = assertNotNull(locator.searchBar)
 
 		this._listId.getAsync().then(listId => {
 			searchBar.setGroupInfoRestrictionListId(listId)

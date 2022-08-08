@@ -12,7 +12,6 @@ import {styles} from "../styles.js"
 import {AriaLandmarks} from "../AriaUtils.js"
 import {LayerType} from "../../RootView.js"
 import {assertMainOrNode} from "../../api/common/Env.js"
-import type {Header} from "../Header.js"
 
 assertMainOrNode()
 export type GestureInfo = {
@@ -27,6 +26,14 @@ export const gestureInfoFromTouch = (touch: Touch): GestureInfo => ({
 	time: performance.now(),
 	identifier: touch.identifier,
 })
+
+interface ViewSliderParams {
+	// header is lazy because view slider is not a proper class component.
+	// if we refactor viewslider then this will cease to be a problem
+	header: () => Children;
+	viewColumns: ViewColumn[];
+	parentName: string;
+}
 
 /**
  * Represents a view with multiple view columns. Depending on the screen width and the view columns configurations,
@@ -56,7 +63,7 @@ export class ViewSlider implements Component {
 	resizeListener: windowSizeListener = () => this._updateVisibleBackgroundColumns()
 	_getSideColDom: () => HTMLElement | null = () => this.columns[0]._domColumn
 
-	constructor(header: Header, viewColumns: ViewColumn[], parentName: string) {
+	constructor({header, viewColumns, parentName}: ViewSliderParams) {
 		this.columns = viewColumns
 		this._mainColumn = neverNull(viewColumns.find(column => column.columnType === ColumnType.Background)) // the first background column is the main column
 
@@ -88,7 +95,7 @@ export class ViewSlider implements Component {
 					},
 				},
 				[
-					m(header),
+					header(),
 					m(
 						".view-columns.backface_fix.flex-grow.rel",
 						{

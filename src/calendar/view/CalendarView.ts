@@ -1,5 +1,4 @@
 import m, {Children} from "mithril"
-import type {CurrentView} from "../../gui/Header.js"
 import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import {lang, TranslationKey} from "../../misc/LanguageViewModel"
 import {ViewSlider} from "../../gui/nav/ViewSlider.js"
@@ -7,28 +6,25 @@ import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {Icons} from "../../gui/base/icons/Icons"
 import {downcast, incrementDate, LazyLoaded, memoized, ofClass} from "@tutao/tutanota-utils"
-import type {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
-import {CalendarEventTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
+import type {CalendarEvent, GroupSettings, UserSettingsGroupRoot} from "../../api/entities/tutanota/TypeRefs.js"
+import {CalendarEventTypeRef, createGroupSettings} from "../../api/entities/tutanota/TypeRefs.js"
 import {logins} from "../../api/main/LoginController"
 import {defaultCalendarColor, GroupType, Keys, ShareCapability, TimeFormat} from "../../api/common/TutanotaConstants"
 import {locator} from "../../api/main/MainLocator"
 import {getEventStart, getStartOfTheWeekOffset, getStartOfWeek, getTimeZone, shouldDefaultToAmPmTimeFormat} from "../date/CalendarUtils"
-import {ButtonColor, Button, ButtonType} from "../../gui/base/Button.js"
+import {Button, ButtonColor, ButtonType} from "../../gui/base/Button.js"
 import {formatDateWithWeekday, formatDateWithWeekdayAndYearLong, formatMonthWithFullYear} from "../../misc/Formatter"
-import {NavButtonColor, NavButton} from "../../gui/base/NavButton.js"
+import {NavButton, NavButtonColor} from "../../gui/base/NavButton.js"
 import {CalendarMonthView} from "./CalendarMonthView"
 import {DateTime} from "luxon"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {CalendarAgendaView} from "./CalendarAgendaView"
 import type {GroupInfo} from "../../api/entities/sys/TypeRefs.js"
 import {showEditCalendarDialog} from "./EditCalendarDialog"
-import type {GroupSettings} from "../../api/entities/tutanota/TypeRefs.js"
-import {createGroupSettings} from "../../api/entities/tutanota/TypeRefs.js"
 import {styles} from "../../gui/styles"
 import {MultiDayCalendarView} from "./MultiDayCalendarView"
 import {Dialog} from "../../gui/base/Dialog"
 import {isApp} from "../../api/common/Env"
-import type {UserSettingsGroupRoot} from "../../api/entities/tutanota/TypeRefs.js"
 import {size} from "../../gui/size"
 import {FolderColumnView} from "../../gui/FolderColumnView.js"
 import {deviceConfig} from "../../misc/DeviceConfig"
@@ -51,13 +47,13 @@ import type {CalendarInfo} from "../model/CalendarModel"
 import {ReceivedGroupInvitationsModel} from "../../sharing/model/ReceivedGroupInvitationsModel"
 import {client} from "../../misc/ClientDetector"
 import type Stream from "mithril/stream"
-import {header} from "../../gui/Header.js"
+import {DefaultHeader} from "../../gui/Header.js"
 
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4
 export type GroupColors = Map<Id, string>
 
 // noinspection JSUnusedGlobalSymbols
-export class CalendarView implements CurrentView {
+export class CalendarView {
 	sidebarColumn: ViewColumn
 	contentColumn: ViewColumn
 	viewSlider: ViewSlider
@@ -93,7 +89,7 @@ export class CalendarView implements CurrentView {
 							? null
 							: {
 								label: "newEvent_action",
-								click: () => this._createNewEventDialog(),
+								click: () => this.createNewEventDialog(),
 							},
 						content: [
 							m(
@@ -175,7 +171,7 @@ export class CalendarView implements CurrentView {
 								getEventsOnDays: this._calendarViewModel.getEventsOnDays.bind(this._calendarViewModel),
 								onEventClicked: (calendarEvent, domEvent) => this._onEventSelected(calendarEvent, domEvent, this._htmlSanitizer),
 								onNewEvent: date => {
-									this._createNewEventDialog(date)
+									this.createNewEventDialog(date)
 								},
 								selectedDate: this._calendarViewModel.selectedDate(),
 								onDateSelected: (date, calendarViewType) => {
@@ -197,7 +193,7 @@ export class CalendarView implements CurrentView {
 								daysInPeriod: 1,
 								onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent, this._htmlSanitizer),
 								onNewEvent: date => {
-									this._createNewEventDialog(date)
+									this.createNewEventDialog(date)
 								},
 								selectedDate: this._calendarViewModel.selectedDate(),
 								onDateSelected: date => {
@@ -236,7 +232,7 @@ export class CalendarView implements CurrentView {
 								},
 								onEventClicked: (event, domEvent) => this._onEventSelected(event, domEvent, this._htmlSanitizer),
 								onNewEvent: date => {
-									this._createNewEventDialog(date)
+									this.createNewEventDialog(date)
 								},
 								selectedDate: this._calendarViewModel.selectedDate(),
 								onDateSelected: (date, viewType) => {
@@ -291,7 +287,36 @@ export class CalendarView implements CurrentView {
 				}[this._currentViewType]
 			},
 		)
-		this.viewSlider = new ViewSlider(header,[this.sidebarColumn, this.contentColumn], "CalendarView")
+
+		this.viewSlider = new ViewSlider({
+			header: () => m(DefaultHeader, {
+				viewSlider: this.viewSlider,
+				mobileContentRight: () => m(Button, {
+					label: "newEvent_action",
+					click: () => this.createNewEventDialog(),
+					icon: () => Icons.Add,
+					type: ButtonType.Action,
+					colors: ButtonColor.Header,
+				}),
+				handleBackButton: () => {
+					const route = m.route.get()
+
+					if (route.startsWith("/calendar/day")) {
+						m.route.set(route.replace("day", "month"))
+						return true
+					} else if (route.startsWith("/calendar/week")) {
+						m.route.set(route.replace("week", "month"))
+						return true
+					} else {
+						return false
+					}
+				},
+				overrideBackIcon: this._currentViewType === CalendarViewType.WEEK || this._currentViewType === CalendarViewType.DAY
+
+			}),
+			viewColumns: [this.sidebarColumn, this.contentColumn],
+			parentName: "CalendarView"
+		})
 
 		const shortcuts = this._setupShortcuts()
 
@@ -353,14 +378,14 @@ export class CalendarView implements CurrentView {
 			{
 				key: Keys.N,
 				exec: () => {
-					this._createNewEventDialog()
+					this.createNewEventDialog()
 				},
 				help: "newEvent_action",
 			},
 		]
 	}
 
-	_createNewEventDialog(date?: Date | null) {
+	private createNewEventDialog(date?: Date | null) {
 		const dateToUse = date ?? this._calendarViewModel.selectedDate()
 
 		// Disallow creation of events when there is no existing calendar
@@ -487,34 +512,6 @@ export class CalendarView implements CurrentView {
 				),
 			),
 		)
-	}
-
-	headerRightView(): Children {
-		return m(Button, {
-			label: "newEvent_action",
-			click: () => this._createNewEventDialog(),
-			icon: () => Icons.Add,
-			type: ButtonType.Action,
-			colors: ButtonColor.Header,
-		})
-	}
-
-	handleBackButton(): boolean {
-		const route = m.route.get()
-
-		if (route.startsWith("/calendar/day")) {
-			m.route.set(route.replace("day", "month"))
-			return true
-		} else if (route.startsWith("/calendar/week")) {
-			m.route.set(route.replace("week", "month"))
-			return true
-		} else {
-			return false
-		}
-	}
-
-	overrideBackIcon(): boolean {
-		return this._currentViewType === CalendarViewType.WEEK || this._currentViewType === CalendarViewType.DAY
 	}
 
 	_onPressedAddCalendar() {
@@ -740,10 +737,6 @@ export class CalendarView implements CurrentView {
 
 			deviceConfig.setDefaultCalendarView(logins.getUserController().user._id, this._currentViewType)
 		}
-	}
-
-	getViewSlider(): ViewSlider {
-		return this.viewSlider
 	}
 
 	_setUrl(view: string, date: Date, replace: boolean = false) {

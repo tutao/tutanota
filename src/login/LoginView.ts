@@ -1,4 +1,4 @@
-import m, {ChildArray, Children, Vnode} from "mithril"
+import m, {ChildArray, Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import {client} from "../misc/ClientDetector"
 import {assertMainOrNode, isApp, isDesktop, isTutanotaDomain} from "../api/common/Env"
@@ -11,7 +11,6 @@ import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {windowFacade} from "../misc/WindowFacade"
 import {DeviceType} from "../misc/ClientConstants"
 import {ButtonAttrs, Button, ButtonType} from "../gui/base/Button.js"
-import {CurrentView, header} from "../gui/Header.js"
 import {AriaLandmarks, landmarkAttrs, liveDataAttrs} from "../gui/AriaUtils"
 import type {ILoginViewModel} from "./LoginViewModel"
 import {DisplayMode, LoginState} from "./LoginViewModel"
@@ -21,11 +20,12 @@ import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
 import {themeController} from "../gui/theme"
 import {createAsyncDropdown} from "../gui/base/Dropdown.js"
 import type {clickHandler} from "../gui/base/GuiUtils"
+import {DefaultHeader} from "../gui/Header.js"
 
 assertMainOrNode()
 
-export class LoginView implements CurrentView {
-	readonly view: CurrentView["view"]
+export class LoginView implements Component {
+	readonly view: Component["view"]
 	readonly _viewModel: ILoginViewModel
 	readonly _moreExpanded: stream<boolean>
 	// we save the login form because we need access to the password input field inside of it for when "loginWith" is set in the url,
@@ -62,7 +62,7 @@ export class LoginView implements CurrentView {
 					},
 				},
 				[
-					m(header),
+					m(DefaultHeader, {}),
 					m(
 						".flex-grow.flex-center.scroll",
 						m(
