@@ -28,7 +28,7 @@ const TAG = "[DesktopWindowManager]"
 export function setupAssetProtocol(electron: ElectronExports) {
 	electron.protocol.registerSchemesAsPrivileged([{
 		scheme: ASSET_PROTOCOL,
-		privileges: {standard: true, supportFetchAPI: true}
+		privileges: {standard: true, supportFetchAPI: true, secure: true}
 	}])
 }
 
