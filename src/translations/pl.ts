@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2022-07-20T14:01:48Z",
+	"updated_at": "2022-07-26T10:24:57Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -736,6 +736,7 @@ export default {
 		"languageRussian_label": "rosyjski",
 		"languageSerbian_label": "serbski",
 		"languageSerboCroatian_label": "serbsko-chorwacki",
+		"languageSinhalese_label": "Syngaleski",
 		"languageSlovak_label": "słowacki",
 		"languageSlovenian_label": "słoweński",
 		"languageSpanish_label": "hiszpański",
@@ -929,7 +930,7 @@ export default {
 		"otherCalendars_label": "Inne kalendarze",
 		"otherPaymentProviderError_msg": "Dostawca usług płatności zwrócił błąd. Proszę spróbować ponownie później.",
 		"other_label": "Inny",
-		"outdatedClientWarningMailBody_msg": "Witaj,<br>\nobecnie używasz przestarzałej wersji Tutanota. Wsparcie dla Twojej wersji zostanie zakończone w ciągu kilku najbliższych dni.<br><br>\n\nZaktualizuj swoją wersję: {downloadLink}<br><br>\n\nDziękujemy!<br><br>\n\nTwój Zespół Tutanota",
+		"outdatedClientWarningMailBody_msg": "Witaj,<br>\nobecnie używasz przestarzałej wersji Tutanota. Wsparcie dla twojej wersji zostanie zakończone w przeciągu kilku dni.<br><br>\n\nZaktualizuj swoją wersję: {downloadLink}<br><br>\n\nSprawdź również, czy nie używasz nieaktualnej wersji Tutanoty na innym urządzeniu. System przestanie wysyłać tę wiadomość, gdy Tutanota na wszystkich używanych przez ciebie urządzeniach będzie aktualna.<br><br>\n\nDziękujemy!<br><br>\n\nTwój Zespół Tutanota",
 		"outdatedClientWarningMailSubject_msg": "Zaktualizuj Tutanotę",
 		"outdatedClient_msg": "Uaktualnij Tutanota. Obecnie zainstalowana wersja jest nieaktualna i nie jest obsługiwana.",
 		"outlookInvoiceMailBodyAutomatic_msg": "dostępna jest nowa faktura o numerze {1} załączona do tej wiadomości. Cała kwota zostanie pobrana automatycznie. Tutaj zobaczysz także wszystkie swoje faktury: {2}. ",

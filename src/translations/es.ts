@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2022-07-19T16:43:07Z",
+	"updated_at": "2022-07-28T16:53:40Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -735,6 +735,7 @@ export default {
 		"languageRussian_label": "Ruso",
 		"languageSerbian_label": "Serbio",
 		"languageSerboCroatian_label": "Serbocroata",
+		"languageSinhalese_label": "Cingalés",
 		"languageSlovak_label": "Eslovaco",
 		"languageSlovenian_label": "Esloveno",
 		"languageSpanish_label": "Español",
@@ -928,7 +929,7 @@ export default {
 		"otherCalendars_label": "Otros calendarios",
 		"otherPaymentProviderError_msg": "El proveedor de pago genero un error. Por favor, inténtelo de nuevo más tarde.",
 		"other_label": "Otros",
-		"outdatedClientWarningMailBody_msg": "Hola<br>\nactualmente estás utilizando una versión obsoleta de Tutanota. El soporte para tu versión se interrumpirá en los próximos días.<br><br>\n\nActualiza tu cliente en: {downloadLink}<br><br>\n\n¡Gracias!<br><br>\n\nTu equipo de Tutanota",
+		"outdatedClientWarningMailBody_msg": "Hola<br>\nactualmente estás utilizando una versión obsoleta de Tutanota. El soporte para tu versión se interrumpirá en los próximos días.<br><br>\n\nActualiza tu cliente en: {downloadLink}<br><br>\n\nComprueba también si estás utilizando una versión obsoleta de Tutanota en un dispositivo diferente. El sistema dejará de enviar este correo electrónico una vez que todos tus clientes de Tutanota estén actualizados.<br><br>\n\n¡Gracias!<br><br>\n\nTu equipo de Tutanota",
 		"outdatedClientWarningMailSubject_msg": "Por favor, actualiza Tutanota",
 		"outdatedClient_msg": "Por favor actualiza Tutanota. La versión instalada es demasiado antigua y ya no está soportada.",
 		"outlookInvoiceMailBodyAutomatic_msg": "hay una nueva factura con número {1} disponible como adjunto en este correo. El monto total será pasado a cobro automáticamente. Puedes ver todas tus facturas en {2}.",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2022-07-20T23:36:09Z",
+	"updated_at": "2022-07-26T12:39:42Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -736,6 +736,7 @@ export default {
 		"languageRussian_label": "Русский",
 		"languageSerbian_label": "Сербский",
 		"languageSerboCroatian_label": "Сербохорватский",
+		"languageSinhalese_label": "Сингальский",
 		"languageSlovak_label": "Словацкий",
 		"languageSlovenian_label": "Словенский",
 		"languageSpanish_label": "Испанский",
@@ -929,7 +930,7 @@ export default {
 		"otherCalendars_label": "Другие календари",
 		"otherPaymentProviderError_msg": "Оплатить не получилось, попозже попробуйте ещё раз.",
 		"other_label": "Другой",
-		"outdatedClientWarningMailBody_msg": "Здравствуйте,<br>\nВы используете устаревшую версию Tutanota. Поддержка этой версии закочится в течение ближайших нескольких дней.<br><br>\n\nПожалуйста, обновите Ваш почтовый клиент пройдя по ссылке: {downloadLink}<br><br>\n\nСпасибо!<br><br>\n\nВаша команда Tutanota",
+		"outdatedClientWarningMailBody_msg": "Здравствуйте,<br>\nСейчас Вы используете устаревшую версию Tutanota. Поддержка этой версии закончится в течение ближайших нескольких дней.<br><br>\n\nПожалуйста, обновите Ваш почтовый клиент перейдя по ссылке: {downloadLink}<br><br>\n\nТакже проверьте, не используете ли вы устаревшую версию Tutanota на другом устройстве. Система перестанет отправлять это письмо, как только все ваши клиенты Tutanota будут обновлены.\n\nСпасибо!<br><br>\n\nВаша команда Tutanota",
 		"outdatedClientWarningMailSubject_msg": "Пожалуйста, обновите Tutanota",
 		"outdatedClient_msg": "Пожалуйста, обновите Tutanota. Текущая установленная версия слишком стара и более не поддерживается.",
 		"outlookInvoiceMailBodyAutomatic_msg": "К этому письму прикреплен новый счёт с номером {1}. Итоговая сумма будет списана автоматически. Вы также можете посмотреть все ваши счета в {2}.",

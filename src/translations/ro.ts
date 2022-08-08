@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2022-07-19T21:26:19Z",
+	"updated_at": "2022-07-25T07:12:42Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -737,6 +737,7 @@ export default {
 		"languageRussian_label": "Rusă",
 		"languageSerbian_label": "Sârbă",
 		"languageSerboCroatian_label": "Sârbo-Croată",
+		"languageSinhalese_label": "Singaleză",
 		"languageSlovak_label": "Slovacă",
 		"languageSlovenian_label": "Slovenă",
 		"languageSpanish_label": "Spaniolă",
