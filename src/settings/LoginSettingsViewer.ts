@@ -1,10 +1,8 @@
 import m, {Children} from "mithril"
 import stream from "mithril/stream"
-import Stream from "mithril/stream"
 import type {TextFieldAttrs} from "../gui/base/TextField.js"
 import {TextField} from "../gui/base/TextField.js"
 import {InfoLink, lang} from "../misc/LanguageViewModel"
-import {PasswordForm} from "./PasswordForm"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {Session, SessionTypeRef} from "../api/entities/sys/TypeRefs.js"
@@ -35,21 +33,19 @@ import {showChangeOwnPasswordDialog} from "./ChangePasswordDialogs.js";
 assertMainOrNode()
 
 export class LoginSettingsViewer implements UpdatableSettingsViewer {
-	private readonly _mailAddress: Stream<string>
-	private readonly _stars: Stream<string>
-	private readonly _closedSessionsExpanded: Stream<boolean>
-	private _sessions: Session[]
-	private readonly _secondFactorsForm: EditSecondFactorsForm
-	private readonly _credentialsProvider: CredentialsProvider
+	private readonly _mailAddress = stream(neverNull(logins.getUserController().userGroupInfo.mailAddress))
+	private readonly _stars = stream("***")
+	private readonly _closedSessionsExpanded = stream(false)
+	private _sessions: Session[] = []
+	private readonly _secondFactorsForm = new EditSecondFactorsForm(new LazyLoaded(() => Promise.resolve(logins.getUserController().user)))
+	private readonly credentialsEncryptionModeHelpLabel: (() => string) | null
 
-	constructor(credentialsProvider: CredentialsProvider) {
-		this._credentialsProvider = credentialsProvider
-		this._mailAddress = stream(neverNull(logins.getUserController().userGroupInfo.mailAddress))
-		this._stars = stream("***")
-		this._closedSessionsExpanded = stream(false)
-		this._sessions = []
-		this._secondFactorsForm = new EditSecondFactorsForm(new LazyLoaded(() => Promise.resolve(logins.getUserController().user)))
-
+	constructor(
+		private readonly credentialsProvider: CredentialsProvider
+	) {
+		this.credentialsEncryptionModeHelpLabel = this.credentialsProvider.getCredentialsEncryptionMode() === null
+			? () => lang.get("deviceEncryptionSaveCredentialsHelpText_msg")
+			: null
 		this._updateSessions()
 	}
 
@@ -74,25 +70,25 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		}
 		const recoveryCodeDropdownButtonAttrs: ButtonAttrs = attachDropdown(
 			{
-                mainButtonAttrs: {
-                    label: "edit_action",
-                    icon: () => Icons.Edit,
-                    click: noOp,
-                }, childAttrs: () => [
-                    logins.getUserController().user.auth?.recoverCode
-                        ? {
-                            label: "show_action",
-                            click: () => RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification("get"),
-                            type: ButtonType.Dropdown,
-                        }
-                        : null,
-                    {
-                        label: () => (neverNull(logins.getUserController().user.auth).recoverCode ? lang.get("update_action") : lang.get("setUp_action")),
-                        click: () => RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification("create"),
-                        type: ButtonType.Dropdown,
-                    },
-                ], showDropdown: () => true
-            },
+				mainButtonAttrs: {
+					label: "edit_action",
+					icon: () => Icons.Edit,
+					click: noOp,
+				}, childAttrs: () => [
+					logins.getUserController().user.auth?.recoverCode
+						? {
+							label: "show_action",
+							click: () => RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification("get"),
+							type: ButtonType.Dropdown,
+						}
+						: null,
+					{
+						label: () => (neverNull(logins.getUserController().user.auth).recoverCode ? lang.get("update_action") : lang.get("setUp_action")),
+						click: () => RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification("create"),
+						type: ButtonType.Dropdown,
+					},
+				], showDropdown: () => true
+			},
 		)
 		const recoveryCodeFieldAttrs: TextFieldAttrs = {
 			label: "recoveryCode_label",
@@ -149,22 +145,19 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			return null
 		}
 
-		const usedMode = this._credentialsProvider.getCredentialsEncryptionMode()
+		const usedMode = this.credentialsProvider.getCredentialsEncryptionMode() ?? CredentialEncryptionMode.DEVICE_LOCK
 
-		// User should be prompted before we get here
-		if (usedMode == null) {
-			return null
-		}
 
 		return m(TextField, {
 			label: "credentialsEncryptionMode_label",
-			value: this._credentialsEncryptionModeName(usedMode),
+			helpLabel: this.credentialsEncryptionModeHelpLabel,
+			value: this._credentialsEncryptionModeName(usedMode ?? CredentialEncryptionMode.DEVICE_LOCK),
 			disabled: true,
 			injectionsRight: () =>
 				m(Button, {
 					label: "edit_action",
 					icon: () => Icons.Edit,
-					click: () => showCredentialsEncryptionModeDialog(this._credentialsProvider).then(m.redraw),
+					click: () => showCredentialsEncryptionModeDialog(this.credentialsProvider).then(m.redraw),
 				}),
 		})
 	}
