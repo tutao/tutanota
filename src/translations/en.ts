@@ -1474,6 +1474,7 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"deviceEncryptionSaveCredentialsHelpText_msg": "Device encryption will protect your credentials when you save them to your device. You can do this the next time you log in.",
 	}
 }
