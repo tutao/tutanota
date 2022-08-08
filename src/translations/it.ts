@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2022-07-19T17:00:53Z",
+	"updated_at": "2022-08-03T17:58:01Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -735,6 +735,7 @@ export default {
 		"languageRussian_label": "Russo",
 		"languageSerbian_label": "Serbo",
 		"languageSerboCroatian_label": "Serbo-Croato",
+		"languageSinhalese_label": "Cingalese",
 		"languageSlovak_label": "Slovacco",
 		"languageSlovenian_label": "Sloveno",
 		"languageSpanish_label": "Spagnolo",
@@ -928,7 +929,7 @@ export default {
 		"otherCalendars_label": "Altri calendari",
 		"otherPaymentProviderError_msg": "C'è stato un errore con il servizio di pagamento. Per favore riprova più tardi.",
 		"other_label": "Altro",
-		"outdatedClientWarningMailBody_msg": "Ciao,<br>\nstai attualmente utilizzando una versione Tutanota obsoleta. Il supporto per la tua versione verrà sospeso entro pochi giorni.<br><br>\n\nAggiorna il tuo client all'indirizzo: {downloadLink}<br><br>\n\nGrazie!<br><br>\n\nIl tuo team Tutanota",
+		"outdatedClientWarningMailBody_msg": "Ciao,<br>\nAttualmente stai utilizzando una versione di Tutanota obsoleta. Il supporto per la tua versione verrà interrotto nei prossimi giorni.<br><br>\n\nAggiorna il tuo cliente all'indirizzo: {downloadLink}<br><br>\n\nControlla anche se stai utilizzando una versione obsoleta di Tutanota su un dispositivo diverso. Il sistema interromperà l'invio di questa email una volta che tutti i tuoi clienti Tutanota saranno aggiornati.<br><br>\n\nGrazie!<br><br>\n\nLa tua squadra di Tutanota",
 		"outdatedClientWarningMailSubject_msg": "Prego, aggiorna Tutanota",
 		"outdatedClient_msg": "Si prega di aggiornare Tutanota. La versione attualmente installata e' datata e non viene piu' supportata.",
 		"outlookInvoiceMailBodyAutomatic_msg": "c'è una nuova fattura con il numero {1} disponibile per te in allegato a questa email.  Il totale verrà automaticamente addebitato . Puoi anche vedere tutte le tue fatture in {2}",

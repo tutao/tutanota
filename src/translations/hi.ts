@@ -11,10 +11,10 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2022-06-28T09:22:25Z",
+	"updated_at": "2022-08-04T10:29:04Z",
 	"source_locale": null,
 	"keys": {
-		"about_label": "के बारे में",
+		"about_label": "बारे में",
 		"accentColor_label": "स्वरोंका रंग",
 		"acceptInvitation_action": "आमंत्रण स्वीकारें",
 		"acceptPrivacyPolicyReminder_msg": "कृपया चेकबॉक्स का चयन करके प्राइवेसी नीति स्वीकार करें",

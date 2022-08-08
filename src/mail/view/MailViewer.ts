@@ -958,43 +958,62 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 
 	private renderAttachments(): Children {
+		// Show a loading symbol if we are loading attachments
 		if (this.viewModel.isLoadingAttachments() && !this.viewModel.isConnectionLost()) {
 			return m(".flex", [m(".flex-v-center.pl-button", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))])
 		} else {
+			const attachments = this.viewModel.getNonInlineAttachments()
+			const attachmentCount = attachments.length
 
-			const attachments = this.viewModel
-									.getAttachments()
-									.filter(({cid}) => cid == null || !this.viewModel.getInlineCids().includes(cid))
+			// Do nothing if we have no attachments
+			if (attachmentCount === 0) {
+				return null
+			}
 
-			const spoilerLimit = styles.isDesktopLayout() ? 4 : 2
+			// Get the total size of the attachments
+			let totalAttachmentSize = 0
+			attachments.forEach(attachment => totalAttachmentSize += Number(attachment.size))
 
-			return m(".flex.ml-negative-bubble.flex-wrap", [
-				attachments.length > spoilerLimit
-					? [
-						attachments.slice(0, spoilerLimit).map(attachment => this.renderAttachmentButton(attachment)),
-						m(ExpanderButton, {
-							style: {
-								paddingTop: "0px",
-								margin: "0px 6px",
-							},
-							label: "showAll_action",
-							expanded: this.filesExpanded(),
-							onExpandedChange: this.filesExpanded,
-						}),
-						m(ExpanderPanel, {
-								expanded: this.filesExpanded(),
-							},
-							attachments.slice(spoilerLimit).map(attachment => this.renderAttachmentButton(attachment)),
-						),
-					]
-					: attachments.map(attachment => this.renderAttachmentButton(attachment)),
-				this.renderDownloadAllButton(),
-			])
+			return [
+				m(".flex.ml-negative-bubble.flex-space-between", [
+					attachmentCount === 1
+						// If we have exactly one attachment, just show the attachment
+						? this.renderAttachmentContainer(attachments)
+
+						// Otherwise, we show the number of attachments and its total size along with a show all button
+						: [
+							m(".flex.b.center-vertically.pl-s",
+								lang.get("attachmentAmount_label", {"{amount}": attachmentCount + ""}) + ` (${formatStorageSize(totalAttachmentSize)})`
+							),
+							m(".flex",
+								m(ExpanderButton, {
+									style: { paddingTop: "0px" },
+									label: "showAll_action",
+									expanded: this.filesExpanded(),
+									onExpandedChange: this.filesExpanded,
+								})
+							)
+						],
+				]),
+
+				// if we have more than one attachment, list them here in this expander panel
+				attachments.length > 1 ? m(ExpanderPanel, {
+						expanded: this.filesExpanded(),
+					},
+					m(".ml-negative-bubble.flex-wrap", [
+						this.renderAttachmentContainer(attachments),
+						this.renderDownloadAllButton()
+					])
+				) : null,
+			]
 		}
 	}
 
-	private renderAttachmentButton(attachment: TutanotaFile): Children {
+	private renderAttachmentContainer(attachments: TutanotaFile[]): Children {
+		return m("", attachments.map(attachment => this.renderAttachmentButton(attachment))) // wrap attachments in a div to ensure buttons after the list don't get placed weirdly
+	}
 
+	private renderAttachmentButton(attachment: TutanotaFile): Children {
 		if (isAndroidApp() || isDesktop()) {
 			return m(Button,
 				attachDropdown(
@@ -1043,16 +1062,12 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private renderDownloadAllButton(): Children {
-		return !isIOSApp() && this.viewModel.getNonInlineAttachments().length > 2
-			? m(
-				".limit-width",
-				m(Button, {
-					label: "saveAll_action",
-					type: ButtonType.Secondary,
-					click: () => showProgressDialog("pleaseWait_msg", this.viewModel.downloadAll()),
-				}),
-			)
-			: null
+		return !isIOSApp() && this.viewModel.getNonInlineAttachments().length > 1
+			? m(Button, {
+				label: "saveAll_action",
+				type: ButtonType.Secondary,
+				click: () => showProgressDialog("pleaseWait_msg", this.viewModel.downloadAll()),
+			}) : null
 	}
 
 	private tutaoBadge(): Vnode<any> | null {
