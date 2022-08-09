@@ -42,7 +42,7 @@ export class HtmlEditor implements Component {
 
 		const modeSwitcherLabel = this.modeSwitcherLabel
 		let borderClasses = this._showBorders
-			? this.active
+			? (this.active && this.editor.isEnabled())
 				? ".editor-border-active"
 				: ".editor-border" + (modeSwitcherLabel != null ? ".editor-no-top-border" : "")
 			: ""
