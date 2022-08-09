@@ -35,6 +35,8 @@ export function show(props: TutanotaProperties) {
 			.setToolbarOptions({
 				imageButtonClickHandler: insertInlineImageB64ClickHandler,
 			})
+			.setEnabled(selectedType === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM)
+
 		const signatureTypes = getSignatureTypes(props)
 
 		const form = {
