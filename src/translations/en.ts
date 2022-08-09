@@ -1475,6 +1475,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"deviceEncryptionSaveCredentialsHelpText_msg": "Device encryption will protect your credentials when you save them to your device. You can do this the next time you log in.",
+		"deviceEncryptionSaveCredentialsHelpText_msg": "To activate device encryption (pin/biometric unlock), you need to store your credentials to the device. You can do this the next time you log in.",
 	}
 }
