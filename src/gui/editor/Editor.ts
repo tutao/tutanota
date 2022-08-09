@@ -123,6 +123,13 @@ export class Editor implements ImageHandler, Component {
 		})
 		this.squire = squire
 
+		// Suppress paste events if pasting while disabled
+		this.squire.addEventListener("willPaste", (e: Event) => {
+			if (!this.isEnabled()) {
+				e.preventDefault()
+			}
+		})
+
 		this.squire.addEventListener("pathChange", () => {
 			this.getStylesAtPath()
 			m.redraw() // allow richtexttoolbar to redraw elements
@@ -162,21 +169,8 @@ export class Editor implements ImageHandler, Component {
 
 	setEnabled(enabled: boolean) {
 		this.enabled = enabled
-
-		// not working currently
-		// text is pasted before the event is triggered
-		const pasteSuppressor = (e: Event) => {
-			e.preventDefault()
-		}
-
 		if (this.domElement) {
 			this.domElement.setAttribute("contenteditable", String(enabled))
-
-			if (this.enabled) {
-				this.domElement.removeEventListener("paste", pasteSuppressor)
-			} else {
-				this.domElement.addEventListener("paste", pasteSuppressor)
-			}
 		}
 	}
 
