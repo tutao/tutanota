@@ -42,8 +42,10 @@ import {
 	createDeleteMailFolderData,
 	createDraftAttachment,
 	createDraftCreateData,
-	createDraftData, createDraftRecipient,
-	createDraftUpdateData, createEncryptedMailAddress,
+	createDraftData,
+	createDraftRecipient,
+	createDraftUpdateData,
+	createEncryptedMailAddress,
 	createExternalUserData,
 	createListUnsubscribeData,
 	createMoveMailData,
@@ -60,7 +62,8 @@ import {NotFoundError} from "../../common/error/RestError"
 import type {EntityUpdate, PublicKeyReturn, User} from "../../entities/sys/TypeRefs.js"
 import {
 	BlobReferenceTokenWrapper,
-	createPublicKeyData, CustomerTypeRef,
+	createPublicKeyData,
+	CustomerTypeRef,
 	ExternalUserReferenceTypeRef,
 	GroupInfoTypeRef,
 	GroupRootTypeRef,
@@ -73,7 +76,6 @@ import {
 	byteLength,
 	contains,
 	defer,
-	downcast,
 	isNotNull,
 	isSameTypeRefByAttr,
 	neverNull,
@@ -84,7 +86,7 @@ import {
 } from "@tutao/tutanota-utils"
 import {BlobFacade} from "./BlobFacade"
 import {FileFacade} from "./FileFacade"
-import {assertWorkerOrNode, isApp} from "../../common/Env"
+import {assertWorkerOrNode, isApp, isDesktop} from "../../common/Env"
 import {EntityClient} from "../../common/EntityClient"
 import {getEnabledMailAddressesForGroupInfo, getUserGroupMemberships} from "../../common/utils/GroupUtils"
 import {containsId, getLetId, isSameId, stringToCustomId} from "../../common/utils/EntityUtils"
@@ -106,13 +108,14 @@ import {
 	sha256Hash,
 } from "@tutao/tutanota-crypto"
 import {DataFile} from "../../common/DataFile";
-import {FileReference} from "../../common/utils/FileUtils";
+import {FileReference, isDataFile, isFileReference} from "../../common/utils/FileUtils";
 import {CounterService} from "../../entities/monitor/Services"
 import {PublicKeyService} from "../../entities/sys/Services.js"
 import {IServiceExecutor} from "../../common/ServiceRequest"
 import {createWriteCounterData} from "../../entities/monitor/TypeRefs"
 import {UserFacade} from "./UserFacade"
 import {PartialRecipient, Recipient, RecipientList, RecipientType} from "../../common/recipients/Recipient"
+import {NativeFileApp} from "../../../native/common/FileApp"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -159,7 +162,9 @@ export class MailFacade {
 		private readonly crypto: CryptoFacade,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly blobFacade: BlobFacade,
-	) {}
+		private readonly fileApp: NativeFileApp,
+	) {
+	}
 
 	async createMailFolder(name: string, parent: IdTuple, ownerGroupId: Id): Promise<void> {
 		const mailGroupKey = this.userFacade.getGroupKey(ownerGroupId)
@@ -348,57 +353,58 @@ export class MailFacade {
 		mailGroupKey: Aes128Key,
 		useBlobs: boolean
 	): Promise<DraftAttachment[]> {
-		if (providedFiles) {
-			return promiseMap(providedFiles, async (providedFile) => {
-				// check if this is a new attachment or an existing one
-				if (providedFile._type === "DataFile") {
-					// user added attachment
-					const fileSessionKey = aes128RandomKey()
-					const dataFile = downcast<DataFile>(providedFile)
-					if (useBlobs) {
-						// return
-						const referenceTokens = await this.blobFacade.encryptAndUpload(ArchiveDataType.Attachments, dataFile.data, senderMailGroupId, fileSessionKey)
-						return this.createAndEncryptDraftAttachment(referenceTokens, fileSessionKey, dataFile, mailGroupKey)
-					} else {
-						return this.fileFacade.uploadFileData(dataFile, fileSessionKey).then(fileDataId => {
-							return this.createAndEncryptLegacyDraftAttachment(fileDataId, fileSessionKey, dataFile, mailGroupKey)
-						})
-					}
-				} else if (providedFile._type === "FileReference") {
-					const fileSessionKey = aes128RandomKey()
-					const fileRef = downcast<FileReference>(providedFile)
-					if (useBlobs) {
-						const referenceTokens = await this.blobFacade.encryptAndUploadNative(ArchiveDataType.Attachments, fileRef.location, senderMailGroupId, fileSessionKey)
-						return this.createAndEncryptDraftAttachment(referenceTokens, fileSessionKey, fileRef, mailGroupKey)
-					} else {
-						return this.fileFacade.uploadFileDataNative(fileRef, fileSessionKey).then(fileDataId => {
-							return this.createAndEncryptLegacyDraftAttachment(fileDataId, fileSessionKey, fileRef, mailGroupKey)
-						})
-					}
-				} else if (!containsId(existingFileIds, getLetId(providedFile))) {
-					// forwarded attachment which was not in the draft before
-					return this.crypto.resolveSessionKeyForInstance(providedFile).then(fileSessionKey => {
-						const attachment = createDraftAttachment()
-						attachment.existingFile = getLetId(providedFile)
-						attachment.ownerEncFileSessionKey = encryptKey(mailGroupKey, neverNull(fileSessionKey))
-						return attachment
-					})
-				} else {
-					return null
-				}
-			}) // disable concurrent file upload to avoid timeout because of missing progress events on Firefox.
-				.then(attachments => attachments.filter(isNotNull))
-				.then(it => {
-					// only delete the temporary files after all attachments have been uploaded
-					if (isApp()) {
-						this.fileFacade.clearFileData().catch(e => console.warn("Failed to clear files", e))
-					}
+		if (providedFiles == null || providedFiles.length === 0) return []
 
-					return it
+		return promiseMap(providedFiles, async (providedFile) => {
+			// check if this is a new attachment or an existing one
+			if (isDataFile(providedFile)) {
+				// user added attachment
+				const fileSessionKey = aes128RandomKey()
+				if (useBlobs) {
+					let referenceTokens: Array<BlobReferenceTokenWrapper>
+					if (isApp() || isDesktop()) {
+						const {location} = await this.fileApp.writeDataFile(providedFile)
+						referenceTokens = await this.blobFacade.encryptAndUploadNative(ArchiveDataType.Attachments, location, senderMailGroupId, fileSessionKey)
+						await this.fileApp.deleteFile(location)
+					} else {
+						referenceTokens = await this.blobFacade.encryptAndUpload(ArchiveDataType.Attachments, providedFile.data, senderMailGroupId, fileSessionKey)
+					}
+					return this.createAndEncryptDraftAttachment(referenceTokens, fileSessionKey, providedFile, mailGroupKey)
+				} else {
+					const fileDataId = await this.fileFacade.uploadFileData(providedFile, fileSessionKey)
+					return this.createAndEncryptLegacyDraftAttachment(fileDataId, fileSessionKey, providedFile, mailGroupKey)
+				}
+			} else if (isFileReference(providedFile)) {
+				const fileSessionKey = aes128RandomKey()
+				if (useBlobs) {
+					const referenceTokens = await this.blobFacade.encryptAndUploadNative(ArchiveDataType.Attachments, providedFile.location, senderMailGroupId, fileSessionKey)
+					return this.createAndEncryptDraftAttachment(referenceTokens, fileSessionKey, providedFile, mailGroupKey)
+				} else {
+					const fileDataId = await this.fileFacade.uploadFileDataNative(providedFile, fileSessionKey)
+					return this.createAndEncryptLegacyDraftAttachment(fileDataId, fileSessionKey, providedFile, mailGroupKey)
+				}
+			} else if (!containsId(existingFileIds, getLetId(providedFile))) {
+				// forwarded attachment which was not in the draft before
+				return this.crypto.resolveSessionKeyForInstance(providedFile).then(fileSessionKey => {
+					const attachment = createDraftAttachment()
+					attachment.existingFile = getLetId(providedFile)
+					attachment.ownerEncFileSessionKey = encryptKey(mailGroupKey, neverNull(fileSessionKey))
+					return attachment
 				})
-		} else {
-			return Promise.resolve([])
-		}
+			} else {
+				return null
+			}
+		}) // disable concurrent file upload to avoid timeout because of missing progress events on Firefox.
+			.then(attachments => attachments.filter(isNotNull))
+			.then(it => {
+				// only delete the temporary files after all attachments have been uploaded
+				if (isApp()) {
+					this.fileFacade.clearFileData().catch(e => console.warn("Failed to clear files", e))
+				}
+
+				return it
+			})
+
 	}
 
 	createAndEncryptLegacyDraftAttachment(
