@@ -22,6 +22,7 @@ import {assertMainOrNode, isAndroidApp, isDesktop, isIOSApp} from "../../api/com
 import {Dialog} from "../../gui/base/Dialog"
 import {defer, DeferredObject, isNotNull, neverNull, noOp, ofClass,} from "@tutao/tutanota-utils"
 import {
+	allMailsAllowedInsideFolder,
 	createNewContact,
 	getDisplayText,
 	getExistingRuleForType,
@@ -59,7 +60,7 @@ import {BannerType, InfoBanner} from "../../gui/base/InfoBanner"
 import {createMoreSecondaryButtonAttrs, getCoordsOfMouseOrTouchEvent, ifAllowedTutanotaLinks} from "../../gui/base/GuiUtils"
 import {copyToClipboard} from "../../misc/ClipboardUtils";
 import {ContentBlockingStatus, MailViewerViewModel} from "./MailViewerViewModel"
-import {getListId} from "../../api/common/utils/EntityUtils"
+import {getListId, listIdPart} from "../../api/common/utils/EntityUtils"
 import {createEmailSenderListElement} from "../../api/entities/sys/TypeRefs.js"
 import {checkApprovalStatus} from "../../misc/LoginUtils"
 import {UserError} from "../../api/main/UserError"
@@ -687,6 +688,33 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private actionButtons(): Children {
 		const actions: Children = []
 		const colors = ButtonColor.Content
+		const moveButton = m(Button, {
+			label: "move_action",
+			icon: () => Icons.Folder,
+			colors,
+			click: createAsyncDropdown({
+					lazyButtons: () => {
+						return this.viewModel.mailModel.getMailboxFolders(this.viewModel.mail).then(folders => {
+								const filteredFolders = folders.filter(f => f.mails !== listIdPart(this.viewModel.getMailId()))
+								const targetFolders = getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders))
+								return targetFolders.filter(f => allMailsAllowedInsideFolder([this.viewModel.mail], f)).map(f => {
+									return {
+										label: () => getFolderName(f),
+										click: () => moveMails({
+											mailModel: this.viewModel.mailModel,
+											mails: [this.viewModel.mail],
+											targetMailFolder: f
+										}),
+										icon: getFolderIcon(f),
+										type: ButtonType.Dropdown,
+									}
+								})
+							}
+						)
+					}
+				},
+			),
+		})
 
 		if (this.viewModel.isDraftMail()) {
 			actions.push(
@@ -697,6 +725,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					colors,
 				}),
 			)
+			actions.push(moveButton)
 		} else {
 			if (!this.viewModel.isAnnouncement()) {
 				actions.push(
@@ -729,33 +758,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 							colors,
 						}),
 					)
-					actions.push(
-						m(Button, {
-							label: "move_action",
-							icon: () => Icons.Folder,
-							colors,
-							click: createAsyncDropdown({
-									lazyButtons: () =>
-										this.viewModel.mailModel.getMailboxFolders(this.viewModel.mail).then(folders => {
-											const filteredFolders = folders.filter(f => f.mails !== this.viewModel.getMailId()[0])
-											const targetFolders = getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders))
-											return targetFolders.map(f => {
-												return {
-													label: () => getFolderName(f),
-													click: () => moveMails({
-														mailModel: this.viewModel.mailModel,
-														mails: [this.viewModel.mail],
-														targetMailFolder: f
-													}),
-													icon: getFolderIcon(f),
-													type: ButtonType.Dropdown,
-												}
-											})
-										})
-								},
-							),
-						}),
-					)
+					actions.push(moveButton)
 				} else if (this.viewModel.canAssignMails()) {
 					actions.push(this.createAssignActionButton())
 				}

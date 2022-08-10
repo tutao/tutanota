@@ -2,11 +2,18 @@ import m, {Children, Component, Vnode} from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import type {ListFetchResult, VirtualRow} from "../../gui/base/List"
 import {List} from "../../gui/base/List"
-import {MailFolderType} from "../../api/common/TutanotaConstants"
+import {MailFolderType, MailState} from "../../api/common/TutanotaConstants"
 import type {MailView} from "./MailView"
-import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
+import type {Mail, MailFolder} from "../../api/entities/tutanota/TypeRefs.js"
 import {MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {canDoDragAndDropExport, getArchiveFolder, getFolderName, getInboxFolder} from "../model/MailUtils"
+import {
+	canDoDragAndDropExport,
+	emptyOrContainsDraftsAndNonDrafts,
+	getArchiveFolder,
+	getDraftFolder,
+	getFolderName,
+	getInboxFolder
+} from "../model/MailUtils"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {size} from "../../gui/size"
 import {styles} from "../../gui/styles"
@@ -14,7 +21,7 @@ import {Icon} from "../../gui/base/Icon"
 import {Icons} from "../../gui/base/icons/Icons"
 import {logins} from "../../api/main/LoginController"
 import type {ButtonAttrs} from "../../gui/base/Button.js"
-import {ButtonColor, Button, ButtonType} from "../../gui/base/Button.js"
+import {Button, ButtonColor, ButtonType} from "../../gui/base/Button.js"
 import {Dialog} from "../../gui/base/Dialog"
 import {assertNotNull, AsyncResult, debounce, downcast, neverNull, ofClass, promiseFilter, promiseMap} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
@@ -84,12 +91,24 @@ export class MailListView implements Component {
 					renderLeftSpacer: () =>
 						!logins.isInternalUserLoggedIn()
 							? []
-							: [
-								m(Icon, {
-									icon: Icons.Folder,
-								}),
-								m(".pl-s", this.targetInbox() ? lang.get("received_action") : lang.get("archive_action")),
-							],
+							: this.showingDraftFolder()
+								? [
+									m(Icon, {
+										icon: Icons.Cancel
+									}),
+									m(".pl-s", lang.get("cancel_action")) // if this is the drafts folder, we can only cancel the selection as we have nowhere else to put the mail
+								]
+								: [
+									m(Icon, {
+										icon: Icons.Folder,
+									}),
+									m(".pl-s",
+										this.showingTrashOrSpamFolder()
+											? lang.get("recover_label") // show "recover" if this is the trash/spam folder
+											: this.targetInbox() ? // otherwise show "inbox" or "archive" depending on the folder
+												lang.get("received_action")
+												: lang.get("archive_action"))
+								],
 					renderRightSpacer: () => [
 						m(Icon, {
 							icon: Icons.Trash,
@@ -100,14 +119,18 @@ export class MailListView implements Component {
 					swipeRight: (listElement: Mail) => {
 						if (!logins.isInternalUserLoggedIn()) {
 							return Promise.resolve(false) // externals don't have an archive folder
-						} else if (this.targetInbox()) {
+						}
+						else if(this.showingDraftFolder()) { // just cancel selection if in drafts
+							this.list.selectNone()
+							return Promise.resolve(false)
+						} else if(this.showingTrashOrSpamFolder()) { // recover email from trash/spam
 							this.list.selectNone()
 							return locator.mailModel
 										  .getMailboxFolders(listElement)
 										  .then(folders => moveMails({
 											  mailModel: locator.mailModel,
 											  mails: [listElement],
-											  targetMailFolder: getInboxFolder(folders)
+											  targetMailFolder: this.getRecoverFolder(listElement, folders)
 										  }))
 						} else {
 							this.list.selectNone()
@@ -131,6 +154,15 @@ export class MailListView implements Component {
 		this.view = this.view.bind(this)
 	}
 
+	private getRecoverFolder(mail: Mail, folders: MailFolder[]) {
+		if (mail.state === MailState.DRAFT) {
+			return getDraftFolder(folders)
+		}
+		else {
+			return getInboxFolder(folders)
+		}
+	}
+
 	// NOTE we do all of the electron drag handling directly inside MailListView, because we currently have no need to generalise
 	// would strongly suggest with starting generalising this first if we ever need to support dragging more than just mails
 	_dragStart(event: DragEvent, row: VirtualRow<Mail>, selected: ReadonlyArray<Mail>) {
@@ -150,6 +182,12 @@ export class MailListView implements Component {
 
 			this._doExportDrag(draggedMails)
 		} else if (styles.isDesktopLayout()) {
+			// Disallow dragging mixed emails + drafts
+			if (emptyOrContainsDraftsAndNonDrafts(selected)) {
+				event.preventDefault()
+				return
+			}
+
 			// Doesn't make sense to drag mails to folders when the folder list and mail list aren't visible at the same time
 			neverNull(event.dataTransfer).setData("text", getLetId(neverNull(mailUnderCursor))[1])
 		} else {
@@ -390,6 +428,14 @@ export class MailListView implements Component {
 	showingTrashOrSpamFolder(): boolean {
 		if (this.mailView.selectedFolder) {
 			return this.mailView.selectedFolder.folderType === MailFolderType.SPAM || this.mailView.selectedFolder.folderType === MailFolderType.TRASH
+		} else {
+			return false
+		}
+	}
+
+	showingDraftFolder(): boolean {
+		if (this.mailView.selectedFolder) {
+			return this.mailView.selectedFolder.folderType === MailFolderType.DRAFT
 		} else {
 			return false
 		}

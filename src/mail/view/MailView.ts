@@ -25,7 +25,9 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {NotFoundError, PreconditionFailedError} from "../../api/common/error/RestError"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {
+	allMailsAllowedInsideFolder,
 	canDoDragAndDropExport,
+	emptyOrContainsDraftsAndNonDrafts,
 	getFolder,
 	getFolderIcon,
 	getFolderName,
@@ -438,7 +440,7 @@ export class MailView implements CurrentView {
 		}
 
 		const selectedMails = mailList.list.getSelectedEntities()
-		if (selectedMails.length === 0) {
+		if (emptyOrContainsDraftsAndNonDrafts(selectedMails)) { // do not move mails if no mails or mails cannot be moved together
 			return false
 		}
 
@@ -451,13 +453,15 @@ export class MailView implements CurrentView {
 				}
 
 				const filteredFolders = folders.filter(f => f.mails !== mailList)
-				const targetFolders = getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders))
-				return targetFolders.map(f => ({
-					label: () => getFolderName(f),
-					click: () => moveMails({mailModel: locator.mailModel, mails: selectedMails, targetMailFolder: f}),
-					icon: getFolderIcon(f),
-					type: ButtonType.Dropdown,
-				}))
+				return getSortedSystemFolders(filteredFolders)
+					.concat(getSortedCustomFolders(filteredFolders))
+					.filter(folder => allMailsAllowedInsideFolder(selectedMails, folder))
+					.map(f => ({
+						label: () => getFolderName(f),
+						click: () => moveMails({mailModel: locator.mailModel, mails: selectedMails, targetMailFolder: f}),
+						icon: getFolderIcon(f),
+						type: ButtonType.Dropdown,
+					}))
 			}, 300)
 
 			// Render the dropdown at the position of the selected mails in the MailList
@@ -651,6 +655,11 @@ export class MailView implements CurrentView {
 						if (entity) {
 							mailsToMove.push(entity)
 						}
+					}
+
+					// do not allow moving folders to unallowed locations
+					if(!allMailsAllowedInsideFolder(mailsToMove, folder)) {
+						return
 					}
 
 					moveMails({mailModel: locator.mailModel, mails: mailsToMove, targetMailFolder: folder})

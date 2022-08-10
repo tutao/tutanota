@@ -5,7 +5,14 @@ import {ActionBar} from "../../gui/base/ActionBar"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import {lang} from "../../misc/LanguageViewModel"
 import {Icons} from "../../gui/base/icons/Icons"
-import {getFolderIcon, getFolderName, getSortedCustomFolders, getSortedSystemFolders, markMails} from "../model/MailUtils"
+import {
+	allMailsAllowedInsideFolder, emptyOrContainsDraftsAndNonDrafts,
+	getFolderIcon,
+	getFolderName,
+	getSortedCustomFolders,
+	getSortedSystemFolders,
+	markMails
+} from "../model/MailUtils"
 import {logins} from "../../api/main/LoginController"
 import {FeatureType} from "../../api/common/TutanotaConstants"
 import type {ButtonAttrs} from "../../gui/base/Button.js"
@@ -71,7 +78,7 @@ export class MultiMailViewer implements Component {
 	}
 
 	getActionBarButtons(prependCancel: boolean = false): ButtonAttrs[] {
-		const getSelectedMails = () => this._mailView.mailList?.list.getSelectedEntities() ?? []
+		const selectedMails = this._mailView.mailList?.list.getSelectedEntities() ?? []
 
 		const cancel: ButtonAttrs[] = prependCancel ?
 			[{
@@ -81,22 +88,26 @@ export class MultiMailViewer implements Component {
 			}]
 			: []
 
-		return [
-			...cancel,
+		// if we have both drafts and non-drafts selected, then there is no good place to move them besides deleting them since drafts otherwise only go to the drafts folder and non-drafts do not
+		const move: ButtonAttrs[] = !emptyOrContainsDraftsAndNonDrafts(selectedMails) ? [
 			attachDropdown(
 				{
 					mainButtonAttrs: {
 						label: "move_action",
 						icon: () => Icons.Folder,
 					},
-					childAttrs: () => this.makeMoveMailButtons(getSelectedMails())
+					childAttrs: () => this.makeMoveMailButtons(selectedMails)
 				},
-			),
+			)
+		] : []
+
+		return [
+			...cancel,
+			...move,
 			{
 				label: "delete_action",
 				click: () => {
-					const mails = getSelectedMails()
-					promptAndDeleteMails(locator.mailModel, mails, () => this._mailView.mailList?.list.selectNone())
+					promptAndDeleteMails(locator.mailModel, selectedMails, () => this._mailView.mailList?.list.selectNone())
 				},
 				icon: () => Icons.Trash,
 			},
@@ -154,6 +165,7 @@ export class MultiMailViewer implements Component {
 		if (selectedMailbox == null) return []
 		return getSortedSystemFolders(selectedMailbox.folders)
 			.concat(getSortedCustomFolders(selectedMailbox.folders))
+			.filter(folder => allMailsAllowedInsideFolder(selectedEntities, folder))
 			.filter(f => f !== this._mailView.selectedFolder)
 			.map(f => {
 				return {

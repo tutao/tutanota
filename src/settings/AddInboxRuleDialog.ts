@@ -1,13 +1,13 @@
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {lang, TranslationKey} from "../misc/LanguageViewModel"
-import {InboxRuleType} from "../api/common/TutanotaConstants"
+import {InboxRuleType, MailFolderType, MailState} from "../api/common/TutanotaConstants"
 import {isDomainName, isMailAddress, isRegularExpression} from "../misc/FormatValidator"
 import {getInboxRuleTypeNameMapping} from "../mail/model/InboxRuleHandler"
 import type {InboxRule} from "../api/entities/tutanota/TypeRefs.js"
 import {createInboxRule} from "../api/entities/tutanota/TypeRefs.js"
 import {logins} from "../api/main/LoginController"
-import {getArchiveFolder, getExistingRuleForType, getFolderName} from "../mail/model/MailUtils"
+import {getArchiveFolder, getExistingRuleForType, getFolderName, mailStateAllowedInsideFolderType} from "../mail/model/MailUtils"
 import type {MailboxDetail} from "../mail/model/MailModel"
 import stream from "mithril/stream"
 import {DropDownSelector} from "../gui/base/DropDownSelector.js"
@@ -27,6 +27,7 @@ export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
 		showNotAvailableForFreeDialog(true)
 	} else if (mailBoxDetails) {
 		let targetFolders = mailBoxDetails.folders
+										  .filter(folder => mailStateAllowedInsideFolderType(MailState.RECEIVED, folder.folderType))
 										  .map(folder => {
 											  return {
 												  name: getFolderName(folder),

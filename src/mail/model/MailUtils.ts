@@ -1,6 +1,5 @@
-import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
-import {createContact} from "../../api/entities/tutanota/TypeRefs.js"
-import {createContactMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
+import type {Contact, EncryptedMailAddress, InboxRule, Mail, MailFolder, TutanotaProperties} from "../../api/entities/tutanota/TypeRefs.js"
+import {createContact, createContactMailAddress, createEncryptedMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
 import {
 	ContactAddressType,
 	ConversationType,
@@ -21,27 +20,14 @@ import type {Language, TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {Icons} from "../../gui/base/icons/Icons"
 import type {MailboxDetail} from "./MailModel"
-import {getContactDisplayName} from "../../contacts/model/ContactUtils"
 import type {lazyIcon} from "../../gui/base/Icon"
-import type {MailFolder} from "../../api/entities/tutanota/TypeRefs.js"
-import type {GroupInfo} from "../../api/entities/sys/TypeRefs.js"
-import type {UserController} from "../../api/main/UserController"
-import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
-import type {ContactModel} from "../../contacts/model/ContactModel"
-import type {User} from "../../api/entities/sys/TypeRefs.js"
-import type {EncryptedMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
-import {createEncryptedMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
-import type {EntityClient} from "../../api/common/EntityClient"
+import type {GroupInfo, User} from "../../api/entities/sys/TypeRefs.js"
 import {CustomerPropertiesTypeRef} from "../../api/entities/sys/TypeRefs.js"
+import type {UserController} from "../../api/main/UserController"
+import type {EntityClient} from "../../api/common/EntityClient"
 import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
-import type {InboxRule} from "../../api/entities/tutanota/TypeRefs.js"
-import type {TutanotaProperties} from "../../api/entities/tutanota/TypeRefs.js"
-import type {MailFacade} from "../../api/worker/facades/MailFacade"
 import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName} from "../../misc/parsing/MailAddressParser"
-import type {DraftRecipient} from "../../api/entities/tutanota/TypeRefs.js"
-import {createDraftRecipient} from "../../api/entities/tutanota/TypeRefs.js"
 import type {Attachment} from "../editor/SendMailModel"
-import {PartialRecipient, RecipientType} from "../../api/common/recipients/Recipient"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"
@@ -209,6 +195,10 @@ export function getArchiveFolder(folders: MailFolder[]): MailFolder {
 	return getFolder(folders, MailFolderType.ARCHIVE)
 }
 
+export function getDraftFolder(folders: MailFolder[]): MailFolder {
+	return getFolder(folders, MailFolderType.DRAFT)
+}
+
 export function getSortedSystemFolders(folders: MailFolder[]): MailFolder[] {
 	return folders
 		.filter(f => f.folderType !== MailFolderType.CUSTOM)
@@ -301,6 +291,46 @@ export function markMails(entityClient: EntityClient, mails: Mail[], unread: boo
 			}
 		}),
 	).then(noOp)
+}
+
+/**
+ * Check if all mails in the selection are drafts. If there are mixed drafts and non-drafts or the array is empty, return true.
+ * @param mails
+ */
+export function emptyOrContainsDraftsAndNonDrafts(mails: ReadonlyArray<Mail>): boolean {
+	return mails.length === 0
+		|| (
+			mails.some(mail => mail.state === MailState.DRAFT)
+			&& mails.some(mail => mail.state !== MailState.DRAFT)
+		)
+}
+
+/**
+ * Return true if all mails in the array are allowed to go inside the folder (e.g. drafts can go in drafts but not inbox)
+ * @param mails
+ * @param folder
+ */
+export function allMailsAllowedInsideFolder(mails: ReadonlyArray<Mail>, folder: MailFolder): boolean {
+	for(const mail of mails) {
+		if(!mailStateAllowedInsideFolderType(mail.state, folder.folderType)) {
+			return false
+		}
+	}
+	return true
+}
+
+/**
+ * Return true if mail of a given type are allowed to be in a folder of a given type (e.g. drafts can go in drafts but not inbox)
+ * @param mailState
+ * @param folderType
+ */
+export function mailStateAllowedInsideFolderType(mailState: string, folderType: string) {
+	if(mailState === MailState.DRAFT) {
+		return folderType === MailFolderType.DRAFT || folderType === MailFolderType.TRASH
+	}
+	else {
+		return folderType !== MailFolderType.DRAFT
+	}
 }
 
 export function copyMailAddress({address, name}: EncryptedMailAddress): EncryptedMailAddress {
