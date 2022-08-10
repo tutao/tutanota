@@ -167,49 +167,50 @@ function sortIssues(issues) {
 
 function renderGithubReleaseNotes({milestoneUrl, bugIssues, otherIssues, files}) {
 
-	const whatsNewListRendered = otherIssues.map(issue => {
-		return ` - ${issue.title} #${issue.number}`
-	}).join("\n")
+	const whatsNewListRendered = otherIssues.length > 0
+		? "# What's new\n" + otherIssues.map(issue => ` - ${issue.title} #${issue.number}`).join("\n")
+		: ""
 
-	const bugsListRendered = bugIssues.map(issue => {
-		return ` - ${issue.title} #${issue.number}`
-	}).join("\n")
+	const bugsListRendered = bugIssues.length > 0
+		? "# Bugfixes\n" + bugIssues.map(issue => ` - ${issue.title} #${issue.number}`).join("\n")
+		: ""
 
 	const milestoneUrlObject = new URL(milestoneUrl)
 	milestoneUrlObject.searchParams.append("closed", "1")
 
-	let apkSection = ""
+	let assetSection = ""
 	if (files.length > 0) {
-		apkSection += "# Asset Checksums (SHA256)\n"
+		assetSection += "# Asset Checksums (SHA256)\n"
 		for (const f of files) {
 			const hash = hashFileSha256(f)
 			const filename = path.basename(f)
 			console.log(`hash of ${filename}: `, hash)
-			apkSection += `**${filename}:**\n${hash}\n\n`
+			assetSection += `**${filename}:**\n${hash}\n\n`
 		}
 	}
 
 	return `
-# What's new
 ${whatsNewListRendered}
 
-# Bugfixes
 ${bugsListRendered}
 
 # Milestone
 ${milestoneUrlObject.toString()}
 
-${apkSection}
+${assetSection}
 `.trim()
 }
 
 function renderIosReleaseNotes(bugs, rest) {
-	return `
-what's new:
-${rest.map(issue => issue.title).join("\n")}
+	const whatsNewSection = rest.length > 0
+		? "what's new:\n" + rest.map(issue => issue.title).join("\n")
+		: ""
 
-bugfixes:
-${bugs.map(issue => issue.title).join("\n")}`.trim()
+	const bugfixSection = bugs.length > 0
+		? "bugfixes:\n" + bugs.map(issue => "fixed " + issue.title).join("\n")
+		: ""
+
+	return `${whatsNewSection}\n${bugfixSection}`.trim()
 }
 
 async function createReleaseDraft(octokit, name, tag, body) {
