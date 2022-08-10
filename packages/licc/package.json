@@ -1,6 +1,6 @@
 {
 	"name": "@tutao/licc",
-	"version": "3.98.20",
+	"version": "3.98.21",
 	"bin": {
 		"licc": "dist/cli.js"
 	},
@@ -19,7 +19,7 @@
 		"commander": "9.3.0"
 	},
 	"devDependencies": {
-		"@tutao/tutanota-test-utils": "3.98.20",
+		"@tutao/tutanota-test-utils": "3.98.21",
 		"ospec": "https://github.com/tutao/ospec.git#0472107629ede33be4c4d19e89f237a6d7b0cb11"
 	}
 }
