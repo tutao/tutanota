@@ -11,11 +11,18 @@ import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {Dialog} from "../../gui/base/Dialog"
 import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {getFolderIcon, getFolderName, getSortedCustomFolders, getSortedSystemFolders, markMails} from "../../mail/model/MailUtils"
+import {
+	allMailsAllowedInsideFolder,
+	getFolderIcon,
+	getFolderName,
+	getSortedCustomFolders,
+	getSortedSystemFolders,
+	markMails
+} from "../../mail/model/MailUtils"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {mergeContacts} from "../../contacts/ContactMergeUtils"
 import {logins} from "../../api/main/LoginController"
-import {FeatureType} from "../../api/common/TutanotaConstants"
+import {FeatureType, MailFolderType} from "../../api/common/TutanotaConstants"
 import {exportContacts} from "../../contacts/VCardExporter"
 import {downcast, isNotNull, isSameTypeRef, lazyMemoized, NBSP, noOp, ofClass} from "@tutao/tutanota-utils"
 import type {ButtonAttrs} from "../../gui/base/Button.js"
@@ -256,6 +263,7 @@ export class MultiSearchViewer implements Component {
 		if (selectedMailbox == null) return []
 		return getSortedSystemFolders(selectedMailbox.folders)
 			.concat(getSortedCustomFolders(selectedMailbox.folders))
+			.filter(folder => allMailsAllowedInsideFolder(selectedMails, folder))
 			.map(f => ({
 				label: () => getFolderName(f),
 				click: () => {
