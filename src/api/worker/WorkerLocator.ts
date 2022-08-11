@@ -54,6 +54,7 @@ import {random} from "@tutao/tutanota-crypto"
 import {ExportFacadeSendDispatcher} from "../../native/common/generatedipc/ExportFacadeSendDispatcher.js"
 import {assertNotNull} from "@tutao/tutanota-utils"
 import {InterWindowEventFacadeSendDispatcher} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import {SqlCipherFacadeSendDispatcher} from "../../native/common/generatedipc/SqlCipherFacadeSendDispatcher.js"
 
 assertWorkerOrNode()
 
@@ -114,9 +115,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	const offlineStorageProvider = async () => {
 		if (isOfflineStorageAvailable()) {
-			const {offlineDbFacade} = exposeNativeInterface(locator.native)
 			return new OfflineStorage(
-				offlineDbFacade,
+				new SqlCipherFacadeSendDispatcher(locator.native),
 				new InterWindowEventFacadeSendDispatcher(worker),
 				new NoZoneDateProvider(),
 				new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS, modelInfos),

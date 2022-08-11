@@ -5,11 +5,9 @@ import {isApp, isDesktop, isOfflineStorageAvailable} from "../../api/common/Env"
 import type {DeviceEncryptionFacade} from "../../api/worker/facades/DeviceEncryptionFacade"
 import {CredentialsKeyProvider} from "./CredentialsKeyProvider"
 import {NativeCredentialsEncryption} from "./NativeCredentialsEncryption"
-import type {ExposedNativeInterface, NativeInterface} from "../../native/common/NativeInterface"
+import type {NativeInterface} from "../../native/common/NativeInterface"
 import {assertNotNull} from "@tutao/tutanota-utils"
 import {DatabaseKeyFactory} from "./DatabaseKeyFactory"
-import {exposeRemote} from "../../api/common/WorkerProxy"
-import {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade"
 import {DefaultCredentialsKeyMigrator, StubCredentialsKeyMigrator} from "./CredentialsKeyMigrator.js"
 import {InterWindowEventFacadeSendDispatcher} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 
@@ -34,25 +32,20 @@ export async function createCredentialsProvider(
 ): Promise<CredentialsProvider> {
 	if (usingKeychainAuthentication()) {
 		const {NativeCredentialsFacadeSendDispatcher} = await import( "../../native/common/generatedipc/NativeCredentialsFacadeSendDispatcher.js")
+		const {SqlCipherFacadeSendDispatcher} = await import("../../native/common/generatedipc/SqlCipherFacadeSendDispatcher.js")
 		const nativeCredentials = new NativeCredentialsFacadeSendDispatcher(assertNotNull(nativeApp))
 		const credentialsKeyProvider = new CredentialsKeyProvider(nativeCredentials, deviceConfig, deviceEncryptionFacade)
 		const credentialsEncryption = new NativeCredentialsEncryption(credentialsKeyProvider, deviceEncryptionFacade, nativeCredentials)
 		const credentialsKeyMigrator = new DefaultCredentialsKeyMigrator(nativeCredentials)
-		let offlineDbFacade: OfflineDbFacade | null
-		if (isOfflineStorageAvailable()) {
-			const remoteInterface = exposeRemote<ExposedNativeInterface>(
-				(request) => assertNotNull(nativeApp).invokeNative(request.requestType, request.args)
-			)
-			offlineDbFacade = remoteInterface.offlineDbFacade
-		} else {
-			offlineDbFacade = null
-		}
+		const sqlcipherFacade = nativeApp && isOfflineStorageAvailable()
+			? new SqlCipherFacadeSendDispatcher(nativeApp)
+			: null
 		return new CredentialsProvider(
 			credentialsEncryption,
 			deviceConfig,
 			credentialsKeyMigrator,
 			new DatabaseKeyFactory(deviceEncryptionFacade),
-			offlineDbFacade,
+			sqlcipherFacade,
 			isDesktop() ? interWindowEventSender : null,
 		)
 	} else {

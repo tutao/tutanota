@@ -1,0 +1,69 @@
+{
+	name: "SqlCipherFacade",
+	type: "facade",
+	senders: [
+		"web"
+	],
+	receivers: [
+		"desktop",
+	],
+	methods: {
+		openDb: {
+			arg: [
+				{
+					userId: "string"
+				},
+				{
+					dbKey: "bytes"
+				},
+			],
+			ret: "void",
+		},
+		closeDb: {
+			arg: [
+			],
+			ret: "void",
+		},
+		deleteDb: {
+			arg: [
+				{
+					userId: "string"
+				},
+			],
+			ret: "void",
+		},
+		run: {
+			arg: [
+				{
+					query: "string"
+				},
+				{
+					params: "List<TaggedSqlValue>"
+				},
+			],
+			ret: "void"
+		},
+		get: {
+			arg: [
+				{
+					query: "string"
+				},
+				{
+					params: "List<TaggedSqlValue>"
+				},
+			],
+			ret: "Map<string, TaggedSqlValue>?"
+		},
+		all: {
+			arg: [
+				{
+					query: "string"
+				},
+				{
+					params: "List<TaggedSqlValue>"
+				}
+			],
+			ret: "List<Map<string, TaggedSqlValue>>"
+		}
+	}
+}

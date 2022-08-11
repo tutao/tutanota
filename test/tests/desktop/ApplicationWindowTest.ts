@@ -7,13 +7,13 @@ import type {Theme, ThemeId} from "../../../src/gui/theme.js"
 import {WindowManager} from "../../../src/desktop/DesktopWindowManager.js";
 import {LocalShortcutManager} from "../../../src/desktop/electron-localshortcut/LocalShortcut.js";
 import {matchers, object, when} from "testdouble"
-import {OfflineDbFacade} from "../../../src/desktop/db/OfflineDbFacade.js"
 import {verify} from "@tutao/tutanota-test-utils"
 import {ThemeFacade} from "../../../src/native/common/generatedipc/ThemeFacade.js"
 import {DesktopThemeFacade} from "../../../src/desktop/DesktopThemeFacade.js"
 import {RemoteBridge, SendingFacades} from "../../../src/desktop/ipc/RemoteBridge.js"
 import Rectangle = Electron.Rectangle
 import BrowserWindow = Electron.BrowserWindow
+import {OfflineDbManager} from "../../../src/desktop/db/PerWindowSqlCipherFacade.js"
 
 const {anything} = matchers
 
@@ -316,7 +316,7 @@ o.spec("ApplicationWindow Test", function () {
 		// instances
 		const wmMock = n.mock<WindowManager>("__wm", wm).set()
 		const themeFacade = n.mock<DesktopThemeFacade>("__themeFacade", themeFacadeInstance).set()
-		const offlineDbFacade = object<OfflineDbFacade>()
+		const offlineDbManager = object<OfflineDbManager>()
 		const remoteBridge = object<RemoteBridge>()
 		const sendingFacades: SendingFacades = {
 			interWindowEventSender: object(),
@@ -331,7 +331,7 @@ o.spec("ApplicationWindow Test", function () {
 			langMock,
 			wmMock,
 			themeFacade,
-			offlineDbFacade,
+			offlineDbFacade: offlineDbManager,
 			remoteBridge,
 			desktopFacade: sendingFacades.desktopFacade,
 			interWindowEventSender: sendingFacades.interWindowEventSender,
@@ -1154,7 +1154,7 @@ o.spec("ApplicationWindow Test", function () {
 		const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
 		;(bwInstance as any).callbacks["close"]()
 
-		verify(offlineDbFacade.closeDatabaseForUser(userId))
+		verify(offlineDbFacade.disposeDb(userId))
 	})
 
 	o("when reloading, database is closed", async function () {
@@ -1176,6 +1176,6 @@ o.spec("ApplicationWindow Test", function () {
 
 		await w.reload({})
 
-		verify(offlineDbFacade.closeDatabaseForUser(userId))
+		verify(offlineDbFacade.disposeDb(userId))
 	})
 })

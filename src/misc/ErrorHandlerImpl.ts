@@ -12,7 +12,7 @@ import {
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "./LanguageViewModel"
 import {assertMainOrNode, isDesktop, isOfflineStorageAvailable} from "../api/common/Env"
-import {neverNull, noOp} from "@tutao/tutanota-utils"
+import {ErrorInfo, neverNull, noOp} from "@tutao/tutanota-utils"
 import {logins} from "../api/main/LoginController"
 import {OutOfSyncError} from "../api/common/error/OutOfSyncError"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
@@ -84,7 +84,7 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		const {userId} = logins.getUserController()
 		if (isDesktop()) {
 			await locator.interWindowEventSender?.localUserDataInvalidated(userId)
-			await locator.offlineDbFacade?.deleteDatabaseForUser(userId)
+			await locator.sqlCipherFacade?.deleteDb(userId)
 		}
 		await logins.logout(false)
 		await windowFacade.reload({noAutoLogin: true})
@@ -198,7 +198,7 @@ export async function reloginForExpiredSession() {
 				}
 				// Fetch old credentials to preserve database key if it's there
 				const oldCredentials = await locator.credentialsProvider.getCredentialsByUserId(userId)
-				await locator.offlineDbFacade.closeDatabaseForUser(userId)
+				await locator.sqlCipherFacade.closeDb()
 				await locator.credentialsProvider.deleteByUserId(userId, {deleteOfflineDb: false})
 				if (sessionType === SessionType.Persistent) {
 					await locator.credentialsProvider.store({credentials: credentials, databaseKey: oldCredentials?.databaseKey})

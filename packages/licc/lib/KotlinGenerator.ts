@@ -211,7 +211,7 @@ export class KotlinGenerator implements LangGenerator {
 	generateEnum({name, values, doc}: EnumDefinition): string {
 		return new Accumulator()
 			.do(acc => this.generateDocComment(acc, doc))
-			.line(`enum ${name} {`)
+			.line(`enum class ${name} {`)
 			.indented(acc => acc.lines(values.map(value => `${value},`)))
 			.line("}")
 			.finish()

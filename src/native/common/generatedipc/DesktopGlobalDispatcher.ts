@@ -21,6 +21,8 @@ import {SearchTextInAppFacade} from "./SearchTextInAppFacade.js"
 import {SearchTextInAppFacadeReceiveDispatcher} from "./SearchTextInAppFacadeReceiveDispatcher.js"
 import {SettingsFacade} from "./SettingsFacade.js"
 import {SettingsFacadeReceiveDispatcher} from "./SettingsFacadeReceiveDispatcher.js"
+import {SqlCipherFacade} from "./SqlCipherFacade.js"
+import {SqlCipherFacadeReceiveDispatcher} from "./SqlCipherFacadeReceiveDispatcher.js"
 import {ThemeFacade} from "./ThemeFacade.js"
 import {ThemeFacadeReceiveDispatcher} from "./ThemeFacadeReceiveDispatcher.js"
 import {WebAuthnFacade} from "./WebAuthnFacade.js"
@@ -37,6 +39,7 @@ export class DesktopGlobalDispatcher {
 	private readonly nativePushFacade : NativePushFacadeReceiveDispatcher
 	private readonly searchTextInAppFacade : SearchTextInAppFacadeReceiveDispatcher
 	private readonly settingsFacade : SettingsFacadeReceiveDispatcher
+	private readonly sqlCipherFacade : SqlCipherFacadeReceiveDispatcher
 	private readonly themeFacade : ThemeFacadeReceiveDispatcher
 	private readonly webAuthnFacade : WebAuthnFacadeReceiveDispatcher
 	constructor(
@@ -50,6 +53,7 @@ export class DesktopGlobalDispatcher {
 		nativePushFacade : NativePushFacade,
 		searchTextInAppFacade : SearchTextInAppFacade,
 		settingsFacade : SettingsFacade,
+		sqlCipherFacade : SqlCipherFacade,
 		themeFacade : ThemeFacade,
 		webAuthnFacade : WebAuthnFacade,
 	) {
@@ -63,6 +67,7 @@ export class DesktopGlobalDispatcher {
 		this.nativePushFacade = new NativePushFacadeReceiveDispatcher(nativePushFacade)
 		this.searchTextInAppFacade = new SearchTextInAppFacadeReceiveDispatcher(searchTextInAppFacade)
 		this.settingsFacade = new SettingsFacadeReceiveDispatcher(settingsFacade)
+		this.sqlCipherFacade = new SqlCipherFacadeReceiveDispatcher(sqlCipherFacade)
 		this.themeFacade = new ThemeFacadeReceiveDispatcher(themeFacade)
 		this.webAuthnFacade = new WebAuthnFacadeReceiveDispatcher(webAuthnFacade)
 	}
@@ -89,6 +94,8 @@ export class DesktopGlobalDispatcher {
 				return this.searchTextInAppFacade.dispatch(methodName, args)
 			case "SettingsFacade":
 				return this.settingsFacade.dispatch(methodName, args)
+			case "SqlCipherFacade":
+				return this.sqlCipherFacade.dispatch(methodName, args)
 			case "ThemeFacade":
 				return this.themeFacade.dispatch(methodName, args)
 			case "WebAuthnFacade":

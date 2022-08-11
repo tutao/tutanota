@@ -12,12 +12,12 @@ import {parseUrlOrNull} from "./PathUtils"
 import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
 import {DesktopThemeFacade} from "./DesktopThemeFacade"
 import {CancelledError} from "../api/common/error/CancelledError"
-import {OfflineDbFacade} from "./db/OfflineDbFacade"
 import {DesktopFacade} from "../native/common/generatedipc/DesktopFacade.js"
 import {CommonNativeFacade} from "../native/common/generatedipc/CommonNativeFacade.js"
 import {RemoteBridge} from "./ipc/RemoteBridge.js"
 import {InterWindowEventFacadeSendDispatcher} from "../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import {handleProtocols} from "./net/ProtocolProxy.js"
+import {OfflineDbManager} from "./db/PerWindowSqlCipherFacade.js"
 import HandlerDetails = Electron.HandlerDetails
 
 const MINIMUM_WINDOW_SIZE: number = 350
@@ -70,7 +70,7 @@ export class ApplicationWindow {
 		private readonly electron: typeof Electron.CrossProcessExports,
 		private readonly localShortcut: LocalShortcutManager,
 		private readonly themeFacade: DesktopThemeFacade,
-		private readonly offlineDbFacade: OfflineDbFacade,
+		private readonly offlineDbManager: OfflineDbManager,
 		private readonly remoteBridge: RemoteBridge,
 		dictUrl: string,
 		noAutoLogin?: boolean | null,
@@ -398,7 +398,7 @@ export class ApplicationWindow {
 	private async closeDb() {
 		if (this.userId) {
 			log.debug(TAG, `closing offline db for ${this.userId}`)
-			await this.offlineDbFacade.closeDatabaseForUser(this.userId)
+			await this.offlineDbManager.disposeDb(this.userId)
 		}
 	}
 

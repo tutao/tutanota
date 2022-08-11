@@ -141,7 +141,6 @@ async function setupSuite() {
 		await import("./desktop/DesktopContextMenuTest.js")
 		await import("./desktop/KeyStoreFacadeTest.js")
 		await import ("./desktop/config/ConfigFileTest.js")
-		await import("./desktop/db/OfflineDbTest.js")
 		await import("./desktop/db/OfflineDbFacadeTest.js")
 		await import ("./desktop/credentials/DesktopCredentialsEncryptionTest.js")
 		await import("./api/worker/offline/OfflineStorageMigratorTest.js")

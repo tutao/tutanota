@@ -4,7 +4,7 @@ import {EventController} from "./EventController"
 import {EntropyCollector} from "./EntropyCollector"
 import {SearchModel} from "../../search/model/SearchModel"
 import {MailModel} from "../../mail/model/MailModel"
-import {assertMainOrNode, assertOfflineStorageAvailable, getWebRoot, isBrowser, isDesktop, isElectronClient} from "../common/Env"
+import {assertMainOrNode, getWebRoot, isBrowser, isDesktop, isElectronClient, isOfflineStorageAvailable} from "../common/Env"
 import {notifications} from "../../gui/Notifications"
 import {logins} from "./LoginController"
 import type {ContactModel} from "../../contacts/model/ContactModel"
@@ -55,7 +55,6 @@ import {IServiceExecutor} from "../common/ServiceRequest.js"
 import {BlobFacade} from "../worker/facades/BlobFacade"
 import {CryptoFacade} from "../worker/crypto/CryptoFacade"
 import {RecipientsModel} from "./RecipientsModel"
-import {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade"
 import {ExposedCacheStorage} from "../worker/rest/DefaultEntityRestCache.js"
 import {LoginListener} from "./LoginListener"
 import {SearchTextInAppFacade} from "../../native/common/generatedipc/SearchTextInAppFacade.js"
@@ -69,6 +68,7 @@ import {FileControllerNative} from "../../file/FileControllerNative.js"
 import {windowFacade} from "../../misc/WindowFacade.js"
 import {InterWindowEventFacade} from "../../native/common/generatedipc/InterWindowEventFacade.js"
 import {InterWindowEventFacadeSendDispatcher} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import {SqlCipherFacade} from "../../native/common/generatedipc/SqlCipherFacade.js"
 
 assertMainOrNode()
 
@@ -116,7 +116,7 @@ export interface IMainLocator {
 	readonly serviceExecutor: IServiceExecutor
 	readonly cryptoFacade: CryptoFacade
 	readonly loginListener: LoginListener
-	readonly offlineDbFacade: OfflineDbFacade
+	readonly sqlCipherFacade: SqlCipherFacade
 	readonly cacheStorage: ExposedCacheStorage
 	readonly recipientsModel: RecipientsModel
 	readonly searchTextFacade: SearchTextInAppFacade
@@ -172,41 +172,33 @@ class MainLocator implements IMainLocator {
 	cacheStorage!: ExposedCacheStorage
 	loginListener!: LoginListener
 	random!: WorkerRandomizer
+	sqlCipherFacade!: SqlCipherFacade
 
-	/**
-	 * @deprecated
-	 */
-	private _nativeInterfaces: NativeInterfaces | null = null
-
-	private _exposedNativeInterfaces: ExposedNativeInterface | null = null
+	private nativeInterfaces: NativeInterfaces | null = null
+	private exposedNativeInterfaces: ExposedNativeInterface | null = null
 
 	get native(): NativeInterfaceMain {
-		return this._getNativeInterface("native")
+		return this.getNativeInterface("native")
 	}
 
 	get fileApp(): NativeFileApp {
-		return this._getNativeInterface("fileApp")
+		return this.getNativeInterface("fileApp")
 	}
 
 	get pushService(): NativePushServiceApp {
-		return this._getNativeInterface("pushService")
+		return this.getNativeInterface("pushService")
 	}
 
 	get commonSystemFacade(): CommonSystemFacade {
-		return this._getNativeInterface("commonSystemFacade")
+		return this.getNativeInterface("commonSystemFacade")
 	}
 
 	get themeFacade(): ThemeFacade {
-		return this._getNativeInterface("themeFacade")
+		return this.getNativeInterface("themeFacade")
 	}
 
 	get systemFacade(): MobileSystemFacade {
-		return this._getNativeInterface("mobileSystemFacade")
-	}
-
-	get offlineDbFacade(): OfflineDbFacade {
-		assertOfflineStorageAvailable()
-		return this.getExposedNativeInterface().offlineDbFacade
+		return this.getNativeInterface("mobileSystemFacade")
 	}
 
 	private getExposedNativeInterface(): ExposedNativeInterface {
@@ -214,19 +206,19 @@ class MainLocator implements IMainLocator {
 			throw new ProgrammingError("Tried to access native interfaces in browser")
 		}
 
-		if (this._exposedNativeInterfaces == null) {
-			this._exposedNativeInterfaces = exposeRemote<ExposedNativeInterface>((msg) => this.native.invokeNative(msg.requestType, msg.args))
+		if (this.exposedNativeInterfaces == null) {
+			this.exposedNativeInterfaces = exposeRemote<ExposedNativeInterface>((msg) => this.native.invokeNative(msg.requestType, msg.args))
 		}
 
-		return this._exposedNativeInterfaces
+		return this.exposedNativeInterfaces
 	}
 
-	_getNativeInterface<T extends keyof NativeInterfaces>(name: T): NativeInterfaces[T] {
-		if (!this._nativeInterfaces) {
+	private getNativeInterface<T extends keyof NativeInterfaces>(name: T): NativeInterfaces[T] {
+		if (!this.nativeInterfaces) {
 			throw new ProgrammingError(`Tried to use ${name} in web`)
 		}
 
-		return this._nativeInterfaces[name]
+		return this.nativeInterfaces[name]
 	}
 
 	private readonly _workerDeferred: DeferredObject<WorkerClient>
@@ -313,7 +305,7 @@ class MainLocator implements IMainLocator {
 			const {WebInterWindowEventFacade} = await import("../../native/main/WebInterWindowEventFacade.js")
 			const {WebAuthnFacadeSendDispatcher} = await import("../../native/common/generatedipc/WebAuthnFacadeSendDispatcher.js")
 			const {createNativeInterfaces, createDesktopInterfaces} = await import("../../native/main/NativeInterfaceFactory.js")
-			this._nativeInterfaces = createNativeInterfaces(
+			this.nativeInterfaces = createNativeInterfaces(
 				new WebMobileFacade(),
 				new WebDesktopFacade(),
 				new WebInterWindowEventFacade(logins, windowFacade),
@@ -333,6 +325,9 @@ class MainLocator implements IMainLocator {
 					this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
 				}
 			}
+			if (isOfflineStorageAvailable()) {
+				this.sqlCipherFacade = this.nativeInterfaces.sqlCipherFacade
+			}
 		}
 
 		if (this.webAuthn == null) {
@@ -342,7 +337,7 @@ class MainLocator implements IMainLocator {
 		this.loginListener = new LoginListener(this.secondFactorHandler)
 		this.credentialsProvider = await createCredentialsProvider(
 			deviceEncryptionFacade,
-			this._nativeInterfaces?.native ?? null,
+			this.nativeInterfaces?.native ?? null,
 			isDesktop() ? this.interWindowEventSender : null
 		)
 		this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient)
@@ -366,9 +361,9 @@ class MainLocator implements IMainLocator {
 			return new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, window, window))
 		}
 
-		this.fileController = this._nativeInterfaces == null
+		this.fileController = this.nativeInterfaces == null
 			? new FileControllerBrowser(blobFacade, fileFacade)
-			: new FileControllerNative(this._nativeInterfaces.fileApp, blobFacade, fileFacade)
+			: new FileControllerNative(this.nativeInterfaces.fileApp, blobFacade, fileFacade)
 
 		this.calendarModel = new CalendarModelImpl(
 			notifications,

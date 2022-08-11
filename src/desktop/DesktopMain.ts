@@ -37,8 +37,6 @@ import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys";
 import {DesktopNativeCredentialsFacade} from "./credentials/DesktopNativeCredentialsFacade.js"
 import {webauthnIpcHandler, WebDialogController} from "./WebDialog.js"
 import path from "path"
-import {OfflineDbFacade, OfflineDbFactory} from "./db/OfflineDbFacade"
-import {OfflineDb} from "./db/OfflineDb"
 import {DesktopContextMenu} from "./DesktopContextMenu.js"
 import {DesktopNativePushFacade} from "./sse/DesktopNativePushFacade.js"
 import {NativeCredentialsFacade} from "../native/common/generatedipc/NativeCredentialsFacade.js"
@@ -56,6 +54,9 @@ import {ExposedNativeInterface} from "../native/common/NativeInterface.js"
 import {DesktopWebauthnFacade} from "./2fa/DesktopWebauthnFacade.js"
 import {DesktopPostLoginActions} from "./DesktopPostLoginActions.js"
 import {DesktopInterWindowEventFacade} from "./ipc/DesktopInterWindowEventFacade.js"
+import {OfflineDbFactory, OfflineDbManager, PerWindowSqlCipherFacade} from "./db/PerWindowSqlCipherFacade.js"
+import {SqlCipherFacade} from "../native/common/generatedipc/SqlCipherFacade.js"
+import {DesktopSqlCipher} from "./DesktopSqlCipher.js"
 
 /**
  * Should be injected during build time.
@@ -149,11 +150,10 @@ async function createComponents(): Promise<Components> {
 	})
 
 	const offlineDbFactory: OfflineDbFactory = {
-		async create(userId: string, key: Aes256Key, retry: boolean = true): Promise<OfflineDb> {
-			const db = new OfflineDb(buildOptions.sqliteNativePath)
-			const dbPath = makeDbPath(userId)
+		async create(userId: string, key: Uint8Array, retry: boolean = true): Promise<SqlCipherFacade> {
+			const db = new DesktopSqlCipher(buildOptions.sqliteNativePath, makeDbPath(userId), true)
 			try {
-				await db.init(dbPath, key)
+				await db.openDb(userId, key)
 			} catch (e) {
 				if (!retry) throw e
 				await this.delete(userId)
@@ -175,9 +175,9 @@ async function createComponents(): Promise<Components> {
 		}
 	}
 
-	const offlineDbFacade = new OfflineDbFacade(offlineDbFactory)
+	const offlineDbManager = new OfflineDbManager(offlineDbFactory)
 
-	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon, offlineDbFacade)
+	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon, offlineDbManager)
 	const themeFacade = new DesktopThemeFacade(conf, wm)
 	const alarmScheduler = new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, global, global))
 	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, desktopCrypto, alarmScheduler)
@@ -215,15 +215,15 @@ async function createComponents(): Promise<Components> {
 			pushFacade,
 			new DesktopSearchTextInAppFacade(window),
 			settingsFacade,
+			new PerWindowSqlCipherFacade(offlineDbManager),
 			themeFacade,
-			new DesktopWebauthnFacade(window, webDialogController)
+			new DesktopWebauthnFacade(window, webDialogController),
 		)
 		return {desktopCommonSystemFacade, dispatcher}
 	}
 
 	const facadeHandlerFactory = (window: ApplicationWindow): FacadeHandler => {
 		return exposeLocal<ExposedNativeInterface, "facade">({
-			offlineDbFacade: offlineDbFacade,
 			postLoginActions: new DesktopPostLoginActions(wm, err, notifier, window.id)
 		})
 	}
