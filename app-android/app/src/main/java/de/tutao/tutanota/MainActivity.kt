@@ -28,6 +28,7 @@ import de.tutao.tutanota.alarms.SystemAlarmFacade
 import de.tutao.tutanota.credentials.CredentialsEncryptionFactory
 import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.ipc.*
+import de.tutao.tutanota.offline.AndroidSqlCipherFacade
 import de.tutao.tutanota.push.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -90,6 +91,8 @@ class MainActivity : FragmentActivity() {
 		commonSystemFacade = AndroidCommonSystemFacade(this, fileFacade.tempDir)
 		val contact = Contact(this)
 
+		val sqlCipherFacade = AndroidSqlCipherFacade(this)
+
 		val globalDispatcher = AndroidGlobalDispatcher(
 				ipcJson,
 				commonSystemFacade,
@@ -98,6 +101,7 @@ class MainActivity : FragmentActivity() {
 				CredentialsEncryptionFactory.create(this, cryptoFacade),
 				cryptoFacade,
 				nativePushFacade,
+				sqlCipherFacade,
 				themeFacade,
 		)
 		remoteBridge = RemoteBridge(

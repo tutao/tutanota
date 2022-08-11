@@ -6,6 +6,7 @@
 	],
 	receivers: [
 		"desktop",
+		"android",
 	],
 	methods: {
 		openDb: {
