@@ -207,7 +207,7 @@ class MainActivity : FragmentActivity() {
 			}
 
 			override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
-				Log.e(TAG, "Error loading WebView $error with ${error?.errorCode} @ ${request?.url?.path}")
+				Log.e(TAG, "Error loading WebView ${error?.errorCode} | ${error?.description} @ ${request?.url?.path}")
 			}
 		}
 
@@ -248,6 +248,13 @@ class MainActivity : FragmentActivity() {
 	}
 
 	private fun getMimeTypeForUrl(url: String): String {
+		// Opening devTools requests some URL that looks like https://assets.tutanota.com/index-app.html/login?theme=blah
+		// and MimeTypeMap fails to handle it because of that /login path.
+		// There should be no actual resource under index-app.html/, it's only "virtual" paths (handled by JS) for the
+		// app so we assume that it is html.
+		if (url.startsWith("https://assets.tutanota.com/index-app.html/")) {
+			return "text/html"
+		}
 		val ext = MimeTypeMap.getFileExtensionFromUrl(url)
 		// on old android mimetypemap doesn't contain js and returns null
 		// we add a few more for safety.
