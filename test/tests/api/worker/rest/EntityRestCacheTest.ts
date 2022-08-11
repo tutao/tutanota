@@ -51,27 +51,36 @@ const {anything} = matchers
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 
 async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
-	const {OfflineDbFacade} = await import("../../../../../src/desktop/db/OfflineDbFacade.js")
-	const {OfflineDb} = await import("../../../../../src/desktop/db/OfflineDb.js")
-	const offlineDbFactory = {
-		async create(userId: string, key) {
+	// const {OfflineDbFacade} = await import("../../../../../src/desktop/db/OfflineDbFacade.js")
+	// const {OfflineDb} = await import("../../../../../src/desktop/db/OfflineDb.js")
+
+	const {OfflineDbManager, PerWindowSqlCipherFacade} = await import("../../../../../src/desktop/db/PerWindowSqlCipherFacade.js")
+	const {DesktopSqlCipher} = await import("../../../../../src/desktop/DesktopSqlCipher.js")
+
+	const odbManager = new (class extends OfflineDbManager {
+		async getOrCreateDb(userId: string, key: Uint8Array) {
 			assertNotNull(userId)
 			// @ts-ignore Added by sqliteNativeBannerPlugin
 			const nativePath = buildOptions.sqliteNativePath
-			const db = new OfflineDb(nativePath)
+			const db = new DesktopSqlCipher(nativePath, ":memory:", false)
 			//integrity check breaks for in memory database
-			await db.init(":memory:", key, false)
+			await db.openDb(userId, key)
 			return db
-		},
-		async delete() {
-		},
-	}
+		}
+
+		async deleteDb(userId: string) {
+		}
+
+		async disposeDb(userId: string) {
+		}
+	})(null as any)
 
 	const migratorMock = instance(OfflineStorageMigrator)
 
-	const offlineDbFacade = new OfflineDbFacade(offlineDbFactory)
+	const nativePath = buildOptions.sqliteNativePath
+	const sqlCipherFacade = new PerWindowSqlCipherFacade(odbManager)
 	const interWindowEventSender = instance(InterWindowEventFacadeSendDispatcher)
-	const offlineStorage = new OfflineStorage(offlineDbFacade, interWindowEventSender, new NoZoneDateProvider(), migratorMock)
+	const offlineStorage = new OfflineStorage(sqlCipherFacade, interWindowEventSender, new NoZoneDateProvider(), migratorMock)
 	await offlineStorage.init({userId, databaseKey: offlineDatabaseTestKey, timeRangeDays: 42, forceNewDatabase: false})
 	return offlineStorage
 }

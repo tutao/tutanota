@@ -225,8 +225,8 @@ export class SwiftGenerator implements LangGenerator {
 	generateEnum({name, values, doc}: EnumDefinition): string {
 		return new Accumulator()
 			.do(acc => this.generateDocComment(acc, doc))
-			.line(`public enum ${name}: String {`)
-			.indented(acc => acc.lines(values.map(value => `case ${value}`)))
+			.line(`public enum ${name}: Int {`)
+			.indented(acc => acc.lines(values.map((value, index) => `case ${value} = ${index}`)))
 			.line("}")
 			.finish()
 	}

@@ -14,8 +14,8 @@ import {isRectContainedInRect} from "./DesktopUtils"
 import {defer, downcast} from "@tutao/tutanota-utils"
 import {DesktopThemeFacade} from "./DesktopThemeFacade"
 import {ElectronExports, WebContentsEvent} from "./ElectronExportTypes";
-import {OfflineDbFacade} from "./db/OfflineDbFacade"
 import {RemoteBridge} from "./ipc/RemoteBridge.js"
+import {OfflineDbManager} from "./db/PerWindowSqlCipherFacade.js"
 import {ASSET_PROTOCOL, handleProtocols} from "./net/ProtocolProxy.js"
 import path from "path"
 import url from "url"
@@ -57,7 +57,7 @@ export class WindowManager {
 		electron: ElectronExports,
 		localShortcut: LocalShortcutManager,
 		private readonly icon: NativeImage,
-		private readonly offlineDbFacade: OfflineDbFacade,
+		private readonly offlineDbManager: OfflineDbManager,
 	) {
 		this._conf = conf
 
@@ -294,7 +294,7 @@ export class WindowManager {
 		const updateUrl = await this._conf.getConst(BuildConfigKey.updateUrl)
 		const dictUrl = updateUrl && updateUrl !== "" ? updateUrl : "https://mail.tutanota.com/desktop/"
 		// custom builds get the dicts from us as well
-		return new ApplicationWindow(this, absoluteWebAssetsPath, this.icon, electron, localShortcut, this.themeFacade, this.offlineDbFacade, this.remoteBridge, dictUrl, noAutoLogin)
+		return new ApplicationWindow(this, absoluteWebAssetsPath, this.icon, electron, localShortcut, this.themeFacade, this.offlineDbManager, this.remoteBridge, dictUrl, noAutoLogin)
 	}
 
 	private async getAbsoluteWebAssetsPath() {

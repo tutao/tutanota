@@ -12,8 +12,7 @@ import {CacheStorage, expandId, ExposedCacheStorage} from "../rest/DefaultEntity
 import * as cborg from "cborg"
 import {EncodeOptions, Token, Type} from "cborg"
 import {assert, DAY_IN_MILLIS, getTypeId, groupByAndMap, mapNullable, TypeRef} from "@tutao/tutanota-utils"
-import type {OfflineDbFacade} from "../../../desktop/db/OfflineDbFacade.js"
-import {isOfflineStorageAvailable, isTest} from "../../common/Env.js"
+import {isDesktop, isOfflineStorageAvailable, isTest} from "../../common/Env.js"
 import {modelInfos} from "../../common/EntityFunctions.js"
 import {AccountType, MailFolderType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS} from "../../common/TutanotaConstants.js"
 import {DateProvider} from "../../common/DateProvider.js"
@@ -24,9 +23,9 @@ import {OfflineStorageMigrator} from "./OfflineStorageMigrator.js"
 import {CustomCacheHandlerMap, CustomCalendarEventCacheHandler} from "../rest/CustomCacheHandler.js"
 import {EntityRestClient} from "../rest/EntityRestClient.js"
 import {OfflineStorageInitArgs} from "../rest/CacheStorageProxy.js"
-import {uint8ArrayToKey} from "@tutao/tutanota-crypto"
 import {InterWindowEventFacadeSendDispatcher} from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
-import {OfflineDbClosedError} from "../../common/error/OfflineDbClosedError.js"
+import {SqlCipherFacade} from "../../../native/common/generatedipc/SqlCipherFacade.js"
+import {SqlValue, TaggedSqlValue, tagSqlValue, untagSqlObject} from "./SqlValue.js"
 
 function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNestedTokens | null {
 	return [
@@ -63,12 +62,21 @@ export interface OfflineDbMeta extends AppMetadataEntries {
 	timeRangeDays: number
 }
 
+const TableDefinitions = Object.freeze({
+	list_entities: "type TEXT NOT NULL, listId TEXT NOT NULL, elementId TEXT NOT NULL, entity BLOB NOT NULL, PRIMARY KEY (type, listId, elementId)",
+	element_entities: "type TEXT NOT NULL, elementId TEXT NOT NULL, entity BLOB NOT NULL, PRIMARY KEY (type, elementId)",
+	ranges: "type TEXT NOT NULL, listId TEXT NOT NULL, lower TEXT NOT NULL, upper TEXT NOT NULL, PRIMARY KEY (type, listId)",
+	lastUpdateBatchIdPerGroupId: "groupId TEXT NOT NULL, batchId TEXT NOT NULL, PRIMARY KEY (groupId)",
+	metadata: "key TEXT NOT NULL, value BLOB, PRIMARY KEY (key)",
+} as const)
+
+type Range = {lower: string, upper: string}
+
 export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
-	private _userId: Id | null = null
 	private customCacheHandler: CustomCacheHandlerMap | null = null
 
 	constructor(
-		private readonly offlineDbFacade: OfflineDbFacade,
+		private readonly sqlCipherFacade: SqlCipherFacade,
 		private readonly interWindowEventSender: InterWindowEventFacadeSendDispatcher,
 		private readonly dateProvider: DateProvider,
 		private readonly migrator: OfflineStorageMigrator,
@@ -80,50 +88,72 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	 * @return {boolean} whether the database was newly created or not
 	 */
 	async init({userId, databaseKey, timeRangeDays, forceNewDatabase}: OfflineStorageInitArgs): Promise<boolean> {
-		const key = uint8ArrayToKey(databaseKey)
-		this._userId = userId
-
 		if (forceNewDatabase) {
-			await this.interWindowEventSender.localUserDataInvalidated(userId)
-			await this.offlineDbFacade.deleteDatabaseForUser(userId)
+			if (isDesktop()) {
+				await this.interWindowEventSender.localUserDataInvalidated(userId)
+			}
+			await this.sqlCipherFacade.deleteDb(userId)
 		}
 		// We open database here and it is closed in the native side when the window is closed or the page is reloaded
-		await this.offlineDbFacade.openDatabaseForUser(userId, key)
+		await this.sqlCipherFacade.openDb(userId, databaseKey)
+		await this.createTables()
 		await this.migrator.migrate(this)
 		// if nothing is written here, it means it's a new database
 		const isNewOfflineDb = await this.getLastUpdateTime() == null
-		await this.clearExcludedData(timeRangeDays)
+		await this.clearExcludedData(timeRangeDays, userId)
 		return isNewOfflineDb
 	}
 
+	// FIXME call me pls
 	async deinit() {
-		this._userId && await this.offlineDbFacade.closeDatabaseForUser(this._userId)
-		this._userId = null
+		await this.sqlCipherFacade.closeDb()
 	}
 
-	private get userId(): Id {
-		if (this._userId == null) {
-			throw new OfflineDbClosedError("Offline storage not initialized")
+	async deleteIfExists(typeRef: TypeRef<SomeEntity>, listId: Id | null, elementId: Id): Promise<void> {
+		const type = getTypeId(typeRef)
+		let preparedQuery
+		if (listId == null) {
+			preparedQuery = sql`DELETE FROM element_entities WHERE type = ${type} AND elementId = ${elementId}`
+		} else {
+			preparedQuery = sql`DELETE FROM list_entities WHERE type = ${type} AND listId = ${listId} AND elementId = ${elementId}`
 		}
-
-		return this._userId
+		await this.sqlCipherFacade.run(preparedQuery.query, preparedQuery.params)
 	}
 
-	async deleteIfExists(typeRef: TypeRef<SomeEntity>, listId: Id | null, id: Id): Promise<void> {
-		return this.offlineDbFacade.delete(this.userId, getTypeId(typeRef), listId, id)
-	}
+	async get<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<T | null> {
+		const type = getTypeId(typeRef)
 
-	async get<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<T | null> {
-		const loaded = await this.offlineDbFacade.get(this.userId, getTypeId(typeRef), listId, id) ?? null
-		return loaded && this.deserialize(typeRef, loaded)
+		let preparedQuery
+		if (listId == null) {
+			preparedQuery = sql`SELECT entity from element_entities WHERE type = ${type} AND elementId = ${elementId}`
+		} else {
+			preparedQuery = sql`SELECT entity from list_entities WHERE type = ${type} AND listId = ${listId} AND elementId = ${elementId}`
+		}
+		const result = await this.sqlCipherFacade.get(preparedQuery.query, preparedQuery.params)
+		return result?.entity
+			? this.deserialize(typeRef, result.entity.value as Uint8Array)
+			: null
 	}
 
 	async getIdsInRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>> {
-		return this.offlineDbFacade.getIdsInRange(this.userId, getTypeId(typeRef), listId)
+		const type = getTypeId(typeRef)
+		const range = await this.getRange(type, listId)
+		if (range == null) {
+			throw new Error(`no range exists for ${type} and list ${listId}`)
+		}
+		const {lower, upper} = range
+		const {query, params} = sql`SELECT elementId FROM list_entities
+WHERE type = ${type}
+AND listId = ${listId}
+AND (elementId = ${lower}
+OR ${firstIdBigger("elementId", lower)})
+AND NOT(${firstIdBigger("elementId", upper)})`
+		const rows = await this.sqlCipherFacade.all(query, params)
+		return rows.map((row) => row.elementId.value as string)
 	}
 
-	async getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<{lower: Id, upper: Id} | null> {
-		return this.offlineDbFacade.getRange(this.userId, getTypeId(typeRef), listId)
+	async getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Range | null> {
+		return this.getRange(getTypeId(typeRef), listId)
 	}
 
 	async isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<boolean> {
@@ -134,50 +164,55 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	}
 
 	async provideFromRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
-		return this.deserializeList(typeRef, await this.offlineDbFacade.provideFromRange(this.userId, getTypeId(typeRef), listId, start, count, reverse))
+		const type = getTypeId(typeRef)
+		let preparedQuery
+		if (reverse) {
+			preparedQuery = sql`SELECT entity FROM list_entities WHERE type = ${type} AND listId = ${listId} AND ${firstIdBigger(start, "elementId")} ORDER BY LENGTH(elementId) DESC, elementId DESC LIMIT ${count}`
+		} else {
+			preparedQuery = sql`SELECT entity FROM list_entities WHERE type = ${type} AND listId = ${listId} AND ${firstIdBigger("elementId", start)} ORDER BY LENGTH(elementId) ASC, elementId ASC LIMIT ${count}`
+		}
+		const {query, params} = preparedQuery
+		const serializedList: ReadonlyArray<Record<string, TaggedSqlValue>> = await this.sqlCipherFacade.all(query, params)
+		return this.deserializeList(typeRef, serializedList.map((r) => r.entity.value as Uint8Array))
 	}
 
 	async put(originalEntity: SomeEntity): Promise<void> {
 		const serializedEntity = this.serialize(originalEntity)
 		const {listId, elementId} = expandId(originalEntity._id)
-		return this.offlineDbFacade.put(this.userId, {type: getTypeId(originalEntity._type), listId, elementId, entity: serializedEntity})
+		const type = getTypeId(originalEntity._type)
+		const preparedQuery = listId == null
+			? sql`INSERT OR REPLACE INTO element_entities VALUES (${type}, ${elementId}, ${serializedEntity})`
+			: sql`INSERT OR REPLACE INTO list_entities VALUES (${type}, ${listId}, ${elementId}, ${serializedEntity})`
+		await this.sqlCipherFacade.run(preparedQuery.query, preparedQuery.params)
 	}
 
 	async setLowerRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void> {
-		return this.offlineDbFacade.setLowerRange(this.userId, getTypeId(typeRef), listId, id)
+		const type = getTypeId(typeRef)
+		const {query, params} = sql`UPDATE ranges SET lower = ${id} WHERE type = ${type} AND listId = ${listId}`
+		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async setUpperRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void> {
-		return this.offlineDbFacade.setUpperRange(this.userId, getTypeId(typeRef), listId, id)
+		const type = getTypeId(typeRef)
+		const {query, params} = sql`UPDATE ranges SET upper = ${id} WHERE type = ${type} AND listId = ${listId}`
+		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async setNewRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, lower: Id, upper: Id): Promise<void> {
-		return this.offlineDbFacade.setNewRange(this.userId, getTypeId(typeRef), listId, lower, upper)
+		const type = getTypeId(typeRef)
+		const {query, params} = sql`INSERT OR REPLACE INTO ranges VALUES (${type}, ${listId}, ${lower}, ${upper})`
+		return this.sqlCipherFacade.run(query, params)
 	}
 
-	private serialize(originalEntity: SomeEntity): Uint8Array {
-		return cborg.encode(originalEntity, {typeEncoders: customTypeEncoders})
-	}
-
-	private deserialize<T extends SomeEntity>(typeRef: TypeRef<T>, loaded: Uint8Array): T {
-		const deserialized = cborg.decode(loaded, {tags: customTypeDecoders})
-		// TypeRef cannot be deserialized back automatically. We could write a codec for it but we don't actually
-		// need to store it so we just "patch" it.
-		// Some places rely on TypeRef being a class and not a plain object.
-		deserialized._type = typeRef
-		return deserialized
-	}
-
-	private deserializeList<T extends SomeEntity>(typeRef: TypeRef<T>, loaded: Array<Uint8Array>): Array<T> {
-		return loaded.map(entity => this.deserialize(typeRef, entity))
-	}
-
-	getLastBatchIdForGroup(groupId: Id): Promise<Id | null> {
-		return this.offlineDbFacade.getLastBatchIdForGroup(this.userId, groupId)
+	async getLastBatchIdForGroup(groupId: Id): Promise<Id | null> {
+		const {query, params} = sql`SELECT batchId from lastUpdateBatchIdPerGroupId WHERE groupId = ${groupId}`
+		const row = await this.sqlCipherFacade.get(query, params) as {batchId: TaggedSqlValue} | null
+		return (row?.batchId?.value ?? null) as Id | null
 	}
 
 	async putLastBatchIdForGroup(groupId: Id, batchId: Id): Promise<void> {
-		await this.offlineDbFacade.putLastBatchIdForGroup(this.userId, groupId, batchId)
+		const {query, params} = sql`INSERT OR REPLACE INTO lastUpdateBatchIdPerGroupId VALUES (${groupId}, ${batchId})`
+		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async getLastUpdateTime(): Promise<number | null> {
@@ -188,26 +223,63 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		await this.putMetadata("lastUpdateTime", ms)
 	}
 
+	async purgeStorage(): Promise<void> {
+		for (let name of Object.keys(TableDefinitions)) {
+			await this.sqlCipherFacade.run(`DELETE FROM ${name}`, [])
+		}
+	}
+
+	async deleteRange(typeRef: TypeRef<unknown>, listId: string): Promise<void> {
+		const {query, params} = sql`DELETE FROM ranges WHERE type = ${getTypeId(typeRef)} AND listId = ${listId}`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
+	async getListElementsOfType<T extends ListElementEntity>(typeRef: TypeRef<T>): Promise<Array<T>> {
+		const {query, params} = sql`SELECT entity from list_entities WHERE type = ${getTypeId(typeRef)}`
+		const items = await this.sqlCipherFacade.all(query, params) ?? []
+		return this.deserializeList(typeRef, items.map(row => row.entity.value as Uint8Array))
+	}
+
+	async getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>> {
+		const {query, params} = sql`SELECT entity FROM list_entities WHERE type = ${getTypeId(typeRef)} AND listId = ${listId}`
+		const items = await this.sqlCipherFacade.all(query, params) ?? []
+		return this.deserializeList(typeRef, items.map(row => row.entity.value as Uint8Array))
+	}
+
+	async dumpMetadata(): Promise<Partial<OfflineDbMeta>> {
+		const query = "SELECT * from metadata"
+		const stored = (await this.sqlCipherFacade.all(query, [])).map(row => [row.key.value as string, row.value.value as Uint8Array] as const)
+		return Object.fromEntries(stored.map(([key, value]) => [key, cborg.decode(value)])) as OfflineDbMeta
+	}
+
+	async setStoredModelVersion(model: keyof typeof modelInfos, version: number) {
+		return this.putMetadata(`${model}-version`, version)
+	}
+
+	getCustomCacheHandlerMap(entityRestClient: EntityRestClient): CustomCacheHandlerMap {
+		if (this.customCacheHandler == null) {
+			this.customCacheHandler = new CustomCacheHandlerMap({ref: CalendarEventTypeRef, handler: new CustomCalendarEventCacheHandler(entityRestClient)})
+		}
+		return this.customCacheHandler
+	}
+
 	private async putMetadata<K extends keyof OfflineDbMeta>(key: K, value: OfflineDbMeta[K]): Promise<void> {
-		await this.offlineDbFacade.putMetadata(this.userId, key, cborg.encode(value))
+		const {query, params} = sql`INSERT OR REPLACE INTO metadata VALUES (${key}, ${cborg.encode(value)})`
+		await this.sqlCipherFacade.run(query, params)
 	}
 
 	private async getMetadata<K extends keyof OfflineDbMeta>(key: K): Promise<OfflineDbMeta[K] | null> {
-		const encoded = await this.offlineDbFacade.getMetadata(this.userId, key)
-		return encoded && cborg.decode(encoded)
-	}
-
-	async purgeStorage(): Promise<void> {
-		await this.offlineDbFacade.deleteAll(this.userId)
+		const {query, params} = sql`SELECT value from metadata WHERE key = ${key}`
+		const encoded = await this.sqlCipherFacade.get(query, params)
+		return encoded && cborg.decode(encoded.value.value as Uint8Array)
 	}
 
 	/**
 	 * Clear out unneeded data from the offline database (i.e. trash and spam lists, old data)
 	 * @param timeRangeDays: the maxiumum age of days that mails should be to be kept in the database. if null, will use a default value
 	 */
-	private async clearExcludedData(timeRangeDays: number | null): Promise<void> {
-
-		const user = await this.get(UserTypeRef, null, this.userId)
+	private async clearExcludedData(timeRangeDays: number | null, userId: Id): Promise<void> {
+		const user = await this.get(UserTypeRef, null, userId)
 
 		// Free users always have default time range regardless of what is stored
 		const isFreeUser = user?.accountType === AccountType.FREE
@@ -224,7 +296,19 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 			}
 		}
 
-		await this.offlineDbFacade.compactDatabase(this.userId)
+		await this.sqlCipherFacade.run("VACUUM", [])
+	}
+
+	private async createTables() {
+		for (let [name, definition] of Object.entries(TableDefinitions)) {
+			await this.sqlCipherFacade.run(`CREATE TABLE IF NOT EXISTS ${name} (${definition})`, [])
+		}
+	}
+
+	private async getRange(type: string, listId: Id): Promise<Range | null> {
+		const {query, params} = sql`SELECT upper, lower FROM ranges WHERE type = ${type} AND listId = ${listId}`
+		const row = await this.sqlCipherFacade.get(query, params) ?? null
+		return mapNullable(row, untagSqlObject) as Range | null
 	}
 
 	/**
@@ -266,20 +350,27 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 				}
 			}
 		}
-		await this.offlineDbFacade.deleteIn(this.userId, getTypeId(MailBodyTypeRef), null, mailbodiesToDelete)
-		await this.offlineDbFacade.deleteIn(this.userId, getTypeId(MailHeadersTypeRef), null, headersToDelete)
+		await this.deleteIn(MailBodyTypeRef, null, mailbodiesToDelete)
+		await this.deleteIn(MailHeadersTypeRef, null, headersToDelete)
 		for (let [listId, elementIds] of groupByAndMap(attachmentsTodelete, listIdPart, elementIdPart).entries()) {
-			await this.offlineDbFacade.deleteIn(this.userId, getTypeId(FileTypeRef), listId, elementIds)
-			await this.offlineDbFacade.deleteRange(this.userId, getTypeId(FileTypeRef), listId)
+			await this.deleteIn(FileTypeRef, listId, elementIds)
+			await this.deleteRange(FileTypeRef, listId)
 		}
 
-		await this.offlineDbFacade.deleteIn(this.userId, getTypeId(MailTypeRef), listId, mailsToDelete.map(elementIdPart))
+		await this.deleteIn(MailTypeRef, listId, mailsToDelete.map(elementIdPart))
+	}
+
+	private async deleteIn(typeRef: TypeRef<unknown>, listId: Id | null, elementIds: Id[]): Promise<void> {
+		const {query, params} = listId == null
+			? sql`DELETE FROM element_entities WHERE type =${getTypeId(typeRef)} AND elementId IN ${paramList(elementIds)}`
+			: sql`DELETE FROM list_entities WHERE type = ${getTypeId(typeRef)} AND listId = ${listId} AND elementId IN ${paramList(elementIds)}`
+		return this.sqlCipherFacade.run(query, params)
 	}
 
 	private async updateRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, cutoffId: Id): Promise<void> {
 		const type = getTypeId(typeRef)
 
-		const range = await this.offlineDbFacade.getRange(this.userId, type, listId)
+		const range = await this.getRange(type, listId)
 		if (range == null) {
 			return
 		}
@@ -302,34 +393,94 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 			// so we just delete the range as well
 			// Otherwise, we only want to modify
 			if (firstBiggerThanSecond(cutoffId, range.upper)) {
-				await this.offlineDbFacade.deleteRange(this.userId, type, listId)
+				await this.deleteRange(typeRef, listId)
 			} else {
-				await this.offlineDbFacade.setLowerRange(this.userId, type, listId, cutoffId)
+				await this.setLowerRangeForList(typeRef, listId, cutoffId)
 			}
 		}
 	}
 
-	async getListElementsOfType<T extends ListElementEntity>(typeRef: TypeRef<T>): Promise<Array<T>> {
-		return this.deserializeList(typeRef, await this.offlineDbFacade.getListElementsOfType(this.userId, getTypeId(typeRef)))
+	private serialize(originalEntity: SomeEntity): Uint8Array {
+		return cborg.encode(originalEntity, {typeEncoders: customTypeEncoders})
 	}
 
-	async getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>> {
-		return this.deserializeList(typeRef, await this.offlineDbFacade.getWholeList(this.userId, getTypeId(typeRef), listId))
+	private deserialize<T extends SomeEntity>(typeRef: TypeRef<T>, loaded: Uint8Array): T {
+		const deserialized = cborg.decode(loaded, {tags: customTypeDecoders})
+		// TypeRef cannot be deserialized back automatically. We could write a codec for it but we don't actually
+		// need to store it so we just "patch" it.
+		// Some places rely on TypeRef being a class and not a plain object.
+		deserialized._type = typeRef
+		return deserialized
 	}
 
-	async dumpMetadata(): Promise<Partial<OfflineDbMeta>> {
-		const stored = await this.offlineDbFacade.dumpMetadata(this.userId)
-		return Object.fromEntries(stored.map(([key, value]) => [key, cborg.decode(value)])) as OfflineDbMeta
+	private deserializeList<T extends SomeEntity>(typeRef: TypeRef<T>, loaded: Array<Uint8Array>): Array<T> {
+		return loaded.map(entity => this.deserialize(typeRef, entity))
 	}
 
-	async setStoredModelVersion(model: keyof typeof modelInfos, version: number) {
-		return this.putMetadata(`${model}-version`, version)
-	}
+}
 
-	getCustomCacheHandlerMap(entityRestClient: EntityRestClient): CustomCacheHandlerMap {
-		if (this.customCacheHandler == null) {
-			this.customCacheHandler = new CustomCacheHandlerMap({ref: CalendarEventTypeRef, handler: new CustomCalendarEventCacheHandler(entityRestClient)})
+/*
+ * must be used with prepareSqlQuery
+ */
+function paramList(params: SqlValue[]): SqlFragment {
+	const qs = params.map(() => '?').join(",")
+	return new SqlFragment(`(${qs})`, params)
+}
+
+/**
+ * must be used with prepareSqlQuery
+ */
+function firstIdBigger(...args: [string, "elementId"] | ["elementId", string]): SqlFragment {
+	let [l, r]: [string, string] = args
+	let v
+	if (l === "elementId") {
+		v = r
+		r = "?"
+	} else {
+		v = l
+		l = "?"
+	}
+	return new SqlFragment(
+		`(CASE WHEN length(${l}) > length(${r}) THEN 1 WHEN length(${l}) < length(${r}) THEN 0 ELSE ${l} > ${r} END)`,
+		[v, v, v],
+	)
+}
+
+/**
+ * this tagged template function exists because android doesn't allow us to define SQL functions, so we have to inline the id comparison.
+ * to make it less error prone, we automate the generation of the params array for the actual sql call.
+ *
+ * usage example:
+ * const type = "sys/User"
+ * const listId = "someList"
+ * const startId = "ABC"
+ * prepareSqlQuery`SELECT entity FROM list_entities WHERE type = ${type} AND listId = ${listId} AND ${firstIdBigger(startId, "elementId")}`
+ *
+ * returns an object containing the sql command and its params array
+ */
+export function sql(queryParts: TemplateStringsArray, ...paramInstances: (SqlValue | SqlFragment)[]): {query: string, params: TaggedSqlValue[]} {
+	let query = ""
+	let params: TaggedSqlValue[] = []
+	let i = 0
+	for (i = 0; i < paramInstances.length; i++) {
+		query += queryParts[i]
+		const param = paramInstances[i]
+		if (param instanceof SqlFragment) {
+			query += param.text
+			params.push(...param.params.map(tagSqlValue))
+		} else {
+			query += "?"
+			params.push(tagSqlValue(param))
 		}
-		return this.customCacheHandler
+	}
+	query += queryParts[i]
+	return {query, params}
+}
+
+class SqlFragment {
+	constructor(
+		readonly text: string,
+		readonly params: any[]
+	) {
 	}
 }

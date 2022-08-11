@@ -1,11 +1,10 @@
 import o from "ospec"
 import {verify} from "@tutao/tutanota-test-utils"
-import {customTypeEncoders, OfflineStorage} from "../../../../../src/api/worker/offline/OfflineStorage.js"
-import {OfflineDbFacade, OfflineDbFactory} from "../../../../../src/desktop/db/OfflineDbFacade.js"
-import {instance, matchers, object, when} from "testdouble"
+import {customTypeEncoders, OfflineStorage, sql} from "../../../../../src/api/worker/offline/OfflineStorage.js"
+import {instance, object, when} from "testdouble"
 import * as cborg from "cborg"
-import {GENERATED_MIN_ID, generatedIdToTimestamp, getElementId, getListId, timestampToGeneratedId} from "../../../../../src/api/common/utils/EntityUtils.js"
-import {firstThrow, getDayShifted, getTypeId, lastThrow, promiseMap} from "@tutao/tutanota-utils"
+import {GENERATED_MIN_ID, generatedIdToTimestamp, getElementId, timestampToGeneratedId} from "../../../../../src/api/common/utils/EntityUtils.js"
+import {firstThrow, getDayShifted, getTypeId, lastThrow, mapNullable, promiseMap, TypeRef} from "@tutao/tutanota-utils"
 import {DateProvider} from "../../../../../src/api/common/DateProvider.js"
 import {
 	createFile,
@@ -19,14 +18,16 @@ import {
 	MailFolderTypeRef,
 	MailTypeRef
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import {MailFolderType} from "../../../../../src/api/common/TutanotaConstants.js"
-import {OfflineDb} from "../../../../../src/desktop/db/OfflineDb.js"
-import {aes256RandomKey, bitArrayToUint8Array} from "@tutao/tutanota-crypto"
 import {OfflineStorageMigrator} from "../../../../../src/api/worker/offline/OfflineStorageMigrator.js"
 import {InterWindowEventFacadeSendDispatcher} from "../../../../../src/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import {DesktopSqlCipher} from "../../../../../src/desktop/DesktopSqlCipher.js"
+import * as fs from "fs"
+import {untagSqlObject} from "../../../../../src/api/worker/offline/SqlValue.js"
+import {MailFolderType} from "../../../../../src/api/common/TutanotaConstants.js"
+import {ElementEntity, ListElementEntity, SomeEntity} from "../../../../../src/api/common/EntityTypes.js"
+import {resolveTypeReference} from "../../../../../src/api/common/EntityFunctions.js"
+import {Type} from "../../../../../src/api/common/EntityConstants.js"
 import {expandId} from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
-
-const {anything} = matchers
 
 function incrementId(id: Id, ms: number) {
 	const timestamp = generatedIdToTimestamp(id)
@@ -49,6 +50,10 @@ function encode(thing) {
 	return cborg.encode(thing, {typeEncoders: customTypeEncoders})
 }
 
+const nativePath = buildOptions.sqliteNativePath
+const database = "./testdatabase.sqlite"
+export const offlineDatabaseTestKey = Uint8Array.from([3957386659, 354339016, 3786337319, 3366334248])
+
 o.spec("OfflineStorage", function () {
 
 	const now = new Date("2022-01-01 00:00:00 UTC")
@@ -60,34 +65,56 @@ o.spec("OfflineStorage", function () {
 	const offsetId = days => timestampToGeneratedId(getDayShifted(now, 0 - timeRangeDays + days).getTime())
 	const cutoffId = offsetId(0)
 
+	let dbFacade: DesktopSqlCipher
+	let dateProviderMock: DateProvider
+	let storage: OfflineStorage
+	let migratorMock: OfflineStorageMigrator
+	let interWindowEventSenderMock: InterWindowEventFacadeSendDispatcher
+
+	o.beforeEach(async function () {
+		dbFacade = new DesktopSqlCipher(nativePath, database, false)
+
+		dateProviderMock = object<DateProvider>()
+		migratorMock = instance(OfflineStorageMigrator)
+		interWindowEventSenderMock = instance(InterWindowEventFacadeSendDispatcher)
+		when(dateProviderMock.now()).thenReturn(now.getTime())
+		storage = new OfflineStorage(dbFacade, interWindowEventSenderMock, dateProviderMock, migratorMock)
+	})
+
+	o.afterEach(async function () {
+		await dbFacade.closeDb()
+		await fs.promises.unlink(database)
+	})
 
 	o.spec("Unit test", function () {
+		async function insertEntity(entity: SomeEntity) {
+			const typeModel = await resolveTypeReference(entity._type)
+			const type = getTypeId(entity._type)
+			let preparedQuery
+			if (typeModel.type === Type.Element) {
+				preparedQuery = sql`insert into element_entities values (${type}, ${(entity as ElementEntity)._id}, ${encode(entity)})`
+			} else {
+				const [listId, elementId] = (entity as ListElementEntity)._id
+				preparedQuery = sql`INSERT INTO list_entities VALUES (${type}, ${listId}, ${elementId}, ${encode(entity)})`
+			}
+			await dbFacade.run(preparedQuery.query, preparedQuery.params)
+		}
 
-		let storage: OfflineStorage
-		let dbFacadeMock: OfflineDbFacade
-		let dateProviderMock: DateProvider
-		let migratorMock: OfflineStorageMigrator
-		let interWindowEventSenderMock: InterWindowEventFacadeSendDispatcher
+		async function insertRange(type: TypeRef<unknown>, listId: string, lower: string, upper: string) {
+			const {query, params} = sql`INSERT INTO ranges VALUES(${getTypeId(type)}, ${listId}, ${lower}, ${upper})`
+			await dbFacade.run(query, params)
+		}
 
-		o.beforeEach(async function () {
-			dbFacadeMock = instance(OfflineDbFacade)
-			// These need to be mocked for any call of `init` to succeed
-			// More specific mock calls will override
-			when(dbFacadeMock.getListElementsOfType(userId, anything())).thenResolve([])
-			when(dbFacadeMock.getWholeList(userId, anything(), anything())).thenResolve([])
-			when(dbFacadeMock.getRange(userId, anything(), anything())).thenResolve(null)
-
-			dateProviderMock = object<DateProvider>()
-			migratorMock = instance(OfflineStorageMigrator)
-			interWindowEventSenderMock = instance(InterWindowEventFacadeSendDispatcher)
-			when(dateProviderMock.now()).thenReturn(now.getTime())
-			storage = new OfflineStorage(dbFacadeMock, interWindowEventSenderMock, dateProviderMock, migratorMock)
-		})
+		async function getAllIdsForType(typeRef: TypeRef<unknown>): Promise<Id[]> {
+			const typeModel = await resolveTypeReference(typeRef)
+			const {query, params} = typeModel.type === Type.Element
+				? sql`select * from element_entities where type = ${getTypeId(typeRef)}`
+				: sql`select * from list_entities where type = ${getTypeId(typeRef)}`
+			return (await dbFacade.all(query, params)).map(r => r.elementId.value as Id)
+		}
 
 		o("migrations are run", async function () {
-			await storage.init(
-				{userId, databaseKey, timeRangeDays, forceNewDatabase: false}
-			)
+			await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
 			verify(migratorMock.migrate(storage))
 		})
 
@@ -98,105 +125,100 @@ o.spec("OfflineStorage", function () {
 			const mailBodyType = getTypeId(MailBodyTypeRef)
 
 			o("old ranges will be deleted", async function () {
-				const upper = offsetId(-1)
-				const lower = offsetId(-2)
-
-				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([
-					encode(createMailFolder({mails: listId}))
-				])
-				when(dbFacadeMock.getWholeList(userId, mailType, anything())).thenResolve([])
-				when(dbFacadeMock.getRange(userId, mailType, listId)).thenResolve({upper, lower})
-
+				// create tables
 				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
 
-				verify(dbFacadeMock.deleteRange(userId, mailType, listId))
+				const upper = offsetId(-1)
+				const lower = offsetId(-2)
+				await insertEntity(createMailFolder({_id: ["mailFolderList", "mailFolderId"], mails: listId}))
+				await insertEntity(createMail({_id: [listId, "anything"]}))
+				await insertRange(MailTypeRef, listId, lower, upper)
+				await storage.deinit()
+
+				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
+				const allRanges = await dbFacade.all("SELECT * FROM ranges", [])
+				o(allRanges).deepEquals([])
+				const allEntities = await getAllIdsForType(MailTypeRef)
+				o(allEntities).deepEquals([])
 			})
 
 			o("modified ranges will be shrunk", async function () {
 				const upper = offsetId(2)
 				const lower = offsetId(-2)
-
-				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([
-					encode(createMailFolder({mails: listId}))
-				])
-				when(dbFacadeMock.getWholeList(userId, mailType, anything())).thenResolve([])
-				when(dbFacadeMock.getRange(userId, mailType, listId)).thenResolve({upper, lower})
-
 				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
-
-				verify(dbFacadeMock.setLowerRange(userId, mailType, listId, cutoffId))
+				await insertEntity(createMailFolder({_id: ["mailFolderListId", "mailFolderId"], mails: listId}))
+				await insertRange(MailTypeRef, listId, lower, upper)
+				await storage.deinit()
+				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
+				const newRange = await dbFacade.get("select * from ranges", [])
+				o(mapNullable(newRange, untagSqlObject)).deepEquals({type: mailType, listId, lower: cutoffId, upper})
 			})
 
 			o("unmodified ranges will not be deleted or shrunk", async function () {
 				const upper = offsetId(2)
 				const lower = offsetId(1)
 
-				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([
-					encode(createMailFolder({mails: listId}))
-				])
-				when(dbFacadeMock.getWholeList(userId, mailType, anything())).thenResolve([])
-				when(dbFacadeMock.getRange(userId, mailType, listId)).thenResolve({upper, lower})
+				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
+				await insertEntity(createMailFolder({_id: ["mailFolderList", "mailFolderId"], mails: listId}))
+				await insertRange(MailTypeRef, listId, lower, upper)
+				await storage.deinit()
 
 				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
-
-				verify(dbFacadeMock.setLowerRange(userId, mailType, listId, anything()), {times: 0})
-				verify(dbFacadeMock.deleteRange(userId, mailType, listId), {times: 0})
+				const newRange = await dbFacade.get("select * from ranges", [])
+				o(mapNullable(newRange, untagSqlObject)).deepEquals({type: mailType, listId, lower, upper})
 			})
 
 			o("complete ranges won't be lost if entities are all newer than cutoff", async function () {
 				const upper = offsetId(2)
 				const lower = GENERATED_MIN_ID
-				when(dbFacadeMock.getRange(userId, mailType, listId)).thenResolve({upper, lower})
-				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([])
-				when(dbFacadeMock.provideFromRange(userId, mailType, listId, GENERATED_MIN_ID, 1, false)).thenResolve([
-					encode({_id: [listId, offsetId(1)]})
-				])
-
+				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
+				const mail = createMail({_id: [listId, offsetId(1)]})
+				const mailFolder = createMailFolder({_id: ["mailFolderList", "folderId"], mails: listId})
+				await insertEntity(mailFolder)
+				await insertEntity(mail)
+				await insertRange(MailTypeRef, listId, lower, upper)
+				await storage.deinit()
 				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
 
-				verify(dbFacadeMock.setLowerRange(userId, mailType, listId, anything()), {times: 0})
-				verify(dbFacadeMock.deleteRange(userId, mailType, listId), {times: 0})
+				const newRange = await dbFacade.get("select * from ranges", [])
+				o(mapNullable(newRange, untagSqlObject)).deepEquals({type: mailType, listId, lower, upper})
+
+				const allFolderIds = await getAllIdsForType(MailFolderTypeRef)
+				o(allFolderIds).deepEquals(["folderId"])
+				const allMailIds = await getAllIdsForType(MailTypeRef)
+				o(allMailIds).deepEquals([getElementId(mail)])
 			})
 
 			o("trash and spam is cleared", async function () {
+				const spamFolderId = "spamFolder"
+				const trashFolderId = "trashFolder"
 				const spamListId = "spamList"
 				const trashListId = "trashList"
 				const spamMailBodyId = "spamMailBodyId"
 				const trashMailBodyId = "trashMailBodyId"
 
-				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([
-					encode(createMailFolder({mails: spamListId, folderType: MailFolderType.SPAM})),
-					encode(createMailFolder({mails: trashListId, folderType: MailFolderType.TRASH})),
-				])
-				const spamMail = createMail({_id: [spamListId, offsetId(2)], body: spamMailBodyId})
-				when(dbFacadeMock.getWholeList(userId, mailType, spamListId)).thenResolve([
-					encode(spamMail)
-				])
-
-				const trashMail = createMail({_id: [trashListId, offsetId(2)], body: trashMailBodyId})
-				when(dbFacadeMock.getWholeList(userId, mailType, trashListId)).thenResolve([
-					encode(trashMail)
-				])
+				const spamMailId = offsetId(2)
+				const spamMail = createMail({_id: [spamListId, spamMailId], body: spamMailBodyId})
+				const trashMailId = offsetId(2)
+				const trashMail = createMail({_id: [trashListId, trashMailId], body: trashMailBodyId})
 
 				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
 
-				// Spam mail was deleted even though it's after the cutoff
-				verify(dbFacadeMock.deleteIn(userId, mailType, getListId(spamMail), [getElementId(spamMail)]))
-				// Trash mail was deleted even though it's after the cutoff
-				verify(dbFacadeMock.deleteIn(userId, mailType, getListId(trashMail), [getElementId(trashMail)]))
-				verify(dbFacadeMock.deleteIn(
-					userId,
-					mailBodyType,
-					null,
-					[spamMailBodyId]
-				))
-				verify(dbFacadeMock.deleteIn(
-					userId,
-					mailBodyType,
-					null,
-					[trashMailBodyId]
-				))
+				await insertEntity(createMailFolder({_id: ["mailFolderList", spamFolderId], mails: spamListId, folderType: MailFolderType.SPAM}))
+				await insertEntity(createMailFolder({_id: ["mailFolderList", trashFolderId], mails: trashListId, folderType: MailFolderType.TRASH}))
+				await insertEntity(spamMail)
+				await insertEntity(trashMail)
+				await insertEntity(createMailBody({_id: spamMailBodyId}))
+				await insertEntity(createMailBody({_id: trashMailBodyId}))
 
+				await storage.deinit()
+				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
+				const allEntities = await dbFacade.all("select * from list_entities", [])
+				o(allEntities.map(r => r.elementId.value)).deepEquals([spamFolderId, trashFolderId])
+
+				o(await getAllIdsForType(MailFolderTypeRef)).deepEquals([spamFolderId, trashFolderId])
+				o(await getAllIdsForType(MailTypeRef)).deepEquals([])
+				o(await getAllIdsForType(MailBodyTypeRef)).deepEquals([])
 			})
 
 			o("normal folder is partially cleared", async function () {
@@ -204,21 +226,23 @@ o.spec("OfflineStorage", function () {
 				const beforeMailBodyId = "beforeMailBodyId"
 				const afterMailBodyId = "afterMailBodyId"
 
-				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([
-					encode(createMailFolder({mails: inboxMailList, folderType: MailFolderType.INBOX})),
-				])
 				const mailBefore = createMail({_id: [inboxMailList, offsetId(-2)], body: beforeMailBodyId})
 				const mailAfter = createMail({_id: [inboxMailList, offsetId(2)], body: afterMailBodyId})
-				when(dbFacadeMock.getWholeList(userId, mailType, inboxMailList)).thenResolve([
-					encode(mailBefore),
-					encode(mailAfter),
-				])
 
 				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
 
-				verify(dbFacadeMock.deleteIn(userId, mailType, inboxMailList, [getElementId(mailBefore)]))
-				verify(dbFacadeMock.deleteIn(userId, mailType, inboxMailList, [getElementId(mailAfter)]), {times: 0})
-				verify(dbFacadeMock.deleteIn(userId, mailBodyType, null, [beforeMailBodyId]))
+				await insertEntity(createMailFolder({_id: ["mailFolderList", "folderId"], mails: inboxMailList, folderType: MailFolderType.INBOX}))
+				await insertEntity(mailBefore)
+				await insertEntity(mailAfter)
+				await insertEntity(createMailBody({_id: beforeMailBodyId}))
+				await insertEntity(createMailBody({_id: afterMailBodyId}))
+				await storage.deinit()
+				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
+
+				const allMailIds = await getAllIdsForType(MailTypeRef)
+				o(allMailIds).deepEquals([getElementId(mailAfter)])
+				const allMailBodyIds = await getAllIdsForType(MailBodyTypeRef)
+				o(allMailBodyIds).deepEquals([afterMailBodyId])
 			})
 
 			o("normal folder is completely cleared", async function () {
@@ -226,20 +250,21 @@ o.spec("OfflineStorage", function () {
 				const mailBodyId1 = "mailBodyId1"
 				const mailBodyId2 = "afterMailBodyId"
 
-				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([
-					encode(createMailFolder({mails: inboxMailList, folderType: MailFolderType.INBOX})),
-				])
 				const mail1 = createMail({_id: [inboxMailList, offsetId(-2)], body: mailBodyId1})
 				const mail2 = createMail({_id: [inboxMailList, offsetId(-3)], body: mailBodyId2})
-				when(dbFacadeMock.getWholeList(userId, mailType, inboxMailList)).thenResolve([
-					encode(mail1),
-					encode(mail2),
-				])
 
 				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
 
-				verify(dbFacadeMock.deleteIn(userId, mailType, inboxMailList, [getElementId(mail1), getElementId(mail2)]))
-				verify(dbFacadeMock.deleteIn(userId, mailBodyType, null, [mailBodyId1, mailBodyId2]))
+				await insertEntity(createMailFolder({_id: ["mailFolderList", "folderId"], mails: inboxMailList, folderType: MailFolderType.INBOX}))
+				await insertEntity(mail1)
+				await insertEntity(mail2)
+				await insertEntity(createMailBody({_id: mailBodyId1}))
+				await insertEntity(createMailBody({_id: mailBodyId2}))
+				await storage.deinit()
+				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
+
+				o(await getAllIdsForType(MailTypeRef)).deepEquals([])
+				o(await getAllIdsForType(MailBodyTypeRef)).deepEquals([])
 			})
 
 			o("when mail is deleted, attachment is also deleted", async function () {
@@ -248,23 +273,26 @@ o.spec("OfflineStorage", function () {
 				const afterMailBodyId = "afterMailBodyId"
 				const fileListId = "fileListId"
 
-				when(dbFacadeMock.getListElementsOfType(userId, mailFolderType)).thenResolve([
-					encode(createMailFolder({mails: inboxMailList, folderType: MailFolderType.INBOX})),
-				])
 				const fileBefore = createFile({_id: [fileListId, "fileBefore"]})
 				const fileAfter = createFile({_id: [fileListId, "fileAfter"]})
 				const mailBefore = createMail({_id: [inboxMailList, offsetId(-2)], body: beforeMailBodyId, attachments: [fileBefore._id]})
 				const mailAfter = createMail({_id: [inboxMailList, offsetId(2)], body: afterMailBodyId, attachments: [fileAfter._id]})
-				when(dbFacadeMock.getWholeList(userId, mailType, inboxMailList)).thenResolve([
-					encode(mailBefore),
-					encode(mailAfter),
-				])
 
 				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
-				verify(dbFacadeMock.deleteIn(userId, mailType, inboxMailList, [getElementId(mailBefore)]))
-				verify(dbFacadeMock.deleteIn(userId, getTypeId(FileTypeRef), fileListId, [getElementId(fileBefore)]))
-			})
 
+				await insertEntity(createMailFolder({_id: ["mailFolderList", "folderId"], mails: inboxMailList, folderType: MailFolderType.INBOX}))
+				await insertEntity(mailBefore)
+				await insertEntity(mailAfter)
+				await insertEntity(fileBefore)
+				await insertEntity(fileAfter)
+				await insertEntity(createMailBody({_id: beforeMailBodyId}))
+				await insertEntity(createMailBody({_id: afterMailBodyId}))
+				await storage.deinit()
+
+				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
+				o(await getAllIdsForType(MailTypeRef)).deepEquals([getElementId(mailAfter)])
+				o(await getAllIdsForType(FileTypeRef)).deepEquals([getElementId(fileAfter)])
+			})
 		})
 	})
 
@@ -275,10 +303,7 @@ o.spec("OfflineStorage", function () {
 			idGenerator,
 			getSubject,
 			getBody
-		): {
-			mails: Array<Mail>,
-			mailBodies: Array<MailBody>
-		} {
+		): {mails: Array<Mail>, mailBodies: Array<MailBody>} {
 
 			const mails: Array<Mail> = []
 			const mailBodies: Array<MailBody> = []
@@ -339,52 +364,24 @@ o.spec("OfflineStorage", function () {
 				...trashMails, ...trashMailBodies
 			]
 
-			let db
-			const factory: OfflineDbFactory = {
-				async create(userId, key) {
-					if (!db) {
-						db = new OfflineDb(buildOptions.sqliteNativePath)
-						await db.init(":memory:", key, false)
-					}
-					return db
-				},
-				async delete() {
-					throw new Error("Stub no implemented, whoopsie!")
-				}
-			}
-
-			const offlineDbFacade = new OfflineDbFacade(factory)
-
-			const dateProvider = {
-				now: () => now.getTime(),
-				timeZone: () => {
-					throw new Error()
-				}
-			}
-
-			const migratorMock = instance(OfflineStorageMigrator)
-			const interWindowEventSenderMock = instance(InterWindowEventFacadeSendDispatcher)
-
-			let offlineStorage = new OfflineStorage(offlineDbFacade, interWindowEventSenderMock, dateProvider, migratorMock)
-
-			await offlineStorage.init({userId, databaseKey: bitArrayToUint8Array(aes256RandomKey()), timeRangeDays, forceNewDatabase: false})
+			await storage.init({userId, databaseKey: offlineDatabaseTestKey, timeRangeDays, forceNewDatabase: false})
 
 			for (let entity of everyEntity) {
-				await offlineStorage.put(entity)
+				await storage.put(entity)
 			}
 
-			await offlineStorage.setNewRangeForList(MailTypeRef, inboxListId, firstThrow(oldInboxMails)._id[1], lastThrow(newInboxMails)._id[1])
-			await offlineStorage.setNewRangeForList(MailTypeRef, trashListId, firstThrow(trashMails)._id[1], lastThrow(trashMails)._id[1])
+			await storage.setNewRangeForList(MailTypeRef, inboxListId, firstThrow(oldInboxMails)._id[1], lastThrow(newInboxMails)._id[1])
+			await storage.setNewRangeForList(MailTypeRef, trashListId, firstThrow(trashMails)._id[1], lastThrow(trashMails)._id[1])
 
+			await storage.deinit()
 
 			// We need to create a new OfflineStorage because clearExcludedData gets run in `init`,
 			// And the easiest way to put data in the database is to create an OfflineStorage
-			offlineStorage = new OfflineStorage(offlineDbFacade, interWindowEventSenderMock, dateProvider, migratorMock)
-			await offlineStorage.init({userId, databaseKey: bitArrayToUint8Array(aes256RandomKey()), timeRangeDays, forceNewDatabase: false})
+			await storage.init({userId, databaseKey: offlineDatabaseTestKey, timeRangeDays, forceNewDatabase: false})
 
 			const assertContents = async ({_id, _type}, expected, msg) => {
 				const {listId, elementId} = expandId(_id)
-				return o(await offlineStorage.get(_type, listId, elementId)).deepEquals(expected)(msg)
+				return o(await storage.get(_type, listId, elementId)).deepEquals(expected)(msg)
 			}
 
 			await promiseMap(oldInboxMails, mail => assertContents(mail, null, `old mail ${mail._id} was deleted`))
@@ -400,11 +397,11 @@ o.spec("OfflineStorage", function () {
 			await assertContents(inboxFolder, inboxFolder, `inbox folder was not deleted`)
 			await assertContents(trashFolder, trashFolder, `trash folder was not deleted`)
 
-			o(await offlineStorage.getRangeForList(MailTypeRef, inboxListId)).deepEquals({
+			o(await storage.getRangeForList(MailTypeRef, inboxListId)).deepEquals({
 				lower: cutoffId,
 				upper: lastThrow(newInboxMails)._id[1]
 			})("lower range for inbox was set to cutoff")
-			o(await offlineStorage.getRangeForList(MailTypeRef, trashListId)).equals(null)("range for trash was deleted")
+			o(await storage.getRangeForList(MailTypeRef, trashListId)).equals(null)("range for trash was deleted")
 
 		})
 	})

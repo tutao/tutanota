@@ -1,0 +1,7 @@
+{
+  "name": "TaggedSqlValue",
+  "type": "typeref",
+  "location": {
+	"typescript": "../src/api/worker/offline/SqlValue.js"
+  }
+}

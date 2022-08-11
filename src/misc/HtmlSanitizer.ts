@@ -208,7 +208,6 @@ export class HtmlSanitizer {
 		if (htmlNode.style) {
 			if (config.blockExternalContent) {
 				if (htmlNode.style.backgroundImage) {
-					//console.log(htmlNode.style.backgroundImage)
 					this.replaceStyleImage(htmlNode, "backgroundImage", false)
 
 					htmlNode.style.backgroundRepeat = "no-repeat"

@@ -12,10 +12,10 @@ import type {Credentials} from "../../../../src/misc/credentials/Credentials.js"
 import {instance, object, when} from "testdouble"
 import {DatabaseKeyFactory} from "../../../../src/misc/credentials/DatabaseKeyFactory.js"
 import {keyToBase64} from "@tutao/tutanota-crypto"
-import {OfflineDbFacade} from "../../../../src/desktop/db/OfflineDbFacade.js"
 import {verify} from "@tutao/tutanota-test-utils"
 import {CredentialsKeyMigrator} from "../../../../src/misc/credentials/CredentialsKeyMigrator.js"
 import {InterWindowEventFacadeSendDispatcher} from "../../../../src/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import {SqlCipherFacade} from "../../../../src/native/common/generatedipc/SqlCipherFacade.js"
 
 const encryptionKey = new Uint8Array([1, 2, 5, 8])
 
@@ -74,7 +74,7 @@ o.spec("CredentialsProvider", function () {
 	let encryptedInternalCredentialsWithoutDatabaseKey: Omit<PersistentCredentials, "databaseKey">
 	let keyMigratorMock: CredentialsKeyMigrator
 	let databaseKeyFactoryMock: DatabaseKeyFactory
-	let offlineDbFacadeMock: OfflineDbFacade
+	let sqlCipherFacadeMock: SqlCipherFacade
 	let interWindowEventSenderMock: InterWindowEventFacadeSendDispatcher
 	o.beforeEach(function () {
 		internalCredentials = {
@@ -132,10 +132,10 @@ o.spec("CredentialsProvider", function () {
 
 		keyMigratorMock = object<CredentialsKeyMigrator>()
 		databaseKeyFactoryMock = instance(DatabaseKeyFactory)
-		offlineDbFacadeMock = object()
+		sqlCipherFacadeMock = object()
 		interWindowEventSenderMock = object()
 		credentialsProvider = new CredentialsProvider(encryption, storageMock, keyMigratorMock, databaseKeyFactoryMock,
-			offlineDbFacadeMock, interWindowEventSenderMock)
+			sqlCipherFacadeMock, interWindowEventSenderMock)
 	})
 
 	o.spec("Storing credentials", function () {
@@ -187,7 +187,7 @@ o.spec("CredentialsProvider", function () {
 		})
 		o("Deletes offline database", async function () {
 			await credentialsProvider.deleteByUserId(internalCredentials.userId)
-			verify(offlineDbFacadeMock.deleteDatabaseForUser(internalCredentials.userId))
+			verify(sqlCipherFacadeMock.deleteDb(internalCredentials.userId))
 		})
 		o("Sends event over EventBus", async function () {
 			await credentialsProvider.deleteByUserId(internalCredentials.userId)
@@ -233,8 +233,8 @@ o.spec("CredentialsProvider", function () {
 		})
 		o("Clears offline databases", async function () {
 			await credentialsProvider.clearCredentials("testing")
-			verify(offlineDbFacadeMock.deleteDatabaseForUser(internalCredentials.userId))
-			verify(offlineDbFacadeMock.deleteDatabaseForUser(externalCredentials.userId))
+			verify(sqlCipherFacadeMock.deleteDb(internalCredentials.userId))
+			verify(sqlCipherFacadeMock.deleteDb(externalCredentials.userId))
 		})
 		o("Sends event over EventBus", async function () {
 			await credentialsProvider.clearCredentials("testing")

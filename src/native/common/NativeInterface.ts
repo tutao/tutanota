@@ -1,5 +1,4 @@
-import type {OfflineDbFacade} from "../../desktop/db/OfflineDbFacade.js"
-import {IPostLoginAction} from "../../api/main/LoginController.js"
+import {IPostLoginAction} from "../../api/main/LoginController"
 
 export interface NativeInterface {
 	invokeNative(requestType: NativeRequestType, args: ReadonlyArray<unknown>): Promise<any>
@@ -7,6 +6,5 @@ export interface NativeInterface {
 
 /** What native interfaces can be accessed by the web part. */
 export interface ExposedNativeInterface {
-	offlineDbFacade: OfflineDbFacade
 	postLoginActions: IPostLoginAction
 }
