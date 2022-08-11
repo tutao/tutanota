@@ -1,13 +1,11 @@
 import m, {Children} from "mithril"
 import {SearchListView, SearchResultListEntry} from "./SearchListView"
-import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
-import {MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
+import type {Contact, Mail} from "../../api/entities/tutanota/TypeRefs.js"
+import {ContactTypeRef, MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {LockedError, NotFoundError} from "../../api/common/error/RestError"
 import {createMailViewerViewModel, MailViewer} from "../../mail/view/MailViewer"
 import {ContactViewer} from "../../contacts/view/ContactViewer"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
-import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
-import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {assertMainOrNode} from "../../api/common/Env"
 import {MultiSearchViewer} from "./MultiSearchViewer"
 import {theme} from "../../gui/theme"
@@ -62,12 +60,17 @@ export class SearchResultDetailsViewer {
 	showEntity(entity: Record<string, any>, entitySelected: boolean): void {
 		if (isSameTypeRef(MailTypeRef, entity._type)) {
 			const mail = entity as Mail
-			this._viewer = {
-				mode: "mail",
-				viewModel: createMailViewerViewModel({
-					mail,
-					showFolder: true,
-				})
+			const viewModelParams = {
+				mail,
+				showFolder: true,
+			}
+			if (this._viewer == null || this._viewer.mode !== "mail") {
+				this._viewer = {
+					mode: "mail",
+					viewModel: createMailViewerViewModel(viewModelParams)
+				}
+			} else {
+				this._viewer.viewModel.updateMail(viewModelParams)
 			}
 
 			this._viewerEntityId = mail._id
@@ -101,7 +104,7 @@ export class SearchResultDetailsViewer {
 				this._viewer = null
 				this._viewerEntityId = null
 			} else {
-				this._viewer = { mode: "multiSearch", viewer: this._multiSearchViewer }
+				this._viewer = {mode: "multiSearch", viewer: this._multiSearchViewer}
 			}
 
 			//let url = `/mail/${this.mailList.listId}`

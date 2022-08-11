@@ -130,6 +130,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private shadowDomRoot: ShadowRoot | null = null
 	private currentlyRenderedMailBody: DocumentFragment | null = null
 
+	private loadAllListener = stream()
+
 	constructor(vnode: Vnode<MailViewerAttrs>) {
 		this.setViewModel(vnode.attrs.viewModel)
 
@@ -175,9 +177,18 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		const oldViewModel = this.viewModel
 		this.viewModel = viewModel
 		if (this.viewModel !== oldViewModel) {
+
+			this.loadAllListener.end(true)
+			this.loadAllListener = this.viewModel.loadCompleteNotification.map(async () => {
+				// Wait for mail body to be redrawn before replacing images
+				m.redraw.sync()
+				await this.replaceInlineImages()
+				m.redraw()
+			})
+
 			// Reset scaling status if it's a new email.
 			this.isScaling = true
-			this.load()
+			this.viewModel.loadAll()
 
 			this.delayProgressSpinner = true
 			setTimeout(() => {
@@ -185,14 +196,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				m.redraw()
 			}, 50)
 		}
-	}
-
-	private async load() {
-		await this.viewModel.loadAll()
-		// Wait for mail body to be redrawn before replacing images
-		m.redraw.sync()
-		await this.replaceInlineImages()
-		m.redraw()
 	}
 
 	view(vnode: Vnode<MailViewerAttrs>): Children {
@@ -327,6 +330,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private renderMailBody(sanitizedMailBody: DocumentFragment): Children {
 		return m("#mail-body",
 			{
+				// key to avoid mithril reusing the dom element when it should switch the rendering the loading spinner
+				key: "mailBody",
 				oncreate: vnode => {
 					const dom = vnode.dom as HTMLElement
 					this.setDomBody(dom)
@@ -430,10 +435,11 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 	private renderLoadingIcon(): Children {
 		return this.delayProgressSpinner
-			? m(".flex-v-center.items-center")
-			: m(
-				".progress-panel.flex-v-center.items-center",
+			// key to force mithril to recreate the dom element
+			? m(".flex-v-center.items-center", {key: "loadingIcon"})
+			: m(".progress-panel.flex-v-center.items-center",
 				{
+					key: "loadingIcon",
 					style: {
 						height: "200px",
 					},
@@ -460,7 +466,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				buttons: [
 					{
 						label: "retry_action",
-						click: () => this.load()
+						click: () => this.viewModel.loadAll()
 					}
 				]
 			})
