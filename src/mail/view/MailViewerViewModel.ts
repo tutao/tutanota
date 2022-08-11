@@ -50,7 +50,7 @@ import {
 import {LoginController} from "../../api/main/LoginController"
 import m from "mithril"
 import {LockedError, NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
-import {elementIdPart, listIdPart} from "../../api/common/utils/EntityUtils"
+import {elementIdPart, haveSameId, listIdPart} from "../../api/common/utils/EntityUtils"
 import {getReferencedAttachments, loadInlineImages, moveMails, revokeInlineImages} from "./MailGuiUtils"
 import {locator} from "../../api/main/MainLocator"
 import {SanitizedFragment} from "../../misc/HtmlSanitizer"
@@ -113,15 +113,22 @@ export class MailViewerViewModel {
 
 	private renderIsDelayed: boolean = true
 
+	readonly loadCompleteNotification = stream<null>()
+	private renderedMail: Mail | null = null
+
+	get mail(): Mail {
+		return this._mail
+	}
+
 	constructor(
-		public readonly mail: Mail,
+		private _mail: Mail,
 		showFolder: boolean,
 		/**
 		 * This exists for a single purpose: making opening emails smooth in a single column layout. When the app is in a single-column layout and the email
 		 * is selected from the list then there is an animation of switching between columns. This paramter will delay sanitizing of mail body and rendering
 		 * of progress indicator until the animation is done.
 		 */
-		private readonly delayBodyRenderingUntil: Promise<void>,
+		private delayBodyRenderingUntil: Promise<void>,
 		readonly entityClient: EntityClient,
 		public readonly mailModel: MailModel,
 		readonly contactModel: ContactModel,
@@ -139,21 +146,26 @@ export class MailViewerViewModel {
 		)
 		if (isDesktop()) {
 			// Notify the admin client about the mail being selected
-			desktopSystemFacade?.sendSocketMessage(mail.sender.address)
+			desktopSystemFacade?.sendSocketMessage(this.mail.sender.address)
 		}
 
-		this.folderText = null
 		this.filesExpanded = stream<boolean>(false)
 
+		this.folderText = null
 		if (showFolder) {
-			const folder = this.mailModel.getMailFolder(mail._id[0])
+			this.showFolder()
+		}
+	}
 
-			if (folder) {
-				this.mailModel.getMailboxDetailsForMail(mail).then(mailboxDetails => {
-					this.folderText = `${lang.get("location_label")}: ${getMailboxName(logins, mailboxDetails)} / ${getFolderName(folder)}`.toUpperCase()
-					m.redraw()
-				})
-			}
+	private showFolder() {
+		this.folderText = null
+		const folder = this.mailModel.getMailFolder(this.mail._id[0])
+
+		if (folder) {
+			this.mailModel.getMailboxDetailsForMail(this.mail).then(mailboxDetails => {
+				this.folderText = `${lang.get("location_label")}: ${getMailboxName(this.logins, mailboxDetails)} / ${getFolderName(folder)}`.toUpperCase()
+				m.redraw()
+			})
 		}
 	}
 
@@ -162,12 +174,18 @@ export class MailViewerViewModel {
 		revokeInlineImages(inlineImages)
 	}
 
-	async loadAll() {
+	async loadAll(
+		{notify}: {
+			notify: boolean
+		} = {notify: true}
+	) {
 		try {
 			await this.loadingState.trackPromise(
 				this.loadMailBody(this.mail)
 					.then((inlineImageCids) => this.loadAttachments(this.mail, inlineImageCids))
 			)
+
+			if (notify) this.loadCompleteNotification(null)
 		} catch (e) {
 			if (!isOfflineError(e)) {
 				throw e
@@ -213,6 +231,7 @@ export class MailViewerViewModel {
 	}
 
 	isContrastFixNeeded(): boolean {
+		console.log("contrastFix", this.contrastFixNeeded)
 		return this.contrastFixNeeded
 	}
 
@@ -478,8 +497,12 @@ export class MailViewerViewModel {
 
 	/** @return list of inline referenced cid */
 	private async loadMailBody(mail: Mail): Promise<string[]> {
-		// Short-circuit if we already loaded everything. Will avoid resetting contentBlockingStatus or mail body.
-		if (this.sanitizeResult) {
+		if (
+			this.renderedMail != null && haveSameId(mail, this.renderedMail)
+			&& mail.state !== MailState.DRAFT
+			&& this.sanitizeResult != null
+		) {
+			// Short-circuit to avoid resetting contentBlockingStatus or mail body.
 			return this.sanitizeResult.inlineImageCids
 		}
 
@@ -523,6 +546,7 @@ export class MailViewerViewModel {
 						? ContentBlockingStatus.Block
 						: ContentBlockingStatus.NoExternalContent
 		m.redraw()
+		this.renderedMail = this.mail
 		return this.sanitizeResult.inlineImageCids
 	}
 
@@ -632,7 +656,7 @@ export class MailViewerViewModel {
 			const args = await this.createResponseMailArgsForForwarding([], [], true)
 			const [mailboxDetails, {newMailEditorAsResponse}] = await Promise.all([this.getMailboxDetails(), import("../editor/MailEditor")])
 			// Call this again to make sure everything is loaded, including inline images because this can be called earlier than all the parts are loaded.
-			await this.loadAll()
+			await this.loadAll({notify: false})
 			const editor = await newMailEditorAsResponse(args, this.isBlockingExternalImages(), this.getLoadedInlineImages(), mailboxDetails)
 			editor.show()
 		}
@@ -722,7 +746,7 @@ export class MailViewerViewModel {
 			const {prependEmailSignature} = await import("../signature/Signature.js")
 			const {newMailEditorAsResponse} = await import("../editor/MailEditor")
 
-			await this.loadAll()
+			await this.loadAll({notify: false})
 			// It should be there after loadAll() but if not we just give up
 			const inlineImageCids = this.sanitizeResult?.inlineImageCids ?? []
 
@@ -769,6 +793,7 @@ export class MailViewerViewModel {
 			allowRelativeLinks: isTutanotaTeamMail(mail),
 		})
 		const {fragment, inlineImageCids, links, externalContent} = sanitizeResult
+		console.log("sanitize the mailbod")
 
 		/**
 		 * Check if we need to improve contrast for dark theme. We apply the contrast fix if any of the following is contained in
@@ -830,7 +855,7 @@ export class MailViewerViewModel {
 		const args = await this.createResponseMailArgsForForwarding([recipient], newReplyTos, false)
 		const [mailboxDetails, {defaultSendMailModel}] = await Promise.all([this.getMailboxDetails(), import("../editor/SendMailModel")])
 		// Make sure inline images are loaded
-		await this.loadAll()
+		await this.loadAll({notify: false})
 		const model = await defaultSendMailModel(mailboxDetails).initAsResponse(args, this.getLoadedInlineImages())
 		await model.send(MailMethod.NONE)
 		const folders = await this.mailModel.getMailboxFolders(this.mail)
@@ -908,5 +933,36 @@ export class MailViewerViewModel {
 
 	private getMailOwnerGroup(): Id | null {
 		return this.mail._ownerGroup
+	}
+
+	updateMail(
+		{
+			mail,
+			delayBodyRenderingUntil,
+			showFolder
+		}: {
+			mail: Mail,
+			delayBodyRenderingUntil?: Promise<void>,
+			showFolder?: boolean
+		}
+	) {
+		this._mail = mail
+
+		if (delayBodyRenderingUntil) {
+			this.delayBodyRenderingUntil = delayBodyRenderingUntil
+			this.renderIsDelayed = true
+			this.delayBodyRenderingUntil.then(() => {
+					this.renderIsDelayed = false
+					m.redraw()
+				}
+			)
+		}
+
+		this.folderText = null
+		if (showFolder) {
+			this.showFolder()
+		}
+
+		this.loadAll({notify: true})
 	}
 }

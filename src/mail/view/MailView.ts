@@ -773,11 +773,18 @@ export class MailView implements CurrentView {
 
 		if (mails.length === 1 && !multiSelectOperation && (selectionChanged || !this.mailViewerViewModel)) {
 			// set or update the visible mail
-			this.mailViewerViewModel = createMailViewerViewModel({
+
+				const viewModelParams = {
 				mail: mails[0],
 				showFolder: false,
 				delayBodyRenderingUntil: animationOverDeferred.promise,
-			})
+				}
+
+				if (this.mailViewerViewModel == null) {
+					this.mailViewerViewModel = createMailViewerViewModel(viewModelParams)
+				} else {
+					this.mailViewerViewModel.updateMail(viewModelParams)
+				}
 
 			const url = `/mail/${mails[0]._id.join("/")}`
 
@@ -858,12 +865,8 @@ export class MailView implements CurrentView {
 				isSameId(this.mailViewerViewModel.getMailId(), [instanceListId, instanceId])
 			) {
 				try {
-					const updatedMail = await locator.entityClient
-													 .load(MailTypeRef, this.mailViewerViewModel.getMailId())
-					this.mailViewerViewModel = createMailViewerViewModel({
-						mail: updatedMail,
-						showFolder: false,
-					})
+					const updatedMail = await locator.entityClient.load(MailTypeRef, this.mailViewerViewModel.getMailId())
+					this.mailViewerViewModel.updateMail({mail: updatedMail})
 				} catch (e) {
 					if (e instanceof NotFoundError) {
 						console.log(`Could not find updated mail ${JSON.stringify([instanceListId, instanceId])}`)
