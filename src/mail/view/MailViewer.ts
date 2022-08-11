@@ -2,7 +2,7 @@ import {size} from "../../gui/size"
 import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import {ExpanderButton, ExpanderPanel} from "../../gui/base/Expander"
-import {formatDateWithWeekday, formatStorageSize, formatTime} from "../../misc/Formatter"
+import {formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime} from "../../misc/Formatter"
 import {windowFacade, windowSizeListener} from "../../misc/WindowFacade"
 import {
 	FeatureType,
@@ -203,6 +203,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		this.setViewModel(vnode.attrs.viewModel)
 
 		const dateTime = formatDateWithWeekday(this.viewModel.mail.receivedDate) + " • " + formatTime(this.viewModel.mail.receivedDate)
+		const dateTimeFull = formatDateWithWeekdayAndYear(this.viewModel.mail.receivedDate) + " • " + formatTime(this.viewModel.mail.receivedDate)
+
 		return [
 			m(
 				"#mail-viewer.fill-absolute" + (client.isMobileDevice() ? ".scroll-no-overlay.overflow-x-hidden" : ".flex.flex-column"),
@@ -269,7 +271,12 @@ export class MailViewer implements Component<MailViewerAttrs> {
 												},
 											})
 											: null,
-										m("small.date.mt-xs.content-fg.selectable", dateTime),
+										m("small.date.mt-xs.content-fg.selectable",
+											[
+												m("span.noprint", dateTime), // show the short date when viewing
+												m("span.noscreen", dateTimeFull), // show the date with year when printing
+											]
+										),
 										m(".flex-grow"),
 										m(
 											".flex.flex-column-reverse",
