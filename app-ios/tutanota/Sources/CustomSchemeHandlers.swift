@@ -82,7 +82,15 @@ class AssetSchemeHandler : NSObject, WKURLSchemeHandler {
       let err = NSError(domain: NSURLErrorDomain, code: NSURLErrorFileDoesNotExist)
       urlSchemeTask.didFailWithError(err)
     } else {
-      let fileContent = try! Data(contentsOf: URL(fileURLWithPath: requestedFilePath))
+      let fileContent: Data
+      do {
+        fileContent = try Data(contentsOf: URL(fileURLWithPath: requestedFilePath))
+      } catch {
+        TUTSLog("failed to load asset URL \(requestedFilePath), got error \(error)")
+        let err = NSError(domain: NSURLErrorDomain, code: NSURLErrorFileDoesNotExist)
+        urlSchemeTask.didFailWithError(err)
+        return
+      }
       let mimeType = getFileMIMETypeWithDefault(path: requestedFilePath)
       urlSchemeTask.didReceive(URLResponse(
         url: urlSchemeTask.request.url!,
