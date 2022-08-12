@@ -8,7 +8,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [ 16.3.0 ]
+        node-version: [ 16.16.0 ]
 
     steps:
       - uses: actions/checkout@v2
@@ -17,10 +17,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: install npm
-        run: npm i -g npm@8.5.2
+        run: npm i -g npm@8.11.0
       - name: npm install, npm test
         run: |
           npm ci
+          npm run build-packages
           npm test
 
   webapp:
@@ -28,7 +29,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [ 16.3.0 ]
+        node-version: [ 16.16.0 ]
 
     steps:
       - uses: actions/checkout@v2
@@ -37,7 +38,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: install npm
-        run: npm i -g npm@8.5.2
+        run: npm i -g npm@8.11.0
       - name: npm install, node webapp
         run: |
           npm ci
