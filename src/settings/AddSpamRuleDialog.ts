@@ -156,10 +156,10 @@ function isInvalidRule(type: NumberString, value: string, customDomains: string[
 
 export function getSpamRuleFieldToName(): Record<SpamRuleFieldType, string> {
 	return {
-		[SpamRuleFieldType.FROM]: lang.get("from_label"),
-		[SpamRuleFieldType.TO]: lang.get("to_label"),
-		[SpamRuleFieldType.CC]: "CC",
-		[SpamRuleFieldType.BCC]: "BCC",
+		[SpamRuleFieldType.FROM]: lang.get("inboxRuleSenderEquals_action"),
+		[SpamRuleFieldType.TO]: lang.get("inboxRuleToRecipientEquals_action"),
+		[SpamRuleFieldType.CC]: lang.get("inboxRuleCCRecipientEquals_action"),
+		[SpamRuleFieldType.BCC]: lang.get("inboxRuleBCCRecipientEquals_action"),
 	}
 }
 
