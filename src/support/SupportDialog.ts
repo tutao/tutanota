@@ -77,7 +77,7 @@ export function showSupportDialog() {
 									 .filter(tag => tag !== "")
 									 .map(tag => m(".keyword-bubble.plr-button", m.trust(tag.trim()))),
 							),
-							m(".list-header.pb", m.trust(value.text)),
+							m(".list-border-bottom.pb", m.trust(value.text)),
 						])
 					}),
 				),

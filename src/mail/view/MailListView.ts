@@ -368,10 +368,10 @@ export class MailListView implements Component {
 				? m(
 					ListColumnWrapper,
 					{
-						headerContent: [
+						headerContent: m(".flex.flex-column.plr-l", [
 							m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
 							m(".mr-negative-s.align-self-end", m(Button, purgeButtonAttrs)),
-						],
+						]),
 					},
 					m(this.list),
 				)

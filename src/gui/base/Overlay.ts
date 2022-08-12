@@ -66,10 +66,13 @@ export function displayOverlay(
 export const overlay: Component = {
 	view: (): Children =>
 		m(
-			"#overlay",
+			// we want the overlays to position relative to the overlay parent
+			// the overlay parent also should fill the root
+			"#overlay.fill-absolute",
 			{
 				style: {
 					display: overlays.length > 0 ? "" : "none", // display: null not working for IE11
+					"margin-top": "env(safe-area-inset-top)", // insets for iPhone X
 				},
 				"aria-hidden": overlays.length === 0,
 			},
@@ -88,7 +91,7 @@ export const overlay: Component = {
 							left: position.left,
 							height: position.height,
 							"z-index": position.zIndex != null ? position.zIndex : LayerType.Overlay,
-							"margin-top": "env(safe-area-inset-top)", // insets for iPhone X
+
 						},
 						oncreate: (vnode) => {
 							const dom = vnode.dom as HTMLElement

@@ -147,7 +147,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		const {weekdays, weeks} = month
 		const firstDay = getFirstDayOfMonth(date)
 		const today = getStartOfDayWithZone(new Date(), getTimeZone())
-		return m(".fill-absolute.flex.col.margin-are-inset-lr", [
+		return m(".fill-absolute.flex.col.mlr-safe-inset", [
 			styles.isDesktopLayout()
 				? m(".mt-s.pr-l.flex.row.items-center", [
 					renderCalendarSwitchLeftButton("prevMonth_label", () => attrs.onChangeMonth(false)),

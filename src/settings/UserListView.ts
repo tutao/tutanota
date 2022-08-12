@@ -121,7 +121,7 @@ export class UserListView implements UpdatableSettingsViewer {
 		}
 
 		return m(ListColumnWrapper, {
-				headerContent: m(".mr-negative-s.align-self-end",
+				headerContent: m(".mr-negative-s.align-self-end.plr-l",
 					m(Button, {
 						label: "addUsers_action",
 						type: ButtonType.Primary,

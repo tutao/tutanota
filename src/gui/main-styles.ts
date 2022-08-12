@@ -114,6 +114,13 @@ styles.registerStyle("main", () => {
 		a: {
 			color: "inherit",
 		},
+		":root": {
+			// We need it because we can't get env() value from JS directly
+			'--safe-area-inset-bottom': 'env(safe-area-inset-bottom)',
+			'--safe-area-inset-top': 'env(safe-area-inset-top)',
+			'--safe-area-inset-right': 'env(safe-area-inset-right)',
+			'--safe-area-inset-left': 'env(safe-area-inset-left)',
+		},
 		"html, body": {
 			height: "100%",
 			margin: 0,
@@ -582,7 +589,7 @@ styles.registerStyle("main", () => {
 		".bg-accent-fg": {
 			"background-color": theme.list_accent_fg,
 		},
-		".list-header": {
+		".list-border-bottom": {
 			"border-bottom": `1px solid ${theme.list_border}`,
 		},
 		".accent-bg": {
@@ -1025,9 +1032,13 @@ styles.registerStyle("main", () => {
 			left: px(0),
 			"overflow-x": "hidden",
 		},
-		".margin-are-inset-lr": {
+		".mlr-safe-inset": {
 			"margin-right": "env(safe-area-inset-right)",
 			"margin-left": "env(safe-area-inset-left)",
+		},
+		".plr-safe-inset": {
+			"padding-right": "env(safe-area-inset-right)",
+			"padding-left": "env(safe-area-inset-left)"
 		},
 		// view slider
 		".backface_fix": {

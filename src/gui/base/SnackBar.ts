@@ -11,6 +11,7 @@ import {LayerType} from "../../RootView"
 import type {lazy} from "@tutao/tutanota-utils"
 import type {clickHandler} from "./GuiUtils"
 import {assertMainOrNode} from "../../api/common/Env"
+import {getSafeAreaInsetBottom} from "../HtmlUtils"
 
 assertMainOrNode()
 export const SNACKBAR_SHOW_TIME = 6000
@@ -73,13 +74,13 @@ export function showSnackBar(args: {
 
 function getSnackBarPosition() {
 	// The snackbar will be moved up from off the bottom of the viewport by the transformation animation.
-	const snackBarMargin = styles.isUsingBottomNavigation() ? size.hpad : size.hpad_medium
+	const snackBarMarginLR = styles.isUsingBottomNavigation() ? size.hpad : size.hpad_medium
 	const leftOffset = styles.isDesktopLayout() ? size.drawer_menu_width : 0
-	const snackBarWidth = Math.min(window.innerWidth - leftOffset - 2 * snackBarMargin, MAX_SNACKBAR_WIDTH)
+	const snackBarWidth = Math.min(window.innerWidth - leftOffset - 2 * snackBarMarginLR, MAX_SNACKBAR_WIDTH)
 	return {
 		top: "100%",
 		// The SnackBar is only shown at the right in single column layout
-		left: styles.isSingleColumnLayout() ? px(window.innerWidth - snackBarMargin - snackBarWidth) : px(leftOffset + snackBarMargin),
+		left: styles.isSingleColumnLayout() ? px(window.innerWidth - snackBarMarginLR - snackBarWidth) : px(leftOffset + snackBarMarginLR),
 		width: px(snackBarWidth),
 		zIndex: LayerType.Overlay,
 	}
@@ -89,7 +90,10 @@ function showNextNotification() {
 	const {message, button, onClose} = notificationQueue[0] //we shift later because it is still shown
 
 	currentAnimationTimeout = null
-	const bottomOffset = styles.isUsingBottomNavigation() ? size.bottom_nav_bar + size.hpad : size.hpad_medium
+	const bottomInset = getSafeAreaInsetBottom()
+	const bottomOffset = styles.isUsingBottomNavigation()
+		? size.bottom_nav_bar + size.hpad + bottomInset
+		: size.hpad_medium
 	const closeFunction = displayOverlay(
 		() => getSnackBarPosition(),
 		{
@@ -99,7 +103,9 @@ function showNextNotification() {
 					button,
 				}),
 		},
+		// it is initially below the container and we move it into it with transform
 		dom => transform(TransformEnum.TranslateY, 0, -(bottomOffset + dom.offsetHeight)),
+		// it is initially inside the container, we transform it out of it
 		dom => transform(TransformEnum.TranslateY, -(bottomOffset + dom.offsetHeight), 0),
 		"minimized-shadow",
 	)

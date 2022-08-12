@@ -339,7 +339,9 @@ export class SettingsView implements CurrentView {
 		)
 		this._settingsColumn = new ViewColumn(
 			{
-				view: () => m(this._getCurrentViewer()),
+				// the CSS improves the situation on devices with notches (no control elements
+				// are concealed), but there's still room for improvement for scrollbars
+				view: () => m(".mlr-safe-inset.fill-absolute", m(this._getCurrentViewer())),
 			},
 			ColumnType.Background,
 			400,

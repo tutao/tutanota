@@ -203,7 +203,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			m(
 				"#mail-viewer.fill-absolute" + (client.isMobileDevice() ? ".scroll-no-overlay.overflow-x-hidden" : ".flex.flex-column"),
 				[
-					m(".header.plr-l.margin-are-inset-lr", [
+					m(".header.plr-l.mlr-safe-inset", [
 						m(".flex-space-between.button-min-height", [
 							// the natural height may vary in browsers (Firefox), so set it to button height here to make it similar to the MultiMailViewer
 							m(".flex.flex-column-reverse", [
@@ -285,7 +285,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 						this.renderBanners(this.viewModel.mail),
 					]),
 					m(
-						".flex-grow.margin-are-inset-lr.scroll-x.plr-l.pb-floating.pt" +
+						".flex-grow.mlr-safe-inset.scroll-x.plr-l.pb-floating.pt" +
 						(client.isMobileDevice() ? "" : ".scroll-no-overlay") +
 						(this.viewModel.isContrastFixNeeded() ? ".bg-white.content-black" : " "),
 						{

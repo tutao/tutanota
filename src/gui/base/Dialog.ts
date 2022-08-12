@@ -100,6 +100,8 @@ export class Dialog implements ModalComponent {
 				{
 					style: {
 						paddingTop: "env(safe-area-inset-top)",
+						paddingLeft: "env(safe-area-inset-left)",
+						paddingRight: "env(safe-area-inset-right)",
 					},
 				}, // controls vertical alignment
 				// we need overflow-hidden (actually resulting in min-height: 0 instead of auto) here because otherwise the content of the dialog may make this wrapper grow bigger outside the window on some browsers, e.g. upgrade reminder on Firefox mobile

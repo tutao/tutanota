@@ -13,6 +13,7 @@ import {MinimizedEditorOverlay} from "./MinimizedEditorOverlay"
 import {windowFacade} from "../../misc/WindowFacade"
 import {assertMainOrNode} from "../../api/common/Env"
 import Stream from "mithril/stream";
+import {getSafeAreaInsetBottom} from "../../gui/HtmlUtils.js"
 
 assertMainOrNode()
 const MINIMIZED_OVERLAY_WIDTH_WIDE = 350
@@ -72,11 +73,13 @@ function showMinimizedEditorOverlay(
 	)
 }
 
+/** Position of the top edge of the overlay from the bottom of the containing element. */
 function getVerticalOverlayPosition(): number {
+	const bottomInset = getSafeAreaInsetBottom()
 	return (
 		MINIMIZED_EDITOR_HEIGHT +
 		(styles.isUsingBottomNavigation() // use size.hpad values to keep bottom and right space even
-			? size.bottom_nav_bar + size.hpad
+			? size.bottom_nav_bar + size.hpad +  bottomInset
 			: size.hpad_medium)
 	)
 }

@@ -50,6 +50,9 @@ export class RootView {
 				"#root" + (styles.isUsingBottomNavigation() ? ".mobile" : ""),
 				{
 					onmousedown,
+					style: {
+						height: "100%"
+					}
 				},
 				[m(overlay), m(modal), vnode.children],
 			)

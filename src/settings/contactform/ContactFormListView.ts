@@ -108,7 +108,7 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 			ListColumnWrapper,
 			{
 				headerContent: m(
-					".mr-negative-s.align-self-end",
+					".mr-negative-s.align-self-end.plr-l",
 					m(Button, {
 						label: "createContactForm_label",
 						type: ButtonType.Primary,

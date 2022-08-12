@@ -91,7 +91,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 			ListColumnWrapper,
 			{
 				headerContent: this.userCanEdit()
-					? m(".flex.flex-end.center-vertically", [
+					? m(".flex.flex-end.center-vertically.plr-l", [
 						m(
 							".mr-negative-s.align-self-end",
 							m(Button, {
