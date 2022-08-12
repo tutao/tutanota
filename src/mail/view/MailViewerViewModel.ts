@@ -231,7 +231,6 @@ export class MailViewerViewModel {
 	}
 
 	isContrastFixNeeded(): boolean {
-		console.log("contrastFix", this.contrastFixNeeded)
 		return this.contrastFixNeeded
 	}
 
@@ -497,12 +496,14 @@ export class MailViewerViewModel {
 
 	/** @return list of inline referenced cid */
 	private async loadMailBody(mail: Mail): Promise<string[]> {
+
+		// If the mail is a non-draft and we have loaded it before, we don't need to reload it because it cannot have been edited, so we return early
+		// drafts however can be edited, and we want to receive the changes, so for drafts we will always reload
 		if (
 			this.renderedMail != null && haveSameId(mail, this.renderedMail)
 			&& mail.state !== MailState.DRAFT
 			&& this.sanitizeResult != null
 		) {
-			// Short-circuit to avoid resetting contentBlockingStatus or mail body.
 			return this.sanitizeResult.inlineImageCids
 		}
 
@@ -793,7 +794,6 @@ export class MailViewerViewModel {
 			allowRelativeLinks: isTutanotaTeamMail(mail),
 		})
 		const {fragment, inlineImageCids, links, externalContent} = sanitizeResult
-		console.log("sanitize the mailbod")
 
 		/**
 		 * Check if we need to improve contrast for dark theme. We apply the contrast fix if any of the following is contained in
