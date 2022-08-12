@@ -1,7 +1,6 @@
 import m, {Children, Component, Vnode} from "mithril"
 import type {DomMutation} from "../animation/Animations"
 import {animations} from "../animation/Animations"
-import {requiresStatusBarHack} from "../main-styles"
 import {ease} from "../animation/Easing"
 import {LayerType} from "../../RootView"
 import {remove} from "@tutao/tutanota-utils"
@@ -89,7 +88,7 @@ export const overlay: Component = {
 							left: position.left,
 							height: position.height,
 							"z-index": position.zIndex != null ? position.zIndex : LayerType.Overlay,
-							"margin-top": requiresStatusBarHack() ? "20px" : "env(safe-area-inset-top)", // insets for iPhone X
+							"margin-top": "env(safe-area-inset-top)", // insets for iPhone X
 						},
 						oncreate: (vnode) => {
 							const dom = vnode.dom as HTMLElement
