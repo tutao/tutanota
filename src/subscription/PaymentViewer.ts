@@ -15,7 +15,7 @@ import {HtmlEditor, HtmlEditorMode} from "../gui/editor/HtmlEditor"
 import {formatPrice, getPaymentMethodInfoText, getPaymentMethodName} from "./PriceUtils"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import {Icons} from "../gui/base/icons/Icons"
-import {ColumnWidth, TableLineAttrs, Table} from "../gui/base/Table.js"
+import {ColumnWidth, Table, TableLineAttrs} from "../gui/base/Table.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import {formatDate, formatNameAndAddress} from "../misc/Formatter"
 import {getPaymentMethodType, PaymentMethodType, PostingType} from "../api/common/TutanotaConstants"
@@ -42,6 +42,8 @@ import type {UpdatableSettingsViewer} from "../settings/SettingsView"
 import {TranslationKeyType} from "../misc/TranslationKey";
 import {CustomerAccountService} from "../api/entities/accounting/Services"
 import {DebitService} from "../api/entities/sys/Services"
+import {IconButton} from "../gui/base/IconButton.js"
+import {ButtonSize} from "../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 
@@ -64,103 +66,20 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			.setHtmlMonospace(false)
 			.setEnabled(false)
 			.setPlaceholderId("invoiceAddress_label")
-		const changeInvoiceDataButtonAttrs = {
-			label: "invoiceData_msg",
-			click: createNotAvailableForFreeClickHandler(
-				true,
-				() => {
-					if (this._accountingInfo) {
-						const accountingInfo = neverNull(this._accountingInfo)
-						const invoiceCountry = accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null
-						InvoiceDataDialog.show(
-							neverNull(neverNull(this._customer).businessUse),
-							{
-								invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
-								country: invoiceCountry,
-								vatNumber: accountingInfo.invoiceVatIdNo,
-							},
-							accountingInfo,
-						)
-					}
-				},
-				() => logins.getUserController().isPremiumAccount(),
-			),
-			icon: () => Icons.Edit,
-		} as const
 		this._postings = []
 		this._lastBooking = null
 		this._paymentBusy = false
 		const postingExpanded = stream(false)
 
 		this.view = (): Children => {
-			const changePaymentDataButtonAttrs = {
-				label: "paymentMethod_label",
-				click: createNotAvailableForFreeClickHandler(
-					true,
-					() => {
-						if (this._accountingInfo) {
-							let nextPayment = this._postings.length ? Number(this._postings[0].balance) * -1 : 0
-							showProgressDialog(
-								"pleaseWait_msg",
-								locator.bookingFacade.getCurrentPrice().then(priceServiceReturn => {
-									return Math.max(
-										nextPayment,
-										Number(neverNull(priceServiceReturn.currentPriceThisPeriod).price),
-										Number(neverNull(priceServiceReturn.currentPriceNextPeriod).price),
-									)
-								}),
-							).then(price => {
-								return PaymentDataDialog.show(neverNull(this._customer), neverNull(this._accountingInfo), price).then(success => {
-									if (success) {
-										if (this._isPayButtonVisible()) {
-											return this._showPayDialog(this._amountOwed())
-										}
-									}
-								})
-							})
-						}
-					}, // iOS app doesn't work with PayPal button or 3dsecure redirects
-					() => !isIOSApp() && logins.getUserController().isPremiumAccount(),
-				),
-				icon: () => Icons.Edit,
-			} as const
-			const invoiceVatId = this._accountingInfo ? this._accountingInfo.invoiceVatIdNo : lang.get("loading_msg")
-			const paymentMethodHelpLabel = () => {
-				if (this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.Invoice) {
-					return lang.get("paymentProcessingTime_msg")
-				}
-
-				return ""
-			}
-
-			const paymentMethod = this._accountingInfo
-				? getPaymentMethodName(getPaymentMethodType(neverNull(this._accountingInfo))) + " " + getPaymentMethodInfoText(neverNull(this._accountingInfo))
-				: lang.get("loading_msg")
 			return m(
 				"#invoicing-settings.fill-absolute.scroll.plr-l",
 				{
 					role: "group",
 				},
 				[
-					m(".flex-space-between.items-center.mt-l.mb-s", [
-						m(".h4", lang.get("invoiceData_msg")),
-						m(".mr-negative-s", m(Button, changeInvoiceDataButtonAttrs)),
-					]),
-					m(this._invoiceAddressField),
-					this._accountingInfo && this._accountingInfo.invoiceVatIdNo.trim().length > 0
-						? m(TextField, {
-							label: "invoiceVatIdNo_label",
-							value: invoiceVatId,
-							disabled: true,
-						})
-						: null,
-					m(TextField, {
-						label: "paymentMethod_label",
-						value: paymentMethod,
-						helpLabel: paymentMethodHelpLabel,
-						disabled: true,
-						injectionsRight: () => [m(Button, changePaymentDataButtonAttrs)],
-					}),
+					this.renderInvoiceData(),
+					this.renderPaymentMethod(),
 					this._renderPostings(postingExpanded),
 				],
 			)
@@ -185,6 +104,78 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			   .then(() => this._loadBookings())
 	}
 
+	private renderPaymentMethod() {
+		const paymentMethodHelpLabel = () => {
+			if (this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.Invoice) {
+				return lang.get("paymentProcessingTime_msg")
+			}
+
+			return ""
+		}
+
+		const paymentMethod = this._accountingInfo
+			? getPaymentMethodName(getPaymentMethodType(neverNull(this._accountingInfo))) + " " + getPaymentMethodInfoText(neverNull(this._accountingInfo))
+			: lang.get("loading_msg")
+
+		return m(TextField, {
+			label: "paymentMethod_label",
+			value: paymentMethod,
+			helpLabel: paymentMethodHelpLabel,
+			disabled: true,
+			injectionsRight: () => m(IconButton, {
+				title: "paymentMethod_label",
+				// iOS app doesn't work with PayPal button or 3dsecure redirects
+				click: createNotAvailableForFreeClickHandler(
+					true,
+					() => this.changePaymentMethod(),
+					() => !isIOSApp() && logins.getUserController().isPremiumAccount(),
+				),
+				icon: Icons.Edit,
+				size: ButtonSize.Compact,
+			}),
+		})
+	}
+
+	private changeInvoiceData() {
+		if (this._accountingInfo) {
+			const accountingInfo = neverNull(this._accountingInfo)
+			const invoiceCountry = accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null
+			InvoiceDataDialog.show(
+				neverNull(neverNull(this._customer).businessUse),
+				{
+					invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
+					country: invoiceCountry,
+					vatNumber: accountingInfo.invoiceVatIdNo,
+				},
+				accountingInfo,
+			)
+		}
+	}
+
+	private changePaymentMethod() {
+		if (this._accountingInfo) {
+			let nextPayment = this._postings.length ? Number(this._postings[0].balance) * -1 : 0
+			showProgressDialog(
+				"pleaseWait_msg",
+				locator.bookingFacade.getCurrentPrice().then(priceServiceReturn => {
+					return Math.max(
+						nextPayment,
+						Number(neverNull(priceServiceReturn.currentPriceThisPeriod).price),
+						Number(neverNull(priceServiceReturn.currentPriceNextPeriod).price),
+					)
+				}),
+			).then(price => {
+				return PaymentDataDialog.show(neverNull(this._customer), neverNull(this._accountingInfo), price).then(success => {
+					if (success) {
+						if (this._isPayButtonVisible()) {
+							return this._showPayDialog(this._amountOwed())
+						}
+					}
+				})
+			})
+		}
+	}
+
 	_renderPostings(postingExpanded: Stream<boolean>): Children {
 		if (!this._postings || this._postings.length === 0) {
 			return null
@@ -206,9 +197,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						)
 						: null,
 					this._isPayButtonVisible()
-						? m(
-							".pb",
-							{
+						? m(".pb", {
 								style: {
 									width: "200px",
 								},
@@ -244,36 +233,39 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						columnWidths: [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small],
 						columnAlignments: [false, true, false],
 						showActionButtonColumn: true,
-						lines: this._postings.map((posting: CustomerAccountPosting) => {
-							return {
-								cells: () => [
-									{
-										main: getPostingTypeText(posting),
-										info: [formatDate(posting.valueDate)],
-									},
-									{
-										main: formatPrice(Number(posting.amount), true),
-									},
-								],
-								actionButtonAttrs:
-									posting.type === PostingType.UsageFee || posting.type === PostingType.Credit
-										? {
-											label: "download_action",
-											icon: () => Icons.Download,
-											click: () => {
-												showProgressDialog(
-													"pleaseWait_msg",
-													locator.customerFacade.downloadInvoice(neverNull(posting.invoiceNumber)),
-												).then(pdfInvoice => locator.fileController.saveDataFile(pdfInvoice))
-											},
-										}
-										: null,
-							} as TableLineAttrs
-						}),
+						lines: this._postings.map((posting: CustomerAccountPosting) => this.postingLineAttrs(posting)),
 					}),
 				),
 				m(".small", lang.get("invoiceSettingDescription_msg") + " " + lang.get("laterInvoicingInfo_msg")),
 			]
+		}
+	}
+
+	private postingLineAttrs(posting: CustomerAccountPosting): TableLineAttrs {
+		return {
+			cells: () => [
+				{
+					main: getPostingTypeText(posting),
+					info: [formatDate(posting.valueDate)],
+				},
+				{
+					main: formatPrice(Number(posting.amount), true),
+				},
+			],
+			actionButtonAttrs:
+				posting.type === PostingType.UsageFee || posting.type === PostingType.Credit
+					? {
+						title: "download_action",
+						icon: Icons.Download,
+						size: ButtonSize.Compact,
+						click: () => {
+							showProgressDialog(
+								"pleaseWait_msg",
+								locator.customerFacade.downloadInvoice(neverNull(posting.invoiceNumber)),
+							).then(pdfInvoice => locator.fileController.saveDataFile(pdfInvoice))
+						},
+					}
+					: null,
 		}
 	}
 
@@ -398,6 +390,32 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				}
 			})
 			.finally(() => (this._paymentBusy = false))
+	}
+
+	private renderInvoiceData(): Children {
+		return [
+			m(".flex-space-between.items-center.mt-l.mb-s", [
+				m(".h4", lang.get("invoiceData_msg")),
+				m(IconButton, {
+					title: "invoiceData_msg",
+					click: createNotAvailableForFreeClickHandler(
+						true,
+						() => this.changeInvoiceData(),
+						() => logins.getUserController().isPremiumAccount(),
+					),
+					icon: Icons.Edit,
+					size: ButtonSize.Compact,
+				}),
+			]),
+			m(this._invoiceAddressField),
+			this._accountingInfo && this._accountingInfo.invoiceVatIdNo.trim().length > 0
+				? m(TextField, {
+					label: "invoiceVatIdNo_label",
+					value: this._accountingInfo ? this._accountingInfo.invoiceVatIdNo : lang.get("loading_msg"),
+					disabled: true,
+				})
+				: null
+		]
 	}
 }
 

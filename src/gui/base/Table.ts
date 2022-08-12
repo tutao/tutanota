@@ -1,16 +1,16 @@
 import m, {Children, Component, Vnode} from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
-import {px, size} from "../size"
 import {progressIcon} from "./Icon"
-import type {ButtonAttrs} from "./Button.js"
-import {Button, ButtonType} from "./Button.js"
 import type {lazy} from "@tutao/tutanota-utils"
 import {downcast, neverNull} from "@tutao/tutanota-utils"
-import {createDropdown} from "./Dropdown.js"
+import {createDropdown, DropdownButtonAttrs} from "./Dropdown.js"
 import {Icons} from "./icons/Icons"
 import type {clickHandler} from "./GuiUtils"
 import {assertMainOrNode} from "../../api/common/Env"
+import {IconButton, IconButtonAttrs} from "./IconButton.js"
+import {ButtonSize} from "./ButtonSize.js";
+import {px, size} from "../size.js"
 
 assertMainOrNode()
 
@@ -34,7 +34,7 @@ export type TableAttrs = {
 	columnAlignments?: Array<boolean>
 	verticalColumnHeadings?: boolean
 	showActionButtonColumn: boolean
-	addButtonAttrs?: ButtonAttrs | null
+	addButtonAttrs?: IconButtonAttrs | null
 	lines: ReadonlyArray<TableLineAttrs> | null
 }
 export type CellTextData = {
@@ -45,7 +45,7 @@ export type CellTextData = {
 }
 export type TableLineAttrs = {
 	cells: string[] | (() => CellTextData[])
-	actionButtonAttrs?: ButtonAttrs | null
+	actionButtonAttrs?: IconButtonAttrs | null
 }
 
 /**
@@ -140,22 +140,11 @@ export class Table implements Component<TableAttrs> {
 				m("td",
 					{
 						style: {
-							width: px(size.button_height),
+							width: px(size.button_height_compact)
 						},
 					},
 					lineAttrs.actionButtonAttrs
-						? [
-							m(
-								"",
-								{
-									style: {
-										position: "relative",
-										right: px(-size.hpad_button), // same as .mr-negative-s
-									},
-								},
-								m(Button, lineAttrs.actionButtonAttrs),
-							),
-						]
+						? m(IconButton, lineAttrs.actionButtonAttrs)
 						: [],
 				),
 			)
@@ -174,15 +163,14 @@ export function createRowActions<T>(
 	instance: UpdateableInstanceWithArray<T>,
 	currentElement: T,
 	indexOfElement: number,
-	prefixActions: ReadonlyArray<ButtonAttrs> = [],
-): ButtonAttrs {
+	prefixActions: ReadonlyArray<DropdownButtonAttrs> = [],
+): IconButtonAttrs {
 	const elements = instance.getArray()
-	const makeButtonAttrs: () => ReadonlyArray<ButtonAttrs | null> = () => [
+	const makeButtonAttrs: () => ReadonlyArray<DropdownButtonAttrs | null> = () => [
 		...prefixActions,
 		indexOfElement > 1
 			? {
 				label: "moveToTop_action",
-				type: ButtonType.Dropdown,
 				click: () => {
 					elements.splice(indexOfElement, 1)
 					elements.unshift(currentElement)
@@ -193,7 +181,6 @@ export function createRowActions<T>(
 		indexOfElement > 0
 			? {
 				label: "moveUp_action",
-				type: ButtonType.Dropdown,
 				click: () => {
 					let prev = elements[indexOfElement - 1]
 					elements[indexOfElement - 1] = currentElement
@@ -205,7 +192,6 @@ export function createRowActions<T>(
 		indexOfElement < instance.getArray().length - 1
 			? {
 				label: "moveDown_action",
-				type: ButtonType.Dropdown,
 				click: () => {
 					let next = elements[indexOfElement + 1]
 					elements[indexOfElement + 1] = currentElement
@@ -217,7 +203,6 @@ export function createRowActions<T>(
 		indexOfElement < instance.getArray().length - 2
 			? {
 				label: "moveToBottom_action",
-				type: ButtonType.Dropdown,
 				click: () => {
 					elements.splice(indexOfElement, 1)
 					elements.push(currentElement)
@@ -227,7 +212,6 @@ export function createRowActions<T>(
 			: null,
 		{
 			label: "delete_action",
-			type: ButtonType.Dropdown,
 			click: () => {
 				elements.splice(indexOfElement, 1)
 				instance.updateInstance()
@@ -235,8 +219,9 @@ export function createRowActions<T>(
 		},
 	]
 	return {
-		label: "edit_action",
+		title: "edit_action",
 		click: createDropdown({lazyButtons: makeButtonAttrs, width: 260}),
-		icon: () => Icons.Edit,
+		icon: Icons.More,
+		size: ButtonSize.Compact,
 	}
 }

@@ -24,6 +24,8 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {getCleanedMailAddress} from "../misc/parsing/MailAddressParser"
 import {locator} from "../api/main/MainLocator"
+import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
+import {ButtonSize} from "../gui/base/ButtonSize.js";
 
 type IdentifierRowAttrs = {
 	name: string
@@ -40,17 +42,16 @@ class IdentifierRow implements Component<IdentifierRowAttrs> {
 		const dropdownAttrs = attachDropdown(
 			{
 				mainButtonAttrs: {
-					label: "edit_action",
-					icon: () => Icons.Edit,
+					title: "edit_action",
+					icon: Icons.More,
+					size: ButtonSize.Compact
 				}, childAttrs: () => [
 					{
 						label: () => lang.get(vnode.attrs.disabled ? "activate_action" : "deactivate_action"),
-						type: ButtonType.Dropdown,
 						click: vnode.attrs.disableClicked,
 					},
 					{
 						label: "delete_action",
-						type: ButtonType.Dropdown,
 						click: vnode.attrs.removeClicked,
 					},
 				]
@@ -61,7 +62,7 @@ class IdentifierRow implements Component<IdentifierRowAttrs> {
 				m("span" + (vnode.attrs.current ? ".b" : ""), vnode.attrs.name),
 				vnode.attrs.disabled ? m(".mlr", `(${lang.get("notificationsDisabled_label")})`) : null,
 				m(".flex-grow"),
-				m(Button, dropdownAttrs),
+				m(IconButton, dropdownAttrs),
 			]),
 			this._identifier(vnode),
 		])
@@ -71,7 +72,7 @@ class IdentifierRow implements Component<IdentifierRowAttrs> {
 		const identifierText = vnode.attrs.formatIdentifier
 			? neverNull(vnode.attrs.identifier.match(/.{2}/g)).map((el, i) => m("span.pr-s" + (i % 2 === 0 ? ".b" : ""), el))
 			: vnode.attrs.identifier
-		return m(".text-break.small.monospace.mt-negative-s.selectable", identifierText)
+		return m(".text-break.small.monospace.mt-negative-hpad-button.selectable", identifierText)
 	}
 }
 
@@ -102,12 +103,13 @@ export class IdentifierListViewer {
 		}
 		const expanderContent = {
 			view: (): Children => {
-				const buttonAddAttrs: ButtonAttrs = {
-					label: "emailPushNotification_action",
+				const buttonAddAttrs: IconButtonAttrs = {
+					title: "emailPushNotification_action",
 					click: () => this._showAddNotificationEmailAddressDialog(this._user),
-					icon: () => Icons.Add,
+					icon: Icons.Add,
+					size: ButtonSize.Compact,
 				}
-				const rowAdd = m(".full-width.flex-space-between.items-center.mb-s", [lang.get("emailPushNotification_action"), m(Button, buttonAddAttrs)])
+				const rowAdd = m(".full-width.flex-space-between.items-center.mb-s", [lang.get("emailPushNotification_action"), m(IconButton, buttonAddAttrs)])
 
 				const rows = this._identifiers
 								 .map(identifier => {

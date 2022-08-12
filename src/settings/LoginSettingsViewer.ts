@@ -6,13 +6,12 @@ import {InfoLink, lang} from "../misc/LanguageViewModel"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {Session, SessionTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {LazyLoaded, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
+import {LazyLoaded, neverNull, ofClass} from "@tutao/tutanota-utils"
 import {formatDateTimeFromYesterdayOn} from "../misc/Formatter"
 import {SessionState} from "../api/common/TutanotaConstants"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import type {ButtonAttrs} from "../gui/base/Button.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import {NotFoundError} from "../api/common/error/RestError"
 import * as RecoverCodeDialog from "./RecoverCodeDialog"
@@ -29,6 +28,8 @@ import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
 import {elementIdPart, getElementId} from "../api/common/utils/EntityUtils"
 import {showChangeOwnPasswordDialog} from "./ChangePasswordDialogs.js";
+import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
+import {ButtonSize} from "../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 
@@ -56,36 +57,35 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			oninput: this._mailAddress,
 			disabled: true,
 		}
-		const changePasswordButtonAttrs: ButtonAttrs = {
-			label: "changePassword_label",
+		const changePasswordButtonAttrs: IconButtonAttrs = {
+			title: "changePassword_label",
 			click: () => showChangeOwnPasswordDialog(),
-			icon: () => Icons.Edit,
+			icon: Icons.Edit,
+			size: ButtonSize.Compact,
 		}
 		const passwordAttrs: TextFieldAttrs = {
 			label: "password_label",
 			value: this._stars(),
 			oninput: this._stars,
 			disabled: true,
-			injectionsRight: () => m(Button, changePasswordButtonAttrs),
+			injectionsRight: () => m(IconButton, changePasswordButtonAttrs),
 		}
-		const recoveryCodeDropdownButtonAttrs: ButtonAttrs = attachDropdown(
+		const recoveryCodeDropdownButtonAttrs: IconButtonAttrs = attachDropdown(
 			{
 				mainButtonAttrs: {
-					label: "edit_action",
-					icon: () => Icons.Edit,
-					click: noOp,
+					title: "edit_action",
+					icon: Icons.Edit,
+					size: ButtonSize.Compact,
 				}, childAttrs: () => [
 					logins.getUserController().user.auth?.recoverCode
 						? {
 							label: "show_action",
 							click: () => RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification("get"),
-							type: ButtonType.Dropdown,
 						}
 						: null,
 					{
 						label: () => (neverNull(logins.getUserController().user.auth).recoverCode ? lang.get("update_action") : lang.get("setUp_action")),
 						click: () => RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification("create"),
-						type: ButtonType.Dropdown,
 					},
 				], showDropdown: () => true
 			},
@@ -101,7 +101,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			value: this._stars(),
 			oninput: this._stars,
 			disabled: true,
-			injectionsRight: () => m(Button, recoveryCodeDropdownButtonAttrs),
+			injectionsRight: () => m(IconButton, recoveryCodeDropdownButtonAttrs),
 		}
 		// Might be not there when we are logging out
 		if (logins.isUserLoggedIn()) {
@@ -154,9 +154,9 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			value: this._credentialsEncryptionModeName(usedMode ?? CredentialEncryptionMode.DEVICE_LOCK),
 			disabled: true,
 			injectionsRight: () =>
-				m(Button, {
-					label: "edit_action",
-					icon: () => Icons.Edit,
+				m(IconButton, {
+					title: "edit_action",
+					icon: Icons.Edit,
 					click: () => showCredentialsEncryptionModeDialog(this.credentialsProvider).then(m.redraw),
 				}),
 		})
@@ -188,11 +188,12 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 							   actionButtonAttrs: thisSession
 								   ? null
 								   : {
-									   label: "closeSession_action",
+									   title: "closeSession_action",
 									   click: () => {
 										   this._closeSession(session)
 									   },
-									   icon: () => Icons.Cancel,
+									   icon: Icons.Cancel,
+									   size: ButtonSize.Compact,
 								   } as const,
 						   }
 					   })

@@ -3,12 +3,10 @@ import {InfoLink, lang} from "../misc/LanguageViewModel"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {noOp} from "@tutao/tutanota-utils"
 import {Icons} from "../gui/base/icons/Icons"
 import type {TextFieldAttrs} from "../gui/base/TextField.js"
 import {TextField} from "../gui/base/TextField.js"
-import type {ButtonAttrs} from "../gui/base/Button.js"
-import {Button, ButtonType} from "../gui/base/Button.js"
+import {Button} from "../gui/base/Button.js"
 import {attachDropdown} from "../gui/base/Dropdown.js"
 import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelector.js"
 import {DropDownSelector} from "../gui/base/DropDownSelector.js"
@@ -22,6 +20,8 @@ import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
 import type {UpdatableSettingsViewer} from "./SettingsView"
 import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
+import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
+import {ButtonSize} from "../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 
@@ -132,17 +132,18 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				})
 			},
 		}
-		const editSpellcheckLanguageButtonAttrs: ButtonAttrs = {
-			label: "checkSpelling_action",
+		const editSpellcheckLanguageButtonAttrs: IconButtonAttrs = {
+			title: "checkSpelling_action",
 			click: () => showSpellcheckLanguageDialog().then(newLabel => this.spellCheckLang(newLabel)),
-			icon: () => Icons.Edit,
+			icon: Icons.Edit,
+			size: ButtonSize.Compact,
 		}
 		const spellcheckLanguageAttrs: TextFieldAttrs = {
 			label: "checkSpelling_action",
 			value: this.spellCheckLang(),
 			oninput: this.spellCheckLang,
 			disabled: true,
-			injectionsRight: () => [m(Button, editSpellcheckLanguageButtonAttrs)],
+			injectionsRight: () => m(IconButton, editSpellcheckLanguageButtonAttrs),
 			helpLabel: () => lang.get("requiresNewWindow_msg"),
 		}
 		const setDesktopIntegrationAttrs: DropDownSelectorAttrs<boolean> = {
@@ -212,32 +213,32 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 				this.setBooleanValue(DesktopConfigKey.enableAutoUpdate, v)
 			},
 		}
-		const changeDefaultDownloadPathAttrs: ButtonAttrs = attachDropdown(
+		const changeDefaultDownloadPathAttrs: IconButtonAttrs = attachDropdown(
 			{
 				mainButtonAttrs: {
-					label: "edit_action",
-					type: ButtonType.Action,
-					click: noOp,
-					icon: () => Icons.Edit,
-				}, childAttrs: () => [
+					title: "edit_action",
+					icon: Icons.Edit,
+					size: ButtonSize.Compact,
+				},
+				childAttrs: () => [
 					{
 						label: "alwaysAsk_action",
 						click: () => this.setDefaultDownloadPath(DownloadLocationStrategy.ALWAYS_ASK),
-						type: ButtonType.Dropdown,
 					},
 					{
 						label: "chooseDirectory_action",
 						click: () => this.setDefaultDownloadPath(DownloadLocationStrategy.CHOOSE_DIRECTORY),
-						type: ButtonType.Dropdown,
 					},
-				], showDropdown: () => !this.isPathDialogOpen, width: 200
+				],
+				showDropdown: () => !this.isPathDialogOpen,
+				width: 200
 			},
 		)
 		const defaultDownloadPathAttrs: TextFieldAttrs = {
 			label: "defaultDownloadPath_label",
 			value: this.defaultDownloadPath(),
 			oninput: this.defaultDownloadPath,
-			injectionsRight: () => m(Button, changeDefaultDownloadPathAttrs),
+			injectionsRight: () => m(IconButton, changeDefaultDownloadPathAttrs),
 			disabled: true,
 		}
 

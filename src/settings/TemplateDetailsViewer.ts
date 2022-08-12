@@ -16,6 +16,7 @@ import {locator} from "../api/main/MainLocator"
 import {EntityClient} from "../api/common/EntityClient"
 import {TEMPLATE_SHORTCUT_PREFIX} from "../templates/model/TemplatePopupModel"
 import type {UpdatableSettingsDetailsViewer} from "./SettingsView"
+import {ActionBar} from "../gui/base/ActionBar.js"
 
 export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 	isReadOnly: lazy<boolean>
@@ -28,20 +29,20 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 				m(".flex.mt-l.center-vertically", [
 					m(".h4.text-ellipsis", template.title),
 					!this.isReadOnly()
-						? m(".flex.flex-grow.justify-end", [
-							m(Button, {
-								label: "edit_action",
-								icon: () => Icons.Edit,
-								type: ButtonType.Action,
-								click: () => this.editTemplate(template),
-							}),
-							m(Button, {
-								label: "remove_action",
-								icon: () => Icons.Trash,
-								type: ButtonType.Action,
-								click: () => this.deleteTemplate(entityClient, template),
-							}),
-						])
+						? m(ActionBar, {
+							buttons: [
+								{
+									title: "edit_action",
+									icon: Icons.Edit,
+									click: () => this.editTemplate(template),
+								},
+								{
+									title: "remove_action",
+									icon: Icons.Trash,
+									click: () => this.deleteTemplate(entityClient, template),
+								},
+							]
+						})
 						: null,
 				]),
 				m("", [

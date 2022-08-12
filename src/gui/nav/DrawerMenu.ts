@@ -1,5 +1,5 @@
 import m, {Children, Component, Vnode} from "mithril"
-import {ButtonColor, Button, ButtonType} from "../base/Button.js"
+import {Button, ButtonColor, ButtonType} from "../base/Button.js"
 import {BootIcons} from "../base/icons/BootIcons"
 import {LogoutUrl} from "../Header.js"
 import {isNewMailActionAvailable, showSupportDialog, showUpgradeDialog, writeInviteMail} from "./NavFunctions"
@@ -9,7 +9,7 @@ import {navButtonRoutes} from "../../misc/RouteChange"
 import {getSafeAreaInsetLeft} from "../HtmlUtils"
 import {Icons} from "../base/icons/Icons"
 import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
-import {attachDropdown} from "../base/Dropdown.js"
+import {createDropdown} from "../base/Dropdown.js"
 import {keyManager} from "../../misc/KeyManager"
 
 type Attrs = {
@@ -63,34 +63,32 @@ export class DrawerMenu implements Component<Attrs> {
 					: null,
 				m(
 					Button,
-					attachDropdown(
-						{
-                            mainButtonAttrs: {
-                                label: "showHelp_action",
-                                icon: () => BootIcons.Help,
-                                type: ButtonType.ActionLarge,
-                                click: () => keyManager.openF1Help(),
-                                noBubble: true,
-                                colors: ButtonColor.DrawerNav,
-                            },
-                            childAttrs: () => [
-                                {
-                                    label: "supportMenu_label",
-                                    click: () => showSupportDialog(),
-                                    type: ButtonType.Dropdown,
-                                    colors: ButtonColor.DrawerNav,
-                                },
-                                {
-                                    label: "keyboardShortcuts_title",
-                                    click: () => keyManager.openF1Help(true),
-                                    type: ButtonType.Dropdown,
-                                    colors: ButtonColor.DrawerNav,
-                                },
-                            ],
-                            showDropdown: () => logins.isUserLoggedIn() && logins.getUserController().isPremiumAccount(),
-                            width: 300
-                        },
-					),
+					{
+						label: "showHelp_action",
+						icon: () => BootIcons.Help,
+						type: ButtonType.ActionLarge,
+						click: (e, dom) => {
+							if (logins.isUserLoggedIn() && logins.getUserController().isPremiumAccount()) {
+								createDropdown({
+									width: 300,
+									lazyButtons: () => [
+										{
+											label: "supportMenu_label",
+											click: () => showSupportDialog(),
+										},
+										{
+											label: "keyboardShortcuts_title",
+											click: () => keyManager.openF1Help(true),
+										},
+									],
+								})(e, dom)
+							} else {
+								keyManager.openF1Help()
+							}
+						},
+						noBubble: true,
+						colors: ButtonColor.DrawerNav,
+					},
 				),
 				isNewMailActionAvailable() && logins.getUserController().isGlobalAdmin()
 					? m(Button, {

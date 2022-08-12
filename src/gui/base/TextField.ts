@@ -51,7 +51,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 	active: boolean
 	onblur: EventListener | null = null
 	domInput!: HTMLInputElement
-	private _domWrapper!: HTMLElement
+	_domWrapper!: HTMLElement
 	private _domLabel!: HTMLElement
 	private _domInputWrapper!: HTMLElement
 	private _didAutofill!: boolean
@@ -119,7 +119,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 								},
 								[
 									a.type !== TextFieldType.Area ? this._getInputField(a) : this._getTextArea(a),
-									a.injectionsRight ? m(".mr-negative-s.flex-end", a.injectionsRight()) : null,
+									a.injectionsRight ? m(".flex-end", a.injectionsRight()) : null,
 								],
 							),
 						],

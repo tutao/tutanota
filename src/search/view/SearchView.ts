@@ -51,6 +51,8 @@ import {SidebarSection} from "../../gui/SidebarSection"
 import type {clickHandler} from "../../gui/base/GuiUtils"
 import {SomeEntity} from "../../api/common/EntityTypes"
 import {DropDownSelector, SelectorItem} from "../../gui/base/DropDownSelector.js"
+import {IconButton} from "../../gui/base/IconButton.js"
+import {ButtonSize} from "../../gui/base/ButtonSize.js";
 
 assertMainOrNode()
 
@@ -326,11 +328,12 @@ export class SearchView implements CurrentView {
 			label: "periodOfTime_label",
 			value: timeDisplayValue,
 			disabled: true,
-			injectionsRight: () => [m(Button, {
-				label: "selectPeriodOfTime_label",
+			injectionsRight: () => m(IconButton, {
+				title: "selectPeriodOfTime_label",
 				click: () => this.selectTimePeriod(),
-				icon: () => Icons.Edit,
-			})],
+				icon: Icons.Edit,
+				size: ButtonSize.Compact,
+			}),
 		})
 	}
 

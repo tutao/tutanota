@@ -24,7 +24,6 @@ import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelector.js"
 import {DropDownSelector} from "../gui/base/DropDownSelector.js"
 import type {TextFieldAttrs} from "../gui/base/TextField.js"
 import {TextField, TextFieldType} from "../gui/base/TextField.js"
-import type {ButtonAttrs} from "../gui/base/Button.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/Table.js"
 import {ColumnWidth, createRowActions, Table} from "../gui/base/Table.js"
@@ -44,6 +43,8 @@ import {getReportMovedMailsType, loadMailboxProperties, saveReportMovedMails} fr
 import {OfflineStorageSettingsModel} from "./OfflineStorageSettings"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {deviceConfig} from "../misc/DeviceConfig"
+import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
+import {ButtonSize} from "../gui/base/ButtonSize.js";
 
 assertMainOrNode()
 
@@ -126,10 +127,10 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				locator.entityClient.update(logins.getUserController().props)
 			},
 			helpLabel: () => lang.get("defaultSenderMailAddressInfo_msg"),
-			dropdownWidth: 250,
+			dropdownWidth: 300,
 		}
-		const editSenderNameButtonAttrs: ButtonAttrs = {
-			label: "mailName_label",
+		const editSenderNameButtonAttrs: IconButtonAttrs = {
+			title: "mailName_label",
 			click: () => {
 				Dialog.showProcessTextInputDialog("edit_action", "mailName_label", null, this._senderName(),
 					(newName) => {
@@ -137,42 +138,47 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 						return locator.entityClient.update(logins.getUserController().userGroupInfo)
 					})
 			},
-			icon: () => Icons.Edit,
+			icon: Icons.Edit,
+			size: ButtonSize.Compact,
 		}
 		const senderNameAttrs: TextFieldAttrs = {
 			label: "mailName_label",
 			value: this._senderName(),
 			oninput: this._senderName,
 			disabled: true,
-			injectionsRight: () => (logins.getUserController().isGlobalAdmin() ? [m(Button, editSenderNameButtonAttrs)] : []),
+			injectionsRight: () => (logins.getUserController().isGlobalAdmin() ? [m(IconButton, editSenderNameButtonAttrs)] : []),
 		}
-		const changeSignatureButtonAttrs: ButtonAttrs = {
-			label: "userEmailSignature_label",
+		const changeSignatureButtonAttrs: IconButtonAttrs = {
+			title: "userEmailSignature_label",
 			click: () => showEditSignatureDialog(logins.getUserController().props),
-			icon: () => Icons.Edit,
+			icon: Icons.Edit,
+			size: ButtonSize.Compact,
 		}
 		const signatureAttrs: TextFieldAttrs = {
 			label: "userEmailSignature_label",
 			value: this._signature(),
 			oninput: this._signature,
 			disabled: true,
-			injectionsRight: () => [m(Button, changeSignatureButtonAttrs)],
+			injectionsRight: () => [m(IconButton, changeSignatureButtonAttrs)],
 		}
+
+		const editOutOfOfficeNotificationButtonAttrs: IconButtonAttrs = {
+			title: "outOfOfficeNotification_title",
+			click: () => {
+				this._outOfOfficeNotification.getAsync().then(notification => showEditOutOfOfficeNotificationDialog(notification))
+			},
+			icon: Icons.Edit,
+			size: ButtonSize.Compact,
+		}
+
 		const outOfOfficeAttrs: TextFieldAttrs = {
 			label: "outOfOfficeNotification_title",
 			value: this._outOfOfficeStatus(),
 			oninput: this._outOfOfficeStatus,
 			disabled: true,
-			injectionsRight: () => [m(Button, editOutOfOfficeNotificationButtonAttrs)],
+			injectionsRight: () => [m(IconButton, editOutOfOfficeNotificationButtonAttrs)],
 		}
 
-		const editOutOfOfficeNotificationButtonAttrs: ButtonAttrs = {
-			label: "outOfOfficeNotification_title",
-			click: () => {
-				this._outOfOfficeNotification.getAsync().then(notification => showEditOutOfOfficeNotificationDialog(notification))
-			},
-			icon: () => Icons.Edit,
-		}
 		const defaultUnconfidentialAttrs: DropDownSelectorAttrs<boolean> = {
 			label: "defaultExternalDelivery_label",
 			items: [
@@ -262,10 +268,11 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		}
 		const reportMovedMailsAttrs = this.makeReportMovedMailsDropdownAttrs()
 		const templateRule = createInboxRuleTemplate(InboxRuleType.RECIPIENT_TO_EQUALS, "")
-		const addInboxRuleButtonAttrs: ButtonAttrs = {
-			label: "addInboxRule_action",
+		const addInboxRuleButtonAttrs: IconButtonAttrs = {
+			title: "addInboxRule_action",
 			click: () => locator.mailModel.getUserMailboxDetails().then(mailboxDetails => AddInboxRuleDialog.show(mailboxDetails, templateRule)),
-			icon: () => Icons.Add,
+			icon: Icons.Add,
+			size: ButtonSize.Compact,
 		}
 		const inboxRulesTableAttrs: TableAttrs = {
 			columnHeading: ["inboxRuleField_label", "inboxRuleValue_label", "inboxRuleTargetFolder_label"],
@@ -347,10 +354,11 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				class: "mt-negative-s",
 				value: lang.get("storedDataTimeRange_label", {"{numDays}": this.offlineStorageSettings.getTimeRange()}),
 				disabled: true,
-				injectionsRight: () => [m(Button, {
-					label: "edit_action",
+				injectionsRight: () => [m(IconButton, {
+					title: "edit_action",
 					click: () => this.onEditStoredDataTimeRangeClicked(),
-					icon: () => Icons.Edit,
+					icon: Icons.Edit,
+					size: ButtonSize.Compact,
 				})],
 			})
 		]
@@ -404,7 +412,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 								{
 									label: "edit_action",
 									click: () => AddInboxRuleDialog.show(mailboxDetails, rule),
-									type: ButtonType.Dropdown,
 								},
 							],
 						),

@@ -17,6 +17,8 @@ import {px, size} from "../gui/size.js"
 import {UsageTest} from "@tutao/tutanota-usagetests"
 import Stream from "mithril/stream"
 import {locator} from "../api/main/MainLocator.js"
+import {IconButton} from "../gui/base/IconButton.js"
+import {ButtonSize} from "../gui/base/ButtonSize.js";
 
 assertMainOrNode()
 
@@ -287,13 +289,13 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 	}
 
 	private renderRevealIcon(attrs: PasswordFormAttrs): Children {
-		const buttonAttrs: ButtonAttrs = {
-			label: attrs.model.isPasswordRevealed() ? "concealPassword_action" : "revealPassword_action",
+		return m(IconButton, {
+			title: attrs.model.isPasswordRevealed() ? "concealPassword_action" : "revealPassword_action",
 			click: () => {
 				attrs.model.toggleRevealPassword()
 			},
-			icon: () => attrs.model.isPasswordRevealed() ? Icons.NoEye : Icons.Eye,
-		}
-		return m(Button, buttonAttrs)
+			icon: attrs.model.isPasswordRevealed() ? Icons.NoEye : Icons.Eye,
+			size: ButtonSize.Compact,
+		})
 	}
 }

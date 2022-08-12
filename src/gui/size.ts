@@ -21,7 +21,7 @@ export const size = {
 	vpad_large: 32,
 	vpad_xl: 48,
 	text_bubble_tpad: 20,
-	border_radius: 3,
+	border_radius: 6,
 	border_selection: 4,
 	font_size_base: 16,
 	font_size_smaller: 14,
@@ -29,6 +29,7 @@ export const size = {
 	button_height: 44,
 	button_height_accent: 40,
 	button_height_bubble: 30,
+	button_height_compact: 30,
 	button_icon_bg_size: 32,
 	button_floating_size: 56,
 

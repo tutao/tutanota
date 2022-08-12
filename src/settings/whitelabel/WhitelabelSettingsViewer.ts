@@ -128,13 +128,12 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			}
 		}
 
-		const whitelabelImprintAndPrivacySettingsAttrs: WhitelabelImprintAndPrivacySettingsAttrs = {
+		return m(WhitelabelImprintAndPrivacySettings, {
 			privacyStatementUrl,
 			onPrivacyStatementUrlChanged,
 			imprintUrl,
 			onImprintUrlChanged,
-		}
-		return m(WhitelabelImprintAndPrivacySettings, whitelabelImprintAndPrivacySettingsAttrs)
+		})
 	}
 
 	_renderThemeSettings(): Children {

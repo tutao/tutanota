@@ -444,8 +444,11 @@ styles.registerStyle("main", () => {
 		".mr-button": {
 			"margin-right": px(size.hpad_button),
 		},
-		".mt-negative-s": {
+		".mt-negative-hpad-button": {
 			"margin-top": px(-size.hpad_button),
+		},
+		".mt-negative-s": {
+			"margin-top": px(-size.vpad_small)
 		},
 		".mt-negative-m": {
 			"margin-top": px(-size.vpad),
@@ -690,13 +693,20 @@ styles.registerStyle("main", () => {
 			background: theme.content_button,
 			"border-radius": "4px",
 		},
+		//TODO: migrate to .text-center
 		".center": {
 			"text-align": "center",
 		},
-		//TODO: migrate to .text-center
 		".dropdown-info": {
 			"padding-bottom": "5px",
-			"padding-top": "5px",
+			"padding-left": "16px",
+			"padding-right": "16px",
+		},
+		".dropdown-info + .dropdown-button": {
+			"border-top": `1px solid ${theme.content_border}`,
+		},
+		".dropdown-info + .dropdown-info": {
+			"padding-top": "0",
 		},
 		".text-center": {
 			"text-align": "center",
@@ -1008,6 +1018,47 @@ styles.registerStyle("main", () => {
 			"transform-origin": "50% 50%",
 			display: "inline-block",
 		},
+		".icon-button": {
+			"border-radius": "25%",
+			"width": px(size.button_height),
+			"height": px(size.button_height),
+			"max-width": px(size.button_height),
+			"max-height": px(size.button_height),
+		},
+		".center-h": {
+			"margin": "0 auto"
+		},
+		".toggle-button": {
+			"border-radius": "25%",
+			"width": px(size.button_height),
+			"height": px(size.button_height),
+			"max-width": px(size.button_height),
+			"max-height": px(size.button_height),
+		},
+		".compact": {
+			"width": `${size.button_height_compact}px !important`,
+			"height": `${size.button_height_compact}px !important`,
+		},
+		// state-bg is a simulation of a "state layer" from Material but without an additional layer
+		// We don't exactly follow transparency for it because we combine transparency with light grey color which works well on both light and dark themes
+		".state-bg": {
+			"background": "transparent",
+			"transition": "background 0.6s",
+			// undoing our default button styling
+			"opacity": "1 !important"
+		},
+		".state-bg:hover": {
+			"background": "rgba(139,139,139,0.22)",
+			"transition-duration": ".3s",
+		},
+		".state-bg:focus": {
+			"background": "rgba(139,139,139,0.29)",
+			"transition-duration": ".3s",
+		},
+		".state-bg:active, .state-bg[toggled=true]": {
+			"background": "rgba(139,139,139,0.38)",
+			"transition-duration": ".3s",
+		},
 		".translucent": {
 			opacity: "0.4"
 		},
@@ -1317,6 +1368,9 @@ styles.registerStyle("main", () => {
 			width: "initial",
 			"margin-left": "auto",
 		},
+		".margin-between-s > :not(:first-child)": {
+			"margin-left": px(size.hpad_small),
+		},
 		// dropdown
 		".dropdown-panel": {
 			position: "absolute",
@@ -1356,6 +1410,12 @@ styles.registerStyle("main", () => {
 			"border-color": `${theme.content_accent}`,
 			"padding-bottom": "0px",
 		},
+		".dropdown-button": {
+			"height": "44px",
+			"padding-left": "16px",
+			"padding-right": "16px",
+		},
+		".dropdown-button:hover": {},
 		"button, .nav-button": {
 			position: "relative",
 			border: 0,
@@ -1390,12 +1450,6 @@ styles.registerStyle("main", () => {
 			"border-radius": px(size.button_icon_bg_size),
 			"min-width": px(size.button_icon_bg_size),
 		},
-		".button-icon.floating": {
-			height: px(size.button_floating_size),
-			width: px(size.button_floating_size),
-			"min-width": px(size.button_floating_size),
-			"border-radius": px(size.button_icon_bg_size),
-		},
 		".login": {
 			width: "100%",
 			"border-radius": px(size.border_radius),
@@ -1415,7 +1469,7 @@ styles.registerStyle("main", () => {
 			color: theme.content_accent,
 			"padding-top": px(size.text_bubble_tpad),
 		},
-		".bubble, .toggle": {
+		".bubble": {
 			"max-width": "300px",
 			// make the visible button smaller by 7px without changing the actual click area
 			"border-radius": px(size.border_radius + (size.button_height - size.button_height_bubble) / 2),
@@ -1442,12 +1496,6 @@ styles.registerStyle("main", () => {
 			// 'color': theme.content_button_icon,
 			"background-color": theme.content_accent,
 			color: theme.content_button_icon_selected,
-		},
-		".on": {
-			"background-color": theme.content_button_selected,
-		},
-		".off": {
-			"background-color": getContentButtonIconBackground(),
 		},
 		".segmentControl": {
 			// same border as for bubble buttons
@@ -1593,9 +1641,6 @@ styles.registerStyle("main", () => {
 		".flex-end-on-child .button-content": {
 			"align-items": "flex-end !important",
 		},
-		".float-right": {
-			float: "right",
-		},
 		".calendar-checkbox": {
 			height: px(22),
 			width: px(22),
@@ -1740,16 +1785,6 @@ styles.registerStyle("main", () => {
 		},
 		".calendar-invite-field": {
 			"min-width": "80px",
-		},
-		"button.floating": {
-			"border-radius": "50%",
-			"box-shadow": `0 3px 5px -1px rgba(0,0,0,.2), 0 6px 10px 0 rgba(0,0,0,.14), 0 1px 18px 0 rgba(0,0,0,.12)`,
-		},
-		"button.floating:hover": {
-			"box-shadow": "0 5px 5px -3px rgba(0,0,0,.2),0 8px 10px 1px rgba(0,0,0,.14),0 3px 14px 2px rgba(0,0,0,.12)",
-		},
-		"button.floating:active": {
-			"box-shadow": "0 7px 8px -4px rgba(0,0,0,.2),0 12px 17px 2px rgba(0,0,0,.14),0 5px 22px 4px rgba(0,0,0,.12)",
 		},
 		".block-list": {
 			"list-style": "none",

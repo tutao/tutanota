@@ -10,7 +10,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import type {ButtonAttrs} from "../../gui/base/Button.js"
 import {ButtonColor, ButtonType} from "../../gui/base/Button.js"
 import {FileOpenError} from "../../api/common/error/FileOpenError"
-import {attachDropdown} from "../../gui/base/Dropdown.js"
+import {createDropdown, DropdownButtonAttrs} from "../../gui/base/Dropdown.js"
 import {Icons} from "../../gui/base/icons/Icons"
 import {formatStorageSize} from "../../misc/Formatter"
 import {UserError} from "../../api/main/UserError"
@@ -61,15 +61,13 @@ export function showFileChooserForAttachments(
 
 export function createAttachmentButtonAttrs(model: SendMailModel, inlineImageElements: Array<HTMLElement>): Array<ButtonAttrs> {
 	return model.getAttachments().map(file => {
-		const lazyButtonAttrs: ButtonAttrs[] = [
+		const lazyButtonAttrs: DropdownButtonAttrs[] = [
 			{
 				label: "download_action",
-				type: ButtonType.Secondary,
 				click: () => _downloadAttachment(file),
 			},
 			{
 				label: "remove_action",
-				type: ButtonType.Secondary,
 				click: () => {
 					model.removeAttachment(file)
 
@@ -87,17 +85,17 @@ export function createAttachmentButtonAttrs(model: SendMailModel, inlineImageEle
 				},
 			},
 		]
-		return attachDropdown(
-			{
-				mainButtonAttrs: {
-					label: () => file.name,
-					icon: () => Icons.Attachment,
-					type: ButtonType.Bubble,
-					staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
-					colors: ButtonColor.Elevated,
-				}, childAttrs: () => lazyButtonAttrs
-			},
-		)
+
+		return {
+			label: () => file.name,
+			icon: () => Icons.Attachment,
+			type: ButtonType.Bubble,
+			staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
+			colors: ButtonColor.Elevated,
+			click: createDropdown({
+				lazyButtons: () => lazyButtonAttrs,
+			})
+		}
 	})
 }
 

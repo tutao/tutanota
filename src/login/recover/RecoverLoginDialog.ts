@@ -17,7 +17,9 @@ import {locator} from "../../api/main/MainLocator"
 import {windowFacade} from "../../misc/WindowFacade"
 import {assertMainOrNode} from "../../api/common/Env"
 import {logins} from "../../api/main/LoginController.js"
-import {createDropdown} from "../../gui/base/Dropdown.js"
+import {createDropdown, DropdownButtonAttrs} from "../../gui/base/Dropdown.js"
+import {IconButton, IconButtonAttrs} from "../../gui/base/IconButton.js"
+import {ButtonSize} from "../../gui/base/ButtonSize.js";
 
 assertMainOrNode()
 export type ResetAction = "password" | "secondFactor"
@@ -27,28 +29,23 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 	const passwordModel = new PasswordModel(logins, {checkOldPassword: false, enforceStrength: true, repeatInput: true})
 	const passwordValueStream = stream("")
 	const emailAddressStream = stream(mailAddress || "")
-	const resetPasswordAction: ButtonAttrs = {
+	const resetPasswordAction: DropdownButtonAttrs = {
 		label: "recoverSetNewPassword_action",
-		click: () => {
-			selectedAction("password")
-		},
-		type: ButtonType.Dropdown,
+		click: () => selectedAction("password"),
 	}
-	const resetSecondFactorAction: ButtonAttrs = {
+	const resetSecondFactorAction: DropdownButtonAttrs = {
 		label: "recoverResetFactors_action",
-		click: () => {
-			selectedAction("secondFactor")
-		},
-		type: ButtonType.Dropdown,
+		click: () => selectedAction("secondFactor"),
 	}
 	const resetActionClickHandler = createDropdown({
 		lazyButtons: () => [resetPasswordAction, resetSecondFactorAction],
 		width: 300
 	})
-	const resetActionButtonAttrs: ButtonAttrs = {
-		label: "action_label",
+	const resetActionButtonAttrs: IconButtonAttrs = {
+		title: "action_label",
 		click: resetActionClickHandler,
-		icon: () => Icons.Edit,
+		icon: Icons.Edit,
+		size: ButtonSize.Compact,
 	}
 	const selectedValueLabelStream = selectedAction.map(v => {
 		if (v === "password") {
@@ -80,7 +77,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 						label: "action_label",
 						value: selectedValueLabelStream(),
 						oninput: selectedValueLabelStream,
-						injectionsRight: () => m(Button, resetActionButtonAttrs),
+						injectionsRight: () => m(IconButton, resetActionButtonAttrs),
 						disabled: true,
 					}),
 					selectedAction() == null

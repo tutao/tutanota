@@ -1,6 +1,6 @@
 import {DomainDnsStatus} from "../DomainDnsStatus"
-import m, {ChildArray, Children, Vnode, VnodeDOM} from "mithril"
-import {assertEnumValue, CustomDomainCheckResult, DnsRecordType, DnsRecordValidation, getAsEnumValue} from "../../api/common/TutanotaConstants"
+import m, {Children, Vnode, VnodeDOM} from "mithril"
+import {assertEnumValue, CustomDomainCheckResult, DnsRecordType, DnsRecordValidation} from "../../api/common/TutanotaConstants"
 import {InfoLink, lang, TranslationKey} from "../../misc/LanguageViewModel"
 import type {AddDomainData} from "./AddDomainWizard"
 import {createDnsRecordTableN} from "./AddDomainWizard"
@@ -12,6 +12,7 @@ import type {DnsRecord} from "../../api/entities/sys/TypeRefs.js"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {assertMainOrNode} from "../../api/common/Env"
 import {downcast} from "@tutao/tutanota-utils"
+import {ButtonSize} from "../../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 
@@ -144,16 +145,19 @@ export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButt
 				helpInfo
 			}
 		})
-		const refreshButtonAttrs = hideRefreshButton
-			? null
-			: {
-				label: "refresh_action",
-				icon: () => BootIcons.Progress,
-				click: () => _updateDnsStatus(domainStatus),
-			} as const
 		return [
 			m(".mt-m.mb-s", lang.get("setDnsRecords_msg")),
-			createDnsRecordTableN(validatedRecords, refreshButtonAttrs),
+			createDnsRecordTableN(
+				validatedRecords,
+				hideRefreshButton
+					? null
+					: {
+						title: "refresh_action",
+						icon: BootIcons.Progress,
+						size: ButtonSize.Compact,
+						click: () => _updateDnsStatus(domainStatus),
+					}
+			),
 			m("span.small.mt-m", lang.get("moreInfo_msg") + " "),
 			m("span.small", m(`a[href=${InfoLink.DomainInfo}][target=_blank]`, InfoLink.DomainInfo))
 		]

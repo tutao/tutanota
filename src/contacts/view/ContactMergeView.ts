@@ -1,4 +1,4 @@
-import m, {ChildArray, Children, Vnode} from "mithril"
+import m, {ChildArray, Children} from "mithril"
 import {Dialog} from "../../gui/base/Dialog"
 import {windowFacade} from "../../misc/WindowFacade"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -6,16 +6,15 @@ import {ContactAddressType, ContactMergeAction, getContactSocialType, Keys} from
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {formatBirthdayOfContact} from "../model/ContactUtils"
-import {defer, DeferredObject, downcast, Thunk} from "@tutao/tutanota-utils"
+import {defer, DeferredObject, delay, downcast, Thunk} from "@tutao/tutanota-utils"
 import {HtmlEditor, HtmlEditorMode} from "../../gui/editor/HtmlEditor"
 import {Button, ButtonType} from "../../gui/base/Button.js"
 import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
 import {getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel} from "./ContactGuiUtils"
 import {TextField} from "../../gui/base/TextField.js"
-import stream from "mithril/stream"
 import {TextDisplayArea} from "../../gui/base/TextDisplayArea"
-import {delay} from "@tutao/tutanota-utils"
 import {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar";
+import {IconButton} from "../../gui/base/IconButton.js"
 
 export class ContactMergeView {
 	dialog: Dialog
@@ -287,8 +286,8 @@ export class ContactMergeView {
 	}
 
 	_createDeleteContactButton(action: ContactMergeAction): Children {
-		return m(Button, {
-			label: "delete_action",
+		return m(IconButton, {
+			title: "delete_action",
 			click: () => {
 				Dialog.confirm("deleteContact_msg").then(confirmed => {
 					if (confirmed) {
@@ -296,7 +295,7 @@ export class ContactMergeView {
 					}
 				})
 			},
-			icon: () => Icons.Trash,
+			icon: Icons.Trash,
 		})
 	}
 

@@ -40,6 +40,8 @@ import {createDropdown} from "../../gui/base/Dropdown.js"
 import {CalendarEvent, createEncryptedMailAddress, Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {getRecipientsSearchModel, RecipientsSearchModel} from "../../misc/RecipientsSearchModel.js"
 import type {HtmlEditor} from "../../gui/editor/HtmlEditor.js"
+import {IconButton} from "../../gui/base/IconButton.js"
+import {ButtonSize} from "../../gui/base/ButtonSize.js"
 
 export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
@@ -136,17 +138,6 @@ export async function showCalendarEventDialog(
 
 	const descriptionEditor: HtmlEditor = new HtmlEditor(
 		"description_label",
-		() =>
-			m(Button, {
-				label: "emptyString_msg",
-				title: "showRichTextToolbar_action",
-				icon: () => Icons.FontSize,
-				click: () => descriptionEditor.toggleToolbar(),
-				isSelected: () => descriptionEditor.isToolbarEnabled(),
-				noBubble: true,
-				type: ButtonType.Toggle,
-				colors: ButtonColor.Elevated,
-			}),
 	)
 		.setMinHeight(400)
 		.showBorders()
@@ -157,6 +148,7 @@ export async function showCalendarEventDialog(
 			alignmentEnabled: false,
 			fontSizeEnabled: false,
 		})
+		.enableToolbar()
 
 	const okAction = () => {
 		if (finished) {
@@ -247,7 +239,7 @@ export async function showCalendarEventDialog(
 							lang.get("passwordFor_label", {
 								"{1}": guest.address.address,
 							}),
-						helpLabel: () => m(CompletenessIndicator, {percentageCompleted: viewModel.getPasswordStrength(guest)}),
+						helpLabel: () => m(".mt-s", m(CompletenessIndicator, {percentageCompleted: viewModel.getPasswordStrength(guest)})),
 						key: guest.address.address,
 						oninput: newValue => viewModel.updatePassword(guest, newValue),
 						injectionsRight: () => renderRevealIcon(guest.address.address),
@@ -340,9 +332,10 @@ export async function showCalendarEventDialog(
 					return null
 				}
 
-				return m(Button, {
-					label: "showAddress_alt",
-					icon: () => Icons.Pin,
+				return m(IconButton, {
+					title: "showAddress_alt",
+					icon: Icons.Pin,
+					size: ButtonSize.Compact,
 					click: () => {
 						window.open(`https://www.openstreetmap.org/search?query=${address}`, "_blank")
 					},
@@ -583,51 +576,52 @@ function renderAddAttendeesField(
 	viewModel: CalendarEventViewModel,
 	recipientsSearch: RecipientsSearchModel
 ): Children {
-	return m(MailRecipientsTextField, {
-		label: "addGuest_label",
-		text: text(),
-		onTextChanged: text,
-		// we dont show bubbles, we just want the search dropdown
-		recipients: [],
-		disabled: false,
-		onRecipientAdded: async (address, name, contact) => {
-			const notAvailable = viewModel.shouldShowSendInviteNotAvailable()
-			if (notAvailable) {
-				const businessFeatureOrdered = await showBusinessFeatureRequiredDialog("businessFeatureRequiredInvite_msg")
-				if (businessFeatureOrdered) {
-					viewModel.addGuest(address, contact)
-				}
+	return m(".flex.flex-column.flex-grow", [
+			m(MailRecipientsTextField, {
+				label: "addGuest_label",
+				text: text(),
+				onTextChanged: text,
+				// we dont show bubbles, we just want the search dropdown
+				recipients: [],
+				disabled: false,
+				onRecipientAdded: async (address, name, contact) => {
+					const notAvailable = viewModel.shouldShowSendInviteNotAvailable()
+					if (notAvailable) {
+						const businessFeatureOrdered = await showBusinessFeatureRequiredDialog("businessFeatureRequiredInvite_msg")
+						if (businessFeatureOrdered) {
+							viewModel.addGuest(address, contact)
+						}
 
-				viewModel.hasBusinessFeature(businessFeatureOrdered) //entity event updates are too slow to call updateBusinessFeature()
-			} else {
-				viewModel.addGuest(address, contact)
-			}
-		},
-		onRecipientRemoved: () => {
-			// do nothing because we don't have any bubbles here
-		},
-		injectionsRight: [
+						viewModel.hasBusinessFeature(businessFeatureOrdered) //entity event updates are too slow to call updateBusinessFeature()
+					} else {
+						viewModel.addGuest(address, contact)
+					}
+				},
+				onRecipientRemoved: () => {
+					// do nothing because we don't have any bubbles here
+				},
+				injectionsRight: [
+					viewModel.attendees().find(a => a.type === RecipientType.EXTERNAL)
+						? m(Button, {
+							label: "confidential_action",
+							click: () => viewModel.setConfidential(!viewModel.isConfidential()),
+							icon: () => (viewModel.isConfidential() ? Icons.Lock : Icons.Unlock),
+							isSelected: () => viewModel.isConfidential(),
+							noBubble: true,
+						})
+						: null
+				],
+				search: recipientsSearch
+			}),
 			viewModel.isForceUpdateAvailable()
-				? m(Button, {
-					label: "sendUpdates_label",
-					click: () => viewModel.isForceUpdates(!viewModel.isForceUpdates()),
-					icon: () => BootIcons.Mail,
-					isSelected: () => viewModel.isForceUpdates(),
-					noBubble: true,
-				})
-				: null,
-			viewModel.attendees().find(a => a.type === RecipientType.EXTERNAL)
-				? m(Button, {
-					label: "confidential_action",
-					click: () => viewModel.setConfidential(!viewModel.isConfidential()),
-					icon: () => (viewModel.isConfidential() ? Icons.Lock : Icons.Unlock),
-					isSelected: () => viewModel.isConfidential(),
-					noBubble: true,
-				})
-				: null
-		],
-		search: recipientsSearch
-	})
+				? m(".mt-negative-s", m(Checkbox, {
+						label: () => lang.get("sendUpdates_label"),
+						onChecked: (v) => viewModel.isForceUpdates(v),
+						checked: viewModel.isForceUpdates(),
+					})
+				) : null,
+		]
+	)
 }
 
 function renderTwoColumnsIfFits(left: Children, right: Children): Children {
@@ -643,7 +637,6 @@ function showOrganizerDropdown(viewModel: CalendarEventViewModel, e: MouseEvent)
 		viewModel.possibleOrganizers.map(organizer => {
 			return {
 				label: () => organizer.address,
-				type: ButtonType.Dropdown,
 				click: () => viewModel.setOrganizer(organizer),
 			}
 		})
@@ -739,15 +732,11 @@ function renderGuest(guest: Guest, index: number, viewModel: CalendarEventViewMo
 						}),
 					)
 					: viewModel.canModifyGuests()
-						? m(
-							".mr-negative-s",
-							m(Button, {
-								label: "remove_action",
-								type: ButtonType.Action,
-								icon: () => Icons.Cancel,
-								click: () => viewModel.removeAttendee(guest),
-							}),
-						)
+						? m(IconButton, {
+							title: "remove_action",
+							icon: Icons.Cancel,
+							click: () => viewModel.removeAttendee(guest),
+						})
 						: null,
 			],
 		],

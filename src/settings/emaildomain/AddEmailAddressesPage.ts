@@ -23,6 +23,7 @@ import {InvalidDataError, LimitReachedError} from "../../api/common/error/RestEr
 import {isSameId} from "../../api/common/utils/EntityUtils"
 import {assertMainOrNode} from "../../api/common/Env"
 import {Icons} from "../../gui/base/icons/Icons";
+import {ButtonSize} from "../../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 
@@ -91,8 +92,9 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 			},
 			onBusyStateChanged: isBusy => (a.isMailVerificationBusy = isBusy),
 			injectionsRightButtonAttrs: {
-				label: "addEmailAlias_label",
-				icon: () => Icons.Checkmark,
+				title: "addEmailAlias_label",
+				icon: Icons.Add,
+				size: ButtonSize.Compact,
 				click: () =>
 					vnode.attrs.addAliasFromInput().then(() => {
 						m.redraw()

@@ -3,7 +3,7 @@ import {TextField} from "./TextField.js"
 import {TranslationText} from "../../misc/LanguageViewModel"
 import {Button, ButtonType} from "./Button.js"
 import {Keys} from "../../api/common/TutanotaConstants"
-import {attachDropdown, DropdownChildAttrs} from "./Dropdown.js"
+import {createAsyncDropdown, DropdownChildAttrs} from "./Dropdown.js"
 
 export interface BubbleTextFieldAttrs {
 	label: TranslationText
@@ -40,15 +40,18 @@ export class BubbleTextField implements ClassComponent<BubbleTextFieldAttrs> {
 						return m(".flex.overflow-hidden.items-end", [
 							m(".flex-no-grow-shrink-auto.overflow-hidden",
 								m(Button,
-									attachDropdown({
-										mainButtonAttrs: {
-											label: () => attrs.renderBubbleText(item),
-											type: ButtonType.TextBubble,
-											isSelected: () => false,
-										},
-										childAttrs: () => attrs.getBubbleDropdownAttrs(item),
-										width: 250
-									})
+									{
+										label: () => attrs.renderBubbleText(item),
+										type: ButtonType.TextBubble,
+										isSelected: () => false,
+										click: (e) => {
+											e.stopPropagation() // do not focus the text field
+											createAsyncDropdown({
+												lazyButtons: () => attrs.getBubbleDropdownAttrs(item),
+												width: 250
+											})(e, e.target as HTMLElement)
+										}
+									},
 								)
 							),
 							// Comma is shown when there's text/another bubble afterwards or if the field is active

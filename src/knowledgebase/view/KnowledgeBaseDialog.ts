@@ -7,17 +7,17 @@ import type {ButtonAttrs} from "../../gui/base/Button.js"
 import {ButtonType} from "../../gui/base/Button.js"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {lang} from "../../misc/LanguageViewModel"
-import type {TemplateGroupRoot} from "../../api/entities/tutanota/TypeRefs.js"
-import {noOp} from "@tutao/tutanota-utils"
-import {attachDropdown} from "../../gui/base/Dropdown.js"
+import type {KnowledgeBaseEntry, TemplateGroupRoot} from "../../api/entities/tutanota/TypeRefs.js"
+import type {lazy} from "@tutao/tutanota-utils"
+import {createDropdown} from "../../gui/base/Dropdown.js"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import type {DialogInjectionRightAttrs} from "../../gui/base/DialogInjectionRight"
 import {Icons} from "../../gui/base/icons/Icons"
 import {TemplatePopupModel} from "../../templates/model/TemplatePopupModel"
 import {getSharedGroupName} from "../../sharing/GroupUtils"
-import type {KnowledgeBaseEntry} from "../../api/entities/tutanota/TypeRefs.js"
-import type {lazy} from "@tutao/tutanota-utils"
-import Stream from "mithril/stream";
+import {IconButtonAttrs} from "../../gui/base/IconButton.js"
+import {ButtonSize} from "../../gui/base/ButtonSize.js"
 
 export function createKnowledgeBaseDialogInjection(
 	knowledgeBase: KnowledgeBaseModel,
@@ -42,11 +42,11 @@ export function createKnowledgeBaseDialogInjection(
 export function createOpenKnowledgeBaseButtonAttrs(
 	dialogInjectionAttrs: DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs>,
 	getEmailContent: () => string,
-): ButtonAttrs {
+): IconButtonAttrs {
 	return {
-		label: "openKnowledgebase_action",
+		title: "openKnowledgebase_action",
 		click: () => {
-			if (dialogInjectionAttrs.visible() === true) {
+			if (dialogInjectionAttrs.visible()) {
 				dialogInjectionAttrs.visible(false)
 			} else {
 				dialogInjectionAttrs.componentAttrs.model.sortEntriesByMatchingKeywords(getEmailContent())
@@ -54,8 +54,8 @@ export function createOpenKnowledgeBaseButtonAttrs(
 				dialogInjectionAttrs.componentAttrs.model.init()
 			}
 		},
-		icon: () => Icons.Book,
-		isSelected: dialogInjectionAttrs.visible,
+		icon: Icons.Book,
+		size: ButtonSize.Compact,
 	}
 }
 
@@ -105,24 +105,21 @@ function createAddButtonAttrs(model: KnowledgeBaseModel): ButtonAttrs {
 			type: ButtonType.Primary,
 		}
 	} else {
-		return attachDropdown(
-			{
-                mainButtonAttrs: {
-                    label: "add_action",
-                    click: noOp,
-                    type: ButtonType.Primary,
-                }, childAttrs: () =>
-                    templateGroupInstances.map(groupInstances => {
-                        return {
-                            label: () => getSharedGroupName(groupInstances.groupInfo, true),
-                            click: () => {
-                                showKnowledgeBaseEditor(null, groupInstances.groupRoot)
-                            },
-                            type: ButtonType.Dropdown,
-                        }
-                    })
-            },
-		)
+		return {
+			label: "add_action",
+			type: ButtonType.Primary,
+			click: createDropdown({
+				lazyButtons: () => templateGroupInstances.map(groupInstances => {
+					return {
+						label: () => getSharedGroupName(groupInstances.groupInfo, true),
+						click: () => {
+							showKnowledgeBaseEditor(null, groupInstances.groupRoot)
+						},
+					}
+				})
+
+			})
+		}
 	}
 }
 

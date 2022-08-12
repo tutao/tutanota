@@ -1,4 +1,4 @@
-import m, {Children} from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {Dialog} from "../gui/base/Dialog"
@@ -117,13 +117,13 @@ export class ContactEditor {
 		const presharedPasswordAttrs = this._createPresharedPasswordAttrs()
 
 		return m("#contact-editor", [
-			m(".wrapping-row", [m(TextField, this._createFirstNameAttrs()), m(TextField, this._createLastNameAttrs())]),
-			m(".wrapping-row", [m(TextField, this._createTitleAttrs()), m(TextField, this._createBirthdayAttrs())]),
+			m(".wrapping-row", [m(StandaloneField, this._createFirstNameAttrs()), m(StandaloneField, this._createLastNameAttrs())]),
+			m(".wrapping-row", [m(StandaloneField, this._createTitleAttrs()), m(StandaloneField, this._createBirthdayAttrs())]),
 			m(".wrapping-row", [
-				m(TextField, this._createRoleAttrs()),
-				m(TextField, this._createCompanyAttrs()),
-				m(TextField, this._createNickNameAttrs()),
-				m(TextField, this._createCommentAttrs()),
+				m(StandaloneField, this._createRoleAttrs()),
+				m(StandaloneField, this._createCompanyAttrs()),
+				m(StandaloneField, this._createNickNameAttrs()),
+				m(StandaloneField, this._createCommentAttrs()),
 			]),
 			m(".wrapping-row", [
 				m(".mail.mt-xl", [
@@ -527,5 +527,12 @@ export class ContactEditor {
 						 help: "save_action",
 					 })
 					 .setCloseHandler(() => this._close())
+	}
+}
+
+/** Renders TextField with wrapper and padding element to align them all. */
+class StandaloneField implements Component<TextFieldAttrs> {
+	view({attrs}: Vnode<TextFieldAttrs>): Children {
+		return m(".flex.child-grow", [m(TextField, attrs), m(".icon-button")])
 	}
 }

@@ -22,6 +22,8 @@ import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
 import {isTutanotaMailAddress} from "../mail/model/MailUtils.js";
+import {IconButtonAttrs} from "../gui/base/IconButton.js"
+import {ButtonSize} from "../gui/base/ButtonSize.js";
 
 assertMainOrNode()
 const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
@@ -39,10 +41,11 @@ export class EditAliasesFormN implements Component<EditAliasesFormAttrs> {
 
 	view(vnode: Vnode<EditAliasesFormAttrs>): Children {
 		const a = vnode.attrs
-		const addAliasButtonAttrs: ButtonAttrs = {
-			label: "addEmailAlias_label",
+		const addAliasButtonAttrs: IconButtonAttrs = {
+			title: "addEmailAlias_label",
 			click: () => this._showAddAliasDialog(a),
-			icon: () => Icons.Add,
+			icon: Icons.Add,
+			size: ButtonSize.Compact
 		}
 		const aliasesTableAttrs: TableAttrs = {
 			columnHeading: ["emailAlias_label", "state_label"],
@@ -149,13 +152,16 @@ export function getAliasLineAttrs(editAliasAttrs: EditAliasesFormAttrs): Array<T
 						 .slice()
 						 .sort((a, b) => (a.mailAddress > b.mailAddress ? 1 : -1))
 						 .map(alias => {
-							 const actionButtonAttrs: ButtonAttrs = attachDropdown(
+							 const actionButtonAttrs: IconButtonAttrs = attachDropdown(
 								 {
 									 mainButtonAttrs: {
-										 label: "edit_action",
-										 icon: () => Icons.Edit,
-										 click: noOp,
-									 }, childAttrs: () => [
+										 title: "edit_action",
+										 icon: Icons.More,
+										 size: ButtonSize.Compact,
+									 },
+									 showDropdown: () => true,
+									 width: 250,
+									 childAttrs: () => [
 										 {
 											 label: "activate_action",
 											 click: () => {
@@ -163,8 +169,7 @@ export function getAliasLineAttrs(editAliasAttrs: EditAliasesFormAttrs): Array<T
 													 switchAliasStatus(alias, editAliasAttrs)
 												 }
 											 },
-											 type: ButtonType.Dropdown,
-											 isSelected: () => alias.enabled,
+											 selected: alias.enabled,
 										 },
 										 {
 											 label: isTutanotaMailAddress(alias.mailAddress) ? "deactivate_action" : "delete_action",
@@ -173,10 +178,9 @@ export function getAliasLineAttrs(editAliasAttrs: EditAliasesFormAttrs): Array<T
 													 switchAliasStatus(alias, editAliasAttrs)
 												 }
 											 },
-											 type: ButtonType.Dropdown,
-											 isSelected: () => !alias.enabled,
+											 isSelected: !alias.enabled,
 										 },
-									 ], showDropdown: () => true, width: 250
+									 ],
 								 },
 							 )
 							 return {

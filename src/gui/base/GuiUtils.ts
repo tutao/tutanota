@@ -6,16 +6,16 @@ import type {ButtonAttrs} from "./Button.js"
 import {ButtonColor, ButtonType} from "./Button.js"
 import {Icons} from "./icons/Icons"
 import type {DropdownChildAttrs} from "./Dropdown.js"
-import {attachDropdown} from "./Dropdown.js"
+import {createAsyncDropdown} from "./Dropdown.js"
 import type {$Promisable, lazy, MaybeLazy} from "@tutao/tutanota-utils"
-import {assertNotNull, lazyMemoized, mapLazily, memoized, noOp} from "@tutao/tutanota-utils"
+import {assertNotNull, lazyMemoized, mapLazily, noOp, resolveMaybeLazy} from "@tutao/tutanota-utils"
 import {Dialog} from "./Dialog"
 import {logins} from "../../api/main/LoginController"
 import type {AllIcons} from "./Icon"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import m, {Children} from "mithril";
-import Stream from "mithril/stream";
 import {DropDownSelector} from "./DropDownSelector.js"
+import {IconButtonAttrs} from "./IconButton.js"
 
 export type dropHandler = (dragData: string) => void
 // not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
@@ -57,8 +57,16 @@ export function createMoreSecondaryButtonAttrs(
 export function createMoreActionButtonAttrs(
 	lazyChildren: MaybeLazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>,
 	dropdownWidth?: number,
-): ButtonAttrs {
-	return moreButtonAttrsImpl(() => Icons.More, ButtonType.Action, lazyChildren, dropdownWidth)
+): IconButtonAttrs {
+	return {
+		title: "more_label",
+		colors: ButtonColor.Nav,
+		icon: Icons.More,
+		click: createAsyncDropdown({
+			width: dropdownWidth,
+			lazyButtons: async () => resolveMaybeLazy(lazyChildren),
+		})
+	}
 }
 
 function moreButtonAttrsImpl(
@@ -67,30 +75,16 @@ function moreButtonAttrsImpl(
 	lazyChildren: MaybeLazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>,
 	dropdownWidth?: number,
 ): ButtonAttrs {
-	const button = {
+	return {
 		label: "more_label",
 		colors: ButtonColor.Nav,
-		click: noOp,
 		icon,
 		type,
-	} as const
-	const buttons = mapLazily(lazyChildren, async children => {
-		const resolvedChildren: ReadonlyArray<DropdownChildAttrs | null> = await children
-		return resolvedChildren.map(child => {
-			// If type hasn't been bound on the child it get's set to Dropdown, otherwise we use what is already there
-			if (child == null || typeof child == "string" || "type" in child) {
-				return child
-			} else {
-				return Object.assign(
-					{
-						type: ButtonType.Dropdown,
-					},
-					child,
-				)
-			}
+		click: createAsyncDropdown({
+			width: dropdownWidth,
+			lazyButtons: async () => resolveMaybeLazy(lazyChildren),
 		})
-	})
-	return attachDropdown({mainButtonAttrs: button, childAttrs: buttons, showDropdown: () => true, width: dropdownWidth})
+	}
 }
 
 type Confirmation = {

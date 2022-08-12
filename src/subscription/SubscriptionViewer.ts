@@ -67,6 +67,8 @@ import {
 } from "./TermsAndConditions"
 import {MailAddressAliasService} from "../api/entities/sys/Services"
 import {DropDownSelector, SelectorItemList} from "../gui/base/DropDownSelector.js"
+import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
+import {ButtonSize} from "../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
@@ -119,21 +121,23 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					disabled: true,
 					injectionsRight: () =>
 						logins.getUserController().isFreeAccount()
-							? m(Button, {
-								label: "upgrade_action",
+							? m(IconButton, {
+								title: "upgrade_action",
 								click: showUpgradeWizard,
-								icon: () => Icons.Edit,
-							} as const)
+								icon: Icons.Edit,
+								size: ButtonSize.Compact,
+							})
 							: !this._isCancelled
-								? [m(Button, {
-									label: "subscription_label",
+								? m(IconButton, {
+									title: "subscription_label",
 									click: () => {
 										if (this._accountingInfo && this._customer && this._customerInfo && this._lastBooking) {
 											showSwitchDialog(this._customer, this._customerInfo, this._accountingInfo, this._lastBooking)
 										}
 									},
-									icon: () => Icons.Edit,
-								})]
+									icon: Icons.Edit,
+									size: ButtonSize.Compact,
+								})
 								: null,
 				}),
 				this._showPriceData()
@@ -144,11 +148,12 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						disabled: true,
 						injectionsRight: () =>
 							this._customer && this._customer.businessUse === false && !this._customer.canceledPremiumAccount
-								? m(Button, {
-									label: "pricing.businessUse_label",
+								? m(IconButton, {
+									title: "pricing.businessUse_label",
 									click: () => this._switchToBusinessUse(),
-									icon: () => Icons.Edit,
-								} as const)
+									icon: Icons.Edit,
+									size: ButtonSize.Compact,
+								})
 								: null,
 					})
 					: null,
@@ -187,55 +192,64 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					value: this._usersFieldValue(),
 					oninput: this._usersFieldValue,
 					disabled: true,
-					injectionsRight: () => [m(Button, {
-						label: "addUsers_action",
-						click: createNotAvailableForFreeClickHandler(false, AddUserDialog.show, isPremiumPredicate),
-						icon: () => Icons.Add,
-						type: ButtonType.Action,
-					} as const), m(Button, {
-						label: "bookingItemUsers_label",
-						click: createNotAvailableForFreeClickHandler(false, () => m.route.set("/settings/users"), isPremiumPredicate),
-						icon: () => Icons.Edit,
-						type: ButtonType.Action,
-					} as const)],
+					injectionsRight: () => [
+						m(IconButton, {
+							title: "addUsers_action",
+							click: createNotAvailableForFreeClickHandler(false, AddUserDialog.show, isPremiumPredicate),
+							icon: Icons.Add,
+							size: ButtonSize.Compact,
+						}),
+						m(IconButton, {
+							title: "bookingItemUsers_label",
+							click: createNotAvailableForFreeClickHandler(false, () => m.route.set("/settings/users"), isPremiumPredicate),
+							icon: Icons.Edit,
+							size: ButtonSize.Compact,
+						})
+					],
 				}),
 				m(TextField, {
 					label: "storageCapacity_label",
 					value: this._storageFieldValue(),
 					oninput: this._storageFieldValue,
 					disabled: true,
-					injectionsRight: () => m(Button, {
-						label: "storageCapacity_label",
+					injectionsRight: () => m(IconButton, {
+						title: "storageCapacity_label",
 						click: createNotAvailableForFreeClickHandler(false, () => showStorageCapacityOptionsDialog(), isPremiumPredicate),
-						icon: () => Icons.Edit,
-						type: ButtonType.Action,
-					} as const),
+						icon: Icons.Edit,
+						size: ButtonSize.Compact,
+					}),
 				}),
 				m(TextField, {
 					label: "mailAddressAliases_label",
 					value: this._emailAliasFieldValue(),
 					oninput: this._emailAliasFieldValue,
 					disabled: true,
-					injectionsRight: () => m(Button, {
-						label: "emailAlias_label",
+					injectionsRight: () => m(IconButton, {
+						title: "emailAlias_label",
 						click: createNotAvailableForFreeClickHandler(true, EmailAliasOptionsDialog.show, isPremiumPredicate),
-						icon: () => Icons.Edit,
-					} as const),
+						icon: Icons.Edit,
+						size: ButtonSize.Compact,
+					}),
 				}),
 				m(TextField, {
 					label: "groups_label",
 					value: this._groupsFieldValue(),
 					oninput: this._groupsFieldValue,
 					disabled: true,
-					injectionsRight: () => [m(Button, {
-						label: "addGroup_label",
-						click: createNotAvailableForFreeClickHandler(false, AddGroupDialog.show, isPremiumPredicate),
-						icon: () => Icons.Add,
-					} as const), m(Button, {
-						label: "groups_label",
-						click: createNotAvailableForFreeClickHandler(false, () => m.route.set("/settings/groups"), isPremiumPredicate),
-						icon: () => Icons.Edit,
-					} as const)],
+					injectionsRight: () => [
+						m(IconButton, {
+							title: "addGroup_label",
+							click: createNotAvailableForFreeClickHandler(false, AddGroupDialog.show, isPremiumPredicate),
+							icon: Icons.Add,
+							size: ButtonSize.Compact,
+						}),
+						m(IconButton, {
+							title: "groups_label",
+							click: createNotAvailableForFreeClickHandler(false, () => m.route.set("/settings/groups"), isPremiumPredicate),
+							icon: Icons.Edit,
+							size: ButtonSize.Compact,
+						})
+					],
 				}),
 				m(TextField, {
 					label: "whitelabelFeature_label",
@@ -244,16 +258,18 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					disabled: true,
 					injectionsRight: () =>
 						getCurrentCount(BookingItemFeatureType.Whitelabel, this._lastBooking) === 0
-							? m(Button, {
-								label: "activate_action",
+							? m(IconButton, {
+								title: "activate_action",
 								click: createNotAvailableForFreeClickHandler(false, () => showWhitelabelBuyDialog(true), isPremiumPredicate),
-								icon: () => Icons.Edit,
-							} as const)
-							: m(Button, {
-								label: "deactivate_action",
+								icon: Icons.Edit,
+								size: ButtonSize.Compact,
+							})
+							: m(IconButton, {
+								title: "deactivate_action",
 								click: createNotAvailableForFreeClickHandler(false, () => showWhitelabelBuyDialog(false), isPremiumPredicate),
-								icon: () => Icons.Cancel,
-							} as const),
+								icon: Icons.Cancel,
+								size: ButtonSize.Compact,
+							}),
 				}),
 				m(TextField, {
 					label: "sharingFeature_label",
@@ -262,16 +278,18 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					disabled: true,
 					injectionsRight: () =>
 						getCurrentCount(BookingItemFeatureType.Sharing, this._lastBooking) === 0
-							? m(Button, {
-								label: "activate_action",
+							? m(IconButton, {
+								title: "activate_action",
 								click: createNotAvailableForFreeClickHandler(false, () => showSharingBuyDialog(true), isPremiumPredicate),
-								icon: () => Icons.Edit,
-							} as const)
-							: m(Button, {
-								label: "deactivate_action",
+								icon: Icons.Edit,
+								size: ButtonSize.Compact,
+							})
+							: m(IconButton, {
+								title: "deactivate_action",
 								click: createNotAvailableForFreeClickHandler(false, () => showSharingBuyDialog(false), isPremiumPredicate),
-								icon: () => Icons.Cancel,
-							} as const),
+								icon: Icons.Cancel,
+								size: ButtonSize.Compact,
+							}),
 				}),
 				m(TextField, {
 					label: "businessFeature_label",
@@ -283,17 +301,19 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							// viewer not initialized yet or customer is business customer as they are not allowed to disable business feature
 							return null
 						} else if (isBusinessFeatureActive(this._lastBooking)) {
-							return m(Button, {
-								label: "deactivate_action",
+							return m(IconButton, {
+								title: "deactivate_action",
 								click: createNotAvailableForFreeClickHandler(false, () => showBusinessBuyDialog(false), isPremiumPredicate),
-								icon: () => Icons.Cancel,
-							} as const)
+								icon: Icons.Cancel,
+								size: ButtonSize.Compact,
+							})
 						} else {
-							return m(Button, {
-								label: "activate_action",
+							return m(IconButton, {
+								title: "activate_action",
 								click: createNotAvailableForFreeClickHandler(false, () => showBusinessBuyDialog(true), isPremiumPredicate),
-								icon: () => Icons.Edit,
-							} as const)
+								icon: Icons.Edit,
+								size: ButtonSize.Compact,
+							})
 						}
 					},
 				}),
@@ -302,15 +322,20 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					value: this._contactFormsFieldValue(),
 					oninput: this._contactFormsFieldValue,
 					disabled: true,
-					injectionsRight: () => [m(Button, {
-						label: "createContactForm_label",
-						click: createNotAvailableForFreeClickHandler(false, () => ContactFormEditor.show(null, true, noOp), isPremiumPredicate),
-						icon: () => Icons.Add,
-					} as const), m(Button, {
-						label: "contactForms_label",
-						click: createNotAvailableForFreeClickHandler(false, () => m.route.set("/settings/contactforms"), isPremiumPredicate),
-						icon: () => Icons.Edit,
-					} as const)],
+					injectionsRight: () => m(".flex.margin-between-s", [
+						m(IconButton, {
+							title: "createContactForm_label",
+							click: createNotAvailableForFreeClickHandler(false, () => ContactFormEditor.show(null, true, noOp), isPremiumPredicate),
+							icon: Icons.Add,
+							size: ButtonSize.Compact,
+						}),
+						m(IconButton, {
+							title: "contactForms_label",
+							click: createNotAvailableForFreeClickHandler(false, () => m.route.set("/settings/contactforms"), isPremiumPredicate),
+							icon: Icons.Edit,
+							size: ButtonSize.Compact,
+						})
+					]),
 				}),
 				m(".mb-l", m(SettingsExpander, {
 							title: "adminDeleteAccount_action",
@@ -326,7 +351,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 									label: "adminDeleteAccount_action",
 									click: showDeleteAccountDialog,
 									type: ButtonType.Login,
-								} as const),
+								}),
 							),
 						),
 					),
@@ -424,37 +449,43 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			disabled: true,
 			injectionsRight: () => {
 				if (this._orderAgreement && this._customer && this._customer.orderProcessingAgreementNeeded) {
-					return [m(Button, {
-						label: "sign_action",
-						click: () => SignOrderAgreementDialog.showForSigning(neverNull(this._customer), neverNull(this._accountingInfo)),
-						icon: () => Icons.Edit,
-					} as const), m(Button, {
-						label: "show_action",
-						click: () =>
-							locator.entityClient
-								   .load(GroupInfoTypeRef, neverNull(this._orderAgreement).signerUserGroupInfo)
-								   .then(signerUserGroupInfo => SignOrderAgreementDialog.showForViewing(neverNull(this._orderAgreement), signerUserGroupInfo)),
-						icon: () => Icons.Download,
-					} as const)]
+					return [
+						this.renderSignProcessingAgreementAction(),
+						this.renderShowProcessingAgreementAction(),
+					]
 				} else if (this._orderAgreement) {
-					return [m(Button, {
-						label: "show_action",
-						click: () =>
-							locator.entityClient
-								   .load(GroupInfoTypeRef, neverNull(this._orderAgreement).signerUserGroupInfo)
-								   .then(signerUserGroupInfo => SignOrderAgreementDialog.showForViewing(neverNull(this._orderAgreement), signerUserGroupInfo)),
-						icon: () => Icons.Download,
-					} as const)]
+					return [
+						this.renderShowProcessingAgreementAction()
+					]
 				} else if (this._customer && this._customer.orderProcessingAgreementNeeded) {
-					return [m(Button, {
-						label: "sign_action",
-						click: () => SignOrderAgreementDialog.showForSigning(neverNull(this._customer), neverNull(this._accountingInfo)),
-						icon: () => Icons.Edit,
-					} as const)]
+					return [
+						this.renderSignProcessingAgreementAction()
+					]
 				} else {
 					return []
 				}
 			},
+		})
+	}
+
+	private renderShowProcessingAgreementAction() {
+		return m(IconButton, {
+			title: "show_action",
+			click: () =>
+				locator.entityClient
+					   .load(GroupInfoTypeRef, neverNull(this._orderAgreement).signerUserGroupInfo)
+					   .then(signerUserGroupInfo => SignOrderAgreementDialog.showForViewing(neverNull(this._orderAgreement), signerUserGroupInfo)),
+			icon: Icons.Download,
+			size: ButtonSize.Compact,
+		})
+	}
+
+	private renderSignProcessingAgreementAction() {
+		return m(IconButton, {
+			title: "sign_action",
+			click: () => SignOrderAgreementDialog.showForSigning(neverNull(this._customer), neverNull(this._accountingInfo)),
+			icon: Icons.Edit,
+			size: ButtonSize.Compact,
 		})
 	}
 
@@ -792,11 +823,12 @@ function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInter
 }
 
 function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => boolean): Children {
-	const addButtonAttrs = {
-		label: "buyGiftCard_label",
+	const addButtonAttrs: IconButtonAttrs = {
+		title: "buyGiftCard_label",
 		click: createNotAvailableForFreeClickHandler(false, () => showPurchaseGiftCardDialog(), isPremiumPredicate),
-		icon: () => Icons.Add,
-	} as const
+		icon: Icons.Add,
+		size: ButtonSize.Compact,
+	}
 	const columnHeading: [TranslationKey, TranslationKey] = ["purchaseDate_label", "value_label"]
 	const columnWidths = [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small]
 	const lines = giftCards
@@ -807,15 +839,13 @@ function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => bo
 				actionButtonAttrs: attachDropdown(
 					{
 						mainButtonAttrs: {
-							label: "options_action",
-							click: () => showGiftCardToShare(giftCard),
-							icon: () => Icons.More,
-							type: ButtonType.Dropdown,
+							title: "options_action",
+							icon: Icons.More,
+							size: ButtonSize.Compact,
 						}, childAttrs: () => [
 							{
 								label: "view_label",
 								click: () => showGiftCardToShare(giftCard),
-								type: ButtonType.Dropdown,
 							},
 							{
 								label: "edit_action",
@@ -843,7 +873,6 @@ function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => bo
 										type: DialogType.EditSmall,
 									})
 								},
-								type: ButtonType.Dropdown,
 							},
 						]
 					},

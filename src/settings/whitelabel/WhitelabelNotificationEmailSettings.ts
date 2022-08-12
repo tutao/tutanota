@@ -10,6 +10,7 @@ import type {NotificationMailTemplate} from "../../api/entities/sys/TypeRefs.js"
 import {downcast} from "@tutao/tutanota-utils"
 import type {LanguageCode} from "../../misc/LanguageViewModel"
 import Stream from "mithril/stream";
+import {ButtonSize} from "../../gui/base/ButtonSize.js"
 
 export type WhitelabelNotificationEmailSettingsAttrs = {
 	notificationMailTemplates: Array<NotificationMailTemplate>
@@ -53,12 +54,12 @@ export class WhitelabelNotificationEmailSettings implements Component<Whitelabel
 					columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
 					showActionButtonColumn: true,
 					addButtonAttrs: {
-						label: "add_action",
+						title: "add_action",
 						click: () => {
 							onAddTemplate()
 						},
-						type: ButtonType.Action,
-						icon: () => Icons.Add,
+						icon: Icons.Add,
+						size: ButtonSize.Compact,
 					},
 					lines: notificationMailTemplates.map(template => {
 						const languageCode: LanguageCode = downcast(template.language)
@@ -68,19 +69,17 @@ export class WhitelabelNotificationEmailSettings implements Component<Whitelabel
 							actionButtonAttrs: attachDropdown(
 								{
                                     mainButtonAttrs: {
-                                        label: "edit_action",
-                                        type: ButtonType.Action,
-                                        icon: () => Icons.Edit,
+                                        title: "edit_action",
+                                        icon: Icons.Edit,
+										size: ButtonSize.Compact,
                                     }, childAttrs: () => [
                                         {
                                             label: "edit_action",
                                             click: () => onEditTemplate(template),
-                                            type: ButtonType.Dropdown,
                                         },
                                         {
                                             label: "remove_action",
                                             click: () => onRemoveTemplate(template),
-                                            type: ButtonType.Dropdown,
                                         },
                                     ]
                                 },

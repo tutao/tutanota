@@ -30,7 +30,6 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/Table.js"
 import {ColumnWidth, createRowActions} from "../gui/base/Table.js"
 import {attachDropdown, createDropdown, DropdownChildAttrs} from "../gui/base/Dropdown.js"
-import {ButtonType} from "../gui/base/Button.js"
 import {DomainDnsStatus} from "./DomainDnsStatus"
 import {showDnsCheckDialog} from "./CheckDomainDnsStatusDialog"
 import {BootIcons} from "../gui/base/icons/BootIcons"
@@ -45,6 +44,7 @@ import type {UpdatableSettingsViewer} from "./SettingsView"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
 import {DropDownSelector} from "../gui/base/DropDownSelector.js"
+import {ButtonSize} from "../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -91,9 +91,10 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
 			showActionButtonColumn: true,
 			addButtonAttrs: {
-				label: "addSpamRule_action",
+				title: "addSpamRule_action",
 				click: () => showAddSpamRuleDialog(null),
-				icon: () => Icons.Add,
+				icon: Icons.Add,
+				size: ButtonSize.Compact,
 			},
 			lines: this.spamRuleLines,
 		}
@@ -102,11 +103,12 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			columnWidths: [ColumnWidth.Largest],
 			showActionButtonColumn: true,
 			addButtonAttrs: {
-				label: "refresh_action",
+				title: "refresh_action",
 				click: () => {
 					this.updateRejectedSenderTable()
 				},
-				icon: () => BootIcons.Progress,
+				icon: BootIcons.Progress,
+				size: ButtonSize.Compact,
 			},
 			lines: this.rejectedSenderLines,
 		}
@@ -115,7 +117,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
 			showActionButtonColumn: true,
 			addButtonAttrs: {
-				label: "addCustomDomain_action",
+				title: "addCustomDomain_action",
 				click: () => {
 					this.customerInfo.getAsync().then(customerInfo => {
 						if (logins.getUserController().isFreeAccount()) {
@@ -127,7 +129,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						}
 					})
 				},
-				icon: () => Icons.Add,
+				icon: Icons.Add,
+				size: ButtonSize.Compact,
 			},
 			lines: this.customDomainLines,
 		}
@@ -137,9 +140,10 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			showActionButtonColumn: true,
 			lines: this.auditLogLines,
 			addButtonAttrs: {
-				label: "refresh_action",
+				title: "refresh_action",
 				click: () => showProgressDialog("loading_msg", this.updateAuditLog()).then(() => m.redraw()),
-				icon: () => BootIcons.Progress,
+				icon: BootIcons.Progress,
+				size: ButtonSize.Compact,
 			},
 		}
 		return [
@@ -269,7 +273,6 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 							{
 								label: "edit_action",
 								click: () => showAddSpamRuleDialog(rule),
-								type: ButtonType.Dropdown,
 							},
 						],
 					),
@@ -319,17 +322,16 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 													  actionButtonAttrs: attachDropdown(
 														  {
 															  mainButtonAttrs: {
-																  label: "showMore_action",
-																  icon: () => Icons.More,
+																  title: "showMore_action",
+																  icon: Icons.More,
+																  size: ButtonSize.Compact,
 															  }, childAttrs: () => [
 																  {
 																	  label: "showRejectReason_action",
-																	  type: ButtonType.Dropdown,
 																	  click: () => showRejectedSendersInfoDialog(rejectedSender),
 																  },
 																  {
 																	  label: "addSpamRule_action",
-																	  type: ButtonType.Dropdown,
 																	  click: () => {
 																		  const domainPart = getDomainPart(rejectedSender.senderMailAddress)
 																		  showAddSpamRuleDialog(
@@ -361,9 +363,10 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					return {
 						cells: [auditLogEntry.action, auditLogEntry.modifiedEntity, formatDateTimeFromYesterdayOn(auditLogEntry.date)],
 						actionButtonAttrs: {
-							label: "showMore_action",
-							icon: () => Icons.More,
+							title: "showMore_action",
+							icon: Icons.More,
 							click: () => this.showAuditLogDetails(auditLogEntry, customer),
+							size: ButtonSize.Compact,
 						},
 					}
 				})
@@ -500,20 +503,19 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 							},
 						],
 						actionButtonAttrs: {
-							label: "action_label" as const,
-							icon: () => Icons.More,
+							title: "action_label" as const,
+							icon: Icons.More,
+							size: ButtonSize.Compact,
 							click: createDropdown(
 								{
 									lazyButtons: () => {
 
 										const buttons: DropdownChildAttrs[] = [
 											{
-												type: ButtonType.Dropdown,
 												label: "setCatchAllMailbox_action",
 												click: () => this.editCatchAllMailbox(domainInfo),
 											},
 											{
-												type: ButtonType.Dropdown,
 												label: "delete_action",
 												click: () => this.deleteCustomDomain(domainInfo),
 											}
@@ -521,7 +523,6 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 
 										if (domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine()) {
 											buttons.unshift({
-												type: ButtonType.Dropdown,
 												label: "resumeSetup_label",
 												click: () => {
 													showAddDomainWizard(domainDnsStatus.domain, customerInfo).then(() => {

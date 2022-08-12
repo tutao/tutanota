@@ -43,6 +43,8 @@ import {SidebarSection} from "../../gui/SidebarSection"
 import {SetupMultipleError} from "../../api/common/error/SetupMultipleError"
 import {attachDropdown, DropdownButtonAttrs} from "../../gui/base/Dropdown.js"
 import {showFileChooser} from "../../file/FileController.js"
+import {IconButton} from "../../gui/base/IconButton.js"
+import {ButtonSize} from "../../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 
@@ -248,10 +250,11 @@ export class ContactView implements CurrentView {
 	}
 
 	private renderFolderMoreButton(): Children {
-		return m(Button, attachDropdown({
+		return m(IconButton, attachDropdown({
 			mainButtonAttrs: {
-				label: "more_label",
-				icon: () => Icons.More,
+				title: "more_label",
+				icon: Icons.More,
+				size: ButtonSize.Compact,
 				colors: ButtonColor.Nav
 			},
 			childAttrs: () => {
@@ -261,23 +264,20 @@ export class ContactView implements CurrentView {
 						{
 							label: "importVCard_action",
 							click: () => this._importAsVCard(),
-							icon: () => Icons.ContactImport,
-							type: ButtonType.Dropdown
+							icon: Icons.ContactImport,
 						},
 						{
 							label: "exportVCard_action",
 							click: () => exportAsVCard(locator.contactModel),
-							icon: () => Icons.Export,
-							type: ButtonType.Dropdown
+							icon: Icons.Export,
 						}
 					]
 
 				return vcardButtons.concat([
 					{
 						label: "merge_action",
-						icon: () => Icons.People,
+						icon: Icons.People,
 						click: () => this._mergeAction(),
-						type: ButtonType.Dropdown
 					}
 				])
 			},

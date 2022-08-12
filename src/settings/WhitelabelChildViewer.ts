@@ -17,6 +17,7 @@ import {DropDownSelectorAttrs, DropDownSelector} from "../gui/base/DropDownSelec
 import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
 import {UpdatableSettingsDetailsViewer} from "./SettingsView"
+import {ButtonSize} from "../gui/base/ButtonSize.js";
 
 assertMainOrNode()
 

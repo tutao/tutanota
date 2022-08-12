@@ -30,10 +30,11 @@ import {ButtonType} from "../../gui/base/Button.js"
 import {theme} from "../../gui/theme"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {locator} from "../../api/main/MainLocator"
-import {attachDropdown} from "../../gui/base/Dropdown.js"
+import {attachDropdown, DropdownButtonAttrs} from "../../gui/base/Dropdown.js"
 import {moveMails} from "../../mail/view/MailGuiUtils"
 import {exportMails} from "../../mail/export/Exporter"
 import {MailboxDetail} from "../../mail/model/MailModel";
+import {IconButtonAttrs} from "../../gui/base/IconButton.js"
 
 assertMainOrNode()
 
@@ -41,8 +42,8 @@ export class MultiSearchViewer implements Component {
 	view: Component["view"]
 	private _searchListView: SearchListView
 	private _isMailList!: boolean
-	private _mobileMailActionBarButtons: () => ButtonAttrs[]
-	private _mobileContactActionBarButtons: () => ButtonAttrs[]
+	private _mobileMailActionBarButtons: () => IconButtonAttrs[]
+	private _mobileContactActionBarButtons: () => IconButtonAttrs[]
 
 	constructor(searchListView: SearchListView) {
 		this._searchListView = searchListView
@@ -137,29 +138,29 @@ export class MultiSearchViewer implements Component {
 		}
 	}
 
-	createContactActionBarButtons(prependCancel: boolean = false): ButtonAttrs[] {
-		const buttons: (ButtonAttrs | null)[] = [
+	createContactActionBarButtons(prependCancel: boolean = false): IconButtonAttrs[] {
+		const buttons: (IconButtonAttrs | null)[] = [
 			prependCancel
 				? {
-					label: "cancel_action",
+					title: "cancel_action",
 					click: () => this._searchListView.list && this._searchListView.list.selectNone(),
-					icon: () => Icons.Cancel,
+					icon: Icons.Cancel,
 				}
 				: null,
 			{
-				label: "delete_action",
+				title: "delete_action",
 				click: () => this._searchListView.deleteSelected(),
-				icon: () => Icons.Trash,
+				icon: Icons.Trash,
 			},
 			this._searchListView.getSelectedEntities().length === 2
 				? {
-					label: "merge_action",
+					title: "merge_action",
 					click: () => this.mergeSelected(),
-					icon: () => Icons.People,
+					icon: Icons.People,
 				}
 				: null,
 			{
-				label: "exportSelectedAsVCard_action",
+				title: "exportSelectedAsVCard_action",
 				click: () => {
 					let selected = this._searchListView.getSelectedEntities()
 
@@ -175,68 +176,67 @@ export class MultiSearchViewer implements Component {
 
 					exportContacts(selectedContacts)
 				},
-				icon: () => Icons.Export,
+				icon: Icons.Export,
 			},
 		]
 		return buttons.filter(isNotNull)
 	}
 
-	createMailActionBarButtons(prependCancel: boolean = false): ButtonAttrs[] {
-		const buttons: (ButtonAttrs | null)[] = [
+	createMailActionBarButtons(prependCancel: boolean = false): IconButtonAttrs[] {
+		const buttons: (IconButtonAttrs | null)[] = [
 			prependCancel
 				? {
-					label: "cancel_action",
+					title: "cancel_action",
 					click: () => this._searchListView.list && this._searchListView.list.selectNone(),
-					icon: () => Icons.Cancel,
+					icon: Icons.Cancel,
 				}
 				: null,
 			attachDropdown(
 				{
-                    mainButtonAttrs: {
-                        label: "move_action",
-                        icon: () => Icons.Folder,
-                    }, childAttrs: () => this.createMoveMailButtons()
-                },
+					mainButtonAttrs: {
+						title: "move_action",
+						icon: Icons.Folder,
+					},
+					childAttrs: () => this.createMoveMailButtons()
+				},
 			),
 			{
-				label: "delete_action",
+				title: "delete_action",
 				click: () => this._searchListView.deleteSelected(),
-				icon: () => Icons.Trash,
+				icon: Icons.Trash,
 			},
 			attachDropdown(
 				{
-                    mainButtonAttrs: {
-                        label: "more_label",
-                        icon: () => Icons.More,
-                    }, childAttrs: () => [
-                        {
-                            label: "markUnread_action",
-                            click: () => markMails(locator.entityClient, this.getSelectedMails(), true).then(() => this._searchListView.selectNone()),
-                            icon: () => Icons.NoEye,
-                            type: ButtonType.Dropdown,
-                        },
-                        {
-                            label: "markRead_action",
-                            click: () => markMails(locator.entityClient, this.getSelectedMails(), false).then(() => this._searchListView.selectNone()),
-                            icon: () => Icons.Eye,
-                            type: ButtonType.Dropdown,
-                        },
-                        !isApp() && !logins.isEnabled(FeatureType.DisableMailExport)
-                            ? {
-                                label: "export_action",
-                                click: () => showProgressDialog("pleaseWait_msg", exportMails(this.getSelectedMails(), locator.entityClient, locator.fileController)),
-                                icon: () => Icons.Export,
-                                type: ButtonType.Dropdown,
-                            }
-                            : null,
-                    ]
-                },
+					mainButtonAttrs: {
+						title: "more_label",
+						icon: Icons.More,
+					},
+					childAttrs: () => [
+						{
+							label: "markUnread_action",
+							click: () => markMails(locator.entityClient, this.getSelectedMails(), true).then(() => this._searchListView.selectNone()),
+							icon: Icons.NoEye,
+						},
+						{
+							label: "markRead_action",
+							click: () => markMails(locator.entityClient, this.getSelectedMails(), false).then(() => this._searchListView.selectNone()),
+							icon: Icons.Eye,
+						},
+						!isApp() && !logins.isEnabled(FeatureType.DisableMailExport)
+							? {
+								label: "export_action",
+								click: () => showProgressDialog("pleaseWait_msg", exportMails(this.getSelectedMails(), locator.entityClient, locator.fileController)),
+								icon: Icons.Export,
+							}
+							: null,
+					]
+				},
 			),
 		]
 		return buttons.filter(isNotNull)
 	}
 
-	async createMoveMailButtons(): Promise<ButtonAttrs[]> {
+	async createMoveMailButtons(): Promise<DropdownButtonAttrs[]> {
 		let selected = this._searchListView.getSelectedEntities()
 
 		let selectedMails: Mail[] = []
@@ -271,10 +271,9 @@ export class MultiSearchViewer implements Component {
 					this._searchListView.selectNone()
 
 					// move all groups one by one because the mail list cannot be modified in parallel
-					return moveMails({mailModel : locator.mailModel, mails : selectedMails, targetMailFolder : f})
+					return moveMails({mailModel: locator.mailModel, mails: selectedMails, targetMailFolder: f})
 				},
-				icon: getFolderIcon(f),
-				type: ButtonType.Dropdown,
+				icon: getFolderIcon(f)(),
 			}))
 	}
 
@@ -329,7 +328,7 @@ export class MultiSearchViewer implements Component {
 		return selectedMails
 	}
 
-	actionBarButtons(): ButtonAttrs[] {
+	actionBarButtons(): IconButtonAttrs[] {
 		return this._viewingMails() ? this._mobileMailActionBarButtons() : this._mobileContactActionBarButtons()
 	}
 

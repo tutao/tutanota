@@ -61,6 +61,8 @@ import {CancelledError} from "../../api/common/error/CancelledError"
 import Stream from "mithril/stream";
 import {MailViewerViewModel} from "./MailViewerViewModel"
 import {readLocalFiles} from "../../file/FileController.js"
+import {IconButton, IconButtonAttrs} from "../../gui/base/IconButton.js"
+import {ButtonSize} from "../../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 
@@ -74,7 +76,7 @@ type MailboxSection = {
 	label: lazy<string>
 	systemFolderButtons: MailFolderRowData[]
 	customFolderButtons: MailFolderRowData[]
-	folderAddButton: ButtonAttrs
+	folderAddButton: IconButtonAttrs,
 }
 
 /**
@@ -100,7 +102,7 @@ export class MailView implements CurrentView {
 	 * There's a similar (but different) hacky mechanism where we store last URL but per each top-level view: navButtonRoutes. This one is per folder.
 	 */
 	private readonly folderToUrl: Record<Id, string>
-	private readonly actionBarButtons: lazy<ButtonAttrs[]>
+	private readonly actionBarButtons: lazy<IconButtonAttrs[]>
 	private readonly throttledRouteSet: (newRoute: string) => void
 	private countersStream: Stream<unknown> | null = null
 
@@ -458,8 +460,8 @@ export class MailView implements CurrentView {
 					.map(f => ({
 						label: () => getFolderName(f),
 						click: () => moveMails({mailModel: locator.mailModel, mails: selectedMails, targetMailFolder: f}),
-						icon: getFolderIcon(f),
-						type: ButtonType.Dropdown,
+					icon: getFolderIcon(f)(),
+					size: ButtonSize.Compact,
 					}))
 			}, 300)
 
@@ -491,7 +493,7 @@ export class MailView implements CurrentView {
 		mailGroupId: Id,
 		systemFolderButtons: MailFolderRowData[],
 		customFolderButtons: MailFolderRowData[],
-		folderAddButton: ButtonAttrs,
+		folderAddButton: IconButtonAttrs,
 	): Children {
 		const groupCounters = locator.mailModel.mailboxCounters()[mailGroupId] || {}
 		// Important: this array is keyed so each item must have a key and `null` cannot be in the array
@@ -509,7 +511,7 @@ export class MailView implements CurrentView {
 		if (logins.isInternalUserLoggedIn()) {
 			children.push(m(SidebarSection, {
 						name: "yourFolders_action",
-						buttonAttrs: folderAddButton,
+						button: m(IconButton, folderAddButton),
 						key: "yourFolders", // we need to set a key because folder rows also have a key.
 					},
 					customFolderButtons.map(({id, button, folder}) => {
@@ -517,7 +519,7 @@ export class MailView implements CurrentView {
 						return m(MailFolderRow, {
 							count,
 							button,
-							rightButton: isNavButtonSelected(button) ? this.createFolderMoreButton(mailGroupId, folder) : null,
+							rightButton: this.createFolderMoreButton(mailGroupId, folder),
 							key: id,
 						})
 					}),
@@ -672,9 +674,9 @@ export class MailView implements CurrentView {
 		})
 	}
 
-	private createFolderAddButton(mailGroupId: Id): ButtonAttrs {
+	private createFolderAddButton(mailGroupId: Id): IconButtonAttrs {
 		return {
-			label: "add_action",
+			title: "add_action",
 			click: () => {
 				return Dialog.showProcessTextInputDialog("folderNameCreate_label", "folderName_label", null, "", (name) => {
 						return locator.mailModel
@@ -684,23 +686,23 @@ export class MailView implements CurrentView {
 						this.checkFolderName(name, mailGroupId),
 				)
 			},
-			icon: () => Icons.Add,
-			colors: ButtonColor.Nav,
+			icon: Icons.Add,
+			size: ButtonSize.Compact,
 		}
 	}
 
-	private createFolderMoreButton(mailGroupId: Id, folder: MailFolder): ButtonAttrs {
+	private createFolderMoreButton(mailGroupId: Id, folder: MailFolder): IconButtonAttrs {
 		return attachDropdown(
 			{
 				mainButtonAttrs: {
-					label: "more_label",
-					icon: () => Icons.More,
+					title: "more_label",
+					icon: Icons.More,
 					colors: ButtonColor.Nav,
+					size: ButtonSize.Compact,
 				}, childAttrs: () => [
 					{
 						label: "rename_action",
-						icon: () => Icons.Edit,
-						type: ButtonType.Dropdown,
+						icon: Icons.Edit,
 						click: () => {
 							return Dialog.showProcessTextInputDialog("folderNameRename_label", "folderName_label", null, getFolderName(folder),
 								(newName) => {
@@ -716,8 +718,7 @@ export class MailView implements CurrentView {
 					},
 					{
 						label: "delete_action",
-						icon: () => Icons.Trash,
-						type: ButtonType.Dropdown,
+						icon: Icons.Trash,
 						click: () => {
 							Dialog.confirm(() =>
 								lang.get("confirmDeleteFinallyCustomFolder_msg", {

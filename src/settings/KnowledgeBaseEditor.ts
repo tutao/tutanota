@@ -1,24 +1,23 @@
 import m, {Children, Component, Vnode} from "mithril"
-import type {KnowledgeBaseEntry} from "../api/entities/tutanota/TypeRefs.js"
-import {ButtonColor, Button, ButtonType} from "../gui/base/Button.js"
-import type {ButtonAttrs} from "../gui/base/Button.js"
+import type {EmailTemplate, KnowledgeBaseEntry, TemplateGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
+import {ButtonColor, ButtonType} from "../gui/base/Button.js"
 import {KnowledgeBaseEditorModel} from "./KnowledgeBaseEditorModel"
-import {noOp} from "@tutao/tutanota-utils"
+import {noOp, ofClass} from "@tutao/tutanota-utils"
 import {TextField} from "../gui/base/TextField.js"
-import type {EmailTemplate} from "../api/entities/tutanota/TypeRefs.js"
 import {Dialog} from "../gui/base/Dialog"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {lang} from "../misc/LanguageViewModel"
 import {locator} from "../api/main/MainLocator"
-import type {TemplateGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
-import {attachDropdown} from "../gui/base/Dropdown.js"
+import type {DropdownChildAttrs} from "../gui/base/Dropdown.js"
+import {createAsyncDropdown} from "../gui/base/Dropdown.js"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {elementIdPart, getLetId, listIdPart} from "../api/common/utils/EntityUtils"
 import {HtmlEditor} from "../gui/editor/HtmlEditor"
 import {UserError} from "../api/main/UserError"
-import type {DropdownChildAttrs} from "../gui/base/Dropdown.js"
 import {TEMPLATE_SHORTCUT_PREFIX} from "../templates/model/TemplatePopupModel"
-import {ofClass} from "@tutao/tutanota-utils"
+import {IconButtonAttrs} from "../gui/base/IconButton.js"
+import {Icons} from "../gui/base/icons/Icons.js"
+import {ButtonSize} from "../gui/base/ButtonSize.js";
 
 /**
  *  Editor to edit / add a knowledgeBase entry
@@ -59,22 +58,22 @@ export function showKnowledgeBaseEditor(entry: KnowledgeBaseEntry | null, templa
 
 class KnowledgeBaseEditor implements Component<KnowledgeBaseEditorModel> {
 	entryContentEditor: HtmlEditor
-	linkedTemplateButtonAttrs: ButtonAttrs
+	linkedTemplateButtonAttrs: IconButtonAttrs
 
 	constructor(vnode: Vnode<KnowledgeBaseEditorModel>) {
 		const model = vnode.attrs
-		this.linkedTemplateButtonAttrs = attachDropdown(
-			{
-                mainButtonAttrs: {
-                    label: () => lang.get("linkTemplate_label") + " ▼",
-                    title: "linkTemplate_label",
-                    type: ButtonType.Toggle,
-                    click: noOp,
-                    noBubble: true,
-                    colors: ButtonColor.Elevated,
-                }, childAttrs: () => this._createDropdownChildAttrs(model)
-            },
-		)
+		this.linkedTemplateButtonAttrs = {
+			title: "linkTemplate_label",
+			icon: Icons.Add,
+			colors: ButtonColor.Elevated,
+			click: (e, dom) => {
+				e.stopPropagation()
+				createAsyncDropdown({
+					lazyButtons: () => this._createDropdownChildAttrs(model)
+				})(e, dom)
+			},
+			size: ButtonSize.Compact,
+		}
 		this.entryContentEditor = new HtmlEditor("content_label")
 			.showBorders()
 			.setMinHeight(500)
@@ -97,7 +96,6 @@ class KnowledgeBaseEditor implements Component<KnowledgeBaseEditorModel> {
 				return templates.map(template => {
 					return {
 						label: () => template.tag,
-						type: ButtonType.Dropdown,
 						click: () => this.entryContentEditor.editor.insertHTML(createTemplateLink(template)),
 					}
 				})
@@ -105,7 +103,6 @@ class KnowledgeBaseEditor implements Component<KnowledgeBaseEditorModel> {
 				return [
 					{
 						label: "noEntries_msg",
-						type: ButtonType.Dropdown,
 						click: noOp,
 					},
 				]

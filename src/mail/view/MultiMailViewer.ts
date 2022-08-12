@@ -22,10 +22,11 @@ import {theme} from "../../gui/theme"
 import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {locator} from "../../api/main/MainLocator"
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
-import {attachDropdown} from "../../gui/base/Dropdown.js"
+import {attachDropdown, DropdownButtonAttrs} from "../../gui/base/Dropdown.js"
 import {exportMails} from "../export/Exporter"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {MailboxDetail} from "../model/MailModel.js"
+import {IconButtonAttrs} from "../../gui/base/IconButton.js"
 
 assertMainOrNode()
 
@@ -77,24 +78,24 @@ export class MultiMailViewer implements Component {
 		}
 	}
 
-	getActionBarButtons(prependCancel: boolean = false): ButtonAttrs[] {
+	getActionBarButtons(prependCancel: boolean = false): IconButtonAttrs[] {
 		const selectedMails = this._mailView.mailList?.list.getSelectedEntities() ?? []
 
-		const cancel: ButtonAttrs[] = prependCancel ?
+		const cancel: IconButtonAttrs[] = prependCancel ?
 			[{
-				label: "cancel_action",
+				title: "cancel_action",
 				click: () => this._mailView.mailList?.list.selectNone(),
-				icon: () => Icons.Cancel,
+				icon: Icons.Cancel,
 			}]
 			: []
 
 		// if we have both drafts and non-drafts selected, then there is no good place to move them besides deleting them since drafts otherwise only go to the drafts folder and non-drafts do not
-		const move: ButtonAttrs[] = !emptyOrContainsDraftsAndNonDrafts(selectedMails) ? [
+		const move: IconButtonAttrs[] = !emptyOrContainsDraftsAndNonDrafts(selectedMails) ? [
 			attachDropdown(
 				{
 					mainButtonAttrs: {
-						label: "move_action",
-						icon: () => Icons.Folder,
+						title: "move_action",
+						icon: Icons.Folder,
 					},
 					childAttrs: () => this.makeMoveMailButtons(selectedMails)
 				},
@@ -105,29 +106,27 @@ export class MultiMailViewer implements Component {
 			...cancel,
 			...move,
 			{
-				label: "delete_action",
+				title: "delete_action",
 				click: () => {
 					promptAndDeleteMails(locator.mailModel, selectedMails, () => this._mailView.mailList?.list.selectNone())
 				},
-				icon: () => Icons.Trash,
+				icon: Icons.Trash,
 			},
 			attachDropdown(
 				{
 					mainButtonAttrs: {
-						label: "more_label",
-						icon: () => Icons.More,
+						title: "more_label",
+						icon: Icons.More,
 					}, childAttrs: () => [
 						{
 							label: "markUnread_action",
 							click: this._actionBarAction(mails => markMails(locator.entityClient, mails, true)),
-							icon: () => Icons.NoEye,
-							type: ButtonType.Dropdown,
+							icon: Icons.NoEye,
 						},
 						{
 							label: "markRead_action",
 							click: this._actionBarAction(mails => markMails(locator.entityClient, mails, false)),
-							icon: () => Icons.Eye,
-							type: ButtonType.Dropdown,
+							icon: Icons.Eye,
 						},
 						!isApp() && !logins.isEnabled(FeatureType.DisableMailExport)
 							? {
@@ -135,8 +134,7 @@ export class MultiMailViewer implements Component {
 								click: this._actionBarAction(mails =>
 									showProgressDialog("pleaseWait_msg", exportMails(mails, locator.entityClient, locator.fileController)),
 								),
-								icon: () => Icons.Export,
-								type: ButtonType.Dropdown,
+								icon: Icons.Export,
 							}
 							: null,
 					]
@@ -148,7 +146,7 @@ export class MultiMailViewer implements Component {
 	/**
 	 * Generate buttons that will move the selected mails to respective folders
 	 */
-	private async makeMoveMailButtons(selectedEntities: Mail[]): Promise<ButtonAttrs[]> {
+	private async makeMoveMailButtons(selectedEntities: Mail[]): Promise<DropdownButtonAttrs[]> {
 		let selectedMailbox: MailboxDetail | null = null
 
 		for (const mail of selectedEntities) {
@@ -171,8 +169,7 @@ export class MultiMailViewer implements Component {
 				return {
 					label: () => getFolderName(f),
 					click: this._actionBarAction(mails => moveMails({mailModel: locator.mailModel, mails: mails, targetMailFolder: f})),
-					icon: getFolderIcon(f),
-					type: ButtonType.Dropdown,
+					icon: getFolderIcon(f)(),
 				}
 			})
 	}
