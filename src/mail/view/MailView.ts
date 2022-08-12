@@ -4,7 +4,7 @@ import {ColumnType, ViewColumn} from "../../gui/base/ViewColumn"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import type {ButtonAttrs} from "../../gui/base/Button.js"
-import {ButtonColor, Button, ButtonType} from "../../gui/base/Button.js"
+import {Button, ButtonColor, ButtonType} from "../../gui/base/Button.js"
 import type {NavButtonAttrs} from "../../gui/base/NavButton.js"
 import {isNavButtonSelected, isSelectedPrefix, NavButtonColor} from "../../gui/base/NavButton.js"
 import {createMailViewerViewModel, MailViewer} from "./MailViewer"
@@ -807,7 +807,9 @@ export class MailView implements CurrentView {
 
 			if (this.mailViewerViewModel && !multiSelectOperation) {
 				if (mails[0].unread) {
-					await this.toggleUnreadMails(mails)
+					// we don't want to wait on this so we can show the viewer
+					// even if we're offline and unable to update.
+					this.toggleUnreadMails(mails)
 				}
 
 				if (elementClicked) {
