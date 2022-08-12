@@ -120,7 +120,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 
 	_renderWeek(attrs: Attrs, thisWeek: EventsOnDays, mainWeek: EventsOnDays): Children {
 		return m(
-			".fill-absolute.flex.col.calendar-column-border.margin-are-inset-lr",
+			".fill-absolute.flex.col.calendar-column-border.mlr-safe-inset",
 			{
 				oncreate: vnode => {
 					this._redrawIntervalId = setInterval(m.redraw, 1000 * 60)

@@ -47,7 +47,7 @@ export class CalendarAgendaView implements Component<Attrs> {
 			: `${lang.formats.dateWithWeekdayAndYear.format(days[0])} - ${lang.formats.dateWithWeekdayAndYear.format(lastDay)}`
 
 		const lastDayFormatted = formatDate(lastDay)
-		return m(".fill-absolute.flex.col.margin-are-inset-lr", [
+		return m(".fill-absolute.flex.col.mlr-safe-inset", [
 			m(".mt-s.pr-l", [
 				styles.isDesktopLayout()
 					? [

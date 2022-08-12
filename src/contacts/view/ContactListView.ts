@@ -91,7 +91,6 @@ export class ContactListView {
 						class: "mt-m ml mb-xs",
 						doShowBorder: false,
 					}),
-					padHorizontal: false,
 				},
 				m(this.list),
 			)

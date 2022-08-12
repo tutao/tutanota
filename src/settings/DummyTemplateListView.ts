@@ -14,7 +14,7 @@ export class DummyTemplateListView implements Component<DummyTemplateListViewAtt
 			ListColumnWrapper,
 			{
 				headerContent: m(
-					".mr-negative-s.align-self-end",
+					".plr-l.mr-negative-s.align-self-end",
 					m(Button, {
 						label: "addTemplate_label",
 						type: ButtonType.Primary,

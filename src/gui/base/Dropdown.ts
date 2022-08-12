@@ -9,7 +9,7 @@ import type {ButtonAttrs} from "./Button.js"
 import {Button} from "./Button.js"
 import {lang} from "../../misc/LanguageViewModel"
 import {Keys} from "../../api/common/TutanotaConstants"
-import {newMouseEvent} from "../HtmlUtils"
+import {getSafeAreaInsetBottom, getSafeAreaInsetTop, newMouseEvent} from "../HtmlUtils"
 import type {$Promisable, lazy, lazyAsync} from "@tutao/tutanota-utils"
 import {assertNotNull, delay, downcast, filterNull, neverNull} from "@tutao/tutanota-utils"
 import {client} from "../../misc/ClientDetector"
@@ -461,8 +461,8 @@ export function showDropdown(origin: PosRect, domDropdown: HTMLElement, contentH
 	const rightEdgeOfElement = origin.right
 	const bottomEdgeOfElement = origin.bottom
 	const topEdgeOfElement = origin.top
-	const upperSpace = origin.top
-	const lowerSpace = window.innerHeight - origin.bottom
+	const upperSpace = origin.top - getSafeAreaInsetTop()
+	const lowerSpace = window.innerHeight - origin.bottom - getSafeAreaInsetBottom()
 	const leftSpace = origin.left
 	const rightSpace = window.innerWidth - origin.right
 	let transformOrigin = ""

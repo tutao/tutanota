@@ -100,7 +100,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 			{
 				headerContent: this.userCanEdit()
 					? m(
-						".mr-negative-s.align-self-end",
+						".plr-l.mr-negative-s.align-self-end",
 						m(Button, {
 							label: "addEntry_label",
 							type: ButtonType.Primary,
