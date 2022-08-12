@@ -19,7 +19,7 @@ import {Button, ButtonType} from "../gui/base/Button.js"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialog.js"
-import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialog.js"
+import {emitWizardEvent, WizardDialogAttrsBuilder, WizardEventType} from "../gui/base/WizardDialog.js"
 import type {Country} from "../api/common/CountryList"
 import {DefaultAnimationTime} from "../gui/animation/Animations"
 import {EntityEventsListener, EntityUpdateData, isUpdateForTypeRef} from "../api/main/EventController"
@@ -207,6 +207,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 
 export class InvoiceAndPaymentDataPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
 	data: UpgradeSubscriptionData
+	_enabled: () => boolean = () => true
 
 	constructor(upgradeData: UpgradeSubscriptionData) {
 		this.data = upgradeData
@@ -225,7 +226,15 @@ export class InvoiceAndPaymentDataPageAttrs implements WizardPageAttrs<UpgradeSu
 	}
 
 	isEnabled(): boolean {
-		return this.data.type !== SubscriptionType.Free
+		return this._enabled()
+	}
+
+	/**
+	 * Set the enabled function for isEnabled
+	 * @param enabled
+	 */
+	setEnabledFunction<T>(enabled: () => boolean) {
+		this._enabled = enabled
 	}
 }
 
