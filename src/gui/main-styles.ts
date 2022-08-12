@@ -9,10 +9,6 @@ import {BrowserType} from "../misc/ClientConstants"
 
 assertMainOrNodeBoot()
 
-export function requiresStatusBarHack(): boolean {
-	return isApp() && client.device === "iPhone" && client.browserVersion < 11
-}
-
 export function getFonts(): string {
 	// see https://bitsofco.de/the-new-system-font-stack/
 	const fonts: Array<string> = [
@@ -1028,7 +1024,6 @@ styles.registerStyle("main", () => {
 			bottom: px(0),
 			left: px(0),
 			"overflow-x": "hidden",
-			"margin-top": requiresStatusBarHack() ? "20px" : "",
 		},
 		".margin-are-inset-lr": {
 			"margin-right": "env(safe-area-inset-right)",
@@ -1048,7 +1043,7 @@ styles.registerStyle("main", () => {
 			"box-shadow": `0 2px 4px 0 ${theme.header_box_shadow_bg}`,
 			"z-index": 2,
 			// box_shadow will be overruled by the views background, otherwise
-			"margin-top": requiresStatusBarHack() ? "20px" : "env(safe-area-inset-top)", // insets for iPhone X)
+			"margin-top": "env(safe-area-inset-top)", // insets for iPhone X
 		},
 		"bottom-nav": {
 			"box-shadow": `0 -2px 4px 0 ${theme.header_box_shadow_bg}`,

@@ -12,7 +12,6 @@ import {getElevatedBackground} from "../theme"
 import {px, size} from "../size"
 import {HabReminderImage} from "./icons/Icons"
 import {windowFacade} from "../../misc/WindowFacade"
-import {requiresStatusBarHack} from "../main-styles"
 import type {ButtonAttrs} from "./Button.js"
 import {Button, ButtonType} from "./Button.js"
 import type {DialogHeaderBarAttrs} from "./DialogHeaderBar"
@@ -100,7 +99,7 @@ export class Dialog implements ModalComponent {
 				this._getDialogWrapperStyle(dialogType),
 				{
 					style: {
-						paddingTop: requiresStatusBarHack() ? "20px" : "env(safe-area-inset-top)",
+						paddingTop: "env(safe-area-inset-top)",
 					},
 				}, // controls vertical alignment
 				// we need overflow-hidden (actually resulting in min-height: 0 instead of auto) here because otherwise the content of the dialog may make this wrapper grow bigger outside the window on some browsers, e.g. upgrade reminder on Firefox mobile
