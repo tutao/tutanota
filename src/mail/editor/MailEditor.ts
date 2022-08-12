@@ -115,7 +115,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	templateModel: TemplatePopupModel | null
 	openKnowledgeBaseButtonAttrs: ButtonAttrs | null = null
 	sendMailModel: SendMailModel
-	private areDetailsExpanded = false
+	private areDetailsExpanded: boolean
 	private recipientShowConfidential: Map<string, boolean> = new Map()
 
 	constructor(vnode: Vnode<MailEditorAttrs>) {
@@ -126,6 +126,10 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		const model = a.model
 		this.sendMailModel = model
 		this.templateModel = a.templateModel
+
+		// if we have any CC/BCC recipients, we should show these so, should the user send the mail, they know where it will be going to
+		this.areDetailsExpanded = (model.bccRecipients().length + model.ccRecipients().length) > 0
+
 		this.editor = new Editor(200, (html, isPaste) => {
 			const sanitized = htmlSanitizer.sanitizeFragment(html, {
 				blockExternalContent: !isPaste && a.doBlockExternalContent(),
