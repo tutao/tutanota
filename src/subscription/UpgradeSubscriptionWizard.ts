@@ -177,10 +177,12 @@ export async function loadSignupWizard(subscriptionParameters: SubscriptionParam
 		currentSubscription: null,
 		subscriptionParameters: subscriptionParameters,
 	}
+
+	const invoiceAttrs = new InvoiceAndPaymentDataPageAttrs(signupData)
 	const wizardPages = [
 		wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(signupData)),
 		wizardPageWrapper(SignupPage, new SignupPageAttrs(signupData)),
-		wizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(signupData)),
+		wizardPageWrapper(InvoiceAndPaymentDataPage, invoiceAttrs),
 		wizardPageWrapper(UpgradeConfirmPage, new UpgradeConfirmPageAttrs(signupData)),
 	]
 	const wizardBuilder = createWizardDialog(signupData, wizardPages, async () => {
@@ -199,5 +201,9 @@ export async function loadSignupWizard(subscriptionParameters: SubscriptionParam
 			})
 		}
 	})
+
+	// for signup specifically, we only want the invoice and payment page to show up if signing up for a paid account (and the user did not go back to the first page!)
+	invoiceAttrs.setEnabledFunction(() => signupData.type !== SubscriptionType.Free && wizardBuilder.attrs.currentPage !== wizardPages[0])
+
 	return wizardBuilder.dialog
 }
