@@ -195,9 +195,8 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 						"aria-label": lang.getMaybeLazy(a.label),
 						oncreate: vnode => {
 							this.domInput = vnode.dom as HTMLInputElement
-							vnode.attrs.onDomInputCreated?.(this.domInput)
+							a.onDomInputCreated?.(this.domInput)
 							this.domInput.value = a.value
-
 							if (a.type !== TextFieldType.Area) {
 								(vnode.dom as HTMLElement).addEventListener("animationstart", (e: AnimationEvent) => {
 									if (e.animationName === "onAutoFillStart") {
