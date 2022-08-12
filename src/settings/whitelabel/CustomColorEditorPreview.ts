@@ -43,17 +43,11 @@ export class CustomColorEditorPreview implements Component {
 				),
 				m(".pt-m", [
 					m(Button, {
-						style: {
-							width: px(BUTTON_WIDTH),
-						},
 						label: () => "Secondary",
 						click: noOp,
 						type: ButtonType.Secondary,
 					}),
 					m(Button, {
-						style: {
-							width: px(BUTTON_WIDTH),
-						},
 						label: () => "Primary",
 						click: noOp,
 						type: ButtonType.Primary,

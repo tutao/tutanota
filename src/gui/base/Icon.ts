@@ -56,13 +56,14 @@ export class Icon implements Component<IconAttrs> {
 	}
 
 	getClass(attrs: IconAttrs): string {
+		let cls = ""
 		if (attrs.large) {
-			return "icon-large"
-		} else if (attrs.class) {
-			return attrs.class
-		} else {
-			return ""
+			cls += "icon-large "
 		}
+		if (attrs.class) {
+			cls += attrs.class
+		}
+		return cls
 	}
 }
 

@@ -1,8 +1,7 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {logins} from "../../api/main/LoginController"
-import type {CustomerInfo} from "../../api/entities/sys/TypeRefs.js"
-import type {DnsRecord} from "../../api/entities/sys/TypeRefs.js"
+import type {CustomerInfo, DnsRecord} from "../../api/entities/sys/TypeRefs.js"
 import {createDnsRecord} from "../../api/entities/sys/TypeRefs.js"
 import {DnsRecordType} from "../../api/common/TutanotaConstants"
 import m, {Children} from "mithril"
@@ -14,9 +13,9 @@ import {DomainDnsStatus} from "../DomainDnsStatus"
 import {VerifyOwnershipPage, VerifyOwnershipPageAttrs} from "./VerifyOwnershipPage"
 import {VerifyDnsRecordsPage, VerifyDnsRecordsPageAttrs} from "./VerifyDnsRecordsPage"
 import {EnterDomainPage, EnterDomainPageAttrs} from "./EnterDomainPage"
-import type {ButtonAttrs} from "../../gui/base/Button.js"
 import {createWizardDialog, wizardPageWrapper} from "../../gui/base/WizardDialog.js"
 import {assertMainOrNode} from "../../api/common/Env"
+import {IconButtonAttrs} from "../../gui/base/IconButton.js"
 
 assertMainOrNode()
 export type AddDomainData = {
@@ -90,7 +89,7 @@ export const DnsRecordTypeToDnsType: Record<DnsRecordType, ActualDnsRecordType> 
 	[DnsRecordType.DNS_RECORD_TYPE_TXT_VERIFY]: ActualDnsRecordType.TXT,
 })
 
-export function createDnsRecordTableN(records: ValidatedDnSRecord[], refreshButtonAttrs: ButtonAttrs | null): Children {
+export function createDnsRecordTableN(records: ValidatedDnSRecord[], refreshButtonAttrs: IconButtonAttrs | null): Children {
 	return m(Table, {
 		columnHeading: ["type_label", "dnsRecordHostOrName_label", "dnsRecordValueOrPointsTo_label"],
 		addButtonAttrs: refreshButtonAttrs,

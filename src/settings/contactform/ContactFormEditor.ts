@@ -30,7 +30,7 @@ import {getDefaultContactFormLanguage} from "./ContactFormUtils"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {windowFacade} from "../../misc/WindowFacade"
-import {Button, ButtonAttrs, ButtonType} from "../../gui/base/Button.js"
+import {ButtonType} from "../../gui/base/Button.js"
 import {compareGroupInfos, getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
 import {isSameId, stringToCustomId} from "../../api/common/utils/EntityUtils"
 import {showBuyDialog} from "../../subscription/BuyDialog"
@@ -39,6 +39,8 @@ import {TextField} from "../../gui/base/TextField.js"
 import {locator} from "../../api/main/MainLocator"
 import {attachDropdown, DropdownChildAttrs} from "../../gui/base/Dropdown.js"
 import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
+import {IconButton, IconButtonAttrs} from "../../gui/base/IconButton.js"
+import {ButtonSize} from "../../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 // keep in sync with ContactFormAccessor.java
@@ -210,7 +212,7 @@ export class ContactFormEditor {
 				},
 				[
 					m(".h4.mt-l", lang.get("emailProcessing_label")),
-					m(TextField, this._createReceivingMailboxFieldAttrs()),
+					this.renderReceiverField(),
 					this._receivingMailbox() && neverNull(this._receivingMailbox()).groupType === GroupType.User
 						? null
 						: m(".mt-l", [m(Table, this._createParticipantGroupInfosTableAttrs()), m(".small", lang.get("responsiblePersonsInfo_msg"))]),
@@ -232,6 +234,20 @@ export class ContactFormEditor {
 								help: "close_alt",
 							})
 							.setCloseHandler(cancelAction)
+	}
+
+	private renderReceiverField() {
+		return m(TextField, {
+			label: "receivingMailbox_label",
+			value: this._receivingMailboxDisplayValue,
+			disabled: true,
+			injectionsRight: () => m(".margin-between-s", [
+				this.renderAssignUserButton(),
+				this._allSharedMailboxGroupInfos.length > 0
+					? this.renderAssignGroupButton()
+					: null
+			])
+		})
 	}
 
 	updateLanguageFromFields(language: ContactFormLanguage) {
@@ -351,21 +367,20 @@ export class ContactFormEditor {
 	_createLanguageFieldAttrs(): TextFieldAttrs {
 		const selectLanguageButtonAttrs = attachDropdown({
 			mainButtonAttrs: {
-				label: "more_label",
-				icon: () => Icons.More,
+				title: "more_label",
+				icon: Icons.More,
+				size: ButtonSize.Compact,
 			},
 			childAttrs: () => {
 				const childAttrs: Array<DropdownChildAttrs> = this._languages
 																  .map(lang => ({
 																	  label: () => getLanguageName(lang.code),
 																	  click: () => this._language(lang),
-																	  type: ButtonType.Dropdown
 																  }))
 																  .sort((a, b) => a.label().localeCompare(b.label()))
 
 				childAttrs.push({
 					label: "addLanguage_action",
-					type: ButtonType.Dropdown,
 					click: () => {
 						const additionalLanguages = languages
 							.filter(t => {
@@ -422,20 +437,21 @@ export class ContactFormEditor {
 			label: "language_label",
 			value: this._languageDisplayValue,
 			disabled: true,
-			injectionsRight: () => [
-				m(Button, selectLanguageButtonAttrs),
+			injectionsRight: () => m(".flex.margin-between-s", [
+				m(IconButton, selectLanguageButtonAttrs),
 				this._languages.length > 1
-					? m(Button, {
-						label: "delete_action",
+					? m(IconButton, {
+						title: "delete_action",
 						click: () => {
 							remove(this._languages, this._language())
 
 							this._language(this._languages[0])
 						},
-						icon: () => Icons.Cancel,
+						icon: Icons.Cancel,
+						size: ButtonSize.Compact,
 					})
 					: null
-			],
+			]),
 		}
 	}
 
@@ -456,11 +472,29 @@ export class ContactFormEditor {
 		}
 	}
 
-	_createReceivingMailboxFieldAttrs(): TextFieldAttrs {
-		const userDropdownAttrs = attachDropdown({
+	private renderAssignGroupButton() {
+		return m(IconButton, attachDropdown({
 			mainButtonAttrs: {
-				label: "account_label",
-				icon: () => BootIcons.Contacts,
+				title: "groups_label",
+				icon: Icons.People,
+				size: ButtonSize.Compact,
+			},
+			childAttrs: () => this._allSharedMailboxGroupInfos.map(gi => ({
+				label: () => getGroupInfoDisplayName(gi),
+				click: () => this._receivingMailbox(gi),
+				isSelected: () => this._receivingMailbox() === gi,
+			})),
+
+			width: 250,
+		}))
+	}
+
+	private renderAssignUserButton() {
+		return m(IconButton, attachDropdown({
+			mainButtonAttrs: {
+				title: "account_label",
+				icon: BootIcons.Contacts,
+				size: ButtonSize.Compact,
 			},
 			childAttrs: () =>
 				this._allUserGroupInfos.map(gi => ({
@@ -470,43 +504,17 @@ export class ContactFormEditor {
 
 						this._receivingMailbox(gi)
 					},
-					type: ButtonType.Dropdown,
 					isSelected: () => this._receivingMailbox() === gi
 				})),
 			width: 250
-		})
-
-		let groupsDropdownAttrs: ButtonAttrs | null = null
-		if (this._allSharedMailboxGroupInfos.length > 0) {
-			groupsDropdownAttrs = attachDropdown({
-				mainButtonAttrs: {
-					label: "groups_label",
-					icon: () => Icons.People,
-				},
-				childAttrs: () => this._allSharedMailboxGroupInfos.map(gi => ({
-					label: () => getGroupInfoDisplayName(gi),
-					click: () => this._receivingMailbox(gi),
-					type: ButtonType.Dropdown,
-					isSelected: () => this._receivingMailbox() === gi,
-				})),
-
-				width: 250,
-			})
-		}
-
-		return {
-			label: "receivingMailbox_label",
-			value: this._receivingMailboxDisplayValue,
-			disabled: true,
-			injectionsRight: () => groupsDropdownAttrs
-				? [m(Button, userDropdownAttrs), m(Button, groupsDropdownAttrs)]
-				: [m(Button, userDropdownAttrs)],
-		}
+		}))
 	}
 
 	_createParticipantGroupInfosTableAttrs(): TableAttrs {
-		const addParticipantMailGroupButtonAttrs = {
-			label: "addResponsiblePerson_label",
+		const addParticipantMailGroupButtonAttrs: IconButtonAttrs = {
+			title: "addResponsiblePerson_label",
+			icon: Icons.Add,
+			size: ButtonSize.Compact,
 			click: () => {
 				let availableGroupInfos = this._allUserGroupInfos.filter(
 					g => this._participantGroupInfoList.find(alreadyAdded => isSameId(alreadyAdded._id, g._id)) == null,
@@ -542,18 +550,17 @@ export class ContactFormEditor {
 					})
 				}
 			},
-			icon: () => Icons.Add,
 		} as const
 
 		const lines: TableLineAttrs[] = this._participantGroupInfoList.map(groupInfo => {
-			const removeButtonAttrs = {
-				label: "removeGroup_action",
-				click: () => remove(this._participantGroupInfoList, groupInfo),
-				icon: () => Icons.Cancel,
-			} as const
 			return {
 				cells: [getGroupInfoDisplayName(groupInfo)],
-				actionButtonAttrs: removeButtonAttrs,
+				actionButtonAttrs: {
+					title: "removeGroup_action",
+					click: () => remove(this._participantGroupInfoList, groupInfo),
+					icon: Icons.Cancel,
+					size: ButtonSize.Compact,
+				},
 			}
 		})
 

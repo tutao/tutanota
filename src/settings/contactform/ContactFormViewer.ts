@@ -22,6 +22,7 @@ import {assertMainOrNode} from "../../api/common/Env"
 import {locator} from "../../api/main/MainLocator"
 import {ContactFormLanguage} from "../../api/entities/tutanota/TypeRefs.js"
 import {ButtonAttrs} from "../../gui/base/Button.js"
+import {IconButtonAttrs} from "../../gui/base/IconButton.js"
 
 assertMainOrNode()
 
@@ -76,25 +77,25 @@ export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	private renderActionBar(): Children {
-		const buttons: (ButtonAttrs | null)[] = [
+		const buttons: (IconButtonAttrs | null)[] = [
 			this.brandingDomain
 				? {
-					label: "edit_action",
+					title: "edit_action",
 					click: () => ContactFormEditor.show(this.contactForm, false, this.newContactFormIdReceiver),
-					icon: () => Icons.Edit,
+					icon: Icons.Edit,
 				}
 				: null,
 			this.brandingDomain
 				? {
-					label: "copy_action",
+					title: "copy_action",
 					click: () => this.copy(),
-					icon: () => Icons.Copy,
+					icon: Icons.Copy,
 				}
 				: null,
 			{
-				label: "delete_action",
+				title: "delete_action",
 				click: () => this.delete(),
-				icon: () => Icons.Trash,
+				icon: Icons.Trash,
 			}
 		]
 		return m(ActionBar, {

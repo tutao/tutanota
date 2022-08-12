@@ -1,5 +1,4 @@
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog.js"
-import stream from "mithril/stream"
 import {GroupType, SecondFactorType} from "../api/common/TutanotaConstants.js"
 import type {DropDownSelectorAttrs, SelectorItem} from "../gui/base/DropDownSelector.js"
 import {DropDownSelector} from "../gui/base/DropDownSelector.js"
@@ -9,7 +8,6 @@ import type {TextFieldAttrs} from "../gui/base/TextField.js"
 import {TextField} from "../gui/base/TextField.js"
 import {isApp, isTutanotaDomain} from "../api/common/Env.js"
 import m, {Children} from "mithril"
-import type {ButtonAttrs} from "../gui/base/Button.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import {copyToClipboard} from "../misc/ClipboardUtils.js"
 import {Icons} from "../gui/base/icons/Icons.js"
@@ -18,19 +16,19 @@ import {htmlSanitizer} from "../misc/HtmlSanitizer.js"
 import {Dialog, DialogType} from "../gui/base/Dialog.js"
 import {Icon, progressIcon} from "../gui/base/Icon.js"
 import {theme} from "../gui/theme.js"
-import {createSecondFactor} from "../api/entities/sys/TypeRefs.js"
+import type {U2fRegisteredDevice, User} from "../api/entities/sys/TypeRefs.js"
+import {createSecondFactor, GroupInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {assertNotNull, LazyLoaded, neverNull} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator.js"
-import type {User} from "../api/entities/sys/TypeRefs.js"
 import {getEtId, isSameId} from "../api/common/utils/EntityUtils.js"
 import {logins} from "../api/main/LoginController.js"
 import * as RecoverCodeDialog from "./RecoverCodeDialog.js"
 import {WebauthnClient} from "../misc/2fa/webauthn/WebauthnClient.js"
-import type {U2fRegisteredDevice} from "../api/entities/sys/TypeRefs.js"
-import {GroupInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {EntityClient} from "../api/common/EntityClient.js"
 import {ProgrammingError} from "../api/common/error/ProgrammingError.js"
 import type {TotpSecret} from "@tutao/tutanota-crypto"
+import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
+import {ButtonSize} from "../gui/base/ButtonSize.js"
 
 const enum VerificationStatus {
 	Initial = "Initial",
@@ -221,32 +219,32 @@ export class EditSecondFactorDialog {
 	}
 
 	private renderOtpFields(): Children {
-		const totpSecretFieldAttrs: TextFieldAttrs = {
-			label: "totpSecret_label",
-			helpLabel: () => lang.get(isApp() ? "totpTransferSecretApp_msg" : "totpTransferSecret_msg"),
-			value: this.totpKeys.readableKey,
-			injectionsRight: () => m(Button, copyButtonAttrs),
-			disabled: true,
-		}
-		const copyButtonAttrs: ButtonAttrs = {
-			label: "copy_action",
+		const copyButtonAttrs: IconButtonAttrs = {
+			title: "copy_action",
 			click: () => copyToClipboard(this.totpKeys.readableKey),
-			icon: () => Icons.Clipboard,
-		}
-		const totpCodeAttrs: TextFieldAttrs = {
-			label: "totpCode_label",
-			value: this.totpCode,
-			oninput: newValue => this.onTotpValueChange(newValue),
-		}
-		const openTOTPAppAttrs: ButtonAttrs = {
-			label: "addOpenOTPApp_action",
-			click: () => this.openOtpLink(),
-			type: ButtonType.Login,
+			icon: Icons.Clipboard,
+			size: ButtonSize.Compact,
 		}
 		return m(".mb", [
-			m(TextField, totpSecretFieldAttrs),
-			isApp() ? m(".pt", m(Button, openTOTPAppAttrs)) : this.renderOtpQrCode(),
-			m(TextField, totpCodeAttrs),
+			m(TextField, {
+				label: "totpSecret_label",
+				helpLabel: () => lang.get(isApp() ? "totpTransferSecretApp_msg" : "totpTransferSecret_msg"),
+				value: this.totpKeys.readableKey,
+				injectionsRight: () => m(IconButton, copyButtonAttrs),
+				disabled: true,
+			}),
+			isApp()
+				? m(".pt", m(Button, {
+					label: "addOpenOTPApp_action",
+					click: () => this.openOtpLink(),
+					type: ButtonType.Login,
+				}))
+				: this.renderOtpQrCode(),
+			m(TextField, {
+				label: "totpCode_label",
+				value: this.totpCode,
+				oninput: newValue => this.onTotpValueChange(newValue),
+			}),
 		])
 	}
 

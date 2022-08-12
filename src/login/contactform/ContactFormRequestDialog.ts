@@ -20,7 +20,7 @@ import Stream from "mithril/stream"
 import {Checkbox} from "../../gui/base/Checkbox.js"
 import {getPrivacyStatementLink} from "../LoginView"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
-import {BorderStyle, ButtonAttrs, Button, ButtonType} from "../../gui/base/Button.js"
+import {Button, ButtonAttrs, ButtonType} from "../../gui/base/Button.js"
 import type {ContactForm, File as TutanotaFile} from "../../api/entities/tutanota/TypeRefs.js"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {getCleanedMailAddress} from "../../misc/parsing/MailAddressParser"
@@ -31,8 +31,10 @@ import {DataFile} from "../../api/common/DataFile";
 import {FileReference} from "../../api/common/utils/FileUtils";
 import {SessionType} from "../../api/common/SessionType.js";
 import {RecipientType} from "../../api/common/recipients/Recipient"
-import {attachDropdown} from "../../gui/base/Dropdown.js"
+import {createDropdown} from "../../gui/base/Dropdown.js"
 import {readLocalFiles, showFileChooser} from "../../file/FileController.js"
+import {IconButton} from "../../gui/base/IconButton.js"
+import {ButtonSize} from "../../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 
@@ -81,6 +83,9 @@ export class ContactFormRequestDialog {
 			],
 			middle: () => lang.get("createContactRequest_action"),
 		}
+
+		this.view.bind(this)
+
 		this._dialog = Dialog.largeDialog(headerBarAttrs, this)
 							 .addShortcut({
 								 key: Keys.ESC,
@@ -100,28 +105,24 @@ export class ContactFormRequestDialog {
 		locator.customerFacade.createContactFormUserGroupData()
 	}
 
-	view: (...args: Array<any>) => any = () => {
-		const attachFilesButton = m(Button, {
-			label: "attachFiles_action",
-			click: () => {
-				this._showFileChooserForAttachments()
-			},
-			icon: () => Icons.Attachment,
-		})
+	view(): Children {
 		const subject = m(TextField, {
 			label: "subject_label",
 			value: this._subject,
 			helpLabel: this.getConfidentialStateMessage,
-			injectionsRight: () => [attachFilesButton],
+			injectionsRight: () => m(IconButton, {
+				title: "attachFiles_action",
+				click: () => this._showFileChooserForAttachments(),
+				icon: Icons.Attachment,
+				size: ButtonSize.Compact,
+			}),
 			oninput: value => (this._subject = value),
 		})
 		const notificationEmailAddress = m(TextField, {
 			label: "mailAddress_label",
 			value: this._notificationEmailAddress,
 			helpLabel: () => lang.get("contactFormMailAddressInfo_msg"),
-			oninput: value => {
-				this._notificationEmailAddress = value.trim()
-			},
+			oninput: value => this._notificationEmailAddress = value.trim(),
 			type: TextFieldType.Area,
 		})
 		return m(
@@ -228,40 +229,41 @@ export class ContactFormRequestDialog {
 	}
 
 	_updateAttachmentButtons() {
-		this._attachmentButtonAttrs = this._attachments.map(file =>
-			attachDropdown({
-				mainButtonAttrs: {
-					label: () => file.name,
-					icon: () => Icons.Attachment,
-					type: ButtonType.Bubble,
-					staticRightText: "(" + formatStorageSize(Number(file.size)) + ")"
-				},
-				childAttrs: () => [
-					{
-						label: "download_action",
-						click: () => {
-							if (file._type === "DataFile") {
-								locator.fileController.saveDataFile(downcast(file))
-							} else {
-							locator.fileController.open(file as TutanotaFile)
-							}
+		this._attachmentButtonAttrs = this._attachments.map(file => {
+			return {
+				label: () => file.name,
+				icon: () => Icons.Attachment,
+				type: ButtonType.Bubble,
+				staticRightText: "(" + formatStorageSize(Number(file.size)) + ")",
+				click: createDropdown({
+					lazyButtons: () => [
+						{
+							label: "download_action",
+							click: () => {
+								if (file._type === "DataFile") {
+									locator.fileController.saveDataFile(downcast(file))
+								} else {
+									locator.fileController.open(file as TutanotaFile)
+								}
+							},
+							type: ButtonType.Secondary
 						},
-						type: ButtonType.Secondary
-					},
-					{
-						label: "remove_action",
-						click: () => {
-							remove(this._attachments, file)
+						{
+							label: "remove_action",
+							click: () => {
+								remove(this._attachments, file)
 
-							this._updateAttachmentButtons()
+								this._updateAttachmentButtons()
 
-							m.redraw()
-						},
-						type: ButtonType.Secondary
-					}
-				]
-			})
-		)
+								m.redraw()
+							},
+							type: ButtonType.Secondary
+						}
+					]
+
+				})
+			}
+		})
 	}
 
 	getConfidentialStateMessage(): string {
@@ -367,15 +369,14 @@ function showConfirmDialog(userEmailAddress: string): Promise<void> {
 						value: userEmailAddress,
 						disabled: true,
 					})),
-					m(Button, {
+					m(".mb-s.mlr.flex.child-grow", m(Button, {
 						label: "contactFormSubmitConfirm_action",
 						click: () => {
 							dialog.close()
 							resolve()
 						},
 						type: ButtonType.Login,
-						borders: BorderStyle.Sharp
-					}),
+					})),
 				]),
 		})
 			.setCloseHandler(() => {

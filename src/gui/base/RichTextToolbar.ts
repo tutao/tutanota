@@ -2,22 +2,23 @@ import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
 import {Icons} from "./icons/Icons"
 import type {Editor, Listing, Style} from "../editor/Editor"
 import {Alignment} from "../editor/Editor"
-import {noOp, numberRange} from "@tutao/tutanota-utils"
-import type {ButtonAttrs} from "./Button.js"
-import {Button, ButtonColor, ButtonType} from "./Button.js"
+import {numberRange} from "@tutao/tutanota-utils"
 import {size} from "../size"
-import {attachDropdown} from "./Dropdown.js"
+import {createDropdown, DropdownButtonAttrs} from "./Dropdown.js"
 import {lang, TranslationKey} from "../../misc/LanguageViewModel"
 import {animations, height, opacity} from "../animation/Animations"
 import {client} from "../../misc/ClientDetector"
 import {BrowserType} from "../../misc/ClientConstants"
+import {ToggleButton} from "./ToggleButton.js"
+import {IconButton, IconButtonAttrs} from "./IconButton.js"
+import {ButtonSize} from "./ButtonSize.js"
 
 export interface RichTextToolbarAttrs {
 	editor: Editor
 	imageButtonClickHandler?: ((ev: Event, editor: Editor) => unknown) | null
 	alignmentEnabled?: boolean
 	fontSizeEnabled?: boolean
-	customButtonAttrs?: Array<ButtonAttrs>
+	customButtonAttrs?: Array<IconButtonAttrs>
 }
 
 export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
@@ -55,7 +56,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 				},
 			},
 			[
-				m(".flex-end.wrap",
+				m(".flex-end.wrap.items-center.mb-xs.mt-xs.margin-between-s",
 					this.renderStyleButtons(attrs),
 					this.renderCustomButtons(attrs),
 					this.renderAlignDropDown(attrs),
@@ -81,13 +82,11 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 			this.renderListToggleButton("ol", lang.get("formatTextOl_msg") + " (Ctrl + Shift + 9)", Icons.ListOrdered, editor),
 			this.renderListToggleButton("ul", lang.get("formatTextUl_msg") + " (Ctrl + Shift + 8)", Icons.ListUnordered, editor),
 			imageButtonClickHandler
-				? m(Button, {
-					label: "emptyString_msg",
+				? m(IconButton, {
 					title: "insertImage_action",
 					click: ev => imageButtonClickHandler(ev, editor),
-					type: ButtonType.Toggle,
-					icon: () => Icons.Picture,
-					colors: ButtonColor.Elevated,
+					icon: Icons.Picture,
+					size: ButtonSize.Compact,
 				})
 				: null
 		]
@@ -119,20 +118,17 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 		click: () => void,
 		isSelected: () => boolean,
 	): Children {
-		return m(Button, {
-			label: "emptyString_msg",
+		return m(ToggleButton, {
 			title: () => title,
-			click,
-			icon: () => icon,
-			type: ButtonType.Toggle,
-			noBubble: true,
-			isSelected,
-			colors: ButtonColor.Elevated,
+			onSelected: click,
+			icon: icon,
+			selected: isSelected(),
+			size: ButtonSize.Compact,
 		})
 	}
 
 	private renderCustomButtons(attrs: RichTextToolbarAttrs): Children {
-		return (attrs.customButtonAttrs ?? []).map(attrs => m(Button, attrs))
+		return (attrs.customButtonAttrs ?? []).map(attrs => m(IconButton, attrs))
 	}
 
 	private renderAlignDropDown(attrs: RichTextToolbarAttrs): Children {
@@ -140,81 +136,78 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 			return null
 		}
 
-		const alignButtonAttrs = (alignment: Alignment, title: TranslationKey, icon: Icons): ButtonAttrs => {
+		const alignButtonAttrs = (alignment: Alignment, title: TranslationKey, icon: Icons): DropdownButtonAttrs => {
+			// FIXME: I don't know how to fix it yet, it is not a regualr dropdown
 			return {
-				label: "emptyString_msg",
-				title: title,
+				label: title,
 				click: () => {
 					attrs.editor.squire.setTextAlignment(alignment)
 					setTimeout(() => attrs.editor.squire.focus(), 100) // blur for the editor is fired after the handler for some reason
 					m.redraw()
 				},
-				icon: () => icon,
-				type: ButtonType.Toggle,
-				isSelected: () => false,
-				colors: ButtonColor.Elevated,
+				icon: icon,
 			}
 		}
 
-		return m(Button, attachDropdown({
-			mainButtonAttrs: {
-				label: () => "▼",
-				title: "formatTextAlignment_msg",
-				icon: () => {
-					switch (attrs.editor.styles.alignment) {
-						case "left":
-							return Icons.AlignLeft
+		return m(IconButton, {
+			// label: () => "▼",
+			title: "formatTextAlignment_msg",
+			icon: this.alignIcon(attrs),
+			size: ButtonSize.Compact,
+			click: (e, dom) => {
+				e.stopPropagation()
+				createDropdown({
+					width: 200,
+					lazyButtons: () => [
+						alignButtonAttrs("left", "formatTextLeft_msg", Icons.AlignLeft),
+						alignButtonAttrs("center", "formatTextCenter_msg", Icons.AlignCenter),
+						alignButtonAttrs("right", "formatTextRight_msg", Icons.AlignRight),
+						alignButtonAttrs("justify", "formatTextJustify_msg", Icons.AlignJustified),
+					]
+				})(e, dom)
+			}
+		})
+	}
 
-						case "center":
-							return Icons.AlignCenter
+	private alignIcon(attrs: RichTextToolbarAttrs) {
+		switch (attrs.editor.styles.alignment) {
+			case "left":
+				return Icons.AlignLeft
 
-						case "right":
-							return Icons.AlignRight
+			case "center":
+				return Icons.AlignCenter
 
-						case "justify":
-							return Icons.AlignJustified
-					}
-				},
-				type: ButtonType.Toggle,
-				noBubble: true,
-				colors: ButtonColor.Elevated,
-			},
-			childAttrs: () => [
-				alignButtonAttrs("left", "formatTextLeft_msg", Icons.AlignLeft),
-				alignButtonAttrs("center", "formatTextCenter_msg", Icons.AlignCenter),
-				alignButtonAttrs("right", "formatTextRight_msg", Icons.AlignRight),
-				alignButtonAttrs("justify", "formatTextJustify_msg", Icons.AlignJustified),
-			],
-			showDropdown: () => true,
-			width: 2 * size.hpad_large + size.button_height
-		}))
+			case "right":
+				return Icons.AlignRight
+
+			case "justify":
+				return Icons.AlignJustified
+		}
 	}
 
 	private renderSizeButtons({editor}: RichTextToolbarAttrs): Children {
-		return m(Button, attachDropdown({
-			mainButtonAttrs: {
-				label: () => "▼",
-				title: "formatTextFontSize_msg",
-				icon: () => Icons.FontSize,
-				type: ButtonType.Toggle,
-				click: noOp,
-				noBubble: true,
-				colors: ButtonColor.Elevated,
-			},
-			childAttrs: () =>
-				numberRange(8, 144).map(n => {
-					return {
-						label: () => n.toString(),
-						type: ButtonType.Dropdown,
-						click: () => {
-							editor.squire.setFontSize(n)
-							this.selectedSize = n
-							setTimeout(() => editor.squire.focus(), 100) // blur for the editor is fired after the handler for some reason
-							m.redraw()
-						},
-					}
-				})
-		}))
+		return m(IconButton, {
+			title: "formatTextFontSize_msg",
+			icon: Icons.FontSize,
+			size: ButtonSize.Compact,
+			click: (e, dom) => {
+				e.stopPropagation()
+				createDropdown({
+					lazyButtons: () =>
+						numberRange(8, 144).map(n => {
+							return {
+								label: () => n.toString(),
+								click: () => {
+									editor.squire.setFontSize(n)
+									this.selectedSize = n
+									setTimeout(() => editor.squire.focus(), 100) // blur for the editor is fired after the handler for some reason
+									m.redraw()
+								},
+							}
+						}),
+				})(e, dom)
+			}
+		})
 	}
 
 	private renderRemoveFormattingButton(attrs: RichTextToolbarAttrs): Children {
@@ -222,14 +215,14 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 			return null
 		}
 
-		return m(Button, {
-				label: "emptyString_msg",
+		return m(IconButton, {
 				title: "removeFormatting_action",
-				icon: () => Icons.Cancel,
-				type: ButtonType.Toggle,
-				click: () => attrs.editor.squire.removeAllFormatting(),
-				noBubble: true,
-				colors: ButtonColor.Elevated,
+				icon: Icons.FormatClear,
+				click: (e) => {
+					e.stopPropagation()
+					attrs.editor.squire.removeAllFormatting()
+				},
+				size: ButtonSize.Compact,
 			}
 		)
 	}

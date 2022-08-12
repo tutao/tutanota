@@ -15,6 +15,7 @@ import {locator} from "../../api/main/MainLocator"
 import {isSameId} from "../../api/common/utils/EntityUtils"
 import type {ButtonAttrs} from "../../gui/base/Button.js"
 import {MailViewerViewModel} from "../../mail/view/MailViewerViewModel"
+import {IconButtonAttrs} from "../../gui/base/IconButton.js"
 
 assertMainOrNode()
 
@@ -116,7 +117,7 @@ export class SearchResultDetailsViewer {
 		}
 	}
 
-	multiSearchActionBarButtons(): ButtonAttrs[] {
+	multiSearchActionBarButtons(): IconButtonAttrs[] {
 		return this._multiSearchViewer.actionBarButtons()
 	}
 }

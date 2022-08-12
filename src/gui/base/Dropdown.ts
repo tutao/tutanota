@@ -1,4 +1,4 @@
-import m, {Children} from "mithril"
+import m, {Children, Component, Vnode} from "mithril"
 import {modal, ModalComponent} from "./Modal"
 import {animations, opacity, transform, TransformEnum} from "../animation/Animations"
 import {ease} from "../animation/Easing"
@@ -7,7 +7,7 @@ import type {Shortcut} from "../../misc/KeyManager"
 import {focusNext, focusPrevious} from "../../misc/KeyManager"
 import type {ButtonAttrs} from "./Button.js"
 import {Button} from "./Button.js"
-import {lang} from "../../misc/LanguageViewModel"
+import {lang, TranslationText} from "../../misc/LanguageViewModel"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {getSafeAreaInsetBottom, getSafeAreaInsetTop, newMouseEvent} from "../HtmlUtils"
 import type {$Promisable, lazy, lazyAsync} from "@tutao/tutanota-utils"
@@ -16,6 +16,9 @@ import {client} from "../../misc/ClientDetector"
 import {pureComponent} from "./PureComponent"
 import type {clickHandler} from "./GuiUtils"
 import {assertMainOrNode} from "../../api/common/Env"
+import {IconButtonAttrs} from "./IconButton.js"
+import {AllIcons, Icon} from "./Icon.js"
+import {theme} from "../theme.js"
 
 assertMainOrNode()
 export type DropdownInfoAttrs = {
@@ -24,59 +27,57 @@ export type DropdownInfoAttrs = {
 	bold: boolean
 }
 
-export type DropdownButtonAttrs = Omit<ButtonAttrs, "click"> & {click?: clickHandler}
-
 /**
  * Renders small info message inside the dropdown.
  */
 const DropdownInfo = pureComponent<DropdownInfoAttrs>(({center, bold, info}) => {
 	return m(".dropdown-info.text-break.selectable" + (center ? ".center" : "") + (bold ? ".b" : ""), info)
 })
-export type DropdownChildAttrs = DropdownInfoAttrs | ButtonAttrs
+export type DropdownChildAttrs = DropdownInfoAttrs | DropdownButtonAttrs
 
 function isDropDownInfo(dropdownChild: DropdownChildAttrs): dropdownChild is DropdownInfoAttrs {
 	return dropdownChild.hasOwnProperty("info") && dropdownChild.hasOwnProperty("center") && dropdownChild.hasOwnProperty("bold")
 }
 
 export interface PosRect {
-    readonly height: number
-    readonly width: number
-    readonly top: number
-    readonly left: number
-    readonly right: number
-    readonly bottom: number
+	readonly height: number
+	readonly width: number
+	readonly top: number
+	readonly left: number
+	readonly right: number
+	readonly bottom: number
 }
 
 // Some Android WebViews still don't support DOMRect so we polyfill that
 // Implemented according to https://developer.mozilla.org/en-US/docs/Web/API/DOMRectReadOnly and common sense
 export class DomRectReadOnlyPolyfilled implements PosRect {
-    x: number
-    y: number
-    width: number
-    height: number
+	x: number
+	y: number
+	width: number
+	height: number
 
-    constructor(x: number, y: number, width: number, height: number) {
-        this.x = x
-        this.y = y
-        this.width = width
-        this.height = height
-    }
+	constructor(x: number, y: number, width: number, height: number) {
+		this.x = x
+		this.y = y
+		this.width = width
+		this.height = height
+	}
 
-    get top(): number {
-        return this.height > 0 ? this.y : this.y + this.height
-    }
+	get top(): number {
+		return this.height > 0 ? this.y : this.y + this.height
+	}
 
-    get bottom(): number {
-        return this.height > 0 ? this.y + this.height : this.y
-    }
+	get bottom(): number {
+		return this.height > 0 ? this.y + this.height : this.y
+	}
 
-    get left(): number {
-        return this.width > 0 ? this.x : this.x + this.width
-    }
+	get left(): number {
+		return this.width > 0 ? this.x : this.x + this.width
+	}
 
-    get right(): number {
-        return this.width > 0 ? this.x + this.width : this.x
-    }
+	get right(): number {
+		return this.width > 0 ? this.x + this.width : this.x
+	}
 }
 
 // TODO: add resize listener like in the old Dropdown
@@ -107,13 +108,8 @@ export class Dropdown implements ModalComponent {
 					return child
 				}
 
-				const buttonChild: ButtonAttrs = child
+				const buttonChild: ButtonAttrs | DropdownButtonAttrs = child
 				buttonChild.click = this.wrapClick(child.click ? child.click : () => null)
-
-				if ("noBubble" in child) {
-					// Override nobubble to be false
-					child.noBubble = false
-				}
 
 				return child
 			})
@@ -153,9 +149,8 @@ export class Dropdown implements ModalComponent {
 		}
 
 		const _contents = () => {
-			return m(
-				".dropdown-content.plr-l.scroll.abs",
-				{
+			const showingIcons = this.children.some(c => "icon" in c && typeof c.icon !== "undefined")
+			return m(".dropdown-content.scroll.abs", {
 					oncreate: vnode => {
 						this._domContents = vnode.dom as HTMLElement
 						window.requestAnimationFrame(() => {
@@ -203,7 +198,7 @@ export class Dropdown implements ModalComponent {
 					if (isDropDownInfo(child)) {
 						return m(DropdownInfo, child)
 					} else {
-						return m(Button, child)
+						return m(DropdownButton, {...child, showingIcons} as InternalDropdownButtonAttrs)
 					}
 				}),
 			)
@@ -398,7 +393,7 @@ export function showDropdownAtPosition(buttons: ReadonlyArray<DropdownChildAttrs
 
 
 type AttachDropdownParams = {
-	mainButtonAttrs: DropdownButtonAttrs,
+	mainButtonAttrs: Omit<IconButtonAttrs, "click">,
 	childAttrs: lazy<$Promisable<ReadonlyArray<DropdownChildAttrs | null>>>,
 	showDropdown?: lazy<boolean>,
 	width?: number,
@@ -423,16 +418,13 @@ export function attachDropdown(
 		width,
 		overrideOrigin
 	}: AttachDropdownParams
-): ButtonAttrs {
-	const oldClick = mainButtonAttrs.click
+): IconButtonAttrs {
 	return Object.assign({}, mainButtonAttrs, {
 		click: (e: MouseEvent, dom: HTMLElement) => {
 			if (showDropdown()) {
 				const dropDownFn = createAsyncDropdown({lazyButtons: () => Promise.resolve(childAttrs()), overrideOrigin, width})
 				dropDownFn(e, dom)
 				e.stopPropagation()
-			} else if (oldClick) {
-				oldClick(e, dom)
 			}
 		},
 	})
@@ -526,4 +518,46 @@ export function showDropdown(origin: PosRect, domDropdown: HTMLElement, contentH
 	return animations.add(domDropdown, [opacity(0, 1, true), transform(TransformEnum.Scale, 0.5, 1)], {
 		easing: ease.out,
 	})
+}
+
+export interface DropdownButtonAttrs {
+	label: TranslationText
+	icon?: AllIcons
+	click?: clickHandler
+	selected?: boolean
+}
+
+interface InternalDropdownButtonAttrs extends DropdownButtonAttrs {
+	showingIcons: boolean
+}
+
+class DropdownButton implements Component<InternalDropdownButtonAttrs> {
+	private dom: HTMLElement | null = null
+
+	view({attrs}: Vnode<InternalDropdownButtonAttrs>): Children {
+		const color = attrs.selected ? theme.content_button_selected : theme.content_button
+		return m("button.flex.dropdown-button.items-center.state-bg", {
+			oncreate: (vnode) => this.dom = vnode.dom as HTMLElement,
+			onclick: (e: MouseEvent) => attrs.click?.(e, neverNull(this.dom)),
+		}, [
+			attrs.icon && attrs.showingIcons
+				? m(Icon, {
+					icon: attrs.icon,
+					large: true,
+					style: {
+						fill: color,
+						// margin on the sides of the button is 16px, but it actually looks more coherent to have the smaller spacing between the icon and text
+						marginRight: px(12),
+					},
+				})
+				: attrs.showingIcons
+					? m("TODO")
+					: null,
+			m(".text-ellipsis", {
+				style: {
+					color,
+				},
+			}, lang.getMaybeLazy(attrs.label))
+		])
+	}
 }

@@ -79,9 +79,9 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 				showActionButtonColumn: true,
 				addButtonAttrs: hasCapabilityOnGroup(logins.getUserController().user, model.group, ShareCapability.Invite)
 					? {
-						label: "addParticipant_action",
+						title: "addParticipant_action",
 						click: () => showAddParticipantDialog(model, texts),
-						icon: () => Icons.Add,
+						icon: Icons.Add,
 					}
 					: null,
 			}),
@@ -101,13 +101,13 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 				actionButtonAttrs:
 					model.canCancelInvitation(sentGroupInvitation)
 						? {
-							label: "remove_action",
+							title: "remove_action",
 							click: () => {
 								getConfirmation(() => texts.removeMemberMessage(groupName, sentGroupInvitation.inviteeMailAddress)).confirmed(() =>
 									model.cancelInvitation(sentGroupInvitation),
 								)
 							},
-							icon: () => Icons.Cancel,
+							icon: Icons.Cancel,
 						}
 						: null,
 			}
@@ -129,8 +129,8 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 				],
 				actionButtonAttrs: model.canRemoveGroupMember(memberInfo.member)
 					? {
-						label: "delete_action",
-						icon: () => Icons.Cancel,
+						title: "delete_action",
+						icon: Icons.Cancel,
 						click: () => {
 							getConfirmation(() => texts.removeMemberMessage(groupName, downcast(memberInfo.info.mailAddress))).confirmed(() =>
 								model.removeGroupMember(memberInfo.member),

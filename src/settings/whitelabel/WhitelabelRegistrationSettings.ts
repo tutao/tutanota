@@ -1,11 +1,11 @@
 import m, {Children, Component, Vnode} from "mithril"
-import stream from "mithril/stream"
 import type {SelectorItemList} from "../../gui/base/DropDownSelector.js"
 import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
 import {Dialog} from "../../gui/base/Dialog"
 import {Icons} from "../../gui/base/icons/Icons"
-import {ButtonAttrs, Button} from "../../gui/base/Button.js"
 import {TextField} from "../../gui/base/TextField.js"
+import {IconButton} from "../../gui/base/IconButton.js"
+import {ButtonSize} from "../../gui/base/ButtonSize.js";
 
 export type WhitelabelRegistrationSettingsAttrs = {
 	whitelabelCode: string
@@ -52,26 +52,24 @@ export class WhitelabelRegistrationSettings implements Component<WhitelabelRegis
 	}
 
 	_renderWhitelabelCodeField(whitelabelCode: string, onWhitelabelCodeChanged: ((arg0: string) => unknown) | null): Children {
-		let editButtonAttrs: ButtonAttrs | null = null
-
-		if (onWhitelabelCodeChanged) {
-			editButtonAttrs = {
-				label: "edit_action",
-				click: () => {
-					Dialog.showTextInputDialog("edit_action", "whitelabelRegistrationCode_label", null, whitelabelCode).then(newCode => {
-						onWhitelabelCodeChanged(newCode)
-					})
-				},
-				icon: () => Icons.Edit,
-			}
-		}
-
-		const whitelabelRegistrationTextfieldAttrs = {
+		return m(TextField, {
 			label: "whitelabelRegistrationCode_label",
 			value: whitelabelCode,
 			disabled: true,
-			injectionsRight: () => [editButtonAttrs ? m(Button, editButtonAttrs) : null],
-		} as const
-		return m(TextField, whitelabelRegistrationTextfieldAttrs)
+			injectionsRight: () => onWhitelabelCodeChanged ?
+				m(IconButton, {
+					title: "edit_action",
+					click: () => this.editRegistrationCode(whitelabelCode, onWhitelabelCodeChanged),
+					icon: Icons.Edit,
+					size: ButtonSize.Compact,
+				})
+				: null,
+		} as const)
+	}
+
+	private editRegistrationCode(whitelabelCode: string, onWhitelabelCodeChanged: (arg0: string) => unknown) {
+		Dialog.showTextInputDialog("edit_action", "whitelabelRegistrationCode_label", null, whitelabelCode).then(newCode => {
+			onWhitelabelCodeChanged(newCode)
+		})
 	}
 }

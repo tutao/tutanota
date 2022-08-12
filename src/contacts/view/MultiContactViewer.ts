@@ -10,6 +10,7 @@ import {isNotNull, NBSP, noOp, Thunk} from "@tutao/tutanota-utils"
 import type {ButtonAttrs} from "../../gui/base/Button.js"
 import {ActionBar} from "../../gui/base/ActionBar"
 import {assertMainOrNode} from "../../api/common/Env"
+import {IconButtonAttrs} from "../../gui/base/IconButton.js"
 
 assertMainOrNode()
 
@@ -70,36 +71,36 @@ export class MultiContactViewer {
 		}
 	}
 
-	createActionBarButtons(actionCallback: Thunk = noOp, prependCancel: boolean = false): ButtonAttrs[] {
+	createActionBarButtons(actionCallback: Thunk = noOp, prependCancel: boolean = false): IconButtonAttrs[] {
 		const contactList = this._contactView._contactList
 
-		const buttons: (ButtonAttrs | null)[] = [
+		const buttons: (IconButtonAttrs | null)[] = [
 			prependCancel
 				? {
-					label: "cancel_action",
+					title: "cancel_action",
 					click: actionCallback,
-					icon: () => Icons.Cancel,
+					icon: Icons.Cancel,
 				}
 				: null,
 			{
-				label: "delete_action",
+				title: "delete_action",
 				click: () => this._contactView._deleteSelected().then(actionCallback),
-				icon: () => Icons.Trash,
+				icon: Icons.Trash,
 			},
 			contactList?.list.getSelectedEntities().length === 2
 				? {
-					label: "merge_action",
+					title: "merge_action",
 					click: () => this._contactView.mergeSelected().then(actionCallback),
-					icon: () => Icons.People,
+					icon: Icons.People,
 				}
 				: null,
 			contactList
 				? {
-					label: "exportSelectedAsVCard_action",
+					title: "exportSelectedAsVCard_action",
 					click: () => {
 						exportContacts(contactList.list.getSelectedEntities())
 					},
-					icon: () => Icons.Export,
+					icon: Icons.Export,
 				}
 				: null,
 		]

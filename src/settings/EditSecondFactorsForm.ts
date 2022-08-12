@@ -1,5 +1,6 @@
 import m, {Children} from "mithril"
 import {assertMainOrNode, isTutanotaDomain} from "../api/common/Env"
+import type {User} from "../api/entities/sys/TypeRefs.js"
 import {SecondFactorTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {assertNotNull, LazyLoaded, neverNull, ofClass} from "@tutao/tutanota-utils"
 import {Icons} from "../gui/base/icons/Icons"
@@ -9,16 +10,16 @@ import {assertEnumValue, SecondFactorType} from "../api/common/TutanotaConstants
 import {logins} from "../api/main/LoginController"
 import {appIdToLoginDomain} from "../misc/2fa/SecondFactorHandler"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import type {ButtonAttrs} from "../gui/base/Button.js"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/Table.js"
 import {ColumnWidth, Table} from "../gui/base/Table.js"
 import {NotFoundError} from "../api/common/error/RestError"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import type {User} from "../api/entities/sys/TypeRefs.js"
 import {ifAllowedTutanotaLinks} from "../gui/base/GuiUtils"
 import {locator} from "../api/main/MainLocator"
 import {EditSecondFactorDialog, SecondFactorTypeToNameTextId} from "./EditSecondFactorDialog"
+import {IconButtonAttrs} from "../gui/base/IconButton.js"
+import {ButtonSize} from "../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 
@@ -40,9 +41,10 @@ export class EditSecondFactorsForm {
 			lines: this._2FALineAttrs,
 			showActionButtonColumn: true,
 			addButtonAttrs: {
-				label: "addSecondFactor_action",
+				title: "addSecondFactor_action",
 				click: () => this._showAddSecondFactorDialog(),
-				icon: () => Icons.Add,
+				icon: Icons.Add,
+				size: ButtonSize.Compact,
 			},
 		}
 		return [
@@ -74,13 +76,14 @@ export class EditSecondFactorsForm {
 
 		this._2FALineAttrs = factors.map(f => {
 			const isU2F = f.type === SecondFactorType.u2f || f.type === SecondFactorType.webauthn
-			const removeButtonAttrs: ButtonAttrs = {
-				label: "remove_action",
+			const removeButtonAttrs: IconButtonAttrs = {
+				title: "remove_action",
 				click: () =>
 					Dialog.confirm("confirmDeleteSecondFactor_msg")
 						  .then(res => (res ? showProgressDialog("pleaseWait_msg", locator.entityClient.erase(f)) : Promise.resolve()))
 						  .catch(ofClass(NotFoundError, e => console.log("could not delete second factor (already deleted)", e))),
-				icon: () => Icons.Cancel,
+				icon: Icons.Cancel,
+				size: ButtonSize.Compact,
 			}
 			const domainInfo = isU2F && loginDomains.size > 1 ? (f.name.length > 0 ? " - " : "") + appIdToLoginDomain(neverNull(f.u2f).appId) : ""
 			const type = assertEnumValue(SecondFactorType, f.type)

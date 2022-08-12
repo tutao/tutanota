@@ -1,17 +1,16 @@
 import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
 import type {NavButtonAttrs} from "../../gui/base/NavButton.js"
 import {isNavButtonSelected, NavButton} from "../../gui/base/NavButton.js"
-import type {ButtonAttrs} from "../../gui/base/Button.js"
-import {Button} from "../../gui/base/Button.js"
 import {animations, opacity} from "../../gui/animation/Animations"
 import {CounterBadge} from "../../gui/base/CounterBadge"
 import {getNavButtonIconBackground, theme} from "../../gui/theme"
 import {px} from "../../gui/size"
+import {IconButton, IconButtonAttrs} from "../../gui/base/IconButton.js"
 
 export type MailFolderRowAttrs = {
 	count: number
 	button: NavButtonAttrs
-	rightButton: ButtonAttrs | null
+	rightButton: IconButtonAttrs | null
 }
 
 export class MailFolderRow implements Component<MailFolderRowAttrs> {
@@ -29,21 +28,19 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 			}),
 			m(NavButton, button),
 			rightButton
-				? m(
-					Button,
-					Object.assign({}, rightButton, {
-						oncreate: (vnode: VnodeDOM<ButtonAttrs>) => {
-							const dom = vnode.dom as HTMLElement
-							dom.style.opacity = "0"
-							animations.add(dom, opacity(0, 1, true))
-						},
-						onbeforeremove: (vnode: VnodeDOM<ButtonAttrs>) => {
-							const dom = vnode.dom as HTMLElement
-							dom.style.opacity = "1"
-							return animations.add(dom, opacity(1, 0, true))
-						},
-					}),
-				)
+				? m(IconButton, {
+					...rightButton,
+					oncreate: (vnode: VnodeDOM<IconButtonAttrs>) => {
+						const dom = vnode.dom as HTMLElement
+						dom.style.opacity = "0"
+						animations.add(dom, opacity(0, 1, true))
+					},
+					onbeforeremove: (vnode: VnodeDOM<IconButtonAttrs>) => {
+						const dom = vnode.dom as HTMLElement
+						dom.style.opacity = "1"
+						return animations.add(dom, opacity(1, 0, true))
+					},
+				})
 				: null,
 		])
 	}

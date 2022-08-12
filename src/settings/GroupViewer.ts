@@ -8,7 +8,7 @@ import {AdministratedGroupTypeRef, CustomerTypeRef, GroupInfoTypeRef, GroupMembe
 import {BookingItemFeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
 import {BadRequestError, NotAuthorizedError, PreconditionFailedError} from "../api/common/error/RestError"
 import type {TableAttrs} from "../gui/base/Table.js"
-import {ColumnWidth, TableLineAttrs, Table} from "../gui/base/Table.js"
+import {ColumnWidth, Table, TableLineAttrs} from "../gui/base/Table.js"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
@@ -20,13 +20,15 @@ import {GENERATED_MAX_ID, GENERATED_MIN_ID, isSameId} from "../api/common/utils/
 import {showBuyDialog} from "../subscription/BuyDialog"
 import type {TextFieldAttrs} from "../gui/base/TextField.js"
 import {TextField} from "../gui/base/TextField.js"
-import {ButtonAttrs, Button} from "../gui/base/Button.js"
+import {Button} from "../gui/base/Button.js"
 import type {DropDownSelectorAttrs, SelectorItemList} from "../gui/base/DropDownSelector.js"
 import {DropDownSelector} from "../gui/base/DropDownSelector.js"
 import type {EntityClient} from "../api/common/EntityClient"
 import type {UpdatableSettingsDetailsViewer} from "./SettingsView"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
+import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
+import {ButtonSize} from "../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 
@@ -221,32 +223,36 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	_createNameFieldAttrs(): TextFieldAttrs {
-		const editNameButtonAttrs = {
-			label: "edit_action",
-			click: () => {
-				Dialog.showProcessTextInputDialog("edit_action", "name_label", null, this._name,
-					(newName) => {
-						const newGroupInfo: GroupInfo = Object.assign({}, this.groupInfo)
-						newGroupInfo.name = newName
-
-						return this._entityClient.update(newGroupInfo)
-					},
-					newName => {
-						if (this._group.isLoaded() && this._group.getLoaded().type === GroupType.MailingList && newName.trim() === "") {
-							return "enterName_msg"
-						} else {
-							return null
-						}
-					})
-			},
-			icon: () => Icons.Edit,
-		} as const
 		return {
 			label: "name_label",
 			value: this._name,
 			disabled: true,
-			injectionsRight: () => [m(Button, editNameButtonAttrs)],
+			injectionsRight: () => m(IconButton, {
+				title: "edit_action",
+				click: () => {
+					this.showChangeNameDialog()
+				},
+				icon: Icons.Edit,
+				size: ButtonSize.Compact,
+			}),
 		}
+	}
+
+	private showChangeNameDialog() {
+		Dialog.showProcessTextInputDialog("edit_action", "name_label", null, this._name,
+			(newName) => {
+				const newGroupInfo: GroupInfo = Object.assign({}, this.groupInfo)
+				newGroupInfo.name = newName
+
+				return this._entityClient.update(newGroupInfo)
+			},
+			newName => {
+				if (this._group.isLoaded() && this._group.getLoaded().type === GroupType.MailingList && newName.trim() === "") {
+					return "enterName_msg"
+				} else {
+					return null
+				}
+			})
 	}
 
 	_createUsedStorageFieldAttrs(): TextFieldAttrs {
@@ -386,17 +392,18 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	_createMembersTableAttrs(): TableAttrs {
-		const addUserButtonAttrs = {
-			label: "addUserToGroup_label",
+		const addUserButtonAttrs: IconButtonAttrs = {
+			title: "addUserToGroup_label",
 			click: () => this._showAddMember(),
-			icon: () => Icons.Add,
+			icon: Icons.Add,
+			size: ButtonSize.Compact,
 		} as const
 		let lines: TableLineAttrs[] = []
 
 		if (this._members.isLoaded()) {
 			lines = this._members.getLoaded().map(userGroupInfo => {
-				const removeButtonAttrs: ButtonAttrs = {
-					label: "remove_action",
+				const removeButtonAttrs: IconButtonAttrs = {
+					title: "remove_action",
 					click: () => {
 						showProgressDialog(
 							"pleaseWait_msg",
@@ -409,7 +416,8 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 							}),
 						)
 					},
-					icon: () => Icons.Cancel,
+					icon: Icons.Cancel,
+					size: ButtonSize.Compact,
 				}
 				return {
 					cells: [userGroupInfo.name, neverNull(userGroupInfo.mailAddress)],
@@ -432,16 +440,17 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 
 		if (this._administratedGroups.isLoaded()) {
 			lines = this._administratedGroups.getLoaded().map(groupInfo => {
-				let removeButtonAttrs: ButtonAttrs | null = null
+				let removeButtonAttrs: IconButtonAttrs | null = null
 
 				if (logins.getUserController().isGlobalAdmin()) {
 					removeButtonAttrs = {
-						label: "remove_action",
+						title: "remove_action",
 						click: () => {
 							let adminGroupId = neverNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Admin)).group
 							showProgressDialog("pleaseWait_msg", locator.userManagementFacade.updateAdminship(groupInfo.group, adminGroupId))
 						},
-						icon: () => Icons.Cancel,
+						icon: Icons.Cancel,
+						size: ButtonSize.Compact,
 					}
 				}
 

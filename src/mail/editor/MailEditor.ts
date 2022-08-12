@@ -15,16 +15,15 @@ import {logins} from "../../api/main/LoginController"
 import {ALLOWED_IMAGE_FORMATS, ConversationType, FeatureType, Keys, MailMethod} from "../../api/common/TutanotaConstants"
 import {TooManyRequestsError} from "../../api/common/error/RestError"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
-import type {ButtonAttrs} from "../../gui/base/Button.js"
 import {Button, ButtonType} from "../../gui/base/Button.js"
-import {attachDropdown, createDropdown, DropdownChildAttrs, DropdownInfoAttrs} from "../../gui/base/Dropdown.js"
+import {attachDropdown, createDropdown, DropdownChildAttrs} from "../../gui/base/Dropdown.js"
 import {isApp, isBrowser, isDesktop} from "../../api/common/Env"
 import {Icons} from "../../gui/base/icons/Icons"
 import {AnimationPromise, animations, height, opacity} from "../../gui/animation/Animations"
 import type {TextFieldAttrs} from "../../gui/base/TextField.js"
 import {TextField, TextFieldType} from "../../gui/base/TextField.js"
 import {chooseAndAttachFile, cleanupInlineAttachments, createAttachmentButtonAttrs, getConfidentialStateMessage,} from "./MailEditorViewModel"
-import {ExpanderButton, ExpanderPanel} from "../../gui/base/Expander"
+import {ExpanderPanel} from "../../gui/base/Expander"
 import {windowFacade} from "../../misc/WindowFacade"
 import {UserError} from "../../api/main/UserError"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
@@ -63,6 +62,10 @@ import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 import {getRecipientsSearchModel, RecipientsSearchModel} from "../../misc/RecipientsSearchModel.js"
 import {animateToolbar, RichTextToolbar} from "../../gui/base/RichTextToolbar.js"
 import {readLocalFiles} from "../../file/FileController"
+import {IconButton, IconButtonAttrs} from "../../gui/base/IconButton.js"
+import {ToggleButton, ToggleButtonAttrs} from "../../gui/base/ToggleButton.js"
+import {BootIcons} from "../../gui/base/icons/BootIcons.js"
+import {ButtonSize} from "../../gui/base/ButtonSize.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -73,7 +76,7 @@ export type MailEditorAttrs = {
 	selectedNotificationLanguage: Stream<string>
 	dialog: lazy<Dialog>
 	templateModel: TemplatePopupModel | null
-	createKnowledgeBaseButtonAttrs: (editor: Editor) => Promise<ButtonAttrs | null>
+	createKnowledgeBaseButtonAttrs: (editor: Editor) => Promise<IconButtonAttrs | null>
 	search: RecipientsSearchModel
 }
 
@@ -83,7 +86,7 @@ export function createMailEditorAttrs(
 	doFocusEditorOnLoad: boolean,
 	dialog: lazy<Dialog>,
 	templateModel: TemplatePopupModel | null,
-	createKnowledgeBaseButtonAttrs: (editor: Editor) => Promise<ButtonAttrs | null>,
+	createKnowledgeBaseButtonAttrs: (editor: Editor) => Promise<IconButtonAttrs | null>,
 	search: RecipientsSearchModel
 ): MailEditorAttrs {
 	return {
@@ -113,7 +116,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	mentionedInlineImages: Array<string>
 	inlineImageElements: Array<HTMLElement>
 	templateModel: TemplatePopupModel | null
-	openKnowledgeBaseButtonAttrs: ButtonAttrs | null = null
+	openKnowledgeBaseButtonAttrs: IconButtonAttrs | null = null
 	sendMailModel: SendMailModel
 	private areDetailsExpanded: boolean
 	private recipientShowConfidential: Map<string, boolean> = new Map()
@@ -171,16 +174,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					lazyButtons: () => [
 						{
 							label: "download_action",
-							click: () => {
-								const inlineAttachment = model.getAttachments().find(attachment => attachment.cid === cid)
-
-								if (inlineAttachment && isTutanotaFile(inlineAttachment)) {
-									locator.fileController
-										   .open(inlineAttachment)
-										   .catch(ofClass(FileOpenError, () => Dialog.message("canNotOpenFileOnDevice_msg")))
-								}
-							},
-							type: ButtonType.Dropdown,
+							click: () => this.downloadInlineImage(model, cid),
 						},
 					]
 				})
@@ -246,6 +240,16 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		})
 	}
 
+	private downloadInlineImage(model: SendMailModel, cid: string) {
+		const inlineAttachment = model.getAttachments().find(attachment => attachment.cid === cid)
+
+		if (inlineAttachment && isTutanotaFile(inlineAttachment)) {
+			locator.fileController
+				   .open(inlineAttachment)
+				   .catch(ofClass(FileOpenError, () => Dialog.message("canNotOpenFileOnDevice_msg")))
+		}
+	}
+
 	view(vnode: Vnode<MailEditorAttrs>): Children {
 		const a = vnode.attrs
 		this.attrs = a
@@ -254,34 +258,40 @@ export class MailEditor implements Component<MailEditorAttrs> {
 
 		const showConfidentialButton = model.containsExternalRecipients()
 		const isConfidential = model.isConfidential() && showConfidentialButton
-		const confidentialButtonAttrs: ButtonAttrs = {
-			label: model.isConfidential() ? "confidential_action" : "nonConfidential_action",
-			click: () => model.setConfidential(!model.isConfidential()),
-			icon: () => (model.isConfidential() ? Icons.Lock : Icons.Unlock),
-			isSelected: () => model.isConfidential(),
+		const confidentialButtonAttrs: ToggleButtonAttrs = {
+			title: model.isConfidential() ? "confidential_action" : "nonConfidential_action",
+			onSelected: (_, e) => {
+				e.stopPropagation()
+				model.setConfidential(!model.isConfidential())
+			},
+			icon: (model.isConfidential() ? Icons.Lock : Icons.Unlock),
+			selected: model.isConfidential(),
+			size: ButtonSize.Compact,
 		}
-		const attachFilesButtonAttrs: ButtonAttrs = {
-			label: "attachFiles_action",
+		const attachFilesButtonAttrs: IconButtonAttrs = {
+			title: "attachFiles_action",
 			click: (ev, dom) => chooseAndAttachFile(model, dom.getBoundingClientRect()).then(() => m.redraw()),
-			icon: () => Icons.Attachment,
+			icon: Icons.Attachment,
+			size: ButtonSize.Compact,
 		}
 		const plaintextFormatting = logins.getUserController().props.sendPlaintextOnly
 		this.editor.setCreatesLists(!plaintextFormatting)
 
 		const toolbarButton = () =>
 			!plaintextFormatting
-				? m(Button, {
-					label: "showRichTextToolbar_action",
-					icon: () => Icons.FontSize,
-					click: event => {
+				? m(ToggleButton, {
+					title: "showRichTextToolbar_action",
+					icon: Icons.FontSize,
+					size: ButtonSize.Compact,
+					selected: a.doShowToolbar(),
+					onSelected: (_, e) => {
 						a.doShowToolbar(!a.doShowToolbar())
 						// Stop the subject bar from being focused
-						event.stopPropagation()
+						e.stopPropagation()
 						this.editor.focus()
 					},
-					isSelected: a.doShowToolbar,
-					noRecipientInfoBubble: true,
-				} as ButtonAttrs)
+
+				})
 				: null
 
 		const subjectFieldAttrs: TextFieldAttrs = {
@@ -289,28 +299,32 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			helpLabel: () => getConfidentialStateMessage(model.isConfidential()),
 			value: model.getSubject(),
 			oninput: val => model.setSubject(val),
-			injectionsRight: () => {
-				return [
-					showConfidentialButton ? m(Button, confidentialButtonAttrs) : null,
-					this.openKnowledgeBaseButtonAttrs ? m(Button, this.openKnowledgeBaseButtonAttrs) : null,
-					m(Button, attachFilesButtonAttrs),
-					toolbarButton(),
-				]
-			},
+			injectionsRight: () => m(".flex.end.margin-between-s.items-center", {
+				style: {
+					// all this injection stuff is messy, this is the easiest way to center it
+					height: "40px",
+					// since our buttons are more compact than default (dropdown) ones
+					// marginRight: "5px",
+				},
+			}, [
+				showConfidentialButton ? m(ToggleButton, confidentialButtonAttrs) : null,
+				this.openKnowledgeBaseButtonAttrs ? m(IconButton, this.openKnowledgeBaseButtonAttrs) : null,
+				m(IconButton, attachFilesButtonAttrs),
+				toolbarButton(),
+			]),
 		}
 
 		const attachmentButtonAttrs = createAttachmentButtonAttrs(model, this.inlineImageElements)
 
-		let editCustomNotificationMailAttrs: ButtonAttrs | null = null
+		let editCustomNotificationMailAttrs: IconButtonAttrs | null = null
 
 		if (logins.getUserController().isGlobalAdmin()) {
 			editCustomNotificationMailAttrs = attachDropdown(
 				{
 					mainButtonAttrs: {
-						label: "edit_action",
-						click: () => {
-						},
-						icon: () => Icons.Edit,
+						title: "more_label",
+						icon: Icons.More,
+						size: ButtonSize.Compact,
 					}, childAttrs: () => [
 						{
 							label: "add_action",
@@ -319,7 +333,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 									showAddOrEditNotificationEmailDialog(logins.getUserController()),
 								)
 							},
-							type: ButtonType.Dropdown,
 						},
 						{
 							label: "edit_action",
@@ -328,7 +341,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 									showAddOrEditNotificationEmailDialog(logins.getUserController(), model.getSelectedNotificationLanguageCode()),
 								)
 							},
-							type: ButtonType.Dropdown,
 						},
 					]
 				},
@@ -430,7 +442,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 									dropdownWidth: 250,
 								})),
 								editCustomNotificationMailAttrs
-									? m(".flex-no-grow.col.flex-end.border-bottom", m(".mr-negative-s", m(Button, editCustomNotificationMailAttrs)))
+									? m(".flex-no-grow.col.flex-end.border-bottom", m(".mr-negative-s", m(IconButton, editCustomNotificationMailAttrs)))
 									: null,
 							],
 						)
@@ -491,13 +503,12 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					customButtonAttrs: this.templateModel
 						? [
 							{
-								label: "emptyString_msg",
 								title: "openTemplatePopup_msg",
 								click: () => {
 									this.openTemplates()
 								},
-								type: ButtonType.Toggle,
-								icon: () => Icons.ListAlt,
+								icon: Icons.ListAlt,
+								size: ButtonSize.Compact,
 							},
 						]
 						: [],
@@ -571,26 +582,31 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			},
 			disabled: !this.sendMailModel.logins.isInternalUserLoggedIn(),
 			injectionsRight: field === RecipientField.TO && this.sendMailModel.logins.isInternalUserLoggedIn()
-				? m(
-					".mr-s",
-					m(ExpanderButton, {
-						label: "show_action",
-						expanded: this.areDetailsExpanded,
-						onExpandedChange: expanded => this.areDetailsExpanded = expanded
-					}),
-				)
-				: null,
+				? m("", {
+					style: {
+						size: "40px",
+					}
+				}, m(ToggleButton, {
+					title: "show_action",
+					icon: BootIcons.Expand,
+					size: ButtonSize.Compact,
+					selected: this.areDetailsExpanded,
+					onSelected: (_, e) => {
+						e.stopPropagation()
+						this.areDetailsExpanded = !this.areDetailsExpanded
+					},
+				})
+)				: null,
 			search
 		})
 	}
 
 	private renderRevealIcon(address: string): Children {
-		return m(Button, {
-			label: this.isConfidentialPasswordRevealed(address) ? "concealPassword_action" : "revealPassword_action",
-			click: () => {
-				this.toggleRevealConfidentialPassword(address)
-			},
-			icon: () => this.isConfidentialPasswordRevealed(address) ? Icons.NoEye : Icons.Eye,
+		return m(IconButton, {
+			title: this.isConfidentialPasswordRevealed(address) ? "concealPassword_action" : "revealPassword_action",
+			click: () => this.toggleRevealConfidentialPassword(address),
+			icon: this.isConfidentialPasswordRevealed(address) ? Icons.NoEye : Icons.Eye,
+			size: ButtonSize.Compact,
 		})
 	}
 
@@ -627,20 +643,12 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			})
 		}
 
-		const contextButtons: Array<ButtonAttrs | DropdownInfoAttrs> = []
-
-		// email address as info text
-		contextButtons.push({
-			info: recipient.address,
-			center: true,
-			bold: true,
-		})
+		const contextButtons: Array<DropdownChildAttrs> = []
 
 		if (canEditBubbleRecipient) {
 			if (recipient.contact && recipient.contact._id) {
 				contextButtons.push({
 					label: () => lang.get("editContact_label"),
-					type: ButtonType.Secondary,
 					click: () => {
 						import("../../contacts/ContactEditor").then(({ContactEditor}) => new ContactEditor(entity, recipient.contact).show())
 					},
@@ -648,7 +656,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			} else {
 				contextButtons.push({
 					label: () => lang.get("createContact_action"),
-					type: ButtonType.Secondary,
 					click: () => {
 						// contact list
 						contactModel.contactListId().then(contactListId => {
@@ -665,7 +672,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		if (canRemoveBubble) {
 			contextButtons.push({
 				label: "remove_action",
-				type: ButtonType.Secondary,
 				click: () => this.sendMailModel.removeRecipient(recipient, field, false),
 			})
 		}

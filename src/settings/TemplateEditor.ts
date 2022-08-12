@@ -5,7 +5,7 @@ import type {ButtonAttrs} from "../gui/base/Button.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import {Dialog} from "../gui/base/Dialog"
 import {Icons} from "../gui/base/icons/Icons"
-import {createDropdown} from "../gui/base/Dropdown.js"
+import {createDropdown, DropdownButtonAttrs} from "../gui/base/Dropdown.js"
 import type {Language} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {EmailTemplate, TemplateGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
@@ -15,6 +15,8 @@ import {showUserError} from "../misc/ErrorHandlerImpl"
 import {UserError} from "../api/main/UserError"
 import {HtmlEditor} from "../gui/editor/HtmlEditor"
 import {ofClass} from "@tutao/tutanota-utils"
+import {IconButton} from "../gui/base/IconButton.js"
+import {ButtonSize} from "../gui/base/ButtonSize.js"
 
 /**
  * Creates an Editor Popup in which you can create a new template or edit an existing one
@@ -104,12 +106,12 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 			m(TextField, {
 					label: "language_label",
 					value: this.model.selectedContent() ? getLanguageName(this.model.selectedContent()) : "",
-					injectionsRight: () => [
+					injectionsRight: () => m(".flex.margin-between-s", [
 						this.model.getAddedLanguages().length > 1
 							? [this.renderRemoveLangButton(), this.renderSelectLangButton()]
 							: null,
 						this.renderAddLangButton(),
-					],
+					]),
 					disabled: true,
 				}
 			),
@@ -118,10 +120,10 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 	}
 
 	private renderAddLangButton() {
-		return m(Button, {
-			label: "addLanguage_action",
-			type: ButtonType.Action,
-			icon: () => Icons.Add,
+		return m(IconButton, {
+			title: "addLanguage_action",
+			icon: Icons.Add,
+			size: ButtonSize.Compact,
 			click: createDropdown(
 				{
 					lazyButtons: () =>
@@ -135,10 +137,10 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 	}
 
 	private renderSelectLangButton() {
-		return m(Button, {
-			label: "languages_label",
-			type: ButtonType.Action,
-			icon: () => Icons.Language,
+		return m(IconButton, {
+			title: "languages_label",
+			icon: Icons.Language,
+			size: ButtonSize.Compact,
 			click: createDropdown({
 				lazyButtons: () => {
 					// save current content with language & create a dropdwon with all added languages & an option to add a new language
@@ -151,7 +153,6 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 
 								this.templateContentEditor.setValue(content.text)
 							},
-							type: ButtonType.Dropdown,
 						}
 					})
 				}
@@ -160,11 +161,11 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 	}
 
 	private renderRemoveLangButton() {
-		return m(Button, {
-			label: "removeLanguage_action",
-			icon: () => Icons.Trash,
-			type: ButtonType.Action,
+		return m(IconButton, {
+			title: "removeLanguage_action",
+			icon: Icons.Trash,
 			click: () => this.removeLanguage(),
+			size: ButtonSize.Compact,
 		})
 	}
 
@@ -185,7 +186,7 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 		})
 	}
 
-	createAddNewLanguageButtonAttrs(lang: Language): ButtonAttrs {
+	createAddNewLanguageButtonAttrs(lang: Language): DropdownButtonAttrs {
 		return {
 			label: lang.textId,
 			click: () => {
@@ -197,7 +198,6 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 
 				this.templateContentEditor.setValue("")
 			},
-			type: ButtonType.Dropdown,
 		}
 	}
 }

@@ -15,7 +15,9 @@ import {assertMainOrNode} from "../api/common/Env"
 import {isTutanotaMailAddress} from "../mail/model/MailUtils.js";
 import {px, size} from "../gui/size.js"
 import {TextField} from "../gui/base/TextField.js"
-import {attachDropdown} from "../gui/base/Dropdown.js"
+import {attachDropdown, DropdownButtonAttrs} from "../gui/base/Dropdown.js"
+import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
+import {ButtonSize} from "../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 
@@ -25,7 +27,7 @@ export interface SelectMailAddressFormAttrs {
 	availableDomains: Array<string>
 	onValidationResult: (emailAddress: string, validationResult: ValidationResult) => unknown
 	onBusyStateChanged: (isBusy: boolean) => unknown
-	injectionsRightButtonAttrs?: ButtonAttrs | null
+	injectionsRightButtonAttrs?: IconButtonAttrs | null
 	onDomainChanged?: (domain: string) => unknown
 }
 
@@ -84,20 +86,20 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 					`@${this.domain}`,
 				),
 				attrs.availableDomains.length > 1
-					? m(Button, attachDropdown(
+					? m(IconButton, attachDropdown(
 						{
 							mainButtonAttrs: {
-								label: "domain_label",
-								icon: () => Icons.More,
-								noBubble: true,
+								title: "domain_label",
+								icon: Icons.More,
+								size: ButtonSize.Compact,
 							},
 							childAttrs: () => attrs.availableDomains.map(domain => this.createDropdownItemAttrs(domain, attrs)),
 							showDropdown: () => true,
-							width: 250
+							width: 250,
 						},
 					))
 					: attrs.injectionsRightButtonAttrs
-						? m(Button, attrs.injectionsRightButtonAttrs)
+						? m(IconButton, attrs.injectionsRightButtonAttrs)
 						: null,
 			],
 		})
@@ -120,7 +122,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 		})
 	}
 
-	private createDropdownItemAttrs(domain: string, attrs: SelectMailAddressFormAttrs): ButtonAttrs {
+	private createDropdownItemAttrs(domain: string, attrs: SelectMailAddressFormAttrs): DropdownButtonAttrs {
 		return {
 			label: () => domain,
 			click: () => {
@@ -128,7 +130,6 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 				this.domain = domain
 				this.verifyMailAddress(attrs)
 			},
-			type: ButtonType.Dropdown,
 		}
 	}
 

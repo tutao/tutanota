@@ -20,6 +20,8 @@ import {appendEmailSignature} from "../../mail/signature/Signature"
 import {formatBirthdayOfContact, getSocialUrl} from "../model/ContactUtils"
 import {ButtonAttrs, Button} from "../../gui/base/Button.js"
 import {assertMainOrNode} from "../../api/common/Env"
+import {IconButton, IconButtonAttrs} from "../../gui/base/IconButton.js"
+import {ButtonSize} from "../../gui/base/ButtonSize.js";
 
 assertMainOrNode()
 
@@ -131,16 +133,16 @@ export class ContactViewer implements ClassComponent {
 	}
 
 	_createActionbar(): Children {
-		const actionBarButtons: ButtonAttrs[] = [
+		const actionBarButtons: IconButtonAttrs[] = [
 			{
-				label: "edit_action",
+				title: "edit_action",
 				click: () => this.edit(),
-				icon: () => Icons.Edit,
+				icon: Icons.Edit,
 			},
 			{
-				label: "delete_action",
+				title: "delete_action",
 				click: () => this.delete(),
-				icon: () => Icons.Trash,
+				icon: Icons.Trash,
 			},
 		]
 		return m(ActionBar, {
@@ -149,10 +151,11 @@ export class ContactViewer implements ClassComponent {
 	}
 
 	_createSocialId(contactSocialId: ContactSocialId): Children {
-		const showButton = m(Button, {
-			label: "showURL_alt",
+		const showButton = m(IconButton, {
+			title: "showURL_alt",
 			click: noOp,
-			icon: () => Icons.ArrowForward,
+			icon: Icons.ArrowForward,
+			size: ButtonSize.Compact,
 		})
 		return m(TextField, {
 			label: () => getContactSocialTypeLabel(getContactSocialType(contactSocialId), contactSocialId.customTypeName),
@@ -163,10 +166,11 @@ export class ContactViewer implements ClassComponent {
 	}
 
 	_createMailAddress(address: ContactAddress): Child {
-		const newMailButton = m(Button, {
-			label: "sendMail_alt",
+		const newMailButton = m(IconButton, {
+			title: "sendMail_alt",
 			click: () => this._writeMail(address.address),
-			icon: () => BootIcons.Mail,
+			icon: BootIcons.Mail,
+			size: ButtonSize.Compact,
 		})
 		return m(TextField, {
 			label: () => getContactAddressTypeLabel(address.type as any, address.customTypeName),
@@ -177,10 +181,11 @@ export class ContactViewer implements ClassComponent {
 	}
 
 	_createPhone(phone: ContactPhoneNumber): Children {
-		const callButton = m(Button, {
-			label: "callNumber_alt",
+		const callButton = m(IconButton, {
+			title: "callNumber_alt",
 			click: () => null,
-			icon: () => Icons.Call,
+			icon: Icons.Call,
+			size: ButtonSize.Compact,
 		})
 		return m(TextField, {
 			label: () => getContactPhoneNumberTypeLabel(phone.type as any, phone.customTypeName),
@@ -199,10 +204,11 @@ export class ContactViewer implements ClassComponent {
 			prepAddress = encodeURIComponent(address.address)
 		}
 
-		const showButton = m(Button, {
-			label: "showAddress_alt",
+		const showButton = m(IconButton, {
+			title: "showAddress_alt",
 			click: () => null,
-			icon: () => Icons.Pin,
+			icon: Icons.Pin,
+			size: ButtonSize.Compact,
 		})
 		return m(TextField, {
 			label: () => getContactAddressTypeLabel(downcast<ContactAddressType>(address.type), address.customTypeName),

@@ -12,23 +12,15 @@ import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
 
-export const enum BorderStyle {
-	Rounded,
-	Sharp
-}
-
 export const enum ButtonType {
 	Action = "action",
 	ActionLarge = "action-large",
 	// action button with large icon
 	Primary = "primary",
 	Secondary = "secondary",
-	Dropdown = "dropdown",
 	Login = "login",
-	Floating = "floating",
 	Bubble = "bubble",
 	TextBubble = "textBubble",
-	Toggle = "toggle",
 }
 
 export const enum ButtonColor {
@@ -113,13 +105,6 @@ export interface ButtonAttrs {
 	isSelected?: lazy<boolean>
 	noBubble?: boolean
 	staticRightText?: string,
-	style?: Record<string, string>
-
-	// this is just an annoying side effect of doing UI cleanup
-	// old Button with Login type had sharp edges, ButtonN with Login type has rounded edges
-	// we need the edges to be sharp for the contact form request dialog submit button
-	// I could go through and cleanup and improve it but for now this will do.
-	borders?: BorderStyle
 }
 
 /**
@@ -139,7 +124,7 @@ export class Button implements ClassComponent<ButtonAttrs> {
 				style: this._getStyle(a),
 				onclick: (event: MouseEvent) => this.click(event, a, assertNotNull(this._domButton)),
 				title:
-					type === ButtonType.Action || type === ButtonType.Dropdown || type === ButtonType.Login || type === ButtonType.Floating
+					type === ButtonType.Action || type === ButtonType.Login
 						? lang.getMaybeLazy(a.label)
 						: title,
 				oncreate: vnode => {
@@ -155,11 +140,7 @@ export class Button implements ClassComponent<ButtonAttrs> {
 					style: {
 						borderColor: getColors(a.colors).border,
 					},
-					oncreate: vnode => {
-						if (type !== ButtonType.Toggle) {
-							addFlash(vnode.dom)
-						}
-					},
+					oncreate: vnode => addFlash(vnode.dom),
 					onremove: vnode => removeFlash(vnode.dom),
 				},
 				[
@@ -182,7 +163,7 @@ export class Button implements ClassComponent<ButtonAttrs> {
 	_getStyle(a: ButtonAttrs): {} {
 		return a.type === ButtonType.Login
 			? {
-				"border-radius": a.borders === BorderStyle.Sharp ? "0px" : "3px",
+				"border-radius": "3px",
 				"background-color": theme.content_accent,
 			}
 			: {}
@@ -217,7 +198,7 @@ export class Button implements ClassComponent<ButtonAttrs> {
 			return theme.button_bubble_fg
 		} else if (type === ButtonType.Login) {
 			return theme.content_button_icon_selected
-		} else if (a.isSelected?.() || type === ButtonType.Floating) {
+		} else if (a.isSelected?.()) {
 			return getColors(a.colors).icon_selected
 		} else {
 			return getColors(a.colors).icon
@@ -227,11 +208,11 @@ export class Button implements ClassComponent<ButtonAttrs> {
 	getIconBackgroundColor(a: ButtonAttrs): string {
 		const type = this.getType(a.type)
 
-		if ([ButtonType.Toggle, ButtonType.Bubble, ButtonType.Login].includes(type)) {
+		if ([ButtonType.Bubble, ButtonType.Login].includes(type)) {
 			return "initial"
-		} else if (a.isSelected?.() || type === ButtonType.Floating) {
+		} else if (a.isSelected?.()) {
 			return getColors(a.colors).button_selected
-		} else if (type === ButtonType.Action || type === ButtonType.Dropdown || type === ButtonType.ActionLarge) {
+		} else if (type === ButtonType.Action || type === ButtonType.ActionLarge) {
 			return getColors(a.colors).button_icon_bg
 		} else {
 			return getColors(a.colors).button
@@ -247,8 +228,6 @@ export class Button implements ClassComponent<ButtonAttrs> {
 
 		if (type === ButtonType.ActionLarge) {
 			return "flex-center items-center button-icon icon-large"
-		} else if (type === ButtonType.Floating) {
-			return "flex-center items-center button-icon floating icon-large"
 		} else if (a.colors === ButtonColor.Header) {
 			return "flex-end items-center button-icon icon-xl"
 		} else if (a.colors === ButtonColor.DrawerNav) {
@@ -264,12 +243,7 @@ export class Button implements ClassComponent<ButtonAttrs> {
 		const type = this.getType(a.type)
 		let buttonClasses = ["bg-transparent"]
 
-		if (type === ButtonType.Floating) {
-			buttonClasses.push("fixed-bottom-right")
-			buttonClasses.push("large-button-height")
-			buttonClasses.push("large-button-width")
-			buttonClasses.push("floating")
-		} else if ([ButtonType.Action, ButtonType.ActionLarge].includes(type)) {
+		if ([ButtonType.Action, ButtonType.ActionLarge].includes(type)) {
 			buttonClasses.push("button-width-fixed") // set the button width for firefox browser
 
 			buttonClasses.push("button-height") // set the button height for firefox browser
@@ -288,19 +262,12 @@ export class Button implements ClassComponent<ButtonAttrs> {
 		const type = this.getType(a.type)
 		let wrapperClasses = ["button-content", "flex", "items-center", type]
 
-		if (![ButtonType.Floating, ButtonType.TextBubble, ButtonType.Toggle].includes(type)) {
+		if (![ButtonType.TextBubble].includes(type)) {
 			wrapperClasses.push("plr-button")
 		}
 
-		if (type === ButtonType.Dropdown) {
-			wrapperClasses.push("justify-start")
-		} else {
-			wrapperClasses.push("justify-center")
-		}
 
-		if (type === ButtonType.Toggle) {
-			wrapperClasses.push(a.isSelected?.() ? "on" : "off")
-		}
+		wrapperClasses.push("justify-center")
 
 		return wrapperClasses
 	}
@@ -309,23 +276,11 @@ export class Button implements ClassComponent<ButtonAttrs> {
 		const type = this.getType(a.type)
 		const label = lang.getMaybeLazy(a.label)
 
-		if (label.trim() === "" || [ButtonType.Action, ButtonType.Floating].includes(type)) {
+		if (label.trim() === "" || [ButtonType.Action].includes(type)) {
 			return null
 		}
 
 		let classes = ["text-ellipsis"]
-
-		if (type === ButtonType.Dropdown) {
-			classes.push("pl-m")
-		}
-
-		if (type === ButtonType.Toggle) {
-			classes.push("pr-s pb-2")
-
-			if (!a.icon) {
-				classes.push("pl-s")
-			}
-		}
 
 		return m(
 			"",
@@ -345,10 +300,6 @@ export class Button implements ClassComponent<ButtonAttrs> {
 			case ButtonType.Primary:
 			case ButtonType.Secondary:
 				color = theme.content_accent
-				break
-
-			case ButtonType.Toggle:
-				color = theme.content_button_icon
 				break
 
 			case ButtonType.Login:

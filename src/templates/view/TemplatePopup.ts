@@ -29,6 +29,7 @@ import {getSharedGroupName, hasCapabilityOnGroup} from "../../sharing/GroupUtils
 import {createInitialTemplateListIfAllowed} from "../TemplateGroupUtils"
 import {getConfirmation} from "../../gui/base/GuiUtils"
 import {ScrollSelectList} from "../../gui/ScrollSelectList"
+import {IconButton, IconButtonAttrs} from "../../gui/base/IconButton.js"
 
 export const TEMPLATE_POPUP_HEIGHT = 340
 export const TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH = 600
@@ -269,11 +270,11 @@ export class TemplatePopup implements ModalComponent {
 					}
 				},
 			},
-			attrs ? m(Button, attrs as ButtonAttrs) : null,
+			attrs ? m(IconButton, attrs as IconButtonAttrs) : null,
 		)
 	}
 
-	_createAddButtonAttributes(): ButtonAttrs | null {
+	_createAddButtonAttributes(): IconButtonAttrs | null {
 		const templateGroupInstances = this._templateModel.getTemplateGroupInstances()
 
 		const writeableGroups = templateGroupInstances.filter(instance =>
@@ -282,7 +283,7 @@ export class TemplatePopup implements ModalComponent {
 
 		if (templateGroupInstances.length === 0) {
 			return {
-				label: "createTemplate_action",
+				title: "createTemplate_action",
 				click: () => {
 					createInitialTemplateListIfAllowed().then(groupRoot => {
 						if (groupRoot) {
@@ -290,33 +291,28 @@ export class TemplatePopup implements ModalComponent {
 						}
 					})
 				},
-				type: ButtonType.ActionLarge,
-				icon: () => Icons.Add,
+				icon: Icons.Add,
 				colors: ButtonColor.DrawerNav,
 			}
 		} else if (writeableGroups.length === 1) {
 			return {
-				label: "createTemplate_action",
+				title: "createTemplate_action",
 				click: () => this.showTemplateEditor(null, writeableGroups[0].groupRoot),
-				type: ButtonType.ActionLarge,
-				icon: () => Icons.Add,
+				icon: Icons.Add,
 				colors: ButtonColor.DrawerNav,
 			}
 		} else if (writeableGroups.length > 1) {
 			return attachDropdown(
 				{
 					mainButtonAttrs: {
-						label: "createTemplate_action",
-						click: noOp,
-						type: ButtonType.ActionLarge,
-						icon: () => Icons.Add,
+						title: "createTemplate_action",
+						icon: Icons.Add,
 						colors: ButtonColor.DrawerNav,
 					}, childAttrs: () =>
 						writeableGroups.map(groupInstances => {
 							return {
 								label: () => getSharedGroupName(groupInstances.groupInfo, true),
 								click: () => this.showTemplateEditor(null, groupInstances.groupRoot),
-								type: ButtonType.Dropdown,
 							}
 						})
 				},
@@ -333,23 +329,19 @@ export class TemplatePopup implements ModalComponent {
 
 		const canEdit = !!selectedGroup && hasCapabilityOnGroup(logins.getUserController().user, selectedGroup.group, ShareCapability.Write)
 		return [
-			m(
-				Button,
-				attachDropdown(
+			m(".flex.flex-column.justify-center.mr-m", selectedContent ? m("", lang.get(languageByCode[selectedContent.languageCode].textId)) : ""),
+			m(".flex-grow"),
+			m(IconButton, attachDropdown(
 					{
 						mainButtonAttrs: {
-							label: () => (selectedContent ? selectedContent.languageCode + " ▼" : ""),
-							title: "chooseLanguage_action",
-							// Use dropdown as button type because it matches with the colors of the other buttons
-							type: ButtonType.Dropdown,
-							click: noOp,
-							noBubble: true,
+							title: () => lang.get("chooseLanguage_action"),
+							icon: Icons.Language,
 						}, childAttrs: () =>
 							selectedTemplate.contents.map(content => {
 								const langCode: LanguageCode = downcast(content.languageCode)
 								return {
 									label: () => lang.get(languageByCode[langCode].textId),
-									type: ButtonType.Dropdown,
+									// type: ButtonType.Dropdown,
 									click: (e: MouseEvent) => {
 										e.stopPropagation()
 										this._templateModel.setSelectedContentLanguage(langCode)
@@ -362,23 +354,21 @@ export class TemplatePopup implements ModalComponent {
 			),
 			canEdit
 				? [
-					m(Button, {
-						label: "editTemplate_action",
+					m(IconButton, {
+						title: "editTemplate_action",
 						click: () =>
 							locator.entityClient
 								   .load(TemplateGroupRootTypeRef, neverNull(selectedTemplate._ownerGroup))
 								   .then(groupRoot => this.showTemplateEditor(selectedTemplate, groupRoot)),
-						type: ButtonType.ActionLarge,
-						icon: () => Icons.Edit,
+						icon: Icons.Edit,
 						colors: ButtonColor.DrawerNav,
 					}),
-					m(Button, {
-						label: "remove_action",
+					m(IconButton, {
+						title: "remove_action",
 						click: () => {
 							getConfirmation("deleteTemplate_msg").confirmed(() => locator.entityClient.erase(selectedTemplate))
 						},
-						type: ButtonType.ActionLarge,
-						icon: () => Icons.Trash,
+						icon: Icons.Trash,
 						colors: ButtonColor.DrawerNav,
 					}),
 				]

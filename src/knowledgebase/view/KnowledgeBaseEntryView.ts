@@ -1,14 +1,15 @@
 import m, {Children, Component, Vnode} from "mithril"
 import type {KnowledgeBaseEntry} from "../../api/entities/tutanota/TypeRefs.js"
+import {TemplateGroupRootTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {memoized, neverNull, noOp, ofClass, startsWith} from "@tutao/tutanota-utils"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import type {ButtonAttrs} from "../../gui/base/Button.js"
 import {Button, ButtonType} from "../../gui/base/Button.js"
 import {Icons} from "../../gui/base/icons/Icons"
-import {TemplateGroupRootTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {locator} from "../../api/main/MainLocator"
 import {getConfirmation} from "../../gui/base/GuiUtils"
 import {NotFoundError} from "../../api/common/error/RestError"
+import {IconButton} from "../../gui/base/IconButton.js"
 
 type KnowledgeBaseEntryViewAttrs = {
 	entry: KnowledgeBaseEntry
@@ -42,26 +43,6 @@ export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewA
 
 	_renderContent(attrs: KnowledgeBaseEntryViewAttrs): Children {
 		const {entry, readonly} = attrs
-		const editButtonAttrs: ButtonAttrs = {
-			label: "edit_action",
-			icon: () => Icons.Edit,
-			type: ButtonType.Action,
-			click: () => {
-				import("../../settings/KnowledgeBaseEditor").then(({showKnowledgeBaseEditor}) => {
-					locator.entityClient.load(TemplateGroupRootTypeRef, neverNull(entry._ownerGroup)).then(groupRoot => {
-						showKnowledgeBaseEditor(entry, groupRoot)
-					})
-				})
-			},
-		}
-		const removeButtonAttrs: ButtonAttrs = {
-			label: "remove_action",
-			icon: () => Icons.Trash,
-			type: ButtonType.Action,
-			click: () => {
-				getConfirmation("deleteEntryConfirm_msg").confirmed(() => locator.entityClient.erase(entry).catch(ofClass(NotFoundError, noOp)))
-			},
-		}
 		return m(
 			"",
 			{
@@ -73,7 +54,7 @@ export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewA
 				m(
 					".flex.mt-l.center-vertically.selectable",
 					m(".h4.text-ellipsis", entry.title),
-					!readonly ? [m(".flex.flex-grow.justify-end", [m(Button, editButtonAttrs), m(Button, removeButtonAttrs)])] : null,
+					!readonly ? [m(".flex.flex-grow.justify-end", [this.renderEditButton(entry), this.renderRemoveButton(entry)])] : null,
 				),
 				m("", [
 					m(".mt-s.flex.mt-s.wrap", [
@@ -85,6 +66,30 @@ export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewA
 				]),
 			],
 		)
+	}
+
+	private renderRemoveButton(entry: KnowledgeBaseEntry) {
+		return m(IconButton, {
+			title: "remove_action",
+			icon: Icons.Trash,
+			click: () => {
+				getConfirmation("deleteEntryConfirm_msg").confirmed(() => locator.entityClient.erase(entry).catch(ofClass(NotFoundError, noOp)))
+			},
+		})
+	}
+
+	private renderEditButton(entry: KnowledgeBaseEntry) {
+		return m(IconButton, {
+			title: "edit_action",
+			icon: Icons.Edit,
+			click: () => {
+				import("../../settings/KnowledgeBaseEditor").then(({showKnowledgeBaseEditor}) => {
+					locator.entityClient.load(TemplateGroupRootTypeRef, neverNull(entry._ownerGroup)).then(groupRoot => {
+						showKnowledgeBaseEditor(entry, groupRoot)
+					})
+				})
+			},
+		})
 	}
 
 	_handleAnchorClick(event: Event, attrs: KnowledgeBaseEntryViewAttrs): void {

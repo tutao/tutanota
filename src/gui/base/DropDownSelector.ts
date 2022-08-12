@@ -1,6 +1,5 @@
 import m, {Children, ClassComponent, Vnode} from "mithril"
 import {TextField} from "./TextField.js"
-import {ButtonColor, Button, ButtonType} from "./Button.js"
 import {createDropdown} from "./Dropdown.js"
 import type {AllIcons} from "./Icon"
 import type {lazy} from "@tutao/tutanota-utils"
@@ -9,6 +8,8 @@ import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {BootIcons} from "./icons/BootIcons"
 import type {clickHandler} from "./GuiUtils"
 import {assertMainOrNode} from "../../api/common/Env"
+import {IconButton} from "./IconButton.js"
+import {ButtonSize} from "./ButtonSize.js"
 
 assertMainOrNode()
 export type SelectorItem<T> = {
@@ -46,16 +47,26 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 			helpLabel: a.helpLabel,
 			disabled: true,
 			onclick: a.disabled ? noOp : this.createDropdown(a),
-			class: "click " + (a.class == null ? "pt" : a.class),
+			class: "click " + (a.class == null ? "mt" : a.class),
 			injectionsRight: () =>
 				a.disabled
 					? null
-					: m(Button, {
-						label: a.label,
-						icon: () => (a.icon ? a.icon : BootIcons.Expand),
+					// This whole thing with the button is not ideal. We shouldn't have a proper button with its own state layer, we should have the whole
+					// selector be intractable. Just putting an icon here doesn't work either because the selector disappears from tabindex even if you set it
+					// explicitly (at least in FF).
+					// Ideally we should also set correct role ("option") and highlight only parts of what is not text field (without help text in the bottom.
+					// We could hack some of this in here, but we should probably redo it from scratch with the right HTML structure.
+					: m(".flex.items-center.justify-center", {
+						style: {
+							width: "30px",
+							height: "30px",
+						}
+					}, m(IconButton, {
+						icon: (a.icon ? a.icon : BootIcons.Expand),
+						title: "show_action",
 						click: noOp,
-						colors: ButtonColor.DrawerNav,
-					}),
+						size: ButtonSize.Compact,
+					})),
 			doShowBorder: a.doShowBorder,
 		})
 	}
@@ -72,8 +83,7 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 									a.selectionChangedHandler?.(item.value)
 									m.redraw()
 								},
-								type: ButtonType.Dropdown,
-								isSelected: () => a.selectedValue === item.value,
+								selected: a.selectedValue === item.value,
 							}
 						})
 			}, width: a.dropdownWidth

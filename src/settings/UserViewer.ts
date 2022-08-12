@@ -34,6 +34,8 @@ import {locator} from "../api/main/MainLocator"
 import {DropDownSelector, SelectorItem} from "../gui/base/DropDownSelector.js";
 import {UpdatableSettingsDetailsViewer} from "./SettingsView"
 import {showChangeOwnPasswordDialog, showChangeUserPasswordAsAdminDialog} from "./ChangePasswordDialogs.js";
+import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
+import {ButtonSize} from "../gui/base/ButtonSize.js";
 
 assertMainOrNode()
 
@@ -67,8 +69,8 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 					columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
 					showActionButtonColumn: true,
 					addButtonAttrs: {
-						label: "addGroup_label",
-						icon: () => Icons.Add,
+						title: "addGroup_label",
+						icon: Icons.Add,
 						click: () => this.showAddUserToGroupDialog()
 					},
 					lines: []
@@ -87,8 +89,8 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 					columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
 					showActionButtonColumn: true,
 					addButtonAttrs: {
-						label: "addResponsiblePerson_label",
-						icon: () => Icons.Add,
+						title: "addResponsiblePerson_label",
+						icon: Icons.Add,
 						click: () => this.showAddUserToContactFormDialog()
 					},
 					lines: []
@@ -107,8 +109,8 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	view(): Children {
-		const editSenderNameButtonAttrs: ButtonAttrs = {
-			label: "edit_action",
+		const editSenderNameButtonAttrs: IconButtonAttrs = {
+			title: "edit_action",
 			click: () => {
 				Dialog.showProcessTextInputDialog("edit_action", "mailName_label", null, this.senderName,
 					(newName) => {
@@ -117,23 +119,25 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 					}
 				)
 			},
-			icon: () => Icons.Edit,
+			icon: Icons.Edit,
+			size: ButtonSize.Compact,
 		} as const
 		const senderNameFieldAttrs = {
 			label: "mailName_label",
 			value: this.senderName,
 			disabled: true,
-			injectionsRight: () => [m(Button, editSenderNameButtonAttrs)],
+			injectionsRight: () => [m(IconButton, editSenderNameButtonAttrs)],
 		} as const
-		const changePasswordButtonAttrs: ButtonAttrs = {
-			label: "changePassword_label",
+		const changePasswordButtonAttrs: IconButtonAttrs = {
+			title: "changePassword_label",
 			click: () => this.changePassword(),
-			icon: () => Icons.Edit,
+			icon: Icons.Edit,
+			size: ButtonSize.Compact,
 		} as const
 		const passwordFieldAttrs = {
 			label: "password_label",
 			value: "***",
-			injectionsRight: () => [m(Button, changePasswordButtonAttrs)],
+			injectionsRight: () => [m(IconButton, changePasswordButtonAttrs)],
 			disabled: true,
 		} as const
 		return m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
@@ -296,7 +300,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 					return {
 						cells: [getGroupInfoDisplayName(groupInfo), getGroupTypeName(neverNull(m.groupType))],
 						actionButtonAttrs: {
-							label: "remove_action",
+							title: "remove_action",
 							click: () => {
 								showProgressDialog(
 									"pleaseWait_msg",
@@ -307,7 +311,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 									}),
 								)
 							},
-							icon: () => Icons.Cancel
+							icon: Icons.Cancel
 						} as const
 					}
 				},
@@ -332,7 +336,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				this.contactFormsTableAttrs.lines = forms.map(cf => ({
 					cells: [cf.path],
 					actionButtonAttrs: {
-						label: "remove_action",
+						title: "remove_action",
 						click: () => {
 							let match = cf.participantGroupInfos.find(id => isSameId(id, user.userGroup.groupInfo))
 
@@ -342,7 +346,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 
 							showProgressDialog("pleaseWait_msg", locator.entityClient.update(cf))
 						},
-						icons: Icons.Cancel
+						icon: Icons.Cancel
 					}
 				}))
 			}

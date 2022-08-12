@@ -71,7 +71,6 @@ class TemplateShortcutListener {
 
 									this._editor.focus()
 								},
-								type: ButtonType.Dropdown,
 							}
 						})
 						const dropdown = new Dropdown(() => buttons, 200)

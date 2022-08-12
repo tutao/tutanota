@@ -17,8 +17,9 @@ import {LoginForm} from "./LoginForm"
 import {CredentialsSelector} from "./CredentialsSelector"
 import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
 import {themeController} from "../gui/theme"
-import {createAsyncDropdown, createDropdown} from "../gui/base/Dropdown.js"
+import {createAsyncDropdown, createDropdown, DropdownButtonAttrs} from "../gui/base/Dropdown.js"
 import type {clickHandler} from "../gui/base/GuiUtils"
+import {IconButton} from "../gui/base/IconButton.js"
 import {showLogsDialog} from "./LoginLogDialog.js"
 import {BaseTopLevelView} from "../gui/BaseTopLevelView.js"
 
@@ -171,33 +172,29 @@ export class LoginView extends BaseTopLevelView implements CurrentView<LoginView
 	themeSwitchListener(): clickHandler {
 		return createAsyncDropdown({
 			lazyButtons: async () => {
-				const defaultButtons: ReadonlyArray<ButtonAttrs> = [
-					{
-						label: "light_label",
-						type: ButtonType.Dropdown,
-						click: () => themeController.setThemeId("light"),
-					},
-					{
-						label: "dark_label",
-						type: ButtonType.Dropdown,
-						click: () => themeController.setThemeId("dark"),
-					},
-					{
-						label: "blue_label",
-						type: ButtonType.Dropdown,
-						click: () => themeController.setThemeId("blue"),
-					},
-				]
-				const customButtons = (await themeController.getCustomThemes()).map(themeId => {
-					return {
-						label: () => themeId,
-						type: ButtonType.Dropdown,
-						click: () => themeController.setThemeId(themeId),
-					}
-				})
-				return defaultButtons.concat(customButtons)
-			}, width: 300
-		})
+                const defaultButtons: ReadonlyArray<DropdownButtonAttrs> = [
+                    {
+                        label: "light_label",
+                        click: () => themeController.setThemeId("light"),
+                    },
+                    {
+                        label: "dark_label",
+                        click: () => themeController.setThemeId("dark"),
+                    },
+                    {
+                        label: "blue_label",
+                        click: () => themeController.setThemeId("blue"),
+                    },
+                ]
+                const customButtons = (await themeController.getCustomThemes()).map(themeId => {
+                    return {
+                        label: () => themeId,
+                        click: () => themeController.setThemeId(themeId),
+                    }
+                })
+                return defaultButtons.concat(customButtons)
+            }, width: 300
+        })
 	}
 
 	_signupLinkVisible(): boolean {
@@ -287,41 +284,38 @@ export class LoginView extends BaseTopLevelView implements CurrentView<LoginView
 	}
 
 	_renderAppButtons(): Children {
-		return m(".flex-center.pt-l", [
+		return m(".flex-center.pt-l.margin-between-s", [
 			client.isDesktopDevice() || client.device === DeviceType.ANDROID
-				? m(Button, {
-					label: "appInfoAndroidImageAlt_alt",
+				? m(IconButton, {
+					title: "appInfoAndroidImageAlt_alt",
 					click: e => {
 						this._openUrl("https://play.google.com/store/apps/details?id=de.tutao.tutanota")
 
 						e.preventDefault()
 					},
-					icon: () => BootIcons.Android,
-					type: ButtonType.ActionLarge,
+					icon: BootIcons.Android,
 				})
 				: null,
 			client.isDesktopDevice() || client.device === DeviceType.IPAD || client.device === DeviceType.IPHONE
-				? m(Button, {
-					label: "appInfoIosImageAlt_alt",
+				? m(IconButton, {
+					title: "appInfoIosImageAlt_alt",
 					click: e => {
 						this._openUrl("https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb")
 
 						e.preventDefault()
 					},
-					icon: () => BootIcons.Apple,
-					type: ButtonType.ActionLarge,
+					icon: BootIcons.Apple,
 				})
 				: null,
 			client.isDesktopDevice() || client.device === DeviceType.ANDROID
-				? m(Button, {
-					label: "appInfoFDroidImageAlt_alt",
+				? m(IconButton, {
+					title: "appInfoFDroidImageAlt_alt",
 					click: e => {
 						this._openUrl("https://f-droid.org/packages/de.tutao.tutanota/")
 
 						e.preventDefault()
 					},
-					icon: () => BootIcons.FDroid,
-					type: ButtonType.ActionLarge,
+					icon: BootIcons.FDroid,
 				})
 				: null,
 		])
@@ -432,7 +426,6 @@ function showVersionDropdown(e: MouseEvent) {
 	// A semi-hidden option to get the logs before logging in, in a text form
 	createDropdown({
 		lazyButtons: () => [{
-			type: ButtonType.Dropdown,
 			label: () => "Get logs",
 			click: () => showLogsDialog()
 		}],

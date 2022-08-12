@@ -2,7 +2,7 @@ import m, {Children, ClassComponent, Vnode} from "mithril"
 import {BubbleTextField} from "./base/BubbleTextField.js"
 import {Recipient} from "../api/common/recipients/Recipient.js"
 import {getDisplayText} from "../mail/model/MailUtils.js"
-import {px} from "./size.js"
+import {px, size} from "./size.js"
 import {progressIcon} from "./base/Icon.js"
 import {lang, TranslationKey} from "../misc/LanguageViewModel.js"
 import {stringToNameAndMailAddress} from "../misc/parsing/MailAddressParser.js"
@@ -109,21 +109,22 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 				return true
 			},
 			disabled: attrs.disabled,
-			injectionsRight: [
+			injectionsRight: m(".flex.items-center", [
 				// Placeholder element for the suggestion progress icon with a fixed width and height to avoid flickering.
 				// when reaching the end of the input line and when entering a text into the second line.
 				m(
-					".align-right.mr-s.button-height.flex.items-end.pb-s",
+					".flex.align-right.mr-s.flex.items-end.pb-s",
 					{
 						style: {
 							width: px(20), // in case the progress icon is not shown we reserve the width of the progress icon
+							height: px(size.button_height_compact),
 						},
 					},
 					attrs.search.isLoading() ? progressIcon() : null,
 				),
 				attrs.injectionsRight
 			]
-		})
+)		})
 	}
 
 	private renderSuggestions(attrs: MailRecipientsTextFieldAttrs): Children {

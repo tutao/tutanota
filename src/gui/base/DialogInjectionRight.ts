@@ -14,12 +14,11 @@ export type DialogInjectionRightAttrs<T> = {
 }
 
 export class DialogInjectionRight<T> implements Component<DialogInjectionRightAttrs<T>> {
-	view(vnode: Vnode<DialogInjectionRightAttrs<T>>): Children {
-		const {attrs} = vnode
+	view({attrs}: Vnode<DialogInjectionRightAttrs<T>>): Children {
 		const {component, componentAttrs} = attrs
 
 		if (attrs.visible()) {
-			return m(".flex-grow-shrink-auto.flex-transition.ml-s.rel.dialog.dialog-width-m.elevated-bg.dropdown-shadow", [
+			return m(".flex-grow-shrink-auto.flex-transition.ml-s.rel.dialog.dialog-width-m.elevated-bg.dropdown-shadow.border-radius", [
 				m(".dialog-header.plr-l", m(DialogHeaderBar, resolveMaybeLazy(attrs.headerAttrs))),
 				m(".dialog-container.scroll.plr-l", m(component, componentAttrs)),
 			])

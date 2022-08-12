@@ -49,7 +49,7 @@ import Badge from "../../gui/base/Badge"
 import type {ButtonAttrs} from "../../gui/base/Button.js"
 import {Button, ButtonColor, ButtonType} from "../../gui/base/Button.js"
 import {styles} from "../../gui/styles"
-import {attachDropdown, createAsyncDropdown, createDropdown, DomRectReadOnlyPolyfilled, showDropdownAtPosition} from "../../gui/base/Dropdown.js"
+import {createAsyncDropdown, createDropdown, DomRectReadOnlyPolyfilled, DropdownButtonAttrs, showDropdownAtPosition} from "../../gui/base/Dropdown.js"
 import {navButtonRoutes} from "../../misc/RouteChange"
 import {RecipientButton} from "../../gui/base/RecipientButton"
 import {EventBanner} from "./EventBanner"
@@ -70,6 +70,7 @@ import {ease} from "../../gui/animation/Easing"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
+import {IconButton} from "../../gui/base/IconButton.js"
 
 assertMainOrNode()
 // map of inline image cid to InlineImageReference
@@ -245,7 +246,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 							m(ExpanderPanel, {
 									expanded: this.detailsExpanded(),
 								},
-								this.renderDetails({bubbleMenuWidth: 300}),
+								this.renderDetails({bubbleMenuWidth: 330}),
 							),
 						),
 						m(".subject-actions.flex-space-between.flex-wrap.mt-xs", [
@@ -669,12 +670,10 @@ export class MailViewer implements Component<MailViewerAttrs> {
 						{
 							label: "download_action",
 							click: () => this.viewModel.downloadAndOpenAttachment(inlineAttachment, false),
-							type: ButtonType.Dropdown,
 						},
 						{
 							label: "open_action",
 							click: () => this.viewModel.downloadAndOpenAttachment(inlineAttachment, true),
-							type: ButtonType.Dropdown,
 						},
 					],
 					coords.x,
@@ -703,9 +702,9 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private actionButtons(): Children {
 		const actions: Children = []
 		const colors = ButtonColor.Content
-		const moveButton = m(Button, {
-			label: "move_action",
-			icon: () => Icons.Folder,
+		const moveButton = m(IconButton, {
+			title: "move_action",
+			icon: Icons.Folder,
 			colors,
 			click: createAsyncDropdown({
 					lazyButtons: () => {
@@ -720,8 +719,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 											mails: [this.viewModel.mail],
 											targetMailFolder: f
 										}),
-										icon: getFolderIcon(f),
-										type: ButtonType.Dropdown,
+										icon: getFolderIcon(f)(),
 									}
 								})
 							}
@@ -733,10 +731,10 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 		if (this.viewModel.isDraftMail()) {
 			actions.push(
-				m(Button, {
-					label: "edit_action",
+				m(IconButton, {
+					title: "edit_action",
 					click: () => this.editDraft(),
-					icon: () => Icons.Edit,
+					icon: Icons.Edit,
 					colors,
 				}),
 			)
@@ -744,20 +742,20 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		} else {
 			if (!this.viewModel.isAnnouncement()) {
 				actions.push(
-					m(Button, {
-						label: "reply_action",
+					m(IconButton, {
+						title: "reply_action",
 						click: () => this.viewModel.reply(false),
-						icon: () => Icons.Reply,
+						icon: Icons.Reply,
 						colors,
 					}),
 				)
 
 				if (this.viewModel.canReplyAll()) {
 					actions.push(
-						m(Button, {
-							label: "replyAll_action",
+						m(IconButton, {
+							title: "replyAll_action",
 							click: () => this.viewModel.reply(true),
-							icon: () => Icons.ReplyAll,
+							icon: Icons.ReplyAll,
 							colors,
 						}),
 					)
@@ -765,11 +763,11 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 				if (this.viewModel.canForwardOrMove()) {
 					actions.push(
-						m(Button, {
-							label: "forward_action",
+						m(IconButton, {
+							title: "forward_action",
 							click: () => this.viewModel.forward()
 											 .catch(ofClass(UserError, showUserError)),
-							icon: () => Icons.Forward,
+							icon: Icons.Forward,
 							colors,
 						}),
 					)
@@ -781,119 +779,136 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		}
 
 		actions.push(
-			m(Button, {
-				label: "delete_action",
+			m(IconButton, {
+				title: "delete_action",
 				click: () => {
 					promptAndDeleteMails(this.viewModel.mailModel, [this.viewModel.mail], noOp)
 				},
-				icon: () => Icons.Trash,
+				icon: Icons.Trash,
 				colors,
 			}),
 		)
 
 		if (!this.viewModel.isDraftMail()) {
 			actions.push(
-				m(Button, {
-					label: "more_label",
-					icon: () => Icons.More,
+				m(IconButton, {
+					title: "more_label",
+					icon: Icons.More,
 					colors,
-					click: createDropdown({
-						lazyButtons: () => {
-							const moreButtons: Array<ButtonAttrs> = []
-
-							if (this.viewModel.isUnread()) {
-								moreButtons.push({
-									label: "markRead_action",
-									click: () => this.viewModel.setUnread(false),
-									icon: () => Icons.Eye,
-									type: ButtonType.Dropdown,
-								})
-							} else {
-								moreButtons.push({
-									label: "markUnread_action",
-									click: () => this.viewModel.setUnread(true),
-									icon: () => Icons.NoEye,
-									type: ButtonType.Dropdown,
-								})
-							}
-
-							if (!this.viewModel.isAnnouncement() && !client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport)) {
-								moreButtons.push({
-									label: "export_action",
-									click: () => showProgressDialog("pleaseWait_msg", this.viewModel.exportMail()),
-									icon: () => Icons.Export,
-									type: ButtonType.Dropdown,
-								})
-							}
-
-							if (!client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport) && typeof window.print === "function") {
-								moreButtons.push({
-									label: "print_action",
-									click: () => window.print(),
-									icon: () => Icons.Print,
-									type: ButtonType.Dropdown,
-								})
-							}
-
-							if (this.viewModel.isListUnsubscribe()) {
-								moreButtons.push({
-									label: "unsubscribe_action",
-									click: () => this.unsubscribe(),
-									icon: () => Icons.Cancel,
-									type: ButtonType.Dropdown,
-								})
-							}
-
-							if (logins.isInternalUserLoggedIn()) {
-								moreButtons.push({
-									label: "showHeaders_action",
-									click: () => this.showHeaders(),
-									icon: () => Icons.ListUnordered,
-									type: ButtonType.Dropdown,
-								})
-							}
-
-							if (this.viewModel.getPhishingStatus() === MailPhishingStatus.UNKNOWN && !this.viewModel.isTutanotaTeamMail() && logins.isInternalUserLoggedIn()) {
-								moreButtons.push({
-									label: "reportEmail_action",
-									click: () => this.reportMail(),
-									icon: () => Icons.Warning,
-									type: ButtonType.Dropdown,
-								})
-							}
-
-							if (locator.search.indexingSupported && this.viewModel.isShowingExternalContent()) {
-								moreButtons.push({
-									label: "disallowExternalContent_action",
-									click: async () => {
-										await this.setContentBlockingStatus(ContentBlockingStatus.Block)
-									},
-									icon: () => Icons.Picture,
-									type: ButtonType.Dropdown,
-								})
-							}
-
-							if (locator.search.indexingSupported && this.viewModel.isBlockingExternalImages()) {
-								moreButtons.push({
-									label: "showImages_action",
-									click: async () => {
-										await this.setContentBlockingStatus(ContentBlockingStatus.Show)
-									},
-									icon: () => Icons.Picture,
-									type: ButtonType.Dropdown,
-								})
-							}
-
-							return moreButtons
-						}, width: 300
-					}),
+					click: this.prepareMoreActions(),
 				}),
 			)
 		}
 
-		return m(".action-bar.flex-end.items-center.mr-negative-s", actions)
+		return m(".action-bar.flex-end.items-center.mr-negative-s.margin-between-s", actions)
 	}
 
+
+	private prepareMoreActions() {
+		return createDropdown({
+			lazyButtons: () => {
+				const moreButtons: Array<DropdownButtonAttrs> = []
+
+				if (this.viewModel.isUnread()) {
+					moreButtons.push({
+						label: "markRead_action",
+						click: () => this.viewModel.setUnread(false),
+						icon: Icons.Eye,
+					})
+				} else {
+					moreButtons.push({
+						label: "markUnread_action",
+						click: () => this.viewModel.setUnread(true),
+						icon: Icons.NoEye,
+					})
+				}
+
+				if (!this.viewModel.isAnnouncement() && !client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport)) {
+					moreButtons.push({
+						label: "export_action",
+						click: () => showProgressDialog("pleaseWait_msg", this.viewModel.exportMail()),
+						icon: Icons.Export,
+					})
+				}
+
+				if (!client.isMobileDevice() && !logins.isEnabled(FeatureType.DisableMailExport) && typeof window.print === "function") {
+					moreButtons.push({
+						label: "print_action",
+						click: () => window.print(),
+						icon: Icons.Print,
+					})
+				}
+
+				if (this.viewModel.isListUnsubscribe()) {
+					moreButtons.push({
+						label: "unsubscribe_action",
+						click: () => this.unsubscribe(),
+						icon: Icons.Cancel,
+					})
+				}
+
+				if (logins.isInternalUserLoggedIn()) {
+					moreButtons.push({
+						label: "showHeaders_action",
+						click: () => this.showHeaders(),
+						icon: Icons.ListUnordered,
+					})
+				}
+
+				if (this.viewModel.getPhishingStatus() === MailPhishingStatus.UNKNOWN && !this.viewModel.isTutanotaTeamMail() && logins.isInternalUserLoggedIn()) {
+					moreButtons.push({
+						label: "reportEmail_action",
+						click: () => this.reportMail(),
+						icon: Icons.Warning,
+					})
+				}
+
+				if (locator.search.indexingSupported && this.viewModel.isShowingExternalContent()) {
+					moreButtons.push({
+						label: "disallowExternalContent_action",
+						click: async () => {
+							await this.setContentBlockingStatus(ContentBlockingStatus.Block)
+						},
+						icon: Icons.Picture,
+					})
+				}
+
+				if (locator.search.indexingSupported && this.viewModel.isBlockingExternalImages()) {
+					moreButtons.push({
+						label: "showImages_action",
+						click: async () => {
+							await this.setContentBlockingStatus(ContentBlockingStatus.Show)
+						},
+						icon: Icons.Picture,
+					})
+				}
+
+				return moreButtons
+			}, width: 300
+		})
+	}
+
+	private prepareMoveMailAction() {
+		return createAsyncDropdown({
+				lazyButtons: () =>
+					this.viewModel.mailModel.getMailboxFolders(this.viewModel.mail).then(folders => {
+						const filteredFolders = folders.filter(f => f.mails !== this.viewModel.getMailId()[0])
+						const targetFolders = getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders))
+						return targetFolders.map(f => {
+							return {
+								label: () => getFolderName(f),
+								click: () => moveMails({
+									mailModel: this.viewModel.mailModel,
+									mails: [this.viewModel.mail],
+									targetMailFolder: f
+								}),
+								icon: getFolderIcon(f)(),
+							}
+						})
+					})
+			},
+		)
+	}
 
 	private reportMail() {
 		const sendReport = (reportType: MailReportType) => {
@@ -950,22 +965,21 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private createAssignActionButton(): Children {
-		const makeButtons = async (): Promise<ButtonAttrs[]> => {
+		const makeButtons = async (): Promise<DropdownButtonAttrs[]> => {
 			const assignmentGroupInfos = await this.viewModel.getAssignmentGroupInfos()
 
 			return assignmentGroupInfos.map(userOrMailGroupInfo => {
 				return {
 					label: () => getDisplayText(userOrMailGroupInfo.name, neverNull(userOrMailGroupInfo.mailAddress), true),
-					icon: () => BootIcons.Contacts,
-					type: ButtonType.Dropdown,
+					icon: BootIcons.Contacts,
 					click: () => this.viewModel.assignMail(userOrMailGroupInfo),
-				} as ButtonAttrs
+				} as DropdownButtonAttrs
 			})
 		}
 
-		return m(Button, {
-			label: "forward_action",
-			icon: () => Icons.Forward,
+		return m(IconButton, {
+			title: "forward_action",
+			icon: Icons.Forward,
 			colors: ButtonColor.Content,
 			click: createAsyncDropdown({
 				width: 250,
@@ -1033,41 +1047,34 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 	private renderAttachmentButton(attachment: TutanotaFile): Children {
 		if (isAndroidApp() || isDesktop()) {
-			return m(Button,
-				attachDropdown(
-					{
-						mainButtonAttrs: {
-							label: () => attachment.name,
-							icon: () => Icons.Attachment,
-							type: ButtonType.Bubble,
-							staticRightText: `(${formatStorageSize(Number(attachment.size))})`
+			return m(Button, {
+				label: () => attachment.name,
+				icon: () => Icons.Attachment,
+				type: ButtonType.Bubble,
+				staticRightText: `(${formatStorageSize(Number(attachment.size))})`,
+				click: createDropdown({
+					width: 200,
+					overrideOrigin: (originalOrigin) => {
+						// Bubble buttons use border so dropdown is misaligned by default
+						return new DomRectReadOnlyPolyfilled(
+							originalOrigin.left + size.bubble_border_width,
+							originalOrigin.top,
+							originalOrigin.width,
+							originalOrigin.height
+						)
+					},
+					lazyButtons: () => [
+						{
+							label: "open_action",
+							click: () => this.viewModel.downloadAndOpenAttachment(attachment, true),
 						},
-						childAttrs: () => [
-							{
-								label: "open_action",
-								click: () => this.viewModel.downloadAndOpenAttachment(attachment, true),
-								type: ButtonType.Dropdown
-							},
-							{
-								label: "download_action",
-								click: () => this.viewModel.downloadAndOpenAttachment(attachment, false),
-								type: ButtonType.Dropdown
-							},
-						],
-						showDropdown: () => true,
-						width: 200,
-						overrideOrigin: (originalOrigin) => {
-							// Bubble buttons use border so dropdown is misaligned by default
-							return new DomRectReadOnlyPolyfilled(
-								originalOrigin.left + size.bubble_border_width,
-								originalOrigin.top,
-								originalOrigin.width,
-								originalOrigin.height
-							)
-						}
-					}
-				)
-			)
+						{
+							label: "download_action",
+							click: () => this.viewModel.downloadAndOpenAttachment(attachment, false),
+						},
+					]
+				})
+			})
 		} else {
 			return m(Button, {
 				label: () => attachment.name,
@@ -1214,7 +1221,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		mailAddress: MailAddressAndName,
 		defaultInboxRuleField: InboxRuleType | null,
 		createContact?: boolean,
-	}): Promise<Array<ButtonAttrs>> {
+	}): Promise<Array<DropdownButtonAttrs>> {
 
 		const {
 			mailAddress,
@@ -1222,11 +1229,10 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			createContact = true
 		} = args
 
-		const buttons = [] as Array<ButtonAttrs>
+		const buttons = [] as Array<DropdownButtonAttrs>
 
 		buttons.push({
 				label: "copy_action",
-				type: ButtonType.Secondary,
 				click: () => copyToClipboard(mailAddress.address),
 			}
 		)
@@ -1242,7 +1248,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 							navButtonRoutes.contactsUrl = `/contact/${neverNull(contact)._id[0]}/${neverNull(contact)._id[1]}`
 							m.route.set(navButtonRoutes.contactsUrl + location.hash)
 						},
-						type: ButtonType.Secondary,
 					})
 				} else {
 					buttons.push({
@@ -1255,7 +1260,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 								})
 							})
 						},
-						type: ButtonType.Secondary,
 					})
 				}
 			}
@@ -1270,7 +1274,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 						const newRule = rule ?? createInboxRuleTemplate(defaultInboxRuleField, mailAddress.address.trim().toLowerCase())
 						show(mailboxDetails, newRule)
 					},
-					type: ButtonType.Secondary,
 				})
 			}
 
@@ -1278,7 +1281,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				buttons.push({
 					label: "addSpamRule_action",
 					click: () => this.addSpamRule(defaultInboxRuleField, mailAddress.address),
-					type: ButtonType.Secondary,
 				})
 			}
 		}
@@ -1403,7 +1405,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			label: "showBlockedContent_action",
 			click: () => this.setContentBlockingStatus(ContentBlockingStatus.Show),
 		}
-		const alwaysOrNeverAllowButtons: ReadonlyArray<ButtonAttrs> = locator.search.indexingSupported
+		const alwaysOrNeverAllowButtons = locator.search.indexingSupported
 			? [
 				this.viewModel.isMailAuthenticated()
 					? {

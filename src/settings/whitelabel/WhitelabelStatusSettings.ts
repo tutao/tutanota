@@ -3,50 +3,49 @@ import {showWhitelabelBuyDialog} from "../../subscription/BuyDialog"
 import {logins} from "../../api/main/LoginController"
 import {Icons} from "../../gui/base/icons/Icons"
 import {lang} from "../../misc/LanguageViewModel"
-import stream from "mithril/stream"
 import m, {Children, Component, Vnode} from "mithril"
-import {Button} from "../../gui/base/Button.js"
 import {TextField} from "../../gui/base/TextField.js"
+import {IconButton} from "../../gui/base/IconButton.js"
+import {ButtonSize} from "../../gui/base/ButtonSize.js";
 
 export type WhitelabelStatusSettingsAttrs = {
 	isWhitelabelActive: boolean
 }
 
 export class WhitelabelStatusSettings implements Component<WhitelabelStatusSettingsAttrs> {
-	constructor(vnode: Vnode<WhitelabelStatusSettingsAttrs>) {
+	view({attrs}: Vnode<WhitelabelStatusSettingsAttrs>): Children {
+		const {isWhitelabelActive} = attrs
+		return m(TextField, {
+			label: "state_label",
+			value: isWhitelabelActive ? lang.get("active_label") : lang.get("deactivated_label"),
+			disabled: true,
+			injectionsRight: () => (isWhitelabelActive ? this.renderDisable() : this.renderEnable()),
+		})
 	}
 
-	view(vnode: Vnode<WhitelabelStatusSettingsAttrs>): Children {
-		const {isWhitelabelActive} = vnode.attrs
-		return this._renderWhitelabelStatusSettings(isWhitelabelActive)
-	}
-
-	_renderWhitelabelStatusSettings(isWhitelabelActive: boolean): Children {
-		const enableWhiteLabelAction = {
-			label: "whitelabelDomain_label",
+	private renderEnable(): Children {
+		return m(IconButton, {
+			title: "whitelabelDomain_label",
 			click: createNotAvailableForFreeClickHandler(
 				false,
 				() => showWhitelabelBuyDialog(true),
 				() => logins.getUserController().isPremiumAccount(),
 			),
-			icon: () => Icons.Edit,
-		} as const
-		const disableWhiteLabelAction = {
-			label: "whitelabelDomain_label",
+			icon: Icons.Edit,
+			size: ButtonSize.Compact,
+		})
+	}
+
+	private renderDisable(): Children {
+		return m(IconButton, {
+			title: "whitelabelDomain_label",
 			click: createNotAvailableForFreeClickHandler(
 				false,
 				() => showWhitelabelBuyDialog(false),
 				() => logins.getUserController().isPremiumAccount(),
 			),
-			icon: () => Icons.Cancel,
-		} as const
-		const value = isWhitelabelActive ? lang.get("active_label") : lang.get("deactivated_label")
-		const textFieldAttrs = {
-			label: "state_label",
-			value: value,
-			disabled: true,
-			injectionsRight: () => (isWhitelabelActive ? m(Button, disableWhiteLabelAction) : m(Button, enableWhiteLabelAction)),
-		} as const
-		return m(TextField, textFieldAttrs)
+			icon: Icons.Cancel,
+			size: ButtonSize.Compact,
+		})
 	}
 }

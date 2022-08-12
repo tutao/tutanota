@@ -59,7 +59,8 @@ import {GroupInvitationFolderRow} from "../sharing/view/GroupInvitationFolderRow
 import {TemplateGroupService} from "../api/entities/tutanota/Services"
 import {attachDropdown} from "../gui/base/Dropdown.js"
 import {exportUserCsv} from "./UserDataExporter.js"
-import {ButtonType} from "../gui/base/Button.js"
+import {Button, ButtonType} from "../gui/base/Button.js"
+import {IconButton} from "../gui/base/IconButton.js"
 
 assertMainOrNode()
 
@@ -388,30 +389,30 @@ export class SettingsView implements CurrentView {
 		const isGroupOwner = isSharedGroupOwner(instance.group, getEtId(logins.getUserController().user))
 		return m(SettingsFolderRow, {
 			mainButtonAttrs: this._createSettingsFolderNavButton(folder),
-			extraButtonAttrs: createMoreActionButtonAttrs(() => [
+			extraButton: m(IconButton, createMoreActionButtonAttrs(() => [
 				isGroupOwner
 					? {
 						label: "delete_action",
 						click: () =>
 							this._deleteTemplateGroup(folder.data),
-						icon: () => Icons.Trash,
+						icon: Icons.Trash,
 					}
 					: {
 						label: "leaveGroup_action",
 						click: () => this._leaveTemplateGroup(folder.data),
-						icon: () => Icons.Trash,
+						icon: Icons.Trash,
 					},
 				{
 					label: "sharing_label",
 					click: () => showGroupSharingDialog(folder.data.groupInfo, true),
-					icon: () => Icons.ContactImport,
+					icon: Icons.ContactImport,
 				},
 				{
 					label: "rename_action",
 					click: () => showRenameTemplateListDialog(folder.data),
-					icon: () => Icons.Edit,
+					icon: Icons.Edit,
 				},
-			]),
+			])),
 		})
 	}
 
@@ -451,18 +452,17 @@ export class SettingsView implements CurrentView {
 
 					return m(SettingsFolderRow, {
 						mainButtonAttrs: buttonAttrs,
-						extraButtonAttrs:
+						extraButton:
 							canImportUsers && folder.path === "users"
-								? attachDropdown({
+								? m(IconButton, attachDropdown({
 									mainButtonAttrs: {
-										label: "more_label",
-										icon: () => Icons.More,
+										title: "more_label",
+										icon: Icons.More,
 									},
 									childAttrs: () => [
 										{
 											label: "importUsers_action",
 											click: () => showUserImportDialog(this._customDomains.getLoaded()),
-											type: ButtonType.Dropdown
 										},
 										{
 											label: "exportUsers_action",
@@ -472,10 +472,9 @@ export class SettingsView implements CurrentView {
 												logins,
 												locator.fileController
 											),
-											type: ButtonType.Dropdown
 										},
 									]
-								})
+								}))
 								: null,
 					})
 				}),

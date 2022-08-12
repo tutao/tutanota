@@ -84,7 +84,7 @@ export class HtmlEditor implements Component {
 					? m(".wysiwyg.rel.overflow-hidden.selectable", [
 						this.editor.isEnabled() && (this.toolbarEnabled || renderedInjections)
 							? [
-								m(".flex-end.mr-negative-s.sticky.pb-2", [
+								m(".flex-end.sticky.pb-2", [
 									this.toolbarEnabled
 										? m(RichTextToolbar, Object.assign({editor: this.editor}, this.toolbarAttrs))
 										: null,
