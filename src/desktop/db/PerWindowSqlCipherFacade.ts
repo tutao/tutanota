@@ -4,6 +4,8 @@ import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
 import {delay} from "@tutao/tutanota-utils"
 import {log} from "../DesktopLog.js"
 
+const MAX_WAIT_FOR_DB_CLOSE_MS = 1000
+
 export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 	private state: {userId: string, db: SqlCipherFacade} | null = null
 
@@ -100,8 +102,9 @@ export class OfflineDbManager {
 
 	async deleteDb(userId: string): Promise<void> {
 		const entry = this.cache.get(userId)
+		const waitUntilMax = Date.now() + MAX_WAIT_FOR_DB_CLOSE_MS
 		if (entry != null) {
-			while (this.cache.has(userId)) {
+			while (this.cache.has(userId) && Date.now() < waitUntilMax) {
 				log.debug(`waiting for other windows to close db before deleting it for user ${userId}`)
 				await delay(100)
 			}

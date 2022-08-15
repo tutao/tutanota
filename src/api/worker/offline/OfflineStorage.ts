@@ -104,7 +104,9 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		return isNewOfflineDb
 	}
 
-	// FIXME call me pls
+	/**
+	 * currently, we close DBs from the native side (mainly on things like reload and on android's onDestroy)
+	 */
 	async deinit() {
 		await this.sqlCipherFacade.closeDb()
 	}
@@ -420,7 +422,8 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 }
 
 /*
- * must be used with prepareSqlQuery
+ * used to automatically create the right amount of query params for selecting ids from a dynamic list.
+ * must be used within sql`<query>` template string to inline the logic into the query
  */
 function paramList(params: SqlValue[]): SqlFragment {
 	const qs = params.map(() => '?').join(",")
@@ -428,7 +431,8 @@ function paramList(params: SqlValue[]): SqlFragment {
 }
 
 /**
- * must be used with prepareSqlQuery
+ * comparison to select ids that are bigger or smaller than a parameter id
+ * must be used within sql`<query>` template string to inline the logic into the query
  */
 function firstIdBigger(...args: [string, "elementId"] | ["elementId", string]): SqlFragment {
 	let [l, r]: [string, string] = args
@@ -447,16 +451,30 @@ function firstIdBigger(...args: [string, "elementId"] | ["elementId", string]): 
 }
 
 /**
- * this tagged template function exists because android doesn't allow us to define SQL functions, so we have to inline the id comparison.
- * to make it less error prone, we automate the generation of the params array for the actual sql call.
+ * this tagged template function exists because android doesn't allow us to define SQL functions, so we have made a way to inline
+ * SQL fragments into queries.
+ * to make it less error-prone, we automate the generation of the params array for the actual sql call.
+ * In this way, we offload the escaping of actual user content to the SQL engine, which makes this safe from an SQLI point of view.
  *
  * usage example:
  * const type = "sys/User"
  * const listId = "someList"
  * const startId = "ABC"
- * prepareSqlQuery`SELECT entity FROM list_entities WHERE type = ${type} AND listId = ${listId} AND ${firstIdBigger(startId, "elementId")}`
+ * sql`SELECT entity FROM list_entities WHERE type = ${type} AND listId = ${listId} AND ${firstIdBigger(startId, "elementId")}`
  *
- * returns an object containing the sql command and its params array
+ * this will result in
+ * const {query, params} = {
+ *     query: `SELECT entity FROM list_entities WHERE type = ? AND listId = ? AND (CASE WHEN length(?) > length(elementId) THEN 1 WHEN length(?) < length(elementId) THEN 0 ELSE ? > elementId END)`,
+ *     params: [
+ *     		{type: SqlType.String, value: "sys/User"},
+ *     		{type: SqlType.String, value: "someList"},
+ *     		{type: SqlType.String, value: "ABC"},
+ *     		{type: SqlType.String, value: "ABC"},
+ *     		{type: SqlType.String, value: "ABC"}
+ *     ]
+ * }
+ *
+ * which can be consumed by sql.run(query, params)
  */
 export function sql(queryParts: TemplateStringsArray, ...paramInstances: (SqlValue | SqlFragment)[]): {query: string, params: TaggedSqlValue[]} {
 	let query = ""
@@ -480,7 +498,7 @@ export function sql(queryParts: TemplateStringsArray, ...paramInstances: (SqlVal
 class SqlFragment {
 	constructor(
 		readonly text: string,
-		readonly params: any[]
+		readonly params: SqlValue[]
 	) {
 	}
 }

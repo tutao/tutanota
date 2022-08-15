@@ -2,8 +2,8 @@ import {Database, default as sqlite} from "better-sqlite3";
 import {CryptoError} from "@tutao/tutanota-crypto"
 import {assertNotNull, mapNullable, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {SqlCipherFacade} from "../native/common/generatedipc/SqlCipherFacade.js"
-import {TaggedSqlValue, tagSqlObject, untagSqlObject, untagSqlValue} from "../api/worker/offline/SqlValue.js"
-import {firstBiggerThanSecond} from "../api/common/utils/EntityUtils.js"
+import {TaggedSqlValue, tagSqlObject, untagSqlValue} from "../api/worker/offline/SqlValue.js"
+import {ProgrammingError} from "../api/common/error/ProgrammingError.js"
 
 export class DesktopSqlCipher implements SqlCipherFacade {
 	private _db: Database | null = null
@@ -32,21 +32,17 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 			// }
 		})
 		this.initSqlcipher({databaseKey: dbKey, enableMemorySecurity: true, integrityCheck: this.integrityCheck})
-		// FIXME: move me away
-		this.function("firstIdBigger", (l, r) => {
-			return boolToSqlite(firstBiggerThanSecond(l, r))
-		})
-		this.function("firstIdBiggerOrEq", (l, r) => {
-			return boolToSqlite(l == r || firstBiggerThanSecond(l, r))
-		})
 	}
 
 	async closeDb(): Promise<void> {
 		this.db.close()
 	}
 
+	/**
+	 * not implemented because we delete the DB directly from the per-window facade
+	 */
 	deleteDb(userId: string): Promise<void> {
-		throw new Error("Not implemented")
+		throw new ProgrammingError("Not implemented")
 	}
 
 	/**
@@ -81,13 +77,6 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 	}
 
 	/**
-	 * Define a function that can be used in queries
-	 */
-	function(functionName: string, functionCallback: (...params: any[]) => any) {
-		this.db.function(functionName, functionCallback)
-	}
-
-	/**
 	 * Execute a query
 	 */
 	async run(
@@ -116,7 +105,7 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 	async all(
 		query: string,
 		params: TaggedSqlValue[],
-		): Promise<Array<Record<string, TaggedSqlValue>>> {
+	): Promise<Array<Record<string, TaggedSqlValue>>> {
 		const result = this.db.prepare(query).all(params.map(untagSqlValue))
 		return result.map(tagSqlObject)
 	}
