@@ -83,7 +83,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 			},
 			[
 				m(
-					"label.abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s.text",
+					"label.abs.text-ellipsis.noselect.z1.i.pr-s.text",
 					{
 						class: this.active ? "content-accent-fg" : "",
 						oncreate: vnode => {

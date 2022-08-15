@@ -17,7 +17,7 @@ export class TextDisplayArea implements Component<TextDisplayAreaAttrs> {
 	view(vnode: Vnode<TextDisplayAreaAttrs>): Children {
 		return m(".flex.flex-grow.flex-column.text.pt", [
 			m(
-				"label.text-ellipsis.noselect.backface_fix.z1.i.pr-s",
+				"label.text-ellipsis.noselect.z1.i.pr-s",
 				{
 					style: {
 						fontSize: px(size.font_size_small),

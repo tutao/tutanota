@@ -211,7 +211,7 @@ export class Dropdown implements ModalComponent {
 
 		this.view = (): Children => {
 			return m(
-				".dropdown-panel.elevated-bg.border-radius.backface_fix.dropdown-shadow",
+				".dropdown-panel.elevated-bg.border-radius.dropdown-shadow",
 				{
 					oncreate: vnode => {
 						this._domDropdown = vnode.dom as HTMLElement

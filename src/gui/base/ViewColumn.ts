@@ -70,7 +70,7 @@ export class ViewColumn implements Component<Attrs> {
 			const border = vnode.attrs.rightBorder ? ".list-border-right" : ""
 			const landmark = this._ariaRole ? landmarkAttrs(this._ariaRole, this.ariaLabel ? this.ariaLabel() : this.getTitle()) : ""
 			return m(
-				".view-column.overflow-x-hidden.fill-absolute.backface_fix" + border + landmark,
+				".view-column.overflow-x-hidden.fill-absolute" + border + landmark,
 				{
 					"aria-hidden": this.visible || this.isInForeground ? "false" : "true",
 					oncreate: vnode => {
