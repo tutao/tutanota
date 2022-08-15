@@ -50,7 +50,7 @@ export class HtmlEditor implements Component {
 		const renderedInjections = this.injections?.() ?? null
 
 		const getPlaceholder = () => !this.active && this.isEmpty()
-			? m(".abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {
+			? m(".abs.text-ellipsis.noselect.z1.i.pr-s", {
 					oncreate: vnode => this.placeholderDomElement = vnode.dom as HTMLElement,
 					onclick: () => this.mode === HtmlEditorMode.WYSIWYG
 						? assertNotNull(this.editor.domElement).focus()

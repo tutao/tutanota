@@ -90,7 +90,7 @@ export class ViewSlider implements Component {
 				[
 					m(header),
 					m(
-						".view-columns.backface_fix.flex-grow.rel",
+						".view-columns.flex-grow.rel",
 						{
 							oncreate: vnode => {
 								this._domSlidingPart = vnode.dom as HTMLElement

@@ -12,7 +12,7 @@ export type LabelAttrs = {
 export class Label implements Component<LabelAttrs> {
 	view(vnode: Vnode<LabelAttrs>) {
 		return m(".rel.pt", [
-			m("label.abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s.small", lang.getMaybeLazy(vnode.attrs.label)),
+			m("label.abs.text-ellipsis.noselect.z1.i.pr-s.small", lang.getMaybeLazy(vnode.attrs.label)),
 			m(".flex.flex-column.flex-end",
 				{
 					style: {

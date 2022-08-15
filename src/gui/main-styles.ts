@@ -1040,12 +1040,6 @@ styles.registerStyle("main", () => {
 			"padding-right": "env(safe-area-inset-right)",
 			"padding-left": "env(safe-area-inset-left)"
 		},
-		// view slider
-		".backface_fix": {
-			// TODO check if this can be removed
-			"-webkit-backface-visibility": "hidden",
-			"backface-visibility": "hidden",
-		},
 		// header
 		".header-nav": {
 			position: "relative",
