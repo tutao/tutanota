@@ -1,6 +1,7 @@
 package de.tutao.tutanota
 
 import de.tutao.tutanota.ipc.CommonSystemFacade
+import de.tutao.tutanota.ipc.SqlCipherFacade
 import kotlinx.coroutines.CompletableDeferred
 import org.apache.commons.io.IOUtils
 import java.io.File
@@ -8,6 +9,7 @@ import java.nio.charset.Charset
 
 class AndroidCommonSystemFacade(
 		private val activity: MainActivity,
+		private val sqlCipherFacade: SqlCipherFacade,
 		private val tempDir: TempDir
 ) : CommonSystemFacade {
 
@@ -22,6 +24,7 @@ class AndroidCommonSystemFacade(
 	}
 
 	override suspend fun reload(query: Map<String, String>) {
+		this.sqlCipherFacade.closeDb()
 		this.webAppInitialized = CompletableDeferred()
 		activity.reload(query)
 	}

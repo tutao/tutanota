@@ -32,6 +32,7 @@ import de.tutao.tutanota.offline.AndroidSqlCipherFacade
 import de.tutao.tutanota.push.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.json.JSONException
@@ -57,6 +58,7 @@ class MainActivity : FragmentActivity() {
 	private lateinit var mobileFacade: MobileFacade
 	private lateinit var commonNativeFacade: CommonNativeFacade
 	private lateinit var commonSystemFacade: AndroidCommonSystemFacade
+	private lateinit var sqlCipherFacade: SqlCipherFacade
 
 	private val permissionsRequests: MutableMap<Int, Continuation<Unit>> = ConcurrentHashMap()
 	private val activityRequests: MutableMap<Int, Continuation<ActivityResult>> = ConcurrentHashMap()
@@ -88,10 +90,10 @@ class MainActivity : FragmentActivity() {
 		val ipcJson = Json { ignoreUnknownKeys = true }
 
 		themeFacade = AndroidThemeFacade(this, this)
-		commonSystemFacade = AndroidCommonSystemFacade(this, fileFacade.tempDir)
 		val contact = Contact(this)
 
-		val sqlCipherFacade = AndroidSqlCipherFacade(this)
+		sqlCipherFacade = AndroidSqlCipherFacade(this)
+		commonSystemFacade = AndroidCommonSystemFacade(this, sqlCipherFacade, fileFacade.tempDir)
 
 		val globalDispatcher = AndroidGlobalDispatcher(
 				ipcJson,
@@ -311,6 +313,14 @@ class MainActivity : FragmentActivity() {
 		Log.d(TAG, "onStop")
 		lifecycleScope.launch { mobileFacade.visibilityChange(false) }
 		super.onStop()
+	}
+
+	override fun onDestroy() {
+		Log.d(TAG, "onDestroy")
+		runBlocking {
+			sqlCipherFacade.closeDb()
+		}
+		super.onDestroy()
 	}
 
 	@MainThread
