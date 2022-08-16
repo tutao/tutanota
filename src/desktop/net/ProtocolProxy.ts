@@ -5,6 +5,7 @@ import {log} from "../DesktopLog.js"
 import {ProtocolRequest, ProtocolResponse, Session} from "electron"
 import {Duplex, PassThrough} from "stream"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
+import {errorToObj} from "../../api/common/MessageDispatcher.js"
 
 const TAG = "[ProtocolProxy]"
 
@@ -71,8 +72,9 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 		const handleError = (e: Error) => {
 			const parsedUrl = new URL(url)
 			const noQueryUrl = `${parsedUrl.protocol}//${parsedUrl.host}${parsedUrl.pathname}`
-			log.debug(TAG, "error for", method, noQueryUrl, ":")
+			log.debug(TAG, `error for ${method} ${noQueryUrl}:`)
 			log.debug(TAG, e)
+			log.debug(TAG, JSON.stringify(errorToObj(e)))
 			log.debug(TAG, `failed after ${Date.now() - startTime}ms`)
 			// Passing anything but the codes mentioned in https://source.chromium.org/chromium/chromium/src/+/main:net/base/net_error_list.h
 			// will lead to an immediate crash of the renderer without warning.
