@@ -69,7 +69,7 @@ export class MailModel {
 
 		this._eventController.addEntityListener(updates => this.entityEventsReceived(updates))
 
-		this._eventController.countersStream().map(update => {
+		this._eventController.getCountersStream().map(update => {
 			this._mailboxCountersUpdates(update)
 		})
 
