@@ -21,7 +21,7 @@ import {Icons} from "../../gui/base/icons/Icons"
 import {Icon} from "../../gui/base/Icon"
 import {GiftCardMessageEditorField} from "./GiftCardMessageEditorField"
 import {client} from "../../misc/ClientDetector"
-import {filterInt, noOp, ofClass} from "@tutao/tutanota-utils"
+import {count, filterInt, noOp, ofClass} from "@tutao/tutanota-utils"
 import {isIOSApp} from "../../api/common/Env"
 import {formatPrice, getSubscriptionPrice} from "../PriceUtils"
 import {GiftCardService} from "../../api/entities/sys/Services"
@@ -267,7 +267,7 @@ async function loadGiftCardModel(): Promise<PurchaseGiftCardModel> {
 
 	const sixMonthsAgo = new Date()
 	sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - parseInt(giftCardInfo.period))
-	const numPurchasedGiftCards = existingGiftCards.filter(giftCard => giftCard.orderDate > sixMonthsAgo).length
+	const numPurchasedGiftCards = count(existingGiftCards, giftCard => giftCard.orderDate > sixMonthsAgo)
 
 	if (numPurchasedGiftCards >= parseInt(giftCardInfo.maxPerPeriod)) {
 		throw new UserError(() =>

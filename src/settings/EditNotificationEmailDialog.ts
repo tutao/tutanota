@@ -1,5 +1,5 @@
-import type {NotificationMailTemplate} from "../api/entities/sys/TypeRefs.js"
-import {createNotificationMailTemplate} from "../api/entities/sys/TypeRefs.js"
+import type {Booking, CustomerInfo, CustomerProperties, NotificationMailTemplate} from "../api/entities/sys/TypeRefs.js"
+import {BookingTypeRef, createNotificationMailTemplate, CustomerInfoTypeRef, CustomerPropertiesTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {HtmlEditor} from "../gui/editor/HtmlEditor"
 import {InfoLink, lang, languages} from "../misc/LanguageViewModel"
 import stream from "mithril/stream"
@@ -14,16 +14,10 @@ import {assertNotNull, LazyLoaded, memoized, neverNull, ofClass} from "@tutao/tu
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {getWhitelabelDomain} from "../api/common/utils/Utils"
 import {logins} from "../api/main/LoginController"
-import type {CustomerInfo} from "../api/entities/sys/TypeRefs.js"
-import {CustomerInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {PayloadTooLargeError} from "../api/common/error/RestError"
 import {SegmentControl} from "../gui/base/SegmentControl"
-import type {CustomerProperties} from "../api/entities/sys/TypeRefs.js"
-import {CustomerPropertiesTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {insertInlineImageB64ClickHandler} from "../mail/view/MailViewerUtils"
 import {UserError} from "../api/main/UserError"
-import type {Booking} from "../api/entities/sys/TypeRefs.js"
-import {BookingTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {isWhitelabelActive} from "../subscription/SubscriptionUtils"
 import {showWhitelabelBuyDialog} from "../subscription/BuyDialog"
@@ -211,9 +205,7 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 				customerProperties.getAsync().then(customerProperties => {
 					templates = customerProperties.notificationMailTemplates
 
-					if (
-						customerProperties.notificationMailTemplates.filter(t => t !== existingTemplate && t.language === selectedLanguageStream()).length > 0
-					) {
+					if (customerProperties.notificationMailTemplates.some(t => t !== existingTemplate && t.language === selectedLanguageStream())) {
 						throw new UserError("templateLanguageExists_msg")
 					}
 

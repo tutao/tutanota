@@ -38,7 +38,8 @@ export {
 	partition,
 	splitUint8ArrayInChunks,
 	partitionAsync,
-	arrayOf
+	arrayOf,
+	count
 } from "./ArrayUtils.js"
 export {AsyncResult} from "./AsyncResult.js"
 export {intersection} from "./CollectionUtils.js"

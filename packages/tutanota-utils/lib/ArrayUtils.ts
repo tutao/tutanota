@@ -1,5 +1,4 @@
-
-import {downcast, identity, neverNull, Thunk} from "./Utils.js"
+import {downcast, identity, neverNull} from "./Utils.js"
 import {getFromMap} from "./MapUtils.js"
 
 
@@ -55,9 +54,9 @@ export function arrayEquals<T, A extends Uint8Array | Array<T>>(a1: A, a2: A): b
  * @returns {boolean}
  */
 export function arrayEqualsWithPredicate<T>(
-		a1: ReadonlyArray<T>,
-		a2: ReadonlyArray<T>,
-		predicate: (arg0: T, arg1: T) => boolean,
+	a1: ReadonlyArray<T>,
+	a2: ReadonlyArray<T>,
+	predicate: (arg0: T, arg1: T) => boolean,
 ): boolean {
 	if (a1.length === a2.length) {
 		for (let i = 0; i < a1.length; i++) {
@@ -234,6 +233,13 @@ export function contains(theArray: Array<any>, elementToCheck: any): boolean {
 	return theArray.indexOf(elementToCheck) !== -1
 }
 
+/**
+ * count how many of the items in {@param theArray} return true when passed to the predicate {@param pred}
+ */
+export function count<T>(theArray: ReadonlyArray<T>, pred: (e: T) => boolean): number {
+	return theArray.reduce<number>((acc, next) => pred(next) ? ++acc : acc, 0)
+}
+
 export function addAll(array: Array<any>, elements: Array<any>) {
 	array.push(...elements)
 }
@@ -248,9 +254,9 @@ export function removeAll(array: Array<any>, elements: Array<any>) {
  * Group an array based on the given discriminator, but each group will have only unique items
  */
 export function groupByAndMapUniquely<T, R, E>(
-		iterable: Iterable<T>,
-		discriminator: (arg0: T) => R,
-		mapper: (arg0: T) => E,
+	iterable: Iterable<T>,
+	discriminator: (arg0: T) => R,
+	mapper: (arg0: T) => E,
 ): Map<R, Set<E>> {
 	const map = new Map()
 
@@ -272,9 +278,9 @@ export function groupByAndMapUniquely<T, R, E>(
  * @returns {Map<R, Array<E>>}
  */
 export function groupByAndMap<T, R, E>(
-		iterable: Iterable<T>,
-		discriminator: (arg0: T) => R,
-		mapper: (arg0: T) => E,
+	iterable: Iterable<T>,
+	discriminator: (arg0: T) => R,
+	mapper: (arg0: T) => E,
 ): Map<R, Array<E>> {
 	const map = new Map()
 
@@ -310,6 +316,7 @@ export function splitInChunks<T>(chunkSize: number, array: Array<T>): Array<Arra
 export function splitUint8ArrayInChunks(chunkSize: number, array: Uint8Array): Array<Uint8Array> {
 	return downcast(_chunk(chunkSize, array))
 }
+
 function _chunk<T>(chunkSize: number, array: Array<T> | Uint8Array): Array<Array<T> | Uint8Array> {
 	if (chunkSize < 1) {
 		return []
@@ -358,10 +365,10 @@ export function flatMap<T, U>(array: ReadonlyArray<T>, mapper: (arg0: T) => Arra
  * @param replaceIf identity comparison for replacement
  */
 export function insertIntoSortedArray<T>(
-		element: T,
-		array: Array<T>,
-		comparator: (left: T, right: T) => number,
-		replaceIf: (newElement: T, existing: T) => boolean = () => false,
+	element: T,
+	array: Array<T>,
+	comparator: (left: T, right: T) => number,
+	replaceIf: (newElement: T, existing: T) => boolean = () => false,
 ) {
 	let i = 0
 
@@ -463,9 +470,9 @@ export function union<T>(...iterables: Array<Iterable<T>>): Set<T> {
  * @returns {Array<$NonMaybeType<T>>|Array<T>}
  */
 export function difference<T>(
-		array1: ReadonlyArray<T>,
-		array2: ReadonlyArray<T>,
-		compare: (arg0: T, arg1: T) => boolean = (a, b) => a === b,
+	array1: ReadonlyArray<T>,
+	array2: ReadonlyArray<T>,
+	compare: (arg0: T, arg1: T) => boolean = (a, b) => a === b,
 ): Array<T> {
 	return array1.filter(element1 => !array2.some(element2 => compare(element1, element2)))
 }
