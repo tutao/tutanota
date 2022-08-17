@@ -1,12 +1,6 @@
 import m from "mithril"
 import stream from "mithril/stream"
-import {
-	AccessBlockedError,
-	AccessDeactivatedError,
-	InvalidDataError,
-	NotAuthenticatedError,
-	TooManyRequestsError
-} from "../../api/common/error/RestError"
+import {AccessBlockedError, AccessDeactivatedError, InvalidDataError, NotAuthenticatedError, TooManyRequestsError} from "../../api/common/error/RestError"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {isMailAddress} from "../../misc/FormatValidator"
 import {lang} from "../../misc/LanguageViewModel"
@@ -77,7 +71,9 @@ export function showTakeOverDialog(mailAddress: string, password: string): Dialo
 					.catch(e => handleError(e))
 			}
 		},
-		cancelAction: () => m.route.set("/login"),
+		cancelAction: () => m.route.set("/login", {
+			noAutoLogin: true,
+		}),
 	})
 	return takeoverDialog
 }
