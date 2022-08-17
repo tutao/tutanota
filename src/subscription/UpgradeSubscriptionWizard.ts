@@ -190,6 +190,7 @@ export async function loadSignupWizard(subscriptionParameters: SubscriptionParam
 
 		if (signupData.newAccountData) {
 			m.route.set("/login", {
+				noAutoLogin: true,
 				loginWith: signupData.newAccountData.mailAddress,
 			})
 		} else {
