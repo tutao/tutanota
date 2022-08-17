@@ -139,6 +139,12 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 	private repositionTimeout: TimeoutID | null
 	/** sorted with _config.sortCompare */
 	private readonly loadedEntities: ElementType[] = []
+	/**
+	 * this will be set to a new object every time the list changes.
+	 * if you want to know if the list changed between two points in time,
+	 * get a reference to this and later compare to the current value.
+	 * */
+	private lastElementChangeMarker: {} = {} as const
 
 	/** Displays a part of the page, VirtualRows map 1:1 to DOM-Elements */
 	virtualList: RowType[] = []
@@ -376,6 +382,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 
 	clear() {
 		this.loadedEntities.length = 0
+		this.lastElementChangeMarker = {}
 		this.loadedCompletely = false
 
 		if (this.domList) {
@@ -798,6 +805,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 						   .fetch(startId, PageSize)
 						   .then(({items, complete}) => {
 							   this.loadedEntities.push(...items)
+							   this.lastElementChangeMarker = {}
 							   this.loadedEntities.sort(this.config.sortCompare)
 							   if (complete) {
 								   // ensure that all elements are added to the loaded entities before calling setLoadedCompletely
@@ -1229,6 +1237,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 		}
 
 		this.loadedEntities.push(entity)
+		this.lastElementChangeMarker = {}
 
 		this.loadedEntities.sort(this.config.sortCompare)
 
@@ -1246,6 +1255,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 		for (let positionToUpdate = 0; positionToUpdate < this.loadedEntities.length; positionToUpdate++) {
 			if (getElementId(entity) === getElementId(this.loadedEntities[positionToUpdate])) {
 				this.loadedEntities.splice(positionToUpdate, 1, entity)
+				this.lastElementChangeMarker = {}
 
 				this.loadedEntities.sort(this.config.sortCompare)
 
@@ -1272,10 +1282,9 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 				let nextElementSelected = false
 
 				if (this.selectedEntities.length === 1 && this.selectedEntities[0] === entity && this.loadedEntities.length > 1) {
-					const nextSelection =
-						entity === last(this.loadedEntities)
-							? this.loadedEntities[this.loadedEntities.length - 2]
-							: this.loadedEntities[this.loadedEntities.indexOf(entity) + 1]
+					const nextSelection = entity === last(this.loadedEntities)
+						? this.loadedEntities[this.loadedEntities.length - 2]
+						: this.loadedEntities[this.loadedEntities.indexOf(entity) + 1]
 
 					this.selectedEntities.push(nextSelection)
 
@@ -1283,6 +1292,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 				}
 
 				remove(this.loadedEntities, entity)
+				this.lastElementChangeMarker = {}
 				const selectionChanged = remove(this.selectedEntities, entity)
 
 				this.updateListHeight()
@@ -1304,6 +1314,15 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 
 	getLoadedEntities(): ReadonlyArray<ElementType> {
 		return this.loadedEntities
+	}
+
+	/**
+	 * when called at time A, returns a function that, when called at a later time B, will return whether
+	 * the set of elements in the list changed between time A and time B
+	 */
+	markCurrentState(): () => boolean {
+		const lastMarker = this.lastElementChangeMarker
+		return () => lastMarker !== this.lastElementChangeMarker
 	}
 }
 
