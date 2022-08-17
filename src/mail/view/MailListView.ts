@@ -23,7 +23,7 @@ import {logins} from "../../api/main/LoginController"
 import type {ButtonAttrs} from "../../gui/base/Button.js"
 import {Button, ButtonColor, ButtonType} from "../../gui/base/Button.js"
 import {Dialog} from "../../gui/base/Dialog"
-import {assertNotNull, AsyncResult, debounce, downcast, neverNull, ofClass, promiseFilter, promiseMap} from "@tutao/tutanota-utils"
+import {assertNotNull, AsyncResult, count, debounce, downcast, neverNull, ofClass, promiseFilter, promiseMap} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
 import {getLetId, haveSameId, sortCompareByReverseId} from "../../api/common/utils/EntityUtils"
 import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
@@ -37,7 +37,6 @@ import {assertMainOrNode} from "../../api/common/Env"
 import {WsConnectionState} from "../../api/main/WorkerClient"
 import {findAndApplyMatchingRule, isInboxList} from "../model/InboxRuleHandler.js"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
-import {count} from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 const className = "mail-list"
@@ -69,7 +68,7 @@ export class MailListView implements Component {
 				fetch: async (start, count) => {
 					const result = await this.loadMailRange(start, count)
 					if (result.complete) {
-						this.fixCounterIfNeeded(this.listId, this.list.getLoadedEntities().length)
+						this.fixCounterIfNeeded(this.listId, this.list.markCurrentState())
 					}
 					return result
 				},
@@ -321,8 +320,11 @@ export class MailListView implements Component {
 		return newFiles.concat(existingFiles)
 	}
 
-	// Do not start many fixes in parallel, do check after some time when counters are more likely to settle
-	private fixCounterIfNeeded: (listId: Id, listLength: number) => void = debounce(2000, async (listId: Id, listLength: number) => {
+	/**
+	 * Do not start many fixes in parallel, do check after some time when counters are more likely to settle
+	 * this will make a single post request in case the counters are out of sync (mailboxdetails and counters are already available locally)
+	 */
+	private fixCounterIfNeeded: (listId: Id, checkIfListChanged: () => boolean) => void = debounce(2000, async (listId: Id, checkIfListChanged: () => boolean) => {
 		// If folders are changed, list won't have the data we need.
 		// Do not rely on counters if we are not connected
 		if (this.listId !== listId || locator.worker.wsConnection()() !== WsConnectionState.connected) {
@@ -330,16 +332,19 @@ export class MailListView implements Component {
 		}
 
 		// If list was modified in the meantime, we cannot be sure that we will fix counters correctly (e.g. because of the inbox rules)
-		if (listLength !== this.list.getLoadedEntities().length) {
-			return
+		if (checkIfListChanged()) {
+			console.log(`list changed, trying again later`)
+			return this.fixCounterIfNeeded(listId, this.list.markCurrentState())
 		}
 
 		const unreadMailsCount = count(this.list.getLoadedEntities(), e => e.unread)
 
 		const counterValue = await locator.mailModel.getCounterValue(this.listId)
-		if (counterValue != null && counterValue !== unreadMails) {
-			console.log("Fixing up counters for list", this.listId)
-			await locator.mailModel.fixupCounterForMailList(this.listId, unreadMails)
+		if (counterValue != null && counterValue !== unreadMailsCount) {
+			console.log(`fixing up counter for list ${this.listId}`)
+			await locator.mailModel.fixupCounterForMailList(this.listId, unreadMailsCount)
+		} else {
+			console.log(`same counter, no fixup on list ${this.listId}`)
 		}
 	})
 
@@ -350,21 +355,18 @@ export class MailListView implements Component {
 			label: "clearFolder_action",
 			type: ButtonType.Primary,
 			colors: ButtonColor.Nav,
-			click: () => {
+			click: async () => {
 				if (folder == null) {
 					console.warn("Cannot delete folder, no folder is selected")
 					return
 				}
-
-				Dialog.confirm(() =>
-					lang.get("confirmDeleteFinallySystemFolder_msg", {
-						"{1}": getFolderName(folder),
-					}),
-				).then(confirmed => {
-					if (confirmed) {
-						this.mailView.finallyDeleteAllMailsInSelectedFolder(folder)
-					}
-				})
+				const confirmed = await Dialog.confirm(() => lang.get(
+					"confirmDeleteFinallySystemFolder_msg",
+					{"{1}": getFolderName(folder)}
+				))
+				if (confirmed) {
+					this.mailView.finallyDeleteAllMailsInSelectedFolder(folder)
+				}
 			},
 		}
 
