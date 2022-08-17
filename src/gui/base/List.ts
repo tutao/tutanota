@@ -138,7 +138,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 	 */
 	private repositionTimeout: TimeoutID | null
 	/** sorted with _config.sortCompare */
-	readonly loadedEntities: ElementType[] = []
+	private readonly loadedEntities: ElementType[] = []
 
 	/** Displays a part of the page, VirtualRows map 1:1 to DOM-Elements */
 	virtualList: RowType[] = []
@@ -1302,7 +1302,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 		return this.mobileMultiSelectionActive
 	}
 
-	getLoadedEntities(): ElementType[] {
+	getLoadedEntities(): ReadonlyArray<ElementType> {
 		return this.loadedEntities
 	}
 }
