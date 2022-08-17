@@ -104,7 +104,7 @@ o.spec("List", function () {
 			list.domDeferred.resolve()
 
 			await list.loadInitial()
-			o(list.loadedEntities.slice(0, 100)).deepEquals(new Array(100).fill(mail0))
+			o(list.getLoadedEntities().slice(0, 100)).deepEquals(new Array(100).fill(mail0))
 		})
 	})
 
