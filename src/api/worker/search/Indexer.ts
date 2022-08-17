@@ -441,7 +441,7 @@ export class Indexer {
 			}[]
 		},
 	): Promise<void> {
-		if (groupDiff.deletedGroups.filter(g => g.type === GroupType.Mail || g.type === GroupType.Contact).length > 0) {
+		if (groupDiff.deletedGroups.some(g => g.type === GroupType.Mail || g.type === GroupType.Contact)) {
 			return Promise.reject(new MembershipRemovedError("user has been removed from contact or mail group")) // user has been removed from a shared group
 		} else if (groupDiff.newGroups.length > 0) {
 			return this._loadGroupData(

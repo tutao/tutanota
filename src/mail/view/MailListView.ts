@@ -37,6 +37,7 @@ import {assertMainOrNode} from "../../api/common/Env"
 import {WsConnectionState} from "../../api/main/WorkerClient"
 import {findAndApplyMatchingRule, isInboxList} from "../model/InboxRuleHandler.js"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
+import {count} from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 const className = "mail-list"
@@ -333,13 +334,8 @@ export class MailListView implements Component {
 			return
 		}
 
-		const unreadMails = this.list.getLoadedEntities().reduce((acc, mail) => {
-			if (mail.unread) {
-				acc++
-			}
+		const unreadMailsCount = count(this.list.getLoadedEntities(), e => e.unread)
 
-			return acc
-		}, 0)
 		const counterValue = await locator.mailModel.getCounterValue(this.listId)
 		if (counterValue != null && counterValue !== unreadMails) {
 			console.log("Fixing up counters for list", this.listId)

@@ -89,7 +89,7 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 					let customDomainInfos = getCustomMailDomains(this.data.customerInfo)
 
 					//domain is already assigned to this account
-					if (customDomainInfos.filter(domainInfo => domainInfo.domain === this.data.domain()).length) {
+					if (customDomainInfos.some(domainInfo => domainInfo.domain === this.data.domain())) {
 						return null
 					}
 

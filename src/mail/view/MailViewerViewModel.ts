@@ -717,7 +717,7 @@ export class MailViewerViewModel {
 			if (!this.logins.getUserController().isInternalUser() && this.isReceivedMail()) {
 				toRecipients.push(this.getSender())
 			} else if (this.isReceivedMail()) {
-				if (this.getReplyTos().filter(address => !downcast(address)._errors).length > 0) {
+				if (this.getReplyTos().some(address => !downcast(address)._errors)) {
 					addAll(toRecipients, this.getReplyTos())
 				} else {
 					toRecipients.push(this.getSender())
