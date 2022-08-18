@@ -139,7 +139,7 @@ async function createComponents(): Promise<Components> {
 	const dateProvider = new DateProviderImpl()
 	const dl = new DesktopDownloadManager(conf, desktopNet, desktopUtils, dateProvider, fs, electron)
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade)
-	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapperImpl())
+	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapperImpl(), fs)
 	const shortcutManager = new LocalShortcutManager()
 	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(keyStoreFacade, desktopCrypto)
 

@@ -39,26 +39,34 @@
  * */
 
 
-import path from "path"
-import fs from "fs-extra"
-import {spawnSync} from "child_process"
+import path from "node:path"
+import fs from "node:fs"
+import {spawnSync} from "node:child_process"
 import jsyaml from "js-yaml"
-import forge from "node-forge"
+import crypto from "node:crypto"
+import {base64ToUint8Array} from "@tutao/tutanota-utils"
+
+const SIG_ALGO = "RSASSA-PKCS1-v1_5"
+const DIGEST = "SHA-512"
 
 /**
  * Creates a signature on the given application file, writes it to signatureFileName and adds the signature to the yaml file.
  * Requires environment variable HSM_USER_PIN to be set to the HSM user pin.
+ *
+ * if the env var DEBUG_SIGN is set to the path to a directory containing a non-encrypted PEM-encoded private key (filename test.key) and the
+ * matching PEM-encoded public key (test.pubkey), it will be used instead of the HSM.
+ *
  * @param filePath The application file to sign. Needs to be the full path to the file.
  * @param signatureFileName The signature will be written to that file. Must not contain any path.
  * @param ymlFileName This yaml file will be adapted to include the signature. Must not contain any path.
  */
-export function sign(filePath, signatureFileName, ymlFileName) {
+export async function sign(filePath, signatureFileName, ymlFileName) {
 	console.log("Signing", path.basename(filePath), '...')
 	const dir = path.dirname(filePath)
 
 	const sigOutPath = process.env.DEBUG_SIGN
-		? signWithSelfSignedCertificate(filePath, signatureFileName, dir)
-		: signWithHSM(filePath, signatureFileName, dir)
+		? await signWithOwnPrivateKey(filePath, path.join(process.env.DEBUG_SIGN, "test.key"), signatureFileName, dir)
+		: await signWithHSM(filePath, signatureFileName, dir)
 
 	if (ymlFileName) {
 		console.log(`attaching signature to yml...`, ymlFileName)
@@ -67,16 +75,18 @@ export function sign(filePath, signatureFileName, ymlFileName) {
 		const signatureContent = fs.readFileSync(sigOutPath)
 		yml.signature = signatureContent.toString('base64')
 		fs.writeFileSync(ymlPath, jsyaml.dump(yml), 'utf8')
+		console.log("signing done")
 	} else {
 		console.log("Not attaching signature to yml")
 	}
 }
 
-function signWithHSM(filePath, signatureFileName, dir) {
-	let result = spawnSync("/usr/bin/pkcs11-tool", [
+async function signWithHSM(filePath, signatureFileName, dir) {
+	console.log("sign with HSM")
+	const result = spawnSync("/usr/bin/pkcs11-tool", [
 		"-s",
 		"-m", "SHA512-RSA-PKCS",
-		"--id", "10", // this is the installer verification key
+		"--id", "10", // this is the index of the installer verification key
 		"--pin", "env:HSM_USER_PIN",
 		"-i", path.basename(filePath),
 		"-o", signatureFileName
@@ -91,35 +101,64 @@ function signWithHSM(filePath, signatureFileName, dir) {
 	return path.join(dir, signatureFileName)
 }
 
-function signWithSelfSignedCertificate(filePath, signatureFileName, dir) {
-	const sigOutPath = path.join(dir, signatureFileName)
+/**
+ * takes a pem-encoded private key and returns the raw der-encoded data
+ * @param key {string} private key pem
+ * @returns {ArrayBuffer} raw binary der-encoded private key
+ */
 
-	// copy cert to webserver so it can be easily put into a VM
-	fs.copyFileSync(path.join(process.env.DEBUG_SIGN, "ca.crt"), path.join(dir, "ca.crt"))
-
-	try {
-		const fileData = fs.readFileSync(filePath) //binary format
-		const lnk = path.join(process.env.DEBUG_SIGN, "test.p12")
-		const privateKey = getPrivateKeyFromCert(lnk)
-		const md = forge.md.sha512.create()
-		md.update(fileData.toString('binary'))
-		const sig = Buffer.from(privateKey.sign(md), 'binary')
-		fs.writeFileSync(sigOutPath, sig, null)
-	} catch (e) {
-		console.log('Error:', e.message)
-	}
-	return sigOutPath
+function pemToBinaryDer(key) {
+	const pemContentsB64 = key
+		.replace("-----BEGIN PRIVATE KEY-----", "")
+		.replace("-----END PRIVATE KEY-----", "")
+		.replace(/\s/g, '')
+	return base64ToUint8Array(pemContentsB64).buffer
 }
 
-function getPrivateKeyFromCert(lnk) {
-	if (!lnk) {
-		throw new Error("can't sign client, no certificate file name")
+/**
+ * import a key from a pem-string and import it as a WebCrypto CryptoKey
+ * that can be used for signing
+ * @param pem
+ * @returns {Promise<CryptoKey>}
+ */
+async function importPrivateKey(pem) {
+	return crypto.webcrypto.subtle.importKey(
+		"pkcs8",
+		pemToBinaryDer(pem),
+		{name: SIG_ALGO, hash: DIGEST},
+		true,
+		["sign"]
+	)
+}
+
+/**
+ * sign the contents of a file with a private key available in PEM format.
+ *
+ * a private key to use here can be created with:
+ * import crypto from "node:crypto"
+ *
+ * 	const {privateKey, publicKey} = await crypto.webcrypto.subtle.generateKey({
+ * 		name: 'RSASSA-PKCS1-v1_5',
+ * 		modulusLength: 4096,
+ * 		publicExponent: new Uint8Array([1, 0, 1]),
+ * 		hash: "SHA-512",
+ * 	}, true, ['sign', 'verify'])
+ *
+ * returns the full path to a file containing the signature in binary format
+ */
+async function signWithOwnPrivateKey(fileToSign, privateKeyPemFile, signatureOutFileName, dir) {
+	console.log("sign with private key")
+	const sigOutPath = path.join(dir, signatureOutFileName)
+
+	try {
+		const fileData = fs.readFileSync(fileToSign) // buffer
+		const privateKeyPem = fs.readFileSync(privateKeyPemFile, {encoding: "utf-8"})
+		const cryptoKey = await importPrivateKey(privateKeyPem)
+		const sig = await crypto.webcrypto.subtle.sign({name: SIG_ALGO, hash: DIGEST}, cryptoKey, fileData)
+		fs.writeFileSync(sigOutPath, Buffer.from(sig), null)
+	} catch (e) {
+		console.log(`Error signing ${fileToSign}:`, e.message, e.stack)
+		process.exit(1)
 	}
-	const p12b64 = fs.readFileSync(lnk).toString('base64')
-	const p12Der = forge.util.decode64(p12b64)
-	const p12Asn1 = forge.asn1.fromDer(p12Der)
-	const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, "")
-	const bag = p12.getBags({friendlyName: 'user'})["friendlyName"]
-		.find(b => b.key != null)
-	return bag.key
+	return sigOutPath
 }

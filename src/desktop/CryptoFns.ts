@@ -1,7 +1,6 @@
 /**
  * This is a wrapper for commonly used crypto functions, easier to inject/swap implementations and test.
  */
-import forge from "node-forge"
 import crypto from "crypto"
 import {InstanceMapper} from "../api/worker/crypto/InstanceMapper"
 import type {TypeModel} from "../api/common/EntityTypes"
@@ -52,11 +51,7 @@ export interface CryptoFunctions {
 
 	base64ToKey(base64: Base64): BitArray
 
-	publicKeyFromPem(
-		pem: string,
-	): {
-		verify: (arg0: string, arg1: string) => boolean
-	}
+	verifySignature(pubKeyPem: string, data: Uint8Array, signature: Uint8Array): boolean
 
 	randomBytes(nbrOfBytes: number): Uint8Array
 
@@ -94,12 +89,11 @@ export const cryptoFns: CryptoFunctions = {
 		return base64ToKey(base64)
 	},
 
-	publicKeyFromPem(
-		pem: string,
-	): {
-		verify: (arg0: string, arg1: string) => boolean
-	} {
-		return forge.pki.publicKeyFromPem(pem)
+	/**
+	 * verify a signature of some data with a given PEM-encoded spki public key
+	 */
+	verifySignature(pem: string, data: Uint8Array, signature: Uint8Array): boolean {
+		return crypto.verify("SHA512", data, pem, signature)
 	},
 
 	randomBytes(nbrOfBytes: number): Uint8Array {

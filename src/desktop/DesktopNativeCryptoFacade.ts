@@ -87,12 +87,8 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		return base64ToBase64Url(uint8ArrayToBase64(this.cryptoFns.randomBytes(byteLength)))
 	}
 
-	publicKeyFromPem(
-		pem: string,
-	): {
-		verify: (arg0: string, arg1: string) => boolean
-	} {
-		return this.cryptoFns.publicKeyFromPem(pem)
+	verifySignature(pem: string, data: Uint8Array, sig: Uint8Array): boolean {
+		return this.cryptoFns.verifySignature(pem, data, sig)
 	}
 
 	_decrypt256KeyToArray(encryptionKey: Uint8Array, key: Uint8Array): Aes256Key {
