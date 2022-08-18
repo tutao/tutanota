@@ -102,6 +102,7 @@ export async function showCalendarEventDialog(
 	const repeatValues: SelectorItemList<RepeatPeriod | null> = createRepeatRuleFrequencyValues()
 	const intervalValues = createIntervalValues()
 	const endTypeValues = createRepeatRuleEndTypeValues()
+	const guestShowConfidential: Map<string, boolean> = new Map()
 	let finished = false
 
 	function renderEndValue(): Children {
@@ -236,9 +237,12 @@ export async function showCalendarEventDialog(
 			? guests
 				.filter(a => a.type === RecipientType.EXTERNAL)
 				.map(guest => {
+					if (!(guestShowConfidential.has(guest.address.address))) guestShowConfidential.set(guest.address.address, false)
+
 					return m(TextField, {
 						value: viewModel.getGuestPassword(guest),
-						type: TextFieldType.ExternalPassword,
+						preventAutofill: true,
+						type: guestShowConfidential.get(guest.address.address) ? TextFieldType.Text : TextFieldType.Password,
 						label: () =>
 							lang.get("passwordFor_label", {
 								"{1}": guest.address.address,
@@ -246,10 +250,21 @@ export async function showCalendarEventDialog(
 						helpLabel: () => m(CompletenessIndicator, {percentageCompleted: viewModel.getPasswordStrength(guest)}),
 						key: guest.address.address,
 						oninput: newValue => viewModel.updatePassword(guest, newValue),
+						injectionsRight: () => renderRevealIcon(guest.address.address),
 					})
 				})
 			: []
 		return m("", [guests.map((guest, index) => renderGuest(guest, index, viewModel, ownAttendee)), externalGuests])
+	}
+
+	const renderRevealIcon = (address: string) => {
+		return m(Button, {
+			label: guestShowConfidential.get(address) ? "concealPassword_action" : "revealPassword_action",
+			click: () => {
+				guestShowConfidential.set(address, !guestShowConfidential.get(address))
+			},
+			icon: () => guestShowConfidential.get(address) ? Icons.NoEye : Icons.Eye,
+		})
 	}
 
 	const renderDateTimePickers = () =>
