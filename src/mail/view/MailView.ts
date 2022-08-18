@@ -770,62 +770,52 @@ export class MailView implements CurrentView {
 		const animationOverDeferred = defer<void>()
 		const mailList = assertNotNull(this.mailList, "Element is selected but no mail list?")
 
-		try {
-			if (mails.length === 1 && !multiSelectOperation && (selectionChanged || !this.mailViewerViewModel)) {
-				// set or update the visible mail
-				this.mailViewerViewModel = createMailViewerViewModel({
-					mail: mails[0],
-					showFolder: false,
-					delayBodyRenderingUntil: animationOverDeferred.promise,
-				})
+		if (mails.length === 1 && !multiSelectOperation && (selectionChanged || !this.mailViewerViewModel)) {
+			// set or update the visible mail
+			this.mailViewerViewModel = createMailViewerViewModel({
+				mail: mails[0],
+				showFolder: false,
+				delayBodyRenderingUntil: animationOverDeferred.promise,
+			})
 
-				const url = `/mail/${mails[0]._id.join("/")}`
+			const url = `/mail/${mails[0]._id.join("/")}`
 
-				if (this.selectedFolder) {
-					this.folderToUrl[this.selectedFolder._id[1]] = url
-				}
-
-				this.setUrl(url)
-
-				m.redraw()
-			} else if (selectionChanged && (mails.length === 0 || multiSelectOperation) && this.mailViewerViewModel) {
-				// remove the visible mail
-				this.mailViewerViewModel = null
-				const url = `/mail/${mailList.listId}`
-
-				if (this.selectedFolder) {
-					this.folderToUrl[this.selectedFolder._id[1]] = url
-				}
-
-				this.setUrl(url)
-
-				m.redraw()
-			} else if (selectionChanged) {
-				// update the multi mail viewer
-				m.redraw()
+			if (this.selectedFolder) {
+				this.folderToUrl[this.selectedFolder._id[1]] = url
 			}
 
-			if (this.mailViewerViewModel && !multiSelectOperation) {
-				if (mails[0].unread) {
-					// we don't want to wait on this so we can show the viewer
-					// even if we're offline and unable to update.
-					this.toggleUnreadMails(mails)
-				}
+			this.setUrl(url)
 
-				if (elementClicked) {
-					await mailList.list.loading
-					await this.viewSlider.focus(this.mailColumn)
-				}
+			m.redraw()
+		} else if (selectionChanged && (mails.length === 0 || multiSelectOperation) && this.mailViewerViewModel) {
+			// remove the visible mail
+			this.mailViewerViewModel = null
+			const url = `/mail/${mailList.listId}`
+
+			if (this.selectedFolder) {
+				this.folderToUrl[this.selectedFolder._id[1]] = url
 			}
-		} catch (e) {
-			if (isOfflineError(e)) {
-				console.log("Ignoring connection error when selecting mail", e)
-			} else {
-				throw e
-			}
-		} finally {
-			animationOverDeferred.resolve()
+
+			this.setUrl(url)
+
+			m.redraw()
+		} else if (selectionChanged) {
+			// update the multi mail viewer
+			m.redraw()
 		}
+
+		if (this.mailViewerViewModel && !multiSelectOperation) {
+			if (mails[0].unread) {
+				// we don't want to wait on this so we can show the viewer
+				// even if we're offline and unable to update.
+				this.toggleUnreadMails(mails)
+			}
+
+			if (elementClicked) {
+				await this.viewSlider.focus(this.mailColumn)
+			}
+		}
+		animationOverDeferred.resolve()
 	}
 
 	private async toggleUnreadMails(mails: Mail[]): Promise<void> {
