@@ -77,11 +77,7 @@ o.spec("DesktopCryptoFacadeTest", () => {
 			throw new Error("stub!")
 		},
 
-		publicKeyFromPem(
-			pem: string,
-		): {
-			verify: (arg0: string, arg1: string) => boolean
-		} {
+		verifySignature(pem: string, arg0: Uint8Array, arg1: Uint8Array): boolean {
 			throw new Error("stub!")
 		},
 

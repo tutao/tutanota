@@ -12,7 +12,7 @@ export default async function generateTemplate({nameSuffix, version, updateUrl, 
 	const appName = "tutanota-desktop" + nameSuffix
 	const appId = "de.tutao.tutanota" + nameSuffix
 	if (process.env.JENKINS_HOME && process.env.DEBUG_SIGN) throw new Error("Tried to DEBUG_SIGN in CI!")
-	const debugkey = process.env.DEBUG_SIGN
+	const debugKey = process.env.DEBUG_SIGN
 		? readFileSync(path.join(process.env.DEBUG_SIGN, "test.pubkey"), {encoding: 'utf8'})
 		: undefined
 	const log = console.log.bind(console)
@@ -45,7 +45,7 @@ export default async function generateTemplate({nameSuffix, version, updateUrl, 
 				+ "QGNSdxrpLuMA/afCPdf49x3iwy+p+paXHKirgM5z6rnikk10Lko7dNXV0735PsZd\n"
 				+ "dQIDAQAB\n"
 				+ "-----END PUBLIC KEY-----",
-				debugkey
+				debugKey
 			],
 			"pollingInterval": 1000 * 60 * 60 * 3, // 3 hours
 			"webAssetsPath": ".",

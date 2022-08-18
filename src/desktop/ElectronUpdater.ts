@@ -2,14 +2,13 @@ import type {DesktopNotifier} from "./DesktopNotifier"
 import {NotificationResult} from "./DesktopNotifier";
 import {lang} from '../misc/LanguageViewModel'
 import type {DesktopConfig} from './config/DesktopConfig'
-import {downcast, neverNull} from "@tutao/tutanota-utils"
-import {Mode} from "../api/common/Env"
-import {log} from "./DesktopLog";
+import {assertNotNull, downcast, neverNull} from "@tutao/tutanota-utils"
 import {DesktopNativeCryptoFacade} from "./DesktopNativeCryptoFacade"
 import type {App, NativeImage} from "electron"
 import type {UpdaterWrapper} from "./UpdaterWrapper"
-import {UpdateInfo} from "electron-updater";
-import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys";
+import type {UpdateDownloadedEvent, UpdateInfo} from "electron-updater"
+import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys"
+import {FsExports} from "./ElectronExportTypes.js"
 
 
 /**
@@ -24,9 +23,12 @@ import {BuildConfigKey, DesktopConfigKey} from "./config/ConfigKeys";
  *
  */
 
+const TAG = "[ElectronUpdater]"
+
 type LoggerFn = (_: string, ...args: any) => void
 type UpdaterLogger = {debug: LoggerFn, info: LoggerFn, warn: LoggerFn, error: LoggerFn, silly: LoggerFn, verbose: LoggerFn}
-
+/** we add the signature to the UpdateInfo when building the client */
+type TutanotaUpdateInfo = UpdateInfo & {signature: string}
 type IntervalID = ReturnType<typeof setTimeout>
 
 // re-do the type as opposed to doing typeof because it doesn't work otherwise
@@ -37,13 +39,13 @@ export class ElectronUpdater {
 	private checkUpdateSignature: boolean = false
 	private errorCount: number = 0
 	private readonly logger: UpdaterLogger
-	private _updateInfo: UpdateInfo | null = null
+	private _updateInfo: TutanotaUpdateInfo | null = null
 
 	readonly enableAutoUpdateListener = () => {
 		this.start()
 	}
 
-	get updateInfo(): UpdateInfo | null {
+	get updateInfo(): TutanotaUpdateInfo | null {
 		return this._updateInfo
 	}
 
@@ -54,31 +56,17 @@ export class ElectronUpdater {
 		private readonly app: App,
 		private readonly icon: NativeImage,
 		private readonly updater: UpdaterWrapper,
-		private readonly scheduler: IntervalSetter = setInterval
+		private readonly fs: FsExports,
+		private readonly scheduler: IntervalSetter = setInterval,
 	) {
-		this.logger = env.mode === Mode.Test
-			? {
-				info: (m: string, ...args: any) => {
-				},
-				warn: (m: string, ...args: any) => {
-				},
-				error: (m: string, ...args: any) => {
-				},
-				verbose: (m: string, ...args: any) => {
-				},
-				debug: (m: string, ...args: any) => {
-				},
-				silly: (m: string, ...args: any) => {
-				},
-			}
-			: {
-				info: (m: string, ...args: any) => log.debug.apply(console, ["autoUpdater info:\n", m].concat(args)),
-				warn: (m: string, ...args: any) => console.warn.apply(console, ["autoUpdater warn:\n", m].concat(args)),
-				error: (m: string, ...args: any) => console.error.apply(console, ["autoUpdater error:\n", m].concat(args)),
-				verbose: (m: string, ...args: any) => console.error.apply(console, ["autoUpdater:\n", m].concat(args)),
-				debug: (m: string, ...args: any) => log.debug.apply(console, ["autoUpdater debug:\n", m].concat(args)),
-				silly: (m: string, ...args: any) => console.error.apply(console, ["autoUpdater:\n", m].concat(args)),
-			}
+		this.logger = {
+			info: (m: string, ...args: any) => console.log.apply(console, [TAG, "INFO:", m].concat(args)),
+			warn: (m: string, ...args: any) => console.warn.apply(console, [TAG, "WARN:", m].concat(args)),
+			error: (m: string, ...args: any) => console.error.apply(console, [TAG, "ERROR:", m].concat(args)),
+			verbose: (m: string, ...args: any) => console.log.apply(console, [TAG, ":", m].concat(args)),
+			debug: (m: string, ...args: any) => console.log.apply(console, [TAG, "DEBUG:", m].concat(args)),
+			silly: (m: string, ...args: any) => console.log.apply(console, [TAG, "DEBUG:", m].concat(args)),
+		}
 		this.updater.electronUpdater.then((autoUpdater) => {
 			autoUpdater.logger = this.logger
 			// default behaviour is to just dl the update as soon as found, but we want to check the signature
@@ -87,26 +75,30 @@ export class ElectronUpdater {
 			autoUpdater.autoInstallOnAppQuit = false
 			autoUpdater.on('checking-for-update', () => {
 				this.logger.info("checking-for-update")
-			}).on('update-available', async updateInfo => {
+			}).on('update-available', () => {
 				this.logger.info("update-available")
 				this.stopPolling()
-				const publicKeys: string[] = await this.conf.getConst(BuildConfigKey.pubKeys)
-				const verified = publicKeys.some(pk => this.verifySignature(pk, downcast(updateInfo)))
-				if (verified) {
-					this.downloadUpdate()
-						.then(p => log.debug("dl'd update files: ", p))
-				} else {
-					this.logger.warn("all signatures invalid, could not update")
-				}
+				this.downloadUpdate()
 			}).on('update-not-available', info => {
 				this.logger.info("update not available:", info)
 			}).on("download-progress", (prg) => {
-				log.debug('update dl progress:', prg)
-			}).on('update-downloaded', info => {
-				this._updateInfo = downcast({version: info.version})
-				this.logger.info("update-downloaded")
+				this.logger.debug('update dl progress:', prg)
+			}).on('update-downloaded', async (info: UpdateDownloadedEvent & {signature: string}) => {
+				this._updateInfo = info
+				this.logger.info(`update-downloaded: ${JSON.stringify(info)}`)
 				this.stopPolling()
-				this.notifyAndInstall(downcast(info))
+
+				const data = await this.fs.promises.readFile(info.downloadedFile)
+				const publicKeys: string[] = await this.conf.getConst(BuildConfigKey.pubKeys)
+				const verified = publicKeys.some(pk => this.verifySignature(pk, assertNotNull(info), data))
+
+				if (verified) {
+					this.notifyAndInstall(info)
+				} else {
+					this._updateInfo = null
+					this.logger.warn(`all signatures invalid, could not update. Deleting ${info.downloadedFile}.`)
+					this.fs.promises.unlink(info.downloadedFile)
+				}
 			}).on('error', e => {
 				this.stopPolling()
 				this.errorCount += 1
@@ -158,7 +150,7 @@ export class ElectronUpdater {
 
 	async start() {
 		if (!this.updater.updatesEnabledInBuild()) {
-			log.debug("no update info on disk, disabling updater.")
+			this.logger.debug("no update info on disk, disabling updater.")
 			this.conf.setVar(DesktopConfigKey.showAutoUpdateOption, false)
 			return
 		}
@@ -187,26 +179,22 @@ export class ElectronUpdater {
 		this.checkUpdate()
 	}
 
-	private verifySignature(pubKey: string, updateInfo: UpdateInfo): boolean {
+	private verifySignature(pubKey: string, updateInfo: TutanotaUpdateInfo, data: Uint8Array): boolean {
 		if (!this.checkUpdateSignature) {
 			return true
-		} else {
-			try {
-				let hash = Buffer.from(updateInfo.sha512, 'base64').toString('binary')
-				// @ts-ignore Where does signature come from?
-				let signature = Buffer.from(updateInfo.signature, 'base64').toString('binary')
-				let publicKey = this.crypto.publicKeyFromPem(pubKey)
+		}
+		try {
+			const signature = Buffer.from(updateInfo.signature, 'base64')
 
-				if (publicKey.verify(hash, signature)) {
-					this.logger.info('Signature verification successful, downloading update')
-					return true
-				}
-			} catch (e) {
-				log.error("Failed to verify update signature", e)
-				return false
+			if (this.crypto.verifySignature(pubKey, data, signature)) {
+				this.logger.info('Signature verification successful, installing update')
+				return true
 			}
+		} catch (e) {
+			this.logger.error("Failed to verify update signature", e)
 			return false
 		}
+		return false
 	}
 
 	setUpdateDownloadedListener(listener: () => void): void {
@@ -279,7 +267,7 @@ export class ElectronUpdater {
 	}
 
 	private downloadUpdate(): Promise<Array<string>> {
-		log.debug("downloading")
+		this.logger.debug("downloading")
 		return this.updater.electronUpdater
 				   .then((autoUpdater) => autoUpdater.downloadUpdate())
 				   .catch(e => {
@@ -289,8 +277,8 @@ export class ElectronUpdater {
 				   })
 	}
 
-	private async notifyAndInstall(info: UpdateInfo): Promise<void> {
-		log.debug("notifying for update")
+	private async notifyAndInstall(info: TutanotaUpdateInfo): Promise<void> {
+		this.logger.debug("notifying for update")
 		this.notifier
 			.showOneShot({
 				title: lang.get('updateAvailable_label', {"{version}": info.version}),
@@ -306,7 +294,7 @@ export class ElectronUpdater {
 	}
 
 	installUpdate() {
-		log.debug("installing update")
+		this.logger.debug("installing update")
 		//the window manager enables force-quit on the app-quit event,
 		// which is not emitted for quitAndInstall
 		// so we enable force-quit manually with a custom event
