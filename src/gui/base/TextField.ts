@@ -5,7 +5,6 @@ import {theme} from "../theme"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import type {lazy} from "@tutao/tutanota-utils"
-import {repeat} from "@tutao/tutanota-utils"
 import type {keyHandler} from "../../misc/KeyManager"
 import {TabIndex} from "../../api/common/TutanotaConstants"
 import type {clickHandler} from "./GuiUtils"
@@ -40,7 +39,6 @@ export const enum TextFieldType {
 	Email = "email",
 	Password = "password",
 	Area = "area",
-	ExternalPassword = "externalpassword",
 	Number = "number",
 	Time = "time",
 }
@@ -160,9 +158,6 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 			// that shouldn't be autofilled.
 			// since the autofill algorithm looks at inputs that come before and after the password field we need
 			// three dummies.
-			//
-			// If it is ExternalPassword type, we hide input and show substitute element when the field is not active.
-			// This is mostly done to prevent autofill which happens if the field type="password".
 			const autofillGuard: Children = a.preventAutofill
 				? [
 					m("input.abs", {
@@ -196,12 +191,11 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				autofillGuard.concat([
 					m("input.input" + (a.alignRight ? ".right" : ""), {
 						autocomplete: a.preventAutofill ? "off" : "",
-						type: a.type === TextFieldType.ExternalPassword ? TextFieldType.Text : a.type,
+						type: a.type,
 						"aria-label": lang.getMaybeLazy(a.label),
 						oncreate: vnode => {
 							this.domInput = vnode.dom as HTMLInputElement
 							vnode.attrs.onDomInputCreated?.(this.domInput)
-							this.domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1"
 							this.domInput.value = a.value
 
 							if (a.type !== TextFieldType.Area) {
@@ -232,7 +226,6 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							return a.keyHandler != null ? a.keyHandler(key) : true
 						},
 						onupdate: () => {
-							this.domInput.style.opacity = this._shouldShowPasswordOverlay(a) ? "0" : "1"
 
 							// only change the value if the value has changed otherwise the cursor in Safari and in the iOS App cannot be positioned.
 							if (this.domInput.value !== a.value) {
@@ -253,27 +246,10 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							lineHeight: px(inputLineHeight),
 							fontSize: a.fontSize,
 						},
-					}),
-					this._shouldShowPasswordOverlay(a)
-						? m(
-							".abs",
-							{
-								style: {
-									bottom: 0,
-									left: 0,
-									lineHeight: size.line_height,
-								},
-							},
-							repeat("•", a.value.length),
-						)
-						: null,
+					})
 				]),
 			)
 		}
-	}
-
-	_shouldShowPasswordOverlay(a: TextFieldAttrs): boolean {
-		return a.type === TextFieldType.ExternalPassword && !this.active
 	}
 
 	_getTextArea(a: TextFieldAttrs): Children {

@@ -522,6 +522,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						label: () => lang.get("passwordFor_label", {"{1}": recipient.address,}),
 						helpLabel: () => m(CompletenessIndicator, {percentageCompleted: this.sendMailModel.getPasswordStrength(recipient)}),
 						value: this.sendMailModel.getPassword(recipient.address),
+						preventAutofill: true,
 						type: this.isConfidentialPasswordRevealed(recipient.address) ? TextFieldType.Text : TextFieldType.Password,
 						oninput: val => this.sendMailModel.setPassword(recipient.address, val),
 						injectionsRight: () => this.renderRevealIcon(recipient.address)
@@ -581,15 +582,13 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	}
 
 	private renderRevealIcon(address: string): Children {
-		const buttonAttrs: ButtonAttrs = {
+		return m(Button, {
 			label: this.isConfidentialPasswordRevealed(address) ? "concealPassword_action" : "revealPassword_action",
 			click: () => {
 				this.toggleRevealConfidentialPassword(address)
 			},
 			icon: () => this.isConfidentialPasswordRevealed(address) ? Icons.NoEye : Icons.Eye,
-		}
-
-		return m(Button, buttonAttrs)
+		})
 	}
 
 	private async getRecipientClickedContextButtons(recipient: ResolvableRecipient, field: RecipientField): Promise<DropdownChildAttrs[]> {
@@ -686,8 +685,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		})
 	}
 
-	private isConfidentialPasswordRevealed(address: string): boolean | undefined {
-		return this.recipientShowConfidential.get(address)
+	private isConfidentialPasswordRevealed(address: string): boolean {
+		return this.recipientShowConfidential.get(address) ?? false
 	}
 
 	private toggleRevealConfidentialPassword(address: string): void {
