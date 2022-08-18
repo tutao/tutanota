@@ -3,7 +3,6 @@ import type {App} from "electron"
 import type {DesktopNativeCryptoFacade} from "../../../src/desktop/DesktopNativeCryptoFacade.js"
 import {delay, downcast} from "@tutao/tutanota-utils"
 import {ElectronUpdater} from "../../../src/desktop/ElectronUpdater.js"
-import type {DesktopTray} from "../../../src/desktop/tray/DesktopTray.js"
 import type {UpdaterWrapper} from "../../../src/desktop/UpdaterWrapper.js"
 import n from "../nodemocker.js"
 import type {DesktopConfig} from "../../../src/desktop/config/DesktopConfig.js"
@@ -182,7 +181,8 @@ o.spec("ElectronUpdater Test", function () {
 		o(notifier.showOneShot.callCount).equals(0)
 		o(autoUpdater.quitAndInstall.callCount).equals(0)
 
-		upd._stopPolling() // makes the test halt
+		// @ts-ignore makes the test halt
+		upd.stopPolling()
 	})
 	o("enable autoUpdate while running", async function () {
 		//mock instances
@@ -286,7 +286,8 @@ o.spec("ElectronUpdater Test", function () {
 		upd.start()
 		await delay(150)
 
-		upd._stopPolling()
+		// @ts-ignore
+		upd.stopPolling()
 
 		o(autoUpdater.removeAllListeners.callCount).equals(4)("removeAllListeners")
 		o(notifier.showOneShot.callCount).equals(1)("showOneShot")
@@ -318,7 +319,8 @@ o.spec("ElectronUpdater Test", function () {
 		o(autoUpdater.quitAndInstall.args[0]).equals(false)
 		o(autoUpdater.quitAndInstall.args[1]).equals(true)
 
-		upd._stopPolling()
+		// @ts-ignore
+		upd.stopPolling()
 	})
 	o("updater disables itself if accessSync throws", async function () {
 		downcast(updaterImpl).updatesEnabledInBuild = () => false
