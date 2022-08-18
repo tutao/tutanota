@@ -196,6 +196,8 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 	onremove() {
 		this.loadingState.clearStateChangedListener()
 		keyManager.unregisterShortcuts(listSelectionKeyboardShortcuts(this))
+		// List is created by us manually because we want to keep it around for entities and the loading state but if the views are rearranged
+		// (e.g. if we switch the app layout between 2 and 3 columns) then we need to reset anything DOM-related as we will create it again
 		this.reset()
 	}
 
@@ -336,7 +338,11 @@ export class List<T extends ListElement, R extends VirtualRow<T>> implements Com
 			this.domListContainer.removeEventListener("scroll", this.scrollListener)
 		}
 
+		// it's important to reset all the DOM things because we might be re-rendering soon with the new containers
 		this.domDeferred = defer()
+		this.loadingIndicatorDom = defer()
+		this.loadingIndicatorChildDom = defer()
+
 		this.ready = false
 		this.virtualList = []
 		windowFacade.removeResizeListener(this.windowResizeListener)
