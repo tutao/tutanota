@@ -1480,7 +1480,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie",
-		"deviceEncryptionSaveCredentialsHelpText_msg": "Um die Geräteverschlüsselung (Pin/biometrische Entsperrung) zu aktivieren, müssen die Anmeldedaten auf dem Gerät gespeichert werden. Sie können dies bei der nächsten Anmeldung tun.",
+		"you_label": "Sie"
 	}
 }

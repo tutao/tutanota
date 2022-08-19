@@ -1476,7 +1476,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"deviceEncryptionSaveCredentialsHelpText_msg": "To activate device encryption (pin/biometric unlock), you need to store your credentials to the device. You can do this the next time you log in.",
+		"you_label": "You"
 	}
 }
