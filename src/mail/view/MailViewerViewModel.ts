@@ -125,7 +125,7 @@ export class MailViewerViewModel {
 		showFolder: boolean,
 		/**
 		 * This exists for a single purpose: making opening emails smooth in a single column layout. When the app is in a single-column layout and the email
-		 * is selected from the list then there is an animation of switching between columns. This paramter will delay sanitizing of mail body and rendering
+		 * is selected from the list then there is an animation of switching between columns. This parameter will delay sanitizing of mail body and rendering
 		 * of progress indicator until the animation is done.
 		 */
 		private delayBodyRenderingUntil: Promise<void>,

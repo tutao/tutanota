@@ -60,7 +60,6 @@ import {SidebarSection} from "../../gui/SidebarSection"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import Stream from "mithril/stream";
 import {MailViewerViewModel} from "./MailViewerViewModel"
-import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 import {readLocalFiles} from "../../file/FileController.js"
 
 assertMainOrNode()
@@ -658,7 +657,7 @@ export class MailView implements CurrentView {
 					}
 
 					// do not allow moving folders to unallowed locations
-					if(!allMailsAllowedInsideFolder(mailsToMove, folder)) {
+					if (!allMailsAllowedInsideFolder(mailsToMove, folder)) {
 						return
 					}
 
@@ -783,17 +782,17 @@ export class MailView implements CurrentView {
 		if (mails.length === 1 && !multiSelectOperation && (selectionChanged || !this.mailViewerViewModel)) {
 			// set or update the visible mail
 
-				const viewModelParams = {
+			const viewModelParams = {
 				mail: mails[0],
 				showFolder: false,
 				delayBodyRenderingUntil: animationOverDeferred.promise,
-				}
+			}
 
-				if (this.mailViewerViewModel == null) {
-					this.mailViewerViewModel = createMailViewerViewModel(viewModelParams)
-				} else {
-					this.mailViewerViewModel.updateMail(viewModelParams)
-				}
+			if (this.mailViewerViewModel && isSameId(viewModelParams.mail._id, this.mailViewerViewModel.mail._id)) {
+				this.mailViewerViewModel.updateMail(viewModelParams)
+			} else {
+				this.mailViewerViewModel = createMailViewerViewModel(viewModelParams)
+			}
 
 			const url = `/mail/${mails[0]._id.join("/")}`
 

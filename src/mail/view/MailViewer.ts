@@ -110,7 +110,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	/**
-	 * Delay the display of the progress spinner in main body view for a short time to suppress it when we are switching between cached emails and we are just sanitizing
+	 * Delay the display of the progress spinner in main body view for a short time to suppress it when we are switching between cached emails
+	 * and we are just sanitizing
 	 */
 	private delayProgressSpinner = true
 
@@ -178,7 +179,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		const oldViewModel = this.viewModel
 		this.viewModel = viewModel
 		if (this.viewModel !== oldViewModel) {
-
 			this.loadAllListener.end(true)
 			this.loadAllListener = this.viewModel.loadCompleteNotification.map(async () => {
 				// Wait for mail body to be redrawn before replacing images
@@ -200,8 +200,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	view(vnode: Vnode<MailViewerAttrs>): Children {
-		this.setViewModel(vnode.attrs.viewModel)
-
 		const dateTime = formatDateWithWeekday(this.viewModel.mail.receivedDate) + " • " + formatTime(this.viewModel.mail.receivedDate)
 		const dateTimeFull = formatDateWithWeekdayAndYear(this.viewModel.mail.receivedDate) + " • " + formatTime(this.viewModel.mail.receivedDate)
 
@@ -309,6 +307,16 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				],
 			),
 		]
+	}
+
+	onbeforeupdate(vnode: Vnode<MailViewerAttrs>): boolean | void {
+		// Setting viewModel here to have viewModel that we will use for render already and be able to make a decision
+		// about skipping rendering
+		this.setViewModel(vnode.attrs.viewModel)
+		// We skip rendering progress indicator when switching between emails.
+		// However if we already loaded the mail then we can just render it.
+		const shouldSkipRender = this.viewModel.isLoading() && this.delayProgressSpinner
+		return !shouldSkipRender
 	}
 
 	private renderMailBodySection(): Children {
@@ -442,10 +450,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private renderLoadingIcon(): Children {
-		return this.delayProgressSpinner
-			// key to force mithril to recreate the dom element
-			? m(".flex-v-center.items-center", {key: "loadingIcon"})
-			: m(".progress-panel.flex-v-center.items-center",
+		return m(".progress-panel.flex-v-center.items-center",
 				{
 					key: "loadingIcon",
 					style: {
