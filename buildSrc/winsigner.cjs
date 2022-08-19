@@ -2,24 +2,34 @@ const path = require('path')
 const fs = require("fs-extra")
 const spawn = require('child_process').spawn
 
-function signer(args) {
-	const extension = "." + args.path.split(".").pop()
-	const unsignedFileName = args.path.replace(extension, "-unsigned" + extension)
+/**
+ * sign a given file either with a private key taken from a pkcs12 signing certificate
+ * (if the path to the cert is given in the env var DEBUG_SIGN)
+ * or with the HSM.
+ *
+ * argument names may be fixed by electron-builder
+ */
+function signer({
+					path: pathToSign, // path to the file to sign (string)
+					hash: hashAlgorithm // hash algorithm to use (string, defaults to "sha256")
+				}) {
+	const extension = "." + pathToSign.split(".").pop()
+	const unsignedFileName = pathToSign.replace(extension, "-unsigned" + extension)
 	console.log("signing", unsignedFileName, "as", args.path)
 	const commandArguments = process.env.DEBUG_SIGN
-		? getSelfSignedArgs(unsignedFileName, args.hash, args.path)
-		: getHsmArgs(unsignedFileName, args.hash, args.path)
+		? getSelfSignedArgs(unsignedFileName, hashAlgorithm, pathToSign)
+		: getHsmArgs(unsignedFileName, hashAlgorithm, pathToSign)
 
-	return signWithArgs(commandArguments, args.path, unsignedFileName)
+	return signWithArgs(commandArguments, pathToSign, unsignedFileName)
 }
 
-function getSelfSignedArgs(unsignedFileName, hash, file_to_sign) {
+function getSelfSignedArgs(unsignedFileName, hash, signedFileOutPath) {
 	const certificateFile = path.join(process.env.DEBUG_SIGN, "test.p12")
 
 	return [
 		"sign",
 		"-in", unsignedFileName,
-		"-out", file_to_sign,
+		"-out", signedFileOutPath,
 		"-pkcs12", certificateFile,
 		"-h", hash ? hash : "sha256",
 		"-t", "http://timestamp.comodoca.com",
@@ -27,7 +37,7 @@ function getSelfSignedArgs(unsignedFileName, hash, file_to_sign) {
 	]
 }
 
-function getHsmArgs(unsignedFileName, hash, file_to_sign) {
+function getHsmArgs(unsignedFileName, hash, signedFileOutPath) {
 	const certificateFile = process.env["WIN_CSC_FILE"]
 	const hsmPin = process.env["HSM_USER_PIN"]
 
@@ -44,21 +54,21 @@ function getHsmArgs(unsignedFileName, hash, file_to_sign) {
 	//  http://timestamp.sectigo.com
 
 	if (!certificateFile) {
-		console.error("ERROR: " + file_to_sign.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
+		console.error("ERROR: " + signedFileOutPath.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
 		console.log("\t• set WIN_CSC_FILE env var")
-		throw new Error(file_to_sign)
+		throw new Error(signedFileOutPath)
 	}
 
 	if (!hsmPin) {
-		console.log("ERROR: " + file_to_sign.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
+		console.log("ERROR: " + signedFileOutPath.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
 		console.log("\t• set  HSM_USER_PIN env var")
-		throw new Error(file_to_sign)
+		throw new Error(signedFileOutPath)
 	}
 
 	return [
 		"sign",
 		"-in", unsignedFileName,
-		"-out", file_to_sign,
+		"-out", signedFileOutPath,
 		"-pkcs11engine", "/usr/lib/x86_64-linux-gnu/engines-1.1/pkcs11.so",
 		"-pkcs11module", "/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so",
 		"-certs", certificateFile,
@@ -70,15 +80,15 @@ function getHsmArgs(unsignedFileName, hash, file_to_sign) {
 	]
 }
 
-function signWithArgs(commandArguments, file_to_sign, unsignedFileName) {
+function signWithArgs(commandArguments, signedFileOutPath, unsignedFileName) {
 	const command = "/usr/bin/osslsigncode"
 
 	if (!fs.existsSync(command)) {
-		console.log("ERROR: " + file_to_sign.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
+		console.log("ERROR: " + signedFileOutPath.split(path.sep).pop() + "\" not signed! The NSIS installer may not work.")
 		console.log("\t• install osslsigncode")
-		return Promise.reject(new Error(file_to_sign))
+		return Promise.reject(new Error(signedFileOutPath))
 	}
-	fs.renameSync(file_to_sign, unsignedFileName)
+	fs.renameSync(signedFileOutPath, unsignedFileName)
 	// only for testing, would print certificate password to logs, otherwise
 	//console.log(`spawning "${command} ${commandArguments.join(" ")}"`)
 	let child = spawn(command, commandArguments, {
@@ -91,8 +101,8 @@ function signWithArgs(commandArguments, file_to_sign, unsignedFileName) {
 			if (exitCode !== 0) {
 				reject(exitCode)
 			} else {
-				fs.removeSync(unsignedFileName)
-				resolve(file_to_sign)
+				fs.unlinkSync(unsignedFileName)
+				resolve(signedFileOutPath)
 			}
 		})
 	})
