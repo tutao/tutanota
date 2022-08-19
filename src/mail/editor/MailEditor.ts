@@ -255,7 +255,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		const showConfidentialButton = model.containsExternalRecipients()
 		const isConfidential = model.isConfidential() && showConfidentialButton
 		const confidentialButtonAttrs: ButtonAttrs = {
-			label: "confidential_action",
+			label: model.isConfidential() ? "confidential_action" : "nonConfidential_action",
 			click: () => model.setConfidential(!model.isConfidential()),
 			icon: () => (model.isConfidential() ? Icons.Lock : Icons.Unlock),
 			isSelected: () => model.isConfidential(),
