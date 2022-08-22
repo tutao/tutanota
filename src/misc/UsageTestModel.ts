@@ -19,7 +19,7 @@ import {lang, TranslationKey} from "./LanguageViewModel"
 import stream from "mithril/stream"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import m, {Children} from "mithril"
-import {DropDownSelectorN, SelectorItem} from "../gui/base/DropDownSelectorN"
+import {DropDownSelector, SelectorItem} from "../gui/base/DropDownSelector"
 import {UsageTestMetricType} from "../api/common/TutanotaConstants"
 import {isOfflineError} from "../api/common/utils/ErrorCheckUtils.js"
 
@@ -92,7 +92,7 @@ export async function showExperienceSamplingDialog(stage: Stage, experienceSampl
 				))
 
 				children.push(
-					m(DropDownSelectorN, {
+					m(DropDownSelector, {
 						label: "experienceSamplingAnswer_label",
 						items: answerOptionItems,
 						selectedValue: selectedValues.get(likertMetricConfig.name)!,
