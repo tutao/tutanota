@@ -119,6 +119,7 @@ export class SendMailModel {
 
 	// If saveDraft is called while the previous call is still running, then flag to call again afterwards
 	private doSaveAgain: boolean = false
+	private recipientsResolved: Promise<unknown> = Promise.resolve()
 
 	/**
 	 * creates a new empty draft message. calling an init method will fill in all the blank data
@@ -397,10 +398,11 @@ export class SendMailModel {
 			(a, b) => a.address === b.address,
 		)
 
-		await Promise.all([
+
+		this.recipientsResolved = Promise.all([
 			promiseMap(recipientsFilter(to), async r => this.addRecipient(RecipientField.TO, r)),
 			promiseMap(recipientsFilter(cc), async r => this.addRecipient(RecipientField.CC, r)),
-			promiseMap(recipientsFilter(bcc), async r => this.addRecipient(RecipientField.BCC, r))
+			promiseMap(recipientsFilter(bcc), async r => this.addRecipient(RecipientField.BCC, r)),
 		])
 
 		this.senderAddress = senderMailAddress || this.getDefaultSender()
@@ -495,6 +497,9 @@ export class SendMailModel {
 				if (!this.passwords.has(address) && contact != null) {
 					this.markAsChangedIfNecessary(true)
 					this.setPassword(address, contact.presharedPassword ?? "")
+				} else {
+					// always notify listeners after we finished resolving the recipient, even if email itself didn't change
+					this.onMailChanged(true)
 				}
 			})
 
@@ -664,6 +669,7 @@ export class SendMailModel {
 		waitHandler: (arg0: TranslationText, arg1: Promise<any>) => Promise<any> = (_, p) => p,
 		tooManyRequestsError: TranslationKey = "tooManyMails_msg",
 	): Promise<boolean> {
+		await this.recipientsResolved
 		this.onBeforeSend()
 
 		if (this.allRecipients().length === 1 && this.allRecipients()[0].address.toLowerCase().trim() === "approval@tutao.de") {
@@ -940,17 +946,20 @@ export class SendMailModel {
 	/**
 	 * Makes sure the recipient type and contact are resolved.
 	 */
-	waitForResolvedRecipients(): Promise<Recipient[]> {
+	async waitForResolvedRecipients(): Promise<Recipient[]> {
+		await this.recipientsResolved
 		return Promise.all(this.allRecipients().map(recipient => recipient.resolved()))
 					  .catch(ofClass(TooManyRequestsError, () => {
 						  throw new RecipientNotResolvedError("")
 					  }))
 	}
 
-	handleEntityEvent(update: EntityUpdateData): Promise<void> {
+	async handleEntityEvent(update: EntityUpdateData): Promise<void> {
 		const {operation, instanceId, instanceListId} = update
 		let contactId: IdTuple = [neverNull(instanceListId), instanceId]
 		let changed = false
+
+		await this.recipientsResolved
 
 		if (isUpdateForTypeRef(ContactTypeRef, update)) {
 			if (operation === OperationType.UPDATE) {

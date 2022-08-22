@@ -508,7 +508,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	}
 
 	private renderPasswordFields(): Children {
-
 		return m(".external-recipients.overflow-hidden",
 			{
 				oncreate: vnode => this.animateHeight(vnode.dom as HTMLElement, true),
@@ -516,7 +515,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			},
 			this.sendMailModel
 				.allRecipients()
-				.filter(r => r.type === RecipientType.EXTERNAL || (r.type === RecipientType.UNKNOWN && !r.isResolved())) // only show passwords for resolved contacts, otherwise we might not get the password
+				.filter(r => r.type === RecipientType.EXTERNAL)
 				.map(recipient => {
 					if (!(this.recipientShowConfidential.has(recipient.address))) this.recipientShowConfidential.set(recipient.address, false)
 
