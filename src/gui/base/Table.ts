@@ -32,6 +32,7 @@ export type TableAttrs = {
 	columnHeading?: Array<lazy<string> | TranslationKey>
 	columnWidths: ReadonlyArray<ColumnWidth>
 	columnAlignments?: Array<boolean>
+	verticalColumnHeadings?: boolean
 	showActionButtonColumn: boolean
 	addButtonAttrs?: ButtonAttrs | null
 	lines: ReadonlyArray<TableLineAttrs> | null
@@ -56,7 +57,7 @@ export class Table implements Component<TableAttrs> {
 		const a = vnode.attrs
 		const loading = !a.lines
 		const alignments = a.columnAlignments || []
-		const lineAttrs = a.lines ? a.lines.map(lineAttrs => this._createLine(lineAttrs, a.showActionButtonColumn, a.columnWidths, false, alignments)) : []
+		const lineAttrs = a.lines ? a.lines.map(lineAttrs => this._createLine(lineAttrs, a.showActionButtonColumn, a.columnWidths, false, alignments, false)) : []
 		return m("", [
 			m(`table.table${a.columnHeading ? ".table-header-border" : ""}`, [
 				(a.columnHeading
@@ -70,6 +71,7 @@ export class Table implements Component<TableAttrs> {
 								a.columnWidths,
 								true,
 								alignments,
+								a.verticalColumnHeadings ?? false,
 							),
 						]
 						: []
@@ -86,6 +88,7 @@ export class Table implements Component<TableAttrs> {
 		columnWidths: ReadonlyArray<ColumnWidth>,
 		bold: boolean,
 		columnAlignments: Array<boolean>,
+		verticalText: boolean,
 	): Children {
 		let cells
 
@@ -106,7 +109,7 @@ export class Table implements Component<TableAttrs> {
 								cellTextData.click ? cellTextData.click(event, dom) : null
 							},
 						},
-						cellTextData.main,
+						verticalText ? m("span.vertical-text", cellTextData.main) : cellTextData.main,
 					),
 					m(
 						".small.text-ellipsis.pr" + (cellTextData.click ? ".click" : ""),
@@ -127,7 +130,7 @@ export class Table implements Component<TableAttrs> {
 					{
 						title: text, // show the text as tooltip, so ellipsed lines can be shown
 					},
-					text,
+					verticalText ? m("span.vertical-text", text) : text,
 				),
 			)
 		}
