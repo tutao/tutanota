@@ -503,7 +503,7 @@ export class CalendarEventViewModel {
 
 		// SendMailModel handles deduplication
 		// this.attendees will be updated when the model's recipients are updated
-		if (!isOwnAttendee)
+		if (!isOwnAttendee) {
 			this._inviteModel.addRecipient(
 				RecipientField.BCC,
 				{
@@ -511,6 +511,7 @@ export class CalendarEventViewModel {
 					contact,
 				}
 			)
+		}
 		const status = isOwnAttendee ? CalendarAttendeeStatus.ACCEPTED : CalendarAttendeeStatus.ADDED
 
 		// If we exist as an attendee and the added guest is also an attendee, then remove the existing ownAttendee
