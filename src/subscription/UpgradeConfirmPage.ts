@@ -2,7 +2,7 @@ import m, {Children, Vnode, VnodeDOM} from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {formatPriceWithInfo, getPaymentMethodName, isYearlyPayment} from "./PriceUtils"
-import {HabReminderImage} from "../gui/base/icons/Icons"
+import {VisSignupImage} from "../gui/base/icons/Icons"
 import {createSwitchAccountTypeData} from "../api/entities/sys/TypeRefs.js"
 import {AccountType, Const, PaidSubscriptionType, PaymentMethodTypeToName} from "../api/common/TutanotaConstants"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
@@ -129,7 +129,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 				]),
 				m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
 					m("img.pt.bg-white.border-radius", {
-						src: HabReminderImage,
+						src: VisSignupImage,
 						style: {
 							width: "200px",
 						},
@@ -171,7 +171,8 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 		return [
 			m(".flex-space-around.flex-wrap", [
 				m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
-					m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {
+					m("img.pt.bg-white.border-radius", {
+						src: VisSignupImage,
 						style: {
 							width: "200px",
 						},
