@@ -190,7 +190,7 @@ export class UserController {
 
 			if (sendBeacon) {
 				try {
-					const path = `${getHttpOrigin()}/rest/sys/${CloseSessionService}`
+					const path = `${getHttpOrigin()}/rest/sys/${CloseSessionService.name.toLowerCase()}`
 					const requestObject = createCloseSessionServicePost({
 						accessToken: this.accessToken,
 						sessionId: this.sessionId,
