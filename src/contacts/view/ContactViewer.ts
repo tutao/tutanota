@@ -68,7 +68,7 @@ export class ContactViewer implements ClassComponent {
 
 	view(): Children {
 		return [
-			m("#contact-viewer.fill-absolute.scroll.plr-l.pb-floating", [
+			m("#contact-viewer.fill-absolute.scroll.plr-l.pb-floating.mlr-safe-inset", [
 				m(".header.pt-ml", [
 					m(".contact-actions.flex-space-between.flex-wrap.mt-xs", [
 						m(".left.flex-grow-shrink-150", [
