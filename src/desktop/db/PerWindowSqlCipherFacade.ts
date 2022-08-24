@@ -3,6 +3,7 @@ import {TaggedSqlValue} from "../../api/worker/offline/SqlValue.js"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
 import {delay} from "@tutao/tutanota-utils"
 import {log} from "../DesktopLog.js"
+import {OfflineDbClosedError} from "../../api/common/error/OfflineDbClosedError.js"
 
 const MAX_WAIT_FOR_DB_CLOSE_MS = 1000
 
@@ -49,7 +50,7 @@ export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 
 	private db(): SqlCipherFacade {
 		if (this.state == null) {
-			throw new ProgrammingError("Db is not open!")
+			throw new OfflineDbClosedError()
 		}
 		return this.state.db
 	}

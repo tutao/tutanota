@@ -4,11 +4,15 @@ import {assertNotNull, mapNullable, uint8ArrayToBase64} from "@tutao/tutanota-ut
 import {SqlCipherFacade} from "../native/common/generatedipc/SqlCipherFacade.js"
 import {TaggedSqlValue, tagSqlObject, untagSqlValue} from "../api/worker/offline/SqlValue.js"
 import {ProgrammingError} from "../api/common/error/ProgrammingError.js"
+import {OfflineDbClosedError} from "../api/common/error/OfflineDbClosedError.js"
 
 export class DesktopSqlCipher implements SqlCipherFacade {
 	private _db: Database | null = null
 	private get db(): Database {
-		return assertNotNull(this._db)
+		if (this._db == null) {
+			throw new OfflineDbClosedError()
+		}
+		return this._db
 	}
 
 	/**

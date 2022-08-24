@@ -140,6 +140,7 @@ const ErrorNameToType = {
 	"android.security.keystore.KeyPermanentlyInvalidatedException": KeyPermanentlyInvalidatedError,
 	"de.tutao.tutanota.KeyPermanentlyInvalidatedError": KeyPermanentlyInvalidatedError,
 	"de.tutao.tutanota.CredentialAuthenticationError": CredentialAuthenticationError,
+	"de.tutao.tutanota.offline.OfflineDbClosedError": OfflineDbClosedError,
 }
 
 export function isCustomizationEnabledForCustomer(customer: Customer, feature: FeatureType): boolean {
