@@ -2,6 +2,7 @@ import http from "http"
 import https from "https"
 import {ConnectionError} from "../../api/common/error/RestError.js"
 import {log} from "../DesktopLog.js"
+import type {ReadStream} from "fs"
 
 const TAG = "[DesktopNetworkClient]"
 
@@ -36,27 +37,36 @@ export class DesktopNetworkClient {
 	 *
 	 * later errors must be handled on the response onerror handler
 	 */
-	executeRequest(url: string, opts: ClientRequestOptions): Promise<http.IncomingMessage> {
+	executeRequest(url: string, opts: ClientRequestOptions, uploadStream?: ReadStream): Promise<http.IncomingMessage> {
 		return new Promise<http.IncomingMessage>((resolve, reject) => {
 			let resp: http.IncomingMessage | null = null
+
+			function onerror(e: Error) {
+				log.debug(TAG, `aborting req due to err`, e)
+				if (resp != null) {
+					resp.destroy(e)
+					return
+				}
+				reject(e)
+			}
+
 			const req: http.ClientRequest = this.request(url, opts)
 												.on("response", r => {
 													resp = r
 													resolve(r)
 												})
-												.on("error", (e) => {
-													log.debug(TAG, `aborting req due to err`, e)
-													if (resp != null) {
-														resp.destroy(e)
-														return
-													}
-													reject(e)
-												})
+												.on("error", onerror)
 												.on("timeout", () => {
 													log.debug(TAG, "timed out req")
 													req.destroy(new ConnectionError("timed out"))
 												})
-												.end()
+			if (uploadStream) {
+				uploadStream
+					.on("error", onerror)
+					.pipe(req)
+			} else {
+				req.end()
+			}
 		})
 	}
 

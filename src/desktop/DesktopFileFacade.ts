@@ -2,7 +2,7 @@ import {FileFacade} from "../native/common/generatedipc/FileFacade.js"
 import {DownloadTaskResponse} from "../native/common/generatedipc/DownloadTaskResponse.js"
 import {IpcClientRect} from "../native/common/generatedipc/IpcClientRect.js"
 import {DesktopDownloadManager} from "./net/DesktopDownloadManager.js"
-import {ElectronExports, FsExports} from "./ElectronExportTypes.js"
+import {ElectronExports} from "./ElectronExportTypes.js"
 import {UploadTaskResponse} from "../native/common/generatedipc/UploadTaskResponse.js"
 import {DataFile} from "../api/common/DataFile.js"
 import {FileUri} from "../native/common/FileApp.js"
@@ -45,7 +45,7 @@ export class DesktopFileFacade implements FileFacade {
 	}
 
 	hashFile(fileUri: string): Promise<string> {
-		return this.dl.hashFile(fileUri)
+		return this.dl.blobHashFile(fileUri)
 	}
 
 	joinFiles(filename: string, files: Array<string>): Promise<string> {
@@ -74,11 +74,11 @@ export class DesktopFileFacade implements FileFacade {
 	}
 
 	splitFile(fileUri: string, maxChunkSizeBytes: number): Promise<Array<string>> {
-		throw Unimplemented()
+		return this.dl.splitFile(fileUri, maxChunkSizeBytes)
 	}
 
 	upload(fileUrl: string, targetUrl: string, method: string, headers: Record<string, string>): Promise<UploadTaskResponse> {
-		throw Unimplemented()
+		return this.dl.upload(fileUrl, targetUrl, method, headers)
 	}
 
 	writeDataFile(file: DataFile): Promise<string> {

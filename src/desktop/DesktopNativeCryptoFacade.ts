@@ -109,7 +109,17 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 	}
 
 	async aesEncryptFile(key: Uint8Array, fileUri: string): Promise<EncryptedFileInfo> {
-		throw new Error("not implemented for this platform")
+		const bytes = await this.fs.promises.readFile(fileUri)
+		const encrypted = this.cryptoFns.aes128Encrypt(this.cryptoFns.bytesToKey(key), bytes, this.cryptoFns.randomBytes(16), true, true)
+
+		const targetDir = path.join(this.utils.getTutanotaTempPath(), "encrypted")
+		await this.fs.promises.mkdir(targetDir, {recursive: true})
+		const filePath = path.join(targetDir, path.basename(fileUri))
+		await this.fs.promises.writeFile(filePath, encrypted)
+		return {
+			uri: filePath,
+			unencryptedSize: bytes.length,
+		}
 	}
 
 	async generateRsaKey(seed: Uint8Array): Promise<RsaKeyPair> {
