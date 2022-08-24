@@ -14,14 +14,16 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 		SQLiteDatabase.loadLibs(context)
 	}
 
-	private var database: SQLiteDatabase? = null
+	private var db: SQLiteDatabase? = null
+	private val openedDb: SQLiteDatabase
+		get() = db ?: throw OfflineDbClosedError()
 
 	override suspend fun openDb(userId: String, dbKey: DataWrapper) {
-		if (database != null) {
+		if (db != null) {
 			Log.w(TAG, "opening new database while old one is open")
 			closeDb()
 		}
-		database = SQLiteDatabase.openOrCreateDatabase(getDbFile(userId).path, dbKey.data, null)
+		db = SQLiteDatabase.openOrCreateDatabase(getDbFile(userId).path, dbKey.data, null)
 	}
 
 	private fun getDbFile(userId: String): File {
@@ -34,8 +36,8 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 	}
 
 	override suspend fun closeDb() {
-		database?.close()
-		database = null
+		db?.close()
+		db = null
 	}
 
 	override suspend fun deleteDb(userId: String) {
@@ -47,11 +49,11 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 	}
 
 	override suspend fun run(query: String, params: List<TaggedSqlValue>) {
-		database!!.execSQL(query, params.prepare())
+		openedDb.execSQL(query, params.prepare())
 	}
 
 	override suspend fun get(query: String, params: List<TaggedSqlValue>): Map<String, TaggedSqlValue>? {
-		return database!!.query(query, params.prepare()).use { cursor ->
+		return openedDb.query(query, params.prepare()).use { cursor ->
 			if (cursor.moveToNext()) {
 				cursor.readRow()
 			} else {
@@ -77,7 +79,7 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 	}
 
 	override suspend fun all(query: String, params: List<TaggedSqlValue>): List<Map<String, TaggedSqlValue>> {
-		return database!!.query(query, params.prepare()).use { cursor ->
+		return openedDb.query(query, params.prepare()).use { cursor ->
 			buildList {
 				while (cursor.moveToNext()) {
 					add(cursor.readRow())
@@ -89,4 +91,6 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 	private fun List<TaggedSqlValue>.prepare() = map { it.unwrap() }.toTypedArray()
 }
 
-const val TAG = "AndroidSqlCipherFacade"
+private const val TAG = "AndroidSqlCipherFacade"
+
+public class OfflineDbClosedError : Exception()
