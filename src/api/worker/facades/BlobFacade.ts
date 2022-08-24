@@ -1,23 +1,13 @@
 import {addParamsToUrl, isSuspensionResponse, RestClient} from "../rest/RestClient"
 import {CryptoFacade, encryptBytes} from "../crypto/CryptoFacade"
-import {
-	concat,
-	decodeBase64,
-	downcast,
-	Mapper,
-	neverNull,
-	promiseMap,
-	splitUint8ArrayInChunks,
-	uint8ArrayToBase64,
-	uint8ArrayToString,
-} from "@tutao/tutanota-utils"
+import {concat, downcast, Mapper, neverNull, promiseMap, splitUint8ArrayInChunks, uint8ArrayToBase64, uint8ArrayToString,} from "@tutao/tutanota-utils"
 import {ArchiveDataType, MAX_BLOB_SIZE_BYTES} from "../../common/TutanotaConstants"
 
 import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isApp, isDesktop} from "../../common/Env"
 import type {SuspensionHandler} from "../SuspensionHandler"
 import {BlobAccessTokenService, BlobService} from "../../entities/storage/Services"
-import {aes128Decrypt, random, sha256Hash} from "@tutao/tutanota-crypto"
+import {aes128Decrypt, sha256Hash} from "@tutao/tutanota-crypto"
 import type {FileUri, NativeFileApp} from "../../../native/common/FileApp"
 import type {AesApp} from "../../../native/worker/AesApp"
 import {InstanceMapper} from "../crypto/InstanceMapper"

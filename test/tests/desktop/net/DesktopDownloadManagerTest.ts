@@ -2,12 +2,10 @@ import o from "ospec"
 import n, {Mocked} from "../../nodemocker.js"
 import {DesktopDownloadManager} from "../../../../src/desktop/net/DesktopDownloadManager.js"
 import {assertThrows} from "@tutao/tutanota-test-utils"
-import {CancelledError} from "../../../../src/api/common/error/CancelledError.js"
 import {DesktopNetworkClient} from "../../../../src/desktop/net/DesktopNetworkClient.js"
 import {PreconditionFailedError, TooManyRequestsError} from "../../../../src/api/common/error/RestError.js"
 import type * as fs from "fs"
-import {stringToUtf8Uint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import {sha256Hash} from "@tutao/tutanota-crypto"
+import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {createDataFile} from "../../../../src/api/common/DataFile.js"
 
 const DEFAULT_DOWNLOAD_PATH = "/a/download/path/"
@@ -217,77 +215,29 @@ o.spec("DesktopDownloadManagerTest", function () {
 	}
 
 	o.spec("saveDataFile", function () {
-		o("no default download path => save to user selected path", async function () {
-			const mocks = standardMocks()
-			mocks.confMock = n
-				.mock("__conf", conf)
-				.with({
-					getVar: key => {
-						switch (key) {
-							case "defaultDownloadPath":
-								return null
-
-							default:
-								throw new Error(`unexpected getVar key ${key}`)
-						}
-					},
-				})
-				.set()
-			const dl = makeMockedDownloadManager(mocks)
-			const dataFile = createDataFile("blob", "application/octet-stream", new Uint8Array([1]))
-			await dl.writeDataFile(dataFile)
-			o(mocks.fsMock.promises.mkdir.args).deepEquals([
-				"parentDir",
-				{
-					recursive: true,
-				},
-			])
-			o(mocks.fsMock.promises.writeFile.args[0]).equals("parentDir/resultFilePath")
-		})
-
-		o("no default download path, cancelled", async function () {
-			const mocks = standardMocks()
-			mocks.confMock = n
-				.mock("__conf", conf)
-				.with({
-					getVar: key => {
-						switch (key) {
-							case "defaultDownloadPath":
-								return null
-
-							default:
-								throw new Error(`unexpected getVar key ${key}`)
-						}
-					},
-				})
-				.set()
-
-			mocks.electronMock.dialog.showSaveDialog = () =>
-				Promise.resolve({
-					canceled: true,
-				})
-
-			const dl = makeMockedDownloadManager(mocks)
-			const dataFile = createDataFile("blob", "application/octet-stream", new Uint8Array([1]))
-			await assertThrows(CancelledError, () => dl.writeDataFile(dataFile))
-		})
-
-		o("with default download path", async function () {
+		o("when there's no existing file it will be simply written", async function () {
 			const mocks = standardMocks()
 			const dl = makeMockedDownloadManager(mocks)
 			const dataFile = createDataFile("blob", "application/octet-stream", new Uint8Array([1]))
 			await dl.writeDataFile(dataFile)
 			o(mocks.fsMock.promises.mkdir.args).deepEquals([
-				"/a/download/path",
+				"/tutanota/tmp/path/download",
 				{
 					recursive: true,
 				},
 			])
-			o(mocks.fsMock.promises.writeFile.args[0]).equals("/a/download/path/blob")
+			o(mocks.fsMock.promises.writeFile.args[0]).equals("/tutanota/tmp/path/download/blob")
 		})
 
 		o("with default download path but file exists", async function () {
 			const mocks = standardMocks()
+			mocks.fsMock.promises.writeFile = o.spy(async (path) => {
+				if (path === "/tutanota/tmp/path/download/blob") {
+					const e = new Error() as any
+					e.code = "EEXISTS"
+					throw e
+				}
+			})
 			const dl = makeMockedDownloadManager(mocks)
 
 			mocks.fsMock.promises.readdir = () => Promise.resolve(["blob"] as any)
@@ -295,12 +245,12 @@ o.spec("DesktopDownloadManagerTest", function () {
 			const dataFile = createDataFile("blob", "application/octet-stream", new Uint8Array([1]))
 			await dl.writeDataFile(dataFile)
 			o(mocks.fsMock.promises.mkdir.args).deepEquals([
-				"/a/download/path",
+				"/tutanota/tmp/path/download",
 				{
 					recursive: true,
 				},
 			])
-			o(mocks.fsMock.promises.writeFile.args[0]).equals("/a/download/path/blob-1")
+			o(mocks.fsMock.promises.writeFile.args[0]).equals("/tutanota/tmp/path/download/blob-1")
 		})
 	})
 
@@ -499,6 +449,158 @@ o.spec("DesktopDownloadManagerTest", function () {
 		})
 	})
 
+	o.spec("upload", async function () {
+		const fileToUploadPath = "/tutnaota/tmp/path/encrypted/toUpload.txt"
+		const targetUrl = "https://test.tutanota.com/rest/for/a/bit"
+		let mocks
+		let dl
+
+		function mockResponse(statusCode: number, resOpts: {responseBody?: Uint8Array, responseHeaders?: Record<string, string>}) {
+			const {responseBody, responseHeaders} = resOpts
+			const response = new mocks.netMock.Response(statusCode)
+			response.headers = responseHeaders ?? {}
+			response.on = (eventName, cb) => {
+				switch (eventName) {
+					case "finish":
+						cb()
+						break
+					case "data":
+						if (responseBody) {
+							cb(responseBody)
+						}
+						break
+					case "end":
+						cb()
+						break
+				}
+			}
+			return response
+		}
+
+		o.beforeEach(function () {
+			mocks = standardMocks()
+			dl = makeMockedDownloadManager(mocks)
+		})
+
+		o("when there's no error it uploads correct data and returns the right result", async function () {
+			const body = stringToUtf8Uint8Array("BODY")
+			const response = mockResponse(200, {responseBody: body})
+			mocks.netMock.executeRequest = o.spy(() => response)
+			const headers = {
+				"blobAccessToken": "1236",
+			}
+			const fileStreamMock = {}
+			mocks.fsMock.createReadStream = (path) => {
+				if (path === fileToUploadPath) {
+					return fileStreamMock
+				} else {
+					throw new Error(`Invalid dest path ${path}`)
+				}
+			}
+
+			const uploadResult = await dl.upload(fileToUploadPath, targetUrl, "POST", headers)
+
+
+			o(mocks.netMock.executeRequest.args).deepEquals([targetUrl, {method: "POST", headers, timeout: 20000}, fileStreamMock])
+
+			o(uploadResult.statusCode).equals(200)
+			o(uploadResult.errorId).equals(null)
+			o(uploadResult.precondition).equals(null)
+			o(uploadResult.suspensionTime).equals(null)
+
+			o(Array.from(uploadResult.responseBody)).deepEquals(Array.from(body))
+		})
+
+		o("when 404 is returned it returns correct result", async function () {
+			const errorId = "123"
+			const response = mockResponse(
+				404,
+				{responseHeaders: {"error-id": errorId}}
+			)
+			mocks.netMock.executeRequest = o.spy(() => response)
+
+			const uploadResult = await dl.upload(fileToUploadPath, targetUrl, "POST", {})
+
+			o(uploadResult.statusCode).equals(404)
+			o(uploadResult.errorId).equals(errorId)
+			o(uploadResult.precondition).equals(null)
+			o(uploadResult.suspensionTime).equals(null)
+			o(Array.from(uploadResult.responseBody)).deepEquals([])
+		})
+
+		o("when retry-after is returned, it is propagated", async function () {
+			const retryAFter = "20"
+			const errorId = "123"
+			const response = mockResponse(
+				TooManyRequestsError.CODE,
+				{
+					responseHeaders: {
+						"error-id": errorId,
+						"retry-after": retryAFter,
+					}
+				}
+			)
+			mocks.netMock.executeRequest = o.spy(() => response)
+
+			const uploadResult = await dl.upload(fileToUploadPath, targetUrl, "POST", {})
+
+			o(uploadResult.statusCode).equals(TooManyRequestsError.CODE)
+			o(uploadResult.errorId).equals(errorId)
+			o(uploadResult.precondition).equals(null)
+			o(uploadResult.suspensionTime).equals(retryAFter)
+			o(Array.from(uploadResult.responseBody)).deepEquals([])
+		})
+
+		o("when suspension-time is returned, it is propagated", async function () {
+			const retryAFter = "20"
+			const errorId = "123"
+			const response = mockResponse(
+				TooManyRequestsError.CODE,
+				{
+					responseHeaders: {
+						"error-id": errorId,
+						"suspension-time": retryAFter,
+					}
+				}
+			)
+			mocks.netMock.executeRequest = o.spy(() => response)
+
+			const uploadResult = await dl.upload(fileToUploadPath, targetUrl, "POST", {})
+
+			o(uploadResult.statusCode).equals(TooManyRequestsError.CODE)
+			o(uploadResult.errorId).equals(errorId)
+			o(uploadResult.precondition).equals(null)
+			o(uploadResult.suspensionTime).equals(retryAFter)
+			o(Array.from(uploadResult.responseBody)).deepEquals([])
+		})
+
+		o("when precondition-time is returned, it is propagated", async function () {
+			const precondition = "a.2"
+			const retryAFter = "20"
+			const errorId = "123"
+			const response = mockResponse(
+				PreconditionFailedError.CODE,
+				{
+					responseHeaders: {
+						"error-id": errorId,
+						"precondition": precondition,
+					}
+				}
+			)
+			mocks.netMock.executeRequest = o.spy(() => response)
+
+			const uploadResult = await dl.upload(fileToUploadPath, targetUrl, "POST", {})
+
+			o(uploadResult.statusCode).equals(PreconditionFailedError.CODE)
+			o(uploadResult.errorId).equals(errorId)
+			o(uploadResult.precondition).equals(precondition)
+			o(uploadResult.suspensionTime).equals(null)
+			o(Array.from(uploadResult.responseBody)).deepEquals([])
+		})
+
+		// there could have been tests for IO errors during upload but it's more of a test for executeRequest()
+	})
+
 	o.spec("open", function () {
 		o("open", async function () {
 			const mocks = standardMocks()
@@ -546,6 +648,45 @@ o.spec("DesktopDownloadManagerTest", function () {
 		})
 	})
 
+	o.spec("splitFile", function () {
+		o("returns one slice for a small file", async function () {
+			const mocks = standardMocks()
+			const dl = makeMockedDownloadManager(mocks)
+			// fs mock returns file name as the content
+			const filename = "/tutanota/tmp/path/download/small.txt"
+			const fileContent = stringToUtf8Uint8Array(filename)
+
+			const chunks = await dl.splitFile(filename, 1024)
+
+			const filenameHash = "9ca089f82e397e9e860daa312ac25def39f2da0e066f0de94ffc02aa7b3a6250"
+			const expectedChunkPath = `/tutanota/tmp/path/download/${filenameHash}.0.blob`
+			o(chunks).deepEquals([expectedChunkPath])
+			o(mocks.fsMock.promises.writeFile.args[0]).equals(expectedChunkPath)
+			o(Array.from(mocks.fsMock.promises.writeFile.args[1])).deepEquals(Array.from(fileContent))
+		})
+
+		o("returns multiple slices for a bigger file", async function () {
+			const mocks = standardMocks()
+			const dl = makeMockedDownloadManager(mocks)
+			// fs mock returns file name as the content
+			const filename = "/tutanota/tmp/path/download/small.txt"
+			// length 37
+			const fileContent = stringToUtf8Uint8Array(filename)
+
+			const chunks = await dl.splitFile(filename, 30)
+
+			const filenameHash = "9ca089f82e397e9e860daa312ac25def39f2da0e066f0de94ffc02aa7b3a6250"
+			const expectedChunkPath0 = `/tutanota/tmp/path/download/${filenameHash}.0.blob`
+			const expectedChunkPath1 = `/tutanota/tmp/path/download/${filenameHash}.1.blob`
+			o(chunks).deepEquals([expectedChunkPath0, expectedChunkPath1])
+
+			o(mocks.fsMock.promises.writeFile.calls[0].args[0]).equals(expectedChunkPath0)
+			o(Array.from(mocks.fsMock.promises.writeFile.calls[0].args[1])).deepEquals(Array.from(fileContent.slice(0, 30)))
+			o(mocks.fsMock.promises.writeFile.calls[1].args[0]).equals(expectedChunkPath1)
+			o(Array.from(mocks.fsMock.promises.writeFile.calls[1].args[1])).deepEquals(Array.from(fileContent.slice(30)))
+		})
+	})
+
 	o.spec("putFileIntoDownloadsFolder", function () {
 		o("putFileIntoDownloadsFolder", async function () {
 			const mocks = standardMocks()
@@ -570,8 +711,8 @@ o.spec("DesktopDownloadManagerTest", function () {
 		o("hash", async function () {
 			const mocks = standardMocks()
 			const dl = makeMockedDownloadManager(mocks)
-			const fileHash = await dl.hashFile("/file1")
-			o(fileHash).equals(uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array("/file1"))))
+			const fileHash = await dl.blobHashFile("/file1")
+			o(fileHash).equals("fJ1mrFfJ")
 		})
 	})
 })

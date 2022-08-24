@@ -15,9 +15,18 @@ o.spec("DesktopCryptoFacadeTest", () => {
 	const aes256Key = [2, 5, 6]
 	const aes256DecryptedKey = new Uint8Array([2, 5, 6, 2])
 	const aes256EncryptedKey = new Uint8Array([2, 5, 6, 1])
+	const encryptedUint8 = stringToUtf8Uint8Array("encrypted")
 	const decryptedUint8 = stringToUtf8Uint8Array("decrypted")
 	const someKey = new Uint8Array([1, 2])
 	const cryptoFns: CryptoFunctions = {
+		aes128Encrypt(key: Aes128Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean, useMac: boolean): Uint8Array {
+			if (key === aes128Key) {
+				return decryptedUint8
+			} else {
+				throw new Error("stub!")
+			}
+		},
+
 		aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array {
 			if (key === aes128Key) {
 				return decryptedUint8
@@ -131,7 +140,12 @@ o.spec("DesktopCryptoFacadeTest", () => {
 			desktopCrypto,
 		})
 	}
-
+	o("aesEncryptFile", async function () {
+		const {desktopCrypto, fsMock} = setupSubject()
+		const {uri} = await desktopCrypto.aesEncryptFile(someKey, "/some/path/to/encrypted/file.pdf")
+		o(uri).equals("/some/other/path/to/encrypted/file.pdf")
+		o(fsMock.promises.writeFile.callCount).equals(1)
+	})
 	o("aesDecryptFile", async function () {
 		const {desktopCrypto, fsMock} = setupSubject()
 		const file = await desktopCrypto.aesDecryptFile(someKey, "/some/path/to/file.pdf")

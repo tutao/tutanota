@@ -1,6 +1,6 @@
 import type {DesktopConfig} from "../config/DesktopConfig.js"
 import path from "path"
-import {assertNotNull, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {assertNotNull, splitUint8ArrayInChunks, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex} from "@tutao/tutanota-utils"
 import {lang} from "../../misc/LanguageViewModel.js"
 import type {DesktopNetworkClient} from "./DesktopNetworkClient.js"
 import {FileOpenError} from "../../api/common/error/FileOpenError.js"
@@ -20,6 +20,8 @@ import {DownloadTaskResponse} from "../../native/common/generatedipc/DownloadTas
 import {DataFile} from "../../api/common/DataFile.js"
 import url from "url"
 import {log} from "../DesktopLog.js"
+import {UploadTaskResponse} from "../../native/common/generatedipc/UploadTaskResponse.js"
+import {Buffer} from "buffer"
 
 type FsExports = typeof FsModule
 type ElectronExports = typeof Electron.CrossProcessExports
@@ -44,9 +46,9 @@ export class DesktopDownloadManager {
 	 * SHA256 of the file found at given URI
 	 * @throws Error if file is not found
 	 */
-	async hashFile(fileUri: string): Promise<string> {
+	async blobHashFile(fileUri: string): Promise<string> {
 		const data = await this.fs.promises.readFile(fileUri)
-		const checksum = sha256Hash(data)
+		const checksum = sha256Hash(data).slice(0, 6)
 		return uint8ArrayToBase64(checksum)
 	}
 
@@ -69,8 +71,7 @@ export class DesktopDownloadManager {
 		const statusCode = assertNotNull(response.statusCode)
 		let encryptedFilePath
 		if (statusCode == 200) {
-			const downloadDirectory = path.join(this.desktopUtils.getTutanotaTempPath(), "encrypted")
-			await this.fs.promises.mkdir(downloadDirectory, {recursive: true})
+			const downloadDirectory = await this.ensureEncryptedDir()
 			encryptedFilePath = path.join(downloadDirectory, fileName)
 			await this.pipeIntoFile(response, encryptedFilePath)
 		} else {
@@ -87,6 +88,30 @@ export class DesktopDownloadManager {
 
 		log.info(TAG, "Download finished", result.statusCode, result.suspensionTime)
 		return result
+	}
+
+	async upload(fileUri: string, targetUrl: string, method: string, headers: Record<string, string>): Promise<UploadTaskResponse> {
+		const fileStream = this.fs.createReadStream(fileUri)
+		const response = await this.net.executeRequest(
+			targetUrl,
+			{method, headers, timeout: 20000},
+			fileStream
+		)
+
+		let responseBody: Uint8Array
+		if (response.statusCode == 200 || response.statusCode == 201) {
+			responseBody = await readStreamToBuffer(response)
+		} else {
+			// this is questionable, should probably change the type
+			responseBody = new Uint8Array([])
+		}
+		return {
+			statusCode: assertNotNull(response.statusCode),
+			errorId: getHttpHeader(response.headers, "error-id"),
+			precondition: getHttpHeader(response.headers, "precondition"),
+			suspensionTime: getHttpHeader(response.headers, "suspension-time") ?? getHttpHeader(response.headers, "retry-after"),
+			responseBody,
+		}
 	}
 
 	/**
@@ -126,11 +151,21 @@ export class DesktopDownloadManager {
 	 * in {@param file}.
 	 */
 	async writeDataFile(file: DataFile): Promise<FileUri> {
-		const savePath = await this.pickSavePath(file.name)
-		await this.fs.promises.mkdir(path.dirname(savePath), {
-			recursive: true,
-		})
-		await this.fs.promises.writeFile(savePath, file.data)
+		const tempDir = await this.ensureUnencrytpedDir()
+		// We do not check if file exists and then write, this is generally a no-no for security reasons. We write and catch instead.
+		const files = await this.fs.promises.readdir(tempDir)
+		const filename = nonClobberingFilename(files, file.name)
+		const savePath = path.join(tempDir, filename)
+		try {
+			await this.fs.promises.writeFile(savePath, file.data)
+		} catch (e) {
+			if (e.code === "EEXIST") {
+				// if the file exists we will try again and will pick another name
+				return this.writeDataFile(file)
+			} else {
+				throw e
+			}
+		}
 		return savePath
 	}
 
@@ -161,7 +196,6 @@ export class DesktopDownloadManager {
 			return null
 		}
 	}
-
 
 	/**
 	 * Copy {@param fileUri} to the downloads folder disk. Will pick the path based on user download dir preference.
@@ -226,8 +260,7 @@ export class DesktopDownloadManager {
 	}
 
 	async joinFiles(filename: string, files: Array<FileUri>): Promise<string> {
-		const downloadDirectory = path.join(this.desktopUtils.getTutanotaTempPath(), "download")
-		await this.fs.promises.mkdir(downloadDirectory, {recursive: true,})
+		const downloadDirectory = await this.ensureUnencrytpedDir()
 
 		const fileUri = path.join(downloadDirectory, filename)
 		const outStream = this.fs.createWriteStream(fileUri, {autoClose: false})
@@ -247,6 +280,24 @@ export class DesktopDownloadManager {
 		return fileUri
 	}
 
+	async splitFile(fileUri: string, maxChunkSizeBytes: number): Promise<Array<string>> {
+		const tempDir = await this.ensureUnencrytpedDir()
+		const fullBytes = await this.fs.promises.readFile(fileUri)
+		const chunks = splitUint8ArrayInChunks(maxChunkSizeBytes, fullBytes)
+		const filenameHash = uint8ArrayToHex(sha256Hash(stringToUtf8Uint8Array(fileUri)))
+		const chunkPaths: string[] = []
+
+		for (let i = 0; i < chunks.length; i++) {
+			const chunk = chunks[i]
+			const fileName = `${filenameHash}.${i}.blob`
+			const chunkPath = path.join(tempDir, fileName)
+			await this.fs.promises.writeFile(chunkPath, chunk)
+			chunkPaths.push(chunkPath)
+		}
+
+		return chunkPaths
+	}
+
 	async deleteFile(filename: string): Promise<void> {
 		return this.fs.promises.unlink(filename)
 	}
@@ -258,6 +309,26 @@ export class DesktopDownloadManager {
 
 	deleteTutanotaTempDirectory() {
 		return this.desktopUtils.deleteTutanotaTempDir()
+	}
+
+	private async ensureEncryptedDir() {
+		const downloadDirectory = this.getEncryptedTempDir()
+		await this.fs.promises.mkdir(downloadDirectory, {recursive: true})
+		return downloadDirectory
+	}
+
+	private async ensureUnencrytpedDir() {
+		const downloadDirectory = this.getUnenecryptedTempDir()
+		await this.fs.promises.mkdir(downloadDirectory, {recursive: true})
+		return downloadDirectory
+	}
+
+	private getEncryptedTempDir() {
+		return path.join(this.desktopUtils.getTutanotaTempPath(), "encrypted")
+	}
+
+	private getUnenecryptedTempDir() {
+		return path.join(this.desktopUtils.getTutanotaTempPath(), "download")
 	}
 }
 
@@ -275,7 +346,7 @@ function pipeStream(stream: stream.Readable, into: stream.Writable): Promise<voi
 	return new Promise((resolve, reject) => {
 		stream.on("error", reject)
 		stream.pipe(into)
-			  // pipe returns destination
+			// pipe returns destination
 			  .on("finish", resolve)
 			  .on("error", reject)
 	})
@@ -285,5 +356,23 @@ function closeFileStream(stream: FsModule.WriteStream): Promise<void> {
 	return new Promise((resolve) => {
 		stream.on("close", resolve)
 		stream.close()
+	})
+}
+
+export async function readStreamToBuffer(stream: stream.Readable): Promise<Uint8Array> {
+	return new Promise((resolve, reject) => {
+		const data: Buffer[] = []
+
+		stream.on('data', (chunk) => {
+			data.push(chunk as Buffer)
+		})
+
+		stream.on('end', () => {
+			resolve(Buffer.concat(data))
+		})
+
+		stream.on('error', (err) => {
+			reject(err)
+		})
 	})
 }

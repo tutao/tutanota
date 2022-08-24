@@ -126,7 +126,7 @@ export class FileControllerNative implements FileController {
 		// For apps "opening" DataFile currently means saving and opening it.
 		try {
 			const fileReference = await this.fileApp.writeDataFile(file)
-			if (isAndroidApp()) {
+			if (isAndroidApp() || isDesktop()) {
 				await this.fileApp.putFileIntoDownloadsFolder(fileReference.location)
 				return
 			} else if (isIOSApp()) {

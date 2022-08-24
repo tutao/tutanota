@@ -6,7 +6,17 @@ import crypto from "crypto"
 import {InstanceMapper} from "../api/worker/crypto/InstanceMapper"
 import type {TypeModel} from "../api/common/EntityTypes"
 import type {Base64} from "@tutao/tutanota-utils"
-import {aes128Decrypt, aes256Decrypt, aes256Encrypt, aes256RandomKey, base64ToKey, decrypt256Key, random, uint8ArrayToKey} from "@tutao/tutanota-crypto"
+import {
+	aes128Decrypt,
+	aes128Encrypt,
+	aes256Decrypt,
+	aes256Encrypt,
+	aes256RandomKey,
+	base64ToKey,
+	decrypt256Key,
+	random,
+	uint8ArrayToKey
+} from "@tutao/tutanota-crypto"
 
 // the prng throws if it doesn't have enough entropy
 // it may be called very early, so we need to seed it
@@ -28,6 +38,8 @@ const seed = () => {
 seed()
 
 export interface CryptoFunctions {
+	aes128Encrypt(key: Aes128Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean, useMac: boolean): Uint8Array
+
 	aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array
 
 	aes256Encrypt(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean, useMac: boolean): Uint8Array
@@ -55,6 +67,9 @@ export interface CryptoFunctions {
 
 const mapper = new InstanceMapper()
 export const cryptoFns: CryptoFunctions = {
+	aes128Encrypt(key: Aes128Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean, useMac: boolean): Uint8Array {
+		return aes128Encrypt(key, bytes, iv, usePadding, useMac)
+	},
 	aes128Decrypt(key: Aes128Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array {
 		return aes128Decrypt(key, encryptedBytes, usePadding)
 	},
