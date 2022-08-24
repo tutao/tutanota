@@ -48,11 +48,11 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private __signupPaidTest?: UsageTest
 
 	constructor() {
-		this.passwordModel = new PasswordModel(logins, {checkOldPassword: false, enforceStrength: true, repeatInput: false})
+		this.__mailValid = stream(false)
+		this.passwordModel = new PasswordModel(logins, {checkOldPassword: false, enforceStrength: true, repeatInput: false}, this.__mailValid)
+
 		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
-
-		this.__mailValid = stream(false)
 
 		this._confirmTerms = stream<boolean>(false)
 		this._confirmAge = stream<boolean>(false)
