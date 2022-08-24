@@ -350,7 +350,7 @@ export class SettingsView implements CurrentView {
 		)
 		this._settingsDetailsColumn = new ViewColumn(
 			{
-				view: () => (this.detailsViewer ? this.detailsViewer.view() : m("")),
+				view: () => m(".mlr-safe-inset.fill-absolute", (this.detailsViewer ? this.detailsViewer.view() : m(""))),
 			},
 			ColumnType.Background,
 			600,

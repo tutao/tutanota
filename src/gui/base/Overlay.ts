@@ -73,6 +73,9 @@ export const overlay: Component = {
 				style: {
 					display: overlays.length > 0 ? "" : "none", // display: null not working for IE11
 					"margin-top": "env(safe-area-inset-top)", // insets for iPhone X
+					// we would need to change this if we wanted something to appear from the side
+					"margin-left": "env(safe-area-inset-left)",
+					"margin-right": "env(safe-area-inset-right)",
 				},
 				"aria-hidden": overlays.length === 0,
 			},
