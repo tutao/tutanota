@@ -3,7 +3,7 @@ import {TypeRef} from "./TypeRef.js"
 export interface ErrorInfo {
 	readonly name: string | null
 	readonly message: string | null
-	readonly stack: string | null
+	readonly stack?: string | null
 }
 
 export type lazy<T> = () => T
