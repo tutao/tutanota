@@ -52,6 +52,9 @@ pipeline {
         }
 
         stage('Publish') {
+        	environment {
+         		VERSION = sh(returnStdout: true, script: "${NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
+         	}
             when {
             	expression { params.RELEASE }
             }
@@ -59,6 +62,7 @@ pipeline {
                 label 'linux'
             }
             steps {
+            	sh 'echo Publishing version $VERSION'
             	sh 'npm ci'
 				sh 'rm -rf ./build/*'
 
