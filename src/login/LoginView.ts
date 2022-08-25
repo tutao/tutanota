@@ -10,7 +10,7 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {windowFacade} from "../misc/WindowFacade"
 import {DeviceType} from "../misc/ClientConstants"
-import {ButtonAttrs, Button, ButtonType} from "../gui/base/Button.js"
+import {Button, ButtonAttrs, ButtonType} from "../gui/base/Button.js"
 import {CurrentView, header} from "../gui/Header.js"
 import {AriaLandmarks, landmarkAttrs, liveDataAttrs} from "../gui/AriaUtils"
 import type {ILoginViewModel} from "./LoginViewModel"
@@ -19,8 +19,9 @@ import {LoginForm} from "./LoginForm"
 import {CredentialsSelector} from "./CredentialsSelector"
 import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
 import {themeController} from "../gui/theme"
-import {createAsyncDropdown} from "../gui/base/Dropdown.js"
+import {createAsyncDropdown, createDropdown} from "../gui/base/Dropdown.js"
 import type {clickHandler} from "../gui/base/GuiUtils"
+import {showLogsDialog} from "./LoginLogDialog.js"
 
 assertMainOrNode()
 
@@ -162,34 +163,34 @@ export class LoginView implements CurrentView {
 
 	themeSwitchListener(): clickHandler {
 		return createAsyncDropdown({
-            lazyButtons: async () => {
-                const defaultButtons: ReadonlyArray<ButtonAttrs> = [
-                    {
-                        label: "light_label",
-                        type: ButtonType.Dropdown,
-                        click: () => themeController.setThemeId("light"),
-                    },
-                    {
-                        label: "dark_label",
-                        type: ButtonType.Dropdown,
-                        click: () => themeController.setThemeId("dark"),
-                    },
-                    {
-                        label: "blue_label",
-                        type: ButtonType.Dropdown,
-                        click: () => themeController.setThemeId("blue"),
-                    },
-                ]
-                const customButtons = (await themeController.getCustomThemes()).map(themeId => {
-                    return {
-                        label: () => themeId,
-                        type: ButtonType.Dropdown,
-                        click: () => themeController.setThemeId(themeId),
-                    }
-                })
-                return defaultButtons.concat(customButtons)
-            }, width: 300
-        })
+			lazyButtons: async () => {
+				const defaultButtons: ReadonlyArray<ButtonAttrs> = [
+					{
+						label: "light_label",
+						type: ButtonType.Dropdown,
+						click: () => themeController.setThemeId("light"),
+					},
+					{
+						label: "dark_label",
+						type: ButtonType.Dropdown,
+						click: () => themeController.setThemeId("dark"),
+					},
+					{
+						label: "blue_label",
+						type: ButtonType.Dropdown,
+						click: () => themeController.setThemeId("blue"),
+					},
+				]
+				const customButtons = (await themeController.getCustomThemes()).map(themeId => {
+					return {
+						label: () => themeId,
+						type: ButtonType.Dropdown,
+						click: () => themeController.setThemeId(themeId),
+					}
+				})
+				return defaultButtons.concat(customButtons)
+			}, width: 300
+		})
 	}
 
 	_signupLinkVisible(): boolean {
@@ -410,6 +411,20 @@ export function renderPrivacyAndImprintLinks(): Children {
 				lang.get("imprint_label"),
 			)
 			: null,
-		m(".mt.center.small.full-width", `v${env.versionNumber}`),
+		m(".mt.mb.center.small.full-width", {
+			onclick: (e: MouseEvent) => showVersionDropdown(e),
+		}, `v${env.versionNumber}`),
 	])
 }
+
+function showVersionDropdown(e: MouseEvent) {
+	// A semi-hidden option to get the logs before logging in, in a text form
+	createDropdown({
+		lazyButtons: () => [{
+			type: ButtonType.Dropdown,
+			label: () => "Get logs",
+			click: () => showLogsDialog()
+		}],
+	})(e, e.target as HTMLElement)
+}
+
