@@ -40,6 +40,7 @@ import org.json.JSONObject
 import java.io.File
 import java.io.IOException
 import java.io.UnsupportedEncodingException
+import java.lang.IllegalStateException
 import java.net.URLEncoder
 import java.security.SecureRandom
 import java.util.concurrent.ConcurrentHashMap
@@ -465,7 +466,12 @@ class MainActivity : FragmentActivity() {
 	}
 
 	fun setupPushNotifications() {
-		startService(PushNotificationService.startIntent(this, "MainActivity#setupPushNotifications"))
+		try {
+			startService(PushNotificationService.startIntent(this, "MainActivity#setupPushNotifications"))
+		} catch (e: IllegalStateException) {
+			// We can run into this if the app is in the background for some reason
+			Log.w(TAG, e)
+		}
 		val jobScheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
 		jobScheduler.schedule(
 				JobInfo.Builder(1, ComponentName(this, PushNotificationService::class.java))
