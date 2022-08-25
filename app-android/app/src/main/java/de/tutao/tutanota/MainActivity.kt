@@ -267,11 +267,11 @@ class MainActivity : FragmentActivity() {
 		// we add a few more for safety.
 		val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
 		return mimeType ?: when (ext) {
-			"js" -> "text/javascript"
+			"js", "mjs" -> "text/javascript"
 			"json" -> "application/json"
 			"html" -> "text/html"
 			"ttf" -> "font/ttf"
-			else -> error("Unknown extension $ext")
+			else -> error("Unknown extension $ext for url $url")
 		}
 	}
 
