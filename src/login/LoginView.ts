@@ -83,7 +83,7 @@ export class LoginView implements CurrentView {
 									: this._renderLoginForm(),
 								!(isApp() || isDesktop()) && isTutanotaDomain() ? this._renderAppButtons() : null,
 								this._anyMoreItemVisible() ? this._renderOptionsExpander() : null,
-								!isApp() ? renderPrivacyAndImprintLinks() : null,
+								renderInfoLinks(),
 							],
 						),
 					),
@@ -389,9 +389,9 @@ export function getPrivacyStatementLink(): string | null {
 	return mapNullable(getWhitelabelCustomizations(window), c => c.privacyStatementUrl) || InfoLink.Privacy
 }
 
-export function renderPrivacyAndImprintLinks(): Children {
+export function renderInfoLinks(): Children {
 	return m("div.center.flex.flex-grow.items-end.justify-center.mb-l.mt-xl.wrap", [
-		getPrivacyStatementLink()
+		!isApp() && getPrivacyStatementLink()
 			? m(
 				"a.plr",
 				{
@@ -401,7 +401,7 @@ export function renderPrivacyAndImprintLinks(): Children {
 				lang.get("privacyLink_label"),
 			)
 			: null,
-		getImprintLink()
+		!isApp() && getImprintLink()
 			? m(
 				"a.plr",
 				{

@@ -13,7 +13,7 @@ import {TextField, TextFieldType as TextFieldType} from "../gui/base/TextField.j
 import {Checkbox} from "../gui/base/Checkbox.js"
 import {logins} from "../api/main/LoginController"
 import {MessageBox} from "../gui/base/MessageBox.js"
-import {renderPrivacyAndImprintLinks} from "./LoginView"
+import {renderInfoLinks} from "./LoginView"
 import {CurrentView, header} from "../gui/Header.js"
 import {GENERATED_MIN_ID} from "../api/common/utils/EntityUtils"
 import {getLoginErrorMessage, handleExpectedLoginError} from "../misc/LoginUtils"
@@ -212,7 +212,7 @@ export class ExternalLoginView implements CurrentView {
 					? this.renderAutoLoginButton()
 					: this.renderForm(),
 				m("p.center.statusTextColor", m("small", lang.getMaybeLazy(this.viewModel.helpText))),
-				renderPrivacyAndImprintLinks(),
+				renderInfoLinks(),
 			]
 		}
 	}

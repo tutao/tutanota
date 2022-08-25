@@ -9,7 +9,7 @@ import {progressIcon} from "../../gui/base/Icon"
 import {NotFoundPage} from "../../gui/base/NotFoundPage.js"
 import {getDefaultContactFormLanguage} from "../../settings/contactform/ContactFormUtils"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
-import {renderPrivacyAndImprintLinks} from "../LoginView"
+import {renderInfoLinks} from "../LoginView"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {CurrentView, header} from "../../gui/Header.js"
 import {Button, ButtonType} from "../../gui/base/Button.js"
@@ -125,7 +125,7 @@ class ContactFormView implements CurrentView {
 						]),
 					]),
 					m(".pt-l", m.trust(neverNull(this._footerHtml))), // is sanitized in updateUrl
-					renderPrivacyAndImprintLinks(),
+					renderInfoLinks(),
 				],
 			)
 		} else {
