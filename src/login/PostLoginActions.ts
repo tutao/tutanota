@@ -86,6 +86,8 @@ export class PostLoginActions implements IPostLoginAction {
 		await usageTestModel.init()
 
 		usageTestModel.setStorageBehavior(StorageBehavior.Persist)
+		// We load possibly outdated assignments into the controller here so that they can be rendered right away without
+		// necessarily making an additional request.
 		locator.usageTestController.setTests(await usageTestModel.loadActiveUsageTests(TtlBehavior.PossiblyOutdated))
 
 		lang.updateFormats({ // partial
@@ -136,6 +138,8 @@ export class PostLoginActions implements IPostLoginAction {
 
 		this.enforcePasswordChange()
 
+		// Load only up-to-date (not older than 1h) assignments here and make a request for that.
+		// There should not be a lot of re-rendering at this point since assignments for new tests are usually fetched right after a client version update.
 		locator.usageTestController.setTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly))
 	}
 
