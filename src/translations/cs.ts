@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2022-08-08T11:25:34Z",
+	"updated_at": "2022-08-29T09:57:47Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O aplikaci",
@@ -110,6 +110,7 @@ export default {
 		"archive_action": "Archiv",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Nemůžete přidělit globální administrátorská práva místně spravovanému uživateli.",
 		"attachFiles_action": "Připojit soubory",
+		"attachmentAmount_label": "{amount} příloh(y)",
 		"attachmentName_label": "Název přílohy",
 		"attachmentWarning_msg": "Jiná aplikace chce připojit k novému e-mailu následující soubory:",
 		"attendeeNotFound_msg": "Neúčastníte se této události.",
@@ -577,7 +578,7 @@ export default {
 		"globalAdmin_label": "Globální správce",
 		"globalSettings_label": "Obecná nastavení",
 		"goPremium_msg": "Jakožto uživatel verze Premium můžete nastavit vyhledávací filtry v nabídce vlevo.",
-		"gross_label": "před zdaněním",
+		"gross_label": "včetně daně",
 		"groupCapabilityInvite_label": "Zápis a správa sdílení",
 		"groupCapabilityRead_label": "Pouze čtení",
 		"groupCapabilityWrite_label": "Čtení a zápis",

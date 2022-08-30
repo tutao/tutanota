@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2022-07-26T10:24:57Z",
+	"updated_at": "2022-08-08T17:26:17Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -114,6 +114,7 @@ export default {
 		"archive_action": "Archiwum",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Nie można przypisać globalnych uprawnień administratora do administrowanego lokalnie użytkownika.",
 		"attachFiles_action": "Załącz pliki",
+		"attachmentAmount_label": "{amount} załączniki",
 		"attachmentName_label": "Nazwa załącznika",
 		"attachmentWarning_msg": "Inna aplikacja chce załączyć następujące pliki do nowej wiadomości e-mail:",
 		"attendeeNotFound_msg": "Nie uczestniczysz w tym wydarzeniu.",
@@ -417,6 +418,7 @@ export default {
 		"desktopSettings_label": "Ustawienia pulpitu",
 		"desktop_label": "Pulpit",
 		"details_label": "Szczegóły",
+		"deviceEncryptionSaveCredentialsHelpText_msg": "Aby aktywować szyfrowanie urządzenia (odblokowywanie: kodem PIN/biometrycznie), musisz zapisać swoje dane uwierzytelniające na urządzeniu. Możesz to zrobić przy następnym logowaniu.",
 		"differentSecurityKeyDomain_msg": "Twój klucz bezpieczeństwa nie został zarejestrowany dla tej domeny. Proszę zalogować się na {domain}.",
 		"disallowExternalContent_action": "Zablokuj treści z zewnątrz",
 		"discardChangesAndClose_action": "Odrzuć zmiany i zamknij",

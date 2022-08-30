@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2022-07-26T18:33:09Z",
+	"updated_at": "2022-08-08T19:38:31Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -108,6 +108,7 @@ export default {
 		"archive_action": "Arkiv",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Du kan inte tilldela globala administratörsrättigheter till en lokalt administrerad användare.",
 		"attachFiles_action": "Bifoga filer",
+		"attachmentAmount_label": "{amount} bilagor",
 		"attachmentName_label": "Namn på bifogad fil",
 		"attachmentWarning_msg": "Ett annat program vill bifoga följande filer i ett nytt mejl:",
 		"attendeeNotFound_msg": "Aktiviteten uppdaterades i kalendern.",
@@ -413,6 +414,7 @@ export default {
 		"desktopSettings_label": "Skrivbordsinställningar",
 		"desktop_label": "Skrivbord",
 		"details_label": "Detaljer",
+		"deviceEncryptionSaveCredentialsHelpText_msg": "För att aktivera enhetens kryptering (upplåsning med pinkod/biometrisk kod) måste du lagra dina autentiseringsuppgifter på enheten. Du kan göra detta nästa gång du loggar in.",
 		"differentSecurityKeyDomain_msg": "Din säkerhetsnyckel är inte registrerad för den här domänen. Logga in på {domain}.",
 		"disallowExternalContent_action": "Blockera externt innehåll",
 		"discardChangesAndClose_action": "Ignorera ändringar och stäng",

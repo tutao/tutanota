@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2022-08-03T17:58:01Z",
+	"updated_at": "2022-08-08T19:56:19Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -112,6 +112,7 @@ export default {
 		"archive_action": "Archivio",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Non puoi assegnare i diritti di amministratore globale a un utente locale amministrato.",
 		"attachFiles_action": "Allega file",
+		"attachmentAmount_label": "allegati {amount}",
 		"attachmentName_label": "Nome allegato",
 		"attachmentWarning_msg": "Un'applicazione esterna richiede di allegare i seguenti file ad una nuova email:",
 		"attendeeNotFound_msg": "Non stai partecipando a questo evento.",
@@ -415,6 +416,7 @@ export default {
 		"desktopSettings_label": "Impostazioni desktop",
 		"desktop_label": "Desktop",
 		"details_label": "Dettagli",
+		"deviceEncryptionSaveCredentialsHelpText_msg": "Per attivare la crittografia del dispositivo (sblocco con pin/biometrico), è necessario memorizzare le tue credenziali sul dispositivo. È possibile farlo al successivo accesso.",
 		"differentSecurityKeyDomain_msg": "La chiave di sicurezza non è registrata per questo dominio. Effettua il login sul {domain}.",
 		"disallowExternalContent_action": "Blocca contenuto esterno",
 		"discardChangesAndClose_action": "Elimina le modifiche e chiudi",

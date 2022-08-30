@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2022-07-27T01:29:54Z",
+	"updated_at": "2022-08-08T16:57:20Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -115,6 +115,7 @@ export default {
 		"archive_action": "أرشيف",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "لا يمكنك إسناد حقوق مشرف عام إلى مستخدم مدار محليًا.",
 		"attachFiles_action": "إرفاق ملفات",
+		"attachmentAmount_label": "{amount} مرفقات",
 		"attachmentName_label": "اسم المرفق",
 		"attachmentWarning_msg": "يريد تطبيق آخر إرفاق الملفات التالية برسالة بريد إلكتروني جديدة :",
 		"attendeeNotFound_msg": "أنت لا تحضر هذا الحدث.",
@@ -418,6 +419,7 @@ export default {
 		"desktopSettings_label": "إعدادات سطح المكتب",
 		"desktop_label": "سطح المكتب",
 		"details_label": "التفاصيل",
+		"deviceEncryptionSaveCredentialsHelpText_msg": "لتنشيط تشفير الجهاز (إلغاء قفل رقم التعريف الشخصي/البيومترية)، تحتاج إلى تخزين بيانات الاعتماد الخاصة بك على الجهاز. يمكنك القيام بذلك في المرة التالية التي تقوم فيها بتسجيل الدخول.",
 		"differentSecurityKeyDomain_msg": "لم يتم تسجيل مفتاح الأمان الخاص بك في هذا المجال. الرجاء تسجيل الدخول على {domain}.",
 		"disallowExternalContent_action": "تجميد المحتوى الخارجي",
 		"discardChangesAndClose_action": "تجاهل التغييرات وأغلق",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2022-07-28T16:53:40Z",
+	"updated_at": "2022-08-10T11:46:49Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -112,6 +112,7 @@ export default {
 		"archive_action": "Archivar",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "No puedes asignar derechos de administración global a un usuario administrador local.",
 		"attachFiles_action": "Adjuntar archivos",
+		"attachmentAmount_label": "{amount} Adjuntos",
 		"attachmentName_label": "Nombre del adjunto",
 		"attachmentWarning_msg": "Otra aplicación quiere adjuntar los siguientes archivos a un nuevo mensaje:",
 		"attendeeNotFound_msg": "No asistirás a este evento.",
@@ -415,6 +416,7 @@ export default {
 		"desktopSettings_label": "Configuración de escritorio",
 		"desktop_label": "Escritorio",
 		"details_label": "Detalles",
+		"deviceEncryptionSaveCredentialsHelpText_msg": "Para activar el cifrado del dispositivo (pin / desbloqueo biométrico), debes almacenar tus credenciales en el dispositivo. Puedes hacerlo la próxima vez que inicies sesión.",
 		"differentSecurityKeyDomain_msg": "Su clave de seguridad no está registrada para este campo. Acceda por {domain}.",
 		"disallowExternalContent_action": "Bloquear contenido externo",
 		"discardChangesAndClose_action": "Descartar cambios y cerrar",
