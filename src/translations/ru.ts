@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2022-07-26T12:39:42Z",
+	"updated_at": "2022-08-09T10:25:07Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -114,6 +114,7 @@ export default {
 		"archive_action": "Архив",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Вы не можете назначить права глобального администратора локальному администратору.",
 		"attachFiles_action": "Прикрепить файлы",
+		"attachmentAmount_label": "{amount} вложений",
 		"attachmentName_label": "Вложение",
 		"attachmentWarning_msg": "Другое приложение хочет прикрепить следующие файлы к новому письму:",
 		"attendeeNotFound_msg": "Вы не являетесь участником этого события.",
@@ -417,6 +418,7 @@ export default {
 		"desktopSettings_label": "Настройки компьютера",
 		"desktop_label": "Компьютер",
 		"details_label": "Детали",
+		"deviceEncryptionSaveCredentialsHelpText_msg": "Чтобы активировать шифрование устройства (разблокировку пин-кодом/биометрическим ключом), необходимо сохранить учетные данные на устройстве. Это можно сделать при следующем входе в систему.",
 		"differentSecurityKeyDomain_msg": "Ваш ключ безопасности не зарегистрирован для данного домена. Пожалуйста, войдите в {domain}",
 		"disallowExternalContent_action": "Блокировать внешнее содержимое",
 		"discardChangesAndClose_action": "Отменить изменения и закрыть",

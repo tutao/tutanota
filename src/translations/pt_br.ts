@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2022-07-27T20:41:12Z",
+	"updated_at": "2022-08-09T15:14:24Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -112,6 +112,7 @@ export default {
 		"archive_action": "Arquivo",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Você não pode especificar direitos de administrador global a um usuário gerenciado localmente.",
 		"attachFiles_action": "Anexar arquivos",
+		"attachmentAmount_label": "Indicador de quantidade de anexos",
 		"attachmentName_label": "Nome do anexo",
 		"attachmentWarning_msg": "Outra aplicação quer anexar os seguintes arquivos em um novo e-mail:",
 		"attendeeNotFound_msg": "Você não participará dessse evento.",
@@ -415,6 +416,7 @@ export default {
 		"desktopSettings_label": "Configurações de Desktop",
 		"desktop_label": "Desktop",
 		"details_label": "Detalhes",
+		"deviceEncryptionSaveCredentialsHelpText_msg": "Para ativar a criptografia no dispositivo(pin/liberação biométrica), você precisa armazenar suas credenciais no dispositivo. Você poderá fazer isto na próxima vez que iniciar a sessão.\n",
 		"differentSecurityKeyDomain_msg": "Sua chave de segurança não está registrada para esse domínio. Por favor faça login em {domain}.",
 		"disallowExternalContent_action": "Bloquear conteúdo externo",
 		"discardChangesAndClose_action": "Descarte mudanças e feche.",

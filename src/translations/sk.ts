@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2022-07-27T14:45:45Z",
+	"updated_at": "2022-08-09T13:20:55Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O službe",
@@ -110,6 +110,7 @@ export default {
 		"archive_action": "Archív",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Nemôžeš udeliť práva globálneho správcu lokálne spravovanému používateľovi.",
 		"attachFiles_action": "Priložiť súbory",
+		"attachmentAmount_label": "{amount} prílohy",
 		"attachmentName_label": "Názov prílohy",
 		"attachmentWarning_msg": "Iná aplikácia chce pripojiť tieto súbory k novému e-mailu:",
 		"attendeeNotFound_msg": "Nezúčastňuješ sa tejto udalosti.",
@@ -413,6 +414,7 @@ export default {
 		"desktopSettings_label": "Nastavenia pre počítače",
 		"desktop_label": "Počítač",
 		"details_label": "Podrobnosti",
+		"deviceEncryptionSaveCredentialsHelpText_msg": "Pre aktiváciu šifrovania zariadenia (PIN, biometrické odomknutie) si musíš uložiť prihlasovacie údaje do zariadenia. Môžeš tak urobiť pri najbližšom prihlásení. ",
 		"differentSecurityKeyDomain_msg": "Tvoj bezpečnostný kľúč nie registrovaný pre túto doménu. Prosím, prihlás sa na {domain}.",
 		"disallowExternalContent_action": "Blokovať externý obsah",
 		"discardChangesAndClose_action": "Zahodiť zmeny a zatvoriť",

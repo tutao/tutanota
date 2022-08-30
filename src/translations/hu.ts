@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2022-07-31T08:49:51Z",
+	"updated_at": "2022-08-08T14:48:01Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Körülbelül",
@@ -108,6 +108,7 @@ export default {
 		"archive_action": "Archívum",
 		"assignAdminRightsToLocallyAdministratedUserError_msg": "Globális adminisztrátori jogokat nem adhat át helyileg adminisztrált felhasználónak.",
 		"attachFiles_action": "Mellékletek csatolása",
+		"attachmentAmount_label": "{amount} Mellékletek.",
 		"attachmentName_label": "Csatolmány neve",
 		"attachmentWarning_msg": "Egy másik alkalmazás csatolni szeretné a következő fájlokat az új e-mailhez:",
 		"attendeeNotFound_msg": "Nem vesz részt ezen az eseményen.",
@@ -412,6 +413,7 @@ export default {
 		"desktopSettings_label": "Asztali beállítások",
 		"desktop_label": "Asztal",
 		"details_label": "Részletek",
+		"deviceEncryptionSaveCredentialsHelpText_msg": "Az eszköztitkosítás aktiválásához (PIN-kód/biometrikus feloldás) tárolnia kell a hitelesítő adatait az eszközön. Ezt a következő bejelentkezéskor teheti meg.",
 		"differentSecurityKeyDomain_msg": "A biztonsági kulcsa nincs regisztrálva ehhez a doménhez. Kérjük, innen jelentkezzen be: {domain}",
 		"disallowExternalContent_action": "Blokkolja a külső tartalmakat!",
 		"discardChangesAndClose_action": "Változtatások elvetése és bezárás",
