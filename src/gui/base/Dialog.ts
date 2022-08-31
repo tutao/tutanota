@@ -212,7 +212,7 @@ export class Dialog implements ModalComponent {
 	}
 
 	_getDialogStyle(dialogType: DialogType): string {
-		let dialogStyle = ".dialog.elevated-bg.flex-grow"
+		let dialogStyle = ".dialog.elevated-bg.flex-grow.border-radius"
 
 		if (dialogType === DialogType.Progress) {
 			dialogStyle += ".dialog-width-s.dialog-progress"
