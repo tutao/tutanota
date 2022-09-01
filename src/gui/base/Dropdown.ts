@@ -336,18 +336,20 @@ export class Dropdown implements ModalComponent {
 	}
 }
 
-export function createDropdown({lazyButtons, overrideOrigin, width = 200}: {
+export function createDropdown({lazyButtons, overrideOrigin, width, withBackground}: {
 	lazyButtons: lazy<ReadonlyArray<DropdownChildAttrs | null>>,
 	overrideOrigin?: (original: PosRect) => PosRect,
-	width?: number
+	width?: number,
+	withBackground?: boolean,
 }): clickHandler {
-	return createAsyncDropdown({lazyButtons: async () => lazyButtons(), overrideOrigin, width})
+	return createAsyncDropdown({lazyButtons: async () => lazyButtons(), overrideOrigin, width, withBackground})
 }
 
-export function createAsyncDropdown({lazyButtons, overrideOrigin, width = 200}: {
+export function createAsyncDropdown({lazyButtons, overrideOrigin, width = 200, withBackground = false}: {
 	lazyButtons: lazyAsync<ReadonlyArray<DropdownChildAttrs | null>>,
 	overrideOrigin?: (original: PosRect) => PosRect,
-	width?: number
+	width?: number,
+	withBackground?: boolean,
 }): clickHandler {
 	// not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
 	return (e, dom) => {
@@ -380,7 +382,7 @@ export function createAsyncDropdown({lazyButtons, overrideOrigin, width = 200}: 
 			}
 
 			dropdown.setOrigin(buttonRect)
-			modal.displayUnique(dropdown, false)
+			modal.displayUnique(dropdown, withBackground)
 		})
 	}
 }

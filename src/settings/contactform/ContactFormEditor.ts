@@ -241,7 +241,7 @@ export class ContactFormEditor {
 			label: "receivingMailbox_label",
 			value: this._receivingMailboxDisplayValue,
 			disabled: true,
-			injectionsRight: () => m(".margin-between-s", [
+			injectionsRight: () => m(".ml-between-s", [
 				this.renderAssignUserButton(),
 				this._allSharedMailboxGroupInfos.length > 0
 					? this.renderAssignGroupButton()
@@ -437,7 +437,7 @@ export class ContactFormEditor {
 			label: "language_label",
 			value: this._languageDisplayValue,
 			disabled: true,
-			injectionsRight: () => m(".flex.margin-between-s", [
+			injectionsRight: () => m(".flex.ml-between-s", [
 				m(IconButton, selectLanguageButtonAttrs),
 				this._languages.length > 1
 					? m(IconButton, {

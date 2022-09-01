@@ -322,7 +322,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					value: this._contactFormsFieldValue(),
 					oninput: this._contactFormsFieldValue,
 					disabled: true,
-					injectionsRight: () => m(".flex.margin-between-s", [
+					injectionsRight: () => m(".flex.ml-between-s", [
 						m(IconButton, {
 							title: "createContactForm_label",
 							click: createNotAvailableForFreeClickHandler(false, () => ContactFormEditor.show(null, true, noOp), isPremiumPredicate),

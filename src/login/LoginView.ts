@@ -284,7 +284,7 @@ export class LoginView extends BaseTopLevelView implements CurrentView<LoginView
 	}
 
 	_renderAppButtons(): Children {
-		return m(".flex-center.pt-l.margin-between-s", [
+		return m(".flex-center.pt-l.ml-between-s", [
 			client.isDesktopDevice() || client.device === DeviceType.ANDROID
 				? m(IconButton, {
 					title: "appInfoAndroidImageAlt_alt",

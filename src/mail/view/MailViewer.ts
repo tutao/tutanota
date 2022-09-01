@@ -2,39 +2,27 @@ import {size} from "../../gui/size"
 import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import {windowFacade, windowSizeListener} from "../../misc/WindowFacade"
-import {FeatureType, InboxRuleType, Keys, MailFolderType, MailReportType, SpamRuleFieldType, SpamRuleType,} from "../../api/common/TutanotaConstants"
+import {FeatureType, InboxRuleType, Keys, MailFolderType, SpamRuleFieldType, SpamRuleType,} from "../../api/common/TutanotaConstants"
 import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
-import {InfoLink, lang} from "../../misc/LanguageViewModel"
+import {lang} from "../../misc/LanguageViewModel"
 import {assertMainOrNode, isDesktop} from "../../api/common/Env"
-import {Dialog} from "../../gui/base/Dialog"
 import {defer, DeferredObject, neverNull, noOp, ofClass,} from "@tutao/tutanota-utils"
-import {
-	createNewContact,
-	getExistingRuleForType,
-	getFolderIcon,
-	getFolderName,
-	getSortedCustomFolders,
-	getSortedSystemFolders,
-	isTutanotaTeamMail,
-} from "../model/MailUtils"
+import {createNewContact, getExistingRuleForType, isTutanotaTeamMail,} from "../model/MailUtils"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import type {Shortcut} from "../../misc/KeyManager"
 import {keyManager} from "../../misc/KeyManager"
 import {logins} from "../../api/main/LoginController"
 import {progressIcon} from "../../gui/base/Icon"
 import {Icons} from "../../gui/base/icons/Icons"
-import {LockedError} from "../../api/common/error/RestError"
 import {theme} from "../../gui/theme"
 import {client} from "../../misc/ClientDetector"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import {Button, ButtonType} from "../../gui/base/Button.js"
 import {styles} from "../../gui/styles"
-import {createAsyncDropdown, DropdownButtonAttrs, showDropdownAtPosition} from "../../gui/base/Dropdown.js"
+import {DropdownButtonAttrs, showDropdownAtPosition} from "../../gui/base/Dropdown.js"
 import {navButtonRoutes} from "../../misc/RouteChange"
 import type {InlineImageReference} from "./MailGuiUtils"
-import {moveMails, replaceCidsWithInlineImages} from "./MailGuiUtils"
+import {replaceCidsWithInlineImages} from "./MailGuiUtils"
 import {locator} from "../../api/main/MainLocator"
-import {getCoordsOfMouseOrTouchEvent, ifAllowedTutanotaLinks} from "../../gui/base/GuiUtils"
+import {getCoordsOfMouseOrTouchEvent} from "../../gui/base/GuiUtils"
 import {copyToClipboard} from "../../misc/ClipboardUtils";
 import {ContentBlockingStatus, MailViewerViewModel} from "./MailViewerViewModel"
 import {getListId} from "../../api/common/utils/EntityUtils"
@@ -48,6 +36,7 @@ import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
 import {MailViewerHeader} from "./MailViewerHeader.js"
+import {editDraft, showHeaderDialog} from "./MailViewerUtils.js"
 
 assertMainOrNode()
 // map of inline image cid to InlineImageReference
@@ -62,7 +51,7 @@ type MailAddressAndName = {
 }
 
 export type MailViewerAttrs = {
-	viewModel: MailViewerViewModel
+	viewModel: MailViewerViewModel,
 }
 
 /**
@@ -75,8 +64,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	/** it is set after we measured mail body element */
 	private bodyLineHeight: number | null = null
 
-	private mailHeaderDialog: Dialog
-	private mailHeaderInfo: string
 	private isScaling = true
 
 	private lastBodyTouchEndTime = 0
@@ -106,36 +93,16 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 	private shadowDomRoot: ShadowRoot | null = null
 	private currentlyRenderedMailBody: DocumentFragment | null = null
+	private lastContentBlockingStatus: ContentBlockingStatus | null = null
 
 	private loadAllListener = stream()
 
 	constructor(vnode: Vnode<MailViewerAttrs>) {
 		this.setViewModel(vnode.attrs.viewModel)
 
-		const closeAction = () => this.mailHeaderDialog.close()
-		this.mailHeaderInfo = ""
-		this.mailHeaderDialog = Dialog.largeDialog({
-			right: [
-				{
-					label: "ok_action",
-					click: closeAction,
-					type: ButtonType.Secondary,
-				},
-			],
-			middle: () => lang.get("mailHeaders_title"),
-		}, {
-			view: () => {
-				return m(".white-space-pre.pt.pb.selectable", this.mailHeaderInfo)
-			},
-		}).addShortcut({
-			key: Keys.ESC,
-			exec: closeAction,
-			help: "close_alt",
-		}).setCloseHandler(closeAction)
-
 		this.resizeListener = () => this.domBodyDeferred.promise.then(dom => this.updateLineHeight(dom))
 
-		this.shortcuts = this.setupShortcuts()
+		this.shortcuts = this.setupShortcuts(vnode.attrs)
 	}
 
 	oncreate() {
@@ -168,6 +135,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 			// Reset scaling status if it's a new email.
 			this.isScaling = true
+			this.lastContentBlockingStatus = null
 			this.viewModel.loadAll()
 
 			this.delayProgressSpinner = true
@@ -179,15 +147,17 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	view(vnode: Vnode<MailViewerAttrs>): Children {
+		this.handleContentBlockingOnRender()
 
+		const scrollingHeader = styles.isSingleColumnLayout()
 		return [
 			m(
-				"#mail-viewer.fill-absolute" + (client.isMobileDevice() ? ".scroll-no-overlay.overflow-x-hidden" : ".flex.flex-column"),
+				"#mail-viewer.fill-absolute" + (scrollingHeader ? ".scroll-no-overlay.overflow-x-hidden" : ".flex.flex-column"),
 				[
 					this.renderMailHeader(),
 					m(
 						".flex-grow.mlr-safe-inset.scroll-x.plr-l.pb-floating.pt" +
-						(client.isMobileDevice() ? "" : ".scroll-no-overlay") +
+						(scrollingHeader ? "" : ".scroll-no-overlay") +
 						(this.viewModel.isContrastFixNeeded() ? ".bg-white.content-black" : " "),
 						{
 							oncreate: (vnode) => {
@@ -201,15 +171,22 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		]
 	}
 
+	private handleContentBlockingOnRender() {
+		if (this.lastContentBlockingStatus != null && this.viewModel.getContentBlockingStatus() != this.lastContentBlockingStatus) {
+			Promise.resolve().then(async () => {
+				// Wait for new mail body to be rendered before replacing images. Probably not necessary anymore as we already schedule it after the render
+				// but better be safe.
+				m.redraw.sync()
+				await this.replaceInlineImages()
+			})
+		}
+		this.lastContentBlockingStatus = this.viewModel.getContentBlockingStatus()
+	}
+
 	private renderMailHeader() {
 		return m(MailViewerHeader, {
 			viewModel: this.viewModel,
 			createMailAddressContextButtons: this.createMailAddressContextButtons.bind(this),
-			onSetContentBlockingStatus: (status) => this.setContentBlockingStatus(status),
-			onEditDraft: () => this.editDraft(),
-			onReportMail: () => this.reportMail(),
-			onShowHeaders: () => this.showHeaders(),
-			onUnsubscribe: () => this.unsubscribe(),
 		})
 	}
 
@@ -390,98 +367,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		})
 	}
 
-	private unsubscribe(): Promise<void> {
-		return showProgressDialog("pleaseWait_msg", this.viewModel.unsubscribe())
-			.then(success => {
-				if (success) {
-					return Dialog.message("unsubscribeSuccessful_msg")
-				}
-			})
-			.catch(e => {
-				if (e instanceof LockedError) {
-					return Dialog.message("operationStillActive_msg")
-				} else {
-					return Dialog.message("unsubscribeFailed_msg")
-				}
-			})
-	}
-
-	private prepareMoveMailAction() {
-		return createAsyncDropdown({
-				lazyButtons: () =>
-					this.viewModel.mailModel.getMailboxFolders(this.viewModel.mail).then(folders => {
-						const filteredFolders = folders.filter(f => f.mails !== this.viewModel.getMailId()[0])
-						const targetFolders = getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders))
-						return targetFolders.map(f => {
-							return {
-								label: () => getFolderName(f),
-								click: () => moveMails({
-									mailModel: this.viewModel.mailModel,
-									mails: [this.viewModel.mail],
-									targetMailFolder: f
-								}),
-								icon: getFolderIcon(f)(),
-							}
-						})
-					})
-			},
-		)
-	}
-
-	private reportMail() {
-		const sendReport = (reportType: MailReportType) => {
-			this.viewModel.reportMail(reportType)
-				.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
-				.finally(m.redraw)
-		}
-
-		const dialog = Dialog.showActionDialog({
-			title: lang.get("reportEmail_action"),
-			child: () =>
-				m(
-					".flex.col.mt-m",
-					{
-						// So that space below buttons doesn't look huge
-						style: {
-							marginBottom: "-10px",
-						},
-					},
-					[
-						m("div", lang.get("phishingReport_msg")),
-						ifAllowedTutanotaLinks(InfoLink.Phishing, link =>
-							m(
-								"a.mt-s",
-								{
-									href: link,
-									target: "_blank",
-								},
-								lang.get("whatIsPhishing_msg"),
-							),
-						),
-						m(".flex-wrap.flex-end", [
-							m(Button, {
-								label: "reportPhishing_action",
-								click: () => {
-									sendReport(MailReportType.PHISHING)
-									dialog.close()
-								},
-								type: ButtonType.Secondary,
-							}),
-							m(Button, {
-								label: "reportSpam_action",
-								click: () => {
-									sendReport(MailReportType.SPAM)
-									dialog.close()
-								},
-								type: ButtonType.Secondary,
-							}),
-						]),
-					],
-				),
-			okAction: null,
-		})
-	}
-
 	private rescale(animate: boolean) {
 		const child = this.domBody
 		if (!client.isMobileDevice() || !child) {
@@ -505,21 +390,23 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		child.style.transformOrigin = "top left"
 	}
 
-	private setupShortcuts(): Array<Shortcut> {
+	private setupShortcuts(attrs: MailViewerAttrs): Array<Shortcut> {
 		const userController = logins.getUserController()
 		const shortcuts: Shortcut[] = [
 			{
 				key: Keys.E,
 				enabled: () => this.viewModel.isDraftMail(),
 				exec: () => {
-					this.editDraft()
+					editDraft(this.viewModel)
 				},
 				help: "editMail_action",
 			},
 			{
 				key: Keys.H,
 				enabled: () => !this.viewModel.isDraftMail(),
-				exec: () => this.showHeaders(),
+				exec: () => {
+					showHeaderDialog(this.viewModel.getHeaders())
+				},
 				help: "showHeaders_action",
 			},
 			{
@@ -662,15 +549,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		return buttons
 	}
 
-	private showHeaders() {
-		if (!this.mailHeaderDialog.visible) {
-			this.viewModel.getHeaders().then(headers => {
-				this.mailHeaderInfo = headers ?? lang.get("noMailHeadersInfo_msg")
-				this.mailHeaderDialog.show()
-			})
-		}
-	}
-
 	private handleDoubleTap(e: TouchEvent, singleClickAction: (e: TouchEvent) => void, doubleClickAction: (e: TouchEvent) => void) {
 		const lastClick = this.lastBodyTouchEndTime
 		const now = Date.now()
@@ -707,9 +585,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 	private async setContentBlockingStatus(status: ContentBlockingStatus) {
 		await this.viewModel.setContentBlockingStatus(status)
-		// Wait for new mail body to be rendered before replacing images
-		m.redraw.sync()
-		await this.replaceInlineImages()
 	}
 
 	private addSpamRule(defaultInboxRuleField: InboxRuleType | null, address: string) {
@@ -744,35 +619,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					field: spamRuleField,
 				}),
 			)
-		})
-	}
-
-	private editDraft(): Promise<void> {
-		return checkApprovalStatus(logins, false).then(sendAllowed => {
-			if (sendAllowed) {
-				// check if to be opened draft has already been minimized, iff that is the case, re-open it
-				const minimizedEditor = locator.minimizedMailModel.getEditorForDraft(this.viewModel.mail)
-
-				if (minimizedEditor) {
-					locator.minimizedMailModel.reopenMinimizedEditor(minimizedEditor)
-				} else {
-					return Promise.all([this.viewModel.mailModel.getMailboxDetailsForMail(this.viewModel.mail), import("../editor/MailEditor")])
-								  .then(([mailboxDetails, {newMailEditorFromDraft}]) => {
-									  return newMailEditorFromDraft(
-										  this.viewModel.mail,
-										  this.viewModel.getAttachments(),
-										  this.viewModel.getMailBody(),
-										  this.viewModel.isBlockingExternalImages(),
-										  this.viewModel.getLoadedInlineImages(),
-										  mailboxDetails,
-									  )
-								  })
-								  .then(editorDialog => {
-									  editorDialog.show()
-								  })
-								  .catch(ofClass(UserError, showUserError))
-				}
-			}
 		})
 	}
 

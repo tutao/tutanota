@@ -11,7 +11,7 @@ import {
 	ReplyType,
 	TUTANOTA_MAIL_ADDRESS_DOMAINS,
 } from "../../api/common/TutanotaConstants"
-import {assertNotNull, contains, endsWith, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
+import {assertNotNull, contains, endsWith, first, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
 import {assertMainOrNode, isDesktop} from "../../api/common/Env"
 import {LockedError, NotFoundError} from "../../api/common/error/RestError"
 import type {LoginController} from "../../api/main/LoginController"
@@ -20,6 +20,7 @@ import type {Language, TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {Icons} from "../../gui/base/icons/Icons"
 import type {MailboxDetail} from "./MailModel"
+import {MailModel} from "./MailModel"
 import type {lazyIcon} from "../../gui/base/Icon"
 import type {GroupInfo, User} from "../../api/entities/sys/TypeRefs.js"
 import {CustomerPropertiesTypeRef} from "../../api/entities/sys/TypeRefs.js"
@@ -28,6 +29,7 @@ import type {EntityClient} from "../../api/common/EntityClient"
 import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
 import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName} from "../../misc/parsing/MailAddressParser"
 import type {Attachment} from "../editor/SendMailModel"
+import {getListId} from "../../api/common/utils/EntityUtils.js"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"
@@ -77,21 +79,29 @@ export function getDisplayText(name: string | null, mailAddress: string, preferN
 	}
 }
 
+export function getSenderHeading(mail: Mail, preferNameOnly: boolean) {
+	if (isExcludedMailAddress(mail.sender.address)) {
+		return ""
+	} else {
+		return getDisplayText(mail.sender.name, mail.sender.address, preferNameOnly)
+	}
+}
+
+export function getRecipientHeading(mail: Mail, preferNameOnly: boolean) {
+	const allRecipients = mail.toRecipients.concat(mail.ccRecipients).concat(mail.bccRecipients)
+
+	if (allRecipients.length > 0) {
+		return getDisplayText(allRecipients[0].name, allRecipients[0].address, preferNameOnly) + (allRecipients.length > 1 ? ", ..." : "")
+	} else {
+		return ""
+	}
+}
+
 export function getSenderOrRecipientHeading(mail: Mail, preferNameOnly: boolean): string {
 	if (mail.state === MailState.RECEIVED) {
-		if (isExcludedMailAddress(mail.sender.address)) {
-			return ""
-		} else {
-			return getDisplayText(mail.sender.name, mail.sender.address, preferNameOnly)
-		}
+		return getSenderHeading(mail, preferNameOnly)
 	} else {
-		let allRecipients = mail.toRecipients.concat(mail.ccRecipients).concat(mail.bccRecipients)
-
-		if (allRecipients.length > 0) {
-			return getDisplayText(allRecipients[0].name, allRecipients[0].address, preferNameOnly) + (allRecipients.length > 1 ? ", ..." : "")
-		} else {
-			return ""
-		}
+		return getRecipientHeading(mail, preferNameOnly)
 	}
 }
 
@@ -421,4 +431,14 @@ export enum RecipientField {
 	TO = "to",
 	CC = "cc",
 	BCC = "bcc",
+}
+
+export async function getMoveTargetFolders(model: MailModel, mails: Mail[]): Promise<MailFolder[]> {
+	const firstMail = first(mails)
+	if (firstMail == null) return []
+
+	const folders = await model.getMailboxFolders(firstMail)
+	const filteredFolders = folders.filter(f => f.mails !== getListId(firstMail))
+	const targetFolders = getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders))
+	return targetFolders.filter(f => allMailsAllowedInsideFolder([firstMail], f))
 }

@@ -28,18 +28,23 @@ export const gestureInfoFromTouch = (touch: Touch): GestureInfo => ({
 	identifier: touch.identifier,
 })
 
+interface ViewSliderAttrs {
+	header: Children
+	bottomNav: Children
+}
+
 /**
  * Represents a view with multiple view columns. Depending on the screen width and the view columns configurations,
  * the actual widths and positions of the view columns is calculated. This allows a consistent layout for any browser
  * resolution on any type of device.
  */
-export class ViewSlider implements Component {
+export class ViewSlider implements Component<ViewSliderAttrs> {
 	columns: ViewColumn[]
 	private _mainColumn: ViewColumn
 	focusedColumn: ViewColumn
 	private _visibleBackgroundColumns: ViewColumn[]
 	private _domSlidingPart!: HTMLElement
-	view: Component["view"]
+	view: Component<ViewSliderAttrs>["view"]
 	private _busy: Promise<unknown>
 	private _parentName: string
 	private _isModalBackgroundVisible: boolean
@@ -56,7 +61,7 @@ export class ViewSlider implements Component {
 	resizeListener: windowSizeListener = () => this._updateVisibleBackgroundColumns()
 	_getSideColDom: () => HTMLElement | null = () => this.columns[0]._domColumn
 
-	constructor(header: Header, viewColumns: ViewColumn[], parentName: string) {
+	constructor(viewColumns: ViewColumn[], parentName: string) {
 		this.columns = viewColumns
 		this._mainColumn = neverNull(viewColumns.find(column => column.columnType === ColumnType.Background)) // the first background column is the main column
 
@@ -70,7 +75,7 @@ export class ViewSlider implements Component {
 		this._isModalBackgroundVisible = false
 		this.columns.forEach(column => column.setRole(this._getColumnRole(column)))
 
-		this.view = (): Children => {
+		this.view = ({attrs}): Children => {
 			const mainSliderColumns = this._getColumnsForMainSlider()
 
 			const allBackgroundColumnsAreVisible = this._visibleBackgroundColumns.length === mainSliderColumns.length
@@ -88,7 +93,7 @@ export class ViewSlider implements Component {
 					},
 				},
 				[
-					m(header),
+					attrs.header,
 					m(
 						".view-columns.flex-grow.rel",
 						{
@@ -108,7 +113,7 @@ export class ViewSlider implements Component {
 							}),
 						),
 					),
-					styles.isUsingBottomNavigation() ? m(BottomNav) : null,
+					styles.isUsingBottomNavigation() ? attrs.bottomNav : null,
 					this._getColumnsForOverlay().map(c => m(c, {})),
 					this._createModalBackground(),
 				],

@@ -106,7 +106,7 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 			m(TextField, {
 					label: "language_label",
 					value: this.model.selectedContent() ? getLanguageName(this.model.selectedContent()) : "",
-					injectionsRight: () => m(".flex.margin-between-s", [
+					injectionsRight: () => m(".flex.ml-between-s", [
 						this.model.getAddedLanguages().length > 1
 							? [this.renderRemoveLangButton(), this.renderSelectLangButton()]
 							: null,

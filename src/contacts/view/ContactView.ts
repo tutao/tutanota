@@ -45,6 +45,7 @@ import {attachDropdown, DropdownButtonAttrs} from "../../gui/base/Dropdown.js"
 import {showFileChooser} from "../../file/FileController.js"
 import {IconButton} from "../../gui/base/IconButton.js"
 import {ButtonSize} from "../../gui/base/ButtonSize.js"
+import {BottomNav} from "../../gui/nav/BottomNav.js"
 
 assertMainOrNode()
 
@@ -125,10 +126,13 @@ export class ContactView implements CurrentView {
 			contactColumnTitle,
 			() => lang.get("contacts_label") + " " + contactColumnTitle(),
 		)
-		this.viewSlider = new ViewSlider(header, [this.folderColumn, this.listColumn, this.contactColumn], "ContactView")
+		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.contactColumn], "ContactView")
 
 		this.view = (): Children => {
-			return m("#contact.main-view", [m(this.viewSlider)])
+			return m("#contact.main-view", m(this.viewSlider, {
+				header: m(header),
+				bottomNav: m(BottomNav),
+			}))
 		}
 
 		this._setupShortcuts()
@@ -605,7 +609,7 @@ export class ContactView implements CurrentView {
 					selectNoneHandler: () => {
 						contactList.list.selectNone()
 					},
-					selectedEntiesLength: contactList.list.getSelectedEntities().length,
+					text: String(contactList.list.getSelectedEntities().length),
 				}, m(ActionBar, {
 					buttons: this._multiContactViewer.createActionBarButtons(() => {
 						if (contactList) contactList.list.selectNone()

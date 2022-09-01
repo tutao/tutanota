@@ -4,7 +4,7 @@ import {client} from "../misc/ClientDetector"
 import {lang} from "../misc/LanguageViewModel"
 import {noselect, position_absolute, positionValue} from "./mixins"
 import {assertMainOrNodeBoot, isAdminClient, isApp, isElectronClient} from "../api/common/Env"
-import {getContentButtonIconBackground, getElevatedBackground, getNavigationMenuBg, theme} from "./theme"
+import {getElevatedBackground, getNavigationMenuBg, theme} from "./theme"
 import {BrowserType} from "../misc/ClientConstants"
 
 assertMainOrNodeBoot()
@@ -167,6 +167,9 @@ styles.registerStyle("main", () => {
 		},
 		".i": {
 			"font-style": "italic",
+		},
+		".uppercase": {
+			"text-transform": "uppercase"
 		},
 		".click": {
 			cursor: "pointer",
@@ -813,6 +816,9 @@ styles.registerStyle("main", () => {
 		".col-reverse": {
 			"flex-direction": "column-reverse",
 		},
+		".column-gap": {
+			"column-gap": px(size.hpad),
+		},
 		".flex": {
 			display: "flex",
 		},
@@ -935,6 +941,14 @@ styles.registerStyle("main", () => {
 		},
 		".border-radius": {
 			"border-radius": px(size.border_radius),
+		},
+		".border-radius-top": {
+			"border-top-left-radius": px(size.border_radius),
+			"border-top-right-radius": px(size.border_radius),
+		},
+		".border-radius-bottom": {
+			"border-bottom-left-radius": px(size.border_radius),
+			"border-bottom-right-radius": px(size.border_radius),
 		},
 		".editor-border": {
 			border: `1px solid ${theme.content_border}`,
@@ -1101,12 +1115,9 @@ styles.registerStyle("main", () => {
 			// box_shadow will be overruled by the views background, otherwise
 			"margin-top": "env(safe-area-inset-top)", // insets for iPhone X
 		},
-		"bottom-nav": {
+		"bottom-nav, .bottom-nav": {
 			"box-shadow": `0 -2px 4px 0 ${theme.header_box_shadow_bg}`,
 			height: positionValue(size.bottom_nav_bar),
-			left: 0,
-			right: 0,
-			bottom: 0,
 			background: theme.header_bg,
 			"margin-bottom": "env(safe-area-inset-bottom)",
 		},
@@ -1368,8 +1379,11 @@ styles.registerStyle("main", () => {
 			width: "initial",
 			"margin-left": "auto",
 		},
-		".margin-between-s > :not(:first-child)": {
+		".ml-between-s > :not(:first-child)": {
 			"margin-left": px(size.hpad_small),
+		},
+		".mt-between-s > :not(:first-child)": {
+			"margin-top": px(size.hpad_small),
 		},
 		// dropdown
 		".dropdown-panel": {
@@ -1471,9 +1485,8 @@ styles.registerStyle("main", () => {
 		},
 		".bubble": {
 			"max-width": "300px",
-			// make the visible button smaller by 7px without changing the actual click area
-			"border-radius": px(size.border_radius + (size.button_height - size.button_height_bubble) / 2),
-			border: `${px(size.bubble_border_width)} solid ${theme.content_bg}`,
+			"border-radius": px(size.border_radius),
+			"height": px(size.button_height_bubble),
 			"background-color": theme.button_bubble_bg,
 			color: theme.button_bubble_fg,
 		},
