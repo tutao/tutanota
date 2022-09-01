@@ -34,7 +34,6 @@ import {ConfigurationDatabase} from "../../api/worker/facades/ConfigurationDatab
 import {InlineImages} from "./MailViewer"
 import {isDesktop} from "../../api/common/Env"
 import stream from "mithril/stream"
-import Stream from "mithril/stream"
 import {addAll, contains, downcast, neverNull, noOp, ofClass, startsWith} from "@tutao/tutanota-utils"
 import {lang} from "../../misc/LanguageViewModel"
 import {
@@ -99,7 +98,6 @@ export class MailViewerViewModel {
 	private suspicious: boolean = false
 
 	private folderText: string | null
-	private readonly filesExpanded: Stream<boolean>
 
 	private warningDismissed: boolean = false
 
@@ -149,7 +147,6 @@ export class MailViewerViewModel {
 			desktopSystemFacade?.sendSocketMessage(this.mail.sender.address)
 		}
 
-		this.filesExpanded = stream<boolean>(false)
 
 		this.folderText = null
 		if (showFolder) {
@@ -400,7 +397,7 @@ export class MailViewerViewModel {
 
 		await this.entityClient
 				  .update(this.mail)
-				  .catch(e => this.setPhishingStatus(oldStatus))
+				  .catch(() => this.setPhishingStatus(oldStatus))
 	}
 
 	async reportMail(reportType: MailReportType): Promise<void> {
@@ -422,6 +419,26 @@ export class MailViewerViewModel {
 				throw e
 			}
 		}
+	}
+
+	canExport(): boolean {
+		return !this.isAnnouncement() && !this.logins.isEnabled(FeatureType.DisableMailExport)
+	}
+
+	canPrint(): boolean {
+		return !this.logins.isEnabled(FeatureType.DisableMailExport)
+	}
+
+	canReport(): boolean {
+		return this.getPhishingStatus() === MailPhishingStatus.UNKNOWN && !this.isTutanotaTeamMail() && this.logins.isInternalUserLoggedIn()
+	}
+
+	canShowHeaders(): boolean {
+		return this.logins.isInternalUserLoggedIn()
+	}
+
+	canPersistBlockingStatus(): boolean {
+		return locator.search.indexingSupported
 	}
 
 	async exportMail(): Promise<void> {
