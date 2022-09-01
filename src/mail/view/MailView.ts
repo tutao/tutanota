@@ -6,7 +6,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import type {ButtonAttrs} from "../../gui/base/Button.js"
 import {Button, ButtonColor, ButtonType} from "../../gui/base/Button.js"
 import type {NavButtonAttrs} from "../../gui/base/NavButton.js"
-import {isNavButtonSelected, isSelectedPrefix, NavButtonColor} from "../../gui/base/NavButton.js"
+import {isSelectedPrefix, NavButtonColor} from "../../gui/base/NavButton.js"
 import {createMailViewerViewModel, MailViewer} from "./MailViewer"
 import {Dialog} from "../../gui/base/Dialog"
 import {FeatureType, Keys, MailFolderType, OperationType} from "../../api/common/TutanotaConstants"
@@ -27,7 +27,6 @@ import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {
 	allMailsAllowedInsideFolder,
 	canDoDragAndDropExport,
-	emptyOrContainsDraftsAndNonDrafts,
 	getFolder,
 	getFolderIcon,
 	getFolderName,
@@ -45,16 +44,15 @@ import type {EntityUpdateData} from "../../api/main/EventController"
 import {isUpdateForTypeRef} from "../../api/main/EventController"
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {MAIL_PREFIX, navButtonRoutes, throttleRoute} from "../../misc/RouteChange"
-import {attachDropdown, DomRectReadOnlyPolyfilled, Dropdown} from "../../gui/base/Dropdown.js"
+import {attachDropdown} from "../../gui/base/Dropdown.js"
 import {MailFolderRow} from "./MailFolderRow"
 import {styles} from "../../gui/styles"
 import {size} from "../../gui/size"
 import {FolderColumnView} from "../../gui/FolderColumnView.js"
-import {modal} from "../../gui/base/Modal"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
-import {archiveMails, moveMails, moveToInbox, promptAndDeleteMails} from "./MailGuiUtils"
-import {getListId, isSameId} from "../../api/common/utils/EntityUtils"
+import {archiveMails, moveMails, moveToInbox, promptAndDeleteMails, showMoveMailsDropdown} from "./MailGuiUtils"
+import {isSameId} from "../../api/common/utils/EntityUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {SidebarSection} from "../../gui/SidebarSection"
 import {CancelledError} from "../../api/common/error/CancelledError"
@@ -63,6 +61,8 @@ import {MailViewerViewModel} from "./MailViewerViewModel"
 import {readLocalFiles} from "../../file/FileController.js"
 import {IconButton, IconButtonAttrs} from "../../gui/base/IconButton.js"
 import {ButtonSize} from "../../gui/base/ButtonSize.js"
+import {BottomNav} from "../../gui/nav/BottomNav.js"
+import {MobileMailActionBar} from "./MobileMailActionBar.js"
 
 assertMainOrNode()
 
@@ -189,7 +189,7 @@ export class MailView implements CurrentView {
 					".mail",
 					this.mailViewerViewModel != null
 						? m(MailViewer, {
-							viewModel: this.mailViewerViewModel
+							viewModel: this.mailViewerViewModel,
 						})
 						: m(this.multiMailViewer)
 				),
@@ -200,7 +200,7 @@ export class MailView implements CurrentView {
 			mailColumnTitle,
 			() => lang.get("email_label") + " " + mailColumnTitle(),
 		)
-		this.viewSlider = new ViewSlider(header, [this.folderColumn, this.listColumn, this.mailColumn], "MailView")
+		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.mailColumn], "MailView")
 
 		this.view = (): Children => {
 			return m(
@@ -238,7 +238,12 @@ export class MailView implements CurrentView {
 						ev.preventDefault()
 					},
 				},
-				m(this.viewSlider),
+				m(this.viewSlider, {
+					header: m(header),
+					bottomNav: styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.mailColumn && this.mailViewerViewModel
+						? m(MobileMailActionBar, {viewModel: this.mailViewerViewModel})
+						: m(BottomNav),
+				}),
 			)
 		}
 
@@ -314,6 +319,7 @@ export class MailView implements CurrentView {
 		return isNewMailActionAvailable() ? m(Button, openMailButtonAttrs) : null
 	}
 
+
 	_getShortcuts(): Array<Shortcut> {
 		return [
 			{
@@ -351,7 +357,8 @@ export class MailView implements CurrentView {
 			{
 				key: Keys.V,
 				exec: () => {
-					return this.moveMails()
+					this.moveMails()
+					return true
 				},
 				help: "move_action",
 			},
@@ -434,44 +441,20 @@ export class MailView implements CurrentView {
 		]
 	}
 
-	private moveMails(): boolean {
+	private moveMails() {
 		const mailList = this.mailList
 		if (mailList == null) {
-			return false
+			return
 		}
 
 		const selectedMails = mailList.list.getSelectedEntities()
-		if (emptyOrContainsDraftsAndNonDrafts(selectedMails)) { // do not move mails if no mails or mails cannot be moved together
-			return false
-		}
 
-		locator.mailModel.getMailboxFolders(selectedMails[0]).then(folders => {
-			let dropdown = new Dropdown(() => {
-				const mailList = getListId(selectedMails[0])
-
-				if (selectedMails.some(m => !isSameId(getListId(m), mailList))) {
-					return []
-				}
-
-				const filteredFolders = folders.filter(f => f.mails !== mailList)
-				return getSortedSystemFolders(filteredFolders)
-					.concat(getSortedCustomFolders(filteredFolders))
-					.filter(folder => allMailsAllowedInsideFolder(selectedMails, folder))
-					.map(f => ({
-						label: () => getFolderName(f),
-						click: () => moveMails({mailModel: locator.mailModel, mails: selectedMails, targetMailFolder: f}),
-					icon: getFolderIcon(f)(),
-					size: ButtonSize.Compact,
-					}))
-			}, 300)
-
-			// Render the dropdown at the position of the selected mails in the MailList
-			const bounds = mailList.list.getSelectionBounds()
-			const origin = new DomRectReadOnlyPolyfilled(bounds.left, bounds.top, bounds.width, 0)
-			dropdown.setOrigin(origin)
-			modal.displayUnique(dropdown)
-		})
-		return false
+		// Render the dropdown at the position of the selected mails in the MailList
+		showMoveMailsDropdown(
+			locator.mailModel,
+			mailList.list.getSelectionBounds(),
+			selectedMails
+		)
 	}
 
 	private async switchToFolder(folderType: MailFolderType): Promise<void> {
@@ -896,7 +879,7 @@ export class MailView implements CurrentView {
 		this.mailList?.list.isMobileMultiSelectionActionActive()
 			? m(MultiSelectionBar, {
 				selectNoneHandler: () => this.mailList?.list.selectNone(),
-				selectedEntiesLength: this.mailList.list.getSelectedEntities().length,
+				text: String(this.mailList.list.getSelectedEntities().length),
 			}, m(ActionBar, {buttons: this.actionBarButtons()}))
 			: null
 	}

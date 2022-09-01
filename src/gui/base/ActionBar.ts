@@ -16,7 +16,7 @@ export class ActionBar implements Component<ActionBarAttrs> {
 
 	view(vnode: Vnode<ActionBarAttrs>): Children {
 		return m(
-			".action-bar.flex-end.items-center.margin-between-s",
+			".action-bar.flex-end.items-center.ml-between-s",
 			vnode.attrs.buttons.map(b => m(IconButton, b)),
 		)
 	}

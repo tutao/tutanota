@@ -13,9 +13,9 @@ import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {isSameTypeRef, noOp, ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../../api/main/MainLocator"
 import {isSameId} from "../../api/common/utils/EntityUtils"
-import type {ButtonAttrs} from "../../gui/base/Button.js"
 import {MailViewerViewModel} from "../../mail/view/MailViewerViewModel"
 import {IconButtonAttrs} from "../../gui/base/IconButton.js"
+import {showHeaderDialog} from "../../mail/view/MailViewerUtils.js"
 
 assertMainOrNode()
 
@@ -46,10 +46,13 @@ export class SearchResultDetailsViewer {
 				}),
 			)
 		} else {
-			return this._viewer?.mode === "mail"
-				? m(MailViewer, {viewModel: this._viewer.viewModel})
-				: this._viewer != null
-					? m(this._viewer.viewer)
+			const viewer = this._viewer
+			return viewer?.mode === "mail"
+				? m(MailViewer, {
+					viewModel: viewer.viewModel,
+				})
+				: viewer != null
+					? m(viewer.viewer)
 					: null
 		}
 	}

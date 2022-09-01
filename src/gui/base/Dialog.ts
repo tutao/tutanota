@@ -212,18 +212,18 @@ export class Dialog implements ModalComponent {
 	}
 
 	_getDialogStyle(dialogType: DialogType): string {
-		let dialogStyle = ".dialog.elevated-bg.flex-grow.border-radius"
+		let dialogStyle = ".dialog.elevated-bg.flex-grow.border-radius-top"
 
 		if (dialogType === DialogType.Progress) {
-			dialogStyle += ".dialog-width-s.dialog-progress"
+			dialogStyle += ".dialog-width-s.dialog-progress.border-radius-bottom"
 		} else if (dialogType === DialogType.Alert) {
-			dialogStyle += ".dialog-width-alert.pt"
+			dialogStyle += ".dialog-width-alert.pt.border-radius-bottom"
 		} else if (dialogType === DialogType.Reminder) {
-			dialogStyle += ".dialog-width-m.pt.flex.flex-column"
+			dialogStyle += ".dialog-width-m.pt.flex.flex-column.border-radius-bottom"
 		} else if (dialogType === DialogType.EditSmall) {
-			dialogStyle += ".dialog-width-s.flex.flex-column"
+			dialogStyle += ".dialog-width-s.flex.flex-column.border-radius-bottom"
 		} else if (dialogType === DialogType.EditMedium) {
-			dialogStyle += ".dialog-width-m"
+			dialogStyle += ".dialog-width-m.border-radius-bottom"
 		} else if (dialogType === DialogType.EditLarge || dialogType === DialogType.EditLarger) {
 			dialogStyle += ".dialog-width-l"
 		}

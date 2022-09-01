@@ -53,6 +53,8 @@ import {SomeEntity} from "../../api/common/EntityTypes"
 import {DropDownSelector, SelectorItem} from "../../gui/base/DropDownSelector.js"
 import {IconButton} from "../../gui/base/IconButton.js"
 import {ButtonSize} from "../../gui/base/ButtonSize.js";
+import {BottomNav} from "../../gui/nav/BottomNav.js"
+import {MobileMailActionBar} from "../../mail/view/MobileMailActionBar.js"
 
 assertMainOrNode()
 
@@ -185,10 +187,15 @@ export class SearchView implements CurrentView {
 			size.third_col_min_width,
 			size.third_col_max_width,
 		)
-		this.viewSlider = new ViewSlider(header, [this.folderColumn, this.resultListColumn, this.resultDetailsColumn], "ContactView")
+		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn], "ContactView")
 
 		this.view = (): Children => {
-			return m("#search.main-view", m(this.viewSlider))
+			return m("#search.main-view", m(this.viewSlider, {
+				header: m(header),
+				bottomNav: styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.resultDetailsColumn && this.viewer._viewer?.mode === "mail"
+					? m(MobileMailActionBar, {viewModel: this.viewer._viewer.viewModel})
+					: m(BottomNav),
+			}))
 		}
 
 		this._setupShortcuts()
@@ -597,7 +604,7 @@ export class SearchView implements CurrentView {
 		return this.viewSlider.getVisibleBackgroundColumns().length === 1 && this.searchList.list && this.searchList.list.isMobileMultiSelectionActionActive()
 			? m(MultiSelectionBar, {
 				selectNoneHandler: () => this.searchList.selectNone(),
-				selectedEntiesLength: this.searchList.getSelectedEntities().length,
+				text: String(this.searchList.getSelectedEntities().length),
 			}, m(ActionBar, {
 				buttons: this.viewer.multiSearchActionBarButtons(),
 			}))

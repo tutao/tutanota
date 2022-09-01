@@ -299,7 +299,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			helpLabel: () => getConfidentialStateMessage(model.isConfidential()),
 			value: model.getSubject(),
 			oninput: val => model.setSubject(val),
-			injectionsRight: () => m(".flex.end.margin-between-s.items-center", {
+			injectionsRight: () => m(".flex.end.ml-between-s.items-center", {
 				style: {
 					// all this injection stuff is messy, this is the easiest way to center it
 					height: "40px",
@@ -452,10 +452,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					? this.renderPasswordFields()
 					: null,
 				m(".row", m(TextField, subjectFieldAttrs)),
-				m(
-					".flex-start.flex-wrap.ml-negative-RecipientInfoBubble",
-					attachmentButtonAttrs.map(a => m(Button, a)),
-				),
+				m(".flex-start.flex-wrap.column-gap", attachmentButtonAttrs.map(a => m(Button, a))),
 				model.getAttachments().length > 0 ? m("hr.hr") : null,
 				a.doShowToolbar() ? this.renderToolbar(model) : null,
 				m(

@@ -156,12 +156,12 @@ export class ContactFormRequestDialog {
 			},
 			[
 				m(".row", subject),
-				m(".flex-start.flex-wrap.ml-negative-bubble" + (this._attachmentButtonAttrs.length > 0 ? ".pt" : ""),
+				m(".flex-start.flex-wrap.column-gap" + (this._attachmentButtonAttrs.length > 0 ? ".pt" : ""),
 					!this._loadingAttachments
 						? this._attachmentButtonAttrs.map(attrs => m(Button, attrs))
 						: [m(".flex-v-center", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))],
 				),
-				this._attachmentButtonAttrs.length > 0 ? m("hr") : null,
+				this._attachmentButtonAttrs.length > 0 ? m("hr.hr") : null,
 				m(PasswordForm, {
 					model: this.passwordModel,
 					passwordInfoKey: "contactFormEnterPasswordInfo_msg"

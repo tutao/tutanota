@@ -61,6 +61,7 @@ import {attachDropdown} from "../gui/base/Dropdown.js"
 import {exportUserCsv} from "./UserDataExporter.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import {IconButton} from "../gui/base/IconButton.js"
+import {BottomNav} from "../gui/nav/BottomNav.js"
 
 assertMainOrNode()
 
@@ -358,10 +359,13 @@ export class SettingsView implements CurrentView {
 			2400,
 			() => lang.get("settings_label"),
 		)
-		this.viewSlider = new ViewSlider(header, [this._settingsFoldersColumn, this._settingsColumn, this._settingsDetailsColumn], "SettingsView")
+		this.viewSlider = new ViewSlider([this._settingsFoldersColumn, this._settingsColumn, this._settingsDetailsColumn], "SettingsView")
 
 		this.view = (): Vnode<any> => {
-			return m("#settings.main-view", m(this.viewSlider))
+			return m("#settings.main-view", m(this.viewSlider, {
+				header: m(header),
+				bottomNav: m(BottomNav),
+			}))
 		}
 
 		locator.eventController.addEntityListener(updates => {

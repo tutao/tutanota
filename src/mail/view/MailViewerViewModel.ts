@@ -160,7 +160,7 @@ export class MailViewerViewModel {
 
 		if (folder) {
 			this.mailModel.getMailboxDetailsForMail(this.mail).then(mailboxDetails => {
-				this.folderText = `${lang.get("location_label")}: ${getMailboxName(this.logins, mailboxDetails)} / ${getFolderName(folder)}`.toUpperCase()
+				this.folderText = `${getMailboxName(this.logins, mailboxDetails)} / ${getFolderName(folder)}`
 				m.redraw()
 			})
 		}

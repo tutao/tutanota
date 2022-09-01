@@ -51,6 +51,7 @@ import type Stream from "mithril/stream"
 import {IconButton} from "../../gui/base/IconButton.js"
 import {createDropdown} from "../../gui/base/Dropdown.js"
 import {ButtonSize} from "../../gui/base/ButtonSize.js"
+import {BottomNav} from "../../gui/nav/BottomNav.js"
 
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4
 export type GroupColors = Map<Id, string>
@@ -291,7 +292,7 @@ export class CalendarView implements CurrentView {
 				}[this._currentViewType]
 			},
 		)
-		this.viewSlider = new ViewSlider(header, [this.sidebarColumn, this.contentColumn], "CalendarView")
+		this.viewSlider = new ViewSlider([this.sidebarColumn, this.contentColumn], "CalendarView")
 
 		const shortcuts = this._setupShortcuts()
 
@@ -718,7 +719,10 @@ export class CalendarView implements CurrentView {
 	}
 
 	view(): Children {
-		return m(".main-view", m(this.viewSlider))
+		return m(".main-view", m(this.viewSlider, {
+			header: m(header),
+			bottomNav: m(BottomNav),
+		}))
 	}
 
 	updateUrl(args: Record<string, any>) {

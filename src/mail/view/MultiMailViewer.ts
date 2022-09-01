@@ -42,12 +42,14 @@ export class MultiMailViewer implements Component {
 
 		this.view = () => {
 			return [
-				m(
-					".fill-absolute.mt-xs.plr-l",
+				m(".fill-absolute.mt-xs",
 					mailView.mailList && mailView.mailList.list.getSelectedEntities().length > 0
 						? [
-							m(".button-height"), // just for the margin
-							m(".flex-space-between.mr-negative-s", [
+							m(".flex-space-between.pl-l", {
+								style: {
+									marginRight: "6px",
+								}
+							}, [
 								m(".flex.items-center", this._getMailSelectionMessage(mailView)),
 								m(ActionBar, {
 									buttons: this.getActionBarButtons(true),
@@ -82,11 +84,13 @@ export class MultiMailViewer implements Component {
 		const selectedMails = this._mailView.mailList?.list.getSelectedEntities() ?? []
 
 		const cancel: IconButtonAttrs[] = prependCancel ?
-			[{
-				title: "cancel_action",
-				click: () => this._mailView.mailList?.list.selectNone(),
-				icon: Icons.Cancel,
-			}]
+			[
+				{
+					title: "cancel_action",
+					click: () => this._mailView.mailList?.list.selectNone(),
+					icon: Icons.Cancel,
+				}
+			]
 			: []
 
 		// if we have both drafts and non-drafts selected, then there is no good place to move them besides deleting them since drafts otherwise only go to the drafts folder and non-drafts do not
@@ -104,7 +108,6 @@ export class MultiMailViewer implements Component {
 
 		return [
 			...cancel,
-			...move,
 			{
 				title: "delete_action",
 				click: () => {
@@ -112,6 +115,7 @@ export class MultiMailViewer implements Component {
 				},
 				icon: Icons.Trash,
 			},
+			...move,
 			attachDropdown(
 				{
 					mainButtonAttrs: {

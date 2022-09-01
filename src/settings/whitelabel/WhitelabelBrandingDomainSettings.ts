@@ -35,7 +35,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 			value: whitelabelDomain ? whitelabelDomain : lang.get("deactivated_label"),
 			helpLabel: this.renderWhitelabelInfo(certificateInfo),
 			disabled: true,
-			injectionsRight: () => m(".margin-between-s", [
+			injectionsRight: () => m(".ml-between-s", [
 				whitelabelDomain ? this.renderDeactivateButton(whitelabelDomain) : null,
 				customerInfo ? this._renderEditButton(customerInfo, certificateInfo, isWhitelabelFeatureEnabled) : null,
 			]),
