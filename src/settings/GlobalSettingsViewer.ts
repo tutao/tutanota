@@ -193,7 +193,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						],
 						dropdownWidth: 250
 					}),
-					logins.getUserController().isGlobalAdmin() && logins.getUserController().isPremiumAccount()
+					logins.getUserController().isGlobalAdmin()
 						? m("", [
 							m(DropDownSelector, {
 								label: "enforcePasswordUpdate_title",
