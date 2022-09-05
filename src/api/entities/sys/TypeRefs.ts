@@ -759,6 +759,49 @@ export type Customer = {
 	whitelabelChildren:  null | WhitelabelChildrenRef;
 	whitelabelParent:  null | WhitelabelParent;
 }
+export const CustomerAccountTerminationPostInTypeRef: TypeRef<CustomerAccountTerminationPostIn> = new TypeRef("sys", "CustomerAccountTerminationPostIn")
+
+export function createCustomerAccountTerminationPostIn(values?: Partial<CustomerAccountTerminationPostIn>): CustomerAccountTerminationPostIn {
+	return Object.assign(create(typeModels.CustomerAccountTerminationPostIn, CustomerAccountTerminationPostInTypeRef), values)
+}
+
+export type CustomerAccountTerminationPostIn = {
+	_type: TypeRef<CustomerAccountTerminationPostIn>;
+
+	_format: NumberString;
+	terminationDate: null | Date;
+}
+export const CustomerAccountTerminationPostOutTypeRef: TypeRef<CustomerAccountTerminationPostOut> = new TypeRef("sys", "CustomerAccountTerminationPostOut")
+
+export function createCustomerAccountTerminationPostOut(values?: Partial<CustomerAccountTerminationPostOut>): CustomerAccountTerminationPostOut {
+	return Object.assign(create(typeModels.CustomerAccountTerminationPostOut, CustomerAccountTerminationPostOutTypeRef), values)
+}
+
+export type CustomerAccountTerminationPostOut = {
+	_type: TypeRef<CustomerAccountTerminationPostOut>;
+
+	_format: NumberString;
+
+	terminationRequest: IdTuple;
+}
+export const CustomerAccountTerminationRequestTypeRef: TypeRef<CustomerAccountTerminationRequest> = new TypeRef("sys", "CustomerAccountTerminationRequest")
+
+export function createCustomerAccountTerminationRequest(values?: Partial<CustomerAccountTerminationRequest>): CustomerAccountTerminationRequest {
+	return Object.assign(create(typeModels.CustomerAccountTerminationRequest, CustomerAccountTerminationRequestTypeRef), values)
+}
+
+export type CustomerAccountTerminationRequest = {
+	_type: TypeRef<CustomerAccountTerminationRequest>;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerGroup: null | Id;
+	_permissions: Id;
+	terminationDate: Date;
+	terminationRequestDate: Date;
+
+	customer: Id;
+}
 export const CustomerDataTypeRef: TypeRef<CustomerData> = new TypeRef("sys", "CustomerData")
 
 export function createCustomerData(values?: Partial<CustomerData>): CustomerData {
@@ -822,6 +865,7 @@ export type CustomerInfo = {
 	domainInfos: DomainInfo[];
 	giftCards:  null | GiftCardsRef;
 	takeoverCustomer:  null | Id;
+	terminationRequest:  null | IdTuple;
 }
 export const CustomerInfoReturnTypeRef: TypeRef<CustomerInfoReturn> = new TypeRef("sys", "CustomerInfoReturn")
 

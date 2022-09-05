@@ -12,7 +12,7 @@ import {
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "./LanguageViewModel"
 import {assertMainOrNode, isDesktop, isOfflineStorageAvailable} from "../api/common/Env"
-import {ErrorInfo, neverNull, noOp} from "@tutao/tutanota-utils"
+import {neverNull, noOp} from "@tutao/tutanota-utils"
 import {logins} from "../api/main/LoginController"
 import {OutOfSyncError} from "../api/common/error/OutOfSyncError"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
@@ -68,8 +68,10 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		e instanceof AccessDeactivatedError ||
 		e instanceof AccessExpiredError
 	) {
-		// If we session is closed (e.g. password is changed) we log user out forcefully so we reload the page
-		logoutIfNoPasswordPrompt()
+		// If the session is closed (e.g. password is changed) we log user out forcefully so we reload the page
+		if (logins.isUserLoggedIn()) {
+			logoutIfNoPasswordPrompt()
+		}
 	} else if (e instanceof SessionExpiredError) {
 		reloginForExpiredSession()
 	} else if (e instanceof OutOfSyncError) {

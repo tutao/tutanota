@@ -188,7 +188,7 @@ export class MailIndexer {
 							t2.put(MetaDataOS, Metadata.mailIndexingEnabled, true)
 							t2.put(MetaDataOS, Metadata.excludedListIds, this._excludedListIds)
 
-							// create index in background, cancellation is handled in Indexer.enableMailIndexing
+							// create index in background, termination is handled in Indexer.enableMailIndexing
 							const oldestTimestamp = this._dateProvider.getStartOfDayShiftedBy(-INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime()
 
 							this.indexMailboxes(user, oldestTimestamp).catch(

@@ -968,3 +968,8 @@ export enum UsageTestParticipationMode {
 }
 
 export const UsageTestParticipationModeToName = reverse(UsageTestParticipationMode)
+
+export enum TerminationPeriodOptions {
+	EndOfCurrentPeriod = "0",
+	FutureDate = "1"
+}

@@ -30,6 +30,16 @@
 					"info": "RemoveValue GiftCard/country/1780."
 				}
 			]
+		},
+		{
+			"version": 79,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "CustomerInfo",
+					"info": "AddAssociation CustomerInfo/terminationRequest/LIST_ELEMENT_ASSOCIATION/2014."
+				}
+			]
 		}
 	]
 }

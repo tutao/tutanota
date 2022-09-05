@@ -1476,6 +1476,24 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+
+		"termination_action": "Terminate subscription",
+		"endOfCurrentSubscriptionPeriod": "End of current payment interval",
+		"futureDate": "Future date",
+		"termination_text": "Please provide the credentials for the account that you want to terminate.",
+		"terminationForm_title": "Termination form",
+		"terminationSuccessful_msg": "Your termination request for the account {accountName} was received on {receivedDate} and your account will be deleted on {deletionDate}.",
+		"terminationUseAccountUntilTermination_msg": "You can use the account until it is terminated.",
+		"terminationInvalidDate_msg": "The termination date must not be today or in the past.",
+		"terminationAlreadyCancelled_msg": "A termination request for this account has been made already.",
+		"terminationOptionEndOfSubscriptionInfo_msg": "Your account will be terminated after the end of your current payment interval. The subscription will not be renewed.",
+		"terminationOptionFutureDateInfo_msg": "Your account will be terminated at the provided date. Depending on your payment interval you might still be charged until that date.",
+		"terminationDateRequest_msg": "Specify a date when the account should be terminated.",
+		"terminationDateRequest_title": "Termination date",
+		"terminationNoActiveSubscription_msg": "There is no active subscription for this account.",
+		"termination_title": "Termination",
+
+
 	}
 }

@@ -20,6 +20,8 @@ import {WebauthnNativeBridge} from "./native/main/WebauthnNativeBridge"
 import {PostLoginActions} from "./login/PostLoginActions"
 import type {LoginView, LoginViewAttrs} from "./login/LoginView.js"
 import type {LoginViewModel} from "./login/LoginViewModel.js"
+import {TerminationView, TerminationViewAttrs} from "./termination/TerminationView.js"
+import {TerminationViewModel} from "./termination/TerminationViewModel.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -192,6 +194,22 @@ import("./translations/en")
 						}
 					},
 					prepareAttrs: (cache) => ({targetPath: "/mail", makeViewModel: cache.makeViewModel}),
+					requireLogin: false,
+				}),
+			termination: makeViewResolver<TerminationViewAttrs, TerminationView, {makeViewModel: () => TerminationViewModel}>(
+				{
+					prepareRoute: async () => {
+						const {TerminationViewModel} = await import("./termination/TerminationViewModel.js")
+						const {locator} = await import("./api/main/MainLocator")
+						const {TerminationView} = await import("./termination/TerminationView.js")
+						return {
+							component: TerminationView,
+							cache: {
+								makeViewModel: () => new TerminationViewModel(logins, locator.secondFactorHandler, locator.serviceExecutor, locator.entityClient)
+							}
+						}
+					},
+					prepareAttrs: (cache) => ({makeViewModel: cache.makeViewModel}),
 					requireLogin: false,
 				}),
 			contact: makeOldViewResolver(() => import("./contacts/view/ContactView.js").then(module => new module.ContactView())),

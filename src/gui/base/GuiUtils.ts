@@ -103,7 +103,7 @@ type Confirmation = {
  * Wrapper around Dialog.confirm
  *
  * call getConfirmation(...).confirmed(() => doStuff()) or getConfirmation(...).cancelled(() => doStuff())
- * to handle confirmation or cancellation
+ * to handle confirmation or termination
  * @param message
  * @param confirmMessage
  * @returns {Confirmation}

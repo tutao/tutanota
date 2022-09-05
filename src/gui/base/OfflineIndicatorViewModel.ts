@@ -148,7 +148,7 @@ export class OfflineIndicatorViewModel {
 		//getting the progress like this ensures that
 		// the progress bar and sync percentage are consistent
 		const a = this.getCurrentAttrs()
-		return this.isInit && a.state === OfflineIndicatorState.Synchronizing
+		return this.isInit && a.state === OfflineIndicatorState.Synchronizing && this.logins?.isUserLoggedIn()
 			? a.progress
 			: 1
 	}

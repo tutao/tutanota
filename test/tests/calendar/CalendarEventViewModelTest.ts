@@ -1685,7 +1685,7 @@ o.spec("CalendarEventViewModel", function () {
 			// @ts-ignore
 			o(distributor.sendInvite.calls.length).equals(1)("sent invite")
 			// @ts-ignore
-			o(distributor.sendCancellation.calls.length).equals(1)("sent cancellation")
+			o(distributor.sendCancellation.calls.length).equals(1)("sent termination")
 			o(askForUpdates.calls.length).equals(1)
 			o(askInsecurePassword.callCount).equals(0)
 		})
@@ -1746,7 +1746,7 @@ o.spec("CalendarEventViewModel", function () {
 			// @ts-ignore
 			o(distributor.sendInvite.calls.length).equals(0)("did not sent invite")
 			// @ts-ignore
-			o(distributor.sendCancellation.calls.length).equals(0)("did not sent cancellation")
+			o(distributor.sendCancellation.calls.length).equals(0)("did not sent termination")
 			o(askForUpdates.calls.length).equals(1)
 			o(askInsecurePassword.callCount).equals(0)
 		})

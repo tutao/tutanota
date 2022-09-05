@@ -4,6 +4,7 @@ import {typedKeys} from "@tutao/tutanota-utils"
 import {ProgrammingError} from "../../common/error/ProgrammingError.js"
 import {sys75} from "./migrations/sys-v75.js"
 import {sys76} from "./migrations/sys-v76.js"
+import {sys79} from "./migrations/sys-v79.js"
 
 export interface OfflineMigration {
 	readonly app: Apps
@@ -14,7 +15,8 @@ export interface OfflineMigration {
 /** List of migrations that will be run when needed. Please add your migrations to the list. */
 export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
 	sys75,
-	sys76
+	sys76,
+	sys79
 ]
 
 /**

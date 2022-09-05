@@ -20,12 +20,13 @@ import {ApprovalStatus, getCustomerApprovalStatus} from "../api/common/TutanotaC
 import type {ResetAction} from "../login/recover/RecoverLoginDialog"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {UserError} from "../api/main/UserError"
-import {ofClass} from "@tutao/tutanota-utils"
+import {noOp, ofClass} from "@tutao/tutanota-utils"
 import {showUserError} from "./ErrorHandlerImpl"
 import type {SubscriptionParameters} from "../subscription/UpgradeSubscriptionWizard"
 import {locator} from "../api/main/MainLocator"
 import {CredentialAuthenticationError} from "../api/common/error/CredentialAuthenticationError"
 import type {Params} from "mithril";
+import {LoginState} from "../login/LoginViewModel.js"
 
 /**
  * Shows warnings if the invoices are not paid or the registration is not approved yet.
@@ -156,6 +157,23 @@ export function handleExpectedLoginError<E extends Error>(error: E, handler: (er
 		handler(error)
 	} else {
 		throw error
+	}
+}
+
+export function getLoginErrorStateAndMessage(error: Error): {errorMessage: TranslationText, state: LoginState} {
+	let errorMessage = getLoginErrorMessage(error, false)
+	let state
+	if (error instanceof BadRequestError || error instanceof NotAuthenticatedError) {
+		state = LoginState.InvalidCredentials
+	} else if (error instanceof AccessExpiredError) {
+		state = LoginState.AccessExpired
+	} else {
+		state = LoginState.UnknownError
+	}
+	handleExpectedLoginError(error, noOp)
+	return {
+		errorMessage,
+		state
 	}
 }
 

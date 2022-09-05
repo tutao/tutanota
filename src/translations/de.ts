@@ -1480,6 +1480,23 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
-		"you_label": "Du"
+		"you_label": "Du",
+
+		"termination_action": "Account kündigen",
+		"endOfCurrentSubscriptionPeriod": "Zum Ende des Abrechnungszeitraums",
+		"futureDate": "Zeitpunkt auswählen",
+		"termination_text": "Bitte gib die Zugangsdaten für den Account an, den du kündigen möchtest.",
+		"terminationForm_title": "Kündigungsformular",
+		"terminationSuccessful_msg": "Deine Kündigung für den Account {accountName} haben wir am {receivedDate} erhalten. Der Account wir am {deletionDate} gelöscht.",
+		"terminationUseAccountUntilTermination_msg": "Du kannst den Account bis zu diesem Zeitpunkt nutzen.",
+		"terminationInvalidDate_msg": "Das ausgewählte Datum darf nicht heute oder in der Vergangenheit liegen.",
+		"terminationAlreadyCancelled_msg": "Der Account wurde bereits gekündigt.",
+		"terminationOptionEndOfSubscriptionInfo_msg": "Dein Account wird zum Ende des Abrechnungszeitraums gekündigt. Das Abonnement wird nicht verlängert.",
+		"terminationOptionFutureDateInfo_msg": "Dein Account wird zu dem angegebenen Zeitpunkt gekündigt. Abhängig vom ausgewählten Abrechnungszeitraum wird der Vertrag bis dahin verlängert.",
+		"terminationDateRequest_msg": "Gib ein Datum an, zu dem der Account gekündigt werden soll.",
+		"terminationDateRequest_title": "Kündigungsdatum",
+		"terminationNoActiveSubscription_msg": "Es gibt kein aktives Abonnement für diesen Account.",
+		"termination_title": "Kündigung",
+
 	}
 }

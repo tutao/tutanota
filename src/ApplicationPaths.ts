@@ -5,6 +5,7 @@ import {RouteResolver} from "mithril";
 export type ApplicationPaths = Record<string, RouteResolver>
 type ViewResolvers = {
 	login: RouteResolver
+	termination: RouteResolver
 	mail: RouteResolver
 	externalLogin: RouteResolver
 	contact: RouteResolver
@@ -20,6 +21,7 @@ type ViewResolvers = {
 
 export function applicationPaths({
 									 login,
+									 termination,
 									 mail,
 									 externalLogin,
 									 contact,
@@ -35,6 +37,7 @@ export function applicationPaths({
 ): ApplicationPaths {
 	return {
 		"/login": login,
+		"/termination": termination,
 		"/signup": signup,
 		"/recover": recover,
 		"/mailto": mail,

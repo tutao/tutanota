@@ -162,7 +162,8 @@ export function getChunkName(moduleId, {getModuleInfo}) {
 		return "polyfill-helpers"
 	} else if (moduleId.includes(path.normalize("src/settings")) ||
 		moduleId.includes(path.normalize("src/subscription")) ||
-		moduleId.includes(path.normalize("libs/qrcode"))) {
+		moduleId.includes(path.normalize("libs/qrcode")) ||
+		moduleId.includes(path.normalize("src/termination"))) {
 		// subscription and settings depend on each other right now.
 		// subscription is also a kitchen sink with signup, utils and views, we should break it up
 		return "settings"
@@ -254,7 +255,7 @@ export function bundleDependencyCheckPlugin() {
 					}
 					const ownChunk = getChunkName(moduleId, {getModuleInfo})
 					if (!allowedImports[ownChunk]) {
-						unknownChunks.push(`${ownChunk} of ${importedId}`)
+						unknownChunks.push(`${ownChunk} of ${moduleId}`)
 					}
 
 					for (const importedId of getModuleInfo(moduleId).importedIds) {

@@ -730,7 +730,7 @@ export class SendMailModel {
 			.catch(
 				ofClass(RecipientsNotFoundError, e => {
 					if (mailMethod === MailMethod.ICAL_CANCEL) {
-						// in case of calendar event cancellation we will remove invalid recipients and then delete the event without sending updates
+						// in case of calendar event termination we will remove invalid recipients and then delete the event without sending updates
 						throw e
 					} else {
 						let invalidRecipients = e.message

@@ -20,6 +20,7 @@ import {assertMainOrNode} from "../api/common/Env.js"
 import {OfflineIndicatorDesktop, OfflineIndicatorMobile} from "./base/OfflineIndicator.js"
 import {OfflineIndicatorViewModel} from "./base/OfflineIndicatorViewModel.js"
 import {ProgressBar} from "./base/ProgressBar.js"
+import {SessionType} from "../api/common/SessionType.js"
 
 const LogoutPath = "/login?noAutoLogin=true"
 export const LogoutUrl: string = window.location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : LogoutPath
@@ -76,7 +77,7 @@ export class Header implements Component {
 		return m(
 			".header-nav.overflow-hidden.flex.items-end.flex-center",
 			[
-				m(ProgressBar, {progress: this.offlineIndicatorModel.getProgress()}),
+				isNotTemporary() ? m(ProgressBar, {progress: this.offlineIndicatorModel.getProgress()}) : null,
 				injectedView
 					? m(".flex-grow", injectedView)
 					: [
@@ -84,7 +85,7 @@ export class Header implements Component {
 						this.renderCenterContent(),
 						this.renderRightContent()
 					],
-				styles.isUsingBottomNavigation() && logins.isAtLeastPartiallyLoggedIn() && !this.mobileSearchBarVisible() && !injectedView
+				styles.isUsingBottomNavigation() && logins.isAtLeastPartiallyLoggedIn() && !this.mobileSearchBarVisible() && !injectedView && isNotTemporary()
 					? m(OfflineIndicatorMobile, this.offlineIndicatorModel.getCurrentAttrs())
 					: null
 			],
@@ -135,7 +136,7 @@ export class Header implements Component {
 
 	private renderButtons(): Children {
 		// We assign click listeners to buttons to move focus correctly if the view is already open
-		return logins.isInternalUserLoggedIn() && isNotSignup()
+		return logins.isInternalUserLoggedIn()
 			? [
 				m(NavButton, {
 					label: "emails_label",
@@ -244,13 +245,19 @@ export class Header implements Component {
 			return header(lang.get("login_label"))
 		} else if (m.route.get().startsWith("/signup")) {
 			return header(lang.get("registrationHeadline_msg"))
+		} else if (m.route.get().startsWith("/termination")) {
+			return header(lang.get("termination_title"))
 		} else {
 			return null
 		}
 	}
 
 	private renderRightContent(): Children {
-		return styles.isUsingBottomNavigation() ? this.renderHeaderAction() : this.renderFullNavigation()
+		return isNotTemporary()
+			? styles.isUsingBottomNavigation()
+				? this.renderHeaderAction()
+				: this.renderFullNavigation()
+			: null
 	}
 
 	private renderMobileSearchBar(): Children {
@@ -370,8 +377,12 @@ export class Header implements Component {
 	}
 }
 
-function isNotSignup(): boolean {
-	return !m.route.get().startsWith("/signup") && !m.route.get().startsWith("/giftcard")
+/**
+ * Useful to decide whether to display several elements.
+ * @return true if the user is logged in with a non-temporary session, false otherwise
+ */
+function isNotTemporary(): boolean {
+	return logins.isUserLoggedIn() && logins.getUserController().sessionType !== SessionType.Temporary
 }
 
 export const header: Header = new Header()

@@ -15,6 +15,8 @@ import {CustomDomainCheckDataTypeRef} from "./TypeRefs.js"
 import {CustomDomainCheckReturnTypeRef} from "./TypeRefs.js"
 import {CustomDomainDataTypeRef} from "./TypeRefs.js"
 import {CustomDomainReturnTypeRef} from "./TypeRefs.js"
+import {CustomerAccountTerminationPostInTypeRef} from "./TypeRefs.js"
+import {CustomerAccountTerminationPostOutTypeRef} from "./TypeRefs.js"
 import {CustomerInfoReturnTypeRef} from "./TypeRefs.js"
 import {PublicKeyReturnTypeRef} from "./TypeRefs.js"
 import {CustomerDataTypeRef} from "./TypeRefs.js"
@@ -161,6 +163,15 @@ export const CustomDomainService = Object.freeze({
 	post: {data: CustomDomainDataTypeRef, return: CustomDomainReturnTypeRef},
 	put: {data: CustomDomainDataTypeRef, return: null},
 	delete: {data: CustomDomainDataTypeRef, return: null},
+} as const)
+
+export const CustomerAccountTerminationService = Object.freeze({
+	app: "sys",
+	name: "CustomerAccountTerminationService",
+	get: null,
+	post: {data: CustomerAccountTerminationPostInTypeRef, return: CustomerAccountTerminationPostOutTypeRef},
+	put: null,
+	delete: null,
 } as const)
 
 export const CustomerInfoService = Object.freeze({
