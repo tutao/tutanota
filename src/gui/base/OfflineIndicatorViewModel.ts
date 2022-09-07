@@ -80,11 +80,18 @@ export class OfflineIndicatorViewModel {
 	private async onWsStateChange(newState: WsConnectionState): Promise<void> {
 		this.lastWsState = newState
 		if (newState !== WsConnectionState.connected) {
-			await this.logins!.waitForPartialLogin()
 			const lastUpdate = await this.cacheStorage!.getLastUpdateTime()
-			this.lastUpdate = lastUpdate != null
-				? new Date(lastUpdate)
-				: null
+			switch (lastUpdate.type) {
+				case "recorded":
+					this.lastUpdate = new Date(lastUpdate.time)
+					break
+				case "never":
+				// We can get into uninitialized state after temporary login e.g. during signup
+				case "uninitialized":
+					this.lastUpdate = null
+					this.wsWasConnectedBefore = false
+					break
+			}
 
 		} else {
 			this.wsWasConnectedBefore = true

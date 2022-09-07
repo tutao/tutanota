@@ -1,7 +1,7 @@
 import {ElementEntity, ListElementEntity, SomeEntity} from "../../common/EntityTypes.js"
 import {EntityRestClient, typeRefToPath} from "./EntityRestClient.js"
 import {firstBiggerThanSecond, getElementId, getListId, isElementEntity} from "../../common/utils/EntityUtils.js"
-import {CacheStorage} from "./DefaultEntityRestCache.js"
+import {CacheStorage, LastUpdateTime} from "./DefaultEntityRestCache.js"
 import {clone, getFromMap, remove, TypeRef} from "@tutao/tutanota-utils"
 import {CustomCacheHandlerMap} from "./CustomCacheHandler.js"
 
@@ -210,8 +210,8 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 
-	async getLastUpdateTime(): Promise<number | null> {
-		return this.lastUpdateTime
+	async getLastUpdateTime(): Promise<LastUpdateTime> {
+		return this.lastUpdateTime ? {type: "recorded", time: this.lastUpdateTime} : {type: "never"}
 	}
 
 	async putLastUpdateTime(value: number): Promise<void> {

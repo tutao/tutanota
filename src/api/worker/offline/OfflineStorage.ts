@@ -8,7 +8,7 @@ import {
 	listIdPart,
 	timestampToGeneratedId
 } from "../../common/utils/EntityUtils.js"
-import {CacheStorage, expandId, ExposedCacheStorage} from "../rest/DefaultEntityRestCache.js"
+import {CacheStorage, expandId, ExposedCacheStorage, LastUpdateTime} from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
 import {EncodeOptions, Token, Type} from "cborg"
 import {assert, DAY_IN_MILLIS, getTypeId, groupByAndMap, mapNullable, TypeRef} from "@tutao/tutanota-utils"
@@ -217,8 +217,9 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async getLastUpdateTime(): Promise<number | null> {
-		return this.getMetadata("lastUpdateTime")
+	async getLastUpdateTime(): Promise<LastUpdateTime> {
+		const time = await this.getMetadata("lastUpdateTime")
+		return time ? {type: "recorded", time} : {type: "never"}
 	}
 
 	async putLastUpdateTime(ms: number): Promise<void> {
