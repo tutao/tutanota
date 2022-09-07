@@ -37,7 +37,7 @@ export class DrawerMenu implements Component<Attrs> {
 				logins.isUserLoggedIn() && showUsageDataOptInIndicator
 					?
 					m(".news-button", [
-						m(ButtonN, {
+						m(Button, {
 							icon: () => Icons.Bulb,
 							label: "news_label",
 							click: showUsageTestOptInDialog,

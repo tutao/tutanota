@@ -20,10 +20,9 @@ import {InfoLink, lang, TranslationKey} from "./LanguageViewModel"
 import stream from "mithril/stream"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {DropDownSelector, SelectorItem} from "../gui/base/DropDownSelector"
-import {UsageTestMetricType} from "../api/common/TutanotaConstants"
-import m, {Children, Component, Vnode} from "mithril"
+import m, {Children} from "mithril"
 import {isOfflineError} from "../api/common/utils/ErrorCheckUtils.js"
-import {ButtonAttrs, ButtonN, ButtonType} from "../gui/base/ButtonN.js"
+import {Button, ButtonAttrs, ButtonType} from "../gui/base/Button.js"
 import {LoginController, logins} from "../api/main/LoginController.js"
 import {locator} from "../api/main/MainLocator.js"
 import {CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
@@ -174,7 +173,7 @@ export function showUsageTestOptInDialog(): Promise<void> {
 				]),
 				m(
 					".flex-center.dialog-buttons.flex-no-grow-no-shrink-auto",
-					buttonAttrs.map(a => m(ButtonN, a)),
+					buttonAttrs.map(a => m(Button, a)),
 				),
 			],
 		})

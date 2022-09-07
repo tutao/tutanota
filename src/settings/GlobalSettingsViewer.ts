@@ -4,7 +4,7 @@ import {InfoLink, lang} from "../misc/LanguageViewModel"
 import {getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog} from "./AddSpamRuleDialog"
 import {getSpamRuleField, GroupType, OperationType, SpamRuleFieldType, SpamRuleType} from "../api/common/TutanotaConstants"
 import {getCustomMailDomains} from "../api/common/utils/Utils"
-import type {AuditLogEntry, Customer, CustomerInfo, CustomerProperties, CustomerServerProperties, DomainInfo, GroupInfo} from "../api/entities/sys/TypeRefs.js"
+import type {AuditLogEntry, Customer, CustomerInfo, CustomerServerProperties, DomainInfo, GroupInfo} from "../api/entities/sys/TypeRefs.js"
 import {
 	AuditLogEntryTypeRef,
 	createEmailSenderListElement,
@@ -75,8 +75,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	private saveIpAddress = false
 	private readonly usageDataExpanded = stream(false)
 	private readonly customerProperties = new LazyLoaded(() =>
-	locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))),
-)
+		locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))),
+	)
 
 	constructor() {
 		this.props.map(props => {
@@ -258,11 +258,11 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 							label: "customerUsageDataOptOut_label",
 							items: [
 								{
-									name: lang.get("activated_label"),
+									name: lang.get("customerUsageDataGloballyDeactivated_label"),
 									value: true,
 								},
 								{
-									name: lang.get("deactivated_label"),
+									name: lang.get("customerUsageDataGloballyPossible_label"),
 									value: false,
 								},
 							],
@@ -274,13 +274,10 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 									locator.entityClient.update(customerProps)
 								}
 							},
-							helpLabel: () => m("", [
-								lang.get("customerUsageDataOptOutInfo_msg"),
-							]),
 							dropdownWidth: 250,
 						})
 						: null
-				),
+				)
 			]),
 		]
 	}
