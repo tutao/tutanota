@@ -18,6 +18,12 @@ export class LoginListener {
 	) {
 	}
 
+	/** e.g. after temp logout */
+	reset() {
+		this.loginPromise = defer()
+		this.fullLoginFailed = false
+	}
+
 	waitForFullLogin(): Promise<void> {
 		return this.loginPromise.promise
 	}

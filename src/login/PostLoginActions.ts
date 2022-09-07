@@ -59,6 +59,7 @@ export class PostLoginActions implements IPostLoginAction {
 
 		// only show "Tutanota" after login if there is no custom title set
 		if (!logins.getUserController().isInternalUser()) {
+
 			if (document.title === LOGIN_TITLE) {
 				document.title = "Tutanota"
 			}
@@ -84,7 +85,7 @@ export class PostLoginActions implements IPostLoginAction {
 			hourCycle: getHourCycle(logins.getUserController().userSettingsGroupRoot),
 		})
 
-		if (!isAdminClient()) {
+		if (!isAdminClient() && loggedInEvent.sessionType !== SessionType.Temporary) {
 			await locator.mailModel.init()
 		}
 		if (isApp() || isDesktop()) {

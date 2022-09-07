@@ -83,6 +83,11 @@ export interface EntityRestCache extends EntityRestInterface {
 
 export type Range = {lower: Id, upper: Id}
 
+export type LastUpdateTime =
+	| {type: "recorded", time: number}
+	| {type: "never"}
+	| {type: "uninitialized"}
+
 /**
  * Part of the cache storage only with subset of CacheStorage functionality
  *
@@ -106,7 +111,7 @@ export interface ExposedCacheStorage {
 	 */
 	getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>>
 
-	getLastUpdateTime(): Promise<number | null>
+	getLastUpdateTime(): Promise<LastUpdateTime>
 }
 
 export interface CacheStorage extends ExposedCacheStorage {
@@ -251,11 +256,18 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 	async timeSinceLastSyncMs(): Promise<number | null> {
 		const lastUpdate = await this.storage.getLastUpdateTime()
-		if (lastUpdate == null) {
-			return null
+		let lastUpdateTime: number
+		switch (lastUpdate.type) {
+			case "recorded":
+				lastUpdateTime = lastUpdate.time
+				break
+			case "never":
+				return null
+			case "uninitialized":
+				throw new ProgrammingError("Offline storage is not initialized")
 		}
 		const now = this.getServerTimestampMs()
-		return now - lastUpdate
+		return now - lastUpdateTime
 	}
 
 	private getServerTimestampMs(): number {

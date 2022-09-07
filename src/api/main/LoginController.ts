@@ -83,7 +83,7 @@ export class LoginControllerImpl implements LoginController {
 	private fullyLoggedIn: boolean = false
 	private atLeastPartiallyLoggedIn: boolean = false
 
-	async init() {
+	init() {
 		this.waitForFullLogin().then(async () => {
 			this.fullyLoggedIn = true
 			await this.waitForPartialLogin()
@@ -256,6 +256,10 @@ export class LoginControllerImpl implements LoginController {
 			await this.userController.deleteSession(sync)
 			this.userController = null
 			this.partialLogin = defer()
+			this.fullyLoggedIn = false
+			const locator = await this.getMainLocator()
+			locator.loginListener.reset()
+			this.init()
 		} else {
 			console.log("No session to delete")
 		}
