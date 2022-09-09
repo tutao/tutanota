@@ -4,49 +4,40 @@ import {Icons} from "../gui/base/icons/Icons"
 import {logins} from "../api/main/LoginController"
 import {inputLineHeight, px, size} from "../gui/size"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {theme} from "../gui/theme"
 import {Icon} from "../gui/base/Icon"
 import {DefaultAnimationTime} from "../gui/animation/Animations"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import type {PositionRect} from "../gui/base/Overlay"
 import {displayOverlay} from "../gui/base/Overlay"
-import type {Mail} from "../api/entities/tutanota/TypeRefs.js"
-import {MailTypeRef} from "../api/entities/tutanota/TypeRefs.js"
-import type {Contact} from "../api/entities/tutanota/TypeRefs.js"
-import {ContactTypeRef} from "../api/entities/tutanota/TypeRefs.js"
+import type {Contact, Mail} from "../api/entities/tutanota/TypeRefs.js"
+import {ContactTypeRef, MailTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import type {Shortcut} from "../misc/KeyManager"
 import {keyManager} from "../misc/KeyManager"
 import {NotAuthorizedError, NotFoundError} from "../api/common/error/RestError"
 import {getRestriction, getSearchUrl, isAdministratedGroup, setSearchUrl} from "./model/SearchUtils"
 import {locator} from "../api/main/MainLocator"
 import {Dialog} from "../gui/base/Dialog"
-import type {GroupInfo} from "../api/entities/sys/TypeRefs.js"
-import {GroupInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
+import type {GroupInfo, WhitelabelChild} from "../api/entities/sys/TypeRefs.js"
+import {GroupInfoTypeRef, WhitelabelChildTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {FULL_INDEXED_TIMESTAMP, Keys, TabIndex} from "../api/common/TutanotaConstants"
 import {assertMainOrNode, isApp} from "../api/common/Env"
-import type {WhitelabelChild} from "../api/entities/sys/TypeRefs.js"
-import {WhitelabelChildTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {styles} from "../gui/styles"
 import {client} from "../misc/ClientDetector"
-import {debounce, downcast, noOp} from "@tutao/tutanota-utils"
+import {debounce, downcast, flat, groupBy, isSameTypeRef, mod, noOp, ofClass, promiseMap, TypeRef} from "@tutao/tutanota-utils"
 import {PageSize} from "../gui/base/List"
 import {BrowserType} from "../misc/ClientConstants"
 import {hasMoreResults} from "./model/SearchModel"
 import {SearchBarOverlay} from "./SearchBarOverlay"
-import {routeChange} from "../misc/RouteChange"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import {lang} from "../misc/LanguageViewModel"
 import {AriaLandmarks, landmarkAttrs} from "../gui/AriaUtils"
-import {flat, groupBy} from "@tutao/tutanota-utils"
 import type {SearchIndexStateInfo, SearchRestriction, SearchResult} from "../api/worker/search/SearchTypes"
 import type {ListElement} from "../api/common/utils/EntityUtils"
 import {elementIdPart, getElementId, listIdPart} from "../api/common/utils/EntityUtils"
-import {isSameTypeRef, TypeRef} from "@tutao/tutanota-utils"
 import {compareContacts} from "../contacts/view/ContactGuiUtils"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {LayerType} from "../RootView"
-import {mod} from "@tutao/tutanota-utils"
-import Stream from "mithril/stream";
 
 assertMainOrNode()
 export type ShowMoreAction = {
@@ -121,12 +112,23 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			},
 		}
 		let stateStream: Stream<void>
-		let routeChangeStream: Stream<void>
 		let lastQueryStream: Stream<void>
 		let indexStateStream: Stream<void>
 		let shortcuts: Shortcut[]
+		// a little optimization to not call getRestriction() on every redraw
+		let lastPath: string | null = null
 
 		this.view = (vnode: Vnode<SearchBarAttrs>): Children => {
+			const newPath = m.route.get()
+			if (lastPath == null || newPath !== lastPath) {
+				lastPath = newPath
+				if (locator.search.isNewSearch(this._state().query, getRestriction(newPath))) {
+					this._updateState({
+						searchResult: null,
+						entities: [],
+					})
+				}
+			}
 			return m(
 				".flex" + (vnode.attrs.classes || ""),
 				{
@@ -170,19 +172,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 									m.redraw()
 								})
-								routeChangeStream = routeChange.map(newRoute => {
-									try {
-										if (locator.search.isNewSearch(this._state().query, getRestriction(newRoute.requestedPath))) {
-											this._updateState({
-												searchResult: null,
-												entities: [],
-											})
-										}
-									} catch (e) {
-										// ignore error here because it might be called with settings url
-										// because routeChange is updated before SearchBar is removed from the DOM
-									}
-								})
 								lastQueryStream = locator.search.lastQuery.map(value => {
 									// Set value from the model when we it's set from the URL e.g. reloading the page on the search screen
 									if (value) {
@@ -197,21 +186,11 @@ export class SearchBar implements Component<SearchBarAttrs> {
 							onremove: () => {
 								shortcuts && keyManager.unregisterShortcuts(shortcuts)
 
-								if (stateStream) {
-									stateStream.end(true)
-								}
+								stateStream?.end(true)
 
-								if (routeChangeStream) {
-									routeChangeStream.end(true)
-								}
+								lastQueryStream?.end(true)
 
-								if (lastQueryStream) {
-									lastQueryStream.end(true)
-								}
-
-								if (indexStateStream) {
-									indexStateStream.end(true)
-								}
+								indexStateStream?.end(true)
 
 								this._closeOverlay()
 							},

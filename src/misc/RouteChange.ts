@@ -1,15 +1,7 @@
-import stream from "mithril/stream"
 import m from "mithril"
 import {assertMainOrNodeBoot} from "../api/common/Env"
-import Stream from "mithril/stream";
 
 assertMainOrNodeBoot()
-export type RouteChangeEvent = {
-	args: Record<string, any>
-	requestedPath: string
-	currentPath: string
-}
-export const routeChange: Stream<RouteChangeEvent> = stream()
 
 export function throttleRoute(): (url: string) => void {
 	const limit = 200

@@ -1,6 +1,6 @@
 import m, {Children, Component} from "mithril"
 import {NavBar} from "./base/NavBar.js"
-import {NavButtonColor, NavButton} from "./base/NavButton.js"
+import {NavButton, NavButtonColor} from "./base/NavButton.js"
 import {styles} from "./styles.js"
 import {neverNull} from "@tutao/tutanota-utils"
 import type {Shortcut} from "../misc/KeyManager.js"
@@ -13,7 +13,6 @@ import {px, size as sizes} from "./size.js"
 import {BootIcons} from "./base/icons/BootIcons.js"
 import type {SearchBar} from "../search/SearchBar.js"
 import type {IMainLocator} from "../api/main/MainLocator.js"
-import {client} from "../misc/ClientDetector.js"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../misc/RouteChange.js"
 import {AriaLandmarks, landmarkAttrs} from "./AriaUtils.js"
 import type {ViewSlider} from "./nav/ViewSlider.js"
@@ -26,8 +25,14 @@ const LogoutPath = "/login?noAutoLogin=true"
 export const LogoutUrl: string = window.location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : LogoutPath
 assertMainOrNode()
 
-export interface CurrentView extends Component {
-	updateUrl(args: Record<string, any>, requestedPath: string): void
+export interface TopLevelAttrs {
+	requestedPath: string,
+	args: Record<string, any>
+}
+
+export interface CurrentView<Attrs extends TopLevelAttrs = TopLevelAttrs> extends Component<Attrs> {
+	/** Called when URL is updated. Optional as is only needed for old-style components (the ones we instantiate manually) */
+	updateUrl?(args: Record<string, any>, requestedPath: string): void
 
 	readonly headerView?: () => Children
 	readonly headerRightView?: () => Children

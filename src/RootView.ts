@@ -22,11 +22,8 @@ export const enum LayerType {
 
 export class RootView {
 	view: (...args: Array<any>) => any
-	viewCache: Record<string, (...args: Array<any>) => any>
 
 	constructor() {
-		this.viewCache = {}
-
 		// On first mouse event disable outline. This is a compromise between keyboard navigation users and mouse users.
 		let onmousedown: ((e: EventRedraw<MouseEvent>) => unknown) | null = (e) => {
 			if (onmousedown) {

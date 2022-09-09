@@ -1,5 +1,4 @@
 import m, {ChildArray, Children, Vnode} from "mithril"
-import stream from "mithril/stream"
 import {client} from "../misc/ClientDetector"
 import {assertMainOrNode, isApp, isDesktop, isTutanotaDomain} from "../api/common/Env"
 import {InfoLink, lang} from "../misc/LanguageViewModel"
@@ -11,10 +10,9 @@ import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {windowFacade} from "../misc/WindowFacade"
 import {DeviceType} from "../misc/ClientConstants"
 import {Button, ButtonAttrs, ButtonType} from "../gui/base/Button.js"
-import {CurrentView, header} from "../gui/Header.js"
+import {CurrentView, header, TopLevelAttrs} from "../gui/Header.js"
 import {AriaLandmarks, landmarkAttrs, liveDataAttrs} from "../gui/AriaUtils"
-import type {ILoginViewModel} from "./LoginViewModel"
-import {DisplayMode, LoginState} from "./LoginViewModel"
+import {DisplayMode, LoginState, LoginViewModel} from "./LoginViewModel"
 import {LoginForm} from "./LoginForm"
 import {CredentialsSelector} from "./CredentialsSelector"
 import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
@@ -22,74 +20,83 @@ import {themeController} from "../gui/theme"
 import {createAsyncDropdown, createDropdown} from "../gui/base/Dropdown.js"
 import type {clickHandler} from "../gui/base/GuiUtils"
 import {showLogsDialog} from "./LoginLogDialog.js"
+import {BaseTopLevelView} from "../gui/BaseTopLevelView.js"
 
 assertMainOrNode()
 
-export class LoginView implements CurrentView {
-	readonly view: CurrentView["view"]
-	readonly _viewModel: ILoginViewModel
-	readonly _moreExpanded: stream<boolean>
+
+export interface LoginViewAttrs extends TopLevelAttrs {
+	/** Default path to redirect to after the login. Can be overridden with query param `requestedPath`. */
+	targetPath: string
+	makeViewModel: () => LoginViewModel,
+
+}
+
+export class LoginView extends BaseTopLevelView implements CurrentView<LoginViewAttrs> {
+	private readonly viewModel: LoginViewModel
+	private readonly defaultRedirect: string
+	private readonly initPromise: Promise<void>
+
+	private moreExpanded: boolean
 	// we save the login form because we need access to the password input field inside of it for when "loginWith" is set in the url,
 	// in order to focus it
-	loginForm: DeferredObject<LoginForm>
-	readonly _targetPath: string
-	_requestedPath: string // redirect to this path after successful login (defined in app.js)
+	private loginForm: DeferredObject<LoginForm>
+	private selectedRedirect: string
+	private bottomMargin = 0
 
-	/**
-	 * @param viewModel
-	 * @param targetPath which path should the app be redirected to after login is completed
-	 */
-	constructor(viewModel: ILoginViewModel, targetPath: string) {
-		this._viewModel = viewModel
-		this._targetPath = targetPath
-		this._requestedPath = this._targetPath
+	constructor({attrs}: Vnode<LoginViewAttrs>) {
+		super()
+		this.defaultRedirect = attrs.targetPath
+		this.selectedRedirect = this.defaultRedirect
+
 		this.loginForm = defer()
-		this._moreExpanded = stream<boolean>(false)
-		let bottomMargin = 0
+		this.moreExpanded = false
+		this.viewModel = attrs.makeViewModel()
+		this.initPromise = this.viewModel.init().then(m.redraw)
+	}
 
-		const keyboardListener = (keyboardSize: number) => {
-			bottomMargin = keyboardSize
-			m.redraw()
-		}
+	keyboardListener = (keyboardSize: number) => {
+		this.bottomMargin = keyboardSize
+		m.redraw()
+	}
 
-		this.view = (): Children => {
-			return m(
-				"#login-view.main-view.flex.col",
-				{
-					oncreate: () => windowFacade.addKeyboardSizeListener(keyboardListener),
-					onremove: () => windowFacade.removeKeyboardSizeListener(keyboardListener),
-					style: {
-						marginBottom: bottomMargin + "px",
-					},
+	view({attrs}: Vnode<LoginViewAttrs>) {
+		return m(
+			"#login-view.main-view.flex.col",
+			{
+				oncreate: () => windowFacade.addKeyboardSizeListener(this.keyboardListener),
+				onremove: () => windowFacade.removeKeyboardSizeListener(this.keyboardListener),
+				style: {
+					marginBottom: this.bottomMargin + "px",
 				},
-				[
-					m(header),
+			},
+			[
+				m(header),
+				m(
+					".flex-grow.flex-center.scroll",
 					m(
-						".flex-grow.flex-center.scroll",
-						m(
-							".flex-grow-shrink-auto.max-width-s.pt.plr-l" + landmarkAttrs(AriaLandmarks.Main, lang.get("login_label")),
-							{
-								oncreate: vnode => {
-									(vnode.dom as HTMLElement).focus()
-								},
-								style: {
-									// width: workaround for IE11 which does not center the area, otherwise
-									width: client.isDesktopDevice() ? "360px" : null,
-								},
+						".flex-grow-shrink-auto.max-width-s.pt.plr-l" + landmarkAttrs(AriaLandmarks.Main, lang.get("login_label")),
+						{
+							oncreate: vnode => {
+								(vnode.dom as HTMLElement).focus()
 							},
-							[
-								this._viewModel.displayMode === DisplayMode.Credentials || this._viewModel.displayMode === DisplayMode.DeleteCredentials
-									? this._renderCredentialsSelector()
-									: this._renderLoginForm(),
-								!(isApp() || isDesktop()) && isTutanotaDomain() ? this._renderAppButtons() : null,
-								this._anyMoreItemVisible() ? this._renderOptionsExpander() : null,
-								renderInfoLinks(),
-							],
-						),
+							style: {
+								// width: workaround for IE11 which does not center the area, otherwise
+								width: client.isDesktopDevice() ? "360px" : null,
+							},
+						},
+						[
+							this.viewModel.displayMode === DisplayMode.Credentials || this.viewModel.displayMode === DisplayMode.DeleteCredentials
+								? this._renderCredentialsSelector()
+								: this._renderLoginForm(),
+							!(isApp() || isDesktop()) && isTutanotaDomain() ? this._renderAppButtons() : null,
+							this._anyMoreItemVisible() ? this._renderOptionsExpander() : null,
+							renderInfoLinks(),
+						],
 					),
-				],
-			)
-		}
+				),
+			],
+		)
 	}
 
 	_renderOptionsExpander(): Children {
@@ -98,14 +105,14 @@ export class LoginView implements CurrentView {
 				".flex-center.pt-l",
 				m(ExpanderButton, {
 					label: "more_label",
-					expanded: this._moreExpanded(),
-					onExpandedChange: this._moreExpanded,
+					expanded: this.moreExpanded,
+					onExpandedChange: (v) => this.moreExpanded = v,
 				}),
 			),
 			m(
 				ExpanderPanel,
 				{
-					expanded: this._moreExpanded(),
+					expanded: this.moreExpanded,
 				},
 				[
 					m(".flex-center.flex-column", [
@@ -114,13 +121,13 @@ export class LoginView implements CurrentView {
 								label: "loginOtherAccount_action",
 								type: ButtonType.Secondary,
 								click: () => {
-									this._viewModel.showLoginForm()
+									this.viewModel.showLoginForm()
 								},
 							})
 							: null,
 						this._deleteCredentialsLinkVisible()
 							? m(Button, {
-								label: this._viewModel.displayMode === DisplayMode.DeleteCredentials ? "cancel_action" : "deleteCredentials_action",
+								label: this.viewModel.displayMode === DisplayMode.DeleteCredentials ? "cancel_action" : "deleteCredentials_action",
 								type: ButtonType.Secondary,
 								click: () => this._switchDeleteCredentialsState(),
 							})
@@ -129,7 +136,7 @@ export class LoginView implements CurrentView {
 							? m(Button, {
 								label: "knownCredentials_label",
 								type: ButtonType.Secondary,
-								click: () => this._viewModel.showCredentials(),
+								click: () => this.viewModel.showCredentials(),
 							})
 							: null,
 						this._signupLinkVisible()
@@ -194,19 +201,19 @@ export class LoginView implements CurrentView {
 	}
 
 	_signupLinkVisible(): boolean {
-		return this._viewModel.displayMode === DisplayMode.Form && (isTutanotaDomain() || getWhitelabelRegistrationDomains().length > 0)
+		return this.viewModel.displayMode === DisplayMode.Form && (isTutanotaDomain() || getWhitelabelRegistrationDomains().length > 0)
 	}
 
 	_loginAnotherLinkVisible(): boolean {
-		return this._viewModel.displayMode === DisplayMode.Credentials || this._viewModel.displayMode === DisplayMode.DeleteCredentials
+		return this.viewModel.displayMode === DisplayMode.Credentials || this.viewModel.displayMode === DisplayMode.DeleteCredentials
 	}
 
 	_deleteCredentialsLinkVisible(): boolean {
-		return this._viewModel.displayMode === DisplayMode.Credentials || this._viewModel.displayMode === DisplayMode.DeleteCredentials
+		return this.viewModel.displayMode === DisplayMode.Credentials || this.viewModel.displayMode === DisplayMode.DeleteCredentials
 	}
 
 	_knownCredentialsLinkVisible(): boolean {
-		return this._viewModel.displayMode === DisplayMode.Form && this._viewModel.getSavedCredentials().length > 0
+		return this.viewModel.displayMode === DisplayMode.Form && this.viewModel.getSavedCredentials().length > 0
 	}
 
 	_switchThemeLinkVisible(): boolean {
@@ -240,39 +247,39 @@ export class LoginView implements CurrentView {
 			},
 			m(LoginForm, {
 				onSubmit: () => this._loginWithProgressDialog(),
-				mailAddress: this._viewModel.mailAddress,
-				password: this._viewModel.password,
-				savePassword: this._viewModel.savePassword,
-				helpText: lang.getMaybeLazy(this._viewModel.helpText),
-				invalidCredentials: this._viewModel.state === LoginState.InvalidCredentials,
+				mailAddress: this.viewModel.mailAddress,
+				password: this.viewModel.password,
+				savePassword: this.viewModel.savePassword,
+				helpText: lang.getMaybeLazy(this.viewModel.helpText),
+				invalidCredentials: this.viewModel.state === LoginState.InvalidCredentials,
 				showRecoveryOption: this._recoverLoginVisible(),
-				accessExpired: this._viewModel.state === LoginState.AccessExpired,
+				accessExpired: this.viewModel.state === LoginState.AccessExpired,
 			}),
 		)
 	}
 
 	async _loginWithProgressDialog() {
-		await showProgressDialog("login_msg", this._viewModel.login())
+		await showProgressDialog("login_msg", this.viewModel.login())
 		m.redraw()
 
-		if (this._viewModel.state === LoginState.LoggedIn) {
-			m.route.set(this._requestedPath)
+		if (this.viewModel.state === LoginState.LoggedIn) {
+			m.route.set(this.selectedRedirect)
 		}
 	}
 
 	_renderCredentialsSelector(): Children {
 		return [
-			m(".small.center.statusTextColor.pt" + liveDataAttrs(), lang.getMaybeLazy(this._viewModel.helpText)),
+			m(".small.center.statusTextColor.pt" + liveDataAttrs(), lang.getMaybeLazy(this.viewModel.helpText)),
 			m(CredentialsSelector, {
-				credentials: this._viewModel.getSavedCredentials(),
+				credentials: this.viewModel.getSavedCredentials(),
 				onCredentialsSelected: async c => {
-					await this._viewModel.useCredentials(c)
+					await this.viewModel.useCredentials(c)
 					await this._loginWithProgressDialog()
 				},
 				onCredentialsDeleted:
-					this._viewModel.displayMode === DisplayMode.DeleteCredentials
+					this.viewModel.displayMode === DisplayMode.DeleteCredentials
 						? credentials => {
-							this._viewModel.deleteCredentials(credentials).then(() => m.redraw())
+							this.viewModel.deleteCredentials(credentials).then(() => m.redraw())
 						}
 						: null,
 			}),
@@ -320,29 +327,33 @@ export class LoginView implements CurrentView {
 		])
 	}
 
-	updateUrl(args: Record<string, any>, requestedPath: string) {
+	onNewUrl(args: Record<string, any>, requestedPath: string) {
 		if (args.requestedPath) {
-			this._requestedPath = args.requestedPath
+			this.selectedRedirect = args.requestedPath
 		} else if (args.action) {
 			// Action needs be forwarded this way in order to be able to deal with cases where a user is not logged in and clicks
 			// on the support link on our website (https://mail.tutanota.com?action=supportMail)
-			this._requestedPath = `/mail?action=${args.action}`
+			this.selectedRedirect = `/mail?action=${args.action}`
 		} else {
-			this._requestedPath = this._targetPath
+			this.selectedRedirect = this.defaultRedirect
 		}
-
-		this._handleLoginArguments(args)
+		this.handleLoginArguments(args, requestedPath)
 	}
 
-	async _handleLoginArguments(args: Record<string, any>) {
+	private async handleLoginArguments(args: Record<string, any>, requestedPath: string) {
+		await this.initPromise
+		// since we wait for something async here the URL might have already changed and
+		// we shouldn't handle any outdated URL changes.
+		if (m.route.get() !== requestedPath) return
+
 		const autoLogin = args.noAutoLogin == null || args.noAutoLogin === false
 
 		if (autoLogin) {
 			if (args.userId) {
-				await this._viewModel.useUserId(args.userId)
+				await this.viewModel.useUserId(args.userId)
 			}
 
-			if (this._viewModel.canLogin()) {
+			if (this.viewModel.canLogin()) {
 				this._loginWithProgressDialog()
 
 				m.redraw()
@@ -351,12 +362,12 @@ export class LoginView implements CurrentView {
 		}
 
 		if (args.loginWith) {
-			this._viewModel.showLoginForm()
+			this.viewModel.showLoginForm()
 		}
 
-		this._viewModel.mailAddress(args.loginWith ?? "")
+		this.viewModel.mailAddress(args.loginWith ?? "")
 
-		this._viewModel.password("")
+		this.viewModel.password("")
 
 		// We want to focus password field if login field is already filled in
 		if (args.loginWith) {
@@ -373,7 +384,7 @@ export class LoginView implements CurrentView {
 	}
 
 	_switchDeleteCredentialsState(): void {
-		this._viewModel.switchDeleteState()
+		this.viewModel.switchDeleteState()
 	}
 }
 

@@ -1,14 +1,12 @@
 import {client} from "./misc/ClientDetector"
-import m, {Component, RouteDefs, RouteResolver} from "mithril"
+import m, {Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM} from "mithril"
 import {lang, languageCodeToTag, languages} from "./misc/LanguageViewModel"
 import {root} from "./RootView"
 import {disableErrorHandlingDuringLogout, handleUncaughtError} from "./misc/ErrorHandler"
 import "./gui/main-styles"
 import {assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isOfflineStorageAvailable, isTutanotaDomain} from "./api/common/Env"
 import {logins} from "./api/main/LoginController"
-import type {lazy} from "@tutao/tutanota-utils"
 import {assertNotNull, neverNull} from "@tutao/tutanota-utils"
-import {routeChange} from "./misc/RouteChange"
 import {windowFacade} from "./misc/WindowFacade"
 import {styles} from "./gui/styles"
 import {deviceConfig} from "./misc/DeviceConfig"
@@ -16,10 +14,12 @@ import {Logger, replaceNativeLogger} from "./api/common/Logger"
 import {init as initSW} from "./serviceworker/ServiceWorkerClient"
 import {applicationPaths} from "./ApplicationPaths"
 import {ProgrammingError} from "./api/common/error/ProgrammingError"
-import {CurrentView} from "./gui/Header.js"
+import {CurrentView, TopLevelAttrs} from "./gui/Header.js"
 import {NativeWebauthnView} from "./login/NativeWebauthnView"
 import {WebauthnNativeBridge} from "./native/main/WebauthnNativeBridge"
 import {PostLoginActions} from "./login/PostLoginActions"
+import type {LoginView, LoginViewAttrs} from "./login/LoginView.js"
+import type {LoginViewModel} from "./login/LoginViewModel.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -109,6 +109,7 @@ if (!isDesktop() && typeof navigator.registerProtocolHandler === "function") {
 	}
 }
 
+
 import("./translations/en")
 	.then(en => lang.init(en.default))
 	.then(async () => {
@@ -133,52 +134,6 @@ import("./translations/en")
 
 			if (isDesktop()) {
 				locator.desktopSettingsFacade.changeLanguage(language.code, language.languageTag)
-			}
-		}
-
-		function createViewResolver(getView: lazy<Promise<CurrentView>>, requireLogin: boolean = true, doNotCache: boolean = false): RouteResolver {
-			let cache: {view: CurrentView | null} = {view: null}
-			return {
-				onmatch: async (args, requestedPath) => {
-					if (requireLogin && !logins.isUserLoggedIn()) {
-						forceLogin(args, requestedPath)
-					} else if (!requireLogin && logins.isUserLoggedIn()) {
-						await disableErrorHandlingDuringLogout()
-						return logins.logout(false).then(() => {
-							windowFacade.reload(args)
-						})
-					} else {
-						let promise: Promise<CurrentView>
-
-						if (cache.view == null) {
-							promise = getView().then(view => {
-								if (!doNotCache) {
-									cache.view = view
-								}
-
-								return view
-							})
-						} else {
-							promise = Promise.resolve(cache.view)
-						}
-
-						Promise.all([promise, import("./gui/Header.js")]).then(([view, {header}]) => {
-							view.updateUrl(args, requestedPath)
-							const currentPath = m.route.get()
-							routeChange({
-								args,
-								requestedPath,
-								currentPath,
-							})
-							header.updateCurrentView(view)
-							window.tutao.currentView = view
-						})
-						return promise
-					}
-				},
-				render: vnode => {
-					return m(root, vnode)
-				},
 			}
 		}
 
@@ -217,32 +172,38 @@ import("./translations/en")
 		}
 
 		const paths = applicationPaths({
-			login: createViewResolver(
-				async () => {
-					const {LoginView} = await import("./login/LoginView.js")
-					const {LoginViewModel} = await import("./login/LoginViewModel.js")
-					const {locator} = await import("./api/main/MainLocator")
-					const {DatabaseKeyFactory} = await import("./misc/credentials/DatabaseKeyFactory")
-					const loginViewModel = new LoginViewModel(
-						logins,
-						locator.credentialsProvider,
-						locator.secondFactorHandler,
-						new DatabaseKeyFactory(locator.deviceEncryptionFacade),
-						deviceConfig
-					)
-					await loginViewModel.init()
-					return new LoginView(loginViewModel, "/mail")
-				},
-				false,
-				true,
-			),
-			contact: createViewResolver(() => import("./contacts/view/ContactView.js").then(module => new module.ContactView())),
-			externalLogin: createViewResolver(() => import("./login/ExternalLoginView.js").then(module => new module.ExternalLoginView()), false),
-			mail: createViewResolver(() => import("./mail/view/MailView.js").then(module => new module.MailView())),
-			settings: createViewResolver(() => import("./settings/SettingsView.js").then(module => new module.SettingsView())),
-			search: createViewResolver(() => import("./search/view/SearchView.js").then(module => new module.SearchView())),
-			contactForm: createViewResolver(() => import("./login/contactform/ContactFormView.js").then(module => module.contactFormView), false),
-			calendar: createViewResolver(() => import("./calendar/view/CalendarView.js").then(module => new module.CalendarView()), true),
+			login: makeViewResolver<LoginViewAttrs, LoginView, {makeViewModel: () => LoginViewModel}>(
+				{
+					importView: () => import("./login/LoginView").then(module => module.LoginView),
+					prepareCache: async () => {
+						const {LoginViewModel} = await import("./login/LoginViewModel.js")
+						const {DatabaseKeyFactory} = await import("./misc/credentials/DatabaseKeyFactory")
+						return {
+							makeViewModel: () => new LoginViewModel(
+								logins,
+								locator.credentialsProvider,
+								locator.secondFactorHandler,
+								new DatabaseKeyFactory(locator.deviceEncryptionFacade),
+								deviceConfig
+							)
+						}
+					},
+					additionalAttrs: (cache) => ({targetPath: "/mail", makeViewModel: cache.makeViewModel}),
+					requireLogin: false,
+				}),
+			contact: makeOldViewResolver(() => import("./contacts/view/ContactView.js").then(module => new module.ContactView())),
+			externalLogin: makeOldViewResolver(() => import("./login/ExternalLoginView.js").then(module => new module.ExternalLoginView()), {
+				requireLogin: false,
+			}),
+			mail: makeOldViewResolver(() => import("./mail/view/MailView.js").then(module => new module.MailView())),
+			settings: makeOldViewResolver(() => import("./settings/SettingsView.js").then(module => new module.SettingsView())),
+			search: makeOldViewResolver(() => import("./search/view/SearchView.js").then(module => new module.SearchView())),
+			contactForm: makeOldViewResolver(() => import("./login/contactform/ContactFormView.js").then(module => module.contactFormView), {
+				requireLogin: false,
+			}),
+			calendar: makeOldViewResolver(() => import("./calendar/view/CalendarView.js").then(module => new module.CalendarView()), {
+				requireLogin: false
+			}),
 
 			/**
 			 * The following resolvers are programmed by hand instead of using createViewResolver() in order to be able to properly redirect
@@ -283,7 +244,7 @@ import("./translations/en")
 					return null
 				},
 			},
-			webauthn: createViewResolver(
+			webauthn: makeOldViewResolver(
 				async () => {
 					const {BrowserWebauthn} = await import("./misc/2fa/webauthn/BrowserWebauthn.js")
 					const {NativeWebauthnView} = await import("./login/NativeWebauthnView.js")
@@ -291,8 +252,10 @@ import("./translations/en")
 					const creds = navigator.credentials
 					return new NativeWebauthnView(new BrowserWebauthn(creds, window.location.hostname), new WebauthnNativeBridge())
 				},
-				false,
-				false
+				{
+					requireLogin: false,
+					cacheView: false,
+				},
 			)
 		})
 		// see https://github.com/MithrilJS/mithril.js/issues/2659
@@ -375,6 +338,134 @@ function setupExceptionHandling() {
 		handleUncaughtError(evt.reason)
 		evt.preventDefault()
 	})
+}
+
+/**
+ * Wrap top-level component with necessary logic.
+ * Note: I can't make type inference work with attributes and components because of how broken mithril typedefs are so they are "never" by default and you
+ * have to specify generic types manually.
+ * @param importView called once per route change. Please only import the view class in it.
+ * @param prepareCache will be called once per URL change. Gives you a chance to do something async before mithril will try to render the component like
+ * importing things to be injected into view. The result is preserved for as long as RouteResolver lives if you need to persist things between routes.
+ * @param additionalAttrs {@param prepareCache} was called before, now it is your time to use it to populate view attributes
+ * @param requireLogin enforce login policy to either redirect to the login page or reload
+ */
+function makeViewResolver<FullAttrs extends TopLevelAttrs = never,
+	ComponentType extends CurrentView<FullAttrs> = never,
+	Cache = undefined>(
+	{
+		importView,
+		prepareCache,
+		additionalAttrs,
+		requireLogin
+	}: {
+		importView: () => Promise<Class<ComponentType>>,
+		prepareCache: (previous: Cache | null) => Promise<Cache>,
+		additionalAttrs: (cache: Cache) => (Omit<FullAttrs, keyof TopLevelAttrs>),
+		requireLogin?: boolean,
+	},
+): RouteResolver {
+	requireLogin = requireLogin ?? true
+	let cache: Cache | null
+
+	// a bit of context for why we do things the way we do. Constraints:
+	//  - view must be imported async in onmatch
+	//  - view shall not be created manually, we do not want to hold on to the instance
+	//  - we want to pass additional parameters to the view
+	//  - view should not be created twice and neither its dependencies
+	//  - we either need to call updateUrl or pass requestedPath and args as attrbiutes
+	return {
+		// onmatch() is called for every URL change
+		async onmatch(args: {}, requestedPath: string, route: string): Promise<Class<ComponentType> | null> {
+			// enforce valid login state first
+			if (requireLogin && !logins.isUserLoggedIn()) {
+				forceLogin(args, requestedPath)
+				return null
+			} else if (!requireLogin && logins.isUserLoggedIn()) {
+				await disableErrorHandlingDuringLogout()
+				await logins.logout(false)
+				windowFacade.reload(args)
+				return null
+			} else {
+				cache = await prepareCache(cache)
+				return importView()
+			}
+		},
+		// render() is called on every render
+		render(vnode: Vnode<ComponentType>): Children {
+			const args = m.route.param()
+			const requestedPath = m.route.get()
+			// result of onmatch() is passed into m() by mthril and then given to us here
+			// It is not what we want as we want to pass few things to it but it's harmless because
+			// it just creates a vnode but doesn't render it.
+			// What we do is grab the class from that vnode. We could have done it differently but this
+			// way we don't do any more caching than Mithril would do anyway.
+
+			// TS can't prove that it's the right component and the mithril typings are generally slightly broken
+			const c = vnode.tag as unknown as Class<ClassComponent<FullAttrs>>
+
+			// downcast because we ts can't really prove or enforce that additional attrs have compatible requestedPath and args
+			const attrs = {requestedPath, args, ...additionalAttrs(assertNotNull(cache))} as FullAttrs
+			return m(root, m(c, {
+					...attrs,
+					oncreate({state}: VnodeDOM<FullAttrs, ComponentType>) {
+						window.tutao.currentView = state
+
+						import("./gui/Header.js").then(({header}) => {
+							header.updateCurrentView(state)
+							m.redraw()
+						})
+					}
+				}
+			))
+		},
+	}
+}
+
+function makeOldViewResolver(
+	makeView: (args: {}, requestedPath: string) => Promise<CurrentView>,
+	{requireLogin, cacheView}: {requireLogin?: boolean, cacheView?: boolean} = {},
+): RouteResolver {
+	requireLogin = requireLogin ?? true
+	cacheView = cacheView ?? true
+
+	const viewCache: {view: CurrentView | null} = {view: null}
+	return {
+		onmatch: async (args, requestedPath) => {
+			if (requireLogin && !logins.isUserLoggedIn()) {
+				forceLogin(args, requestedPath)
+			} else if (!requireLogin && logins.isUserLoggedIn()) {
+				await disableErrorHandlingDuringLogout()
+				await logins.logout(false)
+				windowFacade.reload(args)
+			} else {
+				let promise: Promise<CurrentView>
+
+				if (viewCache.view == null) {
+					promise = makeView(args, requestedPath).then(view => {
+						if (cacheView) {
+							viewCache.view = view
+						}
+
+						return view
+					})
+				} else {
+					promise = Promise.resolve(viewCache.view)
+				}
+
+				Promise.all([promise, import("./gui/Header.js")]).then(([view, {header}]) => {
+					view.updateUrl?.(args, requestedPath)
+					const currentPath = m.route.get()
+					header.updateCurrentView(view)
+					window.tutao.currentView = view
+				})
+				return promise
+			}
+		},
+		render: vnode => {
+			return m(root, vnode)
+		},
+	}
 }
 
 env.dist &&
