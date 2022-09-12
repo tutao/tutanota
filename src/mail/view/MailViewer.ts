@@ -181,6 +181,10 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		if (this.viewModel !== oldViewModel) {
 			this.loadAllListener.end(true)
 			this.loadAllListener = this.viewModel.loadCompleteNotification.map(async () => {
+				// streams are pretty much synchronous, so we could be in the middle of a redraw here and mithril does not just schedule another redraw, it
+				// will error out so before calling m.redraw.sync() we want to make sure that we are not inside a redraw by just scheduling a microtask with
+				// this simple await.
+				await Promise.resolve()
 				// Wait for mail body to be redrawn before replacing images
 				m.redraw.sync()
 				await this.replaceInlineImages()
@@ -451,14 +455,14 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 	private renderLoadingIcon(): Children {
 		return m(".progress-panel.flex-v-center.items-center",
-				{
-					key: "loadingIcon",
-					style: {
-						height: "200px",
-					},
+			{
+				key: "loadingIcon",
+				style: {
+					height: "200px",
 				},
-				[progressIcon(), m("small", lang.get("loading_msg"))],
-			)
+			},
+			[progressIcon(), m("small", lang.get("loading_msg"))],
+		)
 	}
 
 	private renderBanners(mail: Mail): Children {
@@ -1002,7 +1006,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 							),
 							m(".flex",
 								m(ExpanderButton, {
-									style: { paddingTop: "0px" },
+									style: {paddingTop: "0px"},
 									label: "showAll_action",
 									expanded: this.filesExpanded(),
 									onExpandedChange: this.filesExpanded,
