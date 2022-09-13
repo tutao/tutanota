@@ -221,7 +221,7 @@ export class MailFacade {
 
 		service.draftData = createDraftData({
 			subject,
-			bodyText,
+			compressedBodyText: bodyText,
 			senderMailAddress,
 			senderName,
 			confidential,
@@ -277,7 +277,7 @@ export class MailFacade {
 		service.draft = draft._id
 		service.draftData = createDraftData({
 			subject: subject,
-			bodyText: body,
+			compressedBodyText: body,
 			senderMailAddress: senderMailAddress,
 			senderName: senderName,
 			confidential: confidential,
