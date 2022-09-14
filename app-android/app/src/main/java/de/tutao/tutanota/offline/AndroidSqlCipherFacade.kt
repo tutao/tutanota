@@ -14,16 +14,24 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 		SQLiteDatabase.loadLibs(context)
 	}
 
+	// Set db to volatile because we only wrap modifications to db in synchronized yet we still want all access
+	// operations to see the latest value
+	@Volatile
 	private var db: SQLiteDatabase? = null
 	private val openedDb: SQLiteDatabase
 		get() = db ?: throw OfflineDbClosedError()
 
 	override suspend fun openDb(userId: String, dbKey: DataWrapper) {
-		if (db != null) {
-			Log.w(TAG, "opening new database while old one is open")
-			closeDb()
+		// db is volatile so we see the latest value but it doesn't mean that we won't try to open/delete it in parallel
+		// so we need syncrhonized.
+		// Wrap the whole method into synchronized to ensure that no other check or modification can happen in between
+		synchronized(this) {
+			if (db != null) {
+				Log.w(TAG, "opening new database while old one is open")
+				closeDbSync()
+			}
+			db = SQLiteDatabase.openOrCreateDatabase(getDbFile(userId).path, dbKey.data, null)
 		}
-		db = SQLiteDatabase.openOrCreateDatabase(getDbFile(userId).path, dbKey.data, null)
 	}
 
 	private fun getDbFile(userId: String): File {
@@ -35,16 +43,24 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 		return dbFile
 	}
 
-	override suspend fun closeDb() {
+	private fun closeDbSync() {
 		db?.close()
 		db = null
 	}
 
+	override suspend fun closeDb() {
+		synchronized(this) {
+			this.closeDbSync()
+		}
+	}
+
 	override suspend fun deleteDb(userId: String) {
-		try {
-			closeDb()
-		} finally {
-			getDbFile(userId).delete()
+		synchronized(this) {
+			try {
+				closeDbSync()
+			} finally {
+				getDbFile(userId).delete()
+			}
 		}
 	}
 
@@ -93,4 +109,4 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 
 private const val TAG = "AndroidSqlCipherFacade"
 
-public class OfflineDbClosedError : Exception()
+class OfflineDbClosedError : Exception()
