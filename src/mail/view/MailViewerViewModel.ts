@@ -50,7 +50,7 @@ import {
 import {LoginController} from "../../api/main/LoginController"
 import m from "mithril"
 import {LockedError, NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError"
-import {elementIdPart, haveSameId, listIdPart} from "../../api/common/utils/EntityUtils"
+import {elementIdPart, haveSameId, isSameId, listIdPart} from "../../api/common/utils/EntityUtils"
 import {getReferencedAttachments, loadInlineImages, moveMails, revokeInlineImages} from "./MailGuiUtils"
 import {locator} from "../../api/main/MainLocator"
 import {SanitizedFragment} from "../../misc/HtmlSanitizer"
@@ -946,6 +946,9 @@ export class MailViewerViewModel {
 			showFolder?: boolean
 		}
 	) {
+		if (!isSameId(mail._id, this.mail._id)) {
+			throw new ProgrammingError(`Trying to update MailViewerViewModel with unrelated email ${JSON.stringify(this.mail._id)} ${JSON.stringify(mail._id)} ${m.route.get()}`)
+		}
 		this._mail = mail
 
 		if (delayBodyRenderingUntil) {
