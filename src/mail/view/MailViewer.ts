@@ -367,7 +367,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					}
 
 					this.rescale(false)
-					this.renderShadowMailBody(sanitizedMailBody)
+					if (this.currentlyRenderedMailBody !== sanitizedMailBody) this.renderShadowMailBody(sanitizedMailBody)
 				},
 				onbeforeremove: () => {
 					// Clear dom body in case there will be a new one, we want promise to be up-to-date
@@ -393,7 +393,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	 * @private
 	 */
 	private renderShadowMailBody(sanitizedMailBody: DocumentFragment) {
-		if (this.currentlyRenderedMailBody === sanitizedMailBody) return
 		assertNonNull(this.shadowDomRoot)
 		while (this.shadowDomRoot.firstChild) {
 			this.shadowDomRoot.firstChild.remove()
