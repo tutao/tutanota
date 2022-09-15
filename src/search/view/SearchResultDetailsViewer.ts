@@ -64,15 +64,14 @@ export class SearchResultDetailsViewer {
 				mail,
 				showFolder: true,
 			}
-			if (this._viewer == null || this._viewer.mode !== "mail") {
+			if (this._viewer != null && this._viewer.mode === "mail" && isSameId(this._viewer.viewModel.mail._id, mail._id)) {
+				this._viewer.viewModel.updateMail(viewModelParams)
+			} else {
 				this._viewer = {
 					mode: "mail",
 					viewModel: createMailViewerViewModel(viewModelParams)
 				}
-			} else {
-				this._viewer.viewModel.updateMail(viewModelParams)
 			}
-
 			this._viewerEntityId = mail._id
 
 			if (entitySelected && mail.unread && !mail._errors) {
