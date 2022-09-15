@@ -174,21 +174,24 @@ import("./translations/en")
 		const paths = applicationPaths({
 			login: makeViewResolver<LoginViewAttrs, LoginView, {makeViewModel: () => LoginViewModel}>(
 				{
-					importView: () => import("./login/LoginView").then(module => module.LoginView),
-					prepareCache: async () => {
+					prepareRoute: async () => {
 						const {LoginViewModel} = await import("./login/LoginViewModel.js")
-						const {DatabaseKeyFactory} = await import("./misc/credentials/DatabaseKeyFactory")
+						const {DatabaseKeyFactory} = await import("./misc/credentials/DatabaseKeyFactory.js")
+						const {LoginView} = await import("./login/LoginView.js")
 						return {
-							makeViewModel: () => new LoginViewModel(
-								logins,
-								locator.credentialsProvider,
-								locator.secondFactorHandler,
-								new DatabaseKeyFactory(locator.deviceEncryptionFacade),
-								deviceConfig
-							)
+							component: LoginView,
+							cache: {
+								makeViewModel: () => new LoginViewModel(
+									logins,
+									locator.credentialsProvider,
+									locator.secondFactorHandler,
+									new DatabaseKeyFactory(locator.deviceEncryptionFacade),
+									deviceConfig
+								)
+							}
 						}
 					},
-					additionalAttrs: (cache) => ({targetPath: "/mail", makeViewModel: cache.makeViewModel}),
+					prepareAttrs: (cache) => ({targetPath: "/mail", makeViewModel: cache.makeViewModel}),
 					requireLogin: false,
 				}),
 			contact: makeOldViewResolver(() => import("./contacts/view/ContactView.js").then(module => new module.ContactView())),
@@ -344,29 +347,31 @@ function setupExceptionHandling() {
  * Wrap top-level component with necessary logic.
  * Note: I can't make type inference work with attributes and components because of how broken mithril typedefs are so they are "never" by default and you
  * have to specify generic types manually.
- * @param importView called once per route change. Please only import the view class in it.
- * @param prepareCache will be called once per URL change. Gives you a chance to do something async before mithril will try to render the component like
- * importing things to be injected into view. The result is preserved for as long as RouteResolver lives if you need to persist things between routes.
- * @param additionalAttrs {@param prepareCache} was called before, now it is your time to use it to populate view attributes
- * @param requireLogin enforce login policy to either redirect to the login page or reload
+ * @template FullAttrs type of the attributes that the component takes
+ * @template ComponentType type of the component
+ * @template RouteCache info that is prepared async on route change and can be used later to create attributes on every render. Is also persisted between
+ * the route changes.
+ * @param param
+ * @param param.prepareRoute called once per route change. Use it for everything async that should happen before the route change. The result is preserved for
+ * as long as RouteResolver lives if you need to persist things between routes. It receives the route cache from the previous call if there was one.
+ * @param param.prepareAttrs called once per redraw. The result of it will be added to TopLevelAttrs to make full attributes.
+ * @param param.requireLogin enforce login policy to either redirect to the login page or reload
  */
 function makeViewResolver<FullAttrs extends TopLevelAttrs = never,
 	ComponentType extends CurrentView<FullAttrs> = never,
-	Cache = undefined>(
+	RouteCache = undefined>(
 	{
-		importView,
-		prepareCache,
-		additionalAttrs,
+		prepareRoute,
+		prepareAttrs,
 		requireLogin
 	}: {
-		importView: () => Promise<Class<ComponentType>>,
-		prepareCache: (previous: Cache | null) => Promise<Cache>,
-		additionalAttrs: (cache: Cache) => (Omit<FullAttrs, keyof TopLevelAttrs>),
+		prepareRoute: (cache: RouteCache | null) => Promise<{component: Class<ComponentType>, cache: RouteCache}>,
+		prepareAttrs: (cache: RouteCache) => (Omit<FullAttrs, keyof TopLevelAttrs>),
 		requireLogin?: boolean,
 	},
 ): RouteResolver {
 	requireLogin = requireLogin ?? true
-	let cache: Cache | null
+	let cache: RouteCache | null
 
 	// a bit of context for why we do things the way we do. Constraints:
 	//  - view must be imported async in onmatch
@@ -387,8 +392,9 @@ function makeViewResolver<FullAttrs extends TopLevelAttrs = never,
 				windowFacade.reload(args)
 				return null
 			} else {
-				cache = await prepareCache(cache)
-				return importView()
+				const prepared = await prepareRoute(cache)
+				cache = prepared.cache
+				return prepared.component
 			}
 		},
 		// render() is called on every render
@@ -405,7 +411,7 @@ function makeViewResolver<FullAttrs extends TopLevelAttrs = never,
 			const c = vnode.tag as unknown as Class<ClassComponent<FullAttrs>>
 
 			// downcast because we ts can't really prove or enforce that additional attrs have compatible requestedPath and args
-			const attrs = {requestedPath, args, ...additionalAttrs(assertNotNull(cache))} as FullAttrs
+			const attrs = {requestedPath, args, ...prepareAttrs(assertNotNull(cache))} as FullAttrs
 			return m(root, m(c, {
 					...attrs,
 					oncreate({state}: VnodeDOM<FullAttrs, ComponentType>) {
