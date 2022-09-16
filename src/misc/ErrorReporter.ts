@@ -178,10 +178,12 @@ export function showErrorDialogNotLoggedIn(e: ErrorInfo): Promise<void> {
 export async function sendFeedbackMail(content: FeedbackContent): Promise<void> {
 	const name = ""
 	const mailAddress = "reports@tutao.de"
+	// We want to treat what we have as text, not as HTML so we escape it. This is an easy way to do it.
+	const escapedBody = new Option(content.message).innerHTML
 	const draft = await locator.mailFacade.createDraft(
 		{
 			subject: content.subject,
-			bodyText: content.message.split("\n").join("<br>"),
+			bodyText: escapedBody.split("\n").join("<br>"),
 			senderMailAddress: neverNull(logins.getUserController().userGroupInfo.mailAddress),
 			senderName: "",
 			toRecipients: [
