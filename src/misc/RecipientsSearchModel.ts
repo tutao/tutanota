@@ -52,15 +52,15 @@ export class RecipientsSearchModel {
 
 		if (this.loading != null) {
 		} else if (query.length > 0 && !(this.previousQuery.length > 0 && query.indexOf(this.previousQuery) === 0 && this.searchResults.length === 0)) {
-			this.loading = this.findContacts(query.toLowerCase()).then(async newSuggestions => {
-				this.loading = null
-
-				// Only update search result if search query has not been changed during search and update in all other cases
-				if (query === this.currentQuery) {
-					this.searchResults = newSuggestions
-					this.previousQuery = query
-				}
-			})
+			this.loading = this.findContacts(query.toLowerCase())
+							   .then(newSuggestions => {
+								   // Only update search result if search query has not been changed during search and update in all other cases
+								   if (query === this.currentQuery) {
+									   this.searchResults = newSuggestions
+									   this.previousQuery = query
+								   }
+							   })
+							   .finally(() => this.loading = null)
 		} else if (query.length === 0 && query !== this.previousQuery) {
 			this.searchResults = []
 			this.previousQuery = query
