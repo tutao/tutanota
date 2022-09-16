@@ -12,22 +12,27 @@ class ContactsSource {
     case .denied, .restricted:
       return []
     case .notDetermined:
-      let granted = try await CNContactStore().requestAccess(for: .contacts)
-      if granted {
-        return try await self.doSearch(query: query)
-      } else {
+      do {
+        // Yes it does throw and returns a boolean. No, we don't get to know which one is when.
+        let granted = try await CNContactStore().requestAccess(for: .contacts)
+        if !granted {
+          return []
+        }
+      } catch {
+        TUTSLog("Error while r equesting contact access \(error)")
         return []
       }
+      return try await self.doSearch(query: query)
     @unknown default:
       TUTSLog("Unknown auth status: \(status)")
       return []
     }
   }
-  
+
   private func doSearch(query: String) async throws -> [NativeContact] {
       return try self.queryContacts(query: query, upTo: 10)
   }
-  
+
   private func queryContacts(query: String, upTo: Int) throws -> [NativeContact] {
     let contactsStore = CNContactStore()
     let keysToFetch: [CNKeyDescriptor] = [
