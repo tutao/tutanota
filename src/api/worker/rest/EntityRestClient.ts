@@ -24,6 +24,10 @@ export function typeRefToPath(typeRef: TypeRef<any>): string {
 	return `/rest/${typeRef.app}/${typeRef.type.toLowerCase()}`
 }
 
+export interface EntityRestClientSetupOptions {
+	baseUrl?: string,
+}
+
 /**
  * The EntityRestInterface provides a convenient interface for invoking server side REST services.
  */
@@ -46,7 +50,7 @@ export interface EntityRestInterface {
 	/**
 	 * Creates a single element on the server. Entities are encrypted before they are sent.
 	 */
-	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict): Promise<Id>
+	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id>
 
 	/**
 	 * Creates multiple elements on the server. Entities are encrypted before they are sent.
@@ -197,7 +201,7 @@ export class EntityRestClient implements EntityRestInterface {
 		return this._crypto.applyMigrationsForInstance<T>(decryptedInstance)
 	}
 
-	async setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict): Promise<Id> {
+	async setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id> {
 		const typeRef = instance._type
 		const {
 			typeModel,
@@ -219,6 +223,7 @@ export class EntityRestClient implements EntityRestInterface {
 			path,
 			HttpMethod.POST,
 			{
+				baseUrl: options?.baseUrl,
 				queryParams,
 				headers,
 				body: JSON.stringify(encryptedEntity),
