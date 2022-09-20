@@ -204,9 +204,7 @@ import("./translations/en")
 			contactForm: makeOldViewResolver(() => import("./login/contactform/ContactFormView.js").then(module => module.contactFormView), {
 				requireLogin: false,
 			}),
-			calendar: makeOldViewResolver(() => import("./calendar/view/CalendarView.js").then(module => new module.CalendarView()), {
-				requireLogin: false
-			}),
+			calendar: makeOldViewResolver(() => import("./calendar/view/CalendarView.js").then(module => new module.CalendarView())),
 
 			/**
 			 * The following resolvers are programmed by hand instead of using createViewResolver() in order to be able to properly redirect
