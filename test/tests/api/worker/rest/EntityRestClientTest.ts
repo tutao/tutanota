@@ -21,7 +21,7 @@ import sysModelInfo from "../../../../../src/api/entities/sys/ModelInfo.js"
 import {AuthDataProvider} from "../../../../../src/api/worker/facades/UserFacade.js"
 import {LoginIncompleteError} from "../../../../../src/api/common/error/LoginIncompleteError.js"
 
-const {anything} = matchers
+const {anything, argThat} = matchers
 
 const accessToken = "My cool access token"
 const authHeader = {
@@ -323,6 +323,7 @@ o.spec("EntityRestClient", async function () {
 				`/rest/tutanota/contact/listId`,
 				HttpMethod.POST,
 				{
+					baseUrl: undefined,
 					headers: {...authHeader, v},
 					queryParams: undefined,
 					responseType: MediaType.Json,
@@ -348,6 +349,7 @@ o.spec("EntityRestClient", async function () {
 				`/rest/sys/customer`,
 				HttpMethod.POST,
 				{
+					baseUrl: undefined,
 					headers: {...authHeader, v},
 					queryParams: undefined,
 					responseType: MediaType.Json,
@@ -363,6 +365,16 @@ o.spec("EntityRestClient", async function () {
 			const newCustomer = createCustomer()
 			const result = await assertThrows(Error, async () => await entityRestClient.setup("listId", newCustomer))
 			o(result.message).equals("List id must not be defined for ETs")
+		})
+
+		o("Base URL option is passed to the rest client", async function () {
+			when(restClient.request(
+				anything(),
+				anything(),
+				anything()
+			), {times: 1}).thenResolve(JSON.stringify({generatedId: null}))
+			await entityRestClient.setup("listId", createContact(), undefined, {baseUrl: "some url"})
+			verify(restClient.request(anything(), HttpMethod.POST, argThat(arg => arg.baseUrl === "some url")))
 		})
 	})
 
