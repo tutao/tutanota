@@ -1,7 +1,6 @@
 pipeline {
     environment {
          PATH="/opt/node-v16.3.0-linux-x64/bin:${env.PATH}"
-         VERSION = sh(returnStdout: true, script: "${NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
     }
 	options {
 		preserveStashes()
@@ -53,7 +52,7 @@ pipeline {
 
         stage('Publish') {
         	environment {
-         		VERSION = sh(returnStdout: true, script: "${NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
+         		VERSION = sh(returnStdout: true, script: "node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
          	}
             when {
             	expression { params.RELEASE }
