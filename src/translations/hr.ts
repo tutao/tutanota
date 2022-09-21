@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2022-07-25T07:12:42Z",
+	"updated_at": "2022-09-20T09:07:33Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -921,7 +921,6 @@ export default {
 		"progressDeleting_msg": "Brisanje...",
 		"promotion.npoDiscount_msg": "Ponuda za NPO: 50% popusta za Premium i 20 besplatnih pseudonima!",
 		"promotion.npoDonation_msg": "Donacija za NPO: do 50 korisnika za Premium i 100 akronima besplatno!",
-		"promotion.tresoritDiscount_msg": "Tutanota + Tresorit posebna ponuda: 5 mjeseci popusta za prvu godinu!",
 		"providePaymentDetails_msg": "Navedite detalje o plaćanju",
 		"purchaseDate_label": "Datum kupnje",
 		"pushIdentifierCurrentDevice_label": "Ovaj uređaj",
@@ -1182,7 +1181,6 @@ export default {
 		"totpTransferSecret_msg": "Molimo ažurirajte Vašu autentikacijsku aplikaciju skeniranjem QR koda (ispod) ili unošenjem tajnog ključa ručno.",
 		"to_label": "Za",
 		"trash_action": "Smeće",
-		"tresoritDiscount_msg": "Tutanota + Tresorit posebna ponuda: 5 mjeseci popusta za prvu godinu!",
 		"tutaoInfo_msg": "Tutao GmbH je tvrtka koja Vam pruža Tutanotu.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Upišite za filtriranje ...",

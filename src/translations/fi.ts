@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2022-07-25T07:12:42Z",
+	"updated_at": "2022-09-20T09:07:32Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Tietoja",
@@ -1061,7 +1061,6 @@ export default {
 		"promotion.ctAdventCalendarDiscount_msg": "c't:n joulukalenteri: Käytä Tutanotaa 12 kuukautta ilmaiseksi",
 		"promotion.npoDiscount_msg": "Tarjous yleishyödyllisille yhteisöille: 50 %:n alennus Premiumista ja 20 alias-osoitetta ilmaiseksi!",
 		"promotion.npoDonation_msg": "Lahja yleishyödyllisille yhteisöille: jopa 50 Premium-käyttäjää ja 100 alias-osoitetta ilmaiseksi.",
-		"promotion.tresoritDiscount_msg": "Tutanota + Tresorit tarjous: 5 kuukautta ilmaiseksi ensimmäisenä vuonna!",
 		"providePaymentDetails_msg": "Syötä maksutiedot",
 		"purchaseDate_label": "Ostopäivämäärä",
 		"pushIdentifierCurrentDevice_label": "Tämä laite",
@@ -1358,7 +1357,6 @@ export default {
 		"totpTransferSecret_msg": "Päivitä tunnistussovelluksen (Authenticator) tiedot skannaamalla alla oleva QR koodi tai antamalla salainen avain.",
 		"to_label": "Vastaanottaja",
 		"trash_action": "Poistetut",
-		"tresoritDiscount_msg": "Tutanota + Tresorit -erikoistarjous: 5 kuukauden alennus ensimmäiselle vuodelle!",
 		"tutanotaAddressDoesNotExist_msg": "Seuraavia Tutanota-sähköpostiosoitteita ei ole olemassa.",
 		"tutaoInfo_msg": "Tutanota palvelun on tehnyt Tutao GmbH.",
 		"twitter_label": "Twitter",

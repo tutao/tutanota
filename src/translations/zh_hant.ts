@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2022-06-28T09:22:26Z",
+	"updated_at": "2022-09-20T09:07:33Z",
 	"source_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "請點擊複選框以同意隱私權政策。",
@@ -682,7 +682,6 @@ export default {
 		"progressDeleting_msg": "刪除中．．．",
 		"promotion.npoDiscount_msg": "非營利組織優惠方案 ： 半價入手進階版用戶並免費享有 100 則附掛別名 ！ ",
 		"promotion.npoDonation_msg": "非營利組織贊助方案 ： 至多 50 位進階版用戶並免費享有 100 則附掛別名 ！ ",
-		"promotion.tresoritDiscount_msg": "Tutanota x Tresorit 優惠聯名方案：首年 5 個月免費！",
 		"pushIdentifierCurrentDevice_label": "本裝置",
 		"pushIdentifierInfoMessage_msg": "此為目前 Tutanota 用戶全部的接收通知收件人名單；若您不再希望收到通知可以移除項目欄。",
 		"pushNewMailReceivedBody_msg": "您剛收到一封存放在 {domainName} 的 {emailAddress} 郵件。",
@@ -867,7 +866,6 @@ export default {
 		"totpTransferSecret_msg": "請手動輸入密鑰或掃描下方所提供的QR-CODE來更新您的驗證器APP。",
 		"to_label": "收件者",
 		"trash_action": "垃圾桶",
-		"tresoritDiscount_msg": "Tutanota x Tresorit 優惠聯名方案：首年 5 個月免費！",
 		"tutaoInfo_msg": "Tutao GmbH 為提供您 Tutanota 服務的公司行號。",
 		"twitter_label": "推特",
 		"typeToFilter_label": "鍵入過濾關鍵字．．．",

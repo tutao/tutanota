@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2022-06-28T09:22:25Z",
+	"updated_at": "2022-09-20T09:07:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "О програму",
@@ -676,7 +676,7 @@ export default {
 		"nonConfidentialStatus_msg": "Ова порука није послата кодирана од пошиљаоца до примаоца.",
 		"nonConfidential_action": "Није поверљиво",
 		"noPermission_title": "Нема дозволе",
-		"noPreSharedPassword_msg": "Милимо унесите договорену лозинку за сваког спољашњег примаоца.",
+		"noPreSharedPassword_msg": "Мoлимо унесите договорену лозинку за сваког спољашњег примаоца.",
 		"noReceivingMailbox_label": "Молимо вас изаберите сандуче од примаоца.",
 		"noRecipients_msg": "Молимо васда унесте поштанску адресу вашег примаоца.",
 		"noSelection_msg": "Ништа није изабрано",
@@ -826,7 +826,6 @@ export default {
 		"private_label": "Приватан",
 		"progressDeleting_msg": "Брише се...",
 		"promotion.npoDonation_msg": "Донације за идеалне огранизације: до 50 корисника Premium и 100 алијаса бесплатно!",
-		"promotion.tresoritDiscount_msg": "Tutanota + Tresorit посебна понуда: 5 месеци попуста за прву годину!",
 		"pushIdentifierCurrentDevice_label": "Овај уређај",
 		"pushIdentifierInfoMessage_msg": "Листа свих приматеља обавештења од тренутног  Tutanota корисника. Можете обрисати ставку ако не желите примати обавести или их не желите користити на уређајима.",
 		"pushNewMailReceivedBody_msg": "Примили сте нову пошту у ваше сандуче {emailAddress} на {domainName}.",
@@ -1056,7 +1055,6 @@ export default {
 		"totpTransferSecret_msg": "Ажурирајте своју апликацију за аутентификацију скенирањем КР кода (испод) или ручним уносом тајног кључа.",
 		"to_label": "За",
 		"trash_action": "Смеће",
-		"tresoritDiscount_msg": "Tutanota + Tresorit посебна понуда: 5 месеци попуста за прву годину!",
 		"tutaoInfo_msg": "Tutao GmbH је фирма која вам пружа Tutanota.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Куцајте за филтрирање...",

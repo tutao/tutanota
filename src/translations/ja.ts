@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2022-07-25T07:12:43Z",
+	"updated_at": "2022-09-20T09:07:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "アプリについて",
@@ -1064,7 +1064,6 @@ export default {
 		"progressDeleting_msg": "削除中・・・",
 		"promotion.npoDiscount_msg": "NPO法人へ: プレミアムプラン半額、および無料で20エイリアスを利用可能！",
 		"promotion.npoDonation_msg": "npo への寄付: Premiumコースで50ユーザー、100エリアスまで無料でご利用いただけます!",
-		"promotion.tresoritDiscount_msg": "Tutanota + Tresorit の特別オファー :  最初の一年間、５ヵ月間のディスカウント！",
 		"providePaymentDetails_msg": "お支払いの詳細をご記入ください.",
 		"purchaseDate_label": "購買日",
 		"pushIdentifierCurrentDevice_label": "この端末",
@@ -1365,7 +1364,6 @@ export default {
 		"totpTransferSecret_msg": "以下の QR コードをスキャンするか、秘密キーを手動で入力して、認証アプリを更新してください。",
 		"to_label": "送信先",
 		"trash_action": "ゴミ箱",
-		"tresoritDiscount_msg": "Tutanota Tresorit特別オファー：初年度5か月分のディスカウント！",
 		"tutanotaAddressDoesNotExist_msg": "このTutanotaのメールアドレスは存在しません。",
 		"tutaoInfo_msg": "Tutao GmbH はTutanota を提供する会社です。",
 		"twitter_label": "Twitter",

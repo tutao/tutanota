@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2022-08-08T14:48:01Z",
+	"updated_at": "2022-09-20T09:07:32Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Körülbelül",
@@ -649,7 +649,7 @@ export default {
 		"invalidLink_msg": "Sajnálom, ez a hivatkozás nem érvényes.",
 		"invalidMailAddress_msg": "A következő email címeket nem lehetett meghívni, mert helytelenek:",
 		"invalidPassword_msg": "Érvénytelen jelszó. Próbálja újra.",
-		"invalidPastedRecipients_msg": "A következő e-mail címek érvénytelenek (voltak):",
+		"invalidPastedRecipients_msg": "A következő e-mail címek érvénytelenek:",
 		"invalidRecipients_msg": "Kérjük, javítsa ki vagy távolítsa el az érvénytelen e-mail címeket!",
 		"invalidRegexSyntax_msg": "Érvénytelen regex szintaxis",
 		"invalidRegistrationCode_msg": "Hibás regisztrációs kód.",
@@ -1072,7 +1072,6 @@ export default {
 		"promotion.ctAdventCalendarDiscount_msg": "c't adventi naptár: Használja a Tutanotát 12 hónapig ingyen!",
 		"promotion.npoDiscount_msg": "Ajánlatunk non-profit szervezeteknek: 50% kedvezmény a Prémium csomagra és 20 álnév díjmentesen!",
 		"promotion.npoDonation_msg": "Felajánlás non-profit szervezet (NPO) részére: 50% felhasználói engedmény a Prémium előfizetéshez és 100 db ingyenes álnév!",
-		"promotion.tresoritDiscount_msg": "Tutanota + Tresorit speciális ajánlat: 5 hónapos engedmény az első évre!",
 		"providePaymentDetails_msg": "Kérjük, adja meg a fizetési adatokat!",
 		"purchaseDate_label": "Vásárlás kelte",
 		"pushIdentifierCurrentDevice_label": "Ez az eszköz.",
@@ -1373,7 +1372,6 @@ export default {
 		"totpTransferSecret_msg": "Kérjük, frissítse hitelesítő-alkalmazását a lejjebb található QR kód beolvasásával, vagy a titkos jelszó kézi bevitelével!",
 		"to_label": "Címzett",
 		"trash_action": "Kuka",
-		"tresoritDiscount_msg": "Tutanota + Tresorit különleges ajánlat: 5 hónapos engedmény az első évre!",
 		"tutanotaAddressDoesNotExist_msg": "A következő Tutanota e-mail címek nem léteznek.",
 		"tutaoInfo_msg": "A Tutao GmbH biztosítja a Tutanota-t az Ön számára.",
 		"twitter_label": "Twitter",

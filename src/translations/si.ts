@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2021-11-11T11:18:04Z",
-	"updated_at": "2022-08-08T17:02:56Z",
+	"updated_at": "2022-09-20T09:07:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "පිළිබඳව",
@@ -895,6 +895,7 @@ export default {
 		"onlyAvailableForPremium_msg": "ගෙවන දායකත්වයක් සමඟ පමණක් මෙම විශේෂාංගය ගැනීමට හැකිය. ඔබගේ ගිණුම දැන් උත්ශ්‍රේණි කරන්න.",
 		"onlyPrivateAccountFeature_msg": "ත්‍යාග පත් පෞද්ගලික ගිණුමක් මගින් පමණක් මුදා ගැනීමට හැකිය",
 		"onlyPrivateComputer_msg": "පෞද්ගලික උපාංගයක් නම් පමණක් මෙය තෝරන්න.",
+		"openCamera_action": "රූගතය",
 		"openKnowledgebase_action": "දැනුම්මූලයෙහි කවුළුව විවෘත කරන්න",
 		"openNewWindow_action": "නව කවුළුව",
 		"openTemplatePopup_msg": "අච්චු ඉදිරියට දැක්වීම බලන්න",
@@ -1053,7 +1054,6 @@ export default {
 		"progressDeleting_msg": "මැකෙමින්...",
 		"promotion.npoDiscount_msg": "ලබා නොලබන සංවිධාන සඳහා දීමනාව: ආධික්‍යය සඳහා 50% පරිශීලක වට්ටමක් සහ අපනාම 20 ක් නොමිලේ!",
 		"promotion.npoDonation_msg": "ලාභ නොලබන සංවිධාන සඳහා පරිත්‍යාග: ආධික්‍ය සඳහා පරිශීලකයින් 50ක් දක්වා හා අපනාම 100ක් නොමිලේ!",
-		"promotion.tresoritDiscount_msg": "ටුටානෝටා + ට්‍රෙසෝරිට් විශේෂ දීමනාව: පළමු වසර සඳහා මාස 5ක වට්ටමක්!",
 		"providePaymentDetails_msg": "ගෙවීම් විස්තර ලබාදෙන්න",
 		"purchaseDate_label": "මිලදී ගත් දිනය ",
 		"pushIdentifierCurrentDevice_label": "මෙම උපාංගය",
@@ -1351,7 +1351,6 @@ export default {
 		"totpTransferSecret_msg": "QR කේතය (පහත) සුපිරික්සීමෙන් හෝ රහස් යතුර අතින් යෙදීමෙන් ඔබගේ සත්‍යාපන යෙදුම යාවත්කාල කරන්න.",
 		"to_label": "වෙත",
 		"trash_action": "කුණුබඳුන",
-		"tresoritDiscount_msg": "ටුටානෝටා + ට්‍රෙසෝරිට් විශේෂ දීමනාව: පළමු වසර සඳහා මාස 5 ක වට්ටමක්!",
 		"tutanotaAddressDoesNotExist_msg": "ටුටානෝටා වි-තැපැල් ලිපිනය නොපවතී.",
 		"tutaoInfo_msg": "Tutao GmbH යනු ඔබට ටුටානෝටා සපයන සමාගමයි.",
 		"twitter_label": "ට්විටර්",

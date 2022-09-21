@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T09:48:48Z",
-	"updated_at": "2022-07-25T07:12:42Z",
+	"updated_at": "2022-09-20T09:07:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "소개",
@@ -989,7 +989,6 @@ export default {
 		"promotion.ctAdventCalendarDiscount_msg": "대림절 기념 : 12개월 동안 무료로 Tutanota를 사용하세요",
 		"promotion.npoDiscount_msg": "비영리 단체를 위한 제안: Premium 50% 할인 및 별칭 20개 무료 제공!",
 		"promotion.npoDonation_msg": "비영리 단체를 위한 기부: 50명까지의 Premium 사용자와 100개의 에일리어스 무료 제공!",
-		"promotion.tresoritDiscount_msg": "Tutanota + Tresorit 특별 제안: 첫 해에 5개월 할인!",
 		"providePaymentDetails_msg": "세부 지불 정보를 입력해주세요",
 		"purchaseDate_label": "구매일",
 		"pushIdentifierCurrentDevice_label": "이 기기",
@@ -1269,7 +1268,6 @@ export default {
 		"totpTransferSecret_msg": "아래의 QR 코드를 스캔하시거나 시크릿 키를 수동으로 입력하셔서 인증 부호 앱을 업데이트 해주세요.",
 		"to_label": "받는사람",
 		"trash_action": "휴지통",
-		"tresoritDiscount_msg": "Tutanota + Tresorit 특별 제안: 첫 해에 5개월 할인!",
 		"tutanotaAddressDoesNotExist_msg": "다음의 Tutanota 이메일 주소는 존재하지 않습니다.",
 		"tutaoInfo_msg": "Tutao GmbH는 당신에게 Tutanota를 제공하는 기업입니다.",
 		"twitter_label": "트위터",

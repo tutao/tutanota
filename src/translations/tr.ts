@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2022-07-25T07:12:42Z",
+	"updated_at": "2022-09-20T09:07:33Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1048,7 +1048,6 @@ export default {
 		"promotion.ctAdventCalendarDiscount_msg": "Noel Takvimi: Tutanota'yı 12 ay ücretsiz kullanın",
 		"promotion.npoDiscount_msg": "Kâr Amacı Gütmeyen Kuruluşlara Özel Fırsat: Premium üyeliğe %50 indirim ve hediye 20 takma adı!",
 		"promotion.npoDonation_msg": "Kar Amacı Gütmeyen Kuruluşlara Özel Fırsat: Premium Üyeliğe %50 İndirim ve 100 Takma ada kadar ücretsiz!  ",
-		"promotion.tresoritDiscount_msg": "Tutanota + Tresorit özel teklif: ilk yıl için 5 ay indirim!",
 		"providePaymentDetails_msg": "Lütfen ödeme bilgilerini girin",
 		"purchaseDate_label": "Satınalma tarihi",
 		"pushIdentifierCurrentDevice_label": "Bu cihaz",
@@ -1340,7 +1339,6 @@ export default {
 		"totpTransferSecret_msg": "Kimlik doğrulayıcı uygulamanızı QR kodunu tarayarak (aşağıda) veya gizli anahtarı el ile girerek ekleyebilirsiniz.",
 		"to_label": "Kime",
 		"trash_action": "Çöp Kutusu",
-		"tresoritDiscount_msg": "Tutanota + Tresorit özel teklif: İlk yıl için 5 ay indirim!",
 		"tutanotaAddressDoesNotExist_msg": "Belirtilen Tutanota e-posta adresleri mevcut değil.",
 		"tutaoInfo_msg": "Tutao GmbH, size Tutanota sağlayan şirkettir.",
 		"twitter_label": "Twitter",

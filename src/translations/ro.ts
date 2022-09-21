@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2022-08-12T12:27:31Z",
+	"updated_at": "2022-09-20T09:07:33Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1076,7 +1076,6 @@ export default {
 		"progressDeleting_msg": "Se șterge...",
 		"promotion.npoDiscount_msg": "Ofertă pentru organizațiile non-profit: 50% reducere pentru pachetul Premium și  20 de alias de e-mail gratis!",
 		"promotion.npoDonation_msg": "Donație pentru organizațiile non-profit: până la 50 de utilizatori pentru Premium și 100 de alias de e-mail gratis!",
-		"promotion.tresoritDiscount_msg": "Tutanota + Tresorit ofertă specială: 5 luni reducere pentru primul an!",
 		"providePaymentDetails_msg": "Te rugăm să furnizezi metoda de plată",
 		"purchaseDate_label": "Data cumpărării",
 		"pushIdentifierCurrentDevice_label": "Acest dispozitiv",
@@ -1377,7 +1376,6 @@ export default {
 		"totpTransferSecret_msg": "Actualizați aplicația dvs. de autentificare scanând codul QR (de mai jos) sau introducând manual cheia secretă.",
 		"to_label": "Către",
 		"trash_action": "Gunoi",
-		"tresoritDiscount_msg": "Tutanota + Tresorit ofertă specială: 5 luni reducere pentru primul an!",
 		"tutanotaAddressDoesNotExist_msg": "Următoarele adrese de e-mail Tutanota nu există.",
 		"tutaoInfo_msg": "Serviciul Tutanota îți este este oferit de compania Tutao GmbH.",
 		"twitter_label": "Twitter",

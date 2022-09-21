@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:55:56Z",
-	"updated_at": "2022-07-25T07:12:42Z",
+	"updated_at": "2022-09-20T09:07:33Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1039,7 +1039,6 @@ export default {
 		"progressDeleting_msg": "Διαγραφή...",
 		"promotion.npoDiscount_msg": "Προσφορά για ΜΚΟ: 50% έκπτωση για χρήστη Premium και 20 ψευδώνυμα δωρεάν!",
 		"promotion.npoDonation_msg": "Δωρεά για ΜΚΟ: έως και 50 χρήστες στο πακέτο Premium με δωρεαν 100 ψευδώνυμα!",
-		"promotion.tresoritDiscount_msg": "Ειδική προσφορά Tutanota + Tresorit: 5 μήνες έκπτωση για τον πρώτο χρόνο!",
 		"providePaymentDetails_msg": "Δώστε στοιχεία πληρωμής",
 		"purchaseDate_label": "Ημερομηνία αγοράς",
 		"pushIdentifierCurrentDevice_label": "Αύτη η συσκευή ",
@@ -1329,7 +1328,6 @@ export default {
 		"totpTransferSecret_msg": "Ενημερώστε την εφαρμογή ελέγχου ταυτότητας σαρώνοντας τον κωδικό QR (παρακάτω) ή εισάγοντας το μυστικό κλειδί χειροκίνητα.",
 		"to_label": "Προς",
 		"trash_action": "Κάδος",
-		"tresoritDiscount_msg": "Ειδική προσφορά Tutanota + Tresorit: Έκπτωση 5 μηνών για το πρώτο έτος!",
 		"tutanotaAddressDoesNotExist_msg": "Οι ακόλουθες διευθύνσεις ηλεκτρονικού ταχυδρομείου Tutanota δεν υπάρχουν.",
 		"tutaoInfo_msg": "Η Tutao GmbH είναι η εταιρεία που σας προφέρει το Tutanota",
 		"twitter_label": "Twitter",

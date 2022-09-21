@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2022-08-09T05:28:51Z",
+	"updated_at": "2022-09-20T09:07:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "O programu",
@@ -1072,7 +1072,6 @@ export default {
 		"progressDeleting_msg": "Brišem...",
 		"promotion.npoDiscount_msg": "Ponudba za neprofitne organizacije: 50% popust za Premium in 20 vzdevkov brezplačno!",
 		"promotion.npoDonation_msg": "Donacija za neprofitne organizacije: do 50 uporabnikov za Premium in 100 vzdevkov brezplačno!",
-		"promotion.tresoritDiscount_msg": "Posebna ponudba Tutanota + Tresorit: akcijska cena prvih 5 mesecev!",
 		"providePaymentDetails_msg": "Prosimo, navedite podatke o plačilu",
 		"purchaseDate_label": "Datum nakupa",
 		"pushIdentifierCurrentDevice_label": "Ta naprava",
@@ -1373,7 +1372,6 @@ export default {
 		"totpTransferSecret_msg": "Prosimo, posodobite aplikacijo za preverjanje pristnosti tako, da skenirate QR kodo spodaj ali vnesete skrivno geslo ročno.",
 		"to_label": "Za",
 		"trash_action": "Smeti",
-		"tresoritDiscount_msg": "Posebna ponudba Tutanota + Tresorit: akcijska cena prvih 5 mesecev!",
 		"tutanotaAddressDoesNotExist_msg": "Naslednji Tutanotini poštni naslovi ne obstajajo.",
 		"tutaoInfo_msg": "Tutao GmbH je podjetje, ki skrbi za Tutanoto.",
 		"twitter_label": "Twitter",

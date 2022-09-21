@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2022-08-19T11:18:04Z",
+	"updated_at": "2022-09-20T09:07:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Относно",
@@ -899,7 +899,6 @@ export default {
 		"progressDeleting_msg": "Изтриване ...",
 		"promotion.npoDiscount_msg": "Оферта за организации с нестопанска цел: 50% потребителска отстъпка за Премиум и 20 псевдоними безплатно!",
 		"promotion.npoDonation_msg": "Дарение за организации с нестопанска цел - до 50 потребители за Премиум абонамент и 100 псевдонима безплатно",
-		"promotion.tresoritDiscount_msg": "Tutanota + Tresorit специална оферта: 5 месеца отстъпка за първата година!",
 		"providePaymentDetails_msg": "Моля, предоставете данни за плащане",
 		"purchaseDate_label": "Дата на покупка",
 		"pushIdentifierCurrentDevice_label": "Текущо устройство",
@@ -1158,7 +1157,6 @@ export default {
 		"totpTransferSecret_msg": "Моля, актуализирайте приложението за удостоверяване, като сканирате QR кода (по-долу) или като въведете секретния ключ ръчно.",
 		"to_label": "До",
 		"trash_action": "Боклук",
-		"tresoritDiscount_msg": "Tutanota + Tresorit специална оферта: 5 месеца отстъпка за първата година!",
 		"tutaoInfo_msg": "Tutao GmbH е компанията, която Ви предоставя Tutanota.",
 		"twitter_label": "Туитър",
 		"typeToFilter_label": "Филтър",

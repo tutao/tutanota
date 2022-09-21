@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-13T07:36:09Z",
-	"updated_at": "2022-08-13T22:06:46Z",
+	"updated_at": "2022-09-20T09:07:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "אודות",
@@ -932,7 +932,6 @@ export default {
 		"progressDeleting_msg": "מוחק...",
 		"promotion.npoDiscount_msg": "הצעה למוסדות ללא מטרת רווח (מלכ״ר): 50% הנחה על חשבון Premuim ו-20 כינויים ללא תשלום!",
 		"promotion.npoDonation_msg": "תרומה עבור מוסדות ללא כוונת רווח: עד 50 משתמשים בחשבון Premium ו-100 כינויים ללא תשלום!",
-		"promotion.tresoritDiscount_msg": "הצעה מיוחדת מ-Tutanota ו-Tresorit: חמישה חודשי הנחה עבור השנה הראשונה!",
 		"providePaymentDetails_msg": "נא לספק פרטי תשלום",
 		"purchaseDate_label": "תאריך רכישה",
 		"pushIdentifierCurrentDevice_label": "מכשיר זה",
@@ -1196,7 +1195,6 @@ export default {
 		"totpTransferSecret_msg": "אנא עדכנו את יישומון האימות שלכם על ידי סריקת קוד ה-QR (למטה) או הזנת המפתח הסודי.",
 		"to_label": "ל",
 		"trash_action": "זבל",
-		"tresoritDiscount_msg": "הצעה מיוחדת מ-Tutanota ו-Tresorit: חמישה חודשי הנחה עבור השנה הראשונה!",
 		"tutaoInfo_msg": "חברת Tutao GmbH היא זו שמספקת את Tutanota עבורך.",
 		"twitter_label": "טוויטר",
 		"typeToFilter_label": "הקלד כדי לסנן ...",

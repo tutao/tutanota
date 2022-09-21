@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2022-07-25T07:12:43Z",
+	"updated_at": "2022-09-20T09:07:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Thông tin",
@@ -1044,7 +1044,6 @@ export default {
 		"progressDeleting_msg": "Đang xoá...",
 		"promotion.npoDiscount_msg": "Ưu đãi cho tổ chức phi lợi nhuận: giảm giá 50% gói Premium và miễn phí 20 biệt danh!",
 		"promotion.npoDonation_msg": "Ủng hộ cho tổ chức phi lợi nhuận: miễn phí tới 50 người dùng Premium và 100 biệt danh!",
-		"promotion.tresoritDiscount_msg": "Ưu đãi đặc biệt Tutanota + Tresorit: giảm giá 5 tháng cho năm đầu tiên!",
 		"providePaymentDetails_msg": "Vui lòng cung cấp thông tin thanh toán",
 		"purchaseDate_label": "Ngày mua",
 		"pushIdentifierCurrentDevice_label": "Máy này",
@@ -1336,7 +1335,6 @@ export default {
 		"totpTransferSecret_msg": "Vui lòng cập nhật ứng dụng xác thực của bạn bằng cách quét mã QR (dưới đây) hoặc nhập thủ công khóa bí mật.",
 		"to_label": "Đến",
 		"trash_action": "Thùng rác",
-		"tresoritDiscount_msg": "Ưu đãi đặc biệt Tutanota + Tresorit: giảm giá 5 tháng cho năm đầu tiên!",
 		"tutanotaAddressDoesNotExist_msg": "Các địa chỉ thư Tutanota sau không tồn tại.",
 		"tutaoInfo_msg": "Tutao GmbH là công ti cung cấp Tutanota cho bạn.",
 		"twitter_label": "Twitter",

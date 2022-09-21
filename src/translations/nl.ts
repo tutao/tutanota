@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2022-07-25T07:12:42Z",
+	"updated_at": "2022-09-20T09:07:32Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1004,7 +1004,6 @@ export default {
 		"promotion.ctAdventCalendarDiscount_msg": "c't adventskalender: Gebruik Tutanota 12 maanden gratis ",
 		"promotion.npoDiscount_msg": "Aanbieding voor non-profitorganisaties: 50% korting op Premium en 20 aliassen gratis!",
 		"promotion.npoDonation_msg": "Donatie aan non-profitorganisaties: tot 50 gebruikers bij Premium en 100 aliassen gratis!",
-		"promotion.tresoritDiscount_msg": "Tutanota + Tresorit speciale aanbieding: 5 maanden korting het eerste jaar!",
 		"providePaymentDetails_msg": "Stel een betaalmiddel in",
 		"purchaseDate_label": "Aankoopdatum",
 		"pushIdentifierCurrentDevice_label": "Dit apparaat",
@@ -1290,7 +1289,6 @@ export default {
 		"totpTransferSecret_msg": "Werk uw authenticatie-app bij door de QR-code (hieronder) te scannen of door de geheime sleutel handmatig in te voeren.",
 		"to_label": "Aan",
 		"trash_action": "Prullenmand",
-		"tresoritDiscount_msg": "Tutanota + Tresorit speciale aanbieding: 5 maanden korting het eerste jaar!",
 		"tutanotaAddressDoesNotExist_msg": "De volgende Tutanota e-mailadressen bestaan ​​niet.",
 		"tutaoInfo_msg": "Tutao GmbH is het bedrijf dat u Tutanota levert.",
 		"twitter_label": "Twitter",

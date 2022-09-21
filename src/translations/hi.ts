@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2022-08-04T10:29:04Z",
+	"updated_at": "2022-09-20T09:07:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "बारे में",
@@ -1033,7 +1033,6 @@ export default {
 		"progressDeleting_msg": "मिटाया जा रहा है.... ",
 		"promotion.npoDiscount_msg": "NPO के लिए ऑफ़र: प्रीमियम के लिए 50% उपभोगता छूट और 20 उपनाम मुफ्त!",
 		"promotion.npoDonation_msg": "यह संदेश एंड-टू-एंड एन्क्रिप्टेड नहीं भेजा गया है।",
-		"promotion.tresoritDiscount_msg": "टूटानोटा+ट्रेसोरिट विशेष आॅफर: पहले साल के लिए 5 माह की छूट! ",
 		"providePaymentDetails_msg": "कृपया भुगतान विवरण प्रदान करें",
 		"purchaseDate_label": "खरीद की तारीख",
 		"pushIdentifierCurrentDevice_label": "यह उपकरण",
@@ -1321,7 +1320,6 @@ export default {
 		"totpTransferSecret_msg": "कृपया अपने सत्यापक एप को क्यूआर कोड (नीचे) स्कैन करके या स्वयं गुप्तकुंजी डालकर अपडेट करें। ",
 		"to_label": "को",
 		"trash_action": "कचरा",
-		"tresoritDiscount_msg": "टूटानोटा + ट्रेसोरिट विशेष ऑफ़र : प्रथम वर्ष के लिए 5 माह का डिस्काउंट! ",
 		"tutanotaAddressDoesNotExist_msg": "निम्नलिखित टूटनोटा ईमेल पते मौजूद नहीं हैं।",
 		"tutaoInfo_msg": "टूूटानोटा टूटाओ जीएमबीएच कंपनी का उत्पाद है। ",
 		"twitter_label": "ट्विटर",

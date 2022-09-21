@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2022-07-25T07:12:43Z",
+	"updated_at": "2022-09-20T09:07:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "درباره",
@@ -1067,7 +1067,6 @@ export default {
 		"progressDeleting_msg": "درحال حذف شدن است...",
 		"promotion.npoDiscount_msg": "پیشنهاد برای سازمان‌های غیرانتفاعی: ٪۵۰ تخفیف کاربری برای اشتراک حرفه‌ای و ۲۰ نام مستعار رایگان!",
 		"promotion.npoDonation_msg": " اهدایی  به سازمان‌های غیرانتفاعی: تا ۵۰ کاربر برای اشتراک ممتاز و ۱۰۰ نام مستعار به طور مجانی!",
-		"promotion.tresoritDiscount_msg": "Tutanota + Tresorit پیشنهاد ویژه: ۵ ماه تخفیف برای سال اول!",
 		"providePaymentDetails_msg": "لطفا اطلاعات پرداخت را وارد کنید",
 		"purchaseDate_label": "تاریخ خرید",
 		"pushIdentifierCurrentDevice_label": "این دستگاه",
@@ -1368,7 +1367,6 @@ export default {
 		"totpTransferSecret_msg": "لطفا اپلیکشن تصدیق کننده رمز دو مرحله ای را با اسکن کد  QR( ذیل ) یا وارد کردن دستی  کد امنیتی، بروزرسانی نمایید.",
 		"to_label": "به",
 		"trash_action": "حذف‌شده‌ها",
-		"tresoritDiscount_msg": "Tutanota + Tresorit پیشنهاد ویژه: ۵ ماه تخفیف برای سال اول!",
 		"tutanotaAddressDoesNotExist_msg": "نشانی‌های ایمیل‌ توتانوتایی که در ادامه می‌آیند وجود ندارند.",
 		"tutaoInfo_msg": " Tutao GmbH  شرکت فراهم کننده   Tutanota  برای شماست ",
 		"twitter_label": "توییتر",

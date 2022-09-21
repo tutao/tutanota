@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2022-07-25T07:12:43Z",
+	"updated_at": "2022-09-20T09:07:33Z",
 	"source_locale": null,
 	"keys": {
 		"acceptInvitation_action": "Terima undangan",
@@ -961,7 +961,6 @@ export default {
 		"progressDeleting_msg": "Menghapus...",
 		"promotion.npoDiscount_msg": "Tawaran bagi organisasi nirlaba / non-profit: diskon 50% untuk penggunaan Premium dan 20 alias gratis!",
 		"promotion.npoDonation_msg": "Donasi untuk Organisasi Non Profit: Pengguna Premium sampai dengan 50 dan 100 alias gratis!",
-		"promotion.tresoritDiscount_msg": "Tawaran spesial Tutanota + Tresorit: diskon 5 bulan untuk tahun pertama!",
 		"providePaymentDetails_msg": "Mohon berikan detail pembayaran",
 		"purchaseDate_label": "Tanggal pembelian",
 		"pushIdentifierCurrentDevice_label": "Perangkat ini",
@@ -1233,7 +1232,6 @@ export default {
 		"totpTransferSecret_msg": "Mohon perbarui aplikasi autentikator Anda dengan cara scan kode QR (di bawah ini) atau dengan memasukkan kunci rahasia secara manual.",
 		"to_label": "Kepada",
 		"trash_action": "Tong sampah",
-		"tresoritDiscount_msg": "Tawaran spesial Tutanota + Tresorit: diskon 5 bulan untuk tahun pertama!",
 		"tutaoInfo_msg": "Tutao GmbH adalah perusahaan yang menyediakan Tutanota bagi Anda.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Ketik untuk filter",

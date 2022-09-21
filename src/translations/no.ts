@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2022-07-25T07:12:43Z",
+	"updated_at": "2022-09-20T09:07:32Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Om",
@@ -964,7 +964,6 @@ export default {
 		"progressDeleting_msg": "Sletter ...",
 		"promotion.npoDiscount_msg": "Tilbud for ideelle organisasjoner: 50% brukerrabatt for Premium og 20 alias helt gratis!",
 		"promotion.npoDonation_msg": "Donasjon for ideelle organisasjoner: opp til 50 brukere og 100 alias helt gratis!",
-		"promotion.tresoritDiscount_msg": "Tutanota + Tresorit spesialtilbud: 5 måneders rabatt for det første året!",
 		"providePaymentDetails_msg": "Oppgi betalingsdetaljer",
 		"purchaseDate_label": "Kjøpsdato",
 		"pushIdentifierCurrentDevice_label": "Denne enheten",
@@ -1233,7 +1232,6 @@ export default {
 		"totpTransferSecret_msg": "Oppdater autentikatoren din ved å skanne QR-koden (under) eller ved å skrive inn den hemmelige koden manuelt.",
 		"to_label": "Til",
 		"trash_action": "Papirkurv",
-		"tresoritDiscount_msg": "Tutanota + Tresorit spesialtilbud: 5 måneders rabatt for det første året!",
 		"tutaoInfo_msg": "Tutao GmbH er selskapet som tilbyr Tutanota til deg.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Skriv for å filtrere...",

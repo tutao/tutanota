@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-03-09T14:04:39Z",
-	"updated_at": "2022-06-28T09:22:26Z",
+	"updated_at": "2022-09-20T09:07:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Par",
@@ -902,7 +902,6 @@ export default {
 		"progressDeleting_msg": "Dzēšana...",
 		"promotion.npoDiscount_msg": "Piedāvājums bezpeļņas (nevalstiskajām) organizācijām: 50% lietotāju atlaide plānam Premium un 20 aliases bez maksas!",
 		"promotion.npoDonation_msg": "Ziedojums/dāvinājums bezpeļņas (nevalstiskajām) organizācijām: 50% atlaide Premium kontam un 100 aliases bez maksas!",
-		"promotion.tresoritDiscount_msg": "Īpašais Tutanota un Tresorit piedāvājums: 5 mēnešu atlaide pirmajam gadam!",
 		"pushIdentifierCurrentDevice_label": "Šī ierīce",
 		"pushIdentifierInfoMessage_msg": "Ierīču saraksts, kuras saņem šim lietotājam paredzētos paziņojumus. Jūs varat deaktivizēt ierakstus, ja nevēlaties saņemt paziņojumus vai noņemt tos ierīcēm, kuras vairs neizmantojat.",
 		"pushNewMailReceivedBody_msg": "Jums ir pienākusi jauna vēstule {emailAddress} uz {domainName}.",
@@ -1159,7 +1158,6 @@ export default {
 		"totpTransferSecret_msg": "Lūdzu, pievienojiet savu autentifikatoru noskenējot QR kodu (apakšā) vai ievadot slepeno atslēgu manuāli. ",
 		"to_label": "Saņēmējs",
 		"trash_action": "Atkritne",
-		"tresoritDiscount_msg": "Tutanota + Tresorit īpašais piedāvājums: 5 mēnešu atlaide pirmajam gadam!",
 		"tutanotaAddressDoesNotExist_msg": "Šādas Tutanota e-pasta adreses nepastāv.",
 		"tutaoInfo_msg": "Tutanota GmbH ir uzņēmums, kurš izstrādājis un piedāvā Tutanota.",
 		"twitter_label": "Twitter",

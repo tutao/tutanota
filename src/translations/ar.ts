@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2022-08-08T16:57:20Z",
+	"updated_at": "2022-09-20T09:07:32Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1076,7 +1076,6 @@ export default {
 		"progressDeleting_msg": "حذف ...",
 		"promotion.npoDiscount_msg": "عرض للمنظمات غير الربحية (NPOs) : خصم 50٪ على بريميوم و 20 اسم مستعار مجاني!",
 		"promotion.npoDonation_msg": "التبرع للمنظمات غير الربحية (NPOs): ما يصل إلى 50 مستخدمًا لـ بريميوم و 100 اسم مستعار مجاني!",
-		"promotion.tresoritDiscount_msg": "توتانوتا + العرض الخاص تريسوريت : خصم 5 أشهر على السنة الأولى!",
 		"providePaymentDetails_msg": "يرجى تقديم تفاصيل الدفع",
 		"purchaseDate_label": "تاريخ الشراء",
 		"pushIdentifierCurrentDevice_label": "هذا الجهاز",
@@ -1377,7 +1376,6 @@ export default {
 		"totpTransferSecret_msg": "يرجى تحديث تطبيق المصادق الخاص بك عن طريق مسح (QR) كود الاستجابة السريعة (أدناه) أو عن طريق إدخال المفتاح السري يدويًا.",
 		"to_label": "إلى",
 		"trash_action": "المحذوفات",
-		"tresoritDiscount_msg": "توتانوتا + العرض الخاص تريسوريت : خصم 5 أشهر على السنة الأولى!",
 		"tutanotaAddressDoesNotExist_msg": "عناوين توتانوتا للبريد الإلكتروني التالية غير موجودة.",
 		"tutaoInfo_msg": "Tutao GmbH هي الشركة التي توفر لك Tutanota.",
 		"twitter_label": "تويتر",

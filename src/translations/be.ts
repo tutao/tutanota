@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2022-02-03T06:52:08Z",
-	"updated_at": "2022-08-20T21:12:26Z",
+	"updated_at": "2022-09-20T09:07:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Пра нас",
@@ -1075,7 +1075,6 @@ export default {
 		"promotion.ctAdventCalendarDiscount_msg": "Адвэнт-каляндар ад c't: Карыстайся Тутанотаю бясплатна 12 месяцаў запар",
 		"promotion.npoDiscount_msg": "Прапанова для НКА: 50% зніжка на тарыф Premium і 20 бескаштоўных паштовых мянушак!",
 		"promotion.npoDonation_msg": "Для некамерцыйных арганізацый: да 50 карыстальнікаў Premium і 100 мянушак бясплатна!",
-		"promotion.tresoritDiscount_msg": "Эксклюзіўная прапанова ад Tutanota + Tresorit: 5 месяцаў знішкі на першы год!",
 		"providePaymentDetails_msg": "Калі ласка, укажы спосаб аплаты.",
 		"purchaseDate_label": "Дата куплі",
 		"pushIdentifierCurrentDevice_label": "Гэтая прылада",
@@ -1353,7 +1352,7 @@ export default {
 		"timeFormat_label": "Фармат часу",
 		"times_msg": "{amount} разоў",
 		"time_label": "Час",
-		"title_placeholder": "Назва",
+		"title_placeholder": "Тытул",
 		"today_label": "Сёння",
 		"toggleDevTools_action": "Чаргаваць кансоль",
 		"toggleFullScreen_action": "Чаргаваць поўнаэкранны рэжым",
@@ -1376,7 +1375,6 @@ export default {
 		"totpTransferSecret_msg": "Калі ласка, абнаві сваю праграму спраўджання праз сканаванне QR-коду (ніжэй) альбо уводу сакрэтнага ключа ўручную.",
 		"to_label": "Да",
 		"trash_action": "Сметніца",
-		"tresoritDiscount_msg": "Эксклюзіўная прапанова ад Tutanota + Tresorit: 5 месяцаў знішкі на першы год!",
 		"tutanotaAddressDoesNotExist_msg": "Наступныя адрасы імэйлу Тутаноты не існуюць.",
 		"tutaoInfo_msg": "Tutao GmbH – гэта кампанія, што стварае і надае табе Тутаноту.",
 		"twitter_label": "Twitter",

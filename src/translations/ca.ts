@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2022-07-25T07:12:43Z",
+	"updated_at": "2022-09-20T09:07:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Sobre",
@@ -855,7 +855,6 @@ export default {
 		"promotion.ctAdventCalendarDiscount_msg": "Calendari d'Advent c't: utilitza Tutanota 12 mesos gratis",
 		"promotion.npoDiscount_msg": "Oferta per a ONGs: 50% de descompte per a usuaris Premium i 20 àlies gratuïts!",
 		"promotion.npoDonation_msg": "Donació per a ONGs: fins a 50 usuaris Premium i 100 àlies gratuïts!",
-		"promotion.tresoritDiscount_msg": "Oferta especial Tutanota + Tresorit: descompte de 5 mesos el primer any!",
 		"pushIdentifierCurrentDevice_label": "Aquest dispositiu",
 		"pushIdentifierInfoMessage_msg": "Llista de tots els dispositius que reben notificacions per a aquest usuari. Podeu activar entrades si no desitjeu rebre més notificacions o borrar-les per a dispositius que ja no utilitzeu.",
 		"pushNewMailReceivedBody_msg": "Heu rebut un nou correu electrònic per a la vostra bústia {emailAddress} a {domainName}.",
@@ -1101,7 +1100,6 @@ export default {
 		"totpTransferSecret_msg": "Actualitzeu l'aplicació autenticadora escanejant el codi QR (a sota) o introduint la clau secreta manualment.",
 		"to_label": "A",
 		"trash_action": "Paperera",
-		"tresoritDiscount_msg": "Oferta especial Tutanota + Tresorit: descompte de 5 mesos el primer any!",
 		"tutaoInfo_msg": "Tutao GmbH és la companyia que us ofereix Tutanota.",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "Escriure per a filtrar...",

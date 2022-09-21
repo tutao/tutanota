@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2022-08-11T18:18:37Z",
+	"updated_at": "2022-09-20T09:07:32Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Про",
@@ -1072,7 +1072,6 @@ export default {
 		"progressDeleting_msg": "Видалення...",
 		"promotion.npoDiscount_msg": "Пропозиція для НКО: 50% знижка для категорії Premium та 20 псевдонімів безкоштовно!",
 		"promotion.npoDonation_msg": "Пожертва для неприбуткових організацій: до 50 користувачів Premium та 100 псевдонімів до облікового запису безкоштовно!",
-		"promotion.tresoritDiscount_msg": "Спеціальна пропозиція Tutanota + Tresorit: 5 місяців знижки за перший рік!",
 		"providePaymentDetails_msg": "Будь ласка, надайте деталі оплати",
 		"purchaseDate_label": "Дата покупки",
 		"pushIdentifierCurrentDevice_label": "Цей пристрій",
@@ -1373,7 +1372,6 @@ export default {
 		"totpTransferSecret_msg": "Оновіть свою програму автентифікатора через сканування QR коду (нижче) або шляхом введення секретного ключа вручну.",
 		"to_label": "Кому",
 		"trash_action": "Кошик",
-		"tresoritDiscount_msg": "Спеціальна пропозиція Tutanota + Tresorit: 5 місяців знижки за перший рік!",
 		"tutanotaAddressDoesNotExist_msg": "Наступні адреси електронної пошти сервісу Tutanota не існують.",
 		"tutaoInfo_msg": "Tutao GmbH - це компанія, яка надає Вам сервіс Tutanota.",
 		"twitter_label": "Twitter",

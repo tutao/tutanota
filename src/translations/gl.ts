@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2022-07-25T07:12:43Z",
+	"updated_at": "2022-09-20T09:07:32Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Acerca de",
@@ -1040,7 +1040,6 @@ export default {
 		"progressDeleting_msg": "Eliminando ... ",
 		"promotion.npoDiscount_msg": "Oferta para organizacións sen ánimo de lucro: 50% de desconto para Premium e 20 alias gratuítos!",
 		"promotion.npoDonation_msg": "Doazón para ONGs: ate 50 usuarias para o Premium e 100 alias gratuítos!",
-		"promotion.tresoritDiscount_msg": "Oferta especial de Tutanota + Tresorit: 5 meses de desconto no primeiro ano!",
 		"providePaymentDetails_msg": "Por favor, proporciona detalles do pagamento",
 		"purchaseDate_label": "Data de adquisición",
 		"pushIdentifierCurrentDevice_label": "Este dispositivo",
@@ -1330,7 +1329,6 @@ export default {
 		"totpTransferSecret_msg": "Por favor, actualice o seu aplicativo de autenticación escaneando o código QR (inferior) ou introducindo manualmente a chave segreda.",
 		"to_label": "Para",
 		"trash_action": "Papeleira",
-		"tresoritDiscount_msg": "Oferta especial de Tutanota + Tresorit: 5 meses de desconto no primeiro ano!",
 		"tutanotaAddressDoesNotExist_msg": "Non existen os seguintes enderezos de Tutanota.",
 		"tutaoInfo_msg": "Tutao GmbH é a empresa que lle proporciona Tutanota.",
 		"twitter_label": "Twitter",

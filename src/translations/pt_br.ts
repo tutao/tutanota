@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2022-08-09T15:14:24Z",
+	"updated_at": "2022-09-20T09:07:32Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -1073,7 +1073,6 @@ export default {
 		"promotion.ctAdventCalendarDiscount_msg": "calendário do evento: use o Tutanota gratuitamente por 12 meses",
 		"promotion.npoDiscount_msg": "Oferta para organizações sem fins lucrativos: 50% de desconto para usuários Premium e 20 apelidos grátis!",
 		"promotion.npoDonation_msg": "Doação para ONGs: até 50 usuários Premium e 100 apelidos grátis!",
-		"promotion.tresoritDiscount_msg": "Oferta Tutanota + Tresorit: 5 meses de desconto no primeiro ano!",
 		"providePaymentDetails_msg": "Por favor, prover detalhes do pagamento.",
 		"purchaseDate_label": "Marcador da data da compra.",
 		"pushIdentifierCurrentDevice_label": "Este dispositivo",
@@ -1374,7 +1373,6 @@ export default {
 		"totpTransferSecret_msg": "Atualize seu app autenticador escaneando o QR code abaixo ou inserindo a chave secreta manualmente.",
 		"to_label": "Para",
 		"trash_action": "Lixeira",
-		"tresoritDiscount_msg": "Oferta Tutanota + Tresorit: 5 meses de desconto no primeiro ano!",
 		"tutanotaAddressDoesNotExist_msg": "Os seguintes endereços de e-mail do Tutanota não existem.",
 		"tutaoInfo_msg": "A Tutao GmbH é a empresa que oferece o Tutanota a você.",
 		"twitter_label": "Twitter",

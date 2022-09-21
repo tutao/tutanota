@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2022-06-28T09:22:25Z",
+	"updated_at": "2022-09-20T09:07:32Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -812,7 +812,6 @@ export default {
 		"progressDeleting_msg": "正在删除…",
 		"promotion.npoDiscount_msg": "非营利组织优惠：50%的会员折扣和免费的100个地址别名！",
 		"promotion.npoDonation_msg": "非营利组织优惠：最多50名会员和免费的100个地址别名！",
-		"promotion.tresoritDiscount_msg": "Tutanota + Tresorit特殊优惠：第一年获得五个月折扣！",
 		"pushIdentifierCurrentDevice_label": "该设备",
 		"pushIdentifierInfoMessage_msg": "收到当前用户通知的所有收件人列表。如果不希望某个设备继续接收通知，可删除相应条目。",
 		"pushNewMailReceivedBody_msg": "您 {domainName} 域名中的 {emailAddress} 邮箱收到一封邮件。",
@@ -1044,7 +1043,6 @@ export default {
 		"totpTransferSecret_msg": "请扫描下方二维码或手动输入密钥以更新密码器程序配置。",
 		"to_label": "发送至",
 		"trash_action": "废件箱",
-		"tresoritDiscount_msg": "Tutanota + Tresorit特别优惠：第一年获得五个月折扣！",
 		"tutaoInfo_msg": "Tutanota是由Tutao GmbH公司向您提供的服务。",
 		"twitter_label": "Twitter",
 		"typeToFilter_label": "输入以过滤...",
