@@ -6,7 +6,6 @@ import {SubscriptionTypeParameter} from "./UpgradeSubscriptionWizard"
 import {SubscriptionSelector} from "./SubscriptionSelector"
 import {isApp, isTutanotaDomain} from "../api/common/Env"
 import {client} from "../misc/ClientDetector"
-import type {ButtonAttrs} from "../gui/base/Button.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import type {SubscriptionActionButtons} from "./SubscriptionUtils"
 import {SubscriptionType, UpgradePriceType, UpgradeType} from "./SubscriptionUtils"
@@ -29,13 +28,6 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		this._dom = vnode.dom as HTMLElement
 		const subscriptionParameters = vnode.attrs.data.subscriptionParameters
 
-		if (subscriptionParameters && (subscriptionParameters.interval === "12" || subscriptionParameters.interval === "1")) {
-			// We automatically route to the next page; when we want to go back from the second page, we do not want to keep calling nextPage
-			vnode.attrs.data.subscriptionParameters = null
-			vnode.attrs.data.options.paymentInterval = stream(Number(subscriptionParameters.interval))
-			this.goToNextPageWithPreselectedSubscription(subscriptionParameters, vnode.attrs.data)
-		}
-
 		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
 		this.__signupFreeTest.strictStageOrder = true
 		this.__signupFreeTest.active = false
@@ -43,6 +35,13 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
 		this.__signupPaidTest.strictStageOrder = true
 		this.__signupPaidTest.active = false
+
+		if (subscriptionParameters && (subscriptionParameters.interval === "12" || subscriptionParameters.interval === "1")) {
+			// We automatically route to the next page; when we want to go back from the second page, we do not want to keep calling nextPage
+			vnode.attrs.data.subscriptionParameters = null
+			vnode.attrs.data.options.paymentInterval = stream(Number(subscriptionParameters.interval))
+			this.goToNextPageWithPreselectedSubscription(subscriptionParameters, vnode.attrs.data)
+		}
 	}
 
 	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
