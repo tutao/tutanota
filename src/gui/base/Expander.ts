@@ -81,7 +81,8 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 export class ExpanderPanel implements Component<ExpanderPanelAttrs> {
 	childDiv: HTMLElement | null = null
 	// There are some cases where the child div will be added to and a redraw won't be triggered, in which case
-	// the expander panel wont update until some kind of interaction happens
+	// the expander panel won't update until some kind of interaction happens.
+	// Unfortunately no one knows what these cases are anymore besides some direct mutation.
 	observer: MutationObserver | null = null
 	// We calculate the height manually because we need concrete values for the transition (can't just transition from 0px to 100%)
 	lastCalculatedHeight: number | null = null
@@ -93,7 +94,7 @@ export class ExpanderPanel implements Component<ExpanderPanelAttrs> {
 	oninit(vnode: Vnode<ExpanderPanelAttrs>) {
 		this.childrenInDom = vnode.attrs.expanded
 		this.observer = new MutationObserver(mutations => {
-			// redraw if a child has been added that wont be getting displayed
+			// redraw if a child has been added that won't be getting displayed
 			if (this.childDiv && this.childDiv.offsetHeight !== this.lastCalculatedHeight) {
 				m.redraw()
 			}
@@ -113,23 +114,33 @@ export class ExpanderPanel implements Component<ExpanderPanelAttrs> {
 
 	view(vnode: Vnode<ExpanderPanelAttrs>): Children {
 		const expanded = vnode.attrs.expanded
-		this.lastCalculatedHeight = this.childDiv?.offsetHeight ?? 0
-		// The expander panel children are wrapped in an extra div so that we can calculate the height properly,
-		// since offsetHeight doesn't include borders or margins
-		return m(
-			".expander-panel.overflow-hidden",
-			m(
-				"div",
-				{
+		// getBoundingClientRect() gives us the correct size, with a fraction
+		this.lastCalculatedHeight = this.childDiv?.getBoundingClientRect().height ?? 0
+		// theoretically we don't need overflow: hidden here but better be safe
+		return m(".expander-panel.overflow-hidden",
+			// this is what will be actually clipping content. nothing must overflow it.
+			m(".overflow-hidden", {
 					style: {
 						opacity: expanded ? "1" : "0",
 						height: expanded ? `${this.lastCalculatedHeight}px` : "0px",
 						transition: `opacity ${DefaultAnimationTime}ms ease-out, height ${DefaultAnimationTime}ms ease-out`,
 					},
 				},
-				m(
-					".expander-child-wrapper",
-					{
+				// we use this wrapper to measure the child reliably
+				// just a marker class
+				m(".expander-child-wrapper", {
+						style: {
+							// one way to deal with collapsible margins.
+							// CSS is fun in the way that it likes to collapse some vertical margins in some cases.
+							// https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Box_Model/Mastering_margin_collapsing
+							// One of such cases is when there's no content between the parent and the child and no margins or borders.
+							// So assuming that the child we want to display inside has a margin-top set it would actually overflow our child-wrapper on the
+							// top. Which means all our sizing is wrong.
+							// There are few ways to prevent this, one of them is `display: flow-root`. It should have no side effects except for some
+							// `display: float` items but if you are using `float` still you have no one to blame but yourself.
+							// we could set `overflow: hidden` here instead but we do measure this element so we probably shouldn't
+							"display": "flow-root",
+						},
 						oncreate: vnode => {
 							this.childDiv = vnode.dom as HTMLElement
 							assertNotNull(this.observer).observe(this.childDiv, {
@@ -147,6 +158,8 @@ export class ExpanderPanel implements Component<ExpanderPanelAttrs> {
 		)
 	}
 
+	// This was done for some obscure case on iOS 12 and it wasn't even done correctly (setTimeout() will not magically produce a redraw()) so it is probably
+	// a good candidate for removal.
 	_handleExpansionStateChanged(expanded: boolean) {
 		clearTimeout(this.setChildrenInDomTimeout)
 
