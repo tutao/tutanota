@@ -151,6 +151,10 @@ export function isSecurityError(e: any): boolean {
 	return e instanceof DOMException && (e.name === "SecurityError" || e.code === e.SECURITY_ERR)
 }
 
+export function isNotSupportedError(e: any): boolean {
+	return e instanceof DOMException && (e.name === "NotSupportedError" || e.code === e.NOT_SUPPORTED_ERR)
+}
+
 export function objToError(o: Record<string, any>): Error {
 	// @ts-ignore
 	let errorType = ErrorNameToType[o.name]
