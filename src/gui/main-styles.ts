@@ -950,6 +950,9 @@ styles.registerStyle("main", () => {
 			"border-bottom-left-radius": px(size.border_radius),
 			"border-bottom-right-radius": px(size.border_radius),
 		},
+		".border-radius-small": {
+			"border-radius": px(size.border_radius_small),
+		},
 		".editor-border": {
 			border: `1px solid ${theme.content_border}`,
 			"padding-top": px(size.vpad_small),
@@ -1534,12 +1537,12 @@ styles.registerStyle("main", () => {
 			background: "transparent",
 		},
 		".segmentControlItem:last-child": {
-			"border-bottom-right-radius": px(size.border_radius),
-			"border-top-right-radius": px(size.border_radius),
+			"border-bottom-right-radius": px(size.border_radius_small),
+			"border-top-right-radius": px(size.border_radius_small),
 		},
 		".segmentControlItem:first-child": {
-			"border-bottom-left-radius": px(size.border_radius),
-			"border-top-left-radius": px(size.border_radius),
+			"border-bottom-left-radius": px(size.border_radius_small),
+			"border-top-left-radius": px(size.border_radius_small),
 		},
 		// contact
 		".wrapping-row": {
