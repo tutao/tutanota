@@ -2,9 +2,6 @@ import m, {Children, Component, Vnode} from "mithril"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {isMailAddress} from "../misc/FormatValidator"
-import {Icons} from "../gui/base/icons/Icons"
-import type {ButtonAttrs} from "../gui/base/Button.js"
-import {Button, ButtonType} from "../gui/base/Button.js"
 import {AccessDeactivatedError} from "../api/common/error/RestError"
 import {firstThrow} from "@tutao/tutanota-utils"
 import {formatMailAddressFromParts} from "../misc/Formatter"
@@ -14,7 +11,7 @@ import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
 import {isTutanotaMailAddress} from "../mail/model/MailUtils.js";
 import {px, size} from "../gui/size.js"
-import {TextField} from "../gui/base/TextField.js"
+import {inputLineHeight, TextField} from "../gui/base/TextField.js"
 import {attachDropdown, DropdownButtonAttrs} from "../gui/base/Dropdown.js"
 import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js"
@@ -75,12 +72,13 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			},
 			injectionsRight: () => [
 				m(
-					".flex.items-end.mr-s",
+					".flex.items-end",
 					{
 						style: {
 							"padding-bottom": "1px",
 							flex: "1 1 auto",
-							fontSize: px(size.font_size_smaller)
+							fontSize: px(size.font_size_smaller),
+							lineHeight: px(inputLineHeight),
 						},
 					},
 					`@${this.domain}`,
@@ -90,7 +88,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 						{
 							mainButtonAttrs: {
 								title: "domain_label",
-								icon: Icons.More,
+								icon: BootIcons.Expand,
 								size: ButtonSize.Compact,
 							},
 							childAttrs: () => attrs.availableDomains.map(domain => this.createDropdownItemAttrs(domain, attrs)),
