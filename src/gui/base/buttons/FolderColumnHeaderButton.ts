@@ -17,10 +17,9 @@ export class FolderColumnHeaderButton implements Component<FolderColumnHeaderBut
 	view({attrs}: Vnode<FolderColumnHeaderButtonAttrs>): Children {
 		return m("button",
 			{
-				class: "bg-transparent button-height full-width noselect limit-width",
+				class: "bg-transparent button-height full-width noselect limit-width border-radius-small",
 				style: {
 					border: `2px solid ${theme.content_accent}`,
-					"border-radius": "3px",
 				},
 				onclick: (event: MouseEvent) => attrs.click(event, assertNotNull(this.domButton)),
 				title: lang.getMaybeLazy(attrs.label),

@@ -9,6 +9,7 @@ import type {lazy} from "@tutao/tutanota-utils"
 import {assertNotNull} from "@tutao/tutanota-utils"
 import type {clickHandler} from "./GuiUtils"
 import {assertMainOrNode} from "../../api/common/Env"
+import {px, size} from "../size.js"
 
 assertMainOrNode()
 
@@ -163,7 +164,7 @@ export class Button implements ClassComponent<ButtonAttrs> {
 	_getStyle(a: ButtonAttrs): {} {
 		return a.type === ButtonType.Login
 			? {
-				"border-radius": "3px",
+				"border-radius": px(size.border_radius_small),
 				"background-color": theme.content_accent,
 			}
 			: {}

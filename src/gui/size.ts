@@ -21,6 +21,7 @@ export const size = {
 	vpad_large: 32,
 	vpad_xl: 48,
 	text_bubble_tpad: 20,
+	border_radius_small: 3,
 	border_radius: 6,
 	border_selection: 4,
 	font_size_base: 16,

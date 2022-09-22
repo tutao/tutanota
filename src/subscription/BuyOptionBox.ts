@@ -1,5 +1,5 @@
 import m, {Children, Component, Vnode} from "mithril"
-import {px} from "../gui/size"
+import {px, size} from "../gui/size"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {lazy} from "@tutao/tutanota-utils"
@@ -51,7 +51,7 @@ export function getActiveSubscriptionActionButtonReplacement(): {
 				".buyOptionBox.content-accent-fg.center-vertically.text-center",
 				{
 					style: {
-						"border-radius": "3px",
+						"border-radius": px(size.border_radius_small),
 					},
 				},
 				lang.get("pricing.currentPlan_label"),
@@ -75,11 +75,10 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			},
 			[
 				m(
-					".buyOptionBox" + (vnode.attrs.highlighted ? ".highlighted" : ""),
+					".buyOptionBox.border-radius-small" + (vnode.attrs.highlighted ? ".highlighted" : ""),
 					{
 						style: {
 							height: px(vnode.attrs.height),
-							"border-radius": "3px",
 						},
 					},
 					[
