@@ -16,7 +16,6 @@ import {formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, 
 import {isAndroidApp, isDesktop, isIOSApp} from "../../api/common/Env.js"
 import {Button, ButtonAttrs, ButtonColor, ButtonType} from "../../gui/base/Button.js"
 import {size} from "../../gui/size.js"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog.js"
 import Badge from "../../gui/base/Badge.js"
 import {ContentBlockingStatus, MailViewerViewModel} from "./MailViewerViewModel.js"
 import {createMoreSecondaryButtonAttrs} from "../../gui/base/GuiUtils.js"
@@ -704,7 +703,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		const allRecipients = mail.toRecipients.concat(mail.ccRecipients).concat(mail.bccRecipients)
 
 		if (allRecipients.length > 0) {
-			return m(".flex.click.small.ml-between-s.border-radius.plr-s.ml-negative-s.items-center", {
+			return m(".flex.click.small.ml-between-s.items-center", {
 				style: {
 					// use this to allow the container to shrink, otherwise it doesn't want to cut the recipient address
 					minWidth: "20px",
