@@ -45,7 +45,13 @@ export const enum TextFieldType {
 
 export const inputLineHeight: number = size.font_size_base + 8
 const inputMarginTop = size.font_size_small + size.hpad_small + 3
-export const baseLabelPosition = size.text_field_label_top
+
+// this is not always correct because font size can be biggger/smaller and we ideally should take that into account
+const baseLabelPosition = 21
+// it should fit
+// compact button + 1 px border + 1 px padding to keep things centered = 32
+// 24px line-height + 12px label + some space between them = 36 + ?
+const minInputHeight = 46
 
 export class TextField implements ClassComponent<TextFieldAttrs> {
 	active: boolean
@@ -104,7 +110,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 						{
 							// .flex-wrap
 							style: {
-								"min-height": px(size.button_height + 2),
+								"min-height": px(minInputHeight),
 								// 2 px border
 								"padding-bottom": this.active ? px(0) : px(1),
 								"border-bottom": doShowBorder ? `${borderWidth} solid ${borderColor}` : "",
@@ -115,11 +121,16 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							m(
 								".inputWrapper.flex-space-between.items-end",
 								{
+									style: {
+										minHeight: px(minInputHeight - 2), // minus padding
+									},
 									oncreate: vnode => (this._domInputWrapper = vnode.dom as HTMLElement),
 								},
 								[
 									a.type !== TextFieldType.Area ? this._getInputField(a) : this._getTextArea(a),
-									a.injectionsRight ? m(".flex-end", a.injectionsRight()) : null,
+									a.injectionsRight ? m(".flex-end.items-center", {
+										style: {minHeight: px(minInputHeight - 2)},
+									}, a.injectionsRight()) : null,
 								],
 							),
 						],

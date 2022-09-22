@@ -299,14 +299,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			helpLabel: () => getConfidentialStateMessage(model.isConfidential()),
 			value: model.getSubject(),
 			oninput: val => model.setSubject(val),
-			injectionsRight: () => m(".flex.end.ml-between-s.items-center", {
-				style: {
-					// all this injection stuff is messy, this is the easiest way to center it
-					height: "40px",
-					// since our buttons are more compact than default (dropdown) ones
-					// marginRight: "5px",
-				},
-			}, [
+			injectionsRight: () => m(".flex.end.ml-between-s.items-center", [
 				showConfidentialButton ? m(ToggleButton, confidentialButtonAttrs) : null,
 				this.openKnowledgeBaseButtonAttrs ? m(IconButton, this.openKnowledgeBaseButtonAttrs) : null,
 				m(IconButton, attachFilesButtonAttrs),
@@ -442,7 +435,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 									dropdownWidth: 250,
 								})),
 								editCustomNotificationMailAttrs
-									? m(".flex-no-grow.col.flex-end.border-bottom", m(".mr-negative-s", m(IconButton, editCustomNotificationMailAttrs)))
+									? m(".flex-no-grow.col.flex-end.border-bottom", m(IconButton, editCustomNotificationMailAttrs))
 									: null,
 							],
 						)
@@ -531,7 +524,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						oncreate: vnode => this.animateHeight(vnode.dom as HTMLElement, true),
 						onbeforeremove: vnode => this.animateHeight(vnode.dom as HTMLElement, false),
 						label: () => lang.get("passwordFor_label", {"{1}": recipient.address,}),
-						helpLabel: () => m(CompletenessIndicator, {percentageCompleted: this.sendMailModel.getPasswordStrength(recipient)}),
+						helpLabel: () => m(".mt-xs", m(CompletenessIndicator, {percentageCompleted: this.sendMailModel.getPasswordStrength(recipient)})),
 						value: this.sendMailModel.getPassword(recipient.address),
 						preventAutofill: true,
 						type: this.isConfidentialPasswordRevealed(recipient.address) ? TextFieldType.Text : TextFieldType.Password,
@@ -579,11 +572,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			},
 			disabled: !this.sendMailModel.logins.isInternalUserLoggedIn(),
 			injectionsRight: field === RecipientField.TO && this.sendMailModel.logins.isInternalUserLoggedIn()
-				? m("", {
-					style: {
-						size: "40px",
-					}
-				}, m(ToggleButton, {
+				? m("", m(ToggleButton, {
 					title: "show_action",
 					icon: BootIcons.Expand,
 					size: ButtonSize.Compact,

@@ -43,7 +43,6 @@ export const size = {
 	bottom_nav_bar: 50,
 	navbar_button_width: 80,
 	navbar_edge_width_mobile: 58,
-	text_field_label_top: 21,
 	header_logo_height: 38,
 	header_logo_height_mobile: 32,
 	list_row_height: 68,

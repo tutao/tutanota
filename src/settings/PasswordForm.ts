@@ -243,7 +243,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 				m(TextField, {
 					label: "newPassword_label",
 					value: attrs.model.getNewPassword(),
-					helpLabel: () => m(".flex.col.mt-s", [
+					helpLabel: () => m(".flex.col.mt-xs", [
 						m(".flex.items-center", [
 							m(".mr-s", m(CompletenessIndicator, {
 								percentageCompleted: attrs.model.getPasswordStrength(),
@@ -258,7 +258,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 					fontSize: px(size.font_size_smaller),
 					injectionsRight: () => this.renderRevealIcon(attrs),
 				}),
-				attrs.passwordInfoKey ? m(".small.mt-s", lang.get(attrs.passwordInfoKey)) : null,
+				attrs.passwordInfoKey ? m(".small.mt-xs", lang.get(attrs.passwordInfoKey)) : null,
 				attrs.model.config.repeatInput
 					? m(TextField, {
 						label: "repeatedPassword_label",
@@ -278,7 +278,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 
 	private renderPasswordGeneratorHelp(attrs: PasswordFormAttrs): Children {
 		return m("", [
-			m(".b.mr-xs.hover.click.darkest-hover.mt-s", {
+			m(".b.mr-xs.hover.click.darkest-hover.mt-xs", {
 				style: {display: "inline-block", color: theme.navigation_button_selected},
 				onclick: async () => {
 					attrs.model.setNewPassword(await showPasswordGeneratorDialog())
