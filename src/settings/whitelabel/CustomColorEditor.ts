@@ -74,7 +74,7 @@ export class CustomColorEditor implements Component<SimpleCustomColorEditorAttrs
 		return m("", [
 			m("", [
 				m(".flex", [
-					m(".mr-s.flex-grow", m(TextField, simpleColorPickerAttrs)),
+					m(".flex-grow", m(TextField, simpleColorPickerAttrs)),
 					m(
 						".ml-s.flex-grow",
 						m(DropDownSelector, {
@@ -181,7 +181,7 @@ function renderCustomColorField(model: CustomColorsEditorViewModel, {name, value
 }
 
 function renderColorPicker(onInput: (arg0: Event) => unknown, value: string, oncreate?: (vnode: VnodeDOM<void>) => void): Child {
-	return m("input.color-picker.mb-xs.mr-s", {
+	return m("input.color-picker.mb-xs", {
 		type: "color",
 		value: value,
 		oninput: onInput,
