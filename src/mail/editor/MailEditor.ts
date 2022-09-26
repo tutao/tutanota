@@ -435,7 +435,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 									dropdownWidth: 250,
 								})),
 								editCustomNotificationMailAttrs
-									? m(".flex-no-grow.col.flex-end.border-bottom", m(IconButton, editCustomNotificationMailAttrs))
+									? m(".pt.flex-no-grow.flex-end.border-bottom.flex.items-center", m(IconButton, editCustomNotificationMailAttrs))
 									: null,
 							],
 						)
