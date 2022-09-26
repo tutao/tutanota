@@ -12,13 +12,12 @@ import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtil
 import {showPasswordGeneratorDialog} from "../misc/passwords/PasswordGeneratorDialog"
 import {theme} from "../gui/theme"
 import {Icons} from "../gui/base/icons/Icons"
-import {Button, ButtonAttrs} from "../gui/base/Button.js"
 import {px, size} from "../gui/size.js"
 import {UsageTest} from "@tutao/tutanota-usagetests"
 import Stream from "mithril/stream"
 import {locator} from "../api/main/MainLocator.js"
-import {IconButton} from "../gui/base/IconButton.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js";
+import {ToggleButton} from "../gui/base/ToggleButton.js"
 
 assertMainOrNode()
 
@@ -289,10 +288,12 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 	}
 
 	private renderRevealIcon(attrs: PasswordFormAttrs): Children {
-		return m(IconButton, {
+		return m(ToggleButton, {
 			title: attrs.model.isPasswordRevealed() ? "concealPassword_action" : "revealPassword_action",
-			click: () => {
+			selected: attrs.model.isPasswordRevealed(),
+			onSelected: (_, e) => {
 				attrs.model.toggleRevealPassword()
+				e.stopPropagation()
 			},
 			icon: attrs.model.isPasswordRevealed() ? Icons.NoEye : Icons.Eye,
 			size: ButtonSize.Compact,
