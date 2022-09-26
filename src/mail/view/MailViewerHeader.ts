@@ -635,7 +635,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private replyButtons({viewModel}: MailViewerHeaderAttrs) {
-		const actions = []
+		const actions: Children = []
 		actions.push(
 			m(IconButton, {
 				title: "reply_action",
