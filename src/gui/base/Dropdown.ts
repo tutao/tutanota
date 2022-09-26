@@ -6,9 +6,8 @@ import {px, size} from "../size"
 import type {Shortcut} from "../../misc/KeyManager"
 import {focusNext, focusPrevious} from "../../misc/KeyManager"
 import type {ButtonAttrs} from "./Button.js"
-import {Button} from "./Button.js"
 import {lang, TranslationText} from "../../misc/LanguageViewModel"
-import {Keys} from "../../api/common/TutanotaConstants"
+import {Keys, TabIndex} from "../../api/common/TutanotaConstants"
 import {getSafeAreaInsetBottom, getSafeAreaInsetTop, newMouseEvent} from "../HtmlUtils"
 import type {$Promisable, lazy, lazyAsync} from "@tutao/tutanota-utils"
 import {assertNotNull, delay, downcast, filterNull, neverNull} from "@tutao/tutanota-utils"
@@ -151,14 +150,10 @@ export class Dropdown implements ModalComponent {
 		const _contents = () => {
 			const showingIcons = this.children.some(c => "icon" in c && typeof c.icon !== "undefined")
 			return m(".dropdown-content.scroll.abs", {
+					role: "menu",
+					tabindex: TabIndex.Default,
 					oncreate: vnode => {
 						this._domContents = vnode.dom as HTMLElement
-						window.requestAnimationFrame(() => {
-							const active = document.activeElement as HTMLElement | null
-							if (active && typeof active.blur === "function") {
-								active.blur()
-							}
-						})
 					},
 					onupdate: vnode => {
 						if (this._maxHeight == null) {
@@ -174,8 +169,7 @@ export class Dropdown implements ModalComponent {
 									if (this._domInput && !client.isMobileDevice()) {
 										this._domInput.focus()
 									} else {
-										const button = vnode.dom.querySelector("button")
-										button && button.focus()
+										this._domContents?.focus()
 									}
 								})
 							}
@@ -539,6 +533,7 @@ class DropdownButton implements Component<InternalDropdownButtonAttrs> {
 	view({attrs}: Vnode<InternalDropdownButtonAttrs>): Children {
 		const color = attrs.selected ? theme.content_button_selected : theme.content_button
 		return m("button.flex.dropdown-button.items-center.state-bg", {
+			role: "menuitem",
 			oncreate: (vnode) => this.dom = vnode.dom as HTMLElement,
 			onclick: (e: MouseEvent) => attrs.click?.(e, neverNull(this.dom)),
 		}, [
