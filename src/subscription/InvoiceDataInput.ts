@@ -20,7 +20,8 @@ export class InvoiceDataInput implements Component {
 
 	constructor(
 		private businessUse: boolean,
-		invoiceData: InvoiceData
+		invoiceData: InvoiceData,
+		private readonly onSignup: boolean = false,
 	) {
 		this.invoiceAddressComponent = new HtmlEditor()
 			.setMinHeight(120)
@@ -38,8 +39,12 @@ export class InvoiceDataInput implements Component {
 
 	view(): Children {
 		return [
-			m(".pt", m(this.invoiceAddressComponent)),
-			m(".small", lang.get(this.businessUse ? "invoiceAddressInfoBusiness_msg" : "invoiceAddressInfoPrivate_msg")),
+			this.businessUse || !this.onSignup
+				? m("", [
+					m(".pt", m(this.invoiceAddressComponent)),
+					m(".small", lang.get(this.businessUse ? "invoiceAddressInfoBusiness_msg" : "invoiceAddressInfoPrivate_msg")),
+				])
+				: null,
 			renderCountryDropdown({
 				selectedCountry: this.selectedCountry(),
 				onSelectionChanged: this.selectedCountry,

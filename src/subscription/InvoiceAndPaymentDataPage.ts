@@ -14,12 +14,12 @@ import {logins} from "../api/main/LoginController"
 import type {AccountingInfo, Braintree3ds2Request} from "../api/entities/sys/TypeRefs.js"
 import {AccountingInfoTypeRef, CustomerInfoTypeRef, CustomerTypeRef, InvoiceInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {assertNotNull, neverNull, noOp, promiseMap} from "@tutao/tutanota-utils"
-import {getPreconditionFailedPaymentMsg, SubscriptionType, UpgradeType} from "./SubscriptionUtils"
+import {getPreconditionFailedPaymentMsg, UpgradeType} from "./SubscriptionUtils"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialog.js"
-import {emitWizardEvent, WizardDialogAttrsBuilder, WizardEventType} from "../gui/base/WizardDialog.js"
+import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialog.js"
 import type {Country} from "../api/common/CountryList"
 import {DefaultAnimationTime} from "../gui/animation/Animations"
 import {EntityEventsListener, EntityUpdateData, isUpdateForTypeRef} from "../api/main/EventController"
@@ -94,7 +94,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 				}
 			})
 			.then(() => {
-				this._invoiceDataInput = new InvoiceDataInput(data.options.businessUse(), data.invoiceData)
+				this._invoiceDataInput = new InvoiceDataInput(data.options.businessUse(), data.invoiceData, true)
 				let payPalRequestUrl = getLazyLoadedPayPalUrl()
 
 				if (logins.isUserLoggedIn()) {
