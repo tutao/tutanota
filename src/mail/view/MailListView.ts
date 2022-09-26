@@ -182,13 +182,7 @@ export class MailListView implements Component {
 
 			this._doExportDrag(draggedMails)
 		} else if (styles.isDesktopLayout()) {
-			// Disallow dragging mixed emails + drafts
-			if (emptyOrContainsDraftsAndNonDrafts(selected)) {
-				event.preventDefault()
-				return
-			}
-
-			// Doesn't make sense to drag mails to folders when the folder list and mail list aren't visible at the same time
+			// Desktop layout only because it doesn't make sense to drag mails to folders when the folder list and mail list aren't visible at the same time
 			neverNull(event.dataTransfer).setData("text", getLetId(neverNull(mailUnderCursor))[1])
 		} else {
 			event.preventDefault()
