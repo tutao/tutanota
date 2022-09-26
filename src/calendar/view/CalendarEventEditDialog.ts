@@ -9,7 +9,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import type {DropDownSelectorAttrs, SelectorItemList} from "../../gui/base/DropDownSelector.js"
 import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
 import {Icons} from "../../gui/base/icons/Icons"
-import {Button, ButtonColor, ButtonType} from "../../gui/base/Button.js"
+import {ButtonType} from "../../gui/base/Button.js"
 import {AlarmInterval, CalendarAttendeeStatus, EndType, Keys, RepeatPeriod} from "../../api/common/TutanotaConstants"
 import {createRepeatRuleEndTypeValues, createRepeatRuleFrequencyValues, getStartOfTheWeekOffsetForUser} from "../date/CalendarUtils"
 import {AllIcons, Icon} from "../../gui/base/Icon"
@@ -42,6 +42,7 @@ import {getRecipientsSearchModel, RecipientsSearchModel} from "../../misc/Recipi
 import type {HtmlEditor} from "../../gui/editor/HtmlEditor.js"
 import {IconButton} from "../../gui/base/IconButton.js"
 import {ButtonSize} from "../../gui/base/ButtonSize.js"
+import {ToggleButton} from "../../gui/base/ToggleButton.js"
 
 export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
@@ -250,12 +251,13 @@ export async function showCalendarEventDialog(
 	}
 
 	const renderRevealIcon = (address: string) => {
-		return m(Button, {
-			label: guestShowConfidential.get(address) ? "concealPassword_action" : "revealPassword_action",
+		return m(IconButton, {
+			title: guestShowConfidential.get(address) ? "concealPassword_action" : "revealPassword_action",
 			click: () => {
 				guestShowConfidential.set(address, !guestShowConfidential.get(address))
 			},
-			icon: () => guestShowConfidential.get(address) ? Icons.NoEye : Icons.Eye,
+			icon: guestShowConfidential.get(address) ? Icons.NoEye : Icons.Eye,
+			size: ButtonSize.Compact,
 		})
 	}
 
@@ -602,12 +604,15 @@ function renderAddAttendeesField(
 				},
 				injectionsRight: [
 					viewModel.attendees().find(a => a.type === RecipientType.EXTERNAL)
-						? m(Button, {
-							label: "confidential_action",
-							click: () => viewModel.setConfidential(!viewModel.isConfidential()),
-							icon: () => (viewModel.isConfidential() ? Icons.Lock : Icons.Unlock),
-							isSelected: () => viewModel.isConfidential(),
-							noBubble: true,
+						? m(ToggleButton, {
+							title: viewModel.isConfidential() ? "confidential_action" : "nonConfidential_action",
+							onSelected: (_, e) => {
+								viewModel.setConfidential(!viewModel.isConfidential())
+								e.stopPropagation()
+							},
+							icon: (viewModel.isConfidential() ? Icons.Lock : Icons.Unlock),
+							selected: viewModel.isConfidential(),
+							size: ButtonSize.Compact,
 						})
 						: null
 				],
