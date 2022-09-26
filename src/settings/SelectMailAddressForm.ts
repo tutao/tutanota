@@ -72,7 +72,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			},
 			injectionsRight: () => [
 				m(
-					".flex.items-end",
+					".flex.items-end.align-self-end",
 					{
 						style: {
 							"padding-bottom": "1px",

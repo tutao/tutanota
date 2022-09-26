@@ -524,7 +524,13 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						oncreate: vnode => this.animateHeight(vnode.dom as HTMLElement, true),
 						onbeforeremove: vnode => this.animateHeight(vnode.dom as HTMLElement, false),
 						label: () => lang.get("passwordFor_label", {"{1}": recipient.address,}),
-						helpLabel: () => m(".mt-xs", m(CompletenessIndicator, {percentageCompleted: this.sendMailModel.getPasswordStrength(recipient)})),
+						helpLabel: () => m(".mt-xs.flex.items-center", [
+							m(CompletenessIndicator, {percentageCompleted: this.sendMailModel.getPasswordStrength(recipient)}),
+							// hack! We want to reserve enough space from the text field to be like "real" password field but we don't have any text and
+							// CSS unit "lh" is not supported. We could query it programmatically but instead we insert one text node (this is nbsp character)
+							// which will take line-height and size the line properly.
+							m("", String.fromCharCode(160))]
+						),
 						value: this.sendMailModel.getPassword(recipient.address),
 						preventAutofill: true,
 						type: this.isConfidentialPasswordRevealed(recipient.address) ? TextFieldType.Text : TextFieldType.Password,
@@ -573,16 +579,16 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			disabled: !this.sendMailModel.logins.isInternalUserLoggedIn(),
 			injectionsRight: field === RecipientField.TO && this.sendMailModel.logins.isInternalUserLoggedIn()
 				? m("", m(ToggleButton, {
-					title: "show_action",
-					icon: BootIcons.Expand,
-					size: ButtonSize.Compact,
-					selected: this.areDetailsExpanded,
-					onSelected: (_, e) => {
-						e.stopPropagation()
-						this.areDetailsExpanded = !this.areDetailsExpanded
-					},
-				})
-)				: null,
+						title: "show_action",
+						icon: BootIcons.Expand,
+						size: ButtonSize.Compact,
+						selected: this.areDetailsExpanded,
+						onSelected: (_, e) => {
+							e.stopPropagation()
+							this.areDetailsExpanded = !this.areDetailsExpanded
+						},
+					})
+				) : null,
 			search
 		})
 	}
