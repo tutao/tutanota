@@ -5,13 +5,16 @@ import {createMail} from "../../api/entities/tutanota/TypeRefs.js"
 import {createMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
 import {MailRow} from "../../mail/view/MailRow"
 import {noOp} from "@tutao/tutanota-utils"
+import {IconButton} from "../../gui/base/IconButton.js"
+import {Icons} from "../../gui/base/icons/Icons.js"
+import {ToggleButton} from "../../gui/base/ToggleButton.js"
 
-export const COMPONENT_PREVIEW_HEIGHT = 300
 export const BUTTON_WIDTH = 270
 
 export class CustomColorEditorPreview implements Component {
 	_mailRow: MailRow
 	_mailRow2: MailRow
+	private toggleSelected: boolean = false
 
 	constructor() {
 		this._mailRow = new MailRow(false)
@@ -23,7 +26,6 @@ export class CustomColorEditorPreview implements Component {
 			".editor-border.mt-l.flex.col",
 			{
 				style: {
-					height: px(COMPONENT_PREVIEW_HEIGHT),
 					alignItems: "center",
 				},
 			},
@@ -51,6 +53,19 @@ export class CustomColorEditorPreview implements Component {
 						label: () => "Primary",
 						click: noOp,
 						type: ButtonType.Primary,
+					}),
+				]),
+				m(".pt-m", [
+					m(IconButton, {
+						title: () => "Icon button",
+						icon: Icons.Folder,
+						click: noOp,
+					}),
+					m(ToggleButton, {
+						title: () => "Toggle button",
+						icon: this.toggleSelected ? Icons.Lock : Icons.Unlock,
+						selected: this.toggleSelected,
+						onSelected: () => this.toggleSelected = !this.toggleSelected,
 					}),
 				]),
 				m(".pt-m", this.renderPreviewMailRow()),
@@ -90,6 +105,7 @@ export class CustomColorEditorPreview implements Component {
 			{
 				style: {
 					width: px(size.second_col_max_width),
+					height: px(size.list_row_height * 2),
 				},
 			},
 			[
