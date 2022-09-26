@@ -10,7 +10,7 @@ import {Icons} from "../../gui/base/icons/Icons.js"
 import {EventBanner} from "./EventBanner.js"
 import {RecipientButton} from "../../gui/base/RecipientButton.js"
 import {createAsyncDropdown, createDropdown, DomRectReadOnlyPolyfilled, DropdownButtonAttrs} from "../../gui/base/Dropdown.js"
-import {InboxRuleType, MailAuthenticationStatus, TabIndex} from "../../api/common/TutanotaConstants.js"
+import {InboxRuleType, Keys, MailAuthenticationStatus, TabIndex} from "../../api/common/TutanotaConstants.js"
 import {Icon, progressIcon} from "../../gui/base/Icon.js"
 import {formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime} from "../../misc/Formatter.js"
 import {isAndroidApp, isDesktop, isIOSApp} from "../../api/common/Env.js"
@@ -26,6 +26,8 @@ import {UserError} from "../../api/main/UserError.js"
 import {showUserError} from "../../misc/ErrorHandlerImpl.js"
 import {BootIcons} from "../../gui/base/icons/BootIcons.js"
 import {editDraft, makeAssignMailsButtons} from "./MailViewerUtils.js"
+import {liveDataAttrs} from "../../gui/AriaUtils.js"
+import {isKeyPressed} from "../../misc/KeyManager.js"
 
 export interface MailAddressAndName {
 	name: string
@@ -95,10 +97,18 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private renderAddressesAndDate(viewModel: MailViewerViewModel, attrs: MailViewerHeaderAttrs, dateTime: string, dateTimeFull: string) {
 		return m(".flex.plr-l.mt-xs.click.col", {
+			role: "button",
 			"aria-pressed": String(this.detailsExpanded),
+			tabindex: TabIndex.Default,
 			onclick: () => {
 				this.detailsExpanded = !this.detailsExpanded
-			}
+			},
+			onkeydown: (e: KeyboardEvent) => {
+				if (isKeyPressed(e.keyCode, Keys.SPACE, Keys.RETURN)) {
+					this.detailsExpanded = !this.detailsExpanded
+					e.preventDefault()
+				}
+			},
 		}, [
 			m(".small.flex.flex-wrap.items-start", [this.tutaoBadge(viewModel), m("span.text-break", getSenderHeading(viewModel.mail, false))]),
 			m(".flex", [
@@ -193,7 +203,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private renderDetails(attrs: MailViewerHeaderAttrs, {bubbleMenuWidth}: {bubbleMenuWidth: number}): Children {
 		const {viewModel, createMailAddressContextButtons} = attrs
 		const envelopeSender = viewModel.getDifferentEnvelopeSender()
-		return m(".plr-l", [
+		return m(".plr-l" + liveDataAttrs(), [
 				m(".mt-s", m(".small.b", lang.get("from_label")),
 					m(RecipientButton, {
 						label: getDisplayText(viewModel.getSender().name, viewModel.getSender().address, false),
@@ -355,7 +365,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			attachments.forEach(attachment => totalAttachmentSize += Number(attachment.size))
 
 			return [
-				m(".flex", [
+				m(".flex" + liveDataAttrs(), [
 					attachmentCount === 1
 						// If we have exactly one attachment, just show the attachment
 						? this.renderAttachmentContainer(viewModel, attachments)
@@ -363,7 +373,16 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						// Otherwise, we show the number of attachments and its total size along with a show all button
 						: [
 							m(".flex.center-vertically.click.flex-grow.ml-between-s.mt-xs", {
-									onclick: () => this.filesExpanded = !this.filesExpanded
+									role: "button",
+									"aria-pressed": String(this.detailsExpanded),
+									tabindex: TabIndex.Default,
+									onclick: () => this.filesExpanded = !this.filesExpanded,
+									onkeydown: (e: KeyboardEvent) => {
+										if (isKeyPressed(e.keyCode, Keys.SPACE, Keys.RETURN)) {
+											this.filesExpanded = !this.filesExpanded
+											e.preventDefault()
+										}
+									},
 								}, [
 									m("", lang.get("attachmentAmount_label", {"{amount}": attachmentCount + ""}) + ` (${formatStorageSize(totalAttachmentSize)})`),
 									m(Icon, {
