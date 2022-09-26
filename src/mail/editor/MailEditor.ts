@@ -594,9 +594,13 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	}
 
 	private renderRevealIcon(address: string): Children {
-		return m(IconButton, {
+		return m(ToggleButton, {
 			title: this.isConfidentialPasswordRevealed(address) ? "concealPassword_action" : "revealPassword_action",
-			click: () => this.toggleRevealConfidentialPassword(address),
+			selected: this.isConfidentialPasswordRevealed(address),
+			onSelected: (_, e) => {
+				this.toggleRevealConfidentialPassword(address)
+				e.stopPropagation()
+			},
 			icon: this.isConfidentialPasswordRevealed(address) ? Icons.NoEye : Icons.Eye,
 			size: ButtonSize.Compact,
 		})
