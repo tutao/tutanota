@@ -7,8 +7,8 @@ import {ButtonSize} from "./ButtonSize.js"
 export interface ToggleButtonAttrs {
 	icon: AllIcons
 	title: TranslationText
-	selected: boolean
-	onSelected: (selected: boolean, event: MouseEvent) => unknown
+	toggled: boolean
+	onToggled: (selected: boolean, event: MouseEvent) => unknown
 	colors?: ButtonColor
 	size?: ButtonSize
 }
@@ -17,10 +17,10 @@ export class ToggleButton implements Component<ToggleButtonAttrs> {
 	view({attrs}: Vnode<ToggleButtonAttrs>): Children {
 		return m("button.toggle-button.state-bg", {
 			title: lang.getMaybeLazy(attrs.title),
-			onclick: (e: MouseEvent) => attrs.onSelected(!attrs.selected, e),
-			toggled: String(attrs.selected),
+			onclick: (e: MouseEvent) => attrs.onToggled(!attrs.toggled, e),
+			toggled: String(attrs.toggled),
 			class: attrs.size === ButtonSize.Compact ? "compact" : "",
-			"aria-pressed": String(attrs.selected),
+			"aria-pressed": String(attrs.toggled),
 		}, m(Icon, {
 			icon: attrs.icon,
 			container: "div",

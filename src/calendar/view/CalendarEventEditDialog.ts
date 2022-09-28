@@ -606,12 +606,12 @@ function renderAddAttendeesField(
 					viewModel.attendees().find(a => a.type === RecipientType.EXTERNAL)
 						? m(ToggleButton, {
 							title: viewModel.isConfidential() ? "confidential_action" : "nonConfidential_action",
-							onSelected: (_, e) => {
+							onToggled: (_, e) => {
 								viewModel.setConfidential(!viewModel.isConfidential())
 								e.stopPropagation()
 							},
 							icon: (viewModel.isConfidential() ? Icons.Lock : Icons.Unlock),
-							selected: viewModel.isConfidential(),
+							toggled: viewModel.isConfidential(),
 							size: ButtonSize.Compact,
 						})
 						: null

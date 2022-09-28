@@ -120,9 +120,9 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 	): Children {
 		return m(ToggleButton, {
 			title: () => title,
-			onSelected: click,
+			onToggled: click,
 			icon: icon,
-			selected: isSelected(),
+			toggled: isSelected(),
 			size: ButtonSize.Compact,
 		})
 	}

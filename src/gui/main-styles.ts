@@ -168,9 +168,6 @@ styles.registerStyle("main", () => {
 		".i": {
 			"font-style": "italic",
 		},
-		".uppercase": {
-			"text-transform": "uppercase"
-		},
 		".click": {
 			cursor: "pointer",
 			"-webkit-tap-highlight-color": "rgba(255, 255, 255, 0)",
@@ -1428,11 +1425,10 @@ styles.registerStyle("main", () => {
 			"padding-bottom": "0px",
 		},
 		".dropdown-button": {
-			"height": "44px",
-			"padding-left": "16px",
-			"padding-right": "16px",
+			"height": px(size.button_height),
+			"padding-left": px(size.vpad),
+			"padding-right": px(size.vpad),
 		},
-		".dropdown-button:hover": {},
 		"button, .nav-button": {
 			position: "relative",
 			border: 0,

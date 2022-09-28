@@ -52,7 +52,7 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 				a.disabled
 					? null
 					// This whole thing with the button is not ideal. We shouldn't have a proper button with its own state layer, we should have the whole
-					// selector be intractable. Just putting an icon here doesn't work either because the selector disappears from tabindex even if you set it
+					// selector be interactive. Just putting an icon here doesn't work either because the selector disappears from tabindex even if you set it
 					// explicitly (at least in FF).
 					// Ideally we should also set correct role ("option") and highlight only parts of what is not text field (without help text in the bottom.
 					// We could hack some of this in here, but we should probably redo it from scratch with the right HTML structure.

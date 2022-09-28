@@ -13,6 +13,9 @@ export type DialogInjectionRightAttrs<T> = {
 	componentAttrs: T
 }
 
+/**
+ * injects additional content on the right of a dialog
+ */
 export class DialogInjectionRight<T> implements Component<DialogInjectionRightAttrs<T>> {
 	view({attrs}: Vnode<DialogInjectionRightAttrs<T>>): Children {
 		const {component, componentAttrs} = attrs

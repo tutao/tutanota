@@ -1,22 +1,27 @@
 import type {ImageHandler} from "../model/MailUtils"
-import {ALLOWED_IMAGE_FORMATS, Keys, MAX_BASE64_IMAGE_SIZE} from "../../api/common/TutanotaConstants"
+import {getDisplayText} from "../model/MailUtils"
+import {ALLOWED_IMAGE_FORMATS, Keys, MailReportType, MAX_BASE64_IMAGE_SIZE} from "../../api/common/TutanotaConstants"
 import {neverNull, ofClass, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import {lang} from "../../misc/LanguageViewModel"
+import {InfoLink, lang} from "../../misc/LanguageViewModel"
 import {Dialog} from "../../gui/base/Dialog"
 import {DataFile} from "../../api/common/DataFile"
 import {showFileChooser} from "../../file/FileController.js"
 import m from "mithril"
-import {ButtonType} from "../../gui/base/Button.js"
+import {Button, ButtonType} from "../../gui/base/Button.js"
 import {progressIcon} from "../../gui/base/Icon.js"
 import {checkApprovalStatus} from "../../misc/LoginUtils.js"
 import {logins} from "../../api/main/LoginController.js"
 import {locator} from "../../api/main/MainLocator.js"
 import {UserError} from "../../api/main/UserError.js"
 import {showUserError} from "../../misc/ErrorHandlerImpl.js"
-import {MailViewerViewModel} from "./MailViewerViewModel.js"
+import {ContentBlockingStatus, MailViewerViewModel} from "./MailViewerViewModel.js"
 import {DropdownButtonAttrs} from "../../gui/base/Dropdown.js"
-import {getDisplayText} from "../model/MailUtils"
 import {BootIcons} from "../../gui/base/icons/BootIcons.js"
+import {Icons} from "../../gui/base/icons/Icons.js"
+import {client} from "../../misc/ClientDetector.js"
+import {showProgressDialog} from "../../gui/dialogs/ProgressDialog.js"
+import {LockedError} from "../../api/common/error/RestError.js"
+import {ifAllowedTutanotaLinks} from "../../gui/base/GuiUtils.js"
 
 export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {
 	showFileChooser(true, ALLOWED_IMAGE_FORMATS).then(files => {
@@ -123,5 +128,152 @@ export async function makeAssignMailsButtons(viewModel: MailViewerViewModel): Pr
 			icon: BootIcons.Contacts,
 			click: () => viewModel.assignMail(userOrMailGroupInfo),
 		}
+	})
+}
+
+export function mailViewerMoreActions(
+	viewModel: MailViewerViewModel,
+): Array<DropdownButtonAttrs> {
+	const moreButtons: Array<DropdownButtonAttrs> = []
+	if (viewModel.isUnread()) {
+		moreButtons.push({
+			label: "markRead_action",
+			click: () => viewModel.setUnread(false),
+			icon: Icons.Eye,
+		})
+	} else {
+		moreButtons.push({
+			label: "markUnread_action",
+			click: () => viewModel.setUnread(true),
+			icon: Icons.NoEye,
+		})
+	}
+
+	if (!client.isMobileDevice() && viewModel.canExport()) {
+		moreButtons.push({
+			label: "export_action",
+			click: () => showProgressDialog("pleaseWait_msg", viewModel.exportMail()),
+			icon: Icons.Export,
+		})
+	}
+
+	if (!client.isMobileDevice() && typeof window.print === "function" && viewModel.canPrint()) {
+		moreButtons.push({
+			label: "print_action",
+			click: () => window.print(),
+			icon: Icons.Print,
+		})
+	}
+
+	if (viewModel.isListUnsubscribe()) {
+		moreButtons.push({
+			label: "unsubscribe_action",
+			click: () => unsubscribe(viewModel),
+			icon: Icons.Cancel,
+		})
+	}
+
+	if (viewModel.canShowHeaders()) {
+		moreButtons.push({
+			label: "showHeaders_action",
+			click: () => showHeaderDialog(viewModel.getHeaders()),
+			icon: Icons.ListUnordered,
+		})
+	}
+
+	if (viewModel.canReport()) {
+		moreButtons.push({
+			label: "reportEmail_action",
+			click: () => reportMail(viewModel),
+			icon: Icons.Warning,
+		})
+	}
+
+	if (viewModel.canPersistBlockingStatus() && viewModel.isShowingExternalContent()) {
+		moreButtons.push({
+			label: "disallowExternalContent_action",
+			click: () => viewModel.setContentBlockingStatus(ContentBlockingStatus.Block),
+			icon: Icons.Picture,
+		})
+	}
+
+	if (viewModel.canPersistBlockingStatus() && viewModel.isBlockingExternalImages()) {
+		moreButtons.push({
+			label: "showImages_action",
+			click: () => viewModel.setContentBlockingStatus(ContentBlockingStatus.Show),
+			icon: Icons.Picture,
+		})
+	}
+
+	return moreButtons
+}
+
+function unsubscribe(viewModel: MailViewerViewModel): Promise<void> {
+	return showProgressDialog("pleaseWait_msg", viewModel.unsubscribe())
+		.then(success => {
+			if (success) {
+				return Dialog.message("unsubscribeSuccessful_msg")
+			}
+		})
+		.catch(e => {
+			if (e instanceof LockedError) {
+				return Dialog.message("operationStillActive_msg")
+			} else {
+				return Dialog.message("unsubscribeFailed_msg")
+			}
+		})
+}
+
+function reportMail(viewModel: MailViewerViewModel) {
+	const sendReport = (reportType: MailReportType) => {
+		viewModel.reportMail(reportType)
+				 .catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
+				 .finally(m.redraw)
+	}
+
+	const dialog = Dialog.showActionDialog({
+		title: lang.get("reportEmail_action"),
+		child: () =>
+			m(
+				".flex.col.mt-m",
+				{
+					// So that space below buttons doesn't look huge
+					style: {
+						marginBottom: "-10px",
+					},
+				},
+				[
+					m("div", lang.get("phishingReport_msg")),
+					ifAllowedTutanotaLinks(InfoLink.Phishing, link =>
+						m(
+							"a.mt-s",
+							{
+								href: link,
+								target: "_blank",
+							},
+							lang.get("whatIsPhishing_msg"),
+						),
+					),
+					m(".flex-wrap.flex-end", [
+						m(Button, {
+							label: "reportPhishing_action",
+							click: () => {
+								sendReport(MailReportType.PHISHING)
+								dialog.close()
+							},
+							type: ButtonType.Secondary,
+						}),
+						m(Button, {
+							label: "reportSpam_action",
+							click: () => {
+								sendReport(MailReportType.SPAM)
+								dialog.close()
+							},
+							type: ButtonType.Secondary,
+						}),
+					]),
+				],
+			),
+		okAction: null,
 	})
 }
