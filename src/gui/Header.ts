@@ -79,12 +79,8 @@ export class Header implements Component {
 			[
 				isNotTemporary() ? m(ProgressBar, {progress: this.offlineIndicatorModel.getProgress()}) : null,
 				injectedView
-					// Make sure this wrapper takes up the full height like the things inside of it expect
-					? m(".flex-grow", {
-						style: {
-							height: "100%",
-						}
-					}, injectedView)
+					// Make sure this wrapper takes up the full height like the things inside it expect
+					? m(".flex-grow.height-100p", injectedView)
 					: [
 						this.renderLeftContent(),
 						this.renderCenterContent(),

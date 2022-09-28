@@ -5,10 +5,10 @@ import {createAsyncDropdown, createDropdown, Dropdown, DROPDOWN_MARGIN, Dropdown
 import {Icons} from "../../gui/base/icons/Icons.js"
 import {UserError} from "../../api/main/UserError.js"
 import {showUserError} from "../../misc/ErrorHandlerImpl.js"
-import {mailViewerMoreActions, promptAndDeleteMails, showMoveMailsDropdown} from "./MailGuiUtils.js"
+import {promptAndDeleteMails, showMoveMailsDropdown} from "./MailGuiUtils.js"
 import {noOp, ofClass} from "@tutao/tutanota-utils"
 import {modal} from "../../gui/base/Modal.js"
-import {editDraft, makeAssignMailsButtons} from "./MailViewerUtils.js"
+import {editDraft, mailViewerMoreActions, makeAssignMailsButtons} from "./MailViewerUtils.js"
 import {px, size} from "../../gui/size.js"
 
 export interface MobileMailActionBarAttrs {
@@ -67,7 +67,6 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 
 		return m(".bottom-nav.bottom-action-bar.flex.items-center.plr-l", {
 			oncreate: (vnode) => {
-				console.log("action bar created??", vnode.dom)
 				this.dom = vnode.dom as HTMLElement
 			},
 			style: {

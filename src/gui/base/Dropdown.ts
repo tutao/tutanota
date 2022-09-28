@@ -107,7 +107,7 @@ export class Dropdown implements ModalComponent {
 					return child
 				}
 
-				const buttonChild: ButtonAttrs | DropdownButtonAttrs = child
+				const buttonChild: DropdownButtonAttrs = child
 				buttonChild.click = this.wrapClick(child.click ? child.click : () => null)
 
 				return child
@@ -404,7 +404,7 @@ type AttachDropdownParams = {
  * @param showDropdown this will be checked before showing the dropdown
  * @param width width of the dropdown
  * @returns {ButtonAttrs} modified mainButtonAttrs that shows a dropdown on click or
- * executes the original onclick if showDropdown returns false
+ * button doesn't do anything if showDropdown returns false
  */
 export function attachDropdown(
 	{
@@ -548,7 +548,11 @@ class DropdownButton implements Component<InternalDropdownButtonAttrs> {
 					},
 				})
 				: attrs.showingIcons
-					? m("TODO")
+					? m(".icon-large", {
+						style: {
+							marginRight: px(12),
+						}
+					})
 					: null,
 			m(".text-ellipsis", {
 				style: {

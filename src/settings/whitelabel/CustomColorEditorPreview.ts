@@ -64,8 +64,8 @@ export class CustomColorEditorPreview implements Component {
 					m(ToggleButton, {
 						title: () => "Toggle button",
 						icon: this.toggleSelected ? Icons.Lock : Icons.Unlock,
-						selected: this.toggleSelected,
-						onSelected: () => this.toggleSelected = !this.toggleSelected,
+						toggled: this.toggleSelected,
+						onToggled: () => this.toggleSelected = !this.toggleSelected,
 					}),
 				]),
 				m(".pt-m", this.renderPreviewMailRow()),

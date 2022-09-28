@@ -13,11 +13,8 @@ import {createDropdown} from "../../gui/base/Dropdown.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type {DialogInjectionRightAttrs} from "../../gui/base/DialogInjectionRight"
-import {Icons} from "../../gui/base/icons/Icons"
 import {TemplatePopupModel} from "../../templates/model/TemplatePopupModel"
 import {getSharedGroupName} from "../../sharing/GroupUtils"
-import {IconButtonAttrs} from "../../gui/base/IconButton.js"
-import {ButtonSize} from "../../gui/base/ButtonSize.js"
 
 export function createKnowledgeBaseDialogInjection(
 	knowledgeBase: KnowledgeBaseModel,
@@ -36,26 +33,6 @@ export function createKnowledgeBaseDialogInjection(
 		headerAttrs: _createHeaderAttrs(knowledgebaseAttrs, isDialogVisible),
 		componentAttrs: knowledgebaseAttrs,
 		component: KnowledgeBaseDialogContent,
-	}
-}
-
-export function createOpenKnowledgeBaseButtonAttrs(
-	dialogInjectionAttrs: DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs>,
-	getEmailContent: () => string,
-): IconButtonAttrs {
-	return {
-		title: "openKnowledgebase_action",
-		click: () => {
-			if (dialogInjectionAttrs.visible()) {
-				dialogInjectionAttrs.visible(false)
-			} else {
-				dialogInjectionAttrs.componentAttrs.model.sortEntriesByMatchingKeywords(getEmailContent())
-				dialogInjectionAttrs.visible(true)
-				dialogInjectionAttrs.componentAttrs.model.init()
-			}
-		},
-		icon: Icons.Book,
-		size: ButtonSize.Compact,
 	}
 }
 

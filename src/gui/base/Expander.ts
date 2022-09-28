@@ -95,7 +95,7 @@ export class ExpanderPanel implements Component<ExpanderPanelAttrs> {
 		this.childrenInDom = vnode.attrs.expanded
 		this.observer = new MutationObserver(mutations => {
 			// redraw if a child has been added that won't be getting displayed
-			if (this.childDiv && this.childDiv.offsetHeight !== this.lastCalculatedHeight) {
+			if (this.childDiv && this.childDiv.getBoundingClientRect().height !== this.lastCalculatedHeight) {
 				m.redraw()
 			}
 		})

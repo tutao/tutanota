@@ -42,7 +42,7 @@ import {appendEmailSignature} from "../signature/Signature"
 import {showTemplatePopupInEditor} from "../../templates/view/TemplatePopup"
 import {registerTemplateShortcutListener} from "../../templates/view/TemplateShortcutListener"
 import {TemplatePopupModel} from "../../templates/model/TemplatePopupModel"
-import {createKnowledgeBaseDialogInjection, createOpenKnowledgeBaseButtonAttrs} from "../../knowledgebase/view/KnowledgeBaseDialog"
+import {createKnowledgeBaseDialogInjection} from "../../knowledgebase/view/KnowledgeBaseDialog"
 import {KnowledgeBaseModel} from "../../knowledgebase/model/KnowledgeBaseModel"
 import {styles} from "../../gui/styles"
 import {showMinimizedMailEditor} from "../view/MinimizedMailEditorOverlay"
@@ -66,6 +66,8 @@ import {IconButton, IconButtonAttrs} from "../../gui/base/IconButton.js"
 import {ToggleButton, ToggleButtonAttrs} from "../../gui/base/ToggleButton.js"
 import {BootIcons} from "../../gui/base/icons/BootIcons.js"
 import {ButtonSize} from "../../gui/base/ButtonSize.js"
+import {DialogInjectionRightAttrs} from "../../gui/base/DialogInjectionRight.js"
+import {KnowledgebaseDialogContentAttrs} from "../../knowledgebase/view/KnowledgeBaseDialogContent.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -76,7 +78,7 @@ export type MailEditorAttrs = {
 	selectedNotificationLanguage: Stream<string>
 	dialog: lazy<Dialog>
 	templateModel: TemplatePopupModel | null
-	createKnowledgeBaseButtonAttrs: (editor: Editor) => Promise<IconButtonAttrs | null>
+	knowledgeBaseInjection: (editor: Editor) => Promise<DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs> | null>
 	search: RecipientsSearchModel
 }
 
@@ -86,7 +88,7 @@ export function createMailEditorAttrs(
 	doFocusEditorOnLoad: boolean,
 	dialog: lazy<Dialog>,
 	templateModel: TemplatePopupModel | null,
-	createKnowledgeBaseButtonAttrs: (editor: Editor) => Promise<IconButtonAttrs | null>,
+	knowledgeBaseInjection: (editor: Editor) => Promise<DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs> | null>,
 	search: RecipientsSearchModel
 ): MailEditorAttrs {
 	return {
@@ -96,7 +98,7 @@ export function createMailEditorAttrs(
 		selectedNotificationLanguage: stream(""),
 		dialog,
 		templateModel,
-		createKnowledgeBaseButtonAttrs: createKnowledgeBaseButtonAttrs,
+		knowledgeBaseInjection: knowledgeBaseInjection,
 		search
 	}
 }
@@ -116,7 +118,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	mentionedInlineImages: Array<string>
 	inlineImageElements: Array<HTMLElement>
 	templateModel: TemplatePopupModel | null
-	openKnowledgeBaseButtonAttrs: IconButtonAttrs | null = null
+	knowledgeBaseInjection: DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs> | null = null
 	sendMailModel: SendMailModel
 	private areDetailsExpanded: boolean
 	private recipientShowConfidential: Map<string, boolean> = new Map()
@@ -233,8 +235,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		]
 		shortcuts.forEach(dialog.addShortcut.bind(dialog))
 		this.editor.initialized.promise.then(() => {
-			a.createKnowledgeBaseButtonAttrs(this.editor).then(attrs => {
-				this.openKnowledgeBaseButtonAttrs = attrs
+			a.knowledgeBaseInjection(this.editor).then(injection => {
+				this.knowledgeBaseInjection = injection
 				m.redraw()
 			})
 		})
@@ -260,12 +262,12 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		const isConfidential = model.isConfidential() && showConfidentialButton
 		const confidentialButtonAttrs: ToggleButtonAttrs = {
 			title: model.isConfidential() ? "confidential_action" : "nonConfidential_action",
-			onSelected: (_, e) => {
+			onToggled: (_, e) => {
 				e.stopPropagation()
 				model.setConfidential(!model.isConfidential())
 			},
 			icon: (model.isConfidential() ? Icons.Lock : Icons.Unlock),
-			selected: model.isConfidential(),
+			toggled: model.isConfidential(),
 			size: ButtonSize.Compact,
 		}
 		const attachFilesButtonAttrs: IconButtonAttrs = {
@@ -283,8 +285,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					title: "showRichTextToolbar_action",
 					icon: Icons.FontSize,
 					size: ButtonSize.Compact,
-					selected: a.doShowToolbar(),
-					onSelected: (_, e) => {
+					toggled: a.doShowToolbar(),
+					onToggled: (_, e) => {
 						a.doShowToolbar(!a.doShowToolbar())
 						// Stop the subject bar from being focused
 						e.stopPropagation()
@@ -301,7 +303,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			oninput: val => model.setSubject(val),
 			injectionsRight: () => m(".flex.end.ml-between-s.items-center", [
 				showConfidentialButton ? m(ToggleButton, confidentialButtonAttrs) : null,
-				this.openKnowledgeBaseButtonAttrs ? m(IconButton, this.openKnowledgeBaseButtonAttrs) : null,
+				this.knowledgeBaseInjection ? this.renderToggleKnowledgeBase(this.knowledgeBaseInjection) : null,
 				m(IconButton, attachFilesButtonAttrs),
 				toolbarButton(),
 			]),
@@ -460,6 +462,24 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		)
 	}
 
+	private renderToggleKnowledgeBase(knowledgeBaseInjection: DialogInjectionRightAttrs<KnowledgebaseDialogContentAttrs>) {
+		return m(ToggleButton, {
+			title: "openKnowledgebase_action",
+			toggled: knowledgeBaseInjection.visible(),
+			onToggled: () => {
+				if (knowledgeBaseInjection.visible()) {
+					knowledgeBaseInjection.visible(false)
+				} else {
+					knowledgeBaseInjection.componentAttrs.model.sortEntriesByMatchingKeywords(this.editor.getValue())
+					knowledgeBaseInjection.visible(true)
+					knowledgeBaseInjection.componentAttrs.model.init()
+				}
+			},
+			icon: Icons.Book,
+			size: ButtonSize.Compact,
+		})
+	}
+
 	private renderToolbar(model: SendMailModel): Children {
 // Toolbar is not removed from DOM directly, only it's parent (array) is so we have to animate it manually.
 		// m.fragment() gives us a vnode without actual DOM element so that we can run callback on removal
@@ -582,8 +602,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						title: "show_action",
 						icon: BootIcons.Expand,
 						size: ButtonSize.Compact,
-						selected: this.areDetailsExpanded,
-						onSelected: (_, e) => {
+						toggled: this.areDetailsExpanded,
+						onToggled: (_, e) => {
 							e.stopPropagation()
 							this.areDetailsExpanded = !this.areDetailsExpanded
 						},
@@ -596,8 +616,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	private renderRevealIcon(address: string): Children {
 		return m(ToggleButton, {
 			title: this.isConfidentialPasswordRevealed(address) ? "concealPassword_action" : "revealPassword_action",
-			selected: this.isConfidentialPasswordRevealed(address),
-			onSelected: (_, e) => {
+			toggled: this.isConfidentialPasswordRevealed(address),
+			onToggled: (_, e) => {
 				this.toggleRevealConfidentialPassword(address)
 				e.stopPropagation()
 			},
@@ -829,9 +849,8 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 							.init()
 							.then(knowledgebaseModel => {
 								const knowledgebaseInjection = createKnowledgeBaseDialogInjection(knowledgebaseModel, templatePopupModel, editor)
-								const knowledgebaseButtonAttrs = createOpenKnowledgeBaseButtonAttrs(knowledgebaseInjection, () => editor.getValue())
 								dialog.setInjectionRight(knowledgebaseInjection)
-								return knowledgebaseButtonAttrs
+								return knowledgebaseInjection
 							})
 					} else {
 						return null

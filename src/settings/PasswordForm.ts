@@ -290,8 +290,8 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 	private renderRevealIcon(attrs: PasswordFormAttrs): Children {
 		return m(ToggleButton, {
 			title: attrs.model.isPasswordRevealed() ? "concealPassword_action" : "revealPassword_action",
-			selected: attrs.model.isPasswordRevealed(),
-			onSelected: (_, e) => {
+			toggled: attrs.model.isPasswordRevealed(),
+			onToggled: (_, e) => {
 				attrs.model.toggleRevealPassword()
 				e.stopPropagation()
 			},

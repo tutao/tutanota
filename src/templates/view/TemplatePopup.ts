@@ -330,18 +330,16 @@ export class TemplatePopup implements ModalComponent {
 		const canEdit = !!selectedGroup && hasCapabilityOnGroup(logins.getUserController().user, selectedGroup.group, ShareCapability.Write)
 		return [
 			m(".flex.flex-column.justify-center.mr-m", selectedContent ? m("", lang.get(languageByCode[selectedContent.languageCode].textId)) : ""),
-			m(".flex-grow"),
 			m(IconButton, attachDropdown(
 					{
 						mainButtonAttrs: {
-							title: () => lang.get("chooseLanguage_action"),
+							title: "chooseLanguage_action",
 							icon: Icons.Language,
 						}, childAttrs: () =>
 							selectedTemplate.contents.map(content => {
 								const langCode: LanguageCode = downcast(content.languageCode)
 								return {
 									label: () => lang.get(languageByCode[langCode].textId),
-									// type: ButtonType.Dropdown,
 									click: (e: MouseEvent) => {
 										e.stopPropagation()
 										this._templateModel.setSelectedContentLanguage(langCode)

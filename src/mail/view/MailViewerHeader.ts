@@ -21,11 +21,11 @@ import {ContentBlockingStatus, MailViewerViewModel} from "./MailViewerViewModel.
 import {createMoreSecondaryButtonAttrs} from "../../gui/base/GuiUtils.js"
 import {isNotNull, noOp, ofClass} from "@tutao/tutanota-utils"
 import {IconButton} from "../../gui/base/IconButton.js"
-import {mailViewerMoreActions, promptAndDeleteMails, showMoveMailsDropdown} from "./MailGuiUtils.js"
+import {promptAndDeleteMails, showMoveMailsDropdown} from "./MailGuiUtils.js"
 import {UserError} from "../../api/main/UserError.js"
 import {showUserError} from "../../misc/ErrorHandlerImpl.js"
 import {BootIcons} from "../../gui/base/icons/BootIcons.js"
-import {editDraft, makeAssignMailsButtons} from "./MailViewerUtils.js"
+import {editDraft, mailViewerMoreActions, makeAssignMailsButtons} from "./MailViewerUtils.js"
 import {liveDataAttrs} from "../../gui/AriaUtils.js"
 import {isKeyPressed} from "../../misc/KeyManager.js"
 
@@ -419,7 +419,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private renderAttachmentContainer(viewModel: MailViewerViewModel, attachments: TutanotaFile[]): Children {
-		return attachments.map(attachment => this.renderAttachmentButton(viewModel, attachment)) // wrap attachments in a div to ensure buttons after the list don't get placed weirdly
+		return attachments.map(attachment => this.renderAttachmentButton(viewModel, attachment))
 	}
 
 	private renderAttachmentButton(viewModel: MailViewerViewModel, attachment: TutanotaFile): Children {
@@ -728,7 +728,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					minWidth: "20px",
 				}
 			}, [
-				m("", "to:"),
+				m("", lang.get("mailViewerRecipients_label")),
 				m(".text-ellipsis", allRecipients[0].address),
 				m(".flex", [
 						allRecipients.length > 1 ? `+ ${allRecipients.length - 1}` : null,
