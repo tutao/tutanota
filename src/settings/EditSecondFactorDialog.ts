@@ -162,8 +162,6 @@ export class EditSecondFactorDialog {
 		await showProgressDialog("pleaseWait_msg", this.entityClient.setup(assertNotNull(this.user.auth).secondFactors, sf))
 
 		this.dialog.close()
-
-		this.showRecoveryInfoDialog(this.user)
 	}
 
 	private render(): Children {
@@ -297,26 +295,6 @@ export class EditSecondFactorDialog {
 		const user = await lazyUser.getAsync()
 		const webauthnSupported = await locator.webAuthn.isSupported()
 		return new EditSecondFactorDialog(entityClient, user, mailAddress, locator.webAuthn, totpKeys, webauthnSupported)
-	}
-
-	private showRecoveryInfoDialog(user: User) {
-		// We only show the recovery code if it is for the current user and it is a global admin
-		if (!isSameId(getEtId(logins.getUserController().user), getEtId(user)) || !user.memberships.find(gm => gm.groupType === GroupType.Admin)) {
-			return
-		}
-
-		const isRecoverCodeAvailable = user.auth && user.auth.recoverCode != null
-		Dialog.showActionDialog({
-			title: lang.get("recoveryCode_label"),
-			type: DialogType.EditMedium,
-			child: () => m(".pt", lang.get("recoveryCode_msg")),
-			allowOkWithReturn: true,
-			okAction: (dialog: Dialog) => {
-				dialog.close()
-				RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification(isRecoverCodeAvailable ? "get" : "create", false)
-			},
-			okActionTextId: isRecoverCodeAvailable ? "show_action" : "setUp_action",
-		})
 	}
 
 	private async tryCodes(expectedCode: number, key: Uint8Array): Promise<VerificationStatus> {
