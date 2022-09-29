@@ -7,19 +7,18 @@ import type {PaymentData} from "../api/common/TutanotaConstants"
 import {PaymentMethodType} from "../api/common/TutanotaConstants"
 import {CreditCardAttrs, CreditCardInput} from "./CreditCardInput"
 import {PayPalLogo} from "../gui/base/icons/Icons"
-import {LazyLoaded} from "@tutao/tutanota-utils"
+import {LazyLoaded, noOp, promiseMap} from "@tutao/tutanota-utils"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {AccountingInfo} from "../api/entities/sys/TypeRefs.js"
 import {AccountingInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {locator} from "../api/main/MainLocator"
+import type {EntityEventsListener} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {MessageBox} from "../gui/base/MessageBox.js"
 import {px} from "../gui/size"
-import type {EntityEventsListener} from "../api/main/EventController"
 import {isValidCreditCardNumber} from "../misc/FormatValidator"
-import {noOp} from "@tutao/tutanota-utils"
-import {promiseMap} from "@tutao/tutanota-utils"
 import Stream from "mithril/stream";
+import {UsageTest} from "@tutao/tutanota-usagetests"
 import {SelectedSubscriptionOptions} from "./FeatureListProvider"
 
 /**
@@ -33,6 +32,7 @@ export class PaymentMethodInput {
 	_subscriptionOptions: SelectedSubscriptionOptions
 	_accountingInfo: AccountingInfo
 	_entityEventListener: EntityEventsListener
+	private __paymentPaypalTest?: UsageTest
 
 	constructor(
 		subscriptionOptions: SelectedSubscriptionOptions,
@@ -48,11 +48,13 @@ export class PaymentMethodInput {
 			payPalRequestUrl,
 			accountingInfo: this._accountingInfo,
 		}
+		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
 
 		this._entityEventListener = updates => {
 			return promiseMap(updates, update => {
 				if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
 					return locator.entityClient.load(AccountingInfoTypeRef, update.instanceId).then(accountingInfo => {
+						this.__paymentPaypalTest?.getStage(2).complete()
 						this._accountingInfo = accountingInfo
 						this._payPalAttrs.accountingInfo = accountingInfo
 						m.redraw()
@@ -226,6 +228,12 @@ type PaypalAttrs = {
 }
 
 class PaypalInput {
+	private __paymentPaypalTest?: UsageTest
+
+	constructor() {
+		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
+	}
+
 	view(vnode: Vnode<PaypalAttrs>): Children {
 		let attrs = vnode.attrs
 		return [
@@ -244,6 +252,7 @@ class PaypalInput {
 							cursor: "pointer",
 						},
 						onclick: () => {
+							this.__paymentPaypalTest?.getStage(1).complete()
 							if (attrs.payPalRequestUrl.isLoaded()) {
 								window.open(attrs.payPalRequestUrl.getLoaded())
 							} else {

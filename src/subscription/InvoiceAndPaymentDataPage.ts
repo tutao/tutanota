@@ -6,8 +6,8 @@ import {InvoiceDataInput, InvoiceDataInputLocation} from "./InvoiceDataInput"
 import {PaymentMethodInput} from "./PaymentMethodInput"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import type {InvoiceData, PaymentData, PaymentMethodType} from "../api/common/TutanotaConstants"
-import {getClientType, Keys, PaymentDataResultType, PaymentMethodTypeToName} from "../api/common/TutanotaConstants"
+import type {InvoiceData, PaymentData} from "../api/common/TutanotaConstants"
+import {getClientType, Keys, PaymentDataResultType, PaymentMethodType, PaymentMethodTypeToName} from "../api/common/TutanotaConstants"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {getLazyLoadedPayPalUrl} from "./PaymentDataDialog"
 import {logins} from "../api/main/LoginController"
@@ -41,9 +41,12 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 	private _upgradeData: UpgradeSubscriptionData
 	private dom!: HTMLElement
 	private __signupPaidTest?: UsageTest
+	private __paymentPaypalTest?: UsageTest
 
 	constructor(upgradeData: UpgradeSubscriptionData) {
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
+		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
+		this.__paymentPaypalTest.strictStageOrder = true
 
 		this._upgradeData = upgradeData
 		this._selectedPaymentMethod = stream()
@@ -173,7 +176,13 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 					m(SegmentControl, {
 						items: this._availablePaymentMethods,
 						selectedValue: this._selectedPaymentMethod(),
-						onValueSelected: this._selectedPaymentMethod,
+						onValueSelected: v => {
+							if (v === PaymentMethodType.Paypal) {
+								this.__paymentPaypalTest?.getStage(0).complete()
+							}
+
+							return this._selectedPaymentMethod(v as PaymentMethodType)
+						},
 					}),
 					m(".flex-space-around.flex-wrap.pt", [
 						m(
