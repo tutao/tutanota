@@ -34,12 +34,13 @@ import {ConfigurationDatabase} from "../../api/worker/facades/ConfigurationDatab
 import {InlineImages} from "./MailViewer"
 import {isDesktop} from "../../api/common/Env"
 import stream from "mithril/stream"
-import {addAll, contains, downcast, neverNull, noOp, ofClass, startsWith} from "@tutao/tutanota-utils"
+import {addAll, contains, downcast, first, neverNull, noOp, ofClass, startsWith} from "@tutao/tutanota-utils"
 import {lang} from "../../misc/LanguageViewModel"
 import {
 	getArchiveFolder,
 	getDefaultSender,
 	getEnabledMailAddresses,
+	getEnabledMailAddressesWithUser,
 	getFolder,
 	getFolderName,
 	getMailboxName,
@@ -98,6 +99,8 @@ export class MailViewerViewModel {
 	private suspicious: boolean = false
 
 	private folderText: string | null
+	/** @see getRelevantRecipient */
+	private relevantRecipient: MailAddress | null = null
 
 	private warningDismissed: boolean = false
 
@@ -152,6 +155,22 @@ export class MailViewerViewModel {
 		if (showFolder) {
 			this.showFolder()
 		}
+
+		this.determineRelevantRecipient()
+	}
+
+	private async determineRelevantRecipient() {
+		// The idea is that if there are multiple recipients then we should display the one which belongs to one of our mailboxes and then fall back to any
+		// other one
+		const mailboxDetails = await this.mailModel.getMailboxDetailsForMail(this.mail)
+		const enabledMailAddresses = new Set(getEnabledMailAddressesWithUser(mailboxDetails, this.logins.getUserController().userGroupInfo))
+		this.relevantRecipient = this.mail.toRecipients.find(r => enabledMailAddresses.has(r.address))
+			?? this.mail.ccRecipients.find(r => enabledMailAddresses.has(r.address))
+			?? this.mail.bccRecipients.find(r => enabledMailAddresses.has(r.address))
+			?? first(this.mail.toRecipients)
+			?? first(this.mail.ccRecipients)
+			?? first(this.mail.bccRecipients)
+		m.redraw()
 	}
 
 	private showFolder() {
@@ -290,6 +309,11 @@ export class MailViewerViewModel {
 
 	getBccRecipients(): Array<MailAddress> {
 		return this.mail.bccRecipients
+	}
+
+	/** Get the recipient which is relevant the most for the current mailboxes. */
+	getRelevantRecipient(): MailAddress | null {
+		return this.relevantRecipient
 	}
 
 	getReplyTos(): Array<EncryptedMailAddress> {
@@ -986,6 +1010,9 @@ export class MailViewerViewModel {
 		if (showFolder) {
 			this.showFolder()
 		}
+
+		this.relevantRecipient = null
+		this.determineRelevantRecipient()
 
 		this.loadAll({notify: true})
 	}
