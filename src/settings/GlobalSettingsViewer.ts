@@ -195,32 +195,34 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					}),
 					logins.getUserController().isGlobalAdmin()
 						? m("", [
-							m(DropDownSelector, {
-								label: "enforcePasswordUpdate_title",
-								helpLabel: () => lang.get("enforcePasswordUpdate_msg"),
-								selectedValue: this.requirePasswordUpdateAfterReset,
-								selectionChangedHandler: value => {
-									const newProps: CustomerServerProperties = Object.assign(
-										{},
-										this.props(),
+							logins.getUserController().isPremiumAccount()
+								? m(DropDownSelector, {
+									label: "enforcePasswordUpdate_title",
+									helpLabel: () => lang.get("enforcePasswordUpdate_msg"),
+									selectedValue: this.requirePasswordUpdateAfterReset,
+									selectionChangedHandler: value => {
+										const newProps: CustomerServerProperties = Object.assign(
+											{},
+											this.props(),
+											{
+												requirePasswordUpdateAfterReset: value,
+											}
+										)
+										locator.entityClient.update(newProps)
+									},
+									items: [
 										{
-											requirePasswordUpdateAfterReset: value,
-										}
-									)
-									locator.entityClient.update(newProps)
-								},
-								items: [
-									{
-										name: lang.get("yes_label"),
-										value: true,
-									},
-									{
-										name: lang.get("no_label"),
-										value: false,
-									},
-								],
-								dropdownWidth: 250
-							}),
+											name: lang.get("yes_label"),
+											value: true,
+										},
+										{
+											name: lang.get("no_label"),
+											value: false,
+										},
+									],
+									dropdownWidth: 250
+								})
+								: null,
 							this.customer
 								? m(
 									".mt-l",
