@@ -36,6 +36,7 @@ type AliasCount = {
 	availableToEnable: number
 }
 
+/** Shows a table with all aliases and ability to enable/disable them and add more. */
 export class EditAliasesFormN implements Component<EditAliasesFormAttrs> {
 	private expanded: boolean = false
 

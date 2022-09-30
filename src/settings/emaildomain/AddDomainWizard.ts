@@ -26,6 +26,7 @@ export type AddDomainData = {
 	domainStatus: DomainDnsStatus
 }
 
+/** Shows a wizard for adding a custom email domain. */
 export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo): Promise<void> {
 	const domainData: AddDomainData = {
 		domain: stream(domain),

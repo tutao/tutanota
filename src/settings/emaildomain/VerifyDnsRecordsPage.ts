@@ -16,6 +16,7 @@ import {ButtonSize} from "../../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 
+/** Wizard page which can verify DNS records for custom email domain. */
 export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<AddDomainData>>) {
 		const data = vnode.attrs.data
