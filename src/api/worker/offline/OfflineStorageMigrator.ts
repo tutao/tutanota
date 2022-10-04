@@ -6,6 +6,7 @@ import {sys75} from "./migrations/sys-v75.js"
 import {sys76} from "./migrations/sys-v76.js"
 import {tutanota54} from "./migrations/tutanota-v54.js"
 import {sys79} from "./migrations/sys-v79.js"
+import {sys80} from "./migrations/sys-v80.js"
 
 export interface OfflineMigration {
 	readonly app: Apps
@@ -19,6 +20,7 @@ export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
 	sys75,
 	sys76,
 	sys79,
+	sys80,
 	tutanota54,
 ]
 
