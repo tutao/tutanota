@@ -40,6 +40,16 @@
 					"info": "AddAssociation CustomerInfo/terminationRequest/LIST_ELEMENT_ASSOCIATION/2014."
 				}
 			]
+		},
+		{
+			"version": 80,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "CustomerProperties",
+					"info": "AddValue CustomerProperties/usageDataOptedOut/2025."
+				}
+			]
 		}
 	]
 }
