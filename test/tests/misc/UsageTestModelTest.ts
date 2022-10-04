@@ -27,6 +27,7 @@ import {LoginController} from "../../../src/api/main/LoginController.js"
 import {createCustomerProperties} from "../../../src/api/entities/sys/TypeRefs.js"
 import {UserController} from "../../../src/api/main/UserController.js"
 import {createUserSettingsGroupRoot} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {EventController} from "../../../src/api/main/EventController.js"
 
 const {anything} = matchers
 
@@ -39,6 +40,7 @@ o.spec("UsageTestModel", function () {
 	let ephemeralStorage: UsageTestStorage
 	let userControllerMock: UserController
 	let loginControllerMock: LoginController
+	let eventControllerMock: EventController
 	const testDeviceId = "123testDeviceId321"
 
 	const dateProvider = {
@@ -77,6 +79,9 @@ o.spec("UsageTestModel", function () {
 
 		userControllerMock = object()
 		loginControllerMock = object()
+		replace(loginControllerMock, "isUserLoggedIn", () => true)
+
+		eventControllerMock = object()
 
 		when(loginControllerMock.getUserController()).thenReturn(userControllerMock)
 
@@ -90,6 +95,7 @@ o.spec("UsageTestModel", function () {
 			serviceExecutor,
 			entityClient,
 			loginControllerMock,
+			eventControllerMock,
 		)
 
 		replace(usageTestModel, "customerProperties", createCustomerProperties({usageDataOptedOut: false}))
