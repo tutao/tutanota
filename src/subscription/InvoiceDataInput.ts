@@ -13,6 +13,11 @@ import {locator} from "../api/main/MainLocator"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 
+export enum InvoiceDataInputLocation {
+	InWizard = 0,
+	Other = 1,
+}
+
 export class InvoiceDataInput implements Component {
 	private readonly invoiceAddressComponent: HtmlEditor
 	public readonly selectedCountry: Stream<Country | null>
@@ -21,7 +26,7 @@ export class InvoiceDataInput implements Component {
 	constructor(
 		private businessUse: boolean,
 		invoiceData: InvoiceData,
-		private readonly onSignup: boolean = false,
+		private readonly location = InvoiceDataInputLocation.Other,
 	) {
 		this.invoiceAddressComponent = new HtmlEditor()
 			.setMinHeight(120)
@@ -39,7 +44,7 @@ export class InvoiceDataInput implements Component {
 
 	view(): Children {
 		return [
-			this.businessUse || !this.onSignup
+			this.businessUse || this.location !== InvoiceDataInputLocation.InWizard
 				? m("", [
 					m(".pt", m(this.invoiceAddressComponent)),
 					m(".small", lang.get(this.businessUse ? "invoiceAddressInfoBusiness_msg" : "invoiceAddressInfoPrivate_msg")),

@@ -2,7 +2,7 @@ import m, {Children, Vnode, VnodeDOM} from "mithril"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
-import {InvoiceDataInput} from "./InvoiceDataInput"
+import {InvoiceDataInput, InvoiceDataInputLocation} from "./InvoiceDataInput"
 import {PaymentMethodInput} from "./PaymentMethodInput"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
@@ -94,7 +94,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 				}
 			})
 			.then(() => {
-				this._invoiceDataInput = new InvoiceDataInput(data.options.businessUse(), data.invoiceData, true)
+				this._invoiceDataInput = new InvoiceDataInput(data.options.businessUse(), data.invoiceData, InvoiceDataInputLocation.InWizard)
 				let payPalRequestUrl = getLazyLoadedPayPalUrl()
 
 				if (logins.isUserLoggedIn()) {

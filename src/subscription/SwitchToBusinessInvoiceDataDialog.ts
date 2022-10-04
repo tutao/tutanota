@@ -2,20 +2,18 @@ import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
-import {InvoiceDataInput} from "./InvoiceDataInput"
+import {InvoiceDataInput, InvoiceDataInputLocation} from "./InvoiceDataInput"
 import {updatePaymentData} from "./InvoiceAndPaymentDataPage"
 import {BadRequestError} from "../api/common/error/RestError"
-import type {AccountingInfo} from "../api/entities/sys/TypeRefs.js"
-import type {Customer} from "../api/entities/sys/TypeRefs.js"
+import type {AccountingInfo, Customer} from "../api/entities/sys/TypeRefs.js"
 import {CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {showBusinessBuyDialog} from "./BuyDialog"
 import {locator} from "../api/main/MainLocator"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {defer, noOp} from "@tutao/tutanota-utils"
+import {defer, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {InvoiceData} from "../api/common/TutanotaConstants"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 
 /**
  * Shows a dialog to update the invoice data for business use. Switches the account to business use before actually saving the new invoice data
@@ -29,7 +27,7 @@ export function show(
 	headingId: TranslationKey | null,
 	infoMessageId: TranslationKey | null,
 ): Dialog {
-	const invoiceDataInput = new InvoiceDataInput(true, invoiceData)
+	const invoiceDataInput = new InvoiceDataInput(true, invoiceData, InvoiceDataInputLocation.InWizard)
 	const entityEventUpdateForCustomer = defer() // required if business is booked because the customer is then changed
 
 	const entityEventListener = (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> => {
