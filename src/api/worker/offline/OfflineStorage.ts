@@ -244,7 +244,7 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 	}
 
 	async getElementsOfType<T extends ElementEntity>(typeRef: TypeRef<T>): Promise<Array<T>> {
-		const {query, params} = sql`SELECT entity from entities WHERE type = ${getTypeId(typeRef)}`
+		const {query, params} = sql`SELECT entity from element_entities WHERE type = ${getTypeId(typeRef)}`
 		const items = await this.sqlCipherFacade.all(query, params) ?? []
 		return this.deserializeList(typeRef, items.map(row => row.entity.value as Uint8Array))
 	}
