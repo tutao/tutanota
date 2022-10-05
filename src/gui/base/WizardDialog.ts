@@ -1,4 +1,4 @@
-import m, {Child, Children, Component, Vnode, VnodeDOM} from "mithril"
+import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
 import {Dialog} from "./Dialog"
 import type {ButtonAttrs} from "./Button.js"
 import {ButtonType} from "./Button.js"
@@ -9,7 +9,7 @@ import {lang} from "../../misc/LanguageViewModel"
 import type {DialogHeaderBarAttrs} from "./DialogHeaderBar"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../../api/common/Env"
-import {$Promisable, typedEntries, typedKeys} from "@tutao/tutanota-utils"
+import {$Promisable} from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -36,6 +36,10 @@ export interface WizardPageAttrs<T> {
 	 * The actual data, which is the same for the entire wizard needs to be also accessible to each page
 	 */
 	readonly data: T
+	/**
+	 * Holds an enum that indicates in what context the wizard page is being shown.
+	 */
+	readonly location?: any
 }
 
 export interface WizardPageN<T> extends Component<WizardPageAttrs<T>> {

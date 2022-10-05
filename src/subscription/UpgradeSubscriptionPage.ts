@@ -2,7 +2,7 @@ import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
 import stream from "mithril/stream"
 import {lang} from "../misc/LanguageViewModel"
 import type {SubscriptionParameters, UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
-import {SubscriptionTypeParameter} from "./UpgradeSubscriptionWizard"
+import {SubscriptionTypeParameter, UpgradeWizardLocation} from "./UpgradeSubscriptionWizard"
 import {SubscriptionSelector} from "./SubscriptionSelector"
 import {isApp, isTutanotaDomain} from "../api/common/Env"
 import {client} from "../misc/ClientDetector"
@@ -23,10 +23,12 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 	private _dom: HTMLElement | null = null
 	private __signupFreeTest?: UsageTest
 	private __signupPaidTest?: UsageTest
+	private location = UpgradeWizardLocation.Other
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>): void {
 		this._dom = vnode.dom as HTMLElement
 		const subscriptionParameters = vnode.attrs.data.subscriptionParameters
+		this.location = vnode.attrs.location
 
 		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
 		this.__signupFreeTest.strictStageOrder = true
@@ -86,7 +88,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			this.__signupPaidTest.active = false
 		}
 
-		if (this.__signupFreeTest) {
+		if (this.__signupFreeTest && this.location == UpgradeWizardLocation.AtSignup) {
 			this.__signupFreeTest.active = true
 			this.__signupFreeTest.getStage(0).complete()
 		}
@@ -161,7 +163,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			this.__signupFreeTest.active = false
 		}
 
-		if (this.__signupPaidTest) {
+		if (this.__signupPaidTest && this.location == UpgradeWizardLocation.AtSignup) {
 			this.__signupPaidTest.active = true
 			this.__signupPaidTest.getStage(0).complete()
 		}
@@ -254,7 +256,10 @@ export class UpgradeSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubs
 	data: UpgradeSubscriptionData
 	subscriptionType: string | null = null
 
-	constructor(upgradeData: UpgradeSubscriptionData) {
+	constructor(
+		upgradeData: UpgradeSubscriptionData,
+		readonly location = UpgradeWizardLocation.Other,
+	) {
 		this.data = upgradeData
 	}
 
