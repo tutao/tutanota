@@ -731,7 +731,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			}, [
 				m("", lang.get("mailViewerRecipients_label")),
 				m(".text-ellipsis", relevantRecipient.address),
-				m(".flex", [
+				m(".flex.no-wrap", [
 						numberOfAllRecipients > 1 ? `+ ${numberOfAllRecipients - 1}` : null,
 						m(Icon, {
 							icon: BootIcons.Expand,
