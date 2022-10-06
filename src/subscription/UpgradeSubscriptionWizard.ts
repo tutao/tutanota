@@ -21,7 +21,7 @@ import {UpgradeConfirmPage, UpgradeConfirmPageAttrs} from "./UpgradeConfirmPage"
 import {SignupPage, SignupPageAttrs} from "./SignupPage"
 import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
-import {StorageBehavior, TtlBehavior} from "../misc/UsageTestModel"
+import {StorageBehavior} from "../misc/UsageTestModel"
 import {UpgradePriceService} from "../api/entities/sys/Services.js"
 
 assertMainOrNode()
@@ -141,7 +141,7 @@ export async function loadSignupWizard(subscriptionParameters: SubscriptionParam
 	const usageTestModel = locator.usageTestModel
 
 	usageTestModel.setStorageBehavior(StorageBehavior.Ephemeral)
-	locator.usageTestController.setTests(await usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly))
+	locator.usageTestController.setTests(await usageTestModel.loadActiveUsageTests())
 
 	const prices = await loadUpgradePrices(registrationDataId)
 	const planPrices: SubscriptionPlanPrices = {

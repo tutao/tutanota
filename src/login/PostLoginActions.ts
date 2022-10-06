@@ -28,7 +28,7 @@ import {getThemeCustomizations} from "../misc/WhitelabelCustomizations"
 import {CredentialEncryptionMode} from "../misc/credentials/CredentialEncryptionMode"
 import {SecondFactorHandler} from "../misc/2fa/SecondFactorHandler"
 import {SessionType} from "../api/common/SessionType"
-import {StorageBehavior, TtlBehavior} from "../misc/UsageTestModel.js"
+import {StorageBehavior} from "../misc/UsageTestModel.js"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -82,14 +82,6 @@ export class PostLoginActions implements IPostLoginAction {
 			await this.credentialsProvider.setCredentialsEncryptionMode(CredentialEncryptionMode.DEVICE_LOCK)
 		}
 
-		const usageTestModel = locator.usageTestModel
-		await usageTestModel.init()
-
-		usageTestModel.setStorageBehavior(StorageBehavior.Persist)
-		// We load possibly outdated assignments into the controller here so that they can be rendered right away without
-		// necessarily making an additional request.
-		locator.usageTestController.setTests(await usageTestModel.loadActiveUsageTests(TtlBehavior.PossiblyOutdated))
-
 		lang.updateFormats({ // partial
 			hourCycle: getHourCycle(logins.getUserController().userSettingsGroupRoot),
 		})
@@ -138,9 +130,13 @@ export class PostLoginActions implements IPostLoginAction {
 
 		this.enforcePasswordChange()
 
+		const usageTestModel = locator.usageTestModel
+		await usageTestModel.init()
+
+		usageTestModel.setStorageBehavior(StorageBehavior.Persist)
 		// Load only up-to-date (not older than 1h) assignments here and make a request for that.
 		// There should not be a lot of re-rendering at this point since assignments for new tests are usually fetched right after a client version update.
-		locator.usageTestController.setTests(await locator.usageTestModel.loadActiveUsageTests(TtlBehavior.UpToDateOnly))
+		locator.usageTestController.setTests(await usageTestModel.loadActiveUsageTests())
 	}
 
 	private deactivateOutOfOfficeNotification(notification: OutOfOfficeNotification): Promise<void> {
