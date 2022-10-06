@@ -89,11 +89,6 @@ function loadCustomerAndInfo(): Promise<{
 	)
 }
 
-export enum UpgradeWizardLocation {
-	AtSignup = 0,
-	Other = 1,
-}
-
 export function showUpgradeWizard(): void {
 	loadCustomerAndInfo().then(({customer, accountingInfo}) => {
 		return loadUpgradePrices(null).then(prices => {
@@ -186,7 +181,7 @@ export async function loadSignupWizard(subscriptionParameters: SubscriptionParam
 
 	const invoiceAttrs = new InvoiceAndPaymentDataPageAttrs(signupData)
 	const wizardPages = [
-		wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(signupData, UpgradeWizardLocation.AtSignup)),
+		wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(signupData)),
 		wizardPageWrapper(SignupPage, new SignupPageAttrs(signupData)),
 		wizardPageWrapper(InvoiceAndPaymentDataPage, invoiceAttrs),
 		wizardPageWrapper(UpgradeConfirmPage, new UpgradeConfirmPageAttrs(signupData)),

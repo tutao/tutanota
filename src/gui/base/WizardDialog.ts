@@ -36,10 +36,6 @@ export interface WizardPageAttrs<T> {
 	 * The actual data, which is the same for the entire wizard needs to be also accessible to each page
 	 */
 	readonly data: T
-	/**
-	 * Holds an enum that indicates in what context the wizard page is being shown.
-	 */
-	readonly location?: any
 }
 
 export interface WizardPageN<T> extends Component<WizardPageAttrs<T>> {
