@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2022-09-28T15:40:43Z",
+	"updated_at": "2022-10-06T11:48:48Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -350,7 +350,7 @@ export default {
 		"customDomainNeutral_msg": "Bitte gib deine eigene E-Mail-Domain ein.",
 		"customDomain_label": "Eigene E-Mail-Domain",
 		"customEmailDomains_label": "Eigene E-Mail-Domains",
-		"customerUsageDataGloballyDeactivated_label": "Klicke hier für mehr Informationen.",
+		"customerUsageDataGloballyDeactivated_label": "Für alle Benutzer deaktiviert",
 		"customerUsageDataGloballyPossible_label": "Benutzer entscheiden selbst",
 		"customerUsageDataOptOut_label": "Nutzungsdaten für alle Benutzer",
 		"customLabel_label": "Eigene Bezeichnung",
