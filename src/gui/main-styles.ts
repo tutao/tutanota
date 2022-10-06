@@ -1120,6 +1120,7 @@ styles.registerStyle("main", () => {
 			height: positionValue(size.bottom_nav_bar),
 			background: theme.header_bg,
 			"margin-bottom": "env(safe-area-inset-bottom)",
+			"z-index": 2,
 		},
 		".notification-overlay-content": {
 			"margin-left": px(size.vpad),
