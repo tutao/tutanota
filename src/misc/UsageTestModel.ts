@@ -230,12 +230,6 @@ export class EphemeralUsageTestStorage implements UsageTestStorage {
 
 export const ASSIGNMENT_UPDATE_INTERVAL_MS = 1000 * 60 * 60 // 1h
 
-export const enum TtlBehavior {
-	/* Prefer loading usage test assignments from cache even if they are slightly stale (according to ASSIGNMENT_UPDATE_INTERVAL_MS). */
-	PossiblyOutdated,
-	/* Always fetch the latest assignments from the server. */
-	UpToDateOnly,
-}
 
 export const enum StorageBehavior {
 	/* Store usage test assignments in the "persistent" storage. Currently, this is the client's instance of DeviceConfig, which uses the browser's local storage.
@@ -330,7 +324,7 @@ export class UsageTestModel implements PingAdapter {
 	/**
 	 * If the storageBehavior is set to StorageBehavior.Persist, then init() must have been called before calling this method.
 	 */
-	async loadActiveUsageTests(ttlBehavior: TtlBehavior): Promise<UsageTest[]> {
+	async loadActiveUsageTests(): Promise<UsageTest[]> {
 		if (this.storageBehavior === StorageBehavior.Persist && !this.getOptInDecision()) {
 			return []
 		}
@@ -340,7 +334,7 @@ export class UsageTestModel implements PingAdapter {
 
 		if (persistedData == null ||
 			persistedData.usageModelVersion !== modelVersion ||
-			(ttlBehavior === TtlBehavior.UpToDateOnly && Date.now() - persistedData.updatedAt > ASSIGNMENT_UPDATE_INTERVAL_MS)
+			Date.now() - persistedData.updatedAt > ASSIGNMENT_UPDATE_INTERVAL_MS
 		) {
 			return this.assignmentsToTests(await this.loadAssignments())
 		} else {
