@@ -250,34 +250,36 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						])
 						: null,
 				]),
-				m(SettingsExpander, {
-						title: "usageData_label",
-						expanded: this.usageDataExpanded,
-					}, this.customerProperties.isLoaded()
-						? m(DropDownSelector, {
-							label: "customerUsageDataOptOut_label",
-							items: [
-								{
-									name: lang.get("customerUsageDataGloballyDeactivated_label"),
-									value: true,
+				logins.getUserController().isPremiumAccount()
+					? m(SettingsExpander, {
+							title: "usageData_label",
+							expanded: this.usageDataExpanded,
+						}, this.customerProperties.isLoaded()
+							? m(DropDownSelector, {
+								label: "customerUsageDataOptOut_label",
+								items: [
+									{
+										name: lang.get("customerUsageDataGloballyDeactivated_label"),
+										value: true,
+									},
+									{
+										name: lang.get("customerUsageDataGloballyPossible_label"),
+										value: false,
+									},
+								],
+								selectedValue: this.customerProperties.getSync()!.usageDataOptedOut,
+								selectionChangedHandler: v => {
+									if (this.customerProperties.isLoaded()) {
+										const customerProps = this.customerProperties.getSync()!
+										customerProps.usageDataOptedOut = v as boolean
+										locator.entityClient.update(customerProps)
+									}
 								},
-								{
-									name: lang.get("customerUsageDataGloballyPossible_label"),
-									value: false,
-								},
-							],
-							selectedValue: this.customerProperties.getSync()!.usageDataOptedOut,
-							selectionChangedHandler: v => {
-								if (this.customerProperties.isLoaded()) {
-									const customerProps = this.customerProperties.getSync()!
-									customerProps.usageDataOptedOut = v as boolean
-									locator.entityClient.update(customerProps)
-								}
-							},
-							dropdownWidth: 250,
-						})
-						: null
-				)
+								dropdownWidth: 250,
+							})
+							: null
+					)
+					: null
 			]),
 		]
 	}
