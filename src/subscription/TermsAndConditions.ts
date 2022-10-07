@@ -60,14 +60,13 @@ export function renderTermsAndConditionsButton(terms: TermsSection, version: str
  */
 export const enum TermsSection {
 	Terms = "terms-entries",
-	Privacy = "privacy-entries",
+	Privacy = "privacy-policy-entries",
 	GiftCards = "giftCardsTerms-entries"
 }
 
 export async function showServiceTerms(section: TermsSection, version: string) {
 	const path = `/${section}/${version}.json`
 	const termsFromWebsite = await requestFromWebsite(path).then(res => res.json())
-
 	let visibleLang: "en" | "de" = lang.code.startsWith("de") ? "de" : "en"
 	let dialog: Dialog
 	let sanitizedTerms: string
