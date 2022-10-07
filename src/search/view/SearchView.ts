@@ -253,6 +253,18 @@ export class SearchView implements CurrentView {
 		return this.viewSlider
 	}
 
+	handleBackButton(): boolean {
+		// only handle back button if in single column layout and viewing details
+		if (this.viewSlider && styles.isSingleColumnLayout() &&
+			this.viewSlider.focusedColumn === this.resultDetailsColumn && this.viewSlider.isFocusPreviousPossible()) {
+			// current view can navigate back
+			this.viewSlider.focusPreviousColumn()
+			return true
+		}
+
+		return false
+	}
+
 	headerRightView(): Children {
 		const restriction = getRestriction(m.route.get())
 		return styles.isUsingBottomNavigation()
