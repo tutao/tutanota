@@ -20,11 +20,17 @@ export interface SqlCipherFacade {
 		params: ReadonlyArray<TaggedSqlValue>,
 	): Promise<void>
 	
+	/**
+	 * get a single object or undefined if the query returns nothing
+	 */
 	get(
 		query: string,
 		params: ReadonlyArray<TaggedSqlValue>,
 	): Promise<Record<string, TaggedSqlValue> | null>
 	
+	/**
+	 * return a list of objects or an empty list if the query returns nothing
+	 */
 	all(
 		query: string,
 		params: ReadonlyArray<TaggedSqlValue>,

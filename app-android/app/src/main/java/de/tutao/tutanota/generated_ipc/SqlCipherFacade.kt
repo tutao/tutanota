@@ -20,10 +20,16 @@ interface SqlCipherFacade {
 		query: String,
 		params: List<TaggedSqlValue>,
 	): Unit
+	/**
+	 * get a single object or undefined if the query returns nothing
+	 */
 	 suspend fun get(
 		query: String,
 		params: List<TaggedSqlValue>,
 	): Map<String, TaggedSqlValue>?
+	/**
+	 * return a list of objects or an empty list if the query returns nothing
+	 */
 	 suspend fun all(
 		query: String,
 		params: List<TaggedSqlValue>,

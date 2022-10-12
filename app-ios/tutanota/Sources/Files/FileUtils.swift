@@ -11,6 +11,10 @@ class FileUtils {
     return try Self.makeTempDir(name: "decrypted")
   }
   
+  static func deleteFile(path: URL) throws {
+    try FileManager.default.removeItem(at: path)
+  }
+  
   static func fileExists(atPath path: String) -> Bool {
     return FileManager.default.fileExists(atPath: path)
   }
