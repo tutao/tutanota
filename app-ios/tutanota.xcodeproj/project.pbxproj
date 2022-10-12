@@ -27,6 +27,13 @@
 		3D3AFAF0285CB1DC0077F302 /* CommonSystemFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3AFAEE285CB1DC0077F302 /* CommonSystemFacadeReceiveDispatcher.swift */; };
 		3D3AFAF2285CB2CF0077F302 /* IosCommonSystemFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3AFAF1285CB2CF0077F302 /* IosCommonSystemFacade.swift */; };
 		3D4E16F4273D2F8A00256630 /* SyncCompletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */; };
+		3D4E3C9E28EC5B31001FA9D1 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4E3C9D28EC5B31001FA9D1 /* Security.framework */; };
+		3D4E3CA028EC5B43001FA9D1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4E3C9F28EC5B43001FA9D1 /* Foundation.framework */; };
+		3D4E3CA228EC5C4F001FA9D1 /* IosSqlCipherFade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E3CA128EC5C4F001FA9D1 /* IosSqlCipherFade.swift */; };
+		3D4E3CA528EC5C65001FA9D1 /* SqlCipherFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E3CA328EC5C65001FA9D1 /* SqlCipherFacade.swift */; };
+		3D4E3CA628EC5C65001FA9D1 /* SqlCipherFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E3CA428EC5C65001FA9D1 /* SqlCipherFacadeReceiveDispatcher.swift */; };
+		3D4E3CA828EC63A6001FA9D1 /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E3C9C28EC5A3D001FA9D1 /* sqlite3.c */; };
+		3D4E3CAA28EC6787001FA9D1 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D4E3C9B28EC5A3D001FA9D1 /* sqlite3.h */; };
 		3D4F1BFA26EBADE500E87BF5 /* TUTBigNum.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */; };
 		3D4F1BFB26EBADE500E87BF5 /* TUTBigNum.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */; };
 		3D63A0E3233D009E00D05259 /* TUTLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D63A0E2233D009E00D05259 /* TUTLog.m */; };
@@ -160,6 +167,8 @@
 		3DC5DED82858CB58007364FF /* NativeCryptoFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DED22858CB58007364FF /* NativeCryptoFacadeReceiveDispatcher.swift */; };
 		3DC5DED92858CB58007364FF /* RsaPublicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DED32858CB58007364FF /* RsaPublicKey.swift */; };
 		3DC5DEDB2858D6A9007364FF /* RsaKeyPair.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5DEDA2858D6A9007364FF /* RsaKeyPair.swift */; };
+		3DCB9B8528F710CC0042A6BB /* TaggedSqlValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCB9B8428F710CC0042A6BB /* TaggedSqlValue.swift */; };
+		3DCB9B8728F711220042A6BB /* SqlCipherStatement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCB9B8628F711220042A6BB /* SqlCipherStatement.swift */; };
 		3DCE7AA22719D04B0085E40D /* UserPreferenceFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE7AA12719D04B0085E40D /* UserPreferenceFacade.swift */; };
 		3DCE7AA7271D63BF0085E40D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE7AA6271D63BF0085E40D /* ViewController.swift */; };
 		3DCE7AAB27200E0A0085E40D /* WebviewHacks.h in Headers */ = {isa = PBXBuildFile; fileRef = 3DCE7AA927200E0A0085E40D /* WebviewHacks.h */; };
@@ -168,6 +177,7 @@
 		3DD4A09020F8C6260086EB36 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A08F20F8C6260086EB36 /* Assets.xcassets */; };
 		3DD4A09320F8C6260086EB36 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3DD4A09120F8C6260086EB36 /* LaunchScreen.storyboard */; };
 		3DD4EA3B2726F41200D58207 /* DictionaryCoding in Frameworks */ = {isa = PBXBuildFile; productRef = 3DD4EA3A2726F41200D58207 /* DictionaryCoding */; };
+		3DDE413B28F4665700837BE6 /* SqlCipherDb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DDE413A28F4665700837BE6 /* SqlCipherDb.swift */; };
 		3DE1E44526666F0A0018C9DE /* UIColor+utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */; };
 		3DE2E47822D5F198009A9368 /* Info-Debug.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3DE2E47722D5F198009A9368 /* Info-Debug.plist */; };
 		3DE46D2B2848EBDA00DC9D43 /* IosFileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE46D2A2848EBDA00DC9D43 /* IosFileFacade.swift */; };
@@ -210,6 +220,13 @@
 		3D4D3204210747000081813A /* PSPDFFastEnumeration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PSPDFFastEnumeration.h; sourceTree = "<group>"; };
 		3D4D3205210747240081813A /* Swiftier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Swiftier.h; sourceTree = "<group>"; };
 		3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncCompletion.swift; sourceTree = "<group>"; };
+		3D4E3C9B28EC5A3D001FA9D1 /* sqlite3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sqlite3.h; sourceTree = "<group>"; };
+		3D4E3C9C28EC5A3D001FA9D1 /* sqlite3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sqlite3.c; sourceTree = "<group>"; };
+		3D4E3C9D28EC5B31001FA9D1 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		3D4E3C9F28EC5B43001FA9D1 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		3D4E3CA128EC5C4F001FA9D1 /* IosSqlCipherFade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosSqlCipherFade.swift; sourceTree = "<group>"; };
+		3D4E3CA328EC5C65001FA9D1 /* SqlCipherFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SqlCipherFacade.swift; sourceTree = "<group>"; };
+		3D4E3CA428EC5C65001FA9D1 /* SqlCipherFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SqlCipherFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
 		3D4F1BF826EBADE500E87BF5 /* TUTBigNum.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTBigNum.h; sourceTree = "<group>"; };
 		3D4F1BF926EBADE500E87BF5 /* TUTBigNum.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTBigNum.m; sourceTree = "<group>"; };
 		3D63A0DD233CF7C900D05259 /* TUTLog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTLog.h; sourceTree = "<group>"; };
@@ -350,6 +367,8 @@
 		3DC5DED22858CB58007364FF /* NativeCryptoFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativeCryptoFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
 		3DC5DED32858CB58007364FF /* RsaPublicKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RsaPublicKey.swift; sourceTree = "<group>"; };
 		3DC5DEDA2858D6A9007364FF /* RsaKeyPair.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RsaKeyPair.swift; sourceTree = "<group>"; };
+		3DCB9B8428F710CC0042A6BB /* TaggedSqlValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaggedSqlValue.swift; sourceTree = "<group>"; };
+		3DCB9B8628F711220042A6BB /* SqlCipherStatement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SqlCipherStatement.swift; sourceTree = "<group>"; };
 		3DCE7AA12719D04B0085E40D /* UserPreferenceFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPreferenceFacade.swift; sourceTree = "<group>"; };
 		3DCE7AA6271D63BF0085E40D /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		3DCE7AA927200E0A0085E40D /* WebviewHacks.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WebviewHacks.h; sourceTree = "<group>"; };
@@ -361,6 +380,7 @@
 		3DD4A09420F8C6260086EB36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3DD4A09B20F8C6260086EB36 /* tutanotaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tutanotaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3DD4A0A120F8C6260086EB36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3DDE413A28F4665700837BE6 /* SqlCipherDb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SqlCipherDb.swift; sourceTree = "<group>"; };
 		3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+utils.swift"; sourceTree = "<group>"; };
 		3DE2E47722D5F198009A9368 /* Info-Debug.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-Debug.plist"; sourceTree = "<group>"; };
 		3DE46D2A2848EBDA00DC9D43 /* IosFileFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosFileFacade.swift; sourceTree = "<group>"; };
@@ -379,6 +399,8 @@
 				3D36BCC2274E4A6100428878 /* CryptoTokenKit.framework in Frameworks */,
 				3DD4EA3B2726F41200D58207 /* DictionaryCoding in Frameworks */,
 				3D891F152105B8AF0031E528 /* libcrypto.a in Frameworks */,
+				3D4E3C9E28EC5B31001FA9D1 /* Security.framework in Frameworks */,
+				3D4E3CA028EC5B43001FA9D1 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -434,6 +456,8 @@
 		3D74536121089D2200B16F2E /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				3D378ED22536F3A80001F1F3 /* tutanota-Bridging-Header.h */,
+				3DDE413928F45E3700837BE6 /* Offline */,
 				3DBA56B62850AAA6004416BE /* GeneratedIpc */,
 				3D73DA2F2731951F008E7A8A /* Remote */,
 				3D57BEB322B796AC00205B1B /* Alarms */,
@@ -445,7 +469,6 @@
 				3DC299F9267358AF00E1E79F /* ThemeManager.swift */,
 				3D0EB1F826F49E36002E5102 /* AppDelegate.swift */,
 				3DCE7AA6271D63BF0085E40D /* ViewController.swift */,
-				3D378ED22536F3A80001F1F3 /* tutanota-Bridging-Header.h */,
 				3DE46D2D2849E33000DC9D43 /* IosThemeFacade.swift */,
 				3D3AFAE7285B0DB60077F302 /* IosMobileSystemFacade.swift */,
 				3D239301287EC96200DD7396 /* CustomSchemeHandlers.swift */,
@@ -526,6 +549,8 @@
 		3D891EEC2105A5590031E528 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3D4E3C9F28EC5B43001FA9D1 /* Foundation.framework */,
+				3D4E3C9D28EC5B31001FA9D1 /* Security.framework */,
 				3D36BCC1274E4A6100428878 /* CryptoTokenKit.framework */,
 				3D891F142105B8AF0031E528 /* libcrypto.a */,
 			);
@@ -1032,6 +1057,8 @@
 		3DBA56B62850AAA6004416BE /* GeneratedIpc */ = {
 			isa = PBXGroup;
 			children = (
+				3D4E3CA328EC5C65001FA9D1 /* SqlCipherFacade.swift */,
+				3D4E3CA428EC5C65001FA9D1 /* SqlCipherFacadeReceiveDispatcher.swift */,
 				3D3AFAED285CB1DC0077F302 /* CommonSystemFacade.swift */,
 				3D3AFAEE285CB1DC0077F302 /* CommonSystemFacadeReceiveDispatcher.swift */,
 				3D3AFADE285B0C340077F302 /* IntegrationInfo.swift */,
@@ -1181,6 +1208,19 @@
 			path = tutanotaTests;
 			sourceTree = "<group>";
 		};
+		3DDE413928F45E3700837BE6 /* Offline */ = {
+			isa = PBXGroup;
+			children = (
+				3D4E3C9C28EC5A3D001FA9D1 /* sqlite3.c */,
+				3D4E3C9B28EC5A3D001FA9D1 /* sqlite3.h */,
+				3D4E3CA128EC5C4F001FA9D1 /* IosSqlCipherFade.swift */,
+				3DDE413A28F4665700837BE6 /* SqlCipherDb.swift */,
+				3DCB9B8428F710CC0042A6BB /* TaggedSqlValue.swift */,
+				3DCB9B8628F711220042A6BB /* SqlCipherStatement.swift */,
+			);
+			path = Offline;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -1188,6 +1228,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3D4E3CAA28EC6787001FA9D1 /* sqlite3.h in Headers */,
 				3D9B12B32721A1E2002B46A1 /* TUTErrorFactory.h in Headers */,
 				3DCE7AAB27200E0A0085E40D /* WebviewHacks.h in Headers */,
 			);
@@ -1477,6 +1518,7 @@
 				3D3AFAEC285C5C6E0077F302 /* DataFile.swift in Sources */,
 				3D84F5822723225C00858A58 /* Utils.swift in Sources */,
 				3D3AFAF0285CB1DC0077F302 /* CommonSystemFacadeReceiveDispatcher.swift in Sources */,
+				3D4E3CA528EC5C65001FA9D1 /* SqlCipherFacade.swift in Sources */,
 				3D9B12B42721A1E2002B46A1 /* TUTErrorFactory.m in Sources */,
 				3D3AFAE6285B0C350077F302 /* NativeCredentialsFacade.swift in Sources */,
 				3D4E16F4273D2F8A00256630 /* SyncCompletion.swift in Sources */,
@@ -1498,8 +1540,10 @@
 				3D87ECE6212D9EB000FD7315 /* TUTIcons.m in Sources */,
 				3D9B12A32721926E002B46A1 /* ValueEncryption.swift in Sources */,
 				3D891F0D2105B12F0031E528 /* TUTEncodingConverter.m in Sources */,
+				3D4E3CA228EC5C4F001FA9D1 /* IosSqlCipherFade.swift in Sources */,
 				3D0EB1FC26F4BEE4002E5102 /* AlarmManager.swift in Sources */,
 				3DBA56CA2850AAA6004416BE /* IpcClientRect.swift in Sources */,
+				3DCB9B8728F711220042A6BB /* SqlCipherStatement.swift in Sources */,
 				3DC299FD2673668000E1E79F /* QueryUtils.swift in Sources */,
 				3D891F0E2105B12F0031E528 /* TUTAes128Facade.m in Sources */,
 				3D3AFAE4285B0C350077F302 /* IntegrationInfo.swift in Sources */,
@@ -1518,6 +1562,7 @@
 				3D84F57C27231F1F00858A58 /* Serialization.swift in Sources */,
 				3D2DB91B2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift in Sources */,
 				3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */,
+				3D4E3CA828EC63A6001FA9D1 /* sqlite3.c in Sources */,
 				3D84F56D2722CEF900858A58 /* FileUtils.swift in Sources */,
 				3DCE7AA7271D63BF0085E40D /* ViewController.swift in Sources */,
 				3DBA56CF2850AAA6004416BE /* FileFacadeReceiveDispatcher.swift in Sources */,
@@ -1525,6 +1570,9 @@
 				3DC5DED82858CB58007364FF /* NativeCryptoFacadeReceiveDispatcher.swift in Sources */,
 				3DE46D2B2848EBDA00DC9D43 /* IosFileFacade.swift in Sources */,
 				3DBA56D52850AAA6004416BE /* NativeKey.swift in Sources */,
+				3DDE413B28F4665700837BE6 /* SqlCipherDb.swift in Sources */,
+				3DCB9B8528F710CC0042A6BB /* TaggedSqlValue.swift in Sources */,
+				3D4E3CA628EC5C65001FA9D1 /* SqlCipherFacadeReceiveDispatcher.swift in Sources */,
 				3DBE94BA273147830077A6EA /* RemoteBridge.swift in Sources */,
 				3D84F5762723112400858A58 /* FileViewer.swift in Sources */,
 				3DBA56C72850AAA6004416BE /* FileFacade.swift in Sources */,
@@ -2212,6 +2260,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = JKCH89Z3M9;
+				"GCC_PREPROCESSOR_DEFINITIONS[arch=*]" = "SQLITE_HAS_CODEC=1";
 				HEADER_SEARCH_PATHS = (
 					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
 					"\"$(BUILT_PRODUCTS_DIR)\"",
@@ -2228,6 +2277,12 @@
 					"$(PROJECT_DIR)",
 					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
 					"$(PROJECT_DIR)/tutanota/Frameworks",
+				);
+				"OTHER_CFLAGS[arch=*]" = (
+					"-DSQLITE_HAS_CODEC",
+					"-DSQLITE_TEMP_STORE=3",
+					"-DSQLCIPHER_CRYPTO_CC",
+					"-DNDEBUG",
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota;
@@ -2251,6 +2306,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = JKCH89Z3M9;
+				"GCC_PREPROCESSOR_DEFINITIONS[arch=*]" = "SQLITE_HAS_CODEC=1";
 				HEADER_SEARCH_PATHS = (
 					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
 					"\"$(BUILT_PRODUCTS_DIR)\"",
@@ -2267,6 +2323,12 @@
 					"$(PROJECT_DIR)",
 					"\"$(TARGET_BUILD_DIR)/usr/local/lib/include\"",
 					"$(PROJECT_DIR)/tutanota/Frameworks",
+				);
+				"OTHER_CFLAGS[arch=*]" = (
+					"-DSQLITE_HAS_CODEC",
+					"-DSQLITE_TEMP_STORE=3",
+					"-DSQLCIPHER_CRYPTO_CC",
+					"-DNDEBUG",
 				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota;

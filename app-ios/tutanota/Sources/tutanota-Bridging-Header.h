@@ -9,3 +9,4 @@
 #import "Utils/WebviewHacks.h"
 #import "Crypto/TUTAes128Facade.h"
 #import "Crypto/TUTCrypto.h"
+#include "Offline/sqlite3.h"

@@ -7,6 +7,7 @@
 	receivers: [
 		"desktop",
 		"android",
+		"ios"
 	],
 	methods: {
 		openDb: {
@@ -45,6 +46,7 @@
 			ret: "void"
 		},
 		get: {
+			doc: "get a single object or undefined if the query returns nothing",
 			arg: [
 				{
 					query: "string"
@@ -56,6 +58,7 @@
 			ret: "Map<string, TaggedSqlValue>?"
 		},
 		all: {
+			doc: "return a list of objects or an empty list if the query returns nothing",
 			arg: [
 				{
 					query: "string"

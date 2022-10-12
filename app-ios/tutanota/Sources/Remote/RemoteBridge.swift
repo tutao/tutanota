@@ -51,6 +51,7 @@ class RemoteBridge : NSObject, NativeInterface {
       nativeCredentialsFacade: nativeCredentialsFacade,
       nativeCryptoFacade: nativeCryptoFacade,
       nativePushFacade: nativePushFacade,
+      sqlCipherFacade: IosSqlCipherFacade(),
       themeFacade: themeFacade
     )
     self.mobileFacade = MobileFacadeSendDispatcher(transport: self)
