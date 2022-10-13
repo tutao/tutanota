@@ -24,6 +24,7 @@ export class InvoiceDataInput implements Component {
 	public readonly selectedCountry: Stream<Country | null>
 	private vatNumber: string = ""
 	private __paymentPaypalTest?: UsageTest
+	private __paymentCreditTest?: UsageTest
 
 	constructor(
 		private businessUse: boolean,
@@ -31,6 +32,7 @@ export class InvoiceDataInput implements Component {
 		private readonly location = InvoiceDataInputLocation.Other,
 	) {
 		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
+		this.__paymentCreditTest = locator.usageTestController.getTest("payment.credit")
 
 		this.invoiceAddressComponent = new HtmlEditor()
 			.setMinHeight(120)
@@ -101,6 +103,7 @@ export class InvoiceDataInput implements Component {
 			}
 		}
 		this.__paymentPaypalTest?.getStage(3).complete()
+		this.__paymentCreditTest?.getStage(1).complete()
 		// no error
 		return null
 	}

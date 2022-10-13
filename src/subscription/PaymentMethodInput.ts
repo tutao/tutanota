@@ -33,6 +33,7 @@ export class PaymentMethodInput {
 	_accountingInfo: AccountingInfo
 	_entityEventListener: EntityEventsListener
 	private __paymentPaypalTest?: UsageTest
+	private __paymentCreditTest?: UsageTest
 
 	constructor(
 		subscriptionOptions: SelectedSubscriptionOptions,
@@ -49,6 +50,7 @@ export class PaymentMethodInput {
 			accountingInfo: this._accountingInfo,
 		}
 		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
+		this.__paymentCreditTest = locator.usageTestController.getTest("payment.credit")
 
 		this._entityEventListener = updates => {
 			return promiseMap(updates, update => {
@@ -141,15 +143,36 @@ export class PaymentMethodInput {
 			return isPaypalAssigned(this._accountingInfo) ? null : "paymentDataPayPalLogin_msg"
 		} else if (this._selectedPaymentMethod === PaymentMethodType.CreditCard) {
 			let cc = this._creditCardAttrs.getCreditCardData()
+			const stage = this.__paymentCreditTest?.getStage(2)
 
 			if (cc.number === "") {
+				stage?.setMetric({
+					name: "validationFailure",
+					value: "ccNumberMissing",
+				})
+				stage?.complete()
 				return "creditCardNumberFormat_msg"
 			} else if (!isValidCreditCardNumber(cc.number)) {
+				stage?.setMetric({
+					name: "validationFailure",
+					value: "ccNumberFormat",
+				})
+				stage?.complete()
 				return "creditCardNumberInvalid_msg"
 			} else if (cc.cardHolderName === "") {
+				stage?.setMetric({
+					name: "validationFailure",
+					value: "ccHolder",
+				})
+				stage?.complete()
 				return "creditCardCardHolderName_msg"
 			} else if (cc.cvv === "" || cc.cvv.length < 3 || cc.cvv.length > 4) {
 				// CVV2 is 3- or 4-digit
+				stage?.setMetric({
+					name: "validationFailure",
+					value: "cvvFormat",
+				})
+				stage?.complete()
 				return "creditCardCVVFormat_label"
 			} else if (
 				cc.expirationMonth.length !== 2 ||
@@ -157,6 +180,11 @@ export class PaymentMethodInput {
 				parseInt(cc.expirationMonth) < 1 ||
 				parseInt(cc.expirationMonth) > 12
 			) {
+				stage?.setMetric({
+					name: "validationFailure",
+					value: "expirationDate",
+				})
+				stage?.complete()
 				return "creditCardExprationDateInvalid_msg"
 			} else {
 				return null
@@ -173,8 +201,22 @@ export class PaymentMethodInput {
 			if (paymentData) {
 				this._creditCardAttrs.setCreditCardData(paymentData.creditCardData)
 			}
+
+			if (this.__paymentPaypalTest && this.__paymentCreditTest) {
+				this.__paymentPaypalTest.active = false
+				this.__paymentCreditTest.active = true
+			}
+
+			this.__paymentCreditTest?.getStage(0).complete()
 		} else if (value === PaymentMethodType.Paypal) {
 			this._payPalAttrs.payPalRequestUrl.getAsync().then(() => m.redraw())
+
+			if (this.__paymentPaypalTest && this.__paymentCreditTest) {
+				this.__paymentPaypalTest.active = true
+				this.__paymentCreditTest.active = false
+			}
+
+			this.__paymentPaypalTest?.getStage(0).complete()
 		}
 
 		m.redraw()
