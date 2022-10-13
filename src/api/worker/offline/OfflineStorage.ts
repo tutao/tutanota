@@ -28,10 +28,11 @@ import {SqlCipherFacade} from "../../../native/common/generatedipc/SqlCipherFaca
 import {SqlValue, TaggedSqlValue, tagSqlValue, untagSqlObject} from "./SqlValue.js"
 
 function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNestedTokens | null {
+	const time = data.getTime()
 	return [
 		// https://datatracker.ietf.org/doc/rfc8943/
 		new Token(Type.tag, 100),
-		new Token(Type.uint, data.getTime())
+		new Token(time < 0 ? Type.negint : Type.uint, time)
 	]
 }
 
