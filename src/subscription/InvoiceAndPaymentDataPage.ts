@@ -42,11 +42,15 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 	private dom!: HTMLElement
 	private __signupPaidTest?: UsageTest
 	private __paymentPaypalTest?: UsageTest
+	private __paymentCreditTest?: UsageTest
 
 	constructor(upgradeData: UpgradeSubscriptionData) {
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
 		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
 		this.__paymentPaypalTest.strictStageOrder = true
+		this.__paymentCreditTest = locator.usageTestController.getTest("payment.credit")
+		this.__paymentCreditTest.strictStageOrder = true
+		this.__paymentCreditTest.recordTime = true
 
 		this._upgradeData = upgradeData
 		this._selectedPaymentMethod = stream()
@@ -176,13 +180,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 					m(SegmentControl, {
 						items: this._availablePaymentMethods,
 						selectedValue: this._selectedPaymentMethod(),
-						onValueSelected: v => {
-							if (v === PaymentMethodType.Paypal) {
-								this.__paymentPaypalTest?.getStage(0).complete()
-							}
-
-							return this._selectedPaymentMethod(v as PaymentMethodType)
-						},
+						onValueSelected: this._selectedPaymentMethod,
 					}),
 					m(".flex-space-around.flex-wrap.pt", [
 						m(
@@ -372,15 +370,48 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 				if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
 					return locator.entityClient.load(InvoiceInfoTypeRef, update.instanceId).then(invoiceInfo => {
 						invoiceInfoWrapper.invoiceInfo = invoiceInfo
-
+						const test = locator.usageTestController.getTest("payment.credit")
+						const stage = test.getStage(2)
 						if (!invoiceInfo.paymentErrorInfo) {
 							// user successfully verified the card
+							stage.setMetric({
+								name: "validationFailure",
+								value: "none",
+							})
+							stage.complete()
+							test.getStage(3).complete()
 							progressDialog.close()
 							resolve(true)
 						} else if (invoiceInfo.paymentErrorInfo && invoiceInfo.paymentErrorInfo.errorCode === "card.3ds2_pending") {
 							// keep waiting. this error code is set before starting the 3DS2 verification and we just received the event very late
 						} else if (invoiceInfo.paymentErrorInfo && invoiceInfo.paymentErrorInfo.errorCode !== null) {
 							// verification error during 3ds verification
+							let error = "3dsFailedGeneric"
+
+							switch (invoiceInfo.paymentErrorInfo.errorCode) {
+								case "creditCardCVVInvalid_msg":
+									error = "cvvInvalid"
+									break
+								case "creditCardNumberInvalid_msg":
+									error = "ccNumberInvalid"
+									break
+								case "creditCardExprationDateInvalid_msg":
+									error = "expirationDate"
+									break
+								case "payCardInsufficientFundsError_msg":
+									error = "insufficientFunds"
+									break
+								case "payCardExpiredError_msg":
+									error = "cardExpired"
+									break
+							}
+
+							stage.setMetric({
+								name: "validationFailure",
+								value: error,
+							})
+							stage.complete()
+
 							Dialog.message(getPreconditionFailedPaymentMsg(invoiceInfo.paymentErrorInfo.errorCode))
 							resolve(false)
 							progressDialog.close()

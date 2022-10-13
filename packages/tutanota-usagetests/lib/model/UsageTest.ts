@@ -21,6 +21,10 @@ export class UsageTest {
 	private sentPings = 0
 	private started = false
 
+	// Enables recording the time that has passed since the last ping (and attaching it as a metric 'secondsPassed')
+	public recordTime = false
+	private lastPingDate?: Date
+
 	constructor(
 		readonly testId: string,
 		readonly testName: string,
@@ -58,6 +62,17 @@ export class UsageTest {
 	}
 
 	/**
+	 * Completes a range of stages in the case that we want to make sure that previous stages are/have been sent.
+	 *
+	 * Useful when reaching a stage necessitates (and implies) that all previous stages have been sent successfully.
+	 */
+	async completeRange(start: number, end: number) {
+		for (let i = start; i <= end; i++) {
+			await this.getStage(i).complete()
+		}
+	}
+
+	/**
 	 * Should not be used directly. Use stage.complete() instead.
 	 */
 	async completeStage(stage: Stage): Promise<boolean> {
@@ -89,6 +104,21 @@ export class UsageTest {
 		console.log(`Test '${this.testName}': Completing stage ${stage.number}, variant ${this.variant}`)
 		this.sentPings = stage.number === this.lastCompletedStage ? this.sentPings + 1 : 1
 		this.lastCompletedStage = stage.number
+
+		if (this.recordTime) {
+			const currentDate = new Date()
+
+			if (stage.number > 0) {
+				const secondsPassed = this.lastPingDate ? (currentDate.getTime() - this.lastPingDate.getTime()) / 1000 : 0
+				stage.setMetric({
+					name: "secondsPassed",
+					value: secondsPassed.toString(),
+				})
+			}
+
+			this.lastPingDate = currentDate
+		}
+
 		await this.pingAdapter.sendPing(this, stage)
 
 		this.started = true
