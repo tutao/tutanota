@@ -79,16 +79,16 @@ static const NSString *const PUBLIC_EXPONENT_STRING = @"65537";
 - (TUTKeyPair *_Nullable)generateRsaKeyWithSeed:(NSData * _Nonnull)seed error:(NSError **)error {
   // seeds the PRNG (pseudorandom number generator)
   RAND_seed([seed bytes], (int) [seed length]);
-  
-  
+
+
   RSA* rsaKey = RSA_new();
   BIGNUM * e = BN_new();
   BN_dec2bn(&e, [PUBLIC_EXPONENT_STRING UTF8String]); // public exponent <- 65537
-  
+
   // generate rsa key
   int status = RSA_generate_key_ex(rsaKey, RSA_KEY_LENGTH_IN_BITS, e, NULL);
   TUTKeyPair *keyPair;
-  if (status > 0){  
+  if (status > 0){
     keyPair = [TUTCrypto createRSAKeyPair:rsaKey
                                 keyLength:RSA_KEY_LENGTH_IN_BITS
                                   version:0];
@@ -101,23 +101,23 @@ static const NSString *const PUBLIC_EXPONENT_STRING = @"65537";
 }
 
 - (NSData *_Nullable)rsaEncryptWithPublicKey:(TUTPublicKey * _Nonnull)publicKey
-                     data:(NSData * _Nonnull)data
-                     seed:(NSData * _Nonnull)seed
-                          error: (NSError **)error {
-	//convert json data to private key;
-	RSA* publicRsaKey = [TUTCrypto createPublicRSAKey:publicKey];
+                                        data:(NSData * _Nonnull)data
+                                        seed:(NSData * _Nonnull)seed
+                                       error: (NSError **)error {
+  //convert json data to private key;
+  RSA* publicRsaKey = [TUTCrypto createPublicRSAKey:publicKey];
 
 
   int rsaSize = RSA_size(publicRsaKey); // should be 256 for a 2048 bit rsa key
   NSMutableData *paddingBuffer = [NSMutableData dataWithLength:rsaSize];
   int paddingLength = (int) [paddingBuffer length];
-  
+
   // seeds the PRNG (pseudorandom number generator)
   RAND_seed([seed bytes], (int) [seed length]);
-  
+
   // add padding
   int status = RSA_padding_add_PKCS1_OAEP_SHA256([paddingBuffer mutableBytes], paddingLength, [data bytes], (int) [data length], NULL, 0);
-  
+
   NSMutableData *encryptedData = [NSMutableData dataWithLength:rsaSize];
   if (status >= 0) {
     // encrypt
@@ -141,20 +141,20 @@ static const NSString *const PUBLIC_EXPONENT_STRING = @"65537";
                                         error:(NSError **)error {
   //convert json data to private key;
   RSA* privateRsaKey = [TUTCrypto createPrivateRSAKey:privateKey];
-  
+
   int rsaCheckResult = RSA_check_key(privateRsaKey);
   if (rsaCheckResult != 1){
     *error = [TUTCrypto logOpenSslError:@"Invald private rsa key" statusCode:rsaCheckResult];
     RSA_free(privateRsaKey);
     return nil;
   }
-  
+
   int rsaSize = RSA_size(privateRsaKey); // should be 256 for a 2048 bit rsa key
   NSMutableData *decryptedBuffer = [NSMutableData dataWithLength:rsaSize];
-  
+
   // Decrypt
   int status = RSA_private_decrypt((int) [data length], [data bytes], [decryptedBuffer mutableBytes], privateRsaKey, RSA_NO_PADDING);
-  
+
   NSMutableData *paddingBuffer =[NSMutableData dataWithLength:rsaSize];
   // decryption succesfull remove padding
   if ( status >= 0 ){
@@ -164,7 +164,7 @@ static const NSString *const PUBLIC_EXPONENT_STRING = @"65537";
     int flen = BN_bn2bin(bn, [decryptedBuffer mutableBytes]);
     status = RSA_padding_check_PKCS1_OAEP_SHA256([paddingBuffer mutableBytes], (int) [paddingBuffer length], [decryptedBuffer bytes], flen, rsaSize, NULL, 0);
   }
-  
+
   NSData*_Nullable returnData = nil;
   if (status > 0) {
     // Success
@@ -174,47 +174,61 @@ static const NSString *const PUBLIC_EXPONENT_STRING = @"65537";
     *error = [TUTCrypto logOpenSslError:@"rsa decryption failed" statusCode:status];
   }
   RSA_free(privateRsaKey);
-  
+
   return returnData;
 }
 
 
-
 + (RSA *)createPrivateRSAKey:(TUTPrivateKey *)key {
-	RSA *rsaKey = RSA_new();
-	rsaKey->e = BN_new();
-	rsaKey->n= BN_new();
-	rsaKey->d= BN_new();
-	rsaKey->p = BN_new();
-	rsaKey->q = BN_new();
-	rsaKey->dmp1 = BN_new();
-	rsaKey->dmq1 = BN_new();
-	rsaKey->iqmp = BN_new();
+  const char *publicExponent = [PUBLIC_EXPONENT_STRING UTF8String];
+  RSA *rsaKey = RSA_new();
 
-	const char *publicExponent = [PUBLIC_EXPONENT_STRING UTF8String];
-	BN_dec2bn(&rsaKey->e, publicExponent); // public exponent <- 65537
-	[TUTBigNum toBIGNUM:rsaKey->n fromB64:key.modulus]; // public modulus <- modulus
-	[TUTBigNum toBIGNUM:rsaKey->d fromB64:key.privateExponent]; // private exponent <- privateExponent
-	[TUTBigNum toBIGNUM:rsaKey->p fromB64:key.primeP]; // secret prime factor <- primeP
-	[TUTBigNum toBIGNUM:rsaKey->q fromB64:key.primeQ]; // secret prime factor <- primeQ
-	[TUTBigNum toBIGNUM:rsaKey->dmp1 fromB64:key.primeExponentP]; // d mod (p-1) <- primeExponentP
-	[TUTBigNum toBIGNUM:rsaKey->dmq1 fromB64:key.primeExponentQ]; // d mod (q-1) <- primeExponentQ
-	[TUTBigNum toBIGNUM:rsaKey->iqmp fromB64:key.crtCoefficient]; // q^-1 mod p <- crtCoefficient
-	return rsaKey;
+  BIGNUM *n = BN_new();
+  [TUTBigNum toBIGNUM:n fromB64:key.modulus]; // public modulus <- modulus
+
+  BIGNUM *e = BN_new();
+  BN_dec2bn(&e, publicExponent); // public exponent <- 65537
+
+  BIGNUM *d = BN_new();
+  [TUTBigNum toBIGNUM:d fromB64:key.privateExponent]; // private exponent <- privateExponent
+
+  RSA_set0_key(rsaKey, n, e, d);
+
+  BIGNUM *p = BN_new();
+  [TUTBigNum toBIGNUM:p fromB64:key.primeP]; // secret prime factor <- primeP
+
+  BIGNUM *q = BN_new();
+  [TUTBigNum toBIGNUM:q fromB64:key.primeQ]; // secret prime factor <- primeQ
+
+  RSA_set0_factors(rsaKey, p, q);
+
+  BIGNUM *dmp1 = BN_new();
+  [TUTBigNum toBIGNUM:dmp1 fromB64:key.primeExponentP]; // d mod (p-1) <- primeExponentP
+
+  BIGNUM *dmq1 = BN_new();
+  [TUTBigNum toBIGNUM:dmq1 fromB64:key.primeExponentQ]; // d mod (q-1) <- primeExponentQ
+
+  BIGNUM *iqmp = BN_new();
+  [TUTBigNum toBIGNUM:iqmp fromB64:key.crtCoefficient]; // q^-1 mod p <- crtCoefficient
+
+  RSA_set0_crt_params(rsaKey, dmp1, dmq1, iqmp);
+
+  return rsaKey;
 }
 
 
 + (RSA *)createPublicRSAKey:(NSObject *)key {
-	NSString* modulus = [key valueForKey:@"modulus"];
+  const char *publicExponent = [PUBLIC_EXPONENT_STRING UTF8String];
+  NSString* modulus = [key valueForKey:@"modulus"];
 
-	RSA *rsaKey = RSA_new();
-	rsaKey->e = BN_new();
-	rsaKey->n= BN_new();
+  RSA *rsaKey = RSA_new();
 
-	const char *publicExponent = "65537";
-	BN_dec2bn(&rsaKey->e, publicExponent ); // public exponent <- 65537
-	[TUTBigNum toBIGNUM:rsaKey->n fromB64:modulus]; // public modulus <- modulus
-	return rsaKey;
+  BIGNUM *e = BN_new();
+  BN_dec2bn(&e, publicExponent); // public exponent <- 65537
+  BIGNUM *n = BN_new();
+  [TUTBigNum toBIGNUM:n fromB64:modulus]; // public modulus <- modulus
+  RSA_set0_key(rsaKey, n, e, NULL);
+  return rsaKey;
 }
 
 
@@ -222,64 +236,62 @@ static const NSString *const PUBLIC_EXPONENT_STRING = @"65537";
                        keyLength:(NSInteger)keyLength
                          version:(NSInteger)version
 {
-  let modulus = [TUTBigNum toB64:key->n];
+  let modulus = [TUTBigNum toB64:RSA_get0_n(key)];
   let publicKey = [[TUTPublicKey alloc] initWithVersion:version
                                               keyLength:keyLength
                                                 modulus:modulus
                                          publicExponent:PUBLIC_EXPONENT
   ];
-  
+
   let privateKey = [[TUTPrivateKey alloc] initWithVersion:version
                                                 keyLength:keyLength
-                                                modulus:modulus
-                                                privateExponent:[TUTBigNum toB64:key->d]
-                                                primeP:[TUTBigNum toB64:key->p]
-                                                primeQ:[TUTBigNum toB64:key->q]
-                                                primeExponentP:[TUTBigNum toB64:key->dmp1]
-                                                primeExponentQ:[TUTBigNum toB64:key->dmq1]
-                                                crtCoefficient:[TUTBigNum toB64:key->iqmp]
+                                                  modulus:modulus
+                                          privateExponent:[TUTBigNum toB64:RSA_get0_d(key)]
+                                                   primeP:[TUTBigNum toB64:RSA_get0_p(key)]
+                                                   primeQ:[TUTBigNum toB64:RSA_get0_q(key)]
+                                           primeExponentP:[TUTBigNum toB64:RSA_get0_dmp1(key)]
+                                           primeExponentQ:[TUTBigNum toB64:RSA_get0_dmq1(key)]
+                                           crtCoefficient:[TUTBigNum toB64:RSA_get0_iqmp(key)]
   ];
-  
+
   return [[TUTKeyPair alloc] initWithPublicKey:publicKey privateKey:privateKey];
 }
 
 + (NSData *)generateIv {
-	unsigned char buffer[TUTAO_IV_BYTE_SIZE];
-	int rc = RAND_bytes(buffer, (int) TUTAO_IV_BYTE_SIZE);
-	if (rc!=1){
-		return nil;
-	}
-	return [[NSData alloc]initWithBytes:buffer length:TUTAO_IV_BYTE_SIZE];
+  unsigned char buffer[TUTAO_IV_BYTE_SIZE];
+  int rc = RAND_bytes(buffer, (int) TUTAO_IV_BYTE_SIZE);
+  if (rc!=1){
+    return nil;
+  }
+  return [[NSData alloc]initWithBytes:buffer length:TUTAO_IV_BYTE_SIZE];
 }
 
 
 + (NSData *)sha256:(NSData *)data {
-	unsigned char hash[CC_SHA256_DIGEST_LENGTH];
-	if (CC_SHA256([data bytes], (int) [data length], hash) ) {
-		return [NSData dataWithBytes:hash length:CC_SHA256_DIGEST_LENGTH];
-	}
-	return nil;
+  unsigned char hash[CC_SHA256_DIGEST_LENGTH];
+  if (CC_SHA256([data bytes], (int) [data length], hash) ) {
+    return [NSData dataWithBytes:hash length:CC_SHA256_DIGEST_LENGTH];
+  }
+  return nil;
 }
 
 
 + (NSError *) logOpenSslError:(NSString *)msg statusCode:(int) statusCode{
-	ERR_load_crypto_strings();
 
-	size_t messageBufferSize = 256;
-	char *messageBuffer = (char *)calloc(messageBufferSize, sizeof(char));
+  size_t messageBufferSize = 256;
+  char *messageBuffer = (char *)calloc(messageBufferSize, sizeof(char));
 
-	int errorCode = (int) ERR_get_error();
-	// loop until there is no more error code in the queue
-	NSMutableArray<NSString*> *errors = [NSMutableArray new] ;
-	while (errorCode != 0) {
-		ERR_error_string( errorCode, messageBuffer);
-		let errorString = [NSString stringWithFormat:@"Error: %@ <%i|%s>", msg, errorCode, messageBuffer ];
-		TUTLog(@"%@", errorString);
-		[errors addObject:errorString];
-		errorCode = (int) ERR_get_error();
-	}
-	ERR_free_strings();
-	return  [NSError errorWithDomain:TUT_CRYPTO_ERROR code:statusCode userInfo:@{ @"OpenSSLErrors": errors}];
+  int errorCode = (int) ERR_get_error();
+  // loop until there is no more error code in the queue
+  NSMutableArray<NSString*> *errors = [NSMutableArray new] ;
+  while (errorCode != 0) {
+    ERR_error_string( errorCode, messageBuffer);
+    let errorString = [NSString stringWithFormat:@"Error: %@ <%i|%s>", msg, errorCode, messageBuffer ];
+    TUTLog(@"%@", errorString);
+    [errors addObject:errorString];
+    errorCode = (int) ERR_get_error();
+  }
+  return  [NSError errorWithDomain:TUT_CRYPTO_ERROR code:statusCode userInfo:@{ @"OpenSSLErrors": errors}];
 }
 
 
