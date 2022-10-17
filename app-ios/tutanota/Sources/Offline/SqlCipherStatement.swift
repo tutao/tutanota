@@ -31,11 +31,11 @@ class SqlCipherStatement {
     var rc_bind = SQLITE_ERROR
     
     switch param {
-    case .Null:
+    case .null:
       rc_bind = sqlite3_bind_null(self.stmt, i)
-    case .Number(let value):
+    case .number(let value):
       rc_bind = sqlite3_bind_int64(self.stmt, i, Int64(value))
-    case .SqlString(let value):
+    case .string(let value):
       let nsText = value as NSString
       let textCStr = UnsafeMutablePointer<CChar>(mutating: nsText.utf8String)
       rc_bind = sqlite3_bind_text64(
@@ -46,7 +46,7 @@ class SqlCipherStatement {
         SqlCipherStatement.LIFETIME_TRANSIENT, // lifetime of the third param (we remain responsible, sqlite copies the buffer).
         UInt8(SQLITE_UTF8) // encoding id
       )
-    case .Bytes(let value):
+    case .bytes(let value):
       rc_bind = sqlite3_bind_blob(
         self.stmt, // statement to bind value to
         i,  // index of the "?" to bind to
@@ -56,7 +56,7 @@ class SqlCipherStatement {
       )
     }
     
-    if (rc_bind != SQLITE_OK) {
+    if rc_bind != SQLITE_OK {
       fatalError("couldn't bind param \(i)")
     }
   }
@@ -125,7 +125,7 @@ class SqlCipherStatement {
     if text == nil {
       fatalError("null return in text column \(i)")
     }
-    return TaggedSqlValue.SqlString(value: String(cString: text!))
+    return .string(value: String(cString: text!))
   }
   
   /// return a blob from the current rows column i
@@ -134,13 +134,13 @@ class SqlCipherStatement {
     let blob = sqlite3_column_blob(self.stmt, i)
     let count = Int(sqlite3_column_bytes(self.stmt, i))
     if count == 0 {
-      return TaggedSqlValue.Bytes(value: Data([]).wrap())
+      return .bytes(value: Data([]).wrap())
     } else if blob == nil {
       // blob == null and count != 0 is an error condition
       fatalError("got blob nullptr but nonzero len, err \(self.db.getLastErrorCode()): \(self.db.getLastErrorMessage())")
     } else {
         let data = Data(bytes: blob!, count: count)
-        return TaggedSqlValue.Bytes(value: data.wrap())
+        return .bytes(value: data.wrap())
     }
   }
   

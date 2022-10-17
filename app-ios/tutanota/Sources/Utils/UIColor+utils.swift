@@ -43,7 +43,7 @@ public extension UIColor {
 
 /** Parse a #RGB or #RRGGBB #RRGGBBAA color code into an 0xRRGGBBAA int */
 private func parseColorCode(_ code: String, _ rrggbbaa: UnsafeMutablePointer<UInt32>?) -> Bool {
-  if (code.first != "#" || (code.count != 4 && code.count != 7 && code.count != 9)) {
+  if code.first != "#" || (code.count != 4 && code.count != 7 && code.count != 9) {
     return false
   }
 

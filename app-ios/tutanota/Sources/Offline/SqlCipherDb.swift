@@ -36,7 +36,7 @@ class SqlCipherDb {
     let sqlCStr = UnsafeMutablePointer<CChar>(mutating: (query as NSString).utf8String)
     //db pointer, query, max query length, OUT statement handle, OUT pointer to unused portion of query (?)
     let rc_prep = sqlite3_prepare_v2(self.db, sqlCStr, -1, &stmt, nil)
-    if (rc_prep != SQLITE_OK || stmt == nil) {
+    if rc_prep != SQLITE_OK || stmt == nil {
       let errmsg = self.getLastErrorMessage()
       fatalError("failed to prepare stmt: \(errmsg)")
     }
@@ -44,7 +44,7 @@ class SqlCipherDb {
   }
   
   func close() {
-    if (sqlite3_close(self.db) != SQLITE_OK) {
+    if sqlite3_close(self.db) != SQLITE_OK {
       let errmsg = self.getLastErrorMessage()
       TUTSLog("Error closing database: \(errmsg): \(self.getLastErrorMessage())")
       // ignore

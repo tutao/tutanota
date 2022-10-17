@@ -20,7 +20,7 @@ class AlarmModel {
     let endDate: Date?
     switch repeatRule.endCondition {
     case let .untilDate(valueDate):
-      if (isAllDayEvent) {
+      if isAllDayEvent {
         endDate = allDayDateLocal(dateUTC: valueDate)
       } else {
         endDate = valueDate

@@ -2,23 +2,28 @@ import Foundation
 
 class IosSqlCipherFacade: SqlCipherFacade {
   private var db: SqlCipherDb? = nil
+  var openedDb: SqlCipherDb {
+    get {
+      guard let db = self.db else {
+        fatalError("no db opened!")
+      }
+      return db
+    }
+  }
   
   func run(_ query: String, _ params: [TaggedSqlValue]) async throws {
-    assertDb()
-    let prepped = try! self.db!.prepare(query: query)
+    let prepped = try! self.openedDb.prepare(query: query)
     try! prepped.bindParams(params).run()
     return
   }
   
   func get(_ query: String, _ params: [TaggedSqlValue]) async throws -> [String : TaggedSqlValue]? {
-    assertDb()
-    let prepped = try! self.db!.prepare(query: query)
+    let prepped = try! self.openedDb.prepare(query: query)
     return try! prepped.bindParams(params).get()
   }
   
   func all(_ query: String, _ params: [TaggedSqlValue]) async throws -> [[String : TaggedSqlValue]] {
-    assertDb()
-    let prepped = try! self.db!.prepare(query: query)
+    let prepped = try! self.openedDb.prepare(query: query)
     return try! prepped.bindParams(params).all()
   }
   
@@ -36,15 +41,9 @@ class IosSqlCipherFacade: SqlCipherFacade {
   }
   
   func deleteDb(_ userId: String) async throws {
-    if self.db != nil && self.db!.userId == userId {
-      self.db!.close()
+    if let db = self.db, db.userId == userId {
+        db.close()
     }
     try FileUtils.deleteFile(path: makeDbPath(userId))
-  }
-  
-  private func assertDb() {
-    if self.db == nil {
-      fatalError("assertDb failed!")
-    }
   }
 }
