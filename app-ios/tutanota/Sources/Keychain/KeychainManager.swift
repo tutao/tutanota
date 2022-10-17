@@ -84,7 +84,7 @@ class KeychainManager : NSObject {
     ]
     var item: CFTypeRef?
     let status = SecItemCopyMatching(getQuery as CFDictionary, &item)
-    if (status != errSecSuccess) {
+    if status != errSecSuccess {
       throw TUTErrorFactory.createError("Failed to get key \(keyId). status: \(status)") as NSError
     } else if let item = item {
       return (item as! Data)

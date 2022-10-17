@@ -4,57 +4,58 @@ import Foundation
  * Type tags for values being passed to SQL statements
  */
 public enum SqlType: String {
-  case Null = "SqlNull"
-  case Number = "SqlNum"
-  case SqlString = "SqlStr"
-  case Bytes = "SqlBytes"
+  case null = "SqlNull"
+  case number = "SqlNum"
+  case string = "SqlStr"
+  case bytes = "SqlBytes"
 }
 
 public enum TaggedSqlValue: Codable {
-  case Null
-  case Number(value: Int)
-  case SqlString(value: String)
-  case Bytes(value: DataWrapper) // Uint8Array
+  case null
+  case number(value: Int)
+  case string(value: String)
+  case bytes(value: DataWrapper) // Uint8Array
   
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: Self.CodingKeys)
     
     switch self {
-    case .Null:
-      try container.encode(SqlType.Null.rawValue, forKey: .type)
+    case .null:
+      try container.encode(SqlType.null.rawValue, forKey: .type)
       try container.encode(self, forKey: .value)
-    case .Number(let value):
-      try container.encode(SqlType.Number.rawValue, forKey: .type)
+    case .number(let value):
+      try container.encode(SqlType.number.rawValue, forKey: .type)
       try container.encode(value, forKey: .value)
-    case .SqlString(let value):
-      try container.encode(SqlType.SqlString.rawValue, forKey: .type)
+    case .string(let value):
+      try container.encode(SqlType.string.rawValue, forKey: .type)
       try container.encode(value, forKey: .value)
-    case .Bytes(let value):
-      try container.encode(SqlType.Bytes.rawValue, forKey: .type)
+    case .bytes(let value):
+      try container.encode(SqlType.bytes.rawValue, forKey: .type)
       try container.encode(value, forKey: .value)
     }
   }
   
   public init(from decoder: Decoder) throws {
-    let type = try decoder.container(keyedBy: Self.CodingKeys)
+    let typeString = try decoder.container(keyedBy: Self.CodingKeys)
       .decode(String.self, forKey: .type)
+    guard let type = SqlType(rawValue: typeString) else {
+      fatalError("unknown sql type \(typeString), can't decode")
+    }
     switch type {
-    case SqlType.Null.rawValue:
-      self = .Null
-    case SqlType.SqlString.rawValue:
+    case .null:
+      self = .null
+    case .string:
       let value: String = try decoder.container(keyedBy: Self.CodingKeys)
         .decode(String.self, forKey: .value)
-      self = .SqlString(value: value)
-    case SqlType.Number.rawValue:
+      self = .string(value: value)
+    case .number:
       let value: Int = try decoder.container(keyedBy: Self.CodingKeys)
         .decode(Int.self, forKey: .value)
-      self = .Number(value: value)
-    case SqlType.Bytes.rawValue:
+      self = .number(value: value)
+    case .bytes:
       let value: DataWrapper = try decoder.container(keyedBy: Self.CodingKeys)
         .decode(DataWrapper.self, forKey: .value)
-      self = .Bytes(value: value)
-    default:
-      fatalError("unknown sql type \(type), can't decode")
+      self = .bytes(value: value)
     }
   }
   

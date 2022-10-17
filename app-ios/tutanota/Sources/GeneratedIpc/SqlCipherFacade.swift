@@ -18,7 +18,7 @@ public protocol SqlCipherFacade {
 		_ params: [TaggedSqlValue]
 	) async throws -> Void
 	/**
-	 * get a single object or undefined if the query returns nothing
+	 * get a single object or null if the query returns nothing
 	 */
 	func get(
 		_ query: String,
