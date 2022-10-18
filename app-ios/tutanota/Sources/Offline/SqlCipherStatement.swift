@@ -72,7 +72,13 @@ class SqlCipherStatement {
   
   /// return the first row from a query
   func get() -> [String : TaggedSqlValue]? {
-    return self.all().first
+    let res = self.all()
+    if res.count > 1 {
+      // if this is ever triggered, we either need to rewrite the query to contain
+      // a LIMIT clause or make all() lazy for performance reasons.
+      fatalError("got more than one result for get()")
+    }
+    return res.first
   }
   
   /// return all rows from a query
