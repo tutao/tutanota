@@ -145,6 +145,7 @@ async function setupSuite() {
 		await import("./desktop/db/OfflineDbFacadeTest.js")
 		await import ("./desktop/credentials/DesktopCredentialsEncryptionTest.js")
 		await import("./api/worker/offline/OfflineStorageMigratorTest.js")
+		await import("./api/worker/offline/OfflineStorageMigrationsTest.js")
 		await import("./api/worker/offline/OfflineStorageTest.js")
 	}
 

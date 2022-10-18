@@ -1,4 +1,4 @@
-import {Apps, OfflineStorage} from "./OfflineStorage.js"
+import {Apps, OfflineDbMeta, OfflineStorage} from "./OfflineStorage.js"
 import {ModelInfos} from "../../common/EntityFunctions.js"
 import {typedKeys} from "@tutao/tutanota-utils"
 import {ProgrammingError} from "../../common/error/ProgrammingError.js"
@@ -7,6 +7,7 @@ import {sys76} from "./migrations/sys-v76.js"
 import {tutanota54} from "./migrations/tutanota-v54.js"
 import {sys79} from "./migrations/sys-v79.js"
 import {sys80} from "./migrations/sys-v80.js"
+import {repair1} from "./migrations/repair-v1"
 
 export interface OfflineMigration {
 	readonly app: Apps
@@ -22,6 +23,7 @@ export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
 	sys79,
 	sys80,
 	tutanota54,
+	repair1,
 ]
 
 /**
@@ -50,14 +52,11 @@ export class OfflineStorageMigrator {
 
 		// Populate model versions if they haven't been written already
 		for (const app of typedKeys(this.modelInfos)) {
-			const key = `${app}-version` as const
-			const storedVersion = meta[key]
-			if (storedVersion == null) {
-				let version = this.modelInfos[app].version
-				meta[key] = version
-				await storage.setStoredModelVersion(app, version)
-			}
+			await this.prepopulateVersionIfNecessary(app, this.modelInfos[app].version, meta, storage)
 		}
+
+		// always run all repair migrations if none were run on the db
+		await this.prepopulateVersionIfNecessary("repair", 0, meta, storage)
 
 		// Run the migrations
 		for (const {app, version, migrate} of this.migrations) {
@@ -78,6 +77,18 @@ export class OfflineStorageMigrator {
 			if (metaVersion < compatibleSince) {
 				throw new ProgrammingError(`You forgot to migrate your databases! ${app}.version should be >= ${this.modelInfos[app].compatibleSince} but in db it is ${metaVersion}`)
 			}
+		}
+	}
+
+	/**
+	 * update the metadata table to initialize the row of the app with the given model version
+	 */
+	private async prepopulateVersionIfNecessary(app: Apps, version: number, meta: Partial<OfflineDbMeta>, storage: OfflineStorage) {
+		const key = `${app}-version` as const
+		const storedVersion = meta[key]
+		if (storedVersion == null) {
+			meta[key] = version
+			await storage.setStoredModelVersion(app, version)
 		}
 	}
 }

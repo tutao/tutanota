@@ -51,7 +51,7 @@ export const customTypeDecoders: Array<TypeDecoder> = (() => {
 	return tags
 })()
 
-export type Apps = keyof typeof modelInfos
+export type Apps = keyof typeof modelInfos | "repair"
 
 type AppMetadataEntries = {
 	// Yes this is cursed, give me a break
@@ -262,7 +262,7 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		return Object.fromEntries(stored.map(([key, value]) => [key, cborg.decode(value)])) as OfflineDbMeta
 	}
 
-	async setStoredModelVersion(model: keyof typeof modelInfos, version: number) {
+	async setStoredModelVersion(model: Apps, version: number) {
 		return this.putMetadata(`${model}-version`, version)
 	}
 
