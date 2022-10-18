@@ -1513,6 +1513,11 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie"
+		"you_label": "Sie",
+		"invalidDate_msg": "Ungültiges Datum",
+		"pre1970Start_msg": "Daten vor 1970 sind zur Zeit außerhalb des gültigen Bereichs",
+		"importInvalidDatesInEvent_msg": "{amount} von {total} Terminen enthalten ungültige Daten und werden nicht importiert.",
+		"importEndNotAfterStartInEvent_msg": "{amount} von {total} Terminen enthalten ein Start-Datum das nicht vor ihrem End-Datum liegt und werden nicht importiert.",
+		"importPre1970StartInEvent_msg": "{amount} von {total} Terminen liegen vor 1970 und werden nicht importiert.",
 	}
 }

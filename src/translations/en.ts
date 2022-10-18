@@ -1509,6 +1509,11 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"invalidDate_msg": "Invalid Date",
+		"pre1970Start_msg": "Dates earlier than 1970 are currently outside the valid range",
+		"importInvalidDatesInEvent_msg": "{amount} of {total} events contain invalid dates and will not be imported.",
+		"importEndNotAfterStartInEvent_msg": "{amount} of {total} events don't have their start date before their end date and will not be imported.",
+		"importPre1970StartInEvent_msg": "{amount} of {total} events start or end before 1970 and will not be imported.",
 	}
 }
