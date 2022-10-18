@@ -885,6 +885,7 @@ export default {
 		"noMoreSimilarContacts_msg": "No more similar contacts found.",
 		"nonConfidentialStatus_msg": "This message will not be sent end-to-end encrypted.",
 		"nonConfidential_action": "Not confidential",
+		"noNews_msg": "There are no news.",
 		"noPermission_title": "No Permission",
 		"noPreSharedPassword_msg": "Please provide an agreed password for each external recipient.",
 		"noReceivingMailbox_label": "Please select a receiving mailbox.",

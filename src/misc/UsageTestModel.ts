@@ -9,22 +9,20 @@ import {
 import {PingAdapter, Stage, UsageTest} from "@tutao/tutanota-usagetests"
 import {assertNotNull, filterInt, lazy, neverNull} from "@tutao/tutanota-utils"
 import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
-import {Keys, UsageTestMetricType} from "../api/common/TutanotaConstants"
+import {UsageTestMetricType} from "../api/common/TutanotaConstants"
 import {SuspensionError} from "../api/common/error/SuspensionError"
 import {SuspensionBehavior} from "../api/worker/rest/RestClient"
 import {DateProvider} from "../api/common/DateProvider.js"
 import {IServiceExecutor} from "../api/common/ServiceRequest"
 import {UsageTestAssignmentService, UsageTestParticipationService} from "../api/entities/usage/Services.js"
 import {resolveTypeReference} from "../api/common/EntityFunctions"
-import {InfoLink, lang, TranslationKey} from "./LanguageViewModel"
+import {lang, TranslationKey} from "./LanguageViewModel"
 import stream from "mithril/stream"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {DropDownSelector, SelectorItem} from "../gui/base/DropDownSelector"
 import m, {Children} from "mithril"
 import {isOfflineError} from "../api/common/utils/ErrorCheckUtils.js"
-import {Button, ButtonAttrs, ButtonType} from "../gui/base/Button.js"
-import {LoginController, logins} from "../api/main/LoginController.js"
-import {locator} from "../api/main/MainLocator.js"
+import {LoginController} from "../api/main/LoginController.js"
 import {CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {EntityClient} from "../api/common/EntityClient.js"
 import {EntityUpdateData, EventController, isUpdateForTypeRef} from "../api/main/EventController.js"
@@ -108,83 +106,6 @@ export async function showExperienceSamplingDialog(stage: Stage, experienceSampl
 
 			return children
 		},
-	})
-}
-
-
-export function showUsageTestOptInDialog(): Promise<void> {
-	return new Promise(resolve => {
-		const lnk = InfoLink.Privacy
-		const userSettingsGroupRoot = logins.getUserController().userSettingsGroupRoot
-		let dialog: Dialog
-
-		const closeAction = (optedIn?: boolean) => {
-			dialog.close()
-
-			if (optedIn) {
-				Dialog.message("userUsageDataOptInThankYouOptedIn_msg")
-			} else if (optedIn !== undefined) {
-				Dialog.message("userUsageDataOptInThankYouOptedOut_msg")
-			}
-
-			resolve()
-		}
-
-		const buttonAttrs: Array<ButtonAttrs> = [
-			{
-				label: "decideLater_action",
-				click: () => closeAction(),
-				type: ButtonType.Secondary,
-			},
-			{
-				label: "deactivate_action",
-				click: () => {
-					userSettingsGroupRoot.usageDataOptedIn = false
-					locator.entityClient.update(userSettingsGroupRoot)
-
-					closeAction(false)
-				},
-				type: ButtonType.Secondary,
-			},
-			{
-				label: "activate_action",
-				click: () => {
-					userSettingsGroupRoot.usageDataOptedIn = true
-					locator.entityClient.update(userSettingsGroupRoot)
-
-					closeAction(true)
-				},
-				type: ButtonType.Primary,
-			},
-		]
-		dialog = new Dialog(DialogType.Reminder, {
-			view: () => [
-				m(".dialog-contentButtonsBottom.text-break.scroll", [
-					m("h1", lang.get("userUsageDataOptIn_title")),
-					m("p", lang.get("userUsageDataOptInExplanation_msg")),
-					m("ul.usage-test-opt-in-bullets", [
-						m("li.list-item-check", lang.get("userUsageDataOptInStatement1_msg")),
-						m("li.list-item-check", lang.get("userUsageDataOptInStatement2_msg")),
-						m("li.list-item-info", lang.get("userUsageDataOptInStatement3_msg")),
-						m("li.list-item-info", lang.get("userUsageDataOptInStatement4_msg")),
-					]),
-					m("p", lang.get("moreInfo_msg") + " ", m("small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])),
-
-				]),
-				m(
-					".flex-center.dialog-buttons.flex-no-grow-no-shrink-auto",
-					buttonAttrs.map(a => m(Button, a)),
-				),
-			],
-		})
-			.setCloseHandler(() => closeAction())
-			.addShortcut({
-				key: Keys.ESC,
-				shift: false,
-				exec: () => closeAction(),
-				help: "cancel_action",
-			})
-			.show()
 	})
 }
 

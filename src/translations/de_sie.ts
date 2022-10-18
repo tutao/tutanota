@@ -889,6 +889,7 @@ export default {
 		"noMoreSimilarContacts_msg": "Keine weiteren ähnlichen Kontakte gefunden.",
 		"nonConfidentialStatus_msg": "Diese Nachricht wird nicht Ende-zu-Ende verschlüsselt.",
 		"nonConfidential_action": "Nicht vertraulich",
+		"noNews_msg": "Es gibt keine Neuigkeiten.",
 		"noPermission_title": "Keine Berechtigung",
 		"noPreSharedPassword_msg": "Bitte geben Sie ein vereinbartes Passwort für alle externen Empfangsadressen an.",
 		"noReceivingMailbox_label": "Bitte wählen Sie eine empfangende Mailbox aus.",

@@ -2074,26 +2074,15 @@ styles.registerStyle("main", () => {
 			"writing-mode": "vertical-rl",
 		},
 		"ul.usage-test-opt-in-bullets": {
-			"list-style": "none",
+			"margin": "0 auto",
+			"list-style": "disc",
 			"text-align": "left",
-			"padding-inline-start": px(0),
 		},
-		".usage-test-opt-in-bullets li": {
-			"padding-left": "1rem",
-			"text-indent": "-0.75rem",
+		".news-item": {
+			background: theme.list_bg,
 		},
-		".list-item-check:before": {
-			display: "inline-block",
-			"margin-left": px(13),
-			content: "\"\u2714 \"",
+		".news-item:nth-child(even)": {
+			background: theme.list_alternate_bg,
 		},
-		".list-item-info": {
-			"margin-left": px(3),
-		},
-		".list-item-info:before": {
-			display: "inline-block",
-			"margin-left": px(13),
-			content: "\"\u2139 \"",
-		}
 	}
 })

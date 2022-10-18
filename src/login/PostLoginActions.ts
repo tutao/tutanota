@@ -137,6 +137,8 @@ export class PostLoginActions implements IPostLoginAction {
 		// Load only up-to-date (not older than 1h) assignments here and make a request for that.
 		// There should not be a lot of re-rendering at this point since assignments for new tests are usually fetched right after a client version update.
 		locator.usageTestController.setTests(await usageTestModel.loadActiveUsageTests())
+
+		locator.newsModel.loadNewsIds()
 	}
 
 	private deactivateOutOfOfficeNotification(notification: OutOfOfficeNotification): Promise<void> {

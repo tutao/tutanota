@@ -69,6 +69,7 @@ import {windowFacade} from "../../misc/WindowFacade.js"
 import {InterWindowEventFacade} from "../../native/common/generatedipc/InterWindowEventFacade.js"
 import {InterWindowEventFacadeSendDispatcher} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import {SqlCipherFacade} from "../../native/common/generatedipc/SqlCipherFacade.js"
+import {NewsModel} from "../../news/NewsModel.js"
 
 assertMainOrNode()
 
@@ -113,6 +114,7 @@ export interface IMainLocator {
 	readonly deviceEncryptionFacade: DeviceEncryptionFacade
 	readonly usageTestController: UsageTestController
 	readonly usageTestModel: UsageTestModel
+	readonly newsModel: NewsModel
 	readonly serviceExecutor: IServiceExecutor
 	readonly cryptoFacade: CryptoFacade
 	readonly loginListener: LoginListener
@@ -162,6 +164,7 @@ class MainLocator implements IMainLocator {
 	deviceEncryptionFacade!: DeviceEncryptionFacade
 	usageTestController!: UsageTestController
 	usageTestModel!: UsageTestModel
+	newsModel!: NewsModel
 	serviceExecutor!: IServiceExecutor
 	cryptoFacade!: CryptoFacade
 	recipientsModel!: RecipientsModel
@@ -360,6 +363,8 @@ class MainLocator implements IMainLocator {
 			logins,
 			this.eventController,
 		)
+
+		this.newsModel = new NewsModel(this.serviceExecutor)
 
 		const lazyScheduler = lazyMemoized(async () => {
 			const {AlarmSchedulerImpl} = await import("../../calendar/date/AlarmScheduler")
