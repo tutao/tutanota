@@ -8,7 +8,7 @@ class SqlCipherDb {
     self.userId = userId
   }
   
-  func open(_ dbKey: Data) {
+  func open(_ dbKey: Data) throws {
     TUTSLog("opening DB for \(userId)")
     let rawKeyData: NSData = dbKey as NSData
     let rawKeyPtr: UnsafeRawPointer = rawKeyData.bytes
@@ -28,6 +28,10 @@ class SqlCipherDb {
     if rc_key != SQLITE_OK {
       let errmsg = self.getLastErrorMessage()
       fatalError("Error setting key: \(errmsg)")
+    }
+    let errors = try! self.prepare(query: "PRAGMA cipher_integrity_check").all()
+    if !errors.isEmpty {
+      throw TUTErrorFactory.createError(withDomain: TUT_CRYPTO_ERROR, message: "sqlcipher: \(errors.count) pages failed integrity check")
     }
   }
   
