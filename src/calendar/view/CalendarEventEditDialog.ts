@@ -10,7 +10,7 @@ import type {DropDownSelectorAttrs, SelectorItemList} from "../../gui/base/DropD
 import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
 import {Icons} from "../../gui/base/icons/Icons"
 import {ButtonType} from "../../gui/base/Button.js"
-import {AlarmInterval, CalendarAttendeeStatus, EndType, Keys, RepeatPeriod} from "../../api/common/TutanotaConstants"
+import {AlarmInterval, CalendarAttendeeStatus, defaultCalendarColor, EndType, Keys, RepeatPeriod} from "../../api/common/TutanotaConstants"
 import {createRepeatRuleEndTypeValues, createRepeatRuleFrequencyValues, getStartOfTheWeekOffsetForUser} from "../date/CalendarUtils"
 import {AllIcons, Icon} from "../../gui/base/Icon"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
@@ -102,6 +102,10 @@ export async function showCalendarEventDialog(
 
 	const viewModel = await createCalendarEventViewModel(date, calendars, mailboxDetail, existingEvent ?? null, responseMail ?? null, false);
 	const startOfTheWeekOffset = getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot)
+	const groupColors = logins.getUserController().userSettingsGroupRoot.groupSettings.reduce((acc, gc) => {
+		acc.set(gc.group, gc.color)
+		return acc
+	}, new Map())
 	const repeatValues: SelectorItemList<RepeatPeriod | null> = createRepeatRuleFrequencyValues()
 	const intervalValues = createIntervalValues()
 	const endTypeValues = createRepeatRuleEndTypeValues()
@@ -327,6 +331,7 @@ export async function showCalendarEventDialog(
 			value: viewModel.location(),
 			oninput: viewModel.location,
 			disabled: viewModel.isReadOnlyEvent(),
+			class: "text pt-s", // override default pt with pt-s because calendar color indicator takes up some space
 			injectionsRight: () => {
 				let address = encodeURIComponent(viewModel.location())
 
@@ -345,6 +350,19 @@ export async function showCalendarEventDialog(
 			},
 		})
 
+	function renderCalendarColor() {
+		const color = viewModel.selectedCalendar()
+			? (groupColors.get(viewModel.selectedCalendar()!.groupInfo.group) ?? defaultCalendarColor)
+			: null
+		return m(".mt-xs", {
+			style: {
+				width: "100px",
+				height: "10px",
+				background: color ? "#" + color : "transparent"
+			}
+		})
+	}
+
 	function renderCalendarPicker() {
 		const availableCalendars = viewModel.getAvailableCalendars()
 		return m(
@@ -362,6 +380,7 @@ export async function showCalendarEventDialog(
 					selectionChangedHandler: viewModel.selectedCalendar,
 					icon: BootIcons.Expand,
 					disabled: viewModel.isReadOnlyEvent(),
+					helpLabel: () => renderCalendarColor()
 				} as DropDownSelectorAttrs<CalendarInfo>)
 				: null,
 		)
