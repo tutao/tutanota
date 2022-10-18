@@ -38,12 +38,26 @@ class IosSqlCipherFacade: SqlCipherFacade {
       return
     }
     self.db!.close()
+    self.db = nil
   }
 
   func deleteDb(_ userId: String) async throws {
     if let db = self.db, db.userId == userId {
         db.close()
     }
-    try FileUtils.deleteFile(path: makeDbPath(userId))
+    
+    do {
+      try FileUtils.deleteFile(path: makeDbPath(userId))
+    } catch {
+      let err = error as NSError
+      if err.domain == NSPOSIXErrorDomain && err.code == ENOENT {
+        // we don't care
+      } else if let underlyingError = err.userInfo[NSUnderlyingErrorKey] as? NSError,
+                underlyingError.domain == NSPOSIXErrorDomain && underlyingError.code == ENOENT {
+        // we don't care either
+      } else {
+        throw error
+      }
+    }
   }
 }
