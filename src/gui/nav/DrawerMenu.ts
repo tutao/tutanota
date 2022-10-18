@@ -14,8 +14,8 @@ import {keyManager} from "../../misc/KeyManager"
 import {CounterBadge} from "../base/CounterBadge.js"
 import {px} from "../size.js"
 import {theme} from "../theme.js"
-import {showUsageTestOptInDialog} from "../../misc/UsageTestModel.js"
 import {locator} from "../../api/main/MainLocator.js"
+import {showNewsDialog} from "../../news/NewsDialog.js"
 
 type Attrs = {
 	openNewWindow(): unknown
@@ -23,7 +23,8 @@ type Attrs = {
 
 export class DrawerMenu implements Component<Attrs> {
 	view(vnode: Vnode<Attrs>): Children {
-		const showUsageDataOptInIndicator = locator.usageTestModel ? locator.usageTestModel.showOptInIndicator() : false
+		const newsModel = locator.newsModel
+		const liveNewsCount = newsModel.liveNewsIds.length
 
 		return m(
 			"drawer-menu" + landmarkAttrs(AriaLandmarks.Contentinfo, "drawer menu"),
@@ -34,25 +35,27 @@ export class DrawerMenu implements Component<Attrs> {
 			},
 			m(".flex.col.height-100p.items-center.pt.pb", [
 				m(".flex-grow"),
-				logins.isUserLoggedIn() && showUsageDataOptInIndicator
+				logins.isUserLoggedIn() //&& showUsageDataOptInIndicator
 					?
 					m(".news-button", [
 						m(Button, {
 							icon: () => Icons.Bulb,
 							label: "news_label",
-							click: showUsageTestOptInDialog,
+							click: () => showNewsDialog(newsModel),
 							type: ButtonType.ActionLarge,
 							colors: ButtonColor.DrawerNav,
 						}),
-						m(CounterBadge, {
-							count: 1,
-							position: {
-								top: px(0),
-								right: px(3),
-							},
-							color: "white",
-							background: theme.list_accent_fg,
-						}),
+						liveNewsCount > 0
+							? m(CounterBadge, {
+								count: liveNewsCount,
+								position: {
+									top: px(0),
+									right: px(3),
+								},
+								color: "white",
+								background: theme.list_accent_fg,
+							})
+							: null,
 					])
 					: null,
 				logins.isGlobalAdminUserLoggedIn() && logins.getUserController().isPremiumAccount()

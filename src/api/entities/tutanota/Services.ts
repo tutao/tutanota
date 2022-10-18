@@ -28,6 +28,8 @@ import {DeleteMailFolderDataTypeRef} from "./TypeRefs.js"
 import {CreateMailGroupDataTypeRef} from "./TypeRefs.js"
 import {DeleteMailDataTypeRef} from "./TypeRefs.js"
 import {MoveMailDataTypeRef} from "./TypeRefs.js"
+import {NewsOutTypeRef} from "./TypeRefs.js"
+import {NewsInTypeRef} from "./TypeRefs.js"
 import {ReceiveInfoServiceDataTypeRef} from "./TypeRefs.js"
 import {ReportMailPostDataTypeRef} from "./TypeRefs.js"
 import {SendDraftDataTypeRef} from "./TypeRefs.js"
@@ -166,6 +168,15 @@ export const MoveMailService = Object.freeze({
 	name: "MoveMailService",
 	get: null,
 	post: {data: MoveMailDataTypeRef, return: null},
+	put: null,
+	delete: null,
+} as const)
+
+export const NewsService = Object.freeze({
+	app: "tutanota",
+	name: "NewsService",
+	get: {data: null, return: NewsOutTypeRef},
+	post: {data: NewsInTypeRef, return: null},
 	put: null,
 	delete: null,
 } as const)

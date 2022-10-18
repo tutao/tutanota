@@ -870,6 +870,7 @@ export type TranslationKeyType =
 	| "noMoreSimilarContacts_msg"
 	| "nonConfidentialStatus_msg"
 	| "nonConfidential_action"
+	| "noNews_msg"
 	| "noPermission_title"
 	| "noPreSharedPassword_msg"
 	| "noReceivingMailbox_label"

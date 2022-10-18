@@ -13,6 +13,7 @@ import {px, size as sizes} from "./size.js"
 import {BootIcons} from "./base/icons/BootIcons.js"
 import type {SearchBar} from "../search/SearchBar.js"
 import type {IMainLocator} from "../api/main/MainLocator.js"
+import {locator} from "../api/main/MainLocator.js"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../misc/RouteChange.js"
 import {AriaLandmarks, landmarkAttrs} from "./AriaUtils.js"
 import type {ViewSlider} from "./nav/ViewSlider.js"
@@ -292,7 +293,8 @@ export class Header implements Component {
 	private renderLeftContent(): Children {
 		const viewSlider = this.getViewSlider()
 		const showBackButton = this.isBackButtonVisible()
-		const showNewsIndicator = this.usageTestModel && this.usageTestModel.showOptInIndicator() && !showBackButton && styles.isUsingBottomNavigation()
+		const showNewsIndicator = !showBackButton && styles.isUsingBottomNavigation()
+		const liveNewsCount = locator.newsModel.liveNewsIds.length
 
 		const style = {
 			"margin-left": styles.isUsingBottomNavigation() ? px(-15) : null, // manual margin to align the hamburger icon on mobile devices
@@ -322,7 +324,7 @@ export class Header implements Component {
 				}),
 				showNewsIndicator
 					? m(CounterBadge, {
-						count: 1,
+						count: liveNewsCount,
 						position: {
 							top: px(4),
 							right: px(-3),

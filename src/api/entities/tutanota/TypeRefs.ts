@@ -1433,6 +1433,44 @@ export type NewDraftAttachment = {
 	fileData:  null | Id;
 	referenceTokens: BlobReferenceTokenWrapper[];
 }
+export const NewsIdTypeRef: TypeRef<NewsId> = new TypeRef("tutanota", "NewsId")
+
+export function createNewsId(values?: Partial<NewsId>): NewsId {
+	return Object.assign(create(typeModels.NewsId, NewsIdTypeRef), values)
+}
+
+export type NewsId = {
+	_type: TypeRef<NewsId>;
+
+	_id: Id;
+	newsItemId: Id;
+	newsItemName: string;
+}
+export const NewsInTypeRef: TypeRef<NewsIn> = new TypeRef("tutanota", "NewsIn")
+
+export function createNewsIn(values?: Partial<NewsIn>): NewsIn {
+	return Object.assign(create(typeModels.NewsIn, NewsInTypeRef), values)
+}
+
+export type NewsIn = {
+	_type: TypeRef<NewsIn>;
+
+	_format: NumberString;
+	newsItemId: null | Id;
+}
+export const NewsOutTypeRef: TypeRef<NewsOut> = new TypeRef("tutanota", "NewsOut")
+
+export function createNewsOut(values?: Partial<NewsOut>): NewsOut {
+	return Object.assign(create(typeModels.NewsOut, NewsOutTypeRef), values)
+}
+
+export type NewsOut = {
+	_type: TypeRef<NewsOut>;
+
+	_format: NumberString;
+
+	newsItemIds: NewsId[];
+}
 export const NotificationMailTypeRef: TypeRef<NotificationMail> = new TypeRef("tutanota", "NotificationMail")
 
 export function createNotificationMail(values?: Partial<NotificationMail>): NotificationMail {

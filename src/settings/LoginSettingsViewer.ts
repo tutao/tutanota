@@ -29,8 +29,8 @@ import {elementIdPart, getElementId} from "../api/common/utils/EntityUtils"
 import {showChangeOwnPasswordDialog} from "./ChangePasswordDialogs.js";
 import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js"
-import {DropDownSelectorAttrs, DropDownSelector} from "../gui/base/DropDownSelector.js"
-import {showUsageTestOptInDialog, UsageTestModel} from "../misc/UsageTestModel.js"
+import {DropDownSelector, DropDownSelectorAttrs} from "../gui/base/DropDownSelector.js"
+import {UsageTestModel} from "../misc/UsageTestModel.js"
 import {UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 
 assertMainOrNode()
@@ -130,10 +130,12 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 				logins.getUserController().userSettingsGroupRoot.usageDataOptedIn = v
 				locator.entityClient.update(logins.getUserController().userSettingsGroupRoot)
 			},
-			helpLabel: () => m("", [
-				lang.get("userUsageDataOptInInfo_msg") + " ",
-				m("span.text-break", {onclick: showUsageTestOptInDialog}, lang.get("clickHereForMoreInfo_msg"))
-			]),
+			helpLabel: () => {
+				return ifAllowedTutanotaLinks(InfoLink.UsageData, link => [
+					m("span", lang.get("userUsageDataOptInInfo_msg") + " " + lang.get("moreInfo_msg") + " "),
+					m("span.text-break", [m(`a[href=${link}][target=_blank]`, link)]),
+				])
+			},
 			dropdownWidth: 250,
 		}
 
