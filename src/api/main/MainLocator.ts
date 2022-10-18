@@ -13,7 +13,7 @@ import {EntityClient} from "../common/EntityClient"
 import type {CalendarModel} from "../../calendar/model/CalendarModel"
 import {CalendarModelImpl} from "../../calendar/model/CalendarModel"
 import type {DeferredObject} from "@tutao/tutanota-utils"
-import {defer} from "@tutao/tutanota-utils"
+import {defer, lazyMemoized} from "@tutao/tutanota-utils"
 import {ProgressTracker} from "./ProgressTracker"
 import {MinimizedMailEditorViewModel} from "../../mail/model/MinimizedMailEditorViewModel"
 import {SchedulerImpl} from "../common/utils/Scheduler.js"
@@ -361,13 +361,12 @@ class MainLocator implements IMainLocator {
 			this.eventController,
 		)
 
-		const lazyScheduler = async () => {
+		const lazyScheduler = lazyMemoized(async () => {
 			const {AlarmSchedulerImpl} = await import("../../calendar/date/AlarmScheduler")
 			const {DateProviderImpl} = await import("../../calendar/date/CalendarUtils")
 			const dateProvider = new DateProviderImpl()
 			return new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, window, window))
-		}
-
+		})
 		this.fileController = this.nativeInterfaces == null
 			? new FileControllerBrowser(blobFacade, fileFacade)
 			: new FileControllerNative(this.nativeInterfaces.fileApp, blobFacade, fileFacade)
