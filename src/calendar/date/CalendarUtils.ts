@@ -40,6 +40,7 @@ import type {CalendarInfo} from "../model/CalendarModel"
 import {assertMainOrNode} from "../../api/common/Env"
 import {ChildArray, Children} from "mithril";
 import {DateProvider} from "../../api/common/DateProvider"
+import {TIMESTAMP_ZERO_YEAR} from "@tutao/tutanota-utils/dist/DateUtils"
 
 assertMainOrNode()
 export const CALENDAR_EVENT_HEIGHT: number = size.calendar_line_height + 2
@@ -555,6 +556,35 @@ function assertDateIsValid(date: Date) {
 	if (!isValidDate(date)) {
 		throw new Error("Date is invalid!")
 	}
+}
+
+/**
+ * we don't want to deal with some calendar event edge cases,
+ * like pre-1970 events that would have negative timestamps.
+ * during import, we can also get faulty events that are
+ * impossible to create through the interface.
+ */
+export const enum CalendarEventValidity {
+	InvalidContainsInvalidDate,
+	InvalidEndBeforeStart,
+	InvalidPre1970,
+	Valid
+}
+
+/**
+ * check if a given event should be allowed to be created in a tutanota calendar.
+ * @param event
+ * @returns Enum describing the reason to reject the event, if any.
+ */
+export function checkEventValidity(event: CalendarEvent): CalendarEventValidity {
+	if (!isValidDate(event.startTime) || !isValidDate(event.endTime)) {
+		return CalendarEventValidity.InvalidContainsInvalidDate
+	} else if (event.endTime.getTime() <= event.startTime.getTime()) {
+		return CalendarEventValidity.InvalidEndBeforeStart
+	} else if (event.startTime.getFullYear() < TIMESTAMP_ZERO_YEAR) {
+		return CalendarEventValidity.InvalidPre1970
+	}
+	return CalendarEventValidity.Valid
 }
 
 const MAX_EVENT_ITERATIONS = 10000

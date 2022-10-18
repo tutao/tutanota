@@ -15,8 +15,9 @@ import {createFile} from "../../api/entities/tutanota/TypeRefs.js"
 import {convertToDataFile} from "../../api/common/DataFile"
 import {locator} from "../../api/main/MainLocator"
 import {flat, ofClass, promiseMap, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
-import {assignEventId, getTimeZone} from "../date/CalendarUtils"
+import {assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone} from "../date/CalendarUtils"
 import {ImportError} from "../../api/common/error/ImportError"
+import {TranslationKeyType} from "../../misc/TranslationKey"
 
 export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot): Promise<void> {
 	let parsedEvents: ParsedEvent[][]
@@ -46,6 +47,9 @@ export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupR
 			existingEvent.uid && existingUidToEventMap.set(existingEvent.uid, existingEvent)
 		})
 		const flatParsedEvents = flat(parsedEvents)
+		const eventsWithInvalidDate: CalendarEvent[] = []
+		const inversedEvents: CalendarEvent[] = []
+		const pre1970Events: CalendarEvent[] = []
 		const eventsWithExistingUid: CalendarEvent[] = []
 		// Don't try to create event which we already have
 		const eventsForCreation = flatParsedEvents // only create events with non-existing uid
@@ -53,7 +57,21 @@ export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupR
 				if (!event.uid) {
 					// should not happen because calendar parser will generate uids if they do not exist
 					throw new Error("Uid is not set for imported event")
-				} else if (!existingUidToEventMap.has(event.uid)) {
+				}
+
+				switch (checkEventValidity(event)) {
+					case CalendarEventValidity.InvalidContainsInvalidDate:
+						eventsWithInvalidDate.push(event)
+						return false
+					case CalendarEventValidity.InvalidEndBeforeStart:
+						inversedEvents.push(event)
+						return false
+					case CalendarEventValidity.InvalidPre1970:
+						pre1970Events.push(event)
+						return false
+				}
+
+				if (!existingUidToEventMap.has(event.uid)) {
 					existingUidToEventMap.set(event.uid, event)
 					return true
 				} else {
@@ -82,18 +100,21 @@ export async function showCalendarImportDialog(calendarGroupRoot: CalendarGroupR
 				}
 			})
 
-		// inform the user that some events already exist and will be ignored
-		if (eventsWithExistingUid.length > 0) {
-			const confirmed = await Dialog.confirm(() =>
-				lang.get("importEventExistingUid_msg", {
-					"{amount}": eventsWithExistingUid.length + "",
+		if (!await showConfirmPartialImportDialog(eventsWithExistingUid, "importEventExistingUid_msg")) return
+		if (!await showConfirmPartialImportDialog(eventsWithInvalidDate, "importInvalidDatesInEvent_msg")) return
+		if (!await showConfirmPartialImportDialog(inversedEvents, "importEndNotAfterStartInEvent_msg")) return
+		if (!await showConfirmPartialImportDialog(pre1970Events, "importPre1970StartInEvent_msg")) return
+
+		/**
+		 * show an error dialog detailing the reason and amount for events that failed to import
+		 */
+		async function showConfirmPartialImportDialog(skippedEvents: CalendarEvent[], confirmationText: TranslationKeyType): Promise<boolean> {
+			return skippedEvents.length === 0 || await Dialog.confirm(() =>
+				lang.get(confirmationText, {
+					"{amount}": skippedEvents.length + "",
 					"{total}": flatParsedEvents.length + "",
 				}),
 			)
-
-			if (!confirmed) {
-				return
-			}
 		}
 
 		return locator.calendarFacade.saveImportedCalendarEvents(eventsForCreation).catch(

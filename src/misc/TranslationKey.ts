@@ -1496,3 +1496,8 @@ export type TranslationKeyType =
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	| "invalidDate_msg"
+	| "importInvalidDatesInEvent_msg"
+	| "importEndNotAfterStartInEvent_msg"
+	| "importPre1970StartInEvent_msg"
+	| "pre1970Start_msg"

@@ -18,6 +18,8 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {copyMailAddress, getDefaultSenderFromUser, getEnabledMailAddressesWithUser, getSenderNameForUser, RecipientField} from "../../mail/model/MailUtils"
 import {
+	CalendarEventValidity,
+	checkEventValidity,
 	createRepeatRuleWithValues,
 	generateUid,
 	getAllDayDateUTCFromZone,
@@ -65,8 +67,8 @@ import {Time} from "../../api/common/utils/Time"
 import {hasError} from "../../api/common/utils/ErrorCheckUtils"
 import {Recipient, RecipientType} from "../../api/common/recipients/Recipient"
 import {ResolveMode} from "../../api/main/RecipientsModel.js"
+import {TIMESTAMP_ZERO_YEAR} from "@tutao/tutanota-utils/dist/DateUtils"
 
-const TIMESTAMP_ZERO_YEAR = 1970
 // whether to close dialog
 export type EventCreateResult = boolean
 
@@ -584,7 +586,8 @@ export class CalendarEventViewModel {
 	}
 
 	setStartDate(date: Date) {
-		// The custom ID for events is derived from the unix timestamp, and sorting the negative ids is a challenge we decided not to
+		// The custom ID for events is derived from the unix timestamp, and sorting
+		// the negative ids is a challenge we decided not to
 		// tackle because it is a rare case.
 		if (date && date.getFullYear() < TIMESTAMP_ZERO_YEAR) {
 			const thisYear = new Date().getFullYear()
@@ -1170,12 +1173,10 @@ export class CalendarEventViewModel {
 
 			startDate = DateTime.fromJSDate(startDate, {
 				zone: this._zone,
-			})
-								.set({
-									hour: startTime.hours,
-									minute: startTime.minutes,
-								})
-								.toJSDate()
+			}).set({
+				hour: startTime.hours,
+				minute: startTime.minutes,
+			}).toJSDate()
 			// End date is never actually included in the event. For the whole day event the next day
 			// is the boundary. For the timed one the end time is the boundary.
 			endDate = DateTime.fromJSDate(endDate, {
@@ -1188,18 +1189,15 @@ export class CalendarEventViewModel {
 							  .toJSDate()
 		}
 
-		if (endDate.getTime() <= startDate.getTime()) {
-			throw new UserError("startAfterEnd_label")
-		}
-
 		newEvent.startTime = startDate
 		newEvent.description = this.note
 		newEvent.summary = this.summary()
 		newEvent.location = this.location()
 		newEvent.endTime = endDate
 		newEvent.invitedConfidentially = this.isConfidential()
-		newEvent.uid =
-			this.existingEvent && this.existingEvent.uid ? this.existingEvent.uid : generateUid(assertNotNull(this.selectedCalendar()).group._id, Date.now())
+		newEvent.uid = this.existingEvent && this.existingEvent.uid
+			? this.existingEvent.uid
+			: generateUid(assertNotNull(this.selectedCalendar()).group._id, Date.now())
 		const repeat = this.repeat
 
 		if (repeat == null) {
@@ -1215,7 +1213,18 @@ export class CalendarEventViewModel {
 			}),
 		)
 		newEvent.organizer = this.organizer
-		return newEvent
+
+		switch (checkEventValidity(newEvent)) {
+			case CalendarEventValidity.InvalidContainsInvalidDate:
+				throw new UserError("invalidDate_msg")
+			case CalendarEventValidity.InvalidEndBeforeStart:
+				throw new UserError("startAfterEnd_label")
+			case CalendarEventValidity.InvalidPre1970:
+				// shouldn't happen while the check in setStartDate is still there, resetting the date each time
+				throw new UserError("pre1970Start_msg")
+			case CalendarEventValidity.Valid:
+				return newEvent
+		}
 	}
 
 	/**

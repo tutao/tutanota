@@ -70,7 +70,7 @@ export interface CustomCacheHandler<T extends ListElementEntity> {
 
 
 /**
- * implements range loading in JS because the custom Ids of calendar events prevent us form doing
+ * implements range loading in JS because the custom Ids of calendar events prevent us from doing
  * this effectively in the database.
  */
 export class CustomCalendarEventCacheHandler implements CustomCacheHandler<CalendarEvent> {
