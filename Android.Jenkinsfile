@@ -29,6 +29,12 @@ pipeline {
 	}
 
 	stages {
+    	stage('Check Github) {
+    		script {
+				def util = load "jenkins-lib/util.groovy"
+				util.checkGithub()
+    		}
+    	}
 		stage('Test') {
 			steps {
 				dir("${WORKSPACE}/app-android/") {

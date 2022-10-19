@@ -16,6 +16,12 @@ pipeline {
         label 'master'
     }
     stages {
+    	stage('Check Github) {
+    		script {
+				def util = load "jenkins-lib/util.groovy"
+				util.checkGithub()
+    		}
+    	}
         stage('Build') {
             agent {
                 label 'linux'
