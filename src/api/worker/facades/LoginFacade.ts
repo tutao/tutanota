@@ -1,5 +1,6 @@
 import type {Base64Url, DeferredObject, Hex} from "@tutao/tutanota-utils"
 import {
+	arrayEquals,
 	assertNotNull,
 	Base64,
 	base64ToBase64Ext,
@@ -51,7 +52,15 @@ import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFu
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../common/Env"
 import {ConnectMode, EventBusClient} from "../EventBusClient"
 import {EntityRestClient, typeRefToPath} from "../rest/EntityRestClient"
-import {ConnectionError, LockedError, NotAuthenticatedError, NotFoundError, ServiceUnavailableError, SessionExpiredError} from "../../common/error/RestError"
+import {
+	AccessExpiredError,
+	ConnectionError,
+	LockedError,
+	NotAuthenticatedError,
+	NotFoundError,
+	ServiceUnavailableError,
+	SessionExpiredError
+} from "../../common/error/RestError"
 import type {WorkerImpl} from "../WorkerImpl"
 import type {Indexer} from "../search/Indexer"
 import {CancelledError} from "../../common/error/CancelledError"
@@ -86,7 +95,7 @@ import {IServiceExecutor} from "../../common/ServiceRequest"
 import {SessionType} from "../../common/SessionType"
 import {CacheStorageLateInitializer} from "../rest/CacheStorageProxy"
 import {AuthDataProvider, UserFacade} from "./UserFacade"
-import {LoginListener, LoginFailReason} from "../../main/LoginListener"
+import {LoginFailReason, LoginListener} from "../../main/LoginListener"
 import {LoginIncompleteError} from "../../common/error/LoginIncompleteError.js"
 
 assertWorkerOrNode()
@@ -484,6 +493,7 @@ export class LoginFacade {
 		let userPassphraseKey: Aes128Key
 
 		if (externalUserSalt) {
+			await this.checkOutdatedExternalSalt(credentials, sessionData, externalUserSalt)
 			userPassphraseKey = generateKeyFromPassphrase(passphrase, externalUserSalt, KeyLength.b128)
 		} else {
 			userPassphraseKey = await this.loadUserPassphraseKey(credentials.login, passphrase)
@@ -525,16 +535,7 @@ export class LoginFacade {
 
 		try {
 			const user = await this.entityClient.load(UserTypeRef, userId)
-			// we check that the password is not changed
-			// this may happen when trying to resume a session with an old stored password for externals when the password was changed by the sender
-			// we do not delete all sessions on the server when changing the external password to avoid that an external user is immediately logged out
-			if (uint8ArrayToBase64(user.verifier) !== uint8ArrayToBase64(sha256Hash(createAuthVerifier(userPassphraseKey)))) {
-				// delete the obsolete session in parallel to make sure it can not be used any more
-				this.deleteSession(accessToken)
-				this.userFacade.setAccessToken(null)
-				console.log("password has changed")
-				throw new NotAuthenticatedError("password has changed")
-			}
+			await this.checkOutdatedPassword(user, accessToken, userPassphraseKey)
 
 			const wasPartiallyLoggedIn = this.userFacade.isPartiallyLoggedIn()
 			if (!wasPartiallyLoggedIn) {
@@ -584,6 +585,37 @@ export class LoginFacade {
 
 	private async deInitCache(): Promise<void> {
 		return this.cacheInitializer.deInitialize()
+	}
+
+	/**
+	 * Check whether the passed salt for external user is up-to-date (whether an outdated link was used).
+	 */
+	private async checkOutdatedExternalSalt(credentials: Credentials, sessionData: {userId: Id; accessKey: Aes128Key}, externalUserSalt: Uint8Array) {
+		this.userFacade.setAccessToken(credentials.accessToken)
+		const user = await this.entityClient.load(UserTypeRef, sessionData.userId)
+		const latestSaltHash = assertNotNull(user.externalAuthInfo!.latestSaltHash, "latestSaltHash is not set!")
+		if (!arrayEquals(latestSaltHash, sha256Hash(externalUserSalt))) {
+			// Do not delete session or credentials, we can still use them if the password
+			// hasn't been changed.
+			this.resetSession()
+			throw new AccessExpiredError("Salt changed, outdated link?")
+		}
+	}
+
+	/**
+	 * Check that the password is not changed.
+	 * Normally this won't happen for internal users as all sessions are closed on password change. This may happen for external users when the sender has
+	 * changed the password.
+	 * We do not delete all sessions on the server when changing the external password to avoid that an external user is immediately logged out.
+	 */
+	private async checkOutdatedPassword(user: User, accessToken: string, userPassphraseKey: Aes128Key) {
+		if (uint8ArrayToBase64(user.verifier) !== uint8ArrayToBase64(sha256Hash(createAuthVerifier(userPassphraseKey)))) {
+			console.log("External password has changed")
+			// delete the obsolete session to make sure it can not be used any more
+			await this.deleteSession(accessToken).catch((e) => console.error("Could not delete session", e))
+			await this.resetSession()
+			throw new NotAuthenticatedError("External password has changed")
+		}
 	}
 
 	private initIndexer(cacheInfo: CacheInfo): Promise<void> {
