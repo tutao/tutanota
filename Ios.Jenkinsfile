@@ -26,6 +26,12 @@ pipeline {
 	}
 
 	stages {
+    	stage('Check Github) {
+    		script {
+				def util = load "jenkins-lib/util.groovy"
+				util.checkGithub()
+    		}
+    	}
 		stage("Run tests") {
 			agent {
 				label 'mac'
