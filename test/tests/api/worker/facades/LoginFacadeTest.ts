@@ -6,7 +6,9 @@ import {
 	createGroupMembership,
 	createSaltReturn,
 	createUser,
+	createUserExternalAuthInfo,
 	GroupInfoTypeRef,
+	User,
 	UserTypeRef
 } from "../../../../../src/api/entities/sys/TypeRefs"
 import {createAuthVerifier, encryptKey, generateKeyFromPassphrase, KeyLength, keyToBase64, sha256Hash} from "@tutao/tutanota-crypto"
@@ -24,7 +26,7 @@ import {LoginListener} from "../../../../../src/api/main/LoginListener"
 import {Credentials} from "../../../../../src/misc/credentials/Credentials"
 import {defer, DeferredObject, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {AccountType} from "../../../../../src/api/common/TutanotaConstants"
-import {ConnectionError, NotAuthenticatedError} from "../../../../../src/api/common/error/RestError"
+import {AccessExpiredError, ConnectionError, NotAuthenticatedError} from "../../../../../src/api/common/error/RestError"
 import {assertThrows, verify} from "@tutao/tutanota-test-utils"
 import {SessionType} from "../../../../../src/api/common/SessionType"
 import {HttpMethod} from "../../../../../src/api/common/EntityFunctions"
@@ -196,12 +198,12 @@ o.spec("LoginFacadeTest", function () {
 
 			o("When resuming a session and there is a database key, it is passed to offline storage initialization", async function () {
 				usingOfflineStorage = true
-				await facade.resumeSession(credentials, SALT, dbKey, timeRangeDays)
+				await facade.resumeSession(credentials, null, dbKey, timeRangeDays)
 				verify(cacheStorageInitializerMock.initialize({type: "offline", databaseKey: dbKey, userId, timeRangeDays, forceNewDatabase: false}))
 			})
 			o("When resuming a session and there is no database key, nothing is passed to offline storage initialization", async function () {
 				usingOfflineStorage = true
-				await facade.resumeSession(credentials, SALT, null, timeRangeDays)
+				await facade.resumeSession(credentials, null, null, timeRangeDays)
 				verify(cacheStorageInitializerMock.initialize({type: "ephemeral", userId}))
 			})
 			o("when resuming a session and the offline initialization has created a new database, we do synchronous login", async function () {
@@ -212,7 +214,7 @@ o.spec("LoginFacadeTest", function () {
 					isNewOfflineDb: true
 				})
 
-				await facade.resumeSession(credentials, SALT, dbKey, timeRangeDays)
+				await facade.resumeSession(credentials, null, dbKey, timeRangeDays)
 
 				o(facade.asyncLoginState).deepEquals({state: "idle"})("Synchronous login occured, so once resume returns we have already logged in")
 			})
@@ -225,7 +227,7 @@ o.spec("LoginFacadeTest", function () {
 					isNewOfflineDb: false
 				})
 
-				await facade.resumeSession(credentials, SALT, dbKey, timeRangeDays)
+				await facade.resumeSession(credentials, null, dbKey, timeRangeDays)
 
 				o(facade.asyncLoginState).deepEquals({state: "running"})("Async login occurred so it is still running")
 
@@ -506,6 +508,69 @@ o.spec("LoginFacadeTest", function () {
 				verify(userFacade.unlockUserGroupKey(matchers.anything()))
 				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
+		})
+
+		o.spec("external sessions", function () {
+			const passphrase = "hunter2"
+			const userId = "userId"
+			const accessKey = [3229306880, 2716953871, 4072167920, 3901332677]
+			const accessToken = "accessToken"
+			let user: User
+
+			let credentials: Credentials
+
+			o.beforeEach(function () {
+				credentials = {
+					/**
+					 * Identifier which we use for logging in.
+					 * Email address used to log in for internal users, userId for external users.
+					 * */
+					login: userId,
+
+					/** Session#accessKey encrypted password. Is set when session is persisted. */
+					encryptedPassword: uint8ArrayToBase64(encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
+					accessToken,
+					userId,
+					type: "internal"
+				} as Credentials
+
+				user = makeUser({
+					id: userId,
+					passphrase,
+					salt: SALT,
+				})
+				user.externalAuthInfo = createUserExternalAuthInfo({
+					latestSaltHash: sha256Hash(SALT),
+				})
+
+				when(entityClientMock.load(UserTypeRef, userId)).thenResolve(user)
+
+				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything()))
+					.thenResolve(JSON.stringify({user: userId, accessKey: keyToBase64(accessKey)}))
+			})
+
+			o("when the salt is not outdated, login works", async function () {
+				const result = await facade.resumeSession(credentials, SALT, null, timeRangeDays)
+
+				o(result.type).equals("success")
+			})
+
+			o("when the salt is outdated, AccessExpiredError is thrown", async function () {
+				user.externalAuthInfo!.latestSaltHash = new Uint8Array([1, 2, 3])
+
+				await assertThrows(AccessExpiredError, () => facade.resumeSession(credentials, SALT, null, timeRangeDays))
+				verify(restClientMock.request(matchers.contains("sys/session"), HttpMethod.DELETE, anything()), {times: 0})
+			})
+
+			o("when the password is outdated, NotAuthenticatedErorr is thrown", async function () {
+				user.verifier = new Uint8Array([1, 2, 3])
+				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.DELETE, anything()))
+					.thenResolve(null)
+
+				await assertThrows(NotAuthenticatedError, () => facade.resumeSession(credentials, SALT, null, timeRangeDays))
+				verify(restClientMock.request(matchers.contains("sys/session"), HttpMethod.DELETE, anything()))
+			})
+
 		})
 	})
 })
