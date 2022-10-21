@@ -1,4 +1,4 @@
-import {Apps, OfflineDbMeta, OfflineStorage} from "./OfflineStorage.js"
+import {OfflineDbMeta, OfflineStorage, VersionMetadataBaseKey} from "./OfflineStorage.js"
 import {ModelInfos} from "../../common/EntityFunctions.js"
 import {typedKeys} from "@tutao/tutanota-utils"
 import {ProgrammingError} from "../../common/error/ProgrammingError.js"
@@ -7,13 +7,14 @@ import {sys76} from "./migrations/sys-v76.js"
 import {tutanota54} from "./migrations/tutanota-v54.js"
 import {sys79} from "./migrations/sys-v79.js"
 import {sys80} from "./migrations/sys-v80.js"
-import {repair1} from "./migrations/repair-v1"
+import {SqlCipherFacade} from "../../../native/common/generatedipc/SqlCipherFacade.js"
+import {offline1} from "./migrations/offline-v1.js"
 
 export interface OfflineMigration {
-	readonly app: Apps
+	readonly app: VersionMetadataBaseKey
 	readonly version: number
 
-	migrate(storage: OfflineStorage): Promise<void>
+	migrate(storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade): Promise<void>
 }
 
 /** List of migrations that will be run when needed. Please add your migrations to the list. */
@@ -23,7 +24,7 @@ export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
 	sys79,
 	sys80,
 	tutanota54,
-	repair1,
+	offline1,
 ]
 
 /**
@@ -47,23 +48,27 @@ export class OfflineStorageMigrator {
 	) {
 	}
 
-	async migrate(storage: OfflineStorage) {
+	async migrate(storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade) {
 		let meta = await storage.dumpMetadata()
+		const isNewDb = Object.keys(meta).length === 0
 
 		// Populate model versions if they haven't been written already
 		for (const app of typedKeys(this.modelInfos)) {
 			await this.prepopulateVersionIfNecessary(app, this.modelInfos[app].version, meta, storage)
 		}
 
-		// always run all repair migrations if none were run on the db
-		await this.prepopulateVersionIfNecessary("repair", 0, meta, storage)
+		if (isNewDb) {
+			console.log(`new db, populating "offline" version`)
+			// this migration is not necessary for new databases and we want our canonical table definitions to represent the current state
+			await this.prepopulateVersionIfNecessary("offline", 1, meta, storage)
+		}
 
 		// Run the migrations
 		for (const {app, version, migrate} of this.migrations) {
 			const storedVersion = meta[`${app}-version`]!
 			if (storedVersion < version) {
 				console.log(`running offline db migration for ${app} from ${storedVersion} to ${version}`)
-				await migrate(storage)
+				await migrate(storage, sqlCipherFacade)
 				console.log("migration finished")
 				await storage.setStoredModelVersion(app, version)
 			}
@@ -83,7 +88,7 @@ export class OfflineStorageMigrator {
 	/**
 	 * update the metadata table to initialize the row of the app with the given model version
 	 */
-	private async prepopulateVersionIfNecessary(app: Apps, version: number, meta: Partial<OfflineDbMeta>, storage: OfflineStorage) {
+	private async prepopulateVersionIfNecessary(app: VersionMetadataBaseKey, version: number, meta: Partial<OfflineDbMeta>, storage: OfflineStorage) {
 		const key = `${app}-version` as const
 		const storedVersion = meta[key]
 		if (storedVersion == null) {

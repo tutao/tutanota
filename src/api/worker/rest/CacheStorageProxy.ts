@@ -2,15 +2,19 @@ import {CacheStorage, LastUpdateTime, Range} from "./DefaultEntityRestCache.js"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {ListElementEntity, SomeEntity} from "../../common/EntityTypes"
 import {TypeRef} from "@tutao/tutanota-utils"
-import {OfflineStorage} from "../offline/OfflineStorage.js"
+import {OfflineStorage, OfflineStorageInitArgs} from "../offline/OfflineStorage.js"
 import {WorkerImpl} from "../WorkerImpl"
-import {EphemeralCacheStorage} from "./EphemeralCacheStorage"
+import {EphemeralCacheStorage, EphemeralStorageInitArgs} from "./EphemeralCacheStorage"
 import {EntityRestClient} from "./EntityRestClient.js"
 import {CustomCacheHandlerMap} from "./CustomCacheHandler.js"
 import {InitCacheOptions} from "../facades/LoginFacade.js"
 
-export type OfflineStorageInitArgs = InitCacheOptions & {
-	databaseKey: Uint8Array
+export interface EphemeralStorageArgs extends EphemeralStorageInitArgs {
+	type: "ephemeral",
+}
+
+export type OfflineStorageArgs = OfflineStorageInitArgs & {
+	type: "offline",
 }
 
 interface CacheStorageInitReturn {
@@ -21,7 +25,7 @@ interface CacheStorageInitReturn {
 }
 
 export interface CacheStorageLateInitializer {
-	initialize(args: OfflineStorageInitArgs | null): Promise<CacheStorageInitReturn>;
+	initialize(args: OfflineStorageArgs | EphemeralStorageArgs): Promise<CacheStorageInitReturn>;
 
 	deInitialize(): Promise<void>;
 }
@@ -57,7 +61,7 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this._inner
 	}
 
-	async initialize(args: OfflineStorageInitArgs | null): Promise<CacheStorageInitReturn> {
+	async initialize(args: OfflineStorageArgs | EphemeralStorageArgs): Promise<CacheStorageInitReturn> {
 		// We might call this multiple times.
 		// This happens when persistent credentials login fails and we need to start with new cache for new login.
 		const {storage, isPersistent, isNewOfflineDb} = await this.getStorage(args)
@@ -72,8 +76,10 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		this._inner?.deinit()
 	}
 
-	private async getStorage(args: OfflineStorageInitArgs | null): Promise<{storage: SomeStorage, isPersistent: boolean, isNewOfflineDb: boolean}> {
-		if (args != null) {
+	private async getStorage(
+		args: OfflineStorageArgs | EphemeralStorageArgs
+	): Promise<{storage: SomeStorage, isPersistent: boolean, isNewOfflineDb: boolean}> {
+		if (args.type === "offline") {
 			try {
 				const storage = await this.offlineStorageProvider()
 				if (storage != null) {
@@ -90,8 +96,11 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 				this.worker.sendError(e)
 			}
 		}
+		// both "else" case and fallback for unavailable storage and error cases
+		const storage = new EphemeralCacheStorage()
+		await storage.init(args)
 		return {
-			storage: new EphemeralCacheStorage(),
+			storage,
 			isPersistent: false,
 			isNewOfflineDb: false
 		}
@@ -166,5 +175,13 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 
 	getCustomCacheHandlerMap(entityRestClient: EntityRestClient): CustomCacheHandlerMap {
 		return this.inner.getCustomCacheHandlerMap(entityRestClient)
+	}
+
+	getUserId(): Id {
+		return this.inner.getUserId()
+	}
+
+	async deleteAllOwnedBy(owner: Id): Promise<void> {
+		return this.inner.deleteAllOwnedBy(owner)
 	}
 }

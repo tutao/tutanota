@@ -52,9 +52,13 @@ export interface Entity {
 }
 
 export interface ElementEntity extends Entity, Element {
+	_ownerEncSessionKey?: null | Uint8Array
+	_ownerGroup: null | Id
 }
 
 export interface ListElementEntity extends Entity, ListElement {
+	_ownerEncSessionKey?: null | Uint8Array
+	_ownerGroup: null | Id
 }
 
 export type SomeEntity = ElementEntity | ListElementEntity

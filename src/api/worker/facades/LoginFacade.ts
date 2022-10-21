@@ -371,7 +371,7 @@ export class LoginFacade {
 	 * @param credentials the saved credentials to use
 	 * @param externalUserSalt
 	 * @param databaseKey key to unlock the local database (if enabled)
-	 * @param offlineTimeRangeDays the user configured time range for the offline database
+	 * @param timeRangeDays the user configured time range for the offline database
 	 */
 	async resumeSession(
 		credentials: Credentials,
@@ -576,9 +576,9 @@ export class LoginFacade {
 
 	private async initCache({userId, databaseKey, timeRangeDays, forceNewDatabase}: InitCacheOptions): Promise<CacheInfo> {
 		if (databaseKey != null) {
-			return this.cacheInitializer.initialize({userId, databaseKey, timeRangeDays, forceNewDatabase})
+			return this.cacheInitializer.initialize({type: "offline", userId, databaseKey, timeRangeDays, forceNewDatabase})
 		} else {
-			return this.cacheInitializer.initialize(null)
+			return this.cacheInitializer.initialize({type: "ephemeral", userId})
 		}
 	}
 

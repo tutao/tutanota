@@ -32,19 +32,17 @@ import type {RsaImplementation} from "./crypto/RsaImplementation"
 import {createRsaImplementation} from "./crypto/RsaImplementation"
 import {CryptoFacade} from "./crypto/CryptoFacade"
 import {InstanceMapper} from "./crypto/InstanceMapper"
-import {EphemeralCacheStorage} from "./rest/EphemeralCacheStorage"
 import {AdminClientDummyEntityRestCache} from "./rest/AdminClientDummyEntityRestCache.js"
 import {SleepDetector} from "./utils/SleepDetector.js"
 import {SchedulerImpl} from "../common/utils/Scheduler.js"
 import {NoZoneDateProvider} from "../common/utils/NoZoneDateProvider.js"
-import {CacheStorageLateInitializer, LateInitializedCacheStorageImpl} from "./rest/CacheStorageProxy"
+import {LateInitializedCacheStorageImpl} from "./rest/CacheStorageProxy"
 import {IServiceExecutor} from "../common/ServiceRequest"
 import {ServiceExecutor} from "./rest/ServiceExecutor"
 import {BookingFacade} from "./facades/BookingFacade"
 import {BlobFacade} from "./facades/BlobFacade"
 import {UserFacade} from "./facades/UserFacade"
 import {OfflineStorage} from "./offline/OfflineStorage.js"
-import {exposeNativeInterface} from "../common/ExposeNativeInterface"
 import {OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator} from "./offline/OfflineStorageMigrator.js"
 import {modelInfos} from "../common/EntityFunctions.js"
 import {FileFacadeSendDispatcher} from "../../native/common/generatedipc/FileFacadeSendDispatcher.js"
@@ -126,9 +124,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		}
 	}
 
-	const maybeUninitializedStorage = isOfflineStorageAvailable()
-		? new LateInitializedCacheStorageImpl(worker, offlineStorageProvider)
-		: new AlwaysInitializedStorage()
+	const maybeUninitializedStorage = new LateInitializedCacheStorageImpl(worker, offlineStorageProvider)
 
 	locator.cacheStorage = maybeUninitializedStorage
 
@@ -232,18 +228,4 @@ export async function resetLocator(): Promise<void> {
 
 if (typeof self !== "undefined") {
 	(self as unknown as WorkerGlobalScope).locator = locator // export in worker scope
-}
-
-// for cases where we know offlineStorage won't be available
-class AlwaysInitializedStorage extends EphemeralCacheStorage implements CacheStorageLateInitializer {
-	async initialize(): Promise<{isPersistent: false, isNewOfflineDb: false}> {
-		return {
-			isPersistent: false,
-			isNewOfflineDb: false
-		}
-	}
-
-	async deInitialize(): Promise<void> {
-		return
-	}
 }

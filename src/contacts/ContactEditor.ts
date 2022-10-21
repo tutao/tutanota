@@ -86,7 +86,7 @@ export class ContactEditor {
 			this.listId = listId ? listId : neverNull(contact)._id[0]
 		}
 
-		const id = (entity: ElementEntity) => entity._id || this._newId()
+		const id = (entity: {_id: Id}) => entity._id || this._newId()
 
 		this.mailAddresses = this.contact.mailAddresses.map(address => [address, id(address)])
 		this.mailAddresses.push(this._newMailAddress())

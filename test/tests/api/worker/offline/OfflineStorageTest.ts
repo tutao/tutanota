@@ -92,10 +92,10 @@ o.spec("OfflineStorage", function () {
 			const type = getTypeId(entity._type)
 			let preparedQuery
 			if (typeModel.type === Type.Element) {
-				preparedQuery = sql`insert into element_entities values (${type}, ${(entity as ElementEntity)._id}, ${encode(entity)})`
+				preparedQuery = sql`insert into element_entities values (${type}, ${(entity as ElementEntity)._id}, ${entity._ownerGroup}, ${encode(entity)})`
 			} else {
 				const [listId, elementId] = (entity as ListElementEntity)._id
-				preparedQuery = sql`INSERT INTO list_entities VALUES (${type}, ${listId}, ${elementId}, ${encode(entity)})`
+				preparedQuery = sql`INSERT INTO list_entities VALUES (${type}, ${listId}, ${elementId}, ${entity._ownerGroup}, ${encode(entity)})`
 			}
 			await dbFacade.run(preparedQuery.query, preparedQuery.params)
 		}
@@ -115,7 +115,7 @@ o.spec("OfflineStorage", function () {
 
 		o("migrations are run", async function () {
 			await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
-			verify(migratorMock.migrate(storage))
+			verify(migratorMock.migrate(storage, dbFacade))
 		})
 
 		o.spec("Clearing excluded data", function () {
