@@ -36,7 +36,7 @@ export const enum MediaType {
  * We access most types through the TypeRef but also sometimes we include them completely dynamically (e.g. encryption of aggregates).
  * This means that we need to tell our bundler which ones do exist so that they are included.
  */
-const typeModels = {
+export const typeModels = Object.freeze({
 	base: baseTypeModels,
 	sys: sysTypeModels,
 	tutanota: tutanotaTypeModels,
@@ -45,7 +45,7 @@ const typeModels = {
 	gossip: gossipTypeModels,
 	storage: storageTypeModels,
 	usage: usageTypeModels,
-} as const
+} as const)
 
 export const modelInfos = {
 	base: baseModelInfo,

@@ -11,7 +11,7 @@ import {
 import {CacheStorage, expandId, ExposedCacheStorage, LastUpdateTime} from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
 import {EncodeOptions, Token, Type} from "cborg"
-import {assert, DAY_IN_MILLIS, getTypeId, groupByAndMap, mapNullable, TypeRef} from "@tutao/tutanota-utils"
+import {assert, assertNotNull, DAY_IN_MILLIS, getTypeId, groupByAndMap, mapNullable, TypeRef} from "@tutao/tutanota-utils"
 import {isDesktop, isOfflineStorageAvailable, isTest} from "../../common/Env.js"
 import {modelInfos} from "../../common/EntityFunctions.js"
 import {AccountType, MailFolderType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS} from "../../common/TutanotaConstants.js"
@@ -22,7 +22,6 @@ import {UserTypeRef} from "../../entities/sys/TypeRefs.js"
 import {OfflineStorageMigrator} from "./OfflineStorageMigrator.js"
 import {CustomCacheHandlerMap, CustomCalendarEventCacheHandler} from "../rest/CustomCacheHandler.js"
 import {EntityRestClient} from "../rest/EntityRestClient.js"
-import {OfflineStorageInitArgs} from "../rest/CacheStorageProxy.js"
 import {InterWindowEventFacadeSendDispatcher} from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import {SqlCipherFacade} from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import {SqlValue, TaggedSqlValue, tagSqlValue, untagSqlObject} from "./SqlValue.js"
@@ -51,21 +50,28 @@ export const customTypeDecoders: Array<TypeDecoder> = (() => {
 	return tags
 })()
 
-export type Apps = keyof typeof modelInfos | "repair"
+/**
+ * For each of these keys we track the current version in the database.
+ * The keys are different model versions (because we need to migrate the data with certain model version changes) and "offline" key which is used to track
+ * migrations that are needed for other reasons e.g. if DB structure changes or if we need to invalidate some tables.
+ */
+export type VersionMetadataBaseKey = keyof typeof modelInfos | "offline"
 
-type AppMetadataEntries = {
+type VersionMetadataEntries = {
 	// Yes this is cursed, give me a break
-	[P in Apps as `${P}-version`]: number
+	[P in VersionMetadataBaseKey as `${P}-version`]: number
 }
 
-export interface OfflineDbMeta extends AppMetadataEntries {
+export interface OfflineDbMeta extends VersionMetadataEntries {
 	lastUpdateTime: number,
 	timeRangeDays: number
 }
 
 const TableDefinitions = Object.freeze({
-	list_entities: "type TEXT NOT NULL, listId TEXT NOT NULL, elementId TEXT NOT NULL, entity BLOB NOT NULL, PRIMARY KEY (type, listId, elementId)",
-	element_entities: "type TEXT NOT NULL, elementId TEXT NOT NULL, entity BLOB NOT NULL, PRIMARY KEY (type, elementId)",
+	// plus ownerGroup added in a migration
+	list_entities: "type TEXT NOT NULL, listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, listId, elementId)",
+	// plus ownerGroup added in a migration
+	element_entities: "type TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, elementId)",
 	ranges: "type TEXT NOT NULL, listId TEXT NOT NULL, lower TEXT NOT NULL, upper TEXT NOT NULL, PRIMARY KEY (type, listId)",
 	lastUpdateBatchIdPerGroupId: "groupId TEXT NOT NULL, batchId TEXT NOT NULL, PRIMARY KEY (groupId)",
 	metadata: "key TEXT NOT NULL, value BLOB, PRIMARY KEY (key)",
@@ -73,8 +79,16 @@ const TableDefinitions = Object.freeze({
 
 type Range = {lower: string, upper: string}
 
+export interface OfflineStorageInitArgs {
+	userId: Id,
+	databaseKey: Uint8Array,
+	timeRangeDays: number | null,
+	forceNewDatabase: boolean
+}
+
 export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	private customCacheHandler: CustomCacheHandlerMap | null = null
+	private userId: Id | null = null
 
 	constructor(
 		private readonly sqlCipherFacade: SqlCipherFacade,
@@ -89,6 +103,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	 * @return {boolean} whether the database was newly created or not
 	 */
 	async init({userId, databaseKey, timeRangeDays, forceNewDatabase}: OfflineStorageInitArgs): Promise<boolean> {
+		this.userId = userId
 		if (forceNewDatabase) {
 			if (isDesktop()) {
 				await this.interWindowEventSender.localUserDataInvalidated(userId)
@@ -98,7 +113,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		// We open database here and it is closed in the native side when the window is closed or the page is reloaded
 		await this.sqlCipherFacade.openDb(userId, databaseKey)
 		await this.createTables()
-		await this.migrator.migrate(this)
+		await this.migrator.migrate(this, this.sqlCipherFacade)
 		// if nothing is written here, it means it's a new database
 		const isNewOfflineDb = await this.getLastUpdateTime() == null
 		await this.clearExcludedData(timeRangeDays, userId)
@@ -109,6 +124,7 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	 * currently, we close DBs from the native side (mainly on things like reload and on android's onDestroy)
 	 */
 	async deinit() {
+		this.userId = null
 		await this.sqlCipherFacade.closeDb()
 	}
 
@@ -183,9 +199,10 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		const serializedEntity = this.serialize(originalEntity)
 		const {listId, elementId} = expandId(originalEntity._id)
 		const type = getTypeId(originalEntity._type)
+		const ownerGroup = originalEntity._ownerGroup
 		const preparedQuery = listId == null
-			? sql`INSERT OR REPLACE INTO element_entities VALUES (${type}, ${elementId}, ${serializedEntity})`
-			: sql`INSERT OR REPLACE INTO list_entities VALUES (${type}, ${listId}, ${elementId}, ${serializedEntity})`
+			? sql`INSERT OR REPLACE INTO element_entities (type, elementId, ownerGroup, entity) VALUES (${type}, ${elementId}, ${ownerGroup}, ${serializedEntity})`
+			: sql`INSERT OR REPLACE INTO list_entities (type, listId, elementId, ownerGroup, entity) VALUES (${type}, ${listId}, ${elementId}, ${ownerGroup}, ${serializedEntity})`
 		await this.sqlCipherFacade.run(preparedQuery.query, preparedQuery.params)
 	}
 
@@ -262,7 +279,7 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		return Object.fromEntries(stored.map(([key, value]) => [key, cborg.decode(value)])) as OfflineDbMeta
 	}
 
-	async setStoredModelVersion(model: Apps, version: number) {
+	async setStoredModelVersion(model: VersionMetadataBaseKey, version: number) {
 		return this.putMetadata(`${model}-version`, version)
 	}
 
@@ -271,6 +288,21 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 			this.customCacheHandler = new CustomCacheHandlerMap({ref: CalendarEventTypeRef, handler: new CustomCalendarEventCacheHandler(entityRestClient)})
 		}
 		return this.customCacheHandler
+	}
+
+	getUserId(): Id {
+		return assertNotNull(this.userId, "No user id, not initialized?")
+	}
+
+	async deleteAllOwnedBy(owner: Id): Promise<void> {
+		{
+			const {query, params} = sql`DELETE FROM element_entities WHERE ownerGroup = ${owner}`
+			await this.sqlCipherFacade.run(query, params)
+		}
+		{
+			const {query, params} = sql`DELETE FROM list_entities WHERE ownerGroup = ${owner}`
+			await this.sqlCipherFacade.run(query, params)
+		}
 	}
 
 	private async putMetadata<K extends keyof OfflineDbMeta>(key: K, value: OfflineDbMeta[K]): Promise<void> {

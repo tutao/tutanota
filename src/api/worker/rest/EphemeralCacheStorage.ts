@@ -2,25 +2,40 @@ import {ElementEntity, ListElementEntity, SomeEntity} from "../../common/EntityT
 import {EntityRestClient, typeRefToPath} from "./EntityRestClient.js"
 import {firstBiggerThanSecond, getElementId, getListId, isElementEntity} from "../../common/utils/EntityUtils.js"
 import {CacheStorage, LastUpdateTime} from "./DefaultEntityRestCache.js"
-import {clone, getFromMap, remove, TypeRef} from "@tutao/tutanota-utils"
+import {assertNotNull, clone, getFromMap, remove, TypeRef} from "@tutao/tutanota-utils"
 import {CustomCacheHandlerMap} from "./CustomCacheHandler.js"
 
-type ListTypeCache = Map<Id, {
+/** Cache for a single list. */
+type ListCache = {
 	/** All entities loaded inside the range. */
 	allRange: Id[],
 	lowerRangeId: Id,
 	upperRangeId: Id,
 	/** All the entities loaded, inside or outside of the range (e.g. load for a single entity). */
 	elements: Map<Id, ListElementEntity>
-}>
+}
+
+/** Map from list id to list cache. */
+type ListTypeCache = Map<Id, ListCache>
+
+export interface EphemeralStorageInitArgs {
+	userId: Id,
+}
 
 export class EphemeralCacheStorage implements CacheStorage {
+	/** Path to id to entity map. */
 	private readonly entities: Map<string, Map<Id, ElementEntity>> = new Map()
 	private readonly lists: Map<string, ListTypeCache> = new Map()
 	private readonly customCacheHandlerMap: CustomCacheHandlerMap = new CustomCacheHandlerMap()
 	private lastUpdateTime: number | null = null
+	private userId: Id | null = null
+
+	init({userId}: EphemeralStorageInitArgs) {
+		this.userId = userId
+	}
 
 	deinit() {
+		this.userId = null
 		this.entities.clear()
 		this.lists.clear()
 		this.lastUpdateTime = null
@@ -230,5 +245,29 @@ export class EphemeralCacheStorage implements CacheStorage {
 
 	getCustomCacheHandlerMap(entityRestClient: EntityRestClient): CustomCacheHandlerMap {
 		return this.customCacheHandlerMap
+	}
+
+	getUserId(): Id {
+		return assertNotNull(this.userId, "No user id, not initialized?")
+	}
+
+	async deleteAllOwnedBy(owner: Id): Promise<void> {
+		for (const typeMap of this.entities.values()) {
+			for (const [id, entity] of typeMap.entries()) {
+				if (entity._ownerGroup === owner) {
+					typeMap.delete(id)
+				}
+			}
+		}
+		for (const cacheForType of this.lists.values()) {
+			for (const listCache of cacheForType.values()) {
+				for (const [id, element] of listCache.elements.entries()) {
+					if (element._ownerGroup === owner) {
+						listCache.elements.delete(id)
+						remove(listCache.allRange, id)
+					}
+				}
+			}
+		}
 	}
 }

@@ -464,10 +464,11 @@ export function union<T>(...iterables: Array<Iterable<T>>): Set<T> {
 
 /**
  * return a new array containing every item from array1 that isn't in array2
+ * @template T
  * @param array1
  * @param array2
  * @param compare: compare items in the array for equality
- * @returns {Array<$NonMaybeType<T>>|Array<T>}
+ * @returns {Array<T>}
  */
 export function difference<T>(
 	array1: ReadonlyArray<T>,

@@ -2,9 +2,9 @@ import type {EntityRestInterface} from "./EntityRestClient"
 import {EntityRestClient} from "./EntityRestClient"
 import {resolveTypeReference} from "../../common/EntityFunctions"
 import {OperationType} from "../../common/TutanotaConstants"
-import {assertNotNull, firstThrow, flat, groupBy, isSameTypeRef, lastThrow, TypeRef} from "@tutao/tutanota-utils"
+import {assertNotNull, difference, firstThrow, flat, groupBy, isSameTypeRef, lastThrow, TypeRef} from "@tutao/tutanota-utils"
 import {containsEventOfType, getEventOfType} from "../../common/utils/Utils"
-import type {EntityUpdate} from "../../entities/sys/TypeRefs.js"
+import type {EntityUpdate, User} from "../../entities/sys/TypeRefs.js"
 import {
 	BucketPermissionTypeRef,
 	EntityEventBatchTypeRef,
@@ -12,7 +12,7 @@ import {
 	RecoverCodeTypeRef,
 	RejectedSenderTypeRef,
 	SecondFactorTypeRef,
-	SessionTypeRef
+	SessionTypeRef, UserTypeRef
 } from "../../entities/sys/TypeRefs.js"
 import {ValueType} from "../../common/EntityConstants"
 import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
@@ -20,11 +20,12 @@ import {MailTypeRef} from "../../entities/tutanota/TypeRefs.js"
 import {firstBiggerThanSecond, GENERATED_MAX_ID, GENERATED_MIN_ID, getElementId} from "../../common/utils/EntityUtils";
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {assertWorkerOrNode} from "../../common/Env"
-import type {ListElementEntity, SomeEntity, TypeModel} from "../../common/EntityTypes"
+import type {ElementEntity, ListElementEntity, SomeEntity, TypeModel} from "../../common/EntityTypes"
 import {EntityUpdateData} from "../../main/EventController"
 import {QueuedBatch} from "../search/EventQueue"
 import {ENTITY_EVENT_BATCH_EXPIRE_MS} from "../EventBusClient"
 import {CustomCacheHandlerMap} from "./CustomCacheHandler.js"
+import {newSearchIndexDB} from "../search/Indexer.js"
 
 assertWorkerOrNode()
 
@@ -157,6 +158,10 @@ export interface CacheStorage extends ExposedCacheStorage {
 	purgeStorage(): Promise<void>
 
 	putLastUpdateTime(value: number): Promise<void>
+
+	getUserId(): Id
+
+	deleteAllOwnedBy(owner: Id): Promise<void>
 }
 
 /**
@@ -688,15 +693,38 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 	private async processUpdateEvent(typeRef: TypeRef<SomeEntity>, update: EntityUpdate): Promise<EntityUpdate | null> {
 		const {instanceId, instanceListId} = getUpdateInstanceId(update)
-		const isInStorage = (await this.storage.get(typeRef, instanceListId, instanceId)) != null
-		if (isInStorage) {
-			// No need to try to download something that's not there anymore
-			return this.entityRestClient.load(typeRef, collapseId(instanceListId, instanceId))
-					   .then(entity => this.storage.put(entity))
-					   .then(() => update)
-					   .catch((e) => this._handleProcessingError(e))
+		const cached = (await this.storage.get(typeRef, instanceListId, instanceId))
+		// No need to try to download something that's not there anymore
+		if (cached != null) {
+			try {
+				const newEntity = await this.entityRestClient.load(typeRef, collapseId(instanceListId, instanceId))
+				if (isSameTypeRef(typeRef, UserTypeRef)) {
+					await this.handleUpdatedUser(cached, newEntity)
+				}
+				await this.storage.put(newEntity)
+				return update
+			} catch (e) {
+				return this._handleProcessingError(e)
+			}
 		}
 		return update
+	}
+
+	private async handleUpdatedUser(cached: SomeEntity, newEntity: SomeEntity) {
+		// When we are removed from a group we just get an update for our user
+		// with no membership on it. We need to clean up all the entities that
+		// belong to that group since we shouldn't be able to access them anymore
+		// and we won't get any update or another chance to clean them up.
+		const oldUser = cached as User
+		if (oldUser._id !== this.storage.getUserId()) {
+			return
+		}
+		const newUser = newEntity as User
+		const removedShips = difference(oldUser.memberships, newUser.memberships, (l, r) => l._id === r._id)
+		for (const ship of removedShips) {
+			console.log("Lost membership on ", ship._id, ship.groupType)
+			await this.storage.deleteAllOwnedBy(ship.group)
+		}
 	}
 
 	/**
