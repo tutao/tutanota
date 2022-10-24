@@ -8,6 +8,7 @@ import {getInboxFolder} from "../../mail/model/MailUtils"
 import {last} from "@tutao/tutanota-utils"
 import {CloseEventBusOption, SECOND_MS} from "../../api/common/TutanotaConstants.js"
 import {MobileFacade} from "../common/generatedipc/MobileFacade.js"
+import {styles} from "../../gui/styles"
 
 assertMainOrNode()
 
@@ -39,6 +40,15 @@ export class WebMobileFacade implements MobileFacade {
 					viewSlider.focusNextColumn()
 					return true
 				} else if (window.tutao.currentView && window.tutao.currentView.handleBackButton && window.tutao.currentView.handleBackButton()) {
+					return true
+				} else if (
+					viewSlider &&
+					viewSlider.focusedColumn !== viewSlider.getMainColumn() &&
+					styles.isSingleColumnLayout() &&
+					viewSlider.isFocusPreviousPossible()
+				) {
+					// current view can navigate back, a region column is focused (not main) and is in singleColumnLayout
+					viewSlider.focusPreviousColumn()
 					return true
 				} else if (
 					currentRoute.startsWith(CONTACTS_PREFIX) ||
@@ -74,10 +84,6 @@ export class WebMobileFacade implements MobileFacade {
 					}
 
 					return false
-				} else if (viewSlider && viewSlider.isFocusPreviousPossible()) {
-					// current view can navigate back
-					viewSlider.focusPreviousColumn()
-					return true
 				} else {
 					return false
 				}
