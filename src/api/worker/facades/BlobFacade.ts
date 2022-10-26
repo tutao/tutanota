@@ -370,8 +370,9 @@ export class BlobFacade {
 	// VisibleForTesting
 	/**
 	 * Tries to run the mapper action against a list of servers. If the action resolves
-	 * successfully, the result is returned. In case of an ConnectionError, the next
-	 * server is tried. Throws in all other cases.
+	 * successfully, the result is returned. In case of an ConnectionError and errors
+	 * that might occur only for a single blob server, the next server is tried.
+	 * Throws in all other cases.
 	 */
 	async tryServers<T>(servers: BlobServerUrl[], mapper: Mapper<string, T>, errorMsg: string, method: string): Promise<T> {
 		let index = 0
@@ -383,7 +384,7 @@ export class BlobFacade {
 				// InternalServerError is returned when accessing a corrupted archive, so we retry
 				if (e instanceof ConnectionError
 					|| e instanceof InternalServerError
-					|| (e instanceof NotFoundError && method === HttpMethod.GET)) {
+					|| (e instanceof NotFoundError)) {
 					console.log(`${errorMsg} ${server.url}`, e)
 					error = e
 				} else {
