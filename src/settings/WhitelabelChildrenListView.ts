@@ -117,6 +117,8 @@ export class WhitelabelChildrenListView {
 			}
 
 			m.redraw()
+		} else {
+			this._settingsView.focusSettingsDetailsColumn()
 		}
 	}
 

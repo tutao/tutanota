@@ -151,6 +151,8 @@ export class GroupListView implements UpdatableSettingsViewer {
 			}
 
 			m.redraw()
+		} else {
+			this._settingsView.focusSettingsDetailsColumn()
 		}
 	}
 

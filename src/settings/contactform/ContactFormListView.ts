@@ -139,6 +139,8 @@ export class ContactFormListView implements UpdatableSettingsViewer {
 
 				m.redraw()
 			})
+		} else {
+			this.settingsView.focusSettingsDetailsColumn()
 		}
 	}
 
