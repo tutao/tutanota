@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2022-09-28T15:43:45Z",
+	"updated_at": "2022-10-21T13:04:58Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -612,9 +612,12 @@ export default {
 		"ignoreCase_alt": "Groß/Kleinschreibung ignorieren",
 		"importCalendar_label": "Kalender wird importiert",
 		"importContactsError_msg": "{amount} von {total} Kontakten konnten nicht importiert werden.",
+		"importEndNotAfterStartInEvent_msg": "{amount} von {total} Terminen enthalten ein Start-Datum das nicht vor ihrem End-Datum liegt und werden nicht importiert.",
 		"importEventExistingUid_msg": "{amount} von {total} Terminen existieren bereits und werden nicht überschrieben. Importiere die übrigen Termine...",
 		"importEventsError_msg": "{amount} von {total} Terminen konnten nicht importiert werden.",
 		"importExport_action": "Importieren/exportieren",
+		"importInvalidDatesInEvent_msg": "{amount} von {total} Terminen enthalten ungültige Daten und werden nicht importiert.",
+		"importPre1970StartInEvent_msg": "{amount} von {total} Terminen liegen vor 1970 und werden nicht importiert.",
 		"importReadFileError_msg": "Die Datei {filename} ist leider nicht lesbar.",
 		"importUsers_action": "Benutzer importieren",
 		"importVCardError_msg": "VCard-Datei konnte nicht gelesen werden.",
@@ -654,6 +657,7 @@ export default {
 		"invalidBirthday_msg": "Ungültiges Geburtsdatum. Bitte korrigieren Sie den Wert im Feld 'Geburtstag'.",
 		"invalidCnameRecord_msg": "Der CNAME-Eintrag im DNS ist für diese Domain nicht richtig gesetzt.",
 		"invalidDateFormat_msg": "Ungültiges Format. Gültig: {1}. Jahr ist optional.",
+		"invalidDate_msg": "Ungültiges Datum",
 		"invalidGiftCardPaymentMethod_msg": "Ihr eingetragenes Zahlungsmittel erlaubt keine Bestellung von Gutscheinen.",
 		"invalidGiftCard_msg": "Dieser Gutschein kann nicht verwendet werden",
 		"invalidInputFormat_msg": "Ungültiges Format.",
@@ -1024,6 +1028,7 @@ export default {
 		"pleaseWait_msg": "Bitte warten ...",
 		"postings_label": "Rechnungen & Zahlungen",
 		"postpone_action": "Später",
+		"pre1970Start_msg": "Daten vor 1970 sind außerhalb des gültigen Bereichs.",
 		"premiumOffer_msg": "Ihre Unterstützung hilft uns unser Team zu vergrößern, so dass wir schneller entwickeln können. Für die geschäftliche Nutzung sind Sie laut unseren AGB verpflichtet zu einer kostenpflichtigen Variante zu wechseln. Lesen Sie hier, welche Vorteile Sie mit unseren bezahlten Abonnements bekommen:\n",
 		"presharedPasswordNotStrongEnough_msg": "Mindestens eines der eingegebenen Passwörter ist nicht sicher genug. Soll die E-Mail trotzdem gesendet werden?",
 		"presharedPasswordsUnequal_msg": "Die ausgewählten Kontakte haben unterschiedliche vereinbarte Passwörter. Sie können nicht zusammengeführt werden!",
@@ -1513,11 +1518,6 @@ export default {
 		"yourCalendars_label": "Deine Kalender",
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
-		"you_label": "Sie",
-		"invalidDate_msg": "Ungültiges Datum",
-		"pre1970Start_msg": "Daten vor 1970 sind zur Zeit außerhalb des gültigen Bereichs",
-		"importInvalidDatesInEvent_msg": "{amount} von {total} Terminen enthalten ungültige Daten und werden nicht importiert.",
-		"importEndNotAfterStartInEvent_msg": "{amount} von {total} Terminen enthalten ein Start-Datum das nicht vor ihrem End-Datum liegt und werden nicht importiert.",
-		"importPre1970StartInEvent_msg": "{amount} von {total} Terminen liegen vor 1970 und werden nicht importiert.",
+		"you_label": "Sie"
 	}
 }

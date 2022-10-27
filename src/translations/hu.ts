@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2022-09-20T09:07:32Z",
+	"updated_at": "2022-10-17T15:13:05Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "Körülbelül",

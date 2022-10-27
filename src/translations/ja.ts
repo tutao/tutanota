@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2022-09-20T09:07:33Z",
+	"updated_at": "2022-10-24T14:58:33Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "アプリについて",
@@ -621,7 +621,7 @@ export default {
 		"indexDeleted_msg": "検索インデックスをより速くより信頼できるものにするため、強制的にリセットされました。検索インデックスは 次回の検索時に元に戻ります。",
 		"indexedMails_label": "インデックス付きメール：{count}",
 		"indexingFailedConnection_error": "接続が切断されたため、検索インデックスの作成が中止されました。",
-		"indexing_error": "エラーのためにインデキシングは中止されました。",
+		"indexing_error": "エラーのためインデックスの作成を中止しました",
 		"insertImage_action": "画像を挿入",
 		"insertTemplate_action": "選択したテンプレートを挿入",
 		"insideOnly_label": "内部限定の",
@@ -845,6 +845,7 @@ export default {
 		"newMails_msg": "Tutanotaの新着メールを受信しました。",
 		"newMail_action": "新規メール",
 		"newPassword_label": "新しいパスワード",
+		"news_label": "ニュース",
 		"nextChargeOn_label": "次の課金は {chargeDate}",
 		"nextDay_label": "次の日",
 		"nextMonth_label": "次の月",

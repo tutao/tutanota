@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2021-11-11T11:18:04Z",
-	"updated_at": "2022-09-20T09:07:33Z",
+	"updated_at": "2022-10-17T15:13:05Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "පිළිබඳව",

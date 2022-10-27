@@ -10,7 +10,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T09:48:48Z",
-	"updated_at": "2022-09-20T09:07:33Z",
+	"updated_at": "2022-10-17T15:13:05Z",
 	"source_locale": null,
 	"keys": {
 		"about_label": "소개",
