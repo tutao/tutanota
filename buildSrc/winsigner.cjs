@@ -5,7 +5,7 @@ const spawn = require('child_process').spawn
 function signer(args) {
 	const extension = "." + args.path.split(".").pop()
 	const unsignedFileName = args.path.replace(extension, "-unsigned" + extension)
-
+	console.log("signing", unsignedFileName, "as", args.path)
 	const commandArguments = process.env.DEBUG_SIGN
 		? getSelfSignedArgs(unsignedFileName, args.hash, args.path)
 		: getHsmArgs(unsignedFileName, args.hash, args.path)
@@ -56,7 +56,8 @@ function getHsmArgs(unsignedFileName, hash, file_to_sign) {
 	}
 
 	return [
-		"-in", `"${unsignedFileName}"`,
+		"sign",
+		"-in", unsignedFileName,
 		"-out", file_to_sign,
 		"-pkcs11engine", "/usr/lib/x86_64-linux-gnu/engines-1.1/pkcs11.so",
 		"-pkcs11module", "/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so",
