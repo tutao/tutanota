@@ -32,68 +32,68 @@ pipeline {
     }
 
     stages {
-        stage('Build webapp') {
-            environment {
-                PATH = "${env.NODE_PATH}:${env.PATH}"
-            }
-            agent {
-                label 'linux'
-            }
-            steps {
-            	sh 'npm ci'
-            	sh 'npm run build-packages'
-				sh 'node webapp.js release'
+    	stage('Build dependencies') {
+    		parallel {
+				stage('Build webapp') {
+					environment {
+						PATH = "${env.NODE_PATH}:${env.PATH}"
+					}
+					agent {
+						label 'linux'
+					}
+					steps {
+						sh 'npm ci'
+						sh 'npm run build-packages'
+						sh 'node webapp.js release'
 
-				// excluding web-specific and mobile specific parts which we don't need in desktop
-				stash includes: 'build/dist/**', excludes: '**/braintree.html, **/index.html, **/app.html, **/desktop.html, **/index-index.js, **/index-app.js, **/index-desktop.js, **/dist/sw.js', name: 'web_base'
-            }
-        }
+						// excluding web-specific and mobile specific parts which we don't need in desktop
+						stash includes: 'build/dist/**', excludes: '**/braintree.html, **/index.html, **/app.html, **/desktop.html, **/index-index.js, **/index-app.js, **/index-desktop.js, **/dist/sw.js', name: 'web_base'
+					}
+				}
+
+				stage('Native modules') {
+					agent {
+						label 'win-native'
+					}
+					steps {
+						bat "npm ci"
+
+						bat "node buildSrc\\nativeLibraryProvider.js keytar --force-rebuild --root-dir ${WORKSPACE}"
+						bat "node buildSrc\\nativeLibraryProvider.js better-sqlite3 --copy-target better_sqlite3 --force-rebuild --root-dir ${WORKSPACE}"
+						stash includes: 'native-cache/**/*', name: 'native_modules'
+					}
+				}
+    		}
+    	}
 
         stage('Build desktop clients') {
             parallel {
                 stage('Windows') {
-                    stages {
-                        stage('Native modules') {
-                            agent {
-                                label 'win-native'
-                            }
-                            steps {
-								bat "npm ci"
+					environment {
+						PATH = "${env.NODE_PATH}:${env.PATH}"
+					}
+					agent {
+						label 'win-cross-compile'
+					}
+					steps {
+						initBuildArea()
 
-								bat "node buildSrc\\nativeLibraryProvider.js keytar --force-rebuild --root-dir ${WORKSPACE}"
-								bat "node buildSrc\\nativeLibraryProvider.js better-sqlite3 --copy-target better_sqlite3 --force-rebuild --root-dir ${WORKSPACE}"
-								stash includes: 'native-cache/**/*', name: 'native_modules'
-                            }
-                        }
+						// nativeLibraryProvider.js placed the built native modules in the correct location (native-cache)
+						// so they will be picked up by our rollup plugin
+						unstash 'native_modules'
 
-                        stage('Client') {
-                            environment {
-                                PATH = "${env.NODE_PATH}:${env.PATH}"
-                            }
-                            agent {
-                                label 'win-cross-compile'
-                            }
-                            steps {
-								initBuildArea()
+						withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
+							sh '''
+							export HSM_USER_PIN=${PW};
+							export WIN_CSC_FILE="/opt/etc/codesign.crt";
+							node desktop --existing --platform win '''
+						}
 
-								// nativeLibraryProvider.js placed the built native modules in the correct location (native-cache)
-								// so they will be picked up by our rollup plugin
-								unstash 'native_modules'
-
-								withCredentials([string(credentialsId: 'HSM_USER_PIN', variable: 'PW')]) {
-									sh '''
-									export HSM_USER_PIN=${PW};
-									export WIN_CSC_FILE="/opt/etc/codesign.crt";
-									node desktop --existing --platform win '''
-								}
-
-								dir('build') {
-									stash includes: 'desktop-test/*', name:'win_installer_test'
-									stash includes: 'desktop/*', name:'win_installer'
-								}
-                            }
-                        }
-                    }
+						dir('build') {
+							stash includes: 'desktop-test/*', name:'win_installer_test'
+							stash includes: 'desktop/*', name:'win_installer'
+						}
+					}
                 }
 
                 stage('Mac') {
