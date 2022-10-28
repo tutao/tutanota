@@ -56,7 +56,7 @@ function getHsmArgs(unsignedFileName, hash, file_to_sign) {
 	}
 
 	return [
-		"-in", unsignedFileName,
+		"-in", `"${unsignedFileName}"`,
 		"-out", file_to_sign,
 		"-pkcs11engine", "/usr/lib/x86_64-linux-gnu/engines-1.1/pkcs11.so",
 		"-pkcs11module", "/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so",
