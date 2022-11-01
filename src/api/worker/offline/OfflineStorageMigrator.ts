@@ -17,14 +17,19 @@ export interface OfflineMigration {
 	migrate(storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade): Promise<void>
 }
 
-/** List of migrations that will be run when needed. Please add your migrations to the list. */
+/**
+ * List of migrations that will be run when needed. Please add your migrations to the list.
+ *
+ * Normally you should only add them to the end of the list but with offline ones it can be a bit tricky since they change the db structure itself so sometimes
+ * they should rather be in the beginning.
+ */
 export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
-	sys75,
-	sys76,
-	sys79,
-	sys80,
-	tutanota54,
 	offline1,
+	sys75, // DB dropped in offline1
+	sys76, // DB dropped in offline1
+	sys79, // DB dropped in offline1
+	sys80, // DB dropped in offline1
+	tutanota54, // DB dropped in offline1
 ]
 
 /**
@@ -58,9 +63,12 @@ export class OfflineStorageMigrator {
 		}
 
 		if (isNewDb) {
-			console.log(`new db, populating "offline" version`)
+			console.log(`new db, setting "offline" version to 1`)
 			// this migration is not necessary for new databases and we want our canonical table definitions to represent the current state
 			await this.prepopulateVersionIfNecessary("offline", 1, meta, storage)
+		} else {
+			// we need to put 0 in because we expect all versions to be popylated
+			await this.prepopulateVersionIfNecessary("offline", 0, meta, storage)
 		}
 
 		// Run the migrations
