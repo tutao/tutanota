@@ -453,11 +453,11 @@ export class LoginFacade {
 				return await this.finishResumeSession(credentials, externalUserSalt, cacheInfo)
 			}
 		} catch (e) {
-			if (e instanceof NotAuthenticatedError) {
-				// If we initialized the cache but then we couldn't authenticate we should de-initialize
-				// the cache again because we will initialize it for the next attempt.
-				await this.deInitCache()
-			}
+			// If we initialized the cache, but then we couldn't authenticate we should de-initialize
+			// the cache again because we will initialize it for the next attempt.
+			// It might be also called in initSession but the error can be thrown even before that (e.g. if the db is empty for some reason) so we reset
+			// the session here as well, otherwise we might try to open the DB twice.
+			await this.resetSession()
 			throw e
 		}
 	}
