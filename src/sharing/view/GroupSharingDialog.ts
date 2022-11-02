@@ -103,8 +103,10 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 						? {
 							title: "remove_action",
 							click: () => {
-								getConfirmation(() => texts.removeMemberMessage(groupName, sentGroupInvitation.inviteeMailAddress)).confirmed(() =>
-									model.cancelInvitation(sentGroupInvitation),
+								getConfirmation(() => texts.removeMemberMessage(groupName, sentGroupInvitation.inviteeMailAddress)).confirmed(async () => {
+										await model.cancelInvitation(sentGroupInvitation)
+										m.redraw()
+									},
 								)
 							},
 							icon: Icons.Cancel,
@@ -132,9 +134,10 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 						title: "delete_action",
 						icon: Icons.Cancel,
 						click: () => {
-							getConfirmation(() => texts.removeMemberMessage(groupName, downcast(memberInfo.info.mailAddress))).confirmed(() =>
-								model.removeGroupMember(memberInfo.member),
-							)
+							getConfirmation(() => texts.removeMemberMessage(groupName, downcast(memberInfo.info.mailAddress))).confirmed(async () => {
+								await model.removeGroupMember(memberInfo.member)
+								m.redraw()
+							})
 						},
 					}
 					: null,
