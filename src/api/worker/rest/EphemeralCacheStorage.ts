@@ -260,13 +260,17 @@ export class EphemeralCacheStorage implements CacheStorage {
 			}
 		}
 		for (const cacheForType of this.lists.values()) {
-			for (const listCache of cacheForType.values()) {
+			const listIdsToDelete: string[] = []
+			for (const [listId, listCache] of cacheForType.entries()) {
 				for (const [id, element] of listCache.elements.entries()) {
 					if (element._ownerGroup === owner) {
-						listCache.elements.delete(id)
-						remove(listCache.allRange, id)
+						listIdsToDelete.push(listId)
+						break
 					}
 				}
+			}
+			for (const listId of listIdsToDelete) {
+				cacheForType.delete(listId)
 			}
 		}
 	}
