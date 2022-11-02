@@ -74,7 +74,7 @@ export const typeModels = {
             }
         },
         "app": "usage",
-        "version": "1"
+        "version": "2"
     },
     "UsageTestAssignmentIn": {
         "name": "UsageTestAssignmentIn",
@@ -106,7 +106,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "usage",
-        "version": "1"
+        "version": "2"
     },
     "UsageTestAssignmentOut": {
         "name": "UsageTestAssignmentOut",
@@ -149,7 +149,7 @@ export const typeModels = {
             }
         },
         "app": "usage",
-        "version": "1"
+        "version": "2"
     },
     "UsageTestMetricConfig": {
         "name": "UsageTestMetricConfig",
@@ -201,7 +201,7 @@ export const typeModels = {
             }
         },
         "app": "usage",
-        "version": "1"
+        "version": "2"
     },
     "UsageTestMetricConfigValue": {
         "name": "UsageTestMetricConfigValue",
@@ -242,7 +242,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "usage",
-        "version": "1"
+        "version": "2"
     },
     "UsageTestMetricData": {
         "name": "UsageTestMetricData",
@@ -283,7 +283,7 @@ export const typeModels = {
         },
         "associations": {},
         "app": "usage",
-        "version": "1"
+        "version": "2"
     },
     "UsageTestParticipationIn": {
         "name": "UsageTestParticipationIn",
@@ -344,7 +344,7 @@ export const typeModels = {
             }
         },
         "app": "usage",
-        "version": "1"
+        "version": "2"
     },
     "UsageTestStage": {
         "name": "UsageTestStage",
@@ -361,6 +361,24 @@ export const typeModels = {
                 "id": 36,
                 "since": 1,
                 "type": "CustomId",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "maxPings": {
+                "final": false,
+                "name": "maxPings",
+                "id": 88,
+                "since": 2,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            },
+            "minPings": {
+                "final": false,
+                "name": "minPings",
+                "id": 87,
+                "since": 2,
+                "type": "Number",
                 "cardinality": "One",
                 "encrypted": false
             },
@@ -387,6 +405,6 @@ export const typeModels = {
             }
         },
         "app": "usage",
-        "version": "1"
+        "version": "2"
     }
 }

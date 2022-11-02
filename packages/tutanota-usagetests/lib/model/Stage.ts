@@ -19,6 +19,8 @@ export class Stage {
 	constructor(
 		readonly number: number,
 		private readonly test: UsageTest,
+		readonly minPings: number,
+		readonly maxPings: number,
 	) {
 	}
 

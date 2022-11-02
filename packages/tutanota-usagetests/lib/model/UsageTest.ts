@@ -12,9 +12,15 @@ export type VariantsIndex<ReturnT> = {
 export class UsageTest {
 	private readonly stages: Map<number, Stage> = new Map<number, Stage>()
 	pingAdapter?: PingAdapter
-	public lastCompletedStage = ASSIGNMENT_STAGE
+	public lastCompletedStage = 0
 
+	/**
+	 * Enables client-side validation which ensures that we do not attempt to send invalid pings.
+	 * Includes not being able to restart a test as long as the last stage has not been sent.
+	 */
 	public strictStageOrder = false
+	private sentPings = 0
+	private started = false
 
 	constructor(
 		readonly testId: string,
@@ -25,7 +31,7 @@ export class UsageTest {
 	}
 
 	isStarted(): boolean {
-		return this.lastCompletedStage > ASSIGNMENT_STAGE
+		return this.started
 	}
 
 	getStage(stageNum: number) {
@@ -60,15 +66,34 @@ export class UsageTest {
 			throw new Error("no ping adapter has been registered")
 		} else if (this.variant === NO_PARTICIPATION_VARIANT || !this.active) {
 			return false
-		} else if (this.strictStageOrder && stage.number !== this.lastCompletedStage + 1) {
-			console.log(`Not sending ping for stage (${stage.number}) in wrong order because strictStageOrder is set on test '${this.testId}'`)
-			return false
+		} else if (this.strictStageOrder) {
+			if (this.sentPings >= stage.maxPings && this.lastCompletedStage === stage.number) {
+				console.log(`Not sending ping for stage (${stage.number}) because strictStageOrder is set on test '${this.testId}' and maxPings=${stage.maxPings} has been reached`)
+				return false
+			} else if (this.isStarted() && stage.number === 0 && this.lastCompletedStage !== this.stages.size - 1) {
+				console.log(`Cannot restart test '${this.testName}' because strictStageOrder is set and the final stage has not been reached`)
+				return false
+			} else if (stage.number < this.lastCompletedStage && stage.number !== 0) {
+				console.log(`Cannot send ping for stage (${stage.number}) because strictStageOrder is set on test '${this.testId}' and stage ${this.lastCompletedStage} has already been sent`)
+				return false
+			}
+
+			for (let i = this.lastCompletedStage + 1; i < stage.number; i++) {
+				let currentStage = this.stages.get(i)
+
+				if (!!currentStage && currentStage.minPings != 0) {
+					console.log(`Not sending ping for stage (${stage.number}) in wrong order because strictStageOrder is set on test '${this.testId}' and stage ${currentStage.number} is not finished`)
+					return false
+				}
+			}
 		}
 
 		console.log(`Test '${this.testName}': Completing stage ${stage.number}, variant ${this.variant}`)
-		this.lastCompletedStage = stage.number === (this.stages.size - 1) ? ASSIGNMENT_STAGE : stage.number
+		this.sentPings = stage.number === this.lastCompletedStage ? this.sentPings + 1 : 1
+		this.lastCompletedStage = stage.number
 		await this.pingAdapter.sendPing(this, stage)
 
+		this.started = true
 		return true
 	}
 }
@@ -78,7 +103,7 @@ export class ObsoleteUsageTest extends UsageTest {
 
 	constructor(testId: string, testName: string, variant: number) {
 		super(testId, testName, variant, false)
-		this.obsoleteStage = new ObsoleteStage(0, this)
+		this.obsoleteStage = new ObsoleteStage(0, this, 1, 1)
 	}
 
 	getStage(stageNum: number): Stage {
