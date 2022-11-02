@@ -1,7 +1,7 @@
 import {NewsListItem} from "../NewsListItem.js"
-import {NewsId} from "../../api/entities/tutanota/TypeRefs.js"
+import {NewsId} from "../../../api/entities/tutanota/TypeRefs.js"
 import m, {Children} from "mithril"
-import {Button, ButtonType} from "../../gui/base/Button.js"
+import {Button, ButtonType} from "../../../gui/base/Button.js"
 
 export default class NewsTemplate extends NewsListItem {
 	isShown(): boolean {

@@ -1,11 +1,11 @@
 import {NewsListItem} from "../NewsListItem.js"
 import m, {Children} from "mithril"
-import {NewsId} from "../../api/entities/tutanota/TypeRefs.js"
-import {locator} from "../../api/main/MainLocator.js"
-import {InfoLink, lang} from "../../misc/LanguageViewModel.js"
-import {logins} from "../../api/main/LoginController.js"
-import {Dialog} from "../../gui/base/Dialog.js"
-import {Button, ButtonAttrs, ButtonType} from "../../gui/base/Button.js"
+import {NewsId} from "../../../api/entities/tutanota/TypeRefs.js"
+import {locator} from "../../../api/main/MainLocator.js"
+import {InfoLink, lang} from "../../LanguageViewModel.js"
+import {logins} from "../../../api/main/LoginController.js"
+import {Dialog} from "../../../gui/base/Dialog.js"
+import {Button, ButtonAttrs, ButtonType} from "../../../gui/base/Button.js"
 
 export default class UsageOptInNews extends NewsListItem {
 	isShown(): boolean {

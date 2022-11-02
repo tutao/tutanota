@@ -15,7 +15,7 @@ import {CounterBadge} from "../base/CounterBadge.js"
 import {px} from "../size.js"
 import {theme} from "../theme.js"
 import {locator} from "../../api/main/MainLocator.js"
-import {showNewsDialog} from "../../news/NewsDialog.js"
+import {showNewsDialog} from "../../misc/news/NewsDialog.js"
 
 type Attrs = {
 	openNewWindow(): unknown

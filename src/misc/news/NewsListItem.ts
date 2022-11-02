@@ -1,5 +1,5 @@
 import m, {Children} from "mithril"
-import {NewsId} from "../api/entities/tutanota/TypeRefs.js"
+import {NewsId} from "../../api/entities/tutanota/TypeRefs.js"
 import {NewsModel} from "./NewsModel.js"
 
 export abstract class NewsListItem {
