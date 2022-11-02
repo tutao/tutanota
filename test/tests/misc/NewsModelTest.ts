@@ -1,10 +1,10 @@
 import o from "ospec"
 import {IServiceExecutor} from "../../../src/api/common/ServiceRequest.js"
 import {object, replace, verify, when} from "testdouble"
-import {NewsModel} from "../../../src/news/NewsModel.js"
+import {NewsModel} from "../../../src/misc/news/NewsModel.js"
 import {NewsService} from "../../../src/api/entities/tutanota/Services.js"
 import {createNewsId, createNewsIn, createNewsOut, NewsId} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {NewsListItem} from "../../../src/news/NewsListItem.js"
+import {NewsListItem} from "../../../src/misc/news/NewsListItem.js"
 import {Children} from "mithril"
 
 o.spec("NewsModel", function () {

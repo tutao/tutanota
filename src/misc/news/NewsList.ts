@@ -1,6 +1,6 @@
 import m, {Children, Component, Vnode} from "mithril"
-import {NewsId} from "../api/entities/tutanota/TypeRefs.js"
-import {lang} from "../misc/LanguageViewModel.js"
+import {NewsId} from "../../api/entities/tutanota/TypeRefs.js"
+import {lang} from "../LanguageViewModel.js"
 
 
 export interface NewsListAttrs {

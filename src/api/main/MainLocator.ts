@@ -69,7 +69,7 @@ import {windowFacade} from "../../misc/WindowFacade.js"
 import {InterWindowEventFacade} from "../../native/common/generatedipc/InterWindowEventFacade.js"
 import {InterWindowEventFacadeSendDispatcher} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import {SqlCipherFacade} from "../../native/common/generatedipc/SqlCipherFacade.js"
-import {NewsModel} from "../../news/NewsModel.js"
+import {NewsModel} from "../../misc/news/NewsModel.js"
 
 assertMainOrNode()
 

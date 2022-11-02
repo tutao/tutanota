@@ -1,8 +1,8 @@
-import {createNewsIn, NewsId, NewsOut} from "../api/entities/tutanota/TypeRefs.js"
-import {IServiceExecutor} from "../api/common/ServiceRequest.js"
-import {NewsService} from "../api/entities/tutanota/Services.js"
-import {NotFoundError} from "../api/common/error/RestError.js"
-import {isOfflineError} from "../api/common/utils/ErrorCheckUtils.js"
+import {createNewsIn, NewsId, NewsOut} from "../../api/entities/tutanota/TypeRefs.js"
+import {IServiceExecutor} from "../../api/common/ServiceRequest.js"
+import {NewsService} from "../../api/entities/tutanota/Services.js"
+import {NotFoundError} from "../../api/common/error/RestError.js"
+import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 import {NewsListItem} from "./NewsListItem.js"
 
 
