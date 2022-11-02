@@ -11,7 +11,7 @@ import {
 import {CacheStorage, expandId, ExposedCacheStorage, LastUpdateTime} from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
 import {EncodeOptions, Token, Type} from "cborg"
-import {assert, assertNotNull, DAY_IN_MILLIS, getTypeId, groupByAndMap, mapNullable, TypeRef} from "@tutao/tutanota-utils"
+import {assert, assertNotNull, DAY_IN_MILLIS, getTypeId, groupByAndMap, groupByAndMapUniquely, mapNullable, TypeRef} from "@tutao/tutanota-utils"
 import {isDesktop, isOfflineStorageAvailable, isTest} from "../../common/Env.js"
 import {modelInfos} from "../../common/EntityFunctions.js"
 import {AccountType, MailFolderType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS} from "../../common/TutanotaConstants.js"
@@ -300,8 +300,20 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 			await this.sqlCipherFacade.run(query, params)
 		}
 		{
-			const {query, params} = sql`DELETE FROM list_entities WHERE ownerGroup = ${owner}`
-			await this.sqlCipherFacade.run(query, params)
+			// first, check which list Ids contain entities owned by the lost group
+			const {query, params} = sql`SELECT listId, type FROM list_entities WHERE ownerGroup = ${owner}`
+			const rangeRows = await this.sqlCipherFacade.all(query, params)
+			const rows = rangeRows.map(row => untagSqlObject(row) as {listId: string, type: string})
+			const listIdsByType: Map<string, Set<Id>> = groupByAndMapUniquely(rows, (row) => row.type, row => row.listId)
+			for (const [type, listIds] of listIdsByType.entries()) {
+				// delete the ranges for those listIds
+				const deleteRangeQuery = sql`DELETE FROM ranges WHERE type = ${type} AND listId IN ${paramList(Array.from(listIds))}`
+				await this.sqlCipherFacade.run(deleteRangeQuery.query, deleteRangeQuery.params)
+				// delete all entities that have one of those list Ids.
+				const deleteEntitiesQuery = sql`DELETE FROM list_entities WHERE type = ${type} AND listId IN ${paramList(Array.from(listIds))}`
+				await this.sqlCipherFacade.run(deleteEntitiesQuery.query, deleteEntitiesQuery.params)
+			}
+
 		}
 	}
 
