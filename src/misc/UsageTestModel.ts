@@ -323,7 +323,7 @@ export class UsageTestModel implements PingAdapter {
 			)
 
 			for (const [index, stageConfig] of usageTestAssignment.stages.entries()) {
-				const stage = new Stage(index, test)
+				const stage = new Stage(index, test, Number(stageConfig.minPings), Number(stageConfig.maxPings))
 				stageConfig.metrics.forEach(metricConfig => {
 					const configValues = new Map<string, string>()
 
@@ -382,12 +382,16 @@ export class UsageTestModel implements PingAdapter {
 			} else if (e instanceof PreconditionFailedError) {
 				if (e.data === "invalid_state") {
 					test.active = false
-					console.log("Tried to send ping for paused test", e)
+					console.log(`Tried to send ping for paused test ${test.testName}`, e)
 				} else if (e.data === "invalid_restart") {
 					test.active = false
-					console.log("Tried to restart test in ParticipationMode.Once that device has already participated in", e)
+					console.log(`Tried to restart test '${test.testName}' in ParticipationMode.Once that device has already participated in`, e)
 				} else if (e.data === "invalid_stage") {
-					console.log("Tried to send ping for wrong stage", e)
+					console.log(`Tried to send ping for wrong stage ${stage.number} of test '${test.testName}'`, e)
+				} else if (e.data === "invalid_stage_skip") {
+					console.log(`Tried to skip stage ${stage.number} of test '${test.testName}' that is required`, e)
+				} else if (e.data === "invalid_stage_repetition") {
+					console.log(`Tried to repeat stage ${stage.number} of test '${test.testName}' too many times`, e)
 				} else {
 					throw e
 				}

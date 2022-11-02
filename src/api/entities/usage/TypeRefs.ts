@@ -113,6 +113,8 @@ export type UsageTestStage = {
 	_type: TypeRef<UsageTestStage>;
 
 	_id: Id;
+	maxPings: NumberString;
+	minPings: NumberString;
 	name: string;
 
 	metrics: UsageTestMetricConfig[];

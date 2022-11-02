@@ -207,7 +207,7 @@ o.spec("UsageTestModel", function () {
 
 				const usageTest: UsageTest = new UsageTest("testId", "testName", 1, true)
 				usageTest.pingAdapter = usageTestModel
-				const stage = new Stage(0, usageTest)
+				const stage = new Stage(0, usageTest, 1, 1)
 				usageTest.addStage(stage)
 				const metric = {
 					name: "foo",

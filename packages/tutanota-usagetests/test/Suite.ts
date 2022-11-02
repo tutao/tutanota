@@ -32,7 +32,7 @@ o.spec("Main", function () {
 		const test = new UsageTest(testId, "test 123", 2, true)
 		test.pingAdapter = pingAdapter
 
-		const stage0 = new Stage(0, test)
+		const stage0 = new Stage(0, test, 1, 1)
 		stage0.complete()
 
 		o(pingAdapter.pingsSent).equals(1)
@@ -62,7 +62,7 @@ o.spec("Main", function () {
 		test1.strictStageOrder = true
 
 		for (let i = 0; i < 3; i++) {
-			test1.addStage(new Stage(i, test1))
+			test1.addStage(new Stage(i, test1, 1, 1))
 		}
 
 		const adapter = new MockPingAdapter()
@@ -70,15 +70,15 @@ o.spec("Main", function () {
 
 		usageTestController.addTests([test1])
 
-		await test1.getStage(0).complete()
-		await test1.getStage(0).complete()
-		await test1.getStage(1).complete()
-		await test1.getStage(1).complete()
-		await test1.getStage(1).complete()
-		await test1.getStage(0).complete()
-		await test1.getStage(2).complete()
-		await test1.getStage(1).complete()
-		await test1.getStage(2).complete()
+		await test1.getStage(0).complete() // 1
+		await test1.getStage(0).complete() // 1
+		await test1.getStage(1).complete() // 2
+		await test1.getStage(1).complete() // 2
+		await test1.getStage(1).complete() // 2
+		await test1.getStage(0).complete() // 2
+		await test1.getStage(2).complete() // 3
+		await test1.getStage(1).complete() // 3
+		await test1.getStage(2).complete() // 3
 
 		o(adapter.pingsSent).equals(3)
 	})
@@ -89,7 +89,7 @@ o.spec("Main", function () {
 		test1.strictStageOrder = true
 
 		for (let i = 0; i < 3; i++) {
-			test1.addStage(new Stage(i, test1))
+			test1.addStage(new Stage(i, test1, 1, 1))
 		}
 
 		const adapter = new MockPingAdapter()
@@ -97,17 +97,17 @@ o.spec("Main", function () {
 
 		usageTestController.addTests([test1])
 
-		await test1.getStage(0).complete()
-		await test1.getStage(0).complete()
-		await test1.getStage(1).complete()
-		await test1.getStage(1).complete()
-		await test1.getStage(1).complete()
-		await test1.getStage(0).complete()
-		await test1.getStage(2).complete()
-		await test1.getStage(1).complete()
-		await test1.getStage(2).complete()
-		await test1.getStage(0).complete()
-		await test1.getStage(1).complete()
+		await test1.getStage(0).complete() // 1
+		await test1.getStage(0).complete() // 1
+		await test1.getStage(1).complete() // 2
+		await test1.getStage(1).complete() // 2
+		await test1.getStage(1).complete() // 2
+		await test1.getStage(0).complete() // 2
+		await test1.getStage(2).complete() // 3
+		await test1.getStage(1).complete() // 3
+		await test1.getStage(2).complete() // 3
+		await test1.getStage(0).complete() // 4
+		await test1.getStage(1).complete() // 5
 
 		o(adapter.pingsSent).equals(5)
 	})
