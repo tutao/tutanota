@@ -313,7 +313,10 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 				const deleteEntitiesQuery = sql`DELETE FROM list_entities WHERE type = ${type} AND listId IN ${paramList(Array.from(listIds))}`
 				await this.sqlCipherFacade.run(deleteEntitiesQuery.query, deleteEntitiesQuery.params)
 			}
-
+		}
+		{
+			const {query, params} = sql`DELETE FROM lastUpdateBatchIdPerGroupId WHERE groupId = ${owner}`
+			await this.sqlCipherFacade.run(query, params)
 		}
 	}
 
