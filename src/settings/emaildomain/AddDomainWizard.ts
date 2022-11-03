@@ -16,6 +16,7 @@ import {EnterDomainPage, EnterDomainPageAttrs} from "./EnterDomainPage"
 import {createWizardDialog, wizardPageWrapper} from "../../gui/base/WizardDialog.js"
 import {assertMainOrNode} from "../../api/common/Env"
 import {IconButtonAttrs} from "../../gui/base/IconButton.js"
+import {MailboxProperties} from "../../api/entities/tutanota/TypeRefs.js"
 
 assertMainOrNode()
 export type AddDomainData = {
@@ -27,12 +28,16 @@ export type AddDomainData = {
 }
 
 /** Shows a wizard for adding a custom email domain. */
-export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo): Promise<void> {
+export function showAddDomainWizard(
+	domain: string,
+	customerInfo: CustomerInfo,
+	mailboxProperties: MailboxProperties,
+): Promise<void> {
 	const domainData: AddDomainData = {
 		domain: stream(domain),
 		customerInfo: customerInfo,
 		expectedVerificationRecord: createDnsRecord(),
-		editAliasFormAttrs: createEditAliasFormAttrs(logins.getUserController().userGroupInfo),
+		editAliasFormAttrs: createEditAliasFormAttrs(logins.getUserController().userGroupInfo, mailboxProperties),
 		domainStatus: new DomainDnsStatus(domain),
 	}
 	domainData.expectedVerificationRecord.type = DnsRecordType.DNS_RECORD_TYPE_TXT_SPF // not actually spf, but the type TXT only matters here

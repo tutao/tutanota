@@ -47,6 +47,7 @@ import {assertMainOrNode} from "../api/common/Env"
 import {DropDownSelector} from "../gui/base/DropDownSelector.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js"
 import {SettingsExpander} from "./SettingsExpander.js"
+import {loadOrCreateMailboxProperties} from "../misc/MailboxPropertiesUtils.js"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -126,16 +127,15 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			showActionButtonColumn: true,
 			addButtonAttrs: {
 				title: "addCustomDomain_action",
-				click: () => {
-					this.customerInfo.getAsync().then(customerInfo => {
-						if (logins.getUserController().isFreeAccount()) {
-							showNotAvailableForFreeDialog(getCustomMailDomains(customerInfo).length === 0)
-						} else {
-							showAddDomainWizard("", customerInfo).then(() => {
-								this.updateDomains()
-							})
-						}
-					})
+				click: async () => {
+					const customerInfo = await this.customerInfo.getAsync()
+					if (logins.getUserController().isFreeAccount()) {
+						showNotAvailableForFreeDialog(getCustomMailDomains(customerInfo).length === 0)
+					} else {
+						const mailboxProperties = await loadOrCreateMailboxProperties()
+						await showAddDomainWizard("", customerInfo, mailboxProperties)
+						this.updateDomains()
+					}
 				},
 				icon: Icons.Add,
 				size: ButtonSize.Compact,
@@ -500,89 +500,89 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async updateDomains(): Promise<void> {
-		return this.customerInfo.getAsync().then(customerInfo => {
-			let customDomainInfos = getCustomMailDomains(customerInfo)
-			// remove dns status instances for all removed domains
-			Object.keys(this.domainDnsStatus).forEach(domain => {
-				if (!customDomainInfos.find(di => di.domain === domain)) {
-					delete this.domainDnsStatus[domain]
-				}
-			})
-			return promiseMap(customDomainInfos, domainInfo => {
-				// create dns status instances for all new domains
-				if (!this.domainDnsStatus[domainInfo.domain]) {
-					this.domainDnsStatus[domainInfo.domain] = new DomainDnsStatus(domainInfo.domain)
+		const customerInfo = await this.customerInfo.getAsync()
+		const mailboxProperties = await loadOrCreateMailboxProperties()
+		let customDomainInfos = getCustomMailDomains(customerInfo)
+		// remove dns status instances for all removed domains
+		Object.keys(this.domainDnsStatus).forEach(domain => {
+			if (!customDomainInfos.find(di => di.domain === domain)) {
+				delete this.domainDnsStatus[domain]
+			}
+		})
+		return promiseMap(customDomainInfos, domainInfo => {
+			// create dns status instances for all new domains
+			if (!this.domainDnsStatus[domainInfo.domain]) {
+				this.domainDnsStatus[domainInfo.domain] = new DomainDnsStatus(domainInfo.domain)
 
-					this.domainDnsStatus[domainInfo.domain].loadCurrentStatus().then(() => {
-						m.redraw()
-					})
-				}
-
-				let domainDnsStatus = this.domainDnsStatus[domainInfo.domain]
-				let p = Promise.resolve(lang.get("comboBoxSelectionNone_msg"))
-
-				if (domainInfo.catchAllMailGroup) {
-					p = loadGroupDisplayName(domainInfo.catchAllMailGroup)
-				}
-
-				return p.then(catchAllGroupName => {
-					return {
-						cells: () => [
-							{
-								main: domainInfo.domain,
-								info: [domainDnsStatus.getDnsStatusInfo()],
-								click:
-									domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine()
-										? () => {
-											showDnsCheckDialog(domainDnsStatus)
-										}
-										: noOp,
-							},
-							{
-								main: catchAllGroupName,
-							},
-						],
-						actionButtonAttrs: {
-							title: "action_label" as const,
-							icon: Icons.More,
-							size: ButtonSize.Compact,
-							click: createDropdown(
-								{
-									lazyButtons: () => {
-
-										const buttons: DropdownChildAttrs[] = [
-											{
-												label: "setCatchAllMailbox_action",
-												click: () => this.editCatchAllMailbox(domainInfo),
-											},
-											{
-												label: "delete_action",
-												click: () => this.deleteCustomDomain(domainInfo),
-											}
-										]
-
-										if (domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine()) {
-											buttons.unshift({
-												label: "resumeSetup_label",
-												click: () => {
-													showAddDomainWizard(domainDnsStatus.domain, customerInfo).then(() => {
-														domainDnsStatus.loadCurrentStatus().then(() => m.redraw())
-													})
-												},
-											})
-										}
-										return buttons
-									}, width: 260
-								},
-							),
-						},
-					}
+				this.domainDnsStatus[domainInfo.domain].loadCurrentStatus().then(() => {
+					m.redraw()
 				})
-			}).then(tableLines => {
-				this.customDomainLines = tableLines
+			}
 
-				m.redraw()
+			let domainDnsStatus = this.domainDnsStatus[domainInfo.domain]
+			let p = Promise.resolve(lang.get("comboBoxSelectionNone_msg"))
+
+			if (domainInfo.catchAllMailGroup) {
+				p = loadGroupDisplayName(domainInfo.catchAllMailGroup)
+			}
+
+			return p.then(catchAllGroupName => {
+				return {
+					cells: () => [
+						{
+							main: domainInfo.domain,
+							info: [domainDnsStatus.getDnsStatusInfo()],
+							click:
+								domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine()
+									? () => {
+										showDnsCheckDialog(domainDnsStatus)
+									}
+									: noOp,
+						},
+						{
+							main: catchAllGroupName,
+						},
+					],
+					actionButtonAttrs: {
+						title: "action_label" as const,
+						icon: Icons.More,
+						size: ButtonSize.Compact,
+						click: createDropdown(
+							{
+								lazyButtons: () => {
+
+									const buttons: DropdownChildAttrs[] = [
+										{
+											label: "setCatchAllMailbox_action",
+											click: () => this.editCatchAllMailbox(domainInfo),
+										},
+										{
+											label: "delete_action",
+											click: () => this.deleteCustomDomain(domainInfo),
+										}
+									]
+
+									if (domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine()) {
+										buttons.unshift({
+											label: "resumeSetup_label",
+											click: () => {
+												showAddDomainWizard(domainDnsStatus.domain, customerInfo, mailboxProperties).then(() => {
+													domainDnsStatus.loadCurrentStatus().then(() => m.redraw())
+												})
+											},
+										})
+									}
+									return buttons
+								}, width: 260
+							},
+						),
+					},
+				}
 			})
+		}).then(tableLines => {
+			this.customDomainLines = tableLines
+
+			m.redraw()
 		})
 	}
 

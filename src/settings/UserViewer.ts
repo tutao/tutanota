@@ -47,7 +47,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	private groupsTableAttrs: TableAttrs | null = null
 	private contactFormsTableAttrs: TableAttrs | null = null
 	private readonly secondFactorsForm: EditSecondFactorsForm
-	private readonly editAliasFormAttrs: EditAliasesFormAttrs
+	private editAliasFormAttrs: EditAliasesFormAttrs | null
 	private usedStorage: number | null = null
 	private administratedBy: Id | null = null
 	private availableTeamGroupInfos: Array<GroupInfo> = []
@@ -99,11 +99,13 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			}
 		})
 
-		this.editAliasFormAttrs = createEditAliasFormAttrs(this.userGroupInfo)
-
-		if (logins.getUserController().isGlobalAdmin()) {
-			updateNbrOfAliases(this.editAliasFormAttrs)
-		}
+		this.editAliasFormAttrs = null
+		// FIXME
+		// this.editAliasFormAttrs = createEditAliasFormAttrs(this.userGroupInfo)
+		//
+		// if (logins.getUserController().isGlobalAdmin()) {
+		// 	updateNbrOfAliases(this.editAliasFormAttrs)
+		// }
 
 		this.updateUsedStorageAndAdminFlag()
 	}
@@ -175,7 +177,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			this.groupsTableAttrs ? m(Table, this.groupsTableAttrs) : null,
 			this.contactFormsTableAttrs ? m(".h4.mt-l.mb-s", lang.get("contactForms_label")) : null,
 			this.contactFormsTableAttrs ? m(Table, this.contactFormsTableAttrs) : null,
-			m(EditAliasesFormN, this.editAliasFormAttrs),
+			this.editAliasFormAttrs ? m(EditAliasesFormN, this.editAliasFormAttrs) : null,
 		])
 	}
 
@@ -486,7 +488,9 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				this.senderName = updatedUserGroupInfo.name
 				await this.updateUsedStorageAndAdminFlag()
 				this.administratedBy = this.userGroupInfo.localAdmin
-				this.editAliasFormAttrs.userGroupInfo = this.userGroupInfo
+				if (this.editAliasFormAttrs) {
+					this.editAliasFormAttrs.userGroupInfo = this.userGroupInfo
+				}
 				m.redraw()
 			} else if (
 				isUpdateForTypeRef(UserTypeRef, update) &&

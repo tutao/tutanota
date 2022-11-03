@@ -24,7 +24,6 @@ import type {DropDownSelectorAttrs} from "../gui/base/DropDownSelector.js"
 import {DropDownSelector} from "../gui/base/DropDownSelector.js"
 import type {TextFieldAttrs} from "../gui/base/TextField.js"
 import {TextField, TextFieldType} from "../gui/base/TextField.js"
-import {Button, ButtonType} from "../gui/base/Button.js"
 import type {TableAttrs, TableLineAttrs} from "../gui/base/Table.js"
 import {ColumnWidth, createRowActions, Table} from "../gui/base/Table.js"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
@@ -39,7 +38,7 @@ import {showEditOutOfOfficeNotificationDialog} from "./EditOutOfOfficeNotificati
 import {formatActivateState, loadOutOfOfficeNotification} from "../misc/OutOfOfficeNotificationUtils"
 import {getSignatureType, show as showEditSignatureDialog} from "./EditSignatureDialog"
 import type {UpdatableSettingsViewer} from "./SettingsView"
-import {getReportMovedMailsType, loadMailboxProperties, saveReportMovedMails} from "../misc/MailboxPropertiesUtils"
+import {getReportMovedMailsType, loadOrCreateMailboxProperties, saveReportMovedMails} from "../misc/MailboxPropertiesUtils"
 import {OfflineStorageSettingsModel} from "./OfflineStorageSettings"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {deviceConfig} from "../misc/DeviceConfig"
@@ -51,7 +50,7 @@ assertMainOrNode()
 export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_senderName: Stream<string>
 	_signature: Stream<string>
-	_mailboxProperties: LazyLoaded<MailboxProperties | null>
+	_mailboxProperties: LazyLoaded<MailboxProperties>
 	_reportMovedMails: ReportMovedMailsType
 	_defaultSender: string | null
 	_defaultUnconfidential: boolean | null
@@ -62,7 +61,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_inboxRulesExpanded: Stream<boolean>
 	_indexStateWatch: Stream<any> | null
 	_identifierListViewer: IdentifierListViewer
-	_editAliasFormAttrs: EditAliasesFormAttrs
+	_editAliasFormAttrs: EditAliasesFormAttrs | null
 	_outOfOfficeNotification: LazyLoaded<OutOfOfficeNotification | null>
 	_outOfOfficeStatus: Stream<string> // stores the status label, based on whether the notification is/ or will really be activated (checking start time/ end time)
 
@@ -86,20 +85,26 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._outOfOfficeStatus = stream(lang.get("deactivated_label"))
 		this._indexStateWatch = null
 		this._identifierListViewer = new IdentifierListViewer(logins.getUserController().user)
+		this._editAliasFormAttrs = null
 
 		this._updateInboxRules(logins.getUserController().props)
 
-		this._editAliasFormAttrs = createEditAliasFormAttrs(logins.getUserController().userGroupInfo)
-
-		if (logins.getUserController().isGlobalAdmin()) {
-			updateNbrOfAliases(this._editAliasFormAttrs)
-		}
+		// if (logins.getUserController().isGlobalAdmin()) {
+		// 	updateNbrOfAliases(this._editAliasFormAttrs)
+		// }
 
 		this._mailboxProperties = new LazyLoaded(() => {
-			return loadMailboxProperties()
-		}, null)
+			return loadOrCreateMailboxProperties()
+		})
 
-		this._mailboxProperties.getAsync().then(() => this._updateMailboxPropertiesSettings())
+		this._mailboxProperties.getAsync().then(async (mailboxProperties) => {
+			this._updateMailboxPropertiesSettings()
+			const aliasFormAttrs = createEditAliasFormAttrs(logins.getUserController().userGroupInfo, mailboxProperties)
+			// FIXME for admins only?
+			updateNbrOfAliases(aliasFormAttrs).then(m.redraw)
+			this._editAliasFormAttrs = aliasFormAttrs
+			m.redraw()
+		})
 
 		this._outOfOfficeNotification = new LazyLoaded(() => {
 			return loadOutOfOfficeNotification()
@@ -311,7 +316,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m(DropDownSelector, reportMovedMailsAttrs),
 					m(TextField, outOfOfficeAttrs),
 					this.renderLocalDataSection(),
-					logins.getUserController().isGlobalAdmin() ? m(EditAliasesFormN, this._editAliasFormAttrs) : null,
+					// FIXME distinguish between loading and missing
+					this._editAliasFormAttrs ? m(EditAliasesFormN, this._editAliasFormAttrs) : null,
 					logins.isEnabled(FeatureType.InternalCommunication)
 						? null
 						: [
@@ -442,6 +448,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+		// FIXME sender names
 		for (const update of updates) {
 			const {instanceListId, instanceId, operation} = update
 			if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
@@ -458,7 +465,9 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				const groupInfo = await locator.entityClient.load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId])
 				this._senderName(groupInfo.name)
 
-				this._editAliasFormAttrs.userGroupInfo = groupInfo
+				if (this._editAliasFormAttrs) {
+					this._editAliasFormAttrs.userGroupInfo = groupInfo
+				}
 			} else if (isUpdateForTypeRef(OutOfOfficeNotificationTypeRef, update)) {
 				this._outOfOfficeNotification.reload().then(() => this._updateOutOfOfficeNotification())
 			} else if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update)) {
