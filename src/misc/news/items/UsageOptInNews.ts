@@ -3,21 +3,29 @@ import m, {Children} from "mithril"
 import {NewsId} from "../../../api/entities/tutanota/TypeRefs.js"
 import {locator} from "../../../api/main/MainLocator.js"
 import {InfoLink, lang} from "../../LanguageViewModel.js"
-import {logins} from "../../../api/main/LoginController.js"
 import {Dialog} from "../../../gui/base/Dialog.js"
 import {Button, ButtonAttrs, ButtonType} from "../../../gui/base/Button.js"
+import {NewsModel} from "../NewsModel.js"
+import {UsageTestModel} from "../../UsageTestModel.js"
 
-export default class UsageOptInNews extends NewsListItem {
+/**
+ * News item that informs users about the usage data opt-in.
+ */
+export class UsageOptInNews implements NewsListItem {
+	constructor(private readonly newsModel: NewsModel, private readonly usageTestModel: UsageTestModel) {
+	}
+
 	isShown(): boolean {
 		return locator.usageTestModel.showOptInIndicator()
 	}
 
 	render(newsId: NewsId): Children {
 		const lnk = InfoLink.Privacy
-		const userSettingsGroupRoot = logins.getUserController().userSettingsGroupRoot
 
 		const closeAction = (optedIn?: boolean) => {
-			this.acknowledge(newsId).then(() => {
+			this.newsModel.acknowledgeNews(newsId.newsItemId).then(success => {
+				this.newsModel.loadNewsIds().then(m.redraw)
+			}).then(() => {
 				if (optedIn) {
 					Dialog.message("userUsageDataOptInThankYouOptedIn_msg")
 				} else if (optedIn !== undefined) {
@@ -35,20 +43,16 @@ export default class UsageOptInNews extends NewsListItem {
 			{
 				label: "deactivate_action",
 				click: () => {
-					userSettingsGroupRoot.usageDataOptedIn = false
-					locator.entityClient.update(userSettingsGroupRoot)
-
-					closeAction(false)
+					const decision = false
+					this.usageTestModel.setOptInDecision(decision).then(() => closeAction(decision))
 				},
 				type: ButtonType.Secondary,
 			},
 			{
 				label: "activate_action",
 				click: () => {
-					userSettingsGroupRoot.usageDataOptedIn = true
-					locator.entityClient.update(userSettingsGroupRoot)
-
-					closeAction(true)
+					const decision = true
+					this.usageTestModel.setOptInDecision(decision).then(() => closeAction(decision))
 				},
 				type: ButtonType.Primary,
 			},
@@ -62,7 +66,10 @@ export default class UsageOptInNews extends NewsListItem {
 				m("li", lang.get("userUsageDataOptInStatement2_msg")),
 				m("li", lang.get("userUsageDataOptInStatement3_msg")),
 				m("li", lang.get("userUsageDataOptInStatement4_msg")),
-				m("p", lang.get("moreInfo_msg") + " ", m("small.text-break", [m(`a[href=${lnk}][target=_blank]`, lnk)])),
+				m("p", lang.get("moreInfo_msg") + " ", m("small.text-break", [m("a", {
+					href: lnk,
+					target: "_blank",
+				}, lnk)])),
 			]),
 			m(
 				".flex-end.flex-no-grow-no-shrink-auto",

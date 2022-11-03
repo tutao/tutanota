@@ -26,6 +26,7 @@ import {LoginController} from "../api/main/LoginController.js"
 import {CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {EntityClient} from "../api/common/EntityClient.js"
 import {EntityUpdateData, EventController, isUpdateForTypeRef} from "../api/main/EventController.js"
+import {createUserSettingsGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
 
 
 const PRESELECTED_LIKERT_VALUE = null
@@ -224,6 +225,15 @@ export class UsageTestModel implements PingAdapter {
 		}
 
 		return this.loginController.getUserController().userSettingsGroupRoot.usageDataOptedIn === null
+	}
+
+	/**
+	 * Sets the user's usage data opt-in decision. True means they opt in.
+	 */
+	public setOptInDecision(decision: boolean) {
+		const userSettingsGroupRoot = createUserSettingsGroupRoot(this.loginController.getUserController().userSettingsGroupRoot)
+		userSettingsGroupRoot.usageDataOptedIn = decision
+		return this.entityClient.update(userSettingsGroupRoot)
 	}
 
 	private getOptInDecision(): boolean {

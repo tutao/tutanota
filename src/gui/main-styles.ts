@@ -2081,8 +2081,5 @@ styles.registerStyle("main", () => {
 		".news-item": {
 			background: theme.list_bg,
 		},
-		".news-item:nth-child(even)": {
-			background: theme.list_alternate_bg,
-		},
 	}
 })

@@ -6,6 +6,7 @@ import {Dialog, DialogType} from "../../gui/base/Dialog.js"
 import {Keys} from "../../api/common/TutanotaConstants.js"
 import {NewsList} from "./NewsList.js"
 import {NewsModel} from "./NewsModel.js"
+import {showProgressDialog} from "../../gui/dialogs/ProgressDialog.js"
 
 export function showNewsDialog(newsModel: NewsModel) {
 	const closeButton: ButtonAttrs = {
@@ -51,5 +52,6 @@ export function showNewsDialog(newsModel: NewsModel) {
 		help: "close_alt",
 	})
 
-	newsModel.loadNewsIds().then(() => dialog.show())
+	dialog.show()
+	showProgressDialog("pleaseWait_msg", newsModel.loadNewsIds()).then(m.redraw)
 }
