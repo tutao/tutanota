@@ -6,7 +6,7 @@ import {InfoLink, lang} from "../misc/LanguageViewModel"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {CustomerPropertiesTypeRef, Session, SessionTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {isNotNull, LazyLoaded, neverNull, ofClass} from "@tutao/tutanota-utils"
+import {assertNotNull, LazyLoaded, neverNull, ofClass} from "@tutao/tutanota-utils"
 import {formatDateTimeFromYesterdayOn} from "../misc/Formatter"
 import {SessionState} from "../api/common/TutanotaConstants"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
@@ -127,9 +127,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			],
 			selectedValue: logins.getUserController().userSettingsGroupRoot.usageDataOptedIn,
 			selectionChangedHandler: v => {
-				if (isNotNull(v)) {
-					this._usageTestModel.setOptInDecision(v)
-				}
+				this._usageTestModel.setOptInDecision(assertNotNull(v))
 			},
 			helpLabel: () => {
 				return ifAllowedTutanotaLinks(InfoLink.Usage, link => [

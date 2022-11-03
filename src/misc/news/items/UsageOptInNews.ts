@@ -23,15 +23,14 @@ export class UsageOptInNews implements NewsListItem {
 		const lnk = InfoLink.Privacy
 
 		const closeAction = (optedIn?: boolean) => {
-			this.newsModel.acknowledgeNews(newsId.newsItemId).then(success => {
-				this.newsModel.loadNewsIds().then(m.redraw)
-			}).then(() => {
-				if (optedIn) {
-					Dialog.message("userUsageDataOptInThankYouOptedIn_msg")
-				} else if (optedIn !== undefined) {
-					Dialog.message("userUsageDataOptInThankYouOptedOut_msg")
-				}
-			})
+			this.newsModel.acknowledgeNews(newsId.newsItemId)
+				.then(() => {
+					if (optedIn) {
+						Dialog.message("userUsageDataOptInThankYouOptedIn_msg")
+					} else if (optedIn !== undefined) {
+						Dialog.message("userUsageDataOptInThankYouOptedOut_msg")
+					}
+				}).then(m.redraw)
 		}
 
 		const buttonAttrs: Array<ButtonAttrs> = [
