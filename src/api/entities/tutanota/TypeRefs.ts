@@ -1234,6 +1234,19 @@ export type MailAddress = {
 
 	contact:  null | IdTuple;
 }
+export const MailAddressPropertiesTypeRef: TypeRef<MailAddressProperties> = new TypeRef("tutanota", "MailAddressProperties")
+
+export function createMailAddressProperties(values?: Partial<MailAddressProperties>): MailAddressProperties {
+	return Object.assign(create(typeModels.MailAddressProperties, MailAddressPropertiesTypeRef), values)
+}
+
+export type MailAddressProperties = {
+	_type: TypeRef<MailAddressProperties>;
+
+	_id: Id;
+	mailAddress: string;
+	senderName: string;
+}
 export const MailBodyTypeRef: TypeRef<MailBody> = new TypeRef("tutanota", "MailBody")
 
 export function createMailBody(values?: Partial<MailBody>): MailBody {
@@ -1386,6 +1399,8 @@ export type MailboxProperties = {
 	_ownerGroup: null | Id;
 	_permissions: Id;
 	reportMovedMails: NumberString;
+
+	mailAddressProperties: MailAddressProperties[];
 }
 export const MailboxServerPropertiesTypeRef: TypeRef<MailboxServerProperties> = new TypeRef("tutanota", "MailboxServerProperties")
 

@@ -10,6 +10,16 @@
 					"info": "AddValue UserSettingsGroupRoot/usageDataOptedIn/1234."
 				}
 			]
+		},
+		{
+			"version": 56,
+			"changes": [
+				{
+					"name": "AddAssociation",
+					"sourceType": "MailboxProperties",
+					"info": "AddAssociation MailboxProperties/mailAddressProperties/AGGREGATION/1267."
+				}
+			]
 		}
 	]
 }
