@@ -33,6 +33,19 @@ export type Birthday = {
 	month: NumberString;
 	year: null | NumberString;
 }
+export const BodyTypeRef: TypeRef<Body> = new TypeRef("tutanota", "Body")
+
+export function createBody(values?: Partial<Body>): Body {
+	return Object.assign(create(typeModels.Body, BodyTypeRef), values)
+}
+
+export type Body = {
+	_type: TypeRef<Body>;
+
+	_id: Id;
+	compressedText: null | string;
+	text: null | string;
+}
 export const CalendarDeleteDataTypeRef: TypeRef<CalendarDeleteData> = new TypeRef("tutanota", "CalendarDeleteData")
 
 export function createCalendarDeleteData(values?: Partial<CalendarDeleteData>): CalendarDeleteData {
@@ -1032,6 +1045,19 @@ export type GroupSettings = {
 
 	group: Id;
 }
+export const HeaderTypeRef: TypeRef<Header> = new TypeRef("tutanota", "Header")
+
+export function createHeader(values?: Partial<Header>): Header {
+	return Object.assign(create(typeModels.Header, HeaderTypeRef), values)
+}
+
+export type Header = {
+	_type: TypeRef<Header>;
+
+	_id: Id;
+	compressedHeaders: null | string;
+	headers: null | string;
+}
 export const ImapFolderTypeRef: TypeRef<ImapFolder> = new TypeRef("tutanota", "ImapFolder")
 
 export function createImapFolder(values?: Partial<ImapFolder>): ImapFolder {
@@ -1191,6 +1217,7 @@ export type Mail = {
 	_ownerEncSessionKey: null | Uint8Array;
 	_ownerGroup: null | Id;
 	_permissions: Id;
+	attachmentCount: NumberString;
 	authStatus: NumberString;
 	confidential: boolean;
 	differentEnvelopeSender: null | string;
@@ -1199,8 +1226,9 @@ export type Mail = {
 	movedTime: null | Date;
 	phishingStatus: NumberString;
 	receivedDate: Date;
+	recipientCount: NumberString;
 	replyType: NumberString;
-	sentDate: Date;
+	sentDate: null | Date;
 	state: NumberString;
 	subject: string;
 	trashed: boolean;
@@ -1208,12 +1236,13 @@ export type Mail = {
 
 	attachments: IdTuple[];
 	bccRecipients: MailAddress[];
-	body: Id;
-	bodyBlob:  null | Blob;
+	body:  null | Id;
 	ccRecipients: MailAddress[];
 	conversationEntry: IdTuple;
+	firstRecipient:  null | MailAddress;
 	headers:  null | Id;
-	headersBlob:  null | Blob;
+	mailDetails:  null | IdTuple;
+	mailDetailsDraft:  null | IdTuple;
 	replyTos: EncryptedMailAddress[];
 	restrictions:  null | MailRestriction;
 	sender: MailAddress;
@@ -1290,6 +1319,29 @@ export type MailBox = {
 	sentAttachments: Id;
 	spamResults:  null | SpamResults;
 	systemFolders:  null | MailFolderRef;
+}
+export const MailDetailsTypeRef: TypeRef<MailDetails> = new TypeRef("tutanota", "MailDetails")
+
+export function createMailDetails(values?: Partial<MailDetails>): MailDetails {
+	return Object.assign(create(typeModels.MailDetails, MailDetailsTypeRef), values)
+}
+
+export type MailDetails = {
+	_type: TypeRef<MailDetails>;
+	_errors: Object;
+
+	_format: NumberString;
+	_id: IdTuple;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerGroup: null | Id;
+	_permissions: Id;
+	sentDate: Date;
+
+	attachments: IdTuple[];
+	body: Body;
+	headers:  null | Header;
+	recipients: Recipients;
+	replyTos: EncryptedMailAddress[];
 }
 export const MailFolderTypeRef: TypeRef<MailFolder> = new TypeRef("tutanota", "MailFolder")
 
@@ -1685,6 +1737,21 @@ export type ReceiveInfoServiceData = {
 
 	_format: NumberString;
 	language: string;
+}
+export const RecipientsTypeRef: TypeRef<Recipients> = new TypeRef("tutanota", "Recipients")
+
+export function createRecipients(values?: Partial<Recipients>): Recipients {
+	return Object.assign(create(typeModels.Recipients, RecipientsTypeRef), values)
+}
+
+export type Recipients = {
+	_type: TypeRef<Recipients>;
+
+	_id: Id;
+
+	bccRecipients: MailAddress[];
+	ccRecipients: MailAddress[];
+	toRecipients: MailAddress[];
 }
 export const RemoteImapSyncInfoTypeRef: TypeRef<RemoteImapSyncInfo> = new TypeRef("tutanota", "RemoteImapSyncInfo")
 

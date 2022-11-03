@@ -12,7 +12,7 @@ import {UserError} from "../../api/main/UserError"
 import {getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE} from "../../misc/passwords/PasswordUtils"
 import {cleanMatch, deduplicate, downcast, findAndRemove, getFromMap, neverNull, noOp, ofClass, promiseMap, remove, typedValues} from "@tutao/tutanota-utils"
 import {checkAttachmentSize, getDefaultSender, getTemplateLanguages,} from "../model/MailUtils"
-import type {File as TutanotaFile, Mail, MailboxProperties} from "../../api/entities/tutanota/TypeRefs.js"
+import type {EncryptedMailAddress, File as TutanotaFile, Mail, MailboxProperties} from "../../api/entities/tutanota/TypeRefs.js"
 import {ContactTypeRef, ConversationEntryTypeRef, FileTypeRef, MailboxPropertiesTypeRef, MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import type {LoginController} from "../../api/main/LoginController"
@@ -49,8 +49,11 @@ import {DateProvider} from "../../api/common/DateProvider.js"
 import {NoZoneDateProvider} from "../../api/common/utils/NoZoneDateProvider.js"
 import {RecipientField} from "../model/MailUtils.js"
 import {getSenderName} from "../../misc/MailboxPropertiesUtils.js"
+import {MailWrapper, isLegacyMail} from "../../api/common/MailWrapper.js"
+import {File} from "../../api/entities/tutanota/TypeRefs.js"
 
 assertMainOrNode()
+
 export const TOO_MANY_VISIBLE_RECIPIENTS = 10
 
 export type Attachment = TutanotaFile | DataFile | FileReference
@@ -312,10 +315,11 @@ export class SendMailModel {
 		})
 	}
 
-	async initWithDraft(draft: Mail, attachments: TutanotaFile[], bodyText: string, inlineImages: InlineImages): Promise<SendMailModel> {
+	async initWithDraft(attachments: File[], mailWrapper: MailWrapper, inlineImages: InlineImages): Promise<SendMailModel> {
 		let previousMessageId: string | null = null
 		let previousMail: Mail | null = null
 
+		const draft = mailWrapper.getMail()
 		const conversationEntry = await this.entity.load(ConversationEntryTypeRef, draft.conversationEntry)
 		const conversationType = downcast<ConversationType>(conversationEntry.conversationType)
 
@@ -338,12 +342,27 @@ export class SendMailModel {
 		// if we reuse the same image references, changing the displayed mail in mail view will cause the minimized draft to lose
 		// that reference, because it will be revoked
 		this.loadedInlineImages = cloneInlineImages(inlineImages)
-		const {confidential, sender, toRecipients, ccRecipients, bccRecipients, subject, replyTos} = draft
-		const recipients: Recipients = {
-			to: toRecipients,
-			cc: ccRecipients,
-			bcc: bccRecipients,
+		const {confidential, sender, subject} = draft
+		let recipients: Recipients
+		let replyTos : EncryptedMailAddress[]
+		if (!isLegacyMail(draft) && mailWrapper) {
+			const {toRecipients, ccRecipients, bccRecipients} = mailWrapper.getDetails().recipients
+			recipients = {
+				to: toRecipients,
+				cc: ccRecipients,
+				bcc: bccRecipients,
+			}
+			replyTos = mailWrapper.getReplyTos()
+		} else {
+			const {toRecipients, ccRecipients, bccRecipients} = draft
+			recipients = {
+				to: toRecipients,
+				cc: ccRecipients,
+				bcc: bccRecipients,
+			}
+			replyTos = draft.replyTos
 		}
+		const bodyText = mailWrapper.getMailBodyText()
 		return this.init({
 			conversationType: conversationType,
 			subject,
@@ -826,8 +845,9 @@ export class SendMailModel {
 				? await this.createDraft(this.getBody(), attachments, mailMethod)
 				: await this.updateDraft(this.getBody(), attachments, this.draft)
 
+			const attachmentIds = await this.mailFacade.getAttachmentIds(this.draft)
 			const newAttachments = await promiseMap(
-				this.draft.attachments,
+				attachmentIds,
 				fileId => this.entity.load<TutanotaFile>(FileTypeRef, fileId),
 				{
 					concurrency: 5,

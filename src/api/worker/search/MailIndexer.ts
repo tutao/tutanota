@@ -1,10 +1,18 @@
 import {FULL_INDEXED_TIMESTAMP, MailFolderType, MailState, NOTHING_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
-import type {File as TutanotaFile, Mail, MailBody, MailBox, MailFolder} from "../../entities/tutanota/TypeRefs.js"
-import {FileTypeRef, MailBodyTypeRef, MailboxGroupRootTypeRef, MailBoxTypeRef, MailFolderTypeRef, MailTypeRef} from "../../entities/tutanota/TypeRefs.js"
+import type {File as TutanotaFile, Mail, MailBox, MailFolder} from "../../entities/tutanota/TypeRefs.js"
+import {
+	FileTypeRef,
+	MailBodyTypeRef,
+	MailboxGroupRootTypeRef,
+	MailBoxTypeRef,
+	MailDetailsTypeRef,
+	MailFolderTypeRef,
+	MailTypeRef
+} from "../../entities/tutanota/TypeRefs.js"
 import {ConnectionError, NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {typeModels} from "../../entities/tutanota/TypeModels"
-import {containsEventOfType, getMailBodyText} from "../../common/utils/Utils"
-import {flat, groupBy, isNotNull, neverNull, noOp, ofClass, promiseMap, splitInChunks, TypeRef} from "@tutao/tutanota-utils"
+import {containsEventOfType} from "../../common/utils/Utils"
+import {assertNotNull, flat, groupBy, groupByAndMap, isNotNull, neverNull, noOp, ofClass, promiseMap, splitInChunks, TypeRef} from "@tutao/tutanota-utils"
 import {elementIdPart, isSameId, listIdPart, timestampToGeneratedId} from "../../common/utils/EntityUtils"
 import {_createNewIndexUpdate, encryptIndexKeyBase64, filterMailMemberships, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo} from "./IndexUtils"
 import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
@@ -21,8 +29,11 @@ import {EntityRestClient} from "../rest/EntityRestClient"
 import {EntityClient} from "../../common/EntityClient"
 import {ProgressMonitor} from "../../common/utils/ProgressMonitor"
 import type {SomeEntity} from "../../common/EntityTypes"
-import {EntityUpdateData} from "../../main/EventController";
-import {EphemeralCacheStorage} from "../rest/EphemeralCacheStorage";
+import {isLegacyMail, MailWrapper} from "../../common/MailWrapper.js"
+import {EntityUpdateData} from "../../main/EventController"
+import {EphemeralCacheStorage} from "../rest/EphemeralCacheStorage"
+import {File} from "../../entities/tutanota/TypeRefs.js"
+
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const ENTITY_INDEXER_CHUNK = 20
@@ -73,8 +84,9 @@ export class MailIndexer {
 		this.isUsingOfflineCache = isUsing
 	}
 
-	createMailIndexEntries(mail: Mail, mailBody: MailBody | null, files: TutanotaFile[]): Map<string, SearchIndexEntry[]> {
+	createMailIndexEntries(mailWrapper: MailWrapper, files: File[]): Map<string, SearchIndexEntry[]> {
 		let startTimeIndex = getPerformanceTimestamp()
+		const mail = mailWrapper.getMail()
 
 		const MailModel = typeModels.Mail
 		let keyToIndexEntries = this._core.createIndexEntriesForAttributes(mail, [
@@ -84,15 +96,15 @@ export class MailIndexer {
 			},
 			{
 				attribute: MailModel.associations["toRecipients"],
-				value: () => mail.toRecipients.map(r => r.name + " <" + r.address + ">").join(","),
+				value: () => mailWrapper.getToRecipients().map(r => r.name + " <" + r.address + ">").join(","),
 			},
 			{
 				attribute: MailModel.associations["ccRecipients"],
-				value: () => mail.ccRecipients.map(r => r.name + " <" + r.address + ">").join(","),
+				value: () => mailWrapper.getCcRecipients().map(r => r.name + " <" + r.address + ">").join(","),
 			},
 			{
 				attribute: MailModel.associations["bccRecipients"],
-				value: () => mail.bccRecipients.map(r => r.name + " <" + r.address + ">").join(","),
+				value: () => mailWrapper.getBccRecipients().map(r => r.name + " <" + r.address + ">").join(","),
 			},
 			{
 				attribute: MailModel.associations["sender"],
@@ -101,7 +113,7 @@ export class MailIndexer {
 			{
 				attribute: MailModel.associations["body"],
 				// Sometimes we encounter inconsistencies such as when deleted emails appear again
-				value: () => (mailBody != null ? htmlToText(getMailBodyText(mailBody)) : ""),
+				value: () => (htmlToText(mailWrapper.getMailBodyText())),
 			},
 			{
 				attribute: MailModel.associations["attachments"],
@@ -126,17 +138,19 @@ export class MailIndexer {
 
 		return this._defaultCachingEntity
 				   .load(MailTypeRef, [event.instanceListId, event.instanceId])
-				   .then(mail => {
-					   return Promise.all([
-						   promiseMap(mail.attachments, attachmentId => this._defaultCachingEntity.load(FileTypeRef, attachmentId)),
-						   this._defaultCachingEntity.load(MailBodyTypeRef, mail.body),
-					   ]).then(([files, body]) => {
-						   let keyToIndexEntries = this.createMailIndexEntries(mail, body, files)
-						   return {
-							   mail,
-							   keyToIndexEntries,
-						   }
-					   })
+				   .then(async mail => {
+					   let mailWrapper: MailWrapper
+					   if (isLegacyMail(mail)) {
+						   mailWrapper = await this._defaultCachingEntity.load(MailBodyTypeRef, neverNull(mail.body)).then(b => MailWrapper.body(mail, b))
+					   } else {
+						   mailWrapper = await this._defaultCachingEntity.load(MailDetailsTypeRef, neverNull(mail.mailDetails)).then(d => MailWrapper.details(mail, d))
+					   }
+					   const files = await promiseMap(mailWrapper.getAttachmentIds(), attachmentId => this._defaultCachingEntity.load(FileTypeRef, attachmentId))
+					   let keyToIndexEntries = this.createMailIndexEntries(mailWrapper, files)
+					   return {
+						   mail,
+						   keyToIndexEntries,
+					   }
 				   })
 				   .catch(
 					   ofClass(NotFoundError, () => {
@@ -475,40 +489,26 @@ export class MailIndexer {
 		})
 	}
 
-	_processIndexMails(mails: Array<Mail>, indexUpdate: IndexUpdate, indexLoader: IndexLoader): Promise<number> {
+	async _processIndexMails(mails: Array<Mail>, indexUpdate: IndexUpdate, indexLoader: IndexLoader): Promise<number> {
 		if (this._indexingCancelled) throw new CancelledError("cancelled indexing in processing index mails")
-		const bodies = indexLoader.loadMailBodies(mails)
-		const files = indexLoader.loadAttachments(mails)
-		return Promise.all([bodies, files])
-					  .then(([bodies, files]) =>
-						  mails
-							  .map(mail => {
-								  const body = bodies.find(b => isSameId(b._id, mail.body))
-								  if (body == null) return null
-								  return {
-									  mail: mail,
-									  body,
-									  files: files.filter(file => mail.attachments.find(a => isSameId(a, file._id))),
-								  }
-							  })
-							  .filter(isNotNull),
-					  )
-					  .then(
-						  (
-							  mailWithBodyAndFiles: {
-								  mail: Mail
-								  body: MailBody
-								  files: TutanotaFile[]
-							  }[],
-						  ) => {
-							  mailWithBodyAndFiles.forEach(element => {
-								  let keyToIndexEntries = this.createMailIndexEntries(element.mail, element.body, element.files)
+		const detailsList = await indexLoader.loadMailDetails(mails)
+		const files = await indexLoader.loadAttachments(detailsList)
+		const mailWithBodyAndFiles = detailsList
+			.map(mailWrapper => {
+				const mail = mailWrapper.getMail()
+				return {
+					mail: mail,
+					mailWrapper: mailWrapper,
+					files: files.filter(file => mailWrapper.getAttachmentIds().find(a => isSameId(a, file._id))),
+				}
+			})
+			.filter(isNotNull)
+		mailWithBodyAndFiles.forEach(element => {
+			let keyToIndexEntries = this.createMailIndexEntries(element.mailWrapper, element.files)
 
-								  this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
-							  })
-						  },
-					  )
-					  .then(() => mails.length)
+			this._core.encryptSearchIndexEntries(element.mail._id, neverNull(element.mail._ownerGroup), keyToIndexEntries, indexUpdate)
+		})
+		return mailWithBodyAndFiles.length
 	}
 
 	_writeIndexUpdate(
@@ -706,15 +706,29 @@ class IndexLoader {
 		}
 	}
 
-	loadMailBodies(mails: Mail[]): Promise<MailBody[]> {
-		const ids = mails.map(m => m.body)
-		return this.loadInChunks(MailBodyTypeRef, null, ids)
+	async loadMailDetails(mails: Mail[]): Promise<MailWrapper[]> {
+		const result: Array<MailWrapper> = []
+		const legacyMails = mails.filter(m => isLegacyMail(m))
+		const bodyIds = legacyMails.map(m => assertNotNull(m.body))
+		result.push(...(await this.loadInChunks(MailBodyTypeRef, null, bodyIds)).map(body => {
+			const mail = assertNotNull(legacyMails.find(m => m.body === body._id))
+			return MailWrapper.body(mail, body)
+		}))
+		let newMails = mails.filter(m => !isLegacyMail(m))
+		const listIdToMailDetailsIds: Map<Id, Array<Id>> = groupByAndMap(newMails, m => assertNotNull(m.mailDetails)[0], m => neverNull(m.mailDetails)[1])
+		for (let [listId, ids] of listIdToMailDetailsIds) {
+			result.push(...(await this.loadInChunks(MailDetailsTypeRef, listId, ids)).map(details => {
+				const mail = assertNotNull(newMails.find(m => isSameId(m.mailDetails, details._id)))
+				return MailWrapper.details(mail, details)
+			}))
+		}
+		return result
 	}
 
-	loadAttachments(mails: Mail[]): Promise<TutanotaFile[]> {
+	loadAttachments(detailsList: MailWrapper[]): Promise<TutanotaFile[]> {
 		const attachmentIds: IdTuple[] = []
-		mails.forEach(mail => {
-			attachmentIds.push(...mail.attachments)
+		detailsList.forEach(d => {
+			attachmentIds.push(...d.getAttachmentIds())
 		})
 		const filesByList = groupBy(attachmentIds, a => a[0])
 		const fileLoadingPromises: Array<Promise<Array<TutanotaFile>>> = []

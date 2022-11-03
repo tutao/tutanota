@@ -9,9 +9,6 @@ import {
 	FileTypeRef,
 	Mail,
 	MailAddress,
-	MailBody,
-	MailBodyTypeRef,
-	MailHeadersTypeRef,
 	MailRestriction
 } from "../../api/entities/tutanota/TypeRefs.js"
 import {
@@ -34,17 +31,20 @@ import {ConfigurationDatabase} from "../../api/worker/facades/ConfigurationDatab
 import {InlineImages} from "./MailViewer"
 import {isDesktop} from "../../api/common/Env"
 import stream from "mithril/stream"
-import {addAll, contains, downcast, first, neverNull, noOp, ofClass, startsWith} from "@tutao/tutanota-utils"
+import {addAll, contains, downcast, filterInt, first, neverNull, noOp, ofClass, startsWith} from "@tutao/tutanota-utils"
 import {lang} from "../../misc/LanguageViewModel"
 import {
 	getArchiveFolder,
+	getAttachmentCount,
 	getDefaultSender,
 	getEnabledMailAddressesWithUser,
 	getFolder,
 	getFolderName,
 	getMailboxName,
 	isExcludedMailAddress,
-	isTutanotaTeamMail
+	isTutanotaTeamMail,
+	loadMailDetails,
+	loadMailHeaders
 } from "../model/MailUtils"
 import {LoginController} from "../../api/main/LoginController"
 import m from "mithril"
@@ -54,7 +54,6 @@ import {getReferencedAttachments, loadInlineImages, moveMails, revokeInlineImage
 import {locator} from "../../api/main/MainLocator"
 import {SanitizedFragment} from "../../misc/HtmlSanitizer"
 import {CALENDAR_MIME_TYPE, FileController} from "../../file/FileController"
-import {getMailBodyText, getMailHeaders} from "../../api/common/utils/Utils"
 import {exportMails} from "../export/Exporter.js"
 import {FileFacade} from "../../api/worker/facades/FileFacade"
 import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
@@ -72,6 +71,7 @@ import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {InitAsResponseArgs} from "../editor/SendMailModel"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 import {DesktopSystemFacade} from "../../native/common/generatedipc/DesktopSystemFacade.js"
+import {isLegacyMail, MailWrapper} from "../../api/common/MailWrapper.js"
 
 
 export const enum ContentBlockingStatus {
@@ -83,7 +83,7 @@ export const enum ContentBlockingStatus {
 }
 
 export class MailViewerViewModel {
-	private mailBody: MailBody | null = null
+	private mailWrapper: MailWrapper | null = null
 	private contrastFixNeeded: boolean = false
 
 	// always sanitized in this.sanitizeMailBody
@@ -163,12 +163,18 @@ export class MailViewerViewModel {
 		// other one
 		const mailboxDetails = await this.mailModel.getMailboxDetailsForMail(this.mail)
 		const enabledMailAddresses = new Set(getEnabledMailAddressesWithUser(mailboxDetails, this.logins.getUserController().userGroupInfo))
-		this.relevantRecipient = this.mail.toRecipients.find(r => enabledMailAddresses.has(r.address))
-			?? this.mail.ccRecipients.find(r => enabledMailAddresses.has(r.address))
-			?? this.mail.bccRecipients.find(r => enabledMailAddresses.has(r.address))
-			?? first(this.mail.toRecipients)
-			?? first(this.mail.ccRecipients)
-			?? first(this.mail.bccRecipients)
+		await this.loadAll()
+		const mailWrapper = this.mailWrapper
+		if (mailWrapper == null) {
+			// we could not load the mail body for some reason
+			return
+		}
+		this.relevantRecipient = mailWrapper.getToRecipients().find(r => enabledMailAddresses.has(r.address))
+			?? mailWrapper.getCcRecipients().find(r => enabledMailAddresses.has(r.address))
+			?? mailWrapper.getBccRecipients().find(r => enabledMailAddresses.has(r.address))
+			?? first(mailWrapper.getToRecipients())
+			?? first(mailWrapper.getCcRecipients())
+			?? first(mailWrapper.getBccRecipients())
 		m.redraw()
 	}
 
@@ -197,7 +203,7 @@ export class MailViewerViewModel {
 		try {
 			await this.loadingState.trackPromise(
 				this.loadMailBody(this.mail)
-					.then((inlineImageCids) => this.loadAttachments(this.mail, inlineImageCids))
+					.then((inlineImageCids) => this.loadAttachments(this.mailWrapper, inlineImageCids))
 			)
 
 			if (notify) this.loadCompleteNotification(null)
@@ -287,27 +293,36 @@ export class MailViewerViewModel {
 	}
 
 	getMailBody(): string {
-		if (this.mailBody) {
-			return getMailBodyText(this.mailBody)
+		if (this.mailWrapper) {
+			return this.mailWrapper.getMailBodyText()
 		} else {
 			return ""
 		}
 	}
 
-	getSentDate(): Date {
-		return this.mail.sentDate
+	getDate(): Date {
+		return this.mail.receivedDate
 	}
 
 	getToRecipients(): Array<MailAddress> {
-		return this.mail.toRecipients
+		if (this.mailWrapper === null) {
+			return []
+		}
+		return this.mailWrapper.getToRecipients()
 	}
 
 	getCcRecipients(): Array<MailAddress> {
-		return this.mail.ccRecipients
+		if (this.mailWrapper === null) {
+			return []
+		}
+		return this.mailWrapper.getCcRecipients()
 	}
 
 	getBccRecipients(): Array<MailAddress> {
-		return this.mail.bccRecipients
+		if (this.mailWrapper === null) {
+			return []
+		}
+		return this.mailWrapper.getBccRecipients()
 	}
 
 	/** Get the recipient which is relevant the most for the current mailboxes. */
@@ -315,8 +330,19 @@ export class MailViewerViewModel {
 		return this.relevantRecipient
 	}
 
+	getNumberOfRecipients(): number {
+		if (isLegacyMail(this.mail)) {
+			return this.mail.toRecipients.length + this.mail.ccRecipients.length + this.mail.bccRecipients.length
+		} else {
+			return filterInt(this.mail.recipientCount)
+		}
+	}
+
 	getReplyTos(): Array<EncryptedMailAddress> {
-		return this.mail.replyTos
+		if (this.mailWrapper === null) {
+			return []
+		}
+		return this.mailWrapper.getReplyTos()
 	}
 
 	getSender(): MailAddress {
@@ -344,7 +370,16 @@ export class MailViewerViewModel {
 	}
 
 	didErrorsOccur(): boolean {
-		return this.errorOccurred || typeof this.mail._errors !== 'undefined' || (this.mailBody != null && typeof this.mailBody._errors !== 'undefined')
+		let bodyErrors = false
+		if (this.mailWrapper) {
+			const mailWrapper = this.mailWrapper
+			if (mailWrapper.isLegacy()) {
+				bodyErrors = (typeof mailWrapper.getBody()._errors !== 'undefined')
+			} else {
+				bodyErrors = (typeof downcast(mailWrapper.getDetails().body)._errors !== 'undefined') // FIXME we actually write _errors on aggregates in InstanceMap but don't generate the field
+			}
+		}
+		return this.errorOccurred || typeof this.mail._errors !== 'undefined' || bodyErrors
 	}
 
 	isTutanotaTeamMail(): boolean {
@@ -469,14 +504,13 @@ export class MailViewerViewModel {
 	}
 
 	async getHeaders(): Promise<string | null> {
-		if (!this.mail.headers) {
-			return null
-		}
+		// make sure that the wrapper is loaded
+		const wrapper = await this.loadMailWrapper()
+		return loadMailHeaders(this.entityClient, wrapper)
+	}
 
-		return this.entityClient
-				   .load(MailHeadersTypeRef, this.mail.headers)
-				   .then(headers => getMailHeaders(headers) ?? null)
-				   .catch(ofClass(NotFoundError, () => null))
+	private loadMailWrapper() {
+		return loadMailDetails(this.entityClient, this.mail)
 	}
 
 	isUnread(): boolean {
@@ -548,7 +582,7 @@ export class MailViewerViewModel {
 		}
 
 		try {
-			this.mailBody = await this.entityClient.load(MailBodyTypeRef, mail.body)
+			this.mailWrapper = await this.loadMailWrapper()
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				console.log("could load mail body as it has been moved/deleted already", e)
@@ -591,18 +625,20 @@ export class MailViewerViewModel {
 		return this.sanitizeResult.inlineImageCids
 	}
 
-	private async loadAttachments(mail: Mail, inlineCids: string[]) {
-		if (mail.attachments.length === 0) {
+	private async loadAttachments(mailWrapper: MailWrapper | null, inlineCids: string[]): Promise<void> {
+		if (mailWrapper == null || getAttachmentCount(mailWrapper.getMail()) === 0) {
 			this.loadingAttachments = false
+			m.redraw()
 		} else {
 			this.loadingAttachments = true
-			const attachmentsListId = listIdPart(mail.attachments[0])
-			const attachmentElementIds = mail.attachments.map(attachment => elementIdPart(attachment))
+			const attachmentIds = mailWrapper.getAttachmentIds()
+			const attachmentsListId = listIdPart(attachmentIds[0])
+			const attachmentElementIds = attachmentIds.map(attachment => elementIdPart(attachment))
 
 			try {
 				const files = await this.entityClient.loadMultiple(FileTypeRef, attachmentsListId, attachmentElementIds)
 
-				this.handleCalendarFile(files, mail)
+				this.handleCalendarFile(files, mailWrapper.getMail())
 
 				this.attachments = files
 				this.loadingAttachments = false
@@ -674,12 +710,13 @@ export class MailViewerViewModel {
 	}
 
 	private getSenderOfResponseMail(): Promise<string> {
-		return this.mailModel.getMailboxDetailsForMail(this.mail).then(mailboxDetails => {
+		return this.mailModel.getMailboxDetailsForMail(this.mail).then(async mailboxDetails => {
 			const myMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, this.logins.getUserController().userGroupInfo)
 			const addressesInMail: MailAddress[] = []
-			addAll(addressesInMail, this.mail.toRecipients)
-			addAll(addressesInMail, this.mail.ccRecipients)
-			addAll(addressesInMail, this.mail.bccRecipients)
+			const mailWrapper = await this.loadMailWrapper()
+			addressesInMail.push(...mailWrapper.getToRecipients())
+			addressesInMail.push(...mailWrapper.getCcRecipients())
+			addressesInMail.push(...mailWrapper.getBccRecipients())
 			addressesInMail.push(this.mail.sender)
 			const foundAddress = addressesInMail.find(address => contains(myMailAddresses, address.address.toLowerCase()))
 			if (foundAddress) {
@@ -705,7 +742,7 @@ export class MailViewerViewModel {
 
 
 	private async createResponseMailArgsForForwarding(recipients: MailAddress[], replyTos: EncryptedMailAddress[], addSignature: boolean): Promise<InitAsResponseArgs> {
-		let infoLine = lang.get("date_label") + ": " + formatDateTime(this.mail.sentDate) + "<br>"
+		let infoLine = lang.get("date_label") + ": " + formatDateTime(this.mail.receivedDate) + "<br>"
 		infoLine += lang.get("from_label") + ": " + this.getSender().address + "<br>"
 
 		if (this.getToRecipients().length > 0
@@ -748,7 +785,7 @@ export class MailViewerViewModel {
 			let prefix = "Re: "
 			const mailSubject = this.getSubject()
 			let subject = mailSubject ? (startsWith(mailSubject.toUpperCase(), prefix.toUpperCase()) ? mailSubject : prefix + mailSubject) : ""
-			let infoLine = formatDateTime(this.getSentDate()) + " " + lang.get("by_label") + " " + this.getSender().address + ":"
+			let infoLine = formatDateTime(this.getDate()) + " " + lang.get("by_label") + " " + this.getSender().address + ":"
 			let body = infoLine + '<br><blockquote class="tutanota_quote">' + this.getMailBody() + "</blockquote>"
 			let toRecipients: MailAddress[] = []
 			let ccRecipients: MailAddress[] = []

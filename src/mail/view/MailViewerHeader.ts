@@ -718,11 +718,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	getRecipientEmailAddress({viewModel}: MailViewerHeaderAttrs) {
-		const {mail} = viewModel
 		const relevantRecipient = viewModel.getRelevantRecipient()
 
 		if (relevantRecipient) {
-			const numberOfAllRecipients = mail.toRecipients.length + mail.ccRecipients.length + mail.bccRecipients.length
+			const numberOfAllRecipients = viewModel.getNumberOfRecipients()
 			return m(".flex.click.small.ml-between-s.items-center", {
 				style: {
 					// use this to allow the container to shrink, otherwise it doesn't want to cut the recipient address

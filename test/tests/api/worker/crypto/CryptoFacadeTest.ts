@@ -598,7 +598,7 @@ o.spec("crypto facade", function () {
 		return instanceMapper.decryptAndMapToInstance<Mail>(MailTypeModel, mail, sk).then(decrypted => {
 			o(isSameTypeRef(decrypted._type, MailTypeRef)).equals(true)
 			o(decrypted.receivedDate.getTime()).equals(1470039025474)
-			o(decrypted.sentDate.getTime()).equals(1470039021474)
+			o(neverNull(decrypted.sentDate).getTime()).equals(1470039021474)
 			o(decrypted.confidential).equals(confidential)
 			o(decrypted.subject).equals(subject)
 			o(decrypted.replyType).equals("0")

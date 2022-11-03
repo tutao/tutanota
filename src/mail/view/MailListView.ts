@@ -6,14 +6,7 @@ import {MailFolderType, MailState} from "../../api/common/TutanotaConstants"
 import type {MailView} from "./MailView"
 import type {Mail, MailFolder} from "../../api/entities/tutanota/TypeRefs.js"
 import {MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {
-	canDoDragAndDropExport,
-	emptyOrContainsDraftsAndNonDrafts,
-	getArchiveFolder,
-	getDraftFolder,
-	getFolderName,
-	getInboxFolder
-} from "../model/MailUtils"
+import {canDoDragAndDropExport, getArchiveFolder, getDraftFolder, getFolderName, getInboxFolder} from "../model/MailUtils"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {size} from "../../gui/size"
 import {styles} from "../../gui/styles"
@@ -119,11 +112,10 @@ export class MailListView implements Component {
 					swipeRight: (listElement: Mail) => {
 						if (!logins.isInternalUserLoggedIn()) {
 							return Promise.resolve(false) // externals don't have an archive folder
-						}
-						else if(this.showingDraftFolder()) { // just cancel selection if in drafts
+						} else if (this.showingDraftFolder()) { // just cancel selection if in drafts
 							this.list.selectNone()
 							return Promise.resolve(false)
-						} else if(this.showingTrashOrSpamFolder()) { // recover email from trash/spam
+						} else if (this.showingTrashOrSpamFolder()) { // recover email from trash/spam
 							this.list.selectNone()
 							return locator.mailModel
 										  .getMailboxFolders(listElement)
@@ -157,8 +149,7 @@ export class MailListView implements Component {
 	private getRecoverFolder(mail: Mail, folders: MailFolder[]) {
 		if (mail.state === MailState.DRAFT) {
 			return getDraftFolder(folders)
-		}
-		else {
+		} else {
 			return getInboxFolder(folders)
 		}
 	}
@@ -235,7 +226,7 @@ export class MailListView implements Component {
 		const handleNotDownloaded = (mail: Mail) => {
 			notDownloaded.push({
 				mail,
-				fileName: generateExportFileName(mail.subject, mail.sentDate, exportMode),
+				fileName: generateExportFileName(mail.subject, mail.receivedDate, exportMode),
 			})
 		}
 

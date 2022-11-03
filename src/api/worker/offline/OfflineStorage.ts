@@ -11,13 +11,21 @@ import {
 import {CacheStorage, expandId, ExposedCacheStorage, LastUpdateTime} from "../rest/DefaultEntityRestCache.js"
 import * as cborg from "cborg"
 import {EncodeOptions, Token, Type} from "cborg"
-import {assert, assertNotNull, DAY_IN_MILLIS, getTypeId, groupByAndMap, groupByAndMapUniquely, mapNullable, TypeRef} from "@tutao/tutanota-utils"
+import {assert, assertNotNull, DAY_IN_MILLIS, getTypeId, groupByAndMap, groupByAndMapUniquely, mapNullable, neverNull, TypeRef} from "@tutao/tutanota-utils"
 import {isDesktop, isOfflineStorageAvailable, isTest} from "../../common/Env.js"
 import {modelInfos} from "../../common/EntityFunctions.js"
 import {AccountType, MailFolderType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS} from "../../common/TutanotaConstants.js"
 import {DateProvider} from "../../common/DateProvider.js"
 import {TokenOrNestedTokens} from "cborg/types/interface"
-import {CalendarEventTypeRef, FileTypeRef, MailBodyTypeRef, MailFolderTypeRef, MailHeadersTypeRef, MailTypeRef} from "../../entities/tutanota/TypeRefs.js"
+import {
+	CalendarEventTypeRef,
+	FileTypeRef,
+	MailBodyTypeRef,
+	MailDetailsTypeRef,
+	MailFolderTypeRef,
+	MailHeadersTypeRef,
+	MailTypeRef
+} from "../../entities/tutanota/TypeRefs.js"
 import {UserTypeRef} from "../../entities/sys/TypeRefs.js"
 import {OfflineStorageMigrator} from "./OfflineStorageMigrator.js"
 import {CustomCacheHandlerMap, CustomCalendarEventCacheHandler} from "../rest/CustomCacheHandler.js"
@@ -25,6 +33,7 @@ import {EntityRestClient} from "../rest/EntityRestClient.js"
 import {InterWindowEventFacadeSendDispatcher} from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import {SqlCipherFacade} from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import {SqlValue, TaggedSqlValue, tagSqlValue, untagSqlObject} from "./SqlValue.js"
+import {isLegacyMail} from "../../common/MailWrapper.js"
 
 function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNestedTokens | null {
 	const time = data.getTime()
@@ -391,23 +400,36 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		const headersToDelete: Id[] = []
 		const attachmentsTodelete: IdTuple[] = []
 		const mailbodiesToDelete: Id[] = []
+		const mailDetailsToDelete: IdTuple[] = []
 
 		const mails = await this.getWholeList(MailTypeRef, listId)
 		for (let mail of mails) {
 			if (firstBiggerThanSecond(cutoffId, getElementId(mail))) {
 				mailsToDelete.push(mail._id)
-				mailbodiesToDelete.push(mail.body)
-
+				if (isLegacyMail(mail)) {
+					mailbodiesToDelete.push(assertNotNull(mail.body))
+					for (const id of mail.attachments) {
+						attachmentsTodelete.push(id)
+					}
+				} else {
+					const mailDetailsId = assertNotNull(mail.mailDetails)
+					mailDetailsToDelete.push(mailDetailsId);
+					const mailDetails = await this.get(MailDetailsTypeRef, mailDetailsId[0], mailDetailsId[1])
+					if (mailDetails) {
+						for (const id of mailDetails.attachments) {
+							attachmentsTodelete.push(id)
+						}
+					}
+				}
 				if (mail.headers) {
 					headersToDelete.push(mail.headers)
-				}
-
-				for (const id of mail.attachments) {
-					attachmentsTodelete.push(id)
 				}
 			}
 		}
 		await this.deleteIn(MailBodyTypeRef, null, mailbodiesToDelete)
+		for (let [listId, elementIds] of groupByAndMap(mailDetailsToDelete, listIdPart, elementIdPart).entries()) {
+			await this.deleteIn(MailDetailsTypeRef, listId, elementIds)
+		}
 		await this.deleteIn(MailHeadersTypeRef, null, headersToDelete)
 		for (let [listId, elementIds] of groupByAndMap(attachmentsTodelete, listIdPart, elementIdPart).entries()) {
 			await this.deleteIn(FileTypeRef, listId, elementIds)

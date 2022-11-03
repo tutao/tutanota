@@ -2,7 +2,7 @@ import {getMailFolderType, MailFolderType, ReplyType} from "../../api/common/Tut
 import {FontIcons} from "../../gui/base/icons/FontIcons"
 import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {formatDateTimeFromYesterdayOn} from "../../misc/Formatter"
-import {getSenderOrRecipientHeading, isTutanotaTeamMail} from "../model/MailUtils"
+import {getAttachmentCount, getSenderOrRecipientHeading, isTutanotaTeamMail} from "../model/MailUtils"
 import {locator} from "../../api/main/MainLocator"
 import m, {Children} from "mithril"
 import Badge from "../../gui/base/Badge"
@@ -106,7 +106,7 @@ export class MailRow implements VirtualRow<Mail> {
 			iconText += FontIcons.Confidential
 		}
 
-		if (mail.attachments.length > 0) {
+		if (getAttachmentCount(mail) > 0) {
 			iconText += FontIcons.Attach
 		}
 

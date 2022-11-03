@@ -7,18 +7,14 @@ import {isEmpty, isSameTypeRef, TypeRef} from "@tutao/tutanota-utils"
 import {logins} from "../api/main/LoginController"
 import {FULL_INDEXED_TIMESTAMP} from "../api/common/TutanotaConstants"
 import {formatDate, formatDateTimeFromYesterdayOn, formatDateWithMonth} from "../misc/Formatter"
-import type {Mail} from "../api/entities/tutanota/TypeRefs.js"
-import {MailTypeRef} from "../api/entities/tutanota/TypeRefs.js"
-import {getSenderOrRecipientHeading, isTutanotaTeamMail} from "../mail/model/MailUtils"
+import type {Contact, Mail} from "../api/entities/tutanota/TypeRefs.js"
+import {ContactTypeRef, MailTypeRef} from "../api/entities/tutanota/TypeRefs.js"
+import {getAttachmentCount, getSenderOrRecipientHeading, isTutanotaTeamMail} from "../mail/model/MailUtils"
 import Badge from "../gui/base/Badge"
 import {Icon} from "../gui/base/Icon"
-import type {Contact} from "../api/entities/tutanota/TypeRefs.js"
-import {ContactTypeRef} from "../api/entities/tutanota/TypeRefs.js"
-import type {GroupInfo} from "../api/entities/sys/TypeRefs.js"
-import {GroupInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
+import type {GroupInfo, WhitelabelChild} from "../api/entities/sys/TypeRefs.js"
+import {GroupInfoTypeRef, WhitelabelChildTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {BootIcons} from "../gui/base/icons/BootIcons"
-import type {WhitelabelChild} from "../api/entities/sys/TypeRefs.js"
-import {WhitelabelChildTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {client} from "../misc/ClientDetector"
 import m, {Children, Component, Vnode} from "mithril"
 import {theme} from "../gui/theme"
@@ -228,7 +224,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 								icon: Icons.Attachment,
 								class: state.selected === result ? "svg-content-accent-fg" : "svg-content-fg",
 								style: {
-									display: mail.attachments.length > 0 ? "" : "none",
+									display: getAttachmentCount(mail) > 0 ? "" : "none",
 								},
 							}),
 						],
@@ -292,4 +288,5 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 			return []
 		}
 	}
+
 }

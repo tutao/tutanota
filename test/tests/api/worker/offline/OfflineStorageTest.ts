@@ -10,11 +10,13 @@ import {
 	createFile,
 	createMail,
 	createMailBody,
+	createMailDetails,
 	createMailFolder,
 	FileTypeRef,
 	Mail,
 	MailBody,
 	MailBodyTypeRef,
+	MailDetailsTypeRef,
 	MailFolderTypeRef,
 	MailTypeRef
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
@@ -130,16 +132,20 @@ o.spec("OfflineStorage", function () {
 
 				const upper = offsetId(-1)
 				const lower = offsetId(-2)
+				const mailDetailsId: IdTuple = ["mailDetailsList", "mailDetailsId"]
 				await insertEntity(createMailFolder({_id: ["mailFolderList", "mailFolderId"], mails: listId}))
-				await insertEntity(createMail({_id: [listId, "anything"]}))
+				await insertEntity(createMailDetails({_id: mailDetailsId}))
+				await insertEntity(createMail({_id: [listId, "anything"], mailDetails: mailDetailsId}))
 				await insertRange(MailTypeRef, listId, lower, upper)
 				await storage.deinit()
 
 				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
 				const allRanges = await dbFacade.all("SELECT * FROM ranges", [])
 				o(allRanges).deepEquals([])
-				const allEntities = await getAllIdsForType(MailTypeRef)
-				o(allEntities).deepEquals([])
+				const allMails = await getAllIdsForType(MailTypeRef)
+				o(allMails).deepEquals([])
+				const allDetails = await getAllIdsForType(MailDetailsTypeRef)
+				o(allDetails).deepEquals([])
 			})
 
 			o("modified ranges will be shrunk", async function () {
@@ -189,7 +195,7 @@ o.spec("OfflineStorage", function () {
 				o(allMailIds).deepEquals([getElementId(mail)])
 			})
 
-			o("trash and spam is cleared", async function () {
+			o("legacy trash and spam is cleared", async function () {
 				const spamFolderId = "spamFolder"
 				const trashFolderId = "trashFolder"
 				const spamListId = "spamList"
@@ -219,6 +225,39 @@ o.spec("OfflineStorage", function () {
 				o(await getAllIdsForType(MailFolderTypeRef)).deepEquals([spamFolderId, trashFolderId])
 				o(await getAllIdsForType(MailTypeRef)).deepEquals([])
 				o(await getAllIdsForType(MailBodyTypeRef)).deepEquals([])
+			})
+
+			o("trash and spam is cleared", async function () {
+				const spamFolderId = "spamFolder"
+				const trashFolderId = "trashFolder"
+				const spamListId = "spamList"
+				const trashListId = "trashList"
+				const spamDetailsId: IdTuple = ["detailsListId", "spamDetailsId"]
+				const trashDetailsId: IdTuple = ["detailsListId", "trashDetailsId"]
+
+				const spamMailId = offsetId(2)
+				const trashMailId = offsetId(2)
+				const spamMail = createMail({_id: [spamListId, spamMailId], mailDetails: spamDetailsId})
+				const trashMail = createMail({_id: [trashListId, trashMailId], mailDetails: trashDetailsId})
+
+
+				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
+
+				await insertEntity(createMailFolder({_id: ["mailFolderList", spamFolderId], mails: spamListId, folderType: MailFolderType.SPAM}))
+				await insertEntity(createMailFolder({_id: ["mailFolderList", trashFolderId], mails: trashListId, folderType: MailFolderType.TRASH}))
+				await insertEntity(spamMail)
+				await insertEntity(trashMail)
+				await insertEntity(createMailDetails({_id: spamDetailsId}))
+				await insertEntity(createMailDetails({_id: trashDetailsId}))
+
+				await storage.deinit()
+				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
+				const allEntities = await dbFacade.all("select * from list_entities", [])
+				o(allEntities.map(r => r.elementId.value)).deepEquals([spamFolderId, trashFolderId])
+
+				o(await getAllIdsForType(MailFolderTypeRef)).deepEquals([spamFolderId, trashFolderId])
+				o(await getAllIdsForType(MailTypeRef)).deepEquals([])
+				o(await getAllIdsForType(MailDetailsTypeRef)).deepEquals([])
 			})
 
 			o("normal folder is partially cleared", async function () {

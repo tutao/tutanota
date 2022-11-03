@@ -76,6 +76,7 @@ import {BootIcons} from "../../gui/base/icons/BootIcons.js"
 import {ButtonSize} from "../../gui/base/ButtonSize.js"
 import {DialogInjectionRightAttrs} from "../../gui/base/DialogInjectionRight.js"
 import {KnowledgebaseDialogContentAttrs} from "../../knowledgebase/view/KnowledgeBaseDialogContent.js"
+import {MailWrapper} from "../../api/common/MailWrapper.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -951,16 +952,15 @@ export async function newMailEditorAsResponse(
 }
 
 export async function newMailEditorFromDraft(
-	draft: Mail,
-	attachments: Array<TutanotaFile>,
-	bodyText: string,
+	attachments: Array<File>,
+	mailWrapper: MailWrapper,
 	blockExternalContent: boolean,
 	inlineImages: InlineImages,
 	mailboxDetails?: MailboxDetail,
 ): Promise<Dialog> {
 	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
 	const model = defaultSendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
-	await model.initWithDraft(draft, attachments, bodyText, inlineImages)
+	await model.initWithDraft(attachments, mailWrapper, inlineImages)
 	return createMailEditorDialog(model, blockExternalContent)
 }
 
