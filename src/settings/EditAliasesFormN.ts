@@ -4,15 +4,13 @@ import type {TableAttrs, TableLineAttrs} from "../gui/base/Table.js"
 import {ColumnWidth, Table} from "../gui/base/Table.js"
 import {lang, TranslationKey} from "../misc/LanguageViewModel"
 import {InvalidDataError, LimitReachedError, PreconditionFailedError} from "../api/common/error/RestError"
-import {firstThrow, noOp, ofClass} from "@tutao/tutanota-utils"
+import {firstThrow, ofClass} from "@tutao/tutanota-utils"
 import {SelectMailAddressForm} from "./SelectMailAddressForm"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import * as EmailAliasOptionsDialog from "../subscription/EmailAliasOptionsDialog"
 import {getAvailableDomains} from "./AddUserDialog"
-import type {ButtonAttrs} from "../gui/base/Button.js"
-import {ButtonType} from "../gui/base/Button.js"
 import stream from "mithril/stream"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {attachDropdown} from "../gui/base/Dropdown.js"
@@ -24,12 +22,14 @@ import {assertMainOrNode} from "../api/common/Env"
 import {isTutanotaMailAddress} from "../mail/model/MailUtils.js";
 import {IconButtonAttrs} from "../gui/base/IconButton.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js";
+import {createMailAddressProperties, MailboxProperties} from "../api/entities/tutanota/TypeRefs.js"
 
 assertMainOrNode()
 const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
 export type EditAliasesFormAttrs = {
 	userGroupInfo: GroupInfo
 	aliasCount: AliasCount
+	mailboxProperties: MailboxProperties
 }
 type AliasCount = {
 	availableToCreate: number
@@ -164,6 +164,11 @@ export function getAliasLineAttrs(editAliasAttrs: EditAliasesFormAttrs): Array<T
 									 width: 250,
 									 childAttrs: () => [
 										 {
+											 // FIXME
+											 label: () => "Set name",
+											 click: () => showSenderNameChangeDialog(alias, editAliasAttrs.mailboxProperties)
+										 },
+										 {
 											 label: "activate_action",
 											 click: () => {
 												 if (!alias.enabled) {
@@ -184,8 +189,12 @@ export function getAliasLineAttrs(editAliasAttrs: EditAliasesFormAttrs): Array<T
 									 ],
 								 },
 							 )
+							 const name = editAliasAttrs.mailboxProperties.mailAddressProperties.find((a) => a.mailAddress === alias.mailAddress)?.senderName
 							 return {
-								 cells: [alias.mailAddress, alias.enabled ? lang.get("activated_label") : lang.get("deactivated_label")],
+								 cells: () => [
+									 {main: alias.mailAddress, info: [name ?? ""]},
+									 {main: alias.enabled ? lang.get("activated_label") : lang.get("deactivated_label")},
+								 ],
 								 actionButtonAttrs: actionButtonAttrs,
 							 }
 						 })
@@ -219,6 +228,28 @@ function switchAliasStatus(alias: MailAddressAlias, editAliasAttrs: EditAliasesF
 	})
 }
 
+function showSenderNameChangeDialog(alias: MailAddressAlias, mailboxProperties: MailboxProperties) {
+	const currentName = mailboxProperties.mailAddressProperties.find((p) => p.mailAddress === alias.mailAddress)?.senderName
+	// FIXME translate
+	Dialog.showTextInputDialog(
+		() => "Sender name",
+		// FIXME
+		"name_label",
+		() => alias.mailAddress,
+		currentName ?? ""
+	).then((newName) => showProgressDialog("pleaseWait_msg", setAliasName(alias, mailboxProperties, newName)))
+}
+
+async function setAliasName(alias: MailAddressAlias, mailboxProperties: MailboxProperties, senderName: string) {
+	let aliasConfig = mailboxProperties.mailAddressProperties.find((p) => p.mailAddress === alias.mailAddress)
+	if (aliasConfig == null) {
+		aliasConfig = createMailAddressProperties({mailAddress: alias.mailAddress})
+		mailboxProperties.mailAddressProperties.push(aliasConfig)
+	}
+	aliasConfig.senderName = senderName
+	await locator.entityClient.update(mailboxProperties)
+}
+
 export function addAlias(aliasFormAttrs: EditAliasesFormAttrs, alias: string): Promise<void> {
 	return showProgressDialog("pleaseWait_msg", locator.mailAddressFacade.addMailAlias(aliasFormAttrs.userGroupInfo.group, alias))
 		.catch(ofClass(InvalidDataError, () => Dialog.message("mailAddressNA_msg")))
@@ -250,9 +281,10 @@ export function updateNbrOfAliases(attrs: EditAliasesFormAttrs): Promise<AliasCo
 	})
 }
 
-export function createEditAliasFormAttrs(userGroupInfo: GroupInfo): EditAliasesFormAttrs {
+export function createEditAliasFormAttrs(userGroupInfo: GroupInfo, mailboxProperties: MailboxProperties): EditAliasesFormAttrs {
 	return {
-		userGroupInfo: userGroupInfo,
+		userGroupInfo,
+		mailboxProperties,
 		aliasCount: {
 			availableToEnable: 0,
 			availableToCreate: 0,
