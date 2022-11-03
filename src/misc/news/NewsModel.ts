@@ -14,7 +14,7 @@ export class NewsModel {
 
 	constructor(
 		private readonly serviceExecutor: IServiceExecutor,
-		private readonly newsListItemFactory: (name: string) => NewsListItem | null,
+		private readonly newsListItemFactory: (name: string) => Promise<NewsListItem | null>,
 	) {
 	}
 
@@ -29,10 +29,9 @@ export class NewsModel {
 
 		for (const newsItemId of response.newsItemIds) {
 			const newsItemName = newsItemId.newsItemName
-			const newsListItem = this.newsListItemFactory(newsItemName)
+			const newsListItem = await this.newsListItemFactory(newsItemName)
 
 			if (!!newsListItem && newsListItem.isShown()) {
-				console.log(newsListItem)
 				this.liveNewsIds.push(newsItemId)
 				this.liveNewsListItems[newsItemName] = newsListItem
 			}
@@ -48,7 +47,7 @@ export class NewsModel {
 		const data = createNewsIn({newsItemId})
 
 		try {
-			await this.serviceExecutor.post(NewsService, data)
+			await this.serviceExecutor.post(NewsService, data).then(() => this.loadNewsIds())
 			return true
 		} catch (e) {
 			if (e instanceof NotFoundError) {

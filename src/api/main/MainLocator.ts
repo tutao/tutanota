@@ -70,7 +70,6 @@ import {InterWindowEventFacade} from "../../native/common/generatedipc/InterWind
 import {InterWindowEventFacadeSendDispatcher} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import {SqlCipherFacade} from "../../native/common/generatedipc/SqlCipherFacade.js"
 import {NewsModel} from "../../misc/news/NewsModel.js"
-import {UsageOptInNews} from "../../misc/news/items/UsageOptInNews.js"
 
 assertMainOrNode()
 
@@ -368,10 +367,12 @@ class MainLocator implements IMainLocator {
 		this.newsModel = new NewsModel(this.serviceExecutor, (name: string) => {
 			switch (name) {
 				case "usageOptIn":
-					return new UsageOptInNews(this.newsModel, this.usageTestModel)
+					return import("../../misc/news/items/UsageOptInNews.js").then(module => {
+						return new module.UsageOptInNews(this.newsModel, this.usageTestModel)
+					})
 				default:
 					console.log(`No implementation for news named '${name}'`)
-					return null
+					return Promise.resolve(null)
 			}
 		})
 
