@@ -67,7 +67,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				m(".plr-l", this.renderAttachments(viewModel)),
 				this.renderConnectionLostBanner(viewModel),
 				this.renderEventBanner(viewModel),
-				m(".plr-l", this.renderBanners(attrs)),
+				this.renderBanners(attrs),
 				m("", this.renderSubject(viewModel)),
 			])
 		} else {
@@ -81,7 +81,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				m(".plr-l", this.renderAttachments(viewModel)),
 				this.renderConnectionLostBanner(viewModel),
 				this.renderEventBanner(viewModel),
-				m(".plr-l", this.renderBanners(attrs)),
+				this.renderBanners(attrs)
 			])
 		}
 	}
@@ -165,7 +165,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		return [
 			this.renderPhishingWarning(viewModel) || this.renderHardAuthenticationFailWarning(viewModel) || this.renderSoftAuthenticationFailWarning(viewModel),
 			this.renderExternalContentBanner(attrs),
-			m("hr.hr.mt-xs"),
+			m("hr.hr.mt-xs.mlr-l"),
 		].filter(Boolean)
 	}
 
