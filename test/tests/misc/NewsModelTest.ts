@@ -26,7 +26,7 @@ o.spec("NewsModel", function () {
 	o.beforeEach(function () {
 		serviceExecutor = object()
 
-		newsModel = new NewsModel(serviceExecutor, name => new DummyNews())
+		newsModel = new NewsModel(serviceExecutor, async () => new DummyNews())
 
 		newsIds = [
 			createNewsId({

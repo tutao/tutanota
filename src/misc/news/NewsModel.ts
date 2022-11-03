@@ -47,7 +47,8 @@ export class NewsModel {
 		const data = createNewsIn({newsItemId})
 
 		try {
-			await this.serviceExecutor.post(NewsService, data).then(() => this.loadNewsIds())
+			await this.serviceExecutor.post(NewsService, data)
+			await this.loadNewsIds()
 			return true
 		} catch (e) {
 			if (e instanceof NotFoundError) {

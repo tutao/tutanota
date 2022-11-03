@@ -364,15 +364,14 @@ class MainLocator implements IMainLocator {
 			this.eventController,
 		)
 
-		this.newsModel = new NewsModel(this.serviceExecutor, (name: string) => {
+		this.newsModel = new NewsModel(this.serviceExecutor, async (name: string) => {
 			switch (name) {
 				case "usageOptIn":
-					return import("../../misc/news/items/UsageOptInNews.js").then(module => {
-						return new module.UsageOptInNews(this.newsModel, this.usageTestModel)
-					})
+					const {UsageOptInNews} = await import("../../misc/news/items/UsageOptInNews.js")
+					return new UsageOptInNews(this.newsModel, this.usageTestModel)
 				default:
 					console.log(`No implementation for news named '${name}'`)
-					return Promise.resolve(null)
+					return null
 			}
 		})
 
