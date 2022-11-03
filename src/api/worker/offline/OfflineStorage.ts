@@ -13,11 +13,20 @@ import * as cborg from "cborg"
 import { EncodeOptions, Token, Type } from "cborg"
 import { assert, assertNotNull, DAY_IN_MILLIS, getTypeId, groupByAndMap, groupByAndMapUniquely, mapNullable, TypeRef } from "@tutao/tutanota-utils"
 import { isDesktop, isOfflineStorageAvailable, isTest } from "../../common/Env.js"
-import { modelInfos } from "../../common/EntityFunctions.js"
+import { modelInfos, resolveTypeReference } from "../../common/EntityFunctions.js"
 import { AccountType, MailFolderType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../common/TutanotaConstants.js"
 import { DateProvider } from "../../common/DateProvider.js"
 import { TokenOrNestedTokens } from "cborg/types/interface"
-import { CalendarEventTypeRef, FileTypeRef, MailBodyTypeRef, MailFolderTypeRef, MailHeadersTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import {
+	CalendarEventTypeRef,
+	FileTypeRef,
+	MailBodyTypeRef,
+	MailDetailsBlobTypeRef,
+	MailDetailsDraftTypeRef,
+	MailFolderTypeRef,
+	MailHeadersTypeRef,
+	MailTypeRef,
+} from "../../entities/tutanota/TypeRefs.js"
 import { UserTypeRef } from "../../entities/sys/TypeRefs.js"
 import { OfflineStorageMigrator } from "./OfflineStorageMigrator.js"
 import { CustomCacheHandlerMap, CustomCalendarEventCacheHandler } from "../rest/CustomCacheHandler.js"
@@ -25,6 +34,8 @@ import { EntityRestClient } from "../rest/EntityRestClient.js"
 import { InterWindowEventFacadeSendDispatcher } from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import { SqlValue, TaggedSqlValue, tagSqlValue, untagSqlObject } from "./SqlValue.js"
+import { isDetailsDraft, isLegacyMail } from "../../common/MailWrapper.js"
+import { Type as TypeId } from "../../common/EntityConstants.js"
 
 function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNestedTokens | null {
 	const time = data.getTime()
@@ -76,6 +87,8 @@ const TableDefinitions = Object.freeze({
 	ranges: "type TEXT NOT NULL, listId TEXT NOT NULL, lower TEXT NOT NULL, upper TEXT NOT NULL, PRIMARY KEY (type, listId)",
 	lastUpdateBatchIdPerGroupId: "groupId TEXT NOT NULL, batchId TEXT NOT NULL, PRIMARY KEY (groupId)",
 	metadata: "key TEXT NOT NULL, value BLOB, PRIMARY KEY (key)",
+	blob_element_entities:
+		"type TEXT NOT NULL, listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, listId, elementId)",
 } as const)
 
 type Range = { lower: string; upper: string }
@@ -133,23 +146,40 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 
 	async deleteIfExists(typeRef: TypeRef<SomeEntity>, listId: Id | null, elementId: Id): Promise<void> {
 		const type = getTypeId(typeRef)
+		const typeModel = await resolveTypeReference(typeRef)
 		let preparedQuery
-		if (listId == null) {
-			preparedQuery = sql`DELETE FROM element_entities WHERE type = ${type} AND elementId = ${elementId}`
-		} else {
-			preparedQuery = sql`DELETE FROM list_entities WHERE type = ${type} AND listId = ${listId} AND elementId = ${elementId}`
+		switch (typeModel.type) {
+			case TypeId.Element.valueOf():
+				preparedQuery = sql`DELETE FROM element_entities WHERE type = ${type} AND elementId = ${elementId}`
+				break
+			case TypeId.ListElement.valueOf():
+				preparedQuery = sql`DELETE FROM list_entities WHERE type = ${type} AND listId = ${listId} AND elementId = ${elementId}`
+				break
+			case TypeId.BlobElement.valueOf():
+				preparedQuery = sql`DELETE FROM blob_element_entities WHERE type = ${type} AND listId = ${listId} AND elementId = ${elementId}`
+				break
+			default:
+				throw new Error("must be a persistent type")
 		}
 		await this.sqlCipherFacade.run(preparedQuery.query, preparedQuery.params)
 	}
 
 	async get<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<T | null> {
 		const type = getTypeId(typeRef)
-
+		const typeModel = await resolveTypeReference(typeRef)
 		let preparedQuery
-		if (listId == null) {
-			preparedQuery = sql`SELECT entity from element_entities WHERE type = ${type} AND elementId = ${elementId}`
-		} else {
-			preparedQuery = sql`SELECT entity from list_entities WHERE type = ${type} AND listId = ${listId} AND elementId = ${elementId}`
+		switch (typeModel.type) {
+			case TypeId.Element.valueOf():
+				preparedQuery = sql`SELECT entity from element_entities WHERE type = ${type} AND elementId = ${elementId}`
+				break
+			case TypeId.ListElement.valueOf():
+				preparedQuery = sql`SELECT entity from list_entities WHERE type = ${type} AND listId = ${listId} AND elementId = ${elementId}`
+				break
+			case TypeId.BlobElement.valueOf():
+				preparedQuery = sql`SELECT entity from blob_element_entities WHERE type = ${type} AND listId = ${listId} AND elementId = ${elementId}`
+				break
+			default:
+				throw new Error("must be a persistent type")
 		}
 		const result = await this.sqlCipherFacade.get(preparedQuery.query, preparedQuery.params)
 		return result?.entity ? this.deserialize(typeRef, result.entity.value as Uint8Array) : null
@@ -208,10 +238,21 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		const { listId, elementId } = expandId(originalEntity._id)
 		const type = getTypeId(originalEntity._type)
 		const ownerGroup = originalEntity._ownerGroup
-		const preparedQuery =
-			listId == null
-				? sql`INSERT OR REPLACE INTO element_entities (type, elementId, ownerGroup, entity) VALUES (${type}, ${elementId}, ${ownerGroup}, ${serializedEntity})`
-				: sql`INSERT OR REPLACE INTO list_entities (type, listId, elementId, ownerGroup, entity) VALUES (${type}, ${listId}, ${elementId}, ${ownerGroup}, ${serializedEntity})`
+		const typeModel = await resolveTypeReference(originalEntity._type)
+		let preparedQuery: { query: string; params: TaggedSqlValue[] }
+		switch (typeModel.type) {
+			case TypeId.Element.valueOf():
+				preparedQuery = sql`INSERT OR REPLACE INTO element_entities (type, elementId, ownerGroup, entity) VALUES (${type}, ${elementId}, ${ownerGroup}, ${serializedEntity})`
+				break
+			case TypeId.ListElement.valueOf():
+				preparedQuery = sql`INSERT OR REPLACE INTO list_entities (type, listId, elementId, ownerGroup, entity) VALUES (${type}, ${listId}, ${elementId}, ${ownerGroup}, ${serializedEntity})`
+				break
+			case TypeId.BlobElement.valueOf():
+				preparedQuery = sql`INSERT OR REPLACE INTO blob_element_entities (type, listId, elementId, ownerGroup, entity) VALUES (${type}, ${listId}, ${elementId}, ${ownerGroup}, ${serializedEntity})`
+				break
+			default:
+				throw new Error("must be a persistent type")
+		}
 		await this.sqlCipherFacade.run(preparedQuery.query, preparedQuery.params)
 	}
 
@@ -337,6 +378,10 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 			}
 		}
 		{
+			const { query, params } = sql`DELETE FROM blob_element_entities WHERE ownerGroup = ${owner}`
+			await this.sqlCipherFacade.run(query, params)
+		}
+		{
 			const { query, params } = sql`DELETE FROM lastUpdateBatchIdPerGroupId WHERE groupId = ${owner}`
 			await this.sqlCipherFacade.run(query, params)
 		}
@@ -418,23 +463,38 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		const headersToDelete: Id[] = []
 		const attachmentsTodelete: IdTuple[] = []
 		const mailbodiesToDelete: Id[] = []
+		const mailDetailsBlobToDelete: IdTuple[] = []
+		const mailDetailsDraftToDelete: IdTuple[] = []
 
 		const mails = await this.getWholeList(MailTypeRef, listId)
 		for (let mail of mails) {
 			if (firstBiggerThanSecond(cutoffId, getElementId(mail))) {
 				mailsToDelete.push(mail._id)
-				mailbodiesToDelete.push(mail.body)
-
-				if (mail.headers) {
-					headersToDelete.push(mail.headers)
-				}
-
 				for (const id of mail.attachments) {
 					attachmentsTodelete.push(id)
+				}
+				if (isLegacyMail(mail)) {
+					mailbodiesToDelete.push(assertNotNull(mail.body))
+				} else if (isDetailsDraft(mail)) {
+					const mailDetailsId = assertNotNull(mail.mailDetailsDraft)
+					mailDetailsDraftToDelete.push(mailDetailsId)
+				} else {
+					// mailDetailsBlob
+					const mailDetailsId = assertNotNull(mail.mailDetails)
+					mailDetailsBlobToDelete.push(mailDetailsId)
+				}
+				if (mail.headers) {
+					headersToDelete.push(mail.headers)
 				}
 			}
 		}
 		await this.deleteIn(MailBodyTypeRef, null, mailbodiesToDelete)
+		for (let [listId, elementIds] of groupByAndMap(mailDetailsBlobToDelete, listIdPart, elementIdPart).entries()) {
+			await this.deleteIn(MailDetailsBlobTypeRef, listId, elementIds)
+		}
+		for (let [listId, elementIds] of groupByAndMap(mailDetailsDraftToDelete, listIdPart, elementIdPart).entries()) {
+			await this.deleteIn(MailDetailsDraftTypeRef, listId, elementIds)
+		}
 		await this.deleteIn(MailHeadersTypeRef, null, headersToDelete)
 		for (let [listId, elementIds] of groupByAndMap(attachmentsTodelete, listIdPart, elementIdPart).entries()) {
 			await this.deleteIn(FileTypeRef, listId, elementIds)
@@ -445,11 +505,26 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 	}
 
 	private async deleteIn(typeRef: TypeRef<unknown>, listId: Id | null, elementIds: Id[]): Promise<void> {
-		const { query, params } =
-			listId == null
-				? sql`DELETE FROM element_entities WHERE type =${getTypeId(typeRef)} AND elementId IN ${paramList(elementIds)}`
-				: sql`DELETE FROM list_entities WHERE type = ${getTypeId(typeRef)} AND listId = ${listId} AND elementId IN ${paramList(elementIds)}`
-		return this.sqlCipherFacade.run(query, params)
+		let preparedQuery: { query: string; params: TaggedSqlValue[] }
+		const typeModel = await resolveTypeReference(typeRef)
+		switch (typeModel.type) {
+			case TypeId.Element.valueOf():
+				preparedQuery = sql`DELETE FROM element_entities WHERE type =${getTypeId(typeRef)} AND elementId IN ${paramList(elementIds)}`
+				break
+			case TypeId.ListElement.valueOf():
+				preparedQuery = sql`DELETE FROM list_entities WHERE type = ${getTypeId(typeRef)} AND listId = ${listId} AND elementId IN ${paramList(
+					elementIds,
+				)}`
+				break
+			case TypeId.BlobElement.valueOf():
+				preparedQuery = sql`DELETE FROM blob_element_entities WHERE type = ${getTypeId(typeRef)} AND listId = ${listId} AND elementId IN ${paramList(
+					elementIds,
+				)}`
+				break
+			default:
+				throw new Error("must be a persistent type")
+		}
+		return this.sqlCipherFacade.run(preparedQuery.query, preparedQuery.params)
 	}
 
 	/**

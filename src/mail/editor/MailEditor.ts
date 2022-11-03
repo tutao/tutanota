@@ -37,7 +37,7 @@ import { UserError } from "../../api/main/UserError"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { htmlSanitizer } from "../../misc/HtmlSanitizer"
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
-import type { File as TutanotaFile, Mail, MailboxProperties } from "../../api/entities/tutanota/TypeRefs.js"
+import type { File as TutanotaFile, MailboxProperties } from "../../api/entities/tutanota/TypeRefs.js"
 import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import type { InlineImages } from "../view/MailViewer"
 import { FileOpenError } from "../../api/common/error/FileOpenError"
@@ -76,6 +76,7 @@ import { BootIcons } from "../../gui/base/icons/BootIcons.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { DialogInjectionRightAttrs } from "../../gui/base/DialogInjectionRight.js"
 import { KnowledgebaseDialogContentAttrs } from "../../knowledgebase/view/KnowledgeBaseDialogContent.js"
+import { MailWrapper } from "../../api/common/MailWrapper.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -796,9 +797,9 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			dispose()
 			dialog.close()
 			return
-		} else
-			// If the mail is unchanged and there /is/ a preexisting draft, there was no change and the mail is already saved
-			saveStatus = stream<SaveStatus>({ status: SaveStatusEnum.Saved })
+		}
+		// If the mail is unchanged and there /is/ a preexisting draft, there was no change and the mail is already saved
+		else saveStatus = stream<SaveStatus>({ status: SaveStatusEnum.Saved })
 		showMinimizedMailEditor(dialog, model, locator.minimizedMailModel, locator.eventController, dispose, saveStatus)
 	}
 
@@ -950,16 +951,15 @@ export async function newMailEditorAsResponse(
 }
 
 export async function newMailEditorFromDraft(
-	draft: Mail,
-	attachments: Array<TutanotaFile>,
-	bodyText: string,
+	attachments: TutanotaFile[],
+	mailWrapper: MailWrapper,
 	blockExternalContent: boolean,
 	inlineImages: InlineImages,
 	mailboxDetails?: MailboxDetail,
 ): Promise<Dialog> {
 	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
 	const model = defaultSendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
-	await model.initWithDraft(draft, attachments, bodyText, inlineImages)
+	await model.initWithDraft(attachments, mailWrapper, inlineImages)
 	return createMailEditorDialog(model, blockExternalContent)
 }
 

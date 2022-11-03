@@ -5,8 +5,9 @@ import { Option, program } from "commander"
 await program
 	.addOption(new Option("-i, --integration", "Include integration tests (requires local server)"))
 	.addOption(new Option("-c, --clean"))
-	.action(async ({ clean, integration }) => {
-		await runTestBuild({ clean })
+	.addOption(new Option("-f, --fast"))
+	.action(async ({ clean, integration, fast }) => {
+		await runTestBuild({ clean, fast })
 		console.log("build finished!")
 
 		await runTestsAndExit(integration)

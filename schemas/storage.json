@@ -1,4 +1,15 @@
 {
 	"app": "storage",
-	"versions": []
+	"versions": [
+		{
+			"version": 6,
+			"changes": [
+				{
+					"name": "AddValue",
+					"sourceType": "BlobServerAccessInfo",
+					"info": "AddValue BlobServerAccessInfo/expires/192."
+				}
+			]
+		}
+	]
 }

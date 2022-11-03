@@ -74,6 +74,7 @@ import {SystemKeysReturnTypeRef} from "./TypeRefs.js"
 import {TakeOverDeletedAddressDataTypeRef} from "./TypeRefs.js"
 import {UpdateAdminshipDataTypeRef} from "./TypeRefs.js"
 import {UpdatePermissionKeyDataTypeRef} from "./TypeRefs.js"
+import {UpdateSessionKeysPostInTypeRef} from "./TypeRefs.js"
 import {UpgradePriceServiceDataTypeRef} from "./TypeRefs.js"
 import {UpgradePriceServiceReturnTypeRef} from "./TypeRefs.js"
 import {UserIdDataTypeRef} from "./TypeRefs.js"
@@ -449,6 +450,15 @@ export const UpdatePermissionKeyService = Object.freeze({
 	name: "UpdatePermissionKeyService",
 	get: null,
 	post: {data: UpdatePermissionKeyDataTypeRef, return: null},
+	put: null,
+	delete: null,
+} as const)
+
+export const UpdateSessionKeysService = Object.freeze({
+	app: "sys",
+	name: "UpdateSessionKeysService",
+	get: null,
+	post: {data: UpdateSessionKeysPostInTypeRef, return: null},
 	put: null,
 	delete: null,
 } as const)

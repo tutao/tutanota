@@ -54,6 +54,7 @@ import {
 	createSecureExternalRecipientKeyData,
 	createSendDraftData,
 	FileTypeRef,
+	MailDetailsDraftTypeRef,
 	MailTypeRef,
 	TutanotaPropertiesTypeRef,
 } from "../../entities/tutanota/TypeRefs.js"
@@ -116,6 +117,7 @@ import { createWriteCounterData } from "../../entities/monitor/TypeRefs"
 import { UserFacade } from "./UserFacade"
 import { PartialRecipient, Recipient, RecipientList, RecipientType } from "../../common/recipients/Recipient"
 import { NativeFileApp } from "../../../native/common/FileApp"
+import { isLegacyMail } from "../../common/MailWrapper.js"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -266,6 +268,8 @@ export class MailFacade {
 		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), senderMailAddress)
 
 		const mailGroupKey = this.userFacade.getGroupKey(senderMailGroupId)
+		const currentAttachments = await this.getAttachmentIds(draft)
+		const replyTos = await this.getReplyTos(draft)
 
 		const sk = decryptKey(mailGroupKey, draft._ownerEncSessionKey as any)
 		const service = createDraftUpdateData()
@@ -280,9 +284,9 @@ export class MailFacade {
 			toRecipients: toRecipients.map(recipientToDraftRecipient),
 			ccRecipients: ccRecipients.map(recipientToDraftRecipient),
 			bccRecipients: bccRecipients.map(recipientToDraftRecipient),
-			replyTos: draft.replyTos,
-			removedAttachments: this._getRemovedAttachments(attachments, draft.attachments),
-			addedAttachments: await this._createAddedAttachments(attachments, draft.attachments, senderMailGroupId, mailGroupKey, await this.usingBlobs()),
+			replyTos: replyTos,
+			removedAttachments: this._getRemovedAttachments(attachments, currentAttachments),
+			addedAttachments: await this._createAddedAttachments(attachments, currentAttachments, senderMailGroupId, mailGroupKey, await this.usingBlobs()),
 		})
 		this.deferredDraftId = draft._id
 		// we have to wait for the updated mail because sendMail() might be called right after this update
@@ -454,7 +458,8 @@ export class MailFacade {
 		sendDraftData.language = language
 		sendDraftData.mail = draft._id
 
-		for (let fileId of draft.attachments) {
+		const attachments = await this.getAttachmentIds(draft)
+		for (let fileId of attachments) {
 			const file = await this.entityClient.load(FileTypeRef, fileId)
 			const fileSessionKey = await this.crypto.resolveSessionKeyForInstance(file)
 			const data = createAttachmentKeyData({
@@ -493,6 +498,19 @@ export class MailFacade {
 			}),
 		])
 		await this.serviceExecutor.post(SendDraftService, sendDraftData)
+	}
+
+	async getAttachmentIds(draft: Mail): Promise<IdTuple[]> {
+		return draft.attachments
+	}
+
+	async getReplyTos(draft: Mail): Promise<EncryptedMailAddress[]> {
+		if (isLegacyMail(draft)) {
+			return draft.replyTos
+		} else {
+			const mailDetails = await this.entityClient.load(MailDetailsDraftTypeRef, neverNull(draft.mailDetailsDraft))
+			return mailDetails.details.replyTos
+		}
 	}
 
 	checkMailForPhishing(

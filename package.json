@@ -17,7 +17,7 @@
 		"start": "./start-desktop.sh",
 		"test": "npm run --if-present test -ws && cd test && node test",
 		"test:app": "cd test && node test",
-		"fasttest": "cd test && node --icu-data-dir=../node_modules/full-icu fastTest",
+		"fasttest": "cd test && node test -f",
 		"types": "tsc --incremental true --noEmit true",
 		"prebuild": "node buildSrc/prebuild.js",
 		"postinstall": "node buildSrc/postinstall.js",

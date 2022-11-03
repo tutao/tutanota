@@ -41,6 +41,7 @@ import { IServiceExecutor } from "../common/ServiceRequest.js"
 import { BlobFacade } from "./facades/BlobFacade"
 import { ExposedCacheStorage } from "./rest/DefaultEntityRestCache.js"
 import { LoginListener } from "../main/LoginListener"
+import { BlobAccessTokenFacade } from "./facades/BlobAccessTokenFacade.js"
 
 assertWorkerOrNode()
 
@@ -64,6 +65,7 @@ export interface WorkerInterface {
 	readonly bookingFacade: BookingFacade
 	readonly mailAddressFacade: MailAddressFacade
 	readonly fileFacade: FileFacade
+	readonly blobAccessTokenFacade: BlobAccessTokenFacade
 	readonly blobFacade: BlobFacade
 	readonly userManagementFacade: UserManagementFacade
 	readonly contactFormFacade: ContactFormFacade
@@ -185,6 +187,10 @@ export class WorkerImpl implements NativeInterface {
 
 			get fileFacade() {
 				return locator.file
+			},
+
+			get blobAccessTokenFacade() {
+				return locator.blobAccessToken
 			},
 
 			get blobFacade() {

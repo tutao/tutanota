@@ -1,5 +1,5 @@
 import type { ImageHandler } from "../model/MailUtils"
-import { getMailAddressDisplayText } from "../model/MailUtils"
+import { getMailAddressDisplayText, loadMailDetails } from "../model/MailUtils"
 import { ALLOWED_IMAGE_FORMATS, Keys, MailReportType, MAX_BASE64_IMAGE_SIZE } from "../../api/common/TutanotaConstants"
 import { neverNull, ofClass, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { InfoLink, lang } from "../../misc/LanguageViewModel"
@@ -105,9 +105,8 @@ export async function editDraft(viewModel: MailViewerViewModel): Promise<void> {
 					import("../editor/MailEditor"),
 				])
 				const editorDialog = await newMailEditorFromDraft(
-					viewModel.mail,
 					viewModel.getAttachments(),
-					viewModel.getMailBody(),
+					await loadMailDetails(locator.entityClient, viewModel.mail),
 					viewModel.isBlockingExternalImages(),
 					viewModel.getLoadedInlineImages(),
 					mailboxDetails,

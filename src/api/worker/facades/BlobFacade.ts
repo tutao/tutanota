@@ -1,12 +1,12 @@
 import { addParamsToUrl, isSuspensionResponse, RestClient } from "../rest/RestClient"
 import { CryptoFacade, encryptBytes } from "../crypto/CryptoFacade"
-import { concat, downcast, Mapper, neverNull, promiseMap, splitUint8ArrayInChunks, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/tutanota-utils"
+import { concat, neverNull, promiseMap, splitUint8ArrayInChunks, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/tutanota-utils"
 import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../common/TutanotaConstants"
 
 import { HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
 import { assertWorkerOrNode, isApp, isDesktop } from "../../common/Env"
 import type { SuspensionHandler } from "../SuspensionHandler"
-import { BlobAccessTokenService, BlobService } from "../../entities/storage/Services"
+import { BlobService } from "../../entities/storage/Services"
 import { aes128Decrypt, sha256Hash } from "@tutao/tutanota-crypto"
 import type { FileUri, NativeFileApp } from "../../../native/common/FileApp"
 import type { AesApp } from "../../../native/worker/AesApp"
@@ -14,29 +14,17 @@ import { InstanceMapper } from "../crypto/InstanceMapper"
 import { Aes128Key } from "@tutao/tutanota-crypto/dist/encryption/Aes"
 import { Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from "../../entities/sys/TypeRefs.js"
 import { FileReference } from "../../common/utils/FileUtils"
-import { ConnectionError, handleRestError, InternalServerError, NotFoundError } from "../../common/error/RestError"
+import { handleRestError } from "../../common/error/RestError"
 import { Instance } from "../../common/EntityTypes"
-import { getElementId, getEtId, getListId, isElementEntity } from "../../common/utils/EntityUtils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { IServiceExecutor } from "../../common/ServiceRequest"
-import {
-	BlobGetInTypeRef,
-	BlobPostOut,
-	BlobPostOutTypeRef,
-	BlobServerAccessInfo,
-	BlobServerUrl,
-	createBlobAccessTokenPostIn,
-	createBlobGetIn,
-	createBlobReadData,
-	createBlobWriteData,
-	createInstanceId,
-} from "../../entities/storage/TypeRefs"
+import { BlobGetInTypeRef, BlobPostOut, BlobPostOutTypeRef, BlobServerAccessInfo, createBlobGetIn } from "../../entities/storage/TypeRefs"
 import { AuthDataProvider } from "./UserFacade"
+import { tryServers } from "../rest/EntityRestClient.js"
+import { BlobAccessTokenFacade } from "./BlobAccessTokenFacade.js"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
-
-export type ReferenceToken = string
 
 /**
  * The BlobFacade uploads and downloads blobs to/from the blob store.
@@ -44,7 +32,7 @@ export type ReferenceToken = string
  * It requests tokens from the BlobAccessTokenService and download and uploads the blobs to/from the BlobService.
  *
  * In case of upload it is necessary to make a request to the BlobReferenceService or use the referenceTokens returned by the BlobService PUT in some other service call.
- * Otherwise the blobs will automatically be deleted after some time. It is not allowed to reference blobs manually in some instance.
+ * Otherwise, the blobs will automatically be deleted after some time. It is not allowed to reference blobs manually in some instance.
  */
 export class BlobFacade {
 	private readonly serviceExecutor: IServiceExecutor
@@ -54,6 +42,7 @@ export class BlobFacade {
 	private readonly aesApp: AesApp
 	private readonly instanceMapper: InstanceMapper
 	private readonly cryptoFacade: CryptoFacade
+	private readonly blobAccessTokenFacade: BlobAccessTokenFacade
 
 	constructor(
 		private readonly authDataProvider: AuthDataProvider,
@@ -64,6 +53,7 @@ export class BlobFacade {
 		aesApp: AesApp,
 		instanceMapper: InstanceMapper,
 		cryptoFacade: CryptoFacade,
+		blobAccessTokenFacade: BlobAccessTokenFacade,
 	) {
 		this.serviceExecutor = serviceExecutor
 		this.restClient = restClient
@@ -72,6 +62,7 @@ export class BlobFacade {
 		this.aesApp = aesApp
 		this.instanceMapper = instanceMapper
 		this.cryptoFacade = cryptoFacade
+		this.blobAccessTokenFacade = blobAccessTokenFacade
 	}
 
 	/**
@@ -86,7 +77,7 @@ export class BlobFacade {
 		ownerGroupId: Id,
 		sessionKey: Aes128Key,
 	): Promise<BlobReferenceTokenWrapper[]> {
-		const blobAccessInfo = await this.requestWriteToken(archiveDataType, ownerGroupId)
+		const blobAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
 		const chunks = splitUint8ArrayInChunks(MAX_BLOB_SIZE_BYTES, blobData)
 		return promiseMap(chunks, async (chunk) => await this.encryptAndUploadChunk(chunk, blobAccessInfo, sessionKey))
 	}
@@ -106,7 +97,7 @@ export class BlobFacade {
 		if (!isApp() && !isDesktop()) {
 			throw new ProgrammingError("Environment is not app or Desktop!")
 		}
-		const blobAccessInfo = await this.requestWriteToken(archiveDataType, ownerGroupId)
+		const blobAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
 		const chunkUris = await this.fileApp.splitFile(fileUri, MAX_BLOB_SIZE_BYTES)
 		return promiseMap(chunkUris, async (chunkUri) => {
 			return this.encryptAndUploadNativeChunk(chunkUri, blobAccessInfo, sessionKey)
@@ -122,7 +113,7 @@ export class BlobFacade {
 	 * @returns Uint8Array unencrypted binary data
 	 */
 	async downloadAndDecrypt(archiveDataType: ArchiveDataType, blobs: Blob[], referencingInstance: Instance): Promise<Uint8Array> {
-		const blobAccessInfo = await this.requestReadToken(archiveDataType, blobs, referencingInstance)
+		const blobAccessInfo = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, blobs, referencingInstance)
 		const sessionKey = neverNull(await this.cryptoFacade.resolveSessionKeyForInstance(referencingInstance))
 		const blobData = await promiseMap(blobs, (blob) => this.downloadAndDecryptChunk(blob, blobAccessInfo, sessionKey))
 		return concat(...blobData)
@@ -149,7 +140,7 @@ export class BlobFacade {
 		if (!isApp() && !isDesktop()) {
 			throw new ProgrammingError("Environment is not app or Desktop!")
 		}
-		const blobAccessInfo = await this.requestReadToken(archiveDataType, blobs, referencingInstance)
+		const blobAccessInfo = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, blobs, referencingInstance)
 		const sessionKey = neverNull(await this.cryptoFacade.resolveSessionKeyForInstance(referencingInstance))
 		const decryptedChunkFileUris: FileUri[] = []
 		for (const blob of blobs) {
@@ -181,59 +172,12 @@ export class BlobFacade {
 		}
 	}
 
-	/**
-	 * Requests a token to upload blobs for the given ArchiveDataType and ownerGroup.
-	 * @param archiveDataType
-	 * @param ownerGroupId
-	 */
-	async requestWriteToken(archiveDataType: ArchiveDataType, ownerGroupId: Id): Promise<BlobServerAccessInfo> {
-		const tokenRequest = createBlobAccessTokenPostIn({
-			archiveDataType,
-			write: createBlobWriteData({
-				archiveOwnerGroup: ownerGroupId,
-			}),
-		})
-		const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest)
-		return blobAccessInfo
-	}
-
-	/**
-	 * Requests a token to download blobs.
-	 * @param archiveDataType
-	 * @param blobs all blobs need to be in one archive.
-	 * @param referencingInstance the instance that references the blobs
-	 */
-	async requestReadToken(archiveDataType: ArchiveDataType, blobs: Blob[], referencingInstance: Instance): Promise<BlobServerAccessInfo> {
-		const archiveId = this.getArchiveId(blobs)
-		const instance = downcast(referencingInstance)
-		let instanceListId: Id | null
-		let instanceId: Id
-		if (isElementEntity(instance)) {
-			instanceListId = null
-			instanceId = getEtId(instance)
-		} else {
-			instanceListId = getListId(instance)
-			instanceId = getElementId(instance)
-		}
-		const instanceIds = [createInstanceId({ instanceId })]
-		const tokenRequest = createBlobAccessTokenPostIn({
-			archiveDataType,
-			read: createBlobReadData({
-				archiveId,
-				instanceListId,
-				instanceIds,
-			}),
-		})
-		const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest)
-		return blobAccessInfo
-	}
-
 	private async encryptAndUploadChunk(chunk: Uint8Array, blobAccessInfo: BlobServerAccessInfo, sessionKey: Aes128Key): Promise<BlobReferenceTokenWrapper> {
 		const { blobAccessToken, servers } = blobAccessInfo
 		const encryptedData = encryptBytes(sessionKey, chunk)
 		const blobHash = uint8ArrayToBase64(sha256Hash(encryptedData).slice(0, 6))
 		const queryParams = await this.createParams({ blobAccessToken, blobHash })
-		return this.tryServers(
+		return tryServers(
 			servers,
 			async (serverUrl) => {
 				const response = await this.restClient.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, {
@@ -245,7 +189,6 @@ export class BlobFacade {
 				return await this.parseBlobPostOutResponse(response)
 			},
 			`can't upload to server`,
-			HttpMethod.POST,
 		)
 	}
 
@@ -260,7 +203,7 @@ export class BlobFacade {
 		const blobHash = await this.fileApp.hashFile(encryptedChunkUri)
 
 		const queryParams = await this.createParams({ blobAccessToken, blobHash })
-		return this.tryServers(
+		return tryServers(
 			servers,
 			async (serverUrl) => {
 				const serviceUrl = new URL(BLOB_SERVICE_REST_PATH, serverUrl)
@@ -268,7 +211,6 @@ export class BlobFacade {
 				return await this.uploadNative(encryptedChunkUri, fullUrl)
 			},
 			`can't upload to server from native`,
-			HttpMethod.POST,
 		)
 	}
 
@@ -309,7 +251,7 @@ export class BlobFacade {
 		const literalGetData = await this.instanceMapper.encryptAndMapToLiteral(BlobGetInTypeModel, getData, null)
 		const body = JSON.stringify(literalGetData)
 
-		return this.tryServers(
+		return tryServers(
 			servers,
 			async (serverUrl) => {
 				const data = await this.restClient.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, {
@@ -322,7 +264,6 @@ export class BlobFacade {
 				return aes128Decrypt(sessionKey, data)
 			},
 			`can't download from server `,
-			HttpMethod.GET,
 		)
 	}
 
@@ -353,13 +294,12 @@ export class BlobFacade {
 		const queryParams = await this.createParams({ blobAccessToken, _body })
 		const blobFilename = blobId + ".blob"
 
-		return this.tryServers(
+		return tryServers(
 			servers,
 			async (serverUrl) => {
 				return await this.downloadNative(serverUrl, queryParams, sessionKey, blobFilename)
 			},
 			`can't download native from server `,
-			HttpMethod.GET,
 		)
 	}
 
@@ -387,43 +327,5 @@ export class BlobFacade {
 		} else {
 			throw handleRestError(statusCode, ` | GET failed to natively download attachment`, errorId, precondition)
 		}
-	}
-
-	private getArchiveId(blobs: Blob[]) {
-		if (blobs.length == 0) {
-			throw new Error("must pass blobs")
-		}
-		let archiveIds = new Set(blobs.map((b) => b.archiveId))
-		if (archiveIds.size != 1) {
-			throw new Error(`only one archive id allowed, but was ${archiveIds}`)
-		}
-		return blobs[0].archiveId
-	}
-
-	// VisibleForTesting
-	/**
-	 * Tries to run the mapper action against a list of servers. If the action resolves
-	 * successfully, the result is returned. In case of an ConnectionError and errors
-	 * that might occur only for a single blob server, the next server is tried.
-	 * Throws in all other cases.
-	 */
-	async tryServers<T>(servers: BlobServerUrl[], mapper: Mapper<string, T>, errorMsg: string, method: string): Promise<T> {
-		let index = 0
-		let error: Error | null = null
-		for (const server of servers) {
-			try {
-				return await mapper(server.url, index)
-			} catch (e) {
-				// InternalServerError is returned when accessing a corrupted archive, so we retry
-				if (e instanceof ConnectionError || e instanceof InternalServerError || e instanceof NotFoundError) {
-					console.log(`${errorMsg} ${server.url}`, e)
-					error = e
-				} else {
-					throw e
-				}
-			}
-			index++
-		}
-		throw error
 	}
 }

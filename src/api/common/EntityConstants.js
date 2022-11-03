@@ -5,6 +5,7 @@ export const Type = Object.freeze({
 	ListElement: "LIST_ELEMENT_TYPE",
 	DataTransfer: "DATA_TRANSFER_TYPE",
 	Aggregated: "AGGREGATED_TYPE",
+	BlobElement: "BLOB_ELEMENT_TYPE",
 })
 
 export const Cardinality = Object.freeze({
@@ -18,6 +19,7 @@ export const AssociationType = Object.freeze({
 	ListAssociation: "LIST_ASSOCIATION",
 	ListElementAssociation: "LIST_ELEMENT_ASSOCIATION",
 	Aggregation: "AGGREGATION",
+	BlobElementAssociation: "BLOB_ELEMENT_ASSOCIATION",
 })
 
 export const ValueType = Object.freeze({

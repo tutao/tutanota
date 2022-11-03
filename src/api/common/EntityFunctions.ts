@@ -72,7 +72,7 @@ export async function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeM
 }
 
 export function _verifyType(typeModel: TypeModel) {
-	if (typeModel.type !== Type.Element && typeModel.type !== Type.ListElement) {
-		throw new Error("only Element and ListElement types are permitted, was: " + typeModel.type)
+	if (typeModel.type !== Type.Element && typeModel.type !== Type.ListElement && typeModel.type !== Type.BlobElement) {
+		throw new Error("only Element, ListElement and BlobElement types are permitted, was: " + typeModel.type)
 	}
 }

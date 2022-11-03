@@ -2,7 +2,7 @@
 
 import type { EntityUpdateData } from "../../main/EventController"
 import type { Customer, CustomerInfo, DomainInfo, EntityUpdate } from "../../entities/sys/TypeRefs.js"
-import type { MailBody, MailHeaders } from "../../entities/tutanota/TypeRefs.js"
+import type { Header, MailHeaders } from "../../entities/tutanota/TypeRefs.js"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -68,12 +68,12 @@ export function getEventOfType(events: ReadonlyArray<EntityUpdate>, type: Operat
 	return events.find((event) => event.operation === type && event.instanceId === elementId) ?? null
 }
 
-export function getMailBodyText(body: MailBody): string {
-	return body.compressedText || body.text || ""
+export function getLegacyMailHeaders(headers: MailHeaders): string {
+	return headers.compressedHeaders ?? headers.headers ?? ""
 }
 
-export function getMailHeaders(headers: MailHeaders): string {
-	return headers.compressedHeaders || headers.headers || ""
+export function getMailHeaders(headers: Header): string {
+	return headers.compressedHeaders ?? headers.headers ?? ""
 }
 
 //If importing fails it is a good idea to bundle the error into common-min which can be achieved by annotating the module with "@bundleInto:common-min"

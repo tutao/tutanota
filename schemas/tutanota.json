@@ -30,6 +30,76 @@
 					"info": "RenameAttribute MailBox: systemFolders -> folders."
 				}
 			]
+		},
+		{
+			"version": 58,
+			"changes": [
+				{
+					"name": "RemoveValue",
+					"sourceType": "Mail",
+					"info": "RemoveValue Mail/_owner/103."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "Mail",
+					"info": "RemoveValue Mail/_area/104."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "Mail",
+					"info": "RemoveAssociation Mail/headersBlob."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "Mail",
+					"info": "RemoveAssociation Mail/bodyBlob."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "Mail",
+					"info": "AddAssociation Mail/firstRecipient/AGGREGATION/1306."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "Mail",
+					"info": "AddValue Mail/recipientCount/1307."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "Mail",
+					"info": "AddAssociation Mail/mailDetails/BLOB_ELEMENT_ASSOCIATION/1308."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "Mail",
+					"info": "AddAssociation Mail/mailDetailsDraft/LIST_ELEMENT_ASSOCIATION/1309."
+				},
+				{
+					"name": "ChangeAssociationCardinality",
+					"sourceType": "Mail",
+					"info": "ChangeAssociationCardinality Mail/body/ZeroOrOne."
+				},
+				{
+					"name": "ChangeValueCardinality",
+					"sourceType": "Mail",
+					"info": "ChangeValueCardinality Mail/sentDate/ZeroOrOne."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "Mail",
+					"info": "AddAssociation Mail/bucketKey/AGGREGATION/1310."
+				},
+				{
+					"name": "RemoveValue",
+					"sourceType": "Mail",
+					"info": "RemoveValue Mail/trashed/110."
+				},
+				{
+					"name": "ChangeValueCardinality",
+					"sourceType": "Mail",
+					"info": "ChangeValueCardinality Mail/authStatus/ZeroOrOne."
+				}
+			]
 		}
 	]
 }

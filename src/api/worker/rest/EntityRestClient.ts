@@ -4,9 +4,9 @@ import { _verifyType, HttpMethod, MediaType, resolveTypeReference } from "../../
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
 import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
 import { PushIdentifierTypeRef } from "../../entities/sys/TypeRefs.js"
-import { NotAuthenticatedError, PayloadTooLargeError } from "../../common/error/RestError"
+import { ConnectionError, InternalServerError, NotAuthenticatedError, NotFoundError, PayloadTooLargeError } from "../../common/error/RestError"
 import type { lazy } from "@tutao/tutanota-utils"
-import { flat, isSameTypeRef, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
+import { flat, isSameTypeRef, Mapper, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { ListElementEntity, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
@@ -17,6 +17,9 @@ import { InstanceMapper } from "../crypto/InstanceMapper"
 import { QueuedBatch } from "../search/EventQueue"
 import { AuthDataProvider } from "../facades/UserFacade"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
+import { ArchiveDataType } from "../../common/TutanotaConstants.js"
+import { BlobServerUrl } from "../../entities/storage/TypeRefs.js"
+import { BlobAccessTokenFacade } from "../facades/BlobAccessTokenFacade.js"
 
 assertWorkerOrNode()
 
@@ -90,20 +93,28 @@ export interface EntityRestInterface {
  */
 export class EntityRestClient implements EntityRestInterface {
 	authDataProvider: AuthDataProvider
-	_restClient: RestClient
-	_instanceMapper: InstanceMapper
+	private readonly restClient: RestClient
+	private readonly instanceMapper: InstanceMapper
 	// Crypto Facade is lazy due to circular dependency between EntityRestClient and CryptoFacade
-	_lazyCrypto: lazy<CryptoFacade>
+	private readonly lazyCrypto: lazy<CryptoFacade>
+	private readonly blobAccessTokenFacade: BlobAccessTokenFacade
 
 	get _crypto(): CryptoFacade {
-		return this._lazyCrypto()
+		return this.lazyCrypto()
 	}
 
-	constructor(authDataProvider: AuthDataProvider, restClient: RestClient, crypto: lazy<CryptoFacade>, instanceMapper: InstanceMapper) {
+	constructor(
+		authDataProvider: AuthDataProvider,
+		restClient: RestClient,
+		crypto: lazy<CryptoFacade>,
+		instanceMapper: InstanceMapper,
+		blobAccessTokenFacade: BlobAccessTokenFacade,
+	) {
 		this.authDataProvider = authDataProvider
-		this._restClient = restClient
-		this._lazyCrypto = crypto
-		this._instanceMapper = instanceMapper
+		this.restClient = restClient
+		this.lazyCrypto = crypto
+		this.instanceMapper = instanceMapper
+		this.blobAccessTokenFacade = blobAccessTokenFacade
 	}
 
 	async load<T extends SomeEntity>(
@@ -122,7 +133,7 @@ export class EntityRestClient implements EntityRestInterface {
 			extraHeaders,
 			ownerKey,
 		)
-		const json = await this._restClient.request(path, HttpMethod.GET, {
+		const json = await this.restClient.request(path, HttpMethod.GET, {
 			queryParams,
 			headers,
 			responseType: MediaType.Json,
@@ -137,7 +148,7 @@ export class EntityRestClient implements EntityRestInterface {
 						return null // will result in _errors being set on the instance
 					}),
 			  )
-		const instance = await this._instanceMapper.decryptAndMapToInstance<T>(typeModel, migratedEntity, sessionKey)
+		const instance = await this.instanceMapper.decryptAndMapToInstance<T>(typeModel, migratedEntity, sessionKey)
 		return this._crypto.applyMigrationsForInstance(instance)
 	}
 
@@ -157,7 +168,7 @@ export class EntityRestClient implements EntityRestInterface {
 		)
 		// This should never happen if type checking is not bypassed with any
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
-		const json = await this._restClient.request(path, HttpMethod.GET, {
+		const json = await this.restClient.request(path, HttpMethod.GET, {
 			queryParams,
 			headers,
 			responseType: MediaType.Json,
@@ -168,15 +179,44 @@ export class EntityRestClient implements EntityRestInterface {
 	async loadMultiple<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementIds: Array<Id>): Promise<Array<T>> {
 		const { path, headers } = await this._validateAndPrepareRestRequest(typeRef, listId, null, undefined, undefined, undefined)
 		const idChunks = splitInChunks(LOAD_MULTIPLE_LIMIT, elementIds)
+		const typeModel = await resolveTypeReference(typeRef)
 		const loadedChunks = await promiseMap(idChunks, async (idChunk) => {
-			const queryParams = {
+			let queryParams = {
 				ids: idChunk.join(","),
 			}
-			const json = await this._restClient.request(path, HttpMethod.GET, {
-				queryParams,
-				headers,
-				responseType: MediaType.Json,
-			})
+			let json: string
+			if (typeModel.type === Type.BlobElement) {
+				if (listId === null) {
+					throw new Error("archiveId must be set to load BlobElementTypes")
+				}
+				const accessInfo = await this.blobAccessTokenFacade.requestReadTokenArchive(ArchiveDataType.MailDetails, listId)
+				const blobAccessToken = accessInfo.blobAccessToken
+				queryParams = Object.assign(
+					{
+						blobAccessToken,
+					},
+					headers, // prevent CORS request due to non standard header usage
+					queryParams,
+				)
+				json = await tryServers(
+					accessInfo.servers,
+					async (serverUrl) =>
+						this.restClient.request(path, HttpMethod.GET, {
+							queryParams,
+							headers: {}, // prevent CORS request due to non standard header usage
+							responseType: MediaType.Json,
+							baseUrl: serverUrl,
+							noCORS: true,
+						}),
+					`can't load instances from server `,
+				)
+			} else {
+				json = await this.restClient.request(path, HttpMethod.GET, {
+					queryParams,
+					headers,
+					responseType: MediaType.Json,
+				})
+			}
 			return this._handleLoadMultipleResult(typeRef, JSON.parse(json))
 		})
 		return flat(loadedChunks)
@@ -208,7 +248,7 @@ export class EntityRestClient implements EntityRestInterface {
 				throw e
 			}
 		}
-		const decryptedInstance = await this._instanceMapper.decryptAndMapToInstance<T>(model, instance, sessionKey)
+		const decryptedInstance = await this.instanceMapper.decryptAndMapToInstance<T>(model, instance, sessionKey)
 		return this._crypto.applyMigrationsForInstance<T>(decryptedInstance)
 	}
 
@@ -231,8 +271,8 @@ export class EntityRestClient implements EntityRestInterface {
 
 		const sk = this._crypto.setNewOwnerEncSessionKey(typeModel, instance, options?.ownerKey)
 
-		const encryptedEntity = await this._instanceMapper.encryptAndMapToLiteral(typeModel, instance, sk)
-		const persistencePostReturn = await this._restClient.request(path, HttpMethod.POST, {
+		const encryptedEntity = await this.instanceMapper.encryptAndMapToLiteral(typeModel, instance, sk)
+		const persistencePostReturn = await this.restClient.request(path, HttpMethod.POST, {
 			baseUrl: options?.baseUrl,
 			queryParams,
 			headers,
@@ -266,13 +306,13 @@ export class EntityRestClient implements EntityRestInterface {
 				const encryptedEntities = await promiseMap(instanceChunk, (e) => {
 					const sk = this._crypto.setNewOwnerEncSessionKey(typeModel, e)
 
-					return this._instanceMapper.encryptAndMapToLiteral(typeModel, e, sk)
+					return this.instanceMapper.encryptAndMapToLiteral(typeModel, e, sk)
 				})
 				// informs the server that this is a POST_MULTIPLE request
 				const queryParams = {
 					count: String(instanceChunk.length),
 				}
-				const persistencePostReturn = await this._restClient.request(path, HttpMethod.POST, {
+				const persistencePostReturn = await this.restClient.request(path, HttpMethod.POST, {
 					queryParams,
 					headers,
 					body: JSON.stringify(encryptedEntities),
@@ -317,8 +357,8 @@ export class EntityRestClient implements EntityRestInterface {
 			ownerKey,
 		)
 		const sessionKey = ownerKey ? this._crypto.resolveSessionKeyWithOwnerKey(instance, ownerKey) : await this._crypto.resolveSessionKey(typeModel, instance)
-		const encryptedEntity = await this._instanceMapper.encryptAndMapToLiteral(typeModel, instance, sessionKey)
-		await this._restClient.request(path, HttpMethod.PUT, {
+		const encryptedEntity = await this.instanceMapper.encryptAndMapToLiteral(typeModel, instance, sessionKey)
+		await this.restClient.request(path, HttpMethod.PUT, {
 			queryParams,
 			headers,
 			body: JSON.stringify(encryptedEntity),
@@ -329,7 +369,7 @@ export class EntityRestClient implements EntityRestInterface {
 	async erase<T extends SomeEntity>(instance: T): Promise<void> {
 		const { listId, elementId } = expandId(instance._id)
 		const { path, queryParams, headers } = await this._validateAndPrepareRestRequest(instance._type, listId, elementId, undefined, undefined, undefined)
-		await this._restClient.request(path, HttpMethod.DELETE, {
+		await this.restClient.request(path, HttpMethod.DELETE, {
 			queryParams,
 			headers,
 		})
@@ -390,7 +430,7 @@ export class EntityRestClient implements EntityRestInterface {
 	}
 
 	getRestClient(): RestClient {
-		return this._restClient
+		return this.restClient
 	}
 
 	private parseSetupMultiple(result: any): Id[] {
@@ -400,6 +440,32 @@ export class EntityRestClient implements EntityRestInterface {
 			throw new Error(`Invalid response: ${result}, ${e}`)
 		}
 	}
+}
+
+/**
+ * Tries to run the mapper action against a list of servers. If the action resolves
+ * successfully, the result is returned. In case of an ConnectionError and errors
+ * that might occur only for a single blob server, the next server is tried.
+ * Throws in all other cases.
+ */
+export async function tryServers<T>(servers: BlobServerUrl[], mapper: Mapper<string, T>, errorMsg: string): Promise<T> {
+	let index = 0
+	let error: Error | null = null
+	for (const server of servers) {
+		try {
+			return await mapper(server.url, index)
+		} catch (e) {
+			// InternalServerError is returned when accessing a corrupted archive, so we retry
+			if (e instanceof ConnectionError || e instanceof InternalServerError || e instanceof NotFoundError) {
+				console.log(`${errorMsg} ${server.url}`, e)
+				error = e
+			} else {
+				throw e
+			}
+		}
+		index++
+	}
+	throw error
 }
 
 export function getIds(

@@ -12,9 +12,10 @@ import {
 import { _verifyType, resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
 import { NotFoundError } from "../../../../../src/api/common/error/RestError.js"
 import { downcast, TypeRef } from "@tutao/tutanota-utils"
-import type { ElementEntity, ListElementEntity, SomeEntity } from "../../../../../src/api/common/EntityTypes.js"
+import type { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from "../../../../../src/api/common/EntityTypes.js"
 import { InstanceMapper } from "../../../../../src/api/worker/crypto/InstanceMapper.js"
 import { AuthDataProvider } from "../../../../../src/api/worker/facades/UserFacade.js"
+import { Type } from "../../../../../src/api/common/EntityConstants"
 
 const authDataProvider: AuthDataProvider = {
 	createAuthHeaders(): Dict {
@@ -28,10 +29,11 @@ const authDataProvider: AuthDataProvider = {
 export class EntityRestClientMock extends EntityRestClient {
 	_entities: Record<Id, ElementEntity | Error> = {}
 	_listEntities: Record<Id, Record<Id, ListElementEntity | Error>> = {}
+	_blobEntities: Record<Id, Record<Id, BlobElementEntity | Error>> = {}
 	_lastIdTimestamp: number
 
 	constructor() {
-		super(authDataProvider, downcast({}), () => downcast({}), new InstanceMapper())
+		super(authDataProvider, downcast({}), () => downcast({}), new InstanceMapper(), downcast({}))
 		this._lastIdTimestamp = Date.now()
 	}
 
@@ -51,22 +53,43 @@ export class EntityRestClientMock extends EntityRestClient {
 		})
 	}
 
-	setException(id: Id | IdTuple, error: Error) {
-		if (typeof id === "string") {
-			this._entities[id] = error
-		} else {
-			if (!this._listEntities[listIdPart(id)]) this._listEntities[listIdPart(id)] = {}
-			this._listEntities[listIdPart(id)][elementIdPart(id)] = error
-		}
+	addBlobInstances(...instances: Array<BlobElementEntity>) {
+		instances.forEach((instance) => {
+			if (!this._blobEntities[getListId(instance)]) this._blobEntities[getListId(instance)] = {}
+			this._blobEntities[getListId(instance)][getElementId(instance)] = instance
+		})
+	}
+
+	setElementException(id: Id, error: Error) {
+		this._entities[id] = error
+	}
+
+	setListElementException(id: IdTuple, error: Error) {
+		if (!this._listEntities[listIdPart(id)]) this._listEntities[listIdPart(id)] = {}
+		this._listEntities[listIdPart(id)][elementIdPart(id)] = error
 	}
 
 	_getListEntry(listId: Id, elementId: Id): ListElementEntity | null | undefined {
 		if (!this._listEntities[listId]) {
 			throw new NotFoundError(`Not list ${listId}`)
 		}
-
 		try {
 			return this._handleMockElement(this._listEntities[listId][elementId], [listId, elementId])
+		} catch (e) {
+			if (e instanceof NotFoundError) {
+				return null
+			} else {
+				throw e
+			}
+		}
+	}
+
+	_getBlobEntry(listId: Id, elementId: Id): ListElementEntity | null | undefined {
+		if (!this._blobEntities[listId]) {
+			throw new NotFoundError(`Not list ${listId}`)
+		}
+		try {
+			return this._handleMockElement(this._blobEntities[listId][elementId], [listId, elementId])
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				return null
@@ -116,11 +139,20 @@ export class EntityRestClientMock extends EntityRestClient {
 		const lid = listId
 
 		if (lid) {
-			return elementIds
-				.map((id) => {
-					return downcast(this._getListEntry(lid, id))
-				})
-				.filter(Boolean)
+			const typeModule = await resolveTypeReference(typeRef)
+			if (typeModule.type === Type.ListElement.valueOf()) {
+				return elementIds
+					.map((id) => {
+						return downcast(this._getListEntry(lid, id))
+					})
+					.filter(Boolean)
+			} else {
+				return elementIds
+					.map((id) => {
+						return downcast(this._getBlobEntry(lid, id))
+					})
+					.filter(Boolean)
+			}
 		} else {
 			return elementIds
 				.map((id) => {

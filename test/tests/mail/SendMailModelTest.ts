@@ -9,6 +9,7 @@ import {
 	ContactListTypeRef,
 	ContactTypeRef,
 	ConversationEntryTypeRef,
+	createBody,
 	createContact,
 	createConversationEntry,
 	createMail,
@@ -16,6 +17,7 @@ import {
 	createMailBox,
 	createMailboxGroupRoot,
 	createMailboxProperties,
+	createMailDetails,
 	createTutanotaProperties,
 	CustomerAccountCreateDataTypeRef,
 	MailTypeRef,
@@ -48,6 +50,7 @@ import { func, instance, matchers, object, replace, when } from "testdouble"
 import { RecipientsModel, ResolveMode } from "../../../src/api/main/RecipientsModel"
 import { ResolvableRecipientMock } from "./ResolvableRecipientMock.js"
 import { NoZoneDateProvider } from "../../../src/api/common/utils/NoZoneDateProvider.js"
+import { MailWrapper } from "../../../src/api/common/MailWrapper.js"
 import { FolderSystem } from "../../../src/mail/model/FolderSystem.js"
 
 const { anything, argThat } = matchers
@@ -121,6 +124,7 @@ o.spec("SendMailModel", function () {
 		when(mailFacade.createDraft(anything())).thenDo(() => createMail())
 		when(mailFacade.updateDraft(anything())).thenDo(() => createMail())
 		when(mailFacade.getRecipientKeyData(anything())).thenResolve(null)
+		when(mailFacade.getAttachmentIds(anything())).thenResolve([])
 
 		const tutanotaProperties = createTutanotaProperties({
 			defaultSender: DEFAULT_SENDER_FOR_TESTING,
@@ -266,10 +270,18 @@ o.spec("SendMailModel", function () {
 				replyTos: [],
 				conversationEntry: testIdGenerator.newIdTuple(),
 			})
+			const mailWrapper = MailWrapper.details(
+				draftMail,
+				createMailDetails({
+					body: createBody({
+						text: BODY_TEXT_1,
+					}),
+				}),
+			)
 			when(entity.load(ConversationEntryTypeRef, draftMail.conversationEntry)).thenResolve(
 				createConversationEntry({ conversationType: ConversationType.REPLY }),
 			)
-			const initializedModel = await model.initWithDraft(draftMail, [], BODY_TEXT_1, new Map())
+			const initializedModel = await model.initWithDraft([], mailWrapper, new Map())
 			o(initializedModel.getConversationType()).equals(ConversationType.REPLY)
 			o(initializedModel.getSubject()).equals(draftMail.subject)
 			o(initializedModel.getBody()).equals(BODY_TEXT_1)
@@ -303,12 +315,13 @@ o.spec("SendMailModel", function () {
 				replyTos: [],
 				conversationEntry: testIdGenerator.newIdTuple(),
 			})
+			const mailWrapper = MailWrapper.details(draftMail, createMailDetails({ body: createBody({ text: BODY_TEXT_1 }) }))
 
 			when(entity.load(ConversationEntryTypeRef, draftMail.conversationEntry)).thenResolve(
 				createConversationEntry({ conversationType: ConversationType.FORWARD }),
 			)
 
-			const initializedModel = await model.initWithDraft(draftMail, [], BODY_TEXT_1, new Map())
+			const initializedModel = await model.initWithDraft([], mailWrapper, new Map())
 			o(initializedModel.getConversationType()).equals(ConversationType.FORWARD)
 			o(initializedModel.getSubject()).equals(draftMail.subject)
 			o(initializedModel.getBody()).equals(BODY_TEXT_1)

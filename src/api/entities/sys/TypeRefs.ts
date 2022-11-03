@@ -446,6 +446,22 @@ export type Bucket = {
 
 	bucketPermissions: Id;
 }
+export const BucketKeyTypeRef: TypeRef<BucketKey> = new TypeRef("sys", "BucketKey")
+
+export function createBucketKey(values?: Partial<BucketKey>): BucketKey {
+	return Object.assign(create(typeModels.BucketKey, BucketKeyTypeRef), values)
+}
+
+export type BucketKey = {
+	_type: TypeRef<BucketKey>;
+
+	_id: Id;
+	ownerEncBucketKey: null | Uint8Array;
+	pubEncBucketKey: null | Uint8Array;
+
+	bucketEncSessionKeys: InstanceSessionKey[];
+	pubKeyGroup:  null | Id;
+}
 export const BucketPermissionTypeRef: TypeRef<BucketPermission> = new TypeRef("sys", "BucketPermission")
 
 export function createBucketPermission(values?: Partial<BucketPermission>): BucketPermission {
@@ -1408,6 +1424,22 @@ export type GroupRoot = {
 	externalGroupInfos: Id;
 	externalUserAreaGroupInfos:  null | UserAreaGroups;
 	externalUserReferences: Id;
+}
+export const InstanceSessionKeyTypeRef: TypeRef<InstanceSessionKey> = new TypeRef("sys", "InstanceSessionKey")
+
+export function createInstanceSessionKey(values?: Partial<InstanceSessionKey>): InstanceSessionKey {
+	return Object.assign(create(typeModels.InstanceSessionKey, InstanceSessionKeyTypeRef), values)
+}
+
+export type InstanceSessionKey = {
+	_type: TypeRef<InstanceSessionKey>;
+
+	_id: Id;
+	instanceId: Id;
+	instanceList: Id;
+	symEncSessionKey: Uint8Array;
+
+	typeInfo: TypeInfo;
 }
 export const InvoiceTypeRef: TypeRef<Invoice> = new TypeRef("sys", "Invoice")
 
@@ -2725,6 +2757,19 @@ export type UpdatePermissionKeyData = {
 
 	bucketPermission: IdTuple;
 	permission: IdTuple;
+}
+export const UpdateSessionKeysPostInTypeRef: TypeRef<UpdateSessionKeysPostIn> = new TypeRef("sys", "UpdateSessionKeysPostIn")
+
+export function createUpdateSessionKeysPostIn(values?: Partial<UpdateSessionKeysPostIn>): UpdateSessionKeysPostIn {
+	return Object.assign(create(typeModels.UpdateSessionKeysPostIn, UpdateSessionKeysPostInTypeRef), values)
+}
+
+export type UpdateSessionKeysPostIn = {
+	_type: TypeRef<UpdateSessionKeysPostIn>;
+
+	_format: NumberString;
+
+	ownerEncSessionKeys: InstanceSessionKey[];
 }
 export const UpgradePriceServiceDataTypeRef: TypeRef<UpgradePriceServiceData> = new TypeRef("sys", "UpgradePriceServiceData")
 

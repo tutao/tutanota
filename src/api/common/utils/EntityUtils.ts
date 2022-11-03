@@ -141,6 +141,10 @@ export interface ListElement {
 	_id: IdTuple
 }
 
+export interface BlobElement {
+	_id: IdTuple
+}
+
 export function getEtId(entity: Element): Id {
 	return entity._id
 }
@@ -316,4 +320,13 @@ export function isValidGeneratedId(id: Id | IdTuple): boolean {
 
 export function isElementEntity(e: SomeEntity): e is ElementEntity {
 	return typeof e._id === "string"
+}
+
+export function getElementIdFromInstance(instance: Record<string, any>): Id {
+	if (typeof instance._id === "string") {
+		return instance._id
+	} else {
+		var idTuple = instance._id as IdTuple
+		return elementIdPart(idTuple)
+	}
 }

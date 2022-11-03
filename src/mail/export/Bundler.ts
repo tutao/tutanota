@@ -1,13 +1,13 @@
 import type { EncryptedMailAddress, Mail } from "../../api/entities/tutanota/TypeRefs.js"
-import { FileTypeRef, MailAddress, MailBodyTypeRef, MailHeadersTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { FileTypeRef, MailAddress } from "../../api/entities/tutanota/TypeRefs.js"
 import type { EntityClient } from "../../api/common/EntityClient"
-import { getMailBodyText, getMailHeaders } from "../../api/common/utils/Utils"
 import { MailState } from "../../api/common/TutanotaConstants"
 import { getLetId } from "../../api/common/utils/EntityUtils"
 import type { HtmlSanitizer } from "../../misc/HtmlSanitizer"
 import { promiseMap } from "@tutao/tutanota-utils"
 import { DataFile } from "../../api/common/DataFile"
 import { FileController } from "../../file/FileController"
+import { loadMailDetails, loadMailHeaders } from "../model/MailUtils.js"
 
 /**
  * Used to pass all downloaded mail stuff to the desktop side to be exported as a file
@@ -31,8 +31,7 @@ export type MailBundle = {
 	isRead: boolean
 	sentOn: number
 	// UNIX timestamp
-	receivedOn: number
-	// UNIX timestamp,
+	receivedOn: number // UNIX timestamp,
 	headers: string | null
 	attachments: DataFile[]
 }
@@ -41,7 +40,8 @@ export type MailBundle = {
  * Downloads the mail body and the attachments for an email, to prepare for exporting
  */
 export async function makeMailBundle(mail: Mail, entityClient: EntityClient, fileController: FileController, sanitizer: HtmlSanitizer): Promise<MailBundle> {
-	const body = sanitizer.sanitizeHTML(getMailBodyText(await entityClient.load(MailBodyTypeRef, mail.body)), {
+	const mailWrapper = await loadMailDetails(entityClient, mail)
+	const body = sanitizer.sanitizeHTML(mailWrapper.getMailBodyText(), {
 		blockExternalContent: false,
 		allowRelativeLinks: false,
 		usePlaceholderForInlineImages: false,
@@ -52,8 +52,7 @@ export async function makeMailBundle(mail: Mail, entityClient: EntityClient, fil
 		return await fileController.downloadAndDecrypt(file)
 	})
 
-	const headers = mail.headers != null ? getMailHeaders(await entityClient.load(MailHeadersTypeRef, mail.headers)) : null
-
+	const headers = await loadMailHeaders(entityClient, mailWrapper)
 	const recipientMapper = ({ address, name }: MailAddress | EncryptedMailAddress) => ({ address, name })
 
 	return {
@@ -61,13 +60,13 @@ export async function makeMailBundle(mail: Mail, entityClient: EntityClient, fil
 		subject: mail.subject,
 		body,
 		sender: recipientMapper(mail.sender),
-		to: mail.toRecipients.map(recipientMapper),
-		cc: mail.ccRecipients.map(recipientMapper),
-		bcc: mail.bccRecipients.map(recipientMapper),
-		replyTo: mail.replyTos.map(recipientMapper),
+		to: mailWrapper.getToRecipients().map(recipientMapper),
+		cc: mailWrapper.getCcRecipients().map(recipientMapper),
+		bcc: mailWrapper.getBccRecipients().map(recipientMapper),
+		replyTo: mailWrapper.getReplyTos().map(recipientMapper),
 		isDraft: mail.state === MailState.DRAFT,
 		isRead: !mail.unread,
-		sentOn: mail.sentDate.getTime(),
+		sentOn: mailWrapper.getSentDate().getTime(),
 		receivedOn: mail.receivedDate.getTime(),
 		headers,
 		attachments,

@@ -143,6 +143,7 @@ export type BlobServerAccessInfo = {
 
 	_id: Id;
 	blobAccessToken: string;
+	expires: Date;
 
 	servers: BlobServerUrl[];
 }

@@ -97,6 +97,7 @@ import { CacheStorageLateInitializer } from "../rest/CacheStorageProxy"
 import { AuthDataProvider, UserFacade } from "./UserFacade"
 import { LoginFailReason, LoginListener } from "../../main/LoginListener"
 import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
+import { BlobAccessTokenFacade } from "./BlobAccessTokenFacade.js"
 
 assertWorkerOrNode()
 const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
@@ -164,6 +165,7 @@ export class LoginFacade {
 		private readonly cacheInitializer: CacheStorageLateInitializer,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly userFacade: UserFacade,
+		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
 	) {}
 
 	init(indexer: Indexer, eventBusClient: EventBusClient) {
@@ -827,7 +829,13 @@ export class LoginFacade {
 				return false
 			},
 		}
-		const eventRestClient = new EntityRestClient(tempAuthDataProvider, this.restClient, () => this.cryptoFacade, this.instanceMapper)
+		const eventRestClient = new EntityRestClient(
+			tempAuthDataProvider,
+			this.restClient,
+			() => this.cryptoFacade,
+			this.instanceMapper,
+			this.blobAccessTokenFacade,
+		)
 		const entityClient = new EntityClient(eventRestClient)
 		return this.serviceExecutor
 			.post(SessionService, sessionData) // Don't pass email address to avoid proposing to reset second factor when we're resetting password

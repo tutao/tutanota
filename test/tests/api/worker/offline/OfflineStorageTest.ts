@@ -4,17 +4,23 @@ import { customTypeEncoders, OfflineStorage, sql } from "../../../../../src/api/
 import { instance, object, when } from "testdouble"
 import * as cborg from "cborg"
 import { GENERATED_MIN_ID, generatedIdToTimestamp, getElementId, timestampToGeneratedId } from "../../../../../src/api/common/utils/EntityUtils.js"
-import { getFirstOrThrow, getDayShifted, getTypeId, lastThrow, mapNullable, promiseMap, TypeRef } from "@tutao/tutanota-utils"
+import { getDayShifted, getFirstOrThrow, getTypeId, lastThrow, mapNullable, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import { DateProvider } from "../../../../../src/api/common/DateProvider.js"
 import {
 	createFile,
 	createMail,
 	createMailBody,
+	createMailDetails,
+	createMailDetailsBlob,
+	createMailDetailsDraft,
 	createMailFolder,
 	FileTypeRef,
 	Mail,
 	MailBody,
 	MailBodyTypeRef,
+	MailDetailsBlobTypeRef,
+	MailDetailsDraftTypeRef,
+	MailDetailsTypeRef,
 	MailFolderTypeRef,
 	MailTypeRef,
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
@@ -24,9 +30,9 @@ import { DesktopSqlCipher } from "../../../../../src/desktop/DesktopSqlCipher.js
 import * as fs from "fs"
 import { untagSqlObject } from "../../../../../src/api/worker/offline/SqlValue.js"
 import { MailFolderType } from "../../../../../src/api/common/TutanotaConstants.js"
-import { ElementEntity, ListElementEntity, SomeEntity } from "../../../../../src/api/common/EntityTypes.js"
+import { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from "../../../../../src/api/common/EntityTypes.js"
 import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
-import { Type } from "../../../../../src/api/common/EntityConstants.js"
+import { Type as TypeId } from "../../../../../src/api/common/EntityConstants.js"
 import { expandId } from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
 import { WorkerImpl } from "../../../../../src/api/worker/WorkerImpl.js"
 
@@ -89,11 +95,24 @@ o.spec("OfflineStorage", function () {
 			const typeModel = await resolveTypeReference(entity._type)
 			const type = getTypeId(entity._type)
 			let preparedQuery
-			if (typeModel.type === Type.Element) {
-				preparedQuery = sql`insert into element_entities values (${type}, ${(entity as ElementEntity)._id}, ${entity._ownerGroup}, ${encode(entity)})`
-			} else {
-				const [listId, elementId] = (entity as ListElementEntity)._id
-				preparedQuery = sql`INSERT INTO list_entities VALUES (${type}, ${listId}, ${elementId}, ${entity._ownerGroup}, ${encode(entity)})`
+			switch (typeModel.type) {
+				case TypeId.Element.valueOf():
+					preparedQuery = sql`insert into element_entities values (${type}, ${(entity as ElementEntity)._id}, ${entity._ownerGroup}, ${encode(
+						entity,
+					)})`
+					break
+				case TypeId.ListElement.valueOf():
+					const [listId, elementId] = (entity as ListElementEntity)._id
+					preparedQuery = sql`INSERT INTO list_entities VALUES (${type}, ${listId}, ${elementId}, ${entity._ownerGroup}, ${encode(entity)})`
+					break
+				case TypeId.BlobElement.valueOf():
+					const [archiveId, blobElementId] = (entity as BlobElementEntity)._id
+					preparedQuery = sql`INSERT INTO blob_element_entities VALUES (${type}, ${archiveId}, ${blobElementId}, ${entity._ownerGroup}, ${encode(
+						entity,
+					)})`
+					break
+				default:
+					throw new Error("must be a persistent type")
 			}
 			await dbFacade.run(preparedQuery.query, preparedQuery.params)
 		}
@@ -105,11 +124,21 @@ o.spec("OfflineStorage", function () {
 
 		async function getAllIdsForType(typeRef: TypeRef<unknown>): Promise<Id[]> {
 			const typeModel = await resolveTypeReference(typeRef)
-			const { query, params } =
-				typeModel.type === Type.Element
-					? sql`select * from element_entities where type = ${getTypeId(typeRef)}`
-					: sql`select * from list_entities where type = ${getTypeId(typeRef)}`
-			return (await dbFacade.all(query, params)).map((r) => r.elementId.value as Id)
+			let preparedQuery
+			switch (typeModel.type) {
+				case TypeId.Element.valueOf():
+					preparedQuery = sql`select * from element_entities where type = ${getTypeId(typeRef)}`
+					break
+				case TypeId.ListElement.valueOf():
+					preparedQuery = sql`select * from list_entities where type = ${getTypeId(typeRef)}`
+					break
+				case TypeId.BlobElement.valueOf():
+					preparedQuery = sql`select * from blob_element_entities where type = ${getTypeId(typeRef)}`
+					break
+				default:
+					throw new Error("must be a persistent type")
+			}
+			return (await dbFacade.all(preparedQuery.query, preparedQuery.params)).map((r) => r.elementId.value as Id)
 		}
 
 		o("migrations are run", async function () {
@@ -117,20 +146,62 @@ o.spec("OfflineStorage", function () {
 			verify(migratorMock.migrate(storage, dbFacade))
 		})
 
+		o.spec("Offline storage round trip", function () {
+			o.spec("BlobElementType", function () {
+				o("put, get and delete", async function () {
+					const archiveId = "archiveId"
+					const blobElementId = "id1"
+					const storableMailDetails = createMailDetailsBlob({ _id: [archiveId, blobElementId], details: createMailDetails() })
+
+					await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
+
+					let mailDetailsBlob = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
+					o(mailDetailsBlob).equals(null)
+
+					await storage.put(storableMailDetails)
+
+					mailDetailsBlob = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
+					mailDetailsBlob!.details._type = MailDetailsTypeRef // we do not set the proper typeRef class on nested aggregates, so we overwrite it here
+					o(mailDetailsBlob).deepEquals(storableMailDetails)
+
+					await storage.deleteIfExists(MailDetailsBlobTypeRef, archiveId, blobElementId)
+
+					mailDetailsBlob = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
+					o(mailDetailsBlob).equals(null)
+				})
+
+				o("put, get and deleteAllOwnedBy", async function () {
+					const archiveId = "archiveId"
+					const blobElementId = "id1"
+					const _ownerGroup = "ownerGroup"
+					const storableMailDetails = createMailDetailsBlob({ _id: [archiveId, blobElementId], _ownerGroup, details: createMailDetails() })
+
+					await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
+
+					await storage.put(storableMailDetails)
+
+					await storage.deleteAllOwnedBy(_ownerGroup)
+
+					const mailDetailsBlob = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
+					o(mailDetailsBlob).equals(null)
+				})
+			})
+		})
+
 		o.spec("Clearing excluded data", function () {
 			const listId = "listId"
 			const mailType = getTypeId(MailTypeRef)
-			const mailFolderType = getTypeId(MailFolderTypeRef)
-			const mailBodyType = getTypeId(MailBodyTypeRef)
 
-			o("old ranges will be deleted", async function () {
+			o("old ranges will be deleted (draft details)", async function () {
 				// create tables
 				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
 
 				const upper = offsetId(-1)
 				const lower = offsetId(-2)
+				const mailDetailsDraftId: IdTuple = ["mailDetailsList", "mailDetailsDraftId"]
 				await insertEntity(createMailFolder({ _id: ["mailFolderList", "mailFolderId"], mails: listId }))
-				await insertEntity(createMail({ _id: [listId, "anything"] }))
+				await insertEntity(createMailDetailsDraft({ _id: mailDetailsDraftId, details: createMailDetails() }))
+				await insertEntity(createMail({ _id: [listId, "anything"], mailDetailsDraft: mailDetailsDraftId }))
 				await insertRange(MailTypeRef, listId, lower, upper)
 
 				// Here we clear the excluded data
@@ -138,8 +209,33 @@ o.spec("OfflineStorage", function () {
 
 				const allRanges = await dbFacade.all("SELECT * FROM ranges", [])
 				o(allRanges).deepEquals([])
-				const allEntities = await getAllIdsForType(MailTypeRef)
-				o(allEntities).deepEquals([])
+				const allMails = await getAllIdsForType(MailTypeRef)
+				o(allMails).deepEquals([])
+				const allDraftDetails = await getAllIdsForType(MailDetailsDraftTypeRef)
+				o(allDraftDetails).deepEquals([])
+			})
+
+			o("old ranges will be deleted (blob details)", async function () {
+				// create tables
+				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
+
+				const upper = offsetId(-1)
+				const lower = offsetId(-2)
+				const mailDetailsBlobId: IdTuple = ["mailDetailsList", "mailDetailsBlobId"]
+				await insertEntity(createMailFolder({ _id: ["mailFolderList", "mailFolderId"], mails: listId }))
+				await insertEntity(createMailDetailsBlob({ _id: mailDetailsBlobId, details: createMailDetails() }))
+				await insertEntity(createMail({ _id: [listId, "anything"], mailDetails: mailDetailsBlobId }))
+				await insertRange(MailTypeRef, listId, lower, upper)
+
+				// Here we clear the excluded data
+				await storage.clearExcludedData(timeRangeDays, userId)
+
+				const allRanges = await dbFacade.all("SELECT * FROM ranges", [])
+				o(allRanges).deepEquals([])
+				const allMails = await getAllIdsForType(MailTypeRef)
+				o(allMails).deepEquals([])
+				const allBlobDetails = await getAllIdsForType(MailDetailsBlobTypeRef)
+				o(allBlobDetails).deepEquals([])
 			})
 
 			o("modified ranges will be shrunk", async function () {
@@ -193,7 +289,7 @@ o.spec("OfflineStorage", function () {
 				o(allMailIds).deepEquals([getElementId(mail)])
 			})
 
-			o("trash and spam is cleared", async function () {
+			o("legacy trash and spam is cleared", async function () {
 				const spamFolderId = "spamFolder"
 				const trashFolderId = "trashFolder"
 				const spamListId = "spamList"
@@ -224,6 +320,39 @@ o.spec("OfflineStorage", function () {
 				o(await getAllIdsForType(MailFolderTypeRef)).deepEquals([spamFolderId, trashFolderId])
 				o(await getAllIdsForType(MailTypeRef)).deepEquals([])
 				o(await getAllIdsForType(MailBodyTypeRef)).deepEquals([])
+			})
+
+			o("trash and spam is cleared", async function () {
+				const spamFolderId = "spamFolder"
+				const trashFolderId = "trashFolder"
+				const spamListId = "spamList"
+				const trashListId = "trashList"
+				const spamDetailsId: IdTuple = ["detailsListId", "spamDetailsId"]
+				const trashDetailsId: IdTuple = ["detailsListId", "trashDetailsId"]
+
+				const spamMailId = offsetId(2)
+				const trashMailId = offsetId(2)
+				const spamMail = createMail({ _id: [spamListId, spamMailId], mailDetails: spamDetailsId })
+				const trashMail = createMail({ _id: [trashListId, trashMailId], mailDetails: trashDetailsId })
+
+				await storage.init({ userId, databaseKey, timeRangeDays, forceNewDatabase: false })
+
+				await insertEntity(createMailFolder({ _id: ["mailFolderList", spamFolderId], mails: spamListId, folderType: MailFolderType.SPAM }))
+				await insertEntity(createMailFolder({ _id: ["mailFolderList", trashFolderId], mails: trashListId, folderType: MailFolderType.TRASH }))
+				await insertEntity(spamMail)
+				await insertEntity(trashMail)
+				await insertEntity(createMailDetailsBlob({ _id: spamDetailsId, details: createMailDetails() }))
+				await insertEntity(createMailDetailsBlob({ _id: trashDetailsId, details: createMailDetails() }))
+
+				// Here we clear the excluded data
+				await storage.clearExcludedData(timeRangeDays, userId)
+
+				const allEntities = await dbFacade.all("select * from list_entities", [])
+				o(allEntities.map((r) => r.elementId.value)).deepEquals([spamFolderId, trashFolderId])
+
+				o(await getAllIdsForType(MailFolderTypeRef)).deepEquals([spamFolderId, trashFolderId])
+				o(await getAllIdsForType(MailTypeRef)).deepEquals([])
+				o(await getAllIdsForType(MailDetailsBlobTypeRef)).deepEquals([])
 			})
 
 			o("normal folder is partially cleared", async function () {

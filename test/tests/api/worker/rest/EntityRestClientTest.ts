@@ -1,25 +1,31 @@
 import o from "ospec"
+import { BadRequestError, ConnectionError, InternalServerError, PayloadTooLargeError } from "../../../../../src/api/common/error/RestError.js"
+import { assertThrows } from "@tutao/tutanota-test-utils"
+import { SetupMultipleError } from "../../../../../src/api/common/error/SetupMultipleError.js"
+import { HttpMethod, MediaType, resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
+import { createCustomer, CustomerTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { EntityRestClient, tryServers, typeRefToPath } from "../../../../../src/api/worker/rest/EntityRestClient.js"
+import { RestClient } from "../../../../../src/api/worker/rest/RestClient.js"
+import type { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
+import { InstanceMapper } from "../../../../../src/api/worker/crypto/InstanceMapper.js"
+import { func, instance, matchers, object, verify, when } from "testdouble"
+import tutanotaModelInfo from "../../../../../src/api/entities/tutanota/ModelInfo.js"
+import sysModelInfo from "../../../../../src/api/entities/sys/ModelInfo.js"
+import { AuthDataProvider } from "../../../../../src/api/worker/facades/UserFacade.js"
+import { LoginIncompleteError } from "../../../../../src/api/common/error/LoginIncompleteError.js"
+import { createBlobServerAccessInfo, createBlobServerUrl } from "../../../../../src/api/entities/storage/TypeRefs.js"
+import { Mapper } from "@tutao/tutanota-utils"
+import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError.js"
+import { BlobAccessTokenFacade } from "../../../../../src/api/worker/facades/BlobAccessTokenFacade.js"
 import {
 	CalendarEventTypeRef,
 	Contact,
 	ContactTypeRef,
 	createContact,
 	createInternalRecipientKeyData,
+	MailDetailsBlob,
+	MailDetailsBlobTypeRef,
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
-import { BadRequestError, InternalServerError, PayloadTooLargeError } from "../../../../../src/api/common/error/RestError.js"
-import { assertThrows } from "@tutao/tutanota-test-utils"
-import { SetupMultipleError } from "../../../../../src/api/common/error/SetupMultipleError.js"
-import { HttpMethod, MediaType, resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
-import { createCustomer, CustomerTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import { EntityRestClient, typeRefToPath } from "../../../../../src/api/worker/rest/EntityRestClient.js"
-import { RestClient } from "../../../../../src/api/worker/rest/RestClient.js"
-import type { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
-import { InstanceMapper } from "../../../../../src/api/worker/crypto/InstanceMapper.js"
-import { matchers, object, verify, when } from "testdouble"
-import tutanotaModelInfo from "../../../../../src/api/entities/tutanota/ModelInfo.js"
-import sysModelInfo from "../../../../../src/api/entities/sys/ModelInfo.js"
-import { AuthDataProvider } from "../../../../../src/api/worker/facades/UserFacade.js"
-import { LoginIncompleteError } from "../../../../../src/api/common/error/LoginIncompleteError.js"
 
 const { anything, argThat } = matchers
 
@@ -54,6 +60,7 @@ o.spec("EntityRestClient", async function () {
 	let instanceMapperMock: InstanceMapper
 	let cryptoFacadeMock: CryptoFacade
 	let fullyLoggedIn: boolean
+	let blobAccessTokenFacade: BlobAccessTokenFacade
 
 	o.beforeEach(function () {
 		cryptoFacadeMock = object()
@@ -75,6 +82,8 @@ o.spec("EntityRestClient", async function () {
 			return Promise.resolve({ ...migratedEntity, decrypted: true })
 		})
 
+		blobAccessTokenFacade = instance(BlobAccessTokenFacade)
+
 		restClient = object()
 
 		fullyLoggedIn = true
@@ -87,7 +96,7 @@ o.spec("EntityRestClient", async function () {
 				return fullyLoggedIn
 			},
 		}
-		entityRestClient = new EntityRestClient(authDataProvider, restClient, () => cryptoFacadeMock, instanceMapperMock)
+		entityRestClient = new EntityRestClient(authDataProvider, restClient, () => cryptoFacadeMock, instanceMapperMock, blobAccessTokenFacade)
 	})
 
 	function assertThatNoRequestsWereMade() {
@@ -311,6 +320,104 @@ o.spec("EntityRestClient", async function () {
 			fullyLoggedIn = false
 			await assertThrows(LoginIncompleteError, () => entityRestClient.loadMultiple(CalendarEventTypeRef, "listId", ["startId", "anotherId"]))
 			assertThatNoRequestsWereMade()
+		})
+
+		o("when loading blob elements a blob access token is requested and the correct headers and parameters are set", async function () {
+			const ids = countFrom(0, 5)
+			const archiveId = "archiveId"
+			const firstServer = "firstServer"
+
+			const blobAccessToken = "123"
+			when(blobAccessTokenFacade.requestReadTokenArchive(anything(), archiveId)).thenResolve(
+				createBlobServerAccessInfo({
+					blobAccessToken,
+					servers: [createBlobServerUrl({ url: firstServer }), createBlobServerUrl({ url: "otherServer" })],
+				}),
+			)
+
+			when(restClient.request(anything(), HttpMethod.GET, anything())).thenResolve(JSON.stringify([{ instance: 1 }, { instance: 2 }]))
+
+			const result = await entityRestClient.loadMultiple(MailDetailsBlobTypeRef, archiveId, ids)
+
+			verify(
+				restClient.request(`${typeRefToPath(MailDetailsBlobTypeRef)}/${archiveId}`, HttpMethod.GET, {
+					headers: {},
+					queryParams: { ids: "0,1,2,3,4", ...authHeader, blobAccessToken, v: String(tutanotaModelInfo.version) },
+					responseType: MediaType.Json,
+					noCORS: true,
+					baseUrl: firstServer,
+				}),
+			)
+
+			// There's some weird optimization for list requests where the types to migrate
+			// are hardcoded (e.g. PushIdentifier) for *vaguely gestures* optimization reasons.
+			o(result as any).deepEquals([
+				{ instance: 1, /*migrated: true,*/ decrypted: true, migratedForInstance: true },
+				{ instance: 2, /*migrated: true,*/ decrypted: true, migratedForInstance: true },
+			])
+		})
+
+		o("when loading blob elements request is retried with another server url if it failed", async function () {
+			const ids = countFrom(0, 5)
+			const archiveId = "archiveId"
+			const firstServer = "firstServer"
+
+			const blobAccessToken = "123"
+			const otherServer = "otherServer"
+			when(blobAccessTokenFacade.requestReadTokenArchive(anything(), archiveId)).thenResolve(
+				createBlobServerAccessInfo({
+					blobAccessToken,
+					servers: [createBlobServerUrl({ url: firstServer }), createBlobServerUrl({ url: otherServer })],
+				}),
+			)
+
+			when(
+				restClient.request(anything(), HttpMethod.GET, {
+					headers: {},
+					queryParams: { ids: "0,1,2,3,4", ...authHeader, blobAccessToken, v: String(tutanotaModelInfo.version) },
+					responseType: MediaType.Json,
+					noCORS: true,
+					baseUrl: firstServer,
+				}),
+			).thenReject(new ConnectionError("test connection error for retry"))
+			when(
+				restClient.request(anything(), HttpMethod.GET, {
+					headers: {},
+					queryParams: { ids: "0,1,2,3,4", ...authHeader, blobAccessToken, v: String(tutanotaModelInfo.version) },
+					responseType: MediaType.Json,
+					noCORS: true,
+					baseUrl: otherServer,
+				}),
+			).thenResolve(JSON.stringify([{ instance: 1 }, { instance: 2 }]))
+
+			const result = await entityRestClient.loadMultiple(MailDetailsBlobTypeRef, archiveId, ids)
+
+			verify(restClient.request(`${typeRefToPath(MailDetailsBlobTypeRef)}/${archiveId}`, HttpMethod.GET, anything()), { times: 2 })
+
+			// There's some weird optimization for list requests where the types to migrate
+			// are hardcoded (e.g. PushIdentifier) for *vaguely gestures* optimization reasons.
+			o(result as any).deepEquals([
+				{ instance: 1, /*migrated: true,*/ decrypted: true, migratedForInstance: true },
+				{ instance: 2, /*migrated: true,*/ decrypted: true, migratedForInstance: true },
+			])
+		})
+
+		o("when loading blob elements without an archiveId it throws", async function () {
+			const ids = countFrom(0, 5)
+			const archiveId = null
+
+			let result: Array<MailDetailsBlob> | null = null
+			try {
+				result = await entityRestClient.loadMultiple(MailDetailsBlobTypeRef, archiveId, ids)
+				o(true).equals(false)("loadMultiple should have thrown an exception")
+			} catch (e) {
+				o(e.message).equals("archiveId must be set to load BlobElementTypes")
+			}
+
+			verify(restClient.request(anything(), anything(), anything()), { times: 0 })
+			verify(blobAccessTokenFacade.requestReadTokenArchive(anything(), anything()), { times: 0 })
+
+			o(result).equals(null)
 		})
 	})
 
@@ -705,6 +812,49 @@ o.spec("EntityRestClient", async function () {
 			)
 
 			await entityRestClient.erase(newCustomer)
+		})
+	})
+
+	o.spec("tryServers", function () {
+		o("tryServers successful", async function () {
+			let servers = [createBlobServerUrl({ url: "w1" }), createBlobServerUrl({ url: "w2" })]
+			const mapperMock = func<Mapper<string, object>>()
+			const expectedResult = { response: "response-from-server" }
+			when(mapperMock(anything(), anything())).thenResolve(expectedResult)
+			const result = await tryServers(servers, mapperMock, "error")
+			o(result).equals(expectedResult)
+			verify(mapperMock("w1", 0), { times: 1 })
+			verify(mapperMock("w2", 1), { times: 0 })
+		})
+
+		o("tryServers error", async function () {
+			let servers = [createBlobServerUrl({ url: "w1" }), createBlobServerUrl({ url: "w2" })]
+			const mapperMock = func<Mapper<string, object>>()
+			when(mapperMock("w1", 0)).thenReject(new ProgrammingError("test"))
+			const e = await assertThrows(ProgrammingError, () => tryServers(servers, mapperMock, "error"))
+			o(e.message).equals("test")
+			verify(mapperMock(anything(), anything()), { times: 1 })
+		})
+
+		o("tryServers ConnectionError and successful response", async function () {
+			let servers = [createBlobServerUrl({ url: "w1" }), createBlobServerUrl({ url: "w2" })]
+			const mapperMock = func<Mapper<string, object>>()
+			const expectedResult = { response: "response-from-server" }
+			when(mapperMock("w1", 0)).thenReject(new ConnectionError("test"))
+			when(mapperMock("w2", 1)).thenResolve(expectedResult)
+			const result = await tryServers(servers, mapperMock, "error")
+			o(result).deepEquals(expectedResult)
+			verify(mapperMock(anything(), anything()), { times: 2 })
+		})
+
+		o("tryServers multiple ConnectionError", async function () {
+			let servers = [createBlobServerUrl({ url: "w1" }), createBlobServerUrl({ url: "w2" })]
+			const mapperMock = func<Mapper<string, object>>()
+			when(mapperMock("w1", 0)).thenReject(new ConnectionError("test"))
+			when(mapperMock("w2", 1)).thenReject(new ConnectionError("test"))
+			const e = await assertThrows(ConnectionError, () => tryServers(servers, mapperMock, "error log msg"))
+			o(e.message).equals("test")
+			verify(mapperMock(anything(), anything()), { times: 2 })
 		})
 	})
 })

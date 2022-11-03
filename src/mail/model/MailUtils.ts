@@ -1,5 +1,13 @@
 import type { Contact, EncryptedMailAddress, InboxRule, Mail, MailFolder, TutanotaProperties } from "../../api/entities/tutanota/TypeRefs.js"
-import { createContact, createContactMailAddress, createEncryptedMailAddress } from "../../api/entities/tutanota/TypeRefs.js"
+import {
+	createContact,
+	createContactMailAddress,
+	createEncryptedMailAddress,
+	MailBodyTypeRef,
+	MailDetailsBlobTypeRef,
+	MailDetailsDraftTypeRef,
+	MailHeadersTypeRef,
+} from "../../api/entities/tutanota/TypeRefs.js"
 import {
 	ContactAddressType,
 	ConversationType,
@@ -28,7 +36,9 @@ import type { EntityClient } from "../../api/common/EntityClient"
 import { getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName } from "../../api/common/utils/GroupUtils"
 import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../../misc/parsing/MailAddressParser"
 import type { Attachment } from "../editor/SendMailModel"
-import { getListId } from "../../api/common/utils/EntityUtils.js"
+import { elementIdPart, getListId, listIdPart } from "../../api/common/utils/EntityUtils"
+import { isDetailsDraft, isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
+import { getLegacyMailHeaders, getMailHeaders } from "../../api/common/utils/Utils.js"
 import { FolderSystem } from "./FolderSystem.js"
 
 assertMainOrNode()
@@ -80,12 +90,22 @@ export function getSenderHeading(mail: Mail, preferNameOnly: boolean) {
 }
 
 export function getRecipientHeading(mail: Mail, preferNameOnly: boolean) {
-	const allRecipients = mail.toRecipients.concat(mail.ccRecipients).concat(mail.bccRecipients)
+	if (isLegacyMail(mail)) {
+		const allRecipients = mail.toRecipients.concat(mail.ccRecipients).concat(mail.bccRecipients)
 
-	if (allRecipients.length > 0) {
-		return getMailAddressDisplayText(allRecipients[0].name, allRecipients[0].address, preferNameOnly) + (allRecipients.length > 1 ? ", ..." : "")
+		if (allRecipients.length > 0) {
+			return getMailAddressDisplayText(allRecipients[0].name, allRecipients[0].address, preferNameOnly) + (allRecipients.length > 1 ? ", ..." : "")
+		} else {
+			return ""
+		}
 	} else {
-		return ""
+		let recipientCount = parseInt(mail.recipientCount)
+		if (recipientCount > 0) {
+			let recipient = neverNull(mail.firstRecipient)
+			return getMailAddressDisplayText(recipient.name, recipient.address, preferNameOnly) + (recipientCount > 1 ? ", ..." : "")
+		} else {
+			return ""
+		}
 	}
 }
 
@@ -389,4 +409,27 @@ export function getPathToFolderString(folderSystem: FolderSystem, folder: MailFo
 		folderPath.pop()
 	}
 	return folderPath.map(getFolderName).join(" · ")
+}
+
+export async function loadMailDetails(entityClient: EntityClient, mail: Mail): Promise<MailWrapper> {
+	if (isLegacyMail(mail)) {
+		return entityClient.load(MailBodyTypeRef, neverNull(mail.body)).then((b) => MailWrapper.body(mail, b))
+	} else if (isDetailsDraft(mail)) {
+		return entityClient.load(MailDetailsDraftTypeRef, neverNull(mail.mailDetailsDraft)).then((d) => MailWrapper.details(mail, d.details))
+	} else {
+		const mailDetailsId = neverNull(mail.mailDetails)
+		return entityClient
+			.loadMultiple(MailDetailsBlobTypeRef, listIdPart(mailDetailsId), [elementIdPart(mailDetailsId)])
+			.then((d) => MailWrapper.details(mail, d[0].details))
+	}
+}
+
+export async function loadMailHeaders(entityClient: EntityClient, mailWrapper: MailWrapper): Promise<string | null> {
+	if (mailWrapper.isLegacy()) {
+		const headersId = mailWrapper.getMail().headers
+		return headersId != null ? getLegacyMailHeaders(await entityClient.load(MailHeadersTypeRef, headersId)) : null
+	} else {
+		const details = mailWrapper.getDetails()
+		return details.headers != null ? getMailHeaders(details.headers) : null
+	}
 }

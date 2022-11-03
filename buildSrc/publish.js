@@ -4,7 +4,6 @@
  */
 import { getTutanotaAppVersion } from "./buildUtils.js"
 import "zx/globals"
-
 ;(async function () {
 	// Find and compress built code (js and html)
 	const compress = () => $`/usr/bin/find ./build '(' -name "*.js" -o -name "*.html" ')' -exec gzip --force --keep --verbose --best '{}' ';'`

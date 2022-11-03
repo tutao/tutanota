@@ -62,11 +62,13 @@ export function exportMails(mails: Array<Mail>, entityClient: EntityClient, file
 		import("../../misc/HtmlSanitizer").then(({ htmlSanitizer }) => makeMailBundle(mail, entityClient, fileController, htmlSanitizer)),
 	)
 	return Promise.all([getMailExportMode(), downloadPromise]).then(([mode, bundles]) => {
-		promiseMap(bundles, (bundle) => generateMailFile(bundle, generateExportFileName(bundle.subject, new Date(bundle.sentOn), mode), mode)).then((files) => {
-			const zipName = `${sortableTimestamp()}-${mode}-mail-export.zip`
-			const maybeZipPromise = files.length === 1 ? Promise.resolve(files[0]) : zipDataFiles(files, zipName)
-			maybeZipPromise.then((outputFile) => fileController.saveDataFile(outputFile))
-		})
+		promiseMap(bundles, (bundle) => generateMailFile(bundle, generateExportFileName(bundle.subject, new Date(bundle.receivedOn), mode), mode)).then(
+			(files) => {
+				const zipName = `${sortableTimestamp()}-${mode}-mail-export.zip`
+				const maybeZipPromise = files.length === 1 ? Promise.resolve(files[0]) : zipDataFiles(files, zipName)
+				maybeZipPromise.then((outputFile) => fileController.saveDataFile(outputFile))
+			},
+		)
 	})
 }
 

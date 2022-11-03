@@ -230,7 +230,7 @@ export class MailListView implements Component {
 		const handleNotDownloaded = (mail: Mail) => {
 			notDownloaded.push({
 				mail,
-				fileName: generateExportFileName(mail.subject, mail.sentDate, exportMode),
+				fileName: generateExportFileName(mail.subject, mail.receivedDate, exportMode),
 			})
 		}
 

@@ -33,6 +33,7 @@ import { HttpMethod } from "../../../../../src/api/common/EntityFunctions"
 import { ConnectMode, EventBusClient } from "../../../../../src/api/worker/EventBusClient"
 import { Indexer } from "../../../../../src/api/worker/search/Indexer"
 import { createTutanotaProperties, TutanotaPropertiesTypeRef } from "../../../../../src/api/entities/tutanota/TypeRefs"
+import { BlobAccessTokenFacade } from "../../../../../src/api/worker/facades/BlobAccessTokenFacade.js"
 
 const { anything } = matchers
 
@@ -68,6 +69,7 @@ o.spec("LoginFacadeTest", function () {
 	let eventBusClientMock: EventBusClient
 	let usingOfflineStorage: boolean
 	let userFacade: UserFacade
+	let blobAccessTokenFacade: BlobAccessTokenFacade
 
 	const timeRangeDays = 42
 
@@ -115,6 +117,7 @@ o.spec("LoginFacadeTest", function () {
 			cacheStorageInitializerMock,
 			serviceExecutor,
 			userFacade,
+			blobAccessTokenFacade,
 		)
 
 		indexerMock = instance(Indexer)

@@ -8,20 +8,22 @@ import { getTutanotaAppVersion, runStep, sh, writeFile } from "../buildSrc/build
 import { esbuildPluginAliasPath } from "esbuild-plugin-alias-path"
 import { keytarNativePlugin, libDeps, preludeEnvPlugin, sqliteNativePlugin } from "../buildSrc/esbuildUtils.js"
 
-export async function runTestBuild({ clean }) {
+export async function runTestBuild({ clean, fast = false }) {
 	if (clean) {
 		await runStep("Clean", async () => {
 			await fs.emptyDir("build")
 		})
 	}
 
-	await runStep("Packages", async () => {
-		await $`npm run build-packages`
-	})
+	if (!fast) {
+		await runStep("Packages", async () => {
+			await $`npm run build-packages`
+		})
 
-	await runStep("Types", async () => {
-		await sh`npx tsc --incremental true --noEmit true`
-	})
+		await runStep("Types", async () => {
+			await sh`npx tsc --incremental true --noEmit true`
+		})
+	}
 
 	const version = getTutanotaAppVersion()
 	const localEnv = env.create({ staticUrl: "http://localhost:9000", version, mode: "Test", dist: false })
