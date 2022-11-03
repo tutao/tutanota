@@ -35,7 +35,7 @@ export class DrawerMenu implements Component<Attrs> {
 			},
 			m(".flex.col.height-100p.items-center.pt.pb", [
 				m(".flex-grow"),
-				logins.isUserLoggedIn() //&& showUsageDataOptInIndicator
+				logins.isUserLoggedIn()
 					?
 					m(".news-button", [
 						m(Button, {

@@ -155,7 +155,7 @@ export const enum InfoLink {
 	MailAuth = "https://tutanota.com/faq#mail-auth",
 	RunInBackground = "https://tutanota.com/faq#tray-desktop",
 	LoadImages = "https://tutanota.com/faq#load-images",
-	UsageData = "https://tutanota.com/faq#usage-data",
+	Usage = "https://tutanota.com/faq#usage",
 	//blog
 	PremiumProBusiness = "https://tutanota.com/blog/posts/premium-pro-business",
 }

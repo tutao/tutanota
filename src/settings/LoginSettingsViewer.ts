@@ -6,7 +6,7 @@ import {InfoLink, lang} from "../misc/LanguageViewModel"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {CustomerPropertiesTypeRef, Session, SessionTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {LazyLoaded, neverNull, ofClass} from "@tutao/tutanota-utils"
+import {isNotNull, LazyLoaded, neverNull, ofClass} from "@tutao/tutanota-utils"
 import {formatDateTimeFromYesterdayOn} from "../misc/Formatter"
 import {SessionState} from "../api/common/TutanotaConstants"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
@@ -127,13 +127,17 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			],
 			selectedValue: logins.getUserController().userSettingsGroupRoot.usageDataOptedIn,
 			selectionChangedHandler: v => {
-				logins.getUserController().userSettingsGroupRoot.usageDataOptedIn = v
-				locator.entityClient.update(logins.getUserController().userSettingsGroupRoot)
+				if (isNotNull(v)) {
+					this._usageTestModel.setOptInDecision(v)
+				}
 			},
 			helpLabel: () => {
-				return ifAllowedTutanotaLinks(InfoLink.UsageData, link => [
+				return ifAllowedTutanotaLinks(InfoLink.Usage, link => [
 					m("span", lang.get("userUsageDataOptInInfo_msg") + " " + lang.get("moreInfo_msg") + " "),
-					m("span.text-break", [m(`a[href=${link}][target=_blank]`, link)]),
+					m("span.text-break", [m("a", {
+						href: link,
+						target: "_blank",
+					}, link)]),
 				])
 			},
 			dropdownWidth: 250,

@@ -13,7 +13,6 @@ import {px, size as sizes} from "./size.js"
 import {BootIcons} from "./base/icons/BootIcons.js"
 import type {SearchBar} from "../search/SearchBar.js"
 import type {IMainLocator} from "../api/main/MainLocator.js"
-import {locator} from "../api/main/MainLocator.js"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../misc/RouteChange.js"
 import {AriaLandmarks, landmarkAttrs} from "./AriaUtils.js"
 import type {ViewSlider} from "./nav/ViewSlider.js"
@@ -24,6 +23,7 @@ import {ProgressBar} from "./base/ProgressBar.js"
 import {CounterBadge} from "./base/CounterBadge.js"
 import {SessionType} from "../api/common/SessionType.js"
 import {UsageTestModel} from "../misc/UsageTestModel.js"
+import {NewsModel} from "../misc/news/NewsModel.js"
 
 const LogoutPath = "/login?noAutoLogin=true"
 export const LogoutUrl: string = window.location.hash.startsWith("#mail") ? "/ext?noAutoLogin=true" + location.hash : LogoutPath
@@ -56,6 +56,7 @@ export class Header implements Component {
 	private readonly shortcuts: Shortcut[]
 	private offlineIndicatorModel: OfflineIndicatorViewModel = new OfflineIndicatorViewModel(() => m.redraw())
 	private usageTestModel?: UsageTestModel
+	private newsModel?: NewsModel
 
 	constructor() {
 		this.shortcuts = this.setupShortcuts()
@@ -68,6 +69,7 @@ export class Header implements Component {
 			const {SearchBar} = await import("../search/SearchBar.js")
 			this.searchBar = new SearchBar()
 			this.usageTestModel = mod.locator.usageTestModel
+			this.newsModel = mod.locator.newsModel
 		})
 
 		// we may be able to remove this when we stop creating the Header with new
@@ -294,7 +296,7 @@ export class Header implements Component {
 		const viewSlider = this.getViewSlider()
 		const showBackButton = this.isBackButtonVisible()
 		const showNewsIndicator = !showBackButton && styles.isUsingBottomNavigation()
-		const liveNewsCount = locator.newsModel.liveNewsIds.length
+		const liveNewsCount = this.newsModel ? this.newsModel.liveNewsIds.length : 0
 
 		const style = {
 			"margin-left": styles.isUsingBottomNavigation() ? px(-15) : null, // manual margin to align the hamburger icon on mobile devices

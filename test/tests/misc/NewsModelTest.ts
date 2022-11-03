@@ -1,6 +1,6 @@
 import o from "ospec"
 import {IServiceExecutor} from "../../../src/api/common/ServiceRequest.js"
-import {object, replace, verify, when} from "testdouble"
+import {object, verify, when} from "testdouble"
 import {NewsModel} from "../../../src/misc/news/NewsModel.js"
 import {NewsService} from "../../../src/api/entities/tutanota/Services.js"
 import {createNewsId, createNewsIn, createNewsOut, NewsId} from "../../../src/api/entities/tutanota/TypeRefs.js"
@@ -12,7 +12,7 @@ o.spec("NewsModel", function () {
 	let serviceExecutor: IServiceExecutor
 	let newsIds: NewsId[]
 
-	const DummyNews = class extends NewsListItem {
+	const DummyNews = class implements NewsListItem {
 		render(newsId: NewsId): Children {
 			return null
 		}
@@ -26,11 +26,7 @@ o.spec("NewsModel", function () {
 	o.beforeEach(function () {
 		serviceExecutor = object()
 
-		newsModel = new NewsModel(serviceExecutor)
-
-		replace(newsModel, "importNewsImpl", (newsItemName: string) => {
-			return DummyNews
-		})
+		newsModel = new NewsModel(serviceExecutor, name => new DummyNews())
 
 		newsIds = [
 			createNewsId({
@@ -57,7 +53,7 @@ o.spec("NewsModel", function () {
 		o("correctly acknowledges news", async function () {
 			await newsModel.loadNewsIds()
 
-			await newsModel.liveNewsListItems[newsIds[0].newsItemName].acknowledge(newsIds[0])
+			await newsModel.acknowledgeNews(newsIds[0].newsItemId)
 
 			verify(serviceExecutor.post(NewsService, createNewsIn({newsItemId: newsIds[0].newsItemId})))
 		})
