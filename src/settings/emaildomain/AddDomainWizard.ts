@@ -1,13 +1,11 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {logins} from "../../api/main/LoginController"
 import type {CustomerInfo, DnsRecord} from "../../api/entities/sys/TypeRefs.js"
 import {createDnsRecord} from "../../api/entities/sys/TypeRefs.js"
 import {DnsRecordType} from "../../api/common/TutanotaConstants"
 import m, {Children} from "mithril"
 import {ColumnWidth, Table} from "../../gui/base/Table.js"
 import type {MailAddressTableAttrs} from "../mailaddress/MailAddressTable.js"
-import {createEditAliasFormAttrs} from "../mailaddress/MailAddressTable.js"
 import {AddEmailAddressesPage, AddEmailAddressesPageAttrs} from "./AddEmailAddressesPage"
 import {DomainDnsStatus} from "../DomainDnsStatus"
 import {VerifyOwnershipPage, VerifyOwnershipPageAttrs} from "./VerifyOwnershipPage"
@@ -16,7 +14,7 @@ import {EnterDomainPage, EnterDomainPageAttrs} from "./EnterDomainPage"
 import {createWizardDialog, wizardPageWrapper} from "../../gui/base/WizardDialog.js"
 import {assertMainOrNode} from "../../api/common/Env"
 import {IconButtonAttrs} from "../../gui/base/IconButton.js"
-import {MailboxProperties} from "../../api/entities/tutanota/TypeRefs.js"
+import {MailAddressTableModel} from "../mailaddress/MailAddressTableModel.js"
 
 assertMainOrNode()
 export type AddDomainData = {
@@ -31,13 +29,13 @@ export type AddDomainData = {
 export function showAddDomainWizard(
 	domain: string,
 	customerInfo: CustomerInfo,
-	mailboxProperties: MailboxProperties,
+	mailAddressTableModel: MailAddressTableModel,
 ): Promise<void> {
 	const domainData: AddDomainData = {
 		domain: stream(domain),
 		customerInfo: customerInfo,
 		expectedVerificationRecord: createDnsRecord(),
-		editAliasFormAttrs: createEditAliasFormAttrs(logins.getUserController().userGroupInfo, mailboxProperties),
+		editAliasFormAttrs: {model: mailAddressTableModel},
 		domainStatus: new DomainDnsStatus(domain),
 	}
 	domainData.expectedVerificationRecord.type = DnsRecordType.DNS_RECORD_TYPE_TXT_SPF // not actually spf, but the type TXT only matters here
@@ -53,6 +51,7 @@ export function showAddDomainWizard(
 	]
 	return new Promise(resolve => {
 		const wizardBuilder = createWizardDialog(domainData, wizardPages, () => {
+			mailAddressTableModel.dispose()
 			resolve()
 			return Promise.resolve()
 		})

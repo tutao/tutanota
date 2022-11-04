@@ -47,6 +47,7 @@ import {assertMainOrNode} from "../api/common/Env"
 import {DropDownSelector} from "../gui/base/DropDownSelector.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js"
 import {SettingsExpander} from "./SettingsExpander.js"
+import {MailAddressTableModel} from "./mailaddress/MailAddressTableModel.js"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -131,8 +132,15 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					if (logins.getUserController().isFreeAccount()) {
 						showNotAvailableForFreeDialog(getCustomMailDomains(customerInfo).length === 0)
 					} else {
-						const mailboxProperties = await this.getMailboxProperties()
-						await showAddDomainWizard("", customerInfo, mailboxProperties)
+						const mailAddressTableModel = new MailAddressTableModel(
+							locator.entityClient,
+							locator.mailAddressFacade,
+							logins,
+							locator.eventController,
+							locator.mailModel,
+							(await locator.mailModel.getUserMailboxDetails()).mailGroup._id
+						)
+						await showAddDomainWizard("", customerInfo, mailAddressTableModel)
 						this.updateDomains()
 					}
 				},
@@ -500,7 +508,6 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 
 	private async updateDomains(): Promise<void> {
 		const customerInfo = await this.customerInfo.getAsync()
-		const mailboxProperties = await this.getMailboxProperties()
 		let customDomainInfos = getCustomMailDomains(customerInfo)
 		// remove dns status instances for all removed domains
 		Object.keys(this.domainDnsStatus).forEach(domain => {
@@ -564,11 +571,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 									if (domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine()) {
 										buttons.unshift({
 											label: "resumeSetup_label",
-											click: () => {
-												showAddDomainWizard(domainDnsStatus.domain, customerInfo, mailboxProperties).then(() => {
-													domainDnsStatus.loadCurrentStatus().then(() => m.redraw())
-												})
-											},
+											click: () => this.onResumeSetup(domainDnsStatus, customerInfo),
 										})
 									}
 									return buttons
@@ -585,11 +588,19 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	private async getMailboxProperties() {
-		// Assuming user mailbox for now
-		const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
-		const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails)
-		return mailboxProperties
+	private async onResumeSetup(domainDnsStatus: DomainDnsStatus, customerInfo: any) {
+		const mailAddressTableModel = new MailAddressTableModel(
+			locator.entityClient,
+			locator.mailAddressFacade,
+			logins,
+			locator.eventController,
+			locator.mailModel,
+			// Assuming user mailbox for now
+			(await locator.mailModel.getUserMailboxDetails()).mailGroup._id,
+			)
+		showAddDomainWizard(domainDnsStatus.domain, customerInfo, mailAddressTableModel).then(() => {
+			domainDnsStatus.loadCurrentStatus().then(() => m.redraw())
+		})
 	}
 
 	private async editCatchAllMailbox(domainInfo: DomainInfo) {

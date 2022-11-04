@@ -1,13 +1,10 @@
 import {SelectMailAddressForm, SelectMailAddressFormAttrs} from "../SelectMailAddressForm"
 import {logins} from "../../api/main/LoginController"
 import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
-import {getAliasLineAttrs, updateNbrOfAliases} from "../mailaddress/MailAddressTable.js"
+import {getAliasLineAttrs} from "../mailaddress/MailAddressTable.js"
 import type {AddDomainData} from "./AddDomainWizard"
-import type {EntityEventsListener} from "../../api/main/EventController"
-import {isUpdateForTypeRef} from "../../api/main/EventController"
 import {CustomerTypeRef, GroupInfoTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import {OperationType} from "../../api/common/TutanotaConstants"
-import {neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
+import {neverNull, ofClass} from "@tutao/tutanota-utils"
 import {Dialog} from "../../gui/base/Dialog"
 import {locator} from "../../api/main/MainLocator"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
@@ -20,7 +17,6 @@ import {emitWizardEvent, WizardEventType} from "../../gui/base/WizardDialog.js"
 import {Button, ButtonType} from "../../gui/base/Button.js"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {InvalidDataError, LimitReachedError} from "../../api/common/error/RestError"
-import {isSameId} from "../../api/common/utils/EntityUtils"
 import {assertMainOrNode} from "../../api/common/Env"
 import {Icons} from "../../gui/base/icons/Icons";
 import {ButtonSize} from "../../gui/base/ButtonSize.js"
@@ -28,38 +24,6 @@ import {ButtonSize} from "../../gui/base/ButtonSize.js"
 assertMainOrNode()
 
 export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAttrs> {
-	private _entityEventListener: EntityEventsListener | null = null
-
-	oncreate(vnode: Vnode<AddEmailAddressesPageAttrs>) {
-		const wizardAttrs = vnode.attrs
-
-		this._entityEventListener = updates => {
-			return promiseMap(updates, update => {
-				const {instanceListId, instanceId, operation} = update
-
-				if (
-					isUpdateForTypeRef(GroupInfoTypeRef, update) &&
-					operation === OperationType.UPDATE &&
-					isSameId(logins.getUserController().userGroupInfo._id, [neverNull(instanceListId), instanceId])
-				) {
-					return locator.entityClient.load(GroupInfoTypeRef, [neverNull(instanceListId), instanceId]).then(groupInfo => {
-						wizardAttrs.data.editAliasFormAttrs.userGroupInfo = groupInfo
-						m.redraw()
-					})
-				}
-			}).then(noOp)
-		}
-
-		locator.eventController.addEntityListener(this._entityEventListener)
-		updateNbrOfAliases(wizardAttrs.data.editAliasFormAttrs)
-	}
-
-	onremove() {
-		if (this._entityEventListener) {
-			locator.eventController.removeEntityListener(this._entityEventListener)
-		}
-	}
-
 	view(vnode: Vnode<AddEmailAddressesPageAttrs>): Children {
 		const a = vnode.attrs
 		const aliasesTableAttrs: TableAttrs = {
@@ -67,14 +31,15 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 			showActionButtonColumn: true,
 			addButtonAttrs: null,
 			lines: getAliasLineAttrs(a.data.editAliasFormAttrs).map(row => {
+				// not sure why it's repacked but that's the way it is
+				// FIXME check what's up here
 				return {
 					actionButtonAttrs: row.actionButtonAttrs ?? null,
 					cells: () => [
 						{
-							// @ts-ignore
-							main: row.cells[0],
-							// @ts-ignore
-							info: [row.cells[1]],
+
+							main: (row.cells as string[])[0],
+							info: [(row.cells as string[])[1]],
 						},
 					],
 				}
@@ -107,14 +72,7 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 			m(".h4.mt", lang.get("emailAlias_label")),
 			m(".mt", lang.get("addCustomDomainAliases_msg")),
 			m(SelectMailAddressForm, mailFormAttrs),
-			m(
-				".small.left",
-				a.data.editAliasFormAttrs.aliasCount.availableToCreate === 0
-					? lang.get("adminMaxNbrOfAliasesReached_msg")
-					: lang.get("mailAddressAliasesMaxNbr_label", {
-						"{1}": a.data.editAliasFormAttrs.aliasCount.availableToCreate,
-					}),
-			),
+			this.renderAliasCount(a),
 			logins.getUserController().userGroupInfo.mailAddressAliases.length ? m(Table, aliasesTableAttrs) : null,
 			m(".h4.mt", lang.get("bookingItemUsers_label")),
 			m(".mt", [
@@ -153,6 +111,19 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 				),
 			),
 		])
+	}
+
+	private renderAliasCount(a: AddEmailAddressesPageAttrs) {
+		const model = a.data.editAliasFormAttrs.model
+		const aliasCount = model.aliasCount()
+		return m(
+			".small.left",
+			aliasCount == null
+				? null
+				: aliasCount.availableToCreate === 0
+					? lang.get("adminMaxNbrOfAliasesReached_msg")
+					: lang.get("mailAddressAliasesMaxNbr_label", {"{1}": aliasCount.availableToCreate}),
+		)
 	}
 
 	private showAddUsersDialog(dom: HTMLElement) {
@@ -244,14 +215,13 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 		} else {
 			return showProgressDialog(
 				"pleaseWait_msg",
-				locator.mailAddressFacade.addMailAlias(this.data.editAliasFormAttrs.userGroupInfo.group, this.mailAddress),
+				this.data.editAliasFormAttrs.model.addAlias(this.mailAddress)
 			)
 				.then(() => {
 					return true
 				})
 				.catch(ofClass(InvalidDataError, () => Dialog.message("mailAddressNA_msg").then(() => false)))
 				.catch(ofClass(LimitReachedError, () => Dialog.message("adminMaxNbrOfAliasesReached_msg").then(() => false)))
-				.finally(() => updateNbrOfAliases(this.data.editAliasFormAttrs))
 		}
 	}
 }

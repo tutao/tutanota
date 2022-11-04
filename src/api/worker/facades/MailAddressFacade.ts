@@ -35,19 +35,33 @@ export class MailAddressFacade {
 		}
 	}
 
-	async addMailAlias(groupId: Id, alias: string): Promise<void> {
+	/**
+	 * Add an {@param alias} to {@param targetGroupId}.
+	 * {@param targetGroupId} is *not* a Mail group, it is currently only a user group.
+	 *
+	 * Can only be done by an admin.
+	 */
+	async addMailAlias(targetGroupId: Id, alias: string): Promise<void> {
 		const data = createMailAddressAliasServiceData({
-			group: groupId,
+			group: targetGroupId,
 			mailAddress: alias,
 		})
 		await this.serviceExecutor.post(MailAddressAliasService, data)
 	}
 
-	async setMailAliasStatus(groupId: Id, alias: string, restore: boolean): Promise<void> {
+	/**
+	 * Enable/disable an {@param alias} on {@param targetGroupId}.
+	 * {@param targetGroupId} is *not* a Mail group, it is currently only a user group.
+	 *
+	 * {@param restore} means whether the alias will be enabled or disabled.
+	 *
+	 * Can only be done by an admin.
+	 */
+	async setMailAliasStatus(targetGroupId: Id, alias: string, restore: boolean): Promise<void> {
 		const deleteData = createMailAddressAliasServiceDataDelete({
 			mailAddress: alias,
 			restore,
-			group: groupId,
+			group: targetGroupId,
 		})
 		await this.serviceExecutor.delete(MailAddressAliasService, deleteData)
 	}
