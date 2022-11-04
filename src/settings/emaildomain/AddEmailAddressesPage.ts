@@ -1,7 +1,7 @@
 import {SelectMailAddressForm, SelectMailAddressFormAttrs} from "../SelectMailAddressForm"
 import {logins} from "../../api/main/LoginController"
 import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
-import {getAliasLineAttrs, updateNbrOfAliases} from "../EditAliasesFormN"
+import {getAliasLineAttrs, updateNbrOfAliases} from "../mailaddress/MailAddressTable.js"
 import type {AddDomainData} from "./AddDomainWizard"
 import type {EntityEventsListener} from "../../api/main/EventController"
 import {isUpdateForTypeRef} from "../../api/main/EventController"
