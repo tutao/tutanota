@@ -72,7 +72,6 @@ import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {InitAsResponseArgs} from "../editor/SendMailModel"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 import {DesktopSystemFacade} from "../../native/common/generatedipc/DesktopSystemFacade.js"
-import {loadOrCreateMailboxProperties} from "../../misc/MailboxPropertiesUtils.js"
 
 
 export const enum ContentBlockingStatus {
@@ -899,7 +898,7 @@ export class MailViewerViewModel {
 
 		const args = await this.createResponseMailArgsForForwarding([recipient], newReplyTos, false)
 		const mailboxDetails = await this.getMailboxDetails()
-		const mailboxProperties = await loadOrCreateMailboxProperties()
+		const mailboxProperties = await this.mailModel.getMailboxProperties(mailboxDetails)
 		const {defaultSendMailModel} = await import("../editor/SendMailModel")
 		// Make sure inline images are loaded
 		await this.loadAll({notify: false})

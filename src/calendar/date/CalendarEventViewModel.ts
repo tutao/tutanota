@@ -68,7 +68,6 @@ import {hasError} from "../../api/common/utils/ErrorCheckUtils"
 import {Recipient, RecipientType} from "../../api/common/recipients/Recipient"
 import {ResolveMode} from "../../api/main/RecipientsModel.js"
 import {TIMESTAMP_ZERO_YEAR} from "@tutao/tutanota-utils/dist/DateUtils"
-import {loadOrCreateMailboxProperties} from "../../misc/MailboxPropertiesUtils.js"
 
 // whether to close dialog
 export type EventCreateResult = boolean
@@ -1290,7 +1289,8 @@ export async function createCalendarEventViewModel(
 	resolveRecipientsLazily: boolean,
 ): Promise<CalendarEventViewModel> {
 	const model = await import("../../mail/editor/SendMailModel")
-	const mailboxProperties = await loadOrCreateMailboxProperties()
+
+	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetail)
 	return new CalendarEventViewModel(
 		logins.getUserController(),
 		calendarUpdateDistributor,

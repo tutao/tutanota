@@ -38,12 +38,12 @@ import {showEditOutOfOfficeNotificationDialog} from "./EditOutOfOfficeNotificati
 import {formatActivateState, loadOutOfOfficeNotification} from "../misc/OutOfOfficeNotificationUtils"
 import {getSignatureType, show as showEditSignatureDialog} from "./EditSignatureDialog"
 import type {UpdatableSettingsViewer} from "./SettingsView"
-import {getReportMovedMailsType, loadOrCreateMailboxProperties, saveReportMovedMails} from "../misc/MailboxPropertiesUtils"
 import {OfflineStorageSettingsModel} from "./OfflineStorageSettings"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js";
+import {getReportMovedMailsType} from "../misc/MailboxPropertiesUtils.js"
 
 assertMainOrNode()
 
@@ -93,8 +93,10 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		// 	updateNbrOfAliases(this._editAliasFormAttrs)
 		// }
 
-		this._mailboxProperties = new LazyLoaded(() => {
-			return loadOrCreateMailboxProperties()
+		this._mailboxProperties = new LazyLoaded(async () => {
+			// For now we assume user mailbox, in the future we should specify which mailbox we are configuring
+			const mailboxDetails = await this.getMailboxDetails()
+			return locator.mailModel.getMailboxProperties(mailboxDetails)
 		})
 
 		this._mailboxProperties.getAsync().then(async (mailboxProperties) => {
@@ -113,6 +115,11 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._outOfOfficeNotification.getAsync().then(() => this._updateOutOfOfficeNotification())
 
 		this.offlineStorageSettings.init().then(() => m.redraw())
+	}
+
+	private getMailboxDetails(): Promise<MailboxDetail> {
+		// For now we assume user mailbox, in the future we should specify which mailbox we are configuring
+		return locator.mailModel.getUserMailboxDetails()
 	}
 
 	view(): Children {
@@ -497,8 +504,9 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				},
 			],
 			selectedValue: this._reportMovedMails,
-			selectionChangedHandler: reportMovedMails => {
-				this._mailboxProperties.getAsync().then(props => saveReportMovedMails(props, reportMovedMails))
+			selectionChangedHandler: async (reportMovedMails) => {
+				const mailboxDetails = await this.getMailboxDetails()
+				this._mailboxProperties.getAsync().then(props => locator.mailModel.saveReportMovedMails(mailboxDetails, props, reportMovedMails))
 			},
 			dropdownWidth: 250,
 		}
