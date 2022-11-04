@@ -6,7 +6,7 @@ import {ColumnWidth, Table} from "../../gui/base/Table.js"
 import {assert, assertNotNull, downcast, findAndRemove, neverNull, remove} from "@tutao/tutanota-utils"
 import {Icons} from "../../gui/base/icons/Icons"
 import {lang} from "../../misc/LanguageViewModel"
-import {getDisplayText} from "../../mail/model/MailUtils"
+import {getMailAddressDisplayText} from "../../mail/model/MailUtils"
 import {ButtonType} from "../../gui/base/Button.js"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {ShareCapability} from "../../api/common/TutanotaConstants"
@@ -121,7 +121,7 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 			return {
 				cells: () => [
 					{
-						main: getDisplayText(memberInfo.info.name, neverNull(memberInfo.info.mailAddress), false),
+						main: getMailAddressDisplayText(memberInfo.info.name, neverNull(memberInfo.info.mailAddress), false),
 						info: [
 							(isSharedGroupOwner(model.group, memberInfo.member.user) ? lang.get("owner_label") : lang.get("participant_label")) +
 							", " +

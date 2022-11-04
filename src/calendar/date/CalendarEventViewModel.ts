@@ -68,6 +68,7 @@ import {hasError} from "../../api/common/utils/ErrorCheckUtils"
 import {Recipient, RecipientType} from "../../api/common/recipients/Recipient"
 import {ResolveMode} from "../../api/main/RecipientsModel.js"
 import {TIMESTAMP_ZERO_YEAR} from "@tutao/tutanota-utils/dist/DateUtils"
+import {loadOrCreateMailboxProperties} from "../../misc/MailboxPropertiesUtils.js"
 
 // whether to close dialog
 export type EventCreateResult = boolean
@@ -1280,7 +1281,7 @@ function createCalendarAlarm(identifier: string, trigger: string): AlarmInfo {
 	return calendarAlarmInfo
 }
 
-export function createCalendarEventViewModel(
+export async function createCalendarEventViewModel(
 	date: Date,
 	calendars: ReadonlyMap<Id, CalendarInfo>,
 	mailboxDetail: MailboxDetail,
@@ -1288,20 +1289,20 @@ export function createCalendarEventViewModel(
 	previousMail: Mail | null,
 	resolveRecipientsLazily: boolean,
 ): Promise<CalendarEventViewModel> {
-	return import("../../mail/editor/SendMailModel").then(model => {
-		return new CalendarEventViewModel(
-			logins.getUserController(),
-			calendarUpdateDistributor,
-			locator.calendarModel,
-			locator.entityClient,
-			mailboxDetail,
-			mailboxDetail => model.defaultSendMailModel(mailboxDetail),
-			date,
-			getTimeZone(),
-			calendars,
-			existingEvent,
-			previousMail,
-			resolveRecipientsLazily,
-		)
-	})
+	const model = await import("../../mail/editor/SendMailModel")
+	const mailboxProperties = await loadOrCreateMailboxProperties()
+	return new CalendarEventViewModel(
+		logins.getUserController(),
+		calendarUpdateDistributor,
+		locator.calendarModel,
+		locator.entityClient,
+		mailboxDetail,
+		mailboxDetail => model.defaultSendMailModel(mailboxDetail, mailboxProperties),
+		date,
+		getTimeZone(),
+		calendars,
+		existingEvent,
+		previousMail,
+		resolveRecipientsLazily,
+	)
 }

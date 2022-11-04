@@ -1,6 +1,5 @@
-import {getDefaultSender, getEnabledMailAddresses, getSenderNameForUser} from "../mail/model/MailUtils"
-import type {GroupInfo} from "../api/entities/sys/TypeRefs.js"
-import type {ReceivedGroupInvitation} from "../api/entities/sys/TypeRefs.js"
+import {getDefaultSender, getEnabledMailAddressesWithUser, getSenderNameForUser} from "../mail/model/MailUtils"
+import type {GroupInfo, ReceivedGroupInvitation} from "../api/entities/sys/TypeRefs.js"
 import {locator} from "../api/main/MainLocator"
 import {logins} from "../api/main/LoginController"
 import {MailMethod} from "../api/common/TutanotaConstants"
@@ -8,6 +7,7 @@ import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {GroupSharingTexts} from "./GroupGuiUtils"
 import {getDefaultGroupName, getInvitationGroupType, getSharedGroupName} from "./GroupUtils"
 import {PartialRecipient, Recipients} from "../api/common/recipients/Recipient"
+import {loadOrCreateMailboxProperties} from "../misc/MailboxPropertiesUtils.js"
 
 export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipients: Array<PartialRecipient>, texts: GroupSharingTexts) {
 	locator.mailModel.getUserMailboxDetails().then(mailboxDetails => {
@@ -74,24 +74,23 @@ export function sendRejectNotificationEmail(invitation: ReceivedGroupInvitation,
 	)
 }
 
-function _sendNotificationEmail(recipients: Recipients, subject: string, body: string, senderMailAddress: string) {
-	import("../misc/HtmlSanitizer").then(({htmlSanitizer}) => {
-		const sanitizedBody = htmlSanitizer.sanitizeHTML(body, {
-			blockExternalContent: false,
-			allowRelativeLinks: false,
-			usePlaceholderForInlineImages: false,
-		}).html
-		locator.mailModel.getUserMailboxDetails().then(mailboxDetails => {
-			const sender = getEnabledMailAddresses(mailboxDetails).includes(senderMailAddress) ? senderMailAddress : getDefaultSender(logins, mailboxDetails)
+async function _sendNotificationEmail(recipients: Recipients, subject: string, body: string, senderMailAddress: string) {
+	const {htmlSanitizer} = await import("../misc/HtmlSanitizer")
+	const sanitizedBody = htmlSanitizer.sanitizeHTML(body, {
+		blockExternalContent: false,
+		allowRelativeLinks: false,
+		usePlaceholderForInlineImages: false,
+	}).html
+	const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
+	const mailboxProperties = await loadOrCreateMailboxProperties()
+	const sender = getEnabledMailAddressesWithUser(mailboxDetails, logins.getUserController().userGroupInfo).includes(senderMailAddress)
+		? senderMailAddress
+		: getDefaultSender(logins, mailboxDetails)
+	const confirm = () => Promise.resolve(true)
 
-			const confirm = () => Promise.resolve(true)
-
-			const wait = showProgressDialog
-			import("../mail/editor/SendMailModel").then(({defaultSendMailModel}) => {
-				return defaultSendMailModel(mailboxDetails)
-					.initWithTemplate(recipients, subject, sanitizedBody, [], true, sender)
-					.then(model => model.send(MailMethod.NONE, confirm, wait, "tooManyMailsAuto_msg"))
-			})
-		})
-	})
+	const wait = showProgressDialog
+	const {defaultSendMailModel} = await import("../mail/editor/SendMailModel")
+	return defaultSendMailModel(mailboxDetails, mailboxProperties)
+		.initWithTemplate(recipients, subject, sanitizedBody, [], true, sender)
+		.then(model => model.send(MailMethod.NONE, confirm, wait, "tooManyMailsAuto_msg"))
 }

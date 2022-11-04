@@ -39,7 +39,6 @@ import {lang} from "../../misc/LanguageViewModel"
 import {
 	getArchiveFolder,
 	getDefaultSender,
-	getEnabledMailAddresses,
 	getEnabledMailAddressesWithUser,
 	getFolder,
 	getFolderName,
@@ -73,6 +72,7 @@ import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {InitAsResponseArgs} from "../editor/SendMailModel"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 import {DesktopSystemFacade} from "../../native/common/generatedipc/DesktopSystemFacade.js"
+import {loadOrCreateMailboxProperties} from "../../misc/MailboxPropertiesUtils.js"
 
 
 export const enum ContentBlockingStatus {
@@ -676,7 +676,7 @@ export class MailViewerViewModel {
 
 	private getSenderOfResponseMail(): Promise<string> {
 		return this.mailModel.getMailboxDetailsForMail(this.mail).then(mailboxDetails => {
-			const myMailAddresses = getEnabledMailAddresses(mailboxDetails)
+			const myMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, this.logins.getUserController().userGroupInfo)
 			const addressesInMail: MailAddress[] = []
 			addAll(addressesInMail, this.mail.toRecipients)
 			addAll(addressesInMail, this.mail.ccRecipients)
@@ -765,7 +765,7 @@ export class MailViewerViewModel {
 				}
 
 				if (replyAll) {
-					let myMailAddresses = getEnabledMailAddresses(mailboxDetails)
+					let myMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, this.logins.getUserController().userGroupInfo)
 					addAll(
 						ccRecipients,
 						this.getToRecipients().filter(recipient => !contains(myMailAddresses, recipient.address.toLowerCase())),
@@ -898,10 +898,12 @@ export class MailViewerViewModel {
 		}
 
 		const args = await this.createResponseMailArgsForForwarding([recipient], newReplyTos, false)
-		const [mailboxDetails, {defaultSendMailModel}] = await Promise.all([this.getMailboxDetails(), import("../editor/SendMailModel")])
+		const mailboxDetails = await this.getMailboxDetails()
+		const mailboxProperties = await loadOrCreateMailboxProperties()
+		const {defaultSendMailModel} = await import("../editor/SendMailModel")
 		// Make sure inline images are loaded
 		await this.loadAll({notify: false})
-		const model = await defaultSendMailModel(mailboxDetails).initAsResponse(args, this.getLoadedInlineImages())
+		const model = await defaultSendMailModel(mailboxDetails, mailboxProperties).initAsResponse(args, this.getLoadedInlineImages())
 		await model.send(MailMethod.NONE)
 		const folders = await this.mailModel.getMailboxFolders(this.mail)
 		return moveMails({mailModel: this.mailModel, mails: [this.mail], targetMailFolder: getArchiveFolder(folders)})

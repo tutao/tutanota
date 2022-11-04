@@ -1,4 +1,4 @@
-import {getDisplayText} from "../../mail/model/MailUtils"
+import {getMailAddressDisplayText} from "../../mail/model/MailUtils"
 import {logins} from "../../api/main/LoginController"
 import {createGroupSettings} from "../../api/entities/tutanota/TypeRefs.js"
 import m, {Children} from "mithril"
@@ -76,7 +76,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 							label: texts.groupNameLabel,
 						}),
 						m(TextField, {
-							value: getDisplayText(invitation.inviterName, invitation.inviterMailAddress, false),
+							value: getMailAddressDisplayText(invitation.inviterName, invitation.inviterMailAddress, false),
 							label: "sender_label",
 							disabled: true,
 						}),

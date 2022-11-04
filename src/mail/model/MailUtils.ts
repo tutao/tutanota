@@ -15,7 +15,6 @@ import {assertNotNull, contains, endsWith, first, neverNull, noOp, ofClass} from
 import {assertMainOrNode, isDesktop} from "../../api/common/Env"
 import {LockedError, NotFoundError} from "../../api/common/error/RestError"
 import type {LoginController} from "../../api/main/LoginController"
-import {logins as globalLogins} from "../../api/main/LoginController"
 import type {Language, TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -69,7 +68,7 @@ export function createNewContact(user: User, mailAddress: string, name: string):
 	return contact
 }
 
-export function getDisplayText(name: string | null, mailAddress: string, preferNameOnly: boolean): string {
+export function getMailAddressDisplayText(name: string | null, mailAddress: string, preferNameOnly: boolean): string {
 	if (!name) {
 		return mailAddress
 	} else if (preferNameOnly) {
@@ -83,7 +82,7 @@ export function getSenderHeading(mail: Mail, preferNameOnly: boolean) {
 	if (isExcludedMailAddress(mail.sender.address)) {
 		return ""
 	} else {
-		return getDisplayText(mail.sender.name, mail.sender.address, preferNameOnly)
+		return getMailAddressDisplayText(mail.sender.name, mail.sender.address, preferNameOnly)
 	}
 }
 
@@ -91,7 +90,7 @@ export function getRecipientHeading(mail: Mail, preferNameOnly: boolean) {
 	const allRecipients = mail.toRecipients.concat(mail.ccRecipients).concat(mail.bccRecipients)
 
 	if (allRecipients.length > 0) {
-		return getDisplayText(allRecipients[0].name, allRecipients[0].address, preferNameOnly) + (allRecipients.length > 1 ? ", ..." : "")
+		return getMailAddressDisplayText(allRecipients[0].name, allRecipients[0].address, preferNameOnly) + (allRecipients.length > 1 ? ", ..." : "")
 	} else {
 		return ""
 	}
@@ -232,13 +231,6 @@ export function getSortedCustomFolders(folders: MailFolder[]): MailFolder[] {
 		})
 }
 
-/**
- * @deprecated Avoid grabbing singleton dependencies, use {@link getEnabledMailAddressesWithUser} instead to explicitly show dependencies.
- */
-export function getEnabledMailAddresses(mailboxDetails: MailboxDetail): string[] {
-	return getEnabledMailAddressesWithUser(mailboxDetails, globalLogins.getUserController().userGroupInfo)
-}
-
 export function getEnabledMailAddressesWithUser(mailboxDetail: MailboxDetail, userGroupInfo: GroupInfo): Array<string> {
 	if (isUserMailbox(mailboxDetail)) {
 		return getEnabledMailAddressesForGroupInfo(userGroupInfo)
@@ -260,11 +252,6 @@ export function getDefaultSender(logins: LoginController, mailboxDetails: Mailbo
 	} else {
 		return neverNull(mailboxDetails.mailGroupInfo.mailAddress)
 	}
-}
-
-/** @deprecated use {@link getSenderNameForUser} instead */
-export function getSenderName(mailboxDetails: MailboxDetail): string {
-	return getSenderNameForUser(mailboxDetails, globalLogins.getUserController())
 }
 
 export function getSenderNameForUser(mailboxDetails: MailboxDetail, userController: UserController): string {

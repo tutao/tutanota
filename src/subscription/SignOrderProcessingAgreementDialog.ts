@@ -6,7 +6,7 @@ import {formatDate, formatNameAndAddress} from "../misc/Formatter"
 import {HtmlEditor, HtmlEditorMode} from "../gui/editor/HtmlEditor"
 import {HttpMethod} from "../api/common/EntityFunctions"
 import {createSignOrderProcessingAgreementData} from "../api/entities/sys/TypeRefs.js"
-import {getDisplayText} from "../mail/model/MailUtils"
+import {getMailAddressDisplayText} from "../mail/model/MailUtils"
 import {neverNull} from "@tutao/tutanota-utils"
 import type {OrderProcessingAgreement} from "../api/entities/sys/TypeRefs.js"
 import type {GroupInfo} from "../api/entities/sys/TypeRefs.js"
@@ -139,7 +139,7 @@ export function showForViewing(agreement: OrderProcessingAgreement, signerUserGr
 						" " +
 						lang.get("by_label") +
 						" " +
-						getDisplayText(signerUserGroupInfo.name, neverNull(signerUserGroupInfo.mailAddress), false),
+						getMailAddressDisplayText(signerUserGroupInfo.name, neverNull(signerUserGroupInfo.mailAddress), false),
 					),
 					m("hr"),
 					m.trust(text.appendix),

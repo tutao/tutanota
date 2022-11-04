@@ -24,7 +24,8 @@ export interface DropDownSelectorAttrs<T> {
 	label: TranslationKey | lazy<string>
 	items: SelectorItemList<T>
 	selectedValue: T | null
-
+	/** Override what is displayed for the selected value in the text field (but not in the dropdown) */
+	selectedValueDisplay?: string
 	/**
 	 * The handler is invoked with the new selected value. The displayed selected value is not changed automatically,
 	 * but the handler is responsible for updating this DropDownSelector. The value is updated immediately, if no selectionChangedHandler is provided
@@ -91,8 +92,11 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 	}
 
 	valueToText(a: DropDownSelectorAttrs<T>, value: T | null): string | null {
-		let selectedItem = a.items.find(item => item.value === a.selectedValue)
+		if (a.selectedValueDisplay) {
+			return a.selectedValueDisplay
+		}
 
+		const selectedItem = a.items.find(item => item.value === a.selectedValue)
 		if (selectedItem) {
 			return selectedItem.name
 		} else {

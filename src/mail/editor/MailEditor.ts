@@ -8,7 +8,15 @@ import {Dialog} from "../../gui/base/Dialog"
 import {InfoLink, lang} from "../../misc/LanguageViewModel"
 import type {MailboxDetail} from "../model/MailModel"
 import {checkApprovalStatus} from "../../misc/LoginUtils"
-import {checkAttachmentSize, conversationTypeString, createNewContact, getEnabledMailAddressesWithUser, LINE_BREAK, RecipientField} from "../model/MailUtils"
+import {
+	checkAttachmentSize,
+	conversationTypeString,
+	createNewContact,
+	getEnabledMailAddressesWithUser,
+	getMailAddressDisplayText,
+	LINE_BREAK,
+	RecipientField
+} from "../model/MailUtils"
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {locator} from "../../api/main/MainLocator"
 import {logins} from "../../api/main/LoginController"
@@ -29,7 +37,7 @@ import {UserError} from "../../api/main/UserError"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
-import type {File as TutanotaFile, Mail} from "../../api/entities/tutanota/TypeRefs.js"
+import type {File as TutanotaFile, Mail, MailboxProperties} from "../../api/entities/tutanota/TypeRefs.js"
 import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import type {InlineImages} from "../view/MailViewer"
 import {FileOpenError} from "../../api/common/error/FileOpenError"
@@ -68,6 +76,7 @@ import {BootIcons} from "../../gui/base/icons/BootIcons.js"
 import {ButtonSize} from "../../gui/base/ButtonSize.js"
 import {DialogInjectionRightAttrs} from "../../gui/base/DialogInjectionRight.js"
 import {KnowledgebaseDialogContentAttrs} from "../../knowledgebase/view/KnowledgeBaseDialogContent.js"
+import {loadOrCreateMailboxProperties} from "../../misc/MailboxPropertiesUtils.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -401,6 +410,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 									value: mailAddress,
 								})),
 							selectedValue: a.model.getSender(),
+							selectedValueDisplay: getMailAddressDisplayText(a.model.getSenderName(), a.model.getSender(), false),
 							selectionChangedHandler: (selection: string) => model.setSender(selection),
 							dropdownWidth: 250,
 						}),
@@ -919,29 +929,29 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
  * @private
  * @throws PermissionError
  */
-export function newMailEditor(mailboxDetails: MailboxDetail): Promise<Dialog> {
+export async function newMailEditor(mailboxDetails: MailboxDetail): Promise<Dialog> {
 	// We check approval status so as to get a dialog informing the user that they cannot send mails
 	// but we still want to open the mail editor because they should still be able to contact sales@tutao.de
-	return checkApprovalStatus(logins, false).then(_ => {
-		return import("../signature/Signature")
-			.then(({appendEmailSignature}) => appendEmailSignature("", logins.getUserController().props))
-			.then(signature => newMailEditorFromTemplate(mailboxDetails, {}, "", signature))
-	})
+	await checkApprovalStatus(logins, false)
+	const {appendEmailSignature} = await import("../signature/Signature")
+	const signature = appendEmailSignature("", logins.getUserController().props)
+	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
+	return newMailEditorFromTemplate(detailsProperties.mailboxDetails, {}, "", signature)
 }
 
-export function newMailEditorAsResponse(
+export async function newMailEditorAsResponse(
 	args: InitAsResponseArgs,
 	blockExternalContent: boolean,
 	inlineImages: InlineImages,
 	mailboxDetails?: MailboxDetail,
 ): Promise<Dialog> {
-	return _mailboxPromise(mailboxDetails)
-		.then(defaultSendMailModel)
-		.then(model => model.initAsResponse(args, inlineImages))
-		.then(model => createMailEditorDialog(model, blockExternalContent))
+	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
+	const model = defaultSendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
+	await model.initAsResponse(args, inlineImages)
+	return createMailEditorDialog(model, blockExternalContent)
 }
 
-export function newMailEditorFromDraft(
+export async function newMailEditorFromDraft(
 	draft: Mail,
 	attachments: Array<TutanotaFile>,
 	bodyText: string,
@@ -949,14 +959,14 @@ export function newMailEditorFromDraft(
 	inlineImages: InlineImages,
 	mailboxDetails?: MailboxDetail,
 ): Promise<Dialog> {
-	return _mailboxPromise(mailboxDetails)
-		.then(defaultSendMailModel)
-		.then(model => model.initWithDraft(draft, attachments, bodyText, inlineImages))
-		.then(model => createMailEditorDialog(model, blockExternalContent))
+	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
+	const model = defaultSendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
+	await model.initWithDraft(draft, attachments, bodyText, inlineImages)
+	return createMailEditorDialog(model, blockExternalContent)
 }
 
 export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: boolean, mailboxDetails?: MailboxDetail): Promise<Dialog> {
-	const mailbox = await _mailboxPromise(mailboxDetails)
+	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
 	const mailTo = parseMailtoUrl(mailtoUrl)
 	let dataFiles: Attachment[] = []
 
@@ -998,7 +1008,7 @@ export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: bo
 	}
 
 	return newMailEditorFromTemplate(
-		mailbox,
+		detailsProperties.mailboxDetails,
 		mailTo.recipients,
 		mailTo.subject || "",
 		appendEmailSignature(mailTo.body || "", logins.getUserController().props),
@@ -1009,7 +1019,7 @@ export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: bo
 	)
 }
 
-export function newMailEditorFromTemplate(
+export async function newMailEditorFromTemplate(
 	mailboxDetails: MailboxDetail,
 	recipients: Recipients,
 	subject: string,
@@ -1019,7 +1029,8 @@ export function newMailEditorFromTemplate(
 	senderMailAddress?: string,
 	initialChangedState?: boolean
 ): Promise<Dialog> {
-	return defaultSendMailModel(mailboxDetails)
+	const mailboxProperties = await loadOrCreateMailboxProperties()
+	return defaultSendMailModel(mailboxDetails, mailboxProperties)
 		.initWithTemplate(recipients, subject, bodyText, attachments, confidential, senderMailAddress, initialChangedState)
 		.then(model => createMailEditorDialog(model))
 }
@@ -1045,21 +1056,20 @@ export function getSupportMailSignature(): Promise<string> {
  * @param mailboxDetails
  * @returns {Promise<any>|Promise<R>|*}
  */
-export function writeSupportMail(subject: string = "", mailboxDetails?: MailboxDetail) {
+export async function writeSupportMail(subject: string = "", mailboxDetails?: MailboxDetail) {
 	if (logins.getUserController().isPremiumAccount()) {
-		_mailboxPromise(mailboxDetails).then(mailbox => {
-			const recipients = {
-				to: [
-					{
-						name: null,
-						address: "premium@tutao.de",
-					},
-				],
-			}
-			return getSupportMailSignature().then(signature => {
-				return newMailEditorFromTemplate(mailbox, recipients, subject, signature).then(dialog => dialog.show())
-			})
-		})
+		const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
+		const recipients = {
+			to: [
+				{
+					name: null,
+					address: "premium@tutao.de",
+				},
+			],
+		}
+		const signature = await getSupportMailSignature()
+		const dialog = await newMailEditorFromTemplate(detailsProperties.mailboxDetails, recipients, subject, signature)
+		dialog.show()
 	} else {
 		import("../../subscription/PriceUtils")
 			.then(({formatPrice}) => {
@@ -1082,16 +1092,23 @@ export function writeSupportMail(subject: string = "", mailboxDetails?: MailboxD
  * @param mailboxDetails
  * @returns {*}
  */
-export function writeInviteMail(mailboxDetails?: MailboxDetail) {
-	_mailboxPromise(mailboxDetails).then(mailbox => {
-		const username = logins.getUserController().userGroupInfo.name
-		const body = lang.get("invitationMailBody_msg", {
-			"{registrationLink}": "https://mail.tutanota.com/signup",
-			"{username}": username,
-			"{githubLink}": "https://github.com/tutao/tutanota",
-		})
-		newMailEditorFromTemplate(mailbox, {}, lang.get("invitationMailSubject_msg"), body, [], false).then(dialog => dialog.show())
+export async function writeInviteMail(mailboxDetails?: MailboxDetail) {
+	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
+	const username = logins.getUserController().userGroupInfo.name
+	const body = lang.get("invitationMailBody_msg", {
+		"{registrationLink}": "https://mail.tutanota.com/signup",
+		"{username}": username,
+		"{githubLink}": "https://github.com/tutao/tutanota",
 	})
+	const dialog = await newMailEditorFromTemplate(
+		detailsProperties.mailboxDetails,
+		{},
+		lang.get("invitationMailSubject_msg"),
+		body,
+		[],
+		false,
+	)
+	dialog.show()
 }
 
 /**
@@ -1101,23 +1118,27 @@ export function writeInviteMail(mailboxDetails?: MailboxDetail) {
  * @param mailboxDetails
  * @returns {*}
  */
-export function writeGiftCardMail(link: string, svg: SVGElement, mailboxDetails?: MailboxDetail) {
-	_mailboxPromise(mailboxDetails).then(mailbox => {
-		let bodyText = lang
-			.get("defaultShareGiftCardBody_msg", {
-				"{link}": '<a href="' + link + '">' + link + "</a>",
-				"{username}": logins.getUserController().userGroupInfo.name,
-			})
-			.split("\n")
-			.join("<br />")
-		const subject = lang.get("defaultShareGiftCardSubject_msg")
-		defaultSendMailModel(mailbox)
-			.initWithTemplate({}, subject, appendEmailSignature(bodyText, logins.getUserController().props), [], false)
-			.then(model => createMailEditorDialog(model, false))
-			.then(dialog => dialog.show())
-	})
+export async function writeGiftCardMail(link: string, svg: SVGElement, mailboxDetails?: MailboxDetail) {
+	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
+	const bodyText = lang
+		.get("defaultShareGiftCardBody_msg", {
+			"{link}": '<a href="' + link + '">' + link + "</a>",
+			"{username}": logins.getUserController().userGroupInfo.name,
+		})
+		.split("\n")
+		.join("<br />")
+	const subject = lang.get("defaultShareGiftCardSubject_msg")
+	defaultSendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
+		.initWithTemplate({}, subject, appendEmailSignature(bodyText, logins.getUserController().props), [], false)
+		.then(model => createMailEditorDialog(model, false))
+		.then(dialog => dialog.show())
+
 }
 
-function _mailboxPromise(mailbox?: MailboxDetail): Promise<MailboxDetail> {
-	return mailbox ? Promise.resolve(mailbox) : locator.mailModel.getUserMailboxDetails()
+async function getMailboxDetailsAndProperties(
+	mailboxDetails: MailboxDetail | null | undefined,
+): Promise<{mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties}> {
+	mailboxDetails = mailboxDetails ?? await locator.mailModel.getUserMailboxDetails()
+	const mailboxProperties = await loadOrCreateMailboxProperties()
+	return {mailboxDetails, mailboxProperties}
 }

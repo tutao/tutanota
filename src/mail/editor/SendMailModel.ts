@@ -11,9 +11,9 @@ import {
 import {UserError} from "../../api/main/UserError"
 import {getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE} from "../../misc/passwords/PasswordUtils"
 import {cleanMatch, deduplicate, downcast, findAndRemove, getFromMap, neverNull, noOp, ofClass, promiseMap, remove, typedValues} from "@tutao/tutanota-utils"
-import {checkAttachmentSize, getDefaultSender, getSenderNameForUser, getTemplateLanguages,} from "../model/MailUtils"
-import type {File as TutanotaFile, Mail} from "../../api/entities/tutanota/TypeRefs.js"
-import {ContactTypeRef, ConversationEntryTypeRef, FileTypeRef, MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
+import {checkAttachmentSize, getDefaultSender, getTemplateLanguages,} from "../model/MailUtils"
+import type {File as TutanotaFile, Mail, MailboxProperties} from "../../api/entities/tutanota/TypeRefs.js"
+import {ContactTypeRef, ConversationEntryTypeRef, FileTypeRef, MailboxPropertiesTypeRef, MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import type {LoginController} from "../../api/main/LoginController"
 import {logins} from "../../api/main/LoginController"
@@ -48,6 +48,7 @@ import {createApprovalMail} from "../../api/entities/monitor/TypeRefs"
 import {DateProvider} from "../../api/common/DateProvider.js"
 import {NoZoneDateProvider} from "../../api/common/utils/NoZoneDateProvider.js"
 import {RecipientField} from "../model/MailUtils.js"
+import {getSenderName} from "../../misc/MailboxPropertiesUtils.js"
 
 assertMainOrNode()
 export const TOO_MANY_VISIBLE_RECIPIENTS = 10
@@ -134,6 +135,7 @@ export class SendMailModel {
 		public readonly mailboxDetails: MailboxDetail,
 		private readonly recipientsModel: RecipientsModel,
 		private readonly dateProvider: DateProvider,
+		private mailboxProperties: MailboxProperties,
 	) {
 		const userProps = logins.getUserController().props
 		this.senderAddress = this.getDefaultSender()
@@ -571,7 +573,7 @@ export class SendMailModel {
 	}
 
 	getSenderName(): string {
-		return getSenderNameForUser(this.mailboxDetails, this.user())
+		return getSenderName(this.mailboxProperties, this.senderAddress) ?? ""
 	}
 
 	getDraft(): Readonly<Mail> | null {
@@ -994,6 +996,8 @@ export class SendMailModel {
 			this.markAsChangedIfNecessary(true)
 		} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update)) {
 			this.updateAvailableNotificationTemplateLanguages()
+		} else if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
+			this.mailboxProperties = await this.entity.load(MailboxPropertiesTypeRef, update.instanceId)
 		}
 		this.markAsChangedIfNecessary(changed)
 		return Promise.resolve()
@@ -1004,7 +1008,7 @@ export class SendMailModel {
 	}
 }
 
-export function defaultSendMailModel(mailboxDetails: MailboxDetail): SendMailModel {
+export function defaultSendMailModel(mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties): SendMailModel {
 	return new SendMailModel(
 		locator.mailFacade,
 		locator.entityClient,
@@ -1015,5 +1019,6 @@ export function defaultSendMailModel(mailboxDetails: MailboxDetail): SendMailMod
 		mailboxDetails,
 		locator.recipientsModel,
 		new NoZoneDateProvider(),
+		mailboxProperties,
 	)
 }

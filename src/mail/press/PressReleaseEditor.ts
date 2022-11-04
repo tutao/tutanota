@@ -18,6 +18,7 @@ import {replaceInlineImagesWithCids} from "../view/MailGuiUtils"
 import {TextField} from "../../gui/base/TextField.js"
 import {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar";
 import {RichTextToolbar} from "../../gui/base/RichTextToolbar.js"
+import {loadOrCreateMailboxProperties} from "../../misc/MailboxPropertiesUtils.js"
 
 type PressContact = {
 	email: string
@@ -30,6 +31,7 @@ export function openPressReleaseEditor(mailboxDetails: MailboxDetail): void {
 	}
 
 	async function send() {
+		const mailboxProperties = await loadOrCreateMailboxProperties()
 		const body = pressRelease.bodyHtml()
 		const subject = pressRelease.subject()
 		let recipients
@@ -109,7 +111,7 @@ export function openPressReleaseEditor(mailboxDetails: MailboxDetail): void {
 			const bodyWithGreeting = `<p>${recipient.greeting},</p>${body}`
 
 			try {
-				const model = await defaultSendMailModel(mailboxDetails).initWithTemplate(
+				const model = await defaultSendMailModel(mailboxDetails, mailboxProperties).initWithTemplate(
 					{
 						to: [
 							{
