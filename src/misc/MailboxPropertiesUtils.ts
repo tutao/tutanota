@@ -67,3 +67,7 @@ export function getReportMovedMailsType(props: MailboxProperties | null): Report
 
 	return downcast(props.reportMovedMails)
 }
+
+export function getSenderName(mailboxProperties: MailboxProperties, senderAddress: string): string | null {
+	return mailboxProperties.mailAddressProperties.find((a) => a.mailAddress === senderAddress)?.senderName ?? null
+}

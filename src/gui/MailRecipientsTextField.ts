@@ -1,7 +1,7 @@
 import m, {Children, ClassComponent, Vnode} from "mithril"
 import {BubbleTextField} from "./base/BubbleTextField.js"
 import {Recipient} from "../api/common/recipients/Recipient.js"
-import {getDisplayText} from "../mail/model/MailUtils.js"
+import {getMailAddressDisplayText} from "../mail/model/MailUtils.js"
 import {px, size} from "./size.js"
 import {progressIcon} from "./base/Icon.js"
 import {lang, TranslationKey} from "../misc/LanguageViewModel.js"
@@ -75,7 +75,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 			items: attrs.recipients.map(recipient => recipient.address),
 			renderBubbleText: (address: string) => {
 				const name = attrs.recipients.find(recipient => recipient.address === address)?.name ?? null
-				return getDisplayText(name, address, false)
+				return getMailAddressDisplayText(name, address, false)
 			},
 			getBubbleDropdownAttrs: async (address) => (await attrs.getRecipientClickedDropdownAttrs?.(address)) ?? [],
 			onBackspace: () => {

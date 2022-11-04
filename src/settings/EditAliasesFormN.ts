@@ -23,6 +23,7 @@ import {isTutanotaMailAddress} from "../mail/model/MailUtils.js";
 import {IconButtonAttrs} from "../gui/base/IconButton.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js";
 import {createMailAddressProperties, MailboxProperties} from "../api/entities/tutanota/TypeRefs.js"
+import {getSenderName} from "../misc/MailboxPropertiesUtils.js"
 
 assertMainOrNode()
 const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
@@ -189,7 +190,7 @@ export function getAliasLineAttrs(editAliasAttrs: EditAliasesFormAttrs): Array<T
 									 ],
 								 },
 							 )
-							 const name = editAliasAttrs.mailboxProperties.mailAddressProperties.find((a) => a.mailAddress === alias.mailAddress)?.senderName
+							 const name = getSenderName(editAliasAttrs.mailboxProperties, alias.mailAddress)
 							 return {
 								 cells: () => [
 									 {main: alias.mailAddress, info: [name ?? ""]},
@@ -229,7 +230,7 @@ function switchAliasStatus(alias: MailAddressAlias, editAliasAttrs: EditAliasesF
 }
 
 function showSenderNameChangeDialog(alias: MailAddressAlias, mailboxProperties: MailboxProperties) {
-	const currentName = mailboxProperties.mailAddressProperties.find((p) => p.mailAddress === alias.mailAddress)?.senderName
+	const currentName = getSenderName(mailboxProperties, alias.mailAddress)
 	// FIXME translate
 	Dialog.showTextInputDialog(
 		() => "Sender name",

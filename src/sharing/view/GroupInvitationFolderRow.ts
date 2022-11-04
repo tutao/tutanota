@@ -2,7 +2,7 @@ import m, {Children, Component, Vnode} from "mithril"
 import {size} from "../../gui/size"
 import {getCapabilityText} from "../GroupUtils"
 import {downcast} from "@tutao/tutanota-utils"
-import {getDisplayText} from "../../mail/model/MailUtils"
+import {getMailAddressDisplayText} from "../../mail/model/MailUtils"
 import {showGroupInvitationDialog} from "./ReceivedGroupInvitationDialog"
 import {Icons} from "../../gui/base/icons/Icons"
 import type {ReceivedGroupInvitation} from "../../api/entities/sys/TypeRefs.js"
@@ -41,7 +41,7 @@ export class GroupInvitationFolderRow implements Component<GroupInvitationFolder
 							{
 								title: invitation.inviterMailAddress,
 							},
-							getDisplayText(invitation.inviterName, invitation.inviterMailAddress, true),
+							getMailAddressDisplayText(invitation.inviterName, invitation.inviterMailAddress, true),
 						),
 					],
 				),

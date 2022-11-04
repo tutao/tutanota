@@ -12,6 +12,7 @@ import {NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 import {CalendarEventViewModel, createCalendarEventViewModel} from "./CalendarEventViewModel"
 import {DataFile} from "../../api/common/DataFile";
 import {NoZoneDateProvider} from "../../api/common/utils/NoZoneDateProvider.js"
+import {loadOrCreateMailboxProperties} from "../../misc/MailboxPropertiesUtils.js"
 
 function getParsedEvent(
 	fileData: DataFile,
@@ -103,7 +104,7 @@ export function getLatestEvent(event: CalendarEvent): Promise<CalendarEvent> {
 /**
  * Sends a quick reply for the given event and saves the event to the first private calendar.
  */
-export function replyToEventInvitation(
+export async function replyToEventInvitation(
 	event: CalendarEvent,
 	attendee: CalendarEventAttendee,
 	decision: CalendarAttendeeStatus,
@@ -112,41 +113,38 @@ export function replyToEventInvitation(
 	const eventClone = clone(event)
 	const foundAttendee = assertNotNull(eventClone.attendees.find(a => a.address.address === attendee.address.address))
 	foundAttendee.status = decision
-	return Promise.all([
-		locator.calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor()).then(findPrivateCalendar),
-		locator.mailModel.getMailboxDetailsForMail(previousMail),
-	]).then(([calendar, mailboxDetails]) => {
-		return import("../../mail/editor/SendMailModel").then(({SendMailModel}) => {
-			const sendMailModel = new SendMailModel(
-				locator.mailFacade,
-				locator.entityClient,
-				logins,
-				locator.mailModel,
-				locator.contactModel,
-				locator.eventController,
-				mailboxDetails,
-				locator.recipientsModel,
-				new NoZoneDateProvider(),
-			)
-			return calendarUpdateDistributor
-				.sendResponse(eventClone, sendMailModel, foundAttendee.address.address, previousMail, decision)
-				.catch(ofClass(UserError, e => Dialog.message(() => e.message)))
-				.then(() => {
-					if (calendar) {
-						// if the owner group is set there is an existing event already so just update
-						if (event._ownerGroup) {
-							return locator.calendarModel.loadAlarms(event.alarmInfos, logins.getUserController().user).then(alarms => {
-								const alarmInfos = alarms.map(a => a.alarmInfo)
-								return locator.calendarModel.updateEvent(eventClone, alarmInfos, getTimeZone(), calendar.groupRoot, event).then(noOp)
-							})
-						} else {
-							if (decision !== CalendarAttendeeStatus.DECLINED) {
-								return locator.calendarModel.createEvent(eventClone, [], getTimeZone(), calendar.groupRoot)
-							}
-						}
+	const calendar = await locator.calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor()).then(findPrivateCalendar)
+	const mailboxDetails = await locator.mailModel.getMailboxDetailsForMail(previousMail)
+	const mailboxProperties = await loadOrCreateMailboxProperties()
+	const {SendMailModel} = await import("../../mail/editor/SendMailModel")
+	const sendMailModel = new SendMailModel(
+		locator.mailFacade,
+		locator.entityClient,
+		logins,
+		locator.mailModel,
+		locator.contactModel,
+		locator.eventController,
+		mailboxDetails,
+		locator.recipientsModel,
+		new NoZoneDateProvider(),
+		mailboxProperties,
+	)
+	return calendarUpdateDistributor
+		.sendResponse(eventClone, sendMailModel, foundAttendee.address.address, previousMail, decision)
+		.catch(ofClass(UserError, e => Dialog.message(() => e.message)))
+		.then(() => {
+			if (calendar) {
+				// if the owner group is set there is an existing event already so just update
+				if (event._ownerGroup) {
+					return locator.calendarModel.loadAlarms(event.alarmInfos, logins.getUserController().user).then(alarms => {
+						const alarmInfos = alarms.map(a => a.alarmInfo)
+						return locator.calendarModel.updateEvent(eventClone, alarmInfos, getTimeZone(), calendar.groupRoot, event).then(noOp)
+					})
+				} else {
+					if (decision !== CalendarAttendeeStatus.DECLINED) {
+						return locator.calendarModel.createEvent(eventClone, [], getTimeZone(), calendar.groupRoot)
 					}
-					return Promise.resolve()
-				})
+				}
+			}
 		})
-	})
 }

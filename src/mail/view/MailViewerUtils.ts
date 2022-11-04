@@ -1,5 +1,5 @@
 import type {ImageHandler} from "../model/MailUtils"
-import {getDisplayText} from "../model/MailUtils"
+import {getMailAddressDisplayText} from "../model/MailUtils"
 import {ALLOWED_IMAGE_FORMATS, Keys, MailReportType, MAX_BASE64_IMAGE_SIZE} from "../../api/common/TutanotaConstants"
 import {neverNull, ofClass, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {InfoLink, lang} from "../../misc/LanguageViewModel"
@@ -90,32 +90,37 @@ export async function showHeaderDialog(headersPromise: Promise<string | null>) {
 }
 
 export async function editDraft(viewModel: MailViewerViewModel): Promise<void> {
-	return checkApprovalStatus(logins, false).then(sendAllowed => {
-		if (sendAllowed) {
-			// check if to be opened draft has already been minimized, iff that is the case, re-open it
-			const minimizedEditor = locator.minimizedMailModel.getEditorForDraft(viewModel.mail)
+	const sendAllowed = await checkApprovalStatus(logins, false)
+	if (sendAllowed) {
+		// check if to be opened draft has already been minimized, iff that is the case, re-open it
+		const minimizedEditor = locator.minimizedMailModel.getEditorForDraft(viewModel.mail)
 
-			if (minimizedEditor) {
-				locator.minimizedMailModel.reopenMinimizedEditor(minimizedEditor)
-			} else {
-				return Promise.all([viewModel.mailModel.getMailboxDetailsForMail(viewModel.mail), import("../editor/MailEditor")])
-							  .then(([mailboxDetails, {newMailEditorFromDraft}]) => {
-								  return newMailEditorFromDraft(
-									  viewModel.mail,
-									  viewModel.getAttachments(),
-									  viewModel.getMailBody(),
-									  viewModel.isBlockingExternalImages(),
-									  viewModel.getLoadedInlineImages(),
-									  mailboxDetails,
-								  )
-							  })
-							  .then(editorDialog => {
-								  editorDialog.show()
-							  })
-							  .catch(ofClass(UserError, showUserError))
+		if (minimizedEditor) {
+			locator.minimizedMailModel.reopenMinimizedEditor(minimizedEditor)
+		} else {
+			try {
+				const [mailboxDetails, {newMailEditorFromDraft}] = await Promise.all([
+					viewModel.mailModel.getMailboxDetailsForMail(viewModel.mail),
+					import("../editor/MailEditor"),
+				])
+				const editorDialog = await newMailEditorFromDraft(
+					viewModel.mail,
+					viewModel.getAttachments(),
+					viewModel.getMailBody(),
+					viewModel.isBlockingExternalImages(),
+					viewModel.getLoadedInlineImages(),
+					mailboxDetails,
+				)
+				editorDialog.show()
+			} catch (e) {
+				if (e instanceof UserError) {
+					await showUserError(e)
+				} else {
+					throw e
+				}
 			}
 		}
-	})
+	}
 }
 
 /** Make options for "assign" buttons (for cases for mails with restricted participants). */
@@ -124,7 +129,7 @@ export async function makeAssignMailsButtons(viewModel: MailViewerViewModel): Pr
 
 	return assignmentGroupInfos.map(userOrMailGroupInfo => {
 		return {
-			label: () => getDisplayText(userOrMailGroupInfo.name, neverNull(userOrMailGroupInfo.mailAddress), true),
+			label: () => getMailAddressDisplayText(userOrMailGroupInfo.name, neverNull(userOrMailGroupInfo.mailAddress), true),
 			icon: BootIcons.Contacts,
 			click: () => viewModel.assignMail(userOrMailGroupInfo),
 		}

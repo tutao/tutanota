@@ -646,8 +646,7 @@ export class SearchView implements CurrentView {
 	}
 }
 
-function newMailEditor(): Promise<Dialog> {
-	return Promise.all([locator.mailModel.getUserMailboxDetails(), import("../../mail/editor/MailEditor")]).then(([mailboxDetails, {newMailEditor}]) => {
-		return newMailEditor(mailboxDetails)
-	})
+async function newMailEditor(): Promise<Dialog> {
+	const [mailboxDetails, {newMailEditor}] = await Promise.all([locator.mailModel.getUserMailboxDetails(), import("../../mail/editor/MailEditor")])
+	return newMailEditor(mailboxDetails)
 }
