@@ -30,7 +30,6 @@ import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import {showUserImportDialog} from "./UserViewer"
 import {LazyLoaded, partition, promiseMap} from "@tutao/tutanota-utils"
-import {getAvailableDomains} from "./AddUserDialog"
 import {AppearanceSettingsViewer} from "./AppearanceSettingsViewer"
 import type {NavButtonAttrs} from "../gui/base/NavButton.js"
 import {NavButtonColor} from "../gui/base/NavButton.js";
@@ -59,9 +58,9 @@ import {GroupInvitationFolderRow} from "../sharing/view/GroupInvitationFolderRow
 import {TemplateGroupService} from "../api/entities/tutanota/Services"
 import {attachDropdown} from "../gui/base/Dropdown.js"
 import {exportUserCsv} from "./UserDataExporter.js"
-import {Button, ButtonType} from "../gui/base/Button.js"
 import {IconButton} from "../gui/base/IconButton.js"
 import {BottomNav} from "../gui/nav/BottomNav.js"
+import {getAvailableDomains} from "./mailaddress/MailAddressesUtils.js"
 
 assertMainOrNode()
 
@@ -372,7 +371,7 @@ export class SettingsView implements CurrentView {
 			return this.entityEventsReceived(updates)
 		})
 		this._customDomains = new LazyLoaded(() => {
-			return getAvailableDomains(true)
+			return getAvailableDomains(locator.entityClient, logins, true)
 		})
 
 		this._customDomains.getAsync().then(() => m.redraw())

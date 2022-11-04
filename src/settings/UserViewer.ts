@@ -486,9 +486,6 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				this.senderName = updatedUserGroupInfo.name
 				await this.updateUsedStorageAndAdminFlag()
 				this.administratedBy = this.userGroupInfo.localAdmin
-				if (this.editAliasFormAttrs) {
-					this.editAliasFormAttrs.userGroupInfo = this.userGroupInfo
-				}
 				m.redraw()
 			} else if (
 				isUpdateForTypeRef(UserTypeRef, update) &&

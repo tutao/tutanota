@@ -8,18 +8,17 @@ import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {logins} from "../api/main/LoginController"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
-import stream from "mithril/stream"
 import {showBuyDialog} from "../subscription/BuyDialog"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {showBusinessFeatureRequiredDialog} from "../misc/SubscriptionDialogs"
 import {TemplateGroupPreconditionFailedReason} from "../sharing/GroupUtils"
-import * as AddUserDialog from "./AddUserDialog"
 import {DropDownSelector} from "../gui/base/DropDownSelector.js"
 import {TextField} from "../gui/base/TextField.js"
 import {firstThrow, ofClass} from "@tutao/tutanota-utils"
 import type {GroupManagementFacade} from "../api/worker/facades/GroupManagementFacade"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
+import {getAvailableDomains} from "./mailaddress/MailAddressesUtils.js"
 
 assertMainOrNode()
 
@@ -122,7 +121,7 @@ export class AddGroupDialogViewModel {
 }
 
 export function show(): void {
-	AddUserDialog.getAvailableDomains().then(availableDomains => {
+	getAvailableDomains(locator.entityClient, logins).then(availableDomains => {
 		const viewModel = new AddGroupDialogViewModel(availableDomains, locator.groupManagementFacade)
 		if (viewModel.getAvailableGroupTypes().length === 0) return Dialog.message("selectionNotAvailable_msg")
 

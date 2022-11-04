@@ -1,24 +1,23 @@
 import m from "mithril"
 import {lang, TranslationText} from "../misc/LanguageViewModel"
-import {AccountType, BookingItemFeatureType, TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
+import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {Dialog} from "../gui/base/Dialog"
 import {logins} from "../api/main/LoginController"
 import {PasswordForm, PasswordModel} from "./PasswordForm"
 import {SelectMailAddressForm} from "./SelectMailAddressForm"
-import {CustomerInfoTypeRef, CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {addAll, assertNotNull, neverNull, ofClass} from "@tutao/tutanota-utils"
-import {getCustomMailDomains} from "../api/common/utils/Utils"
+import {assertNotNull, ofClass} from "@tutao/tutanota-utils"
 import {showProgressDialog, showWorkerProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {PreconditionFailedError} from "../api/common/error/RestError"
 import {showBuyDialog} from "../subscription/BuyDialog"
 import {TextField} from "../gui/base/TextField.js"
 import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
+import {getAvailableDomains} from "./mailaddress/MailAddressesUtils.js"
 
 assertMainOrNode()
 
 export function show(): Promise<void> {
-	return getAvailableDomains().then(availableDomains => {
+	return getAvailableDomains(locator.entityClient, logins).then(availableDomains => {
 		let emailAddress: string | null = null
 		let errorMsg: TranslationText | null = "mailAddressNeutral_msg"
 		let isVerificationBusy = false
@@ -91,24 +90,6 @@ export function show(): Promise<void> {
 			title: lang.get("addUsers_action"),
 			child: form,
 			okAction: addUserOkAction,
-		})
-	})
-}
-
-export function getAvailableDomains(onlyCustomDomains?: boolean): Promise<string[]> {
-	return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-		return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
-			let availableDomains = getCustomMailDomains(customerInfo).map(info => info.domain)
-
-			if (
-				!onlyCustomDomains &&
-				logins.getUserController().user.accountType !== AccountType.STARTER &&
-				(availableDomains.length === 0 || logins.getUserController().isGlobalAdmin())
-			) {
-				addAll(availableDomains, TUTANOTA_MAIL_ADDRESS_DOMAINS)
-			}
-
-			return availableDomains
 		})
 	})
 }

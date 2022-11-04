@@ -45,6 +45,8 @@ export class MailModel {
 	mailboxDetails: Stream<MailboxDetail[]>
 	mailboxCounters: Stream<MailboxCounters>
 	private initialization: Promise<any> | null
+	/** A way to avoid race conditions in case we try to create mailbox properties from multiple places. */
+	private mailboxPropertiesPromise: Promise<MailboxProperties> | null = null
 
 	constructor(
 		private readonly notifications: Notifications,
@@ -364,11 +366,22 @@ export class MailModel {
 	}
 
 	async getMailboxProperties(mailboxDetails: MailboxDetail): Promise<MailboxProperties> {
-		if (mailboxDetails.mailboxGroupRoot.mailboxProperties) {
-			return this.entityClient.load(MailboxPropertiesTypeRef, mailboxDetails.mailboxGroupRoot.mailboxProperties)
-		} else {
-			return this.saveReportMovedMails(mailboxDetails, null, ReportMovedMailsType.ALWAYS_ASK)
+		// MailboxProperties is an encrypted instance that is created lazily. When we create it the reference is automatically written to the MailboxGroupRoot.
+		// Unfortunately we will only get updated new MailboxGroupRoot with the next EntityUpdate.
+		// To prevent parallel creation attempts we do two things:
+		//  - we save the loading promise to avoid calling setup() twice in parallel
+		//  - we set mailboxProperties reference manually (we could save the id elsewhere but it's easier this way)
+
+		// If we are already loading/creating, just return it to avoid races
+		if (this.mailboxPropertiesPromise) {
+			return this.mailboxPropertiesPromise
 		}
+		if (mailboxDetails.mailboxGroupRoot.mailboxProperties) {
+			this.mailboxPropertiesPromise = this.entityClient.load(MailboxPropertiesTypeRef, mailboxDetails.mailboxGroupRoot.mailboxProperties)
+		} else {
+			this.mailboxPropertiesPromise = this.saveReportMovedMails(mailboxDetails, null, ReportMovedMailsType.ALWAYS_ASK)
+		}
+		return this.mailboxPropertiesPromise.finally(() => this.mailboxPropertiesPromise = null)
 	}
 
 	async saveReportMovedMails(mailboxDetails: MailboxDetail, props: MailboxProperties | null, reportMovedMails: ReportMovedMailsType): Promise<MailboxProperties> {
@@ -380,10 +393,11 @@ export class MailModel {
 
 		props.reportMovedMails = reportMovedMails
 		await this.saveMailboxProperties(props)
+		mailboxDetails.mailboxGroupRoot.mailboxProperties = props._id
 		return props
 	}
 
-	async saveMailboxProperties(props: MailboxProperties) {
+	private async saveMailboxProperties(props: MailboxProperties) {
 		if (props._id) {
 			await this.entityClient.update(props)
 		} else {
