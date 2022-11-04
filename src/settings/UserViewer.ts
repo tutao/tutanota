@@ -21,14 +21,12 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {HtmlEditor as Editor, HtmlEditorMode} from "../gui/editor/HtmlEditor"
 import {filterContactFormsForLocalAdmin} from "./contactform/ContactFormListView.js"
 import {checkAndImportUserData, CSV_USER_FORMAT} from "./ImportUsersViewer"
-import type {EditAliasesFormAttrs} from "./EditAliasesFormN"
-import {createEditAliasFormAttrs, EditAliasesFormN, updateNbrOfAliases} from "./EditAliasesFormN"
+import type {MailAddressTableAttrs} from "./mailaddress/MailAddressTable.js"
+import {MailAddressTable} from "./mailaddress/MailAddressTable.js"
 import {compareGroupInfos, getGroupInfoDisplayName} from "../api/common/utils/GroupUtils"
 import {CUSTOM_MIN_ID, isSameId} from "../api/common/utils/EntityUtils"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {showBuyDialog} from "../subscription/BuyDialog"
-import type {ButtonAttrs} from "../gui/base/Button.js"
-import {Button} from "../gui/base/Button.js"
 import {TextField} from "../gui/base/TextField.js"
 import {locator} from "../api/main/MainLocator"
 import {DropDownSelector, SelectorItem} from "../gui/base/DropDownSelector.js";
@@ -47,7 +45,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	private groupsTableAttrs: TableAttrs | null = null
 	private contactFormsTableAttrs: TableAttrs | null = null
 	private readonly secondFactorsForm: EditSecondFactorsForm
-	private editAliasFormAttrs: EditAliasesFormAttrs | null
+	private editAliasFormAttrs: MailAddressTableAttrs | null
 	private usedStorage: number | null = null
 	private administratedBy: Id | null = null
 	private availableTeamGroupInfos: Array<GroupInfo> = []
@@ -177,7 +175,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			this.groupsTableAttrs ? m(Table, this.groupsTableAttrs) : null,
 			this.contactFormsTableAttrs ? m(".h4.mt-l.mb-s", lang.get("contactForms_label")) : null,
 			this.contactFormsTableAttrs ? m(Table, this.contactFormsTableAttrs) : null,
-			this.editAliasFormAttrs ? m(EditAliasesFormN, this.editAliasFormAttrs) : null,
+			this.editAliasFormAttrs ? m(MailAddressTable, this.editAliasFormAttrs) : null,
 		])
 	}
 

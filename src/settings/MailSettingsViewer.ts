@@ -6,8 +6,8 @@ import {MailboxPropertiesTypeRef, MailFolderTypeRef, OutOfOfficeNotificationType
 import {FeatureType, InboxRuleType, OperationType, ReportMovedMailsType} from "../api/common/TutanotaConstants"
 import {capitalizeFirstLetter, defer, LazyLoaded, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
 import {getInboxRuleTypeName} from "../mail/model/InboxRuleHandler"
-import type {EditAliasesFormAttrs} from "./EditAliasesFormN"
-import {createEditAliasFormAttrs, EditAliasesFormN, updateNbrOfAliases} from "./EditAliasesFormN"
+import type {MailAddressTableAttrs} from "./mailaddress/MailAddressTable.js"
+import {createEditAliasFormAttrs, MailAddressTable, updateNbrOfAliases} from "./mailaddress/MailAddressTable.js"
 import {Dialog} from "../gui/base/Dialog"
 import {GroupInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {logins} from "../api/main/LoginController"
@@ -61,7 +61,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_inboxRulesExpanded: Stream<boolean>
 	_indexStateWatch: Stream<any> | null
 	_identifierListViewer: IdentifierListViewer
-	_editAliasFormAttrs: EditAliasesFormAttrs | null
+	_editAliasFormAttrs: MailAddressTableAttrs | null
 	_outOfOfficeNotification: LazyLoaded<OutOfOfficeNotification | null>
 	_outOfOfficeStatus: Stream<string> // stores the status label, based on whether the notification is/ or will really be activated (checking start time/ end time)
 
@@ -324,7 +324,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m(TextField, outOfOfficeAttrs),
 					this.renderLocalDataSection(),
 					// FIXME distinguish between loading and missing
-					this._editAliasFormAttrs ? m(EditAliasesFormN, this._editAliasFormAttrs) : null,
+					this._editAliasFormAttrs ? m(MailAddressTable, this._editAliasFormAttrs) : null,
 					logins.isEnabled(FeatureType.InternalCommunication)
 						? null
 						: [

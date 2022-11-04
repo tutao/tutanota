@@ -1,47 +1,50 @@
 import m, {Children, Component, Vnode} from "mithril"
-import {Dialog} from "../gui/base/Dialog"
-import type {TableAttrs, TableLineAttrs} from "../gui/base/Table.js"
-import {ColumnWidth, Table} from "../gui/base/Table.js"
-import {lang, TranslationKey} from "../misc/LanguageViewModel"
-import {InvalidDataError, LimitReachedError, PreconditionFailedError} from "../api/common/error/RestError"
+import {Dialog} from "../../gui/base/Dialog.js"
+import type {TableAttrs, TableLineAttrs} from "../../gui/base/Table.js"
+import {ColumnWidth, Table} from "../../gui/base/Table.js"
+import {lang, TranslationKey} from "../../misc/LanguageViewModel.js"
+import {InvalidDataError, LimitReachedError, PreconditionFailedError} from "../../api/common/error/RestError.js"
 import {firstThrow, ofClass} from "@tutao/tutanota-utils"
-import {SelectMailAddressForm} from "./SelectMailAddressForm"
-import {logins} from "../api/main/LoginController"
-import {Icons} from "../gui/base/icons/Icons"
-import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import * as EmailAliasOptionsDialog from "../subscription/EmailAliasOptionsDialog"
-import {getAvailableDomains} from "./AddUserDialog"
+import {SelectMailAddressForm} from "../SelectMailAddressForm.js"
+import {logins} from "../../api/main/LoginController.js"
+import {Icons} from "../../gui/base/icons/Icons.js"
+import {showProgressDialog} from "../../gui/dialogs/ProgressDialog.js"
+import * as EmailAliasOptionsDialog from "../../subscription/EmailAliasOptionsDialog.js"
+import {getAvailableDomains} from "../AddUserDialog.js"
 import stream from "mithril/stream"
-import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
-import {attachDropdown} from "../gui/base/Dropdown.js"
-import {TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../api/common/TutanotaConstants"
-import type {GroupInfo, MailAddressAlias} from "../api/entities/sys/TypeRefs.js"
-import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
-import {locator} from "../api/main/MainLocator"
-import {assertMainOrNode} from "../api/common/Env"
-import {isTutanotaMailAddress} from "../mail/model/MailUtils.js";
-import {IconButtonAttrs} from "../gui/base/IconButton.js"
-import {ButtonSize} from "../gui/base/ButtonSize.js";
-import {createMailAddressProperties, MailboxProperties} from "../api/entities/tutanota/TypeRefs.js"
-import {getSenderName} from "../misc/MailboxPropertiesUtils.js"
+import {ExpanderButton, ExpanderPanel} from "../../gui/base/Expander.js"
+import {attachDropdown} from "../../gui/base/Dropdown.js"
+import {TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../../api/common/TutanotaConstants.js"
+import type {GroupInfo, MailAddressAlias} from "../../api/entities/sys/TypeRefs.js"
+import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs.js"
+import {locator} from "../../api/main/MainLocator.js"
+import {assertMainOrNode} from "../../api/common/Env.js"
+import {isTutanotaMailAddress} from "../../mail/model/MailUtils.js";
+import {IconButtonAttrs} from "../../gui/base/IconButton.js"
+import {ButtonSize} from "../../gui/base/ButtonSize.js";
+import {createMailAddressProperties, MailboxProperties} from "../../api/entities/tutanota/TypeRefs.js"
+import {getSenderName} from "../../misc/MailboxPropertiesUtils.js"
 
 assertMainOrNode()
+
 const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
-export type EditAliasesFormAttrs = {
+
+export type MailAddressTableAttrs = {
 	userGroupInfo: GroupInfo
 	aliasCount: AliasCount
 	mailboxProperties: MailboxProperties
 }
+
 type AliasCount = {
 	availableToCreate: number
 	availableToEnable: number
 }
 
 /** Shows a table with all aliases and ability to enable/disable them and add more. */
-export class EditAliasesFormN implements Component<EditAliasesFormAttrs> {
+export class MailAddressTable implements Component<MailAddressTableAttrs> {
 	private expanded: boolean = false
 
-	view(vnode: Vnode<EditAliasesFormAttrs>): Children {
+	view(vnode: Vnode<MailAddressTableAttrs>): Children {
 		const a = vnode.attrs
 		const addAliasButtonAttrs: IconButtonAttrs = {
 			title: "addEmailAlias_label",
@@ -81,7 +84,7 @@ export class EditAliasesFormN implements Component<EditAliasesFormAttrs> {
 		]
 	}
 
-	_showAddAliasDialog(aliasFormAttrs: EditAliasesFormAttrs) {
+	_showAddAliasDialog(aliasFormAttrs: MailAddressTableAttrs) {
 		if (aliasFormAttrs.aliasCount.availableToCreate === 0) {
 			if (logins.getUserController().isFreeAccount()) {
 				showNotAvailableForFreeDialog(true)
@@ -149,7 +152,7 @@ export class EditAliasesFormN implements Component<EditAliasesFormAttrs> {
 	}
 }
 
-export function getAliasLineAttrs(editAliasAttrs: EditAliasesFormAttrs): Array<TableLineAttrs> {
+export function getAliasLineAttrs(editAliasAttrs: MailAddressTableAttrs): Array<TableLineAttrs> {
 	return editAliasAttrs.userGroupInfo.mailAddressAliases
 						 .slice()
 						 .sort((a, b) => (a.mailAddress > b.mailAddress ? 1 : -1))
@@ -201,7 +204,7 @@ export function getAliasLineAttrs(editAliasAttrs: EditAliasesFormAttrs): Array<T
 						 })
 }
 
-function switchAliasStatus(alias: MailAddressAlias, editAliasAttrs: EditAliasesFormAttrs) {
+function switchAliasStatus(alias: MailAddressAlias, editAliasAttrs: MailAddressTableAttrs) {
 	let restore = !alias.enabled
 	let promise = Promise.resolve(true)
 
@@ -251,7 +254,7 @@ async function setAliasName(alias: MailAddressAlias, mailboxProperties: MailboxP
 	await locator.entityClient.update(mailboxProperties)
 }
 
-export function addAlias(aliasFormAttrs: EditAliasesFormAttrs, alias: string): Promise<void> {
+export function addAlias(aliasFormAttrs: MailAddressTableAttrs, alias: string): Promise<void> {
 	return showProgressDialog("pleaseWait_msg", locator.mailAddressFacade.addMailAlias(aliasFormAttrs.userGroupInfo.group, alias))
 		.catch(ofClass(InvalidDataError, () => Dialog.message("mailAddressNA_msg")))
 		.catch(ofClass(LimitReachedError, () => Dialog.message("adminMaxNbrOfAliasesReached_msg")))
@@ -269,7 +272,7 @@ export function addAlias(aliasFormAttrs: EditAliasesFormAttrs, alias: string): P
 		.finally(() => updateNbrOfAliases(aliasFormAttrs))
 }
 
-export function updateNbrOfAliases(attrs: EditAliasesFormAttrs): Promise<AliasCount> {
+export function updateNbrOfAliases(attrs: MailAddressTableAttrs): Promise<AliasCount> {
 	return locator.mailAddressFacade.getAliasCounters().then(mailAddressAliasServiceReturn => {
 		const newNbr = Math.max(0, Number(mailAddressAliasServiceReturn.totalAliases) - Number(mailAddressAliasServiceReturn.usedAliases))
 		const newNbrToEnable = Math.max(0, Number(mailAddressAliasServiceReturn.totalAliases) - Number(mailAddressAliasServiceReturn.enabledAliases))
@@ -282,7 +285,7 @@ export function updateNbrOfAliases(attrs: EditAliasesFormAttrs): Promise<AliasCo
 	})
 }
 
-export function createEditAliasFormAttrs(userGroupInfo: GroupInfo, mailboxProperties: MailboxProperties): EditAliasesFormAttrs {
+export function createEditAliasFormAttrs(userGroupInfo: GroupInfo, mailboxProperties: MailboxProperties): MailAddressTableAttrs {
 	return {
 		userGroupInfo,
 		mailboxProperties,

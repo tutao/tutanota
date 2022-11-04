@@ -6,8 +6,8 @@ import {createDnsRecord} from "../../api/entities/sys/TypeRefs.js"
 import {DnsRecordType} from "../../api/common/TutanotaConstants"
 import m, {Children} from "mithril"
 import {ColumnWidth, Table} from "../../gui/base/Table.js"
-import type {EditAliasesFormAttrs} from "../EditAliasesFormN"
-import {createEditAliasFormAttrs} from "../EditAliasesFormN"
+import type {MailAddressTableAttrs} from "../mailaddress/MailAddressTable.js"
+import {createEditAliasFormAttrs} from "../mailaddress/MailAddressTable.js"
 import {AddEmailAddressesPage, AddEmailAddressesPageAttrs} from "./AddEmailAddressesPage"
 import {DomainDnsStatus} from "../DomainDnsStatus"
 import {VerifyOwnershipPage, VerifyOwnershipPageAttrs} from "./VerifyOwnershipPage"
@@ -23,7 +23,7 @@ export type AddDomainData = {
 	domain: Stream<string>
 	customerInfo: CustomerInfo
 	expectedVerificationRecord: DnsRecord
-	editAliasFormAttrs: EditAliasesFormAttrs
+	editAliasFormAttrs: MailAddressTableAttrs
 	domainStatus: DomainDnsStatus
 }
 
