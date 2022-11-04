@@ -12,7 +12,6 @@ import {NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
 import {CalendarEventViewModel, createCalendarEventViewModel} from "./CalendarEventViewModel"
 import {DataFile} from "../../api/common/DataFile";
 import {NoZoneDateProvider} from "../../api/common/utils/NoZoneDateProvider.js"
-import {loadOrCreateMailboxProperties} from "../../misc/MailboxPropertiesUtils.js"
 
 function getParsedEvent(
 	fileData: DataFile,
@@ -115,7 +114,7 @@ export async function replyToEventInvitation(
 	foundAttendee.status = decision
 	const calendar = await locator.calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor()).then(findPrivateCalendar)
 	const mailboxDetails = await locator.mailModel.getMailboxDetailsForMail(previousMail)
-	const mailboxProperties = await loadOrCreateMailboxProperties()
+	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails)
 	const {SendMailModel} = await import("../../mail/editor/SendMailModel")
 	const sendMailModel = new SendMailModel(
 		locator.mailFacade,

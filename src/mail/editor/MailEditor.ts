@@ -76,7 +76,6 @@ import {BootIcons} from "../../gui/base/icons/BootIcons.js"
 import {ButtonSize} from "../../gui/base/ButtonSize.js"
 import {DialogInjectionRightAttrs} from "../../gui/base/DialogInjectionRight.js"
 import {KnowledgebaseDialogContentAttrs} from "../../knowledgebase/view/KnowledgeBaseDialogContent.js"
-import {loadOrCreateMailboxProperties} from "../../misc/MailboxPropertiesUtils.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -1029,7 +1028,7 @@ export async function newMailEditorFromTemplate(
 	senderMailAddress?: string,
 	initialChangedState?: boolean
 ): Promise<Dialog> {
-	const mailboxProperties = await loadOrCreateMailboxProperties()
+	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails)
 	return defaultSendMailModel(mailboxDetails, mailboxProperties)
 		.initWithTemplate(recipients, subject, bodyText, attachments, confidential, senderMailAddress, initialChangedState)
 		.then(model => createMailEditorDialog(model))
@@ -1139,6 +1138,6 @@ async function getMailboxDetailsAndProperties(
 	mailboxDetails: MailboxDetail | null | undefined,
 ): Promise<{mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties}> {
 	mailboxDetails = mailboxDetails ?? await locator.mailModel.getUserMailboxDetails()
-	const mailboxProperties = await loadOrCreateMailboxProperties()
+	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails)
 	return {mailboxDetails, mailboxProperties}
 }

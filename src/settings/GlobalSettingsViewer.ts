@@ -47,7 +47,6 @@ import {assertMainOrNode} from "../api/common/Env"
 import {DropDownSelector} from "../gui/base/DropDownSelector.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js"
 import {SettingsExpander} from "./SettingsExpander.js"
-import {loadOrCreateMailboxProperties} from "../misc/MailboxPropertiesUtils.js"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -132,7 +131,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					if (logins.getUserController().isFreeAccount()) {
 						showNotAvailableForFreeDialog(getCustomMailDomains(customerInfo).length === 0)
 					} else {
-						const mailboxProperties = await loadOrCreateMailboxProperties()
+						const mailboxProperties = await this.getMailboxProperties()
 						await showAddDomainWizard("", customerInfo, mailboxProperties)
 						this.updateDomains()
 					}
@@ -501,7 +500,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 
 	private async updateDomains(): Promise<void> {
 		const customerInfo = await this.customerInfo.getAsync()
-		const mailboxProperties = await loadOrCreateMailboxProperties()
+		const mailboxProperties = await this.getMailboxProperties()
 		let customDomainInfos = getCustomMailDomains(customerInfo)
 		// remove dns status instances for all removed domains
 		Object.keys(this.domainDnsStatus).forEach(domain => {
@@ -584,6 +583,13 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 
 			m.redraw()
 		})
+	}
+
+	private async getMailboxProperties() {
+		// Assuming user mailbox for now
+		const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
+		const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails)
+		return mailboxProperties
 	}
 
 	private async editCatchAllMailbox(domainInfo: DomainInfo) {

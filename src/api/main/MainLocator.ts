@@ -343,7 +343,7 @@ class MainLocator implements IMainLocator {
 			this.nativeInterfaces?.native ?? null,
 			isDesktop() ? this.interWindowEventSender : null
 		)
-		this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient)
+		this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient, logins)
 		this.random = random
 
 		this.usageTestModel = new UsageTestModel(

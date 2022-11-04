@@ -9,7 +9,7 @@ import {AllIcons} from "../../gui/base/Icon"
 import {Icons} from "../../gui/base/icons/Icons"
 import type {InlineImages} from "./MailViewer"
 import {isApp, isDesktop} from "../../api/common/Env"
-import {neverNull, promiseMap} from "@tutao/tutanota-utils"
+import {assertNotNull, neverNull, promiseMap} from "@tutao/tutanota-utils"
 import {MailFolderType, MailReportType} from "../../api/common/TutanotaConstants"
 import {getElementId} from "../../api/common/utils/EntityUtils"
 import {reportMailsAutomatically} from "./MailReportDialog"
@@ -86,7 +86,7 @@ interface MoveMailsParams {
 export function moveMails({mailModel, mails, targetMailFolder, isReportable = true}: MoveMailsParams): Promise<boolean> {
 	return mailModel
 		.moveMails(mails, targetMailFolder)
-		.then(() => {
+		.then(async () => {
 			if (targetMailFolder.folderType === MailFolderType.SPAM && isReportable) {
 				const reportableMails = mails.map(mail => {
 					// mails have just been moved
@@ -94,7 +94,8 @@ export function moveMails({mailModel, mails, targetMailFolder, isReportable = tr
 					reportableMail._id = [targetMailFolder.mails, getElementId(mail)]
 					return reportableMail
 				})
-				reportMailsAutomatically(MailReportType.SPAM, mailModel, reportableMails)
+				const mailboxDetails = await mailModel.getMailboxDetailsForMailGroup(assertNotNull(targetMailFolder._ownerGroup))
+				await reportMailsAutomatically(MailReportType.SPAM, mailModel, mailboxDetails, reportableMails)
 			}
 
 			return true
