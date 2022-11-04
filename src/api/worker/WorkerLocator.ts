@@ -112,7 +112,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.booking = new BookingFacade(locator.serviceExecutor)
 
 	const offlineStorageProvider = async () => {
-		if (isOfflineStorageAvailable()) {
+		if (isOfflineStorageAvailable() && !isAdminClient()) {
 			return new OfflineStorage(
 				new SqlCipherFacadeSendDispatcher(locator.native),
 				new InterWindowEventFacadeSendDispatcher(worker),
