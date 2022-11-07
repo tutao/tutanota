@@ -48,7 +48,6 @@ export class NewsModel {
 
 		try {
 			await this.serviceExecutor.post(NewsService, data)
-			await this.loadNewsIds()
 			return true
 		} catch (e) {
 			if (e instanceof NotFoundError) {
@@ -58,6 +57,8 @@ export class NewsModel {
 			} else {
 				throw e
 			}
+		} finally {
+			await this.loadNewsIds()
 		}
 	}
 }

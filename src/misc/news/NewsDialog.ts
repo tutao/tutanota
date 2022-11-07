@@ -6,7 +6,7 @@ import {Dialog, DialogType} from "../../gui/base/Dialog.js"
 import {Keys} from "../../api/common/TutanotaConstants.js"
 import {NewsList} from "./NewsList.js"
 import {NewsModel} from "./NewsModel.js"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog.js"
+import {progressIcon} from "../../gui/base/Icon.js"
 
 export function showNewsDialog(newsModel: NewsModel) {
 	const closeButton: ButtonAttrs = {
@@ -24,14 +24,26 @@ export function showNewsDialog(newsModel: NewsModel) {
 		left: [closeButton],
 		middle: () => lang.get("news_label"),
 	}
+
+	let loaded = false
+	newsModel.loadNewsIds().then(() => {
+		loaded = true
+		m.redraw()
+	})
+
 	const child: Component = {
 		view: () => {
 			return [
 				m("", [
-					m(NewsList, {
-						liveNewsIds: newsModel.liveNewsIds,
-						liveNewsListItems: newsModel.liveNewsListItems,
-					})
+					loaded
+						? m(NewsList, {
+							liveNewsIds: newsModel.liveNewsIds,
+							liveNewsListItems: newsModel.liveNewsListItems,
+						})
+						: m(".flex-center.mt-l", m(".flex-v-center", [
+							m(".full-width.flex-center", progressIcon()),
+							m("p", lang.getMaybeLazy("pleaseWait_msg")),
+						]))
 				]),
 			]
 		}
@@ -53,5 +65,5 @@ export function showNewsDialog(newsModel: NewsModel) {
 	})
 
 	dialog.show()
-	showProgressDialog("pleaseWait_msg", newsModel.loadNewsIds()).then(m.redraw)
+	//showProgressDialog("pleaseWait_msg", newsModel.loadNewsIds()).then(m.redraw)
 }
