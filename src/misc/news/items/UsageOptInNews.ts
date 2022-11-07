@@ -71,7 +71,7 @@ export class UsageOptInNews implements NewsListItem {
 				}, lnk)])),
 			]),
 			m(
-				".flex-end.flex-no-grow-no-shrink-auto",
+				".flex-end.flex-no-grow-no-shrink-auto.flex-wrap",
 				buttonAttrs.map(a => m(Button, a)),
 			),
 		])
