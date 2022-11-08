@@ -31,7 +31,7 @@ export function openPressReleaseEditor(mailboxDetails: MailboxDetail): void {
 	}
 
 	async function send() {
-		const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails)
+		const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 		const body = pressRelease.bodyHtml()
 		const subject = pressRelease.subject()
 		let recipients

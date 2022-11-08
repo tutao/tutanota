@@ -114,7 +114,7 @@ export async function replyToEventInvitation(
 	foundAttendee.status = decision
 	const calendar = await locator.calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor()).then(findPrivateCalendar)
 	const mailboxDetails = await locator.mailModel.getMailboxDetailsForMail(previousMail)
-	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails)
+	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 	const {SendMailModel} = await import("../../mail/editor/SendMailModel")
 	const sendMailModel = new SendMailModel(
 		locator.mailFacade,

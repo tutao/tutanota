@@ -49,12 +49,14 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 
 	view(vnode: Vnode<MailAddressTableAttrs>): Children {
 		const a = vnode.attrs
-		const addAliasButtonAttrs: IconButtonAttrs = {
-			title: "addEmailAlias_label",
-			click: () => this.onAddAlias(a),
-			icon: Icons.Add,
-			size: ButtonSize.Compact
-		}
+		const addAliasButtonAttrs: IconButtonAttrs | null = a.model.userCanModifyAliases()
+			? {
+				title: "addEmailAlias_label",
+				click: () => this.onAddAlias(a),
+				icon: Icons.Add,
+				size: ButtonSize.Compact
+			}
+			: null
 		const aliasesTableAttrs: TableAttrs = {
 			columnHeading: ["emailAlias_label", "state_label"],
 			columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
@@ -81,6 +83,9 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 	}
 
 	private renderAliasCount({model}: MailAddressTableAttrs) {
+		if (!model.userCanModifyAliases()) {
+			return null
+		}
 		const aliasCount = model.aliasCount()
 		return m(
 			".small",
@@ -94,7 +99,7 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 
 	private onAddAlias(attrs: MailAddressTableAttrs) {
 		const {model} = attrs
-		switch (model.canAddAlias()) {
+		switch (model.checkTryingToAddAlias()) {
 			case "freeaccount":
 				showNotAvailableForFreeDialog(true)
 				break
@@ -105,6 +110,7 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 				this.showAddAliasDialog(attrs)
 				break
 			case "loading":
+			case "notanadmin":
 				break
 		}
 	}
@@ -190,23 +196,25 @@ export function getAliasLineAttrs(attrs: MailAddressTableAttrs): Array<TableLine
 						label: () => "Set name",
 						click: () => showSenderNameChangeDialog(attrs.model, alias)
 					},
-					(alias.enabled)
-						? {
-							label: isTutanotaMailAddress(alias.address) ? "deactivate_action" : "delete_action",
-							click: () => {
-								if (alias.enabled) {
-									switchAliasStatus(alias, attrs)
-								}
-							},
-						}
-						: {
-							label: "activate_action",
-							click: () => {
-								if (!alias.enabled) {
-									switchAliasStatus(alias, attrs)
-								}
-							},
-						},
+					attrs.model.userCanModifyAliases()
+						? (alias.enabled)
+							? {
+								label: isTutanotaMailAddress(alias.address) ? "deactivate_action" : "delete_action",
+								click: () => {
+									if (alias.enabled) {
+										switchAliasStatus(alias, attrs)
+									}
+								},
+							}
+							: {
+								label: "activate_action",
+								click: () => {
+									if (!alias.enabled) {
+										switchAliasStatus(alias, attrs)
+									}
+								},
+							}
+						: null,
 
 				],
 			},

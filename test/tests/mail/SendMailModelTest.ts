@@ -14,7 +14,7 @@ import {
 	createMail,
 	createMailAddress,
 	createMailBox,
-	createMailboxGroupRoot,
+	createMailboxGroupRoot, createMailboxProperties,
 	createTutanotaProperties,
 	CustomerAccountCreateDataTypeRef,
 	MailTypeRef,
@@ -178,6 +178,8 @@ o.spec("SendMailModel", function () {
 			)
 		})
 
+		const mailboxProperties = createMailboxProperties()
+
 		model = new SendMailModel(
 			mailFacade,
 			entity,
@@ -187,7 +189,8 @@ o.spec("SendMailModel", function () {
 			eventController,
 			mailboxDetails,
 			recipientsModel,
-			new NoZoneDateProvider()
+			new NoZoneDateProvider(),
+			mailboxProperties,
 		)
 
 		replace(model, "getDefaultSender", () => DEFAULT_SENDER_FOR_TESTING)

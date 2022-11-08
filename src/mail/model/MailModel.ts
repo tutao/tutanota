@@ -2,7 +2,7 @@ import m from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {containsEventOfType} from "../../api/common/utils/Utils"
-import {groupBy, neverNull, noOp, ofClass, promiseMap, splitInChunks} from "@tutao/tutanota-utils"
+import {assertNotNull, groupBy, neverNull, noOp, ofClass, promiseMap, splitInChunks} from "@tutao/tutanota-utils"
 import type {Mail, MailBox, MailboxGroupRoot, MailboxProperties, MailFolder} from "../../api/entities/tutanota/TypeRefs.js"
 import {
 	createMailboxProperties,
@@ -45,8 +45,12 @@ export class MailModel {
 	mailboxDetails: Stream<MailboxDetail[]>
 	mailboxCounters: Stream<MailboxCounters>
 	private initialization: Promise<any> | null
-	/** A way to avoid race conditions in case we try to create mailbox properties from multiple places. */
-	private mailboxPropertiesPromise: Promise<MailboxProperties> | null = null
+	/**
+	 * Map from MailboxGroupRoot id to MailboxProperties
+	 * A way to avoid race conditions in case we try to create mailbox properties from multiple places.
+	 *
+	 */
+	private mailboxPropertiesPromises: Map<Id, Promise<MailboxProperties>> = new Map()
 
 	constructor(
 		private readonly notifications: Notifications,
@@ -55,7 +59,7 @@ export class MailModel {
 		private readonly mailFacade: MailFacade,
 		private readonly entityClient: EntityClient,
 		private readonly logins: LoginController,
-		) {
+	) {
 		this.mailboxDetails = stream()
 		this.mailboxCounters = stream({})
 		this.initialization = null
@@ -145,13 +149,15 @@ export class MailModel {
 		return this.getMailboxDetails().then(mailboxDetails => neverNull(mailboxDetails.find(md => md.folders.find(f => f.mails === mailListId) != null)))
 	}
 
-	getMailboxDetailsForMailGroup(mailGroupId: Id): Promise<MailboxDetail> {
-		return this.getMailboxDetails().then(mailboxDetails => neverNull(mailboxDetails.find(md => mailGroupId === md.mailGroup._id)))
+	async getMailboxDetailsForMailGroup(mailGroupId: Id): Promise<MailboxDetail> {
+		const mailboxDetails = await this.getMailboxDetails()
+		return assertNotNull(mailboxDetails.find(md => mailGroupId === md.mailGroup._id), "No mailbox details for mail group")
 	}
 
-	getUserMailboxDetails(): Promise<MailboxDetail> {
-		let userMailGroupMembership = this.logins.getUserController().getUserMailGroupMembership()
-		return this.getMailboxDetails().then(mailboxDetails => neverNull(mailboxDetails.find(md => md.mailGroup._id === userMailGroupMembership.group)))
+	async getUserMailboxDetails(): Promise<MailboxDetail> {
+		const userMailGroupMembership = this.logins.getUserController().getUserMailGroupMembership()
+		const mailboxDetails = await this.getMailboxDetails()
+		return assertNotNull(mailboxDetails.find(md => md.mailGroup._id === userMailGroupMembership.group))
 	}
 
 	getMailboxFolders(mail: Mail): Promise<MailFolder[]> {
@@ -365,7 +371,7 @@ export class MailModel {
 		await this.mailFacade.unsubscribe(mail._id, recipient, headers)
 	}
 
-	async getMailboxProperties(mailboxDetails: MailboxDetail): Promise<MailboxProperties> {
+	async getMailboxProperties(mailboxGroupRoot: MailboxGroupRoot): Promise<MailboxProperties> {
 		// MailboxProperties is an encrypted instance that is created lazily. When we create it the reference is automatically written to the MailboxGroupRoot.
 		// Unfortunately we will only get updated new MailboxGroupRoot with the next EntityUpdate.
 		// To prevent parallel creation attempts we do two things:
@@ -373,35 +379,35 @@ export class MailModel {
 		//  - we set mailboxProperties reference manually (we could save the id elsewhere but it's easier this way)
 
 		// If we are already loading/creating, just return it to avoid races
-		if (this.mailboxPropertiesPromise) {
-			return this.mailboxPropertiesPromise
+		const existingPromise = this.mailboxPropertiesPromises.get(mailboxGroupRoot._id)
+		if (existingPromise) {
+			return existingPromise
 		}
-		if (mailboxDetails.mailboxGroupRoot.mailboxProperties) {
-			this.mailboxPropertiesPromise = this.entityClient.load(MailboxPropertiesTypeRef, mailboxDetails.mailboxGroupRoot.mailboxProperties)
-		} else {
-			this.mailboxPropertiesPromise = this.saveReportMovedMails(mailboxDetails, null, ReportMovedMailsType.ALWAYS_ASK)
-		}
-		return this.mailboxPropertiesPromise.finally(() => this.mailboxPropertiesPromise = null)
+
+		const promise: Promise<MailboxProperties> = this.loadOrCreateMailboxProperties(mailboxGroupRoot)
+		this.mailboxPropertiesPromises.set(
+			mailboxGroupRoot._id,
+			promise,
+		)
+		return promise.finally(() => this.mailboxPropertiesPromises.delete(mailboxGroupRoot._id))
 	}
 
-	async saveReportMovedMails(mailboxDetails: MailboxDetail, props: MailboxProperties | null, reportMovedMails: ReportMovedMailsType): Promise<MailboxProperties> {
-		if (!props) {
-			props = createMailboxProperties({
-				_ownerGroup: mailboxDetails.mailGroup._id,
-			})
+	private async loadOrCreateMailboxProperties(mailboxGroupRoot: MailboxGroupRoot): Promise<MailboxProperties> {
+		if (!mailboxGroupRoot.mailboxProperties) {
+			mailboxGroupRoot.mailboxProperties = await this.entityClient.setup(null, createMailboxProperties({
+				_ownerGroup: mailboxGroupRoot._ownerGroup,
+			}))
 		}
-
-		props.reportMovedMails = reportMovedMails
-		await this.saveMailboxProperties(props)
-		mailboxDetails.mailboxGroupRoot.mailboxProperties = props._id
-		return props
+		return this.entityClient.load(MailboxPropertiesTypeRef, mailboxGroupRoot.mailboxProperties)
 	}
 
-	private async saveMailboxProperties(props: MailboxProperties) {
-		if (props._id) {
-			await this.entityClient.update(props)
-		} else {
-			props._id = await this.entityClient.setup(null, props)
-		}
+	async saveReportMovedMails(
+		mailboxGroupRoot: MailboxGroupRoot,
+		reportMovedMails: ReportMovedMailsType,
+	): Promise<MailboxProperties> {
+		const mailboxProperties = await this.loadOrCreateMailboxProperties(mailboxGroupRoot)
+		mailboxProperties.reportMovedMails = reportMovedMails
+		await this.entityClient.update(mailboxProperties)
+		return mailboxProperties
 	}
 }

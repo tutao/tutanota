@@ -173,6 +173,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.rsa,
 		locator.cachingEntityClient,
 		locator.serviceExecutor,
+		new EntityClient(entityRestClient), // without cache
 	)
 	locator.customer = new CustomerFacade(
 		worker,

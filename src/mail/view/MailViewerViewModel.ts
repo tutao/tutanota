@@ -898,7 +898,7 @@ export class MailViewerViewModel {
 
 		const args = await this.createResponseMailArgsForForwarding([recipient], newReplyTos, false)
 		const mailboxDetails = await this.getMailboxDetails()
-		const mailboxProperties = await this.mailModel.getMailboxProperties(mailboxDetails)
+		const mailboxProperties = await this.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 		const {defaultSendMailModel} = await import("../editor/SendMailModel")
 		// Make sure inline images are loaded
 		await this.loadAll({notify: false})

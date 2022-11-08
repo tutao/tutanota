@@ -8,17 +8,15 @@ import {createDnsRecord} from "../../../../src/api/entities/sys/TypeRefs.js";
 import {DomainDnsStatus} from "../../../../src/settings/DomainDnsStatus.js";
 import {AddDomainData} from "../../../../src/settings/emaildomain/AddDomainWizard.js";
 import {createGroupInfo} from "../../../../src/api/entities/sys/TypeRefs.js";
+import {MailAddressTableModel} from "../../../../src/settings/mailaddress/MailAddressTableModel.js"
+import {object} from "testdouble"
 
 const data: AddDomainData = {
 	domain: stream("domain"),
 	customerInfo: createCustomerInfo(),
 	expectedVerificationRecord: createDnsRecord(),
 	editAliasFormAttrs: {
-		userGroupInfo: createGroupInfo(),
-		aliasCount: {
-			availableToCreate: 1,
-			availableToEnable: 1,
-		},
+		model: object<MailAddressTableModel>()
 	},
 	domainStatus: new DomainDnsStatus("domain"),
 }

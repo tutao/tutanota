@@ -14,6 +14,8 @@ import nodemocker from "../nodemocker.js"
 import {downcast} from "@tutao/tutanota-utils"
 import {WorkerClient} from "../../../src/api/main/WorkerClient.js"
 import {MailFacade} from "../../../src/api/worker/facades/MailFacade.js"
+import {LoginController} from "../../../src/api/main/LoginController.js"
+import {object} from "testdouble"
 
 o.spec("MailModelTest", function () {
 	let notifications: Partial<Notifications>
@@ -30,18 +32,21 @@ o.spec("MailModelTest", function () {
 			folders: [inboxFolder],
 		},
 	]
+	let logins: LoginController
 	o.beforeEach(function () {
 		notifications = {}
 		showSpy = notifications.showNotification = spy()
 		const restClient = new EntityRestClientMock()
 		const workerClient = nodemocker.mock<WorkerClient>("worker", {}).set()
 		const mailFacade = nodemocker.mock<MailFacade>("mailFacade", {}).set()
+		logins = object()
 		model = new MailModel(
 			downcast(notifications),
 			downcast({}),
 			workerClient,
 			mailFacade,
 			new EntityClient(restClient),
+			logins,
 		)
 		// not pretty, but works
 		model.mailboxDetails(mailboxDetails as MailboxDetail[])

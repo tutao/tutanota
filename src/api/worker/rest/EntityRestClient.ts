@@ -26,6 +26,8 @@ export function typeRefToPath(typeRef: TypeRef<any>): string {
 
 export interface EntityRestClientSetupOptions {
 	baseUrl?: string,
+	/** Use this key to encrypt session key instead of trying to resolve the owner key based on the ownerGroup. */
+	ownerKey?: Aes128Key,
 }
 
 /**
@@ -34,8 +36,9 @@ export interface EntityRestClientSetupOptions {
 export interface EntityRestInterface {
 	/**
 	 * Reads a single element from the server (or cache). Entities are decrypted before they are returned.
+	 * @param ownerKey Use this key to decrypt session key instead of trying to resolve the owner key based on the ownerGroup.
 	 */
-	load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, queryParameters?: Dict, extraHeaders?: Dict): Promise<T>
+	load<T extends SomeEntity>(typeRef: TypeRef<T>, id: PropertyType<T, "_id">, queryParameters?: Dict, extraHeaders?: Dict, ownerKey?: Aes128Key): Promise<T>
 
 	/**
 	 * Reads a range of elements from the server (or cache). Entities are decrypted before they are returned.
@@ -59,8 +62,9 @@ export interface EntityRestInterface {
 
 	/**
 	 * Modifies a single element on the server. Entities are encrypted before they are sent.
+	 * @param ownerKey Use this key to decrypt session key instead of trying to resolve the owner key based on the ownerGroup.
 	 */
-	update<T extends SomeEntity>(instance: T): Promise<void>
+	update<T extends SomeEntity>(instance: T, ownerKey?: Aes128Key): Promise<void>
 
 	/**
 	 * Deletes a single element on the server.
@@ -70,7 +74,7 @@ export interface EntityRestInterface {
 	/**
 	 * Must be called when entity events are received.
 	 * @param batch The entity events that were received.
-	 * @return Similar to the events in the data parementer, but reduced by the events which are obsolete.
+	 * @return Similar to the events in the data parameter, but reduced by the events which are obsolete.
 	 */
 	entityEventsReceived(batch: QueuedBatch): Promise<Array<EntityUpdate>>
 }
@@ -107,6 +111,7 @@ export class EntityRestClient implements EntityRestInterface {
 		id: PropertyType<T, "_id">,
 		queryParameters?: Dict,
 		extraHeaders?: Dict,
+		ownerKey?: Aes128Key,
 	): Promise<T> {
 		const {listId, elementId} = expandId(id)
 		const {
@@ -114,7 +119,7 @@ export class EntityRestClient implements EntityRestInterface {
 			queryParams,
 			headers,
 			typeModel
-		} = await this._validateAndPrepareRestRequest(typeRef, listId, elementId, queryParameters, extraHeaders)
+		} = await this._validateAndPrepareRestRequest(typeRef, listId, elementId, queryParameters, extraHeaders, ownerKey)
 		const json = await this._restClient.request(path, HttpMethod.GET, {
 			queryParams,
 			headers,
@@ -122,12 +127,14 @@ export class EntityRestClient implements EntityRestInterface {
 		})
 		const entity = JSON.parse(json)
 		const migratedEntity = await this._crypto.applyMigrations(typeRef, entity)
-		const sessionKey = await this._crypto.resolveSessionKey(typeModel, migratedEntity)
-									 .catch(ofClass(SessionKeyNotFoundError, e => {
-											 console.log("could not resolve session key", e)
-											 return null // will result in _errors being set on the instance
-										 }),
-									 )
+		const sessionKey = ownerKey ?
+			this._crypto.resolveSessionKeyWithOwnerKey(migratedEntity, ownerKey)
+			: await this._crypto.resolveSessionKey(typeModel, migratedEntity)
+						.catch(ofClass(SessionKeyNotFoundError, e => {
+								console.log("could not resolve session key", e)
+								return null // will result in _errors being set on the instance
+							}),
+						)
 		const instance = await this._instanceMapper.decryptAndMapToInstance<T>(typeModel, migratedEntity, sessionKey)
 		return this._crypto.applyMigrationsForInstance(instance)
 	}
@@ -143,7 +150,7 @@ export class EntityRestClient implements EntityRestInterface {
 			headers,
 			typeModel,
 			queryParams
-		} = await this._validateAndPrepareRestRequest(typeRef, listId, null, rangeRequestParams, undefined)
+		} = await this._validateAndPrepareRestRequest(typeRef, listId, null, rangeRequestParams, undefined, undefined)
 		// This should never happen if type checking is not bypassed with any
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
 		const json = await this._restClient.request(path, HttpMethod.GET, {
@@ -155,7 +162,7 @@ export class EntityRestClient implements EntityRestInterface {
 	}
 
 	async loadMultiple<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementIds: Array<Id>): Promise<Array<T>> {
-		const {path, headers} = await this._validateAndPrepareRestRequest(typeRef, listId, null, undefined, undefined)
+		const {path, headers} = await this._validateAndPrepareRestRequest(typeRef, listId, null, undefined, undefined, undefined)
 		const idChunks = splitInChunks(LOAD_MULTIPLE_LIMIT, elementIds)
 		const loadedChunks = await promiseMap(idChunks, async idChunk => {
 			const queryParams = {
@@ -208,7 +215,7 @@ export class EntityRestClient implements EntityRestInterface {
 			path,
 			headers,
 			queryParams
-		} = await this._validateAndPrepareRestRequest(typeRef, listId, null, undefined, extraHeaders)
+		} = await this._validateAndPrepareRestRequest(typeRef, listId, null, undefined, extraHeaders, options?.ownerKey)
 
 		if (typeModel.type === Type.ListElement) {
 			if (!listId) throw new Error("List id must be defined for LETs")
@@ -216,7 +223,7 @@ export class EntityRestClient implements EntityRestInterface {
 			if (listId) throw new Error("List id must not be defined for ETs")
 		}
 
-		const sk = this._crypto.setNewOwnerEncSessionKey(typeModel, instance)
+		const sk = this._crypto.setNewOwnerEncSessionKey(typeModel, instance, options?.ownerKey)
 
 		const encryptedEntity = await this._instanceMapper.encryptAndMapToLiteral(typeModel, instance, sk)
 		const persistencePostReturn = await this._restClient.request(
@@ -242,7 +249,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 		const instanceChunks = splitInChunks(POST_MULTIPLE_LIMIT, instances)
 		const typeRef = instances[0]._type
-		const {typeModel, path, headers} = await this._validateAndPrepareRestRequest(typeRef, listId, null, undefined, undefined)
+		const {typeModel, path, headers} = await this._validateAndPrepareRestRequest(typeRef, listId, null, undefined, undefined, undefined)
 
 		if (typeModel.type === Type.ListElement) {
 			if (!listId) throw new Error("List id must be defined for LETs")
@@ -300,7 +307,7 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 	}
 
-	async update<T extends SomeEntity>(instance: T): Promise<void> {
+	async update<T extends SomeEntity>(instance: T, ownerKey?: Aes128Key): Promise<void> {
 		if (!instance._id) throw new Error("Id must be defined")
 		const {listId, elementId} = expandId(instance._id)
 		const {
@@ -308,8 +315,10 @@ export class EntityRestClient implements EntityRestInterface {
 			queryParams,
 			headers,
 			typeModel
-		} = await this._validateAndPrepareRestRequest(instance._type, listId, elementId, undefined, undefined)
-		const sessionKey = await this._crypto.resolveSessionKey(typeModel, instance)
+		} = await this._validateAndPrepareRestRequest(instance._type, listId, elementId, undefined, undefined, ownerKey)
+		const sessionKey = (ownerKey)
+			? this._crypto.resolveSessionKeyWithOwnerKey(instance, ownerKey)
+			: await this._crypto.resolveSessionKey(typeModel, instance)
 		const encryptedEntity = await this._instanceMapper.encryptAndMapToLiteral(typeModel, instance, sessionKey)
 		await this._restClient.request(path, HttpMethod.PUT, {
 			queryParams,
@@ -325,7 +334,7 @@ export class EntityRestClient implements EntityRestInterface {
 			path,
 			queryParams,
 			headers
-		} = await this._validateAndPrepareRestRequest(instance._type, listId, elementId, undefined, undefined)
+		} = await this._validateAndPrepareRestRequest(instance._type, listId, elementId, undefined, undefined, undefined)
 		await this._restClient.request(path, HttpMethod.DELETE, {
 			queryParams,
 			headers,
@@ -338,6 +347,7 @@ export class EntityRestClient implements EntityRestInterface {
 		elementId: Id | null,
 		queryParams: Dict | undefined,
 		extraHeaders: Dict | undefined,
+		ownerKey: Aes128Key | undefined
 	): Promise<{
 		path: string
 		queryParams: Dict | undefined
@@ -348,7 +358,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 		_verifyType(typeModel)
 
-		if (!this.authDataProvider.isFullyLoggedIn() && typeModel.encrypted) {
+		if (ownerKey == undefined && !this.authDataProvider.isFullyLoggedIn() && typeModel.encrypted) {
 			// Short-circuit before we do an actual request which we can't decrypt
 			throw new LoginIncompleteError(`Trying to do a network request with encrypted entity but is not fully logged in yet, type: ${typeModel.name}`)
 		}

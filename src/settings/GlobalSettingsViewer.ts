@@ -48,6 +48,7 @@ import {DropDownSelector} from "../gui/base/DropDownSelector.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js"
 import {SettingsExpander} from "./SettingsExpander.js"
 import {MailAddressTableModel} from "./mailaddress/MailAddressTableModel.js"
+import {OwnMailAddressNameChanger} from "./mailaddress/OwnMailAddressNameChanger.js"
 
 assertMainOrNode()
 // Number of days for that we load rejected senders
@@ -137,8 +138,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 							locator.mailAddressFacade,
 							logins,
 							locator.eventController,
-							locator.mailModel,
-							(await locator.mailModel.getUserMailboxDetails()).mailGroup._id
+							logins.getUserController().userGroupInfo,
+							new OwnMailAddressNameChanger(locator.mailModel, locator.entityClient),
 						)
 						await showAddDomainWizard("", customerInfo, mailAddressTableModel)
 						this.updateDomains()
@@ -594,9 +595,9 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			locator.mailAddressFacade,
 			logins,
 			locator.eventController,
-			locator.mailModel,
+			logins.getUserController().userGroupInfo,
 			// Assuming user mailbox for now
-			(await locator.mailModel.getUserMailboxDetails()).mailGroup._id,
+			new OwnMailAddressNameChanger(locator.mailModel, locator.entityClient),
 			)
 		showAddDomainWizard(domainDnsStatus.domain, customerInfo, mailAddressTableModel).then(() => {
 			domainDnsStatus.loadCurrentStatus().then(() => m.redraw())

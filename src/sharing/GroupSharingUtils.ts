@@ -81,7 +81,7 @@ async function _sendNotificationEmail(recipients: Recipients, subject: string, b
 		usePlaceholderForInlineImages: false,
 	}).html
 	const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
-	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails)
+	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 	const sender = getEnabledMailAddressesWithUser(mailboxDetails, logins.getUserController().userGroupInfo).includes(senderMailAddress)
 		? senderMailAddress
 		: getDefaultSender(logins, mailboxDetails)

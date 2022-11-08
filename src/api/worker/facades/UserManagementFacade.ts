@@ -11,8 +11,16 @@ import {
 } from "../../entities/sys/TypeRefs.js"
 import {encryptBytes, encryptString} from "../crypto/CryptoFacade"
 import {assertNotNull, neverNull, uint8ArrayToHex} from "@tutao/tutanota-utils"
-import type {ContactFormUserData, UserAccountUserData} from "../../entities/tutanota/TypeRefs.js"
-import {createContactFormUserData, createUserAccountCreateData, createUserAccountUserData} from "../../entities/tutanota/TypeRefs.js"
+import type {ContactFormUserData, MailboxGroupRoot, MailboxProperties, UserAccountUserData} from "../../entities/tutanota/TypeRefs.js"
+import {
+	createContactFormUserData,
+	createMailAddressProperties,
+	createMailboxProperties,
+	createUserAccountCreateData,
+	createUserAccountUserData,
+	MailboxGroupRootTypeRef,
+	MailboxPropertiesTypeRef
+} from "../../entities/tutanota/TypeRefs.js"
 import type {GroupManagementFacade} from "./GroupManagementFacade"
 import type {RecoverData} from "./LoginFacade"
 import type {WorkerImpl} from "../WorkerImpl"
@@ -53,10 +61,12 @@ export class UserManagementFacade {
 		private readonly rsa: RsaImplementation,
 		private readonly entityClient: EntityClient,
 		private readonly serviceExecutor: IServiceExecutor,
-	) {}
+		private readonly nonCachingEntityClient: EntityClient,
+	) {
+	}
 
 	async changeUserPassword(user: User, newPassword: string): Promise<void> {
-		const userGroupKey = await this.groupManagement.getGroupKeyAsAdmin(user.userGroup.group)
+		const userGroupKey = await this.groupManagement.getGroupKeyViaAdminEncGKey(user.userGroup.group)
 		const salt = generateRandomSalt()
 		const passwordKey = generateKeyFromPassphrase(newPassword, salt, KeyLength.b128)
 		const pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey)
@@ -357,5 +367,60 @@ export class UserManagementFacade {
 					   authVerifier,
 				   })
 				   .then(() => hexCode)
+	}
+
+	/** Get mailAddress to senderName mappings for mail group that the specified user is a member of. */
+	async getSenderNames(mailGroupId: Id, viaUser: Id): Promise<Map<string, string>> {
+		const mailboxProperties = await this.getMailboxProperties(mailGroupId, viaUser)
+		return this.collectSenderNames(mailboxProperties)
+	}
+
+	/** Set mailAddress to senderName mapping for mail group that the specified user is a member of. */
+	async setSenderName(mailGroupId: Id, viaUser: Id, mailAddress: string, senderName: string): Promise<Map<string, string>> {
+		const mailboxProperties = await this.getMailboxProperties(mailGroupId, viaUser)
+		let mailAddressProperty = mailboxProperties.mailAddressProperties.find((p) => p.mailAddress === mailAddress)
+		if (mailAddressProperty == null) {
+			mailAddressProperty = createMailAddressProperties({mailAddress})
+			mailboxProperties.mailAddressProperties.push(mailAddressProperty)
+		}
+		mailAddressProperty.senderName = senderName
+		const updatedProperties = await this.updateMailboxProperties(mailboxProperties, viaUser)
+
+		return this.collectSenderNames(updatedProperties)
+	}
+
+	private async getMailboxProperties(mailGroupId: Id, viaUser: Id): Promise<MailboxProperties> {
+		// Using non-caching entityClient because we are not a member of the user's mail group and we won't receive updates for it
+		const key = await this.groupManagement.getGroupKeyViaUser(mailGroupId, viaUser)
+		const mailboxGroupRoot = await this.nonCachingEntityClient.load(MailboxGroupRootTypeRef, mailGroupId)
+		if (mailboxGroupRoot.mailboxProperties == null) {
+			return this.createMailboxProperties(mailboxGroupRoot, key)
+		}
+		return await this.nonCachingEntityClient.load(MailboxPropertiesTypeRef, mailboxGroupRoot.mailboxProperties, undefined, undefined, key)
+	}
+
+	private async createMailboxProperties(mailboxGroupRoot: MailboxGroupRoot, groupKey: Aes128Key): Promise<MailboxProperties> {
+		// Using non-caching entityClient because we are not a member of the user's mail group and we won't receive updates for it
+		const mailboxProperties = createMailboxProperties({
+			_ownerGroup: mailboxGroupRoot._ownerGroup,
+			reportMovedMails: "",
+			mailAddressProperties: [],
+		})
+		const id = await this.nonCachingEntityClient.setup(null, mailboxProperties, undefined, {ownerKey: groupKey})
+		return this.nonCachingEntityClient.load(MailboxPropertiesTypeRef, id, undefined, undefined, groupKey)
+	}
+
+	private async updateMailboxProperties(mailboxProperties: MailboxProperties, viaUser: Id): Promise<MailboxProperties> {
+		const key = await this.groupManagement.getGroupKeyViaUser(assertNotNull(mailboxProperties._ownerGroup), viaUser)
+		await this.nonCachingEntityClient.update(mailboxProperties, key)
+		return await this.nonCachingEntityClient.load(MailboxPropertiesTypeRef, mailboxProperties._id, undefined, undefined, key)
+	}
+
+	private async collectSenderNames(mailboxProperties: MailboxProperties): Promise<Map<string, string>> {
+		const result = new Map<string, string>()
+		for (const data of mailboxProperties.mailAddressProperties) {
+			result.set(data.mailAddress, data.senderName)
+		}
+		return result
 	}
 }
