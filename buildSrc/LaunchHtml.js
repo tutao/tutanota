@@ -78,7 +78,7 @@ function csp(env) {
 			+ " media-src * data: blob: 'unsafe-inline';"
 			+ " style-src * 'unsafe-inline';"
 			+ " frame-src *;"
-			+ ` connect-src 'self' 'unsafe-inline' ${getCspUrls(env)} ws://localhost:9001;`
+			+ ` connect-src 'self' 'unsafe-inline' ${getCspUrls(env)} ws://localhost:9001 https://tutanota.com;`
 
 		return `<meta http-equiv="Content-Security-Policy" content="${cspContent}">`
 	}
