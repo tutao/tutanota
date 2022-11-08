@@ -190,24 +190,24 @@ export function getAliasLineAttrs(attrs: MailAddressTableAttrs): Array<TableLine
 						label: () => "Set name",
 						click: () => showSenderNameChangeDialog(attrs.model, alias)
 					},
-					{
-						label: "activate_action",
-						click: () => {
-							if (!alias.enabled) {
-								switchAliasStatus(alias, attrs)
-							}
+					(alias.enabled)
+						? {
+							label: isTutanotaMailAddress(alias.address) ? "deactivate_action" : "delete_action",
+							click: () => {
+								if (alias.enabled) {
+									switchAliasStatus(alias, attrs)
+								}
+							},
+						}
+						: {
+							label: "activate_action",
+							click: () => {
+								if (!alias.enabled) {
+									switchAliasStatus(alias, attrs)
+								}
+							},
 						},
-						selected: alias.enabled,
-					},
-					{
-						label: isTutanotaMailAddress(alias.address) ? "deactivate_action" : "delete_action",
-						click: () => {
-							if (alias.enabled) {
-								switchAliasStatus(alias, attrs)
-							}
-						},
-						isSelected: !alias.enabled,
-					},
+
 				],
 			},
 		)
