@@ -1,2 +1,2 @@
-app-ios/librcrypto.xcframework/** linguist-generated
+app-ios/libcrypto.xcframework/** linguist-generated
 libs/* linguist-vendored
