@@ -1290,7 +1290,7 @@ export async function createCalendarEventViewModel(
 ): Promise<CalendarEventViewModel> {
 	const model = await import("../../mail/editor/SendMailModel")
 
-	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetail)
+	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetail.mailboxGroupRoot)
 	return new CalendarEventViewModel(
 		logins.getUserController(),
 		calendarUpdateDistributor,

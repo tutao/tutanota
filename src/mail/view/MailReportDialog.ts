@@ -21,8 +21,7 @@ function confirmMailReportDialog(mailModel: MailModel, mailboxDetails: MailboxDe
 		async function updateSpamReportSetting(areMailsReported: boolean) {
 			if (shallRememberDecision) {
 				const reportMovedMails = areMailsReported ? ReportMovedMailsType.AUTOMATICALLY_ONLY_SPAM : ReportMovedMailsType.NEVER
-				const mailboxProperties = await mailModel.getMailboxProperties(mailboxDetails)
-				await mailModel.saveReportMovedMails(mailboxDetails, mailboxProperties, reportMovedMails)
+				await mailModel.saveReportMovedMails(mailboxDetails.mailboxGroupRoot, reportMovedMails)
 			}
 
 			resolve(areMailsReported)
@@ -68,7 +67,7 @@ export async function reportMailsAutomatically(
 		return
 	}
 
-	const mailboxProperties = await mailModel.getMailboxProperties(mailboxDetails)
+	const mailboxProperties = await mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 	let allowUndoing = true // decides if a snackbar is shown to prevent the server request
 
 	let isReportable = false

@@ -156,6 +156,31 @@ o.spec("EntityRestClient", async function () {
 			await assertThrows(LoginIncompleteError, () => entityRestClient.load(CalendarEventTypeRef, ["listId", "id"]))
 			assertThatNoRequestsWereMade()
 		})
+
+		o("when ownerKey is passed it is used instead for session key resolution", async function () {
+			const calendarListId = "calendarListId"
+			const id1 = "id1"
+			when(restClient.request(
+				`${typeRefToPath(CalendarEventTypeRef)}/${calendarListId}/${id1}`,
+				HttpMethod.GET,
+				{
+					headers: {...authHeader, v: String(tutanotaModelInfo.version)},
+					responseType: MediaType.Json,
+					queryParams: undefined,
+				}
+			)).thenResolve(JSON.stringify({instance: "calendar"}))
+
+			const ownerKey = [1, 2, 3]
+			const sessionKey = [3, 2, 1]
+			when(cryptoFacadeMock.resolveSessionKeyWithOwnerKey(anything(), ownerKey)).thenReturn(sessionKey)
+
+			const result = await entityRestClient.load(CalendarEventTypeRef, [calendarListId, id1], undefined, undefined, ownerKey)
+
+			const typeModel = await resolveTypeReference(CalendarEventTypeRef)
+			verify(instanceMapperMock.decryptAndMapToInstance(typeModel, anything(), sessionKey))
+			verify(cryptoFacadeMock.resolveSessionKey(anything(), anything()), {times: 0})
+			o(result as any).deepEquals({instance: "calendar", decrypted: true, migrated: true, migratedForInstance: true})
+		})
 	})
 
 	o.spec("Load Range", function () {
@@ -375,6 +400,35 @@ o.spec("EntityRestClient", async function () {
 			), {times: 1}).thenResolve(JSON.stringify({generatedId: null}))
 			await entityRestClient.setup("listId", createContact(), undefined, {baseUrl: "some url"})
 			verify(restClient.request(anything(), HttpMethod.POST, argThat(arg => arg.baseUrl === "some url")))
+		})
+
+		o("when ownerKey is passed it is used instead for session key resolution", async function () {
+			const typeModel = await resolveTypeReference(CustomerTypeRef)
+			const v = typeModel.version
+			const newCustomer = createCustomer()
+			const resultId = "id"
+			when(restClient.request(
+				`/rest/sys/customer`,
+				HttpMethod.POST,
+				{
+					baseUrl: undefined,
+					headers: {...authHeader, v},
+					queryParams: undefined,
+					responseType: MediaType.Json,
+					body: JSON.stringify({...newCustomer, encrypted: true}),
+				}
+			), {times: 1}).thenResolve(JSON.stringify({generatedId: resultId}))
+
+			const ownerKey = [1, 2, 3]
+			const sessionKey = [3, 2, 1]
+			when(cryptoFacadeMock.setNewOwnerEncSessionKey(typeModel, anything(), ownerKey)).thenReturn(sessionKey)
+
+			const result = await entityRestClient.setup(null, newCustomer, undefined, {ownerKey})
+
+			verify(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), sessionKey))
+			verify(cryptoFacadeMock.resolveSessionKey(anything(), anything()), {times: 0})
+
+			o(result).equals(resultId)
 		})
 	})
 
@@ -643,6 +697,31 @@ o.spec("EntityRestClient", async function () {
 			const newCustomer = createCustomer()
 			const result = await assertThrows(Error, async () => await entityRestClient.update(newCustomer))
 			o(result.message).equals("Id must be defined")
+		})
+
+		o("when ownerKey is passed it is used instead for session key resolution", async function () {
+			const typeModel = await resolveTypeReference(CustomerTypeRef)
+			const version = typeModel.version
+			const newCustomer = createCustomer({
+				_id: "id",
+			})
+			when(restClient.request(
+				"/rest/sys/customer/id",
+				HttpMethod.PUT,
+				{
+					headers: {...authHeader, v: version},
+					body: JSON.stringify({...newCustomer, encrypted: true}),
+				}
+			))
+
+			const ownerKey = [1, 2, 3]
+			const sessionKey = [3, 2, 1]
+			when(cryptoFacadeMock.resolveSessionKeyWithOwnerKey(anything(), ownerKey)).thenReturn(sessionKey)
+
+			await entityRestClient.update(newCustomer, ownerKey)
+
+			verify(instanceMapperMock.encryptAndMapToLiteral(anything(), anything(), sessionKey))
+			verify(cryptoFacadeMock.resolveSessionKey(anything(), anything()), {times: 0})
 		})
 	})
 

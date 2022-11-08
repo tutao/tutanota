@@ -1,7 +1,7 @@
 import m, {Children} from "mithril"
 import {assertMainOrNode, isApp} from "../api/common/Env"
 import {lang} from "../misc/LanguageViewModel"
-import type {MailboxProperties, OutOfOfficeNotification, TutanotaProperties} from "../api/entities/tutanota/TypeRefs.js"
+import type {MailboxGroupRoot, MailboxProperties, OutOfOfficeNotification, TutanotaProperties} from "../api/entities/tutanota/TypeRefs.js"
 import {MailboxPropertiesTypeRef, MailFolderTypeRef, OutOfOfficeNotificationTypeRef, TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import {FeatureType, InboxRuleType, OperationType, ReportMovedMailsType} from "../api/common/TutanotaConstants"
 import {capitalizeFirstLetter, defer, LazyLoaded, noOp, ofClass} from "@tutao/tutanota-utils"
@@ -43,6 +43,7 @@ import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js";
 import {getReportMovedMailsType} from "../misc/MailboxPropertiesUtils.js"
 import {MailAddressTableModel} from "./mailaddress/MailAddressTableModel.js"
+import {OwnMailAddressNameChanger} from "./mailaddress/OwnMailAddressNameChanger.js"
 
 assertMainOrNode()
 
@@ -61,8 +62,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_identifierListViewer: IdentifierListViewer
 	_outOfOfficeNotification: LazyLoaded<OutOfOfficeNotification | null>
 	_outOfOfficeStatus: Stream<string> // stores the status label, based on whether the notification is/ or will really be activated (checking start time/ end time)
-	// null until it's loaded
-	mailAddressTableModel: MailAddressTableModel | null = null
+	private mailAddressTableModel: MailAddressTableModel
 
 	private offlineStorageSettings = new OfflineStorageSettingsModel(
 		logins.getUserController(),
@@ -83,29 +83,22 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._outOfOfficeStatus = stream(lang.get("deactivated_label"))
 		this._indexStateWatch = null
 		this._identifierListViewer = new IdentifierListViewer(logins.getUserController().user)
-		locator.mailModel.getUserMailboxDetails().then((mailboxDetails) => {
-			// we never dispose it because we live forever! 🧛
-			this.mailAddressTableModel = new MailAddressTableModel(
-				locator.entityClient,
-				locator.mailAddressFacade,
-				logins, locator.eventController,
-				locator.mailModel,
-				mailboxDetails.mailGroup._id,
-			)
-			m.redraw()
-		})
+		// we never dispose it because we live forever! 🧛
+		this.mailAddressTableModel = new MailAddressTableModel(
+			locator.entityClient,
+			locator.mailAddressFacade,
+			logins, locator.eventController,
+			logins.getUserController().userGroupInfo,
+			new OwnMailAddressNameChanger(locator.mailModel, locator.entityClient)
+		)
+		m.redraw()
 
 
 		this._updateInboxRules(logins.getUserController().props)
 
-		// if (logins.getUserController().isGlobalAdmin()) {
-		// 	updateNbrOfAliases(this._editAliasFormAttrs)
-		// }
-
 		this._mailboxProperties = new LazyLoaded(async () => {
-			// For now we assume user mailbox, in the future we should specify which mailbox we are configuring
-			const mailboxDetails = await this.getMailboxDetails()
-			return locator.mailModel.getMailboxProperties(mailboxDetails)
+			const mailboxGroupRoot = await this.getMailboxGroupRoot()
+			return locator.mailModel.getMailboxProperties(mailboxGroupRoot)
 		})
 
 		this._updateMailboxPropertiesSettings()
@@ -117,9 +110,10 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this.offlineStorageSettings.init().then(() => m.redraw())
 	}
 
-	private getMailboxDetails(): Promise<MailboxDetail> {
+	private async getMailboxGroupRoot(): Promise<MailboxGroupRoot> {
 		// For now we assume user mailbox, in the future we should specify which mailbox we are configuring
-		return locator.mailModel.getUserMailboxDetails()
+		const {mailboxGroupRoot} = await locator.mailModel.getUserMailboxDetails()
+		return mailboxGroupRoot
 	}
 
 	view(): Children {
@@ -304,7 +298,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m(DropDownSelector, reportMovedMailsAttrs),
 					m(TextField, outOfOfficeAttrs),
 					this.renderLocalDataSection(),
-					this.mailAddressTableModel ? m(MailAddressTable, {model: this.mailAddressTableModel}) : null,
+					m(MailAddressTable, {model: this.mailAddressTableModel}),
 					logins.isEnabled(FeatureType.InternalCommunication)
 						? null
 						: [
@@ -474,8 +468,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			],
 			selectedValue: this._reportMovedMails,
 			selectionChangedHandler: async (reportMovedMails) => {
-				const mailboxDetails = await this.getMailboxDetails()
-				this._mailboxProperties.getAsync().then(props => locator.mailModel.saveReportMovedMails(mailboxDetails, props, reportMovedMails))
+				const mailboxGroupRoot = await this.getMailboxGroupRoot()
+				await locator.mailModel.saveReportMovedMails(mailboxGroupRoot, reportMovedMails)
 			},
 			dropdownWidth: 250,
 		}

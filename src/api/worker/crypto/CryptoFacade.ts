@@ -168,6 +168,16 @@ export class CryptoFacade {
 		return key == null ? null : bitArrayToUint8Array(key)
 	}
 
+	/** Resolve a session key an {@param instance} using an already known {@param ownerKey}. */
+	resolveSessionKeyWithOwnerKey(instance: Record<string, any>, ownerKey: Aes128Key): Aes128Key {
+		let key = instance._ownerEncSessionKey
+		if (typeof key === "string") {
+			key = base64ToUint8Array(instance._ownerEncSessionKey)
+		}
+
+		return decryptKey(ownerKey, key)
+	}
+
 	/**
 	 * Returns the session key for the provided type/instance:
 	 * * null, if the instance is unencrypted
@@ -189,23 +199,13 @@ export class CryptoFacade {
 					delete this.mailBodySessionKeyCache[instance._id]
 					return sessionKey
 				} else if (instance._ownerEncSessionKey && this.userFacade.isFullyLoggedIn() && this.userFacade.hasGroup(instance._ownerGroup)) {
-					let gk = this.userFacade.getGroupKey(instance._ownerGroup)
-					let key = instance._ownerEncSessionKey
-
-					if (typeof key === "string") {
-						key = base64ToUint8Array(instance._ownerEncSessionKey)
-					}
-
-					return decryptKey(gk, key)
+					const gk = this.userFacade.getGroupKey(instance._ownerGroup)
+					return this.resolveSessionKeyWithOwnerKey(instance, gk)
 				} else if (instance.ownerEncSessionKey) {
-					// TODO this is a service instance: Rename all ownerEncSessionKey attributes to _ownerEncSessionKey and add _ownerGroupId (set ownerEncSessionKey here automatically after resolving the group)
+					// TODO this is a service instance: Rename all ownerEncSessionKey attributes to _ownerEncSessionKey	 and add _ownerGroupId (set ownerEncSessionKey here automatically after resolving the group)
 					// add to payment data service
 					const gk = this.userFacade.getGroupKey(this.userFacade.getGroupId(GroupType.Mail))
-					const key: Uint8Array = (typeof instance.ownerEncSessionKey === "string")
-						? base64ToUint8Array(instance.ownerEncSessionKey)
-						: instance.ownerEncSessionKey
-
-					return decryptKey(gk, key)
+					return this.resolveSessionKeyWithOwnerKey(instance, gk)
 				} else {
 					// See PermissionType jsdoc for more info on permissions
 					const permissions = await this.entityClient.loadAll(PermissionTypeRef, instance._permissions)
@@ -387,7 +387,7 @@ export class CryptoFacade {
 	 * the entity must already have an _ownerGroup
 	 * @returns the generated key
 	 */
-	setNewOwnerEncSessionKey(model: TypeModel, entity: Record<string, any>): Aes128Key | null {
+	setNewOwnerEncSessionKey(model: TypeModel, entity: Record<string, any>, keyToEncryptSessionKey?: Aes128Key): Aes128Key | null {
 		if (!entity._ownerGroup) {
 			throw new Error(`no owner group set  ${JSON.stringify(entity)}`)
 		}
@@ -397,8 +397,9 @@ export class CryptoFacade {
 				throw new Error(`ownerEncSessionKey already set ${JSON.stringify(entity)}`)
 			}
 
-			let sessionKey = aes128RandomKey()
-			entity._ownerEncSessionKey = encryptKey(this.userFacade.getGroupKey(entity._ownerGroup), sessionKey)
+			const sessionKey = aes128RandomKey()
+			const effectiveKeyToEncryptSessionKey = keyToEncryptSessionKey ?? this.userFacade.getGroupKey(entity._ownerGroup)
+			entity._ownerEncSessionKey = encryptKey(effectiveKeyToEncryptSessionKey, sessionKey)
 			return sessionKey
 		} else {
 			return null

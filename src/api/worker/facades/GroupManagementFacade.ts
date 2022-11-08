@@ -1,20 +1,17 @@
 import {Const, GroupType} from "../../common/TutanotaConstants"
-import {createCreateMailGroupData} from "../../entities/tutanota/TypeRefs.js"
-import type {InternalGroupData} from "../../entities/tutanota/TypeRefs.js"
-import {createInternalGroupData} from "../../entities/tutanota/TypeRefs.js"
-import {hexToUint8Array, neverNull} from "@tutao/tutanota-utils"
-import {LoginFacade} from "./LoginFacade"
-import {createCreateLocalAdminGroupData} from "../../entities/tutanota/TypeRefs.js"
-import type {Group} from "../../entities/sys/TypeRefs.js"
-import {GroupTypeRef} from "../../entities/sys/TypeRefs.js"
-import {createMembershipAddData} from "../../entities/sys/TypeRefs.js"
-import {createMembershipRemoveData} from "../../entities/sys/TypeRefs.js"
-import {createDeleteGroupData} from "../../entities/tutanota/TypeRefs.js"
+import type {InternalGroupData, UserAreaGroupData} from "../../entities/tutanota/TypeRefs.js"
+import {
+	createCreateLocalAdminGroupData,
+	createCreateMailGroupData,
+	createDeleteGroupData,
+	createInternalGroupData,
+	createUserAreaGroupData,
+	createUserAreaGroupPostData
+} from "../../entities/tutanota/TypeRefs.js"
+import {assertNotNull, hexToUint8Array, neverNull} from "@tutao/tutanota-utils"
+import type {Group, User} from "../../entities/sys/TypeRefs.js"
+import {createMembershipAddData, createMembershipRemoveData, GroupTypeRef, UserTypeRef} from "../../entities/sys/TypeRefs.js"
 import {CounterFacade} from "./CounterFacade"
-import type {User} from "../../entities/sys/TypeRefs.js"
-import {createUserAreaGroupPostData} from "../../entities/tutanota/TypeRefs.js"
-import type {UserAreaGroupData} from "../../entities/tutanota/TypeRefs.js"
-import {createUserAreaGroupData} from "../../entities/tutanota/TypeRefs.js"
 import {EntityClient} from "../../common/EntityClient"
 import {assertWorkerOrNode} from "../../common/Env"
 import {encryptString} from "../crypto/CryptoFacade"
@@ -24,6 +21,7 @@ import {IServiceExecutor} from "../../common/ServiceRequest"
 import {LocalAdminGroupService, MailGroupService, TemplateGroupService} from "../../entities/tutanota/Services"
 import {MembershipService} from "../../entities/sys/Services"
 import {UserFacade} from "./UserFacade"
+import {ProgrammingError} from "../../common/error/ProgrammingError.js"
 
 assertWorkerOrNode()
 
@@ -35,7 +33,8 @@ export class GroupManagementFacade {
 		private readonly entityClient: EntityClient,
 		private readonly rsa: RsaImplementation,
 		private readonly serviceExecutor: IServiceExecutor,
-	) {}
+	) {
+	}
 
 	readUsedGroupStorage(groupId: Id): Promise<number> {
 		return this.counters.readCounterValue(Const.COUNTER_USED_MEMORY, groupId).then(usedStorage => {
@@ -159,8 +158,8 @@ export class GroupManagementFacade {
 	}
 
 	async addUserToGroup(user: User, groupId: Id): Promise<void> {
-		const userGroupKey = await this.getGroupKeyAsAdmin(user.userGroup.group)
-		const groupKey = await this.getGroupKeyAsAdmin(groupId)
+		const userGroupKey = await this.getGroupKeyViaAdminEncGKey(user.userGroup.group)
+		const groupKey = await this.getGroupKeyViaAdminEncGKey(groupId)
 		const data = createMembershipAddData({
 			user: user._id,
 			group: groupId,
@@ -192,26 +191,48 @@ export class GroupManagementFacade {
 		}
 	}
 
-	getGroupKeyAsAdmin(groupId: Id): Promise<Aes128Key> {
+	/**
+	 * Get a group key for any group we are admin and know some member of.
+	 *
+	 * Unlike {@link getGroupKeyViaAdminEncGKey} this should work for any group because we will actually go a "long" route of decrypting userGroupKey of the
+	 * member and decrypting group key with that.
+	 */
+	async getGroupKeyViaUser(groupId: Id, viaUser: Id): Promise<Aes128Key> {
+		const user = await this.entityClient.load(UserTypeRef, viaUser)
+		const userGroupKey = await this.getGroupKeyViaAdminEncGKey(user.userGroup.group)
+		const ship = assertNotNull(await user.memberships.find((m) => m.group === groupId), "User doesn't have this group membership!")
+		return decryptKey(userGroupKey, ship.symEncGKey)
+	}
+
+	/**
+	 * Get a group key for certain group types.
+	 *
+	 * Some groups (e.g. user groups or shared mailboxes) have adminGroupEncGKey set on creation. For those groups we can fairly easy get a group key without
+	 * decrypting userGroupKey of some member of that group.
+	 */
+	getGroupKeyViaAdminEncGKey(groupId: Id): Promise<Aes128Key> {
 		if (this.user.hasGroup(groupId)) {
 			// e.g. I am a global admin and want to add another user to the global admin group
-			return Promise.resolve(this.user.getGroupKey(neverNull(groupId)))
+			return Promise.resolve(this.user.getGroupKey(groupId))
 		} else {
 			return this.entityClient.load(GroupTypeRef, groupId).then(group => {
+				if (group.adminGroupEncGKey == null || group.adminGroupEncGKey.length === 0) {
+					throw new ProgrammingError("Group doesn't have adminGroupEncGKey, you can't get group key this way")
+				}
 				return Promise.resolve()
 							  .then(() => {
 								  if (group.admin && this.user.hasGroup(group.admin)) {
 									  // e.g. I am a member of the group that administrates group G and want to add a new member to G
-									  return this.user.getGroupKey(neverNull(group.admin))
+									  return this.user.getGroupKey(assertNotNull(group.admin))
 								  } else {
 									  // e.g. I am a global admin but group G is administrated by a local admin group and want to add a new member to G
 									  let globalAdminGroupId = this.user.getGroupId(GroupType.Admin)
 
 									  let globalAdminGroupKey = this.user.getGroupKey(globalAdminGroupId)
 
-									  return this.entityClient.load(GroupTypeRef, neverNull(group.admin)).then(localAdminGroup => {
+									  return this.entityClient.load(GroupTypeRef, assertNotNull(group.admin)).then(localAdminGroup => {
 										  if (localAdminGroup.admin === globalAdminGroupId) {
-											  return decryptKey(globalAdminGroupKey, neverNull(localAdminGroup.adminGroupEncGKey))
+											  return decryptKey(globalAdminGroupKey, assertNotNull(localAdminGroup.adminGroupEncGKey))
 										  } else {
 											  throw new Error(`local admin group ${localAdminGroup._id} is not administrated by global admin group ${globalAdminGroupId}`)
 										  }
@@ -219,7 +240,7 @@ export class GroupManagementFacade {
 								  }
 							  })
 							  .then(adminGroupKey => {
-								  return decryptKey(adminGroupKey, neverNull(group.adminGroupEncGKey))
+								  return decryptKey(adminGroupKey, assertNotNull(group.adminGroupEncGKey))
 							  })
 			})
 		}

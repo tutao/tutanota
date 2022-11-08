@@ -1,5 +1,5 @@
 import type {EntityRestInterface} from "./EntityRestClient"
-import {EntityRestClient} from "./EntityRestClient"
+import {EntityRestClient, EntityRestClientSetupOptions} from "./EntityRestClient"
 import {resolveTypeReference} from "../../common/EntityFunctions"
 import {OperationType} from "../../common/TutanotaConstants"
 import {assertNotNull, difference, firstThrow, flat, groupBy, isSameTypeRef, lastThrow, TypeRef} from "@tutao/tutanota-utils"
@@ -226,8 +226,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		return this._loadMultiple(typeRef, listId, elementIds)
 	}
 
-	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict): Promise<Id> {
-		return this.entityRestClient.setup(listId, instance, extraHeaders)
+	setup<T extends SomeEntity>(listId: Id | null, instance: T, extraHeaders?: Dict, options?: EntityRestClientSetupOptions): Promise<Id> {
+		return this.entityRestClient.setup(listId, instance, extraHeaders, options)
 	}
 
 	setupMultiple<T extends SomeEntity>(listId: Id | null, instances: Array<T>): Promise<Array<Id>> {

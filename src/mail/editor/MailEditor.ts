@@ -1028,7 +1028,7 @@ export async function newMailEditorFromTemplate(
 	senderMailAddress?: string,
 	initialChangedState?: boolean
 ): Promise<Dialog> {
-	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails)
+	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 	return defaultSendMailModel(mailboxDetails, mailboxProperties)
 		.initWithTemplate(recipients, subject, bodyText, attachments, confidential, senderMailAddress, initialChangedState)
 		.then(model => createMailEditorDialog(model))
@@ -1138,6 +1138,6 @@ async function getMailboxDetailsAndProperties(
 	mailboxDetails: MailboxDetail | null | undefined,
 ): Promise<{mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties}> {
 	mailboxDetails = mailboxDetails ?? await locator.mailModel.getUserMailboxDetails()
-	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails)
+	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 	return {mailboxDetails, mailboxProperties}
 }

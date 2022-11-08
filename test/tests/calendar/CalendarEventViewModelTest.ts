@@ -16,7 +16,7 @@ import {
 	createContact,
 	createContactMailAddress,
 	createEncryptedMailAddress,
-	createMail,
+	createMail, createMailboxProperties,
 	EncryptedMailAddress
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {AccountType, AlarmInterval, assertEnumValue, CalendarAttendeeStatus, ShareCapability,} from "../../../src/api/common/TutanotaConstants.js"
@@ -142,6 +142,8 @@ o.spec("CalendarEventViewModel", function () {
 				userController.user
 			))
 
+		const mailboxProperties = createMailboxProperties()
+
 		inviteModel = new SendMailModel(
 			mailFacadeMock,
 			entityClient,
@@ -152,6 +154,7 @@ o.spec("CalendarEventViewModel", function () {
 			mailboxDetail,
 			recipientsModel,
 			new NoZoneDateProvider(),
+			mailboxProperties
 		)
 		updateModel = new SendMailModel(
 			mailFacadeMock,
@@ -163,6 +166,7 @@ o.spec("CalendarEventViewModel", function () {
 			mailboxDetail,
 			recipientsModel,
 			new NoZoneDateProvider(),
+			mailboxProperties,
 		)
 		cancelModel = new SendMailModel(
 			mailFacadeMock,
@@ -174,6 +178,7 @@ o.spec("CalendarEventViewModel", function () {
 			mailboxDetail,
 			recipientsModel,
 			new NoZoneDateProvider(),
+			mailboxProperties,
 		)
 		responseModel = new SendMailModel(
 			mailFacadeMock,
@@ -185,6 +190,7 @@ o.spec("CalendarEventViewModel", function () {
 			mailboxDetail,
 			recipientsModel,
 			new NoZoneDateProvider(),
+			mailboxProperties,
 		)
 
 		const sendFactory = (_, purpose) => {
@@ -202,6 +208,7 @@ o.spec("CalendarEventViewModel", function () {
 			calendarModel,
 			entityClient,
 			mailboxDetail,
+			mailboxProperties,
 			sendFactory,
 			now,
 			zone,
