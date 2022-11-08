@@ -1,2 +1,3 @@
 app-ios/libcrypto.xcframework/** linguist-generated
+app-ios/tutanota/Sources/Offline/sqlite.* linguist-vendored
 libs/* linguist-vendored
