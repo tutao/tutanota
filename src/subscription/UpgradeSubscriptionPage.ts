@@ -31,11 +31,9 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		this.upgradeType = vnode.attrs.data.upgradeType
 
 		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
-		this.__signupFreeTest.strictStageOrder = true
 		this.__signupFreeTest.active = false
 
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
-		this.__signupPaidTest.strictStageOrder = true
 		this.__signupPaidTest.active = false
 
 		if (subscriptionParameters) {
