@@ -65,5 +65,4 @@ export function showNewsDialog(newsModel: NewsModel) {
 	})
 
 	dialog.show()
-	//showProgressDialog("pleaseWait_msg", newsModel.loadNewsIds()).then(m.redraw)
 }
