@@ -416,7 +416,7 @@ export class UsageTestModel implements PingAdapter {
 				} else if (e.data === "invalid_stage") {
 					console.log(`Tried to send ping for wrong stage ${stage.number} of test '${test.testName}'`, e)
 				} else if (e.data === "invalid_stage_skip") {
-					console.log(`Tried to skip stage ${stage.number} of test '${test.testName}' that is required`, e)
+					console.log(`Tried to skip a required stage before stage ${stage.number} of test '${test.testName}'`, e)
 				} else if (e.data === "invalid_stage_repetition") {
 					console.log(`Tried to repeat stage ${stage.number} of test '${test.testName}' too many times`, e)
 				} else {
