@@ -5,20 +5,16 @@ import {Button, ButtonType} from "../gui/base/Button.js"
 import type {AccountingInfo, Booking, Customer, CustomerInfo, SwitchAccountTypeData} from "../api/entities/sys/TypeRefs.js"
 import {createSwitchAccountTypeData} from "../api/entities/sys/TypeRefs.js"
 import {AccountType, BookingItemFeatureByCode, BookingItemFeatureType, Const, Keys, UnsubscribeFailureReason} from "../api/common/TutanotaConstants"
-import {SubscriptionSelector} from "./SubscriptionSelector"
+import {SubscriptionActionButtons, SubscriptionSelector} from "./SubscriptionSelector"
 import stream from "mithril/stream"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import type {SubscriptionActionButtons} from "./SubscriptionUtils"
 import {
 	buyAliases,
 	buyBusiness,
 	buySharing,
 	buyStorage,
 	buyWhitelabel,
-	getDisplayNameOfSubscriptionType,
 	isDowngrade,
-	subscriptions,
-	SubscriptionType,
 } from "./SubscriptionUtils"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import type {CurrentSubscriptionInfo} from "./SwitchSubscriptionDialogModel"
@@ -38,6 +34,7 @@ import {
 import {locator} from "../api/main/MainLocator"
 import {SwitchAccountTypeService} from "../api/entities/sys/Services.js"
 import {BadRequestError, InvalidDataError, PreconditionFailedError} from "../api/common/error/RestError.js"
+import {getDisplayNameOfSubscriptionType, getSubscriptionConfig, SubscriptionType} from "./SubscriptionDataProvider"
 
 /**
  * Only shown if the user is already a Premium user. Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -79,7 +76,7 @@ export async function showSwitchDialog(customer: Customer, customerInfo: Custome
 					orderedContactForms: currentSubscriptionInfo.orderedContactForms,
 					isInitialUpgrade: false,
 					planPrices: prices,
-					actionButtons: subscriptionActionButtons,
+					actionButtons: subscriptionActionButtons
 				}),
 			),
 	}).addShortcut({
@@ -253,10 +250,10 @@ function getUpOrDowngradeMessage(targetSubscription: SubscriptionType, currentSu
 
 async function checkNeededUpgrades(targetSubscription: SubscriptionType, currentSubscriptionInfo: CurrentSubscriptionInfo): Promise<void> {
 	if (isUpgradeAliasesNeeded(targetSubscription, currentSubscriptionInfo.currentTotalAliases)) {
-		await buyAliases(subscriptions[targetSubscription].orderNbrOfAliases)
+		await buyAliases(getSubscriptionConfig(targetSubscription).orderNbrOfAliases)
 	}
 	if (isUpgradeStorageNeeded(targetSubscription, currentSubscriptionInfo.currentTotalStorage)) {
-		await buyStorage(subscriptions[targetSubscription].orderStorageGb)
+		await buyStorage(getSubscriptionConfig(targetSubscription).orderStorageGb)
 	}
 	if (isUpgradeSharingNeeded(targetSubscription, currentSubscriptionInfo.currentlySharingOrdered)) {
 		await buySharing(true)
@@ -294,10 +291,10 @@ async function switchSubscription(targetSubscription: SubscriptionType, dialog: 
 async function cancelAllAdditionalFeatures(targetSubscription: SubscriptionType, currentSubscriptionInfo: CurrentSubscriptionInfo): Promise<boolean> {
 	let failed = false
 	if (isDowngradeAliasesNeeded(targetSubscription, currentSubscriptionInfo.currentTotalAliases, currentSubscriptionInfo.includedAliases)) {
-		failed = await buyAliases(subscriptions[targetSubscription].orderNbrOfAliases)
+		failed = await buyAliases(getSubscriptionConfig(targetSubscription).orderNbrOfAliases)
 	}
 	if (isDowngradeStorageNeeded(targetSubscription, currentSubscriptionInfo.currentTotalStorage, currentSubscriptionInfo.includedStorage)) {
-		failed = failed || await buyStorage(subscriptions[targetSubscription].orderStorageGb)
+		failed = failed || await buyStorage(getSubscriptionConfig(targetSubscription).orderStorageGb)
 	}
 	if (isDowngradeSharingNeeded(targetSubscription, currentSubscriptionInfo.currentlySharingOrdered)) {
 		failed = failed || await buySharing(false)

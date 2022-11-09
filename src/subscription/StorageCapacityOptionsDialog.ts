@@ -94,7 +94,7 @@ function createStorageCapacityBoxAttr(
 	amount: number
 	buyOptionBoxAttr: BuyOptionBoxAttr
 } {
-	const attrs = {
+	const attrs: BuyOptionBoxAttr = {
 		heading: formatStorageCapacity(Math.max(amount, freeAmount)),
 		actionButton: {
 			view: () => {
@@ -107,12 +107,12 @@ function createStorageCapacityBoxAttr(
 		},
 		price: lang.get("emptyString_msg"),
 		helpLabel: "emptyString_msg",
-		features: () => [],
+		features: [],
 		width: 230,
 		height: 210,
 		paymentInterval: null,
 		showReferenceDiscount: false,
-	} as const
+	}
 	updateBuyOptionBoxPriceInformation(locator.bookingFacade, BookingItemFeatureType.Storage, amount, attrs)
 	return {
 		amount,

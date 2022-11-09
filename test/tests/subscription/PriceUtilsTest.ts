@@ -2,8 +2,8 @@ import o from "ospec"
 import {formatMonthlyPrice, formatPrice, getSubscriptionPrice} from "../../../src/subscription/PriceUtils.js"
 import stream from "mithril/stream/stream.js"
 import {createPlanPrices} from "../../../src/api/entities/sys/TypeRefs.js"
-import {SubscriptionType, UpgradePriceType} from "../../../src/subscription/SubscriptionUtils.js"
 import {clone} from "@tutao/tutanota-utils"
+import {UpgradePriceType, SubscriptionType} from "../../../src/subscription/SubscriptionDataProvider"
 const PLAN_PRICES = {
     PremiumBusiness: createPlanPrices({
         additionalUserPriceMonthly: "2.40",
@@ -51,95 +51,62 @@ const PLAN_PRICES = {
         monthlyReferencePrice: "4.80",
     }),
 }
+const paymentIntervalYearly = 12
+const paymentIntervalMonthly = 1
 o.spec("price utils getSubscriptionPrice", () => {
     o("getSubscriptionPrice premium yearly price", () => {
-        const data = {
-            options: {
-                businessUse: stream(false),
-                paymentInterval: stream(12),
-            },
-            planPrices: PLAN_PRICES,
-        }
         // the return value is not rounded, but formatPrice handles that
         o(
             formatPrice(
-                getSubscriptionPrice(data, SubscriptionType.Premium, UpgradePriceType.PlanReferencePrice),
+                getSubscriptionPrice(paymentIntervalYearly, SubscriptionType.Premium, UpgradePriceType.PlanReferencePrice),
                 false,
             ),
         ).equals("14.40")
-        o(getSubscriptionPrice(data, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)).equals(12)
-        o(getSubscriptionPrice(data, SubscriptionType.Premium, UpgradePriceType.AdditionalUserPrice)).equals(12)
-        o(getSubscriptionPrice(data, SubscriptionType.Premium, UpgradePriceType.ContactFormPrice)).equals(240)
-        o(getSubscriptionPrice(data, SubscriptionType.Premium, UpgradePriceType.PlanNextYearsPrice)).equals(12)
+        o(getSubscriptionPrice(paymentIntervalYearly, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)).equals(12)
+        o(getSubscriptionPrice(paymentIntervalYearly, SubscriptionType.Premium, UpgradePriceType.AdditionalUserPrice)).equals(12)
+        o(getSubscriptionPrice(paymentIntervalYearly, SubscriptionType.Premium, UpgradePriceType.ContactFormPrice)).equals(240)
+        o(getSubscriptionPrice(paymentIntervalYearly, SubscriptionType.Premium, UpgradePriceType.PlanNextYearsPrice)).equals(12)
     })
     o("getSubscriptionPrice premium monthly price", () => {
-        const data = {
-            options: {
-                businessUse: stream(false),
-                paymentInterval: stream(1),
-            },
-            planPrices: PLAN_PRICES,
-        }
-        o(getSubscriptionPrice(data, SubscriptionType.Premium, UpgradePriceType.PlanReferencePrice)).equals(1.2)
-        o(getSubscriptionPrice(data, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)).equals(1.2)
-        o(getSubscriptionPrice(data, SubscriptionType.Premium, UpgradePriceType.AdditionalUserPrice)).equals(1.2)
-        o(getSubscriptionPrice(data, SubscriptionType.Premium, UpgradePriceType.ContactFormPrice)).equals(24)
-        o(getSubscriptionPrice(data, SubscriptionType.Premium, UpgradePriceType.PlanNextYearsPrice)).equals(1.2)
+        o(getSubscriptionPrice(paymentIntervalMonthly, SubscriptionType.Premium, UpgradePriceType.PlanReferencePrice)).equals(1.2)
+        o(getSubscriptionPrice(paymentIntervalMonthly, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)).equals(1.2)
+        o(getSubscriptionPrice(paymentIntervalMonthly, SubscriptionType.Premium, UpgradePriceType.AdditionalUserPrice)).equals(1.2)
+        o(getSubscriptionPrice(paymentIntervalMonthly, SubscriptionType.Premium, UpgradePriceType.ContactFormPrice)).equals(24)
+        o(getSubscriptionPrice(paymentIntervalMonthly, SubscriptionType.Premium, UpgradePriceType.PlanNextYearsPrice)).equals(1.2)
     })
     o("getSubscriptionPrice Premium discount yearly", () => {
         const discountPlanPrices = clone(PLAN_PRICES)
         discountPlanPrices.Premium.firstYearDiscount = "12"
-        const data = {
-            options: {
-                businessUse: stream(false),
-                paymentInterval: stream(12),
-            },
-            planPrices: discountPlanPrices,
-        }
         o(
             formatPrice(
-                getSubscriptionPrice(data, SubscriptionType.Premium, UpgradePriceType.PlanReferencePrice),
+                getSubscriptionPrice(paymentIntervalYearly, SubscriptionType.Premium, UpgradePriceType.PlanReferencePrice),
                 false,
             ),
         ).equals("14.40")
-        o(getSubscriptionPrice(data, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)).equals(0)
-        o(getSubscriptionPrice(data, SubscriptionType.Premium, UpgradePriceType.AdditionalUserPrice)).equals(12)
-        o(getSubscriptionPrice(data, SubscriptionType.Premium, UpgradePriceType.ContactFormPrice)).equals(240)
-        o(getSubscriptionPrice(data, SubscriptionType.Premium, UpgradePriceType.PlanNextYearsPrice)).equals(12)
+        o(getSubscriptionPrice(paymentIntervalYearly, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)).equals(0)
+        o(getSubscriptionPrice(paymentIntervalYearly, SubscriptionType.Premium, UpgradePriceType.AdditionalUserPrice)).equals(12)
+        o(getSubscriptionPrice(paymentIntervalYearly, SubscriptionType.Premium, UpgradePriceType.ContactFormPrice)).equals(240)
+        o(getSubscriptionPrice(paymentIntervalYearly, SubscriptionType.Premium, UpgradePriceType.PlanNextYearsPrice)).equals(12)
     })
     o("getSubscriptionPrice Pro discount yearly", () => {
         const discountPlanPrices = clone(PLAN_PRICES)
         discountPlanPrices.Pro.firstYearDiscount = "84"
-        const data = {
-            options: {
-                businessUse: stream(false),
-                paymentInterval: stream(12),
-            },
-            planPrices: discountPlanPrices,
-        }
         o(
-            formatPrice(getSubscriptionPrice(data, SubscriptionType.Pro, UpgradePriceType.PlanReferencePrice), false),
+            formatPrice(getSubscriptionPrice(paymentIntervalYearly, SubscriptionType.Pro, UpgradePriceType.PlanReferencePrice), false),
         ).equals("100.80")
-        o(getSubscriptionPrice(data, SubscriptionType.Pro, UpgradePriceType.PlanActualPrice)).equals(0)
-        o(getSubscriptionPrice(data, SubscriptionType.Pro, UpgradePriceType.AdditionalUserPrice)).equals(48)
-        o(getSubscriptionPrice(data, SubscriptionType.Pro, UpgradePriceType.ContactFormPrice)).equals(240)
-        o(getSubscriptionPrice(data, SubscriptionType.Pro, UpgradePriceType.PlanNextYearsPrice)).equals(84)
+        o(getSubscriptionPrice(paymentIntervalYearly, SubscriptionType.Pro, UpgradePriceType.PlanActualPrice)).equals(0)
+        o(getSubscriptionPrice(paymentIntervalYearly, SubscriptionType.Pro, UpgradePriceType.AdditionalUserPrice)).equals(48)
+        o(getSubscriptionPrice(paymentIntervalYearly, SubscriptionType.Pro, UpgradePriceType.ContactFormPrice)).equals(240)
+        o(getSubscriptionPrice(paymentIntervalYearly, SubscriptionType.Pro, UpgradePriceType.PlanNextYearsPrice)).equals(84)
     })
     o("getSubscriptionPrice Premium discount monthly", () => {
         const discountPlanPrices = clone(PLAN_PRICES)
         discountPlanPrices.Premium.firstYearDiscount = "12"
-        const data = {
-            options: {
-                businessUse: stream(false),
-                paymentInterval: stream(1),
-            },
-            planPrices: discountPlanPrices,
-        }
-        o(getSubscriptionPrice(data, SubscriptionType.Premium, UpgradePriceType.PlanReferencePrice)).equals(1.2)
-        o(getSubscriptionPrice(data, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)).equals(1.2)
-        o(getSubscriptionPrice(data, SubscriptionType.Premium, UpgradePriceType.AdditionalUserPrice)).equals(1.2)
-        o(getSubscriptionPrice(data, SubscriptionType.Premium, UpgradePriceType.ContactFormPrice)).equals(24)
-        o(getSubscriptionPrice(data, SubscriptionType.Premium, UpgradePriceType.PlanNextYearsPrice)).equals(1.2)
+        o(getSubscriptionPrice(paymentIntervalMonthly, SubscriptionType.Premium, UpgradePriceType.PlanReferencePrice)).equals(1.2)
+        o(getSubscriptionPrice(paymentIntervalMonthly, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)).equals(1.2)
+        o(getSubscriptionPrice(paymentIntervalMonthly, SubscriptionType.Premium, UpgradePriceType.AdditionalUserPrice)).equals(1.2)
+        o(getSubscriptionPrice(paymentIntervalMonthly, SubscriptionType.Premium, UpgradePriceType.ContactFormPrice)).equals(24)
+        o(getSubscriptionPrice(paymentIntervalMonthly, SubscriptionType.Premium, UpgradePriceType.PlanNextYearsPrice)).equals(1.2)
     })
     o("formatMonthlyPrices", () => {
         o(formatMonthlyPrice(0, 12)).equals("€0")

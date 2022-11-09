@@ -9,8 +9,6 @@ import {getByAbbreviation} from "../api/common/CountryList"
 import {UpgradeSubscriptionPage, UpgradeSubscriptionPageAttrs} from "./UpgradeSubscriptionPage"
 import {formatNameAndAddress} from "../misc/Formatter"
 import m from "mithril"
-import type {SubscriptionOptions, SubscriptionPlanPrices} from "./SubscriptionUtils"
-import {SubscriptionType, UpgradeType} from "./SubscriptionUtils"
 import stream from "mithril/stream"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {assertTranslation} from "../misc/LanguageViewModel"
@@ -23,6 +21,8 @@ import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
 import {StorageBehavior} from "../misc/UsageTestModel"
 import {UpgradePriceService} from "../api/entities/sys/Services.js"
+import {SelectedSubscriptionOptions, SubscriptionPlanPrices, SubscriptionType} from "./SubscriptionDataProvider"
+import {UpgradeType} from "./SubscriptionUtils"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -44,7 +44,7 @@ export type NewAccountData = {
 	password: string
 }
 export type UpgradeSubscriptionData = {
-	options: SubscriptionOptions
+	options: SelectedSubscriptionOptions
 	invoiceData: InvoiceData
 	paymentData: PaymentData
 	type: SubscriptionType

@@ -6,8 +6,7 @@ import type {AccountingInfo} from "../api/entities/sys/TypeRefs.js"
 import type {PriceData} from "../api/entities/sys/TypeRefs.js"
 import type {PriceItemData} from "../api/entities/sys/TypeRefs.js"
 import type {Booking} from "../api/entities/sys/TypeRefs.js"
-import type {SubscriptionData, SubscriptionType} from "./SubscriptionUtils"
-import {getPlanPrices, UpgradePriceType} from "./SubscriptionUtils"
+import {getPlanPrices, SubscriptionType, UpgradePriceType, WebsitePlanPrices} from "./SubscriptionDataProvider";
 
 export function getPaymentMethodName(paymentMethod: PaymentMethodType): string {
 	if (paymentMethod === PaymentMethodType.Invoice) {
@@ -51,41 +50,46 @@ export function formatPrice(value: number, includeCurrency: boolean): string {
 	}
 }
 
-/**
- * Return actual price for given subscription data. In case of yearly subscription, the yearly value is returned, and monthly otherwise.
- */
-export function getSubscriptionPrice(data: SubscriptionData, subscription: SubscriptionType, type: UpgradePriceType): number {
-	const prices = getPlanPrices(data.planPrices, subscription)
+export function getSubscriptionPrice(
+	paymentInterval: number,
+	subscription: SubscriptionType,
+	type: UpgradePriceType
+): number {
+	if (subscription === SubscriptionType.Free) return 0
+	return paymentInterval === 12
+		? getYearlySubscriptionPrice(subscription, type)
+		: getMonthlySubscriptionPrice(subscription, type)
+}
 
-	if (prices) {
-		let monthlyPriceString
-		let monthsFactor = data.options.paymentInterval() === 12 ? 10 : 1
-		let discount = 0
+export function getYearlySubscriptionPrice(
+	subscription: SubscriptionType,
+	upgrade: UpgradePriceType
+): number {
+	const prices = getPlanPrices(subscription)
+	const monthlyPrice = getPriceForUpgradeType(upgrade, prices)
+	const discount = Number(prices.firstYearDiscount)
+	return (monthlyPrice * 10) / 12 - discount
+}
 
-		if (type === UpgradePriceType.PlanReferencePrice) {
-			monthlyPriceString = prices.monthlyReferencePrice
+export function getMonthlySubscriptionPrice(
+	subscription: SubscriptionType,
+	upgrade: UpgradePriceType
+): number {
+	const prices = getPlanPrices(subscription)
+	return getPriceForUpgradeType(upgrade, prices)
+}
 
-			if (data.options.paymentInterval() === 12) {
-				monthsFactor = 12
-			}
-		} else if (type === UpgradePriceType.PlanActualPrice) {
-			monthlyPriceString = prices.monthlyPrice
-
-			if (data.options.paymentInterval() === 12) {
-				discount = Number(prices.firstYearDiscount)
-			}
-		} else if (type === UpgradePriceType.PlanNextYearsPrice) {
-			monthlyPriceString = prices.monthlyPrice
-		} else if (type === UpgradePriceType.AdditionalUserPrice) {
-			monthlyPriceString = prices.additionalUserPriceMonthly
-		} else if (type === UpgradePriceType.ContactFormPrice) {
-			monthlyPriceString = prices.contactFormPriceMonthly
-		}
-
-		return Number(monthlyPriceString) * monthsFactor - discount
-	} else {
-		// Free plan
-		return 0
+function getPriceForUpgradeType(upgrade: UpgradePriceType, prices: WebsitePlanPrices): number {
+	switch (upgrade) {
+		case UpgradePriceType.PlanReferencePrice:
+			return Number(prices.monthlyReferencePrice)
+		case UpgradePriceType.PlanActualPrice:
+		case UpgradePriceType.PlanNextYearsPrice:
+			return Number(prices.monthlyPrice)
+		case UpgradePriceType.AdditionalUserPrice:
+			return Number(prices.additionalUserPriceMonthly)
+		case UpgradePriceType.ContactFormPrice:
+			return Number(prices.contactFormPriceMonthly)
 	}
 }
 

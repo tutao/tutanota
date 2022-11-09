@@ -247,7 +247,7 @@ export class LanguageViewModel {
 
 	/**
 	 * must be invoked at startup from LanguageViewModel to initialize all DateTimeFormats
-	 * @param codes
+	 * @param tag
 	 */
 	_setLanguageTag(tag: string) {
 		this.languageTag = tag

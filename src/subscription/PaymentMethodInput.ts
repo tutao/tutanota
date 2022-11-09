@@ -13,7 +13,6 @@ import type {AccountingInfo} from "../api/entities/sys/TypeRefs.js"
 import {AccountingInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {locator} from "../api/main/MainLocator"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import type {SubscriptionOptions} from "./SubscriptionUtils"
 import {MessageBox} from "../gui/base/MessageBox.js"
 import {px} from "../gui/size"
 import type {EntityEventsListener} from "../api/main/EventController"
@@ -21,6 +20,7 @@ import {isValidCreditCardNumber} from "../misc/FormatValidator"
 import {noOp} from "@tutao/tutanota-utils"
 import {promiseMap} from "@tutao/tutanota-utils"
 import Stream from "mithril/stream";
+import {SelectedSubscriptionOptions} from "./SubscriptionDataProvider"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
@@ -30,12 +30,12 @@ export class PaymentMethodInput {
 	_payPalAttrs: PaypalAttrs
 	_selectedCountry: Stream<Country | null>
 	_selectedPaymentMethod: PaymentMethodType
-	_subscriptionOptions: SubscriptionOptions
+	_subscriptionOptions: SelectedSubscriptionOptions
 	_accountingInfo: AccountingInfo
 	_entityEventListener: EntityEventsListener
 
 	constructor(
-		subscriptionOptions: SubscriptionOptions,
+		subscriptionOptions: SelectedSubscriptionOptions,
 		selectedCountry: Stream<Country | null>,
 		accountingInfo: AccountingInfo,
 		payPalRequestUrl: LazyLoaded<string>,
