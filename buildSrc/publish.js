@@ -18,7 +18,6 @@ import 'zx/globals'
 			version: tutanotaVersion,
 			name: "tutanota",
 			fpmRootMapping: "./build/dist/=/opt/tutanota",
-			fpmAfterInstallScript: "./resources/scripts/after-install.sh",
 			destinationDir: `/opt/repository/tutanota`
 		})
 		await tagRelease({
