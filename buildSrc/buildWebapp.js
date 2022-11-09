@@ -134,6 +134,8 @@ self.onmessage = function (msg) {
 	}
 
 	await bundleServiceWorker(chunks, version, minify)
+
+	await fs.writeFile("build/tutanota-version.txt", version)
 }
 
 async function bundleServiceWorker(bundles, version, minify) {
