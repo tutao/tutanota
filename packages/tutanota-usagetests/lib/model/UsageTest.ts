@@ -15,10 +15,9 @@ export class UsageTest {
 	public lastCompletedStage = 0
 
 	/**
-	 * Enables client-side validation which ensures that we do not attempt to send invalid pings.
-	 * Includes not being able to restart a test as long as the last stage has not been sent.
+	 * Enabling this makes it possible to restart a test even if the last stage has not been sent.
 	 */
-	public strictStageOrder = false
+	public allowEarlyRestarts = false
 	private sentPings = 0
 	private started = false
 
@@ -39,7 +38,7 @@ export class UsageTest {
 
 		if (!stage) {
 			console.log(`Stage ${stageNum} is not registered, meaning that test '${this.testName}' is likely misconfigured`)
-			return new ObsoleteStage(0, this)
+			return new ObsoleteStage(0, this, 0, 0)
 		}
 
 		return stage
@@ -66,27 +65,26 @@ export class UsageTest {
 			throw new Error("no ping adapter has been registered")
 		} else if (this.variant === NO_PARTICIPATION_VARIANT || !this.active) {
 			return false
-		} else if (this.strictStageOrder) {
-			if (this.sentPings >= stage.maxPings && this.lastCompletedStage === stage.number) {
-				console.log(`Not sending ping for stage (${stage.number}) because strictStageOrder is set on test '${this.testId}' and maxPings=${stage.maxPings} has been reached`)
-				return false
-			} else if (this.isStarted() && stage.number === 0 && this.lastCompletedStage !== this.stages.size - 1) {
-				console.log(`Cannot restart test '${this.testName}' because strictStageOrder is set and the final stage has not been reached`)
-				return false
-			} else if (stage.number < this.lastCompletedStage && stage.number !== 0) {
-				console.log(`Cannot send ping for stage (${stage.number}) because strictStageOrder is set on test '${this.testId}' and stage ${this.lastCompletedStage} has already been sent`)
-				return false
-			}
+		} else if (this.sentPings >= stage.maxPings && this.lastCompletedStage === stage.number && (stage.number !== 0 || !this.allowEarlyRestarts)) {
+			console.log(`Not sending ping for stage (${stage.number}) of test '${this.testId}' because maxPings=${stage.maxPings} has been reached`)
+			return false
+		} else if (!this.allowEarlyRestarts && this.isStarted() && stage.number === 0 && this.lastCompletedStage !== this.stages.size - 1) {
+			console.log(`Cannot restart test '${this.testName}' because allowEarlyRestarts=false and the final stage has not been reached`)
+			return false
+		} else if (stage.number < this.lastCompletedStage && stage.number !== 0) {
+			console.log(`Cannot send ping for stage (${stage.number}) of test '${this.testId}' because stage ${this.lastCompletedStage} has already been sent`)
+			return false
+		}
 
-			for (let i = this.lastCompletedStage + 1; i < stage.number; i++) {
-				let currentStage = this.stages.get(i)
+		for (let i = this.lastCompletedStage + 1; i < stage.number; i++) {
+			let currentStage = this.stages.get(i)
 
-				if (!!currentStage && currentStage.minPings != 0) {
-					console.log(`Not sending ping for stage (${stage.number}) in wrong order because strictStageOrder is set on test '${this.testId}' and stage ${currentStage.number} is not finished`)
-					return false
-				}
+			if (!!currentStage && currentStage.minPings != 0) {
+				console.log(`Not sending ping for stage (${stage.number}) in wrong order of test '${this.testId}' because stage ${currentStage.number} is not finished`)
+				return false
 			}
 		}
+
 
 		console.log(`Test '${this.testName}': Completing stage ${stage.number}, variant ${this.variant}`)
 		this.sentPings = stage.number === this.lastCompletedStage ? this.sentPings + 1 : 1
