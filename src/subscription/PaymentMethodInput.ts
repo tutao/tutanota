@@ -162,7 +162,7 @@ export class PaymentMethodInput {
 			} else if (cc.cardHolderName === "") {
 				stage?.setMetric({
 					name: "validationFailure",
-					value: "ccHolder",
+					value: "ccHolderMissing",
 				})
 				stage?.complete()
 				return "creditCardCardHolderName_msg"
@@ -182,7 +182,7 @@ export class PaymentMethodInput {
 			) {
 				stage?.setMetric({
 					name: "validationFailure",
-					value: "expirationDate",
+					value: "expirationDateFormat",
 				})
 				stage?.complete()
 				return "creditCardExprationDateInvalid_msg"

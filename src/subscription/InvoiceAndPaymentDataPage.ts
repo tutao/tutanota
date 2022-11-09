@@ -47,9 +47,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 	constructor(upgradeData: UpgradeSubscriptionData) {
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
 		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
-		this.__paymentPaypalTest.strictStageOrder = true
 		this.__paymentCreditTest = locator.usageTestController.getTest("payment.credit")
-		this.__paymentCreditTest.strictStageOrder = true
 		this.__paymentCreditTest.recordTime = true
 
 		this._upgradeData = upgradeData
@@ -386,7 +384,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 							// keep waiting. this error code is set before starting the 3DS2 verification and we just received the event very late
 						} else if (invoiceInfo.paymentErrorInfo && invoiceInfo.paymentErrorInfo.errorCode !== null) {
 							// verification error during 3ds verification
-							let error = "3dsFailedGeneric"
+							let error = "3dsFailedOther"
 
 							switch (invoiceInfo.paymentErrorInfo.errorCode) {
 								case "creditCardCVVInvalid_msg":
@@ -403,6 +401,9 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 									break
 								case "payCardExpiredError_msg":
 									error = "cardExpired"
+									break
+								case "creditCardVerificationFailed_msg":
+									error = "3dsFailed"
 									break
 							}
 
