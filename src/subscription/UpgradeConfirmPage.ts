@@ -10,8 +10,7 @@ import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
 import {BadGatewayError, PreconditionFailedError} from "../api/common/error/RestError"
 import {RecoverCodeField} from "../settings/RecoverCodeDialog"
 import {logins} from "../api/main/LoginController"
-import type {SubscriptionOptions} from "./SubscriptionUtils"
-import {getDisplayNameOfSubscriptionType, getPreconditionFailedPaymentMsg, SubscriptionType, UpgradeType} from "./SubscriptionUtils"
+import {getPreconditionFailedPaymentMsg, UpgradeType} from "./SubscriptionUtils"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialog.js"
 import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialog.js"
@@ -20,6 +19,7 @@ import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 import {SwitchAccountTypeService} from "../api/entities/sys/Services"
 import {UsageTest} from "@tutao/tutanota-usagetests"
+import {getDisplayNameOfSubscriptionType, SelectedSubscriptionOptions, SubscriptionType} from "./SubscriptionDataProvider"
 
 export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -234,7 +234,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 	}
 }
 
-function buildPriceString(price: NumberString, options: SubscriptionOptions): string {
+function buildPriceString(price: NumberString, options: SelectedSubscriptionOptions): string {
 	return formatPriceWithInfo(Number(price), options.paymentInterval(), !options.businessUse())
 }
 

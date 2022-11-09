@@ -24,8 +24,6 @@ import {getLoginErrorMessage, handleExpectedLoginError} from "../../misc/LoginUt
 import {RecoverCodeField} from "../../settings/RecoverCodeDialog"
 import {HabReminderImage} from "../../gui/base/icons/Icons"
 import {PaymentMethodType} from "../../api/common/TutanotaConstants"
-import type {SubscriptionData, SubscriptionOptions, SubscriptionPlanPrices} from "../SubscriptionUtils"
-import {SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
 import {formatPrice, getPaymentMethodName, getSubscriptionPrice} from "../PriceUtils"
 import {TextField} from "../../gui/base/TextField.js"
 import {elementIdPart, isSameId} from "../../api/common/utils/EntityUtils"
@@ -37,6 +35,7 @@ import {EntityClient} from "../../api/common/EntityClient.js"
 import {Country, getByAbbreviation} from "../../api/common/CountryList.js"
 import {renderCountryDropdown} from "../../gui/base/GuiUtils.js"
 import {CredentialsProvider} from "../../misc/credentials/CredentialsProvider.js"
+import {SubscriptionType, UpgradePriceType} from "../SubscriptionDataProvider"
 
 
 const enum GetCredentialsMethod {
@@ -547,23 +546,6 @@ async function loadModel(hashFromUrl: string): Promise<RedeemGiftCardModel> {
 
 	const {id, key} = await getTokenFromUrl(hashFromUrl)
 	const giftCardInfo = await locator.giftCardFacade.getGiftCardInfo(id, key)
-	const prices = await loadUpgradePrices(null)
-
-	const priceData: SubscriptionPlanPrices = {
-		Premium: prices.premiumPrices,
-		PremiumBusiness: prices.premiumBusinessPrices,
-		Teams: prices.teamsPrices,
-		TeamsBusiness: prices.teamsBusinessPrices,
-		Pro: prices.proPrices,
-	}
-
-	const subscriptionData: SubscriptionData = {
-		options: {
-			businessUse: () => false,
-			paymentInterval: () => 12,
-		} as SubscriptionOptions,
-		planPrices: priceData,
-	}
 
 	const storedCredentials = await locator.credentialsProvider.getInternalCredentialsInfos()
 
@@ -571,7 +553,7 @@ async function loadModel(hashFromUrl: string): Promise<RedeemGiftCardModel> {
 		{
 			giftCardInfo,
 			key,
-			premiumPrice: getSubscriptionPrice(subscriptionData, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice),
+			premiumPrice: getSubscriptionPrice(12, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice),
 			storedCredentials
 		},
 		locator.giftCardFacade,

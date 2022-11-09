@@ -7,8 +7,7 @@ import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {locator} from "../../api/main/MainLocator"
 import {BuyOptionBox} from "../BuyOptionBox"
 import {Button, ButtonType} from "../../gui/base/Button.js"
-import type {SubscriptionData, SubscriptionOptions, SubscriptionPlanPrices} from "../SubscriptionUtils"
-import {getPreconditionFailedPaymentMsg, SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
+import {getPreconditionFailedPaymentMsg} from "../SubscriptionUtils"
 import {renderAcceptGiftCardTermsCheckbox, showGiftCardToShare} from "./GiftCardUtils"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
@@ -25,6 +24,7 @@ import {count, filterInt, noOp, ofClass} from "@tutao/tutanota-utils"
 import {isIOSApp} from "../../api/common/Env"
 import {formatPrice, getSubscriptionPrice} from "../PriceUtils"
 import {GiftCardService} from "../../api/entities/sys/Services"
+import {SubscriptionType, UpgradePriceType} from "../SubscriptionDataProvider"
 
 class PurchaseGiftCardModel {
 
@@ -143,7 +143,7 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 								"{remainingCredit}": formatPrice(withSubscriptionAmount, true),
 								"{fullCredit}": formatPrice(value, true),
 							}),
-						features: () => [],
+						features: [],
 						width: 230,
 						height: 250,
 						paymentInterval: null,
@@ -278,27 +278,11 @@ async function loadGiftCardModel(): Promise<PurchaseGiftCardModel> {
 		)
 	}
 
-	const priceData: SubscriptionPlanPrices = {
-		Premium: prices.premiumPrices,
-		PremiumBusiness: prices.premiumBusinessPrices,
-		Teams: prices.teamsPrices,
-		TeamsBusiness: prices.teamsBusinessPrices,
-		Pro: prices.proPrices,
-	}
-
-	const subscriptionData: SubscriptionData = {
-		options: {
-			businessUse: () => false,
-			paymentInterval: () => 12,
-		} as SubscriptionOptions,
-		planPrices: priceData,
-	}
-
 	return new PurchaseGiftCardModel({
 		purchaseLimit: filterInt(giftCardInfo.maxPerPeriod),
 		purchasePeriodMonths: filterInt(giftCardInfo.period),
 		availablePackages: giftCardInfo.options,
 		selectedPackage: Math.floor(giftCardInfo.options.length / 2),
-		premiumPrice: getSubscriptionPrice(subscriptionData, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice),
+		premiumPrice: getSubscriptionPrice(12, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice),
 	})
 }

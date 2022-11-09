@@ -1,4 +1,3 @@
-import type {SubscriptionPlanPrices} from "./SubscriptionUtils"
 import {
 	getIncludedAliases,
 	getIncludedStorageCapacity,
@@ -11,8 +10,6 @@ import {
 	isDowngrade,
 	isSharingActive,
 	isWhitelabelActive,
-	subscriptions,
-	SubscriptionType,
 } from "./SubscriptionUtils"
 import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {neverNull} from "@tutao/tutanota-utils"
@@ -26,6 +23,7 @@ import type {CustomerInfo} from "../api/entities/sys/TypeRefs.js"
 import type {Booking} from "../api/entities/sys/TypeRefs.js"
 import {promiseMap} from "@tutao/tutanota-utils"
 import type {BookingFacade} from "../api/worker/facades/BookingFacade"
+import {getSubscriptionConfig, SubscriptionPlanPrices, SubscriptionType} from "./SubscriptionDataProvider"
 
 type PlanPriceCalc = {
 	monthlyPrice: number
@@ -284,44 +282,44 @@ export class SwitchSubscriptionDialogModel {
 }
 
 export function isUpgradeAliasesNeeded(targetSubscription: SubscriptionType, currentNbrOfAliases: number): boolean {
-	return currentNbrOfAliases < subscriptions[targetSubscription].nbrOfAliases
+	return currentNbrOfAliases < getSubscriptionConfig(targetSubscription).nbrOfAliases
 }
 
 export function isDowngradeAliasesNeeded(targetSubscription: SubscriptionType, currentNbrOfAliases: number, includedAliases: number): boolean {
 	// only order the target aliases package if it is smaller than the actual number of current aliases and if we have currently ordered more than the included aliases
-	return currentNbrOfAliases > subscriptions[targetSubscription].nbrOfAliases && currentNbrOfAliases > includedAliases
+	return currentNbrOfAliases > getSubscriptionConfig(targetSubscription).nbrOfAliases && currentNbrOfAliases > includedAliases
 }
 
 export function isUpgradeStorageNeeded(targetSubscription: SubscriptionType, currentAmountOfStorage: number): boolean {
-	return currentAmountOfStorage < subscriptions[targetSubscription].storageGb
+	return currentAmountOfStorage < getSubscriptionConfig(targetSubscription).storageGb
 }
 
 export function isDowngradeStorageNeeded(targetSubscription: SubscriptionType, currentAmountOfStorage: number, includedStorage: number): boolean {
-	return currentAmountOfStorage > subscriptions[targetSubscription].storageGb && currentAmountOfStorage > includedStorage
+	return currentAmountOfStorage > getSubscriptionConfig(targetSubscription).storageGb && currentAmountOfStorage > includedStorage
 }
 
 export function isUpgradeSharingNeeded(targetSubscription: SubscriptionType, currentlySharingOrdered: boolean): boolean {
-	return !currentlySharingOrdered && subscriptions[targetSubscription].sharing
+	return !currentlySharingOrdered && getSubscriptionConfig(targetSubscription).sharing
 }
 
 export function isDowngradeSharingNeeded(targetSubscription: SubscriptionType, currentlySharingOrdered: boolean): boolean {
-	return currentlySharingOrdered && !subscriptions[targetSubscription].sharing
+	return currentlySharingOrdered && !getSubscriptionConfig(targetSubscription).sharing
 }
 
 export function isUpgradeBusinessNeeded(targetSubscription: SubscriptionType, currentlyBusinessOrdered: boolean): boolean {
-	return !currentlyBusinessOrdered && subscriptions[targetSubscription].business
+	return !currentlyBusinessOrdered && getSubscriptionConfig(targetSubscription).business
 }
 
 export function isDowngradeBusinessNeeded(targetSubscription: SubscriptionType, currentlyBusinessOrdered: boolean): boolean {
-	return currentlyBusinessOrdered && !subscriptions[targetSubscription].business
+	return currentlyBusinessOrdered && !getSubscriptionConfig(targetSubscription).business
 }
 
 export function isUpgradeWhitelabelNeeded(targetSubscription: SubscriptionType, currentlyWhitelabelOrdered: boolean): boolean {
-	return !currentlyWhitelabelOrdered && subscriptions[targetSubscription].whitelabel
+	return !currentlyWhitelabelOrdered && getSubscriptionConfig(targetSubscription).whitelabel
 }
 
 export function isDowngradeWhitelabelNeeded(targetSubscription: SubscriptionType, currentlyWhitelabelOrdered: boolean): boolean {
-	return currentlyWhitelabelOrdered && !subscriptions[targetSubscription].whitelabel
+	return currentlyWhitelabelOrdered && !getSubscriptionConfig(targetSubscription).whitelabel
 }
 
 function calcWhitelabelFeature(
@@ -404,7 +402,7 @@ function calcStorage(
 			Number(neverNull(downgrade1GbStoragePrice.futurePriceNextPeriod).price) - Number(neverNull(downgrade1GbStoragePrice.currentPriceNextPeriod).price)
 	}
 
-	const targetAmountStorage = subscriptions[targetSubscription].storageGb
+	const targetAmountStorage = getSubscriptionConfig(targetSubscription).storageGb
 	planPrices.includedStorage = !targetIsDowngrade ? Math.max(currentTotalStorage, targetAmountStorage) : targetAmountStorage
 }
 
@@ -425,7 +423,7 @@ function calcAliases(
 			Number(neverNull(downgrade5AliasesPrice.futurePriceNextPeriod).price) - Number(neverNull(downgrade5AliasesPrice.currentPriceNextPeriod).price)
 	}
 
-	const targetNbrAliases = subscriptions[targetSubscription].nbrOfAliases
+	const targetNbrAliases = getSubscriptionConfig(targetSubscription).nbrOfAliases
 	planPrices.includedAliases = !targetIsDowngrade ? Math.max(currentTotalAliases, targetNbrAliases) : targetNbrAliases
 }
 

@@ -3,12 +3,11 @@ import stream from "mithril/stream"
 import {lang} from "../misc/LanguageViewModel"
 import type {SubscriptionParameters, UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
 import {SubscriptionTypeParameter} from "./UpgradeSubscriptionWizard"
-import {SubscriptionSelector} from "./SubscriptionSelector"
+import {SubscriptionActionButtons, SubscriptionSelector} from "./SubscriptionSelector"
 import {isApp, isTutanotaDomain} from "../api/common/Env"
 import {client} from "../misc/ClientDetector"
 import {Button, ButtonType} from "../gui/base/Button.js"
-import type {SubscriptionActionButtons} from "./SubscriptionUtils"
-import {SubscriptionType, UpgradePriceType, UpgradeType} from "./SubscriptionUtils"
+import {UpgradeType} from "./SubscriptionUtils"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialog.js"
 import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialog.js"
@@ -18,6 +17,7 @@ import {Checkbox} from "../gui/base/Checkbox.js"
 import {getSubscriptionPrice} from "./PriceUtils"
 import {locator} from "../api/main/MainLocator"
 import {UsageTest} from "@tutao/tutanota-usagetests"
+import {SubscriptionType, UpgradePriceType} from "./SubscriptionDataProvider"
 
 export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private _dom: HTMLElement | null = null
@@ -168,8 +168,8 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			this.__signupPaidTest.getStage(0).complete()
 		}
 		data.type = subscriptionType
-		data.price = String(getSubscriptionPrice(data, data.type, UpgradePriceType.PlanActualPrice))
-		let nextYear = String(getSubscriptionPrice(data, data.type, UpgradePriceType.PlanNextYearsPrice))
+		data.price = String(getSubscriptionPrice(data.options.paymentInterval(), data.type, UpgradePriceType.PlanActualPrice))
+		let nextYear = String(getSubscriptionPrice(data.options.paymentInterval(), data.type, UpgradePriceType.PlanNextYearsPrice))
 		data.priceNextYear = data.price !== nextYear ? nextYear : null
 		this.showNextPage()
 	}

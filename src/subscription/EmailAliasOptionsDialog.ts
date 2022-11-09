@@ -62,7 +62,7 @@ function createEmailAliasPackageBox(
 	amount: number
 	buyOptionBoxAttr: BuyOptionBoxAttr
 } {
-	let attrs = {
+	const attrs: BuyOptionBoxAttr = {
 		heading: lang.get("pricing.mailAddressAliasesShort_label", {
 			"{amount}": Math.max(amount, freeAmount),
 		}),
@@ -77,12 +77,12 @@ function createEmailAliasPackageBox(
 		},
 		price: lang.get("emptyString_msg"),
 		helpLabel: "emptyString_msg",
-		features: () => [],
+		features: [],
 		width: 230,
 		height: 210,
 		paymentInterval: null,
 		showReferenceDiscount: false,
-	} as const
+	}
 	updateBuyOptionBoxPriceInformation(locator.bookingFacade, BookingItemFeatureType.Alias, amount, attrs)
 	return {
 		amount,

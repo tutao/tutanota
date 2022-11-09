@@ -187,6 +187,9 @@ styles.registerStyle("main", () => {
 		".overflow-y-visible": {
 			"overflow-y": "visible !important",
 		},
+		".overflow-visible": {
+			overflow: "visible",
+		},
 		"h1, h2, h3, h4, h5, h6": {
 			margin: 0,
 			"font-weight": "normal",
@@ -1622,6 +1625,62 @@ styles.registerStyle("main", () => {
 		".buyOptionBox.highlighted": {
 			border: `2px solid ${theme.content_accent}`,
 			padding: px(9),
+		},
+		".info-badge": {
+			"border-radius": px(8),
+			"line-height": px(16),
+			"font-size": px(12),
+			"font-weight": "bold",
+			width: px(16),
+			height: px(16),
+			"text-align": "center",
+			color: "white",
+			background: theme.content_button,
+		},
+		".tooltip": {
+			position: "relative",
+			display: "inline-block",
+		},
+		".tooltip .tooltiptext": {
+			visibility: "hidden",
+			width: px(120),
+			"background-color": theme.content_button,
+			color: theme.content_bg,
+			"text-align": "center",
+			padding: "5px 5px",
+			"border-radius": px(6),
+			position: "absolute",
+			"z-index": 1,
+			top: "150%",
+			left: "50%",
+			"margin-left": "-120px",
+			"word-break": "break-word",
+		},
+		/* we're selecting every element that's after a summary tag and is inside an opened details tag */
+		"details[open] summary ~ *": {
+			animation: "expand .2s ease-in-out"
+		},
+		".expand": {
+			animation: "expand .2s ease-in-out"
+		},
+		"@keyframes expand": {
+			"0%": {
+				opacity: 0,
+				"margin-top": "-10px",
+				height: "0%",
+			},
+			"100%": {
+				opacity: 1,
+				"margin-top": px(0),
+				height: "100%",
+			},
+		},
+		".info-badge:active": {
+			background: theme.content_bg,
+			color: theme.content_button,
+		},
+		".info-badge:hover .tooltiptext, .info-badge[expanded=true] .tooltiptext": {
+			visibility: "visible",
 		},
 		".ribbon-vertical": {
 			position: "absolute",

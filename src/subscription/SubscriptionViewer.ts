@@ -33,9 +33,7 @@ import * as SwitchToBusinessInvoiceDataDialog from "./SwitchToBusinessInvoiceDat
 import {NotFoundError} from "../api/common/error/RestError"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import type {SubscriptionType} from "./SubscriptionUtils"
 import {
-	getDisplayNameOfSubscriptionType,
 	getSubscriptionType,
 	getTotalAliases,
 	getTotalStorageCapacity,
@@ -69,6 +67,7 @@ import {MailAddressAliasService} from "../api/entities/sys/Services"
 import {DropDownSelector, SelectorItemList} from "../gui/base/DropDownSelector.js"
 import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js"
+import {getDisplayNameOfSubscriptionType, SubscriptionType} from "./SubscriptionDataProvider"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
