@@ -18,6 +18,7 @@ import 'zx/globals'
 			version: tutanotaVersion,
 			name: "tutanota",
 			fpmRootMapping: "./build/dist/=/opt/tutanota",
+			fpmAfterInstallScript: "./resources/scripts/after-install.sh",
 			destinationDir: `/opt/repository/tutanota`
 		})
 		await tagRelease({
@@ -69,7 +70,7 @@ async function packageAndPublishDeb({version, fpmRootMapping, name, fpmAfterInst
 	]
 
 	if (fpmAfterInstallScript != null) {
-		fpmFlags.push(`--after-install`, fpmAfterInstallScript)
+		fpmFlags.push(`--after-install`, fpmAfterInstallScript, "--template-scripts")
 	}
 
 	await $`/usr/local/bin/fpm ${fpmFlags} ${fpmRootMapping}`
