@@ -39,23 +39,21 @@ export async function createCredentialsProvider(
 		const credentialsKeyMigrator = new DefaultCredentialsKeyMigrator(nativeCredentials)
 		const sqlcipherFacade = nativeApp && isOfflineStorageAvailable()
 			? new SqlCipherFacadeSendDispatcher(nativeApp)
-			: null
+			: undefined
 		return new CredentialsProvider(
 			credentialsEncryption,
 			deviceConfig,
 			credentialsKeyMigrator,
 			new DatabaseKeyFactory(deviceEncryptionFacade),
 			sqlcipherFacade,
-			isDesktop() ? interWindowEventSender : null,
+			isDesktop() ? interWindowEventSender ?? undefined : undefined,
 		)
 	} else {
 		return new CredentialsProvider(
-			new CredentialsEncryptionStub(),
+			new NoopCredentialsEncryption(),
 			deviceConfig,
 			new StubCredentialsKeyMigrator(),
 			new DatabaseKeyFactory(deviceEncryptionFacade),
-			null,
-			null,
 		)
 	}
 }
@@ -66,7 +64,7 @@ export async function createCredentialsProvider(
  * additional mechanism for credentials encryption using an access key stored server side. This is done in LoginFacade.
  */
 
-class CredentialsEncryptionStub implements CredentialsEncryption {
+export class NoopCredentialsEncryption implements CredentialsEncryption {
 	async encrypt({credentials, databaseKey}: CredentialsAndDatabaseKey): Promise<PersistentCredentials> {
 		const {encryptedPassword} = credentials
 

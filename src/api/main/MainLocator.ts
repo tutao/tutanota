@@ -5,8 +5,8 @@ import {EntropyCollector} from "./EntropyCollector"
 import {SearchModel} from "../../search/model/SearchModel"
 import {MailModel} from "../../mail/model/MailModel"
 import {assertMainOrNode, getWebRoot, isBrowser, isDesktop, isElectronClient, isOfflineStorageAvailable} from "../common/Env"
-import {notifications} from "../../gui/Notifications"
-import {logins} from "./LoginController"
+import {Notifications, notifications} from "../../gui/Notifications"
+import {IPostLoginAction, LoginController, logins} from "./LoginController"
 import type {ContactModel} from "../../contacts/model/ContactModel"
 import {ContactModelImpl} from "../../contacts/model/ContactModel"
 import {EntityClient} from "../common/EntityClient"
@@ -17,8 +17,8 @@ import {defer, lazyMemoized} from "@tutao/tutanota-utils"
 import {ProgressTracker} from "./ProgressTracker"
 import {MinimizedMailEditorViewModel} from "../../mail/model/MinimizedMailEditorViewModel"
 import {SchedulerImpl} from "../common/utils/Scheduler.js"
-import type {CredentialsProvider} from "../../misc/credentials/CredentialsProvider.js"
-import {createCredentialsProvider} from "../../misc/credentials/CredentialsProviderFactory"
+import {CredentialsEncryption, CredentialsProvider, CredentialsStorage} from "../../misc/credentials/CredentialsProvider.js"
+import {createCredentialsProvider, NoopCredentialsEncryption, usingKeychainAuthentication} from "../../misc/credentials/CredentialsProviderFactory"
 import type {LoginFacade} from "../worker/facades/LoginFacade"
 import type {CustomerFacade} from "../worker/facades/CustomerFacade"
 import type {GiftCardFacade} from "../worker/facades/GiftCardFacade"
@@ -44,7 +44,7 @@ import {SecondFactorHandler} from "../../misc/2fa/SecondFactorHandler"
 import {WebauthnClient} from "../../misc/2fa/webauthn/WebauthnClient"
 import {UserManagementFacade} from "../worker/facades/UserManagementFacade"
 import {GroupManagementFacade} from "../worker/facades/GroupManagementFacade"
-import {WorkerRandomizer} from "../worker/WorkerImpl"
+import {WorkerInterface, WorkerRandomizer} from "../worker/WorkerImpl"
 import {exposeRemote} from "../common/WorkerProxy"
 import {ExposedNativeInterface} from "../../native/common/NativeInterface"
 import {BrowserWebauthn} from "../../misc/2fa/webauthn/BrowserWebauthn.js"
@@ -70,8 +70,91 @@ import {InterWindowEventFacade} from "../../native/common/generatedipc/InterWind
 import {InterWindowEventFacadeSendDispatcher} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import {SqlCipherFacade} from "../../native/common/generatedipc/SqlCipherFacade.js"
 import {NewsModel} from "../../misc/news/NewsModel.js"
+import {Container, injected, token} from "brandi"
+import {EntityRestInterface} from "../worker/rest/EntityRestClient.js"
+import {PostLoginActions} from "../../login/PostLoginActions.js"
+import {CredentialsKeyMigrator} from "../../misc/credentials/CredentialsKeyMigrator.js"
+import {DatabaseKeyFactory} from "../../misc/credentials/DatabaseKeyFactory.js"
+import {NativeCredentialsEncryption} from "../../misc/credentials/NativeCredentialsEncryption.js"
+import {CredentialsKeyProvider} from "../../misc/credentials/CredentialsKeyProvider.js"
+import {NativeCredentialsFacade} from "../../native/common/generatedipc/NativeCredentialsFacade.js"
 
 assertMainOrNode()
+
+const TOKENS = {
+	loginController: token<LoginController>("loginController"),
+	notifications: token<Notifications>("notifications"),
+	eventController: token<EventController>("eventController"),
+	worker: token<WorkerClient>("workerClient"),
+	mailFacade: token<MailFacade>("mailFacade"),
+	entityClient: token<EntityClient>("entityClient"),
+	entityRestInterface: token<EntityRestInterface>("entityRestInterface"),
+	mailModel: token<MailModel>("mailModel"),
+	workerInterface: token<WorkerInterface>("workerInterface"),
+	postLoginActions: token<IPostLoginAction>("postLoginActions"),
+	credentialsProvider: token<CredentialsProvider>("credentialsProvider"),
+	secondFactorHandler: token<SecondFactorHandler>("secondFactorHandler"),
+	credentialEncryption: token<CredentialsEncryption>("credentialsEncryption"),
+	credentialsStorage: token<CredentialsStorage>("credentialsStorage"),
+	credentialsKeyMigrator: token<CredentialsKeyMigrator>("credentialsKeyMigrator"),
+	sqlCipherFacade: token<SqlCipherFacade>("sqlCipherFacade"),
+	interWindowEventSender: token<InterWindowEventFacadeSendDispatcher>("interWindowEventFacadeSendDispatcher"),
+	databaseKeyFactory: token<DatabaseKeyFactory>("databaseKeyFactory"),
+	sqliteCipherFacade: token<SqlCipherFacade>("sqliteCipherFacade"),
+	credentialsKeyProvider: token<CredentialsKeyProvider>("credentialsKeyProvider"),
+	deviceEncryptionFacade: token<DeviceEncryptionFacade>("deviceEncryptionFacade"),
+	sqlcipherFacade: token<SqlCipherFacade>("sqlcipherFacade"),
+	nativeCredentialsFacade: token<NativeCredentialsFacade>("nativeCredentialsFacade"),
+}
+
+const container = new Container()
+container.bind(TOKENS.loginController)
+		 .toConstant(logins)
+container.bind(TOKENS.notifications)
+		 .toConstant(notifications)
+container.bind(TOKENS.eventController)
+		 .toInstance(injected(EventController, TOKENS.loginController))
+		 .inSingletonScope()
+container.bind(TOKENS.entityRestInterface)
+		 .toInstance(injected((worker: WorkerInterface) => worker.restInterface, TOKENS.workerInterface))
+		 .inTransientScope()
+container.bind(TOKENS.mailFacade)
+		 .toInstance(injected((worker: WorkerInterface) => worker.mailFacade, TOKENS.workerInterface))
+		 .inTransientScope()
+container.bind(TOKENS.entityClient)
+		 .toInstance(injected(EntityClient, TOKENS.entityRestInterface))
+		 .inTransientScope()
+container.bind(TOKENS.mailModel)
+		 .toInstance(injected(MailModel, TOKENS.notifications, TOKENS.eventController, TOKENS.worker, TOKENS.mailFacade, TOKENS.entityClient))
+		 .inSingletonScope()
+
+if (usingKeychainAuthentication()) {
+	container
+		.bind(TOKENS.credentialEncryption)
+		.toInstance(injected(NativeCredentialsEncryption, TOKENS.credentialsKeyProvider, TOKENS.deviceEncryptionFacade, TOKENS.nativeCredentialsFacade))
+		.inSingletonScope()
+} else {
+	container
+		.bind(TOKENS.credentialEncryption)
+		.toInstance(NoopCredentialsEncryption)
+		.inTransientScope()
+}
+
+container.bind(TOKENS.credentialsProvider)
+		 .toInstance(injected(
+			 CredentialsProvider,
+			 TOKENS.credentialEncryption,
+			 TOKENS.credentialsStorage,
+			 TOKENS.credentialsKeyMigrator,
+			 TOKENS.databaseKeyFactory,
+			 TOKENS.sqliteCipherFacade.optional,
+			 TOKENS.interWindowEventSender.optional,
+		 ))
+		 .inSingletonScope()
+container.bind(TOKENS.postLoginActions)
+		 .toInstance(injected(PostLoginActions, TOKENS.credentialsProvider, TOKENS.secondFactorHandler))
+		 .inSingletonScope()
+
 
 // We use interface here mostly to make things readonly from the outside.
 export interface IMainLocator {
@@ -241,6 +324,7 @@ class MainLocator implements IMainLocator {
 		// We would like to do both on normal init but on HMR we just want to replace modules without a new worker. If we create a new
 		// worker we end up losing state on the worker side (including our session).
 		this.worker = bootstrapWorker(this)
+		container.bind(TOKENS.worker).toConstant(this.worker)
 		await this._createInstances()
 		this._entropyCollector = new EntropyCollector(this.worker)
 
@@ -294,7 +378,7 @@ class MainLocator implements IMainLocator {
 		this.contactFormFacade = contactFormFacade
 		this.deviceEncryptionFacade = deviceEncryptionFacade
 		this.serviceExecutor = serviceExecutor
-		this.eventController = new EventController(logins)
+		this.eventController = container.get(TOKENS.eventController)
 		this.progressTracker = new ProgressTracker()
 		this.search = new SearchModel(this.searchFacade)
 		this.entityClient = new EntityClient(restInterface)
@@ -343,7 +427,8 @@ class MainLocator implements IMainLocator {
 			this.nativeInterfaces?.native ?? null,
 			isDesktop() ? this.interWindowEventSender : null
 		)
-		this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient)
+		// this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient)
+		this.mailModel = container.get(TOKENS.mailModel)
 		this.random = random
 
 		this.usageTestModel = new UsageTestModel(

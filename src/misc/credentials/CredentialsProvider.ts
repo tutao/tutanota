@@ -115,8 +115,8 @@ export class CredentialsProvider {
 		private readonly storage: CredentialsStorage,
 		private readonly keyMigrator: CredentialsKeyMigrator,
 		private readonly databaseKeyFactory: DatabaseKeyFactory,
-		private readonly sqliteCipherFacade: SqlCipherFacade | null,
-		private readonly interWindowEventSender: InterWindowEventFacadeSendDispatcher | null,
+		private readonly sqliteCipherFacade?: SqlCipherFacade,
+		private readonly interWindowEventSender?: InterWindowEventFacadeSendDispatcher,
 	) {
 	}
 
