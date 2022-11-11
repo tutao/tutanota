@@ -138,7 +138,11 @@ export class PostLoginActions implements IPostLoginAction {
 		// There should not be a lot of re-rendering at this point since assignments for new tests are usually fetched right after a client version update.
 		locator.usageTestController.setTests(await usageTestModel.loadActiveUsageTests())
 
-		locator.newsModel.loadNewsIds()
+		// Needs to be called after UsageTestModel.init() if the UsageOptInNews is live! (its isShown() requires an initialized UsageTestModel)
+		await locator.newsModel.loadNewsIds()
+
+		// Redraw to render usage tests and news, among other things that may have changed.
+		m.redraw()
 	}
 
 	private deactivateOutOfOfficeNotification(notification: OutOfOfficeNotification): Promise<void> {
