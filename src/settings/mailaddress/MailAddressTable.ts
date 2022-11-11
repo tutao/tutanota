@@ -12,14 +12,13 @@ import * as EmailAliasOptionsDialog from "../../subscription/EmailAliasOptionsDi
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {ExpanderButton, ExpanderPanel} from "../../gui/base/Expander.js"
-import {attachDropdown} from "../../gui/base/Dropdown.js"
+import {attachDropdown, DropdownButtonAttrs} from "../../gui/base/Dropdown.js"
 import {TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../../api/common/TutanotaConstants.js"
 import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs.js"
 import {assertMainOrNode} from "../../api/common/Env.js"
-import {isTutanotaMailAddress} from "../../mail/model/MailUtils.js";
 import {IconButtonAttrs} from "../../gui/base/IconButton.js"
 import {ButtonSize} from "../../gui/base/ButtonSize.js";
-import {AddressInfo, MailAddressTableModel} from "./MailAddressTableModel.js"
+import {AddressInfo, AddressStatus, MailAddressTableModel} from "./MailAddressTableModel.js"
 
 assertMainOrNode()
 
@@ -179,8 +178,59 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 	}
 }
 
+function aliasActionButton(attrs: MailAddressTableAttrs, addressInfo: AddressInfo): DropdownButtonAttrs[] {
+	if (!attrs.model.userCanModifyAliases()) {
+		return []
+	}
+	switch (addressInfo.status) {
+		case AddressStatus.Primary:
+			return []
+		case AddressStatus.Alias:
+			return [
+				{
+					label: "deactivate_action",
+					click: () => {
+						switchAliasStatus(addressInfo, attrs)
+					},
+				}
+			]
+		case AddressStatus.DisabledAlias:
+			return [
+				{
+					label: "activate_action",
+					click: () => {
+						switchAliasStatus(addressInfo, attrs)
+					},
+				}
+			]
+		case AddressStatus.Custom:
+			return [
+				{
+					label: "delete_action",
+					click: () => {
+						switchAliasStatus(addressInfo, attrs)
+					},
+				}
+			]
+	}
+}
+
+function statusLabel(addressInfo: AddressInfo): string {
+	switch (addressInfo.status) {
+		case AddressStatus.Primary:
+			// FIXME
+			return "Primary"
+		case AddressStatus.Alias:
+		case AddressStatus.Custom:
+			return lang.get("activated_label")
+		case AddressStatus.DisabledAlias:
+			return lang.get("deactivated_label")
+
+	}
+}
+
 export function getAliasLineAttrs(attrs: MailAddressTableAttrs): Array<TableLineAttrs> {
-	return attrs.model.addresses().map(alias => {
+	return attrs.model.addresses().map(addressInfo => {
 		const actionButtonAttrs: IconButtonAttrs = attachDropdown(
 			{
 				mainButtonAttrs: {
@@ -194,65 +244,41 @@ export function getAliasLineAttrs(attrs: MailAddressTableAttrs): Array<TableLine
 					{
 						// FIXME
 						label: () => "Set name",
-						click: () => showSenderNameChangeDialog(attrs.model, alias)
+						click: () => showSenderNameChangeDialog(attrs.model, addressInfo)
 					},
-					attrs.model.userCanModifyAliases()
-						? (alias.enabled)
-							? {
-								label: isTutanotaMailAddress(alias.address) ? "deactivate_action" : "delete_action",
-								click: () => {
-									if (alias.enabled) {
-										switchAliasStatus(alias, attrs)
-									}
-								},
-							}
-							: {
-								label: "activate_action",
-								click: () => {
-									if (!alias.enabled) {
-										switchAliasStatus(alias, attrs)
-									}
-								},
-							}
-						: null,
-
+					...aliasActionButton(attrs, addressInfo)
 				],
 			},
 		)
 		return {
 			cells: () => [
-				{main: alias.address, info: [alias.name]},
-				{main: alias.enabled ? lang.get("activated_label") : lang.get("deactivated_label")},
+				{main: addressInfo.address, info: [addressInfo.name]},
+				{main: statusLabel(addressInfo)},
 			],
 			actionButtonAttrs: actionButtonAttrs,
 		}
 	})
 }
 
-function switchAliasStatus(alias: AddressInfo, attrs: MailAddressTableAttrs) {
-	let restore = !alias.enabled
-	let promise = Promise.resolve(true)
+async function switchAliasStatus(alias: AddressInfo, attrs: MailAddressTableAttrs) {
+	const message: TranslationKey = (alias.status === AddressStatus.Alias) ? "deactivateAlias_msg" : "deleteAlias_msg"
+	const confirmed = await Dialog.confirm(() =>
+		lang.get(message, {
+			"{1}": alias.address,
+		}),
+	)
 
-	if (!restore) {
-		const message: TranslationKey = isTutanotaMailAddress(alias.address) ? "deactivateAlias_msg" : "deleteAlias_msg"
-		promise = Dialog.confirm(() =>
-			lang.get(message, {
-				"{1}": alias.address,
-			}),
-		)
+	if (!confirmed) {
+		return
 	}
 
-	promise.then(confirmed => {
-		if (confirmed) {
-			let p = attrs.model.setAliasStatus(alias.address, restore)
-						 .catch(
-							 ofClass(LimitReachedError, e => {
-								 Dialog.message("adminMaxNbrOfAliasesReached_msg")
-							 }),
-						 )
-			showProgressDialog("pleaseWait_msg", p)
-		}
-	})
+	const restore = alias.status === AddressStatus.DisabledAlias
+	const p = attrs.model.setAliasStatus(alias.address, restore)
+				   .catch(ofClass(LimitReachedError, () => {
+						   Dialog.message("adminMaxNbrOfAliasesReached_msg")
+					   }),
+				   )
+	await showProgressDialog("pleaseWait_msg", p)
 }
 
 function showSenderNameChangeDialog(model: MailAddressTableModel, alias: {address: string, name: string}) {

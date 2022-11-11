@@ -7,16 +7,25 @@ import {EntityUpdateData, EventController, isUpdateFor, isUpdateForTypeRef} from
 import {OperationType} from "../../api/common/TutanotaConstants.js"
 import {getAvailableDomains} from "./MailAddressesUtils.js"
 import {CustomerInfoTypeRef, GroupInfo, GroupInfoTypeRef} from "../../api/entities/sys/TypeRefs.js"
+import {assertNotNull} from "@tutao/tutanota-utils"
+import {isTutanotaMailAddress} from "../../mail/model/MailUtils.js"
 
 export interface AliasCount {
 	availableToCreate: number
 	availableToEnable: number
 }
 
+export enum AddressStatus {
+	Primary,
+	Alias,
+	DisabledAlias,
+	Custom,
+}
+
 export interface AddressInfo {
 	name: string
 	address: string
-	enabled: boolean
+	status: AddressStatus
 }
 
 export type AddressToName = Map<string, string>
@@ -65,16 +74,33 @@ export class MailAddressTableModel {
 		if (nameMappings == null) {
 			return []
 		}
-		return this.userGroupInfo.mailAddressAliases
-				   .slice()
-				   .sort((a, b) => (a.mailAddress > b.mailAddress ? 1 : -1))
-				   .map(({mailAddress, enabled}) => {
-					   return {
-						   name: nameMappings.get(mailAddress) ?? "",
-						   address: mailAddress,
-						   enabled: enabled,
-					   }
-				   })
+
+		const primaryAddress = assertNotNull(this.userGroupInfo.mailAddress)
+		const primaryAddressInfo = {
+			name: nameMappings.get(primaryAddress) ?? "",
+			address: primaryAddress,
+			status: AddressStatus.Primary,
+		}
+
+		const aliasesInfo = this.userGroupInfo.mailAddressAliases
+								.slice()
+								.sort((a, b) => (a.mailAddress > b.mailAddress ? 1 : -1))
+								.map(({mailAddress, enabled}) => {
+									const status =
+										// O(aliases * TUTANOTA_MAIL_ADDRESS_DOMAINS)
+										(isTutanotaMailAddress(mailAddress))
+											? (enabled)
+												? AddressStatus.Alias
+												: AddressStatus.DisabledAlias
+											: AddressStatus.Custom
+
+									return {
+										name: nameMappings.get(mailAddress) ?? "",
+										address: mailAddress,
+										status,
+									}
+								})
+		return [primaryAddressInfo, ...aliasesInfo]
 	}
 
 	aliasCount(): AliasCount | null {
