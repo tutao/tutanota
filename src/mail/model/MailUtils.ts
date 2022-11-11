@@ -34,15 +34,7 @@ assertMainOrNode()
 export const LINE_BREAK = "<br>"
 
 export function isTutanotaMailAddress(mailAddress: string): boolean {
-	var tutanotaDomains = TUTANOTA_MAIL_ADDRESS_DOMAINS
-
-	for (var i = 0; i < tutanotaDomains.length; i++) {
-		if (mailAddress.endsWith("@" + tutanotaDomains[i])) {
-			return true
-		}
-	}
-
-	return false
+	return TUTANOTA_MAIL_ADDRESS_DOMAINS.some((tutaDomain) => mailAddress.endsWith("@" + tutaDomain))
 }
 
 /**
@@ -308,8 +300,8 @@ export function emptyOrContainsDraftsAndNonDrafts(mails: ReadonlyArray<Mail>): b
  * @param folder
  */
 export function allMailsAllowedInsideFolder(mails: ReadonlyArray<Mail>, folder: MailFolder): boolean {
-	for(const mail of mails) {
-		if(!mailStateAllowedInsideFolderType(mail.state, folder.folderType)) {
+	for (const mail of mails) {
+		if (!mailStateAllowedInsideFolderType(mail.state, folder.folderType)) {
 			return false
 		}
 	}
@@ -322,10 +314,9 @@ export function allMailsAllowedInsideFolder(mails: ReadonlyArray<Mail>, folder: 
  * @param folderType
  */
 export function mailStateAllowedInsideFolderType(mailState: string, folderType: string) {
-	if(mailState === MailState.DRAFT) {
+	if (mailState === MailState.DRAFT) {
 		return folderType === MailFolderType.DRAFT || folderType === MailFolderType.TRASH
-	}
-	else {
+	} else {
 		return folderType !== MailFolderType.DRAFT
 	}
 }
