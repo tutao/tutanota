@@ -222,6 +222,7 @@ export async function showCalendarEventDialog(
 		if (organizer != null && guests.length > 0 && !guests.some(guest => guest.address.address === organizer.address)) {
 			guests.unshift({
 				address: createEncryptedMailAddress({
+					name: organizer.name,
 					address: organizer.address,
 				}),
 				type: RecipientType.EXTERNAL,
