@@ -28,12 +28,15 @@ export class UsageTest {
 		return this.lastCompletedStage > ASSIGNMENT_STAGE
 	}
 
-	getStage(stageNum: number): Stage {
-		if (!this.stages.has(stageNum)) {
-			throw new Error(`Stage ${stageNum} is not registered`)
+	getStage(stageNum: number) {
+		const stage = this.stages.get(stageNum)
+
+		if (!stage) {
+			console.log(`Stage ${stageNum} is not registered, meaning that test '${this.testName}' is likely misconfigured`)
+			return new ObsoleteStage(0, this)
 		}
 
-		return this.stages.get(stageNum)!
+		return stage
 	}
 
 	addStage(stage: Stage): Stage {
@@ -62,7 +65,7 @@ export class UsageTest {
 			return false
 		}
 
-		console.log(`Completing stage: ${stage.number}, variant: ${this.variant}`)
+		console.log(`Test '${this.testName}': Completing stage ${stage.number}, variant ${this.variant}`)
 		this.lastCompletedStage = stage.number === (this.stages.size - 1) ? ASSIGNMENT_STAGE : stage.number
 		await this.pingAdapter.sendPing(this, stage)
 
