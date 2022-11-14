@@ -1,12 +1,15 @@
 import type {BookingItemFeatureType} from "../api/common/TutanotaConstants"
-import {PaymentMethodType} from "../api/common/TutanotaConstants"
+import {AccountType, Const, PaymentMethodType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel"
 import {neverNull} from "@tutao/tutanota-utils"
-import type {AccountingInfo} from "../api/entities/sys/TypeRefs.js"
-import type {PriceData} from "../api/entities/sys/TypeRefs.js"
-import type {PriceItemData} from "../api/entities/sys/TypeRefs.js"
-import type {Booking} from "../api/entities/sys/TypeRefs.js"
-import {getPlanPrices, SubscriptionType, UpgradePriceType, WebsitePlanPrices} from "./SubscriptionDataProvider";
+import type {AccountingInfo, Booking, PriceData, PriceItemData} from "../api/entities/sys/TypeRefs.js"
+import {createUpgradePriceServiceData, Customer, CustomerInfo, UpgradePriceServiceReturn} from "../api/entities/sys/TypeRefs.js"
+import {SubscriptionConfig, SubscriptionPlanPrices, SubscriptionType, UpgradePriceType, WebsitePlanPrices} from "./SubscriptionDataProvider"
+import {locator} from "../api/main/MainLocator"
+import {UpgradePriceService} from "../api/entities/sys/Services"
+import {getTotalAliases, getTotalStorageCapacity, hasAllFeaturesInPlan, isBusinessFeatureActive, isSharingActive, isWhitelabelActive} from "./SubscriptionUtils"
+import {IServiceExecutor} from "../api/common/ServiceRequest"
+import {ConnectionError} from "../api/common/error/RestError"
 
 export function getPaymentMethodName(paymentMethod: PaymentMethodType): string {
 	if (paymentMethod === PaymentMethodType.Invoice) {
@@ -46,50 +49,9 @@ export function formatPrice(value: number, includeCurrency: boolean): string {
 	if (includeCurrency) {
 		return value % 1 !== 0 ? lang.formats.priceWithCurrency.format(value) : lang.formats.priceWithCurrencyWithoutFractionDigits.format(value)
 	} else {
-		return value % 1 !== 0 ? lang.formats.priceWithoutCurrency.format(value) : lang.formats.priceWithoutCurrencyWithoutFractionDigits.format(value)
-	}
-}
-
-export function getSubscriptionPrice(
-	paymentInterval: number,
-	subscription: SubscriptionType,
-	type: UpgradePriceType
-): number {
-	if (subscription === SubscriptionType.Free) return 0
-	return paymentInterval === 12
-		? getYearlySubscriptionPrice(subscription, type)
-		: getMonthlySubscriptionPrice(subscription, type)
-}
-
-export function getYearlySubscriptionPrice(
-	subscription: SubscriptionType,
-	upgrade: UpgradePriceType
-): number {
-	const prices = getPlanPrices(subscription)
-	const monthlyPrice = getPriceForUpgradeType(upgrade, prices)
-	const discount = Number(prices.firstYearDiscount)
-	return (monthlyPrice * 10) / 12 - discount
-}
-
-export function getMonthlySubscriptionPrice(
-	subscription: SubscriptionType,
-	upgrade: UpgradePriceType
-): number {
-	const prices = getPlanPrices(subscription)
-	return getPriceForUpgradeType(upgrade, prices)
-}
-
-function getPriceForUpgradeType(upgrade: UpgradePriceType, prices: WebsitePlanPrices): number {
-	switch (upgrade) {
-		case UpgradePriceType.PlanReferencePrice:
-			return Number(prices.monthlyReferencePrice)
-		case UpgradePriceType.PlanActualPrice:
-		case UpgradePriceType.PlanNextYearsPrice:
-			return Number(prices.monthlyPrice)
-		case UpgradePriceType.AdditionalUserPrice:
-			return Number(prices.additionalUserPriceMonthly)
-		case UpgradePriceType.ContactFormPrice:
-			return Number(prices.contactFormPriceMonthly)
+		return value % 1 !== 0
+			? lang.formats.priceWithoutCurrency.format(value)
+			: lang.formats.priceWithoutCurrencyWithoutFractionDigits.format(value)
 	}
 }
 
@@ -145,4 +107,162 @@ export function getCurrentCount(featureType: BookingItemFeatureType, booking: Bo
 	} else {
 		return 0
 	}
+}
+
+
+const SUBSCRIPTION_CONFIG_RESOURCE_URL = "https://tutanota.com/resources/data/subscriptions.json"
+
+export interface PriceAndConfigProvider {
+	getSubscriptionPrice(paymentInterval: number, subscription: SubscriptionType, type: UpgradePriceType): number
+
+	getRawPricingData(): UpgradePriceServiceReturn
+
+	getSubscriptionConfig(targetSubscription: SubscriptionType): SubscriptionConfig
+
+	getSubscriptionType(lastBooking: Booking | null, customer: Customer, customerInfo: CustomerInfo): SubscriptionType
+}
+
+export async function getPricesAndConfigProvider(registrationDataId: string | null, serviceExecutor: IServiceExecutor = locator.serviceExecutor): Promise<PriceAndConfigProvider> {
+	const priceDataProvider = new PriceAndConfigProviderImpl()
+	await priceDataProvider.init(registrationDataId, serviceExecutor)
+	return priceDataProvider
+}
+
+class PriceAndConfigProviderImpl implements PriceAndConfigProvider {
+	private upgradePriceData: UpgradePriceServiceReturn | null = null
+	private planPrices: SubscriptionPlanPrices | null = null
+
+	private possibleSubscriptionList: { [K in SubscriptionType]: SubscriptionConfig } | null = null
+
+	async init(registrationDataId: string | null, serviceExecutor: IServiceExecutor): Promise<void> {
+		const data = createUpgradePriceServiceData({
+			date: Const.CURRENT_DATE,
+			campaign: registrationDataId,
+		})
+		this.upgradePriceData = await serviceExecutor.get(UpgradePriceService, data)
+		this.planPrices = {
+			Premium: this.upgradePriceData.premiumPrices,
+			PremiumBusiness: this.upgradePriceData.premiumBusinessPrices,
+			Teams: this.upgradePriceData.teamsPrices,
+			TeamsBusiness: this.upgradePriceData.teamsBusinessPrices,
+			Pro: this.upgradePriceData.proPrices,
+		}
+
+		if ("undefined" === typeof fetch) return
+		try {
+			this.possibleSubscriptionList = await (await fetch(SUBSCRIPTION_CONFIG_RESOURCE_URL)).json()
+		} catch (e) {
+			console.log("failed to fetch subscription list:", e)
+			throw new ConnectionError("failed to fetch subscription list")
+		}
+	}
+
+	getSubscriptionPrice(
+		paymentInterval: number,
+		subscription: SubscriptionType,
+		type: UpgradePriceType
+	): number {
+		if (subscription === SubscriptionType.Free) return 0
+		return paymentInterval === 12
+			? this.getYearlySubscriptionPrice(subscription, type)
+			: this.getMonthlySubscriptionPrice(subscription, type)
+	}
+
+	getRawPricingData(): UpgradePriceServiceReturn {
+		return this.upgradePriceData!
+	}
+
+	getSubscriptionConfig(targetSubscription: SubscriptionType): SubscriptionConfig {
+		return this.possibleSubscriptionList![targetSubscription]
+	}
+
+	getSubscriptionType(lastBooking: Booking | null, customer: Customer, customerInfo: CustomerInfo): SubscriptionType {
+
+		if (customer.type !== AccountType.PREMIUM) {
+			return SubscriptionType.Free
+		}
+
+		const currentSubscription = {
+			nbrOfAliases: getTotalAliases(customer, customerInfo, lastBooking),
+			orderNbrOfAliases: getTotalAliases(customer, customerInfo, lastBooking),
+			// dummy value
+			storageGb: getTotalStorageCapacity(customer, customerInfo, lastBooking),
+			orderStorageGb: getTotalStorageCapacity(customer, customerInfo, lastBooking),
+			// dummy value
+			sharing: isSharingActive(lastBooking),
+			business: isBusinessFeatureActive(lastBooking),
+			whitelabel: isWhitelabelActive(lastBooking),
+		}
+		const foundPlan = descendingSubscriptionOrder().find(plan => hasAllFeaturesInPlan(currentSubscription, this.getSubscriptionConfig(plan)))
+		return foundPlan || SubscriptionType.Premium
+	}
+
+	private getYearlySubscriptionPrice(
+		subscription: SubscriptionType,
+		upgrade: UpgradePriceType
+	): number {
+		const prices = this.getPlanPrices(subscription)
+		const monthlyPrice = getPriceForUpgradeType(upgrade, prices)
+		const monthsFactor = upgrade === UpgradePriceType.PlanReferencePrice
+			? 12
+			: 10
+		const discount = upgrade === UpgradePriceType.PlanActualPrice
+			? Number(prices.firstYearDiscount)
+			: 0
+		return (monthlyPrice * monthsFactor) - discount
+	}
+
+	private getMonthlySubscriptionPrice(
+		subscription: SubscriptionType,
+		upgrade: UpgradePriceType
+	): number {
+		const prices = this.getPlanPrices(subscription)
+		return getPriceForUpgradeType(upgrade, prices)
+	}
+
+	private getPlanPrices(subscription: SubscriptionType): WebsitePlanPrices {
+		if (subscription === SubscriptionType.Free) {
+			return {
+				"additionalUserPriceMonthly": "0",
+				"contactFormPriceMonthly": "0",
+				"firstYearDiscount": "0",
+				"monthlyPrice": "0",
+				"monthlyReferencePrice": "0"
+			}
+		}
+		return this.planPrices![subscription]
+	}
+}
+
+function getPriceForUpgradeType(upgrade: UpgradePriceType, prices: WebsitePlanPrices): number {
+	switch (upgrade) {
+		case UpgradePriceType.PlanReferencePrice:
+			return Number(prices.monthlyReferencePrice)
+		case UpgradePriceType.PlanActualPrice:
+		case UpgradePriceType.PlanNextYearsPrice:
+			return Number(prices.monthlyPrice)
+		case UpgradePriceType.AdditionalUserPrice:
+			return Number(prices.additionalUserPriceMonthly)
+		case UpgradePriceType.ContactFormPrice:
+			return Number(prices.contactFormPriceMonthly)
+	}
+}
+
+function descendingSubscriptionOrder(): Array<SubscriptionType> {
+	return [
+		SubscriptionType.Pro,
+		SubscriptionType.TeamsBusiness,
+		SubscriptionType.Teams,
+		SubscriptionType.PremiumBusiness,
+		SubscriptionType.Premium,
+	]
+}
+
+/**
+ * Returns true if the targetSubscription plan is considered to be a lower (~ cheaper) subscription plan
+ * Is based on the order of business and non-business subscriptions as defined in descendingSubscriptionOrder
+ */
+export function isSubscriptionDowngrade(targetSubscription: SubscriptionType, currentSubscription: SubscriptionType): boolean {
+	const order = descendingSubscriptionOrder()
+	return order.indexOf(targetSubscription) > order.indexOf(currentSubscription)
 }

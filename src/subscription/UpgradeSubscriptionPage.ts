@@ -14,7 +14,6 @@ import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialog.js"
 import {DefaultAnimationTime} from "../gui/animation/Animations"
 import {Keys} from "../api/common/TutanotaConstants"
 import {Checkbox} from "../gui/base/Checkbox.js"
-import {getSubscriptionPrice} from "./PriceUtils"
 import {locator} from "../api/main/MainLocator"
 import {UsageTest} from "@tutao/tutanota-usagetests"
 import {SubscriptionType, UpgradePriceType} from "./SubscriptionDataProvider"
@@ -70,7 +69,6 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 				campaignInfoTextId: data.campaignInfoTextId,
 				boxWidth: 230,
 				boxHeight: 270,
-				planPrices: data.planPrices,
 				isInitialUpgrade: data.upgradeType !== UpgradeType.Switch,
 				currentSubscriptionType: data.currentSubscription,
 				currentlySharingOrdered: false,
@@ -78,6 +76,8 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 				currentlyWhitelabelOrdered: false,
 				orderedContactForms: 0,
 				actionButtons: subscriptionActionButtons,
+				subscriptionDataProvider: vnode.attrs.data.subscriptionDataProvider,
+				priceAndConfigProvider: vnode.attrs.data.planPrices
 			}),
 		])
 	}
@@ -168,8 +168,9 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			this.__signupPaidTest.getStage(0).complete()
 		}
 		data.type = subscriptionType
-		data.price = String(getSubscriptionPrice(data.options.paymentInterval(), data.type, UpgradePriceType.PlanActualPrice))
-		let nextYear = String(getSubscriptionPrice(data.options.paymentInterval(), data.type, UpgradePriceType.PlanNextYearsPrice))
+		const {planPrices, options} = data
+		data.price = String(planPrices.getSubscriptionPrice(options.paymentInterval(), data.type, UpgradePriceType.PlanActualPrice))
+		let nextYear = String(planPrices.getSubscriptionPrice(options.paymentInterval(), data.type, UpgradePriceType.PlanNextYearsPrice))
 		data.priceNextYear = data.price !== nextYear ? nextYear : null
 		this.showNextPage()
 	}

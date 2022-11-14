@@ -1,15 +1,46 @@
 import Stream from "mithril/stream";
 import {PlanPrices} from "../api/entities/sys/TypeRefs"
-import {ProgrammingError} from "../api/common/error/ProgrammingError"
 import {TranslationKey} from "../misc/LanguageViewModel"
-import {formatPrice, getSubscriptionPrice} from "./PriceUtils"
 
 const FEATURE_LIST_RESOURCE_URL = "https://tutanota.com/resources/data/features.json"
-const SUBSCRIPTION_CONFIG_RESOURCE_URL = "https://tutanota.com/resources/data/subscriptions.json"
-const PRICES_RESOURCE_URL = "https://tutanota.com/resources/data/prices.json"
+let dataProvider: SubscriptionDataProviderImpl | null = null
 
-let subscriptionFeatureList: FeatureLists | null = null
-let possibleSubscriptionList: { [K in SubscriptionType]: SubscriptionConfig } | null = null
+export interface SubscriptionDataProvider {
+	getSubscriptionFeatures(targetSubscription: SubscriptionType): FeatureLists[SubscriptionType]
+
+	featureLoadingDone(): boolean
+}
+
+export async function getSubscriptionDataProvider(): Promise<SubscriptionDataProvider> {
+	if (dataProvider == null) {
+		dataProvider = new SubscriptionDataProviderImpl()
+		await dataProvider.init()
+	}
+	return dataProvider
+}
+
+class SubscriptionDataProviderImpl implements SubscriptionDataProvider {
+
+	private subscriptionFeatureList: FeatureLists | null = null
+
+	async init(): Promise<void> {
+		if ("undefined" === typeof fetch) return
+		this.subscriptionFeatureList = await resolveOrNull(
+			() => fetch(FEATURE_LIST_RESOURCE_URL).then(r => r.json()),
+			e => console.log("failed to fetch feature list:", e)
+		)
+	}
+
+	getSubscriptionFeatures(targetSubscription: SubscriptionType): FeatureLists[SubscriptionType] {
+		return this.subscriptionFeatureList == null
+			? {features: [], subtitle: "emptyString_msg"}
+			: this.subscriptionFeatureList[targetSubscription]
+	}
+
+	featureLoadingDone(): boolean {
+		return this.subscriptionFeatureList != null
+	}
+}
 
 /**
  * tutanota-3 has a typeRef for plan prices, while the web site defines the type with only
@@ -22,25 +53,6 @@ export type WebsitePlanPrices = Pick<PlanPrices,
 	"monthlyPrice" |
 	"monthlyReferencePrice">
 
-let planPrices: { [K in SubscriptionType]: WebsitePlanPrices } | null = null
-
-;(async function initializeData(): Promise<void> {
-	if("undefined" === typeof fetch) return
-	subscriptionFeatureList = await resolveOrNull(
-		() => fetch(FEATURE_LIST_RESOURCE_URL).then(r => r.json()),
-		e => console.log("failed to fetch subscription list:", e)
-	)
-	possibleSubscriptionList = await resolveOrNull(
-		() => fetch(SUBSCRIPTION_CONFIG_RESOURCE_URL).then(r => r.json()),
-		e => console.log("failed to fetch subscription config", e)
-	)
-
-	planPrices = await resolveOrNull(
-		() => fetch(PRICES_RESOURCE_URL).then(r => r.json()),
-		e => console.log("failed to fetch prices", e)
-	)
-})()
-
 async function resolveOrNull<T>(fn: () => Promise<T>, handler: (a: Error) => void): Promise<T | null> {
 	try {
 		return await fn()
@@ -48,35 +60,6 @@ async function resolveOrNull<T>(fn: () => Promise<T>, handler: (a: Error) => voi
 		handler(e)
 		return null
 	}
-}
-
-export function featureLoadingDone(): boolean {
-	return subscriptionFeatureList == null
-}
-
-export function getSubscriptionFeatures(targetSubscription: SubscriptionType): FeatureLists[SubscriptionType] {
-	if (subscriptionFeatureList == null) {
-		return {
-			subtitle: "emptyString_msg",
-			features: []
-		}
-	}
-	return subscriptionFeatureList[targetSubscription]
-}
-
-export function getSubscriptionConfig(targetSubscription: SubscriptionType): SubscriptionConfig {
-	if (possibleSubscriptionList == null) {
-		return {
-			nbrOfAliases: 0,
-			orderNbrOfAliases: 0,
-			storageGb: 0,
-			orderStorageGb: 0,
-			sharing: false,
-			business: false,
-			whitelabel: false,
-		}
-	}
-	return possibleSubscriptionList[targetSubscription]
 }
 
 export type SelectedSubscriptionOptions = {
@@ -164,33 +147,10 @@ export type SubscriptionPlanPrices = {
 	Pro: PlanPrices
 }
 
-export function getPlanPrices(subscription: SubscriptionType): WebsitePlanPrices {
-	if (planPrices == null) {
-		return {
-			"additionalUserPriceMonthly": "",
-			"contactFormPriceMonthly": "",
-			"firstYearDiscount": "",
-			"monthlyPrice": "",
-			"monthlyReferencePrice": "",
-		}
-	}
-	const ret = planPrices[subscription]
-	if (ret == null) throw new ProgrammingError(`plan ${subscription} is not valid!`)
-	return ret
-}
-
 export const enum UpgradePriceType {
 	PlanReferencePrice = "0",
 	PlanActualPrice = "1",
 	PlanNextYearsPrice = "2",
 	AdditionalUserPrice = "3",
 	ContactFormPrice = "4",
-}
-
-export function getFormattedSubscriptionPrice(
-	paymentInterval: number,
-	subscription: SubscriptionType,
-	type: UpgradePriceType
-): string {
-	return formatPrice(getSubscriptionPrice(paymentInterval, subscription, type), true)
 }

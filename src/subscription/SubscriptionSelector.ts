@@ -5,16 +5,13 @@ import type {BuyOptionBoxAttr} from "./BuyOptionBox"
 import {BOX_MARGIN, BuyOptionBox, getActiveSubscriptionActionButtonReplacement} from "./BuyOptionBox"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
-import {formatMonthlyPrice, getSubscriptionPrice, isYearlyPayment} from "./PriceUtils"
+import {formatMonthlyPrice, formatPrice, isYearlyPayment, PriceAndConfigProvider} from "./PriceUtils"
 import {
-	FeatureListItem, featureLoadingDone,
+	FeatureListItem,
 	getDisplayNameOfSubscriptionType,
-	getFormattedSubscriptionPrice,
-	getSubscriptionConfig,
-	getSubscriptionFeatures,
 	ReplacementKey,
 	SelectedSubscriptionOptions,
-	SubscriptionPlanPrices,
+	SubscriptionDataProvider,
 	SubscriptionType,
 	UpgradePriceType
 } from "./SubscriptionDataProvider"
@@ -53,7 +50,8 @@ export type SubscriptionSelectorAttr = {
 	currentlyWhitelabelOrdered: boolean
 	orderedContactForms: number
 	isInitialUpgrade: boolean
-	planPrices: SubscriptionPlanPrices
+	subscriptionDataProvider: SubscriptionDataProvider,
+	priceAndConfigProvider: PriceAndConfigProvider,
 }
 
 export function getActionButtonBySubscription(actionButtons: SubscriptionActionButtons, subscription: SubscriptionType): Component {
@@ -83,7 +81,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		// Add BuyOptionBox margin twice to the boxWidth received
 		const columnWidth = vnode.attrs.boxWidth + BOX_MARGIN * 2
 		const inMobileView: boolean | null = this.containerDOM && this.containerDOM.clientWidth < columnWidth * 2
-		const featureExpander = this.renderFeatureExpanders(inMobileView) // renders all feature expanders, both for every single subscription option but also for the whole list
+		const featureExpander = this.renderFeatureExpanders(inMobileView, vnode.attrs.subscriptionDataProvider) // renders all feature expanders, both for every single subscription option but also for the whole list
 		let additionalInfo: Children
 
 		if (vnode.attrs.options.businessUse()) {
@@ -148,7 +146,8 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 
 	private getCurrentPlanInfo(selectorAttrs: SubscriptionSelectorAttr): string | null {
 		if (selectorAttrs.options.businessUse() && selectorAttrs.currentSubscriptionType && !selectorAttrs.currentlyBusinessOrdered) {
-			const price = getSubscriptionPrice(selectorAttrs.options.paymentInterval(), selectorAttrs.currentSubscriptionType, UpgradePriceType.PlanActualPrice)
+			const {priceAndConfigProvider, options, currentSubscriptionType} = selectorAttrs
+			const price = priceAndConfigProvider.getSubscriptionPrice(options.paymentInterval(), currentSubscriptionType, UpgradePriceType.PlanActualPrice)
 			return (
 				lang.get("businessCustomerNeedsBusinessFeaturePlan_msg", {
 					"{price}": formatMonthlyPrice(price, selectorAttrs.options.paymentInterval()),
@@ -163,28 +162,32 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 	}
 
 	private createBuyOptionBoxAttr(selectorAttrs: SubscriptionSelectorAttr, targetSubscription: SubscriptionType): BuyOptionBoxAttr {
-		const subscriptionFeatures = getSubscriptionFeatures(targetSubscription)
+		const {subscriptionDataProvider, priceAndConfigProvider} = selectorAttrs
+		const subscriptionFeatures = subscriptionDataProvider.getSubscriptionFeatures(targetSubscription)
 		const featuresToShow = subscriptionFeatures.features
 												   .filter(f => this.featuresExpanded[targetSubscription] || this.featuresExpanded.All || !f.omit)
-												   .map(f => localizeFeatureListItem(f, targetSubscription, selectorAttrs.options.paymentInterval()))
+												   .map(f => localizeFeatureListItem(f, targetSubscription, selectorAttrs))
 
 		// we only highlight the private Premium box if this is a signup or the current subscription type is Free
 		selectorAttrs.highlightPremium =
 			targetSubscription === SubscriptionType.Premium &&
 			!selectorAttrs.options.businessUse() &&
 			(!selectorAttrs.currentSubscriptionType || selectorAttrs.currentSubscriptionType === SubscriptionType.Free)
+		const subscriptionPrice = priceAndConfigProvider.getSubscriptionPrice(
+			selectorAttrs.options.paymentInterval(),
+			targetSubscription, UpgradePriceType.PlanActualPrice
+		)
 		return {
 			heading: getDisplayNameOfSubscriptionType(targetSubscription),
 			actionButton:
 				selectorAttrs.currentSubscriptionType === targetSubscription
 					? getActiveSubscriptionActionButtonReplacement()
 					: getActionButtonBySubscription(selectorAttrs.actionButtons, targetSubscription),
-			price: getFormattedSubscriptionPrice(
-				selectorAttrs.options.paymentInterval(),
-				targetSubscription,
-				UpgradePriceType.PlanReferencePrice
+			price: formatPrice(subscriptionPrice, true),
+			priceHint: getPriceHint(
+				subscriptionPrice,
+				selectorAttrs.options.paymentInterval()
 			),
-			priceHint: getPriceHint(getSubscriptionPrice(selectorAttrs.options.paymentInterval(), targetSubscription, UpgradePriceType.PlanActualPrice), selectorAttrs.options.paymentInterval()),
 			helpLabel: getHelpLabel(targetSubscription, selectorAttrs.options.businessUse()),
 			features: featuresToShow,
 			width: selectorAttrs.boxWidth,
@@ -201,13 +204,13 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 	 * @param inMobileView
 	 * @private
 	 */
-	private renderFeatureExpanders(inMobileView: boolean | null): Record<ExpanderTargets, Children> {
-		if (featureLoadingDone()) { // were not able to download the feature list
+	private renderFeatureExpanders(inMobileView: boolean | null, subscriptionDataProvider: SubscriptionDataProvider): Record<ExpanderTargets, Children> {
+		if (!subscriptionDataProvider.featureLoadingDone()) { // the feature list is not available
 			return Object.assign({} as Record<ExpanderTargets, Children>)
 		}
 		if (inMobileView) { // In single-column layout every subscription type has its own feature expander.
 			if (this.featuresExpanded.All) {
-				for(const k in this.featuresExpanded) {
+				for (const k in this.featuresExpanded) {
 					this.featuresExpanded[k as ExpanderTargets] = true
 				}
 			}
@@ -221,7 +224,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				All: null
 			}
 		} else {
-			for(const k in this.featuresExpanded) {
+			for (const k in this.featuresExpanded) {
 				this.featuresExpanded[k as ExpanderTargets] = this.featuresExpanded.All // in multi-column layout the specific feature expanders should follow the global one
 			}
 			return Object.assign({} as Record<ExpanderTargets, Children>, {All: this.renderExpander("All")})
@@ -249,9 +252,9 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 function localizeFeatureListItem(
 	item: FeatureListItem,
 	targetSubscription: SubscriptionType,
-	paymentInterval: number
+	attrs: SubscriptionSelectorAttr,
 ): BuyOptionBoxAttr['features'][0] {
-	const text = lang.get(item.text, getReplacement(item.replacements, targetSubscription, paymentInterval))
+	const text = lang.get(item.text, getReplacement(item.replacements, targetSubscription, attrs))
 	if (!item.toolTip) {
 		return {text, key: item.text, antiFeature: item.antiFeature}
 	} else {
@@ -267,16 +270,27 @@ function localizeFeatureListItem(
  * get a string to insert into a translation with a slot.
  * if no key is found, undefined is returned and nothing is replaced.
  */
-export function getReplacement(key: ReplacementKey | undefined, subscription: SubscriptionType, paymentInterval: number) {
+export function getReplacement(key: ReplacementKey | undefined, subscription: SubscriptionType, attrs: SubscriptionSelectorAttr) {
+	const {priceAndConfigProvider, options} = attrs
 	switch (key) {
 		case "pricePerExtraUser":
-			return {"{1}": getFormattedSubscriptionPrice(paymentInterval, subscription, UpgradePriceType.AdditionalUserPrice)}
+			const subscriptionPriceUser = priceAndConfigProvider.getSubscriptionPrice(
+				options.paymentInterval(),
+				subscription,
+				UpgradePriceType.AdditionalUserPrice
+			)
+			return {"{1}": formatPrice(subscriptionPriceUser, true)}
 		case "mailAddressAliases":
-			return {"{amount}": getSubscriptionConfig(subscription).nbrOfAliases}
+			return {"{amount}": priceAndConfigProvider.getSubscriptionConfig(subscription).nbrOfAliases}
 		case "storage":
-			return {"{amount}": getSubscriptionConfig(subscription).storageGb}
+			return {"{amount}": priceAndConfigProvider.getSubscriptionConfig(subscription).storageGb}
 		case "contactForm":
-			return {"{price}": getFormattedSubscriptionPrice(paymentInterval, subscription, UpgradePriceType.ContactFormPrice)}
+			const subscriptionPriceContact = priceAndConfigProvider.getSubscriptionPrice(
+				options.paymentInterval(),
+				subscription,
+				UpgradePriceType.AdditionalUserPrice
+			)
+			return {"{price}": formatPrice(subscriptionPriceContact, true)}
 	}
 }
 

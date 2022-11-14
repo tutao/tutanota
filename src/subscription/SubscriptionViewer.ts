@@ -16,7 +16,7 @@ import {assertNotNull, downcast, incrementDate, neverNull, noOp, ofClass, promis
 import {logins} from "../api/main/LoginController"
 import {lang, TranslationKey} from "../misc/LanguageViewModel"
 import {Icons} from "../gui/base/icons/Icons"
-import {formatPrice, formatPriceDataWithInfo, getCurrentCount} from "./PriceUtils"
+import {formatPrice, formatPriceDataWithInfo, getCurrentCount, getPricesAndConfigProvider} from "./PriceUtils"
 import {formatDate, formatNameAndAddress, formatStorageSize} from "../misc/Formatter"
 import {getByAbbreviation} from "../api/common/CountryList"
 import * as AddUserDialog from "../settings/AddUserDialog"
@@ -33,14 +33,7 @@ import * as SwitchToBusinessInvoiceDataDialog from "./SwitchToBusinessInvoiceDat
 import {NotFoundError} from "../api/common/error/RestError"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import {
-	getSubscriptionType,
-	getTotalAliases,
-	getTotalStorageCapacity,
-	isBusinessFeatureActive,
-	isSharingActive,
-	isWhitelabelActive,
-} from "./SubscriptionUtils"
+import {getTotalAliases, getTotalStorageCapacity, isBusinessFeatureActive, isSharingActive, isWhitelabelActive,} from "./SubscriptionUtils"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import {TextField} from "../gui/base/TextField.js"
 import {Dialog, DialogType} from "../gui/base/Dialog"
@@ -393,110 +386,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._updateBookings()
 	}
 
-	private renderIntervals() {
-		const subscriptionPeriods: SelectorItemList<number | null> = [
-			{
-				name: lang.get("pricing.yearly_label"),
-				value: 12,
-			},
-			{
-				name: lang.get("pricing.monthly_label"),
-				value: 1,
-			},
-			{
-				name: lang.get("loading_msg"),
-				value: null,
-				selectable: false,
-			}
-		]
-		return [
-			m(DropDownSelector, {
-				label: "paymentInterval_label",
-				helpLabel: () => this.getChargeDateText(),
-				items: subscriptionPeriods,
-				selectedValue: this._selectedSubscriptionInterval(),
-				dropdownWidth: 300,
-				selectionChangedHandler: (value: number) => {
-					if (this._accountingInfo) {
-						changeSubscriptionInterval(this._accountingInfo, value, this._periodEndDate)
-					}
-				},
-			}),
-			m(TextField, {
-				label: () =>
-					this._nextPeriodPriceVisible && this._periodEndDate
-						? lang.get("priceTill_label", {
-							"{date}": formatDate(this._periodEndDate),
-						})
-						: lang.get("price_label"),
-				value: this._currentPriceFieldValue(),
-				oninput: this._currentPriceFieldValue,
-				disabled: true,
-				helpLabel: () => this._customer && this._customer.businessUse === true
-					? lang.get("subscriptionPeriodInfoBusiness_msg")
-					: null,
-			})
-		]
-	}
-
-	private renderAgreement() {
-		return m(TextField, {
-			label: "orderProcessingAgreement_label",
-			helpLabel: () => lang.get("orderProcessingAgreementInfo_msg"),
-			value: this._orderAgreementFieldValue(),
-			oninput: this._orderAgreementFieldValue,
-			disabled: true,
-			injectionsRight: () => {
-				if (this._orderAgreement && this._customer && this._customer.orderProcessingAgreementNeeded) {
-					return [
-						this.renderSignProcessingAgreementAction(),
-						this.renderShowProcessingAgreementAction(),
-					]
-				} else if (this._orderAgreement) {
-					return [
-						this.renderShowProcessingAgreementAction()
-					]
-				} else if (this._customer && this._customer.orderProcessingAgreementNeeded) {
-					return [
-						this.renderSignProcessingAgreementAction()
-					]
-				} else {
-					return []
-				}
-			},
-		})
-	}
-
-	private renderShowProcessingAgreementAction() {
-		return m(IconButton, {
-			title: "show_action",
-			click: () =>
-				locator.entityClient
-					   .load(GroupInfoTypeRef, neverNull(this._orderAgreement).signerUserGroupInfo)
-					   .then(signerUserGroupInfo => SignOrderAgreementDialog.showForViewing(neverNull(this._orderAgreement), signerUserGroupInfo)),
-			icon: Icons.Download,
-			size: ButtonSize.Compact,
-		})
-	}
-
-	private renderSignProcessingAgreementAction() {
-		return m(IconButton, {
-			title: "sign_action",
-			click: () => SignOrderAgreementDialog.showForSigning(neverNull(this._customer), neverNull(this._accountingInfo)),
-			icon: Icons.Edit,
-			size: ButtonSize.Compact,
-		})
-	}
-
-	private getChargeDateText(): string {
-		if (this._periodEndDate) {
-			const chargeDate = formatDate(incrementDate(new Date(this._periodEndDate), 1))
-			return lang.get("nextChargeOn_label", {"{chargeDate}": chargeDate})
-		} else {
-			return ""
-		}
-	}
-
 	_showOrderAgreement(): boolean {
 		return (
 			logins.getUserController().isPremiumAccount() &&
@@ -622,11 +511,12 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							  }
 
 							  this._customerInfo = customerInfo
-							  return locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true).then(bookings => {
+							  return locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true).then(async bookings => {
+								  const priceAndConfigProvider = await getPricesAndConfigProvider(null)
 								  this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
 								  this._customer = customer
 								  this._isCancelled = customer.canceledPremiumAccount
-								  this._currentSubscription = getSubscriptionType(this._lastBooking, customer, customerInfo)
+								  this._currentSubscription = priceAndConfigProvider.getSubscriptionType(this._lastBooking, customer, customerInfo)
 
 								  this._updateSubscriptionField(this._isCancelled)
 
@@ -781,6 +671,110 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			})
 		} else {
 			return Promise.resolve()
+		}
+	}
+
+	private renderIntervals() {
+		const subscriptionPeriods: SelectorItemList<number | null> = [
+			{
+				name: lang.get("pricing.yearly_label"),
+				value: 12,
+			},
+			{
+				name: lang.get("pricing.monthly_label"),
+				value: 1,
+			},
+			{
+				name: lang.get("loading_msg"),
+				value: null,
+				selectable: false,
+			}
+		]
+		return [
+			m(DropDownSelector, {
+				label: "paymentInterval_label",
+				helpLabel: () => this.getChargeDateText(),
+				items: subscriptionPeriods,
+				selectedValue: this._selectedSubscriptionInterval(),
+				dropdownWidth: 300,
+				selectionChangedHandler: (value: number) => {
+					if (this._accountingInfo) {
+						changeSubscriptionInterval(this._accountingInfo, value, this._periodEndDate)
+					}
+				},
+			}),
+			m(TextField, {
+				label: () =>
+					this._nextPeriodPriceVisible && this._periodEndDate
+						? lang.get("priceTill_label", {
+							"{date}": formatDate(this._periodEndDate),
+						})
+						: lang.get("price_label"),
+				value: this._currentPriceFieldValue(),
+				oninput: this._currentPriceFieldValue,
+				disabled: true,
+				helpLabel: () => this._customer && this._customer.businessUse === true
+					? lang.get("subscriptionPeriodInfoBusiness_msg")
+					: null,
+			})
+		]
+	}
+
+	private renderAgreement() {
+		return m(TextField, {
+			label: "orderProcessingAgreement_label",
+			helpLabel: () => lang.get("orderProcessingAgreementInfo_msg"),
+			value: this._orderAgreementFieldValue(),
+			oninput: this._orderAgreementFieldValue,
+			disabled: true,
+			injectionsRight: () => {
+				if (this._orderAgreement && this._customer && this._customer.orderProcessingAgreementNeeded) {
+					return [
+						this.renderSignProcessingAgreementAction(),
+						this.renderShowProcessingAgreementAction(),
+					]
+				} else if (this._orderAgreement) {
+					return [
+						this.renderShowProcessingAgreementAction()
+					]
+				} else if (this._customer && this._customer.orderProcessingAgreementNeeded) {
+					return [
+						this.renderSignProcessingAgreementAction()
+					]
+				} else {
+					return []
+				}
+			},
+		})
+	}
+
+	private renderShowProcessingAgreementAction() {
+		return m(IconButton, {
+			title: "show_action",
+			click: () =>
+				locator.entityClient
+					   .load(GroupInfoTypeRef, neverNull(this._orderAgreement).signerUserGroupInfo)
+					   .then(signerUserGroupInfo => SignOrderAgreementDialog.showForViewing(neverNull(this._orderAgreement), signerUserGroupInfo)),
+			icon: Icons.Download,
+			size: ButtonSize.Compact,
+		})
+	}
+
+	private renderSignProcessingAgreementAction() {
+		return m(IconButton, {
+			title: "sign_action",
+			click: () => SignOrderAgreementDialog.showForSigning(neverNull(this._customer), neverNull(this._accountingInfo)),
+			icon: Icons.Edit,
+			size: ButtonSize.Compact,
+		})
+	}
+
+	private getChargeDateText(): string {
+		if (this._periodEndDate) {
+			const chargeDate = formatDate(incrementDate(new Date(this._periodEndDate), 1))
+			return lang.get("nextChargeOn_label", {"{chargeDate}": chargeDate})
+		} else {
+			return ""
 		}
 	}
 }

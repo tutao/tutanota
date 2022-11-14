@@ -181,14 +181,13 @@ export function getLoginErrorStateAndMessage(error: Error): {errorMessage: Trans
 export async function showSignupDialog(hashParams: Params) {
 	const subscriptionParams = getSubscriptionParameters(hashParams)
 	const registrationDataId = getRegistrationDataIdFromParams(hashParams)
-	const dialog = await showProgressDialog(
+	await showProgressDialog(
 		"loading_msg",
 		locator.worker.initialized.then(async () => {
 			const {loadSignupWizard} = await import("../subscription/UpgradeSubscriptionWizard")
-			return loadSignupWizard(subscriptionParams, registrationDataId)
+			loadSignupWizard(subscriptionParams, registrationDataId)
 		}),
 	)
-	dialog.show()
 }
 
 function getSubscriptionParameters(hashParams: Params): SubscriptionParameters | null {
