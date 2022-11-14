@@ -455,7 +455,8 @@ export default {
 		"edit_action": "Edit",
 		"emailAddressInUse_msg": "The email address is still used by another user. Please deactivate it there first.",
 		"emailAliasesTooManyActivatedForBooking_msg": "There are too many email aliases active to process this order. Please deactivate your email aliases first.",
-		"emailAlias_label": "Email alias",
+		// FIXME german, phrase
+		"emailAlias_label": "Email address",
 		"emailProcessing_label": "Email processing",
 		"emailPushNotification_action": "Add notification email address",
 		"emailPushNotification_msg": "A notification email is sent to this address if you receive a new email.",
@@ -791,7 +792,8 @@ export default {
 		"login_msg": "Logging in ...",
 		"logout_label": "Logout",
 		"mailAddressAliasesMaxNbr_label": "You can register {1} email aliases.",
-		"mailAddressAliases_label": "Email aliases",
+		// FIXME update in Phrase and update German
+		"mailAddressAliases_label": "Email addresses",
 		"mailAddressAvailable_msg": "Email address is available.",
 		"mailAddressBusy_msg": "Verifying email address ...",
 		"mailAddressDelay_msg": "Too many requests, please try again later.",
@@ -1270,6 +1272,7 @@ export default {
 		"showAll_action": "Show all",
 		"showBlockedContent_action": "Show",
 		"showContact_action": "Show contact",
+		// FIXME remove?
 		"showEmailAliases_action": "Show email aliases",
 		"showHeaders_action": "Show email headers",
 		"showHelp_action": "Show help",

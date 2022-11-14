@@ -67,7 +67,7 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 			m(".flex-space-between.items-center.mt-l.mb-s", [
 				m(".h4", lang.get("mailAddressAliases_label")),
 				m(ExpanderButton, {
-					label: "showEmailAliases_action",
+					label: "show_action",
 					expanded: this.expanded,
 					onExpandedChange: (v) => this.expanded = v
 				}),
