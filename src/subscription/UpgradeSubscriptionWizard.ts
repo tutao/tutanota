@@ -21,8 +21,9 @@ import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
 import {StorageBehavior} from "../misc/UsageTestModel"
 import {UpgradePriceService} from "../api/entities/sys/Services.js"
-import {SelectedSubscriptionOptions, SubscriptionPlanPrices, SubscriptionType} from "./SubscriptionDataProvider"
+import {getSubscriptionDataProvider, SelectedSubscriptionOptions, SubscriptionDataProvider, SubscriptionType} from "./SubscriptionDataProvider"
 import {UpgradeType} from "./SubscriptionUtils"
+import {getPricesAndConfigProvider, PriceAndConfigProvider} from "./PriceUtils"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -58,9 +59,10 @@ export type UpgradeSubscriptionData = {
 	registrationDataId: string | null
 	campaignInfoTextId: TranslationKey | null
 	upgradeType: UpgradeType
-	planPrices: SubscriptionPlanPrices
+	planPrices: PriceAndConfigProvider
 	currentSubscription: SubscriptionType | null
 	subscriptionParameters: SubscriptionParameters | null
+	subscriptionDataProvider: SubscriptionDataProvider
 }
 
 export function loadUpgradePrices(registrationDataId: string | null): Promise<UpgradePriceServiceReturn> {
@@ -89,68 +91,58 @@ function loadCustomerAndInfo(): Promise<{
 	)
 }
 
-export function showUpgradeWizard(): void {
-	loadCustomerAndInfo().then(({customer, accountingInfo}) => {
-		return loadUpgradePrices(null).then(prices => {
-			const planPrices: SubscriptionPlanPrices = {
-				Premium: prices.premiumPrices,
-				PremiumBusiness: prices.premiumBusinessPrices,
-				Teams: prices.teamsPrices,
-				TeamsBusiness: prices.teamsBusinessPrices,
-				Pro: prices.proPrices,
-			}
-			const upgradeData: UpgradeSubscriptionData = {
-				options: {
-					businessUse: stream(prices.business),
-					paymentInterval: stream(Number(accountingInfo.paymentInterval)),
-				},
-				invoiceData: {
-					invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
-					country: accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null,
-					vatNumber: accountingInfo.invoiceVatIdNo, // only for EU countries otherwise empty
-				},
-				paymentData: {
-					paymentMethod: getPaymentMethodType(accountingInfo) || PaymentMethod.CreditCard,
-					creditCardData: null,
-				},
-				price: "",
-				type: SubscriptionType.Premium,
-				priceNextYear: null,
-				accountingInfo: accountingInfo,
-				customer: customer,
-				newAccountData: null,
-				registrationDataId: null,
-				campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
-				upgradeType: UpgradeType.Initial,
-				planPrices: planPrices,
-				currentSubscription: SubscriptionType.Free,
-				subscriptionParameters: null,
-			}
-			const wizardPages = [
-				wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(upgradeData)),
-				wizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
-				wizardPageWrapper(UpgradeConfirmPage, new UpgradeConfirmPageAttrs(upgradeData)),
-			]
-			const wizardBuilder = createWizardDialog(upgradeData, wizardPages)
-			wizardBuilder.dialog.show()
-		})
-	})
+export async function showUpgradeWizard(): Promise<void> {
+	const {customer, accountingInfo} = await loadCustomerAndInfo()
+	const priceDataProvider = await getPricesAndConfigProvider(null)
+
+	const prices = priceDataProvider.getRawPricingData()
+	const subscriptionDataProvider = await getSubscriptionDataProvider()
+	const upgradeData: UpgradeSubscriptionData = {
+		options: {
+			businessUse: stream(prices.business),
+			paymentInterval: stream(Number(accountingInfo.paymentInterval)),
+		},
+		invoiceData: {
+			invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
+			country: accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null,
+			vatNumber: accountingInfo.invoiceVatIdNo, // only for EU countries otherwise empty
+		},
+		paymentData: {
+			paymentMethod: getPaymentMethodType(accountingInfo) || PaymentMethod.CreditCard,
+			creditCardData: null,
+		},
+		price: "",
+		type: SubscriptionType.Premium,
+		priceNextYear: null,
+		accountingInfo: accountingInfo,
+		customer: customer,
+		newAccountData: null,
+		registrationDataId: null,
+		campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
+		upgradeType: UpgradeType.Initial,
+		currentSubscription: SubscriptionType.Free,
+		subscriptionParameters: null,
+		planPrices: priceDataProvider,
+		subscriptionDataProvider
+	}
+	const wizardPages = [
+		wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(upgradeData)),
+		wizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
+		wizardPageWrapper(UpgradeConfirmPage, new UpgradeConfirmPageAttrs(upgradeData)),
+	]
+	const wizardBuilder = createWizardDialog(upgradeData, wizardPages)
+	wizardBuilder.dialog.show()
 }
 
-export async function loadSignupWizard(subscriptionParameters: SubscriptionParameters | null, registrationDataId: string | null): Promise<Dialog> {
+export async function loadSignupWizard(subscriptionParameters: SubscriptionParameters | null, registrationDataId: string | null): Promise<void> {
 	const usageTestModel = locator.usageTestModel
 
 	usageTestModel.setStorageBehavior(StorageBehavior.Ephemeral)
 	locator.usageTestController.setTests(await usageTestModel.loadActiveUsageTests())
 
-	const prices = await loadUpgradePrices(registrationDataId)
-	const planPrices: SubscriptionPlanPrices = {
-		Premium: prices.premiumPrices,
-		PremiumBusiness: prices.premiumBusinessPrices,
-		Teams: prices.teamsPrices,
-		TeamsBusiness: prices.teamsBusinessPrices,
-		Pro: prices.proPrices,
-	}
+	const priceDataProvider = await getPricesAndConfigProvider(registrationDataId)
+	const prices = priceDataProvider.getRawPricingData()
+	const subscriptionDataProvider = await getSubscriptionDataProvider()
 	const signupData: UpgradeSubscriptionData = {
 		options: {
 			businessUse: stream(prices.business),
@@ -174,9 +166,10 @@ export async function loadSignupWizard(subscriptionParameters: SubscriptionParam
 		registrationDataId,
 		campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
 		upgradeType: UpgradeType.Signup,
-		planPrices: planPrices,
+		planPrices: priceDataProvider,
 		currentSubscription: null,
 		subscriptionParameters: subscriptionParameters,
+		subscriptionDataProvider
 	}
 
 	const invoiceAttrs = new InvoiceAndPaymentDataPageAttrs(signupData)
@@ -206,5 +199,5 @@ export async function loadSignupWizard(subscriptionParameters: SubscriptionParam
 	// for signup specifically, we only want the invoice and payment page to show up if signing up for a paid account (and the user did not go back to the first page!)
 	invoiceAttrs.setEnabledFunction(() => signupData.type !== SubscriptionType.Free && wizardBuilder.attrs.currentPage !== wizardPages[0])
 
-	return wizardBuilder.dialog
+	wizardBuilder.dialog.show()
 }

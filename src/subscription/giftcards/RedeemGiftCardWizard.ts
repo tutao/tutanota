@@ -5,7 +5,6 @@ import type {WizardPageAttrs, WizardPageN} from "../../gui/base/WizardDialog.js"
 import {createWizardDialog, emitWizardEvent, WizardEventType, wizardPageWrapper} from "../../gui/base/WizardDialog.js"
 import {LoginController, logins} from "../../api/main/LoginController"
 import type {NewAccountData} from "../UpgradeSubscriptionWizard"
-import {loadUpgradePrices} from "../UpgradeSubscriptionWizard"
 import {Dialog} from "../../gui/base/Dialog"
 import {LoginForm} from "../../login/LoginForm"
 import {CredentialsSelector} from "../../login/CredentialsSelector"
@@ -24,17 +23,17 @@ import {getLoginErrorMessage, handleExpectedLoginError} from "../../misc/LoginUt
 import {RecoverCodeField} from "../../settings/RecoverCodeDialog"
 import {HabReminderImage} from "../../gui/base/icons/Icons"
 import {PaymentMethodType} from "../../api/common/TutanotaConstants"
-import {formatPrice, getPaymentMethodName, getSubscriptionPrice} from "../PriceUtils"
+import {formatPrice, getPaymentMethodName, getPricesAndConfigProvider} from "../PriceUtils"
 import {TextField} from "../../gui/base/TextField.js"
 import {elementIdPart, isSameId} from "../../api/common/utils/EntityUtils"
 import type {CredentialsInfo} from "../../misc/credentials/CredentialsProvider.js"
+import {CredentialsProvider} from "../../misc/credentials/CredentialsProvider.js"
 import {SessionType} from "../../api/common/SessionType.js";
 import {NotAuthorizedError, NotFoundError} from "../../api/common/error/RestError.js"
 import {GiftCardFacade} from "../../api/worker/facades/GiftCardFacade.js"
 import {EntityClient} from "../../api/common/EntityClient.js"
 import {Country, getByAbbreviation} from "../../api/common/CountryList.js"
 import {renderCountryDropdown} from "../../gui/base/GuiUtils.js"
-import {CredentialsProvider} from "../../misc/credentials/CredentialsProvider.js"
 import {SubscriptionType, UpgradePriceType} from "../SubscriptionDataProvider"
 
 
@@ -136,20 +135,6 @@ class RedeemGiftCardModel {
 		}
 	}
 
-	private async postLogin(): Promise<void> {
-		if (!this.logins.getUserController().isGlobalAdmin()) {
-			throw new UserError("onlyAccountAdminFeature_msg")
-		}
-
-		const customer = await this.logins.getUserController().loadCustomer()
-		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
-		this.accountingInfo = await this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
-
-		if (customer.businessUse || this.accountingInfo.business) {
-			throw new UserError("onlyPrivateAccountFeature_msg")
-		}
-	}
-
 	async redeemGiftCard(country: Country | null): Promise<void> {
 		if (country == null) {
 			throw new UserError("invoiceCountryInfoBusiness_msg")
@@ -167,6 +152,20 @@ class RedeemGiftCardModel {
 						   throw new UserError(() => e.message)
 					   }),
 				   )
+	}
+
+	private async postLogin(): Promise<void> {
+		if (!this.logins.getUserController().isGlobalAdmin()) {
+			throw new UserError("onlyAccountAdminFeature_msg")
+		}
+
+		const customer = await this.logins.getUserController().loadCustomer()
+		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+		this.accountingInfo = await this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+
+		if (customer.businessUse || this.accountingInfo.business) {
+			throw new UserError("onlyPrivateAccountFeature_msg")
+		}
 	}
 }
 
@@ -548,12 +547,13 @@ async function loadModel(hashFromUrl: string): Promise<RedeemGiftCardModel> {
 	const giftCardInfo = await locator.giftCardFacade.getGiftCardInfo(id, key)
 
 	const storedCredentials = await locator.credentialsProvider.getInternalCredentialsInfos()
+	const pricesDataProvider = await getPricesAndConfigProvider(null)
 
 	return new RedeemGiftCardModel(
 		{
 			giftCardInfo,
 			key,
-			premiumPrice: getSubscriptionPrice(12, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice),
+			premiumPrice: pricesDataProvider.getSubscriptionPrice(12, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice),
 			storedCredentials
 		},
 		locator.giftCardFacade,

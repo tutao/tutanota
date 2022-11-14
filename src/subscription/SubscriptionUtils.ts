@@ -8,7 +8,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 import {BookingService} from "../api/entities/sys/Services"
-import {getSubscriptionConfig, SubscriptionConfig, SubscriptionType} from "./SubscriptionDataProvider"
+import {SubscriptionConfig} from "./SubscriptionDataProvider"
 
 export const enum UpgradeType {
 	Signup = "Signup",
@@ -16,22 +16,6 @@ export const enum UpgradeType {
 	Initial = "Initial",
 	// when logged into Free account
 	Switch = "Switch", // switching in paid account
-}
-
-const descendingSubscriptionOrder = [
-	SubscriptionType.Pro,
-	SubscriptionType.TeamsBusiness,
-	SubscriptionType.Teams,
-	SubscriptionType.PremiumBusiness,
-	SubscriptionType.Premium,
-]
-
-/**
- * Returns true if the targetSubscription plan is considered to be a lower (~ cheaper) subscription plan
- * Is based on the order of business and non-business subscriptions as defined in descendingSubscriptionOrder
- */
-export function isDowngrade(targetSubscription: SubscriptionType, currentSubscription: SubscriptionType): boolean {
-	return descendingSubscriptionOrder.indexOf(targetSubscription) > descendingSubscriptionOrder.indexOf(currentSubscription)
 }
 
 /**
@@ -83,27 +67,6 @@ export function isBusinessFeatureActive(lastBooking: Booking | null): boolean {
 
 export function getIncludedAliases(customerInfo: CustomerInfo): number {
 	return Math.max(Number(customerInfo.includedEmailAliases), Number(customerInfo.promotionEmailAliases))
-}
-
-export function getSubscriptionType(lastBooking: Booking | null, customer: Customer, customerInfo: CustomerInfo): SubscriptionType {
-
-	if (customer.type !== AccountType.PREMIUM) {
-		return SubscriptionType.Free
-	}
-
-	const currentSubscription = {
-		nbrOfAliases: getTotalAliases(customer, customerInfo, lastBooking),
-		orderNbrOfAliases: getTotalAliases(customer, customerInfo, lastBooking),
-		// dummy value
-		storageGb: getTotalStorageCapacity(customer, customerInfo, lastBooking),
-		orderStorageGb: getTotalStorageCapacity(customer, customerInfo, lastBooking),
-		// dummy value
-		sharing: isSharingActive(lastBooking),
-		business: isBusinessFeatureActive(lastBooking),
-		whitelabel: isWhitelabelActive(lastBooking),
-	}
-	const foundPlan = descendingSubscriptionOrder.find(plan => hasAllFeaturesInPlan(currentSubscription, getSubscriptionConfig(plan)))
-	return foundPlan || SubscriptionType.Premium
 }
 
 export function hasAllFeaturesInPlan(currentSubscription: SubscriptionConfig, planSubscription: SubscriptionConfig): boolean {
