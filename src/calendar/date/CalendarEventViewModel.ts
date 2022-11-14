@@ -9,7 +9,7 @@ import {
 	ShareCapability,
 	TimeFormat,
 } from "../../api/common/TutanotaConstants"
-import type {CalendarEvent, CalendarRepeatRule, Contact, EncryptedMailAddress, Mail} from "../../api/entities/tutanota/TypeRefs.js"
+import type {CalendarEvent, CalendarRepeatRule, Contact, EncryptedMailAddress, Mail, MailboxProperties} from "../../api/entities/tutanota/TypeRefs.js"
 import {createCalendarEvent, createCalendarEventAttendee, createEncryptedMailAddress} from "../../api/entities/tutanota/TypeRefs.js"
 import type {AlarmInfo, RepeatRule} from "../../api/entities/sys/TypeRefs.js"
 import {createAlarmInfo} from "../../api/entities/sys/TypeRefs.js"
@@ -68,6 +68,7 @@ import {hasError} from "../../api/common/utils/ErrorCheckUtils"
 import {Recipient, RecipientType} from "../../api/common/recipients/Recipient"
 import {ResolveMode} from "../../api/main/RecipientsModel.js"
 import {TIMESTAMP_ZERO_YEAR} from "@tutao/tutanota-utils/dist/DateUtils"
+import {getSenderName} from "../../misc/MailboxPropertiesUtils.js"
 
 // whether to close dialog
 export type EventCreateResult = boolean
@@ -159,6 +160,7 @@ export class CalendarEventViewModel {
 		calendarModel: CalendarModel,
 		entityClient: EntityClient,
 		mailboxDetail: MailboxDetail,
+		mailboxProperties: MailboxProperties,
 		sendMailModelFactory: SendMailModelFactory,
 		date: Date,
 		zone: string,
@@ -194,7 +196,7 @@ export class CalendarEventViewModel {
 		this._zone = zone
 		this._guestStatuses = this._initGuestStatus(existingEvent, resolveRecipientsLazily)
 		this.attendees = this._initAttendees()
-		const {eventType, organizer, possibleOrganizers} = this.initEventTypeAndOrganizers(existingEvent, calendars, mailboxDetail, userController)
+		const {eventType, organizer, possibleOrganizers} = this.initEventTypeAndOrganizers(existingEvent, calendars, mailboxProperties, userController)
 		this._eventType = eventType
 		this.organizer = organizer
 		this.possibleOrganizers = possibleOrganizers
@@ -332,14 +334,14 @@ export class CalendarEventViewModel {
 	 *
 	 *   **** The creator of the event. Will be overwritten with owner of the calendar by this function.
 	 */
-	private initEventTypeAndOrganizers(existingEvent: CalendarEvent | null, calendars: ReadonlyMap<Id, CalendarInfo>, mailboxDetail: MailboxDetail, userController: UserController): InitEventTypeReturn {
-		const ownDefaultSender = addressToMailAddress(getDefaultSenderFromUser(userController), mailboxDetail, userController)
+	private initEventTypeAndOrganizers(existingEvent: CalendarEvent | null, calendars: ReadonlyMap<Id, CalendarInfo>, mailboxProperties: MailboxProperties, userController: UserController): InitEventTypeReturn {
+		const ownDefaultSender = this.addressToMailAddress(mailboxProperties, getDefaultSenderFromUser(userController))
 
 		if (!existingEvent) {
 			return {
 				eventType: EventType.OWN,
 				organizer: ownDefaultSender,
-				possibleOrganizers: this._ownPossibleOrganizers(mailboxDetail, userController)
+				possibleOrganizers: this.ownPossibleOrganizers(mailboxProperties)
 			}
 		} else {
 			// OwnerGroup is not set for events from file
@@ -365,7 +367,7 @@ export class CalendarEventViewModel {
 						return {
 							eventType: EventType.OWN,
 							organizer: copyMailAddress(actualOrganizer),
-							possibleOrganizers: this.hasGuests() ? [actualOrganizer] : this._ownPossibleOrganizers(mailboxDetail, userController)
+							possibleOrganizers: this.hasGuests() ? [actualOrganizer] : this.ownPossibleOrganizers(mailboxProperties)
 						}
 					}
 					//3. the event is an invitation
@@ -468,8 +470,8 @@ export class CalendarEventViewModel {
 		this.endTime = Time.fromDate(endTimeDate)
 	}
 
-	_ownPossibleOrganizers(mailboxDetail: MailboxDetail, userController: UserController): Array<EncryptedMailAddress> {
-		return this._ownMailAddresses.map(address => addressToMailAddress(address, mailboxDetail, userController))
+	private ownPossibleOrganizers(mailboxProperties: MailboxProperties): Array<EncryptedMailAddress> {
+		return this._ownMailAddresses.map(address => this.addressToMailAddress(mailboxProperties, address))
 	}
 
 	findOwnAttendee(): Guest | null {
@@ -1007,6 +1009,7 @@ export class CalendarEventViewModel {
 			} else if (this._eventType === EventType.OWN) {
 				// use the default sender as the organizer
 				const newOwnAttendee = createEncryptedMailAddress({
+					name: this._inviteModel.getSenderName(),
 					address: this._inviteModel.getSender(),
 				})
 
@@ -1253,6 +1256,13 @@ export class CalendarEventViewModel {
 			(newEvent.organizer !== existingEvent.organizer && newEvent.organizer?.address !== existingEvent.organizer?.address)
 		) // we ignore the names
 	}
+
+	private addressToMailAddress(mailboxProeprties: MailboxProperties, address: string): EncryptedMailAddress {
+		return createEncryptedMailAddress({
+			address,
+			name: getSenderName(mailboxProeprties, address) ?? "",
+		})
+	}
 }
 
 function areRepeatRulesEqual(r1: CalendarRepeatRule | null, r2: CalendarRepeatRule | null): boolean {
@@ -1264,13 +1274,6 @@ function areRepeatRulesEqual(r1: CalendarRepeatRule | null, r2: CalendarRepeatRu
 			r1?.interval === r2?.interval &&
 			r1?.timeZone === r2?.timeZone)
 	)
-}
-
-function addressToMailAddress(address: string, mailboxDetail: MailboxDetail, userController: UserController): EncryptedMailAddress {
-	return createEncryptedMailAddress({
-		address,
-		name: getSenderNameForUser(mailboxDetail, userController),
-	})
 }
 
 function createCalendarAlarm(identifier: string, trigger: string): AlarmInfo {
@@ -1297,6 +1300,7 @@ export async function createCalendarEventViewModel(
 		locator.calendarModel,
 		locator.entityClient,
 		mailboxDetail,
+		mailboxProperties,
 		mailboxDetail => model.defaultSendMailModel(mailboxDetail, mailboxProperties),
 		date,
 		getTimeZone(),
