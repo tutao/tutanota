@@ -8,7 +8,7 @@ import {
 } from "../api/entities/usage/TypeRefs.js"
 import {PingAdapter, Stage, UsageTest} from "@tutao/tutanota-usagetests"
 import {assertNotNull, filterInt, lazy, neverNull} from "@tutao/tutanota-utils"
-import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
+import {BadRequestError, NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {UsageTestMetricType} from "../api/common/TutanotaConstants"
 import {SuspensionError} from "../api/common/error/SuspensionError"
 import {SuspensionBehavior} from "../api/worker/rest/RestClient"
@@ -396,7 +396,7 @@ export class UsageTestModel implements PingAdapter {
 				// We should not attempt to re-send pings, as the relevant test has likely been deleted.
 				// Hence, we just remove the cached assignment and disable the test.
 				test.active = false
-				console.log(`Tried to send ping. Removing test '${test.testId}' from storage`, e)
+				console.log(`Tried to send ping. Removing test '${test.testName}' from storage`, e)
 
 				const storedAssignments = await this.storage().getAssignments()
 				if (storedAssignments) {
@@ -406,6 +406,9 @@ export class UsageTestModel implements PingAdapter {
 						assignments: storedAssignments.assignments.filter(assignment => assignment.testId !== test.testId),
 					})
 				}
+			} else if (e instanceof BadRequestError) {
+				test.active = false
+				console.log(`Tried to send ping. Setting test '${test.testName}' inactive because it is misconfigured`, e)
 			} else if (isOfflineError(e)) {
 				console.log("Tried to send ping, but we are offline", e)
 			} else {
