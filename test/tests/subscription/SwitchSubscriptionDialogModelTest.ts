@@ -17,7 +17,7 @@ import {downcast, neverNull} from "@tutao/tutanota-utils"
 import {getCurrentCount, PriceAndConfigProvider} from "../../../src/subscription/PriceUtils.js"
 import {BookingFacade} from "../../../src/api/worker/facades/BookingFacade.js"
 import {matchers, object, when} from "testdouble"
-import {SubscriptionConfig, SubscriptionType} from "../../../src/subscription/SubscriptionDataProvider"
+import {SubscriptionConfig, SubscriptionType} from "../../../src/subscription/FeatureListProvider"
 import {createPriceMock} from "./PriceUtilsTest"
 
 const SUBSCRIPTION_CONFIG = {

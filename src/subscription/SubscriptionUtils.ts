@@ -8,7 +8,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 import {BookingService} from "../api/entities/sys/Services"
-import {SubscriptionConfig} from "./SubscriptionDataProvider"
+import {SubscriptionConfig} from "./FeatureListProvider"
 
 export const enum UpgradeType {
 	Signup = "Signup",

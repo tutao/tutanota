@@ -24,7 +24,7 @@ import {count, filterInt, noOp, ofClass} from "@tutao/tutanota-utils"
 import {isIOSApp} from "../../api/common/Env"
 import {formatPrice, getPricesAndConfigProvider} from "../PriceUtils"
 import {GiftCardService} from "../../api/entities/sys/Services"
-import {SubscriptionType, UpgradePriceType} from "../SubscriptionDataProvider"
+import {SubscriptionType, UpgradePriceType} from "../FeatureListProvider"
 
 class PurchaseGiftCardModel {
 

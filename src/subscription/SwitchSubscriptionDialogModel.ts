@@ -15,7 +15,7 @@ import type {AccountingInfo, Booking, Customer, CustomerInfo, PlanPrices, PriceS
 import {createPlanPrices} from "../api/entities/sys/TypeRefs.js"
 import {getPriceFromPriceData, getPriceItem, isSubscriptionDowngrade, PriceAndConfigProvider} from "./PriceUtils"
 import type {BookingFacade} from "../api/worker/facades/BookingFacade"
-import {SubscriptionConfig, SubscriptionPlanPrices, SubscriptionType} from "./SubscriptionDataProvider"
+import {SubscriptionConfig, SubscriptionPlanPrices, SubscriptionType} from "./FeatureListProvider"
 
 type PlanPriceCalc = {
 	monthlyPrice: number

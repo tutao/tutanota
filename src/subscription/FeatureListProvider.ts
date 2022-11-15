@@ -3,42 +3,42 @@ import {PlanPrices} from "../api/entities/sys/TypeRefs"
 import {TranslationKey} from "../misc/LanguageViewModel"
 
 const FEATURE_LIST_RESOURCE_URL = "https://tutanota.com/resources/data/features.json"
-let dataProvider: SubscriptionDataProviderImpl | null = null
+let dataProvider: HiddenFeatureListProvider | null = null
 
-export interface SubscriptionDataProvider {
-	getSubscriptionFeatures(targetSubscription: SubscriptionType): FeatureLists[SubscriptionType]
+export interface FeatureListProvider {
+	getFeatureList(targetSubscription: SubscriptionType): FeatureLists[SubscriptionType]
 
 	featureLoadingDone(): boolean
 }
 
-export async function getSubscriptionDataProvider(): Promise<SubscriptionDataProvider> {
+export async function getFeatureListProvider(): Promise<FeatureListProvider> {
 	if (dataProvider == null) {
-		dataProvider = new SubscriptionDataProviderImpl()
+		dataProvider = new HiddenFeatureListProvider()
 		await dataProvider.init()
 	}
 	return dataProvider
 }
 
-class SubscriptionDataProviderImpl implements SubscriptionDataProvider {
+class HiddenFeatureListProvider implements FeatureListProvider {
 
-	private subscriptionFeatureList: FeatureLists | null = null
+	private featureList: FeatureLists | null = null
 
 	async init(): Promise<void> {
 		if ("undefined" === typeof fetch) return
-		this.subscriptionFeatureList = await resolveOrNull(
+		this.featureList = await resolveOrNull(
 			() => fetch(FEATURE_LIST_RESOURCE_URL).then(r => r.json()),
 			e => console.log("failed to fetch feature list:", e)
 		)
 	}
 
-	getSubscriptionFeatures(targetSubscription: SubscriptionType): FeatureLists[SubscriptionType] {
-		return this.subscriptionFeatureList == null
+	getFeatureList(targetSubscription: SubscriptionType): FeatureLists[SubscriptionType] {
+		return this.featureList == null
 			? {features: [], subtitle: "emptyString_msg"}
-			: this.subscriptionFeatureList[targetSubscription]
+			: this.featureList[targetSubscription]
 	}
 
 	featureLoadingDone(): boolean {
-		return this.subscriptionFeatureList != null
+		return this.featureList != null
 	}
 }
 

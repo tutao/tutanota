@@ -19,7 +19,7 @@ import {ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../api/main/MainLocator"
 import {SwitchAccountTypeService} from "../api/entities/sys/Services"
 import {UsageTest} from "@tutao/tutanota-usagetests"
-import {getDisplayNameOfSubscriptionType, SelectedSubscriptionOptions, SubscriptionType} from "./SubscriptionDataProvider"
+import {getDisplayNameOfSubscriptionType, SelectedSubscriptionOptions, SubscriptionType} from "./FeatureListProvider"
 
 export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
