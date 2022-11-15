@@ -123,12 +123,12 @@ export interface PriceAndConfigProvider {
 }
 
 export async function getPricesAndConfigProvider(registrationDataId: string | null, serviceExecutor: IServiceExecutor = locator.serviceExecutor): Promise<PriceAndConfigProvider> {
-	const priceDataProvider = new PriceAndConfigProviderImpl()
+	const priceDataProvider = new HiddenPriceAndConfigProvider()
 	await priceDataProvider.init(registrationDataId, serviceExecutor)
 	return priceDataProvider
 }
 
-class PriceAndConfigProviderImpl implements PriceAndConfigProvider {
+class HiddenPriceAndConfigProvider implements PriceAndConfigProvider {
 	private upgradePriceData: UpgradePriceServiceReturn | null = null
 	private planPrices: SubscriptionPlanPrices | null = null
 
