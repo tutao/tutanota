@@ -23,6 +23,7 @@ export default {
 		"acceptTemplateGroupEmailBody_msg": "Hello {recipientName}, <br/>{invitee} has accepted your invitation to use your template list \"{groupName}\".<br/><br/>This is an automated message.",
 		"acceptTemplateGroupEmailSubject_msg": "Template list invitation accepted",
 		"accept_action": "Accept",
+		"accountCreationCongratulation_msg": "Welcome to the encrypted side. 🔒",
 		"accountSwitchAdditionalPackagesActive_msg": "Please deactivate all booked extensions and packages and disable all email aliases before switching the subscription.",
 		"accountSwitchAliases_msg": "Please delete all aliases of your user.",
 		"accountSwitchCustomMailAddress_msg": "Please disable all custom domain email aliases.",

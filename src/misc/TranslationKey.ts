@@ -7,6 +7,7 @@ export type TranslationKeyType =
 	| "acceptTemplateGroupEmailBody_msg"
 	| "acceptTemplateGroupEmailSubject_msg"
 	| "accept_action"
+	| "accountCreationCongratulation_msg"
 	| "accountSwitchAdditionalPackagesActive_msg"
 	| "accountSwitchAliases_msg"
 	| "accountSwitchCustomMailAddress_msg"

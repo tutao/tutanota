@@ -27,6 +27,7 @@ export default {
 		"acceptTemplateGroupEmailBody_msg": "Hallo {recipientName}, <br/>{invitee} hat Ihre Einladung zur Verwendung Ihrer Vorlagenliste \"{groupName}\" angenommen.<br/><br/>Dies ist eine automatische Nachricht.",
 		"acceptTemplateGroupEmailSubject_msg": "Einladung zur Vorlagenliste angenommen",
 		"accept_action": "Annehmen",
+		"accountCreationCongratulation_msg": "Willkommen in Ihrer verschlüsselten Mailbox. 🔒",
 		"accountSwitchAdditionalPackagesActive_msg": "Bitte deaktivieren Sie erst alle gebuchten Erweiterungen und Pakete und deaktivieren Sie alle E-Mail-Aliasse, dann kann das Abonnement gewechselt werden.",
 		"accountSwitchAliases_msg": "Bitte löschen Sie alle Ihnen zugeordneten Aliasse.",
 		"accountSwitchCustomMailAddress_msg": "Bitte deaktivieren Sie alle E-Mail Aliasse mit eigener Domain.",
