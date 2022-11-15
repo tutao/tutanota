@@ -34,7 +34,7 @@ import {getPricesAndConfigProvider, isSubscriptionDowngrade} from "./PriceUtils"
  * Only shown if the user is already a Premium user. Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
  */
 export async function showSwitchDialog(customer: Customer, customerInfo: CustomerInfo, accountingInfo: AccountingInfo, lastBooking: Booking): Promise<void> {
-	const [subscriptionDataProvider, priceAndConfigProvider] = await showProgressDialog("pleaseWait_msg", Promise.all([
+	const [featureListProvider, priceAndConfigProvider] = await showProgressDialog("pleaseWait_msg", Promise.all([
 		getFeatureListProvider(),
 		getPricesAndConfigProvider(null)
 	]))
@@ -73,7 +73,7 @@ export async function showSwitchDialog(customer: Customer, customerInfo: Custome
 					orderedContactForms: currentSubscriptionInfo.orderedContactForms,
 					isInitialUpgrade: false,
 					actionButtons: subscriptionActionButtons,
-					subscriptionDataProvider,
+					featureListProvider: featureListProvider,
 					priceAndConfigProvider
 				}),
 			),
