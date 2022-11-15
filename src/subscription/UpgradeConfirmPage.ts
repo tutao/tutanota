@@ -8,7 +8,6 @@ import {AccountType, Const, PaidSubscriptionType, PaymentMethodTypeToName} from 
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
 import {BadGatewayError, PreconditionFailedError} from "../api/common/error/RestError"
-import {RecoverCodeField} from "../settings/RecoverCodeDialog"
 import {logins} from "../api/main/LoginController"
 import {getPreconditionFailedPaymentMsg, UpgradeType} from "./SubscriptionUtils"
 import {Button, ButtonType} from "../gui/base/Button.js"
@@ -34,18 +33,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 	}
 
 	view({attrs}: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
-		const {newAccountData} = attrs.data
-
 		return [
-			newAccountData
-				? m(".plr-l", [
-					m(".center.h4.pt", lang.get("recoveryCode_label")),
-					m(RecoverCodeField, {
-						showMessage: true,
-						recoverCode: newAccountData.recoverCode,
-					}),
-				])
-				: null,
 			attrs.data.type === SubscriptionType.Free
 				? this.renderFree(attrs)
 				: this.renderPaid(attrs),
@@ -169,6 +157,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 
 	private renderFree(attrs: WizardPageAttrs<UpgradeSubscriptionData>) {
 		return [
+			m(".center.h4.pt", lang.get("accountCreationCongratulation_msg")),
 			m(".flex-space-around.flex-wrap", [
 				m(".flex-grow-shrink-half.plr-l.flex-center.items-end",
 					m("img.pt.bg-white.border-radius", {
