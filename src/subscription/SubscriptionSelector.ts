@@ -50,7 +50,7 @@ export type SubscriptionSelectorAttr = {
 	currentlyWhitelabelOrdered: boolean
 	orderedContactForms: number
 	isInitialUpgrade: boolean
-	subscriptionDataProvider: FeatureListProvider,
+	featureListProvider: FeatureListProvider,
 	priceAndConfigProvider: PriceAndConfigProvider,
 }
 
@@ -81,7 +81,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		// Add BuyOptionBox margin twice to the boxWidth received
 		const columnWidth = vnode.attrs.boxWidth + BOX_MARGIN * 2
 		const inMobileView: boolean | null = this.containerDOM && this.containerDOM.clientWidth < columnWidth * 2
-		const featureExpander = this.renderFeatureExpanders(inMobileView, vnode.attrs.subscriptionDataProvider) // renders all feature expanders, both for every single subscription option but also for the whole list
+		const featureExpander = this.renderFeatureExpanders(inMobileView, vnode.attrs.featureListProvider) // renders all feature expanders, both for every single subscription option but also for the whole list
 		let additionalInfo: Children
 
 		if (vnode.attrs.options.businessUse()) {
@@ -162,8 +162,8 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 	}
 
 	private createBuyOptionBoxAttr(selectorAttrs: SubscriptionSelectorAttr, targetSubscription: SubscriptionType): BuyOptionBoxAttr {
-		const {subscriptionDataProvider, priceAndConfigProvider} = selectorAttrs
-		const subscriptionFeatures = subscriptionDataProvider.getFeatureList(targetSubscription)
+		const {featureListProvider, priceAndConfigProvider} = selectorAttrs
+		const subscriptionFeatures = featureListProvider.getFeatureList(targetSubscription)
 		const featuresToShow = subscriptionFeatures.features
 												   .filter(f => this.featuresExpanded[targetSubscription] || this.featuresExpanded.All || !f.omit)
 												   .map(f => localizeFeatureListItem(f, targetSubscription, selectorAttrs))
@@ -184,7 +184,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				selectorAttrs.currentSubscriptionType === targetSubscription
 					? getActiveSubscriptionActionButtonReplacement()
 					: getActionButtonBySubscription(selectorAttrs.actionButtons, targetSubscription),
-			price: formatPrice(subscriptionPrice, true),
+			price: formatMonthlyPrice(subscriptionPrice, selectorAttrs.options.paymentInterval()),
 			priceHint: getPriceHint(
 				subscriptionPrice,
 				selectorAttrs.options.paymentInterval()
@@ -203,8 +203,8 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 	 * Renders the feature expanders depending on whether currently displaying the feature list in single-column layout or in multi-column layout.
 	 * If a specific expander is not needed and thus should not be renderer, null | undefined is returned
 	 */
-	private renderFeatureExpanders(inMobileView: boolean | null, subscriptionDataProvider: FeatureListProvider): Record<ExpanderTargets, Children> {
-		if (!subscriptionDataProvider.featureLoadingDone()) { // the feature list is not available
+	private renderFeatureExpanders(inMobileView: boolean | null, featureListProvider: FeatureListProvider): Record<ExpanderTargets, Children> {
+		if (!featureListProvider.featureLoadingDone()) { // the feature list is not available
 			return Object.assign({} as Record<ExpanderTargets, Children>)
 		}
 		if (inMobileView) { // In single-column layout every subscription type has its own feature expander.
@@ -293,7 +293,7 @@ export function getReplacement(key: ReplacementKey | undefined, subscription: Su
 				subscription,
 				UpgradePriceType.AdditionalUserPrice
 			)
-			return {"{1}": formatPrice(subscriptionPriceUser, true)}
+			return {"{1}": formatMonthlyPrice(subscriptionPriceUser, attrs.options.paymentInterval())}
 		case "mailAddressAliases":
 			return {"{amount}": priceAndConfigProvider.getSubscriptionConfig(subscription).nbrOfAliases}
 		case "storage":
@@ -302,9 +302,9 @@ export function getReplacement(key: ReplacementKey | undefined, subscription: Su
 			const subscriptionPriceContact = priceAndConfigProvider.getSubscriptionPrice(
 				options.paymentInterval(),
 				subscription,
-				UpgradePriceType.AdditionalUserPrice
+				UpgradePriceType.ContactFormPrice
 			)
-			return {"{price}": formatPrice(subscriptionPriceContact, true)}
+			return {"{price}": formatMonthlyPrice(subscriptionPriceContact, attrs.options.paymentInterval())}
 	}
 }
 

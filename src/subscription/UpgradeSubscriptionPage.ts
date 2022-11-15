@@ -76,7 +76,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 				currentlyWhitelabelOrdered: false,
 				orderedContactForms: 0,
 				actionButtons: subscriptionActionButtons,
-				subscriptionDataProvider: vnode.attrs.data.subscriptionDataProvider,
+				featureListProvider: vnode.attrs.data.featureListProvider,
 				priceAndConfigProvider: vnode.attrs.data.planPrices
 			}),
 		])

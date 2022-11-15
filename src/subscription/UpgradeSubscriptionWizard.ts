@@ -62,7 +62,7 @@ export type UpgradeSubscriptionData = {
 	planPrices: PriceAndConfigProvider
 	currentSubscription: SubscriptionType | null
 	subscriptionParameters: SubscriptionParameters | null
-	subscriptionDataProvider: FeatureListProvider
+	featureListProvider: FeatureListProvider
 }
 
 export function loadUpgradePrices(registrationDataId: string | null): Promise<UpgradePriceServiceReturn> {
@@ -96,7 +96,7 @@ export async function showUpgradeWizard(): Promise<void> {
 	const priceDataProvider = await getPricesAndConfigProvider(null)
 
 	const prices = priceDataProvider.getRawPricingData()
-	const subscriptionDataProvider = await getFeatureListProvider()
+	const featureListProvider = await getFeatureListProvider()
 	const upgradeData: UpgradeSubscriptionData = {
 		options: {
 			businessUse: stream(prices.business),
@@ -123,7 +123,7 @@ export async function showUpgradeWizard(): Promise<void> {
 		currentSubscription: SubscriptionType.Free,
 		subscriptionParameters: null,
 		planPrices: priceDataProvider,
-		subscriptionDataProvider
+		featureListProvider: featureListProvider
 	}
 	const wizardPages = [
 		wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(upgradeData)),
@@ -142,7 +142,7 @@ export async function loadSignupWizard(subscriptionParameters: SubscriptionParam
 
 	const priceDataProvider = await getPricesAndConfigProvider(registrationDataId)
 	const prices = priceDataProvider.getRawPricingData()
-	const subscriptionDataProvider = await getFeatureListProvider()
+	const featureListProvider = await getFeatureListProvider()
 	const signupData: UpgradeSubscriptionData = {
 		options: {
 			businessUse: stream(prices.business),
@@ -169,7 +169,7 @@ export async function loadSignupWizard(subscriptionParameters: SubscriptionParam
 		planPrices: priceDataProvider,
 		currentSubscription: null,
 		subscriptionParameters: subscriptionParameters,
-		subscriptionDataProvider
+		featureListProvider: featureListProvider
 	}
 
 	const invoiceAttrs = new InvoiceAndPaymentDataPageAttrs(signupData)
