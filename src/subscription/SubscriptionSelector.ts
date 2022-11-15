@@ -167,6 +167,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		const featuresToShow = subscriptionFeatures.features
 												   .filter(f => this.featuresExpanded[targetSubscription] || this.featuresExpanded.All || !f.omit)
 												   .map(f => localizeFeatureListItem(f, targetSubscription, selectorAttrs))
+												   .filter((f): f is BuyOptionBoxAttr['features'][0] => f != null)
 
 		// we only highlight the private Premium box if this is a signup or the current subscription type is Free
 		selectorAttrs.highlightPremium =
@@ -201,8 +202,6 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 	/**
 	 * Renders the feature expanders depending on whether currently displaying the feature list in single-column layout or in multi-column layout.
 	 * If a specific expander is not needed and thus should not be renderer, null | undefined is returned
-	 * @param inMobileView
-	 * @private
 	 */
 	private renderFeatureExpanders(inMobileView: boolean | null, subscriptionDataProvider: SubscriptionDataProvider): Record<ExpanderTargets, Children> {
 		if (!subscriptionDataProvider.featureLoadingDone()) { // the feature list is not available
@@ -253,12 +252,18 @@ function localizeFeatureListItem(
 	item: FeatureListItem,
 	targetSubscription: SubscriptionType,
 	attrs: SubscriptionSelectorAttr,
-): BuyOptionBoxAttr['features'][0] {
-	const text = lang.get(item.text, getReplacement(item.replacements, targetSubscription, attrs))
+): BuyOptionBoxAttr['features'][0] | null {
+	const text = tryGetTranslation(item.text, getReplacement(item.replacements, targetSubscription, attrs))
+	if (text == null) {
+		return null
+	}
 	if (!item.toolTip) {
 		return {text, key: item.text, antiFeature: item.antiFeature}
 	} else {
-		const toolTipText = lang.get(item.toolTip)
+		const toolTipText = tryGetTranslation(item.toolTip)
+		if (toolTipText === null) {
+			return null
+		}
 		const toolTip = item.toolTip.endsWith("_markdown")
 			? m.trust(toolTipText)
 			: toolTipText
@@ -266,11 +271,20 @@ function localizeFeatureListItem(
 	}
 }
 
+function tryGetTranslation(key: TranslationKey, replacements?: Record<string, string | number>): string | null {
+	try {
+		return lang.get(key, replacements)
+	} catch (e) {
+		console.log("could not translate feature text for key", key, "hiding feature item")
+		return null
+	}
+}
+
 /**
  * get a string to insert into a translation with a slot.
  * if no key is found, undefined is returned and nothing is replaced.
  */
-export function getReplacement(key: ReplacementKey | undefined, subscription: SubscriptionType, attrs: SubscriptionSelectorAttr) {
+export function getReplacement(key: ReplacementKey | undefined, subscription: SubscriptionType, attrs: SubscriptionSelectorAttr): Record<string, string | number> | undefined {
 	const {priceAndConfigProvider, options} = attrs
 	switch (key) {
 		case "pricePerExtraUser":
