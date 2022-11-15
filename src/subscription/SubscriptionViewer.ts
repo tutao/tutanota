@@ -60,7 +60,7 @@ import {MailAddressAliasService} from "../api/entities/sys/Services"
 import {DropDownSelector, SelectorItemList} from "../gui/base/DropDownSelector.js"
 import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js"
-import {getDisplayNameOfSubscriptionType, SubscriptionType} from "./SubscriptionDataProvider"
+import {getDisplayNameOfSubscriptionType, SubscriptionType} from "./FeatureListProvider"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24

@@ -27,7 +27,7 @@ import {
 import {locator} from "../api/main/MainLocator"
 import {SwitchAccountTypeService} from "../api/entities/sys/Services.js"
 import {BadRequestError, InvalidDataError, PreconditionFailedError} from "../api/common/error/RestError.js"
-import {getDisplayNameOfSubscriptionType, getSubscriptionDataProvider, SubscriptionType} from "./SubscriptionDataProvider"
+import {getDisplayNameOfSubscriptionType, getFeatureListProvider, SubscriptionType} from "./FeatureListProvider"
 import {getPricesAndConfigProvider, isSubscriptionDowngrade} from "./PriceUtils"
 
 /**
@@ -35,7 +35,7 @@ import {getPricesAndConfigProvider, isSubscriptionDowngrade} from "./PriceUtils"
  */
 export async function showSwitchDialog(customer: Customer, customerInfo: CustomerInfo, accountingInfo: AccountingInfo, lastBooking: Booking): Promise<void> {
 	const [subscriptionDataProvider, priceAndConfigProvider] = await showProgressDialog("pleaseWait_msg", Promise.all([
-		getSubscriptionDataProvider(),
+		getFeatureListProvider(),
 		getPricesAndConfigProvider(null)
 	]))
 	const model = new SwitchSubscriptionDialogModel(locator.bookingFacade, customer, customerInfo, accountingInfo, lastBooking, priceAndConfigProvider)

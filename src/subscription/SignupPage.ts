@@ -4,7 +4,7 @@ import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialog.js"
 import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialog.js"
 import {SignupForm} from "./SignupForm"
-import {getDisplayNameOfSubscriptionType, SubscriptionType} from "./SubscriptionDataProvider"
+import {getDisplayNameOfSubscriptionType, SubscriptionType} from "./FeatureListProvider"
 
 type ConfirmStatus = {
 	type: string

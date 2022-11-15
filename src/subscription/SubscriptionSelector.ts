@@ -11,10 +11,10 @@ import {
 	getDisplayNameOfSubscriptionType,
 	ReplacementKey,
 	SelectedSubscriptionOptions,
-	SubscriptionDataProvider,
+	FeatureListProvider,
 	SubscriptionType,
 	UpgradePriceType
-} from "./SubscriptionDataProvider"
+} from "./FeatureListProvider"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
@@ -50,7 +50,7 @@ export type SubscriptionSelectorAttr = {
 	currentlyWhitelabelOrdered: boolean
 	orderedContactForms: number
 	isInitialUpgrade: boolean
-	subscriptionDataProvider: SubscriptionDataProvider,
+	subscriptionDataProvider: FeatureListProvider,
 	priceAndConfigProvider: PriceAndConfigProvider,
 }
 
@@ -163,7 +163,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 
 	private createBuyOptionBoxAttr(selectorAttrs: SubscriptionSelectorAttr, targetSubscription: SubscriptionType): BuyOptionBoxAttr {
 		const {subscriptionDataProvider, priceAndConfigProvider} = selectorAttrs
-		const subscriptionFeatures = subscriptionDataProvider.getSubscriptionFeatures(targetSubscription)
+		const subscriptionFeatures = subscriptionDataProvider.getFeatureList(targetSubscription)
 		const featuresToShow = subscriptionFeatures.features
 												   .filter(f => this.featuresExpanded[targetSubscription] || this.featuresExpanded.All || !f.omit)
 												   .map(f => localizeFeatureListItem(f, targetSubscription, selectorAttrs))
@@ -203,7 +203,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 	 * Renders the feature expanders depending on whether currently displaying the feature list in single-column layout or in multi-column layout.
 	 * If a specific expander is not needed and thus should not be renderer, null | undefined is returned
 	 */
-	private renderFeatureExpanders(inMobileView: boolean | null, subscriptionDataProvider: SubscriptionDataProvider): Record<ExpanderTargets, Children> {
+	private renderFeatureExpanders(inMobileView: boolean | null, subscriptionDataProvider: FeatureListProvider): Record<ExpanderTargets, Children> {
 		if (!subscriptionDataProvider.featureLoadingDone()) { // the feature list is not available
 			return Object.assign({} as Record<ExpanderTargets, Children>)
 		}

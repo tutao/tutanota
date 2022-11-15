@@ -16,7 +16,7 @@ import {Keys} from "../api/common/TutanotaConstants"
 import {Checkbox} from "../gui/base/Checkbox.js"
 import {locator} from "../api/main/MainLocator"
 import {UsageTest} from "@tutao/tutanota-usagetests"
-import {SubscriptionType, UpgradePriceType} from "./SubscriptionDataProvider"
+import {SubscriptionType, UpgradePriceType} from "./FeatureListProvider"
 
 export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private _dom: HTMLElement | null = null

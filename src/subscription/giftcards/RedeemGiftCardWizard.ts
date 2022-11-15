@@ -34,7 +34,7 @@ import {GiftCardFacade} from "../../api/worker/facades/GiftCardFacade.js"
 import {EntityClient} from "../../api/common/EntityClient.js"
 import {Country, getByAbbreviation} from "../../api/common/CountryList.js"
 import {renderCountryDropdown} from "../../gui/base/GuiUtils.js"
-import {SubscriptionType, UpgradePriceType} from "../SubscriptionDataProvider"
+import {SubscriptionType, UpgradePriceType} from "../FeatureListProvider"
 
 
 const enum GetCredentialsMethod {

@@ -20,7 +20,7 @@ import {isValidCreditCardNumber} from "../misc/FormatValidator"
 import {noOp} from "@tutao/tutanota-utils"
 import {promiseMap} from "@tutao/tutanota-utils"
 import Stream from "mithril/stream";
-import {SelectedSubscriptionOptions} from "./SubscriptionDataProvider"
+import {SelectedSubscriptionOptions} from "./FeatureListProvider"
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
