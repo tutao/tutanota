@@ -429,22 +429,17 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 	}
 
 	private renderConnectionLostIndicator(): Children {
-		return m(".plr-l.flex-space-around.items-center",
+		return m(".plr-l.flex-center.items-center",
 			{
 				style: {
 					height: px(size.list_row_height),
-					width: "100%",
-					position: "absolute"
 				}
 			},
-			[
-				m("", lang.get("connectionLost_msg")),
-				m(Button, {
-					label: "retry_action",
-					type: ButtonType.Primary,
-					click: () => this.retryLoading()
-				})
-			]
+			m(Button, {
+				label: "loadMore_action",
+				type: ButtonType.Primary,
+				click: () => this.retryLoading()
+			})
 		)
 	}
 

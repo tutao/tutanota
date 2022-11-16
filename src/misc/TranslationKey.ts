@@ -1152,6 +1152,7 @@ export type TranslationKeyType =
 	| "restartBefore_action"
 	| "resumeSetup_label"
 	| "retry_action"
+	| "loadMore_action"
 	| "revealPassword_action"
 	| "richText_label"
 	| "role_placeholder"
