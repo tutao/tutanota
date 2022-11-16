@@ -1219,6 +1219,7 @@ export default {
 		"restartBefore_action": "Restart Tutanota before sending",
 		"resumeSetup_label": "Resume setup",
 		"retry_action": "Try again",
+		"loadMore_action": "Load more",
 		"revealPassword_action": "Reveal the password",
 		"richText_label": "Rich text",
 		"role_placeholder": "Role",

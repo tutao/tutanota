@@ -1223,6 +1223,7 @@ export default {
 		"restartBefore_action": "Tutanota vorher neu starten",
 		"resumeSetup_label": "Konfiguration abschließen",
 		"retry_action": "Wiederholen",
+		"loadMore_action": "Mehr laden",
 		"revealPassword_action": "Passwort anzeigen",
 		"richText_label": "Rich Text",
 		"role_placeholder": "Rolle",
