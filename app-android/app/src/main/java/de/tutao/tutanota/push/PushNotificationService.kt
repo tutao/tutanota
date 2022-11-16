@@ -71,7 +71,6 @@ class PushNotificationService : LifecycleJobService() {
 		Log.d(TAG, "Received onStartCommand, sender: " + intent?.getStringExtra("sender"))
 
 		if (atLeastOreo()) {
-			localNotificationsFacade.createNotificationChannels()
 			Log.d(TAG, "Starting foreground")
 			startForeground(1, localNotificationsFacade.makeConnectionNotification())
 		}
