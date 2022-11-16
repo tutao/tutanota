@@ -13,21 +13,41 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import {capitalize} from "../../../../packages/licc/lib/common.js"
 import {copyToClipboard} from "../../ClipboardUtils.js"
+import {UsageTestModel} from "../../UsageTestModel.js"
+import {UsageTest, UsageTestController} from "@tutao/tutanota-usagetests"
 import {UserController} from "../../../api/main/UserController.js"
 
 /**
  * News item that informs admin users about their recovery code.
  */
 export class RecoveryCodeNews implements NewsListItem {
+	private readonly recoveryCodeDialogUsageTest?: UsageTest
+
 	constructor(
 		private readonly newsModel: NewsModel,
 		private readonly userController: UserController,
+		private readonly usageTestModel: UsageTestModel,
+		private readonly usageTestController: UsageTestController,
 		private readonly recoveryCode: Stream<string | null> = stream(null),
+		private readonly sentActions = new Set<string>()
 	) {
+		this.recoveryCodeDialogUsageTest = usageTestController.getTest("recoveryCodeDialog")
 	}
 
 	isShown(): boolean {
 		return this.userController.isGlobalAdmin()
+	}
+
+	private sendAction(action: string) {
+		if (!this.sentActions.has(action)) {
+			const stage = this.recoveryCodeDialogUsageTest?.getStage(2)
+			stage?.setMetric({
+				name: "action",
+				value: action,
+			})
+			stage?.complete()
+			this.sentActions.add(action)
+		}
 	}
 
 	render(newsId: NewsId): Children {
@@ -37,11 +57,19 @@ export class RecoveryCodeNews implements NewsListItem {
 			buttonAttrs.push({
 				label: "copy_action",
 				type: ButtonType.Secondary,
-				click: () => copyToClipboard(assertNotNull(this.recoveryCode())),
+				click: () => {
+					this.sendAction("copy")
+
+					copyToClipboard(assertNotNull(this.recoveryCode()))
+				},
 			}, {
 				label: "print_action",
 				type: ButtonType.Secondary,
-				click: () => window.print(),
+				click: () => {
+					this.sendAction("print")
+
+					window.print()
+				},
 			})
 		} else {
 			buttonAttrs.push({
@@ -67,6 +95,7 @@ export class RecoveryCodeNews implements NewsListItem {
 			label: this.recoveryCode() ? "paymentDataValidation_action" : "recoveryCodeDisplay_action",
 			click: () => {
 				if (!this.recoveryCode()) {
+					this.recoveryCodeDialogUsageTest?.getStage(1).complete()
 					getRecoverCodeDialogAfterPasswordVerification(this.userController, true, this.recoveryCode)
 					m.redraw()
 					return
@@ -78,7 +107,22 @@ export class RecoveryCodeNews implements NewsListItem {
 			type: ButtonType.Primary,
 		})
 
-		return m(".full-width", [
+		return m(".full-width", {
+			onmouseup: () => {
+				let selection = window.getSelection()?.toString()
+
+				if (!this.recoveryCode() || !selection || selection.length === 0) {
+					return
+				}
+
+				const recoveryCode = assertNotNull(this.recoveryCode())
+				selection = selection.replace(/\s/g, '') // remove whitespace
+
+				if (selection.includes(recoveryCode)) {
+					this.sendAction("select")
+				}
+			}
+		}, [
 			m(".h4", lang.get("recoveryCode_label").split(" ").map(capitalize).join(" ")),
 			m("", lang.get("recoveryCode_msg")),
 			this.recoveryCode()

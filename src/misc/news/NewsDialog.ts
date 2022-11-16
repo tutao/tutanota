@@ -7,6 +7,7 @@ import {Keys} from "../../api/common/TutanotaConstants.js"
 import {NewsList} from "./NewsList.js"
 import {NewsModel} from "./NewsModel.js"
 import {progressIcon} from "../../gui/base/Icon.js"
+import {locator} from "../../api/main/MainLocator.js"
 
 export function showNewsDialog(newsModel: NewsModel) {
 	const closeButton: ButtonAttrs = {
@@ -17,7 +18,16 @@ export function showNewsDialog(newsModel: NewsModel) {
 		},
 	}
 
+	const recoveryCodeDialogUsageTest = locator.usageTestController.getTest("recoveryCodeDialog")
+
 	const closeAction = () => {
+		const stage = recoveryCodeDialogUsageTest.getStage(2)
+		stage.setMetric({
+			name: "action",
+			value: "close",
+		})
+		stage.complete()
+
 		dialog.close()
 	}
 	const header: DialogHeaderBarAttrs = {
@@ -63,6 +73,6 @@ export function showNewsDialog(newsModel: NewsModel) {
 		},
 		help: "close_alt",
 	})
-
+	recoveryCodeDialogUsageTest.getStage(0).complete()
 	dialog.show()
 }
