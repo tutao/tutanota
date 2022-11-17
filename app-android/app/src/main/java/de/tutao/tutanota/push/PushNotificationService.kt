@@ -27,17 +27,17 @@ class PushNotificationService : LifecycleJobService() {
 		val keyStoreFacade = createAndroidKeyStoreFacade(crypto)
 		val sseStorage = SseStorage(appDatabase, keyStoreFacade)
 		val alarmNotificationsManager = AlarmNotificationsManager(
-			sseStorage,
-			crypto,
-			SystemAlarmFacade(this),
-			localNotificationsFacade
+				sseStorage,
+				crypto,
+				SystemAlarmFacade(this),
+				localNotificationsFacade
 		)
 		alarmNotificationsManager.reScheduleAlarms()
 		sseClient = SseClient(
-			crypto,
-			sseStorage,
-			NetworkObserver(this, this),
-			NotificationSseListener(localNotificationsFacade, sseStorage, alarmNotificationsManager)
+				crypto,
+				sseStorage,
+				NetworkObserver(this, this),
+				NotificationSseListener(localNotificationsFacade, sseStorage, alarmNotificationsManager)
 		)
 		sseStorage.observeUsers().observeForever { userInfos ->
 			Log.d(TAG, "sse storage updated " + userInfos.size)
@@ -51,11 +51,11 @@ class PushNotificationService : LifecycleJobService() {
 				finishJobIfNeeded()
 			} else {
 				sseClient.restartConnectionIfNeeded(
-					SseInfo(
-						sseStorage.getPushIdentifier()!!,
-						userIds,
-						sseStorage.getSseOrigin()!!
-					)
+						SseInfo(
+								sseStorage.getPushIdentifier()!!,
+								userIds,
+								sseStorage.getSseOrigin()!!
+						)
 				)
 			}
 		}
@@ -78,7 +78,7 @@ class PushNotificationService : LifecycleJobService() {
 		if (intent != null && intent.hasExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA)) {
 			val dismissAddresses = intent.getStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA)
 			localNotificationsFacade.notificationDismissed(
-				dismissAddresses, intent.getBooleanExtra(MainActivity.IS_SUMMARY_EXTRA, false)
+					dismissAddresses, intent.getBooleanExtra(MainActivity.IS_SUMMARY_EXTRA, false)
 			)
 		}
 
@@ -132,13 +132,13 @@ class PushNotificationService : LifecycleJobService() {
 	}
 
 	private inner class NotificationSseListener(
-		notificationsFacade: LocalNotificationsFacade,
-		sseStorage: SseStorage,
-		alarmNotificationsManager: AlarmNotificationsManager
+			notificationsFacade: LocalNotificationsFacade,
+			sseStorage: SseStorage,
+			alarmNotificationsManager: AlarmNotificationsManager
 	) : SseListener {
 
 		private val tutanotaNotificationsHandler =
-			TutanotaNotificationsHandler(notificationsFacade, sseStorage, alarmNotificationsManager)
+				TutanotaNotificationsHandler(notificationsFacade, sseStorage, alarmNotificationsManager)
 
 		override fun onStartingConnection(): Boolean {
 			return tutanotaNotificationsHandler.onConnect()
