@@ -10,7 +10,7 @@
             ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
             <ActionContent
                title = "Run Script"
-               scriptText = "# Type a script or drag a script file from your workspace to insert its path.&#10;/usr/libexec/PlistBuddy -c &quot;Set :TutanotaApplicationPath  \&quot;build/dist/\&quot;&quot; &quot;$PROJECT_DIR/$INFOPLIST_FILE&quot;&#10;">
+               scriptText = "&#10;">
                <EnvironmentBuildable>
                   <BuildableReference
                      BuildableIdentifier = "primary"
