@@ -59,11 +59,6 @@ class PushNotificationService : LifecycleJobService() {
 				)
 			}
 		}
-		if (atLeastOreo()) {
-			localNotificationsFacade.createNotificationChannels()
-			Log.d(TAG, "Starting foreground")
-			startForeground(1, localNotificationsFacade.makeConnectionNotification())
-		}
 	}
 
 	private fun removeBackgroundServiceNotification() {
@@ -74,12 +69,16 @@ class PushNotificationService : LifecycleJobService() {
 	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 		super.onStartCommand(intent, flags, startId)
 		Log.d(TAG, "Received onStartCommand, sender: " + intent?.getStringExtra("sender"))
+
+		if (atLeastOreo()) {
+			Log.d(TAG, "Starting foreground")
+			startForeground(1, localNotificationsFacade.makeConnectionNotification())
+		}
+
 		if (intent != null && intent.hasExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA)) {
-			val dismissAddresses =
-					intent.getStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA)
+			val dismissAddresses = intent.getStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA)
 			localNotificationsFacade.notificationDismissed(
-					dismissAddresses,
-					intent.getBooleanExtra(MainActivity.IS_SUMMARY_EXTRA, false)
+					dismissAddresses, intent.getBooleanExtra(MainActivity.IS_SUMMARY_EXTRA, false)
 			)
 		}
 
@@ -138,7 +137,8 @@ class PushNotificationService : LifecycleJobService() {
 			alarmNotificationsManager: AlarmNotificationsManager
 	) : SseListener {
 
-		private val tutanotaNotificationsHandler = TutanotaNotificationsHandler(notificationsFacade, sseStorage, alarmNotificationsManager)
+		private val tutanotaNotificationsHandler =
+				TutanotaNotificationsHandler(notificationsFacade, sseStorage, alarmNotificationsManager)
 
 		override fun onStartingConnection(): Boolean {
 			return tutanotaNotificationsHandler.onConnect()
