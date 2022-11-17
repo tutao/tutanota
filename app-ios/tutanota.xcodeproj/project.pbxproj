@@ -179,7 +179,6 @@
 		3DDB5E6F28FDA59100E1E4BE /* libcrypto.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DDB5E6E28FDA59100E1E4BE /* libcrypto.xcframework */; };
 		3DDE413B28F4665700837BE6 /* SqlCipherDb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DDE413A28F4665700837BE6 /* SqlCipherDb.swift */; };
 		3DE1E44526666F0A0018C9DE /* UIColor+utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */; };
-		3DE2E47822D5F198009A9368 /* Info-Debug.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3DE2E47722D5F198009A9368 /* Info-Debug.plist */; };
 		3DE46D2B2848EBDA00DC9D43 /* IosFileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE46D2A2848EBDA00DC9D43 /* IosFileFacade.swift */; };
 		3DE46D2E2849E33000DC9D43 /* IosThemeFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE46D2D2849E33000DC9D43 /* IosThemeFacade.swift */; };
 		3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DE7B3432135855F003415BE /* TUTSubKeys.m */; };
@@ -382,7 +381,6 @@
 		3DDB5E6E28FDA59100E1E4BE /* libcrypto.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = libcrypto.xcframework; sourceTree = "<group>"; };
 		3DDE413A28F4665700837BE6 /* SqlCipherDb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SqlCipherDb.swift; sourceTree = "<group>"; };
 		3DE1E44426666F0A0018C9DE /* UIColor+utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+utils.swift"; sourceTree = "<group>"; };
-		3DE2E47722D5F198009A9368 /* Info-Debug.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-Debug.plist"; sourceTree = "<group>"; };
 		3DE46D2A2848EBDA00DC9D43 /* IosFileFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosFileFacade.swift; sourceTree = "<group>"; };
 		3DE46D2D2849E33000DC9D43 /* IosThemeFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosThemeFacade.swift; sourceTree = "<group>"; };
 		3DE7B3422135855F003415BE /* TUTSubKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTSubKeys.h; sourceTree = "<group>"; };
@@ -1189,7 +1187,6 @@
 				3DD4A08F20F8C6260086EB36 /* Assets.xcassets */,
 				3DD4A09120F8C6260086EB36 /* LaunchScreen.storyboard */,
 				3DD4A09420F8C6260086EB36 /* Info.plist */,
-				3DE2E47722D5F198009A9368 /* Info-Debug.plist */,
 			);
 			path = tutanota;
 			sourceTree = "<group>";
@@ -1450,7 +1447,6 @@
 				3D9A1F4622031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F1622031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F2B22031B99002C2455 /* InfoPlist.strings in Resources */,
-				3DE2E47822D5F198009A9368 /* Info-Debug.plist in Resources */,
 				3D9A1F4422031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F2122031B99002C2455 /* InfoPlist.strings in Resources */,
 				3D9A1F1A22031B99002C2455 /* InfoPlist.strings in Resources */,
