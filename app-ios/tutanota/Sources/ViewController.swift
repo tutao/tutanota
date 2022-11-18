@@ -251,16 +251,12 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     return try! String(data: JSONEncoder().encode(dictionary), encoding: .utf8)!
   }
   
-  private func appUrl() -> URL {
-    let env = ProcessInfo.processInfo.environment
-    
-    let pagePath: String
-    // this var is set in the debug scheme: Product > Scheme > Manage Schemes in xcode.
-    if let envPath = env["TUT_PAGE_PATH"] {
-      pagePath = envPath
-    } else {
-      pagePath = Bundle.main.infoDictionary!["TutanotaApplicationPath"] as! String
-    }
+  private func appUrl() -> URL {    
+    // this var is stored in Info.plist and possibly manipulated by the tutanota scheme:
+    // Product > Scheme > Manage Schemes in xcode.
+    // default path points to the dist build of the web app, the debug scheme modifies it
+    // to point at the debug build before building the app and reverts the change after the build.
+    let pagePath: String = Bundle.main.infoDictionary!["TutanotaApplicationPath"] as! String
     let path = Bundle.main.path(forResource: pagePath + "index-app", ofType: "html")
     if path == nil {
       return Bundle.main.resourceURL!
