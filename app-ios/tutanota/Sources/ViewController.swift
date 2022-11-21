@@ -252,10 +252,10 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
   }
   
   private func appUrl() -> URL {    
-    // this var is stored in Info.plist and possibly manipulated by the tutanota scheme:
+    // this var is stored in Info.plist and possibly manipulated by the build schemes:
     // Product > Scheme > Manage Schemes in xcode.
-    // default path points to the dist build of the web app, the debug scheme modifies it
-    // to point at the debug build before building the app and reverts the change after the build.
+    // default path points to the dist build of the web app,
+    // both schemes modify it to point at the respective build before building the app
     let pagePath: String = Bundle.main.infoDictionary!["TutanotaApplicationPath"] as! String
     let path = Bundle.main.path(forResource: pagePath + "index-app", ofType: "html")
     if path == nil {
