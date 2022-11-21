@@ -70,6 +70,10 @@ import {InterWindowEventFacade} from "../../native/common/generatedipc/InterWind
 import {InterWindowEventFacadeSendDispatcher} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import {SqlCipherFacade} from "../../native/common/generatedipc/SqlCipherFacade.js"
 import {NewsModel} from "../../misc/news/NewsModel.js"
+import type {OwnMailAddressNameChanger} from "../../settings/mailaddress/OwnMailAddressNameChanger.js"
+import type {MailAddressNameChanger, MailAddressTableModel} from "../../settings/mailaddress/MailAddressTableModel.js"
+import type {AnotherUserMailAddressNameChanger} from "../../settings/mailaddress/AnotherUserMailAddressNameChanger.js"
+import type {GroupInfo} from "../entities/sys/TypeRefs.js"
 
 assertMainOrNode()
 
@@ -126,6 +130,11 @@ export interface IMainLocator {
 	readonly desktopSystemFacade: DesktopSystemFacade
 	readonly interWindowEventSender: InterWindowEventFacade
 	readonly random: WorkerRandomizer;
+
+	mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel>;
+
+	mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userGroupInfo: GroupInfo): Promise<MailAddressTableModel>;
+
 	readonly init: () => Promise<void>
 	readonly initialized: Promise<void>
 }
@@ -202,6 +211,42 @@ class MainLocator implements IMainLocator {
 
 	get systemFacade(): MobileSystemFacade {
 		return this.getNativeInterface("mobileSystemFacade")
+	}
+
+	async mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel> {
+		const {MailAddressTableModel} = await import("../../settings/mailaddress/MailAddressTableModel.js")
+		const nameChanger = await this.ownMailAddressNameChanger()
+		return new MailAddressTableModel(
+			this.entityClient,
+			this.mailAddressFacade,
+			logins,
+			this.eventController,
+			logins.getUserController().userGroupInfo,
+			nameChanger,
+		)
+	}
+
+	async mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userGroupInfo: GroupInfo): Promise<MailAddressTableModel> {
+		const {MailAddressTableModel} = await import("../../settings/mailaddress/MailAddressTableModel.js")
+		const nameChanger = await this.adminNameChanger(mailGroupId, userId)
+		return new MailAddressTableModel(
+			this.entityClient,
+			this.mailAddressFacade,
+			logins,
+			this.eventController,
+			userGroupInfo,
+			nameChanger,
+		)
+	}
+
+	async ownMailAddressNameChanger(): Promise<MailAddressNameChanger> {
+		const {OwnMailAddressNameChanger} = await import("../../settings/mailaddress/OwnMailAddressNameChanger.js")
+		return new OwnMailAddressNameChanger(this.mailModel, this.entityClient)
+	}
+
+	async adminNameChanger(mailGroupId: Id, userId: Id): Promise<MailAddressNameChanger> {
+		const {AnotherUserMailAddressNameChanger} = await import("../../settings/mailaddress/AnotherUserMailAddressNameChanger.js")
+		return new AnotherUserMailAddressNameChanger(this.userManagementFacade, mailGroupId, userId)
 	}
 
 	private getExposedNativeInterface(): ExposedNativeInterface {

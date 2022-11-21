@@ -101,24 +101,18 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		})
 
 		this.user.getAsync().then(async (user) => {
-			const maybeMailShip = await asyncFind(user.memberships, async (ship) => {
+			const mailMembership = await asyncFind(user.memberships, async (ship) => {
 				return ship.groupType === GroupType.Mail && (await locator.entityClient.load(GroupTypeRef, ship.group)).user === user._id
 			})
-			if (maybeMailShip == null) {
+			if (mailMembership == null) {
 				console.error("User doesn't have a mailbox?", user._id)
 				return
 			}
 			// we never dispose it because we live forever! 🧛
-			this.mailAddressTableModel = new MailAddressTableModel(
-				locator.entityClient,
-				locator.mailAddressFacade,
-				logins,
-				locator.eventController,
-				this.userGroupInfo,
-				this.isItMe()
-					? new OwnMailAddressNameChanger(locator.mailModel, locator.entityClient)
-					: new AnotherUserMailAddressNameChanger(locator.userManagementFacade, maybeMailShip.group, user._id),
-			)
+			this.mailAddressTableModel = (this.isItMe())
+				? await locator.mailAddressTableModelForOwnMailbox()
+				: await locator.mailAddressTableModelForAdmin(mailMembership.group, user._id, this.userGroupInfo)
+			m.redraw()
 		})
 
 		this.updateUsedStorageAndAdminFlag()

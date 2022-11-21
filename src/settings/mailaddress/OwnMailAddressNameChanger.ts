@@ -3,6 +3,7 @@ import {MailModel} from "../../mail/model/MailModel.js"
 import {createMailAddressProperties, MailboxProperties} from "../../api/entities/tutanota/TypeRefs.js"
 import {EntityClient} from "../../api/common/EntityClient.js"
 
+/** Name changer for personal mailbox of the currently logged-in user. */
 export class OwnMailAddressNameChanger implements MailAddressNameChanger {
 	constructor(
 		private readonly mailModel: MailModel,
