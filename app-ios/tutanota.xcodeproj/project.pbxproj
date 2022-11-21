@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3D019DBA2927990B00300E2C /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3D019DB82927990B00300E2C /* MainInterface.storyboard */; };
 		3D0EB1F626F489AD002E5102 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0EB1F526F48854002E5102 /* KeychainManager.swift */; };
 		3D0EB1F926F49E36002E5102 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0EB1F826F49E36002E5102 /* AppDelegate.swift */; };
 		3D0EB1FC26F4BEE4002E5102 /* AlarmManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0EB1FB26F4BEE4002E5102 /* AlarmManager.swift */; };
@@ -191,6 +192,8 @@
 		3DE46D2B2848EBDA00DC9D43 /* IosFileFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE46D2A2848EBDA00DC9D43 /* IosFileFacade.swift */; };
 		3DE46D2E2849E33000DC9D43 /* IosThemeFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DE46D2D2849E33000DC9D43 /* IosThemeFacade.swift */; };
 		3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DE7B3432135855F003415BE /* TUTSubKeys.m */; };
+		3DEF18F32924E1F1009C4B55 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DEF18F22924E1F1009C4B55 /* ShareViewController.swift */; };
+		3DEF18FA2924E1F1009C4B55 /* TutanotaShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 3DEF18F02924E1F1009C4B55 /* TutanotaShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -201,9 +204,31 @@
 			remoteGlobalIDString = 3DD4A08220F8C6240086EB36;
 			remoteInfo = tutanota;
 		};
+		3DEF18F82924E1F1009C4B55 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3DD4A07B20F8C6240086EB36 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3DEF18EF2924E1F1009C4B55;
+			remoteInfo = TutanotaShareExtension;
+		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		3DEF18E82924E14B009C4B55 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				3DEF18FA2924E1F1009C4B55 /* TutanotaShareExtension.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		3D019DB92927990B00300E2C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
 		3D0EB1F526F48854002E5102 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		3D0EB1F826F49E36002E5102 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3D0EB1FB26F4BEE4002E5102 /* AlarmManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmManager.swift; sourceTree = "<group>"; };
@@ -402,6 +427,10 @@
 		3DE46D2D2849E33000DC9D43 /* IosThemeFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosThemeFacade.swift; sourceTree = "<group>"; };
 		3DE7B3422135855F003415BE /* TUTSubKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TUTSubKeys.h; sourceTree = "<group>"; };
 		3DE7B3432135855F003415BE /* TUTSubKeys.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TUTSubKeys.m; sourceTree = "<group>"; };
+		3DEF18DA2924E14A009C4B55 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = SDKROOT; };
+		3DEF18F02924E1F1009C4B55 /* TutanotaShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TutanotaShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		3DEF18F22924E1F1009C4B55 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		3DEF18F72924E1F1009C4B55 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3DF304A62535D172002B9E79 /* tutanota copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "tutanota copy-Info.plist"; path = "/Users/tutao/dev/repositories/tutanota-3/app-ios/tutanota copy-Info.plist"; sourceTree = "<absolute>"; };
 		3DF3055B253853C300E942A8 /* TUTCrypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TUTCrypto.h; path = tutanota/Sources/Crypto/TUTCrypto.h; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
@@ -421,6 +450,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		3DD4A09820F8C6260086EB36 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3DEF18ED2924E1F1009C4B55 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -578,6 +614,7 @@
 				3D4E3C9F28EC5B43001FA9D1 /* Foundation.framework */,
 				3D4E3C9D28EC5B31001FA9D1 /* Security.framework */,
 				3D36BCC1274E4A6100428878 /* CryptoTokenKit.framework */,
+				3DEF18DA2924E14A009C4B55 /* UniformTypeIdentifiers.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -1133,6 +1170,7 @@
 			children = (
 				3DD4A08520F8C6240086EB36 /* tutanota */,
 				3DD4A09E20F8C6260086EB36 /* tutanotaTests */,
+				3DEF18F12924E1F1009C4B55 /* TutanotaShareExtension */,
 				3DD4A08420F8C6240086EB36 /* Products */,
 				3D891EEC2105A5590031E528 /* Frameworks */,
 				3DF304A62535D172002B9E79 /* tutanota copy-Info.plist */,
@@ -1145,6 +1183,7 @@
 			children = (
 				3DD4A08320F8C6240086EB36 /* tutanota.app */,
 				3DD4A09B20F8C6260086EB36 /* tutanotaTests.xctest */,
+				3DEF18F02924E1F1009C4B55 /* TutanotaShareExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1252,6 +1291,16 @@
 			path = Offline;
 			sourceTree = "<group>";
 		};
+		3DEF18F12924E1F1009C4B55 /* TutanotaShareExtension */ = {
+			isa = PBXGroup;
+			children = (
+				3D019DB82927990B00300E2C /* MainInterface.storyboard */,
+				3DEF18F22924E1F1009C4B55 /* ShareViewController.swift */,
+				3DEF18F72924E1F1009C4B55 /* Info.plist */,
+			);
+			path = TutanotaShareExtension;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -1276,10 +1325,12 @@
 				3DD4A07F20F8C6240086EB36 /* Sources */,
 				3DD4A08020F8C6240086EB36 /* Frameworks */,
 				3DD4A08120F8C6240086EB36 /* Resources */,
+				3DEF18E82924E14B009C4B55 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				3DEF18F92924E1F1009C4B55 /* PBXTargetDependency */,
 			);
 			name = tutanota;
 			packageProductDependencies = (
@@ -1308,12 +1359,30 @@
 			productReference = 3DD4A09B20F8C6260086EB36 /* tutanotaTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		3DEF18EF2924E1F1009C4B55 /* TutanotaShareExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3DEF18FB2924E1F1009C4B55 /* Build configuration list for PBXNativeTarget "TutanotaShareExtension" */;
+			buildPhases = (
+				3DEF18EC2924E1F1009C4B55 /* Sources */,
+				3DEF18ED2924E1F1009C4B55 /* Frameworks */,
+				3DEF18EE2924E1F1009C4B55 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TutanotaShareExtension;
+			productName = TutanotaShareExtension;
+			productReference = 3DEF18F02924E1F1009C4B55 /* TutanotaShareExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		3DD4A07B20F8C6240086EB36 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 1340;
 				LastUpgradeCheck = 1300;
 				ORGANIZATIONNAME = "Tutao GmbH";
 				TargetAttributes = {
@@ -1333,6 +1402,9 @@
 						CreatedOnToolsVersion = 9.4.1;
 						LastSwiftMigration = 1250;
 						TestTargetID = 3DD4A08220F8C6240086EB36;
+					};
+					3DEF18EF2924E1F1009C4B55 = {
+						CreatedOnToolsVersion = 13.4.1;
 					};
 				};
 			};
@@ -1438,6 +1510,7 @@
 			targets = (
 				3DD4A08220F8C6240086EB36 /* tutanota */,
 				3DD4A09A20F8C6260086EB36 /* tutanotaTests */,
+				3DEF18EF2924E1F1009C4B55 /* TutanotaShareExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -1522,6 +1595,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				3DA047BF212C1BBE0062C36C /* CompatibilityTestData.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3DEF18EE2924E1F1009C4B55 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3D019DBA2927990B00300E2C /* MainInterface.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1649,6 +1730,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3DEF18EC2924E1F1009C4B55 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3DEF18F32924E1F1009C4B55 /* ShareViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -1657,9 +1746,22 @@
 			target = 3DD4A08220F8C6240086EB36 /* tutanota */;
 			targetProxy = 3DD4A09C20F8C6260086EB36 /* PBXContainerItemProxy */;
 		};
+		3DEF18F92924E1F1009C4B55 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3DEF18EF2924E1F1009C4B55 /* TutanotaShareExtension */;
+			targetProxy = 3DEF18F82924E1F1009C4B55 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
+		3D019DB82927990B00300E2C /* MainInterface.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3D019DB92927990B00300E2C /* Base */,
+			);
+			name = MainInterface.storyboard;
+			sourceTree = "<group>";
+		};
 		3D9A1E4222031B82002C2455 /* InfoPlist.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -2293,6 +2395,7 @@
 		3DD4A0A520F8C6260086EB36 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
@@ -2339,6 +2442,7 @@
 		3DD4A0A620F8C6260086EB36 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
@@ -2430,6 +2534,68 @@
 			};
 			name = Release;
 		};
+		3DEF18FC2924E1F1009C4B55 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = JKCH89Z3M9;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TutanotaShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TutanotaShareExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2022 Tutao GmbH. All rights reserved.";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 3.104.5;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.TutanotaShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3DEF18FD2924E1F1009C4B55 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = JKCH89Z3M9;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TutanotaShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TutanotaShareExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2022 Tutao GmbH. All rights reserved.";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 3.104.5;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.TutanotaShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -2456,6 +2622,15 @@
 			buildConfigurations = (
 				3DD4A0A820F8C6260086EB36 /* Debug */,
 				3DD4A0A920F8C6260086EB36 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3DEF18FB2924E1F1009C4B55 /* Build configuration list for PBXNativeTarget "TutanotaShareExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3DEF18FC2924E1F1009C4B55 /* Debug */,
+				3DEF18FD2924E1F1009C4B55 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
