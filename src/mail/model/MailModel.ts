@@ -5,6 +5,7 @@ import {containsEventOfType} from "../../api/common/utils/Utils"
 import {assertNotNull, groupBy, neverNull, noOp, ofClass, promiseMap, splitInChunks} from "@tutao/tutanota-utils"
 import type {Mail, MailBox, MailboxGroupRoot, MailboxProperties, MailFolder} from "../../api/entities/tutanota/TypeRefs.js"
 import {
+	createMailAddressProperties,
 	createMailboxProperties,
 	MailboxGroupRootTypeRef,
 	MailboxPropertiesTypeRef,
@@ -26,6 +27,7 @@ import {elementIdPart, getListId, isSameId, listIdPart} from "../../api/common/u
 import {NotFoundError} from "../../api/common/error/RestError"
 import type {MailFacade} from "../../api/worker/facades/MailFacade"
 import {LoginController} from "../../api/main/LoginController.js"
+import {getEnabledMailAddressesWithUser} from "./MailUtils.js"
 
 export type MailboxDetail = {
 	mailbox: MailBox
@@ -398,8 +400,26 @@ export class MailModel {
 				_ownerGroup: mailboxGroupRoot._ownerGroup,
 			}))
 		}
-		return this.entityClient.load(MailboxPropertiesTypeRef, mailboxGroupRoot.mailboxProperties)
+		const mailboxProperties = await this.entityClient.load(MailboxPropertiesTypeRef, mailboxGroupRoot.mailboxProperties)
+		if (mailboxProperties.mailAddressProperties.length === 0) {
+			await this.migrateFromOldSenderName(mailboxGroupRoot, mailboxProperties)
+		}
+		return mailboxProperties
 	}
+	private async migrateFromOldSenderName(mailboxGroupRoot: MailboxGroupRoot, mailboxProperties: MailboxProperties) {
+		const userGroupInfo = this.logins.getUserController().userGroupInfo
+		const legacySenderName = userGroupInfo.name
+		const mailboxDetails = await this.getMailboxDetailsForMailGroup(mailboxGroupRoot._id)
+		const mailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, userGroupInfo)
+		for (const mailAddress of mailAddresses) {
+			mailboxProperties.mailAddressProperties.push(createMailAddressProperties({
+				mailAddress,
+				senderName: legacySenderName,
+			}))
+		}
+		await this.entityClient.update(mailboxProperties)
+	}
+
 
 	async saveReportMovedMails(
 		mailboxGroupRoot: MailboxGroupRoot,
