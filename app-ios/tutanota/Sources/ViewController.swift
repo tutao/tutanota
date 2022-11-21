@@ -284,6 +284,17 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     scrollView.contentOffset = CGPoint.zero
   }
 
+  func handleShare(_ url: URL) async throws -> Void {
+    TUTSLog("got this url: \(url)")
+
+    try! await self.bridge.commonNativeFacade.createMailEditor(
+      [],
+      url.absoluteString,
+      [], "Shared Stuff",
+      ""
+    )
+  }
+
   override var preferredStatusBarStyle: UIStatusBarStyle {
     if self.isDarkTheme {
       return .lightContent
