@@ -406,6 +406,7 @@ export class MailModel {
 		}
 		return mailboxProperties
 	}
+
 	private async migrateFromOldSenderName(mailboxGroupRoot: MailboxGroupRoot, mailboxProperties: MailboxProperties) {
 		const userGroupInfo = this.logins.getUserController().userGroupInfo
 		const legacySenderName = userGroupInfo.name
@@ -419,7 +420,6 @@ export class MailModel {
 		}
 		await this.entityClient.update(mailboxProperties)
 	}
-
 
 	async saveReportMovedMails(
 		mailboxGroupRoot: MailboxGroupRoot,

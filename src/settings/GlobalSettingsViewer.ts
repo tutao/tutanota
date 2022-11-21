@@ -133,14 +133,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					if (logins.getUserController().isFreeAccount()) {
 						showNotAvailableForFreeDialog(getCustomMailDomains(customerInfo).length === 0)
 					} else {
-						const mailAddressTableModel = new MailAddressTableModel(
-							locator.entityClient,
-							locator.mailAddressFacade,
-							logins,
-							locator.eventController,
-							logins.getUserController().userGroupInfo,
-							new OwnMailAddressNameChanger(locator.mailModel, locator.entityClient),
-						)
+						const mailAddressTableModel = await locator.mailAddressTableModelForOwnMailbox()
 						await showAddDomainWizard("", customerInfo, mailAddressTableModel)
 						this.updateDomains()
 					}
@@ -590,15 +583,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async onResumeSetup(domainDnsStatus: DomainDnsStatus, customerInfo: any) {
-		const mailAddressTableModel = new MailAddressTableModel(
-			locator.entityClient,
-			locator.mailAddressFacade,
-			logins,
-			locator.eventController,
-			logins.getUserController().userGroupInfo,
-			// Assuming user mailbox for now
-			new OwnMailAddressNameChanger(locator.mailModel, locator.entityClient),
-			)
+		// Assuming user mailbox for now
+		const mailAddressTableModel = await locator.mailAddressTableModelForOwnMailbox()
 		showAddDomainWizard(domainDnsStatus.domain, customerInfo, mailAddressTableModel).then(() => {
 			domainDnsStatus.loadCurrentStatus().then(() => m.redraw())
 		})

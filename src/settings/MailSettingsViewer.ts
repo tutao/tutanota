@@ -43,7 +43,6 @@ import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js";
 import {getReportMovedMailsType} from "../misc/MailboxPropertiesUtils.js"
 import {MailAddressTableModel} from "./mailaddress/MailAddressTableModel.js"
-import {OwnMailAddressNameChanger} from "./mailaddress/OwnMailAddressNameChanger.js"
 
 assertMainOrNode()
 
@@ -62,7 +61,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_identifierListViewer: IdentifierListViewer
 	_outOfOfficeNotification: LazyLoaded<OutOfOfficeNotification | null>
 	_outOfOfficeStatus: Stream<string> // stores the status label, based on whether the notification is/ or will really be activated (checking start time/ end time)
-	private mailAddressTableModel: MailAddressTableModel
+	private mailAddressTableModel: MailAddressTableModel | null =  null
 
 	private offlineStorageSettings = new OfflineStorageSettingsModel(
 		logins.getUserController(),
@@ -84,13 +83,11 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._indexStateWatch = null
 		this._identifierListViewer = new IdentifierListViewer(logins.getUserController().user)
 		// we never dispose it because we live forever! 🧛
-		this.mailAddressTableModel = new MailAddressTableModel(
-			locator.entityClient,
-			locator.mailAddressFacade,
-			logins, locator.eventController,
-			logins.getUserController().userGroupInfo,
-			new OwnMailAddressNameChanger(locator.mailModel, locator.entityClient)
-		)
+		// normally we would maybe like to get it as an argument but these viewers are created in an odd way
+		locator.mailAddressTableModelForOwnMailbox().then((model) => {
+			this.mailAddressTableModel = model
+			m.redraw()
+		})
 		m.redraw()
 
 
@@ -298,7 +295,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m(DropDownSelector, reportMovedMailsAttrs),
 					m(TextField, outOfOfficeAttrs),
 					this.renderLocalDataSection(),
-					m(MailAddressTable, {model: this.mailAddressTableModel}),
+					this.mailAddressTableModel ? m(MailAddressTable, {model: this.mailAddressTableModel}) : null,
 					logins.isEnabled(FeatureType.InternalCommunication)
 						? null
 						: [
