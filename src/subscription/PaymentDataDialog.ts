@@ -9,12 +9,13 @@ import {px} from "../gui/size"
 import {formatNameAndAddress} from "../misc/Formatter"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {getClientType, PaymentMethodType} from "../api/common/TutanotaConstants"
-import {LazyLoaded, neverNull} from "@tutao/tutanota-utils"
+import {assertNotNull, LazyLoaded, neverNull} from "@tutao/tutanota-utils"
 import type {AccountingInfo, Customer} from "../api/entities/sys/TypeRefs.js"
 import {createPaymentDataServiceGetData} from "../api/entities/sys/TypeRefs.js"
 import {locator} from "../api/main/MainLocator"
 import {PaymentDataService} from "../api/entities/sys/Services"
 import {DropDownSelector} from "../gui/base/DropDownSelector.js"
+import {asPaymentInterval} from "./PriceUtils.js"
 
 /**
  * @returns {boolean} true if the payment data update was successful
@@ -27,8 +28,8 @@ export function show(customer: Customer, accountingInfo: AccountingInfo, price: 
 		vatNumber: accountingInfo.invoiceVatIdNo,
 	}
 	const subscriptionOptions = {
-		businessUse: stream(neverNull(customer.businessUse)),
-		paymentInterval: stream(Number(accountingInfo.paymentInterval)),
+		businessUse: stream(assertNotNull(customer.businessUse)),
+		paymentInterval: stream(asPaymentInterval(accountingInfo.paymentInterval)),
 	}
 	const paymentMethodInput = new PaymentMethodInput(subscriptionOptions, stream(invoiceData.country), neverNull(accountingInfo), payPalRequestUrl)
 	const availablePaymentMethods = paymentMethodInput.getVisiblePaymentMethods()

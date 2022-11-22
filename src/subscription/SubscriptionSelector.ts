@@ -5,13 +5,13 @@ import type {BuyOptionBoxAttr} from "./BuyOptionBox"
 import {BOX_MARGIN, BuyOptionBox, getActiveSubscriptionActionButtonReplacement} from "./BuyOptionBox"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
-import {formatMonthlyPrice, formatPrice, isYearlyPayment, PriceAndConfigProvider} from "./PriceUtils"
+import {formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider} from "./PriceUtils"
 import {
 	FeatureListItem,
+	FeatureListProvider,
 	getDisplayNameOfSubscriptionType,
 	ReplacementKey,
 	SelectedSubscriptionOptions,
-	FeatureListProvider,
 	SubscriptionType,
 	UpgradePriceType
 } from "./FeatureListProvider"
@@ -205,7 +205,15 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 	 */
 	private renderFeatureExpanders(inMobileView: boolean | null, featureListProvider: FeatureListProvider): Record<ExpanderTargets, Children> {
 		if (!featureListProvider.featureLoadingDone()) { // the feature list is not available
-			return Object.assign({} as Record<ExpanderTargets, Children>)
+			return {
+				Free: null,
+				Pro: null,
+				Teams: null,
+				Premium: null,
+				TeamsBusiness: null,
+				PremiumBusiness: null,
+				All: null
+			}
 		}
 		if (inMobileView) { // In single-column layout every subscription type has its own feature expander.
 			if (this.featuresExpanded.All) {
@@ -315,9 +323,9 @@ function getHelpLabel(subscriptionType: SubscriptionType, businessUse: boolean):
 		: 'pricing.basePriceIncludesTaxes_msg'
 }
 
-function getPriceHint(subscriptionPrice: number, paymentInterval: number): TranslationKey {
+function getPriceHint(subscriptionPrice: number, paymentInterval: PaymentInterval): TranslationKey {
 	if (subscriptionPrice > 0) {
-		return isYearlyPayment(paymentInterval) ? "pricing.perMonthPaidYearly_label" : "pricing.perMonth_label"
+		return paymentInterval === PaymentInterval.Yearly ? "pricing.perMonthPaidYearly_label" : "pricing.perMonth_label"
 	} else {
 		return "emptyString_msg"
 	}

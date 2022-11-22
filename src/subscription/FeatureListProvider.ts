@@ -1,6 +1,7 @@
 import Stream from "mithril/stream";
 import {PlanPrices} from "../api/entities/sys/TypeRefs"
 import {TranslationKey} from "../misc/LanguageViewModel"
+import {PaymentInterval} from "./PriceUtils.js"
 
 const FEATURE_LIST_RESOURCE_URL = "https://tutanota.com/resources/data/features.json"
 let dataProvider: HiddenFeatureListProvider | null = null
@@ -64,7 +65,7 @@ async function resolveOrNull<T>(fn: () => Promise<T>, handler: (a: Error) => voi
 
 export type SelectedSubscriptionOptions = {
 	businessUse: Stream<boolean>
-	paymentInterval: Stream<number>
+	paymentInterval: Stream<PaymentInterval>
 }
 
 export const enum SubscriptionType {

@@ -17,6 +17,7 @@ import {Checkbox} from "../gui/base/Checkbox.js"
 import {locator} from "../api/main/MainLocator"
 import {UsageTest} from "@tutao/tutanota-usagetests"
 import {SubscriptionType, UpgradePriceType} from "./FeatureListProvider"
+import {asPaymentInterval, PaymentInterval} from "./PriceUtils.js"
 
 export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private _dom: HTMLElement | null = null
@@ -37,10 +38,11 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		this.__signupPaidTest.strictStageOrder = true
 		this.__signupPaidTest.active = false
 
-		if (subscriptionParameters && (subscriptionParameters.interval === "12" || subscriptionParameters.interval === "1")) {
+		if (subscriptionParameters) {
+			const paymentInterval: PaymentInterval = asPaymentInterval(subscriptionParameters.interval)
 			// We automatically route to the next page; when we want to go back from the second page, we do not want to keep calling nextPage
 			vnode.attrs.data.subscriptionParameters = null
-			vnode.attrs.data.options.paymentInterval = stream(Number(subscriptionParameters.interval))
+			vnode.attrs.data.options.paymentInterval = stream(paymentInterval)
 			this.goToNextPageWithPreselectedSubscription(subscriptionParameters, vnode.attrs.data)
 		}
 	}

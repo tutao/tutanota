@@ -53,6 +53,7 @@ import {IServiceExecutor} from "../../common/ServiceRequest"
 import {ContactFormAccountService, CustomerAccountService} from "../../entities/tutanota/Services"
 import {BookingFacade} from "./BookingFacade"
 import {UserFacade} from "./UserFacade"
+import {PaymentInterval} from "../../../subscription/PriceUtils.js"
 
 assertWorkerOrNode()
 
@@ -398,12 +399,12 @@ export class CustomerFacade {
 	}
 
 	updatePaymentData(
-		paymentInterval: number,
+		paymentInterval: PaymentInterval,
 		invoiceData: InvoiceData,
 		paymentData: PaymentData | null,
 		confirmedInvoiceCountry: Country | null,
 	): Promise<PaymentDataServicePutReturn> {
-		return this.entityClient.load(CustomerTypeRef, neverNull(this.userFacade.getLoggedInUser().customer)).then(customer => {
+		return this.entityClient.load(CustomerTypeRef, assertNotNull(this.userFacade.getLoggedInUser().customer)).then(customer => {
 			return this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
 				return this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(async accountingInfo => {
 					return this.cryptoFacade.resolveSessionKeyForInstance(accountingInfo).then(accountingInfoSessionKey => {

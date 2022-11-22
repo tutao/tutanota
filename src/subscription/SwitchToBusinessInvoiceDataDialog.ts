@@ -14,6 +14,7 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {defer, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {InvoiceData} from "../api/common/TutanotaConstants"
+import {asPaymentInterval} from "./PriceUtils.js"
 
 /**
  * Shows a dialog to update the invoice data for business use. Switches the account to business use before actually saving the new invoice data
@@ -71,7 +72,7 @@ export function show(
 												.then(() => {
 													locator.entityClient.update(customer).then(() => {
 														updatePaymentData(
-															Number(accountingInfo.paymentInterval),
+															asPaymentInterval(accountingInfo.paymentInterval),
 															invoiceDataInput.getInvoiceData(),
 															null,
 															null,

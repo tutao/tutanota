@@ -8,6 +8,7 @@ import {BadRequestError} from "../api/common/error/RestError"
 import type {AccountingInfo} from "../api/entities/sys/TypeRefs.js"
 import type {InvoiceData} from "../api/common/TutanotaConstants"
 import {ofClass} from "@tutao/tutanota-utils"
+import {asPaymentInterval} from "./PriceUtils.js"
 
 export function show(
 	businessUse: boolean,
@@ -24,7 +25,7 @@ export function show(
 		if (error) {
 			Dialog.message(error)
 		} else {
-			updatePaymentData(Number(accountingInfo.paymentInterval), invoiceDataInput.getInvoiceData(), null, null, false, "0", accountingInfo)
+			updatePaymentData(asPaymentInterval(accountingInfo.paymentInterval), invoiceDataInput.getInvoiceData(), null, null, false, "0", accountingInfo)
 				.then(success => {
 					if (success) {
 						dialog.close()

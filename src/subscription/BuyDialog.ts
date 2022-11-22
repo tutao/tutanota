@@ -11,7 +11,7 @@ import {CustomerInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {AccountingInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {logins} from "../api/main/LoginController.js"
 import {NotAuthorizedError} from "../api/common/error/RestError.js"
-import {formatPrice, getPriceItem} from "./PriceUtils.js"
+import {asPaymentInterval, formatPrice, getPriceItem, PaymentInterval} from "./PriceUtils.js"
 import {bookItem} from "./SubscriptionUtils.js"
 import type {PriceServiceReturn} from "../api/entities/sys/TypeRefs.js"
 import type {PriceData} from "../api/entities/sys/TypeRefs.js"
@@ -391,7 +391,8 @@ class PriceChangeModel {
 	}
 
 	isYearly(): boolean {
-		return assertNotNull(this.price.futurePriceNextPeriod ?? this.price.currentPriceNextPeriod).paymentInterval === "12"
+		const period = assertNotNull(this.price.futurePriceNextPeriod ?? this.price.currentPriceNextPeriod)
+		return asPaymentInterval(period.paymentInterval) === PaymentInterval.Yearly
 	}
 
 	taxIncluded(): boolean {
