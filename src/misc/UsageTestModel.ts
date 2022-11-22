@@ -26,7 +26,8 @@ import {LoginController} from "../api/main/LoginController.js"
 import {CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {EntityClient} from "../api/common/EntityClient.js"
 import {EntityUpdateData, EventController, isUpdateForTypeRef} from "../api/main/EventController.js"
-import {createUserSettingsGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
+import {createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/TypeRefs.js"
+import {locator} from "../api/main/MainLocator.js"
 
 
 const PRESELECTED_LIKERT_VALUE = null
@@ -183,12 +184,17 @@ export class UsageTestModel implements PingAdapter {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update)) {
 				await this.updateCustomerProperties()
+			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
+				// Opt-in decision has changed, load tests
+				const tests = await this.loadActiveUsageTests()
+				locator.usageTestController.setTests(tests)
 			}
 		}
 	}
 
 	private async updateCustomerProperties() {
-		this.customerProperties = await this.entityClient.load(CustomerTypeRef, neverNull(this.loginController.getUserController().user.customer)).then(customer => this.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
+		const customer = await this.entityClient.load(CustomerTypeRef, neverNull(this.loginController.getUserController().user.customer))
+		this.customerProperties = await this.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))
 	}
 
 	/**

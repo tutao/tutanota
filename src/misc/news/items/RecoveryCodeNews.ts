@@ -85,9 +85,10 @@ export class RecoveryCodeNews implements NewsListItem {
 				type: ButtonType.Secondary,
 				click: () => Dialog.showActionDialog({
 					type: DialogType.EditSmall,
-					okAction: dialog => {
-						this.recoveryCodeDialogUsageTest?.getStage(1).complete()
-							.then(() => this.sendAction("dismiss"))
+					okAction: async dialog => {
+						await this.recoveryCodeDialogUsageTest?.getStage(0).complete()
+						await this.recoveryCodeDialogUsageTest?.getStage(1).complete()
+						this.sendAction("dismiss")
 
 						dialog.close()
 						this.newsModel.acknowledgeNews(newsId.newsItemId)
@@ -104,16 +105,17 @@ export class RecoveryCodeNews implements NewsListItem {
 
 		buttonAttrs.push({
 			label: this.recoveryCode() ? "paymentDataValidation_action" : "recoveryCodeDisplay_action",
-			click: () => {
+			click: async () => {
 				if (!this.recoveryCode()) {
-					this.recoveryCodeDialogUsageTest?.getStage(1).complete()
+					await this.recoveryCodeDialogUsageTest?.getStage(0).complete()
+					await this.recoveryCodeDialogUsageTest?.getStage(1).complete()
 					getRecoverCodeDialogAfterPasswordVerification(this.userController, true, this.recoveryCode)
 					m.redraw()
 					return
 				}
 
-				this.newsModel.acknowledgeNews(newsId.newsItemId)
-					.then(m.redraw)
+				await this.newsModel.acknowledgeNews(newsId.newsItemId)
+				m.redraw()
 			},
 			type: ButtonType.Primary,
 		})
