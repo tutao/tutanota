@@ -16,7 +16,7 @@ import {assertNotNull, downcast, incrementDate, neverNull, noOp, ofClass, promis
 import {logins} from "../api/main/LoginController"
 import {lang, TranslationKey} from "../misc/LanguageViewModel"
 import {Icons} from "../gui/base/icons/Icons"
-import {asPaymentInterval, formatPrice, formatPriceDataWithInfo, getCurrentCount, getPricesAndConfigProvider, PaymentInterval} from "./PriceUtils"
+import {asPaymentInterval, formatPrice, formatPriceDataWithInfo, getCurrentCount, PriceAndConfigProvider, PaymentInterval} from "./PriceUtils"
 import {formatDate, formatNameAndAddress, formatStorageSize} from "../misc/Formatter"
 import {getByAbbreviation} from "../api/common/CountryList"
 import * as AddUserDialog from "../settings/AddUserDialog"
@@ -512,7 +512,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 							  this._customerInfo = customerInfo
 							  return locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true).then(async bookings => {
-								  const priceAndConfigProvider = await getPricesAndConfigProvider(null)
+								  const priceAndConfigProvider = await PriceAndConfigProvider.getInitializedInstance(null)
 								  this._lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
 								  this._customer = customer
 								  this._isCancelled = customer.canceledPremiumAccount

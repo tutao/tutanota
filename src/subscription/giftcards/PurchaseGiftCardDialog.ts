@@ -22,7 +22,7 @@ import {GiftCardMessageEditorField} from "./GiftCardMessageEditorField"
 import {client} from "../../misc/ClientDetector"
 import {count, filterInt, noOp, ofClass} from "@tutao/tutanota-utils"
 import {isIOSApp} from "../../api/common/Env"
-import {formatPrice, getPricesAndConfigProvider, PaymentInterval} from "../PriceUtils"
+import {formatPrice, PriceAndConfigProvider, PaymentInterval} from "../PriceUtils"
 import {GiftCardService} from "../../api/entities/sys/Services"
 import {SubscriptionType, UpgradePriceType} from "../FeatureListProvider"
 
@@ -278,7 +278,7 @@ async function loadGiftCardModel(): Promise<PurchaseGiftCardModel> {
 		)
 	}
 
-	const priceDataProvider = await getPricesAndConfigProvider(null)
+	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(null)
 	return new PurchaseGiftCardModel({
 		purchaseLimit: filterInt(giftCardInfo.maxPerPeriod),
 		purchasePeriodMonths: filterInt(giftCardInfo.period),

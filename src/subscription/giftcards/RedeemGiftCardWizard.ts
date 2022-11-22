@@ -23,7 +23,7 @@ import {getLoginErrorMessage, handleExpectedLoginError} from "../../misc/LoginUt
 import {RecoverCodeField} from "../../settings/RecoverCodeDialog"
 import {HabReminderImage} from "../../gui/base/icons/Icons"
 import {PaymentMethodType} from "../../api/common/TutanotaConstants"
-import {formatPrice, getPaymentMethodName, getPricesAndConfigProvider, PaymentInterval} from "../PriceUtils"
+import {formatPrice, getPaymentMethodName, PriceAndConfigProvider, PaymentInterval} from "../PriceUtils"
 import {TextField} from "../../gui/base/TextField.js"
 import {elementIdPart, isSameId} from "../../api/common/utils/EntityUtils"
 import type {CredentialsInfo} from "../../misc/credentials/CredentialsProvider.js"
@@ -547,7 +547,7 @@ async function loadModel(hashFromUrl: string): Promise<RedeemGiftCardModel> {
 	const giftCardInfo = await locator.giftCardFacade.getGiftCardInfo(id, key)
 
 	const storedCredentials = await locator.credentialsProvider.getInternalCredentialsInfos()
-	const pricesDataProvider = await getPricesAndConfigProvider(null)
+	const pricesDataProvider = await PriceAndConfigProvider.getInitializedInstance(null)
 
 	return new RedeemGiftCardModel(
 		{
