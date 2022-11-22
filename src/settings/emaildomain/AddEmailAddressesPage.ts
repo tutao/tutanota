@@ -213,9 +213,11 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 		if (error) {
 			return Dialog.message(error).then(() => false)
 		} else {
+			const mailAddressTableModel = this.data.editAliasFormAttrs.model
 			return showProgressDialog(
 				"pleaseWait_msg",
-				this.data.editAliasFormAttrs.model.addAlias(this.mailAddress)
+				// Using default sender name for now
+				mailAddressTableModel.addAlias(this.mailAddress, mailAddressTableModel.defaultSenderName())
 			)
 				.then(() => {
 					return true

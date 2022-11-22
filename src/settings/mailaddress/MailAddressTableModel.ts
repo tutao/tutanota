@@ -123,9 +123,10 @@ export class MailAddressTableModel {
 		this.redraw()
 	}
 
-	async addAlias(alias: string): Promise<void> {
+	async addAlias(alias: string, senderName: string): Promise<void> {
 		await this.mailAddressFacade.addMailAlias(this.userGroupInfo.group, alias)
 		await this.updateAliasCount()
+		await this.setAliasName(alias, senderName)
 	}
 
 	getAvailableDomains(): Promise<string[]> {
@@ -153,6 +154,10 @@ export class MailAddressTableModel {
 		} else {
 			return "ok"
 		}
+	}
+
+	defaultSenderName(): string {
+		return this.userGroupInfo.name
 	}
 
 	private entityEventsReceived = async (updates: ReadonlyArray<EntityUpdateData>) => {

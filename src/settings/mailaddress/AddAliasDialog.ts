@@ -9,6 +9,7 @@ import {firstThrow, ofClass} from "@tutao/tutanota-utils"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog.js"
 import {InvalidDataError, LimitReachedError, PreconditionFailedError} from "../../api/common/error/RestError.js"
 import {MailAddressTableModel} from "./MailAddressTableModel.js"
+import {TextField} from "../../gui/base/TextField.js"
 
 const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
 
@@ -18,6 +19,7 @@ export function showAddAliasDialog(model: MailAddressTableModel) {
 		let mailAddress: string
 		let formErrorId: TranslationKey | null = "mailAddressNeutral_msg"
 		let formDomain = stream(firstThrow(domains))
+		let senderName = model.defaultSenderName()
 
 		const addEmailAliasOkAction = (dialog: Dialog) => {
 			if (isVerificationBusy) return
@@ -27,7 +29,7 @@ export function showAddAliasDialog(model: MailAddressTableModel) {
 				return
 			}
 
-			addAlias(model, mailAddress)
+			addAlias(model, mailAddress, senderName)
 			// close the add alias dialog immediately
 			dialog.close()
 		}
@@ -57,6 +59,12 @@ export function showAddAliasDialog(model: MailAddressTableModel) {
 							},
 							m(".pt-m", lang.get("permanentAliasWarning_msg")),
 						),
+						m(TextField, {
+							// FIXME translate
+							label: () => "Sender name",
+							value: senderName,
+							oninput: (name) => senderName = name,
+						})
 					]
 				},
 			},
@@ -66,8 +74,8 @@ export function showAddAliasDialog(model: MailAddressTableModel) {
 	})
 }
 
-function addAlias(model: MailAddressTableModel, alias: string): Promise<void> {
-	return showProgressDialog("pleaseWait_msg", model.addAlias(alias))
+function addAlias(model: MailAddressTableModel, alias: string, senderName: string): Promise<void> {
+	return showProgressDialog("pleaseWait_msg", model.addAlias(alias, senderName))
 		.catch(ofClass(InvalidDataError, () => Dialog.message("mailAddressNA_msg")))
 		.catch(ofClass(LimitReachedError, () => Dialog.message("adminMaxNbrOfAliasesReached_msg")))
 		.catch(
