@@ -129,29 +129,15 @@ export function getCurrentCount(featureType: BookingItemFeatureType, booking: Bo
 
 const SUBSCRIPTION_CONFIG_RESOURCE_URL = "https://tutanota.com/resources/data/subscriptions.json"
 
-export interface PriceAndConfigProvider {
-	getSubscriptionPrice(paymentInterval: PaymentInterval, subscription: SubscriptionType, type: UpgradePriceType): number
-
-	getRawPricingData(): UpgradePriceServiceReturn
-
-	getSubscriptionConfig(targetSubscription: SubscriptionType): SubscriptionConfig
-
-	getSubscriptionType(lastBooking: Booking | null, customer: Customer, customerInfo: CustomerInfo): SubscriptionType
-}
-
-export async function getPricesAndConfigProvider(registrationDataId: string | null, serviceExecutor: IServiceExecutor = locator.serviceExecutor): Promise<PriceAndConfigProvider> {
-	const priceDataProvider = new HiddenPriceAndConfigProvider()
-	await priceDataProvider.init(registrationDataId, serviceExecutor)
-	return priceDataProvider
-}
-
-class HiddenPriceAndConfigProvider implements PriceAndConfigProvider {
+export class PriceAndConfigProvider {
 	private upgradePriceData: UpgradePriceServiceReturn | null = null
 	private planPrices: SubscriptionPlanPrices | null = null
 
 	private possibleSubscriptionList: { [K in SubscriptionType]: SubscriptionConfig } | null = null
 
-	async init(registrationDataId: string | null, serviceExecutor: IServiceExecutor): Promise<void> {
+	private constructor() { }
+
+	private async init(registrationDataId: string | null, serviceExecutor: IServiceExecutor): Promise<void> {
 		const data = createUpgradePriceServiceData({
 			date: Const.CURRENT_DATE,
 			campaign: registrationDataId,
@@ -172,6 +158,12 @@ class HiddenPriceAndConfigProvider implements PriceAndConfigProvider {
 			console.log("failed to fetch subscription list:", e)
 			throw new ConnectionError("failed to fetch subscription list")
 		}
+	}
+
+	static async getInitializedInstance(registrationDataId: string | null, serviceExecutor: IServiceExecutor = locator.serviceExecutor): Promise<PriceAndConfigProvider> {
+		const priceDataProvider = new PriceAndConfigProvider()
+		await priceDataProvider.init(registrationDataId, serviceExecutor)
+		return priceDataProvider
 	}
 
 	getSubscriptionPrice(

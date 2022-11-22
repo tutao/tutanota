@@ -22,7 +22,7 @@ import {StorageBehavior} from "../misc/UsageTestModel"
 import {UpgradePriceService} from "../api/entities/sys/Services.js"
 import {FeatureListProvider, SelectedSubscriptionOptions, SubscriptionType} from "./FeatureListProvider"
 import {UpgradeType} from "./SubscriptionUtils"
-import {asPaymentInterval, getPricesAndConfigProvider, PaymentInterval, PriceAndConfigProvider} from "./PriceUtils"
+import {asPaymentInterval, PriceAndConfigProvider, PaymentInterval} from "./PriceUtils"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -92,7 +92,7 @@ function loadCustomerAndInfo(): Promise<{
 
 export async function showUpgradeWizard(): Promise<void> {
 	const {customer, accountingInfo} = await loadCustomerAndInfo()
-	const priceDataProvider = await getPricesAndConfigProvider(null)
+	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(null)
 
 	const prices = priceDataProvider.getRawPricingData()
 	const featureListProvider = await FeatureListProvider.getInitializedInstance()
@@ -139,7 +139,7 @@ export async function loadSignupWizard(subscriptionParameters: SubscriptionParam
 	usageTestModel.setStorageBehavior(StorageBehavior.Ephemeral)
 	locator.usageTestController.setTests(await usageTestModel.loadActiveUsageTests())
 
-	const priceDataProvider = await getPricesAndConfigProvider(registrationDataId)
+	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(registrationDataId)
 	const prices = priceDataProvider.getRawPricingData()
 	const featureListProvider = await FeatureListProvider.getInitializedInstance()
 	const signupData: UpgradeSubscriptionData = {
