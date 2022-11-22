@@ -109,6 +109,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				return
 			}
 			// we never dispose it because we live forever! 🧛
+			// FIXME actually should dispose at some point? when?
 			this.mailAddressTableModel = (this.isItMe())
 				? await locator.mailAddressTableModelForOwnMailbox()
 				: await locator.mailAddressTableModelForAdmin(mailMembership.group, user._id, this.userGroupInfo)
