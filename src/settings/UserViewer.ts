@@ -35,8 +35,6 @@ import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js";
 import {MailAddressTableModel} from "./mailaddress/MailAddressTableModel.js"
 import {progressIcon} from "../gui/base/Icon.js"
-import {AnotherUserMailAddressNameChanger} from "./mailaddress/AnotherUserMailAddressNameChanger.js"
-import {OwnMailAddressNameChanger} from "./mailaddress/OwnMailAddressNameChanger.js"
 
 assertMainOrNode()
 
@@ -44,7 +42,6 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	private readonly user: LazyLoaded<User> = new LazyLoaded(() => this.loadUser())
 	private readonly customer = new LazyLoaded(() => this.loadCustomer())
 	private readonly teamGroupInfos = new LazyLoaded(() => this.loadTeamGroupInfos())
-	private senderName: string
 	private groupsTableAttrs: TableAttrs | null = null
 	private contactFormsTableAttrs: TableAttrs | null = null
 	private readonly secondFactorsForm: EditSecondFactorsForm
@@ -58,7 +55,6 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		private isAdmin: boolean
 	) {
 		this.userGroupInfo = userGroupInfo
-		this.senderName = this.userGroupInfo.name ?? ""
 
 		this.secondFactorsForm = new EditSecondFactorsForm(this.user)
 
@@ -118,25 +114,6 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	view(): Children {
-		const editSenderNameButtonAttrs: IconButtonAttrs = {
-			title: "edit_action",
-			click: () => {
-				Dialog.showProcessTextInputDialog("edit_action", "mailName_label", null, this.senderName,
-					(newName) => {
-						this.userGroupInfo.name = newName
-						return locator.entityClient.update(this.userGroupInfo)
-					}
-				)
-			},
-			icon: Icons.Edit,
-			size: ButtonSize.Compact,
-		} as const
-		const senderNameFieldAttrs = {
-			label: "mailName_label",
-			value: this.senderName,
-			disabled: true,
-			injectionsRight: () => [m(IconButton, editSenderNameButtonAttrs)],
-		} as const
 		const changePasswordButtonAttrs: IconButtonAttrs = {
 			title: "changePassword_label",
 			click: () => this.changePassword(),
@@ -169,7 +146,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				} as const)
 			]),
 			m("", [
-				m(TextField, senderNameFieldAttrs),
+				this.renderName(),
 				m(TextField, passwordFieldAttrs),
 				logins.getUserController().isGlobalAdmin()
 					? [
@@ -186,6 +163,29 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			this.contactFormsTableAttrs ? m(Table, this.contactFormsTableAttrs) : null,
 			this.mailAddressTableModel ? m(MailAddressTable, {model: this.mailAddressTableModel}) : progressIcon(),
 		])
+	}
+
+	private renderName(): Children {
+		const name = this.userGroupInfo.name
+		return m(TextField, {
+			label: "name_label",
+			value: name,
+			disabled: true,
+			injectionsRight: () => m(IconButton, {
+				title: "edit_action",
+				click: () => this.onChangeName(name),
+				icon: Icons.Edit,
+				size: ButtonSize.Compact,
+			}),
+		})
+	}
+
+	private onChangeName(name: string) {
+		Dialog.showProcessTextInputDialog("edit_action", "name_label", null, name, (newName) => {
+				this.userGroupInfo.name = newName
+				return locator.entityClient.update(this.userGroupInfo)
+			}
+		)
 	}
 
 	private renderAdminStatusSelector(): Children {
@@ -490,9 +490,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				operation === OperationType.UPDATE &&
 				isSameId(this.userGroupInfo._id, [neverNull(instanceListId), instanceId])
 			) {
-				const updatedUserGroupInfo = await locator.entityClient.load(GroupInfoTypeRef, this.userGroupInfo._id)
-				this.userGroupInfo = updatedUserGroupInfo
-				this.senderName = updatedUserGroupInfo.name
+				this.userGroupInfo = await locator.entityClient.load(GroupInfoTypeRef, this.userGroupInfo._id)
 				await this.updateUsedStorageAndAdminFlag()
 				this.administratedBy = this.userGroupInfo.localAdmin
 				m.redraw()

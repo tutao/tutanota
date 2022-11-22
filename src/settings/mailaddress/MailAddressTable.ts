@@ -159,8 +159,7 @@ function aliasActionButton(attrs: MailAddressTableAttrs, addressInfo: AddressInf
 function statusLabel(addressInfo: AddressInfo): string {
 	switch (addressInfo.status) {
 		case AddressStatus.Primary:
-			// FIXME
-			return "Primary"
+			return lang.get("primaryMailAddress_label")
 		case AddressStatus.Alias:
 		case AddressStatus.Custom:
 			return lang.get("activated_label")
@@ -183,8 +182,7 @@ export function getAliasLineAttrs(attrs: MailAddressTableAttrs): Array<TableLine
 				width: 250,
 				childAttrs: () => [
 					{
-						// FIXME
-						label: () => "Set name",
+						label: "setSenderName_action",
 						click: () => showSenderNameChangeDialog(attrs.model, addressInfo)
 					},
 					...aliasActionButton(attrs, addressInfo)
@@ -223,11 +221,9 @@ async function switchAliasStatus(alias: AddressInfo, attrs: MailAddressTableAttr
 }
 
 function showSenderNameChangeDialog(model: MailAddressTableModel, alias: {address: string, name: string}) {
-	// FIXME translate
 	Dialog.showTextInputDialog(
-		() => "Sender name",
-		// FIXME
-		"name_label",
+		"edit_action",
+		"mailName_label",
 		() => alias.address,
 		alias.name,
 	).then((newName) => showProgressDialog("pleaseWait_msg", model.setAliasName(alias.address, newName)))

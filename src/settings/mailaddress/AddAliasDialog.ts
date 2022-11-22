@@ -60,8 +60,7 @@ export function showAddAliasDialog(model: MailAddressTableModel) {
 							m(".pt-m", lang.get("permanentAliasWarning_msg")),
 						),
 						m(TextField, {
-							// FIXME translate
-							label: () => "Sender name",
+							label: "mailName_label",
 							value: senderName,
 							oninput: (name) => senderName = name,
 						})
