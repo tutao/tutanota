@@ -61,7 +61,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_identifierListViewer: IdentifierListViewer
 	_outOfOfficeNotification: LazyLoaded<OutOfOfficeNotification | null>
 	_outOfOfficeStatus: Stream<string> // stores the status label, based on whether the notification is/ or will really be activated (checking start time/ end time)
-	private mailAddressTableModel: MailAddressTableModel | null =  null
+	private mailAddressTableModel: MailAddressTableModel | null = null
 
 	private offlineStorageSettings = new OfflineStorageSettingsModel(
 		logins.getUserController(),
@@ -286,6 +286,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				[
 					m(".h4.mt-l", lang.get("emailSending_label")),
 					m(DropDownSelector, defaultSenderAttrs),
+					this.renderName(),
 					m(TextField, signatureAttrs),
 					logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, defaultUnconfidentialAttrs),
 					logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, sendPlaintextAttrs),
@@ -322,6 +323,30 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				],
 			),
 		]
+	}
+
+	private renderName(): Children {
+		const name = logins.getUserController().userGroupInfo.name
+		return m(TextField, {
+			label: "name_label",
+			value: name,
+			disabled: true,
+			injectionsRight: () => logins.getUserController().isGlobalAdmin()
+				? m(IconButton, {
+					title: "name_label",
+					click: () => this.onChangeName(name),
+					icon: Icons.Edit,
+					size: ButtonSize.Compact,
+				})
+				: null,
+		})
+	}
+
+	private onChangeName(name: string) {
+		Dialog.showProcessTextInputDialog("edit_action", "name_label", null, name, (newName) => {
+			logins.getUserController().userGroupInfo.name = newName
+			return locator.entityClient.update(logins.getUserController().userGroupInfo)
+		})
 	}
 
 	private renderLocalDataSection(): Children {
@@ -425,7 +450,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		// FIXME sender names
 		for (const update of updates) {
 			const {instanceListId, instanceId, operation} = update
 			if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
