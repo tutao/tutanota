@@ -1166,6 +1166,7 @@ export default {
 		"recoveryCodeEmpty_msg": "Please enter a recovery code",
 		"recoveryCode_label": "Recovery code",
 		"recoveryCode_msg": "Please take a minute to write down your recovery code. The recovery code is the only option to reset your password or second factor in case you lose either.",
+		"recoveryCodeConfirmation_msg": "Please make sure you have written down your recovery code. The recovery code is the only option to reset your password or second factor in case you lose either.",
 		"recover_label": "Recover",
 		"redeemedGiftCardPosting_label": "Redeemed gift card",
 		"redeemedToPremium_msg": "You now have a premium account.",

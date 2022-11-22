@@ -6,26 +6,28 @@ import {Button, ButtonAttrs, ButtonType} from "../../../gui/base/Button.js"
 import {NewsModel} from "../NewsModel.js"
 import {RecoverCodeField} from "../../../settings/RecoverCodeDialog.js"
 import {locator} from "../../../api/main/MainLocator.js"
-import {Dialog} from "../../../gui/base/Dialog.js"
+import {Dialog, DialogType} from "../../../gui/base/Dialog.js"
 import {AccessBlockedError, NotAuthenticatedError} from "../../../api/common/error/RestError.js"
 import {assertNotNull, noOp, ofClass} from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import {capitalize} from "../../../../packages/licc/lib/common.js"
 import {copyToClipboard} from "../../ClipboardUtils.js"
+import {UserController} from "../../../api/main/UserController.js"
 
 /**
- * News item that informs users about their recovery code.
+ * News item that informs admin users about their recovery code.
  */
 export class RecoveryCodeNews implements NewsListItem {
 	constructor(
 		private readonly newsModel: NewsModel,
+		private readonly userController: UserController,
 		private readonly recoveryCode: Stream<string | null> = stream(null),
 	) {
 	}
 
 	isShown(): boolean {
-		return true
+		return this.userController.isGlobalAdmin()
 	}
 
 	render(newsId: NewsId): Children {
@@ -40,6 +42,24 @@ export class RecoveryCodeNews implements NewsListItem {
 				label: "print_action",
 				type: ButtonType.Secondary,
 				click: () => window.print(),
+			})
+		} else {
+			buttonAttrs.push({
+				label: "done_action",
+				type: ButtonType.Secondary,
+				click: () => Dialog.showActionDialog({
+					type: DialogType.EditSmall,
+					okAction: dialog => {
+						dialog.close()
+						this.newsModel.acknowledgeNews(newsId.newsItemId)
+							.then(m.redraw)
+					},
+					title: lang.get("recoveryCode_label"),
+					allowCancel: true,
+					child: () => {
+						return m("p", lang.get("recoveryCodeConfirmation_msg"))
+					}
+				}),
 			})
 		}
 
