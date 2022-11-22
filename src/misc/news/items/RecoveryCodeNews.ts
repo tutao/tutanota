@@ -17,6 +17,9 @@ import {UsageTestModel} from "../../UsageTestModel.js"
 import {UsageTest, UsageTestController} from "@tutao/tutanota-usagetests"
 import {UserController} from "../../../api/main/UserController.js"
 
+/** Actions that may be sent in stage 2 of the recoveryCodeDialog usage test. */
+type RecoveryCodeNewsAction = "copy" | "print" | "select" | "dismiss" | "close"
+
 /**
  * News item that informs admin users about their recovery code.
  */
@@ -29,6 +32,7 @@ export class RecoveryCodeNews implements NewsListItem {
 		private readonly usageTestModel: UsageTestModel,
 		private readonly usageTestController: UsageTestController,
 		private readonly recoveryCode: Stream<string | null> = stream(null),
+		/** Tracks actions that have been sent to the server as pings. */
 		private readonly sentActions = new Set<string>()
 	) {
 		this.recoveryCodeDialogUsageTest = usageTestController.getTest("recoveryCodeDialog")
@@ -38,7 +42,11 @@ export class RecoveryCodeNews implements NewsListItem {
 		return this.userController.isGlobalAdmin()
 	}
 
-	private sendAction(action: string) {
+	/**
+	 * Sends the passed action to the server as a ping.
+	 * Ensures that the same action is never sent twice.
+	 */
+	private sendAction(action: RecoveryCodeNewsAction) {
 		if (!this.sentActions.has(action)) {
 			const stage = this.recoveryCodeDialogUsageTest?.getStage(2)
 			stage?.setMetric({
@@ -78,6 +86,9 @@ export class RecoveryCodeNews implements NewsListItem {
 				click: () => Dialog.showActionDialog({
 					type: DialogType.EditSmall,
 					okAction: dialog => {
+						this.recoveryCodeDialogUsageTest?.getStage(1).complete()
+							.then(() => this.sendAction("dismiss"))
+
 						dialog.close()
 						this.newsModel.acknowledgeNews(newsId.newsItemId)
 							.then(m.redraw)
