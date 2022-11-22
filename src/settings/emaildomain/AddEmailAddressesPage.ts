@@ -20,10 +20,22 @@ import {InvalidDataError, LimitReachedError} from "../../api/common/error/RestEr
 import {assertMainOrNode} from "../../api/common/Env"
 import {Icons} from "../../gui/base/icons/Icons";
 import {ButtonSize} from "../../gui/base/ButtonSize.js"
+import type Stream from "mithril/stream"
 
 assertMainOrNode()
 
 export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAttrs> {
+	private redrawSubscription: Stream<void> | null = null
+
+	oncreate({attrs}: VnodeDOM<AddEmailAddressesPageAttrs>) {
+		attrs.data.editAliasFormAttrs.model.init()
+		this.redrawSubscription = attrs.data.editAliasFormAttrs.model.redraw.map(m.redraw)
+	}
+
+	onremove({attrs}: Vnode<AddEmailAddressesPageAttrs>) {
+		attrs.data.editAliasFormAttrs.model.dispose()
+	}
+
 	view(vnode: Vnode<AddEmailAddressesPageAttrs>): Children {
 		const a = vnode.attrs
 		const aliasesTableAttrs: TableAttrs = {
@@ -31,17 +43,9 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 			showActionButtonColumn: true,
 			addButtonAttrs: null,
 			lines: getAliasLineAttrs(a.data.editAliasFormAttrs).map(row => {
-				// not sure why it's repacked but that's the way it is
-				// FIXME check what's up here
 				return {
 					actionButtonAttrs: row.actionButtonAttrs ?? null,
-					cells: () => [
-						{
-
-							main: (row.cells as string[])[0],
-							info: [(row.cells as string[])[1]],
-						},
-					],
+					cells: row.cells,
 				}
 			}),
 		}

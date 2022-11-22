@@ -51,10 +51,10 @@ export class MailAddressTableModel {
 		private userGroupInfo: GroupInfo,
 		private readonly nameChanger: MailAddressNameChanger,
 	) {
-		eventController.addEntityListener(this.entityEventsReceived)
 	}
 
 	async init() {
+		this.eventController.addEntityListener(this.entityEventsReceived)
 		await this.updateAliasCount()
 		await this.loadNames()
 		this.redraw()
