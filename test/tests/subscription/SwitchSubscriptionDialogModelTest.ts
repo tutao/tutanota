@@ -619,7 +619,7 @@ function createPremiumCustomerInstances() {
 	const accountingInfo = createAccountingInfo({
 		paymentInterval: "12",
 	})
-	const lastBooking = createBooking()
+	const lastBooking = createBooking({paymentInterval: "1"})
 
 	// always create user booking
 	lastBooking.items.push(

@@ -28,6 +28,7 @@ import {getPaymentWebRoot} from "../api/common/Env"
 import {Credentials} from "../misc/credentials/Credentials";
 import {SessionType} from "../api/common/SessionType.js";
 import {UsageTest} from "@tutao/tutanota-usagetests"
+import {PaymentInterval} from "./PriceUtils.js"
 
 /**
  * Wizard page for editing invoice and payment data.
@@ -250,7 +251,7 @@ export class InvoiceAndPaymentDataPageAttrs implements WizardPageAttrs<UpgradeSu
 }
 
 export function updatePaymentData(
-	paymentInterval: number,
+	paymentInterval: PaymentInterval,
 	invoiceData: InvoiceData,
 	paymentData: PaymentData | null,
 	confirmedCountry: Country | null,

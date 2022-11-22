@@ -16,7 +16,7 @@ import {assertNotNull, downcast, incrementDate, neverNull, noOp, ofClass, promis
 import {logins} from "../api/main/LoginController"
 import {lang, TranslationKey} from "../misc/LanguageViewModel"
 import {Icons} from "../gui/base/icons/Icons"
-import {formatPrice, formatPriceDataWithInfo, getCurrentCount, getPricesAndConfigProvider} from "./PriceUtils"
+import {asPaymentInterval, formatPrice, formatPriceDataWithInfo, getCurrentCount, getPricesAndConfigProvider, PaymentInterval} from "./PriceUtils"
 import {formatDate, formatNameAndAddress, formatStorageSize} from "../misc/Formatter"
 import {getByAbbreviation} from "../api/common/CountryList"
 import * as AddUserDialog from "../settings/AddUserDialog"
@@ -70,7 +70,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	private _subscriptionFieldValue: Stream<string>
 	private _usageTypeFieldValue: Stream<string>
 	private _orderAgreementFieldValue: Stream<string>
-	private _selectedSubscriptionInterval: Stream<number | null>
+	private _selectedSubscriptionInterval: Stream<PaymentInterval | null>
 	private _currentPriceFieldValue: Stream<string>
 	private _nextPriceFieldValue: Stream<string>
 	private _usersFieldValue: Stream<string>
@@ -379,7 +379,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._sharingFieldValue = stream(loadingString)
 		this._businessFeatureFieldValue = stream(loadingString)
 		this._contactFormsFieldValue = stream(loadingString)
-		this._selectedSubscriptionInterval = stream<number | null>(null)
+		this._selectedSubscriptionInterval = stream<PaymentInterval | null>(null)
 
 		this._updatePriceInfo()
 
@@ -478,7 +478,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	_updateAccountInfoData(accountingInfo: AccountingInfo) {
 		this._accountingInfo = accountingInfo
 
-		this._selectedSubscriptionInterval(Number(accountingInfo.paymentInterval))
+		this._selectedSubscriptionInterval(asPaymentInterval(accountingInfo.paymentInterval))
 
 		m.redraw()
 	}
@@ -675,14 +675,14 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderIntervals() {
-		const subscriptionPeriods: SelectorItemList<number | null> = [
+		const subscriptionPeriods: SelectorItemList<PaymentInterval | null> = [
 			{
 				name: lang.get("pricing.yearly_label"),
-				value: 12,
+				value: PaymentInterval.Yearly,
 			},
 			{
 				name: lang.get("pricing.monthly_label"),
-				value: 1,
+				value: PaymentInterval.Monthly,
 			},
 			{
 				name: lang.get("loading_msg"),
@@ -787,8 +787,8 @@ function _getAccountTypeName(type: AccountType, subscription: SubscriptionType):
 	}
 }
 
-function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInterval: number, periodEndDate: Date | null): void {
-	if (accountingInfo && accountingInfo.invoiceCountry && Number(accountingInfo.paymentInterval) !== paymentInterval) {
+function changeSubscriptionInterval(accountingInfo: AccountingInfo, paymentInterval: PaymentInterval, periodEndDate: Date | null): void {
+	if (accountingInfo && accountingInfo.invoiceCountry && asPaymentInterval(accountingInfo.paymentInterval) !== paymentInterval) {
 		const confirmationMessage = () => {
 			return periodEndDate
 				? lang.get("subscriptionChangePeriod_msg", {

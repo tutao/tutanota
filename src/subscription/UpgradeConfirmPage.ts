@@ -1,7 +1,7 @@
 import m, {Children, Vnode, VnodeDOM} from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
-import {formatPriceWithInfo, getPaymentMethodName, isYearlyPayment} from "./PriceUtils"
+import {formatPriceWithInfo, getPaymentMethodName, PaymentInterval} from "./PriceUtils"
 import {VisSignupImage} from "../gui/base/icons/Icons"
 import {createSwitchAccountTypeData} from "../api/entities/sys/TypeRefs.js"
 import {AccountType, Const, PaidSubscriptionType, PaymentMethodTypeToName} from "../api/common/TutanotaConstants"
@@ -98,7 +98,7 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 	}
 
 	private renderPaid(attrs: WizardPageAttrs<UpgradeSubscriptionData>) {
-		const isYearly = isYearlyPayment(attrs.data.options.paymentInterval())
+		const isYearly = attrs.data.options.paymentInterval() === PaymentInterval.Yearly
 		const subscription = (isYearly ? lang.get("pricing.yearly_label") : lang.get("pricing.monthly_label"))
 
 		return [

@@ -13,7 +13,6 @@ import stream from "mithril/stream"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {assertTranslation} from "../misc/LanguageViewModel"
 import {createWizardDialog, wizardPageWrapper} from "../gui/base/WizardDialog.js"
-import {Dialog} from "../gui/base/Dialog"
 import {InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs} from "./InvoiceAndPaymentDataPage"
 import {UpgradeConfirmPage, UpgradeConfirmPageAttrs} from "./UpgradeConfirmPage"
 import {SignupPage, SignupPageAttrs} from "./SignupPage"
@@ -21,9 +20,9 @@ import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
 import {StorageBehavior} from "../misc/UsageTestModel"
 import {UpgradePriceService} from "../api/entities/sys/Services.js"
-import {getFeatureListProvider, SelectedSubscriptionOptions, FeatureListProvider, SubscriptionType} from "./FeatureListProvider"
+import {FeatureListProvider, getFeatureListProvider, SelectedSubscriptionOptions, SubscriptionType} from "./FeatureListProvider"
 import {UpgradeType} from "./SubscriptionUtils"
-import {getPricesAndConfigProvider, PriceAndConfigProvider} from "./PriceUtils"
+import {asPaymentInterval, getPricesAndConfigProvider, PaymentInterval, PriceAndConfigProvider} from "./PriceUtils"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -100,7 +99,7 @@ export async function showUpgradeWizard(): Promise<void> {
 	const upgradeData: UpgradeSubscriptionData = {
 		options: {
 			businessUse: stream(prices.business),
-			paymentInterval: stream(Number(accountingInfo.paymentInterval)),
+			paymentInterval: stream(asPaymentInterval(accountingInfo.paymentInterval)),
 		},
 		invoiceData: {
 			invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
@@ -146,7 +145,7 @@ export async function loadSignupWizard(subscriptionParameters: SubscriptionParam
 	const signupData: UpgradeSubscriptionData = {
 		options: {
 			businessUse: stream(prices.business),
-			paymentInterval: stream(12),
+			paymentInterval: stream(PaymentInterval.Yearly),
 		},
 		invoiceData: {
 			invoiceAddress: "",

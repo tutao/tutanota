@@ -1,7 +1,7 @@
 import type {BookingItemFeatureType} from "../api/common/TutanotaConstants"
 import {AccountType, Const, PaymentMethodType} from "../api/common/TutanotaConstants"
 import {lang} from "../misc/LanguageViewModel"
-import {neverNull} from "@tutao/tutanota-utils"
+import {assertNotNull, neverNull} from "@tutao/tutanota-utils"
 import type {AccountingInfo, Booking, PriceData, PriceItemData} from "../api/entities/sys/TypeRefs.js"
 import {createUpgradePriceServiceData, Customer, CustomerInfo, UpgradePriceServiceReturn} from "../api/entities/sys/TypeRefs.js"
 import {SubscriptionConfig, SubscriptionPlanPrices, SubscriptionType, UpgradePriceType, WebsitePlanPrices} from "./FeatureListProvider"
@@ -10,6 +10,27 @@ import {UpgradePriceService} from "../api/entities/sys/Services"
 import {getTotalAliases, getTotalStorageCapacity, hasAllFeaturesInPlan, isBusinessFeatureActive, isSharingActive, isWhitelabelActive} from "./SubscriptionUtils"
 import {IServiceExecutor} from "../api/common/ServiceRequest"
 import {ConnectionError} from "../api/common/error/RestError"
+import {ProgrammingError} from "../api/common/error/ProgrammingError.js"
+
+export const enum PaymentInterval {
+	Monthly = 1,
+	Yearly= 12
+}
+
+export function asPaymentInterval(paymentInterval: string | number): PaymentInterval {
+	if (typeof paymentInterval === "string") {
+		paymentInterval = Number(paymentInterval)
+	}
+	switch (paymentInterval) {
+		// additional cast to make this robust against changes to the PaymentInterval enum.
+		case Number(PaymentInterval.Monthly):
+			return PaymentInterval.Monthly
+		case Number(PaymentInterval.Yearly):
+			return PaymentInterval.Yearly
+		default:
+			throw new ProgrammingError(`invalid payment interval: ${paymentInterval}`)
+	}
+}
 
 export function getPaymentMethodName(paymentMethod: PaymentMethodType): string {
 	if (paymentMethod === PaymentMethodType.Invoice) {
@@ -38,7 +59,7 @@ export function getPaymentMethodInfoText(accountingInfo: AccountingInfo): string
 }
 
 export function formatPriceDataWithInfo(priceData: PriceData): string {
-	return formatPriceWithInfo(Number(priceData.price), Number(priceData.paymentInterval), priceData.taxIncluded)
+	return formatPriceWithInfo(Number(priceData.price), asPaymentInterval(priceData.paymentInterval), priceData.taxIncluded)
 }
 
 // Used on website, keep it in sync
@@ -58,18 +79,14 @@ export function formatPrice(value: number, includeCurrency: boolean): string {
 /**
  * Formats the monthly price of the subscription (even for yearly subscriptions).
  */
-export function formatMonthlyPrice(subscriptionPrice: number, paymentInterval: number): string {
-	const monthlyPrice = isYearlyPayment(paymentInterval) ? subscriptionPrice / 12 : subscriptionPrice
+export function formatMonthlyPrice(subscriptionPrice: number, paymentInterval: PaymentInterval): string {
+	const monthlyPrice = paymentInterval === PaymentInterval.Yearly ? subscriptionPrice / Number(PaymentInterval.Yearly) : subscriptionPrice
 	return formatPrice(monthlyPrice, true)
 }
 
-export function isYearlyPayment(periods: number): boolean {
-	return periods === 12
-}
-
-export function formatPriceWithInfo(price: number, paymentInterval: number, taxIncluded: boolean): string {
+export function formatPriceWithInfo(price: number, paymentInterval: PaymentInterval, taxIncluded: boolean): string {
 	const netOrGross = taxIncluded ? lang.get("gross_label") : lang.get("net_label")
-	const yearlyOrMonthly = isYearlyPayment(paymentInterval) ? lang.get("pricing.perYear_label") : lang.get("pricing.perMonth_label")
+	const yearlyOrMonthly = paymentInterval === PaymentInterval.Yearly ? lang.get("pricing.perYear_label") : lang.get("pricing.perMonth_label")
 	const formattedPrice = formatPrice(price, true)
 	return `${formattedPrice} ${yearlyOrMonthly} (${netOrGross})`
 }
@@ -113,7 +130,7 @@ export function getCurrentCount(featureType: BookingItemFeatureType, booking: Bo
 const SUBSCRIPTION_CONFIG_RESOURCE_URL = "https://tutanota.com/resources/data/subscriptions.json"
 
 export interface PriceAndConfigProvider {
-	getSubscriptionPrice(paymentInterval: number, subscription: SubscriptionType, type: UpgradePriceType): number
+	getSubscriptionPrice(paymentInterval: PaymentInterval, subscription: SubscriptionType, type: UpgradePriceType): number
 
 	getRawPricingData(): UpgradePriceServiceReturn
 
@@ -158,22 +175,22 @@ class HiddenPriceAndConfigProvider implements PriceAndConfigProvider {
 	}
 
 	getSubscriptionPrice(
-		paymentInterval: number,
+		paymentInterval: PaymentInterval,
 		subscription: SubscriptionType,
 		type: UpgradePriceType
 	): number {
 		if (subscription === SubscriptionType.Free) return 0
-		return paymentInterval === 12
+		return paymentInterval === PaymentInterval.Yearly
 			? this.getYearlySubscriptionPrice(subscription, type)
 			: this.getMonthlySubscriptionPrice(subscription, type)
 	}
 
 	getRawPricingData(): UpgradePriceServiceReturn {
-		return this.upgradePriceData!
+		return assertNotNull(this.upgradePriceData)
 	}
 
 	getSubscriptionConfig(targetSubscription: SubscriptionType): SubscriptionConfig {
-		return this.possibleSubscriptionList![targetSubscription]
+		return assertNotNull(this.possibleSubscriptionList)[targetSubscription]
 	}
 
 	getSubscriptionType(lastBooking: Booking | null, customer: Customer, customerInfo: CustomerInfo): SubscriptionType {
@@ -204,7 +221,7 @@ class HiddenPriceAndConfigProvider implements PriceAndConfigProvider {
 		const prices = this.getPlanPrices(subscription)
 		const monthlyPrice = getPriceForUpgradeType(upgrade, prices)
 		const monthsFactor = upgrade === UpgradePriceType.PlanReferencePrice
-			? 12
+			? Number(PaymentInterval.Yearly)
 			: 10
 		const discount = upgrade === UpgradePriceType.PlanActualPrice
 			? Number(prices.firstYearDiscount)
@@ -230,7 +247,7 @@ class HiddenPriceAndConfigProvider implements PriceAndConfigProvider {
 				"monthlyReferencePrice": "0"
 			}
 		}
-		return this.planPrices![subscription]
+		return assertNotNull(this.planPrices)[subscription]
 	}
 }
 

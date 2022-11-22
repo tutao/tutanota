@@ -8,7 +8,7 @@ import {SegmentControl} from "../gui/base/SegmentControl"
 import type {ButtonAttrs} from "../gui/base/Button.js"
 import {Button} from "../gui/base/Button.js"
 import type {BookingItemFeatureType} from "../api/common/TutanotaConstants"
-import {formatMonthlyPrice, getCountFromPriceData, getPriceFromPriceData, isYearlyPayment} from "./PriceUtils"
+import {asPaymentInterval, formatMonthlyPrice, getCountFromPriceData, getPriceFromPriceData, PaymentInterval} from "./PriceUtils"
 import type {BookingFacade} from "../api/worker/facades/BookingFacade"
 import Stream from "mithril/stream";
 import {Icons} from "../gui/base/icons/Icons";
@@ -28,7 +28,7 @@ export type BuyOptionBoxAttr = {
 	/**
 	 * can be null if the subscription is free or it's not an initial upgrade box
 	 */
-	paymentInterval: Stream<number> | null
+	paymentInterval: Stream<PaymentInterval> | null
 	highlighted?: boolean
 	showReferenceDiscount: boolean
 }
@@ -112,20 +112,20 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 		}
 	}
 
-	private renderRibbon(paymentInterval?: number): Children {
-		return paymentInterval === 12
+	private renderRibbon(paymentInterval?: PaymentInterval): Children {
+		return paymentInterval === PaymentInterval.Yearly
 			? m('.ribbon-vertical', m('.text-center.b.h4', {style: {'padding-top': px(22),},}, '%'))
 			: null
 	}
 
-	private renderPaymentIntervalControl(paymentInterval: Stream<number> | null): Children {
+	private renderPaymentIntervalControl(paymentInterval: Stream<PaymentInterval> | null): Children {
 		const paymentIntervalItems = [
-			{name: lang.get('pricing.yearly_label'), value: 12,},
-			{name: lang.get('pricing.monthly_label'), value: 1,},
+			{name: lang.get('pricing.yearly_label'), value: PaymentInterval.Yearly,},
+			{name: lang.get('pricing.monthly_label'), value: PaymentInterval.Monthly,},
 		]
 		return paymentInterval
 			? m(SegmentControl, {
-				selectedValue: paymentInterval(), items: paymentIntervalItems, onValueSelected: (v: number) => {
+				selectedValue: paymentInterval(), items: paymentIntervalItems, onValueSelected: (v: PaymentInterval) => {
 					paymentInterval?.(v)
 					m.redraw()
 				}
@@ -184,10 +184,10 @@ export async function updateBuyOptionBoxPriceInformation(
 	const futurePrice = newPrice.futurePriceNextPeriod
 
 	if (futurePrice) {
-		const paymentInterval = Number(futurePrice.paymentInterval)
+		const paymentInterval = asPaymentInterval(futurePrice.paymentInterval)
 		const price = getPriceFromPriceData(futurePrice, featureType)
 		attrs.price = formatMonthlyPrice(price, paymentInterval)
-		attrs.helpLabel = isYearlyPayment(paymentInterval) ? "pricing.perMonthPaidYearly_label" : "pricing.perMonth_label"
+		attrs.helpLabel = paymentInterval === PaymentInterval.Yearly ? "pricing.perMonthPaidYearly_label" : "pricing.perMonth_label"
 		m.redraw()
 	}
 }

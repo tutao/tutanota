@@ -10,10 +10,10 @@ import {
 	isWhitelabelActive,
 } from "./SubscriptionUtils"
 import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
-import {neverNull, promiseMap} from "@tutao/tutanota-utils"
+import {assertNotNull, neverNull, promiseMap} from "@tutao/tutanota-utils"
 import type {AccountingInfo, Booking, Customer, CustomerInfo, PlanPrices, PriceServiceReturn} from "../api/entities/sys/TypeRefs.js"
 import {createPlanPrices} from "../api/entities/sys/TypeRefs.js"
-import {getPriceFromPriceData, getPriceItem, isSubscriptionDowngrade, PriceAndConfigProvider} from "./PriceUtils"
+import {asPaymentInterval, getPriceFromPriceData, getPriceItem, isSubscriptionDowngrade, PaymentInterval, PriceAndConfigProvider} from "./PriceUtils"
 import type {BookingFacade} from "../api/worker/facades/BookingFacade"
 import {SubscriptionConfig, SubscriptionPlanPrices, SubscriptionType} from "./FeatureListProvider"
 
@@ -31,7 +31,7 @@ export type CurrentSubscriptionInfo = {
 	businessUse: boolean
 	nbrOfUsers: number
 	subscriptionType: SubscriptionType
-	paymentInterval: number
+	paymentInterval: PaymentInterval
 	currentTotalStorage: number
 	currentTotalAliases: number
 	orderedContactForms: number
@@ -71,11 +71,12 @@ export class SwitchSubscriptionDialogModel {
 	}
 
 	_initCurrentSubscriptionInfo(): CurrentSubscriptionInfo {
+		const paymentInterval: PaymentInterval = asPaymentInterval(this.accountingInfo.paymentInterval)
 		return {
 			businessUse: !!this.customer.businessUse,
 			subscriptionType: this.priceAndConfigProvider.getSubscriptionType(this.lastBooking, this.customer, this.customerInfo),
 			nbrOfUsers: getNbrOfUsers(this.lastBooking),
-			paymentInterval: Number(this.accountingInfo.paymentInterval),
+			paymentInterval,
 			currentTotalStorage: getTotalStorageCapacity(this.customer, this.customerInfo, this.lastBooking),
 			currentTotalAliases: getTotalAliases(this.customer, this.customerInfo, this.lastBooking),
 			includedStorage: getIncludedStorageCapacity(this.customerInfo),
@@ -104,8 +105,9 @@ export class SwitchSubscriptionDialogModel {
 		targetSubscription: SubscriptionType,
 		targetSubscriptionConfig: SubscriptionConfig
 	): PlanPrices {
-		let paymentIntervalFactor = neverNull(prices.addUserPrice.futurePriceNextPeriod).paymentInterval === "12" ? 1 / 10 : 1
-		let monthlyPrice = Number(neverNull(prices.addUserPrice.currentPriceNextPeriod).price)
+		const paymentInterval: PaymentInterval = asPaymentInterval(assertNotNull(prices.addUserPrice.futurePriceNextPeriod).paymentInterval)
+		let paymentIntervalFactor = paymentInterval === PaymentInterval.Yearly ? 0.1 : 1
+		let monthlyPrice = Number(assertNotNull(prices.addUserPrice.currentPriceNextPeriod).price)
 		let contactFormPrice = getMonthlySinglePrice(prices.contactFormPrice, BookingItemFeatureType.ContactForm, paymentIntervalFactor)
 		let singleUserPriceMonthly = getMonthlySinglePrice(prices.addUserPrice, BookingItemFeatureType.Users, paymentIntervalFactor)
 		let currentSharingPerUserMonthly = getMonthlySinglePrice(prices.addUserPrice, BookingItemFeatureType.Sharing, paymentIntervalFactor)

@@ -23,7 +23,7 @@ import {getLoginErrorMessage, handleExpectedLoginError} from "../../misc/LoginUt
 import {RecoverCodeField} from "../../settings/RecoverCodeDialog"
 import {HabReminderImage} from "../../gui/base/icons/Icons"
 import {PaymentMethodType} from "../../api/common/TutanotaConstants"
-import {formatPrice, getPaymentMethodName, getPricesAndConfigProvider} from "../PriceUtils"
+import {formatPrice, getPaymentMethodName, getPricesAndConfigProvider, PaymentInterval} from "../PriceUtils"
 import {TextField} from "../../gui/base/TextField.js"
 import {elementIdPart, isSameId} from "../../api/common/utils/EntityUtils"
 import type {CredentialsInfo} from "../../misc/credentials/CredentialsProvider.js"
@@ -553,7 +553,7 @@ async function loadModel(hashFromUrl: string): Promise<RedeemGiftCardModel> {
 		{
 			giftCardInfo,
 			key,
-			premiumPrice: pricesDataProvider.getSubscriptionPrice(12, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice),
+			premiumPrice: pricesDataProvider.getSubscriptionPrice(PaymentInterval.Yearly, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice),
 			storedCredentials
 		},
 		locator.giftCardFacade,
