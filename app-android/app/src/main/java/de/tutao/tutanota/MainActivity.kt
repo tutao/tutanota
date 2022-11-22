@@ -40,6 +40,7 @@ import org.json.JSONObject
 import java.io.File
 import java.io.IOException
 import java.io.UnsupportedEncodingException
+import java.lang.IllegalStateException
 import java.net.URLEncoder
 import java.security.SecureRandom
 import java.util.concurrent.ConcurrentHashMap
@@ -58,7 +59,6 @@ class MainActivity : FragmentActivity() {
 	private lateinit var mobileFacade: MobileFacade
 	private lateinit var commonNativeFacade: CommonNativeFacade
 	private lateinit var commonSystemFacade: AndroidCommonSystemFacade
-	private lateinit var localNotificationsFacade: LocalNotificationsFacade
 	private lateinit var sqlCipherFacade: SqlCipherFacade
 
 	private val permissionsRequests: MutableMap<Int, Continuation<Unit>> = ConcurrentHashMap()
@@ -120,11 +120,6 @@ class MainActivity : FragmentActivity() {
 
 		mobileFacade = MobileFacadeSendDispatcher(ipcJson, remoteBridge)
 		commonNativeFacade = CommonNativeFacadeSendDispatcher(ipcJson, remoteBridge)
-
-		localNotificationsFacade = LocalNotificationsFacade(this)
-		if (atLeastOreo()) {
-			localNotificationsFacade.createNotificationChannels()
-		}
 
 		setupPushNotifications()
 
@@ -351,9 +346,7 @@ class MainActivity : FragmentActivity() {
 
 		if (intent.action != null) {
 			when (intent.action) {
-				Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE, Intent.ACTION_SENDTO, Intent.ACTION_VIEW -> share(
-						intent
-				)
+				Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE, Intent.ACTION_SENDTO, Intent.ACTION_VIEW -> share(intent)
 				OPEN_USER_MAILBOX_ACTION -> openMailbox(intent)
 				OPEN_CALENDAR_ACTION -> openCalendar(intent)
 			}
@@ -452,14 +445,13 @@ class MainActivity : FragmentActivity() {
 		}
 	}
 
-	suspend fun startActivityForResult(@RequiresPermission intent: Intent?): ActivityResult =
-			suspendCoroutine { continuation ->
-				val requestCode = getNextRequestCode()
-				activityRequests[requestCode] = continuation
-				// we need requestCode to identify the request which is not possible with new API
-				@Suppress("DEPRECATION")
-				super.startActivityForResult(intent, requestCode)
-			}
+	suspend fun startActivityForResult(@RequiresPermission intent: Intent?): ActivityResult = suspendCoroutine { continuation ->
+		val requestCode = getNextRequestCode()
+		activityRequests[requestCode] = continuation
+		// we need requestCode to identify the request which is not possible with new API
+		@Suppress("DEPRECATION")
+		super.startActivityForResult(intent, requestCode)
+	}
 
 	@Deprecated("Deprecated in Java")
 	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -485,8 +477,7 @@ class MainActivity : FragmentActivity() {
 				JobInfo.Builder(1, ComponentName(this, PushNotificationService::class.java))
 						.setPeriodic(TimeUnit.MINUTES.toMillis(15))
 						.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-						.setPersisted(true).build()
-		)
+						.setPersisted(true).build())
 	}
 
 	/**
@@ -578,12 +569,8 @@ class MainActivity : FragmentActivity() {
 		}
 		val addresses = ArrayList<String>(1)
 		addresses.add(address)
-		startService(
-				notificationDismissedIntent(
-						this, addresses,
-						"MainActivity#openMailbox", isSummary
-				)
-		)
+		startService(notificationDismissedIntent(this, addresses,
+				"MainActivity#openMailbox", isSummary))
 
 		commonNativeFacade.openMailBox(userId, address, null)
 	}
@@ -666,44 +653,39 @@ class MainActivity : FragmentActivity() {
 	}
 
 	@SuppressLint("SetJavascriptEnabled")
-	private suspend fun evalJavaScriptForResult(javaScript: String, origin: String): String =
-			withContext(Dispatchers.Main) {
-				val webView = WebView(this@MainActivity)
-				Log.d(TAG, "Created webview for evaluation!")
+	private suspend fun evalJavaScriptForResult(javaScript: String, origin: String): String = withContext(Dispatchers.Main) {
+		val webView = WebView(this@MainActivity)
+		Log.d(TAG, "Created webview for evaluation!")
 
-				webView.settings.apply {
-					javaScriptEnabled = true
-					domStorageEnabled = true
-					javaScriptCanOpenWindowsAutomatically = false
-					allowFileAccess = true
-					allowContentAccess = false
-					cacheMode = WebSettings.LOAD_NO_CACHE
-					mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+		webView.settings.apply {
+			javaScriptEnabled = true
+			domStorageEnabled = true
+			javaScriptCanOpenWindowsAutomatically = false
+			allowFileAccess = true
+			allowContentAccess = false
+			cacheMode = WebSettings.LOAD_NO_CACHE
+			mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+		}
+
+		suspendCoroutine { cb ->
+			webView.webViewClient = object : WebViewClient() {
+				override fun onPageFinished(view: WebView?, url: String?) {
+					super.onPageFinished(view, url)
+					Log.d(TAG, "finished page: $url")
+					webView.evaluateJavascript(javaScript) { res ->
+						Log.d(TAG, "got a response for $origin")
+						webView.destroy()
+						cb.resume(res)
+					}
 				}
 
-				suspendCoroutine { cb ->
-					webView.webViewClient = object : WebViewClient() {
-						override fun onPageFinished(view: WebView?, url: String?) {
-							super.onPageFinished(view, url)
-							Log.d(TAG, "finished page: $url")
-							webView.evaluateJavascript(javaScript) { res ->
-								Log.d(TAG, "got a response for $origin")
-								webView.destroy()
-								cb.resume(res)
-							}
-						}
-
-						override fun onReceivedError(
-								view: WebView?,
-								request: WebResourceRequest?,
-								error: WebResourceError?
-						) {
-							Log.d(TAG, "received error: ${error?.description}")
-							super.onReceivedError(view, request, error)
-						}
-					}
-
-					webView.loadDataWithBaseURL(origin, " ", "text/plain", null, null)
+				override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+					Log.d(TAG, "received error: ${error?.description}")
+					super.onReceivedError(view, request, error)
 				}
 			}
+
+			webView.loadDataWithBaseURL(origin, " ", "text/plain", null, null)
+		}
+	}
 }
