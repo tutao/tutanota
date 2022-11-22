@@ -19,10 +19,9 @@ import {assertMainOrNode} from "../../api/common/Env.js"
 import {IconButtonAttrs} from "../../gui/base/IconButton.js"
 import {ButtonSize} from "../../gui/base/ButtonSize.js";
 import {AddressInfo, AddressStatus, MailAddressTableModel} from "./MailAddressTableModel.js"
+import {showAddAliasDialog} from "./AddAliasDialog.js"
 
 assertMainOrNode()
-
-const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
 
 export type MailAddressTableAttrs = {
 	model: MailAddressTableModel
@@ -106,7 +105,7 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 				this.onAliasLimitReached()
 				break
 			case "ok":
-				this.showAddAliasDialog(attrs)
+				showAddAliasDialog(attrs.model)
 				break
 			case "loading":
 			case "notanadmin":
@@ -114,58 +113,6 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 		}
 	}
 
-	private showAddAliasDialog(attrs: MailAddressTableAttrs) {
-		attrs.model.getAvailableDomains().then(domains => {
-			let isVerificationBusy = false
-			let mailAddress: string
-			let formErrorId: TranslationKey | null = "mailAddressNeutral_msg"
-			let formDomain = stream(firstThrow(domains))
-
-			const addEmailAliasOkAction = (dialog: Dialog) => {
-				if (isVerificationBusy) return
-
-				if (formErrorId) {
-					Dialog.message(formErrorId)
-					return
-				}
-
-				addAlias(attrs, mailAddress)
-				// close the add alias dialog immediately
-				dialog.close()
-			}
-
-			const isTutanotaDomain = formDomain.map(d => TUTANOTA_MAIL_ADDRESS_DOMAINS.includes(d))
-			Dialog.showActionDialog({
-				title: lang.get("addEmailAlias_label"),
-				child: {
-					view: () => {
-						return [
-							m(SelectMailAddressForm, {
-								availableDomains: domains,
-								onValidationResult: (email, validationResult) => {
-									if (validationResult.isValid) {
-										mailAddress = email
-										formErrorId = null
-									} else {
-										formErrorId = validationResult.errorId
-									}
-								},
-								onBusyStateChanged: isBusy => (isVerificationBusy = isBusy),
-								onDomainChanged: domain => formDomain(domain),
-							}),
-							m(ExpanderPanel, {
-									expanded: isTutanotaDomain(),
-								},
-								m(".pt-m", lang.get("permanentAliasWarning_msg")),
-							),
-						]
-					},
-				},
-				allowOkWithReturn: true,
-				okAction: addEmailAliasOkAction,
-			})
-		})
-	}
 
 	private onAliasLimitReached() {
 		Dialog.confirm(() => lang.get("adminMaxNbrOfAliasesReached_msg") + " " + lang.get("orderAliasesConfirm_msg")).then(confirmed => {
@@ -293,19 +240,3 @@ function showSenderNameChangeDialog(model: MailAddressTableModel, alias: {addres
 }
 
 
-export function addAlias(attrs: MailAddressTableAttrs, alias: string): Promise<void> {
-	return showProgressDialog("pleaseWait_msg", attrs.model.addAlias(alias))
-		.catch(ofClass(InvalidDataError, () => Dialog.message("mailAddressNA_msg")))
-		.catch(ofClass(LimitReachedError, () => Dialog.message("adminMaxNbrOfAliasesReached_msg")))
-		.catch(
-			ofClass(PreconditionFailedError, e => {
-				let errorMsg = e.toString()
-
-				if (e.data === FAILURE_USER_DISABLED) {
-					errorMsg = lang.get("addAliasUserDisabled_msg")
-				}
-
-				return Dialog.message(() => errorMsg)
-			}),
-		)
-}
