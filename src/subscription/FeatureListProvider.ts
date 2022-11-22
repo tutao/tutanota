@@ -4,32 +4,28 @@ import {TranslationKey} from "../misc/LanguageViewModel"
 import {PaymentInterval} from "./PriceUtils.js"
 
 const FEATURE_LIST_RESOURCE_URL = "https://tutanota.com/resources/data/features.json"
-let dataProvider: HiddenFeatureListProvider | null = null
+let dataProvider: FeatureListProvider | null = null
 
-export interface FeatureListProvider {
-	getFeatureList(targetSubscription: SubscriptionType): FeatureLists[SubscriptionType]
-
-	featureLoadingDone(): boolean
-}
-
-export async function getFeatureListProvider(): Promise<FeatureListProvider> {
-	if (dataProvider == null) {
-		dataProvider = new HiddenFeatureListProvider()
-		await dataProvider.init()
-	}
-	return dataProvider
-}
-
-class HiddenFeatureListProvider implements FeatureListProvider {
+export class FeatureListProvider {
 
 	private featureList: FeatureLists | null = null
 
-	async init(): Promise<void> {
+	private constructor() { }
+
+	private async init(): Promise<void> {
 		if ("undefined" === typeof fetch) return
 		this.featureList = await resolveOrNull(
 			() => fetch(FEATURE_LIST_RESOURCE_URL).then(r => r.json()),
 			e => console.log("failed to fetch feature list:", e)
 		)
+	}
+
+	static async getInitializedInstance(): Promise<FeatureListProvider> {
+		if (dataProvider == null) {
+			dataProvider = new FeatureListProvider()
+			await dataProvider.init()
+		}
+		return dataProvider
 	}
 
 	getFeatureList(targetSubscription: SubscriptionType): FeatureLists[SubscriptionType] {
