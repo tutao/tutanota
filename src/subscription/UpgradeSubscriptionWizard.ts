@@ -20,7 +20,7 @@ import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
 import {StorageBehavior} from "../misc/UsageTestModel"
 import {UpgradePriceService} from "../api/entities/sys/Services.js"
-import {FeatureListProvider, getFeatureListProvider, SelectedSubscriptionOptions, SubscriptionType} from "./FeatureListProvider"
+import {FeatureListProvider, SelectedSubscriptionOptions, SubscriptionType} from "./FeatureListProvider"
 import {UpgradeType} from "./SubscriptionUtils"
 import {asPaymentInterval, getPricesAndConfigProvider, PaymentInterval, PriceAndConfigProvider} from "./PriceUtils"
 
@@ -95,7 +95,7 @@ export async function showUpgradeWizard(): Promise<void> {
 	const priceDataProvider = await getPricesAndConfigProvider(null)
 
 	const prices = priceDataProvider.getRawPricingData()
-	const featureListProvider = await getFeatureListProvider()
+	const featureListProvider = await FeatureListProvider.getInitializedInstance()
 	const upgradeData: UpgradeSubscriptionData = {
 		options: {
 			businessUse: stream(prices.business),
@@ -141,7 +141,7 @@ export async function loadSignupWizard(subscriptionParameters: SubscriptionParam
 
 	const priceDataProvider = await getPricesAndConfigProvider(registrationDataId)
 	const prices = priceDataProvider.getRawPricingData()
-	const featureListProvider = await getFeatureListProvider()
+	const featureListProvider = await FeatureListProvider.getInitializedInstance()
 	const signupData: UpgradeSubscriptionData = {
 		options: {
 			businessUse: stream(prices.business),
