@@ -3,17 +3,14 @@ import {Dialog} from "../../gui/base/Dialog.js"
 import type {TableAttrs, TableLineAttrs} from "../../gui/base/Table.js"
 import {ColumnWidth, Table} from "../../gui/base/Table.js"
 import {lang, TranslationKey} from "../../misc/LanguageViewModel.js"
-import {InvalidDataError, LimitReachedError, PreconditionFailedError} from "../../api/common/error/RestError.js"
-import {firstThrow, ofClass} from "@tutao/tutanota-utils"
-import {SelectMailAddressForm} from "../SelectMailAddressForm.js"
+import {LimitReachedError} from "../../api/common/error/RestError.js"
+import {ofClass} from "@tutao/tutanota-utils"
 import {Icons} from "../../gui/base/icons/Icons.js"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog.js"
 import * as EmailAliasOptionsDialog from "../../subscription/EmailAliasOptionsDialog.js"
-import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {ExpanderButton, ExpanderPanel} from "../../gui/base/Expander.js"
 import {attachDropdown, DropdownButtonAttrs} from "../../gui/base/Dropdown.js"
-import {TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../../api/common/TutanotaConstants.js"
 import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs.js"
 import {assertMainOrNode} from "../../api/common/Env.js"
 import {IconButtonAttrs} from "../../gui/base/IconButton.js"
@@ -33,11 +30,8 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 	private expanded: boolean = false
 	private redrawSubscription: Stream<void> | null = null
 
-	oninit({attrs}: Vnode<MailAddressTableAttrs>): any {
-		attrs.model.init()
-	}
-
 	oncreate(vnode: VnodeDOM<MailAddressTableAttrs>) {
+		vnode.attrs.model.init()
 		this.redrawSubscription = vnode.attrs.model.redraw.map(m.redraw)
 	}
 

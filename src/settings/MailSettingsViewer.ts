@@ -82,7 +82,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._outOfOfficeStatus = stream(lang.get("deactivated_label"))
 		this._indexStateWatch = null
 		this._identifierListViewer = new IdentifierListViewer(logins.getUserController().user)
-		// we never dispose it because we live forever! 🧛
 		// normally we would maybe like to get it as an argument but these viewers are created in an odd way
 		locator.mailAddressTableModelForOwnMailbox().then((model) => {
 			this.mailAddressTableModel = model
