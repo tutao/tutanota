@@ -1150,6 +1150,7 @@ export type TranslationKeyType =
 	| "recoveryCodeEmpty_msg"
 	| "recoveryCode_label"
 	| "recoveryCode_msg"
+	| "recoveryCodeConfirmation_msg"
 	| "recover_label"
 	| "redeemedGiftCardPosting_label"
 	| "redeemedToPremium_msg"
