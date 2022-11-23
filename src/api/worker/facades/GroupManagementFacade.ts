@@ -200,7 +200,10 @@ export class GroupManagementFacade {
 	async getGroupKeyViaUser(groupId: Id, viaUser: Id): Promise<Aes128Key> {
 		const user = await this.entityClient.load(UserTypeRef, viaUser)
 		const userGroupKey = await this.getGroupKeyViaAdminEncGKey(user.userGroup.group)
-		const ship = assertNotNull(await user.memberships.find((m) => m.group === groupId), "User doesn't have this group membership!")
+		const ship = user.memberships.find((m) => m.group === groupId)
+		if (ship == null) {
+			throw new Error(`User doesn't have this group membership! User: ${viaUser} groupId: ${groupId}`)
+		}
 		return decryptKey(userGroupKey, ship.symEncGKey)
 	}
 

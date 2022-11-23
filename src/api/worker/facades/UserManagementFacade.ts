@@ -406,6 +406,7 @@ export class UserManagementFacade {
 		return properties
 	}
 
+	/** If there was no sender name configured before take the user's name and assign it to all email addresses. */
 	private async migrateFromOldSenderName(mailboxProperties: MailboxProperties, viaUser: Id) {
 		const user = await this.entityClient.load(UserTypeRef, viaUser)
 		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
