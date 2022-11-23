@@ -79,13 +79,14 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 			return null
 		}
 		const aliasCount = model.aliasCount()
+		if (aliasCount == null) {
+			return null
+		}
 		return m(
 			".small",
-			aliasCount == null
-				? null
-				: aliasCount.availableToCreate === 0
-					? lang.get("adminMaxNbrOfAliasesReached_msg")
-					: lang.get("mailAddressAliasesMaxNbr_label", {"{1}": aliasCount.availableToCreate,}),
+			aliasCount.availableToCreate === 0
+				? lang.get("adminMaxNbrOfAliasesReached_msg")
+				: lang.get("mailAddressAliasesMaxNbr_label", {"{1}": aliasCount.availableToCreate,}),
 		)
 	}
 

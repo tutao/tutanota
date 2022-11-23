@@ -30,7 +30,7 @@ export class OwnMailAddressNameChanger implements MailAddressNameChanger {
 		return this.collectMap(mailboxProperties)
 	}
 
-	private collectMap(mailboxProperties: MailboxProperties) {
+	private collectMap(mailboxProperties: MailboxProperties): AddressToName {
 		const result = new Map()
 		for (const properties of mailboxProperties.mailAddressProperties) {
 			result.set(properties.mailAddress, properties.senderName)

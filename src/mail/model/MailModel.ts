@@ -407,6 +407,7 @@ export class MailModel {
 		return mailboxProperties
 	}
 
+	/** If there was no sender name configured before take the user's name and assign it to all email addresses. */
 	private async migrateFromOldSenderName(mailboxGroupRoot: MailboxGroupRoot, mailboxProperties: MailboxProperties) {
 		const userGroupInfo = this.logins.getUserController().userGroupInfo
 		const legacySenderName = userGroupInfo.name

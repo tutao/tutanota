@@ -117,16 +117,17 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 		])
 	}
 
-	private renderAliasCount(a: AddEmailAddressesPageAttrs) {
+	private renderAliasCount(a: AddEmailAddressesPageAttrs): Children {
 		const model = a.data.editAliasFormAttrs.model
 		const aliasCount = model.aliasCount()
+		if (aliasCount == null) {
+			return null
+		}
 		return m(
 			".small.left",
-			aliasCount == null
-				? null
-				: aliasCount.availableToCreate === 0
-					? lang.get("adminMaxNbrOfAliasesReached_msg")
-					: lang.get("mailAddressAliasesMaxNbr_label", {"{1}": aliasCount.availableToCreate}),
+			aliasCount.availableToCreate === 0
+				? lang.get("adminMaxNbrOfAliasesReached_msg")
+				: lang.get("mailAddressAliasesMaxNbr_label", {"{1}": aliasCount.availableToCreate}),
 		)
 	}
 

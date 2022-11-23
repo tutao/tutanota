@@ -1257,10 +1257,10 @@ export class CalendarEventViewModel {
 		) // we ignore the names
 	}
 
-	private addressToMailAddress(mailboxProeprties: MailboxProperties, address: string): EncryptedMailAddress {
+	private addressToMailAddress(mailboxProperties: MailboxProperties, address: string): EncryptedMailAddress {
 		return createEncryptedMailAddress({
 			address,
-			name: getSenderName(mailboxProeprties, address) ?? "",
+			name: getSenderName(mailboxProperties, address) ?? "",
 		})
 	}
 }
