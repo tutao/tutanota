@@ -1,8 +1,7 @@
 import m, {ChildArray, Children, Component, Vnode} from "mithril"
 import {theme} from "../../gui/theme"
 import {px, size} from "../../gui/size"
-import {DAY_IN_MILLIS, getEndOfDay, getStartOfDay} from "@tutao/tutanota-utils"
-import {numberRange} from "@tutao/tutanota-utils"
+import {DAY_IN_MILLIS, downcast, getEndOfDay, getStartOfDay, mapNullable, neverNull, numberRange} from "@tutao/tutanota-utils"
 import {
 	eventEndsAfterDay,
 	eventStartsBefore,
@@ -16,7 +15,6 @@ import {
 	TEMPORARY_EVENT_OPACITY,
 } from "../date/CalendarUtils"
 import {CalendarEventBubble} from "./CalendarEventBubble"
-import {downcast, mapNullable, neverNull} from "@tutao/tutanota-utils"
 import type {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
 import {logins} from "../../api/main/LoginController"
 import {Time} from "../../api/common/utils/Time"
@@ -124,7 +122,8 @@ export class CalendarDayEventsView implements Component<Attrs> {
 		const startOfEvent = eventStartsBefore(attrs.day, zone, ev) ? getStartOfDay(attrs.day) : ev.startTime
 		const endOfEvent = eventEndsAfterDay(attrs.day, zone, ev) ? getEndOfDay(attrs.day) : ev.endTime
 		const startTime = (startOfEvent.getHours() * 60 + startOfEvent.getMinutes()) * 60 * 1000
-		const height = ((endOfEvent.getTime() - startOfEvent.getTime()) / (1000 * 60 * 60)) * size.calendar_hour_height
+		const calendarEventBorder = 1
+		const height = ((endOfEvent.getTime() - startOfEvent.getTime()) / (1000 * 60 * 60)) * size.calendar_hour_height - calendarEventBorder
 		const fullViewWidth = attrs.fullViewWidth
 		const maxWidth = fullViewWidth != null ? px(styles.isDesktopLayout() ? fullViewWidth / 2 : fullViewWidth) : "none"
 		const colSpan = expandEvent(ev, columnIndex, columns)
