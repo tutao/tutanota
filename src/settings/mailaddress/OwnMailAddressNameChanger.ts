@@ -2,6 +2,7 @@ import {AddressToName, MailAddressNameChanger} from "./MailAddressTableModel.js"
 import {MailModel} from "../../mail/model/MailModel.js"
 import {createMailAddressProperties, MailboxProperties} from "../../api/entities/tutanota/TypeRefs.js"
 import {EntityClient} from "../../api/common/EntityClient.js"
+import {findAndRemove} from "@tutao/tutanota-utils"
 
 /** Name changer for personal mailbox of the currently logged-in user. */
 export class OwnMailAddressNameChanger implements MailAddressNameChanger {
@@ -26,6 +27,14 @@ export class OwnMailAddressNameChanger implements MailAddressNameChanger {
 			mailboxProperties.mailAddressProperties.push(aliasConfig)
 		}
 		aliasConfig.senderName = name
+		await this.entityClient.update(mailboxProperties)
+		return this.collectMap(mailboxProperties)
+	}
+
+	async removeSenderName(address: string): Promise<AddressToName> {
+		const mailboxDetails = await this.mailModel.getUserMailboxDetails()
+		const mailboxProperties = await this.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+		findAndRemove(mailboxProperties.mailAddressProperties, (p) => p.mailAddress === address)
 		await this.entityClient.update(mailboxProperties)
 		return this.collectMap(mailboxProperties)
 	}

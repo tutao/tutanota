@@ -35,6 +35,8 @@ export interface MailAddressNameChanger {
 	getSenderNames(): Promise<AddressToName>
 
 	setSenderName(address: string, name: string): Promise<AddressToName>
+
+	removeSenderName(address: string): Promise<AddressToName>
 }
 
 /** Model for showing the list of mail addresses and optionally adding more, enabling/disabling/setting names for them. */
@@ -134,8 +136,9 @@ export class MailAddressTableModel {
 	}
 
 	async setAliasStatus(address: string, restore: boolean): Promise<void> {
-		await this.mailAddressFacade
-				  .setMailAliasStatus(this.userGroupInfo.group, address, restore)
+		await this.mailAddressFacade.setMailAliasStatus(this.userGroupInfo.group, address, restore)
+		this.redraw()
+		this.nameMappings = await this.nameChanger.removeSenderName(address)
 		this.redraw()
 		await this.updateAliasCount()
 	}

@@ -12,7 +12,7 @@ import {
 	UserTypeRef
 } from "../../entities/sys/TypeRefs.js"
 import {encryptBytes, encryptString} from "../crypto/CryptoFacade"
-import {assertNotNull, neverNull, uint8ArrayToHex} from "@tutao/tutanota-utils"
+import {assertNotNull, findAndRemove, neverNull, uint8ArrayToHex} from "@tutao/tutanota-utils"
 import type {ContactFormUserData, MailboxGroupRoot, MailboxProperties, UserAccountUserData} from "../../entities/tutanota/TypeRefs.js"
 import {
 	createContactFormUserData,
@@ -387,6 +387,14 @@ export class UserManagementFacade {
 			mailboxProperties.mailAddressProperties.push(mailAddressProperty)
 		}
 		mailAddressProperty.senderName = senderName
+		const updatedProperties = await this.updateMailboxProperties(mailboxProperties, viaUser)
+
+		return this.collectSenderNames(updatedProperties)
+	}
+
+	async removeSenderName(mailGroupId: Id, viaUser: Id, mailAddress: string): Promise<Map<string, string>> {
+		const mailboxProperties = await this.getMailboxProperties(mailGroupId, viaUser)
+		findAndRemove(mailboxProperties.mailAddressProperties, (p) => p.mailAddress === mailAddress)
 		const updatedProperties = await this.updateMailboxProperties(mailboxProperties, viaUser)
 
 		return this.collectSenderNames(updatedProperties)
