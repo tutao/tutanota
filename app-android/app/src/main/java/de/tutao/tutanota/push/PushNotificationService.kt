@@ -10,15 +10,59 @@ import de.tutao.tutanota.alarms.SystemAlarmFacade
 import de.tutao.tutanota.data.AppDatabase
 import de.tutao.tutanota.data.SseInfo
 import de.tutao.tutanota.push.SseClient.SseListener
+import java.util.concurrent.TimeUnit
 
+enum class State {
+	/** onCreate was called but onStartCommand hasn't been yet. */
+	CREATED,
+
+	/** onStartCommand has been called. We start holding wakeLock and showing foreground notification. */
+	STARTED,
+
+	/** onStartingConnection has been called. */
+	CONNECTING,
+
+	/** we received an initial message from the server, we release wakeLock and foreground notification. */
+	CONNECTED,
+
+	/** The system forcibly stopped us. */
+	STOPPED
+}
+
+/**
+ * Main entry point for the background service that listens for notifications via SSE.
+ *
+ * The service is started in multiple ways
+ *
+ * 1. The main way the service is started is JobManager. It solves two things for us: periodic run and wakeLock. We try
+ * to not hold wakeLock more than necessary so as soon as we receive a response from the server we schedule to release
+ * it (after delay) and we also remove foreground notification. This does not mean that the system will immediately
+ * kill the service.
+ * 2. We also start the service from MainActivity, mostly to make sure that we still receive notifications.
+ * 3. We start it on boot (see [BootBroadcastReceiver]
+ * 4. We start it when a notification is dismissed (with [NOTIFICATION_DISMISSED_ADDR_EXTRA].
+ * We adjust our counters when it happens.
+ *
+ * SSE has its own event loop, we are just listening for events here and mediating between it and SSE storage.
+ */
 class PushNotificationService : LifecycleJobService() {
 	@Volatile
 	private var jobParameters: JobParameters? = null
 	private lateinit var localNotificationsFacade: LocalNotificationsFacade
 	private lateinit var sseClient: SseClient
+	private var state = State.STOPPED
+		set(value) {
+			Log.d(TAG, "State $field -> $value")
+			field = value
+		}
+	private val finishJobThread = LooperThread {}
 
 	override fun onCreate() {
 		super.onCreate()
+		Log.d(TAG, "onCreate")
+		state = State.CREATED
+
+		finishJobThread.start()
 
 		localNotificationsFacade = LocalNotificationsFacade(this)
 
@@ -59,21 +103,23 @@ class PushNotificationService : LifecycleJobService() {
 				)
 			}
 		}
-		if (atLeastOreo()) {
-			localNotificationsFacade.createNotificationChannels()
-			Log.d(TAG, "Starting foreground")
-			startForeground(1, localNotificationsFacade.makeConnectionNotification())
-		}
+
+		localNotificationsFacade.createNotificationChannels()
 	}
 
 	private fun removeBackgroundServiceNotification() {
-		Log.d(TAG, "Stopping foreground")
+		Log.d(TAG, "removeBackgroundServiceNotification")
 		stopForeground(true)
 	}
 
 	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 		super.onStartCommand(intent, flags, startId)
-		Log.d(TAG, "Received onStartCommand, sender: " + intent?.getStringExtra("sender"))
+		Log.d(TAG, "onStartCommand, sender: " + intent?.getStringExtra("sender"))
+		this.state = when (this.state) {
+			State.STOPPED, State.CREATED, State.STARTED -> State.STARTED
+			State.CONNECTING, State.CONNECTED -> this.state
+		}
+
 		if (intent != null && intent.hasExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA)) {
 			val dismissAddresses =
 					intent.getStringArrayListExtra(NOTIFICATION_DISMISSED_ADDR_EXTRA)
@@ -81,6 +127,13 @@ class PushNotificationService : LifecycleJobService() {
 					dismissAddresses,
 					intent.getBooleanExtra(MainActivity.IS_SUMMARY_EXTRA, false)
 			)
+		}
+
+		// onStartCommand can be called multiple times right after another
+		// but we don't want to start foreground notification if we are already running and we've already dismissed it
+		if (atLeastOreo() && this.state == State.STARTED) {
+			Log.d(TAG, "Starting foreground")
+			startForeground(1, localNotificationsFacade.makeConnectionNotification())
 		}
 
 		return START_STICKY
@@ -98,21 +151,19 @@ class PushNotificationService : LifecycleJobService() {
 	}
 
 	private fun scheduleJobFinish() {
+		Log.d(TAG, "scheduleJobFinish, will actually schedule: ${jobParameters != null}")
 		if (jobParameters != null) {
-			Thread({
-				Log.d(TAG, "Scheduling jobFinished")
-				try {
-					Thread.sleep(20000)
-				} catch (ignored: InterruptedException) {
-				}
+			finishJobThread.handler!!.postDelayed({
 				Log.d(TAG, "Executing scheduled jobFinished")
 				finishJobIfNeeded()
-			}, "FinishJobThread")
+			}, TimeUnit.SECONDS.toMillis(20))
 		}
 	}
 
 	private fun finishJobIfNeeded() {
 		if (jobParameters != null) {
+			// We pass `true` for `wantsReschedule` here because we want to be rescheduled again if system doesn't
+			// mind so we can run a bit more.
 			jobFinished(jobParameters, true)
 			jobParameters = null
 		}
@@ -120,6 +171,7 @@ class PushNotificationService : LifecycleJobService() {
 
 	override fun onDestroy() {
 		Log.d(TAG, "onDestroy")
+		this.state = State.STOPPED
 		super.onDestroy()
 	}
 
@@ -141,6 +193,8 @@ class PushNotificationService : LifecycleJobService() {
 		private val tutanotaNotificationsHandler = TutanotaNotificationsHandler(notificationsFacade, sseStorage, alarmNotificationsManager)
 
 		override fun onStartingConnection(): Boolean {
+			Log.d(TAG, "onStartingConnection")
+			state = State.CONNECTING
 			return tutanotaNotificationsHandler.onConnect()
 		}
 
@@ -148,13 +202,19 @@ class PushNotificationService : LifecycleJobService() {
 			if ("notification" == data) {
 				tutanotaNotificationsHandler.onNewNotificationAvailable(sseInfo)
 			}
-			removeBackgroundServiceNotification()
 		}
 
 		override fun onConnectionEstablished() {
+			Log.d(TAG, "onConnectionEstablished")
+			state = State.CONNECTED
+
 			removeBackgroundServiceNotification()
 			// After establishing connection we finish in some time.
 			scheduleJobFinish()
+		}
+
+		override fun onConnectionBroken() {
+			Log.d(TAG, "onConnectionBroken")
 		}
 
 		override fun onNotAuthorized(userId: String) {
@@ -162,6 +222,11 @@ class PushNotificationService : LifecycleJobService() {
 		}
 
 		override fun onStoppingReconnectionAttempts() {
+			Log.d(TAG, "onStoppingReconnectionAttempts")
+			state = when (state) {
+				State.CONNECTING -> State.STARTED
+				else -> state
+			}
 			removeBackgroundServiceNotification()
 			finishJobIfNeeded()
 		}
