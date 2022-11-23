@@ -3,6 +3,7 @@ import {theme} from "../../gui/theme"
 import {px, size} from "../../gui/size"
 import {DAY_IN_MILLIS, downcast, getEndOfDay, getStartOfDay, mapNullable, neverNull, numberRange} from "@tutao/tutanota-utils"
 import {
+	CALENDAR_EVENT_BORDER,
 	eventEndsAfterDay,
 	eventStartsBefore,
 	expandEvent,
@@ -122,8 +123,7 @@ export class CalendarDayEventsView implements Component<Attrs> {
 		const startOfEvent = eventStartsBefore(attrs.day, zone, ev) ? getStartOfDay(attrs.day) : ev.startTime
 		const endOfEvent = eventEndsAfterDay(attrs.day, zone, ev) ? getEndOfDay(attrs.day) : ev.endTime
 		const startTime = (startOfEvent.getHours() * 60 + startOfEvent.getMinutes()) * 60 * 1000
-		const calendarEventBorder = 1
-		const height = ((endOfEvent.getTime() - startOfEvent.getTime()) / (1000 * 60 * 60)) * size.calendar_hour_height - calendarEventBorder
+		const height = ((endOfEvent.getTime() - startOfEvent.getTime()) / (1000 * 60 * 60)) * size.calendar_hour_height - CALENDAR_EVENT_BORDER
 		const fullViewWidth = attrs.fullViewWidth
 		const maxWidth = fullViewWidth != null ? px(styles.isDesktopLayout() ? fullViewWidth / 2 : fullViewWidth) : "none"
 		const colSpan = expandEvent(ev, columnIndex, columns)

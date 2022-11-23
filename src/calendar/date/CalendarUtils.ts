@@ -44,6 +44,7 @@ import {TIMESTAMP_ZERO_YEAR} from "@tutao/tutanota-utils/dist/DateUtils"
 
 assertMainOrNode()
 export const CALENDAR_EVENT_HEIGHT: number = size.calendar_line_height + 2
+export const CALENDAR_EVENT_BORDER = 1
 export const TEMPORARY_EVENT_OPACITY = 0.7
 export type CalendarMonthTimeRange = {
 	start: Date
@@ -326,16 +327,16 @@ export function layOutEvents(
 		if (e1End > e2End) return 1
 		return 0
 	})
-	let lastEventEnding: number | null = null
+	let lastEventEnding: Date | null = null
+	let lastEventStart: Date | null = null
 	let columns: Array<Array<CalendarEvent>> = []
 	const children: Array<Children> = []
 	// Cache for calculation events
 	const calcEvents = new Map()
 	events.forEach(e => {
 		const calcEvent = getFromMap(calcEvents, e, () => getCalculationEvent(e, zone, handleAsAllDay))
-
 		// Check if a new event group needs to be started
-		if (lastEventEnding != null && lastEventEnding <= calcEvent.startTime.getTime()) {
+		if (lastEventEnding != null && lastEventStart != null && lastEventEnding <= calcEvent.startTime.getTime() && !overlapsWith(lastEventStart, lastEventEnding, calcEvent.startTime)) {
 			// The latest event is later than any of the event in the
 			// current group. There is no overlap. Output the current
 			// event group and start a new event group.
@@ -343,6 +344,7 @@ export function layOutEvents(
 			columns = [] // This starts new event group.
 
 			lastEventEnding = null
+			lastEventStart = null
 		}
 
 		// Try to place the event inside the existing columns
@@ -367,10 +369,13 @@ export function layOutEvents(
 			columns.push([e])
 		}
 
-		// Remember the latest event end time of the current group.
+		// Remember the latest event end time and start time of the current group.
 		// This is later used to determine if a new groups starts.
-		if (lastEventEnding == null || lastEventEnding < calcEvent.endTime.getTime()) {
-			lastEventEnding = calcEvent.endTime.getTime()
+		if (lastEventEnding == null || lastEventEnding.getTime() < calcEvent.endTime.getTime()) {
+			lastEventEnding = calcEvent.endTime
+		}
+		if (lastEventStart == null || lastEventStart.getTime() < calcEvent.startTime.getTime()) {
+			lastEventStart = calcEvent.startTime
 		}
 	})
 	children.push(...renderer(columns))
@@ -395,8 +400,18 @@ function getCalculationEvent(event: CalendarEvent, zone: string, handleAsAllDay:
 	}
 }
 
+//also checks whether events overlap due to minimum height
 function collidesWith(a: CalendarEvent, b: CalendarEvent): boolean {
-	return a.endTime.getTime() > b.startTime.getTime() && a.startTime.getTime() < b.endTime.getTime()
+	return (a.endTime.getTime() > b.startTime.getTime() && a.startTime.getTime() < b.endTime.getTime()) || overlapsWith(a.startTime, a.endTime, b.startTime)
+}
+
+//Due to the minimum height for events they overlap if a short event is directly followed by another event,
+//therefore, we check whether the event height is less than the minimum height
+function overlapsWith(firstEventStart: Date, firstEventEnd: Date, secondEventStart: Date): boolean {
+	//we are only interested in the height on the last day of the event
+	const firstEventStartOnSameDay = isSameDay(firstEventStart, firstEventEnd) ? firstEventStart.getTime() : getStartOfDay(firstEventEnd).getTime()
+	const height = ((firstEventEnd.getTime() - firstEventStartOnSameDay) / (1000 * 60 * 60)) * size.calendar_hour_height - CALENDAR_EVENT_BORDER
+	return firstEventEnd.getTime() === secondEventStart.getTime() && height < size.calendar_line_height
 }
 
 export function formatEventTime(event: CalendarEvent, showTime: EventTextTimeOption): string {
