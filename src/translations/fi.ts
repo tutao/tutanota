@@ -11,8 +11,9 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2022-10-17T15:13:05Z",
+	"updated_at": "2022-11-23T13:39:29Z",
 	"source_locale": null,
+	"fallback_locale": null,
 	"keys": {
 		"about_label": "Tietoja",
 		"accentColor_label": "Aksenttiväri",
@@ -1240,7 +1241,6 @@ export default {
 		"showAll_action": "Näytä kaikki",
 		"showBlockedContent_action": "Näytä",
 		"showContact_action": "Näytä yhteystieto",
-		"showEmailAliases_action": "Näytä alias-osoitteet",
 		"showHeaders_action": "Näytä viestin otsakkeet",
 		"showHelp_action": "Näytä ohjeita",
 		"showImages_action": "Näytä kuvat",

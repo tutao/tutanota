@@ -50,7 +50,7 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 			}
 			: null
 		const aliasesTableAttrs: TableAttrs = {
-			columnHeading: ["emailAlias_label", "state_label"],
+			columnHeading: ["mailAddress_label", "state_label"],
 			columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
 			showActionButtonColumn: true,
 			addButtonAttrs: addAliasButtonAttrs,
@@ -58,7 +58,7 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 		}
 		return [
 			m(".flex-space-between.items-center.mt-l.mb-s", [
-				m(".h4", lang.get("mailAddressAliases_label")),
+				m(".h4", lang.get("mailAddresses_label")),
 				m(ExpanderButton, {
 					label: "show_action",
 					expanded: this.expanded,

@@ -1,6 +1,6 @@
 export default {
 	"id": "69312acb7c2c28a8551a8d023a68206c",
-	"name": "Sinhala",
+	"name": "si",
 	"code": "si",
 	"default": false,
 	"main": false,
@@ -11,8 +11,9 @@ export default {
 		"other"
 	],
 	"created_at": "2021-11-11T11:18:04Z",
-	"updated_at": "2022-10-17T15:13:05Z",
+	"updated_at": "2022-11-23T13:39:30Z",
 	"source_locale": null,
+	"fallback_locale": null,
 	"keys": {
 		"about_label": "පිළිබඳව",
 		"accentColor_label": "උද්දීපන වර්ණය",
@@ -1235,7 +1236,6 @@ export default {
 		"showAll_action": "සියල්ල පෙන්වන්න",
 		"showBlockedContent_action": "පෙන්වන්න",
 		"showContact_action": "සබඳතාවය පෙන්වන්න",
-		"showEmailAliases_action": "වි-තැපැල් අපනාම පෙන්වන්න",
 		"showHeaders_action": "වි-තැපැල් ශීර්ෂ පෙන්වන්න",
 		"showHelp_action": "උපකාර පෙන්වන්න",
 		"showImages_action": "අනුරූ පෙන්වන්න",

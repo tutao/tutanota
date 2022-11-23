@@ -10,8 +10,9 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2022-09-20T09:07:33Z",
+	"updated_at": "2022-11-23T13:39:30Z",
 	"source_locale": null,
+	"fallback_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "請點擊複選框以同意隱私權政策。",
 		"acceptPrivacyPolicy_msg": "我已閱讀並同意 {privacyPolicy} 。",
@@ -791,7 +792,6 @@ export default {
 		"showAddress_alt": "在OpenStreetMap（開放街圖）內查看此地址",
 		"showBlockedContent_action": "顯示",
 		"showContact_action": "顯示聯絡人",
-		"showEmailAliases_action": "顯示電子郵件別名",
 		"showHeaders_action": "顯示郵件標頭",
 		"showHelp_action": "查看幫助提示",
 		"showInboxRules_action": "顯示收件匣規則",

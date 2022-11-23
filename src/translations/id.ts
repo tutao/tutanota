@@ -10,8 +10,9 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2022-10-17T15:13:05Z",
+	"updated_at": "2022-11-23T13:39:30Z",
 	"source_locale": null,
+	"fallback_locale": null,
 	"keys": {
 		"acceptInvitation_action": "Terima undangan",
 		"acceptPrivacyPolicyReminder_msg": "Mohon menerima kebijakan privasi dengan klik pada kotak centang.",
@@ -1126,7 +1127,6 @@ export default {
 		"showAll_action": "Tunjukkan semua",
 		"showBlockedContent_action": "Tampilkan",
 		"showContact_action": "Tampilkan kontak",
-		"showEmailAliases_action": "Tunjukkan alias-alias surel",
 		"showHeaders_action": "Tampilkan tajuk surel",
 		"showHelp_action": "Perlihatkan bantuan",
 		"showImages_action": "Tampilkan gambar",

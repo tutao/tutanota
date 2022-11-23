@@ -11,8 +11,9 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2022-10-17T15:13:05Z",
+	"updated_at": "2022-11-23T13:39:29Z",
 	"source_locale": null,
+	"fallback_locale": null,
 	"keys": {
 		"about_label": "درباره",
 		"accentColor_label": "رنگ‌ تند",
@@ -1048,7 +1049,7 @@ export default {
 		"pricing.comparisonThemePro_msg": "لوگو و رنگ‌های سفارشی",
 		"pricing.comparisonUsersFree_msg": "یک کاربر",
 		"pricing.currentPlan_label": "اشتراک کنونی",
-		"pricing.mailAddressAliasesShort_label": "{amount} آدرس‌های مستعار",
+		"pricing.mailAddressAliasesShort_label": "{amount} آدرس‌های ایمیل اضافی",
 		"pricing.monthly_label": "ماهانه",
 		"pricing.perMonthPaidYearly_label": "به ازای هر ماه - پرداخت سالیانه",
 		"pricing.perMonth_label": "ماهانه",
@@ -1249,7 +1250,6 @@ export default {
 		"showAll_action": "نمایش همه ",
 		"showBlockedContent_action": "نمایش",
 		"showContact_action": "مخاطب را نمایش دهید",
-		"showEmailAliases_action": "نام مستعار ایمیل رآ نمایش دهید",
 		"showHeaders_action": "سرآیندهای ایمیل رآ  نمایش دهید",
 		"showHelp_action": "راهنما را نشان بده",
 		"showImages_action": "نمایش تصاویر",

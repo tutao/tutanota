@@ -11,8 +11,9 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2022-10-11T11:22:39Z",
+	"updated_at": "2022-11-23T13:39:28Z",
 	"source_locale": null,
+	"fallback_locale": null,
 	"keys": {
 		"about_label": "Sobre",
 		"acceptInvitation_action": "Acceptar la participació",
@@ -1013,7 +1014,6 @@ export default {
 		"showAll_action": "Mostra'ls tots",
 		"showBlockedContent_action": "Mostra",
 		"showContact_action": "Mostrar contacte",
-		"showEmailAliases_action": "Mostra els àlies de correu electrònic",
 		"showHeaders_action": "Mostra les capçaleres dels correus electrònics",
 		"showHelp_action": "Mostra aquesta ajuda",
 		"showInboxRules_action": "Mostra les regles de la safata d'entrada",

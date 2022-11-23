@@ -10,12 +10,13 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2022-09-20T09:07:32Z",
+	"updated_at": "2022-11-23T13:39:28Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
 		"code": "en"
 	},
+	"fallback_locale": null,
 	"keys": {
 		"about_label": "关于",
 		"acceptInvitation_action": "接受邀请",
@@ -953,7 +954,6 @@ export default {
 		"showAll_action": "显示全部",
 		"showBlockedContent_action": "显示",
 		"showContact_action": "显示通讯录",
-		"showEmailAliases_action": "显示邮件别名",
 		"showHeaders_action": "显示邮件头",
 		"showHelp_action": "显示帮助",
 		"showInboxRules_action": "显示收件规则",

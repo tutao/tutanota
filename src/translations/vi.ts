@@ -10,8 +10,9 @@ export default {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2022-10-17T15:13:05Z",
+	"updated_at": "2022-11-23T13:39:30Z",
 	"source_locale": null,
+	"fallback_locale": null,
 	"keys": {
 		"about_label": "Thông tin",
 		"accentColor_label": "Màu chủ đạo",
@@ -1260,7 +1261,6 @@ export default {
 		"showAll_action": "Hiện tất cả",
 		"showBlockedContent_action": "Hiện",
 		"showContact_action": "Hiện liên hệ",
-		"showEmailAliases_action": "Hiện biệt danh thư",
 		"showHeaders_action": "Hiện các đầu tải thư",
 		"showHelp_action": "Hiện trợ giúp",
 		"showImages_action": "Hiện ảnh",
