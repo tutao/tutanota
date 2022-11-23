@@ -43,7 +43,7 @@ class SseClient internal constructor(
 		connectedSseInfo = sseInfo
 		val connection = httpsURLConnectionRef.get()
 		if (connection == null) {
-			Log.d(TAG, "ConnectionRef not available, schedule connect")
+			Log.d(TAG, "restart requested and connectionRef is not available, schedule connect")
 			reschedule(0)
 		} else if (
 				oldConnectedInfo == null ||
@@ -52,10 +52,10 @@ class SseClient internal constructor(
 		) {
 			// If pushIdentifier or SSE origin have changed for some reason, restart the connect.
 			// If user IDs have changed, do not restart, if current user is invalid we have either oldConnectedInfo
-			Log.d(TAG, "ConnectionRef available, but SseInfo has changed, call disconnect to reschedule connection")
+			Log.d(TAG, "restart requested, connectionRef is available, but sseInfo has changed, call disconnect to reschedule connection")
 			connection.disconnect()
 		} else {
-			Log.d(TAG, "ConnectionRef available, do nothing")
+			Log.d(TAG, "restart requested but connectionRef available, do nothing")
 		}
 	}
 
@@ -76,19 +76,22 @@ class SseClient internal constructor(
 		}
 		val connectionData = prepareSSEConnection(connectedSseInfo)
 		try {
-			var notifiedEstablishedConnection = true
+			var shouldNotifyAboutEstablishedConnection = true
 			val httpURLConnection = openSseConnection(connectionData)
-			Log.d(TAG, "SSE connection established, listening for events")
+			Log.d(TAG, "connected, listening for events")
 			httpURLConnection.iterateDataAsLines {
 				handleLine(it)
-				if (notifiedEstablishedConnection) {
+				if (shouldNotifyAboutEstablishedConnection) {
+					// We expect to get at least one event right away so we don't consider the connection "established"
+					// until it happens.
 					sseListener.onConnectionEstablished()
-					notifiedEstablishedConnection = false
+					shouldNotifyAboutEstablishedConnection = false
 				}
 			}
 		} catch (exception: Exception) {
 			handleException(random, exception, connectionData.userId)
 		} finally {
+			sseListener.onConnectionBroken()
 			httpsURLConnectionRef.set(null)
 		}
 	}
@@ -143,11 +146,10 @@ class SseClient internal constructor(
 		if (data.startsWith("heartbeatTimeout:")) {
 			timeoutInSeconds = data.split(":".toRegex()).toTypedArray()[1].toInt().toLong()
 			sseStorage.setConnectTimeoutInSeconds(timeoutInSeconds)
-			sseListener.onConnectionEstablished()
 			return
 		}
 		sseListener.onMessage(data, connectedSseInfo)
-		Log.d(TAG, "Executing jobFinished after receiving notifications")
+		Log.d(TAG, "onMessage")
 	}
 
 	private fun requestJson(pushIdentifier: String, userId: String?): String {
@@ -220,6 +222,7 @@ class SseClient internal constructor(
 		 */
 		fun onMessage(data: String, sseInfo: SseInfo?)
 		fun onConnectionEstablished()
+		fun onConnectionBroken()
 		fun onNotAuthorized(userId: String)
 		fun onStoppingReconnectionAttempts()
 	}
