@@ -20,4 +20,8 @@ export class AnotherUserMailAddressNameChanger implements MailAddressNameChanger
 	setSenderName(address: string, name: string): Promise<AddressToName> {
 		return this.userManagementFacade.setSenderName(this.mailGroupId, this.userId, address, name)
 	}
+
+	removeSenderName(address: string): Promise<AddressToName> {
+		return this.userManagementFacade.removeSenderName(this.mailGroupId, this.userId, address)
+	}
 }
