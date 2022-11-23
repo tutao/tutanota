@@ -18,9 +18,8 @@ export function showNewsDialog(newsModel: NewsModel) {
 		},
 	}
 
-	const recoveryCodeDialogUsageTest = locator.usageTestController.getTest("recoveryCodeDialog")
-
 	const closeAction = () => {
+		const recoveryCodeDialogUsageTest = locator.usageTestController.getTest("recoveryCodeDialog")
 		const stage = recoveryCodeDialogUsageTest.getStage(2)
 		stage.setMetric({
 			name: "action",
@@ -73,6 +72,7 @@ export function showNewsDialog(newsModel: NewsModel) {
 		},
 		help: "close_alt",
 	})
+	const recoveryCodeDialogUsageTest = locator.usageTestController.getTest("recoveryCodeDialog")
 	recoveryCodeDialogUsageTest.getStage(0).complete()
 	dialog.show()
 }
