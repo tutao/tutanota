@@ -191,6 +191,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			),
 			helpLabel: getHelpLabel(targetSubscription, selectorAttrs.options.businessUse()),
 			features: featuresToShow,
+			featuresExpanded: this.featuresExpanded[targetSubscription] || this.featuresExpanded.All,
 			width: selectorAttrs.boxWidth,
 			height: selectorAttrs.boxHeight,
 			paymentInterval: selectorAttrs.isInitialUpgrade && targetSubscription !== SubscriptionType.Free ? selectorAttrs.options.paymentInterval : null,
