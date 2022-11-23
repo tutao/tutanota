@@ -23,6 +23,7 @@ export type BuyOptionBoxAttr = {
 	priceHint?: TranslationKey | lazy<string>
 	helpLabel: TranslationKey | lazy<string>
 	features: Array<{text: string, toolTip?: Child, key: string, antiFeature?: boolean}>
+	featuresExpanded?: boolean
 	width: number
 	height: number
 	/**
@@ -55,9 +56,11 @@ export const BOX_MARGIN = 10
 
 export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 	private featureListItemSelector: string = ".flex"
+	private featuresExpanded: boolean = false
 
 	view(vnode: Vnode<BuyOptionBoxAttr>) {
 		const {attrs} = vnode
+		this.featuresExpanded = attrs.featuresExpanded || false
 		return m('.fg-black',
 			{
 				style: {
@@ -105,7 +108,11 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 	}
 
 	onbeforeupdate(vnode: Vnode<BuyOptionBoxAttr>, old: VnodeDOM<BuyOptionBoxAttr>) {
-		if (vnode.attrs.heading === old.attrs.heading) {
+		// the expand css class renders an animation which is used when the feature list is expanded
+		// the animation should only be shown when the user clicked on the feature expansion button which changes the expanded state
+		// thus to check whether the button was pressed, the BuyOptionBox before update must not be expanded but the BuyOptionBox after update is
+		// otherwise mithril sometimes updates the view and renders the animation even though nothing changed
+		if (vnode.attrs.featuresExpanded && !old.attrs.featuresExpanded) {
 			this.featureListItemSelector = ".flex.expand"
 		} else {
 			this.featureListItemSelector = ".flex"
