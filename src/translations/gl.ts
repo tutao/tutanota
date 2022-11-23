@@ -14,8 +14,9 @@ export default {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2022-10-17T15:13:05Z",
+	"updated_at": "2022-11-23T13:39:29Z",
 	"source_locale": null,
+	"fallback_locale": null,
 	"keys": {
 		"about_label": "Acerca de",
 		"accentColor_label": "Cor de resalte",
@@ -1217,7 +1218,6 @@ export default {
 		"showAll_action": "Mostrar todo",
 		"showBlockedContent_action": "Mostrar",
 		"showContact_action": "Mostrar contacto",
-		"showEmailAliases_action": "Mostrar alias de correo",
 		"showHeaders_action": "Mostrar cabeceiras do correo",
 		"showHelp_action": "Mostra a axuda",
 		"showImages_action": "Mostrar imaxes",

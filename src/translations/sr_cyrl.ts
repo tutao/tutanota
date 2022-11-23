@@ -12,8 +12,9 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2022-09-20T09:07:33Z",
+	"updated_at": "2022-11-23T13:39:30Z",
 	"source_locale": null,
+	"fallback_locale": null,
 	"keys": {
 		"about_label": "О програму",
 		"acceptInvitation_action": "Прихвати позив",
@@ -967,7 +968,6 @@ export default {
 		"showAll_action": "Покажи све",
 		"showBlockedContent_action": "Покажи",
 		"showContact_action": "Покажи контакт",
-		"showEmailAliases_action": "Покажи псеудониме поште",
 		"showHeaders_action": "Прикажи поштанско поглавље",
 		"showHelp_action": "Покажите помоћ",
 		"showInboxRules_action": "Прикажи правила за пристигле",

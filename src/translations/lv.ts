@@ -11,8 +11,9 @@ export default {
 		"other"
 	],
 	"created_at": "2016-03-09T14:04:39Z",
-	"updated_at": "2022-10-17T15:13:05Z",
+	"updated_at": "2022-11-23T13:39:29Z",
 	"source_locale": null,
+	"fallback_locale": null,
 	"keys": {
 		"about_label": "Par",
 		"acceptInvitation_action": "Pieņemt uzaicinājumu",
@@ -1060,7 +1061,6 @@ export default {
 		"showAll_action": "Parādīt visus",
 		"showBlockedContent_action": "Parādīt",
 		"showContact_action": "Parādīt kontaktu",
-		"showEmailAliases_action": "Parādīt e-pasta aliases",
 		"showHeaders_action": "Parādīt e-pasta galvenes",
 		"showHelp_action": "Parādīt palīdzību",
 		"showImages_action": "Parādīt attēlus",

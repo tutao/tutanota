@@ -10,8 +10,9 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T09:48:48Z",
-	"updated_at": "2022-10-17T15:13:05Z",
+	"updated_at": "2022-11-23T13:39:30Z",
 	"source_locale": null,
+	"fallback_locale": null,
 	"keys": {
 		"about_label": "소개",
 		"accentColor_label": "강조 색상",
@@ -1161,7 +1162,6 @@ export default {
 		"showAll_action": "모두 보기",
 		"showBlockedContent_action": "보기",
 		"showContact_action": "연락처 보기",
-		"showEmailAliases_action": "이메일 에일리어스 보기",
 		"showHeaders_action": "이메일 헤더 보이기",
 		"showHelp_action": "도움말 보기",
 		"showImages_action": "이미지 보기",

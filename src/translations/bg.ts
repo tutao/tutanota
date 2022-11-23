@@ -11,8 +11,9 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2022-10-19T09:46:33Z",
+	"updated_at": "2022-11-23T13:39:29Z",
 	"source_locale": null,
+	"fallback_locale": null,
 	"keys": {
 		"about_label": "Относно",
 		"acceptInvitation_action": "Приеми покана",
@@ -1061,7 +1062,6 @@ export default {
 		"showAll_action": "Покажи всички",
 		"showBlockedContent_action": "Покажи",
 		"showContact_action": "Покажи контакт",
-		"showEmailAliases_action": "Покажи имейл-псевдонимите",
 		"showHeaders_action": "Покажи имейл хедъри",
 		"showHelp_action": "Покажи  \"Помощ\"",
 		"showInboxRules_action": "Покажете правилата за пощенската кутия",

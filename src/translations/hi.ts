@@ -11,8 +11,9 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2022-10-23T15:06:31Z",
+	"updated_at": "2022-11-23T13:39:29Z",
 	"source_locale": null,
+	"fallback_locale": null,
 	"keys": {
 		"about_label": "बारे में",
 		"accentColor_label": "स्वरोंका रंग",
@@ -1264,7 +1265,6 @@ export default {
 		"showAll_action": "सब दिखाओ",
 		"showBlockedContent_action": "दिखाएँ ",
 		"showContact_action": "संपर्क दर्शाएँ",
-		"showEmailAliases_action": "ईमेल उपनाम दर्शाएँ ",
 		"showHeaders_action": "ईमेल  शीर्षणी  दिखाएं",
 		"showHelp_action": "सहायता संदेश दिखाएं",
 		"showImages_action": "चित्र दिखाएं",

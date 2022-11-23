@@ -13,8 +13,9 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-13T07:36:09Z",
-	"updated_at": "2022-09-20T09:07:33Z",
+	"updated_at": "2022-11-23T13:39:30Z",
 	"source_locale": null,
+	"fallback_locale": null,
 	"keys": {
 		"about_label": "אודות",
 		"acceptInvitation_action": "אישור הזמנה",
@@ -1095,7 +1096,6 @@ export default {
 		"showAll_action": "הראה הכל",
 		"showBlockedContent_action": "הראה",
 		"showContact_action": "הראה איש קשר",
-		"showEmailAliases_action": "הצג כינויי דוא\"ל",
 		"showHeaders_action": "הצג כותרות דוא\"ל",
 		"showHelp_action": "הצג עזרה זו",
 		"showInboxRules_action": "הצג כללי דואר נכנס",

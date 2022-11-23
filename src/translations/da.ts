@@ -11,8 +11,9 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2022-09-20T09:07:32Z",
+	"updated_at": "2022-11-23T13:39:29Z",
 	"source_locale": null,
+	"fallback_locale": null,
 	"keys": {
 		"about_label": "Om",
 		"acceptInvitation_action": "Accepter invitation",
@@ -1148,7 +1149,6 @@ export default {
 		"showAll_action": "Vis alle",
 		"showBlockedContent_action": "Vis",
 		"showContact_action": "Vis kontakt",
-		"showEmailAliases_action": "Vis e-mail-aliasser",
 		"showHeaders_action": "Vis e-mail-headere",
 		"showHelp_action": "Vis denne hjælp",
 		"showImages_action": "Vis billeder",

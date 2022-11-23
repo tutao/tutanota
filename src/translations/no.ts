@@ -11,8 +11,9 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2022-10-17T15:13:05Z",
+	"updated_at": "2022-11-23T13:39:28Z",
 	"source_locale": null,
+	"fallback_locale": null,
 	"keys": {
 		"about_label": "Om",
 		"accentColor_label": "Aksentfarge",
@@ -1131,7 +1132,6 @@ export default {
 		"showAll_action": "Vis alt",
 		"showBlockedContent_action": "Vis",
 		"showContact_action": "Vis kontakt",
-		"showEmailAliases_action": "Vis e-postaliaser",
 		"showHeaders_action": "Vis e-postoverskrifter",
 		"showHelp_action": "Vis hjelp",
 		"showImages_action": "Vis bilder",

@@ -11,8 +11,9 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2022-06-28T09:22:25Z",
+	"updated_at": "2022-11-23T13:39:29Z",
 	"source_locale": null,
+	"fallback_locale": null,
 	"keys": {
 		"acceptPrivacyPolicyReminder_msg": "Palun nõustuge privaatsuspoliitikaga valides märkeruudu.",
 		"acceptPrivacyPolicy_msg": "Olen tutvunud ja nõustun {privacyPolicy}",
@@ -658,7 +659,6 @@ export default {
 		"showAll_action": "Kuva kõik",
 		"showBlockedContent_action": "Näita",
 		"showContact_action": "Kuva kontakt",
-		"showEmailAliases_action": "Kuva e-posti aliased",
 		"showHeaders_action": "Kuva kirja päised",
 		"showHelp_action": "Kuva seda abimaterjali",
 		"showInboxRules_action": "Kuva postkasti reeglid",

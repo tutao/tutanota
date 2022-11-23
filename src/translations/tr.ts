@@ -11,12 +11,13 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2022-10-17T15:13:05Z",
+	"updated_at": "2022-11-23T13:39:28Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
 		"code": "en"
 	},
+	"fallback_locale": null,
 	"keys": {
 		"about_label": "Hakkında",
 		"accentColor_label": "İkincil renk",
@@ -1225,7 +1226,6 @@ export default {
 		"showAll_action": "hepsini göster",
 		"showBlockedContent_action": "Göster",
 		"showContact_action": "Kişiyi görüntüle",
-		"showEmailAliases_action": "Eposta takma adlarını görüntüle",
 		"showHeaders_action": "Eposta başlıklarını göster",
 		"showHelp_action": "Yardımı göster",
 		"showImages_action": "Resimleri göster",

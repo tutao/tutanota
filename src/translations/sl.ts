@@ -13,8 +13,9 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2022-10-25T06:54:54Z",
+	"updated_at": "2022-11-23T13:39:30Z",
 	"source_locale": null,
+	"fallback_locale": null,
 	"keys": {
 		"about_label": "O programu",
 		"accentColor_label": "Barva naglasa",
@@ -1266,7 +1267,6 @@ export default {
 		"showAll_action": "Prikaži vse",
 		"showBlockedContent_action": "Pokaži",
 		"showContact_action": "Prikaži stik",
-		"showEmailAliases_action": "Prikaži poštne vzdevke",
 		"showHeaders_action": "Prikaži glavo sporočila",
 		"showHelp_action": "Pokaži pomoč",
 		"showImages_action": "Prikaži slike",
