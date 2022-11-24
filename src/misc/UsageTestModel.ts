@@ -6,7 +6,7 @@ import {
 	UsageTestAssignmentOut,
 	UsageTestAssignmentTypeRef,
 } from "../api/entities/usage/TypeRefs.js"
-import {PingAdapter, Stage, UsageTest} from "@tutao/tutanota-usagetests"
+import {PingAdapter, Stage, UsageTest, UsageTestController} from "@tutao/tutanota-usagetests"
 import {assertNotNull, filterInt, lazy, neverNull} from "@tutao/tutanota-utils"
 import {BadRequestError, NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 import {UsageTestMetricType} from "../api/common/TutanotaConstants"
@@ -27,7 +27,6 @@ import {CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef} from "..
 import {EntityClient} from "../api/common/EntityClient.js"
 import {EntityUpdateData, EventController, isUpdateForTypeRef} from "../api/main/EventController.js"
 import {createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/TypeRefs.js"
-import {locator} from "../api/main/MainLocator.js"
 
 
 const PRESELECTED_LIKERT_VALUE = null
@@ -174,6 +173,7 @@ export class UsageTestModel implements PingAdapter {
 		private readonly entityClient: EntityClient,
 		private readonly loginController: LoginController,
 		private readonly eventController: EventController,
+		private readonly usageTestController: () => UsageTestController,
 	) {
 		eventController.addEntityListener((updates: ReadonlyArray<EntityUpdateData>) => {
 			return this.entityEventsReceived(updates)
@@ -187,7 +187,7 @@ export class UsageTestModel implements PingAdapter {
 			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
 				// Opt-in decision has changed, load tests
 				const tests = await this.loadActiveUsageTests()
-				locator.usageTestController.setTests(tests)
+				this.usageTestController().setTests(tests)
 			}
 		}
 	}
