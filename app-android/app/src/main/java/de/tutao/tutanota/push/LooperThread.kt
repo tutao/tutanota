@@ -5,15 +5,18 @@ import android.os.Looper
 import android.util.Log
 
 internal class LooperThread(private val initRunnable: Runnable) : Thread() {
+	val handler: Handler
+		get() = _handler ?: error("LooperThread has not been started yet!")
+
 	@Volatile
-	var handler: Handler? = null
+	var _handler: Handler? = null
 		private set
 
 	override fun run() {
 		Log.d("LooperThread", "LooperThread is started")
 		Looper.prepare()
-		handler = Handler(Looper.myLooper()!!)
-		handler!!.post(initRunnable)
+		_handler = Handler(Looper.myLooper()!!)
+		_handler!!.post(initRunnable)
 		Looper.loop()
 	}
 }

@@ -91,7 +91,7 @@ class PushNotificationService : LifecycleJobService() {
 			}
 			if (userIds.isEmpty()) {
 				sseClient.stopConnection()
-				removeBackgroundServiceNotification()
+				removeForegroundNotification()
 				finishJobIfNeeded()
 			} else {
 				sseClient.restartConnectionIfNeeded(
@@ -107,8 +107,8 @@ class PushNotificationService : LifecycleJobService() {
 		localNotificationsFacade.createNotificationChannels()
 	}
 
-	private fun removeBackgroundServiceNotification() {
-		Log.d(TAG, "removeBackgroundServiceNotification")
+	private fun removeForegroundNotification() {
+		Log.d(TAG, "removeForegroundNotification")
 		stopForeground(true)
 	}
 
@@ -153,7 +153,7 @@ class PushNotificationService : LifecycleJobService() {
 	private fun scheduleJobFinish() {
 		Log.d(TAG, "scheduleJobFinish, will actually schedule: ${jobParameters != null}")
 		if (jobParameters != null) {
-			finishJobThread.handler!!.postDelayed({
+			finishJobThread.handler.postDelayed({
 				Log.d(TAG, "Executing scheduled jobFinished")
 				finishJobIfNeeded()
 			}, TimeUnit.SECONDS.toMillis(20))
@@ -208,13 +208,14 @@ class PushNotificationService : LifecycleJobService() {
 			Log.d(TAG, "onConnectionEstablished")
 			state = State.CONNECTED
 
-			removeBackgroundServiceNotification()
+			removeForegroundNotification()
 			// After establishing connection we finish in some time.
 			scheduleJobFinish()
 		}
 
 		override fun onConnectionBroken() {
 			Log.d(TAG, "onConnectionBroken")
+			state = State.CONNECTING
 		}
 
 		override fun onNotAuthorized(userId: String) {
@@ -227,7 +228,7 @@ class PushNotificationService : LifecycleJobService() {
 				State.CONNECTING -> State.STARTED
 				else -> state
 			}
-			removeBackgroundServiceNotification()
+			removeForegroundNotification()
 			finishJobIfNeeded()
 		}
 	}
