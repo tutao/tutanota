@@ -407,6 +407,7 @@ class MainLocator implements IMainLocator {
 			this.entityClient,
 			logins,
 			this.eventController,
+			() => this.usageTestController,
 		)
 
 		this.newsModel = new NewsModel(this.serviceExecutor, async (name: string) => {

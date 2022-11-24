@@ -16,7 +16,7 @@ import {
 } from "../../../src/api/entities/usage/TypeRefs.js"
 import {matchers, object, replace, verify, when} from "testdouble"
 import {clone} from "@tutao/tutanota-utils"
-import {Stage, UsageTest} from "@tutao/tutanota-usagetests"
+import {Stage, UsageTest, UsageTestController} from "@tutao/tutanota-usagetests"
 import {SuspensionBehavior} from "../../../src/api/worker/rest/RestClient.js"
 import {UsageTestAssignmentService, UsageTestParticipationService} from "../../../src/api/entities/usage/Services.js"
 import {IServiceExecutor} from "../../../src/api/common/ServiceRequest.js"
@@ -40,6 +40,7 @@ o.spec("UsageTestModel", function () {
 	let userControllerMock: UserController
 	let loginControllerMock: LoginController
 	let eventControllerMock: EventController
+	let usageTestController: UsageTestController
 	const testDeviceId = "123testDeviceId321"
 
 	const dateProvider = {
@@ -82,6 +83,8 @@ o.spec("UsageTestModel", function () {
 
 		eventControllerMock = object()
 
+		usageTestController = object()
+
 		when(loginControllerMock.getUserController()).thenReturn(userControllerMock)
 
 		ephemeralStorage = new EphemeralUsageTestStorage()
@@ -95,6 +98,7 @@ o.spec("UsageTestModel", function () {
 			entityClient,
 			loginControllerMock,
 			eventControllerMock,
+			() => usageTestController
 		)
 
 		replace(usageTestModel, "customerProperties", createCustomerProperties({usageDataOptedOut: false}))
