@@ -67,7 +67,7 @@ export class RecoveryCodeNews implements NewsListItem {
 			label: this.recoveryCode() ? "paymentDataValidation_action" : "recoveryCodeDisplay_action",
 			click: () => {
 				if (!this.recoveryCode()) {
-					getRecoverCodeDialogAfterPasswordVerification(true, this.recoveryCode)
+					getRecoverCodeDialogAfterPasswordVerification(this.userController, true, this.recoveryCode)
 					m.redraw()
 					return
 				}
@@ -99,11 +99,13 @@ export class RecoveryCodeNews implements NewsListItem {
 }
 
 
-function getRecoverCodeDialogAfterPasswordVerification(showMessage: boolean = true, recoveryCode: Stream<string | null>) {
+function getRecoverCodeDialogAfterPasswordVerification(userController: UserController, showMessage: boolean = true, recoveryCode: Stream<string | null>) {
 	const userManagementFacade = locator.userManagementFacade
 	const dialog = Dialog.showRequestPasswordDialog({
 		action: (pw) => {
-			return (userManagementFacade.getRecoverCode(pw))
+			const hasRecoveryCode = !!userController.user.auth?.recoverCode
+
+			return (hasRecoveryCode ? userManagementFacade.getRecoverCode(pw) : userManagementFacade.createRecoveryCode(pw))
 				.then(recoverCode => {
 					dialog.close()
 					recoveryCode(recoverCode)
