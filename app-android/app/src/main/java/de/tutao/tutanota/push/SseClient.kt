@@ -31,8 +31,8 @@ class SseClient internal constructor(
 	private val httpsURLConnectionRef = AtomicReference<HttpURLConnection?>(null)
 	private val looperThread = LooperThread { connect() }
 	private fun reschedule(delayInSeconds: Int) {
-		if (looperThread.handler != null) {
-			looperThread.handler!!.postDelayed({ connect() }, TimeUnit.SECONDS.toMillis(delayInSeconds.toLong()))
+		if (looperThread._handler != null) {
+			looperThread._handler!!.postDelayed({ connect() }, TimeUnit.SECONDS.toMillis(delayInSeconds.toLong()))
 		} else {
 			Log.d(TAG, "looper thread is starting, skip additional reschedule")
 		}
