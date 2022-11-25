@@ -417,7 +417,7 @@ class MainLocator implements IMainLocator {
 					return new UsageOptInNews(this.newsModel, this.usageTestModel)
 				case "recoveryCode":
 					const {RecoveryCodeNews} = await import("../../misc/news/items/RecoveryCodeNews.js")
-					return new RecoveryCodeNews(this.newsModel, logins.getUserController(), this.usageTestModel, this.usageTestController)
+					return new RecoveryCodeNews(this.newsModel, logins.getUserController(), this.usageTestModel, this.usageTestController, this.userManagementFacade)
 				default:
 					console.log(`No implementation for news named '${name}'`)
 					return null
