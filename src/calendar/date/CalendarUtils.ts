@@ -44,7 +44,6 @@ import {TIMESTAMP_ZERO_YEAR} from "@tutao/tutanota-utils/dist/DateUtils"
 
 assertMainOrNode()
 export const CALENDAR_EVENT_HEIGHT: number = size.calendar_line_height + 2
-export const CALENDAR_EVENT_BORDER = 1
 export const TEMPORARY_EVENT_OPACITY = 0.7
 export type CalendarMonthTimeRange = {
 	start: Date
@@ -410,7 +409,7 @@ function collidesWith(a: CalendarEvent, b: CalendarEvent): boolean {
 function overlapsWith(firstEventStart: Date, firstEventEnd: Date, secondEventStart: Date): boolean {
 	//we are only interested in the height on the last day of the event
 	const firstEventStartOnSameDay = isSameDay(firstEventStart, firstEventEnd) ? firstEventStart.getTime() : getStartOfDay(firstEventEnd).getTime()
-	const height = ((firstEventEnd.getTime() - firstEventStartOnSameDay) / (1000 * 60 * 60)) * size.calendar_hour_height - CALENDAR_EVENT_BORDER
+	const height = ((firstEventEnd.getTime() - firstEventStartOnSameDay) / (1000 * 60 * 60)) * size.calendar_hour_height - size.calendar_event_border
 	return firstEventEnd.getTime() === secondEventStart.getTime() && height < size.calendar_line_height
 }
 

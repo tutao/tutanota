@@ -57,11 +57,16 @@ export const size = {
 		return this.font_size_small + 6
 	},
 
+	get calendar_hour_height(): number {
+		return (this.calendar_line_height + 2 * this.calendar_event_border + this.calendar_day_event_padding) * 4
+	},
+
 	calendar_hour_width: 80,
 	calendar_hour_width_mobile: 60,
-	calendar_hour_height: 60,
 	calendar_event_margin: 6,
 	calendar_event_margin_mobile: 2,
+	calendar_event_border: 1,
+	calendar_day_event_padding: 2,
 	drawer_menu_width: 44,
 	first_col_min_width: 240,
 	first_col_max_width: 300,

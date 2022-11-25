@@ -3,7 +3,6 @@ import {theme} from "../../gui/theme"
 import {px, size} from "../../gui/size"
 import {DAY_IN_MILLIS, downcast, getEndOfDay, getStartOfDay, mapNullable, neverNull, numberRange} from "@tutao/tutanota-utils"
 import {
-	CALENDAR_EVENT_BORDER,
 	eventEndsAfterDay,
 	eventStartsBefore,
 	expandEvent,
@@ -123,11 +122,10 @@ export class CalendarDayEventsView implements Component<Attrs> {
 		const startOfEvent = eventStartsBefore(attrs.day, zone, ev) ? getStartOfDay(attrs.day) : ev.startTime
 		const endOfEvent = eventEndsAfterDay(attrs.day, zone, ev) ? getEndOfDay(attrs.day) : ev.endTime
 		const startTime = (startOfEvent.getHours() * 60 + startOfEvent.getMinutes()) * 60 * 1000
-		const height = ((endOfEvent.getTime() - startOfEvent.getTime()) / (1000 * 60 * 60)) * size.calendar_hour_height - CALENDAR_EVENT_BORDER
+		const height = ((endOfEvent.getTime() - startOfEvent.getTime()) / (1000 * 60 * 60)) * size.calendar_hour_height - size.calendar_event_border
 		const fullViewWidth = attrs.fullViewWidth
 		const maxWidth = fullViewWidth != null ? px(styles.isDesktopLayout() ? fullViewWidth / 2 : fullViewWidth) : "none"
 		const colSpan = expandEvent(ev, columnIndex, columns)
-		const padding = 2
 		return m(
 			".abs.darker-hover",
 			{
@@ -149,9 +147,9 @@ export class CalendarDayEventsView implements Component<Attrs> {
 				secondLineText: mapNullable(getTimeTextFormatForLongEvent(ev, attrs.day, attrs.day, zone), option => formatEventTime(ev, option)),
 				color: getEventColor(ev, attrs.groupColors),
 				click: domEvent => attrs.onEventClicked(ev, domEvent),
-				height: height - padding,
+				height: height - size.calendar_day_event_padding,
 				hasAlarm: hasAlarmsForTheUser(logins.getUserController().user, ev),
-				verticalPadding: padding,
+				verticalPadding: size.calendar_day_event_padding,
 				fadeIn: !attrs.isTemporaryEvent(ev),
 				opacity: attrs.isTemporaryEvent(ev) ? TEMPORARY_EVENT_OPACITY : 1,
 				enablePointerEvents: !attrs.isTemporaryEvent(ev) && !attrs.isDragging,

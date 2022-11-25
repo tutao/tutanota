@@ -1780,7 +1780,7 @@ styles.registerStyle("main", () => {
 		},
 		".calendar-event": {
 			"border-radius": px(4),
-			border: `1px solid ${theme.content_bg}`,
+			border: ` ${size.calendar_event_border}px solid ${theme.content_bg}`,
 			"padding-left": "4px",
 			"font-weight": "600",
 			"box-sizing": "content-box",
