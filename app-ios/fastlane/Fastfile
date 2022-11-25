@@ -31,7 +31,6 @@ platform :ios do
 			scheme: "tutanota-dist",
 			output_directory: "releases",
 			output_name: "tutanota-" + get_version_number(target: "tutanota"),
-			include_bitcode: true,
 			include_symbols: true,
 			verbose: false
 		)
@@ -65,7 +64,6 @@ platform :ios do
 			export_options: {
 				method: "ad-hoc"
 			},
-			include_bitcode: true,
 			verbose: false
 		)
 	end
@@ -88,7 +86,6 @@ platform :ios do
 			export_options: {
 				method: "ad-hoc"
 			},
-			include_bitcode: true,
 			verbose: false
 		)
 	end
