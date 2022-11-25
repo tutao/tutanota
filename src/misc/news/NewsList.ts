@@ -1,7 +1,9 @@
 import m, {Children, Component, Vnode} from "mithril"
 import {NewsId} from "../../api/entities/tutanota/TypeRefs.js"
-import {lang} from "../LanguageViewModel.js"
 import {NewsListItem} from "./NewsListItem.js"
+import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox.js"
+import {theme} from "../../gui/theme.js"
+import {Icons} from "../../gui/base/icons/Icons.js"
 
 
 /**
@@ -15,7 +17,11 @@ export interface NewsListAttrs {
 export class NewsList implements Component<NewsListAttrs> {
 	view(vnode: Vnode<NewsListAttrs>): Children {
 		if (vnode.attrs.liveNewsIds.length === 0) {
-			return m(".center.news-item.pt.pl-l.pr-l", lang.get("noNews_msg"))
+			return m(ColumnEmptyMessageBox, {
+				message: "noNews_msg",
+				icon: Icons.Bulb,
+				color: theme.content_message_bg,
+			})
 		}
 
 		return m("", vnode.attrs.liveNewsIds.map(liveNewsId => {
