@@ -143,7 +143,7 @@ export class PaymentMethodInput {
 			return isPaypalAssigned(this._accountingInfo) ? null : "paymentDataPayPalLogin_msg"
 		} else if (this._selectedPaymentMethod === PaymentMethodType.CreditCard) {
 			let cc = this._creditCardAttrs.getCreditCardData()
-			const stage = this.__paymentCreditTest?.getStage(2)
+			const stage = this.__paymentCreditTest?.getStage(1)
 
 			if (cc.number === "") {
 				stage?.setMetric({
@@ -187,6 +187,11 @@ export class PaymentMethodInput {
 				stage?.complete()
 				return "creditCardExprationDateInvalid_msg"
 			} else {
+				stage?.setMetric({
+					name: "validationFailure",
+					value: "none",
+				})
+				stage?.complete()
 				return null
 			}
 		} else {
