@@ -5,7 +5,7 @@ import {createMailboxGroupRoot, createMailboxProperties, MailboxGroupRootTypeRef
 
 export const tutanota56: OfflineMigration = {
 	app: "tutanota",
-	version: 55,
+	version: 56,
 	async migrate(storage: OfflineStorage) {
 		await migrateAllElements(MailboxPropertiesTypeRef, storage, [
 			createMailboxProperties
