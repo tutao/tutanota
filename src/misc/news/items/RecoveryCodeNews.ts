@@ -4,18 +4,18 @@ import {NewsId} from "../../../api/entities/tutanota/TypeRefs.js"
 import {lang} from "../../LanguageViewModel.js"
 import {Button, ButtonAttrs, ButtonType} from "../../../gui/base/Button.js"
 import {NewsModel} from "../NewsModel.js"
-import {RecoverCodeField} from "../../../settings/RecoverCodeDialog.js"
+import type {RecoverCodeField} from "../../../settings/RecoverCodeDialog.js"
 import {locator} from "../../../api/main/MainLocator.js"
 import {Dialog, DialogType} from "../../../gui/base/Dialog.js"
 import {AccessBlockedError, NotAuthenticatedError} from "../../../api/common/error/RestError.js"
 import {assertNotNull, noOp, ofClass} from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import {capitalize} from "../../../../packages/licc/lib/common.js"
 import {copyToClipboard} from "../../ClipboardUtils.js"
 import {UsageTestModel} from "../../UsageTestModel.js"
 import {UsageTest, UsageTestController} from "@tutao/tutanota-usagetests"
 import {UserController} from "../../../api/main/UserController.js"
+import {progressIcon} from "../../../gui/base/Icon.js"
 
 /** Actions that may be sent in stage 2 of the recoveryCodeDialog usage test. */
 type RecoveryCodeNewsAction = "copy" | "print" | "select" | "dismiss" | "close"
@@ -25,6 +25,8 @@ type RecoveryCodeNewsAction = "copy" | "print" | "select" | "dismiss" | "close"
  */
 export class RecoveryCodeNews implements NewsListItem {
 	private readonly recoveryCodeDialogUsageTest?: UsageTest
+	// Dynamically imported
+	private RecoverCodeField: Class<RecoverCodeField> | null = null
 
 	constructor(
 		private readonly newsModel: NewsModel,
@@ -121,6 +123,12 @@ export class RecoveryCodeNews implements NewsListItem {
 		})
 
 		return m(".full-width", {
+			oninit: () => {
+				import("../../../settings/RecoverCodeDialog.js").then(({RecoverCodeField}) => {
+					this.RecoverCodeField = RecoverCodeField
+					m.redraw()
+				})
+			},
 			onmouseup: () => {
 				let selection = window.getSelection()?.toString()
 
@@ -136,14 +144,20 @@ export class RecoveryCodeNews implements NewsListItem {
 				}
 			}
 		}, [
-			m(".h4", lang.get("recoveryCode_label").split(" ").map(capitalize).join(" ")),
+			m(".h4", {
+				style: {
+					"text-transform": "capitalize",
+				}
+			}, lang.get("recoveryCode_label")),
 			m("", lang.get("recoveryCode_msg")),
 			this.recoveryCode()
-				? m(RecoverCodeField, {
-					showMessage: false,
-					recoverCode: this.recoveryCode() as string,
-					showButtons: false,
-				})
+				? this.RecoverCodeField
+					? m(this.RecoverCodeField, {
+						showMessage: false,
+						recoverCode: this.recoveryCode() as string,
+						showButtons: false,
+					})
+					: m(".flex.justify-center", progressIcon())
 				: null,
 			m(
 				".flex-end.flex-no-grow-no-shrink-auto.flex-wrap",
