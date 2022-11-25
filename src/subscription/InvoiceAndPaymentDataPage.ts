@@ -362,14 +362,13 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 				exec: closeAction,
 				help: "close_alt",
 			})
-
+		const test = locator.usageTestController.getTest("payment.credit")
 		let entityEventListener: EntityEventsListener = (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) => {
 			return promiseMap(updates, update => {
 				if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
 					return locator.entityClient.load(InvoiceInfoTypeRef, update.instanceId).then(invoiceInfo => {
 						invoiceInfoWrapper.invoiceInfo = invoiceInfo
-						const test = locator.usageTestController.getTest("payment.credit")
-						const stage = test.getStage(2)
+						const stage = test.getStage(3)
 						if (!invoiceInfo.paymentErrorInfo) {
 							// user successfully verified the card
 							stage.setMetric({
@@ -377,7 +376,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 								value: "none",
 							})
 							stage.complete()
-							test.getStage(3).complete()
+							test.getStage(4).complete()
 							progressDialog.close()
 							resolve(true)
 						} else if (invoiceInfo.paymentErrorInfo && invoiceInfo.paymentErrorInfo.errorCode === "card.3ds2_pending") {
@@ -413,6 +412,9 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 							})
 							stage.complete()
 
+							// Restart the test after a validation failure
+							test.forceRestart()
+
 							Dialog.message(getPreconditionFailedPaymentMsg(invoiceInfo.paymentErrorInfo.errorCode))
 							resolve(false)
 							progressDialog.close()
@@ -429,6 +431,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 			braintree3ds.bin,
 		)}&price=${encodeURIComponent(price)}&message=${encodeURIComponent(lang.get("creditCardVerification_msg"))}&clientType=${getClientType()}`
 		Dialog.message("creditCardVerificationNeededPopup_msg").then(() => {
+			test.getStage(2).complete()
 			window.open(`${getPaymentWebRoot()}/braintree.html#${params}`)
 			progressDialog.show()
 		})

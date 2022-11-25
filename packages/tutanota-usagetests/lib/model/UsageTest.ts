@@ -33,6 +33,13 @@ export class UsageTest {
 	) {
 	}
 
+	/**
+	Tries to restart the test (by sending stage 0) regardless of the allowEarlyRestarts setting
+	 */
+	forceRestart() {
+		return this.completeStage(this.getStage(0), true)
+	}
+
 	isStarted(): boolean {
 		return this.started
 	}
@@ -75,7 +82,7 @@ export class UsageTest {
 	/**
 	 * Should not be used directly. Use stage.complete() instead.
 	 */
-	async completeStage(stage: Stage): Promise<boolean> {
+	async completeStage(stage: Stage, forceRestart = false): Promise<boolean> {
 		if (!this.pingAdapter) {
 			throw new Error("no ping adapter has been registered")
 		} else if (this.variant === NO_PARTICIPATION_VARIANT || !this.active) {
@@ -83,7 +90,7 @@ export class UsageTest {
 		} else if (this.sentPings >= stage.maxPings && this.lastCompletedStage === stage.number && (stage.number !== 0 || !this.allowEarlyRestarts)) {
 			console.log(`Not sending ping for stage (${stage.number}) of test '${this.testId}' because maxPings=${stage.maxPings} has been reached`)
 			return false
-		} else if (!this.allowEarlyRestarts && this.isStarted() && stage.number === 0 && this.lastCompletedStage !== this.stages.size - 1) {
+		} else if (!forceRestart && !this.allowEarlyRestarts && this.isStarted() && stage.number === 0 && this.lastCompletedStage !== this.stages.size - 1) {
 			console.log(`Cannot restart test '${this.testName}' because allowEarlyRestarts=false and the final stage has not been reached`)
 			return false
 		} else if (stage.number < this.lastCompletedStage && stage.number !== 0) {

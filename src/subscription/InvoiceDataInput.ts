@@ -88,22 +88,30 @@ export class InvoiceDataInput implements Component {
 	validateInvoiceData(): TranslationKey | null {
 		const address = this.getAddress()
 		const countrySelected = this.selectedCountry() != null
+		const stage = this.__paymentCreditTest?.getStage(1)
+		stage?.setMetric({
+			name: "validationFailure",
+			value: "invoiceDataMissing",
+		})
 
 		if (this.businessUse) {
 			if (address.trim() === "" || address.split("\n").length > 5) {
+				stage?.complete()
 				return "invoiceAddressInfoBusiness_msg"
 			} else if (!countrySelected) {
+				stage?.complete()
 				return "invoiceCountryInfoBusiness_msg"
 			}
 		} else {
 			if (!countrySelected) {
+				stage?.complete()
 				return "invoiceCountryInfoBusiness_msg" // use business text here because it fits better
 			} else if (address.split("\n").length > 4) {
+				stage?.complete()
 				return "invoiceAddressInfoBusiness_msg"
 			}
 		}
 		this.__paymentPaypalTest?.getStage(3).complete()
-		this.__paymentCreditTest?.getStage(1).complete()
 		// no error
 		return null
 	}
