@@ -19,6 +19,9 @@ import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import de.tutao.tutanota.*
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.TimeZone
 import java.util.concurrent.ConcurrentHashMap
 
 const val NOTIFICATION_DISMISSED_ADDR_EXTRA = "notificationDismissed"
@@ -328,7 +331,10 @@ fun notificationDismissedIntent(
 }
 
 fun showAlarmNotification(context: Context, timestamp: Long, summary: String, intent: Intent) {
-	val contentText = String.format("%tR %s", timestamp, summary)
+	val contentText = when {
+		isSameDay(timestamp, Date().time) -> String.format("%tR %s", timestamp, summary)
+		else -> String.format("%1\$ta %1\$td %1\$tb %1\$tR %2\$s", timestamp, summary) // e.g. Fri 25 Nov 12:31 summary
+	}
 	val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 	@ColorInt val red = context.resources.getColor(R.color.red, context.theme)
 	notificationManager.notify(
@@ -343,6 +349,19 @@ fun showAlarmNotification(context: Context, timestamp: Long, summary: String, in
 					.setAutoCancel(true)
 					.build()
 	)
+}
+
+/**
+ * Returns whether two timestamps belong to the same day considering the time zone
+ * @param time1 epoch time 1 in milliseconds
+ * @param time2 epoch time 2 in milliseconds
+ * @param timeZone optional, should only be used for testing! | otherwise the default value is used
+ * @return boolean whether both timestamp are on the same day
+ */
+fun isSameDay(time1: Long, time2: Long, timeZone: TimeZone = TimeZone.getDefault()): Boolean {
+	val customDateFormat = SimpleDateFormat("yyyy-MM-dd")
+	customDateFormat.setTimeZone(timeZone)
+	return customDateFormat.format(time1).equals(customDateFormat.format(time2))
 }
 
 private fun openCalendarIntent(context: Context, alarmIntent: Intent): PendingIntent {
