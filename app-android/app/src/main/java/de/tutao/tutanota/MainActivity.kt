@@ -6,6 +6,7 @@ import android.app.job.JobScheduler
 import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.graphics.Rect
 import android.net.MailTo
 import android.net.Uri
 import android.os.Bundle
@@ -21,6 +22,8 @@ import android.widget.Toast
 import androidx.annotation.MainThread
 import androidx.annotation.RequiresPermission
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat.setSystemGestureExclusionRects
+import androidx.core.view.doOnLayout
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
@@ -40,7 +43,6 @@ import org.json.JSONObject
 import java.io.File
 import java.io.IOException
 import java.io.UnsupportedEncodingException
-import java.lang.IllegalStateException
 import java.net.URLEncoder
 import java.security.SecureRandom
 import java.util.concurrent.ConcurrentHashMap
@@ -49,6 +51,9 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
+
+const val SYSTEM_GESTURES_EXCLUSION_WIDTH_DP = 40
+const val SYSTEM_GESTURES_EXCLUSION_HEIGHT_DP = 200 // max exclusion height allowed by the system is 200 dp
 
 class MainActivity : FragmentActivity() {
 	lateinit var webView: WebView
@@ -246,6 +251,15 @@ class MainActivity : FragmentActivity() {
 			}
 
 			startWebApp(queryParameters)
+		}
+
+		// Exclude bottom left screen area from system (back) gestures to open the drawer menu with a swipe from the
+		// left on android devices that have system (back) gesture navigation enabled.
+		webView.doOnLayout {
+			val exclusionWidth = SYSTEM_GESTURES_EXCLUSION_WIDTH_DP.toPx
+			val exclusionHeight = SYSTEM_GESTURES_EXCLUSION_HEIGHT_DP.toPx
+			val exclusions = listOf(Rect(0, (it.height - exclusionHeight), exclusionWidth, it.height))
+			setSystemGestureExclusionRects(it, exclusions)
 		}
 
 		if (!firstLoaded) {

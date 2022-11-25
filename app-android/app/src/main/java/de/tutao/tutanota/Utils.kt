@@ -3,6 +3,7 @@
 package de.tutao.tutanota
 
 import android.content.Context
+import android.content.res.Resources
 import android.net.Uri
 import android.os.Build
 import android.provider.OpenableColumns
@@ -138,3 +139,7 @@ fun parseColor(color: String): Int {
 
 fun HttpURLConnection.iterateDataAsLines(action: (line: String) -> Unit) =
 		BufferedReader(InputStreamReader(BufferedInputStream(this.inputStream))).forEachLine(action)
+
+fun Int.toPx(): Int = (this * Resources.getSystem().displayMetrics.density).toInt()
+
+fun Int.toDp(): Int = (this / Resources.getSystem().displayMetrics.density).toInt()
