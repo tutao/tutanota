@@ -1,6 +1,5 @@
 import DOMPurify, {Config, DOMPurifyI, HookEvent} from "dompurify"
 import {ReplacementImage} from "../gui/base/icons/Icons"
-import {client} from "./ClientDetector"
 import {downcast, stringToUtf8Uint8Array, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
 import {DataFile} from "../api/common/DataFile"
 // the svg data string must contain ' instead of " to avoid display errors in Edge

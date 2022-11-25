@@ -27,7 +27,6 @@ import {copyToClipboard} from "../../misc/ClipboardUtils";
 import {ContentBlockingStatus, MailViewerViewModel} from "./MailViewerViewModel"
 import {getListId} from "../../api/common/utils/EntityUtils"
 import {createEmailSenderListElement} from "../../api/entities/sys/TypeRefs.js"
-import {checkApprovalStatus} from "../../misc/LoginUtils"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {animations, DomMutation, scroll} from "../../gui/animation/Animations"

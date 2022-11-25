@@ -402,11 +402,10 @@ export class MailViewerViewModel {
 			this.configFacade.addExternalImageRule(this.getSender().address, ExternalImageRule.None).catch(ofClass(IndexingNotSupportedError, noOp))
 		}
 
-		this.contentBlockingStatus = status
-
 		// We don't check mail authentication status here because the user has manually called this
-
-		this.sanitizeResult = await this.sanitizeMailBody(this.mail, this.isBlockingExternalImages())
+		this.sanitizeResult = await this.sanitizeMailBody(this.mail, status === ContentBlockingStatus.Block || status === ContentBlockingStatus.AlwaysBlock)
+		//follow-up actions resulting from a changed blocking status must start after sanitization finished
+		this.contentBlockingStatus = status
 	}
 
 	async markAsNotPhishing(): Promise<void> {
