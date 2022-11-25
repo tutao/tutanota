@@ -256,8 +256,8 @@ class MainActivity : FragmentActivity() {
 		// Exclude bottom left screen area from system (back) gestures to open the drawer menu with a swipe from the
 		// left on android devices that have system (back) gesture navigation enabled.
 		webView.doOnLayout {
-			val exclusionWidth = SYSTEM_GESTURES_EXCLUSION_WIDTH_DP.toPx
-			val exclusionHeight = SYSTEM_GESTURES_EXCLUSION_HEIGHT_DP.toPx
+			val exclusionWidth = SYSTEM_GESTURES_EXCLUSION_WIDTH_DP.toPx()
+			val exclusionHeight = SYSTEM_GESTURES_EXCLUSION_HEIGHT_DP.toPx()
 			val exclusions = listOf(Rect(0, (it.height - exclusionHeight), exclusionWidth, it.height))
 			setSystemGestureExclusionRects(it, exclusions)
 		}
