@@ -779,7 +779,6 @@ export default {
 		"loadingDNSRecords_msg": "DNS Einträge werden geladen...",
 		"loadingTemplates_label": "Vorlagen werden geladen...",
 		"loading_msg": "Lade ...",
-		"loadMore_action": "Mehr laden",
 		"localAdminGroupAssignedError_msg": "Benutzer oder Gruppen sind dieser lokalen Admin-Gruppe noch zugeordnet. Sie kann nicht deaktiviert werden.",
 		"localAdminGroups_label": "Lokale Admin-Gruppen",
 		"localAdminGroup_label": "Lokale Admin-Gruppe",
