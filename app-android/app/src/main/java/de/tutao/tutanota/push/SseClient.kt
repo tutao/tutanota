@@ -55,7 +55,7 @@ class SseClient internal constructor(
 			Log.d(TAG, "restart requested, connectionRef is available, but sseInfo has changed, call disconnect to reschedule connection")
 			connection.disconnect()
 		} else {
-			Log.d(TAG, "restart requested but connectionRef available, do nothing")
+			Log.d(TAG, "restart requested but connectionRef available and didn't change, do nothing")
 		}
 	}
 

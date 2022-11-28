@@ -12,7 +12,7 @@ import de.tutao.tutanota.data.SseInfo
 import de.tutao.tutanota.push.SseClient.SseListener
 import java.util.concurrent.TimeUnit
 
-enum class State {
+private enum class State {
 	/** onCreate was called but onStartCommand hasn't been yet. */
 	CREATED,
 
@@ -22,7 +22,7 @@ enum class State {
 	/** onStartingConnection has been called. */
 	CONNECTING,
 
-	/** we received an initial message from the server, we release wakeLock and foreground notification. */
+	/** we received an ini	tial message from the server, we release wakeLock and foreground notification. */
 	CONNECTED,
 
 	/** The system forcibly stopped us. */
@@ -114,7 +114,11 @@ class PushNotificationService : LifecycleJobService() {
 
 	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 		super.onStartCommand(intent, flags, startId)
-		Log.d(TAG, "onStartCommand, sender: " + intent?.getStringExtra("sender"))
+		val maybeSender = intent?.getStringExtra("sender")
+		val attemptForeground = intent?.getBooleanExtra(ATTEMPT_FOREGROUND_EXTRA, false) ?: false
+
+		Log.d(TAG, "onStartCommand, sender: $maybeSender")
+
 		this.state = when (this.state) {
 			State.STOPPED, State.CREATED, State.STARTED -> State.STARTED
 			State.CONNECTING, State.CONNECTED -> this.state
@@ -131,9 +135,17 @@ class PushNotificationService : LifecycleJobService() {
 
 		// onStartCommand can be called multiple times right after another
 		// but we don't want to start foreground notification if we are already running and we've already dismissed it
-		if (atLeastOreo() && this.state == State.STARTED) {
+		// We don't even want to try `startForeground` if we are launched from a context where it isn't allowed so we
+		// pass it as a parameter.
+		// see https://developer.android.com/guide/components/foreground-services#background-start-restrictions
+		if (atLeastOreo() && this.state == State.STARTED && attemptForeground) {
 			Log.d(TAG, "Starting foreground")
-			startForeground(1, localNotificationsFacade.makeConnectionNotification())
+			try {
+				startForeground(1, localNotificationsFacade.makeConnectionNotification())
+			} catch (e: IllegalStateException) {
+				// probably ForegroundServiceStartNotAllowedException
+				Log.w(TAG, "Could not start the service in foreground", e)
+			}
 		}
 
 		return START_STICKY
@@ -177,9 +189,14 @@ class PushNotificationService : LifecycleJobService() {
 
 	companion object {
 		private const val TAG = "PushNotificationService"
-		fun startIntent(context: Context?, sender: String?): Intent {
+		private const val SENDER_EXTRA = "sender"
+		const val ATTEMPT_FOREGROUND_EXTRA = "attemptForeground"
+
+		fun startIntent
+				(context: Context?, sender: String?, attemptForeground: Boolean): Intent {
 			val intent = Intent(context, PushNotificationService::class.java)
-			intent.putExtra("sender", sender)
+			intent.putExtra(SENDER_EXTRA, sender)
+			intent.putExtra(ATTEMPT_FOREGROUND_EXTRA, attemptForeground)
 			return intent
 		}
 	}

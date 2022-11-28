@@ -9,9 +9,14 @@ import androidx.core.content.ContextCompat
 class BootBroadcastReceiver : BroadcastReceiver() {
 	override fun onReceive(context: Context, intent: Intent) {
 		Log.d("BootBroadcastReceiver", "Got intent$intent")
-		if (Intent.ACTION_BOOT_COMPLETED == intent.action || "android.intent.action.QUICKBOOT_POWERON" == intent.action) {
+		if (Intent.ACTION_BOOT_COMPLETED == intent.action || "android.intent.action.QUICKBOOT_POWERON" == intent.action
+		) {
 			Log.d("BootBroadcastReceiver", "on boot")
-			val serviceIntent = Intent(context, PushNotificationService::class.java)
+			val serviceIntent = PushNotificationService.startIntent(
+					context,
+					"BootBroadcastReceiver",
+					attemptForeground = true,
+			)
 			ContextCompat.startForegroundService(context, serviceIntent)
 		}
 	}
