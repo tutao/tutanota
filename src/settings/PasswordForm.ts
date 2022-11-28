@@ -1,7 +1,7 @@
 import m, {Children, Component, Vnode} from "mithril"
 import {TextField, TextFieldType} from "../gui/base/TextField.js"
 import {CompletenessIndicator} from "../gui/CompletenessIndicator.js"
-import {getPasswordStrength, isSecurePassword} from "../misc/passwords/PasswordUtils"
+import {getPasswordStrength, isSecurePassword, PASSWORD_MIN_SECURE_VALUE} from "../misc/passwords/PasswordUtils"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import type {Status} from "../gui/base/StatusField"
@@ -41,6 +41,7 @@ export class PasswordModel {
 	private readonly __mailValid?: Stream<boolean>
 	private __signupFreeTest?: UsageTest
 	private __signupPaidTest?: UsageTest
+	private __signupPasswordStrengthTest: UsageTest
 
 	constructor(
 		private readonly logins: LoginController,
@@ -52,6 +53,7 @@ export class PasswordModel {
 		this.__mailValid = mailValid
 		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
+		this.__signupPasswordStrengthTest = locator.usageTestController.getTest("signup.passwordstrength")
 	}
 
 	_checkBothValidAndSendPing() {
@@ -184,7 +186,16 @@ export class PasswordModel {
 	}
 
 	isPasswordInsecure(): boolean {
-		return !isSecurePassword(this.getPasswordStrength())
+		const defaultFunc = () => !isSecurePassword(this.getPasswordStrength())
+
+		const isSecurePasswordPercentage = (threshold: number, passwordStrength: number) => passwordStrength < PASSWORD_MIN_SECURE_VALUE * threshold
+
+		return this.__signupPasswordStrengthTest.renderVariant({
+			[0]: defaultFunc,
+			[1]: defaultFunc,
+			[2]: () => isSecurePasswordPercentage(.8, this.getPasswordStrength()),
+			[3]: () => isSecurePasswordPercentage(.6, this.getPasswordStrength()),
+		})
 	}
 
 	getPasswordStrength(): number {
