@@ -51,6 +51,7 @@ import {OfflineStorageMigrator} from "../../../../../src/api/worker/offline/Offl
 import {createEventElementId} from "../../../../../src/api/common/utils/CommonCalendarUtils.js"
 import {InterWindowEventFacadeSendDispatcher} from "../../../../../src/native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import {func, instance, matchers, object, when} from "testdouble"
+import {WorkerImpl} from "../../../../../src/api/worker/WorkerImpl.js"
 
 const {anything} = matchers
 
@@ -82,11 +83,12 @@ async function getOfflineStorage(userId: Id): Promise<CacheStorage> {
 	})(null as any)
 
 	const migratorMock = instance(OfflineStorageMigrator)
+	const worker = instance(WorkerImpl)
 
 	const nativePath = buildOptions.sqliteNativePath
 	const sqlCipherFacade = new PerWindowSqlCipherFacade(odbManager)
 	const interWindowEventSender = instance(InterWindowEventFacadeSendDispatcher)
-	const offlineStorage = new OfflineStorage(sqlCipherFacade, interWindowEventSender, new NoZoneDateProvider(), migratorMock)
+	const offlineStorage = new OfflineStorage(sqlCipherFacade, interWindowEventSender, new NoZoneDateProvider(), migratorMock, worker)
 	await offlineStorage.init({userId, databaseKey: offlineDatabaseTestKey, timeRangeDays: 42, forceNewDatabase: false})
 	return offlineStorage
 }

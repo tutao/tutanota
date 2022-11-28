@@ -226,7 +226,6 @@ export class EphemeralCacheStorage implements CacheStorage {
 		return Promise.resolve();
 	}
 
-
 	async getLastUpdateTime(): Promise<LastUpdateTime> {
 		return this.lastUpdateTime ? {type: "recorded", time: this.lastUpdateTime} : {type: "never"}
 	}
@@ -277,5 +276,9 @@ export class EphemeralCacheStorage implements CacheStorage {
 		}
 
 		this.lastBatchIdPerGroup.delete(owner)
+	}
+
+	clearExcludedData(): Promise<void> {
+		return Promise.resolve()
 	}
 }

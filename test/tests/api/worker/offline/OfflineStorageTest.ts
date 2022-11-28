@@ -28,6 +28,7 @@ import {ElementEntity, ListElementEntity, SomeEntity} from "../../../../../src/a
 import {resolveTypeReference} from "../../../../../src/api/common/EntityFunctions.js"
 import {Type} from "../../../../../src/api/common/EntityConstants.js"
 import {expandId} from "../../../../../src/api/worker/rest/DefaultEntityRestCache.js"
+import {WorkerImpl} from "../../../../../src/api/worker/WorkerImpl.js"
 
 function incrementId(id: Id, ms: number) {
 	const timestamp = generatedIdToTimestamp(id)
@@ -70,6 +71,7 @@ o.spec("OfflineStorage", function () {
 	let storage: OfflineStorage
 	let migratorMock: OfflineStorageMigrator
 	let interWindowEventSenderMock: InterWindowEventFacadeSendDispatcher
+	let worker: WorkerImpl
 
 	o.beforeEach(async function () {
 		dbFacade = new DesktopSqlCipher(nativePath, database, false)
@@ -78,7 +80,8 @@ o.spec("OfflineStorage", function () {
 		migratorMock = instance(OfflineStorageMigrator)
 		interWindowEventSenderMock = instance(InterWindowEventFacadeSendDispatcher)
 		when(dateProviderMock.now()).thenReturn(now.getTime())
-		storage = new OfflineStorage(dbFacade, interWindowEventSenderMock, dateProviderMock, migratorMock)
+		worker = instance(WorkerImpl)
+		storage = new OfflineStorage(dbFacade, interWindowEventSenderMock, dateProviderMock, migratorMock, worker)
 	})
 
 	o.afterEach(async function () {

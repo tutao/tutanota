@@ -7,6 +7,7 @@ import {ProgressTracker} from "../api/main/ProgressTracker.js"
 import {promiseMap} from "@tutao/tutanota-utils"
 import {NoopProgressMonitor} from "../api/common/utils/ProgressMonitor.js"
 import {SessionType} from "../api/common/SessionType.js"
+import {ExposedCacheStorage} from "../api/worker/rest/DefaultEntityRestCache.js"
 
 
 export class CachePostLoginAction implements IPostLoginAction {
@@ -15,6 +16,7 @@ export class CachePostLoginAction implements IPostLoginAction {
 		private readonly calendarModel: CalendarModel,
 		private readonly entityClient: EntityClient,
 		private readonly progressTracker: ProgressTracker,
+		private readonly cacheStorage: ExposedCacheStorage,
 		private readonly logins: LoginController,
 	) {
 
@@ -38,6 +40,9 @@ export class CachePostLoginAction implements IPostLoginAction {
 			])
 		})
 		progressMonitor.completed()
+
+		// Clear the excluded data (i.e. trash and spam lists, old data) in the offline storage.
+		await this.cacheStorage.clearExcludedData()
 	}
 
 	async onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {

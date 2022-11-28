@@ -118,6 +118,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				new InterWindowEventFacadeSendDispatcher(worker),
 				new NoZoneDateProvider(),
 				new OfflineStorageMigrator(OFFLINE_STORAGE_MIGRATIONS, modelInfos),
+				worker,
 			)
 		} else {
 			return null

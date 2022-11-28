@@ -1,6 +1,6 @@
 import {Database, default as sqlite} from "better-sqlite3";
 import {CryptoError} from "@tutao/tutanota-crypto"
-import {assertNotNull, mapNullable, uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import {mapNullable, uint8ArrayToBase64} from "@tutao/tutanota-utils"
 import {SqlCipherFacade} from "../native/common/generatedipc/SqlCipherFacade.js"
 import {TaggedSqlValue, tagSqlObject, untagSqlValue} from "../api/worker/offline/SqlValue.js"
 import {ProgrammingError} from "../api/common/error/ProgrammingError.js"
@@ -39,6 +39,8 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 	}
 
 	async closeDb(): Promise<void> {
+		// We are performing defragmentation (incremental_vacuum) the database before closing
+		this.db.pragma("incremental_vacuum")
 		this.db.close()
 	}
 
@@ -74,6 +76,9 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 		}
 		const key = `x'${uint8ArrayToBase64(databaseKey)};`
 		this.db.pragma(`KEY = "${key}"`)
+
+		// We are using the auto_vacuum=incremental option to allow for a faster vacuum execution
+		this.db.pragma("auto_vacuum = incremental")
 
 		if (integrityCheck) {
 			this.checkIntegrity()
