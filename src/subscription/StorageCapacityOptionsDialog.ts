@@ -6,8 +6,7 @@ import type {BuyOptionBoxAttr} from "./BuyOptionBox"
 import {BuyOptionBox, updateBuyOptionBoxPriceInformation} from "./BuyOptionBox"
 import {neverNull} from "@tutao/tutanota-utils"
 import {buyStorage} from "./SubscriptionUtils"
-import {CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {CustomerInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
+import {CustomerInfoTypeRef, CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {logins} from "../api/main/LoginController"
 import {Dialog} from "../gui/base/Dialog"
 import {Button, ButtonType} from "../gui/base/Button.js"
@@ -108,8 +107,8 @@ function createStorageCapacityBoxAttr(
 		price: lang.get("emptyString_msg"),
 		helpLabel: "emptyString_msg",
 		features: [],
-		width: 230,
-		height: 210,
+		width: 265,
+		height: 250,
 		paymentInterval: null,
 		showReferenceDiscount: false,
 	}
