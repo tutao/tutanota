@@ -67,6 +67,8 @@ export class RecoveryCodeNews implements NewsListItem {
 		// toggle the load if it's not started yet
 		this.recoverCodeField.getAsync()
 
+		// Will (always) be null on the first call of render() since getAsync() was just called for the first time.
+		// When the redraw is triggered in the load function, it will be populated and rendered correctly.
 		const RecoverCodeField = this.recoverCodeField.getSync()
 
 		return m(".full-width", {
