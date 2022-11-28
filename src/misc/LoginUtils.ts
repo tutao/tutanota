@@ -185,7 +185,7 @@ export async function showSignupDialog(hashParams: Params) {
 		"loading_msg",
 		locator.worker.initialized.then(async () => {
 			const {loadSignupWizard} = await import("../subscription/UpgradeSubscriptionWizard")
-			loadSignupWizard(subscriptionParams, registrationDataId)
+			await loadSignupWizard(subscriptionParams, registrationDataId)
 		}),
 	)
 }
