@@ -46,6 +46,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private readonly __mailValid: Stream<boolean>
 	private __signupFreeTest?: UsageTest
 	private __signupPaidTest?: UsageTest
+	private __signupPasswordStrengthTest: UsageTest
 
 	constructor() {
 		this.__mailValid = stream(false)
@@ -53,6 +54,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 
 		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
+		this.__signupPasswordStrengthTest = locator.usageTestController.getTest("signup.passwordstrength")
 
 		this._confirmTerms = stream<boolean>(false)
 		this._confirmAge = stream<boolean>(false)
@@ -103,6 +105,12 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			const errorMessage =
 				this._mailAddressFormErrorId || this.passwordModel.getErrorMessageId() || (!this._confirmTerms() ? "termsAcceptedNeutral_msg" : null)
 
+			if (this.passwordModel.getErrorMessageId()) {
+				this.__signupPasswordStrengthTest.getStage(1).complete()
+			} else {
+				this.__signupPasswordStrengthTest.getStage(2).complete()
+			}
+
 			if (errorMessage) {
 				Dialog.message(errorMessage)
 				return
@@ -129,6 +137,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 
 		return m(
 			"#signup-account-dialog.flex-center",
+			{oncreate: () => this.__signupPasswordStrengthTest.getStage(0).complete()},
 			m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [
 				a.readonly
 					? m(TextField, {
