@@ -502,6 +502,10 @@ styles.registerStyle("main", () => {
 			overflow: "hidden",
 			"word-break": "break-word",
 		},
+		".break-word": {
+			"word-break": "normal",
+			"overflow-wrap": "break-word"
+		},
 		".break-word-links a": {
 			"word-wrap": "break-word",
 		},
@@ -1654,7 +1658,6 @@ styles.registerStyle("main", () => {
 			top: "150%",
 			left: "50%",
 			"margin-left": "-120px",
-			"word-break": "break-word",
 		},
 		/* we're selecting every element that's after a summary tag and is inside an opened details tag */
 		"details[open] summary ~ *": {
