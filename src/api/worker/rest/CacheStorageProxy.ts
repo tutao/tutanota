@@ -7,7 +7,6 @@ import {WorkerImpl} from "../WorkerImpl"
 import {EphemeralCacheStorage, EphemeralStorageInitArgs} from "./EphemeralCacheStorage"
 import {EntityRestClient} from "./EntityRestClient.js"
 import {CustomCacheHandlerMap} from "./CustomCacheHandler.js"
-import {InitCacheOptions} from "../facades/LoginFacade.js"
 
 export interface EphemeralStorageArgs extends EphemeralStorageInitArgs {
 	type: "ephemeral",
@@ -183,5 +182,9 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 
 	async deleteAllOwnedBy(owner: Id): Promise<void> {
 		return this.inner.deleteAllOwnedBy(owner)
+	}
+
+	clearExcludedData(): Promise<void> {
+		return this.inner.clearExcludedData()
 	}
 }

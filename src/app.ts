@@ -145,9 +145,15 @@ import("./translations/en")
 		const {CachePostLoginAction} = await import("./offline/CachePostLoginAction")
 		logins.addPostLoginAction(new PostLoginActions(locator.credentialsProvider, locator.secondFactorHandler))
 		if (isOfflineStorageAvailable()) {
-			logins.addPostLoginAction(new CachePostLoginAction(
-				locator.calendarModel, locator.entityClient, locator.progressTracker, logins,
-			))
+			logins.addPostLoginAction(
+				new CachePostLoginAction(
+					locator.calendarModel,
+					locator.entityClient,
+					locator.progressTracker,
+					locator.cacheStorage,
+					logins,
+				)
+			)
 		}
 
 		styles.init()

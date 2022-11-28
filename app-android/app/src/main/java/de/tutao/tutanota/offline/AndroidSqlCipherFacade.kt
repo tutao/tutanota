@@ -23,7 +23,7 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 
 	override suspend fun openDb(userId: String, dbKey: DataWrapper) {
 		// db is volatile so we see the latest value but it doesn't mean that we won't try to open/delete it in parallel
-		// so we need syncrhonized.
+		// so we need synchronized.
 		// Wrap the whole method into synchronized to ensure that no other check or modification can happen in between
 		synchronized(this) {
 			if (db != null) {
@@ -31,6 +31,9 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 				closeDbSync()
 			}
 			db = SQLiteDatabase.openOrCreateDatabase(getDbFile(userId).path, dbKey.data, null)
+
+			// We are using the auto_vacuum=incremental option to allow for a faster vacuum execution
+			db?.execSQL("PRAGMA auto_vacuum = incremental")
 		}
 	}
 
@@ -44,6 +47,8 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 	}
 
 	private fun closeDbSync() {
+		// We are performing defragmentation (incremental_vacuum) the database before closing
+		db?.query("PRAGMA incremental_vacuum")
 		db?.close()
 		db = null
 	}

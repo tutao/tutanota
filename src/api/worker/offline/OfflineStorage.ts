@@ -25,6 +25,8 @@ import {EntityRestClient} from "../rest/EntityRestClient.js"
 import {InterWindowEventFacadeSendDispatcher} from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import {SqlCipherFacade} from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import {SqlValue, TaggedSqlValue, tagSqlValue, untagSqlObject} from "./SqlValue.js"
+import {WorkerImpl} from "../WorkerImpl.js"
+import {ProgressMonitorDelegate} from "../ProgressMonitorDelegate.js"
 
 function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNestedTokens | null {
 	const time = data.getTime()
@@ -89,12 +91,14 @@ export interface OfflineStorageInitArgs {
 export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	private customCacheHandler: CustomCacheHandlerMap | null = null
 	private userId: Id | null = null
+	private timeRangeDays: number | null = null
 
 	constructor(
 		private readonly sqlCipherFacade: SqlCipherFacade,
 		private readonly interWindowEventSender: InterWindowEventFacadeSendDispatcher,
 		private readonly dateProvider: DateProvider,
 		private readonly migrator: OfflineStorageMigrator,
+		private readonly worker: WorkerImpl,
 	) {
 		assert(isOfflineStorageAvailable() || isTest(), "Offline storage is not available.")
 	}
@@ -104,19 +108,20 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 	 */
 	async init({userId, databaseKey, timeRangeDays, forceNewDatabase}: OfflineStorageInitArgs): Promise<boolean> {
 		this.userId = userId
+		this.timeRangeDays = timeRangeDays
 		if (forceNewDatabase) {
 			if (isDesktop()) {
 				await this.interWindowEventSender.localUserDataInvalidated(userId)
 			}
 			await this.sqlCipherFacade.deleteDb(userId)
 		}
-		// We open database here and it is closed in the native side when the window is closed or the page is reloaded
+		// We open database here, and it is closed in the native side when the window is closed or the page is reloaded
 		await this.sqlCipherFacade.openDb(userId, databaseKey)
 		await this.createTables()
 		await this.migrator.migrate(this, this.sqlCipherFacade)
 		// if nothing is written here, it means it's a new database
 		const isNewOfflineDb = await this.getLastUpdateTime() == null
-		await this.clearExcludedData(timeRangeDays, userId)
+
 		return isNewOfflineDb
 	}
 
@@ -332,10 +337,12 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 	}
 
 	/**
-	 * Clear out unneeded data from the offline database (i.e. trash and spam lists, old data)
-	 * @param timeRangeDays: the maxiumum age of days that mails should be to be kept in the database. if null, will use a default value
+	 * Clear out unneeded data from the offline database (i.e. trash and spam lists, old data).
+	 * This will be called after login (CachePostLoginActions.ts) to ensure fast login time.
+	 * @param timeRangeDays: the maximum age of days that mails should be to be kept in the database. if null, will use a default value
+	 * @param userId id of the current user. default, last stored userId
 	 */
-	private async clearExcludedData(timeRangeDays: number | null, userId: Id): Promise<void> {
+	async clearExcludedData(timeRangeDays: number | null = this.timeRangeDays, userId: Id = this.getUserId()): Promise<void> {
 		const user = await this.get(UserTypeRef, null, userId)
 
 		// Free users always have default time range regardless of what is stored
@@ -345,15 +352,17 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		const cutoffId = timestampToGeneratedId(cutoffTimestamp)
 
 		const folders = await this.getListElementsOfType(MailFolderTypeRef)
+		const progressMonitor = new ProgressMonitorDelegate(folders.length, this.worker)
 		for (const folder of folders) {
 			if (folder.folderType === MailFolderType.TRASH || folder.folderType === MailFolderType.SPAM) {
 				await this.deleteMailList(folder.mails, GENERATED_MAX_ID)
+				progressMonitor.workDone(1)
 			} else {
 				await this.deleteMailList(folder.mails, cutoffId)
+				progressMonitor.workDone(1)
 			}
 		}
-
-		await this.sqlCipherFacade.run("VACUUM", [])
+		progressMonitor.completed()
 	}
 
 	private async createTables() {

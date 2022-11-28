@@ -113,6 +113,8 @@ export interface ExposedCacheStorage {
 	getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>>
 
 	getLastUpdateTime(): Promise<LastUpdateTime>
+
+	clearExcludedData(): Promise<void>
 }
 
 export interface CacheStorage extends ExposedCacheStorage {
