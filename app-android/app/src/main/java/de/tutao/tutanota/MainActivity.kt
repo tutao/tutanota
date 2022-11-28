@@ -481,7 +481,12 @@ class MainActivity : FragmentActivity() {
 
 	fun setupPushNotifications() {
 		try {
-			startService(PushNotificationService.startIntent(this, "MainActivity#setupPushNotifications"))
+			val serviceIntent = PushNotificationService.startIntent(
+					this,
+					"MainActivity#setupPushNotifications",
+					attemptForeground = true,
+			)
+			startService(serviceIntent)
 		} catch (e: IllegalStateException) {
 			// We can run into this if the app is in the background for some reason
 			Log.w(TAG, e)
@@ -491,7 +496,8 @@ class MainActivity : FragmentActivity() {
 				JobInfo.Builder(1, ComponentName(this, PushNotificationService::class.java))
 						.setPeriodic(TimeUnit.MINUTES.toMillis(15))
 						.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-						.setPersisted(true).build())
+						.setPersisted(true).build()
+		)
 	}
 
 	/**

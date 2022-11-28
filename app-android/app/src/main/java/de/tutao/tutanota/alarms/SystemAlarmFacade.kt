@@ -42,7 +42,7 @@ class SystemAlarmFacade(private val context: Context) {
 	): PendingIntent {
 		val intent: Intent =
 				AlarmBroadcastReceiver.makeAlarmIntent(context, occurrence, identifier, summary, eventDate, user)
-		return PendingIntent.getBroadcast(context, 1, intent, 0)
+		return PendingIntent.getBroadcast(context, 1, intent, PendingIntent.FLAG_IMMUTABLE)
 	}
 
 	companion object {

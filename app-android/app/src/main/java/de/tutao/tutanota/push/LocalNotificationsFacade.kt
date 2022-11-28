@@ -213,7 +213,7 @@ class LocalNotificationsFacade(private val context: Context) {
 										context,
 										(Math.random() * 20000).toInt(),
 										intent,
-										PendingIntent.FLAG_UPDATE_CURRENT
+										PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 								)
 						)
 						.setAutoCancel(true)
@@ -284,7 +284,7 @@ class LocalNotificationsFacade(private val context: Context) {
 				context.applicationContext,
 				makeNotificationId("dismiss${addresses.joinToString("+")}"),
 				deleteIntent,
-				PendingIntent.FLAG_UPDATE_CURRENT
+				PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 		)
 	}
 
@@ -307,7 +307,7 @@ class LocalNotificationsFacade(private val context: Context) {
 				context.applicationContext,
 				makeNotificationId(notificationInfo.mailAddress + "@isSummary" + isSummary),
 				openMailboxIntent,
-				PendingIntent.FLAG_UPDATE_CURRENT
+				PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 		)
 	}
 
@@ -353,7 +353,7 @@ private fun openCalendarIntent(context: Context, alarmIntent: Intent): PendingIn
 			context,
 			alarmIntent.data.toString().hashCode(),
 			openCalendarEventIntent,
-			PendingIntent.FLAG_UPDATE_CURRENT
+			PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 	)
 }
 
@@ -369,7 +369,7 @@ fun showDownloadNotification(context: Context, file: File) {
 		flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
 		setDataAndType(uri, mimeType)
 	}
-	val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+	val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 	notificationManager.notify(System.currentTimeMillis().toInt(),
 			NotificationCompat.Builder(context, DOWNLOAD_NOTIFICATION_CHANNEL_ID)
 					.setSmallIcon(R.drawable.ic_download)
