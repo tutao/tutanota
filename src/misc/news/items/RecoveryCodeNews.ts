@@ -7,7 +7,7 @@ import {NewsModel} from "../NewsModel.js"
 import type {RecoverCodeField} from "../../../settings/RecoverCodeDialog.js"
 import {Dialog, DialogType} from "../../../gui/base/Dialog.js"
 import {AccessBlockedError, NotAuthenticatedError} from "../../../api/common/error/RestError.js"
-import {noOp, ofClass} from "@tutao/tutanota-utils"
+import {LazyLoaded, noOp, ofClass} from "@tutao/tutanota-utils"
 import {copyToClipboard} from "../../ClipboardUtils.js"
 import {UsageTestModel} from "../../UsageTestModel.js"
 import {UsageTest, UsageTestController} from "@tutao/tutanota-usagetests"
@@ -23,11 +23,14 @@ type RecoveryCodeNewsAction = "copy" | "print" | "select" | "dismiss" | "close"
  */
 export class RecoveryCodeNews implements NewsListItem {
 	private readonly recoveryCodeDialogUsageTest?: UsageTest
-	// Dynamically imported
-	private RecoverCodeField: Class<RecoverCodeField> | null = null
 	/** Tracks actions that have been sent to the server as pings. */
 	private readonly sentActions = new Set<string>()
 	private recoveryCode: string | null = null
+	private readonly recoverCodeField = new LazyLoaded(async () => {
+		const {RecoverCodeField} = await import("../../../settings/RecoverCodeDialog.js")
+		m.redraw()
+		return RecoverCodeField
+	})
 
 	constructor(
 		private readonly newsModel: NewsModel,
@@ -61,14 +64,12 @@ export class RecoveryCodeNews implements NewsListItem {
 
 	render(newsId: NewsId): Children {
 		const recoveryCode = this.recoveryCode
+		// toggle the load if it's not started yet
+		this.recoverCodeField.getAsync()
+
+		const RecoverCodeField = this.recoverCodeField.getSync()
 
 		return m(".full-width", {
-			oninit: () => {
-				import("../../../settings/RecoverCodeDialog.js").then(({RecoverCodeField}) => {
-					this.RecoverCodeField = RecoverCodeField
-					m.redraw()
-				})
-			},
 			onmouseup: () => {
 				let selection = window.getSelection()?.toString()
 
@@ -90,8 +91,8 @@ export class RecoveryCodeNews implements NewsListItem {
 			}, lang.get("recoveryCode_label")),
 			m("", lang.get("recoveryCode_msg")),
 			recoveryCode
-				? this.RecoverCodeField
-					? m(this.RecoverCodeField, {
+				? RecoverCodeField
+					? m(RecoverCodeField, {
 						showMessage: false,
 						recoverCode: recoveryCode as string,
 						showButtons: false,
