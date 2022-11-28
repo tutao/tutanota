@@ -145,7 +145,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			features.map((f) =>
 				m(this.featureListItemSelector, {key: f.key}, [
 					m(Icon, {icon: f.antiFeature ? Icons.Cancel : Icons.Checkmark}),
-					m('.small.text-left.align-self-center.pl-s.button-height.flex-grow.min-width-0', f.text),
+					m('.small.text-left.align-self-center.pl-s.button-height.flex-grow.min-width-0.break-word', f.text),
 					f.toolTip
 						//@ts-ignore
 						? m(InfoIcon, {text: f.toolTip})
@@ -228,7 +228,7 @@ export class InfoIcon implements Component<InfoIconAttrs> {
 					expanded: String(this.expanded),
 					tabindex: 0,
 				}, "i",
-				m('span.tooltiptext', attrs.text)
+				m('span.tooltiptext.break-word', attrs.text)
 			),
 		)
 	}
