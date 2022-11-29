@@ -165,6 +165,7 @@ export const enum StorageBehavior {
 export class UsageTestModel implements PingAdapter {
 	private storageBehavior = StorageBehavior.Ephemeral
 	private customerProperties?: CustomerProperties
+	private lastOptInDecision: boolean | null = null
 
 	constructor(
 		private readonly storages: { [key in StorageBehavior]: UsageTestStorage },
@@ -185,9 +186,16 @@ export class UsageTestModel implements PingAdapter {
 			if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update)) {
 				await this.updateCustomerProperties()
 			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
+				const updatedOptInDecision = this.loginController.getUserController().userSettingsGroupRoot.usageDataOptedIn
+
+				if (this.lastOptInDecision === updatedOptInDecision) {
+					return
+				}
+
 				// Opt-in decision has changed, load tests
 				const tests = await this.loadActiveUsageTests()
 				this.usageTestController().setTests(tests)
+				this.lastOptInDecision = updatedOptInDecision
 			}
 		}
 	}
@@ -235,11 +243,20 @@ export class UsageTestModel implements PingAdapter {
 
 	/**
 	 * Sets the user's usage data opt-in decision. True means they opt in.
+	 *
+	 * Immediately refetches the user's active usage tests if they opted in.
 	 */
-	public setOptInDecision(decision: boolean) {
+	public async setOptInDecision(decision: boolean) {
 		const userSettingsGroupRoot = createUserSettingsGroupRoot(this.loginController.getUserController().userSettingsGroupRoot)
 		userSettingsGroupRoot.usageDataOptedIn = decision
-		return this.entityClient.update(userSettingsGroupRoot)
+
+		await this.entityClient.update(userSettingsGroupRoot)
+		this.lastOptInDecision = decision
+
+		if (decision) {
+			const tests = await this.doLoadActiveUsageTests()
+			this.usageTestController().setTests(tests)
+		}
 	}
 
 	private getOptInDecision(): boolean {
@@ -261,11 +278,15 @@ export class UsageTestModel implements PingAdapter {
 	/**
 	 * If the storageBehavior is set to StorageBehavior.Persist, then init() must have been called before calling this method.
 	 */
-	async loadActiveUsageTests(): Promise<UsageTest[]> {
+	async loadActiveUsageTests() {
 		if (this.storageBehavior === StorageBehavior.Persist && !this.getOptInDecision()) {
 			return []
 		}
 
+		return await this.doLoadActiveUsageTests()
+	}
+
+	private async doLoadActiveUsageTests() {
 		const persistedData = await this.storage().getAssignments()
 		const modelVersion = await this.modelVersion()
 
