@@ -120,40 +120,57 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 	}
 }
 
-function aliasActionButton(attrs: MailAddressTableAttrs, addressInfo: AddressInfo): DropdownButtonAttrs[] {
-	if (!attrs.model.userCanModifyAliases()) {
-		return []
+function setNameDropdownButton(model: MailAddressTableModel, addressInfo: AddressInfo): DropdownButtonAttrs {
+	return {
+		label: "setSenderName_action",
+		click: () => showSenderNameChangeDialog(model, addressInfo)
 	}
+}
+
+function addressDropdownButtons(attrs: MailAddressTableAttrs, addressInfo: AddressInfo): DropdownButtonAttrs[] {
 	switch (addressInfo.status) {
 		case AddressStatus.Primary:
-			return []
-		case AddressStatus.Alias:
 			return [
-				{
-					label: "deactivate_action",
-					click: () => {
-						switchAliasStatus(addressInfo, attrs)
-					},
-				}
+				setNameDropdownButton(attrs.model, addressInfo)
 			]
-		case AddressStatus.DisabledAlias:
-			return [
-				{
-					label: "activate_action",
-					click: () => {
-						switchAliasStatus(addressInfo, attrs)
-					},
-				}
-			]
-		case AddressStatus.Custom:
-			return [
-				{
-					label: "delete_action",
-					click: () => {
-						switchAliasStatus(addressInfo, attrs)
-					},
-				}
-			]
+		case AddressStatus.Alias: {
+			const buttons = [setNameDropdownButton(attrs.model, addressInfo)]
+			if (attrs.model.userCanModifyAliases()) {
+				buttons.push({
+						label: "deactivate_action",
+						click: () => {
+							switchAliasStatus(addressInfo, attrs)
+						},
+					}
+				)
+			}
+			return buttons
+		}
+		case AddressStatus.DisabledAlias: {
+			return attrs.model.userCanModifyAliases()
+				? [
+					{
+						label: "activate_action",
+						click: () => {
+							switchAliasStatus(addressInfo, attrs)
+						},
+					}
+				]
+				: []
+		}
+		case AddressStatus.Custom: {
+			const buttons = [setNameDropdownButton(attrs.model, addressInfo)]
+			if (attrs.model.userCanModifyAliases()) {
+				buttons.push({
+						label: "delete_action",
+						click: () => {
+							switchAliasStatus(addressInfo, attrs)
+						},
+					}
+				)
+			}
+			return buttons
+		}
 	}
 }
 
@@ -172,24 +189,23 @@ function statusLabel(addressInfo: AddressInfo): string {
 
 export function getAliasLineAttrs(attrs: MailAddressTableAttrs): Array<TableLineAttrs> {
 	return attrs.model.addresses().map(addressInfo => {
-		const actionButtonAttrs: IconButtonAttrs = attachDropdown(
-			{
-				mainButtonAttrs: {
-					title: "edit_action",
-					icon: Icons.More,
-					size: ButtonSize.Compact,
-				},
-				showDropdown: () => true,
-				width: 250,
-				childAttrs: () => [
+		const dropdownButtons = addressDropdownButtons(attrs, addressInfo)
+		// do not display the "more" button if there are no available actions
+		const actionButtonAttrs: IconButtonAttrs | null =
+			dropdownButtons.length === 0
+				? null
+				: attachDropdown(
 					{
-						label: "setSenderName_action",
-						click: () => showSenderNameChangeDialog(attrs.model, addressInfo)
+						mainButtonAttrs: {
+							title: "edit_action",
+							icon: Icons.More,
+							size: ButtonSize.Compact,
+						},
+						showDropdown: () => true,
+						width: 250,
+						childAttrs: () => dropdownButtons,
 					},
-					...aliasActionButton(attrs, addressInfo)
-				],
-			},
-		)
+				)
 		return {
 			cells: () => [
 				{main: addressInfo.address, info: [addressInfo.name]},
