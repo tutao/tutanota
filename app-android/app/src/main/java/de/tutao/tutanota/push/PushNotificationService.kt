@@ -104,7 +104,9 @@ class PushNotificationService : LifecycleJobService() {
 			}
 		}
 
-		localNotificationsFacade.createNotificationChannels()
+		if (atLeastOreo()) {
+			localNotificationsFacade.createNotificationChannels()
+		}
 	}
 
 	private fun removeForegroundNotification() {
@@ -192,8 +194,7 @@ class PushNotificationService : LifecycleJobService() {
 		private const val SENDER_EXTRA = "sender"
 		const val ATTEMPT_FOREGROUND_EXTRA = "attemptForeground"
 
-		fun startIntent
-				(context: Context?, sender: String?, attemptForeground: Boolean): Intent {
+		fun startIntent(context: Context?, sender: String?, attemptForeground: Boolean): Intent {
 			val intent = Intent(context, PushNotificationService::class.java)
 			intent.putExtra(SENDER_EXTRA, sender)
 			intent.putExtra(ATTEMPT_FOREGROUND_EXTRA, attemptForeground)

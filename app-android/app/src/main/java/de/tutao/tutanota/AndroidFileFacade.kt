@@ -1,7 +1,6 @@
 package de.tutao.tutanota
 
 import android.Manifest
-import android.annotation.TargetApi
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
@@ -12,6 +11,7 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.webkit.MimeTypeMap
+import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import de.tutao.tutanota.ipc.*
@@ -142,7 +142,7 @@ class AndroidFileFacade(
 		}
 	}
 
-	@TargetApi(Build.VERSION_CODES.Q)
+	@RequiresApi(Build.VERSION_CODES.Q)
 	private suspend fun addFileToDownloadsMediaStore(fileUriString: String): String {
 		val contentResolver = activity.contentResolver
 		val fileUri = fileUriString.toUri()
