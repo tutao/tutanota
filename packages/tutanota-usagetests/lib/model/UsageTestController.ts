@@ -48,6 +48,7 @@ export class UsageTestController {
 			}
 		}
 
+		console.log(`Test '${testIdOrName}' not found, using obsolete...`)
 		return this.obsoleteUsageTest
 	}
 }
