@@ -10,7 +10,7 @@ import {AccessBlockedError, NotAuthenticatedError} from "../../../api/common/err
 import {LazyLoaded, noOp, ofClass} from "@tutao/tutanota-utils"
 import {copyToClipboard} from "../../ClipboardUtils.js"
 import {UsageTestModel} from "../../UsageTestModel.js"
-import {UsageTest, UsageTestController} from "@tutao/tutanota-usagetests"
+import {UsageTestController} from "@tutao/tutanota-usagetests"
 import {UserController} from "../../../api/main/UserController.js"
 import {progressIcon} from "../../../gui/base/Icon.js"
 import {UserManagementFacade} from "../../../api/worker/facades/UserManagementFacade.js"
@@ -22,7 +22,6 @@ type RecoveryCodeNewsAction = "copy" | "print" | "select" | "dismiss" | "close"
  * News item that informs admin users about their recovery code.
  */
 export class RecoveryCodeNews implements NewsListItem {
-	private readonly recoveryCodeDialogUsageTest?: UsageTest
 	/** Tracks actions that have been sent to the server as pings. */
 	private readonly sentActions = new Set<string>()
 	private recoveryCode: string | null = null
@@ -39,7 +38,6 @@ export class RecoveryCodeNews implements NewsListItem {
 		private readonly usageTestController: UsageTestController,
 		private readonly userManagementFacade: UserManagementFacade,
 	) {
-		this.recoveryCodeDialogUsageTest = usageTestController.getTest("recoveryCodeDialog")
 	}
 
 	isShown(): boolean {
@@ -52,7 +50,7 @@ export class RecoveryCodeNews implements NewsListItem {
 	 */
 	private sendAction(action: RecoveryCodeNewsAction) {
 		if (!this.sentActions.has(action)) {
-			const stage = this.recoveryCodeDialogUsageTest?.getStage(2)
+			const stage = this.usageTestController.getTest("recoveryCodeDialog").getStage(2)
 			stage?.setMetric({
 				name: "action",
 				value: action,
@@ -126,8 +124,9 @@ export class RecoveryCodeNews implements NewsListItem {
 			click: () => Dialog.showActionDialog({
 				type: DialogType.EditSmall,
 				okAction: async dialog => {
-					await this.recoveryCodeDialogUsageTest?.getStage(0).complete()
-					await this.recoveryCodeDialogUsageTest?.getStage(1).complete()
+					const test = this.usageTestController.getTest("recoveryCodeDialog")
+					await test.getStage(0).complete()
+					await test.getStage(1).complete()
 					this.sendAction("dismiss")
 
 					dialog.close()
@@ -169,8 +168,9 @@ export class RecoveryCodeNews implements NewsListItem {
 		return m(Button, {
 			label: "recoveryCodeDisplay_action",
 			click: async () => {
-				await this.recoveryCodeDialogUsageTest?.getStage(0).complete()
-				await this.recoveryCodeDialogUsageTest?.getStage(1).complete()
+				const test = this.usageTestController.getTest("recoveryCodeDialog")
+				await test.getStage(0).complete()
+				await test.getStage(1).complete()
 				this.getRecoverCodeDialogAfterPasswordVerification(this.userController)
 			},
 			type: ButtonType.Primary,
