@@ -242,7 +242,8 @@ function showSenderNameChangeDialog(model: MailAddressTableModel, alias: {addres
 		"edit_action",
 		"mailName_label",
 		() => alias.address,
-		alias.name,
+		// Use name as default value if there was nothing set before e.g. if we populated the mapping before we set the sender name for the first time
+		alias.name || model.defaultSenderName(),
 	).then((newName) => showProgressDialog("pleaseWait_msg", model.setAliasName(alias.address, newName)))
 }
 
