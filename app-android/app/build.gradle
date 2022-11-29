@@ -115,6 +115,7 @@ dependencies {
 
 	implementation 'androidx.core:core-ktx:1.8.0'
 	implementation "androidx.activity:activity-ktx:$activity_version"
+	implementation "androidx.browser:browser:1.3.0"
 	implementation "androidx.biometric:biometric:1.1.0"
 
 	if (file("../libs/android-database-sqlcipher-4.5.0.aar").exists()) {

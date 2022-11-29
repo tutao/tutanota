@@ -83,6 +83,17 @@
 				<action android:name="android.intent.action.VIEW"/>
 			</intent-filter>
 
+			<intent-filter>
+				<data
+						android:scheme="tutanota"
+						android:host="webauthn"/>
+
+				<category android:name="android.intent.category.BROWSABLE"/>
+				<category android:name="android.intent.category.DEFAULT"/>
+
+				<action android:name="android.intent.action.VIEW"/>
+			</intent-filter>
+
 		</activity>
 		<provider
 				android:name="androidx.core.content.FileProvider"
@@ -124,5 +135,10 @@
 				android:value="true"/>
 
 	</application>
+	<queries>
+		<intent>
+			<action android:name="android.support.customtabs.action.CustomTabsService"/>
+		</intent>
+	</queries>
 
 </manifest>

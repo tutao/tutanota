@@ -22,6 +22,8 @@ import type {LoginView, LoginViewAttrs} from "./login/LoginView.js"
 import type {LoginViewModel} from "./login/LoginViewModel.js"
 import {TerminationView, TerminationViewAttrs} from "./termination/TerminationView.js"
 import {TerminationViewModel} from "./termination/TerminationViewModel.js"
+import {MobileWebauthnAttrs, MobileWebauthnView} from "./login/MobileWebauthnView.js"
+import {BrowserWebauthn} from "./misc/2fa/webauthn/BrowserWebauthn.js"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -275,7 +277,21 @@ import("./translations/en")
 					requireLogin: false,
 					cacheView: false,
 				},
-			)
+			),
+			webauthnmobile: makeViewResolver<MobileWebauthnAttrs, MobileWebauthnView, {browserWebauthn: BrowserWebauthn}>({
+				prepareRoute: async () => {
+					const {MobileWebauthnView} = await import("./login/MobileWebauthnView.js")
+					const {BrowserWebauthn} = await import("./misc/2fa/webauthn/BrowserWebauthn.js")
+					return {
+						component: MobileWebauthnView,
+						cache: {
+							browserWebauthn: new BrowserWebauthn(navigator.credentials, window.location.hostname)
+						},
+					}
+				},
+				prepareAttrs: (cache) => cache,
+				requireLogin: false,
+			}),
 		})
 		// see https://github.com/MithrilJS/mithril.js/issues/2659
 		m.route.prefix = neverNull(state.prefix).replace(/(?:%[a-f89][a-f0-9])+/gim, decodeURIComponent)
