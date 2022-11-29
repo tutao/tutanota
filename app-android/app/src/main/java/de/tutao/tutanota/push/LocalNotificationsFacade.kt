@@ -11,6 +11,7 @@ import android.media.RingtoneManager
 import android.os.Build
 import android.util.Log
 import androidx.annotation.ColorInt
+import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -221,7 +222,7 @@ class LocalNotificationsFacade(private val context: Context) {
 		notificationManager.notify(1000, notification)
 	}
 
-	@TargetApi(Build.VERSION_CODES.O)
+	@RequiresApi(Build.VERSION_CODES.O)
 	fun createNotificationChannels() {
 		val mailNotificationChannel = NotificationChannel(
 				EMAIL_NOTIFICATION_CHANNEL_ID,
@@ -252,7 +253,7 @@ class LocalNotificationsFacade(private val context: Context) {
 		notificationManager.createNotificationChannel(downloadNotificationsChannel)
 	}
 
-	@TargetApi(Build.VERSION_CODES.O)
+	@RequiresApi(Build.VERSION_CODES.O)
 	private fun NotificationChannel.default(): NotificationChannel {
 		val ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 		val att = AudioAttributes.Builder()
