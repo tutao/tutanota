@@ -4,7 +4,7 @@ import {EventController} from "./EventController"
 import {EntropyCollector} from "./EntropyCollector"
 import {SearchModel} from "../../search/model/SearchModel"
 import {MailModel} from "../../mail/model/MailModel"
-import {assertMainOrNode, getWebRoot, isBrowser, isDesktop, isElectronClient, isOfflineStorageAvailable} from "../common/Env"
+import {assertMainOrNode, getWebRoot, isAndroidApp, isBrowser, isDesktop, isElectronClient, isOfflineStorageAvailable} from "../common/Env"
 import {notifications} from "../../gui/Notifications"
 import {logins} from "./LoginController"
 import type {ContactModel} from "../../contacts/model/ContactModel"
@@ -372,6 +372,8 @@ class MainLocator implements IMainLocator {
 					this.desktopSettingsFacade = desktopInterfaces.desktopSettingsFacade
 					this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
 				}
+			} else if (isAndroidApp()) {
+				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), getWebRoot())
 			}
 			if (isOfflineStorageAvailable()) {
 				this.sqlCipherFacade = this.nativeInterfaces.sqlCipherFacade
