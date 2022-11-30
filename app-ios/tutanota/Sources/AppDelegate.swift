@@ -12,24 +12,24 @@ class AppDelegate : UIResponder,
   private var viewController: ViewController!
 
   func registerForPushNotifications() async throws -> String {
-    #if targetEnvironment(simulator)
+#if targetEnvironment(simulator)
     return ""
-    #else
+#else
     return try await withCheckedThrowingContinuation { continuation in
       UNUserNotificationCenter.current()
         .requestAuthorization(
           options: [.alert, .badge, .sound]) { granted, error in
-          if error == nil {
-            DispatchQueue.main.async {
-              self.pushTokenCallback = continuation.resume(with:)
-              UIApplication.shared.registerForRemoteNotifications()
+            if error == nil {
+              DispatchQueue.main.async {
+                self.pushTokenCallback = continuation.resume(with:)
+                UIApplication.shared.registerForRemoteNotifications()
+              }
+            } else {
+              continuation.resume(with: .failure(error!))
             }
-          } else {
-            continuation.resume(with: .failure(error!))
           }
-        }
     }
-    #endif
+#endif
   }
 
   func main() {
@@ -83,7 +83,14 @@ class AppDelegate : UIResponder,
 
   /** handles tutanota:// links */
   func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:] ) -> Bool {
-    Task { try! await self.viewController.handleShare(url) }
+    switch url.scheme?.appending("://") {
+    case TUTANOTA_SHARE_SCHEME:
+      Task { try! await self.viewController.handleShare(url) }
+    case nil:
+      TUTSLog("missing scheme!")
+    default:
+      TUTSLog("unknown scheme? \(url.scheme!)")
+    }
     return true
   }
 
@@ -91,22 +98,31 @@ class AppDelegate : UIResponder,
     _ application: UIApplication,
     didReceiveRemoteNotification userInfo: [AnyHashable : Any],
     fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-    let apsDict = userInfo["aps"] as! Dictionary<String, Any>
-    TUTSLog("Received notification \(userInfo)")
+      let apsDict = userInfo["aps"] as! Dictionary<String, Any>
+      TUTSLog("Received notification \(userInfo)")
 
-    let contentAvailable = apsDict["content-available"]
-    if contentAvailable as? Int == 1 {
-      self.alarmManager.fetchMissedNotifications { result in
-        TUTSLog("Fetched missed notificaiton after notification \(String(describing: result))")
-        switch result {
-        case .success():
-          completionHandler(.newData)
-        case .failure(_):
-          completionHandler(.failed)
+      let contentAvailable = apsDict["content-available"]
+      if contentAvailable as? Int == 1 {
+        self.alarmManager.fetchMissedNotifications { result in
+          TUTSLog("Fetched missed notification after notification \(String(describing: result))")
+          switch result {
+          case .success():
+            completionHandler(.newData)
+          case .failure(_):
+            completionHandler(.failed)
+          }
         }
       }
     }
+
+  func applicationWillTerminate(_ application: UIApplication) {
+    do {
+      try FileUtils.deleteSharedStorage()
+    } catch {
+      TUTSLog("failed to delete shared storage on shutdown: \(error)")
+    }
   }
+
 }
 
 fileprivate func deviceTokenAsString(deviceToken: Data) -> String? {

@@ -27,6 +27,7 @@
 			<string>de.tutao.tutanota</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
+				<string>tutashare</string>
 				<string>tutanota</string>
 			</array>
 		</dict>

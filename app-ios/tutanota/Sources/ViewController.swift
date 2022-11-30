@@ -284,15 +284,32 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     scrollView.contentOffset = CGPoint.zero
   }
 
-  func handleShare(_ url: URL) async throws -> Void {
-    TUTSLog("got this url: \(url)")
+  /// use the URL we were called with to retrieve the information about shared items
+  /// from the app group storage
+  private func getSharingInfo(url: URL) async -> SharingInfo? {
+    let urlString = url.absoluteString
+    let timestamp = String(urlString.dropFirst(TUTANOTA_SHARE_SCHEME.count))
+    return readSharingInfo(timestamp: timestamp)
+  }
 
-    try! await self.bridge.commonNativeFacade.createMailEditor(
-      [],
-      url.absoluteString,
-      [], "Shared Stuff",
-      ""
-    )
+  func handleShare(_ url: URL) async throws -> Void {
+    guard let info = await getSharingInfo(url: url) else {
+      TUTSLog("unable to get sharingInfo")
+      return
+    }
+
+    do {
+      try await self.bridge.commonNativeFacade.createMailEditor(
+        info.fileUrls.map{$0.path},
+        info.text,
+        [],
+        "",
+        ""
+      )
+    } catch {
+      TUTSLog("failed to open mail editor to share: \(error)")
+      try FileUtils.deleteSharedStorage(subDir: info.timestamp)
+    }
   }
 
   override var preferredStatusBarStyle: UIStatusBarStyle {
