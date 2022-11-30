@@ -26,6 +26,7 @@
 		3D3AFAEF285CB1DC0077F302 /* CommonSystemFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3AFAED285CB1DC0077F302 /* CommonSystemFacade.swift */; };
 		3D3AFAF0285CB1DC0077F302 /* CommonSystemFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3AFAEE285CB1DC0077F302 /* CommonSystemFacadeReceiveDispatcher.swift */; };
 		3D3AFAF2285CB2CF0077F302 /* IosCommonSystemFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3AFAF1285CB2CF0077F302 /* IosCommonSystemFacade.swift */; };
+		3D3B5169293797DC00C1B7DA /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = 3D3B5168293797DC00C1B7DA /* Atomics */; };
 		3D4E16F4273D2F8A00256630 /* SyncCompletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */; };
 		3D4E3C9E28EC5B31001FA9D1 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4E3C9D28EC5B31001FA9D1 /* Security.framework */; };
 		3D4E3CA028EC5B43001FA9D1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4E3C9F28EC5B43001FA9D1 /* Foundation.framework */; };
@@ -397,6 +398,7 @@
 				3D36BCC2274E4A6100428878 /* CryptoTokenKit.framework in Frameworks */,
 				3DD4EA3B2726F41200D58207 /* DictionaryCoding in Frameworks */,
 				3D4E3C9E28EC5B31001FA9D1 /* Security.framework in Frameworks */,
+				3D3B5169293797DC00C1B7DA /* Atomics in Frameworks */,
 				3DDB5E6F28FDA59100E1E4BE /* libcrypto.xcframework in Frameworks */,
 				3D4E3CA028EC5B43001FA9D1 /* Foundation.framework in Frameworks */,
 			);
@@ -1250,6 +1252,7 @@
 			name = tutanota;
 			packageProductDependencies = (
 				3DD4EA3A2726F41200D58207 /* DictionaryCoding */,
+				3D3B5168293797DC00C1B7DA /* Atomics */,
 			);
 			productName = tutanota;
 			productReference = 3DD4A08320F8C6240086EB36 /* tutanota.app */;
@@ -1395,6 +1398,7 @@
 			mainGroup = 3DD4A07A20F8C6240086EB36;
 			packageReferences = (
 				3DD4EA392726F41200D58207 /* XCRemoteSwiftPackageReference "DictionaryCoding" */,
+				3D3B5167293797DC00C1B7DA /* XCRemoteSwiftPackageReference "swift-atomics" */,
 			);
 			productRefGroup = 3DD4A08420F8C6240086EB36 /* Products */;
 			projectDirPath = "";
@@ -2419,6 +2423,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		3D3B5167293797DC00C1B7DA /* XCRemoteSwiftPackageReference "swift-atomics" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-atomics.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 		3DD4EA392726F41200D58207 /* XCRemoteSwiftPackageReference "DictionaryCoding" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/elegantchaos/DictionaryCoding.git";
@@ -2430,6 +2442,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		3D3B5168293797DC00C1B7DA /* Atomics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3D3B5167293797DC00C1B7DA /* XCRemoteSwiftPackageReference "swift-atomics" */;
+			productName = Atomics;
+		};
 		3DD4EA3A2726F41200D58207 /* DictionaryCoding */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 3DD4EA392726F41200D58207 /* XCRemoteSwiftPackageReference "DictionaryCoding" */;
