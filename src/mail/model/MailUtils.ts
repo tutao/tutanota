@@ -100,7 +100,7 @@ export function getRecipientHeading(mail: Mail, preferNameOnly: boolean) {
 		let recipientCount = parseInt(mail.recipientCount)
 		if (recipientCount > 0) {
 			let recipient = neverNull(mail.firstRecipient)
-			return getDisplayText(recipient.name, recipient.address, preferNameOnly) + (recipientCount > 1 ? ", ..." : "")
+			return getMailAddressDisplayText(recipient.name, recipient.address, preferNameOnly) + (recipientCount > 1 ? ", ..." : "")
 		} else {
 			return ""
 		}

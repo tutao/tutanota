@@ -104,7 +104,6 @@ export async function editDraft(viewModel: MailViewerViewModel): Promise<void> {
 					import("../editor/MailEditor"),
 				])
 				const editorDialog = await newMailEditorFromDraft(
-					viewModel.mail,
 					viewModel.getAttachments(),
 					await loadMailDetails(locator.entityClient, viewModel.mail),
 					viewModel.isBlockingExternalImages(),

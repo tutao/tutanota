@@ -2,6 +2,7 @@ import {create} from "../../common/utils/EntityUtils.js"
 import {TypeRef} from "@tutao/tutanota-utils"
 import {typeModels} from "./TypeModels.js"
 import {Blob} from '../sys/TypeRefs.js'
+import {BucketKey} from '../sys/TypeRefs.js'
 import {BlobReferenceTokenWrapper} from '../sys/TypeRefs.js'
 
 export const AttachmentKeyDataTypeRef: TypeRef<AttachmentKeyData> = new TypeRef("tutanota", "AttachmentKeyData")
@@ -1237,6 +1238,7 @@ export type Mail = {
 	attachments: IdTuple[];
 	bccRecipients: MailAddress[];
 	body:  null | Id;
+	bucketKey:  null | BucketKey;
 	ccRecipients: MailAddress[];
 	conversationEntry: IdTuple;
 	firstRecipient:  null | MailAddress;

@@ -20,6 +20,61 @@
 					"info": "AddAssociation MailboxProperties/mailAddressProperties/AGGREGATION/1267."
 				}
 			]
+		},
+		{
+			"version": 57,
+			"changes": [
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "Mail",
+					"info": "RemoveAssociation Mail/headersBlob."
+				},
+				{
+					"name": "RemoveAssociation",
+					"sourceType": "Mail",
+					"info": "RemoveAssociation Mail/bodyBlob."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "Mail",
+					"info": "AddAssociation Mail/firstRecipient/AGGREGATION/1294."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "Mail",
+					"info": "AddValue Mail/recipientCount/1295."
+				},
+				{
+					"name": "AddValue",
+					"sourceType": "Mail",
+					"info": "AddValue Mail/attachmentCount/1296."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "Mail",
+					"info": "AddAssociation Mail/mailDetails/LIST_ELEMENT_ASSOCIATION/1297."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "Mail",
+					"info": "AddAssociation Mail/mailDetailsDraft/LIST_ELEMENT_ASSOCIATION/1298."
+				},
+				{
+					"name": "ChangeAssociationCardinality",
+					"sourceType": "Mail",
+					"info": "ChangeAssociationCardinality Mail/body/ZeroOrOne."
+				},
+				{
+					"name": "ChangeValueCardinality",
+					"sourceType": "Mail",
+					"info": "ChangeValueCardinality Mail/sentDate/ZeroOrOne."
+				},
+				{
+					"name": "AddAssociation",
+					"sourceType": "Mail",
+					"info": "AddAssociation Mail/bucketKey/AGGREGATION/1299."
+				}
+			]
 		}
 	]
 }

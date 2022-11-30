@@ -37,7 +37,7 @@ import {UserError} from "../../api/main/UserError"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {htmlSanitizer} from "../../misc/HtmlSanitizer"
 import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
-import type {File as TutanotaFile, Mail, MailboxProperties} from "../../api/entities/tutanota/TypeRefs.js"
+import type {File as TutanotaFile, MailboxProperties} from "../../api/entities/tutanota/TypeRefs.js"
 import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import type {InlineImages} from "../view/MailViewer"
 import {FileOpenError} from "../../api/common/error/FileOpenError"
@@ -952,7 +952,7 @@ export async function newMailEditorAsResponse(
 }
 
 export async function newMailEditorFromDraft(
-	attachments: Array<File>,
+	attachments: TutanotaFile[],
 	mailWrapper: MailWrapper,
 	blockExternalContent: boolean,
 	inlineImages: InlineImages,
