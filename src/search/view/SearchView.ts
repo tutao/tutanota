@@ -381,11 +381,13 @@ export class SearchView implements CurrentView {
 				if (confirmed) {
 					locator.indexerFacade.extendMailIndex(startDate.getTime()).then(() => {
 						setSearchUrl(this._getCurrentSearchUrl(this._getCategory(), null))
+						m.redraw()
 					})
 				}
 			})
 		} else {
 			setSearchUrl(this._getCurrentSearchUrl(this._getCategory(), null))
+			m.redraw()
 		}
 	}
 
