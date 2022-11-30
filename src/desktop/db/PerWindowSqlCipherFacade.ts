@@ -1,7 +1,7 @@
 import {SqlCipherFacade} from "../../native/common/generatedipc/SqlCipherFacade.js"
 import {TaggedSqlValue} from "../../api/worker/offline/SqlValue.js"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
-import {delay} from "@tutao/tutanota-utils"
+import {defer, DeferredObject, delay} from "@tutao/tutanota-utils"
 import {log} from "../DesktopLog.js"
 import {OfflineDbClosedError} from "../../api/common/error/OfflineDbClosedError.js"
 
@@ -48,6 +48,23 @@ export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 		return this.db().run(query, params)
 	}
 
+	/**
+	 * We want to lock the access to the "ranges" db when updating / reading the
+	 * offline available mail list ranges for each mail list (referenced using the listId)
+	 * @param listId the mail list that we want to lock
+	 */
+	async lockRangesDbAccess(listId: Id): Promise<void> {
+		return this.manager.lockRangesDbAccess(listId)
+	}
+
+	/**
+	 * This is the counterpart to the function "lockRangesDbAccess(listId)"
+	 * @param listId the mail list that we want to unlock
+	 */
+	async unlockRangesDbAccess(listId: Id): Promise<void> {
+		return this.manager.unlockRangesDbAccess(listId)
+	}
+
 	private db(): SqlCipherFacade {
 		if (this.state == null) {
 			throw new OfflineDbClosedError()
@@ -70,6 +87,13 @@ export interface OfflineDbFactory {
 
 export class OfflineDbManager {
 	private readonly cache: Map<Id, CacheEntry> = new Map()
+
+	/**
+	 * We want to lock the access to the "ranges" db when updating / reading the
+	 * offline available mail list ranges for each mail list (referenced using the listId).
+	 * We store locks with their corresponding listId in this Map.
+	 */
+	private readonly listIdLocks: Map<Id, DeferredObject<void>> = new Map()
 
 	constructor(
 		private readonly offlineDbFactory: OfflineDbFactory,
@@ -113,5 +137,28 @@ export class OfflineDbManager {
 		}
 
 		await this.offlineDbFactory.delete(userId)
+	}
+
+	/**
+	 * We want to lock the access to the "ranges" db when updating / reading the
+	 * offline available mail list ranges for each mail list (referenced using the listId).
+	 * @param listId the mail list that we want to lock
+	 */
+	async lockRangesDbAccess(listId: Id): Promise<void> {
+		if (this.listIdLocks.get(listId)) {
+			await this.listIdLocks.get(listId)?.promise
+			this.listIdLocks.set(listId, defer())
+		} else {
+			this.listIdLocks.set(listId, defer())
+		}
+	}
+
+	/**
+	 * This is the counterpart to the function "lockRangesDbAccess(listId)".
+	 * @param listId the mail list that we want to unlock
+	 */
+	async unlockRangesDbAccess(listId: Id): Promise<void> {
+		this.listIdLocks.get(listId)?.resolve()
+		this.listIdLocks.delete(listId)
 	}
 }

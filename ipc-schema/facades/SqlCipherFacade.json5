@@ -68,6 +68,24 @@
 				}
 			],
 			ret: "List<Map<string, TaggedSqlValue>>"
+		},
+		lockRangesDbAccess: {
+			doc: "We want to lock the access to the \"ranges\" db when updating / reading the offline available mail list ranges for each mail list (referenced using the listId)",
+			arg: [
+				{
+					listId: "string"
+				}
+			],
+			ret: "void"
+		},
+		unlockRangesDbAccess: {
+			doc: "This is the counterpart to the function \"lockRangesDbAccess(listId)\"",
+			arg: [
+				{
+					listId: "string"
+				}
+			],
+			ret: "void"
 		}
 	}
 }

@@ -281,4 +281,21 @@ export class EphemeralCacheStorage implements CacheStorage {
 	clearExcludedData(): Promise<void> {
 		return Promise.resolve()
 	}
+
+	/**
+	 * We want to lock the access to the "ranges" db when updating / reading the
+	 * offline available mail list ranges for each mail list (referenced using the listId)
+	 * @param listId the mail list that we want to lock
+	 */
+	lockRangesDbAccess(listId: string): Promise<void> {
+		return Promise.resolve()
+	}
+
+	/**
+	 * This is the counterpart to the function "lockRangesDbAccess(listId)"
+	 * @param listId the mail list that we want to unlock
+	 */
+	unlockRangesDbAccess(listId: string): Promise<void> {
+		return Promise.resolve()
+	}
 }

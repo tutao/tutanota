@@ -170,6 +170,19 @@ export interface CacheStorage extends ExposedCacheStorage {
 	getUserId(): Id
 
 	deleteAllOwnedBy(owner: Id): Promise<void>
+
+	/**
+	 * We want to lock the access to the "ranges" db when updating / reading the
+	 * offline available mail list ranges for each mail list (referenced using the listId)
+	 * @param listId the mail list that we want to lock
+	 */
+	lockRangesDbAccess(listId: Id): Promise<void>
+
+	/**
+	 * This is the counterpart to the function "lockRangesDbAccess(listId)"
+	 * @param listId the mail list that we want to unlock
+	 */
+	unlockRangesDbAccess(listId: Id): Promise<void>
 }
 
 /**
@@ -327,21 +340,29 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			return this.entityRestClient.loadRange(typeRef, listId, start, count, reverse)
 		}
 
-		const range = await this.storage.getRangeForList(typeRef, listId)
+		// We lock access to the "ranges" db here in order to prevent race conditions when accessing the ranges database.
+		await this.storage.lockRangesDbAccess(listId)
 
-		if (
-			range == null
-		) {
-			await this.populateNewListWithRange(typeRef, listId, start, count, reverse)
-		} else if (isStartIdWithinRange(range, start)) {
-			await this.extendFromWithinRange(typeRef, listId, start, count, reverse)
-		} else if (isRangeRequestAwayFromExistingRange(range, reverse, start)) {
-			await this.extendAwayFromRange(typeRef, listId, start, count, reverse)
-		} else {
-			await this.extendTowardsRange(typeRef, listId, start, count, reverse)
+		try {
+			const range = await this.storage.getRangeForList(typeRef, listId)
+
+			if (
+				range == null
+			) {
+				await this.populateNewListWithRange(typeRef, listId, start, count, reverse)
+			} else if (isStartIdWithinRange(range, start)) {
+				await this.extendFromWithinRange(typeRef, listId, start, count, reverse)
+			} else if (isRangeRequestAwayFromExistingRange(range, reverse, start)) {
+				await this.extendAwayFromRange(typeRef, listId, start, count, reverse)
+			} else {
+				await this.extendTowardsRange(typeRef, listId, start, count, reverse)
+			}
+
+			return this.storage.provideFromRange(typeRef, listId, start, count, reverse)
+		} finally {
+			// We unlock access to the "ranges" db here. We lock it in order to prevent race conditions when accessing the "ranges" database.
+			await this.storage.unlockRangesDbAccess(listId)
 		}
-
-		return this.storage.provideFromRange(typeRef, listId, start, count, reverse)
 	}
 
 	/**

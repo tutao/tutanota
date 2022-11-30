@@ -52,6 +52,18 @@ public class SqlCipherFacadeReceiveDispatcher {
 				params
 			)
 			return toJson(result)
+		case "lockRangesDbAccess":
+			let listId = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			try await self.facade.lockRangesDbAccess(
+				listId
+			)
+			return "null"
+		case "unlockRangesDbAccess":
+			let listId = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			try await self.facade.unlockRangesDbAccess(
+				listId
+			)
+			return "null"
 		default:
 			fatalError("licc messed up! \(method)")
 		}
