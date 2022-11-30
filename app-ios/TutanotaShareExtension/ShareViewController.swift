@@ -1,15 +1,6 @@
-//
-//  ShareViewController.swift
-//  TutanotaShare
-//
-//  Created by Tutao GmbH on 10/14/22.
-//  Copyright © 2022 Tutao GmbH. All rights reserved.
-//
-
 import UIKit
 import WebKit
 import Social
-import CryptoKit
 
 /// annotation is necessary to be able to specify this class in Info.plist as the main UI controller
 @objc(ShareViewController)
@@ -58,7 +49,7 @@ class ShareViewController: UIViewController {
           }
         case .contact(ident: _, let content):
           if content != nil {
-            guard let vcardUrl = await saveVCard(subdir: timestamp, text: content!) else {
+            guard let vcardUrl = await saveVCard(subdir: timestamp, vcardText: content!) else {
               continue
             }
             info.fileUrls.append(vcardUrl)
@@ -84,31 +75,16 @@ class ShareViewController: UIViewController {
     return try? await writeToSharedStorage(subdir: subdir, name: imageName, content: jpegData)
   }
 
-  /// generate a file name for a blob of image data we got shared so we can share it as an image file
-  func generateImageFileName(imageData: Data) -> String {
-    let digest = SHA256.hash(data: imageData)
-    let hashStr = digest.compactMap { String(format: "%02x", $0) }.joined()
-    let sliceIndex = hashStr.index(hashStr.startIndex, offsetBy: 12)
-    return "image-".appending(hashStr[..<sliceIndex]).appending(".jpeg")
-  }
-
   /// when the IOS contact app shares contact, it gives us the VCARD text. we need to write it to disk to be able to
   /// attach it.
   /// returns the path to the persisted .vcf file containing the vcard
-  func saveVCard(subdir: String, text: String) async -> URL? {
+  func saveVCard(subdir: String, vcardText: String) async -> URL? {
     // Note: we could append them and write once at the end, multiple vcards per file are legal.
-    guard let convertedData = text.data(using: .utf8) else {
+    guard let convertedData = vcardText.data(using: .utf8) else {
       TUTSLog("could not convert vcard text to utf8")
       return nil
     }
-    let fnRegex = try! NSRegularExpression(pattern: "^FN:(.*)$", options: .anchorsMatchLines.union(.caseInsensitive))
-    let match = fnRegex.firstMatch(in: text, range: NSMakeRange(0, (text as NSString).length))
-    var vcardName = "contact"
-    if match != nil {
-      let swiftRange = Range(match!.range(at: 1), in: text)!
-      vcardName = String(text[swiftRange])
-      vcardName = vcardName.replacingOccurrences(of:"[^0-9a-zA-Z]", with: "_", options: .regularExpression)
-    }
+    let vcardName: String = extractFNfrom(vcard: vcardText)
     return try? await writeToSharedStorage(subdir: subdir, name: vcardName.appending(".vcf"), content: convertedData)
   }
 

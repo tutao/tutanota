@@ -40,6 +40,9 @@
 		3D3B51582934BC8200C1B7DA /* TUTLog.h in Sources */ = {isa = PBXBuildFile; fileRef = 3D63A0DD233CF7C900D05259 /* TUTLog.h */; };
 		3D3B51592934BC8200C1B7DA /* TUTLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D63A0E2233D009E00D05259 /* TUTLog.m */; };
 		3D3B515A2934BC9700C1B7DA /* TutanotaError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D92867B273A7D18006B8FB2 /* TutanotaError.swift */; };
+		3D3B516229376C2200C1B7DA /* SharingUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3B516129376C2200C1B7DA /* SharingUtils.swift */; };
+		3D3B516329376C8300C1B7DA /* SharingUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3B516129376C2200C1B7DA /* SharingUtils.swift */; };
+		3D3B516629376E9E00C1B7DA /* ShareUtilsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3B516529376E9E00C1B7DA /* ShareUtilsTest.swift */; };
 		3D448A8B292BB1D00030DB2F /* SharingStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D448A8A292BB1D00030DB2F /* SharingStorage.swift */; };
 		3D448A8C292BB1D00030DB2F /* SharingStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D448A8A292BB1D00030DB2F /* SharingStorage.swift */; };
 		3D3B5169293797DC00C1B7DA /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = 3D3B5168293797DC00C1B7DA /* Atomics */; };
@@ -264,6 +267,8 @@
 		3D3AFAED285CB1DC0077F302 /* CommonSystemFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonSystemFacade.swift; sourceTree = "<group>"; };
 		3D3AFAEE285CB1DC0077F302 /* CommonSystemFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonSystemFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
 		3D3AFAF1285CB2CF0077F302 /* IosCommonSystemFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosCommonSystemFacade.swift; sourceTree = "<group>"; };
+		3D3B516129376C2200C1B7DA /* SharingUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharingUtils.swift; sourceTree = "<group>"; };
+		3D3B516529376E9E00C1B7DA /* ShareUtilsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareUtilsTest.swift; sourceTree = "<group>"; };
 		3D448A88292BB0B70030DB2F /* TutanotaShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TutanotaShareExtension.entitlements; sourceTree = "<group>"; };
 		3D448A8A292BB1D00030DB2F /* SharingStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharingStorage.swift; sourceTree = "<group>"; };
 		3D4D3204210747000081813A /* PSPDFFastEnumeration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PSPDFFastEnumeration.h; sourceTree = "<group>"; };
@@ -478,6 +483,7 @@
 			isa = PBXGroup;
 			children = (
 				3D448A8A292BB1D00030DB2F /* SharingStorage.swift */,
+				3D3B516129376C2200C1B7DA /* SharingUtils.swift */,
 			);
 			path = Sharing;
 			sourceTree = "<group>";
@@ -1291,6 +1297,7 @@
 				3D63A0E4233D0C1400D05259 /* TUTLogTest.m */,
 				3DAA23A5267A202000219051 /* tutanotaTests-Bridging-Header.h */,
 				3D84F58427268EDE00858A58 /* AlarmModelTest.swift */,
+				3D3B516529376E9E00C1B7DA /* ShareUtilsTest.swift */,
 			);
 			path = tutanotaTests;
 			sourceTree = "<group>";
@@ -1639,6 +1646,7 @@
 				3DB07C7B27303F0600BFBB4D /* Keys.swift in Sources */,
 				3D3AFAE5285B0C350077F302 /* MobileSystemFacadeReceiveDispatcher.swift in Sources */,
 				3DC5DED62858CB58007364FF /* RsaPrivateKey.swift in Sources */,
+				3D3B516229376C2200C1B7DA /* SharingUtils.swift in Sources */,
 				3D220200293F752D00366FD2 /* WebAuthnSignResult.swift in Sources */,
 				3DBA56D32850AAA6004416BE /* ElectronResult.swift in Sources */,
 				3DBA56C92850AAA6004416BE /* DownloadTaskResponse.swift in Sources */,
@@ -1739,6 +1747,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3D3B516629376E9E00C1B7DA /* ShareUtilsTest.swift in Sources */,
 				3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */,
 				3D63A0E5233D0C1400D05259 /* TUTLogTest.m in Sources */,
 				3D4F1BFB26EBADE500E87BF5 /* TUTBigNum.m in Sources */,
@@ -1751,6 +1760,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3D3B516329376C8300C1B7DA /* SharingUtils.swift in Sources */,
 				3D3B515A2934BC9700C1B7DA /* TutanotaError.swift in Sources */,
 				3D3B51582934BC8200C1B7DA /* TUTLog.h in Sources */,
 				3D3B51592934BC8200C1B7DA /* TUTLog.m in Sources */,
