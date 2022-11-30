@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3D019DBA2927990B00300E2C /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3D019DB82927990B00300E2C /* MainInterface.storyboard */; };
 		3D0EB1F626F489AD002E5102 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0EB1F526F48854002E5102 /* KeychainManager.swift */; };
 		3D0EB1F926F49E36002E5102 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0EB1F826F49E36002E5102 /* AppDelegate.swift */; };
 		3D0EB1FC26F4BEE4002E5102 /* AlarmManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0EB1FB26F4BEE4002E5102 /* AlarmManager.swift */; };
@@ -35,6 +34,14 @@
 		3D3AFAEF285CB1DC0077F302 /* CommonSystemFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3AFAED285CB1DC0077F302 /* CommonSystemFacade.swift */; };
 		3D3AFAF0285CB1DC0077F302 /* CommonSystemFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3AFAEE285CB1DC0077F302 /* CommonSystemFacadeReceiveDispatcher.swift */; };
 		3D3AFAF2285CB2CF0077F302 /* IosCommonSystemFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3AFAF1285CB2CF0077F302 /* IosCommonSystemFacade.swift */; };
+		3D3B51532934B1E900C1B7DA /* FileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F56C2722CEF900858A58 /* FileUtils.swift */; };
+		3D3B51552934BBD500C1B7DA /* TUTErrorFactory.h in Sources */ = {isa = PBXBuildFile; fileRef = 3D9B12B12721A1E2002B46A1 /* TUTErrorFactory.h */; };
+		3D3B51572934BC5000C1B7DA /* TUTErrorFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D9B12B22721A1E2002B46A1 /* TUTErrorFactory.m */; };
+		3D3B51582934BC8200C1B7DA /* TUTLog.h in Sources */ = {isa = PBXBuildFile; fileRef = 3D63A0DD233CF7C900D05259 /* TUTLog.h */; };
+		3D3B51592934BC8200C1B7DA /* TUTLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D63A0E2233D009E00D05259 /* TUTLog.m */; };
+		3D3B515A2934BC9700C1B7DA /* TutanotaError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D92867B273A7D18006B8FB2 /* TutanotaError.swift */; };
+		3D448A8B292BB1D00030DB2F /* SharingStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D448A8A292BB1D00030DB2F /* SharingStorage.swift */; };
+		3D448A8C292BB1D00030DB2F /* SharingStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D448A8A292BB1D00030DB2F /* SharingStorage.swift */; };
 		3D3B5169293797DC00C1B7DA /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = 3D3B5168293797DC00C1B7DA /* Atomics */; };
 		3D4E16F4273D2F8A00256630 /* SyncCompletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */; };
 		3D4E3C9E28EC5B31001FA9D1 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4E3C9D28EC5B31001FA9D1 /* Security.framework */; };
@@ -228,7 +235,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		3D019DB92927990B00300E2C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
 		3D0EB1F526F48854002E5102 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		3D0EB1F826F49E36002E5102 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3D0EB1FB26F4BEE4002E5102 /* AlarmManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmManager.swift; sourceTree = "<group>"; };
@@ -258,6 +264,8 @@
 		3D3AFAED285CB1DC0077F302 /* CommonSystemFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonSystemFacade.swift; sourceTree = "<group>"; };
 		3D3AFAEE285CB1DC0077F302 /* CommonSystemFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonSystemFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
 		3D3AFAF1285CB2CF0077F302 /* IosCommonSystemFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosCommonSystemFacade.swift; sourceTree = "<group>"; };
+		3D448A88292BB0B70030DB2F /* TutanotaShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TutanotaShareExtension.entitlements; sourceTree = "<group>"; };
+		3D448A8A292BB1D00030DB2F /* SharingStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharingStorage.swift; sourceTree = "<group>"; };
 		3D4D3204210747000081813A /* PSPDFFastEnumeration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PSPDFFastEnumeration.h; sourceTree = "<group>"; };
 		3D4D3205210747240081813A /* Swiftier.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Swiftier.h; sourceTree = "<group>"; };
 		3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncCompletion.swift; sourceTree = "<group>"; };
@@ -466,6 +474,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3D448A89292BB17B0030DB2F /* Sharing */ = {
+			isa = PBXGroup;
+			children = (
+				3D448A8A292BB1D00030DB2F /* SharingStorage.swift */,
+			);
+			path = Sharing;
+			sourceTree = "<group>";
+		};
 		3D220203293F75B000366FD2 /* Webauthn */ = {
 			isa = PBXGroup;
 			children = (
@@ -516,6 +532,7 @@
 		3D74536121089D2200B16F2E /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				3D448A89292BB17B0030DB2F /* Sharing */,
 				3D220203293F75B000366FD2 /* Webauthn */,
 				3D378ED22536F3A80001F1F3 /* tutanota-Bridging-Header.h */,
 				3DDE413928F45E3700837BE6 /* Offline */,
@@ -1294,7 +1311,7 @@
 		3DEF18F12924E1F1009C4B55 /* TutanotaShareExtension */ = {
 			isa = PBXGroup;
 			children = (
-				3D019DB82927990B00300E2C /* MainInterface.storyboard */,
+				3D448A88292BB0B70030DB2F /* TutanotaShareExtension.entitlements */,
 				3DEF18F22924E1F1009C4B55 /* ShareViewController.swift */,
 				3DEF18F72924E1F1009C4B55 /* Info.plist */,
 			);
@@ -1602,7 +1619,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3D019DBA2927990B00300E2C /* MainInterface.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1632,6 +1648,7 @@
 				3DC5DECD2858C1F5007364FF /* IosNativePushFacade.swift in Sources */,
 				3D3AFAEC285C5C6E0077F302 /* DataFile.swift in Sources */,
 				3D84F5822723225C00858A58 /* Utils.swift in Sources */,
+				3D448A8B292BB1D00030DB2F /* SharingStorage.swift in Sources */,
 				3D3AFAF0285CB1DC0077F302 /* CommonSystemFacadeReceiveDispatcher.swift in Sources */,
 				3D4E3CA528EC5C65001FA9D1 /* SqlCipherFacade.swift in Sources */,
 				3D9B12B42721A1E2002B46A1 /* TUTErrorFactory.m in Sources */,
@@ -1734,6 +1751,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3D3B515A2934BC9700C1B7DA /* TutanotaError.swift in Sources */,
+				3D3B51582934BC8200C1B7DA /* TUTLog.h in Sources */,
+				3D3B51592934BC8200C1B7DA /* TUTLog.m in Sources */,
+				3D3B51572934BC5000C1B7DA /* TUTErrorFactory.m in Sources */,
+				3D3B51552934BBD500C1B7DA /* TUTErrorFactory.h in Sources */,
+				3D3B51532934B1E900C1B7DA /* FileUtils.swift in Sources */,
+				3D448A8C292BB1D00030DB2F /* SharingStorage.swift in Sources */,
 				3DEF18F32924E1F1009C4B55 /* ShareViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1754,14 +1778,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		3D019DB82927990B00300E2C /* MainInterface.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				3D019DB92927990B00300E2C /* Base */,
-			);
-			name = MainInterface.storyboard;
-			sourceTree = "<group>";
-		};
 		3D9A1E4222031B82002C2455 /* InfoPlist.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -2538,6 +2554,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CODE_SIGN_ENTITLEMENTS = TutanotaShareExtension/TutanotaShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -2560,6 +2577,7 @@
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanota/Sources/tutanota-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -2570,6 +2588,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CODE_SIGN_ENTITLEMENTS = TutanotaShareExtension/TutanotaShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -2590,6 +2609,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "tutanota/Sources/tutanota-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
