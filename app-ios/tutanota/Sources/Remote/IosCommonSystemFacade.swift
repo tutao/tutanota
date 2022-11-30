@@ -7,7 +7,7 @@ enum InitState {
 }
 
 class IosCommonSystemFacade: CommonSystemFacade {
-  
+
   private let viewController: ViewController
   private var initialized = CurrentValueSubject<InitState, Never>(.waitingForInit)
   // according to the docs the return value of sink should be held
@@ -16,21 +16,21 @@ class IosCommonSystemFacade: CommonSystemFacade {
   init(viewController: ViewController) {
     self.viewController = viewController
   }
-  
+
   func initializeRemoteBridge() async throws {
     self.initialized.send(.initReceived)
   }
-  
+
   func reload(_ query: [String : String]) async throws {
     self.initialized = CurrentValueSubject(.waitingForInit)
     await self.viewController.loadMainPage(params: query)
   }
-  
+
   func getLog() async throws -> String {
     let entries = TUTLogger.sharedInstance().entries()
     return entries.joined(separator: "\n")
   }
-  
+
   func awaitForInit() async {
     /// awaiting for the first and hopefully only void object in this publisher
     /// could be simpler but .values is iOS > 15
@@ -43,7 +43,7 @@ class IosCommonSystemFacade: CommonSystemFacade {
       let cancellable = self.initialized
         .first { $0 == .initReceived }
         .sink { v in continuation.resume() }
-      
+
       self.cancellables.append(cancellable)
     }
   }

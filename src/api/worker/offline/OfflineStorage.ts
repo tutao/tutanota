@@ -345,6 +345,8 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 	async clearExcludedData(timeRangeDays: number | null = this.timeRangeDays, userId: Id = this.getUserId()): Promise<void> {
 		const user = await this.get(UserTypeRef, null, userId)
 
+		console.log("Clearing excluded data ...")
+
 		// Free users always have default time range regardless of what is stored
 		const isFreeUser = user?.accountType === AccountType.FREE
 		const timeRange = isFreeUser || timeRangeDays == null ? OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS : timeRangeDays
@@ -393,6 +395,9 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 	 */
 	private async deleteMailList(listId: Id, cutoffId: Id): Promise<void> {
 
+		// We lock access to the "ranges" db here in order to prevent race conditions when accessing the "ranges" database.
+		await this.lockRangesDbAccess(listId)
+
 		// This must be done before deleting mails to know what the new range has to be
 		await this.updateRangeForList(MailTypeRef, listId, cutoffId)
 
@@ -424,6 +429,9 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		}
 
 		await this.deleteIn(MailTypeRef, listId, mailsToDelete.map(elementIdPart))
+
+		// We unlock access to the "ranges" db here. We lock it in order to prevent race conditions when accessing the "ranges" database.
+		await this.unlockRangesDbAccess(listId)
 	}
 
 	private async deleteIn(typeRef: TypeRef<unknown>, listId: Id | null, elementIds: Id[]): Promise<void> {
@@ -431,6 +439,23 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 			? sql`DELETE FROM element_entities WHERE type =${getTypeId(typeRef)} AND elementId IN ${paramList(elementIds)}`
 			: sql`DELETE FROM list_entities WHERE type = ${getTypeId(typeRef)} AND listId = ${listId} AND elementId IN ${paramList(elementIds)}`
 		return this.sqlCipherFacade.run(query, params)
+	}
+
+	/**
+	 * We want to lock the access to the "ranges" db when updating / reading the
+	 * offline available mail list ranges for each mail list (referenced using the listId).
+	 * @param listId the mail list that we want to lock
+	 */
+	async lockRangesDbAccess(listId: Id) {
+		await this.sqlCipherFacade.lockRangesDbAccess(listId)
+	}
+
+	/**
+	 * This is the counterpart to the function "lockRangesDbAccess(listId)".
+	 * @param listId the mail list that we want to unlock
+	 */
+	async unlockRangesDbAccess(listId: Id) {
+		await this.sqlCipherFacade.unlockRangesDbAccess(listId)
 	}
 
 	private async updateRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, cutoffId: Id): Promise<void> {

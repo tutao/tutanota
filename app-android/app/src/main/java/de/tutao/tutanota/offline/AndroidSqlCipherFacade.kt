@@ -6,8 +6,10 @@ import android.util.Log
 import de.tutao.tutanota.ipc.DataWrapper
 import de.tutao.tutanota.ipc.SqlCipherFacade
 import de.tutao.tutanota.ipc.wrap
+import kotlinx.coroutines.CompletableDeferred
 import net.sqlcipher.database.SQLiteDatabase
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 
 class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 	init {
@@ -20,6 +22,8 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 	private var db: SQLiteDatabase? = null
 	private val openedDb: SQLiteDatabase
 		get() = db ?: throw OfflineDbClosedError()
+
+	private val listIdLocks: MutableMap<String, CompletableDeferred<Unit>> = ConcurrentHashMap()
 
 	override suspend fun openDb(userId: String, dbKey: DataWrapper) {
 		// db is volatile so we see the latest value but it doesn't mean that we won't try to open/delete it in parallel
@@ -107,6 +111,35 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 				}
 			}
 		}
+	}
+
+	/**
+	 * We want to lock the access to the "ranges" db when updating / reading the
+	 * offline available mail list ranges for each mail list (referenced using the listId).
+	 * @param listId the mail list that we want to lock
+	 */
+	override suspend fun lockRangesDbAccess(listId: String): Unit {
+		Log.i(TAG, "slowandroid: lock $listId")
+		if (listIdLocks.containsKey(listId)) {
+			listIdLocks[listId]?.await()
+			listIdLocks[listId] = CompletableDeferred()
+		} else {
+			listIdLocks[listId] = CompletableDeferred()
+		}
+	}
+
+	/**
+	 * This is the counterpart to the function "lockRangesDbAccess(listId)".
+	 * @param listId the mail list that we want to unlock
+	 */
+	override suspend fun unlockRangesDbAccess(listId: String) {
+		Log.i(TAG, "slowandroid: unlock $listId")
+		val completableDeferred = listIdLocks.remove(listId)
+		if (completableDeferred == null) {
+			Log.w(TAG, "No deferred for the listIdLock with listId $listId")
+			return
+		}
+		completableDeferred.complete(Unit)
 	}
 
 	private fun List<TaggedSqlValue>.prepare() = map { it.unwrap() }.toTypedArray()

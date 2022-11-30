@@ -119,6 +119,20 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 		return result.map(tagSqlObject)
 	}
 
+	/**
+	 * not implemented because we lock the "ranges" DB directly from the per-window facade
+	 */
+	lockRangesDbAccess(userId: Id): Promise<void> {
+		throw new ProgrammingError("Not implemented")
+	}
+
+	/**
+	 * not implemented because we unlock the "ranges" DB directly from the per-window facade
+	 */
+	unlockRangesDbAccess(userId: Id): Promise<void> {
+		throw new ProgrammingError("Not implemented")
+	}
+
 	private checkIntegrity() {
 		/**
 		 * Throws a CryptoError if MAC verification fails

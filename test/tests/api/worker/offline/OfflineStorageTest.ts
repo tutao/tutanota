@@ -121,6 +121,21 @@ o.spec("OfflineStorage", function () {
 			verify(migratorMock.migrate(storage, dbFacade))
 		})
 
+		o("ranges database is locked when writing/reading to/from ranges database", async function () {
+			await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
+
+			const listId = "listId"
+
+			// Simulate two processes accessing the database at the same time
+			await storage.lockRangesDbAccess(listId)
+			setTimeout(async () => {
+				await storage.unlockRangesDbAccess(listId)
+
+			}, 5000)
+			await storage.lockRangesDbAccess(listId)
+			verify(await storage.unlockRangesDbAccess(listId))
+		})
+
 		o.spec("Clearing excluded data", function () {
 			const listId = "listId"
 			const mailType = getTypeId(MailTypeRef)
@@ -136,9 +151,10 @@ o.spec("OfflineStorage", function () {
 				await insertEntity(createMailFolder({_id: ["mailFolderList", "mailFolderId"], mails: listId}))
 				await insertEntity(createMail({_id: [listId, "anything"]}))
 				await insertRange(MailTypeRef, listId, lower, upper)
-				await storage.deinit()
 
-				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
+				// Here we clear the excluded data
+				await storage.clearExcludedData(timeRangeDays, userId)
+
 				const allRanges = await dbFacade.all("SELECT * FROM ranges", [])
 				o(allRanges).deepEquals([])
 				const allEntities = await getAllIdsForType(MailTypeRef)
@@ -151,8 +167,10 @@ o.spec("OfflineStorage", function () {
 				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
 				await insertEntity(createMailFolder({_id: ["mailFolderListId", "mailFolderId"], mails: listId}))
 				await insertRange(MailTypeRef, listId, lower, upper)
-				await storage.deinit()
-				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
+
+				// Here we clear the excluded data
+				await storage.clearExcludedData(timeRangeDays, userId)
+
 				const newRange = await dbFacade.get("select * from ranges", [])
 				o(mapNullable(newRange, untagSqlObject)).deepEquals({type: mailType, listId, lower: cutoffId, upper})
 			})
@@ -164,9 +182,10 @@ o.spec("OfflineStorage", function () {
 				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
 				await insertEntity(createMailFolder({_id: ["mailFolderList", "mailFolderId"], mails: listId}))
 				await insertRange(MailTypeRef, listId, lower, upper)
-				await storage.deinit()
 
-				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
+				// Here we clear the excluded data
+				await storage.clearExcludedData(timeRangeDays, userId)
+
 				const newRange = await dbFacade.get("select * from ranges", [])
 				o(mapNullable(newRange, untagSqlObject)).deepEquals({type: mailType, listId, lower, upper})
 			})
@@ -180,8 +199,9 @@ o.spec("OfflineStorage", function () {
 				await insertEntity(mailFolder)
 				await insertEntity(mail)
 				await insertRange(MailTypeRef, listId, lower, upper)
-				await storage.deinit()
-				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
+
+				// Here we clear the excluded data
+				await storage.clearExcludedData(timeRangeDays, userId)
 
 				const newRange = await dbFacade.get("select * from ranges", [])
 				o(mapNullable(newRange, untagSqlObject)).deepEquals({type: mailType, listId, lower, upper})
@@ -214,8 +234,9 @@ o.spec("OfflineStorage", function () {
 				await insertEntity(createMailBody({_id: spamMailBodyId}))
 				await insertEntity(createMailBody({_id: trashMailBodyId}))
 
-				await storage.deinit()
-				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
+				// Here we clear the excluded data
+				await storage.clearExcludedData(timeRangeDays, userId)
+
 				const allEntities = await dbFacade.all("select * from list_entities", [])
 				o(allEntities.map(r => r.elementId.value)).deepEquals([spamFolderId, trashFolderId])
 
@@ -239,8 +260,9 @@ o.spec("OfflineStorage", function () {
 				await insertEntity(mailAfter)
 				await insertEntity(createMailBody({_id: beforeMailBodyId}))
 				await insertEntity(createMailBody({_id: afterMailBodyId}))
-				await storage.deinit()
-				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
+
+				// Here we clear the excluded data
+				await storage.clearExcludedData(timeRangeDays, userId)
 
 				const allMailIds = await getAllIdsForType(MailTypeRef)
 				o(allMailIds).deepEquals([getElementId(mailAfter)])
@@ -263,8 +285,9 @@ o.spec("OfflineStorage", function () {
 				await insertEntity(mail2)
 				await insertEntity(createMailBody({_id: mailBodyId1}))
 				await insertEntity(createMailBody({_id: mailBodyId2}))
-				await storage.deinit()
-				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
+
+				// Here we clear the excluded data
+				await storage.clearExcludedData(timeRangeDays, userId)
 
 				o(await getAllIdsForType(MailTypeRef)).deepEquals([])
 				o(await getAllIdsForType(MailBodyTypeRef)).deepEquals([])
@@ -290,9 +313,10 @@ o.spec("OfflineStorage", function () {
 				await insertEntity(fileAfter)
 				await insertEntity(createMailBody({_id: beforeMailBodyId}))
 				await insertEntity(createMailBody({_id: afterMailBodyId}))
-				await storage.deinit()
 
-				await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
+				// Here we clear the excluded data
+				await storage.clearExcludedData(timeRangeDays, userId)
+
 				o(await getAllIdsForType(MailTypeRef)).deepEquals([getElementId(mailAfter)])
 				o(await getAllIdsForType(FileTypeRef)).deepEquals([getElementId(fileAfter)])
 			})
@@ -376,11 +400,8 @@ o.spec("OfflineStorage", function () {
 			await storage.setNewRangeForList(MailTypeRef, inboxListId, firstThrow(oldInboxMails)._id[1], lastThrow(newInboxMails)._id[1])
 			await storage.setNewRangeForList(MailTypeRef, trashListId, firstThrow(trashMails)._id[1], lastThrow(trashMails)._id[1])
 
-			await storage.deinit()
-
-			// We need to create a new OfflineStorage because clearExcludedData gets run in `init`,
-			// And the easiest way to put data in the database is to create an OfflineStorage
-			await storage.init({userId, databaseKey: offlineDatabaseTestKey, timeRangeDays, forceNewDatabase: false})
+			// Here we clear the excluded data
+			await storage.clearExcludedData(timeRangeDays, userId)
 
 			const assertContents = async ({_id, _type}, expected, msg) => {
 				const {listId, elementId} = expandId(_id)

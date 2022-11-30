@@ -62,6 +62,20 @@ class SqlCipherFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"lockRangesDbAccess" -> {
+				val listId: String = json.decodeFromString(arg[0])
+				val result: Unit = this.facade.lockRangesDbAccess(
+					listId,
+				)
+				return json.encodeToString(result)
+			}
+			"unlockRangesDbAccess" -> {
+				val listId: String = json.decodeFromString(arg[0])
+				val result: Unit = this.facade.unlockRangesDbAccess(
+					listId,
+				)
+				return json.encodeToString(result)
+			}
 			else -> throw Error("unknown method for SqlCipherFacade: $method")
 		}
 	}

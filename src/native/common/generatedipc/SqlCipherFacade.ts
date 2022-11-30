@@ -36,4 +36,18 @@ export interface SqlCipherFacade {
 		params: ReadonlyArray<TaggedSqlValue>,
 	): Promise<ReadonlyArray<Record<string, TaggedSqlValue>>>
 	
+	/**
+	 * We want to lock the access to the "ranges" db when updating / reading the offline available mail list ranges for each mail list (referenced using the listId)
+	 */
+	lockRangesDbAccess(
+		listId: string,
+	): Promise<void>
+	
+	/**
+	 * This is the counterpart to the function "lockRangesDbAccess(listId)"
+	 */
+	unlockRangesDbAccess(
+		listId: string,
+	): Promise<void>
+	
 }
