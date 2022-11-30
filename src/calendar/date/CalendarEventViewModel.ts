@@ -69,6 +69,7 @@ import {Recipient, RecipientType} from "../../api/common/recipients/Recipient"
 import {ResolveMode} from "../../api/main/RecipientsModel.js"
 import {TIMESTAMP_ZERO_YEAR} from "@tutao/tutanota-utils/dist/DateUtils"
 import {getSenderName} from "../../misc/MailboxPropertiesUtils.js"
+import m from "mithril"
 
 // whether to close dialog
 export type EventCreateResult = boolean
@@ -125,6 +126,7 @@ export class CalendarEventViewModel {
 	note: string
 	readonly amPmFormat: boolean
 	readonly existingEvent: CalendarEvent | null
+	private updateViewCallback: () => void
 	private _oldStartTime: Time | null = null
 	readonly _zone: string
 	// We keep alarms read-only so that view can diff just array and not all elements
@@ -168,6 +170,7 @@ export class CalendarEventViewModel {
 		existingEvent: CalendarEvent | null,
 		responseTo: Mail | null,
 		resolveRecipientsLazily: boolean,
+		updateViewCallback: () => void = noOp
 	) {
 		this._distributor = distributor
 		this._calendarModel = calendarModel
@@ -193,6 +196,7 @@ export class CalendarEventViewModel {
 		this.allDay = stream<boolean>(false)
 		this.amPmFormat = userController.userSettingsGroupRoot.timeFormat === TimeFormat.TWELVE_HOURS
 		this.existingEvent = existingEvent ?? null
+		this.updateViewCallback = updateViewCallback
 		this._zone = zone
 		this._guestStatuses = this._initGuestStatus(existingEvent, resolveRecipientsLazily)
 		this.attendees = this._initAttendees()
@@ -221,6 +225,7 @@ export class CalendarEventViewModel {
 			}
 
 			await this.updateCustomerFeatures()
+			this.updateViewCallback()
 			return this
 		})
 	}
@@ -1308,5 +1313,6 @@ export async function createCalendarEventViewModel(
 		existingEvent,
 		previousMail,
 		resolveRecipientsLazily,
+		() => m.redraw()
 	)
 }
