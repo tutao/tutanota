@@ -53,7 +53,7 @@ export class RecipientsSearchDropDown implements ClassComponent<RecipientsSearch
 		}
 
 		return m(
-			`.suggestions.abs.z4.full-width.elevated-bg.scroll.text-ellipsis${attrs.suggestions.length ? ".dropdown-shadow" : ""}`,
+			`.abs.z4.full-width.elevated-bg.scroll.text-ellipsis${attrs.suggestions.length ? ".dropdown-shadow" : ""}`,
 			{
 				oncreate: vnode => this.domSuggestions = vnode.dom as HTMLElement,
 				style: {
