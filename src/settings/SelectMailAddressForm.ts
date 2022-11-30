@@ -3,7 +3,7 @@ import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {isMailAddress} from "../misc/FormatValidator"
 import {AccessDeactivatedError} from "../api/common/error/RestError"
-import {firstThrow} from "@tutao/tutanota-utils"
+import {debounce, firstThrow} from "@tutao/tutanota-utils"
 import {formatMailAddressFromParts} from "../misc/Formatter"
 import {Icon} from "../gui/base/Icon"
 import {BootIcons} from "../gui/base/icons/BootIcons"
@@ -15,6 +15,7 @@ import {inputLineHeight, TextField} from "../gui/base/TextField.js"
 import {attachDropdown, DropdownButtonAttrs} from "../gui/base/Dropdown.js"
 import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js"
+import {UsageTest} from "@tutao/tutanota-usagetests"
 
 assertMainOrNode()
 
@@ -39,6 +40,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 	private messageId: TranslationKey | null
 	private checkAddressTimeout: TimeoutID | null
 	private isVerificationBusy: boolean
+	private __signupUnavailableEmailsTest: UsageTest
 
 	constructor({attrs}: Vnode<SelectMailAddressFormAttrs>) {
 		this.isVerificationBusy = false
@@ -46,7 +48,15 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 		this.domain = firstThrow(attrs.availableDomains)
 		this.username = ""
 		this.messageId = "mailAddressNeutral_msg"
+		this.__signupUnavailableEmailsTest = locator.usageTestController.getTest("signup.unavailableemails")
 	}
+
+	private __debounceSendUnavailableEmailStage = debounce(3000, () => {
+		this.__signupUnavailableEmailsTest.getStage(1).complete({
+			check: () => this.messageId !== "mailAddressNeutral_msg",
+			delay: () => new Promise(resolve => setTimeout(resolve, 1000)),
+		})
+	})
 
 	view({attrs}: Vnode<SelectMailAddressFormAttrs>): Children {
 		// this is a semi-good hack to reset the username after the user pressed "ok"
@@ -69,6 +79,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			oninput: (value) => {
 				this.username = value
 				this.verifyMailAddress(attrs)
+				this.__debounceSendUnavailableEmailStage()
 			},
 			injectionsRight: () => [
 				m(
@@ -127,6 +138,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 				attrs.onDomainChanged?.(domain)
 				this.domain = domain
 				this.verifyMailAddress(attrs)
+				this.__debounceSendUnavailableEmailStage()
 			},
 		}
 	}

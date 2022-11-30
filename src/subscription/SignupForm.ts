@@ -44,17 +44,21 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private _mailAddress!: string
 	private _isMailVerificationBusy: boolean
 	private readonly __mailValid: Stream<boolean>
+	private readonly __lastMailValidationError: Stream<TranslationKey | null>
 	private __signupFreeTest?: UsageTest
 	private __signupPaidTest?: UsageTest
 	private __signupPasswordStrengthTest: UsageTest
+	private __signupUnavailableEmailsTest: UsageTest
 
 	constructor() {
 		this.__mailValid = stream(false)
+		this.__lastMailValidationError = stream(null)
 		this.passwordModel = new PasswordModel(logins, {checkOldPassword: false, enforceStrength: true, repeatInput: false}, this.__mailValid)
 
 		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
 		this.__signupPasswordStrengthTest = locator.usageTestController.getTest("signup.passwordstrength")
+		this.__signupUnavailableEmailsTest = locator.usageTestController.getTest("signup.unavailableemails")
 
 		this._confirmTerms = stream<boolean>(false)
 		this._confirmAge = stream<boolean>(false)
@@ -62,6 +66,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 		this._isMailVerificationBusy = false
 		this._mailAddressFormErrorId = "mailAddressNeutral_msg"
 	}
+
 
 	view(vnode: Vnode<SignupFormAttrs>): Children {
 		const a = vnode.attrs
@@ -73,6 +78,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 				if (validationResult.isValid) {
 					this._mailAddress = email
 					this._mailAddressFormErrorId = null
+					this.__signupUnavailableEmailsTest.getStage(2).complete()
 				} else {
 					this._mailAddressFormErrorId = validationResult.errorId
 				}
@@ -137,7 +143,12 @@ export class SignupForm implements Component<SignupFormAttrs> {
 
 		return m(
 			"#signup-account-dialog.flex-center",
-			{oncreate: () => this.__signupPasswordStrengthTest.getStage(0).complete()},
+			{
+				oncreate: () => {
+					this.__signupPasswordStrengthTest.getStage(0).complete()
+					this.__signupUnavailableEmailsTest.getStage(0).complete()
+				}
+			},
 			m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [
 				a.readonly
 					? m(TextField, {
