@@ -225,23 +225,16 @@ export class MailIndexer {
 	 * Extend mail index if not indexed this range yet.
 	 * newOldestTimestamp should be aligned to the start of the day up until which you want to index, we don't do rounding inside here.
 	 */
-	extendIndexIfNeeded(user: User, newOldestTimestamp: number): Promise<void> {
-		return this.mailboxIndexingPromise
-				   .then(() => {
-					   if (this.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && this.currentIndexTimestamp > newOldestTimestamp) {
-						   this.indexMailboxes(user, newOldestTimestamp).catch(
-							   ofClass(CancelledError, e => {
-								   console.log("extend mail index has been cancelled", e)
-							   }),
-						   )
-						   return this.mailboxIndexingPromise
-					   }
-				   })
-				   .catch(
-					   ofClass(CancelledError, e => {
-						   console.log("extend mail index has been cancelled", e)
-					   }),
-				   )
+	async extendIndexIfNeeded(user: User, newOldestTimestamp: number): Promise<void> {
+		if (this.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && this.currentIndexTimestamp > newOldestTimestamp) {
+			this.mailboxIndexingPromise = this.mailboxIndexingPromise.then(async () => {
+					await this.indexMailboxes(user, newOldestTimestamp)
+				}
+			).catch(ofClass(CancelledError, e => {
+				console.log("extend mail index has been cancelled", e)
+			}))
+			return this.mailboxIndexingPromise
+		}
 	}
 
 	/**
@@ -313,7 +306,6 @@ export class MailIndexer {
 				indexedMailCount: this._core._stats.mailcount,
 				failedIndexingUpTo: null,
 			})
-
 		} catch (e) {
 			console.warn("Mail indexing failed: ", e)
 			// avoid that a rejected promise is stored
