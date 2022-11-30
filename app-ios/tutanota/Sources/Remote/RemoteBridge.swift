@@ -136,6 +136,15 @@ class RemoteBridge : NSObject, NativeInterface {
       let method = try! JSONDecoder().decode(String.self, from: ipcArgs[1].data(using: .utf8)!)
       return try await self.globalDispatcher.dispatch(facadeName: facade, methodName: method, args: Array(ipcArgs[2..<ipcArgs.endIndex]))
   }
+  
+  private func handleRequestError(id: String, error: String) -> Void {
+    TUTSLog("got error for req \(id): \(error)")
+    
+    if let request = self.requests[id] {
+      self.requests.removeValue(forKey: id)
+      request.resume(throwing: TUTErrorFactory.createError(error))
+    }
+  }
 }
 
 extension RemoteBridge : WKScriptMessageHandler {
@@ -157,8 +166,9 @@ extension RemoteBridge : WKScriptMessageHandler {
       // We don't "reject" requests right now
       self.requests.removeValue(forKey: requestId)
     case "requestError":
-      fatalError(body)
-    case "request":
+      let errorJSON = String(parts[2])
+      self.handleRequestError(id: requestId, error: errorJSON)
+    case "request": 
       // requestType
       // arguments
       let requestParams = parts[2].split(separator: "\n", maxSplits: 1, omittingEmptySubsequences: false)
