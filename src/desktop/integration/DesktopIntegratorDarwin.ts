@@ -99,9 +99,6 @@ export class DesktopIntegratorDarwin implements DesktopIntegrator {
 				role: "window",
 				submenu: [
 					{
-						role: "minimize",
-					},
-					{
 						role: "close",
 					},
 					{
@@ -115,6 +112,15 @@ export class DesktopIntegratorDarwin implements DesktopIntegrator {
 					},
 					{
 						role: "front",
+					},
+					{
+						role: "zoomIn"
+					},
+					{
+						role: "zoomOut"
+					},
+					{
+						role: "resetZoom"
 					},
 					{
 						click: () => {
