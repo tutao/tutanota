@@ -188,6 +188,14 @@ export class WindowFacade {
 		}
 	}
 
+	removeHistoryEventListener(listener: (e: Event) => boolean): void {
+		const index = this._historyStateEventListeners.indexOf(listener)
+
+		if (index > -1) {
+			this._historyStateEventListeners.splice(index, 1)
+		}
+	}
+
 	/**
 	 * calls the last history event listener that was added
 	 * and reverts the state change if it returns false
