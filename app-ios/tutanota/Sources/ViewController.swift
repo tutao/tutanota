@@ -2,6 +2,7 @@ import UIKit
 import WebKit
 import UserNotifications
 import DictionaryCoding
+import AuthenticationServices
 
 /// Main screen of the app.
 class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDelegate {
@@ -76,6 +77,10 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     NotificationCenter.default.addObserver(self, selector: #selector(onKeyboardDidShow), name: UIResponder.keyboardDidShowNotification, object: nil)
     NotificationCenter.default.addObserver(self, selector: #selector(onKeyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
     NotificationCenter.default.addObserver(self, selector: #selector(onKeyboardSizeChange), name: UIResponder.keyboardDidChangeFrameNotification, object: nil)
+  }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    self.testWebauthn()
   }
   
   /// Implementation of WKNavigationDelegate
@@ -161,6 +166,22 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
       
       self._loadMainPage(params: [:])
     }
+  }
+  
+  private func testWebauthn() {
+//    let baseUrl = "http://ivk:9000/client/build/webauthnmobile"
+    let baseUrl = "https://test.tutanota.com"
+    let queryItems = NSURLQueryItem.from(dict: ["cbUrl": "tutanota://{result}"])
+    var components = URLComponents.init(url: URL(string: baseUrl)!, resolvingAgainstBaseURL: false)!
+    components.queryItems = queryItems
+    let authUrl = components.url!
+    let scheme = "tutanota"
+    let session = ASWebAuthenticationSession(url: authUrl, callbackURLScheme: scheme) { url, error in
+      TUTSLog("url \(url) error \(error)")
+    }
+    session.prefersEphemeralWebBrowserSession = true
+    session.presentationContextProvider = self
+    session.start()
   }
   
   private func migrateCredentialsFromOldOrigin() async {
@@ -305,4 +326,10 @@ fileprivate class LittleNavigationDelegate : NSObject, WKNavigationDelegate {
   func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
     TUTSLog("FAILED NAVIGATION >{")
   }
+}
+
+extension ViewController: ASWebAuthenticationPresentationContextProviding {
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        return view.window!
+    }
 }
