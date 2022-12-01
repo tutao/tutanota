@@ -116,10 +116,12 @@ export class ExpanderPanel implements Component<ExpanderPanelAttrs> {
 		const expanded = vnode.attrs.expanded
 		// getBoundingClientRect() gives us the correct size, with a fraction
 		this.lastCalculatedHeight = this.childDiv?.getBoundingClientRect().height ?? 0
-		// theoretically we don't need overflow: hidden here but better be safe
-		return m(".expander-panel.overflow-hidden",
-			// this is what will be actually clipping content. nothing must overflow it.
-			m(".overflow-hidden", {
+		return m(".expander-panel",
+			// it's conceivable that the content could overflow or influence the
+			// panel's size, but we did not observe this. overflow: hidden would
+			// solve that in case it becomes a problem, but majorly complicate
+			// putting dropdowns and similar elements inside the panel.
+			m("div", {
 					style: {
 						opacity: expanded ? "1" : "0",
 						height: expanded ? `${this.lastCalculatedHeight}px` : "0px",
