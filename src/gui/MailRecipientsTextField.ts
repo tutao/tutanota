@@ -10,7 +10,7 @@ import {DropdownChildAttrs} from "./base/Dropdown.js"
 import {Contact} from "../api/entities/tutanota/TypeRefs.js"
 import {RecipientsSearchDropDown} from "./RecipientsSearchDropDown.js"
 import {RecipientsSearchModel} from "../misc/RecipientsSearchModel.js"
-import {assertNotNull, firstThrow} from "@tutao/tutanota-utils"
+import {firstThrow} from "@tutao/tutanota-utils"
 import {Dialog} from "./base/Dialog.js"
 
 export interface MailRecipientsTextFieldAttrs {
@@ -128,12 +128,12 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 	}
 
 	private renderSuggestions(attrs: MailRecipientsTextFieldAttrs): Children {
-		return m(RecipientsSearchDropDown, {
+		return m(".rel", m(RecipientsSearchDropDown, {
 			suggestions: attrs.search.results(),
 			selectedSuggestionIndex: this.getSelectedSuggestionIdx(attrs),
 			onSuggestionSelected: idx => this.selectSuggestion(attrs, idx),
 			maxHeight: attrs.maxSuggestionsToShow ?? null
-		})
+		}))
 	}
 
 	private resolveInput(attrs: MailRecipientsTextFieldAttrs) {
