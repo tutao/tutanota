@@ -12,7 +12,7 @@ import {
 	UserTypeRef
 } from "../../entities/sys/TypeRefs.js"
 import {encryptBytes, encryptString} from "../crypto/CryptoFacade"
-import {assertNotNull, findAndRemove, neverNull, uint8ArrayToHex} from "@tutao/tutanota-utils"
+import {assertNotNull, findAndRemove, neverNull, ofClass, uint8ArrayToHex} from "@tutao/tutanota-utils"
 import type {ContactFormUserData, MailboxGroupRoot, MailboxProperties, UserAccountUserData} from "../../entities/tutanota/TypeRefs.js"
 import {
 	createContactFormUserData,
@@ -51,6 +51,8 @@ import {MembershipService, ResetPasswordService, SystemKeysService, UpdateAdmins
 import {UserAccountService} from "../../entities/tutanota/Services"
 import {UserFacade} from "./UserFacade"
 import {getEnabledMailAddressesForGroupInfo} from "../../common/utils/GroupUtils.js"
+import {PreconditionFailedError} from "../../common/error/RestError.js"
+import {ProgrammingError} from "../../common/error/ProgrammingError.js"
 
 assertWorkerOrNode()
 
@@ -437,6 +439,16 @@ export class UserManagementFacade {
 			mailAddressProperties: [],
 		})
 		return this.nonCachingEntityClient.setup(null, mailboxProperties, undefined, {ownerKey: groupKey})
+				   .catch(ofClass(PreconditionFailedError, (e) => {
+					   // in admin case it is much harder to run into it because we use non-caching entityClient but it is still possible
+					   if (e.data && e.data.startsWith("exists:")) {
+						   const existingId = e.data.substring("exists:".length)
+						   console.log("mailboxProperties already exists", existingId)
+						   return existingId
+					   } else {
+						   throw new ProgrammingError(`Could not create mailboxProperties, precondition: ${e.data}`)
+					   }
+				   }))
 	}
 
 	private async updateMailboxProperties(mailboxProperties: MailboxProperties, viaUser: Id): Promise<MailboxProperties> {
