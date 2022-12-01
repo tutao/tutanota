@@ -24,10 +24,11 @@ import {Notifications} from "../../gui/Notifications"
 import {findAndApplyMatchingRule} from "./InboxRuleHandler"
 import {EntityClient} from "../../api/common/EntityClient"
 import {elementIdPart, getListId, isSameId, listIdPart} from "../../api/common/utils/EntityUtils"
-import {NotFoundError} from "../../api/common/error/RestError"
+import {NotFoundError, PreconditionFailedError} from "../../api/common/error/RestError"
 import type {MailFacade} from "../../api/worker/facades/MailFacade"
 import {LoginController} from "../../api/main/LoginController.js"
 import {getEnabledMailAddressesWithUser} from "./MailUtils.js"
+import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
 
 export type MailboxDetail = {
 	mailbox: MailBox
@@ -398,6 +399,16 @@ export class MailModel {
 		if (!mailboxGroupRoot.mailboxProperties) {
 			mailboxGroupRoot.mailboxProperties = await this.entityClient.setup(null, createMailboxProperties({
 				_ownerGroup: mailboxGroupRoot._ownerGroup,
+			})).catch(ofClass(PreconditionFailedError, (e) => {
+				// We try to prevent race conditions but they can still happen with multiple clients trying ot create mailboxProperties at the same time.
+				// We send special precondition from the server with an existing id.
+				if (e.data && e.data.startsWith("exists:")) {
+					const existingId = e.data.substring("exists:".length)
+					console.log("mailboxProperties already exists", existingId)
+					return existingId
+				} else {
+					throw new ProgrammingError(`Could not create mailboxProperties, precondition: ${e.data}`)
+				}
 			}))
 		}
 		const mailboxProperties = await this.entityClient.load(MailboxPropertiesTypeRef, mailboxGroupRoot.mailboxProperties)
