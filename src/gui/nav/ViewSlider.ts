@@ -7,12 +7,10 @@ import {alpha, AlphaEnum, animations, transform, TransformEnum} from "../animati
 import {ease} from "../animation/Easing.js"
 import {theme} from "../theme.js"
 import {neverNull} from "@tutao/tutanota-utils"
-import {BottomNav} from "./BottomNav.js"
 import {styles} from "../styles.js"
 import {AriaLandmarks} from "../AriaUtils.js"
 import {LayerType} from "../../RootView.js"
 import {assertMainOrNode} from "../../api/common/Env.js"
-import type {Header} from "../Header.js"
 
 assertMainOrNode()
 export type GestureInfo = {
@@ -48,17 +46,32 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	private _busy: Promise<unknown>
 	private _parentName: string
 	private _isModalBackgroundVisible: boolean
+	private resizeListener: windowSizeListener = () => this._updateVisibleBackgroundColumns()
+	private handleHistoryEvent = () => {
+		const prev = this.getPreviousColumn()
+		if (prev != null && prev.columnType !== ColumnType.Foreground) {
+			this.focusPreviousColumn()
+			return false
+		} else if (this.isForegroundColumnFocused()) {
+			this.focusNextColumn()
+			return false
+		}
+		return true
+	}
 
-	/** Creates the event listener as soon as this component is loaded (invoked by mithril)*/
+	/** Creates the event listeners as soon as this component is loaded (invoked by mithril)*/
 	oncreate: () => void = () => {
 		this._updateVisibleBackgroundColumns()
 
 		windowFacade.addResizeListener(this.resizeListener)
+		windowFacade.addHistoryEventListener(this.handleHistoryEvent)
 	}
 
-	/** Removes the registered event listener as soon as this component is unloaded (invoked by mithril)*/
-	onremove: () => void = () => windowFacade.removeResizeListener(this.resizeListener)
-	resizeListener: windowSizeListener = () => this._updateVisibleBackgroundColumns()
+	/** Removes the registered event listeners as soon as this component is unloaded (invoked by mithril)*/
+	onremove: () => void = () => {
+		windowFacade.removeResizeListener(this.resizeListener)
+		windowFacade.removeHistoryEventListener(this.handleHistoryEvent)
+	}
 	_getSideColDom: () => HTMLElement | null = () => this.columns[0]._domColumn
 
 	constructor(viewColumns: ViewColumn[], parentName: string) {
