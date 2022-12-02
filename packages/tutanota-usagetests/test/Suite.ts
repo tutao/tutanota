@@ -226,6 +226,50 @@ o.spec("Main", function () {
 
 		o(adapter.pingsSent).equals(8)
 	})
+
+	o("stage completion check function is respected", async function () {
+		const testId1 = "t1"
+		const test1 = new UsageTest(testId1, "test 1", 1, true)
+
+		for (let i = 0; i < 2; i++) {
+			test1.addStage(new Stage(i, test1, 0, 1))
+		}
+
+		const adapter = new MockPingAdapter()
+		const usageTestController = new UsageTestController(adapter)
+
+		usageTestController.addTests([test1])
+
+		await test1.getStage(0).complete({
+			check: () => false,
+		})
+		await test1.getStage(1).complete({
+			check: () => true,
+		})
+
+		o(adapter.pingsSent).equals(1)
+	})
+
+	o("stage completion check function is respected after delay", async function () {
+		const testId1 = "t1"
+		const test1 = new UsageTest(testId1, "test 1", 1, true)
+		test1.addStage(new Stage(0, test1, 0, 1))
+
+		const adapter = new MockPingAdapter()
+		const usageTestController = new UsageTestController(adapter)
+
+		usageTestController.addTests([test1])
+
+		let doComplete = true
+		setTimeout(() => doComplete = false, 90)
+
+		await test1.getStage(0).complete({
+			check: () => doComplete,
+			delay: () => new Promise(resolve => setTimeout(resolve, 100)),
+		})
+
+		o(adapter.pingsSent).equals(0)
+	})
 })
 
 o.run()

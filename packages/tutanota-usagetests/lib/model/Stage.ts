@@ -38,7 +38,7 @@ export class Stage {
 	}
 
 	/**
-	 * Attempts to the complete the stage and returns true if a ping has been sent successfully.
+	 * Attempts to complete the stage and returns true if a ping has been sent successfully.
 	 */
 	async complete(options?: StageCompletionOptions): Promise<boolean | void> {
 		if (options?.delay) {
