@@ -33,14 +33,11 @@ class ShareViewController: UIViewController {
             TUTSLog("skipped attaching empty file url")
           }
         case .image(ident: _, content: let content):
-          if content != nil {
-            guard let imageURL = await saveUIImage(subdir: timestamp, image: content!) else {
-              continue
-            }
-            info.fileUrls.append(imageURL)
-          } else {
+          guard let content = content, let imageURL = await saveUIImage(subdir: timestamp, image: content) else {
             TUTSLog("skipped attaching nil image")
+            continue
           }
+          info.fileUrls.append(imageURL)
         case .text(ident: _, let content):
           if content != nil {
             info.text = info.text.appending(content!).appending("\n")
@@ -48,14 +45,11 @@ class ShareViewController: UIViewController {
             TUTSLog("skipped attaching nil string")
           }
         case .contact(ident: _, let content):
-          if content != nil {
-            guard let vcardUrl = await saveVCard(subdir: timestamp, vcardText: content!) else {
-              continue
-            }
-            info.fileUrls.append(vcardUrl)
-          } else {
+          guard let content = content, let vcardUrl = await saveVCard(subdir: timestamp, vcardText: content) else {
             TUTSLog("skipped attaching nil contact")
+            continue
           }
+          info.fileUrls.append(vcardUrl)
         }
       }
 
