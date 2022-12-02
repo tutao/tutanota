@@ -46,8 +46,8 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	private _busy: Promise<unknown>
 	private _parentName: string
 	private _isModalBackgroundVisible: boolean
-	private resizeListener: windowSizeListener = () => this._updateVisibleBackgroundColumns()
-	private handleHistoryEvent = () => {
+	private readonly resizeListener: windowSizeListener = () => this._updateVisibleBackgroundColumns()
+	private readonly handleHistoryEvent = () => {
 		const prev = this.getPreviousColumn()
 		if (prev != null && prev.columnType !== ColumnType.Foreground) {
 			this.focusPreviousColumn()
