@@ -100,6 +100,7 @@ class ShareViewController: UIViewController {
 }
 
 /// decodes the type of a NSItemProvider and returns the data that can be used to set up sharing that item with the main app
+@MainActor
 func loadSharedAttachment(_ attachment: NSItemProvider) async -> SharedItem? {
   for registeredTypeIdentifier in attachment.registeredTypeIdentifiers {
     if let loadedItem = await loadSharedItemWith(ident: registeredTypeIdentifier, fromAttachment: attachment) {

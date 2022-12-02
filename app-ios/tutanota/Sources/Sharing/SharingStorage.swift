@@ -41,6 +41,7 @@ enum SharedItem {
 
 /// there is a bunch of uniform type identifiers that can be set by the sharing app. it's not clear what's available,
 /// but there are some constants defined available with "import UniformTypeIdentifiers".
+@MainActor
 func loadSharedItemWith(ident: String, fromAttachment: NSItemProvider) async -> SharedItem? {
   switch ident {
   case
@@ -66,6 +67,7 @@ func loadSharedItemWith(ident: String, fromAttachment: NSItemProvider) async -> 
   }
 }
 
+@MainActor
 func loadAndConvertWith(_ converter: (String, NSSecureCoding) -> SharedItem?, attachment: NSItemProvider, ident: String) async -> SharedItem? {
   guard let coding = try? await attachment.loadItem(forTypeIdentifier: ident, options: nil) else {
     TUTSLog("failed to load secure coding for \(ident)")
