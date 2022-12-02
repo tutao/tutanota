@@ -83,13 +83,16 @@ class ShareViewController: UIViewController {
   }
 
   private func openMainAppWithOpenUrl(_ timestamp: String) {
-    self.extensionContext?.completeRequest(returningItems: nil, completionHandler: { _ in
-      guard let url = URL(string: TUTANOTA_SHARE_SCHEME.appending(timestamp)) else {
+    var components = URLComponents()
+    components.scheme = TUTANOTA_SHARE_SCHEME
+    components.host = timestamp
+    self.extensionContext?.completeRequest(returningItems: nil) { (_expired: Bool) in
+      guard let url = components.url else {
         TUTSLog("failed to build URL for sharing with \(timestamp)")
         return
       }
       _ = self.openURL(url)
-    })
+    }
   }
 
   @objc func openURL(_ url: URL) -> Bool {
