@@ -48,27 +48,27 @@ func loadSharedItemWith(ident: String, fromAttachment: NSItemProvider) async -> 
     "public.png", "public.jpeg", "public.tiff", //shared from photos
     "public.file-url" // shared from files
     :
-    return await loadAndConvertWith(codingToUrl, attachment: fromAttachment, ident: ident)
+    return await load(item: fromAttachment, ident: ident, andConvertWith: codingToUrl)
   case
     "public.image" // shared from e.g. Signal, no URL but image data
     :
-    return await loadAndConvertWith(codingToImage, attachment: fromAttachment, ident: ident)
+    return await load(item: fromAttachment, ident: ident, andConvertWith: codingToImage)
   case
     "public.url", // shared image from safari, shared link, shared pdf...
     "public.plain-text" // shared from Notes, safari
     :
-    return await loadAndConvertWith(codingToText, attachment: fromAttachment, ident: ident)
+    return await load(item: fromAttachment, ident: ident, andConvertWith: codingToText)
   case
     "public.vcard" // shared from contacts
     :
-    return await loadAndConvertWith(codingToVCard, attachment: fromAttachment, ident: ident)
+    return await load(item: fromAttachment, ident: ident, andConvertWith: codingToVCard)
   default:
     return nil
   }
 }
 
 @MainActor
-func loadAndConvertWith(_ converter: (String, NSSecureCoding) -> SharedItem?, attachment: NSItemProvider, ident: String) async -> SharedItem? {
+fileprivate func load(item attachment: NSItemProvider, ident: String, andConvertWith converter: (String, NSSecureCoding) -> SharedItem?) async -> SharedItem? {
   guard let coding = try? await attachment.loadItem(forTypeIdentifier: ident, options: nil) else {
     TUTSLog("failed to load secure coding for \(ident)")
     return nil
@@ -168,18 +168,12 @@ func getUniqueInfoLocation() -> String {
   return String(timestamp)
 }
 
-/// get the URL pointing to the shared storage on disk
-func sharedDirectoryURL() -> URL {
-  let fileManager = FileManager.default
-  return fileManager.containerURL(forSecurityApplicationGroupIdentifier: TUTANOTA_APP_GROUP)!
-}
-
 func codingToUrl(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
   guard let decodedURL: URL = (coding as? URL) ?? ((coding as? NSURL) as? URL) else {
     TUTSLog("could not convert coding \(String(describing: coding)) to URL")
     return nil
   }
-  return SharedItem.fileUrl(
+  return .fileUrl(
     ident: ident,
     content: decodedURL
   )
@@ -191,37 +185,31 @@ func codingToImage(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
     return nil
   }
 
-  return SharedItem.image(
+  return .image(
     ident: ident,
     content: uiImage
   )
 }
 
-func codingToText(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
-  var decodedText: String? = coding as? String
-
-  if decodedText == nil {
-    decodedText = (coding as? URL)?.absoluteString
-  }
-
-  if decodedText == nil {
+fileprivate  func codingToText(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
+  guard let decodedText = coding as? String ?? (coding as? URL)?.absoluteString else {
     TUTSLog("could not convert coding \(String(describing: coding)) to String")
     return nil
   }
 
-  return SharedItem.text(
+  return .text(
     ident: ident,
-    content: decodedText!
+    content: decodedText
   )
 }
 
-func codingToVCard(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
+fileprivate func codingToVCard(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
   guard let vcardText = coding as? Data else {
     TUTSLog("could not convert vcard to data: \(String(describing: coding))")
     return nil
   }
 
-  return SharedItem.contact(
+  return .contact(
     ident: ident,
     content: String(data:vcardText, encoding: .utf8)!
   )
