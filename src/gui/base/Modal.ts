@@ -23,6 +23,7 @@ class Modal implements Component {
 	visible: boolean
 	currentKey: number
 	private _closingComponents: Array<ModalComponent>
+	private readonly _historyEventListener = (e: Event) => this._popState(e)
 
 	constructor() {
 		this.currentKey = 0
@@ -30,8 +31,6 @@ class Modal implements Component {
 		this.visible = false
 		this._uniqueComponent = null
 		this._closingComponents = []
-		// modal should never get removed, so not saving unsubscriber
-		windowFacade.addHistoryEventListener(e => this._popState(e))
 
 		this.view = (): Children => {
 			return m(
@@ -111,6 +110,9 @@ class Modal implements Component {
 	}
 
 	display(component: ModalComponent, needsBg: boolean = true) {
+		// move the handler to the top of the handler stack
+		windowFacade.removeHistoryEventListener(this._historyEventListener)
+		windowFacade.addHistoryEventListener(this._historyEventListener)
 		if (this.components.length > 0) {
 			keyManager.unregisterModalShortcuts(this.components[this.components.length - 1].component.shortcuts())
 		}
@@ -198,6 +200,7 @@ class Modal implements Component {
 
 		if (componentIsLastComponent) {
 			keyManager.unregisterModalShortcuts(component.shortcuts())
+			windowFacade.removeHistoryEventListener(this._historyEventListener)
 		}
 
 		this.components.splice(componentIndex, 1)
@@ -235,5 +238,10 @@ export interface ModalComponent extends Component {
 
 	backgroundClick(e: MouseEvent): void
 
+	/**
+	 * will be called by the main modal if no other component above this one blocked the event (previous components returned true)
+	 * return false if the event was handled and lower components shouldn't be notified, true otherwise
+	 * @param e
+	 */
 	popState(e: Event): boolean
 }
