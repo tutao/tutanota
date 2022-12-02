@@ -1,8 +1,11 @@
-import {WebAuthnRegistrationChallenge, WebAuthnRegistrationResult, WebAuthnSignChallenge, WebAuthnSignResult} from "../../misc/2fa/webauthn/WebAuthn.js"
 import {WebAuthnFacade} from "../../native/common/generatedipc/WebAuthnFacade.js"
 import type {WebDialogController} from "../WebDialog.js"
 import {WebDialog} from "../WebDialog.js"
 import {ApplicationWindow} from "../ApplicationWindow.js"
+import {WebAuthnRegistrationChallenge} from "../../native/common/generatedipc/WebAuthnRegistrationChallenge.js"
+import {WebAuthnRegistrationResult} from "../../native/common/generatedipc/WebAuthnRegistrationResult.js"
+import {WebAuthnSignChallenge} from "../../native/common/generatedipc/WebAuthnSignChallenge.js"
+import {WebAuthnSignResult} from "../../native/common/generatedipc/WebAuthnSignResult.js"
 
 export class DesktopWebauthnFacade implements WebAuthnFacade {
 	private currentDialog: Promise<WebDialog<{WebAuthnFacade: WebAuthnFacade}>> | null = null

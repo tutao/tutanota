@@ -1,4 +1,8 @@
 /* generated file, don't edit. */
 
-
-export {WebAuthnSignChallenge} from "../../../misc/2fa/webauthn/WebAuthn.js"
+import {WebauthnKeyDescriptor} from "./WebauthnKeyDescriptor.js"
+export interface WebAuthnSignChallenge {
+	readonly challenge: Uint8Array
+	readonly domain: string
+	readonly keys: ReadonlyArray<WebauthnKeyDescriptor>
+}

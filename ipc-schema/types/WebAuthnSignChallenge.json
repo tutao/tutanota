@@ -1,7 +1,9 @@
 {
-  "name": "WebAuthnSignChallenge",
-  "type": "typeref",
-  "location": {
-	"typescript": "../src/misc/2fa/webauthn/WebAuthn.js"
-  }
+	"name": "WebAuthnSignChallenge",
+	"type": "struct",
+	"fields": {
+		"challenge": "bytes",
+		"domain": "string",
+		"keys": "List<WebauthnKeyDescriptor>"
+	}
 }
