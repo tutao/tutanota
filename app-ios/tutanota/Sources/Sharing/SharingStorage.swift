@@ -1,7 +1,7 @@
 import Foundation
 
 let TUTANOTA_APP_GROUP = "group.de.tutao.tutanota"
-let TUTANOTA_SHARE_SCHEME = "tutashare://"
+let TUTANOTA_SHARE_SCHEME = "tutashare"
 
 /// this gets shared to the main app and contains all the info
 /// to create a new mail & the cleanup

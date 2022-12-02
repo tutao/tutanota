@@ -81,9 +81,11 @@ class AppDelegate : UIResponder,
     self.pushTokenCallback = nil
   }
 
-  /** handles tutanota:// links */
+  /// handles tutanota deep links:
+  /// tutanota:// -> ?
+  /// tutashare:// -> share requests from the sharing extension
   func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:] ) -> Bool {
-    switch url.scheme?.appending("://") {
+    switch url.scheme {
     case TUTANOTA_SHARE_SCHEME:
       Task { try! await self.viewController.handleShare(url) }
     case nil:
