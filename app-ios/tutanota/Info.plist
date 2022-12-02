@@ -58,7 +58,7 @@
 	<key>NSRemindersUsageDescription</key>
 	<string>Shows notification when new email arrives.</string>
 	<key>TutanotaApplicationPath</key>
-	<string>build/</string>
+	<string>build/dist/</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>ionicons.ttf</string>

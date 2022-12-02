@@ -137,11 +137,11 @@ func readSharingInfo(infoLocation: String) -> SharingInfo? {
     TUTSLog("there are no sharingInfos to be found at \(infoLocation)")
     return nil
   }
-  if let decodedInfo = try? JSONDecoder().decode(SharingInfo.self, from: data) {
-    return decodedInfo
-  } else{
-    TUTSLog("could not decode sharingInfo from UserDefaults")
-    return nil
+  do {
+    return try JSONDecoder().decode(SharingInfo.self, from: data)
+  } catch {
+      TUTSLog("could not decode sharingInfo from UserDefaults: \(error)")
+      return nil
   }
 }
 
