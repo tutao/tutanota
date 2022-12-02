@@ -37,6 +37,8 @@ fun String.base64ToBytes(): ByteArray {
 	return Base64.decode(this, Base64.NO_WRAP)
 }
 
+fun String.base64ToString(): String = String(this.base64ToBytes())
+
 fun String.base64ToBase64Url(): String {
 	return replace("\\+".toRegex(), "-")
 			.replace("/".toRegex(), "_")
