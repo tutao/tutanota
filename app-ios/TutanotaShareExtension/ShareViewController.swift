@@ -116,88 +116,74 @@ func loadSharedAttachment(_ attachment: NSItemProvider) async -> SharedItem? {
     return nil
   }
 
-  return try? await withCheckedThrowingContinuation { cont in
-    attachment.loadItem(forTypeIdentifier: firstSupported.ident(), options: nil) { coding, err in
-      if(err != nil) {
-        TUTSLog("got error when loading attachment item: \(err!)")
-        cont.resume(throwing: SharingError.failedToLoad)
-      }
-
-      guard let coding = coding else {
-        TUTSLog("got nil coded attachment")
-        cont.resume(throwing: SharingError.failedToLoad )
-        return
-      }
-
-      switch firstSupported {
-      case .fileUrl:
-        return codingToUrl(coding, cont)
-      case .image:
-        return codingToImage(coding, cont)
-      case .text:
-        return codingToText(coding, cont)
-      case .contact:
-        return codingToVCard(coding, cont)
-      }
-    }
+  guard let coding = try? await attachment.loadItem(forTypeIdentifier: firstSupported.ident(), options: nil) else {
+    TUTSLog("failed to load secure coding for \(firstSupported.ident())")
+    return nil
   }
 
-  @Sendable func codingToUrl(_ coding: NSSecureCoding, _ cont: CheckedContinuation<SharedItem, any Error>) -> Void {
-    guard let decodedURL: URL = (coding as? URL) ?? ((coding as? NSURL) as? URL) else {
-      TUTSLog("could not convert coding \(String(describing: coding)) to URL")
-      cont.resume(throwing: SharingError.failedToLoad)
-      return
-    }
-    cont.resume(returning: SharedItem.fileUrl(
-      ident: firstSupported.ident(),
-      content: decodedURL
-    ))
+  switch firstSupported {
+  case .fileUrl:
+    return codingToUrl(firstSupported.ident(), coding)
+  case .image:
+    return codingToImage(firstSupported.ident(), coding)
+  case .text:
+    return codingToText(firstSupported.ident(), coding)
+  case .contact:
+    return codingToVCard(firstSupported.ident(), coding)
+  }
+}
+
+func codingToUrl(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
+  guard let decodedURL: URL = (coding as? URL) ?? ((coding as? NSURL) as? URL) else {
+    TUTSLog("could not convert coding \(String(describing: coding)) to URL")
+    return nil
+  }
+  return SharedItem.fileUrl(
+    ident: ident,
+    content: decodedURL
+  )
+}
+
+func codingToImage(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
+  guard let uiImage = coding as? UIImage else {
+    TUTSLog("could not convert coding to UIImage: \(String(describing: coding))")
+    return nil
   }
 
-  @Sendable func codingToImage(_ coding: NSSecureCoding, _ cont: CheckedContinuation<SharedItem, any Error>) -> Void {
-    guard let uiImage = coding as? UIImage else {
-      TUTSLog("could not convert coding to UIImage: \(String(describing: coding))")
-      cont.resume(throwing: SharingError.failedToLoad)
-      return
-    }
+  return SharedItem.image(
+    ident: ident,
+    content: uiImage
+  )
+}
 
-    cont.resume(returning: SharedItem.image(
-      ident: firstSupported.ident(),
-      content: uiImage
-    ))
+func codingToText(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
+  var decodedText: String? = coding as? String
+
+  if decodedText == nil {
+    decodedText = (coding as? URL)?.absoluteString
   }
 
-  @Sendable func codingToText(_ coding: NSSecureCoding, _ cont: CheckedContinuation<SharedItem, any Error>) -> Void {
-    var decodedText: String? = coding as? String
-
-    if decodedText == nil {
-      decodedText = (coding as? URL)?.absoluteString
-    }
-
-    if decodedText == nil {
-      TUTSLog("could not convert coding \(String(describing: coding)) to String")
-      cont.resume(throwing: SharingError.failedToLoad)
-      return
-    }
-
-    cont.resume(returning: SharedItem.text(
-      ident: firstSupported.ident(),
-      content: decodedText!
-    ))
+  if decodedText == nil {
+    TUTSLog("could not convert coding \(String(describing: coding)) to String")
+    return nil
   }
 
-  @Sendable func codingToVCard(_ coding: NSSecureCoding, _ cont: CheckedContinuation<SharedItem, any Error>) -> Void {
-    guard let vcardText = coding as? Data else {
-      TUTSLog("could not convert vcard to data: \(String(describing: coding))")
-      cont.resume(throwing: SharingError.failedToLoad)
-      return
-    }
+  return SharedItem.text(
+    ident: ident,
+    content: decodedText!
+  )
+}
 
-    cont.resume(returning: SharedItem.contact(
-      ident: firstSupported.ident(),
-      content: String(data:vcardText, encoding: .utf8)!
-    ))
+func codingToVCard(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
+  guard let vcardText = coding as? Data else {
+    TUTSLog("could not convert vcard to data: \(String(describing: coding))")
+    return nil
   }
+
+  return SharedItem.contact(
+    ident: ident,
+    content: String(data:vcardText, encoding: .utf8)!
+  )
 }
 
 /// async version of map, awaiting each async result in the collection
