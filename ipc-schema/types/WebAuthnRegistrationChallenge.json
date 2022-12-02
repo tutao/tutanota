@@ -1,7 +1,11 @@
 {
-  "name": "WebAuthnRegistrationChallenge",
-  "type": "typeref",
-  "location": {
-	"typescript": "../src/misc/2fa/webauthn/WebAuthn.js"
-  }
+	"name": "WebAuthnRegistrationChallenge",
+	"type": "struct",
+	"fields": {
+		"challenge": "bytes",
+		"userId": "string",
+		"name": "string",
+		"displayName": "string",
+		"domain": "string"
+	}
 }

@@ -1,4 +1,11 @@
 /* generated file, don't edit. */
 
 
-export {WebAuthnRegistrationResult} from "../../../misc/2fa/webauthn/WebAuthn.js"
+/**
+ * Result of Webauthn registration with hardware key.
+ */
+export interface WebAuthnRegistrationResult {
+	readonly rpId: string
+	readonly rawId: Uint8Array
+	readonly attestationObject: Uint8Array
+}

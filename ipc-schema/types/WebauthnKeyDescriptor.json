@@ -1,0 +1,8 @@
+{
+	"name": "WebauthnKeyDescriptor",
+	"type": "struct",
+	"doc": "Similar to browser's built-in PublicKeyCredentialDescriptor but we only specify ID here",
+	"fields": {
+		"id": "bytes"
+	}
+}

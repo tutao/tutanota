@@ -1,7 +1,11 @@
 {
-  "name": "WebAuthnSignResult",
-  "type": "typeref",
-  "location": {
-	"typescript": "../src/misc/2fa/webauthn/WebAuthn.js"
-  }
+	"name": "WebAuthnSignResult",
+	"type": "struct",
+	"doc": "Result of Webauthn authentication with hardware key.",
+	"fields": {
+		"rawId": "bytes",
+		"clientDataJSON": "bytes",
+		"signature": "bytes",
+		"authenticatorData": "bytes"
+	}
 }

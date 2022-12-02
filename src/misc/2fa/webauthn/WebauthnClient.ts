@@ -4,6 +4,7 @@ import type {U2fChallenge, U2fRegisteredDevice, WebauthnResponseData} from "../.
 import {createU2fRegisteredDevice, createWebauthnResponseData, U2fKey} from "../../../api/entities/sys/TypeRefs.js"
 import {WebAuthnFacade} from "../../../native/common/generatedipc/WebAuthnFacade.js"
 import {U2F_APPID, U2f_APPID_SUFFIX, WEBAUTHN_RP_ID} from "./WebAuthn.js"
+import {WebauthnKeyDescriptor} from "../../../native/common/generatedipc/WebauthnKeyDescriptor.js"
 
 /** Web authentication entry point for the rest of the app. */
 export class WebauthnClient {
@@ -48,10 +49,9 @@ export class WebauthnClient {
 	}
 
 	async authenticate(challenge: U2fChallenge, signal?: AbortSignal): Promise<WebauthnResponseData> {
-		const allowedKeys: Array<PublicKeyCredentialDescriptor> = challenge.keys.map(key => {
+		const allowedKeys: WebauthnKeyDescriptor[] = challenge.keys.map(key => {
 			return {
 				id: key.keyHandle,
-				type: "public-key",
 			}
 		})
 

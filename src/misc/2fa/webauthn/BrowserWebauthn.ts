@@ -1,19 +1,15 @@
 import {COSEAlgorithmIdentifier} from "./WebauthnTypes.js"
 import {ProgrammingError} from "../../../api/common/error/ProgrammingError.js"
 import {getHttpOrigin, isApp} from "../../../api/common/Env.js"
-import {
-	U2F_APPID,
-	U2f_APPID_SUFFIX,
-	WEBAUTHN_RP_ID,
-	WebAuthnRegistrationChallenge,
-	WebAuthnRegistrationResult,
-	WebAuthnSignChallenge,
-	WebAuthnSignResult
-} from "./WebAuthn.js"
+import {U2F_APPID, U2f_APPID_SUFFIX, WEBAUTHN_RP_ID,} from "./WebAuthn.js"
 import {WebAuthnFacade} from "../../../native/common/generatedipc/WebAuthnFacade.js"
 import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import {CancelledError} from "../../../api/common/error/CancelledError.js"
 import {WebauthnError} from "../../../api/common/error/WebauthnError.js"
+import {WebAuthnRegistrationChallenge} from "../../../native/common/generatedipc/WebAuthnRegistrationChallenge.js"
+import {WebAuthnRegistrationResult} from "../../../native/common/generatedipc/WebAuthnRegistrationResult.js"
+import {WebAuthnSignChallenge} from "../../../native/common/generatedipc/WebAuthnSignChallenge.js"
+import {WebAuthnSignResult} from "../../../native/common/generatedipc/WebAuthnSignResult.js"
 
 const WEBAUTHN_TIMEOUT_MS = 60000
 
@@ -87,16 +83,22 @@ export class BrowserWebauthn implements WebAuthnFacade {
 
 		return {
 			rpId: this.rpId,
-			rawId: credential.rawId,
-			attestationObject: (credential.response as AuthenticatorAttestationResponse).attestationObject,
+			rawId: new Uint8Array(credential.rawId),
+			attestationObject: new Uint8Array((credential.response as AuthenticatorAttestationResponse).attestationObject),
 		}
 	}
 
 	async sign({challenge, keys}: WebAuthnSignChallenge): Promise<WebAuthnSignResult> {
+		const allowCredentials: PublicKeyCredentialDescriptor[] = keys.map((key) => {
+			return {
+				id: key.id,
+				type: "public-key"
+			}
+		})
 		const publicKeyCredentialRequestOptions: PublicKeyCredentialRequestOptions = {
 			challenge: challenge,
 			rpId: this.rpId,
-			allowCredentials: keys,
+			allowCredentials,
 			extensions: {
 				appid: this.appId,
 			},
@@ -126,10 +128,10 @@ export class BrowserWebauthn implements WebAuthnFacade {
 		}
 		const assertionResponse = publicKeyCredential.response as AuthenticatorAssertionResponse
 		return {
-			rawId: publicKeyCredential.rawId,
-			authenticatorData: assertionResponse.authenticatorData,
-			signature: assertionResponse.signature,
-			clientDataJSON: assertionResponse.clientDataJSON,
+			rawId: new Uint8Array(publicKeyCredential.rawId),
+			authenticatorData: new Uint8Array(assertionResponse.authenticatorData),
+			signature: new Uint8Array(assertionResponse.signature),
+			clientDataJSON: new Uint8Array(assertionResponse.clientDataJSON),
 		}
 	}
 

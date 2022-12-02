@@ -1,4 +1,10 @@
 /* generated file, don't edit. */
 
 
-export {WebAuthnRegistrationChallenge} from "../../../misc/2fa/webauthn/WebAuthn.js"
+export interface WebAuthnRegistrationChallenge {
+	readonly challenge: Uint8Array
+	readonly userId: string
+	readonly name: string
+	readonly displayName: string
+	readonly domain: string
+}
