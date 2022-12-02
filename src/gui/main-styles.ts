@@ -77,6 +77,10 @@ styles.registerStyle("main", () => {
 		"*:not(input):not(textarea):not([draggable='true'])": {
 			"-webkit-user-drag": "none",
 		},
+		// Disable outline for mouse and touch navigation
+		":where(.mouse-nav) *, :where(.touch-nav) *": {
+			outline: "none"
+		},
 		".selectable": {
 			"user-select": "text !important",
 			"-ms-user-select": "text !important",
@@ -1068,11 +1072,15 @@ styles.registerStyle("main", () => {
 			// undoing our default button styling
 			"opacity": "1 !important"
 		},
-		".state-bg:hover": {
+		// Only enable hover for mouse and keyboard navigation (not touch) because
+		// :hover will bet stuck after the touch on mobile.
+		// Use :where() to not count towards specificity, otherwise this is more specific
+		// than :active (which is unconditional
+		":where(.mouse-nav) .state-bg:hover, :where(.keyboard-nav) .state-bg:hover": {
 			"background": "rgba(139,139,139,0.22)",
 			"transition-duration": ".3s",
 		},
-		".state-bg:focus": {
+		":where(.keyboard-nav) .state-bg:focus": {
 			"background": "rgba(139,139,139,0.29)",
 			"transition-duration": ".3s",
 		},

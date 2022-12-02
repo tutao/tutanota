@@ -1,8 +1,10 @@
-import m, {Children} from "mithril"
+import m, {Children, ClassComponent, Vnode} from "mithril"
 import {modal} from "./gui/base/Modal"
 import {overlay} from "./gui/base/Overlay"
 import {styles} from "./gui/styles"
-import {assertMainOrNodeBoot} from "./api/common/Env"
+import {assertMainOrNodeBoot, isApp} from "./api/common/Env"
+import {Keys} from "./api/common/TutanotaConstants.js"
+import {isKeyPressed} from "./misc/KeyManager.js"
 
 assertMainOrNodeBoot()
 
@@ -20,39 +22,63 @@ export const enum LayerType {
 	Overlay = 400,
 }
 
-export class RootView {
-	view: (...args: Array<any>) => any
+const enum PrimaryNavigationType {
+	Keyboard,
+	Touch,
+	Mouse,
+	// theoretically pen is also an option
+}
 
+// global, in case we have multiple instances for some reason
+/** What we infer to be the user's preferred navigation type. */
+let currentNavigationType: PrimaryNavigationType = isApp() ? PrimaryNavigationType.Touch : PrimaryNavigationType.Mouse
+
+/**
+ * View which wraps anything that we render.
+ * It has overlay, modal and the main layers. It also defines some global handlers for better visual indication depending on the interaction.
+ */
+export class RootView implements ClassComponent {
 	constructor() {
-		// On first mouse event disable outline. This is a compromise between keyboard navigation users and mouse users.
-		let onmousedown: ((e: EventRedraw<MouseEvent>) => unknown) | null = (e) => {
-			if (onmousedown) {
-				console.log("disabling outline")
-				styles.registerStyle("outline", () => ({
-					"*": {
-						outline: "none",
-					},
-				}))
-				// remove event listener after the first click to not re-register style
-				onmousedown = null
-				// It is important to not redraw at this point because click event may be lost otherwise and saved login button would not be
-				// actually pressed. It's unclear why but preventing redraw (this way or setting listener manually) helps.
-				// It's also useless to redraw for this click handler because we just want to add a global style definition.
-				e.redraw = false
-			}
-		}
+		// still "old-style" component, we don't want to lose "this" reference
+		this.view = this.view.bind(this)
+	}
 
-		this.view = (vnode): Children => {
-			return m(
-				"#root" + (styles.isUsingBottomNavigation() ? ".mobile" : ""),
-				{
-					onmousedown,
-					style: {
-						height: "100%"
+	view(vnode: Vnode): Children {
+		return m("#root" + (styles.isUsingBottomNavigation() ? ".mobile" : ""), {
+				// use pointer events instead of mousedown/touchdown because mouse events are still fired for touch on mobile
+				onpointerdown: (e: PointerEvent) => {
+					if (e.pointerType === "mouse") {
+						currentNavigationType = PrimaryNavigationType.Mouse
+					} else {
+						// can be "touch" or "pen", treat them the same for now
+						currentNavigationType = PrimaryNavigationType.Touch
 					}
 				},
-				[m(overlay), m(modal), vnode.children],
-			)
+				onkeyup: (e: KeyboardEvent) => {
+					// tab key can be pressed in some other situations e.g. editor but it would be switched back quickly again if needed.
+					if (isKeyPressed(e.keyCode, Keys.TAB)) {
+						currentNavigationType = PrimaryNavigationType.Keyboard
+					}
+				},
+				// See styles for usages of these classes.
+				// We basically use them in css combinators as a query for when to show certain interaction indicators.
+				class: this.classForType(),
+				style: {
+					height: "100%"
+				}
+			},
+			[m(overlay), m(modal), vnode.children],
+		)
+	}
+
+	private classForType() {
+		switch (currentNavigationType) {
+			case PrimaryNavigationType.Keyboard:
+				return "keyboard-nav"
+			case PrimaryNavigationType.Mouse:
+				return "mouse-nav"
+			case PrimaryNavigationType.Touch:
+				return "touch-nav"
 		}
 	}
 }
