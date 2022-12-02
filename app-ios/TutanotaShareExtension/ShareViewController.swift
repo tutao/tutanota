@@ -26,26 +26,18 @@ class ShareViewController: UIViewController {
         TUTSLog("attachment type: \(attachment.ident())")
         switch attachment {
         case .fileUrl(ident: _, let content):
-          if content != nil {
-            info.fileUrls.append(content!)
-          } else {
-            TUTSLog("skipped attaching empty file url")
-          }
+            info.fileUrls.append(content)
         case .image(ident: _, content: let content):
-          guard let content = content, let imageURL = await saveUIImage(subdir: info.identifier, image: content) else {
-            TUTSLog("skipped attaching nil image")
+          guard let imageURL = await saveUIImage(subdir: info.identifier, image: content) else {
+            TUTSLog("failed to save image, skipping")
             continue
           }
           info.fileUrls.append(imageURL)
         case .text(ident: _, let content):
-          if content != nil {
-            info.text = info.text.appending(content!).appending("\n")
-          } else {
-            TUTSLog("skipped attaching nil string")
-          }
+            info.text = info.text.appending(content).appending("\n")
         case .contact(ident: _, let content):
-          guard let content = content, let vcardUrl = await saveVCard(subdir: info.identifier, vcardText: content) else {
-            TUTSLog("skipped attaching nil contact")
+          guard let vcardUrl = await saveVCard(subdir: info.identifier, vcardText: content) else {
+            TUTSLog("failed to save contact, skipping")
             continue
           }
           info.fileUrls.append(vcardUrl)
@@ -109,81 +101,14 @@ class ShareViewController: UIViewController {
 
 /// decodes the type of a NSItemProvider and returns the data that can be used to set up sharing that item with the main app
 func loadSharedAttachment(_ attachment: NSItemProvider) async -> SharedItem? {
-  let mappedIdentifiers = attachment.registeredTypeIdentifiers.compactMap(stringToItemType) as? [SharedItem]
-
-  guard let firstSupported: SharedItem = mappedIdentifiers?.first else {
-    TUTSLog("no supported type identifiers in \(attachment.registeredTypeIdentifiers)")
-    return nil
+  for registeredTypeIdentifier in attachment.registeredTypeIdentifiers {
+    if let loadedItem = await loadSharedItemWith(ident: registeredTypeIdentifier, fromAttachment: attachment) {
+      return loadedItem
+    } else {
+      continue
+    }
   }
-
-  guard let coding = try? await attachment.loadItem(forTypeIdentifier: firstSupported.ident(), options: nil) else {
-    TUTSLog("failed to load secure coding for \(firstSupported.ident())")
-    return nil
-  }
-
-  switch firstSupported {
-  case .fileUrl:
-    return codingToUrl(firstSupported.ident(), coding)
-  case .image:
-    return codingToImage(firstSupported.ident(), coding)
-  case .text:
-    return codingToText(firstSupported.ident(), coding)
-  case .contact:
-    return codingToVCard(firstSupported.ident(), coding)
-  }
-}
-
-func codingToUrl(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
-  guard let decodedURL: URL = (coding as? URL) ?? ((coding as? NSURL) as? URL) else {
-    TUTSLog("could not convert coding \(String(describing: coding)) to URL")
-    return nil
-  }
-  return SharedItem.fileUrl(
-    ident: ident,
-    content: decodedURL
-  )
-}
-
-func codingToImage(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
-  guard let uiImage = coding as? UIImage else {
-    TUTSLog("could not convert coding to UIImage: \(String(describing: coding))")
-    return nil
-  }
-
-  return SharedItem.image(
-    ident: ident,
-    content: uiImage
-  )
-}
-
-func codingToText(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
-  var decodedText: String? = coding as? String
-
-  if decodedText == nil {
-    decodedText = (coding as? URL)?.absoluteString
-  }
-
-  if decodedText == nil {
-    TUTSLog("could not convert coding \(String(describing: coding)) to String")
-    return nil
-  }
-
-  return SharedItem.text(
-    ident: ident,
-    content: decodedText!
-  )
-}
-
-func codingToVCard(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
-  guard let vcardText = coding as? Data else {
-    TUTSLog("could not convert vcard to data: \(String(describing: coding))")
-    return nil
-  }
-
-  return SharedItem.contact(
-    ident: ident,
-    content: String(data:vcardText, encoding: .utf8)!
-  )
+  return nil
 }
 
 /// async version of map, awaiting each async result in the collection
