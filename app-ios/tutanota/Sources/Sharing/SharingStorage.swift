@@ -8,7 +8,7 @@ let TUTANOTA_SHARE_SCHEME = "tutashare"
 struct SharingInfo: Codable {
   /// this is the key that the information is stored under in the
   /// UserDefaults and on disk
-  var timestamp: String
+  var identifier: String
   /// body text of new mail
   var text: String
   /// files to attach
@@ -105,6 +105,7 @@ func readFileContents(path: URL) async throws -> Data {
 
 /// take a list of file URLs (including file:// protocol) and copy them to the app group's storage
 /// returning a new list of URLs pointing to the new locations
+/// any files that fail to be copied are ignored and omitted frmo the return value
 func copyToSharedStorage(subdir: String, fileUrls: [URL]) async -> [URL] {
   var newLocations: [URL] = []
   for fileUrl in fileUrls {
@@ -124,26 +125,26 @@ func copyToSharedStorage(subdir: String, fileUrls: [URL]) async -> [URL] {
 }
 
 /// write the text and file paths for this share request to shared UserDefaults
-func writeSharingInfo(info: SharingInfo, timestamp: String) throws -> Void {
+func writeSharingInfo(info: SharingInfo, infoLocation: String) throws -> Void {
   let encoder = JSONEncoder()
   encoder.outputFormatting = .prettyPrinted
   let jsonData = try encoder.encode(info)
   let defaults = try getSharedDefaults()
-  defaults.set(jsonData, forKey: timestamp)
+  defaults.set(jsonData, forKey: infoLocation)
 }
 
 /// read the information needed to create a mail editor from a share request
 /// from the shared UserDefaults
-func readSharingInfo(timestamp: String) -> SharingInfo? {
+func readSharingInfo(infoLocation: String) -> SharingInfo? {
   guard let defaults = try? getSharedDefaults() else {
     return nil
   }
   defer {
-    defaults.removeObject(forKey: timestamp)
+    defaults.removeObject(forKey: infoLocation)
   }
   
-  guard let data: Data = defaults.value(forKey: timestamp) as! Data? else {
-    TUTSLog("there are no sharingInfos to be found at \(timestamp)")
+  guard let data: Data = defaults.value(forKey: infoLocation) as! Data? else {
+    TUTSLog("there are no sharingInfos to be found at \(infoLocation)")
     return nil
   }
   if let decodedInfo = try? JSONDecoder().decode(SharingInfo.self, from: data) {
@@ -164,12 +165,17 @@ fileprivate func getSharedDefaults() throws -> UserDefaults {
   return defaults
 }
 
-/// returns a timestamp derived from the kernel's monotonic clock in microseconds.
-/// start time is arbitrary, does not increment while system is asleep.
-/// may return duplicate values if the kernel time is reset (reboot?)
-func getTimestampMicro() -> UInt64 {
+
+/// get a reasonably unique identifier for a sharing reuest to pass to the main app
+func getUniqueInfoLocation() -> String {
+  
+  // returns a timestamp derived from the kernel's monotonic clock in microseconds.
+  // start time is arbitrary, does not increment while system is asleep.
+  // may return duplicate values if the kernel time is reset (reboot?)
   let divisor: UInt64 = 1000
-  return clock_gettime_nsec_np(CLOCK_UPTIME_RAW) / divisor
+  let timestamp = clock_gettime_nsec_np(CLOCK_UPTIME_RAW) / divisor
+  
+  return String(timestamp)
 }
 
 /// get the URL pointing to the shared storage on disk

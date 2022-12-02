@@ -287,14 +287,15 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
   /// use the URL we were called with to retrieve the information about shared items
   /// from the app group storage
   private func getSharingInfo(url: URL) async -> SharingInfo? {
-    let urlString = url.absoluteString
-    let timestamp = String(urlString.dropFirst(TUTANOTA_SHARE_SCHEME.count))
-    return readSharingInfo(timestamp: timestamp)
+    guard let infoLocation = url.host else {
+      return nil
+    }
+    return readSharingInfo(infoLocation: infoLocation)
   }
 
   func handleShare(_ url: URL) async throws -> Void {
     guard let info = await getSharingInfo(url: url) else {
-      TUTSLog("unable to get sharingInfo")
+      TUTSLog("unable to get sharingInfo from url: \(url)")
       return
     }
 
@@ -308,7 +309,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
       )
     } catch {
       TUTSLog("failed to open mail editor to share: \(error)")
-      try FileUtils.deleteSharedStorage(subDir: info.timestamp)
+      try FileUtils.deleteSharedStorage(subDir: info.identifier)
     }
   }
 

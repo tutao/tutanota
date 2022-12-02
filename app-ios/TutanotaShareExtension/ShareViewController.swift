@@ -20,8 +20,7 @@ class ShareViewController: UIViewController {
     Task {
 
       let loadedAttachments: [SharedItem] = (await flatAttachments.asyncMap { await loadSharedAttachment($0) }).compactMap { $0 }
-      let timestamp = String(getTimestampMicro())
-      var info = SharingInfo( timestamp: timestamp, text: "", fileUrls: [])
+      var info = SharingInfo( identifier: getUniqueInfoLocation(), text: "", fileUrls: [])
 
       for attachment in loadedAttachments {
         TUTSLog("attachment type: \(attachment.ident())")
@@ -33,7 +32,7 @@ class ShareViewController: UIViewController {
             TUTSLog("skipped attaching empty file url")
           }
         case .image(ident: _, content: let content):
-          guard let content = content, let imageURL = await saveUIImage(subdir: timestamp, image: content) else {
+          guard let content = content, let imageURL = await saveUIImage(subdir: info.identifier, image: content) else {
             TUTSLog("skipped attaching nil image")
             continue
           }
@@ -45,7 +44,7 @@ class ShareViewController: UIViewController {
             TUTSLog("skipped attaching nil string")
           }
         case .contact(ident: _, let content):
-          guard let content = content, let vcardUrl = await saveVCard(subdir: timestamp, vcardText: content) else {
+          guard let content = content, let vcardUrl = await saveVCard(subdir: info.identifier, vcardText: content) else {
             TUTSLog("skipped attaching nil contact")
             continue
           }
@@ -53,9 +52,9 @@ class ShareViewController: UIViewController {
         }
       }
 
-      info.fileUrls = await copyToSharedStorage(subdir: timestamp, fileUrls: info.fileUrls)
-      try writeSharingInfo(info: info, timestamp: timestamp)
-      openMainAppWithOpenUrl(timestamp)
+      info.fileUrls = await copyToSharedStorage(subdir: info.identifier, fileUrls: info.fileUrls)
+      try writeSharingInfo(info: info, infoLocation: info.identifier)
+      openMainAppWithOpenUrl(info.identifier)
     }
   }
 
@@ -82,13 +81,13 @@ class ShareViewController: UIViewController {
     return try? await writeToSharedStorage(subdir: subdir, name: vcardName.appending(".vcf"), content: convertedData)
   }
 
-  private func openMainAppWithOpenUrl(_ timestamp: String) {
+  private func openMainAppWithOpenUrl(_ infoLocation: String) {
     var components = URLComponents()
     components.scheme = TUTANOTA_SHARE_SCHEME
-    components.host = timestamp
+    components.host = infoLocation
     self.extensionContext?.completeRequest(returningItems: nil) { (_expired: Bool) in
       guard let url = components.url else {
-        TUTSLog("failed to build URL for sharing with \(timestamp)")
+        TUTSLog("failed to build URL for sharing with \(infoLocation)")
         return
       }
       _ = self.openURL(url)
