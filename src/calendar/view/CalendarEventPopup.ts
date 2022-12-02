@@ -179,6 +179,7 @@ export class CalendarEventPopup implements ModalComponent {
 	}
 
 	onClose(): void {
+		this._close()
 	}
 
 	shortcuts(): Shortcut[] {
