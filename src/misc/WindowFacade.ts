@@ -5,6 +5,7 @@ import type {WorkerClient} from "../api/main/WorkerClient"
 import {client} from "./ClientDetector"
 import {logins} from "../api/main/LoginController"
 import type {Indexer} from "../api/worker/search/Indexer"
+import {remove} from "@tutao/tutanota-utils"
 
 assertMainOrNodeBoot()
 export type KeyboardSizeListener = (keyboardSize: number) => unknown
@@ -51,11 +52,7 @@ export class WindowFacade {
 	}
 
 	removeResizeListener(listener: windowSizeListener) {
-		let index = this._windowSizeListeners.indexOf(listener)
-
-		if (index > -1) {
-			this._windowSizeListeners.splice(index, 1)
-		}
+		remove(this._windowSizeListeners, listener)
 	}
 
 	addWindowCloseListener(listener: () => unknown): (...args: Array<any>) => any {
@@ -81,11 +78,7 @@ export class WindowFacade {
 	}
 
 	removeKeyboardSizeListener(listener: KeyboardSizeListener) {
-		const index = this._keyboardSizeListeners.indexOf(listener)
-
-		if (index > -1) {
-			this._keyboardSizeListeners.splice(index, 1)
-		}
+		remove(this._keyboardSizeListeners, listener)
 	}
 
 	openLink(href: string) {
@@ -189,11 +182,7 @@ export class WindowFacade {
 	}
 
 	removeHistoryEventListener(listener: (e: Event) => boolean): void {
-		const index = this._historyStateEventListeners.indexOf(listener)
-
-		if (index > -1) {
-			this._historyStateEventListeners.splice(index, 1)
-		}
+		remove(this._historyStateEventListeners, listener)
 	}
 
 	/**
