@@ -130,7 +130,6 @@ func writeSharingInfo(info: SharingInfo, timestamp: String) throws -> Void {
   let jsonData = try encoder.encode(info)
   let defaults = try getSharedDefaults()
   defaults.set(jsonData, forKey: timestamp)
-  defaults.synchronize()
 }
 
 /// read the information needed to create a mail editor from a share request
@@ -141,7 +140,6 @@ func readSharingInfo(timestamp: String) -> SharingInfo? {
   }
   defer {
     defaults.removeObject(forKey: timestamp)
-    defaults.synchronize()
   }
   
   guard let data: Data = defaults.value(forKey: timestamp) as! Data? else {
