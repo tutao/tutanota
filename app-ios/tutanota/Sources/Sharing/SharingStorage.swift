@@ -26,10 +26,10 @@ enum SharingError: Error {
 /// different types of items are shared under different names
 /// ident identifies the type, content the associated data
 enum SharedItem {
-  case fileUrl(ident: String, content: URL?)
-  case image(ident: String, content: UIImage?)
-  case text(ident: String, content: String?)
-  case contact(ident: String, content: String?)
+  case fileUrl(ident: String, content: URL)
+  case image(ident: String, content: UIImage)
+  case text(ident: String, content: String)
+  case contact(ident: String, content: String)
   
   func ident() -> String {
     switch self {
@@ -41,66 +41,54 @@ enum SharedItem {
 
 /// there is a bunch of uniform type identifiers that can be set by the sharing app. it's not clear what's available,
 /// but there are some constants defined available with "import UniformTypeIdentifiers".
-func stringToItemType(ident: String) -> SharedItem? {
+func loadSharedItemWith(ident: String, fromAttachment: NSItemProvider) async -> SharedItem? {
   switch ident {
   case
     "public.png", "public.jpeg", "public.tiff", //shared from photos
     "public.file-url" // shared from files
     :
-    return .fileUrl(ident: ident, content: nil)
+    return await loadAndConvertWith(codingToUrl, attachment: fromAttachment, ident: ident)
   case
     "public.image" // shared from e.g. Signal, no URL but image data
     :
-    return .image(ident: ident, content: nil)
+    return await loadAndConvertWith(codingToImage, attachment: fromAttachment, ident: ident)
   case
     "public.url", // shared image from safari, shared link, shared pdf...
     "public.plain-text" // shared from Notes, safari
     :
-    return .text(ident: ident, content: nil)
+    return await loadAndConvertWith(codingToText, attachment: fromAttachment, ident: ident)
   case
     "public.vcard" // shared from contacts
     :
-    return .contact(ident: ident, content: nil)
+    return await loadAndConvertWith(codingToVCard, attachment: fromAttachment, ident: ident)
   default:
     return nil
   }
 }
 
-/// write a single file to a subdirectory in the shared storage of the app group
-func writeToSharedStorage(subdir: String, name: String, content: Data) async throws -> URL {
-  return try await withCheckedThrowingContinuation { cont in
-    
-    guard let sharedURL = try? FileUtils.ensureSharedStorage(inSubdir: subdir) else {
-      TUTSLog("failed to ensure sharing directory for this request")
-      cont.resume(throwing: SharingError.failedToWrite)
-      return
-    }
-    
-    let fileURL: URL = sharedURL.appendingPathComponent(name)
-    do {
-      try content.write(to: fileURL)
-    }
-    catch {
-      TUTSLog("error writing file \(error)")
-      cont.resume(throwing: SharingError.failedToWrite)
-      return
-    }
-    cont.resume(returning: fileURL)
+func loadAndConvertWith(_ converter: (String, NSSecureCoding) -> SharedItem?, attachment: NSItemProvider, ident: String) async -> SharedItem? {
+  guard let coding = try? await attachment.loadItem(forTypeIdentifier: ident, options: nil) else {
+    TUTSLog("failed to load secure coding for \(ident)")
+    return nil
   }
+  return converter(ident, coding)
 }
 
-/// read a single file from a URL, returning the contents
-func readFileContents(path: URL) async throws -> Data {
-  return try await withCheckedThrowingContinuation { cont in
-    do {
-      let data = try Data(contentsOf: path)
-      cont.resume(returning: data)
-    }
-    catch {
-      TUTSLog("error reading file: \(error)")
-      cont.resume(throwing: SharingError.failedToRead)
-    }
+/// write a single file to a subdirectory in the shared storage of the app group
+func writeToSharedStorage(subdir: String, name: String, content: Data) async throws -> URL {
+  guard let sharedURL = try? FileUtils.ensureSharedStorage(inSubdir: subdir) else {
+    TUTSLog("failed to ensure sharing directory for this request")
+    throw SharingError.failedToWrite
   }
+  
+  let fileURL: URL = sharedURL.appendingPathComponent(name)
+  do {
+    try content.write(to: fileURL)
+  } catch {
+    TUTSLog("error writing file \(error)")
+    throw SharingError.failedToWrite
+  }
+  return fileURL
 }
 
 /// take a list of file URLs (including file:// protocol) and copy them to the app group's storage
@@ -109,7 +97,7 @@ func readFileContents(path: URL) async throws -> Data {
 func copyToSharedStorage(subdir: String, fileUrls: [URL]) async -> [URL] {
   var newLocations: [URL] = []
   for fileUrl in fileUrls {
-    guard let contentData = try? await readFileContents(path: fileUrl) else {
+    guard let contentData = try? Data(contentsOf: fileUrl) else {
       TUTSLog("could not read file at \(fileUrl) to share")
       continue
     }
@@ -182,4 +170,57 @@ func getUniqueInfoLocation() -> String {
 func sharedDirectoryURL() -> URL {
   let fileManager = FileManager.default
   return fileManager.containerURL(forSecurityApplicationGroupIdentifier: TUTANOTA_APP_GROUP)!
+}
+
+func codingToUrl(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
+  guard let decodedURL: URL = (coding as? URL) ?? ((coding as? NSURL) as? URL) else {
+    TUTSLog("could not convert coding \(String(describing: coding)) to URL")
+    return nil
+  }
+  return SharedItem.fileUrl(
+    ident: ident,
+    content: decodedURL
+  )
+}
+
+func codingToImage(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
+  guard let uiImage = coding as? UIImage else {
+    TUTSLog("could not convert coding to UIImage: \(String(describing: coding))")
+    return nil
+  }
+
+  return SharedItem.image(
+    ident: ident,
+    content: uiImage
+  )
+}
+
+func codingToText(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
+  var decodedText: String? = coding as? String
+
+  if decodedText == nil {
+    decodedText = (coding as? URL)?.absoluteString
+  }
+
+  if decodedText == nil {
+    TUTSLog("could not convert coding \(String(describing: coding)) to String")
+    return nil
+  }
+
+  return SharedItem.text(
+    ident: ident,
+    content: decodedText!
+  )
+}
+
+func codingToVCard(_ ident: String, _ coding: NSSecureCoding) -> SharedItem? {
+  guard let vcardText = coding as? Data else {
+    TUTSLog("could not convert vcard to data: \(String(describing: coding))")
+    return nil
+  }
+
+  return SharedItem.contact(
+    ident: ident,
+    content: String(data:vcardText, encoding: .utf8)!
+  )
 }
