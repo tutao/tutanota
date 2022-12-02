@@ -32,7 +32,7 @@ class AppDelegate : UIResponder,
 #endif
   }
 
-  func main() {
+  fileprivate func start() {
 
     let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
 
@@ -59,8 +59,8 @@ class AppDelegate : UIResponder,
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]?
   ) -> Bool {
-    TUTSLog("Start Tutanota wit launch options: \(String(describing: launchOptions))")
-    self.main()
+    TUTSLog("Start Tutanota with launch options: \(String(describing: launchOptions))")
+    self.start()
     return true
   }
 
