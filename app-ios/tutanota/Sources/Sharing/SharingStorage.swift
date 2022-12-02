@@ -146,7 +146,12 @@ func readSharingInfo(timestamp: String) -> SharingInfo? {
     TUTSLog("there are no sharingInfos to be found at \(timestamp)")
     return nil
   }
-  return try? JSONDecoder().decode(SharingInfo.self, from: data)
+  if let decodedInfo = try? JSONDecoder().decode(SharingInfo.self, from: data) {
+    return decodedInfo
+  } else{
+    TUTSLog("could not decode sharingInfo from UserDefaults")
+    return nil
+  }
 }
 
 fileprivate func getSharedDefaults() throws -> UserDefaults {
