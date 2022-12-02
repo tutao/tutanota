@@ -187,7 +187,8 @@ export class CalendarEventPopup implements ModalComponent {
 	}
 
 	popState(e: Event): boolean {
-		return true
+		modal.remove(this)
+		return false
 	}
 
 	_isDeleteAvailable(): boolean {
