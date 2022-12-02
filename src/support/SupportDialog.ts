@@ -3,7 +3,6 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import type {ButtonAttrs} from "../gui/base/Button.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import {lang} from "../misc/LanguageViewModel"
-import type {TextFieldAttrs} from "../gui/base/TextField.js"
 import {TextField} from "../gui/base/TextField.js"
 import m, {Component} from "mithril"
 import stream from "mithril/stream"
@@ -90,9 +89,7 @@ export function showSupportDialog() {
 			]
 		},
 	}
-	faq.init().then(() => {
-		faq.getList()
-	})
+	faq.init().then()
 	const dialog = Dialog.largeDialog(header, child).addShortcut({
 		key: Keys.ESC,
 		exec: () => {
