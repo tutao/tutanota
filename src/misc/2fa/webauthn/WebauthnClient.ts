@@ -82,6 +82,9 @@ export class WebauthnClient {
 			// First, if we find our own key then open web client on our URL.
 			// Even if it's a different subdomain of ours it can still match because it is scoped for all tutanota.com subdomains
 			selectedClientUrl = this.clientWebRoot
+		} else if (this.clientWebRoot.startsWith("http://")) {
+			// for local http server we want the whole origin, including the port
+			selectedClientUrl = this.clientWebRoot
 		} else {
 			// If it isn't there, look for any Webauthn key. Legacy U2F key ids ends with json subpath.
 			const webauthnKey = challenge.keys.find(k => !this.isLegacyU2fKey(k))

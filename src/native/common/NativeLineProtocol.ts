@@ -58,7 +58,7 @@ export function encodeNativeMessage(message: NativeMessage): string {
 	return encodedMessage.join("\n")
 }
 
-function encodeValueForNative(value: unknown): string {
+export function encodeValueForNative(value: unknown): string {
 	return JSON.stringify(replaceBytesWithWrapper(value))
 }
 
@@ -133,6 +133,6 @@ export function decodeNativeMessage(encoded: string): JsMessage {
 	return parsedMessage
 }
 
-function decodeValueFromNative(encoded: string): unknown {
+export function decodeValueFromNative(encoded: string): unknown {
 	return replaceWrapperByBytes(JSON.parse(encoded))
 }

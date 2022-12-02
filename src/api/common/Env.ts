@@ -40,7 +40,7 @@ export function getHttpOrigin(): string {
  */
 export function getWebRoot(): string {
 	const origin = getHttpOrigin()
-	return origin + (origin.includes("localhost") || origin.includes("local.tutanota.com") ? "/client/build" : "")
+	return origin + (origin.includes("http://") || origin.includes("localhost") || origin.includes("local.tutanota.com") ? "/client/build" : "")
 }
 
 export function getPaymentWebRoot(): string {

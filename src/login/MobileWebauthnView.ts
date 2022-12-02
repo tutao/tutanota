@@ -8,6 +8,10 @@ import {lang} from "../misc/LanguageViewModel.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import {BrowserWebauthn} from "../misc/2fa/webauthn/BrowserWebauthn.js"
 import {Dialog} from "../gui/base/Dialog.js"
+import {decodeValueFromNative, encodeValueForNative} from "../native/common/NativeLineProtocol.js"
+import {WebAuthnSignChallenge} from "../native/common/generatedipc/WebAuthnSignChallenge.js"
+import {stringToBase64} from "@tutao/tutanota-utils"
+import {WebAuthnRegistrationChallenge} from "../native/common/generatedipc/WebAuthnRegistrationChallenge.js"
 
 export interface MobileWebauthnAttrs extends TopLevelAttrs {
 	browserWebauthn: BrowserWebauthn,
@@ -19,6 +23,16 @@ export interface MobileWebauthnAttrs extends TopLevelAttrs {
  * See DesktopWebauthnFacade.
  */
 export class MobileWebauthnView implements CurrentView<MobileWebauthnAttrs> {
+
+	oncreate({attrs}: Vnode<MobileWebauthnAttrs>) {
+		if (attrs.args["action"] === "sign") {
+			this.authenticate(attrs)
+		} else if (attrs.args["action"] === "register") {
+			this.register(attrs)
+		} else {
+			throw new Error("Not implemented")
+		}
+	}
 
 	view({attrs}: Vnode<MobileWebauthnAttrs>): Children {
 		console.log("args:", attrs)
@@ -43,36 +57,72 @@ export class MobileWebauthnView implements CurrentView<MobileWebauthnAttrs> {
 					m(".flex-center.mt-s", m("img", {src: SecondFactorImage})),
 					m(".mt.flex.col", [
 						m(".flex.justify-center", [m(".mr-s", progressIcon()), m("", lang.get("waitingForU2f_msg"))])
-					]),
-					m(Button, {
-						type: ButtonType.Primary,
-						label: () => "TEST WEBAUTHN (needs https)",
-						click: async () => {
-							if (!(await attrs.browserWebauthn.isSupported())) {
-								await Dialog.message(() => "Webauthn is not supported! https?")
-								return
-							}
-							const result = await attrs.browserWebauthn.register({
-								challenge: new Uint8Array([1, 2, 3]),
-								name: "name",
-								displayName: "displayName",
-								domain: "",
-								userId: "userId"
-							})
-							console.log("webauthn result", result)
-						}
-					}),
-					m(Button, {
-						type: ButtonType.Primary,
-						label: () => "RETURN RESULT",
-						click: () => {
-							const cbUrlTemplate = attrs.args["cbUrl"] as string
-							const cbUrl = cbUrlTemplate.replace("{result}", "someResultValue")
-							window.open(cbUrl)
-						}
-					})
+					]), ,
 				])
 			]
 		)
+	}
+
+	private async getParams(attrs: MobileWebauthnAttrs): Promise<{challenge: string, cbUrlTemplate: string}> {
+		if (!(await attrs.browserWebauthn.isSupported())) {
+			throw new Error("Webauthn not supported?")
+		}
+		const challenge = attrs.args["challenge"]
+		if (typeof challenge !== "string") {
+			throw new Error("Challenge is not passed")
+		}
+		const cbUrlTemplate = attrs.args["cbUrl"] as string
+		if (typeof cbUrlTemplate !== "string") {
+			throw new Error("cbUrl is not passed")
+		}
+		return {challenge, cbUrlTemplate}
+	}
+
+	private async sendSuccess(value: unknown, cbUrlTemplate: string) {
+		await this.sendResultObject({type: "success", value}, cbUrlTemplate)
+	}
+
+	private async sendFailure(e: Error, cbUrlTemplate: string) {
+		await this.sendResultObject({type: "error", name: e.name, stack: e.stack}, cbUrlTemplate)
+	}
+
+	private async sendResultObject(result: object, cbUrlTemplate: string) {
+		const serializedResult = encodeValueForNative(result)
+		const base64Result = stringToBase64(serializedResult)
+		const cbUrl = cbUrlTemplate.replace("{result}", base64Result)
+		window.open(cbUrl, "_self")
+	}
+
+	async authenticate(attrs: MobileWebauthnAttrs) {
+		const {challenge, cbUrlTemplate} = await this.getParams(attrs)
+		try {
+			const rawChallengeObj = decodeValueFromNative(challenge) as WebAuthnSignChallenge
+			const signResult = await attrs.browserWebauthn.sign({
+				challenge: rawChallengeObj.challenge,
+				domain: rawChallengeObj.domain,
+				keys: rawChallengeObj.keys,
+			})
+			await this.sendSuccess(signResult, cbUrlTemplate)
+		} catch (e) {
+			await this.sendFailure(e, cbUrlTemplate)
+		}
+	}
+
+	async register(attrs: MobileWebauthnAttrs) {
+		const {challenge, cbUrlTemplate} = await this.getParams(attrs)
+
+		try {
+			const rawChallengeObj = decodeValueFromNative(challenge) as WebAuthnRegistrationChallenge
+			const registrationResult = await attrs.browserWebauthn.register({
+				challenge: rawChallengeObj.challenge,
+				domain: rawChallengeObj.domain,
+				name: rawChallengeObj.name,
+				displayName: rawChallengeObj.displayName,
+				userId: rawChallengeObj.userId
+			})
+			await this.sendSuccess(registrationResult, cbUrlTemplate)
+		} catch (e) {
+			await this.sendFailure(e, cbUrlTemplate)
+		}
 	}
 }
