@@ -59,14 +59,14 @@ class ShareViewController: UIViewController {
     }
   }
 
-  /// save a UI image we got shared as a jpeg into shared storage so we can attach it to a mail
+  /// save a UI image we got shared as a png into shared storage so we can attach it to a mail
   func saveUIImage(subdir: String, image: UIImage) async -> URL? {
-    guard let jpegData = image.jpegData(compressionQuality: 1.0) else {
-      TUTSLog("could not get jpeg data from UIImage")
+    guard let pngData = image.pngData() else {
+      TUTSLog("could not get png data from UIImage")
       return nil
     }
-    let imageName = generateImageFileName(imageData: jpegData)
-    return try? await writeToSharedStorage(subdir: subdir, name: imageName, content: jpegData)
+    let imageName = generateImageFileName(imageData: pngData)
+    return try? await writeToSharedStorage(subdir: subdir, name: imageName, content: pngData)
   }
 
   /// when the IOS contact app shares contact, it gives us the VCARD text. we need to write it to disk to be able to
