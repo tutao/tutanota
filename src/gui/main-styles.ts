@@ -1083,6 +1083,8 @@ styles.registerStyle("main", () => {
 		":where(.keyboard-nav) .state-bg:focus": {
 			"background": "rgba(139,139,139,0.29)",
 			"transition-duration": ".3s",
+			// disable default focus indicator because we have our own for this element
+			"outline": "none",
 		},
 		".state-bg:active, .state-bg[toggled=true]": {
 			"background": "rgba(139,139,139,0.38)",
