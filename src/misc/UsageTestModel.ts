@@ -166,6 +166,7 @@ export class UsageTestModel implements PingAdapter {
 	private storageBehavior = StorageBehavior.Ephemeral
 	private customerProperties?: CustomerProperties
 	private lastOptInDecision: boolean | null = null
+	private lastPing = Promise.resolve()
 
 	constructor(
 		private readonly storages: { [key in StorageBehavior]: UsageTestStorage },
@@ -373,6 +374,11 @@ export class UsageTestModel implements PingAdapter {
 	}
 
 	async sendPing(test: UsageTest, stage: Stage): Promise<void> {
+		this.lastPing = this.lastPing.then(() => this.doSendPing(stage, test), () => this.doSendPing(stage, test))
+		return this.lastPing
+	}
+
+	private async doSendPing(stage: Stage, test: UsageTest) {
 		// Immediately stop sending pings if the user has opted out.
 		// Only applicable if the user opts out and then does not re-log.
 		if (this.storageBehavior === StorageBehavior.Persist && !this.getOptInDecision()) {
