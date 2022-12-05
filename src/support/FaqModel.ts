@@ -1,10 +1,9 @@
 import type {LanguageViewModelType} from "../misc/LanguageViewModel"
 import {lang, LanguageViewModel} from "../misc/LanguageViewModel"
-import {assert, delay, downcast, LazyLoaded, promiseMap} from "@tutao/tutanota-utils"
+import {delay, downcast, LazyLoaded} from "@tutao/tutanota-utils"
 import {search} from "../api/common/utils/PlainTextSearch"
-import type {SanitizedHTML} from "../misc/HtmlSanitizer"
-import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {ProgrammingError} from "../api/common/error/ProgrammingError.js"
+import {htmlSanitizer} from "../misc/HtmlSanitizer.js"
 
 export type FaqEntry = {
 	id: string
@@ -55,16 +54,33 @@ export class FaqModel {
 	}
 
 	/**
-	 * will return all faq entries that contain the given query and mark the query occurrences
-	 * with <mark> tags.
+	 * will return an AsyncGenerator yielding faq entries that contain the given query and mark the query occurrences
+	 * with <mark> tags. it is safe to insert the results of this call into the DOM.
+	 *
 	 */
-	search(query: string): ReadonlyArray<FaqEntry> {
+	async* search(query: string): AsyncGenerator<FaqEntry> {
 		const cleanQuery = query.trim()
 
 		if (cleanQuery === "") {
 			return []
 		} else {
-			return search(cleanQuery, this.getList(), ["tags", "title", "text"], true)
+			// we could probably convert this to an AsyncGenerator to spread the load of searching the entries as well, but it's pretty snappy atm.
+			const markedResults: ReadonlyArray<FaqEntry> = search(cleanQuery, this.getList(), ["tags", "title", "text"], true)
+			for (const result of markedResults) {
+				// this delay is needed to make the next iteration be scheduled on the next macro task.
+				// just yielding/awaiting creates a micro task that doesn't let the event loop run.
+				await delay(1)
+				yield this.sanitizeEntry(result)
+			}
+		}
+	}
+
+	private sanitizeEntry(result: FaqEntry): FaqEntry {
+		return {
+			id: result.id,
+			title: htmlSanitizer.sanitizeHTML(result.title).html,
+			tags: htmlSanitizer.sanitizeHTML(result.tags).html,
+			text: htmlSanitizer.sanitizeHTML(result.text, {blockExternalContent: false}).html,
 		}
 	}
 
@@ -73,27 +89,14 @@ export class FaqModel {
 	 */
 	private async fetchFAQ(langCode: string): Promise<Translation> {
 		const faqPath = `https://tutanota.com/faq-entries/${langCode}.json`
-		const keys = await fetch(faqPath)
+		const translations: Record<string, string> = await fetch(faqPath)
 			.then(response => response.json())
 			.then(language => language.keys)
 			.catch(error => {
 				console.log("Failed to fetch FAQ entries", error)
 				return {}
 			})
-		const entries = await promiseMap(Object.entries(keys), async ([key, entry]) => {
-			// If entry isn't a string it means we're getting malformed responses
-			assert(typeof entry === "string", "invalid translation entry")
-			const unsanitizedText = downcast(entry)
-			// Declaring some types manually because there seem to be a bug where types are not checked
-			const sanitized: SanitizedHTML = htmlSanitizer.sanitizeHTML(unsanitizedText, {
-				blockExternalContent: false,
-			})
-			// Delay to spread sanitize() calls between event loops.
-			// otherwise, we stop main thread for way too long and UI gets laggy.
-			await delay(1)
-			return [key, sanitized.html]
-		})
-		const translations = Object.fromEntries(entries)
+
 		return {
 			code: langCode,
 			keys: translations,
