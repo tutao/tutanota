@@ -120,7 +120,7 @@ export class EditSecondFactorDialog {
 			}
 
 			try {
-				this.u2fRegistrationData = await this.webauthnClient.register(this.user._id, this.name, this.mailAddress)
+				this.u2fRegistrationData = await this.webauthnClient.register(this.user._id, this.name)
 				this.verificationStatus = VerificationStatus.Success
 			} catch (e) {
 				console.log("Webauthn registration failed: ", e)

@@ -31,9 +31,12 @@ export class WebauthnClient {
 		return {canAttempt, cannotAttempt}
 	}
 
-	async register(userId: Id, displayName: string, mailAddress: string): Promise<U2fRegisteredDevice> {
+	async register(userId: Id, displayName: string): Promise<U2fRegisteredDevice> {
+
 		const challenge = this.getChallenge()
-		const name = `${userId} ${mailAddress} ${displayName}`
+		// this must be at most 64 bytes because the authenticators are allowed to truncate it
+		// https://www.w3.org/TR/webauthn-2/#user-handle
+		const name = `userId="${userId}"`
 		const registrationResult = await this.webauthn.register({challenge, userId, name, displayName, domain: this.clientWebRoot})
 		const attestationObject = this.parseAttestationObject(registrationResult.attestationObject)
 		const publicKey = this.parsePublicKey(downcast(attestationObject).authData)
