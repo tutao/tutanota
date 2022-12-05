@@ -234,6 +234,69 @@ o.spec("UsageTestModel", function () {
 
 				verify(serviceExecutor.post(UsageTestParticipationService, anything()), {times: 1, ignoreExtraArgs: true})
 			})
+
+			o("sends pings in correct order", async function () {
+				await ephemeralStorage.storeTestDeviceId(testDeviceId)
+
+				const usageTest: UsageTest = new UsageTest("testId", "testName", 1, true)
+				usageTest.pingAdapter = usageTestModel
+
+				for (let i = 0; i < 3; i++) {
+					const stage = new Stage(i, usageTest, 1, 1)
+					usageTest.addStage(stage)
+				}
+
+				const pingOrder: Array<string> = []
+
+				when(serviceExecutor.post(
+						UsageTestParticipationService,
+						createUsageTestParticipationIn({
+							testId: usageTest.testId,
+							stage: "0",
+							testDeviceId: testDeviceId,
+						}),
+						anything(),
+					)
+				).thenDo(async () => {
+					// Simulate network delay
+					await new Promise(resolve => setTimeout(resolve, 15))
+					pingOrder.push("0")
+				})
+
+				when(serviceExecutor.post(
+						UsageTestParticipationService,
+						createUsageTestParticipationIn({
+							testId: usageTest.testId,
+							stage: "1",
+							testDeviceId: testDeviceId,
+						}),
+						anything(),
+					)
+				).thenDo(async () => {
+					// Simulate network delay
+					await new Promise(resolve => setTimeout(resolve, 10))
+					pingOrder.push("1")
+				})
+
+				when(serviceExecutor.post(
+						UsageTestParticipationService,
+						createUsageTestParticipationIn({
+							testId: usageTest.testId,
+							stage: "2",
+							testDeviceId: testDeviceId,
+						}),
+						anything(),
+					)
+				).thenDo(async () => {
+					pingOrder.push("2")
+				})
+
+				usageTest.getStage(0).complete()
+				usageTest.getStage(1).complete()
+				await usageTest.getStage(2).complete()
+
+				o(pingOrder).deepEquals(["0", "1", "2"])
+			})
 		})
 
 		o.spec("setting the storage behavior", function () {
