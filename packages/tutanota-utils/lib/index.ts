@@ -5,6 +5,7 @@ export {
 	arrayEqualsWithPredicate,
 	arrayHash,
 	remove,
+	clear,
 	findAll,
 	findAndRemove,
 	findAllAndRemove,

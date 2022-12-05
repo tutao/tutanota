@@ -101,6 +101,13 @@ export function remove<T>(theArray: Array<T>, elementToRemove: T): boolean {
 }
 
 /**
+ * truncates the array and discards all elements
+ */
+export function clear(theArray: Array<unknown>): void {
+	theArray.length = 0
+}
+
+/**
  * Find all items in an array that pass the given predicate
  */
 export function findAll<T>(theArray: Array<T>, finder: (arg0: T) => boolean): Array<T> {

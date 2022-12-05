@@ -3,6 +3,7 @@ import {
 	arrayEquals,
 	arrayEqualsWithPredicate,
 	arrayOf,
+	clear,
 	concat,
 	deduplicate,
 	difference,
@@ -781,6 +782,28 @@ o.spec("array utils", function () {
 		o(diff([1, 2, 3, 4, 5, 6], [1, 3, 5])).deepEquals([2, 4, 6])
 		o(diff([1, 2, 3], [1, 2, 3, 4, 5, 6])).deepEquals([])
 		o(diff([1, 2, 3], [4, 5, 6, 7, 8, 9])).deepEquals([1, 2, 3])
+	})
+	o.spec("clear", function () {
+		o("clearing an array leaves it empty", function () {
+			let a = [1, 2, 3]
+			clear(a)
+			o(a.length).equals(0)
+			o(a).deepEquals([])
+		})
+
+		o("clearing an array makes it return undefined for all entries", function () {
+			let a = ["hello", "world"]
+			clear(a)
+			o(a[0]).equals(undefined)
+			o(a[1]).equals(undefined)
+
+			let b = ["a", "b", "c"]
+			clear(b)
+			b.length = 3
+			o(b[0]).equals(undefined)
+			o(b[1]).equals(undefined)
+			o(b[2]).equals(undefined)
+		})
 	})
 	o.spec("symmetric difference", function () {
 		o("both empty", function () {

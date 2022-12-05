@@ -1,6 +1,6 @@
 import m, {Children} from "mithril"
 import {assertMainOrNode} from "../../api/common/Env"
-import {downcast, LazyLoaded, neverNull, noOp, promiseMap} from "@tutao/tutanota-utils"
+import {clear, downcast, LazyLoaded, neverNull, noOp, promiseMap} from "@tutao/tutanota-utils"
 import type {
 	Booking,
 	CertificateInfo,
@@ -173,7 +173,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 
 		if (this._whitelabelConfig) {
 			onRegistrationDomainSelected = domain => {
-				neverNull(this._whitelabelConfig).whitelabelRegistrationDomains.length = 0
+				clear(neverNull(this._whitelabelConfig).whitelabelRegistrationDomains)
 
 				if (domain) {
 					const domainWrapper = createStringWrapper()
