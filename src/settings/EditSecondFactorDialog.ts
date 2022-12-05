@@ -66,6 +66,7 @@ export class EditSecondFactorDialog {
 		private readonly webauthnSupported: boolean,
 	) {
 		this.selectedType = webauthnSupported ? FactorTypes.WEBAUTHN : FactorTypes.TOTP
+		this.setDefaultNameIfNeeded()
 		this.otpInfo = new LazyLoaded(async () => {
 			const url = await this.getOtpAuthUrl(this.totpKeys.readableKey)
 			let totpQRCodeSvg
@@ -113,6 +114,7 @@ export class EditSecondFactorDialog {
 	}
 
 	private async save() {
+		this.setDefaultNameIfNeeded()
 		if (this.selectedType === FactorTypes.WEBAUTHN) {
 			// Prevent starting in parallel
 			if (this.verificationStatus === VerificationStatus.Progress) {
@@ -283,9 +285,14 @@ export class EditSecondFactorDialog {
 
 	private onTypeSelected(newValue: FactorTypesEnum) {
 		this.selectedType = newValue
-		this.verificationStatus = newValue === FactorTypes.WEBAUTHN ? VerificationStatus.Initial : VerificationStatus.Progress
+		this.verificationStatus = newValue === FactorTypes.WEBAUTHN
+			? VerificationStatus.Initial
+			: VerificationStatus.Progress
+
+		this.setDefaultNameIfNeeded()
 
 		if (newValue !== FactorTypes.WEBAUTHN) {
+			// noinspection JSIgnoredPromiseFromCall
 			this.webauthnClient.abortCurrentOperation()
 		}
 	}
@@ -382,6 +389,15 @@ export class EditSecondFactorDialog {
 
 			default:
 				return null
+		}
+	}
+
+	private setDefaultNameIfNeeded() {
+		const trimmed = this.name.trim()
+		if (this.selectedType === SecondFactorType.webauthn && (trimmed === "TOTP" || trimmed.length === 0)) {
+			this.name = "U2F"
+		} else if (this.selectedType === SecondFactorType.totp && (trimmed === "U2F" || trimmed.length === 0)) {
+			this.name = "TOTP"
 		}
 	}
 
