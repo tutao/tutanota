@@ -9,7 +9,7 @@
 	],
 	"allowJs": true,
 	"checkJs": false,
-	"target": "ES2017",
+	"target": "ES2018",
 	"module": "esnext",
 	"moduleResolution": "node",
 	"skipLibCheck": true,
