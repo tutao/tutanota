@@ -3,7 +3,7 @@ import {Dialog} from "../../gui/base/Dialog"
 import {lang, languages} from "../../misc/LanguageViewModel"
 import {BookingItemFeatureType, GroupType, Keys} from "../../api/common/TutanotaConstants"
 import {getWhitelabelDomain} from "../../api/common/utils/Utils"
-import {mapAndFilterNull, neverNull, ofClass, remove} from "@tutao/tutanota-utils"
+import {clear, mapAndFilterNull, neverNull, ofClass, remove} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../../api/common/Env"
 import {logins} from "../../api/main/LoginController"
 import type {GroupInfo} from "../../api/entities/sys/TypeRefs.js"
@@ -500,7 +500,7 @@ export class ContactFormEditor {
 				this._allUserGroupInfos.map(gi => ({
 					label: () => getGroupInfoDisplayName(gi),
 					click: () => {
-						this._participantGroupInfoList.length = 0
+						clear(this._participantGroupInfoList)
 
 						this._receivingMailbox(gi)
 					},
