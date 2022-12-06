@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2022-11-23T13:39:28Z",
+	"updated_at": "2022-12-06T10:16:05Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -890,7 +890,7 @@ export default {
 		"noMoreSimilarContacts_msg": "No more similar contacts found.",
 		"nonConfidentialStatus_msg": "This message will not be sent end-to-end encrypted.",
 		"nonConfidential_action": "Not confidential",
-		"noNews_msg": "There are no news.",
+		"noNews_msg": "No new updates.",
 		"noPermission_title": "No Permission",
 		"noPreSharedPassword_msg": "Please provide an agreed password for each external recipient.",
 		"noReceivingMailbox_label": "Please select a receiving mailbox.",
@@ -1162,7 +1162,7 @@ export default {
 		"recoverAccountAccess_action": "Lost account access",
 		"recoverResetFactors_action": "Reset second factor",
 		"recoverSetNewPassword_action": "Set a new password",
-		"recoveryCodeConfirmation_msg": "Please make sure you have written down your recovery code. The recovery code is the only option to reset your password or second factor in case you lose either.",
+		"recoveryCodeConfirmation_msg": "Please make sure you have written down your recovery code. ",
 		"recoveryCodeDisplay_action": "Display recovery code",
 		"recoveryCodeEmpty_msg": "Please enter a recovery code",
 		"recoveryCode_label": "Recovery code",
@@ -1424,6 +1424,7 @@ export default {
 		"termsAcceptedNeutral_msg": "Please accept the terms & conditions.",
 		"termsAndConditionsLink_label": "General terms and conditions",
 		"termsAndConditions_label": "I have read and agree to the following documents:",
+		"textTooLong_msg": "The entered text is too long",
 		"text_label": "Text",
 		"thisClient_label": "<This client>",
 		"timeFormatInvalid_msg": "Invalid time format",
@@ -1570,7 +1571,6 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You",
-		"textTooLong_msg": "The entered text is too long."
+		"you_label": "You"
 	}
 }

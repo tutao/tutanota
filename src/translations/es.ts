@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2022-11-23T13:47:57Z",
+	"updated_at": "2022-12-06T08:47:55Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -893,7 +893,7 @@ export default {
 		"noMoreSimilarContacts_msg": "No se encuentran más contactos similares.",
 		"nonConfidentialStatus_msg": "Este mensaje no se envía cifrado de extremo a extremo.",
 		"nonConfidential_action": "No confidencial",
-		"noNews_msg": "No hay noticias.",
+		"noNews_msg": "No hay nuevas actualizaciones.",
 		"noPermission_title": "Sin permiso",
 		"noPreSharedPassword_msg": "Por favor introduce la contraseña acordada para cada destinatario externo.",
 		"noReceivingMailbox_label": "Por favor, selecciona un buzón de recepción.",
@@ -1165,7 +1165,7 @@ export default {
 		"recoverAccountAccess_action": "Acceso a la cuenta perdida",
 		"recoverResetFactors_action": "Reiniciar segundo factor",
 		"recoverSetNewPassword_action": "Establecer una nueva contraseña",
-		"recoveryCodeConfirmation_msg": "Asegúrate de haber anotado tu código de recuperación. El código de recuperación es la única opción para restablecer tu contraseña o segundo factor en caso de que pierdas cualquiera de los dos.",
+		"recoveryCodeConfirmation_msg": "Asegúrate de haber anotado tu código de recuperación.",
 		"recoveryCodeDisplay_action": "Mostrar código de recuperación",
 		"recoveryCodeEmpty_msg": "Por favor introduce un código de recuperación",
 		"recoveryCode_label": "Código de recuperación",
