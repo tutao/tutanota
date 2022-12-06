@@ -23,7 +23,7 @@ import {locator} from "../api/main/MainLocator.js"
 import {getEtId, isSameId} from "../api/common/utils/EntityUtils.js"
 import {logins} from "../api/main/LoginController.js"
 import * as RecoverCodeDialog from "./RecoverCodeDialog.js"
-import {WebauthnClient} from "../misc/2fa/webauthn/WebauthnClient.js"
+import {validateWebauthnDisplayName, WebauthnClient} from "../misc/2fa/webauthn/WebauthnClient.js"
 import {EntityClient} from "../api/common/EntityClient.js"
 import {ProgrammingError} from "../api/common/error/ProgrammingError.js"
 import type {TotpSecret} from "@tutao/tutanota-crypto"
@@ -37,6 +37,14 @@ const enum VerificationStatus {
 	Success = "Success",
 }
 
+const DEFAULT_U2F_NAME = "U2F"
+const DEFAULT_TOTP_NAME = "TOTP"
+
+const NameValidationStatus: Record<string, TranslationKey> = {
+	Valid: "secondFactorNameInfo_msg",
+	Invalid: "textTooLong_msg"
+} as const
+
 /** Enum with user-visible types because we don't allow adding SecondFactorType.u2f anymore */
 const FactorTypes = {
 	WEBAUTHN: SecondFactorType.webauthn,
@@ -47,6 +55,8 @@ type FactorTypesEnum = Values<typeof FactorTypes>
 
 export class EditSecondFactorDialog {
 	private readonly dialog: Dialog
+	private helpKey: TranslationKey = NameValidationStatus.Valid
+	private helpLabelSelector = ""
 	private selectedType: FactorTypesEnum
 	private verificationStatus: VerificationStatus = VerificationStatus.Initial
 	private u2fRegistrationData: U2fRegisteredDevice | null = null
@@ -103,6 +113,7 @@ export class EditSecondFactorDialog {
 			allowCancel: true,
 			okActionTextId: "save_action",
 			cancelAction: () => this.webauthnClient.abortCurrentOperation(),
+			validator: () => this.updateNameValidation()
 		})
 	}
 
@@ -141,6 +152,7 @@ export class EditSecondFactorDialog {
 			sf.type = SecondFactorType.webauthn
 
 			if (this.verificationStatus !== VerificationStatus.Success) {
+				// noinspection ES6MissingAwait
 				Dialog.message("unrecognizedU2fDevice_msg")
 				return
 			} else {
@@ -150,6 +162,7 @@ export class EditSecondFactorDialog {
 			sf.type = SecondFactorType.totp
 
 			if (this.verificationStatus !== VerificationStatus.Success) {
+				// noinspection ES6MissingAwait
 				Dialog.message("totpCodeEnter_msg")
 				return
 			} else {
@@ -189,10 +202,11 @@ export class EditSecondFactorDialog {
 		}
 		const nameFieldAttrs: TextFieldAttrs = {
 			label: "name_label",
-			helpLabel: () => lang.get("secondFactorNameInfo_msg"),
+			helpLabel: () => m(this.helpLabelSelector, lang.get(this.helpKey)),
 			value: this.name,
 			oninput: value => {
 				this.name = value
+				this.updateNameValidation()
 			},
 		}
 		return [m(DropDownSelector, typeDropdownAttrs), m(TextField, nameFieldAttrs), this.renderTypeSpecificFields()]
@@ -267,6 +281,7 @@ export class EditSecondFactorDialog {
 		const successful = await locator.systemFacade.openLink(url)
 
 		if (!successful) {
+			// noinspection ES6MissingAwait
 			Dialog.message("noAppAvailable_msg")
 		}
 	}
@@ -289,6 +304,7 @@ export class EditSecondFactorDialog {
 			? VerificationStatus.Initial
 			: VerificationStatus.Progress
 
+		this.updateNameValidation()
 		this.setDefaultNameIfNeeded()
 
 		if (newValue !== FactorTypes.WEBAUTHN) {
@@ -392,12 +408,15 @@ export class EditSecondFactorDialog {
 		}
 	}
 
+	/**
+	 * empty names sometimes lead to errors, so we make sure we have something semi-sensible set in the field.
+	 */
 	private setDefaultNameIfNeeded() {
 		const trimmed = this.name.trim()
-		if (this.selectedType === SecondFactorType.webauthn && (trimmed === "TOTP" || trimmed.length === 0)) {
-			this.name = "U2F"
-		} else if (this.selectedType === SecondFactorType.totp && (trimmed === "U2F" || trimmed.length === 0)) {
-			this.name = "TOTP"
+		if (this.selectedType === SecondFactorType.webauthn && (trimmed === DEFAULT_TOTP_NAME || trimmed.length === 0)) {
+			this.name = DEFAULT_U2F_NAME
+		} else if (this.selectedType === SecondFactorType.totp && (trimmed === DEFAULT_U2F_NAME || trimmed.length === 0)) {
+			this.name = DEFAULT_TOTP_NAME
 		}
 	}
 
@@ -412,6 +431,18 @@ export class EditSecondFactorDialog {
 			} else {
 				return lang.get("totpCodeEnter_msg")
 			}
+		}
+	}
+
+	private updateNameValidation(): TranslationKey | null {
+		if (this.selectedType !== SecondFactorType.webauthn || validateWebauthnDisplayName(this.name)) {
+			this.helpKey = NameValidationStatus.Valid
+			this.helpLabelSelector = ""
+			return null
+		} else {
+			this.helpKey = NameValidationStatus.Invalid
+			this.helpLabelSelector = ".primary"
+			return NameValidationStatus.Invalid
 		}
 	}
 }
