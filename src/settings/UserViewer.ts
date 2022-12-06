@@ -14,7 +14,7 @@ import {ContactFormTypeRef, CustomerContactFormGroupRootTypeRef, MailboxGroupRoo
 import {ColumnWidth, Table, TableAttrs} from "../gui/base/Table.js"
 import {getGroupTypeName} from "./GroupViewer"
 import {Icons} from "../gui/base/icons/Icons"
-import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
+import {EditSecondFactorsForm} from "./login/secondfactor/EditSecondFactorsForm.js"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
@@ -30,7 +30,7 @@ import {TextField} from "../gui/base/TextField.js"
 import {locator} from "../api/main/MainLocator"
 import {DropDownSelector, SelectorItem} from "../gui/base/DropDownSelector.js";
 import {UpdatableSettingsDetailsViewer} from "./SettingsView"
-import {showChangeOwnPasswordDialog, showChangeUserPasswordAsAdminDialog} from "./ChangePasswordDialogs.js";
+import {showChangeOwnPasswordDialog, showChangeUserPasswordAsAdminDialog} from "./login/ChangePasswordDialogs.js";
 import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js";
 import {MailAddressTableModel} from "./mailaddress/MailAddressTableModel.js"

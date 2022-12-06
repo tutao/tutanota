@@ -20,7 +20,7 @@ import {getTokenFromUrl, renderAcceptGiftCardTermsCheckbox, renderGiftCardSvg} f
 import {CancelledError} from "../../api/common/error/CancelledError"
 import {lang} from "../../misc/LanguageViewModel"
 import {getLoginErrorMessage, handleExpectedLoginError} from "../../misc/LoginUtils"
-import {RecoverCodeField} from "../../settings/RecoverCodeDialog"
+import {RecoverCodeField} from "../../settings/login/RecoverCodeDialog.js"
 import {HabReminderImage} from "../../gui/base/icons/Icons"
 import {PaymentMethodType} from "../../api/common/TutanotaConstants"
 import {formatPrice, getPaymentMethodName, PriceAndConfigProvider, PaymentInterval} from "../PriceUtils"
