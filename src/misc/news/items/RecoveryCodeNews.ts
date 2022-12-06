@@ -4,7 +4,7 @@ import {NewsId} from "../../../api/entities/tutanota/TypeRefs.js"
 import {lang} from "../../LanguageViewModel.js"
 import {Button, ButtonType} from "../../../gui/base/Button.js"
 import {NewsModel} from "../NewsModel.js"
-import type {RecoverCodeField} from "../../../settings/RecoverCodeDialog.js"
+import type {RecoverCodeField} from "../../../settings/login/RecoverCodeDialog.js"
 import {Dialog, DialogType} from "../../../gui/base/Dialog.js"
 import {AccessBlockedError, NotAuthenticatedError} from "../../../api/common/error/RestError.js"
 import {LazyLoaded, noOp, ofClass} from "@tutao/tutanota-utils"
@@ -26,7 +26,7 @@ export class RecoveryCodeNews implements NewsListItem {
 	private readonly sentActions = new Set<string>()
 	private recoveryCode: string | null = null
 	private readonly recoverCodeField = new LazyLoaded(async () => {
-		const {RecoverCodeField} = await import("../../../settings/RecoverCodeDialog.js")
+		const {RecoverCodeField} = await import("../../../settings/login/RecoverCodeDialog.js")
 		m.redraw()
 		return RecoverCodeField
 	})

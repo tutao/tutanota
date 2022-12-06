@@ -1,19 +1,19 @@
-import {User} from "../api/entities/sys/TypeRefs.js";
-import {Dialog} from "../gui/base/Dialog.js";
-import {locator} from "../api/main/MainLocator.js";
-import {showProgressDialog} from "../gui/dialogs/ProgressDialog.js";
-import {lang} from "../misc/LanguageViewModel.js";
+import {User} from "../../api/entities/sys/TypeRefs.js";
+import {Dialog} from "../../gui/base/Dialog.js";
+import {locator} from "../../api/main/MainLocator.js";
+import {showProgressDialog} from "../../gui/dialogs/ProgressDialog.js";
+import {lang} from "../../misc/LanguageViewModel.js";
 import m from "mithril";
-import {getEtId} from "../api/common/utils/EntityUtils.js";
-import {NotAuthenticatedError} from "../api/common/error/RestError.js";
-import {PasswordForm, PasswordModel} from "./PasswordForm.js";
+import {getEtId} from "../../api/common/utils/EntityUtils.js";
+import {NotAuthenticatedError} from "../../api/common/error/RestError.js";
+import {PasswordForm, PasswordModel} from "../PasswordForm.js";
 import {ofClass} from "@tutao/tutanota-utils"
 
 /**
  *The admin does not have to enter the old password in addition to the new password (twice). The password strength is not enforced.
  */
 export async function showChangeUserPasswordAsAdminDialog(user: User) {
-	const {logins} = await import("../api/main/LoginController.js")
+	const {logins} = await import("../../api/main/LoginController.js")
 	const model = new PasswordModel(logins, {checkOldPassword: false, enforceStrength: false, repeatInput: false})
 
 	const changeUserPasswordAsAdminOkAction = (dialog: Dialog) => {
@@ -42,7 +42,7 @@ export async function showChangeUserPasswordAsAdminDialog(user: User) {
  * The user must enter the old password in addition to the new password (twice). The password strength is enforced.
  */
 export async function showChangeOwnPasswordDialog(allowCancel: boolean = true) {
-	const {logins} = await import("../api/main/LoginController.js")
+	const {logins} = await import("../../api/main/LoginController.js")
 
 	const model = new PasswordModel(logins, {checkOldPassword: true, enforceStrength: true, repeatInput: false})
 
