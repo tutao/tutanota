@@ -121,16 +121,18 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 
 	/**
 	 * not implemented because we lock the "ranges" DB directly from the per-window facade
+	 * we return Promise.resolve() in order to allow testing of the "clearExcludedData" function
 	 */
 	lockRangesDbAccess(userId: Id): Promise<void> {
-		throw new ProgrammingError("Not implemented")
+		return Promise.resolve()
 	}
 
 	/**
 	 * not implemented because we unlock the "ranges" DB directly from the per-window facade
+	 * we return Promise.resolve() in order to allow testing of the "clearExcludedData" function
 	 */
 	unlockRangesDbAccess(userId: Id): Promise<void> {
-		throw new ProgrammingError("Not implemented")
+		return Promise.resolve()
 	}
 
 	private checkIntegrity() {

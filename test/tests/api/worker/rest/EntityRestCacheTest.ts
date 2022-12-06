@@ -612,12 +612,22 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 			})
 
 			o("id is in range but instance doesn't exist after moving lower range", async function () {
-				const mails = [1, 2, 3].map(i => createMailInstance("listId1", "id" + i, "mail" + i))
+				const listId = "listId1"
+
+				const mails = [1, 2, 3].map(i => createMailInstance(listId, "id" + i, "mail" + i))
 				const newListId = "listId2"
 
 				const loadRange = o.spy(() => Promise.resolve(mails))
 				const loadRangeMock = mockAttribute(entityRestClient, entityRestClient.loadRange, loadRange)
-				await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 3, false)
+				storage.lockRangesDbAccess = o.spy(storage.lockRangesDbAccess)
+				storage.unlockRangesDbAccess = o.spy(storage.unlockRangesDbAccess)
+
+				await cache.loadRange(MailTypeRef, listId, GENERATED_MIN_ID, 3, false)
+
+				// Verify that we lock/unlock the ranges database when loading the range
+				o(storage.lockRangesDbAccess.calls.map(c => c.args)).deepEquals([[listId]])
+				o(storage.unlockRangesDbAccess.calls.map(c => c.args)).deepEquals([[listId]])
+
 				o(loadRange.callCount).equals(1)
 				unmockAttribute(loadRangeMock)
 
@@ -631,13 +641,12 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id) => Pr
 				const load = o.spy(() => Promise.reject(new Error("This is not the mail you're looking for")))
 				const loadMock = mockAttribute(entityRestClient, entityRestClient.load, load)
 				const thrown = await assertThrows(Error, () =>
-					cache.load(MailTypeRef, ["listId1", getElementId(mails[0])]),
+					cache.load(MailTypeRef, [listId, getElementId(mails[0])]),
 				)
 				o(thrown.message).equals("This is not the mail you're looking for")
 				o(load.callCount).equals(1)
 				unmockAttribute(loadMock)
 			})
-
 
 			o("id is in range but instance doesn't exist after moving upper range", async function () {
 				const mails = [
