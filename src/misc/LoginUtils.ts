@@ -3,7 +3,7 @@ import {Dialog} from "../gui/base/Dialog"
 import {generatedIdToTimestamp} from "../api/common/utils/EntityUtils"
 import type {TranslationText} from "./LanguageViewModel"
 import {InfoLink, lang} from "./LanguageViewModel"
-import {getHttpOrigin} from "../api/common/Env"
+import {getApiOrigin} from "../api/common/Env"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -69,7 +69,7 @@ export function checkApprovalStatus(
 					if (includeInvoiceNotPaidForAdmin) {
 						return Dialog.message(() => {
 							return lang.get("invoiceNotPaid_msg", {
-								"{1}": getHttpOrigin(),
+								"{1}": getApiOrigin(),
 							})
 						})
 									 .then(() => {

@@ -1,6 +1,6 @@
 import {COSEAlgorithmIdentifier} from "./WebauthnTypes.js"
 import {ProgrammingError} from "../../../api/common/error/ProgrammingError.js"
-import {getHttpOrigin, isApp} from "../../../api/common/Env.js"
+import {getApiOrigin, isApp} from "../../../api/common/Env.js"
 import {U2F_APPID, U2f_APPID_SUFFIX, WEBAUTHN_RP_ID,} from "./WebAuthn.js"
 import {WebAuthnFacade} from "../../../native/common/generatedipc/WebAuthnFacade.js"
 import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
@@ -152,7 +152,7 @@ export class BrowserWebauthn implements WebAuthnFacade {
 		if (hostname.endsWith(WEBAUTHN_RP_ID)) {
 			return U2F_APPID
 		} else {
-			return getHttpOrigin() + U2f_APPID_SUFFIX
+			return getApiOrigin() + U2f_APPID_SUFFIX
 		}
 	}
 }

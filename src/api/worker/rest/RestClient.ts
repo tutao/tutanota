@@ -1,4 +1,4 @@
-import {assertWorkerOrNode, getHttpOrigin, isAdminClient, isAndroidApp, isWebClient, isWorker} from "../../common/Env"
+import {assertWorkerOrNode, getApiOrigin, isAdminClient, isAndroidApp, isWebClient, isWorker} from "../../common/Env"
 import {ConnectionError, handleRestError, PayloadTooLargeError, ServiceUnavailableError, TooManyRequestsError} from "../../common/error/RestError"
 import {HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {assertNotNull, typedEntries, uint8ArrayToArrayBuffer} from "@tutao/tutanota-utils"
@@ -78,7 +78,7 @@ export class RestClient {
 					options.queryParams["cv"] = env.versionNumber
 				}
 
-				const origin = options.baseUrl ?? getHttpOrigin()
+				const origin = options.baseUrl ?? getApiOrigin()
 				const url = addParamsToUrl(new URL(origin + path), options.queryParams)
 				const xhr = new XMLHttpRequest()
 				xhr.open(method, url.toString())

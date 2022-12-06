@@ -60,7 +60,8 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
       appDelegate: self.appDelegate,
       alarmManager: self.alarmManager,
       userPreferences: userPreferences,
-      keychainManager: keychainManager
+      keychainManager: keychainManager,
+      webAuthnFacade: IosWebauthnFacade(viewController: self)
     )
   }
   
@@ -77,10 +78,6 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     NotificationCenter.default.addObserver(self, selector: #selector(onKeyboardDidShow), name: UIResponder.keyboardDidShowNotification, object: nil)
     NotificationCenter.default.addObserver(self, selector: #selector(onKeyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
     NotificationCenter.default.addObserver(self, selector: #selector(onKeyboardSizeChange), name: UIResponder.keyboardDidChangeFrameNotification, object: nil)
-  }
-  
-  override func viewDidAppear(_ animated: Bool) {
-    self.testWebauthn()
   }
   
   /// Implementation of WKNavigationDelegate

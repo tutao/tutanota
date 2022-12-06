@@ -6,7 +6,7 @@ import {assert, assertNotNull, filterInt, neverNull} from "@tutao/tutanota-utils
 import {GroupType} from "../../common/TutanotaConstants"
 
 import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
-import {assertWorkerOrNode, getHttpOrigin, Mode} from "../../common/Env"
+import {assertWorkerOrNode, getApiOrigin, Mode} from "../../common/Env"
 import {handleRestError} from "../../common/error/RestError"
 import {convertToDataFile, DataFile} from "../../common/DataFile"
 import type {SuspensionHandler} from "../SuspensionHandler"
@@ -78,7 +78,7 @@ export class FileFacade {
 		const queryParams = {
 			_body: body,
 		}
-		const url = addParamsToUrl(new URL(getHttpOrigin() + REST_PATH), queryParams)
+		const url = addParamsToUrl(new URL(getApiOrigin() + REST_PATH), queryParams)
 		const {
 			statusCode,
 			encryptedFileUri,
@@ -159,7 +159,7 @@ export class FileFacade {
 		const headers = this.user.createAuthHeaders()
 
 		headers["v"] = String(modelInfo.version)
-		const url = addParamsToUrl(new URL(getHttpOrigin() + "/rest/tutanota/filedataservice"), {
+		const url = addParamsToUrl(new URL(getApiOrigin() + "/rest/tutanota/filedataservice"), {
 			fileDataId,
 		})
 		const {

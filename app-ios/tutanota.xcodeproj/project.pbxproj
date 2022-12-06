@@ -10,6 +10,14 @@
 		3D0EB1F626F489AD002E5102 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0EB1F526F48854002E5102 /* KeychainManager.swift */; };
 		3D0EB1F926F49E36002E5102 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0EB1F826F49E36002E5102 /* AppDelegate.swift */; };
 		3D0EB1FC26F4BEE4002E5102 /* AlarmManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0EB1FB26F4BEE4002E5102 /* AlarmManager.swift */; };
+		3D2201F7293F750D00366FD2 /* WebAuthnFacadeReceiveDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2201F5293F750D00366FD2 /* WebAuthnFacadeReceiveDispatcher.swift */; };
+		3D2201F8293F750D00366FD2 /* WebAuthnFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2201F6293F750D00366FD2 /* WebAuthnFacade.swift */; };
+		3D2201FE293F752D00366FD2 /* WebAuthnRegistrationResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2201F9293F752D00366FD2 /* WebAuthnRegistrationResult.swift */; };
+		3D2201FF293F752D00366FD2 /* WebAuthnRegistrationChallenge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2201FA293F752D00366FD2 /* WebAuthnRegistrationChallenge.swift */; };
+		3D220200293F752D00366FD2 /* WebAuthnSignResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2201FB293F752D00366FD2 /* WebAuthnSignResult.swift */; };
+		3D220201293F752D00366FD2 /* WebAuthnSignChallenge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2201FC293F752D00366FD2 /* WebAuthnSignChallenge.swift */; };
+		3D220202293F752D00366FD2 /* WebauthnKeyDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2201FD293F752D00366FD2 /* WebauthnKeyDescriptor.swift */; };
+		3D220205293F75C100366FD2 /* IosWebauthnFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D220204293F75C100366FD2 /* IosWebauthnFacade.swift */; };
 		3D239302287EC96200DD7396 /* CustomSchemeHandlers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D239301287EC96200DD7396 /* CustomSchemeHandlers.swift */; };
 		3D2DB91B2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D2DB91A2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift */; };
 		3D36BCC2274E4A6100428878 /* CryptoTokenKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D36BCC1274E4A6100428878 /* CryptoTokenKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
@@ -199,6 +207,14 @@
 		3D0EB1F526F48854002E5102 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		3D0EB1F826F49E36002E5102 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3D0EB1FB26F4BEE4002E5102 /* AlarmManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmManager.swift; sourceTree = "<group>"; };
+		3D2201F5293F750D00366FD2 /* WebAuthnFacadeReceiveDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnFacadeReceiveDispatcher.swift; sourceTree = "<group>"; };
+		3D2201F6293F750D00366FD2 /* WebAuthnFacade.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnFacade.swift; sourceTree = "<group>"; };
+		3D2201F9293F752D00366FD2 /* WebAuthnRegistrationResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnRegistrationResult.swift; sourceTree = "<group>"; };
+		3D2201FA293F752D00366FD2 /* WebAuthnRegistrationChallenge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnRegistrationChallenge.swift; sourceTree = "<group>"; };
+		3D2201FB293F752D00366FD2 /* WebAuthnSignResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnSignResult.swift; sourceTree = "<group>"; };
+		3D2201FC293F752D00366FD2 /* WebAuthnSignChallenge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebAuthnSignChallenge.swift; sourceTree = "<group>"; };
+		3D2201FD293F752D00366FD2 /* WebauthnKeyDescriptor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebauthnKeyDescriptor.swift; sourceTree = "<group>"; };
+		3D220204293F75C100366FD2 /* IosWebauthnFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosWebauthnFacade.swift; sourceTree = "<group>"; };
 		3D239301287EC96200DD7396 /* CustomSchemeHandlers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomSchemeHandlers.swift; sourceTree = "<group>"; };
 		3D2DB91A2733F43B00BCEF4C /* IosNativeCredentialsFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosNativeCredentialsFacade.swift; sourceTree = "<group>"; };
 		3D36BCC1274E4A6100428878 /* CryptoTokenKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CryptoTokenKit.framework; path = System/Library/Frameworks/CryptoTokenKit.framework; sourceTree = SDKROOT; };
@@ -414,6 +430,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3D220203293F75B000366FD2 /* Webauthn */ = {
+			isa = PBXGroup;
+			children = (
+				3D220204293F75C100366FD2 /* IosWebauthnFacade.swift */,
+			);
+			path = Webauthn;
+			sourceTree = "<group>";
+		};
 		3D57BEB322B796AC00205B1B /* Alarms */ = {
 			isa = PBXGroup;
 			children = (
@@ -456,6 +480,7 @@
 		3D74536121089D2200B16F2E /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				3D220203293F75B000366FD2 /* Webauthn */,
 				3D378ED22536F3A80001F1F3 /* tutanota-Bridging-Header.h */,
 				3DDE413928F45E3700837BE6 /* Offline */,
 				3DBA56B62850AAA6004416BE /* GeneratedIpc */,
@@ -1057,6 +1082,13 @@
 		3DBA56B62850AAA6004416BE /* GeneratedIpc */ = {
 			isa = PBXGroup;
 			children = (
+				3D2201FD293F752D00366FD2 /* WebauthnKeyDescriptor.swift */,
+				3D2201FA293F752D00366FD2 /* WebAuthnRegistrationChallenge.swift */,
+				3D2201F9293F752D00366FD2 /* WebAuthnRegistrationResult.swift */,
+				3D2201FC293F752D00366FD2 /* WebAuthnSignChallenge.swift */,
+				3D2201FB293F752D00366FD2 /* WebAuthnSignResult.swift */,
+				3D2201F6293F750D00366FD2 /* WebAuthnFacade.swift */,
+				3D2201F5293F750D00366FD2 /* WebAuthnFacadeReceiveDispatcher.swift */,
 				3D4E3CA328EC5C65001FA9D1 /* SqlCipherFacade.swift */,
 				3D4E3CA428EC5C65001FA9D1 /* SqlCipherFacadeReceiveDispatcher.swift */,
 				3D3AFAED285CB1DC0077F302 /* CommonSystemFacade.swift */,
@@ -1510,10 +1542,12 @@
 				3DB07C7B27303F0600BFBB4D /* Keys.swift in Sources */,
 				3D3AFAE5285B0C350077F302 /* MobileSystemFacadeReceiveDispatcher.swift in Sources */,
 				3DC5DED62858CB58007364FF /* RsaPrivateKey.swift in Sources */,
+				3D220200293F752D00366FD2 /* WebAuthnSignResult.swift in Sources */,
 				3DBA56D32850AAA6004416BE /* ElectronResult.swift in Sources */,
 				3DBA56C92850AAA6004416BE /* DownloadTaskResponse.swift in Sources */,
 				3DBA56CE2850AAA6004416BE /* IosGlobalDispatcher.swift in Sources */,
 				3DBA56CD2850AAA6004416BE /* NativeShortcut.swift in Sources */,
+				3D220205293F75C100366FD2 /* IosWebauthnFacade.swift in Sources */,
 				3DC5DECD2858C1F5007364FF /* IosNativePushFacade.swift in Sources */,
 				3D3AFAEC285C5C6E0077F302 /* DataFile.swift in Sources */,
 				3D84F5822723225C00858A58 /* Utils.swift in Sources */,
@@ -1525,6 +1559,7 @@
 				3D84F56B2721B92C00858A58 /* MissedNotification.swift in Sources */,
 				3DC5DED52858CB58007364FF /* NativeCryptoFacade.swift in Sources */,
 				3DC5DEC728576621007364FF /* NativeInterface.swift in Sources */,
+				3D220202293F752D00366FD2 /* WebauthnKeyDescriptor.swift in Sources */,
 				3DCE7AAC27200E0A0085E40D /* WebviewHacks.m in Sources */,
 				3DCE7AA22719D04B0085E40D /* UserPreferenceFacade.swift in Sources */,
 				3D0EB1F626F489AD002E5102 /* KeychainManager.swift in Sources */,
@@ -1532,6 +1567,7 @@
 				3D92867C273A7D19006B8FB2 /* TutanotaError.swift in Sources */,
 				3D3AFAE2285B0C350077F302 /* NativeContact.swift in Sources */,
 				3D891F082105B12F0031E528 /* rsa_oaep_sha256.c in Sources */,
+				3D2201F7293F750D00366FD2 /* WebAuthnFacadeReceiveDispatcher.swift in Sources */,
 				3DC5DECB2858C12D007364FF /* NativePushFacadeReceiveDispatcher.swift in Sources */,
 				3D9B12AF2721966C002B46A1 /* IdTuple.swift in Sources */,
 				3D92867F273BBA9D006B8FB2 /* KeyGeneratorSecureEnclave.swift in Sources */,
@@ -1545,6 +1581,7 @@
 				3DBA56CA2850AAA6004416BE /* IpcClientRect.swift in Sources */,
 				3DCB9B8728F711220042A6BB /* SqlCipherStatement.swift in Sources */,
 				3DC299FD2673668000E1E79F /* QueryUtils.swift in Sources */,
+				3D2201FE293F752D00366FD2 /* WebAuthnRegistrationResult.swift in Sources */,
 				3D891F0E2105B12F0031E528 /* TUTAes128Facade.m in Sources */,
 				3D3AFAE4285B0C350077F302 /* IntegrationInfo.swift in Sources */,
 				3DBA56D42850AAA6004416BE /* UploadTaskResponse.swift in Sources */,
@@ -1564,6 +1601,7 @@
 				3DE7B3442135855F003415BE /* TUTSubKeys.m in Sources */,
 				3D4E3CA828EC63A6001FA9D1 /* sqlite3.c in Sources */,
 				3D84F56D2722CEF900858A58 /* FileUtils.swift in Sources */,
+				3D2201F8293F750D00366FD2 /* WebAuthnFacade.swift in Sources */,
 				3DCE7AA7271D63BF0085E40D /* ViewController.swift in Sources */,
 				3DBA56CF2850AAA6004416BE /* FileFacadeReceiveDispatcher.swift in Sources */,
 				3D73DA3427319A91008E7A8A /* Operation.swift in Sources */,
@@ -1572,6 +1610,7 @@
 				3DBA56D52850AAA6004416BE /* NativeKey.swift in Sources */,
 				3DDE413B28F4665700837BE6 /* SqlCipherDb.swift in Sources */,
 				3DCB9B8528F710CC0042A6BB /* TaggedSqlValue.swift in Sources */,
+				3D220201293F752D00366FD2 /* WebAuthnSignChallenge.swift in Sources */,
 				3D4E3CA628EC5C65001FA9D1 /* SqlCipherFacadeReceiveDispatcher.swift in Sources */,
 				3DBE94BA273147830077A6EA /* RemoteBridge.swift in Sources */,
 				3D84F5762723112400858A58 /* FileViewer.swift in Sources */,
@@ -1587,6 +1626,7 @@
 				3D84F57927231E8600858A58 /* SSEInfo.swift in Sources */,
 				3DC5DECA2858C12D007364FF /* NativePushFacade.swift in Sources */,
 				3D239302287EC96200DD7396 /* CustomSchemeHandlers.swift in Sources */,
+				3D2201FF293F752D00366FD2 /* WebAuthnRegistrationChallenge.swift in Sources */,
 				3D84F5732722F35600858A58 /* IosNativeCryptoFacade.swift in Sources */,
 				3DBA56C82850AAA6004416BE /* MobileFacadeSendDispatcher.swift in Sources */,
 				3DC5DED92858CB58007364FF /* RsaPublicKey.swift in Sources */,

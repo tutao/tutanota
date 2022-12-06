@@ -10,6 +10,7 @@ public class IosGlobalDispatcher {
 	private let nativePushFacade: NativePushFacadeReceiveDispatcher
 	private let sqlCipherFacade: SqlCipherFacadeReceiveDispatcher
 	private let themeFacade: ThemeFacadeReceiveDispatcher
+	private let webAuthnFacade: WebAuthnFacadeReceiveDispatcher
 	
 	init(
 		commonSystemFacade : CommonSystemFacade,
@@ -19,7 +20,8 @@ public class IosGlobalDispatcher {
 		nativeCryptoFacade : NativeCryptoFacade,
 		nativePushFacade : NativePushFacade,
 		sqlCipherFacade : SqlCipherFacade,
-		themeFacade : ThemeFacade
+		themeFacade : ThemeFacade,
+		webAuthnFacade : WebAuthnFacade
 	) {
 		self.commonSystemFacade = CommonSystemFacadeReceiveDispatcher(facade: commonSystemFacade)
 		self.fileFacade = FileFacadeReceiveDispatcher(facade: fileFacade)
@@ -29,6 +31,7 @@ public class IosGlobalDispatcher {
 		self.nativePushFacade = NativePushFacadeReceiveDispatcher(facade: nativePushFacade)
 		self.sqlCipherFacade = SqlCipherFacadeReceiveDispatcher(facade: sqlCipherFacade)
 		self.themeFacade = ThemeFacadeReceiveDispatcher(facade: themeFacade)
+		self.webAuthnFacade = WebAuthnFacadeReceiveDispatcher(facade: webAuthnFacade)
 	}
 	
 	func dispatch(facadeName: String, methodName: String, args: Array<String>) async throws -> String {
@@ -49,6 +52,8 @@ public class IosGlobalDispatcher {
 				return try await self.sqlCipherFacade.dispatch(method: methodName, arg: args)
 			case "ThemeFacade":
 				return try await self.themeFacade.dispatch(method: methodName, arg: args)
+			case "WebAuthnFacade":
+				return try await self.webAuthnFacade.dispatch(method: methodName, arg: args)
 			default:
 				fatalError("licc messed up! " + facadeName)
 		}
