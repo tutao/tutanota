@@ -53,7 +53,7 @@ const FactorTypes = {
 
 type FactorTypesEnum = Values<typeof FactorTypes>
 
-export class EditSecondFactorDialog {
+export class SecondFactorEditDialog {
 	private readonly dialog: Dialog
 	private helpKey: TranslationKey = NameValidationStatus.Valid
 	private helpLabelSelector = ""
@@ -313,11 +313,11 @@ export class EditSecondFactorDialog {
 		}
 	}
 
-	private static async loadWebauthnClient(entityClient: EntityClient, lazyUser: LazyLoaded<User>, mailAddress: string): Promise<EditSecondFactorDialog> {
+	private static async loadWebauthnClient(entityClient: EntityClient, lazyUser: LazyLoaded<User>, mailAddress: string): Promise<SecondFactorEditDialog> {
 		const totpKeys = await locator.loginFacade.generateTotpSecret()
 		const user = await lazyUser.getAsync()
 		const webauthnSupported = await locator.webAuthn.isSupported()
-		return new EditSecondFactorDialog(entityClient, user, mailAddress, locator.webAuthn, totpKeys, webauthnSupported)
+		return new SecondFactorEditDialog(entityClient, user, mailAddress, locator.webAuthn, totpKeys, webauthnSupported)
 	}
 
 	private showRecoveryInfoDialog(user: User) {

@@ -17,13 +17,13 @@ import type {EntityUpdateData} from "../../../api/main/EventController.js"
 import {isUpdateForTypeRef} from "../../../api/main/EventController.js"
 import {ifAllowedTutanotaLinks} from "../../../gui/base/GuiUtils.js"
 import {locator} from "../../../api/main/MainLocator.js"
-import {EditSecondFactorDialog, SecondFactorTypeToNameTextId} from "./EditSecondFactorDialog.js"
+import {SecondFactorEditDialog, SecondFactorTypeToNameTextId} from "./SecondFactorEditDialog.js"
 import {IconButtonAttrs} from "../../../gui/base/IconButton.js"
 import {ButtonSize} from "../../../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 
-export class EditSecondFactorsForm {
+export class SecondFactorsEditForm {
 	_2FALineAttrs: TableLineAttrs[]
 	_user: LazyLoaded<User>
 
@@ -97,7 +97,7 @@ export class EditSecondFactorsForm {
 
 	_showAddSecondFactorDialog() {
 		const mailAddress = assertNotNull(logins.getUserController().userGroupInfo.mailAddress)
-		EditSecondFactorDialog.loadAndShow(locator.entityClient, this._user, mailAddress)
+		SecondFactorEditDialog.loadAndShow(locator.entityClient, this._user, mailAddress)
 	}
 
 	entityEventReceived(update: EntityUpdateData): Promise<void> {
