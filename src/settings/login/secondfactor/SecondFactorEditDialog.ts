@@ -15,7 +15,7 @@ import {Dialog, DialogType} from "../../../gui/base/Dialog.js"
 import {Icon, progressIcon} from "../../../gui/base/Icon.js"
 import {theme} from "../../../gui/theme.js"
 import type {User} from "../../../api/entities/sys/TypeRefs.js"
-import {assertNotNull, LazyLoaded} from "@tutao/tutanota-utils"
+import {assertNotNull, delay, LazyLoaded} from "@tutao/tutanota-utils"
 import {locator} from "../../../api/main/MainLocator.js"
 import {getEtId, isSameId} from "../../../api/common/utils/EntityUtils.js"
 import {logins} from "../../../api/main/LoginController.js"
@@ -44,15 +44,21 @@ export class SecondFactorEditDialog {
 			child: {
 				view: () => this.render(),
 			},
-			okAction: () => this.model.save((user) => {
-				this.dialog.close()
-				SecondFactorEditDialog.showRecoveryInfoDialog(user)
-			}),
+			okAction: () => showProgressDialog(
+				"pleaseWait_msg",
+				// make sure any error messages displayed by save are shown on top of the progress dialog
+				delay(1).then(() => this.model.save((u) => this.finalize(u)))
+			),
 			allowCancel: true,
 			okActionTextId: "save_action",
 			cancelAction: () => this.model.abort(),
 			validator: () => this.model.validationMessage()
 		})
+	}
+
+	finalize(user: User): void {
+		this.dialog.close()
+		SecondFactorEditDialog.showRecoveryInfoDialog(user)
 	}
 
 	static async loadAndShow(entityClient: EntityClient, lazyUser: LazyLoaded<User>, mailAddress: string): Promise<void> {
@@ -187,7 +193,9 @@ export class SecondFactorEditDialog {
 			mailAddress,
 			locator.webAuthn,
 			totpKeys,
-			webauthnSupported
+			webauthnSupported,
+			lang,
+			locator.loginFacade
 		)
 		return new SecondFactorEditDialog(model)
 	}
