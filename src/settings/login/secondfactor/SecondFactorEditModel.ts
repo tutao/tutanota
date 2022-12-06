@@ -6,13 +6,12 @@ import {assertNotNull, LazyLoaded, neverNull, noOp} from "@tutao/tutanota-utils"
 import {isApp, isTutanotaDomain} from "../../../api/common/Env.js"
 import {htmlSanitizer} from "../../../misc/HtmlSanitizer.js"
 import {Dialog} from "../../../gui/base/Dialog.js"
-import {lang, TranslationKey} from "../../../misc/LanguageViewModel.js"
+import {LanguageViewModel, TranslationKey} from "../../../misc/LanguageViewModel.js"
 import {SecondFactorType} from "../../../api/common/TutanotaConstants.js"
 import {ProgrammingError} from "../../../api/common/error/ProgrammingError.js"
-import {showProgressDialog} from "../../../gui/dialogs/ProgressDialog.js"
 import QRCode from "qrcode-svg"
 import {SelectorItem} from "../../../gui/base/DropDownSelector.js"
-import {locator} from "../../../api/main/MainLocator.js"
+import {LoginFacade} from "../../../api/worker/facades/LoginFacade.js"
 
 export const enum VerificationStatus {
 	Initial = "Initial",
@@ -21,8 +20,8 @@ export const enum VerificationStatus {
 	Success = "Success",
 }
 
-const DEFAULT_U2F_NAME = "U2F"
-const DEFAULT_TOTP_NAME = "TOTP"
+export const DEFAULT_U2F_NAME = "U2F"
+export const DEFAULT_TOTP_NAME = "TOTP"
 
 export enum NameValidationStatus {
 	Valid,
@@ -56,6 +55,8 @@ export class SecondFactorEditModel {
 		private readonly webauthnClient: WebauthnClient,
 		readonly totpKeys: TotpSecret,
 		private readonly webauthnSupported: boolean,
+		private readonly lang: LanguageViewModel,
+		private readonly loginFacade: LoginFacade,
 		private readonly updateViewCallback: () => void = noOp
 	) {
 		this.selectedType = webauthnSupported ? FactorTypes.WEBAUTHN : FactorTypes.TOTP
@@ -87,45 +88,54 @@ export class SecondFactorEditModel {
 		this.otpInfo.getAsync().then(() => this.updateViewCallback())
 	}
 
+	/**
+	 * if the user cancels the second factor creation while it's already talking to webAuthn, we want to cancel that
+	 * process before closing the dialog.
+	 */
 	abort() {
 		// noinspection JSIgnoredPromiseFromCall
 		this.webauthnClient.abortCurrentOperation()
 	}
 
-	validator() {
-		return () => this.updateNameValidation()
-	}
-
+	/**
+	 * validation message for use in dialog validators
+	 */
 	validationMessage(): TranslationKey | null {
 		return this.nameValidationStatus === NameValidationStatus.Valid
 			? null
 			: "textTooLong_msg"
 	}
 
+	/**
+	 * get a list of supported second factor types ready to be used in a dropdown
+	 */
 	getFactorTypesOptions() {
 		const options: Array<SelectorItem<FactorTypesEnum>> = []
 		options.push({
-			name: lang.get("totpAuthenticator_label"),
+			name: this.lang.get("totpAuthenticator_label"),
 			value: FactorTypes.TOTP,
 		})
 
 		if (this.webauthnSupported) {
 			options.push({
-				name: lang.get("u2fSecurityKey_label"),
+				name: this.lang.get("u2fSecurityKey_label"),
 				value: FactorTypes.WEBAUTHN,
 			})
 		}
 		return options
 	}
 
+	/**
+	 * call when the selected second factor type changes
+	 */
 	onTypeSelected(newValue: FactorTypesEnum) {
 		this.selectedType = newValue
 		this.verificationStatus = newValue === FactorTypes.WEBAUTHN
 			? VerificationStatus.Initial
 			: VerificationStatus.Progress
 
-		this.updateNameValidation()
 		this.setDefaultNameIfNeeded()
+		this.updateNameValidation()
 
 		if (newValue !== FactorTypes.WEBAUTHN) {
 			// noinspection JSIgnoredPromiseFromCall
@@ -133,6 +143,9 @@ export class SecondFactorEditModel {
 		}
 	}
 
+	/**
+	 * call when the display name of the second factor instance changes
+	 */
 	onNameChange(newValue: string): void {
 		this.name = newValue
 		this.updateNameValidation()
@@ -154,8 +167,7 @@ export class SecondFactorEditModel {
 	}
 
 	/**
-	 * validates the input and makes the server calls to actually create a second factor
-	 * if the validation passes.
+	 * re-validates the input and makes the server calls to actually create a second factor
 	 */
 	async save(callback: (user: User) => void): Promise<void> {
 		this.setDefaultNameIfNeeded()
@@ -172,6 +184,7 @@ export class SecondFactorEditModel {
 				console.log("Webauthn registration failed: ", e)
 				this.u2fRegistrationData = null
 				this.verificationStatus = VerificationStatus.Failed
+				return
 			}
 		}
 
@@ -202,10 +215,9 @@ export class SecondFactorEditModel {
 				sf.otpSecret = this.totpKeys.key
 			}
 		} else {
-			throw new ProgrammingError("")
+			throw new ProgrammingError(`invalid factor type: ${this.selectedType}`)
 		}
-
-		await showProgressDialog("pleaseWait_msg", this.entityClient.setup(assertNotNull(this.user.auth).secondFactors, sf))
+		await this.entityClient.setup(assertNotNull(this.user.auth).secondFactors, sf)
 		callback(this.user)
 	}
 
@@ -223,6 +235,9 @@ export class SecondFactorEditModel {
 		return url.toString()
 	}
 
+	/**
+	 * re-check if the given display name is valid for the current second factor type
+	 */
 	private updateNameValidation(): void {
 		this.nameValidationStatus = this.selectedType !== SecondFactorType.webauthn || validateWebauthnDisplayName(this.name)
 			? NameValidationStatus.Valid
@@ -241,24 +256,26 @@ export class SecondFactorEditModel {
 		}
 	}
 
+	/**
+	 * check if the given validation code is the current, next or last code for the TOTP
+	 */
 	private async tryCodes(expectedCode: number, key: Uint8Array): Promise<VerificationStatus> {
-		const {loginFacade} = locator
 		const time = Math.floor(new Date().getTime() / 1000 / 30)
 		// We try out 3 codes: current minute, 30 seconds before and 30 seconds after.
 		// If at least one of them works, we accept it.
-		const number = await loginFacade.generateTotpCode(time, key)
+		const number = await this.loginFacade.generateTotpCode(time, key)
 
 		if (number === expectedCode) {
 			return VerificationStatus.Success
 		}
 
-		const number2 = await loginFacade.generateTotpCode(time - 1, key)
+		const number2 = await this.loginFacade.generateTotpCode(time - 1, key)
 
 		if (number2 === expectedCode) {
 			return VerificationStatus.Success
 		}
 
-		const number3 = await loginFacade.generateTotpCode(time + 1, key)
+		const number3 = await this.loginFacade.generateTotpCode(time + 1, key)
 
 		if (number3 === expectedCode) {
 			return VerificationStatus.Success
