@@ -1,5 +1,5 @@
 import {decode} from "cborg"
-import {assert, downcast, firstThrow, partitionAsync} from "@tutao/tutanota-utils"
+import {assert, downcast, firstThrow, partitionAsync, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import type {U2fChallenge, U2fRegisteredDevice, WebauthnResponseData} from "../../../api/entities/sys/TypeRefs.js"
 import {createU2fRegisteredDevice, createWebauthnResponseData, U2fKey} from "../../../api/entities/sys/TypeRefs.js"
 import {WebAuthnFacade} from "../../../native/common/generatedipc/WebAuthnFacade.js"
@@ -154,4 +154,20 @@ export class WebauthnClient {
 		encoded.set(y, 33)
 		return encoded
 	}
+}
+
+/** authenticators are allowed to truncate strings to this length */
+const WEBAUTHN_STRING_MAX_BYTE_LENGTH = 64
+
+/**
+ * some authenticators truncate this and others refuse to be registered
+ * at all if this validation does not pass.
+ *
+ * technically, we'd also be supposed to encode text direction and a language
+ * code into the display name.
+ */
+export function validateWebauthnDisplayName(displayName: string): boolean {
+	const ret = WEBAUTHN_STRING_MAX_BYTE_LENGTH - stringToUtf8Uint8Array(displayName).byteLength >= 0
+	console.log('ret=', ret)
+	return ret
 }

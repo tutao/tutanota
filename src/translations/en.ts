@@ -1257,7 +1257,7 @@ export default {
 		"secondFactorConfirmLoginNoIp_msg": "Would you like to allow the login from the client \"{clientIdentifier}\"?",
 		"secondFactorConfirmLogin_label": "Confirm login",
 		"secondFactorConfirmLogin_msg": "Would you like to allow the login from the client \"{clientIdentifier}\" with the IP address {ipAddress}?",
-		"secondFactorNameInfo_msg": "Optional: Name for identification.",
+		"secondFactorNameInfo_msg": "Name for identification.",
 		"secondFactorPendingOtherClientOnly_msg": "Please accept this login from another client.",
 		"secondFactorPending_msg": "Please authenticate with your second factor or accept this login from another client.",
 		"secondMergeContact_label": "Contact 2",
@@ -1570,6 +1570,7 @@ export default {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"textTooLong_msg": "The entered text is too long."
 	}
 }
