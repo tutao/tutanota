@@ -27,7 +27,8 @@ class RemoteBridge : NSObject, NativeInterface {
     appDelegate: AppDelegate,
     alarmManager: AlarmManager,
     userPreferences: UserPreferenceFacade,
-    keychainManager: KeychainManager
+    keychainManager: KeychainManager,
+    webAuthnFacade: WebAuthnFacade
   ) {
     self.webView = webView
     self.viewController = viewController
@@ -54,7 +55,8 @@ class RemoteBridge : NSObject, NativeInterface {
       nativeCryptoFacade: nativeCryptoFacade,
       nativePushFacade: nativePushFacade,
       sqlCipherFacade: IosSqlCipherFacade(),
-      themeFacade: themeFacade
+      themeFacade: themeFacade,
+      webAuthnFacade: webAuthnFacade
     )
     self.mobileFacade = MobileFacadeSendDispatcher(transport: self)
     self.webView.configuration.userContentController.add(self, name: "nativeApp")

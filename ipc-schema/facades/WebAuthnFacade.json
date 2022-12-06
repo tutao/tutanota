@@ -3,7 +3,7 @@
   "doc": "implementation of the WebAuthn protocol",
   "type": "facade",
   "senders": ["web"],
-  "receivers": ["desktop", "android"],
+  "receivers": ["desktop", "android", "ios"],
   "methods": {
 	"register": {
 	  "doc": "register for webauthn",

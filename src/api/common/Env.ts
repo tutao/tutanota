@@ -14,7 +14,7 @@ export const Mode: Record<EnvMode, EnvMode> = Object.freeze({
 })
 
 export function getWebsocketOrigin(): string {
-	return getHttpOrigin()
+	return getApiOrigin()
 		// replaces http: with ws: and https: with wss:
 		.replace(/^http/, "ws")
 		// for ios app custom protocol
@@ -22,7 +22,7 @@ export function getWebsocketOrigin(): string {
 }
 
 /** Returns the origin which should be used for API requests. */
-export function getHttpOrigin(): string {
+export function getApiOrigin(): string {
 	if (env.staticUrl) {
 		if (isIOSApp()) {
 			// http:// -> api:// and https:// -> apis://
@@ -39,7 +39,12 @@ export function getHttpOrigin(): string {
  * root used for gift cards and as the webauthn registered domain
  */
 export function getWebRoot(): string {
-	const origin = getHttpOrigin()
+	let origin: string
+	if (env.staticUrl) {
+			origin = env.staticUrl
+	} else {
+		return location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "")
+	}
 	return origin + (origin.includes("http://") || origin.includes("localhost") || origin.includes("local.tutanota.com") ? "/client/build" : "")
 }
 

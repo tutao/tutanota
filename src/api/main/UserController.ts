@@ -2,7 +2,7 @@ import {AccountType, GroupType, OperationType} from "../common/TutanotaConstants
 import type {Base64Url} from "@tutao/tutanota-utils"
 import {downcast, first, mapAndFilterNull, neverNull, ofClass} from "@tutao/tutanota-utils"
 import {MediaType} from "../common/EntityFunctions"
-import {assertMainOrNode, getHttpOrigin, isDesktop} from "../common/Env"
+import {assertMainOrNode, getApiOrigin, isDesktop} from "../common/Env"
 import type {EntityUpdateData} from "./EventController"
 import {isUpdateForTypeRef} from "./EventController"
 import {NotFoundError} from "../common/error/RestError"
@@ -190,7 +190,7 @@ export class UserController {
 
 			if (sendBeacon) {
 				try {
-					const path = `${getHttpOrigin()}/rest/sys/${CloseSessionService.name.toLowerCase()}`
+					const path = `${getApiOrigin()}/rest/sys/${CloseSessionService.name.toLowerCase()}`
 					const requestObject = createCloseSessionServicePost({
 						accessToken: this.accessToken,
 						sessionId: this.sessionId,
@@ -215,7 +215,7 @@ export class UserController {
 				// Fall back to sync XHR if
 				const path = "/rest/sys/session/" + this.sessionId[0] + "/" + this.sessionId[1]
 				const xhr = new XMLHttpRequest()
-				xhr.open("DELETE", getHttpOrigin() + path, false) // sync requests increase reliability when invoked in onunload
+				xhr.open("DELETE", getApiOrigin() + path, false) // sync requests increase reliability when invoked in onunload
 
 				xhr.setRequestHeader("accessToken", this.accessToken)
 				xhr.setRequestHeader("v", sysTypeModels.Session.version)

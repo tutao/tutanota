@@ -3,7 +3,7 @@ import {createPushIdentifier, PushIdentifierTypeRef} from "../../api/entities/sy
 import {assert, assertNotNull} from "@tutao/tutanota-utils"
 import {PushServiceType} from "../../api/common/TutanotaConstants"
 import {lang} from "../../misc/LanguageViewModel"
-import {getHttpOrigin, isAndroidApp, isDesktop, isIOSApp} from "../../api/common/Env"
+import {getApiOrigin, isAndroidApp, isDesktop, isIOSApp} from "../../api/common/Env"
 import {LoginController, logins} from "../../api/main/LoginController"
 import {client} from "../../misc/ClientDetector"
 import {DeviceConfig, deviceConfig} from "../../misc/DeviceConfig"
