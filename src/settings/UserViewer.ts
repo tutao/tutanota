@@ -14,7 +14,7 @@ import {ContactFormTypeRef, CustomerContactFormGroupRootTypeRef, MailboxGroupRoo
 import {ColumnWidth, Table, TableAttrs} from "../gui/base/Table.js"
 import {getGroupTypeName} from "./GroupViewer"
 import {Icons} from "../gui/base/icons/Icons"
-import {EditSecondFactorsForm} from "./login/secondfactor/EditSecondFactorsForm.js"
+import {SecondFactorsEditForm} from "./login/secondfactor/SecondFactorsEditForm.js"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {isUpdateForTypeRef} from "../api/main/EventController"
@@ -44,7 +44,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	private readonly teamGroupInfos = new LazyLoaded(() => this.loadTeamGroupInfos())
 	private groupsTableAttrs: TableAttrs | null = null
 	private contactFormsTableAttrs: TableAttrs | null = null
-	private readonly secondFactorsForm: EditSecondFactorsForm
+	private readonly secondFactorsForm: SecondFactorsEditForm
 	private usedStorage: number | null = null
 	private administratedBy: Id | null = null
 	private availableTeamGroupInfos: Array<GroupInfo> = []
@@ -56,7 +56,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	) {
 		this.userGroupInfo = userGroupInfo
 
-		this.secondFactorsForm = new EditSecondFactorsForm(this.user)
+		this.secondFactorsForm = new SecondFactorsEditForm(this.user)
 
 		this.teamGroupInfos.getAsync().then(async availableTeamGroupInfos => {
 			if (availableTeamGroupInfos.length > 0) {

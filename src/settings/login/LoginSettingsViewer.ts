@@ -9,7 +9,7 @@ import {CustomerPropertiesTypeRef, Session, SessionTypeRef} from "../../api/enti
 import {assertNotNull, LazyLoaded, neverNull, ofClass} from "@tutao/tutanota-utils"
 import {formatDateTimeFromYesterdayOn} from "../../misc/Formatter.js"
 import {SessionState} from "../../api/common/TutanotaConstants.js"
-import {EditSecondFactorsForm} from "./secondfactor/EditSecondFactorsForm.js"
+import {SecondFactorsEditForm} from "./secondfactor/SecondFactorsEditForm.js"
 import type {EntityUpdateData} from "../../api/main/EventController.js"
 import {isUpdateForTypeRef} from "../../api/main/EventController.js"
 import {NotFoundError} from "../../api/common/error/RestError.js"
@@ -40,7 +40,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	private readonly _stars = stream("***")
 	private readonly _closedSessionsExpanded = stream(false)
 	private _sessions: Session[] = []
-	private readonly _secondFactorsForm = new EditSecondFactorsForm(new LazyLoaded(() => Promise.resolve(logins.getUserController().user)))
+	private readonly _secondFactorsForm = new SecondFactorsEditForm(new LazyLoaded(() => Promise.resolve(logins.getUserController().user)))
 	private readonly credentialsEncryptionModeHelpLabel: (() => string) | null
 	private readonly _usageTestModel: UsageTestModel
 
