@@ -1,7 +1,7 @@
 import o from "ospec"
 import {verify} from "@tutao/tutanota-test-utils"
 import {customTypeEncoders, OfflineStorage, sql} from "../../../../../src/api/worker/offline/OfflineStorage.js"
-import {instance, object, when} from "testdouble"
+import {instance, matchers, object, when} from "testdouble"
 import * as cborg from "cborg"
 import {GENERATED_MIN_ID, generatedIdToTimestamp, getElementId, timestampToGeneratedId} from "../../../../../src/api/common/utils/EntityUtils.js"
 import {firstThrow, getDayShifted, getTypeId, lastThrow, mapNullable, promiseMap, TypeRef} from "@tutao/tutanota-utils"
@@ -81,6 +81,8 @@ o.spec("OfflineStorage", function () {
 		interWindowEventSenderMock = instance(InterWindowEventFacadeSendDispatcher)
 		when(dateProviderMock.now()).thenReturn(now.getTime())
 		worker = instance(WorkerImpl)
+		when(worker.createProgressMonitor(matchers.anything())).thenResolve(42)
+		when(worker.progressWorkDone(matchers.anything(), matchers.anything())).thenResolve(undefined)
 		storage = new OfflineStorage(dbFacade, interWindowEventSenderMock, dateProviderMock, migratorMock, worker)
 	})
 
@@ -119,21 +121,6 @@ o.spec("OfflineStorage", function () {
 		o("migrations are run", async function () {
 			await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
 			verify(migratorMock.migrate(storage, dbFacade))
-		})
-
-		o("ranges database is locked when writing/reading to/from ranges database", async function () {
-			await storage.init({userId, databaseKey, timeRangeDays, forceNewDatabase: false})
-
-			const listId = "listId"
-
-			// Simulate two processes accessing the database at the same time
-			await storage.lockRangesDbAccess(listId)
-			setTimeout(async () => {
-				await storage.unlockRangesDbAccess(listId)
-
-			}, 5000)
-			await storage.lockRangesDbAccess(listId)
-			verify(await storage.unlockRangesDbAccess(listId))
 		})
 
 		o.spec("Clearing excluded data", function () {

@@ -82,6 +82,9 @@ export class CustomCalendarEventCacheHandler implements CustomCacheHandler<Calen
 	}
 
 	async loadRange(storage: CacheStorage, listId: Id, start: Id, count: number, reverse: boolean): Promise<CalendarEvent[]> {
+		// We lock access to the "ranges" db here in order to prevent race conditions when accessing the ranges database.
+		await storage.lockRangesDbAccess(listId)
+
 		const range = await storage.getRangeForList(CalendarEventTypeRef, listId)
 
 		//if offline db for this list is empty load from server
@@ -105,6 +108,9 @@ export class CustomCalendarEventCacheHandler implements CustomCacheHandler<Calen
 			rawList = await storage.getWholeList(CalendarEventTypeRef, listId)
 			console.log(`CalendarEvent list ${listId} has ${rawList.length} events`)
 		}
+
+		// We unlock access to the "ranges" db here. We lock it in order to prevent race conditions when accessing the "ranges" database.
+		await storage.unlockRangesDbAccess(listId)
 
 		const typeModel = await resolveTypeReference(CalendarEventTypeRef)
 		const sortedList = reverse
