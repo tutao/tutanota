@@ -55,11 +55,9 @@ export class SecondFactorEditDialog {
 		})
 	}
 
-	static loadAndShow(entityClient: EntityClient, lazyUser: LazyLoaded<User>, mailAddress: string) {
-		showProgressDialog("pleaseWait_msg", this.loadWebauthnClient(entityClient, lazyUser, mailAddress))
-			.then((dialog) => {
-				dialog.dialog.show()
-			})
+	static async loadAndShow(entityClient: EntityClient, lazyUser: LazyLoaded<User>, mailAddress: string): Promise<void> {
+		const dialog: SecondFactorEditDialog = await showProgressDialog("pleaseWait_msg", this.loadWebauthnClient(entityClient, lazyUser, mailAddress))
+		dialog.dialog.show()
 	}
 
 	private static showRecoveryInfoDialog(user: User) {
