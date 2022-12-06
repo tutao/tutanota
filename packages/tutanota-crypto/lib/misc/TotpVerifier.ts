@@ -25,7 +25,7 @@ export class TotpVerifier {
 
 	generateSecret(): TotpSecret {
 		let key = random.generateRandomData(16)
-		let readableKey = this.readableKey(key)
+		let readableKey = TotpVerifier.readableKey(key)
 		return {
 			key,
 			readableKey,
@@ -65,7 +65,7 @@ export class TotpVerifier {
 		return bitArrayToUint8Array(hmac.encrypt(uint8ArrayToBitArray(text)))
 	}
 
-	readableKey(key: Uint8Array): Base32 {
+	static readableKey(key: Uint8Array): Base32 {
 		return base32
 				.fromBits(uint8ArrayToBitArray(key))
 				.toLowerCase()
