@@ -1,6 +1,8 @@
 import Foundation
 import AuthenticationServices
 
+let WEBAUTHN_ERROR_DOMAIN = "de.tutao.tutanota.Webauthn"
+
 class IosWebauthnFacade:WebAuthnFacade {
 
   private let viewController: ViewController
@@ -19,7 +21,7 @@ class IosWebauthnFacade:WebAuthnFacade {
     case let .success(value):
       return value
     case let .error(_, stack):
-      throw TUTErrorFactory.createError(withDomain: "webauthn", message: stack)
+      throw TUTErrorFactory.createError(withDomain: WEBAUTHN_ERROR_DOMAIN, message: stack)
     }
   }
 
@@ -32,7 +34,7 @@ class IosWebauthnFacade:WebAuthnFacade {
     case let .success(value):
       return value
     case let .error(_, stack):
-      throw TUTErrorFactory.createError(withDomain: "webauthn", message: stack)
+      throw TUTErrorFactory.createError(withDomain: WEBAUTHN_ERROR_DOMAIN, message: stack)
     }
   }
   
