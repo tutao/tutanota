@@ -2,7 +2,6 @@ import {showProgressDialog} from "../../../gui/dialogs/ProgressDialog.js"
 import {GroupType, SecondFactorType} from "../../../api/common/TutanotaConstants.js"
 import type {DropDownSelectorAttrs} from "../../../gui/base/DropDownSelector.js"
 import {DropDownSelector} from "../../../gui/base/DropDownSelector.js"
-import type {TranslationKey} from "../../../misc/LanguageViewModel.js"
 import {lang} from "../../../misc/LanguageViewModel.js"
 import type {TextFieldAttrs} from "../../../gui/base/TextField.js"
 import {TextField} from "../../../gui/base/TextField.js"
@@ -24,14 +23,8 @@ import {EntityClient} from "../../../api/common/EntityClient.js"
 import {ProgrammingError} from "../../../api/common/error/ProgrammingError.js"
 import {IconButton, IconButtonAttrs} from "../../../gui/base/IconButton.js"
 import {ButtonSize} from "../../../gui/base/ButtonSize.js"
-import {FactorTypes, FactorTypesEnum, NameValidationStatus, SecondFactorEditModel, VerificationStatus} from "./SecondFactorEditModel.js"
+import {NameValidationStatus, SecondFactorEditModel, SecondFactorTypeToNameTextId, VerificationStatus} from "./SecondFactorEditModel.js"
 import {UserError} from "../../../api/main/UserError.js"
-
-export const SecondFactorTypeToNameTextId: Record<SecondFactorType, TranslationKey> = Object.freeze({
-	[SecondFactorType.totp]: "totpAuthenticator_label",
-	[SecondFactorType.u2f]: "u2fSecurityKey_label",
-	[SecondFactorType.webauthn]: "u2fSecurityKey_label",
-})
 
 export class SecondFactorEditDialog {
 	private readonly dialog: Dialog
@@ -96,13 +89,17 @@ export class SecondFactorEditDialog {
 	}
 
 	private render(): Children {
-		const options = this.model.getFactorTypesOptions()
+		const optionsItems = this.model.getFactorTypesOptions()
+								 .map(o => ({
+									 name: lang.get(SecondFactorTypeToNameTextId[o]),
+									 value: o
+								 }))
 
-		const typeDropdownAttrs: DropDownSelectorAttrs<FactorTypesEnum> = {
+		const typeDropdownAttrs: DropDownSelectorAttrs<SecondFactorType> = {
 			label: "type_label",
 			selectedValue: this.model.selectedType,
 			selectionChangedHandler: newValue => this.model.onTypeSelected(newValue),
-			items: options,
+			items: optionsItems,
 			dropdownWidth: 300,
 		}
 		const nameFieldAttrs: TextFieldAttrs = {
@@ -122,10 +119,10 @@ export class SecondFactorEditDialog {
 
 	private renderTypeSpecificFields(): Children {
 		switch (this.model.selectedType) {
-			case FactorTypes.TOTP:
+			case SecondFactorType.totp:
 				return this.renderOtpFields()
 
-			case FactorTypes.WEBAUTHN:
+			case SecondFactorType.webauthn:
 				return this.renderU2FFields()
 
 			default:

@@ -9,7 +9,6 @@ import {LanguageViewModel, TranslationKey} from "../../../misc/LanguageViewModel
 import {SecondFactorType} from "../../../api/common/TutanotaConstants.js"
 import {ProgrammingError} from "../../../api/common/error/ProgrammingError.js"
 import QRCode from "qrcode-svg"
-import {SelectorItem} from "../../../gui/base/DropDownSelector.js"
 import {LoginFacade} from "../../../api/worker/facades/LoginFacade.js"
 import {UserError} from "../../../api/main/UserError.js"
 
@@ -28,17 +27,15 @@ export enum NameValidationStatus {
 	Invalid
 }
 
-/** Enum with user-visible types because we don't allow adding SecondFactorType.u2f anymore */
-export const FactorTypes = {
-	WEBAUTHN: SecondFactorType.webauthn,
-	TOTP: SecondFactorType.totp,
-} as const
-
-export type FactorTypesEnum = Values<typeof FactorTypes>
+export const SecondFactorTypeToNameTextId: Record<SecondFactorType, TranslationKey> = Object.freeze({
+	[SecondFactorType.totp]: "totpAuthenticator_label",
+	[SecondFactorType.u2f]: "u2fSecurityKey_label",
+	[SecondFactorType.webauthn]: "u2fSecurityKey_label",
+})
 
 export class SecondFactorEditModel {
 	totpCode: string = ""
-	selectedType: FactorTypesEnum
+	selectedType: SecondFactorType
 	name: string = ""
 	nameValidationStatus: NameValidationStatus = NameValidationStatus.Valid
 	verificationStatus: VerificationStatus = VerificationStatus.Initial
@@ -59,7 +56,7 @@ export class SecondFactorEditModel {
 		private readonly loginFacade: LoginFacade,
 		private readonly updateViewCallback: () => void = noOp
 	) {
-		this.selectedType = webauthnSupported ? FactorTypes.WEBAUTHN : FactorTypes.TOTP
+		this.selectedType = webauthnSupported ? SecondFactorType.webauthn : SecondFactorType.totp
 		this.setDefaultNameIfNeeded()
 		this.otpInfo = new LazyLoaded(async () => {
 			const url = await this.getOtpAuthUrl(this.totpKeys.readableKey)
@@ -107,20 +104,14 @@ export class SecondFactorEditModel {
 	}
 
 	/**
-	 * get a list of supported second factor types ready to be used in a dropdown
+	 * get a list of supported second factor types
 	 */
-	getFactorTypesOptions() {
-		const options: Array<SelectorItem<FactorTypesEnum>> = []
-		options.push({
-			name: this.lang.get("totpAuthenticator_label"),
-			value: FactorTypes.TOTP,
-		})
+	getFactorTypesOptions(): Array<SecondFactorType> {
+		const options: Array<SecondFactorType> = []
+		options.push(SecondFactorType.totp)
 
 		if (this.webauthnSupported) {
-			options.push({
-				name: this.lang.get("u2fSecurityKey_label"),
-				value: FactorTypes.WEBAUTHN,
-			})
+			options.push(SecondFactorType.webauthn)
 		}
 		return options
 	}
@@ -128,16 +119,16 @@ export class SecondFactorEditModel {
 	/**
 	 * call when the selected second factor type changes
 	 */
-	onTypeSelected(newValue: FactorTypesEnum) {
+	onTypeSelected(newValue: SecondFactorType) {
 		this.selectedType = newValue
-		this.verificationStatus = newValue === FactorTypes.WEBAUTHN
+		this.verificationStatus = newValue === SecondFactorType.webauthn
 			? VerificationStatus.Initial
 			: VerificationStatus.Progress
 
 		this.setDefaultNameIfNeeded()
 		this.updateNameValidation()
 
-		if (newValue !== FactorTypes.WEBAUTHN) {
+		if (newValue !== SecondFactorType.webauthn) {
 			// noinspection JSIgnoredPromiseFromCall
 			this.webauthnClient.abortCurrentOperation()
 		}
@@ -168,10 +159,12 @@ export class SecondFactorEditModel {
 
 	/**
 	 * re-validates the input and makes the server calls to actually create a second factor
+	 * returns the user that the second factor was created in case any follow-up operations
+	 * are needed
 	 */
 	async save(): Promise<User | null> {
 		this.setDefaultNameIfNeeded()
-		if (this.selectedType === FactorTypes.WEBAUTHN) {
+		if (this.selectedType === SecondFactorType.webauthn) {
 			// Prevent starting in parallel
 			if (this.verificationStatus === VerificationStatus.Progress) {
 				return null
@@ -194,24 +187,25 @@ export class SecondFactorEditModel {
 			name: this.name,
 		})
 
-		if (this.selectedType === FactorTypes.WEBAUTHN) {
-			sf.type = SecondFactorType.webauthn
+		if (this.selectedType === SecondFactorType.u2f) {
+			throw new ProgrammingError(`invalid factor type: ${this.selectedType}`)
+		} else {
+			sf.type = this.selectedType
+		}
+
+		if (this.selectedType === SecondFactorType.webauthn) {
 
 			if (this.verificationStatus !== VerificationStatus.Success) {
 				throw new UserError("unrecognizedU2fDevice_msg")
 			} else {
 				sf.u2f = this.u2fRegistrationData
 			}
-		} else if (this.selectedType === FactorTypes.TOTP) {
-			sf.type = SecondFactorType.totp
-
+		} else if (this.selectedType === SecondFactorType.totp) {
 			if (this.verificationStatus !== VerificationStatus.Success) {
 				throw new UserError("totpCodeEnter_msg")
 			} else {
 				sf.otpSecret = this.totpKeys.key
 			}
-		} else {
-			throw new ProgrammingError(`invalid factor type: ${this.selectedType}`)
 		}
 		await this.entityClient.setup(assertNotNull(this.user.auth).secondFactors, sf)
 		return this.user
