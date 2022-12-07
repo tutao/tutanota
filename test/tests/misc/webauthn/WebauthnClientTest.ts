@@ -29,7 +29,6 @@ o.spec("WebauthnClient", function () {
 				const expectedKeys = keys.map((key) => {
 					return {
 						id: key.keyHandle,
-						type: "public-key"
 					} as const
 				})
 				when(webauthn.sign({
@@ -37,10 +36,10 @@ o.spec("WebauthnClient", function () {
 					keys: expectedKeys,
 					domain: expectedDomain,
 				})).thenResolve({
-					rawId: new ArrayBuffer(1),
-					clientDataJSON: new ArrayBuffer(1),
-					signature: new ArrayBuffer(1),
-					authenticatorData: new ArrayBuffer(1),
+					rawId: new Uint8Array(1),
+					clientDataJSON: new Uint8Array(1),
+					signature: new Uint8Array(1),
+					authenticatorData: new Uint8Array(1),
 				})
 
 				await client.authenticate(challenge)
