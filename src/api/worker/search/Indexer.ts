@@ -200,6 +200,7 @@ export class Indexer {
 				mailIndexEnabled: this._mail.mailIndexingEnabled,
 				progress: 0,
 				currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
+				aimedMailIndexTimestamp: this._mail.currentIndexTimestamp,
 				indexedMailCount: 0,
 				failedIndexingUpTo: null,
 			})
@@ -229,6 +230,7 @@ export class Indexer {
 					mailIndexEnabled: this._mail.mailIndexingEnabled,
 					progress: 0,
 					currentMailIndexTimestamp: this._mail.currentIndexTimestamp,
+					aimedMailIndexTimestamp: this._mail.currentIndexTimestamp,
 					indexedMailCount: 0,
 					failedIndexingUpTo: this._mail.currentIndexTimestamp,
 					error: e instanceof ConnectionError

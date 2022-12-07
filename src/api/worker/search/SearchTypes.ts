@@ -1,10 +1,9 @@
 import type {DbFacade} from "./DbFacade"
 import type {GroupType} from "../../common/TutanotaConstants"
 import type {TypeInfo} from "./IndexUtils"
-import type {lazy} from "@tutao/tutanota-utils"
+import type {Base64, lazy} from "@tutao/tutanota-utils"
 import {TypeRef} from "@tutao/tutanota-utils"
 import type {ModelAssociation, ModelValue} from "../../common/EntityTypes"
-import type {Base64} from "@tutao/tutanota-utils"
 // db types
 
 /**
@@ -156,6 +155,7 @@ export type SearchIndexStateInfo = {
 	mailIndexEnabled: boolean
 	progress: number
 	currentMailIndexTimestamp: number
+	aimedMailIndexTimestamp: number // this is the timestamp we are currently indexing for (or same as currentMailIndexTimestamp if we are not indexing)
 	indexedMailCount: number
 	failedIndexingUpTo: number | null,
 	error?: IndexingErrorReason | null
