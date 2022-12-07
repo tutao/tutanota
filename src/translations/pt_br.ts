@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2022-12-06T08:47:55Z",
+	"updated_at": "2022-12-07T14:09:46Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -27,6 +27,7 @@ export default {
 		"acceptTemplateGroupEmailBody_msg": "Olá {recipientName}, <br/>{invitee} aceitou o seu convite para seu grupo de modelos \"{groupName}\".<br/><br/>Esta é uma mensagem automática.",
 		"acceptTemplateGroupEmailSubject_msg": "Convite para grupo de modelos aceito",
 		"accept_action": "Aceitar",
+		"accountCreationCongratulation_msg": "Bem-vindo ao lado criptografado. 🔒",
 		"accountSwitchAdditionalPackagesActive_msg": "Por favor desative todas as extensões reservadas e pacotes e desabilite todos os apelidos antes de mudar o tipo da sua conta.",
 		"accountSwitchAliases_msg": "Por favor remova todos os apelidos do seu usuário",
 		"accountSwitchCustomMailAddress_msg": "Por favor desative todos os apelidos de domínio de email personalizado",
@@ -1256,7 +1257,7 @@ export default {
 		"secondFactorConfirmLoginNoIp_msg": "Gostaria de permitir o login do cliente \"{clientIdentifier}\"?",
 		"secondFactorConfirmLogin_label": "Confirmar login",
 		"secondFactorConfirmLogin_msg": "Gostaria de permitir login do cliente \"{clientIdentifier}\" com o endereço de IP {ipAddress}?",
-		"secondFactorNameInfo_msg": "Opcional: nome para identificação.",
+		"secondFactorNameInfo_msg": "Nome para identificação.",
 		"secondFactorPendingOtherClientOnly_msg": "Por favor, aprove este login a partir de outro cliente.",
 		"secondFactorPending_msg": "Por favor utilize autenticação de dois fatores ou aceite este login em outro cliente.",
 		"secondMergeContact_label": "Contato 2",
@@ -1423,6 +1424,7 @@ export default {
 		"termsAcceptedNeutral_msg": "Por favor, aceite os termos & condições.",
 		"termsAndConditionsLink_label": "Termos e condições gerais",
 		"termsAndConditions_label": "Eu li e concordo com os seguintes documentos:",
+		"textTooLong_msg": "O texto inserido é muito extenso.",
 		"text_label": "Texto",
 		"thisClient_label": "<este cliente>",
 		"timeFormatInvalid_msg": "Formato de tempo inválido",

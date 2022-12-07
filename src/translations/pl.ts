@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2022-12-06T08:47:55Z",
+	"updated_at": "2022-12-06T17:26:48Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -29,6 +29,7 @@ export default {
 		"acceptTemplateGroupEmailBody_msg": "Witaj, ‪{recipientName}‬.<br/>‪{invitee}‬ zaakceptował(a) twoje zaproszenie do używania listy szablonów „‪{groupName}‬”.<br/><br/>Wiadomość wysłana automatycznie.",
 		"acceptTemplateGroupEmailSubject_msg": "Zaakceptowano zaproszenie do listy szablonów",
 		"accept_action": "Zaakceptuj",
+		"accountCreationCongratulation_msg": "Witamy po zaszyfrowanej stronie.🔒",
 		"accountSwitchAdditionalPackagesActive_msg": "Przed przełączeniem subskrypcji, wyłącz wszystkie zarezerwowane rozszerzenia i pakiety oraz wszystkie aliasy e-mail.",
 		"accountSwitchAliases_msg": "Usuń wszystkie aliasy twojego użytkownika.",
 		"accountSwitchCustomMailAddress_msg": "Wyłącz wszystkie własne aliasy domeny e-mail.",
@@ -1258,7 +1259,7 @@ export default {
 		"secondFactorConfirmLoginNoIp_msg": "Czy chcesz zezwolić na zalogowanie się klienta \"{clientIdentifier}\"?",
 		"secondFactorConfirmLogin_label": "Potwierdź logowanie",
 		"secondFactorConfirmLogin_msg": "Czy chcesz zezwolić na logowanie z klienta \"{clientIdentifier}\" z adresu IP {ipAddress}?",
-		"secondFactorNameInfo_msg": "Opcjonalne: Nazwa do identyfikacji.",
+		"secondFactorNameInfo_msg": "Nazwa dla identyfikacji.",
 		"secondFactorPendingOtherClientOnly_msg": "Zaakceptuj to logowanie z innego klienta.",
 		"secondFactorPending_msg": "Uwierzytelnij się drugim czynnikiem lub zaakceptuj to logowanie przy użyciu innego klienta poczty.",
 		"secondMergeContact_label": "Kontakt 2",
@@ -1425,6 +1426,7 @@ export default {
 		"termsAcceptedNeutral_msg": "Prosimy o zaakceptowanie Regulaminu.",
 		"termsAndConditionsLink_label": "Regulamin świadczenia usług",
 		"termsAndConditions_label": "Przeczytałem i wyrażam zgodę na postanowienia zawarte w następujących dokumentach:",
+		"textTooLong_msg": "Wprowadzony tekst jest zbyt długi",
 		"text_label": "Tekst",
 		"thisClient_label": "<Ten klient>",
 		"timeFormatInvalid_msg": "Nieprawidłowy format czasu",
