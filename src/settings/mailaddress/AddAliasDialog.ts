@@ -9,7 +9,7 @@ import {firstThrow, ofClass} from "@tutao/tutanota-utils"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog.js"
 import {InvalidDataError, LimitReachedError, PreconditionFailedError} from "../../api/common/error/RestError.js"
 import {MailAddressTableModel} from "./MailAddressTableModel.js"
-import {TextField} from "../../gui/base/TextField.js"
+import {AutocompleteValues, TextField} from "../../gui/base/TextField.js"
 
 const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
 
@@ -62,6 +62,7 @@ export function showAddAliasDialog(model: MailAddressTableModel) {
 						m(TextField, {
 							label: "mailName_label",
 							value: senderName,
+							autocompleteValue: AutocompleteValues.username,
 							oninput: (name) => senderName = name,
 						})
 					]
