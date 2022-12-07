@@ -10,7 +10,7 @@ const packageJson = JSON.parse(fs.readFileSync("./package.json", "utf8"))
 	"electron-localshortcut",
 	"electron-packager",
 	"electron-updater",
-	"electron-notarize",
+	"@electron/notarize",
 	"electron-rebuild",
 	"express",
 	"request",
