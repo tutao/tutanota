@@ -165,22 +165,6 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     }
   }
   
-  private func testWebauthn() {
-//    let baseUrl = "http://ivk:9000/client/build/webauthnmobile"
-    let baseUrl = "https://test.tutanota.com"
-    let queryItems = NSURLQueryItem.from(dict: ["cbUrl": "tutanota://{result}"])
-    var components = URLComponents.init(url: URL(string: baseUrl)!, resolvingAgainstBaseURL: false)!
-    components.queryItems = queryItems
-    let authUrl = components.url!
-    let scheme = "tutanota"
-    let session = ASWebAuthenticationSession(url: authUrl, callbackURLScheme: scheme) { url, error in
-      TUTSLog("url \(url) error \(error)")
-    }
-    session.prefersEphemeralWebBrowserSession = true
-    session.presentationContextProvider = self
-    session.start()
-  }
-  
   private func migrateCredentialsFromOldOrigin() async {
     defer {
       UserDefaults.standard.set("assetOrigin", forKey: "webConfigLocation")
