@@ -27,7 +27,7 @@ export class NewsList implements Component<NewsListAttrs> {
 		return m("", vnode.attrs.liveNewsIds.map(liveNewsId => {
 			const newsListItem = vnode.attrs.liveNewsListItems[liveNewsId.newsItemName]
 
-			return m(".news-item.pt.pl-l.pr-l.flex.fill.border-grey.left.list-border-bottom",
+			return m(".pt.pl-l.pr-l.flex.fill.border-grey.left.list-border-bottom",
 				{key: liveNewsId.newsItemId}, newsListItem.render(liveNewsId))
 		}))
 	}
