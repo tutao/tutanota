@@ -3,11 +3,11 @@ import Foundation
 class SqlCipherDb {
   private var db: OpaquePointer? = nil
   let userId: String
-
+  
   init(_ userId: String) {
     self.userId = userId
   }
-
+  
   func open(_ dbKey: Data) throws {
     TUTSLog("opening DB for \(userId)")
     let rawKeyData: NSData = dbKey as NSData
@@ -33,18 +33,17 @@ class SqlCipherDb {
     if !errors.isEmpty {
       throw TUTErrorFactory.createError(withDomain: TUT_CRYPTO_ERROR, message: "sqlcipher: \(errors.count) pages failed integrity check")
     }
-
-    // FIXME run database close on app terminated
-
-	// We are using the auto_vacuum=incremental option to allow for a faster vacuum execution
-	// After changing the auto_vacuum value we need to run "vacuum" once
-	// auto_vacuum options: 0 (NONE) | 1 (FULL) | 2 (INCREMENTAL)
-    if (try! self.prepare(query: "PRAGMA auto_vacuum").run() != 2) {
-        try! self.prepare(query: "PRAGMA auto_vacuum = incremental").run()
-        try! self.prepare(query: "PRAGMA vacuum").run()
+    
+    // We are using the auto_vacuum=incremental mode to allow for a faster vacuum execution
+    // After changing the auto_vacuum mode we need to run "vacuum" once
+    // auto_vacuum mode: 0 (NONE) | 1 (FULL) | 2 (INCREMENTAL)
+    let auto_vacuum_mode = try? self.prepare(query: "PRAGMA auto_vacuum").get()?.first?.value
+    if case let .number(auto_vaccum_mode_value) = auto_vacuum_mode, auto_vaccum_mode_value != 2 {
+      try! self.prepare(query: "PRAGMA auto_vacuum = incremental").run()
+      try! self.prepare(query: "PRAGMA vacuum").run()
     }
   }
-
+  
   func prepare(query: String) throws -> SqlCipherStatement {
     var stmt: OpaquePointer? = nil
     let sqlCStr = UnsafeMutablePointer<CChar>(mutating: (query as NSString).utf8String)
@@ -56,11 +55,8 @@ class SqlCipherDb {
     }
     return SqlCipherStatement(db: self, query: query, stmt: stmt.unsafelyUnwrapped)
   }
-
+  
   func close() {
-    // We are performing defragmentation (incremental_vacuum) the database before closing
-    try! self.prepare(query: "PRAGMA incremental_vacuum").run()
-
     if sqlite3_close(self.db) != SQLITE_OK {
       let errmsg = self.getLastErrorMessage()
       TUTSLog("Error closing database: \(errmsg): \(self.getLastErrorMessage())")
@@ -68,11 +64,16 @@ class SqlCipherDb {
     }
     self.db = nil
   }
-
+  
+  func vacuum() {
+    // We are performing defragmentation (incremental_vacuum) the database
+    try! self.prepare(query: "PRAGMA incremental_vacuum").run()
+  }
+  
   func getLastErrorMessage() -> String {
     return String(cString: sqlite3_errmsg(self.db))
   }
-
+  
   func getLastErrorCode() -> Int32 {
     return sqlite3_errcode(self.db)
   }

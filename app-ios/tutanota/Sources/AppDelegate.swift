@@ -117,14 +117,19 @@ class AppDelegate : UIResponder,
       }
     }
 
-  func applicationWillTerminate(_ application: UIApplication) {
-    do {
-      try FileUtils.deleteSharedStorage()
-    } catch {
-      TUTSLog("failed to delete shared storage on shutdown: \(error)")
-    }
+  func applicationDidEnterBackground(_ application: UIApplication) {
+    self.viewController.onApplicationDidEnterBackground()
+
   }
 
+  func applicationWillTerminate(_ application: UIApplication) {
+    self.viewController.onApplicationWillTerminate()
+  	do {
+		try FileUtils.deleteSharedStorage()
+  	} catch {
+		TUTSLog("failed to delete shared storage on shutdown: \(error)")
+  	}
+  }
 }
 
 fileprivate func deviceTokenAsString(deviceToken: Data) -> String? {

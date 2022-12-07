@@ -114,18 +114,21 @@ class SqlCipherStatement {
   private func getColumnContent(_ i: Int32) -> TaggedSqlValue {
     let type_id = sqlite3_column_type(self.stmt, i)
     // we currently only store text and blobs in the db
+    // we support integer to retrieve the auto_vacuum mode: 0 (NONE) | 1 (FULL) | 2 (INCREMENTAL)
     switch type_id {
     case SQLITE_TEXT:
       return self.getColumnText(i)
     case SQLITE_BLOB:
       return self.getColumnBlob(i)
+    case SQLITE_INTEGER:
+      return self.getColumnInteger(i)
     default:
       fatalError("unexpected type id in column \(i): \(type_id)")
     }
   }
   
   /// return a string from the current rows column i
-  ///  use after checking that the column contains a string.
+  /// use after checking that the column contains a string.
   private func getColumnText(_ i: Int32) -> TaggedSqlValue {
     let text = sqlite3_column_text(self.stmt, i)
     if text == nil {
@@ -145,9 +148,16 @@ class SqlCipherStatement {
       // blob == null and count != 0 is an error condition
       fatalError("got blob nullptr but nonzero len, err \(self.db.getLastErrorCode()): \(self.db.getLastErrorMessage())")
     } else {
-        let data = Data(bytes: blob!, count: count)
-        return .bytes(value: data.wrap())
+      let data = Data(bytes: blob!, count: count)
+      return .bytes(value: data.wrap())
     }
+  }
+  
+  /// return an integer from the current rows column i
+  /// use after checking that the column contains an integer.
+  private func getColumnInteger(_ i: Int32) -> TaggedSqlValue {
+    let integer = sqlite3_column_int(self.stmt, i)
+    return .number(value: Int(integer))
   }
   
   deinit {
