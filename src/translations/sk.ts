@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2022-12-06T08:47:56Z",
+	"updated_at": "2022-12-06T10:23:18Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -25,6 +25,7 @@ export default {
 		"acceptTemplateGroupEmailBody_msg": "Ahoj {recipientName}, <br/>{invitee} prijal/a pozvánku na používanie tvojho zoznamu šablón \"{groupName}\".<br/><br/>Toto je automatizovaná správa.",
 		"acceptTemplateGroupEmailSubject_msg": "Pozvánka zoznamu šablón bola prijatá",
 		"accept_action": "Prijať",
+		"accountCreationCongratulation_msg": "Vitaj na strane šifrovania. 🔒",
 		"accountSwitchAdditionalPackagesActive_msg": "Pred zmenou predplatného deaktivuj, prosím, všetky objednané rozšírenia a balíky a vypni všetky e-mailové aliasy.",
 		"accountSwitchAliases_msg": "Prosím, odstráň všetky aliasy tvojho používateľa.",
 		"accountSwitchCustomMailAddress_msg": "Prosím, vypni všetky e-mailové aliasy vlastných domén.",
@@ -1255,7 +1256,7 @@ export default {
 		"secondFactorConfirmLoginNoIp_msg": "Chceš povoliť prihlásenie z klienta \"{clientIdentifier}\"?",
 		"secondFactorConfirmLogin_label": "Potvrď prihlásenie",
 		"secondFactorConfirmLogin_msg": "Chceš povoliť prihlásenie z klienta \"{clientIdentifier}\" s adresou IP {ipAddress}?",
-		"secondFactorNameInfo_msg": "Voliteľné: Názov pre identifikáciu.",
+		"secondFactorNameInfo_msg": "Názov pre identifikáciu.",
 		"secondFactorPendingOtherClientOnly_msg": "Prosím, prijmi toto prihlásenie z iného klienta.",
 		"secondFactorPending_msg": "Over prihlásenie druhým faktorom alebo prijmi toto prihlásenie z iného klienta.",
 		"secondMergeContact_label": "Kontakt 2",
@@ -1422,6 +1423,7 @@ export default {
 		"termsAcceptedNeutral_msg": "Prosím, prijmi podmienky používania.",
 		"termsAndConditionsLink_label": "Všeobecné podmienky",
 		"termsAndConditions_label": "Prečítal som si a súhlasím s nasledujúcimi dokumentmi:",
+		"textTooLong_msg": "Zadaný text je príliš dlhý",
 		"text_label": "Text",
 		"thisClient_label": "<Tento klient>",
 		"timeFormatInvalid_msg": "Neplatný formát času",

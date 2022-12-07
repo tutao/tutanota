@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2022-12-06T08:47:56Z",
+	"updated_at": "2022-12-07T17:11:57Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -28,6 +28,7 @@ export default {
 		"acceptTemplateGroupEmailBody_msg": "Bună {recipientName}, <br/>{invitee} a acceptat invitația ta de a folosi lista ta cu modele „{groupName}”.<br/><br/>Acesta este un mesaj automat.",
 		"acceptTemplateGroupEmailSubject_msg": "Invitația la lista cu modele a fost acceptată",
 		"accept_action": "Acceptă",
+		"accountCreationCongratulation_msg": "Bun venit în zona cifrată. 🔒",
 		"accountSwitchAdditionalPackagesActive_msg": "Te rugăm să dezactivezi toate extensiile, pachetele rezervate și alias de e-mail înainte de schimbarea abonamentului.",
 		"accountSwitchAliases_msg": "Șterge toate pseudonimele utilizatorului tău. ",
 		"accountSwitchCustomMailAddress_msg": "Dezactivează toate alias de e-mail ale domeniului personalizat.",
@@ -1426,6 +1427,7 @@ export default {
 		"termsAcceptedNeutral_msg": "Vă rugăm să acceptați termenii și condițiile.",
 		"termsAndConditionsLink_label": "Termeni și condiții generale",
 		"termsAndConditions_label": "Am citit și sunt de acord cu următoarele documente:",
+		"textTooLong_msg": "Textul introdus este prea lung",
 		"text_label": "Text",
 		"thisClient_label": "<Acest program>",
 		"timeFormatInvalid_msg": "Formatul orei e greșit",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2022-12-06T08:47:56Z",
+	"updated_at": "2022-12-07T16:36:33Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -23,6 +23,7 @@ export default {
 		"acceptTemplateGroupEmailBody_msg": "Üdvözlöm {recipientName}, <br/>{invitee} elfogadta a meghívást, hogy használja a sablonlistáját \"{groupName}\".<br/><br/>Ez egy automatikus üzenet.",
 		"acceptTemplateGroupEmailSubject_msg": "Elfogadott sablonlista-meghívó",
 		"accept_action": "Elfogadás",
+		"accountCreationCongratulation_msg": "Üdvözöljük a titkosított oldalon! 🔒",
 		"accountSwitchAdditionalPackagesActive_msg": "Kérjük, inaktiválja a lefoglalt bővítményeket és csomagokat és tiltsa le az összes e-mail álnevet, mielőtt előfizetést változtat!",
 		"accountSwitchAliases_msg": "Kérjük törölje felhasználója összes álnevét!",
 		"accountSwitchCustomMailAddress_msg": "Kérjük kapcsolja ki az összes egyéni domain álnevet.",
@@ -1255,7 +1256,7 @@ export default {
 		"secondFactorConfirmLoginNoIp_msg": "Szeretné engedélyezni a belépést a kliensből \"{clientIdentifier}\"?",
 		"secondFactorConfirmLogin_label": "Bejelentkezés megerősítése",
 		"secondFactorConfirmLogin_msg": "Engedélyezi a {clientIdentifier} kliensnek a {ipAddress} címről a belépést?",
-		"secondFactorNameInfo_msg": "Választható: Név az azonosításhoz.",
+		"secondFactorNameInfo_msg": "Név az azonosításhoz.",
 		"secondFactorPendingOtherClientOnly_msg": "Kérjük, fogadja el ezt a bejelentkezést egy másik kliensből!",
 		"secondFactorPending_msg": "Kérjük, hitelesítse az Ön második tényezőjével, vagy fogadja el ezt a bejelentkezést egy másik kliensből!",
 		"secondMergeContact_label": "Névjegy 2",
@@ -1422,6 +1423,7 @@ export default {
 		"termsAcceptedNeutral_msg": "Kérjük, fogadja el az Általános Szerződési Feltételeket!",
 		"termsAndConditionsLink_label": "Általános Szerződési Feltételeket",
 		"termsAndConditions_label": "Elolvastam és egyetértek az alábbi dokumentumokkal:",
+		"textTooLong_msg": "A beírt szöveg túl hosszú",
 		"text_label": "Szöveg",
 		"thisClient_label": "<Ez a kliens>",
 		"timeFormatInvalid_msg": "Nem megfelelő számformátum.",

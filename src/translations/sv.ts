@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2022-12-06T08:47:56Z",
+	"updated_at": "2022-12-06T12:57:21Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -23,6 +23,7 @@ export default {
 		"acceptTemplateGroupEmailBody_msg": "Hej {recipientName}, <br/>{invitee} har accepterat din inbjudan att använda mall listan \"{groupName}\".<br/><br/> Detta är ett automatiserat meddelande.",
 		"acceptTemplateGroupEmailSubject_msg": "Inbjudan till mall lista accepterad",
 		"accept_action": "Acceptera",
+		"accountCreationCongratulation_msg": "Välkommen till den krypterade sidan. 🔒",
 		"accountSwitchAdditionalPackagesActive_msg": "Avaktivera alla tillägg och paket och inaktivera alla e-postalias innan du byter abonnemang.",
 		"accountSwitchAliases_msg": "Ta bort alla alias för din användare.",
 		"accountSwitchCustomMailAddress_msg": "Inaktivera alla anpassade domän epost alias.",
@@ -1256,7 +1257,7 @@ export default {
 		"secondFactorConfirmLoginNoIp_msg": "Vill du tillåta inloggning från klienten \"{clientIdentifier}\"?",
 		"secondFactorConfirmLogin_label": "Bekräfta inloggning",
 		"secondFactorConfirmLogin_msg": "Vill du tillåta inloggning från klienten ”{clientIdentifier}” med IP-adressen {ipAddress}?",
-		"secondFactorNameInfo_msg": "Frivilligt: Namn för identifiering.",
+		"secondFactorNameInfo_msg": "Namn för identifiering.",
 		"secondFactorPendingOtherClientOnly_msg": "Godkänn denna inloggning från en annan klient.",
 		"secondFactorPending_msg": "Godkänn med tvåstegsverifiering eller acceptera den här inloggningen från en annan klient.",
 		"secondMergeContact_label": "Kontakt 2",
@@ -1423,6 +1424,7 @@ export default {
 		"termsAcceptedNeutral_msg": "Acceptera villkoren.",
 		"termsAndConditionsLink_label": "Allmänna villkor",
 		"termsAndConditions_label": "Jag har läst och samtycker till följande dokument:",
+		"textTooLong_msg": "Den inmatade texten är för lång",
 		"text_label": "Text",
 		"thisClient_label": "<Denna klient>",
 		"timeFormatInvalid_msg": "Ogiltigt datumformat",
