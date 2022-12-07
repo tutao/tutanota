@@ -143,6 +143,7 @@ const ErrorNameToType = {
 	"de.tutao.tutanota.offline.OfflineDbClosedError": OfflineDbClosedError,
 	"de.tutao.tutanota.CancelledError": CancelledError,
 	"de.tutao.tutanota.webauthn.WebauthnError": WebauthnError,
+	"de.tutao.tutanota.Webauthn": WebauthnError,
 }
 
 export function isCustomizationEnabledForCustomer(customer: Customer, feature: FeatureType): boolean {
