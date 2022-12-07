@@ -65,7 +65,7 @@ class IosWebauthnFacade:WebAuthnFacade {
     guard let base64String = url.host,
           let base64Data = base64String.data(using: .utf8),
           let jsonData = Data(base64Encoded: base64Data) else {
-      throw TUTErrorFactory.createError("Could not parse webauthn result")
+      throw TUTErrorFactory.createError("Could not parse webauthn result \(url)")
     }
     let result = try JSONDecoder().decode(T.self, from: jsonData)
     return result
