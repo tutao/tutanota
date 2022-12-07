@@ -1,5 +1,5 @@
 import {showProgressDialog} from "../../../gui/dialogs/ProgressDialog.js"
-import {GroupType, SecondFactorType} from "../../../api/common/TutanotaConstants.js"
+import {SecondFactorType} from "../../../api/common/TutanotaConstants.js"
 import type {DropDownSelectorAttrs} from "../../../gui/base/DropDownSelector.js"
 import {DropDownSelector} from "../../../gui/base/DropDownSelector.js"
 import {lang} from "../../../misc/LanguageViewModel.js"
@@ -10,14 +10,12 @@ import m, {Children} from "mithril"
 import {Button, ButtonType} from "../../../gui/base/Button.js"
 import {copyToClipboard} from "../../../misc/ClipboardUtils.js"
 import {Icons} from "../../../gui/base/icons/Icons.js"
-import {Dialog, DialogType} from "../../../gui/base/Dialog.js"
+import {Dialog} from "../../../gui/base/Dialog.js"
 import {Icon, progressIcon} from "../../../gui/base/Icon.js"
 import {theme} from "../../../gui/theme.js"
 import type {User} from "../../../api/entities/sys/TypeRefs.js"
 import {assertNotNull, LazyLoaded} from "@tutao/tutanota-utils"
 import {locator} from "../../../api/main/MainLocator.js"
-import {getEtId, isSameId} from "../../../api/common/utils/EntityUtils.js"
-import {logins} from "../../../api/main/LoginController.js"
 import * as RecoverCodeDialog from "../RecoverCodeDialog.js"
 import {EntityClient} from "../../../api/common/EntityClient.js"
 import {ProgrammingError} from "../../../api/common/error/ProgrammingError.js"
@@ -60,32 +58,12 @@ export class SecondFactorEditDialog {
 
 	finalize(user: User): void {
 		this.dialog.close()
-		SecondFactorEditDialog.showRecoveryInfoDialog(user)
+		RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerificationAndInfoDialog(user)
 	}
 
 	static async loadAndShow(entityClient: EntityClient, lazyUser: LazyLoaded<User>, mailAddress: string): Promise<void> {
 		const dialog: SecondFactorEditDialog = await showProgressDialog("pleaseWait_msg", this.loadWebauthnClient(entityClient, lazyUser, mailAddress))
 		dialog.dialog.show()
-	}
-
-	private static showRecoveryInfoDialog(user: User) {
-		// We only show the recovery code if it is for the current user and it is a global admin
-		if (!isSameId(getEtId(logins.getUserController().user), getEtId(user)) || !user.memberships.find(gm => gm.groupType === GroupType.Admin)) {
-			return
-		}
-
-		const isRecoverCodeAvailable = user.auth && user.auth.recoverCode != null
-		Dialog.showActionDialog({
-			title: lang.get("recoveryCode_label"),
-			type: DialogType.EditMedium,
-			child: () => m(".pt", lang.get("recoveryCode_msg")),
-			allowOkWithReturn: true,
-			okAction: (dialog: Dialog) => {
-				dialog.close()
-				RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification(isRecoverCodeAvailable ? "get" : "create", false)
-			},
-			okActionTextId: isRecoverCodeAvailable ? "show_action" : "setUp_action",
-		})
 	}
 
 	private render(): Children {
