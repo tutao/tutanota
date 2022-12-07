@@ -14,7 +14,7 @@ import {Dialog} from "../../../gui/base/Dialog.js"
 import {Icon, progressIcon} from "../../../gui/base/Icon.js"
 import {theme} from "../../../gui/theme.js"
 import type {User} from "../../../api/entities/sys/TypeRefs.js"
-import {assertNotNull, LazyLoaded} from "@tutao/tutanota-utils"
+import {assertNotNull, LazyLoaded, noOp} from "@tutao/tutanota-utils"
 import {locator} from "../../../api/main/MainLocator.js"
 import * as RecoverCodeDialog from "../RecoverCodeDialog.js"
 import {EntityClient} from "../../../api/common/EntityClient.js"
@@ -179,7 +179,8 @@ export class SecondFactorEditDialog {
 			totpKeys,
 			webauthnSupported,
 			lang,
-			locator.loginFacade
+			locator.loginFacade,
+			m.redraw
 		)
 		return new SecondFactorEditDialog(model)
 	}

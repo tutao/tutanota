@@ -2,7 +2,7 @@ import {EntityClient} from "../../../api/common/EntityClient.js"
 import {createSecondFactor, GroupInfoTypeRef, U2fRegisteredDevice, User} from "../../../api/entities/sys/TypeRefs.js"
 import {validateWebauthnDisplayName, WebauthnClient} from "../../../misc/2fa/webauthn/WebauthnClient.js"
 import {TotpSecret} from "@tutao/tutanota-crypto"
-import {assertNotNull, LazyLoaded, neverNull, noOp} from "@tutao/tutanota-utils"
+import {assertNotNull, LazyLoaded, neverNull} from "@tutao/tutanota-utils"
 import {isApp, isTutanotaDomain} from "../../../api/common/Env.js"
 import {htmlSanitizer} from "../../../misc/HtmlSanitizer.js"
 import {LanguageViewModel, TranslationKey} from "../../../misc/LanguageViewModel.js"
@@ -54,7 +54,7 @@ export class SecondFactorEditModel {
 		private readonly webauthnSupported: boolean,
 		private readonly lang: LanguageViewModel,
 		private readonly loginFacade: LoginFacade,
-		private readonly updateViewCallback: () => void = noOp
+		private readonly updateViewCallback: () => void
 	) {
 		this.selectedType = webauthnSupported ? SecondFactorType.webauthn : SecondFactorType.totp
 		this.setDefaultNameIfNeeded()
