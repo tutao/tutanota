@@ -118,7 +118,6 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
   private func onKeyboardDidShow(note: Notification) {
     let rect = note.userInfo![UIResponder.keyboardFrameEndUserInfoKey] as! CGRect
     self.onAnyKeyboardSizeChange(newHeight: rect.size.height)
-
   }
 
   @objc
@@ -140,6 +139,17 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     Task {
       try await MobileFacadeSendDispatcher(transport: self.bridge).keyboardSizeChanged(self.keyboardSize)
     }
+  }
+
+  func onApplicationDidEnterBackground() {
+    // When the user leaves the app we want to perform "incremental_vacuum" on the offline database.
+    // We perform vacuum onnce the app is put into background instead of when the app is terminated as on iOS
+    // we do not have enough time before the app is terminated by the system.
+    self.bridge.vacuumOfflineDatabase()
+  }
+
+  func onApplicationWillTerminate() {
+    self.bridge.closeOfflineDatabase()
   }
 
   override func viewDidLoad() {

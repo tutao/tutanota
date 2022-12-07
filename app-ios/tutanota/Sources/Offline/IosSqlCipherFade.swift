@@ -11,7 +11,7 @@ let OFFLINE_DB_CLOSED_DOMAIN = "de.tutao.tutanota.offline.OfflineDbClosedError"
 class IosSqlCipherFacade: SqlCipherFacade {
   private var db: SqlCipherDb? = nil
 
-  private var listIdLocks: [String: CurrentValueSubject<ListIdLockState, Never>] = [:]
+  private var concurrentListIdLocks = ConcurrentListIdLocks()
   // according to the docs the return value of sink should be held
   // because otherwise the stream will be canceled
   private var cancellables: [AnyCancellable] = []
@@ -73,24 +73,32 @@ class IosSqlCipherFacade: SqlCipherFacade {
     }
   }
 
+  func vaccumDb() async throws {
+    if self.db == nil {
+      return
+    }
+    self.db!.vacuum()
+  }
+
   /**
    * We want to lock the access to the "ranges" db when updating / reading the
    * offline available mail list ranges for each mail list (referenced using the listId).
    * @param listId the mail list that we want to lock
    */
   func lockRangesDbAccess(_ listId: String) async throws {
-    if (self.listIdLocks[listId] != nil) {
+    let listIdLock = await concurrentListIdLocks.get(listId)
+    if let listIdLock = listIdLock {
       await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-        let cancellable = self.listIdLocks[listId]!
+        let cancellable = listIdLock
           .first(where: { $0 == .listIdUnlocked })
           .sink { v in
             continuation.resume()
-            self.listIdLocks[listId] = CurrentValueSubject<ListIdLockState, Never>(.waitingForListIdUnlock)
           }
         self.cancellables.append(cancellable)
       }
+      await self.concurrentListIdLocks.set(listId,CurrentValueSubject<ListIdLockState, Never>(.waitingForListIdUnlock))
     } else {
-      self.listIdLocks[listId] = CurrentValueSubject<ListIdLockState, Never>(.waitingForListIdUnlock)
+      await self.concurrentListIdLocks.set(listId, CurrentValueSubject<ListIdLockState, Never>(.waitingForListIdUnlock))
     }
   }
 
@@ -99,7 +107,24 @@ class IosSqlCipherFacade: SqlCipherFacade {
    * @param listId the mail list that we want to unlock
    */
   func unlockRangesDbAccess(_ listId: String) async throws {
-    self.listIdLocks.removeValue(forKey: listId)
-    self.listIdLocks[listId]?.send(.listIdUnlocked)
+    let listIdLock = await self.concurrentListIdLocks.removeValue(forKey: listId)
+    listIdLock?.send(.listIdUnlocked)
+  }
+}
+
+// We need this actor in order to make sure that access to the listIdLocks dictionary is thread safe
+actor ConcurrentListIdLocks {
+  private var listIdLocks: [String: CurrentValueSubject<ListIdLockState, Never>] = [:]
+
+  func get(_ listId: String) ->  CurrentValueSubject<ListIdLockState, Never>? {
+    listIdLocks[listId]
+  }
+
+  func set(_ listId: String,_ value: CurrentValueSubject<ListIdLockState, Never>) {
+    return listIdLocks[listId] = value
+  }
+
+  func removeValue(forKey listId: String) -> CurrentValueSubject<ListIdLockState, Never>? {
+    return listIdLocks.removeValue(forKey: listId)
   }
 }
