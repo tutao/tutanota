@@ -2139,9 +2139,6 @@ styles.registerStyle("main", () => {
 			"margin": "0 auto",
 			"list-style": "disc",
 			"text-align": "left",
-		},
-		".news-item": {
-			background: theme.list_bg,
-		},
+		}
 	}
 })
