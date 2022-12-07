@@ -3,7 +3,6 @@ import {function as tdfn, matchers, object, verify, when} from "testdouble"
 import {
 	DEFAULT_TOTP_NAME,
 	DEFAULT_U2F_NAME,
-	FactorTypes,
 	NameValidationStatus,
 	SecondFactorEditModel
 } from "../../../../../src/settings/login/secondfactor/SecondFactorEditModel.js"
@@ -14,6 +13,7 @@ import {TotpSecret, TotpVerifier} from "@tutao/tutanota-crypto"
 import {noOp} from "@tutao/tutanota-utils"
 import {LanguageViewModel} from "../../../../../src/misc/LanguageViewModel.js"
 import {LoginFacade} from "../../../../../src/api/worker/facades/LoginFacade.js"
+import {SecondFactorType} from "../../../../../src/api/common/TutanotaConstants.js"
 
 function createTotpKeys(): TotpSecret {
 	const key = new Uint8Array(16)
@@ -75,13 +75,13 @@ o.spec("SecondFactorEditModel", function () {
 			const model = await createSecondFactorModel({webauthnSupported: false})
 			const options = model.getFactorTypesOptions()
 			o(options.length).equals(1)
-			o(options.find(o => o.value === FactorTypes.WEBAUTHN)).equals(undefined)
+			o(options.find(o => o === SecondFactorType.webauthn)).equals(undefined)
 		})
 
 		o("if webauthn is supported, we get it as an option", async function () {
 			const model = await createSecondFactorModel({})
 			const options = model.getFactorTypesOptions()
-			o(options.filter(o => o.value === FactorTypes.WEBAUTHN).length).equals(1)
+			o(options.filter(o => o === SecondFactorType.webauthn).length).equals(1)
 		})
 	})
 
@@ -89,20 +89,20 @@ o.spec("SecondFactorEditModel", function () {
 		o("when the type changes, we set the default name if necessary", async function () {
 			const model = await createSecondFactorModel({})
 			// empty name gets replaced if we change totp->u2f
-			model.onTypeSelected(FactorTypes.TOTP)
+			model.onTypeSelected(SecondFactorType.totp)
 			model.onNameChange("")
-			model.onTypeSelected(FactorTypes.WEBAUTHN)
+			model.onTypeSelected(SecondFactorType.webauthn)
 			o(model.nameValidationStatus).equals(NameValidationStatus.Valid)
 			o(model.name).equals(DEFAULT_U2F_NAME)
 
 			// empty name gets replaced if we change u2f->totp
 			model.onNameChange("")
-			model.onTypeSelected(FactorTypes.TOTP)
+			model.onTypeSelected(SecondFactorType.totp)
 			o(model.nameValidationStatus).equals(NameValidationStatus.Valid)
 			o(model.name).equals(DEFAULT_TOTP_NAME)
 
 			// default name gets replaced if we change type
-			model.onTypeSelected(FactorTypes.WEBAUTHN)
+			model.onTypeSelected(SecondFactorType.webauthn)
 			o(model.nameValidationStatus).equals(NameValidationStatus.Valid)
 			o(model.name).equals(DEFAULT_U2F_NAME)
 		})
@@ -110,12 +110,12 @@ o.spec("SecondFactorEditModel", function () {
 		o("when name too long changing the factor updates name validation status", async function () {
 			const model = await createSecondFactorModel({})
 
-			model.onTypeSelected(FactorTypes.TOTP)
+			model.onTypeSelected(SecondFactorType.totp)
 			model.onNameChange(invalidName)
 			o(model.nameValidationStatus).equals(NameValidationStatus.Valid)
 
 			// WEBAUTHN allows names up to 64 bytes
-			model.onTypeSelected((FactorTypes.WEBAUTHN))
+			model.onTypeSelected((SecondFactorType.webauthn))
 			o(model.nameValidationStatus).equals((NameValidationStatus.Invalid))
 			o(model.name).equals(invalidName)
 
@@ -125,7 +125,7 @@ o.spec("SecondFactorEditModel", function () {
 
 			// long Name is valid for TOTP
 			model.onNameChange(invalidName)
-			model.onTypeSelected(FactorTypes.TOTP)
+			model.onTypeSelected(SecondFactorType.totp)
 			o(model.nameValidationStatus).equals(NameValidationStatus.Valid)
 		})
 	})
@@ -133,35 +133,33 @@ o.spec("SecondFactorEditModel", function () {
 	o.spec("saving a second factor", function () {
 		o("saving a u2f key, happy path", async function () {
 			const redrawMock = tdfn('redrawMock')
-			const callbackMock: (user: User) => void = tdfn("callbackMock") as any
 			when(entityClientMock.setup(matchers.anything(), matchers.anything())).thenResolve("randomID")
 			when(webAuthnClientMock.register(matchers.anything(), matchers.anything())).thenResolve({})
 			const model = await createSecondFactorModel({updateView: redrawMock})
 
-			model.onTypeSelected(FactorTypes.WEBAUTHN)
+			model.onTypeSelected(SecondFactorType.webauthn)
 			model.onNameChange(" \t ")
-			await model.save(callbackMock)
+			const user = await model.save()
+			o(user).deepEquals(userMock)
 
 			verify(redrawMock(), {times: 2})
-			verify(callbackMock(userMock), {times: 1})
 			verify(entityClientMock.setup(matchers.anything(), matchers.anything()), {times: 1})
 		})
 
 		o("saving a totp key, happy path", async function () {
 			const redrawMock = tdfn('redrawMock')
-			const callbackMock: (user: User) => void = tdfn("callbackMock") as any
 			when(entityClientMock.setup(matchers.anything(), matchers.anything())).thenResolve("randomID")
 			when(webAuthnClientMock.register(matchers.anything(), matchers.anything())).thenResolve({})
 			when(loginFacadeMock.generateTotpCode(matchers.anything(), matchers.anything())).thenResolve(123456)
 			const model = await createSecondFactorModel({updateView: redrawMock})
 
-			model.onTypeSelected(FactorTypes.TOTP)
+			model.onTypeSelected(SecondFactorType.totp)
 			model.onNameChange(" \t ")
 			await model.onTotpValueChange("123456")
-			await model.save(callbackMock)
+			const user = await model.save()
+			o(user).deepEquals(userMock)
 
 			verify(redrawMock(), {times: 2})
-			verify(callbackMock(userMock), {times: 1})
 			verify(entityClientMock.setup(matchers.anything(), matchers.anything()), {times: 1})
 		})
 	})
