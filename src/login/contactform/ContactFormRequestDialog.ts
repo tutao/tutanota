@@ -1,6 +1,6 @@
 import m, {Children} from "mithril"
 import {Dialog, DialogType} from "../../gui/base/Dialog"
-import {TextField, TextFieldType} from "../../gui/base/TextField.js"
+import {AutocompleteValues, TextField, TextFieldType} from "../../gui/base/TextField.js"
 import {lang} from "../../misc/LanguageViewModel"
 import {formatStorageSize} from "../../misc/Formatter"
 import {ConversationType, Keys, MailMethod, MAX_ATTACHMENT_SIZE, PushServiceType} from "../../api/common/TutanotaConstants"
@@ -121,6 +121,7 @@ export class ContactFormRequestDialog {
 		const notificationEmailAddress = m(TextField, {
 			label: "mailAddress_label",
 			value: this._notificationEmailAddress,
+			autocompleteValue: AutocompleteValues.email,
 			helpLabel: () => lang.get("contactFormMailAddressInfo_msg"),
 			oninput: value => this._notificationEmailAddress = value.trim(),
 			type: TextFieldType.Area,

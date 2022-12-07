@@ -2,7 +2,7 @@ import m, {ChildArray, Children, Component, Vnode} from "mithril"
 import {lang} from "../misc/LanguageViewModel.js"
 import {client} from "../misc/ClientDetector.js"
 import {assertNotNull} from "@tutao/tutanota-utils"
-import {TextField, TextFieldType} from "../gui/base/TextField.js"
+import {AutocompleteValues, TextField, TextFieldType} from "../gui/base/TextField.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import {DropDownSelector} from "../gui/base/DropDownSelector.js"
 import {TerminationPeriodOptions} from "../api/common/TutanotaConstants.js"
@@ -55,6 +55,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 					m(TextField, {
 						label: "mailAddress_label",
 						value: a.mailAddress,
+						autocompleteValue: AutocompleteValues.email,
 						oninput: (value) => {
 							this.handleAutofill(a)
 							a.onMailAddressChanged(value)
@@ -79,6 +80,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 					m(TextField, {
 						label: "password_label",
 						value: a.password,
+						autocompleteValue: AutocompleteValues.currentPassword,
 						oninput: (value) => {
 							this.handleAutofill(a)
 							a.onPasswordChanged(value)

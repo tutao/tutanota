@@ -4,7 +4,7 @@ import type {DropDownSelectorAttrs} from "../../../gui/base/DropDownSelector.js"
 import {DropDownSelector} from "../../../gui/base/DropDownSelector.js"
 import {lang} from "../../../misc/LanguageViewModel.js"
 import type {TextFieldAttrs} from "../../../gui/base/TextField.js"
-import {TextField} from "../../../gui/base/TextField.js"
+import {AutocompleteValues, TextField} from "../../../gui/base/TextField.js"
 import {isApp} from "../../../api/common/Env.js"
 import m, {Children} from "mithril"
 import {Button, ButtonType} from "../../../gui/base/Button.js"
@@ -139,6 +139,7 @@ export class SecondFactorEditDialog {
 			m(TextField, {
 				label: "totpCode_label",
 				value: this.model.totpCode,
+				autocompleteValue: AutocompleteValues.oneTimeCode,
 				oninput: newValue => this.model.onTotpValueChange(newValue),
 			}),
 		])

@@ -4,7 +4,7 @@ import Stream from "mithril/stream"
 import {AccessBlockedError, AccessDeactivatedError, NotAuthenticatedError, TooManyRequestsError} from "../../api/common/error/RestError"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {isMailAddress} from "../../misc/FormatValidator"
-import {TextField, TextFieldType} from "../../gui/base/TextField.js"
+import {AutocompleteValues, TextField, TextFieldType} from "../../gui/base/TextField.js"
 import {lang} from "../../misc/LanguageViewModel"
 import {PasswordForm, PasswordModel} from "../../settings/PasswordForm"
 import {Icons} from "../../gui/base/icons/Icons"
@@ -69,7 +69,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 					m(TextField, {
 						label: "mailAddress_label",
 						value: emailAddressStream(),
-						type: TextFieldType.Email,
+						autocompleteValue: AutocompleteValues.email,
 						oninput: emailAddressStream,
 					}),
 					m(editor),
@@ -88,6 +88,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 								label: "password_label",
 								type: TextFieldType.Password,
 								value: passwordValueStream(),
+								autocompleteValue: AutocompleteValues.currentPassword,
 								oninput: passwordValueStream,
 							}),
 				]

@@ -5,7 +5,7 @@ import {BootstrapFeatureType} from "../api/common/TutanotaConstants"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import {liveDataAttrs} from "../gui/AriaUtils"
 import {lang, TranslationKey} from "../misc/LanguageViewModel"
-import {TextField, TextFieldType} from "../gui/base/TextField.js"
+import {AutocompleteValues, TextField, TextFieldType} from "../gui/base/TextField.js"
 import {Checkbox} from "../gui/base/Checkbox.js"
 import {client} from "../misc/ClientDetector"
 import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
@@ -83,6 +83,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 						value: a.mailAddress(),
 						oninput: a.mailAddress,
 						type: TextFieldType.Email,
+						autocompleteValue: AutocompleteValues.email,
 						onDomInputCreated: (dom) => {
 							if (!client.isMobileDevice()) {
 								dom.focus() // have email address auto-focus so the user can immediately type their username (unless on mobile)
@@ -104,6 +105,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 						value: a.password(),
 						oninput: a.password,
 						type: TextFieldType.Password,
+						autocompleteValue: AutocompleteValues.currentPassword,
 					}),
 				),
 				a.savePassword && !this._passwordDisabled()
