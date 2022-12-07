@@ -255,6 +255,7 @@ export class MailIndexer {
 			mailIndexEnabled: this.mailIndexingEnabled,
 			progress: 1,
 			currentMailIndexTimestamp: this.currentIndexTimestamp,
+			aimedMailIndexTimestamp: oldestTimestamp,
 			indexedMailCount: 0,
 			failedIndexingUpTo: null,
 		})
@@ -303,6 +304,7 @@ export class MailIndexer {
 				mailIndexEnabled: this.mailIndexingEnabled,
 				progress: 0,
 				currentMailIndexTimestamp: this.currentIndexTimestamp,
+				aimedMailIndexTimestamp: oldestTimestamp,
 				indexedMailCount: this._core._stats.mailcount,
 				failedIndexingUpTo: null,
 			})
@@ -329,6 +331,7 @@ export class MailIndexer {
 				mailIndexEnabled: this.mailIndexingEnabled,
 				progress: 0,
 				currentMailIndexTimestamp: this.currentIndexTimestamp,
+				aimedMailIndexTimestamp: oldestTimestamp,
 				indexedMailCount: this._core._stats.mailcount,
 				failedIndexingUpTo,
 				error
@@ -350,6 +353,7 @@ export class MailIndexer {
 				mailIndexEnabled: this.mailIndexingEnabled,
 				progress,
 				currentMailIndexTimestamp: this.currentIndexTimestamp,
+				aimedMailIndexTimestamp: oldestTimestamp,
 				indexedMailCount: this._core._stats.mailcount,
 				failedIndexingUpTo: null,
 			})

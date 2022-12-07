@@ -1,14 +1,12 @@
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import {MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {NOTHING_INDEXED_TIMESTAMP} from "../../api/common/TutanotaConstants"
 import {DbError} from "../../api/common/error/DbError"
 import type {SearchIndexStateInfo, SearchRestriction, SearchResult} from "../../api/worker/search/SearchTypes"
-import {isSameTypeRef} from "@tutao/tutanota-utils"
-import {ofClass} from "@tutao/tutanota-utils"
-import {arrayEquals} from "@tutao/tutanota-utils"
+import {arrayEquals, isSameTypeRef, ofClass} from "@tutao/tutanota-utils"
 import type {SearchFacade} from "../../api/worker/search/SearchFacade"
 import {assertMainOrNode} from "../../api/common/Env"
-import Stream from "mithril/stream";
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -37,6 +35,7 @@ export class SearchModel {
 			mailIndexEnabled: false,
 			progress: 0,
 			currentMailIndexTimestamp: NOTHING_INDEXED_TIMESTAMP,
+			aimedMailIndexTimestamp: NOTHING_INDEXED_TIMESTAMP,
 			indexedMailCount: 0,
 			failedIndexingUpTo: null,
 		})
