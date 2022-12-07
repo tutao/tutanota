@@ -169,12 +169,12 @@ export class SecondFactorEditModel {
 	/**
 	 * re-validates the input and makes the server calls to actually create a second factor
 	 */
-	async save(callback: (user: User) => void): Promise<void> {
+	async save(): Promise<User | null> {
 		this.setDefaultNameIfNeeded()
 		if (this.selectedType === FactorTypes.WEBAUTHN) {
 			// Prevent starting in parallel
 			if (this.verificationStatus === VerificationStatus.Progress) {
-				return
+				return null
 			}
 
 			try {
@@ -184,7 +184,7 @@ export class SecondFactorEditModel {
 				console.log("Webauthn registration failed: ", e)
 				this.u2fRegistrationData = null
 				this.verificationStatus = VerificationStatus.Failed
-				return
+				return null
 			}
 		}
 
@@ -214,7 +214,7 @@ export class SecondFactorEditModel {
 			throw new ProgrammingError(`invalid factor type: ${this.selectedType}`)
 		}
 		await this.entityClient.setup(assertNotNull(this.user.auth).secondFactors, sf)
-		callback(this.user)
+		return this.user
 	}
 
 	/** see https://github.com/google/google-authenticator/wiki/Key-Uri-Format */

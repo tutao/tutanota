@@ -15,7 +15,7 @@ import {Dialog, DialogType} from "../../../gui/base/Dialog.js"
 import {Icon, progressIcon} from "../../../gui/base/Icon.js"
 import {theme} from "../../../gui/theme.js"
 import type {User} from "../../../api/entities/sys/TypeRefs.js"
-import {assertNotNull, delay, LazyLoaded, ofClass} from "@tutao/tutanota-utils"
+import {assertNotNull, LazyLoaded} from "@tutao/tutanota-utils"
 import {locator} from "../../../api/main/MainLocator.js"
 import {getEtId, isSameId} from "../../../api/common/utils/EntityUtils.js"
 import {logins} from "../../../api/main/LoginController.js"
@@ -45,17 +45,24 @@ export class SecondFactorEditDialog {
 			child: {
 				view: () => this.render(),
 			},
-			okAction: () => showProgressDialog(
-				"pleaseWait_msg",
-				// make sure any error messages displayed by save are shown on top of the progress dialog
-				delay(1).then(() => this.model.save((u) => this.finalize(u)))
-						.catch(ofClass(UserError, (e: UserError) => Dialog.message(() => e.message)))
-			),
+			okAction: () => showProgressDialog("pleaseWait_msg", this.okAction()),
 			allowCancel: true,
 			okActionTextId: "save_action",
 			cancelAction: () => this.model.abort(),
 			validator: () => this.model.validationMessage()
 		})
+	}
+
+	async okAction(): Promise<void> {
+		try {
+			const user = await this.model.save()
+			if (user != null) this.finalize(user)
+		} catch (e) {
+			if (e instanceof UserError) {
+				// noinspection ES6MissingAwait
+				Dialog.message(() => e.message)
+			}
+		}
 	}
 
 	finalize(user: User): void {
