@@ -13,8 +13,9 @@ function signer({
 					path: pathToSign, // path to the file to sign (string)
 					hash: hashAlgorithm // hash algorithm to use (string, defaults to "sha256")
 				}) {
-	const extension = "." + pathToSign.split(".").pop()
-	const unsignedFileName = pathToSign.replace(extension, "-unsigned" + extension)
+	const ext = path.extname(pathToSign)
+	// /thing/thong.AppImage -> /thing/thong-unsigned.AppImage
+	const unsignedFileName = pathToSign.slice(0, pathToSign.length - ext.length) + "-unsigned" + ext
 	console.log("signing", unsignedFileName, "as", args.path)
 	const commandArguments = process.env.DEBUG_SIGN
 		? getSelfSignedArgs(unsignedFileName, hashAlgorithm, pathToSign)
