@@ -58,8 +58,8 @@ const val SYSTEM_GESTURES_EXCLUSION_WIDTH_DP = 40
 const val SYSTEM_GESTURES_EXCLUSION_HEIGHT_DP = 200 // max exclusion height allowed by the system is 200 dp
 
 interface WebauthnHandler {
-	fun onResult(result: String): Unit
-	fun onNoResult(): Unit
+	fun onResult(result: String)
+	fun onNoResult()
 }
 
 class MainActivity : FragmentActivity() {
@@ -391,20 +391,10 @@ class MainActivity : FragmentActivity() {
 
 	override fun onNewIntent(intent: Intent) {
 		super.onNewIntent(intent)
-		Log.d(TAG, "onNewIntent")
 		handleIntent(intent)
 	}
 
-	private fun Intent.debugDescription(): String {
-		val extraString = this.extras?.let { extras ->
-			extras.keySet().joinToString(prefix = "{", postfix = "}") { "$it: ${extras[it]}" }
-		}
-		return "action: ${this.action}, scheme: ${this.scheme}, data: ${this.data}, extras: $extraString"
-	}
-
 	private fun handleIntent(intent: Intent) = lifecycleScope.launchWhenCreated {
-		Log.d(TAG, "handling intent ${intent.debugDescription()}")
-
 		// When we redirect to the app from outside, for example after doing payment verification,
 		// we don't want to do any kind of intent handling
 		val data = intent.data
