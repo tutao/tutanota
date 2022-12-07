@@ -17,8 +17,8 @@ export interface MobileWebauthnAttrs extends TopLevelAttrs {
 
 /**
  * This is a special view which is not used by the web client
- * directly but is loaded remotely by desktop client in a dialog.
- * See DesktopWebauthnFacade.
+ * directly but is loaded remotely by mobile client.
+ * See AndroidWebauthnFacade and IosWebauthnFacade.
  */
 export class MobileWebauthnView implements CurrentView<MobileWebauthnAttrs> {
 
@@ -33,7 +33,6 @@ export class MobileWebauthnView implements CurrentView<MobileWebauthnAttrs> {
 	}
 
 	view({attrs}: Vnode<MobileWebauthnAttrs>): Children {
-		console.log("args:", attrs)
 		const headerBarAttrs: DialogHeaderBarAttrs = {
 			left: [{
 				label: "cancel_action",
@@ -55,7 +54,7 @@ export class MobileWebauthnView implements CurrentView<MobileWebauthnAttrs> {
 					m(".flex-center.mt-s", m("img", {src: SecondFactorImage})),
 					m(".mt.flex.col", [
 						m(".flex.justify-center", [m(".mr-s", progressIcon()), m("", lang.get("waitingForU2f_msg"))])
-					]), ,
+					]),
 				])
 			]
 		)
@@ -69,7 +68,7 @@ export class MobileWebauthnView implements CurrentView<MobileWebauthnAttrs> {
 		if (typeof challenge !== "string") {
 			throw new Error("Challenge is not passed")
 		}
-		const cbUrlTemplate = attrs.args["cbUrl"] as string
+		const cbUrlTemplate = attrs.args["cbUrl"]
 		if (typeof cbUrlTemplate !== "string") {
 			throw new Error("cbUrl is not passed")
 		}

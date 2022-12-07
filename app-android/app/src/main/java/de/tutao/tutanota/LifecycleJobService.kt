@@ -1,3 +1,5 @@
+@file:Suppress("OverrideDeprecatedMigration")
+
 package de.tutao.tutanota
 
 import android.app.job.JobService

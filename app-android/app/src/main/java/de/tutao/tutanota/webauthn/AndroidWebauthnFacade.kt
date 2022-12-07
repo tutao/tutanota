@@ -12,8 +12,8 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class AndroidWebauthnFacade(
-	private val activity: MainActivity,
-	private val json: Json
+		private val activity: MainActivity,
+		private val json: Json
 ) : WebAuthnFacade {
 	companion object {
 		private const val TAG = "Webauthn"
@@ -21,9 +21,9 @@ class AndroidWebauthnFacade(
 
 	override suspend fun sign(challenge: WebAuthnSignChallenge): WebAuthnSignResult {
 		val response = sendRequest<_, TaggedWebauthnSignResult>(
-			"sign",
-			baseUrlToBrowserUrl(challenge.domain),
-			challenge,
+				"sign",
+				baseUrlToBrowserUrl(challenge.domain),
+				challenge,
 		)
 		when (response) {
 			is TaggedWebauthnSignResult.Success -> return response.value
@@ -33,9 +33,9 @@ class AndroidWebauthnFacade(
 
 	override suspend fun register(challenge: WebAuthnRegistrationChallenge): WebAuthnRegistrationResult {
 		val response = sendRequest<_, TaggedWebauthnRegistrationResult>(
-			"register",
-			baseUrlToBrowserUrl(challenge.domain),
-			challenge,
+				"register",
+				baseUrlToBrowserUrl(challenge.domain),
+				challenge,
 		)
 		when (response) {
 			is TaggedWebauthnRegistrationResult.Success -> return response.value
@@ -43,26 +43,26 @@ class AndroidWebauthnFacade(
 		}
 	}
 
-		private fun baseUrlToBrowserUrl(baseUrl: String) =
-    		Uri.parse(baseUrl).buildUpon().appendPath("webauthnmobile").build().toString()
+	private fun baseUrlToBrowserUrl(baseUrl: String) =
+			Uri.parse(baseUrl).buildUpon().appendPath("webauthnmobile").build().toString()
 
 	private suspend inline fun <reified Req, reified Res> sendRequest(
-		action: String,
-		baseUrl: String,
-		value: Req
+			action: String,
+			baseUrl: String,
+			value: Req
 	): Res {
 		// we should use the domain, right?
 		val serializedChallenge = json.encodeToString(value)
 		Log.d(TAG, "Challenge: $serializedChallenge")
 		val url = Uri.parse(baseUrl)
-			.buildUpon()
-			.appendQueryParameter("action", action)
-			.appendQueryParameter(
-				"cbUrl",
-				"intent://webauthn/#Intent;scheme=tutanota;package=de.tutao.tutanota.debug;S.result={result};end"
-			)
-			.appendQueryParameter("challenge", serializedChallenge)
-			.build()
+				.buildUpon()
+				.appendQueryParameter("action", action)
+				.appendQueryParameter(
+						"cbUrl",
+						"intent://webauthn/#Intent;scheme=tutanota;package=de.tutao.tutanota.debug;S.result={result};end"
+				)
+				.appendQueryParameter("challenge", serializedChallenge)
+				.build()
 		val stringResult = activity.startWebauthn(url)
 		val jsonResult = stringResult.base64ToString()
 		Log.d(TAG, "got result: $jsonResult")
@@ -82,7 +82,8 @@ class AndroidWebauthnFacade(
 	override suspend fun canAttemptChallengeForU2FAppId(appId: String): Boolean = true
 }
 
-// Result type is duplicated because of serialization complications
+// Result type is duplicated because of serialization complications because generic sealed class required
+// polymorphic serializer
 @Serializable
 sealed class TaggedWebauthnSignResult {
 	@Serializable
