@@ -5,10 +5,8 @@ import {DialogHeaderBar, DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar
 import {SecondFactorImage} from "../gui/base/icons/Icons.js"
 import {progressIcon} from "../gui/base/Icon.js"
 import {lang} from "../misc/LanguageViewModel.js"
-import {Button, ButtonType} from "../gui/base/Button.js"
+import {ButtonType} from "../gui/base/Button.js"
 import {BrowserWebauthn} from "../misc/2fa/webauthn/BrowserWebauthn.js"
-import {Dialog} from "../gui/base/Dialog.js"
-import {decodeValueFromNative, encodeValueForNative} from "../native/common/NativeLineProtocol.js"
 import {WebAuthnSignChallenge} from "../native/common/generatedipc/WebAuthnSignChallenge.js"
 import {stringToBase64} from "@tutao/tutanota-utils"
 import {WebAuthnRegistrationChallenge} from "../native/common/generatedipc/WebAuthnRegistrationChallenge.js"
@@ -87,6 +85,7 @@ export class MobileWebauthnView implements CurrentView<MobileWebauthnAttrs> {
 	}
 
 	private async sendResultObject(result: object, cbUrlTemplate: string) {
+		const {encodeValueForNative} = await import("../native/common/NativeLineProtocol.js")
 		const serializedResult = encodeValueForNative(result)
 		const base64Result = stringToBase64(serializedResult)
 		const cbUrl = cbUrlTemplate.replace("{result}", base64Result)
@@ -96,6 +95,7 @@ export class MobileWebauthnView implements CurrentView<MobileWebauthnAttrs> {
 	async authenticate(attrs: MobileWebauthnAttrs) {
 		const {challenge, cbUrlTemplate} = await this.getParams(attrs)
 		try {
+			const {decodeValueFromNative} = await import("../native/common/NativeLineProtocol.js")
 			const rawChallengeObj = decodeValueFromNative(challenge) as WebAuthnSignChallenge
 			const signResult = await attrs.browserWebauthn.sign({
 				challenge: rawChallengeObj.challenge,
@@ -112,6 +112,7 @@ export class MobileWebauthnView implements CurrentView<MobileWebauthnAttrs> {
 		const {challenge, cbUrlTemplate} = await this.getParams(attrs)
 
 		try {
+			const {decodeValueFromNative} = await import("../native/common/NativeLineProtocol.js")
 			const rawChallengeObj = decodeValueFromNative(challenge) as WebAuthnRegistrationChallenge
 			const registrationResult = await attrs.browserWebauthn.register({
 				challenge: rawChallengeObj.challenge,
