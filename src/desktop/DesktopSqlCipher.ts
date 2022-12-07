@@ -78,7 +78,12 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 		this.db.pragma(`KEY = "${key}"`)
 
 		// We are using the auto_vacuum=incremental option to allow for a faster vacuum execution
-		this.db.pragma("auto_vacuum = incremental")
+		// After changing the auto_vacuum value we need to run "vacuum" once
+		// auto_vacuum options: 0 (NONE) | 1 (FULL) | 2 (INCREMENTAL)
+		if (this.db.pragma("auto_vacuum", {simple: true}) != 2) {
+			this.db.pragma("auto_vacuum = incremental")
+			this.db.pragma("vacuum")
+		}
 
 		if (integrityCheck) {
 			this.checkIntegrity()

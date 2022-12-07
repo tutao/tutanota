@@ -37,7 +37,22 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 			db = SQLiteDatabase.openOrCreateDatabase(getDbFile(userId).path, dbKey.data, null)
 
 			// We are using the auto_vacuum=incremental option to allow for a faster vacuum execution
-			db?.execSQL("PRAGMA auto_vacuum = incremental")
+			// After changing the auto_vacuum value we need to run "vacuum" once
+			// auto_vacuum options: 0 (NONE) | 1 (FULL) | 2 (INCREMENTAL)
+			openedDb.query("PRAGMA auto_vacuum").use { cursor ->
+				if (cursor.moveToNext()) {
+					cursor.readRow().firstNotNullOf {
+						Log.i(TAG, "vacuum: ${it.value}")
+						if (it.value != TaggedSqlValue.Num(2)) {
+							db?.query("PRAGMA auto_vacuum = incremental")
+							db?.query("PRAGMA vacuum")
+							Log.i(TAG, "vacuum running...")
+						}
+					}
+				} else {
+					null
+				}
+			}
 		}
 	}
 
@@ -119,7 +134,6 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 	 * @param listId the mail list that we want to lock
 	 */
 	override suspend fun lockRangesDbAccess(listId: String): Unit {
-		Log.i(TAG, "slowandroid: lock $listId")
 		if (listIdLocks.containsKey(listId)) {
 			listIdLocks[listId]?.await()
 			listIdLocks[listId] = CompletableDeferred()
@@ -133,7 +147,6 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 	 * @param listId the mail list that we want to unlock
 	 */
 	override suspend fun unlockRangesDbAccess(listId: String) {
-		Log.i(TAG, "slowandroid: unlock $listId")
 		val completableDeferred = listIdLocks.remove(listId)
 		if (completableDeferred == null) {
 			Log.w(TAG, "No deferred for the listIdLock with listId $listId")

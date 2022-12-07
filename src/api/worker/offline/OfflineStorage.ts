@@ -345,8 +345,6 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 	async clearExcludedData(timeRangeDays: number | null = this.timeRangeDays, userId: Id = this.getUserId()): Promise<void> {
 		const user = await this.get(UserTypeRef, null, userId)
 
-		console.log("Clearing excluded data ...")
-
 		// Free users always have default time range regardless of what is stored
 		const isFreeUser = user?.accountType === AccountType.FREE
 		const timeRange = isFreeUser || timeRangeDays == null ? OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS : timeRangeDays
