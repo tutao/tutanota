@@ -15,7 +15,7 @@ import {Dialog, DialogType} from "../../../gui/base/Dialog.js"
 import {Icon, progressIcon} from "../../../gui/base/Icon.js"
 import {theme} from "../../../gui/theme.js"
 import type {User} from "../../../api/entities/sys/TypeRefs.js"
-import {assertNotNull, delay, LazyLoaded} from "@tutao/tutanota-utils"
+import {assertNotNull, delay, LazyLoaded, ofClass} from "@tutao/tutanota-utils"
 import {locator} from "../../../api/main/MainLocator.js"
 import {getEtId, isSameId} from "../../../api/common/utils/EntityUtils.js"
 import {logins} from "../../../api/main/LoginController.js"
@@ -25,6 +25,7 @@ import {ProgrammingError} from "../../../api/common/error/ProgrammingError.js"
 import {IconButton, IconButtonAttrs} from "../../../gui/base/IconButton.js"
 import {ButtonSize} from "../../../gui/base/ButtonSize.js"
 import {FactorTypes, FactorTypesEnum, NameValidationStatus, SecondFactorEditModel, VerificationStatus} from "./SecondFactorEditModel.js"
+import {UserError} from "../../../api/main/UserError.js"
 
 export const SecondFactorTypeToNameTextId: Record<SecondFactorType, TranslationKey> = Object.freeze({
 	[SecondFactorType.totp]: "totpAuthenticator_label",
@@ -48,6 +49,7 @@ export class SecondFactorEditDialog {
 				"pleaseWait_msg",
 				// make sure any error messages displayed by save are shown on top of the progress dialog
 				delay(1).then(() => this.model.save((u) => this.finalize(u)))
+						.catch(ofClass(UserError, (e: UserError) => Dialog.message(() => e.message)))
 			),
 			allowCancel: true,
 			okActionTextId: "save_action",

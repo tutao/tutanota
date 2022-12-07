@@ -5,13 +5,13 @@ import {TotpSecret} from "@tutao/tutanota-crypto"
 import {assertNotNull, LazyLoaded, neverNull, noOp} from "@tutao/tutanota-utils"
 import {isApp, isTutanotaDomain} from "../../../api/common/Env.js"
 import {htmlSanitizer} from "../../../misc/HtmlSanitizer.js"
-import {Dialog} from "../../../gui/base/Dialog.js"
 import {LanguageViewModel, TranslationKey} from "../../../misc/LanguageViewModel.js"
 import {SecondFactorType} from "../../../api/common/TutanotaConstants.js"
 import {ProgrammingError} from "../../../api/common/error/ProgrammingError.js"
 import QRCode from "qrcode-svg"
 import {SelectorItem} from "../../../gui/base/DropDownSelector.js"
 import {LoginFacade} from "../../../api/worker/facades/LoginFacade.js"
+import {UserError} from "../../../api/main/UserError.js"
 
 export const enum VerificationStatus {
 	Initial = "Initial",
@@ -198,9 +198,7 @@ export class SecondFactorEditModel {
 			sf.type = SecondFactorType.webauthn
 
 			if (this.verificationStatus !== VerificationStatus.Success) {
-				// noinspection ES6MissingAwait
-				Dialog.message("unrecognizedU2fDevice_msg")
-				return
+				throw new UserError("unrecognizedU2fDevice_msg")
 			} else {
 				sf.u2f = this.u2fRegistrationData
 			}
@@ -208,9 +206,7 @@ export class SecondFactorEditModel {
 			sf.type = SecondFactorType.totp
 
 			if (this.verificationStatus !== VerificationStatus.Success) {
-				// noinspection ES6MissingAwait
-				Dialog.message("totpCodeEnter_msg")
-				return
+				throw new UserError("totpCodeEnter_msg")
 			} else {
 				sf.otpSecret = this.totpKeys.key
 			}
