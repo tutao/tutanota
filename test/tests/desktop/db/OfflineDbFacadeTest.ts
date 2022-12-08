@@ -3,7 +3,7 @@ import {object, when} from "testdouble"
 import {verify} from "@tutao/tutanota-test-utils"
 import {OfflineDbFactory, OfflineDbManager} from "../../../../src/desktop/db/PerWindowSqlCipherFacade.js"
 import {DesktopSqlCipher} from "../../../../src/desktop/DesktopSqlCipher.js"
-import {defer, DeferredObject} from "@tutao/tutanota-utils"
+import {delay} from "@tutao/tutanota-utils"
 
 o.spec("OfflineDbFacade", function () {
 	let factory: OfflineDbFactory
@@ -68,32 +68,29 @@ o.spec("OfflineDbFacade", function () {
 		const listId = "listId"
 
 		// Hold the lock for the ranges database until @param defer is resolved.
-		async function holdRangesDbLock(defer: DeferredObject<void> | null, startId: number): Promise<number> {
+		async function holdRangesDbLock(promise: Promise<void> | null, startId: number): Promise<number> {
 			await offlineDbManager.lockRangesDbAccess(listId)
-			await defer?.promise
+			await promise
 			await offlineDbManager.unlockRangesDbAccess(listId)
 			return startId
 		}
 
 		const finishOrder: Array<number> = []
-		const longRunningTask1 = defer<void>()
+		// Delay Task 1
+		const longRunningTask1 = delay(200)
 
 		// Task 1
-		holdRangesDbLock(longRunningTask1, 1).then((startId) => {
+		let task1 = holdRangesDbLock(longRunningTask1, 1).then((startId) => {
 			finishOrder.push(startId)
 		})
 		// Task 2
-		holdRangesDbLock(null, 2).then((startId) => {
+		let task2 = holdRangesDbLock(null, 2).then((startId) => {
 			finishOrder.push(startId)
 		})
 
-		// Delay Task 1
-		setTimeout(async () => {
-			await longRunningTask1.resolve()
+		await Promise.all([task1, task2])
 
-			// Assert that task 1 finishes before task 2
-			o(finishOrder).deepEquals([1, 2])
-		}, 5000)
-
+		// Assert that task 1 finishes before task 2
+		o(finishOrder).deepEquals([1, 2])
 	})
 })

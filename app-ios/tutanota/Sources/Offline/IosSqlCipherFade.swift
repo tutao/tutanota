@@ -74,10 +74,7 @@ class IosSqlCipherFacade: SqlCipherFacade {
   }
 
   func vaccumDb() async throws {
-    if self.db == nil {
-      return
-    }
-    self.db!.vacuum()
+    self.db?.vacuum()
   }
 
   /**
