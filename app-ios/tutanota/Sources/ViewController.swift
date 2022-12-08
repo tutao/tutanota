@@ -143,7 +143,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
 
   func onApplicationDidEnterBackground() {
     // When the user leaves the app we want to perform "incremental_vacuum" on the offline database.
-    // We perform vacuum onnce the app is put into background instead of when the app is terminated as on iOS
+    // We perform vacuum once the app is put into background instead of when the app is terminated as on iOS
     // we do not have enough time before the app is terminated by the system.
     self.bridge.vacuumOfflineDatabase()
   }

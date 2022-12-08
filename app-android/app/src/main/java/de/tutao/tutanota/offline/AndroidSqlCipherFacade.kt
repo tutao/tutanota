@@ -35,22 +35,16 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 				closeDbSync()
 			}
 			db = SQLiteDatabase.openOrCreateDatabase(getDbFile(userId).path, dbKey.data, null)
+		}
 
-			// We are using the auto_vacuum=incremental mode to allow for a faster vacuum execution
-			// After changing the auto_vacuum mode we need to run "vacuum" once
-			// auto_vacuum mode: 0 (NONE) | 1 (FULL) | 2 (INCREMENTAL)
-			openedDb.query("PRAGMA auto_vacuum").use { cursor ->
-				if (cursor.moveToNext()) {
-					cursor.readRow().firstNotNullOf {
-						Log.i(TAG, "vacuum: ${it.value}")
-						if (it.value != TaggedSqlValue.Num(2)) {
-							db?.query("PRAGMA auto_vacuum = incremental")
-							db?.query("PRAGMA vacuum")
-							Log.i(TAG, "vacuum running...")
-						}
-					}
-				} else {
-					null
+		// We are using the auto_vacuum=incremental mode to allow for a faster vacuum execution
+		// After changing the auto_vacuum mode we need to run "vacuum" once
+		// auto_vacuum mode: 0 (NONE) | 1 (FULL) | 2 (INCREMENTAL)
+		openedDb.query("PRAGMA auto_vacuum").use { cursor ->
+			if (cursor.moveToFirst()) {
+				if (cursor.getInt(0) != 2) {
+					db?.query("PRAGMA auto_vacuum = incremental")
+					db?.query("PRAGMA vacuum")
 				}
 			}
 		}
