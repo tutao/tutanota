@@ -10,7 +10,7 @@ import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
 import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {ContactListView} from "./ContactListView"
 import {lang} from "../../misc/LanguageViewModel"
-import {assertNotNull, flat, neverNull, noOp, ofClass, promiseMap, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
+import {assertNotNull, clear, flat, neverNull, noOp, ofClass, promiseMap, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
 import {ContactMergeAction, GroupType, Keys, OperationType} from "../../api/common/TutanotaConstants"
 import {assertMainOrNode, isApp} from "../../api/common/Env"
 import type {Shortcut} from "../../misc/KeyManager"
@@ -418,7 +418,7 @@ export class ContactView implements CurrentView {
 					} else if (action === ContactMergeAction.Skip) {
 						this._removeFromMergableContacts(mergable, contact2)
 					} else if (action === ContactMergeAction.Cancel) {
-						mergable.length = 0
+						clear(mergable)
 						canceled = true
 					}
 				})

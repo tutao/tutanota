@@ -4,7 +4,7 @@ import {px, size} from "../size"
 import {client} from "../../misc/ClientDetector"
 import {Keys, OperationType, TabIndex} from "../../api/common/TutanotaConstants"
 import type {DeferredObject, MaybeLazy} from "@tutao/tutanota-utils"
-import {addAll, arrayEquals, assertNotNull, debounceStart, defer, last, lastThrow, mapLazily, neverNull, remove} from "@tutao/tutanota-utils"
+import {addAll, arrayEquals, assertNotNull, debounceStart, defer, last, lastThrow, mapLazily, neverNull, remove, clear as clearArr} from "@tutao/tutanota-utils"
 import ColumnEmptyMessageBox from "./ColumnEmptyMessageBox"
 import {progressIcon} from "./Icon"
 import {animations, DefaultAnimationTime, opacity, transform, TransformEnum} from "../animation/Animations"
@@ -381,7 +381,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 	}
 
 	clear() {
-		this.loadedEntities.length = 0
+		clearArr(this.loadedEntities)
 		this.lastElementChangeMarker = {}
 		this.loadedCompletely = false
 
@@ -471,7 +471,7 @@ export class List<ElementType extends ListElement, RowType extends VirtualRow<El
 
 					// check that virtualRow.entity exists because we had error feedbacks about it
 					if (virtualRow.entity && !this.isEntitySelected(virtualRow.entity._id[1])) {
-						this.selectedEntities.length = 0
+						clearArr(this.selectedEntities)
 
 						this.elementClicked(virtualRow.entity, e)
 					} else {
