@@ -106,9 +106,6 @@ export class WebMobileFacade implements MobileFacade {
 			this.disconnectTimeoutId = setTimeout(() => {
 				locator.worker.closeEventBus(CloseEventBusOption.Pause)
 			}, 30 * SECOND_MS)
-
-			// clear excluded data in the cacheStorage (i.e. trash and spam lists, old data)
-			//await locator.cacheStorage.clearExcludedData()
 		}
 	}
 
