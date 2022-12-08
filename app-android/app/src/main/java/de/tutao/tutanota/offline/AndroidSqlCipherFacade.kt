@@ -36,9 +36,9 @@ class AndroidSqlCipherFacade(private val context: Context) : SqlCipherFacade {
 			}
 			db = SQLiteDatabase.openOrCreateDatabase(getDbFile(userId).path, dbKey.data, null)
 
-			// We are using the auto_vacuum=incremental option to allow for a faster vacuum execution
-			// After changing the auto_vacuum value we need to run "vacuum" once
-			// auto_vacuum options: 0 (NONE) | 1 (FULL) | 2 (INCREMENTAL)
+			// We are using the auto_vacuum=incremental mode to allow for a faster vacuum execution
+			// After changing the auto_vacuum mode we need to run "vacuum" once
+			// auto_vacuum mode: 0 (NONE) | 1 (FULL) | 2 (INCREMENTAL)
 			openedDb.query("PRAGMA auto_vacuum").use { cursor ->
 				if (cursor.moveToNext()) {
 					cursor.readRow().firstNotNullOf {
