@@ -43,9 +43,9 @@
 		3D3B516229376C2200C1B7DA /* SharingUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3B516129376C2200C1B7DA /* SharingUtils.swift */; };
 		3D3B516329376C8300C1B7DA /* SharingUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3B516129376C2200C1B7DA /* SharingUtils.swift */; };
 		3D3B516629376E9E00C1B7DA /* ShareUtilsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3B516529376E9E00C1B7DA /* ShareUtilsTest.swift */; };
+		3D3B5169293797DC00C1B7DA /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = 3D3B5168293797DC00C1B7DA /* Atomics */; };
 		3D448A8B292BB1D00030DB2F /* SharingStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D448A8A292BB1D00030DB2F /* SharingStorage.swift */; };
 		3D448A8C292BB1D00030DB2F /* SharingStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D448A8A292BB1D00030DB2F /* SharingStorage.swift */; };
-		3D3B5169293797DC00C1B7DA /* Atomics in Frameworks */ = {isa = PBXBuildFile; productRef = 3D3B5168293797DC00C1B7DA /* Atomics */; };
 		3D4E16F4273D2F8A00256630 /* SyncCompletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */; };
 		3D4E3C9E28EC5B31001FA9D1 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4E3C9D28EC5B31001FA9D1 /* Security.framework */; };
 		3D4E3CA028EC5B43001FA9D1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D4E3C9F28EC5B43001FA9D1 /* Foundation.framework */; };
@@ -479,6 +479,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3D220203293F75B000366FD2 /* Webauthn */ = {
+			isa = PBXGroup;
+			children = (
+				3D220204293F75C100366FD2 /* IosWebauthnFacade.swift */,
+			);
+			path = Webauthn;
+			sourceTree = "<group>";
+		};
 		3D448A89292BB17B0030DB2F /* Sharing */ = {
 			isa = PBXGroup;
 			children = (
@@ -486,14 +494,6 @@
 				3D3B516129376C2200C1B7DA /* SharingUtils.swift */,
 			);
 			path = Sharing;
-			sourceTree = "<group>";
-		};
-		3D220203293F75B000366FD2 /* Webauthn */ = {
-			isa = PBXGroup;
-			children = (
-				3D220204293F75C100366FD2 /* IosWebauthnFacade.swift */,
-			);
-			path = Webauthn;
 			sourceTree = "<group>";
 		};
 		3D57BEB322B796AC00205B1B /* Alarms */ = {
@@ -2600,9 +2600,9 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CODE_SIGN_ENTITLEMENTS = TutanotaShareExtension/TutanotaShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = JKCH89Z3M9;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TutanotaShareExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = TutanotaShareExtension;
@@ -2617,6 +2617,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.TutanotaShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "tutanota/Sources/tutanota-Bridging-Header.h";
