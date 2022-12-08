@@ -14,7 +14,7 @@ import {Dialog} from "../../../gui/base/Dialog.js"
 import {Icon, progressIcon} from "../../../gui/base/Icon.js"
 import {theme} from "../../../gui/theme.js"
 import type {User} from "../../../api/entities/sys/TypeRefs.js"
-import {assertNotNull, LazyLoaded, noOp} from "@tutao/tutanota-utils"
+import {assertNotNull, LazyLoaded} from "@tutao/tutanota-utils"
 import {locator} from "../../../api/main/MainLocator.js"
 import * as RecoverCodeDialog from "../RecoverCodeDialog.js"
 import {EntityClient} from "../../../api/common/EntityClient.js"
@@ -109,8 +109,7 @@ export class SecondFactorEditDialog {
 	}
 
 	private renderU2FFields(): Children {
-		// Only show progress for u2f because success/error will show another dialog
-		return this.model.verificationStatus !== VerificationStatus.Progress
+		return this.model.verificationStatus === VerificationStatus.Initial
 			? null
 			: m("p.flex.items-center", [m(".mr-s", this.statusIcon()), m("", this.statusMessage())])
 	}
@@ -217,7 +216,7 @@ export class SecondFactorEditDialog {
 		if (this.model.selectedType === SecondFactorType.webauthn) {
 			return this.model.verificationStatus === VerificationStatus.Success
 				? lang.get("registeredU2fDevice_msg")
-				: lang.get("registerU2fDevice_msg")
+				: lang.get("unrecognizedU2fDevice_msg")
 		} else {
 			if (this.model.verificationStatus === VerificationStatus.Success) {
 				return lang.get("totpCodeConfirmed_msg")
