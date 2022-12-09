@@ -41,6 +41,7 @@ enum SharedItem {
 
 /// there is a bunch of uniform type identifiers that can be set by the sharing app. it's not clear what's available,
 /// but there are some constants defined available with "import UniformTypeIdentifiers".
+/// note that these are mentioned explicitly in the info.plist of the extension
 @MainActor
 func loadSharedItemWith(ident: String, fromAttachment: NSItemProvider) async -> SharedItem? {
   switch ident {

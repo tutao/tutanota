@@ -2436,7 +2436,7 @@
 					"\"${PROJECT_DIR}/tutanota/include\"/**",
 				);
 				INFOPLIST_FILE = tutanota/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2483,7 +2483,7 @@
 					"\"${PROJECT_DIR}/tutanota/include\"/**",
 				);
 				INFOPLIST_FILE = tutanota/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2603,6 +2603,7 @@
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = JKCH89Z3M9;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TutanotaShareExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = TutanotaShareExtension;
@@ -2618,6 +2619,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = de.tutao.tutanota.TutanotaShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match AdHoc de.tutao.tutanota.TutanotaShareExtension";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "tutanota/Sources/tutanota-Bridging-Header.h";
