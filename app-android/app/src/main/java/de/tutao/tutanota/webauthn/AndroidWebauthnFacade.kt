@@ -2,6 +2,7 @@ package de.tutao.tutanota.webauthn
 
 import android.net.Uri
 import android.util.Log
+import de.tutao.tutanota.BuildConfig
 import de.tutao.tutanota.MainActivity
 import de.tutao.tutanota.base64ToString
 import de.tutao.tutanota.ipc.*
@@ -59,7 +60,7 @@ class AndroidWebauthnFacade(
 				.appendQueryParameter("action", action)
 				.appendQueryParameter(
 						"cbUrl",
-						"intent://webauthn/#Intent;scheme=tutanota;package=de.tutao.tutanota.debug;S.result={result};end"
+						"intent://webauthn/#Intent;scheme=tutanota;package=${BuildConfig.APPLICATION_ID};S.result={result};end"
 				)
 				.appendQueryParameter("challenge", serializedChallenge)
 				.build()
