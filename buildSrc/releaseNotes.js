@@ -19,8 +19,8 @@ if (wasRunFromCli) {
 		.requiredOption('--tag <tag>', "The commit tag to reference")
 		.addOption(
 			new Option("--platform <platform>", 'label filter for the issues to include in the notes')
-				.choices(["android", "ios", "desktop", "all"])
-				.default("all")
+				.choices(["android", "ios", "desktop", "web"])
+				.default("web")
 		)
 		.addOption(new Option("--uploadFile <filePath>", "path to a file to upload. can be passed multiple times.")
 			.argParser((cur, prev) => prev ? prev.concat(cur) : [cur]).default([])
@@ -127,21 +127,23 @@ async function getIssuesForMilestone(octokit, milestone) {
  * If an issue has no platform label, then it will be included
  * If an issue has a label for a different platform, it won't be included,
  * _unless_ it also has the label for the specified platform.
- *
- * issues that have the "dev bug" label won't be included in any case.
  */
 function filterIssues(issues, platform) {
 
-	const allPlatforms = ["android", "ios", "desktop"]
-	issues = issues.filter(issue => !issue.labels.some(label => label.name === "dev bug"))
+	const allPlatforms = new Set(["android", "ios", "desktop"])
+	// issues that have any of these labels will not be included in any release notes
+	const excludedLabels = new Set(["dev bug", "usage test"])
+	issues = issues.filter(issue => !issue.labels.some(label => excludedLabels.has(label.name)))
 
-	if (platform === "all") {
-		return issues
-	} else if (allPlatforms.includes(platform)) {
-		const otherPlatforms = allPlatforms.filter(p => p !== platform)
+	if (platform === "web") {
+		// for the web app, we only want to include issues that don't have a platform label
+		return issues.filter(i => areDisjoint(labelSet(i), allPlatforms))
+	} else if (allPlatforms.has(platform)) {
+		const otherPlatforms = new Set(allPlatforms)
+		otherPlatforms.delete(platform)
 		return issues.filter(issue =>
 			issue.labels.some(label => label.name === platform) ||
-			!issue.labels.some(label => otherPlatforms.includes(label.name))
+			!issue.labels.some(label => otherPlatforms.has(label.name))
 		)
 	} else {
 		throw new Error(`Invalid value "${platform}" for "platform"`)
@@ -237,4 +239,15 @@ async function uploadAsset(octokit, uploadUrl, releaseId, assetPath) {
 	if (response.status < 200 || response.status > 299) {
 		console.error(`Asset upload failed "${assetPath}. Response:"`, response)
 	}
+}
+
+/**
+ * test whether two js sets have no elements in common
+ */
+function areDisjoint(setA, setB) {
+	return ([...setA].filter(el => setB.has(el)).length) === 0
+}
+
+function labelSet(issue) {
+	return new Set(issue.labels.map(l => l.name))
 }

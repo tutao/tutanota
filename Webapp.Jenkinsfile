@@ -81,7 +81,7 @@ pipeline {
 						sh '''node buildSrc/releaseNotes.js --releaseName ${VERSION} \
 																	--milestone ${VERSION} \
 																	--tag tutanota-release-${VERSION} \
-																	--platform all'''
+																	--platform web'''
 					}
 				}
             }
