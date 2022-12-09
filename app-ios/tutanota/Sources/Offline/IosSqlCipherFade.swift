@@ -1,29 +1,30 @@
 import Foundation
 
+let OFFLINE_DB_CLOSED_DOMAIN = "de.tutao.tutanota.offline.OfflineDbClosedError"
+
 class IosSqlCipherFacade: SqlCipherFacade {
   private var db: SqlCipherDb? = nil
-  var openedDb: SqlCipherDb {
-    get {
-      guard let db = self.db else {
-        fatalError("no db opened!")
-      }
-      return db
+
+  private func getDb() throws -> SqlCipherDb {
+    guard let db = self.db else {
+      throw TUTErrorFactory.createError(withDomain: OFFLINE_DB_CLOSED_DOMAIN, message: "No db opened")
     }
+    return db
   }
 
   func run(_ query: String, _ params: [TaggedSqlValue]) async throws {
-    let prepped = try! self.openedDb.prepare(query: query)
+    let prepped = try self.getDb().prepare(query: query)
     try! prepped.bindParams(params).run()
     return
   }
 
   func get(_ query: String, _ params: [TaggedSqlValue]) async throws -> [String : TaggedSqlValue]? {
-    let prepped = try! self.openedDb.prepare(query: query)
+    let prepped = try self.getDb().prepare(query: query)
     return try! prepped.bindParams(params).get()
   }
 
   func all(_ query: String, _ params: [TaggedSqlValue]) async throws -> [[String : TaggedSqlValue]] {
-    let prepped = try! self.openedDb.prepare(query: query)
+    let prepped = try self.getDb().prepare(query: query)
     return try! prepped.bindParams(params).all()
   }
 
