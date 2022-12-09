@@ -152,7 +152,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 										this._state().indexState.progress !== 0 &&
 										indexState.progress === 0 &&
 										//if period is changed from search view a new search is triggered there,  and we do not want to overwrite its result
-										!this.timePeriodChanged(currentResult.restriction.end, indexState.aimedMailIndexTimestamp)
+										!this.timePeriodHasChanged(currentResult.restriction.end, indexState.aimedMailIndexTimestamp)
 									) {
 										this._doSearch(this._state().query, currentResult.restriction, m.redraw)
 									}
@@ -303,7 +303,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		}
 	}
 
-	timePeriodChanged(oldEnd: number | null, aimedEnd: number): boolean {
+	private timePeriodHasChanged(oldEnd: number | null, aimedEnd: number): boolean {
 		return oldEnd !== aimedEnd
 	}
 

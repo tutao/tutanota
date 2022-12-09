@@ -150,12 +150,16 @@ export const enum IndexingErrorReason {
 	ConnectionLost
 }
 
+/**
+ * Current state of the Mailindexer
+ * aimedMailIndexTimestamp is the timestamp we are currently indexing for (or same as currentMailIndexTimestamp if we are not indexing)
+ */
 export type SearchIndexStateInfo = {
 	initializing: boolean
 	mailIndexEnabled: boolean
 	progress: number
 	currentMailIndexTimestamp: number
-	aimedMailIndexTimestamp: number // this is the timestamp we are currently indexing for (or same as currentMailIndexTimestamp if we are not indexing)
+	aimedMailIndexTimestamp: number
 	indexedMailCount: number
 	failedIndexingUpTo: number | null,
 	error?: IndexingErrorReason | null
