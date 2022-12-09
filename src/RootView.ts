@@ -46,7 +46,7 @@ export class RootView implements ClassComponent {
 	view(vnode: Vnode): Children {
 		return m("#root" + (styles.isUsingBottomNavigation() ? ".mobile" : ""), {
 				// use pointer events instead of mousedown/touchdown because mouse events are still fired for touch on mobile
-				onpointerdown: (e: PointerEvent) => {
+				onpointerup: (e: PointerEvent) => {
 					if (e.pointerType === "mouse") {
 						currentNavigationType = PrimaryNavigationType.Mouse
 					} else {

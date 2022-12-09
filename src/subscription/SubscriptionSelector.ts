@@ -16,6 +16,8 @@ import {
 	UpgradePriceType
 } from "./FeatureListProvider"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
+import {ButtonAttrs} from "../gui/base/Button.js"
+import {lazy} from "@tutao/tutanota-utils"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{
@@ -29,12 +31,12 @@ const BusinessUseItems: SegmentControlItem<boolean>[] = [
 ]
 
 export type SubscriptionActionButtons = {
-	Free: Component
-	Premium: Component
-	PremiumBusiness: Component
-	Teams: Component
-	TeamsBusiness: Component
-	Pro: Component
+	Free: lazy<ButtonAttrs>
+	Premium: lazy<ButtonAttrs>
+	PremiumBusiness: lazy<ButtonAttrs>
+	Teams: lazy<ButtonAttrs>
+	TeamsBusiness: lazy<ButtonAttrs>
+	Pro: lazy<ButtonAttrs>
 }
 
 export type SubscriptionSelectorAttr = {
@@ -54,7 +56,7 @@ export type SubscriptionSelectorAttr = {
 	priceAndConfigProvider: PriceAndConfigProvider,
 }
 
-export function getActionButtonBySubscription(actionButtons: SubscriptionActionButtons, subscription: SubscriptionType): Component {
+export function getActionButtonBySubscription(actionButtons: SubscriptionActionButtons, subscription: SubscriptionType): lazy<ButtonAttrs> {
 	const ret = actionButtons[subscription]
 	if (ret == null) {
 		throw new ProgrammingError("Plan is not valid")

@@ -1,7 +1,7 @@
-import m, {Component} from "mithril"
+import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
-import {Button, ButtonType} from "../gui/base/Button.js"
+import {ButtonAttrs, ButtonType} from "../gui/base/Button.js"
 import type {AccountingInfo, Booking, Customer, CustomerInfo, SwitchAccountTypeData} from "../api/entities/sys/TypeRefs.js"
 import {createSwitchAccountTypeData} from "../api/entities/sys/TypeRefs.js"
 import {AccountType, BookingItemFeatureByCode, BookingItemFeatureType, Const, Keys, UnsubscribeFailureReason} from "../api/common/TutanotaConstants"
@@ -27,8 +27,9 @@ import {
 import {locator} from "../api/main/MainLocator"
 import {SwitchAccountTypeService} from "../api/entities/sys/Services.js"
 import {BadRequestError, InvalidDataError, PreconditionFailedError} from "../api/common/error/RestError.js"
-import {getDisplayNameOfSubscriptionType, FeatureListProvider, SubscriptionType} from "./FeatureListProvider"
-import {PriceAndConfigProvider, isSubscriptionDowngrade} from "./PriceUtils"
+import {FeatureListProvider, getDisplayNameOfSubscriptionType, SubscriptionType} from "./FeatureListProvider"
+import {isSubscriptionDowngrade, PriceAndConfigProvider} from "./PriceUtils"
+import {lazy} from "@tutao/tutanota-utils"
 
 /**
  * Only shown if the user is already a Premium user. Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -83,15 +84,11 @@ export async function showSwitchDialog(customer: Customer, customerInfo: Custome
 		help: "close_alt",
 	}).setCloseHandler(cancelAction)
 	const subscriptionActionButtons: SubscriptionActionButtons = {
-		Free: {
-			view: () => {
-				return m(Button, {
-					label: "pricing.select_action",
-					click: () => cancelSubscription(dialog, currentSubscriptionInfo),
-					type: ButtonType.Login,
-				})
-			},
-		},
+		Free: () => ({
+			label: "pricing.select_action",
+			click: () => cancelSubscription(dialog, currentSubscriptionInfo),
+			type: ButtonType.Login,
+		}),
 		Premium: createSubscriptionPlanButton(dialog, SubscriptionType.Premium, currentSubscriptionInfo),
 		PremiumBusiness: createSubscriptionPlanButton(dialog, SubscriptionType.PremiumBusiness, currentSubscriptionInfo),
 		Teams: createSubscriptionPlanButton(dialog, SubscriptionType.Teams, currentSubscriptionInfo),
@@ -105,18 +102,14 @@ function createSubscriptionPlanButton(
 	dialog: Dialog,
 	targetSubscription: SubscriptionType,
 	currentSubscriptionInfo: CurrentSubscriptionInfo,
-): Component {
-	return {
-		view: () => {
-			return m(Button, {
-				label: "pricing.select_action",
-				click: () => {
-					switchSubscription(targetSubscription, dialog, currentSubscriptionInfo)
-				},
-				type: ButtonType.Login,
-			})
-		},
-	}
+): lazy<ButtonAttrs> {
+	return () => ({
+			label: "pricing.select_action",
+			click: () => {
+				switchSubscription(targetSubscription, dialog, currentSubscriptionInfo)
+			},
+			type: ButtonType.Login,
+		})
 }
 
 function handleSwitchAccountPreconditionFailed(e: PreconditionFailedError): Promise<void> {

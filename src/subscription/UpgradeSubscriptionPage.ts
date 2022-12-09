@@ -1,4 +1,4 @@
-import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
+import m, {Children, Vnode, VnodeDOM} from "mithril"
 import stream from "mithril/stream"
 import {lang} from "../misc/LanguageViewModel"
 import type {SubscriptionParameters, UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
@@ -6,7 +6,7 @@ import {SubscriptionTypeParameter} from "./UpgradeSubscriptionWizard"
 import {SubscriptionActionButtons, SubscriptionSelector} from "./SubscriptionSelector"
 import {isApp, isTutanotaDomain} from "../api/common/Env"
 import {client} from "../misc/ClientDetector"
-import {Button, ButtonType} from "../gui/base/Button.js"
+import {Button, ButtonAttrs, ButtonType} from "../gui/base/Button.js"
 import {UpgradeType} from "./SubscriptionUtils"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialog.js"
@@ -18,6 +18,7 @@ import {locator} from "../api/main/MainLocator"
 import {UsageTest} from "@tutao/tutanota-usagetests"
 import {SubscriptionType, UpgradePriceType} from "./FeatureListProvider"
 import {asPaymentInterval, PaymentInterval} from "./PriceUtils.js"
+import {lazy} from "@tutao/tutanota-utils"
 
 export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private _dom: HTMLElement | null = null
@@ -48,14 +49,12 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
 		const data = vnode.attrs.data
 		const subscriptionActionButtons: SubscriptionActionButtons = {
-			Free: {
-				view: () => {
-					return m(Button, {
-						label: "pricing.select_action",
-						click: () => this.selectFree(data),
-						type: ButtonType.Login,
-					})
-				},
+			Free: () => {
+				return ({
+					label: "pricing.select_action",
+					click: () => this.selectFree(data),
+					type: ButtonType.Login,
+				})
 			},
 			Premium: this.createUpgradeButton(data, SubscriptionType.Premium),
 			PremiumBusiness: this.createUpgradeButton(data, SubscriptionType.PremiumBusiness),
@@ -175,16 +174,13 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		this.showNextPage()
 	}
 
-	createUpgradeButton(data: UpgradeSubscriptionData, subscriptionType: SubscriptionType): Component {
-		return {
-			view: () => {
-				return m(Button, {
-					label: "pricing.select_action",
-					click: () => this.setNonFreeDataAndGoToNextPage(data, subscriptionType),
-					type: ButtonType.Login,
-				})
-			},
-		}
+	createUpgradeButton(data: UpgradeSubscriptionData, subscriptionType: SubscriptionType): lazy<ButtonAttrs> {
+		return () => ({
+				label: "pricing.select_action",
+				click: () => this.setNonFreeDataAndGoToNextPage(data, subscriptionType),
+				type: ButtonType.Login,
+			}
+		)
 	}
 }
 
