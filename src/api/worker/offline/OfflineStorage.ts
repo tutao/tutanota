@@ -26,7 +26,6 @@ import {InterWindowEventFacadeSendDispatcher} from "../../../native/common/gener
 import {SqlCipherFacade} from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import {SqlValue, TaggedSqlValue, tagSqlValue, untagSqlObject} from "./SqlValue.js"
 import {WorkerImpl} from "../WorkerImpl.js"
-import {ProgressMonitorDelegate} from "../ProgressMonitorDelegate.js"
 
 function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNestedTokens | null {
 	const time = data.getTime()
@@ -351,18 +350,13 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		const cutoffTimestamp = this.dateProvider.now() - timeRange * DAY_IN_MILLIS
 		const cutoffId = timestampToGeneratedId(cutoffTimestamp)
 
-		const folders = await this.getListElementsOfType(MailFolderTypeRef)
-		const progressMonitor = new ProgressMonitorDelegate(folders.length, this.worker)
-		for (const folder of folders) {
+		for (const folder of await this.getListElementsOfType(MailFolderTypeRef)) {
 			if (folder.folderType === MailFolderType.TRASH || folder.folderType === MailFolderType.SPAM) {
 				await this.deleteMailList(folder.mails, GENERATED_MAX_ID)
-				progressMonitor.workDone(1)
 			} else {
 				await this.deleteMailList(folder.mails, cutoffId)
-				progressMonitor.workDone(1)
 			}
 		}
-		progressMonitor.completed()
 	}
 
 	private async createTables() {
