@@ -1,7 +1,6 @@
 import m from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {Button, ButtonAttrs, ButtonType} from "../../gui/base/Button.js"
 import {AccessBlockedError, AccessDeactivatedError, NotAuthenticatedError, TooManyRequestsError} from "../../api/common/error/RestError"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {isMailAddress} from "../../misc/FormatValidator"
@@ -70,6 +69,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 					m(TextField, {
 						label: "mailAddress_label",
 						value: emailAddressStream(),
+						type: TextFieldType.Email,
 						oninput: emailAddressStream,
 					}),
 					m(editor),
