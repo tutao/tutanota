@@ -3,7 +3,7 @@ import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {isMailAddress} from "../misc/FormatValidator"
 import {AccessDeactivatedError} from "../api/common/error/RestError"
-import {debounce, firstThrow} from "@tutao/tutanota-utils"
+import {firstThrow} from "@tutao/tutanota-utils"
 import {formatMailAddressFromParts} from "../misc/Formatter"
 import {Icon} from "../gui/base/Icon"
 import {BootIcons} from "../gui/base/icons/BootIcons"
@@ -51,13 +51,6 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 		this.__signupUnavailableEmailsTest = locator.usageTestController.getTest("signup.unavailableemails")
 	}
 
-	private __debounceSendUnavailableEmailStage = debounce(3000, () => {
-		this.__signupUnavailableEmailsTest.getStage(1).complete({
-			check: () => this.messageId !== "mailAddressNeutral_msg",
-			delay: () => new Promise(resolve => setTimeout(resolve, 1000)),
-		})
-	})
-
 	view({attrs}: Vnode<SelectMailAddressFormAttrs>): Children {
 		// this is a semi-good hack to reset the username after the user pressed "ok"
 		if (attrs.injectionsRightButtonAttrs?.click) {
@@ -79,7 +72,6 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			oninput: (value) => {
 				this.username = value
 				this.verifyMailAddress(attrs)
-				this.__debounceSendUnavailableEmailStage()
 			},
 			injectionsRight: () => [
 				m(
@@ -138,7 +130,6 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 				attrs.onDomainChanged?.(domain)
 				this.domain = domain
 				this.verifyMailAddress(attrs)
-				this.__debounceSendUnavailableEmailStage()
 			},
 		}
 	}
@@ -194,6 +185,9 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			let result: ValidationResult
 			try {
 				const available = await locator.mailAddressFacade.isMailAddressAvailable(cleanMailAddress)
+				if (!available) {
+					this.__signupUnavailableEmailsTest.getStage(1).complete()
+				}
 				result = available ? {isValid: true, errorId: null} : {isValid: false, errorId: "mailAddressNA_msg"}
 			} catch (e) {
 				if (e instanceof AccessDeactivatedError) {
