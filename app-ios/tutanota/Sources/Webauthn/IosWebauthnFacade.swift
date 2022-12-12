@@ -51,7 +51,11 @@ class IosWebauthnFacade:WebAuthnFacade {
         if let url = url {
           continuation.resume(returning: url)
         } else {
-          continuation.resume(throwing: error!)
+          if error! is ASWebAuthenticationSessionError {
+            continuation.resume(throwing: CancelledError(message: "Webauthn cancelled", underlyingError: error!))
+          } else {
+            continuation.resume(throwing: error!)
+          }
         }
       }
       session.prefersEphemeralWebBrowserSession = true

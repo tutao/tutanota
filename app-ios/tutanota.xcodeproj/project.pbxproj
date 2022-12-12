@@ -62,6 +62,7 @@
 		3D6A0AEA212C1701001CD791 /* CompatibilityTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */; settings = {COMPILER_FLAGS = "-Itutanota/include"; }; };
 		3D73DA312731953E008E7A8A /* RemoteProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D73DA302731953E008E7A8A /* RemoteProtocol.swift */; };
 		3D73DA3427319A91008E7A8A /* Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D73DA3327319A91008E7A8A /* Operation.swift */; };
+		3D7A108029472A6000311B6B /* CancelledError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7A107F29472A6000311B6B /* CancelledError.swift */; };
 		3D84F56B2721B92C00858A58 /* MissedNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F56A2721B92C00858A58 /* MissedNotification.swift */; };
 		3D84F56D2722CEF900858A58 /* FileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F56C2722CEF900858A58 /* FileUtils.swift */; };
 		3D84F5732722F35600858A58 /* IosNativeCryptoFacade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D84F5722722F35600858A58 /* IosNativeCryptoFacade.swift */; };
@@ -290,6 +291,7 @@
 		3D6A0AE9212C1701001CD791 /* CompatibilityTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CompatibilityTest.m; sourceTree = "<group>"; };
 		3D73DA302731953E008E7A8A /* RemoteProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteProtocol.swift; sourceTree = "<group>"; };
 		3D73DA3327319A91008E7A8A /* Operation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Operation.swift; sourceTree = "<group>"; };
+		3D7A107F29472A6000311B6B /* CancelledError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CancelledError.swift; sourceTree = "<group>"; };
 		3D84F56A2721B92C00858A58 /* MissedNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissedNotification.swift; sourceTree = "<group>"; };
 		3D84F56C2722CEF900858A58 /* FileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUtils.swift; sourceTree = "<group>"; };
 		3D84F5722722F35600858A58 /* IosNativeCryptoFacade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosNativeCryptoFacade.swift; sourceTree = "<group>"; };
@@ -618,6 +620,7 @@
 				3D9782192739600700DB639C /* URLSession+Sync.swift */,
 				3D92867B273A7D18006B8FB2 /* TutanotaError.swift */,
 				3D4E16F3273D2F8A00256630 /* SyncCompletion.swift */,
+				3D7A107F29472A6000311B6B /* CancelledError.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -1640,6 +1643,7 @@
 				3D9B1294272167D4002B46A1 /* IconFactory.swift in Sources */,
 				3D378EE72536F51F0001F1F3 /* FileChooser.swift in Sources */,
 				3D9B12A027218AF9002B46A1 /* RepeatRule.swift in Sources */,
+				3D7A108029472A6000311B6B /* CancelledError.swift in Sources */,
 				3D4F1BFA26EBADE500E87BF5 /* TUTBigNum.m in Sources */,
 				3DC5DED72858CB58007364FF /* EncryptedFileInfo.swift in Sources */,
 				3D73DA312731953E008E7A8A /* RemoteProtocol.swift in Sources */,
