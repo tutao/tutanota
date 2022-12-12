@@ -387,9 +387,13 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 
 		// We lock access to the "ranges" db here in order to prevent race conditions when accessing the "ranges" database.
 		await this.lockRangesDbAccess(listId)
-
-		// This must be done before deleting mails to know what the new range has to be
-		await this.updateRangeForList(MailTypeRef, listId, cutoffId)
+		try {
+			// This must be done before deleting mails to know what the new range has to be
+			await this.updateRangeForList(MailTypeRef, listId, cutoffId)
+		} finally {
+			// We unlock access to the "ranges" db here. We lock it in order to prevent race conditions when accessing the "ranges" database.
+			await this.unlockRangesDbAccess(listId)
+		}
 
 		const mailsToDelete: IdTuple[] = []
 		const headersToDelete: Id[] = []
@@ -419,9 +423,6 @@ AND NOT(${firstIdBigger("elementId", upper)})`
 		}
 
 		await this.deleteIn(MailTypeRef, listId, mailsToDelete.map(elementIdPart))
-
-		// We unlock access to the "ranges" db here. We lock it in order to prevent race conditions when accessing the "ranges" database.
-		await this.unlockRangesDbAccess(listId)
 	}
 
 	private async deleteIn(typeRef: TypeRef<unknown>, listId: Id | null, elementIds: Id[]): Promise<void> {
