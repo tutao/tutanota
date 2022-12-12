@@ -43,6 +43,7 @@ import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js";
 import {getReportMovedMailsType} from "../misc/MailboxPropertiesUtils.js"
 import {MailAddressTableModel} from "./mailaddress/MailAddressTableModel.js"
+import {getWholeList} from "../mail/model/FolderSystem.js"
 
 assertMainOrNode()
 
@@ -440,7 +441,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	_getTextForTarget(mailboxDetails: MailboxDetail, targetFolderId: IdTuple): string {
-		let folder = mailboxDetails.folders.find(folder => isSameId(folder._id, targetFolderId))
+		let folder = getWholeList(mailboxDetails.folders).find(folder => isSameId(folder._id, targetFolderId))
 
 		if (folder) {
 			return getFolderName(folder)

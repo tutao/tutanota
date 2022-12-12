@@ -72,6 +72,7 @@ import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {InitAsResponseArgs} from "../editor/SendMailModel"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 import {DesktopSystemFacade} from "../../native/common/generatedipc/DesktopSystemFacade.js"
+import {getWholeList} from "../model/FolderSystem.js"
 
 
 export const enum ContentBlockingStatus {
@@ -431,7 +432,7 @@ export class MailViewerViewModel {
 				await this.entityClient.update(this.mail)
 			}
 			const mailboxDetails = await this.mailModel.getMailboxDetailsForMail(this.mail)
-			const spamFolder = getFolder(mailboxDetails.folders, MailFolderType.SPAM)
+			const spamFolder = getFolder(getWholeList(mailboxDetails.folders), MailFolderType.SPAM)
 			// do not report moved mails again
 			await moveMails({mailModel: this.mailModel, mails: [this.mail], targetMailFolder: spamFolder, isReportable: false})
 		} catch (e) {

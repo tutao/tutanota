@@ -55,6 +55,7 @@ import {IconButton} from "../../gui/base/IconButton.js"
 import {ButtonSize} from "../../gui/base/ButtonSize.js";
 import {BottomNav} from "../../gui/nav/BottomNav.js"
 import {MobileMailActionBar} from "../../mail/view/MobileMailActionBar.js"
+import {getWholeSortedList, indentedList} from "../../mail/model/FolderSystem.js"
 
 assertMainOrNode()
 
@@ -100,17 +101,18 @@ export class SearchView implements CurrentView {
 				{
 					name: lang.get("all_label"),
 					value: null,
+					indentationLevel: 0
 				},
 			]
 
 			for (const mailbox of mailboxes) {
 				const mailboxIndex = mailboxes.indexOf(mailbox);
-				const mailFolders = getSortedSystemFolders(mailbox.folders).concat(getSortedCustomFolders(mailbox.folders))
-				for (const folder of mailFolders) {
-					if (folder.folderType !== MailFolderType.SPAM) {
+				const mailFolders = indentedList(mailbox.folders)
+				for (const folderInfo of mailFolders) {
+					if (folderInfo.folder.folderType !== MailFolderType.SPAM) {
 						this.availableMailFolders.push({
-							name: getFolderName(folder) + (mailboxIndex === 0 ? "" : " (" + getGroupInfoDisplayName(mailbox.mailGroupInfo) + ")"),
-							value: folder.mails,
+							name: " .".repeat(folderInfo.level) + " " + getFolderName(folderInfo.folder) + (mailboxIndex === 0 ? "" : " (" + getGroupInfoDisplayName(mailbox.mailGroupInfo) + ")"),
+							value: folderInfo.folder.mails,
 						})
 					}
 				}
