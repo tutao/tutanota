@@ -145,8 +145,8 @@ class Modal implements Component {
 		const len = this.components.length
 
 		if (len === 0) {
-			console.log("no modals")
-			return true // no modals to close
+			console.log("no modals to close")
+			return true
 		}
 
 		// get the keys because we're going to modify the component stack during iteration
@@ -176,6 +176,7 @@ class Modal implements Component {
 	 */
 	displayUnique(component: ModalComponent, needsBg: boolean = true) {
 		if (this._uniqueComponent) {
+			console.log("tried to open unique component while another was open!")
 			return
 		}
 
@@ -189,18 +190,18 @@ class Modal implements Component {
 	}
 
 	remove(component: ModalComponent): void {
-		let componentIndex = this.components.findIndex(wrapper => wrapper.component === component)
+		const componentIndex = this.components.findIndex(wrapper => wrapper.component === component)
 
 		if (componentIndex === -1) {
 			console.log("can't remove non existing component from modal")
 			return
 		}
 
-		let componentIsLastComponent = componentIndex === this.components.length - 1
+		const componentIsTopmostComponent = componentIndex === this.components.length - 1
 
-		if (componentIsLastComponent) {
+		if (componentIsTopmostComponent) {
+			console.log("removed topmost modal component")
 			keyManager.unregisterModalShortcuts(component.shortcuts())
-			windowFacade.removeHistoryEventListener(this._historyEventListener)
 		}
 
 		this.components.splice(componentIndex, 1)
@@ -211,7 +212,7 @@ class Modal implements Component {
 
 		m.redraw()
 
-		if (this.components.length > 0 && componentIsLastComponent) {
+		if (this.components.length > 0 && componentIsTopmostComponent) {
 			// the removed component was the last component, so we can now register the shortcuts of the now last component
 			keyManager.registerModalShortcuts(this.components[this.components.length - 1].component.shortcuts())
 		}
@@ -221,8 +222,8 @@ class Modal implements Component {
 	 * adds an animation to the topmost component
 	 */
 	addAnimation(domLayer: HTMLElement, fadein: boolean): Promise<unknown> {
-		let start = 0
-		let end = 0.5
+		const start = 0
+		const end = 0.5
 		return animations.add(domLayer, alpha(AlphaEnum.BackgroundColor, theme.modal_bg, fadein ? start : end, fadein ? end : start))
 	}
 }
