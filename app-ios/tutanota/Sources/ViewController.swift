@@ -10,6 +10,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
   private let alarmManager: AlarmManager
   private var bridge: RemoteBridge!
   private var webView: WKWebView!
+  private var sqlCipherFacade: IosSqlCipherFacade
 
   private var keyboardSize = 0
   private var isDarkTheme = false
@@ -26,6 +27,7 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     self.themeManager = themeManager
     self.alarmManager = alarmManager
     self.bridge = nil
+    self.sqlCipherFacade = IosSqlCipherFacade()
 
     super.init(nibName: nil, bundle: nil)
     let webViewConfig = WKWebViewConfiguration()
@@ -61,7 +63,8 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
       alarmManager: self.alarmManager,
       userPreferences: userPreferences,
       keychainManager: keychainManager,
-      webAuthnFacade: IosWebauthnFacade(viewController: self)
+      webAuthnFacade: IosWebauthnFacade(viewController: self),
+      sqlCipherFacade: self.sqlCipherFacade
     )
   }
 
@@ -145,11 +148,15 @@ class ViewController : UIViewController, WKNavigationDelegate, UIScrollViewDeleg
     // When the user leaves the app we want to perform "incremental_vacuum" on the offline database.
     // We perform vacuum once the app is put into background instead of when the app is terminated as on iOS
     // we do not have enough time before the app is terminated by the system.
-    self.bridge.vacuumOfflineDatabase()
+     Task {
+       try await self.sqlCipherFacade.vaccumDb()
+     }
   }
 
   func onApplicationWillTerminate() {
-    self.bridge.closeOfflineDatabase()
+    Task {
+	  try await self.sqlCipherFacade.closeDb()
+    }
   }
 
   override func viewDidLoad() {

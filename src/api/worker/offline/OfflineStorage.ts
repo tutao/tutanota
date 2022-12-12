@@ -25,7 +25,6 @@ import {EntityRestClient} from "../rest/EntityRestClient.js"
 import {InterWindowEventFacadeSendDispatcher} from "../../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import {SqlCipherFacade} from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import {SqlValue, TaggedSqlValue, tagSqlValue, untagSqlObject} from "./SqlValue.js"
-import {WorkerImpl} from "../WorkerImpl.js"
 
 function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNestedTokens | null {
 	const time = data.getTime()
@@ -97,7 +96,6 @@ export class OfflineStorage implements CacheStorage, ExposedCacheStorage {
 		private readonly interWindowEventSender: InterWindowEventFacadeSendDispatcher,
 		private readonly dateProvider: DateProvider,
 		private readonly migrator: OfflineStorageMigrator,
-		private readonly worker: WorkerImpl,
 	) {
 		assert(isOfflineStorageAvailable() || isTest(), "Offline storage is not available.")
 	}
