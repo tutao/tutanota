@@ -13,7 +13,6 @@ export type TextFieldAttrs = {
 	id?: string
 	label: TranslationKey | lazy<string>
 	value: string
-	preventAutofill?: boolean
 	autocompleteValue?: AutocompleteValues
 	type?: TextFieldType
 	helpLabel?: lazy<Children> | null
@@ -181,7 +180,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 			// that shouldn't be autofilled.
 			// since the autofill algorithm looks at inputs that come before and after the password field we need
 			// three dummies.
-			const autofillGuard: Children = a.preventAutofill
+			const autofillGuard: Children = a.autocompleteValue === AutocompleteValues.off
 				? [
 					m("input.abs", {
 						style: {
@@ -213,9 +212,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				".flex-grow.rel",
 				autofillGuard.concat([
 					m("input.input" + (a.alignRight ? ".right" : ""), {
-						autocomplete: a.preventAutofill
-							? AutocompleteValues.off
-							: a.autocompleteValue ?? "",
+						autocomplete: a.autocompleteValue ?? "",
 						type: a.type,
 						"aria-label": lang.getMaybeLazy(a.label),
 						oncreate: vnode => {
