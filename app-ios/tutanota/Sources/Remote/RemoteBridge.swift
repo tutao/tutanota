@@ -11,8 +11,7 @@ class RemoteBridge : NSObject, NativeInterface {
   var commonNativeFacade: CommonNativeFacade!
   private var mobileFacade: MobileFacade!
   private var globalDispatcher: IosGlobalDispatcher!
-  // We make the IosSqlCipherFacade available in here in order to be able to close the offline database when the app terminates
-  private var sqlCipherFacade = IosSqlCipherFacade()
+  private var sqlCipherFacade: IosSqlCipherFacade!
 
   private let requestId = ManagedAtomic<Int64>(0)
   private let requestsLock = NSLock()
@@ -30,7 +29,8 @@ class RemoteBridge : NSObject, NativeInterface {
     alarmManager: AlarmManager,
     userPreferences: UserPreferenceFacade,
     keychainManager: KeychainManager,
-    webAuthnFacade: WebAuthnFacade
+    webAuthnFacade: WebAuthnFacade,
+    sqlCipherFacade: IosSqlCipherFacade
   ) {
     self.webView = webView
     self.viewController = viewController
@@ -38,6 +38,7 @@ class RemoteBridge : NSObject, NativeInterface {
     self.mobileFacade = nil
     self.commonNativeFacade = nil
     self.globalDispatcher = nil
+    self.sqlCipherFacade = sqlCipherFacade
 
 
     super.init()
@@ -56,7 +57,7 @@ class RemoteBridge : NSObject, NativeInterface {
       nativeCredentialsFacade: nativeCredentialsFacade,
       nativeCryptoFacade: nativeCryptoFacade,
       nativePushFacade: nativePushFacade,
-      sqlCipherFacade: self.sqlCipherFacade,
+      sqlCipherFacade: sqlCipherFacade,
       themeFacade: themeFacade,
       webAuthnFacade: webAuthnFacade
     )
@@ -170,18 +171,6 @@ class RemoteBridge : NSObject, NativeInterface {
       } else {
         return nil
       }
-    }
-  }
-
-  func vacuumOfflineDatabase() {
-    Task {
-      try await self.sqlCipherFacade.vaccumDb()
-    }
-  }
-
-  func closeOfflineDatabase() {
-    Task {
-      try await self.sqlCipherFacade.closeDb()
     }
   }
 }

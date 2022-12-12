@@ -1,7 +1,7 @@
 import o from "ospec"
 import {verify} from "@tutao/tutanota-test-utils"
 import {customTypeEncoders, OfflineStorage, sql} from "../../../../../src/api/worker/offline/OfflineStorage.js"
-import {instance, matchers, object, when} from "testdouble"
+import {instance, object, when} from "testdouble"
 import * as cborg from "cborg"
 import {GENERATED_MIN_ID, generatedIdToTimestamp, getElementId, timestampToGeneratedId} from "../../../../../src/api/common/utils/EntityUtils.js"
 import {firstThrow, getDayShifted, getTypeId, lastThrow, mapNullable, promiseMap, TypeRef} from "@tutao/tutanota-utils"
@@ -80,10 +80,7 @@ o.spec("OfflineStorage", function () {
 		migratorMock = instance(OfflineStorageMigrator)
 		interWindowEventSenderMock = instance(InterWindowEventFacadeSendDispatcher)
 		when(dateProviderMock.now()).thenReturn(now.getTime())
-		worker = instance(WorkerImpl)
-		when(worker.createProgressMonitor(matchers.anything())).thenResolve(42)
-		when(worker.progressWorkDone(matchers.anything(), matchers.anything())).thenResolve(undefined)
-		storage = new OfflineStorage(dbFacade, interWindowEventSenderMock, dateProviderMock, migratorMock, worker)
+		storage = new OfflineStorage(dbFacade, interWindowEventSenderMock, dateProviderMock, migratorMock)
 	})
 
 	o.afterEach(async function () {
