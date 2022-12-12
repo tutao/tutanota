@@ -29,10 +29,11 @@ import type {MailFacade} from "../../api/worker/facades/MailFacade"
 import {LoginController} from "../../api/main/LoginController.js"
 import {getEnabledMailAddressesWithUser} from "./MailUtils.js"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
+import {populateFolderSystem, FolderSystem, getWholeSortedList} from "./FolderSystem.js"
 
 export type MailboxDetail = {
 	mailbox: MailBox
-	folders: MailFolder[]
+	folders: FolderSystem[]
 	mailGroupInfo: GroupInfo
 	mailGroup: Group
 	mailboxGroupRoot: MailboxGroupRoot
@@ -102,7 +103,7 @@ export class MailModel {
 		const folders = await this._loadFolders(neverNull(mailbox.systemFolders).folders, true)
 		return {
 			mailbox,
-			folders,
+			folders: populateFolderSystem(folders),
 			mailGroupInfo,
 			mailGroup,
 			mailboxGroupRoot,
@@ -150,7 +151,7 @@ export class MailModel {
 	}
 
 	getMailboxDetailsForMailListId(mailListId: Id): Promise<MailboxDetail> {
-		return this.getMailboxDetails().then(mailboxDetails => neverNull(mailboxDetails.find(md => md.folders.find(f => f.mails === mailListId) != null)))
+		return this.getMailboxDetails().then(mailboxDetails => neverNull(mailboxDetails.find(md => getWholeSortedList(md.folders).find(f => f.mails === mailListId) != null)))
 	}
 
 	async getMailboxDetailsForMailGroup(mailGroupId: Id): Promise<MailboxDetail> {
@@ -165,14 +166,14 @@ export class MailModel {
 	}
 
 	getMailboxFolders(mail: Mail): Promise<MailFolder[]> {
-		return this.getMailboxDetailsForMail(mail).then(md => md.folders)
+		return this.getMailboxDetailsForMail(mail).then(md => getWholeSortedList(md.folders))
 	}
 
 	getMailFolder(mailListId: Id): MailFolder | null {
 		const mailboxDetails = this.mailboxDetails() || []
 
 		for (let e of mailboxDetails) {
-			for (let f of e.folders) {
+			for (let f of getWholeSortedList(e.folders)) {
 				if (f.mails === mailListId) {
 					return f
 				}

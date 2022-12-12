@@ -27,6 +27,7 @@ import {exportMails} from "../export/Exporter"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {MailboxDetail} from "../model/MailModel.js"
 import {IconButtonAttrs} from "../../gui/base/IconButton.js"
+import {getWholeSortedList} from "../model/FolderSystem.js"
 
 assertMainOrNode()
 
@@ -165,8 +166,7 @@ export class MultiMailViewer implements Component {
 		}
 
 		if (selectedMailbox == null) return []
-		return getSortedSystemFolders(selectedMailbox.folders)
-			.concat(getSortedCustomFolders(selectedMailbox.folders))
+		return getWholeSortedList(selectedMailbox.folders)
 			.filter(folder => allMailsAllowedInsideFolder(selectedEntities, folder))
 			.filter(f => f !== this._mailView.selectedFolder)
 			.map(f => {

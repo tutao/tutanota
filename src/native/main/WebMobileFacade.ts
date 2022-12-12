@@ -9,6 +9,7 @@ import {last} from "@tutao/tutanota-utils"
 import {CloseEventBusOption, SECOND_MS} from "../../api/common/TutanotaConstants.js"
 import {MobileFacade} from "../common/generatedipc/MobileFacade.js"
 import {styles} from "../../gui/styles"
+import {getWholeList} from "../../mail/model/FolderSystem.js"
 
 assertMainOrNode()
 
@@ -71,7 +72,7 @@ export class WebMobileFacade implements MobileFacade {
 						if (parts.length > 1) {
 							const selectedMailListId = parts[1]
 							return locator.mailModel.getMailboxDetails().then(mailboxDetails => {
-								const inboxMailListId = getInboxFolder(mailboxDetails[0].folders).mails
+								const inboxMailListId = getInboxFolder(getWholeList(mailboxDetails[0].folders)).mails
 
 								if (inboxMailListId !== selectedMailListId) {
 									m.route.set(MAIL_PREFIX + "/" + inboxMailListId)

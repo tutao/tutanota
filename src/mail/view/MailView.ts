@@ -63,6 +63,15 @@ import {IconButton, IconButtonAttrs} from "../../gui/base/IconButton.js"
 import {ButtonSize} from "../../gui/base/ButtonSize.js"
 import {BottomNav} from "../../gui/nav/BottomNav.js"
 import {MobileMailActionBar} from "./MobileMailActionBar.js"
+import {
+	getCustomSortedList,
+	getIndentedCustomList, getIndentedSystemList,
+	getSystemSortedList,
+	getWholeList,
+	getWholeSortedList,
+	indentedFolderList,
+	indentedList
+} from "../model/FolderSystem.js"
 
 assertMainOrNode()
 
@@ -253,7 +262,7 @@ export class MailView implements CurrentView {
 				const section = this.mailboxSections.get(newMailboxDetail.mailGroup._id)
 
 				if (section) {
-					section.customFolderButtons = this.createFolderButtons(getSortedCustomFolders(newMailboxDetail.folders))
+					section.customFolderButtons = this.createFolderButtons(indentedList(newMailboxDetail.folders))
 				} else {
 					this.mailboxSections.set(newMailboxDetail.mailGroup._id, this.createMailboxSection(newMailboxDetail))
 				}
@@ -272,7 +281,7 @@ export class MailView implements CurrentView {
 				if (currentlySelectedFolder) {
 					this.selectedFolder = currentlySelectedFolder
 				} else {
-					let url = this.folderToUrl[getInboxFolder(mailboxDetails[0].folders)._id[1]]
+					let url = this.folderToUrl[getInboxFolder(getWholeList(mailboxDetails[0].folders))._id[1]]
 
 					if (isSelectedPrefix(MAIL_PREFIX)) {
 						this.setUrl(url)
@@ -459,15 +468,15 @@ export class MailView implements CurrentView {
 
 	private async switchToFolder(folderType: MailFolderType): Promise<void> {
 		const mailboxDetails = await this.getMailboxDetails()
-		m.route.set(this.folderToUrl[getFolder(mailboxDetails.folders, folderType)._id[1]])
+		m.route.set(this.folderToUrl[getFolder(getWholeList(mailboxDetails.folders), folderType)._id[1]])
 	}
 
 	private createMailboxSection(mailboxDetail: MailboxDetail): MailboxSection {
 		const mailGroupId = mailboxDetail.mailGroup._id
 		return {
 			label: () => getMailboxName(logins, mailboxDetail),
-			systemFolderButtons: this.createFolderButtons(getSortedSystemFolders(mailboxDetail.folders)),
-			customFolderButtons: this.createFolderButtons(getSortedCustomFolders(mailboxDetail.folders)),
+			systemFolderButtons: this.createFolderButtons(getIndentedSystemList(mailboxDetail.folders)),
+			customFolderButtons: this.createFolderButtons(getIndentedCustomList(mailboxDetail.folders)),
 			folderAddButton: this.createFolderAddButton(mailGroupId),
 		}
 	}
@@ -564,10 +573,10 @@ export class MailView implements CurrentView {
 		} else if (!this.isInitialized()) {
 			locator.mailModel.getMailboxDetails().then(mailboxDetails => {
 				if (typeof args.listId === "undefined") {
-					this.setUrl(this.folderToUrl[getInboxFolder(mailboxDetails[0].folders)._id[1]])
+					this.setUrl(this.folderToUrl[getInboxFolder(getWholeList(mailboxDetails[0].folders))._id[1]])
 				} else {
 					if (!this.showList(args.listId, args.mailId)) {
-						this.setUrl(this.folderToUrl[getInboxFolder(mailboxDetails[0].folders)._id[1]])
+						this.setUrl(this.folderToUrl[getInboxFolder(getWholeList(mailboxDetails[0].folders))._id[1]])
 					}
 				}
 
@@ -614,14 +623,14 @@ export class MailView implements CurrentView {
 		}
 	}
 
-	private createFolderButtons(folders: MailFolder[]): MailFolderRowData[] {
-		return folders.map(folder => {
-			this.folderToUrl[folder._id[1]] = `/mail/${folder.mails}`
+	private createFolderButtons(folders: indentedFolderList): MailFolderRowData[] {
+		return folders.map(folderInfo => {
+			this.folderToUrl[folderInfo.folder._id[1]] = `/mail/${folderInfo.folder.mails}`
 			const button: NavButtonAttrs = {
-				label: () => getFolderName(folder),
-				icon: getFolderIcon(folder),
-				href: () => this.folderToUrl[folder._id[1]],
-				isSelectedPrefix: MAIL_PREFIX + "/" + folder.mails,
+				label: () => " .".repeat(folderInfo.level) + " " + getFolderName(folderInfo.folder),
+				icon: getFolderIcon(folderInfo.folder),
+				href: () => this.folderToUrl[folderInfo.folder._id[1]],
+				isSelectedPrefix: MAIL_PREFIX + "/" + folderInfo.folder.mails,
 				colors: NavButtonColor.Nav,
 				click: () => this.viewSlider.focus(this.listColumn),
 				dropHandler: (droppedMailId) => {
@@ -642,17 +651,17 @@ export class MailView implements CurrentView {
 					}
 
 					// do not allow moving folders to unallowed locations
-					if (!allMailsAllowedInsideFolder(mailsToMove, folder)) {
+					if (!allMailsAllowedInsideFolder(mailsToMove, folderInfo.folder)) {
 						return
 					}
 
-					moveMails({mailModel: locator.mailModel, mails: mailsToMove, targetMailFolder: folder})
+					moveMails({mailModel: locator.mailModel, mails: mailsToMove, targetMailFolder: folderInfo.folder})
 				},
 			}
 			return {
-				id: folder.mails,
+				id: folderInfo.folder.mails,
 				button,
-				folder,
+				folder: folderInfo.folder,
 			}
 		})
 	}
@@ -664,7 +673,7 @@ export class MailView implements CurrentView {
 				return Dialog.showProcessTextInputDialog("folderNameCreate_label", "folderName_label", null, "", (name) => {
 						return locator.mailModel
 									  .getMailboxDetailsForMailGroup(mailGroupId)
-									  .then(mailboxDetails => locator.mailFacade.createMailFolder(name, getInboxFolder(mailboxDetails.folders)._id, mailGroupId))
+									  .then(mailboxDetails => locator.mailFacade.createMailFolder(name, getInboxFolder(getWholeList(mailboxDetails.folders))._id, mailGroupId))
 					}, name =>
 						this.checkFolderName(name, mailGroupId),
 				)
@@ -733,7 +742,7 @@ export class MailView implements CurrentView {
 		return locator.mailModel.getMailboxDetailsForMailGroup(mailGroupId).then(mailboxDetails => {
 			if (name.trim() === "") {
 				return "folderNameNeutral_msg"
-			} else if (mailboxDetails.folders.find(f => f.name === name)) {
+			} else if (getWholeSortedList(mailboxDetails.folders).find(f => f.name === name)) {
 				return "folderNameInvalidExisting_msg"
 			} else {
 				return null

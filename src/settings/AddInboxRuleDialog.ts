@@ -19,6 +19,7 @@ import {isSameId} from "../api/common/utils/EntityUtils"
 import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
 import {isOfflineError} from "../api/common/utils/ErrorCheckUtils.js"
+import {getWholeList} from "../mail/model/FolderSystem.js"
 
 assertMainOrNode()
 
@@ -26,7 +27,7 @@ export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
 	if (logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog(true)
 	} else if (mailBoxDetails) {
-		let targetFolders = mailBoxDetails.folders
+		let targetFolders = getWholeList(mailBoxDetails.folders)
 										  .filter(folder => mailStateAllowedInsideFolderType(MailState.RECEIVED, folder.folderType))
 										  .map(folder => {
 											  return {
@@ -37,8 +38,8 @@ export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
 										  .sort((folder1, folder2) => folder1.name.localeCompare(folder2.name))
 		const inboxRuleType = stream(ruleOrTemplate.type)
 		const inboxRuleValue = stream(ruleOrTemplate.value)
-		const selectedFolder = mailBoxDetails.folders.find(folder => isSameId(folder._id, ruleOrTemplate.targetFolder))
-		const inboxRuleTarget = stream(selectedFolder || getArchiveFolder(mailBoxDetails.folders))
+		const selectedFolder = getWholeList(mailBoxDetails.folders).find(folder => isSameId(folder._id, ruleOrTemplate.targetFolder))
+		const inboxRuleTarget = stream(selectedFolder || getArchiveFolder(getWholeList(mailBoxDetails.folders)))
 
 		let form = () => [
 			m(DropDownSelector, {

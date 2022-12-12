@@ -35,6 +35,7 @@ import {moveMails} from "../../mail/view/MailGuiUtils"
 import {exportMails} from "../../mail/export/Exporter"
 import {MailboxDetail} from "../../mail/model/MailModel";
 import {IconButtonAttrs} from "../../gui/base/IconButton.js"
+import {getWholeSortedList} from "../../mail/model/FolderSystem.js"
 
 assertMainOrNode()
 
@@ -261,8 +262,7 @@ export class MultiSearchViewer implements Component {
 		}
 
 		if (selectedMailbox == null) return []
-		return getSortedSystemFolders(selectedMailbox.folders)
-			.concat(getSortedCustomFolders(selectedMailbox.folders))
+		return getWholeSortedList(selectedMailbox.folders)
 			.filter(folder => allMailsAllowedInsideFolder(selectedMails, folder))
 			.map(f => ({
 				label: () => getFolderName(f),

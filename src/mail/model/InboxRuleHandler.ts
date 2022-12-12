@@ -21,6 +21,7 @@ import {getInboxFolder} from "./MailUtils"
 import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../../api/common/Env"
 import {MailFacade} from "../../api/worker/facades/MailFacade"
+import {getWholeList} from "./FolderSystem.js"
 
 assertMainOrNode()
 const moveMailDataPerFolder: MoveMailData[] = []
@@ -115,8 +116,8 @@ export function findAndApplyMatchingRule(
 
 	return _findMatchingRule(entityClient, mail, logins.getUserController().props.inboxRules).then(inboxRule => {
 		if (inboxRule) {
-			let targetFolder = mailboxDetail.folders
-											.filter(folder => folder !== getInboxFolder(mailboxDetail.folders))
+			let targetFolder = getWholeList(mailboxDetail.folders)
+											.filter(folder => folder !== getInboxFolder(getWholeList(mailboxDetail.folders)))
 											.find(folder => isSameId(folder._id, inboxRule.targetFolder))
 
 			if (targetFolder) {
@@ -243,5 +244,5 @@ function _checkEmailAddresses(mailAddresses: string[], inboxRule: InboxRule): bo
 }
 
 export function isInboxList(mailboxDetail: MailboxDetail, listId: Id): boolean {
-	return isSameId(listId, getInboxFolder(mailboxDetail.folders).mails)
+	return isSameId(listId, getInboxFolder(getWholeList(mailboxDetail.folders)).mails)
 }
