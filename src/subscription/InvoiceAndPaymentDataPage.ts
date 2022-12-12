@@ -375,8 +375,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 								name: "validationFailure",
 								value: "none",
 							})
-							stage.complete()
-							test.getStage(4).complete()
+							stage.complete().then(() => test.getStage(4).complete())
 							progressDialog.close()
 							resolve(true)
 						} else if (invoiceInfo.paymentErrorInfo && invoiceInfo.paymentErrorInfo.errorCode === "card.3ds2_pending") {
