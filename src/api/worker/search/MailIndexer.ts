@@ -549,7 +549,7 @@ export class MailIndexer {
 	 * Provides all non-excluded mail list ids of the given mailbox
 	 */
 	async _loadMailListIds(mailbox: MailBox): Promise<Id[]> {
-		const folders = await this._defaultCachingEntity.loadAll(MailFolderTypeRef, neverNull(mailbox.systemFolders).folders)
+		const folders = await this._defaultCachingEntity.loadAll(MailFolderTypeRef, neverNull(mailbox.folders).folders)
 		const mailListIds: Id[] = []
 
 		for (const folder of folders) {
@@ -569,7 +569,7 @@ export class MailIndexer {
 				   .then(mailGroupRoot => this._defaultCachingEntity.load(MailBoxTypeRef, mailGroupRoot.mailbox))
 				   .then(mbox => {
 					   return this._defaultCachingEntity
-								  .loadAll(MailFolderTypeRef, neverNull(mbox.systemFolders).folders)
+								  .loadAll(MailFolderTypeRef, neverNull(mbox.folders).folders)
 								  .then(folders => neverNull(folders.find(folder => folder.folderType === MailFolderType.SPAM)))
 				   })
 	}

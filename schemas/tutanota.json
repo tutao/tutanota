@@ -20,6 +20,16 @@
 					"info": "AddAssociation MailboxProperties/mailAddressProperties/AGGREGATION/1267."
 				}
 			]
+		},
+		{
+			"version": 57,
+			"changes": [
+				{
+					"name": "RenameAttribute",
+					"sourceType": "MailBox",
+					"info": "RenameAttribute MailBox: systemFolders -> folders."
+				}
+			]
 		}
 	]
 }

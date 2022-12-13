@@ -476,8 +476,9 @@ export type CreateMailFolderData = {
 	_format: NumberString;
 	folderName: string;
 	ownerEncSessionKey: Uint8Array;
+	ownerGroup: null | Id;
 
-	parentFolder: IdTuple;
+	parentFolder:  null | IdTuple;
 }
 export const CreateMailFolderReturnTypeRef: TypeRef<CreateMailFolderReturn> = new TypeRef("tutanota", "CreateMailFolderReturn")
 
@@ -1285,11 +1286,11 @@ export type MailBox = {
 	lastInfoDate: Date;
 	symEncShareBucketKey: null | Uint8Array;
 
+	folders:  null | MailFolderRef;
 	mails: Id;
 	receivedAttachments: Id;
 	sentAttachments: Id;
 	spamResults:  null | SpamResults;
-	systemFolders:  null | MailFolderRef;
 }
 export const MailFolderTypeRef: TypeRef<MailFolder> = new TypeRef("tutanota", "MailFolder")
 
