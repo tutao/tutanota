@@ -1,14 +1,16 @@
-import type {MailAddressAliasServiceReturn} from "../../entities/sys/TypeRefs.js"
+import type {MailAddressAliasServiceReturn, MailAddressAvailability} from "../../entities/sys/TypeRefs.js"
 import {
 	createDomainMailAddressAvailabilityData,
 	createMailAddressAliasServiceData,
 	createMailAddressAliasServiceDataDelete,
-	createMailAddressAvailabilityData
+	createMailAddressAvailabilityData,
+	createStringWrapper
 } from "../../entities/sys/TypeRefs.js"
 import {DomainMailAddressAvailabilityService, MailAddressAliasService, MailAddressAvailabilityService} from "../../entities/sys/Services.js"
 import {assertWorkerOrNode} from "../../common/Env"
 import {IServiceExecutor} from "../../common/ServiceRequest"
 import {UserFacade} from "./UserFacade"
+import {firstThrow} from "@tutao/tutanota-utils"
 
 assertWorkerOrNode()
 
@@ -29,10 +31,17 @@ export class MailAddressFacade {
 			return this.serviceExecutor.get(DomainMailAddressAvailabilityService, data)
 					   .then(result => result.available)
 		} else {
-			const data = createMailAddressAvailabilityData({mailAddress})
-			return this.serviceExecutor.get(MailAddressAvailabilityService, data)
-					   .then(result => result.available)
+			return this.areMailAddressesAvailable([mailAddress])
+					   .then(result => firstThrow(result).available)
 		}
+	}
+
+	async areMailAddressesAvailable(mailAddresses: string[]): Promise<MailAddressAvailability[]> {
+		const data = createMailAddressAvailabilityData({
+			mailAddresses: mailAddresses.map(mailAddress => createStringWrapper({value: mailAddress}))
+		})
+		const result = await this.serviceExecutor.get(MailAddressAvailabilityService, data)
+		return result.availabilities
 	}
 
 	/**

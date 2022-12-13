@@ -1586,6 +1586,19 @@ export type MailAddressAliasServiceReturn = {
 	totalAliases: NumberString;
 	usedAliases: NumberString;
 }
+export const MailAddressAvailabilityTypeRef: TypeRef<MailAddressAvailability> = new TypeRef("sys", "MailAddressAvailability")
+
+export function createMailAddressAvailability(values?: Partial<MailAddressAvailability>): MailAddressAvailability {
+	return Object.assign(create(typeModels.MailAddressAvailability, MailAddressAvailabilityTypeRef), values)
+}
+
+export type MailAddressAvailability = {
+	_type: TypeRef<MailAddressAvailability>;
+
+	_id: Id;
+	available: boolean;
+	mailAddress: string;
+}
 export const MailAddressAvailabilityDataTypeRef: TypeRef<MailAddressAvailabilityData> = new TypeRef("sys", "MailAddressAvailabilityData")
 
 export function createMailAddressAvailabilityData(values?: Partial<MailAddressAvailabilityData>): MailAddressAvailabilityData {
@@ -1596,7 +1609,8 @@ export type MailAddressAvailabilityData = {
 	_type: TypeRef<MailAddressAvailabilityData>;
 
 	_format: NumberString;
-	mailAddress: string;
+
+	mailAddresses: StringWrapper[];
 }
 export const MailAddressAvailabilityReturnTypeRef: TypeRef<MailAddressAvailabilityReturn> = new TypeRef("sys", "MailAddressAvailabilityReturn")
 
@@ -1608,7 +1622,8 @@ export type MailAddressAvailabilityReturn = {
 	_type: TypeRef<MailAddressAvailabilityReturn>;
 
 	_format: NumberString;
-	available: boolean;
+
+	availabilities: MailAddressAvailability[];
 }
 export const MailAddressToGroupTypeRef: TypeRef<MailAddressToGroup> = new TypeRef("sys", "MailAddressToGroup")
 
