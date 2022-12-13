@@ -309,11 +309,18 @@ export function colorForBg(color: string): string {
 	return isColorLight(color) ? "black" : "white"
 }
 
+
+/**
+ * Function which sorts events into the "columns" and "rows" and renders them using {@param renderer}.
+ * Columns are abstract and can be actually the rows. A single column progresses in time while multiple columns can happen in parallel.
+ * @param eventsTakeUpWholeColumn {Function} when false, we can put multiple events one after another in a single column, otherwise only one event can be
+ * in one column on a single day (it will "stretch" events from the day start until the next day).
+ */
 export function layOutEvents(
 	events: Array<CalendarEvent>,
 	zone: string,
 	renderer: (columns: Array<Array<CalendarEvent>>) => ChildArray,
-	handleAsAllDay: boolean,
+	eventsTakeUpWholeColumn: boolean,
 ): ChildArray {
 	events.sort((e1, e2) => {
 		const e1Start = getEventStart(e1, zone)
@@ -333,9 +340,13 @@ export function layOutEvents(
 	// Cache for calculation events
 	const calcEvents = new Map()
 	events.forEach(e => {
-		const calcEvent = getFromMap(calcEvents, e, () => getCalculationEvent(e, zone, handleAsAllDay))
+		const calcEvent = getFromMap(calcEvents, e, () => getCalculationEvent(e, zone, eventsTakeUpWholeColumn))
 		// Check if a new event group needs to be started
-		if (lastEventEnding != null && lastEventStart != null && lastEventEnding <= calcEvent.startTime.getTime() && !overlapsWith(lastEventStart, lastEventEnding, calcEvent.startTime)) {
+		if (lastEventEnding != null
+			&& lastEventStart != null
+			&& lastEventEnding <= calcEvent.startTime.getTime()
+			&& (eventsTakeUpWholeColumn || !visuallyOverlaps(lastEventStart, lastEventEnding, calcEvent.startTime))
+		) {
 			// The latest event is later than any of the event in the
 			// current group. There is no overlap. Output the current
 			// event group and start a new event group.
@@ -352,9 +363,9 @@ export function layOutEvents(
 		for (let i = 0; i < columns.length; i++) {
 			const col = columns[i]
 			const lastEvent = col[col.length - 1]
-			const lastCalcEvent = getFromMap(calcEvents, lastEvent, () => getCalculationEvent(lastEvent, zone, handleAsAllDay))
+			const lastCalcEvent = getFromMap(calcEvents, lastEvent, () => getCalculationEvent(lastEvent, zone, eventsTakeUpWholeColumn))
 
-			if (!collidesWith(lastCalcEvent, calcEvent)) {
+			if (!collidesWith(lastCalcEvent, calcEvent) && (eventsTakeUpWholeColumn || !visuallyOverlaps(lastCalcEvent.startTime, lastCalcEvent.endTime, calcEvent.startTime))) {
 				col.push(e) // push real event here not calc event
 
 				placed = true
@@ -399,17 +410,43 @@ function getCalculationEvent(event: CalendarEvent, zone: string, handleAsAllDay:
 	}
 }
 
-//also checks whether events overlap due to minimum height
+/**
+ * This function checks whether two events collide based on their start and end time
+ * Assuming vertical columns with time going top-to-bottom, this would be true in these cases:
+ *
+ * case 1:
+ * +-----------+
+ * |           |
+ * |           |   +----------+
+ * +-----------+   |          |
+ *                 |          |
+ *                 +----------+
+ * case 2:
+ * +-----------+
+ * |           |   +----------+
+ * |           |   |          |
+ * |           |   +----------+
+ * +-----------+
+ *
+ * There could be a case where they are flipped vertically, but we don't have them because earlier events will be always first. so the "left" top edge will
+ * always be "above" the "right" top edge.
+ */
 function collidesWith(a: CalendarEvent, b: CalendarEvent): boolean {
-	return (a.endTime.getTime() > b.startTime.getTime() && a.startTime.getTime() < b.endTime.getTime()) || overlapsWith(a.startTime, a.endTime, b.startTime)
+	return (a.endTime.getTime() > b.startTime.getTime() && a.startTime.getTime() < b.endTime.getTime())
 }
 
-//Due to the minimum height for events they overlap if a short event is directly followed by another event,
-//therefore, we check whether the event height is less than the minimum height
-function overlapsWith(firstEventStart: Date, firstEventEnd: Date, secondEventStart: Date): boolean {
-	//we are only interested in the height on the last day of the event
+/**
+ * Due to the minimum height for events they overlap if a short event is directly followed by another event,
+ * therefore, we check whether the event height is less than the minimum height.
+ *
+ * This does not cover all the cases but handles the case when the second event starts right after the first one.
+ */
+function visuallyOverlaps(firstEventStart: Date, firstEventEnd: Date, secondEventStart: Date): boolean {
+	// We are only interested in the height on the last day of the event because an event ending later will take up the whole column until the next day anyway.
 	const firstEventStartOnSameDay = isSameDay(firstEventStart, firstEventEnd) ? firstEventStart.getTime() : getStartOfDay(firstEventEnd).getTime()
-	const height = ((firstEventEnd.getTime() - firstEventStartOnSameDay) / (1000 * 60 * 60)) * size.calendar_hour_height - size.calendar_event_border
+	const eventDurationMs = firstEventEnd.getTime() - firstEventStartOnSameDay
+	const eventDurationHours = eventDurationMs / (1000 * 60 * 60)
+	const height = eventDurationHours * size.calendar_hour_height - size.calendar_event_border
 	return firstEventEnd.getTime() === secondEventStart.getTime() && height < size.calendar_line_height
 }
 
@@ -438,7 +475,7 @@ export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Arr
 		for (let j = 0; j < col.length; j++) {
 			let ev1 = col[j]
 
-			if (collidesWith(ev, ev1)) {
+			if (collidesWith(ev, ev1) || visuallyOverlaps(ev.startTime, ev.endTime, ev1.startTime)) {
 				return colSpan
 			}
 		}
