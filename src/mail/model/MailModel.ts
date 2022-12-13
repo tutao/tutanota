@@ -100,7 +100,7 @@ export class MailModel {
 			this.entityClient.load(GroupTypeRef, membership.group),
 		])
 		const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
-		const folders = await this._loadFolders(neverNull(mailbox.systemFolders).folders, true)
+		const folders = await this._loadFolders(neverNull(mailbox.folders).folders, true)
 		return {
 			mailbox,
 			folders: populateFolderSystem(folders),

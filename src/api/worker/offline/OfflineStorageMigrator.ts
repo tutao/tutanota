@@ -10,6 +10,7 @@ import {sys80} from "./migrations/sys-v80.js"
 import {SqlCipherFacade} from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import {offline1} from "./migrations/offline-v1.js"
 import {tutanota56} from "./migrations/tutanota-v56.js"
+import {tutanota57} from "./migrations/tutanota-v57.js"
 
 export interface OfflineMigration {
 	readonly app: VersionMetadataBaseKey
@@ -32,6 +33,7 @@ export const OFFLINE_STORAGE_MIGRATIONS: ReadonlyArray<OfflineMigration> = [
 	sys80, // DB dropped in offline1
 	tutanota54, // DB dropped in offline1
 	tutanota56,
+	tutanota57,
 ]
 
 /**
