@@ -63,6 +63,7 @@ type SimplePosRect = {
 	right: number
 }
 
+/** height of the day number indicator at the top of the day square */
 const dayHeight = () => (styles.isDesktopLayout() ? 32 : 24)
 
 const spaceBetweenEvents = () => (styles.isDesktopLayout() ? 2 : 1)
@@ -346,7 +347,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 									".abs.small" + (isPadding ? ".calendar-bubble-more-padding-day" : ""),
 									{
 										style: {
-											bottom: px(-EVENT_BUBBLE_VERTICAL_OFFSET),
+											bottom: 0,
 											height: px(CALENDAR_EVENT_HEIGHT),
 											left: px(weekday * dayWidth + eventMargin),
 											width: px(dayWidth - 2 - eventMargin * 2),
