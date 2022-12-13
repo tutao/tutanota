@@ -19,7 +19,7 @@ import {isSameId} from "../api/common/utils/EntityUtils"
 import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
 import {isOfflineError} from "../api/common/utils/ErrorCheckUtils.js"
-import {getWholeList} from "../mail/model/FolderSystem.js"
+import {getWholeList, indentedList} from "../mail/model/FolderSystem.js"
 
 assertMainOrNode()
 
@@ -27,15 +27,15 @@ export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
 	if (logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog(true)
 	} else if (mailBoxDetails) {
-		let targetFolders = getWholeList(mailBoxDetails.folders)
-										  .filter(folder => mailStateAllowedInsideFolderType(MailState.RECEIVED, folder.folderType))
-										  .map(folder => {
+		let targetFolders = indentedList(mailBoxDetails.folders)
+										  .filter(folderInfo => mailStateAllowedInsideFolderType(MailState.RECEIVED, folderInfo.folder.folderType))
+										  .map(folderInfo => {
 											  return {
-												  name: getFolderName(folder),
-												  value: folder,
+												  name: ". ".repeat(folderInfo.level) + getFolderName(folderInfo.folder),
+												  value: folderInfo.folder,
 											  }
 										  })
-										  .sort((folder1, folder2) => folder1.name.localeCompare(folder2.name))
+										  //.sort((folder1, folder2) => folder1.name.localeCompare(folder2.name)) //FIXME it's already sorted
 		const inboxRuleType = stream(ruleOrTemplate.type)
 		const inboxRuleValue = stream(ruleOrTemplate.value)
 		const selectedFolder = getWholeList(mailBoxDetails.folders).find(folder => isSameId(folder._id, ruleOrTemplate.targetFolder))

@@ -12,7 +12,7 @@ import type {TranslationKey} from "../../misc/LanguageViewModel"
 import {lang} from "../../misc/LanguageViewModel"
 import {Keys} from "../../api/common/TutanotaConstants"
 import {isKeyPressed} from "../../misc/KeyManager"
-import type {clickHandler, dropHandler} from "./GuiUtils"
+import type {dropHandler} from "./GuiUtils"
 import {assertMainOrNode} from "../../api/common/Env"
 
 assertMainOrNode()
@@ -28,7 +28,8 @@ export type NavButtonAttrs = {
 	vertical?: boolean
 	fontSize?: number
 	small?: boolean
-	centred?: boolean
+	centred?: boolean,
+	leftInjection?: () => Children
 }
 
 const navButtonSelector = (vertical: boolean | undefined, centred?: boolean) =>
@@ -51,6 +52,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 
 		const linkAttrs = this.createButtonAttributes(a)
 		const children = [
+			a.leftInjection?.() ?? null,
 			a.icon && a.icon()
 				? m(Icon, {
 					icon: a.icon(),

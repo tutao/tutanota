@@ -166,7 +166,7 @@ export class MailFacade {
 	) {
 	}
 
-	async createMailFolder(name: string, parent: IdTuple, ownerGroupId: Id): Promise<void> {
+	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<void> {
 		const mailGroupKey = this.userFacade.getGroupKey(ownerGroupId)
 
 		const sk = aes128RandomKey()
@@ -174,6 +174,7 @@ export class MailFacade {
 			folderName: name,
 			parentFolder: parent,
 			ownerEncSessionKey: encryptKey(mailGroupKey, sk),
+			ownerGroup: ownerGroupId,
 		})
 		await this.serviceExecutor.post(MailFolderService, newFolder, {sessionKey: sk})
 	}

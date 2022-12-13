@@ -28,7 +28,8 @@ import type {EntityClient} from "../../api/common/EntityClient"
 import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
 import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName} from "../../misc/parsing/MailAddressParser"
 import type {Attachment} from "../editor/SendMailModel"
-import {getListId} from "../../api/common/utils/EntityUtils.js"
+import {getListId, haveSameId} from "../../api/common/utils/EntityUtils.js"
+import {FolderSystem, indentedList} from "./FolderSystem.js"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"
@@ -411,12 +412,10 @@ export enum RecipientField {
 	BCC = "bcc",
 }
 
-export async function getMoveTargetFolders(model: MailModel, mails: Mail[]): Promise<MailFolder[]> {
+export async function getMoveTargetFolderSystems(model: MailModel, mails: Mail[]): Promise<{level: number, folder: MailFolder}[]> {
 	const firstMail = first(mails)
 	if (firstMail == null) return []
 
-	const folders = await model.getMailboxFolders(firstMail)
-	const filteredFolders = folders.filter(f => f.mails !== getListId(firstMail))
-	const targetFolders = getSortedSystemFolders(filteredFolders).concat(getSortedCustomFolders(filteredFolders))
-	return targetFolders.filter(f => allMailsAllowedInsideFolder([firstMail], f))
+	const targetFolders = indentedList((await model.getMailboxDetailsForMail(firstMail)).folders).filter(f => f.folder.mails !== getListId(firstMail))
+	return targetFolders.filter(f => allMailsAllowedInsideFolder([firstMail], f.folder))
 }

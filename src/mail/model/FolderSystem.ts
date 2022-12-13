@@ -1,6 +1,6 @@
 import {MailFolder} from "../../api/entities/tutanota/TypeRefs.js"
 import {groupBy} from "@tutao/tutanota-utils"
-import {elementIdPart, getElementId} from "../../api/common/utils/EntityUtils.js"
+import {elementIdPart, getElementId, isSameId} from "../../api/common/utils/EntityUtils.js"
 import {MailFolderType} from "../../api/common/TutanotaConstants.js"
 
 /**
@@ -10,19 +10,7 @@ import {MailFolderType} from "../../api/common/TutanotaConstants.js"
 export class FolderSystem {
 	constructor(
 		readonly folder: MailFolder,
-		readonly children: Array<FolderSystem>) {
-	}
-
-	move(folder: MailFolder, path: string, destination: string): boolean {
-		return true
-	}
-
-	remove(deleteFolder: MailFolder, path: string): MailFolder | null {
-		return null
-	}
-
-	insert(newFolder: MailFolder) {
-
+		readonly children: FolderSystem[]) {
 	}
 
 	getOrderedList(): MailFolder[] {
@@ -63,12 +51,12 @@ export function getIndentedSystemList(systems: FolderSystem[], currentLevel: num
 	const sortedSystems = getSortedSystemSystem(systems)
 	for (const system of sortedSystems) {
 		plainList.push({level: currentLevel, folder: system.folder})
-		plainList.push(...getIndentedSystemList(system.children, currentLevel + 1))
+		// plainList.push(...getIndentedSystemList(system.children, currentLevel + 1))
 	}
 	return plainList
 }
 
-export type indentedFolderList = {level: number, folder: MailFolder}[]
+export type IndentedFolderList = {level: number, folder: MailFolder}[]
 
 export function getWholeList(completeSystem: FolderSystem[]): MailFolder[] {
 	let plainList = []
@@ -103,7 +91,7 @@ export function getSystemSortedList(completeSystem: FolderSystem[]): MailFolder[
 	return plainList
 }
 
-function getSortedCustomSystem(systems: FolderSystem[]): FolderSystem[] {
+export function getSortedCustomSystem(systems: FolderSystem[]): FolderSystem[] {
 	return systems
 		.filter(s => s.folder.folderType === MailFolderType.CUSTOM)
 		.sort((system1, system2) => {
@@ -111,7 +99,7 @@ function getSortedCustomSystem(systems: FolderSystem[]): FolderSystem[] {
 		})
 }
 
-function getSortedSystemSystem(systems: FolderSystem[]): FolderSystem[] {
+export function getSortedSystemSystem(systems: FolderSystem[]): FolderSystem[] {
 	return systems
 		.filter(s => s.folder.folderType !== MailFolderType.CUSTOM)
 		.sort((system1, system2) => {
@@ -124,6 +112,21 @@ function getSortedSystemSystem(systems: FolderSystem[]): FolderSystem[] {
 
 			return Number(system1.folder.folderType) - Number(system2.folder.folderType)
 		})
+}
+
+export function getFolderById(systems: FolderSystem[], folderId: IdTuple): FolderSystem | null {
+	const topLevel = systems.find((f) => isSameId(f.folder._id, folderId))
+	if (topLevel) {
+		return topLevel
+	} else {
+		for (const topLevelSystem of systems) {
+			const found = getFolderById(topLevelSystem.children, folderId)
+			if (found) {
+				return found
+			}
+		}
+	}
+	return null
 }
 
 export function populateFolderSystem(folders: MailFolder[]): FolderSystem[] { //depends on how the parent on the server is set

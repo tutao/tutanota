@@ -111,7 +111,7 @@ export class SearchView implements CurrentView {
 				for (const folderInfo of mailFolders) {
 					if (folderInfo.folder.folderType !== MailFolderType.SPAM) {
 						this.availableMailFolders.push({
-							name: " .".repeat(folderInfo.level) + " " + getFolderName(folderInfo.folder) + (mailboxIndex === 0 ? "" : " (" + getGroupInfoDisplayName(mailbox.mailGroupInfo) + ")"),
+							name: ". ".repeat(folderInfo.level) + getFolderName(folderInfo.folder) + (mailboxIndex === 0 ? "" : " (" + getGroupInfoDisplayName(mailbox.mailGroupInfo) + ")"),
 							value: folderInfo.folder.mails,
 						})
 					}

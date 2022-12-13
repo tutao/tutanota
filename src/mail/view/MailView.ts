@@ -32,8 +32,6 @@ import {
 	getFolderName,
 	getInboxFolder,
 	getMailboxName,
-	getSortedCustomFolders,
-	getSortedSystemFolders,
 	markMails,
 } from "../model/MailUtils"
 import type {MailboxDetail} from "../model/MailModel"
@@ -52,7 +50,7 @@ import {FolderColumnView} from "../../gui/FolderColumnView.js"
 import {UserError} from "../../api/main/UserError"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {archiveMails, moveMails, moveToInbox, promptAndDeleteMails, showMoveMailsDropdown} from "./MailGuiUtils"
-import {isSameId} from "../../api/common/utils/EntityUtils"
+import {elementIdPart, getElementId, isSameId} from "../../api/common/utils/EntityUtils"
 import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {SidebarSection} from "../../gui/SidebarSection"
 import {CancelledError} from "../../api/common/error/CancelledError"
@@ -63,15 +61,8 @@ import {IconButton, IconButtonAttrs} from "../../gui/base/IconButton.js"
 import {ButtonSize} from "../../gui/base/ButtonSize.js"
 import {BottomNav} from "../../gui/nav/BottomNav.js"
 import {MobileMailActionBar} from "./MobileMailActionBar.js"
-import {
-	getCustomSortedList,
-	getIndentedCustomList, getIndentedSystemList,
-	getSystemSortedList,
-	getWholeList,
-	getWholeSortedList,
-	indentedFolderList,
-	indentedList
-} from "../model/FolderSystem.js"
+import {FolderSystem, getFolderById, getSortedCustomSystem, getSortedSystemSystem, getWholeList} from "../model/FolderSystem.js"
+import {ExpanderPanel} from "../../gui/base/Expander.js"
 
 assertMainOrNode()
 
@@ -79,6 +70,8 @@ type MailFolderRowData = {
 	id: Id
 	button: NavButtonAttrs
 	folder: MailFolder
+	expander: boolean | null
+	indentationLevel: number
 }
 
 type MailboxSection = {
@@ -87,6 +80,8 @@ type MailboxSection = {
 	customFolderButtons: MailFolderRowData[]
 	folderAddButton: IconButtonAttrs,
 }
+
+type Counters = Record<string, number>
 
 /**
  * Top-level view for displaying mailboxes.
@@ -103,8 +98,6 @@ export class MailView implements CurrentView {
 
 	readonly oncreate: CurrentView["oncreate"]
 	readonly onremove: CurrentView["onremove"]
-	/**  mailGroupId -> section */
-	private readonly mailboxSections: Map<Id, MailboxSection>
 
 	/**
 	 * We remember the last URL used for each folder so if we switch between folders we can keep the selected mail.
@@ -117,6 +110,7 @@ export class MailView implements CurrentView {
 
 	private multiMailViewer: MultiMailViewer
 	private _mailViewerViewModel: MailViewerViewModel | null = null
+	private expandedState: Map<Id, boolean> = new Map()
 
 	get mailViewerViewModel(): MailViewerViewModel | null {
 		return this._mailViewerViewModel
@@ -130,13 +124,13 @@ export class MailView implements CurrentView {
 	}
 
 	constructor() {
-		this.mailboxSections = new Map()
 		this.folderToUrl = {}
 		this.throttledRouteSet = throttleRoute()
 		this.folderColumn = new ViewColumn(
 			{
-				view: () =>
-					m(FolderColumnView, {
+				view: () => {
+					const details = locator.mailModel.mailboxDetails() ?? []
+					return m(FolderColumnView, {
 						button:
 							!styles.isUsingBottomNavigation() && isNewMailActionAvailable()
 								? {
@@ -144,22 +138,18 @@ export class MailView implements CurrentView {
 									click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
 								}
 								: null,
-						content: Array.from(this.mailboxSections.entries()).map(([mailGroupId, mailboxSection]) => {
-							return m(
-								SidebarSection,
+						content: details.map((mailboxDetail) => {
+							// const mailboxSection = this.createMailboxSection(mailboxDetail)
+							return m(SidebarSection,
 								{
-									name: mailboxSection.label,
+									name: () => getMailboxName(logins, mailboxDetail),
 								},
-								this.createMailboxFolderItems(
-									mailGroupId,
-									mailboxSection.systemFolderButtons,
-									mailboxSection.customFolderButtons,
-									mailboxSection.folderAddButton,
-								),
+								this.createMailboxFolderItems(mailboxDetail),
 							)
 						}),
 						ariaLabel: "folderTitle_label",
-					}),
+					})
+				},
 			},
 			ColumnType.Foreground,
 			size.first_col_min_width,
@@ -258,22 +248,12 @@ export class MailView implements CurrentView {
 
 		// do not stop observing the mailboxDetails when this view is invisible because the view is cached and switching back to this view while the mailboxes have changed leads to errors
 		locator.mailModel.mailboxDetails.map(mailboxDetails => {
-			for (let newMailboxDetail of mailboxDetails) {
-				const section = this.mailboxSections.get(newMailboxDetail.mailGroup._id)
-
-				if (section) {
-					section.customFolderButtons = this.createFolderButtons(indentedList(newMailboxDetail.folders))
-				} else {
-					this.mailboxSections.set(newMailboxDetail.mailGroup._id, this.createMailboxSection(newMailboxDetail))
+			for (const detail of mailboxDetails) {
+				for (const folder of getWholeList(detail.folders)) {
+					const folderElementId = getElementId(folder)
+					this.folderToUrl[folderElementId] = this.folderToUrl[folderElementId] ?? `/mail/${folder.mails}`
 				}
 			}
-
-			for (let mailGroupId of this.mailboxSections.keys()) {
-				if (mailboxDetails.find(mailboxDetail => mailboxDetail.mailGroup._id === mailGroupId) == null) {
-					this.mailboxSections.delete(mailGroupId)
-				}
-			}
-
 			if (this.selectedFolder) {
 				// find the folder in the new folder list that was previously selected
 				let currentlySelectedFolder = locator.mailModel.getMailFolder(this.selectedFolder.mails)
@@ -471,54 +451,118 @@ export class MailView implements CurrentView {
 		m.route.set(this.folderToUrl[getFolder(getWholeList(mailboxDetails.folders), folderType)._id[1]])
 	}
 
-	private createMailboxSection(mailboxDetail: MailboxDetail): MailboxSection {
-		const mailGroupId = mailboxDetail.mailGroup._id
-		return {
-			label: () => getMailboxName(logins, mailboxDetail),
-			systemFolderButtons: this.createFolderButtons(getIndentedSystemList(mailboxDetail.folders)),
-			customFolderButtons: this.createFolderButtons(getIndentedCustomList(mailboxDetail.folders)),
-			folderAddButton: this.createFolderAddButton(mailGroupId),
-		}
-	}
-
-	private createMailboxFolderItems(
-		mailGroupId: Id,
-		systemFolderButtons: MailFolderRowData[],
-		customFolderButtons: MailFolderRowData[],
-		folderAddButton: IconButtonAttrs,
-	): Children {
-		const groupCounters = locator.mailModel.mailboxCounters()[mailGroupId] || {}
+	private createMailboxFolderItems(mailboxDetail: MailboxDetail): Children {
+		const groupCounters = locator.mailModel.mailboxCounters()[mailboxDetail.mailGroup._id] || {}
 		// Important: this array is keyed so each item must have a key and `null` cannot be in the array
 		// So instead we push or not push into array
-		const children: Children = systemFolderButtons
-			.map(({id, button}) => {
-				const count = groupCounters[id]
-				return m(MailFolderRow, {
-					count: count,
-					button,
-					rightButton: null,
-					key: id,
-				})
+		// const [customSystems, systemSystems] = partition(mailboxDetail.folders, (f) => f.folder.folderType === MailFolderType.CUSTOM)
+		const customSystems = getSortedCustomSystem(mailboxDetail.folders)
+		const systemSystems = getSortedSystemSystem((mailboxDetail.folders))
+		const children: Children = []
+		children.push(...systemSystems.map(s => {
+			const id = getElementId(s.folder)
+			const count = groupCounters[s.folder.mails]
+			const button: NavButtonAttrs = {
+				label: () => getFolderName(s.folder),
+				icon: getFolderIcon(s.folder),
+				href: () => this.folderToUrl[s.folder._id[1]],
+				isSelectedPrefix: MAIL_PREFIX + "/" + s.folder.mails,
+				colors: NavButtonColor.Nav,
+				click: () => this.viewSlider.focus(this.listColumn),
+				dropHandler: (droppedMailId) => this.handleFolderDrop(droppedMailId, s.folder),
+			}
+			return m(MailFolderRow, {
+				count: count,
+				button,
+				rightButton: null,
+				key: id,
+				expanded: null,
+				// FIXME: remove
+				indentationLevel: 0,
+				onExpanderClick: noOp,
 			})
+		}))
 		if (logins.isInternalUserLoggedIn()) {
 			children.push(m(SidebarSection, {
-						name: "yourFolders_action",
-						button: m(IconButton, folderAddButton),
-						key: "yourFolders", // we need to set a key because folder rows also have a key.
-					},
-					customFolderButtons.map(({id, button, folder}) => {
-						const count = groupCounters[id]
-						return m(MailFolderRow, {
-							count,
-							button,
-							rightButton: this.createFolderMoreButton(mailGroupId, folder),
-							key: id,
-						})
-					}),
-				)
-			)
+				name: "yourFolders_action",
+				button: m(IconButton, this.createFolderAddButton(mailboxDetail.mailGroup._id, null)),
+				key: "yourFolders", // we need to set a key because folder rows also have a key.
+			}, this.renderCustomFolderTree(customSystems, groupCounters, mailboxDetail)))
 		}
+
+		// const children: Children = systemFolderButtons
+		// 	.map(({id, button, expander, indentationLevel}) => {
+		// 		const count = groupCounters[id]
+		// 		return m(MailFolderRow, {
+		// 			count: count,
+		// 			button,
+		// 			rightButton: null,
+		// 			key: id,
+		// 			expander,
+		// 			indentationLevel,
+		// 			onExpanderClick: noOp,
+		// 		})
+		// 	})
+		// if (logins.isInternalUserLoggedIn()) {
+		// children.push(m(SidebarSection, {
+		// 			name: "yourFolders_action",
+		// 			button: m(IconButton, folderAddButton),
+		// 			key: "yourFolders", // we need to set a key because folder rows also have a key.
+		// 		},
+		// 		customFolderButtons.map(({id, button, folder, expander, indentationLevel}) => {
+		// 			const count = groupCounters[id]
+		// 			return m(ExpanderPanel, {expanded: this.expandedState.get(getElementId(folder)) ?? true},
+		// 				m(MailFolderRow, {
+		// 					count,
+		// 					button,
+		// 					rightButton: this.createFolderMoreButton(mailGroupId, folder),
+		// 					key: id,
+		// 					expander,
+		// 					indentationLevel,
+		// 					onExpanderClick: () => this.expandedState.set(getElementId(folder), !expander)
+		// 				}))
+		// 		}),
+		// 	)
+		// )
+		// }
 		return children
+	}
+
+	private renderCustomFolderTree(subSystems: FolderSystem[], groupCounters: Counters, mailboxDetail: MailboxDetail, indentationLevel: number = 0): Children[] | null {
+		const expanders: Children[] = []
+		for (const system of subSystems) {
+			const id = getElementId(system.folder)
+			const button: NavButtonAttrs = {
+				label: () => getFolderName(system.folder),
+				icon: getFolderIcon(system.folder),
+				href: () => this.folderToUrl[system.folder._id[1]],
+				isSelectedPrefix: MAIL_PREFIX + "/" + system.folder.mails,
+				colors: NavButtonColor.Nav,
+				click: () => this.viewSlider.focus(this.listColumn),
+				dropHandler: (droppedMailId) => this.handleFolderDrop(droppedMailId, system.folder),
+			}
+			const currentExpansionState = this.expandedState.get(getElementId(system.folder)) ?? false //default is false
+			const hasChildren = system.children.length > 0
+			const summedCount = (currentExpansionState === false && hasChildren) ? this.getTotalFolderCounter(groupCounters, system) : groupCounters[system.folder.mails]
+			expanders.push(m.fragment({
+				key: id,
+			}, [
+				m(MailFolderRow, {
+					count: summedCount,
+					button,
+					rightButton: this.createFolderMoreButton(mailboxDetail.mailGroup._id, system.folder, mailboxDetail.folders),
+					expanded: hasChildren ? currentExpansionState : null,
+					indentationLevel,
+					onExpanderClick: hasChildren ? () => this.expandedState.set(getElementId(system.folder), !currentExpansionState) : noOp
+				}),
+				hasChildren && currentExpansionState ? this.renderCustomFolderTree(system.children, groupCounters, mailboxDetail, indentationLevel + 1) : null
+			]))
+		}
+		return expanders
+	}
+
+	private getTotalFolderCounter(counters: Counters, system: FolderSystem): number {
+		return (counters[system.folder.mails] ?? 0) + system.children.reduce((acc, child) => acc + this.getTotalFolderCounter(counters, child), 0)
 	}
 
 	/**
@@ -586,7 +630,7 @@ export class MailView implements CurrentView {
 	}
 
 	private isInitialized(): boolean {
-		return this.mailboxSections.size > 0 && this.selectedFolder != null
+		return locator.mailModel.mailboxDetails() && this.selectedFolder != null
 	}
 
 	private setUrl(url: string) {
@@ -623,67 +667,59 @@ export class MailView implements CurrentView {
 		}
 	}
 
-	private createFolderButtons(folders: indentedFolderList): MailFolderRowData[] {
-		return folders.map(folderInfo => {
-			this.folderToUrl[folderInfo.folder._id[1]] = `/mail/${folderInfo.folder.mails}`
-			const button: NavButtonAttrs = {
-				label: () => " .".repeat(folderInfo.level) + " " + getFolderName(folderInfo.folder),
-				icon: getFolderIcon(folderInfo.folder),
-				href: () => this.folderToUrl[folderInfo.folder._id[1]],
-				isSelectedPrefix: MAIL_PREFIX + "/" + folderInfo.folder.mails,
-				colors: NavButtonColor.Nav,
-				click: () => this.viewSlider.focus(this.listColumn),
-				dropHandler: (droppedMailId) => {
-					if (!this.mailList) {
-						return
-					}
-					let mailsToMove: Mail[] = []
+	private handleFolderDrop(droppedMailId: string, folder: MailFolder) {
+		if (!this.mailList) {
+			return
+		}
+		let mailsToMove: Mail[] = []
 
-					// the dropped mail is among the selected mails, move all selected mails
-					if (this.mailList.list.isEntitySelected(droppedMailId)) {
-						mailsToMove = this.mailList.list.getSelectedEntities()
-					} else {
-						let entity = this.mailList.list.getEntity(droppedMailId)
+		// the dropped mail is among the selected mails, move all selected mails
+		if (this.mailList.list.isEntitySelected(droppedMailId)) {
+			mailsToMove = this.mailList.list.getSelectedEntities()
+		} else {
+			let entity = this.mailList.list.getEntity(droppedMailId)
 
-						if (entity) {
-							mailsToMove.push(entity)
-						}
-					}
-
-					// do not allow moving folders to unallowed locations
-					if (!allMailsAllowedInsideFolder(mailsToMove, folderInfo.folder)) {
-						return
-					}
-
-					moveMails({mailModel: locator.mailModel, mails: mailsToMove, targetMailFolder: folderInfo.folder})
-				},
+			if (entity) {
+				mailsToMove.push(entity)
 			}
-			return {
-				id: folderInfo.folder.mails,
-				button,
-				folder: folderInfo.folder,
-			}
-		})
+		}
+
+		// do not allow moving folders to unallowed locations
+		if (!allMailsAllowedInsideFolder(mailsToMove, folder)) {
+			return
+		}
+
+		moveMails({mailModel: locator.mailModel, mails: mailsToMove, targetMailFolder: folder})
 	}
 
-	private createFolderAddButton(mailGroupId: Id): IconButtonAttrs {
+	private createFolderAddButton(mailGroupId: Id, parentFolder: MailFolder | null): IconButtonAttrs {
 		return {
 			title: "add_action",
 			click: () => {
-				return Dialog.showProcessTextInputDialog("folderNameCreate_label", "folderName_label", null, "", (name) => {
-						return locator.mailModel
-									  .getMailboxDetailsForMailGroup(mailGroupId)
-									  .then(mailboxDetails => locator.mailFacade.createMailFolder(name, getInboxFolder(getWholeList(mailboxDetails.folders))._id, mailGroupId))
-					}, name =>
-						this.checkFolderName(name, mailGroupId),
-				)
+				return this.showCreateFolderDialog(mailGroupId, parentFolder)
 			},
 			icon: Icons.Add,
 			size: ButtonSize.Compact,
 		}
 	}
 
-	private createFolderMoreButton(mailGroupId: Id, folder: MailFolder): IconButtonAttrs {
+	private showCreateFolderDialog(mailGroupId: string, parentFolder: MailFolder | null) {
+		const infoMsg = parentFolder ? () => getFolderName(parentFolder) : null // FIXME
+		const parentFolderId: IdTuple | null = parentFolder ? parentFolder._id : null
+		Dialog.showProcessTextInputDialog("folderNameCreate_label", "folderName_label", infoMsg, "", (name) => {
+				return locator.mailModel
+							  .getMailboxDetailsForMailGroup(mailGroupId)
+							  .then(mailboxDetails => {
+								  if (parentFolderId) {
+									  this.expandedState.set(elementIdPart(parentFolderId), true)
+								  }
+								  locator.mailFacade.createMailFolder(name, parentFolderId, mailGroupId)
+							  })
+			}, name => this.checkFolderName(name, mailGroupId, parentFolderId),
+		)
+	}
+
+	private createFolderMoreButton(mailGroupId: Id, folder: MailFolder, folderSystem: FolderSystem[]): IconButtonAttrs {
 		return attachDropdown(
 			{
 				mainButtonAttrs: {
@@ -704,14 +740,27 @@ export class MailView implements CurrentView {
 									return locator.entityClient.update(renamedFolder)
 								},
 								name =>
-									this.checkFolderName(name, mailGroupId),
+									this.checkFolderName(name, mailGroupId, folder.parentFolder),
 							)
 						},
+					},
+					{
+						// FIXME better translation, wth is this
+						label: "add_action",
+						icon: Icons.Add,
+						click: () => {
+							this.showCreateFolderDialog(mailGroupId, folder)
+						}
 					},
 					{
 						label: "delete_action",
 						icon: Icons.Trash,
 						click: () => {
+							// so far it is not possible to delete folders that contain subfolders
+							if (getFolderById(folderSystem, folder._id)!.children.length > 0) { // should we get mailbox details in here?
+								Dialog.message("enforcePasswordUpdate_msg") // FIXME add some msg
+								return
+							}
 							Dialog.confirm(() =>
 								lang.get("confirmDeleteFinallyCustomFolder_msg", {
 									"{1}": getFolderName(folder),
@@ -738,11 +787,15 @@ export class MailView implements CurrentView {
 		return this.selectedFolder ? locator.mailModel.getMailboxDetailsForMailListId(this.selectedFolder.mails) : locator.mailModel.getUserMailboxDetails()
 	}
 
-	private checkFolderName(name: string, mailGroupId: Id): Promise<TranslationKey | null> {
+	private checkFolderName(name: string, mailGroupId: Id, parentFolderId: IdTuple | null): Promise<TranslationKey | null> {
 		return locator.mailModel.getMailboxDetailsForMailGroup(mailGroupId).then(mailboxDetails => {
 			if (name.trim() === "") {
 				return "folderNameNeutral_msg"
-			} else if (getWholeSortedList(mailboxDetails.folders).find(f => f.name === name)) {
+			} else if (
+				parentFolderId
+					? assertNotNull(getFolderById(mailboxDetails.folders, parentFolderId), "Folder does not exist").children.some(f => f.folder.name === name)
+					: mailboxDetails.folders.some(f => f.folder.folderType === MailFolderType.CUSTOM && f.folder.name === name)
+			) {
 				return "folderNameInvalidExisting_msg"
 			} else {
 				return null
