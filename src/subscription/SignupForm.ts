@@ -23,6 +23,7 @@ import {CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditions
 import {UsageTest} from "@tutao/tutanota-usagetests"
 import {logins} from "../api/main/LoginController.js"
 import {runCaptchaFlow} from "./Captcha.js"
+import {SelectMailAddressFormWithSuggestions} from "../settings/SelectMailAddressFormWithSuggestions.js"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -157,7 +158,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 						disabled: true,
 					})
 					: [
-						m(SelectMailAddressForm, mailAddressFormAttrs),
+						m(SelectMailAddressFormWithSuggestions, mailAddressFormAttrs), // FIXME depending on variant...
 						m(PasswordForm, {
 							model: this.passwordModel,
 							passwordInfoKey: "passwordImportance_msg"
