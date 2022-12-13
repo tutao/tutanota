@@ -159,8 +159,10 @@ export class MultiDayCalendarView implements Component<Attrs> {
 						"border-bottom": `1px solid ${theme.content_border}`,
 					},
 				}),
+				// using .scroll-no-overlay because of a browser bug in Chromium where scroll wouldn't work at all
+				// see https://github.com/tutao/tutanota/issues/4846
 				m(
-					".flex.scroll",
+					".flex.scroll-no-overlay",
 					{
 						oncreate: vnode => {
 							vnode.dom.scrollTop = this._scrollPosition
