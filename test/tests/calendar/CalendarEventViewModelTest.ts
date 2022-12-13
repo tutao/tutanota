@@ -16,7 +16,8 @@ import {
 	createContact,
 	createContactMailAddress,
 	createEncryptedMailAddress,
-	createMail, createMailboxProperties,
+	createMail,
+	createMailboxProperties,
 	EncryptedMailAddress
 } from "../../../src/api/entities/tutanota/TypeRefs.js"
 import {AccountType, AlarmInterval, assertEnumValue, CalendarAttendeeStatus, ShareCapability,} from "../../../src/api/common/TutanotaConstants.js"
@@ -1077,6 +1078,12 @@ o.spec("CalendarEventViewModel", function () {
 				],
 				presharedPassword: "123",
 			})
+			const startTime = DateTime.fromISO("2016-05-25T09:08:34.123", {
+				zone: "UTC",
+			}).toJSDate()
+			const endTime = DateTime.fromISO("2016-05-25T09:09:34.123", {
+				zone: "UTC",
+			}).toJSDate()
 			const existingEvent = createCalendarEvent({
 				_id: ["listid", "calendarid"],
 				_ownerGroup: calendarGroupId,
@@ -1084,6 +1091,8 @@ o.spec("CalendarEventViewModel", function () {
 				attendees: [ownAttendee, attendee],
 				sequence: "1",
 				invitedConfidentially: true,
+				startTime,
+				endTime
 			})
 			const newEvent = createCalendarEvent({
 				_id: ["listid", "calendarid"],
@@ -1092,6 +1101,8 @@ o.spec("CalendarEventViewModel", function () {
 				attendees: [ownAttendee, attendee],
 				sequence: "2",
 				invitedConfidentially: true,
+				startTime,
+				endTime
 			})
 			const viewModel = await init({
 				calendars,
