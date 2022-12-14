@@ -786,6 +786,7 @@ export type TranslationKeyType =
 	| "mailAddresses_label"
 	| "mailAddressInvalid_msg"
 	| "mailAddressNA_msg"
+	| "mailAddressNANudge_msg"
 	| "mailAddressNeutral_msg"
 	| "mailAddress_label"
 	| "mailAuthFailed_label"

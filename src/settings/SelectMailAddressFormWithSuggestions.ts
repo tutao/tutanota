@@ -22,12 +22,14 @@ assertMainOrNode()
 
 const VALID_MESSAGE_ID = "mailAddressAvailable_msg"
 
-export interface SelectMailAddressFormAttrs {
+export interface SelectMailAddressFormWithSuggestionsAttrs {
 	availableDomains: Array<string>
 	onValidationResult: (emailAddress: string, validationResult: ValidationResult) => unknown
 	onBusyStateChanged: (isBusy: boolean) => unknown
 	injectionsRightButtonAttrs?: IconButtonAttrs | null
 	onDomainChanged?: (domain: string) => unknown
+	displayUnavailableMailAddresses?: boolean
+	maxSuggestionsToShow: number
 }
 
 export interface ValidationResult {
@@ -35,7 +37,7 @@ export interface ValidationResult {
 	errorId: TranslationKey | null
 }
 
-export class SelectMailAddressFormWithSuggestions implements Component<SelectMailAddressFormAttrs> {
+export class SelectMailAddressFormWithSuggestions implements Component<SelectMailAddressFormWithSuggestionsAttrs> {
 	private username: string
 	private domain: string
 	private domains: string[]
@@ -46,7 +48,7 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 	private mailAvailabilities: MailAddressAvailability[] = []
 	private selectedMailAddressSuggestionIndex = 0
 
-	constructor({attrs}: Vnode<SelectMailAddressFormAttrs>) {
+	constructor({attrs}: Vnode<SelectMailAddressFormWithSuggestionsAttrs>) {
 		this.isVerificationBusy = false
 		this.checkAddressTimeout = null
 		this.domain = firstThrow(attrs.availableDomains)
@@ -55,7 +57,7 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 		this.messageId = "mailAddressNeutral_msg"
 	}
 
-	view({attrs}: Vnode<SelectMailAddressFormAttrs>): Children {
+	view({attrs}: Vnode<SelectMailAddressFormWithSuggestionsAttrs>): Children {
 		// this is a semi-good hack to reset the username after the user pressed "ok"
 		if (attrs.injectionsRightButtonAttrs?.click) {
 			const originalCallback = attrs.injectionsRightButtonAttrs.click
@@ -119,19 +121,35 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 		])
 	}
 
-	private renderSuggestions(attrs: SelectMailAddressFormAttrs): Children {
+	private renderSuggestions(attrs: SelectMailAddressFormWithSuggestionsAttrs): Children {
 		return m(".rel", m(MailAddressAvailabilityDropDown, {
 			availabilities: this.mailAvailabilities,
 			selectedSuggestionIndex: this.selectedMailAddressSuggestionIndex,
 			onSuggestionSelected: sel => this.selectSuggestion(attrs, sel),
-			maxHeight: 5,
+			maxHeight: Math.min(this.mailAvailabilities.filter(mailAvailability => mailAvailability.available).length, attrs.maxSuggestionsToShow),
+			displayUnavailableMailAddresses: attrs.displayUnavailableMailAddresses,
 		}))
 	}
 
-	private selectSuggestion(attrs: SelectMailAddressFormAttrs, selection: number) {
+	private selectSuggestion(attrs: SelectMailAddressFormWithSuggestionsAttrs, selection: number) {
+		if (selection === -1) {
+			// The email address (local part) is not available on any domains
+			this.onValidationFinished(
+				"",
+				{
+					isValid: false,
+					errorId: "mailAddressNA_msg",
+				},
+				attrs.onValidationResult,
+			)
+
+			return
+		}
+
 		const selectedMail = this.mailAvailabilities[selection]
 
 		if (!selectedMail.available) {
+			// This should never happen as unavailable emails are not clickable
 			return
 		}
 
@@ -146,7 +164,7 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 		)
 	}
 
-	private setDomain(attrs: SelectMailAddressFormAttrs, domainIndex: number) {
+	private setDomain(attrs: SelectMailAddressFormWithSuggestionsAttrs, domainIndex: number) {
 		this.selectedMailAddressSuggestionIndex = domainIndex
 		this.domain = this.domains[domainIndex]
 		attrs.onDomainChanged?.(this.domain)
@@ -173,7 +191,7 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 		})
 	}
 
-	private createDropdownItemAttrs(domain: string, index: number, attrs: SelectMailAddressFormAttrs): DropdownButtonAttrs {
+	private createDropdownItemAttrs(domain: string, index: number, attrs: SelectMailAddressFormWithSuggestionsAttrs): DropdownButtonAttrs {
 		return {
 			label: () => domain,
 			click: () => {
@@ -189,13 +207,13 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 		m.redraw()
 	}
 
-	private onValidationFinished(email: string, validationResult: ValidationResult, onValidationResult: SelectMailAddressFormAttrs["onValidationResult"]): void {
+	private onValidationFinished(email: string, validationResult: ValidationResult, onValidationResult: SelectMailAddressFormWithSuggestionsAttrs["onValidationResult"]): void {
 		this.messageId = validationResult.errorId
 		onValidationResult(email, validationResult)
 	}
 
 	private getEmailSuggestions = debounce(1000,
-		async (attrs: SelectMailAddressFormAttrs) => {
+		async (attrs: SelectMailAddressFormWithSuggestionsAttrs) => {
 			const {onBusyStateChanged} = attrs
 
 			const {valid} = this.performClientSideEmailValidation(attrs)
@@ -213,14 +231,14 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 				firstAvailableIndex = availabilities.findIndex(el => el.available)
 			} finally {
 				this.onBusyStateChanged(false, onBusyStateChanged)
-				this.selectSuggestion(attrs, firstAvailableIndex === -1 ? 0 : firstAvailableIndex)
+				this.selectSuggestion(attrs, firstAvailableIndex)
 
 				m.redraw()
 			}
 		}
 	)
 
-	private performClientSideEmailValidation({onValidationResult, onBusyStateChanged}: SelectMailAddressFormAttrs) {
+	private performClientSideEmailValidation({onValidationResult, onBusyStateChanged}: SelectMailAddressFormWithSuggestionsAttrs) {
 		const cleanMailAddress = this.getCleanMailAddress()
 		const cleanUsername = this.username.trim().toLowerCase()
 
@@ -253,7 +271,7 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 		return {valid: true, cleanMailAddress, cleanUsername}
 	}
 
-	private verifyMailAddress(attrs: SelectMailAddressFormAttrs) {
+	private verifyMailAddress(attrs: SelectMailAddressFormWithSuggestionsAttrs) {
 		const {onValidationResult, onBusyStateChanged} = attrs
 
 		this.checkAddressTimeout && clearTimeout(this.checkAddressTimeout)

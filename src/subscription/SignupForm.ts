@@ -50,6 +50,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private __signupPaidTest?: UsageTest
 	private __signupPasswordStrengthTest: UsageTest
 	private __signupUnavailableEmailsTest: UsageTest
+	private __signupEmailDomainsTest: UsageTest
 
 	constructor() {
 		this.__mailValid = stream(false)
@@ -60,6 +61,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
 		this.__signupPasswordStrengthTest = locator.usageTestController.getTest("signup.passwordstrength")
 		this.__signupUnavailableEmailsTest = locator.usageTestController.getTest("signup.unavailableemails")
+		this.__signupEmailDomainsTest = locator.usageTestController.getTest("signup.emaildomains")
 
 		this._confirmTerms = stream<boolean>(false)
 		this._confirmAge = stream<boolean>(false)
@@ -158,7 +160,21 @@ export class SignupForm implements Component<SignupFormAttrs> {
 						disabled: true,
 					})
 					: [
-						m(SelectMailAddressFormWithSuggestions, mailAddressFormAttrs), // FIXME depending on variant...
+						this.__signupEmailDomainsTest.renderVariant({
+							[0]: () => m(SelectMailAddressForm, mailAddressFormAttrs), // Leave as is
+							[1]: () => m(SelectMailAddressForm, mailAddressFormAttrs), // Leave as is
+							[2]: () => m(SelectMailAddressForm, {...mailAddressFormAttrs, mailAddressNAError: "mailAddressNANudge_msg"}), // Extended supporting text
+							[3]: () => m(SelectMailAddressFormWithSuggestions, {
+								...mailAddressFormAttrs,
+								displayUnavailableMailAddresses: true,
+								maxSuggestionsToShow: 3,
+							}), // New UI with suggestions
+							[4]: () => m(SelectMailAddressFormWithSuggestions, {
+								...mailAddressFormAttrs,
+								displayUnavailableMailAddresses: false,
+								maxSuggestionsToShow: 3,
+							}), // New UI with suggestions, do not show unavailable emails
+						}),
 						m(PasswordForm, {
 							model: this.passwordModel,
 							passwordInfoKey: "passwordImportance_msg"
