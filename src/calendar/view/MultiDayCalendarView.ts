@@ -5,7 +5,7 @@ import {
 	CALENDAR_EVENT_HEIGHT,
 	combineDateWithTime,
 	DEFAULT_HOUR_OF_DAY,
-	eventEndsAfterDay,
+	eventEndsAfterDay, EventLayoutMode,
 	eventStartsBefore,
 	getDiffInDays,
 	getEventColor,
@@ -536,7 +536,7 @@ export class MultiDayCalendarView implements Component<Attrs> {
 					}),
 				)
 			},
-			true,
+			EventLayoutMode.DayBasedColumn,
 		)
 		return {
 			children,

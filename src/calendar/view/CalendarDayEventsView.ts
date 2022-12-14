@@ -3,7 +3,7 @@ import {theme} from "../../gui/theme"
 import {px, size} from "../../gui/size"
 import {DAY_IN_MILLIS, downcast, getEndOfDay, getStartOfDay, mapNullable, neverNull, numberRange} from "@tutao/tutanota-utils"
 import {
-	eventEndsAfterDay,
+	eventEndsAfterDay, EventLayoutMode,
 	eventStartsBefore,
 	expandEvent,
 	formatEventTime,
@@ -113,7 +113,7 @@ export class CalendarDayEventsView implements Component<Attrs> {
 	}
 
 	_renderEvents(attrs: Attrs, events: Array<CalendarEvent>): Children {
-		return layOutEvents(events, getTimeZone(), columns => this._renderColumns(attrs, columns), false)
+		return layOutEvents(events, getTimeZone(), columns => this._renderColumns(attrs, columns), EventLayoutMode.TimeBasedColumn)
 	}
 
 	_renderEvent(attrs: Attrs, ev: CalendarEvent, columnIndex: number, columns: Array<Array<CalendarEvent>>, columnWidth: number): Children {
