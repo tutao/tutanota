@@ -802,6 +802,7 @@ export default {
 		"mailAddresses_label": "Email addresses",
 		"mailAddressInvalid_msg": "Mail address is not valid.",
 		"mailAddressNA_msg": "Email address is not available.",
+		"mailAddressNANudge_msg": "Email address is not available. Try another domain from the dropdown.",
 		"mailAddressNeutral_msg": "Please enter mail address.",
 		"mailAddress_label": "Email address",
 		"mailAuthFailed_label": "Mail authentication failed",

@@ -806,6 +806,7 @@ export default {
 		"mailAddresses_label": "E-Mail-Adressen",
 		"mailAddressInvalid_msg": "Ungültige E-Mail-Adresse.",
 		"mailAddressNA_msg": "E-Mail-Adresse ist bereits vergeben.",
+		"mailAddressNANudge_msg": "E-Mail-Adresse ist bereits vergeben. Versuche eine andere Domain aus dem Dropdown.",
 		"mailAddressNeutral_msg": "Bitte E-Mail-Adresse eingeben.",
 		"mailAddress_label": "E-Mail-Adresse",
 		"mailAuthFailed_label": "Echtheitsprüfung der Nachricht ist fehlgeschlagen",

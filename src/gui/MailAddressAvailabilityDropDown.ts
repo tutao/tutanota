@@ -14,6 +14,7 @@ export interface MailAddressAvailabilityDropDownAttrs {
 
 	/** max amount of suggestions that can be visible without scrolling */
 	maxHeight: number | null
+	displayUnavailableMailAddresses?: boolean
 }
 
 export class MailAddressAvailabilityDropDown implements ClassComponent<MailAddressAvailabilityDropDownAttrs> {
@@ -68,6 +69,10 @@ export class MailAddressAvailabilityDropDown implements ClassComponent<MailAddre
 
 	private renderAvailability(attrs: MailAddressAvailabilityDropDownAttrs, mailAddress: string, available: boolean, idx: number): Children {
 		const selected = idx === attrs.selectedSuggestionIndex
+		
+		if (!attrs.displayUnavailableMailAddresses && !available) {
+			return null
+		}
 
 		return m(
 			".pt-s.pb-s.click.content-hover",

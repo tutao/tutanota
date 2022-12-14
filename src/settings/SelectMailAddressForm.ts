@@ -27,6 +27,7 @@ export interface SelectMailAddressFormAttrs {
 	onBusyStateChanged: (isBusy: boolean) => unknown
 	injectionsRightButtonAttrs?: IconButtonAttrs | null
 	onDomainChanged?: (domain: string) => unknown
+	mailAddressNAError?: TranslationKey
 }
 
 export interface ValidationResult {
@@ -145,7 +146,8 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 		onValidationResult(email, validationResult)
 	}
 
-	private verifyMailAddress({onValidationResult, onBusyStateChanged}: SelectMailAddressFormAttrs) {
+	private verifyMailAddress(attrs: SelectMailAddressFormAttrs) {
+		const {onValidationResult, onBusyStateChanged} = attrs
 		this.checkAddressTimeout && clearTimeout(this.checkAddressTimeout)
 
 		const cleanMailAddress = this.getCleanMailAddress()
@@ -188,7 +190,9 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 				if (!available) {
 					this.signupUnavailableEmailsTest.getStage(1).complete()
 				}
-				result = available ? {isValid: true, errorId: null} : {isValid: false, errorId: "mailAddressNA_msg"}
+				result = available
+					? {isValid: true, errorId: null}
+					: {isValid: false, errorId: attrs?.mailAddressNAError ?? "mailAddressNA_msg"}
 			} catch (e) {
 				if (e instanceof AccessDeactivatedError) {
 					result = {isValid: false, errorId: "mailAddressDelay_msg"}
