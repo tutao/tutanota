@@ -1,8 +1,8 @@
-import m from "mithril"
+import m, {Children} from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
-import {assertNotNull, firstThrow, LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
+import {assertNotNull, firstThrow, LazyLoaded, neverNull, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {Group, GroupInfo} from "../api/entities/sys/TypeRefs.js"
 import {AdministratedGroupTypeRef, CustomerTypeRef, GroupInfoTypeRef, GroupMemberTypeRef, GroupTypeRef, UserTypeRef} from "../api/entities/sys/TypeRefs.js"
 import {BookingItemFeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
@@ -20,7 +20,6 @@ import {GENERATED_MAX_ID, GENERATED_MIN_ID, isSameId} from "../api/common/utils/
 import {showBuyDialog} from "../subscription/BuyDialog"
 import type {TextFieldAttrs} from "../gui/base/TextField.js"
 import {TextField} from "../gui/base/TextField.js"
-import {Button} from "../gui/base/Button.js"
 import type {DropDownSelectorAttrs, SelectorItemList} from "../gui/base/DropDownSelector.js"
 import {DropDownSelector} from "../gui/base/DropDownSelector.js"
 import type {EntityClient} from "../api/common/EntityClient"
@@ -33,104 +32,108 @@ import {ButtonSize} from "../gui/base/ButtonSize.js"
 assertMainOrNode()
 
 export class GroupViewer implements UpdatableSettingsDetailsViewer {
-	view: UpdatableSettingsDetailsViewer["view"]
-	readonly _entityClient: EntityClient
 	groupInfo: GroupInfo
-	private readonly _group: LazyLoaded<Group>
-	private _usedStorageInBytes!: number
-	private _name: string
-	private _isActive: boolean
-	private readonly _members: LazyLoaded<Array<GroupInfo>>
-	private _administratedGroups!: LazyLoaded<Array<GroupInfo>>
-	private _localAdminGroupInfo: LazyLoaded<Array<GroupInfo>>
+	private readonly group: LazyLoaded<Group>
+	private usedStorageInBytes!: number
+	private name: string
+	private isActive: boolean
+	private readonly members: LazyLoaded<Array<GroupInfo>>
+	private administratedGroups!: LazyLoaded<Array<GroupInfo>>
+	private localAdminGroupInfo: LazyLoaded<Array<GroupInfo>>
 
-	constructor(entityClient: EntityClient, groupInfo: GroupInfo) {
-		this._entityClient = entityClient
+	constructor(
+		private readonly entityClient: EntityClient,
+		groupInfo: GroupInfo
+	) {
+		this.entityClient = entityClient
 		this.groupInfo = groupInfo
-		this._name = groupInfo.name
-		this._group = new LazyLoaded(() => {
-			return this._entityClient.load(GroupTypeRef, this.groupInfo.group)
+		this.name = groupInfo.name
+		this.group = new LazyLoaded(() => {
+			return this.entityClient.load(GroupTypeRef, this.groupInfo.group)
 		})
 
-		this._group.getAsync().then(() => m.redraw())
+		this.group.getAsync().then(() => m.redraw())
 
-		this._members = new LazyLoaded(async () => {
-			const group = await this._group.getAsync()
+		this.members = new LazyLoaded(async () => {
+			const group = await this.group.getAsync()
 			// load only up to 200 members to avoid too long loading, like for account groups
-			const groupMembers = await this._entityClient.loadRange(GroupMemberTypeRef, group.members, GENERATED_MIN_ID, 200, false)
-			return promiseMap(groupMembers, member => this._entityClient.load(GroupInfoTypeRef, member.userGroupInfo))
+			const groupMembers = await this.entityClient.loadRange(GroupMemberTypeRef, group.members, GENERATED_MIN_ID, 200, false)
+			return promiseMap(groupMembers, member => this.entityClient.load(GroupInfoTypeRef, member.userGroupInfo))
 		})
 
-		this._updateMembers()
+		// noinspection JSIgnoredPromiseFromCall
+		this.updateMembers()
 
 		if (this.groupInfo.groupType === GroupType.LocalAdmin) {
-			this._administratedGroups = new LazyLoaded(() => {
-				return this._group.getAsync().then(group => {
-					// load only up to 200 members to avoid too long loading, like for account groups
-					return this._entityClient
-							   .loadRange(AdministratedGroupTypeRef, neverNull(group.administratedGroups).items, GENERATED_MAX_ID, 200, true)
-							   .then(administratedGroups => {
-								   return promiseMap(administratedGroups, administratedGroup => {
-									   return this._entityClient.load(GroupInfoTypeRef, administratedGroup.groupInfo)
-								   })
-							   })
-				})
+			this.administratedGroups = new LazyLoaded(async () => {
+				const group = await this.group.getAsync()
+				// load only up to 200 members to avoid too long loading, like for account groups
+				const administratedGroups = await this.entityClient.loadRange(
+					AdministratedGroupTypeRef,
+					assertNotNull(group.administratedGroups).items,
+					GENERATED_MAX_ID,
+					200,
+					true
+				)
+				return promiseMap(administratedGroups, administratedGroup => this.entityClient.load(GroupInfoTypeRef, administratedGroup.groupInfo))
 			})
 
-			this._updateAdministratedGroups()
+			// noinspection JSIgnoredPromiseFromCall
+			this.updateAdministratedGroups()
 		}
 
-		this._isActive = this.groupInfo.deleted != null
-		this._localAdminGroupInfo = new LazyLoaded(() => localAdminGroupInfoModel.init())
+		this.isActive = this.groupInfo.deleted != null
+		this.localAdminGroupInfo = new LazyLoaded(() => localAdminGroupInfoModel.init())
 
-		this._localAdminGroupInfo.getAsync().then(() => m.redraw())
+		this.localAdminGroupInfo.getAsync().then(() => m.redraw())
 
-		this._updateUsedStorage()
-
-		this.view = () => {
-			const administratedBySelectorAttrs = this._createAdministratedBySelectorAttrs()
-
-			return [
-				m("#user-viewer.fill-absolute.scroll.plr-l", [
-					m(".h4.mt-l", this._group.isLoaded() ? getGroupTypeName(this._group.getLoaded().type) : lang.get("emptyString_msg")),
-					m("", [
-						m(TextField, {
-							label: "created_label",
-							value: formatDateWithMonth(this.groupInfo.created),
-							disabled: true,
-						}),
-						this._isMailGroup() ? m(TextField, this._createUsedStorageFieldAttrs()) : null,
-					]),
-					m("", [
-						m(TextField, this._createNameFieldAttrs()),
-						logins.getUserController().isGlobalAdmin() && administratedBySelectorAttrs ? m(DropDownSelector, administratedBySelectorAttrs) : null,
-						m(DropDownSelector, this._createStatusSelectorAttrs()),
-					]),
-					!this.groupInfo.deleted ? m(".h4.mt-l.mb-s", lang.get("groupMembers_label")) : null,
-					!this.groupInfo.deleted ? m(Table, this._createMembersTableAttrs()) : null,
-					this._isMailGroup()
-						? [
-							m(".h4.mt-l", lang.get("mailSettings_label")),
-							m(".wrapping-row", [
-								m("", [
-									m(TextField, {
-										label: "mailAddress_label",
-										value: this.groupInfo.mailAddress ?? "",
-										disabled: true,
-									}),
-								]),
-							]),
-						]
-						: null,
-					this.groupInfo.groupType !== GroupType.LocalAdmin
-						? null
-						: [m(".h4.mt-l.mb-s", lang.get("administratedGroups_label")), m(Table, this._createAdministratedGroupsTableAttrs())],
-				]),
-			]
-		}
+		// noinspection JSIgnoredPromiseFromCall
+		this.updateUsedStorage()
 	}
 
-	_createStatusSelectorAttrs(): DropDownSelectorAttrs<boolean> {
+	view(): Children {
+		const administratedBySelectorAttrs = this.createAdministratedBySelectorAttrs()
+
+		return [
+			m("#user-viewer.fill-absolute.scroll.plr-l", [
+				m(".h4.mt-l", this.group.isLoaded() ? getGroupTypeName(this.group.getLoaded().type) : lang.get("emptyString_msg")),
+				m("", [
+					m(TextField, {
+						label: "created_label",
+						value: formatDateWithMonth(this.groupInfo.created),
+						disabled: true,
+					}),
+					this.isMailGroup() ? m(TextField, this.createUsedStorageFieldAttrs()) : null,
+				]),
+				m("", [
+					m(TextField, this.createNameFieldAttrs()),
+					logins.getUserController().isGlobalAdmin() && administratedBySelectorAttrs ? m(DropDownSelector, administratedBySelectorAttrs) : null,
+					m(DropDownSelector, this.createStatusSelectorAttrs()),
+				]),
+				!this.groupInfo.deleted ? m(".h4.mt-l.mb-s", lang.get("groupMembers_label")) : null,
+				!this.groupInfo.deleted ? m(Table, this.createMembersTableAttrs()) : null,
+				this.isMailGroup()
+					? [
+						m(".h4.mt-l", lang.get("mailSettings_label")),
+						m(".wrapping-row", [
+							m("", [
+								m(TextField, {
+									label: "mailAddress_label",
+									value: this.groupInfo.mailAddress ?? "",
+									disabled: true,
+								}),
+							]),
+						]),
+					]
+					: null,
+				this.groupInfo.groupType !== GroupType.LocalAdmin
+					? null
+					: [m(".h4.mt-l.mb-s", lang.get("administratedGroups_label")), m(Table, this.createAdministratedGroupsTableAttrs())],
+			]),
+		]
+	}
+
+	private createStatusSelectorAttrs(): DropDownSelectorAttrs<boolean> {
 		return {
 			label: "state_label",
 			items: [
@@ -143,49 +146,47 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 					value: true,
 				},
 			],
-			selectedValue: this._isActive,
-			selectionChangedHandler: deactivate => {
-				this._onStatusSelected(deactivate)
-			},
+			selectedValue: this.isActive,
+			selectionChangedHandler: deactivate => this.onStatusSelected(deactivate),
 		}
 	}
 
-	_onStatusSelected(deactivate: boolean): Promise<any> {
-		return this._members.getAsync().then(members => {
-			if (deactivate && members.length > 0) {
-				Dialog.message("groupNotEmpty_msg")
-			} else {
-				const bookingItemType =
-					this.groupInfo.groupType === GroupType.LocalAdmin ? BookingItemFeatureType.LocalAdminGroup : BookingItemFeatureType.SharedMailGroup
-				return showProgressDialog(
-					"pleaseWait_msg",
-					showBuyDialog({featureType: bookingItemType, count: deactivate ? -1 : 1, freeAmount: 0, reactivate: !deactivate})
-						.then(confirmed => {
-							if (confirmed) {
-								return this._group.getAsync().then(group =>
-									locator.groupManagementFacade.deactivateGroup(group, !deactivate).catch(
-										ofClass(PreconditionFailedError, e => {
-											if (this.groupInfo.groupType === GroupType.LocalAdmin) {
-												Dialog.message("localAdminGroupAssignedError_msg")
-											} else if (!deactivate) {
-												Dialog.message("emailAddressInUse_msg")
-											} else {
-												Dialog.message("stillReferencedFromContactForm_msg")
-											}
-										}),
-									),
-								)
-							}
-						}),
-				)
-			}
-		})
+	private async onStatusSelected(deactivate: boolean): Promise<void> {
+		const members = await this.members.getAsync()
+		if (deactivate && members.length > 0) {
+			return Dialog.message("groupNotEmpty_msg")
+		} else {
+			return showProgressDialog("pleaseWait_msg", this.showGroupBuyDialog(deactivate))
+		}
 	}
 
-	_createAdministratedBySelectorAttrs(): DropDownSelectorAttrs<Id | null> | null {
-		if (!this._localAdminGroupInfo.isLoaded()) return null
+	private async showGroupBuyDialog(deactivate: boolean): Promise<void> {
+		const bookingItemType = this.groupInfo.groupType === GroupType.LocalAdmin
+			? BookingItemFeatureType.LocalAdminGroup
+			: BookingItemFeatureType.SharedMailGroup
 
-		const filteredLocalAdminGroupInfo = this._localAdminGroupInfo.getLoaded().filter(groupInfo => !groupInfo.deleted)
+		const confirmed = await showBuyDialog({featureType: bookingItemType, count: deactivate ? -1 : 1, freeAmount: 0, reactivate: !deactivate})
+		if (confirmed) {
+			const group = await this.group.getAsync()
+			try {
+				return await locator.groupManagementFacade.deactivateGroup(group, !deactivate)
+			} catch (e) {
+				if (!(e instanceof PreconditionFailedError)) throw e
+				if (this.groupInfo.groupType === GroupType.LocalAdmin) {
+					return Dialog.message("localAdminGroupAssignedError_msg")
+				} else if (!deactivate) {
+					return Dialog.message("emailAddressInUse_msg")
+				} else {
+					return Dialog.message("stillReferencedFromContactForm_msg")
+				}
+			}
+		}
+	}
+
+	private createAdministratedBySelectorAttrs(): DropDownSelectorAttrs<Id | null> | null {
+		if (!this.localAdminGroupInfo.isLoaded()) return null
+
+		const filteredLocalAdminGroupInfo = this.localAdminGroupInfo.getLoaded().filter(groupInfo => !groupInfo.deleted)
 
 		const adminGroupIdToName: SelectorItemList<Id | null> = [
 			{
@@ -206,8 +207,10 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 			selectedValue: this.groupInfo.localAdmin,
 			selectionChangedHandler: id => {
 				if (this.groupInfo.groupType === GroupType.LocalAdmin) {
+					// noinspection JSIgnoredPromiseFromCall
 					Dialog.message("updateAdminshipLocalAdminGroupError_msg")
 				} else {
+					// noinspection JSIgnoredPromiseFromCall
 					showProgressDialog(
 						"pleaseWait_msg",
 						Promise.resolve().then(() => {
@@ -222,10 +225,10 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 		}
 	}
 
-	_createNameFieldAttrs(): TextFieldAttrs {
+	private createNameFieldAttrs(): TextFieldAttrs {
 		return {
 			label: "name_label",
-			value: this._name,
+			value: this.name,
 			disabled: true,
 			injectionsRight: () => m(IconButton, {
 				title: "edit_action",
@@ -238,16 +241,16 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 		}
 	}
 
-	private showChangeNameDialog() {
-		Dialog.showProcessTextInputDialog("edit_action", "name_label", null, this._name,
+	private showChangeNameDialog(): void {
+		Dialog.showProcessTextInputDialog("edit_action", "name_label", null, this.name,
 			(newName) => {
 				const newGroupInfo: GroupInfo = Object.assign({}, this.groupInfo)
 				newGroupInfo.name = newName
 
-				return this._entityClient.update(newGroupInfo)
+				return this.entityClient.update(newGroupInfo)
 			},
 			newName => {
-				if (this._group.isLoaded() && this._group.getLoaded().type === GroupType.MailingList && newName.trim() === "") {
+				if (this.group.isLoaded() && this.group.getLoaded().type === GroupType.MailingList && newName.trim() === "") {
 					return "enterName_msg"
 				} else {
 					return null
@@ -255,163 +258,153 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 			})
 	}
 
-	_createUsedStorageFieldAttrs(): TextFieldAttrs {
+	private createUsedStorageFieldAttrs(): TextFieldAttrs {
 		return {
 			label: "storageCapacityUsed_label",
-			value: this._usedStorageInBytes ? formatStorageSize(this._usedStorageInBytes) : lang.get("loading_msg"),
+			value: this.usedStorageInBytes ? formatStorageSize(this.usedStorageInBytes) : lang.get("loading_msg"),
 			disabled: true,
 		}
 	}
 
-	_showAddMember(): void {
-		this._entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
-			return this._entityClient.loadAll(GroupInfoTypeRef, customer.userGroups).then(userGroupInfos => {
-				// remove all users that are already member
-				let globalAdmin = logins.isGlobalAdminUserLoggedIn()
-				let localAdminGroupIds = logins
-					.getUserController()
-					.getLocalAdminGroupMemberships()
-					.map(gm => gm.group)
-				let availableUserGroupInfos = userGroupInfos.filter(g => {
-					if (!globalAdmin && localAdminGroupIds.indexOf(assertNotNull(g.localAdmin)) === -1) {
-						return false
-					} else {
-						return !g.deleted && this._members.getLoaded().find(m => isSameId(m._id, g._id)) == null
-					}
-				})
-
-				if (availableUserGroupInfos.length > 0) {
-					availableUserGroupInfos.sort(compareGroupInfos)
-					let selectedGroupInfo = firstThrow(availableUserGroupInfos)
-					let addUserToGroupOkAction = (dialog: Dialog) => {
-						showProgressDialog("pleaseWait_msg", this._addUserToGroup(selectedGroupInfo.group))
-						dialog.close()
-					}
-
-					Dialog.showActionDialog({
-						title: lang.get("addUserToGroup_label"),
-						child: {
-							view: () => m(DropDownSelector, {
-									label: "userSettings_label",
-									items: availableUserGroupInfos.map(g => {
-										return {
-											name: getGroupInfoDisplayName(g),
-											value: g,
-										}
-									}),
-									selectedValue: selectedGroupInfo,
-									selectionChangedHandler: (newSelected: GroupInfo) => {
-										selectedGroupInfo = newSelected
-									},
-									dropdownWidth: 250,
-								}
-							),
-						},
-						allowOkWithReturn: true,
-						okAction: addUserToGroupOkAction,
-					})
-				}
-			})
+	private async showAddMember(): Promise<void> {
+		const customer = await this.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+		const userGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
+		// remove all users that are already member
+		let globalAdmin = logins.isGlobalAdminUserLoggedIn()
+		let localAdminGroupIds = logins
+			.getUserController()
+			.getLocalAdminGroupMemberships()
+			.map(gm => gm.group)
+		let availableUserGroupInfos = userGroupInfos.filter(g => {
+			if (!globalAdmin && localAdminGroupIds.indexOf(assertNotNull(g.localAdmin)) === -1) {
+				return false
+			} else {
+				return !g.deleted && this.members.getLoaded().find(m => isSameId(m._id, g._id)) == null
+			}
 		})
-	}
 
-	_addUserToGroup(group: Id): Promise<any> {
-		return this._entityClient
-				   .load(GroupTypeRef, group)
-				   .then(userGroup => this._entityClient.load(UserTypeRef, neverNull(userGroup.user)))
-				   .then(user => locator.groupManagementFacade.addUserToGroup(user, this.groupInfo.group))
-	}
+		if (availableUserGroupInfos.length > 0) {
+			availableUserGroupInfos.sort(compareGroupInfos)
+			let selectedGroupInfo = firstThrow(availableUserGroupInfos)
+			let addUserToGroupOkAction = (dialog: Dialog) => {
+				// noinspection JSIgnoredPromiseFromCall
+				showProgressDialog("pleaseWait_msg", this.addUserToGroup(selectedGroupInfo.group))
+				dialog.close()
+			}
 
-	_updateMembers(): void {
-		if (this._members) {
-			this._members.reset()
-
-			this._members.getAsync().then(() => m.redraw())
+			Dialog.showActionDialog({
+				title: lang.get("addUserToGroup_label"),
+				child: {
+					view: () => m(DropDownSelector, {
+							label: "userSettings_label",
+							items: availableUserGroupInfos.map(g => ({name: getGroupInfoDisplayName(g), value: g})),
+							selectedValue: selectedGroupInfo,
+							selectionChangedHandler: (newSelected: GroupInfo) => selectedGroupInfo = newSelected,
+							dropdownWidth: 250,
+						}
+					),
+				},
+				allowOkWithReturn: true,
+				okAction: addUserToGroupOkAction,
+			})
 		}
 	}
 
-	_updateAdministratedGroups(): void {
-		if (this._administratedGroups) {
-			this._administratedGroups.reset()
+	private async addUserToGroup(group: Id): Promise<any> {
+		const userGroup = await this.entityClient.load(GroupTypeRef, group)
+		const user = await this.entityClient.load(UserTypeRef, neverNull(userGroup.user))
+		return locator.groupManagementFacade.addUserToGroup(user, this.groupInfo.group)
+	}
 
-			this._administratedGroups.getAsync().then(() => m.redraw())
+	private async updateMembers(): Promise<void> {
+		if (this.members) {
+			this.members.reset()
+			await this.members.getAsync()
+			m.redraw()
 		}
 	}
 
-	_isMailGroup(): boolean {
+	private async updateAdministratedGroups(): Promise<void> {
+		if (this.administratedGroups) {
+			this.administratedGroups.reset()
+			await this.administratedGroups.getAsync()
+			m.redraw()
+		}
+	}
+
+	private isMailGroup(): boolean {
 		return this.groupInfo.groupType === GroupType.Mail
 	}
 
-	async _updateUsedStorage(): Promise<void> {
-		if (this._isMailGroup()) {
-			const usedStorage = await locator.groupManagementFacade.readUsedGroupStorage(this.groupInfo.group).catch(
-				ofClass(BadRequestError, e => {
-					// may happen if the user gets the admin flag removed
-				}),
-			)
-			if (usedStorage) this._usedStorageInBytes = usedStorage
+	private async updateUsedStorage(): Promise<void> {
+		if (this.isMailGroup()) {
+			try {
+				this.usedStorageInBytes = await locator.groupManagementFacade.readUsedGroupStorage(this.groupInfo.group)
+			} catch (e) {
+				if (!(e instanceof BadRequestError)) throw e
+				// may happen if the user gets the admin flag removed
+			}
 		} else {
-			this._usedStorageInBytes = 0
+			this.usedStorageInBytes = 0
 		}
 
 		m.redraw()
 	}
 
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		return promiseMap(updates, update => {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+		await promiseMap(updates, async update => {
 			const {instanceListId, instanceId, operation} = update
 
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE) {
-				return this._entityClient.load(GroupInfoTypeRef, this.groupInfo._id).then(updatedUserGroupInfo => {
-					if (isSameId(this.groupInfo._id, [neverNull(instanceListId), instanceId])) {
-						this.groupInfo = updatedUserGroupInfo
-						this._name = updatedUserGroupInfo.name
-						this._isActive = updatedUserGroupInfo.deleted != null
-						return this._updateUsedStorage()
-					} else {
-						// a member name may have changed
-						return this._updateMembers()
-					}
-				})
+				const updatedUserGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.groupInfo._id)
+				if (isSameId(this.groupInfo._id, [neverNull(instanceListId), instanceId])) {
+					this.groupInfo = updatedUserGroupInfo
+					this.name = updatedUserGroupInfo.name
+					this.isActive = updatedUserGroupInfo.deleted != null
+					return this.updateUsedStorage()
+				} else {
+					// a member name may have changed
+					return this.updateMembers()
+				}
 			} else if (
 				isUpdateForTypeRef(GroupMemberTypeRef, update) &&
-				this._group.isLoaded() &&
-				this._group.getLoaded().members === neverNull(instanceListId)
+				this.group.isLoaded() &&
+				this.group.getLoaded().members === neverNull(instanceListId)
 			) {
 				// the members have changed
-				return this._updateMembers()
+				return this.updateMembers()
 			} else if (
 				isUpdateForTypeRef(AdministratedGroupTypeRef, update) &&
-				this._group.isLoaded() &&
-				this._group.getLoaded().administratedGroups &&
-				neverNull(this._group.getLoaded().administratedGroups).items === neverNull(instanceListId)
+				this.group.isLoaded() &&
+				this.group.getLoaded().administratedGroups &&
+				neverNull(this.group.getLoaded().administratedGroups).items === neverNull(instanceListId)
 			) {
-				return this._updateAdministratedGroups()
+				return this.updateAdministratedGroups()
 			}
-		}).then(noOp)
+		})
 	}
 
-	_createMembersTableAttrs(): TableAttrs {
+	private createMembersTableAttrs(): TableAttrs {
 		const addUserButtonAttrs: IconButtonAttrs = {
 			title: "addUserToGroup_label",
-			click: () => this._showAddMember(),
+			click: () => this.showAddMember(),
 			icon: Icons.Add,
 			size: ButtonSize.Compact,
 		} as const
 		let lines: TableLineAttrs[] = []
 
-		if (this._members.isLoaded()) {
-			lines = this._members.getLoaded().map(userGroupInfo => {
+		if (this.members.isLoaded()) {
+			lines = this.members.getLoaded().map(userGroupInfo => {
 				const removeButtonAttrs: IconButtonAttrs = {
 					title: "remove_action",
 					click: () => {
 						showProgressDialog(
 							"pleaseWait_msg",
-							this._entityClient
+							this.entityClient
 								.load(GroupTypeRef, userGroupInfo.group)
-								.then(userGroup => locator.groupManagementFacade.removeUserFromGroup(neverNull(userGroup.user), this.groupInfo.group)),
+								.then(userGroup => locator.groupManagementFacade.removeUserFromGroup(assertNotNull(userGroup.user), this.groupInfo.group)),
 						).catch(
-							ofClass(NotAuthorizedError, e => {
+							ofClass(NotAuthorizedError, () => {
 								Dialog.message("removeUserFromGroupNotAdministratedError_msg")
 							}),
 						)
@@ -435,11 +428,11 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 		}
 	}
 
-	_createAdministratedGroupsTableAttrs(): TableAttrs {
+	private createAdministratedGroupsTableAttrs(): TableAttrs {
 		let lines: TableLineAttrs[] = []
 
-		if (this._administratedGroups.isLoaded()) {
-			lines = this._administratedGroups.getLoaded().map(groupInfo => {
+		if (this.administratedGroups.isLoaded()) {
+			lines = this.administratedGroups.getLoaded().map(groupInfo => {
 				let removeButtonAttrs: IconButtonAttrs | null = null
 
 				if (logins.getUserController().isGlobalAdmin()) {
@@ -447,6 +440,7 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 						title: "remove_action",
 						click: () => {
 							let adminGroupId = neverNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Admin)).group
+							// noinspection JSIgnoredPromiseFromCall
 							showProgressDialog("pleaseWait_msg", locator.userManagementFacade.updateAdminship(groupInfo.group, adminGroupId))
 						},
 						icon: Icons.Cancel,
