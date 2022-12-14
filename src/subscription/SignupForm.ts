@@ -13,7 +13,7 @@ import {PasswordForm, PasswordModel} from "../settings/PasswordForm"
 import type {CheckboxAttrs} from "../gui/base/Checkbox.js"
 import {Checkbox} from "../gui/base/Checkbox.js"
 import type {lazy} from "@tutao/tutanota-utils"
-import {ofClass} from "@tutao/tutanota-utils"
+import {assertNotNull, ofClass} from "@tutao/tutanota-utils"
 import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {showWorkerProgressDialog} from "../gui/dialogs/ProgressDialog"
@@ -82,8 +82,12 @@ export class SignupForm implements Component<SignupFormAttrs> {
 					this._mailAddress = email
 					this._mailAddressFormErrorId = null
 					this.__signupUnavailableEmailsTest.getStage(2).complete()
+					this.__signupEmailDomainsTest.getStage(2).complete()
 				} else {
 					this._mailAddressFormErrorId = validationResult.errorId
+					if (["mailAddressNANudge_msg", "mailAddressNA_msg"].includes(assertNotNull(validationResult.errorId))) {
+						this.__signupEmailDomainsTest.getStage(1).complete()
+					}
 				}
 			},
 			onBusyStateChanged: isBusy => {
@@ -149,6 +153,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			{
 				oncreate: () => {
 					this.__signupPasswordStrengthTest.getStage(0).complete()
+					this.__signupEmailDomainsTest.getStage(0).complete()
 					this.__signupUnavailableEmailsTest.getStage(0).complete()
 				}
 			},
