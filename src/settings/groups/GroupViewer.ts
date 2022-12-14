@@ -1,4 +1,4 @@
-import m, {Children} from "mithril"
+import m, {ChildArray, Children} from "mithril"
 import {Dialog} from "../../gui/base/Dialog.js"
 import {formatDateWithMonth, formatStorageSize} from "../../misc/Formatter.js"
 import {lang} from "../../misc/LanguageViewModel.js"
@@ -90,44 +90,76 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	renderView(): Children {
-		const administratedBySelectorAttrs = this.createAdministratedBySelectorAttrs()
+		return m("#user-viewer.fill-absolute.scroll.plr-l", [
+			this.renderHeader(),
+			...this.renderCommonInfo(),
+			...this.renderTypeDependentInfo()
+		])
+	}
 
+	private renderTypeDependentInfo(): ChildArray {
+		return this.isMailGroup()
+			? this.renderMailGroupInfo()
+			: this.renderLocalAdminGroupInfo()
+	}
+
+	/**
+	 * render the header that tells us what type of group we have here
+	 * @private
+	 */
+	private renderHeader(): Children {
+		return m(".h4.mt-l", this.group.isLoaded()
+			? getGroupTypeName(this.group.getLoaded().type)
+			: lang.get("emptyString_msg"))
+	}
+
+	/**
+	 * render the fields that are common to all group types
+	 * @private
+	 */
+	private renderCommonInfo(): ChildArray {
 		return [
-			m("#user-viewer.fill-absolute.scroll.plr-l", [
-				m(".h4.mt-l", this.group.isLoaded() ? getGroupTypeName(this.group.getLoaded().type) : lang.get("emptyString_msg")),
-				m("", [
-					m(TextField, {
-						label: "created_label",
-						value: formatDateWithMonth(this.groupInfo.created),
-						disabled: true,
-					}),
-					this.isMailGroup() ? m(TextField, this.createUsedStorageFieldAttrs()) : null,
-				]),
-				m("", [
-					m(TextField, this.createNameFieldAttrs()),
-					logins.getUserController().isGlobalAdmin() && administratedBySelectorAttrs ? m(DropDownSelector, administratedBySelectorAttrs) : null,
-					m(DropDownSelector, this.createStatusSelectorAttrs()),
-				]),
-				!this.groupInfo.deleted ? m(".h4.mt-l.mb-s", lang.get("groupMembers_label")) : null,
-				!this.groupInfo.deleted ? m(Table, this.createMembersTableAttrs()) : null,
-				this.isMailGroup()
-					? [
-						m(".h4.mt-l", lang.get("mailSettings_label")),
-						m(".wrapping-row", [
-							m("", [
-								m(TextField, {
-									label: "mailAddress_label",
-									value: this.groupInfo.mailAddress ?? "",
-									disabled: true,
-								}),
-							]),
-						]),
-					]
-					: null,
-				this.groupInfo.groupType !== GroupType.LocalAdmin
-					? null
-					: [m(".h4.mt-l.mb-s", lang.get("administratedGroups_label")), m(Table, this.createAdministratedGroupsTableAttrs())],
+			m(TextField, {label: "created_label", value: formatDateWithMonth(this.groupInfo.created), disabled: true}),
+			m(TextField, this.createNameFieldAttrs()),
+			this.renderAdministratedByDropdown(),
+			m(DropDownSelector, this.createStatusSelectorAttrs()),
+			!this.groupInfo.deleted ? m(".h5.mt-l.mb-s", lang.get("groupMembers_label")) : null,
+			!this.groupInfo.deleted ? m(Table, this.createMembersTableAttrs()) : null,
+		]
+	}
+
+	private renderAdministratedByDropdown(): Children {
+		const administratedBySelectorAttrs = this.createAdministratedBySelectorAttrs()
+		return logins.getUserController().isGlobalAdmin() && administratedBySelectorAttrs
+			? m(DropDownSelector, administratedBySelectorAttrs)
+			: null
+	}
+
+	/**
+	 * render the information that only shared mailboxes have
+	 * @private
+	 */
+	private renderMailGroupInfo(): ChildArray {
+		return [
+			m(TextField, this.createUsedStorageFieldAttrs()),
+			m(".wrapping-row", [
+				m(TextField, {
+					label: "mailAddress_label",
+					value: this.groupInfo.mailAddress ?? "",
+					disabled: true,
+				}),
 			]),
+		]
+	}
+
+	/**
+	 * render the information that only local admin groups have
+	 * @private
+	 */
+	private renderLocalAdminGroupInfo(): ChildArray {
+		return [
+			m(".h5.mt-l.mb-s", lang.get("administratedGroups_label")),
+			m(Table, this.createAdministratedGroupsTableAttrs())
 		]
 	}
 
