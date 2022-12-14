@@ -21,7 +21,7 @@ import {formatDate, formatNameAndAddress, formatStorageSize} from "../misc/Forma
 import {getByAbbreviation} from "../api/common/CountryList"
 import * as AddUserDialog from "../settings/AddUserDialog"
 import * as EmailAliasOptionsDialog from "./EmailAliasOptionsDialog"
-import * as AddGroupDialog from "../settings/AddGroupDialog"
+import * as AddGroupDialog from "../settings/groups/AddGroupDialog.js"
 import * as ContactFormEditor from "../settings/contactform/ContactFormEditor"
 import {showUpgradeWizard} from "./UpgradeSubscriptionWizard"
 import {showSwitchDialog} from "./SwitchSubscriptionDialog"
