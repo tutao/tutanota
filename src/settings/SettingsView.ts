@@ -71,8 +71,7 @@ export interface UpdatableSettingsViewer extends Component {
 
 /** UI component shown in the third column of settings. Not actually a Mithril component. */
 export interface UpdatableSettingsDetailsViewer {
-	// not the same as Component.view
-	view(): Children
+	renderView(): Children
 
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<unknown>
 }
@@ -351,7 +350,7 @@ export class SettingsView implements CurrentView {
 		)
 		this._settingsDetailsColumn = new ViewColumn(
 			{
-				view: () => m(".mlr-safe-inset.fill-absolute", (this.detailsViewer ? this.detailsViewer.view() : m(""))),
+				view: () => m(".mlr-safe-inset.fill-absolute", (this.detailsViewer ? this.detailsViewer.renderView() : m(""))),
 			},
 			ColumnType.Background,
 			600,

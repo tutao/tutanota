@@ -48,7 +48,7 @@ export class ContactFormViewer implements UpdatableSettingsDetailsViewer {
 		})
 	}
 
-	view(): Children {
+	renderView(): Children {
 		return [
 			m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
 				m(".flex-space-between.pt", [

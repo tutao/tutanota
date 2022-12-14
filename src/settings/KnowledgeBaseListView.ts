@@ -184,7 +184,7 @@ class KnowledgeBaseSettingsDetailsViewer implements UpdatableSettingsDetailsView
 		this.readonly = readonly
 	}
 
-	view(): Children {
+	renderView(): Children {
 		return m(
 			".plr-l",
 			m(KnowledgeBaseEntryView, {

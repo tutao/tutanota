@@ -48,9 +48,7 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 		this.entityClient = entityClient
 		this.groupInfo = groupInfo
 		this.name = groupInfo.name
-		this.group = new LazyLoaded(() => {
-			return this.entityClient.load(GroupTypeRef, this.groupInfo.group)
-		})
+		this.group = new LazyLoaded(() => this.entityClient.load(GroupTypeRef, this.groupInfo.group))
 
 		this.group.getAsync().then(() => m.redraw())
 
@@ -91,7 +89,7 @@ export class GroupViewer implements UpdatableSettingsDetailsViewer {
 		this.updateUsedStorage()
 	}
 
-	view(): Children {
+	renderView(): Children {
 		const administratedBySelectorAttrs = this.createAdministratedBySelectorAttrs()
 
 		return [
