@@ -24,7 +24,7 @@ export class ClientDetector {
 
 		this._setDeviceInfo()
 
-		this.overflowAuto = "auto"// this.cssPropertyValueSupported("overflow", "overlay") ? "overlay" : "auto"
+		this.overflowAuto = this.cssPropertyValueSupported("overflow", "overlay") ? "overlay" : "auto"
 		this.isMacOS = platform.indexOf("Mac") !== -1
 	}
 

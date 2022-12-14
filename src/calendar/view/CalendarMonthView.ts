@@ -3,7 +3,7 @@ import {px, size} from "../../gui/size"
 import {EventTextTimeOption, WeekStart} from "../../api/common/TutanotaConstants"
 import type {CalendarDay, CalendarMonth} from "../date/CalendarUtils"
 import {
-	CALENDAR_EVENT_HEIGHT,
+	CALENDAR_EVENT_HEIGHT, EventLayoutMode,
 	getAllDayDateForTimezone,
 	getCalendarMonth,
 	getDateIndicator,
@@ -370,7 +370,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 						}),
 					)
 			},
-			true,
+			EventLayoutMode.DayBasedColumn,
 		)
 	}
 

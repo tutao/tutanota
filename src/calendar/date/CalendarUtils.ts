@@ -309,18 +309,24 @@ export function colorForBg(color: string): string {
 	return isColorLight(color) ? "black" : "white"
 }
 
+export const enum EventLayoutMode {
+	/** Take event start and end times into account when laying out. */
+	TimeBasedColumn,
+	/** Each event is treated as if it would take the whole day when laying out. */
+	DayBasedColumn
+}
+
 
 /**
  * Function which sorts events into the "columns" and "rows" and renders them using {@param renderer}.
  * Columns are abstract and can be actually the rows. A single column progresses in time while multiple columns can happen in parallel.
- * @param eventsTakeUpWholeColumn {Function} when false, we can put multiple events one after another in a single column, otherwise only one event can be
  * in one column on a single day (it will "stretch" events from the day start until the next day).
  */
 export function layOutEvents(
 	events: Array<CalendarEvent>,
 	zone: string,
 	renderer: (columns: Array<Array<CalendarEvent>>) => ChildArray,
-	eventsTakeUpWholeColumn: boolean,
+	layoutMode: EventLayoutMode,
 ): ChildArray {
 	events.sort((e1, e2) => {
 		const e1Start = getEventStart(e1, zone)
@@ -340,12 +346,12 @@ export function layOutEvents(
 	// Cache for calculation events
 	const calcEvents = new Map()
 	events.forEach(e => {
-		const calcEvent = getFromMap(calcEvents, e, () => getCalculationEvent(e, zone, eventsTakeUpWholeColumn))
+		const calcEvent = getFromMap(calcEvents, e, () => getCalculationEvent(e, zone, layoutMode))
 		// Check if a new event group needs to be started
 		if (lastEventEnding != null
 			&& lastEventStart != null
 			&& lastEventEnding <= calcEvent.startTime.getTime()
-			&& (eventsTakeUpWholeColumn || !visuallyOverlaps(lastEventStart, lastEventEnding, calcEvent.startTime))
+			&& ((layoutMode === EventLayoutMode.DayBasedColumn) || !visuallyOverlaps(lastEventStart, lastEventEnding, calcEvent.startTime))
 		) {
 			// The latest event is later than any of the event in the
 			// current group. There is no overlap. Output the current
@@ -363,9 +369,14 @@ export function layOutEvents(
 		for (let i = 0; i < columns.length; i++) {
 			const col = columns[i]
 			const lastEvent = col[col.length - 1]
-			const lastCalcEvent = getFromMap(calcEvents, lastEvent, () => getCalculationEvent(lastEvent, zone, eventsTakeUpWholeColumn))
+			const lastCalcEvent = getFromMap(calcEvents, lastEvent, () => getCalculationEvent(lastEvent, zone, layoutMode))
 
-			if (!collidesWith(lastCalcEvent, calcEvent) && (eventsTakeUpWholeColumn || !visuallyOverlaps(lastCalcEvent.startTime, lastCalcEvent.endTime, calcEvent.startTime))) {
+			if (!collidesWith(lastCalcEvent, calcEvent) &&
+				(
+					(layoutMode === EventLayoutMode.DayBasedColumn)
+					|| !visuallyOverlaps(lastCalcEvent.startTime, lastCalcEvent.endTime, calcEvent.startTime)
+				)
+			) {
 				col.push(e) // push real event here not calc event
 
 				placed = true
@@ -392,8 +403,8 @@ export function layOutEvents(
 	return children
 }
 
-function getCalculationEvent(event: CalendarEvent, zone: string, handleAsAllDay: boolean): CalendarEvent {
-	if (handleAsAllDay) {
+function getCalculationEvent(event: CalendarEvent, zone: string, eventLayoutMode: EventLayoutMode): CalendarEvent {
+	if (eventLayoutMode === EventLayoutMode.DayBasedColumn) {
 		const calcEvent = clone(event)
 
 		if (isAllDayEvent(event)) {
