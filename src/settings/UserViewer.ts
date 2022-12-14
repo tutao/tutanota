@@ -113,7 +113,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		this.updateUsedStorageAndAdminFlag()
 	}
 
-	view(): Children {
+	renderView(): Children {
 		const changePasswordButtonAttrs: IconButtonAttrs = {
 			title: "changePassword_label",
 			click: () => this.changePassword(),

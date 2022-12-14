@@ -20,11 +20,11 @@ import {ActionBar} from "../gui/base/ActionBar.js"
 
 export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 	isReadOnly: lazy<boolean>
-	readonly view: UpdatableSettingsDetailsViewer["view"]
+	readonly renderView: UpdatableSettingsDetailsViewer["renderView"]
 
 	constructor(template: EmailTemplate, entityClient: EntityClient, isReadOnly: lazy<boolean>) {
 		this.isReadOnly = isReadOnly
-		this.view = () => {
+		this.renderView = () => {
 			return m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
 				m(".flex.mt-l.center-vertically", [
 					m(".h4.text-ellipsis", template.title),

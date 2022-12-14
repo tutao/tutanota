@@ -28,7 +28,7 @@ export class WhitelabelChildViewer implements UpdatableSettingsDetailsViewer {
 	) {
 	}
 
-	view(): Children {
+	renderView(): Children {
 		return m("#whitelabel-child-viewer.fill-absolute.scroll.plr-l", [
 			m(".h4.mt-l", lang.get("whitelabelAccount_label")),
 			m(TextField, {
