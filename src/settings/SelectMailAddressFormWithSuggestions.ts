@@ -47,6 +47,7 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 	private focused = false
 	private mailAvailabilities: MailAddressAvailability[] = []
 	private selectedMailAddressSuggestionIndex = 0
+	private suggestionsLoaded = false
 
 	constructor({attrs}: Vnode<SelectMailAddressFormWithSuggestionsAttrs>) {
 		this.isVerificationBusy = false
@@ -117,8 +118,12 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 							? m(IconButton, attrs.injectionsRightButtonAttrs)
 							: null,
 				],
-			}), this.focused && !this.isVerificationBusy && this.performClientSideEmailValidation(attrs).valid ? this.renderSuggestions(attrs) : null
+			}), this.displaySuggestions() ? this.renderSuggestions(attrs) : null
 		])
+	}
+
+	private displaySuggestions() {
+		return this.focused && this.suggestionsLoaded
 	}
 
 	private renderSuggestions(attrs: SelectMailAddressFormWithSuggestionsAttrs): Children {
@@ -219,6 +224,7 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 			const {valid} = this.performClientSideEmailValidation(attrs)
 
 			if (!valid) {
+				this.suggestionsLoaded = false
 				return
 			}
 
@@ -231,6 +237,7 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 				firstAvailableIndex = availabilities.findIndex(el => el.available)
 			} finally {
 				this.onBusyStateChanged(false, onBusyStateChanged)
+				this.suggestionsLoaded = true
 				this.selectSuggestion(attrs, firstAvailableIndex)
 
 				m.redraw()
