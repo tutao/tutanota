@@ -14,6 +14,7 @@ import {UsageTestController} from "@tutao/tutanota-usagetests"
 import {UserController} from "../../../api/main/UserController.js"
 import {progressIcon} from "../../../gui/base/Icon.js"
 import {UserManagementFacade} from "../../../api/worker/facades/UserManagementFacade.js"
+import {isApp} from "../../../api/common/Env.js"
 
 /** Actions that may be sent in stage 2 of the recoveryCodeDialog usage test. */
 type RecoveryCodeNewsAction = "copy" | "print" | "select" | "dismiss" | "close"
@@ -141,6 +142,10 @@ export class RecoveryCodeNews implements NewsListItem {
 	}
 
 	private renderPrintButton(): Children {
+		if (isApp() || typeof window.print !== "function") {
+			return null
+		}
+
 		return m(Button, {
 			label: "print_action",
 			type: ButtonType.Secondary,
