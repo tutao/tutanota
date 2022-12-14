@@ -3,6 +3,8 @@ import {IMainLocator} from "../../api/main/MainLocator.js"
 import {TranslationKey} from "../../misc/LanguageViewModel.js"
 import {noOp, ofClass} from "@tutao/tutanota-utils"
 import {CancelledError} from "../../api/common/error/CancelledError.js"
+import {Dialog} from "../../gui/base/Dialog.js"
+import {UserError} from "../../api/main/UserError.js"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 
@@ -25,35 +27,43 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		const mailboxDetails = await mailModel.getUserMailboxDetails()
 		let editor
 
-		if (mailToUrlString) {
-			editor = await newMailtoUrlMailEditor(mailToUrlString, false, mailboxDetails).catch(ofClass(CancelledError, noOp))
-			if (!editor) return
-		} else {
-			const files = await fileApp.getFilesMetaData(filesUris)
-			const address = (addresses && addresses[0]) || ""
-			const recipients = address
-				? {
-					to: [
-						{
-							name: "",
-							address: address,
-						},
-					],
-				}
-				: {}
-			editor = await newMailEditorFromTemplate(
-				mailboxDetails,
-				recipients,
-				subject || (files.length > 0 ? files[0].name : ""),
-				signatureModule.appendEmailSignature(text || "", logins.getUserController().props),
-				files,
-				undefined,
-				undefined,
-				true // we want emails created in this method to always default to saving changes
-			)
-		}
+		try {
+			if (mailToUrlString) {
+				editor = await newMailtoUrlMailEditor(mailToUrlString, false, mailboxDetails).catch(ofClass(CancelledError, noOp))
+				if (!editor) return
+			} else {
+				const files = await fileApp.getFilesMetaData(filesUris)
+				const address = (addresses && addresses[0]) || ""
+				const recipients = address
+					? {
+						to: [
+							{
+								name: "",
+								address: address,
+							},
+						],
+					}
+					: {}
+				editor = await newMailEditorFromTemplate(
+					mailboxDetails,
+					recipients,
+					subject || (files.length > 0 ? files[0].name : ""),
+					signatureModule.appendEmailSignature(text || "", logins.getUserController().props),
+					files,
+					undefined,
+					undefined,
+					true // we want emails created in this method to always default to saving changes
+				)
+			}
 
-		editor.show()
+			editor.show()
+		} catch (e) {
+			if (e instanceof UserError) {
+				// noinspection ES6MissingAwait
+				Dialog.message(() => e.message)
+			}
+			throw e
+		}
 	}
 
 	async invalidateAlarms(): Promise<void> {
