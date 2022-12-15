@@ -4,7 +4,7 @@ import {customTypeEncoders, OfflineStorage, sql} from "../../../../../src/api/wo
 import {instance, object, when} from "testdouble"
 import * as cborg from "cborg"
 import {GENERATED_MIN_ID, generatedIdToTimestamp, getElementId, timestampToGeneratedId} from "../../../../../src/api/common/utils/EntityUtils.js"
-import {firstThrow, getDayShifted, getTypeId, lastThrow, mapNullable, promiseMap, TypeRef} from "@tutao/tutanota-utils"
+import {getFirstOrThrow, getDayShifted, getTypeId, lastThrow, mapNullable, promiseMap, TypeRef} from "@tutao/tutanota-utils"
 import {DateProvider} from "../../../../../src/api/common/DateProvider.js"
 import {
 	createFile,
@@ -381,8 +381,8 @@ o.spec("OfflineStorage", function () {
 				await storage.put(entity)
 			}
 
-			await storage.setNewRangeForList(MailTypeRef, inboxListId, firstThrow(oldInboxMails)._id[1], lastThrow(newInboxMails)._id[1])
-			await storage.setNewRangeForList(MailTypeRef, trashListId, firstThrow(trashMails)._id[1], lastThrow(trashMails)._id[1])
+			await storage.setNewRangeForList(MailTypeRef, inboxListId, getFirstOrThrow(oldInboxMails)._id[1], lastThrow(newInboxMails)._id[1])
+			await storage.setNewRangeForList(MailTypeRef, trashListId, getFirstOrThrow(trashMails)._id[1], lastThrow(trashMails)._id[1])
 
 			// Here we clear the excluded data
 			await storage.clearExcludedData(timeRangeDays, userId)

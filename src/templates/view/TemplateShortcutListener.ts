@@ -8,7 +8,7 @@ import {ButtonType} from "../../gui/base/Button.js"
 import {Dropdown} from "../../gui/base/Dropdown.js"
 import {modal} from "../../gui/base/Modal"
 import {showTemplatePopupInEditor} from "./TemplatePopup"
-import {firstThrow} from "@tutao/tutanota-utils"
+import {getFirstOrThrow} from "@tutao/tutanota-utils"
 
 export function registerTemplateShortcutListener(editor: Editor, templateModel: TemplatePopupModel): TemplateShortcutListener {
 	const listener = new TemplateShortcutListener(editor, templateModel, lang)
@@ -77,7 +77,7 @@ class TemplateShortcutListener {
 						dropdown.setOrigin(this._editor.getCursorPosition())
 						modal.displayUnique(dropdown, false)
 					} else {
-						this._editor.insertHTML(firstThrow(template.contents).text)
+						this._editor.insertHTML(getFirstOrThrow(template.contents).text)
 					}
 				} else {
 					showTemplatePopupInEditor(this._templateModel, this._editor, null, selectedText)

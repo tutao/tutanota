@@ -5,7 +5,7 @@ import {TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../../api/common/TutanotaConstants.
 import m from "mithril"
 import {SelectMailAddressForm} from "../SelectMailAddressForm.js"
 import {ExpanderPanel} from "../../gui/base/Expander.js"
-import {firstThrow, ofClass} from "@tutao/tutanota-utils"
+import {getFirstOrThrow, ofClass} from "@tutao/tutanota-utils"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog.js"
 import {InvalidDataError, LimitReachedError, PreconditionFailedError} from "../../api/common/error/RestError.js"
 import {MailAddressTableModel} from "./MailAddressTableModel.js"
@@ -18,7 +18,7 @@ export function showAddAliasDialog(model: MailAddressTableModel) {
 		let isVerificationBusy = false
 		let mailAddress: string
 		let formErrorId: TranslationKey | null = "mailAddressNeutral_msg"
-		let formDomain = stream(firstThrow(domains))
+		let formDomain = stream(getFirstOrThrow(domains))
 		let senderName = model.defaultSenderName()
 
 		const addEmailAliasOkAction = (dialog: Dialog) => {

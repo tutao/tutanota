@@ -1,5 +1,5 @@
 import {decode} from "cborg"
-import {assert, downcast, firstThrow, partitionAsync, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
+import {assert, downcast, getFirstOrThrow, partitionAsync, stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
 import type {U2fChallenge, U2fRegisteredDevice, WebauthnResponseData} from "../../../api/entities/sys/TypeRefs.js"
 import {createU2fRegisteredDevice, createWebauthnResponseData, U2fKey} from "../../../api/entities/sys/TypeRefs.js"
 import {WebAuthnFacade} from "../../../native/common/generatedipc/WebAuthnFacade.js"
@@ -98,7 +98,7 @@ export class WebauthnClient {
 				selectedClientUrl = this.clientWebRoot
 			} else {
 				// Nothing else worked, select legacy U2F key for whitelabel domain
-				selectedClientUrl = this.legacyU2fKeyToBaseUrl(firstThrow(challenge.keys))
+				selectedClientUrl = this.legacyU2fKeyToBaseUrl(getFirstOrThrow(challenge.keys))
 			}
 		}
 		return selectedClientUrl

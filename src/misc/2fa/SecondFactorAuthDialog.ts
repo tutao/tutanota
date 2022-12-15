@@ -1,6 +1,6 @@
 import {SecondFactorType} from "../../api/common/TutanotaConstants.js"
 import type {Thunk} from "@tutao/tutanota-utils"
-import {assertNotNull, firstThrow} from "@tutao/tutanota-utils"
+import {assertNotNull, getFirstOrThrow} from "@tutao/tutanota-utils"
 import type {TranslationKey} from "../LanguageViewModel.js"
 import type {Challenge} from "../../api/entities/sys/TypeRefs.js"
 import {createSecondFactorAuthData} from "../../api/entities/sys/TypeRefs.js"
@@ -92,7 +92,7 @@ export class SecondFactorAuthDialog {
 		if (u2fChallenge?.u2f != null && u2fSupported) {
 			const {canAttempt, cannotAttempt} = await this.webauthnClient.canAttemptChallenge(u2fChallenge.u2f)
 			canLoginWithU2f = canAttempt.length !== 0
-			otherLoginDomain = cannotAttempt.length > 0 ? appIdToLoginDomain(firstThrow(cannotAttempt).appId) : null
+			otherLoginDomain = cannotAttempt.length > 0 ? appIdToLoginDomain(getFirstOrThrow(cannotAttempt).appId) : null
 		} else {
 			canLoginWithU2f = false
 			otherLoginDomain = null
