@@ -555,8 +555,6 @@ export class MailIndexer {
 		for (const folder of folders) {
 			if (!this._excludedListIds.includes(folder.mails)) {
 				mailListIds.push(folder.mails)
-				const subfolders = await this._defaultCachingEntity.loadAll(MailFolderTypeRef, folder.subFolders)
-				mailListIds.push(...subfolders.map(f => f.mails))
 			}
 		}
 

@@ -40,8 +40,7 @@ import {
 	getArchiveFolder,
 	getDefaultSender,
 	getEnabledMailAddressesWithUser,
-	getFolder,
-	getFolderName,
+	getFolder, getFolderName,
 	getMailboxName,
 	isExcludedMailAddress,
 	isTutanotaTeamMail
@@ -72,7 +71,7 @@ import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {InitAsResponseArgs} from "../editor/SendMailModel"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 import {DesktopSystemFacade} from "../../native/common/generatedipc/DesktopSystemFacade.js"
-import {getWholeList} from "../model/FolderSystem.js"
+import {getPathToFolder, getWholeList} from "../model/FolderSystem.js"
 
 
 export const enum ContentBlockingStatus {
@@ -179,7 +178,8 @@ export class MailViewerViewModel {
 
 		if (folder) {
 			this.mailModel.getMailboxDetailsForMail(this.mail).then(mailboxDetails => {
-				this.folderText = `${getMailboxName(this.logins, mailboxDetails)} / ${getFolderName(folder)}`
+				const name = getPathToFolder(mailboxDetails.folders, folder._id).map(getFolderName).join(" · ")
+				this.folderText = `${getMailboxName(this.logins, mailboxDetails)} / ${name}`
 				m.redraw()
 			})
 		}
