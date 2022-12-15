@@ -2,7 +2,7 @@ import type {EntityRestInterface} from "./EntityRestClient"
 import {EntityRestClient, EntityRestClientSetupOptions} from "./EntityRestClient"
 import {resolveTypeReference} from "../../common/EntityFunctions"
 import {OperationType} from "../../common/TutanotaConstants"
-import {assertNotNull, difference, firstThrow, flat, groupBy, isSameTypeRef, lastThrow, TypeRef} from "@tutao/tutanota-utils"
+import {assertNotNull, difference, getFirstOrThrow, flat, groupBy, isSameTypeRef, lastThrow, TypeRef} from "@tutao/tutanota-utils"
 import {containsEventOfType, getEventOfType} from "../../common/utils/Utils"
 import type {EntityUpdate, User} from "../../entities/sys/TypeRefs.js"
 import {
@@ -509,7 +509,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				await this.storage.setLowerRangeForList(typeRef, listId, GENERATED_MIN_ID)
 			} else {
 				// After reversing the list the first element in the list is the lower range limit
-				await this.storage.setLowerRangeForList(typeRef, listId, getElementId(firstThrow(receivedEntities)))
+				await this.storage.setLowerRangeForList(typeRef, listId, getElementId(getFirstOrThrow(receivedEntities)))
 			}
 		} else {
 			// Last element in the list is the upper range limit

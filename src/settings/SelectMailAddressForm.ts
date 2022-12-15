@@ -3,7 +3,7 @@ import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {isMailAddress} from "../misc/FormatValidator"
 import {AccessDeactivatedError} from "../api/common/error/RestError"
-import {firstThrow} from "@tutao/tutanota-utils"
+import {getFirstOrThrow} from "@tutao/tutanota-utils"
 import {formatMailAddressFromParts} from "../misc/Formatter"
 import {Icon} from "../gui/base/Icon"
 import {BootIcons} from "../gui/base/icons/BootIcons"
@@ -46,7 +46,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 	constructor({attrs}: Vnode<SelectMailAddressFormAttrs>) {
 		this.isVerificationBusy = false
 		this.checkAddressTimeout = null
-		this.domain = firstThrow(attrs.availableDomains)
+		this.domain = getFirstOrThrow(attrs.availableDomains)
 		this.username = ""
 		this.messageId = "mailAddressNeutral_msg"
 		this.signupUnavailableEmailsTest = locator.usageTestController.getTest("signup.unavailableemails")

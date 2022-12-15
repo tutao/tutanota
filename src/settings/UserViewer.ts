@@ -5,14 +5,14 @@ import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {lang} from "../misc/LanguageViewModel"
 import type {Customer, GroupInfo, GroupMembership, User} from "../api/entities/sys/TypeRefs.js"
 import {CustomerTypeRef, GroupInfoTypeRef, GroupTypeRef, UserTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {asyncFind, firstThrow, LazyLoaded, neverNull, ofClass, promiseMap, remove} from "@tutao/tutanota-utils"
+import {asyncFind, getFirstOrThrow, LazyLoaded, neverNull, ofClass, promiseMap, remove} from "@tutao/tutanota-utils"
 import {BookingItemFeatureType, GroupType, OperationType} from "../api/common/TutanotaConstants"
 import {BadRequestError, NotAuthorizedError, PreconditionFailedError} from "../api/common/error/RestError"
 import {logins} from "../api/main/LoginController"
 import type {ContactForm} from "../api/entities/tutanota/TypeRefs.js"
 import {ContactFormTypeRef, CustomerContactFormGroupRootTypeRef, MailboxGroupRootTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import {ColumnWidth, Table, TableAttrs} from "../gui/base/Table.js"
-import {getGroupTypeName} from "./groups/GroupViewer.js"
+import {getGroupTypeDisplayName} from "./groups/GroupDetailsView.js"
 import {Icons} from "../gui/base/icons/Icons"
 import {SecondFactorsEditForm} from "./login/secondfactor/SecondFactorsEditForm.js"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
@@ -307,7 +307,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				async m => {
 					const groupInfo = await locator.entityClient.load(GroupInfoTypeRef, m.groupInfo)
 					return {
-						cells: [getGroupInfoDisplayName(groupInfo), getGroupTypeName(neverNull(m.groupType))],
+						cells: [getGroupInfoDisplayName(groupInfo), getGroupTypeDisplayName(neverNull(m.groupType))],
 						actionButtonAttrs: {
 							title: "remove_action",
 							click: () => {
@@ -388,7 +388,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 					value: g,
 				}))
 
-				let selectedGroupInfo = firstThrow(availableGroupInfos)
+				let selectedGroupInfo = getFirstOrThrow(availableGroupInfos)
 				Dialog.showActionDialog({
 					title: lang.get("addUserToGroup_label"),
 					child: {

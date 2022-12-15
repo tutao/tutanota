@@ -3,7 +3,7 @@ import {BookingItemFeatureType, FeatureType, GroupType} from "../../api/common/T
 import {Dialog} from "../../gui/base/Dialog.js"
 import type {ValidationResult} from "../SelectMailAddressForm.js"
 import {SelectMailAddressForm} from "../SelectMailAddressForm.js"
-import {getGroupTypeName} from "./GroupViewer.js"
+import {getGroupTypeDisplayName} from "./GroupDetailsView.js"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog.js"
 import {logins} from "../../api/main/LoginController.js"
 import type {TranslationKey} from "../../misc/LanguageViewModel.js"
@@ -14,7 +14,7 @@ import {showBusinessFeatureRequiredDialog} from "../../misc/SubscriptionDialogs.
 import {TemplateGroupPreconditionFailedReason} from "../../sharing/GroupUtils.js"
 import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
 import {TextField} from "../../gui/base/TextField.js"
-import {firstThrow, ofClass} from "@tutao/tutanota-utils"
+import {getFirstOrThrow, ofClass} from "@tutao/tutanota-utils"
 import type {GroupManagementFacade} from "../../api/worker/facades/GroupManagementFacade.js"
 import {locator} from "../../api/main/MainLocator.js"
 import {assertMainOrNode} from "../../api/common/Env.js"
@@ -41,7 +41,7 @@ export class AddGroupDialog implements Component<AddGroupDialogAttrs> {
 				label: "groupType_label",
 				items: availableGroupTypes.map(t => {
 					return {
-						name: getGroupTypeName(t),
+						name: getGroupTypeDisplayName(t),
 						value: t,
 					}
 				}),
@@ -78,7 +78,7 @@ export class AddGroupDialogViewModel {
 		this.availableDomains = availableDomains
 		this._groupManagementFacade = groupManagementFacade
 		this.groupTypes = this.getAvailableGroupTypes()
-		this.groupType = firstThrow(this.groupTypes)
+		this.groupType = getFirstOrThrow(this.groupTypes)
 		this.groupName = availableDomains[0]
 		this.mailAddress = ""
 		this.errorMessageId = "mailAddressNeutral_msg"

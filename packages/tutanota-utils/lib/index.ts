@@ -15,7 +15,7 @@ export {
 	last,
 	isEmpty,
 	lastThrow,
-	firstThrow,
+	getFirstOrThrow,
 	first,
 	findLast,
 	findLastIndex,

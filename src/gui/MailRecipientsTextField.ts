@@ -9,7 +9,7 @@ import {stringToNameAndMailAddress} from "../misc/parsing/MailAddressParser.js"
 import {DropdownChildAttrs} from "./base/Dropdown.js"
 import {Contact} from "../api/entities/tutanota/TypeRefs.js"
 import {RecipientsSearchModel} from "../misc/RecipientsSearchModel.js"
-import {firstThrow} from "@tutao/tutanota-utils"
+import {getFirstOrThrow} from "@tutao/tutanota-utils"
 import {Dialog} from "./base/Dialog.js"
 import {SearchDropDown} from "./SearchDropDown.js"
 
@@ -64,7 +64,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 
 				if (errors.length === 1 && newRecipients.length === 0) {
 					// if there was a single recipient and it was invalid then just pretend nothing happened
-					attrs.onTextChanged(firstThrow(errors))
+					attrs.onTextChanged(getFirstOrThrow(errors))
 				} else {
 					if (errors.length > 0) {
 						Dialog.message(() => `${lang.get("invalidPastedRecipients_msg")}\n\n${errors.join("\n")}`)

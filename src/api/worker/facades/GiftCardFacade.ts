@@ -6,7 +6,7 @@ import {
 	base64ToBase64Ext,
 	base64ToBase64Url,
 	base64UrlToBase64,
-	firstThrow,
+	getFirstOrThrow,
 	uint8ArrayToBase64
 } from "@tutao/tutanota-utils"
 import type {GiftCardRedeemGetReturn} from "../../entities/sys/TypeRefs.js"
@@ -40,7 +40,7 @@ export class GiftCardFacade {
 			throw new Error("missing admin membership")
 		}
 
-		const ownerKey = this.user.getGroupKey(firstThrow(adminGroupIds)) // adminGroupKey
+		const ownerKey = this.user.getGroupKey(getFirstOrThrow(adminGroupIds)) // adminGroupKey
 
 		const sessionKey = aes128RandomKey()
 		const {giftCard} = await this.serviceExecutor.post(

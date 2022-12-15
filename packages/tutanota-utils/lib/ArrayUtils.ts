@@ -204,7 +204,10 @@ export function lastThrow<T>(array: ReadonlyArray<T>): T {
 	return neverNull(last(array))
 }
 
-export function firstThrow<T>(array: ReadonlyArray<T>): T {
+/**
+ * get first item or throw if there is none
+ */
+export function getFirstOrThrow<T>(array: ReadonlyArray<T>): T {
 	if (isEmpty(array)) {
 		throw new RangeError("Array is empty")
 	}

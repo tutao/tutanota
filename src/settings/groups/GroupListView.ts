@@ -4,14 +4,12 @@ import {List} from "../../gui/base/List.js"
 import {lang} from "../../misc/LanguageViewModel.js"
 import {NotFoundError} from "../../api/common/error/RestError.js"
 import {size} from "../../gui/size.js"
-import type {GroupInfo} from "../../api/entities/sys/TypeRefs.js"
-import {GroupInfoTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import {CustomerTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import {neverNull, noOp} from "@tutao/tutanota-utils"
+import type {GroupInfo, GroupMembership} from "../../api/entities/sys/TypeRefs.js"
+import {CustomerTypeRef, GroupInfoTypeRef, GroupMemberTypeRef} from "../../api/entities/sys/TypeRefs.js"
+import {LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
 import type {SettingsView, UpdatableSettingsViewer} from "../SettingsView.js"
-import {LazyLoaded} from "@tutao/tutanota-utils"
 import {logins} from "../../api/main/LoginController.js"
-import {GroupViewer} from "./GroupViewer.js"
+import {GroupDetailsView} from "./GroupDetailsView.js"
 import * as AddGroupDialog from "./AddGroupDialog.js"
 import {Icon} from "../../gui/base/Icon.js"
 import {Icons} from "../../gui/base/icons/Icons.js"
@@ -19,19 +17,17 @@ import {OperationType} from "../../api/common/TutanotaConstants.js"
 import {BootIcons} from "../../gui/base/icons/BootIcons.js"
 import {header} from "../../gui/Header.js"
 import {isAdministratedGroup} from "../../search/model/SearchUtils.js"
-import {GroupMemberTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import type {EntityUpdateData} from "../../api/main/EventController.js"
 import {isUpdateForTypeRef} from "../../api/main/EventController.js"
 import {Button, ButtonType} from "../../gui/base/Button.js"
-import type {GroupMembership} from "../../api/entities/sys/TypeRefs.js"
 import {compareGroupInfos} from "../../api/common/utils/GroupUtils.js"
 import {GENERATED_MAX_ID} from "../../api/common/utils/EntityUtils.js"
 import {showNotAvailableForFreeDialog} from "../../misc/SubscriptionDialogs.js"
 import {locator} from "../../api/main/MainLocator.js"
 import {ListColumnWrapper} from "../../gui/ListColumnWrapper.js"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../../api/common/Env.js"
 import Stream from "mithril/stream";
+import {GroupDetailsModel} from "./GroupDetailsModel.js"
 
 assertMainOrNode()
 const className = "group-list"
@@ -144,7 +140,8 @@ export class GroupListView implements UpdatableSettingsViewer {
 			this._settingsView.detailsViewer = null
 			m.redraw()
 		} else if (groupInfos.length === 1 && selectionChanged) {
-			this._settingsView.detailsViewer = new GroupViewer(locator.entityClient, groupInfos[0])
+			const newSelectionModel = new GroupDetailsModel(groupInfos[0], locator.entityClient, m.redraw)
+			this._settingsView.detailsViewer = new GroupDetailsView(newSelectionModel)
 
 			if (elementClicked) {
 				this._settingsView.focusSettingsDetailsColumn()

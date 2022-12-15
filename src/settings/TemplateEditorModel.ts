@@ -7,7 +7,7 @@ import {clone, downcast} from "@tutao/tutanota-utils"
 import type {TemplateGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
 import {createEmailTemplate, EmailTemplateTypeRef} from "../api/entities/tutanota/TypeRefs.js"
 import stream from "mithril/stream"
-import {difference, firstThrow, remove} from "@tutao/tutanota-utils"
+import {difference, getFirstOrThrow, remove} from "@tutao/tutanota-utils"
 import {getElementId, isSameId} from "../api/common/utils/EntityUtils"
 import type {EntityClient} from "../api/common/EntityClient"
 import {UserError} from "../api/main/UserError"
@@ -27,7 +27,7 @@ export class TemplateEditorModel {
 		this.title = stream("")
 		this.tag = stream("")
 		const contents = this.template.contents
-		this.selectedContent = stream(contents.length > 0 ? firstThrow(contents) : this.createContent(lang.code))
+		this.selectedContent = stream(contents.length > 0 ? getFirstOrThrow(contents) : this.createContent(lang.code))
 		this._templateGroupRoot = templateGroupRoot
 		this._entityClient = entityClient
 		this._contentProvider = null
