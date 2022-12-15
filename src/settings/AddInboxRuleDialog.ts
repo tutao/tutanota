@@ -1,19 +1,19 @@
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {lang, TranslationKey} from "../misc/LanguageViewModel"
-import {InboxRuleType, MailFolderType, MailState} from "../api/common/TutanotaConstants"
+import {InboxRuleType, MailState} from "../api/common/TutanotaConstants"
 import {isDomainName, isMailAddress, isRegularExpression} from "../misc/FormatValidator"
 import {getInboxRuleTypeNameMapping} from "../mail/model/InboxRuleHandler"
 import type {InboxRule} from "../api/entities/tutanota/TypeRefs.js"
 import {createInboxRule} from "../api/entities/tutanota/TypeRefs.js"
 import {logins} from "../api/main/LoginController"
-import {getArchiveFolder, getExistingRuleForType, getFolderName, mailStateAllowedInsideFolderType} from "../mail/model/MailUtils"
+import {getArchiveFolder, getExistingRuleForType, getIndentedFolderNameForDropdown, mailStateAllowedInsideFolderType} from "../mail/model/MailUtils"
 import type {MailboxDetail} from "../mail/model/MailModel"
 import stream from "mithril/stream"
 import {DropDownSelector} from "../gui/base/DropDownSelector.js"
 import {TextField} from "../gui/base/TextField.js"
 import {neverNull} from "@tutao/tutanota-utils"
-import {ConnectionError, LockedError} from "../api/common/error/RestError"
+import {LockedError} from "../api/common/error/RestError"
 import {showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {isSameId} from "../api/common/utils/EntityUtils"
 import {assertMainOrNode} from "../api/common/Env"
@@ -28,14 +28,13 @@ export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
 		showNotAvailableForFreeDialog(true)
 	} else if (mailBoxDetails) {
 		let targetFolders = indentedList(mailBoxDetails.folders)
-										  .filter(folderInfo => mailStateAllowedInsideFolderType(MailState.RECEIVED, folderInfo.folder.folderType))
-										  .map(folderInfo => {
-											  return {
-												  name: ". ".repeat(folderInfo.level) + getFolderName(folderInfo.folder),
-												  value: folderInfo.folder,
-											  }
-										  })
-										  //.sort((folder1, folder2) => folder1.name.localeCompare(folder2.name)) //FIXME it's already sorted
+			.filter(folderInfo => mailStateAllowedInsideFolderType(MailState.RECEIVED, folderInfo.folder.folderType))
+			.map(folderInfo => {
+				return {
+					name: getIndentedFolderNameForDropdown(folderInfo),
+					value: folderInfo.folder,
+				}
+			})
 		const inboxRuleType = stream(ruleOrTemplate.type)
 		const inboxRuleValue = stream(ruleOrTemplate.value)
 		const selectedFolder = getWholeList(mailBoxDetails.folders).find(folder => isSameId(folder._id, ruleOrTemplate.targetFolder))

@@ -28,8 +28,8 @@ import type {EntityClient} from "../../api/common/EntityClient"
 import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils"
 import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName} from "../../misc/parsing/MailAddressParser"
 import type {Attachment} from "../editor/SendMailModel"
-import {getListId, haveSameId} from "../../api/common/utils/EntityUtils.js"
-import {FolderSystem, indentedList} from "./FolderSystem.js"
+import {getListId} from "../../api/common/utils/EntityUtils.js"
+import {indentedList} from "./FolderSystem.js"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"
@@ -418,4 +418,11 @@ export async function getMoveTargetFolderSystems(model: MailModel, mails: Mail[]
 
 	const targetFolders = indentedList((await model.getMailboxDetailsForMail(firstMail)).folders).filter(f => f.folder.mails !== getListId(firstMail))
 	return targetFolders.filter(f => allMailsAllowedInsideFolder([firstMail], f.folder))
+}
+
+export const MAX_FOLDER_INDENT_LEVEL = 10
+
+export function getIndentedFolderNameForDropdown(folderInfo: {level: number; folder: MailFolder}) {
+	const indentLevel = Math.min(folderInfo.level, MAX_FOLDER_INDENT_LEVEL)
+	return ". ".repeat(indentLevel) + getFolderName(folderInfo.folder)
 }

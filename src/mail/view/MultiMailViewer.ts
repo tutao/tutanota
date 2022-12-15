@@ -5,18 +5,9 @@ import {ActionBar} from "../../gui/base/ActionBar"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import {lang} from "../../misc/LanguageViewModel"
 import {Icons} from "../../gui/base/icons/Icons"
-import {
-	allMailsAllowedInsideFolder, emptyOrContainsDraftsAndNonDrafts,
-	getFolderIcon,
-	getFolderName,
-	getSortedCustomFolders,
-	getSortedSystemFolders,
-	markMails
-} from "../model/MailUtils"
+import {allMailsAllowedInsideFolder, emptyOrContainsDraftsAndNonDrafts, getFolderIcon, getIndentedFolderNameForDropdown, markMails} from "../model/MailUtils"
 import {logins} from "../../api/main/LoginController"
 import {FeatureType} from "../../api/common/TutanotaConstants"
-import type {ButtonAttrs} from "../../gui/base/Button.js"
-import {ButtonType} from "../../gui/base/Button.js"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {theme} from "../../gui/theme"
 import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
@@ -27,7 +18,8 @@ import {exportMails} from "../export/Exporter"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {MailboxDetail} from "../model/MailModel.js"
 import {IconButtonAttrs} from "../../gui/base/IconButton.js"
-import {getWholeSortedList} from "../model/FolderSystem.js"
+import {indentedList} from "../model/FolderSystem.js"
+import {haveSameId} from "../../api/common/utils/EntityUtils.js"
 
 assertMainOrNode()
 
@@ -166,14 +158,14 @@ export class MultiMailViewer implements Component {
 		}
 
 		if (selectedMailbox == null) return []
-		return getWholeSortedList(selectedMailbox.folders)
-			.filter(folder => allMailsAllowedInsideFolder(selectedEntities, folder))
-			.filter(f => f !== this._mailView.selectedFolder)
-			.map(f => {
+		return indentedList(selectedMailbox.folders)
+			.filter(folderInfo => allMailsAllowedInsideFolder(selectedEntities, folderInfo.folder)
+				&& (this._mailView.selectedFolder == null || !haveSameId(folderInfo.folder, this._mailView.selectedFolder)))
+			.map(folderInfo => {
 				return {
-					label: () => getFolderName(f),
-					click: this._actionBarAction(mails => moveMails({mailModel: locator.mailModel, mails: mails, targetMailFolder: f})),
-					icon: getFolderIcon(f)(),
+					label: () => getIndentedFolderNameForDropdown(folderInfo),
+					click: this._actionBarAction(mails => moveMails({mailModel: locator.mailModel, mails: mails, targetMailFolder: folderInfo.folder})),
+					icon: getFolderIcon(folderInfo.folder)(),
 				}
 			})
 	}

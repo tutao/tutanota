@@ -24,7 +24,7 @@ import {
 } from "../model/SearchUtils"
 import {Dialog} from "../../gui/base/Dialog"
 import {locator} from "../../api/main/MainLocator"
-import {getFolderName, getSortedCustomFolders, getSortedSystemFolders} from "../../mail/model/MailUtils"
+import {getIndentedFolderNameForDropdown} from "../../mail/model/MailUtils"
 import {getEndOfDay, getStartOfDay, isSameDay, isSameTypeRef, isToday, neverNull, noOp, ofClass, promiseMap, TypeRef} from "@tutao/tutanota-utils"
 import {formatDateWithMonth, formatDateWithTimeIfNotEven} from "../../misc/Formatter"
 import {showDateRangeSelectionDialog} from "../../gui/date/DatePickerDialog"
@@ -55,7 +55,7 @@ import {IconButton} from "../../gui/base/IconButton.js"
 import {ButtonSize} from "../../gui/base/ButtonSize.js";
 import {BottomNav} from "../../gui/nav/BottomNav.js"
 import {MobileMailActionBar} from "../../mail/view/MobileMailActionBar.js"
-import {getWholeSortedList, indentedList} from "../../mail/model/FolderSystem.js"
+import {indentedList} from "../../mail/model/FolderSystem.js"
 
 assertMainOrNode()
 
@@ -110,8 +110,9 @@ export class SearchView implements CurrentView {
 				const mailFolders = indentedList(mailbox.folders)
 				for (const folderInfo of mailFolders) {
 					if (folderInfo.folder.folderType !== MailFolderType.SPAM) {
+						const mailboxLabel = mailboxIndex === 0 ? "" : ` (${getGroupInfoDisplayName(mailbox.mailGroupInfo)})`
 						this.availableMailFolders.push({
-							name: ". ".repeat(folderInfo.level) + getFolderName(folderInfo.folder) + (mailboxIndex === 0 ? "" : " (" + getGroupInfoDisplayName(mailbox.mailGroupInfo) + ")"),
+							name: getIndentedFolderNameForDropdown(folderInfo) + mailboxLabel,
 							value: folderInfo.folder.mails,
 						})
 					}

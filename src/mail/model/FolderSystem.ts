@@ -51,7 +51,6 @@ export function getIndentedSystemList(systems: FolderSystem[], currentLevel: num
 	const sortedSystems = getSortedSystemSystem(systems)
 	for (const system of sortedSystems) {
 		plainList.push({level: currentLevel, folder: system.folder})
-		// plainList.push(...getIndentedSystemList(system.children, currentLevel + 1))
 	}
 	return plainList
 }
@@ -128,6 +127,20 @@ export function getFolderById(systems: FolderSystem[], folderId: IdTuple): Folde
 	}
 	return null
 }
+
+export function getPathToFolder(systems: FolderSystem[], folderId: IdTuple): MailFolder[] {
+	for (const system of systems) {
+		if (isSameId(system.folder._id, folderId)) {
+			return [system.folder]
+		}
+		const subpath = getPathToFolder(system.children, folderId)
+		if (subpath.length > 0) {
+			return [system.folder].concat(...subpath)
+		}
+	}
+	return []
+}
+
 
 export function populateFolderSystem(folders: MailFolder[]): FolderSystem[] { //depends on how the parent on the server is set
 	const mailByParent = groupBy(folders, folder => folder.parentFolder ? elementIdPart(folder.parentFolder) : null)

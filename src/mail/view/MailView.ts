@@ -33,6 +33,7 @@ import {
 	getInboxFolder,
 	getMailboxName,
 	markMails,
+	MAX_FOLDER_INDENT_LEVEL,
 } from "../model/MailUtils"
 import type {MailboxDetail} from "../model/MailModel"
 import {locator} from "../../api/main/MainLocator"
@@ -490,48 +491,11 @@ export class MailView implements CurrentView {
 				key: "yourFolders", // we need to set a key because folder rows also have a key.
 			}, this.renderCustomFolderTree(customSystems, groupCounters, mailboxDetail)))
 		}
-
-		// const children: Children = systemFolderButtons
-		// 	.map(({id, button, expander, indentationLevel}) => {
-		// 		const count = groupCounters[id]
-		// 		return m(MailFolderRow, {
-		// 			count: count,
-		// 			button,
-		// 			rightButton: null,
-		// 			key: id,
-		// 			expander,
-		// 			indentationLevel,
-		// 			onExpanderClick: noOp,
-		// 		})
-		// 	})
-		// if (logins.isInternalUserLoggedIn()) {
-		// children.push(m(SidebarSection, {
-		// 			name: "yourFolders_action",
-		// 			button: m(IconButton, folderAddButton),
-		// 			key: "yourFolders", // we need to set a key because folder rows also have a key.
-		// 		},
-		// 		customFolderButtons.map(({id, button, folder, expander, indentationLevel}) => {
-		// 			const count = groupCounters[id]
-		// 			return m(ExpanderPanel, {expanded: this.expandedState.get(getElementId(folder)) ?? true},
-		// 				m(MailFolderRow, {
-		// 					count,
-		// 					button,
-		// 					rightButton: this.createFolderMoreButton(mailGroupId, folder),
-		// 					key: id,
-		// 					expander,
-		// 					indentationLevel,
-		// 					onExpanderClick: () => this.expandedState.set(getElementId(folder), !expander)
-		// 				}))
-		// 		}),
-		// 	)
-		// )
-		// }
 		return children
 	}
 
 	private renderCustomFolderTree(subSystems: FolderSystem[], groupCounters: Counters, mailboxDetail: MailboxDetail, indentationLevel: number = 0): Children[] | null {
-		const expanders: Children[] = []
-		for (const system of subSystems) {
+		return subSystems.map((system) => {
 			const id = getElementId(system.folder)
 			const button: NavButtonAttrs = {
 				label: () => getFolderName(system.folder),
@@ -545,7 +509,7 @@ export class MailView implements CurrentView {
 			const currentExpansionState = this.expandedState.has(getElementId(system.folder)) ?? false //default is false
 			const hasChildren = system.children.length > 0
 			const summedCount = (currentExpansionState === false && hasChildren) ? this.getTotalFolderCounter(groupCounters, system) : groupCounters[system.folder.mails]
-			expanders.push(m.fragment({
+			return m.fragment({
 				key: id,
 			}, [
 				m(MailFolderRow, {
@@ -553,15 +517,14 @@ export class MailView implements CurrentView {
 					button,
 					rightButton: this.createFolderMoreButton(mailboxDetail.mailGroup._id, system.folder, mailboxDetail.folders),
 					expanded: hasChildren ? currentExpansionState : null,
-					indentationLevel,
+					indentationLevel: Math.min(indentationLevel, MAX_FOLDER_INDENT_LEVEL),
 					onExpanderClick: hasChildren
 						? () => this.setExpandedState(system, currentExpansionState)
 						: noOp
 				}),
 				hasChildren && currentExpansionState ? this.renderCustomFolderTree(system.children, groupCounters, mailboxDetail, indentationLevel + 1) : null
-			]))
-		}
-		return expanders
+			])
+		})
 	}
 
 	private setExpandedState(system: FolderSystem, currentExpansionState: boolean) {
