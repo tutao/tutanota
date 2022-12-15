@@ -2,22 +2,25 @@ import m, {Children, ClassComponent, Vnode} from "mithril"
 import {scrollListDom} from "./base/GuiUtils.js"
 import {px, size} from "./size.js"
 import {windowFacade} from "../misc/WindowFacade.js"
-import {MailAddressAvailability} from "../api/entities/sys/TypeRefs.js"
-import {lang} from "../misc/LanguageViewModel.js"
 
 const EntryHeight = 60
 
-export interface MailAddressAvailabilityDropDownAttrs {
-	availabilities: ReadonlyArray<MailAddressAvailability>
+export interface SearchDropDownAttrs<T extends Suggestion> {
+	suggestions: ReadonlyArray<T>
 	selectedSuggestionIndex: number
 	onSuggestionSelected: (idx: number) => void
 
 	/** max amount of suggestions that can be visible without scrolling */
 	maxHeight: number | null
-	displayUnavailableMailAddresses?: boolean
 }
 
-export class MailAddressAvailabilityDropDown implements ClassComponent<MailAddressAvailabilityDropDownAttrs> {
+export interface Suggestion {
+	firstRow: string | null,
+	secondRow: string,
+	display?: boolean,
+}
+
+export class SearchDropDown<T extends Suggestion> implements ClassComponent<SearchDropDownAttrs<T>> {
 
 	private domSuggestions!: HTMLElement
 	private keyboardHeight: number = 0
@@ -38,7 +41,7 @@ export class MailAddressAvailabilityDropDown implements ClassComponent<MailAddre
 		})
 	}
 
-	view({attrs}: Vnode<MailAddressAvailabilityDropDownAttrs>): Children {
+	view({attrs}: Vnode<SearchDropDownAttrs<T>>): Children {
 		if (attrs.selectedSuggestionIndex !== attrs.selectedSuggestionIndex && this.domSuggestions) {
 			requestAnimationFrame(() => {
 				scrollListDom(this.domSuggestions, EntryHeight, attrs.selectedSuggestionIndex)
@@ -46,8 +49,8 @@ export class MailAddressAvailabilityDropDown implements ClassComponent<MailAddre
 		}
 
 		// We need to calculate how much space can be actually used for the dropdown. We cannot just add margin like we do with dialog
-		// because the availabilities dropdown is absolutely positioned.
-		let dropdownHeight = EntryHeight * Math.min(attrs.maxHeight ?? Number.MAX_VALUE, attrs.availabilities.length)
+		// because the suggestions dropdown is absolutely positioned.
+		let dropdownHeight = EntryHeight * Math.min(attrs.maxHeight ?? Number.MAX_VALUE, attrs.suggestions.length)
 		if (this.domSuggestions) {
 			const top = this.domSuggestions.getBoundingClientRect().top
 			const availableHeight = window.innerHeight - top - this.keyboardHeight - size.vpad
@@ -55,7 +58,7 @@ export class MailAddressAvailabilityDropDown implements ClassComponent<MailAddre
 		}
 
 		return m(
-			`.abs.z4.full-width.elevated-bg.scroll.text-ellipsis${attrs.availabilities.length ? ".dropdown-shadow" : ""}`,
+			`.abs.z4.full-width.elevated-bg.scroll.text-ellipsis${attrs.suggestions.length ? ".dropdown-shadow" : ""}`,
 			{
 				oncreate: vnode => this.domSuggestions = vnode.dom as HTMLElement,
 				style: {
@@ -63,14 +66,14 @@ export class MailAddressAvailabilityDropDown implements ClassComponent<MailAddre
 					height: px(dropdownHeight)
 				},
 			},
-			attrs.availabilities.map(({mailAddress, available}, idx) => this.renderAvailability(attrs, mailAddress, available, idx))
+			attrs.suggestions.map((suggestion, idx) => this.renderSuggestion(attrs, suggestion, idx))
 		)
 	}
 
-	private renderAvailability(attrs: MailAddressAvailabilityDropDownAttrs, mailAddress: string, available: boolean, idx: number): Children {
+	private renderSuggestion(attrs: SearchDropDownAttrs<T>, {firstRow, secondRow, display}: T, idx: number): Children {
 		const selected = idx === attrs.selectedSuggestionIndex
-		
-		if (!attrs.displayUnavailableMailAddresses && !available) {
+
+		if (display !== undefined && !display) {
 			return null
 		}
 
@@ -78,11 +81,7 @@ export class MailAddressAvailabilityDropDown implements ClassComponent<MailAddre
 			".pt-s.pb-s.click.content-hover",
 			{
 				class: selected ? "content-accent-fg row-selected" : "",
-				onmousedown: () => {
-					if (available) {
-						attrs.onSuggestionSelected(idx)
-					}
-				},
+				onmousedown: () => attrs.onSuggestionSelected(idx),
 				style: {
 					"padding-left": selected ? px(size.hpad_large - 3) : px(size.hpad_large),
 					"border-left": selected ? "3px solid" : null,
@@ -90,8 +89,8 @@ export class MailAddressAvailabilityDropDown implements ClassComponent<MailAddre
 				},
 			},
 			[
-				m(".small.full-width.text-ellipsis", lang.get(available ? "available_label" : "unavailable_label")),
-				m(".name.full-width.text-ellipsis", mailAddress)
+				m(".small.full-width.text-ellipsis", firstRow),
+				m(".name.full-width.text-ellipsis", secondRow),
 			],
 		)
 	}
