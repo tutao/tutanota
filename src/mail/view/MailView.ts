@@ -62,7 +62,7 @@ import {ButtonSize} from "../../gui/base/ButtonSize.js"
 import {BottomNav} from "../../gui/nav/BottomNav.js"
 import {MobileMailActionBar} from "./MobileMailActionBar.js"
 import {FolderSystem, getFolderById, getSortedCustomSystem, getSortedSystemSystem, getWholeList} from "../model/FolderSystem.js"
-import {ExpanderPanel} from "../../gui/base/Expander.js"
+import {deviceConfig} from "../../misc/DeviceConfig.js"
 
 assertMainOrNode()
 
@@ -110,7 +110,7 @@ export class MailView implements CurrentView {
 
 	private multiMailViewer: MultiMailViewer
 	private _mailViewerViewModel: MailViewerViewModel | null = null
-	private expandedState: Map<Id, boolean> = new Map()
+	private expandedState: Set<Id>
 
 	get mailViewerViewModel(): MailViewerViewModel | null {
 		return this._mailViewerViewModel
@@ -126,6 +126,7 @@ export class MailView implements CurrentView {
 	constructor() {
 		this.folderToUrl = {}
 		this.throttledRouteSet = throttleRoute()
+		this.expandedState = new Set(deviceConfig.getExpandedFolders(logins.getUserController().userId))
 		this.folderColumn = new ViewColumn(
 			{
 				view: () => {
@@ -541,7 +542,7 @@ export class MailView implements CurrentView {
 				click: () => this.viewSlider.focus(this.listColumn),
 				dropHandler: (droppedMailId) => this.handleFolderDrop(droppedMailId, system.folder),
 			}
-			const currentExpansionState = this.expandedState.get(getElementId(system.folder)) ?? false //default is false
+			const currentExpansionState = this.expandedState.has(getElementId(system.folder)) ?? false //default is false
 			const hasChildren = system.children.length > 0
 			const summedCount = (currentExpansionState === false && hasChildren) ? this.getTotalFolderCounter(groupCounters, system) : groupCounters[system.folder.mails]
 			expanders.push(m.fragment({
@@ -553,12 +554,21 @@ export class MailView implements CurrentView {
 					rightButton: this.createFolderMoreButton(mailboxDetail.mailGroup._id, system.folder, mailboxDetail.folders),
 					expanded: hasChildren ? currentExpansionState : null,
 					indentationLevel,
-					onExpanderClick: hasChildren ? () => this.expandedState.set(getElementId(system.folder), !currentExpansionState) : noOp
+					onExpanderClick: hasChildren
+						? () => this.setExpandedState(system, currentExpansionState)
+						: noOp
 				}),
 				hasChildren && currentExpansionState ? this.renderCustomFolderTree(system.children, groupCounters, mailboxDetail, indentationLevel + 1) : null
 			]))
 		}
 		return expanders
+	}
+
+	private setExpandedState(system: FolderSystem, currentExpansionState: boolean) {
+		currentExpansionState
+			? this.expandedState.delete(getElementId(system.folder))
+			: this.expandedState.add(getElementId(system.folder))
+		deviceConfig.setExpandedFolders(logins.getUserController().userId, [...this.expandedState])
 	}
 
 	private getTotalFolderCounter(counters: Counters, system: FolderSystem): number {
@@ -711,7 +721,7 @@ export class MailView implements CurrentView {
 							  .getMailboxDetailsForMailGroup(mailGroupId)
 							  .then(mailboxDetails => {
 								  if (parentFolderId) {
-									  this.expandedState.set(elementIdPart(parentFolderId), true)
+									  this.expandedState.add(elementIdPart(parentFolderId))
 								  }
 								  locator.mailFacade.createMailFolder(name, parentFolderId, mailGroupId)
 							  })
