@@ -23,7 +23,10 @@ interface ConfigObject {
 	_themeId: ThemeId
 	_language: LanguageCode | null
 	_defaultCalendarView: Record<Id, CalendarViewType | null>
+	/** map from user id to a list of calendar grouproots*/
 	_hiddenCalendars: Record<Id, Id[]>
+	/** map from user id to a list of expanded folders (elementId)*/
+	expandedMailFolders: Record<Id, Id[]>
 	_signupToken: string
 	_credentialEncryptionMode: CredentialEncryptionMode | null
 	_encryptedCredentialsKey: Base64 | null
@@ -79,6 +82,7 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage {
 			_language: loadedConfig._language ?? null,
 			_defaultCalendarView: loadedConfig._defaultCalendarView ?? {},
 			_hiddenCalendars: loadedConfig._hiddenCalendars ?? {},
+			expandedMailFolders:loadedConfig.expandedMailFolders ?? {},
 			_testDeviceId: loadedConfig._testDeviceId ?? null,
 			_testAssignments: loadedConfig._testAssignments ?? null,
 			_signupToken: signupToken,
@@ -225,6 +229,18 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage {
 	setHiddenCalendars(user: Id, calendars: Id[]) {
 		if (this.config._hiddenCalendars[user] !== calendars) {
 			this.config._hiddenCalendars[user] = calendars
+
+			this.writeToStorage()
+		}
+	}
+
+	getExpandedFolders(user: Id): Id[] {
+		return this.config.expandedMailFolders.hasOwnProperty(user) ? this.config.expandedMailFolders[user] : []
+	}
+
+	setExpandedFolders(user: Id, folders: Id[]) {
+		if (this.config.expandedMailFolders[user] !== folders) {
+			this.config.expandedMailFolders[user] = folders
 
 			this.writeToStorage()
 		}
