@@ -16,7 +16,7 @@ import {attachDropdown, DropdownButtonAttrs} from "../gui/base/Dropdown.js"
 import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js"
 import {MailAddressAvailability} from "../api/entities/sys/TypeRefs.js"
-import {MailAddressAvailabilityDropDown} from "../gui/MailAddressAvailabilityDropDown.js"
+import {SearchDropDown} from "../gui/SearchDropDown.js"
 
 assertMainOrNode()
 
@@ -127,12 +127,17 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 	}
 
 	private renderSuggestions(attrs: SelectMailAddressFormWithSuggestionsAttrs): Children {
-		return m(".rel", m(MailAddressAvailabilityDropDown, {
-			availabilities: this.mailAvailabilities,
+		return m(".rel", m(SearchDropDown, {
+			suggestions: this.mailAvailabilities.map(availability => {
+				return {
+					firstRow: lang.get(availability.available ? "available_label" : "unavailable_label"),
+					secondRow: availability.mailAddress,
+					display: attrs.displayUnavailableMailAddresses ? true : availability.available,
+				}
+			}),
 			selectedSuggestionIndex: this.selectedMailAddressSuggestionIndex,
 			onSuggestionSelected: sel => this.selectSuggestion(attrs, sel),
 			maxHeight: Math.min(this.mailAvailabilities.filter(mailAvailability => mailAvailability.available).length, attrs.maxSuggestionsToShow),
-			displayUnavailableMailAddresses: attrs.displayUnavailableMailAddresses,
 		}))
 	}
 

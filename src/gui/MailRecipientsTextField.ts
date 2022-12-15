@@ -8,10 +8,10 @@ import {lang, TranslationKey} from "../misc/LanguageViewModel.js"
 import {stringToNameAndMailAddress} from "../misc/parsing/MailAddressParser.js"
 import {DropdownChildAttrs} from "./base/Dropdown.js"
 import {Contact} from "../api/entities/tutanota/TypeRefs.js"
-import {RecipientsSearchDropDown} from "./RecipientsSearchDropDown.js"
 import {RecipientsSearchModel} from "../misc/RecipientsSearchModel.js"
 import {firstThrow} from "@tutao/tutanota-utils"
 import {Dialog} from "./base/Dialog.js"
+import {SearchDropDown} from "./SearchDropDown.js"
 
 export interface MailRecipientsTextFieldAttrs {
 	label: TranslationKey,
@@ -128,8 +128,13 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 	}
 
 	private renderSuggestions(attrs: MailRecipientsTextFieldAttrs): Children {
-		return m(".rel", m(RecipientsSearchDropDown, {
-			suggestions: attrs.search.results(),
+		return m(".rel", m(SearchDropDown, {
+			suggestions: attrs.search.results().map(recipient => {
+				return {
+					firstRow: recipient.name,
+					secondRow: recipient.address,
+				}
+			}),
 			selectedSuggestionIndex: this.getSelectedSuggestionIdx(attrs),
 			onSuggestionSelected: idx => this.selectSuggestion(attrs, idx),
 			maxHeight: attrs.maxSuggestionsToShow ?? null
