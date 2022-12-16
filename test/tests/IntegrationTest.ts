@@ -21,7 +21,7 @@ function loadFolders(folderListId: Id): Promise<MailFolder[]> {
 
 function loadMailboxSystemFolders(): Promise<MailFolder[]> {
 	return locator.cachingEntityClient.loadRoot(MailBoxTypeRef, locator.user.getUserGroupId()).then(mailbox => {
-		return loadFolders(neverNull(mailbox.systemFolders).folders)
+		return loadFolders(neverNull(mailbox.folders).folders)
 	})
 }
 

@@ -29,11 +29,11 @@ import type {MailFacade} from "../../api/worker/facades/MailFacade"
 import {LoginController} from "../../api/main/LoginController.js"
 import {getEnabledMailAddressesWithUser} from "./MailUtils.js"
 import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
-import {populateFolderSystem, FolderSystem, getWholeSortedList} from "./FolderSystem.js"
+import {FolderSystem} from "./FolderSystem.js"
 
 export type MailboxDetail = {
 	mailbox: MailBox
-	folders: FolderSystem[]
+	folders: FolderSystem
 	mailGroupInfo: GroupInfo
 	mailGroup: Group
 	mailboxGroupRoot: MailboxGroupRoot
@@ -103,7 +103,7 @@ export class MailModel {
 		const folders = await this._loadFolders(neverNull(mailbox.folders).folders, true)
 		return {
 			mailbox,
-			folders: populateFolderSystem(folders),
+			folders: new FolderSystem(folders),
 			mailGroupInfo,
 			mailGroup,
 			mailboxGroupRoot,
@@ -150,8 +150,9 @@ export class MailModel {
 		return this.getMailboxDetailsForMailListId(mail._id[0])
 	}
 
-	getMailboxDetailsForMailListId(mailListId: Id): Promise<MailboxDetail> {
-		return this.getMailboxDetails().then(mailboxDetails => neverNull(mailboxDetails.find(md => getWholeSortedList(md.folders).find(f => f.mails === mailListId) != null)))
+	async getMailboxDetailsForMailListId(mailListId: Id): Promise<MailboxDetail> {
+		const mailboxDetails = await this.getMailboxDetails()
+		return assertNotNull(mailboxDetails.find((md) => md.folders.getFolderByMailListId(mailListId)))
 	}
 
 	async getMailboxDetailsForMailGroup(mailGroupId: Id): Promise<MailboxDetail> {
@@ -165,18 +166,17 @@ export class MailModel {
 		return assertNotNull(mailboxDetails.find(md => md.mailGroup._id === userMailGroupMembership.group))
 	}
 
-	getMailboxFolders(mail: Mail): Promise<MailFolder[]> {
-		return this.getMailboxDetailsForMail(mail).then(md => getWholeSortedList(md.folders))
+	getMailboxFolders(mail: Mail): Promise<FolderSystem> {
+		return this.getMailboxDetailsForMail(mail).then(md => md.folders)
 	}
 
 	getMailFolder(mailListId: Id): MailFolder | null {
 		const mailboxDetails = this.mailboxDetails() || []
 
-		for (let e of mailboxDetails) {
-			for (let f of getWholeSortedList(e.folders)) {
-				if (f.mails === mailListId) {
-					return f
-				}
+		for (let detail of mailboxDetails) {
+			const f = detail.folders.getFolderByMailListId(mailListId)
+			if (f) {
+				return f
 			}
 		}
 
@@ -238,6 +238,12 @@ export class MailModel {
 			return getListId(mail)
 		})
 
+		if (mails.length === 0) {
+			return
+		}
+		const folders = await this.getMailboxFolders(mails[0])
+		const trashFolder = folders.getSystemFolderByType(MailFolderType.TRASH)
+
 		for (const [listId, mails] of mailsPerFolder) {
 			const sourceMailFolder = this.getMailFolder(listId)
 
@@ -245,7 +251,7 @@ export class MailModel {
 				if (this.isFinalDelete(sourceMailFolder)) {
 					await this._finallyDeleteMails(mails)
 				} else {
-					await this.getMailboxFolders(mails[0]).then(folders => this._moveMails(mails, this.getTrashFolder(folders)))
+					await this._moveMails(mails, trashFolder)
 				}
 			} else {
 				console.log("Delete mail: no mail folder for list id", listId)
@@ -349,10 +355,6 @@ export class MailModel {
 		}>,
 	): Promise<boolean> {
 		return this.mailFacade.checkMailForPhishing(mail, links)
-	}
-
-	getTrashFolder(folders: MailFolder[]): MailFolder {
-		return folders.find(f => f.folderType === MailFolderType.TRASH) as any
 	}
 
 	isFinalDelete(folder: MailFolder | null): boolean {

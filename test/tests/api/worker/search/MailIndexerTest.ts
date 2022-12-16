@@ -480,7 +480,7 @@ o.spec("MailIndexer test", () => {
 
     function _addFolder(mailbox: MailBox): MailFolder {
         const folder = createMailFolder()
-        folder._id = [neverNull(mailbox.systemFolders).folders, entityMock.getNextId()]
+        folder._id = [neverNull(mailbox.folders).folders, entityMock.getNextId()]
         folder.mails = entityMock.getNextId()
         folder.subFolders = entityMock.getNextId()
         return folder
@@ -508,7 +508,7 @@ o.spec("MailIndexer test", () => {
             mailbox._ownerGroup = mailGroup
             const folderRef = createMailFolderRef()
             folderRef.folders = entityMock.getNextId()
-            mailbox.systemFolders = folderRef
+            mailbox.folders = folderRef
             folder1 = _addFolder(mailbox)
             folder2 = _addFolder(mailbox)
             ;({mail: mail0, body: body0} = createMailInstances(

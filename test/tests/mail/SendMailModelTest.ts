@@ -3,7 +3,7 @@ import o from "ospec"
 import en from "../../../src/translations/en.js"
 import type {UserController} from "../../../src/api/main/UserController.js"
 import type {LoginController} from "../../../src/api/main/LoginController.js"
-import {MailModel} from "../../../src/mail/model/MailModel.js"
+import {MailboxDetail, MailModel} from "../../../src/mail/model/MailModel.js"
 import {
 	Contact,
 	ContactListTypeRef,
@@ -47,6 +47,7 @@ import {func, instance, matchers, object, replace, when} from "testdouble"
 import {RecipientsModel, ResolveMode} from "../../../src/api/main/RecipientsModel"
 import {ResolvableRecipientMock} from "./ResolvableRecipientMock.js"
 import {NoZoneDateProvider} from "../../../src/api/common/utils/NoZoneDateProvider.js"
+import {FolderSystem} from "../../../src/mail/model/FolderSystem.js"
 
 const {anything, argThat} = matchers
 
@@ -156,9 +157,9 @@ o.spec("SendMailModel", function () {
 
 		const eventController = instance(EventController)
 
-		const mailboxDetails = {
+		const mailboxDetails: MailboxDetail = {
 			mailbox: createMailBox(),
-			folders: [],
+			folders: new FolderSystem([]),
 			mailGroupInfo: createGroupInfo(),
 			mailGroup: createGroup(),
 			mailboxGroupRoot: createMailboxGroupRoot(),

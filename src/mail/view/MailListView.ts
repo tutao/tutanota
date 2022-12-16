@@ -4,16 +4,9 @@ import type {ListFetchResult, VirtualRow} from "../../gui/base/List"
 import {List} from "../../gui/base/List"
 import {MailFolderType, MailState} from "../../api/common/TutanotaConstants"
 import type {MailView} from "./MailView"
-import type {Mail, MailFolder} from "../../api/entities/tutanota/TypeRefs.js"
+import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
 import {MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {
-	canDoDragAndDropExport,
-	emptyOrContainsDraftsAndNonDrafts,
-	getArchiveFolder,
-	getDraftFolder,
-	getFolderName,
-	getInboxFolder
-} from "../model/MailUtils"
+import {canDoDragAndDropExport, getFolderName} from "../model/MailUtils"
 import {NotFoundError} from "../../api/common/error/RestError"
 import {size} from "../../gui/size"
 import {styles} from "../../gui/styles"
@@ -37,6 +30,7 @@ import {assertMainOrNode} from "../../api/common/Env"
 import {WsConnectionState} from "../../api/main/WorkerClient"
 import {findAndApplyMatchingRule, isInboxList} from "../model/InboxRuleHandler.js"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
+import {FolderSystem} from "../model/FolderSystem.js"
 
 assertMainOrNode()
 const className = "mail-list"
@@ -119,11 +113,10 @@ export class MailListView implements Component {
 					swipeRight: (listElement: Mail) => {
 						if (!logins.isInternalUserLoggedIn()) {
 							return Promise.resolve(false) // externals don't have an archive folder
-						}
-						else if(this.showingDraftFolder()) { // just cancel selection if in drafts
+						} else if (this.showingDraftFolder()) { // just cancel selection if in drafts
 							this.list.selectNone()
 							return Promise.resolve(false)
-						} else if(this.showingTrashOrSpamFolder()) { // recover email from trash/spam
+						} else if (this.showingTrashOrSpamFolder()) { // recover email from trash/spam
 							this.list.selectNone()
 							return locator.mailModel
 										  .getMailboxFolders(listElement)
@@ -139,7 +132,7 @@ export class MailListView implements Component {
 										  .then(folders => moveMails({
 											  mailModel: locator.mailModel,
 											  mails: [listElement],
-											  targetMailFolder: getArchiveFolder(folders)
+											  targetMailFolder: folders.getSystemFolderByType(MailFolderType.ARCHIVE)
 										  }))
 						}
 					},
@@ -154,12 +147,11 @@ export class MailListView implements Component {
 		this.view = this.view.bind(this)
 	}
 
-	private getRecoverFolder(mail: Mail, folders: MailFolder[]) {
+	private getRecoverFolder(mail: Mail, folders: FolderSystem) {
 		if (mail.state === MailState.DRAFT) {
-			return getDraftFolder(folders)
-		}
-		else {
-			return getInboxFolder(folders)
+			return folders.getSystemFolderByType(MailFolderType.DRAFT)
+		} else {
+			return folders.getSystemFolderByType(MailFolderType.INBOX)
 		}
 	}
 

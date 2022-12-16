@@ -5,8 +5,7 @@ import {spy} from "@tutao/tutanota-test-utils"
 import type {MailboxDetail} from "../../../src/mail/model/MailModel.js"
 import {MailModel} from "../../../src/mail/model/MailModel.js"
 import {MailFolderType, OperationType} from "../../../src/api/common/TutanotaConstants.js"
-import {MailTypeRef} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {createMailFolder} from "../../../src/api/entities/tutanota/TypeRefs.js"
+import {createMailFolder, MailTypeRef} from "../../../src/api/entities/tutanota/TypeRefs.js"
 import type {EntityUpdateData} from "../../../src/api/main/EventController.js"
 import {EntityClient} from "../../../src/api/common/EntityClient.js"
 import {EntityRestClientMock} from "../api/worker/rest/EntityRestClientMock.js"
@@ -16,20 +15,21 @@ import {WorkerClient} from "../../../src/api/main/WorkerClient.js"
 import {MailFacade} from "../../../src/api/worker/facades/MailFacade.js"
 import {LoginController} from "../../../src/api/main/LoginController.js"
 import {object} from "testdouble"
+import {FolderSystem} from "../../../src/mail/model/FolderSystem.js"
 
 o.spec("MailModelTest", function () {
 	let notifications: Partial<Notifications>
 	let showSpy: Spy
 	let model: MailModel
-	const inboxFolder = createMailFolder()
+	const inboxFolder = createMailFolder({_id: ["folderListId", "inboxId"]})
 	inboxFolder.mails = "instanceListId"
 	inboxFolder.folderType = MailFolderType.INBOX
-	const anotherFolder = createMailFolder()
+	const anotherFolder = createMailFolder({_id: ["folderListId", "archiveId"]})
 	anotherFolder.mails = "anotherListId"
 	anotherFolder.folderType = MailFolderType.ARCHIVE
 	const mailboxDetails: Partial<MailboxDetail>[] = [
 		{
-			folders: [inboxFolder],
+			folders: new FolderSystem([inboxFolder]),
 		},
 	]
 	let logins: LoginController
@@ -84,7 +84,7 @@ o.spec("MailModelTest", function () {
 		o(showSpy.invocations.length).equals(0)
 	})
 
-	function makeUpdate(arg: { instanceListId: string; operation: OperationType }): EntityUpdateData {
+	function makeUpdate(arg: {instanceListId: string; operation: OperationType}): EntityUpdateData {
 		return Object.assign(
 			{},
 			{

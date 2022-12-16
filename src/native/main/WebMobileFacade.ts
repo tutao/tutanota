@@ -4,12 +4,10 @@ import {header} from "../../gui/Header.js"
 import {modal} from "../../gui/base/Modal"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX, SETTINGS_PREFIX} from "../../misc/RouteChange"
 import {IMainLocator, locator} from "../../api/main/MainLocator"
-import {getInboxFolder} from "../../mail/model/MailUtils"
 import {last} from "@tutao/tutanota-utils"
-import {CloseEventBusOption, SECOND_MS} from "../../api/common/TutanotaConstants.js"
+import {CloseEventBusOption, MailFolderType, SECOND_MS} from "../../api/common/TutanotaConstants.js"
 import {MobileFacade} from "../common/generatedipc/MobileFacade.js"
 import {styles} from "../../gui/styles"
-import {getWholeList} from "../../mail/model/FolderSystem.js"
 
 assertMainOrNode()
 
@@ -72,7 +70,7 @@ export class WebMobileFacade implements MobileFacade {
 						if (parts.length > 1) {
 							const selectedMailListId = parts[1]
 							return locator.mailModel.getMailboxDetails().then(mailboxDetails => {
-								const inboxMailListId = getInboxFolder(getWholeList(mailboxDetails[0].folders)).mails
+								const inboxMailListId = mailboxDetails[0].folders.getSystemFolderByType(MailFolderType.INBOX).mails
 
 								if (inboxMailListId !== selectedMailListId) {
 									m.route.set(MAIL_PREFIX + "/" + inboxMailListId)

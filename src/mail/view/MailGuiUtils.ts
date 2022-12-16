@@ -4,15 +4,7 @@ import {createMail} from "../../api/entities/tutanota/TypeRefs.js"
 import {LockedError, PreconditionFailedError} from "../../api/common/error/RestError"
 import {Dialog} from "../../gui/base/Dialog"
 import {locator} from "../../api/main/MainLocator"
-import {
-	emptyOrContainsDraftsAndNonDrafts,
-	getArchiveFolder,
-	getFolderIcon,
-	getFolderName,
-	getInboxFolder,
-	getIndentedFolderNameForDropdown,
-	getMoveTargetFolderSystems
-} from "../model/MailUtils"
+import {emptyOrContainsDraftsAndNonDrafts, getFolderIcon, getIndentedFolderNameForDropdown, getMoveTargetFolderSystems} from "../model/MailUtils"
 import {AllIcons} from "../../gui/base/Icon"
 import {Icons} from "../../gui/base/icons/Icons"
 import type {InlineImages} from "./MailViewer"
@@ -124,7 +116,7 @@ export function archiveMails(mails: Mail[]): Promise<any> {
 		return locator.mailModel.getMailboxFolders(mails[0]).then(folders => moveMails({
 			mailModel: locator.mailModel,
 			mails: mails,
-			targetMailFolder: getArchiveFolder(folders)
+			targetMailFolder: folders.getSystemFolderByType(MailFolderType.ARCHIVE)
 		}))
 	} else {
 		return Promise.resolve()
@@ -137,7 +129,7 @@ export function moveToInbox(mails: Mail[]): Promise<any> {
 		return locator.mailModel.getMailboxFolders(mails[0]).then(folders => moveMails({
 			mailModel: locator.mailModel,
 			mails: mails,
-			targetMailFolder: getInboxFolder(folders)
+			targetMailFolder: folders.getSystemFolderByType(MailFolderType.INBOX)
 		}))
 	} else {
 		return Promise.resolve()
