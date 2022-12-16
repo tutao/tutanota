@@ -13,7 +13,7 @@ import {
 	MailFolderTypeRef,
 	MailTypeRef
 } from "../../api/entities/tutanota/TypeRefs.js"
-import type {Group, GroupInfo, WebsocketCounterData} from "../../api/entities/sys/TypeRefs.js"
+import type {Group, GroupInfo, GroupMembership, WebsocketCounterData} from "../../api/entities/sys/TypeRefs.js"
 import {GroupInfoTypeRef, GroupTypeRef, UserTypeRef} from "../../api/entities/sys/TypeRefs.js"
 import type {MailReportType} from "../../api/common/TutanotaConstants"
 import {FeatureType, GroupType, MailFolderType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE, OperationType, ReportMovedMailsType} from "../../api/common/TutanotaConstants"
@@ -83,31 +83,30 @@ export class MailModel {
 	}
 
 	private _init(): Promise<void> {
-		let mailGroupMemberships = this.logins.getUserController().getMailGroupMemberships()
-		this.initialization = Promise.all(
-			mailGroupMemberships.map(mailGroupMembership => {
-				return Promise.all([
-					this.entityClient.load(MailboxGroupRootTypeRef, mailGroupMembership.group),
-					this.entityClient.load(GroupInfoTypeRef, mailGroupMembership.groupInfo),
-					this.entityClient.load(GroupTypeRef, mailGroupMembership.group),
-				]).then(([mailboxGroupRoot, mailGroupInfo, mailGroup]) => {
-					return this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox).then(mailbox => {
-						return this._loadFolders(neverNull(mailbox.systemFolders).folders, true).then(folders => {
-							return {
-								mailbox,
-								folders,
-								mailGroupInfo,
-								mailGroup,
-								mailboxGroupRoot,
-							}
-						})
-					})
-				})
-			}),
-		).then(details => {
-			this.mailboxDetails(details)
-		})
+		const mailGroupMemberships = this.logins.getUserController().getMailGroupMemberships()
+		const mailBoxDetailsPromises = mailGroupMemberships.map(m => this.mailboxDetailsFromMembership(m))
+		this.initialization = Promise.all(mailBoxDetailsPromises).then(details => this.mailboxDetails(details))
 		return this.initialization
+	}
+
+	/**
+	 * load mailbox details from a mailgroup membership
+	 */
+	private async mailboxDetailsFromMembership(membership: GroupMembership): Promise<MailboxDetail> {
+		const [mailboxGroupRoot, mailGroupInfo, mailGroup] = await Promise.all([
+			this.entityClient.load(MailboxGroupRootTypeRef, membership.group),
+			this.entityClient.load(GroupInfoTypeRef, membership.groupInfo),
+			this.entityClient.load(GroupTypeRef, membership.group),
+		])
+		const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
+		const folders = await this._loadFolders(neverNull(mailbox.systemFolders).folders, true)
+		return {
+			mailbox,
+			folders,
+			mailGroupInfo,
+			mailGroup,
+			mailboxGroupRoot,
+		}
 	}
 
 	_loadFolders(folderListId: Id, loadSubFolders: boolean): Promise<MailFolder[]> {
@@ -138,10 +137,12 @@ export class MailModel {
 				   })
 	}
 
-	getMailboxDetails(): Promise<Array<MailboxDetail>> {
-		return this.init().then(() => {
-			return this.mailboxDetails()
-		})
+	/**
+	 * get the list of MailboxDetails that this user has access to from their memberships
+	 */
+	async getMailboxDetails(): Promise<Array<MailboxDetail>> {
+		await this.init()
+		return this.mailboxDetails()
 	}
 
 	getMailboxDetailsForMail(mail: Mail): Promise<MailboxDetail> {
