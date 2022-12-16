@@ -192,7 +192,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 				}
 				result = available
 					? {isValid: true, errorId: null}
-					: {isValid: false, errorId: attrs?.mailAddressNAError ?? "mailAddressNA_msg"}
+					: {isValid: false, errorId: attrs.mailAddressNAError ?? "mailAddressNA_msg"}
 			} catch (e) {
 				if (e instanceof AccessDeactivatedError) {
 					result = {isValid: false, errorId: "mailAddressDelay_msg"}
