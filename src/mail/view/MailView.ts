@@ -656,7 +656,7 @@ export class MailView implements CurrentView {
 
 	private createFolderAddButton(mailGroupId: Id, parentFolder: MailFolder | null, folderSystem: FolderSystem): IconButtonAttrs {
 		return {
-			title: "add_action",
+			title: "addFolder_action",
 			click: () => {
 				return this.showCreateFolderDialog(mailGroupId, parentFolder, folderSystem)
 			},
@@ -703,8 +703,7 @@ export class MailView implements CurrentView {
 						},
 					},
 					{
-						// FIXME better translation, wth is this
-						label: "add_action",
+						label: "addFolder_action",
 						icon: Icons.Add,
 						click: () => {
 							this.showCreateFolderDialog(mailGroupId, folder, folderSystem)
@@ -716,7 +715,7 @@ export class MailView implements CurrentView {
 						click: () => {
 							// so far it is not possible to delete folders that contain subfolders
 							if (folderSystem.getCustomFoldersWithParent(folder._id).length > 0) {
-								Dialog.message("enforcePasswordUpdate_msg") // FIXME add some msg
+								Dialog.message("cannotDeleteFoldersWithSubfolders_msg")
 								return
 							}
 							Dialog.confirm(() =>
