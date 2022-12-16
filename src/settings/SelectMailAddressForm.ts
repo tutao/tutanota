@@ -40,7 +40,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 	private messageId: TranslationKey | null
 	private checkAddressTimeout: TimeoutID | null
 	private isVerificationBusy: boolean
-	private __signupUnavailableEmailsTest: UsageTest
+	private signupUnavailableEmailsTest: UsageTest
 
 	constructor({attrs}: Vnode<SelectMailAddressFormAttrs>) {
 		this.isVerificationBusy = false
@@ -48,7 +48,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 		this.domain = firstThrow(attrs.availableDomains)
 		this.username = ""
 		this.messageId = "mailAddressNeutral_msg"
-		this.__signupUnavailableEmailsTest = locator.usageTestController.getTest("signup.unavailableemails")
+		this.signupUnavailableEmailsTest = locator.usageTestController.getTest("signup.unavailableemails")
 	}
 
 	view({attrs}: Vnode<SelectMailAddressFormAttrs>): Children {
@@ -186,7 +186,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			try {
 				const available = await locator.mailAddressFacade.isMailAddressAvailable(cleanMailAddress)
 				if (!available) {
-					this.__signupUnavailableEmailsTest.getStage(1).complete()
+					this.signupUnavailableEmailsTest.getStage(1).complete()
 				}
 				result = available ? {isValid: true, errorId: null} : {isValid: false, errorId: "mailAddressNA_msg"}
 			} catch (e) {
