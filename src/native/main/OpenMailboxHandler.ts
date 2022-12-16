@@ -1,13 +1,12 @@
 import m from "mithril"
 import {logins} from "../../api/main/LoginController"
 import {locator} from "../../api/main/MainLocator"
-import {getInboxFolder} from "../../mail/model/MailUtils"
-import {getWholeList} from "../../mail/model/FolderSystem.js"
+import {MailFolderType} from "../../api/common/TutanotaConstants.js"
 
 export function openMailbox(userId: Id, mailAddress: string, requestedPath: string | null): void {
 	if (logins.isUserLoggedIn() && logins.getUserController().user._id === userId) {
 		if (!requestedPath) {
-			locator.mailModel.getMailboxDetails().then(mailboxDetails => m.route.set("/mail/" + getInboxFolder(getWholeList(mailboxDetails[0].folders)).mails))
+			locator.mailModel.getMailboxDetails().then(mailboxDetails => m.route.set("/mail/" + mailboxDetails[0].folders.getSystemFolderByType(MailFolderType.INBOX).mails))
 		} else {
 			m.route.set("/mail" + requestedPath)
 		}

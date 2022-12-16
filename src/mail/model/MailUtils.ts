@@ -29,7 +29,7 @@ import {getEnabledMailAddressesForGroupInfo, getGroupInfoDisplayName} from "../.
 import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName} from "../../misc/parsing/MailAddressParser"
 import type {Attachment} from "../editor/SendMailModel"
 import {getListId} from "../../api/common/utils/EntityUtils.js"
-import {indentedList} from "./FolderSystem.js"
+import {FolderSystem} from "./FolderSystem.js"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"
@@ -182,46 +182,6 @@ export function getFolderIconByType(folderType: MailFolderType): lazyIcon {
 
 export function getFolderIcon(folder: MailFolder): lazyIcon {
 	return getFolderIconByType(getMailFolderType(folder))
-}
-
-export function getFolder(folders: MailFolder[], type: MailFolderType): MailFolder {
-	const folder = folders.find(f => f.folderType === type)
-	return neverNull(folder)
-}
-
-export function getInboxFolder(folders: MailFolder[]): MailFolder {
-	return getFolder(folders, MailFolderType.INBOX)
-}
-
-export function getArchiveFolder(folders: MailFolder[]): MailFolder {
-	return getFolder(folders, MailFolderType.ARCHIVE)
-}
-
-export function getDraftFolder(folders: MailFolder[]): MailFolder {
-	return getFolder(folders, MailFolderType.DRAFT)
-}
-
-export function getSortedSystemFolders(folders: MailFolder[]): MailFolder[] {
-	return folders
-		.filter(f => f.folderType !== MailFolderType.CUSTOM)
-		.sort((folder1, folder2) => {
-			// insert the draft folder after inbox (use type number 1.5 which is after inbox)
-			if (folder1.folderType === MailFolderType.DRAFT) {
-				return 1.5 - Number(folder2.folderType)
-			} else if (folder2.folderType === MailFolderType.DRAFT) {
-				return Number(folder1.folderType) - 1.5
-			}
-
-			return Number(folder1.folderType) - Number(folder2.folderType)
-		})
-}
-
-export function getSortedCustomFolders(folders: MailFolder[]): MailFolder[] {
-	return folders
-		.filter(f => f.folderType === MailFolderType.CUSTOM)
-		.sort((folder1, folder2) => {
-			return folder1.name.localeCompare(folder2.name)
-		})
 }
 
 export function getEnabledMailAddressesWithUser(mailboxDetail: MailboxDetail, userGroupInfo: GroupInfo): Array<string> {
@@ -416,7 +376,7 @@ export async function getMoveTargetFolderSystems(model: MailModel, mails: Mail[]
 	const firstMail = first(mails)
 	if (firstMail == null) return []
 
-	const targetFolders = indentedList((await model.getMailboxDetailsForMail(firstMail)).folders).filter(f => f.folder.mails !== getListId(firstMail))
+	const targetFolders = (await model.getMailboxDetailsForMail(firstMail)).folders.getIndentedList().filter(f => f.folder.mails !== getListId(firstMail))
 	return targetFolders.filter(f => allMailsAllowedInsideFolder([firstMail], f.folder))
 }
 
@@ -425,4 +385,12 @@ export const MAX_FOLDER_INDENT_LEVEL = 10
 export function getIndentedFolderNameForDropdown(folderInfo: {level: number; folder: MailFolder}) {
 	const indentLevel = Math.min(folderInfo.level, MAX_FOLDER_INDENT_LEVEL)
 	return ". ".repeat(indentLevel) + getFolderName(folderInfo.folder)
+}
+
+export function getPathToFolderString(folderSystem: FolderSystem, folder: MailFolder, omitLast = false) {
+	const folderPath = folderSystem.getPathToFolder(folder._id)
+	if (omitLast) {
+		folderPath.pop()
+	}
+	return folderPath.map(getFolderName).join(" · ")
 }

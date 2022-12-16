@@ -10,7 +10,20 @@ import {
 } from "../../api/common/error/RestError"
 import {UserError} from "../../api/main/UserError"
 import {getPasswordStrengthForUser, isSecurePassword, PASSWORD_MIN_SECURE_VALUE} from "../../misc/passwords/PasswordUtils"
-import {cleanMatch, deduplicate, downcast, findAndRemove, getFromMap, neverNull, noOp, ofClass, promiseMap, remove, typedValues} from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	cleanMatch,
+	deduplicate,
+	downcast,
+	findAndRemove,
+	getFromMap,
+	neverNull,
+	noOp,
+	ofClass,
+	promiseMap,
+	remove,
+	typedValues
+} from "@tutao/tutanota-utils"
 import {checkAttachmentSize, getDefaultSender, getTemplateLanguages,} from "../model/MailUtils"
 import type {File as TutanotaFile, Mail, MailboxProperties} from "../../api/entities/tutanota/TypeRefs.js"
 import {ContactTypeRef, ConversationEntryTypeRef, FileTypeRef, MailboxPropertiesTypeRef, MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
@@ -857,8 +870,8 @@ export class SendMailModel {
 
 	private async isMailInTrashOrSpam(draft: Mail) {
 		const folders = await this.mailModel.getMailboxFolders(draft)
-		const trashAndMailFolders = folders.filter(f => f.folderType === MailFolderType.TRASH || f.folderType === MailFolderType.SPAM)
-		return trashAndMailFolders.some(folder => isSameId(folder.mails, getListId(draft)))
+		const mailFolder = assertNotNull(folders.getFolderByMailListId(getListId(draft)))
+		return mailFolder.folderType === MailFolderType.TRASH || mailFolder.folderType === MailFolderType.SPAM
 	}
 
 	private sendApprovalMail(body: string): Promise<unknown> {

@@ -90,6 +90,7 @@ o.spec("DeviceConfig", function () {
 				_language: "en",
 				_defaultCalendarView: {},
 				_hiddenCalendars: {},
+				expandedMailFolders: {},
 				_testDeviceId: "testId",
 				_testAssignments: null,
 				_signupToken: "signupToken",

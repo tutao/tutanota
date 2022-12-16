@@ -1,13 +1,19 @@
 import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {lang, TranslationKey} from "../misc/LanguageViewModel"
-import {InboxRuleType, MailState} from "../api/common/TutanotaConstants"
+import {InboxRuleType, MailFolderType, MailState} from "../api/common/TutanotaConstants"
 import {isDomainName, isMailAddress, isRegularExpression} from "../misc/FormatValidator"
 import {getInboxRuleTypeNameMapping} from "../mail/model/InboxRuleHandler"
 import type {InboxRule} from "../api/entities/tutanota/TypeRefs.js"
 import {createInboxRule} from "../api/entities/tutanota/TypeRefs.js"
 import {logins} from "../api/main/LoginController"
-import {getArchiveFolder, getExistingRuleForType, getIndentedFolderNameForDropdown, mailStateAllowedInsideFolderType} from "../mail/model/MailUtils"
+import {
+	getExistingRuleForType,
+	getFolderName,
+	getIndentedFolderNameForDropdown,
+	getPathToFolderString,
+	mailStateAllowedInsideFolderType
+} from "../mail/model/MailUtils"
 import type {MailboxDetail} from "../mail/model/MailModel"
 import stream from "mithril/stream"
 import {DropDownSelector} from "../gui/base/DropDownSelector.js"
@@ -19,15 +25,14 @@ import {isSameId} from "../api/common/utils/EntityUtils"
 import {assertMainOrNode} from "../api/common/Env"
 import {locator} from "../api/main/MainLocator"
 import {isOfflineError} from "../api/common/utils/ErrorCheckUtils.js"
-import {getWholeList, indentedList} from "../mail/model/FolderSystem.js"
 
 assertMainOrNode()
 
-export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
+export function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRule) {
 	if (logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog(true)
-	} else if (mailBoxDetails) {
-		let targetFolders = indentedList(mailBoxDetails.folders)
+	} else if (mailBoxDetail) {
+		let targetFolders = mailBoxDetail.folders.getIndentedList()
 			.filter(folderInfo => mailStateAllowedInsideFolderType(MailState.RECEIVED, folderInfo.folder.folderType))
 			.map(folderInfo => {
 				return {
@@ -37,8 +42,8 @@ export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
 			})
 		const inboxRuleType = stream(ruleOrTemplate.type)
 		const inboxRuleValue = stream(ruleOrTemplate.value)
-		const selectedFolder = getWholeList(mailBoxDetails.folders).find(folder => isSameId(folder._id, ruleOrTemplate.targetFolder))
-		const inboxRuleTarget = stream(selectedFolder || getArchiveFolder(getWholeList(mailBoxDetails.folders)))
+		const selectedFolder = mailBoxDetail.folders.getFolderById(ruleOrTemplate.targetFolder)
+		const inboxRuleTarget = stream(selectedFolder ?? mailBoxDetail.folders.getSystemFolderByType(MailFolderType.ARCHIVE))
 
 		let form = () => [
 			m(DropDownSelector, {
@@ -60,7 +65,9 @@ export function show(mailBoxDetails: MailboxDetail, ruleOrTemplate: InboxRule) {
 				label: "inboxRuleTargetFolder_label",
 				items: targetFolders,
 				selectedValue: inboxRuleTarget(),
+				selectedValueDisplay: getFolderName(inboxRuleTarget()),
 				selectionChangedHandler: inboxRuleTarget,
+				helpLabel: () => getPathToFolderString(mailBoxDetail.folders, inboxRuleTarget(), true),
 			}),
 		]
 

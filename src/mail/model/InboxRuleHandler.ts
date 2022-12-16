@@ -1,27 +1,18 @@
-import type {MoveMailData} from "../../api/entities/tutanota/TypeRefs.js"
-import {createMoveMailData} from "../../api/entities/tutanota/TypeRefs.js"
-import {InboxRuleType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE} from "../../api/common/TutanotaConstants"
+import type {InboxRule, Mail, MoveMailData} from "../../api/entities/tutanota/TypeRefs.js"
+import {createMoveMailData, MailHeadersTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
+import {InboxRuleType, MailFolderType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE} from "../../api/common/TutanotaConstants"
 import {isDomainName, isRegularExpression} from "../../misc/FormatValidator"
-import {HttpMethod} from "../../api/common/EntityFunctions"
 import {getMailHeaders} from "../../api/common/utils/Utils"
-import {assertNotNull, asyncFind, debounce} from "@tutao/tutanota-utils"
+import {assertNotNull, asyncFind, debounce, ofClass, promiseMap, splitInChunks} from "@tutao/tutanota-utils"
 import {lang} from "../../misc/LanguageViewModel"
-import {MailHeadersTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {logins} from "../../api/main/LoginController"
 import type {MailboxDetail} from "./MailModel"
 import {LockedError, NotFoundError, PreconditionFailedError} from "../../api/common/error/RestError"
-import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
-import type {InboxRule} from "../../api/entities/tutanota/TypeRefs.js"
 import type {SelectorItemList} from "../../gui/base/DropDownSelector.js"
-import {splitInChunks} from "@tutao/tutanota-utils"
 import {EntityClient} from "../../api/common/EntityClient"
-import type {WorkerClient} from "../../api/main/WorkerClient"
 import {getElementId, getListId, isSameId} from "../../api/common/utils/EntityUtils"
-import {getInboxFolder} from "./MailUtils"
-import {ofClass, promiseMap} from "@tutao/tutanota-utils"
 import {assertMainOrNode} from "../../api/common/Env"
 import {MailFacade} from "../../api/worker/facades/MailFacade"
-import {getWholeList} from "./FolderSystem.js"
 
 assertMainOrNode()
 const moveMailDataPerFolder: MoveMailData[] = []
@@ -116,11 +107,9 @@ export function findAndApplyMatchingRule(
 
 	return _findMatchingRule(entityClient, mail, logins.getUserController().props.inboxRules).then(inboxRule => {
 		if (inboxRule) {
-			let targetFolder = getWholeList(mailboxDetail.folders)
-											.filter(folder => folder !== getInboxFolder(getWholeList(mailboxDetail.folders)))
-											.find(folder => isSameId(folder._id, inboxRule.targetFolder))
+			let targetFolder = mailboxDetail.folders.getFolderById(inboxRule.targetFolder)
 
-			if (targetFolder) {
+			if (targetFolder && targetFolder.folderType !== MailFolderType.INBOX) {
 				if (applyRulesOnServer) {
 					let moveMailData = moveMailDataPerFolder.find(folderMoveMailData => isSameId(folderMoveMailData.targetFolder, inboxRule.targetFolder))
 
@@ -244,5 +233,5 @@ function _checkEmailAddresses(mailAddresses: string[], inboxRule: InboxRule): bo
 }
 
 export function isInboxList(mailboxDetail: MailboxDetail, listId: Id): boolean {
-	return isSameId(listId, getInboxFolder(getWholeList(mailboxDetail.folders)).mails)
+	return isSameId(listId, mailboxDetail.folders.getSystemFolderByType(MailFolderType.INBOX).mails)
 }

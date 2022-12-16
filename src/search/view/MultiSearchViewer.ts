@@ -1,32 +1,21 @@
 import m, {Component} from "mithril"
-import {assertMainOrNode, isApp, Mode} from "../../api/common/Env"
+import {assertMainOrNode, isApp} from "../../api/common/Env"
 import {ActionBar} from "../../gui/base/ActionBar"
 import {Icons} from "../../gui/base/icons/Icons"
 import {lang} from "../../misc/LanguageViewModel"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
 import {SearchListView} from "./SearchListView"
 import {NotFoundError} from "../../api/common/error/RestError"
-import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
-import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
+import type {Contact, Mail} from "../../api/entities/tutanota/TypeRefs.js"
+import {ContactTypeRef, MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
 import {Dialog} from "../../gui/base/Dialog"
-import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
-import {MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {
-	allMailsAllowedInsideFolder,
-	getFolderIcon,
-	getFolderName,
-	getSortedCustomFolders,
-	getSortedSystemFolders,
-	markMails
-} from "../../mail/model/MailUtils"
+import {allMailsAllowedInsideFolder, getFolderIcon, getIndentedFolderNameForDropdown, markMails} from "../../mail/model/MailUtils"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {mergeContacts} from "../../contacts/ContactMergeUtils"
 import {logins} from "../../api/main/LoginController"
-import {FeatureType, MailFolderType} from "../../api/common/TutanotaConstants"
+import {FeatureType} from "../../api/common/TutanotaConstants"
 import {exportContacts} from "../../contacts/VCardExporter"
 import {downcast, isNotNull, isSameTypeRef, lazyMemoized, NBSP, noOp, ofClass} from "@tutao/tutanota-utils"
-import type {ButtonAttrs} from "../../gui/base/Button.js"
-import {ButtonType} from "../../gui/base/Button.js"
 import {theme} from "../../gui/theme"
 import {BootIcons} from "../../gui/base/icons/BootIcons"
 import {locator} from "../../api/main/MainLocator"
@@ -35,7 +24,6 @@ import {moveMails} from "../../mail/view/MailGuiUtils"
 import {exportMails} from "../../mail/export/Exporter"
 import {MailboxDetail} from "../../mail/model/MailModel";
 import {IconButtonAttrs} from "../../gui/base/IconButton.js"
-import {getWholeSortedList} from "../../mail/model/FolderSystem.js"
 
 assertMainOrNode()
 
@@ -262,19 +250,19 @@ export class MultiSearchViewer implements Component {
 		}
 
 		if (selectedMailbox == null) return []
-		return getWholeSortedList(selectedMailbox.folders)
-			.filter(folder => allMailsAllowedInsideFolder(selectedMails, folder))
-			.map(f => ({
-				label: () => getFolderName(f),
-				click: () => {
-					//is needed for correct selection behavior on mobile
-					this._searchListView.selectNone()
+		return selectedMailbox.folders.getIndentedList()
+							  .filter(folder => allMailsAllowedInsideFolder(selectedMails, folder.folder))
+							  .map(f => ({
+								  label: () => getIndentedFolderNameForDropdown(f),
+								  click: () => {
+									  //is needed for correct selection behavior on mobile
+									  this._searchListView.selectNone()
 
-					// move all groups one by one because the mail list cannot be modified in parallel
-					return moveMails({mailModel: locator.mailModel, mails: selectedMails, targetMailFolder: f})
-				},
-				icon: getFolderIcon(f)(),
-			}))
+									  // move all groups one by one because the mail list cannot be modified in parallel
+									  return moveMails({mailModel: locator.mailModel, mails: selectedMails, targetMailFolder: f.folder})
+								  },
+								  icon: getFolderIcon(f.folder)(),
+							  }))
 	}
 
 	mergeSelected(): Promise<void> {

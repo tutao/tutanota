@@ -55,7 +55,6 @@ import {IconButton} from "../../gui/base/IconButton.js"
 import {ButtonSize} from "../../gui/base/ButtonSize.js";
 import {BottomNav} from "../../gui/nav/BottomNav.js"
 import {MobileMailActionBar} from "../../mail/view/MobileMailActionBar.js"
-import {indentedList} from "../../mail/model/FolderSystem.js"
 
 assertMainOrNode()
 
@@ -107,7 +106,7 @@ export class SearchView implements CurrentView {
 
 			for (const mailbox of mailboxes) {
 				const mailboxIndex = mailboxes.indexOf(mailbox);
-				const mailFolders = indentedList(mailbox.folders)
+				const mailFolders = mailbox.folders.getIndentedList()
 				for (const folderInfo of mailFolders) {
 					if (folderInfo.folder.folderType !== MailFolderType.SPAM) {
 						const mailboxLabel = mailboxIndex === 0 ? "" : ` (${getGroupInfoDisplayName(mailbox.mailGroupInfo)})`

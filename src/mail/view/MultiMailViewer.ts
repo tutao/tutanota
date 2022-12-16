@@ -18,7 +18,6 @@ import {exportMails} from "../export/Exporter"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {MailboxDetail} from "../model/MailModel.js"
 import {IconButtonAttrs} from "../../gui/base/IconButton.js"
-import {indentedList} from "../model/FolderSystem.js"
 import {haveSameId} from "../../api/common/utils/EntityUtils.js"
 
 assertMainOrNode()
@@ -158,16 +157,20 @@ export class MultiMailViewer implements Component {
 		}
 
 		if (selectedMailbox == null) return []
-		return indentedList(selectedMailbox.folders)
-			.filter(folderInfo => allMailsAllowedInsideFolder(selectedEntities, folderInfo.folder)
-				&& (this._mailView.selectedFolder == null || !haveSameId(folderInfo.folder, this._mailView.selectedFolder)))
-			.map(folderInfo => {
-				return {
-					label: () => getIndentedFolderNameForDropdown(folderInfo),
-					click: this._actionBarAction(mails => moveMails({mailModel: locator.mailModel, mails: mails, targetMailFolder: folderInfo.folder})),
-					icon: getFolderIcon(folderInfo.folder)(),
-				}
-			})
+		return selectedMailbox.folders.getIndentedList()
+							  .filter(folderInfo => allMailsAllowedInsideFolder(selectedEntities, folderInfo.folder)
+								  && (this._mailView.selectedFolder == null || !haveSameId(folderInfo.folder, this._mailView.selectedFolder)))
+							  .map(folderInfo => {
+								  return {
+									  label: () => getIndentedFolderNameForDropdown(folderInfo),
+									  click: this._actionBarAction(mails => moveMails({
+										  mailModel: locator.mailModel,
+										  mails: mails,
+										  targetMailFolder: folderInfo.folder
+									  })),
+									  icon: getFolderIcon(folderInfo.folder)(),
+								  }
+							  })
 	}
 
 	/**

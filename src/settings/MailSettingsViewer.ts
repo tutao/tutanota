@@ -31,7 +31,6 @@ import {IdentifierListViewer} from "./IdentifierListViewer"
 import {IndexingNotSupportedError} from "../api/common/error/IndexingNotSupportedError"
 import {LockedError} from "../api/common/error/RestError"
 import {getEnabledMailAddressesForGroupInfo} from "../api/common/utils/GroupUtils"
-import {isSameId} from "../api/common/utils/EntityUtils"
 import {showEditOutOfOfficeNotificationDialog} from "./EditOutOfOfficeNotificationDialog"
 import {formatActivateState, loadOutOfOfficeNotification} from "../misc/OutOfOfficeNotificationUtils"
 import {getSignatureType, show as showEditSignatureDialog} from "./EditSignatureDialog"
@@ -43,7 +42,6 @@ import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js";
 import {getReportMovedMailsType} from "../misc/MailboxPropertiesUtils.js"
 import {MailAddressTableModel} from "./mailaddress/MailAddressTableModel.js"
-import {getWholeList} from "../mail/model/FolderSystem.js"
 
 assertMainOrNode()
 
@@ -440,8 +438,8 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		m.redraw()
 	}
 
-	_getTextForTarget(mailboxDetails: MailboxDetail, targetFolderId: IdTuple): string {
-		let folder = getWholeList(mailboxDetails.folders).find(folder => isSameId(folder._id, targetFolderId))
+	_getTextForTarget(mailboxDetail: MailboxDetail, targetFolderId: IdTuple): string {
+		let folder = mailboxDetail.folders.getFolderById(targetFolderId)
 
 		if (folder) {
 			return getFolderName(folder)

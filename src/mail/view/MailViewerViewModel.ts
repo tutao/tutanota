@@ -37,11 +37,11 @@ import stream from "mithril/stream"
 import {addAll, contains, downcast, first, neverNull, noOp, ofClass, startsWith} from "@tutao/tutanota-utils"
 import {lang} from "../../misc/LanguageViewModel"
 import {
-	getArchiveFolder,
 	getDefaultSender,
 	getEnabledMailAddressesWithUser,
-	getFolder, getFolderName,
+	getFolderName,
 	getMailboxName,
+	getPathToFolderString,
 	isExcludedMailAddress,
 	isTutanotaTeamMail
 } from "../model/MailUtils"
@@ -71,7 +71,6 @@ import {ProgrammingError} from "../../api/common/error/ProgrammingError"
 import {InitAsResponseArgs} from "../editor/SendMailModel"
 import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 import {DesktopSystemFacade} from "../../native/common/generatedipc/DesktopSystemFacade.js"
-import {getPathToFolder, getWholeList} from "../model/FolderSystem.js"
 
 
 export const enum ContentBlockingStatus {
@@ -178,7 +177,7 @@ export class MailViewerViewModel {
 
 		if (folder) {
 			this.mailModel.getMailboxDetailsForMail(this.mail).then(mailboxDetails => {
-				const name = getPathToFolder(mailboxDetails.folders, folder._id).map(getFolderName).join(" · ")
+				const name = getPathToFolderString(mailboxDetails.folders, folder)
 				this.folderText = `${getMailboxName(this.logins, mailboxDetails)} / ${name}`
 				m.redraw()
 			})
@@ -431,8 +430,8 @@ export class MailViewerViewModel {
 				this.setPhishingStatus(MailPhishingStatus.SUSPICIOUS)
 				await this.entityClient.update(this.mail)
 			}
-			const mailboxDetails = await this.mailModel.getMailboxDetailsForMail(this.mail)
-			const spamFolder = getFolder(getWholeList(mailboxDetails.folders), MailFolderType.SPAM)
+			const mailboxDetail = await this.mailModel.getMailboxDetailsForMail(this.mail)
+			const spamFolder = mailboxDetail.folders.getSystemFolderByType(MailFolderType.SPAM)
 			// do not report moved mails again
 			await moveMails({mailModel: this.mailModel, mails: [this.mail], targetMailFolder: spamFolder, isReportable: false})
 		} catch (e) {
@@ -905,7 +904,7 @@ export class MailViewerViewModel {
 		const model = await defaultSendMailModel(mailboxDetails, mailboxProperties).initAsResponse(args, this.getLoadedInlineImages())
 		await model.send(MailMethod.NONE)
 		const folders = await this.mailModel.getMailboxFolders(this.mail)
-		return moveMails({mailModel: this.mailModel, mails: [this.mail], targetMailFolder: getArchiveFolder(folders)})
+		return moveMails({mailModel: this.mailModel, mails: [this.mail], targetMailFolder: folders.getSystemFolderByType(MailFolderType.ARCHIVE)})
 	}
 
 	getNonInlineAttachments(): TutanotaFile[] {

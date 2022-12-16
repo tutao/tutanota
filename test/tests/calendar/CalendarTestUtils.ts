@@ -23,6 +23,7 @@ import o from "ospec"
 import type {CalendarInfo} from "../../../src/calendar/model/CalendarModel"
 import {CalendarModel} from "../../../src/calendar/model/CalendarModel"
 import type {IProgressMonitor} from "../../../src/api/common/utils/ProgressMonitor"
+import {FolderSystem} from "../../../src/mail/model/FolderSystem.js"
 
 export const accountMailAddress = "address@tutanota.com" as const
 export const userId = "12356" as const
@@ -99,7 +100,7 @@ export function makeUserController(
 export function makeMailboxDetail(): MailboxDetail {
 	return {
 		mailbox: createMailBox(),
-		folders: [],
+		folders: new FolderSystem([]),
 		mailGroupInfo: createGroupInfo(),
 		mailGroup: createGroup({
 			user: userId,
