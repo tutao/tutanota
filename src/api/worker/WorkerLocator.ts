@@ -173,7 +173,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.rsa,
 		locator.cachingEntityClient,
 		locator.serviceExecutor,
-		new EntityClient(entityRestClient), // without cache
 	)
 	locator.customer = new CustomerFacade(
 		worker,
@@ -196,7 +195,12 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	if (!isAdminClient()) {
 		locator.calendar = new CalendarFacade(locator.user, locator.groupManagement, assertNotNull(cache), nativePushFacade, worker, locator.instanceMapper, locator.serviceExecutor, locator.crypto)
 	}
-	locator.mailAddress = new MailAddressFacade(locator.user, locator.serviceExecutor)
+	locator.mailAddress = new MailAddressFacade(
+		locator.user,
+		locator.groupManagement,
+		locator.serviceExecutor,
+		new EntityClient(entityRestClient), // without cache
+	)
 
 	const dateProvider = new NoZoneDateProvider()
 	const scheduler = new SchedulerImpl(dateProvider, self, self)

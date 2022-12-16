@@ -246,7 +246,7 @@ class MainLocator implements IMainLocator {
 
 	async adminNameChanger(mailGroupId: Id, userId: Id): Promise<MailAddressNameChanger> {
 		const {AnotherUserMailAddressNameChanger} = await import("../../settings/mailaddress/AnotherUserMailAddressNameChanger.js")
-		return new AnotherUserMailAddressNameChanger(this.userManagementFacade, mailGroupId, userId)
+		return new AnotherUserMailAddressNameChanger(this.mailAddressFacade, mailGroupId, userId)
 	}
 
 	private getExposedNativeInterface(): ExposedNativeInterface {
