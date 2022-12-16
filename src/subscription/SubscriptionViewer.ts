@@ -714,7 +714,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				oninput: this._currentPriceFieldValue,
 				disabled: true,
 				helpLabel: () => this._customer && this._customer.businessUse === true
-					? lang.get("subscriptionPeriodInfoBusiness_msg")
+					? lang.get("pricing.subscriptionPeriodInfoBusiness_msg")
 					: null,
 			})
 		]

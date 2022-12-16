@@ -95,7 +95,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			additionalInfo = m(".flex.flex-column.items-center", [
 				featureExpander.All, // global feature expander
 				m(".smaller.mb.center", lang.get("downgradeToPrivateNotAllowed_msg")), //only displayed when business options are shown)
-				m(".smaller.mb.center", lang.get("subscriptionPeriodInfoBusiness_msg"))
+				m(".smaller.mb.center", lang.get("pricing.subscriptionPeriodInfoBusiness_msg"))
 			])
 		} else {
 			const currentSubscription = vnode.attrs.currentSubscriptionType
@@ -118,7 +118,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			}
 			additionalInfo = m(".flex.flex-column.items-center", [
 				featureExpander.All, // global feature expander
-				m(".smaller.mb.center", lang.get("subscriptionPeriodInfoPrivate_msg"))
+				m(".smaller.mb.center", lang.get("pricing.subscriptionPeriodInfoPrivate_msg"))
 			])
 		}
 

@@ -126,8 +126,8 @@ export class UpgradeConfirmPage implements WizardPageN<UpgradeSubscriptionData> 
 			]),
 			m(".smaller.center.pt-l",
 				attrs.data.options.businessUse()
-					? lang.get("subscriptionPeriodInfoBusiness_msg")
-					: lang.get("subscriptionPeriodInfoPrivate_msg")
+					? lang.get("pricing.subscriptionPeriodInfoBusiness_msg")
+					: lang.get("pricing.subscriptionPeriodInfoPrivate_msg")
 			),
 			m(".flex-center.full-width.pt-l",
 				m("", {
