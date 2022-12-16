@@ -3,10 +3,10 @@ import {
 	createDomainMailAddressAvailabilityData,
 	createMailAddressAliasServiceData,
 	createMailAddressAliasServiceDataDelete,
-	createMailAddressAvailabilityData,
+	createMultipleMailAddressAvailabilityData,
 	createStringWrapper
 } from "../../entities/sys/TypeRefs.js"
-import {DomainMailAddressAvailabilityService, MailAddressAliasService, MailAddressAvailabilityService} from "../../entities/sys/Services.js"
+import {DomainMailAddressAvailabilityService, MailAddressAliasService, MultipleMailAddressAvailabilityService} from "../../entities/sys/Services.js"
 import {assertWorkerOrNode} from "../../common/Env"
 import {IServiceExecutor} from "../../common/ServiceRequest"
 import {UserFacade} from "./UserFacade"
@@ -37,10 +37,10 @@ export class MailAddressFacade {
 	}
 
 	async areMailAddressesAvailable(mailAddresses: string[]): Promise<MailAddressAvailability[]> {
-		const data = createMailAddressAvailabilityData({
+		const data = createMultipleMailAddressAvailabilityData({
 			mailAddresses: mailAddresses.map(mailAddress => createStringWrapper({value: mailAddress}))
 		})
-		const result = await this.serviceExecutor.get(MailAddressAvailabilityService, data)
+		const result = await this.serviceExecutor.get(MultipleMailAddressAvailabilityService, data)
 		return result.availabilities
 	}
 

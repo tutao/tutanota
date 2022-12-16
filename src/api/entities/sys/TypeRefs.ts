@@ -1599,32 +1599,6 @@ export type MailAddressAvailability = {
 	available: boolean;
 	mailAddress: string;
 }
-export const MailAddressAvailabilityDataTypeRef: TypeRef<MailAddressAvailabilityData> = new TypeRef("sys", "MailAddressAvailabilityData")
-
-export function createMailAddressAvailabilityData(values?: Partial<MailAddressAvailabilityData>): MailAddressAvailabilityData {
-	return Object.assign(create(typeModels.MailAddressAvailabilityData, MailAddressAvailabilityDataTypeRef), values)
-}
-
-export type MailAddressAvailabilityData = {
-	_type: TypeRef<MailAddressAvailabilityData>;
-
-	_format: NumberString;
-
-	mailAddresses: StringWrapper[];
-}
-export const MailAddressAvailabilityReturnTypeRef: TypeRef<MailAddressAvailabilityReturn> = new TypeRef("sys", "MailAddressAvailabilityReturn")
-
-export function createMailAddressAvailabilityReturn(values?: Partial<MailAddressAvailabilityReturn>): MailAddressAvailabilityReturn {
-	return Object.assign(create(typeModels.MailAddressAvailabilityReturn, MailAddressAvailabilityReturnTypeRef), values)
-}
-
-export type MailAddressAvailabilityReturn = {
-	_type: TypeRef<MailAddressAvailabilityReturn>;
-
-	_format: NumberString;
-
-	availabilities: MailAddressAvailability[];
-}
 export const MailAddressToGroupTypeRef: TypeRef<MailAddressToGroup> = new TypeRef("sys", "MailAddressToGroup")
 
 export function createMailAddressToGroup(values?: Partial<MailAddressToGroup>): MailAddressToGroup {
@@ -1691,6 +1665,32 @@ export type MissedNotification = {
 
 	alarmNotifications: AlarmNotification[];
 	notificationInfos: NotificationInfo[];
+}
+export const MultipleMailAddressAvailabilityDataTypeRef: TypeRef<MultipleMailAddressAvailabilityData> = new TypeRef("sys", "MultipleMailAddressAvailabilityData")
+
+export function createMultipleMailAddressAvailabilityData(values?: Partial<MultipleMailAddressAvailabilityData>): MultipleMailAddressAvailabilityData {
+	return Object.assign(create(typeModels.MultipleMailAddressAvailabilityData, MultipleMailAddressAvailabilityDataTypeRef), values)
+}
+
+export type MultipleMailAddressAvailabilityData = {
+	_type: TypeRef<MultipleMailAddressAvailabilityData>;
+
+	_format: NumberString;
+
+	mailAddresses: StringWrapper[];
+}
+export const MultipleMailAddressAvailabilityReturnTypeRef: TypeRef<MultipleMailAddressAvailabilityReturn> = new TypeRef("sys", "MultipleMailAddressAvailabilityReturn")
+
+export function createMultipleMailAddressAvailabilityReturn(values?: Partial<MultipleMailAddressAvailabilityReturn>): MultipleMailAddressAvailabilityReturn {
+	return Object.assign(create(typeModels.MultipleMailAddressAvailabilityReturn, MultipleMailAddressAvailabilityReturnTypeRef), values)
+}
+
+export type MultipleMailAddressAvailabilityReturn = {
+	_type: TypeRef<MultipleMailAddressAvailabilityReturn>;
+
+	_format: NumberString;
+
+	availabilities: MailAddressAvailability[];
 }
 export const NotificationInfoTypeRef: TypeRef<NotificationInfo> = new TypeRef("sys", "NotificationInfo")
 

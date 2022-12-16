@@ -6513,74 +6513,6 @@ export const typeModels = {
         "app": "sys",
         "version": "81"
     },
-    "MailAddressAvailabilityData": {
-        "name": "MailAddressAvailabilityData",
-        "since": 1,
-        "type": "DATA_TRANSFER_TYPE",
-        "id": 309,
-        "rootId": "A3N5cwABNQ",
-        "versioned": false,
-        "encrypted": false,
-        "values": {
-            "_format": {
-                "final": false,
-                "name": "_format",
-                "id": 310,
-                "since": 1,
-                "type": "Number",
-                "cardinality": "One",
-                "encrypted": false
-            }
-        },
-        "associations": {
-            "mailAddresses": {
-                "final": false,
-                "name": "mailAddresses",
-                "id": 2030,
-                "since": 81,
-                "type": "AGGREGATION",
-                "cardinality": "Any",
-                "refType": "StringWrapper",
-                "dependency": null
-            }
-        },
-        "app": "sys",
-        "version": "81"
-    },
-    "MailAddressAvailabilityReturn": {
-        "name": "MailAddressAvailabilityReturn",
-        "since": 1,
-        "type": "DATA_TRANSFER_TYPE",
-        "id": 312,
-        "rootId": "A3N5cwABOA",
-        "versioned": false,
-        "encrypted": false,
-        "values": {
-            "_format": {
-                "final": false,
-                "name": "_format",
-                "id": 313,
-                "since": 1,
-                "type": "Number",
-                "cardinality": "One",
-                "encrypted": false
-            }
-        },
-        "associations": {
-            "availabilities": {
-                "final": false,
-                "name": "availabilities",
-                "id": 2031,
-                "since": 81,
-                "type": "AGGREGATION",
-                "cardinality": "Any",
-                "refType": "MailAddressAvailability",
-                "dependency": null
-            }
-        },
-        "app": "sys",
-        "version": "81"
-    },
     "MailAddressToGroup": {
         "name": "MailAddressToGroup",
         "since": 1,
@@ -6840,6 +6772,74 @@ export const typeModels = {
                 "type": "AGGREGATION",
                 "cardinality": "Any",
                 "refType": "NotificationInfo",
+                "dependency": null
+            }
+        },
+        "app": "sys",
+        "version": "81"
+    },
+    "MultipleMailAddressAvailabilityData": {
+        "name": "MultipleMailAddressAvailabilityData",
+        "since": 81,
+        "type": "DATA_TRANSFER_TYPE",
+        "id": 2030,
+        "rootId": "A3N5cwAH7g",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_format": {
+                "final": false,
+                "name": "_format",
+                "id": 2031,
+                "since": 81,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {
+            "mailAddresses": {
+                "final": false,
+                "name": "mailAddresses",
+                "id": 2032,
+                "since": 81,
+                "type": "AGGREGATION",
+                "cardinality": "Any",
+                "refType": "StringWrapper",
+                "dependency": null
+            }
+        },
+        "app": "sys",
+        "version": "81"
+    },
+    "MultipleMailAddressAvailabilityReturn": {
+        "name": "MultipleMailAddressAvailabilityReturn",
+        "since": 81,
+        "type": "DATA_TRANSFER_TYPE",
+        "id": 2033,
+        "rootId": "A3N5cwAH8Q",
+        "versioned": false,
+        "encrypted": false,
+        "values": {
+            "_format": {
+                "final": false,
+                "name": "_format",
+                "id": 2034,
+                "since": 81,
+                "type": "Number",
+                "cardinality": "One",
+                "encrypted": false
+            }
+        },
+        "associations": {
+            "availabilities": {
+                "final": false,
+                "name": "availabilities",
+                "id": 2035,
+                "since": 81,
+                "type": "AGGREGATION",
+                "cardinality": "Any",
+                "refType": "MailAddressAvailability",
                 "dependency": null
             }
         },
