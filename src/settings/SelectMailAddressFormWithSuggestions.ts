@@ -3,7 +3,7 @@ import type {TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {isMailAddress} from "../misc/FormatValidator"
 import {AccessDeactivatedError} from "../api/common/error/RestError"
-import {debounce, firstThrow} from "@tutao/tutanota-utils"
+import {debounce, getFirstOrThrow} from "@tutao/tutanota-utils"
 import {formatMailAddressFromParts} from "../misc/Formatter"
 import {Icon} from "../gui/base/Icon"
 import {BootIcons} from "../gui/base/icons/BootIcons"
@@ -52,7 +52,7 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 	constructor({attrs}: Vnode<SelectMailAddressFormWithSuggestionsAttrs>) {
 		this.isVerificationBusy = false
 		this.checkAddressTimeout = null
-		this.domain = firstThrow(attrs.availableDomains)
+		this.domain = getFirstOrThrow(attrs.availableDomains)
 		this.domains = attrs.availableDomains
 		this.username = ""
 		this.messageId = "mailAddressNeutral_msg"

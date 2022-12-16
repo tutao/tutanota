@@ -88,13 +88,23 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	private renderMailGroupInfo(): ChildArray {
 		return [
 			this.renderUsedStorage(),
-			m(".wrapping-row", [
-				m(TextField, {
-					label: "mailAddress_label",
-					value: this.model.getGroupMailAddress(),
-					disabled: true,
-				}),
-			]),
+			m(TextField, {
+				label: "mailAddress_label",
+				value: this.model.getGroupMailAddress(),
+				disabled: true,
+			}),
+			m(TextField, {
+				label: "mailName_label",
+				value: this.model.getGroupSenderName(),
+				disabled: true,
+				injectionsRight: () => m(IconButton, {
+					icon: Icons.Edit,
+					title: "setSenderName_action",
+					click: () => {
+						this.showChangeSenderNameDialog()
+					}
+				})
+			})
 		]
 	}
 
@@ -122,7 +132,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 					value: true,
 				},
 			],
-			selectedValue: this.model.isGroupActive(),
+			selectedValue: !this.model.isGroupActive(),
 			selectionChangedHandler: deactivate => this.model.onActivationStatusSelected(deactivate),
 		} as DropDownSelectorAttrs<boolean>)
 	}
@@ -145,6 +155,12 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 		Dialog.showProcessTextInputDialog("edit_action", "name_label", null, this.model.getGroupName(),
 			(newName) => this.model.changeGroupName(newName),
 			newName => this.model.validateGroupName(newName)
+		)
+	}
+
+	private showChangeSenderNameDialog(): void {
+		Dialog.showProcessTextInputDialog("edit_action", "name_label", null, this.model.getGroupSenderName(),
+			(newName) => this.model.changeGroupSenderName(newName)
 		)
 	}
 

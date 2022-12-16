@@ -1,5 +1,6 @@
 import {AddressToName, MailAddressNameChanger} from "./MailAddressTableModel.js"
-import {UserManagementFacade} from "../../api/worker/facades/UserManagementFacade.js"
+import {MailAddressFacade} from "../../api/worker/facades/MailAddressFacade.js"
+import {assertNotNull} from "@tutao/tutanota-utils"
 
 /**
  *  A {@link MailAddressNameChanger} intended for admins to set names for aliases bound to user mailboxes.
@@ -7,21 +8,21 @@ import {UserManagementFacade} from "../../api/worker/facades/UserManagementFacad
  */
 export class AnotherUserMailAddressNameChanger implements MailAddressNameChanger {
 	constructor(
-		private readonly userManagementFacade: UserManagementFacade,
+		private readonly mailAddressFacade: MailAddressFacade,
 		private readonly mailGroupId: Id,
 		private readonly userId: Id,
 	) {
 	}
 
 	getSenderNames(): Promise<AddressToName> {
-		return this.userManagementFacade.getSenderNames(this.mailGroupId, this.userId)
+		return this.mailAddressFacade.getSenderNames(this.mailGroupId, this.userId)
 	}
 
 	setSenderName(address: string, name: string): Promise<AddressToName> {
-		return this.userManagementFacade.setSenderName(this.mailGroupId, this.userId, address, name)
+		return this.mailAddressFacade.setSenderName(this.mailGroupId, address, name, this.userId)
 	}
 
 	removeSenderName(address: string): Promise<AddressToName> {
-		return this.userManagementFacade.removeSenderName(this.mailGroupId, this.userId, address)
+		return this.mailAddressFacade.removeSenderName(this.mailGroupId, address, this.userId)
 	}
 }

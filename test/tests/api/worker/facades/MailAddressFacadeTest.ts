@@ -1,5 +1,4 @@
 import o from "ospec"
-import {UserManagementFacade} from "../../../../../src/api/worker/facades/UserManagementFacade.js"
 import {WorkerImpl} from "../../../../../src/api/worker/WorkerImpl.js"
 import {UserFacade} from "../../../../../src/api/worker/facades/UserFacade.js"
 import {GroupManagementFacade} from "../../../../../src/api/worker/facades/GroupManagementFacade.js"
@@ -24,8 +23,9 @@ import {
 	GroupInfoTypeRef,
 	UserTypeRef
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import {MailAddressFacade} from "../../../../../src/api/worker/facades/MailAddressFacade.js"
 
-o.spec("UserManagementFacadeTest", function () {
+o.spec("MailAddressFacadeTest", function () {
 	let worker: WorkerImpl
 	let userFacade: UserFacade
 	let groupManagementFacade: GroupManagementFacade
@@ -36,27 +36,19 @@ o.spec("UserManagementFacadeTest", function () {
 	let nonCachingEntityClient: EntityClient
 
 
-	let facade: UserManagementFacade
+	let facade: MailAddressFacade
 
 	o.beforeEach(function () {
-		worker = object()
 		userFacade = object()
 		groupManagementFacade = object()
-		countersFacade = object()
-		rsa = object()
-		entityClient = object()
 		serviceExecutor = object()
 		nonCachingEntityClient = object()
 
-		facade = new UserManagementFacade(
-			worker,
+		facade = new MailAddressFacade(
 			userFacade,
 			groupManagementFacade,
-			countersFacade,
-			rsa,
-			entityClient,
 			serviceExecutor,
-			nonCachingEntityClient
+			nonCachingEntityClient,
 		)
 	})
 
@@ -64,7 +56,7 @@ o.spec("UserManagementFacadeTest", function () {
 		o("when there is existing MailboxProperties it returns the names", async function () {
 			const mailGroupId = "mailGroupId"
 			const viaUser = "viaUser"
-			const mailboxPropertiesId = "mailboxProeprtiesId"
+			const mailboxPropertiesId = "mailboxPropertiesId"
 			const mailboxGroupRoot = createMailboxGroupRoot({
 				_ownerGroup: mailGroupId,
 				mailboxProperties: mailboxPropertiesId,
@@ -126,8 +118,8 @@ o.spec("UserManagementFacadeTest", function () {
 				})]
 			})
 
-			when(entityClient.load(UserTypeRef, viaUser)).thenResolve(user)
-			when(entityClient.load(GroupInfoTypeRef, userGroupInfoId)).thenResolve(userGroupInfo)
+			when(nonCachingEntityClient.load(UserTypeRef, viaUser)).thenResolve(user)
+			when(nonCachingEntityClient.load(GroupInfoTypeRef, userGroupInfoId)).thenResolve(userGroupInfo)
 			when(groupManagementFacade.getGroupKeyViaUser(mailGroupId, viaUser)).thenResolve(mailGroupKey)
 			when(nonCachingEntityClient.load(MailboxGroupRootTypeRef, mailGroupId)).thenResolve(mailboxGroupRoot)
 			when(nonCachingEntityClient.setup(null, matchers.anything(), undefined, {ownerKey: mailGroupKey})).thenResolve(mailboxPropertiesId)
