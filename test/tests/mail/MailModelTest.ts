@@ -27,13 +27,14 @@ o.spec("MailModelTest", function () {
 	const anotherFolder = createMailFolder({_id: ["folderListId", "archiveId"]})
 	anotherFolder.mails = "anotherListId"
 	anotherFolder.folderType = MailFolderType.ARCHIVE
-	const mailboxDetails: Partial<MailboxDetail>[] = [
-		{
-			folders: new FolderSystem([inboxFolder]),
-		},
-	]
+	let mailboxDetails: Partial<MailboxDetail>[]
 	let logins: LoginController
 	o.beforeEach(function () {
+		mailboxDetails = [
+			{
+				folders: new FolderSystem([inboxFolder]),
+			},
+		]
 		notifications = {}
 		showSpy = notifications.showNotification = spy()
 		const restClient = new EntityRestClientMock()

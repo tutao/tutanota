@@ -125,7 +125,6 @@ export class MailView implements CurrentView {
 								}
 								: null,
 						content: details.map((mailboxDetail) => {
-							// const mailboxSection = this.createMailboxSection(mailboxDetail)
 							return m(SidebarSection,
 								{
 									name: () => getMailboxName(logins, mailboxDetail),
@@ -442,7 +441,6 @@ export class MailView implements CurrentView {
 		const groupCounters = locator.mailModel.mailboxCounters()[mailboxDetail.mailGroup._id] || {}
 		// Important: this array is keyed so each item must have a key and `null` cannot be in the array
 		// So instead we push or not push into array
-		// const [customSystems, systemSystems] = partition(mailboxDetail.folders, (f) => f.folder.folderType === MailFolderType.CUSTOM)
 		const customSystems = mailboxDetail.folders.customSubtrees
 		const systemSystems = mailboxDetail.folders.systemSubtrees
 		const children: Children = []
@@ -714,7 +712,7 @@ export class MailView implements CurrentView {
 						icon: Icons.Trash,
 						click: () => {
 							// so far it is not possible to delete folders that contain subfolders
-							if (folderSystem.getCustomFoldersWithParent(folder._id).length > 0) {
+							if (folderSystem.getCustomFoldersOfParent(folder._id).length > 0) {
 								Dialog.message("cannotDeleteFoldersWithSubfolders_msg")
 								return
 							}
@@ -749,7 +747,7 @@ export class MailView implements CurrentView {
 			if (name.trim() === "") {
 				return "folderNameNeutral_msg"
 			} else if (
-				mailboxDetails.folders.getCustomFoldersWithParent(parentFolderId).some(f => f.name === name)
+				mailboxDetails.folders.getCustomFoldersOfParent(parentFolderId).some(f => f.name === name)
 			) {
 				return "folderNameInvalidExisting_msg"
 			} else {
