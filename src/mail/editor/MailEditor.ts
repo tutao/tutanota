@@ -771,8 +771,8 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 	}
 
 	const minimize = () => {
-		if (model.hasMailChanged() || model.draft) {
-			const saveStatus = stream<SaveStatus>({status: SaveStatusEnum.Saving})
+		let saveStatus = stream<SaveStatus>({status: SaveStatusEnum.Saving})
+		if (model.hasMailChanged()) {
 			save(false)
 				.then(() => saveStatus({status: SaveStatusEnum.Saved}))
 				.catch(e => {
@@ -794,13 +794,16 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 					}
 				})
 				.finally(() => m.redraw())
-			showMinimizedMailEditor(dialog, model, locator.minimizedMailModel, locator.eventController, dispose, saveStatus)
-		} else {
-			// If the mail is unchanged and there was no preexisting draft, close instead of saving
+		} else if (!model.draft) {
+			// If the mail is unchanged and there was no preexisting draft, close instead of saving and return to not show minimized mail editor
 			dispose()
 			dialog.close()
 			return
-		}
+		} else (
+			// If the mail is unchanged and there /is/ a preexisting draft, there was no change and the mail is already saved
+			saveStatus = stream<SaveStatus>({status: SaveStatusEnum.Saved})
+		)
+		showMinimizedMailEditor(dialog, model, locator.minimizedMailModel, locator.eventController, dispose, saveStatus)
 	}
 
 	let windowCloseUnsubscribe = () => {
