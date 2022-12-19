@@ -19,6 +19,7 @@ import {assertMainOrNode} from "../../api/common/Env.js"
 import {IconButton, IconButtonAttrs} from "../../gui/base/IconButton.js"
 import {ButtonSize} from "../../gui/base/ButtonSize.js"
 import {GroupDetailsModel} from "./GroupDetailsModel.js"
+import {showBuyDialog} from "../../subscription/BuyDialog.js"
 
 assertMainOrNode()
 
@@ -134,9 +135,17 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 				},
 			],
 			selectedValue: !this.model.isGroupActive(),
-			selectionChangedHandler: deactivate => this.model.onActivationStatusSelected(deactivate),
+			selectionChangedHandler: deactivate => this.onActivationStatusChanged(deactivate)
 		}
 		return m(DropDownSelector, attrs)
+	}
+
+	private async onActivationStatusChanged(deactivate: boolean): Promise<void> {
+		const buyParams = await showProgressDialog("pleaseWait_msg", this.model.validateGroupActivationStatus(deactivate))
+		if (!buyParams) return
+		const confirmed = await showBuyDialog(buyParams)
+		if (!confirmed) return
+		await showProgressDialog("pleaseWait_msg", this.model.executeGroupBuy(deactivate))
 	}
 
 	private renderNameField(): Children {
@@ -221,7 +230,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 		const lines: TableLineAttrs[] = this.model.getMembersInfo().map(userGroupInfo => {
 			const removeButtonAttrs: IconButtonAttrs = {
 				title: "remove_action",
-				click: () => this.model.removeGroupMember(userGroupInfo),
+				click: () => showProgressDialog("pleaseWait_msg", this.model.removeGroupMember(userGroupInfo)),
 				icon: Icons.Cancel,
 				size: ButtonSize.Compact,
 			}

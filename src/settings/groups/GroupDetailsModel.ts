@@ -8,7 +8,7 @@ import {
 	GroupTypeRef,
 	UserTypeRef
 } from "../../api/entities/sys/TypeRefs.js"
-import {assertNotNull, getFirstOrThrow, LazyLoaded, neverNull, ofClass, promiseMap} from "@tutao/tutanota-utils"
+import {assertNotNull, getFirstOrThrow, LazyLoaded, neverNull, promiseMap} from "@tutao/tutanota-utils"
 import {EntityClient} from "../../api/common/EntityClient.js"
 import {GENERATED_MAX_ID, GENERATED_MIN_ID, isSameId} from "../../api/common/utils/EntityUtils.js"
 import {BookingItemFeatureType, GroupType, OperationType} from "../../api/common/TutanotaConstants.js"
@@ -18,12 +18,13 @@ import {SelectorItemList} from "../../gui/base/DropDownSelector.js"
 import {logins} from "../../api/main/LoginController.js"
 import {Dialog, stringValidator} from "../../gui/base/Dialog.js"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog.js"
-import {showBuyDialog} from "../../subscription/BuyDialog.js"
 import {locator} from "../../api/main/MainLocator.js"
 import {BadRequestError, NotAuthorizedError, PreconditionFailedError} from "../../api/common/error/RestError.js"
 import {compareGroupInfos, getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils.js"
 import {EntityUpdateData, isUpdateForTypeRef} from "../../api/main/EventController.js"
 import {MailboxPropertiesTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
+import {UserError} from "../../api/main/UserError.js"
+import {BookingParams} from "../../subscription/BuyDialog.js"
 
 export class GroupDetailsModel {
 	groupInfo: GroupInfo
@@ -143,38 +144,28 @@ export class GroupDetailsModel {
 	/**
 	 * remove the group of the given groupInfo from this group
 	 */
-	removeGroupMember(userGroupInfo: GroupInfo): void {
-		showProgressDialog(
-			"pleaseWait_msg",
-			this.entityClient
-				.load(GroupTypeRef, userGroupInfo.group)
-				.then(userGroup => locator.groupManagementFacade.removeUserFromGroup(assertNotNull(userGroup.user), this.groupInfo.group)),
-		).catch(
-			ofClass(NotAuthorizedError, () => {
-				Dialog.message("removeUserFromGroupNotAdministratedError_msg")
-			}),
-		)
+	async removeGroupMember(userGroupInfo: GroupInfo): Promise<void> {
+		try {
+			const userGroup = await this.entityClient.load(GroupTypeRef, userGroupInfo.group)
+			return locator.groupManagementFacade.removeUserFromGroup(assertNotNull(userGroup.user), this.groupInfo.group)
+		} catch (e) {
+			if (!(e instanceof NotAuthorizedError)) throw e
+			throw new UserError("removeUserFromGroupNotAdministratedError_msg")
+		}
 	}
 
-	async showGroupBuyDialog(deactivate: boolean): Promise<void> {
-		const bookingItemType = this.groupInfo.groupType === GroupType.LocalAdmin
-			? BookingItemFeatureType.LocalAdminGroup
-			: BookingItemFeatureType.SharedMailGroup
-
-		const confirmed = await showBuyDialog({featureType: bookingItemType, count: deactivate ? -1 : 1, freeAmount: 0, reactivate: !deactivate})
-		if (confirmed) {
-			const group = await this.group.getAsync()
-			try {
-				return await locator.groupManagementFacade.deactivateGroup(group, !deactivate)
-			} catch (e) {
-				if (!(e instanceof PreconditionFailedError)) throw e
-				if (this.groupInfo.groupType === GroupType.LocalAdmin) {
-					return Dialog.message("localAdminGroupAssignedError_msg")
-				} else if (!deactivate) {
-					return Dialog.message("emailAddressInUse_msg")
-				} else {
-					return Dialog.message("stillReferencedFromContactForm_msg")
-				}
+	async executeGroupBuy(deactivate: boolean): Promise<void> {
+		const group = await this.group.getAsync()
+		try {
+			return await locator.groupManagementFacade.deactivateGroup(group, !deactivate)
+		} catch (e) {
+			if (!(e instanceof PreconditionFailedError)) throw e
+			if (this.groupInfo.groupType === GroupType.LocalAdmin) {
+				throw new UserError("localAdminGroupAssignedError_msg")
+			} else if (!deactivate) {
+				throw new UserError("emailAddressInUse_msg")
+			} else {
+				throw new UserError("stillReferencedFromContactForm_msg")
 			}
 		}
 	}
@@ -207,16 +198,30 @@ export class GroupDetailsModel {
 		}
 	}
 
-	async onActivationStatusSelected(deactivate: boolean): Promise<void> {
+	/**
+	 * validate if the given deactivation/activation is valid for this group and return information about the item to book, if any
+	 * @param deactivate true if the group should be deactivated
+	 * @return the relevant BookingParams if the activation/deactivatian may go ahead, null otherwise (no action necessary)
+	 */
+	async validateGroupActivationStatus(deactivate: boolean): Promise<BookingParams | null> {
 		if (deactivate !== this.isGroupActive()) {
 			console.log("tried to set activation status to current status.")
-			return
+			return null
 		}
 		const members = await this.members.getAsync()
 		if (deactivate && members.length > 0) {
-			return Dialog.message("groupNotEmpty_msg")
+			throw new UserError("groupNotEmpty_msg")
 		} else {
-			return showProgressDialog("pleaseWait_msg", this.showGroupBuyDialog(deactivate))
+			const bookingItemType = this.groupInfo.groupType === GroupType.LocalAdmin
+				? BookingItemFeatureType.LocalAdminGroup
+				: BookingItemFeatureType.SharedMailGroup
+
+			return {
+				featureType: bookingItemType,
+				count: deactivate ? -1 : 1,
+				freeAmount: 0,
+				reactivate: !deactivate
+			}
 		}
 	}
 
