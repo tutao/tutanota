@@ -40,8 +40,8 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	renderView(): Children {
 		return m("#user-viewer.fill-absolute.scroll.plr-l", [
 			this.renderHeader(),
-			...this.renderCommonInfo(),
-			...this.renderTypeDependentInfo()
+			this.renderCommonInfo(),
+			this.renderTypeDependentInfo()
 		])
 	}
 
