@@ -1,28 +1,23 @@
 import m, {Children, Component, Vnode} from "mithril"
-import stream from "mithril/stream"
 import {assertNotNull, filterInt, incrementDate, neverNull, ofClass} from "@tutao/tutanota-utils"
 import {TextField, TextFieldType} from "../gui/base/TextField.js"
 import {Dialog, DialogType} from "../gui/base/Dialog.js"
 import {lang, TranslationKey} from "../misc/LanguageViewModel.js"
 import {AccountType, BookingItemFeatureType, FeatureType} from "../api/common/TutanotaConstants.js"
 import {formatDate} from "../misc/Formatter.js"
-import {CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {CustomerInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {AccountingInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
+import type {PriceData, PriceServiceReturn} from "../api/entities/sys/TypeRefs.js"
+import {AccountingInfoTypeRef, CustomerInfoTypeRef, CustomerTypeRef, PriceItemData} from "../api/entities/sys/TypeRefs.js"
 import {logins} from "../api/main/LoginController.js"
 import {NotAuthorizedError} from "../api/common/error/RestError.js"
 import {asPaymentInterval, formatPrice, getPriceItem, PaymentInterval} from "./PriceUtils.js"
 import {bookItem} from "./SubscriptionUtils.js"
-import type {PriceServiceReturn} from "../api/entities/sys/TypeRefs.js"
-import type {PriceData} from "../api/entities/sys/TypeRefs.js"
 import {showProgressDialog} from "../gui/dialogs/ProgressDialog.js"
 import {locator} from "../api/main/MainLocator.js"
 import {assertMainOrNode} from "../api/common/Env.js"
-import {PriceItemData} from "../api/entities/sys/TypeRefs.js"
 
 assertMainOrNode()
 
-interface BuyDialogParams {
+export interface BookingParams {
 	featureType: BookingItemFeatureType,
 	count: number,
 	freeAmount: number,
@@ -32,7 +27,7 @@ interface BuyDialogParams {
 /**
  * Returns true if the order is accepted by the user, false otherwise.
  */
-export async function showBuyDialog(params: BuyDialogParams): Promise<boolean> {
+export async function showBuyDialog(params: BookingParams): Promise<boolean> {
 	if (logins.isEnabled(FeatureType.HideBuyDialogs)) {
 		return true
 	}
@@ -47,7 +42,7 @@ export async function showBuyDialog(params: BuyDialogParams): Promise<boolean> {
 	}
 }
 
-async function prepareDialog({featureType, count, reactivate}: BuyDialogParams): Promise<PriceChangeModel | null> {
+async function prepareDialog({featureType, count, reactivate}: BookingParams): Promise<PriceChangeModel | null> {
 	const customer = await locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 	if (customer.type === AccountType.PREMIUM && customer.canceledPremiumAccount) {
 		await Dialog.message("subscriptionCancelledMessage_msg")
