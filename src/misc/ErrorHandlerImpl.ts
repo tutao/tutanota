@@ -55,6 +55,10 @@ export async function handleUncaughtErrorImpl(e: Error) {
 		return
 	}
 
+	if (e instanceof UserError) {
+		return showUserError(e)
+	}
+
 	if (isOfflineError(e)) {
 		showOfflineMessage()
 	} else if (e instanceof InvalidSoftwareVersionError) {
