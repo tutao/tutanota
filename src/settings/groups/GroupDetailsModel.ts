@@ -257,14 +257,28 @@ export class GroupDetailsModel {
 		if (this.groupInfo.groupType === GroupType.LocalAdmin) {
 			throw new UserError("updateAdminshipLocalAdminGroupError_msg")
 		} else {
-			const newAdminGroupId = id
-				? id
-				: assertNotNull(
-					logins.getUserController().user.memberships.find(gm => gm.groupType === GroupType.Admin),
-					"this user is not in the global admin group"
-				).group
+			const newAdminGroupId = id || this.getAdminGroupId()
 			return locator.userManagementFacade.updateAdminship(this.groupInfo.group, newAdminGroupId)
 		}
+	}
+
+	/**
+	 * whether this user can remove administrated groups.
+	 */
+	canRemoveAdminship(): boolean {
+		return logins.getUserController().isGlobalAdmin()
+	}
+
+	async removeAdministratedGroup(groupId: Id): Promise<void> {
+		let adminGroupId = this.getAdminGroupId()
+		return locator.userManagementFacade.updateAdminship(groupId, adminGroupId)
+	}
+
+	private getAdminGroupId(): Id {
+		return assertNotNull(
+			logins.getUserController().user.memberships.find(gm => gm.groupType === GroupType.Admin),
+			"this user is not in any admin group"
+		).group
 	}
 
 	async getPossibleMembers(): Promise<Array<{name: string, value: Id}>> {
