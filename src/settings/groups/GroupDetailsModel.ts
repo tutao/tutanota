@@ -16,8 +16,7 @@ import {localAdminGroupInfoModel} from "../LocalAdminGroupInfoModel.js"
 import {lang} from "../../misc/LanguageViewModel.js"
 import {SelectorItemList} from "../../gui/base/DropDownSelector.js"
 import {logins} from "../../api/main/LoginController.js"
-import {Dialog, stringValidator} from "../../gui/base/Dialog.js"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog.js"
+import {stringValidator} from "../../gui/base/Dialog.js"
 import {locator} from "../../api/main/MainLocator.js"
 import {BadRequestError, NotAuthorizedError, PreconditionFailedError} from "../../api/common/error/RestError.js"
 import {compareGroupInfos, getGroupInfoDisplayName} from "../../api/common/utils/GroupUtils.js"
@@ -63,6 +62,7 @@ export class GroupDetailsModel {
 			this.updateAdministratedGroups()
 		} else if (this.groupInfo.groupType === GroupType.Mail) {
 			this.senderName = new LazyLoaded<string>(() => this.loadSenderName())
+			// noinspection JSIgnoredPromiseFromCall
 			this.updateSenderName()
 		}
 
@@ -226,7 +226,7 @@ export class GroupDetailsModel {
 	}
 
 	createAdministratedByInfo(): {options: SelectorItemList<Id | null>, currentVal: Id | null} | null {
-		if (!this.localAdminGroupInfo.isLoaded()) return null
+		if (!logins.getUserController().isGlobalAdmin() || !this.localAdminGroupInfo.isLoaded()) return null
 
 		const filteredLocalAdminGroupInfo = this.localAdminGroupInfo.getLoaded().filter(groupInfo => !groupInfo.deleted)
 
@@ -249,21 +249,21 @@ export class GroupDetailsModel {
 		}
 	}
 
-	onAdministratedBySelected(id: Id | null): void {
+	/**
+	 * change the local admin of this group to the group with the given id
+	 * @param id the new admin groups id or null if it should be administrated by the global admin
+	 */
+	async changeAdministratedBy(id: Id | null): Promise<void> {
 		if (this.groupInfo.groupType === GroupType.LocalAdmin) {
-			// noinspection JSIgnoredPromiseFromCall
-			Dialog.message("updateAdminshipLocalAdminGroupError_msg")
+			throw new UserError("updateAdminshipLocalAdminGroupError_msg")
 		} else {
-			// noinspection JSIgnoredPromiseFromCall
-			showProgressDialog(
-				"pleaseWait_msg",
-				Promise.resolve().then(() => {
-					let newAdminGroupId = id
-						? id
-						: neverNull(logins.getUserController().user.memberships.find(gm => gm.groupType === GroupType.Admin)).group
-					return locator.userManagementFacade.updateAdminship(this.groupInfo.group, newAdminGroupId)
-				}),
-			)
+			const newAdminGroupId = id
+				? id
+				: assertNotNull(
+					logins.getUserController().user.memberships.find(gm => gm.groupType === GroupType.Admin),
+					"this user is not in the global admin group"
+				).group
+			return locator.userManagementFacade.updateAdminship(this.groupInfo.group, newAdminGroupId)
 		}
 	}
 
