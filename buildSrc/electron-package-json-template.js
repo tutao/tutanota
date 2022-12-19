@@ -114,6 +114,7 @@ export default async function generateTemplate({nameSuffix, version, updateUrl, 
 					"mapirs.dll"
 				],
 				"verifyUpdateCodeSignature": sign,
+				"signDlls": sign,
 				"publisherName": "Tutao GmbH",
 				"sign": sign
 					? "./buildSrc/winsigner.cjs"
