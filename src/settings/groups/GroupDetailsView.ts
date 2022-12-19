@@ -70,7 +70,6 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	}
 
 	private renderAdministratedByDropdown(): Children {
-		if (!logins.getUserController().isGlobalAdmin()) return null
 		const administratedByInfo = this.model.createAdministratedByInfo()
 		if (!administratedByInfo) return null
 		const {options, currentVal} = administratedByInfo
@@ -78,7 +77,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 			label: "administratedBy_label",
 			items: options,
 			selectedValue: currentVal,
-			selectionChangedHandler: id => this.model.onAdministratedBySelected(id),
+			selectionChangedHandler: async id => showProgressDialog("pleaseWait_msg", this.model.changeAdministratedBy(id)),
 		}
 		return m(DropDownSelector, attrs)
 	}
