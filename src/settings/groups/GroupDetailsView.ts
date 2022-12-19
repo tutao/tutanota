@@ -73,12 +73,13 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 		const administratedByInfo = this.model.createAdministratedByInfo()
 		if (!administratedByInfo) return null
 		const {options, currentVal} = administratedByInfo
-		return m(DropDownSelector, {
+		const attrs: DropDownSelectorAttrs<Id | null> = {
 			label: "administratedBy_label",
 			items: options,
 			selectedValue: currentVal,
 			selectionChangedHandler: id => this.model.onAdministratedBySelected(id),
-		} as DropDownSelectorAttrs<Id | null>)
+		}
+		return m(DropDownSelector, attrs)
 	}
 
 	/**
@@ -120,7 +121,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	}
 
 	private renderStatusSelector(): Children {
-		return m(DropDownSelector, {
+		const attrs: DropDownSelectorAttrs<boolean> = {
 			label: "state_label",
 			items: [
 				{
@@ -134,7 +135,8 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 			],
 			selectedValue: !this.model.isGroupActive(),
 			selectionChangedHandler: deactivate => this.model.onActivationStatusSelected(deactivate),
-		} as DropDownSelectorAttrs<boolean>)
+		}
+		return m(DropDownSelector, attrs)
 	}
 
 	private renderNameField(): Children {
