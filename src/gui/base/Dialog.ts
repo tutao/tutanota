@@ -15,7 +15,7 @@ import type {ButtonAttrs} from "./Button.js"
 import {Button, ButtonType} from "./Button.js"
 import type {DialogHeaderBarAttrs} from "./DialogHeaderBar"
 import {DialogHeaderBar} from "./DialogHeaderBar"
-import {AutocompleteValues, TextField, TextFieldType} from "./TextField.js"
+import {Autocomplete, TextField, TextFieldType} from "./TextField.js"
 import type {DropDownSelectorAttrs, SelectorItemList} from "./DropDownSelector.js"
 import {DropDownSelector} from "./DropDownSelector.js"
 import {Keys} from "../../api/common/TutanotaConstants"
@@ -936,7 +936,7 @@ export class Dialog implements ModalComponent {
 						helpLabel: () => savedState.message,
 						value: value,
 						oninput: (newValue) => value = newValue,
-						autocompleteValue: AutocompleteValues.off,
+						autocompleteAs: Autocomplete.off,
 						type: TextFieldType.Password,
 						keyHandler: (key: KeyPress) => {
 							if (isKeyPressed(key.keyCode, Keys.RETURN)) {

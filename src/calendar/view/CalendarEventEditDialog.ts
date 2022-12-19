@@ -4,7 +4,7 @@ import Stream from "mithril/stream"
 import {DatePicker} from "../../gui/date/DatePicker"
 import {Dialog} from "../../gui/base/Dialog"
 import m, {Children} from "mithril"
-import {AutocompleteValues, TextField, TextFieldType as TextFieldType} from "../../gui/base/TextField.js"
+import {Autocomplete, TextField, TextFieldType as TextFieldType} from "../../gui/base/TextField.js"
 import {lang} from "../../misc/LanguageViewModel"
 import type {DropDownSelectorAttrs, SelectorItemList} from "../../gui/base/DropDownSelector.js"
 import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
@@ -239,7 +239,7 @@ export async function showCalendarEventDialog(
 
 					return m(TextField, {
 						value: viewModel.getGuestPassword(guest),
-						autocompleteValue: AutocompleteValues.off,
+						autocompleteAs: Autocomplete.off,
 						type: guestShowConfidential.get(guest.address.address) ? TextFieldType.Text : TextFieldType.Password,
 						label: () =>
 							lang.get("passwordFor_label", {
