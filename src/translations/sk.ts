@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2022-12-06T10:23:18Z",
+	"updated_at": "2022-12-19T12:38:42Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -53,6 +53,7 @@ export default {
 		"addEmailAlias_label": "Pridať e-mailový alias",
 		"addEntry_label": "Pridať položku",
 		"addEnumValue_action": "Pridať hodnotu enumerácie",
+		"addFolder_action": "Pridať priečinok",
 		"addGroup_label": "Pridať skupinu",
 		"addGuest_label": "Pridať hosťa",
 		"addInboxRule_action": "Pridať pravidlo pre doručenú poštu",
@@ -188,6 +189,7 @@ export default {
 		"cancelUserAccounts_label": "Zrušiť {1} používateľov",
 		"cancelWhitelabelBooking_label": "Zrušiť whitelabel funkciu pre {1} používateľov",
 		"cancel_action": "Zrušiť",
+		"cannotDeleteFoldersWithSubfolders_msg": "Nie je možné odstrániť priečinky, ktoré obsahujú podpriečinky. Najskôr odstráň podpriečinky.",
 		"canNotOpenFileOnDevice_msg": "Tento súbor nemožno otvoriť v tomto zariadení.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Prosím vlož čas v hodinách a minútach",

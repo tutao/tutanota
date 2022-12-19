@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2022-12-06T17:26:48Z",
+	"updated_at": "2022-12-16T23:15:41Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -57,6 +57,7 @@ export default {
 		"addEmailAlias_label": "Dodaj alias e-mail",
 		"addEntry_label": "Dodaj wpis",
 		"addEnumValue_action": "Dodaj wartość liczbową",
+		"addFolder_action": "Dodaj folder",
 		"addGroup_label": "Dodaj grupę",
 		"addGuest_label": "Dodaj gościa",
 		"addInboxRule_action": "Dodaj regułę odebranych",
@@ -192,6 +193,7 @@ export default {
 		"cancelUserAccounts_label": "Anuluj {1} konto(a) użytkownika(ów)",
 		"cancelWhitelabelBooking_label": "Anuluj usługę Whitelabel dla {1} użytkownika(ów)",
 		"cancel_action": "Anuluj",
+		"cannotDeleteFoldersWithSubfolders_msg": "Nie jest możliwe usunięcie folderów zawierających podfoldery. Usuń najpierw  wszystkie podfoldery.",
 		"canNotOpenFileOnDevice_msg": "Ten plik nie może zostać otwarty na tym urządzeniu.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Wprowadź czas w godzinach i minutach.",
@@ -816,7 +818,7 @@ export default {
 		"mailbox_label": "Skrzynka odbiorcza",
 		"mailExportModeHelp_msg": "Format pliku e-mail do użycia podczas eksportowania lub \"przeciągania i upuszczania\"",
 		"mailExportMode_label": "Format pliku eksportu e-mail",
-		"mailFolder_label": "Katalog maili",
+		"mailFolder_label": "Folder maili",
 		"mailHeaders_title": "Nagłówki e-mail",
 		"mailName_label": "Nazwa nadawcy",
 		"mailNotificationHello_msg": "Cześć,",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2022-12-16T13:16:55Z",
+	"updated_at": "2022-12-17T13:23:24Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -55,6 +55,7 @@ export default {
 		"addEmailAlias_label": "Adicionar apelidos",
 		"addEntry_label": "Adicionar entrada",
 		"addEnumValue_action": "Adicionar valor enum",
+		"addFolder_action": "Adicione a pasta",
 		"addGroup_label": "Adicionar grupo",
 		"addGuest_label": "Adicionar convidado",
 		"addInboxRule_action": "Adicionar regra de caixa de entrada",
@@ -190,6 +191,7 @@ export default {
 		"cancelUserAccounts_label": "Cancelar {1} conta(s) de usuário(s). ",
 		"cancelWhitelabelBooking_label": "Cancelar a funcionalidade etiqueta branca para {1} usuários",
 		"cancel_action": "Cancelar",
+		"cannotDeleteFoldersWithSubfolders_msg": "Não é possível apagar pastas que contenham subpastas. Por favor apague todas as subpastas primeiro.",
 		"canNotOpenFileOnDevice_msg": "Não é possível abrir esse arquivo neste dispositivo. ",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Digite o horário em horas e minutos.",

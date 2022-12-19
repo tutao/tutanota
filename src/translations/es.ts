@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2022-12-08T15:01:30Z",
+	"updated_at": "2022-12-19T15:52:01Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -55,6 +55,7 @@ export default {
 		"addEmailAlias_label": "Agregar un alias de correo",
 		"addEntry_label": "Añadir entrada",
 		"addEnumValue_action": "Agregar valor enum",
+		"addFolder_action": "Añadir carpeta",
 		"addGroup_label": "Añadir grupo",
 		"addGuest_label": "Añadir un invitado",
 		"addInboxRule_action": "Añadir regla a la bandeja de entrada",
@@ -190,6 +191,7 @@ export default {
 		"cancelUserAccounts_label": "Cancelar {1} cuenta(s) de usuario(s)",
 		"cancelWhitelabelBooking_label": "Cancelar la promoción de Etiqueta Blanca para {1} usuarios",
 		"cancel_action": "Cancelar",
+		"cannotDeleteFoldersWithSubfolders_msg": "No es posible eliminar carpetas que contengan subcarpetas. Por favor, elimina primero todas las subcarpetas.",
 		"canNotOpenFileOnDevice_msg": "Este archivo no se puede abrir en este dispositivo.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Por favor, introduce el tiempo en horas y minutos.",
@@ -805,6 +807,7 @@ export default {
 		"mailAddressDelay_msg": "Demasiadas peticiones. Por favor inténtalo más tarde.",
 		"mailAddresses_label": "Direcciones de correo electrónico",
 		"mailAddressInvalid_msg": "La dirección de correo es inválida.",
+		"mailAddressNANudge_msg": "La dirección de correo electrónico no está disponible. Prueba con otro dominio del desplegable.",
 		"mailAddressNA_msg": "Dirección de correo no disponible.",
 		"mailAddressNeutral_msg": "Por favor introduce una dirección de correo.",
 		"mailAddress_label": "Dirección de correo electrónico",

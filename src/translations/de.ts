@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2022-12-16T16:31:01Z",
+	"updated_at": "2022-12-19T14:04:06Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -807,8 +807,8 @@ export default {
 		"mailAddressDelay_msg": "Zu viele Anfragen, bitte versuche es später erneut.",
 		"mailAddresses_label": "E-Mail-Adressen",
 		"mailAddressInvalid_msg": "Ungültige E-Mail-Adresse.",
-		"mailAddressNA_msg": "E-Mail-Adresse ist bereits vergeben.",
 		"mailAddressNANudge_msg": "E-Mail-Adresse ist bereits vergeben. Versuche eine andere Domain aus dem Dropdown.",
+		"mailAddressNA_msg": "E-Mail-Adresse ist bereits vergeben.",
 		"mailAddressNeutral_msg": "Bitte E-Mail-Adresse eingeben.",
 		"mailAddress_label": "E-Mail-Adresse",
 		"mailAuthFailed_label": "Echtheitsprüfung der Nachricht ist fehlgeschlagen",

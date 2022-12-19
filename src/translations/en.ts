@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2022-12-16T16:29:37Z",
+	"updated_at": "2022-12-19T14:03:28Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -803,8 +803,8 @@ export default {
 		"mailAddressDelay_msg": "Too many requests, please try again later.",
 		"mailAddresses_label": "Email addresses",
 		"mailAddressInvalid_msg": "Mail address is not valid.",
-		"mailAddressNA_msg": "Email address is not available.",
 		"mailAddressNANudge_msg": "Email address is not available. Try another domain from the dropdown.",
+		"mailAddressNA_msg": "Email address is not available.",
 		"mailAddressNeutral_msg": "Please enter mail address.",
 		"mailAddress_label": "Email address",
 		"mailAuthFailed_label": "Mail authentication failed",

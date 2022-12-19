@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2022-12-07T16:36:33Z",
+	"updated_at": "2022-12-18T16:16:05Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -51,6 +51,7 @@ export default {
 		"addEmailAlias_label": "Álnév hozzáadása",
 		"addEntry_label": "Bejegyzés hozzáadása",
 		"addEnumValue_action": "Enum (felsorolás) érték hozzáadása",
+		"addFolder_action": "Mappa hozzáadása",
 		"addGroup_label": "Csoport hozzáadása",
 		"addGuest_label": "Adja meg a vendéget!",
 		"addInboxRule_action": "Beérkezési szabály hozzáadása",
@@ -186,6 +187,7 @@ export default {
 		"cancelUserAccounts_label": "{1} felhasználói fiók törlése",
 		"cancelWhitelabelBooking_label": "Az átcímkézési funkció lemondása {1} felhasználó esetében",
 		"cancel_action": "Mégse",
+		"cannotDeleteFoldersWithSubfolders_msg": "Almappákat tartalmazó mappák törlése nem lehetséges. Kérjük, először törölje az összes almappát!",
 		"canNotOpenFileOnDevice_msg": "Ez a fájl nem nyitható meg ezen az eszközön.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Kérjük, adja meg a jelenlegi időt óra és perc formátumban!",

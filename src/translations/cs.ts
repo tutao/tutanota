@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2022-12-16T07:08:27Z",
+	"updated_at": "2022-12-19T12:05:42Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -53,6 +53,7 @@ export default {
 		"addEmailAlias_label": "Přidat e-mailový alias",
 		"addEntry_label": "Přidat položku",
 		"addEnumValue_action": "Přidat hodnotu enumerace",
+		"addFolder_action": "Přidat složku",
 		"addGroup_label": "Přidat skupinu",
 		"addGuest_label": "Přidat hosta",
 		"addInboxRule_action": "Přidat pravidlo pro schránku",
@@ -188,6 +189,7 @@ export default {
 		"cancelUserAccounts_label": "Zrušit {1} uživatele",
 		"cancelWhitelabelBooking_label": "Zrušit funkci whitelabel  pro {1} uživatele",
 		"cancel_action": "Zrušit",
+		"cannotDeleteFoldersWithSubfolders_msg": "Složky, které obsahují podsložky, není možné odstranit. Nejdříve prosím odstraňte všechny podsložky.",
 		"canNotOpenFileOnDevice_msg": "Tento soubor nelze otevřít na tomto zařízení.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Zadejte prosím čas v hodinách a minutách.",
@@ -1167,7 +1169,7 @@ export default {
 		"recoveryCodeDisplay_action": "Zobrazit kód pro obnovení",
 		"recoveryCodeEmpty_msg": "Prosím zadejte záchranný kód",
 		"recoveryCode_label": "Kód pro obnovení",
-		"recoveryCode_msg": "Prosím, zapište si obnovovací kód. Kód je jedinou možností obnovení hesla nebo dvoufázového ověření, pokud jedno z nich ztratíte.",
+		"recoveryCode_msg": "Prosím, zapište si obnovovací kód. Kód je jedinou možností obnovení hesla nebo druhého faktoru ověření, pokud jedno z nich ztratíte.",
 		"recover_label": "Obnovit",
 		"redeemedGiftCardPosting_label": "Uplatněný poukaz",
 		"redeemedToPremium_msg": "Váš účet byl převeden na verzi Premium.",

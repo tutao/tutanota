@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2022-12-06T12:57:21Z",
+	"updated_at": "2022-12-19T14:20:16Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -51,6 +51,7 @@ export default {
 		"addEmailAlias_label": "Lägg till e-postalias",
 		"addEntry_label": "Lägg till post",
 		"addEnumValue_action": "Lägg till enum-värde",
+		"addFolder_action": "Lägg till mapp",
 		"addGroup_label": "Lägg till grupp",
 		"addGuest_label": "Lägg till en gäst",
 		"addInboxRule_action": "Lägg till inkorgregel",
@@ -186,6 +187,7 @@ export default {
 		"cancelUserAccounts_label": "Avsluta {1} användare",
 		"cancelWhitelabelBooking_label": "Avsluta whitelabel-funktionen för {1} användare",
 		"cancel_action": "Avbryt",
+		"cannotDeleteFoldersWithSubfolders_msg": "Det är inte möjligt att radera mappar som innehåller undermappar. Ta bort alla undermappar först.",
 		"canNotOpenFileOnDevice_msg": "Filen kan inte öppnas på den här enheten.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Ange tiden i timmar och minuter.",
@@ -801,6 +803,7 @@ export default {
 		"mailAddressDelay_msg": "Alltför många förfrågningar, försök igen senare.",
 		"mailAddresses_label": "E-post adress",
 		"mailAddressInvalid_msg": "Adressen är inte giltig.",
+		"mailAddressNANudge_msg": "E-postadressen är inte tillgänglig. Prova en annan domän från rullgardinsmenyn.",
 		"mailAddressNA_msg": "Adressen är inte tillgänglig.",
 		"mailAddressNeutral_msg": "Ange e-postadress.",
 		"mailAddress_label": "E-postadress",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2022-12-08T07:26:07Z",
+	"updated_at": "2022-12-18T08:26:47Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -53,6 +53,7 @@ export default {
 		"addEmailAlias_label": "Додати псевдонім е-пошти",
 		"addEntry_label": "Додати запис",
 		"addEnumValue_action": "Додати перелічене значення",
+		"addFolder_action": "Додати папку",
 		"addGroup_label": "Додати групу",
 		"addGuest_label": "Додати гостя",
 		"addInboxRule_action": "Додати правило для теки Вхідні ",
@@ -188,6 +189,7 @@ export default {
 		"cancelUserAccounts_label": "Скасувати {1} користувача(-ів)\n\n",
 		"cancelWhitelabelBooking_label": "Скасувати функцію whitelabel для {1} користувачів\n\n",
 		"cancel_action": "Скасувати",
+		"cannotDeleteFoldersWithSubfolders_msg": "Неможливо видалити папки, які містять вкладені папки. Спочатку видаліть усі вкладені папки.",
 		"canNotOpenFileOnDevice_msg": "Цей файл неможливо відкрити на даному пристрої.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Введіть час, будь ласка, у годинах і хвилинах.",
