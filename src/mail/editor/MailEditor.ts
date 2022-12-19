@@ -29,7 +29,7 @@ import {isApp, isBrowser, isDesktop} from "../../api/common/Env"
 import {Icons} from "../../gui/base/icons/Icons"
 import {AnimationPromise, animations, height, opacity} from "../../gui/animation/Animations"
 import type {TextFieldAttrs} from "../../gui/base/TextField.js"
-import {AutocompleteValues, TextField, TextFieldType} from "../../gui/base/TextField.js"
+import {Autocomplete, TextField, TextFieldType} from "../../gui/base/TextField.js"
 import {chooseAndAttachFile, cleanupInlineAttachments, createAttachmentButtonAttrs, getConfidentialStateMessage,} from "./MailEditorViewModel"
 import {ExpanderPanel} from "../../gui/base/Expander"
 import {windowFacade} from "../../misc/WindowFacade"
@@ -561,7 +561,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 							m("", String.fromCharCode(160))]
 						),
 						value: this.sendMailModel.getPassword(recipient.address),
-						autocompleteValue: AutocompleteValues.off,
+						autocompleteAs: Autocomplete.off,
 						type: this.isConfidentialPasswordRevealed(recipient.address) ? TextFieldType.Text : TextFieldType.Password,
 						oninput: val => this.sendMailModel.setPassword(recipient.address, val),
 						injectionsRight: () => this.renderRevealIcon(recipient.address)

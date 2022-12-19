@@ -2,7 +2,7 @@ import m from "mithril"
 import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import {InvalidDataError, LockedError, PreconditionFailedError} from "../api/common/error/RestError"
-import {AutocompleteValues, TextField, TextFieldType} from "../gui/base/TextField.js"
+import {Autocomplete, TextField, TextFieldType} from "../gui/base/TextField.js"
 import {neverNull, ofClass} from "@tutao/tutanota-utils"
 import {logins} from "../api/main/LoginController"
 import {getCleanedMailAddress} from "../misc/parsing/MailAddressParser"
@@ -32,7 +32,7 @@ export function showDeleteAccountDialog() {
 				m(TextField, {
 					label: "password_label",
 					value: password,
-					autocompleteValue: AutocompleteValues.currentPassword,
+					autocompleteAs: Autocomplete.currentPassword,
 					oninput: value => (password = value),
 					helpLabel: () => lang.get("passwordEnterNeutral_msg"),
 					type: TextFieldType.Password,

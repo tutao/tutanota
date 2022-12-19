@@ -6,7 +6,7 @@ import {Icon, progressIcon} from "../../gui/base/Icon"
 import {Icons, SecondFactorImage} from "../../gui/base/icons/Icons"
 import {theme} from "../../gui/theme"
 import type {Thunk} from "@tutao/tutanota-utils"
-import {AutocompleteValues, TextField} from "../../gui/base/TextField.js"
+import {Autocomplete, TextField} from "../../gui/base/TextField.js"
 
 type WebauthnState =
 	| {state: "init"}
@@ -58,7 +58,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 			m(TextField, {
 				label: "totpCode_label",
 				value: otp.codeFieldValue,
-				autocompleteValue: AutocompleteValues.oneTimeCode,
+				autocompleteAs: Autocomplete.oneTimeCode,
 				oninput: value => otp.onValueChanged(value.trim()),
 				injectionsRight: () => (otp.inProgress ? m(".mr-s", progressIcon()) : null),
 			}),

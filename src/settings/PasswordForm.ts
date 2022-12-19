@@ -1,5 +1,5 @@
 import m, {Children, Component, Vnode} from "mithril"
-import {AutocompleteValues, TextField, TextFieldType} from "../gui/base/TextField.js"
+import {Autocomplete, TextField, TextFieldType} from "../gui/base/TextField.js"
 import {CompletenessIndicator} from "../gui/CompletenessIndicator.js"
 import {getPasswordStrength, isSecurePassword, PASSWORD_MIN_SECURE_VALUE} from "../misc/passwords/PasswordUtils"
 import type {TranslationKey} from "../misc/LanguageViewModel"
@@ -245,7 +245,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 						value: attrs.model.getOldPassword(),
 						helpLabel: () => m(StatusField, {status: attrs.model.getOldPasswordStatus()}),
 						oninput: (input) => attrs.model.setOldPassword(input),
-						autocompleteValue: AutocompleteValues.currentPassword,
+						autocompleteAs: Autocomplete.currentPassword,
 						type: TextFieldType.Password,
 						fontSize: px(size.font_size_smaller),
 					})
@@ -264,7 +264,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 					]),
 					oninput: (input) => attrs.model.setNewPassword(input),
 					type: attrs.model.isPasswordRevealed() ? TextFieldType.Text : TextFieldType.Password,
-					autocompleteValue: AutocompleteValues.newPassword,
+					autocompleteAs: Autocomplete.newPassword,
 					fontSize: px(size.font_size_smaller),
 					injectionsRight: () => this.renderRevealIcon(attrs),
 				}),
@@ -273,7 +273,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 					? m(TextField, {
 						label: "repeatedPassword_label",
 						value: attrs.model.getRepeatedPassword(),
-						autocompleteValue: AutocompleteValues.newPassword,
+						autocompleteAs: Autocomplete.newPassword,
 						helpLabel: () =>
 							m(StatusField, {
 								status: attrs.model.getRepeatedPasswordStatus(),

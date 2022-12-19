@@ -13,7 +13,7 @@ export type TextFieldAttrs = {
 	id?: string
 	label: TranslationKey | lazy<string>
 	value: string
-	autocompleteValue?: AutocompleteValues
+	autocompleteAs?: Autocomplete
 	type?: TextFieldType
 	helpLabel?: lazy<Children> | null
 	alignRight?: boolean
@@ -45,7 +45,7 @@ export const enum TextFieldType {
 
 // relevant subset of possible values for the autocomplete html field
 // https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/autocomplete
-export const enum AutocompleteValues {
+export const enum Autocomplete {
 	off = "off",
 	email = "email",
 	username = "username",
@@ -180,7 +180,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 			// that shouldn't be autofilled.
 			// since the autofill algorithm looks at inputs that come before and after the password field we need
 			// three dummies.
-			const autofillGuard: Children = a.autocompleteValue === AutocompleteValues.off
+			const autofillGuard: Children = a.autocompleteAs === Autocomplete.off
 				? [
 					m("input.abs", {
 						style: {
@@ -212,7 +212,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				".flex-grow.rel",
 				autofillGuard.concat([
 					m("input.input" + (a.alignRight ? ".right" : ""), {
-						autocomplete: a.autocompleteValue ?? "",
+						autocomplete: a.autocompleteAs ?? "",
 						type: a.type,
 						"aria-label": lang.getMaybeLazy(a.label),
 						oncreate: vnode => {

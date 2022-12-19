@@ -9,7 +9,7 @@ import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
 import {Keys} from "../api/common/TutanotaConstants"
 import {progressIcon} from "../gui/base/Icon"
 import {Button, ButtonType} from "../gui/base/Button.js"
-import {AutocompleteValues, TextField, TextFieldType as TextFieldType} from "../gui/base/TextField.js"
+import {Autocomplete, TextField, TextFieldType as TextFieldType} from "../gui/base/TextField.js"
 import {Checkbox} from "../gui/base/Checkbox.js"
 import {logins} from "../api/main/LoginController"
 import {MessageBox} from "../gui/base/MessageBox.js"
@@ -235,7 +235,7 @@ export class ExternalLoginView implements CurrentView {
 				label: "password_label",
 				helpLabel: () => lang.get("enterPresharedPassword_msg"),
 				value: this.viewModel.password,
-				autocompleteValue: AutocompleteValues.currentPassword,
+				autocompleteAs: Autocomplete.currentPassword,
 				oninput: input => this.viewModel.password = input,
 			}),
 			m(Checkbox, {
