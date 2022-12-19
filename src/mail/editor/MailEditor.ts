@@ -771,36 +771,36 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 	}
 
 	const minimize = () => {
-		// If the mail is unchanged, close instead of saving
-		if (!model.hasMailChanged()) {
+		if (model.hasMailChanged() || model.draft) {
+			const saveStatus = stream<SaveStatus>({status: SaveStatusEnum.Saving})
+			save(false)
+				.then(() => saveStatus({status: SaveStatusEnum.Saved}))
+				.catch(e => {
+
+					const reason = isOfflineError(e)
+						? SaveErrorReason.ConnectionLost
+						: SaveErrorReason.Unknown
+
+					saveStatus({status: SaveStatusEnum.NotSaved, reason})
+
+					// If we don't show the error in the minimized error dialog,
+					// Then we need to communicate it in a dialog or as an unhandled error
+					if (reason === SaveErrorReason.Unknown) {
+						if (e instanceof UserError) {
+							showUserError(e)
+						} else {
+							throw e
+						}
+					}
+				})
+				.finally(() => m.redraw())
+			showMinimizedMailEditor(dialog, model, locator.minimizedMailModel, locator.eventController, dispose, saveStatus)
+		} else {
+			// If the mail is unchanged and there was no preexisting draft, close instead of saving
 			dispose()
 			dialog.close()
 			return
 		}
-
-		const saveStatus = stream<SaveStatus>({status: SaveStatusEnum.Saving})
-		save(false)
-			.then(() => saveStatus({status: SaveStatusEnum.Saved}))
-			.catch(e => {
-
-				const reason = isOfflineError(e)
-					? SaveErrorReason.ConnectionLost
-					: SaveErrorReason.Unknown
-
-				saveStatus({status: SaveStatusEnum.NotSaved, reason})
-
-				// If we don't show the error in the minimized error dialog,
-				// Then we need to communicate it in a dialog or as an unhandled error
-				if (reason === SaveErrorReason.Unknown) {
-					if (e instanceof UserError) {
-						showUserError(e)
-					} else {
-						throw e
-					}
-				}
-			})
-			.finally(() => m.redraw())
-		showMinimizedMailEditor(dialog, model, locator.minimizedMailModel, locator.eventController, dispose, saveStatus)
 	}
 
 	let windowCloseUnsubscribe = () => {
