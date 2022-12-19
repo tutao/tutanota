@@ -6,7 +6,6 @@ import {getFirstOrThrow, neverNull} from "@tutao/tutanota-utils"
 import {GroupType} from "../../api/common/TutanotaConstants.js"
 import type {TableAttrs} from "../../gui/base/Table.js"
 import {ColumnWidth, Table, TableLineAttrs} from "../../gui/base/Table.js"
-import {logins} from "../../api/main/LoginController.js"
 import {Icons} from "../../gui/base/icons/Icons.js"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog.js"
 import type {EntityUpdateData} from "../../api/main/EventController.js"
@@ -14,7 +13,6 @@ import {TextField} from "../../gui/base/TextField.js"
 import type {DropDownSelectorAttrs} from "../../gui/base/DropDownSelector.js"
 import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
 import type {UpdatableSettingsDetailsViewer} from "../SettingsView.js"
-import {locator} from "../../api/main/MainLocator.js"
 import {assertMainOrNode} from "../../api/common/Env.js"
 import {IconButton, IconButtonAttrs} from "../../gui/base/IconButton.js"
 import {ButtonSize} from "../../gui/base/ButtonSize.js"
@@ -254,21 +252,15 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	}
 
 	private renderAdministratedGroupsTable(): Children {
-		let lines: TableLineAttrs[] = this.model.getAdministratedGroups().map(groupInfo => {
-			let removeButtonAttrs: IconButtonAttrs | null = null
-
-			if (logins.getUserController().isGlobalAdmin()) {
-				removeButtonAttrs = {
+		const renderRemoveButtons = this.model.canRemoveAdminship()
+		const lines: TableLineAttrs[] = this.model.getAdministratedGroups().map(groupInfo => {
+			let removeButtonAttrs: IconButtonAttrs | null = renderRemoveButtons
+				? {
 					title: "remove_action",
-					click: () => {
-						let adminGroupId = neverNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Admin)).group
-						// noinspection JSIgnoredPromiseFromCall
-						showProgressDialog("pleaseWait_msg", locator.userManagementFacade.updateAdminship(groupInfo.group, adminGroupId))
-					},
+					click: () => showProgressDialog("pleaseWait_msg", this.model.removeAdministratedGroup(groupInfo.group)),
 					icon: Icons.Cancel,
 					size: ButtonSize.Compact,
-				}
-			}
+				} : null
 
 			return {
 				cells: [getGroupTypeDisplayName(neverNull(groupInfo.groupType)), groupInfo.name, neverNull(groupInfo.mailAddress)],
