@@ -1,5 +1,6 @@
 import {
 	AdministratedGroupTypeRef,
+	createGroupInfo,
 	CustomerTypeRef,
 	Group,
 	GroupInfo,
@@ -171,9 +172,8 @@ export class GroupDetailsModel {
 	}
 
 	changeGroupName(newName: string): Promise<void> {
-		const newGroupInfo: GroupInfo = Object.assign({}, this.groupInfo)
+		const newGroupInfo: GroupInfo = createGroupInfo(this.groupInfo)
 		newGroupInfo.name = newName
-
 		return this.entityClient.update(newGroupInfo)
 	}
 
