@@ -16,7 +16,7 @@ function signer({
 	const ext = path.extname(pathToSign)
 	// /thing/thong.AppImage -> /thing/thong-unsigned.AppImage
 	const unsignedFileName = pathToSign.slice(0, pathToSign.length - ext.length) + "-unsigned" + ext
-	console.log("signing", unsignedFileName, "as", args.path)
+	console.log("signing", unsignedFileName, "as", pathToSign)
 	const commandArguments = process.env.DEBUG_SIGN
 		? getSelfSignedArgs(unsignedFileName, hashAlgorithm, pathToSign)
 		: getHsmArgs(unsignedFileName, hashAlgorithm, pathToSign)
