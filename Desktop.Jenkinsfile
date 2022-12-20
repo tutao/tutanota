@@ -166,6 +166,7 @@ pipeline {
 			environment { PATH = "${env.NODE_PATH}:${env.PATH}" }
 			steps {
 				sh 'npm ci'
+				sh 'npm run build-packages'
 				sh 'rm -rf ./build/*'
 
 				dir('build') {
