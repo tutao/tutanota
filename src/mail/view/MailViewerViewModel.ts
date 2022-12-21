@@ -965,7 +965,17 @@ export class MailViewerViewModel {
 	}
 
 	async downloadAll(): Promise<void> {
-		await this.fileController.downloadAll(this.getNonInlineAttachments())
+		try {
+			await this.fileController.downloadAll(this.getNonInlineAttachments())
+		} catch (e) {
+			if (e instanceof FileOpenError) {
+				console.warn("FileOpenError", e)
+				await Dialog.message("canNotOpenFileOnDevice_msg") // FIXME extra error message?
+			} else {
+				console.error("could not open file:", e.message ?? "unknown error")
+				await Dialog.message("errorDuringFileOpen_msg")
+			}
+		}
 	}
 
 	async downloadAndOpenAttachment(file: TutanotaFile, open: boolean) {
