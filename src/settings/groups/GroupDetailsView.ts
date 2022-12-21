@@ -185,6 +185,9 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 
 	private async showAddMemberDialog(): Promise<void> {
 		const possibleMembers = await this.model.getPossibleMembers()
+		if (possibleMembers.length === 0) {
+			return Dialog.message("noValidMembersToAdd_msg")
+		}
 		let currentSelection = getFirstOrThrow(possibleMembers).value
 
 		const addUserToGroupOkAction = (dialog: Dialog) => {
