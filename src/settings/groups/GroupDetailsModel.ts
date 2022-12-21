@@ -286,15 +286,17 @@ export class GroupDetailsModel {
 		const userGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
 		// remove all users that are already member
 		let globalAdmin = logins.isGlobalAdminUserLoggedIn()
-		let localAdminGroupIds = logins
+		let myLocalAdminShips = logins
 			.getUserController()
 			.getLocalAdminGroupMemberships()
 			.map(gm => gm.group)
-		let availableUserGroupInfos = userGroupInfos.filter(g => {
-			if (!globalAdmin && localAdminGroupIds.indexOf(assertNotNull(g.localAdmin)) === -1) {
+		let availableUserGroupInfos = userGroupInfos.filter(userGroupInfo => {
+			if (!globalAdmin && userGroupInfo.localAdmin != null && !myLocalAdminShips.includes(userGroupInfo.localAdmin)) {
+				// filter out users that are not in a group administrated by us (through any local admin membership)
 				return false
 			} else {
-				return !g.deleted && this.members.getLoaded().find(m => isSameId(m._id, g._id)) == null
+				// only show users that are not deleted and not already in the group.
+				return !userGroupInfo.deleted && this.members.getLoaded().find(m => isSameId(m._id, userGroupInfo._id)) == null
 			}
 		})
 
