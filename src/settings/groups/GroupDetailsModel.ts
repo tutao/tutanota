@@ -291,8 +291,12 @@ export class GroupDetailsModel {
 			.getLocalAdminGroupMemberships()
 			.map(gm => gm.group)
 		let availableUserGroupInfos = userGroupInfos.filter(userGroupInfo => {
-			if (!globalAdmin && userGroupInfo.localAdmin != null && !myLocalAdminShips.includes(userGroupInfo.localAdmin)) {
-				// filter out users that are not in a group administrated by us (through any local admin membership)
+			if (!globalAdmin && // if we are global admin we may add anyone, don't filter
+				!( // don't filter if both:
+					userGroupInfo.localAdmin != null && // the user does have a local admin and
+					myLocalAdminShips.includes(userGroupInfo.localAdmin) // we are a member of the users local admin group
+				)
+			) {
 				return false
 			} else {
 				// only show users that are not deleted and not already in the group.
