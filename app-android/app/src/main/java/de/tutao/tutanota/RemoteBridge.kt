@@ -183,4 +183,4 @@ class RemoteBridge internal constructor(
 	}
 }
 
-private class RemoteExecutionException(message: String) : Exception(message)
+internal class RemoteExecutionException(message: String) : Exception(message)
