@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2022-12-10T23:34:17Z",
+	"updated_at": "2022-12-20T19:34:33Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -58,6 +58,7 @@ export default {
 		"addEmailAlias_label": "إضافة اسم مستعار للبريد الإلكتروني",
 		"addEntry_label": "Add entry",
 		"addEnumValue_action": "إضافة قيمة التعداد",
+		"addFolder_action": "إضافة مجلد",
 		"addGroup_label": "إضافة فريق",
 		"addGuest_label": "أضف ضيفا",
 		"addInboxRule_action": "أضف قاعدة للبريد الوارد",
@@ -193,6 +194,7 @@ export default {
 		"cancelUserAccounts_label": "إلغاء {1} حساب مستخدم (مستخدمين)",
 		"cancelWhitelabelBooking_label": "إلغاء ميزة وايت لابل لِـ {1} من المستخدمين",
 		"cancel_action": "إلغاء",
+		"cannotDeleteFoldersWithSubfolders_msg": "لا يمكن حذف المجلدات التي تحتوي على مجلدات فرعية. الرجاء حذف جميع المجلدات الفرعية أولا.",
 		"canNotOpenFileOnDevice_msg": "لا يمكن فتح هذا الملف على هذا الجهاز.",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "الرجاء إدخال الوقت بالساعات والدقائق.",
@@ -805,6 +807,7 @@ export default {
 		"mailAddressDelay_msg": "الطلبات كثيرة جدا، يرجى المحاولة لاحقا.",
 		"mailAddresses_label": "عناوين البريد الإلكتروني",
 		"mailAddressInvalid_msg": "عنوان البريد غير صالح.",
+		"mailAddressNANudge_msg": "عنوان البريد الإلكتروني غير متوفر. جرب نطاقا آخر من القائمة المنسدلة.",
 		"mailAddressNA_msg": "عنوان البريد الإلكتروني غير متوفر.",
 		"mailAddressNeutral_msg": "الرجاء إدخال البريد الإلكتروني",
 		"mailAddress_label": "عنوان البريد الإلكتروني",

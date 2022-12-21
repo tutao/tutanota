@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2022-12-16T16:31:04Z",
+	"updated_at": "2022-12-20T17:09:33Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -806,6 +806,7 @@ export default {
 		"mailAddressDelay_msg": "Слишком много запросов, пожалуйста, повторите попытку позже.",
 		"mailAddresses_label": "Адреса",
 		"mailAddressInvalid_msg": "Неверный почтовый адрес.",
+		"mailAddressNANudge_msg": "Адрес электронной почты недоступен. Попробуйте другой домен из выпадающего списка.",
 		"mailAddressNA_msg": "Адрес эл.почты недоступен.",
 		"mailAddressNeutral_msg": "Введите адрес электронной почты.",
 		"mailAddress_label": "Электронный адрес",

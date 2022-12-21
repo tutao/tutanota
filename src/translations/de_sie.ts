@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2022-12-19T14:04:30Z",
+	"updated_at": "2022-12-21T15:48:26Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -917,6 +917,7 @@ export default {
 		"notificationSync_msg": "Synchronisiere Benachrichtigungen",
 		"notSigned_msg": "Nicht unterschrieben.",
 		"noUpdateAvailable_msg": "Kein Update gefunden.",
+		"noValidMembersToAdd_msg": "Sie administrieren keine Benutzer, welche noch nicht in dieser Gruppe sind.",
 		"no_label": "Nein",
 		"npoDiscount_msg": "Angebot für NPOs: 50% Benutzer-Rabatt für Premium und 20 Aliasse kostenfrei!",
 		"npoDonation_msg": "Spende für NPOs: Bis zu 50 Benutzer für Premium und 100 Aliasse kostenfrei!",

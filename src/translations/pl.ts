@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2022-12-16T23:15:41Z",
+	"updated_at": "2022-12-19T20:01:17Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -806,6 +806,7 @@ export default {
 		"mailAddressDelay_msg": "Zbyt wiele prób, spróbuj ponownie później.",
 		"mailAddresses_label": "Adresy e-mail",
 		"mailAddressInvalid_msg": "Adres e-mail jest nieprawidłowy.",
+		"mailAddressNANudge_msg": "Adres e-mail nie jest dostępny. Wypróbuj inną domenę z listy rozwijanej.",
 		"mailAddressNA_msg": "Ten adres e-mail jest niedostępny.",
 		"mailAddressNeutral_msg": "Wprowadź adres e-mail.",
 		"mailAddress_label": "Adres e-mail",
