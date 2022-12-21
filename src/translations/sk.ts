@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2022-12-19T12:38:42Z",
+	"updated_at": "2022-12-20T09:42:25Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -803,6 +803,7 @@ export default {
 		"mailAddressDelay_msg": "Príliš veľa žiadostí, skús to znova neskôr.",
 		"mailAddresses_label": "E-mailové adresy",
 		"mailAddressInvalid_msg": "Mailová adresa je neplatná.",
+		"mailAddressNANudge_msg": "E-mailová adresa nie je dostupná. Vyskúšaj inú doménu z rozbaľovacej ponuky.",
 		"mailAddressNA_msg": "E-mailová adresa nie je k dispozícii.",
 		"mailAddressNeutral_msg": "Prosím, zadaj e-mailovú adresu.",
 		"mailAddress_label": "E-mailová adresa",

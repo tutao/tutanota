@@ -897,6 +897,7 @@ export type TranslationKeyType =
 	| "notificationSync_msg"
 	| "notSigned_msg"
 	| "noUpdateAvailable_msg"
+	| "noValidMembersToAdd_msg"
 	| "no_label"
 	| "npoDiscount_msg"
 	| "npoDonation_msg"

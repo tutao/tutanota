@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2022-12-19T14:03:28Z",
+	"updated_at": "2022-12-21T15:47:56Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -913,6 +913,7 @@ export default {
 		"notificationSync_msg": "Synchronizing notifications",
 		"notSigned_msg": "Not signed.",
 		"noUpdateAvailable_msg": "No Update found.",
+		"noValidMembersToAdd_msg": "You are not administrating any users that are not already a member of this group.",
 		"no_label": "No",
 		"npoDiscount_msg": "Offer for NPOs: 50% user discount for Premium and 20 aliases free of charge!",
 		"npoDonation_msg": "Donation for NPOs: up to 50 users for Premium and 100 aliases free of charge!",

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2022-12-17T13:23:24Z",
+	"updated_at": "2022-12-21T13:43:06Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -805,6 +805,7 @@ export default {
 		"mailAddressDelay_msg": "Demasiadas requisições. Por favor, tente mais tarde.",
 		"mailAddresses_label": "Endereços de emails",
 		"mailAddressInvalid_msg": "O endereço de email não é válido.",
+		"mailAddressNANudge_msg": "O endereço de email não está disponível. Tente um outro domínio na lista a seguir.",
 		"mailAddressNA_msg": "Endereço de email não disponível.",
 		"mailAddressNeutral_msg": "Digite o endereço de email.",
 		"mailAddress_label": "Endereço de email",
