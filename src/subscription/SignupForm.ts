@@ -2,7 +2,7 @@ import m, {Children, Component, Vnode} from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {Dialog} from "../gui/base/Dialog"
-import {TextField} from "../gui/base/TextField.js"
+import {Autocomplete, TextField} from "../gui/base/TextField.js"
 import {Button, ButtonType} from "../gui/base/Button.js"
 import {getWhitelabelRegistrationDomains} from "../login/LoginView"
 import type {NewAccountData} from "./UpgradeSubscriptionWizard"
@@ -162,6 +162,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 					? m(TextField, {
 						label: "mailAddress_label",
 						value: a.prefilledMailAddress ?? "",
+						autocompleteAs: Autocomplete.newPassword,
 						disabled: true,
 					})
 					: [
