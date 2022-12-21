@@ -11,7 +11,7 @@ import {locator} from "../api/main/MainLocator"
 import {assertMainOrNode} from "../api/common/Env"
 import {isTutanotaMailAddress} from "../mail/model/MailUtils.js";
 import {px, size} from "../gui/size.js"
-import {inputLineHeight, TextField} from "../gui/base/TextField.js"
+import {Autocomplete, inputLineHeight, TextField} from "../gui/base/TextField.js"
 import {attachDropdown, DropdownButtonAttrs} from "../gui/base/Dropdown.js"
 import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
 import {ButtonSize} from "../gui/base/ButtonSize.js"
@@ -76,6 +76,7 @@ export class SelectMailAddressFormWithSuggestions implements Component<SelectMai
 				value: this.username,
 				alignRight: true,
 				helpLabel: () => this.addressHelpLabel(),
+				autocompleteAs: Autocomplete.newPassword,
 				fontSize: px(size.font_size_smaller),
 				oninput: (value) => {
 					this.username = value
