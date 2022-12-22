@@ -3,7 +3,8 @@ import {px, size} from "../../gui/size"
 import {EventTextTimeOption, WeekStart} from "../../api/common/TutanotaConstants"
 import type {CalendarDay, CalendarMonth} from "../date/CalendarUtils"
 import {
-	CALENDAR_EVENT_HEIGHT, EventLayoutMode,
+	CALENDAR_EVENT_HEIGHT,
+	EventLayoutMode,
 	getAllDayDateForTimezone,
 	getCalendarMonth,
 	getDateIndicator,
@@ -150,11 +151,16 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		const today = getStartOfDayWithZone(new Date(), getTimeZone())
 		return m(".fill-absolute.flex.col.mlr-safe-inset", [
 			styles.isDesktopLayout()
-				? m(".mt-s.pr-l.flex.row.items-center", [
-					renderCalendarSwitchLeftButton("prevMonth_label", () => attrs.onChangeMonth(false)),
-					renderCalendarSwitchRightButton("nextMonth_label", () => attrs.onChangeMonth(true)),
-					m("h1", formatMonthWithFullYear(firstDay)),
-				])
+				// Only display navigation buttons if it is the visible page
+				? month === currentlyVisibleMonth
+					? m(".mt-s.pr-l.flex.row.items-center", [
+						renderCalendarSwitchLeftButton("prevMonth_label", () => attrs.onChangeMonth(false)),
+						renderCalendarSwitchRightButton("nextMonth_label", () => attrs.onChangeMonth(true)),
+						m("h1", formatMonthWithFullYear(firstDay)),
+					])
+					: m(".mt-s.pr-l.flex.row.items-center", [
+						m("h1", formatMonthWithFullYear(firstDay)),
+					])
 				: m(".pt-s"),
 			m(
 				".flex.mb-s",
