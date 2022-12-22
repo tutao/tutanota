@@ -82,7 +82,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 				return true
 			},
 			onEnterKey: () => {
-				this.resolveInput(attrs)
+				this.resolveInput(attrs, true)
 				return true
 			},
 			onUpKey: () => {
@@ -98,7 +98,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 			},
 			onBlur: () => {
 				this.focused = false
-				this.resolveInput(attrs)
+				this.resolveInput(attrs, false)
 				return true
 			},
 			disabled: attrs.disabled,
@@ -137,9 +137,14 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 		)
 	}
 
-	private resolveInput(attrs: MailRecipientsTextFieldAttrs) {
+	/**
+	 * Resolves a typed in mail address or one of the suggested ones.
+	 * @param selectSuggestion boolean value indicating whether a suggestion should be selected or not. Should be true if a suggestion is explicitly selected by
+	 * for example hitting the enter key and false e.g. if the dialog is closed
+	 */
+	private resolveInput(attrs: MailRecipientsTextFieldAttrs, selectSuggestion: boolean) {
 		const suggestions = attrs.search.results()
-		if (suggestions.length > 0) {
+		if (suggestions.length > 0 && selectSuggestion) {
 			this.selectSuggestion(attrs, this.getSelectedSuggestionIdx(attrs))
 		} else {
 			const parsed = parseMailAddress(attrs.text)
