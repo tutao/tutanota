@@ -291,7 +291,7 @@ export class ElectronUpdater {
 					this.installUpdate()
 				}
 			})
-			.catch((e: Error) => this.logger.error("Notification failed,", e.message))
+			.catch((e: Error) => this.logger.error("Notification failed, error message:", e?.message))
 	}
 
 	installUpdate() {
@@ -316,6 +316,6 @@ export class ElectronUpdater {
 				body: lang.get("errorDuringUpdate_msg"),
 				icon: this.icon,
 			})
-			.catch((e) => this.logger.error("Error Notification failed,", e.message))
+			.catch((e) => this.logger.error("Error Notification failed, error message:", e?.message))
 	}
 }
