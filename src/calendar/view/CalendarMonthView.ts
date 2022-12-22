@@ -3,7 +3,8 @@ import {px, size} from "../../gui/size"
 import {EventTextTimeOption, WeekStart} from "../../api/common/TutanotaConstants"
 import type {CalendarDay, CalendarMonth} from "../date/CalendarUtils"
 import {
-	CALENDAR_EVENT_HEIGHT, EventLayoutMode,
+	CALENDAR_EVENT_HEIGHT,
+	EventLayoutMode,
 	getAllDayDateForTimezone,
 	getCalendarMonth,
 	getDateIndicator,
@@ -148,11 +149,12 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		const {weekdays, weeks} = month
 		const firstDay = getFirstDayOfMonth(date)
 		const today = getStartOfDayWithZone(new Date(), getTimeZone())
+		const visible = month === currentlyVisibleMonth
 		return m(".fill-absolute.flex.col.mlr-safe-inset", [
 			styles.isDesktopLayout()
 				? m(".mt-s.pr-l.flex.row.items-center", [
-					renderCalendarSwitchLeftButton("prevMonth_label", () => attrs.onChangeMonth(false)),
-					renderCalendarSwitchRightButton("nextMonth_label", () => attrs.onChangeMonth(true)),
+					renderCalendarSwitchLeftButton("prevMonth_label", () => attrs.onChangeMonth(false), visible),
+					renderCalendarSwitchRightButton("nextMonth_label", () => attrs.onChangeMonth(true), visible),
 					m("h1", formatMonthWithFullYear(firstDay)),
 				])
 				: m(".pt-s"),

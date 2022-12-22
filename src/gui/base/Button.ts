@@ -105,7 +105,8 @@ export interface ButtonAttrs {
 	colors?: ButtonColor
 	isSelected?: lazy<boolean>
 	noBubble?: boolean
-	staticRightText?: string,
+	staticRightText?: string
+	disableTabbing?: boolean
 }
 
 /**
@@ -132,6 +133,7 @@ export class Button implements ClassComponent<ButtonAttrs> {
 					this._domButton = vnode.dom as HTMLButtonElement
 				},
 				onremove: vnode => removeFlash(vnode.dom),
+				tabIndex: vnode.attrs.disableTabbing ? -1 : 0
 			},
 			m(
 				"",

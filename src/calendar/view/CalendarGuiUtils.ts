@@ -1,30 +1,31 @@
 import m, {Child} from "mithril"
 import type {TranslationKey} from "../../misc/LanguageViewModel"
-import {ButtonColor, Button, ButtonType} from "../../gui/base/Button.js"
+import {Button, ButtonColor, ButtonType} from "../../gui/base/Button.js"
 import {Icons} from "../../gui/base/icons/Icons"
 import {Dialog} from "../../gui/base/Dialog"
 import type {MousePosAndBounds} from "../../gui/base/GuiUtils"
 import {Time} from "../../api/common/utils/Time"
-import {assert} from "@tutao/tutanota-utils"
-import {clamp} from "@tutao/tutanota-utils"
+import {assert, clamp} from "@tutao/tutanota-utils"
 
-export function renderCalendarSwitchLeftButton(label: TranslationKey, switcher: (...args: Array<any>) => any): Child {
+export function renderCalendarSwitchLeftButton(label: TranslationKey, switcher: (...args: Array<any>) => any, isVisible: boolean = true): Child {
 	return m(Button, {
 		label: label,
 		icon: () => Icons.ArrowDropLeft,
 		type: ButtonType.ActionLarge,
 		colors: ButtonColor.DrawerNav,
 		click: switcher,
+		disableTabbing: !isVisible,
 	})
 }
 
-export function renderCalendarSwitchRightButton(label: TranslationKey, switcher: (...args: Array<any>) => any): Child {
+export function renderCalendarSwitchRightButton(label: TranslationKey, switcher: (...args: Array<any>) => any, isVisible: boolean = true): Child {
 	return m(Button, {
 		label: label,
 		icon: () => Icons.ArrowDropRight,
 		type: ButtonType.ActionLarge,
 		colors: ButtonColor.DrawerNav,
 		click: switcher,
+		disableTabbing: !isVisible,
 	})
 }
 
