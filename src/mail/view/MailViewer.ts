@@ -32,13 +32,12 @@ import { MailViewerHeader } from "./MailViewerHeader.js"
 import { editDraft, showHeaderDialog } from "./MailViewerUtils.js"
 import { ToggleButton } from "../../gui/base/buttons/ToggleButton.js"
 import { locator } from "../../api/main/MainLocator.js"
+import { PinchZoom } from "../../gui/PinchZoom.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../gui/cards.js"
 
 assertMainOrNode()
 // map of inline image cid to InlineImageReference
 export type InlineImages = Map<string, InlineImageReference>
-
-const DOUBLE_TAP_TIME_MS = 350
 
 type MailAddressAndName = {
 	name: string
@@ -66,14 +65,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private bodyLineHeight: number | null = null
 
 	private isScaling = true
-
-	private lastBodyTouchEndTime = 0
-	private lastTouchStart = {
-		x: 0,
-		y: 0,
-		time: Date.now(),
-	}
-
 	/**
 	 * Delay the display of the progress spinner in main body view for a short time to suppress it when we are switching between cached emails
 	 * and we are just sanitizing
@@ -83,7 +74,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private readonly resizeListener: windowSizeListener
 
 	private viewModel!: MailViewerViewModel
-
+	private pinchZoomable: PinchZoom | null = null
 	private readonly shortcuts: Array<Shortcut>
 
 	private scrollDom: HTMLElement | null = null
@@ -92,6 +83,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private domBody: HTMLElement | null = null
 
 	private shadowDomRoot: ShadowRoot | null = null
+	private shadowDomMailContent: HTMLElement | null = null
 	private currentlyRenderedMailBody: DocumentFragment | null = null
 	private lastContentBlockingStatus: ContentBlockingStatus | null = null
 
@@ -155,6 +147,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 	view(vnode: Vnode<MailViewerAttrs>): Children {
 		this.handleContentBlockingOnRender()
+
 		return [
 			m(".mail-viewer.overflow-x-hidden", [
 				this.renderMailHeader(vnode.attrs),
@@ -289,8 +282,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				const dom = vnode.dom as HTMLElement
 				this.setDomBody(dom)
 				this.updateLineHeight(dom)
-				this.rescale(false)
-				this.renderShadowMailBody(sanitizedMailBody, attrs)
+				this.renderShadowMailBody(sanitizedMailBody, attrs, vnode.dom as HTMLElement)
 			},
 			onupdate: (vnode) => {
 				const dom = vnode.dom as HTMLElement
@@ -303,15 +295,19 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					this.updateLineHeight(vnode.dom as HTMLElement)
 				}
 
-				this.rescale(false)
-
-				if (this.currentlyRenderedMailBody !== sanitizedMailBody) this.renderShadowMailBody(sanitizedMailBody, attrs)
+				if (this.currentlyRenderedMailBody !== sanitizedMailBody) this.renderShadowMailBody(sanitizedMailBody, attrs, vnode.dom as HTMLElement)
 				// If the quote behavior changes (e.g. after loading is finished) we should update the quotes.
 				// If we already rendered it correctly it will already be set in renderShadowMailBody() so we will avoid doing it twice.
 				if (this.currentQuoteBehavior !== attrs.defaultQuoteBehavior) {
 					this.updateCollapsedQuotes(assertNotNull(this.shadowDomRoot), attrs.defaultQuoteBehavior === "expand")
 				}
 				this.currentQuoteBehavior = attrs.defaultQuoteBehavior
+
+				if (client.isMobileDevice() && !this.pinchZoomable && this.shadowDomMailContent) {
+					this.pinchZoomable = new PinchZoom(this.shadowDomMailContent, vnode.dom as HTMLElement, true, (e, target) => {
+						this.handleAnchorClick(e, target, true)
+					})
+				}
 			},
 			onbeforeremove: () => {
 				// Clear dom body in case there will be a new one, we want promise to be up-to-date
@@ -348,19 +344,22 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	/**
 	 * manually wrap and style a mail body to display correctly inside a shadow root
 	 * @param sanitizedMailBody the mail body to display
+	 * @param attrs
+	 * @param parent the parent element that contains the shadowMailBody
 	 * @private
 	 */
-	private renderShadowMailBody(sanitizedMailBody: DocumentFragment, attrs: MailViewerAttrs) {
+	private renderShadowMailBody(sanitizedMailBody: DocumentFragment, attrs: MailViewerAttrs, parent: HTMLElement) {
 		this.currentQuoteBehavior = attrs.defaultQuoteBehavior
 		assertNonNull(this.shadowDomRoot, "shadow dom root is null!")
 		while (this.shadowDomRoot.firstChild) {
 			this.shadowDomRoot.firstChild.remove()
 		}
 		const wrapNode = document.createElement("div")
-		wrapNode.className = "selectable touch-callout break-word-links" + (client.isMobileDevice() ? " break-pre" : "")
+		wrapNode.className = "drag selectable touch-callout break-word-links" + (client.isMobileDevice() ? " break-pre" : "")
 		wrapNode.style.lineHeight = String(this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height)
 		wrapNode.style.transformOrigin = "top left"
 		wrapNode.appendChild(sanitizedMailBody.cloneNode(true))
+		this.shadowDomMailContent = wrapNode
 
 		// query all top level block quotes
 		const quoteElements = Array.from(wrapNode.querySelectorAll("blockquote:not(blockquote blockquote)")) as HTMLElement[]
@@ -371,29 +370,24 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			this.createCollapsedBlockQuote(quote, this.shouldDisplayCollapsedQuotes())
 		}
 
-		if (client.isMobileDevice()) {
-			wrapNode.addEventListener("touchstart", (event) => {
-				const touch = event.touches[0]
-				this.lastTouchStart.x = touch.clientX
-				this.lastTouchStart.y = touch.clientY
-				this.lastTouchStart.time = Date.now()
-			})
-			wrapNode.addEventListener("touchend", (event) => {
-				const href = (event.target as Element | null)?.closest("a")?.getAttribute("href") ?? null
-				this.handleDoubleTap(
-					event,
-					(e) => this.handleAnchorClick(e, href, true),
-					() => this.rescale(true),
-				)
-			})
-		} else {
-			wrapNode.addEventListener("click", (event) => {
-				const href = (event.target as Element | null)?.closest("a")?.getAttribute("href") ?? null
-				this.handleAnchorClick(event, href, false)
-			})
-		}
 		this.shadowDomRoot.appendChild(styles.getStyleSheetElement("main"))
 		this.shadowDomRoot.appendChild(wrapNode)
+
+		if (client.isMobileDevice()) {
+			this.pinchZoomable = null
+			new ResizeObserver((entries) => {
+				// the PinchZoom class does not allow a changing zoomable rect size (mail body content). When we show previously unloaded images the size
+				// of the mail body changes. So we have to create a new PinchZoom object
+				this.pinchZoomable?.remove()
+				this.pinchZoomable = new PinchZoom(wrapNode, parent as HTMLElement, true, (e, target) => {
+					this.handleAnchorClick(e, target, true)
+				})
+			}).observe(wrapNode)
+		} else {
+			wrapNode.addEventListener("click", (event) => {
+				this.handleAnchorClick(event, event.target, false)
+			})
+		}
 		this.currentlyRenderedMailBody = sanitizedMailBody
 	}
 
@@ -488,29 +482,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				)
 			}
 		})
-	}
-
-	private rescale(animate: boolean) {
-		const child = this.domBody
-		if (!client.isMobileDevice() || !child) {
-			return
-		}
-		const containerWidth = child.offsetWidth
-
-		if (!this.isScaling || containerWidth > child.scrollWidth) {
-			child.style.transform = ""
-			child.style.marginBottom = ""
-		} else {
-			const width = child.scrollWidth
-			const scale = containerWidth / width
-			const heightDiff = child.scrollHeight - child.scrollHeight * scale
-			child.style.transform = `scale(${scale})`
-			child.style.marginBottom = `${-heightDiff}px`
-		}
-
-		child.style.transition = animate ? "transform 200ms ease-in-out" : ""
-		// ios 15 bug: transformOrigin magically disappears so we ensure that it's always set
-		child.style.transformOrigin = "top left"
 	}
 
 	private setupShortcuts(attrs: MailViewerAttrs): Array<Shortcut> {
@@ -649,40 +620,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		return buttons
 	}
 
-	private handleDoubleTap(e: TouchEvent, singleClickAction: (e: TouchEvent) => void, doubleClickAction: (e: TouchEvent) => void) {
-		const lastClick = this.lastBodyTouchEndTime
-		const now = Date.now()
-		const touch = e.changedTouches[0]
-
-		// If there are no touches or it's not cancellable event (e.g. scroll) or more than certain time has passed or finger moved too
-		// much then do nothing
-		if (
-			!touch ||
-			!e.cancelable ||
-			Date.now() - this.lastTouchStart.time > DOUBLE_TAP_TIME_MS ||
-			touch.clientX - this.lastTouchStart.x > 40 ||
-			touch.clientY - this.lastTouchStart.y > 40
-		) {
-			return
-		}
-
-		e.preventDefault()
-
-		if (now - lastClick < DOUBLE_TAP_TIME_MS) {
-			this.isScaling = !this.isScaling
-			this.lastBodyTouchEndTime = 0
-			doubleClickAction(e)
-		} else {
-			setTimeout(() => {
-				if (this.lastBodyTouchEndTime === now) {
-					singleClickAction(e)
-				}
-			}, DOUBLE_TAP_TIME_MS)
-		}
-
-		this.lastBodyTouchEndTime = now
-	}
-
 	private addSpamRule(defaultInboxRuleField: InboxRuleType | null, address: string) {
 		const folder = this.viewModel.mailModel.getMailFolder(getListId(this.viewModel.mail))
 
@@ -718,7 +655,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		})
 	}
 
-	private handleAnchorClick(event: Event, href: string | null, shouldDispatchSyntheticClick: boolean): void {
+	private handleAnchorClick(event: Event, eventTarget: EventTarget | null, shouldDispatchSyntheticClick: boolean): void {
+		const href = (eventTarget as Element | null)?.closest("a")?.getAttribute("href") ?? null
 		if (href) {
 			if (href.startsWith("mailto:")) {
 				event.preventDefault()
