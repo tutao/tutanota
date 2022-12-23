@@ -22,13 +22,14 @@ import {keyManager} from "../../misc/KeyManager"
 import {MultiMailViewer} from "./MultiMailViewer"
 import {logins} from "../../api/main/LoginController"
 import {Icons} from "../../gui/base/icons/Icons"
-import {NotFoundError, PreconditionFailedError} from "../../api/common/error/RestError"
+import {LockedError, NotFoundError, PreconditionFailedError} from "../../api/common/error/RestError"
 import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
 import {
 	allMailsAllowedInsideFolder,
 	canDoDragAndDropExport,
 	getFolderIcon,
 	getFolderName,
+	getIndentedFolderNameForDropdown,
 	getMailboxName,
 	getPathToFolderString,
 	markMails,
@@ -55,6 +56,7 @@ import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
 import {SidebarSection} from "../../gui/SidebarSection"
 import {CancelledError} from "../../api/common/error/CancelledError"
 import Stream from "mithril/stream";
+import stream from "mithril/stream";
 import {MailViewerViewModel} from "./MailViewerViewModel"
 import {readLocalFiles} from "../../file/FileController.js"
 import {IconButton, IconButtonAttrs} from "../../gui/base/IconButton.js"
@@ -63,6 +65,9 @@ import {BottomNav} from "../../gui/nav/BottomNav.js"
 import {MobileMailActionBar} from "./MobileMailActionBar.js"
 import {FolderSubtree, FolderSystem} from "../model/FolderSystem.js"
 import {deviceConfig} from "../../misc/DeviceConfig.js"
+import {DropDownSelector, SelectorItemList} from "../../gui/base/DropDownSelector.js"
+import {TextField} from "../../gui/base/TextField.js"
+import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
 
 assertMainOrNode()
 
@@ -469,7 +474,7 @@ export class MailView implements CurrentView {
 		if (logins.isInternalUserLoggedIn()) {
 			children.push(m(SidebarSection, {
 				name: "yourFolders_action",
-				button: m(IconButton, this.createFolderAddButton(mailboxDetail.mailGroup._id, null, mailboxDetail.folders)),
+				button: m(IconButton, this.createFolderAddButton(mailboxDetail.mailGroup._id, null)),
 				key: "yourFolders", // we need to set a key because folder rows also have a key.
 			}, this.renderCustomFolderTree(customSystems, groupCounters, mailboxDetail)))
 		}
@@ -652,16 +657,76 @@ export class MailView implements CurrentView {
 		moveMails({mailModel: locator.mailModel, mails: mailsToMove, targetMailFolder: folder})
 	}
 
-	private createFolderAddButton(mailGroupId: Id, parentFolder: MailFolder | null, folderSystem: FolderSystem): IconButtonAttrs {
+	private createFolderAddButton(mailGroupId: Id, parentFolder: MailFolder | null): IconButtonAttrs {
 		return {
 			title: "addFolder_action",
 			click: () => {
-				return this.showCreateFolderDialog(mailGroupId, parentFolder, folderSystem)
+				return this.showFolderAddEditDialog(mailGroupId, null, parentFolder)
 			},
 			icon: Icons.Add,
 			size: ButtonSize.Compact,
 		}
 	}
+
+	private async showFolderAddEditDialog(mailGroupId: string, folder: MailFolder | null = null, parentFolder: MailFolder | null = null) {
+		const noParentFolderOption = "No Parent Folder";
+		const folderNameValue = stream(folder?.name ? folder?.name : "")
+		// TODO getMailboxDetails wont work for shared mailboxes?
+		const mailBoxDetail = await this.getMailboxDetails()
+		let targetFolders: SelectorItemList<MailFolder | null> = mailBoxDetail.folders.getIndentedList(folder)
+																			  .filter(folderInfo => folderInfo.folder.folderType === MailFolderType.CUSTOM)
+																			  .map(folderInfo => {
+																				  return {
+																					  name: getIndentedFolderNameForDropdown(folderInfo),
+																					  value: folderInfo.folder,
+																				  }
+																			  })
+		targetFolders = [{name: noParentFolderOption, value: null}, ...targetFolders]
+		let selectedParentFolder = parentFolder ? parentFolder : null
+		// @ts-ignore
+		let form = () => [
+			m(TextField, {
+				label: folder ? "rename_action" : "folderName_label",
+				value: folderNameValue(),
+				oninput: folderNameValue
+			}),
+			m(DropDownSelector, {
+				label: "parentFolder_label",
+				items: targetFolders,
+				selectedValue: selectedParentFolder,
+				selectedValueDisplay: selectedParentFolder ? getFolderName(selectedParentFolder) : noParentFolderOption,
+				selectionChangedHandler: (newFolder: MailFolder | null) => selectedParentFolder = newFolder,
+			}),
+		]
+		const okAction = (dialog: Dialog) => {
+			// TODO: make the mail facade update function
+			//locator.mailFacade.updateMailFolder(editedFolder, mailGroupId).then(() => {
+			return locator.mailFacade.createMailFolder(folderNameValue(), selectedParentFolder ? selectedParentFolder._id : null, mailGroupId).then(() => {
+				dialog.close()
+			}).catch(error => {
+				if (isOfflineError(error)) {
+					//do not close
+					throw error
+				} else if (error instanceof LockedError) {
+					dialog.close()
+				} else {
+					dialog.close()
+					throw error
+				}
+			})
+		}
+		const validateFolderEdit = (name: string, newParentFolder: readonly [string, string] | null) => {
+			return this.checkFolderName(name, mailGroupId, newParentFolder)
+		}
+		Dialog.showActionDialog({
+			title: folder ? lang.get("editFolder_action") : lang.get("addFolder_action"),
+			child: form,
+			validator: () => validateFolderEdit(folderNameValue(), selectedParentFolder ? selectedParentFolder._id : null),
+			allowOkWithReturn: true,
+			okAction: okAction,
+		})
+	}
+
 
 	private showCreateFolderDialog(mailGroupId: string, parentFolder: MailFolder | null, folderSystem: FolderSystem) {
 		const infoMsg = parentFolder ? () => getPathToFolderString(folderSystem, parentFolder) : null
@@ -704,7 +769,7 @@ export class MailView implements CurrentView {
 						label: "addFolder_action",
 						icon: Icons.Add,
 						click: () => {
-							this.showCreateFolderDialog(mailGroupId, folder, folderSystem)
+							this.showFolderAddEditDialog(mailGroupId, null, folder)
 						}
 					},
 					{

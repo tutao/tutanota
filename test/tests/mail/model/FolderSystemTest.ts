@@ -97,6 +97,15 @@ o.spec("FolderSystem", function () {
 		])
 	})
 
+	o("indented list will not return folder or descendants of given folder", function () {
+		const system = new FolderSystem(allFolders)
+		o(system.getIndentedList(customSubfolder)).deepEquals([
+			{level: 0, folder: inbox},
+			{level: 0, folder: archive},
+			{level: 0, folder: customFolder},
+		])
+	})
+
 	o("getSystemFolderByType", function () {
 		const system = new FolderSystem(allFolders)
 
