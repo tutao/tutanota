@@ -23,8 +23,8 @@ export class FolderSystem {
 		this.customSubtrees = customFolders.sort(compareCustom).map((f) => this.makeSubtree(folderByParent, f, compareCustom))
 	}
 
-	getIndentedList(): IndentedFolder[] {
-		return [...this.getIndentedSystemList(), ...this.getIndentedCustomList(this.customSubtrees)]
+	getIndentedList(excludeFolder: MailFolder | null = null): IndentedFolder[] {
+		return [...this.getIndentedFolderList(this.systemSubtrees, excludeFolder), ...this.getIndentedFolderList(this.customSubtrees, excludeFolder)]
 	}
 
 	getSystemFolderByType(type: Omit<MailFolderType, MailFolderType.CUSTOM>): MailFolder {
@@ -60,19 +60,15 @@ export class FolderSystem {
 		return this.getPathToFolderInSubtrees(this.systemSubtrees, folderId) ?? this.getPathToFolderInSubtrees(this.customSubtrees, folderId) ?? []
 	}
 
-	private getIndentedCustomList(subtrees: ReadonlyArray<FolderSubtree>, currentLevel: number = 0): IndentedFolder[] {
+	private getIndentedFolderList(subtrees: ReadonlyArray<FolderSubtree>, excludeFolder: MailFolder | null = null, currentLevel: number = 0): IndentedFolder[] {
 		const plainList: IndentedFolder[] = []
 		for (const subtree of subtrees) {
+			if (!excludeFolder || !isSameId(subtree.folder._id, excludeFolder._id)) {
 			plainList.push({ level: currentLevel, folder: subtree.folder })
-			plainList.push(...this.getIndentedCustomList(subtree.children, currentLevel + 1))
+				plainList.push(...this.getIndentedFolderList(subtree.children, excludeFolder, currentLevel + 1))
+			}
 		}
 		return plainList
-	}
-
-	private getIndentedSystemList(): IndentedFolder[] {
-		return this.systemSubtrees.map((subtree) => {
-			return { level: 0, folder: subtree.folder }
-		})
 	}
 
 	private getFolderByIdInSubtrees(systems: ReadonlyArray<FolderSubtree>, folderId: IdTuple): FolderSubtree | null {

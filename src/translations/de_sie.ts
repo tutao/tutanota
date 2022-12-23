@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2022-12-21T15:48:26Z",
+	"updated_at": "2023-01-02T14:40:16Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -457,6 +457,7 @@ export default {
 		"editContactForm_label": "Kontakformular bearbeiten",
 		"editContact_label": "Kontakt bearbeiten",
 		"editEntry_label": "Eintrag bearbeiten",
+		"editFolder_action": "Ordner bearbeiten",
 		"editInboxRule_action": "Posteingangs-Regel bearbeiten",
 		"editMail_action": "Die ausgewählte E-Mail bearbeiten",
 		"editMessage_label": "Nachricht bearbeiten",
@@ -984,6 +985,7 @@ export default {
 		"pageForward_label": "Seite vorwärts",
 		"pageTitle_label": "Titel",
 		"parentConfirmation_msg": "Die EU-Datenschutzgrundverordnung (DSGVO) verlangt für Kinder unter 16 Jahren die Zustimmung ihrer Eltern ihre personenbezogenen Daten verarbeiten zu lassen. Daher hole bitte einen deiner Eltern oder Erziehungsberechtigten her und lasse sie folgendes bestätigen:\n\n\"Ich bin Elternteil oder Erziehungsberechtigte(r) meines Kindes, erlaube ihm Tutanota zu verwenden und stimme damit der Verarbeitung der personenbezogenen Daten meines Kindes zu.\"",
+		"parentFolder_label": "Überordner",
 		"participants_label": "Teilnehmer des Kalenders \"{name}\"",
 		"participant_label": "Teilnehmer",
 		"passphraseGeneratorHelp_msg": "Diese sichere Passphrase wurde aus einem großen Wörterbuch generiert  und ist einfach zu merken.",

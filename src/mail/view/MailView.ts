@@ -1,7 +1,6 @@
 import m, { Children } from "mithril"
 import { ViewSlider } from "../../gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../gui/base/ViewColumn"
-import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import type { ButtonAttrs } from "../../gui/base/Button.js"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
@@ -30,7 +29,6 @@ import {
 	getFolderIcon,
 	getFolderName,
 	getMailboxName,
-	getPathToFolderString,
 	markMails,
 	MAX_FOLDER_INDENT_LEVEL,
 } from "../model/MailUtils"
@@ -50,7 +48,7 @@ import { FolderColumnView } from "../../gui/FolderColumnView.js"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { archiveMails, moveMails, moveToInbox, promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils"
-import { elementIdPart, getElementId, isSameId } from "../../api/common/utils/EntityUtils"
+import {getElementId, isSameId} from "../../api/common/utils/EntityUtils"
 import { isNewMailActionAvailable } from "../../gui/nav/NavFunctions"
 import { SidebarSection } from "../../gui/SidebarSection"
 import { CancelledError } from "../../api/common/error/CancelledError"
@@ -63,6 +61,7 @@ import { BottomNav } from "../../gui/nav/BottomNav.js"
 import { MobileMailActionBar } from "./MobileMailActionBar.js"
 import { FolderSubtree, FolderSystem } from "../model/FolderSystem.js"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
+import {showEditFolderDialog} from "./EditFolderDialog.js"
 
 assertMainOrNode()
 
@@ -468,7 +467,7 @@ export class MailView implements CurrentView {
 					SidebarSection,
 					{
 						name: "yourFolders_action",
-						button: m(IconButton, this.createFolderAddButton(mailboxDetail.mailGroup._id, null, mailboxDetail.folders)),
+				button: m(IconButton, this.createFolderAddButton(mailboxDetail.mailGroup._id, null)),
 						key: "yourFolders", // we need to set a key because folder rows also have a key.
 					},
 					this.renderCustomFolderTree(customSystems, groupCounters, mailboxDetail),
@@ -664,33 +663,15 @@ export class MailView implements CurrentView {
 		moveMails({ mailModel: locator.mailModel, mails: mailsToMove, targetMailFolder: folder })
 	}
 
-	private createFolderAddButton(mailGroupId: Id, parentFolder: MailFolder | null, folderSystem: FolderSystem): IconButtonAttrs {
+	private createFolderAddButton(mailGroupId: Id, parentFolder: MailFolder | null): IconButtonAttrs {
 		return {
 			title: "addFolder_action",
 			click: () => {
-				return this.showCreateFolderDialog(mailGroupId, parentFolder, folderSystem)
+				return this.showFolderAddEditDialog(mailGroupId, null, parentFolder)
 			},
 			icon: Icons.Add,
 			size: ButtonSize.Compact,
 		}
-	}
-
-	private showCreateFolderDialog(mailGroupId: string, parentFolder: MailFolder | null, folderSystem: FolderSystem) {
-		const infoMsg = parentFolder ? () => getPathToFolderString(folderSystem, parentFolder) : null
-		const parentFolderId: IdTuple | null = parentFolder ? parentFolder._id : null
-		Dialog.showProcessTextInputDialog(
-			"folderNameCreate_label",
-			"folderName_label",
-			infoMsg,
-			"",
-			async (name) => {
-				if (parentFolderId) {
-					this.expandedState.add(elementIdPart(parentFolderId))
-				}
-				locator.mailFacade.createMailFolder(name, parentFolderId, mailGroupId)
-			},
-			(name) => this.checkFolderName(name, mailGroupId, parentFolderId),
-		)
 	}
 
 	private createFolderMoreButton(mailGroupId: Id, folder: MailFolder, folderSystem: FolderSystem): IconButtonAttrs {
@@ -703,30 +684,18 @@ export class MailView implements CurrentView {
 			},
 			childAttrs: () => [
 				{
-					label: "rename_action",
+						label: "edit_action",
 					icon: Icons.Edit,
 					click: () => {
-						return Dialog.showProcessTextInputDialog(
-							"folderNameRename_label",
-							"folderName_label",
-							null,
-							getFolderName(folder),
-							(newName) => {
-								const renamedFolder: MailFolder = Object.assign({}, folder, {
-									name: newName,
-								})
-								return locator.entityClient.update(renamedFolder)
-							},
-							(name) => this.checkFolderName(name, mailGroupId, folder.parentFolder),
-						)
+							this.showFolderAddEditDialog(mailGroupId, folder, folder.parentFolder ? folderSystem.getFolderById(folder.parentFolder) : null)
 					},
 				},
 				{
 					label: "addFolder_action",
 					icon: Icons.Add,
 					click: () => {
-						this.showCreateFolderDialog(mailGroupId, folder, folderSystem)
-					},
+							this.showFolderAddEditDialog(mailGroupId, null, folder)
+						}
 				},
 				{
 					label: "delete_action",
@@ -752,6 +721,7 @@ export class MailView implements CurrentView {
 		})
 	}
 
+
 	private showNewMailDialog(): Promise<Dialog> {
 		return Promise.all([this.getMailboxDetails(), import("../editor/MailEditor")])
 			.then(([mailboxDetails, { newMailEditor }]) => newMailEditor(mailboxDetails))
@@ -760,18 +730,6 @@ export class MailView implements CurrentView {
 
 	private getMailboxDetails(): Promise<MailboxDetail> {
 		return this.selectedFolder ? locator.mailModel.getMailboxDetailsForMailListId(this.selectedFolder.mails) : locator.mailModel.getUserMailboxDetails()
-	}
-
-	private checkFolderName(name: string, mailGroupId: Id, parentFolderId: IdTuple | null): Promise<TranslationKey | null> {
-		return locator.mailModel.getMailboxDetailsForMailGroup(mailGroupId).then((mailboxDetails) => {
-			if (name.trim() === "") {
-				return "folderNameNeutral_msg"
-			} else if (mailboxDetails.folders.getCustomFoldersOfParent(parentFolderId).some((f) => f.name === name)) {
-				return "folderNameInvalidExisting_msg"
-			} else {
-				return null
-			}
-		})
 	}
 
 	private finallyDeleteCustomMailFolder(folder: MailFolder): Promise<void> {
@@ -919,5 +877,10 @@ export class MailView implements CurrentView {
 					m(ActionBar, { buttons: this.actionBarButtons() }),
 			  )
 			: null
+	}
+
+	private async showFolderAddEditDialog(mailGroupId: Id, folder: MailFolder | null, parentFolder: MailFolder | null) {
+		const mailboxDetail = await locator.mailModel.getMailboxDetailsForMailGroup(mailGroupId)
+		await showEditFolderDialog(mailboxDetail, folder, parentFolder)
 	}
 }

@@ -11,7 +11,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2022-12-21T15:47:56Z",
+	"updated_at": "2023-01-02T14:38:13Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -453,6 +453,7 @@ export default {
 		"editContactForm_label": "Edit contact form",
 		"editContact_label": "Edit contact",
 		"editEntry_label": "Edit entry",
+		"editFolder_action": "Edit folder",
 		"editInboxRule_action": "Edit inbox rule",
 		"editMail_action": "Edit the selected email",
 		"editMessage_label": "Edit message",
@@ -980,6 +981,7 @@ export default {
 		"pageForward_label": "Page forward",
 		"pageTitle_label": "Page title",
 		"parentConfirmation_msg": "According to the EU General Data Protection Regulation (GDPR) children below 16 years need the confirmation of their parents to allow processing of their personal data. So please get hold of one of your parents or legal guardians and let them confirm the following:\n\n\"I am the parent or legal guardian of my child and allow it to use Tutanota which includes processing of its personal data.\"",
+		"parentFolder_label": "Parent folder",
 		"participants_label": "Participants of calendar \"{name}\"",
 		"participant_label": "Participant",
 		"passphraseGeneratorHelp_msg": "This is a secure and easy to remember passphrase generated from a large dictionary.",
