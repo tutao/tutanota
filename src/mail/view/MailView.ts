@@ -7,7 +7,7 @@ import type { ButtonAttrs } from "../../gui/base/Button.js"
 import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
 import type { NavButtonAttrs } from "../../gui/base/NavButton.js"
 import { isSelectedPrefix, NavButtonColor } from "../../gui/base/NavButton.js"
-import { createMailViewerViewModel, MailViewer } from "./MailViewer"
+import { MailViewer } from "./MailViewer"
 import { Dialog } from "../../gui/base/Dialog"
 import { FeatureType, Keys, MailFolderType, OperationType } from "../../api/common/TutanotaConstants"
 import { CurrentView, header } from "../../gui/Header.js"
@@ -808,7 +808,9 @@ export class MailView implements CurrentView {
 			if (this.mailViewerViewModel && isSameId(viewModelParams.mail._id, this.mailViewerViewModel.mail._id)) {
 				this.mailViewerViewModel.updateMail(viewModelParams)
 			} else {
-				this.mailViewerViewModel = createMailViewerViewModel(viewModelParams)
+				const mailboxDetails = await locator.mailModel.getMailboxDetailsForMail(viewModelParams.mail)
+				const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+				this.mailViewerViewModel = await locator.mailViewerViewModel(viewModelParams, mailboxDetails, mailboxProperties)
 			}
 
 			const url = `/mail/${mails[0]._id.join("/")}`

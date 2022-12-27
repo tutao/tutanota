@@ -29,7 +29,6 @@ import type { EncryptedMailAddress, File as TutanotaFile, Mail, MailboxPropertie
 import { ContactTypeRef, ConversationEntryTypeRef, File, FileTypeRef, MailboxPropertiesTypeRef, MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { FileNotFoundError } from "../../api/common/error/FileNotFoundError"
 import type { LoginController } from "../../api/main/LoginController"
-import { logins } from "../../api/main/LoginController"
 import type { MailboxDetail, MailModel } from "../model/MailModel"
 import { RecipientNotResolvedError } from "../../api/common/error/RecipientNotResolvedError"
 import stream from "mithril/stream"
@@ -44,7 +43,6 @@ import type { UserController } from "../../api/main/UserController"
 import { RecipientsNotFoundError } from "../../api/common/error/RecipientsNotFoundError"
 import { checkApprovalStatus } from "../../misc/LoginUtils"
 import { EntityClient } from "../../api/common/EntityClient"
-import { locator } from "../../api/main/MainLocator"
 import { getContactDisplayName } from "../../contacts/model/ContactUtils"
 import { getListId, isSameId, stringToCustomId } from "../../api/common/utils/EntityUtils"
 import { CustomerPropertiesTypeRef } from "../../api/entities/sys/TypeRefs.js"
@@ -59,7 +57,6 @@ import { PartialRecipient, Recipient, RecipientList, Recipients, RecipientType }
 import { RecipientsModel, ResolvableRecipient, ResolveMode } from "../../api/main/RecipientsModel"
 import { createApprovalMail } from "../../api/entities/monitor/TypeRefs"
 import { DateProvider } from "../../api/common/DateProvider.js"
-import { NoZoneDateProvider } from "../../api/common/utils/NoZoneDateProvider.js"
 import { RecipientField } from "../model/MailUtils.js"
 import { getSenderName } from "../../misc/MailboxPropertiesUtils.js"
 import { isLegacyMail, MailWrapper } from "../../api/common/MailWrapper.js"
@@ -1009,19 +1006,4 @@ export class SendMailModel {
 	setOnBeforeSendFunction(fun: () => unknown) {
 		this.onBeforeSend = fun
 	}
-}
-
-export function defaultSendMailModel(mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties): SendMailModel {
-	return new SendMailModel(
-		locator.mailFacade,
-		locator.entityClient,
-		logins,
-		locator.mailModel,
-		locator.contactModel,
-		locator.eventController,
-		mailboxDetails,
-		locator.recipientsModel,
-		new NoZoneDateProvider(),
-		mailboxProperties,
-	)
 }
