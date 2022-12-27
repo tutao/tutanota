@@ -3,15 +3,15 @@ import { bootstrapWorker } from "./WorkerClient"
 import { EventController } from "./EventController"
 import { EntropyCollector } from "./EntropyCollector"
 import { SearchModel } from "../../search/model/SearchModel"
-import { MailModel } from "../../mail/model/MailModel"
-import { assertMainOrNode, getWebRoot, isAndroidApp, isBrowser, isDesktop, isElectronClient, isIOSApp, isOfflineStorageAvailable } from "../common/Env"
+import { MailboxDetail, MailModel } from "../../mail/model/MailModel"
+import { assertMainOrNode, getWebRoot, isAndroidApp, isApp, isBrowser, isDesktop, isElectronClient, isIOSApp, isOfflineStorageAvailable } from "../common/Env"
 import { notifications } from "../../gui/Notifications"
-import { logins } from "./LoginController"
+import { LoginController, logins } from "./LoginController"
 import type { ContactModel } from "../../contacts/model/ContactModel"
 import { ContactModelImpl } from "../../contacts/model/ContactModel"
 import { EntityClient } from "../common/EntityClient"
 import type { CalendarModel } from "../../calendar/model/CalendarModel"
-import { CalendarModelImpl } from "../../calendar/model/CalendarModel"
+import { CalendarInfo, CalendarModelImpl } from "../../calendar/model/CalendarModel"
 import type { DeferredObject } from "@tutao/tutanota-utils"
 import { defer, lazyMemoized } from "@tutao/tutanota-utils"
 import { ProgressTracker } from "./ProgressTracker"
@@ -74,6 +74,13 @@ import type { OwnMailAddressNameChanger } from "../../settings/mailaddress/OwnMa
 import type { MailAddressNameChanger, MailAddressTableModel } from "../../settings/mailaddress/MailAddressTableModel.js"
 import type { AnotherUserMailAddressNameChanger } from "../../settings/mailaddress/AnotherUserMailAddressNameChanger.js"
 import type { GroupInfo } from "../entities/sys/TypeRefs.js"
+import type { SendMailModel } from "../../mail/editor/SendMailModel.js"
+import type { CalendarEvent, Mail, MailboxProperties } from "../entities/tutanota/TypeRefs.js"
+import type { CalendarEventViewModel } from "../../calendar/date/CalendarEventViewModel.js"
+import type { CreateMailViewerOptions } from "../../mail/view/MailViewer.js"
+import type { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
+import type { MailViewerViewModel } from "../../mail/view/MailViewerViewModel.js"
+import { NoZoneDateProvider } from "../common/utils/NoZoneDateProvider.js"
 
 assertMainOrNode()
 
@@ -124,7 +131,6 @@ export interface IMainLocator {
 	readonly loginListener: LoginListener
 	readonly sqlCipherFacade: SqlCipherFacade
 	readonly cacheStorage: ExposedCacheStorage
-	readonly recipientsModel: RecipientsModel
 	readonly searchTextFacade: SearchTextInAppFacade
 	readonly desktopSettingsFacade: SettingsFacade
 	readonly desktopSystemFacade: DesktopSystemFacade
@@ -134,6 +140,28 @@ export interface IMainLocator {
 	mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel>
 
 	mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userGroupInfo: GroupInfo): Promise<MailAddressTableModel>
+
+	recipientsModel(): Promise<RecipientsModel>
+
+	sendMailModel(mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties): Promise<SendMailModel>
+
+	calenderEventViewModel(
+		date: Date,
+		calendars: ReadonlyMap<Id, CalendarInfo>,
+		mailboxDetail: MailboxDetail,
+		mailboxProperties: MailboxProperties,
+		existingEvent: CalendarEvent | null,
+		previousMail: Mail | null,
+		resolveRecipientsLazily: boolean,
+	): Promise<CalendarEventViewModel>
+
+	recipientsSearchModel(): Promise<RecipientsSearchModel>
+
+	mailViewerViewModel(
+		{ mail, showFolder, delayBodyRenderingUntil }: CreateMailViewerOptions,
+		mailboxDetails: MailboxDetail,
+		mailboxProperties: MailboxProperties,
+	): Promise<MailViewerViewModel>
 
 	readonly init: () => Promise<void>
 	readonly initialized: Promise<void>
@@ -176,7 +204,6 @@ class MainLocator implements IMainLocator {
 	newsModel!: NewsModel
 	serviceExecutor!: IServiceExecutor
 	cryptoFacade!: CryptoFacade
-	recipientsModel!: RecipientsModel
 	searchTextFacade!: SearchTextInAppFacade
 	desktopSettingsFacade!: SettingsFacade
 	desktopSystemFacade!: DesktopSystemFacade
@@ -188,6 +215,105 @@ class MainLocator implements IMainLocator {
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private exposedNativeInterfaces: ExposedNativeInterface | null = null
+
+	async loginController(): Promise<LoginController> {
+		const { logins } = await import("./LoginController.js")
+		return logins
+	}
+
+	async recipientsModel(): Promise<RecipientsModel> {
+		const { RecipientsModel } = await import("./RecipientsModel.js")
+		return new RecipientsModel(this.contactModel, await this.loginController(), this.mailFacade, this.entityClient)
+	}
+
+	async noZoneDateProvider(): Promise<NoZoneDateProvider> {
+		return new NoZoneDateProvider()
+	}
+
+	async sendMailModel(mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties): Promise<SendMailModel> {
+		const factory = await this.sendMailModelSyncFactory(mailboxDetails, mailboxProperties)
+		return factory()
+	}
+
+	/** This ugly bit exists because CalendarEventViewModel wants a sync factory. */
+	private async sendMailModelSyncFactory(mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties): Promise<() => SendMailModel> {
+		const { SendMailModel } = await import("../../mail/editor/SendMailModel")
+		const logins = await this.loginController()
+		const recipientsModel = await this.recipientsModel()
+		const dateProvider = await this.noZoneDateProvider()
+		return () =>
+			new SendMailModel(
+				this.mailFacade,
+				this.entityClient,
+				logins,
+				this.mailModel,
+				this.contactModel,
+				this.eventController,
+				mailboxDetails,
+				recipientsModel,
+				dateProvider,
+				mailboxProperties,
+			)
+	}
+
+	async calenderEventViewModel(
+		date: Date,
+		calendars: ReadonlyMap<Id, CalendarInfo>,
+		mailboxDetail: MailboxDetail,
+		mailboxProperties: MailboxProperties,
+		existingEvent: CalendarEvent | null,
+		previousMail: Mail | null,
+		resolveRecipientsLazily: boolean,
+	): Promise<CalendarEventViewModel> {
+		const { CalendarEventViewModel } = await import("../../calendar/date/CalendarEventViewModel.js")
+		const { calendarUpdateDistributor } = await import("../../calendar/date/CalendarUpdateDistributor.js")
+		const sendMailModelFactory = await this.sendMailModelSyncFactory(mailboxDetail, mailboxProperties)
+		const { getTimeZone } = await import("../../calendar/date/CalendarUtils.js")
+
+		return new CalendarEventViewModel(
+			(await this.loginController()).getUserController(),
+			calendarUpdateDistributor,
+			this.calendarModel,
+			this.entityClient,
+			mailboxDetail,
+			mailboxProperties,
+			sendMailModelFactory,
+			date,
+			getTimeZone(),
+			calendars,
+			existingEvent,
+			previousMail,
+			resolveRecipientsLazily,
+		)
+	}
+
+	async recipientsSearchModel(): Promise<RecipientsSearchModel> {
+		const { RecipientsSearchModel } = await import("../../misc/RecipientsSearchModel.js")
+		return new RecipientsSearchModel(await this.recipientsModel(), this.contactModel, isApp() ? this.systemFacade : null)
+	}
+
+	async mailViewerViewModel(
+		{ mail, showFolder, delayBodyRenderingUntil }: CreateMailViewerOptions,
+		mailboxDetails: MailboxDetail,
+		mailboxProperties: MailboxProperties,
+	): Promise<MailViewerViewModel> {
+		const { MailViewerViewModel } = await import("../../mail/view/MailViewerViewModel.js")
+		return new MailViewerViewModel(
+			mail,
+			showFolder,
+			delayBodyRenderingUntil ?? Promise.resolve(),
+			this.entityClient,
+			this.mailModel,
+			this.contactModel,
+			this.configFacade,
+			isDesktop() ? locator.desktopSystemFacade : null,
+			this.fileFacade,
+			this.fileController,
+			await this.loginController(),
+			this.serviceExecutor,
+			() => this.sendMailModel(mailboxDetails, mailboxProperties),
+		)
+	}
 
 	get native(): NativeInterfaceMain {
 		return this.getNativeInterface("native")
@@ -452,7 +578,6 @@ class MainLocator implements IMainLocator {
 		this.contactModel = new ContactModelImpl(this.searchFacade, this.entityClient, logins)
 		this.minimizedMailModel = new MinimizedMailEditorViewModel()
 		this.usageTestController = new UsageTestController(this.usageTestModel)
-		this.recipientsModel = new RecipientsModel(this.contactModel, logins, this.mailFacade, this.entityClient)
 	}
 }
 

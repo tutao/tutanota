@@ -26,12 +26,12 @@ import type { GroupSharingTexts } from "../GroupGuiUtils"
 import { getTextsForGroupType } from "../GroupGuiUtils"
 import { ResolvableRecipient, ResolveMode } from "../../api/main/RecipientsModel"
 import { MailRecipientsTextField } from "../../gui/MailRecipientsTextField.js"
-import { getRecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
 
-export function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNameOverride: boolean) {
+export async function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNameOverride: boolean) {
 	const groupType = downcast(assertNotNull(groupInfo.groupType))
 	assert(isShareableGroupType(downcast(groupInfo.groupType)), `Group type "${groupType}" must be shareable`)
 	const texts = getTextsForGroupType(groupType)
+	const recipientsModel = await locator.recipientsModel()
 	showProgressDialog(
 		"loading_msg",
 		GroupSharingModel.newAsync(
@@ -42,7 +42,7 @@ export function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNameOverr
 			locator.mailFacade,
 			locator.shareFacade,
 			locator.groupManagementFacade,
-			locator.recipientsModel,
+			recipientsModel,
 		),
 	).then((model) => {
 		model.onEntityUpdate.map(m.redraw.bind(m))
@@ -152,7 +152,8 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 	const realGroupName = getSharedGroupName(model.info, false)
 	const customGroupName = getSharedGroupName(model.info, true)
 
-	const search = await getRecipientsSearchModel()
+	const search = await locator.recipientsSearchModel()
+	const recipientsModel = await locator.recipientsModel()
 
 	let dialog = Dialog.showActionDialog({
 		type: DialogType.EditMedium,
@@ -183,7 +184,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 						},
 					],
 					onRecipientAdded: (address, name, contact) =>
-						recipients.push(locator.recipientsModel.resolve({ address, name, contact }, ResolveMode.Eager).whenResolved(() => m.redraw())),
+						recipients.push(recipientsModel.resolve({ address, name, contact }, ResolveMode.Eager).whenResolved(() => m.redraw())),
 					onRecipientRemoved: (address) => findAndRemove(recipients, (recipient) => recipient.address === address),
 					onTextChanged: recipientsText,
 					search,
