@@ -2,8 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { Editor } from "../../gui/editor/Editor"
-import type { Attachment, InitAsResponseArgs } from "./SendMailModel"
-import { defaultSendMailModel, SendMailModel } from "./SendMailModel"
+import type { Attachment, InitAsResponseArgs, SendMailModel } from "./SendMailModel"
 import { Dialog } from "../../gui/base/Dialog"
 import { InfoLink, lang } from "../../misc/LanguageViewModel"
 import type { MailboxDetail } from "../model/MailModel"
@@ -67,7 +66,6 @@ import { MailRecipientsTextField } from "../../gui/MailRecipientsTextField.js"
 import { getContactDisplayName } from "../../contacts/model/ContactUtils"
 import { ResolvableRecipient } from "../../api/main/RecipientsModel"
 import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
-import { getRecipientsSearchModel, RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
 import { animateToolbar, RichTextToolbar } from "../../gui/base/RichTextToolbar.js"
 import { readLocalFiles } from "../../file/FileController"
 import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
@@ -77,6 +75,7 @@ import { ButtonSize } from "../../gui/base/ButtonSize.js"
 import { DialogInjectionRightAttrs } from "../../gui/base/DialogInjectionRight.js"
 import { KnowledgebaseDialogContentAttrs } from "../../knowledgebase/view/KnowledgeBaseDialogContent.js"
 import { MailWrapper } from "../../api/common/MailWrapper.js"
+import { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -875,7 +874,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		() => dialog,
 		templatePopupModel,
 		createKnowledgebaseButtonAttrs,
-		await getRecipientsSearchModel(),
+		await locator.recipientsSearchModel(),
 	)
 	const shortcuts: Shortcut[] = [
 		{
@@ -945,7 +944,7 @@ export async function newMailEditorAsResponse(
 	mailboxDetails?: MailboxDetail,
 ): Promise<Dialog> {
 	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
-	const model = defaultSendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
+	const model = await locator.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
 	await model.initAsResponse(args, inlineImages)
 	return createMailEditorDialog(model, blockExternalContent)
 }
@@ -958,7 +957,7 @@ export async function newMailEditorFromDraft(
 	mailboxDetails?: MailboxDetail,
 ): Promise<Dialog> {
 	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
-	const model = defaultSendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
+	const model = await locator.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
 	await model.initWithDraft(attachments, mailWrapper, inlineImages)
 	return createMailEditorDialog(model, blockExternalContent)
 }
@@ -1028,8 +1027,9 @@ export async function newMailEditorFromTemplate(
 	initialChangedState?: boolean,
 ): Promise<Dialog> {
 	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-	return defaultSendMailModel(mailboxDetails, mailboxProperties)
-		.initWithTemplate(recipients, subject, bodyText, attachments, confidential, senderMailAddress, initialChangedState)
+	return locator
+		.sendMailModel(mailboxDetails, mailboxProperties)
+		.then((model) => model.initWithTemplate(recipients, subject, bodyText, attachments, confidential, senderMailAddress, initialChangedState))
 		.then((model) => createMailEditorDialog(model))
 }
 
@@ -1119,8 +1119,9 @@ export async function writeGiftCardMail(link: string, svg: SVGElement, mailboxDe
 		.split("\n")
 		.join("<br />")
 	const subject = lang.get("defaultShareGiftCardSubject_msg")
-	defaultSendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
-		.initWithTemplate({}, subject, appendEmailSignature(bodyText, logins.getUserController().props), [], false)
+	locator
+		.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
+		.then((model) => model.initWithTemplate({}, subject, appendEmailSignature(bodyText, logins.getUserController().props), [], false))
 		.then((model) => createMailEditorDialog(model, false))
 		.then((dialog) => dialog.show())
 }

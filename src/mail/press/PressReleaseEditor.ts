@@ -6,7 +6,6 @@ import { ButtonType } from "../../gui/base/Button.js"
 import { isMailAddress } from "../../misc/FormatValidator"
 import { UserError } from "../../api/main/UserError"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
-import { defaultSendMailModel } from "../editor/SendMailModel"
 import type { MailboxDetail } from "../model/MailModel"
 import { Keys, MailMethod, TabIndex } from "../../api/common/TutanotaConstants"
 import { getDefaultSender } from "../model/MailUtils"
@@ -114,7 +113,9 @@ export function openPressReleaseEditor(mailboxDetails: MailboxDetail): void {
 			const bodyWithGreeting = `<p>${recipient.greeting},</p>${body}`
 
 			try {
-				const model = await defaultSendMailModel(mailboxDetails, mailboxProperties).initWithTemplate(
+				const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+				const sendMailModel = await locator.sendMailModel(mailboxDetails, mailboxProperties)
+				const model = await sendMailModel.initWithTemplate(
 					{
 						to: [
 							{

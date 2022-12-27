@@ -31,7 +31,7 @@ import { size } from "../../gui/size"
 import { FolderColumnView } from "../../gui/FolderColumnView.js"
 import { deviceConfig } from "../../misc/DeviceConfig"
 import { exportCalendar, showCalendarImportDialog } from "../export/CalendarImporterDialog"
-import { CalendarEventViewModel, createCalendarEventViewModel } from "../date/CalendarEventViewModel"
+import { CalendarEventViewModel } from "../date/CalendarEventViewModel"
 import { showNotAvailableForFreeDialog } from "../../misc/SubscriptionDialogs"
 import { getSharedGroupName, hasCapabilityOnGroup, loadGroupMembers } from "../../sharing/GroupUtils"
 import { showGroupSharingDialog } from "../../sharing/view/GroupSharingDialog"
@@ -782,7 +782,8 @@ export class CalendarView implements CurrentView {
 
 	async _createCalendarEventViewModel(event: CalendarEvent, calendarInfo: LazyLoaded<Map<Id, CalendarInfo>>): Promise<CalendarEventViewModel> {
 		const [mailboxDetails, calendarInfos] = await Promise.all([locator.mailModel.getUserMailboxDetails(), calendarInfo.getAsync()])
-		return createCalendarEventViewModel(getEventStart(event, getTimeZone()), calendarInfos, mailboxDetails, event, null, false)
+		const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+		return locator.calenderEventViewModel(getEventStart(event, getTimeZone()), calendarInfos, mailboxDetails, mailboxProperties, event, null, false)
 	}
 
 	async _onEventSelected(calendarEvent: CalendarEvent, domEvent: MouseOrPointerEvent, htmlSanitizerPromise: Promise<HtmlSanitizer>) {
