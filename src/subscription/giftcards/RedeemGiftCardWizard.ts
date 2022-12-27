@@ -534,7 +534,7 @@ export async function loadRedeemGiftCardWizard(hashFromUrl: string): Promise<Dia
 	]
 	return createWizardDialog(model, wizardPages, async () => {
 		const urlParams =
-			!!model.mailAddress
+			model.mailAddress
 				? {loginWith: model.mailAddress, noAutoLogin: true}
 				: {}
 		m.route.set("/login", urlParams)

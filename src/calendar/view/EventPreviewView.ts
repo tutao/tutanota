@@ -83,7 +83,7 @@ export class EventPreviewView implements Component<Attrs> {
 						),
 					])
 					: null,
-				!!event.description
+				event.description
 					? m(".flex.pb-s.items-start", [
 						this._renderSectionIndicator(Icons.AlignLeft, {
 							marginTop: "2px",

@@ -25,7 +25,7 @@ export class DesktopSettingsFacade implements SettingsFacade {
 	}
 
 	async manualUpdate(): Promise<boolean> {
-		return this.updater!!.manualUpdate()
+		return this.updater!.manualUpdate()
 	}
 
 	async enableAutoLaunch(): Promise<void> {

@@ -54,7 +54,7 @@ export class EntropyCollector {
 				this._addEntropy(window.orientation, 0, "accel")
 			}
 
-			if (!!e.accelerationIncludingGravity) {
+			if (e.accelerationIncludingGravity) {
 				this._addEntropy(e.accelerationIncludingGravity.x ^ e.accelerationIncludingGravity.y ^ e.accelerationIncludingGravity.z, 2, "accel")
 			}
 		}

@@ -38,8 +38,7 @@ export interface WizardPageAttrs<T> {
 	readonly data: T
 }
 
-export interface WizardPageN<T> extends Component<WizardPageAttrs<T>> {
-}
+export type WizardPageN<T> = Component<WizardPageAttrs<T>>
 
 export const enum WizardEventType {
 	SHOWNEXTPAGE = "showNextWizardDialogPage",

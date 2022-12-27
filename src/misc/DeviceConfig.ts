@@ -62,7 +62,7 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage {
 		}
 
 		let signupToken
-		if (!!loadedConfig._signupToken) {
+		if (loadedConfig._signupToken) {
 			signupToken = loadedConfig._signupToken
 		} else {
 			let bytes = new Uint8Array(6)

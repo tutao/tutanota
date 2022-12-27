@@ -170,7 +170,7 @@ export class MailListView implements Component {
 			// if the mail being dragged is not included in the mails that are selected, then we only drag
 			// the mail that is currently being dragged, to match the behaviour of regular in-app dragging and dropping
 			// which seemingly behaves how it does just by default
-			const draggedMails = !!selected.find(mail => haveSameId(mail, mailUnderCursor)) ? selected.slice() : [mailUnderCursor]
+			const draggedMails = selected.find(mail => haveSameId(mail, mailUnderCursor)) ? selected.slice() : [mailUnderCursor]
 
 			this._doExportDrag(draggedMails)
 		} else if (styles.isDesktopLayout()) {

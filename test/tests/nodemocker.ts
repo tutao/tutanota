@@ -25,6 +25,7 @@ function getAllPropertyNames(obj) {
 				props.push(prop);
 			}
 		}
+		// eslint-disable-next-line no-cond-assign
 	} while (obj = Object.getPrototypeOf(obj));
 
 	return props;

@@ -108,7 +108,7 @@ o.spec("UsageTestModel", function () {
 	async function assertStored(storage, result, assignment) {
 		o(result[0].testId).equals(assignment.testId)
 		const storedAssignment = await storage.getAssignments()
-		o(storedAssignment?.assignments!![0].testId).equals(assignment.testId)
+		o(storedAssignment?.assignments![0].testId).equals(assignment.testId)
 		o(await storage.getTestDeviceId()).equals(testDeviceId)
 	}
 
