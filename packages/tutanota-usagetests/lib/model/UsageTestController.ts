@@ -38,7 +38,7 @@ export class UsageTestController {
 	getTest(testIdOrName: string): UsageTest {
 		let result = this.tests.get(testIdOrName)
 
-		if (!!result) {
+		if (result) {
 			return result
 		}
 
