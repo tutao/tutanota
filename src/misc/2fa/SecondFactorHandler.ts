@@ -1,22 +1,22 @@
 import m from "mithril"
-import type {Session} from "../../api/entities/sys/TypeRefs.js"
-import {SessionTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import {Dialog} from "../../gui/base/Dialog"
-import {createSecondFactorAuthData} from "../../api/entities/sys/TypeRefs.js"
-import {OperationType, SessionState} from "../../api/common/TutanotaConstants"
-import {lang} from "../LanguageViewModel"
-import {neverNull} from "@tutao/tutanota-utils"
-import {NotFoundError} from "../../api/common/error/RestError"
-import {locator} from "../../api/main/MainLocator"
-import type {EntityUpdateData, EventController} from "../../api/main/EventController"
-import {isUpdateForTypeRef} from "../../api/main/EventController"
-import type {Challenge} from "../../api/entities/sys/TypeRefs.js"
-import {isSameId} from "../../api/common/utils/EntityUtils"
-import {assertMainOrNode} from "../../api/common/Env"
-import type {EntityClient} from "../../api/common/EntityClient"
-import {WebauthnClient} from "./webauthn/WebauthnClient"
-import {SecondFactorAuthDialog} from "./SecondFactorAuthDialog"
-import type {LoginFacade} from "../../api/worker/facades/LoginFacade"
+import type { Session } from "../../api/entities/sys/TypeRefs.js"
+import { SessionTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { Dialog } from "../../gui/base/Dialog"
+import { createSecondFactorAuthData } from "../../api/entities/sys/TypeRefs.js"
+import { OperationType, SessionState } from "../../api/common/TutanotaConstants"
+import { lang } from "../LanguageViewModel"
+import { neverNull } from "@tutao/tutanota-utils"
+import { NotFoundError } from "../../api/common/error/RestError"
+import { locator } from "../../api/main/MainLocator"
+import type { EntityUpdateData, EventController } from "../../api/main/EventController"
+import { isUpdateForTypeRef } from "../../api/main/EventController"
+import type { Challenge } from "../../api/entities/sys/TypeRefs.js"
+import { isSameId } from "../../api/common/utils/EntityUtils"
+import { assertMainOrNode } from "../../api/common/Env"
+import type { EntityClient } from "../../api/common/EntityClient"
+import { WebauthnClient } from "./webauthn/WebauthnClient"
+import { SecondFactorAuthDialog } from "./SecondFactorAuthDialog"
+import type { LoginFacade } from "../../api/worker/facades/LoginFacade"
 
 assertMainOrNode()
 
@@ -53,7 +53,7 @@ export class SecondFactorHandler {
 		}
 
 		this._otherLoginListenerInitialized = true
-		locator.eventController.addEntityListener(updates => this._entityEventsReceived(updates))
+		locator.eventController.addEntityListener((updates) => this._entityEventsReceived(updates))
 	}
 
 	async _entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {

@@ -1,6 +1,6 @@
 import o from "ospec"
-import {UserFacade} from "../../../../../src/api/worker/facades/UserFacade.js"
-import {User} from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade.js"
+import { User } from "../../../../../src/api/entities/sys/TypeRefs.js"
 
 o.spec("UserFacadeTest", function () {
 	o("a fresh UserFacade doesn't think it's logged or partially logged in", function () {

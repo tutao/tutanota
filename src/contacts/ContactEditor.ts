@@ -1,29 +1,29 @@
-import m, {Children, Component, Vnode} from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {Dialog} from "../gui/base/Dialog"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {lang} from "../misc/LanguageViewModel"
-import {isMailAddress} from "../misc/FormatValidator"
-import {formatBirthdayNumeric, formatBirthdayOfContact} from "./model/ContactUtils"
-import {ContactAddressType, ContactPhoneNumberType, ContactSocialType, GroupType, Keys} from "../api/common/TutanotaConstants"
-import type {Contact, ContactAddress, ContactMailAddress, ContactPhoneNumber, ContactSocialId} from "../api/entities/tutanota/TypeRefs.js"
+import { Dialog } from "../gui/base/Dialog"
+import type { TranslationKey } from "../misc/LanguageViewModel"
+import { lang } from "../misc/LanguageViewModel"
+import { isMailAddress } from "../misc/FormatValidator"
+import { formatBirthdayNumeric, formatBirthdayOfContact } from "./model/ContactUtils"
+import { ContactAddressType, ContactPhoneNumberType, ContactSocialType, GroupType, Keys } from "../api/common/TutanotaConstants"
+import type { Contact, ContactAddress, ContactMailAddress, ContactPhoneNumber, ContactSocialId } from "../api/entities/tutanota/TypeRefs.js"
 import {
 	createBirthday,
 	createContact,
 	createContactAddress,
 	createContactMailAddress,
 	createContactPhoneNumber,
-	createContactSocialId
+	createContactSocialId,
 } from "../api/entities/tutanota/TypeRefs.js"
-import {clone, downcast, findAndRemove, lastIndex, lastThrow, neverNull, noOp, ofClass, typedEntries} from "@tutao/tutanota-utils"
-import {assertMainOrNode} from "../api/common/Env"
-import {windowFacade} from "../misc/WindowFacade"
-import {logins} from "../api/main/LoginController"
-import {NotFoundError, PayloadTooLargeError} from "../api/common/error/RestError"
-import type {ButtonAttrs} from "../gui/base/Button.js"
-import {ButtonType} from "../gui/base/Button.js"
-import {birthdayToIsoDate} from "../api/common/utils/BirthdayUtils"
+import { clone, downcast, findAndRemove, lastIndex, lastThrow, neverNull, noOp, ofClass, typedEntries } from "@tutao/tutanota-utils"
+import { assertMainOrNode } from "../api/common/Env"
+import { windowFacade } from "../misc/WindowFacade"
+import { logins } from "../api/main/LoginController"
+import { NotFoundError, PayloadTooLargeError } from "../api/common/error/RestError"
+import type { ButtonAttrs } from "../gui/base/Button.js"
+import { ButtonType } from "../gui/base/Button.js"
+import { birthdayToIsoDate } from "../api/common/utils/BirthdayUtils"
 import {
 	ContactMailAddressTypeToLabel,
 	ContactPhoneNumberTypeToLabel,
@@ -32,16 +32,16 @@ import {
 	getContactPhoneNumberTypeLabel,
 	getContactSocialTypeLabel,
 } from "./view/ContactGuiUtils"
-import {parseBirthday} from "../misc/DateParser"
-import type {TextFieldAttrs} from "../gui/base/TextField.js"
-import {TextField, TextFieldType} from "../gui/base/TextField.js"
-import {EntityClient} from "../api/common/EntityClient"
-import {timestampToGeneratedId} from "../api/common/utils/EntityUtils"
-import type {AggregateEditorAttrs} from "./ContactAggregateEditor"
-import {ContactAggregateEditor} from "./ContactAggregateEditor"
-import {DefaultAnimationTime} from "../gui/animation/Animations"
-import {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar";
-import {ElementEntity} from "../api/common/EntityTypes"
+import { parseBirthday } from "../misc/DateParser"
+import type { TextFieldAttrs } from "../gui/base/TextField.js"
+import { TextField, TextFieldType } from "../gui/base/TextField.js"
+import { EntityClient } from "../api/common/EntityClient"
+import { timestampToGeneratedId } from "../api/common/utils/EntityUtils"
+import type { AggregateEditorAttrs } from "./ContactAggregateEditor"
+import { ContactAggregateEditor } from "./ContactAggregateEditor"
+import { DefaultAnimationTime } from "../gui/animation/Animations"
+import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
+import { ElementEntity } from "../api/common/EntityTypes"
 
 assertMainOrNode()
 
@@ -69,12 +69,7 @@ export class ContactEditor {
 	 * @param listId The list id of the new contact.
 	 * @param newContactIdReceiver. Is called receiving the contact id as soon as the new contact was saved.
 	 */
-	constructor(
-		entityClient: EntityClient,
-		contact: Contact | null,
-		listId?: Id,
-		newContactIdReceiver?: ((contactId: Id) => unknown),
-	) {
+	constructor(entityClient: EntityClient, contact: Contact | null, listId?: Id, newContactIdReceiver?: (contactId: Id) => unknown) {
 		this.entityClient = entityClient
 		this.contact = contact ? clone(contact) : createContact()
 		this._isNewContact = contact == null
@@ -86,15 +81,15 @@ export class ContactEditor {
 			this.listId = listId ? listId : neverNull(contact)._id[0]
 		}
 
-		const id = (entity: {_id: Id}) => entity._id || this._newId()
+		const id = (entity: { _id: Id }) => entity._id || this._newId()
 
-		this.mailAddresses = this.contact.mailAddresses.map(address => [address, id(address)])
+		this.mailAddresses = this.contact.mailAddresses.map((address) => [address, id(address)])
 		this.mailAddresses.push(this._newMailAddress())
-		this.phoneNumbers = this.contact.phoneNumbers.map(phoneNumber => [phoneNumber, id(phoneNumber)])
+		this.phoneNumbers = this.contact.phoneNumbers.map((phoneNumber) => [phoneNumber, id(phoneNumber)])
 		this.phoneNumbers.push(this._newPhoneNumber())
-		this.addresses = this.contact.addresses.map(address => [address, id(address)])
+		this.addresses = this.contact.addresses.map((address) => [address, id(address)])
 		this.addresses.push(this._newAddress())
-		this.socialIds = this.contact.socialIds.map(socialId => [socialId, id(socialId)])
+		this.socialIds = this.contact.socialIds.map((socialId) => [socialId, id(socialId)])
 		this.socialIds.push(this._newSocialId())
 		this.firstName = stream(this.contact.firstName)
 		this.lastName = stream(this.contact.lastName)
@@ -105,8 +100,7 @@ export class ContactEditor {
 	}
 
 	oncreate() {
-		this.windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {
-		})
+		this.windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {})
 	}
 
 	onremove() {
@@ -167,9 +161,9 @@ export class ContactEditor {
 			]),
 			presharedPasswordAttrs
 				? m(".wrapping-row", [
-					m(".passwords.mt-xl", [m(".h4", lang.get("presharedPassword_label")), m(TextField, presharedPasswordAttrs)]),
-					m(".spacer"),
-				])
+						m(".passwords.mt-xl", [m(".h4", lang.get("presharedPassword_label")), m(TextField, presharedPasswordAttrs)]),
+						m(".spacer"),
+				  ])
 				: null,
 			m(".pb"),
 		])
@@ -189,10 +183,10 @@ export class ContactEditor {
 			return
 		}
 
-		this.contact.mailAddresses = this.mailAddresses.map(e => e[0]).filter(e => e.address.trim().length > 0)
-		this.contact.phoneNumbers = this.phoneNumbers.map(e => e[0]).filter(e => e.number.trim().length > 0)
-		this.contact.addresses = this.addresses.map(e => e[0]).filter(e => e.address.trim().length > 0)
-		this.contact.socialIds = this.socialIds.map(e => e[0]).filter(e => e.socialId.trim().length > 0)
+		this.contact.mailAddresses = this.mailAddresses.map((e) => e[0]).filter((e) => e.address.trim().length > 0)
+		this.contact.phoneNumbers = this.phoneNumbers.map((e) => e[0]).filter((e) => e.number.trim().length > 0)
+		this.contact.addresses = this.addresses.map((e) => e[0]).filter((e) => e.address.trim().length > 0)
+		this.contact.socialIds = this.socialIds.map((e) => e[0]).filter((e) => e.socialId.trim().length > 0)
 		let promise
 
 		if (this.contact._id) {
@@ -203,8 +197,8 @@ export class ContactEditor {
 			this.contact.autoTransmitPassword = "" // legacy
 
 			this.contact._owner = logins.getUserController().user._id
-			this.contact._ownerGroup = neverNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Contact)).group
-			promise = this.entityClient.setup(this.listId, this.contact).then(contactId => {
+			this.contact._ownerGroup = neverNull(logins.getUserController().user.memberships.find((m) => m.groupType === GroupType.Contact)).group
+			promise = this.entityClient.setup(this.listId, this.contact).then((contactId) => {
 				if (this._newContactIdReceiver) {
 					this._newContactIdReceiver(contactId)
 				}
@@ -236,9 +230,9 @@ export class ContactEditor {
 			label: getContactAddressTypeLabel(downcast(mailAddress.type), mailAddress.customTypeName),
 			helpLabel,
 			cancelAction: () => {
-				findAndRemove(this.mailAddresses, t => t[1] === id)
+				findAndRemove(this.mailAddresses, (t) => t[1] === id)
 			},
-			onUpdate: value => {
+			onUpdate: (value) => {
 				mailAddress.address = value
 				if (mailAddress === lastThrow(this.mailAddresses)[0]) this.mailAddresses.push(this._newAddress())
 			},
@@ -246,7 +240,7 @@ export class ContactEditor {
 			allowCancel,
 			key: id,
 			typeLabels,
-			onTypeSelected: type => this._onTypeSelected(type === ContactAddressType.CUSTOM, type, mailAddress),
+			onTypeSelected: (type) => this._onTypeSelected(type === ContactAddressType.CUSTOM, type, mailAddress),
 		}
 	}
 
@@ -258,9 +252,9 @@ export class ContactEditor {
 			label: getContactPhoneNumberTypeLabel(downcast(phoneNumber.type), phoneNumber.customTypeName),
 			helpLabel: "emptyString_msg",
 			cancelAction: () => {
-				findAndRemove(this.phoneNumbers, t => t[1] === id)
+				findAndRemove(this.phoneNumbers, (t) => t[1] === id)
 			},
-			onUpdate: value => {
+			onUpdate: (value) => {
 				phoneNumber.number = value
 				if (phoneNumber === lastThrow(this.phoneNumbers)[0]) this.phoneNumbers.push(this._newPhoneNumber())
 			},
@@ -268,7 +262,7 @@ export class ContactEditor {
 			allowCancel,
 			key: id,
 			typeLabels,
-			onTypeSelected: type => this._onTypeSelected(type === ContactPhoneNumberType.CUSTOM, type, phoneNumber),
+			onTypeSelected: (type) => this._onTypeSelected(type === ContactPhoneNumberType.CUSTOM, type, phoneNumber),
 		}
 	}
 
@@ -280,9 +274,9 @@ export class ContactEditor {
 			label: getContactAddressTypeLabel(downcast(address.type), address.customTypeName),
 			helpLabel: "emptyString_msg",
 			cancelAction: () => {
-				findAndRemove(this.addresses, t => t[1] === id)
+				findAndRemove(this.addresses, (t) => t[1] === id)
 			},
-			onUpdate: value => {
+			onUpdate: (value) => {
 				address.address = value
 				if (address === lastThrow(this.addresses)[0]) this.addresses.push(this._newAddress())
 			},
@@ -290,7 +284,7 @@ export class ContactEditor {
 			allowCancel,
 			key: id,
 			typeLabels,
-			onTypeSelected: type => this._onTypeSelected(type === ContactAddressType.CUSTOM, type, address),
+			onTypeSelected: (type) => this._onTypeSelected(type === ContactAddressType.CUSTOM, type, address),
 		}
 	}
 
@@ -302,9 +296,9 @@ export class ContactEditor {
 			label: getContactSocialTypeLabel(downcast<ContactSocialType>(socialId.type), socialId.customTypeName),
 			helpLabel: "emptyString_msg",
 			cancelAction: () => {
-				findAndRemove(this.socialIds, t => t[1] === id)
+				findAndRemove(this.socialIds, (t) => t[1] === id)
 			},
-			onUpdate: value => {
+			onUpdate: (value) => {
 				socialId.socialId = value
 				if (socialId === lastThrow(this.socialIds)[0]) this.socialIds.push(this._newSocialId())
 			},
@@ -312,7 +306,7 @@ export class ContactEditor {
 			allowCancel,
 			key: id,
 			typeLabels,
-			onTypeSelected: type => this._onTypeSelected(type === ContactSocialType.CUSTOM, type, socialId),
+			onTypeSelected: (type) => this._onTypeSelected(type === ContactSocialType.CUSTOM, type, socialId),
 		}
 	}
 
@@ -320,7 +314,7 @@ export class ContactEditor {
 		return {
 			label: "comment_label",
 			value: this.contact.comment,
-			oninput: value => (this.contact.comment = value),
+			oninput: (value) => (this.contact.comment = value),
 			type: TextFieldType.Area,
 		}
 	}
@@ -329,7 +323,7 @@ export class ContactEditor {
 		return {
 			label: "firstName_placeholder",
 			value: this.firstName(),
-			oninput: value => {
+			oninput: (value) => {
 				this.firstName(value)
 				this.contact.firstName = value
 			},
@@ -340,7 +334,7 @@ export class ContactEditor {
 		return {
 			label: "nickname_placeholder",
 			value: this.contact.nickname ?? "",
-			oninput: (value) => this.contact.nickname = value,
+			oninput: (value) => (this.contact.nickname = value),
 		}
 	}
 
@@ -363,8 +357,8 @@ export class ContactEditor {
 			bday.year = "2000"
 			return this.invalidBirthday
 				? lang.get("invalidDateFormat_msg", {
-					"{1}": formatBirthdayNumeric(bday),
-				})
+						"{1}": formatBirthdayNumeric(bday),
+				  })
 				: ""
 		}
 
@@ -399,7 +393,7 @@ export class ContactEditor {
 		return {
 			label: "company_label",
 			value: this.contact.company,
-			oninput: (value) => this.contact.company = value,
+			oninput: (value) => (this.contact.company = value),
 		}
 	}
 
@@ -407,7 +401,7 @@ export class ContactEditor {
 		return {
 			label: "role_placeholder",
 			value: this.contact.role,
-			oninput: (value) => this.contact.role = value,
+			oninput: (value) => (this.contact.role = value),
 		}
 	}
 
@@ -415,7 +409,7 @@ export class ContactEditor {
 		return {
 			label: "title_placeholder",
 			value: this.contact.title || "",
-			oninput: (value) => this.contact.title = value,
+			oninput: (value) => (this.contact.title = value),
 		}
 	}
 
@@ -427,7 +421,7 @@ export class ContactEditor {
 		return {
 			label: "password_label",
 			value: this.contact.presharedPassword ?? "",
-			oninput: (value) => this.contact.presharedPassword = value,
+			oninput: (value) => (this.contact.presharedPassword = value),
 		}
 	}
 
@@ -479,19 +473,16 @@ export class ContactEditor {
 		return timestampToGeneratedId(Date.now())
 	}
 
-	_onTypeSelected<K,
+	_onTypeSelected<
+		K,
 		T extends {
 			type: K
 			customTypeName: string
-		}>(isCustom: boolean, key: K, aggregate: T): void {
+		},
+	>(isCustom: boolean, key: K, aggregate: T): void {
 		if (isCustom) {
 			setTimeout(() => {
-				Dialog.showTextInputDialog(
-					"customLabel_label",
-					"customLabel_label",
-					null,
-					aggregate.customTypeName,
-				).then(name => {
+				Dialog.showTextInputDialog("customLabel_label", "customLabel_label", null, aggregate.customTypeName).then((name) => {
 					aggregate.customTypeName = name
 					aggregate.type = key
 				})
@@ -502,7 +493,7 @@ export class ContactEditor {
 	}
 
 	_createDialog(): Dialog {
-		const name: Stream<string> = stream.merge([this.firstName, this.lastName]).map(names => names.join(" "))
+		const name: Stream<string> = stream.merge([this.firstName, this.lastName]).map((names) => names.join(" "))
 		const headerBarAttrs: DialogHeaderBarAttrs = {
 			left: [this._createCloseButtonAttrs()],
 			middle: name,
@@ -515,24 +506,24 @@ export class ContactEditor {
 			],
 		}
 		return Dialog.largeDialog(headerBarAttrs, this)
-					 .addShortcut({
-						 key: Keys.ESC,
-						 exec: () => this._close(),
-						 help: "close_alt",
-					 })
-					 .addShortcut({
-						 key: Keys.S,
-						 ctrl: true,
-						 exec: () => this.save(),
-						 help: "save_action",
-					 })
-					 .setCloseHandler(() => this._close())
+			.addShortcut({
+				key: Keys.ESC,
+				exec: () => this._close(),
+				help: "close_alt",
+			})
+			.addShortcut({
+				key: Keys.S,
+				ctrl: true,
+				exec: () => this.save(),
+				help: "save_action",
+			})
+			.setCloseHandler(() => this._close())
 	}
 }
 
 /** Renders TextField with wrapper and padding element to align them all. */
 class StandaloneField implements Component<TextFieldAttrs> {
-	view({attrs}: Vnode<TextFieldAttrs>): Children {
+	view({ attrs }: Vnode<TextFieldAttrs>): Children {
 		return m(".flex.child-grow", [m(TextField, attrs), m(".icon-button")])
 	}
 }

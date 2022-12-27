@@ -1,20 +1,20 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {CounterBadge} from "../../gui/base/CounterBadge"
-import {getNavButtonIconBackground, theme} from "../../gui/theme"
-import {lang} from "../../misc/LanguageViewModel"
-import {ButtonColor, Button, ButtonType} from "../../gui/base/Button.js"
-import type {MinimizedEditor, MinimizedMailEditorViewModel} from "../model/MinimizedMailEditorViewModel"
-import {SaveErrorReason, SaveStatus, SaveStatusEnum} from "../model/MinimizedMailEditorViewModel"
-import {px} from "../../gui/size"
-import {Icons} from "../../gui/base/icons/Icons"
-import {styles} from "../../gui/styles"
-import type {EntityEventsListener, EntityUpdateData, EventController} from "../../api/main/EventController"
-import {isUpdateForTypeRef} from "../../api/main/EventController"
-import {promptAndDeleteMails} from "./MailGuiUtils"
-import {MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {OperationType} from "../../api/common/TutanotaConstants"
-import {isSameId} from "../../api/common/utils/EntityUtils"
-import {noOp, promiseMap} from "@tutao/tutanota-utils"
+import m, { Children, Component, Vnode } from "mithril"
+import { CounterBadge } from "../../gui/base/CounterBadge"
+import { getNavButtonIconBackground, theme } from "../../gui/theme"
+import { lang } from "../../misc/LanguageViewModel"
+import { ButtonColor, Button, ButtonType } from "../../gui/base/Button.js"
+import type { MinimizedEditor, MinimizedMailEditorViewModel } from "../model/MinimizedMailEditorViewModel"
+import { SaveErrorReason, SaveStatus, SaveStatusEnum } from "../model/MinimizedMailEditorViewModel"
+import { px } from "../../gui/size"
+import { Icons } from "../../gui/base/icons/Icons"
+import { styles } from "../../gui/styles"
+import type { EntityEventsListener, EntityUpdateData, EventController } from "../../api/main/EventController"
+import { isUpdateForTypeRef } from "../../api/main/EventController"
+import { promptAndDeleteMails } from "./MailGuiUtils"
+import { MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { OperationType } from "../../api/common/TutanotaConstants"
+import { isSameId } from "../../api/common/utils/EntityUtils"
+import { noOp, promiseMap } from "@tutao/tutanota-utils"
 
 const COUNTER_POS_OFFSET = px(-8)
 export type MinimizedEditorOverlayAttrs = {
@@ -28,11 +28,11 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 	_eventController: EventController
 
 	constructor(vnode: Vnode<MinimizedEditorOverlayAttrs>) {
-		const {minimizedEditor, viewModel, eventController} = vnode.attrs
+		const { minimizedEditor, viewModel, eventController } = vnode.attrs
 		this._eventController = eventController
 
 		this._listener = (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<unknown> => {
-			return promiseMap(updates, update => {
+			return promiseMap(updates, (update) => {
 				if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.DELETE) {
 					let draft = minimizedEditor.sendMailModel.getDraft()
 
@@ -51,7 +51,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 	}
 
 	view(vnode: Vnode<MinimizedEditorOverlayAttrs>): Children {
-		const {minimizedEditor, viewModel, eventController} = vnode.attrs
+		const { minimizedEditor, viewModel, eventController } = vnode.attrs
 		const subject = minimizedEditor.sendMailModel.getSubject()
 		return m(".elevated-bg.pl.border-radius", [
 			m(CounterBadge, {
@@ -74,34 +74,31 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 						m(".small.text-ellipsis", getStatusMessage(minimizedEditor.saveStatus())),
 					],
 				),
-				m(
-					".flex.items-center.justify-right",
-					[
-						!styles.isSingleColumnLayout()
-							? m(Button, {
+				m(".flex.items-center.justify-right", [
+					!styles.isSingleColumnLayout()
+						? m(Button, {
 								label: "edit_action",
 								click: () => viewModel.reopenMinimizedEditor(minimizedEditor),
 								type: ButtonType.ActionLarge,
 								icon: () => Icons.Edit,
 								colors: ButtonColor.DrawerNav,
-							})
-							: null,
-						m(Button, {
-							label: "delete_action",
-							click: () => this._onDeleteClicked(minimizedEditor, viewModel),
-							type: ButtonType.ActionLarge,
-							icon: () => Icons.Trash,
-							colors: ButtonColor.DrawerNav,
-						}),
-						m(Button, {
-							label: "close_alt",
-							click: () => viewModel.removeMinimizedEditor(minimizedEditor),
-							type: ButtonType.ActionLarge,
-							icon: () => Icons.Cancel,
-							colors: ButtonColor.DrawerNav,
-						}),
-					],
-				),
+						  })
+						: null,
+					m(Button, {
+						label: "delete_action",
+						click: () => this._onDeleteClicked(minimizedEditor, viewModel),
+						type: ButtonType.ActionLarge,
+						icon: () => Icons.Trash,
+						colors: ButtonColor.DrawerNav,
+					}),
+					m(Button, {
+						label: "close_alt",
+						click: () => viewModel.removeMinimizedEditor(minimizedEditor),
+						type: ButtonType.ActionLarge,
+						icon: () => Icons.Cancel,
+						colors: ButtonColor.DrawerNav,
+					}),
+				]),
 			]),
 		])
 	}
@@ -110,7 +107,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 		const model = minimizedEditor.sendMailModel
 		viewModel.removeMinimizedEditor(minimizedEditor)
 		// only delete once save has finished
-		minimizedEditor.saveStatus.map(async ({status}) => {
+		minimizedEditor.saveStatus.map(async ({ status }) => {
 			if (status !== SaveStatusEnum.Saving) {
 				const draft = model.draft
 

@@ -1,5 +1,5 @@
 import stream from "mithril/stream"
-import {isOfflineError} from "../api/common/utils/ErrorCheckUtils.js"
+import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
 
 export enum LoadingState {
 	/** We have not tried to load anything, or the loading is complete */
@@ -7,7 +7,7 @@ export enum LoadingState {
 	/** We are waiting for a resource to load */
 	Loading,
 	/** We tried to load and got a `ConnectionError` */
-	ConnectionLost
+	ConnectionLost,
 }
 
 /**
@@ -15,13 +15,10 @@ export enum LoadingState {
  * Provides listeners for handling state changes
  */
 export class LoadingStateTracker {
-
 	private readonly state: stream<LoadingState>
 	private loadingStateListener: stream<void> | null = null
 
-	constructor(
-		initialState: LoadingState = LoadingState.Idle
-	) {
+	constructor(initialState: LoadingState = LoadingState.Idle) {
 		this.state = stream(initialState)
 	}
 

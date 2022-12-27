@@ -1,11 +1,11 @@
-import {convertToDataFile} from "../api/common/DataFile"
-import {createFile} from "../api/entities/tutanota/TypeRefs.js"
-import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
-import {ContactAddressType, ContactPhoneNumberType} from "../api/common/TutanotaConstants"
-import type {Contact, ContactSocialId, ContactPhoneNumber, ContactAddress, ContactMailAddress} from "../api/entities/tutanota/TypeRefs.js"
-import {assertMainOrNode} from "../api/common/Env"
-import {locator} from "../api/main/MainLocator"
-import { getSocialUrl } from './model/ContactUtils.js'
+import { convertToDataFile } from "../api/common/DataFile"
+import { createFile } from "../api/entities/tutanota/TypeRefs.js"
+import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { ContactAddressType, ContactPhoneNumberType } from "../api/common/TutanotaConstants"
+import type { Contact, ContactSocialId, ContactPhoneNumber, ContactAddress, ContactMailAddress } from "../api/entities/tutanota/TypeRefs.js"
+import { assertMainOrNode } from "../api/common/Env"
+import { locator } from "../api/main/MainLocator"
+import { getSocialUrl } from "./model/ContactUtils.js"
 
 assertMainOrNode()
 
@@ -27,7 +27,7 @@ export function exportContacts(contacts: Contact[]): Promise<void> {
  */
 export function contactsToVCard(contacts: Contact[]): string {
 	let vCardFile = ""
-	contacts.forEach(contact => {
+	contacts.forEach((contact) => {
 		vCardFile += _contactToVCard(contact)
 	})
 	return vCardFile
@@ -79,13 +79,11 @@ export function _contactToVCard(contact: Contact): string {
  * Works for mail addresses the same as for addresses
  * Returns all mail-addresses/addresses and their types in an object array
  */
-export function _addressesToVCardAddresses(
-	addresses: ContactMailAddress[] | ContactAddress[],
-): {
+export function _addressesToVCardAddresses(addresses: ContactMailAddress[] | ContactAddress[]): {
 	KIND: string
 	CONTENT: string
 }[] {
-	return addresses.map(ad => {
+	return addresses.map((ad) => {
 		let kind = ""
 
 		switch (ad.type) {
@@ -111,13 +109,11 @@ export function _addressesToVCardAddresses(
  * export for testing
  * Returns all phone numbers and their types in an object array
  */
-export function _phoneNumbersToVCardPhoneNumbers(
-	numbers: ContactPhoneNumber[],
-): {
+export function _phoneNumbersToVCardPhoneNumbers(numbers: ContactPhoneNumber[]): {
 	KIND: string
 	CONTENT: string
 }[] {
-	return numbers.map(num => {
+	return numbers.map((num) => {
 		let kind = ""
 
 		switch (num.type) {
@@ -152,13 +148,11 @@ export function _phoneNumbersToVCardPhoneNumbers(
  *  Returns all socialIds as a vCard Url in an object array
  *  Type is not defined here. URL tag has no fitting type implementation
  */
-export function _socialIdsToVCardSocialUrls(
-	socialIds: ContactSocialId[],
-): {
+export function _socialIdsToVCardSocialUrls(socialIds: ContactSocialId[]): {
 	KIND: string
 	CONTENT: string
 }[] {
-	return socialIds.map(sId => {
+	return socialIds.map((sId) => {
 		//IN VCARD 3.0 is no type for URLS
 		return {
 			KIND: "",

@@ -1,21 +1,19 @@
-import {ContactComparisonResult, IndifferentContactComparisonResult} from "../api/common/TutanotaConstants"
-import {neverNull} from "@tutao/tutanota-utils"
-import {isoDateToBirthday} from "../api/common/utils/BirthdayUtils"
-import type {Contact} from "../api/entities/tutanota/TypeRefs.js"
-import type {ContactMailAddress} from "../api/entities/tutanota/TypeRefs.js"
-import type {Birthday} from "../api/entities/tutanota/TypeRefs.js"
-import type {ContactAddress} from "../api/entities/tutanota/TypeRefs.js"
-import type {ContactPhoneNumber} from "../api/entities/tutanota/TypeRefs.js"
-import type {ContactSocialId} from "../api/entities/tutanota/TypeRefs.js"
+import { ContactComparisonResult, IndifferentContactComparisonResult } from "../api/common/TutanotaConstants"
+import { neverNull } from "@tutao/tutanota-utils"
+import { isoDateToBirthday } from "../api/common/utils/BirthdayUtils"
+import type { Contact } from "../api/entities/tutanota/TypeRefs.js"
+import type { ContactMailAddress } from "../api/entities/tutanota/TypeRefs.js"
+import type { Birthday } from "../api/entities/tutanota/TypeRefs.js"
+import type { ContactAddress } from "../api/entities/tutanota/TypeRefs.js"
+import type { ContactPhoneNumber } from "../api/entities/tutanota/TypeRefs.js"
+import type { ContactSocialId } from "../api/entities/tutanota/TypeRefs.js"
 
 /**
  * returns all contacts that are deletable because another contact exists that is exactly the same, and all contacts that look similar and therfore may be merged.
  * contacts are never returned in both "mergable" and "deletable"
  * contact similarity is checked transitively, i.e. if a similar to b and b similar to c, then a similar to c
  */
-export function getMergeableContacts(
-	inputContacts: Contact[],
-): {
+export function getMergeableContacts(inputContacts: Contact[]): {
 	mergeable: Contact[][]
 	deletable: Contact[]
 } {
@@ -201,8 +199,8 @@ export function _compareMailAddresses(
 	contact2MailAddresses: ContactMailAddress[],
 ): ContactComparisonResult | IndifferentContactComparisonResult {
 	return _compareValues(
-		contact1MailAddresses.map(m => m.address),
-		contact2MailAddresses.map(m => m.address),
+		contact1MailAddresses.map((m) => m.address),
+		contact2MailAddresses.map((m) => m.address),
 	)
 }
 
@@ -210,8 +208,8 @@ export function _compareMailAddresses(
  * Export for testing
  */
 export function _getMergedEmailAddresses(mailAddresses1: ContactMailAddress[], mailAddresses2: ContactMailAddress[]): ContactMailAddress[] {
-	let filteredMailAddresses2 = mailAddresses2.filter(ma2 => {
-		return !mailAddresses1.find(ma1 => ma1.address.toLowerCase() === ma2.address.toLowerCase())
+	let filteredMailAddresses2 = mailAddresses2.filter((ma2) => {
+		return !mailAddresses1.find((ma1) => ma1.address.toLowerCase() === ma2.address.toLowerCase())
 	})
 	return mailAddresses1.concat(filteredMailAddresses2)
 }
@@ -224,8 +222,8 @@ export function _comparePhoneNumbers(
 	contact2PhoneNumbers: ContactPhoneNumber[],
 ): ContactComparisonResult | IndifferentContactComparisonResult {
 	return _compareValues(
-		contact1PhoneNumbers.map(m => m.number),
-		contact2PhoneNumbers.map(m => m.number),
+		contact1PhoneNumbers.map((m) => m.number),
+		contact2PhoneNumbers.map((m) => m.number),
 	)
 }
 
@@ -233,8 +231,8 @@ export function _comparePhoneNumbers(
  * Export for testing
  */
 export function _getMergedPhoneNumbers(phoneNumbers1: ContactPhoneNumber[], phoneNumbers2: ContactPhoneNumber[]): ContactPhoneNumber[] {
-	let filteredNumbers2 = phoneNumbers2.filter(ma2 => {
-		const isIncludedInPhoneNumbers1 = phoneNumbers1.find(ma1 => ma1.number.replace(/\s/g, "") === ma2.number.replace(/\s/g, ""))
+	let filteredNumbers2 = phoneNumbers2.filter((ma2) => {
+		const isIncludedInPhoneNumbers1 = phoneNumbers1.find((ma1) => ma1.number.replace(/\s/g, "") === ma2.number.replace(/\s/g, ""))
 		return !isIncludedInPhoneNumbers1
 	})
 	return phoneNumbers1.concat(filteredNumbers2)
@@ -260,8 +258,8 @@ export function _areResidualContactFieldsEqual(contact1: Contact, contact2: Cont
 
 function _areSocialIdsEqual(contact1SocialIds: ContactSocialId[], contact2SocialIds: ContactSocialId[]): boolean {
 	let result = _compareValues(
-		contact1SocialIds.map(m => m.socialId),
-		contact2SocialIds.map(m => m.socialId),
+		contact1SocialIds.map((m) => m.socialId),
+		contact2SocialIds.map((m) => m.socialId),
 	)
 
 	return result === IndifferentContactComparisonResult.BothEmpty || result === ContactComparisonResult.Equal
@@ -271,16 +269,16 @@ function _areSocialIdsEqual(contact1SocialIds: ContactSocialId[], contact2Social
  * Export for testing
  */
 export function _getMergedSocialIds(socialIds1: ContactSocialId[], socialIds2: ContactSocialId[]): ContactSocialId[] {
-	let filteredSocialIds2 = socialIds2.filter(ma2 => {
-		return !socialIds1.find(ma1 => ma1.socialId === ma2.socialId)
+	let filteredSocialIds2 = socialIds2.filter((ma2) => {
+		return !socialIds1.find((ma1) => ma1.socialId === ma2.socialId)
 	})
 	return socialIds1.concat(filteredSocialIds2)
 }
 
 function _areAddressesEqual(contact1Addresses: ContactAddress[], contact2Addresses: ContactAddress[]): boolean {
 	let result = _compareValues(
-		contact1Addresses.map(m => m.address),
-		contact2Addresses.map(m => m.address),
+		contact1Addresses.map((m) => m.address),
+		contact2Addresses.map((m) => m.address),
 	)
 
 	return result === IndifferentContactComparisonResult.BothEmpty || result === ContactComparisonResult.Equal
@@ -290,8 +288,8 @@ function _areAddressesEqual(contact1Addresses: ContactAddress[], contact2Address
  * Export for testing
  */
 export function _getMergedAddresses(addresses1: ContactAddress[], addresses2: ContactAddress[]): ContactAddress[] {
-	let filteredAddresses2 = addresses2.filter(ma2 => {
-		return !addresses1.find(ma1 => ma1.address === ma2.address)
+	let filteredAddresses2 = addresses2.filter((ma2) => {
+		return !addresses1.find((ma1) => ma1.address === ma2.address)
 	})
 	return addresses1.concat(filteredAddresses2)
 }
@@ -344,13 +342,13 @@ function _compareValues(values1: string[], values2: string[]): ContactComparison
 		return IndifferentContactComparisonResult.OneEmpty
 	}
 
-	let equalAddresses = values2.filter(c2 => values1.find(c1 => c1.trim() === c2.trim()))
+	let equalAddresses = values2.filter((c2) => values1.find((c1) => c1.trim() === c2.trim()))
 
 	if (values1.length === values2.length && values1.length === equalAddresses.length) {
 		return ContactComparisonResult.Equal
 	}
 
-	let equalAddressesInsensitive = values2.filter(c2 => values1.find(c1 => c1.trim().toLowerCase() === c2.trim().toLowerCase()))
+	let equalAddressesInsensitive = values2.filter((c2) => values1.find((c1) => c1.trim().toLowerCase() === c2.trim().toLowerCase()))
 
 	if (equalAddressesInsensitive.length > 0) {
 		return ContactComparisonResult.Similar
@@ -379,11 +377,7 @@ function _isEqualOtherField(otherAttribute1: string | null, otherAttribute2: str
  * Provides the value that exists or both separated by the given separator if both have some content
  * Export for testing
  */
-export function _getMergedOtherField(
-	otherAttribute1: string | null,
-	otherAttribute2: string | null,
-	separator: string,
-): string | null {
+export function _getMergedOtherField(otherAttribute1: string | null, otherAttribute2: string | null, separator: string): string | null {
 	if (otherAttribute1 === otherAttribute2) {
 		return otherAttribute2
 	} else if (otherAttribute1 && otherAttribute2) {

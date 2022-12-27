@@ -21,7 +21,7 @@ import {
 	SessionExpiredError,
 	TooManyRequestsError,
 } from "../../../../../src/api/common/error/RestError.js"
-import {TutanotaError} from "../../../../../src/api/common/error/TutanotaError.js"
+import { TutanotaError } from "../../../../../src/api/common/error/TutanotaError.js"
 
 o.spec("RestErrorTest", function () {
 	o("handleRestError should create the correct error classes", () => {
@@ -55,9 +55,7 @@ o.spec("RestErrorTest", function () {
 	function createErrorTest(type, name, message) {
 		o(`error ${name} should have correct message and type`, () => {
 			o(new type().name).equals(name)
-			o(new type(message).message).equals(message)(
-				`expected message '${message}' for ${name} but was '${new type().message}'`,
-			)
+			o(new type(message).message).equals(message)(`expected message '${message}' for ${name} but was '${new type().message}'`)
 			o(new type() instanceof type).equals(true)
 			o(new type() instanceof TutanotaError).equals(true)
 			let thrown = false

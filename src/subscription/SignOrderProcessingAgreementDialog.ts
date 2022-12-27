@@ -1,19 +1,19 @@
 import m from "mithril"
-import {Dialog, DialogType} from "../gui/base/Dialog"
-import {lang} from "../misc/LanguageViewModel"
-import {assertMainOrNode, isApp} from "../api/common/Env"
-import {formatDate, formatNameAndAddress} from "../misc/Formatter"
-import {HtmlEditor, HtmlEditorMode} from "../gui/editor/HtmlEditor"
-import {HttpMethod} from "../api/common/EntityFunctions"
-import {createSignOrderProcessingAgreementData} from "../api/entities/sys/TypeRefs.js"
-import {getMailAddressDisplayText} from "../mail/model/MailUtils"
-import {neverNull} from "@tutao/tutanota-utils"
-import type {OrderProcessingAgreement} from "../api/entities/sys/TypeRefs.js"
-import type {GroupInfo} from "../api/entities/sys/TypeRefs.js"
-import type {Customer} from "../api/entities/sys/TypeRefs.js"
-import type {AccountingInfo} from "../api/entities/sys/TypeRefs.js"
-import {locator} from "../api/main/MainLocator"
-import {SignOrderProcessingAgreementService} from "../api/entities/sys/Services"
+import { Dialog, DialogType } from "../gui/base/Dialog"
+import { lang } from "../misc/LanguageViewModel"
+import { assertMainOrNode, isApp } from "../api/common/Env"
+import { formatDate, formatNameAndAddress } from "../misc/Formatter"
+import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
+import { HttpMethod } from "../api/common/EntityFunctions"
+import { createSignOrderProcessingAgreementData } from "../api/entities/sys/TypeRefs.js"
+import { getMailAddressDisplayText } from "../mail/model/MailUtils"
+import { neverNull } from "@tutao/tutanota-utils"
+import type { OrderProcessingAgreement } from "../api/entities/sys/TypeRefs.js"
+import type { GroupInfo } from "../api/entities/sys/TypeRefs.js"
+import type { Customer } from "../api/entities/sys/TypeRefs.js"
+import type { AccountingInfo } from "../api/entities/sys/TypeRefs.js"
+import { locator } from "../api/main/MainLocator"
+import { SignOrderProcessingAgreementService } from "../api/entities/sys/Services"
 
 assertMainOrNode()
 const PRINT_DIV_ID = "print-div"
@@ -107,9 +107,9 @@ function cleanupPrintElement() {
 	if (!printDiv || !root || !body) return
 	body.removeChild(printDiv)
 	root.className = root.className
-						 .split(" ")
-						 .filter(c => c !== "noprint")
-						 .join(" ")
+		.split(" ")
+		.filter((c) => c !== "noprint")
+		.join(" ")
 }
 
 export function showForViewing(agreement: OrderProcessingAgreement, signerUserGroupInfo: GroupInfo) {
@@ -136,10 +136,10 @@ export function showForViewing(agreement: OrderProcessingAgreement, signerUserGr
 						lang.get("signedOn_msg", {
 							"{date}": formatDate(agreement.signatureDate),
 						}) +
-						" " +
-						lang.get("by_label") +
-						" " +
-						getMailAddressDisplayText(signerUserGroupInfo.name, neverNull(signerUserGroupInfo.mailAddress), false),
+							" " +
+							lang.get("by_label") +
+							" " +
+							getMailAddressDisplayText(signerUserGroupInfo.name, neverNull(signerUserGroupInfo.mailAddress), false),
 					),
 					m("hr"),
 					m.trust(text.appendix),

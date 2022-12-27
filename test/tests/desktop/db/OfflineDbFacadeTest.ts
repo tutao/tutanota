@@ -1,9 +1,9 @@
 import o from "ospec"
-import {object, when} from "testdouble"
-import {verify} from "@tutao/tutanota-test-utils"
-import {OfflineDbFactory, OfflineDbManager} from "../../../../src/desktop/db/PerWindowSqlCipherFacade.js"
-import {DesktopSqlCipher} from "../../../../src/desktop/DesktopSqlCipher.js"
-import {delay} from "@tutao/tutanota-utils"
+import { object, when } from "testdouble"
+import { verify } from "@tutao/tutanota-test-utils"
+import { OfflineDbFactory, OfflineDbManager } from "../../../../src/desktop/db/PerWindowSqlCipherFacade.js"
+import { DesktopSqlCipher } from "../../../../src/desktop/DesktopSqlCipher.js"
+import { delay } from "@tutao/tutanota-utils"
 
 o.spec("OfflineDbFacade", function () {
 	let factory: OfflineDbFactory
@@ -29,7 +29,7 @@ o.spec("OfflineDbFacade", function () {
 		await offlineDbManager.getOrCreateDb(userId, databaseKey)
 		await offlineDbManager.getOrCreateDb(userId, databaseKey)
 
-		verify(factory.create(userId, databaseKey), {times: 1})
+		verify(factory.create(userId, databaseKey), { times: 1 })
 	})
 
 	o("when closing database which was opened once, it is closed", async function () {
@@ -44,7 +44,7 @@ o.spec("OfflineDbFacade", function () {
 		await offlineDbManager.getOrCreateDb(userId, databaseKey)
 		await offlineDbManager.disposeDb(userId)
 
-		verify(db.closeDb(), {times: 0})
+		verify(db.closeDb(), { times: 0 })
 	})
 
 	o("when closing database twice which was opened twice, it is closed", async function () {
@@ -53,7 +53,7 @@ o.spec("OfflineDbFacade", function () {
 		await offlineDbManager.disposeDb(userId)
 		await offlineDbManager.disposeDb(userId)
 
-		verify(db.closeDb(), {times: 1})
+		verify(db.closeDb(), { times: 1 })
 	})
 
 	o("when reopening database, it is created", async function () {
@@ -61,7 +61,7 @@ o.spec("OfflineDbFacade", function () {
 		await offlineDbManager.disposeDb(userId)
 		await offlineDbManager.getOrCreateDb(userId, databaseKey)
 
-		verify(factory.create(userId, databaseKey), {times: 2})
+		verify(factory.create(userId, databaseKey), { times: 2 })
 	})
 
 	o("ranges database is locked when writing/reading to/from it", async function () {

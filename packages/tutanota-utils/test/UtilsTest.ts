@@ -1,5 +1,5 @@
 import o from "ospec"
-import {clone, deepEqual, getChangedProps} from "../lib/Utils.js"
+import { clone, deepEqual, getChangedProps } from "../lib/Utils.js"
 
 o.spec("utils", function () {
 	o("deep clone an instance", function () {
@@ -26,111 +26,111 @@ o.spec("utils", function () {
 	})
 	o("getChangedProps", function () {
 		o(
-				getChangedProps(
-						{
-							a: 1,
-							b: 2,
-						},
-						{
-							a: 1,
-							b: 1,
-							d: 4,
-						},
-				),
+			getChangedProps(
+				{
+					a: 1,
+					b: 2,
+				},
+				{
+					a: 1,
+					b: 1,
+					d: 4,
+				},
+			),
 		).deepEquals(["b"])
 		o(
-				getChangedProps(
-						{
-							a: 1,
-							b: [1, 2, 3],
-						},
-						{},
-				),
+			getChangedProps(
+				{
+					a: 1,
+					b: [1, 2, 3],
+				},
+				{},
+			),
 		).deepEquals([])
 		o(
-				getChangedProps(
-						{},
-						{
-							a: 1,
-							b: [1, 2, 3],
-						},
-				),
+			getChangedProps(
+				{},
+				{
+					a: 1,
+					b: [1, 2, 3],
+				},
+			),
 		).deepEquals([])
 		o(
-				getChangedProps(
-						{
-							a: 1,
-							b: [1, 2, 3],
-						},
-						{
-							a: 1,
-							b: [1, 2, 3],
-						},
-				),
+			getChangedProps(
+				{
+					a: 1,
+					b: [1, 2, 3],
+				},
+				{
+					a: 1,
+					b: [1, 2, 3],
+				},
+			),
 		).deepEquals([])
 		o(
-				getChangedProps(
-						{
-							a: 1,
-							b: [1, 2, 3],
-						},
-						{
-							a: 1,
-							b: [2, 1, 3],
-						},
-				),
+			getChangedProps(
+				{
+					a: 1,
+					b: [1, 2, 3],
+				},
+				{
+					a: 1,
+					b: [2, 1, 3],
+				},
+			),
 		).deepEquals(["b"])
 		o(
-				getChangedProps(
-						{
-							a: undefined,
-							b: null,
-						},
-						{
-							a: {
-								a: "hello",
-							},
-							b: [1, 2, 3],
-						},
-				),
+			getChangedProps(
+				{
+					a: undefined,
+					b: null,
+				},
+				{
+					a: {
+						a: "hello",
+					},
+					b: [1, 2, 3],
+				},
+			),
 		).deepEquals(["a", "b"])
 		o(
-				getChangedProps(
-						{
-							a: undefined,
-							b: null,
-						},
-						{
-							a: null,
-							b: undefined,
-						},
-				),
+			getChangedProps(
+				{
+					a: undefined,
+					b: null,
+				},
+				{
+					a: null,
+					b: undefined,
+				},
+			),
 		).deepEquals([])
 		o(
-				getChangedProps(
-						{
-							a: {},
-							b: [1, 2, 3],
-						},
-						{
-							a: {
-								a: "hello",
-							},
-							b: [1, 2, 3],
-						},
-				),
+			getChangedProps(
+				{
+					a: {},
+					b: [1, 2, 3],
+				},
+				{
+					a: {
+						a: "hello",
+					},
+					b: [1, 2, 3],
+				},
+			),
 		).deepEquals(["a"])
 		o(
-				getChangedProps(
-						{
-							a: "world",
-							b: [],
-						},
-						{
-							a: "hello",
-							b: [1, 2, 3],
-						},
-				),
+			getChangedProps(
+				{
+					a: "world",
+					b: [],
+				},
+				{
+					a: "hello",
+					b: [1, 2, 3],
+				},
+			),
 		).deepEquals(["a", "b"])
 		o(getChangedProps(undefined, null)).deepEquals([])
 		o(getChangedProps(null, undefined)).deepEquals([])

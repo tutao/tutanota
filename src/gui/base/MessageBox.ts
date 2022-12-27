@@ -1,6 +1,6 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {theme} from "../theme"
-import {assertMainOrNode} from "../../api/common/Env"
+import m, { Children, Component, Vnode } from "mithril"
+import { theme } from "../theme"
+import { assertMainOrNode } from "../../api/common/Env"
 
 assertMainOrNode()
 export type MessageBoxAttrs = {
@@ -11,7 +11,7 @@ export type MessageBoxAttrs = {
  * A message box displaying a text. A message box can be displayed on the background of a column if the column is empty.
  */
 export class MessageBox implements Component<MessageBoxAttrs> {
-	view({attrs, children}: Vnode<MessageBoxAttrs>): Children {
+	view({ attrs, children }: Vnode<MessageBoxAttrs>): Children {
 		return m(
 			".justify-center.items-start.dialog-width-s.pt.pb.plr.border-radius",
 			{

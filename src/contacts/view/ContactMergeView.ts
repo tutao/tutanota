@@ -1,20 +1,20 @@
-import m, {ChildArray, Children} from "mithril"
-import {Dialog} from "../../gui/base/Dialog"
-import {windowFacade} from "../../misc/WindowFacade"
-import {Icons} from "../../gui/base/icons/Icons"
-import {ContactAddressType, ContactMergeAction, getContactSocialType, Keys} from "../../api/common/TutanotaConstants"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
-import {lang} from "../../misc/LanguageViewModel"
-import {formatBirthdayOfContact} from "../model/ContactUtils"
-import {defer, DeferredObject, delay, downcast, Thunk} from "@tutao/tutanota-utils"
-import {HtmlEditor, HtmlEditorMode} from "../../gui/editor/HtmlEditor"
-import {Button, ButtonType} from "../../gui/base/Button.js"
-import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
-import {getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel} from "./ContactGuiUtils"
-import {TextField} from "../../gui/base/TextField.js"
-import {TextDisplayArea} from "../../gui/base/TextDisplayArea"
-import {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar";
-import {IconButton} from "../../gui/base/IconButton.js"
+import m, { ChildArray, Children } from "mithril"
+import { Dialog } from "../../gui/base/Dialog"
+import { windowFacade } from "../../misc/WindowFacade"
+import { Icons } from "../../gui/base/icons/Icons"
+import { ContactAddressType, ContactMergeAction, getContactSocialType, Keys } from "../../api/common/TutanotaConstants"
+import type { TranslationKey } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
+import { formatBirthdayOfContact } from "../model/ContactUtils"
+import { defer, DeferredObject, delay, downcast, Thunk } from "@tutao/tutanota-utils"
+import { HtmlEditor, HtmlEditorMode } from "../../gui/editor/HtmlEditor"
+import { Button, ButtonType } from "../../gui/base/Button.js"
+import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
+import { getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel } from "./ContactGuiUtils"
+import { TextField } from "../../gui/base/TextField.js"
+import { TextDisplayArea } from "../../gui/base/TextDisplayArea"
+import { DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar"
+import { IconButton } from "../../gui/base/IconButton.js"
 
 export class ContactMergeView {
 	dialog: Dialog
@@ -50,31 +50,21 @@ export class ContactMergeView {
 			middle: () => lang.get("merge_action"),
 		}
 		this.dialog = Dialog.largeDialog(headerBarAttrs as DialogHeaderBarAttrs, this)
-							.setCloseHandler(cancelAction)
-							.addShortcut({
-								key: Keys.ESC,
-								exec: () => {
-									this._close(ContactMergeAction.Cancel)
-									return false
-								},
-								help: "close_alt",
-							})
+			.setCloseHandler(cancelAction)
+			.addShortcut({
+				key: Keys.ESC,
+				exec: () => {
+					this._close(ContactMergeAction.Cancel)
+					return false
+				},
+				help: "close_alt",
+			})
 	}
 
 	view(): Children {
-		const {
-			mailAddresses: mailAddresses1,
-			phones: phones1,
-			addresses: addresses1,
-			socials: socials1
-		} = this._createContactFields(this.contact1)
+		const { mailAddresses: mailAddresses1, phones: phones1, addresses: addresses1, socials: socials1 } = this._createContactFields(this.contact1)
 
-		const {
-			mailAddresses: mailAddresses2,
-			phones: phones2,
-			addresses: addresses2,
-			socials: socials2
-		} = this._createContactFields(this.contact2)
+		const { mailAddresses: mailAddresses2, phones: phones2, addresses: addresses2, socials: socials2 } = this._createContactFields(this.contact2)
 
 		//empty.. placeholders are used if one contact has an attribute while the other does not have it, so an empty one is shown for comparison
 		let emptyFieldPlaceholder = m(TextField, {
@@ -83,12 +73,7 @@ export class ContactMergeView {
 			disabled: true,
 		})
 		let emptyHTMLFieldPlaceholder = m(
-			new HtmlEditor("emptyString_msg")
-				.showBorders()
-				.setValue("")
-				.setEnabled(false)
-				.setMode(HtmlEditorMode.HTML)
-				.setHtmlMonospace(false),
+			new HtmlEditor("emptyString_msg").showBorders().setValue("").setEnabled(false).setMode(HtmlEditorMode.HTML).setHtmlMonospace(false),
 		)
 
 		let titleFields = this._createTextFields(this.contact1.title, this.contact2.title, "title_placeholder")
@@ -128,8 +113,7 @@ export class ContactMergeView {
 		return m(
 			"#contact-editor",
 			{
-				oncreate: () => (this.windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {
-				})),
+				oncreate: () => (this.windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {})),
 				onremove: () => this.windowCloseUnsubscribe?.(),
 			},
 			[
@@ -177,33 +161,39 @@ export class ContactMergeView {
 				roleFields ? m(".non-wrapping-row", roleFields) : null,
 				mailAddresses1.length > 0 || mailAddresses2.length > 0
 					? m(".non-wrapping-row", [
-						m(".mail.mt-l", [m("", lang.get("email_label")), mailAddresses1.length > 0 ? mailAddresses1 : emptyFieldPlaceholder]),
-						m(".mail.mt-l", [m("", lang.get("email_label")), mailAddresses2.length > 0 ? mailAddresses2 : emptyFieldPlaceholder]),
-					])
+							m(".mail.mt-l", [m("", lang.get("email_label")), mailAddresses1.length > 0 ? mailAddresses1 : emptyFieldPlaceholder]),
+							m(".mail.mt-l", [m("", lang.get("email_label")), mailAddresses2.length > 0 ? mailAddresses2 : emptyFieldPlaceholder]),
+					  ])
 					: null,
 				phones1.length > 0 || phones2.length > 0
 					? m(".non-wrapping-row", [
-						m(".phone.mt-l", [m("", lang.get("phone_label")), m(".aggregateEditors", [phones1.length > 0 ? phones1 : emptyFieldPlaceholder])]),
-						m(".phone.mt-l", [m("", lang.get("phone_label")), m(".aggregateEditors", [phones2.length > 0 ? phones2 : emptyFieldPlaceholder])]),
-					])
+							m(".phone.mt-l", [m("", lang.get("phone_label")), m(".aggregateEditors", [phones1.length > 0 ? phones1 : emptyFieldPlaceholder])]),
+							m(".phone.mt-l", [m("", lang.get("phone_label")), m(".aggregateEditors", [phones2.length > 0 ? phones2 : emptyFieldPlaceholder])]),
+					  ])
 					: null,
 				addresses1.length > 0 || addresses2.length > 0
 					? m(".non-wrapping-row", [
-						m(".address.mt-l.flex.flex-column", [
-							m("", lang.get("address_label")),
-							m(".aggregateEditors.flex.flex-column.flex-grow", [addresses1.length > 0 ? addresses1 : emptyHTMLFieldPlaceholder]),
-						]),
-						m(".address.mt-l", [
-							m("", lang.get("address_label")),
-							m(".aggregateEditors.flex.flex-column.flex-grow", [addresses2.length > 0 ? addresses2 : emptyHTMLFieldPlaceholder]),
-						]),
-					])
+							m(".address.mt-l.flex.flex-column", [
+								m("", lang.get("address_label")),
+								m(".aggregateEditors.flex.flex-column.flex-grow", [addresses1.length > 0 ? addresses1 : emptyHTMLFieldPlaceholder]),
+							]),
+							m(".address.mt-l", [
+								m("", lang.get("address_label")),
+								m(".aggregateEditors.flex.flex-column.flex-grow", [addresses2.length > 0 ? addresses2 : emptyHTMLFieldPlaceholder]),
+							]),
+					  ])
 					: null,
 				socials1.length > 0 || socials2.length > 0
 					? m(".non-wrapping-row", [
-						m(".social.mt-l", [m("", lang.get("social_label")), m(".aggregateEditors", socials1.length > 0 ? socials1 : emptyFieldPlaceholder)]),
-						m(".social.mt-l", [m("", lang.get("social_label")), m(".aggregateEditors", socials2.length > 0 ? socials2 : emptyFieldPlaceholder)]),
-					])
+							m(".social.mt-l", [
+								m("", lang.get("social_label")),
+								m(".aggregateEditors", socials1.length > 0 ? socials1 : emptyFieldPlaceholder),
+							]),
+							m(".social.mt-l", [
+								m("", lang.get("social_label")),
+								m(".aggregateEditors", socials2.length > 0 ? socials2 : emptyFieldPlaceholder),
+							]),
+					  ])
 					: null,
 				commentField1 && commentField2
 					? m(".non-wrapping-row", [m(".mt-l.flex.flex-column", [commentField1]), m(".mt-l.flex.flex-column", [commentField2])])
@@ -222,36 +212,34 @@ export class ContactMergeView {
 		)
 	}
 
-	_createContactFields(
-		contact: Contact,
-	): {
+	_createContactFields(contact: Contact): {
 		mailAddresses: ChildArray
 		phones: ChildArray
 		addresses: ChildArray
 		socials: ChildArray
 	} {
-		const mailAddresses = contact.mailAddresses.map(element => {
+		const mailAddresses = contact.mailAddresses.map((element) => {
 			return m(TextField, {
 				label: () => getContactAddressTypeLabel(element.type as any, element.customTypeName),
 				value: element.address,
 				disabled: true,
 			})
 		})
-		const phones = contact.phoneNumbers.map(element => {
+		const phones = contact.phoneNumbers.map((element) => {
 			return m(TextField, {
 				label: () => getContactPhoneNumberTypeLabel(element.type as any, element.customTypeName),
 				value: element.number,
 				disabled: true,
 			})
 		})
-		const addresses = contact.addresses.map(element => {
+		const addresses = contact.addresses.map((element) => {
 			// Manually implement text area to make it stretch vertically. TextField is unable to do that.
 			return m(TextDisplayArea, {
 				value: element.address,
 				label: () => getContactAddressTypeLabel(downcast<ContactAddressType>(element.type), element.customTypeName),
 			})
 		})
-		const socials = contact.socialIds.map(element => {
+		const socials = contact.socialIds.map((element) => {
 			return m(TextField, {
 				label: () => getContactSocialTypeLabel(getContactSocialType(element), element.customTypeName),
 				value: element.socialId,
@@ -289,7 +277,7 @@ export class ContactMergeView {
 		return m(IconButton, {
 			title: "delete_action",
 			click: () => {
-				Dialog.confirm("deleteContact_msg").then(confirmed => {
+				Dialog.confirm("deleteContact_msg").then((confirmed) => {
 					if (confirmed) {
 						this._close(action)
 					}

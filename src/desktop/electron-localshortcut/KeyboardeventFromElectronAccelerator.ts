@@ -1,7 +1,8 @@
 // @ts-nocheck
 
 const modifiers = /^(CommandOrControl|CmdOrCtrl|Command|Cmd|Control|Ctrl|AltGr|Option|Alt|Shift|Super)/i
-const keyCodes = /^(Plus|Space|Tab|Backspace|Delete|Insert|Return|Enter|Up|Down|Left|Right|Home|End|PageUp|PageDown|Escape|Esc|VolumeUp|VolumeDown|VolumeMute|MediaNextTrack|MediaPreviousTrack|MediaStop|MediaPlayPause|PrintScreen|F24|F23|F22|F21|F20|F19|F18|F17|F16|F15|F14|F13|F12|F11|F10|F9|F8|F7|F6|F5|F4|F3|F2|F1|[0-9A-Z)!@#$%^&*(:+<_>?~{|}";=,\-./`[\\\]'])/i
+const keyCodes =
+	/^(Plus|Space|Tab|Backspace|Delete|Insert|Return|Enter|Up|Down|Left|Right|Home|End|PageUp|PageDown|Escape|Esc|VolumeUp|VolumeDown|VolumeMute|MediaNextTrack|MediaPreviousTrack|MediaStop|MediaPlayPause|PrintScreen|F24|F23|F22|F21|F20|F19|F18|F17|F16|F15|F14|F13|F12|F11|F10|F9|F8|F7|F6|F5|F4|F3|F2|F1|[0-9A-Z)!@#$%^&*(:+<_>?~{|}";=,\-./`[\\\]'])/i
 export type Event = {
 	key?: string
 	code?: string
@@ -116,7 +117,7 @@ function _control(accelerator, event, modifier): ReducedEvent {
 	}
 }
 
-export function reduceModifier({accelerator, event}: ReducedEvent, modifier: Modifier): ReducedEvent {
+export function reduceModifier({ accelerator, event }: ReducedEvent, modifier: Modifier): ReducedEvent {
 	switch (modifier.toLowerCase()) {
 		case "command":
 		case "cmd": {
@@ -152,7 +153,7 @@ export function reduceModifier({accelerator, event}: ReducedEvent, modifier: Mod
 	}
 }
 
-export function reducePlus({accelerator, event}: ReducedEvent): ReducedEvent {
+export function reducePlus({ accelerator, event }: ReducedEvent): ReducedEvent {
 	return {
 		event,
 		accelerator: accelerator.trim().slice(1),
@@ -210,7 +211,7 @@ const virtualKeyCodes = {
 	" ": "Space",
 }
 
-export function reduceKey({accelerator, event}: ReducedEvent, key: string): ReducedEvent {
+export function reduceKey({ accelerator, event }: ReducedEvent, key: string): ReducedEvent {
 	if (key.length > 1 || event.key) {
 		throw new Error(`Unvalid keycode \`${key}\`.`)
 	}
@@ -225,8 +226,8 @@ export function reduceKey({accelerator, event}: ReducedEvent, key: string): Redu
 			},
 			code
 				? {
-					code,
-				}
+						code,
+				  }
 				: null,
 		),
 		accelerator: accelerator.trim().slice(key.length),
@@ -268,7 +269,7 @@ for (let i = 1; i <= 24; i++) {
 }
 
 export function reduceCode(
-	{accelerator, event}: ReducedEvent,
+	{ accelerator, event }: ReducedEvent,
 	{
 		code,
 		key,
@@ -290,8 +291,8 @@ export function reduceCode(
 			},
 			code
 				? {
-					code,
-				}
+						code,
+				  }
 				: null,
 		),
 		accelerator: accelerator.trim().slice((key && key.length) || 0),

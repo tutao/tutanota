@@ -1,6 +1,6 @@
 import o from "ospec"
 import "./ParserTest.js"
 
-(async function () {
+;(async function () {
 	await o.run()
 })()

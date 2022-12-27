@@ -2,9 +2,9 @@
  * This is a wrapper for commonly used crypto functions, easier to inject/swap implementations and test.
  */
 import crypto from "crypto"
-import {InstanceMapper} from "../api/worker/crypto/InstanceMapper"
-import type {TypeModel} from "../api/common/EntityTypes"
-import type {Base64} from "@tutao/tutanota-utils"
+import { InstanceMapper } from "../api/worker/crypto/InstanceMapper"
+import type { TypeModel } from "../api/common/EntityTypes"
+import type { Base64 } from "@tutao/tutanota-utils"
 import {
 	aes128Decrypt,
 	aes128Encrypt,
@@ -14,7 +14,7 @@ import {
 	base64ToKey,
 	decrypt256Key,
 	random,
-	uint8ArrayToKey
+	uint8ArrayToKey,
 } from "@tutao/tutanota-crypto"
 
 // the prng throws if it doesn't have enough entropy

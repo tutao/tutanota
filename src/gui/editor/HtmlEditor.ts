@@ -1,13 +1,13 @@
-import m, {Children, Component} from "mithril"
+import m, { Children, Component } from "mithril"
 import stream from "mithril/stream"
-import {Editor} from "./Editor.js"
-import type {TranslationKey, TranslationText} from "../../misc/LanguageViewModel"
-import {lang} from "../../misc/LanguageViewModel"
-import {px} from "../size"
-import {htmlSanitizer} from "../../misc/HtmlSanitizer"
-import {assertNotNull} from "@tutao/tutanota-utils"
-import {DropDownSelector} from "../base/DropDownSelector.js"
-import {RichTextToolbar, RichTextToolbarAttrs} from "../base/RichTextToolbar.js"
+import { Editor } from "./Editor.js"
+import type { TranslationKey, TranslationText } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
+import { px } from "../size"
+import { htmlSanitizer } from "../../misc/HtmlSanitizer"
+import { assertNotNull } from "@tutao/tutanota-utils"
+import { DropDownSelector } from "../base/DropDownSelector.js"
+import { RichTextToolbar, RichTextToolbarAttrs } from "../base/RichTextToolbar.js"
 
 export enum HtmlEditorMode {
 	HTML = "html",
@@ -29,106 +29,101 @@ export class HtmlEditor implements Component {
 	private toolbarEnabled = false
 	private toolbarAttrs: Omit<RichTextToolbarAttrs, "editor"> = {}
 
-	constructor(
-		private label?: TranslationText,
-		private readonly injections?: () => Children
-	) {
-		this.editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, {blockExternalContent: false}).fragment)
+	constructor(private label?: TranslationText, private readonly injections?: () => Children) {
+		this.editor = new Editor(null, (html) => htmlSanitizer.sanitizeFragment(html, { blockExternalContent: false }).fragment)
 		this.view = this.view.bind(this)
 		this.initializeEditorListeners()
 	}
 
 	view(): Children {
-
 		const modeSwitcherLabel = this.modeSwitcherLabel
 		let borderClasses = this._showBorders
-			? (this.active && this.editor.isEnabled())
+			? this.active && this.editor.isEnabled()
 				? ".editor-border-active"
 				: ".editor-border" + (modeSwitcherLabel != null ? ".editor-no-top-border" : "")
 			: ""
 
 		const renderedInjections = this.injections?.() ?? null
 
-		const getPlaceholder = () => !this.active && this.isEmpty()
-			? m(".abs.text-ellipsis.noselect.z1.i.pr-s", {
-					oncreate: vnode => this.placeholderDomElement = vnode.dom as HTMLElement,
-					onclick: () => this.mode === HtmlEditorMode.WYSIWYG
-						? assertNotNull(this.editor.domElement).focus()
-						: assertNotNull(this.domTextArea).focus()
-				},
-				this.placeholderId ? lang.get(this.placeholderId) : ""
-			)
-			: null
+		const getPlaceholder = () =>
+			!this.active && this.isEmpty()
+				? m(
+						".abs.text-ellipsis.noselect.z1.i.pr-s",
+						{
+							oncreate: (vnode) => (this.placeholderDomElement = vnode.dom as HTMLElement),
+							onclick: () =>
+								this.mode === HtmlEditorMode.WYSIWYG ? assertNotNull(this.editor.domElement).focus() : assertNotNull(this.domTextArea).focus(),
+						},
+						this.placeholderId ? lang.get(this.placeholderId) : "",
+				  )
+				: null
 
 		return m(".html-editor" + (this.mode === HtmlEditorMode.WYSIWYG ? ".text-break" : ""), [
-			modeSwitcherLabel != null ? m(DropDownSelector, {
-					label: () => lang.getMaybeLazy(modeSwitcherLabel),
-					items: [
-						{name: lang.get("richText_label"), value: HtmlEditorMode.WYSIWYG},
-						{name: lang.get("htmlSourceCode_label"), value: HtmlEditorMode.HTML}
-					],
-					selectedValue: this.mode,
-					selectionChangedHandler: (mode: HtmlEditorMode) => {
-						this.mode = mode
-						this.setValue(this.value())
-						this.initializeEditorListeners()
-					}
-				}
-			) : null,
-			(this.label)
-				? m(".small.mt-form", lang.getMaybeLazy(this.label))
+			modeSwitcherLabel != null
+				? m(DropDownSelector, {
+						label: () => lang.getMaybeLazy(modeSwitcherLabel),
+						items: [
+							{ name: lang.get("richText_label"), value: HtmlEditorMode.WYSIWYG },
+							{ name: lang.get("htmlSourceCode_label"), value: HtmlEditorMode.HTML },
+						],
+						selectedValue: this.mode,
+						selectionChangedHandler: (mode: HtmlEditorMode) => {
+							this.mode = mode
+							this.setValue(this.value())
+							this.initializeEditorListeners()
+						},
+				  })
 				: null,
+			this.label ? m(".small.mt-form", lang.getMaybeLazy(this.label)) : null,
 			m(borderClasses, [
 				getPlaceholder(),
 				this.mode === HtmlEditorMode.WYSIWYG
 					? m(".wysiwyg.rel.overflow-hidden.selectable", [
-						this.editor.isEnabled() && (this.toolbarEnabled || renderedInjections)
-							? [
-								m(".flex-end.sticky.pb-2", [
-									this.toolbarEnabled
-										? m(RichTextToolbar, Object.assign({editor: this.editor}, this.toolbarAttrs))
-										: null,
-									renderedInjections,
-								]),
-								m("hr.hr.mb-s")
-							]
-							: null,
-						m(this.editor,
-							{
+							this.editor.isEnabled() && (this.toolbarEnabled || renderedInjections)
+								? [
+										m(".flex-end.sticky.pb-2", [
+											this.toolbarEnabled ? m(RichTextToolbar, Object.assign({ editor: this.editor }, this.toolbarAttrs)) : null,
+											renderedInjections,
+										]),
+										m("hr.hr.mb-s"),
+								  ]
+								: null,
+							m(this.editor, {
 								oncreate: () => {
 									this.editor.initialized.promise.then(() => this.editor.setHTML(this.value()))
 								},
 								onremove: () => {
 									this.value(this.getValue())
-								}
-							}
-						)
-					])
-					: m(".html", m("textarea.input-area.selectable", {
-						oncreate: vnode => {
-							this.domTextArea = vnode.dom as HTMLTextAreaElement
-							if (!this.isEmpty()) {
-								this.domTextArea.value = this.value()
-							}
-						},
-						onfocus: () => this.focus(),
-						onblur: () => this.blur(),
-						oninput: () => {
-							if (this.domTextArea) {
-								this.domTextArea.style.height = '0px'
-								this.domTextArea.style.height = (this.domTextArea.scrollHeight) + 'px'
-							}
-						},
-						style: {
-							'font-family': this.htmlMonospace ? 'monospace' : 'inherit',
-							"min-height": this.minHeight ? px(this.minHeight) : 'initial'
-						},
-						disabled: !this.editor.enabled
-					})),
-			])
+								},
+							}),
+					  ])
+					: m(
+							".html",
+							m("textarea.input-area.selectable", {
+								oncreate: (vnode) => {
+									this.domTextArea = vnode.dom as HTMLTextAreaElement
+									if (!this.isEmpty()) {
+										this.domTextArea.value = this.value()
+									}
+								},
+								onfocus: () => this.focus(),
+								onblur: () => this.blur(),
+								oninput: () => {
+									if (this.domTextArea) {
+										this.domTextArea.style.height = "0px"
+										this.domTextArea.style.height = this.domTextArea.scrollHeight + "px"
+									}
+								},
+								style: {
+									"font-family": this.htmlMonospace ? "monospace" : "inherit",
+									"min-height": this.minHeight ? px(this.minHeight) : "initial",
+								},
+								disabled: !this.editor.enabled,
+							}),
+					  ),
+			]),
 		])
 	}
-
 
 	private initializeEditorListeners() {
 		this.editor.initialized.promise.then(() => {
@@ -182,7 +177,7 @@ export class HtmlEditor implements Component {
 			}
 		} else {
 			if (this.domTextArea) {
-				return htmlSanitizer.sanitizeHTML(this.domTextArea.value, {blockExternalContent: false}).html
+				return htmlSanitizer.sanitizeHTML(this.domTextArea.value, { blockExternalContent: false }).html
 			} else {
 				return this.value()
 			}
@@ -199,16 +194,14 @@ export class HtmlEditor implements Component {
 		return this
 	}
 
-
 	isActive(): boolean {
 		return this.active
 	}
 
 	isEmpty(): boolean {
 		// either nothing or default squire content
-		return this.value() === "" || this.value() === "<div dir=\"auto\"><br></div>"
+		return this.value() === "" || this.value() === '<div dir="auto"><br></div>'
 	}
-
 
 	setEnabled(enabled: boolean): HtmlEditor {
 		this.editor.setEnabled(enabled)

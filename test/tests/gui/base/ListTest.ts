@@ -1,9 +1,9 @@
 import o from "ospec"
-import {List, ScrollBuffer} from "../../../../src/gui/base/List.js"
-import {downcast, noOp} from "@tutao/tutanota-utils"
-import {createMail} from "../../../../src/api/entities/tutanota/TypeRefs.js"
-import type {ListElement} from "../../../../src/api/common/utils/EntityUtils.js"
-import {GENERATED_MAX_ID} from "../../../../src/api/common/utils/EntityUtils.js"
+import { List, ScrollBuffer } from "../../../../src/gui/base/List.js"
+import { downcast, noOp } from "@tutao/tutanota-utils"
+import { createMail } from "../../../../src/api/entities/tutanota/TypeRefs.js"
+import type { ListElement } from "../../../../src/api/common/utils/EntityUtils.js"
+import { GENERATED_MAX_ID } from "../../../../src/api/common/utils/EntityUtils.js"
 
 function dummySort() {
 	return 0
@@ -14,7 +14,7 @@ const defaultSwipe = {
 	renderLeftSpacer: () => null,
 	renderRightSpacer: () => null,
 	swipeLeft: () => Promise.resolve(false),
-	swipeRight: () => Promise.resolve(false)
+	swipeRight: () => Promise.resolve(false),
 }
 
 const defaultVLE = {
@@ -33,14 +33,13 @@ o.spec("List", function () {
 					o(start).equals("zzzzzzzzzzzz")
 					o(count).equals(100)
 					done()
-					return Promise.resolve({items: new Array(100), complete: true})
+					return Promise.resolve({ items: new Array(100), complete: true })
 				},
 				sortCompare: dummySort,
 				rowHeight: 5,
 				className: "div",
 				createVirtualRow: () => defaultVLE,
-				elementSelected: () => {
-				},
+				elementSelected: () => {},
 				emptyMessage: "",
 				loadSingle: () => Promise.reject("stub"),
 				multiSelectionAllowed: true,
@@ -51,7 +50,6 @@ o.spec("List", function () {
 	})
 
 	o.spec("updateRange", function () {
-
 		let requestAnimationFrame = window.requestAnimationFrame
 
 		o.before(function () {
@@ -75,14 +73,13 @@ o.spec("List", function () {
 					if (start !== GENERATED_MAX_ID) {
 						throw new Error("wrong start")
 					}
-					return Promise.resolve({items: db.slice(0, count), complete: true})
+					return Promise.resolve({ items: db.slice(0, count), complete: true })
 				},
 				createVirtualRow: () => defaultVLE,
 				sortCompare: dummySort,
 				rowHeight: 5,
 				className: "div",
-				elementSelected: () => {
-				},
+				elementSelected: () => {},
 				emptyMessage: "",
 				loadSingle: () => Promise.reject("stub"),
 				multiSelectionAllowed: true,
@@ -93,12 +90,11 @@ o.spec("List", function () {
 			list.domListContainer = downcast({
 				clientWidth: 100,
 				clientHeight: 100,
-				addEventListener: function () {
-				}
+				addEventListener: function () {},
 			})
 			// @ts-ignore
-			list.domLoadingRow = downcast({classList: {add: () => undefined, remove: () => undefined}, style: {}})
-			list._setDomList(downcast({style: {}}))
+			list.domLoadingRow = downcast({ classList: { add: () => undefined, remove: () => undefined }, style: {} })
+			list._setDomList(downcast({ style: {} }))
 			list._init()
 			// @ts-ignore
 			list.domDeferred.resolve()
@@ -109,7 +105,6 @@ o.spec("List", function () {
 	})
 
 	o.spec("list init", function () {
-
 		let requestAnimationFrame = window.requestAnimationFrame
 
 		o.before(function () {
@@ -127,12 +122,11 @@ o.spec("List", function () {
 			o.timeout(100)
 			let list = new List({
 				rowHeight: 62,
-				fetch: () => Promise.resolve({items: new Array(100).fill(createMail()), complete: true}),
+				fetch: () => Promise.resolve({ items: new Array(100).fill(createMail()), complete: true }),
 				createVirtualRow: () => defaultVLE,
 				sortCompare: dummySort,
 				className: "div",
-				elementSelected: () => {
-				},
+				elementSelected: () => {},
 				emptyMessage: "",
 				loadSingle: () => Promise.reject("stub"),
 				multiSelectionAllowed: true,
@@ -142,15 +136,14 @@ o.spec("List", function () {
 			list.domListContainer = downcast({
 				clientWidth: 100,
 				clientHeight: 235,
-				addEventListener: function () {
-				}
+				addEventListener: function () {},
 			})
 			// @ts-ignore
 			list.domDeferred.resolve()
 
 			// @ts-ignore
-			list.domLoadingRow = downcast({classList: {add: () => undefined, remove: () => undefined}, style: {}})
-			list._setDomList(downcast({style: {}}))
+			list.domLoadingRow = downcast({ classList: { add: () => undefined, remove: () => undefined }, style: {} })
+			list._setDomList(downcast({ style: {} }))
 			list._init()
 
 			await list.loadInitial()
@@ -160,4 +153,3 @@ o.spec("List", function () {
 		})
 	})
 })
-

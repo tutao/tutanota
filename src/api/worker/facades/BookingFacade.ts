@@ -1,19 +1,16 @@
-import type {BookingItemFeatureType} from "../../common/TutanotaConstants"
-import {Const} from "../../common/TutanotaConstants"
-import type {PriceData, PriceItemData, PriceServiceReturn} from "../../entities/sys/TypeRefs.js"
-import {createPriceRequestData, createPriceServiceData} from "../../entities/sys/TypeRefs.js"
-import {neverNull} from "@tutao/tutanota-utils"
-import {assertWorkerOrNode} from "../../common/Env"
-import {IServiceExecutor} from "../../common/ServiceRequest"
-import {PriceService} from "../../entities/sys/Services"
+import type { BookingItemFeatureType } from "../../common/TutanotaConstants"
+import { Const } from "../../common/TutanotaConstants"
+import type { PriceData, PriceItemData, PriceServiceReturn } from "../../entities/sys/TypeRefs.js"
+import { createPriceRequestData, createPriceServiceData } from "../../entities/sys/TypeRefs.js"
+import { neverNull } from "@tutao/tutanota-utils"
+import { assertWorkerOrNode } from "../../common/Env"
+import { IServiceExecutor } from "../../common/ServiceRequest"
+import { PriceService } from "../../entities/sys/Services"
 
 assertWorkerOrNode()
 
 export class BookingFacade {
-	constructor(
-		private readonly serviceExecutor: IServiceExecutor,
-	) {
-	}
+	constructor(private readonly serviceExecutor: IServiceExecutor) {}
 
 	/**
 	 * Provides the price for a given feature type and count.
@@ -32,11 +29,11 @@ export class BookingFacade {
 			reactivate,
 			paymentInterval: null,
 			accountType: null,
-			business: null
+			business: null,
 		})
 		const serviceData = createPriceServiceData({
 			date: Const.CURRENT_DATE,
-			priceRequest: priceRequestData
+			priceRequest: priceRequestData,
 		})
 		return this.serviceExecutor.get(PriceService, serviceData)
 	}
@@ -58,7 +55,7 @@ export class BookingFacade {
 	 */
 	getPriceItem(priceData: PriceData | null, featureType: NumberString): PriceItemData | null {
 		if (priceData != null) {
-			return neverNull(priceData).items.find(p => p.featureType === featureType) ?? null
+			return neverNull(priceData).items.find((p) => p.featureType === featureType) ?? null
 		}
 
 		return null

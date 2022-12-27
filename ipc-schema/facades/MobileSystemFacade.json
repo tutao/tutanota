@@ -1,31 +1,24 @@
 {
-  "name": "MobileSystemFacade",
-  "type": "facade",
-  "senders": ["web"],
-  "receivers": ["ios", "android"],
-  "doc": "Common operations implemented by each mobile platform.",
-  "methods": {
-	"findSuggestions": {
-	  "doc": "Find suggestions in the OS contact provider.",
-	  "arg": [
-		{"query": "string"}
-	  ],
-	  "ret": "List<NativeContact>"
-	},
-	"openLink": {
-	  "doc": "Open URI in the OS.",
-	  "arg": [
-		{"uri": "string"}
-	  ],
-	  "ret": "boolean"
-	},
-	"shareText": {
-	  "doc": "Share the text via OS sharing mechanism.",
-	  "arg": [
-		{"text": "string"},
-		{"title": "string"}
-	  ],
-	  "ret": "boolean"
+	"name": "MobileSystemFacade",
+	"type": "facade",
+	"senders": ["web"],
+	"receivers": ["ios", "android"],
+	"doc": "Common operations implemented by each mobile platform.",
+	"methods": {
+		"findSuggestions": {
+			"doc": "Find suggestions in the OS contact provider.",
+			"arg": [{ "query": "string" }],
+			"ret": "List<NativeContact>"
+		},
+		"openLink": {
+			"doc": "Open URI in the OS.",
+			"arg": [{ "uri": "string" }],
+			"ret": "boolean"
+		},
+		"shareText": {
+			"doc": "Share the text via OS sharing mechanism.",
+			"arg": [{ "text": "string" }, { "title": "string" }],
+			"ret": "boolean"
+		}
 	}
-  }
 }

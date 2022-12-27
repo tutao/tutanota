@@ -1,45 +1,41 @@
-import m, {Component} from "mithril"
-import type {IPostLoginAction, LoggedInEvent} from "../api/main/LoginController"
-import {logins} from "../api/main/LoginController"
-import {isAdminClient, isApp, isDesktop, LOGIN_TITLE, Mode} from "../api/common/Env"
-import {assertNotNull, neverNull, noOp, ofClass} from "@tutao/tutanota-utils"
-import {windowFacade} from "../misc/WindowFacade"
-import {checkApprovalStatus} from "../misc/LoginUtils"
-import {locator} from "../api/main/MainLocator"
-import {ReceiveInfoService} from "../api/entities/tutanota/Services"
-import {InfoLink, lang} from "../misc/LanguageViewModel"
-import {getHourCycle} from "../misc/Formatter"
-import type {OutOfOfficeNotification} from "../api/entities/tutanota/TypeRefs.js"
-import {createReceiveInfoServiceData} from "../api/entities/tutanota/TypeRefs.js"
-import {isNotificationCurrentlyActive, loadOutOfOfficeNotification} from "../misc/OutOfOfficeNotificationUtils"
+import m, { Component } from "mithril"
+import type { IPostLoginAction, LoggedInEvent } from "../api/main/LoginController"
+import { logins } from "../api/main/LoginController"
+import { isAdminClient, isApp, isDesktop, LOGIN_TITLE, Mode } from "../api/common/Env"
+import { assertNotNull, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import { windowFacade } from "../misc/WindowFacade"
+import { checkApprovalStatus } from "../misc/LoginUtils"
+import { locator } from "../api/main/MainLocator"
+import { ReceiveInfoService } from "../api/entities/tutanota/Services"
+import { InfoLink, lang } from "../misc/LanguageViewModel"
+import { getHourCycle } from "../misc/Formatter"
+import type { OutOfOfficeNotification } from "../api/entities/tutanota/TypeRefs.js"
+import { createReceiveInfoServiceData } from "../api/entities/tutanota/TypeRefs.js"
+import { isNotificationCurrentlyActive, loadOutOfOfficeNotification } from "../misc/OutOfOfficeNotificationUtils"
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
-import {ButtonType} from "../gui/base/Button.js"
-import {themeController} from "../gui/theme"
-import {Dialog} from "../gui/base/Dialog"
-import {CloseEventBusOption, Const} from "../api/common/TutanotaConstants"
-import {showMoreStorageNeededOrderDialog} from "../misc/SubscriptionDialogs"
-import {notifications} from "../gui/Notifications"
-import {CustomerInfoTypeRef, CustomerPropertiesTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {LockedError} from "../api/common/error/RestError"
-import type {CredentialsProvider} from "../misc/credentials/CredentialsProvider.js"
-import {usingKeychainAuthentication} from "../misc/credentials/CredentialsProviderFactory"
-import type {ThemeCustomizations} from "../misc/WhitelabelCustomizations"
-import {getThemeCustomizations} from "../misc/WhitelabelCustomizations"
-import {CredentialEncryptionMode} from "../misc/credentials/CredentialEncryptionMode"
-import {SecondFactorHandler} from "../misc/2fa/SecondFactorHandler"
-import {SessionType} from "../api/common/SessionType"
-import {StorageBehavior} from "../misc/UsageTestModel.js"
+import { ButtonType } from "../gui/base/Button.js"
+import { themeController } from "../gui/theme"
+import { Dialog } from "../gui/base/Dialog"
+import { CloseEventBusOption, Const } from "../api/common/TutanotaConstants"
+import { showMoreStorageNeededOrderDialog } from "../misc/SubscriptionDialogs"
+import { notifications } from "../gui/Notifications"
+import { CustomerInfoTypeRef, CustomerPropertiesTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { LockedError } from "../api/common/error/RestError"
+import type { CredentialsProvider } from "../misc/credentials/CredentialsProvider.js"
+import { usingKeychainAuthentication } from "../misc/credentials/CredentialsProviderFactory"
+import type { ThemeCustomizations } from "../misc/WhitelabelCustomizations"
+import { getThemeCustomizations } from "../misc/WhitelabelCustomizations"
+import { CredentialEncryptionMode } from "../misc/credentials/CredentialEncryptionMode"
+import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler"
+import { SessionType } from "../api/common/SessionType"
+import { StorageBehavior } from "../misc/UsageTestModel.js"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
  */
 
 export class PostLoginActions implements IPostLoginAction {
-	constructor(
-		public readonly credentialsProvider: CredentialsProvider,
-		public secondFactorHandler: SecondFactorHandler,
-	) {
-	}
+	constructor(public readonly credentialsProvider: CredentialsProvider, public secondFactorHandler: SecondFactorHandler) {}
 
 	async onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
 		// We establish websocket connection even for temporary sessions because we need to get updates e.g. during signup
@@ -60,7 +56,6 @@ export class PostLoginActions implements IPostLoginAction {
 
 		// only show "Tutanota" after login if there is no custom title set
 		if (!logins.getUserController().isInternalUser()) {
-
 			if (document.title === LOGIN_TITLE) {
 				document.title = "Tutanota"
 			}
@@ -82,7 +77,8 @@ export class PostLoginActions implements IPostLoginAction {
 			await this.credentialsProvider.setCredentialsEncryptionMode(CredentialEncryptionMode.DEVICE_LOCK)
 		}
 
-		lang.updateFormats({ // partial
+		lang.updateFormats({
+			// partial
 			hourCycle: getHourCycle(logins.getUserController().userSettingsGroupRoot),
 		})
 
@@ -91,7 +87,7 @@ export class PostLoginActions implements IPostLoginAction {
 		}
 		if (isApp() || isDesktop()) {
 			// don't wait for it, just invoke
-			locator.fileApp.clearFileData().catch(e => console.log("Failed to clean file data", e))
+			locator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 		}
 	}
 
@@ -151,7 +147,7 @@ export class PostLoginActions implements IPostLoginAction {
 	}
 
 	private remindActiveOutOfOfficeNotification(): Promise<void> {
-		return loadOutOfOfficeNotification().then(notification => {
+		return loadOutOfOfficeNotification().then((notification) => {
 			if (notification && isNotificationCurrentlyActive(notification, new Date())) {
 				const notificationMessage: Component = {
 					view: () => {
@@ -220,9 +216,9 @@ export class PostLoginActions implements IPostLoginAction {
 			return logins
 				.getUserController()
 				.loadCustomer()
-				.then(customer => {
-					return locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)).then(properties => {
-						return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo => {
+				.then((customer) => {
+					return locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)).then((properties) => {
+						return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then((customerInfo) => {
 							if (
 								properties.lastUpgradeReminder == null &&
 								customerInfo.creationTime.getTime() + Const.UPGRADE_REMINDER_INTERVAL < new Date().getTime()
@@ -230,15 +226,15 @@ export class PostLoginActions implements IPostLoginAction {
 								let message = lang.get("premiumOffer_msg")
 								let title = lang.get("upgradeReminderTitle_msg")
 								return Dialog.reminder(title, message, InfoLink.PremiumProBusiness)
-											 .then(confirm => {
-												 if (confirm) {
-													 import("../subscription/UpgradeSubscriptionWizard").then(wizard => wizard.showUpgradeWizard())
-												 }
-											 })
-											 .then(() => {
-												 properties.lastUpgradeReminder = new Date()
-												 locator.entityClient.update(properties).catch(ofClass(LockedError, noOp))
-											 })
+									.then((confirm) => {
+										if (confirm) {
+											import("../subscription/UpgradeSubscriptionWizard").then((wizard) => wizard.showUpgradeWizard())
+										}
+									})
+									.then(() => {
+										properties.lastUpgradeReminder = new Date()
+										locator.entityClient.update(properties).catch(ofClass(LockedError, noOp))
+									})
 							}
 						})
 					})
@@ -250,7 +246,7 @@ export class PostLoginActions implements IPostLoginAction {
 
 	private enforcePasswordChange(): void {
 		if (logins.getUserController().user.requirePasswordUpdate) {
-			import("../settings/login/ChangePasswordDialogs.js").then(({showChangeOwnPasswordDialog}) => {
+			import("../settings/login/ChangePasswordDialogs.js").then(({ showChangeOwnPasswordDialog }) => {
 				return showChangeOwnPasswordDialog(false)
 			})
 		}

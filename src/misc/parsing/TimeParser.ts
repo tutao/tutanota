@@ -1,4 +1,4 @@
-import {Time} from "../../api/common/utils/Time"
+import { Time } from "../../api/common/utils/Time"
 
 /**
  * Accepts 2, 2:30, 2:5, 02:05, 02:30, 24:30, 2430, 12:30pm, 12:30 p.m.

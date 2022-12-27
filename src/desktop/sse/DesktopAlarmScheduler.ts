@@ -1,19 +1,19 @@
-import {OperationType} from "../../api/common/TutanotaConstants"
-import type {AlarmNotification} from "../../api/entities/sys/TypeRefs.js"
-import {AlarmNotificationTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import type {DesktopNotifier} from "../DesktopNotifier"
-import {NotificationResult} from "../DesktopNotifier";
-import type {WindowManager} from "../DesktopWindowManager"
-import type {DesktopAlarmStorage} from "./DesktopAlarmStorage"
-import type {DesktopNativeCryptoFacade} from "../DesktopNativeCryptoFacade"
-import {log} from "../DesktopLog"
-import type {AlarmScheduler} from "../../calendar/date/AlarmScheduler"
-import {CryptoError} from "../../api/common/error/CryptoError"
-import {elementIdPart} from "../../api/common/utils/EntityUtils"
-import {hasError} from "../../api/common/utils/ErrorCheckUtils"
-import {resolveTypeReference} from "../../api/common/EntityFunctions"
-import {EncryptedAlarmNotification} from "../../native/common/EncryptedAlarmNotification.js"
-import {base64ToUint8Array} from "@tutao/tutanota-utils"
+import { OperationType } from "../../api/common/TutanotaConstants"
+import type { AlarmNotification } from "../../api/entities/sys/TypeRefs.js"
+import { AlarmNotificationTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import type { DesktopNotifier } from "../DesktopNotifier"
+import { NotificationResult } from "../DesktopNotifier"
+import type { WindowManager } from "../DesktopWindowManager"
+import type { DesktopAlarmStorage } from "./DesktopAlarmStorage"
+import type { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
+import { log } from "../DesktopLog"
+import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler"
+import { CryptoError } from "../../api/common/error/CryptoError"
+import { elementIdPart } from "../../api/common/utils/EntityUtils"
+import { hasError } from "../../api/common/utils/ErrorCheckUtils"
+import { resolveTypeReference } from "../../api/common/EntityFunctions"
+import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification.js"
+import { base64ToUint8Array } from "@tutao/tutanota-utils"
 
 export interface NativeAlarmScheduler {
 	handleAlarmNotification(an: EncryptedAlarmNotification): Promise<void>
@@ -24,15 +24,13 @@ export interface NativeAlarmScheduler {
 }
 
 export class DesktopAlarmScheduler implements NativeAlarmScheduler {
-
 	constructor(
 		private readonly wm: WindowManager,
 		private readonly notifier: DesktopNotifier,
 		private readonly alarmStorage: DesktopAlarmStorage,
 		private readonly desktopCrypto: DesktopNativeCryptoFacade,
 		private readonly alarmScheduler: AlarmScheduler,
-	) {
-	}
+	) {}
 
 	/**
 	 * stores, deletes and schedules alarm notifications
@@ -54,7 +52,7 @@ export class DesktopAlarmScheduler implements NativeAlarmScheduler {
 
 	async unscheduleAllAlarms(userId: Id | null = null): Promise<void> {
 		const alarms = await this.alarmStorage.getScheduledAlarms()
-		alarms.forEach(alarm => {
+		alarms.forEach((alarm) => {
 			if (userId == null || alarm.user === userId) {
 				this.cancelAlarms(alarm)
 			}
@@ -134,7 +132,7 @@ export class DesktopAlarmScheduler implements NativeAlarmScheduler {
 		}
 
 		this.alarmScheduler.scheduleAlarm(eventInfo, decAn.alarmInfo, decAn.repeatRule, (title, message) => {
-			this.notifier.submitGroupedNotification(title, message, decAn.alarmInfo.alarmIdentifier, res => {
+			this.notifier.submitGroupedNotification(title, message, decAn.alarmInfo.alarmIdentifier, (res) => {
 				if (res === NotificationResult.Click) {
 					this.wm.openCalendar({
 						userId: decAn.user,

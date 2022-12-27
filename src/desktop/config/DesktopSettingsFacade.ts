@@ -1,27 +1,25 @@
-import {SettingsFacade} from "../../native/common/generatedipc/SettingsFacade.js"
-import {DesktopConfig} from "./DesktopConfig.js"
-import {IntegrationInfo} from "../../native/common/generatedipc/IntegrationInfo.js"
-import {DesktopConfigKey} from "./ConfigKeys.js"
-import {DesktopUtils} from "../DesktopUtils.js"
-import {DesktopIntegrator} from "../integration/DesktopIntegrator.js"
-import {ElectronUpdater} from "../ElectronUpdater.js"
+import { SettingsFacade } from "../../native/common/generatedipc/SettingsFacade.js"
+import { DesktopConfig } from "./DesktopConfig.js"
+import { IntegrationInfo } from "../../native/common/generatedipc/IntegrationInfo.js"
+import { DesktopConfigKey } from "./ConfigKeys.js"
+import { DesktopUtils } from "../DesktopUtils.js"
+import { DesktopIntegrator } from "../integration/DesktopIntegrator.js"
+import { ElectronUpdater } from "../ElectronUpdater.js"
 import * as electron from "electron"
-import {UpdateInfo} from "electron-updater"
-import {LanguageViewModel} from "../../misc/LanguageViewModel.js"
+import { UpdateInfo } from "electron-updater"
+import { LanguageViewModel } from "../../misc/LanguageViewModel.js"
 
 export class DesktopSettingsFacade implements SettingsFacade {
-
 	constructor(
 		private readonly conf: DesktopConfig,
 		private readonly utils: DesktopUtils,
 		private readonly integrator: DesktopIntegrator,
 		private readonly updater: ElectronUpdater | null,
 		private readonly lang: LanguageViewModel,
-	) {
-	}
+	) {}
 
 	async changeLanguage(code: string, languageTag: string): Promise<void> {
-		return this.lang.setLanguage({code, languageTag})
+		return this.lang.setLanguage({ code, languageTag })
 	}
 
 	async manualUpdate(): Promise<boolean> {
@@ -79,7 +77,6 @@ export class DesktopSettingsFacade implements SettingsFacade {
 		await this.integrator.integrate()
 	}
 
-
 	async unIntegrateDesktop(): Promise<void> {
 		await this.integrator.unintegrate()
 	}
@@ -88,9 +85,7 @@ export class DesktopSettingsFacade implements SettingsFacade {
 		await this.utils.registerAsMailtoHandler()
 	}
 
-
 	async unregisterMailto(): Promise<void> {
 		await this.utils.unregisterAsMailtoHandler()
 	}
-
 }

@@ -1,26 +1,26 @@
-import m, {Children} from "mithril"
-import {Button, ButtonType} from "../gui/base/Button.js"
-import {lang} from "../misc/LanguageViewModel"
-import type {EntityUpdateData} from "../api/main/EventController"
-import {isUpdateForTypeRef} from "../api/main/EventController"
-import type {ListConfig, VirtualRow} from "../gui/base/List"
-import {List} from "../gui/base/List"
-import {size} from "../gui/size"
-import type {SettingsView, UpdatableSettingsViewer} from "./SettingsView"
-import {TemplateDetailsViewer} from "./TemplateDetailsViewer"
-import {showTemplateEditor} from "./TemplateEditor"
-import type {EmailTemplate, TemplateGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
-import {createEmailTemplate, createEmailTemplateContent, EmailTemplateTypeRef} from "../api/entities/tutanota/TypeRefs.js"
-import {EntityClient} from "../api/common/EntityClient"
-import {getElementId, isSameId} from "../api/common/utils/EntityUtils"
-import {TEMPLATE_SHORTCUT_PREFIX} from "../templates/model/TemplatePopupModel"
-import {hasCapabilityOnGroup} from "../sharing/GroupUtils"
-import {OperationType, ShareCapability} from "../api/common/TutanotaConstants"
-import type {TemplateGroupInstance} from "../templates/model/TemplateGroupModel"
-import type {LoginController} from "../api/main/LoginController"
-import {ListColumnWrapper} from "../gui/ListColumnWrapper"
-import {promiseMap} from "@tutao/tutanota-utils"
-import {assertMainOrNode} from "../api/common/Env"
+import m, { Children } from "mithril"
+import { Button, ButtonType } from "../gui/base/Button.js"
+import { lang } from "../misc/LanguageViewModel"
+import type { EntityUpdateData } from "../api/main/EventController"
+import { isUpdateForTypeRef } from "../api/main/EventController"
+import type { ListConfig, VirtualRow } from "../gui/base/List"
+import { List } from "../gui/base/List"
+import { size } from "../gui/size"
+import type { SettingsView, UpdatableSettingsViewer } from "./SettingsView"
+import { TemplateDetailsViewer } from "./TemplateDetailsViewer"
+import { showTemplateEditor } from "./TemplateEditor"
+import type { EmailTemplate, TemplateGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
+import { createEmailTemplate, createEmailTemplateContent, EmailTemplateTypeRef } from "../api/entities/tutanota/TypeRefs.js"
+import { EntityClient } from "../api/common/EntityClient"
+import { getElementId, isSameId } from "../api/common/utils/EntityUtils"
+import { TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
+import { hasCapabilityOnGroup } from "../sharing/GroupUtils"
+import { OperationType, ShareCapability } from "../api/common/TutanotaConstants"
+import type { TemplateGroupInstance } from "../templates/model/TemplateGroupModel"
+import type { LoginController } from "../api/main/LoginController"
+import { ListColumnWrapper } from "../gui/ListColumnWrapper"
+import { promiseMap } from "@tutao/tutanota-utils"
+import { assertMainOrNode } from "../api/common/Env"
 
 assertMainOrNode()
 
@@ -47,9 +47,9 @@ export class TemplateListView implements UpdatableSettingsViewer {
 			rowHeight: size.list_row_height,
 			fetch: async (startId, count) => {
 				const items = await this._entityClient.loadRange(EmailTemplateTypeRef, this.templateListId(), startId, count, true)
-				return {items, complete: items.length < count}
+				return { items, complete: items.length < count }
 			},
-			loadSingle: elementId => {
+			loadSingle: (elementId) => {
 				return this._entityClient.load<EmailTemplate>(EmailTemplateTypeRef, [this.templateListId(), elementId])
 			},
 			sortCompare: (a: EmailTemplate, b: EmailTemplate) => {
@@ -74,8 +74,8 @@ export class TemplateListView implements UpdatableSettingsViewer {
 			swipe: {
 				renderLeftSpacer: () => [],
 				renderRightSpacer: () => [],
-				swipeLeft: listElement => Promise.resolve(false),
-				swipeRight: listElement => Promise.resolve(false),
+				swipeLeft: (listElement) => Promise.resolve(false),
+				swipeRight: (listElement) => Promise.resolve(false),
 				enabled: false,
 			},
 			multiSelectionAllowed: false,
@@ -92,17 +92,17 @@ export class TemplateListView implements UpdatableSettingsViewer {
 			{
 				headerContent: this.userCanEdit()
 					? m(".flex.flex-end.center-vertically.plr-l", [
-						m(
-							".mr-negative-s.align-self-end",
-							m(Button, {
-								label: "addTemplate_label",
-								type: ButtonType.Primary,
-								click: () => {
-									showTemplateEditor(null, this._groupInstance.groupRoot)
-								},
-							}),
-						),
-					])
+							m(
+								".mr-negative-s.align-self-end",
+								m(Button, {
+									label: "addTemplate_label",
+									type: ButtonType.Primary,
+									click: () => {
+										showTemplateEditor(null, this._groupInstance.groupRoot)
+									},
+								}),
+							),
+					  ])
 					: null,
 			},
 			this._list ? m(this._list) : null,
@@ -110,7 +110,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 	}
 
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		return promiseMap(updates, update => {
+		return promiseMap(updates, (update) => {
 			if (isUpdateForTypeRef(EmailTemplateTypeRef, update) && isSameId(this.templateListId(), update.instanceListId)) {
 				return this._list.entityEventReceived(update.instanceId, update.operation).then(() => {
 					const selected = this._list.getSelectedEntities()[0]
@@ -138,7 +138,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 
 export function createTemplates(gorgiasTemplates: Array<Array<string>>, templateGroupRoot: TemplateGroupRoot, entityClient: EntityClient) {
 	// id,title,shortcut,subject,tags,cc,bcc,to,body
-	gorgiasTemplates.forEach(gorgiasTemplate => {
+	gorgiasTemplates.forEach((gorgiasTemplate) => {
 		let template = createEmailTemplate()
 		let content
 		const gorgiasTitle = gorgiasTemplate[1]
@@ -209,12 +209,12 @@ export class TemplateRow implements VirtualRow<EmailTemplate> {
 		return [
 			m(".top", [
 				m(".name.text-ellipsis", {
-					oncreate: vnode => (this._domTemplateTitle = vnode.dom as HTMLElement),
+					oncreate: (vnode) => (this._domTemplateTitle = vnode.dom as HTMLElement),
 				}),
 			]),
 			m(".bottom.flex-space-between", [
 				m("small.templateContent", {
-					oncreate: vnode => (this._domTemplateId = vnode.dom as HTMLElement),
+					oncreate: (vnode) => (this._domTemplateId = vnode.dom as HTMLElement),
 				}),
 			]),
 		]

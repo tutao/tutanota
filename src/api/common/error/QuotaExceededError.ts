@@ -1,6 +1,6 @@
 //@bundleInto:common-min
 
-import {DbError} from "./DbError"
+import { DbError } from "./DbError"
 
 /**
  * Error used to indicate that there's insufficient space on the device.

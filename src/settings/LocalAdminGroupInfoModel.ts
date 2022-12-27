@@ -1,13 +1,13 @@
 import m from "mithril"
-import {logins} from "../api/main/LoginController"
-import type {GroupInfo} from "../api/entities/sys/TypeRefs.js"
-import {GroupInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {GroupType} from "../api/common/TutanotaConstants"
-import {locator} from "../api/main/MainLocator"
-import type {EntityUpdateData} from "../api/main/EventController"
-import {isUpdateForTypeRef} from "../api/main/EventController"
-import {noOp} from "@tutao/tutanota-utils"
-import {promiseMap} from "@tutao/tutanota-utils"
+import { logins } from "../api/main/LoginController"
+import type { GroupInfo } from "../api/entities/sys/TypeRefs.js"
+import { GroupInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { GroupType } from "../api/common/TutanotaConstants"
+import { locator } from "../api/main/MainLocator"
+import type { EntityUpdateData } from "../api/main/EventController"
+import { isUpdateForTypeRef } from "../api/main/EventController"
+import { noOp } from "@tutao/tutanota-utils"
+import { promiseMap } from "@tutao/tutanota-utils"
 
 class LocalAdminGroupInfoModel {
 	_initialization: Promise<GroupInfo[]> | null
@@ -23,8 +23,8 @@ class LocalAdminGroupInfoModel {
 			return this._initialization
 		}
 
-		locator.eventController.addEntityListener(updates => {
-			return promiseMap(updates, update => {
+		locator.eventController.addEntityListener((updates) => {
+			return promiseMap(updates, (update) => {
 				return this.entityEventReceived(update)
 			}).then(noOp)
 		})
@@ -35,9 +35,9 @@ class LocalAdminGroupInfoModel {
 		this._initialization = logins
 			.getUserController()
 			.loadCustomer()
-			.then(async customer => {
+			.then(async (customer) => {
 				const groupInfos: Array<GroupInfo> = await locator.entityClient.loadAll(GroupInfoTypeRef, customer.teamGroups)
-				this.groupInfos = groupInfos.filter(gi => gi.groupType === GroupType.LocalAdmin)
+				this.groupInfos = groupInfos.filter((gi) => gi.groupType === GroupType.LocalAdmin)
 				return this.groupInfos
 			})
 		return this._initialization

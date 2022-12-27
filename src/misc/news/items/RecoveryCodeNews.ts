@@ -1,20 +1,20 @@
-import {NewsListItem} from "../NewsListItem.js"
-import m, {Children} from "mithril"
-import {NewsId} from "../../../api/entities/tutanota/TypeRefs.js"
-import {lang} from "../../LanguageViewModel.js"
-import {Button, ButtonType} from "../../../gui/base/Button.js"
-import {NewsModel} from "../NewsModel.js"
-import type {RecoverCodeField} from "../../../settings/login/RecoverCodeDialog.js"
-import {Dialog, DialogType} from "../../../gui/base/Dialog.js"
-import {AccessBlockedError, NotAuthenticatedError} from "../../../api/common/error/RestError.js"
-import {LazyLoaded, noOp, ofClass} from "@tutao/tutanota-utils"
-import {copyToClipboard} from "../../ClipboardUtils.js"
-import {UsageTestModel} from "../../UsageTestModel.js"
-import {UsageTestController} from "@tutao/tutanota-usagetests"
-import {UserController} from "../../../api/main/UserController.js"
-import {progressIcon} from "../../../gui/base/Icon.js"
-import {UserManagementFacade} from "../../../api/worker/facades/UserManagementFacade.js"
-import {isApp} from "../../../api/common/Env.js"
+import { NewsListItem } from "../NewsListItem.js"
+import m, { Children } from "mithril"
+import { NewsId } from "../../../api/entities/tutanota/TypeRefs.js"
+import { lang } from "../../LanguageViewModel.js"
+import { Button, ButtonType } from "../../../gui/base/Button.js"
+import { NewsModel } from "../NewsModel.js"
+import type { RecoverCodeField } from "../../../settings/login/RecoverCodeDialog.js"
+import { Dialog, DialogType } from "../../../gui/base/Dialog.js"
+import { AccessBlockedError, NotAuthenticatedError } from "../../../api/common/error/RestError.js"
+import { LazyLoaded, noOp, ofClass } from "@tutao/tutanota-utils"
+import { copyToClipboard } from "../../ClipboardUtils.js"
+import { UsageTestModel } from "../../UsageTestModel.js"
+import { UsageTestController } from "@tutao/tutanota-usagetests"
+import { UserController } from "../../../api/main/UserController.js"
+import { progressIcon } from "../../../gui/base/Icon.js"
+import { UserManagementFacade } from "../../../api/worker/facades/UserManagementFacade.js"
+import { isApp } from "../../../api/common/Env.js"
 
 /** Actions that may be sent in stage 2 of the recoveryCodeDialog usage test. */
 type RecoveryCodeNewsAction = "copy" | "print" | "select" | "dismiss" | "close"
@@ -27,7 +27,7 @@ export class RecoveryCodeNews implements NewsListItem {
 	private readonly sentActions = new Set<string>()
 	private recoveryCode: string | null = null
 	private readonly recoverCodeField = new LazyLoaded(async () => {
-		const {RecoverCodeField} = await import("../../../settings/login/RecoverCodeDialog.js")
+		const { RecoverCodeField } = await import("../../../settings/login/RecoverCodeDialog.js")
 		m.redraw()
 		return RecoverCodeField
 	})
@@ -38,8 +38,7 @@ export class RecoveryCodeNews implements NewsListItem {
 		private readonly usageTestModel: UsageTestModel,
 		private readonly usageTestController: UsageTestController,
 		private readonly userManagementFacade: UserManagementFacade,
-	) {
-	}
+	) {}
 
 	isShown(): boolean {
 		return this.userController.isGlobalAdmin()
@@ -70,74 +69,72 @@ export class RecoveryCodeNews implements NewsListItem {
 		// When the redraw is triggered in the load function, it will be populated and rendered correctly.
 		const RecoverCodeField = this.recoverCodeField.getSync()
 
-		return m(".full-width", {
-			onmouseup: () => {
-				let selection = window.getSelection()?.toString()
+		return m(
+			".full-width",
+			{
+				onmouseup: () => {
+					let selection = window.getSelection()?.toString()
 
-				if (!recoveryCode || !selection || selection.length === 0) {
-					return
-				}
+					if (!recoveryCode || !selection || selection.length === 0) {
+						return
+					}
 
-				selection = selection.replace(/\s/g, '') // remove whitespace
+					selection = selection.replace(/\s/g, "") // remove whitespace
 
-				if (selection.includes(recoveryCode)) {
-					this.sendAction("select")
-				}
-			}
-		}, [
-			m(".h4", {
-				style: {
-					"text-transform": "capitalize",
-				}
-			}, lang.get("recoveryCode_label")),
-			m("", lang.get("recoveryCode_msg")),
-			recoveryCode
-				? RecoverCodeField
-					? m(RecoverCodeField, {
-						showMessage: false,
-						recoverCode: recoveryCode as string,
-						showButtons: false,
-					})
-					: m(".flex.justify-center", progressIcon())
-				: null,
-			m(
-				".flex-end.flex-no-grow-no-shrink-auto.flex-wrap",
-				[
+					if (selection.includes(recoveryCode)) {
+						this.sendAction("select")
+					}
+				},
+			},
+			[
+				m(
+					".h4",
+					{
+						style: {
+							"text-transform": "capitalize",
+						},
+					},
+					lang.get("recoveryCode_label"),
+				),
+				m("", lang.get("recoveryCode_msg")),
+				recoveryCode
+					? RecoverCodeField
+						? m(RecoverCodeField, {
+								showMessage: false,
+								recoverCode: recoveryCode as string,
+								showButtons: false,
+						  })
+						: m(".flex.justify-center", progressIcon())
+					: null,
+				m(".flex-end.flex-no-grow-no-shrink-auto.flex-wrap", [
 					recoveryCode
-						? [
-							this.renderCopyButton(recoveryCode),
-							this.renderPrintButton(),
-							this.confirmButton(newsId),
-						]
-						: [
-							this.renderDoneButton(newsId),
-							this.renderDisplayButton(),
-						],
-				],
-			),
-		])
+						? [this.renderCopyButton(recoveryCode), this.renderPrintButton(), this.confirmButton(newsId)]
+						: [this.renderDoneButton(newsId), this.renderDisplayButton()],
+				]),
+			],
+		)
 	}
 
 	private renderDoneButton(newsId: NewsId) {
 		return m(Button, {
 			label: "done_action",
 			type: ButtonType.Secondary,
-			click: () => Dialog.showActionDialog({
-				type: DialogType.EditSmall,
-				okAction: async dialog => {
-					const test = this.usageTestController.getTest("recoveryCodeDialog")
-					await test.getStage(0).complete()
-					await test.getStage(1).complete()
-					this.sendAction("dismiss")
+			click: () =>
+				Dialog.showActionDialog({
+					type: DialogType.EditSmall,
+					okAction: async (dialog) => {
+						const test = this.usageTestController.getTest("recoveryCodeDialog")
+						await test.getStage(0).complete()
+						await test.getStage(1).complete()
+						this.sendAction("dismiss")
 
-					dialog.close()
-					this.newsModel.acknowledgeNews(newsId.newsItemId)
-						.then(m.redraw)
-				},
-				title: lang.get("recoveryCode_label"),
-				allowCancel: true,
-				child: () => m("p", lang.get("recoveryCodeConfirmation_msg"))
-			}),
+						dialog.close()
+						this.newsModel.acknowledgeNews(newsId.newsItemId).then(m.redraw)
+					},
+					title: lang.get("recoveryCode_label"),
+					allowCancel: true,
+					child: () => m("p", lang.get("recoveryCodeConfirmation_msg")),
+				}),
 		})
 	}
 
@@ -199,7 +196,7 @@ export class RecoveryCodeNews implements NewsListItem {
 				const hasRecoveryCode = !!userController.user.auth?.recoverCode
 
 				return (hasRecoveryCode ? this.userManagementFacade.getRecoverCode(pw) : this.userManagementFacade.createRecoveryCode(pw))
-					.then(recoverCode => {
+					.then((recoverCode) => {
 						dialog.close()
 						this.recoveryCode = recoverCode
 						return ""
@@ -211,9 +208,7 @@ export class RecoveryCodeNews implements NewsListItem {
 			cancel: {
 				textId: "cancel_action",
 				action: noOp,
-			}
+			},
 		})
 	}
 }
-
-

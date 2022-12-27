@@ -1,58 +1,58 @@
-import {LoginFacade} from "./facades/LoginFacade"
-import type {WorkerImpl} from "./WorkerImpl"
-import {Indexer} from "./search/Indexer"
-import type {EntityRestInterface} from "./rest/EntityRestClient"
-import {EntityRestClient} from "./rest/EntityRestClient"
-import {UserManagementFacade} from "./facades/UserManagementFacade"
-import {CacheStorage, DefaultEntityRestCache} from "./rest/DefaultEntityRestCache.js"
-import {GroupManagementFacade} from "./facades/GroupManagementFacade"
-import {MailFacade} from "./facades/MailFacade"
-import {MailAddressFacade} from "./facades/MailAddressFacade"
-import {FileFacade} from "./facades/FileFacade"
-import {SearchFacade} from "./search/SearchFacade"
-import {CustomerFacade} from "./facades/CustomerFacade"
-import {CounterFacade} from "./facades/CounterFacade"
-import {EventBusClient} from "./EventBusClient"
-import {assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isOfflineStorageAvailable} from "../common/Env"
-import {Const} from "../common/TutanotaConstants"
-import type {BrowserData} from "../../misc/ClientConstants"
-import {CalendarFacade} from "./facades/CalendarFacade"
-import {ShareFacade} from "./facades/ShareFacade"
-import {RestClient} from "./rest/RestClient"
-import {SuspensionHandler} from "./SuspensionHandler"
-import {EntityClient} from "../common/EntityClient"
-import {GiftCardFacade} from "./facades/GiftCardFacade"
-import {ConfigurationDatabase} from "./facades/ConfigurationDatabase"
-import {ContactFormFacade} from "./facades/ContactFormFacade"
-import {DeviceEncryptionFacade} from "./facades/DeviceEncryptionFacade"
-import type {NativeInterface} from "../../native/common/NativeInterface"
-import {NativeFileApp} from "../../native/common/FileApp"
-import {AesApp} from "../../native/worker/AesApp"
-import type {RsaImplementation} from "./crypto/RsaImplementation"
-import {createRsaImplementation} from "./crypto/RsaImplementation"
-import {CryptoFacade} from "./crypto/CryptoFacade"
-import {InstanceMapper} from "./crypto/InstanceMapper"
-import {AdminClientDummyEntityRestCache} from "./rest/AdminClientDummyEntityRestCache.js"
-import {SleepDetector} from "./utils/SleepDetector.js"
-import {SchedulerImpl} from "../common/utils/Scheduler.js"
-import {NoZoneDateProvider} from "../common/utils/NoZoneDateProvider.js"
-import {LateInitializedCacheStorageImpl} from "./rest/CacheStorageProxy"
-import {IServiceExecutor} from "../common/ServiceRequest"
-import {ServiceExecutor} from "./rest/ServiceExecutor"
-import {BookingFacade} from "./facades/BookingFacade"
-import {BlobFacade} from "./facades/BlobFacade"
-import {UserFacade} from "./facades/UserFacade"
-import {OfflineStorage} from "./offline/OfflineStorage.js"
-import {OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator} from "./offline/OfflineStorageMigrator.js"
-import {modelInfos} from "../common/EntityFunctions.js"
-import {FileFacadeSendDispatcher} from "../../native/common/generatedipc/FileFacadeSendDispatcher.js"
-import {NativePushFacadeSendDispatcher} from "../../native/common/generatedipc/NativePushFacadeSendDispatcher.js"
-import {NativeCryptoFacadeSendDispatcher} from "../../native/common/generatedipc/NativeCryptoFacadeSendDispatcher"
-import {random} from "@tutao/tutanota-crypto"
-import {ExportFacadeSendDispatcher} from "../../native/common/generatedipc/ExportFacadeSendDispatcher.js"
-import {assertNotNull} from "@tutao/tutanota-utils"
-import {InterWindowEventFacadeSendDispatcher} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
-import {SqlCipherFacadeSendDispatcher} from "../../native/common/generatedipc/SqlCipherFacadeSendDispatcher.js"
+import { LoginFacade } from "./facades/LoginFacade"
+import type { WorkerImpl } from "./WorkerImpl"
+import { Indexer } from "./search/Indexer"
+import type { EntityRestInterface } from "./rest/EntityRestClient"
+import { EntityRestClient } from "./rest/EntityRestClient"
+import { UserManagementFacade } from "./facades/UserManagementFacade"
+import { CacheStorage, DefaultEntityRestCache } from "./rest/DefaultEntityRestCache.js"
+import { GroupManagementFacade } from "./facades/GroupManagementFacade"
+import { MailFacade } from "./facades/MailFacade"
+import { MailAddressFacade } from "./facades/MailAddressFacade"
+import { FileFacade } from "./facades/FileFacade"
+import { SearchFacade } from "./search/SearchFacade"
+import { CustomerFacade } from "./facades/CustomerFacade"
+import { CounterFacade } from "./facades/CounterFacade"
+import { EventBusClient } from "./EventBusClient"
+import { assertWorkerOrNode, getWebsocketOrigin, isAdminClient, isOfflineStorageAvailable } from "../common/Env"
+import { Const } from "../common/TutanotaConstants"
+import type { BrowserData } from "../../misc/ClientConstants"
+import { CalendarFacade } from "./facades/CalendarFacade"
+import { ShareFacade } from "./facades/ShareFacade"
+import { RestClient } from "./rest/RestClient"
+import { SuspensionHandler } from "./SuspensionHandler"
+import { EntityClient } from "../common/EntityClient"
+import { GiftCardFacade } from "./facades/GiftCardFacade"
+import { ConfigurationDatabase } from "./facades/ConfigurationDatabase"
+import { ContactFormFacade } from "./facades/ContactFormFacade"
+import { DeviceEncryptionFacade } from "./facades/DeviceEncryptionFacade"
+import type { NativeInterface } from "../../native/common/NativeInterface"
+import { NativeFileApp } from "../../native/common/FileApp"
+import { AesApp } from "../../native/worker/AesApp"
+import type { RsaImplementation } from "./crypto/RsaImplementation"
+import { createRsaImplementation } from "./crypto/RsaImplementation"
+import { CryptoFacade } from "./crypto/CryptoFacade"
+import { InstanceMapper } from "./crypto/InstanceMapper"
+import { AdminClientDummyEntityRestCache } from "./rest/AdminClientDummyEntityRestCache.js"
+import { SleepDetector } from "./utils/SleepDetector.js"
+import { SchedulerImpl } from "../common/utils/Scheduler.js"
+import { NoZoneDateProvider } from "../common/utils/NoZoneDateProvider.js"
+import { LateInitializedCacheStorageImpl } from "./rest/CacheStorageProxy"
+import { IServiceExecutor } from "../common/ServiceRequest"
+import { ServiceExecutor } from "./rest/ServiceExecutor"
+import { BookingFacade } from "./facades/BookingFacade"
+import { BlobFacade } from "./facades/BlobFacade"
+import { UserFacade } from "./facades/UserFacade"
+import { OfflineStorage } from "./offline/OfflineStorage.js"
+import { OFFLINE_STORAGE_MIGRATIONS, OfflineStorageMigrator } from "./offline/OfflineStorageMigrator.js"
+import { modelInfos } from "../common/EntityFunctions.js"
+import { FileFacadeSendDispatcher } from "../../native/common/generatedipc/FileFacadeSendDispatcher.js"
+import { NativePushFacadeSendDispatcher } from "../../native/common/generatedipc/NativePushFacadeSendDispatcher.js"
+import { NativeCryptoFacadeSendDispatcher } from "../../native/common/generatedipc/NativeCryptoFacadeSendDispatcher"
+import { random } from "@tutao/tutanota-crypto"
+import { ExportFacadeSendDispatcher } from "../../native/common/generatedipc/ExportFacadeSendDispatcher.js"
+import { assertNotNull } from "@tutao/tutanota-utils"
+import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import { SqlCipherFacadeSendDispatcher } from "../../native/common/generatedipc/SqlCipherFacadeSendDispatcher.js"
 
 assertWorkerOrNode()
 
@@ -99,12 +99,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.instanceMapper = new InstanceMapper()
 	locator.rsa = await createRsaImplementation(worker)
 	locator.restClient = new RestClient(suspensionHandler)
-	locator.serviceExecutor = new ServiceExecutor(
-		locator.restClient,
-		locator.user,
-		locator.instanceMapper,
-		() => locator.crypto,
-	)
+	locator.serviceExecutor = new ServiceExecutor(locator.restClient, locator.user, locator.instanceMapper, () => locator.crypto)
 	const entityRestClient = new EntityRestClient(locator.user, locator.restClient, () => locator.crypto, locator.instanceMapper)
 	locator._browserData = browserData
 
@@ -187,13 +182,40 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.crypto,
 	)
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
-	locator.blob = new BlobFacade(locator.user, locator.serviceExecutor, locator.restClient, suspensionHandler, fileApp, aesApp, locator.instanceMapper, locator.crypto)
-	locator.file = new FileFacade(locator.user, locator.restClient, suspensionHandler, fileApp, aesApp, locator.instanceMapper, locator.serviceExecutor, locator.crypto)
+	locator.blob = new BlobFacade(
+		locator.user,
+		locator.serviceExecutor,
+		locator.restClient,
+		suspensionHandler,
+		fileApp,
+		aesApp,
+		locator.instanceMapper,
+		locator.crypto,
+	)
+	locator.file = new FileFacade(
+		locator.user,
+		locator.restClient,
+		suspensionHandler,
+		fileApp,
+		aesApp,
+		locator.instanceMapper,
+		locator.serviceExecutor,
+		locator.crypto,
+	)
 	locator.mail = new MailFacade(locator.user, locator.file, locator.cachingEntityClient, locator.crypto, locator.serviceExecutor, locator.blob, fileApp)
 	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)
 	// not needed for admin client
 	if (!isAdminClient()) {
-		locator.calendar = new CalendarFacade(locator.user, locator.groupManagement, assertNotNull(cache), nativePushFacade, worker, locator.instanceMapper, locator.serviceExecutor, locator.crypto)
+		locator.calendar = new CalendarFacade(
+			locator.user,
+			locator.groupManagement,
+			assertNotNull(cache),
+			nativePushFacade,
+			worker,
+			locator.instanceMapper,
+			locator.serviceExecutor,
+			locator.crypto,
+		)
 	}
 	locator.mailAddress = new MailAddressFacade(
 		locator.user,
@@ -232,5 +254,5 @@ export async function resetLocator(): Promise<void> {
 }
 
 if (typeof self !== "undefined") {
-	(self as unknown as WorkerGlobalScope).locator = locator // export in worker scope
+	;(self as unknown as WorkerGlobalScope).locator = locator // export in worker scope
 }

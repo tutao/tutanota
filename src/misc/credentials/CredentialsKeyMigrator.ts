@@ -1,5 +1,5 @@
-import type {CredentialEncryptionMode} from "./CredentialEncryptionMode"
-import {NativeCredentialsFacade} from "../../native/common/generatedipc/NativeCredentialsFacade.js"
+import type { CredentialEncryptionMode } from "./CredentialEncryptionMode"
+import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade.js"
 
 /**
  * Interface for credentials key migration. Migration becomes necessary when the encryption mode for a device is changed,
@@ -20,17 +20,9 @@ export interface CredentialsKeyMigrator {
  * Platform-independent implementation for of ICredentialsKeyMigrator.
  */
 export class DefaultCredentialsKeyMigrator implements CredentialsKeyMigrator {
+	constructor(private readonly nativeCredentials: NativeCredentialsFacade) {}
 
-	constructor(
-		private readonly nativeCredentials: NativeCredentialsFacade
-	) {
-	}
-
-	async migrateCredentialsKey(
-		oldKeyEncrypted: Uint8Array,
-		oldMode: CredentialEncryptionMode,
-		newMode: CredentialEncryptionMode,
-	): Promise<Uint8Array> {
+	async migrateCredentialsKey(oldKeyEncrypted: Uint8Array, oldMode: CredentialEncryptionMode, newMode: CredentialEncryptionMode): Promise<Uint8Array> {
 		const oldKeyDecryptedKeyBase64 = await this.nativeCredentials.decryptUsingKeychain(oldKeyEncrypted, oldMode)
 		return await this.nativeCredentials.encryptUsingKeychain(oldKeyDecryptedKeyBase64, newMode)
 	}

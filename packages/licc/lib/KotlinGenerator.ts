@@ -7,10 +7,10 @@ import {
 	minusculize,
 	RenderedType,
 	StructDefinition,
-	TypeRefDefinition
+	TypeRefDefinition,
 } from "./common.js"
-import {Accumulator} from "./Accumulator.js"
-import {ParsedType, parseType} from "./Parser.js"
+import { Accumulator } from "./Accumulator.js"
+import { ParsedType, parseType } from "./Parser.js"
 
 export class KotlinGenerator implements LangGenerator {
 	generateGlobalDispatcher(name: string, facadeNames: string[]): string {
@@ -26,7 +26,9 @@ export class KotlinGenerator implements LangGenerator {
 		}
 		acc.line(") {")
 		for (let facadeName of facadeNames) {
-			methodAcc.line(`private val ${minusculize(facadeName)}: ${facadeName}ReceiveDispatcher = ${facadeName}ReceiveDispatcher(json, ${minusculize(facadeName)})`)
+			methodAcc.line(
+				`private val ${minusculize(facadeName)}: ${facadeName}ReceiveDispatcher = ${facadeName}ReceiveDispatcher(json, ${minusculize(facadeName)})`,
+			)
 		}
 		methodAcc.line()
 
@@ -111,7 +113,7 @@ export class KotlinGenerator implements LangGenerator {
 			const arg = getArgs(methodName, methodDef)
 			const decodedArgs = []
 			for (let i = 0; i < arg.length; i++) {
-				const {name: argName, type} = arg[i]
+				const { name: argName, type } = arg[i]
 				const renderedArgType = typeNameKotlin(type)
 				decodedArgs.push([argName, renderedArgType] as const)
 			}
@@ -186,14 +188,13 @@ export class KotlinGenerator implements LangGenerator {
 			classBodyAcc.line()
 		}
 
-
 		acc.line(`}`)
 		return acc.finish()
 	}
 
 	generateExtraFiles(): Record<string, string> {
 		return {
-			"NativeInterface": KotlinGenerator.generateNativeInterface()
+			NativeInterface: KotlinGenerator.generateNativeInterface(),
 		}
 	}
 
@@ -208,11 +209,11 @@ export class KotlinGenerator implements LangGenerator {
 		}
 	}
 
-	generateEnum({name, values, doc}: EnumDefinition): string {
+	generateEnum({ name, values, doc }: EnumDefinition): string {
 		return new Accumulator()
-			.do(acc => this.generateDocComment(acc, doc))
+			.do((acc) => this.generateDocComment(acc, doc))
 			.line(`enum class ${name} {`)
-			.indented(acc => acc.lines(values.map(value => `${value},`)))
+			.indented((acc) => acc.lines(values.map((value) => `${value},`)))
 			.line("}")
 			.finish()
 	}
@@ -224,33 +225,33 @@ function typeNameKotlin(name: string): RenderedType {
 }
 
 function renderKotlinType(parsed: ParsedType): RenderedType {
-	const {baseName, nullable, external} = parsed
+	const { baseName, nullable, external } = parsed
 	switch (baseName) {
 		case "List":
 			const renderedListInner = renderKotlinType(parsed.generics[0])
 			return {
 				externals: renderedListInner.externals,
-				name: maybeNullable(`List<${renderedListInner.name}>`, nullable)
+				name: maybeNullable(`List<${renderedListInner.name}>`, nullable),
 			}
 		case "Map":
 			const renderedKey = renderKotlinType(parsed.generics[0])
 			const renderedValue = renderKotlinType(parsed.generics[1])
 			return {
 				externals: [...renderedKey.externals, ...renderedValue.externals],
-				name: maybeNullable(`Map<${renderedKey.name}, ${renderedValue.name}>`, nullable)
+				name: maybeNullable(`Map<${renderedKey.name}, ${renderedValue.name}>`, nullable),
 			}
 		case "string":
-			return {externals: [], name: maybeNullable("String", nullable)}
+			return { externals: [], name: maybeNullable("String", nullable) }
 		case "boolean":
-			return {externals: [], name: maybeNullable("Boolean", nullable)}
+			return { externals: [], name: maybeNullable("Boolean", nullable) }
 		case "number":
-			return {externals: [], name: maybeNullable("Int", nullable)}
+			return { externals: [], name: maybeNullable("Int", nullable) }
 		case "bytes":
-			return {externals: [], name: maybeNullable("DataWrapper", nullable)}
+			return { externals: [], name: maybeNullable("DataWrapper", nullable) }
 		case "void":
-			return {externals: [], name: maybeNullable("Unit", nullable)}
+			return { externals: [], name: maybeNullable("Unit", nullable) }
 		default:
-			return {externals: [baseName], name: maybeNullable(baseName, nullable)}
+			return { externals: [baseName], name: maybeNullable(baseName, nullable) }
 	}
 }
 

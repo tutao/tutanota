@@ -1,9 +1,9 @@
-import type {LoginController} from "../api/main/LoginController"
-import {Dialog} from "../gui/base/Dialog"
-import {generatedIdToTimestamp} from "../api/common/utils/EntityUtils"
-import type {TranslationText} from "./LanguageViewModel"
-import {InfoLink, lang} from "./LanguageViewModel"
-import {getApiOrigin} from "../api/common/Env"
+import type { LoginController } from "../api/main/LoginController"
+import { Dialog } from "../gui/base/Dialog"
+import { generatedIdToTimestamp } from "../api/common/utils/EntityUtils"
+import type { TranslationText } from "./LanguageViewModel"
+import { InfoLink, lang } from "./LanguageViewModel"
+import { getApiOrigin } from "../api/common/Env"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -15,18 +15,18 @@ import {
 	NotFoundError,
 	TooManyRequestsError,
 } from "../api/common/error/RestError"
-import {CancelledError} from "../api/common/error/CancelledError"
-import {ApprovalStatus, getCustomerApprovalStatus} from "../api/common/TutanotaConstants"
-import type {ResetAction} from "../login/recover/RecoverLoginDialog"
-import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {UserError} from "../api/main/UserError"
-import {noOp, ofClass} from "@tutao/tutanota-utils"
-import {showUserError} from "./ErrorHandlerImpl"
-import type {SubscriptionParameters} from "../subscription/UpgradeSubscriptionWizard"
-import {locator} from "../api/main/MainLocator"
-import {CredentialAuthenticationError} from "../api/common/error/CredentialAuthenticationError"
-import type {Params} from "mithril";
-import {LoginState} from "../login/LoginViewModel.js"
+import { CancelledError } from "../api/common/error/CancelledError"
+import { ApprovalStatus, getCustomerApprovalStatus } from "../api/common/TutanotaConstants"
+import type { ResetAction } from "../login/recover/RecoverLoginDialog"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { UserError } from "../api/main/UserError"
+import { noOp, ofClass } from "@tutao/tutanota-utils"
+import { showUserError } from "./ErrorHandlerImpl"
+import type { SubscriptionParameters } from "../subscription/UpgradeSubscriptionWizard"
+import { locator } from "../api/main/MainLocator"
+import { CredentialAuthenticationError } from "../api/common/error/CredentialAuthenticationError"
+import type { Params } from "mithril"
+import { LoginState } from "../login/LoginViewModel.js"
 
 /**
  * Shows warnings if the invoices are not paid or the registration is not approved yet.
@@ -34,11 +34,7 @@ import {LoginState} from "../login/LoginViewModel.js"
  * @param defaultStatus This status is used if the actual status on the customer is "0"
  * @returns True if the user may still send emails, false otherwise.
  */
-export function checkApprovalStatus(
-	logins: LoginController,
-	includeInvoiceNotPaidForAdmin: boolean,
-	defaultStatus?: ApprovalStatus,
-): Promise<boolean> {
+export function checkApprovalStatus(logins: LoginController, includeInvoiceNotPaidForAdmin: boolean, defaultStatus?: ApprovalStatus): Promise<boolean> {
 	if (!logins.getUserController().isInternalUser()) {
 		// external users are not authorized to load the customer
 		return Promise.resolve(true)
@@ -47,11 +43,9 @@ export function checkApprovalStatus(
 	return logins
 		.getUserController()
 		.loadCustomer()
-		.then(customer => {
+		.then((customer) => {
 			const approvalStatus = getCustomerApprovalStatus(customer)
-			const status = approvalStatus === ApprovalStatus.REGISTRATION_APPROVED && defaultStatus != null
-				? defaultStatus
-				: approvalStatus
+			const status = approvalStatus === ApprovalStatus.REGISTRATION_APPROVED && defaultStatus != null ? defaultStatus : approvalStatus
 			if (
 				status === ApprovalStatus.REGISTRATION_APPROVAL_NEEDED ||
 				status === ApprovalStatus.DELAYED ||
@@ -72,12 +66,12 @@ export function checkApprovalStatus(
 								"{1}": getApiOrigin(),
 							})
 						})
-									 .then(() => {
-										 // TODO: navigate to payment site in settings
-										 //m.route.set("/settings")
-										 //tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
-									 })
-									 .then(() => true)
+							.then(() => {
+								// TODO: navigate to payment site in settings
+								//m.route.set("/settings")
+								//tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
+							})
+							.then(() => true)
 					} else {
 						return true
 					}
@@ -92,9 +86,9 @@ export function checkApprovalStatus(
 				return false
 			} else if (status === ApprovalStatus.PAID_SUBSCRIPTION_NEEDED) {
 				let message = lang.get(customer.businessUse ? "businessUseUpgradeNeeded_msg" : "upgradeNeeded_msg")
-				return Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, InfoLink.PremiumProBusiness).then(confirmed => {
+				return Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, InfoLink.PremiumProBusiness).then((confirmed) => {
 					if (confirmed) {
-						import("../subscription/UpgradeSubscriptionWizard").then(m => m.showUpgradeWizard())
+						import("../subscription/UpgradeSubscriptionWizard").then((m) => m.showUpgradeWizard())
 					}
 
 					return false
@@ -160,7 +154,7 @@ export function handleExpectedLoginError<E extends Error>(error: E, handler: (er
 	}
 }
 
-export function getLoginErrorStateAndMessage(error: Error): {errorMessage: TranslationText, state: LoginState} {
+export function getLoginErrorStateAndMessage(error: Error): { errorMessage: TranslationText; state: LoginState } {
 	let errorMessage = getLoginErrorMessage(error, false)
 	let state
 	if (error instanceof BadRequestError || error instanceof NotAuthenticatedError) {
@@ -173,10 +167,9 @@ export function getLoginErrorStateAndMessage(error: Error): {errorMessage: Trans
 	handleExpectedLoginError(error, noOp)
 	return {
 		errorMessage,
-		state
+		state,
 	}
 }
-
 
 export async function showSignupDialog(hashParams: Params) {
 	const subscriptionParams = getSubscriptionParameters(hashParams)
@@ -184,7 +177,7 @@ export async function showSignupDialog(hashParams: Params) {
 	await showProgressDialog(
 		"loading_msg",
 		locator.worker.initialized.then(async () => {
-			const {loadSignupWizard} = await import("../subscription/UpgradeSubscriptionWizard")
+			const { loadSignupWizard } = await import("../subscription/UpgradeSubscriptionWizard")
 			await loadSignupWizard(subscriptionParams, registrationDataId)
 		}),
 	)
@@ -192,7 +185,7 @@ export async function showSignupDialog(hashParams: Params) {
 
 function getSubscriptionParameters(hashParams: Params): SubscriptionParameters | null {
 	if (typeof hashParams.subscription === "string" && typeof hashParams.type === "string" && typeof hashParams.interval === "string") {
-		const {subscription, type, interval} = hashParams
+		const { subscription, type, interval } = hashParams
 		return {
 			subscription,
 			type,
@@ -211,7 +204,6 @@ export function getRegistrationDataIdFromParams(hashParams: Params): string | nu
 	return null
 }
 
-
 async function loadRedeemGiftCardWizard(urlHash: string): Promise<Dialog> {
 	const wizard = await import("../subscription/giftcards/RedeemGiftCardWizard")
 	return wizard.loadRedeemGiftCardWizard(urlHash)
@@ -219,8 +211,8 @@ async function loadRedeemGiftCardWizard(urlHash: string): Promise<Dialog> {
 
 export async function showGiftCardDialog(urlHash: string) {
 	showProgressDialog("loading_msg", loadRedeemGiftCardWizard(urlHash))
-		.then(dialog => dialog.show())
-		.catch(e => {
+		.then((dialog) => dialog.show())
+		.catch((e) => {
 			if (e instanceof NotAuthorizedError || e instanceof NotFoundError) {
 				throw new UserError("invalidGiftCard_msg")
 			} else {

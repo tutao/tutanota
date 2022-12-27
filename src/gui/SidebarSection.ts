@@ -1,10 +1,10 @@
-import m, {Child, Children, Component, Vnode} from "mithril"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {lang} from "../misc/LanguageViewModel"
-import {theme} from "./theme"
-import type {ButtonAttrs} from "./base/Button.js"
-import {Button} from "./base/Button.js"
-import type {lazy} from "@tutao/tutanota-utils"
+import m, { Child, Children, Component, Vnode } from "mithril"
+import type { TranslationKey } from "../misc/LanguageViewModel"
+import { lang } from "../misc/LanguageViewModel"
+import { theme } from "./theme"
+import type { ButtonAttrs } from "./base/Button.js"
+import { Button } from "./base/Button.js"
+import type { lazy } from "@tutao/tutanota-utils"
 
 export type SidebarSectionAttrs = {
 	name: TranslationKey | lazy<string>
@@ -13,7 +13,7 @@ export type SidebarSectionAttrs = {
 
 export class SidebarSection implements Component<SidebarSectionAttrs> {
 	view(vnode: Vnode<SidebarSectionAttrs>): Children {
-		const {name, button} = vnode.attrs
+		const { name, button } = vnode.attrs
 		const content = vnode.children
 		return m(
 			".sidebar-section.mb",

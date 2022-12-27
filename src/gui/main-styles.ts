@@ -1,11 +1,11 @@
-import {styles} from "./styles"
-import {px, size} from "./size"
-import {client} from "../misc/ClientDetector"
-import {lang} from "../misc/LanguageViewModel"
-import {noselect, position_absolute, positionValue} from "./mixins"
-import {assertMainOrNodeBoot, isAdminClient, isApp, isElectronClient} from "../api/common/Env"
-import {getElevatedBackground, getNavigationMenuBg, theme} from "./theme"
-import {BrowserType} from "../misc/ClientConstants"
+import { styles } from "./styles"
+import { px, size } from "./size"
+import { client } from "../misc/ClientDetector"
+import { lang } from "../misc/LanguageViewModel"
+import { noselect, position_absolute, positionValue } from "./mixins"
+import { assertMainOrNodeBoot, isAdminClient, isApp, isElectronClient } from "../api/common/Env"
+import { getElevatedBackground, getNavigationMenuBg, theme } from "./theme"
+import { BrowserType } from "../misc/ClientConstants"
 
 assertMainOrNodeBoot()
 
@@ -31,9 +31,8 @@ export function getFonts(): string {
 const boxShadow = `0 2px 12px rgba(0, 0, 0, 0.4), 0 10px 40px rgba(0, 0, 0, 0.3)`
 styles.registerStyle("main", () => {
 	return {
-		"#link-tt":
-			isElectronClient()
-				? {
+		"#link-tt": isElectronClient()
+			? {
 					"pointer-events": "none",
 					"font-size": px(size.font_size_small),
 					"padding-left": px(size.hpad_small),
@@ -50,36 +49,35 @@ styles.registerStyle("main", () => {
 					opacity: 0,
 					transition: "opacity .1s linear",
 					"font-family": "monospace",
-				}
-				: {},
-		"#link-tt.reveal":
-			isElectronClient()
-				? {
+			  }
+			: {},
+		"#link-tt.reveal": isElectronClient()
+			? {
 					opacity: 1,
 					transition: "opacity .1s linear",
 					"z-index": 100,
-				}
-				: {},
+			  }
+			: {},
 		"*:not(input):not(textarea)": isAdminClient()
 			? {}
 			: {
-				"user-select": "none",
+					"user-select": "none",
 
-				/* disable selection/Copy for UI elements*/
-				"-ms-user-select": "none",
-				"-webkit-user-select": "none",
-				"-moz-user-select": "none",
-				"-webkit-touch-callout": "none",
+					/* disable selection/Copy for UI elements*/
+					"-ms-user-select": "none",
+					"-webkit-user-select": "none",
+					"-moz-user-select": "none",
+					"-webkit-touch-callout": "none",
 
-				/* disable the IOS popup when long-press on a link */
-				"-webkit-tap-highlight-color": "rgba(0, 0, 0, 0)",
-			},
+					/* disable the IOS popup when long-press on a link */
+					"-webkit-tap-highlight-color": "rgba(0, 0, 0, 0)",
+			  },
 		"*:not(input):not(textarea):not([draggable='true'])": {
 			"-webkit-user-drag": "none",
 		},
 		// Disable outline for mouse and touch navigation
 		":where(.mouse-nav) *, :where(.touch-nav) *": {
-			outline: "none"
+			outline: "none",
 		},
 		".selectable": {
 			"user-select": "text !important",
@@ -120,10 +118,10 @@ styles.registerStyle("main", () => {
 		},
 		":root": {
 			// We need it because we can't get env() value from JS directly
-			'--safe-area-inset-bottom': 'env(safe-area-inset-bottom)',
-			'--safe-area-inset-top': 'env(safe-area-inset-top)',
-			'--safe-area-inset-right': 'env(safe-area-inset-right)',
-			'--safe-area-inset-left': 'env(safe-area-inset-left)',
+			"--safe-area-inset-bottom": "env(safe-area-inset-bottom)",
+			"--safe-area-inset-top": "env(safe-area-inset-top)",
+			"--safe-area-inset-right": "env(safe-area-inset-right)",
+			"--safe-area-inset-left": "env(safe-area-inset-left)",
 		},
 		"html, body": {
 			height: "100%",
@@ -228,7 +226,7 @@ styles.registerStyle("main", () => {
 			"background-color": theme.content_border,
 		},
 		".border": {
-			"border": `1px solid ${theme.content_border}`,
+			border: `1px solid ${theme.content_border}`,
 		},
 		".border-top": {
 			"border-top": `1px solid ${theme.content_border}`,
@@ -455,7 +453,7 @@ styles.registerStyle("main", () => {
 			"margin-top": px(-size.hpad_button),
 		},
 		".mt-negative-s": {
-			"margin-top": px(-size.vpad_small)
+			"margin-top": px(-size.vpad_small),
 		},
 		".mt-negative-m": {
 			"margin-top": px(-size.vpad),
@@ -508,7 +506,7 @@ styles.registerStyle("main", () => {
 		},
 		".break-word": {
 			"word-break": "normal",
-			"overflow-wrap": "break-word"
+			"overflow-wrap": "break-word",
 		},
 		".break-word-links a": {
 			"word-wrap": "break-word",
@@ -683,16 +681,16 @@ styles.registerStyle("main", () => {
 		},
 		"::-webkit-scrollbar": !client.isMobileDevice()
 			? {
-				background: "transparent",
-				width: "8px", // width of vertical scrollbar
-				height: "8px", // width of horizontal scrollbar
-			}
+					background: "transparent",
+					width: "8px", // width of vertical scrollbar
+					height: "8px", // width of horizontal scrollbar
+			  }
 			: {},
 		"::-webkit-scrollbar-thumb": !client.isMobileDevice()
 			? {
-				background: theme.content_button,
-				"border-radius": "4px",
-			}
+					background: theme.content_button,
+					"border-radius": "4px",
+			  }
 			: {},
 		// scrollbar will be disabled for mobile devices, even with .scroll applied,
 		// apply this class if you need it to show
@@ -1045,56 +1043,56 @@ styles.registerStyle("main", () => {
 		},
 		".icon-button": {
 			"border-radius": "25%",
-			"width": px(size.button_height),
-			"height": px(size.button_height),
+			width: px(size.button_height),
+			height: px(size.button_height),
 			"max-width": px(size.button_height),
 			"max-height": px(size.button_height),
 		},
 		".center-h": {
-			"margin": "0 auto"
+			margin: "0 auto",
 		},
 		".toggle-button": {
 			"border-radius": "25%",
-			"width": px(size.button_height),
-			"height": px(size.button_height),
+			width: px(size.button_height),
+			height: px(size.button_height),
 			"max-width": px(size.button_height),
 			"max-height": px(size.button_height),
 		},
 		".compact": {
-			"width": `${size.button_height_compact}px !important`,
-			"height": `${size.button_height_compact}px !important`,
+			width: `${size.button_height_compact}px !important`,
+			height: `${size.button_height_compact}px !important`,
 		},
 		// state-bg is a simulation of a "state layer" from Material but without an additional layer
 		// We don't exactly follow transparency for it because we combine transparency with light grey color which works well on both light and dark themes
 		".state-bg": {
-			"background": "transparent",
-			"transition": "background 0.6s",
+			background: "transparent",
+			transition: "background 0.6s",
 			// undoing our default button styling
-			"opacity": "1 !important"
+			opacity: "1 !important",
 		},
 		// Only enable hover for mouse and keyboard navigation (not touch) because
 		// :hover will bet stuck after the touch on mobile.
 		// Use :where() to not count towards specificity, otherwise this is more specific
 		// than :active (which is unconditional
 		":where(.mouse-nav) .state-bg:hover, :where(.keyboard-nav) .state-bg:hover": {
-			"background": "rgba(139,139,139,0.22)",
+			background: "rgba(139,139,139,0.22)",
 			"transition-duration": ".3s",
 		},
 		":where(.keyboard-nav) .state-bg:focus": {
-			"background": "rgba(139,139,139,0.29)",
+			background: "rgba(139,139,139,0.29)",
 			"transition-duration": ".3s",
 			// disable default focus indicator because we have our own for this element
-			"outline": "none",
+			outline: "none",
 		},
 		".state-bg:active, .state-bg[toggled=true]": {
-			"background": "rgba(139,139,139,0.38)",
+			background: "rgba(139,139,139,0.38)",
 			"transition-duration": ".3s",
 		},
 		".translucent": {
-			opacity: "0.4"
+			opacity: "0.4",
 		},
 		".opaque": {
-			opacity: "1"
+			opacity: "1",
 		},
 		"@keyframes rotate-icon": {
 			"0%": {
@@ -1120,7 +1118,7 @@ styles.registerStyle("main", () => {
 		},
 		".plr-safe-inset": {
 			"padding-right": "env(safe-area-inset-right)",
-			"padding-left": "env(safe-area-inset-left)"
+			"padding-left": "env(safe-area-inset-left)",
 		},
 		// header
 		".header-nav": {
@@ -1199,7 +1197,7 @@ styles.registerStyle("main", () => {
 			"margin-top": "10px",
 			"border-color": theme.navigation_border,
 			"border-width": "1px",
-			"border-style": "solid"
+			"border-style": "solid",
 		},
 		".search-bar > .text-field": {
 			"padding-top": "0 !important",
@@ -1446,7 +1444,7 @@ styles.registerStyle("main", () => {
 			"padding-bottom": "0px",
 		},
 		".dropdown-button": {
-			"height": px(size.button_height),
+			height: px(size.button_height),
 			"padding-left": px(size.vpad),
 			"padding-right": px(size.vpad),
 		},
@@ -1463,20 +1461,20 @@ styles.registerStyle("main", () => {
 		},
 		".nav-button:hover": !isApp()
 			? {
-				"text-decoration": "underline",
-				opacity: 0.7,
-			}
+					"text-decoration": "underline",
+					opacity: 0.7,
+			  }
 			: {},
 		".nav-button:focus": client.isDesktopDevice()
 			? {
-				"text-decoration": "underline",
-				opacity: 0.7,
-			}
+					"text-decoration": "underline",
+					opacity: 0.7,
+			  }
 			: {},
 		"button:focus, button:hover": client.isDesktopDevice()
 			? {
-				opacity: 0.7,
-			}
+					opacity: 0.7,
+			  }
 			: {},
 		".button-icon": {
 			width: px(size.button_icon_bg_size),
@@ -1506,7 +1504,7 @@ styles.registerStyle("main", () => {
 		".bubble": {
 			"max-width": "300px",
 			"border-radius": px(size.border_radius),
-			"height": px(size.button_height_bubble),
+			height: px(size.button_height_bubble),
 			"background-color": theme.button_bubble_bg,
 			color: theme.button_bubble_fg,
 		},
@@ -1671,10 +1669,10 @@ styles.registerStyle("main", () => {
 		},
 		/* we're selecting every element that's after a summary tag and is inside an opened details tag */
 		"details[open] summary ~ *": {
-			animation: "expand .2s ease-in-out"
+			animation: "expand .2s ease-in-out",
 		},
 		".expand": {
-			animation: "expand .2s ease-in-out"
+			animation: "expand .2s ease-in-out",
 		},
 		"@keyframes expand": {
 			"0%": {
@@ -1816,8 +1814,8 @@ styles.registerStyle("main", () => {
 		".darker-hover:hover": {
 			filter: "brightness(95%)",
 		},
-		'.darkest-hover:hover': {
-			'filter': 'brightness(70%)',
+		".darkest-hover:hover": {
+			filter: "brightness(70%)",
 		},
 		".event-continues-left": {
 			"border-top-left-radius": 0,
@@ -2146,9 +2144,9 @@ styles.registerStyle("main", () => {
 			"writing-mode": "vertical-rl",
 		},
 		"ul.usage-test-opt-in-bullets": {
-			"margin": "0 auto",
+			margin: "0 auto",
 			"list-style": "disc",
 			"text-align": "left",
-		}
+		},
 	}
 })

@@ -2,11 +2,11 @@
  * This file contains some utilities used from various build scripts in this directory.
  */
 import fs from "fs-extra"
-import path, {dirname} from "path"
-import {fileURLToPath} from "url"
+import path, { dirname } from "path"
+import { fileURLToPath } from "url"
 import stream from "stream"
-import {spawn, spawnSync} from "child_process"
-import {$} from "zx"
+import { spawn, spawnSync } from "child_process"
+import { $ } from "zx"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -50,7 +50,7 @@ export async function getInstalledModuleVersion(module, log) {
 		console.log(`Using slow method to resolve dependency version. Add a postinstall script to dump 'npm list' into ${cachePath} to speed things up.`)
 		// npm list likes to error out for no reason so we just print a warning. If it really fails, we will see it.
 		// shell: true because otherwise Windows can't find npm.
-		const {stdout, stderr, status, error} = spawnSync("npm", ["list", module, "--json"], {shell: true})
+		const { stdout, stderr, status, error } = spawnSync("npm", ["list", module, "--json"], { shell: true })
 		if (status !== 0) {
 			log(`npm list is not happy about ${module}, but it doesn't mean anything`, status, stderr, error)
 		}
@@ -67,7 +67,7 @@ export async function getInstalledModuleVersion(module, log) {
 // Unfortunately `npm list` is garbage and instead of just giving you the info about package it will give you some subtree with the thing you are looking for
 // buried deep beneath. So we try to find it manually by descending into each dependency.
 // This surfaces in admin client when keytar is not our direct dependency but rather through the tutanota-3
-function findVersion({dependencies}, nodeModule) {
+function findVersion({ dependencies }, nodeModule) {
 	if (dependencies[nodeModule]) {
 		return dependencies[nodeModule].version
 	} else {
@@ -98,7 +98,7 @@ export function measure() {
  * @returns {string}
  */
 export function getDefaultDistDirectory() {
-	return path.resolve('build/dist')
+	return path.resolve("build/dist")
 }
 
 /** Throws if result has a value other than 0. **/
@@ -112,7 +112,6 @@ export function exitOnFail(result) {
  * Utility for writing to a logging function when a Writable is expected
  */
 export class LogWriter extends stream.Writable {
-
 	/**
 	 * @param logger {(string) => void}
 	 */
@@ -133,9 +132,10 @@ export class LogWriter extends stream.Writable {
  * @returns {Promise<boolean>}
  */
 export async function fileExists(filePath) {
-	return fs.stat(filePath)
-			 .then(stats => stats.isFile())
-			 .catch(() => false)
+	return fs
+		.stat(filePath)
+		.then((stats) => stats.isFile())
+		.catch(() => false)
 }
 
 /**
@@ -167,7 +167,7 @@ export async function runStep(name, cmd) {
 }
 
 export function writeFile(targetFile, content) {
-	return fs.mkdir(path.dirname(targetFile), {recursive: true}).then(() => fs.writeFile(targetFile, content, 'utf-8'))
+	return fs.mkdir(path.dirname(targetFile), { recursive: true }).then(() => fs.writeFile(targetFile, content, "utf-8"))
 }
 
 /**
@@ -179,7 +179,7 @@ export async function sh(pieces, ...args) {
 	// (or more up-to-date version)
 	const fullCommand = formatCommand(pieces, args)
 	console.log(`$ ${fullCommand}`)
-	const child = spawn(fullCommand, {shell: true, stdio: "inherit"})
+	const child = spawn(fullCommand, { shell: true, stdio: "inherit" })
 	return new Promise((resolve, reject) => {
 		child.on("close", (code) => {
 			if (code === 0) {

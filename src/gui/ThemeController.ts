@@ -1,16 +1,16 @@
-import {defaultThemeId, DeviceConfig} from "../misc/DeviceConfig"
-import type {HtmlSanitizer} from "../misc/HtmlSanitizer"
+import { defaultThemeId, DeviceConfig } from "../misc/DeviceConfig"
+import type { HtmlSanitizer } from "../misc/HtmlSanitizer"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {assertMainOrNodeBoot, isApp, isDesktop} from "../api/common/Env"
-import {downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues} from "@tutao/tutanota-utils"
+import { assertMainOrNodeBoot, isApp, isDesktop } from "../api/common/Env"
+import { downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues } from "@tutao/tutanota-utils"
 import m from "mithril"
-import type {BaseThemeId, Theme, ThemeId} from "./theme"
-import {logo_text_bright_grey, logo_text_dark_grey, themes} from "./builtinThemes"
-import type {ThemeCustomizations} from "../misc/WhitelabelCustomizations"
-import {getWhitelabelCustomizations} from "../misc/WhitelabelCustomizations"
-import {getLogoSvg} from "./base/Logo"
-import {ThemeFacade} from "../native/common/generatedipc/ThemeFacade"
+import type { BaseThemeId, Theme, ThemeId } from "./theme"
+import { logo_text_bright_grey, logo_text_dark_grey, themes } from "./builtinThemes"
+import type { ThemeCustomizations } from "../misc/WhitelabelCustomizations"
+import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations"
+import { getLogoSvg } from "./base/Logo"
+import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
 
 assertMainOrNodeBoot()
 
@@ -21,10 +21,7 @@ export class ThemeController {
 	themeIdChangedStream: Stream<ThemeId>
 	initialized: Promise<any>
 
-	constructor(
-		private readonly themeFacade: ThemeFacade,
-		private readonly htmlSanitizer: () => Promise<HtmlSanitizer>
-	) {
+	constructor(private readonly themeFacade: ThemeFacade, private readonly htmlSanitizer: () => Promise<HtmlSanitizer>) {
 		// this will change soon
 		this._themeId = defaultThemeId
 		this._theme = this.getDefaultTheme()
@@ -86,8 +83,8 @@ export class ThemeController {
 			// Make a defensive copy so that original theme definition is not modified.
 			return Object.assign({}, themes[themeId])
 		} else {
-			const loadedThemes = await this.themeFacade.getThemes() as ReadonlyArray<Theme>
-			const customTheme = loadedThemes.find(t => t.themeId === themeId)
+			const loadedThemes = (await this.themeFacade.getThemes()) as ReadonlyArray<Theme>
+			const customTheme = loadedThemes.find((t) => t.themeId === themeId)
 
 			if (customTheme) {
 				await this._sanitizeTheme(customTheme)
@@ -116,7 +113,7 @@ export class ThemeController {
 	}
 
 	_applyTrustedTheme(newTheme: Theme, newThemeId: ThemeId) {
-		Object.keys(this._theme).forEach(key => delete downcast(this._theme)[key])
+		Object.keys(this._theme).forEach((key) => delete downcast(this._theme)[key])
 		// Always overwrite light theme so that optional things are not kept when switching
 		Object.assign(this._theme, this.getDefaultTheme(), newTheme)
 		this._themeId = newThemeId
@@ -161,8 +158,8 @@ export class ThemeController {
 	async updateSavedThemeDefinition(updatedTheme: Theme): Promise<Theme> {
 		const nonNullTheme = Object.assign({}, this.getDefaultTheme(), updatedTheme)
 		await this._sanitizeTheme(nonNullTheme)
-		const oldThemes = await this.themeFacade.getThemes() as Array<Theme>
-		findAndRemove(oldThemes, t => t.themeId === updatedTheme.themeId)
+		const oldThemes = (await this.themeFacade.getThemes()) as Array<Theme>
+		findAndRemove(oldThemes, (t) => t.themeId === updatedTheme.themeId)
 		oldThemes.push(nonNullTheme)
 		await this.themeFacade.setThemes(oldThemes)
 		return nonNullTheme
@@ -191,13 +188,16 @@ export class ThemeController {
 			return Object.assign({}, this.getBaseTheme(customizations.base), customizations)
 		} else {
 			const themeWithoutLogo = Object.assign({}, this.getBaseTheme(customizations.base), customizations)
-			const coloredTutanotaLogo = getLogoSvg(themeWithoutLogo.content_accent, customizations.base === "light" ? logo_text_dark_grey : logo_text_bright_grey)
-			return {...themeWithoutLogo, ...{logo: coloredTutanotaLogo}}
+			const coloredTutanotaLogo = getLogoSvg(
+				themeWithoutLogo.content_accent,
+				customizations.base === "light" ? logo_text_dark_grey : logo_text_bright_grey,
+			)
+			return { ...themeWithoutLogo, ...{ logo: coloredTutanotaLogo } }
 		}
 	}
 
 	async getCustomThemes(): Promise<Array<ThemeId>> {
-		return mapAndFilterNull(await this.themeFacade.getThemes(), theme => {
+		return mapAndFilterNull(await this.themeFacade.getThemes(), (theme) => {
 			return !(theme.themeId in themes) ? theme.themeId : null
 		})
 	}
@@ -213,7 +213,7 @@ export class NativeThemeFacade implements ThemeFacade {
 
 	constructor() {
 		this.themeFacade = new LazyLoaded<ThemeFacade>(async () => {
-			const {locator} = await import("../api/main/MainLocator")
+			const { locator } = await import("../api/main/MainLocator")
 			// Theme initialization happens concurrently with locator initialization,
 			// so we have to wait or native may not yet be defined when we first get here.
 			// It would be nice to move all the global theme handling onto the locator as
@@ -235,7 +235,7 @@ export class NativeThemeFacade implements ThemeFacade {
 
 	async getThemes(): Promise<Array<Theme>> {
 		const dispatcher = await this.themeFacade.getAsync()
-		return await dispatcher.getThemes() as Theme[]
+		return (await dispatcher.getThemes()) as Theme[]
 	}
 
 	async setThemes(themes: ReadonlyArray<Theme>): Promise<void> {

@@ -1,4 +1,4 @@
-import {$} from "zx"
+import { $ } from "zx"
 
 await $`npm run build-packages`
 // We preserve const enums because when other packages consume .js (e.g. admin w/ esbuild) they don't see them

@@ -1,21 +1,21 @@
-import m, {Children} from "mithril"
+import m, { Children } from "mithril"
 import stream from "mithril/stream"
-import {ContactView} from "./ContactView"
-import type {VirtualRow} from "../../gui/base/List"
-import {List} from "../../gui/base/List"
-import type {Contact} from "../../api/entities/tutanota/TypeRefs.js"
-import {ContactTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {getContactListName} from "../model/ContactUtils"
-import {lang} from "../../misc/LanguageViewModel"
-import {NotFoundError} from "../../api/common/error/RestError"
-import {size} from "../../gui/size"
-import {locator} from "../../api/main/MainLocator"
-import {GENERATED_MAX_ID} from "../../api/common/utils/EntityUtils"
-import {ListColumnWrapper} from "../../gui/ListColumnWrapper"
-import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
-import {compareContacts} from "./ContactGuiUtils"
-import {ofClass} from "@tutao/tutanota-utils"
-import {assertMainOrNode} from "../../api/common/Env"
+import { ContactView } from "./ContactView"
+import type { VirtualRow } from "../../gui/base/List"
+import { List } from "../../gui/base/List"
+import type { Contact } from "../../api/entities/tutanota/TypeRefs.js"
+import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { getContactListName } from "../model/ContactUtils"
+import { lang } from "../../misc/LanguageViewModel"
+import { NotFoundError } from "../../api/common/error/RestError"
+import { size } from "../../gui/size"
+import { locator } from "../../api/main/MainLocator"
+import { GENERATED_MAX_ID } from "../../api/common/utils/EntityUtils"
+import { ListColumnWrapper } from "../../gui/ListColumnWrapper"
+import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
+import { compareContacts } from "./ContactGuiUtils"
+import { ofClass } from "@tutao/tutanota-utils"
+import { assertMainOrNode } from "../../api/common/Env"
 
 assertMainOrNode()
 const className = "contact-list"
@@ -37,22 +37,20 @@ export class ContactListView {
 			fetch: async (startId, count) => {
 				if (startId === GENERATED_MAX_ID) {
 					const contactListId = await locator.contactModel.contactListId()
-					if (contactListId == null) return {items: [], complete: true}
+					if (contactListId == null) return { items: [], complete: true }
 					const allContacts = await locator.entityClient.loadAll(ContactTypeRef, contactListId)
-					return {items: allContacts, complete: true}
+					return { items: allContacts, complete: true }
 				} else {
 					throw new Error("fetch contact called for specific start id")
 				}
 			},
-			loadSingle: elementId => {
-				return locator.entityClient
-							  .load<Contact>(ContactTypeRef, [this.listId, elementId])
-							  .catch(
-								  ofClass(NotFoundError, () => {
-									  // we return null if the entity does not exist
-									  return null
-								  }),
-							  )
+			loadSingle: (elementId) => {
+				return locator.entityClient.load<Contact>(ContactTypeRef, [this.listId, elementId]).catch(
+					ofClass(NotFoundError, () => {
+						// we return null if the entity does not exist
+						return null
+					}),
+				)
 			},
 			sortCompare: (c1, c2) => compareContacts(c1, c2, sortByFirstName()),
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) =>
@@ -62,8 +60,8 @@ export class ContactListView {
 			swipe: {
 				renderLeftSpacer: () => [],
 				renderRightSpacer: () => [],
-				swipeLeft: listElement => Promise.resolve(false),
-				swipeRight: listElement => Promise.resolve(false),
+				swipeLeft: (listElement) => Promise.resolve(false),
+				swipeRight: (listElement) => Promise.resolve(false),
 				enabled: false,
 			},
 			multiSelectionAllowed: true,
@@ -143,12 +141,12 @@ export class ContactRow implements VirtualRow<Contact> {
 		let elements = [
 			m(".top", [
 				m(".name.text-ellipsis", {
-					oncreate: vnode => (this._domName = vnode.dom as HTMLElement),
+					oncreate: (vnode) => (this._domName = vnode.dom as HTMLElement),
 				}),
 			]),
 			m(".bottom.flex-space-between", [
 				m("small.mail-address", {
-					oncreate: vnode => (this._domAddress = vnode.dom as HTMLElement),
+					oncreate: (vnode) => (this._domAddress = vnode.dom as HTMLElement),
 				}),
 			]),
 		]

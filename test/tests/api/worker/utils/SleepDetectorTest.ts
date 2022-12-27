@@ -1,9 +1,9 @@
 import o from "ospec"
-import {CHECK_INTERVAL, SLEEP_INTERVAL, SleepDetector} from "../../../../../src/api/worker/utils/SleepDetector.js"
-import {SchedulerMock} from "../../../TestUtils.js"
-import {func, object, verify, when} from "testdouble"
-import {assertNotNull} from "@tutao/tutanota-utils"
-import {DateProvider} from "../../../../../src/api/common/DateProvider.js"
+import { CHECK_INTERVAL, SLEEP_INTERVAL, SleepDetector } from "../../../../../src/api/worker/utils/SleepDetector.js"
+import { SchedulerMock } from "../../../TestUtils.js"
+import { func, object, verify, when } from "testdouble"
+import { assertNotNull } from "@tutao/tutanota-utils"
+import { DateProvider } from "../../../../../src/api/common/DateProvider.js"
 
 o.spec("SleepDetector", function () {
 	let scheduler: SchedulerMock
@@ -22,7 +22,7 @@ o.spec("SleepDetector", function () {
 		detector.start(() => {
 			throw new Error("Sleep detected while it shouldn't be")
 		})
-		const {thunk} = assertNotNull(scheduler.scheduledPeriodic.get(CHECK_INTERVAL))
+		const { thunk } = assertNotNull(scheduler.scheduledPeriodic.get(CHECK_INTERVAL))
 		thunk()
 	})
 
@@ -31,7 +31,7 @@ o.spec("SleepDetector", function () {
 
 		const sleepCb = func(() => {})
 		detector.start(sleepCb)
-		const {thunk} = assertNotNull(scheduler.scheduledPeriodic.get(CHECK_INTERVAL))
+		const { thunk } = assertNotNull(scheduler.scheduledPeriodic.get(CHECK_INTERVAL))
 		thunk()
 
 		verify(sleepCb())
@@ -42,7 +42,7 @@ o.spec("SleepDetector", function () {
 
 		const sleepCb = func(() => {})
 		detector.start(sleepCb)
-		const {id} = assertNotNull(scheduler.scheduledPeriodic.get(CHECK_INTERVAL))
+		const { id } = assertNotNull(scheduler.scheduledPeriodic.get(CHECK_INTERVAL))
 		detector.stop()
 
 		o(scheduler.cancelledPeriodic.has(id)).equals(true)("Has cancelled check task")

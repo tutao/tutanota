@@ -1,7 +1,7 @@
 import o from "ospec"
-import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
-import {bitArrayToUint8Array} from "../lib/misc/Utils.js"
-import {TotpVerifier} from "../lib/misc/TotpVerifier.js"
+import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { bitArrayToUint8Array } from "../lib/misc/Utils.js"
+import { TotpVerifier } from "../lib/misc/TotpVerifier.js"
 import sjcl from "../lib/internal/sjcl.js"
 
 o.spec("TotpVerifier", function () {

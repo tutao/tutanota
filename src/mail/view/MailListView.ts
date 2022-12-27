@@ -1,36 +1,36 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {lang} from "../../misc/LanguageViewModel"
-import type {ListFetchResult, VirtualRow} from "../../gui/base/List"
-import {List} from "../../gui/base/List"
-import {MailFolderType, MailState} from "../../api/common/TutanotaConstants"
-import type {MailView} from "./MailView"
-import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
-import {MailTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {canDoDragAndDropExport, getFolderName} from "../model/MailUtils"
-import {NotFoundError} from "../../api/common/error/RestError"
-import {size} from "../../gui/size"
-import {styles} from "../../gui/styles"
-import {Icon} from "../../gui/base/Icon"
-import {Icons} from "../../gui/base/icons/Icons"
-import {logins} from "../../api/main/LoginController"
-import type {ButtonAttrs} from "../../gui/base/Button.js"
-import {Button, ButtonColor, ButtonType} from "../../gui/base/Button.js"
-import {Dialog} from "../../gui/base/Dialog"
-import {assertNotNull, AsyncResult, count, debounce, downcast, neverNull, ofClass, promiseFilter, promiseMap} from "@tutao/tutanota-utils"
-import {locator} from "../../api/main/MainLocator"
-import {getLetId, haveSameId, sortCompareByReverseId} from "../../api/common/utils/EntityUtils"
-import {moveMails, promptAndDeleteMails} from "./MailGuiUtils"
-import {MailRow} from "./MailRow"
-import {makeTrackedProgressMonitor} from "../../api/common/utils/ProgressMonitor"
-import {generateExportFileName, generateMailFile, getMailExportMode} from "../export/Exporter"
-import {deduplicateFilenames} from "../../api/common/utils/FileUtils"
-import {makeMailBundle} from "../export/Bundler"
-import {ListColumnWrapper} from "../../gui/ListColumnWrapper"
-import {assertMainOrNode} from "../../api/common/Env"
-import {WsConnectionState} from "../../api/main/WorkerClient"
-import {findAndApplyMatchingRule, isInboxList} from "../model/InboxRuleHandler.js"
-import {isOfflineError} from "../../api/common/utils/ErrorCheckUtils.js"
-import {FolderSystem} from "../model/FolderSystem.js"
+import m, { Children, Component, Vnode } from "mithril"
+import { lang } from "../../misc/LanguageViewModel"
+import type { ListFetchResult, VirtualRow } from "../../gui/base/List"
+import { List } from "../../gui/base/List"
+import { MailFolderType, MailState } from "../../api/common/TutanotaConstants"
+import type { MailView } from "./MailView"
+import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import { MailTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { canDoDragAndDropExport, getFolderName } from "../model/MailUtils"
+import { NotFoundError } from "../../api/common/error/RestError"
+import { size } from "../../gui/size"
+import { styles } from "../../gui/styles"
+import { Icon } from "../../gui/base/Icon"
+import { Icons } from "../../gui/base/icons/Icons"
+import { logins } from "../../api/main/LoginController"
+import type { ButtonAttrs } from "../../gui/base/Button.js"
+import { Button, ButtonColor, ButtonType } from "../../gui/base/Button.js"
+import { Dialog } from "../../gui/base/Dialog"
+import { assertNotNull, AsyncResult, count, debounce, downcast, neverNull, ofClass, promiseFilter, promiseMap } from "@tutao/tutanota-utils"
+import { locator } from "../../api/main/MainLocator"
+import { getLetId, haveSameId, sortCompareByReverseId } from "../../api/common/utils/EntityUtils"
+import { moveMails, promptAndDeleteMails } from "./MailGuiUtils"
+import { MailRow } from "./MailRow"
+import { makeTrackedProgressMonitor } from "../../api/common/utils/ProgressMonitor"
+import { generateExportFileName, generateMailFile, getMailExportMode } from "../export/Exporter"
+import { deduplicateFilenames } from "../../api/common/utils/FileUtils"
+import { makeMailBundle } from "../export/Bundler"
+import { ListColumnWrapper } from "../../gui/ListColumnWrapper"
+import { assertMainOrNode } from "../../api/common/Env"
+import { WsConnectionState } from "../../api/main/WorkerClient"
+import { findAndApplyMatchingRule, isInboxList } from "../model/InboxRuleHandler.js"
+import { isOfflineError } from "../../api/common/utils/ErrorCheckUtils.js"
+import { FolderSystem } from "../model/FolderSystem.js"
 
 assertMainOrNode()
 const className = "mail-list"
@@ -43,11 +43,13 @@ export class MailListView implements Component {
 	// Map of (Mail._id ++ MailExportMode) -> Promise<Filepath>
 	// TODO this currently grows bigger and bigger and bigger if the user goes on an exporting spree.
 	//  maybe we should deal with this, or maybe this never becomes an issue?
-	exportedMails: Map<string,
+	exportedMails: Map<
+		string,
 		{
 			fileName: string
 			result: AsyncResult<any>
-		}>
+		}
+	>
 	// Used for modifying the cursor during drag and drop
 	_listDom: HTMLElement | null
 
@@ -56,92 +58,93 @@ export class MailListView implements Component {
 		this.mailView = mailView
 		this.exportedMails = new Map()
 		this._listDom = null
-		this.list = new List(
-			{
-				rowHeight: size.list_row_height,
-				fetch: async (start, count) => {
-					const result = await this.loadMailRange(start, count)
-					if (result.complete) {
-						this.fixCounterIfNeeded(this.listId, this.list.markCurrentState())
+		this.list = new List({
+			rowHeight: size.list_row_height,
+			fetch: async (start, count) => {
+				const result = await this.loadMailRange(start, count)
+				if (result.complete) {
+					this.fixCounterIfNeeded(this.listId, this.list.markCurrentState())
+				}
+				return result
+			},
+			loadSingle: (elementId) => {
+				return locator.entityClient.load<Mail>(MailTypeRef, [this.listId, elementId]).catch(
+					ofClass(NotFoundError, (e) => {
+						// we return null if the entity does not exist
+						return null
+					}),
+				)
+			},
+			sortCompare: sortCompareByReverseId,
+			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) =>
+				mailView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
+			createVirtualRow: () => new MailRow(false),
+			className: className,
+			swipe: {
+				renderLeftSpacer: () =>
+					!logins.isInternalUserLoggedIn()
+						? []
+						: this.showingDraftFolder()
+						? [
+								m(Icon, {
+									icon: Icons.Cancel,
+								}),
+								m(".pl-s", lang.get("cancel_action")), // if this is the drafts folder, we can only cancel the selection as we have nowhere else to put the mail
+						  ]
+						: [
+								m(Icon, {
+									icon: Icons.Folder,
+								}),
+								m(
+									".pl-s",
+									this.showingTrashOrSpamFolder()
+										? lang.get("recover_label") // show "recover" if this is the trash/spam folder
+										: this.targetInbox() // otherwise show "inbox" or "archive" depending on the folder
+										? lang.get("received_action")
+										: lang.get("archive_action"),
+								),
+						  ],
+				renderRightSpacer: () => [
+					m(Icon, {
+						icon: Icons.Trash,
+					}),
+					m(".pl-s", lang.get("delete_action")),
+				],
+				swipeLeft: (listElement: Mail) => promptAndDeleteMails(locator.mailModel, [listElement], () => this.list.selectNone()),
+				swipeRight: (listElement: Mail) => {
+					if (!logins.isInternalUserLoggedIn()) {
+						return Promise.resolve(false) // externals don't have an archive folder
+					} else if (this.showingDraftFolder()) {
+						// just cancel selection if in drafts
+						this.list.selectNone()
+						return Promise.resolve(false)
+					} else if (this.showingTrashOrSpamFolder()) {
+						// recover email from trash/spam
+						this.list.selectNone()
+						return locator.mailModel.getMailboxFolders(listElement).then((folders) =>
+							moveMails({
+								mailModel: locator.mailModel,
+								mails: [listElement],
+								targetMailFolder: this.getRecoverFolder(listElement, folders),
+							}),
+						)
+					} else {
+						this.list.selectNone()
+						return locator.mailModel.getMailboxFolders(listElement).then((folders) =>
+							moveMails({
+								mailModel: locator.mailModel,
+								mails: [listElement],
+								targetMailFolder: folders.getSystemFolderByType(MailFolderType.ARCHIVE),
+							}),
+						)
 					}
-					return result
 				},
-				loadSingle: elementId => {
-					return locator.entityClient
-								  .load<Mail>(MailTypeRef, [this.listId, elementId])
-								  .catch(
-									  ofClass(NotFoundError, e => {
-										  // we return null if the entity does not exist
-										  return null
-									  }),
-								  )
-				},
-				sortCompare: sortCompareByReverseId,
-				elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) =>
-					mailView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
-				createVirtualRow: () => new MailRow(false),
-				className: className,
-				swipe: {
-					renderLeftSpacer: () =>
-						!logins.isInternalUserLoggedIn()
-							? []
-							: this.showingDraftFolder()
-								? [
-									m(Icon, {
-										icon: Icons.Cancel
-									}),
-									m(".pl-s", lang.get("cancel_action")) // if this is the drafts folder, we can only cancel the selection as we have nowhere else to put the mail
-								]
-								: [
-									m(Icon, {
-										icon: Icons.Folder,
-									}),
-									m(".pl-s",
-										this.showingTrashOrSpamFolder()
-											? lang.get("recover_label") // show "recover" if this is the trash/spam folder
-											: this.targetInbox() ? // otherwise show "inbox" or "archive" depending on the folder
-												lang.get("received_action")
-												: lang.get("archive_action"))
-								],
-					renderRightSpacer: () => [
-						m(Icon, {
-							icon: Icons.Trash,
-						}),
-						m(".pl-s", lang.get("delete_action")),
-					],
-					swipeLeft: (listElement: Mail) => promptAndDeleteMails(locator.mailModel, [listElement], () => this.list.selectNone()),
-					swipeRight: (listElement: Mail) => {
-						if (!logins.isInternalUserLoggedIn()) {
-							return Promise.resolve(false) // externals don't have an archive folder
-						} else if (this.showingDraftFolder()) { // just cancel selection if in drafts
-							this.list.selectNone()
-							return Promise.resolve(false)
-						} else if (this.showingTrashOrSpamFolder()) { // recover email from trash/spam
-							this.list.selectNone()
-							return locator.mailModel
-										  .getMailboxFolders(listElement)
-										  .then(folders => moveMails({
-											  mailModel: locator.mailModel,
-											  mails: [listElement],
-											  targetMailFolder: this.getRecoverFolder(listElement, folders)
-										  }))
-						} else {
-							this.list.selectNone()
-							return locator.mailModel
-										  .getMailboxFolders(listElement)
-										  .then(folders => moveMails({
-											  mailModel: locator.mailModel,
-											  mails: [listElement],
-											  targetMailFolder: folders.getSystemFolderByType(MailFolderType.ARCHIVE)
-										  }))
-						}
-					},
-					enabled: true,
-				},
-				multiSelectionAllowed: true,
-				emptyMessage: lang.get("noMails_msg"),
-				dragStart: (event, row, selected) => this._dragStart(event, row, selected),
-			})
+				enabled: true,
+			},
+			multiSelectionAllowed: true,
+			emptyMessage: lang.get("noMails_msg"),
+			dragStart: (event, row, selected) => this._dragStart(event, row, selected),
+		})
 
 		// "this" is incorrectly bound if we don't do it this way
 		this.view = this.view.bind(this)
@@ -170,7 +173,7 @@ export class MailListView implements Component {
 			// if the mail being dragged is not included in the mails that are selected, then we only drag
 			// the mail that is currently being dragged, to match the behaviour of regular in-app dragging and dropping
 			// which seemingly behaves how it does just by default
-			const draggedMails = selected.find(mail => haveSameId(mail, mailUnderCursor)) ? selected.slice() : [mailUnderCursor]
+			const draggedMails = selected.find((mail) => haveSameId(mail, mailUnderCursor)) ? selected.slice() : [mailUnderCursor]
 
 			this._doExportDrag(draggedMails)
 		} else if (styles.isDesktopLayout()) {
@@ -185,7 +188,7 @@ export class MailListView implements Component {
 		assertNotNull(document.body).style.cursor = "progress"
 		// We listen to mouseup to detect if the user released the mouse before the download was complete
 		// we can't use dragend because we broke the DragEvent chain by calling prevent default
-		const mouseupPromise = new Promise(resolve => {
+		const mouseupPromise = new Promise((resolve) => {
 			document.addEventListener("mouseup", resolve, {
 				once: true,
 			})
@@ -195,7 +198,7 @@ export class MailListView implements Component {
 
 		// If the download completes before the user releases their mouse, then we can call electron start drag and do the operation
 		// otherwise we have to give some kind of feedback to the user that the drop was unsuccessful
-		const [didComplete, fileNames] = await Promise.race([filePathsPromise.then(filePaths => [true, filePaths]), mouseupPromise.then(() => [false, []])])
+		const [didComplete, fileNames] = await Promise.race([filePathsPromise.then((filePaths) => [true, filePaths]), mouseupPromise.then(() => [false, []])])
 
 		if (didComplete) {
 			await locator.fileApp.startNativeDrag(fileNames as string[])
@@ -221,8 +224,8 @@ export class MailListView implements Component {
 
 		const mapKey = (mail: Mail) => `${getLetId(mail).join("")}${exportMode}`
 
-		const notDownloaded: Array<{mail: Mail, fileName: string}> = []
-		const downloaded: Array<{fileName: string, promise: Promise<Mail>}> = []
+		const notDownloaded: Array<{ mail: Mail; fileName: string }> = []
+		const downloaded: Array<{ fileName: string; promise: Promise<Mail> }> = []
 
 		const handleNotDownloaded = (mail: Mail) => {
 			notDownloaded.push({
@@ -276,16 +279,16 @@ export class MailListView implements Component {
 		}
 
 		const deduplicatedNames = deduplicateFilenames(
-			notDownloaded.map(f => f.fileName),
-			new Set(downloaded.map(f => f.fileName)),
+			notDownloaded.map((f) => f.fileName),
+			new Set(downloaded.map((f) => f.fileName)),
 		)
 		const [newFiles, existingFiles] = await Promise.all([
 			// Download all the files that need downloading, wait for them, and then return the filename
-			promiseMap(notDownloaded, async ({mail, fileName}) => {
+			promiseMap(notDownloaded, async ({ mail, fileName }) => {
 				const name = assertNotNull(deduplicatedNames[fileName].shift())
 				const key = mapKey(mail)
 				const downloadPromise = Promise.resolve().then(async () => {
-					const {htmlSanitizer} = await import("../../misc/HtmlSanitizer")
+					const { htmlSanitizer } = await import("../../misc/HtmlSanitizer")
 					const bundle = await makeMailBundle(mail, locator.entityClient, locator.fileController, htmlSanitizer)
 					progressMonitor.workDone(1)
 					const file = await generateMailFile(bundle, name, exportMode)
@@ -300,7 +303,7 @@ export class MailListView implements Component {
 				await downloadPromise
 				return name
 			}), // Wait for ones that already were downloading or have finished, and  then return their filenames too
-			promiseMap(downloaded, result => result.promise.then(() => result.fileName)),
+			promiseMap(downloaded, (result) => result.promise.then(() => result.fileName)),
 		])
 		// combine the list of newly downloaded and previously downloaded files
 		return newFiles.concat(existingFiles)
@@ -310,29 +313,32 @@ export class MailListView implements Component {
 	 * Do not start many fixes in parallel, do check after some time when counters are more likely to settle
 	 * this will make a single post request in case the counters are out of sync (mailboxdetails and counters are already available locally)
 	 */
-	private fixCounterIfNeeded: (listId: Id, checkIfListChanged: () => boolean) => void = debounce(2000, async (listId: Id, checkIfListChanged: () => boolean) => {
-		// If folders are changed, list won't have the data we need.
-		// Do not rely on counters if we are not connected
-		if (this.listId !== listId || locator.worker.wsConnection()() !== WsConnectionState.connected) {
-			return
-		}
+	private fixCounterIfNeeded: (listId: Id, checkIfListChanged: () => boolean) => void = debounce(
+		2000,
+		async (listId: Id, checkIfListChanged: () => boolean) => {
+			// If folders are changed, list won't have the data we need.
+			// Do not rely on counters if we are not connected
+			if (this.listId !== listId || locator.worker.wsConnection()() !== WsConnectionState.connected) {
+				return
+			}
 
-		// If list was modified in the meantime, we cannot be sure that we will fix counters correctly (e.g. because of the inbox rules)
-		if (checkIfListChanged()) {
-			console.log(`list changed, trying again later`)
-			return this.fixCounterIfNeeded(listId, this.list.markCurrentState())
-		}
+			// If list was modified in the meantime, we cannot be sure that we will fix counters correctly (e.g. because of the inbox rules)
+			if (checkIfListChanged()) {
+				console.log(`list changed, trying again later`)
+				return this.fixCounterIfNeeded(listId, this.list.markCurrentState())
+			}
 
-		const unreadMailsCount = count(this.list.getLoadedEntities(), e => e.unread)
+			const unreadMailsCount = count(this.list.getLoadedEntities(), (e) => e.unread)
 
-		const counterValue = await locator.mailModel.getCounterValue(this.listId)
-		if (counterValue != null && counterValue !== unreadMailsCount) {
-			console.log(`fixing up counter for list ${this.listId}`)
-			await locator.mailModel.fixupCounterForMailList(this.listId, unreadMailsCount)
-		} else {
-			console.log(`same counter, no fixup on list ${this.listId}`)
-		}
-	})
+			const counterValue = await locator.mailModel.getCounterValue(this.listId)
+			if (counterValue != null && counterValue !== unreadMailsCount) {
+				console.log(`fixing up counter for list ${this.listId}`)
+				await locator.mailModel.fixupCounterForMailList(this.listId, unreadMailsCount)
+			} else {
+				console.log(`same counter, no fixup on list ${this.listId}`)
+			}
+		},
+	)
 
 	view(vnode: Vnode): Children {
 		// Save the folder before showing the dialog so that there's no chance that it will change
@@ -346,10 +352,7 @@ export class MailListView implements Component {
 					console.warn("Cannot delete folder, no folder is selected")
 					return
 				}
-				const confirmed = await Dialog.confirm(() => lang.get(
-					"confirmDeleteFinallySystemFolder_msg",
-					{"{1}": getFolderName(folder)}
-				))
+				const confirmed = await Dialog.confirm(() => lang.get("confirmDeleteFinallySystemFolder_msg", { "{1}": getFolderName(folder) }))
 				if (confirmed) {
 					this.mailView.finallyDeleteAllMailsInSelectedFolder(folder)
 				}
@@ -371,7 +374,7 @@ export class MailListView implements Component {
 		return m(
 			".mail-list-wrapper",
 			{
-				oncreate: vnode => {
+				oncreate: (vnode) => {
 					this._listDom = downcast(vnode.dom.firstChild)
 
 					if (canDoDragAndDropExport()) {
@@ -379,7 +382,7 @@ export class MailListView implements Component {
 						assertNotNull(document.body).addEventListener("keyup", onKeyUp)
 					}
 				},
-				onbeforeremove: vnode => {
+				onbeforeremove: (vnode) => {
 					if (canDoDragAndDropExport()) {
 						assertNotNull(document.body).removeEventListener("keydown", onKeyDown)
 						assertNotNull(document.body).removeEventListener("keyup", onKeyUp)
@@ -388,15 +391,15 @@ export class MailListView implements Component {
 			},
 			this.showingTrashOrSpamFolder()
 				? m(
-					ListColumnWrapper,
-					{
-						headerContent: m(".flex.flex-column.plr-l", [
-							m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
-							m(".mr-negative-s.align-self-end", m(Button, purgeButtonAttrs)),
-						]),
-					},
-					m(this.list),
-				)
+						ListColumnWrapper,
+						{
+							headerContent: m(".flex.flex-column.plr-l", [
+								m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
+								m(".mr-negative-s.align-self-end", m(Button, purgeButtonAttrs)),
+							]),
+						},
+						m(this.list),
+				  )
 				: m(this.list),
 		)
 	}
@@ -437,9 +440,9 @@ export class MailListView implements Component {
 					const wasMatched = (await findAndApplyMatchingRule(locator.mailFacade, locator.entityClient, mailboxDetail, mail, true)) != null
 					return !wasMatched
 				})
-				return {items: mailsToKeepInInbox, complete: items.length < count}
+				return { items: mailsToKeepInInbox, complete: items.length < count }
 			} else {
-				return {items, complete: items.length < count}
+				return { items, complete: items.length < count }
 			}
 		} catch (e) {
 			// The way the cache works is that it tries to fulfill the API contract of returning as many items as requested as long as it can.
@@ -452,7 +455,7 @@ export class MailListView implements Component {
 			if (isOfflineError(e)) {
 				const items = await locator.cacheStorage.provideFromRange(MailTypeRef, this.listId, start, count, true)
 				if (items.length === 0) throw e
-				return {items, complete: false}
+				return { items, complete: false }
 			} else {
 				throw e
 			}

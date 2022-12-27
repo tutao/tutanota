@@ -1,10 +1,10 @@
-import {client} from "./ClientDetector"
-import type {TranslationKey} from "./LanguageViewModel"
-import {BrowserType} from "./ClientConstants"
-import {Keys} from "../api/common/TutanotaConstants"
-import type {lazy} from "@tutao/tutanota-utils"
-import {assertMainOrNodeBoot} from "../api/common/Env"
-import {mod} from "@tutao/tutanota-utils"
+import { client } from "./ClientDetector"
+import type { TranslationKey } from "./LanguageViewModel"
+import { BrowserType } from "./ClientConstants"
+import { Keys } from "../api/common/TutanotaConstants"
+import type { lazy } from "@tutao/tutanota-utils"
+import { assertMainOrNodeBoot } from "../api/common/Env"
+import { mod } from "@tutao/tutanota-utils"
 
 assertMainOrNodeBoot()
 export const TABBABLE = "button, input, textarea, div[contenteditable='true']"
@@ -44,9 +44,10 @@ export interface Shortcut {
 
 export function focusPrevious(dom: HTMLElement): boolean {
 	let tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(
-		e => (e as HTMLElement).style.display !== "none" && (e as HTMLElement).tabIndex !== -1) as HTMLElement[]// also filter for tabIndex here to restrict tabbing to invisible inputs
+		(e) => (e as HTMLElement).style.display !== "none" && (e as HTMLElement).tabIndex !== -1,
+	) as HTMLElement[] // also filter for tabIndex here to restrict tabbing to invisible inputs
 
-	let selected = tabbable.find(e => document.activeElement === e)
+	let selected = tabbable.find((e) => document.activeElement === e)
 
 	if (selected) {
 		//work around for squire so tabulator actions are executed properly
@@ -72,9 +73,11 @@ export function focusPrevious(dom: HTMLElement): boolean {
 }
 
 export function focusNext(dom: HTMLElement): boolean {
-	let tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(e => (e as HTMLElement).style.display !== "none" && (e as HTMLElement).tabIndex !== -1) as HTMLElement[] // also filter for tabIndex here to restrict tabbing to invisible inputs
+	let tabbable = Array.from(dom.querySelectorAll(TABBABLE)).filter(
+		(e) => (e as HTMLElement).style.display !== "none" && (e as HTMLElement).tabIndex !== -1,
+	) as HTMLElement[] // also filter for tabIndex here to restrict tabbing to invisible inputs
 
-	let selected = tabbable.find(e => document.activeElement === e)
+	let selected = tabbable.find((e) => document.activeElement === e)
 
 	if (selected) {
 		//work around for squire so tabulator actions are executed properly
@@ -99,13 +102,7 @@ export function focusNext(dom: HTMLElement): boolean {
 	return true
 }
 
-function createKeyIdentifier(
-	keycode: number,
-	ctrl?: boolean,
-	alt?: boolean,
-	shift?: boolean,
-	meta?: boolean,
-): string {
+function createKeyIdentifier(keycode: number, ctrl?: boolean, alt?: boolean, shift?: boolean, meta?: boolean): string {
 	return keycode + (ctrl ? "C" : "") + (alt ? "A" : "") + (shift ? "S" : "") + (meta ? "M" : "")
 }
 
@@ -135,7 +132,7 @@ class KeyManager {
 		this._keyToModalShortcut = new Map([[helpId, helpShortcut]])
 		this._desktopShortcuts = []
 		if (!window.document.addEventListener) return
-		window.document.addEventListener("keydown", e => this._handleKeydown(e), false)
+		window.document.addEventListener("keydown", (e) => this._handleKeydown(e), false)
 	}
 
 	_handleKeydown(e: KeyboardEvent): void {
@@ -181,7 +178,7 @@ class KeyManager {
 			this._keyToModalShortcut.size > 1 && !forceBaseShortcuts
 				? Array.from(this._keyToModalShortcut.values()) // copy values, they will change
 				: [...this._keyToShortcut.values(), ...this._desktopShortcuts]
-		import("../gui/dialogs/ShortcutDialog.js").then(({showShortcutDialog}) => showShortcutDialog(shortcutsToShow)).then(() => (this._isHelpOpen = false))
+		import("../gui/dialogs/ShortcutDialog.js").then(({ showShortcutDialog }) => showShortcutDialog(shortcutsToShow)).then(() => (this._isHelpOpen = false))
 	}
 
 	registerShortcuts(shortcuts: Array<Shortcut>) {
@@ -217,12 +214,12 @@ class KeyManager {
 	 * @private
 	 */
 	_applyOperation(shortcuts: Array<Shortcut>, operation: (id: string, s: Shortcut) => unknown) {
-		shortcuts.forEach(s => operation(createKeyIdentifier(s.key.code, s.ctrl, s.alt, s.shift, s.meta), s))
+		shortcuts.forEach((s) => operation(createKeyIdentifier(s.key.code, s.ctrl, s.alt, s.shift, s.meta), s))
 	}
 }
 
 export function isKeyPressed(keyCode: number, ...keys: Array<Values<typeof Keys>>): boolean {
-	return keys.some(key => key.code === keyCode)
+	return keys.some((key) => key.code === keyCode)
 }
 
 export const keyManager: KeyManager = new KeyManager()

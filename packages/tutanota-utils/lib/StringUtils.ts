@@ -1,4 +1,4 @@
-import type {lazy} from "./Utils.js"
+import type { lazy } from "./Utils.js"
 
 /**
  * Returns a string which contains the given number padded with 0s.
@@ -7,11 +7,11 @@ import type {lazy} from "./Utils.js"
  * @return The padded number as string.
  */
 export function pad(num: number, size: number): string {
-    var s = num + ""
+	var s = num + ""
 
-    while (s.length < size) s = "0" + s
+	while (s.length < size) s = "0" + s
 
-    return s
+	return s
 }
 
 /**
@@ -21,7 +21,7 @@ export function pad(num: number, size: number): string {
  * @return True if string begins with substring, false otherwise.
  */
 export function startsWith(string: string, substring: string): boolean {
-    return string.startsWith(substring)
+	return string.startsWith(substring)
 }
 
 /**
@@ -30,7 +30,7 @@ export function startsWith(string: string, substring: string): boolean {
  * @returns {string} str in lowercase with first letter Capitalized
  */
 export function capitalizeFirstLetter(str: string): string {
-    return str[0].toUpperCase() + str.toLowerCase().slice(1)
+	return str[0].toUpperCase() + str.toLowerCase().slice(1)
 }
 
 /**
@@ -40,22 +40,22 @@ export function capitalizeFirstLetter(str: string): string {
  * @return True if string ends with substring, false otherwise.
  */
 export function endsWith(string: string, substring: string): boolean {
-    return string.endsWith(substring)
+	return string.endsWith(substring)
 }
 export function lazyStringValue(valueOrLazy: string | lazy<string>): string {
-    return typeof valueOrLazy === "function" ? valueOrLazy() : valueOrLazy
+	return typeof valueOrLazy === "function" ? valueOrLazy() : valueOrLazy
 }
 export function repeat(value: string, length: number): string {
-    let result = ""
+	let result = ""
 
-    for (let i = 0; i < length; i++) {
-        result += value
-    }
+	for (let i = 0; i < length; i++) {
+		result += value
+	}
 
-    return result
+	return result
 }
 export function cleanMatch(s1: string, s2: string): boolean {
-    return s1.toLowerCase().trim() === s2.toLowerCase().trim()
+	return s1.toLowerCase().trim() === s2.toLowerCase().trim()
 }
 
 /**
@@ -69,7 +69,7 @@ export const NBSP = "\u00A0"
  * @param index
  */
 export function splitAt(str: string, index: number): [string, string] {
-    return [str.substring(0, index), str.substring(index)]
+	return [str.substring(0, index), str.substring(index)]
 }
 
 /**
@@ -77,7 +77,7 @@ export function splitAt(str: string, index: number): [string, string] {
  * @param str
  */
 export function toLowerCase(str: string): string {
-    return str.toLowerCase()
+	return str.toLowerCase()
 }
 
 /**
@@ -87,32 +87,32 @@ export function toLowerCase(str: string): string {
  * @returns {number}
  */
 export function localeCompare(a: string, b: string): number {
-    return a.localeCompare(b)
+	return a.localeCompare(b)
 }
 export function byteLength(str: string | null | undefined): number {
-    if (str == null) return 0
-    // returns the byte length of an utf8 string
-    var s = str.length
+	if (str == null) return 0
+	// returns the byte length of an utf8 string
+	var s = str.length
 
-    for (var i = str.length - 1; i >= 0; i--) {
-        var code = str.charCodeAt(i)
+	for (var i = str.length - 1; i >= 0; i--) {
+		var code = str.charCodeAt(i)
 
-        if (code > 0x7f && code <= 0x7ff) {
-            s++
-        } else if (code > 0x7ff && code <= 0xffff) s += 2
+		if (code > 0x7f && code <= 0x7ff) {
+			s++
+		} else if (code > 0x7ff && code <= 0xffff) s += 2
 
-        if (code >= 0xdc00 && code <= 0xdfff) i-- //trail surrogate
-    }
+		if (code >= 0xdc00 && code <= 0xdfff) i-- //trail surrogate
+	}
 
-    return s
+	return s
 }
 
 /**
  * replace all instances of substr in str with replacement
  */
 export function replaceAll(str: string, substr: string, replacement: string): string {
-    const regex = escapedStringRegExp(substr, "g")
-    return str.replace(regex, replacement)
+	const regex = escapedStringRegExp(substr, "g")
+	return str.replace(regex, replacement)
 }
 
 /**
@@ -120,5 +120,5 @@ export function replaceAll(str: string, substr: string, replacement: string): st
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping
  * */
 function escapedStringRegExp(str: string, flags: string): RegExp {
-    return new RegExp(str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), flags)
+	return new RegExp(str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), flags)
 }

@@ -1,12 +1,10 @@
-import {CredentialEncryptionMode} from "../../misc/credentials/CredentialEncryptionMode"
-import {DesktopKeyStoreFacade} from "../KeyStoreFacadeImpl"
-import {DesktopNativeCryptoFacade} from "../DesktopNativeCryptoFacade"
-import {assert} from "@tutao/tutanota-utils"
-import {NativeCredentialsFacade} from "../../native/common/generatedipc/NativeCredentialsFacade.js"
-
+import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode"
+import { DesktopKeyStoreFacade } from "../KeyStoreFacadeImpl"
+import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
+import { assert } from "@tutao/tutanota-utils"
+import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade.js"
 
 export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
-
 	private readonly _desktopKeyStoreFacade: DesktopKeyStoreFacade
 	private readonly _crypto: DesktopNativeCryptoFacade
 
@@ -34,5 +32,4 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 	getSupportedEncryptionModes(): Promise<Array<CredentialEncryptionMode>> {
 		return Promise.resolve([CredentialEncryptionMode.DEVICE_LOCK])
 	}
-
 }

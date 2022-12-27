@@ -1,5 +1,5 @@
-import type {ProgressTracker} from "../../main/ProgressTracker"
-import {assertNotNull} from "@tutao/tutanota-utils"
+import type { ProgressTracker } from "../../main/ProgressTracker"
+import { assertNotNull } from "@tutao/tutanota-utils"
 
 export type ProgressMonitorId = number
 export type ProgressListener = (percentageCompleted: number) => unknown
@@ -46,11 +46,9 @@ export class ProgressMonitor implements IProgressMonitor {
 }
 
 export class NoopProgressMonitor implements IProgressMonitor {
-	workDone(amount: number) {
-	}
+	workDone(amount: number) {}
 
-	completed() {
-	}
+	completed() {}
 }
 
 export type WorkDoneCallback = (percentageCompleted: number) => unknown
@@ -90,7 +88,7 @@ export class AggregateProgressMonitor {
 	}
 
 	completedAll() {
-		this.stages.forEach(s => (s.monitor.workCompleted = s.monitor.totalWork))
+		this.stages.forEach((s) => (s.monitor.workCompleted = s.monitor.totalWork))
 
 		this._onUpdate()
 	}
@@ -109,7 +107,7 @@ export class AggregateProgressMonitor {
 		const total = this.stages.reduce((acc, stage) => acc + stage.monitor.percentage() * stage.part, 0)
 		console.log(
 			"monitor percentage: ",
-			this.stages.map(s => s.monitor.percentage()),
+			this.stages.map((s) => s.monitor.percentage()),
 			" total: ",
 			total,
 		)

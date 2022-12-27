@@ -5,44 +5,43 @@
  */
 
 declare type NumberString = string
-declare type Dict = {[key: string]: string}
+declare type Dict = { [key: string]: string }
 
 /** Requests from main web thread to worker */
 declare type WorkerRequestType =
-	| 'setup'
-	| 'reset'
-	| 'testEcho'
-	| 'testError'
-	| 'restRequest'
-	| 'entropy'
-	| 'tryReconnectEventBus'
-	| 'closeEventBus'
-	| 'getLog'
-	| 'urlify'
-	| 'generateSsePushIdentifer'
-	| 'facade'
+	| "setup"
+	| "reset"
+	| "testEcho"
+	| "testError"
+	| "restRequest"
+	| "entropy"
+	| "tryReconnectEventBus"
+	| "closeEventBus"
+	| "getLog"
+	| "urlify"
+	| "generateSsePushIdentifer"
+	| "facade"
 
 /** Requests from worker web thread to main web thread */
 declare type MainRequestType =
-	| 'facade'
-	| 'execNative'
-	| 'entityEvent'
-	| 'error'
-	| 'progress'
-	| 'updateIndexState'
-	| 'updateWebSocketState'
-	| 'counterUpdate'
-	| 'updateLeaderStatus'
-	| 'infoMessage'
-	| 'createProgressMonitor'
-	| 'progressWorkDone'
+	| "facade"
+	| "execNative"
+	| "entityEvent"
+	| "error"
+	| "progress"
+	| "updateIndexState"
+	| "updateWebSocketState"
+	| "counterUpdate"
+	| "updateLeaderStatus"
+	| "infoMessage"
+	| "createProgressMonitor"
+	| "progressWorkDone"
 
 /** Requests from web to native */
-declare type NativeRequestType = 'ipc' | 'facade'
+declare type NativeRequestType = "ipc" | "facade"
 
 /** Requests from native to web */
-declare type JsRequestType = 'ipc'
-
+declare type JsRequestType = "ipc"
 
 // see https://bitwiseshiftleft.github.io/sjcl/doc/symbols/sjcl.bitArray.html
 // type that is used by sjcl for any encryption/decryption operation
@@ -57,13 +56,13 @@ declare type EnvMode = "Browser" | "App" | "Test" | "Playground" | "Desktop" | "
 declare type PlatformId = "ios" | "android" | "darwin" | "linux" | "win32"
 
 declare var env: {
-	staticUrl?: string, // if null the url from the browser is used
-	mode: EnvMode,
-	platformId: PlatformId | null,
-	dist: boolean,
-	versionNumber: string,
-	timeout: number,
-	systemConfig: any,
+	staticUrl?: string // if null the url from the browser is used
+	mode: EnvMode
+	platformId: PlatformId | null
+	dist: boolean
+	versionNumber: string
+	timeout: number
+	systemConfig: any
 }
 
-type EventRedraw<T extends Event> = T & {redraw?: boolean}
+type EventRedraw<T extends Event> = T & { redraw?: boolean }

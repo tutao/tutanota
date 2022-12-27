@@ -1,6 +1,6 @@
 //@bundleInto:common-min
 
-import {TutanotaError} from "./TutanotaError"
+import { TutanotaError } from "./TutanotaError"
 
 export class DbError extends TutanotaError {
 	error: Error | null

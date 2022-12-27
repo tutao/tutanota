@@ -1,17 +1,17 @@
-import {assertWorkerOrNode, getApiOrigin, isAdminClient, isAndroidApp, isWebClient, isWorker} from "../../common/Env"
-import {ConnectionError, handleRestError, PayloadTooLargeError, ServiceUnavailableError, TooManyRequestsError} from "../../common/error/RestError"
-import {HttpMethod, MediaType} from "../../common/EntityFunctions"
-import {assertNotNull, typedEntries, uint8ArrayToArrayBuffer} from "@tutao/tutanota-utils"
-import {SuspensionHandler} from "../SuspensionHandler"
-import {REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP} from "../../common/TutanotaConstants"
-import {SuspensionError} from "../../common/error/SuspensionError.js"
+import { assertWorkerOrNode, getApiOrigin, isAdminClient, isAndroidApp, isWebClient, isWorker } from "../../common/Env"
+import { ConnectionError, handleRestError, PayloadTooLargeError, ServiceUnavailableError, TooManyRequestsError } from "../../common/error/RestError"
+import { HttpMethod, MediaType } from "../../common/EntityFunctions"
+import { assertNotNull, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/tutanota-utils"
+import { SuspensionHandler } from "../SuspensionHandler"
+import { REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP } from "../../common/TutanotaConstants"
+import { SuspensionError } from "../../common/error/SuspensionError.js"
 
 assertWorkerOrNode()
 
 interface ProgressListener {
-	upload(percent: number): void;
+	upload(percent: number): void
 
-	download(percent: number): void;
+	download(percent: number): void
 }
 
 export const enum SuspensionBehavior {
@@ -20,15 +20,15 @@ export const enum SuspensionBehavior {
 }
 
 export interface RestClientOptions {
-	body?: string | Uint8Array,
-	responseType?: MediaType,
-	progressListener?: ProgressListener,
-	baseUrl?: string,
-	headers?: Dict,
-	queryParams?: Dict,
-	noCORS?: boolean,
+	body?: string | Uint8Array
+	responseType?: MediaType
+	progressListener?: ProgressListener
+	baseUrl?: string
+	headers?: Dict
+	queryParams?: Dict
+	noCORS?: boolean
 	/** Default is to suspend all requests on rate limit. */
-	suspensionBehavior?: SuspensionBehavior,
+	suspensionBehavior?: SuspensionBehavior
 }
 
 /**
@@ -50,11 +50,7 @@ export class RestClient {
 		this.suspensionHandler = suspensionHandler
 	}
 
-	request(
-		path: string,
-		method: HttpMethod,
-		options: RestClientOptions = {},
-	): Promise<any | null> {
+	request(path: string, method: HttpMethod, options: RestClientOptions = {}): Promise<any | null> {
 		// @ts-ignore
 		const debug = typeof self !== "undefined" && self.debug
 		const verbose = isWorker() && debug
@@ -85,9 +81,7 @@ export class RestClient {
 
 				this.setHeaders(xhr, options)
 
-				xhr.responseType = options.responseType === MediaType.Json || options.responseType === MediaType.Text
-					? "text"
-					: "arraybuffer"
+				xhr.responseType = options.responseType === MediaType.Json || options.responseType === MediaType.Text ? "text" : "arraybuffer"
 
 				const abortAfterTimeout = () => {
 					const res = {
@@ -136,11 +130,7 @@ export class RestClient {
 						} else if (isSuspensionResponse(xhr.status, suspensionTime)) {
 							this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime))
 
-							resolve(
-								this.suspensionHandler.deferRequest(() =>
-									this.request(path, method, options),
-								),
-							)
+							resolve(this.suspensionHandler.deferRequest(() => this.request(path, method, options)))
 						} else {
 							console.log("failed request", method, url.toString(), xhr.status, xhr.statusText, options.headers, options.body)
 							reject(handleRestError(xhr.status, `| ${method} ${path}`, xhr.getResponseHeader("Error-Id"), xhr.getResponseHeader("Precondition")))
@@ -285,14 +275,11 @@ export class RestClient {
 		}
 	}
 
-	private setHeaders(
-		xhr: XMLHttpRequest,
-		options: RestClientOptions
-	) {
+	private setHeaders(xhr: XMLHttpRequest, options: RestClientOptions) {
 		if (options.headers == null) {
 			options.headers = {}
 		}
-		const {headers, body, responseType} = options
+		const { headers, body, responseType } = options
 
 		// don't add custom and content-type headers for non-CORS requests, otherwise it would not meet the 'CORS-Preflight simple request' requirements
 		if (!options.noCORS) {

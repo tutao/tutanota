@@ -8,11 +8,11 @@
 		"node": true
 	},
 	"extends": [
-	  "eslint:recommended",
-	  "plugin:@typescript-eslint/recommended",
-	  // It is important that prettier is the last in the list,
-	  // Or the output of `npm run fix` will fail `npm run check`
-	  "prettier"
+		"eslint:recommended",
+		"plugin:@typescript-eslint/recommended",
+		// It is important that prettier is the last in the list,
+		// Or the output of `npm run fix` will fail `npm run check`
+		"prettier"
 	],
 	"parser": "@typescript-eslint/parser",
 	"parserOptions": {

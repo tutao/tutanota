@@ -1,15 +1,10 @@
-import {IV_BYTE_LENGTH, keyToUint8Array, Randomizer} from "@tutao/tutanota-crypto"
-import {FileUri} from "../common/FileApp"
-import {NativeCryptoFacade} from "../common/generatedipc/NativeCryptoFacade"
-import {EncryptedFileInfo} from "../common/generatedipc/EncryptedFileInfo"
+import { IV_BYTE_LENGTH, keyToUint8Array, Randomizer } from "@tutao/tutanota-crypto"
+import { FileUri } from "../common/FileApp"
+import { NativeCryptoFacade } from "../common/generatedipc/NativeCryptoFacade"
+import { EncryptedFileInfo } from "../common/generatedipc/EncryptedFileInfo"
 
 export class AesApp {
-
-	constructor(
-		private readonly nativeCryptoFacade: NativeCryptoFacade,
-		private readonly random: Randomizer,
-	) {
-	}
+	constructor(private readonly nativeCryptoFacade: NativeCryptoFacade, private readonly random: Randomizer) {}
 
 	/**
 	 * Encrypts a file with the provided key

@@ -41,8 +41,7 @@ export class TutanotaError extends ExtendableError {
 				// fill the stack trace on ios devices
 				try {
 					throw error
-				} catch (e) {
-				}
+				} catch (e) {}
 			}
 
 			this.stack = this.name + ". " + this.message

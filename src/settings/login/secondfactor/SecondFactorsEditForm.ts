@@ -1,26 +1,26 @@
-import m, {Children} from "mithril"
-import {assertMainOrNode, isTutanotaDomain} from "../../../api/common/Env.js"
-import type {User} from "../../../api/entities/sys/TypeRefs.js"
-import {SecondFactorTypeRef} from "../../../api/entities/sys/TypeRefs.js"
-import {assertNotNull, LazyLoaded, neverNull, ofClass} from "@tutao/tutanota-utils"
-import {Icons} from "../../../gui/base/icons/Icons.js"
-import {Dialog} from "../../../gui/base/Dialog.js"
-import {InfoLink, lang} from "../../../misc/LanguageViewModel.js"
-import {assertEnumValue, SecondFactorType} from "../../../api/common/TutanotaConstants.js"
-import {logins} from "../../../api/main/LoginController.js"
-import {appIdToLoginDomain} from "../../../misc/2fa/SecondFactorHandler.js"
-import {showProgressDialog} from "../../../gui/dialogs/ProgressDialog.js"
-import type {TableAttrs, TableLineAttrs} from "../../../gui/base/Table.js"
-import {ColumnWidth, Table} from "../../../gui/base/Table.js"
-import {NotFoundError} from "../../../api/common/error/RestError.js"
-import type {EntityUpdateData} from "../../../api/main/EventController.js"
-import {isUpdateForTypeRef} from "../../../api/main/EventController.js"
-import {ifAllowedTutanotaLinks} from "../../../gui/base/GuiUtils.js"
-import {locator} from "../../../api/main/MainLocator.js"
-import {SecondFactorEditDialog} from "./SecondFactorEditDialog.js"
-import {SecondFactorTypeToNameTextId} from "./SecondFactorEditModel.js"
-import {IconButtonAttrs} from "../../../gui/base/IconButton.js"
-import {ButtonSize} from "../../../gui/base/ButtonSize.js"
+import m, { Children } from "mithril"
+import { assertMainOrNode, isTutanotaDomain } from "../../../api/common/Env.js"
+import type { User } from "../../../api/entities/sys/TypeRefs.js"
+import { SecondFactorTypeRef } from "../../../api/entities/sys/TypeRefs.js"
+import { assertNotNull, LazyLoaded, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { Icons } from "../../../gui/base/icons/Icons.js"
+import { Dialog } from "../../../gui/base/Dialog.js"
+import { InfoLink, lang } from "../../../misc/LanguageViewModel.js"
+import { assertEnumValue, SecondFactorType } from "../../../api/common/TutanotaConstants.js"
+import { logins } from "../../../api/main/LoginController.js"
+import { appIdToLoginDomain } from "../../../misc/2fa/SecondFactorHandler.js"
+import { showProgressDialog } from "../../../gui/dialogs/ProgressDialog.js"
+import type { TableAttrs, TableLineAttrs } from "../../../gui/base/Table.js"
+import { ColumnWidth, Table } from "../../../gui/base/Table.js"
+import { NotFoundError } from "../../../api/common/error/RestError.js"
+import type { EntityUpdateData } from "../../../api/main/EventController.js"
+import { isUpdateForTypeRef } from "../../../api/main/EventController.js"
+import { ifAllowedTutanotaLinks } from "../../../gui/base/GuiUtils.js"
+import { locator } from "../../../api/main/MainLocator.js"
+import { SecondFactorEditDialog } from "./SecondFactorEditDialog.js"
+import { SecondFactorTypeToNameTextId } from "./SecondFactorEditModel.js"
+import { IconButtonAttrs } from "../../../gui/base/IconButton.js"
+import { ButtonSize } from "../../../gui/base/ButtonSize.js"
 
 assertMainOrNode()
 
@@ -53,9 +53,9 @@ export class SecondFactorsEditForm {
 			m(Table, secondFactorTableAttrs),
 			isTutanotaDomain()
 				? [
-					m("span.small", lang.get("moreInfo_msg") + " "),
-					ifAllowedTutanotaLinks(InfoLink.SecondFactor, link => m("span.small.text-break", [m(`a[href=${link}][target=_blank]`, link)])),
-				]
+						m("span.small", lang.get("moreInfo_msg") + " "),
+						ifAllowedTutanotaLinks(InfoLink.SecondFactor, (link) => m("span.small.text-break", [m(`a[href=${link}][target=_blank]`, link)])),
+				  ]
 				: null,
 		]
 	}
@@ -75,14 +75,14 @@ export class SecondFactorsEditForm {
 			}
 		}
 
-		this._2FALineAttrs = factors.map(f => {
+		this._2FALineAttrs = factors.map((f) => {
 			const isU2F = f.type === SecondFactorType.u2f || f.type === SecondFactorType.webauthn
 			const removeButtonAttrs: IconButtonAttrs = {
 				title: "remove_action",
 				click: () =>
 					Dialog.confirm("confirmDeleteSecondFactor_msg")
-						  .then(res => (res ? showProgressDialog("pleaseWait_msg", locator.entityClient.erase(f)) : Promise.resolve()))
-						  .catch(ofClass(NotFoundError, e => console.log("could not delete second factor (already deleted)", e))),
+						.then((res) => (res ? showProgressDialog("pleaseWait_msg", locator.entityClient.erase(f)) : Promise.resolve()))
+						.catch(ofClass(NotFoundError, (e) => console.log("could not delete second factor (already deleted)", e))),
 				icon: Icons.Cancel,
 				size: ButtonSize.Compact,
 			}

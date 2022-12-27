@@ -1,11 +1,11 @@
 import http from "http"
 import https from "https"
 import path from "path"
-import {log} from "../DesktopLog.js"
-import {ProtocolRequest, ProtocolResponse, Session} from "electron"
-import {Duplex, PassThrough} from "stream"
-import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
-import {errorToObj} from "../../api/common/MessageDispatcher.js"
+import { log } from "../DesktopLog.js"
+import { ProtocolRequest, ProtocolResponse, Session } from "electron"
+import { Duplex, PassThrough } from "stream"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { errorToObj } from "../../api/common/MessageDispatcher.js"
 
 const TAG = "[ProtocolProxy]"
 
@@ -38,15 +38,9 @@ export function handleProtocols(session: Session, assetDir: string): void {
 /**
  *  exported for testing
  */
-export function doHandleProtocols(
-	session: Session,
-	assetDir: string,
-	httpModule: typeof http,
-	httpsModule: typeof https,
-	pathModule: typeof path
-): void {
-	if (!interceptProtocol('http', session, httpModule)) throw new Error("could not intercept http protocol")
-	if (!interceptProtocol('https', session, httpsModule)) throw new Error("could not intercept https protocol")
+export function doHandleProtocols(session: Session, assetDir: string, httpModule: typeof http, httpsModule: typeof https, pathModule: typeof path): void {
+	if (!interceptProtocol("http", session, httpModule)) throw new Error("could not intercept http protocol")
+	if (!interceptProtocol("https", session, httpsModule)) throw new Error("could not intercept https protocol")
 	if (!handleAssetProtocol(session, assetDir, pathModule)) throw new Error("could not register asset protocol")
 }
 
@@ -64,10 +58,10 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 		keepAlive: true,
 		maxSockets: 4,
 		keepAliveMsecs: 7000 * 1000, // server has a 7200s tls session ticket timeout, so we keep the socket for 7000s
-		timeout: PROXIED_REQUEST_READ_TIMEOUT // this is an idle timeout (empirically determined)
+		timeout: PROXIED_REQUEST_READ_TIMEOUT, // this is an idle timeout (empirically determined)
 	})
 
-	const handler = async ({method, headers, url, uploadData, referrer}: ProtocolRequest, sendResponse: (resp: ProtocolResponse) => void) => {
+	const handler = async ({ method, headers, url, uploadData, referrer }: ProtocolRequest, sendResponse: (resp: ProtocolResponse) => void) => {
 		const startTime: number = Date.now()
 		const handleError = (e: Error) => {
 			const parsedUrl = new URL(url)
@@ -79,9 +73,9 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 			// Passing anything but the codes mentioned in https://source.chromium.org/chromium/chromium/src/+/main:net/base/net_error_list.h
 			// will lead to an immediate crash of the renderer without warning.
 			if (e instanceof ProxyError) {
-				sendResponse({error: e.code})
+				sendResponse({ error: e.code })
 			} else {
-				sendResponse({error: NetErrorCode.OTHER})
+				sendResponse({ error: NetErrorCode.OTHER })
 			}
 		}
 
@@ -99,7 +93,7 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 					"Access-Control-Allow-Origin": "*",
 					"Access-Control-Allow-Methods": "POST, GET, PUT, DELETE",
 					"Access-Control-Allow-Headers": "*",
-				}
+				},
 			})
 		}
 		let actualData: Buffer | null = null
@@ -114,7 +108,7 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 			}
 			headers["Content-Length"] = String(actualData.length)
 		}
-		const clientRequest: http.ClientRequest = net.request(url, {method, headers, agent})
+		const clientRequest: http.ClientRequest = net.request(url, { method, headers, agent })
 		clientRequest.on("response", (res: http.IncomingMessage) => {
 			const responseStream: Duplex = new PassThrough()
 			res.on("data", (d) => responseStream.push(d))
@@ -125,7 +119,7 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 			})
 			// casting because typescript doesn't accept http.IncomingHttpHeaders as a Record even though it's just an object.
 			const resHeaders: Record<string, string | string[]> = res.headers as unknown as Record<string, string | string[]>
-			sendResponse({statusCode: res.statusCode, headers: resHeaders, data: responseStream})
+			sendResponse({ statusCode: res.statusCode, headers: resHeaders, data: responseStream })
 		})
 		clientRequest.on("error", (e) => handleError(e))
 		clientRequest.on("timeout", () => clientRequest.destroy(new ProxyError(NetErrorCode.TIMED_OUT)))
@@ -133,7 +127,6 @@ function interceptProtocol(protocol: string, session: Session, net: typeof http 
 	}
 	return session.protocol.interceptStreamProtocol(protocol, handler)
 }
-
 
 /**
  * assign a custom handler the asset protocol scheme on the session if it has not been done yet.
@@ -144,7 +137,7 @@ function handleAssetProtocol(session: Session, assetDir: string, pathModule: typ
 	return session.protocol.registerFileProtocol(ASSET_PROTOCOL, (request, sendResponse) => {
 		const fail = (msg: string) => {
 			log.debug(TAG, msg)
-			return sendResponse({error: NetErrorCode.NOT_FOUND})
+			return sendResponse({ error: NetErrorCode.NOT_FOUND })
 		}
 		// in node, new URL will normalize the path and remove /.. and /. elements.
 		// this doesn't work in browsers, so the startsWith check below should stay just to be sure
@@ -155,7 +148,7 @@ function handleAssetProtocol(session: Session, assetDir: string, pathModule: typ
 		if (!filePath.startsWith(assetDir)) {
 			return fail(`Invalid asset URL ${request.url} w/ pathname ${url.pathname} got resolved to ${filePath})`)
 		} else {
-			return sendResponse({path: filePath})
+			return sendResponse({ path: filePath })
 		}
 	})
 }

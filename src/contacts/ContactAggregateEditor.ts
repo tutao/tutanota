@@ -1,14 +1,14 @@
-import type {TextFieldType} from "../gui/base/TextField.js"
-import {TextField} from "../gui/base/TextField.js"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {lang} from "../misc/LanguageViewModel"
-import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
-import {Icons} from "../gui/base/icons/Icons"
-import {animations, height, opacity} from "../gui/animation/Animations"
-import {attachDropdown} from "../gui/base/Dropdown.js"
-import {IconButton} from "../gui/base/IconButton.js"
-import {BootIcons} from "../gui/base/icons/BootIcons.js"
-import {ButtonSize} from "../gui/base/ButtonSize.js"
+import type { TextFieldType } from "../gui/base/TextField.js"
+import { TextField } from "../gui/base/TextField.js"
+import type { TranslationKey } from "../misc/LanguageViewModel"
+import { lang } from "../misc/LanguageViewModel"
+import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import { Icons } from "../gui/base/icons/Icons"
+import { animations, height, opacity } from "../gui/animation/Animations"
+import { attachDropdown } from "../gui/base/Dropdown.js"
+import { IconButton } from "../gui/base/IconButton.js"
+import { BootIcons } from "../gui/base/icons/BootIcons.js"
+import { ButtonSize } from "../gui/base/ButtonSize.js"
 
 export type AggregateEditorAttrs<AggregateType> = {
 	value: string
@@ -44,9 +44,9 @@ export class ContactAggregateEditor implements Component<AggregateEditorAttrs<an
 				type: attrs.fieldType,
 				helpLabel: () => lang.get(attrs.helpLabel),
 				injectionsRight: () => this._moreButtonFor(attrs),
-				oninput: value => attrs.onUpdate(value),
+				oninput: (value) => attrs.onUpdate(value),
 			}),
-			this._cancelButtonFor(attrs)
+			this._cancelButtonFor(attrs),
 		])
 	}
 
@@ -68,20 +68,23 @@ export class ContactAggregateEditor implements Component<AggregateEditorAttrs<an
 	}
 
 	_moreButtonFor(attrs: AggregateEditorAttrs<any>): Children {
-		return m(IconButton, attachDropdown({
-			mainButtonAttrs: {
-				title: "more_label",
-				icon: BootIcons.Expand,
-				size: ButtonSize.Compact,
-			},
-			childAttrs: () =>
-				attrs.typeLabels.map(([key, value]) => {
-					return {
-						label: value,
-						click: () => attrs.onTypeSelected(key),
-					}
-				})
-		}))
+		return m(
+			IconButton,
+			attachDropdown({
+				mainButtonAttrs: {
+					title: "more_label",
+					icon: BootIcons.Expand,
+					size: ButtonSize.Compact,
+				},
+				childAttrs: () =>
+					attrs.typeLabels.map(([key, value]) => {
+						return {
+							label: value,
+							click: () => attrs.onTypeSelected(key),
+						}
+					}),
+			}),
+		)
 	}
 
 	animate(domElement: HTMLElement, fadein: boolean): Promise<any> {
@@ -91,11 +94,7 @@ export class ContactAggregateEditor implements Component<AggregateEditorAttrs<an
 			domElement.style.opacity = "0"
 		}
 
-		const opacityP = animations.add(
-			domElement, fadein
-				? opacity(0, 1, true)
-				: opacity(1, 0, true)
-		)
+		const opacityP = animations.add(domElement, fadein ? opacity(0, 1, true) : opacity(1, 0, true))
 		const heightP = animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0))
 		heightP.then(() => {
 			domElement.style.height = ""

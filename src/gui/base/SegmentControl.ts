@@ -1,5 +1,5 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {px} from "../size"
+import m, { Children, Component, Vnode } from "mithril"
+import { px } from "../size"
 
 export type SegmentControlItem<T> = {
 	name: string
@@ -20,10 +20,10 @@ export class SegmentControl<T> implements Component<SegmentControlAttrs<T>> {
 				{
 					role: "tablist",
 				},
-				vnode.attrs.items.map(item =>
+				vnode.attrs.items.map((item) =>
 					m(
 						"button.segmentControlItem.flex.center-horizontally.center-vertically.text-ellipsis.small" +
-						(item.value === vnode.attrs.selectedValue ? ".segmentControl-border-active.content-accent-fg" : ".segmentControl-border"),
+							(item.value === vnode.attrs.selectedValue ? ".segmentControl-border-active.content-accent-fg" : ".segmentControl-border"),
 						{
 							style: {
 								flex: "0 1 " + (typeof vnode.attrs.itemMaxWidth !== "undefined" ? px(vnode.attrs.itemMaxWidth) : px(120)),

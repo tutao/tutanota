@@ -1,27 +1,28 @@
 import o from "ospec"
-import type {DomMutation} from "../../../../src/gui/animation/Animations.js"
-import {alpha, AlphaEnum, Animation, animations, DefaultAnimationTime, transform, TransformEnum} from "../../../../src/gui/animation/Animations.js"
-import {ease} from "../../../../src/gui/animation/Easing.js"
-import {client} from "../../../../src/misc/ClientDetector.js"
-import {DeviceType} from "../../../../src/misc/ClientConstants.js"
-import {assertNotNull, downcast} from "@tutao/tutanota-utils"
+import type { DomMutation } from "../../../../src/gui/animation/Animations.js"
+import { alpha, AlphaEnum, Animation, animations, DefaultAnimationTime, transform, TransformEnum } from "../../../../src/gui/animation/Animations.js"
+import { ease } from "../../../../src/gui/animation/Easing.js"
+import { client } from "../../../../src/misc/ClientDetector.js"
+import { DeviceType } from "../../../../src/misc/ClientConstants.js"
+import { assertNotNull, downcast } from "@tutao/tutanota-utils"
 
 client.device = DeviceType.DESKTOP
 
-globalThis.HTMLElement = window.HTMLElement || (class HTMLElement {
-	style: CSSStyleDeclaration;
+globalThis.HTMLElement =
+	window.HTMLElement ||
+	class HTMLElement {
+		style: CSSStyleDeclaration
 
-	constructor() {
-		this.style = downcast({})
+		constructor() {
+			this.style = downcast({})
+		}
 	}
-})
 
 const defaultMutation: DomMutation = {
-	updateDom(target, percent, easing) {
-	},
+	updateDom(target, percent, easing) {},
 	willChange() {
 		return "nothing"
-	}
+	},
 }
 
 function newTarget() {
@@ -33,7 +34,7 @@ o.spec("Animations", function () {
 		let originalRequestAnimationFrame = window.requestAnimationFrame
 		let originalPerformance = window.performance
 		let newPerformance = {
-			now: () => time
+			now: () => time,
 		}
 
 		let time
@@ -42,7 +43,7 @@ o.spec("Animations", function () {
 			Object.defineProperty(window, "performance", {
 				get() {
 					return newPerformance
-				}
+				},
 			})
 		})
 		o.after(function () {
@@ -50,7 +51,7 @@ o.spec("Animations", function () {
 			Object.defineProperty(window, "performance", {
 				get() {
 					return originalPerformance
-				}
+				},
 			})
 		})
 
@@ -74,7 +75,7 @@ o.spec("Animations", function () {
 			// @ts-ignore
 			window.requestAnimationFrame = o.spy()
 
-			animations.add([target], defaultMutation, {delay: 55})
+			animations.add([target], defaultMutation, { delay: 55 })
 
 			o(animations.activeAnimations.length).equals(1)
 			o(animations.activeAnimations[0].delay).equals(55)
@@ -108,7 +109,7 @@ o.spec("Animations", function () {
 			let animation = downcast({
 				animateFrame: o.spy(),
 				isFinished: o.spy(),
-				resolve: o.spy()
+				resolve: o.spy(),
 			})
 			animations.activeAnimations = [animation]
 
@@ -126,7 +127,7 @@ o.spec("Animations", function () {
 			let animation = downcast({
 				animateFrame: o.spy(),
 				isFinished: () => true,
-				resolve: o.spy()
+				resolve: o.spy(),
 			})
 			animations.activeAnimations = [animation]
 
@@ -146,7 +147,7 @@ o.spec("Animations", function () {
 			// @ts-ignore
 			window.requestAnimationFrame = o.spy()
 
-			animations.add(targets, defaultMutation, {stagger: 55})
+			animations.add(targets, defaultMutation, { stagger: 55 })
 
 			o(window.requestAnimationFrame.callCount).equals(1)
 			o(animations.activeAnimations.length).equals(3)
@@ -170,7 +171,7 @@ o.spec("Animations", function () {
 
 		o("start and finish", function () {
 			let target = newTarget()
-			let mutation = Object.assign({}, defaultMutation, {updateDom: o.spy()})
+			let mutation = Object.assign({}, defaultMutation, { updateDom: o.spy() })
 			let resolve = o.spy()
 			let a = new Animation(target, [mutation], resolve, 0, ease.linear)
 
@@ -203,7 +204,7 @@ o.spec("Animations", function () {
 
 		o("delay and domMutation", function () {
 			let target = newTarget()
-			let mutation = Object.assign({}, defaultMutation, {updateDom: o.spy()})
+			let mutation = Object.assign({}, defaultMutation, { updateDom: o.spy() })
 			let resolve = o.spy()
 			let delay = 150
 			let a = new Animation(target, [mutation], resolve, delay, ease.linear)
@@ -242,7 +243,6 @@ o.spec("Animations", function () {
 	})
 
 	o.spec("transform dom updates", function () {
-
 		o("translateX with constant y", function () {
 			const target = newTarget()
 
@@ -311,7 +311,7 @@ o.spec("Animations", function () {
 		o("background-color", function () {
 			const target = newTarget()
 
-			let m = alpha(AlphaEnum.BackgroundColor, '#000000', 0, 1)
+			let m = alpha(AlphaEnum.BackgroundColor, "#000000", 0, 1)
 
 			client.device = DeviceType.DESKTOP
 			m.updateDom(target, 0 / 200, ease.linear)
@@ -333,7 +333,7 @@ o.spec("Animations", function () {
 		o("color", function () {
 			const target = newTarget()
 
-			let m = alpha(AlphaEnum.Color, '#ffffff', 0, 1)
+			let m = alpha(AlphaEnum.Color, "#ffffff", 0, 1)
 
 			client.device = DeviceType.DESKTOP
 			m.updateDom(target, 0 / 200, ease.linear)
@@ -353,6 +353,3 @@ o.spec("Animations", function () {
 		})
 	})
 })
-
-
-

@@ -2,10 +2,10 @@ import path from "path"
 import esbuild from "esbuild"
 
 let resolveLibs = {
-	name: 'qrcode-svg',
+	name: "qrcode-svg",
 	setup(build) {
-		build.onResolve({filter: /^qrcode-svg$/}, async () => {
-			return {path: path.normalize("./libs/qrcode.js"), external: true}
+		build.onResolve({ filter: /^qrcode-svg$/ }, async () => {
+			return { path: path.normalize("./libs/qrcode.js"), external: true }
 		})
 	},
 }
@@ -33,16 +33,18 @@ const external = [
 	"testdouble",
 ]
 
-await esbuild.build({
-	entryPoints: ['api/bootstrapTests-api-fast.ts'],
-	bundle: true,
-	outfile: '../build/test-api.js',
-	plugins: [resolveLibs],
-	platform: 'node',
-	format: 'esm',
-	target: 'node16',
-	external,
-	treeShaking: true
-}).catch(() => process.exit(1))
+await esbuild
+	.build({
+		entryPoints: ["api/bootstrapTests-api-fast.ts"],
+		bundle: true,
+		outfile: "../build/test-api.js",
+		plugins: [resolveLibs],
+		platform: "node",
+		format: "esm",
+		target: "node16",
+		external,
+		treeShaking: true,
+	})
+	.catch(() => process.exit(1))
 
-await import('../build/test-api.js')
+await import("../build/test-api.js")

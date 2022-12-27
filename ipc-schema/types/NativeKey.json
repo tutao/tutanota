@@ -1,9 +1,9 @@
 {
-  "name": "NativeKey",
-  "type": "struct",
-  "doc": "Key definition for shortcuts.",
-  "fields": {
-	"code": "number",
-	"name": "string"
-  }
+	"name": "NativeKey",
+	"type": "struct",
+	"doc": "Key definition for shortcuts.",
+	"fields": {
+		"code": "number",
+		"name": "string"
+	}
 }

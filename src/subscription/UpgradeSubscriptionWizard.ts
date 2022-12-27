@@ -1,28 +1,28 @@
-import type {Hex} from "@tutao/tutanota-utils"
-import {neverNull} from "@tutao/tutanota-utils"
-import type {AccountingInfo, Customer, CustomerInfo, UpgradePriceServiceReturn} from "../api/entities/sys/TypeRefs.js"
-import {AccountingInfoTypeRef, createUpgradePriceServiceData, CustomerInfoTypeRef, CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {logins} from "../api/main/LoginController"
-import type {InvoiceData, PaymentData} from "../api/common/TutanotaConstants"
-import {Const, getPaymentMethodType, PaymentMethodType as PaymentMethod} from "../api/common/TutanotaConstants"
-import {getByAbbreviation} from "../api/common/CountryList"
-import {UpgradeSubscriptionPage, UpgradeSubscriptionPageAttrs} from "./UpgradeSubscriptionPage"
-import {formatNameAndAddress} from "../misc/Formatter"
+import type { Hex } from "@tutao/tutanota-utils"
+import { neverNull } from "@tutao/tutanota-utils"
+import type { AccountingInfo, Customer, CustomerInfo, UpgradePriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
+import { AccountingInfoTypeRef, createUpgradePriceServiceData, CustomerInfoTypeRef, CustomerTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { logins } from "../api/main/LoginController"
+import type { InvoiceData, PaymentData } from "../api/common/TutanotaConstants"
+import { Const, getPaymentMethodType, PaymentMethodType as PaymentMethod } from "../api/common/TutanotaConstants"
+import { getByAbbreviation } from "../api/common/CountryList"
+import { UpgradeSubscriptionPage, UpgradeSubscriptionPageAttrs } from "./UpgradeSubscriptionPage"
+import { formatNameAndAddress } from "../misc/Formatter"
 import m from "mithril"
 import stream from "mithril/stream"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {assertTranslation} from "../misc/LanguageViewModel"
-import {createWizardDialog, wizardPageWrapper} from "../gui/base/WizardDialog.js"
-import {InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs} from "./InvoiceAndPaymentDataPage"
-import {UpgradeConfirmPage, UpgradeConfirmPageAttrs} from "./UpgradeConfirmPage"
-import {SignupPage, SignupPageAttrs} from "./SignupPage"
-import {assertMainOrNode} from "../api/common/Env"
-import {locator} from "../api/main/MainLocator"
-import {StorageBehavior} from "../misc/UsageTestModel"
-import {UpgradePriceService} from "../api/entities/sys/Services.js"
-import {FeatureListProvider, SelectedSubscriptionOptions, SubscriptionType} from "./FeatureListProvider"
-import {UpgradeType} from "./SubscriptionUtils"
-import {asPaymentInterval, PriceAndConfigProvider, PaymentInterval} from "./PriceUtils"
+import type { TranslationKey } from "../misc/LanguageViewModel"
+import { assertTranslation } from "../misc/LanguageViewModel"
+import { createWizardDialog, wizardPageWrapper } from "../gui/base/WizardDialog.js"
+import { InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs } from "./InvoiceAndPaymentDataPage"
+import { UpgradeConfirmPage, UpgradeConfirmPageAttrs } from "./UpgradeConfirmPage"
+import { SignupPage, SignupPageAttrs } from "./SignupPage"
+import { assertMainOrNode } from "../api/common/Env"
+import { locator } from "../api/main/MainLocator"
+import { StorageBehavior } from "../misc/UsageTestModel"
+import { UpgradePriceService } from "../api/entities/sys/Services.js"
+import { FeatureListProvider, SelectedSubscriptionOptions, SubscriptionType } from "./FeatureListProvider"
+import { UpgradeType } from "./SubscriptionUtils"
+import { asPaymentInterval, PriceAndConfigProvider, PaymentInterval } from "./PriceUtils"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -77,9 +77,9 @@ function loadCustomerAndInfo(): Promise<{
 	customerInfo: CustomerInfo
 	accountingInfo: AccountingInfo
 }> {
-	return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer =>
-		locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then(customerInfo =>
-			locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
+	return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) =>
+		locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then((customerInfo) =>
+			locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then((accountingInfo) => {
 				return {
 					customer,
 					customerInfo,
@@ -91,7 +91,7 @@ function loadCustomerAndInfo(): Promise<{
 }
 
 export async function showUpgradeWizard(): Promise<void> {
-	const {customer, accountingInfo} = await loadCustomerAndInfo()
+	const { customer, accountingInfo } = await loadCustomerAndInfo()
 	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(null)
 
 	const prices = priceDataProvider.getRawPricingData()
@@ -122,7 +122,7 @@ export async function showUpgradeWizard(): Promise<void> {
 		currentSubscription: SubscriptionType.Free,
 		subscriptionParameters: null,
 		planPrices: priceDataProvider,
-		featureListProvider: featureListProvider
+		featureListProvider: featureListProvider,
 	}
 	const wizardPages = [
 		wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(upgradeData)),
@@ -168,7 +168,7 @@ export async function loadSignupWizard(subscriptionParameters: SubscriptionParam
 		planPrices: priceDataProvider,
 		currentSubscription: null,
 		subscriptionParameters: subscriptionParameters,
-		featureListProvider: featureListProvider
+		featureListProvider: featureListProvider,
 	}
 
 	const invoiceAttrs = new InvoiceAndPaymentDataPageAttrs(signupData)

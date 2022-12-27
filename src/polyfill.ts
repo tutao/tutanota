@@ -2,8 +2,7 @@ import "systemjs"
 
 const globalContext = typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : self
 
-const noOp = function () {
-}
+const noOp = function () {}
 
 if (typeof performance === "undefined") {
 	// @ts-ignore

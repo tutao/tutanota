@@ -1,10 +1,10 @@
-import {Dialog} from "../../gui/base/Dialog"
-import m, {Children} from "mithril"
+import { Dialog } from "../../gui/base/Dialog"
+import m, { Children } from "mithril"
 import stream from "mithril/stream"
-import {TextField} from "../../gui/base/TextField.js"
-import {lang} from "../../misc/LanguageViewModel"
-import type {TranslationKeyType} from "../../misc/TranslationKey"
-import {downcast} from "@tutao/tutanota-utils"
+import { TextField } from "../../gui/base/TextField.js"
+import { lang } from "../../misc/LanguageViewModel"
+import type { TranslationKeyType } from "../../misc/TranslationKey"
+import { downcast } from "@tutao/tutanota-utils"
 
 type CalendarProperties = {
 	name: string
@@ -12,7 +12,7 @@ type CalendarProperties = {
 }
 
 export function showEditCalendarDialog(
-	{name, color}: CalendarProperties,
+	{ name, color }: CalendarProperties,
 	titleTextId: TranslationKeyType,
 	shared: boolean,
 	okAction: (arg0: Dialog, arg1: CalendarProperties) => unknown,
@@ -36,7 +36,7 @@ export function showEditCalendarDialog(
 					}),
 					m(".small.mt.mb-xs", lang.get("color_label")),
 					m("input.color-picker", {
-						oncreate: ({dom}) => (colorPickerDom = downcast<HTMLInputElement>(dom)),
+						oncreate: ({ dom }) => (colorPickerDom = downcast<HTMLInputElement>(dom)),
 						type: "color",
 						value: colorStream(),
 						oninput: (inputEvent: InputEvent) => {

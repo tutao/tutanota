@@ -9,11 +9,11 @@ import {
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
 } from "@tutao/tutanota-utils"
-import {CryptoFacade} from "../../../../../src/api/worker/crypto/CryptoFacade.js"
-import {ProgrammingError} from "../../../../../src/api/common/error/ProgrammingError.js"
-import {Cardinality, ValueType} from "../../../../../src/api/common/EntityConstants.js"
-import {BucketPermissionType, PermissionType} from "../../../../../src/api/common/TutanotaConstants.js"
-import type {Mail} from "../../../../../src/api/entities/tutanota/TypeRefs.js"
+import { CryptoFacade } from "../../../../../src/api/worker/crypto/CryptoFacade.js"
+import { ProgrammingError } from "../../../../../src/api/common/error/ProgrammingError.js"
+import { Cardinality, ValueType } from "../../../../../src/api/common/EntityConstants.js"
+import { BucketPermissionType, PermissionType } from "../../../../../src/api/common/TutanotaConstants.js"
+import type { Mail } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import * as Contact from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import {
 	ContactTypeRef,
@@ -21,7 +21,7 @@ import {
 	createContact,
 	createContactAddress,
 	MailAddressTypeRef,
-	MailTypeRef
+	MailTypeRef,
 } from "../../../../../src/api/entities/tutanota/TypeRefs.js"
 import * as UserIdReturn from "../../../../../src/api/entities/sys/TypeRefs.js"
 import {
@@ -37,11 +37,11 @@ import {
 	GroupTypeRef,
 	PermissionTypeRef,
 	UpdatePermissionKeyData,
-	UserIdReturnTypeRef
+	UserIdReturnTypeRef,
 } from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {assertThrows} from "@tutao/tutanota-test-utils"
-import {RestClient} from "../../../../../src/api/worker/rest/RestClient.js"
-import {EntityClient} from "../../../../../src/api/common/EntityClient.js"
+import { assertThrows } from "@tutao/tutanota-test-utils"
+import { RestClient } from "../../../../../src/api/worker/rest/RestClient.js"
+import { EntityClient } from "../../../../../src/api/common/EntityClient.js"
 import {
 	aes128Decrypt,
 	aes128Encrypt,
@@ -53,17 +53,17 @@ import {
 	hexToPrivateKey,
 	hexToPublicKey,
 	IV_BYTE_LENGTH,
-	random
+	random,
 } from "@tutao/tutanota-crypto"
-import {RsaWeb} from "../../../../../src/api/worker/crypto/RsaImplementation.js"
-import {decryptValue, encryptValue, InstanceMapper} from "../../../../../src/api/worker/crypto/InstanceMapper.js"
-import type {ModelValue} from "../../../../../src/api/common/EntityTypes.js"
-import {IServiceExecutor} from "../../../../../src/api/common/ServiceRequest.js"
-import {matchers, object, verify, when} from "testdouble"
-import {UpdatePermissionKeyService} from "../../../../../src/api/entities/sys/Services.js"
-import {getListId, isSameId} from "../../../../../src/api/common/utils/EntityUtils.js"
-import {resolveTypeReference} from "../../../../../src/api/common/EntityFunctions.js"
-import {UserFacade} from "../../../../../src/api/worker/facades/UserFacade.js"
+import { RsaWeb } from "../../../../../src/api/worker/crypto/RsaImplementation.js"
+import { decryptValue, encryptValue, InstanceMapper } from "../../../../../src/api/worker/crypto/InstanceMapper.js"
+import type { ModelValue } from "../../../../../src/api/common/EntityTypes.js"
+import { IServiceExecutor } from "../../../../../src/api/common/ServiceRequest.js"
+import { matchers, object, verify, when } from "testdouble"
+import { UpdatePermissionKeyService } from "../../../../../src/api/entities/sys/Services.js"
+import { getListId, isSameId } from "../../../../../src/api/common/utils/EntityUtils.js"
+import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
+import { UserFacade } from "../../../../../src/api/worker/facades/UserFacade.js"
 
 const rsa = new RsaWeb()
 const rsaEncrypt = rsa.encrypt
@@ -88,16 +88,10 @@ o.spec("crypto facade", function () {
 	o.beforeEach(function () {
 		serviceExecutor = object()
 		entityClient = object()
-		crypto = new CryptoFacade(
-			userFacade,
-			entityClient,
-			restClient,
-			rsa,
-			serviceExecutor,
-		)
+		crypto = new CryptoFacade(userFacade, entityClient, restClient, rsa, serviceExecutor)
 	})
 
-	function createValueType(type, encrypted, cardinality): ModelValue & {name: string, since: number} {
+	function createValueType(type, encrypted, cardinality): ModelValue & { name: string; since: number } {
 		return {
 			name: "test",
 			id: 426,
@@ -113,136 +107,66 @@ o.spec("crypto facade", function () {
 		o("decrypt string / number value without mac", function () {
 			let sk = aes128RandomKey()
 			let value = "this is a string value"
-			let encryptedValue = uint8ArrayToBase64(
-				aes128Encrypt(
-					sk,
-					stringToUtf8Uint8Array(value),
-					random.generateRandomData(IV_BYTE_LENGTH),
-					true,
-					false,
-				),
-			)
-			o(
-				decryptValue("test", createValueType(ValueType.String, true, Cardinality.One), encryptedValue, sk),
-			).equals(value)
+			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
+			o(decryptValue("test", createValueType(ValueType.String, true, Cardinality.One), encryptedValue, sk)).equals(value)
 			value = "516546"
-			encryptedValue = uint8ArrayToBase64(
-				aes128Encrypt(
-					sk,
-					stringToUtf8Uint8Array(value),
-					random.generateRandomData(IV_BYTE_LENGTH),
-					true,
-					false,
-				),
-			)
-			o(
-				decryptValue("test", createValueType(ValueType.String, true, Cardinality.One), encryptedValue, sk),
-			).equals(value)
+			encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
+			o(decryptValue("test", createValueType(ValueType.String, true, Cardinality.One), encryptedValue, sk)).equals(value)
 		})
 		o("decrypt string / number value with mac", function () {
 			let sk = aes128RandomKey()
 			let value = "this is a string value"
-			let encryptedValue = uint8ArrayToBase64(
-				aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true),
-			)
-			o(
-				decryptValue("test", createValueType(ValueType.String, true, Cardinality.One), encryptedValue, sk),
-			).equals(value)
+			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			o(decryptValue("test", createValueType(ValueType.String, true, Cardinality.One), encryptedValue, sk)).equals(value)
 			value = "516546"
-			encryptedValue = uint8ArrayToBase64(
-				aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true),
-			)
-			o(
-				decryptValue("test", createValueType(ValueType.String, true, Cardinality.One), encryptedValue, sk),
-			).equals(value)
+			encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			o(decryptValue("test", createValueType(ValueType.String, true, Cardinality.One), encryptedValue, sk)).equals(value)
 		})
 		o("decrypt boolean value without mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Boolean, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = "0"
-			let encryptedValue = uint8ArrayToBase64(
-				aes128Encrypt(
-					sk,
-					stringToUtf8Uint8Array(value),
-					random.generateRandomData(IV_BYTE_LENGTH),
-					true,
-					false,
-				),
-			)
+			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
 			o(decryptValue("test", valueType, encryptedValue, sk)).equals(false)
 			value = "1"
-			encryptedValue = uint8ArrayToBase64(
-				aes128Encrypt(
-					sk,
-					stringToUtf8Uint8Array(value),
-					random.generateRandomData(IV_BYTE_LENGTH),
-					true,
-					false,
-				),
-			)
+			encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
 			o(decryptValue("test", valueType, encryptedValue, sk)).equals(true)
 			value = "32498"
-			encryptedValue = uint8ArrayToBase64(
-				aes128Encrypt(
-					sk,
-					stringToUtf8Uint8Array(value),
-					random.generateRandomData(IV_BYTE_LENGTH),
-					true,
-					false,
-				),
-			)
+			encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
 			o(decryptValue("test", valueType, encryptedValue, sk)).equals(true)
 		})
 		o("decrypt boolean value with mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Boolean, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = "0"
-			let encryptedValue = uint8ArrayToBase64(
-				aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true),
-			)
+			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			o(decryptValue("test", valueType, encryptedValue, sk)).equals(false)
 			value = "1"
-			encryptedValue = uint8ArrayToBase64(
-				aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true),
-			)
+			encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			o(decryptValue("test", valueType, encryptedValue, sk)).equals(true)
 			value = "32498"
-			encryptedValue = uint8ArrayToBase64(
-				aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true),
-			)
+			encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			o(decryptValue("test", valueType, encryptedValue, sk)).equals(true)
 		})
 		o("decrypt date value without mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Date, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = new Date().getTime().toString()
-			let encryptedValue = uint8ArrayToBase64(
-				aes128Encrypt(
-					sk,
-					stringToUtf8Uint8Array(value),
-					random.generateRandomData(IV_BYTE_LENGTH),
-					true,
-					false,
-				),
-			)
+			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, false))
 			o(decryptValue("test", valueType, encryptedValue, sk)).deepEquals(new Date(parseInt(value)))
 		})
 		o("decrypt date value with mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Date, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = new Date().getTime().toString()
-			let encryptedValue = uint8ArrayToBase64(
-				aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true),
-			)
+			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			o(decryptValue("test", valueType, encryptedValue, sk)).deepEquals(new Date(parseInt(value)))
 		})
 		o("decrypt bytes value without mac", function () {
 			let valueType: ModelValue = createValueType(ValueType.Bytes, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = random.generateRandomData(5)
-			let encryptedValue = uint8ArrayToBase64(
-				aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, false),
-			)
+			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, false))
 			let decryptedValue = decryptValue("test", valueType, encryptedValue, sk)
 			o(decryptedValue instanceof Uint8Array).equals(true)
 			o(Array.from(decryptedValue)).deepEquals(Array.from(value))
@@ -251,9 +175,7 @@ o.spec("crypto facade", function () {
 			let valueType: ModelValue = createValueType(ValueType.Bytes, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = random.generateRandomData(5)
-			let encryptedValue = uint8ArrayToBase64(
-				aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true),
-			)
+			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			let decryptedValue = decryptValue("test", valueType, encryptedValue, sk)
 			o(decryptedValue instanceof Uint8Array).equals(true)
 			o(Array.from(decryptedValue)).deepEquals(Array.from(value))
@@ -262,9 +184,7 @@ o.spec("crypto facade", function () {
 			let valueType: ModelValue = createValueType(ValueType.CompressedString, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = base64ToUint8Array("QHRlc3Q=")
-			let encryptedValue = uint8ArrayToBase64(
-				aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true),
-			)
+			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			let decryptedValue = decryptValue("test", valueType, encryptedValue, sk)
 			o(typeof decryptedValue === "string").equals(true)
 			o(decryptedValue).equals("test")
@@ -273,9 +193,7 @@ o.spec("crypto facade", function () {
 			let valueType: ModelValue = createValueType(ValueType.CompressedString, true, Cardinality.One)
 			let sk = aes128RandomKey()
 			let value = base64ToUint8Array("X3RleHQgBQD//1FQdGV4dCA=")
-			let encryptedValue = uint8ArrayToBase64(
-				aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true),
-			)
+			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			let decryptedValue = decryptValue("test", valueType, encryptedValue, sk)
 			o(typeof decryptedValue === "string").equals(true)
 			o(decryptedValue).equals(
@@ -285,28 +203,18 @@ o.spec("crypto facade", function () {
 		o("decrypt empty compressedString", function () {
 			let valueType: ModelValue = createValueType(ValueType.CompressedString, true, Cardinality.One)
 			let sk = aes128RandomKey()
-			let encryptedValue = uint8ArrayToBase64(
-				aes128Encrypt(sk, new Uint8Array([]), random.generateRandomData(IV_BYTE_LENGTH), true, true),
-			)
+			let encryptedValue = uint8ArrayToBase64(aes128Encrypt(sk, new Uint8Array([]), random.generateRandomData(IV_BYTE_LENGTH), true, true))
 			let decryptedValue = decryptValue("test", valueType, encryptedValue, sk)
 			o(typeof decryptedValue === "string").equals(true)
 			o(decryptedValue).equals("")
 		})
 		o("do not decrypt null values", function () {
 			let sk = aes128RandomKey()
-			o(decryptValue("test", createValueType(ValueType.String, true, Cardinality.ZeroOrOne), null, sk)).equals(
-				null,
-			)
+			o(decryptValue("test", createValueType(ValueType.String, true, Cardinality.ZeroOrOne), null, sk)).equals(null)
 			o(decryptValue("test", createValueType(ValueType.Date, true, Cardinality.ZeroOrOne), null, sk)).equals(null)
-			o(decryptValue("test", createValueType(ValueType.Bytes, true, Cardinality.ZeroOrOne), null, sk)).equals(
-				null,
-			)
-			o(decryptValue("test", createValueType(ValueType.Boolean, true, Cardinality.ZeroOrOne), null, sk)).equals(
-				null,
-			)
-			o(decryptValue("test", createValueType(ValueType.Number, true, Cardinality.ZeroOrOne), null, sk)).equals(
-				null,
-			)
+			o(decryptValue("test", createValueType(ValueType.Bytes, true, Cardinality.ZeroOrOne), null, sk)).equals(null)
+			o(decryptValue("test", createValueType(ValueType.Boolean, true, Cardinality.ZeroOrOne), null, sk)).equals(null)
+			o(decryptValue("test", createValueType(ValueType.Number, true, Cardinality.ZeroOrOne), null, sk)).equals(null)
 		})
 		o("throw error on ONE null values (String)", makeTestForErrorOnNull(ValueType.String))
 		o("throw error on ONE null values (Date)", makeTestForErrorOnNull(ValueType.Date))
@@ -325,26 +233,18 @@ o.spec("crypto facade", function () {
 
 		o("convert unencrypted Date to JS type", function () {
 			let value = new Date().getTime().toString()
-			o(decryptValue("test", createValueType(ValueType.Date, false, Cardinality.One), value, null)).deepEquals(
-				new Date(parseInt(value)),
-			)
+			o(decryptValue("test", createValueType(ValueType.Date, false, Cardinality.One), value, null)).deepEquals(new Date(parseInt(value)))
 		})
 		o("convert unencrypted Bytes to JS type", function () {
 			let valueBytes = random.generateRandomData(15)
 			let value = uint8ArrayToBase64(valueBytes)
-			o(
-				Array.from(decryptValue("test", createValueType(ValueType.Bytes, false, Cardinality.One), value, null)),
-			).deepEquals(Array.from(valueBytes))
+			o(Array.from(decryptValue("test", createValueType(ValueType.Bytes, false, Cardinality.One), value, null))).deepEquals(Array.from(valueBytes))
 		})
 		o("convert unencrypted Boolean to JS type", function () {
 			let value = "0"
-			o(decryptValue("test", createValueType(ValueType.Boolean, false, Cardinality.One), value, null)).equals(
-				false,
-			)
+			o(decryptValue("test", createValueType(ValueType.Boolean, false, Cardinality.One), value, null)).equals(false)
 			value = "1"
-			o(decryptValue("test", createValueType(ValueType.Boolean, false, Cardinality.One), value, null)).equals(
-				true,
-			)
+			o(decryptValue("test", createValueType(ValueType.Boolean, false, Cardinality.One), value, null)).equals(true)
 		})
 		o("convert unencrypted Number to JS type", function () {
 			let value = ""
@@ -356,13 +256,9 @@ o.spec("crypto facade", function () {
 		})
 		o("convert unencrypted compressedString to JS type", function () {
 			let value = ""
-			o(
-				decryptValue("test", createValueType(ValueType.CompressedString, false, Cardinality.One), value, null),
-			).equals("")
+			o(decryptValue("test", createValueType(ValueType.CompressedString, false, Cardinality.One), value, null)).equals("")
 			value = "QHRlc3Q="
-			o(
-				decryptValue("test", createValueType(ValueType.CompressedString, false, Cardinality.One), value, null),
-			).equals("test")
+			o(decryptValue("test", createValueType(ValueType.CompressedString, false, Cardinality.One), value, null)).equals("test")
 		})
 	})
 	o.spec("encryptValue", function () {
@@ -436,32 +332,18 @@ o.spec("crypto facade", function () {
 			let value = random.generateRandomData(5)
 			let encryptedValue = neverNull(encryptValue("test", valueType, value, sk))
 			let expected = uint8ArrayToBase64(
-				aes128Encrypt(
-					sk,
-					value,
-					base64ToUint8Array(encryptedValue).slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16),
-					true,
-					ENABLE_MAC,
-				),
+				aes128Encrypt(sk, value, base64ToUint8Array(encryptedValue).slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC),
 			)
 			o(encryptedValue).equals(expected)
 			o(Array.from(decryptValue("test", valueType, encryptedValue, sk))).deepEquals(Array.from(value))
 		})
 		o("do not encrypt null values", function () {
 			let sk = aes128RandomKey()
-			o(encryptValue("test", createValueType(ValueType.String, true, Cardinality.ZeroOrOne), null, sk)).equals(
-				null,
-			)
+			o(encryptValue("test", createValueType(ValueType.String, true, Cardinality.ZeroOrOne), null, sk)).equals(null)
 			o(encryptValue("test", createValueType(ValueType.Date, true, Cardinality.ZeroOrOne), null, sk)).equals(null)
-			o(encryptValue("test", createValueType(ValueType.Bytes, true, Cardinality.ZeroOrOne), null, sk)).equals(
-				null,
-			)
-			o(encryptValue("test", createValueType(ValueType.Boolean, true, Cardinality.ZeroOrOne), null, sk)).equals(
-				null,
-			)
-			o(encryptValue("test", createValueType(ValueType.Number, true, Cardinality.ZeroOrOne), null, sk)).equals(
-				null,
-			)
+			o(encryptValue("test", createValueType(ValueType.Bytes, true, Cardinality.ZeroOrOne), null, sk)).equals(null)
+			o(encryptValue("test", createValueType(ValueType.Boolean, true, Cardinality.ZeroOrOne), null, sk)).equals(null)
+			o(encryptValue("test", createValueType(ValueType.Number, true, Cardinality.ZeroOrOne), null, sk)).equals(null)
 		})
 		o("accept null _id and _permissions value during encryption", function () {
 			let vt: ModelValue = {
@@ -491,16 +373,12 @@ o.spec("crypto facade", function () {
 
 		o("convert unencrypted Date to DB type", function () {
 			let value = new Date()
-			o(encryptValue("test", createValueType(ValueType.Date, false, Cardinality.One), value, null)).equals(
-				value.getTime().toString(),
-			)
+			o(encryptValue("test", createValueType(ValueType.Date, false, Cardinality.One), value, null)).equals(value.getTime().toString())
 		})
 
 		o("convert unencrypted Bytes to DB type", function () {
 			let valueBytes = random.generateRandomData(15)
-			o(
-				encryptValue("test", createValueType(ValueType.Bytes, false, Cardinality.One), valueBytes, null),
-			).equals(uint8ArrayToBase64(valueBytes))
+			o(encryptValue("test", createValueType(ValueType.Bytes, false, Cardinality.One), valueBytes, null)).equals(uint8ArrayToBase64(valueBytes))
 		})
 
 		o("convert unencrypted Boolean to DB type", function () {
@@ -532,37 +410,15 @@ o.spec("crypto facade", function () {
 			state: "",
 			trashed: false,
 			unread: true,
-			subject: uint8ArrayToBase64(
-				aes128Encrypt(
-					sk,
-					stringToUtf8Uint8Array(subject),
-					random.generateRandomData(IV_BYTE_LENGTH),
-					true,
-					ENABLE_MAC,
-				),
-			),
+			subject: uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(subject), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
 			replyType: "",
 			confidential: uint8ArrayToBase64(
-				aes128Encrypt(
-					sk,
-					stringToUtf8Uint8Array(confidential ? "1" : "0"),
-					random.generateRandomData(IV_BYTE_LENGTH),
-					true,
-					ENABLE_MAC,
-				),
+				aes128Encrypt(sk, stringToUtf8Uint8Array(confidential ? "1" : "0"), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC),
 			),
 			sender: {
 				_id: "senderId",
 				address: "hello@tutao.de",
-				name: uint8ArrayToBase64(
-					aes128Encrypt(
-						sk,
-						stringToUtf8Uint8Array(senderName),
-						random.generateRandomData(IV_BYTE_LENGTH),
-						true,
-						ENABLE_MAC,
-					),
-				),
+				name: uint8ArrayToBase64(aes128Encrypt(sk, stringToUtf8Uint8Array(senderName), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)),
 			},
 			bccRecipients: [],
 			ccRecipients: [],
@@ -571,13 +427,7 @@ o.spec("crypto facade", function () {
 					_id: "recipientId",
 					address: "support@yahoo.com",
 					name: uint8ArrayToBase64(
-						aes128Encrypt(
-							sk,
-							stringToUtf8Uint8Array(recipientName),
-							random.generateRandomData(IV_BYTE_LENGTH),
-							true,
-							ENABLE_MAC,
-						),
+						aes128Encrypt(sk, stringToUtf8Uint8Array(recipientName), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC),
 					),
 				},
 			],
@@ -595,7 +445,7 @@ o.spec("crypto facade", function () {
 		let sk = aes128RandomKey()
 		let mail = createMailLiteral(gk, sk, subject, confidential, senderName, recipientName)
 		const MailTypeModel = await resolveTypeReference(MailTypeRef)
-		return instanceMapper.decryptAndMapToInstance<Mail>(MailTypeModel, mail, sk).then(decrypted => {
+		return instanceMapper.decryptAndMapToInstance<Mail>(MailTypeModel, mail, sk).then((decrypted) => {
 			o(isSameTypeRef(decrypted._type, MailTypeRef)).equals(true)
 			o(decrypted.receivedDate.getTime()).equals(1470039025474)
 			o(decrypted.sentDate.getTime()).equals(1470039021474)
@@ -632,23 +482,15 @@ o.spec("crypto facade", function () {
 		o(result._format).equals("0")
 		o(result._ownerGroup).equals(null)
 		o(result._ownerEncSessionKey).equals(null)
-		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.addresses[0].type)))).equals(
-			contact.addresses[0].type,
-		)
-		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.addresses[0].address)))).equals(
-			contact.addresses[0].address,
-		)
-		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.addresses[0].customTypeName)))).equals(
-			contact.addresses[0].customTypeName,
-		)
+		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.addresses[0].type)))).equals(contact.addresses[0].type)
+		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.addresses[0].address)))).equals(contact.addresses[0].address)
+		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.addresses[0].customTypeName)))).equals(contact.addresses[0].customTypeName)
 		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.title)))).equals(contact.title)
 		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.firstName)))).equals(contact.firstName)
 		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.lastName)))).equals(contact.lastName)
 		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.comment)))).equals(contact.comment)
 		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.company)))).equals(contact.company)
-		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.autoTransmitPassword)))).equals(
-			contact.autoTransmitPassword,
-		)
+		o(utf8Uint8ArrayToString(aes128Decrypt(sk, base64ToUint8Array(result.autoTransmitPassword)))).equals(contact.autoTransmitPassword)
 	})
 
 	o("map unencrypted to instance", async function () {
@@ -671,7 +513,7 @@ o.spec("crypto facade", function () {
 			userId: "KOBqO7a----0",
 		}
 		const UserIdReturnTypeModel = await resolveTypeReference(UserIdReturnTypeRef)
-		return instanceMapper.encryptAndMapToLiteral(UserIdReturnTypeModel, userIdReturn, null).then(result => {
+		return instanceMapper.encryptAndMapToLiteral(UserIdReturnTypeModel, userIdReturn, null).then((result) => {
 			o(result).deepEquals(userIdLiteral)
 		})
 	})
@@ -696,13 +538,12 @@ o.spec("crypto facade", function () {
 		const user = createUser({
 			userGroup: createGroupMembership({
 				group: "ownerGroupId",
-			})
+			}),
 		})
 		when(userFacade.isFullyLoggedIn()).thenReturn(true)
 		when(userFacade.getLoggedInUser()).thenReturn(user)
 		when(userFacade.hasGroup("ownerGroupId")).thenReturn(true)
 		const mail = createMailLiteral(gk, sk, subject, confidential, senderName, recipientName)
-
 
 		const MailTypeModel = await resolveTypeReference(MailTypeRef)
 		const sessionKey: Aes128Key = neverNull(await crypto.resolveSessionKey(MailTypeModel, mail))
@@ -725,17 +566,17 @@ o.spec("crypto facade", function () {
 		const keyPair = createKeyPair({
 			_id: "keyPairId",
 			symEncPrivKey: encryptRsaKey(gk, privateKey),
-			pubKey: hexToUint8Array(rsaPublicHexKey)
+			pubKey: hexToUint8Array(rsaPublicHexKey),
 		})
 		const userGroup = createGroup({
 			_id: "userGroupId",
-			keys: [keyPair]
+			keys: [keyPair],
 		})
 		const mail = createMailLiteral(gk, sk, subject, confidential, senderName, recipientName)
 		// @ts-ignore
 		mail._ownerEncSessionKey = null
 		const bucket = createBucket({
-			bucketPermissions: "bucketPermissionListId"
+			bucketPermissions: "bucketPermissionListId",
 		})
 		const permission = createPermission({
 			_id: ["permissionListId", "permissionId"],
@@ -766,11 +607,15 @@ o.spec("crypto facade", function () {
 		when(entityClient.loadAll(BucketPermissionTypeRef, getListId(bucketPermission))).thenResolve([bucketPermission])
 		when(entityClient.loadAll(PermissionTypeRef, getListId(permission))).thenResolve([permission])
 		when(entityClient.load(GroupTypeRef, userGroup._id)).thenResolve(userGroup)
-		when(serviceExecutor.post(UpdatePermissionKeyService, matchers.argThat((p: UpdatePermissionKeyData) => {
-			console.log("KEY DATA", p)
-			return isSameId(p.permission, permission._id) &&
-				isSameId(p.bucketPermission, bucketPermission._id)
-		}))).thenResolve(undefined)
+		when(
+			serviceExecutor.post(
+				UpdatePermissionKeyService,
+				matchers.argThat((p: UpdatePermissionKeyData) => {
+					console.log("KEY DATA", p)
+					return isSameId(p.permission, permission._id) && isSameId(p.bucketPermission, bucketPermission._id)
+				}),
+			),
+		).thenResolve(undefined)
 
 		const MailTypeModel = await resolveTypeReference(MailTypeRef)
 		const sessionKey = neverNull(await crypto.resolveSessionKey(MailTypeModel, mail))
@@ -802,8 +647,7 @@ o.spec("crypto facade", function () {
 			const migratedContact = await crypto.applyMigrationsForInstance(contact)
 
 			o(migratedContact.birthdayIso).equals(null)
-			verify(entityClient.update(matchers.anything()), {times: 0})
-
+			verify(entityClient.update(matchers.anything()), { times: 0 })
 		})
 
 		o("contact migration without existing birthday", async function () {
@@ -814,21 +658,21 @@ o.spec("crypto facade", function () {
 			const migratedContact = await crypto.applyMigrationsForInstance(contact)
 
 			o(migratedContact.birthdayIso).equals("2019-05-01")
-			verify(entityClient.update(matchers.anything()), {times: 0})
+			verify(entityClient.update(matchers.anything()), { times: 0 })
 		})
 
 		o("contact migration without existing birthday and oldBirthdayDate", async function () {
 			const contact = createContact({
 				_id: ["listid", "id"],
 				birthdayIso: "2019-05-01",
-				oldBirthdayDate: new Date(2000, 4, 1)
+				oldBirthdayDate: new Date(2000, 4, 1),
 			})
 
 			const migratedContact = await crypto.applyMigrationsForInstance(contact)
 			o(migratedContact.birthdayIso).equals("2019-05-01")
 			o(migratedContact.oldBirthdayAggregate).equals(null)
 			o(migratedContact.oldBirthdayDate).equals(null)
-			verify(entityClient.update(matchers.anything()), {times: 1})
+			verify(entityClient.update(matchers.anything()), { times: 1 })
 		})
 
 		o("contact migration with existing birthday and oldBirthdayAggregate", async function () {
@@ -839,7 +683,7 @@ o.spec("crypto facade", function () {
 					day: "01",
 					month: "05",
 					year: "2000",
-				})
+				}),
 			})
 
 			const migratedContact = await crypto.applyMigrationsForInstance(contact)
@@ -847,7 +691,7 @@ o.spec("crypto facade", function () {
 			o(migratedContact.birthdayIso).equals("2019-05-01")
 			o(migratedContact.oldBirthdayAggregate).equals(null)
 			o(migratedContact.oldBirthdayDate).equals(null)
-			verify(entityClient.update(matchers.anything()), {times: 1})
+			verify(entityClient.update(matchers.anything()), { times: 1 })
 		})
 
 		o("contact migration from oldBirthdayAggregate", async function () {
@@ -858,7 +702,7 @@ o.spec("crypto facade", function () {
 					day: "01",
 					month: "05",
 					year: "2000",
-				})
+				}),
 			})
 
 			const migratedContact = await crypto.applyMigrationsForInstance(contact)
@@ -866,7 +710,7 @@ o.spec("crypto facade", function () {
 			o(migratedContact.birthdayIso).equals("2000-05-01")
 			o(migratedContact.oldBirthdayAggregate).equals(null)
 			o(migratedContact.oldBirthdayDate).equals(null)
-			verify(entityClient.update(matchers.anything()), {times: 1})
+			verify(entityClient.update(matchers.anything()), { times: 1 })
 		})
 
 		o("contact migration from oldBirthdayDate", async function () {
@@ -882,7 +726,7 @@ o.spec("crypto facade", function () {
 			o(migratedContact.birthdayIso).equals("1800-05-01")
 			o(migratedContact.oldBirthdayAggregate).equals(null)
 			o(migratedContact.oldBirthdayDate).equals(null)
-			verify(entityClient.update(matchers.anything()), {times: 1})
+			verify(entityClient.update(matchers.anything()), { times: 1 })
 		})
 
 		o("contact migration from oldBirthdayAggregate without year", async function () {
@@ -893,7 +737,7 @@ o.spec("crypto facade", function () {
 				oldBirthdayAggregate: createBirthday({
 					day: "01",
 					month: "05",
-					year: null
+					year: null,
 				}),
 			})
 
@@ -902,8 +746,7 @@ o.spec("crypto facade", function () {
 			o(migratedContact.birthdayIso).equals("--05-01")
 			o(migratedContact.oldBirthdayAggregate).equals(null)
 			o(migratedContact.oldBirthdayDate).equals(null)
-			verify(entityClient.update(matchers.anything()), {times: 1})
-
+			verify(entityClient.update(matchers.anything()), { times: 1 })
 		})
 	})
 })

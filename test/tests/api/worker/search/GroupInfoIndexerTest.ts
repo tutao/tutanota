@@ -1,22 +1,22 @@
 import o from "ospec"
-import {createGroupInfo, GroupInfoTypeRef,} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {NotFoundError} from "../../../../../src/api/common/error/RestError.js"
-import type {Db} from "../../../../../src/api/worker/search/SearchTypes.js"
-import {FULL_INDEXED_TIMESTAMP, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType,} from "../../../../../src/api/common/TutanotaConstants.js"
-import {IndexerCore} from "../../../../../src/api/worker/search/IndexerCore.js"
-import {_createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo,} from "../../../../../src/api/worker/search/IndexUtils.js"
-import {GroupInfoIndexer} from "../../../../../src/api/worker/search/GroupInfoIndexer.js"
-import {createMailAddressAlias} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {createUser} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {createCustomer, CustomerTypeRef} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {createGroupMembership} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import type {EntityUpdate} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {createEntityUpdate} from "../../../../../src/api/entities/sys/TypeRefs.js"
-import {browserDataStub} from "../../../TestUtils.js"
-import {isSameId} from "../../../../../src/api/common/utils/EntityUtils.js"
-import {GroupDataOS} from "../../../../../src/api/worker/search/Indexer.js"
-import {aes256RandomKey, fixedIv} from "@tutao/tutanota-crypto"
-import {resolveTypeReference} from "../../../../../src/api/common/EntityFunctions.js"
+import { createGroupInfo, GroupInfoTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { NotFoundError } from "../../../../../src/api/common/error/RestError.js"
+import type { Db } from "../../../../../src/api/worker/search/SearchTypes.js"
+import { FULL_INDEXED_TIMESTAMP, GroupType, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../../../src/api/common/TutanotaConstants.js"
+import { IndexerCore } from "../../../../../src/api/worker/search/IndexerCore.js"
+import { _createNewIndexUpdate, encryptIndexKeyBase64, typeRefToTypeInfo } from "../../../../../src/api/worker/search/IndexUtils.js"
+import { GroupInfoIndexer } from "../../../../../src/api/worker/search/GroupInfoIndexer.js"
+import { createMailAddressAlias } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { createUser } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { createCustomer, CustomerTypeRef } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { createGroupMembership } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import type { EntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { createEntityUpdate } from "../../../../../src/api/entities/sys/TypeRefs.js"
+import { browserDataStub } from "../../../TestUtils.js"
+import { isSameId } from "../../../../../src/api/common/utils/EntityUtils.js"
+import { GroupDataOS } from "../../../../../src/api/worker/search/Indexer.js"
+import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
+import { resolveTypeReference } from "../../../../../src/api/common/EntityFunctions.js"
 
 const dbMock: any = {
 	iv: fixedIv,
@@ -31,12 +31,7 @@ o.spec("GroupInfoIndexer test", function () {
 	})
 	o("createGroupInfoIndexEntries without entries", function () {
 		let g = createGroupInfo()
-		let indexer = new GroupInfoIndexer(
-			new IndexerCore(dbMock, null as any, browserDataStub),
-			null as any,
-			null as any,
-			suggestionFacadeMock,
-		)
+		let indexer = new GroupInfoIndexer(new IndexerCore(dbMock, null as any, browserDataStub), null as any, null as any, suggestionFacadeMock)
 		let keyToIndexEntries = indexer.createGroupInfoIndexEntries(g)
 		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("")
 		o(keyToIndexEntries.size).equals(0)
@@ -44,12 +39,7 @@ o.spec("GroupInfoIndexer test", function () {
 	o("createGroupInfoIndexEntries with one entry", function () {
 		let g = createGroupInfo()
 		g.name = "test"
-		let indexer = new GroupInfoIndexer(
-			new IndexerCore(dbMock, null as any, browserDataStub),
-			null as any,
-			null as any,
-			suggestionFacadeMock,
-		)
+		let indexer = new GroupInfoIndexer(new IndexerCore(dbMock, null as any, browserDataStub), null as any, null as any, suggestionFacadeMock)
 		let keyToIndexEntries = indexer.createGroupInfoIndexEntries(g)
 		o(suggestionFacadeMock.addSuggestions.args[0].join(",")).equals("test")
 		o(keyToIndexEntries.size).equals(1)
@@ -73,7 +63,7 @@ o.spec("GroupInfoIndexer test", function () {
 		let args = core.createIndexEntriesForAttributes.args
 		let attributeHandlers = core.createIndexEntriesForAttributes.args[1]
 		o(args[0]).equals(g)
-		let attributes = attributeHandlers.map(h => {
+		let attributes = attributeHandlers.map((h) => {
 			return {
 				attribute: h.attribute.id,
 				value: h.value(),
@@ -111,23 +101,20 @@ o.spec("GroupInfoIndexer test", function () {
 			instanceListId: "lid",
 			instanceId: "eid",
 		} as any
-		return indexer
-			.processNewGroupInfo(event)
-			.then(result => {
-				o(result!).deepEquals({
-					groupInfo,
-					keyToIndexEntries,
-				})
-				// @ts-ignore
-				o(indexer._entity.load.args[0]).equals(GroupInfoTypeRef)
-				// @ts-ignore
-				o(indexer._entity.load.args[1]).deepEquals([event.instanceListId, event.instanceId])
+		return indexer.processNewGroupInfo(event).then((result) => {
+			o(result!).deepEquals({
+				groupInfo,
+				keyToIndexEntries,
 			})
+			// @ts-ignore
+			o(indexer._entity.load.args[0]).equals(GroupInfoTypeRef)
+			// @ts-ignore
+			o(indexer._entity.load.args[1]).deepEquals([event.instanceListId, event.instanceId])
+		})
 	})
 	o("processNewGroupInfo catches NotFoundError", function () {
 		let core = {
-			createIndexEntriesForAttributes: () => {
-			},
+			createIndexEntriesForAttributes: () => {},
 		} as any
 		let entity = {
 			load: () => Promise.reject(new NotFoundError("blah")),
@@ -137,16 +124,13 @@ o.spec("GroupInfoIndexer test", function () {
 			instanceListId: "lid",
 			instanceId: "eid",
 		} as any
-		return indexer
-			.processNewGroupInfo(event)
-			.then(result => {
-				o(result).equals(null)
-			})
+		return indexer.processNewGroupInfo(event).then((result) => {
+			o(result).equals(null)
+		})
 	})
 	o("processNewGroupInfo passes other Errors", function (done) {
 		let core = {
-			createIndexEntriesForAttributes: () => {
-			},
+			createIndexEntriesForAttributes: () => {},
 		} as any
 		let entity = {
 			load: () => Promise.reject(new Error("blah")),
@@ -156,7 +140,7 @@ o.spec("GroupInfoIndexer test", function () {
 			instanceListId: "lid",
 			instanceId: "eid",
 		} as any
-		indexer.processNewGroupInfo(event).catch(e => {
+		indexer.processNewGroupInfo(event).catch((e) => {
 			done()
 		})
 	})
@@ -218,20 +202,15 @@ o.spec("GroupInfoIndexer test", function () {
 			},
 		}
 		const indexer = new GroupInfoIndexer(core, db, entity, suggestionFacadeMock)
-		return indexer
-			.indexAllUserAndTeamGroupInfosForAdmin(user)
-			.then(() => {
-				o(core.writeIndexUpdate.callCount).equals(1)
-				const [[{groupId, indexTimestamp}], indexUpdate] = core.writeIndexUpdate.args
-				o(indexTimestamp).equals(FULL_INDEXED_TIMESTAMP)
-				o(groupId).equals(customer.customerGroup)
-				let expectedKeys = [
-					encryptIndexKeyBase64(db.key, userGroupInfo._id[1], fixedIv),
-					encryptIndexKeyBase64(db.key, teamGroupInfo._id[1], fixedIv),
-				]
-				o(Array.from(indexUpdate.create.encInstanceIdToElementData.keys())).deepEquals(expectedKeys)
-				o(suggestionFacadeMock.addSuggestions.callCount).equals(2)
-			})
+		return indexer.indexAllUserAndTeamGroupInfosForAdmin(user).then(() => {
+			o(core.writeIndexUpdate.callCount).equals(1)
+			const [[{ groupId, indexTimestamp }], indexUpdate] = core.writeIndexUpdate.args
+			o(indexTimestamp).equals(FULL_INDEXED_TIMESTAMP)
+			o(groupId).equals(customer.customerGroup)
+			let expectedKeys = [encryptIndexKeyBase64(db.key, userGroupInfo._id[1], fixedIv), encryptIndexKeyBase64(db.key, teamGroupInfo._id[1], fixedIv)]
+			o(Array.from(indexUpdate.create.encInstanceIdToElementData.keys())).deepEquals(expectedKeys)
+			o(suggestionFacadeMock.addSuggestions.callCount).equals(2)
+		})
 	})
 	o("indexAllUserAndTeamGroupInfosForAdmin not an admin", function () {
 		let db: Db = {
@@ -253,11 +232,9 @@ o.spec("GroupInfoIndexer test", function () {
 		user.memberships[0].groupType = GroupType.User
 		user.customer = "customer-id"
 		const indexer = new GroupInfoIndexer(core, db, null as any, suggestionFacadeMock)
-		return indexer
-			.indexAllUserAndTeamGroupInfosForAdmin(user)
-			.then(() => {
-				o(core.writeIndexUpdate.callCount).equals(0)
-			})
+		return indexer.indexAllUserAndTeamGroupInfosForAdmin(user).then(() => {
+			o(core.writeIndexUpdate.callCount).equals(0)
+		})
 	})
 	o("indexAllUserAndTeamGroupInfosForAdmin already indexed", function () {
 		let db: Db = {
@@ -302,11 +279,9 @@ o.spec("GroupInfoIndexer test", function () {
 			},
 		}
 		const indexer = new GroupInfoIndexer(core, db, entity, suggestionFacadeMock)
-		return indexer
-			.indexAllUserAndTeamGroupInfosForAdmin(user)
-			.then(() => {
-				o(core.writeIndexUpdate.callCount).equals(0)
-			})
+		return indexer.indexAllUserAndTeamGroupInfosForAdmin(user).then(() => {
+			o(core.writeIndexUpdate.callCount).equals(0)
+		})
 	})
 	o("processEntityEvents do nothing if user is not an admin", function (done) {
 		let db: any = {

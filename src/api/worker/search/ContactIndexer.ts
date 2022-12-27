@@ -1,17 +1,17 @@
-import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
-import type {Contact, ContactList} from "../../entities/tutanota/TypeRefs.js"
-import {ContactTypeRef} from "../../entities/tutanota/TypeRefs.js"
-import {typeModels as tutanotaModels} from "../../entities/tutanota/TypeModels"
-import type {Db, GroupData, IndexUpdate, SearchIndexEntry} from "./SearchTypes"
-import {_createNewIndexUpdate, typeRefToTypeInfo} from "./IndexUtils"
-import {neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
-import {FULL_INDEXED_TIMESTAMP, OperationType} from "../../common/TutanotaConstants"
-import {IndexerCore} from "./IndexerCore"
-import {SuggestionFacade} from "./SuggestionFacade"
-import {tokenize} from "./Tokenizer"
-import type {EntityUpdate} from "../../entities/sys/TypeRefs.js"
-import {EntityClient} from "../../common/EntityClient"
-import {GroupDataOS, MetaDataOS} from "./Indexer"
+import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
+import type { Contact, ContactList } from "../../entities/tutanota/TypeRefs.js"
+import { ContactTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { typeModels as tutanotaModels } from "../../entities/tutanota/TypeModels"
+import type { Db, GroupData, IndexUpdate, SearchIndexEntry } from "./SearchTypes"
+import { _createNewIndexUpdate, typeRefToTypeInfo } from "./IndexUtils"
+import { neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { FULL_INDEXED_TIMESTAMP, OperationType } from "../../common/TutanotaConstants"
+import { IndexerCore } from "./IndexerCore"
+import { SuggestionFacade } from "./SuggestionFacade"
+import { tokenize } from "./Tokenizer"
+import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
+import { EntityClient } from "../../common/EntityClient"
+import { GroupDataOS, MetaDataOS } from "./Indexer"
 
 export class ContactIndexer {
 	_core: IndexerCore
@@ -59,19 +59,19 @@ export class ContactIndexer {
 			},
 			{
 				attribute: ContactModel.associations["addresses"],
-				value: () => contact.addresses.map(a => a.address).join(","),
+				value: () => contact.addresses.map((a) => a.address).join(","),
 			},
 			{
 				attribute: ContactModel.associations["mailAddresses"],
-				value: () => contact.mailAddresses.map(cma => cma.address).join(","),
+				value: () => contact.mailAddresses.map((cma) => cma.address).join(","),
 			},
 			{
 				attribute: ContactModel.associations["phoneNumbers"],
-				value: () => contact.phoneNumbers.map(pn => pn.number).join(","),
+				value: () => contact.phoneNumbers.map((pn) => pn.number).join(","),
 			},
 			{
 				attribute: ContactModel.associations["socialIds"],
-				value: () => contact.socialIds.map(s => s.socialId).join(","),
+				value: () => contact.socialIds.map((s) => s.socialId).join(","),
 			},
 		])
 
@@ -80,40 +80,40 @@ export class ContactIndexer {
 	}
 
 	_getSuggestionWords(contact: Contact): string[] {
-		return tokenize(contact.firstName + " " + contact.lastName + " " + contact.mailAddresses.map(ma => ma.address).join(" "))
+		return tokenize(contact.firstName + " " + contact.lastName + " " + contact.mailAddresses.map((ma) => ma.address).join(" "))
 	}
 
-	processNewContact(
-		event: EntityUpdate,
-	): Promise<| {
-		contact: Contact
-		keyToIndexEntries: Map<string, SearchIndexEntry[]>
-	}
+	processNewContact(event: EntityUpdate): Promise<
+		| {
+				contact: Contact
+				keyToIndexEntries: Map<string, SearchIndexEntry[]>
+		  }
 		| null
-		| undefined> {
+		| undefined
+	> {
 		return this._entity
-				   .load(ContactTypeRef, [event.instanceListId, event.instanceId])
-				   .then(contact => {
-					   let keyToIndexEntries = this.createContactIndexEntries(contact)
-					   return this.suggestionFacade.store().then(() => {
-						   return {
-							   contact,
-							   keyToIndexEntries,
-						   }
-					   })
-				   })
-				   .catch(
-					   ofClass(NotFoundError, () => {
-						   console.log("tried to index non existing contact")
-						   return null
-					   }),
-				   )
-				   .catch(
-					   ofClass(NotAuthorizedError, () => {
-						   console.log("tried to index contact without permission")
-						   return null
-					   }),
-				   )
+			.load(ContactTypeRef, [event.instanceListId, event.instanceId])
+			.then((contact) => {
+				let keyToIndexEntries = this.createContactIndexEntries(contact)
+				return this.suggestionFacade.store().then(() => {
+					return {
+						contact,
+						keyToIndexEntries,
+					}
+				})
+			})
+			.catch(
+				ofClass(NotFoundError, () => {
+					console.log("tried to index non existing contact")
+					return null
+				}),
+			)
+			.catch(
+				ofClass(NotAuthorizedError, () => {
+					console.log("tried to index contact without permission")
+					return null
+				}),
+			)
 	}
 
 	async getIndexTimestamp(contactList: ContactList): Promise<number | null> {
@@ -132,7 +132,7 @@ export class ContactIndexer {
 		let indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(ContactTypeRef))
 		try {
 			const contacts = await this._entity.loadAll(ContactTypeRef, contactList.contacts)
-			contacts.forEach(contact => {
+			contacts.forEach((contact) => {
 				let keyToIndexEntries = this.createContactIndexEntries(contact)
 				this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
 			})
@@ -154,14 +154,12 @@ export class ContactIndexer {
 			}
 			throw e
 		}
-
-
 	}
 
 	processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
-		return promiseMap(events, async event => {
+		return promiseMap(events, async (event) => {
 			if (event.operation === OperationType.CREATE) {
-				await this.processNewContact(event).then(result => {
+				await this.processNewContact(event).then((result) => {
 					if (result) {
 						this._core.encryptSearchIndexEntries(result.contact._id, neverNull(result.contact._ownerGroup), result.keyToIndexEntries, indexUpdate)
 					}
@@ -169,7 +167,7 @@ export class ContactIndexer {
 			} else if (event.operation === OperationType.UPDATE) {
 				await Promise.all([
 					this._core._processDeleted(event, indexUpdate),
-					this.processNewContact(event).then(result => {
+					this.processNewContact(event).then((result) => {
 						if (result) {
 							this._core.encryptSearchIndexEntries(
 								result.contact._id,

@@ -1,12 +1,12 @@
-import type {DesktopConfig} from "../config/DesktopConfig"
-import {DesktopNativeCryptoFacade} from "../DesktopNativeCryptoFacade"
-import {elementIdPart} from "../../api/common/utils/EntityUtils"
-import {DesktopConfigKey} from "../config/ConfigKeys"
-import type {DesktopKeyStoreFacade} from "../KeyStoreFacadeImpl"
-import type {Base64} from "@tutao/tutanota-utils"
-import {base64ToUint8Array, findAllAndRemove, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import {log} from "../DesktopLog"
-import {EncryptedAlarmNotification, NotificationSessionKey} from "../../native/common/EncryptedAlarmNotification.js"
+import type { DesktopConfig } from "../config/DesktopConfig"
+import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
+import { elementIdPart } from "../../api/common/utils/EntityUtils"
+import { DesktopConfigKey } from "../config/ConfigKeys"
+import type { DesktopKeyStoreFacade } from "../KeyStoreFacadeImpl"
+import type { Base64 } from "@tutao/tutanota-utils"
+import { base64ToUint8Array, findAllAndRemove, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { log } from "../DesktopLog"
+import { EncryptedAlarmNotification, NotificationSessionKey } from "../../native/common/EncryptedAlarmNotification.js"
 
 /**
  * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk
@@ -30,11 +30,11 @@ export class DesktopAlarmStorage {
 	 * @returns {*}
 	 */
 	async storePushIdentifierSessionKey(pushIdentifierId: string, pushIdentifierSessionKey: Uint8Array): Promise<void> {
-		const keys : Record<string, Base64> = (await this.conf.getVar(DesktopConfigKey.pushEncSessionKeys)) || {}
+		const keys: Record<string, Base64> = (await this.conf.getVar(DesktopConfigKey.pushEncSessionKeys)) || {}
 
 		if (!keys[pushIdentifierId]) {
 			this.sessionKeys[pushIdentifierId] = uint8ArrayToBase64(pushIdentifierSessionKey)
-			return this.keyStoreFacade.getDeviceKey().then(pw => {
+			return this.keyStoreFacade.getDeviceKey().then((pw) => {
 				keys[pushIdentifierId] = uint8ArrayToBase64(this.cryptoFacade.aes256EncryptKey(pw, pushIdentifierSessionKey))
 				return this.conf.setVar(DesktopConfigKey.pushEncSessionKeys, keys)
 			})
@@ -87,14 +87,14 @@ export class DesktopAlarmStorage {
 
 	async storeAlarm(alarm: EncryptedAlarmNotification): Promise<void> {
 		const allAlarms = await this.getScheduledAlarms()
-		findAllAndRemove(allAlarms, an => an.alarmInfo.alarmIdentifier === alarm.alarmInfo.alarmIdentifier)
+		findAllAndRemove(allAlarms, (an) => an.alarmInfo.alarmIdentifier === alarm.alarmInfo.alarmIdentifier)
 		allAlarms.push(alarm)
 		await this._saveAlarms(allAlarms)
 	}
 
 	async deleteAlarm(identifier: string): Promise<void> {
 		const allAlarms = await this.getScheduledAlarms()
-		findAllAndRemove(allAlarms, an => an.alarmInfo.alarmIdentifier === identifier)
+		findAllAndRemove(allAlarms, (an) => an.alarmInfo.alarmIdentifier === identifier)
 		await this._saveAlarms(allAlarms)
 	}
 
@@ -106,7 +106,7 @@ export class DesktopAlarmStorage {
 			return this._saveAlarms([])
 		} else {
 			const allScheduledAlarms = await this.getScheduledAlarms()
-			findAllAndRemove(allScheduledAlarms, alarm => alarm.user === userId)
+			findAllAndRemove(allScheduledAlarms, (alarm) => alarm.user === userId)
 			return this._saveAlarms(allScheduledAlarms)
 		}
 	}

@@ -1,7 +1,7 @@
 /// <reference lib="dom" /> // fixes MouseEvent conflict with react
-import type {WorkerClient} from "./WorkerClient"
-import {assertMainOrNode} from "../common/Env"
-import type {EntropySource} from "@tutao/tutanota-crypto"
+import type { WorkerClient } from "./WorkerClient"
+import { assertMainOrNode } from "../common/Env"
+import type { EntropySource } from "@tutao/tutanota-crypto"
 
 assertMainOrNode()
 

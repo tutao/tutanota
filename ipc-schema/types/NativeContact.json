@@ -1,8 +1,8 @@
 {
-  "name": "NativeContact",
-  "type": "struct",
-  "fields": {
-	"name": "string",
-	"mailAddress": "string"
-  }
+	"name": "NativeContact",
+	"type": "struct",
+	"fields": {
+		"name": "string",
+		"mailAddress": "string"
+	}
 }

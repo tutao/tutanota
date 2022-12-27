@@ -1,22 +1,22 @@
-import type {NativeImage, Rectangle} from "electron"
-import {app, BrowserWindow, screen} from "electron"
-import type {UserInfo} from "./ApplicationWindow"
-import {ApplicationWindow} from "./ApplicationWindow"
-import type {DesktopConfig} from "./config/DesktopConfig"
-import {DesktopTray} from "./tray/DesktopTray"
-import type {DesktopNotifier} from "./DesktopNotifier"
-import {DesktopContextMenu} from "./DesktopContextMenu"
-import {log} from "./DesktopLog"
-import type {LocalShortcutManager} from "./electron-localshortcut/LocalShortcut"
-import {BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey} from "./config/ConfigKeys"
-import type {SseInfo} from "./sse/DesktopSseClient"
-import {isRectContainedInRect} from "./DesktopUtils"
-import {defer, downcast} from "@tutao/tutanota-utils"
-import {DesktopThemeFacade} from "./DesktopThemeFacade"
-import {ElectronExports, WebContentsEvent} from "./ElectronExportTypes";
-import {RemoteBridge} from "./ipc/RemoteBridge.js"
-import {OfflineDbManager} from "./db/PerWindowSqlCipherFacade.js"
-import {ASSET_PROTOCOL, handleProtocols} from "./net/ProtocolProxy.js"
+import type { NativeImage, Rectangle } from "electron"
+import { app, BrowserWindow, screen } from "electron"
+import type { UserInfo } from "./ApplicationWindow"
+import { ApplicationWindow } from "./ApplicationWindow"
+import type { DesktopConfig } from "./config/DesktopConfig"
+import { DesktopTray } from "./tray/DesktopTray"
+import type { DesktopNotifier } from "./DesktopNotifier"
+import { DesktopContextMenu } from "./DesktopContextMenu"
+import { log } from "./DesktopLog"
+import type { LocalShortcutManager } from "./electron-localshortcut/LocalShortcut"
+import { BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey } from "./config/ConfigKeys"
+import type { SseInfo } from "./sse/DesktopSseClient"
+import { isRectContainedInRect } from "./DesktopUtils"
+import { defer, downcast } from "@tutao/tutanota-utils"
+import { DesktopThemeFacade } from "./DesktopThemeFacade"
+import { ElectronExports, WebContentsEvent } from "./ElectronExportTypes"
+import { RemoteBridge } from "./ipc/RemoteBridge.js"
+import { OfflineDbManager } from "./db/PerWindowSqlCipherFacade.js"
+import { ASSET_PROTOCOL, handleProtocols } from "./net/ProtocolProxy.js"
 import path from "path"
 import url from "url"
 
@@ -26,10 +26,12 @@ const TAG = "[DesktopWindowManager]"
  * this must be called before electron.app.ready event to be useful
  */
 export function setupAssetProtocol(electron: ElectronExports) {
-	electron.protocol.registerSchemesAsPrivileged([{
-		scheme: ASSET_PROTOCOL,
-		privileges: {standard: true, supportFetchAPI: true, secure: true}
-	}])
+	electron.protocol.registerSchemesAsPrivileged([
+		{
+			scheme: ASSET_PROTOCOL,
+			privileges: { standard: true, supportFetchAPI: true, secure: true },
+		},
+	])
 }
 
 export type WindowBounds = {
@@ -62,15 +64,15 @@ export class WindowManager {
 		this._conf = conf
 
 		if (process.platform !== "darwin") {
-			conf.getVar(DesktopConfigKey.spellcheck).then(l => this._setSpellcheckLang(l))
-			conf.on(DesktopConfigKey.spellcheck, l => this._setSpellcheckLang(l))
+			conf.getVar(DesktopConfigKey.spellcheck).then((l) => this._setSpellcheckLang(l))
+			conf.on(DesktopConfigKey.spellcheck, (l) => this._setSpellcheckLang(l))
 		}
 
 		this._tray = tray
 		this._notifier = notifier
 		this._electron = electron
 
-		this._newWindowFactory = noAutoLogin => this._newWindow(electron, localShortcut, noAutoLogin ?? null)
+		this._newWindowFactory = (noAutoLogin) => this._newWindow(electron, localShortcut, noAutoLogin ?? null)
 		// this is the old default for window placement & scale
 		// should never be used because the config now contains
 		// a new default value.
@@ -107,45 +109,44 @@ export class WindowManager {
 		w.on("close", () => {
 			this.saveBounds(w.getBounds())
 		})
-		 .on("closed", () => {
-			 w.setUserId(null)
-			 windows.splice(windows.indexOf(w), 1)
-			 this._tray.update(this._notifier)
-		 })
-		 .on("focus", () => {
-			 windows.splice(windows.indexOf(w), 1)
-			 windows.push(w)
+			.on("closed", () => {
+				w.setUserId(null)
+				windows.splice(windows.indexOf(w), 1)
+				this._tray.update(this._notifier)
+			})
+			.on("focus", () => {
+				windows.splice(windows.indexOf(w), 1)
+				windows.push(w)
 
-			 this._tray.clearBadge()
+				this._tray.clearBadge()
 
-			 this._notifier.resolveGroupedNotification(w.getUserId())
-		 })
-		 .on("page-title-updated", ev => {
-			 this._tray.update(this._notifier)
-		 })
-		 .once("ready-to-show", async () => {
-			 this._tray.update(this._notifier)
+				this._notifier.resolveGroupedNotification(w.getUserId())
+			})
+			.on("page-title-updated", (ev) => {
+				this._tray.update(this._notifier)
+			})
+			.once("ready-to-show", async () => {
+				this._tray.update(this._notifier)
 
-			 w.setBounds(this._currentBounds)
-			 if (showWhenReady) w.show()
-		 })
-		 .webContents
-		 .on("did-start-navigation", () => {
-			 this._tray.clearBadge()
-		 })
-		 .on("zoom-changed", (ev: Event, direction: "in" | "out") => {
-			 let scale = (this._currentBounds.scale * 100 + (direction === "out" ? -5 : 5)) / 100
-			 this.changeZoom(scale)
-			 const w = this.getEventSender(downcast(ev))
-			 if (!w) return
-			 this.saveBounds(w.getBounds())
-		 })
-		 .on("did-navigate", () => {
-			 // electron likes to override the zoom factor when the URL changes.
-			 windows.forEach(w => w.setZoomFactor(this._currentBounds.scale))
-		 })
+				w.setBounds(this._currentBounds)
+				if (showWhenReady) w.show()
+			})
+			.webContents.on("did-start-navigation", () => {
+				this._tray.clearBadge()
+			})
+			.on("zoom-changed", (ev: Event, direction: "in" | "out") => {
+				let scale = (this._currentBounds.scale * 100 + (direction === "out" ? -5 : 5)) / 100
+				this.changeZoom(scale)
+				const w = this.getEventSender(downcast(ev))
+				if (!w) return
+				this.saveBounds(w.getBounds())
+			})
+			.on("did-navigate", () => {
+				// electron likes to override the zoom factor when the URL changes.
+				windows.forEach((w) => w.setZoomFactor(this._currentBounds.scale))
+			})
 
-		w.setContextMenuHandler(params => this._contextMenu.open(params))
+		w.setContextMenuHandler((params) => this._contextMenu.open(params))
 
 		const afterNavigation = (url: string) => {
 			if (url.includes("/login")) {
@@ -163,7 +164,7 @@ export class WindowManager {
 	_registerUserListener(windowId: number) {
 		const sseValueListener = (value: SseInfo | null) => {
 			if (value && value.userIds.length === 0) {
-				this.invalidateAlarms(windowId).catch(e => {
+				this.invalidateAlarms(windowId).catch((e) => {
 					log.debug(TAG, "Could not invalidate alarms for window ", windowId, e)
 
 					this._conf.removeListener(DesktopConfigEncKey.sseInfo, sseValueListener)
@@ -174,7 +175,7 @@ export class WindowManager {
 		this._conf.on(DesktopConfigEncKey.sseInfo, sseValueListener)
 
 		// call with value initially
-		this._conf.getVar(DesktopConfigEncKey.sseInfo).then(sseValueListener, e => log.error(TAG, "Failed to get sseInfo", e))
+		this._conf.getVar(DesktopConfigEncKey.sseInfo).then(sseValueListener, (e) => log.error(TAG, "Failed to get sseInfo", e))
 	}
 
 	/**
@@ -188,7 +189,9 @@ export class WindowManager {
 			await this.get(windowId)?.commonNativeFacade.invalidateAlarms()
 		} else {
 			log.debug(TAG, "invalidating alarms for all windows")
-			await Promise.all(this.getAll().map(w => this.invalidateAlarms(w.id).catch(e => log.debug(TAG, "couldn't invalidate alarms for window", w.id, e))))
+			await Promise.all(
+				this.getAll().map((w) => this.invalidateAlarms(w.id).catch((e) => log.debug(TAG, "couldn't invalidate alarms for window", w.id, e))),
+			)
 		}
 	}
 
@@ -196,12 +199,12 @@ export class WindowManager {
 		if (process.platform === "darwin") {
 			app.hide() // hide all windows & give active app status to previous app
 		} else {
-			windows.forEach(w => w.hide())
+			windows.forEach((w) => w.hide())
 		}
 	}
 
 	minimize() {
-		windows.forEach(w => w.minimize())
+		windows.forEach((w) => w.minimize())
 	}
 
 	changeZoom(scale: number) {
@@ -210,11 +213,11 @@ export class WindowManager {
 		} else if (scale < 0.5) scale = 0.5
 
 		this._currentBounds.scale = scale
-		windows.forEach(w => w.setZoomFactor(scale))
+		windows.forEach((w) => w.setZoomFactor(scale))
 	}
 
 	get(id: number): ApplicationWindow | null {
-		const w = windows.find(w => w.id === id)
+		const w = windows.find((w) => w.id === id)
 		return w ? w : null
 	}
 
@@ -253,7 +256,7 @@ export class WindowManager {
 	}
 
 	async findWindowWithUserId(userId: string): Promise<ApplicationWindow> {
-		return windows.find(w => w.getUserId() === userId) ?? windows.find(w => w.getUserId() === null) ?? this.newWindow(true, true)
+		return windows.find((w) => w.getUserId() === userId) ?? windows.find((w) => w.getUserId() === null) ?? this.newWindow(true, true)
 	}
 
 	/**
@@ -294,7 +297,18 @@ export class WindowManager {
 		const updateUrl = await this._conf.getConst(BuildConfigKey.updateUrl)
 		const dictUrl = updateUrl && updateUrl !== "" ? updateUrl : "https://mail.tutanota.com/desktop/"
 		// custom builds get the dicts from us as well
-		return new ApplicationWindow(this, absoluteWebAssetsPath, this.icon, electron, localShortcut, this.themeFacade, this.offlineDbManager, this.remoteBridge, dictUrl, noAutoLogin)
+		return new ApplicationWindow(
+			this,
+			absoluteWebAssetsPath,
+			this.icon,
+			electron,
+			localShortcut,
+			this.themeFacade,
+			this.offlineDbManager,
+			this.remoteBridge,
+			dictUrl,
+			noAutoLogin,
+		)
 	}
 
 	private async getAbsoluteWebAssetsPath() {
@@ -314,12 +328,12 @@ export class WindowManager {
 		const session = this._electron.session.defaultSession
 		let oldContent: string
 		try {
-			oldContent = await this.executeJavaScriptInOrigin(
+			oldContent = (await this.executeJavaScriptInOrigin(
 				// loading polyfill.js will not execute it but treat it as a text
 				// file, which means the page will essentially be blank from a js point of view.
 				url.pathToFileURL(path.join(this._electron.app.getAppPath(), "polyfill.js")).toString(),
-				`localStorage.getItem('tutanotaConfig') ? btoa(localStorage.getItem('tutanotaConfig')) : 'null'`
-			) as string
+				`localStorage.getItem('tutanotaConfig') ? btoa(localStorage.getItem('tutanotaConfig')) : 'null'`,
+			)) as string
 			if (oldContent === "null") {
 				log.debug(TAG, "no old local storage to migrate")
 				return
@@ -328,15 +342,12 @@ export class WindowManager {
 			log.debug(TAG, "getting old tutanotaConfig failed")
 			return
 		} finally {
-			session.clearStorageData({origin: "file://", storages: undefined, quotas: undefined})
+			session.clearStorageData({ origin: "file://", storages: undefined, quotas: undefined })
 		}
 		const absoluteWebAssetsPath = await this.getAbsoluteWebAssetsPath()
 		handleProtocols(session, absoluteWebAssetsPath)
 		try {
-			await this.executeJavaScriptInOrigin(
-				"asset://app/polyfill.js",
-				`localStorage.setItem('tutanotaConfig', atob('${oldContent}'))`
-			)
+			await this.executeJavaScriptInOrigin("asset://app/polyfill.js", `localStorage.setItem('tutanotaConfig', atob('${oldContent}'))`)
 		} catch (ignored) {
 			log.debug(TAG, "setting new origin tutanotaConfig failed")
 		}

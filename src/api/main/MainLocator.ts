@@ -1,79 +1,79 @@
-import type {WorkerClient} from "./WorkerClient"
-import {bootstrapWorker} from "./WorkerClient"
-import {EventController} from "./EventController"
-import {EntropyCollector} from "./EntropyCollector"
-import {SearchModel} from "../../search/model/SearchModel"
-import {MailModel} from "../../mail/model/MailModel"
-import {assertMainOrNode, getWebRoot, isAndroidApp, isBrowser, isDesktop, isElectronClient, isIOSApp, isOfflineStorageAvailable} from "../common/Env"
-import {notifications} from "../../gui/Notifications"
-import {logins} from "./LoginController"
-import type {ContactModel} from "../../contacts/model/ContactModel"
-import {ContactModelImpl} from "../../contacts/model/ContactModel"
-import {EntityClient} from "../common/EntityClient"
-import type {CalendarModel} from "../../calendar/model/CalendarModel"
-import {CalendarModelImpl} from "../../calendar/model/CalendarModel"
-import type {DeferredObject} from "@tutao/tutanota-utils"
-import {defer, lazyMemoized} from "@tutao/tutanota-utils"
-import {ProgressTracker} from "./ProgressTracker"
-import {MinimizedMailEditorViewModel} from "../../mail/model/MinimizedMailEditorViewModel"
-import {SchedulerImpl} from "../common/utils/Scheduler.js"
-import type {CredentialsProvider} from "../../misc/credentials/CredentialsProvider.js"
-import {createCredentialsProvider} from "../../misc/credentials/CredentialsProviderFactory"
-import type {LoginFacade} from "../worker/facades/LoginFacade"
-import type {CustomerFacade} from "../worker/facades/CustomerFacade"
-import type {GiftCardFacade} from "../worker/facades/GiftCardFacade"
-import type {ConfigurationDatabase} from "../worker/facades/ConfigurationDatabase"
-import type {CalendarFacade} from "../worker/facades/CalendarFacade"
-import type {MailFacade} from "../worker/facades/MailFacade"
-import type {ShareFacade} from "../worker/facades/ShareFacade"
-import type {CounterFacade} from "../worker/facades/CounterFacade"
-import type {Indexer} from "../worker/search/Indexer"
-import type {SearchFacade} from "../worker/search/SearchFacade"
-import type {BookingFacade} from "../worker/facades/BookingFacade"
-import type {MailAddressFacade} from "../worker/facades/MailAddressFacade"
-import type {FileFacade} from "../worker/facades/FileFacade.js"
-import type {ContactFormFacade} from "../worker/facades/ContactFormFacade"
-import type {DeviceEncryptionFacade} from "../worker/facades/DeviceEncryptionFacade"
-import {FileController} from "../../file/FileController"
-import type {NativeFileApp} from "../../native/common/FileApp"
-import type {NativePushServiceApp} from "../../native/main/NativePushServiceApp"
-import type {NativeInterfaceMain} from "../../native/main/NativeInterfaceMain"
-import type {NativeInterfaces} from "../../native/main/NativeInterfaceFactory.js"
-import {ProgrammingError} from "../common/error/ProgrammingError"
-import {SecondFactorHandler} from "../../misc/2fa/SecondFactorHandler"
-import {WebauthnClient} from "../../misc/2fa/webauthn/WebauthnClient"
-import {UserManagementFacade} from "../worker/facades/UserManagementFacade"
-import {GroupManagementFacade} from "../worker/facades/GroupManagementFacade"
-import {WorkerRandomizer} from "../worker/WorkerImpl"
-import {exposeRemote} from "../common/WorkerProxy"
-import {ExposedNativeInterface} from "../../native/common/NativeInterface"
-import {BrowserWebauthn} from "../../misc/2fa/webauthn/BrowserWebauthn.js"
-import {UsageTestController} from "@tutao/tutanota-usagetests"
-import {EphemeralUsageTestStorage, StorageBehavior, UsageTestModel} from "../../misc/UsageTestModel"
-import {deviceConfig} from "../../misc/DeviceConfig"
-import {IServiceExecutor} from "../common/ServiceRequest.js"
-import {BlobFacade} from "../worker/facades/BlobFacade"
-import {CryptoFacade} from "../worker/crypto/CryptoFacade"
-import {RecipientsModel} from "./RecipientsModel"
-import {ExposedCacheStorage} from "../worker/rest/DefaultEntityRestCache.js"
-import {LoginListener} from "./LoginListener"
-import {SearchTextInAppFacade} from "../../native/common/generatedipc/SearchTextInAppFacade.js"
-import {SettingsFacade} from "../../native/common/generatedipc/SettingsFacade.js"
-import {MobileSystemFacade} from "../../native/common/generatedipc/MobileSystemFacade.js"
-import {CommonSystemFacade} from "../../native/common/generatedipc/CommonSystemFacade.js"
-import {DesktopSystemFacade} from "../../native/common/generatedipc/DesktopSystemFacade.js"
-import {ThemeFacade} from "../../native/common/generatedipc/ThemeFacade.js"
-import {FileControllerBrowser} from "../../file/FileControllerBrowser.js"
-import {FileControllerNative} from "../../file/FileControllerNative.js"
-import {windowFacade} from "../../misc/WindowFacade.js"
-import {InterWindowEventFacade} from "../../native/common/generatedipc/InterWindowEventFacade.js"
-import {InterWindowEventFacadeSendDispatcher} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
-import {SqlCipherFacade} from "../../native/common/generatedipc/SqlCipherFacade.js"
-import {NewsModel} from "../../misc/news/NewsModel.js"
-import type {OwnMailAddressNameChanger} from "../../settings/mailaddress/OwnMailAddressNameChanger.js"
-import type {MailAddressNameChanger, MailAddressTableModel} from "../../settings/mailaddress/MailAddressTableModel.js"
-import type {AnotherUserMailAddressNameChanger} from "../../settings/mailaddress/AnotherUserMailAddressNameChanger.js"
-import type {GroupInfo} from "../entities/sys/TypeRefs.js"
+import type { WorkerClient } from "./WorkerClient"
+import { bootstrapWorker } from "./WorkerClient"
+import { EventController } from "./EventController"
+import { EntropyCollector } from "./EntropyCollector"
+import { SearchModel } from "../../search/model/SearchModel"
+import { MailModel } from "../../mail/model/MailModel"
+import { assertMainOrNode, getWebRoot, isAndroidApp, isBrowser, isDesktop, isElectronClient, isIOSApp, isOfflineStorageAvailable } from "../common/Env"
+import { notifications } from "../../gui/Notifications"
+import { logins } from "./LoginController"
+import type { ContactModel } from "../../contacts/model/ContactModel"
+import { ContactModelImpl } from "../../contacts/model/ContactModel"
+import { EntityClient } from "../common/EntityClient"
+import type { CalendarModel } from "../../calendar/model/CalendarModel"
+import { CalendarModelImpl } from "../../calendar/model/CalendarModel"
+import type { DeferredObject } from "@tutao/tutanota-utils"
+import { defer, lazyMemoized } from "@tutao/tutanota-utils"
+import { ProgressTracker } from "./ProgressTracker"
+import { MinimizedMailEditorViewModel } from "../../mail/model/MinimizedMailEditorViewModel"
+import { SchedulerImpl } from "../common/utils/Scheduler.js"
+import type { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
+import { createCredentialsProvider } from "../../misc/credentials/CredentialsProviderFactory"
+import type { LoginFacade } from "../worker/facades/LoginFacade"
+import type { CustomerFacade } from "../worker/facades/CustomerFacade"
+import type { GiftCardFacade } from "../worker/facades/GiftCardFacade"
+import type { ConfigurationDatabase } from "../worker/facades/ConfigurationDatabase"
+import type { CalendarFacade } from "../worker/facades/CalendarFacade"
+import type { MailFacade } from "../worker/facades/MailFacade"
+import type { ShareFacade } from "../worker/facades/ShareFacade"
+import type { CounterFacade } from "../worker/facades/CounterFacade"
+import type { Indexer } from "../worker/search/Indexer"
+import type { SearchFacade } from "../worker/search/SearchFacade"
+import type { BookingFacade } from "../worker/facades/BookingFacade"
+import type { MailAddressFacade } from "../worker/facades/MailAddressFacade"
+import type { FileFacade } from "../worker/facades/FileFacade.js"
+import type { ContactFormFacade } from "../worker/facades/ContactFormFacade"
+import type { DeviceEncryptionFacade } from "../worker/facades/DeviceEncryptionFacade"
+import { FileController } from "../../file/FileController"
+import type { NativeFileApp } from "../../native/common/FileApp"
+import type { NativePushServiceApp } from "../../native/main/NativePushServiceApp"
+import type { NativeInterfaceMain } from "../../native/main/NativeInterfaceMain"
+import type { NativeInterfaces } from "../../native/main/NativeInterfaceFactory.js"
+import { ProgrammingError } from "../common/error/ProgrammingError"
+import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler"
+import { WebauthnClient } from "../../misc/2fa/webauthn/WebauthnClient"
+import { UserManagementFacade } from "../worker/facades/UserManagementFacade"
+import { GroupManagementFacade } from "../worker/facades/GroupManagementFacade"
+import { WorkerRandomizer } from "../worker/WorkerImpl"
+import { exposeRemote } from "../common/WorkerProxy"
+import { ExposedNativeInterface } from "../../native/common/NativeInterface"
+import { BrowserWebauthn } from "../../misc/2fa/webauthn/BrowserWebauthn.js"
+import { UsageTestController } from "@tutao/tutanota-usagetests"
+import { EphemeralUsageTestStorage, StorageBehavior, UsageTestModel } from "../../misc/UsageTestModel"
+import { deviceConfig } from "../../misc/DeviceConfig"
+import { IServiceExecutor } from "../common/ServiceRequest.js"
+import { BlobFacade } from "../worker/facades/BlobFacade"
+import { CryptoFacade } from "../worker/crypto/CryptoFacade"
+import { RecipientsModel } from "./RecipientsModel"
+import { ExposedCacheStorage } from "../worker/rest/DefaultEntityRestCache.js"
+import { LoginListener } from "./LoginListener"
+import { SearchTextInAppFacade } from "../../native/common/generatedipc/SearchTextInAppFacade.js"
+import { SettingsFacade } from "../../native/common/generatedipc/SettingsFacade.js"
+import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade.js"
+import { CommonSystemFacade } from "../../native/common/generatedipc/CommonSystemFacade.js"
+import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade.js"
+import { ThemeFacade } from "../../native/common/generatedipc/ThemeFacade.js"
+import { FileControllerBrowser } from "../../file/FileControllerBrowser.js"
+import { FileControllerNative } from "../../file/FileControllerNative.js"
+import { windowFacade } from "../../misc/WindowFacade.js"
+import { InterWindowEventFacade } from "../../native/common/generatedipc/InterWindowEventFacade.js"
+import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import { SqlCipherFacade } from "../../native/common/generatedipc/SqlCipherFacade.js"
+import { NewsModel } from "../../misc/news/NewsModel.js"
+import type { OwnMailAddressNameChanger } from "../../settings/mailaddress/OwnMailAddressNameChanger.js"
+import type { MailAddressNameChanger, MailAddressTableModel } from "../../settings/mailaddress/MailAddressTableModel.js"
+import type { AnotherUserMailAddressNameChanger } from "../../settings/mailaddress/AnotherUserMailAddressNameChanger.js"
+import type { GroupInfo } from "../entities/sys/TypeRefs.js"
 
 assertMainOrNode()
 
@@ -129,11 +129,11 @@ export interface IMainLocator {
 	readonly desktopSettingsFacade: SettingsFacade
 	readonly desktopSystemFacade: DesktopSystemFacade
 	readonly interWindowEventSender: InterWindowEventFacade
-	readonly random: WorkerRandomizer;
+	readonly random: WorkerRandomizer
 
-	mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel>;
+	mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel>
 
-	mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userGroupInfo: GroupInfo): Promise<MailAddressTableModel>;
+	mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userGroupInfo: GroupInfo): Promise<MailAddressTableModel>
 
 	readonly init: () => Promise<void>
 	readonly initialized: Promise<void>
@@ -214,7 +214,7 @@ class MainLocator implements IMainLocator {
 	}
 
 	async mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel> {
-		const {MailAddressTableModel} = await import("../../settings/mailaddress/MailAddressTableModel.js")
+		const { MailAddressTableModel } = await import("../../settings/mailaddress/MailAddressTableModel.js")
 		const nameChanger = await this.ownMailAddressNameChanger()
 		return new MailAddressTableModel(
 			this.entityClient,
@@ -227,25 +227,18 @@ class MainLocator implements IMainLocator {
 	}
 
 	async mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userGroupInfo: GroupInfo): Promise<MailAddressTableModel> {
-		const {MailAddressTableModel} = await import("../../settings/mailaddress/MailAddressTableModel.js")
+		const { MailAddressTableModel } = await import("../../settings/mailaddress/MailAddressTableModel.js")
 		const nameChanger = await this.adminNameChanger(mailGroupId, userId)
-		return new MailAddressTableModel(
-			this.entityClient,
-			this.mailAddressFacade,
-			logins,
-			this.eventController,
-			userGroupInfo,
-			nameChanger,
-		)
+		return new MailAddressTableModel(this.entityClient, this.mailAddressFacade, logins, this.eventController, userGroupInfo, nameChanger)
 	}
 
 	async ownMailAddressNameChanger(): Promise<MailAddressNameChanger> {
-		const {OwnMailAddressNameChanger} = await import("../../settings/mailaddress/OwnMailAddressNameChanger.js")
+		const { OwnMailAddressNameChanger } = await import("../../settings/mailaddress/OwnMailAddressNameChanger.js")
 		return new OwnMailAddressNameChanger(this.mailModel, this.entityClient)
 	}
 
 	async adminNameChanger(mailGroupId: Id, userId: Id): Promise<MailAddressNameChanger> {
-		const {AnotherUserMailAddressNameChanger} = await import("../../settings/mailaddress/AnotherUserMailAddressNameChanger.js")
+		const { AnotherUserMailAddressNameChanger } = await import("../../settings/mailaddress/AnotherUserMailAddressNameChanger.js")
 		return new AnotherUserMailAddressNameChanger(this.mailAddressFacade, mailGroupId, userId)
 	}
 
@@ -347,12 +340,12 @@ class MainLocator implements IMainLocator {
 		this.cacheStorage = cacheStorage
 
 		if (!isBrowser()) {
-			const {WebDesktopFacade} = await import("../../native/main/WebDesktopFacade")
-			const {WebMobileFacade} = await import("../../native/main/WebMobileFacade.js")
-			const {WebCommonNativeFacade} = await import("../../native/main/WebCommonNativeFacade.js")
-			const {WebInterWindowEventFacade} = await import("../../native/main/WebInterWindowEventFacade.js")
-			const {WebAuthnFacadeSendDispatcher} = await import("../../native/common/generatedipc/WebAuthnFacadeSendDispatcher.js")
-			const {createNativeInterfaces, createDesktopInterfaces} = await import("../../native/main/NativeInterfaceFactory.js")
+			const { WebDesktopFacade } = await import("../../native/main/WebDesktopFacade")
+			const { WebMobileFacade } = await import("../../native/main/WebMobileFacade.js")
+			const { WebCommonNativeFacade } = await import("../../native/main/WebCommonNativeFacade.js")
+			const { WebInterWindowEventFacade } = await import("../../native/main/WebInterWindowEventFacade.js")
+			const { WebAuthnFacadeSendDispatcher } = await import("../../native/common/generatedipc/WebAuthnFacadeSendDispatcher.js")
+			const { createNativeInterfaces, createDesktopInterfaces } = await import("../../native/main/NativeInterfaceFactory.js")
 			this.nativeInterfaces = createNativeInterfaces(
 				new WebMobileFacade(),
 				new WebDesktopFacade(),
@@ -388,7 +381,7 @@ class MainLocator implements IMainLocator {
 		this.credentialsProvider = await createCredentialsProvider(
 			deviceEncryptionFacade,
 			this.nativeInterfaces?.native ?? null,
-			isDesktop() ? this.interWindowEventSender : null
+			isDesktop() ? this.interWindowEventSender : null,
 		)
 		this.mailModel = new MailModel(notifications, this.eventController, this.worker, this.mailFacade, this.entityClient, logins)
 		this.random = random
@@ -397,7 +390,8 @@ class MainLocator implements IMainLocator {
 			{
 				[StorageBehavior.Persist]: deviceConfig,
 				[StorageBehavior.Ephemeral]: new EphemeralUsageTestStorage(),
-			}, {
+			},
+			{
 				now(): number {
 					return Date.now()
 				},
@@ -415,11 +409,17 @@ class MainLocator implements IMainLocator {
 		this.newsModel = new NewsModel(this.serviceExecutor, async (name: string) => {
 			switch (name) {
 				case "usageOptIn":
-					const {UsageOptInNews} = await import("../../misc/news/items/UsageOptInNews.js")
+					const { UsageOptInNews } = await import("../../misc/news/items/UsageOptInNews.js")
 					return new UsageOptInNews(this.newsModel, this.usageTestModel)
 				case "recoveryCode":
-					const {RecoveryCodeNews} = await import("../../misc/news/items/RecoveryCodeNews.js")
-					return new RecoveryCodeNews(this.newsModel, logins.getUserController(), this.usageTestModel, this.usageTestController, this.userManagementFacade)
+					const { RecoveryCodeNews } = await import("../../misc/news/items/RecoveryCodeNews.js")
+					return new RecoveryCodeNews(
+						this.newsModel,
+						logins.getUserController(),
+						this.usageTestModel,
+						this.usageTestController,
+						this.userManagementFacade,
+					)
 				default:
 					console.log(`No implementation for news named '${name}'`)
 					return null
@@ -427,14 +427,15 @@ class MainLocator implements IMainLocator {
 		})
 
 		const lazyScheduler = lazyMemoized(async () => {
-			const {AlarmSchedulerImpl} = await import("../../calendar/date/AlarmScheduler")
-			const {DateProviderImpl} = await import("../../calendar/date/CalendarUtils")
+			const { AlarmSchedulerImpl } = await import("../../calendar/date/AlarmScheduler")
+			const { DateProviderImpl } = await import("../../calendar/date/CalendarUtils")
 			const dateProvider = new DateProviderImpl()
 			return new AlarmSchedulerImpl(dateProvider, new SchedulerImpl(dateProvider, window, window))
 		})
-		this.fileController = this.nativeInterfaces == null
-			? new FileControllerBrowser(blobFacade, fileFacade)
-			: new FileControllerNative(this.nativeInterfaces.fileApp, blobFacade, fileFacade)
+		this.fileController =
+			this.nativeInterfaces == null
+				? new FileControllerBrowser(blobFacade, fileFacade)
+				: new FileControllerNative(this.nativeInterfaces.fileApp, blobFacade, fileFacade)
 
 		this.calendarModel = new CalendarModelImpl(
 			notifications,

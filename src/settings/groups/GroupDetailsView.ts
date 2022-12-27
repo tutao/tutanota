@@ -1,31 +1,28 @@
-import m, {ChildArray, Children} from "mithril"
-import {Dialog} from "../../gui/base/Dialog.js"
-import {formatDateWithMonth, formatStorageSize} from "../../misc/Formatter.js"
-import {lang} from "../../misc/LanguageViewModel.js"
-import {getFirstOrThrow, neverNull} from "@tutao/tutanota-utils"
-import {GroupType} from "../../api/common/TutanotaConstants.js"
-import type {TableAttrs} from "../../gui/base/Table.js"
-import {ColumnWidth, Table, TableLineAttrs} from "../../gui/base/Table.js"
-import {Icons} from "../../gui/base/icons/Icons.js"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog.js"
-import type {EntityUpdateData} from "../../api/main/EventController.js"
-import {TextField} from "../../gui/base/TextField.js"
-import type {DropDownSelectorAttrs} from "../../gui/base/DropDownSelector.js"
-import {DropDownSelector} from "../../gui/base/DropDownSelector.js"
-import type {UpdatableSettingsDetailsViewer} from "../SettingsView.js"
-import {assertMainOrNode} from "../../api/common/Env.js"
-import {IconButton, IconButtonAttrs} from "../../gui/base/IconButton.js"
-import {ButtonSize} from "../../gui/base/ButtonSize.js"
-import {GroupDetailsModel} from "./GroupDetailsModel.js"
-import {showBuyDialog} from "../../subscription/BuyDialog.js"
+import m, { ChildArray, Children } from "mithril"
+import { Dialog } from "../../gui/base/Dialog.js"
+import { formatDateWithMonth, formatStorageSize } from "../../misc/Formatter.js"
+import { lang } from "../../misc/LanguageViewModel.js"
+import { getFirstOrThrow, neverNull } from "@tutao/tutanota-utils"
+import { GroupType } from "../../api/common/TutanotaConstants.js"
+import type { TableAttrs } from "../../gui/base/Table.js"
+import { ColumnWidth, Table, TableLineAttrs } from "../../gui/base/Table.js"
+import { Icons } from "../../gui/base/icons/Icons.js"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
+import type { EntityUpdateData } from "../../api/main/EventController.js"
+import { TextField } from "../../gui/base/TextField.js"
+import type { DropDownSelectorAttrs } from "../../gui/base/DropDownSelector.js"
+import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
+import type { UpdatableSettingsDetailsViewer } from "../SettingsView.js"
+import { assertMainOrNode } from "../../api/common/Env.js"
+import { IconButton, IconButtonAttrs } from "../../gui/base/IconButton.js"
+import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { GroupDetailsModel } from "./GroupDetailsModel.js"
+import { showBuyDialog } from "../../subscription/BuyDialog.js"
 
 assertMainOrNode()
 
 export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
-	constructor(
-		private readonly model: GroupDetailsModel,
-	) {
-	}
+	constructor(private readonly model: GroupDetailsModel) {}
 
 	/**
 	 * render the header that tells us what type of group we have here
@@ -36,17 +33,11 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	}
 
 	renderView(): Children {
-		return m("#user-viewer.fill-absolute.scroll.plr-l", [
-			this.renderHeader(),
-			this.renderCommonInfo(),
-			this.renderTypeDependentInfo()
-		])
+		return m("#user-viewer.fill-absolute.scroll.plr-l", [this.renderHeader(), this.renderCommonInfo(), this.renderTypeDependentInfo()])
 	}
 
 	private renderTypeDependentInfo(): ChildArray {
-		return this.model.isMailGroup()
-			? this.renderMailGroupInfo()
-			: this.renderLocalAdminGroupInfo()
+		return this.model.isMailGroup() ? this.renderMailGroupInfo() : this.renderLocalAdminGroupInfo()
 	}
 
 	/**
@@ -64,18 +55,18 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	}
 
 	private renderCreatedTextField(): Children {
-		return m(TextField, {label: "created_label", value: formatDateWithMonth(this.model.getCreationDate()), disabled: true})
+		return m(TextField, { label: "created_label", value: formatDateWithMonth(this.model.getCreationDate()), disabled: true })
 	}
 
 	private renderAdministratedByDropdown(): Children {
 		const administratedByInfo = this.model.createAdministratedByInfo()
 		if (!administratedByInfo) return null
-		const {options, currentVal} = administratedByInfo
+		const { options, currentVal } = administratedByInfo
 		const attrs: DropDownSelectorAttrs<Id | null> = {
 			label: "administratedBy_label",
 			items: options,
 			selectedValue: currentVal,
-			selectionChangedHandler: async id => showProgressDialog("pleaseWait_msg", this.model.changeAdministratedBy(id)),
+			selectionChangedHandler: async (id) => showProgressDialog("pleaseWait_msg", this.model.changeAdministratedBy(id)),
 		}
 		return m(DropDownSelector, attrs)
 	}
@@ -96,14 +87,15 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 				label: "mailName_label",
 				value: this.model.getGroupSenderName(),
 				disabled: true,
-				injectionsRight: () => m(IconButton, {
-					icon: Icons.Edit,
-					title: "setSenderName_action",
-					click: () => {
-						this.showChangeSenderNameDialog()
-					}
-				})
-			})
+				injectionsRight: () =>
+					m(IconButton, {
+						icon: Icons.Edit,
+						title: "setSenderName_action",
+						click: () => {
+							this.showChangeSenderNameDialog()
+						},
+					}),
+			}),
 		]
 	}
 
@@ -112,10 +104,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	 * @private
 	 */
 	private renderLocalAdminGroupInfo(): ChildArray {
-		return [
-			m(".h5.mt-l.mb-s", lang.get("administratedGroups_label")),
-			this.renderAdministratedGroupsTable(),
-		]
+		return [m(".h5.mt-l.mb-s", lang.get("administratedGroups_label")), this.renderAdministratedGroupsTable()]
 	}
 
 	private renderStatusSelector(): Children {
@@ -132,7 +121,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 				},
 			],
 			selectedValue: !this.model.isGroupActive(),
-			selectionChangedHandler: deactivate => this.onActivationStatusChanged(deactivate)
+			selectionChangedHandler: (deactivate) => this.onActivationStatusChanged(deactivate),
 		}
 		return m(DropDownSelector, attrs)
 	}
@@ -150,25 +139,30 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 			label: "name_label",
 			value: this.model.getGroupName(),
 			disabled: true,
-			injectionsRight: () => m(IconButton, {
-				title: "edit_action",
-				click: () => this.showChangeNameDialog(),
-				icon: Icons.Edit,
-				size: ButtonSize.Compact,
-			}),
+			injectionsRight: () =>
+				m(IconButton, {
+					title: "edit_action",
+					click: () => this.showChangeNameDialog(),
+					icon: Icons.Edit,
+					size: ButtonSize.Compact,
+				}),
 		})
 	}
 
 	private showChangeNameDialog(): void {
-		Dialog.showProcessTextInputDialog("edit_action", "name_label", null, this.model.getGroupName(),
+		Dialog.showProcessTextInputDialog(
+			"edit_action",
+			"name_label",
+			null,
+			this.model.getGroupName(),
 			(newName) => this.model.changeGroupName(newName),
-			newName => this.model.validateGroupName(newName)
+			(newName) => this.model.validateGroupName(newName),
 		)
 	}
 
 	private showChangeSenderNameDialog(): void {
-		Dialog.showProcessTextInputDialog("edit_action", "name_label", null, this.model.getGroupSenderName(),
-			(newName) => this.model.changeGroupSenderName(newName)
+		Dialog.showProcessTextInputDialog("edit_action", "name_label", null, this.model.getGroupSenderName(), (newName) =>
+			this.model.changeGroupSenderName(newName),
 		)
 	}
 
@@ -179,7 +173,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 		return m(TextField, {
 			label: "storageCapacityUsed_label",
 			value: formattedStorage,
-			disabled: true
+			disabled: true,
 		})
 	}
 
@@ -199,14 +193,14 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 		Dialog.showActionDialog({
 			title: lang.get("addUserToGroup_label"),
 			child: {
-				view: () => m(DropDownSelector, {
+				view: () =>
+					m(DropDownSelector, {
 						label: "userSettings_label",
 						items: possibleMembers,
 						selectedValue: currentSelection,
-						selectionChangedHandler: (newSelected: Id) => currentSelection = newSelected,
+						selectionChangedHandler: (newSelected: Id) => (currentSelection = newSelected),
 						dropdownWidth: 250,
-					}
-				),
+					}),
 			},
 			allowOkWithReturn: true,
 			okAction: addUserToGroupOkAction,
@@ -227,7 +221,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 			size: ButtonSize.Compact,
 		} as const
 
-		const lines: TableLineAttrs[] = this.model.getMembersInfo().map(userGroupInfo => {
+		const lines: TableLineAttrs[] = this.model.getMembersInfo().map((userGroupInfo) => {
 			const removeButtonAttrs: IconButtonAttrs = {
 				title: "remove_action",
 				click: () => showProgressDialog("pleaseWait_msg", this.model.removeGroupMember(userGroupInfo)),
@@ -248,22 +242,20 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 			lines,
 		}
 
-		return [
-			m(".h5.mt-l.mb-s", lang.get("groupMembers_label")),
-			m(Table, membersTableAttrs)
-		]
+		return [m(".h5.mt-l.mb-s", lang.get("groupMembers_label")), m(Table, membersTableAttrs)]
 	}
 
 	private renderAdministratedGroupsTable(): Children {
 		const renderRemoveButtons = this.model.canRemoveAdminship()
-		const lines: TableLineAttrs[] = this.model.getAdministratedGroups().map(groupInfo => {
+		const lines: TableLineAttrs[] = this.model.getAdministratedGroups().map((groupInfo) => {
 			let removeButtonAttrs: IconButtonAttrs | null = renderRemoveButtons
 				? {
-					title: "remove_action",
-					click: () => showProgressDialog("pleaseWait_msg", this.model.removeAdministratedGroup(groupInfo.group)),
-					icon: Icons.Cancel,
-					size: ButtonSize.Compact,
-				} : null
+						title: "remove_action",
+						click: () => showProgressDialog("pleaseWait_msg", this.model.removeAdministratedGroup(groupInfo.group)),
+						icon: Icons.Cancel,
+						size: ButtonSize.Compact,
+				  }
+				: null
 
 			return {
 				cells: [getGroupTypeDisplayName(neverNull(groupInfo.groupType)), groupInfo.name, neverNull(groupInfo.mailAddress)],

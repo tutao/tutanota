@@ -1,20 +1,20 @@
-import {lang, TranslationKey} from "../../misc/LanguageViewModel.js"
+import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
 import stream from "mithril/stream"
-import {Dialog} from "../../gui/base/Dialog.js"
-import {TUTANOTA_MAIL_ADDRESS_DOMAINS} from "../../api/common/TutanotaConstants.js"
+import { Dialog } from "../../gui/base/Dialog.js"
+import { TUTANOTA_MAIL_ADDRESS_DOMAINS } from "../../api/common/TutanotaConstants.js"
 import m from "mithril"
-import {SelectMailAddressForm} from "../SelectMailAddressForm.js"
-import {ExpanderPanel} from "../../gui/base/Expander.js"
-import {getFirstOrThrow, ofClass} from "@tutao/tutanota-utils"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog.js"
-import {InvalidDataError, LimitReachedError, PreconditionFailedError} from "../../api/common/error/RestError.js"
-import {MailAddressTableModel} from "./MailAddressTableModel.js"
-import {Autocomplete, TextField} from "../../gui/base/TextField.js"
+import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
+import { ExpanderPanel } from "../../gui/base/Expander.js"
+import { getFirstOrThrow, ofClass } from "@tutao/tutanota-utils"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
+import { InvalidDataError, LimitReachedError, PreconditionFailedError } from "../../api/common/error/RestError.js"
+import { MailAddressTableModel } from "./MailAddressTableModel.js"
+import { Autocomplete, TextField } from "../../gui/base/TextField.js"
 
 const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
 
 export function showAddAliasDialog(model: MailAddressTableModel) {
-	model.getAvailableDomains().then(domains => {
+	model.getAvailableDomains().then((domains) => {
 		let isVerificationBusy = false
 		let mailAddress: string
 		let formErrorId: TranslationKey | null = "mailAddressNeutral_msg"
@@ -34,7 +34,7 @@ export function showAddAliasDialog(model: MailAddressTableModel) {
 			dialog.close()
 		}
 
-		const isTutanotaDomain = formDomain.map(d => TUTANOTA_MAIL_ADDRESS_DOMAINS.includes(d))
+		const isTutanotaDomain = formDomain.map((d) => TUTANOTA_MAIL_ADDRESS_DOMAINS.includes(d))
 
 		Dialog.showActionDialog({
 			title: lang.get("addEmailAlias_label"),
@@ -51,10 +51,12 @@ export function showAddAliasDialog(model: MailAddressTableModel) {
 									formErrorId = validationResult.errorId
 								}
 							},
-							onBusyStateChanged: isBusy => (isVerificationBusy = isBusy),
-							onDomainChanged: domain => formDomain(domain),
+							onBusyStateChanged: (isBusy) => (isVerificationBusy = isBusy),
+							onDomainChanged: (domain) => formDomain(domain),
 						}),
-						m(ExpanderPanel, {
+						m(
+							ExpanderPanel,
+							{
 								expanded: isTutanotaDomain(),
 							},
 							m(".pt-m", lang.get("permanentAliasWarning_msg")),
@@ -63,8 +65,8 @@ export function showAddAliasDialog(model: MailAddressTableModel) {
 							label: "mailName_label",
 							value: senderName,
 							autocompleteAs: Autocomplete.username,
-							oninput: (name) => senderName = name,
-						})
+							oninput: (name) => (senderName = name),
+						}),
 					]
 				},
 			},
@@ -79,7 +81,7 @@ function addAlias(model: MailAddressTableModel, alias: string, senderName: strin
 		.catch(ofClass(InvalidDataError, () => Dialog.message("mailAddressNA_msg")))
 		.catch(ofClass(LimitReachedError, () => Dialog.message("adminMaxNbrOfAliasesReached_msg")))
 		.catch(
-			ofClass(PreconditionFailedError, e => {
+			ofClass(PreconditionFailedError, (e) => {
 				let errorMsg = e.toString()
 
 				if (e.data === FAILURE_USER_DISABLED) {

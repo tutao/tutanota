@@ -1,9 +1,9 @@
-import type {MailboxDetail} from "../../mail/model/MailModel"
-import {getEnabledMailAddressesWithUser, getMailboxName} from "../../mail/model/MailUtils"
-import type {LoginController} from "../../api/main/LoginController"
-import {logins as globalLogins} from "../../api/main/LoginController"
-import {assertMainOrNode} from "../../api/common/Env"
-import {PartialRecipient} from "../../api/common/recipients/Recipient"
+import type { MailboxDetail } from "../../mail/model/MailModel"
+import { getEnabledMailAddressesWithUser, getMailboxName } from "../../mail/model/MailUtils"
+import type { LoginController } from "../../api/main/LoginController"
+import { logins as globalLogins } from "../../api/main/LoginController"
+import { assertMainOrNode } from "../../api/common/Env"
+import { PartialRecipient } from "../../api/common/recipients/Recipient"
 
 assertMainOrNode()
 export const PASSWORD_MAX_VALUE = 100
@@ -142,7 +142,7 @@ export function _getNbrOfSequenceChars(password: string, sequences: string[], re
 	let s = sequences
 
 	if (reverseToo) {
-		s = sequences.concat(sequences.map(s1 => s1.split("").reverse().join("")))
+		s = sequences.concat(sequences.map((s1) => s1.split("").reverse().join("")))
 	}
 
 	let MIN_SEQUENCE_LEN = 3

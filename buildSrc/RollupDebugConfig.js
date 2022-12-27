@@ -4,7 +4,7 @@ import typescript from "@rollup/plugin-typescript"
 import commonjs from "@rollup/plugin-commonjs"
 import path from "path"
 import fs from "fs-extra"
-import {dependencyMap} from "./RollupConfig"
+import { dependencyMap } from "./RollupConfig"
 
 export function resolveLibs(baseDir = ".") {
 	return {
@@ -12,7 +12,7 @@ export function resolveLibs(baseDir = ".") {
 		resolveId(source) {
 			const resolved = dependencyMap[source]
 			return resolved && path.join(baseDir, resolved)
-		}
+		},
 	}
 }
 
@@ -60,6 +60,6 @@ export function resolveDesktopDeps() {
 				case "crypto":
 					return false
 			}
-		}
+		},
 	}
 }

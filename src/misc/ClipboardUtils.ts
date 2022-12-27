@@ -1,4 +1,4 @@
-import {client} from "./ClientDetector"
+import { client } from "./ClientDetector"
 
 function fallbackCopyToClipboard(text: string): Promise<void> {
 	return new Promise((resolve, reject) => {

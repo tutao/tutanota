@@ -1,9 +1,9 @@
-import {client} from "../../misc/ClientDetector"
-import {size} from "../size"
+import { client } from "../../misc/ClientDetector"
+import { size } from "../size"
 
 export const enum DirectionLock {
 	Horizontal,
-	Vertical
+	Vertical,
 }
 
 /* Tool to detect swipe gestures on certain elements. */
@@ -27,8 +27,8 @@ export class SwipeHandler {
 		this.directionLock = null
 		let eventListenerArgs = client.passive()
 			? {
-				passive: true,
-			}
+					passive: true,
+			  }
 			: false
 		this.touchArea.addEventListener("touchstart", (e: TouchEvent) => this.start(e), eventListenerArgs)
 		this.touchArea.addEventListener(
@@ -36,8 +36,8 @@ export class SwipeHandler {
 			(e: TouchEvent) => this.move(e),
 			client.passive()
 				? {
-					passive: false,
-				}
+						passive: false,
+				  }
 				: false,
 		) // does invoke prevent default
 
@@ -50,7 +50,7 @@ export class SwipeHandler {
 	}
 
 	move(e: TouchEvent) {
-		let {x, y} = this.getDelta(e)
+		let { x, y } = this.getDelta(e)
 
 		// If we're either locked horizontally OR if we're not locked vertically but would like to lock horizontally, then lock horizontally
 		if (
@@ -106,18 +106,16 @@ export class SwipeHandler {
 		// noOp
 	}
 
-	onHorizontalGestureCompleted(delta: {x: number; y: number}): Promise<void> {
+	onHorizontalGestureCompleted(delta: { x: number; y: number }): Promise<void> {
 		// noOp
 		return Promise.resolve()
 	}
 
-	reset(delta: {x: number; y: number}): Promise<any> {
+	reset(delta: { x: number; y: number }): Promise<any> {
 		return Promise.resolve()
 	}
 
-	getDelta(
-		e: any,
-	): {
+	getDelta(e: any): {
 		x: number
 		y: number
 	} {

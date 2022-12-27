@@ -79,7 +79,7 @@ export type RegistryValueTemplate = {
 	value: RegistrySubKey
 	root: string
 }
-export type RegistrySubKey = {[key: string]: RegistryValue}
+export type RegistrySubKey = { [key: string]: RegistryValue }
 export type RegistryValue = RegistrySubKey | string
 type OperationBuffer = Record<string, Array<string>>
 const header_line = "Windows Registry Editor Version 5.00"
@@ -151,7 +151,7 @@ function bufToScript(buf: OperationBuffer): string {
  * the application and removal script generators are very similar in structure, this function abstracts over that.
  */
 function scriptBuilder(remove: boolean, template: RegistryTemplateDefinition): string {
-	const buf = template.reduce((prev, {root, value}) => expandSection(root, value, prev, remove), {})
+	const buf = template.reduce((prev, { root, value }) => expandSection(root, value, prev, remove), {})
 	return bufToScript(buf)
 }
 

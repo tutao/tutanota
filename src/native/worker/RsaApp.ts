@@ -1,14 +1,9 @@
-import type {PrivateKey, PublicKey, Randomizer, RsaKeyPair} from "@tutao/tutanota-crypto"
-import type {RsaImplementation} from "../../api/worker/crypto/RsaImplementation"
-import {NativeCryptoFacade} from "../common/generatedipc/NativeCryptoFacade"
+import type { PrivateKey, PublicKey, Randomizer, RsaKeyPair } from "@tutao/tutanota-crypto"
+import type { RsaImplementation } from "../../api/worker/crypto/RsaImplementation"
+import { NativeCryptoFacade } from "../common/generatedipc/NativeCryptoFacade"
 
 export class RsaApp implements RsaImplementation {
-
-	constructor(
-		private readonly nativeCryptoFacade: NativeCryptoFacade,
-		private readonly rng: Randomizer
-	) {
-	}
+	constructor(private readonly nativeCryptoFacade: NativeCryptoFacade, private readonly rng: Randomizer) {}
 
 	generateKey(): Promise<RsaKeyPair> {
 		const seed = this.rng.generateRandomData(512)

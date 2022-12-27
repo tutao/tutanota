@@ -1,10 +1,10 @@
-import m, {Children, ClassComponent, Vnode} from "mithril"
-import {modal} from "./gui/base/Modal"
-import {overlay} from "./gui/base/Overlay"
-import {styles} from "./gui/styles"
-import {assertMainOrNodeBoot, isApp} from "./api/common/Env"
-import {Keys} from "./api/common/TutanotaConstants.js"
-import {isKeyPressed} from "./misc/KeyManager.js"
+import m, { Children, ClassComponent, Vnode } from "mithril"
+import { modal } from "./gui/base/Modal"
+import { overlay } from "./gui/base/Overlay"
+import { styles } from "./gui/styles"
+import { assertMainOrNodeBoot, isApp } from "./api/common/Env"
+import { Keys } from "./api/common/TutanotaConstants.js"
+import { isKeyPressed } from "./misc/KeyManager.js"
 
 assertMainOrNodeBoot()
 
@@ -44,7 +44,9 @@ export class RootView implements ClassComponent {
 	}
 
 	view(vnode: Vnode): Children {
-		return m("#root" + (styles.isUsingBottomNavigation() ? ".mobile" : ""), {
+		return m(
+			"#root" + (styles.isUsingBottomNavigation() ? ".mobile" : ""),
+			{
 				// use pointer events instead of mousedown/touchdown because mouse events are still fired for touch on mobile
 				onpointerup: (e: PointerEvent) => {
 					if (e.pointerType === "mouse") {
@@ -64,8 +66,8 @@ export class RootView implements ClassComponent {
 				// We basically use them in css combinators as a query for when to show certain interaction indicators.
 				class: this.classForType(),
 				style: {
-					height: "100%"
-				}
+					height: "100%",
+				},
 			},
 			[m(overlay), m(modal), vnode.children],
 		)

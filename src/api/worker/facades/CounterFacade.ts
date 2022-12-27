@@ -1,15 +1,12 @@
-import {createReadCounterData} from "../../entities/monitor/TypeRefs"
-import {assertWorkerOrNode} from "../../common/Env"
-import {IServiceExecutor} from "../../common/ServiceRequest"
-import {CounterService} from "../../entities/monitor/Services"
+import { createReadCounterData } from "../../entities/monitor/TypeRefs"
+import { assertWorkerOrNode } from "../../common/Env"
+import { IServiceExecutor } from "../../common/ServiceRequest"
+import { CounterService } from "../../entities/monitor/Services"
 
 assertWorkerOrNode()
 
 export class CounterFacade {
-	constructor(
-		private readonly serviceExecutor: IServiceExecutor,
-	) {
-	}
+	constructor(private readonly serviceExecutor: IServiceExecutor) {}
 
 	async readCounterValue(monitorValue: string, ownerId: Id): Promise<NumberString | null> {
 		const counterData = createReadCounterData({

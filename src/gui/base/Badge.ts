@@ -1,4 +1,4 @@
-import m, {Children, Component, Vnode} from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 
 type BadgeAttrs = {
 	classes?: string

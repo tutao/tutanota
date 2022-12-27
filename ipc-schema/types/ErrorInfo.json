@@ -1,10 +1,10 @@
 {
-  "name": "ErrorInfo",
-  "type": "struct",
-  "doc": "When the error happens in the native we serialize it via this structure.",
-  "fields": {
-	"name": "string?",
-	"message": "string?",
-	"stack": "string?"
-  }
+	"name": "ErrorInfo",
+	"type": "struct",
+	"doc": "When the error happens in the native we serialize it via this structure.",
+	"fields": {
+		"name": "string?",
+		"message": "string?",
+		"stack": "string?"
+	}
 }

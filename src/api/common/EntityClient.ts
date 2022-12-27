@@ -1,13 +1,13 @@
-import type {EntityRestInterface} from "../worker/rest/EntityRestClient"
-import type {RootInstance} from "../entities/sys/TypeRefs.js"
-import {RootInstanceTypeRef} from "../entities/sys/TypeRefs.js"
-import {CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MIN_ID, getElementId, getLetId, RANGE_ITEM_LIMIT} from "./utils/EntityUtils"
-import {Type, ValueType} from "./EntityConstants"
-import {last, TypeRef} from "@tutao/tutanota-utils"
-import { resolveTypeReference} from "./EntityFunctions"
-import type {ElementEntity, ListElementEntity, SomeEntity} from "./EntityTypes"
-import {downcast} from "@tutao/tutanota-utils";
-import {EntityRestClientSetupOptions} from "../worker/rest/EntityRestClient"
+import type { EntityRestInterface } from "../worker/rest/EntityRestClient"
+import type { RootInstance } from "../entities/sys/TypeRefs.js"
+import { RootInstanceTypeRef } from "../entities/sys/TypeRefs.js"
+import { CUSTOM_MIN_ID, firstBiggerThanSecond, GENERATED_MIN_ID, getElementId, getLetId, RANGE_ITEM_LIMIT } from "./utils/EntityUtils"
+import { Type, ValueType } from "./EntityConstants"
+import { last, TypeRef } from "@tutao/tutanota-utils"
+import { resolveTypeReference } from "./EntityFunctions"
+import type { ElementEntity, ListElementEntity, SomeEntity } from "./EntityTypes"
+import { downcast } from "@tutao/tutanota-utils"
+import { EntityRestClientSetupOptions } from "../worker/rest/EntityRestClient"
 
 export class EntityClient {
 	_target: EntityRestInterface
@@ -21,7 +21,6 @@ export class EntityClient {
 	}
 
 	async loadAll<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start?: Id): Promise<T[]> {
-
 		const typeModel = await resolveTypeReference(typeRef)
 
 		if (!start) {
@@ -51,14 +50,11 @@ export class EntityClient {
 		const typeModel = await resolveTypeReference(typeRef)
 		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
 		const loadedEntities = await this._target.loadRange<T>(typeRef, listId, start, rangeItemLimit, true)
-		const filteredEntities = loadedEntities.filter(entity => firstBiggerThanSecond(getElementId(entity), end, typeModel))
+		const filteredEntities = loadedEntities.filter((entity) => firstBiggerThanSecond(getElementId(entity), end, typeModel))
 
 		if (filteredEntities.length === rangeItemLimit) {
 			const lastElementId = getElementId(filteredEntities[loadedEntities.length - 1])
-			const {
-				elements: remainingEntities,
-				loadedCompletely
-			} = await this.loadReverseRangeBetween<T>(typeRef, listId, lastElementId, end, rangeItemLimit)
+			const { elements: remainingEntities, loadedCompletely } = await this.loadReverseRangeBetween<T>(typeRef, listId, lastElementId, end, rangeItemLimit)
 			return {
 				elements: filteredEntities.concat(remainingEntities),
 				loadedCompletely,

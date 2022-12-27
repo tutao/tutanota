@@ -1,29 +1,25 @@
-import {WebAuthnFacade} from "../../native/common/generatedipc/WebAuthnFacade.js"
-import type {WebDialogController} from "../WebDialog.js"
-import {WebDialog} from "../WebDialog.js"
-import {ApplicationWindow} from "../ApplicationWindow.js"
-import {WebAuthnRegistrationChallenge} from "../../native/common/generatedipc/WebAuthnRegistrationChallenge.js"
-import {WebAuthnRegistrationResult} from "../../native/common/generatedipc/WebAuthnRegistrationResult.js"
-import {WebAuthnSignChallenge} from "../../native/common/generatedipc/WebAuthnSignChallenge.js"
-import {WebAuthnSignResult} from "../../native/common/generatedipc/WebAuthnSignResult.js"
+import { WebAuthnFacade } from "../../native/common/generatedipc/WebAuthnFacade.js"
+import type { WebDialogController } from "../WebDialog.js"
+import { WebDialog } from "../WebDialog.js"
+import { ApplicationWindow } from "../ApplicationWindow.js"
+import { WebAuthnRegistrationChallenge } from "../../native/common/generatedipc/WebAuthnRegistrationChallenge.js"
+import { WebAuthnRegistrationResult } from "../../native/common/generatedipc/WebAuthnRegistrationResult.js"
+import { WebAuthnSignChallenge } from "../../native/common/generatedipc/WebAuthnSignChallenge.js"
+import { WebAuthnSignResult } from "../../native/common/generatedipc/WebAuthnSignResult.js"
 
 export class DesktopWebauthnFacade implements WebAuthnFacade {
-	private currentDialog: Promise<WebDialog<{WebAuthnFacade: WebAuthnFacade}>> | null = null
+	private currentDialog: Promise<WebDialog<{ WebAuthnFacade: WebAuthnFacade }>> | null = null
 
-	constructor(
-		private readonly parentWindow: ApplicationWindow,
-		private readonly webDialogController: WebDialogController,
-	) {
-	}
+	constructor(private readonly parentWindow: ApplicationWindow, private readonly webDialogController: WebDialogController) {}
 
 	async register(challenge: WebAuthnRegistrationChallenge): Promise<WebAuthnRegistrationResult> {
-		const {domain} = challenge
+		const { domain } = challenge
 
 		return this.withDialog(domain, (webauthn) => webauthn.register(challenge))
 	}
 
 	async sign(challenge: WebAuthnSignChallenge): Promise<WebAuthnSignResult> {
-		const {domain} = challenge
+		const { domain } = challenge
 
 		return this.withDialog(domain, (webauthn) => webauthn.sign(challenge))
 	}
@@ -42,9 +38,8 @@ export class DesktopWebauthnFacade implements WebAuthnFacade {
 
 	async abortCurrentOperation(): Promise<void> {
 		try {
-			(await this.currentDialog)?.cancel()
-		} catch (ignored) {
-		}
+			;(await this.currentDialog)?.cancel()
+		} catch (ignored) {}
 	}
 
 	private async withDialog<T>(baseDomain: string, request: (webauthn: WebAuthnFacade) => Promise<T>): Promise<T> {

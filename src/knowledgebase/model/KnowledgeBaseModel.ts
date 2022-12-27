@@ -1,22 +1,22 @@
-import type {KnowledgeBaseEntry} from "../../api/entities/tutanota/TypeRefs.js"
-import {KnowledgeBaseEntryTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import type {EmailTemplate} from "../../api/entities/tutanota/TypeRefs.js"
-import {EmailTemplateTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import type {EntityEventsListener, EntityUpdateData} from "../../api/main/EventController"
-import {EventController, isUpdateForTypeRef} from "../../api/main/EventController"
-import {EntityClient} from "../../api/common/EntityClient"
-import {knowledgeBaseSearch} from "./KnowledgeBaseSearchFilter"
-import type {LanguageCode} from "../../misc/LanguageViewModel"
-import {lang} from "../../misc/LanguageViewModel"
+import type { KnowledgeBaseEntry } from "../../api/entities/tutanota/TypeRefs.js"
+import { KnowledgeBaseEntryTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import type { EmailTemplate } from "../../api/entities/tutanota/TypeRefs.js"
+import { EmailTemplateTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import type { EntityEventsListener, EntityUpdateData } from "../../api/main/EventController"
+import { EventController, isUpdateForTypeRef } from "../../api/main/EventController"
+import { EntityClient } from "../../api/common/EntityClient"
+import { knowledgeBaseSearch } from "./KnowledgeBaseSearchFilter"
+import type { LanguageCode } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
 import stream from "mithril/stream"
-import {OperationType, ShareCapability} from "../../api/common/TutanotaConstants"
-import {downcast, flat, LazyLoaded, noOp, promiseMap, SortedArray} from "@tutao/tutanota-utils"
-import {getElementId, getEtId, getLetId, isSameId} from "../../api/common/utils/EntityUtils"
-import type {TemplateGroupInstance} from "../../templates/model/TemplateGroupModel"
-import {loadTemplateGroupInstance} from "../../templates/model/TemplatePopupModel"
-import type {UserController} from "../../api/main/UserController"
-import {hasCapabilityOnGroup} from "../../sharing/GroupUtils"
-import Stream from "mithril/stream";
+import { OperationType, ShareCapability } from "../../api/common/TutanotaConstants"
+import { downcast, flat, LazyLoaded, noOp, promiseMap, SortedArray } from "@tutao/tutanota-utils"
+import { getElementId, getEtId, getLetId, isSameId } from "../../api/common/utils/EntityUtils"
+import type { TemplateGroupInstance } from "../../templates/model/TemplateGroupModel"
+import { loadTemplateGroupInstance } from "../../templates/model/TemplatePopupModel"
+import type { UserController } from "../../api/main/UserController"
+import { hasCapabilityOnGroup } from "../../sharing/GroupUtils"
+import Stream from "mithril/stream"
 
 export const SELECT_NEXT_ENTRY = "next"
 
@@ -52,7 +52,7 @@ export class KnowledgeBaseModel {
 		this.selectedEntry = stream<KnowledgeBaseEntry | null>(null)
 		this._filterValue = ""
 
-		this._entityEventReceived = updates => {
+		this._entityEventReceived = (updates) => {
 			return this._entityUpdate(updates)
 		}
 
@@ -66,12 +66,12 @@ export class KnowledgeBaseModel {
 			const templateMemberships = this._userController.getTemplateMemberships()
 
 			let newGroupInstances: TemplateGroupInstance[] = []
-			return promiseMap(templateMemberships, membership => loadTemplateGroupInstance(membership, entityClient))
-				.then(groupInstances => {
+			return promiseMap(templateMemberships, (membership) => loadTemplateGroupInstance(membership, entityClient))
+				.then((groupInstances) => {
 					newGroupInstances = groupInstances
 					return loadKnowledgebaseEntries(groupInstances, entityClient)
 				})
-				.then(knowledgebaseEntries => {
+				.then((knowledgebaseEntries) => {
 					this._allEntries.insertAll(knowledgebaseEntries)
 
 					this._groupInstances = newGroupInstances
@@ -97,8 +97,8 @@ export class KnowledgeBaseModel {
 		this._allKeywords = []
 		this._matchedKeywordsInContent = []
 
-		this._allEntries.array.forEach(entry => {
-			entry.keywords.forEach(keyword => {
+		this._allEntries.array.forEach((entry) => {
+			entry.keywords.forEach((keyword) => {
 				this._allKeywords.push(keyword.keyword)
 			})
 		})
@@ -122,7 +122,7 @@ export class KnowledgeBaseModel {
 
 	getLanguageFromTemplate(template: EmailTemplate): LanguageCode {
 		const clientLanguage = lang.code
-		const hasClientLanguage = template.contents.some(content => content.languageCode === clientLanguage)
+		const hasClientLanguage = template.contents.some((content) => content.languageCode === clientLanguage)
 
 		if (hasClientLanguage) {
 			return clientLanguage
@@ -135,7 +135,7 @@ export class KnowledgeBaseModel {
 		this._matchedKeywordsInContent = []
 		const emailContentNoTags = emailContent.replace(/(<([^>]+)>)/gi, "") // remove all html tags
 
-		this._allKeywords.forEach(keyword => {
+		this._allKeywords.forEach((keyword) => {
 			if (emailContentNoTags.includes(keyword)) {
 				this._matchedKeywordsInContent.push(keyword)
 			}
@@ -154,7 +154,7 @@ export class KnowledgeBaseModel {
 
 	_getMatchedKeywordsNumber(entry: KnowledgeBaseEntry): number {
 		let matches = 0
-		entry.keywords.forEach(k => {
+		entry.keywords.forEach((k) => {
 			if (this._matchedKeywordsInContent.includes(k.keyword)) {
 				matches++
 			}
@@ -212,23 +212,23 @@ export class KnowledgeBaseModel {
 	}
 
 	isReadOnly(entry: KnowledgeBaseEntry): boolean {
-		const instance = this._groupInstances.find(instance => isSameId(entry._ownerGroup, getEtId(instance.group)))
+		const instance = this._groupInstances.find((instance) => isSameId(entry._ownerGroup, getEtId(instance.group)))
 
 		return !instance || !hasCapabilityOnGroup(this._userController.user, instance.group, ShareCapability.Write)
 	}
 
 	_entityUpdate(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		return promiseMap(updates, update => {
+		return promiseMap(updates, (update) => {
 			if (isUpdateForTypeRef(KnowledgeBaseEntryTypeRef, update)) {
 				if (update.operation === OperationType.CREATE) {
-					return this._entityClient.load(KnowledgeBaseEntryTypeRef, [update.instanceListId, update.instanceId]).then(entry => {
+					return this._entityClient.load(KnowledgeBaseEntryTypeRef, [update.instanceListId, update.instanceId]).then((entry) => {
 						this._allEntries.insert(entry)
 
 						this.filter(this._filterValue)
 					})
 				} else if (update.operation === OperationType.UPDATE) {
-					return this._entityClient.load(KnowledgeBaseEntryTypeRef, [update.instanceListId, update.instanceId]).then(updatedEntry => {
-						this._allEntries.removeFirst(e => isSameId(getElementId(e), update.instanceId))
+					return this._entityClient.load(KnowledgeBaseEntryTypeRef, [update.instanceListId, update.instanceId]).then((updatedEntry) => {
+						this._allEntries.removeFirst((e) => isSameId(getElementId(e), update.instanceId))
 
 						this._allEntries.insert(updatedEntry)
 
@@ -246,7 +246,7 @@ export class KnowledgeBaseModel {
 						this.selectedEntry(null)
 					}
 
-					this._allEntries.removeFirst(e => isSameId(getElementId(e), update.instanceId))
+					this._allEntries.removeFirst((e) => isSameId(getElementId(e), update.instanceId))
 
 					this.filter(this._filterValue)
 				}
@@ -256,7 +256,7 @@ export class KnowledgeBaseModel {
 }
 
 function loadKnowledgebaseEntries(templateGroups: Array<TemplateGroupInstance>, entityClient: EntityClient): Promise<Array<KnowledgeBaseEntry>> {
-	return promiseMap(templateGroups, group => entityClient.loadAll(KnowledgeBaseEntryTypeRef, group.groupRoot.knowledgeBase)).then(groupedTemplates =>
+	return promiseMap(templateGroups, (group) => entityClient.loadAll(KnowledgeBaseEntryTypeRef, group.groupRoot.knowledgeBase)).then((groupedTemplates) =>
 		flat(groupedTemplates),
 	)
 }

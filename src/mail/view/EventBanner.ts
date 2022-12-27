@@ -1,17 +1,17 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {MessageBox} from "../../gui/base/MessageBox.js"
-import {px, size} from "../../gui/size"
-import {Button, ButtonType} from "../../gui/base/Button.js"
-import {CalendarAttendeeStatus, CalendarMethod} from "../../api/common/TutanotaConstants"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
-import {lang} from "../../misc/LanguageViewModel"
-import {theme} from "../../gui/theme"
-import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
-import {Dialog} from "../../gui/base/Dialog"
-import type {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
-import {showProgressDialog} from "../../gui/dialogs/ProgressDialog"
-import type {lazy} from "@tutao/tutanota-utils"
-import {isRepliedTo} from "../model/MailUtils"
+import m, { Children, Component, Vnode } from "mithril"
+import { MessageBox } from "../../gui/base/MessageBox.js"
+import { px, size } from "../../gui/size"
+import { Button, ButtonType } from "../../gui/base/Button.js"
+import { CalendarAttendeeStatus, CalendarMethod } from "../../api/common/TutanotaConstants"
+import type { TranslationKey } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
+import { theme } from "../../gui/theme"
+import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import { Dialog } from "../../gui/base/Dialog"
+import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
+import type { lazy } from "@tutao/tutanota-utils"
+import { isRepliedTo } from "../model/MailUtils"
 
 export type Attrs = {
 	event: CalendarEvent
@@ -21,8 +21,8 @@ export type Attrs = {
 }
 
 export class EventBanner implements Component<Attrs> {
-	view({attrs: {event, mail, recipient, method}}: Vnode<Attrs>): Children {
-		const ownAttendee = event.attendees.find(a => a.address.address === recipient)
+	view({ attrs: { event, mail, recipient, method } }: Vnode<Attrs>): Children {
+		const ownAttendee = event.attendees.find((a) => a.address.address === recipient)
 		return m(
 			MessageBox,
 			{
@@ -46,8 +46,8 @@ export class EventBanner implements Component<Attrs> {
 							? m(".pt.align-self-start.start.smaller", lang.get("alreadyReplied_msg"))
 							: renderReplyButtons(event, mail, recipient)
 						: method === CalendarMethod.REPLY
-							? m(".pt.align-self-start.start.smaller", lang.get("eventNotificationUpdated_msg"))
-							: null,
+						? m(".pt.align-self-start.start.smaller", lang.get("eventNotificationUpdated_msg"))
+						: null,
 				),
 				m(
 					".ml-negative-s.limit-width.align-self-start",
@@ -55,7 +55,7 @@ export class EventBanner implements Component<Attrs> {
 						label: "viewEvent_action",
 						type: ButtonType.Secondary,
 						click: (e, dom) =>
-							import("../../calendar/date/CalendarInvites").then(({showEventDetails}) =>
+							import("../../calendar/date/CalendarInvites").then(({ showEventDetails }) =>
 								showEventDetails(event, dom.getBoundingClientRect(), mail),
 							),
 					}),
@@ -73,7 +73,7 @@ export type BannerButtonAttrs = {
 }
 
 export class BannerButton implements Component<BannerButtonAttrs> {
-	view({attrs}: Vnode<BannerButtonAttrs>): Children {
+	view({ attrs }: Vnode<BannerButtonAttrs>): Children {
 		return m(
 			"button.border-radius.mr-s.center",
 			{
@@ -121,9 +121,9 @@ function renderReplyButtons(event: CalendarEvent, previousMail: Mail, recipient:
 function sendResponse(event: CalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail) {
 	showProgressDialog(
 		"pleaseWait_msg",
-		import("../../calendar/date/CalendarInvites").then(({getLatestEvent, replyToEventInvitation}) => {
-			return getLatestEvent(event).then(latestEvent => {
-				const ownAttendee = latestEvent.attendees.find(a => a.address.address === recipient)
+		import("../../calendar/date/CalendarInvites").then(({ getLatestEvent, replyToEventInvitation }) => {
+			return getLatestEvent(event).then((latestEvent) => {
+				const ownAttendee = latestEvent.attendees.find((a) => a.address.address === recipient)
 
 				if (ownAttendee == null) {
 					Dialog.message("attendeeNotFound_msg")

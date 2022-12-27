@@ -1,10 +1,10 @@
-import m, {Children, Component, Vnode} from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
-import {lang} from "../misc/LanguageViewModel"
-import type {CreditCard} from "../api/entities/sys/TypeRefs.js"
-import {createCreditCard} from "../api/entities/sys/TypeRefs.js"
-import {TextField} from "../gui/base/TextField.js"
-import Stream from "mithril/stream";
+import { lang } from "../misc/LanguageViewModel"
+import type { CreditCard } from "../api/entities/sys/TypeRefs.js"
+import { createCreditCard } from "../api/entities/sys/TypeRefs.js"
+import { TextField } from "../gui/base/TextField.js"
+import Stream from "mithril/stream"
 
 export class CreditCardAttrs {
 	cardHolderName: Stream<string>

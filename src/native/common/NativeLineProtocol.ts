@@ -20,15 +20,13 @@
  *  ...
  *  [n] 		request		<argx>				json-encoded last argument
  */
-import {Message, Request, RequestError, Response} from "../../api/common/MessageDispatcher.js"
-import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
-import {base64ToUint8Array, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-
+import { Message, Request, RequestError, Response } from "../../api/common/MessageDispatcher.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { base64ToUint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 
 export type NativeMessage = Message<NativeRequestType>
 export type JsMessage = Message<JsRequestType>
 export type JsMessageHandler = (message: JsMessage) => unknown
-
 
 /**
  * serialize a native message to the line protocol used in the apps
@@ -68,7 +66,7 @@ export function replaceBytesWithWrapper(value: unknown): unknown {
 	if (value == null) {
 		return null
 	} else if (value instanceof Uint8Array) {
-		return {data: uint8ArrayToBase64(value), marker: BYTES_MARKER}
+		return { data: uint8ArrayToBase64(value), marker: BYTES_MARKER }
 	} else if (Array.isArray(value)) {
 		return value.map(replaceBytesWithWrapper)
 	} else if (typeof value === "object") {
@@ -100,11 +98,13 @@ export function replaceWrapperByBytes(value: unknown): unknown {
 	}
 }
 
-function isByteWrapper(value: unknown) : value is {marker: typeof BYTES_MARKER, data: string} {
-	return value != null
-		&& typeof value === "object"
-		&& (value as Record<string, unknown>).marker === BYTES_MARKER
-		&& typeof (value as Record<string, unknown>).data === "string"
+function isByteWrapper(value: unknown): value is { marker: typeof BYTES_MARKER; data: string } {
+	return (
+		value != null &&
+		typeof value === "object" &&
+		(value as Record<string, unknown>).marker === BYTES_MARKER &&
+		typeof (value as Record<string, unknown>).data === "string"
+	)
 }
 
 /**
@@ -117,7 +117,11 @@ export function decodeNativeMessage(encoded: string): JsMessage {
 	switch (type) {
 		case "request":
 			const [requestType, ...args] = rest
-			parsedMessage = new Request(requestType, args.map(s => decodeValueFromNative(s)), messageId)
+			parsedMessage = new Request(
+				requestType,
+				args.map((s) => decodeValueFromNative(s)),
+				messageId,
+			)
 			break
 		case "response":
 			const [value] = rest

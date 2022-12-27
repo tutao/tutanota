@@ -1,16 +1,16 @@
 import m from "mithril"
-import {Dialog} from "../gui/base/Dialog"
-import {lang} from "../misc/LanguageViewModel"
-import {ButtonAttrs, ButtonType} from "../gui/base/Button.js"
-import type {AccountingInfo, Booking, Customer, CustomerInfo, SwitchAccountTypeData} from "../api/entities/sys/TypeRefs.js"
-import {createSwitchAccountTypeData} from "../api/entities/sys/TypeRefs.js"
-import {AccountType, BookingItemFeatureByCode, BookingItemFeatureType, Const, Keys, UnsubscribeFailureReason} from "../api/common/TutanotaConstants"
-import {SubscriptionActionButtons, SubscriptionSelector} from "./SubscriptionSelector"
+import { Dialog } from "../gui/base/Dialog"
+import { lang } from "../misc/LanguageViewModel"
+import { ButtonAttrs, ButtonType } from "../gui/base/Button.js"
+import type { AccountingInfo, Booking, Customer, CustomerInfo, SwitchAccountTypeData } from "../api/entities/sys/TypeRefs.js"
+import { createSwitchAccountTypeData } from "../api/entities/sys/TypeRefs.js"
+import { AccountType, BookingItemFeatureByCode, BookingItemFeatureType, Const, Keys, UnsubscribeFailureReason } from "../api/common/TutanotaConstants"
+import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
 import stream from "mithril/stream"
-import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {buyAliases, buyBusiness, buySharing, buyStorage, buyWhitelabel,} from "./SubscriptionUtils"
-import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
-import type {CurrentSubscriptionInfo} from "./SwitchSubscriptionDialogModel"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { buyAliases, buyBusiness, buySharing, buyStorage, buyWhitelabel } from "./SubscriptionUtils"
+import type { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
+import type { CurrentSubscriptionInfo } from "./SwitchSubscriptionDialogModel"
 import {
 	isDowngradeAliasesNeeded,
 	isDowngradeBusinessNeeded,
@@ -24,21 +24,21 @@ import {
 	isUpgradeWhitelabelNeeded,
 	SwitchSubscriptionDialogModel,
 } from "./SwitchSubscriptionDialogModel"
-import {locator} from "../api/main/MainLocator"
-import {SwitchAccountTypeService} from "../api/entities/sys/Services.js"
-import {BadRequestError, InvalidDataError, PreconditionFailedError} from "../api/common/error/RestError.js"
-import {FeatureListProvider, getDisplayNameOfSubscriptionType, SubscriptionType} from "./FeatureListProvider"
-import {isSubscriptionDowngrade, PriceAndConfigProvider} from "./PriceUtils"
-import {lazy} from "@tutao/tutanota-utils"
+import { locator } from "../api/main/MainLocator"
+import { SwitchAccountTypeService } from "../api/entities/sys/Services.js"
+import { BadRequestError, InvalidDataError, PreconditionFailedError } from "../api/common/error/RestError.js"
+import { FeatureListProvider, getDisplayNameOfSubscriptionType, SubscriptionType } from "./FeatureListProvider"
+import { isSubscriptionDowngrade, PriceAndConfigProvider } from "./PriceUtils"
+import { lazy } from "@tutao/tutanota-utils"
 
 /**
  * Only shown if the user is already a Premium user. Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
  */
 export async function showSwitchDialog(customer: Customer, customerInfo: CustomerInfo, accountingInfo: AccountingInfo, lastBooking: Booking): Promise<void> {
-	const [featureListProvider, priceAndConfigProvider] = await showProgressDialog("pleaseWait_msg", Promise.all([
-		FeatureListProvider.getInitializedInstance(),
-		PriceAndConfigProvider.getInitializedInstance(null)
-	]))
+	const [featureListProvider, priceAndConfigProvider] = await showProgressDialog(
+		"pleaseWait_msg",
+		Promise.all([FeatureListProvider.getInitializedInstance(), PriceAndConfigProvider.getInitializedInstance(null)]),
+	)
 	const model = new SwitchSubscriptionDialogModel(locator.bookingFacade, customer, customerInfo, accountingInfo, lastBooking, priceAndConfigProvider)
 	const cancelAction = () => dialog.close()
 
@@ -75,14 +75,16 @@ export async function showSwitchDialog(customer: Customer, customerInfo: Custome
 					isInitialUpgrade: false,
 					actionButtons: subscriptionActionButtons,
 					featureListProvider: featureListProvider,
-					priceAndConfigProvider
+					priceAndConfigProvider,
 				}),
 			),
-	}).addShortcut({
-		key: Keys.ESC,
-		exec: cancelAction,
-		help: "close_alt",
-	}).setCloseHandler(cancelAction)
+	})
+		.addShortcut({
+			key: Keys.ESC,
+			exec: cancelAction,
+			help: "close_alt",
+		})
+		.setCloseHandler(cancelAction)
 	const subscriptionActionButtons: SubscriptionActionButtons = {
 		Free: () => ({
 			label: "pricing.select_action",
@@ -104,12 +106,12 @@ function createSubscriptionPlanButton(
 	currentSubscriptionInfo: CurrentSubscriptionInfo,
 ): lazy<ButtonAttrs> {
 	return () => ({
-			label: "pricing.select_action",
-			click: () => {
-				switchSubscription(targetSubscription, dialog, currentSubscriptionInfo)
-			},
-			type: ButtonType.Login,
-		})
+		label: "pricing.select_action",
+		click: () => {
+			switchSubscription(targetSubscription, dialog, currentSubscriptionInfo)
+		},
+		type: ButtonType.Login,
+	})
 }
 
 function handleSwitchAccountPreconditionFailed(e: PreconditionFailedError): Promise<void> {
@@ -163,7 +165,6 @@ function handleSwitchAccountPreconditionFailed(e: PreconditionFailedError): Prom
 	}
 }
 
-
 async function tryDowngradePremiumToFree(switchAccountTypeData: SwitchAccountTypeData, currentSubscriptionInfo: CurrentSubscriptionInfo): Promise<void> {
 	const failed = await cancelAllAdditionalFeatures(SubscriptionType.Free, currentSubscriptionInfo)
 	if (failed) {
@@ -185,7 +186,7 @@ async function tryDowngradePremiumToFree(switchAccountTypeData: SwitchAccountTyp
 }
 
 async function cancelSubscription(dialog: Dialog, currentSubscriptionInfo: CurrentSubscriptionInfo): Promise<void> {
-	if (!await Dialog.confirm("unsubscribeConfirm_msg")) {
+	if (!(await Dialog.confirm("unsubscribeConfirm_msg"))) {
 		return
 	}
 	const switchAccountTypeData = createSwitchAccountTypeData()
@@ -296,16 +297,16 @@ async function cancelAllAdditionalFeatures(targetSubscription: SubscriptionType,
 		failed = await buyAliases(targetSubscriptionConfig.orderNbrOfAliases)
 	}
 	if (isDowngradeStorageNeeded(targetSubscriptionConfig, currentSubscriptionInfo.currentTotalStorage, currentSubscriptionInfo.includedStorage)) {
-		failed = failed || await buyStorage(targetSubscriptionConfig.orderStorageGb)
+		failed = failed || (await buyStorage(targetSubscriptionConfig.orderStorageGb))
 	}
 	if (isDowngradeSharingNeeded(targetSubscriptionConfig, currentSubscriptionInfo.currentlySharingOrdered)) {
-		failed = failed || await buySharing(false)
+		failed = failed || (await buySharing(false))
 	}
 	if (isDowngradeBusinessNeeded(targetSubscriptionConfig, currentSubscriptionInfo.currentlyBusinessOrdered)) {
-		failed = failed || await buyBusiness(false)
+		failed = failed || (await buyBusiness(false))
 	}
 	if (isDowngradeWhitelabelNeeded(targetSubscriptionConfig, currentSubscriptionInfo.currentlyWhitelabelOrdered)) {
-		failed = failed || await buyWhitelabel(false)
+		failed = failed || (await buyWhitelabel(false))
 	}
 	return failed
 }

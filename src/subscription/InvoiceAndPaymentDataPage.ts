@@ -1,34 +1,34 @@
-import m, {Children, Vnode, VnodeDOM} from "mithril"
-import {Dialog, DialogType} from "../gui/base/Dialog"
-import {lang} from "../misc/LanguageViewModel"
-import type {UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
-import {InvoiceDataInput, InvoiceDataInputLocation} from "./InvoiceDataInput"
-import {PaymentMethodInput} from "./PaymentMethodInput"
+import m, { Children, Vnode, VnodeDOM } from "mithril"
+import { Dialog, DialogType } from "../gui/base/Dialog"
+import { lang } from "../misc/LanguageViewModel"
+import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
+import { InvoiceDataInput, InvoiceDataInputLocation } from "./InvoiceDataInput"
+import { PaymentMethodInput } from "./PaymentMethodInput"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import type {InvoiceData, PaymentData} from "../api/common/TutanotaConstants"
-import {getClientType, Keys, PaymentDataResultType, PaymentMethodType, PaymentMethodTypeToName} from "../api/common/TutanotaConstants"
-import {showProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {getLazyLoadedPayPalUrl} from "./PaymentDataDialog"
-import {logins} from "../api/main/LoginController"
-import type {AccountingInfo, Braintree3ds2Request} from "../api/entities/sys/TypeRefs.js"
-import {AccountingInfoTypeRef, CustomerInfoTypeRef, CustomerTypeRef, InvoiceInfoTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {assertNotNull, neverNull, noOp, promiseMap} from "@tutao/tutanota-utils"
-import {getPreconditionFailedPaymentMsg, UpgradeType} from "./SubscriptionUtils"
-import {Button, ButtonType} from "../gui/base/Button.js"
-import type {SegmentControlItem} from "../gui/base/SegmentControl"
-import {SegmentControl} from "../gui/base/SegmentControl"
-import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialog.js"
-import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialog.js"
-import type {Country} from "../api/common/CountryList"
-import {DefaultAnimationTime} from "../gui/animation/Animations"
-import {EntityEventsListener, EntityUpdateData, isUpdateForTypeRef} from "../api/main/EventController"
-import {locator} from "../api/main/MainLocator"
-import {getPaymentWebRoot} from "../api/common/Env"
-import {Credentials} from "../misc/credentials/Credentials";
-import {SessionType} from "../api/common/SessionType.js";
-import {UsageTest} from "@tutao/tutanota-usagetests"
-import {PaymentInterval} from "./PriceUtils.js"
+import type { InvoiceData, PaymentData } from "../api/common/TutanotaConstants"
+import { getClientType, Keys, PaymentDataResultType, PaymentMethodType, PaymentMethodTypeToName } from "../api/common/TutanotaConstants"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { getLazyLoadedPayPalUrl } from "./PaymentDataDialog"
+import { logins } from "../api/main/LoginController"
+import type { AccountingInfo, Braintree3ds2Request } from "../api/entities/sys/TypeRefs.js"
+import { AccountingInfoTypeRef, CustomerInfoTypeRef, CustomerTypeRef, InvoiceInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { assertNotNull, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
+import { getPreconditionFailedPaymentMsg, UpgradeType } from "./SubscriptionUtils"
+import { Button, ButtonType } from "../gui/base/Button.js"
+import type { SegmentControlItem } from "../gui/base/SegmentControl"
+import { SegmentControl } from "../gui/base/SegmentControl"
+import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
+import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
+import type { Country } from "../api/common/CountryList"
+import { DefaultAnimationTime } from "../gui/animation/Animations"
+import { EntityEventsListener, EntityUpdateData, isUpdateForTypeRef } from "../api/main/EventController"
+import { locator } from "../api/main/MainLocator"
+import { getPaymentWebRoot } from "../api/common/Env"
+import { Credentials } from "../misc/credentials/Credentials"
+import { SessionType } from "../api/common/SessionType.js"
+import { UsageTest } from "@tutao/tutanota-usagetests"
+import { PaymentInterval } from "./PriceUtils.js"
 
 /**
  * Wizard page for editing invoice and payment data.
@@ -53,7 +53,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 		this._upgradeData = upgradeData
 		this._selectedPaymentMethod = stream()
 
-		this._selectedPaymentMethod.map(method => neverNull(this._paymentMethodInput).updatePaymentMethod(method))
+		this._selectedPaymentMethod.map((method) => neverNull(this._paymentMethodInput).updatePaymentMethod(method))
 	}
 
 	onremove(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>) {
@@ -67,7 +67,6 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 	}
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>) {
-
 		this.dom = vnode.dom as HTMLElement
 		const data = vnode.attrs.data
 
@@ -87,16 +86,16 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 			.then(() => {
 				if (!data.accountingInfo || !data.customer) {
 					return locator.entityClient
-								  .load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-								  .then(customer => {
-									  data.customer = customer
-									  return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
-								  })
-								  .then(customerInfo =>
-									  locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then(accountingInfo => {
-										  data.accountingInfo = accountingInfo
-									  }),
-								  )
+						.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+						.then((customer) => {
+							data.customer = customer
+							return locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
+						})
+						.then((customerInfo) =>
+							locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then((accountingInfo) => {
+								data.accountingInfo = accountingInfo
+							}),
+						)
 				}
 			})
 			.then(() => {
@@ -137,36 +136,36 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 				showProgressDialog(
 					"updatePaymentDataBusy_msg",
 					Promise.resolve()
-						   .then(() => {
-							   let customer = neverNull(a.data.customer)
+						.then(() => {
+							let customer = neverNull(a.data.customer)
 
-							   if (customer.businessUse !== a.data.options.businessUse()) {
-								   customer.businessUse = a.data.options.businessUse()
-								   return locator.entityClient.update(customer)
-							   }
-						   })
-						   .then(() =>
-							   updatePaymentData(
-								   a.data.options.paymentInterval(),
-								   a.data.invoiceData,
-								   a.data.paymentData,
-								   null,
-								   a.data.upgradeType === UpgradeType.Signup,
-								   a.data.price,
-								   neverNull(a.data.accountingInfo),
-							   ).then(success => {
-								   if (success) {
-									   // Payment method confirmation (click on next), send selected payment method as an enum
-									   const paymentMethodConfirmationStage = this.__signupPaidTest?.getStage(4)
-									   paymentMethodConfirmationStage?.setMetric({
-										   name: "paymentMethod",
-										   value: PaymentMethodTypeToName[a.data.paymentData.paymentMethod],
-									   })
-									   paymentMethodConfirmationStage?.complete()
-									   emitWizardEvent(this.dom, WizardEventType.SHOWNEXTPAGE)
-								   }
-							   }),
-						   ),
+							if (customer.businessUse !== a.data.options.businessUse()) {
+								customer.businessUse = a.data.options.businessUse()
+								return locator.entityClient.update(customer)
+							}
+						})
+						.then(() =>
+							updatePaymentData(
+								a.data.options.paymentInterval(),
+								a.data.invoiceData,
+								a.data.paymentData,
+								null,
+								a.data.upgradeType === UpgradeType.Signup,
+								a.data.price,
+								neverNull(a.data.accountingInfo),
+							).then((success) => {
+								if (success) {
+									// Payment method confirmation (click on next), send selected payment method as an enum
+									const paymentMethodConfirmationStage = this.__signupPaidTest?.getStage(4)
+									paymentMethodConfirmationStage?.setMetric({
+										name: "paymentMethod",
+										value: PaymentMethodTypeToName[a.data.paymentData.paymentMethod],
+									})
+									paymentMethodConfirmationStage?.complete()
+									emitWizardEvent(this.dom, WizardEventType.SHOWNEXTPAGE)
+								}
+							}),
+						),
 				)
 			}
 		}
@@ -175,48 +174,48 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 			"#upgrade-account-dialog.pt",
 			this._availablePaymentMethods
 				? [
-					m(SegmentControl, {
-						items: this._availablePaymentMethods,
-						selectedValue: this._selectedPaymentMethod(),
-						onValueSelected: this._selectedPaymentMethod,
-					}),
-					m(".flex-space-around.flex-wrap.pt", [
-						m(
-							".flex-grow-shrink-half.plr-l",
-							{
-								style: {
-									minWidth: "260px",
+						m(SegmentControl, {
+							items: this._availablePaymentMethods,
+							selectedValue: this._selectedPaymentMethod(),
+							onValueSelected: this._selectedPaymentMethod,
+						}),
+						m(".flex-space-around.flex-wrap.pt", [
+							m(
+								".flex-grow-shrink-half.plr-l",
+								{
+									style: {
+										minWidth: "260px",
+									},
 								},
-							},
-							m(neverNull(this._invoiceDataInput)),
-						),
-						m(
-							".flex-grow-shrink-half.plr-l",
-							{
-								style: {
-									minWidth: "260px",
+								m(neverNull(this._invoiceDataInput)),
+							),
+							m(
+								".flex-grow-shrink-half.plr-l",
+								{
+									style: {
+										minWidth: "260px",
+									},
 								},
-							},
-							m(neverNull(this._paymentMethodInput)),
-						),
-					]),
-					m(
-						".flex-center.full-width.pt-l",
+								m(neverNull(this._paymentMethodInput)),
+							),
+						]),
 						m(
-							"",
-							{
-								style: {
-									width: "260px",
+							".flex-center.full-width.pt-l",
+							m(
+								"",
+								{
+									style: {
+										width: "260px",
+									},
 								},
-							},
-							m(Button, {
-								label: "next_action",
-								click: onNextClick,
-								type: ButtonType.Login,
-							}),
+								m(Button, {
+									label: "next_action",
+									click: onNextClick,
+									type: ButtonType.Login,
+								}),
+							),
 						),
-					),
-				]
+				  ]
 				: null,
 		)
 	}
@@ -264,7 +263,7 @@ export function updatePaymentData(
 	price: string,
 	accountingInfo: AccountingInfo,
 ): Promise<boolean> {
-	return locator.customerFacade.updatePaymentData(paymentInterval, invoiceData, paymentData, confirmedCountry).then(paymentResult => {
+	return locator.customerFacade.updatePaymentData(paymentInterval, invoiceData, paymentData, confirmedCountry).then((paymentResult) => {
 		const statusCode = paymentResult.result
 
 		if (statusCode === PaymentDataResultType.OK) {
@@ -282,7 +281,7 @@ export function updatePaymentData(
 				const confirmMessage = lang.get("confirmCountry_msg", {
 					"{1}": countryName,
 				})
-				return Dialog.confirm(() => confirmMessage).then(confirmed => {
+				return Dialog.confirm(() => confirmMessage).then((confirmed) => {
 					if (confirmed) {
 						return updatePaymentData(paymentInterval, invoiceData, paymentData, invoiceData.country, isSignup, price, accountingInfo) // add confirmed invoice country
 					} else {
@@ -322,12 +321,12 @@ export function updatePaymentData(
  * Displays a progress dialog that allows to cancel the verification and opens a new window to do the actual verification with the bank.
  */
 function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintree3ds2Request, price: string): Promise<boolean> {
-	return locator.entityClient.load(InvoiceInfoTypeRef, neverNull(accountingInfo.invoiceInfo)).then(invoiceInfo => {
+	return locator.entityClient.load(InvoiceInfoTypeRef, neverNull(accountingInfo.invoiceInfo)).then((invoiceInfo) => {
 		let invoiceInfoWrapper = {
 			invoiceInfo,
 		}
 		let resolve: (arg0: boolean) => void
-		let progressDialogPromise: Promise<boolean> = new Promise(res => (resolve = res))
+		let progressDialogPromise: Promise<boolean> = new Promise((res) => (resolve = res))
 		let progressDialog: Dialog
 
 		const closeAction = () => {
@@ -364,9 +363,9 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 			})
 		const test = locator.usageTestController.getTest("payment.credit")
 		let entityEventListener: EntityEventsListener = (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) => {
-			return promiseMap(updates, update => {
+			return promiseMap(updates, (update) => {
 				if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
-					return locator.entityClient.load(InvoiceInfoTypeRef, update.instanceId).then(invoiceInfo => {
+					return locator.entityClient.load(InvoiceInfoTypeRef, update.instanceId).then((invoiceInfo) => {
 						invoiceInfoWrapper.invoiceInfo = invoiceInfo
 						const stage = test.getStage(3)
 						if (!invoiceInfo.paymentErrorInfo) {

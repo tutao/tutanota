@@ -1,20 +1,14 @@
 import o from "ospec"
-import {
-	asPaymentInterval,
-	formatMonthlyPrice,
-	formatPrice,
-	PaymentInterval,
-	PriceAndConfigProvider
-} from "../../../src/subscription/PriceUtils.js"
-import {createPlanPrices} from "../../../src/api/entities/sys/TypeRefs.js"
-import {clone} from "@tutao/tutanota-utils"
-import {SubscriptionType, UpgradePriceType} from "../../../src/subscription/FeatureListProvider"
-import {matchers, object, when} from "testdouble"
-import {IServiceExecutor} from "../../../src/api/common/ServiceRequest"
-import {UpgradePriceService} from "../../../src/api/entities/sys/Services"
-import {lang} from "../../../src/misc/LanguageViewModel"
+import { asPaymentInterval, formatMonthlyPrice, formatPrice, PaymentInterval, PriceAndConfigProvider } from "../../../src/subscription/PriceUtils.js"
+import { createPlanPrices } from "../../../src/api/entities/sys/TypeRefs.js"
+import { clone } from "@tutao/tutanota-utils"
+import { SubscriptionType, UpgradePriceType } from "../../../src/subscription/FeatureListProvider"
+import { matchers, object, when } from "testdouble"
+import { IServiceExecutor } from "../../../src/api/common/ServiceRequest"
+import { UpgradePriceService } from "../../../src/api/entities/sys/Services"
+import { lang } from "../../../src/misc/LanguageViewModel"
 import en from "../../../src/translations/en"
-import {ProgrammingError} from "../../../src/api/common/error/ProgrammingError.js"
+import { ProgrammingError } from "../../../src/api/common/error/ProgrammingError.js"
 
 const PLAN_PRICES = {
 	PremiumBusiness: createPlanPrices({
@@ -64,7 +58,6 @@ const PLAN_PRICES = {
 	}),
 }
 o.spec("price utils getSubscriptionPrice", async () => {
-
 	o.before(function () {
 		// We need this because SendMailModel queries for default language. We should refactor to avoid this.
 		lang.init(en)
@@ -73,12 +66,9 @@ o.spec("price utils getSubscriptionPrice", async () => {
 
 	o("getSubscriptionPrice premium yearly price", () => {
 		// the return value is not rounded, but formatPrice handles that
-		o(
-			formatPrice(
-				provider.getSubscriptionPrice(PaymentInterval.Yearly, SubscriptionType.Premium, UpgradePriceType.PlanReferencePrice),
-				false,
-			),
-		).equals("14.40")
+		o(formatPrice(provider.getSubscriptionPrice(PaymentInterval.Yearly, SubscriptionType.Premium, UpgradePriceType.PlanReferencePrice), false)).equals(
+			"14.40",
+		)
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)).equals(12)
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, SubscriptionType.Premium, UpgradePriceType.AdditionalUserPrice)).equals(12)
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, SubscriptionType.Premium, UpgradePriceType.ContactFormPrice)).equals(240)
@@ -95,12 +85,9 @@ o.spec("price utils getSubscriptionPrice", async () => {
 		const discountPlanPrices = clone(PLAN_PRICES)
 		discountPlanPrices.Premium.firstYearDiscount = "12"
 		const provider = await createPriceMock(discountPlanPrices)
-		o(
-			formatPrice(
-				provider.getSubscriptionPrice(PaymentInterval.Yearly, SubscriptionType.Premium, UpgradePriceType.PlanReferencePrice),
-				false,
-			),
-		).equals("14.40")
+		o(formatPrice(provider.getSubscriptionPrice(PaymentInterval.Yearly, SubscriptionType.Premium, UpgradePriceType.PlanReferencePrice), false)).equals(
+			"14.40",
+		)
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)).equals(0)
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, SubscriptionType.Premium, UpgradePriceType.AdditionalUserPrice)).equals(12)
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, SubscriptionType.Premium, UpgradePriceType.ContactFormPrice)).equals(240)
@@ -110,9 +97,7 @@ o.spec("price utils getSubscriptionPrice", async () => {
 		const discountPlanPrices = clone(PLAN_PRICES)
 		discountPlanPrices.Pro.firstYearDiscount = "84"
 		const provider = await createPriceMock(discountPlanPrices)
-		o(
-			formatPrice(provider.getSubscriptionPrice(PaymentInterval.Yearly, SubscriptionType.Pro, UpgradePriceType.PlanReferencePrice), false),
-		).equals("100.80")
+		o(formatPrice(provider.getSubscriptionPrice(PaymentInterval.Yearly, SubscriptionType.Pro, UpgradePriceType.PlanReferencePrice), false)).equals("100.80")
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, SubscriptionType.Pro, UpgradePriceType.PlanActualPrice)).equals(0)
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, SubscriptionType.Pro, UpgradePriceType.AdditionalUserPrice)).equals(48)
 		o(provider.getSubscriptionPrice(PaymentInterval.Yearly, SubscriptionType.Pro, UpgradePriceType.ContactFormPrice)).equals(240)
@@ -138,16 +123,15 @@ o.spec("price utils getSubscriptionPrice", async () => {
 	})
 })
 
-o.spec("PaymentInterval", function() {
-
-	o("asPaymentInterval correct values", function() {
+o.spec("PaymentInterval", function () {
+	o("asPaymentInterval correct values", function () {
 		o(asPaymentInterval(1)).equals(PaymentInterval.Monthly)
 		o(asPaymentInterval(12)).equals(PaymentInterval.Yearly)
 		o(asPaymentInterval("1")).equals(PaymentInterval.Monthly)
 		o(asPaymentInterval("12")).equals(PaymentInterval.Yearly)
 	})
 
-	o("asPaymentInterval rejects invalid values", function() {
+	o("asPaymentInterval rejects invalid values", function () {
 		o(() => asPaymentInterval(0)).throws(ProgrammingError)
 		o(() => asPaymentInterval("0")).throws(ProgrammingError)
 		o(() => asPaymentInterval("")).throws(ProgrammingError)
@@ -161,13 +145,12 @@ o.spec("PaymentInterval", function() {
  */
 export async function createPriceMock(planPrices: typeof PLAN_PRICES = PLAN_PRICES): Promise<PriceAndConfigProvider> {
 	const executorMock = object<IServiceExecutor>()
-	when(executorMock.get(UpgradePriceService, matchers.anything()))
-		.thenResolve({
-			premiumPrices: planPrices.Premium,
-			premiumBusinessPrices: planPrices.PremiumBusiness,
-			teamsPrices: planPrices.Teams,
-			teamsBusinessPrices: planPrices.TeamsBusiness,
-			proPrices: planPrices.Pro,
-		})
+	when(executorMock.get(UpgradePriceService, matchers.anything())).thenResolve({
+		premiumPrices: planPrices.Premium,
+		premiumBusinessPrices: planPrices.PremiumBusiness,
+		teamsPrices: planPrices.Teams,
+		teamsBusinessPrices: planPrices.TeamsBusiness,
+		proPrices: planPrices.Pro,
+	})
 	return await PriceAndConfigProvider.getInitializedInstance(null, executorMock)
 }

@@ -1,19 +1,19 @@
 import m from "mithril"
-import {px, size} from "../../gui/size"
-import {displayOverlay} from "../../gui/base/Overlay"
-import {DefaultAnimationTime, transform, TransformEnum} from "../../gui/animation/Animations"
-import {EventController} from "../../api/main/EventController"
-import {styles} from "../../gui/styles"
-import {LayerType} from "../../RootView"
-import type {Dialog} from "../../gui/base/Dialog"
-import type {SendMailModel} from "../editor/SendMailModel"
-import type {MinimizedEditor, SaveStatus} from "../model/MinimizedMailEditorViewModel"
-import {MinimizedMailEditorViewModel} from "../model/MinimizedMailEditorViewModel"
-import {MinimizedEditorOverlay} from "./MinimizedEditorOverlay"
-import {windowFacade} from "../../misc/WindowFacade"
-import {assertMainOrNode} from "../../api/common/Env"
-import Stream from "mithril/stream";
-import {getSafeAreaInsetBottom} from "../../gui/HtmlUtils.js"
+import { px, size } from "../../gui/size"
+import { displayOverlay } from "../../gui/base/Overlay"
+import { DefaultAnimationTime, transform, TransformEnum } from "../../gui/animation/Animations"
+import { EventController } from "../../api/main/EventController"
+import { styles } from "../../gui/styles"
+import { LayerType } from "../../RootView"
+import type { Dialog } from "../../gui/base/Dialog"
+import type { SendMailModel } from "../editor/SendMailModel"
+import type { MinimizedEditor, SaveStatus } from "../model/MinimizedMailEditorViewModel"
+import { MinimizedMailEditorViewModel } from "../model/MinimizedMailEditorViewModel"
+import { MinimizedEditorOverlay } from "./MinimizedEditorOverlay"
+import { windowFacade } from "../../misc/WindowFacade"
+import { assertMainOrNode } from "../../api/common/Env"
+import Stream from "mithril/stream"
+import { getSafeAreaInsetBottom } from "../../gui/HtmlUtils.js"
 
 assertMainOrNode()
 const MINIMIZED_OVERLAY_WIDTH_WIDE = 350
@@ -61,11 +61,11 @@ function showMinimizedEditorOverlay(
 					eventController,
 				}),
 		},
-		dom => {
+		(dom) => {
 			overlayDom = dom
 			return transform(TransformEnum.TranslateY, 0, -getVerticalOverlayPosition())
 		},
-		dom => {
+		(dom) => {
 			windowFacade.removeResizeListener(resizeListener)
 			return transform(TransformEnum.TranslateY, -getVerticalOverlayPosition(), 0)
 		},
@@ -79,7 +79,7 @@ function getVerticalOverlayPosition(): number {
 	return (
 		MINIMIZED_EDITOR_HEIGHT +
 		(styles.isUsingBottomNavigation() // use size.hpad values to keep bottom and right space even
-			? size.bottom_nav_bar + size.hpad +  bottomInset
+			? size.bottom_nav_bar + size.hpad + bottomInset
 			: size.hpad_medium)
 	)
 }

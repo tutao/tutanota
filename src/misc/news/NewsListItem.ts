@@ -1,5 +1,5 @@
-import {Children} from "mithril"
-import {NewsId} from "../../api/entities/tutanota/TypeRefs.js"
+import { Children } from "mithril"
+import { NewsId } from "../../api/entities/tutanota/TypeRefs.js"
 
 /**
  * News items must implement this interface to be rendered.

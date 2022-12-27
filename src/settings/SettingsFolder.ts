@@ -1,15 +1,13 @@
-import type {lazyIcon} from "../gui/base/Icon"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {isSelectedPrefix} from "../gui/base/NavButton.js"
-import type {UpdatableSettingsViewer} from "./SettingsView"
-import type {lazy} from "@tutao/tutanota-utils"
-import {assertMainOrNode} from "../api/common/Env"
+import type { lazyIcon } from "../gui/base/Icon"
+import type { TranslationKey } from "../misc/LanguageViewModel"
+import { isSelectedPrefix } from "../gui/base/NavButton.js"
+import type { UpdatableSettingsViewer } from "./SettingsView"
+import type { lazy } from "@tutao/tutanota-utils"
+import { assertMainOrNode } from "../api/common/Env"
 
 assertMainOrNode()
 
-type SettingsFolderPath =
-	| string
-	| {folder: string, id: string}
+type SettingsFolderPath = string | { folder: string; id: string }
 
 export class SettingsFolder<T> {
 	url: string // can be changed from outside

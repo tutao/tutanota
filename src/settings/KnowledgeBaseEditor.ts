@@ -1,30 +1,30 @@
-import m, {Children, Component, Vnode} from "mithril"
-import type {EmailTemplate, KnowledgeBaseEntry, TemplateGroupRoot} from "../api/entities/tutanota/TypeRefs.js"
-import {ButtonColor, ButtonType} from "../gui/base/Button.js"
-import {KnowledgeBaseEditorModel} from "./KnowledgeBaseEditorModel"
-import {noOp, ofClass} from "@tutao/tutanota-utils"
-import {TextField} from "../gui/base/TextField.js"
-import {Dialog} from "../gui/base/Dialog"
-import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
-import {lang} from "../misc/LanguageViewModel"
-import {locator} from "../api/main/MainLocator"
-import type {DropdownChildAttrs} from "../gui/base/Dropdown.js"
-import {createAsyncDropdown} from "../gui/base/Dropdown.js"
-import {showUserError} from "../misc/ErrorHandlerImpl"
-import {elementIdPart, getLetId, listIdPart} from "../api/common/utils/EntityUtils"
-import {HtmlEditor} from "../gui/editor/HtmlEditor"
-import {UserError} from "../api/main/UserError"
-import {TEMPLATE_SHORTCUT_PREFIX} from "../templates/model/TemplatePopupModel"
-import {IconButtonAttrs} from "../gui/base/IconButton.js"
-import {Icons} from "../gui/base/icons/Icons.js"
-import {ButtonSize} from "../gui/base/ButtonSize.js";
+import m, { Children, Component, Vnode } from "mithril"
+import type { EmailTemplate, KnowledgeBaseEntry, TemplateGroupRoot } from "../api/entities/tutanota/TypeRefs.js"
+import { ButtonColor, ButtonType } from "../gui/base/Button.js"
+import { KnowledgeBaseEditorModel } from "./KnowledgeBaseEditorModel"
+import { noOp, ofClass } from "@tutao/tutanota-utils"
+import { TextField } from "../gui/base/TextField.js"
+import { Dialog } from "../gui/base/Dialog"
+import type { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
+import { lang } from "../misc/LanguageViewModel"
+import { locator } from "../api/main/MainLocator"
+import type { DropdownChildAttrs } from "../gui/base/Dropdown.js"
+import { createAsyncDropdown } from "../gui/base/Dropdown.js"
+import { showUserError } from "../misc/ErrorHandlerImpl"
+import { elementIdPart, getLetId, listIdPart } from "../api/common/utils/EntityUtils"
+import { HtmlEditor } from "../gui/editor/HtmlEditor"
+import { UserError } from "../api/main/UserError"
+import { TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
+import { IconButtonAttrs } from "../gui/base/IconButton.js"
+import { Icons } from "../gui/base/icons/Icons.js"
+import { ButtonSize } from "../gui/base/ButtonSize.js"
 
 /**
  *  Editor to edit / add a knowledgeBase entry
  *  Returned promise resolves when the dialog closes
  */
 export function showKnowledgeBaseEditor(entry: KnowledgeBaseEntry | null, templateGroupRoot: TemplateGroupRoot): void {
-	const {entityClient} = locator
+	const { entityClient } = locator
 	const editorModel = new KnowledgeBaseEditorModel(entry, templateGroupRoot, entityClient)
 
 	const closeDialog = () => {
@@ -69,7 +69,7 @@ class KnowledgeBaseEditor implements Component<KnowledgeBaseEditorModel> {
 			click: (e, dom) => {
 				e.stopPropagation()
 				createAsyncDropdown({
-					lazyButtons: () => this._createDropdownChildAttrs(model)
+					lazyButtons: () => this._createDropdownChildAttrs(model),
 				})(e, dom)
 			},
 			size: ButtonSize.Compact,
@@ -91,9 +91,9 @@ class KnowledgeBaseEditor implements Component<KnowledgeBaseEditorModel> {
 	}
 
 	_createDropdownChildAttrs(model: KnowledgeBaseEditorModel): Promise<Array<DropdownChildAttrs>> {
-		return model.availableTemplates.getAsync().then(templates => {
+		return model.availableTemplates.getAsync().then((templates) => {
 			if (templates.length > 0) {
-				return templates.map(template => {
+				return templates.map((template) => {
 					return {
 						label: () => template.tag,
 						click: () => this.entryContentEditor.editor.insertHTML(createTemplateLink(template)),

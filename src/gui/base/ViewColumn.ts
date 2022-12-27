@@ -1,8 +1,8 @@
-import m, {Child, Component, Vnode} from "mithril"
-import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
-import {LayerType} from "../../RootView"
-import type {lazy} from "@tutao/tutanota-utils"
-import {assertMainOrNode} from "../../api/common/Env"
+import m, { Child, Component, Vnode } from "mithril"
+import { AriaLandmarks, landmarkAttrs } from "../AriaUtils"
+import { LayerType } from "../../RootView"
+import type { lazy } from "@tutao/tutanota-utils"
+import { assertMainOrNode } from "../../api/common/Env"
 
 assertMainOrNode()
 
@@ -73,7 +73,7 @@ export class ViewColumn implements Component<Attrs> {
 				".view-column.overflow-x-hidden.fill-absolute" + border + landmark,
 				{
 					"aria-hidden": this.visible || this.isInForeground ? "false" : "true",
-					oncreate: vnode => {
+					oncreate: (vnode) => {
 						this._domColumn = vnode.dom as HTMLElement
 						this._domColumn.style.transform =
 							this.columnType === ColumnType.Foreground ? "translateX(" + this.getOffsetForeground(this.isInForeground) + "px)" : ""

@@ -1,7 +1,6 @@
-import {mapObject} from "@tutao/tutanota-utils"
+import { mapObject } from "@tutao/tutanota-utils"
 
 export type SqlValue = null | string | number | Uint8Array
-
 
 /**
  * Type tag for values being passed to SQL statements
@@ -14,11 +13,10 @@ export const enum SqlType {
 }
 
 export type TaggedSqlValue =
-	| {type: SqlType.Null, value: null}
-	| {type: SqlType.String, value: string}
-	| {type: SqlType.Number, value: number}
-	| {type: SqlType.Bytes, value: Uint8Array}
-
+	| { type: SqlType.Null; value: null }
+	| { type: SqlType.String; value: string }
+	| { type: SqlType.Number; value: number }
+	| { type: SqlType.Bytes; value: Uint8Array }
 
 export function tagSqlObject(params: Record<string, SqlValue>): Record<string, TaggedSqlValue> {
 	return mapObject((p: SqlValue) => tagSqlValue(p), params)
@@ -26,13 +24,13 @@ export function tagSqlObject(params: Record<string, SqlValue>): Record<string, T
 
 export function tagSqlValue(param: SqlValue): TaggedSqlValue {
 	if (typeof param === "string") {
-		return {type: SqlType.String, value: param}
+		return { type: SqlType.String, value: param }
 	} else if (typeof param === "number") {
-		return {type: SqlType.Number, value: param}
+		return { type: SqlType.Number, value: param }
 	} else if (param == null) {
-		return {type: SqlType.Null, value: null}
+		return { type: SqlType.Null, value: null }
 	} else {
-		return {type: SqlType.Bytes, value: param}
+		return { type: SqlType.Bytes, value: param }
 	}
 }
 

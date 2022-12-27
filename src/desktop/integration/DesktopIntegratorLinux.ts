@@ -1,10 +1,10 @@
 import path from "path"
-import {lang} from "../../misc/LanguageViewModel"
-import type {WindowManager} from "../DesktopWindowManager"
-import {log} from "../DesktopLog"
-import type {DesktopIntegrator} from "./DesktopIntegrator"
-import {ChildProcessExports, ElectronExports, FsExports} from "../ElectronExportTypes";
-import {ExecFileException} from "child_process"
+import { lang } from "../../misc/LanguageViewModel"
+import type { WindowManager } from "../DesktopWindowManager"
+import { log } from "../DesktopLog"
+import type { DesktopIntegrator } from "./DesktopIntegrator"
+import { ChildProcessExports, ElectronExports, FsExports } from "../ElectronExportTypes"
+import { ExecFileException } from "child_process"
 
 export class DesktopIntegratorLinux implements DesktopIntegrator {
 	_electron: ElectronExports
@@ -28,7 +28,7 @@ export class DesktopIntegratorLinux implements DesktopIntegrator {
 		this._electron = electron
 		this._fs = fs
 		this._childProcess = childProcess
-		const {app} = electron
+		const { app } = electron
 		this.DATA_HOME = process.env.XDG_DATA_HOME || path.join(app.getPath("home"), ".local/share")
 		this.CONFIG_HOME = process.env.XDG_CONFIG_HOME || path.join(app.getPath("home"), ".config")
 		this.executablePath = process.execPath
@@ -60,7 +60,7 @@ export class DesktopIntegratorLinux implements DesktopIntegrator {
 	}
 
 	enableAutoLaunch(): Promise<void> {
-		return this.isAutoLaunchEnabled().then(enabled => {
+		return this.isAutoLaunchEnabled().then((enabled) => {
 			if (enabled) return
 			const autoLaunchDesktopEntry = `[Desktop Entry]
 	Type=Application
@@ -83,8 +83,8 @@ export class DesktopIntegratorLinux implements DesktopIntegrator {
 
 	disableAutoLaunch(): Promise<void> {
 		return this.isAutoLaunchEnabled()
-			.then(enabled => (enabled ? this._fs.promises.unlink(this.autoLaunchPath) : Promise.resolve()))
-			.catch(e => {
+			.then((enabled) => (enabled ? this._fs.promises.unlink(this.autoLaunchPath) : Promise.resolve()))
+			.catch((e) => {
 				// don't throw if file not found
 				if (e.code !== "ENOENT") throw e
 			})
@@ -133,7 +133,7 @@ export class DesktopIntegratorLinux implements DesktopIntegrator {
 			this._fs
 				.readFileSync(this.desktopFilePath, "utf8")
 				.split("\n")
-				.find(s => s.includes("X-Tutanota-Version")) || "=0.0.0"
+				.find((s) => s.includes("X-Tutanota-Version")) || "=0.0.0"
 		return versionLine.split("=")[1]
 	}
 
@@ -150,20 +150,19 @@ export class DesktopIntegratorLinux implements DesktopIntegrator {
 						[path.join(this._electron.app.getPath("home"), ".local/share/applications")],
 						logExecFile,
 					)
-				} catch (e) {
-				}
+				} catch (e) {}
 			})
 	}
 
 	unintegrate(): Promise<void> {
 		return Promise.all([this._fs.promises.unlink(this.iconTargetPath64), this._fs.promises.unlink(this.iconTargetPath512)])
-			.catch(e => {
+			.catch((e) => {
 				if (!e.message.startsWith("ENOENT")) {
 					throw e
 				}
 			})
 			.then(() => this._fs.promises.unlink(this.desktopFilePath))
-			.catch(e => {
+			.catch((e) => {
 				if (!e.message.startsWith("ENOENT")) {
 					throw e
 				}
@@ -228,7 +227,7 @@ TryExec=${this.packagePath}`
 	 * ~/.config/tuta_integration/no_integration
 	 */
 	async askPermission(): Promise<void> {
-		const {response, checkboxChecked} = await this._electron.dialog.showMessageBox({
+		const { response, checkboxChecked } = await this._electron.dialog.showMessageBox({
 			title: lang.get("desktopIntegration_label"),
 			buttons: [lang.get("no_label"), lang.get("yes_label")],
 			defaultId: 1,

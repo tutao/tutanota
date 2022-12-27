@@ -1,7 +1,7 @@
-import type {NativeImage} from "electron"
-import type {DesktopTray} from "./tray/DesktopTray"
-import type {ApplicationWindow} from "./ApplicationWindow"
-import type {ElectronNotificationFactory} from "./NotificatonFactory"
+import type { NativeImage } from "electron"
+import type { DesktopTray } from "./tray/DesktopTray"
+import type { ApplicationWindow } from "./ApplicationWindow"
+import type { ElectronNotificationFactory } from "./NotificatonFactory"
 
 export const enum NotificationResult {
 	Click = "click",
@@ -45,7 +45,7 @@ export class DesktopNotifier {
 	 * @param props.clickHandler Called when the user clicks the notification
 	 * @param props.closeHandler Called when the notification was closed (by timeout or user action).
 	 */
-	async showOneShot(props: {title: string; body?: string; icon?: NativeImage}): Promise<NotificationResult> {
+	async showOneShot(props: { title: string; body?: string; icon?: NativeImage }): Promise<NotificationResult> {
 		const withIcon = {
 			title: props.title,
 			body: props.body,
@@ -57,12 +57,12 @@ export class DesktopNotifier {
 		}
 
 		return this._canShow
-			? new Promise(resolve => this._notificationFactory.makeNotification(withIcon, res => resolve(res)))
-			: new Promise(resolve =>
-				this.pendingNotifications.push(() => {
-					this._notificationFactory.makeNotification(withIcon, res => resolve(res))
-				}),
-			)
+			? new Promise((resolve) => this._notificationFactory.makeNotification(withIcon, (res) => resolve(res)))
+			: new Promise((resolve) =>
+					this.pendingNotifications.push(() => {
+						this._notificationFactory.makeNotification(withIcon, (res) => resolve(res))
+					}),
+			  )
 	}
 
 	submitGroupedNotification(title: string, message: string, id: string, onClick: (arg0: NotificationResult) => void): void {

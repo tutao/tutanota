@@ -1,41 +1,41 @@
-import {size} from "../../gui/size"
-import m, {Children, Component, Vnode} from "mithril"
+import { size } from "../../gui/size"
+import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
-import {windowFacade, windowSizeListener} from "../../misc/WindowFacade"
-import {FeatureType, InboxRuleType, Keys, MailFolderType, SpamRuleFieldType, SpamRuleType,} from "../../api/common/TutanotaConstants"
-import type {Mail} from "../../api/entities/tutanota/TypeRefs.js"
-import {lang} from "../../misc/LanguageViewModel"
-import {assertMainOrNode, isDesktop} from "../../api/common/Env"
-import {defer, DeferredObject, neverNull, noOp, ofClass,} from "@tutao/tutanota-utils"
-import {createNewContact, getExistingRuleForType, isTutanotaTeamMail,} from "../model/MailUtils"
+import { windowFacade, windowSizeListener } from "../../misc/WindowFacade"
+import { FeatureType, InboxRuleType, Keys, MailFolderType, SpamRuleFieldType, SpamRuleType } from "../../api/common/TutanotaConstants"
+import type { Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import { lang } from "../../misc/LanguageViewModel"
+import { assertMainOrNode, isDesktop } from "../../api/common/Env"
+import { defer, DeferredObject, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import { createNewContact, getExistingRuleForType, isTutanotaTeamMail } from "../model/MailUtils"
 import ColumnEmptyMessageBox from "../../gui/base/ColumnEmptyMessageBox"
-import type {Shortcut} from "../../misc/KeyManager"
-import {keyManager} from "../../misc/KeyManager"
-import {logins} from "../../api/main/LoginController"
-import {progressIcon} from "../../gui/base/Icon"
-import {Icons} from "../../gui/base/icons/Icons"
-import {theme} from "../../gui/theme"
-import {client} from "../../misc/ClientDetector"
-import {styles} from "../../gui/styles"
-import {DropdownButtonAttrs, showDropdownAtPosition} from "../../gui/base/Dropdown.js"
-import {navButtonRoutes} from "../../misc/RouteChange"
-import type {InlineImageReference} from "./MailGuiUtils"
-import {replaceCidsWithInlineImages} from "./MailGuiUtils"
-import {locator} from "../../api/main/MainLocator"
-import {getCoordsOfMouseOrTouchEvent} from "../../gui/base/GuiUtils"
-import {copyToClipboard} from "../../misc/ClipboardUtils";
-import {ContentBlockingStatus, MailViewerViewModel} from "./MailViewerViewModel"
-import {getListId} from "../../api/common/utils/EntityUtils"
-import {createEmailSenderListElement} from "../../api/entities/sys/TypeRefs.js"
-import {UserError} from "../../api/main/UserError"
-import {showUserError} from "../../misc/ErrorHandlerImpl"
-import {animations, DomMutation, scroll} from "../../gui/animation/Animations"
-import {ease} from "../../gui/animation/Easing"
-import {isNewMailActionAvailable} from "../../gui/nav/NavFunctions"
-import {CancelledError} from "../../api/common/error/CancelledError"
-import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
-import {MailViewerHeader} from "./MailViewerHeader.js"
-import {editDraft, showHeaderDialog} from "./MailViewerUtils.js"
+import type { Shortcut } from "../../misc/KeyManager"
+import { keyManager } from "../../misc/KeyManager"
+import { logins } from "../../api/main/LoginController"
+import { progressIcon } from "../../gui/base/Icon"
+import { Icons } from "../../gui/base/icons/Icons"
+import { theme } from "../../gui/theme"
+import { client } from "../../misc/ClientDetector"
+import { styles } from "../../gui/styles"
+import { DropdownButtonAttrs, showDropdownAtPosition } from "../../gui/base/Dropdown.js"
+import { navButtonRoutes } from "../../misc/RouteChange"
+import type { InlineImageReference } from "./MailGuiUtils"
+import { replaceCidsWithInlineImages } from "./MailGuiUtils"
+import { locator } from "../../api/main/MainLocator"
+import { getCoordsOfMouseOrTouchEvent } from "../../gui/base/GuiUtils"
+import { copyToClipboard } from "../../misc/ClipboardUtils"
+import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel"
+import { getListId } from "../../api/common/utils/EntityUtils"
+import { createEmailSenderListElement } from "../../api/entities/sys/TypeRefs.js"
+import { UserError } from "../../api/main/UserError"
+import { showUserError } from "../../misc/ErrorHandlerImpl"
+import { animations, DomMutation, scroll } from "../../gui/animation/Animations"
+import { ease } from "../../gui/animation/Easing"
+import { isNewMailActionAvailable } from "../../gui/nav/NavFunctions"
+import { CancelledError } from "../../api/common/error/CancelledError"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { MailViewerHeader } from "./MailViewerHeader.js"
+import { editDraft, showHeaderDialog } from "./MailViewerUtils.js"
 
 assertMainOrNode()
 // map of inline image cid to InlineImageReference
@@ -50,7 +50,7 @@ type MailAddressAndName = {
 }
 
 export type MailViewerAttrs = {
-	viewModel: MailViewerViewModel,
+	viewModel: MailViewerViewModel
 }
 
 /**
@@ -59,7 +59,6 @@ export type MailViewerAttrs = {
  * The viewer has a longer lifecycle than viewModel so we need to be careful about the state.
  */
 export class MailViewer implements Component<MailViewerAttrs> {
-
 	/** it is set after we measured mail body element */
 	private bodyLineHeight: number | null = null
 
@@ -99,7 +98,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	constructor(vnode: Vnode<MailViewerAttrs>) {
 		this.setViewModel(vnode.attrs.viewModel)
 
-		this.resizeListener = () => this.domBodyDeferred.promise.then(dom => this.updateLineHeight(dom))
+		this.resizeListener = () => this.domBodyDeferred.promise.then((dom) => this.updateLineHeight(dom))
 
 		this.shortcuts = this.setupShortcuts(vnode.attrs)
 	}
@@ -150,23 +149,20 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 		const scrollingHeader = styles.isSingleColumnLayout()
 		return [
-			m(
-				"#mail-viewer.fill-absolute" + (scrollingHeader ? ".scroll-no-overlay.overflow-x-hidden" : ".flex.flex-column"),
-				[
-					this.renderMailHeader(),
-					m(
-						".flex-grow.mlr-safe-inset.scroll-x.plr-l.pb-floating.pt" +
+			m("#mail-viewer.fill-absolute" + (scrollingHeader ? ".scroll-no-overlay.overflow-x-hidden" : ".flex.flex-column"), [
+				this.renderMailHeader(),
+				m(
+					".flex-grow.mlr-safe-inset.scroll-x.plr-l.pb-floating.pt" +
 						(scrollingHeader ? "" : ".scroll-no-overlay") +
 						(this.viewModel.isContrastFixNeeded() ? ".bg-white.content-black" : " "),
-						{
-							oncreate: (vnode) => {
-								this.scrollDom = vnode.dom as HTMLElement
-							},
+					{
+						oncreate: (vnode) => {
+							this.scrollDom = vnode.dom as HTMLElement
 						},
-						this.renderMailBodySection(),
-					),
-				],
-			),
+					},
+					this.renderMailBodySection(),
+				),
+			]),
 		]
 	}
 
@@ -224,47 +220,45 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private renderMailBody(sanitizedMailBody: DocumentFragment): Children {
-		return m("#mail-body",
-			{
-				// key to avoid mithril reusing the dom element when it should switch the rendering the loading spinner
-				key: "mailBody",
-				oncreate: vnode => {
-					const dom = vnode.dom as HTMLElement
-					this.setDomBody(dom)
-					this.updateLineHeight(dom)
-					this.rescale(false)
-					this.renderShadowMailBody(sanitizedMailBody)
-				},
-				onupdate: vnode => {
-					const dom = vnode.dom as HTMLElement
-					this.setDomBody(dom)
+		return m("#mail-body", {
+			// key to avoid mithril reusing the dom element when it should switch the rendering the loading spinner
+			key: "mailBody",
+			oncreate: (vnode) => {
+				const dom = vnode.dom as HTMLElement
+				this.setDomBody(dom)
+				this.updateLineHeight(dom)
+				this.rescale(false)
+				this.renderShadowMailBody(sanitizedMailBody)
+			},
+			onupdate: (vnode) => {
+				const dom = vnode.dom as HTMLElement
+				this.setDomBody(dom)
 
-					// Only measure and update line height once.
-					// BUT we need to do in from onupdate too if we swap mailViewer but mithril does not realize
-					// that it's a different vnode so oncreate might not be called.
-					if (!this.bodyLineHeight) {
-						this.updateLineHeight(vnode.dom as HTMLElement)
-					}
+				// Only measure and update line height once.
+				// BUT we need to do in from onupdate too if we swap mailViewer but mithril does not realize
+				// that it's a different vnode so oncreate might not be called.
+				if (!this.bodyLineHeight) {
+					this.updateLineHeight(vnode.dom as HTMLElement)
+				}
 
-					this.rescale(false)
-					if (this.currentlyRenderedMailBody !== sanitizedMailBody) this.renderShadowMailBody(sanitizedMailBody)
-				},
-				onbeforeremove: () => {
-					// Clear dom body in case there will be a new one, we want promise to be up-to-date
-					this.clearDomBody()
-				},
-				onsubmit: (event: Event) => {
-					// use the default confirm dialog here because the submit can not be done async
-					if (!confirm(lang.get("reallySubmitContent_msg"))) {
-						event.preventDefault()
-					}
-				},
-				style: {
-					"line-height": this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height,
-					"transform-origin": "top left",
-				},
-			}
-		)
+				this.rescale(false)
+				if (this.currentlyRenderedMailBody !== sanitizedMailBody) this.renderShadowMailBody(sanitizedMailBody)
+			},
+			onbeforeremove: () => {
+				// Clear dom body in case there will be a new one, we want promise to be up-to-date
+				this.clearDomBody()
+			},
+			onsubmit: (event: Event) => {
+				// use the default confirm dialog here because the submit can not be done async
+				if (!confirm(lang.get("reallySubmitContent_msg"))) {
+					event.preventDefault()
+				}
+			},
+			style: {
+				"line-height": this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height,
+				"transform-origin": "top left",
+			},
+		})
 	}
 
 	/**
@@ -293,7 +287,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				const href = (event.target as Element | null)?.closest("a")?.getAttribute("href") ?? null
 				this.handleDoubleTap(
 					event,
-					e => this.handleAnchorClick(e, href, true),
+					(e) => this.handleAnchorClick(e, href, true),
 					() => this.rescale(true),
 				)
 			})
@@ -318,7 +312,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		if (dom !== this.domBody || this.shadowDomRoot == null) {
 			// If the dom element hasn't been created anew in onupdate
 			// then trying to create a new shadow root on the same node will cause an error
-			this.shadowDomRoot = dom.attachShadow({mode: "open"})
+			this.shadowDomRoot = dom.attachShadow({ mode: "open" })
 
 			// Allow forms inside of mail bodies to be filled out without resulting in keystrokes being interpreted as shortcuts
 			this.shadowDomRoot.getRootNode().addEventListener("keydown", (event: Event) => event.stopPropagation())
@@ -329,7 +323,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private renderLoadingIcon(): Children {
-		return m(".progress-panel.flex-v-center.items-center",
+		return m(
+			".progress-panel.flex-v-center.items-center",
 			{
 				key: "loadingIcon",
 				style: {
@@ -344,7 +339,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		const loadedInlineImages = await this.viewModel.getLoadedInlineImages()
 		const domBody = await this.domBodyDeferred.promise
 		replaceCidsWithInlineImages(domBody, loadedInlineImages, (cid, event) => {
-			const inlineAttachment = this.viewModel.getAttachments().find(attachment => attachment.cid === cid)
+			const inlineAttachment = this.viewModel.getAttachments().find((attachment) => attachment.cid === cid)
 
 			if (inlineAttachment) {
 				const coords = getCoordsOfMouseOrTouchEvent(event)
@@ -453,8 +448,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				shift: true,
 				enabled: () => !this.viewModel.isDraftMail(),
 				exec: () => {
-					this.viewModel.forward()
-						.catch(ofClass(UserError, showUserError))
+					this.viewModel.forward().catch(ofClass(UserError, showUserError))
 				},
 				help: "forward_action",
 			})
@@ -478,24 +472,18 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private async createMailAddressContextButtons(args: {
-		mailAddress: MailAddressAndName,
-		defaultInboxRuleField: InboxRuleType | null,
-		createContact?: boolean,
+		mailAddress: MailAddressAndName
+		defaultInboxRuleField: InboxRuleType | null
+		createContact?: boolean
 	}): Promise<Array<DropdownButtonAttrs>> {
-
-		const {
-			mailAddress,
-			defaultInboxRuleField,
-			createContact = true
-		} = args
+		const { mailAddress, defaultInboxRuleField, createContact = true } = args
 
 		const buttons = [] as Array<DropdownButtonAttrs>
 
 		buttons.push({
-				label: "copy_action",
-				click: () => copyToClipboard(mailAddress.address),
-			}
-		)
+			label: "copy_action",
+			click: () => copyToClipboard(mailAddress.address),
+		})
 
 		if (logins.getUserController().isInternalUser()) {
 			//searching for contacts will never resolve if the user has not logged in online
@@ -513,8 +501,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					buttons.push({
 						label: "createContact_action",
 						click: () => {
-							this.viewModel.contactModel.contactListId().then(contactListId => {
-								import("../../contacts/ContactEditor").then(({ContactEditor}) => {
+							this.viewModel.contactModel.contactListId().then((contactListId) => {
+								import("../../contacts/ContactEditor").then(({ ContactEditor }) => {
 									const contact = createNewContact(logins.getUserController().user, mailAddress.address, mailAddress.name)
 									new ContactEditor(this.viewModel.entityClient, contact, contactListId ?? undefined).show()
 								})
@@ -530,7 +518,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					label: rule ? "editInboxRule_action" : "addInboxRule_action",
 					click: async () => {
 						const mailboxDetails = await this.viewModel.mailModel.getMailboxDetailsForMail(this.viewModel.mail)
-						const {show, createInboxRuleTemplate} = await import("../../settings/AddInboxRuleDialog")
+						const { show, createInboxRuleTemplate } = await import("../../settings/AddInboxRuleDialog")
 						const newRule = rule ?? createInboxRuleTemplate(defaultInboxRuleField, mailAddress.address.trim().toLowerCase())
 						show(mailboxDetails, newRule)
 					},
@@ -610,7 +598,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				break
 		}
 
-		import("../../settings/AddSpamRuleDialog").then(({showAddSpamRuleDialog}) => {
+		import("../../settings/AddSpamRuleDialog").then(({ showAddSpamRuleDialog }) => {
 			showAddSpamRuleDialog(
 				createEmailSenderListElement({
 					value: address.trim().toLowerCase(),
@@ -622,7 +610,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private scrollUp(): void {
-		this.scrollIfDomBody(dom => {
+		this.scrollIfDomBody((dom) => {
 			const current = dom.scrollTop
 			const toScroll = dom.clientHeight * SCROLL_FACTOR
 			return scroll(current, Math.max(0, current - toScroll))
@@ -630,7 +618,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private scrollDown(): void {
-		this.scrollIfDomBody(dom => {
+		this.scrollIfDomBody((dom) => {
 			const current = dom.scrollTop
 			const toScroll = dom.clientHeight * SCROLL_FACTOR
 			return scroll(current, Math.min(dom.scrollHeight - dom.offsetHeight, dom.scrollTop + toScroll))
@@ -638,13 +626,13 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private scrollToTop(): void {
-		this.scrollIfDomBody(dom => {
+		this.scrollIfDomBody((dom) => {
 			return scroll(dom.scrollTop, 0)
 		})
 	}
 
 	private scrollToBottom(): void {
-		this.scrollIfDomBody(dom => {
+		this.scrollIfDomBody((dom) => {
 			const end = dom.scrollHeight - dom.offsetHeight
 			return scroll(dom.scrollTop, end)
 		})
@@ -673,9 +661,9 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 				if (isNewMailActionAvailable()) {
 					// disable new mails for external users.
-					import("../editor/MailEditor").then(({newMailtoUrlMailEditor}) => {
+					import("../editor/MailEditor").then(({ newMailtoUrlMailEditor }) => {
 						newMailtoUrlMailEditor(href, !logins.getUserController().props.defaultUnconfidential)
-							.then(editor => editor.show())
+							.then((editor) => editor.show())
 							.catch(ofClass(CancelledError, noOp))
 					})
 				}
@@ -702,7 +690,7 @@ type CreateMailViewerOptions = {
 	delayBodyRenderingUntil?: Promise<void>
 }
 
-export function createMailViewerViewModel({mail, showFolder, delayBodyRenderingUntil}: CreateMailViewerOptions): MailViewerViewModel {
+export function createMailViewerViewModel({ mail, showFolder, delayBodyRenderingUntil }: CreateMailViewerOptions): MailViewerViewModel {
 	return new MailViewerViewModel(
 		mail,
 		showFolder,
@@ -715,7 +703,7 @@ export function createMailViewerViewModel({mail, showFolder, delayBodyRenderingU
 		locator.fileFacade,
 		locator.fileController,
 		logins,
-		locator.serviceExecutor
+		locator.serviceExecutor,
 	)
 }
 

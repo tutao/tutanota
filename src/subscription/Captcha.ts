@@ -1,18 +1,15 @@
-import {locator} from "../api/main/MainLocator.js"
-import {RegistrationCaptchaService} from "../api/entities/sys/Services.js"
-import {
-	createRegistrationCaptchaServiceData,
-	createRegistrationCaptchaServiceGetData
-} from "../api/entities/sys/TypeRefs.js"
-import {deviceConfig} from "../misc/DeviceConfig.js"
-import {AccessDeactivatedError, AccessExpiredError, InvalidDataError} from "../api/common/error/RestError.js"
-import {Dialog, DialogType} from "../gui/base/Dialog.js"
-import {DialogHeaderBar, DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar.js"
-import {ButtonType} from "../gui/base/Button.js"
-import {lang} from "../misc/LanguageViewModel.js"
-import m, {Children} from "mithril"
-import {TextField} from "../gui/base/TextField.js"
-import {uint8ArrayToBase64} from "@tutao/tutanota-utils"
+import { locator } from "../api/main/MainLocator.js"
+import { RegistrationCaptchaService } from "../api/entities/sys/Services.js"
+import { createRegistrationCaptchaServiceData, createRegistrationCaptchaServiceGetData } from "../api/entities/sys/TypeRefs.js"
+import { deviceConfig } from "../misc/DeviceConfig.js"
+import { AccessDeactivatedError, AccessExpiredError, InvalidDataError } from "../api/common/error/RestError.js"
+import { Dialog, DialogType } from "../gui/base/Dialog.js"
+import { DialogHeaderBar, DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar.js"
+import { ButtonType } from "../gui/base/Button.js"
+import { lang } from "../misc/LanguageViewModel.js"
+import m, { Children } from "mithril"
+import { TextField } from "../gui/base/TextField.js"
+import { uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 
 /**
  * Accepts multiple formats for a time of day and always returns 12h-format with leading zeros.
@@ -24,8 +21,8 @@ export function parseCaptchaInput(captchaInput: string): string | null {
 		let [h, m] = captchaInput
 			.trim()
 			.split(":")
-			.map(t => Number(t))
-		return [h % 12, m % 60].map(a => String(a).padStart(2, "0")).join(":")
+			.map((t) => Number(t))
+		return [h % 12, m % 60].map((a) => String(a).padStart(2, "0")).join(":")
 	} else {
 		return null
 	}
@@ -44,15 +41,16 @@ export async function runCaptchaFlow(
 	campaignToken: string | null,
 ): Promise<string | null> {
 	try {
-		const captchaReturn = await locator
-			.serviceExecutor
-			.get(RegistrationCaptchaService, createRegistrationCaptchaServiceGetData({
+		const captchaReturn = await locator.serviceExecutor.get(
+			RegistrationCaptchaService,
+			createRegistrationCaptchaServiceGetData({
 				token: campaignToken,
 				mailAddress,
 				signupToken: deviceConfig.getSignupToken(),
 				businessUseSelected: isBusinessUse,
 				paidSubscriptionSelected: isPaidSubscription,
-			}))
+			}),
+		)
 		if (captchaReturn.challenge) {
 			try {
 				return await showCaptchaDialog(captchaReturn.challenge, captchaReturn.token)
@@ -96,13 +94,12 @@ function showCaptchaDialog(challenge: Uint8Array, token: string): Promise<string
 			if (parsedInput) {
 				dialog.close()
 
-				locator
-					.serviceExecutor
-					.post(RegistrationCaptchaService, createRegistrationCaptchaServiceData({token, response: parsedInput}))
+				locator.serviceExecutor
+					.post(RegistrationCaptchaService, createRegistrationCaptchaServiceData({ token, response: parsedInput }))
 					.then(() => {
 						resolve(token)
 					})
-					.catch(e => {
+					.catch((e) => {
 						reject(e)
 					})
 			} else {

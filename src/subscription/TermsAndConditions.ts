@@ -1,15 +1,14 @@
 /**
  * The most recently published version of the terms and conditions
  */
-import m, {Children} from "mithril"
-import {InfoLink, lang} from "../misc/LanguageViewModel"
-import {isApp} from "../api/common/Env"
-import {requestFromWebsite} from "../misc/Website"
-import {Dialog} from "../gui/base/Dialog"
-import {htmlSanitizer} from "../misc/HtmlSanitizer"
-import {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
-import {ButtonType} from "../gui/base/Button.js"
-
+import m, { Children } from "mithril"
+import { InfoLink, lang } from "../misc/LanguageViewModel"
+import { isApp } from "../api/common/Env"
+import { requestFromWebsite } from "../misc/Website"
+import { Dialog } from "../gui/base/Dialog"
+import { htmlSanitizer } from "../misc/HtmlSanitizer"
+import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
+import { ButtonType } from "../gui/base/Button.js"
 
 /**
  * The most up-to-date versions of the terms and conditions, privacy statement, and gift card terms
@@ -61,12 +60,12 @@ export function renderTermsAndConditionsButton(terms: TermsSection, version: str
 export const enum TermsSection {
 	Terms = "terms-entries",
 	Privacy = "privacy-policy-entries",
-	GiftCards = "giftCardsTerms-entries"
+	GiftCards = "giftCardsTerms-entries",
 }
 
 export async function showServiceTerms(section: TermsSection, version: string) {
 	const path = `/${section}/${version}.json`
-	const termsFromWebsite = await requestFromWebsite(path).then(res => res.json())
+	const termsFromWebsite = await requestFromWebsite(path).then((res) => res.json())
 	let visibleLang: "en" | "de" = lang.code.startsWith("de") ? "de" : "en"
 	let dialog: Dialog
 	let sanitizedTerms: string

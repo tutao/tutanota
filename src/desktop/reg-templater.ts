@@ -1,5 +1,5 @@
-import type {RegistryTemplateDefinition} from "./integration/RegistryScriptGenerator"
-import {applyScriptBuilder, removeScriptBuilder} from "./integration/RegistryScriptGenerator"
+import type { RegistryTemplateDefinition } from "./integration/RegistryScriptGenerator"
+import { applyScriptBuilder, removeScriptBuilder } from "./integration/RegistryScriptGenerator"
 
 export enum RegistryRoot {
 	/** Global (per-device) registry keys */
@@ -34,7 +34,7 @@ export type RegistryPaths = {
  * https://docs.microsoft.com/en-us/windows/win32/msi/installation-context#registry-redirection
  */
 function getTemplate(opts: RegistryPaths, registryRoot: RegistryRoot): RegistryTemplateDefinition {
-	const {execPath, dllPath, logPath, tmpPath} = opts
+	const { execPath, dllPath, logPath, tmpPath } = opts
 	const client_template = {
 		tutanota: {
 			"": "tutanota",
@@ -117,7 +117,6 @@ function escape(s: string): string {
 	return s.replace(/\\/g, "\\\\")
 }
 
-
 /**
  * produce a tmp windows registry script to register an executable as a mailto handler
  * @param registryRoot
@@ -125,7 +124,7 @@ function escape(s: string): string {
  * @returns {string} registry script
  */
 export function makeRegisterKeysScript(registryRoot: RegistryRoot, opts: RegistryPaths): string {
-	const {execPath, dllPath, logPath, tmpPath} = opts
+	const { execPath, dllPath, logPath, tmpPath } = opts
 	const template = getTemplate(
 		{
 			execPath: escape(execPath),

@@ -1,20 +1,20 @@
-import {lang} from "../../misc/LanguageViewModel"
-import {Dialog} from "../../gui/base/Dialog"
-import {assertNotNull, contains, downcast, uint8ArrayToBase64, utf8Uint8ArrayToString} from "@tutao/tutanota-utils"
-import {themeController} from "../../gui/theme"
-import {Icons} from "../../gui/base/icons/Icons"
-import {ALLOWED_IMAGE_FORMATS, MAX_LOGO_SIZE} from "../../api/common/TutanotaConstants"
-import m, {Children, Component, Vnode} from "mithril"
-import {TextField, TextFieldAttrs} from "../../gui/base/TextField.js"
+import { lang } from "../../misc/LanguageViewModel"
+import { Dialog } from "../../gui/base/Dialog"
+import { assertNotNull, contains, downcast, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { themeController } from "../../gui/theme"
+import { Icons } from "../../gui/base/icons/Icons"
+import { ALLOWED_IMAGE_FORMATS, MAX_LOGO_SIZE } from "../../api/common/TutanotaConstants"
+import m, { Children, Component, Vnode } from "mithril"
+import { TextField, TextFieldAttrs } from "../../gui/base/TextField.js"
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
-import {CustomColorsEditorViewModel} from "./CustomColorsEditorViewModel"
-import type {DomainInfo, WhitelabelConfig} from "../../api/entities/sys/TypeRefs.js"
-import type {ThemeCustomizations} from "../../misc/WhitelabelCustomizations"
-import {locator} from "../../api/main/MainLocator"
-import {logins} from "../../api/main/LoginController"
-import {showFileChooser} from "../../file/FileController.js"
-import {IconButton} from "../../gui/base/IconButton.js"
-import {ButtonSize} from "../../gui/base/ButtonSize.js";
+import { CustomColorsEditorViewModel } from "./CustomColorsEditorViewModel"
+import type { DomainInfo, WhitelabelConfig } from "../../api/entities/sys/TypeRefs.js"
+import type { ThemeCustomizations } from "../../misc/WhitelabelCustomizations"
+import { locator } from "../../api/main/MainLocator"
+import { logins } from "../../api/main/LoginController"
+import { showFileChooser } from "../../file/FileController.js"
+import { IconButton } from "../../gui/base/IconButton.js"
+import { ButtonSize } from "../../gui/base/ButtonSize.js"
 
 export type WhitelabelData = {
 	customTheme: ThemeCustomizations
@@ -27,16 +27,14 @@ export type WhitelabelThemeSettingsAttrs = {
 
 export class WhitelabelThemeSettings implements Component<WhitelabelThemeSettingsAttrs> {
 	view(vnode: Vnode<WhitelabelThemeSettingsAttrs>): Children {
-		const {whitelabelData} = vnode.attrs
+		const { whitelabelData } = vnode.attrs
 		return [this.renderCustomColorsField(whitelabelData), this.renderCustomLogoField(whitelabelData)]
 	}
 
 	private renderCustomColorsField(data: WhitelabelData | null): Children {
 		return m(TextField, {
 			label: "customColors_label",
-			value: this.areCustomColorsDefined(data?.customTheme ?? null)
-				? lang.get("activated_label")
-				: lang.get("deactivated_label"),
+			value: this.areCustomColorsDefined(data?.customTheme ?? null) ? lang.get("activated_label") : lang.get("deactivated_label"),
 			disabled: true,
 			injectionsRight: () => (data ? this.renderCustomColorsFieldButtons(data) : null),
 		})
@@ -46,11 +44,11 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 		return [
 			this.areCustomColorsDefined(whitelabelData.customTheme)
 				? m(IconButton, {
-					title: "deactivate_action",
-					click: () => this.deactivateCustomColors(whitelabelData),
-					icon: Icons.Cancel,
-					size: ButtonSize.Compact,
-				})
+						title: "deactivate_action",
+						click: () => this.deactivateCustomColors(whitelabelData),
+						icon: Icons.Cancel,
+						size: ButtonSize.Compact,
+				  })
 				: null,
 			m(IconButton, {
 				title: "edit_action",
@@ -61,11 +59,11 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 		]
 	}
 
-	private async deactivateCustomColors({customTheme, whitelabelConfig, whitelabelDomainInfo}: WhitelabelData) {
+	private async deactivateCustomColors({ customTheme, whitelabelConfig, whitelabelDomainInfo }: WhitelabelData) {
 		const confirmed = await Dialog.confirm("confirmDeactivateCustomColors_msg")
 
 		if (confirmed) {
-			Object.keys(customTheme).forEach(key => {
+			Object.keys(customTheme).forEach((key) => {
 				if (key !== "logo") {
 					delete downcast(customTheme)[key]
 				}
@@ -93,13 +91,13 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 		return [
 			whitelabelData.customTheme.logo
 				? m(IconButton, {
-					title: "deactivate_action",
-					click: async () => {
-						await this.deactivateCustomLogo(whitelabelData)
-					},
-					icon: Icons.Cancel,
-					size: ButtonSize.Compact,
-				})
+						title: "deactivate_action",
+						click: async () => {
+							await this.deactivateCustomLogo(whitelabelData)
+						},
+						icon: Icons.Cancel,
+						size: ButtonSize.Compact,
+				  })
 				: null,
 			m(IconButton, {
 				title: "edit_action",
@@ -110,7 +108,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 		]
 	}
 
-	private async editCustomLogo({customTheme, whitelabelConfig, whitelabelDomainInfo}: WhitelabelData) {
+	private async editCustomLogo({ customTheme, whitelabelConfig, whitelabelDomainInfo }: WhitelabelData) {
 		const files = await showFileChooser(false)
 		let extension = files[0].name.toLowerCase().substring(files[0].name.lastIndexOf(".") + 1)
 
@@ -136,7 +134,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 		}
 	}
 
-	private async deactivateCustomLogo({customTheme, whitelabelConfig, whitelabelDomainInfo}: WhitelabelData) {
+	private async deactivateCustomLogo({ customTheme, whitelabelConfig, whitelabelDomainInfo }: WhitelabelData) {
 		const confirmed = await Dialog.confirm("confirmDeactivateCustomLogo_msg")
 
 		if (confirmed) {
@@ -149,7 +147,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 		}
 	}
 
-	private async showCustomColorsDialog({customTheme, whitelabelConfig, whitelabelDomainInfo}: WhitelabelData) {
+	private async showCustomColorsDialog({ customTheme, whitelabelConfig, whitelabelDomainInfo }: WhitelabelData) {
 		const currentTheme = themeController.getCurrentTheme()
 		const viewModel = new CustomColorsEditorViewModel(
 			currentTheme,
@@ -165,10 +163,11 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 
 	private areCustomColorsDefined(theme: ThemeCustomizations | null): boolean {
 		if (theme) {
-			return Object.keys(theme).some(key =>
-				key !== "logo"
-				// @ts-ignore
-				&& theme?.[key]
+			return Object.keys(theme).some(
+				(key) =>
+					key !== "logo" &&
+					// @ts-ignore
+					theme?.[key],
 			)
 		} else {
 			return false

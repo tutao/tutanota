@@ -1,9 +1,9 @@
-import type {NativeImage} from "electron"
-import {app, Menu, MenuItem, Tray} from "electron"
-import type {WindowManager} from "../DesktopWindowManager"
-import {lang} from "../../misc/LanguageViewModel"
-import type {PlatformTray} from "./DesktopTray"
-import {getResourcePath} from "../resources"
+import type { NativeImage } from "electron"
+import { app, Menu, MenuItem, Tray } from "electron"
+import type { WindowManager } from "../DesktopWindowManager"
+import { lang } from "../../misc/LanguageViewModel"
+import type { PlatformTray } from "./DesktopTray"
+import { getResourcePath } from "../resources"
 
 /**
  * This file provides the functionality used by DesktopTray on windows & linux.
@@ -39,17 +39,15 @@ export class NonMacTray implements PlatformTray {
 		issue: https://github.com/electron/electron/issues/22215
 	 */
 		tray.setContextMenu(null)
-		tray.on("click", ev => {
+		tray.on("click", (ev) => {
 			wm.getLastFocused(true)
 		})
 		return tray
 	}
 
-	setBadge() {
-	}
+	setBadge() {}
 
-	clearBadge() {
-	}
+	clearBadge() {}
 
 	getAppIconPathFromName(iconName: string): string {
 		return getResourcePath(`icons/${iconName}`)

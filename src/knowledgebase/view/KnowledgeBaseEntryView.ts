@@ -1,15 +1,15 @@
-import m, {Children, Component, Vnode} from "mithril"
-import type {KnowledgeBaseEntry} from "../../api/entities/tutanota/TypeRefs.js"
-import {TemplateGroupRootTypeRef} from "../../api/entities/tutanota/TypeRefs.js"
-import {memoized, neverNull, noOp, ofClass, startsWith} from "@tutao/tutanota-utils"
-import {htmlSanitizer} from "../../misc/HtmlSanitizer"
-import type {ButtonAttrs} from "../../gui/base/Button.js"
-import {Button, ButtonType} from "../../gui/base/Button.js"
-import {Icons} from "../../gui/base/icons/Icons"
-import {locator} from "../../api/main/MainLocator"
-import {getConfirmation} from "../../gui/base/GuiUtils"
-import {NotFoundError} from "../../api/common/error/RestError"
-import {IconButton} from "../../gui/base/IconButton.js"
+import m, { Children, Component, Vnode } from "mithril"
+import type { KnowledgeBaseEntry } from "../../api/entities/tutanota/TypeRefs.js"
+import { TemplateGroupRootTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
+import { memoized, neverNull, noOp, ofClass, startsWith } from "@tutao/tutanota-utils"
+import { htmlSanitizer } from "../../misc/HtmlSanitizer"
+import type { ButtonAttrs } from "../../gui/base/Button.js"
+import { Button, ButtonType } from "../../gui/base/Button.js"
+import { Icons } from "../../gui/base/icons/Icons"
+import { locator } from "../../api/main/MainLocator"
+import { getConfirmation } from "../../gui/base/GuiUtils"
+import { NotFoundError } from "../../api/common/error/RestError"
+import { IconButton } from "../../gui/base/IconButton.js"
 
 type KnowledgeBaseEntryViewAttrs = {
 	entry: KnowledgeBaseEntry
@@ -21,14 +21,12 @@ type KnowledgeBaseEntryViewAttrs = {
  *  Renders one knowledgeBase entry
  */
 export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewAttrs> {
-	_sanitizedEntry: (
-		arg0: KnowledgeBaseEntry,
-	) => {
+	_sanitizedEntry: (arg0: KnowledgeBaseEntry) => {
 		content: string
 	}
 
 	constructor() {
-		this._sanitizedEntry = memoized(entry => {
+		this._sanitizedEntry = memoized((entry) => {
 			return {
 				content: htmlSanitizer.sanitizeHTML(entry.description, {
 					blockExternalContent: true,
@@ -37,12 +35,12 @@ export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewA
 		})
 	}
 
-	view({attrs}: Vnode<KnowledgeBaseEntryViewAttrs>): Children {
+	view({ attrs }: Vnode<KnowledgeBaseEntryViewAttrs>): Children {
 		return m(".flex.flex-column", [this._renderContent(attrs)])
 	}
 
 	_renderContent(attrs: KnowledgeBaseEntryViewAttrs): Children {
-		const {entry, readonly} = attrs
+		const { entry, readonly } = attrs
 		return m(
 			"",
 			{
@@ -58,7 +56,7 @@ export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewA
 				),
 				m("", [
 					m(".mt-s.flex.mt-s.wrap", [
-						entry.keywords.map(entryKeyword => {
+						entry.keywords.map((entryKeyword) => {
 							return m(".keyword-bubble.selectable", entryKeyword.keyword)
 						}),
 					]),
@@ -83,8 +81,8 @@ export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewA
 			title: "edit_action",
 			icon: Icons.Edit,
 			click: () => {
-				import("../../settings/KnowledgeBaseEditor").then(({showKnowledgeBaseEditor}) => {
-					locator.entityClient.load(TemplateGroupRootTypeRef, neverNull(entry._ownerGroup)).then(groupRoot => {
+				import("../../settings/KnowledgeBaseEditor").then(({ showKnowledgeBaseEditor }) => {
+					locator.entityClient.load(TemplateGroupRootTypeRef, neverNull(entry._ownerGroup)).then((groupRoot) => {
 						showKnowledgeBaseEditor(entry, groupRoot)
 					})
 				})

@@ -1,8 +1,8 @@
-import type {MenuItemConstructorOptions} from "electron"
-import type {WindowManager} from "../DesktopWindowManager"
-import {lang} from "../../misc/LanguageViewModel"
-import type {DesktopIntegrator} from "./DesktopIntegrator"
-import {ElectronExports} from "../ElectronExportTypes";
+import type { MenuItemConstructorOptions } from "electron"
+import type { WindowManager } from "../DesktopWindowManager"
+import { lang } from "../../misc/LanguageViewModel"
+import type { DesktopIntegrator } from "./DesktopIntegrator"
+import { ElectronExports } from "../ElectronExportTypes"
 
 export class DesktopIntegratorDarwin implements DesktopIntegrator {
 	_electron: ElectronExports
@@ -16,7 +16,7 @@ export class DesktopIntegratorDarwin implements DesktopIntegrator {
 	}
 
 	enableAutoLaunch(): Promise<void> {
-		return this.isAutoLaunchEnabled().then(enabled => {
+		return this.isAutoLaunchEnabled().then((enabled) => {
 			if (!enabled)
 				this._electron.app.setLoginItemSettings({
 					openAtLogin: true,
@@ -25,7 +25,7 @@ export class DesktopIntegratorDarwin implements DesktopIntegrator {
 	}
 
 	disableAutoLaunch(): Promise<void> {
-		return this.isAutoLaunchEnabled().then(enabled => {
+		return this.isAutoLaunchEnabled().then((enabled) => {
 			if (enabled)
 				this._electron.app.setLoginItemSettings({
 					openAtLogin: false,
@@ -114,13 +114,13 @@ export class DesktopIntegratorDarwin implements DesktopIntegrator {
 						role: "front",
 					},
 					{
-						role: "zoomIn"
+						role: "zoomIn",
 					},
 					{
-						role: "zoomOut"
+						role: "zoomOut",
 					},
 					{
-						role: "resetZoom"
+						role: "resetZoom",
 					},
 					{
 						click: () => {

@@ -1,22 +1,18 @@
-import {SecondFactorHandler} from "../../misc/2fa/SecondFactorHandler.js"
-import {defer, DeferredObject} from "@tutao/tutanota-utils"
-import {Challenge} from "../entities/sys/TypeRefs.js"
+import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
+import { defer, DeferredObject } from "@tutao/tutanota-utils"
+import { Challenge } from "../entities/sys/TypeRefs.js"
 
 export const enum LoginFailReason {
 	SessionExpired,
-	Error
+	Error,
 }
 
 /** Listener for the login events from the worker side. */
 export class LoginListener {
-
 	private loginPromise: DeferredObject<void> = defer()
 	private fullLoginFailed: boolean = false
 
-	constructor(
-		private readonly secondFactorHandler: SecondFactorHandler,
-	) {
-	}
+	constructor(private readonly secondFactorHandler: SecondFactorHandler) {}
 
 	/** e.g. after temp logout */
 	reset() {
@@ -49,7 +45,7 @@ export class LoginListener {
 	async onLoginFailure(reason: LoginFailReason): Promise<void> {
 		this.fullLoginFailed = true
 		if (reason === LoginFailReason.SessionExpired) {
-			const {reloginForExpiredSession} = await import("../../misc/ErrorHandlerImpl.js")
+			const { reloginForExpiredSession } = await import("../../misc/ErrorHandlerImpl.js")
 			await reloginForExpiredSession()
 		}
 	}

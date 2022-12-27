@@ -1,9 +1,9 @@
 {
-  "name": "EncryptedFileInfo",
-  "type": "struct",
-  "doc": "Result of the `encryptFile()` operation.",
-  "fields": {
-	"uri": "string",
-	"unencryptedSize": "number"
-  }
+	"name": "EncryptedFileInfo",
+	"type": "struct",
+	"doc": "Result of the `encryptFile()` operation.",
+	"fields": {
+		"uri": "string",
+		"unencryptedSize": "number"
+	}
 }

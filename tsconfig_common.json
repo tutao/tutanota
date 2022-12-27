@@ -1,37 +1,29 @@
 {
-  "compilerOptions": {
-	"lib": [
-	  "ES2020",
-	  "webworker",
-	  "dom",
-	  "es2015.proxy",
-	  "esnext"
-	],
-	"allowJs": true,
-	"checkJs": false,
-	"target": "ES2018",
-	"module": "esnext",
-	"moduleResolution": "node",
-	"skipLibCheck": true,
-	"declaration": true,
-	"noEmitOnError": true,
-	"noErrorTruncation": true,
-	"allowSyntheticDefaultImports": true,
-	"noImplicitAny": true,
-	"noImplicitThis": true,
-	"noUnusedLocals": false,
-	"noUnusedParameters": false,
-	"esModuleInterop": true,
-	"strict": false,
-	"alwaysStrict": true,
-	"strictBindCallApply": true,
-	"strictFunctionTypes": false,
-	"strictPropertyInitialization": true,
-	"noStrictGenericChecks": false,
-	"strictNullChecks": true,
-	"useUnknownInCatchVariables": false,
-	"types": [
-	  "node"
-	]
-  }
+	"compilerOptions": {
+		"lib": ["ES2020", "webworker", "dom", "es2015.proxy", "esnext"],
+		"allowJs": true,
+		"checkJs": false,
+		"target": "ES2018",
+		"module": "esnext",
+		"moduleResolution": "node",
+		"skipLibCheck": true,
+		"declaration": true,
+		"noEmitOnError": true,
+		"noErrorTruncation": true,
+		"allowSyntheticDefaultImports": true,
+		"noImplicitAny": true,
+		"noImplicitThis": true,
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
+		"esModuleInterop": true,
+		"strict": false,
+		"alwaysStrict": true,
+		"strictBindCallApply": true,
+		"strictFunctionTypes": false,
+		"strictPropertyInitialization": true,
+		"noStrictGenericChecks": false,
+		"strictNullChecks": true,
+		"useUnknownInCatchVariables": false,
+		"types": ["node"]
+	}
 }

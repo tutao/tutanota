@@ -1,12 +1,12 @@
-import m, {Component} from "mithril"
-import {Dialog, DialogType} from "../base/Dialog"
-import {lang} from "../../misc/LanguageViewModel"
-import {DatePicker} from "./DatePicker"
-import {px} from "../size"
-import {client} from "../../misc/ClientDetector"
-import {formatDateWithWeekdayAndYear} from "../../misc/Formatter"
-import {assertMainOrNode} from "../../api/common/Env"
-import {noOp} from "@tutao/tutanota-utils"
+import m, { Component } from "mithril"
+import { Dialog, DialogType } from "../base/Dialog"
+import { lang } from "../../misc/LanguageViewModel"
+import { DatePicker } from "./DatePicker"
+import { px } from "../size"
+import { client } from "../../misc/ClientDetector"
+import { formatDateWithWeekdayAndYear } from "../../misc/Formatter"
+import { assertMainOrNode } from "../../api/common/Env"
+import { noOp } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -31,17 +31,17 @@ export function showDateRangeSelectionDialog<T>(
 				".flex-space-between",
 				client.isDesktopDevice()
 					? {
-						style: {
-							height: px(305),
-						},
-					}
+							style: {
+								height: px(305),
+							},
+					  }
 					: {},
 				[
 					m(
 						".pr-s.flex-grow.max-width-200.flex-space-between.flex-column",
 						m(DatePicker, {
 							date: startDate,
-							onDateSelected: date => (startDate = date),
+							onDateSelected: (date) => (startDate = date),
 							startOfTheWeekOffset,
 							label: "dateFrom_label",
 							nullSelectionText: helpLabel(start),
@@ -51,7 +51,7 @@ export function showDateRangeSelectionDialog<T>(
 						".pl-s.flex-grow.max-width-200.flex-space-between.flex-column",
 						m(DatePicker, {
 							date: endDate,
-							onDateSelected: date => (endDate = date),
+							onDateSelected: (date) => (endDate = date),
 							startOfTheWeekOffset,
 							label: "dateTo_label",
 							nullSelectionText: helpLabel(end),
@@ -60,7 +60,7 @@ export function showDateRangeSelectionDialog<T>(
 				],
 			),
 	}
-	return new Promise(resolve => {
+	return new Promise((resolve) => {
 		let dialog = Dialog.showActionDialog({
 			title: lang.get("selectPeriodOfTime_label"),
 			child: form,

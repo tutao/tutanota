@@ -1,21 +1,21 @@
-import {CryptoError} from "../common/error/CryptoError"
-import type {Commands} from "../common/MessageDispatcher"
-import {MessageDispatcher, Request, WorkerTransport} from "../common/MessageDispatcher"
-import {assertMainOrNode} from "../common/Env"
-import type {IMainLocator} from "./MainLocator"
-import {client} from "../../misc/ClientDetector"
-import type {DeferredObject} from "@tutao/tutanota-utils"
-import {defer, downcast, identity} from "@tutao/tutanota-utils"
-import {objToError} from "../common/utils/Utils"
-import type {InfoMessage} from "../common/CommonTypes"
-import {handleUncaughtError} from "../../misc/ErrorHandler"
-import type {MainInterface, WorkerInterface} from "../worker/WorkerImpl"
-import {exposeLocal, exposeRemote} from "../common/WorkerProxy"
-import type {EntropySource} from "@tutao/tutanota-crypto"
-import type {CloseEventBusOption} from "../common/TutanotaConstants"
+import { CryptoError } from "../common/error/CryptoError"
+import type { Commands } from "../common/MessageDispatcher"
+import { MessageDispatcher, Request, WorkerTransport } from "../common/MessageDispatcher"
+import { assertMainOrNode } from "../common/Env"
+import type { IMainLocator } from "./MainLocator"
+import { client } from "../../misc/ClientDetector"
+import type { DeferredObject } from "@tutao/tutanota-utils"
+import { defer, downcast, identity } from "@tutao/tutanota-utils"
+import { objToError } from "../common/utils/Utils"
+import type { InfoMessage } from "../common/CommonTypes"
+import { handleUncaughtError } from "../../misc/ErrorHandler"
+import type { MainInterface, WorkerInterface } from "../worker/WorkerImpl"
+import { exposeLocal, exposeRemote } from "../common/WorkerProxy"
+import type { EntropySource } from "@tutao/tutanota-crypto"
+import type { CloseEventBusOption } from "../common/TutanotaConstants"
 import stream from "mithril/stream"
-import type {RestClient} from "../worker/rest/RestClient"
-import {createWebsocketLeaderStatus, WebsocketLeaderStatus} from "../entities/sys/TypeRefs"
+import type { RestClient } from "../worker/rest/RestClient"
+import { createWebsocketLeaderStatus, WebsocketLeaderStatus } from "../entities/sys/TypeRefs"
 
 assertMainOrNode()
 
@@ -23,7 +23,9 @@ type ProgressUpdater = (progress: number) => unknown
 type MainRequest = Request<MainRequestType>
 
 export const enum WsConnectionState {
-	connecting, connected, terminated
+	connecting,
+	connected,
+	terminated,
 }
 
 export class WorkerClient {
@@ -39,7 +41,7 @@ export class WorkerClient {
 
 	constructor() {
 		this._leaderStatus = createWebsocketLeaderStatus({
-			leaderStatus: false,  // init as non-leader
+			leaderStatus: false, // init as non-leader
 		})
 
 		this.initialized.then(() => {
@@ -53,7 +55,7 @@ export class WorkerClient {
 
 	async init(locator: IMainLocator): Promise<void> {
 		if (env.mode !== "Test") {
-			const {prefixWithoutFile} = window.tutao.appState
+			const { prefixWithoutFile } = window.tutao.appState
 			// In apps/desktop we load HTML file and url ends on path/index.html so we want to load path/WorkerBootstrap.js.
 			// In browser we load at domain.com or localhost/path (locally) and we want to load domain.com/WorkerBootstrap.js or
 			// localhost/path/WorkerBootstrap.js respectively.
@@ -150,7 +152,7 @@ export class WorkerClient {
 	}
 
 	getWorkerInterface(): WorkerInterface {
-		return exposeRemote<WorkerInterface>(async request => this._postRequest(request))
+		return exposeRemote<WorkerInterface>(async (request) => this._postRequest(request))
 	}
 
 	tryReconnectEventBus(closeIfOpen: boolean, enableAutomaticState: boolean, delay: number | null = null): Promise<void> {
@@ -161,7 +163,7 @@ export class WorkerClient {
 		return this._postRequest(new Request("restRequest", Array.from(arguments)))
 	}
 
-	entropy(entropyCache: {source: EntropySource, entropy: number, data: number}[]): Promise<void> {
+	entropy(entropyCache: { source: EntropySource; entropy: number; data: number }[]): Promise<void> {
 		return this._postRequest(new Request("entropy", [entropyCache]))
 	}
 

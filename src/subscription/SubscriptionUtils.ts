@@ -1,14 +1,14 @@
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {AccountType, BookingItemFeatureType, Const} from "../api/common/TutanotaConstants"
-import {getCurrentCount} from "./PriceUtils"
-import {PreconditionFailedError} from "../api/common/error/RestError"
-import type {Booking, Customer, CustomerInfo} from "../api/entities/sys/TypeRefs.js"
-import {createBookingServiceData} from "../api/entities/sys/TypeRefs.js"
-import {Dialog} from "../gui/base/Dialog"
-import {ofClass} from "@tutao/tutanota-utils"
-import {locator} from "../api/main/MainLocator"
-import {BookingService} from "../api/entities/sys/Services"
-import {SubscriptionConfig} from "./FeatureListProvider"
+import type { TranslationKey } from "../misc/LanguageViewModel"
+import { AccountType, BookingItemFeatureType, Const } from "../api/common/TutanotaConstants"
+import { getCurrentCount } from "./PriceUtils"
+import { PreconditionFailedError } from "../api/common/error/RestError"
+import type { Booking, Customer, CustomerInfo } from "../api/entities/sys/TypeRefs.js"
+import { createBookingServiceData } from "../api/entities/sys/TypeRefs.js"
+import { Dialog } from "../gui/base/Dialog"
+import { ofClass } from "@tutao/tutanota-utils"
+import { locator } from "../api/main/MainLocator"
+import { BookingService } from "../api/entities/sys/Services"
+import { SubscriptionConfig } from "./FeatureListProvider"
 
 export const enum UpgradeType {
 	Signup = "Signup",
@@ -145,29 +145,30 @@ export function bookItem(featureType: BookingItemFeatureType, amount: number): P
 		featureType,
 		date: Const.CURRENT_DATE,
 	})
-	return locator.serviceExecutor.post(BookingService, bookingData)
-				  .then(() => false)
-				  .catch(
-					  ofClass(PreconditionFailedError, error => {
-						  // error handling for cancelling a feature.
-						  switch (error.data) {
-							  case BookingFailureReason.BALANCE_INSUFFICIENT:
-								  return Dialog.message("insufficientBalanceError_msg").then(() => true)
+	return locator.serviceExecutor
+		.post(BookingService, bookingData)
+		.then(() => false)
+		.catch(
+			ofClass(PreconditionFailedError, (error) => {
+				// error handling for cancelling a feature.
+				switch (error.data) {
+					case BookingFailureReason.BALANCE_INSUFFICIENT:
+						return Dialog.message("insufficientBalanceError_msg").then(() => true)
 
-							  case BookingFailureReason.TOO_MANY_DOMAINS:
-								  return Dialog.message("tooManyCustomDomains_msg").then(() => true)
+					case BookingFailureReason.TOO_MANY_DOMAINS:
+						return Dialog.message("tooManyCustomDomains_msg").then(() => true)
 
-							  case BookingFailureReason.BUSINESS_USE:
-								  return Dialog.message("featureRequiredForBusinessUse_msg").then(() => true)
+					case BookingFailureReason.BUSINESS_USE:
+						return Dialog.message("featureRequiredForBusinessUse_msg").then(() => true)
 
-							  case BookingFailureReason.HAS_TEMPLATE_GROUP:
-								  return Dialog.message("deleteTemplateGroups_msg").then(() => true)
+					case BookingFailureReason.HAS_TEMPLATE_GROUP:
+						return Dialog.message("deleteTemplateGroups_msg").then(() => true)
 
-							  default:
-								  return Dialog.message(getBookingItemErrorMsg(featureType)).then(() => true)
-						  }
-					  }),
-				  )
+					default:
+						return Dialog.message(getBookingItemErrorMsg(featureType)).then(() => true)
+				}
+			}),
+		)
 }
 
 export function buyAliases(amount: number): Promise<boolean> {

@@ -1,8 +1,8 @@
-import type {EasingFunction} from "./Easing"
-import {ease} from "./Easing"
-import {downcast} from "@tutao/tutanota-utils"
-import {hexToRgb} from "../base/Color"
-import {assertMainOrNodeBoot} from "../../api/common/Env"
+import type { EasingFunction } from "./Easing"
+import { ease } from "./Easing"
+import { downcast } from "@tutao/tutanota-utils"
+import { hexToRgb } from "../base/Color"
+import { assertMainOrNodeBoot } from "../../api/common/Env"
 
 assertMainOrNodeBoot()
 
@@ -18,7 +18,7 @@ interface DomTransform extends DomMutation {
 
 export const enum AlphaEnum {
 	BackgroundColor = "backgroundColor",
-	Color = "color"
+	Color = "color",
 }
 
 export const enum TransformEnum {
@@ -26,14 +26,16 @@ export const enum TransformEnum {
 	TranslateY = "translateY",
 	RotateY = "rotateY",
 	RotateZ = "rotateZ",
-	Scale = "scale"
+	Scale = "scale",
 }
 
-type TransformValues = Record<TransformEnum,
+type TransformValues = Record<
+	TransformEnum,
 	{
 		begin: number
 		end: number
-	}>
+	}
+>
 export const DefaultAnimationTime = 200 // ms
 
 const InitializedOptions = {
@@ -85,16 +87,14 @@ class Animations {
 	add(
 		targets: HTMLElement | HTMLElement[] | HTMLCollection,
 		mutations: DomMutation | DomMutation[],
-		options?:
-			{
-				stagger?: number
-				delay?: number
-				easing?: EasingFunction
-				duration?: number
-			}
+		options?: {
+			stagger?: number
+			delay?: number
+			easing?: EasingFunction
+			duration?: number
+		},
 	): AnimationPromise {
-		const targetsArray: Array<HTMLElement> =
-			targets instanceof HTMLElement ? [targets] : Array.from(targets) as Array<HTMLElement>
+		const targetsArray: Array<HTMLElement> = targets instanceof HTMLElement ? [targets] : (Array.from(targets) as Array<HTMLElement>)
 
 		let targetMutations: DomMutation[]
 
@@ -106,12 +106,12 @@ class Animations {
 
 		let verifiedOptions = Animations.verifiyOptions(options)
 		const willChange = targetMutations
-			.map(mutation => mutation.willChange())
-			.filter(willChange => willChange.length)
+			.map((mutation) => mutation.willChange())
+			.filter((willChange) => willChange.length)
 			.join(" ")
-		targetsArray.forEach(t => (t.style.willChange = willChange))
+		targetsArray.forEach((t) => (t.style.willChange = willChange))
 		const animations: Animation[] = []
-		const promise = new Promise(resolve => {
+		const promise = new Promise((resolve) => {
 			let start = this.activeAnimations.length ? false : true
 
 			for (let i = 0; i < targetsArray.length; i++) {
@@ -153,10 +153,10 @@ class Animations {
 	static verifiyOptions(
 		options:
 			| {
-			stagger?: number
-			delay?: number
-			easing?: EasingFunction
-		}
+					stagger?: number
+					delay?: number
+					easing?: EasingFunction
+			  }
 			| null
 			| undefined,
 	): {

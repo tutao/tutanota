@@ -23,8 +23,6 @@ export class TypeRef<T> {
 	toString(): string {
 		return `[TypeRef ${this.app} ${this.type}]`
 	}
-
-
 }
 
 export function getTypeId(typeRef: TypeRef<unknown>) {

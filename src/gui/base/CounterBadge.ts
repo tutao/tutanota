@@ -1,5 +1,5 @@
-import m, {Children, Component, Vnode} from "mithril"
-import type {PositionRect} from "./Overlay"
+import m, { Children, Component, Vnode } from "mithril"
+import type { PositionRect } from "./Overlay"
 
 /**
  * Small badge symbol to display numeric values to indicate that content is available, e.g. unread mail counter.
@@ -20,31 +20,31 @@ export class CounterBadge implements Component<CounterBadgeAttrs> {
 	}
 
 	view(vnode: Vnode<CounterBadgeAttrs>): Children {
-		const {count, position, background, color} = vnode.attrs
+		const { count, position, background, color } = vnode.attrs
 		return count > 0
 			? m(
-				".counter-badge.z2",
-				{
-					onmouseenter: () => {
-						this._hovered = true
+					".counter-badge.z2",
+					{
+						onmouseenter: () => {
+							this._hovered = true
+						},
+						onmouseleave: () => {
+							this._hovered = false
+						},
+						style: {
+							width: position.width,
+							top: position.top,
+							bottom: position.bottom,
+							right: position.right,
+							left: position.left,
+							height: position.height,
+							"z-index": position.zIndex,
+							background,
+							color,
+						},
 					},
-					onmouseleave: () => {
-						this._hovered = false
-					},
-					style: {
-						width: position.width,
-						top: position.top,
-						bottom: position.bottom,
-						right: position.right,
-						left: position.left,
-						height: position.height,
-						"z-index": position.zIndex,
-						background,
-						color,
-					},
-				},
-				count < 99 || this._hovered ? count : "99+",
-			)
+					count < 99 || this._hovered ? count : "99+",
+			  )
 			: null
 	}
 }

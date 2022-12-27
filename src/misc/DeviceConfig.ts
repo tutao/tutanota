@@ -1,14 +1,14 @@
-import type {Base64} from "@tutao/tutanota-utils"
-import {base64ToUint8Array, typedEntries, uint8ArrayToBase64} from "@tutao/tutanota-utils"
-import type {LanguageCode} from "./LanguageViewModel"
-import type {ThemeId} from "../gui/theme"
-import type {CalendarViewType} from "../calendar/view/CalendarViewModel"
-import type {CredentialsStorage, PersistentCredentials} from "./credentials/CredentialsProvider.js"
-import {ProgrammingError} from "../api/common/error/ProgrammingError"
-import type {CredentialEncryptionMode} from "./credentials/CredentialEncryptionMode"
-import {assertMainOrNodeBoot} from "../api/common/Env"
-import {PersistedAssignmentData, UsageTestStorage} from "./UsageTestModel"
-import {client} from "./ClientDetector"
+import type { Base64 } from "@tutao/tutanota-utils"
+import { base64ToUint8Array, typedEntries, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import type { LanguageCode } from "./LanguageViewModel"
+import type { ThemeId } from "../gui/theme"
+import type { CalendarViewType } from "../calendar/view/CalendarViewModel"
+import type { CredentialsStorage, PersistentCredentials } from "./credentials/CredentialsProvider.js"
+import { ProgrammingError } from "../api/common/error/ProgrammingError"
+import type { CredentialEncryptionMode } from "./credentials/CredentialEncryptionMode"
+import { assertMainOrNodeBoot } from "../api/common/Env"
+import { PersistedAssignmentData, UsageTestStorage } from "./UsageTestModel"
+import { client } from "./ClientDetector"
 
 assertMainOrNodeBoot()
 export const defaultThemeId: ThemeId = "light"
@@ -17,7 +17,7 @@ export const defaultThemeId: ThemeId = "light"
  * Definition of the config object that will be saved to local storage
  */
 interface ConfigObject {
-	_version: number,
+	_version: number
 	_credentials: Map<Id, PersistentCredentials>
 	_scheduledAlarmUsers: Id[]
 	_themeId: ThemeId
@@ -39,16 +39,12 @@ interface ConfigObject {
  * Device config for internal user auto login. Only one config per device is stored.
  */
 export class DeviceConfig implements CredentialsStorage, UsageTestStorage {
-
 	public static Version = 3
 	public static LocalStorageKey = "tutanotaConfig"
 
 	private config!: ConfigObject
 
-	constructor(
-		private readonly _version: number,
-		private readonly localStorage: Storage | null
-	) {
+	constructor(private readonly _version: number, private readonly localStorage: Storage | null) {
 		this.init()
 	}
 
@@ -82,11 +78,11 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage {
 			_language: loadedConfig._language ?? null,
 			_defaultCalendarView: loadedConfig._defaultCalendarView ?? {},
 			_hiddenCalendars: loadedConfig._hiddenCalendars ?? {},
-			expandedMailFolders:loadedConfig.expandedMailFolders ?? {},
+			expandedMailFolders: loadedConfig.expandedMailFolders ?? {},
 			_testDeviceId: loadedConfig._testDeviceId ?? null,
 			_testAssignments: loadedConfig._testAssignments ?? null,
 			_signupToken: signupToken,
-			offlineTimeRangeDaysByUser: loadedConfig.offlineTimeRangeDaysByUser ?? {}
+			offlineTimeRangeDaysByUser: loadedConfig.offlineTimeRangeDaysByUser ?? {},
 		}
 
 		// We need to write the config if there was a migration and if we generate the signup token and if.
@@ -115,7 +111,6 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage {
 	}
 
 	store(persistentCredentials: PersistentCredentials): void {
-
 		const existing = this.config._credentials.get(persistentCredentials.credentialInfo.userId)
 
 		if (existing?.databaseKey) {
@@ -298,7 +293,6 @@ export class DeviceConfig implements CredentialsStorage, UsageTestStorage {
 	}
 }
 
-
 export function migrateConfig(loadedConfig: any) {
 	if (loadedConfig === DeviceConfig.Version) {
 		throw new ProgrammingError("Should not migrate credentials, current version")
@@ -319,12 +313,10 @@ export function migrateConfig(loadedConfig: any) {
  * Exported for testing
  */
 export function migrateConfigV2to3(loadedConfig: any) {
-
 	const oldCredentialsArray = loadedConfig._credentials
 	loadedConfig._credentials = {}
 
 	for (let credential of oldCredentialsArray) {
-
 		let login, type
 		if (credential.mailAddress.includes("@")) {
 			login = credential.mailAddress

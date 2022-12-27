@@ -1,13 +1,13 @@
 import m from "mithril"
-import {Dialog} from "../gui/base/Dialog"
-import {lang, TranslationKey} from "../misc/LanguageViewModel"
-import {isMailAddress} from "../misc/FormatValidator"
-import {showWorkerProgressDialog} from "../gui/dialogs/ProgressDialog"
-import {BookingItemFeatureType} from "../api/common/TutanotaConstants"
-import {contains, delay, ofClass, promiseMap} from "@tutao/tutanota-utils"
-import {PreconditionFailedError} from "../api/common/error/RestError"
-import {showBuyDialog} from "../subscription/BuyDialog"
-import {locator} from "../api/main/MainLocator"
+import { Dialog } from "../gui/base/Dialog"
+import { lang, TranslationKey } from "../misc/LanguageViewModel"
+import { isMailAddress } from "../misc/FormatValidator"
+import { showWorkerProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { BookingItemFeatureType } from "../api/common/TutanotaConstants"
+import { contains, delay, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { PreconditionFailedError } from "../api/common/error/RestError"
+import { showBuyDialog } from "../subscription/BuyDialog"
+import { locator } from "../api/main/MainLocator"
 
 const delayTime = 900
 type UserImportDetails = {
@@ -50,9 +50,9 @@ function csvToUserDetails(csvString: string): UserImportDetails[] | null {
 	let lines = csvString
 		.replace("\r", "")
 		.split("\n")
-		.filter(l => "" !== l.trim())
+		.filter((l) => "" !== l.trim())
 	let error = false
-	let userData = lines.map(a => {
+	let userData = lines.map((a) => {
 		let parts = a.trim().split(";")
 
 		if (parts.length !== 3) {
@@ -99,14 +99,14 @@ function checkAndGetErrorMessage(userData: UserImportDetails[], availableDomains
 				errorMessageArray.push("enterMissingPassword_msg")
 			}
 
-			if (userData.find(otherUser => otherUser.mailAddress === mailAddress && otherUser !== u)) {
+			if (userData.find((otherUser) => otherUser.mailAddress === mailAddress && otherUser !== u)) {
 				errorMessageArray.push("duplicatedMailAddressInUserList_msg")
 			}
 
 			// create error msg from all errors for this user
 			if (errorMessageArray.length > 0) {
 				errorMessage =
-					errorMessageArray.map(e => lang.get(e)).join("\n") +
+					errorMessageArray.map((e) => lang.get(e)).join("\n") +
 					"\n" +
 					lang.get("errorAtLine_msg", {
 						"{index}": index + 1,
@@ -124,7 +124,7 @@ function showBookingDialog(userDetailsArray: UserImportDetails[]): void {
 	let notAvailableUsers: UserImportDetails[] = []
 	// There's a hacky progress solution where we send index to worker and then worker just simulates calculating progress based on the
 	// index
-	showBuyDialog({featureType: BookingItemFeatureType.Users, count: userDetailsArray.length, freeAmount: 0, reactivate: false}).then(accepted => {
+	showBuyDialog({ featureType: BookingItemFeatureType.Users, count: userDetailsArray.length, freeAmount: 0, reactivate: false }).then((accepted) => {
 		if (accepted) {
 			return showWorkerProgressDialog(
 				locator.worker,
@@ -134,7 +134,7 @@ function showBookingDialog(userDetailsArray: UserImportDetails[]): void {
 						"{count}": userDetailsArray.length,
 					}),
 				promiseMap(userDetailsArray, (user, userIndex) => {
-					return createUserIfMailAddressAvailable(user, userIndex, userDetailsArray.length).then(created => {
+					return createUserIfMailAddressAvailable(user, userIndex, userDetailsArray.length).then((created) => {
 						if (created) {
 							nbrOfCreatedUsers++
 							m.redraw()
@@ -149,7 +149,7 @@ function showBookingDialog(userDetailsArray: UserImportDetails[]): void {
 					let p = Promise.resolve()
 
 					if (notAvailableUsers.length > 0) {
-						p = Dialog.message(() => lang.get("addressesAlreadyInUse_msg") + " " + notAvailableUsers.map(u => u.mailAddress).join(", "))
+						p = Dialog.message(() => lang.get("addressesAlreadyInUse_msg") + " " + notAvailableUsers.map((u) => u.mailAddress).join(", "))
 					}
 
 					p.then(() => {
@@ -169,14 +169,14 @@ function showBookingDialog(userDetailsArray: UserImportDetails[]): void {
  */
 function createUserIfMailAddressAvailable(user: UserImportDetails, index: number, overallNumberOfUsers: number): Promise<boolean> {
 	let cleanMailAddress = user.mailAddress.trim().toLowerCase()
-	return locator.mailAddressFacade.isMailAddressAvailable(cleanMailAddress).then(available => {
+	return locator.mailAddressFacade.isMailAddressAvailable(cleanMailAddress).then((available) => {
 		if (available) {
 			return locator.userManagementFacade
-						  .createUser(user.username ? user.username : "", cleanMailAddress, user.password, index, overallNumberOfUsers)
-						  .then(() => {
-							  // delay is needed so that there are not too many requests from isMailAddressAvailable service if users ar not available (are not created)
-							  return delay(delayTime).then(() => true)
-						  })
+				.createUser(user.username ? user.username : "", cleanMailAddress, user.password, index, overallNumberOfUsers)
+				.then(() => {
+					// delay is needed so that there are not too many requests from isMailAddressAvailable service if users ar not available (are not created)
+					return delay(delayTime).then(() => true)
+				})
 		} else {
 			return delay(delayTime).then(() => false)
 		}

@@ -38,13 +38,12 @@
  * openssl x509 -pubkey -noout -in tutao-cert.pem > tutao-pub.pem
  * */
 
-
 import path from "node:path"
 import fs from "node:fs"
-import {spawnSync} from "node:child_process"
+import { spawnSync } from "node:child_process"
 import jsyaml from "js-yaml"
 import crypto from "node:crypto"
-import {base64ToUint8Array} from "@tutao/tutanota-utils"
+import { base64ToUint8Array } from "@tutao/tutanota-utils"
 
 const SIG_ALGO = "RSASSA-PKCS1-v1_5"
 const DIGEST = "SHA-512"
@@ -61,7 +60,7 @@ const DIGEST = "SHA-512"
  * @param ymlFileName This yaml file will be adapted to include the signature. Must not contain any path.
  */
 export async function sign(filePath, signatureFileName, ymlFileName) {
-	console.log("Signing", path.basename(filePath), '...')
+	console.log("Signing", path.basename(filePath), "...")
 	const dir = path.dirname(filePath)
 
 	const sigOutPath = process.env.DEBUG_SIGN
@@ -71,10 +70,10 @@ export async function sign(filePath, signatureFileName, ymlFileName) {
 	if (ymlFileName) {
 		console.log(`attaching signature to yml...`, ymlFileName)
 		const ymlPath = path.join(dir, ymlFileName)
-		let yml = jsyaml.load(fs.readFileSync(ymlPath, 'utf8'))
+		let yml = jsyaml.load(fs.readFileSync(ymlPath, "utf8"))
 		const signatureContent = fs.readFileSync(sigOutPath)
-		yml.signature = signatureContent.toString('base64')
-		fs.writeFileSync(ymlPath, jsyaml.dump(yml), 'utf8')
+		yml.signature = signatureContent.toString("base64")
+		fs.writeFileSync(ymlPath, jsyaml.dump(yml), "utf8")
 		console.log("signing done")
 	} else {
 		console.log("Not attaching signature to yml")
@@ -83,17 +82,26 @@ export async function sign(filePath, signatureFileName, ymlFileName) {
 
 async function signWithHSM(filePath, signatureFileName, dir) {
 	console.log("sign with HSM")
-	const result = spawnSync("/usr/bin/pkcs11-tool", [
-		"-s",
-		"-m", "SHA512-RSA-PKCS",
-		"--id", "10", // this is the index of the installer verification key
-		"--pin", "env:HSM_USER_PIN",
-		"-i", path.basename(filePath),
-		"-o", signatureFileName
-	], {
-		cwd: dir,
-		stdio: [process.stdin, process.stdout, process.stderr]
-	})
+	const result = spawnSync(
+		"/usr/bin/pkcs11-tool",
+		[
+			"-s",
+			"-m",
+			"SHA512-RSA-PKCS",
+			"--id",
+			"10", // this is the index of the installer verification key
+			"--pin",
+			"env:HSM_USER_PIN",
+			"-i",
+			path.basename(filePath),
+			"-o",
+			signatureFileName,
+		],
+		{
+			cwd: dir,
+			stdio: [process.stdin, process.stdout, process.stderr],
+		},
+	)
 
 	if (result.status !== 0) {
 		throw new Error("error during hsm signing process" + JSON.stringify(result))
@@ -108,10 +116,7 @@ async function signWithHSM(filePath, signatureFileName, dir) {
  */
 
 function pemToBinaryDer(key) {
-	const pemContentsB64 = key
-		.replace("-----BEGIN PRIVATE KEY-----", "")
-		.replace("-----END PRIVATE KEY-----", "")
-		.replace(/\s/g, '')
+	const pemContentsB64 = key.replace("-----BEGIN PRIVATE KEY-----", "").replace("-----END PRIVATE KEY-----", "").replace(/\s/g, "")
 	return base64ToUint8Array(pemContentsB64).buffer
 }
 
@@ -122,13 +127,7 @@ function pemToBinaryDer(key) {
  * @returns {Promise<CryptoKey>}
  */
 async function importPrivateKey(pem) {
-	return crypto.webcrypto.subtle.importKey(
-		"pkcs8",
-		pemToBinaryDer(pem),
-		{name: SIG_ALGO, hash: DIGEST},
-		true,
-		["sign"]
-	)
+	return crypto.webcrypto.subtle.importKey("pkcs8", pemToBinaryDer(pem), { name: SIG_ALGO, hash: DIGEST }, true, ["sign"])
 }
 
 /**
@@ -152,9 +151,9 @@ async function signWithOwnPrivateKey(fileToSign, privateKeyPemFile, signatureOut
 
 	try {
 		const fileData = fs.readFileSync(fileToSign) // buffer
-		const privateKeyPem = fs.readFileSync(privateKeyPemFile, {encoding: "utf-8"})
+		const privateKeyPem = fs.readFileSync(privateKeyPemFile, { encoding: "utf-8" })
 		const cryptoKey = await importPrivateKey(privateKeyPem)
-		const sig = await crypto.webcrypto.subtle.sign({name: SIG_ALGO, hash: DIGEST}, cryptoKey, fileData)
+		const sig = await crypto.webcrypto.subtle.sign({ name: SIG_ALGO, hash: DIGEST }, cryptoKey, fileData)
 		fs.writeFileSync(sigOutPath, Buffer.from(sig), null)
 	} catch (e) {
 		console.log(`Error signing ${fileToSign}:`, e.message, e.stack)

@@ -1,11 +1,11 @@
 import o from "ospec"
-import {FaqModel} from "../../../src/support/FaqModel.js"
-import {downcast} from "@tutao/tutanota-utils"
-import {lang} from "../../../src/misc/LanguageViewModel.js"
+import { FaqModel } from "../../../src/support/FaqModel.js"
+import { downcast } from "@tutao/tutanota-utils"
+import { lang } from "../../../src/misc/LanguageViewModel.js"
 
 async function collect(generator: AsyncGenerator): Promise<Array<unknown>> {
 	const result: Array<unknown> = []
-	for await(const element of generator) {
+	for await (const element of generator) {
 		result.push(element)
 	}
 	return result
@@ -23,7 +23,7 @@ o.spec("FaqModelTest", function () {
 			"faq.otherEntry_tags": "tag",
 			"faq.entry_markdown": "Inhalt",
 			"faq.entry_tags": "a, b, c",
-			"otherTranslation_label": "test",
+			otherTranslation_label: "test",
 		},
 	}
 	const enTranslations = {
@@ -36,13 +36,13 @@ o.spec("FaqModelTest", function () {
 			"faq.otherEntry_title": "Other Heading",
 			"faq.otherEntry_markdown": "Much longer Content",
 			"faq.otherEntry_tags": "tag",
-			"otherTranslation_label": "test",
+			otherTranslation_label: "test",
 		},
 	}
 	o.beforeEach(function () {
 		lang.code = "de"
 		faqModel = new FaqModel()
-		fetchFaqSpy = o.spy(language => {
+		fetchFaqSpy = o.spy((language) => {
 			if (language === "en") {
 				return Promise.resolve(enTranslations)
 			} else if (language === "de") {
@@ -98,7 +98,7 @@ o.spec("FaqModelTest", function () {
 		o(faqEntry.tags).equals("a, b, c")
 	})
 	o("init and search with failing fetch faq entries", async function () {
-		fetchFaqSpy = o.spy(language => {
+		fetchFaqSpy = o.spy((language) => {
 			return {
 				keys: {},
 				code: language,

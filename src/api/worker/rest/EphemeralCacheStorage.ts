@@ -1,16 +1,16 @@
-import {ElementEntity, ListElementEntity, SomeEntity} from "../../common/EntityTypes.js"
-import {EntityRestClient, typeRefToPath} from "./EntityRestClient.js"
-import {firstBiggerThanSecond, getElementId, getListId, isElementEntity} from "../../common/utils/EntityUtils.js"
-import {CacheStorage, LastUpdateTime} from "./DefaultEntityRestCache.js"
-import {assertNotNull, clone, getFromMap, remove, TypeRef} from "@tutao/tutanota-utils"
-import {CustomCacheHandlerMap} from "./CustomCacheHandler.js"
+import { ElementEntity, ListElementEntity, SomeEntity } from "../../common/EntityTypes.js"
+import { EntityRestClient, typeRefToPath } from "./EntityRestClient.js"
+import { firstBiggerThanSecond, getElementId, getListId, isElementEntity } from "../../common/utils/EntityUtils.js"
+import { CacheStorage, LastUpdateTime } from "./DefaultEntityRestCache.js"
+import { assertNotNull, clone, getFromMap, remove, TypeRef } from "@tutao/tutanota-utils"
+import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 
 /** Cache for a single list. */
 type ListCache = {
 	/** All entities loaded inside the range. */
-	allRange: Id[],
-	lowerRangeId: Id,
-	upperRangeId: Id,
+	allRange: Id[]
+	lowerRangeId: Id
+	upperRangeId: Id
 	/** All the entities loaded, inside or outside of the range (e.g. load for a single entity). */
 	elements: Map<Id, ListElementEntity>
 }
@@ -19,7 +19,7 @@ type ListCache = {
 type ListTypeCache = Map<Id, ListCache>
 
 export interface EphemeralStorageInitArgs {
-	userId: Id,
+	userId: Id
 }
 
 export class EphemeralCacheStorage implements CacheStorage {
@@ -31,7 +31,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 	private userId: Id | null = null
 	private lastBatchIdPerGroup = new Map<Id, Id>()
 
-	init({userId}: EphemeralStorageInitArgs) {
+	init({ userId }: EphemeralStorageInitArgs) {
 		this.userId = userId
 	}
 
@@ -75,9 +75,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 
 	async isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<boolean> {
 		const cache = this.lists.get(typeRefToPath(typeRef))?.get(listId)
-		return cache != null
-			&& !firstBiggerThanSecond(id, cache.upperRangeId)
-			&& !firstBiggerThanSecond(cache.lowerRangeId, id)
+		return cache != null && !firstBiggerThanSecond(id, cache.upperRangeId) && !firstBiggerThanSecond(cache.lowerRangeId, id)
 	}
 
 	async put(originalEntity: SomeEntity): Promise<void> {
@@ -95,10 +93,9 @@ export class EphemeralCacheStorage implements CacheStorage {
 					allRange: [elementId],
 					lowerRangeId: elementId,
 					upperRangeId: elementId,
-					elements: new Map([[elementId, entity]])
+					elements: new Map([[elementId, entity]]),
 				}
-				getFromMap(this.lists, typeRefToPath(typeRef), () => new Map())
-					.set(listId, newCache)
+				getFromMap(this.lists, typeRefToPath(typeRef), () => new Map()).set(listId, newCache)
 			} else {
 				// if the element already exists in the cache, overwrite it
 				// add new element to existing list if necessary
@@ -142,7 +139,8 @@ export class EphemeralCacheStorage implements CacheStorage {
 			}
 			if (i >= 0) {
 				let startIndex = i + 1 - count
-				if (startIndex < 0) { // start index may be negative if more elements have been requested than available when getting elements reverse.
+				if (startIndex < 0) {
+					// start index may be negative if more elements have been requested than available when getting elements reverse.
 					startIndex = 0
 				}
 				ids = range.slice(startIndex, i + 1)
@@ -151,24 +149,24 @@ export class EphemeralCacheStorage implements CacheStorage {
 				ids = []
 			}
 		} else {
-			const i = range.findIndex(id => firstBiggerThanSecond(id, start))
+			const i = range.findIndex((id) => firstBiggerThanSecond(id, start))
 			ids = range.slice(i, i + count)
 		}
 		let result: T[] = []
 		for (let a = 0; a < ids.length; a++) {
-			result.push(clone((listCache.elements.get(ids[a]) as T)))
+			result.push(clone(listCache.elements.get(ids[a]) as T))
 		}
 		return result
 	}
 
-	async getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<{lower: Id, upper: Id} | null> {
+	async getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<{ lower: Id; upper: Id } | null> {
 		const listCache = this.lists.get(typeRefToPath(typeRef))?.get(listId)
 
 		if (listCache == null) {
 			return null
 		}
 
-		return {lower: listCache.lowerRangeId, upper: listCache.upperRangeId}
+		return { lower: listCache.lowerRangeId, upper: listCache.upperRangeId }
 	}
 
 	async setUpperRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void> {
@@ -201,7 +199,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 				allRange: [],
 				lowerRangeId: lower,
 				upperRangeId: upper,
-				elements: new Map()
+				elements: new Map(),
 			})
 		} else {
 			listCache.lowerRangeId = lower
@@ -223,11 +221,11 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 	purgeStorage(): Promise<void> {
-		return Promise.resolve();
+		return Promise.resolve()
 	}
 
 	async getLastUpdateTime(): Promise<LastUpdateTime> {
-		return this.lastUpdateTime ? {type: "recorded", time: this.lastUpdateTime} : {type: "never"}
+		return this.lastUpdateTime ? { type: "recorded", time: this.lastUpdateTime } : { type: "never" }
 	}
 
 	async putLastUpdateTime(value: number): Promise<void> {
@@ -241,7 +239,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 			return []
 		}
 
-		return listCache.allRange.map(id => clone((listCache.elements.get(id) as T)))
+		return listCache.allRange.map((id) => clone(listCache.elements.get(id) as T))
 	}
 
 	getCustomCacheHandlerMap(entityRestClient: EntityRestClient): CustomCacheHandlerMap {

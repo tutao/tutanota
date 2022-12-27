@@ -1,7 +1,6 @@
 import o from "ospec"
-import {PingAdapter, Stage, UsageTest} from "../lib/index.js"
-import {UsageTestController} from "../lib/model/UsageTestController.js"
-
+import { PingAdapter, Stage, UsageTest } from "../lib/index.js"
+import { UsageTestController } from "../lib/model/UsageTestController.js"
 
 class MockPingAdapter implements PingAdapter {
 	pingsSent = 0
@@ -19,7 +18,7 @@ o.spec("Main", function () {
 
 		const rendered = test.renderVariant({
 			[0]: () => 0,
-			[1]: () => 1
+			[1]: () => 1,
 		})
 
 		o(rendered).equals(0)

@@ -6,45 +6,46 @@ import {
 	UsageTestAssignmentOut,
 	UsageTestAssignmentTypeRef,
 } from "../api/entities/usage/TypeRefs.js"
-import {PingAdapter, Stage, UsageTest, UsageTestController} from "@tutao/tutanota-usagetests"
-import {assertNotNull, filterInt, lazy, neverNull} from "@tutao/tutanota-utils"
-import {BadRequestError, NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
-import {UsageTestMetricType} from "../api/common/TutanotaConstants"
-import {SuspensionError} from "../api/common/error/SuspensionError"
-import {SuspensionBehavior} from "../api/worker/rest/RestClient"
-import {DateProvider} from "../api/common/DateProvider.js"
-import {IServiceExecutor} from "../api/common/ServiceRequest"
-import {UsageTestAssignmentService, UsageTestParticipationService} from "../api/entities/usage/Services.js"
-import {resolveTypeReference} from "../api/common/EntityFunctions"
-import {lang, TranslationKey} from "./LanguageViewModel"
+import { PingAdapter, Stage, UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
+import { assertNotNull, filterInt, lazy, neverNull } from "@tutao/tutanota-utils"
+import { BadRequestError, NotFoundError, PreconditionFailedError } from "../api/common/error/RestError"
+import { UsageTestMetricType } from "../api/common/TutanotaConstants"
+import { SuspensionError } from "../api/common/error/SuspensionError"
+import { SuspensionBehavior } from "../api/worker/rest/RestClient"
+import { DateProvider } from "../api/common/DateProvider.js"
+import { IServiceExecutor } from "../api/common/ServiceRequest"
+import { UsageTestAssignmentService, UsageTestParticipationService } from "../api/entities/usage/Services.js"
+import { resolveTypeReference } from "../api/common/EntityFunctions"
+import { lang, TranslationKey } from "./LanguageViewModel"
 import stream from "mithril/stream"
-import {Dialog, DialogType} from "../gui/base/Dialog"
-import {DropDownSelector, SelectorItem} from "../gui/base/DropDownSelector"
-import m, {Children} from "mithril"
-import {isOfflineError} from "../api/common/utils/ErrorCheckUtils.js"
-import {LoginController} from "../api/main/LoginController.js"
-import {CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {EntityClient} from "../api/common/EntityClient.js"
-import {EntityUpdateData, EventController, isUpdateForTypeRef} from "../api/main/EventController.js"
-import {createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef} from "../api/entities/tutanota/TypeRefs.js"
-
+import { Dialog, DialogType } from "../gui/base/Dialog"
+import { DropDownSelector, SelectorItem } from "../gui/base/DropDownSelector"
+import m, { Children } from "mithril"
+import { isOfflineError } from "../api/common/utils/ErrorCheckUtils.js"
+import { LoginController } from "../api/main/LoginController.js"
+import { CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { EntityClient } from "../api/common/EntityClient.js"
+import { EntityUpdateData, EventController, isUpdateForTypeRef } from "../api/main/EventController.js"
+import { createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 
 const PRESELECTED_LIKERT_VALUE = null
 
 type ExperienceSamplingOptions = {
-	title?: lazy<string> | string,
-	explanationText?: TranslationKey | lazy<string>,
+	title?: lazy<string> | string
+	explanationText?: TranslationKey | lazy<string>
 	perMetric: {
 		[key: string]: {
-			question: TranslationKey | lazy<string>,
-			answerOptions: Array<string>,
+			question: TranslationKey | lazy<string>
+			answerOptions: Array<string>
 		}
 	}
 }
 
 export async function showExperienceSamplingDialog(stage: Stage, experienceSamplingOptions: ExperienceSamplingOptions): Promise<void> {
-	const likertMetrics = Array.from(stage.metricConfigs.values()).filter(metricConfig => metricConfig.type as UsageTestMetricType === UsageTestMetricType.Likert)
-	const selectedValues = new Map(likertMetrics.map(likertMetric => [likertMetric.name, stream(PRESELECTED_LIKERT_VALUE)]))
+	const likertMetrics = Array.from(stage.metricConfigs.values()).filter(
+		(metricConfig) => (metricConfig.type as UsageTestMetricType) === UsageTestMetricType.Likert,
+	)
+	const selectedValues = new Map(likertMetrics.map((likertMetric) => [likertMetric.name, stream(PRESELECTED_LIKERT_VALUE)]))
 
 	Dialog.showActionDialog({
 		type: DialogType.EditMedium,
@@ -73,12 +74,9 @@ export async function showExperienceSamplingDialog(stage: Stage, experienceSampl
 			if (experienceSamplingOptions.explanationText) {
 				const explanationTextLines = lang.getMaybeLazy(experienceSamplingOptions.explanationText).split("\n")
 
-				children.push(m(
-					"#dialog-message.text-break.text-prewrap.selectable.scroll",
-					[
-						explanationTextLines.map(line => m(".text-break.selectable", line))
-					]
-				))
+				children.push(
+					m("#dialog-message.text-break.text-prewrap.selectable.scroll", [explanationTextLines.map((line) => m(".text-break.selectable", line))]),
+				)
 			}
 
 			for (let likertMetricConfig of likertMetrics) {
@@ -91,17 +89,14 @@ export async function showExperienceSamplingDialog(stage: Stage, experienceSampl
 					}
 				})
 
-				children.push(m(
-					"p.text-prewrap.scroll",
-					lang.getMaybeLazy(metricOptions.question)
-				))
+				children.push(m("p.text-prewrap.scroll", lang.getMaybeLazy(metricOptions.question)))
 
 				children.push(
 					m(DropDownSelector, {
 						label: "experienceSamplingAnswer_label",
 						items: answerOptionItems,
 						selectedValue: selectedValues.get(likertMetricConfig.name)!,
-					})
+					}),
 				)
 			}
 
@@ -147,11 +142,9 @@ export class EphemeralUsageTestStorage implements UsageTestStorage {
 		this.testDeviceId = testDeviceId
 		return Promise.resolve()
 	}
-
 }
 
 export const ASSIGNMENT_UPDATE_INTERVAL_MS = 1000 * 60 * 60 // 1h
-
 
 export const enum StorageBehavior {
 	/* Store usage test assignments in the "persistent" storage. Currently, this is the client's instance of DeviceConfig, which uses the browser's local storage.
@@ -291,10 +284,7 @@ export class UsageTestModel implements PingAdapter {
 		const persistedData = await this.storage().getAssignments()
 		const modelVersion = await this.modelVersion()
 
-		if (persistedData == null ||
-			persistedData.usageModelVersion !== modelVersion ||
-			Date.now() - persistedData.updatedAt > ASSIGNMENT_UPDATE_INTERVAL_MS
-		) {
+		if (persistedData == null || persistedData.usageModelVersion !== modelVersion || Date.now() - persistedData.updatedAt > ASSIGNMENT_UPDATE_INTERVAL_MS) {
 			return this.assignmentsToTests(await this.loadAssignments())
 		} else {
 			return this.assignmentsToTests(persistedData.assignments)
@@ -309,17 +299,17 @@ export class UsageTestModel implements PingAdapter {
 	private async loadAssignments(): Promise<UsageTestAssignment[]> {
 		const testDeviceId = await this.storage().getTestDeviceId()
 		const data = createUsageTestAssignmentIn({
-			testDeviceId: testDeviceId
+			testDeviceId: testDeviceId,
 		})
 
 		try {
-			const response: UsageTestAssignmentOut = (testDeviceId)
+			const response: UsageTestAssignmentOut = testDeviceId
 				? await this.serviceExecutor.put(UsageTestAssignmentService, data, {
-					suspensionBehavior: SuspensionBehavior.Throw,
-				})
+						suspensionBehavior: SuspensionBehavior.Throw,
+				  })
 				: await this.serviceExecutor.post(UsageTestAssignmentService, data, {
-					suspensionBehavior: SuspensionBehavior.Throw,
-				})
+						suspensionBehavior: SuspensionBehavior.Throw,
+				  })
 			await this.storage().storeTestDeviceId(response.testDeviceId)
 			await this.storage().storeAssignments({
 				assignments: response.assignments,
@@ -342,20 +332,15 @@ export class UsageTestModel implements PingAdapter {
 	}
 
 	private assignmentsToTests(assignments: UsageTestAssignment[]): UsageTest[] {
-		return assignments.map(usageTestAssignment => {
-			const test = new UsageTest(
-				usageTestAssignment.testId,
-				usageTestAssignment.name,
-				Number(usageTestAssignment.variant),
-				usageTestAssignment.sendPings,
-			)
+		return assignments.map((usageTestAssignment) => {
+			const test = new UsageTest(usageTestAssignment.testId, usageTestAssignment.name, Number(usageTestAssignment.variant), usageTestAssignment.sendPings)
 
 			for (const [index, stageConfig] of usageTestAssignment.stages.entries()) {
 				const stage = new Stage(index, test, Number(stageConfig.minPings), Number(stageConfig.maxPings))
-				stageConfig.metrics.forEach(metricConfig => {
+				stageConfig.metrics.forEach((metricConfig) => {
 					const configValues = new Map<string, string>()
 
-					metricConfig.configValues.forEach(metricConfigValue => {
+					metricConfig.configValues.forEach((metricConfigValue) => {
 						configValues.set(metricConfigValue.key, metricConfigValue.value)
 					})
 
@@ -374,7 +359,10 @@ export class UsageTestModel implements PingAdapter {
 	}
 
 	async sendPing(test: UsageTest, stage: Stage): Promise<void> {
-		this.lastPing = this.lastPing.then(() => this.doSendPing(stage, test), () => this.doSendPing(stage, test))
+		this.lastPing = this.lastPing.then(
+			() => this.doSendPing(stage, test),
+			() => this.doSendPing(stage, test),
+		)
 		return this.lastPing
 	}
 
@@ -391,11 +379,12 @@ export class UsageTestModel implements PingAdapter {
 			return
 		}
 
-		const metrics = Array.from(stage.collectedMetrics).map(([key, {name, value}]) =>
+		const metrics = Array.from(stage.collectedMetrics).map(([key, { name, value }]) =>
 			createUsageTestMetricData({
 				name: name,
 				value: value,
-			}))
+			}),
+		)
 
 		const data = createUsageTestParticipationIn({
 			testId: test.testId,
@@ -440,7 +429,7 @@ export class UsageTestModel implements PingAdapter {
 					await this.storage().storeAssignments({
 						updatedAt: storedAssignments.updatedAt,
 						usageModelVersion: storedAssignments.usageModelVersion,
-						assignments: storedAssignments.assignments.filter(assignment => assignment.testId !== test.testId),
+						assignments: storedAssignments.assignments.filter((assignment) => assignment.testId !== test.testId),
 					})
 				}
 			} else if (e instanceof BadRequestError) {

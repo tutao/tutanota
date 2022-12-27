@@ -1,20 +1,27 @@
-import type {BookingItemFeatureType} from "../api/common/TutanotaConstants"
-import {AccountType, Const, PaymentMethodType} from "../api/common/TutanotaConstants"
-import {lang} from "../misc/LanguageViewModel"
-import {assertNotNull, neverNull} from "@tutao/tutanota-utils"
-import type {AccountingInfo, Booking, PriceData, PriceItemData} from "../api/entities/sys/TypeRefs.js"
-import {createUpgradePriceServiceData, Customer, CustomerInfo, UpgradePriceServiceReturn} from "../api/entities/sys/TypeRefs.js"
-import {SubscriptionConfig, SubscriptionPlanPrices, SubscriptionType, UpgradePriceType, WebsitePlanPrices} from "./FeatureListProvider"
-import {locator} from "../api/main/MainLocator"
-import {UpgradePriceService} from "../api/entities/sys/Services"
-import {getTotalAliases, getTotalStorageCapacity, hasAllFeaturesInPlan, isBusinessFeatureActive, isSharingActive, isWhitelabelActive} from "./SubscriptionUtils"
-import {IServiceExecutor} from "../api/common/ServiceRequest"
-import {ConnectionError} from "../api/common/error/RestError"
-import {ProgrammingError} from "../api/common/error/ProgrammingError.js"
+import type { BookingItemFeatureType } from "../api/common/TutanotaConstants"
+import { AccountType, Const, PaymentMethodType } from "../api/common/TutanotaConstants"
+import { lang } from "../misc/LanguageViewModel"
+import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
+import type { AccountingInfo, Booking, PriceData, PriceItemData } from "../api/entities/sys/TypeRefs.js"
+import { createUpgradePriceServiceData, Customer, CustomerInfo, UpgradePriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
+import { SubscriptionConfig, SubscriptionPlanPrices, SubscriptionType, UpgradePriceType, WebsitePlanPrices } from "./FeatureListProvider"
+import { locator } from "../api/main/MainLocator"
+import { UpgradePriceService } from "../api/entities/sys/Services"
+import {
+	getTotalAliases,
+	getTotalStorageCapacity,
+	hasAllFeaturesInPlan,
+	isBusinessFeatureActive,
+	isSharingActive,
+	isWhitelabelActive,
+} from "./SubscriptionUtils"
+import { IServiceExecutor } from "../api/common/ServiceRequest"
+import { ConnectionError } from "../api/common/error/RestError"
+import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
 export const enum PaymentInterval {
 	Monthly = 1,
-	Yearly= 12
+	Yearly = 12,
 }
 
 export function asPaymentInterval(paymentInterval: string | number): PaymentInterval {
@@ -70,9 +77,7 @@ export function formatPrice(value: number, includeCurrency: boolean): string {
 	if (includeCurrency) {
 		return value % 1 !== 0 ? lang.formats.priceWithCurrency.format(value) : lang.formats.priceWithCurrencyWithoutFractionDigits.format(value)
 	} else {
-		return value % 1 !== 0
-			? lang.formats.priceWithoutCurrency.format(value)
-			: lang.formats.priceWithoutCurrencyWithoutFractionDigits.format(value)
+		return value % 1 !== 0 ? lang.formats.priceWithoutCurrency.format(value) : lang.formats.priceWithoutCurrencyWithoutFractionDigits.format(value)
 	}
 }
 
@@ -95,7 +100,7 @@ export function formatPriceWithInfo(price: number, paymentInterval: PaymentInter
  * Provides the price item from the given priceData for the given featureType. Returns null if no such item is available.
  */
 export function getPriceItem(priceData: PriceData | null, featureType: NumberString): PriceItemData | null {
-	return priceData?.items.find(item => item.featureType === featureType) ?? null
+	return priceData?.items.find((item) => item.featureType === featureType) ?? null
 }
 
 export function getCountFromPriceData(priceData: PriceData | null, featureType: BookingItemFeatureType): number {
@@ -119,13 +124,12 @@ export function getPriceFromPriceData(priceData: PriceData | null, featureType: 
 
 export function getCurrentCount(featureType: BookingItemFeatureType, booking: Booking | null): number {
 	if (booking) {
-		let bookingItem = booking.items.find(item => item.featureType === featureType)
+		let bookingItem = booking.items.find((item) => item.featureType === featureType)
 		return bookingItem ? Number(bookingItem.currentCount) : 0
 	} else {
 		return 0
 	}
 }
-
 
 const SUBSCRIPTION_CONFIG_RESOURCE_URL = "https://tutanota.com/resources/data/subscriptions.json"
 
@@ -135,7 +139,7 @@ export class PriceAndConfigProvider {
 
 	private possibleSubscriptionList: { [K in SubscriptionType]: SubscriptionConfig } | null = null
 
-	private constructor() { }
+	private constructor() {}
 
 	private async init(registrationDataId: string | null, serviceExecutor: IServiceExecutor): Promise<void> {
 		const data = createUpgradePriceServiceData({
@@ -160,17 +164,16 @@ export class PriceAndConfigProvider {
 		}
 	}
 
-	static async getInitializedInstance(registrationDataId: string | null, serviceExecutor: IServiceExecutor = locator.serviceExecutor): Promise<PriceAndConfigProvider> {
+	static async getInitializedInstance(
+		registrationDataId: string | null,
+		serviceExecutor: IServiceExecutor = locator.serviceExecutor,
+	): Promise<PriceAndConfigProvider> {
 		const priceDataProvider = new PriceAndConfigProvider()
 		await priceDataProvider.init(registrationDataId, serviceExecutor)
 		return priceDataProvider
 	}
 
-	getSubscriptionPrice(
-		paymentInterval: PaymentInterval,
-		subscription: SubscriptionType,
-		type: UpgradePriceType
-	): number {
+	getSubscriptionPrice(paymentInterval: PaymentInterval, subscription: SubscriptionType, type: UpgradePriceType): number {
 		if (subscription === SubscriptionType.Free) return 0
 		return paymentInterval === PaymentInterval.Yearly
 			? this.getYearlySubscriptionPrice(subscription, type)
@@ -186,7 +189,6 @@ export class PriceAndConfigProvider {
 	}
 
 	getSubscriptionType(lastBooking: Booking | null, customer: Customer, customerInfo: CustomerInfo): SubscriptionType {
-
 		if (customer.type !== AccountType.PREMIUM) {
 			return SubscriptionType.Free
 		}
@@ -202,29 +204,19 @@ export class PriceAndConfigProvider {
 			business: isBusinessFeatureActive(lastBooking),
 			whitelabel: isWhitelabelActive(lastBooking),
 		}
-		const foundPlan = descendingSubscriptionOrder().find(plan => hasAllFeaturesInPlan(currentSubscription, this.getSubscriptionConfig(plan)))
+		const foundPlan = descendingSubscriptionOrder().find((plan) => hasAllFeaturesInPlan(currentSubscription, this.getSubscriptionConfig(plan)))
 		return foundPlan || SubscriptionType.Premium
 	}
 
-	private getYearlySubscriptionPrice(
-		subscription: SubscriptionType,
-		upgrade: UpgradePriceType
-	): number {
+	private getYearlySubscriptionPrice(subscription: SubscriptionType, upgrade: UpgradePriceType): number {
 		const prices = this.getPlanPrices(subscription)
 		const monthlyPrice = getPriceForUpgradeType(upgrade, prices)
-		const monthsFactor = upgrade === UpgradePriceType.PlanReferencePrice
-			? Number(PaymentInterval.Yearly)
-			: 10
-		const discount = upgrade === UpgradePriceType.PlanActualPrice
-			? Number(prices.firstYearDiscount)
-			: 0
-		return (monthlyPrice * monthsFactor) - discount
+		const monthsFactor = upgrade === UpgradePriceType.PlanReferencePrice ? Number(PaymentInterval.Yearly) : 10
+		const discount = upgrade === UpgradePriceType.PlanActualPrice ? Number(prices.firstYearDiscount) : 0
+		return monthlyPrice * monthsFactor - discount
 	}
 
-	private getMonthlySubscriptionPrice(
-		subscription: SubscriptionType,
-		upgrade: UpgradePriceType
-	): number {
+	private getMonthlySubscriptionPrice(subscription: SubscriptionType, upgrade: UpgradePriceType): number {
 		const prices = this.getPlanPrices(subscription)
 		return getPriceForUpgradeType(upgrade, prices)
 	}
@@ -232,11 +224,11 @@ export class PriceAndConfigProvider {
 	private getPlanPrices(subscription: SubscriptionType): WebsitePlanPrices {
 		if (subscription === SubscriptionType.Free) {
 			return {
-				"additionalUserPriceMonthly": "0",
-				"contactFormPriceMonthly": "0",
-				"firstYearDiscount": "0",
-				"monthlyPrice": "0",
-				"monthlyReferencePrice": "0"
+				additionalUserPriceMonthly: "0",
+				contactFormPriceMonthly: "0",
+				firstYearDiscount: "0",
+				monthlyPrice: "0",
+				monthlyReferencePrice: "0",
 			}
 		}
 		return assertNotNull(this.planPrices)[subscription]
@@ -258,13 +250,7 @@ function getPriceForUpgradeType(upgrade: UpgradePriceType, prices: WebsitePlanPr
 }
 
 function descendingSubscriptionOrder(): Array<SubscriptionType> {
-	return [
-		SubscriptionType.Pro,
-		SubscriptionType.TeamsBusiness,
-		SubscriptionType.Teams,
-		SubscriptionType.PremiumBusiness,
-		SubscriptionType.Premium,
-	]
+	return [SubscriptionType.Pro, SubscriptionType.TeamsBusiness, SubscriptionType.Teams, SubscriptionType.PremiumBusiness, SubscriptionType.Premium]
 }
 
 /**

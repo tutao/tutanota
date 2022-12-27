@@ -1,10 +1,10 @@
-import m, {Children, Component, Vnode} from "mithril"
-import type {DialogHeaderBarAttrs} from "./DialogHeaderBar"
-import {DialogHeaderBar} from "./DialogHeaderBar"
-import {px} from "../size"
-import type {MaybeLazy} from "@tutao/tutanota-utils"
-import {resolveMaybeLazy} from "@tutao/tutanota-utils"
-import Stream from "mithril/stream";
+import m, { Children, Component, Vnode } from "mithril"
+import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
+import { DialogHeaderBar } from "./DialogHeaderBar"
+import { px } from "../size"
+import type { MaybeLazy } from "@tutao/tutanota-utils"
+import { resolveMaybeLazy } from "@tutao/tutanota-utils"
+import Stream from "mithril/stream"
 
 export type DialogInjectionRightAttrs<T> = {
 	visible: Stream<boolean>
@@ -17,8 +17,8 @@ export type DialogInjectionRightAttrs<T> = {
  * injects additional content on the right of a dialog
  */
 export class DialogInjectionRight<T> implements Component<DialogInjectionRightAttrs<T>> {
-	view({attrs}: Vnode<DialogInjectionRightAttrs<T>>): Children {
-		const {component, componentAttrs} = attrs
+	view({ attrs }: Vnode<DialogInjectionRightAttrs<T>>): Children {
+		const { component, componentAttrs } = attrs
 
 		if (attrs.visible()) {
 			return m(".flex-grow-shrink-auto.flex-transition.ml-s.rel.dialog.dialog-width-m.elevated-bg.dropdown-shadow.border-radius", [

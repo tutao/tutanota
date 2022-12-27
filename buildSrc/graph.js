@@ -4,41 +4,41 @@ function toDot(modules, output) {
 	let buffer = "digraph G {\n"
 	buffer += "edge [dir=back]\n"
 
-	modules.forEach(m => {
-		m.deps.forEach(dep => {
+	modules.forEach((m) => {
+		m.deps.forEach((dep) => {
 			buffer += `"${dep}" -> "${m.id}"\n`
-		});
-	});
+		})
+	})
 	buffer += "}\n"
-	fs.writeFileSync(output, buffer, {encoding: "utf8"})
+	fs.writeFileSync(output, buffer, { encoding: "utf8" })
 }
 
 function prune(modules) {
-	let avail = modules.filter(m => m.deps.length == 0);
+	let avail = modules.filter((m) => m.deps.length == 0)
 	if (!avail.length) {
-		return;
+		return
 	}
 
-	let id = avail[0].id;
-//    console.log("pruning", id);
-	let index = modules.indexOf(avail[0]);
-	modules.splice(index, 1);
-	modules.forEach(m => {
-		m.deps = m.deps.filter(dep => dep != id);
-	});
-	prune(modules);
+	let id = avail[0].id
+	//    console.log("pruning", id);
+	let index = modules.indexOf(avail[0])
+	modules.splice(index, 1)
+	modules.forEach((m) => {
+		m.deps = m.deps.filter((dep) => dep != id)
+	})
+	prune(modules)
 }
 
 function getPrefix(ids) {
 	if (ids.length < 2) {
-		return "";
+		return ""
 	}
 	return ids.reduce((prefix, val) => {
 		while (val.indexOf(prefix) != 0) {
-			prefix = prefix.substring(0, prefix.length - 1);
+			prefix = prefix.substring(0, prefix.length - 1)
 		}
-		return prefix;
-	});
+		return prefix
+	})
 }
 
 /**
@@ -46,39 +46,40 @@ function getPrefix(ids) {
  * @param options {{exclude: string, output: string, prune: boolean}}
  */
 export default function plugin(options = {}) {
-	let exclude = str => options.exclude && str.match(options.exclude);
+	let exclude = (str) => options.exclude && str.match(options.exclude)
 	let output = options.output
 	if (!output) throw new Error("Please specify output file")
 
 	return {
 		generateBundle(bundleOptions, bundle, isWrite) {
-			let ids = [];
+			let ids = []
 			for (const moduleId of this.moduleIds) {
 				if (!exclude(moduleId)) {
-					ids.push(moduleId);
+					ids.push(moduleId)
 				}
 			}
 
-			let prefix = options.prefix || getPrefix(ids);
-			let strip = str => str.startsWith(prefix) ? str.substring(prefix.length) : str;
+			let prefix = options.prefix || getPrefix(ids)
+			let strip = (str) => (str.startsWith(prefix) ? str.substring(prefix.length) : str)
 
-			let modules = [];
-			ids.forEach(id => {
+			let modules = []
+			ids.forEach((id) => {
 				let m = {
 					id: strip(id),
-					deps: this.getModuleInfo(id).importedIds.filter(x => !exclude(x))
-					          .concat(this.getModuleInfo(id).dynamicImporters.filter(x => !exclude(x)))
-					          .map(strip)
+					deps: this.getModuleInfo(id)
+						.importedIds.filter((x) => !exclude(x))
+						.concat(this.getModuleInfo(id).dynamicImporters.filter((x) => !exclude(x)))
+						.map(strip),
 				}
 				if (exclude(m.id)) {
-					return;
+					return
 				}
-				modules.push(m);
-			});
+				modules.push(m)
+			})
 			if (options.prune) {
-				prune(modules);
+				prune(modules)
 			}
-			toDot(modules, output);
-		}
+			toDot(modules, output)
+		},
 	}
 }

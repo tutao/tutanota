@@ -1,11 +1,11 @@
-import m, {Children, Component, Vnode} from "mithril"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {lang} from "../misc/LanguageViewModel"
-import type {BuyOptionBoxAttr} from "./BuyOptionBox"
-import {BOX_MARGIN, BuyOptionBox, getActiveSubscriptionActionButtonReplacement} from "./BuyOptionBox"
-import type {SegmentControlItem} from "../gui/base/SegmentControl"
-import {SegmentControl} from "../gui/base/SegmentControl"
-import {formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider} from "./PriceUtils"
+import m, { Children, Component, Vnode } from "mithril"
+import type { TranslationKey } from "../misc/LanguageViewModel"
+import { lang } from "../misc/LanguageViewModel"
+import type { BuyOptionBoxAttr } from "./BuyOptionBox"
+import { BOX_MARGIN, BuyOptionBox, getActiveSubscriptionActionButtonReplacement } from "./BuyOptionBox"
+import type { SegmentControlItem } from "../gui/base/SegmentControl"
+import { SegmentControl } from "../gui/base/SegmentControl"
+import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
 import {
 	FeatureListItem,
 	FeatureListProvider,
@@ -13,11 +13,11 @@ import {
 	ReplacementKey,
 	SelectedSubscriptionOptions,
 	SubscriptionType,
-	UpgradePriceType
+	UpgradePriceType,
 } from "./FeatureListProvider"
-import {ProgrammingError} from "../api/common/error/ProgrammingError"
-import {ButtonAttrs} from "../gui/base/Button.js"
-import {lazy} from "@tutao/tutanota-utils"
+import { ProgrammingError } from "../api/common/error/ProgrammingError"
+import { ButtonAttrs } from "../gui/base/Button.js"
+import { lazy } from "@tutao/tutanota-utils"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
 	{
@@ -52,8 +52,8 @@ export type SubscriptionSelectorAttr = {
 	currentlyWhitelabelOrdered: boolean
 	orderedContactForms: number
 	isInitialUpgrade: boolean
-	featureListProvider: FeatureListProvider,
-	priceAndConfigProvider: PriceAndConfigProvider,
+	featureListProvider: FeatureListProvider
+	priceAndConfigProvider: PriceAndConfigProvider
 }
 
 export function getActionButtonBySubscription(actionButtons: SubscriptionActionButtons, subscription: SubscriptionType): lazy<ButtonAttrs> {
@@ -75,7 +75,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		Teams: false,
 		TeamsBusiness: false,
 		Pro: false,
-		All: false
+		All: false,
 	}
 
 	view(vnode: Vnode<SubscriptionSelectorAttr>): Children {
@@ -95,18 +95,22 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			additionalInfo = m(".flex.flex-column.items-center", [
 				featureExpander.All, // global feature expander
 				m(".smaller.mb.center", lang.get("downgradeToPrivateNotAllowed_msg")), //only displayed when business options are shown)
-				m(".smaller.mb.center", lang.get("pricing.subscriptionPeriodInfoBusiness_msg"))
+				m(".smaller.mb.center", lang.get("pricing.subscriptionPeriodInfoBusiness_msg")),
 			])
 		} else {
 			const currentSubscription = vnode.attrs.currentSubscriptionType
-			const premiumBuyOptionBox = m("",
+			const premiumBuyOptionBox = m(
+				"",
 				currentSubscription === SubscriptionType.PremiumBusiness
 					? [m(BuyOptionBox, this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.PremiumBusiness)), featureExpander.PremiumBusiness]
-					: [m(BuyOptionBox, this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.Premium)), featureExpander.Premium])
-			const teamsBuyOptionBox = m("",
+					: [m(BuyOptionBox, this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.Premium)), featureExpander.Premium],
+			)
+			const teamsBuyOptionBox = m(
+				"",
 				currentSubscription === SubscriptionType.TeamsBusiness
 					? [m(BuyOptionBox, this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.TeamsBusiness)), featureExpander.TeamsBusiness]
-					: [m(BuyOptionBox, this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.Teams)), featureExpander.Teams])
+					: [m(BuyOptionBox, this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.Teams)), featureExpander.Teams],
+			)
 
 			const freeBuyOptionBox = m("", [m(BuyOptionBox, this.createBuyOptionBoxAttr(vnode.attrs, SubscriptionType.Free)), featureExpander.Free])
 
@@ -118,7 +122,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			}
 			additionalInfo = m(".flex.flex-column.items-center", [
 				featureExpander.All, // global feature expander
-				m(".smaller.mb.center", lang.get("pricing.subscriptionPeriodInfoPrivate_msg"))
+				m(".smaller.mb.center", lang.get("pricing.subscriptionPeriodInfoPrivate_msg")),
 			])
 		}
 
@@ -127,28 +131,30 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		return [
 			vnode.attrs.isInitialUpgrade
 				? m(SegmentControl, {
-					selectedValue: vnode.attrs.options.businessUse(),
-					onValueSelected: vnode.attrs.options.businessUse,
-					items: BusinessUseItems,
-				})
+						selectedValue: vnode.attrs.options.businessUse(),
+						onValueSelected: vnode.attrs.options.businessUse,
+						items: BusinessUseItems,
+				  })
 				: null,
 			vnode.attrs.campaignInfoTextId && lang.exists(vnode.attrs.campaignInfoTextId) ? m(".b.center.mt", lang.get(vnode.attrs.campaignInfoTextId)) : null,
 			currentPlanInfo ? m(".smaller.center.mt", currentPlanInfo) : null,
-			m(".flex.center-horizontally.wrap", {
-					oncreate: vnode => {
+			m(
+				".flex.center-horizontally.wrap",
+				{
+					oncreate: (vnode) => {
 						this.containerDOM = vnode.dom as HTMLElement
 						m.redraw()
 					},
 				},
 				buyBoxesViewPlacement,
-				additionalInfo
+				additionalInfo,
 			),
 		]
 	}
 
 	private getCurrentPlanInfo(selectorAttrs: SubscriptionSelectorAttr): string | null {
 		if (selectorAttrs.options.businessUse() && selectorAttrs.currentSubscriptionType && !selectorAttrs.currentlyBusinessOrdered) {
-			const {priceAndConfigProvider, options, currentSubscriptionType} = selectorAttrs
+			const { priceAndConfigProvider, options, currentSubscriptionType } = selectorAttrs
 			const price = priceAndConfigProvider.getSubscriptionPrice(options.paymentInterval(), currentSubscriptionType, UpgradePriceType.PlanActualPrice)
 			return (
 				lang.get("businessCustomerNeedsBusinessFeaturePlan_msg", {
@@ -164,12 +170,12 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 	}
 
 	private createBuyOptionBoxAttr(selectorAttrs: SubscriptionSelectorAttr, targetSubscription: SubscriptionType): BuyOptionBoxAttr {
-		const {featureListProvider, priceAndConfigProvider} = selectorAttrs
+		const { featureListProvider, priceAndConfigProvider } = selectorAttrs
 		const subscriptionFeatures = featureListProvider.getFeatureList(targetSubscription)
 		const featuresToShow = subscriptionFeatures.features
-												   .filter(f => this.featuresExpanded[targetSubscription] || this.featuresExpanded.All || !f.omit)
-												   .map(f => localizeFeatureListItem(f, targetSubscription, selectorAttrs))
-												   .filter((f): f is BuyOptionBoxAttr['features'][0] => f != null)
+			.filter((f) => this.featuresExpanded[targetSubscription] || this.featuresExpanded.All || !f.omit)
+			.map((f) => localizeFeatureListItem(f, targetSubscription, selectorAttrs))
+			.filter((f): f is BuyOptionBoxAttr["features"][0] => f != null)
 
 		// we only highlight the private Premium box if this is a signup or the current subscription type is Free
 		selectorAttrs.highlightPremium =
@@ -178,7 +184,8 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			(!selectorAttrs.currentSubscriptionType || selectorAttrs.currentSubscriptionType === SubscriptionType.Free)
 		const subscriptionPrice = priceAndConfigProvider.getSubscriptionPrice(
 			selectorAttrs.options.paymentInterval(),
-			targetSubscription, UpgradePriceType.PlanActualPrice
+			targetSubscription,
+			UpgradePriceType.PlanActualPrice,
 		)
 		return {
 			heading: getDisplayNameOfSubscriptionType(targetSubscription),
@@ -187,10 +194,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 					? getActiveSubscriptionActionButtonReplacement()
 					: getActionButtonBySubscription(selectorAttrs.actionButtons, targetSubscription),
 			price: formatMonthlyPrice(subscriptionPrice, selectorAttrs.options.paymentInterval()),
-			priceHint: getPriceHint(
-				subscriptionPrice,
-				selectorAttrs.options.paymentInterval()
-			),
+			priceHint: getPriceHint(subscriptionPrice, selectorAttrs.options.paymentInterval()),
 			helpLabel: getHelpLabel(targetSubscription, selectorAttrs.options.businessUse()),
 			features: featuresToShow,
 			featuresExpanded: this.featuresExpanded[targetSubscription] || this.featuresExpanded.All,
@@ -207,7 +211,8 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 	 * If a specific expander is not needed and thus should not be renderer, null | undefined is returned
 	 */
 	private renderFeatureExpanders(inMobileView: boolean | null, featureListProvider: FeatureListProvider): Record<ExpanderTargets, Children> {
-		if (!featureListProvider.featureLoadingDone()) { // the feature list is not available
+		if (!featureListProvider.featureLoadingDone()) {
+			// the feature list is not available
 			return {
 				Free: null,
 				Pro: null,
@@ -215,10 +220,11 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				Premium: null,
 				TeamsBusiness: null,
 				PremiumBusiness: null,
-				All: null
+				All: null,
 			}
 		}
-		if (inMobileView) { // In single-column layout every subscription type has its own feature expander.
+		if (inMobileView) {
+			// In single-column layout every subscription type has its own feature expander.
 			if (this.featuresExpanded.All) {
 				for (const k in this.featuresExpanded) {
 					this.featuresExpanded[k as ExpanderTargets] = true
@@ -231,13 +237,13 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				Premium: this.renderExpander(SubscriptionType.Premium),
 				TeamsBusiness: this.renderExpander(SubscriptionType.TeamsBusiness),
 				PremiumBusiness: this.renderExpander(SubscriptionType.PremiumBusiness),
-				All: null
+				All: null,
 			}
 		} else {
 			for (const k in this.featuresExpanded) {
 				this.featuresExpanded[k as ExpanderTargets] = this.featuresExpanded.All // in multi-column layout the specific feature expanders should follow the global one
 			}
-			return Object.assign({} as Record<ExpanderTargets, Children>, {All: this.renderExpander("All")})
+			return Object.assign({} as Record<ExpanderTargets, Children>, { All: this.renderExpander("All") })
 		}
 	}
 
@@ -248,14 +254,18 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 	 */
 	private renderExpander(subType: ExpanderTargets): Children {
 		return this.featuresExpanded[subType]
-			? null :
-			m(".mb-l.content-hover.button.cursor-pointer.text-fade.center", {
-				role: "button",
-				onclick: (e: Event) => {
-					this.featuresExpanded[subType] = !this.featuresExpanded[subType]
-					e.preventDefault()
-				}
-			}, lang.get("pricing.showAllFeatures"))
+			? null
+			: m(
+					".mb-l.content-hover.button.cursor-pointer.text-fade.center",
+					{
+						role: "button",
+						onclick: (e: Event) => {
+							this.featuresExpanded[subType] = !this.featuresExpanded[subType]
+							e.preventDefault()
+						},
+					},
+					lang.get("pricing.showAllFeatures"),
+			  )
 	}
 }
 
@@ -263,22 +273,20 @@ function localizeFeatureListItem(
 	item: FeatureListItem,
 	targetSubscription: SubscriptionType,
 	attrs: SubscriptionSelectorAttr,
-): BuyOptionBoxAttr['features'][0] | null {
+): BuyOptionBoxAttr["features"][0] | null {
 	const text = tryGetTranslation(item.text, getReplacement(item.replacements, targetSubscription, attrs))
 	if (text == null) {
 		return null
 	}
 	if (!item.toolTip) {
-		return {text, key: item.text, antiFeature: item.antiFeature}
+		return { text, key: item.text, antiFeature: item.antiFeature }
 	} else {
 		const toolTipText = tryGetTranslation(item.toolTip)
 		if (toolTipText === null) {
 			return null
 		}
-		const toolTip = item.toolTip.endsWith("_markdown")
-			? m.trust(toolTipText)
-			: toolTipText
-		return {text, toolTip, key: item.text, antiFeature: item.antiFeature}
+		const toolTip = item.toolTip.endsWith("_markdown") ? m.trust(toolTipText) : toolTipText
+		return { text, toolTip, key: item.text, antiFeature: item.antiFeature }
 	}
 }
 
@@ -295,35 +303,37 @@ function tryGetTranslation(key: TranslationKey, replacements?: Record<string, st
  * get a string to insert into a translation with a slot.
  * if no key is found, undefined is returned and nothing is replaced.
  */
-export function getReplacement(key: ReplacementKey | undefined, subscription: SubscriptionType, attrs: SubscriptionSelectorAttr): Record<string, string | number> | undefined {
-	const {priceAndConfigProvider, options} = attrs
+export function getReplacement(
+	key: ReplacementKey | undefined,
+	subscription: SubscriptionType,
+	attrs: SubscriptionSelectorAttr,
+): Record<string, string | number> | undefined {
+	const { priceAndConfigProvider, options } = attrs
 	switch (key) {
 		case "pricePerExtraUser":
 			const subscriptionPriceUser = priceAndConfigProvider.getSubscriptionPrice(
 				options.paymentInterval(),
 				subscription,
-				UpgradePriceType.AdditionalUserPrice
+				UpgradePriceType.AdditionalUserPrice,
 			)
-			return {"{1}": formatMonthlyPrice(subscriptionPriceUser, attrs.options.paymentInterval())}
+			return { "{1}": formatMonthlyPrice(subscriptionPriceUser, attrs.options.paymentInterval()) }
 		case "mailAddressAliases":
-			return {"{amount}": priceAndConfigProvider.getSubscriptionConfig(subscription).nbrOfAliases}
+			return { "{amount}": priceAndConfigProvider.getSubscriptionConfig(subscription).nbrOfAliases }
 		case "storage":
-			return {"{amount}": priceAndConfigProvider.getSubscriptionConfig(subscription).storageGb}
+			return { "{amount}": priceAndConfigProvider.getSubscriptionConfig(subscription).storageGb }
 		case "contactForm":
 			const subscriptionPriceContact = priceAndConfigProvider.getSubscriptionPrice(
 				options.paymentInterval(),
 				subscription,
-				UpgradePriceType.ContactFormPrice
+				UpgradePriceType.ContactFormPrice,
 			)
-			return {"{price}": formatMonthlyPrice(subscriptionPriceContact, attrs.options.paymentInterval())}
+			return { "{price}": formatMonthlyPrice(subscriptionPriceContact, attrs.options.paymentInterval()) }
 	}
 }
 
 function getHelpLabel(subscriptionType: SubscriptionType, businessUse: boolean): TranslationKey {
-	if (subscriptionType === SubscriptionType.Free) return 'pricing.upgradeLater_msg'
-	return businessUse
-		? 'pricing.basePriceExcludesTaxes_msg'
-		: 'pricing.basePriceIncludesTaxes_msg'
+	if (subscriptionType === SubscriptionType.Free) return "pricing.upgradeLater_msg"
+	return businessUse ? "pricing.basePriceExcludesTaxes_msg" : "pricing.basePriceIncludesTaxes_msg"
 }
 
 function getPriceHint(subscriptionPrice: number, paymentInterval: PaymentInterval): TranslationKey {

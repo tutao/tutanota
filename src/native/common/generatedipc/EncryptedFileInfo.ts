@@ -1,6 +1,5 @@
 /* generated file, don't edit. */
 
-
 /**
  * Result of the `encryptFile()` operation.
  */

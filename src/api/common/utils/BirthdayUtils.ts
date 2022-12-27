@@ -1,7 +1,7 @@
-import type {Birthday} from "../../entities/tutanota/TypeRefs.js"
-import {createBirthday} from "../../entities/tutanota/TypeRefs.js"
-import {formatSortableDate} from "@tutao/tutanota-utils"
-import {ParsingError} from "../error/ParsingError"
+import type { Birthday } from "../../entities/tutanota/TypeRefs.js"
+import { createBirthday } from "../../entities/tutanota/TypeRefs.js"
+import { formatSortableDate } from "@tutao/tutanota-utils"
+import { ParsingError } from "../error/ParsingError"
 
 /**
  * Converts the birthday object to iso Date format (yyyy-mm-dd) or iso Date without year (--mm-dd)

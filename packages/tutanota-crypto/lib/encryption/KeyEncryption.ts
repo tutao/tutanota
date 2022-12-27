@@ -1,10 +1,10 @@
-import type {Aes128Key, Aes256Key} from "./Aes.js"
-import {aes128Decrypt, aes128Encrypt, aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "./Aes.js"
-import {bitArrayToUint8Array, fixedIv, uint8ArrayToBitArray} from "../misc/Utils.js"
-import {concat, hexToUint8Array, uint8ArrayToHex} from "@tutao/tutanota-utils"
-import {hexToPrivateKey, privateKeyToHex} from "./Rsa.js"
-import {random} from "../random/Randomizer.js"
-import type {PrivateKey} from "./RsaKeyPair.js"
+import type { Aes128Key, Aes256Key } from "./Aes.js"
+import { aes128Decrypt, aes128Encrypt, aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH } from "./Aes.js"
+import { bitArrayToUint8Array, fixedIv, uint8ArrayToBitArray } from "../misc/Utils.js"
+import { concat, hexToUint8Array, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import { hexToPrivateKey, privateKeyToHex } from "./Rsa.js"
+import { random } from "../random/Randomizer.js"
+import type { PrivateKey } from "./RsaKeyPair.js"
 
 export function encryptKey(encryptionKey: Aes128Key, key: Aes128Key): Uint8Array {
 	return aes128Encrypt(encryptionKey, bitArrayToUint8Array(key), fixedIv, false, false).slice(fixedIv.length)
@@ -38,18 +38,8 @@ export function aes256Decrypt256Key(encryptionKey: Aes256Key, keyToDecrypt: Uint
 	return uint8ArrayToBitArray(aes256Decrypt(encryptionKey, concat(fixedIv, keyToDecrypt), false, false))
 }
 
-export function encryptRsaKey(
-		encryptionKey: Aes128Key,
-		privateKey: PrivateKey,
-		iv?: Uint8Array,
-): Uint8Array {
-	return aes128Encrypt(
-			encryptionKey,
-			hexToUint8Array(privateKeyToHex(privateKey)),
-			iv ? iv : random.generateRandomData(IV_BYTE_LENGTH),
-			true,
-			false,
-	)
+export function encryptRsaKey(encryptionKey: Aes128Key, privateKey: PrivateKey, iv?: Uint8Array): Uint8Array {
+	return aes128Encrypt(encryptionKey, hexToUint8Array(privateKeyToHex(privateKey)), iv ? iv : random.generateRandomData(IV_BYTE_LENGTH), true, false)
 }
 
 export function decryptRsaKey(encryptionKey: Aes128Key, encryptedPrivateKey: Uint8Array): PrivateKey {

@@ -1,32 +1,28 @@
-import type {LoginController} from "../api/main/LoginController"
-import {logins} from "../api/main/LoginController"
-import {CustomerTypeRef} from "../api/entities/sys/TypeRefs.js"
-import type {lazy} from "@tutao/tutanota-utils"
-import {neverNull} from "@tutao/tutanota-utils"
-import {Dialog} from "../gui/base/Dialog"
-import type {TranslationKey} from "./LanguageViewModel"
-import {InfoLink, lang} from "./LanguageViewModel"
-import {isIOSApp} from "../api/common/Env"
-import {ProgrammingError} from "../api/common/error/ProgrammingError"
-import type {clickHandler} from "../gui/base/GuiUtils"
-import {locator} from "../api/main/MainLocator"
+import type { LoginController } from "../api/main/LoginController"
+import { logins } from "../api/main/LoginController"
+import { CustomerTypeRef } from "../api/entities/sys/TypeRefs.js"
+import type { lazy } from "@tutao/tutanota-utils"
+import { neverNull } from "@tutao/tutanota-utils"
+import { Dialog } from "../gui/base/Dialog"
+import type { TranslationKey } from "./LanguageViewModel"
+import { InfoLink, lang } from "./LanguageViewModel"
+import { isIOSApp } from "../api/common/Env"
+import { ProgrammingError } from "../api/common/error/ProgrammingError"
+import type { clickHandler } from "../gui/base/GuiUtils"
+import { locator } from "../api/main/MainLocator"
 
 /**
  * Opens a dialog which states that the function is not available in the Free subscription and provides an option to upgrade.
  * @param isInPremiumIncluded Whether the feature is included in the premium membership or not.
  */
 export async function showNotAvailableForFreeDialog(isInPremiumIncluded: boolean, customMessage?: TranslationKey) {
-	const wizard = await import ("../subscription/UpgradeSubscriptionWizard")
+	const wizard = await import("../subscription/UpgradeSubscriptionWizard")
 
 	if (isIOSApp()) {
 		await Dialog.message("notAvailableInApp_msg")
 	} else {
 		const baseMessage =
-			customMessage != null
-				? customMessage
-				: !isInPremiumIncluded
-					? "onlyAvailableForPremiumNotIncluded_msg"
-					: "onlyAvailableForPremium_msg"
+			customMessage != null ? customMessage : !isInPremiumIncluded ? "onlyAvailableForPremiumNotIncluded_msg" : "onlyAvailableForPremium_msg"
 
 		const message = `${lang.get(baseMessage)}\n\n${lang.get("premiumOffer_msg")}`
 		const confirmed = await Dialog.reminder(lang.get("upgradeReminderTitle_msg"), message, InfoLink.PremiumProBusiness)
@@ -55,7 +51,7 @@ export function checkPremiumSubscription(included: boolean): Promise<boolean> {
 		return Promise.resolve(false)
 	}
 
-	return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+	return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
 		if (customer.canceledPremiumAccount) {
 			return Dialog.message("subscriptionCancelledMessage_msg").then(() => false)
 		} else {
@@ -74,13 +70,13 @@ export function showMoreStorageNeededOrderDialog(loginController: LoginControlle
 	if (userController.isFreeAccount()) {
 		const confirmMsg = () => lang.get(messageIdOrMessageFunction) + "\n\n" + lang.get("onlyAvailableForPremiumNotIncluded_msg")
 
-		return Dialog.confirm(confirmMsg, "upgrade_action").then(confirm => {
+		return Dialog.confirm(confirmMsg, "upgrade_action").then((confirm) => {
 			if (confirm) {
-				import("../subscription/UpgradeSubscriptionWizard").then(wizard => wizard.showUpgradeWizard())
+				import("../subscription/UpgradeSubscriptionWizard").then((wizard) => wizard.showUpgradeWizard())
 			}
 		})
 	} else {
-		return import("../subscription/StorageCapacityOptionsDialog").then(({showStorageCapacityOptionsDialog}) =>
+		return import("../subscription/StorageCapacityOptionsDialog").then(({ showStorageCapacityOptionsDialog }) =>
 			showStorageCapacityOptionsDialog(messageIdOrMessageFunction),
 		)
 	}
@@ -95,10 +91,10 @@ export function showBusinessFeatureRequiredDialog(reason: TranslationKey | lazy<
 		return Promise.resolve(false)
 	} else {
 		if (logins.getUserController().isGlobalAdmin()) {
-			return Dialog.confirm(() => lang.getMaybeLazy(reason) + " " + lang.get("ordertItNow_msg")).then(confirmed => {
+			return Dialog.confirm(() => lang.getMaybeLazy(reason) + " " + lang.get("ordertItNow_msg")).then((confirmed) => {
 				if (confirmed) {
-					return import("../subscription/BuyDialog").then(BuyDialog => {
-						return BuyDialog.showBusinessBuyDialog(true).then(failed => {
+					return import("../subscription/BuyDialog").then((BuyDialog) => {
+						return BuyDialog.showBusinessBuyDialog(true).then((failed) => {
 							return !failed
 						})
 					})

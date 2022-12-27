@@ -1,20 +1,16 @@
-import {assertMainOrNode} from "../../api/common/Env"
-import {assert} from "@tutao/tutanota-utils"
-import {WorkerRandomizer} from "../../api/worker/WorkerImpl"
+import { assertMainOrNode } from "../../api/common/Env"
+import { assert } from "@tutao/tutanota-utils"
+import { WorkerRandomizer } from "../../api/worker/WorkerImpl"
 
 assertMainOrNode()
 
 // exported for tests
 // size of dictionary is within the 2Byte range
 export const NUMBER_OF_BYTES: number = 2
-export const BYTE_RANGE: number = Math.pow(2, (8 * NUMBER_OF_BYTES))
+export const BYTE_RANGE: number = Math.pow(2, 8 * NUMBER_OF_BYTES)
 
 export class PasswordGenerator {
-	constructor(
-		private randomizer: WorkerRandomizer,
-		private dictionary: Array<string>,
-	) {
-	}
+	constructor(private randomizer: WorkerRandomizer, private dictionary: Array<string>) {}
 
 	async generateRandomPassphrase(): Promise<string> {
 		const usedWords = new Set()

@@ -1,15 +1,15 @@
-import {COSEAlgorithmIdentifier} from "./WebauthnTypes.js"
-import {ProgrammingError} from "../../../api/common/error/ProgrammingError.js"
-import {getApiOrigin, isApp} from "../../../api/common/Env.js"
-import {U2F_APPID, U2f_APPID_SUFFIX, WEBAUTHN_RP_ID,} from "./WebAuthn.js"
-import {WebAuthnFacade} from "../../../native/common/generatedipc/WebAuthnFacade.js"
-import {stringToUtf8Uint8Array} from "@tutao/tutanota-utils"
-import {CancelledError} from "../../../api/common/error/CancelledError.js"
-import {WebauthnError} from "../../../api/common/error/WebauthnError.js"
-import {WebAuthnRegistrationChallenge} from "../../../native/common/generatedipc/WebAuthnRegistrationChallenge.js"
-import {WebAuthnRegistrationResult} from "../../../native/common/generatedipc/WebAuthnRegistrationResult.js"
-import {WebAuthnSignChallenge} from "../../../native/common/generatedipc/WebAuthnSignChallenge.js"
-import {WebAuthnSignResult} from "../../../native/common/generatedipc/WebAuthnSignResult.js"
+import { COSEAlgorithmIdentifier } from "./WebauthnTypes.js"
+import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
+import { getApiOrigin, isApp } from "../../../api/common/Env.js"
+import { U2F_APPID, U2f_APPID_SUFFIX, WEBAUTHN_RP_ID } from "./WebAuthn.js"
+import { WebAuthnFacade } from "../../../native/common/generatedipc/WebAuthnFacade.js"
+import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { CancelledError } from "../../../api/common/error/CancelledError.js"
+import { WebauthnError } from "../../../api/common/error/WebauthnError.js"
+import { WebAuthnRegistrationChallenge } from "../../../native/common/generatedipc/WebAuthnRegistrationChallenge.js"
+import { WebAuthnRegistrationResult } from "../../../native/common/generatedipc/WebAuthnRegistrationResult.js"
+import { WebAuthnSignChallenge } from "../../../native/common/generatedipc/WebAuthnSignChallenge.js"
+import { WebAuthnSignResult } from "../../../native/common/generatedipc/WebAuthnSignResult.js"
 
 const WEBAUTHN_TIMEOUT_MS = 60000
 
@@ -24,10 +24,7 @@ export class BrowserWebauthn implements WebAuthnFacade {
 	private readonly appId: string
 	private currentOperationSignal: AbortController | null = null
 
-	constructor(
-		private readonly api: CredentialsContainer,
-		hostname: string
-	) {
+	constructor(private readonly api: CredentialsContainer, hostname: string) {
 		this.rpId = this.rpIdFromHostname(hostname)
 		this.appId = this.appidFromHostname(hostname)
 	}
@@ -44,13 +41,16 @@ export class BrowserWebauthn implements WebAuthnFacade {
 	 * test whether hardware key second factors are supported for this client
 	 */
 	async isSupported(): Promise<boolean> {
-		return !isApp() && this.api != null &&
+		return (
+			!isApp() &&
+			this.api != null &&
 			// @ts-ignore see polyfill.js
 			// We just stub BigInt in order to import cborg without issues but we can't actually use it
 			!BigInt.polyfilled
+		)
 	}
 
-	async register({challenge, userId, name, displayName}: WebAuthnRegistrationChallenge): Promise<WebAuthnRegistrationResult> {
+	async register({ challenge, userId, name, displayName }: WebAuthnRegistrationChallenge): Promise<WebAuthnRegistrationResult> {
 		const publicKeyCredentialCreationOptions: PublicKeyCredentialCreationOptions = {
 			challenge,
 			rp: {
@@ -70,16 +70,16 @@ export class BrowserWebauthn implements WebAuthnFacade {
 			],
 			authenticatorSelection: {
 				authenticatorAttachment: "cross-platform",
-				userVerification: "discouraged"
+				userVerification: "discouraged",
 			},
 			timeout: WEBAUTHN_TIMEOUT_MS,
 			attestation: "none",
 		}
 		this.currentOperationSignal = new AbortController()
-		const credential = await this.api.create({
+		const credential = (await this.api.create({
 			publicKey: publicKeyCredentialCreationOptions,
-			signal: this.currentOperationSignal.signal
-		}) as PublicKeyCredential
+			signal: this.currentOperationSignal.signal,
+		})) as PublicKeyCredential
 
 		return {
 			rpId: this.rpId,
@@ -88,11 +88,11 @@ export class BrowserWebauthn implements WebAuthnFacade {
 		}
 	}
 
-	async sign({challenge, keys}: WebAuthnSignChallenge): Promise<WebAuthnSignResult> {
+	async sign({ challenge, keys }: WebAuthnSignChallenge): Promise<WebAuthnSignResult> {
 		const allowCredentials: PublicKeyCredentialDescriptor[] = keys.map((key) => {
 			return {
 				id: key.id,
-				type: "public-key"
+				type: "public-key",
 			}
 		})
 		const publicKeyCredentialRequestOptions: PublicKeyCredentialRequestOptions = {
@@ -111,7 +111,7 @@ export class BrowserWebauthn implements WebAuthnFacade {
 		try {
 			assertion = await this.api.get({
 				publicKey: publicKeyCredentialRequestOptions,
-				signal: this.currentOperationSignal.signal
+				signal: this.currentOperationSignal.signal,
 			})
 		} catch (e) {
 			if (e.name === "AbortError") {

@@ -1,25 +1,23 @@
 /**
  * This is a little wrapper around electron-updater to decouple logic.
  */
-import {downcast, noOp} from "@tutao/tutanota-utils"
+import { downcast, noOp } from "@tutao/tutanota-utils"
 import path from "path"
 import fs from "fs"
-import {app} from "electron"
-import {AppUpdater} from "electron-updater";
+import { app } from "electron"
+import { AppUpdater } from "electron-updater"
 
 export interface UpdaterWrapper {
-	updatesEnabledInBuild(): boolean,
+	updatesEnabledInBuild(): boolean
 
-	electronUpdater: Promise<AppUpdater>,
+	electronUpdater: Promise<AppUpdater>
 }
 
 export class UpdaterWrapperImpl implements UpdaterWrapper {
 	updatesEnabledInBuild(): boolean {
 		try {
-			const basepath = process.platform === "darwin"
-				? path.join(path.dirname(app.getPath('exe')), "..")
-				: path.dirname(app.getPath('exe'))
-			const appUpdateYmlPath = path.join(basepath, 'resources', 'app-update.yml')
+			const basepath = process.platform === "darwin" ? path.join(path.dirname(app.getPath("exe")), "..") : path.dirname(app.getPath("exe"))
+			const appUpdateYmlPath = path.join(basepath, "resources", "app-update.yml")
 			fs.accessSync(appUpdateYmlPath, fs.constants.R_OK)
 			return true
 		} catch (e) {
@@ -32,8 +30,7 @@ export class UpdaterWrapperImpl implements UpdaterWrapper {
 		: Promise.resolve(downcast<AppUpdater>(fakeAutoUpdater))
 }
 
-
-const fakeAutoUpdater = new class {
+const fakeAutoUpdater = new (class {
 	on(): this {
 		return this
 	}
@@ -50,11 +47,10 @@ const fakeAutoUpdater = new class {
 		return Promise.resolve([])
 	}
 
-	quitAndInstall() {
-	}
+	quitAndInstall() {}
 
 	checkForUpdates() {
 		// Never resolved, return type is too complex
 		return new Promise(noOp)
 	}
-}
+})()

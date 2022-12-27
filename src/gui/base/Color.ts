@@ -1,21 +1,19 @@
-import {assert} from "@tutao/tutanota-utils"
-import {assertMainOrNodeBoot} from "../../api/common/Env"
+import { assert } from "@tutao/tutanota-utils"
+import { assertMainOrNodeBoot } from "../../api/common/Env"
 
 assertMainOrNodeBoot()
 // 3 or 6 digit hex color codes
 export const VALID_HEX_CODE_FORMAT: RegExp = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")
 
 export function isColorLight(c: string): boolean {
-	const {r, g, b} = hexToRgb(c)
+	const { r, g, b } = hexToRgb(c)
 	// Counting the perceptive luminance
 	// human eye favors green color...
 	const a = 1 - (0.299 * r + 0.587 * g + 0.114 * b) / 255
 	return a < 0.5
 }
 
-export function hexToRgb(
-	colorCode: string,
-): {
+export function hexToRgb(colorCode: string): {
 	r: number
 	g: number
 	b: number
@@ -42,7 +40,7 @@ export function hexToRgb(
 	}
 }
 
-export function rgbToHex(color: {r: number; g: number; b: number}): string {
+export function rgbToHex(color: { r: number; g: number; b: number }): string {
 	return "#" + ((1 << 24) + (color.r << 16) + (color.g << 8) + color.b).toString(16).slice(1)
 }
 

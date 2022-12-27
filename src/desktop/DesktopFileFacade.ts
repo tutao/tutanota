@@ -1,23 +1,18 @@
-import {FileFacade} from "../native/common/generatedipc/FileFacade.js"
-import {DownloadTaskResponse} from "../native/common/generatedipc/DownloadTaskResponse.js"
-import {IpcClientRect} from "../native/common/generatedipc/IpcClientRect.js"
-import {DesktopDownloadManager} from "./net/DesktopDownloadManager.js"
-import {ElectronExports} from "./ElectronExportTypes.js"
-import {UploadTaskResponse} from "../native/common/generatedipc/UploadTaskResponse.js"
-import {DataFile} from "../api/common/DataFile.js"
-import {FileUri} from "../native/common/FileApp.js"
+import { FileFacade } from "../native/common/generatedipc/FileFacade.js"
+import { DownloadTaskResponse } from "../native/common/generatedipc/DownloadTaskResponse.js"
+import { IpcClientRect } from "../native/common/generatedipc/IpcClientRect.js"
+import { DesktopDownloadManager } from "./net/DesktopDownloadManager.js"
+import { ElectronExports } from "./ElectronExportTypes.js"
+import { UploadTaskResponse } from "../native/common/generatedipc/UploadTaskResponse.js"
+import { DataFile } from "../api/common/DataFile.js"
+import { FileUri } from "../native/common/FileApp.js"
 
 function Unimplemented() {
 	return new Error("not implemented for this platform")
 }
 
 export class DesktopFileFacade implements FileFacade {
-
-	constructor(
-		private readonly dl: DesktopDownloadManager,
-		private readonly electron: ElectronExports,
-	) {
-	}
+	constructor(private readonly dl: DesktopDownloadManager, private readonly electron: ElectronExports) {}
 
 	clearFileData(): Promise<void> {
 		this.dl.deleteTutanotaTempDirectory()
@@ -28,7 +23,7 @@ export class DesktopFileFacade implements FileFacade {
 		return this.dl.deleteFile(file)
 	}
 
-	download(sourceUrl: string, filename: string, headers: Record<string, string>,): Promise<DownloadTaskResponse> {
+	download(sourceUrl: string, filename: string, headers: Record<string, string>): Promise<DownloadTaskResponse> {
 		return this.dl.downloadNative(sourceUrl, filename, headers)
 	}
 
@@ -63,10 +58,10 @@ export class DesktopFileFacade implements FileFacade {
 	openFolderChooser(): Promise<string | null> {
 		// open folder dialog
 		return this.electron.dialog
-				   .showOpenDialog({
-					   properties: ["openDirectory"],
-				   })
-				   .then(({filePaths}) => filePaths[0] ?? null)
+			.showOpenDialog({
+				properties: ["openDirectory"],
+			})
+			.then(({ filePaths }) => filePaths[0] ?? null)
 	}
 
 	putFileIntoDownloadsFolder(localFileUri: string): Promise<string> {

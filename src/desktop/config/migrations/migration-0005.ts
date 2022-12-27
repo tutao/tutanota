@@ -1,5 +1,5 @@
-import type {Config} from "../ConfigCommon"
-import type {ElectronExports} from "./DesktopConfigMigrator";
+import type { Config } from "../ConfigCommon"
+import type { ElectronExports } from "./DesktopConfigMigrator"
 
 async function migrateSpellcheck(oldConfig: Config, electron: ElectronExports): Promise<void> {
 	const currentLang = electron.session.defaultSession.getSpellCheckerLanguages()[0]

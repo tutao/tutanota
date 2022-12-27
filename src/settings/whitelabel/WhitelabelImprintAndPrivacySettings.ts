@@ -1,10 +1,10 @@
-import {Dialog} from "../../gui/base/Dialog"
-import {lang} from "../../misc/LanguageViewModel"
-import m, {Children, Component, Vnode} from "mithril"
-import {TextField} from "../../gui/base/TextField.js"
-import {Icons} from "../../gui/base/icons/Icons"
-import {IconButton} from "../../gui/base/IconButton.js"
-import {ButtonSize} from "../../gui/base/ButtonSize.js";
+import { Dialog } from "../../gui/base/Dialog"
+import { lang } from "../../misc/LanguageViewModel"
+import m, { Children, Component, Vnode } from "mithril"
+import { TextField } from "../../gui/base/TextField.js"
+import { Icons } from "../../gui/base/icons/Icons"
+import { IconButton } from "../../gui/base/IconButton.js"
+import { ButtonSize } from "../../gui/base/ButtonSize.js"
 
 export type WhitelabelImprintAndPrivacySettingsAttrs = {
 	privacyStatementUrl: string
@@ -15,7 +15,7 @@ export type WhitelabelImprintAndPrivacySettingsAttrs = {
 
 export class WhitelabelImprintAndPrivacySettings implements Component<WhitelabelImprintAndPrivacySettingsAttrs> {
 	view(vnode: Vnode<WhitelabelImprintAndPrivacySettingsAttrs>): Children {
-		const {privacyStatementUrl, onPrivacyStatementUrlChanged, imprintUrl, onImprintUrlChanged} = vnode.attrs
+		const { privacyStatementUrl, onPrivacyStatementUrlChanged, imprintUrl, onImprintUrlChanged } = vnode.attrs
 		return [
 			this.renderWhitelabelImprintSetting(imprintUrl, onImprintUrlChanged),
 			this.renderPrivacyPolicySetting(privacyStatementUrl, onPrivacyStatementUrlChanged),
@@ -27,15 +27,15 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 			label: "privacyPolicyUrl_label",
 			value: privacyStatementUrl,
 			disabled: true,
-			injectionsRight: () => onPrivacyStatementUrlChanged
-				? m(IconButton, {
-						title: "edit_action",
-						click: () => this.editPrivacyStatementUrl(privacyStatementUrl, onPrivacyStatementUrlChanged),
-						icon: Icons.Edit,
-						size: ButtonSize.Compact,
-					}
-				)
-				: null,
+			injectionsRight: () =>
+				onPrivacyStatementUrlChanged
+					? m(IconButton, {
+							title: "edit_action",
+							click: () => this.editPrivacyStatementUrl(privacyStatementUrl, onPrivacyStatementUrlChanged),
+							icon: Icons.Edit,
+							size: ButtonSize.Compact,
+					  })
+					: null,
 		})
 	}
 
@@ -43,14 +43,15 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 		let dialog = Dialog.showActionDialog({
 			title: lang.get("privacyLink_label"),
 			child: {
-				view: () => m(TextField, {
-					label: "privacyPolicyUrl_label",
-					value: privacyStatementUrl,
-					oninput: (value) => (privacyStatementUrl = value.trim()),
-				}),
+				view: () =>
+					m(TextField, {
+						label: "privacyPolicyUrl_label",
+						value: privacyStatementUrl,
+						oninput: (value) => (privacyStatementUrl = value.trim()),
+					}),
 			},
 			allowOkWithReturn: true,
-			okAction: ok => {
+			okAction: (ok) => {
 				if (ok) {
 					onPrivacyStatementUrlChanged(privacyStatementUrl)
 					dialog.close()
@@ -65,14 +66,15 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 			label: "imprintUrl_label",
 			value: imprintUrl,
 			disabled: true,
-			injectionsRight: () => onImprintUrlChanged
-				? m(IconButton, {
-					title: "edit_action",
-					click: () => this.showEditImprintDialog(imprintUrl, onImprintUrlChanged),
-					icon: Icons.Edit,
-					size: ButtonSize.Compact,
-				})
-				: null,
+			injectionsRight: () =>
+				onImprintUrlChanged
+					? m(IconButton, {
+							title: "edit_action",
+							click: () => this.showEditImprintDialog(imprintUrl, onImprintUrlChanged),
+							icon: Icons.Edit,
+							size: ButtonSize.Compact,
+					  })
+					: null,
 		})
 	}
 
@@ -80,14 +82,15 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 		const dialog = Dialog.showActionDialog({
 			title: lang.get("imprintUrl_label"),
 			child: {
-				view: () => m(TextField, {
-					label: "imprintUrl_label",
-					value: imprintUrl,
-					oninput: value => (imprintUrl = value.trim()),
-				}),
+				view: () =>
+					m(TextField, {
+						label: "imprintUrl_label",
+						value: imprintUrl,
+						oninput: (value) => (imprintUrl = value.trim()),
+					}),
 			},
 			allowOkWithReturn: true,
-			okAction: ok => {
+			okAction: (ok) => {
 				if (ok) {
 					onImprintUrlChanged(imprintUrl)
 					dialog.close()

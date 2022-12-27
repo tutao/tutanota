@@ -1,7 +1,7 @@
-import type {CalendarEvent} from "../../api/entities/tutanota/TypeRefs.js"
+import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import m from "mithril"
-import {getAllDayDateUTC, isAllDayEvent} from "../../api/common/utils/CommonCalendarUtils"
-import {Time} from "../../api/common/utils/Time"
+import { getAllDayDateUTC, isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
+import { Time } from "../../api/common/utils/Time"
 
 const DRAG_THRESHOLD = 10
 export type MousePos = {
@@ -157,7 +157,7 @@ export class EventDragHandler {
 	}
 
 	getDayUnderMouseDiff(dragData: DragData, adjustedDateUnderMouse: Date): number {
-		const {originalEvent, originalDateUnderMouse} = dragData
+		const { originalEvent, originalDateUnderMouse } = dragData
 		return isAllDayEvent(originalEvent)
 			? getAllDayDateUTC(adjustedDateUnderMouse).getTime() - getAllDayDateUTC(originalDateUnderMouse).getTime()
 			: adjustedDateUnderMouse.getTime() - originalDateUnderMouse.getTime()

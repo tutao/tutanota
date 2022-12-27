@@ -1,19 +1,19 @@
-import type {PushIdentifier} from "../../api/entities/sys/TypeRefs.js"
-import {createPushIdentifier, PushIdentifierTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import {assert, assertNotNull} from "@tutao/tutanota-utils"
-import {PushServiceType} from "../../api/common/TutanotaConstants"
-import {lang} from "../../misc/LanguageViewModel"
-import {getApiOrigin, isAndroidApp, isDesktop, isIOSApp} from "../../api/common/Env"
-import {LoginController, logins} from "../../api/main/LoginController"
-import {client} from "../../misc/ClientDetector"
-import {DeviceConfig, deviceConfig} from "../../misc/DeviceConfig"
-import {getElementId} from "../../api/common/utils/EntityUtils"
-import {locator} from "../../api/main/MainLocator"
-import {DeviceStorageUnavailableError} from "../../api/common/error/DeviceStorageUnavailableError"
-import {NativePushFacade} from "../common/generatedipc/NativePushFacade.js"
-import {CryptoFacade} from "../../api/worker/crypto/CryptoFacade.js"
-import {EntityClient} from "../../api/common/EntityClient.js"
-import {CalendarFacade} from "../../api/worker/facades/CalendarFacade.js"
+import type { PushIdentifier } from "../../api/entities/sys/TypeRefs.js"
+import { createPushIdentifier, PushIdentifierTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { assert, assertNotNull } from "@tutao/tutanota-utils"
+import { PushServiceType } from "../../api/common/TutanotaConstants"
+import { lang } from "../../misc/LanguageViewModel"
+import { getApiOrigin, isAndroidApp, isDesktop, isIOSApp } from "../../api/common/Env"
+import { LoginController, logins } from "../../api/main/LoginController"
+import { client } from "../../misc/ClientDetector"
+import { DeviceConfig, deviceConfig } from "../../misc/DeviceConfig"
+import { getElementId } from "../../api/common/utils/EntityUtils"
+import { locator } from "../../api/main/MainLocator"
+import { DeviceStorageUnavailableError } from "../../api/common/error/DeviceStorageUnavailableError"
+import { NativePushFacade } from "../common/generatedipc/NativePushFacade.js"
+import { CryptoFacade } from "../../api/worker/crypto/CryptoFacade.js"
+import { EntityClient } from "../../api/common/EntityClient.js"
+import { CalendarFacade } from "../../api/worker/facades/CalendarFacade.js"
 
 export class NativePushServiceApp {
 	private _currentIdentifier: string | null = null
@@ -25,8 +25,7 @@ export class NativePushServiceApp {
 		private readonly entityClient: EntityClient,
 		private readonly deviceConfig: DeviceConfig,
 		private readonly calendarFacade: CalendarFacade,
-	) {
-	}
+	) {}
 
 	async register(): Promise<void> {
 		console.log("Registering for push notifications")
@@ -34,8 +33,7 @@ export class NativePushServiceApp {
 			try {
 				const identifier = (await this.loadPushIdentifierFromNative()) ?? (await locator.worker.generateSsePushIdentifer())
 				this._currentIdentifier = identifier
-				const pushIdentifier =
-					(await this.loadPushIdentifier(identifier)) ?? (await this.createPushIdentiferInstance(identifier, PushServiceType.SSE))
+				const pushIdentifier = (await this.loadPushIdentifier(identifier)) ?? (await this.createPushIdentiferInstance(identifier, PushServiceType.SSE))
 				await this.storePushIdentifierLocally(pushIdentifier)
 				await this.scheduleAlarmsIfNeeded(pushIdentifier)
 				await this.initPushNotifications()
@@ -51,8 +49,7 @@ export class NativePushServiceApp {
 
 			if (identifier) {
 				this._currentIdentifier = identifier
-				const pushIdentifier =
-					(await this.loadPushIdentifier(identifier)) ?? (await this.createPushIdentiferInstance(identifier, PushServiceType.IOS))
+				const pushIdentifier = (await this.loadPushIdentifier(identifier)) ?? (await this.createPushIdentiferInstance(identifier, PushServiceType.IOS))
 
 				if (pushIdentifier.language !== lang.code) {
 					pushIdentifier.language = lang.code
@@ -94,7 +91,7 @@ export class NativePushServiceApp {
 	private async loadPushIdentifier(identifier: string): Promise<PushIdentifier | null> {
 		const list = assertNotNull(this.logins.getUserController().user.pushIdentifierList)
 		const identifiers = await this.entityClient.loadAll(PushIdentifierTypeRef, list.list)
-		return identifiers.find(i => i.identifier === identifier) ?? null
+		return identifiers.find((i) => i.identifier === identifier) ?? null
 	}
 
 	private async createPushIdentiferInstance(identifier: string, pushServiceType: PushServiceType): Promise<PushIdentifier> {
@@ -111,7 +108,6 @@ export class NativePushServiceApp {
 		const id = await this.entityClient.setup(list, pushIdentifier)
 		return this.entityClient.load(PushIdentifierTypeRef, [list, id])
 	}
-
 
 	async closePushNotification(addresses: string[]) {
 		await this.nativePushFacade.closePushNotifications(addresses)

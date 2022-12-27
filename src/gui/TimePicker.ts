@@ -1,11 +1,11 @@
-import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
-import {TextField, TextFieldType as TextFieldType} from "./base/TextField.js"
-import {theme} from "./theme"
-import {client} from "../misc/ClientDetector"
-import {Keys} from "../api/common/TutanotaConstants"
-import {timeStringFromParts} from "../misc/Formatter"
-import {parseTime} from "../misc/parsing/TimeParser"
-import {Time} from "../api/common/utils/Time"
+import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import { TextField, TextFieldType as TextFieldType } from "./base/TextField.js"
+import { theme } from "./theme"
+import { client } from "../misc/ClientDetector"
+import { Keys } from "../api/common/TutanotaConstants"
+import { timeStringFromParts } from "../misc/Formatter"
+import { parseTime } from "../misc/parsing/TimeParser"
+import { Time } from "../api/common/utils/Time"
 
 export type TimePickerAttrs = {
 	time: Time | null
@@ -21,7 +21,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	private _oldValue!: string
 	private _value: string
 
-	constructor({attrs}: Vnode<TimePickerAttrs>) {
+	constructor({ attrs }: Vnode<TimePickerAttrs>) {
 		this._focused = false
 		this._value = ""
 		const times: string[] = []
@@ -35,7 +35,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		this._values = times
 	}
 
-	view({attrs}: Vnode<TimePickerAttrs>): Children {
+	view({ attrs }: Vnode<TimePickerAttrs>): Children {
 		if (attrs.time) {
 			const timeAsString = attrs.time?.toString(attrs.amPmFormat) ?? ""
 			this._selectedIndex = this._values.indexOf(timeAsString)
@@ -67,7 +67,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			label: "emptyString_msg",
 			value: this._value,
 			type: TextFieldType.Time,
-			oninput: value => {
+			oninput: (value) => {
 				this._value = value
 
 				attrs.onTimeSelected(parseTime(value))
@@ -84,20 +84,20 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		return m(TextField, {
 			label: "emptyString_msg",
 			value: this._value,
-			oninput: (v) => this._value = v,
+			oninput: (v) => (this._value = v),
 			disabled: attrs.disabled,
 			onfocus: (dom, input) => {
 				this._focused = true
 				input.select()
 			},
-			onblur: e => {
+			onblur: (e) => {
 				if (this._focused) {
 					this._onSelected(attrs)
 				}
 
 				e.redraw = false
 			},
-			keyHandler: key => {
+			keyHandler: (key) => {
 				if (key.keyCode === Keys.RETURN.code) {
 					this._onSelected(attrs)
 					const active = document.activeElement as HTMLElement | null
@@ -113,8 +113,8 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		return m(
 			".fixed.flex.col.mt-s.menu-shadow",
 			{
-				oncreate: vnode => this._setScrollTop(attrs, vnode),
-				onupdate: vnode => this._setScrollTop(attrs, vnode),
+				oncreate: (vnode) => this._setScrollTop(attrs, vnode),
+				onupdate: (vnode) => this._setScrollTop(attrs, vnode),
 				style: {
 					width: "100px",
 					height: "400px",

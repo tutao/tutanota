@@ -1,10 +1,10 @@
-import type {GroupInfo} from "../../entities/sys/TypeRefs.js"
-import type {User} from "../../entities/sys/TypeRefs.js"
-import {GroupType} from "../TutanotaConstants"
-import type {GroupMembership} from "../../entities/sys/TypeRefs.js"
+import type { GroupInfo } from "../../entities/sys/TypeRefs.js"
+import type { User } from "../../entities/sys/TypeRefs.js"
+import { GroupType } from "../TutanotaConstants"
+import type { GroupMembership } from "../../entities/sys/TypeRefs.js"
 
 export function getEnabledMailAddressesForGroupInfo(groupInfo: GroupInfo): string[] {
-	let aliases = groupInfo.mailAddressAliases.filter(alias => alias.enabled).map(alias => alias.mailAddress)
+	let aliases = groupInfo.mailAddressAliases.filter((alias) => alias.enabled).map((alias) => alias.mailAddress)
 	if (groupInfo.mailAddress) aliases.unshift(groupInfo.mailAddress)
 	return aliases
 }
@@ -16,7 +16,7 @@ export function getUserGroupMemberships(user: User, groupType: GroupType): Group
 	if (groupType === GroupType.User) {
 		return [user.userGroup]
 	} else {
-		return user.memberships.filter(m => m.groupType === groupType)
+		return user.memberships.filter((m) => m.groupType === groupType)
 	}
 }
 

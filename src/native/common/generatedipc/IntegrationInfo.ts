@@ -1,6 +1,5 @@
 /* generated file, don't edit. */
 
-
 /**
  * Status of desktop integration.
  */

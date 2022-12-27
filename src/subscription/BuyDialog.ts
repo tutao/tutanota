@@ -1,27 +1,27 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {assertNotNull, filterInt, incrementDate, neverNull, ofClass} from "@tutao/tutanota-utils"
-import {TextField, TextFieldType} from "../gui/base/TextField.js"
-import {Dialog, DialogType} from "../gui/base/Dialog.js"
-import {lang, TranslationKey} from "../misc/LanguageViewModel.js"
-import {AccountType, BookingItemFeatureType, FeatureType} from "../api/common/TutanotaConstants.js"
-import {formatDate} from "../misc/Formatter.js"
-import type {PriceData, PriceServiceReturn} from "../api/entities/sys/TypeRefs.js"
-import {AccountingInfoTypeRef, CustomerInfoTypeRef, CustomerTypeRef, PriceItemData} from "../api/entities/sys/TypeRefs.js"
-import {logins} from "../api/main/LoginController.js"
-import {NotAuthorizedError} from "../api/common/error/RestError.js"
-import {asPaymentInterval, formatPrice, getPriceItem, PaymentInterval} from "./PriceUtils.js"
-import {bookItem} from "./SubscriptionUtils.js"
-import {showProgressDialog} from "../gui/dialogs/ProgressDialog.js"
-import {locator} from "../api/main/MainLocator.js"
-import {assertMainOrNode} from "../api/common/Env.js"
+import m, { Children, Component, Vnode } from "mithril"
+import { assertNotNull, filterInt, incrementDate, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { TextField, TextFieldType } from "../gui/base/TextField.js"
+import { Dialog, DialogType } from "../gui/base/Dialog.js"
+import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
+import { AccountType, BookingItemFeatureType, FeatureType } from "../api/common/TutanotaConstants.js"
+import { formatDate } from "../misc/Formatter.js"
+import type { PriceData, PriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
+import { AccountingInfoTypeRef, CustomerInfoTypeRef, CustomerTypeRef, PriceItemData } from "../api/entities/sys/TypeRefs.js"
+import { logins } from "../api/main/LoginController.js"
+import { NotAuthorizedError } from "../api/common/error/RestError.js"
+import { asPaymentInterval, formatPrice, getPriceItem, PaymentInterval } from "./PriceUtils.js"
+import { bookItem } from "./SubscriptionUtils.js"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
+import { locator } from "../api/main/MainLocator.js"
+import { assertMainOrNode } from "../api/common/Env.js"
 
 assertMainOrNode()
 
 export interface BookingParams {
-	featureType: BookingItemFeatureType,
-	count: number,
-	freeAmount: number,
-	reactivate: boolean,
+	featureType: BookingItemFeatureType
+	count: number
+	freeAmount: number
+	reactivate: boolean
 }
 
 /**
@@ -33,16 +33,15 @@ export async function showBuyDialog(params: BookingParams): Promise<boolean> {
 	}
 	const priceChangeModel = await showProgressDialog("pleaseWait_msg", prepareDialog(params))
 	if (priceChangeModel) {
-		return showDialog(
-			priceChangeModel.getActionLabel(),
-			() => m(ConfirmSubscriptionView, {priceChangeModel, count: params.count, freeAmount: params.freeAmount})
+		return showDialog(priceChangeModel.getActionLabel(), () =>
+			m(ConfirmSubscriptionView, { priceChangeModel, count: params.count, freeAmount: params.freeAmount }),
 		)
 	} else {
 		return false
 	}
 }
 
-async function prepareDialog({featureType, count, reactivate}: BookingParams): Promise<PriceChangeModel | null> {
+async function prepareDialog({ featureType, count, reactivate }: BookingParams): Promise<PriceChangeModel | null> {
 	const customer = await locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 	if (customer.type === AccountType.PREMIUM && customer.canceledPremiumAccount) {
 		await Dialog.message("subscriptionCancelledMessage_msg")
@@ -52,8 +51,8 @@ async function prepareDialog({featureType, count, reactivate}: BookingParams): P
 		const priceChangeModel = new PriceChangeModel(price, featureType)
 		const customerInfo = await locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		const accountingInfo = await locator.entityClient
-											.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
-											.catch(ofClass(NotAuthorizedError, () => null))
+			.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+			.catch(ofClass(NotAuthorizedError, () => null))
 		if (accountingInfo && accountingInfo.paymentMethod == null) {
 			const confirm = await Dialog.confirm("enterPaymentDataFirst_msg")
 			if (confirm) {
@@ -65,7 +64,6 @@ async function prepareDialog({featureType, count, reactivate}: BookingParams): P
 			return priceChangeModel
 		}
 	}
-
 }
 
 /**
@@ -114,7 +112,7 @@ export async function showBuyDialogToBookItem(
 	freeAmount: number = 0,
 	reactivate: boolean = false,
 ): Promise<boolean> {
-	const accepted = await showBuyDialog({featureType: bookingItemFeatureType, count, freeAmount, reactivate})
+	const accepted = await showBuyDialog({ featureType: bookingItemFeatureType, count, freeAmount, reactivate })
 	if (accepted) {
 		return bookItem(bookingItemFeatureType, count)
 	} else {
@@ -123,7 +121,7 @@ export async function showBuyDialogToBookItem(
 }
 
 function showDialog(okLabel: TranslationKey, view: () => Children) {
-	return new Promise<boolean>(resolve => {
+	return new Promise<boolean>((resolve) => {
 		let dialog: Dialog
 
 		const doAction = (res: boolean) => {
@@ -143,14 +141,14 @@ function showDialog(okLabel: TranslationKey, view: () => Children) {
 }
 
 interface ConfirmAttrs {
-	priceChangeModel: PriceChangeModel,
-	count: number,
-	freeAmount: number,
+	priceChangeModel: PriceChangeModel
+	count: number
+	freeAmount: number
 }
 
 class ConfirmSubscriptionView implements Component<ConfirmAttrs> {
-	view({attrs}: Vnode<ConfirmAttrs>): Children {
-		const {priceChangeModel, count, freeAmount} = attrs
+	view({ attrs }: Vnode<ConfirmAttrs>): Children {
+		const { priceChangeModel, count, freeAmount } = attrs
 		const chargeDate = incrementDate(priceChangeModel.periodEndDate(), 1)
 
 		return m("", [
@@ -162,11 +160,11 @@ class ConfirmSubscriptionView implements Component<ConfirmAttrs> {
 			}),
 			priceChangeModel.isBuy()
 				? m(TextField, {
-					label: "subscription_label",
-					helpLabel: () => lang.get("nextChargeOn_label", {"{chargeDate}": formatDate(chargeDate)}),
-					value: this.getSubscriptionText(priceChangeModel),
-					disabled: true,
-				})
+						label: "subscription_label",
+						helpLabel: () => lang.get("nextChargeOn_label", { "{chargeDate}": formatDate(chargeDate) }),
+						value: this.getSubscriptionText(priceChangeModel),
+						disabled: true,
+				  })
 				: null,
 			m(TextField, {
 				label: "price_label",
@@ -208,9 +206,9 @@ class ConfirmSubscriptionView implements Component<ConfirmAttrs> {
 					}
 				case BookingItemFeatureType.Whitelabel:
 					if (count > 0) {
-						return lang.get("whitelabelBooking_label", {"{1}": model.getFutureCount()})
+						return lang.get("whitelabelBooking_label", { "{1}": model.getFutureCount() })
 					} else {
-						return lang.get("cancelWhitelabelBooking_label", {"{1}": model.getCurrentCount()})
+						return lang.get("cancelWhitelabelBooking_label", { "{1}": model.getCurrentCount() })
 					}
 				case BookingItemFeatureType.Sharing:
 					if (count > 0) {
@@ -332,10 +330,7 @@ class PriceChangeModel {
 	readonly futurePrice: number
 	readonly additionalFeatures: ReadonlySet<BookingItemFeatureType>
 
-	constructor(
-		private readonly price: PriceServiceReturn,
-		readonly featureType: BookingItemFeatureType,
-	) {
+	constructor(private readonly price: PriceServiceReturn, readonly featureType: BookingItemFeatureType) {
 		this.currentItem = getPriceItem(price.currentPriceNextPeriod, featureType)
 		this.futureItem = getPriceItem(price.futurePriceNextPeriod, featureType)
 		this.currentPrice = this.getPriceFromPriceData(price.currentPriceNextPeriod, featureType)
@@ -343,8 +338,7 @@ class PriceChangeModel {
 
 		if (this.featureType === BookingItemFeatureType.Users) {
 			this.additionalFeatures = new Set(
-				[BookingItemFeatureType.Whitelabel, BookingItemFeatureType.Sharing, BookingItemFeatureType.Business]
-					.filter(f => this.getFuturePrice(f) > 0)
+				[BookingItemFeatureType.Whitelabel, BookingItemFeatureType.Sharing, BookingItemFeatureType.Business].filter((f) => this.getFuturePrice(f) > 0),
 			)
 		} else {
 			this.additionalFeatures = new Set()

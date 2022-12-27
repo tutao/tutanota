@@ -9,10 +9,10 @@ export const SHA512_HASH_LENGTH_BYTES = 64
  * @return The hash.
  */
 export function sha512Hash(uint8Array: Uint8Array): Uint8Array {
-    try {
-        sha512.update(sjcl.codec.arrayBuffer.toBits(uint8Array.buffer))
-        return new Uint8Array(sjcl.codec.arrayBuffer.fromBits(sha512.finalize(), false))
-    } finally {
-        sha512.reset()
-    }
+	try {
+		sha512.update(sjcl.codec.arrayBuffer.toBits(uint8Array.buffer))
+		return new Uint8Array(sjcl.codec.arrayBuffer.fromBits(sha512.finalize(), false))
+	} finally {
+		sha512.reset()
+	}
 }

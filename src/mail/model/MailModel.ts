@@ -1,9 +1,9 @@
 import m from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {containsEventOfType} from "../../api/common/utils/Utils"
-import {assertNotNull, groupBy, neverNull, noOp, ofClass, promiseMap, splitInChunks} from "@tutao/tutanota-utils"
-import type {Mail, MailBox, MailboxGroupRoot, MailboxProperties, MailFolder} from "../../api/entities/tutanota/TypeRefs.js"
+import { containsEventOfType } from "../../api/common/utils/Utils"
+import { assertNotNull, groupBy, neverNull, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
+import type { Mail, MailBox, MailboxGroupRoot, MailboxProperties, MailFolder } from "../../api/entities/tutanota/TypeRefs.js"
 import {
 	createMailAddressProperties,
 	createMailboxProperties,
@@ -11,25 +11,32 @@ import {
 	MailboxPropertiesTypeRef,
 	MailBoxTypeRef,
 	MailFolderTypeRef,
-	MailTypeRef
+	MailTypeRef,
 } from "../../api/entities/tutanota/TypeRefs.js"
-import type {Group, GroupInfo, GroupMembership, WebsocketCounterData} from "../../api/entities/sys/TypeRefs.js"
-import {GroupInfoTypeRef, GroupTypeRef, UserTypeRef} from "../../api/entities/sys/TypeRefs.js"
-import type {MailReportType} from "../../api/common/TutanotaConstants"
-import {FeatureType, GroupType, MailFolderType, MAX_NBR_MOVE_DELETE_MAIL_SERVICE, OperationType, ReportMovedMailsType} from "../../api/common/TutanotaConstants"
-import type {EntityUpdateData} from "../../api/main/EventController"
-import {EventController, isUpdateForTypeRef} from "../../api/main/EventController"
-import {lang} from "../../misc/LanguageViewModel"
-import {Notifications} from "../../gui/Notifications"
-import {findAndApplyMatchingRule} from "./InboxRuleHandler"
-import {EntityClient} from "../../api/common/EntityClient"
-import {elementIdPart, getListId, isSameId, listIdPart} from "../../api/common/utils/EntityUtils"
-import {NotFoundError, PreconditionFailedError} from "../../api/common/error/RestError"
-import type {MailFacade} from "../../api/worker/facades/MailFacade"
-import {LoginController} from "../../api/main/LoginController.js"
-import {getEnabledMailAddressesWithUser} from "./MailUtils.js"
-import {ProgrammingError} from "../../api/common/error/ProgrammingError.js"
-import {FolderSystem} from "./FolderSystem.js"
+import type { Group, GroupInfo, GroupMembership, WebsocketCounterData } from "../../api/entities/sys/TypeRefs.js"
+import { GroupInfoTypeRef, GroupTypeRef, UserTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import type { MailReportType } from "../../api/common/TutanotaConstants"
+import {
+	FeatureType,
+	GroupType,
+	MailFolderType,
+	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
+	OperationType,
+	ReportMovedMailsType,
+} from "../../api/common/TutanotaConstants"
+import type { EntityUpdateData } from "../../api/main/EventController"
+import { EventController, isUpdateForTypeRef } from "../../api/main/EventController"
+import { lang } from "../../misc/LanguageViewModel"
+import { Notifications } from "../../gui/Notifications"
+import { findAndApplyMatchingRule } from "./InboxRuleHandler"
+import { EntityClient } from "../../api/common/EntityClient"
+import { elementIdPart, getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils"
+import { NotFoundError, PreconditionFailedError } from "../../api/common/error/RestError"
+import type { MailFacade } from "../../api/worker/facades/MailFacade"
+import { LoginController } from "../../api/main/LoginController.js"
+import { getEnabledMailAddressesWithUser } from "./MailUtils.js"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { FolderSystem } from "./FolderSystem.js"
 
 export type MailboxDetail = {
 	mailbox: MailBox
@@ -74,9 +81,9 @@ export class MailModel {
 			return this.initialization
 		}
 
-		this.eventController.addEntityListener(updates => this.entityEventsReceived(updates))
+		this.eventController.addEntityListener((updates) => this.entityEventsReceived(updates))
 
-		this.eventController.getCountersStream().map(update => {
+		this.eventController.getCountersStream().map((update) => {
 			this._mailboxCountersUpdates(update)
 		})
 
@@ -85,8 +92,8 @@ export class MailModel {
 
 	private _init(): Promise<void> {
 		const mailGroupMemberships = this.logins.getUserController().getMailGroupMemberships()
-		const mailBoxDetailsPromises = mailGroupMemberships.map(m => this.mailboxDetailsFromMembership(m))
-		this.initialization = Promise.all(mailBoxDetailsPromises).then(details => this.mailboxDetails(details))
+		const mailBoxDetailsPromises = mailGroupMemberships.map((m) => this.mailboxDetailsFromMembership(m))
+		this.initialization = Promise.all(mailBoxDetailsPromises).then((details) => this.mailboxDetails(details))
 		return this.initialization
 	}
 
@@ -112,30 +119,30 @@ export class MailModel {
 
 	_loadFolders(folderListId: Id, loadSubFolders: boolean): Promise<MailFolder[]> {
 		return this.entityClient
-				   .loadAll(MailFolderTypeRef, folderListId)
-				   .then(folders => {
-					   if (loadSubFolders) {
-						   return promiseMap(folders, folder => this._loadFolders(folder.subFolders, false), {
-							   concurrency: 5,
-						   }).then(subfolders => {
-							   return folders.concat(...subfolders)
-						   })
-					   } else {
-						   return folders
-					   }
-				   })
-				   .then(folders => {
-					   return folders.filter(f => {
-						   // We do not show spam or archive for external users
-						   if (!this.logins.isInternalUserLoggedIn() && (f.folderType === MailFolderType.SPAM || f.folderType === MailFolderType.ARCHIVE)) {
-							   return false
-						   } else if (this.logins.isEnabled(FeatureType.InternalCommunication) && f.folderType === MailFolderType.SPAM) {
-							   return false
-						   } else {
-							   return true
-						   }
-					   })
-				   })
+			.loadAll(MailFolderTypeRef, folderListId)
+			.then((folders) => {
+				if (loadSubFolders) {
+					return promiseMap(folders, (folder) => this._loadFolders(folder.subFolders, false), {
+						concurrency: 5,
+					}).then((subfolders) => {
+						return folders.concat(...subfolders)
+					})
+				} else {
+					return folders
+				}
+			})
+			.then((folders) => {
+				return folders.filter((f) => {
+					// We do not show spam or archive for external users
+					if (!this.logins.isInternalUserLoggedIn() && (f.folderType === MailFolderType.SPAM || f.folderType === MailFolderType.ARCHIVE)) {
+						return false
+					} else if (this.logins.isEnabled(FeatureType.InternalCommunication) && f.folderType === MailFolderType.SPAM) {
+						return false
+					} else {
+						return true
+					}
+				})
+			})
 	}
 
 	/**
@@ -157,17 +164,20 @@ export class MailModel {
 
 	async getMailboxDetailsForMailGroup(mailGroupId: Id): Promise<MailboxDetail> {
 		const mailboxDetails = await this.getMailboxDetails()
-		return assertNotNull(mailboxDetails.find(md => mailGroupId === md.mailGroup._id), "No mailbox details for mail group")
+		return assertNotNull(
+			mailboxDetails.find((md) => mailGroupId === md.mailGroup._id),
+			"No mailbox details for mail group",
+		)
 	}
 
 	async getUserMailboxDetails(): Promise<MailboxDetail> {
 		const userMailGroupMembership = this.logins.getUserController().getUserMailGroupMembership()
 		const mailboxDetails = await this.getMailboxDetails()
-		return assertNotNull(mailboxDetails.find(md => md.mailGroup._id === userMailGroupMembership.group))
+		return assertNotNull(mailboxDetails.find((md) => md.mailGroup._id === userMailGroupMembership.group))
 	}
 
 	getMailboxFolders(mail: Mail): Promise<FolderSystem> {
-		return this.getMailboxDetailsForMail(mail).then(md => md.folders)
+		return this.getMailboxDetailsForMail(mail).then((md) => md.folders)
 	}
 
 	getMailFolder(mailListId: Id): MailFolder | null {
@@ -185,8 +195,7 @@ export class MailModel {
 
 	async reportMails(reportType: MailReportType, mails: ReadonlyArray<Mail>): Promise<void> {
 		for (const mail of mails) {
-			await this.mailFacade.reportMail(mail, reportType)
-					  .catch(ofClass(NotFoundError, e => console.log("mail to be reported not found", e)))
+			await this.mailFacade.reportMail(mail, reportType).catch(ofClass(NotFoundError, (e) => console.log("mail to be reported not found", e)))
 		}
 	}
 
@@ -194,13 +203,16 @@ export class MailModel {
 	 * Finally deletes all given mails. Caller must ensure that mails are only from one folder
 	 */
 	async _moveMails(mails: Mail[], targetMailFolder: MailFolder): Promise<void> {
-		let moveMails = mails.filter(m => m._id[0] !== targetMailFolder.mails && targetMailFolder._ownerGroup === m._ownerGroup) // prevent moving mails between mail boxes.
+		let moveMails = mails.filter((m) => m._id[0] !== targetMailFolder.mails && targetMailFolder._ownerGroup === m._ownerGroup) // prevent moving mails between mail boxes.
 
 		// Do not move if target is the same as the current mailFolder
 		const sourceMailFolder = this.getMailFolder(getListId(mails[0]))
 
 		if (moveMails.length > 0 && sourceMailFolder && !isSameId(targetMailFolder._id, sourceMailFolder._id)) {
-			const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mails.map(m => m._id))
+			const mailChunks = splitInChunks(
+				MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
+				mails.map((m) => m._id),
+			)
 
 			for (const mailChunk of mailChunks) {
 				await this.mailFacade.moveMails(mailChunk, targetMailFolder._id)
@@ -213,7 +225,7 @@ export class MailModel {
 	 * @throws PreconditionFailedError or LockedError if operation is locked on the server
 	 */
 	async moveMails(mails: ReadonlyArray<Mail>, targetMailFolder: MailFolder): Promise<void> {
-		const mailsPerFolder = groupBy(mails, mail => {
+		const mailsPerFolder = groupBy(mails, (mail) => {
 			return getListId(mail)
 		})
 
@@ -234,7 +246,7 @@ export class MailModel {
 	 * A deletion confirmation must have been show before.
 	 */
 	async deleteMails(mails: ReadonlyArray<Mail>): Promise<void> {
-		const mailsPerFolder = groupBy(mails, mail => {
+		const mailsPerFolder = groupBy(mails, (mail) => {
 			return getListId(mail)
 		})
 
@@ -265,7 +277,7 @@ export class MailModel {
 	async _finallyDeleteMails(mails: Mail[]): Promise<void> {
 		if (!mails.length) return Promise.resolve()
 		const mailFolder = neverNull(this.getMailFolder(getListId(mails[0])))
-		const mailIds = mails.map(m => m._id)
+		const mailIds = mails.map((m) => m._id)
 		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mailIds)
 
 		for (const mailChunk of mailChunks) {
@@ -286,7 +298,7 @@ export class MailModel {
 			} else if (isUpdateForTypeRef(UserTypeRef, update)) {
 				if (update.operation === OperationType.UPDATE && isSameId(this.logins.getUserController().user._id, update.instanceId)) {
 					const updatedUser = await this.entityClient.load(UserTypeRef, update.instanceId)
-					let newMemberships = updatedUser.memberships.filter(membership => membership.groupType === GroupType.Mail)
+					let newMemberships = updatedUser.memberships.filter((membership) => membership.groupType === GroupType.Mail)
 					const mailboxDetails = await this.getMailboxDetails()
 
 					if (newMemberships.length !== mailboxDetails.length) {
@@ -303,12 +315,12 @@ export class MailModel {
 					const mailId: IdTuple = [update.instanceListId, update.instanceId]
 					const mail = await this.entityClient.load(MailTypeRef, mailId)
 					await this.getMailboxDetailsForMailListId(update.instanceListId)
-							  .then(mailboxDetail => {
-								  // We only apply rules on server if we are the leader in case of incoming messages
-								  return findAndApplyMatchingRule(this.mailFacade, this.entityClient, mailboxDetail, mail, this.leaderDetector.isLeader())
-							  })
-							  .then(newId => this._showNotification(newId || mailId))
-							  .catch(noOp)
+						.then((mailboxDetail) => {
+							// We only apply rules on server if we are the leader in case of incoming messages
+							return findAndApplyMatchingRule(this.mailFacade, this.entityClient, mailboxDetail, mail, this.leaderDetector.isLeader())
+						})
+						.then((newId) => this._showNotification(newId || mailId))
+						.catch(noOp)
 				}
 			}
 		}
@@ -317,7 +329,7 @@ export class MailModel {
 	_mailboxCountersUpdates(counters: WebsocketCounterData) {
 		const normalized = this.mailboxCounters() || {}
 		const group = normalized[counters.mailGroup] || {}
-		counters.counterValues.forEach(value => {
+		counters.counterValues.forEach((value) => {
 			group[value.mailListId] = Number(value.count) || 0
 		})
 		normalized[counters.mailGroup] = group
@@ -330,7 +342,7 @@ export class MailModel {
 			{
 				actions: [],
 			},
-			e => {
+			(e) => {
 				m.route.set(`/mail/${listIdPart(mailId)}/${elementIdPart(mailId)}`)
 				window.focus()
 			},
@@ -339,12 +351,12 @@ export class MailModel {
 
 	getCounterValue(listId: Id): Promise<number | null> {
 		return this.getMailboxDetailsForMailListId(listId)
-				   .then(mailboxDetails => {
-					   const counters = this.mailboxCounters()
-					   const mailGroupCounter = counters[mailboxDetails.mailGroup._id]
-					   return mailGroupCounter && mailGroupCounter[listId]
-				   })
-				   .catch(() => null)
+			.then((mailboxDetails) => {
+				const counters = this.mailboxCounters()
+				const mailGroupCounter = counters[mailboxDetails.mailGroup._id]
+				return mailGroupCounter && mailGroupCounter[listId]
+			})
+			.catch(() => null)
 	}
 
 	checkMailForPhishing(
@@ -392,28 +404,32 @@ export class MailModel {
 		}
 
 		const promise: Promise<MailboxProperties> = this.loadOrCreateMailboxProperties(mailboxGroupRoot)
-		this.mailboxPropertiesPromises.set(
-			mailboxGroupRoot._id,
-			promise,
-		)
+		this.mailboxPropertiesPromises.set(mailboxGroupRoot._id, promise)
 		return promise.finally(() => this.mailboxPropertiesPromises.delete(mailboxGroupRoot._id))
 	}
 
 	private async loadOrCreateMailboxProperties(mailboxGroupRoot: MailboxGroupRoot): Promise<MailboxProperties> {
 		if (!mailboxGroupRoot.mailboxProperties) {
-			mailboxGroupRoot.mailboxProperties = await this.entityClient.setup(null, createMailboxProperties({
-				_ownerGroup: mailboxGroupRoot._ownerGroup,
-			})).catch(ofClass(PreconditionFailedError, (e) => {
-				// We try to prevent race conditions but they can still happen with multiple clients trying ot create mailboxProperties at the same time.
-				// We send special precondition from the server with an existing id.
-				if (e.data && e.data.startsWith("exists:")) {
-					const existingId = e.data.substring("exists:".length)
-					console.log("mailboxProperties already exists", existingId)
-					return existingId
-				} else {
-					throw new ProgrammingError(`Could not create mailboxProperties, precondition: ${e.data}`)
-				}
-			}))
+			mailboxGroupRoot.mailboxProperties = await this.entityClient
+				.setup(
+					null,
+					createMailboxProperties({
+						_ownerGroup: mailboxGroupRoot._ownerGroup,
+					}),
+				)
+				.catch(
+					ofClass(PreconditionFailedError, (e) => {
+						// We try to prevent race conditions but they can still happen with multiple clients trying ot create mailboxProperties at the same time.
+						// We send special precondition from the server with an existing id.
+						if (e.data && e.data.startsWith("exists:")) {
+							const existingId = e.data.substring("exists:".length)
+							console.log("mailboxProperties already exists", existingId)
+							return existingId
+						} else {
+							throw new ProgrammingError(`Could not create mailboxProperties, precondition: ${e.data}`)
+						}
+					}),
+				)
 		}
 		const mailboxProperties = await this.entityClient.load(MailboxPropertiesTypeRef, mailboxGroupRoot.mailboxProperties)
 		if (mailboxProperties.mailAddressProperties.length === 0) {
@@ -429,18 +445,17 @@ export class MailModel {
 		const mailboxDetails = await this.getMailboxDetailsForMailGroup(mailboxGroupRoot._id)
 		const mailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, userGroupInfo)
 		for (const mailAddress of mailAddresses) {
-			mailboxProperties.mailAddressProperties.push(createMailAddressProperties({
-				mailAddress,
-				senderName: legacySenderName,
-			}))
+			mailboxProperties.mailAddressProperties.push(
+				createMailAddressProperties({
+					mailAddress,
+					senderName: legacySenderName,
+				}),
+			)
 		}
 		await this.entityClient.update(mailboxProperties)
 	}
 
-	async saveReportMovedMails(
-		mailboxGroupRoot: MailboxGroupRoot,
-		reportMovedMails: ReportMovedMailsType,
-	): Promise<MailboxProperties> {
+	async saveReportMovedMails(mailboxGroupRoot: MailboxGroupRoot, reportMovedMails: ReportMovedMailsType): Promise<MailboxProperties> {
 		const mailboxProperties = await this.loadOrCreateMailboxProperties(mailboxGroupRoot)
 		mailboxProperties.reportMovedMails = reportMovedMails
 		await this.entityClient.update(mailboxProperties)

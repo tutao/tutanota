@@ -1,6 +1,6 @@
-import type {DbTransaction} from "./DbFacade"
-import {tokenize} from "./Tokenizer"
-import type {$Promisable, DeferredObject, PromiseMapFn} from "@tutao/tutanota-utils"
+import type { DbTransaction } from "./DbFacade"
+import { tokenize } from "./Tokenizer"
+import type { $Promisable, DeferredObject, PromiseMapFn } from "@tutao/tutanota-utils"
 import {
 	arrayHash,
 	byteLength,
@@ -17,7 +17,7 @@ import {
 	TypeRef,
 	uint8ArrayToBase64,
 } from "@tutao/tutanota-utils"
-import {elementIdPart, firstBiggerThanSecond, generatedIdToTimestamp, listIdPart} from "../../common/utils/EntityUtils"
+import { elementIdPart, firstBiggerThanSecond, generatedIdToTimestamp, listIdPart } from "../../common/utils/EntityUtils"
 import {
 	compareMetaEntriesOldest,
 	decryptIndexKey,
@@ -46,12 +46,12 @@ import type {
 	SearchIndexMetadataEntry,
 	SearchIndexMetaDataRow,
 } from "./SearchTypes"
-import type {QueuedBatch} from "./EventQueue"
-import {EventQueue} from "./EventQueue"
-import {CancelledError} from "../../common/error/CancelledError"
-import {ProgrammingError} from "../../common/error/ProgrammingError"
-import type {BrowserData} from "../../../misc/ClientConstants"
-import {InvalidDatabaseStateError} from "../../common/error/InvalidDatabaseStateError"
+import type { QueuedBatch } from "./EventQueue"
+import { EventQueue } from "./EventQueue"
+import { CancelledError } from "../../common/error/CancelledError"
+import { ProgrammingError } from "../../common/error/ProgrammingError"
+import type { BrowserData } from "../../../misc/ClientConstants"
+import { InvalidDatabaseStateError } from "../../common/error/InvalidDatabaseStateError"
 import {
 	appendBinaryBlocks,
 	calculateNeededSpaceForNumbers,
@@ -60,18 +60,11 @@ import {
 	iterateBinaryBlocks,
 	removeBinaryBlockRanges,
 } from "./SearchIndexEncoding"
-import type {EntityUpdate} from "../../entities/sys/TypeRefs.js"
-import {
-	ElementDataOS,
-	GroupDataOS,
-	MetaDataOS,
-	SearchIndexMetaDataOS,
-	SearchIndexOS,
-	SearchIndexWordsIndex
-} from "./Indexer"
-import type {TypeModel} from "../../common/EntityTypes"
-import {aes256Encrypt} from "@tutao/tutanota-crypto"
-import {aes256Decrypt, IV_BYTE_LENGTH, random} from "@tutao/tutanota-crypto"
+import type { EntityUpdate } from "../../entities/sys/TypeRefs.js"
+import { ElementDataOS, GroupDataOS, MetaDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex } from "./Indexer"
+import type { TypeModel } from "../../common/EntityTypes"
+import { aes256Encrypt } from "@tutao/tutanota-crypto"
+import { aes256Decrypt, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 
@@ -133,7 +126,7 @@ export class IndexerCore {
 	 * Converts an instances into a map from words to a list of SearchIndexEntries.
 	 */
 	createIndexEntriesForAttributes(instance: Record<string, any>, attributes: AttributeHandler[]): Map<string, SearchIndexEntry[]> {
-		let indexEntries: Map<string, SearchIndexEntry>[] = attributes.map(attributeHandler => {
+		let indexEntries: Map<string, SearchIndexEntry>[] = attributes.map((attributeHandler) => {
 			if (typeof attributeHandler.value !== "function") {
 				throw new ProgrammingError("Value for attributeHandler is not a function: " + JSON.stringify(attributeHandler.attribute))
 			}
@@ -180,7 +173,7 @@ export class IndexerCore {
 			const encWordB64 = encryptIndexKeyBase64(this.db.key, indexKey, this.db.iv)
 			encWordsB64.push(encWordB64)
 			const encIndexEntries = getFromMap(indexUpdate.create.indexMap, encWordB64, () => [])
-			value.forEach(indexEntry =>
+			value.forEach((indexEntry) =>
 				encIndexEntries.push({
 					entry: encryptSearchIndexEntry(this.db.key, indexEntry, encInstanceId),
 					timestamp: elementIdTimestamp,
@@ -201,9 +194,9 @@ export class IndexerCore {
 	_processDeleted(event: EntityUpdate, indexUpdate: IndexUpdate): Promise<void> {
 		const encInstanceIdPlain = encryptIndexKeyUint8Array(this.db.key, event.instanceId, this.db.iv)
 		const encInstanceIdB64 = uint8ArrayToBase64(encInstanceIdPlain)
-		const {appId, typeId} = typeRefToTypeInfo(new TypeRef(event.application, event.type))
-		return this.db.dbFacade.createTransaction(true, [ElementDataOS]).then(transaction => {
-			return transaction.get(ElementDataOS, encInstanceIdB64).then(elementData => {
+		const { appId, typeId } = typeRefToTypeInfo(new TypeRef(event.application, event.type))
+		return this.db.dbFacade.createTransaction(true, [ElementDataOS]).then((transaction) => {
+			return transaction.get(ElementDataOS, encInstanceIdB64).then((elementData) => {
 				if (!elementData) {
 					return
 				}
@@ -213,7 +206,7 @@ export class IndexerCore {
 				const metaDataRowKeysBinary = aes256Decrypt(this.db.key, elementData[1], true, false)
 				// For every word we have a metadata reference and we want to update them all.
 				const metaDataRowKeys = decodeNumbers(metaDataRowKeysBinary)
-				metaDataRowKeys.forEach(metaDataRowKey => {
+				metaDataRowKeys.forEach((metaDataRowKey) => {
 					// We add current instance into list of instances to delete for each word
 					const ids = getFromMap(indexUpdate.delete.searchMetaRowToEncInstanceIds, metaDataRowKey, () => [])
 					ids.push({
@@ -260,18 +253,18 @@ export class IndexerCore {
 		}>,
 		indexUpdate: IndexUpdate,
 	): Promise<void> {
-		return this._writeIndexUpdate(indexUpdate, t => this._updateGroupDataIndexTimestamp(dataPerGroup, t))
+		return this._writeIndexUpdate(indexUpdate, (t) => this._updateGroupDataIndexTimestamp(dataPerGroup, t))
 	}
 
 	writeIndexUpdateWithBatchId(groupId: Id, batchId: Id, indexUpdate: IndexUpdate): Promise<void> {
-		return this._writeIndexUpdate(indexUpdate, t => this._updateGroupDataBatchId(groupId, batchId, t))
+		return this._writeIndexUpdate(indexUpdate, (t) => this._updateGroupDataBatchId(groupId, batchId, t))
 	}
 
 	_writeIndexUpdate(indexUpdate: IndexUpdate, updateGroupData: (t: DbTransaction) => $Promisable<void>): Promise<void> {
 		return this._executeOperation({
 			transaction: null,
 			transactionFactory: () => this.db.dbFacade.createTransaction(false, [SearchIndexOS, SearchIndexMetaDataOS, ElementDataOS, MetaDataOS, GroupDataOS]),
-			operation: transaction => {
+			operation: (transaction) => {
 				let startTimeStorage = getPerformanceTimestamp()
 
 				if (this._isStopped) {
@@ -292,7 +285,7 @@ export class IndexerCore {
 						// It's probably a bad idea to convert to the Promise first and then catch because it may do Promise.resolve() and this will schedule to
 						// the next event loop iteration and the context will be closed and it will be too late to abort(). Even worse, it will be commited to
 						// IndexedDB already and it will be inconsistent (oops).
-						.thenOrApply(noOp, e => {
+						.thenOrApply(noOp, (e) => {
 							try {
 								!transaction.aborted && transaction.abort()
 							} catch (e) {
@@ -311,16 +304,16 @@ export class IndexerCore {
 
 	_executeOperation(operation: WriteOperation): Promise<void> {
 		this._currentWriteOperation = operation
-		return operation.transactionFactory().then(transaction => {
+		return operation.transactionFactory().then((transaction) => {
 			operation.transaction = transaction
 			operation
 				.operation(transaction)
-				.then(it => {
+				.then((it) => {
 					this._currentWriteOperation = null
 					operation.deferred.resolve()
 					return it
 				})
-				.catch(e => {
+				.catch((e) => {
 					if (operation.isAbortedForBackgroundMode) {
 						console.log("transaction has been aborted because of background mode")
 					} else {
@@ -364,8 +357,8 @@ export class IndexerCore {
 		if (indexUpdate.move.length === 0) return PromisableWrapper.from(undefined) // keep transaction context open (only for Safari)
 
 		const promise = Promise.all(
-			indexUpdate.move.map(moveInstance => {
-				return transaction.get(ElementDataOS, moveInstance.encInstanceId).then(elementData => {
+			indexUpdate.move.map((moveInstance) => {
+				return transaction.get(ElementDataOS, moveInstance.encInstanceId).then((elementData) => {
 					if (elementData) {
 						elementData[0] = moveInstance.newListId
 						transaction.put(ElementDataOS, moveInstance.encInstanceId, elementData)
@@ -385,15 +378,15 @@ export class IndexerCore {
 
 		if (indexUpdate.delete.searchMetaRowToEncInstanceIds.size === 0) return null // keep transaction context open
 
-		let deleteElementDataPromise = Promise.all(indexUpdate.delete.encInstanceIds.map(encInstanceId => transaction.delete(ElementDataOS, encInstanceId)))
+		let deleteElementDataPromise = Promise.all(indexUpdate.delete.encInstanceIds.map((encInstanceId) => transaction.delete(ElementDataOS, encInstanceId)))
 		// For each word we have list of instances we want to remove
 		return Promise.all(
 			Array.from(indexUpdate.delete.searchMetaRowToEncInstanceIds).map(([metaRowKey, encInstanceIds]) =>
 				this._deleteSearchIndexEntries(transaction, metaRowKey, encInstanceIds),
 			),
 		)
-					  .then(() => deleteElementDataPromise)
-					  .then(noOp)
+			.then(() => deleteElementDataPromise)
+			.then(noOp)
 	}
 
 	/**
@@ -404,8 +397,8 @@ export class IndexerCore {
 		this._cancelIfNeeded()
 
 		// Collect hashes of all instances we want to delete to check it faster later
-		const encInstanceIdSet = new Set(instanceInfos.map(e => arrayHash(e.encInstanceId)))
-		return transaction.get(SearchIndexMetaDataOS, metaRowKey).then(encMetaDataRow => {
+		const encInstanceIdSet = new Set(instanceInfos.map((e) => arrayHash(e.encInstanceId)))
+		return transaction.get(SearchIndexMetaDataOS, metaRowKey).then((encMetaDataRow) => {
 			if (!encMetaDataRow) {
 				// already deleted
 				return
@@ -414,7 +407,7 @@ export class IndexerCore {
 			const metaDataRow = decryptMetaData(this.db.key, encMetaDataRow)
 			// add meta data to set to only update meta data once when deleting multiple instances
 			const metaDataEntriesSet = new Set() as Set<SearchIndexMetadataEntry>
-			instanceInfos.forEach(info => {
+			instanceInfos.forEach((info) => {
 				// For each instance we find SearchIndex row it belongs to by timestamp
 				const entryIndex = this._findMetaDataEntryByTimestamp(metaDataRow, info.timestamp, info.appId, info.typeId)
 
@@ -423,7 +416,7 @@ export class IndexerCore {
 						"could not find MetaDataEntry, info:",
 						info,
 						"rows: ",
-						metaDataRow.rows.map(r => JSON.stringify(r)),
+						metaDataRow.rows.map((r) => JSON.stringify(r)),
 					)
 				} else {
 					metaDataEntriesSet.add(metaDataRow.rows[entryIndex])
@@ -431,8 +424,8 @@ export class IndexerCore {
 			})
 
 			// For each SearchIndex row we need to update...
-			const updateSearchIndex = this._promiseMapCompat(Array.from(metaDataEntriesSet), metaEntry => {
-				return transaction.get(SearchIndexOS, metaEntry.key).then(indexEntriesRow => {
+			const updateSearchIndex = this._promiseMapCompat(Array.from(metaDataEntriesSet), (metaEntry) => {
+				return transaction.get(SearchIndexOS, metaEntry.key).then((indexEntriesRow) => {
 					if (!indexEntriesRow) return
 					// Find all entries we need to remove by hash of the encrypted ID
 					const rangesToRemove: Array<[number, number]> = []
@@ -456,7 +449,7 @@ export class IndexerCore {
 			})
 
 			return updateSearchIndex.thenOrApply(() => {
-				metaDataRow.rows = metaDataRow.rows.filter(r => r.size > 0)
+				metaDataRow.rows = metaDataRow.rows.filter((r) => r.size > 0)
 
 				if (metaDataRow.rows.length === 0) {
 					return transaction.delete(SearchIndexMetaDataOS, metaDataRow.id)
@@ -474,7 +467,7 @@ export class IndexerCore {
 
 		let promises: Promise<unknown>[] = []
 		indexUpdate.create.encInstanceIdToElementData.forEach((elementDataSurrogate, b64EncInstanceId) => {
-			const metaRows = elementDataSurrogate.encWordsB64.map(w => encWordToMetaRow[w])
+			const metaRows = elementDataSurrogate.encWordsB64.map((w) => encWordToMetaRow[w])
 			const rowKeysBinary = new Uint8Array(calculateNeededSpaceForNumbers(metaRows))
 			encodeNumbers(metaRows, rowKeysBinary)
 			const encMetaRowKeys = aes256Encrypt(this.db.key, rowKeysBinary, random.generateRandomData(IV_BYTE_LENGTH), true, false)
@@ -491,7 +484,7 @@ export class IndexerCore {
 
 		const result = this._promiseMapCompat(
 			keys,
-			encWordB64 => {
+			(encWordB64) => {
 				const encryptedEntries = neverNull(indexUpdate.create.indexMap.get(encWordB64))
 				return this._putEncryptedEntity(
 					indexUpdate.typeInfo.appId,
@@ -525,21 +518,21 @@ export class IndexerCore {
 		}
 
 		return this._getOrCreateSearchIndexMeta(transaction, encWordB64)
-				   .then((metaData: SearchIndexMetaDataRow) => {
-					   encryptedEntries.sort((a, b) => a.timestamp - b.timestamp)
+			.then((metaData: SearchIndexMetaDataRow) => {
+				encryptedEntries.sort((a, b) => a.timestamp - b.timestamp)
 
-					   const writeResult = this._writeEntries(transaction, encryptedEntries, metaData, appId, typeId)
+				const writeResult = this._writeEntries(transaction, encryptedEntries, metaData, appId, typeId)
 
-					   return writeResult.thenOrApply(() => metaData).value
-				   })
-				   .then(metaData => {
-					   const columnSize = metaData.rows.reduce((result, metaDataEntry) => result + metaDataEntry.size, 0)
-					   this._stats.writeRequests += 1
-					   this._stats.largestColumn = columnSize > this._stats.largestColumn ? columnSize : this._stats.largestColumn
-					   this._stats.storedBytes += encryptedEntries.reduce((sum, e) => sum + e.entry.length, 0)
-					   encWordToMetaRow[encWordB64] = metaData.id
-					   return transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(this.db.key, metaData))
-				   })
+				return writeResult.thenOrApply(() => metaData).value
+			})
+			.then((metaData) => {
+				const columnSize = metaData.rows.reduce((result, metaDataEntry) => result + metaDataEntry.size, 0)
+				this._stats.writeRequests += 1
+				this._stats.largestColumn = columnSize > this._stats.largestColumn ? columnSize : this._stats.largestColumn
+				this._stats.storedBytes += encryptedEntries.reduce((sum, e) => sum + e.entry.length, 0)
+				encWordToMetaRow[encWordB64] = metaData.id
+				return transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(this.db.key, metaData))
+			})
 	}
 
 	/**
@@ -637,7 +630,7 @@ export class IndexerCore {
 		entries: Array<EncSearchIndexEntryWithTimestamp>,
 		timestamp: number,
 	): [Array<EncSearchIndexEntryWithTimestamp>, Array<EncSearchIndexEntryWithTimestamp>] {
-		const indexOfSplit = entries.findIndex(entry => entry.timestamp >= timestamp)
+		const indexOfSplit = entries.findIndex((entry) => entry.timestamp >= timestamp)
 
 		if (indexOfSplit === -1) {
 			return [entries, []]
@@ -679,7 +672,7 @@ export class IndexerCore {
 					const timestampToEntries: Map<number, Array<Uint8Array>> = new Map()
 					const existingIds = new Set()
 					// Iterate all entries in a block, decrypt id of each and put it into the map
-					iterateBinaryBlocks(binaryBlock, encSearchIndexEntry => {
+					iterateBinaryBlocks(binaryBlock, (encSearchIndexEntry) => {
 						const encId = getIdFromEncSearchIndexEntry(encSearchIndexEntry)
 						existingIds.add(arrayHash(encId))
 						const decId = decryptIndexKey(this.db.key, encId, this.db.iv)
@@ -687,7 +680,7 @@ export class IndexerCore {
 						getFromMap(timestampToEntries, timeStamp, () => []).push(encSearchIndexEntry)
 					})
 					// Also add new entries
-					entries.forEach(({entry, timestamp}) => {
+					entries.forEach(({ entry, timestamp }) => {
 						getFromMap(timestampToEntries, timestamp, () => []).push(entry)
 					})
 					// Prefer to put entries into the first row if it's not initial indexing (we are likely to grow second row in the future)
@@ -707,9 +700,9 @@ export class IndexerCore {
 						}),
 						this._promiseMapCompat(
 							newRows,
-							row => {
+							(row) => {
 								const binaryRow = appendBinaryBlocks(row.row)
-								return transaction.put(SearchIndexOS, null, binaryRow).then(newSearchIndexRowId => {
+								return transaction.put(SearchIndexOS, null, binaryRow).then((newSearchIndexRowId) => {
 									metaData.rows.push({
 										key: newSearchIndexRowId,
 										size: row.row.length,
@@ -722,7 +715,7 @@ export class IndexerCore {
 							{
 								concurrency: 2,
 							},
-						).value
+						).value,
 					]
 					return Promise.all(requestPromises).then(() => {
 						metaData.rows.sort(compareMetaEntriesOldest)
@@ -731,10 +724,10 @@ export class IndexerCore {
 			)
 		} else {
 			return PromisableWrapper.from(
-				transaction.get(SearchIndexOS, metaEntry.key).then(indexEntriesRow => {
+				transaction.get(SearchIndexOS, metaEntry.key).then((indexEntriesRow) => {
 					let safeRow = indexEntriesRow || new Uint8Array(0)
 					const resultRow = appendBinaryBlocks(
-						entries.map(e => e.entry),
+						entries.map((e) => e.entry),
 						safeRow,
 					)
 					return transaction.put(SearchIndexOS, metaEntry.key, resultRow).then(() => {
@@ -766,7 +759,7 @@ export class IndexerCore {
 					oldestElementTimestamp: sortedTimestamps[0],
 				},
 			]
-			sortedTimestamps.forEach(id => {
+			sortedTimestamps.forEach((id) => {
 				const encryptedEntries = neverNull(timestampToEntries.get(id))
 
 				if (lastThrow(rows).row.length + encryptedEntries.length > SEARCH_INDEX_ROW_LENGTH) {
@@ -788,7 +781,7 @@ export class IndexerCore {
 				},
 			]
 			const reveresId = sortedTimestamps.slice().reverse()
-			reveresId.forEach(id => {
+			reveresId.forEach((id) => {
 				const encryptedEntries = neverNull(timestampToEntries.get(id))
 
 				if (rows[0].row.length + encryptedEntries.length > SEARCH_INDEX_ROW_LENGTH) {
@@ -815,17 +808,17 @@ export class IndexerCore {
 	): PromisableWrapper<void> {
 		const byTimestamp = groupByAndMap(
 			encryptedSearchIndexEntries,
-			e => e.timestamp,
-			e => e.entry,
+			(e) => e.timestamp,
+			(e) => e.entry,
 		)
 
 		const distributed = this._distributeEntities(byTimestamp, false)
 
 		return this._promiseMapCompat(
 			distributed,
-			({row, oldestElementTimestamp}) => {
+			({ row, oldestElementTimestamp }) => {
 				const binaryRow = appendBinaryBlocks(row)
-				return transaction.put(SearchIndexOS, null, binaryRow).then(newRowId => {
+				return transaction.put(SearchIndexOS, null, binaryRow).then((newRowId) => {
 					// Oldest entries come in front
 					metaData.rows.push({
 						key: newRowId,
@@ -845,7 +838,7 @@ export class IndexerCore {
 	}
 
 	_findMetaDataEntryByTimestamp(metaData: SearchIndexMetaDataRow, oldestTimestamp: number, appId: number, typeId: number): number {
-		return findLastIndex(metaData.rows, r => r.app === appId && r.type === typeId && r.oldestElementTimestamp <= oldestTimestamp)
+		return findLastIndex(metaData.rows, (r) => r.app === appId && r.type === typeId && r.oldestElementTimestamp <= oldestTimestamp)
 	}
 
 	_getOrCreateSearchIndexMeta(transaction: DbTransaction, encWordBase64: B64EncIndexKey): Promise<SearchIndexMetaDataRow> {
@@ -862,7 +855,7 @@ export class IndexerCore {
 					metaTemplate.id = this._explicitIdStart++
 				}
 
-				return transaction.put(SearchIndexMetaDataOS, null, metaTemplate).then(rowId => {
+				return transaction.put(SearchIndexMetaDataOS, null, metaTemplate).then((rowId) => {
 					this._stats.words += 1
 					return {
 						id: rowId,
@@ -881,8 +874,8 @@ export class IndexerCore {
 		}>,
 		transaction: DbTransaction,
 	): $Promisable<void> {
-		return this._promiseMapCompat(dataPerGroup, data => {
-			const {groupId, indexTimestamp} = data
+		return this._promiseMapCompat(dataPerGroup, (data) => {
+			const { groupId, indexTimestamp } = data
 			return transaction.get(GroupDataOS, groupId).then((groupData: GroupData | null) => {
 				if (!groupData) {
 					throw new InvalidDatabaseStateError("GroupData not available for group " + groupId)
@@ -891,8 +884,7 @@ export class IndexerCore {
 				groupData.indexTimestamp = indexTimestamp
 				return transaction.put(GroupDataOS, groupId, groupData)
 			})
-		}).thenOrApply(() => {
-		}).value
+		}).thenOrApply(() => {}).value
 	}
 
 	_updateGroupDataBatchId(groupId: Id, batchId: Id, transaction: DbTransaction): Promise<void> {
@@ -906,7 +898,7 @@ export class IndexerCore {
 				console.warn("Abort transaction on updating group data: concurrent access", groupId, batchId)
 				transaction.abort()
 			} else {
-				let newIndex = groupData.lastBatchIds.findIndex(indexedBatchId => firstBiggerThanSecond(batchId, indexedBatchId))
+				let newIndex = groupData.lastBatchIds.findIndex((indexedBatchId) => firstBiggerThanSecond(batchId, indexedBatchId))
 
 				if (newIndex !== -1) {
 					groupData.lastBatchIds.splice(newIndex, 0, batchId)

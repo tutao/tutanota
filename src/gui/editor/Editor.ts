@@ -1,12 +1,12 @@
-import m, {Children, Component} from "mithril"
+import m, { Children, Component } from "mithril"
 import SquireEditor from "squire-rte"
-import {defer} from "@tutao/tutanota-utils"
-import {px} from "../size"
-import {Dialog} from "../base/Dialog"
-import {isMailAddress} from "../../misc/FormatValidator"
-import type {ImageHandler} from "../../mail/model/MailUtils"
-import {Keys, TabIndex} from "../../api/common/TutanotaConstants"
-import {isKeyPressed} from "../../misc/KeyManager"
+import { defer } from "@tutao/tutanota-utils"
+import { px } from "../size"
+import { Dialog } from "../base/Dialog"
+import { isMailAddress } from "../../misc/FormatValidator"
+import type { ImageHandler } from "../../mail/model/MailUtils"
+import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
+import { isKeyPressed } from "../../misc/KeyManager"
 
 type SanitizerFn = (html: string, isPaste: boolean) => DocumentFragment
 export type Style = "b" | "i" | "u" | "c" | "a"
@@ -43,10 +43,7 @@ export class Editor implements ImageHandler, Component {
 		listing: null,
 	}
 
-	constructor(
-		private minHeight: number | null,
-		private sanitizer: SanitizerFn,
-	) {
+	constructor(private minHeight: number | null, private sanitizer: SanitizerFn) {
 		this.onremove = this.onremove.bind(this)
 		this.onbeforeupdate = this.onbeforeupdate.bind(this)
 		this.view = this.view.bind(this)
@@ -55,7 +52,6 @@ export class Editor implements ImageHandler, Component {
 	onbeforeupdate(): boolean {
 		// do not update the dom part managed by squire
 		return this.squire == null
-
 	}
 
 	onremove() {
@@ -72,12 +68,12 @@ export class Editor implements ImageHandler, Component {
 			role: "textbox",
 			"aria-multiline": "true",
 			tabindex: TabIndex.Default,
-			oncreate: vnode => this.initSquire(vnode.dom as HTMLElement),
-			class: 'flex-grow',
+			oncreate: (vnode) => this.initSquire(vnode.dom as HTMLElement),
+			class: "flex-grow",
 			style: this.minHeight
 				? {
-					"min-height": px(this.minHeight),
-				}
+						"min-height": px(this.minHeight),
+				  }
 				: {},
 		})
 	}
@@ -190,7 +186,7 @@ export class Editor implements ImageHandler, Component {
 		;(state ? this.styleActions[style][0] : this.styleActions[style][1])()
 	}
 
-	hasStyle: (arg0: Style) => boolean = style => (this.squire ? this.styleActions[style][2]() : false)
+	hasStyle: (arg0: Style) => boolean = (style) => (this.squire ? this.styleActions[style][2]() : false)
 	getStylesAtPath: () => void = () => {
 		if (!this.squire) {
 			return
@@ -223,7 +219,7 @@ export class Editor implements ImageHandler, Component {
 		//links
 		this.styles.a = pathSegments.includes("A")
 		// alignment
-		let alignment = pathSegments.find(f => f.includes("align"))
+		let alignment = pathSegments.find((f) => f.includes("align"))
 
 		if (alignment !== undefined) {
 			switch (alignment.split(".")[1].substring(6)) {
@@ -247,7 +243,7 @@ export class Editor implements ImageHandler, Component {
 		}
 
 		// font
-		this.styles.c = pathSegments.find(f => f.includes("monospace")) !== undefined
+		this.styles.c = pathSegments.find((f) => f.includes("monospace")) !== undefined
 		// decorations
 		this.styles.b = this.squire.hasFormat("b")
 		this.styles.u = this.squire.hasFormat("u")
@@ -255,7 +251,7 @@ export class Editor implements ImageHandler, Component {
 	}
 
 	makeLink() {
-		Dialog.showTextInputDialog("makeLink_action", "url_label", null, "").then(url => {
+		Dialog.showTextInputDialog("makeLink_action", "url_label", null, "").then((url) => {
 			if (isMailAddress(url, false)) {
 				url = "mailto:" + url
 			} else if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("mailto:") && !url.startsWith("{")) {

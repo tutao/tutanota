@@ -1,101 +1,66 @@
-import m, {Children, Component, Vnode} from "mithril"
-import {MailViewerViewModel} from "./MailViewerViewModel.js"
-import {IconButton} from "../../gui/base/IconButton.js"
-import {createAsyncDropdown, createDropdown, Dropdown, DROPDOWN_MARGIN, DropdownButtonAttrs} from "../../gui/base/Dropdown.js"
-import {Icons} from "../../gui/base/icons/Icons.js"
-import {UserError} from "../../api/main/UserError.js"
-import {showUserError} from "../../misc/ErrorHandlerImpl.js"
-import {promptAndDeleteMails, showMoveMailsDropdown} from "./MailGuiUtils.js"
-import {noOp, ofClass} from "@tutao/tutanota-utils"
-import {modal} from "../../gui/base/Modal.js"
-import {editDraft, mailViewerMoreActions, makeAssignMailsButtons} from "./MailViewerUtils.js"
-import {px, size} from "../../gui/size.js"
+import m, { Children, Component, Vnode } from "mithril"
+import { MailViewerViewModel } from "./MailViewerViewModel.js"
+import { IconButton } from "../../gui/base/IconButton.js"
+import { createAsyncDropdown, createDropdown, Dropdown, DROPDOWN_MARGIN, DropdownButtonAttrs } from "../../gui/base/Dropdown.js"
+import { Icons } from "../../gui/base/icons/Icons.js"
+import { UserError } from "../../api/main/UserError.js"
+import { showUserError } from "../../misc/ErrorHandlerImpl.js"
+import { promptAndDeleteMails, showMoveMailsDropdown } from "./MailGuiUtils.js"
+import { noOp, ofClass } from "@tutao/tutanota-utils"
+import { modal } from "../../gui/base/Modal.js"
+import { editDraft, mailViewerMoreActions, makeAssignMailsButtons } from "./MailViewerUtils.js"
+import { px, size } from "../../gui/size.js"
 
 export interface MobileMailActionBarAttrs {
-	viewModel: MailViewerViewModel,
+	viewModel: MailViewerViewModel
 }
 
 export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> {
 	private dom: HTMLElement | null = null
 
 	view(vnode: Vnode<MobileMailActionBarAttrs>): Children {
-		const {attrs} = vnode
-		const {viewModel} = attrs
+		const { attrs } = vnode
+		const { viewModel } = attrs
 		let actions: Children[]
 
 		if (viewModel.isAnnouncement()) {
-			actions = [
-				this.placeholder(),
-				this.placeholder(),
-				this.deleteButton(attrs),
-				this.placeholder(),
-				this.moreButton(attrs),
-			]
+			actions = [this.placeholder(), this.placeholder(), this.deleteButton(attrs), this.placeholder(), this.moreButton(attrs)]
 		} else if (viewModel.isDraftMail()) {
-			actions = [
-				this.placeholder(),
-				this.placeholder(),
-				this.deleteButton(attrs),
-				this.moveButton(attrs),
-				this.editButton(attrs),
-			]
+			actions = [this.placeholder(), this.placeholder(), this.deleteButton(attrs), this.moveButton(attrs), this.editButton(attrs)]
 		} else if (viewModel.canForwardOrMove()) {
-			actions = [
-				this.replyButton(attrs),
-				this.forwardButton(attrs),
-				this.deleteButton(attrs),
-				this.moveButton(attrs),
-				this.moreButton(attrs),
-			]
+			actions = [this.replyButton(attrs), this.forwardButton(attrs), this.deleteButton(attrs), this.moveButton(attrs), this.moreButton(attrs)]
 		} else if (viewModel.canAssignMails()) {
-			actions = [
-				this.replyButton(attrs),
-				this.assignButton(attrs),
-				this.deleteButton(attrs),
-				this.placeholder(),
-				this.moreButton(attrs),
-			]
+			actions = [this.replyButton(attrs), this.assignButton(attrs), this.deleteButton(attrs), this.placeholder(), this.moreButton(attrs)]
 		} else {
-			actions = [
-				this.replyButton(attrs),
-				this.placeholder(),
-				this.deleteButton(attrs),
-				this.placeholder(),
-				this.moreButton(attrs),
-			]
+			actions = [this.replyButton(attrs), this.placeholder(), this.deleteButton(attrs), this.placeholder(), this.moreButton(attrs)]
 		}
 
-		return m(".bottom-nav.bottom-action-bar.flex.items-center.plr-l", {
-			oncreate: (vnode) => {
-				this.dom = vnode.dom as HTMLElement
+		return m(
+			".bottom-nav.bottom-action-bar.flex.items-center.plr-l",
+			{
+				oncreate: (vnode) => {
+					this.dom = vnode.dom as HTMLElement
+				},
+				style: {
+					justifyContent: "space-between",
+				},
 			},
-			style: {
-				justifyContent: "space-between",
-			}
-		}, [
-			actions,
-		])
-
+			[actions],
+		)
 	}
 
 	private placeholder() {
 		return m("", {
 			style: {
 				width: px(size.button_height),
-			}
+			},
 		})
 	}
 
-	private moveButton({viewModel}: MobileMailActionBarAttrs) {
+	private moveButton({ viewModel }: MobileMailActionBarAttrs) {
 		return m(IconButton, {
 			title: "move_action",
-			click: (e, dom) => showMoveMailsDropdown(
-				viewModel.mailModel,
-				dom.getBoundingClientRect(),
-				[viewModel.mail],
-				this.dropdownWidth(),
-				true,
-			),
+			click: (e, dom) => showMoveMailsDropdown(viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail], this.dropdownWidth(), true),
 			icon: Icons.Folder,
 		})
 	}
@@ -104,7 +69,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return this.dom?.offsetWidth ? this.dom.offsetWidth - DROPDOWN_MARGIN * 2 : undefined
 	}
 
-	private moreButton({viewModel}: MobileMailActionBarAttrs) {
+	private moreButton({ viewModel }: MobileMailActionBarAttrs) {
 		return m(IconButton, {
 			title: "more_label",
 			click: createDropdown({
@@ -116,7 +81,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		})
 	}
 
-	private deleteButton({viewModel}: MobileMailActionBarAttrs): Children {
+	private deleteButton({ viewModel }: MobileMailActionBarAttrs): Children {
 		return m(IconButton, {
 			title: "delete_action",
 			click: () => promptAndDeleteMails(viewModel.mailModel, [viewModel.mail], noOp),
@@ -124,41 +89,39 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		})
 	}
 
-	private forwardButton({viewModel}: MobileMailActionBarAttrs): Children {
+	private forwardButton({ viewModel }: MobileMailActionBarAttrs): Children {
 		return m(IconButton, {
 			title: "forward_action",
-			click: () => viewModel.forward()
-								  .catch(ofClass(UserError, showUserError)),
+			click: () => viewModel.forward().catch(ofClass(UserError, showUserError)),
 			icon: Icons.Forward,
 		})
 	}
 
-	private replyButton({viewModel}: MobileMailActionBarAttrs) {
+	private replyButton({ viewModel }: MobileMailActionBarAttrs) {
 		return m(IconButton, {
 			title: "reply_action",
 			click: viewModel.canReplyAll()
 				? (e, dom) => {
-					const dropdown = new Dropdown(() => {
-						const buttons: DropdownButtonAttrs[] = []
-						buttons.push({
-							label: "replyAll_action",
-							icon: Icons.ReplyAll,
-							click: () => viewModel.reply(true)
-						})
+						const dropdown = new Dropdown(() => {
+							const buttons: DropdownButtonAttrs[] = []
+							buttons.push({
+								label: "replyAll_action",
+								icon: Icons.ReplyAll,
+								click: () => viewModel.reply(true),
+							})
 
-						buttons.push({
-							label: "reply_action",
-							icon: Icons.Reply,
-							click: () => viewModel.reply(false),
-						})
-						return buttons
-					}, this.dropdownWidth() ?? 300)
+							buttons.push({
+								label: "reply_action",
+								icon: Icons.Reply,
+								click: () => viewModel.reply(false),
+							})
+							return buttons
+						}, this.dropdownWidth() ?? 300)
 
-
-					const domRect = this.dom?.getBoundingClientRect() ?? dom.getBoundingClientRect()
-					dropdown.setOrigin(domRect)
-					modal.displayUnique(dropdown, true)
-				}
+						const domRect = this.dom?.getBoundingClientRect() ?? dom.getBoundingClientRect()
+						dropdown.setOrigin(domRect)
+						modal.displayUnique(dropdown, true)
+				  }
 				: () => viewModel.reply(false),
 			icon: viewModel.canReplyAll() ? Icons.ReplyAll : Icons.Reply,
 		})
@@ -168,7 +131,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return m(IconButton, {
 			title: "edit_action",
 			icon: Icons.Edit,
-			click: () => editDraft(attrs.viewModel)
+			click: () => editDraft(attrs.viewModel),
 		})
 	}
 
@@ -176,12 +139,11 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return m(IconButton, {
 			title: "forward_action",
 			icon: Icons.Forward,
-			click:
-				createAsyncDropdown({
-					lazyButtons: () => makeAssignMailsButtons(attrs.viewModel),
-					width: this.dropdownWidth(),
-					withBackground: true,
-				})
+			click: createAsyncDropdown({
+				lazyButtons: () => makeAssignMailsButtons(attrs.viewModel),
+				width: this.dropdownWidth(),
+				withBackground: true,
+			}),
 		})
 	}
 }

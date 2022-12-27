@@ -1,25 +1,25 @@
-import m, {Vnode} from "mithril"
-import type {VirtualRow} from "../gui/base/List"
-import {List} from "../gui/base/List"
-import {lang} from "../misc/LanguageViewModel"
-import {NotFoundError} from "../api/common/error/RestError"
-import {size} from "../gui/size"
-import type {WhitelabelChild} from "../api/entities/sys/TypeRefs.js"
-import {CustomerTypeRef, WhitelabelChildTypeRef} from "../api/entities/sys/TypeRefs.js"
-import {LazyLoaded, neverNull, noOp, ofClass, promiseMap} from "@tutao/tutanota-utils"
-import type {SettingsView} from "./SettingsView"
-import {logins} from "../api/main/LoginController"
-import {Icon} from "../gui/base/Icon"
-import {Icons} from "../gui/base/icons/Icons"
-import {header} from "../gui/Header.js"
-import {formatDateWithMonth} from "../misc/Formatter"
-import {WhitelabelChildViewer} from "./WhitelabelChildViewer"
-import type {EntityUpdateData} from "../api/main/EventController"
-import {isUpdateForTypeRef} from "../api/main/EventController"
-import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
-import {assertMainOrNode} from "../api/common/Env"
-import {locator} from "../api/main/MainLocator"
-import Stream from "mithril/stream";
+import m, { Vnode } from "mithril"
+import type { VirtualRow } from "../gui/base/List"
+import { List } from "../gui/base/List"
+import { lang } from "../misc/LanguageViewModel"
+import { NotFoundError } from "../api/common/error/RestError"
+import { size } from "../gui/size"
+import type { WhitelabelChild } from "../api/entities/sys/TypeRefs.js"
+import { CustomerTypeRef, WhitelabelChildTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import type { SettingsView } from "./SettingsView"
+import { logins } from "../api/main/LoginController"
+import { Icon } from "../gui/base/Icon"
+import { Icons } from "../gui/base/icons/Icons"
+import { header } from "../gui/Header.js"
+import { formatDateWithMonth } from "../misc/Formatter"
+import { WhitelabelChildViewer } from "./WhitelabelChildViewer"
+import type { EntityUpdateData } from "../api/main/EventController"
+import { isUpdateForTypeRef } from "../api/main/EventController"
+import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils"
+import { assertMainOrNode } from "../api/common/Env"
+import { locator } from "../api/main/MainLocator"
+import Stream from "mithril/stream"
 
 assertMainOrNode()
 const className = "whitelabelchildren-list"
@@ -35,7 +35,7 @@ export class WhitelabelChildrenListView {
 	constructor(settingsView: SettingsView) {
 		this._settingsView = settingsView
 		this._listId = new LazyLoaded(() => {
-			return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+			return locator.entityClient.load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then((customer) => {
 				return customer.whitelabelChildren ? customer.whitelabelChildren.items : null
 			})
 		})
@@ -47,26 +47,23 @@ export class WhitelabelChildrenListView {
 					if (listId) {
 						// we return all whitelabel children because we have already loaded all children and the scroll bar shall have the complete size.
 						const allChildren = await locator.entityClient.loadAll(WhitelabelChildTypeRef, listId)
-						return {items: allChildren, complete: true}
-
+						return { items: allChildren, complete: true }
 					} else {
-						return {items: [], complete: true}
+						return { items: [], complete: true }
 					}
 				} else {
 					throw new Error("fetch whitelabel children called for specific start id")
 				}
 			},
-			loadSingle: elementId => {
-				return this._listId.getAsync().then(listId => {
+			loadSingle: (elementId) => {
+				return this._listId.getAsync().then((listId) => {
 					if (listId) {
-						return locator.entityClient
-									  .load<WhitelabelChild>(WhitelabelChildTypeRef, [listId, elementId])
-									  .catch(
-										  ofClass(NotFoundError, e => {
-											  // we return null if the entity does not exist
-											  return null
-										  }),
-									  )
+						return locator.entityClient.load<WhitelabelChild>(WhitelabelChildTypeRef, [listId, elementId]).catch(
+							ofClass(NotFoundError, (e) => {
+								// we return null if the entity does not exist
+								return null
+							}),
+						)
 					} else {
 						return null
 					}
@@ -92,7 +89,7 @@ export class WhitelabelChildrenListView {
 		}
 
 		this.list.loadInitial()
-		this._searchResultStreamDependency = neverNull(header.searchBar).lastSelectedWhitelabelChildrenInfoResult.map(whitelabelChild => {
+		this._searchResultStreamDependency = neverNull(header.searchBar).lastSelectedWhitelabelChildrenInfoResult.map((whitelabelChild) => {
 			if (this._listId.isLoaded() && this._listId.getSync() === whitelabelChild._id[0]) {
 				this.list.scrollToIdAndSelect(whitelabelChild._id[1])
 			}
@@ -123,7 +120,7 @@ export class WhitelabelChildrenListView {
 	}
 
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		return promiseMap(updates, update => {
+		return promiseMap(updates, (update) => {
 			if (isUpdateForTypeRef(WhitelabelChildTypeRef, update) && this._listId.getSync() === update.instanceListId) {
 				return this.list.entityEventReceived(update.instanceId, update.operation)
 			}
@@ -175,17 +172,17 @@ export class WhitelabelChildRow implements VirtualRow<WhitelabelChild> {
 		let elements = [
 			m(".top", [
 				m(".name", {
-					oncreate: vnode => (this._domMailAddress = vnode.dom as HTMLElement),
+					oncreate: (vnode) => (this._domMailAddress = vnode.dom as HTMLElement),
 				}),
 			]),
 			m(".bottom.flex-space-between", [
 				m("small", {
-					oncreate: vnode => (this._domCreatedDate = vnode.dom as HTMLElement),
+					oncreate: (vnode) => (this._domCreatedDate = vnode.dom as HTMLElement),
 				}),
 				m(".icons.flex", [
 					m(Icon, {
 						icon: Icons.Trash,
-						oncreate: vnode => (this._domDeletedIcon = vnode.dom as HTMLElement),
+						oncreate: (vnode) => (this._domDeletedIcon = vnode.dom as HTMLElement),
 						class: "svg-list-accent-fg",
 						style: {
 							display: "none",

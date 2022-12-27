@@ -1,16 +1,15 @@
-import {NativePushFacade} from "../../native/common/generatedipc/NativePushFacade.js"
-import {DesktopSseClient} from "./DesktopSseClient.js"
-import {EncryptedAlarmNotification} from "../../native/common/EncryptedAlarmNotification.js"
-import {NativeAlarmScheduler} from "./DesktopAlarmScheduler.js"
-import {DesktopAlarmStorage} from "./DesktopAlarmStorage.js"
+import { NativePushFacade } from "../../native/common/generatedipc/NativePushFacade.js"
+import { DesktopSseClient } from "./DesktopSseClient.js"
+import { EncryptedAlarmNotification } from "../../native/common/EncryptedAlarmNotification.js"
+import { NativeAlarmScheduler } from "./DesktopAlarmScheduler.js"
+import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
 
 export class DesktopNativePushFacade implements NativePushFacade {
 	constructor(
 		private readonly sse: DesktopSseClient,
 		private readonly alarmScheduler: NativeAlarmScheduler,
 		private readonly alarmStorage: DesktopAlarmStorage,
-	) {
-	}
+	) {}
 
 	async closePushNotifications(addressesArray: ReadonlyArray<string>): Promise<void> {
 		// only gets called in the app
@@ -32,7 +31,13 @@ export class DesktopNativePushFacade implements NativePushFacade {
 		}
 	}
 
-	async storePushIdentifierLocally(identifier: string, userId: string, sseOrigin: string, pushIdentifierId: string, pushIdentifierSessionKey: Uint8Array): Promise<void> {
+	async storePushIdentifierLocally(
+		identifier: string,
+		userId: string,
+		sseOrigin: string,
+		pushIdentifierId: string,
+		pushIdentifierSessionKey: Uint8Array,
+	): Promise<void> {
 		await this.sse.storePushIdentifier(identifier, userId, sseOrigin)
 		await this.alarmStorage.storePushIdentifierSessionKey(pushIdentifierId, pushIdentifierSessionKey)
 	}

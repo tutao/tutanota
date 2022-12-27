@@ -1,5 +1,5 @@
 import o from "ospec"
-import {clamp} from "../lib/MathUtils.js"
+import { clamp } from "../lib/MathUtils.js"
 
 o.spec("MathUtils", function () {
 	o("clamp", function () {

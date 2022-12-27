@@ -1,17 +1,17 @@
-import m, {Component, Vnode} from "mithril"
-import {px, size} from "../size"
-import {DefaultAnimationTime, transform, TransformEnum} from "../animation/Animations"
-import {displayOverlay} from "./Overlay"
-import type {ButtonAttrs} from "./Button.js"
-import {Button, ButtonType} from "./Button.js"
-import type {TranslationKey} from "../../misc/LanguageViewModel"
-import {lang} from "../../misc/LanguageViewModel"
-import {styles} from "../styles"
-import {LayerType} from "../../RootView"
-import type {lazy} from "@tutao/tutanota-utils"
-import type {clickHandler} from "./GuiUtils"
-import {assertMainOrNode} from "../../api/common/Env"
-import {getSafeAreaInsetBottom} from "../HtmlUtils"
+import m, { Component, Vnode } from "mithril"
+import { px, size } from "../size"
+import { DefaultAnimationTime, transform, TransformEnum } from "../animation/Animations"
+import { displayOverlay } from "./Overlay"
+import type { ButtonAttrs } from "./Button.js"
+import { Button, ButtonType } from "./Button.js"
+import type { TranslationKey } from "../../misc/LanguageViewModel"
+import { lang } from "../../misc/LanguageViewModel"
+import { styles } from "../styles"
+import { LayerType } from "../../RootView"
+import type { lazy } from "@tutao/tutanota-utils"
+import type { clickHandler } from "./GuiUtils"
+import { assertMainOrNode } from "../../api/common/Env"
+import { getSafeAreaInsetBottom } from "../HtmlUtils"
 
 assertMainOrNode()
 export const SNACKBAR_SHOW_TIME = 6000
@@ -24,7 +24,7 @@ type SnackBarAttrs = {
 	message: TranslationKey | lazy<string>
 	button: ButtonAttrs | null
 }
-type QueueItem = SnackBarAttrs & {onClose: (() => void) | null}
+type QueueItem = SnackBarAttrs & { onClose: (() => void) | null }
 const notificationQueue: QueueItem[] = []
 let currentAnimationTimeout: TimeoutID | null = null
 
@@ -52,11 +52,7 @@ function makeButtonAttrsForSnackBar(button: SnackBarButtonAttrs): ButtonAttrs {
  * @param snackBarButton will close the snackbar if it is clicked (onClose() will be called)
  * @param onClose called when the snackbar is closed (either by timeout or button click)
  */
-export function showSnackBar(args: {
-	message: TranslationKey,
-	button: SnackBarButtonAttrs,
-	onClose?: () => void
-}) {
+export function showSnackBar(args: { message: TranslationKey; button: SnackBarButtonAttrs; onClose?: () => void }) {
 	const button = makeButtonAttrsForSnackBar(args.button)
 	notificationQueue.push({
 		message: args.message,
@@ -87,13 +83,11 @@ function getSnackBarPosition() {
 }
 
 function showNextNotification() {
-	const {message, button, onClose} = notificationQueue[0] //we shift later because it is still shown
+	const { message, button, onClose } = notificationQueue[0] //we shift later because it is still shown
 
 	currentAnimationTimeout = null
 	const bottomInset = getSafeAreaInsetBottom()
-	const bottomOffset = styles.isUsingBottomNavigation()
-		? size.bottom_nav_bar + size.hpad + bottomInset
-		: size.hpad_medium
+	const bottomOffset = styles.isUsingBottomNavigation() ? size.bottom_nav_bar + size.hpad + bottomInset : size.hpad_medium
 	const closeFunction = displayOverlay(
 		() => getSnackBarPosition(),
 		{
@@ -104,9 +98,9 @@ function showNextNotification() {
 				}),
 		},
 		// it is initially below the container and we move it into it with transform
-		dom => transform(TransformEnum.TranslateY, 0, -(bottomOffset + dom.offsetHeight)),
+		(dom) => transform(TransformEnum.TranslateY, 0, -(bottomOffset + dom.offsetHeight)),
 		// it is initially inside the container, we transform it out of it
-		dom => transform(TransformEnum.TranslateY, -(bottomOffset + dom.offsetHeight), 0),
+		(dom) => transform(TransformEnum.TranslateY, -(bottomOffset + dom.offsetHeight), 0),
 		"minimized-shadow",
 	)
 

@@ -1,17 +1,17 @@
-import m, {Children, Component, Vnode, VnodeDOM} from "mithril"
-import {Icons} from "./icons/Icons"
-import type {Editor, Listing, Style} from "../editor/Editor"
-import {Alignment} from "../editor/Editor"
-import {numberRange} from "@tutao/tutanota-utils"
-import {size} from "../size"
-import {createDropdown, DropdownButtonAttrs} from "./Dropdown.js"
-import {lang, TranslationKey} from "../../misc/LanguageViewModel"
-import {animations, height, opacity} from "../animation/Animations"
-import {client} from "../../misc/ClientDetector"
-import {BrowserType} from "../../misc/ClientConstants"
-import {ToggleButton} from "./ToggleButton.js"
-import {IconButton, IconButtonAttrs} from "./IconButton.js"
-import {ButtonSize} from "./ButtonSize.js"
+import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import { Icons } from "./icons/Icons"
+import type { Editor, Listing, Style } from "../editor/Editor"
+import { Alignment } from "../editor/Editor"
+import { numberRange } from "@tutao/tutanota-utils"
+import { size } from "../size"
+import { createDropdown, DropdownButtonAttrs } from "./Dropdown.js"
+import { lang, TranslationKey } from "../../misc/LanguageViewModel"
+import { animations, height, opacity } from "../animation/Animations"
+import { client } from "../../misc/ClientDetector"
+import { BrowserType } from "../../misc/ClientConstants"
+import { ToggleButton } from "./ToggleButton.js"
+import { IconButton, IconButtonAttrs } from "./IconButton.js"
+import { ButtonSize } from "./ButtonSize.js"
 
 export interface RichTextToolbarAttrs {
 	editor: Editor
@@ -24,7 +24,7 @@ export interface RichTextToolbarAttrs {
 export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 	selectedSize = size.font_size_base
 
-	constructor({attrs}: Vnode<RichTextToolbarAttrs>) {
+	constructor({ attrs }: Vnode<RichTextToolbarAttrs>) {
 		try {
 			this.selectedSize = parseInt(attrs.editor.squire.getFontInfo().size.slice(0, -2))
 		} catch (e) {
@@ -42,8 +42,9 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 		return animateToolbar(vnode.dom as HTMLElement, false)
 	}
 
-	view({attrs}: Vnode<RichTextToolbarAttrs>): Children {
-		return m(".elevated-bg.overflow-hidden",
+	view({ attrs }: Vnode<RichTextToolbarAttrs>): Children {
+		return m(
+			".elevated-bg.overflow-hidden",
 			{
 				style: {
 					top: "0px",
@@ -56,39 +57,37 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 				},
 			},
 			[
-				m(".flex-end.wrap.items-center.mb-xs.mt-xs.ml-between-s",
+				m(
+					".flex-end.wrap.items-center.mb-xs.mt-xs.ml-between-s",
 					this.renderStyleButtons(attrs),
 					this.renderCustomButtons(attrs),
 					this.renderAlignDropDown(attrs),
 					this.renderSizeButtons(attrs),
-					this.renderRemoveFormattingButton(attrs)
+					this.renderRemoveFormattingButton(attrs),
 				),
 			],
 		)
 	}
 
 	private renderStyleButtons(attrs: RichTextToolbarAttrs): Children {
-		const {
-			editor,
-			imageButtonClickHandler
-		} = attrs
+		const { editor, imageButtonClickHandler } = attrs
 
 		return [
 			this.renderStyleToggleButton("b", lang.get("formatTextBold_msg") + " (Ctrl + B)", Icons.Bold, editor),
 			this.renderStyleToggleButton("i", lang.get("formatTextItalic_msg") + " (Ctrl + I)", Icons.Italic, editor),
 			this.renderStyleToggleButton("u", lang.get("formatTextUnderline_msg") + " (Ctrl + U)", Icons.Underline, editor),
 			this.renderStyleToggleButton("c", "formatTextMonospace_msg", Icons.Code, editor),
-			this.renderStyleToggleButton("a", (editor.hasStyle("a") ? lang.get("breakLink_action") : lang.get("makeLink_action")), Icons.Link, editor),
+			this.renderStyleToggleButton("a", editor.hasStyle("a") ? lang.get("breakLink_action") : lang.get("makeLink_action"), Icons.Link, editor),
 			this.renderListToggleButton("ol", lang.get("formatTextOl_msg") + " (Ctrl + Shift + 9)", Icons.ListOrdered, editor),
 			this.renderListToggleButton("ul", lang.get("formatTextUl_msg") + " (Ctrl + Shift + 8)", Icons.ListUnordered, editor),
 			imageButtonClickHandler
 				? m(IconButton, {
-					title: "insertImage_action",
-					click: ev => imageButtonClickHandler(ev, editor),
-					icon: Icons.Picture,
-					size: ButtonSize.Compact,
-				})
-				: null
+						title: "insertImage_action",
+						click: (ev) => imageButtonClickHandler(ev, editor),
+						icon: Icons.Picture,
+						size: ButtonSize.Compact,
+				  })
+				: null,
 		]
 	}
 
@@ -97,7 +96,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 			title,
 			icon,
 			() => editor.setStyle(!editor.hasStyle(style), style),
-			() => editor.hasStyle(style)
+			() => editor.hasStyle(style),
 		)
 	}
 
@@ -105,19 +104,17 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 		return this.renderToggleButton(
 			title,
 			icon,
-			() => editor.styles.listing === listing
-				? editor.squire.removeList()
-				: listing === "ul" ? editor.squire.makeUnorderedList() : editor.squire.makeOrderedList(),
-			() => editor.styles.listing === listing
+			() =>
+				editor.styles.listing === listing
+					? editor.squire.removeList()
+					: listing === "ul"
+					? editor.squire.makeUnorderedList()
+					: editor.squire.makeOrderedList(),
+			() => editor.styles.listing === listing,
 		)
 	}
 
-	private renderToggleButton(
-		title: string,
-		icon: Icons,
-		click: () => void,
-		isSelected: () => boolean,
-	): Children {
+	private renderToggleButton(title: string, icon: Icons, click: () => void, isSelected: () => boolean): Children {
 		return m(ToggleButton, {
 			title: () => title,
 			onToggled: click,
@@ -128,7 +125,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 	}
 
 	private renderCustomButtons(attrs: RichTextToolbarAttrs): Children {
-		return (attrs.customButtonAttrs ?? []).map(attrs => m(IconButton, attrs))
+		return (attrs.customButtonAttrs ?? []).map((attrs) => m(IconButton, attrs))
 	}
 
 	private renderAlignDropDown(attrs: RichTextToolbarAttrs): Children {
@@ -162,9 +159,9 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 						alignButtonAttrs("center", "formatTextCenter_msg", Icons.AlignCenter),
 						alignButtonAttrs("right", "formatTextRight_msg", Icons.AlignRight),
 						alignButtonAttrs("justify", "formatTextJustify_msg", Icons.AlignJustified),
-					]
+					],
 				})(e, dom)
-			}
+			},
 		})
 	}
 
@@ -184,7 +181,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 		}
 	}
 
-	private renderSizeButtons({editor}: RichTextToolbarAttrs): Children {
+	private renderSizeButtons({ editor }: RichTextToolbarAttrs): Children {
 		return m(IconButton, {
 			title: "formatTextFontSize_msg",
 			icon: Icons.FontSize,
@@ -193,7 +190,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 				e.stopPropagation()
 				createDropdown({
 					lazyButtons: () =>
-						numberRange(8, 144).map(n => {
+						numberRange(8, 144).map((n) => {
 							return {
 								label: () => n.toString(),
 								click: () => {
@@ -205,7 +202,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 							}
 						}),
 				})(e, dom)
-			}
+			},
 		})
 	}
 
@@ -215,27 +212,24 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 		}
 
 		return m(IconButton, {
-				title: "removeFormatting_action",
-				icon: Icons.FormatClear,
-				click: (e) => {
-					e.stopPropagation()
-					attrs.editor.squire.removeAllFormatting()
-				},
-				size: ButtonSize.Compact,
-			}
-		)
+			title: "removeFormatting_action",
+			icon: Icons.FormatClear,
+			click: (e) => {
+				e.stopPropagation()
+				attrs.editor.squire.removeAllFormatting()
+			},
+			size: ButtonSize.Compact,
+		})
 	}
 }
 
 export function animateToolbar(dom: HTMLElement, appear: boolean): Promise<void> {
 	let childHeight = Array.from(dom.children)
-						   .map((domElement) => (domElement as HTMLElement).offsetHeight)
-						   .reduce((current: number, previous: number) => Math.max(current, previous), 0)
-	return animations
-		.add(dom, [height(appear ? 0 : childHeight, appear ? childHeight : 0), appear ? opacity(0, 1, false) : opacity(1, 0, false)])
-		.then(() => {
-			if (appear) {
-				dom.style.height = ""
-			}
-		})
+		.map((domElement) => (domElement as HTMLElement).offsetHeight)
+		.reduce((current: number, previous: number) => Math.max(current, previous), 0)
+	return animations.add(dom, [height(appear ? 0 : childHeight, appear ? childHeight : 0), appear ? opacity(0, 1, false) : opacity(1, 0, false)]).then(() => {
+		if (appear) {
+			dom.style.height = ""
+		}
+	})
 }

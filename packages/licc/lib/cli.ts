@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-import {generate} from "./index.js"
+import { generate } from "./index.js"
 import * as fs from "fs"
 import * as path from "path"
-import {globby} from "zx"
-import {Platform} from "./common"
-import {Argument, Option, program} from "commander"
+import { globby } from "zx"
+import { Platform } from "./common"
+import { Argument, Option, program } from "commander"
 import JSON5 from "json5"
 
 const PLATFORMS: Array<Platform> = ["ios", "web", "android", "desktop"]
@@ -18,17 +18,23 @@ await program
 	.usage(USAGE)
 	.addArgument(new Argument("from_dir").argRequired())
 	.addArgument(new Argument("to_dir").argOptional())
-	.addOption(new Option(
-		'-p, --platform <platform>',
-		'platform to generate code for. if not specified, from_dir must be omitted as well. In this case, licc will read <from_dir>/.liccc as a json map from platform to output dir. if -p is set, from_dir must be set as well.'
+	.addOption(
+		new Option(
+			"-p, --platform <platform>",
+			"platform to generate code for. if not specified, from_dir must be omitted as well. In this case, licc will read <from_dir>/.liccc as a json map from platform to output dir. if -p is set, from_dir must be set as well.",
+		)
+			.makeOptionMandatory(false)
+			.choices(PLATFORMS),
 	)
-		.makeOptionMandatory(false)
-		.choices(PLATFORMS))
-	.action(async (from_dir, to_dir, {platform}) => {
-		assert(!(platform == null && to_dir != null),
-			"can't omit platform and use an explicit output dir. specify both -p <platform> and to_dir or none of them.")
-		assert(!(platform != null && to_dir == null),
-			"can't use an explicit platform but no output dir. specify both -p <platform> and to_dir or none of them.")
+	.action(async (from_dir, to_dir, { platform }) => {
+		assert(
+			!(platform == null && to_dir != null),
+			"can't omit platform and use an explicit output dir. specify both -p <platform> and to_dir or none of them.",
+		)
+		assert(
+			!(platform != null && to_dir == null),
+			"can't use an explicit platform but no output dir. specify both -p <platform> and to_dir or none of them.",
+		)
 
 		let conf: Record<string, string> = {}
 		if (platform != null) {
@@ -37,7 +43,7 @@ await program
 			// check if there's a .liccc file that states the desired platforms and output dirs
 			const confPath = path.join(from_dir, ".liccc")
 			try {
-				const relConf: Record<Platform, string> = JSON5.parse(await fs.promises.readFile(confPath, {encoding: "utf-8"}))
+				const relConf: Record<Platform, string> = JSON5.parse(await fs.promises.readFile(confPath, { encoding: "utf-8" }))
 				for (let [relPlatform, relPath] of Object.entries(relConf) as [Platform | "__comment", string][]) {
 					if (relPlatform === "__comment") continue
 					assert(PLATFORMS.includes(relPlatform), `invalid platform in .liccc: ${relPlatform}`)
@@ -53,12 +59,8 @@ await program
 	.parseAsync(process.argv)
 
 async function run(from_dir: string, conf: Record<Platform, string>): Promise<void> {
-	const inputFiles = await globby(["*/**/*.json", "*/**/*.json5"].map(glob => path.join(process.cwd(), from_dir, glob)))
-	const inputMap = new Map(
-		inputFiles.map((n: string) => (
-			[path.basename(n, n.endsWith("5") ? ".json5" : ".json"), fs.readFileSync(n, "utf8")]
-		))
-	)
+	const inputFiles = await globby(["*/**/*.json", "*/**/*.json5"].map((glob) => path.join(process.cwd(), from_dir, glob)))
+	const inputMap = new Map(inputFiles.map((n: string) => [path.basename(n, n.endsWith("5") ? ".json5" : ".json"), fs.readFileSync(n, "utf8")]))
 
 	// doing it here because some platforms generate into the same dir.
 	for (let outDir of Object.values(conf)) {
@@ -68,7 +70,7 @@ async function run(from_dir: string, conf: Record<Platform, string>): Promise<vo
 	for (let [confPlatform, confOutDir] of Object.entries(conf)) {
 		console.log("generating for", confPlatform, "into", confOutDir)
 		try {
-			await generate(confPlatform as Platform, inputMap, confOutDir,)
+			await generate(confPlatform as Platform, inputMap, confOutDir)
 		} catch (e) {
 			assert(false, `compilation failed with ${e}`)
 		}

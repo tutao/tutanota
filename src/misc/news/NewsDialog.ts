@@ -1,13 +1,13 @@
-import {ButtonAttrs, ButtonType} from "../../gui/base/Button.js"
-import m, {Component} from "mithril"
-import {DialogHeaderBar, DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar.js"
-import {lang} from "../LanguageViewModel.js"
-import {Dialog, DialogType} from "../../gui/base/Dialog.js"
-import {Keys} from "../../api/common/TutanotaConstants.js"
-import {NewsList} from "./NewsList.js"
-import {NewsModel} from "./NewsModel.js"
-import {progressIcon} from "../../gui/base/Icon.js"
-import {locator} from "../../api/main/MainLocator.js"
+import { ButtonAttrs, ButtonType } from "../../gui/base/Button.js"
+import m, { Component } from "mithril"
+import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../gui/base/DialogHeaderBar.js"
+import { lang } from "../LanguageViewModel.js"
+import { Dialog, DialogType } from "../../gui/base/Dialog.js"
+import { Keys } from "../../api/common/TutanotaConstants.js"
+import { NewsList } from "./NewsList.js"
+import { NewsModel } from "./NewsModel.js"
+import { progressIcon } from "../../gui/base/Icon.js"
+import { locator } from "../../api/main/MainLocator.js"
 
 export function showNewsDialog(newsModel: NewsModel) {
 	const closeButton: ButtonAttrs = {
@@ -46,24 +46,21 @@ export function showNewsDialog(newsModel: NewsModel) {
 				m("", [
 					loaded
 						? m(NewsList, {
-							liveNewsIds: newsModel.liveNewsIds,
-							liveNewsListItems: newsModel.liveNewsListItems,
-						})
-						: m(".flex-center.mt-l", m(".flex-v-center", [
-							m(".full-width.flex-center", progressIcon()),
-							m("p", lang.getMaybeLazy("pleaseWait_msg")),
-						]))
+								liveNewsIds: newsModel.liveNewsIds,
+								liveNewsListItems: newsModel.liveNewsListItems,
+						  })
+						: m(
+								".flex-center.mt-l",
+								m(".flex-v-center", [m(".full-width.flex-center", progressIcon()), m("p", lang.getMaybeLazy("pleaseWait_msg"))]),
+						  ),
 				]),
 			]
-		}
+		},
 	}
 
 	const dialog = new Dialog(DialogType.EditLarge, {
 		view: () => {
-			return m("", [
-				m(".dialog-header.plr-l", m(DialogHeaderBar, header)),
-				m(".dialog-container.scroll", m(".fill-absolute", m(child))),
-			])
+			return m("", [m(".dialog-header.plr-l", m(DialogHeaderBar, header)), m(".dialog-container.scroll", m(".fill-absolute", m(child)))])
 		},
 	}).addShortcut({
 		key: Keys.ESC,

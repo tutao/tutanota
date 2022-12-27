@@ -1,4 +1,4 @@
-import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
+import { HttpMethod, MediaType, resolveTypeReference } from "../../common/EntityFunctions"
 import {
 	DeleteService,
 	ExtraServiceParams,
@@ -8,17 +8,17 @@ import {
 	ParamTypeFromRef,
 	PostService,
 	PutService,
-	ReturnTypeFromRef
+	ReturnTypeFromRef,
 } from "../../common/ServiceRequest.js"
-import {Entity} from "../../common/EntityTypes"
-import {isSameTypeRef, lazy, TypeRef} from "@tutao/tutanota-utils"
-import {RestClient} from "./RestClient"
-import {InstanceMapper} from "../crypto/InstanceMapper"
-import {CryptoFacade} from "../crypto/CryptoFacade"
-import {assertWorkerOrNode} from "../../common/Env"
-import {ProgrammingError} from "../../common/error/ProgrammingError"
-import {AuthDataProvider} from "../facades/UserFacade"
-import {LoginIncompleteError} from "../../common/error/LoginIncompleteError.js"
+import { Entity } from "../../common/EntityTypes"
+import { isSameTypeRef, lazy, TypeRef } from "@tutao/tutanota-utils"
+import { RestClient } from "./RestClient"
+import { InstanceMapper } from "../crypto/InstanceMapper"
+import { CryptoFacade } from "../crypto/CryptoFacade"
+import { assertWorkerOrNode } from "../../common/Env"
+import { ProgrammingError } from "../../common/error/ProgrammingError"
+import { AuthDataProvider } from "../facades/UserFacade"
+import { LoginIncompleteError } from "../../common/error/LoginIncompleteError.js"
 
 assertWorkerOrNode()
 
@@ -30,8 +30,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		private readonly authDataProvider: AuthDataProvider,
 		private readonly instanceMapper: InstanceMapper,
 		private readonly cryptoFacade: lazy<CryptoFacade>,
-	) {
-	}
+	) {}
 
 	get<S extends GetService>(
 		service: S,
@@ -72,7 +71,8 @@ export class ServiceExecutor implements IServiceExecutor {
 		params: ExtraServiceParams | undefined,
 	): Promise<any> {
 		const methodDefinition = this.getMethodDefinition(service, method)
-		if (methodDefinition.return &&
+		if (
+			methodDefinition.return &&
 			params?.sessionKey == null &&
 			(await resolveTypeReference(methodDefinition.return)).encrypted &&
 			!this.authDataProvider.isFullyLoggedIn()
@@ -86,22 +86,17 @@ export class ServiceExecutor implements IServiceExecutor {
 		const modelVersion = await this.getModelVersion(methodDefinition)
 
 		const path = `/rest/${service.app.toLowerCase()}/${service.name.toLowerCase()}`
-		const headers = {...this.authDataProvider.createAuthHeaders(), ...params?.extraHeaders, v: modelVersion}
+		const headers = { ...this.authDataProvider.createAuthHeaders(), ...params?.extraHeaders, v: modelVersion }
 
 		const encryptedEntity = await this.encryptDataIfNeeded(methodDefinition, requestEntity, service, method, params ?? null)
 
-		const data: string | undefined = await this.restClient
-												   .request(
-													   path,
-													   method,
-													   {
-														   queryParams: params?.queryParams,
-														   headers,
-														   responseType: MediaType.Json,
-														   body: encryptedEntity ?? undefined,
-														   suspensionBehavior: params?.suspensionBehavior,
-													   },
-												   )
+		const data: string | undefined = await this.restClient.request(path, method, {
+			queryParams: params?.queryParams,
+			headers,
+			responseType: MediaType.Json,
+			body: encryptedEntity ?? undefined,
+			suspensionBehavior: params?.suspensionBehavior,
+		})
 
 		if (methodDefinition.return) {
 			return await this.decryptResponse(methodDefinition.return, data as string, params)

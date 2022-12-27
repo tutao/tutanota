@@ -1,10 +1,10 @@
 import o from "ospec"
-import {ContactAddressTypeRef, ContactMailAddressTypeRef, ContactPhoneNumberTypeRef, createContact} from "../../../src/api/entities/tutanota/TypeRefs.js"
-import {neverNull} from "@tutao/tutanota-utils"
-import {vCardFileToVCards, vCardListToContacts} from "../../../src/contacts/VCardImporter.js"
+import { ContactAddressTypeRef, ContactMailAddressTypeRef, ContactPhoneNumberTypeRef, createContact } from "../../../src/api/entities/tutanota/TypeRefs.js"
+import { neverNull } from "@tutao/tutanota-utils"
+import { vCardFileToVCards, vCardListToContacts } from "../../../src/contacts/VCardImporter.js"
 // @ts-ignore[untyped-import]
 import en from "../../../src/translations/en.js"
-import {lang} from "../../../src/misc/LanguageViewModel.js"
+import { lang } from "../../../src/misc/LanguageViewModel.js"
 
 o.spec("VCardImporterTest", function () {
 	o.before(async function () {
@@ -151,9 +151,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		o(vCardFileToVCards(str)!).deepEquals(expected)
 	})
 	o("testToContactNames", function () {
-		let a = [
-			"N:Public\\\\;John\\;Quinlan;;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81\\nBasche\nNOTE:Hello World\\nHier ist ein Umbruch",
-		]
+		let a = ["N:Public\\\\;John\\;Quinlan;;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81\\nBasche\nNOTE:Hello World\\nHier ist ein Umbruch"]
 		let contacts = vCardListToContacts(a, "")
 		let b = createContact()
 		b._owner = ""
@@ -226,10 +224,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		let a = `BEGIN:VCARD\n${aContent}\nEND:VCARD\n`
 		let bContent = "version:4.0\nFN:John B"
 		let b = `begin:vcard\n${bContent}\nend:vcard\n`
-		o(vCardFileToVCards(a + b)).deepEquals([
-			aContent,
-			bContent
-		])
+		o(vCardFileToVCards(a + b)).deepEquals([aContent, bContent])
 	})
 	o("testTypeInUserText", function () {
 		let a = ["EMAIL;TYPE=WORK:HOME@mvrht.net\nADR;TYPE=WORK:Street;HOME;;\nTEL;TYPE=WORK:HOME01923825434"]
@@ -362,7 +357,8 @@ END:VCARD`
 	})
 	o.spec("protonmail exports are imported correctly", function () {
 		o("protonmail v4.0 simple import", function () {
-			let vCard = "BEGIN:VCARD\n" +
+			let vCard =
+				"BEGIN:VCARD\n" +
 				"VERSION:4.0\n" +
 				"PRODID;VALUE=TEXT:-//ProtonMail//ProtonMail vCard 1.0.0//EN\n" +
 				"FN;PREF=1:johnsuser@test.tutanota.com\n" +
@@ -379,7 +375,8 @@ END:VCARD`
 			o(contacts[0].mailAddresses[0].address).equals("johnsuser@test.tutanota.com")
 		})
 		o("protonmail v4.0 complicated import", function () {
-			let vCard = "BEGIN:VCARD\n" +
+			let vCard =
+				"BEGIN:VCARD\n" +
 				"VERSION:4.0\n" +
 				"ADR;PREF=1:;;908 S 1780 W;Orem;UT;;USA\n" +
 				"NOTE:This is a note\n" +

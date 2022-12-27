@@ -1,30 +1,28 @@
-import {parseCalendarFile} from "../export/CalendarImporter"
-import type {CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail} from "../../api/entities/tutanota/TypeRefs.js"
-import {locator} from "../../api/main/MainLocator"
-import {CalendarAttendeeStatus, CalendarMethod, getAsEnumValue} from "../../api/common/TutanotaConstants"
-import {assertNotNull, clone, filterInt, noOp, ofClass, Thunk} from "@tutao/tutanota-utils"
-import {findPrivateCalendar, getEventStart, getTimeZone} from "./CalendarUtils"
-import {logins} from "../../api/main/LoginController"
-import {calendarUpdateDistributor} from "./CalendarUpdateDistributor"
-import {Dialog} from "../../gui/base/Dialog"
-import {UserError} from "../../api/main/UserError"
-import {NoopProgressMonitor} from "../../api/common/utils/ProgressMonitor"
-import {CalendarEventViewModel, createCalendarEventViewModel} from "./CalendarEventViewModel"
-import {DataFile} from "../../api/common/DataFile";
-import {NoZoneDateProvider} from "../../api/common/utils/NoZoneDateProvider.js"
+import { parseCalendarFile } from "../export/CalendarImporter"
+import type { CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail } from "../../api/entities/tutanota/TypeRefs.js"
+import { locator } from "../../api/main/MainLocator"
+import { CalendarAttendeeStatus, CalendarMethod, getAsEnumValue } from "../../api/common/TutanotaConstants"
+import { assertNotNull, clone, filterInt, noOp, ofClass, Thunk } from "@tutao/tutanota-utils"
+import { findPrivateCalendar, getEventStart, getTimeZone } from "./CalendarUtils"
+import { logins } from "../../api/main/LoginController"
+import { calendarUpdateDistributor } from "./CalendarUpdateDistributor"
+import { Dialog } from "../../gui/base/Dialog"
+import { UserError } from "../../api/main/UserError"
+import { NoopProgressMonitor } from "../../api/common/utils/ProgressMonitor"
+import { CalendarEventViewModel, createCalendarEventViewModel } from "./CalendarEventViewModel"
+import { DataFile } from "../../api/common/DataFile"
+import { NoZoneDateProvider } from "../../api/common/utils/NoZoneDateProvider.js"
 
-function getParsedEvent(
-	fileData: DataFile,
-):
+function getParsedEvent(fileData: DataFile):
 	| {
-	method: CalendarMethod
-	event: CalendarEvent
-	uid: string
-}
+			method: CalendarMethod
+			event: CalendarEvent
+			uid: string
+	  }
 	| null
 	| undefined {
 	try {
-		const {contents, method} = parseCalendarFile(fileData)
+		const { contents, method } = parseCalendarFile(fileData)
 		const verifiedMethod = getAsEnumValue(CalendarMethod, method) || CalendarMethod.PUBLISH
 		const parsedEventWithAlarms = contents[0]
 
@@ -44,7 +42,7 @@ function getParsedEvent(
 }
 
 export async function showEventDetails(event: CalendarEvent, eventBubbleRect: ClientRect, mail: Mail | null): Promise<void> {
-	const [latestEvent, {CalendarEventPopup}, {htmlSanitizer}] = await Promise.all([
+	const [latestEvent, { CalendarEventPopup }, { htmlSanitizer }] = await Promise.all([
 		getLatestEvent(event),
 		import("../view/CalendarEventPopup"),
 		import("../../misc/HtmlSanitizer"),
@@ -59,7 +57,7 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 		viewModel = await createCalendarEventViewModel(getEventStart(latestEvent, getTimeZone()), calendarInfos, mailboxDetails, latestEvent, mail, true)
 
 		onEditEvent = async () => {
-			const {showCalendarEventDialog} = await import("../view/CalendarEventEditDialog")
+			const { showCalendarEventDialog } = await import("../view/CalendarEventEditDialog")
 			showCalendarEventDialog(latestEvent.startTime, calendarInfos, mailboxDetails, latestEvent, mail ?? undefined)
 		}
 	}
@@ -81,7 +79,7 @@ export function getLatestEvent(event: CalendarEvent): Promise<CalendarEvent> {
 	const uid = event.uid
 
 	if (uid) {
-		return locator.calendarFacade.getEventByUid(uid).then(existingEvent => {
+		return locator.calendarFacade.getEventByUid(uid).then((existingEvent) => {
 			if (existingEvent) {
 				// If the file we are opening is newer than the one which we have on the server, update server version.
 				// Should not happen normally but can happen when e.g. reply and update were sent one after another before we accepted
@@ -110,12 +108,12 @@ export async function replyToEventInvitation(
 	previousMail: Mail,
 ): Promise<void> {
 	const eventClone = clone(event)
-	const foundAttendee = assertNotNull(eventClone.attendees.find(a => a.address.address === attendee.address.address))
+	const foundAttendee = assertNotNull(eventClone.attendees.find((a) => a.address.address === attendee.address.address))
 	foundAttendee.status = decision
 	const calendar = await locator.calendarModel.loadOrCreateCalendarInfo(new NoopProgressMonitor()).then(findPrivateCalendar)
 	const mailboxDetails = await locator.mailModel.getMailboxDetailsForMail(previousMail)
 	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-	const {SendMailModel} = await import("../../mail/editor/SendMailModel")
+	const { SendMailModel } = await import("../../mail/editor/SendMailModel")
 	const sendMailModel = new SendMailModel(
 		locator.mailFacade,
 		locator.entityClient,
@@ -130,13 +128,13 @@ export async function replyToEventInvitation(
 	)
 	return calendarUpdateDistributor
 		.sendResponse(eventClone, sendMailModel, foundAttendee.address.address, previousMail, decision)
-		.catch(ofClass(UserError, e => Dialog.message(() => e.message)))
+		.catch(ofClass(UserError, (e) => Dialog.message(() => e.message)))
 		.then(() => {
 			if (calendar) {
 				// if the owner group is set there is an existing event already so just update
 				if (event._ownerGroup) {
-					return locator.calendarModel.loadAlarms(event.alarmInfos, logins.getUserController().user).then(alarms => {
-						const alarmInfos = alarms.map(a => a.alarmInfo)
+					return locator.calendarModel.loadAlarms(event.alarmInfos, logins.getUserController().user).then((alarms) => {
+						const alarmInfos = alarms.map((a) => a.alarmInfo)
 						return locator.calendarModel.updateEvent(eventClone, alarmInfos, getTimeZone(), calendar.groupRoot, event).then(noOp)
 					})
 				} else {

@@ -3,26 +3,31 @@
  */
 import path from "path"
 import fs from "fs"
-import {program} from "commander"
-import {fileURLToPath} from "url"
-import {fileExists, getCanonicalPlatformName, getElectronVersion, getInstalledModuleVersion, LogWriter} from "./buildUtils.js"
-import {createRequire} from "module"
+import { program } from "commander"
+import { fileURLToPath } from "url"
+import { fileExists, getCanonicalPlatformName, getElectronVersion, getInstalledModuleVersion, LogWriter } from "./buildUtils.js"
+import { createRequire } from "module"
 
-import {spawn} from "child_process"
+import { spawn } from "child_process"
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	await program
-		.usage('<module> [...options]')
-		.description('Utility for ensuring that a built and cached version of a given node module exists. Will build using node-gyp or download the module with prebuild-install as necessary')
-		.arguments('<module>')
+		.usage("<module> [...options]")
+		.description(
+			"Utility for ensuring that a built and cached version of a given node module exists. Will build using node-gyp or download the module with prebuild-install as necessary",
+		)
+		.arguments("<module>")
 		.option("-e, --environment <environment>", "which node environment to target", "electron")
 		.option("-r, --root-dir <rootDir>", "path to the root of the project", ".")
 		.option("-f, --force-rebuild", "force a rebuild (don't use the cache)")
 		.option("-e, --use-existing", "Use the existing built version (e.g. when using prebuild)")
-		.option("-c, --copy-target <copyTarget>", "Which node-gyp target (specified in binding.gyp) to copy the output of. Defaults to the same name as the module")
+		.option(
+			"-c, --copy-target <copyTarget>",
+			"Which node-gyp target (specified in binding.gyp) to copy the output of. Defaults to the same name as the module",
+		)
 		.action(async (module, opts) => {
 			validateOpts(opts)
-			await cli(module, opts,)
+			await cli(module, opts)
 		})
 		.parseAsync(process.argv)
 }
@@ -33,21 +38,12 @@ function validateOpts(opts) {
 	}
 }
 
-async function cli(
-	nodeModule,
-	{
-		environment,
-		rootDir,
-		forceRebuild,
-		useExisting,
-		copyTarget,
-	}
-) {
+async function cli(nodeModule, { environment, rootDir, forceRebuild, useExisting, copyTarget }) {
 	const platform = getCanonicalPlatformName(process.platform)
-	const path = await getCachedLibPath({rootDir, nodeModule, environment, platform}, console.log.bind(console))
+	const path = await getCachedLibPath({ rootDir, nodeModule, environment, platform }, console.log.bind(console))
 
 	if (forceRebuild) {
-		await fs.promises.rm(path, {force: true})
+		await fs.promises.rm(path, { force: true })
 	}
 
 	await getNativeLibModulePath({
@@ -76,25 +72,12 @@ async function cli(
  * @param prebuildTarget: {{ runtime: string, version: number} | undefined} Target parameters to use when getting a prebuild
  * @returns {Promise<string>} path to cached native module
  */
-export async function getNativeLibModulePath(
-	{
-		environment,
-		platform,
-		rootDir,
-		nodeModule,
-		log,
-		noBuild,
-		copyTarget,
-	}
-) {
-
-	const libPath = await getCachedLibPath({rootDir, nodeModule, environment, platform}, log)
+export async function getNativeLibModulePath({ environment, platform, rootDir, nodeModule, log, noBuild, copyTarget }) {
+	const libPath = await getCachedLibPath({ rootDir, nodeModule, environment, platform }, log)
 
 	if (await fileExists(libPath)) {
 		log(`Using cached ${nodeModule} at`, libPath)
 	} else {
-
-
 		let isCrossCompilation = false
 		if (platform === "win32" && process.platform !== "win32") {
 			isCrossCompilation = true
@@ -109,27 +92,23 @@ export async function getNativeLibModulePath(
 
 		if (isCrossCompilation) {
 			log(`Getting prebuilt ${nodeModule} using prebuild-install...`)
-			await getPrebuiltNativeModuleForWindows(
-				{
-					nodeModule,
-					rootDir,
-					log
-				}
-			)
+			await getPrebuiltNativeModuleForWindows({
+				nodeModule,
+				rootDir,
+				log,
+			})
 		} else {
 			log(`Compiling ${nodeModule} for ${platform}...`)
-			await buildNativeModule(
-				{
-					environment,
-					rootDir,
-					log,
-					nodeModule,
-				}
-			)
+			await buildNativeModule({
+				environment,
+				rootDir,
+				log,
+				nodeModule,
+			})
 		}
 
 		const moduleDir = await getModuleDir(rootDir, nodeModule)
-		await fs.promises.copyFile(path.join(moduleDir, 'build/Release', `${copyTarget ?? nodeModule}.node`), libPath)
+		await fs.promises.copyFile(path.join(moduleDir, "build/Release", `${copyTarget ?? nodeModule}.node`), libPath)
 	}
 
 	return libPath
@@ -144,30 +123,23 @@ export async function getNativeLibModulePath(
  * @param log {(string) => void} a logger
  * @returns {Promise<void>}
  */
-export async function buildNativeModule({nodeModule, environment, rootDir, log}) {
+export async function buildNativeModule({ nodeModule, environment, rootDir, log }) {
 	await callProgram({
-			command: "npm exec",
-			args: [
-				"--",
-				"node-gyp",
-				"rebuild",
-				"--release",
-				"--build-from-source",
-				`--arch=${process.arch}`,
-				...(
-					environment === "electron"
-						? [
-							"--runtime=electron",
-							'--dist-url=https://www.electronjs.org/headers',
-							`--target=${await getElectronVersion(log)}`,
-						]
-						: []
-				)
-			],
-			cwd: await getModuleDir(rootDir, nodeModule),
-			log
-		}
-	)
+		command: "npm exec",
+		args: [
+			"--",
+			"node-gyp",
+			"rebuild",
+			"--release",
+			"--build-from-source",
+			`--arch=${process.arch}`,
+			...(environment === "electron"
+				? ["--runtime=electron", "--dist-url=https://www.electronjs.org/headers", `--target=${await getElectronVersion(log)}`]
+				: []),
+		],
+		cwd: await getModuleDir(rootDir, nodeModule),
+		log,
+	})
 }
 
 /**
@@ -186,13 +158,7 @@ export async function buildNativeModule({nodeModule, environment, rootDir, log})
  * @param log
  * @returns {Promise<void>}
  */
-export async function getPrebuiltNativeModuleForWindows(
-	{
-		nodeModule,
-		rootDir,
-		log
-	}
-) {
+export async function getPrebuiltNativeModuleForWindows({ nodeModule, rootDir, log }) {
 	// We never want to use prebuilt native modules when building on jenkins, so it is considered an error as a safeguard
 	if (process.env.JENKINS_HOME) {
 		throw new Error("Should not be getting prebuilt native modules in CI")
@@ -207,20 +173,13 @@ export async function getPrebuiltNativeModuleForWindows(
 			"prebuild-install",
 			`--platform=win32`,
 			"--tag-prefix=v",
-			...(target != null
-					? [
-						`--runtime=${target.runtime}`,
-						`--target=${target.version}`,
-					]
-					: []
-			),
-			"--verbose"
+			...(target != null ? [`--runtime=${target.runtime}`, `--target=${target.version}`] : []),
+			"--verbose",
 		],
 		cwd: await getModuleDir(rootDir, nodeModule),
-		log
+		log,
 	})
 }
-
 
 /**
  * prebuild-install {runtime, target} configurations are a pain to maintain because they are specific for whichever native module you want to get a prebuild for,
@@ -233,38 +192,32 @@ async function getPrebuildConfiguration(nodeModule, environment, log) {
 		case "keytar":
 			return {
 				runtime: "napi",
-				version: "3"
+				version: "3",
 			}
 		// better-sqlite3 doesn't use NAPI, so if we are building for electron, we have to specify which electron version
 		// otherwise it will just use whichever version of node we are currently running
 		case "better-sqlite3":
 			return environment === "electron"
 				? {
-					runtime: "electron",
-					version: await getElectronVersion(log)
-				}
+						runtime: "electron",
+						version: await getElectronVersion(log),
+				  }
 				: null
 		default:
 			throw new Error(`Unknown prebuild-configuration for node module ${nodeModule}, requires a definition`)
 	}
 }
 
-
 /**
  * Call a program, piping stdout and stderr to log, and resolves when the process exits
  * @returns {Promise<void>}
  */
-function callProgram({command, args, cwd, log}) {
-
-	const process = spawn(
-		command,
-		args,
-		{
-			stdio: [null, "pipe", "pipe"],
-			shell: true,
-			cwd,
-		}
-	)
+function callProgram({ command, args, cwd, log }) {
+	const process = spawn(command, args, {
+		stdio: [null, "pipe", "pipe"],
+		shell: true,
+		cwd,
+	})
 
 	const logStream = new LogWriter(log)
 
@@ -272,7 +225,7 @@ function callProgram({command, args, cwd, log}) {
 	process.stderr.pipe(logStream)
 
 	return new Promise((resolve, reject) => {
-		process.on('exit', (code) => {
+		process.on("exit", (code) => {
 			if (code === 0) {
 				resolve()
 			} else {
@@ -282,7 +235,6 @@ function callProgram({command, args, cwd, log}) {
 	})
 }
 
-
 /**
  * Get the target name for the built native library when cached
  * @param rootDir
@@ -291,10 +243,10 @@ function callProgram({command, args, cwd, log}) {
  * @param platform
  * @returns {Promise<string>}
  */
-async function getCachedLibPath({rootDir, nodeModule, environment, platform}, log) {
+async function getCachedLibPath({ rootDir, nodeModule, environment, platform }, log) {
 	const dir = path.join(rootDir, "native-cache", environment)
 	const libraryVersion = await getInstalledModuleVersion(nodeModule, log)
-	await fs.promises.mkdir(dir, {recursive: true})
+	await fs.promises.mkdir(dir, { recursive: true })
 
 	if (environment === "electron") {
 		return path.resolve(dir, `${nodeModule}-${libraryVersion}-electron-${await getInstalledModuleVersion("electron", log)}-${platform}.node`)

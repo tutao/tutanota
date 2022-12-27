@@ -1,21 +1,21 @@
-import m, {Children, Component, Vnode} from "mithril"
-import type {TranslationKey} from "../misc/LanguageViewModel"
-import {lang} from "../misc/LanguageViewModel"
-import {isMailAddress} from "../misc/FormatValidator"
-import {AccessDeactivatedError} from "../api/common/error/RestError"
-import {getFirstOrThrow} from "@tutao/tutanota-utils"
-import {formatMailAddressFromParts} from "../misc/Formatter"
-import {Icon} from "../gui/base/Icon"
-import {BootIcons} from "../gui/base/icons/BootIcons"
-import {locator} from "../api/main/MainLocator"
-import {assertMainOrNode} from "../api/common/Env"
-import {isTutanotaMailAddress} from "../mail/model/MailUtils.js";
-import {px, size} from "../gui/size.js"
-import {Autocomplete, inputLineHeight, TextField} from "../gui/base/TextField.js"
-import {attachDropdown, DropdownButtonAttrs} from "../gui/base/Dropdown.js"
-import {IconButton, IconButtonAttrs} from "../gui/base/IconButton.js"
-import {ButtonSize} from "../gui/base/ButtonSize.js"
-import {UsageTest} from "@tutao/tutanota-usagetests"
+import m, { Children, Component, Vnode } from "mithril"
+import type { TranslationKey } from "../misc/LanguageViewModel"
+import { lang } from "../misc/LanguageViewModel"
+import { isMailAddress } from "../misc/FormatValidator"
+import { AccessDeactivatedError } from "../api/common/error/RestError"
+import { getFirstOrThrow } from "@tutao/tutanota-utils"
+import { formatMailAddressFromParts } from "../misc/Formatter"
+import { Icon } from "../gui/base/Icon"
+import { BootIcons } from "../gui/base/icons/BootIcons"
+import { locator } from "../api/main/MainLocator"
+import { assertMainOrNode } from "../api/common/Env"
+import { isTutanotaMailAddress } from "../mail/model/MailUtils.js"
+import { px, size } from "../gui/size.js"
+import { Autocomplete, inputLineHeight, TextField } from "../gui/base/TextField.js"
+import { attachDropdown, DropdownButtonAttrs } from "../gui/base/Dropdown.js"
+import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
+import { ButtonSize } from "../gui/base/ButtonSize.js"
+import { UsageTest } from "@tutao/tutanota-usagetests"
 
 assertMainOrNode()
 
@@ -31,7 +31,7 @@ export interface SelectMailAddressFormAttrs {
 }
 
 export interface ValidationResult {
-	isValid: boolean,
+	isValid: boolean
 	errorId: TranslationKey | null
 }
 
@@ -43,7 +43,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 	private isVerificationBusy: boolean
 	private signupUnavailableEmailsTest: UsageTest
 
-	constructor({attrs}: Vnode<SelectMailAddressFormAttrs>) {
+	constructor({ attrs }: Vnode<SelectMailAddressFormAttrs>) {
 		this.isVerificationBusy = false
 		this.checkAddressTimeout = null
 		this.domain = getFirstOrThrow(attrs.availableDomains)
@@ -52,7 +52,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 		this.signupUnavailableEmailsTest = locator.usageTestController.getTest("signup.unavailableemails")
 	}
 
-	view({attrs}: Vnode<SelectMailAddressFormAttrs>): Children {
+	view({ attrs }: Vnode<SelectMailAddressFormAttrs>): Children {
 		// this is a semi-good hack to reset the username after the user pressed "ok"
 		if (attrs.injectionsRightButtonAttrs?.click) {
 			const originalCallback = attrs.injectionsRightButtonAttrs.click
@@ -89,21 +89,22 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 					`@${this.domain}`,
 				),
 				attrs.availableDomains.length > 1
-					? m(IconButton, attachDropdown(
-						{
-							mainButtonAttrs: {
-								title: "domain_label",
-								icon: BootIcons.Expand,
-								size: ButtonSize.Compact,
-							},
-							childAttrs: () => attrs.availableDomains.map(domain => this.createDropdownItemAttrs(domain, attrs)),
-							showDropdown: () => true,
-							width: 250,
-						},
-					))
+					? m(
+							IconButton,
+							attachDropdown({
+								mainButtonAttrs: {
+									title: "domain_label",
+									icon: BootIcons.Expand,
+									size: ButtonSize.Compact,
+								},
+								childAttrs: () => attrs.availableDomains.map((domain) => this.createDropdownItemAttrs(domain, attrs)),
+								showDropdown: () => true,
+								width: 250,
+							}),
+					  )
 					: attrs.injectionsRightButtonAttrs
-						? m(IconButton, attrs.injectionsRightButtonAttrs)
-						: null,
+					? m(IconButton, attrs.injectionsRightButtonAttrs)
+					: null,
 			],
 		})
 	}
@@ -142,13 +143,17 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 		m.redraw()
 	}
 
-	private onValidationFinished(email: string, validationResult: ValidationResult, onValidationResult: SelectMailAddressFormAttrs["onValidationResult"]): void {
+	private onValidationFinished(
+		email: string,
+		validationResult: ValidationResult,
+		onValidationResult: SelectMailAddressFormAttrs["onValidationResult"],
+	): void {
 		this.messageId = validationResult.errorId
 		onValidationResult(email, validationResult)
 	}
 
 	private verifyMailAddress(attrs: SelectMailAddressFormAttrs) {
-		const {onValidationResult, onBusyStateChanged} = attrs
+		const { onValidationResult, onBusyStateChanged } = attrs
 		this.checkAddressTimeout && clearTimeout(this.checkAddressTimeout)
 
 		const cleanMailAddress = this.getCleanMailAddress()
@@ -191,12 +196,10 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 				if (!available) {
 					this.signupUnavailableEmailsTest.getStage(1).complete()
 				}
-				result = available
-					? {isValid: true, errorId: null}
-					: {isValid: false, errorId: attrs.mailAddressNAError ?? "mailAddressNA_msg"}
+				result = available ? { isValid: true, errorId: null } : { isValid: false, errorId: attrs.mailAddressNAError ?? "mailAddressNA_msg" }
 			} catch (e) {
 				if (e instanceof AccessDeactivatedError) {
-					result = {isValid: false, errorId: "mailAddressDelay_msg"}
+					result = { isValid: false, errorId: "mailAddressDelay_msg" }
 				} else {
 					throw e
 				}

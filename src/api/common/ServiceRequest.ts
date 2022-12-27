@@ -1,20 +1,19 @@
-import {TypeRef} from "@tutao/tutanota-utils"
-import {assertMainOrNode} from "./Env.js"
-import type {Entity} from "./EntityTypes.js"
-import {Aes128Key} from "@tutao/tutanota-crypto/dist/encryption/Aes"
-import {SuspensionBehavior} from "../worker/rest/RestClient"
+import { TypeRef } from "@tutao/tutanota-utils"
+import { assertMainOrNode } from "./Env.js"
+import type { Entity } from "./EntityTypes.js"
+import { Aes128Key } from "@tutao/tutanota-crypto/dist/encryption/Aes"
+import { SuspensionBehavior } from "../worker/rest/RestClient"
 
 assertMainOrNode()
 
-
 export type MethodDefinition = {
-	data: TypeRef<Entity> | null,
+	data: TypeRef<Entity> | null
 	return: TypeRef<Entity> | null
 }
 
 export interface ServiceDefinition {
-	app: string,
-	name: string,
+	app: string
+	name: string
 }
 
 export interface GetService extends ServiceDefinition {
@@ -33,20 +32,12 @@ export interface DeleteService extends ServiceDefinition {
 	delete: MethodDefinition
 }
 
-export type ParamTypeFromRef<TR extends TypeRef<Entity> | null> = TR extends TypeRef<infer T>
-	? T
-	: null
+export type ParamTypeFromRef<TR extends TypeRef<Entity> | null> = TR extends TypeRef<infer T> ? T : null
 
-export type ReturnTypeFromRef<TR extends TypeRef<Entity> | null> = TR extends TypeRef<infer T>
-	? T
-	: undefined
+export type ReturnTypeFromRef<TR extends TypeRef<Entity> | null> = TR extends TypeRef<infer T> ? T : undefined
 
 export interface IServiceExecutor {
-	get<S extends GetService>(
-		service: S,
-		data: ParamTypeFromRef<S["get"]["data"]>,
-		params?: ExtraServiceParams,
-	): Promise<ReturnTypeFromRef<S["get"]["return"]>>
+	get<S extends GetService>(service: S, data: ParamTypeFromRef<S["get"]["data"]>, params?: ExtraServiceParams): Promise<ReturnTypeFromRef<S["get"]["return"]>>
 
 	post<S extends PostService>(
 		service: S,
@@ -54,11 +45,7 @@ export interface IServiceExecutor {
 		params?: ExtraServiceParams,
 	): Promise<ReturnTypeFromRef<S["post"]["return"]>>
 
-	put<S extends PutService>(
-		service: S,
-		data: ParamTypeFromRef<S["put"]["data"]>,
-		params?: ExtraServiceParams,
-	): Promise<ReturnTypeFromRef<S["put"]["return"]>>
+	put<S extends PutService>(service: S, data: ParamTypeFromRef<S["put"]["data"]>, params?: ExtraServiceParams): Promise<ReturnTypeFromRef<S["put"]["return"]>>
 
 	delete<S extends DeleteService>(
 		service: S,
@@ -68,8 +55,8 @@ export interface IServiceExecutor {
 }
 
 export interface ExtraServiceParams {
-	queryParams?: Dict,
-	sessionKey?: Aes128Key,
-	extraHeaders?: Dict,
-	suspensionBehavior?: SuspensionBehavior,
+	queryParams?: Dict
+	sessionKey?: Aes128Key
+	extraHeaders?: Dict
+	suspensionBehavior?: SuspensionBehavior
 }

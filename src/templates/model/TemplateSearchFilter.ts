@@ -1,6 +1,6 @@
-import type {EmailTemplate} from "../../api/entities/tutanota/TypeRefs.js"
-import {TEMPLATE_SHORTCUT_PREFIX} from "./TemplatePopupModel"
-import {search} from "../../api/common/utils/PlainTextSearch"
+import type { EmailTemplate } from "../../api/entities/tutanota/TypeRefs.js"
+import { TEMPLATE_SHORTCUT_PREFIX } from "./TemplatePopupModel"
+import { search } from "../../api/common/utils/PlainTextSearch"
 
 export function searchInTemplates(input: string, allTemplates: ReadonlyArray<EmailTemplate>): ReadonlyArray<EmailTemplate> {
 	if (input.startsWith(TEMPLATE_SHORTCUT_PREFIX)) {

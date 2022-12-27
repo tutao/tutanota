@@ -13,9 +13,7 @@ o.spec("PasswordUtilsTest", function () {
 		o(min <= getPasswordStrength(pw, [])).equals(true)(
 			"Passphrase " + pw + " strength: " + getPasswordStrength(pw, []) + " is smaller than expected " + min,
 		)
-		o(getPasswordStrength(pw, []) <= max).equals(true)(
-			"Passphrase " + pw + " strength: " + getPasswordStrength(pw, []) + " is bigger than expected " + max,
-		)
+		o(getPasswordStrength(pw, []) <= max).equals(true)("Passphrase " + pw + " strength: " + getPasswordStrength(pw, []) + " is bigger than expected " + max)
 	}
 
 	o("password strength", function () {
