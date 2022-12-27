@@ -73,23 +73,25 @@ export function sendRejectNotificationEmail(invitation: ReceivedGroupInvitation,
 	)
 }
 
-async function _sendNotificationEmail(recipients: Recipients, subject: string, body: string, senderMailAddress: string) {
-	const { htmlSanitizer } = await import("../misc/HtmlSanitizer")
-	const sanitizedBody = htmlSanitizer.sanitizeHTML(body, {
-		blockExternalContent: false,
-		allowRelativeLinks: false,
-		usePlaceholderForInlineImages: false,
-	}).html
-	const mailboxDetails = await locator.mailModel.getUserMailboxDetails()
-	const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-	const sender = getEnabledMailAddressesWithUser(mailboxDetails, logins.getUserController().userGroupInfo).includes(senderMailAddress)
-		? senderMailAddress
-		: getDefaultSender(logins, mailboxDetails)
-	const confirm = () => Promise.resolve(true)
+function _sendNotificationEmail(recipients: Recipients, subject: string, body: string, senderMailAddress: string) {
+	import("../misc/HtmlSanitizer").then(({ htmlSanitizer }) => {
+		const sanitizedBody = htmlSanitizer.sanitizeHTML(body, {
+			blockExternalContent: false,
+			allowRelativeLinks: false,
+			usePlaceholderForInlineImages: false,
+		}).html
+		locator.mailModel.getUserMailboxDetails().then(async (mailboxDetails) => {
+			const sender = getEnabledMailAddressesWithUser(mailboxDetails, logins.getUserController().userGroupInfo).includes(senderMailAddress)
+				? senderMailAddress
+				: getDefaultSender(logins, mailboxDetails)
 
-	const wait = showProgressDialog
-	const { defaultSendMailModel } = await import("../mail/editor/SendMailModel")
-	return defaultSendMailModel(mailboxDetails, mailboxProperties)
-		.initWithTemplate(recipients, subject, sanitizedBody, [], true, sender)
-		.then((model) => model.send(MailMethod.NONE, confirm, wait, "tooManyMailsAuto_msg"))
+			const confirm = () => Promise.resolve(true)
+
+			const wait = showProgressDialog
+			const mailboxProperties = await locator.mailModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+			const model = await locator.sendMailModel(mailboxDetails, mailboxProperties)
+			await model.initWithTemplate(recipients, subject, sanitizedBody, [], true, sender)
+			await model.send(MailMethod.NONE, confirm, wait, "tooManyMailsAuto_msg")
+		})
+	})
 }

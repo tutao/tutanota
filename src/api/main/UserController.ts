@@ -110,15 +110,15 @@ export class UserController {
 	}
 
 	loadCustomer(): Promise<Customer> {
-		return locator.entityClient.load(CustomerTypeRef, neverNull(this.user.customer))
+		return this.entityClient.load(CustomerTypeRef, neverNull(this.user.customer))
 	}
 
 	loadCustomerInfo(): Promise<CustomerInfo> {
-		return this.loadCustomer().then((customer) => locator.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
+		return this.loadCustomer().then((customer) => this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
 	}
 
 	loadAccountingInfo(): Promise<AccountingInfo> {
-		return this.loadCustomerInfo().then((customerInfo) => locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo))
+		return this.loadCustomerInfo().then((customerInfo) => this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo))
 	}
 
 	getMailGroupMemberships(): GroupMembership[] {

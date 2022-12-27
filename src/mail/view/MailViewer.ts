@@ -684,27 +684,10 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 }
 
-type CreateMailViewerOptions = {
+export type CreateMailViewerOptions = {
 	mail: Mail
 	showFolder: boolean
 	delayBodyRenderingUntil?: Promise<void>
-}
-
-export function createMailViewerViewModel({ mail, showFolder, delayBodyRenderingUntil }: CreateMailViewerOptions): MailViewerViewModel {
-	return new MailViewerViewModel(
-		mail,
-		showFolder,
-		delayBodyRenderingUntil ?? Promise.resolve(),
-		locator.entityClient,
-		locator.mailModel,
-		locator.contactModel,
-		locator.configFacade,
-		isDesktop() ? locator.desktopSystemFacade : null,
-		locator.fileFacade,
-		locator.fileController,
-		logins,
-		locator.serviceExecutor,
-	)
 }
 
 /**
